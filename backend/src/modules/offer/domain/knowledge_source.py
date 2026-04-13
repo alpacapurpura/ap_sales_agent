@@ -20,6 +20,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class KnowledgeSource(BaseEntity):
+    """Knowledge Source."""
+
     id: UUID = Field(default_factory=uuid4)
     tenant_id: UUID
     offer_id: UUID

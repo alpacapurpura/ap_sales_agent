@@ -1,5 +1,4 @@
-"""
-Offer Creation Procedure — guides through creating and configuring an offer.
+"""Offer Creation Procedure — guides through creating and configuring an offer.
 
 Uses has_any_data validation since Offer is a SQLAlchemy model (no single Pydantic root).
 """

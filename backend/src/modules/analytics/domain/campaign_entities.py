@@ -30,6 +30,8 @@ class CampaignObjective(StrEnum):
 
 
 class CampaignStatus(StrEnum):
+    """Enumerate campaign status values."""
+
     ACTIVE = "ACTIVE"
     PAUSED = "PAUSED"
     DELETED = "DELETED"
@@ -55,6 +57,8 @@ class EffectiveStatus(StrEnum):
 
 
 class BidStrategy(StrEnum):
+    """Enumerate bid strategy values."""
+
     LOWEST_COST_WITHOUT_CAP = "LOWEST_COST_WITHOUT_CAP"
     LOWEST_COST_WITH_BID_CAP = "LOWEST_COST_WITH_BID_CAP"
     COST_CAP = "COST_CAP"
@@ -62,6 +66,8 @@ class BidStrategy(StrEnum):
 
 
 class LearningStage(StrEnum):
+    """Enumerate learning stage values."""
+
     LEARNING = "LEARNING"
     SUCCESS = "SUCCESS"
     FAIL = "FAIL"

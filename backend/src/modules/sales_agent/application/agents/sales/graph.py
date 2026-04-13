@@ -1,3 +1,5 @@
+"""Graph application module."""
+
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
@@ -38,6 +40,7 @@ def _route_after_accumulator(state: AgentState) -> str:
 
 
 def create_sales_subgraph() -> CompiledStateGraph:
+    """Create sales subgraph."""
     workflow = StateGraph(AgentState)
 
     # Nodes

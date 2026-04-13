@@ -5,6 +5,7 @@ import streamlit as st
 
 
 def render_capability_catalog() -> None:
+    """Render the copilot capability catalog dashboard."""
     st.title("🔧 Capacidades del Copilot")
 
     # KPIs — static counts from code

@@ -1,3 +1,5 @@
+"""Content domain definitions."""
+
 from datetime import datetime
 from typing import Any
 
@@ -10,12 +12,16 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class FeatureBullet(BaseEntity):
+    """Represent feature bullet."""
+
     icon: str | None = None  # Emoji or Icon name
     title: str
     description: str | None = None
 
 
 class Testimonial(BaseEntity):
+    """Represent testimonial."""
+
     author_name: str
     author_role: str | None = None
     content: str
@@ -23,6 +29,8 @@ class Testimonial(BaseEntity):
 
 
 class LandingPageTheme(BaseEntity):
+    """Represent landing page theme."""
+
     primary_color: str = Field("#000000", description="Hex code for primary actions")
     secondary_color: str = Field(
         "#ffffff",
@@ -37,6 +45,8 @@ class LandingPageTheme(BaseEntity):
 
 # 1. THE SQUEEZE (Captura Pura)
 class SqueezeContent(BaseEntity):
+    """Represent squeeze content."""
+
     headline: str = Field(..., description="Promesa clara y curiosa")
     subheadline: str = Field(..., description="Elimina la objeción principal")
     visual_url: str | None = Field(None, description="Mockup del descargable")
@@ -50,6 +60,8 @@ class SqueezeContent(BaseEntity):
 
 # 2. THE EVENT (Webinar/Reto)
 class EventContent(BaseEntity):
+    """Represent event content."""
+
     headline: str = Field(..., description="Promesa del evento + 'En Vivo'")
     event_date: datetime = Field(..., description="FECHA y HORA del evento")
     hook_question: str = Field(..., description="¿Estás cansado de [Problema]?")
@@ -62,6 +74,8 @@ class EventContent(BaseEntity):
 
 # 3. THE FLASH OFFER (Tripwire)
 class FlashOfferContent(BaseEntity):
+    """Represent flash offer content."""
+
     headline: str = Field(..., description="Orientado al problema")
     offer_name: str = Field(..., description="Qué es exactamente")
     problem_agitation: str = Field(..., description="Agitación rápida del problema")
@@ -75,6 +89,8 @@ class FlashOfferContent(BaseEntity):
 
 # 4. THE TRANSFORMER (Cursos/Mentorías - Estructura A-G)
 class TransformerContent(BaseEntity):
+    """Represent transformer content."""
+
     headline: str = Field(
         ...,
         description="Gancho principal: Transformación de Identidad en X tiempo",
@@ -100,6 +116,8 @@ class TransformerContent(BaseEntity):
 
 # 5. THE VELVET ROPE (High Ticket)
 class VelvetRopeContent(BaseEntity):
+    """Represent velvet rope content."""
+
     headline: str = Field(..., description="Exclusividad y Pertenencia")
     manifesto_text: str = Field(..., description="Valores y visión del grupo")
     who_is_this_for: list[str] = Field(..., description="Filtro positivo")
@@ -115,6 +133,8 @@ class VelvetRopeContent(BaseEntity):
 
 # 6. THE BROCHURE (Servicios B2B)
 class BrochureContent(BaseEntity):
+    """Represent brochure content."""
+
     headline: str = Field(..., description="Beneficio Claro + ROI")
     authority_logos: list[str] = Field([], description="Logos de clientes o prensa")
     process_steps: list[FeatureBullet] = Field(
@@ -133,6 +153,8 @@ class BrochureContent(BaseEntity):
 
 
 class LandingPageConfig(BaseEntity):
+    """Represent landing page config."""
+
     archetype: LandingPageArchetype
     theme: LandingPageTheme = Field(default_factory=LandingPageTheme)
 
@@ -154,9 +176,7 @@ class LandingPageConfig(BaseEntity):
 
     @model_validator(mode="after")
     def validate_content_matches_archetype(self) -> "LandingPageConfig":
-        """
-        Ensures the content object matches the selected archetype.
-        """
+        """Ensure the content object matches the selected archetype."""
         # Allow Dict (Puck Data)
         if isinstance(self.content, dict):
             return self

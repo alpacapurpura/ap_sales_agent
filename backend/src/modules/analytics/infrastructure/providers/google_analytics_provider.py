@@ -60,13 +60,17 @@ _WEBSITE_GA4_METRICS = list(_WEBSITE_METRIC_MAP.keys())
 
 
 class GoogleAnalyticsProvider(BaseMetricsProvider):
-    """Extracts GA4 search traffic segmented into organic, direct,
-    and AI-search channels, plus site-wide website-total metrics."""
+    """Extract GA4 search traffic segmented into organic, direct, and AI-search channels.
+
+    Also extract site-wide website-total metrics.
+    """
 
     def provider_name(self) -> str:
+        """Execute provider name operation."""
         return "google_analytics"
 
     def has_period_extraction(self) -> bool:
+        """Check if  period extraction."""
         return True
 
     async def extract_period_metrics(
@@ -139,6 +143,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         return ExtractionResult(metrics=extracted)
 
     def rate_limit_config(self) -> dict:
+        """Execute rate limit config operation."""
         return {"requests_per_minute": 20, "burst_size": 10}
 
     def _build_adapter(self, credentials: dict) -> GoogleAnalyticsAdapter:
@@ -160,6 +165,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         end_date: date,
         stage: str = "attraction",
     ) -> ExtractionResult:
+        """Extract metrics."""
         property_id = credentials.get("property_id")
         if not property_id:
             logger.warning("ga_provider_no_property_id tenant=%s", tenant_id)

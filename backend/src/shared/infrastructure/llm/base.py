@@ -1,3 +1,5 @@
+"""Abstract base class for LLM provider implementations."""
+
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -5,10 +7,7 @@ from src.core.enums import ModelRole
 
 
 class BaseLLMService(ABC):
-    """
-    Abstract Base Class for LLM Providers (Strategy Pattern).
-    Defines the contract that all concrete LLM providers must follow.
-    """
+    """Abstract base for LLM providers following the Strategy Pattern."""
 
     @abstractmethod
     def generate_response(
@@ -18,8 +17,7 @@ class BaseLLMService(ABC):
         model_type: str = "smart",
         **kwargs: Any,  # noqa: ANN401 — abstract LLM interface
     ) -> str:
-        """
-        Generates a text response from the LLM.
+        """Generate a text response from the LLM.
 
         Args:
             messages: List of message dicts [{"role": "user", "content": "..."}, ...]
@@ -29,12 +27,13 @@ class BaseLLMService(ABC):
 
         Returns:
             str: The generated text response.
+
         """
 
     @abstractmethod
     def get_embedding_model(self) -> Any:  # noqa: ANN401 — abstract LLM interface
-        """Returns a LangChain-compatible embedding model object."""
+        """Return a LangChain-compatible embedding model object."""
 
     @abstractmethod
     def get_client(self, role: ModelRole = ModelRole.REASONING) -> Any:  # noqa: ANN401 — abstract LLM interface
-        """Returns the underlying chat model client for the given role."""
+        """Return the underlying chat model client for the given role."""

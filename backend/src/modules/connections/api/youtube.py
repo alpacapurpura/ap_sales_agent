@@ -1,3 +1,5 @@
+"""Youtube API endpoints."""
+
 from typing import Annotated
 from uuid import UUID
 
@@ -60,6 +62,7 @@ async def update_config(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
+    """Update config."""
     from sqlalchemy import select
 
     stmt = select(TenantModel).where(TenantModel.id == user.tenant_id)
@@ -93,6 +96,7 @@ async def get_auth_url(
     db: Annotated[Session, Depends(get_db)],
     redirect_uri: str | None = None,
 ) -> dict[str, str]:
+    """Retrieve auth url."""
     client_config = _get_youtube_config(db, user.tenant_id)
     adapter = YoutubeAdapter(client_config=client_config)
     url, state = adapter.get_authorization_url(redirect_uri)
@@ -107,6 +111,7 @@ async def oauth_callback(
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     redirect_uri: Annotated[str | None, Body(embed=True)] = None,
 ) -> dict[str, str | dict]:
+    """Oauth callback."""
     client_config = _get_youtube_config(db, user.tenant_id)
     adapter = YoutubeAdapter(client_config=client_config)
 
@@ -160,6 +165,7 @@ async def get_status(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> YoutubeStatusResponse:
+    """Retrieve status."""
     try:
         _get_youtube_config(db, user.tenant_id)
         is_configured = True
@@ -186,6 +192,7 @@ async def disconnect(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> dict[str, str]:
+    """Disconnect."""
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.YOUTUBE)
     if connection:
         repo.deactivate(connection)
@@ -198,6 +205,7 @@ async def test_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> dict[str, str | dict | None]:
+    """Test connection."""
     connection = repo.get_active(user.tenant_id, ChannelType.YOUTUBE)
 
     if not connection or not connection.credentials:

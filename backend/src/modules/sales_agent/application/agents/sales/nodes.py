@@ -1,3 +1,5 @@
+"""Nodes application module."""
+
 import json
 import re
 from typing import Any
@@ -81,8 +83,8 @@ def _determine_stage(state: dict, updates: dict) -> str:
 
 @trace_node("sales_supervisor")
 def node_sales_supervisor(state: AgentState) -> dict[str, Any]:
-    """
-    Orchestrator: Decides which specialist should handle the next turn.
+    """Orchestrator: Decides which specialist should handle the next turn.
+
     Uses accumulated signals and context for smarter routing.
     """
     intent = state.get("detected_intent", "unknown")
@@ -134,6 +136,7 @@ def node_sales_supervisor(state: AgentState) -> dict[str, Any]:
 
 @trace_node("qualifier")
 def node_qualifier(state: AgentState) -> dict[str, Any]:
+    """Node qualifier."""
     skill_prompt = prompt_loader.render(
         "specialist_qualifier",
         consecutive_questions=state.get("consecutive_questions", 0),
@@ -153,6 +156,7 @@ def node_qualifier(state: AgentState) -> dict[str, Any]:
 
 @trace_node("product_expert")
 def node_product_expert(state: AgentState) -> dict[str, Any]:
+    """Node product expert."""
     skill_prompt = prompt_loader.render(
         "specialist_product_expert",
         context_rag=state.get("context_rag"),
@@ -172,6 +176,7 @@ def node_product_expert(state: AgentState) -> dict[str, Any]:
 
 @trace_node("closer")
 def node_closer(state: AgentState) -> dict[str, Any]:
+    """Node closer."""
     skill_prompt = prompt_loader.render(
         "specialist_closer",
         session_gap_hours=state.get("session_gap_hours"),
@@ -321,7 +326,7 @@ def node_signal_accumulator(state: AgentState) -> dict[str, Any]:
 
 @trace_node("escalation")
 def node_escalation(state: AgentState) -> dict[str, Any]:
-    """Sends empathetic handoff message when conversation needs human intervention."""
+    """Send empathetic handoff message when conversation needs human intervention."""
     return {
         "messages": [
             {
@@ -343,7 +348,7 @@ def node_escalation(state: AgentState) -> dict[str, Any]:
 
 @trace_node("tool_executor")
 def node_tool_executor(state: AgentState) -> dict[str, Any]:
-    """Executes tools requested by specialists via [TOOL_REQUEST: {...}] blocks.
+    """Execute tools requested by specialists via [TOOL_REQUEST: {...}] blocks.
 
     After execution the graph edge routes back to supervisor, which will
     see the tool result message and decide the next specialist.

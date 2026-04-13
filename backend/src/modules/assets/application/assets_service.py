@@ -1,3 +1,5 @@
+"""Assets Service for the assets module."""
+
 import mimetypes
 import uuid
 from typing import BinaryIO
@@ -20,7 +22,10 @@ logger = structlog.get_logger()
 
 
 class AssetsService:
+    """Manage assets operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize AssetsService."""
         self.db = db
         self.repository = AssetRepository(db)
         self.storage = get_storage_strategy()
@@ -50,7 +55,7 @@ class AssetsService:
         offer_id: UUID | None = None,
         background_tasks: BackgroundTasks | None = None,
     ) -> Asset:
-
+        """Upload asset."""
         # 1. Detect MIME Type
         if not mime_type:
             mime_type, _ = mimetypes.guess_type(filename)
@@ -157,9 +162,11 @@ class AssetsService:
         tenant_id: UUID,
         asset_type: str | None = None,
     ) -> list[Asset]:
+        """List assets."""
         return self.repository.list_by_tenant(tenant_id, asset_type)
 
     def list_by_offer(self, offer_id: UUID) -> list[Asset]:
+        """List by offer."""
         return self.repository.list_by_offer(offer_id)
 
     def delete_asset(
@@ -168,6 +175,7 @@ class AssetsService:
         asset_id: UUID,
         offer_id: UUID | None = None,
     ) -> bool:
+        """Delete asset."""
         asset = self.repository.get_by_id(asset_id, tenant_id=tenant_id)
         if not asset or str(asset.tenant_id) != str(tenant_id):
             return False

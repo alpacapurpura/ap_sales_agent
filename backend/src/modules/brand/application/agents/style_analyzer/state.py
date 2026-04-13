@@ -1,7 +1,11 @@
+"""Style analyzer agent state definitions."""
+
 from typing import Any, TypedDict
 
 
 class StyleProfile(TypedDict):
+    """Define style profile typed dictionary."""
+
     tone: str
     signature_phrases: list[str]
     emoji_density: str
@@ -10,6 +14,8 @@ class StyleProfile(TypedDict):
 
 
 class OnboardingState(TypedDict):
+    """Define onboarding state typed dictionary."""
+
     # Input
     user_id: str
     raw_input: str

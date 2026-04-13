@@ -1,3 +1,5 @@
+"""Channel Connection SQLAlchemy model."""
+
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
@@ -9,6 +11,8 @@ from src.shared.infrastructure.database.types import EncryptedJSON
 
 
 class ChannelConnectionModel(Base):
+    """SQLAlchemy model for channel connection table."""
+
     __tablename__ = "channel_connections"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

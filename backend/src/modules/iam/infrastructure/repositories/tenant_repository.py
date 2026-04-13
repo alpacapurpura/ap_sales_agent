@@ -1,3 +1,5 @@
+"""Tenant Repository implementation."""
+
 from uuid import UUID
 
 from sqlalchemy import select
@@ -8,26 +10,33 @@ from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 
 
 class TenantRepository:
+    """Concrete repository implementation for tenant."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize TenantRepository."""
         self.db = db
 
     def get_by_id(self, tenant_id: UUID) -> Tenant | None:
+        """Retrieve by id."""
         model = self.db.execute(select(TenantModel).where(TenantModel.id == tenant_id)).scalars().first()
         if model:
             return Tenant.model_validate(model)
         return None
 
     def get_by_slug(self, slug: str) -> Tenant | None:
+        """Retrieve by slug."""
         model = self.db.execute(select(TenantModel).where(TenantModel.slug == slug)).scalars().first()
         if model:
             return Tenant.model_validate(model)
         return None
 
     def get_all(self) -> list[Tenant]:
+        """Retrieve all."""
         models = self.db.execute(select(TenantModel).order_by(TenantModel.created_at.desc())).scalars().all()
         return [Tenant.model_validate(m) for m in models]
 
     def create(self, tenant: Tenant) -> Tenant:
+        """Handle create operation."""
         db_tenant = TenantModel(
             id=tenant.id,
             name=tenant.name,
@@ -45,6 +54,7 @@ class TenantRepository:
         return Tenant.model_validate(db_tenant)
 
     def update(self, tenant: Tenant) -> Tenant:
+        """Handle update operation."""
         db_tenant = self.db.execute(select(TenantModel).where(TenantModel.id == tenant.id)).scalars().first()
         if db_tenant:
             db_tenant.name = tenant.name

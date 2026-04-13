@@ -16,6 +16,8 @@ from src.shared.domain.enums import SaleStage, SaleStatus
 
 
 class SaleAggregation(NamedTuple):
+    """Handle sale aggregation logic."""
+
     stage: str
     offer_id: UUID
     source: str
@@ -29,6 +31,7 @@ class SalesMetricsRepository:
     """Aggregate completed sales by stage, offer_id, source, currency."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize sales metrics repository."""
         self.db = db
 
     def get_sales_summary(

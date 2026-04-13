@@ -1,0 +1,1 @@
+"""Assets infrastructure models package."""

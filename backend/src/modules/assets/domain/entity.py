@@ -1,3 +1,5 @@
+"""Domain entities for the assets module."""
+
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -9,9 +11,7 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class Asset(BaseEntity):
-    """
-    Asset Domain Model.
-    """
+    """Asset Domain Model."""
 
     id: UUID
     tenant_id: UUID | None = None

@@ -1,5 +1,4 @@
-"""
-CRM Pipeline API: lead pipeline view, manual stage override, and transition audit trail.
+"""CRM Pipeline API: lead pipeline view, manual stage override, and transition audit trail.
 
 All endpoints require X-Tenant-ID header for multitenant isolation.
 """
@@ -25,6 +24,8 @@ router = APIRouter(tags=["CRM - Pipeline"])
 
 
 class PipelineItem(BaseModel):
+    """Represent pipeline item data."""
+
     id: UUID
     full_name: str | None
     intent_score: int

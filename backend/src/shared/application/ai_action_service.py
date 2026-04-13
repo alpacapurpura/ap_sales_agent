@@ -1,3 +1,5 @@
+"""Reusable AI action service for structured LLM responses with retry logic."""
+
 from __future__ import annotations
 
 import json
@@ -20,6 +22,8 @@ TModel = TypeVar("TModel", bound=BaseModel)
 
 @dataclass(frozen=True)
 class AIModelPolicy:
+    """Configuration for AI model selection and generation parameters."""
+
     model_type: str | ModelRole = ModelRole.REASONING
     temperature: float = 0.7
     max_output_tokens: int = 800
@@ -27,13 +31,18 @@ class AIModelPolicy:
 
 @dataclass(frozen=True)
 class AIActionPolicy:
+    """Retry and model policy for AI actions."""
+
     retries: int = 2
     retry_delay_seconds: float = 0.35
     model: AIModelPolicy = field(default_factory=AIModelPolicy)
 
 
 class AIActionService:
+    """Execute structured AI actions with retry, validation, and logging."""
+
     def __init__(self) -> None:
+        """Initialize the AI action service with a logger."""
         self.logger = structlog.get_logger()
 
     def run_structured_action(
@@ -47,6 +56,7 @@ class AIActionService:
         policy: AIActionPolicy | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> TModel:
+        """Execute an AI action and parse the response into a Pydantic model."""
         resolved_policy = policy or AIActionPolicy()
         request_metadata = metadata or {}
         self._validate_inputs(action_name, system_prompt, user_prompt, resolved_policy)

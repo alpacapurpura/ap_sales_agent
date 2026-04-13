@@ -28,6 +28,7 @@ class TikTokAdapter:
     """
 
     def __init__(self, access_token: str | None = None) -> None:
+        """Initialize adapter with credentials."""
         self.access_token = access_token
 
     async def get_advertiser_currency(

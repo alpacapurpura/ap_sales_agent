@@ -163,6 +163,7 @@ class BrandExtractionService:
     _is_empty = staticmethod(is_empty)
 
     def __init__(self, db: Session, tenant_id: UUID) -> None:
+        """Initialize brand extraction service."""
         self.db = db
         self.tenant_id = tenant_id
         self.repository = BrandRepository(db)
@@ -350,7 +351,7 @@ class BrandExtractionService:
         per_call_timeout: float = 120.0,
         policy: AIActionPolicy | None = None,
     ) -> BaseModel:
-        """Generic wrapper for running a single extraction section with timing and timeout."""
+        """Run a single extraction section with timing and timeout."""
         effective_policy = policy or self.default_policy
         trace = self._trace
         t0 = time.time()

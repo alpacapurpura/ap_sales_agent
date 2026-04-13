@@ -1,3 +1,5 @@
+"""CRM customer SQLAlchemy models."""
+
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, Float, ForeignKey, String
@@ -10,6 +12,8 @@ from src.shared.domain.base_entity import Base
 
 
 class CustomerProfileModel(Base):
+    """SQLAlchemy model for customer profile."""
+
     __tablename__ = "customer_profiles"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -58,6 +62,8 @@ class CustomerProfileModel(Base):
 
 
 class CustomerIdentityModel(Base):
+    """SQLAlchemy model for customer identity."""
+
     __tablename__ = "customer_identities"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -83,6 +89,8 @@ class CustomerIdentityModel(Base):
 
 
 class JourneyEventModel(Base):
+    """SQLAlchemy model for journey event."""
+
     __tablename__ = "journey_events"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

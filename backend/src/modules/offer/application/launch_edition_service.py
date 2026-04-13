@@ -17,7 +17,10 @@ from src.modules.offer.infrastructure.repositories.offer_repository import (
 
 
 class LaunchEditionService:
+    """Service for launch edition operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize service with dependencies."""
         self.db = db
         self.repo = LaunchEditionRepository(db)
         self.offer_repo = OfferRepository(db)
@@ -37,6 +40,7 @@ class LaunchEditionService:
         location_override: dict[str, Any] | None = None,
         notes: str | None = None,
     ) -> LaunchEdition:
+        """Create edition."""
         offer = self.offer_repo.get_by_id(offer_id, tenant_id)
         if not offer:
             msg = f"Offer {offer_id} not found"
@@ -58,9 +62,11 @@ class LaunchEditionService:
         )
 
     def get_edition(self, edition_id: UUID, tenant_id: UUID) -> LaunchEdition | None:
+        """Retrieve edition."""
         return self.repo.get_by_id(edition_id, tenant_id)
 
     def list_editions(self, offer_id: UUID, tenant_id: UUID) -> list[LaunchEdition]:
+        """List editions."""
         return self.repo.list_by_offer(offer_id, tenant_id)
 
     def update_edition(
@@ -69,12 +75,15 @@ class LaunchEditionService:
         tenant_id: UUID,
         data: dict,
     ) -> LaunchEdition:
+        """Update edition."""
         return self.repo.update(edition_id, tenant_id, data)
 
     def delete_edition(self, edition_id: UUID, tenant_id: UUID) -> None:
+        """Delete edition."""
         self.repo.soft_delete(edition_id, tenant_id)
 
     def duplicate_edition(self, edition_id: UUID, tenant_id: UUID) -> LaunchEdition:
+        """Duplicate edition."""
         original = self.repo.get_by_id(edition_id, tenant_id)
         if not original:
             msg = f"Edition {edition_id} not found"

@@ -1,3 +1,5 @@
+"""Availability Service for the scheduling module."""
+
 import datetime
 import uuid
 from typing import Any
@@ -32,7 +34,10 @@ logger = structlog.get_logger()
 
 
 class AvailabilityService:
+    """Manage availability operations."""
+
     def __init__(self, db: Session, tenant_id: UUID) -> None:
+        """Initialize AvailabilityService."""
         self.db = db
         self.tenant_id = tenant_id
         self.adapter = self._get_adapter()
@@ -68,6 +73,7 @@ class AvailabilityService:
         return GmailAdapter(credentials_data=connection.credentials)
 
     def is_connected(self) -> bool:
+        """Check whether connected."""
         return self.adapter is not None
 
     # --- Schedule Management ---
@@ -77,9 +83,7 @@ class AvailabilityService:
         return self.db.execute(stmt).scalars().first()
 
     def _migrate_schedule_structure(self, data: dict) -> dict:
-        """
-        Deep recursive migration of legacy schedule structures.
-        """
+        """Deep recursive migration of legacy schedule structures."""
         if not isinstance(data, dict):
             return data
 
@@ -120,6 +124,7 @@ class AvailabilityService:
         return data
 
     def list_schedules(self) -> list[AvailabilitySchedule]:
+        """List schedules."""
         tenant = self._get_tenant()
         if not tenant:
             return []
@@ -173,6 +178,7 @@ class AvailabilityService:
         )
 
     def create_schedule(self, schedule: AvailabilitySchedule) -> AvailabilitySchedule:
+        """Create a new schedule."""
         tenant = self._get_tenant()
         config = dict(tenant.config_json or {})
         schedules = config.get("availability_schedules", [])
@@ -196,6 +202,7 @@ class AvailabilityService:
         schedule_id: str,
         update: ScheduleUpdate,
     ) -> AvailabilitySchedule | None:
+        """Update schedule."""
         tenant = self._get_tenant()
         config = dict(tenant.config_json or {})
         schedules = config.get("availability_schedules", [])
@@ -238,6 +245,7 @@ class AvailabilityService:
         return AvailabilitySchedule(**current)
 
     def delete_schedule(self, schedule_id: str) -> bool:
+        """Delete schedule."""
         tenant = self._get_tenant()
         config = dict(tenant.config_json or {})
         schedules = config.get("availability_schedules", [])
@@ -254,10 +262,12 @@ class AvailabilityService:
         return True
 
     def get_schedule_by_id(self, schedule_id: str) -> AvailabilitySchedule | None:
+        """Retrieve schedule by id."""
         schedules = self.list_schedules()
         return next((s for s in schedules if s.id == schedule_id), None)
 
     def get_active_schedule(self) -> AvailabilitySchedule:
+        """Retrieve active schedule."""
         schedules = self.list_schedules()
         default = next((s for s in schedules if s.is_default), None)
         if default:
@@ -273,7 +283,7 @@ class AvailabilityService:
         duration_minutes: int = 30,
         schedule_override: AvailabilitySchedule | None = None,
     ) -> list[datetime.datetime]:
-
+        """Retrieve available slots."""
         # 1. Get Active Schedule
         schedule_config = schedule_override or self.get_active_schedule()
 
@@ -364,6 +374,7 @@ class AvailabilityService:
         start_date: datetime.date,
         end_date: datetime.date,
     ) -> list[datetime.datetime]:
+        """Retrieve event type slots."""
         schedule = None
         if event_type.availability_id:
             schedule = self.get_schedule_by_id(event_type.availability_id)
@@ -382,7 +393,7 @@ class AvailabilityService:
         lead_data: dict[str, Any],
         summary: str = "Reunión de Ventas",
     ) -> dict[str, Any]:
-
+        """Book meeting."""
         if not self.adapter:
             msg = "Calendar not connected"
             raise ValueError(msg)
@@ -490,6 +501,7 @@ class AvailabilityService:
         start_date: datetime.date,
         end_date: datetime.date,
     ) -> list[dict[str, Any]]:
+        """List appointments."""
         if not self.adapter:
             return []
 
@@ -508,8 +520,8 @@ class AvailabilityService:
         channel_id: str | None = None,
         address: str | None = None,
     ) -> dict[str, Any]:
-        """
-        Placeholder/Skeleton for Webhook Setup.
+        """Placeholder/Skeleton for Webhook Setup.
+
         Configures a push notification channel for Google Calendar changes.
         """
         if not self.adapter:

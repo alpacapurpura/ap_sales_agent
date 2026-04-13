@@ -1,3 +1,5 @@
+"""Agent State Checkpoint SQLAlchemy model."""
+
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, Index, Integer, String, Text
@@ -8,8 +10,7 @@ from src.shared.domain.base_entity import Base
 
 
 class AgentStateCheckpointModel(Base):
-    """
-    Persists the sales agent's accumulated state across conversation turns.
+    """Persists the sales agent's accumulated state across conversation turns.
 
     Each active checkpoint represents the latest known state for a given
     tenant + lead pair.  When a session times out (6 h gap), the old

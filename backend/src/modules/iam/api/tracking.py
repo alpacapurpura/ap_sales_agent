@@ -1,3 +1,5 @@
+"""Tracking API endpoints."""
+
 from typing import Annotated
 from uuid import UUID
 
@@ -79,8 +81,8 @@ async def get_public_tracking_config(
     tenant_id: UUID,
     db: Annotated[Session, Depends(get_db)],
 ) -> TrackingConfig:
-    """
-    Public endpoint: returns tracking config for a tenant.
+    """Public endpoint: returns tracking config for a tenant.
+
     Called by public site layout to inject GTM/Pixel scripts.
     """
     result = db.execute(select(TenantModel).where(TenantModel.id == tenant_id))

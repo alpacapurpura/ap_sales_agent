@@ -1,6 +1,4 @@
-"""
-Analytics tools — give the copilot access to funnel metrics and sales data.
-"""
+"""Analytics tools — give the copilot access to funnel metrics and sales data."""
 
 import json
 from datetime import timedelta
@@ -25,6 +23,7 @@ def get_funnel_metrics(period: str | None = None) -> str:
 
     Returns:
         Resumen de métricas del funnel.
+
     """
     from src.modules.analytics.infrastructure.repositories.sales_metrics_repository import (
         SalesMetricsRepository,

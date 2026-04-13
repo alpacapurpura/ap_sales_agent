@@ -18,6 +18,7 @@ class CampaignRepository:
     """CRUD operations for campaign hierarchy + recommendations."""
 
     def __init__(self, session: Session) -> None:
+        """Initialize campaign repository."""
         self._session = session
 
     # ── Campaigns ──
@@ -66,6 +67,7 @@ class CampaignRepository:
         tenant_id: UUID,
         campaigns: list[dict],
     ) -> int:
+        """Insert or update campaigns."""
         count = 0
         for c in campaigns:
             self._session.execute(
@@ -141,6 +143,7 @@ class CampaignRepository:
         tenant_id: UUID,
         ad_sets: list[dict],
     ) -> int:
+        """Insert or update ad sets."""
         count = 0
         for a in ad_sets:
             self._session.execute(
@@ -216,6 +219,7 @@ class CampaignRepository:
         tenant_id: UUID,
         ads: list[dict],
     ) -> int:
+        """Insert or update ads."""
         count = 0
         for ad in ads:
             self._session.execute(
@@ -268,6 +272,7 @@ class CampaignRepository:
         tenant_id: UUID,
         recommendations: list[dict],
     ) -> int:
+        """Insert or update recommendations."""
         count = 0
         for r in recommendations:
             self._session.execute(
@@ -300,6 +305,7 @@ class CampaignRepository:
         tenant_id: UUID,
         provider: str = "meta",
     ) -> list:
+        """Return campaigns."""
         result = self._session.execute(
             text("""
                 SELECT * FROM ad_campaigns
@@ -317,6 +323,7 @@ class CampaignRepository:
         tenant_id: UUID,
         campaign_external_id: str,
     ) -> list:
+        """Return ad sets."""
         result = self._session.execute(
             text("""
                 SELECT * FROM ad_sets
@@ -334,6 +341,7 @@ class CampaignRepository:
         tenant_id: UUID,
         ad_set_external_id: str,
     ) -> list:
+        """Return ads."""
         result = self._session.execute(
             text("""
                 SELECT * FROM ads
@@ -351,6 +359,7 @@ class CampaignRepository:
         tenant_id: UUID,
         provider: str = "meta",
     ) -> list:
+        """Return recommendations."""
         result = self._session.execute(
             text("""
                 SELECT * FROM ad_recommendations

@@ -1,3 +1,5 @@
+"""CRM CDP API endpoints."""
+
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
@@ -18,8 +20,8 @@ async def identify_customer(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> CustomerProfile:
-    """
-    Identify a customer (create or update profile).
+    """Identify a customer (create or update profile).
+
     Payload should contain 'traits' and optional 'userId'.
     """
     service = CustomerService(db)

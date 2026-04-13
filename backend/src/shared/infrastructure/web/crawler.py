@@ -367,6 +367,7 @@ def extract_html_with_styles(html: str, external_css: str = "") -> str:
         html: Raw HTML of the page.
         external_css: Pre-fetched content from external <link rel="stylesheet"> files,
                       already filtered for brand-relevant rules.
+
     """
     soup = BeautifulSoup(html, "html.parser")
 

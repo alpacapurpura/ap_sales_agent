@@ -1,9 +1,13 @@
+"""Application configuration via pydantic-settings."""
+
 from pydantic_settings import BaseSettings
 
 from src.core.enums import AIProvider, ModelRole, PromptSource
 
 
 class Settings(BaseSettings):
+    """Environment-driven application settings."""
+
     # API Config
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "Visionarias Brain"
@@ -68,14 +72,17 @@ class Settings(BaseSettings):
 
     @property
     def openai_model(self) -> str:
+        """Return the default reasoning model name."""
         return self.AI_MODEL_REASONING
 
     @property
     def openai_fast_model(self) -> str:
+        """Return the fast model name."""
         return self.AI_MODEL_FAST
 
     @property
     def openai_embedding_model(self) -> str:
+        """Return the embedding model name."""
         return self.AI_MODEL_EMBEDDING
 
     # Gemini
@@ -149,9 +156,12 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
+        """Build the PostgreSQL connection URL from component settings."""
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     class Config:
+        """Pydantic settings configuration."""
+
         env_file = ".env"
         extra = "ignore"
 

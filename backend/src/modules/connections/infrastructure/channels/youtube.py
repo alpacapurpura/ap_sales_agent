@@ -1,3 +1,5 @@
+"""Youtube channel adapter."""
+
 import json
 import logging
 import os
@@ -17,8 +19,8 @@ SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"]
 
 
 class YoutubeAdapter:
-    """
-    Adapter for Google YouTube API.
+    """Adapter for Google YouTube API.
+
     Handles OAuth2 flow and wraps YouTube operations.
     """
 
@@ -27,6 +29,7 @@ class YoutubeAdapter:
         client_config: dict[str, Any],
         credentials_data: dict[str, Any] | None = None,
     ) -> None:
+        """Initialize adapter with credentials."""
         self.client_config = client_config
         self.credentials_data = credentials_data
         self.creds = None
@@ -53,7 +56,7 @@ class YoutubeAdapter:
         }
 
     def get_authorization_url(self, redirect_uri: str) -> tuple[str, str]:
-        """Generates the authorization URL and state."""
+        """Generate the authorization URL and state."""
         flow = Flow.from_client_config(self._get_flow_config(), scopes=SCOPES)
         flow.redirect_uri = redirect_uri
 
@@ -79,14 +82,14 @@ class YoutubeAdapter:
             raise
 
     def get_service(self) -> object:
-        """Returns the YouTube service resource."""
+        """Return the YouTube service resource."""
         if not self.creds:
             msg = "Credentials not initialized"
             raise ValueError(msg)
         return build("youtube", "v3", credentials=self.creds)
 
     def get_channel_info(self) -> dict[str, Any]:
-        """Gets the authenticated user's channel info."""
+        """Get the authenticated user's channel info."""
         service = self.get_service()
         try:
             # Request own channel with snippet and statistics

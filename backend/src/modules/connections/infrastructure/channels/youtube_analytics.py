@@ -1,5 +1,4 @@
-"""
-YouTube Analytics API v2 Adapter.
+"""YouTube Analytics API v2 Adapter.
 
 Provides channel-level and video-level analytics, demographics,
 traffic sources, and revenue data for the authenticated user's channel.
@@ -24,14 +23,14 @@ SCOPES = [
 
 
 class YouTubeAnalyticsAdapter:
-    """
-    Adapter for the YouTube Analytics API v2.
+    """Adapter for the YouTube Analytics API v2.
 
     All methods expect credentials_data from the Workspace OAuth flow
     (stored in ChannelConnection.credentials).
     """
 
     def __init__(self, credentials_data: dict[str, Any]) -> None:
+        """Initialize adapter with credentials."""
         self.creds = Credentials.from_authorized_user_info(credentials_data, SCOPES)
 
     def _get_analytics_service(self) -> object:
@@ -44,7 +43,7 @@ class YouTubeAnalyticsAdapter:
     # ── Helpers ────────────────────────────────────────────────────────────
 
     def get_channel_id(self) -> str:
-        """Resolves the authenticated user's channel ID via the Data API."""
+        """Resolve the authenticated user's channel ID via the Data API."""
         service = self._get_data_service()
         resp = service.channels().list(mine=True, part="id").execute()
         items = resp.get("items", [])
@@ -63,8 +62,7 @@ class YouTubeAnalyticsAdapter:
         sort: str = "",
         max_results: int = 0,
     ) -> dict[str, Any]:
-        """
-        Low-level wrapper around reports().query().
+        """Low-level wrapper around reports().query().
 
         Returns the raw API response with columnHeaders and rows.
         """
@@ -88,7 +86,7 @@ class YouTubeAnalyticsAdapter:
 
     @staticmethod
     def _rows_to_dicts(response: dict[str, Any]) -> list[dict[str, Any]]:
-        """Converts the columnHeaders + rows response into a list of dicts."""
+        """Convert the columnHeaders + rows response into a list of dicts."""
         headers = [h["name"] for h in response.get("columnHeaders", [])]
         return [dict(zip(headers, row, strict=False)) for row in response.get("rows", [])]
 
@@ -99,8 +97,7 @@ class YouTubeAnalyticsAdapter:
         start_date: str,
         end_date: str,
     ) -> dict[str, Any]:
-        """
-        Aggregate channel metrics for the given date range.
+        """Aggregate channel metrics for the given date range.
 
         Returns: views, estimatedMinutesWatched, averageViewDuration,
                  subscribersGained, subscribersLost, likes, dislikes,
@@ -119,8 +116,7 @@ class YouTubeAnalyticsAdapter:
         start_date: str,
         end_date: str,
     ) -> list[dict[str, Any]]:
-        """
-        Daily breakdown of views and watch time.
+        """Daily breakdown of views and watch time.
 
         Useful for building time-series charts in the Growth Studio.
         """
@@ -139,8 +135,7 @@ class YouTubeAnalyticsAdapter:
         end_date: str,
         max_results: int = 10,
     ) -> list[dict[str, Any]]:
-        """
-        Top N videos by views in the date range.
+        """Top N videos by views in the date range.
 
         Returns video ID + views, likes, estimatedMinutesWatched.
         """
@@ -159,9 +154,7 @@ class YouTubeAnalyticsAdapter:
         start_date: str,
         end_date: str,
     ) -> list[dict[str, Any]]:
-        """
-        Audience demographics: views broken down by ageGroup and gender.
-        """
+        """Audience demographics: views broken down by ageGroup and gender."""
         resp = self._query(
             start_date=start_date,
             end_date=end_date,
@@ -175,9 +168,7 @@ class YouTubeAnalyticsAdapter:
         start_date: str,
         end_date: str,
     ) -> list[dict[str, Any]]:
-        """
-        Where the views are coming from (search, suggested, external, etc.).
-        """
+        """Where the views are coming from (search, suggested, external, etc.)."""
         resp = self._query(
             start_date=start_date,
             end_date=end_date,
@@ -192,8 +183,7 @@ class YouTubeAnalyticsAdapter:
         start_date: str,
         end_date: str,
     ) -> dict[str, Any]:
-        """
-        Card and end screen metrics for the channel.
+        """Card and end screen metrics for the channel.
 
         Returns: cardClicks, cardImpressions, endScreenElementClicks,
                  endScreenElementImpressions.
@@ -212,8 +202,7 @@ class YouTubeAnalyticsAdapter:
         end_date: str,
         max_results: int = 10,
     ) -> list[dict[str, Any]]:
-        """
-        Top videos with enriched metadata from the Data API v3.
+        """Top videos with enriched metadata from the Data API v3.
 
         Combines Analytics API metrics (views, likes, watchTime) with
         Data API snippet (title, thumbnails, duration, publishedAt).
@@ -279,9 +268,7 @@ class YouTubeAnalyticsAdapter:
         end_date: str,
         max_results: int = 10,
     ) -> list[dict[str, Any]]:
-        """
-        Views by country.
-        """
+        """View by country."""
         resp = self._query(
             start_date=start_date,
             end_date=end_date,

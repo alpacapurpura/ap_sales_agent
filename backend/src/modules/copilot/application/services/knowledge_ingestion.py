@@ -1,6 +1,4 @@
-"""
-KnowledgeIngestionService — Chunk, embed, and upsert documents into copilot knowledge.
-"""
+"""KnowledgeIngestionService — Chunk, embed, and upsert documents into copilot knowledge."""
 
 import uuid
 
@@ -90,6 +88,7 @@ class KnowledgeIngestionService:
     """Handles document chunking, embedding, and upsert into Qdrant."""
 
     def __init__(self) -> None:
+        """Initialize knowledge ingestion service."""
         self.store = CopilotKnowledgeStore()
         self.splitter = RecursiveCharacterTextSplitter(
             chunk_size=800,

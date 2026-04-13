@@ -29,7 +29,10 @@ if TYPE_CHECKING:
 
 
 class KnowledgeSourceRepository(IKnowledgeSourceRepository):
+    """Repository for knowledge source persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize repository with database session."""
         self.db = db
 
     # ------------------------------------------------------------------ mapping
@@ -82,6 +85,7 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
     # ------------------------------------------------------------------ CRUD
 
     def create(self, source: KnowledgeSource) -> KnowledgeSource:
+        """Create."""
         model = KnowledgeSourceModel(id=source.id)
         self._apply_domain_to_model(model, source)
         self.db.add(model)
@@ -95,6 +99,7 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
         offer_id: UUID,
         source_id: UUID,
     ) -> KnowledgeSource | None:
+        """Retrieve by id."""
         stmt = select(KnowledgeSourceModel).where(
             KnowledgeSourceModel.id == source_id,
             KnowledgeSourceModel.tenant_id == tenant_id,
@@ -112,6 +117,7 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
         search: str | None = None,
         type_: KnowledgeSourceType | None = None,
     ) -> list[KnowledgeSource]:
+        """List."""
         filters = [
             KnowledgeSourceModel.tenant_id == tenant_id,
             KnowledgeSourceModel.offer_id == offer_id,
@@ -133,6 +139,7 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
         return [self._to_domain(r) for r in rows]
 
     def update(self, source: KnowledgeSource) -> KnowledgeSource:
+        """Update."""
         stmt = select(KnowledgeSourceModel).where(
             KnowledgeSourceModel.id == source.id,
             KnowledgeSourceModel.tenant_id == source.tenant_id,
@@ -148,6 +155,7 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
         return self._to_domain(model)
 
     def soft_delete(self, tenant_id: UUID, offer_id: UUID, source_id: UUID) -> bool:
+        """Soft delete."""
         stmt = select(KnowledgeSourceModel).where(
             KnowledgeSourceModel.id == source_id,
             KnowledgeSourceModel.tenant_id == tenant_id,
@@ -162,6 +170,7 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
         return True
 
     def count_by_offer(self, tenant_id: UUID, offer_id: UUID) -> int:
+        """Count by offer."""
         stmt = select(func.count(KnowledgeSourceModel.id)).where(
             KnowledgeSourceModel.tenant_id == tenant_id,
             KnowledgeSourceModel.offer_id == offer_id,
@@ -170,6 +179,7 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
         return int(self.db.execute(stmt).scalar() or 0)
 
     def count_indexed_by_offer(self, tenant_id: UUID, offer_id: UUID) -> int:
+        """Count indexed by offer."""
         stmt = select(func.count(KnowledgeSourceModel.id)).where(
             KnowledgeSourceModel.tenant_id == tenant_id,
             KnowledgeSourceModel.offer_id == offer_id,

@@ -1,3 +1,5 @@
+"""Copilot conversation repository."""
+
 from datetime import UTC
 from uuid import UUID
 
@@ -13,7 +15,10 @@ logger = structlog.get_logger()
 
 
 class ConversationRepository:
+    """Repository for conversation persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize conversation repository."""
         self.db = db
 
     def create(
@@ -24,6 +29,7 @@ class ConversationRepository:
         user_id: UUID,
         title: str | None = None,
     ) -> CopilotConversationModel:
+        """Execute create operation."""
         conv = CopilotConversationModel(
             id=conversation_id,
             tenant_id=tenant_id,
@@ -40,6 +46,7 @@ class ConversationRepository:
         conversation_id: UUID,
         tenant_id: UUID,
     ) -> CopilotConversationModel | None:
+        """Return by id."""
         stmt = select(CopilotConversationModel).where(
             CopilotConversationModel.id == conversation_id,
             CopilotConversationModel.tenant_id == tenant_id,
@@ -52,6 +59,7 @@ class ConversationRepository:
         tenant_id: UUID,
         new_messages: list,
     ) -> None:
+        """Execute append messages operation."""
         conv = self.get_by_id(conversation_id, tenant_id)
         if not conv:
             logger.warning(
@@ -66,6 +74,7 @@ class ConversationRepository:
         self.db.flush()
 
     def update_title(self, conversation_id: UUID, tenant_id: UUID, title: str) -> None:
+        """Update title."""
         conv = self.get_by_id(conversation_id, tenant_id)
         if conv:
             conv.title = title
@@ -78,6 +87,7 @@ class ConversationRepository:
         limit: int = 20,
         offset: int = 0,
     ) -> list[CopilotConversationModel]:
+        """List by tenant user."""
         stmt = (
             select(CopilotConversationModel)
             .where(

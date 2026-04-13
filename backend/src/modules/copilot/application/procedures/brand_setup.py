@@ -1,5 +1,4 @@
-"""
-Brand Setup Procedure — guides through all BrandSettings sections.
+"""Brand Setup Procedure — guides through all BrandSettings sections.
 
 Steps correspond to BrandSettings.model_fields sections, validated
 dynamically via schema_introspection (never hardcoded).

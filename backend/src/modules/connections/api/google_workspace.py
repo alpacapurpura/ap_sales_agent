@@ -1,5 +1,4 @@
-"""
-Google Workspace Unified OAuth Router.
+"""Google Workspace Unified OAuth Router.
 
 Handles a single OAuth flow that grants access to all Google services
 (Gmail, Calendar, Analytics, YouTube) at once. The code is exchanged
@@ -45,6 +44,8 @@ logger = structlog.get_logger()
 
 
 class ConnectionTestResponse(BaseModel):
+    """Connection Test Response DTO."""
+
     status: str
     message: str
     details: dict[str, Any] | None = None
@@ -98,7 +99,7 @@ def _get_client_config() -> dict:
 async def get_auth_url(
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
-    """Returns a Google OAuth URL requesting ALL workspace scopes at once."""
+    """Return a Google OAuth URL requesting ALL workspace scopes at once."""
     flow = Flow.from_client_config(
         _get_client_config(),
         scopes=WORKSPACE_SCOPES,
@@ -120,8 +121,8 @@ async def oauth_callback(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> dict[str, str | dict[str, str | dict[str, str] | None] | None]:
-    """
-    Exchanges the authorization code ONCE and stores the resulting credentials
+    """Exchanges the authorization code ONCE and stores the resulting credentials.
+
     for all 4 Google services (Gmail, Calendar, Analytics, YouTube).
     """
     # Exchange code for credentials
@@ -224,7 +225,7 @@ async def get_status(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> dict[str, bool | str | dict[str, dict[str, bool]] | None]:
-    """Returns the connection status for all 4 Google services."""
+    """Return the connection status for all 4 Google services."""
     services: dict[str, dict] = {}
     any_connected = False
 
@@ -458,8 +459,8 @@ async def test_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> ConnectionTestResponse:
-    """
-    Tests the Google Workspace connection by probing each active service.
+    """Tests the Google Workspace connection by probing each active service.
+
     Returns per-service results or the exact failure reason.
     Reports programming/infrastructure errors to Sentry.
     """

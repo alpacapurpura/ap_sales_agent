@@ -1,5 +1,4 @@
-"""
-Awareness tools — check completion status across modules dynamically.
+"""Awareness tools — check completion status across modules dynamically.
 
 Uses MODULE_REGISTRY + schema_introspection to discover fields at runtime.
 NEVER hardcodes field names — if you add a section to BrandSettings,
@@ -176,6 +175,7 @@ def get_module_completion_status(module: str | None = None) -> str:
 
     Returns:
         Resumen de qué está configurado y qué falta, por módulo.
+
     """
     tenant_id = get_tenant_id()
     if not tenant_id:

@@ -1,5 +1,4 @@
-"""
-Declarative navigation map of the Nicolify app.
+"""Declarative navigation map of the Nicolify app.
 
 Used by copilot tools to:
 - Navigate users to specific pages/sections
@@ -516,10 +515,12 @@ NAVIGATION_MAP: list[AppPage] = [
 
 
 def get_all_pages() -> list[AppPage]:
+    """Return all pages."""
     return NAVIGATION_MAP
 
 
 def get_page_by_module(module: str) -> list[AppPage]:
+    """Return page by module."""
     return [p for p in NAVIGATION_MAP if p.module == module]
 
 

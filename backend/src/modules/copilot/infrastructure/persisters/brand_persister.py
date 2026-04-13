@@ -14,6 +14,7 @@ class BrandPersister:
     """Writes confirmed interview data to BrandSettings (Tenant.config_json)."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize brand persister."""
         self.db = db
         self.repo = BrandRepository(db)
 
@@ -29,6 +30,7 @@ class BrandPersister:
             tenant_id: The tenant.
             mapa_global: Full mapa_global dict (flat keys with dot notation).
             fields_to_persist: Which field_paths to actually persist.
+
         """
         settings = self.repo.get_settings(tenant_id)
         if not settings:

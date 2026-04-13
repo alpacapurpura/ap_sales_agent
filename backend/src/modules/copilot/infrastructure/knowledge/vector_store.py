@@ -1,5 +1,4 @@
-"""
-CopilotKnowledgeStore — Qdrant wrapper for copilot knowledge base.
+"""CopilotKnowledgeStore — Qdrant wrapper for copilot knowledge base.
 
 Uses a SEPARATE collection (copilot_knowledge) from sales_agent.
 Hybrid search: dense (OpenAI 3072d) + sparse (BM25) + FlashRank reranking.
@@ -25,6 +24,7 @@ class CopilotKnowledgeStore:
     COLLECTION = "copilot_knowledge"
 
     def __init__(self) -> None:
+        """Initialize copilot knowledge store."""
         self.client = QdrantClient(
             url=settings.QDRANT_URL,
             api_key=settings.QDRANT_API_KEY or None,

@@ -28,6 +28,7 @@ class InstagramProfileEnricher:
     """Enriches a CustomerProfile with data from the Instagram User Profile API."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize instagram profile enricher."""
         self.db = db
 
     async def enrich(

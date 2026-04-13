@@ -1,3 +1,5 @@
+"""Base infrastructure module."""
+
 import logging
 from pathlib import Path
 from typing import Any
@@ -20,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 
 class PromptLoader:
-    """
-    Gestor de Prompts Híbrido Multitenant (DB + Caché + Archivo).
+    """Gestor de Prompts Híbrido Multitenant (DB + Caché + Archivo).
+
     Controlado por settings.PROMPT_SOURCE (Hybrid, File, DB).
     """
 
@@ -29,6 +31,7 @@ class PromptLoader:
         self,
         templates_dir: str = "src/modules/sales_agent/infrastructure/prompts/templates",
     ) -> None:
+        """Initialize instance."""
         # 1. Configurar File System Loader (Fallback)
         base_path = Path.cwd()
         self.templates_dir = templates_dir
@@ -133,9 +136,7 @@ class PromptLoader:
         return template.render(**kwargs)
 
     def render(self, template_name: str, **kwargs: Any) -> str:  # noqa: ANN401 — dynamic template context
-        """
-        Renderiza un prompt con las variables inyectadas + Contexto Tenant.
-        """
+        """Renderiza un prompt con las variables inyectadas + Contexto Tenant."""
         # Normalizar key
         key = template_name.replace(".j2", "")
         mode = settings.PROMPT_SOURCE
@@ -191,7 +192,7 @@ class PromptLoader:
             raise
 
     def invalidate_cache(self, key: str) -> None:
-        """Limpia caché (OJO: Limpia para TODOS los tenants por seguridad o solo uno?)"""
+        """Limpia caché (OJO: Limpia para TODOS los tenants por seguridad o solo uno?)."""
         # Simple: Limpiar todo lo relacionado a esa key
         keys_to_remove = [k for k in self._cache if k[0] == key]
         for k in keys_to_remove:

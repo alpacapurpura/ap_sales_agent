@@ -1,3 +1,5 @@
+"""Sensitive Data SQLAlchemy model."""
+
 import uuid
 
 from sqlalchemy import Column, DateTime, String, Text
@@ -8,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class SensitiveData(Base):
+    """Sensitive Data."""
+
     __tablename__ = "sensitive_data_logs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

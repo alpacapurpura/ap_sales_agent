@@ -1,3 +1,5 @@
+"""LLM service factory for provider-agnostic model instantiation."""
+
 from src.core.config import settings
 from src.core.enums import AIProvider
 from src.shared.infrastructure.llm.base import BaseLLMService
@@ -5,27 +7,20 @@ from src.shared.infrastructure.llm.providers.openai import OpenAIService
 
 
 class LLMFactory:
-    """
-    Factory Class to instantiate the correct LLM Service based on configuration.
-    """
+    """Factory Class to instantiate the correct LLM Service based on configuration."""
 
     _instance: BaseLLMService | None = None
 
     @classmethod
     def get_service(cls) -> BaseLLMService:
-        """
-        Returns the singleton instance of the LLM Service (Platform Default).
-        Creates it if it doesn't exist.
-        """
+        """Return the singleton LLM service instance, creating it if needed."""
         if cls._instance is None:
             cls._instance = cls._create_service_instance(settings.AI_PROVIDER.lower())
         return cls._instance
 
     @classmethod
     def get_service_for_tenant(cls, tenant: object) -> BaseLLMService:
-        """
-        Creates a new service instance for the specific tenant configuration.
-        """
+        """Create a new service instance for the specific tenant configuration."""
         provider = settings.AI_PROVIDER.lower()
 
         # Check for Tenant-specific keys

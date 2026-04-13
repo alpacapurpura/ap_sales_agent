@@ -17,6 +17,7 @@ class MetricValueDTO(BaseModel):
         MetricValueDTO(name="engagement", value=1200.0,
                        breakdown={"likes": 800, "comments": 400})
         MetricValueDTO(name="spend", value=123.45, unit="currency", currency="USD")
+
     """
 
     name: str

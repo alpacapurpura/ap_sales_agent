@@ -1,3 +1,5 @@
+"""Telegram channel adapter."""
+
 import logging
 from typing import Any
 
@@ -11,14 +13,14 @@ logger = logging.getLogger(__name__)
 
 
 class TelegramChannel(BaseChannel):
-    """
-    Adapter for Telegram Bot API.
+    """Adapter for Telegram Bot API.
+
     Supports multi-tenant configuration via token injection.
     """
 
     def __init__(self, token: str | None = None) -> None:
-        """
-        Initialize with specific bot token.
+        """Initialize with specific bot token.
+
         If no token provided, falls back to settings.TELEGRAM_BOT_TOKEN (legacy/global mode).
         """
         self.token = token or settings.TELEGRAM_BOT_TOKEN
@@ -26,8 +28,8 @@ class TelegramChannel(BaseChannel):
             logger.warning("TelegramChannel initialized without a token")
 
     def normalize_payload(self, payload: dict[str, Any]) -> IncomingMessage | None:
-        """
-        Extracts message from Telegram webhook update.
+        """Extract message from Telegram webhook update.
+
         Structure: { "update_id": ..., "message": { "message_id": ..., "from": {...}, "text": ... } }
         """
         # We only care about text messages for now
@@ -62,8 +64,8 @@ class TelegramChannel(BaseChannel):
         )
 
     async def send_message(self, message: OutgoingMessage) -> dict[str, Any]:
-        """
-        Sends text message to Telegram Chat ID.
+        """Send text message to Telegram Chat ID.
+
         Retries without Markdown if it fails (400 Bad Request).
         """
         if not self.token:
@@ -104,9 +106,7 @@ class TelegramChannel(BaseChannel):
                 raise
 
     async def set_typing_status(self, user_id: str) -> None:
-        """
-        Sends 'typing' action to Telegram.
-        """
+        """Send 'typing' action to Telegram."""
         if not self.token:
             return
 

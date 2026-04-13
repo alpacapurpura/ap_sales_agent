@@ -20,6 +20,7 @@ class ExtractionRunRepository:
     """CRUD operations for the extraction_runs table."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize extraction run repository."""
         self.db = db
 
     def create(
@@ -44,6 +45,7 @@ class ExtractionRunRepository:
                 sync after a connect), or ``period`` (period_pipeline for
                 NON_AGGREGABLE metrics). Falls back to the model's server
                 default when omitted.
+
         """
         kwargs: dict = {
             "tenant_id": tenant_id,

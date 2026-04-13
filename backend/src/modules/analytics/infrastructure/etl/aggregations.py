@@ -48,6 +48,7 @@ def compute_aggregations(
 
     Returns:
         List of dicts ready for MetricAggregationModel bulk insert.
+
     """
     if period_config is None:
         period_config = TenantPeriodConfig(weekly_start_day=weekly_cutoff_day)

@@ -1,5 +1,4 @@
-"""
-Lifecycle scoring engine with threshold-based stage transitions.
+"""Lifecycle scoring engine with threshold-based stage transitions.
 
 Responsibilities:
 - Recalculate lead_score from journey_event weights + fit score
@@ -39,6 +38,7 @@ class LifecycleService:
     """Scoring engine and lifecycle stage manager."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize lifecycle service."""
         self.db = db
         self.lifecycle_repo = LifecycleRepository(db)
 
@@ -227,10 +227,9 @@ class LifecycleService:
         tenant_id: UUID,
         reason: str = "nps_promotion",
     ) -> tuple:
-        """Atomically: (1) transition lifecycle to EVANGELIST via force_stage,
-        (2) generate referral code via ReferralService.
+        """Transition lifecycle to EVANGELIST and generate referral code atomically.
 
-        Returns (profile, referral_code).
+        Return (profile, referral_code).
         """
         # Lazy import to avoid circular dependency
         from src.modules.crm.application.services.referral_service import (

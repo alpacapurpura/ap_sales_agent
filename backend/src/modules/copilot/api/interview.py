@@ -36,6 +36,7 @@ def start_interview(
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     db: Annotated[Session, Depends(get_db)],
 ) -> StartInterviewResponse:
+    """Start interview."""
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
     svc = InterviewService(db)
@@ -58,6 +59,7 @@ def get_active_interview(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ) -> ActiveInterviewResponse | Response:
+    """Return active interview."""
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
     svc = InterviewService(db)
@@ -74,6 +76,7 @@ def get_interview_state(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ) -> InterviewStateResponse:
+    """Return interview state."""
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
     svc = InterviewService(db)
@@ -90,6 +93,7 @@ def pause_interview(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
+    """Execute pause interview operation."""
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
     svc = InterviewService(db)
@@ -106,6 +110,7 @@ def abandon_interview(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
+    """Execute abandon interview operation."""
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
     svc = InterviewService(db)

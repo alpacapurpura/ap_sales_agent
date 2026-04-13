@@ -1,3 +1,5 @@
+"""Meta channel adapter."""
+
 import asyncio
 import secrets
 import urllib.parse
@@ -279,8 +281,7 @@ async def _enrich_wabas_with_phones(
 
 
 class MetaAdapter:
-    """
-    Adapter for Meta (Facebook) Graph API using facebook_business SDK.
+    """Adapter for Meta (Facebook) Graph API using facebook_business SDK.
 
     Platform credentials (META_APP_ID / META_APP_SECRET) are read from settings.
     Per-tenant overrides can be provided via constructor params.
@@ -295,6 +296,7 @@ class MetaAdapter:
         app_secret: str | None = None,
         access_token: str | None = None,
     ) -> None:
+        """Initialize adapter with credentials."""
         self.app_id = app_id or settings.META_APP_ID
         self.app_secret = app_secret or settings.META_APP_SECRET
         self.access_token = access_token
@@ -324,9 +326,11 @@ class MetaAdapter:
         redirect_uri: str,
         state: str | None = None,
     ) -> tuple[str, str]:
-        """Generates the OAuth authorization URL and state token.
+        """Generate the OAuth authorization URL and state token.
+
         State is always prefixed with 'meta_' so the frontend callback
-        can distinguish Meta from Google OAuth redirects."""
+        can distinguish Meta from Google OAuth redirects.
+        """
         if not state:
             state = f"meta_{secrets.token_urlsafe(32)}"
         elif not state.startswith("meta"):
@@ -357,8 +361,10 @@ class MetaAdapter:
         return url, state
 
     async def exchange_code(self, code: str, redirect_uri: str) -> dict[str, Any]:
-        """Exchanges the authorization code for an access token, then
-        automatically extends it to a long-lived token (~60 days)."""
+        """Exchange the authorization code for an access token.
+
+        Automatically extends it to a long-lived token (~60 days).
+        """
         params = {
             "client_id": self.app_id,
             "redirect_uri": redirect_uri,
@@ -407,7 +413,7 @@ class MetaAdapter:
             return token_data
 
     async def get_user_profile(self) -> dict[str, Any]:
-        """Gets the user's profile (id, name) via the facebook_business SDK."""
+        """Get the user's profile (id, name) via the facebook_business SDK."""
         if not self._api_instance:
             msg = "Access token not initialized"
             raise ValueError(msg)
@@ -422,7 +428,7 @@ class MetaAdapter:
         return profile.export_all_data()
 
     async def get_token_permissions(self) -> list[str]:
-        """Returns granted permissions for the current access token."""
+        """Return granted permissions for the current access token."""
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.get(
                 f"{self.BASE_URL}/{self.API_VERSION}/me/permissions",
@@ -438,8 +444,8 @@ class MetaAdapter:
             return []
 
     async def get_business_assets(self) -> dict[str, Any]:
-        """
-        Fetches all business assets accessible with the current user/system token:
+        """Fetch all business assets accessible with the current user/system token.
+
         - Facebook Pages (with page_access_tokens)
         - Instagram Business Accounts linked to pages
         - Meta Ads Accounts

@@ -43,6 +43,8 @@ _DEFAULT_MIME_BY_TYPE: dict[AssetType, str] = {
 
 
 class OfferAssetService:
+    """Service for offer asset operations."""
+
     def __init__(
         self,
         *,
@@ -50,6 +52,7 @@ class OfferAssetService:
         file_storage: IFileStoragePort,
         event_bus: object | None = None,
     ) -> None:
+        """Initialize service with dependencies."""
         self._repo = asset_repo
         self._storage = file_storage
         self._events = event_bus
@@ -67,6 +70,7 @@ class OfferAssetService:
         limit: int = 24,
         offset: int = 0,
     ) -> tuple[list[OfferAsset], int]:
+        """List assets."""
         return self._repo.list(
             tenant_id,
             offer_id,
@@ -86,6 +90,7 @@ class OfferAssetService:
         offer_id: UUID,
         asset_id: UUID,
     ) -> OfferAsset:
+        """Retrieve asset."""
         asset = self._repo.get_by_id(tenant_id, offer_id, asset_id)
         if asset is None:
             raise AssetNotFoundError(asset_id)
@@ -102,6 +107,7 @@ class OfferAssetService:
         type_: AssetType,
         mime_type: str | None = None,
     ) -> OfferAsset:
+        """Upload asset."""
         mime = mime_type or _DEFAULT_MIME_BY_TYPE.get(type_, "application/octet-stream")
         stream: BytesIO = BytesIO(file_bytes)
         folder = f"offers/{offer_id}/assets"
@@ -145,8 +151,10 @@ class OfferAssetService:
         prompt_params: dict[str, Any] | None = None,
         name: str | None = None,
     ) -> OfferAsset:
-        """Stub: enqueue an AI-generated asset row. Actual generation is
-        handled by a downstream worker — this service returns immediately."""
+        """Stub: enqueue an AI-generated asset row. Actual generation is.
+
+        handled by a downstream worker — this service returns immediately.
+        """
         asset = OfferAsset(
             tenant_id=tenant_id,
             offer_id=offer_id,
@@ -177,6 +185,7 @@ class OfferAssetService:
         asset_id: UUID,
         fields: dict[str, Any],
     ) -> OfferAsset:
+        """Update asset."""
         asset = self._repo.get_by_id(tenant_id, offer_id, asset_id)
         if asset is None:
             raise AssetNotFoundError(asset_id)
@@ -193,6 +202,7 @@ class OfferAssetService:
 
     # --------------------------------------------------------------- delete
     def delete_asset(self, *, tenant_id: UUID, offer_id: UUID, asset_id: UUID) -> None:
+        """Delete asset."""
         ok = self._repo.soft_delete(tenant_id, offer_id, asset_id)
         if not ok:
             raise AssetNotFoundError(asset_id)
@@ -212,6 +222,7 @@ class OfferAssetService:
         offer_id: UUID,
         asset_id: UUID,
     ) -> str:
+        """Retrieve download url."""
         asset = self._repo.get_by_id(tenant_id, offer_id, asset_id)
         if asset is None:
             raise AssetNotFoundError(asset_id)

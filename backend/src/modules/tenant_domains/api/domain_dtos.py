@@ -1,3 +1,5 @@
+"""Domain Dtos API endpoints."""
+
 from datetime import datetime
 from uuid import UUID
 
@@ -7,6 +9,8 @@ from src.modules.tenant_domains.domain.domain_entity import DomainStatus, Domain
 
 
 class DomainCreate(BaseModel):
+    """Schema for domain create."""
+
     hostname: str = Field(
         min_length=4,
         max_length=253,
@@ -17,10 +21,14 @@ class DomainCreate(BaseModel):
 
 
 class DomainSetPrimary(BaseModel):
+    """Schema for domain set primary."""
+
     is_primary: bool
 
 
 class DomainResponse(BaseModel):
+    """Schema for domain response."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
@@ -39,6 +47,8 @@ class DomainResponse(BaseModel):
 
 
 class DomainConflictDetail(BaseModel):
+    """Schema for domain conflict detail."""
+
     code: str = "DOMAIN_CONFLICT"
     provider: str
     suggestion: str
@@ -46,6 +56,8 @@ class DomainConflictDetail(BaseModel):
 
 
 class DnsRecord(BaseModel):
+    """Schema for dns record."""
+
     type: str
     name: str
     target: str | None = None
@@ -53,6 +65,8 @@ class DnsRecord(BaseModel):
 
 
 class DomainInstructionsResponse(BaseModel):
+    """Schema for domain instructions response."""
+
     hostname: str
     domain_type: DomainType
     status: DomainStatus

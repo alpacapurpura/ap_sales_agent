@@ -15,6 +15,8 @@ from src.modules.offer.domain.enums import (
 
 
 class KnowledgeSourceResponse(BaseModel):
+    """Knowledge Source Response DTO."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
@@ -35,11 +37,15 @@ class KnowledgeSourceResponse(BaseModel):
 
 
 class KnowledgeListResponse(BaseModel):
+    """Knowledge List Response DTO."""
+
     items: list[KnowledgeSourceResponse]
     total: int
 
 
 class KnowledgeUrlRequest(BaseModel):
+    """Knowledge Url Request DTO."""
+
     url: HttpUrl
     type: KnowledgeSourceType = KnowledgeSourceType.URL_ARTICLE
     name: str | None = None

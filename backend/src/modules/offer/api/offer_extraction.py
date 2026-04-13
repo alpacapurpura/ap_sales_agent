@@ -1,3 +1,5 @@
+"""Offer Extraction API endpoints."""
+
 import json
 from datetime import UTC, datetime
 from typing import Annotated, Literal
@@ -35,6 +37,7 @@ async def extract_full_offer(
     update_instructions: Annotated[str | None, Form()] = None,
     files: Annotated[list[UploadFile], File()] = [],  # noqa: B006
 ) -> ExtractFullOfferResponse:
+    """Extract full offer."""
     # Parse files
     extracted_file_text = ""
     for file in files:
@@ -117,6 +120,7 @@ async def get_offer_extraction_status(
     job_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> OfferExtractionStatusResponse:
+    """Retrieve offer extraction status."""
     try:
         UUID(job_id)
     except ValueError:

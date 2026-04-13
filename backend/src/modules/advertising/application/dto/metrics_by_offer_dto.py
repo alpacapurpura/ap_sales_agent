@@ -44,12 +44,16 @@ class FunnelStepDTO(_CamelModel):
 
 
 class OfferTimeSeriesPointDTO(_CamelModel):
+    """Data transfer object for offer time series point."""
+
     date: str
     spend: float
     primary_result: float
 
 
 class OfferMetricsDTO(_CamelModel):
+    """Data transfer object for offer metrics."""
+
     offer_id: UUID
     offer_name: str
     archetype: str
@@ -86,6 +90,8 @@ class OfferMetricsDTO(_CamelModel):
 
 
 class BrandingAggregateDTO(_CamelModel):
+    """Data transfer object for branding aggregate."""
+
     target_count: int
     total_spend: float
     impressions: float
@@ -102,6 +108,8 @@ class BrandingAggregateDTO(_CamelModel):
 
 
 class UnassignedAggregateDTO(_CamelModel):
+    """Data transfer object for unassigned aggregate."""
+
     target_count: int
     total_spend: float
     impressions: float
@@ -117,6 +125,8 @@ class UnassignedAggregateDTO(_CamelModel):
 
 
 class MetricsByOfferDTO(_CamelModel):
+    """Data transfer object for metrics by offer."""
+
     period: str
     start_date: date
     end_date: date

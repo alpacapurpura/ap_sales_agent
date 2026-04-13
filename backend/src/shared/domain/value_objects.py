@@ -1,2 +1,1 @@
-# Value Objects for the Shared Domain
-
+"""Shared domain value objects."""

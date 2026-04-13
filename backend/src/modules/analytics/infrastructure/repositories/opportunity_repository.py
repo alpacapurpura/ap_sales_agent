@@ -28,6 +28,7 @@ class OpportunityMetricsRepository:
     """CRM-based SQL counting, checkout event aggregation, and meeting metrics."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize opportunity metrics repository."""
         self.db = db
 
     def count_new_sqls(

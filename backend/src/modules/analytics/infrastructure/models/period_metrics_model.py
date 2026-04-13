@@ -15,6 +15,8 @@ from src.shared.domain.base_entity import Base
 
 
 class PeriodMetricModel(Base):
+    """SQLAlchemy model for period metric."""
+
     __tablename__ = "period_metrics"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

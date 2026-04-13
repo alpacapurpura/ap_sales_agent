@@ -87,6 +87,7 @@ class MetaCampaignProvider:
         client: httpx.AsyncClient,
         credentials: dict,
     ) -> list[dict]:
+        """Extract campaigns."""
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
         if not ad_account_id:
@@ -127,7 +128,7 @@ class MetaCampaignProvider:
         client: httpx.AsyncClient,
         credentials: dict,
     ) -> tuple[list[dict], list[dict]]:
-        """Returns (ad_sets, inline_recommendations)."""
+        """Return (ad_sets, inline_recommendations) tuple."""
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
         if not ad_account_id:
@@ -186,7 +187,7 @@ class MetaCampaignProvider:
         client: httpx.AsyncClient,
         credentials: dict,
     ) -> tuple[list[dict], list[dict]]:
-        """Returns (ads, inline_recommendations)."""
+        """Return (ads, inline_recommendations) tuple."""
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
         if not ad_account_id:

@@ -1,3 +1,5 @@
+"""Brand domain package."""
+
 from .aggregates import BrandSettings
 from .communication_assets import CommunicationAssets, CreativeConcept, FunnelAsset
 from .entities import Avatar, ExtractRequest

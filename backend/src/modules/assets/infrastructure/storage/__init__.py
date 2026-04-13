@@ -1,3 +1,5 @@
+"""Assets storage strategies package."""
+
 from .base import StorageStrategy
 from .local import LocalStorageStrategy
 from .r2 import R2StorageStrategy

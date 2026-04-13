@@ -23,6 +23,8 @@ from src.shared.domain.base_entity import Base
 
 
 class KnowledgeSourceModel(Base):
+    """SQLAlchemy model for knowledge source table."""
+
     __tablename__ = "offer_knowledge_sources"
 
     id: Mapped[uuid.UUID] = mapped_column(

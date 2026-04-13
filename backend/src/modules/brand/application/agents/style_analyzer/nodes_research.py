@@ -1,3 +1,5 @@
+"""Style analyzer research node functions."""
+
 from typing import Any
 
 from src.modules.brand.application.agents.style_analyzer.state import OnboardingState
@@ -17,9 +19,7 @@ _research_service = _ResearchService()
 
 
 def node_researcher(state: OnboardingState) -> dict[str, Any]:
-    """
-    Research Agent: Scrapes the target URL to enrich the offer context.
-    """
+    """Research Agent: Scrapes the target URL to enrich the offer context."""
     target_url = state.get("target_url")
 
     if not target_url:

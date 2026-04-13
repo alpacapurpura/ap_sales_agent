@@ -1,5 +1,4 @@
-"""
-Test that validates the entire Telegram message processing flow,
+"""Test that validates the entire Telegram message processing flow,
 step by step, against the real database. This catches enum mismatches,
 type errors, and constraint violations BEFORE manual testing.
 
@@ -330,8 +329,7 @@ class TestStep5FullFlowIntegration:
     """Step 5: Full flow simulation (everything before agent invocation)."""
 
     def test_complete_pre_agent_flow(self, db, cleanup_test_data) -> None:
-        """
-        Simulates the full process_chat_flow up to agent invocation:
+        """Simulates the full process_chat_flow up to agent invocation:
         1. Map channel to IdentityType
         2. get_or_create_customer
         3. get_active_lead / create_lead

@@ -199,10 +199,14 @@ def _validate_section(section_id: str, offer: Offer) -> str:
 
 
 class OfferCompletionService:
+    """Service for offer completion operations."""
+
     def __init__(self, *, offer_service: OfferService) -> None:
+        """Initialize service with dependencies."""
         self._offers = offer_service
 
     def compute(self, *, offer_id: UUID, tenant_id: UUID) -> dict[str, Any]:
+        """Compute."""
         offer = self._offers.get_offer(offer_id, tenant_id)
         if offer is None:
             msg = f"Offer {offer_id} not found for tenant {tenant_id}"

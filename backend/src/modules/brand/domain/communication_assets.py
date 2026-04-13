@@ -1,3 +1,5 @@
+"""Brand communication assets value objects."""
+
 import uuid
 
 from pydantic import ConfigDict, Field
@@ -40,9 +42,9 @@ class FunnelAsset(BaseEntity):
 
 
 class CommunicationAssets(BaseEntity):
-    """
-    Dynamic funnel-stage communication assets.
-    Groups creative concepts and individual assets by funnel stage.
+    """Represent dynamic funnel-stage communication assets.
+
+    Group creative concepts and individual assets by funnel stage.
     """
 
     creative_concepts: list[CreativeConcept] = Field(default_factory=list)

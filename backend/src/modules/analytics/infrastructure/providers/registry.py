@@ -16,6 +16,7 @@ def register_provider(name: str, cls: type[BaseMetricsProvider]) -> None:
     Args:
         name: Unique provider identifier (e.g. "meta", "google_analytics").
         cls: BaseMetricsProvider subclass to instantiate for this provider.
+
     """
     PROVIDER_REGISTRY[name] = cls
 
@@ -31,6 +32,7 @@ def get_provider(provider_name: str) -> BaseMetricsProvider:
 
     Raises:
         ValueError: If no provider is registered under the given name.
+
     """
     cls = PROVIDER_REGISTRY.get(provider_name)
     if cls is None:

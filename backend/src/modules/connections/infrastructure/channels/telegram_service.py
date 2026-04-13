@@ -1,3 +1,5 @@
+"""Telegram Service channel adapter."""
+
 from typing import Any
 from uuid import UUID
 
@@ -15,11 +17,15 @@ logger = structlog.get_logger()
 
 
 class TelegramService:
+    """Service for telegram operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize service with dependencies."""
         self.db = db
         self.repo = ChannelConnectionRepository(db)
 
     def get_status(self, tenant_id: UUID) -> dict[str, Any]:
+        """Retrieve status."""
         connection = self.repo.get_active(tenant_id, ChannelType.TELEGRAM)
 
         if not connection:
@@ -34,6 +40,7 @@ class TelegramService:
         }
 
     async def connect(self, tenant_id: UUID, token: str) -> dict[str, Any]:
+        """Connect."""
         token = token.strip()
 
         # 1. Validate Token with Telegram
@@ -118,6 +125,7 @@ class TelegramService:
         return {"status": "connected", "bot": metadata}
 
     async def test_connection(self, tenant_id: UUID) -> dict[str, Any]:
+        """Test connection."""
         connection = self.repo.get_active(tenant_id, ChannelType.TELEGRAM)
 
         if not connection:
@@ -151,6 +159,7 @@ class TelegramService:
                 }
 
     async def disconnect(self, tenant_id: UUID) -> dict[str, Any]:
+        """Disconnect."""
         connection = self.repo.get_active(tenant_id, ChannelType.TELEGRAM)
 
         if not connection:

@@ -1,3 +1,5 @@
+"""Asset Repository implementation."""
+
 from uuid import UUID
 
 from sqlalchemy import select
@@ -9,7 +11,10 @@ from src.shared.domain.datetime_utils import utc_now
 
 
 class AssetRepository:
+    """Concrete repository implementation for asset."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize AssetRepository."""
         self.db = db
 
     def _to_domain(self, model: AssetModel) -> Asset:
@@ -53,6 +58,7 @@ class AssetRepository:
         )
 
     def create(self, entity: Asset) -> Asset:
+        """Handle create operation."""
         model = self._to_model(entity)
         self.db.add(model)
         self.db.commit()
@@ -60,6 +66,7 @@ class AssetRepository:
         return self._to_domain(model)
 
     def get_by_id(self, asset_id: UUID, tenant_id: UUID) -> Asset | None:
+        """Retrieve by id."""
         stmt = select(AssetModel).where(
             AssetModel.id == asset_id,
             AssetModel.tenant_id == tenant_id,
@@ -75,6 +82,7 @@ class AssetRepository:
         tenant_id: UUID,
         asset_type: str | None = None,
     ) -> list[Asset]:
+        """List by tenant."""
         stmt = select(AssetModel).where(
             AssetModel.tenant_id == tenant_id,
             AssetModel.deleted_at.is_(None),
@@ -85,6 +93,7 @@ class AssetRepository:
         return [self._to_domain(m) for m in models]
 
     def list_by_offer(self, offer_id: UUID) -> list[Asset]:
+        """List by offer."""
         stmt = select(AssetModel).where(
             AssetModel.offer_id == offer_id,
             AssetModel.deleted_at.is_(None),
@@ -93,6 +102,7 @@ class AssetRepository:
         return [self._to_domain(m) for m in models]
 
     def delete(self, asset_id: UUID) -> bool:
+        """Handle delete operation."""
         stmt = select(AssetModel).where(
             AssetModel.id == asset_id,
             AssetModel.deleted_at.is_(None),

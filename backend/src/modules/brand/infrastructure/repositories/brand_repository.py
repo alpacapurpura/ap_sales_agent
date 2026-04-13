@@ -1,3 +1,5 @@
+"""Brand repository implementation."""
+
 from uuid import UUID
 
 import structlog
@@ -12,10 +14,14 @@ logger = structlog.get_logger()
 
 
 class BrandRepository:
+    """Repository for brand persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize brand repository."""
         self.db = db
 
     def get_settings(self, tenant_id: UUID) -> BrandSettings:
+        """Return settings."""
         stmt = select(TenantModel).where(TenantModel.id == tenant_id)
         result = self.db.execute(stmt)
         tenant = result.scalars().first()
@@ -45,6 +51,7 @@ class BrandRepository:
         return BrandSettings.model_validate(brand_settings_data)
 
     def save_settings(self, tenant_id: UUID, settings: BrandSettings) -> BrandSettings:
+        """Save settings."""
         stmt = select(TenantModel).where(TenantModel.id == tenant_id)
         result = self.db.execute(stmt)
         tenant = result.scalars().first()

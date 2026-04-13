@@ -11,6 +11,8 @@ from src.shared.infrastructure.database.types import EncryptedJSON
 
 
 class OfficialMetricModel(Base):
+    """SQLAlchemy model for official metric."""
+
     __tablename__ = "official_metrics"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

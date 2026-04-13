@@ -29,7 +29,7 @@ async def get_email_dashboard(
     user: Annotated[User, Depends(get_current_user)],
     period: Annotated[str, Query(pattern="^(7d|30d|90d)$")] = "30d",
 ) -> EmailDashboardDTO:
-    """Main sidebar + Panorama tab data for Email Intelligence Hub."""
+    """Return main sidebar and Panorama tab data for Email Intelligence Hub."""
     service = EmailDashboardService(db)
     return await service.get_dashboard(user.tenant_id, period)
 

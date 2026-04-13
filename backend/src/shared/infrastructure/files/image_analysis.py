@@ -1,3 +1,5 @@
+"""Image analysis service using vision LLM for brand gallery."""
+
 import base64
 import json
 from pathlib import Path
@@ -12,7 +14,10 @@ logger = structlog.get_logger()
 
 
 class ImageAnalysisService:
+    """Analyze images for description and dominant colors using vision LLM."""
+
     def __init__(self) -> None:
+        """Initialize with a vision-capable LLM client."""
         base_llm = LLMFactory.get_service().get_client(ModelRole.VISION)
         self.llm = base_llm.bind(
             temperature=0.2,
@@ -28,6 +33,7 @@ class ImageAnalysisService:
             return base64.b64encode(f.read()).decode("utf-8")
 
     async def analyze(self, image_data: bytes | str, user_context: str = "") -> dict:
+        """Analyze an image and return description and dominant colors."""
         try:
             base64_image = self.encode_image(image_data)
 

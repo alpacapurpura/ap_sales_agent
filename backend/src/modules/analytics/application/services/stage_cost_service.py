@@ -33,6 +33,7 @@ class StageCostService:
     """
 
     def __init__(self, db: Session) -> None:
+        """Initialize stage cost service."""
         self.db = db
 
     def get_channel_costs(

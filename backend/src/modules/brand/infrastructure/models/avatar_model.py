@@ -1,3 +1,5 @@
+"""Brand avatar SQLAlchemy model."""
+
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, String, Text
@@ -8,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class AvatarModel(Base):
+    """SQLAlchemy model for avatar."""
+
     __tablename__ = "avatars"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

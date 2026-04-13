@@ -10,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class LaunchEditionModel(Base):
+    """SQLAlchemy model for launch edition table."""
+
     __tablename__ = "launch_editions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 
 
 class InterviewStatus(StrEnum):
+    """Enumerate interview status values."""
+
     ACTIVE = "active"
     PAUSED = "paused"
     COMPLETED = "completed"
@@ -36,6 +38,7 @@ class InterviewSession:
         messages_count: int,
         entity_id: UUID | None = None,
     ) -> None:
+        """Initialize interview session."""
         self.id = id_
         self.tenant_id = tenant_id
         self.domain = domain
@@ -59,6 +62,7 @@ class InterviewSession:
         entity_id: UUID | None = None,
         initial_mapa: dict | None = None,
     ) -> InterviewSession:
+        """Execute create operation."""
         return cls(
             id_=uuid4(),
             tenant_id=tenant_id,
@@ -74,6 +78,7 @@ class InterviewSession:
         )
 
     def advance_block(self, block_id: str) -> None:
+        """Execute advance block operation."""
         if block_id not in self.bloques_completados:
             self.bloques_completados.append(block_id)
         bloques = self.config_snapshot["bloques"]
@@ -86,18 +91,23 @@ class InterviewSession:
             self.bloque_actual = block_ids[current_idx + 1]
 
     def pause(self) -> None:
+        """Execute pause operation."""
         self.status = InterviewStatus.PAUSED
 
     def resume(self) -> None:
+        """Execute resume operation."""
         self.status = InterviewStatus.ACTIVE
 
     def abandon(self) -> None:
+        """Execute abandon operation."""
         self.status = InterviewStatus.ABANDONED
 
     def update_mapa_global(self, delta: dict) -> None:
+        """Update mapa global."""
         self.mapa_global.update(delta)
 
     def coverage_for_block(self, block_id: str) -> float:
+        """Execute coverage for block operation."""
         bloques = self.config_snapshot["bloques"]
         block = next((b for b in bloques if b["id"] == block_id), None)
         if not block:
@@ -109,4 +119,5 @@ class InterviewSession:
         return filled / len(campos)
 
     def increment_messages(self) -> None:
+        """Execute increment messages operation."""
         self.messages_count += 1

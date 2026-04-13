@@ -1,3 +1,5 @@
+"""Events API endpoints."""
+
 from typing import Annotated
 from uuid import UUID
 
@@ -45,6 +47,7 @@ def list_events(
     week: Annotated[int | None, Query()] = None,
     category: Annotated[str | None, Query()] = None,
 ) -> list[CalendarEventResponse]:
+    """List events."""
     service = CalendarEventService(db)
     events = service.list_events(
         country_code=country_code.upper(),
@@ -62,6 +65,7 @@ def get_current_week(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> list[CalendarEventResponse]:
+    """Retrieve current week."""
     service = CalendarEventService(db)
     events = service.get_current_week_events(
         country_code=country_code.upper(),
@@ -76,6 +80,7 @@ def create_event(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> list[CalendarEventResponse]:
+    """Create a new event."""
     service = CalendarEventService(db)
     created = service.create_event(
         country_code=body.country_code,
@@ -96,6 +101,7 @@ def update_event(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> CalendarEventResponse:
+    """Update event."""
     service = CalendarEventService(db)
     existing = service.get_by_id(event_id, tenant_id=user.tenant_id)
     if existing is None:
@@ -126,6 +132,7 @@ def delete_event(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> None:
+    """Delete event."""
     service = CalendarEventService(db)
     existing = service.get_by_id(event_id, tenant_id=user.tenant_id)
     if existing is None:

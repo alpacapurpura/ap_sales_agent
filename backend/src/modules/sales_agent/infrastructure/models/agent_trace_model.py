@@ -1,3 +1,5 @@
+"""Agent Trace SQLAlchemy model."""
+
 import uuid
 
 from sqlalchemy import Column, DateTime, Float, String, Text
@@ -9,6 +11,8 @@ from src.shared.domain.base_entity import Base
 
 
 class AgentTrace(Base):
+    """Agent Trace."""
+
     __tablename__ = "agent_traces"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

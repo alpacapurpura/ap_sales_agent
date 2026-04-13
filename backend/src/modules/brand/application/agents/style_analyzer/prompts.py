@@ -1,3 +1,5 @@
+"""Style analyzer prompt templates."""
+
 # PROMPTS FOR STYLE ONBOARDING AGENT
 
 JANITOR_PROMPT = """

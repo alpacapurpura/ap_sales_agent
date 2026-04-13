@@ -1,3 +1,5 @@
+"""Telegram API endpoints."""
+
 from typing import Annotated
 
 import structlog
@@ -29,9 +31,7 @@ orchestrator = ChatOrchestrator()
 
 @router.post("/webhooks/telegram")
 async def telegram_webhook_legacy(request: Request, background_tasks: BackgroundTasks) -> dict[str, str]:
-    """
-    Legacy Global Webhook. Uses settings.TELEGRAM_BOT_TOKEN.
-    """
+    """Legacy Global Webhook. Uses settings.TELEGRAM_BOT_TOKEN."""
     payload = await request.json()
     await orchestrator.handle_telegram_webhook(payload, background_tasks)
     return {"status": "ok"}
@@ -44,9 +44,7 @@ async def telegram_webhook_tenant(
     background_tasks: BackgroundTasks,
     db: Annotated[Session, Depends(get_db)],
 ) -> dict[str, str]:
-    """
-    Multi-Tenant Webhook. Resolves bot token from Tenant configuration.
-    """
+    """Multi-Tenant Webhook. Resolves bot token from Tenant configuration."""
     payload = await request.json()
     await orchestrator.handle_telegram_webhook(
         payload,
@@ -65,9 +63,7 @@ async def get_telegram_status(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> ChannelStatusResponse:
-    """
-    Get current Telegram connection status for the tenant.
-    """
+    """Get current Telegram connection status for the tenant."""
     service = TelegramService(db)
     status_data = service.get_status(user.tenant_id)
 
@@ -84,8 +80,8 @@ async def connect_telegram(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> TelegramConnectResponse:
-    """
-    Connect a Telegram Bot to the tenant.
+    """Connect a Telegram Bot to the tenant.
+
     Validates token, sets webhook, and saves to DB.
     """
     service = TelegramService(db)
@@ -108,9 +104,7 @@ async def test_telegram_connection(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> ConnectionTestResponse | dict[str, str]:
-    """
-    Test the current Telegram connection.
-    """
+    """Test the current Telegram connection."""
     service = TelegramService(db)
     try:
         return await service.test_connection(user.tenant_id)
@@ -127,9 +121,7 @@ async def disconnect_telegram(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
-    """
-    Disconnect Telegram: Delete Webhook and deactivate in DB.
-    """
+    """Disconnect Telegram: Delete Webhook and deactivate in DB."""
     service = TelegramService(db)
     try:
         return await service.disconnect(user.tenant_id)

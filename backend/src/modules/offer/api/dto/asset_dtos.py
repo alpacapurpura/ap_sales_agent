@@ -20,6 +20,8 @@ from src.modules.offer.domain.enums import (
 
 
 class OfferAssetResponse(BaseModel):
+    """Offer Asset Response DTO."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
@@ -40,6 +42,8 @@ class OfferAssetResponse(BaseModel):
 
 
 class AssetListResponse(BaseModel):
+    """Asset List Response DTO."""
+
     items: list[OfferAssetResponse]
     total: int
     limit: int
@@ -47,18 +51,24 @@ class AssetListResponse(BaseModel):
 
 
 class AssetGenerateRequest(BaseModel):
+    """Asset Generate Request DTO."""
+
     type: AssetType
     name: str | None = None
     prompt_params: dict[str, Any] = Field(default_factory=dict)
 
 
 class AssetUpdateRequest(BaseModel):
+    """Asset Update Request DTO."""
+
     name: str | None = None
     metadata: dict[str, Any] | None = None
     thumbnail_url: str | None = None
 
 
 class AssetDownloadUrlResponse(BaseModel):
+    """Asset Download Url Response DTO."""
+
     url: str
     expires_at: datetime
 

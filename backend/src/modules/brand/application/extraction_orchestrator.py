@@ -283,6 +283,7 @@ class ExtractionOrchestrator:
     """
 
     def __init__(self, service: BrandExtractionService) -> None:
+        """Initialize extraction orchestrator."""
         self.service = service
 
     async def _crawl_content(
@@ -586,7 +587,6 @@ class ExtractionOrchestrator:
         trace: ExtractionTraceCollector | None,
     ) -> tuple:
         """Execute extraction in multiple waves (for low-TPM models)."""
-
         # Wave 1: identity, story, testimonials + visuals (lighter extractions)
         wave1_sections = ["identity", "story", "testimonials"]
         wave1_coros = [
@@ -693,7 +693,6 @@ class ExtractionOrchestrator:
         trace: ExtractionTraceCollector | None,
     ) -> tuple:
         """Execute all extractions concurrently (for high-TPM models)."""
-
         all_sections = [
             "identity",
             "story",

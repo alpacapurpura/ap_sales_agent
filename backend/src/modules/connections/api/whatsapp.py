@@ -1,3 +1,5 @@
+"""Whatsapp API endpoints."""
+
 import asyncio
 import traceback
 import uuid
@@ -48,6 +50,7 @@ async def verify_whatsapp_webhook(
     token: Annotated[str, Query(alias="hub.verify_token")],
     challenge: Annotated[str, Query(alias="hub.challenge")],
 ) -> int:
+    """Verify whatsapp webhook."""
     if mode == "subscribe" and token == settings.WHATSAPP_VERIFY_TOKEN:
         return int(challenge)
     raise HTTPException(status_code=403, detail="Verification failed")
@@ -55,6 +58,7 @@ async def verify_whatsapp_webhook(
 
 @router.post("/webhooks/whatsapp")
 async def whatsapp_webhook(request: Request, background_tasks: BackgroundTasks) -> dict[str, str]:
+    """Whatsapp webhook."""
     payload = await request.json()
     await orchestrator.handle_whatsapp_webhook(payload, background_tasks)
     return {"status": "received"}
@@ -68,6 +72,7 @@ async def get_whatsapp_status(
     tenant_id: Annotated[str, Depends(get_current_tenant_id)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> dict[str, dict[str, str | dict | None]]:
+    """Retrieve whatsapp status."""
     tenant_uuid = uuid.UUID(tenant_id)
 
     # --- 1. EVOLUTION API (QR) STATUS ---
@@ -127,6 +132,7 @@ async def create_whatsapp_session(
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     provider: Annotated[str, Body(embed=True)] = "evolution",
 ) -> dict[str, str]:
+    """Create whatsapp session."""
     if provider == "meta":
         return {"status": "error", "message": "Meta integration coming soon"}
 
@@ -191,6 +197,7 @@ async def create_whatsapp_session(
 async def get_whatsapp_qr(
     tenant_id: Annotated[str, Depends(get_current_tenant_id)],
 ) -> dict[str, str]:
+    """Retrieve whatsapp qr."""
     channel = WhatsAppChannel(tenant_id)
 
     try:
@@ -228,6 +235,7 @@ async def delete_whatsapp_session(
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     provider: str = "evolution",
 ) -> dict[str, str]:
+    """Delete whatsapp session."""
     tenant_uuid = uuid.UUID(tenant_id)
 
     if provider == "meta":
@@ -262,6 +270,7 @@ async def handle_whatsapp_webhook(
     payload: Annotated[dict, Body()],
     background_tasks: BackgroundTasks = None,
 ) -> dict[str, str]:
+    """Handle whatsapp webhook."""
     from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
 
     orch = ChatOrchestrator()

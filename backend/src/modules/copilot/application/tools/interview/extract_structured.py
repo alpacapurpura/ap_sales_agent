@@ -22,6 +22,7 @@ def extract_structured(session_id: str, extractions: list[dict]) -> str:
 
     Returns:
         JSON with empty text and a preview_update ui_action containing the delta.
+
     """
     delta = {}
     confidence_map = {}

@@ -1,3 +1,5 @@
+"""Output Manager infrastructure module."""
+
 from __future__ import annotations
 
 import asyncio
@@ -32,8 +34,8 @@ logger = structlog.get_logger()
 
 
 class OutputManager:
-    """
-    Manages the "Human Typing Simulation" and "Response Chunking" logic.
+    """Manages the "Human Typing Simulation" and "Response Chunking" logic.
+
     Follows High Ticket sales principles: Triad structure and variable typing speed.
     """
 
@@ -52,9 +54,7 @@ class OutputManager:
         channel_adapter: BaseChannel,
         channel_type: str = "telegram",
     ) -> None:
-        """
-        Parses the raw LLM response and sends it as chunks with human-like delays.
-        """
+        """Parse the raw LLM response and sends it as chunks with human-like delays."""
         chunks = cls._parse_response(raw_response, channel_type=channel_type)
 
         logger.info(
@@ -106,8 +106,7 @@ class OutputManager:
         raw_response: str,
         channel_type: str = "telegram",  # noqa: ARG003
     ) -> list[str]:
-        """
-        Parses the raw LLM response into user-facing chunks.
+        """Parse the raw LLM response into user-facing chunks.
 
         Pipeline:
         1. Strip internal blocks ([QUALIFICATION_DATA:...], [SIGNALS:...], [TOOL_REQUEST:...])
@@ -152,8 +151,8 @@ class OutputManager:
 
     @classmethod
     def _calculate_typing_time(cls, text: str) -> float:
-        """
-        Calculates typing delay based on CPM and Jitter.
+        """Calculate typing delay based on CPM and Jitter.
+
         Formula: (Chars / CPM) * 60 * Jitter
         """
         length = len(text)

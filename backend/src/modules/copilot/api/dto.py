@@ -8,6 +8,8 @@ from pydantic import BaseModel, Field
 
 
 class ClientContextDTO(BaseModel):
+    """Data transfer object for client context."""
+
     current_route: str | None = None
     selected_fields: list[dict[str, str]] = Field(default_factory=list)
     form_data: dict[str, Any] = Field(default_factory=dict)
@@ -15,6 +17,8 @@ class ClientContextDTO(BaseModel):
 
 
 class CopilotChatRequest(BaseModel):
+    """Request schema for copilot chat."""
+
     message: str = Field(..., min_length=1, max_length=4000)
     conversation_id: str | None = None
     context: ClientContextDTO = Field(default_factory=ClientContextDTO)
@@ -52,6 +56,8 @@ class SSEEvent(BaseModel):
 
 
 class CopilotChatResponse(BaseModel):
+    """Response schema for copilot chat."""
+
     conversation_id: str
     message: str
 
@@ -60,16 +66,22 @@ class CopilotChatResponse(BaseModel):
 
 
 class RecordEventResponse(BaseModel):
+    """Response schema for record event."""
+
     recorded: bool
 
 
 class EventSummaryResponse(BaseModel):
+    """Response schema for event summary."""
+
     events: list[Any]
     period_days: int
     tenant_id: str
 
 
 class EventInsightsResponse(BaseModel):
+    """Response schema for event insights."""
+
     friction_map: Any
     engagement: Any
     procedure_rates: Any
@@ -81,17 +93,23 @@ class EventInsightsResponse(BaseModel):
 
 
 class IngestDocumentResponse(BaseModel):
+    """Response schema for ingest document."""
+
     document_id: str
     chunks_indexed: int
 
 
 class SearchResultItem(BaseModel):
+    """Represent search result item data."""
+
     content: str
     score: float
     metadata: dict[str, Any]
 
 
 class SearchKnowledgeResponse(BaseModel):
+    """Response schema for search knowledge."""
+
     results: list[SearchResultItem]
 
 
@@ -99,6 +117,8 @@ class SearchKnowledgeResponse(BaseModel):
 
 
 class NudgeItem(BaseModel):
+    """Represent nudge item data."""
+
     id: str
     type: str
     module_id: str
@@ -109,6 +129,8 @@ class NudgeItem(BaseModel):
 
 
 class NudgeContextResponse(BaseModel):
+    """Response schema for nudge context."""
+
     nudges: list[NudgeItem]
 
 

@@ -1,11 +1,13 @@
+"""State application module."""
+
 import uuid
 from typing import Any, TypedDict
 from uuid import UUID
 
 
 class AgentState(TypedDict):
-    """
-    Shared state for all LangGraph agents.
+    """Shared state for all LangGraph agents.
+
     Provides context for multi-tenant isolation and session management.
     """
 
@@ -101,8 +103,8 @@ def create_initial_state(
     consecutive_questions: int | None = None,
     follow_up_cadence: dict | None = None,
 ) -> AgentState:
-    """
-    Factory for creating a clean AgentState.
+    """Create a clean AgentState.
+
     Handles UUID conversion and default values.
     """
     # Ensure UUIDs

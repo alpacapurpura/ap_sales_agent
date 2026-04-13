@@ -19,6 +19,7 @@ class StagingMetricsRepository:
     """CRUD operations for the staging_metrics table."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize staging metrics repository."""
         self.db = db
 
     def bulk_insert(self, metrics: list[StagingMetricModel]) -> int:

@@ -23,6 +23,8 @@ router = APIRouter()
 
 
 class RecordEventRequest(BaseModel):
+    """Request schema for record event."""
+
     event_type: str = Field(..., max_length=50)
     event_data: dict = Field(default_factory=dict)
     conversation_id: str | None = None
@@ -36,6 +38,7 @@ def record_event(
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     db: Annotated[Session, Depends(get_db)],
 ) -> dict[str, bool]:
+    """Record event."""
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
 
@@ -60,6 +63,7 @@ def event_summary(
     db: Annotated[Session, Depends(get_db)],
     days: int = 30,
 ) -> dict[str, str | int | dict[str, int]]:
+    """Execute event summary operation."""
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
 
@@ -75,6 +79,7 @@ def event_insights(
     db: Annotated[Session, Depends(get_db)],
     days: int = 30,
 ) -> dict[str, str | int | dict]:
+    """Execute event insights operation."""
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
 

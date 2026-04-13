@@ -1,0 +1,1 @@
+"""Advertising application package."""

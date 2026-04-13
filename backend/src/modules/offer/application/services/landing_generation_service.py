@@ -55,6 +55,8 @@ def _as_aware_utc(dt: datetime | None) -> datetime | None:
 
 
 class LandingGenerationService:
+    """Service for landing generation operations."""
+
     def __init__(
         self,
         *,
@@ -63,6 +65,7 @@ class LandingGenerationService:
         offer_service: OfferService,
         event_bus: object | None = None,
     ) -> None:
+        """Initialize service with dependencies."""
         self._completion = completion_service
         self._landing_repo = landing_repo
         self._offers = offer_service
@@ -70,6 +73,7 @@ class LandingGenerationService:
 
     # ---------------------------------------------------------------- status
     def get_status(self, *, tenant_id: UUID, offer_id: UUID) -> dict[str, Any]:
+        """Retrieve status."""
         landing = self._landing_repo.get_by_offer_id(tenant_id, offer_id)
         if landing is None:
             return {
@@ -100,6 +104,7 @@ class LandingGenerationService:
 
     # -------------------------------------------------------------- generate
     def generate(self, *, tenant_id: UUID, offer_id: UUID) -> dict[str, Any]:
+        """Generate."""
         completion = self._completion.compute(offer_id=offer_id, tenant_id=tenant_id)
         percentage = float(completion.get("percentage", 0))
         if percentage < _MIN_COMPLETION_FOR_GENERATE:
@@ -138,6 +143,7 @@ class LandingGenerationService:
 
     # ------------------------------------------------------------ regenerate
     def regenerate(self, *, tenant_id: UUID, offer_id: UUID) -> dict[str, Any]:
+        """Regenerate."""
         existing = self._landing_repo.get_by_offer_id(tenant_id, offer_id)
         previous_snapshot = getattr(existing, "offer_snapshot_version", None) if existing else None
         snapshot_version = utc_now().strftime("%Y%m%d%H%M%S")
@@ -175,6 +181,7 @@ class LandingGenerationService:
 
     # --------------------------------------------------------------- publish
     def publish(self, *, tenant_id: UUID, offer_id: UUID) -> object:
+        """Publish."""
         landing = self._landing_repo.get_by_offer_id(tenant_id, offer_id)
         if landing is None:
             raise LandingNotReadyError(offer_id, 0.0)
@@ -203,6 +210,7 @@ class LandingGenerationService:
         offer_id: UUID,
         reason: str = "manual",
     ) -> object:
+        """Unpublish."""
         landing = self._landing_repo.get_by_offer_id(tenant_id, offer_id)
         if landing is None:
             raise LandingNotReadyError(offer_id, 0.0)

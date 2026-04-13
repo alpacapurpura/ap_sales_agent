@@ -1,5 +1,4 @@
-"""
-Shared EventBus for cross-module domain event dispatch.
+"""Shared EventBus for cross-module domain event dispatch.
 
 Usage:
     # Subscribe at app startup
@@ -118,7 +117,7 @@ class SaleCompletedEvent(DomainEvent):
         amount: float,
         offer_id: UUID,
     ) -> "SaleCompletedEvent":
-        """Factory method. Sets event_name='sale_completed' automatically."""
+        """Create a sale_completed event from sale details."""
         return cls(
             event_name="sale_completed",
             tenant_id=tenant_id,
@@ -152,7 +151,7 @@ class ChurnEvent(DomainEvent):
         subscription_id: str,
         cancellation_reason: str | None = None,
     ) -> "ChurnEvent":
-        """Factory method. Sets event_name='churn_detected' automatically."""
+        """Create a churn_detected event from churn details."""
         return cls(
             event_name="churn_detected",
             tenant_id=tenant_id,
@@ -185,7 +184,7 @@ class LeadCapturedEvent(DomainEvent):
         extracted_field: str,
         source_channel_type: str,
     ) -> "LeadCapturedEvent":
-        """Factory method. Sets event_name='lead_captured' automatically."""
+        """Create a lead_captured event from capture details."""
         return cls(
             event_name="lead_captured",
             tenant_id=tenant_id,
@@ -218,7 +217,7 @@ class AppointmentEvent(DomainEvent):
         appointment_status: str,
         email: str | None = None,
     ) -> "AppointmentEvent":
-        """Factory method. Maps appointment status to event_name automatically."""
+        """Create an appointment event, mapping status to event_name."""
         event_names = {
             "SCHEDULED": "appointment_booked",
             "COMPLETED": "appointment_completed",

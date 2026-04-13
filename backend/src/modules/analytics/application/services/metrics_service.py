@@ -77,6 +77,7 @@ class MetricsService:
         connection_port: ConnectionPort | None = None,
         offer_port: OfferReadPort | None = None,
     ) -> None:
+        """Initialize metrics service."""
         self.db = db
         self.cache = cache
         self.connection_port = connection_port
@@ -89,8 +90,7 @@ class MetricsService:
         self.connection_repo = ChannelConnectionRepository(db)
 
     def get_marketing_sankey_metrics(self, tenant_id: UUID) -> dict[str, Any]:
-        """
-        Obtiene metricas para el diagrama de Sankey de marketing (7 nodos).
+        """Obtiene metricas para el diagrama de Sankey de marketing (7 nodos).
 
         Nodos:
         0: Adquisition (Visitors)
@@ -101,7 +101,6 @@ class MetricsService:
         5: Retention (Loyal Customers)
         6: Advocacy (Evangelists)
         """
-
         # 1. Visitors (Adquisition)
         visitors = self.journey_repo.get_unique_visitors(tenant_id)
 

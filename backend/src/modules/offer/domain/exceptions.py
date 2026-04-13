@@ -31,6 +31,7 @@ class InvalidTransitionError(OfferDomainError):
         to_status: OfferLifecycleStatus,
         message: str | None = None,
     ) -> None:
+        """Initialize instance."""
         self.from_status = from_status
         self.to_status = to_status
         super().__init__(
@@ -39,13 +40,15 @@ class InvalidTransitionError(OfferDomainError):
 
 
 class LandingNotReadyError(OfferDomainError):
-    """Raised when landing generation is requested but the offer is below
+    """Raised when landing generation is requested but the offer is below.
+
     the minimum completion threshold.
 
     Mapped to HTTP 409 Conflict at the API layer.
     """
 
     def __init__(self, offer_id: UUID, completion_percentage: float) -> None:
+        """Initialize instance."""
         self.offer_id = offer_id
         self.completion_percentage = completion_percentage
         super().__init__(
@@ -60,6 +63,7 @@ class AssetNotFoundError(OfferDomainError):
     """
 
     def __init__(self, asset_id: UUID) -> None:
+        """Initialize instance."""
         self.asset_id = asset_id
         super().__init__(f"Offer asset {asset_id} not found")
 
@@ -71,6 +75,7 @@ class KnowledgeSourceNotFoundError(OfferDomainError):
     """
 
     def __init__(self, source_id: UUID) -> None:
+        """Initialize instance."""
         self.source_id = source_id
         super().__init__(f"Knowledge source {source_id} not found")
 

@@ -22,6 +22,8 @@ from src.shared.domain.base_entity import Base
 
 
 class OfferAssetModel(Base):
+    """SQLAlchemy model for offer asset table."""
+
     __tablename__ = "offer_assets"
 
     id: Mapped[uuid.UUID] = mapped_column(

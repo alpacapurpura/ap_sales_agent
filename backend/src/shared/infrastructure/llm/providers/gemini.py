@@ -1,3 +1,5 @@
+"""Google Gemini LLM provider implementation."""
+
 from typing import Any
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
@@ -9,11 +11,10 @@ from src.shared.infrastructure.llm.base import BaseLLMService
 
 
 class GeminiService(BaseLLMService):
-    """
-    Concrete implementation for Google Gemini (Adapter Pattern).
-    """
+    """Concrete implementation for Google Gemini (Adapter Pattern)."""
 
     def __init__(self, api_key: str | None = None) -> None:
+        """Initialize Gemini chat and embedding models."""
         self.api_key = api_key or settings.GEMINI_API_KEY
         self.model_name = settings.GEMINI_MODEL
         # Gemini embedding model usually is "models/embedding-001"
@@ -42,9 +43,7 @@ class GeminiService(BaseLLMService):
         model_type: str = "smart",
         **kwargs: Any,  # noqa: ANN401 — Gemini SDK types
     ) -> str:
-        """
-        Adapts the generic message format to LangChain's format for Gemini.
-        """
+        """Adapts the generic message format to LangChain's format for Gemini."""
         lc_messages = []
 
         if system_prompt:
@@ -75,7 +74,9 @@ class GeminiService(BaseLLMService):
         return response_text
 
     def get_embedding_model(self) -> Any:  # noqa: ANN401 — Gemini SDK types
+        """Return the Gemini embedding model."""
         return self.embeddings
 
     def get_client(self, role: ModelRole = ModelRole.REASONING) -> Any:  # noqa: ANN401 — Gemini SDK types
+        """Return the Gemini chat model client."""
         return self.chat_model

@@ -11,6 +11,8 @@ from src.shared.infrastructure.database.types import EncryptedJSON
 
 
 class StagingMetricModel(Base):
+    """SQLAlchemy model for staging metric."""
+
     __tablename__ = "staging_metrics"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

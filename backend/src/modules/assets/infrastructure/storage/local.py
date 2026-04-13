@@ -1,3 +1,5 @@
+"""Local infrastructure."""
+
 import shutil
 import uuid
 from pathlib import Path
@@ -9,7 +11,10 @@ from .base import StorageStrategy
 
 
 class LocalStorageStrategy(StorageStrategy):
+    """Implement local storage storage strategy."""
+
     def __init__(self, upload_dir: str = settings.UPLOAD_DIR) -> None:
+        """Initialize LocalStorageStrategy."""
         self.upload_dir = upload_dir
         Path(self.upload_dir).mkdir(parents=True, exist_ok=True)
 
@@ -19,6 +24,7 @@ class LocalStorageStrategy(StorageStrategy):
         filename: str,
         path_prefix: str = "",
     ) -> tuple[str, str]:
+        """Persist the entity to the database."""
         # Generate safe filename
         ext = Path(filename).suffix
         unique_name = f"{uuid.uuid4()}{ext}"
@@ -51,9 +57,11 @@ class LocalStorageStrategy(StorageStrategy):
         return full_path, url_path
 
     def get_file_bytes(self, storage_path: str) -> bytes:
+        """Retrieve file bytes."""
         return Path(storage_path).read_bytes()
 
     def delete(self, storage_path: str) -> bool:
+        """Handle delete operation."""
         try:
             p = Path(storage_path)
             if p.exists():

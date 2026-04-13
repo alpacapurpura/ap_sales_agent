@@ -35,6 +35,7 @@ class OfferCampaignsReadAdapter(AdvertisingReadPort):
         status: Literal["all", "active", "paused", "ended"] = "all",
         channel: str | None = None,
     ) -> OfferCampaignsViewDTO:
+        """Retrieve campaigns for offer."""
         # Stub: wire real aggregation when advertising
         # exposes offer_id on its campaign/ad tables.
         _ = (tenant_id, offer_id, period_start, period_end, status, channel)

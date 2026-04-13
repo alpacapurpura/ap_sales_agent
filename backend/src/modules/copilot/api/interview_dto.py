@@ -6,11 +6,15 @@ from pydantic import BaseModel, ConfigDict
 
 
 class StartInterviewRequest(BaseModel):
+    """Request schema for start interview."""
+
     domain: str = "brand"
     resume_session_id: UUID | None = None
 
 
 class StartInterviewResponse(BaseModel):
+    """Response schema for start interview."""
+
     model_config = ConfigDict(from_attributes=True)
 
     session_id: UUID
@@ -20,6 +24,8 @@ class StartInterviewResponse(BaseModel):
 
 
 class ActiveInterviewResponse(BaseModel):
+    """Response schema for active interview."""
+
     model_config = ConfigDict(from_attributes=True)
 
     session_id: UUID
@@ -31,6 +37,8 @@ class ActiveInterviewResponse(BaseModel):
 
 
 class InterviewStateResponse(BaseModel):
+    """Response schema for interview state."""
+
     model_config = ConfigDict(from_attributes=True)
 
     session_id: UUID

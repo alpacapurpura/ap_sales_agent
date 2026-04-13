@@ -1,3 +1,5 @@
+"""Web extractor adapter service."""
+
 from typing import TypeVar
 
 import structlog
@@ -18,9 +20,9 @@ async def extract_from_url(
     max_depth: int = 0,
     prompt_template: str | None = None,
 ) -> T | None:
-    """
-    Extracts structured data from a URL using the Web Extractor Subgraph.
-    Supports Deep Crawling via max_depth.
+    """Extract structured data from a URL using the Web Extractor Subgraph.
+
+    Support Deep Crawling via max_depth.
 
     Args:
         url: The URL to scrape.
@@ -30,6 +32,7 @@ async def extract_from_url(
 
     Returns:
         An instance of the Pydantic model populated with extracted data, or None if failed.
+
     """
     # Convert Pydantic model to JSON Schema for the LLM
     json_schema = schema.model_json_schema()

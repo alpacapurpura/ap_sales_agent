@@ -14,6 +14,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class EditionStatus(StrEnum):
+    """Edition Status enumeration."""
+
     DRAFT = "draft"
     UPCOMING = "upcoming"
     ACTIVE = "active"
@@ -52,6 +54,7 @@ class LaunchEdition(BaseEntity):
 
     @model_validator(mode="after")
     def validate_dates(self) -> LaunchEdition:
+        """Validate dates."""
         if self.end_date and self.end_date < self.start_date:
             msg = "end_date cannot be before start_date"
             raise ValueError(msg)

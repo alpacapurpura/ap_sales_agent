@@ -70,6 +70,7 @@ class OfferLifecycleTransition:
     reason: str | None = None
 
     def is_archival(self) -> bool:
+        """Check if archival."""
         return self.to_status is OfferLifecycleStatus.ARCHIVED
 
 
@@ -81,6 +82,7 @@ class InvalidLifecycleTransitionError(ValueError):
         from_status: OfferLifecycleStatus,
         to_status: OfferLifecycleStatus,
     ) -> None:
+        """Initialize instance."""
         allowed = sorted(s.value for s in LIFECYCLE_TRANSITIONS.get(from_status, set()))
         super().__init__(
             f"Invalid transition {from_status.value} -> {to_status.value}. Allowed targets: {allowed}",

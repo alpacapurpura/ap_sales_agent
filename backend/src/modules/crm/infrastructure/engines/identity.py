@@ -1,3 +1,5 @@
+"""CRM identity resolution engine."""
+
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -12,7 +14,10 @@ from src.modules.crm.infrastructure.repositories.customer_repository import (
 
 
 class IdentityResolutionEngine:
+    """Engine for identity resolution computation."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize identity resolution engine."""
         self.repository = CustomerRepository(db)
 
     def resolve(
@@ -21,15 +26,15 @@ class IdentityResolutionEngine:
         value: str,
         traits: dict[str, Any] | None = None,
     ) -> CustomerProfile:
-        """
-        Resuelve una identidad a un perfil de cliente unificado.
-        Si la identidad existe, devuelve el perfil asociado.
-        Si no, crea un nuevo perfil y asocia la identidad.
+        """Resolve an identity to a unified customer profile.
+
+        Return the associated profile if the identity exists, or create a new one.
 
         Args:
             identity_type: Tipo de identidad (email, phone, etc.)
             value: Valor de la identidad (ej. usuario@email.com)
             traits: Atributos adicionales para el perfil (opcional)
+
         """
         if traits is None:
             traits = {}

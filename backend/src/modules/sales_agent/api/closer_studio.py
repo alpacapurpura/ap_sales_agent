@@ -49,6 +49,7 @@ def list_conversations(
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> ConversationListResponse:
+    """List conversations."""
     svc = CloserStudioService(db)
     conversations, total = svc.list_conversations(
         tenant_id=user.tenant_id,
@@ -73,6 +74,7 @@ def get_conversation(
     message_limit: Annotated[int, Query(ge=1, le=200)] = 50,
     before: Annotated[datetime | None, Query()] = None,
 ) -> ConversationDetail:
+    """Retrieve conversation."""
     svc = CloserStudioService(db)
     detail = svc.get_conversation_detail(
         tenant_id=user.tenant_id,
@@ -95,6 +97,7 @@ async def stop_ai(
     user: Annotated[User, Depends(get_current_user)],
     body: StopRequest = None,
 ) -> StopResponse:
+    """Stop ai."""
     svc = CloserStudioService(db)
     result = svc.stop_ai(user.tenant_id, lead_id, user.id)
     if not result:
@@ -128,6 +131,7 @@ async def resume_ai(
     user: Annotated[User, Depends(get_current_user)],
     body: ResumeRequest = ResumeRequest(),
 ) -> ResumeResponse:
+    """Resume ai."""
     svc = CloserStudioService(db)
     result = svc.resume_ai(user.tenant_id, lead_id, objective=body.objective)
     if not result:
@@ -157,6 +161,7 @@ async def send_message(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> SendMessageResponse:
+    """Send message."""
     svc = CloserStudioService(db)
     result = svc.send_message(
         tenant_id=user.tenant_id,
@@ -193,6 +198,7 @@ def nudge(
     user: Annotated[User, Depends(get_current_user)],
     body: NudgeRequest = NudgeRequest(),
 ) -> NudgeResponse:
+    """Nudge."""
     # For now, nudge stores as instruction for AI to generate proactive message
     svc = CloserStudioService(db)
     nudge_instruction = body.context or "Send a proactive follow-up message to re-engage this lead."
@@ -226,6 +232,7 @@ def reactivate(
     user: Annotated[User, Depends(get_current_user)],
     body: ReactivateRequest = ReactivateRequest(),
 ) -> ReactivateResponse:
+    """Reactivate."""
     svc = CloserStudioService(db)
     result = svc.reactivate(user.tenant_id, lead_id, objective=body.objective)
     if not result:
@@ -243,6 +250,7 @@ async def diagnose(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> DiagnoseResponse:
+    """Diagnose."""
     svc = CloserStudioService(db)
     result = await svc.diagnose(user.tenant_id, lead_id)
     if not result:
@@ -259,6 +267,7 @@ def list_frozen(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> list[FrozenConversation]:
+    """List frozen."""
     svc = CloserStudioService(db)
     return [FrozenConversation(**f) for f in svc.list_frozen(user.tenant_id)]
 
@@ -271,5 +280,6 @@ def get_kpis(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> CloserKPIs:
+    """Retrieve kpis."""
     svc = CloserStudioService(db)
     return CloserKPIs(**svc.get_kpis(user.tenant_id))

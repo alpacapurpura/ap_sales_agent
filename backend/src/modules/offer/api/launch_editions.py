@@ -20,6 +20,8 @@ router = APIRouter()
 
 
 class LaunchEditionCreateDTO(BaseModel):
+    """Launch Edition Create DTO DTO."""
+
     edition_name: str | None = None
     start_date: datetime
     end_date: datetime | None = None
@@ -33,6 +35,8 @@ class LaunchEditionCreateDTO(BaseModel):
 
 
 class LaunchEditionUpdateDTO(BaseModel):
+    """Launch Edition Update DTO DTO."""
+
     edition_name: str | None = None
     start_date: datetime | None = None
     end_date: datetime | None = None
@@ -48,6 +52,8 @@ class LaunchEditionUpdateDTO(BaseModel):
 
 
 class LaunchEditionResponse(BaseModel):
+    """Launch Edition Response DTO."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
@@ -77,6 +83,7 @@ class LaunchEditionResponse(BaseModel):
         effective_pricing: list[dict[str, Any]],
         currency: str,
     ) -> "LaunchEditionResponse":
+        """Create from domain."""
         pricing_override = None
         if edition.pricing_override is not None:
             pricing_override = [p.model_dump(mode="json") for p in edition.pricing_override]
@@ -120,6 +127,7 @@ async def list_editions(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> list[LaunchEditionResponse]:
+    """List editions."""
     svc = LaunchEditionService(db)
     editions = svc.list_editions(UUID(offer_id), user.tenant_id)
     return [_build_response(svc, e, user.tenant_id) for e in editions]
@@ -135,6 +143,7 @@ async def create_edition(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> LaunchEditionResponse:
+    """Create edition."""
     svc = LaunchEditionService(db)
     from src.modules.offer.domain.offer import PricingStructure
 
@@ -171,6 +180,7 @@ async def get_edition(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> LaunchEditionResponse:
+    """Retrieve edition."""
     svc = LaunchEditionService(db)
     edition = svc.get_edition(UUID(edition_id), user.tenant_id)
     if not edition or str(edition.offer_id) != offer_id:
@@ -188,6 +198,7 @@ async def update_edition(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> LaunchEditionResponse:
+    """Update edition."""
     svc = LaunchEditionService(db)
     try:
         edition = svc.update_edition(
@@ -210,6 +221,7 @@ async def delete_edition(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> None:
+    """Delete edition."""
     svc = LaunchEditionService(db)
     svc.delete_edition(UUID(edition_id), user.tenant_id)
 
@@ -224,6 +236,7 @@ async def duplicate_edition(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> LaunchEditionResponse:
+    """Duplicate edition."""
     svc = LaunchEditionService(db)
     try:
         edition = svc.duplicate_edition(UUID(edition_id), user.tenant_id)

@@ -1,3 +1,5 @@
+"""Message domain module."""
+
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -9,6 +11,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class Message(BaseEntity):
+    """Message."""
+
     id: UUID
     lead_id: UUID | None = None
     tenant_id: UUID | None = None

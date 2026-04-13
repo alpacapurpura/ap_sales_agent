@@ -1,3 +1,5 @@
+"""Router API endpoints."""
+
 from typing import Annotated
 from uuid import UUID
 
@@ -33,6 +35,7 @@ async def upload_asset(
     description: Annotated[str | None, Form()] = None,
     offer_id: Annotated[str | None, Form()] = None,  # Optional now
 ) -> AssetDto:
+    """Upload asset."""
     try:
         service = AssetsService(db)
         # Convert offer_id to UUID if provided
@@ -58,6 +61,7 @@ def list_assets(
     user: Annotated[User, Depends(get_current_user)],
     type_: Annotated[str | None, Query(alias="type", description="Filter by asset type (IMAGE, VIDEO, etc)")] = None,
 ) -> list[AssetDto]:
+    """List assets."""
     service = AssetsService(db)
     return service.list_assets(tenant_id=user.tenant_id, asset_type=type_)
 
@@ -68,6 +72,7 @@ def delete_asset(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
+    """Delete asset."""
     service = AssetsService(db)
     success = service.delete_asset(tenant_id=user.tenant_id, asset_id=UUID(asset_id))
 

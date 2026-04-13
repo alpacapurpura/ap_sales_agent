@@ -74,6 +74,7 @@ class ConnectionPortImpl(ConnectionPort):
     """
 
     def __init__(self, db: Session) -> None:
+        """Initialize instance."""
         self.db = db
         self.repo = ChannelConnectionRepository(db)
 

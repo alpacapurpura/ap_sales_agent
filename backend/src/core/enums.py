@@ -1,13 +1,19 @@
+"""Core enumerations for AI provider, model role, and prompt source."""
+
 from enum import StrEnum
 
 
 class PromptSource(StrEnum):
+    """Prompt resolution strategy."""
+
     HYBRID = "hybrid"  # DB > File (Default)
     FILE = "file"  # Local File System only (Dev)
     DB = "db"  # DB Only (Strict Prod)
 
 
 class AIProvider(StrEnum):
+    """Supported AI provider backends."""
+
     OPENAI = "openai"
     GEMINI = "gemini"
 

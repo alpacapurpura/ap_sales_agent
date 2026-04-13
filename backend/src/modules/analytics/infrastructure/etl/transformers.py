@@ -40,6 +40,7 @@ def transform_staging_to_official(
 
     Returns:
         List of dicts ready for OfficialMetricsRepository.upsert_from_staging().
+
     """
     if period_config is None:
         from src.modules.analytics.domain.period_config import TenantPeriodConfig

@@ -1,3 +1,5 @@
+"""Mailerlite API endpoints."""
+
 from typing import Annotated, Any
 
 import structlog
@@ -21,15 +23,21 @@ router = APIRouter()
 
 
 class MailerliteConnectRequest(BaseModel):
+    """Mailerlite Connect Request DTO."""
+
     api_key: str
 
 
 class MailerliteStatusResponse(BaseModel):
+    """Mailerlite Status Response DTO."""
+
     is_connected: bool
     account_info: dict[str, Any] | None = None
 
 
 class ConnectionResponse(BaseModel):
+    """Connection Response DTO."""
+
     status: str
     message: str
     details: dict[str, Any] | None = None
@@ -44,6 +52,7 @@ async def get_mailerlite_status(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> MailerliteStatusResponse:
+    """Retrieve mailerlite status."""
     connection = repo.get_active(user.tenant_id, ChannelType.MAILERLITE)
 
     if not connection:
@@ -61,6 +70,7 @@ async def connect_mailerlite(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> ConnectionResponse:
+    """Connect mailerlite."""
     is_valid, result = await MailerliteConnector.verify_connection(
         api_key=request.api_key,
     )
@@ -90,6 +100,7 @@ async def disconnect_mailerlite(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> ConnectionResponse:
+    """Disconnect mailerlite."""
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.MAILERLITE)
 
     if not connection:
@@ -108,6 +119,7 @@ async def test_mailerlite_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> ConnectionResponse:
+    """Test mailerlite connection."""
     connection = repo.get_active(user.tenant_id, ChannelType.MAILERLITE)
 
     if not connection:

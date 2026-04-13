@@ -1,5 +1,4 @@
-"""
-Batch inactivity detection and score decay service.
+"""Batch inactivity detection and score decay service.
 
 Responsibilities:
 - Flag profiles as inactive after INACTIVITY_CONFIG.inactive_days without activity
@@ -38,6 +37,7 @@ class InactivityService:
     """Batch inactivity detection and score decay engine."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize inactivity service."""
         self.db = db
         self.lifecycle_repo = LifecycleRepository(db)
 

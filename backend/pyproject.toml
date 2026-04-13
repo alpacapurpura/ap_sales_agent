@@ -124,6 +124,7 @@ select = [
     "E501",                    # line-too-long (line-length=120)
     "FAST",                    # fastapi: Annotated dependencies
     "ANN",                     # type annotations (src/ only, tests exempt)
+    "D",                       # pydocstyle: docstrings (src/ only, Google convention)
     # --- Wave 4: fix + activate ---
     "NPY",                     # numpy deprecated APIs
     "PYI",                     # stub file / typing best practices
@@ -170,6 +171,8 @@ ignore = [
     "E402",     # Module import not at top — sys.path + conditional imports
     # === Tryceratops — too opinionated for enforcement ===
     "TRY300",   # try-consider-else — reduces readability in our patterns
+    # === Docstrings — Pydantic nested classes ===
+    "D106",     # undocumented nested class — Pydantic Config, Meta classes
     # === Progressive adoption: fix gradually, remove from ignore ===
     # B904, SIM105, EM101, EM102, ERA001, PERF401, T201 — ENFORCED (2026-04-12)
     # DTZ003, DTZ006, DTZ007, PERF203, N818, N811, N814, N815, RUF002, PLW0603, PLW2901, PLC0206, UP042 — ENFORCED (2026-04-13)
@@ -197,11 +200,13 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "PLR0912", # complex test helper functions are acceptable
     "F401",    # side-effect imports for model registration in conftest
     "ANN",     # type annotations not required in tests
+    "D",       # docstrings not required in tests
 ]
 "src/tests/**/*.py" = [
     "S101", "ARG", "PT", "PLR2004", "T201", "N806", "DTZ011", "PLR0912",
     "INP001",  # src/tests/ is a testpath, not a package — __init__.py conflicts with tests/
     "ANN",     # type annotations not required in tests
+    "D",       # docstrings not required in tests
 ]
 "src/scripts/**/*.py" = [
     "T201",    # CLI scripts legitimately use print() for output
@@ -209,7 +214,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "PLR0915", # one-shot migration scripts — not worth refactoring
 ]
 "src/modules/brand/tests/**/*.py" = [
-    "S101", "ARG", "PT", "PLR2004", "T201", "ANN",
+    "S101", "ARG", "PT", "PLR2004", "T201", "ANN", "D",
 ]
 "src/admin/**/*.py" = [
     "C901",     # too complex — Streamlit pages are monolithic by design
@@ -219,6 +224,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "SIM102",   # collapsible if — Streamlit nested conditionals clearer separate
     "SIM117",   # multiple with — Streamlit col/container nesting is idiomatic
 ]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.mccabe]
 max-complexity = 15  # Wave 4: lowered from 20 (industry standard: 10)

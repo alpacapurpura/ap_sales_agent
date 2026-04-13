@@ -1,3 +1,5 @@
+"""Models package."""
+
 from src.modules.connections.infrastructure.models.channel_connection_model import (
     ChannelConnectionModel,
 )

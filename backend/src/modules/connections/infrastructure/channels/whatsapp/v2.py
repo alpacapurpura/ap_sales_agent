@@ -1,3 +1,5 @@
+"""V2 channel adapter."""
+
 from typing import Any
 
 import httpx
@@ -8,11 +10,10 @@ from .base import BaseEvolutionApi
 
 
 class EvolutionApiV2(BaseEvolutionApi):
-    """
-    Strategy for Evolution API v2.x (Production).
-    """
+    """Strategy for Evolution API v2.x (Production)."""
 
     def normalize_payload(self, payload: dict[str, Any]) -> IncomingMessage | None:
+        """Normalize payload."""
         # Reuse base logic and add version metadata
         message = super().normalize_payload(payload)
         if message:
@@ -20,6 +21,7 @@ class EvolutionApiV2(BaseEvolutionApi):
         return message
 
     async def create_instance(self, token: str) -> dict[str, Any]:
+        """Create instance."""
         url = f"{self.base_url}/instance/create"
         payload = {
             "instanceName": self.tenant_id,
@@ -41,6 +43,7 @@ class EvolutionApiV2(BaseEvolutionApi):
             }
 
     async def configure_webhook(self, webhook_url: str) -> dict[str, Any]:
+        """Configure webhook."""
         # V2 Webhook Config - Nested Structure
         url = f"{self.base_url}/webhook/set/{self.tenant_id}"
         payload = {

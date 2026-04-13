@@ -1,3 +1,5 @@
+"""Brand extraction trace SQLAlchemy model."""
+
 import uuid
 
 from sqlalchemy import Column, DateTime, Float, Integer, String, Text
@@ -8,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class BrandExtractionTrace(Base):
+    """Handle brand extraction trace logic."""
+
     __tablename__ = "brand_extraction_traces"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

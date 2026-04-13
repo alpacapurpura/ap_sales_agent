@@ -1,6 +1,4 @@
-"""
-Landing page tools — give the copilot access to landing page status.
-"""
+"""Landing page tools — give the copilot access to landing page status."""
 
 import structlog
 from langchain_core.tools import tool
@@ -22,6 +20,7 @@ def get_landing_pages(status: str | None = None) -> str:
 
     Returns:
         Lista de landing pages con su estado, slug y oferta vinculada.
+
     """
     tenant_id = get_tenant_id()
     if not tenant_id:

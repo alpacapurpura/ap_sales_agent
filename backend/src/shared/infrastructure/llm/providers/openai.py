@@ -1,3 +1,5 @@
+"""OpenAI LLM provider implementation with role-based model selection."""
+
 from typing import Any
 
 import structlog
@@ -25,12 +27,10 @@ _LEGACY_MODEL_TYPE_MAP: dict[str, ModelRole] = {
 
 
 class OpenAIService(BaseLLMService):
-    """
-    Concrete implementation for OpenAI (Adapter Pattern).
-    Uses role-based model selection via ModelRole enum.
-    """
+    """OpenAI adapter with role-based model selection via ModelRole enum."""
 
     def __init__(self, api_key: str | None = None) -> None:
+        """Initialize OpenAI chat models and embeddings."""
         self.api_key = api_key or settings.OPENAI_API_KEY
         self._models: dict[str, ChatOpenAI] = {}  # cache by model name
 
@@ -179,7 +179,9 @@ class OpenAIService(BaseLLMService):
         return response_text
 
     def get_embedding_model(self) -> Any:  # noqa: ANN401 — OpenAI SDK types
+        """Return the OpenAI embedding model."""
         return self.embeddings
 
     def get_client(self, role: ModelRole = ModelRole.REASONING) -> ChatOpenAI:
+        """Return the OpenAI chat model client for the given role."""
         return self._get_chat_model(role)

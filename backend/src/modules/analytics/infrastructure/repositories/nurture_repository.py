@@ -28,6 +28,7 @@ class NurtureMetricsRepository:
     """CRM-based MQL counting, source attribution, and email event aggregation."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize nurture metrics repository."""
         self.db = db
 
     def count_new_mqls(

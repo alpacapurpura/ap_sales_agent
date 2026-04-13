@@ -23,6 +23,7 @@ class NpsService:
     """Manage NPS surveys, responses, scoring, and evangelist candidate detection."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize nps service."""
         self.db = db
 
     def create_survey(
@@ -224,7 +225,7 @@ class NpsService:
 
     @staticmethod
     def calculate_standard_nps(scores: list[int]) -> float | None:
-        """Standard NPS: ((promoters - detractors) / total) * 100. Range -100 to +100."""
+        """Calculate standard NPS: ((promoters - detractors) / total) * 100, range -100 to +100."""
         if not scores:
             return None
         total = len(scores)

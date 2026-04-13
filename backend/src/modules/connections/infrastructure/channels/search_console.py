@@ -26,6 +26,7 @@ class SearchConsoleAdapter:
     """
 
     def __init__(self, credentials_data: dict[str, Any]) -> None:
+        """Initialize adapter with credentials."""
         self.creds = Credentials.from_authorized_user_info(credentials_data, SCOPES)
 
     def _get_service(self) -> object:

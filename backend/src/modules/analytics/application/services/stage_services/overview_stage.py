@@ -74,6 +74,7 @@ class StageOverviewService:
         db: Session | None = None,
         connection_port: ConnectionPort | None = None,
     ) -> None:
+        """Initialize stage overview service."""
         self.cache = cache
         self.db = db
         self.connection_port = connection_port

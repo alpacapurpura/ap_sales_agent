@@ -21,6 +21,7 @@ class PeriodMetricsRepository:
     """CRUD operations for the period_metrics table."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize period metrics repository."""
         self.db = db
 
     _UPSERT_SQL = text("""

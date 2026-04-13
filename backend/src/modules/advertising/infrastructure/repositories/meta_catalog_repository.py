@@ -28,6 +28,8 @@ if TYPE_CHECKING:
 
 @dataclass
 class CampaignSnapshot:
+    """Represent campaign snapshot."""
+
     external_id: str
     name: str
     objective: str | None
@@ -37,6 +39,8 @@ class CampaignSnapshot:
 
 @dataclass
 class AdSetSnapshot:
+    """Represent ad set snapshot."""
+
     external_id: str
     campaign_external_id: str
     name: str
@@ -48,6 +52,8 @@ class AdSetSnapshot:
 
 @dataclass
 class AdSnapshot:
+    """Represent ad snapshot."""
+
     external_id: str
     campaign_external_id: str
     ad_set_external_id: str
@@ -65,9 +71,11 @@ class MetaCatalog:
     ads: list[AdSnapshot] = field(default_factory=list)
 
     def ad_sets_by_campaign(self, external_id: str) -> list[AdSetSnapshot]:
+        """Handle ad sets by campaign operation."""
         return [s for s in self.ad_sets if s.campaign_external_id == external_id]
 
     def ads_for_ad_set(self, external_id: str) -> list[AdSnapshot]:
+        """Handle ads for ad set operation."""
         return [a for a in self.ads if a.ad_set_external_id == external_id]
 
 
@@ -75,6 +83,7 @@ class MetaCatalogRepository:
     """Loader for the Meta catalog tables filtered by tenant."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize MetaCatalogRepository."""
         self._db = db
 
     def load(self, tenant_id: UUID) -> MetaCatalog:

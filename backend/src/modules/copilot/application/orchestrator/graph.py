@@ -1,5 +1,4 @@
-"""
-Copilot ReAct Agent — LangGraph StateGraph with tool-calling loop.
+"""Copilot ReAct Agent — LangGraph StateGraph with tool-calling loop.
 
 The agent follows a simple cycle:
   1. LLM generates a response (possibly with tool calls)
@@ -264,10 +263,9 @@ def build_system_prompt(state: CopilotState) -> str:
 
 
 def agent_node(state: CopilotState) -> dict:
-    """
-    Core agent node: calls LLM with conversation history + system prompt.
-    The LLM may return text, tool calls, or both.
+    """Call LLM with conversation history and system prompt.
 
+    The LLM may return text, tool calls, or both.
     Tools are selected dynamically based on the user's current route.
     """
     llm = LLMFactory.get_service().get_client(ModelRole.AGENT)
@@ -292,8 +290,7 @@ def agent_node(state: CopilotState) -> dict:
 
 
 def tool_executor_node(state: CopilotState) -> dict:
-    """
-    Execute tool calls from the last AIMessage and return ToolMessages.
+    """Execute tool calls from the last AIMessage and return ToolMessages.
 
     Uses route-based tool selection to build the tool map.
     """

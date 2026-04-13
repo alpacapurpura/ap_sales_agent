@@ -1,3 +1,5 @@
+"""Shopify marketing connector."""
+
 import hashlib
 import hmac
 import urllib.parse
@@ -15,9 +17,7 @@ logger = structlog.get_logger()
 
 
 class ShopifyConnector(BaseConnector):
-    """
-    Shopify Connector for verifying credentials and interacting with Shopify Admin API.
-    """
+    """Shopify Connector for verifying credentials and interacting with Shopify Admin API."""
 
     API_VERSION = "2026-01"
     SCOPES = (  # Default scopes
@@ -43,8 +43,8 @@ class ShopifyConnector(BaseConnector):
 
     @staticmethod
     def get_auth_url(shop_domain: str, state: str, redirect_uri: str) -> str:
-        """
-        Generates the Shopify OAuth authorization URL.
+        """Generate the Shopify OAuth authorization URL.
+
         Scopes must be explicit for Custom Distribution apps not deployed via CLI/TOML.
         """
         # Clean up shop URL
@@ -63,9 +63,7 @@ class ShopifyConnector(BaseConnector):
 
     @staticmethod
     def verify_hmac(query_params: dict) -> bool:
-        """
-        Verifies the HMAC signature of the request from Shopify.
-        """
+        """Verify the HMAC signature of the request from Shopify."""
         if "hmac" not in query_params:
             return False
 
@@ -92,8 +90,8 @@ class ShopifyConnector(BaseConnector):
         shop_domain: str,
         code: str,
     ) -> tuple[str | None, str | None]:
-        """
-        Exchanges the authorization code for a permanent access token.
+        """Exchanges the authorization code for a permanent access token.
+
         Returns: (access_token, error_message)
         """
         url = f"https://{shop_domain}/admin/oauth/access_token"
@@ -124,8 +122,8 @@ class ShopifyConnector(BaseConnector):
     async def client_credentials_token(
         shop_domain: str,
     ) -> tuple[str | None, str | None]:
-        """
-        Acquires an access token via OAuth 2.0 Client Credentials Grant.
+        """Acquires an access token via OAuth 2.0 Client Credentials Grant.
+
         Only works for apps installed on stores owned by the same organization.
         Token expires in ~24h and must be refreshed.
         Returns: (access_token, error_message)
@@ -164,16 +162,16 @@ class ShopifyConnector(BaseConnector):
             return None, str(e)
 
     def sync_contacts(self, tenant_id: str) -> list[dict[str, Any]]:
-        """
-        Sync contacts from Shopify (Customers).
+        """Sync contacts from Shopify (Customers).
+
         Placeholder implementation.
         """
         logger.info("shopify_sync_contacts_placeholder", tenant_id=tenant_id)
         return []
 
     def sync_events(self, tenant_id: str) -> list[dict[str, Any]]:
-        """
-        Sync events from Shopify (Orders).
+        """Sync events from Shopify (Orders).
+
         Placeholder implementation.
         """
         logger.info("shopify_sync_events_placeholder", tenant_id=tenant_id)
@@ -184,8 +182,7 @@ class ShopifyConnector(BaseConnector):
         shop_url: str,
         access_token: str,
     ) -> tuple[bool, dict[str, Any]]:
-        """
-        Verifies Shopify connection by fetching shop details.
+        """Verify Shopify connection by fetching shop details.
 
         Args:
             shop_url: The myshopify.com URL (e.g., "mystore.myshopify.com")
@@ -193,6 +190,7 @@ class ShopifyConnector(BaseConnector):
 
         Returns:
             Tuple[bool, Dict]: (is_valid, shop_details_or_error)
+
         """
         # Clean up shop URL
         shop_domain = shop_url.replace("https://", "").replace("http://", "").strip("/")

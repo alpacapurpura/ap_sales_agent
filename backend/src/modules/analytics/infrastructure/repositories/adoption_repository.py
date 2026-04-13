@@ -34,6 +34,7 @@ class AdoptionMetricsRepository:
     """CRM aggregate queries for adoption (Stage 5) metrics."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize adoption metrics repository."""
         self.db = db
 
     def get_customer_health_by_offer(

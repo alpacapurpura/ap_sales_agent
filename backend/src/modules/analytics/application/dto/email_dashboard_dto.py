@@ -44,6 +44,8 @@ __all__ = [
 
 
 class EmailHealthSubScoreDTO(BaseModel):
+    """Data transfer object for email health sub score."""
+
     model_config = ConfigDict(from_attributes=True)
     area: str  # engagement | entregabilidad | crecimiento | contenido
     label: str
@@ -52,12 +54,16 @@ class EmailHealthSubScoreDTO(BaseModel):
 
 
 class EmailHealthScoreDTO(BaseModel):
+    """Data transfer object for email health score."""
+
     model_config = ConfigDict(from_attributes=True)
     total: int  # 0-100
     sub_scores: list[EmailHealthSubScoreDTO]
 
 
 class EmailCampaignSummaryDTO(BaseModel):
+    """Data transfer object for email campaign summary."""
+
     model_config = ConfigDict(from_attributes=True)
     campaign_name: str
     campaign_subject: str | None = None
@@ -69,6 +75,8 @@ class EmailCampaignSummaryDTO(BaseModel):
 
 
 class CampaignsVsAutomationsDTO(BaseModel):
+    """Data transfer object for campaigns vs automations."""
+
     model_config = ConfigDict(from_attributes=True)
     campaigns_sent: int = 0
     campaigns_open_rate: float = 0.0
@@ -103,6 +111,8 @@ class EmailDashboardDTO(BaseModel):
 
 
 class EmailCampaignDTO(BaseModel):
+    """Data transfer object for email campaign."""
+
     model_config = ConfigDict(from_attributes=True)
     campaign_id: str
     campaign_name: str
@@ -122,6 +132,8 @@ class EmailCampaignDTO(BaseModel):
 
 
 class EmailTypePerformanceDTO(BaseModel):
+    """Data transfer object for email type performance."""
+
     model_config = ConfigDict(from_attributes=True)
     campaign_type: str  # newsletter | lanzamiento | promocion | contenido | reengagement
     campaign_count: int = 0
@@ -133,6 +145,8 @@ class EmailTypePerformanceDTO(BaseModel):
 
 
 class EmailCampaignsResponseDTO(BaseModel):
+    """Data transfer object for email campaigns response."""
+
     model_config = ConfigDict(from_attributes=True)
     period: str
     type_performance: list[EmailTypePerformanceDTO]
@@ -144,6 +158,8 @@ class EmailCampaignsResponseDTO(BaseModel):
 
 
 class AutomationStepDTO(BaseModel):
+    """Data transfer object for automation step."""
+
     model_config = ConfigDict(from_attributes=True)
     step_id: str
     step_number: int
@@ -164,6 +180,8 @@ class AutomationStepDTO(BaseModel):
 
 
 class EmailAutomationDTO(BaseModel):
+    """Data transfer object for email automation."""
+
     model_config = ConfigDict(from_attributes=True)
     automation_id: str
     name: str
@@ -181,6 +199,8 @@ class EmailAutomationDTO(BaseModel):
 
 
 class EmailAutomationsResponseDTO(BaseModel):
+    """Data transfer object for email automations response."""
+
     model_config = ConfigDict(from_attributes=True)
     period: str
     kpis: list[MetricKpiDTO]
@@ -191,6 +211,8 @@ class EmailAutomationsResponseDTO(BaseModel):
 
 
 class EmailEngagementSegmentDTO(BaseModel):
+    """Data transfer object for email engagement segment."""
+
     model_config = ConfigDict(from_attributes=True)
     segment_name: str  # champions | activos | en_riesgo | dormidos
     label: str
@@ -204,6 +226,8 @@ class EmailEngagementSegmentDTO(BaseModel):
 
 
 class SegmentTypeMatrixCellDTO(BaseModel):
+    """Data transfer object for segment type matrix cell."""
+
     model_config = ConfigDict(from_attributes=True)
     segment_name: str
     campaign_type: str
@@ -211,6 +235,8 @@ class SegmentTypeMatrixCellDTO(BaseModel):
 
 
 class EmailSourcePerformanceDTO(BaseModel):
+    """Data transfer object for email source performance."""
+
     model_config = ConfigDict(from_attributes=True)
     source: str  # landing_page | popup | checkout | import | api
     label: str
@@ -222,12 +248,16 @@ class EmailSourcePerformanceDTO(BaseModel):
 
 
 class EngagementDecayDTO(BaseModel):
+    """Data transfer object for engagement decay."""
+
     model_config = ConfigDict(from_attributes=True)
     period_label: str  # "0-30 dias", "31-90 dias", etc.
     open_rate: float = 0.0
 
 
 class ActivityHeatmapCellDTO(BaseModel):
+    """Data transfer object for activity heatmap cell."""
+
     model_config = ConfigDict(from_attributes=True)
     day_of_week: int  # 0=Monday, 6=Sunday
     hour_block: str  # "6-9", "9-12", "12-15", "15-18", "18-21", "21-24"
@@ -235,6 +265,8 @@ class ActivityHeatmapCellDTO(BaseModel):
 
 
 class EmailAudienceResponseDTO(BaseModel):
+    """Data transfer object for email audience response."""
+
     model_config = ConfigDict(from_attributes=True)
     period: str
     segments: list[EmailEngagementSegmentDTO]
@@ -248,6 +280,8 @@ class EmailAudienceResponseDTO(BaseModel):
 
 
 class BounceBreakdownDTO(BaseModel):
+    """Data transfer object for bounce breakdown."""
+
     model_config = ConfigDict(from_attributes=True)
     hard_bounces: int = 0
     soft_bounces: int = 0
@@ -257,6 +291,8 @@ class BounceBreakdownDTO(BaseModel):
 
 
 class EmailHealthResponseDTO(BaseModel):
+    """Data transfer object for email health response."""
+
     model_config = ConfigDict(from_attributes=True)
     period: str
     campaigns_count: int = 0
@@ -271,6 +307,8 @@ class EmailHealthResponseDTO(BaseModel):
 
 
 class EmailGrowthResponseDTO(BaseModel):
+    """Data transfer object for email growth response."""
+
     model_config = ConfigDict(from_attributes=True)
     period: str
     kpis: list[MetricKpiDTO]

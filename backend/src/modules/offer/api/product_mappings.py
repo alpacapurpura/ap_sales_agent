@@ -25,6 +25,8 @@ router = APIRouter(tags=["Offer - Product Mappings"])
 
 
 class ProductMappingOut(BaseModel):
+    """Product Mapping Out schema."""
+
     id: UUID
     tenant_id: UUID
     offer_id: UUID
@@ -34,10 +36,14 @@ class ProductMappingOut(BaseModel):
     metadata_info: dict = {}
 
     class Config:
+        """Model configuration."""
+
         from_attributes = True
 
 
 class CreateProductMappingIn(BaseModel):
+    """Create Product Mapping In DTO."""
+
     offer_id: UUID
     source: str
     external_id: str
@@ -58,10 +64,14 @@ class CreateProductMappingOut(BaseModel):
     sales_created: int = 0
 
     class Config:
+        """Model configuration."""
+
         from_attributes = True
 
 
 class UnmatchedProductOut(BaseModel):
+    """Unmatched Product Out schema."""
+
     external_id: str
     external_name: str | None = None
     total_price: float | None = None
@@ -70,6 +80,8 @@ class UnmatchedProductOut(BaseModel):
 
 
 class SourceProductOut(BaseModel):
+    """Source Product Out schema."""
+
     external_id: str
     external_name: str | None = None
     source: str
@@ -414,6 +426,8 @@ async def delete_product_mapping(
 
 
 class ProductMetricOut(BaseModel):
+    """Product Metric Out schema."""
+
     external_id: str
     external_name: str | None = None
     source: str
@@ -426,6 +440,8 @@ class ProductMetricOut(BaseModel):
 
 
 class OfferProductDetailOut(BaseModel):
+    """Offer Product Detail Out schema."""
+
     offer_id: str
     offer_name: str | None = None
     offer_archetype: str | None = None

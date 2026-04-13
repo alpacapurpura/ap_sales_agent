@@ -19,6 +19,7 @@ class TenantPeriodConfig:
         weekly_start_day: 0=Monday, 1=Tuesday, ..., 6=Sunday (ISO weekday convention).
         fiscal_year_start_month: Month (1-12) when the fiscal year begins.
         fiscal_year_start_day: Day of month when the fiscal year begins.
+
     """
 
     weekly_start_day: int = 0  # Monday (ISO default)
@@ -84,6 +85,7 @@ class TenantPeriodConfig:
 
         Returns:
             {"iso_week_start": date, "month_key": "YYYY-MM", "quarter_key": "YYYY-QN"}
+
         """
         ws, _ = self.get_week_boundaries(d)
         return {

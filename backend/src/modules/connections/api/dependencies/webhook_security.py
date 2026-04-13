@@ -1,3 +1,5 @@
+"""Webhook Security module."""
+
 import base64
 import hashlib
 import hmac
@@ -11,8 +13,8 @@ logger = structlog.get_logger()
 
 
 async def verify_shopify_signature(request: Request) -> bool:
-    """
-    Verifica la firma HMAC-SHA256 de Shopify.
+    """Verifica la firma HMAC-SHA256 de Shopify.
+
     Header: X-Shopify-Hmac-Sha256
     """
     signature = request.headers.get("X-Shopify-Hmac-Sha256")
@@ -55,8 +57,8 @@ async def verify_shopify_signature(request: Request) -> bool:
 
 
 async def verify_meta_signature(request: Request) -> bool:
-    """
-    Verifica la firma HMAC-SHA256 de Meta (Facebook/Instagram).
+    """Verifica la firma HMAC-SHA256 de Meta (Facebook/Instagram).
+
     Header: X-Hub-Signature-256
     Formato: sha256=<signature>
     """

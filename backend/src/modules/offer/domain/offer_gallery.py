@@ -1,12 +1,12 @@
+"""Offer Gallery domain module."""
+
 from datetime import datetime
 
 from pydantic import UUID4, BaseModel, ConfigDict
 
 
 class OfferGalleryImage(BaseModel):
-    """
-    Offer Gallery Image Domain Model.
-    """
+    """Offer Gallery Image Domain Model."""
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -1,3 +1,5 @@
+"""Shopify Compliance API endpoints."""
+
 from typing import Annotated
 
 import structlog
@@ -17,8 +19,8 @@ async def customers_data_request(
     request: Request,
     verified: Annotated[bool, Depends(verify_shopify_signature)],
 ) -> dict[str, str]:
-    """
-    GDPR: Request customer data.
+    """GDPR: Request customer data.
+
     Shopify sends this when a merchant or customer requests their data.
     """
     try:
@@ -47,8 +49,8 @@ async def customers_redact(
     request: Request,
     verified: Annotated[bool, Depends(verify_shopify_signature)],
 ) -> dict[str, str]:
-    """
-    GDPR: Erase customer data.
+    """GDPR: Erase customer data.
+
     Shopify sends this when a merchant or customer requests deletion.
     """
     try:
@@ -76,8 +78,8 @@ async def shop_redact(
     request: Request,
     verified: Annotated[bool, Depends(verify_shopify_signature)],
 ) -> dict[str, str]:
-    """
-    GDPR: Erase shop data.
+    """GDPR: Erase shop data.
+
     Shopify sends this when a merchant uninstalls the app and 48 hours have passed.
     """
     try:

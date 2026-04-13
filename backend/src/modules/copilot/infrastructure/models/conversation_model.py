@@ -1,3 +1,5 @@
+"""Copilot conversation SQLAlchemy model."""
+
 import uuid
 
 from sqlalchemy import Column, DateTime, String, Text
@@ -8,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class CopilotConversationModel(Base):
+    """SQLAlchemy model for copilot conversation."""
+
     __tablename__ = "copilot_conversations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -30,4 +34,5 @@ class CopilotConversationModel(Base):
     )
 
     def __repr__(self) -> str:
+        """Return string representation."""
         return f"<CopilotConversation id={self.id} tenant={self.tenant_id}>"

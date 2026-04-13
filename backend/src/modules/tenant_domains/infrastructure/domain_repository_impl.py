@@ -1,3 +1,5 @@
+"""Domain Repository Impl implementation."""
+
 from uuid import UUID
 
 import structlog
@@ -19,7 +21,10 @@ logger = structlog.get_logger()
 
 
 class DomainRepositoryImpl(DomainRepository):
+    """Concrete repository implementation for domain."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize DomainRepositoryImpl."""
         self.db = db
 
     def _to_domain(self, model: TenantDomainModel) -> TenantDomain:
@@ -43,6 +48,7 @@ class DomainRepositoryImpl(DomainRepository):
         )
 
     def create(self, domain: TenantDomain) -> TenantDomain:
+        """Handle create operation."""
         model = TenantDomainModel(
             id=domain.id,
             tenant_id=domain.tenant_id,
@@ -70,6 +76,7 @@ class DomainRepositoryImpl(DomainRepository):
         return self._to_domain(model)
 
     def get_by_id(self, domain_id: UUID, tenant_id: UUID) -> TenantDomain | None:
+        """Retrieve by id."""
         stmt = select(TenantDomainModel).where(
             TenantDomainModel.id == domain_id,
             TenantDomainModel.tenant_id == tenant_id,
@@ -80,6 +87,7 @@ class DomainRepositoryImpl(DomainRepository):
         return self._to_domain(model) if model else None
 
     def get_by_hostname(self, hostname: str) -> TenantDomain | None:
+        """Retrieve by hostname."""
         stmt = select(TenantDomainModel).where(
             TenantDomainModel.hostname == hostname,
             TenantDomainModel.deleted_at.is_(None),
@@ -89,6 +97,7 @@ class DomainRepositoryImpl(DomainRepository):
         return self._to_domain(model) if model else None
 
     def list_by_tenant(self, tenant_id: UUID) -> list[TenantDomain]:
+        """List by tenant."""
         stmt = (
             select(TenantDomainModel)
             .where(
@@ -101,6 +110,7 @@ class DomainRepositoryImpl(DomainRepository):
         return [self._to_domain(m) for m in result.scalars().all()]
 
     def update(self, domain: TenantDomain) -> TenantDomain:
+        """Handle update operation."""
         stmt = select(TenantDomainModel).where(
             TenantDomainModel.id == domain.id,
             TenantDomainModel.tenant_id == domain.tenant_id,
@@ -126,6 +136,7 @@ class DomainRepositoryImpl(DomainRepository):
         return self._to_domain(model)
 
     def soft_delete(self, domain_id: UUID, tenant_id: UUID) -> None:
+        """Soft-delete the entity by setting deleted_at."""
         stmt = select(TenantDomainModel).where(
             TenantDomainModel.id == domain_id,
             TenantDomainModel.tenant_id == tenant_id,

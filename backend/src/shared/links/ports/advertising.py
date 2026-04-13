@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 
 
 class CampaignRowDTO(BaseModel):
+    """Single campaign row with spend, leads, and cost-per-lead."""
+
     model_config = ConfigDict(from_attributes=True)
     id: UUID
     name: str
@@ -30,6 +32,8 @@ class CampaignRowDTO(BaseModel):
 
 
 class CampaignAggregateKPIsDTO(BaseModel):
+    """Aggregate campaign KPIs for the last 7 days."""
+
     model_config = ConfigDict(from_attributes=True)
     active_count: int
     spend_7d: float
@@ -39,14 +43,15 @@ class CampaignAggregateKPIsDTO(BaseModel):
 
 
 class OfferCampaignsViewDTO(BaseModel):
+    """Combined KPIs and campaign list for an offer."""
+
     model_config = ConfigDict(from_attributes=True)
     kpis: CampaignAggregateKPIsDTO
     campaigns: list[CampaignRowDTO]
 
 
 class AdvertisingReadPort(ABC):
-    """Read-only port so ``offer`` can aggregate campaigns without importing
-    any ``advertising`` internals.
+    """Read-only port for offer-campaign aggregation across module boundaries.
 
     Implementations live in the advertising module and are wired via
     FastAPI ``Depends`` at the route level.
@@ -62,7 +67,9 @@ class AdvertisingReadPort(ABC):
         period_end: date,
         status: Literal["all", "active", "paused", "ended"] = "all",
         channel: str | None = None,
-    ) -> OfferCampaignsViewDTO: ...
+    ) -> OfferCampaignsViewDTO:
+        """Return campaigns and KPIs for a given offer within a date range."""
+        ...
 
 
 __all__ = [

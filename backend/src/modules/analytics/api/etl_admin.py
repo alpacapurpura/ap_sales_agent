@@ -28,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 
 class ActiveFailure(BaseModel):
+    """Represent active failure data."""
+
     tenant_id: str
     provider: str
     error: str | None = None
@@ -35,6 +37,8 @@ class ActiveFailure(BaseModel):
 
 
 class ETLHealthResponse(BaseModel):
+    """Response schema for e t l health."""
+
     last_successful_run: datetime | None = None
     pending_tenants: int = 0
     active_failures: list[ActiveFailure] = []
@@ -42,17 +46,23 @@ class ETLHealthResponse(BaseModel):
 
 
 class RetryResponse(BaseModel):
+    """Response schema for retry."""
+
     status: str
     run_id: str
 
 
 class SubExtractorFailureDTO(BaseModel):
+    """Data transfer object for sub extractor failure."""
+
     extractor_name: str
     error: str
     error_type: str
 
 
 class ExtractionStatusItem(BaseModel):
+    """Represent extraction status item data."""
+
     provider: str
     status: str
     last_updated: datetime | None = None
@@ -62,6 +72,8 @@ class ExtractionStatusItem(BaseModel):
 
 
 class ETLStatusResponse(BaseModel):
+    """Response schema for e t l status."""
+
     tenant_id: str
     extractions: list[ExtractionStatusItem]
 

@@ -1,3 +1,5 @@
+"""Gmail channel adapter."""
+
 import base64
 import json
 import logging
@@ -25,12 +27,13 @@ SCOPES = [
 
 
 class GmailAdapter:
-    """
-    Adapter for Google Gmail API.
+    """Adapter for Google Gmail API.
+
     Handles OAuth2 flow and wraps email operations.
     """
 
     def __init__(self, credentials_data: dict[str, Any] | None = None) -> None:
+        """Initialize adapter with credentials."""
         self.credentials_data = credentials_data
         self.creds = None
         if credentials_data:
@@ -38,6 +41,7 @@ class GmailAdapter:
 
     @staticmethod
     def get_client_config() -> dict[str, Any]:
+        """Retrieve client config."""
         return {
             "web": {
                 "client_id": settings.GOOGLE_CLIENT_ID,
@@ -49,7 +53,7 @@ class GmailAdapter:
 
     @staticmethod
     def get_authorization_url(redirect_uri: str | None = None) -> tuple[str, str]:
-        """Generates the authorization URL and state."""
+        """Generate the authorization URL and state."""
         flow = Flow.from_client_config(GmailAdapter.get_client_config(), scopes=SCOPES)
         flow.redirect_uri = redirect_uri or settings.GOOGLE_REDIRECT_URI
 
@@ -76,14 +80,14 @@ class GmailAdapter:
             raise
 
     def get_service(self) -> object:
-        """Returns the Gmail service resource."""
+        """Return the Gmail service resource."""
         if not self.creds:
             msg = "Credentials not initialized"
             raise ValueError(msg)
         return build("gmail", "v1", credentials=self.creds)
 
     def get_profile(self) -> dict[str, Any]:
-        """Gets the user's profile (email address)."""
+        """Get the user's profile (email address)."""
         service = self.get_service()
         try:
             profile = service.users().getProfile(userId="me").execute()
@@ -99,7 +103,7 @@ class GmailAdapter:
             return profile
 
     def send_email(self, to_email: str, subject: str, body_html: str) -> dict[str, Any]:
-        """Sends an HTML email."""
+        """Send an HTML email."""
         service = self.get_service()
 
         message = MIMEMultipart()

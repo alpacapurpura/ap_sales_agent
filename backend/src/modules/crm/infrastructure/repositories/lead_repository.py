@@ -1,3 +1,5 @@
+"""CRM lead repository."""
+
 from uuid import UUID
 
 from sqlalchemy import desc, select
@@ -8,7 +10,10 @@ from src.modules.crm.infrastructure.models.lead_model import LeadModel
 
 
 class LeadRepository:
+    """Repository for lead persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize lead repository."""
         self.db = db
 
     def _to_domain(self, model: LeadModel) -> Lead:
@@ -63,6 +68,7 @@ class LeadRepository:
         )
 
     def get_by_id(self, lead_id: UUID) -> Lead | None:
+        """Return by id."""
         model = self.db.execute(select(LeadModel).where(LeadModel.id == lead_id)).scalars().first()
         if model:
             return self._to_domain(model)
@@ -74,9 +80,7 @@ class LeadRepository:
         channel_id: str,
         tenant_id: UUID,
     ) -> Lead | None:
-        """
-        Generic fetch by channel ID (telegram_id, whatsapp_id, etc.)
-        """
+        """Fetch lead by channel ID (telegram_id, whatsapp_id, etc.)."""
         stmt = select(LeadModel).where(LeadModel.tenant_id == tenant_id)
 
         if channel == "telegram":
@@ -101,6 +105,7 @@ class LeadRepository:
         min_score: int = 50,
         limit: int = 20,
     ) -> list[Lead]:
+        """Return high intent leads."""
         models = (
             self.db.execute(
                 select(LeadModel)
@@ -118,6 +123,7 @@ class LeadRepository:
         return [self._to_domain(m) for m in models]
 
     def create(self, lead: Lead) -> Lead:
+        """Execute create operation."""
         model = self._to_model(lead)
         self.db.add(model)
         self.db.commit()
@@ -125,6 +131,7 @@ class LeadRepository:
         return self._to_domain(model)
 
     def update(self, lead: Lead) -> Lead:
+        """Execute update operation."""
         model = self.db.execute(select(LeadModel).where(LeadModel.id == lead.id)).scalars().first()
         if not model:
             msg = "Lead not found"

@@ -1,3 +1,5 @@
+"""Landing Repository implementation."""
+
 from uuid import UUID
 
 from sqlalchemy import select
@@ -9,7 +11,10 @@ from src.modules.landing.infrastructure.models.landing_model import LandingPageM
 
 
 class LandingRepository:
+    """Concrete repository implementation for landing."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize LandingRepository."""
         self.db = db
 
     def _to_domain(self, model: LandingPageModel) -> LandingPage:
@@ -35,6 +40,7 @@ class LandingRepository:
         )
 
     def create(self, entity: LandingPage) -> LandingPage:
+        """Handle create operation."""
         model = self._to_model(entity)
         self.db.add(model)
         self.db.commit()
@@ -42,6 +48,7 @@ class LandingRepository:
         return self._to_domain(model)
 
     def get_by_id(self, landing_id: UUID) -> LandingPage | None:
+        """Retrieve by id."""
         stmt = select(LandingPageModel).where(
             LandingPageModel.id == landing_id,
             LandingPageModel.deleted_at.is_(None),
@@ -64,6 +71,7 @@ class LandingRepository:
         return None
 
     def get_by_offer(self, tenant_id: UUID, offer_id: UUID) -> LandingPage | None:
+        """Retrieve by offer."""
         stmt = select(LandingPageModel).where(
             LandingPageModel.tenant_id == tenant_id,
             LandingPageModel.offer_id == offer_id,
@@ -75,6 +83,7 @@ class LandingRepository:
         return None
 
     def list_by_tenant(self, tenant_id: UUID) -> list[LandingPage]:
+        """List by tenant."""
         stmt = select(LandingPageModel).where(
             LandingPageModel.tenant_id == tenant_id,
             LandingPageModel.deleted_at.is_(None),
@@ -83,6 +92,7 @@ class LandingRepository:
         return [self._to_domain(m) for m in models]
 
     def update(self, entity: LandingPage) -> LandingPage:
+        """Handle update operation."""
         stmt = select(LandingPageModel).where(
             LandingPageModel.id == entity.id,
             LandingPageModel.deleted_at.is_(None),

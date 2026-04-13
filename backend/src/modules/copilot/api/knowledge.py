@@ -20,12 +20,16 @@ router = APIRouter()
 
 
 class SearchRequest(BaseModel):
+    """Request schema for search."""
+
     query: str
     scope: str = "all"
     limit: int = 5
 
 
 class SearchResult(BaseModel):
+    """Represent search result data."""
+
     content: str
     score: float
     metadata: dict

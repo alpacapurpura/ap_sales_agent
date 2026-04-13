@@ -1,3 +1,5 @@
+"""Llm Log SQLAlchemy model."""
+
 import uuid
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
@@ -9,6 +11,8 @@ from src.shared.domain.base_entity import Base
 
 
 class LLMLog(Base):
+    """LLMLog."""
+
     __tablename__ = "llm_logs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

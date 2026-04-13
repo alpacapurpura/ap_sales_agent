@@ -10,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class InterviewSessionModel(Base):
+    """SQLAlchemy model for interview session."""
+
     __tablename__ = "interview_sessions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -37,4 +39,5 @@ class InterviewSessionModel(Base):
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self) -> str:
+        """Return string representation."""
         return f"<InterviewSessionModel id={self.id} tenant={self.tenant_id} domain={self.domain}>"

@@ -1,3 +1,5 @@
+"""Copilot event repository."""
+
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
@@ -11,7 +13,10 @@ logger = structlog.get_logger()
 
 
 class CopilotEventRepository:
+    """Repository for copilot event persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize copilot event repository."""
         self.db = db
 
     def record(
@@ -24,6 +29,7 @@ class CopilotEventRepository:
         conversation_id: UUID | None = None,
         route: str | None = None,
     ) -> CopilotEventModel:
+        """Execute record operation."""
         event = CopilotEventModel(
             tenant_id=tenant_id,
             user_id=user_id,
@@ -45,6 +51,7 @@ class CopilotEventRepository:
         user_id: UUID,
         days: int = 30,
     ) -> dict[str, int]:
+        """Return user behavior summary."""
         cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = (
             select(CopilotEventModel.event_type, func.count().label("cnt"))
@@ -60,6 +67,7 @@ class CopilotEventRepository:
         return {row.event_type: row.cnt for row in rows}
 
     def get_tenant_summary(self, tenant_id: UUID, days: int = 30) -> dict[str, int]:
+        """Return tenant summary."""
         cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = (
             select(CopilotEventModel.event_type, func.count().label("cnt"))
@@ -79,6 +87,7 @@ class CopilotEventRepository:
         limit: int = 100,
         event_type: str | None = None,
     ) -> list[CopilotEventModel]:
+        """Return recent events."""
         stmt = (
             select(CopilotEventModel)
             .where(
@@ -98,6 +107,7 @@ class CopilotEventRepository:
         user_id: UUID,
         days: int = 30,
     ) -> dict:
+        """Return knowledge search stats."""
         cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = select(CopilotEventModel).where(
             CopilotEventModel.tenant_id == tenant_id,
@@ -119,6 +129,7 @@ class CopilotEventRepository:
         return {"search_count": search_count, "most_queried_scope": most_queried_scope}
 
     def get_friction_map(self, tenant_id: UUID, days: int = 30) -> dict[str, int]:
+        """Return friction map."""
         cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = (
             select(CopilotEventModel.route, func.count().label("cnt"))
@@ -136,6 +147,7 @@ class CopilotEventRepository:
         return {row.route: row.cnt for row in rows}
 
     def get_engagement_metrics(self, tenant_id: UUID, days: int = 30) -> dict:
+        """Return engagement metrics."""
         cutoff = datetime.now(UTC) - timedelta(days=days)
 
         # Total messages
@@ -188,6 +200,7 @@ class CopilotEventRepository:
         }
 
     def get_procedure_completion_rates(self, tenant_id: UUID, days: int = 30) -> dict:
+        """Return procedure completion rates."""
         cutoff = datetime.now(UTC) - timedelta(days=days)
 
         # Get procedure-related events
@@ -387,6 +400,7 @@ class CopilotEventRepository:
         return list(self.db.execute(stmt).scalars().all())
 
     def soft_delete_before(self, cutoff_date: datetime) -> int:
+        """Execute soft delete before operation."""
         stmt = (
             update(CopilotEventModel)
             .where(

@@ -10,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class AdSetModel(Base):
+    """SQLAlchemy model for ad set."""
+
     __tablename__ = "ad_sets"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

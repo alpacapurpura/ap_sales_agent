@@ -1,5 +1,4 @@
-"""
-Navigation tools — allow the copilot to direct the user to specific pages/sections.
+"""Navigation tools — allow the copilot to direct the user to specific pages/sections.
 
 These tools emit ui_action events that the frontend interprets to perform
 router.push(), scrollIntoView(), highlight, etc.
@@ -24,6 +23,7 @@ def navigate_to_page(page_keyword: str, section_id: str | None = None) -> dict:
 
     Returns:
         A ui_action payload that the frontend will execute.
+
     """
     matches = find_pages_by_keyword(page_keyword)
     if not matches:
@@ -66,6 +66,7 @@ def scroll_to_field(field_id: str) -> dict:
 
     Returns:
         A ui_action payload that the frontend will execute.
+
     """
     return {
         "success": True,
@@ -87,6 +88,7 @@ def open_form(form_id: str, prefill_data: dict | None = None) -> dict:
 
     Returns:
         A ui_action payload that the frontend will execute.
+
     """
     return {
         "success": True,
@@ -105,6 +107,7 @@ def list_app_pages() -> str:
 
     Returns:
         A formatted list of all navigable pages with their sections.
+
     """
     lines = []
     for page in get_all_pages():
@@ -141,6 +144,7 @@ def navigate_to_channel(
 
     Returns:
         A ui_action payload that the frontend will execute.
+
     """
     if stage not in VALID_STAGES:
         return {

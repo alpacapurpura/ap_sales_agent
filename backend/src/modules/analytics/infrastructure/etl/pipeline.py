@@ -113,6 +113,7 @@ class ETLPipeline:
         cache: MetricsCache,
         period_config: TenantPeriodConfig | None = None,
     ) -> None:
+        """Initialize e t l pipeline."""
         self.db = db
         self.provider = provider
         self.connection_port = connection_port
@@ -146,6 +147,7 @@ class ETLPipeline:
 
         Returns:
             ExtractionRunModel with final status.
+
         """
         provider_name = self.provider.provider_name()
         start_time = time.monotonic()
@@ -246,7 +248,7 @@ class ETLPipeline:
         stage: str,
         run_id: UUID,
     ) -> tuple[ExtractionResult, int]:
-        """Steps 2-7: Extract, stage, transform, upsert, aggregate. Returns (result, rows_staged)."""
+        """Run steps 2-7: extract, stage, transform, upsert, aggregate and return (result, rows_staged)."""
         creds = await self.connection_port.get_credentials(tenant_id, provider_name)
         provider_creds = {**creds.credentials, **creds.config}
         result = await self.provider.extract_metrics(

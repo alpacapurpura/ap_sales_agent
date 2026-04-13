@@ -1,3 +1,5 @@
+"""Landing Page domain definitions."""
+
 from datetime import datetime
 from uuid import UUID
 
@@ -6,6 +8,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class LandingPage(BaseEntity):
+    """Represent landing page."""
+
     id: UUID
     tenant_id: UUID | None = None
     offer_id: UUID | None = None

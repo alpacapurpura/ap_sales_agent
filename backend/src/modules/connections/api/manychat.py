@@ -1,3 +1,5 @@
+"""Manychat API endpoints."""
+
 from typing import Annotated, Any
 
 import structlog
@@ -21,15 +23,21 @@ router = APIRouter()
 
 
 class ManyChatConnectRequest(BaseModel):
+    """Many Chat Connect Request DTO."""
+
     api_key: str
 
 
 class ManyChatStatusResponse(BaseModel):
+    """Many Chat Status Response DTO."""
+
     is_connected: bool
     account_info: dict[str, Any] | None = None
 
 
 class ConnectionResponse(BaseModel):
+    """Connection Response DTO."""
+
     status: str
     message: str
     details: dict[str, Any] | None = None
@@ -44,6 +52,7 @@ async def get_manychat_status(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> ManyChatStatusResponse:
+    """Retrieve manychat status."""
     connection = repo.get_active(user.tenant_id, ChannelType.MANYCHAT)
 
     if not connection:
@@ -61,6 +70,7 @@ async def connect_manychat(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> ConnectionResponse:
+    """Connect manychat."""
     is_valid, result = await ManyChatConnector.verify_connection(
         api_key=request.api_key,
     )
@@ -90,6 +100,7 @@ async def disconnect_manychat(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> ConnectionResponse:
+    """Disconnect manychat."""
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.MANYCHAT)
 
     if not connection:
@@ -108,6 +119,7 @@ async def test_manychat_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> ConnectionResponse:
+    """Test manychat connection."""
     connection = repo.get_active(user.tenant_id, ChannelType.MANYCHAT)
 
     if not connection:

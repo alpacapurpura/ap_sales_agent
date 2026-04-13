@@ -1,3 +1,5 @@
+"""Offer psychology service for copilot."""
+
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -20,7 +22,10 @@ from src.shared.application.ai_action_service import (
 
 
 class CopilotOfferPsychologyService(PsychologyGeneratorPort):
+    """Service for copilot offer psychology operations."""
+
     def __init__(self, session: Session) -> None:
+        """Initialize copilot offer psychology service."""
         self.session = session
         self.avatar_repo = AvatarRepository(session)
         self.ai_action_service = AIActionService()
@@ -30,6 +35,7 @@ class CopilotOfferPsychologyService(PsychologyGeneratorPort):
         request: PsychologyGenerationRequest,
         tenant_id: UUID,
     ) -> PsychologyGenerationResponse:
+        """Execute generate psychology operation."""
         avatar = self.avatar_repo.get_by_id(request.avatar_id)
         if not avatar:
             msg = f"Avatar with ID {request.avatar_id} not found"

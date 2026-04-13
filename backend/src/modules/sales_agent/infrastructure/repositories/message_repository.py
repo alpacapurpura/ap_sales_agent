@@ -1,3 +1,5 @@
+"""Message repository."""
+
 from uuid import UUID
 
 from sqlalchemy import select
@@ -9,7 +11,10 @@ from src.modules.sales_agent.infrastructure.models.message_model import MessageM
 
 
 class MessageRepository:
+    """Repository for message persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize repository with database session."""
         self.db = db
 
     def _to_domain(self, model: MessageModel) -> Message:
@@ -38,6 +43,7 @@ class MessageRepository:
         )
 
     def create(self, message: Message) -> Message:
+        """Create."""
         model = self._to_model(message)
         self.db.add(model)
         self.db.commit()
@@ -50,6 +56,7 @@ class MessageRepository:
         tenant_id: UUID,
         limit: int = 50,
     ) -> list[Message]:
+        """Retrieve history."""
         models = (
             self.db.execute(
                 select(MessageModel)

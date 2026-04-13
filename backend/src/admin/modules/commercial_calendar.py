@@ -41,6 +41,7 @@ def _get_service() -> tuple[CalendarEventService, object]:
 
 
 def render_commercial_calendar_page() -> None:
+    """Render the commercial calendar admin page."""
     st.title("📅 Calendario Comercial")
 
     # ── Controles globales ──────────────────────────────────────────────────

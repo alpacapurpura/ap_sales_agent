@@ -1,7 +1,11 @@
+"""Enumeration types for the commercial_calendar domain."""
+
 from enum import StrEnum
 
 
 class EventCategory(StrEnum):
+    """Enumerate event category values."""
+
     FERIADO = "feriado"
     CAMPANA = "campaña"
     CYBER = "cyber"

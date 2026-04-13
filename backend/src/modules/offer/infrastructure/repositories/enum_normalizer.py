@@ -18,6 +18,7 @@ from src.shared.domain.enums import FinancialCapacity
 
 
 def normalize_value_level(raw: str | None) -> OfferValueLevel | None:
+    """Normalize value level."""
     if not raw:
         return None
     try:
@@ -30,6 +31,7 @@ def normalize_value_level(raw: str | None) -> OfferValueLevel | None:
 
 
 def normalize_delivery_model(raw: str | None) -> str | None:
+    """Normalize delivery model."""
     if not raw:
         return None
     try:
@@ -48,6 +50,7 @@ def normalize_delivery_model(raw: str | None) -> str | None:
 
 
 def normalize_guarantee_type(raw: str | None) -> str:
+    """Normalize guarantee type."""
     value = raw or "none"
     if value.upper() == "NO_REFUNDS":
         return "none"
@@ -67,6 +70,7 @@ def normalize_guarantee_type(raw: str | None) -> str:
 
 
 def normalize_archetype(raw: str, offer_id: object = None) -> OfferArchetype:
+    """Normalize archetype."""
     try:
         return OfferArchetype(raw)
     except ValueError:
@@ -85,12 +89,14 @@ def normalize_archetype(raw: str, offer_id: object = None) -> OfferArchetype:
 
 
 def normalize_status(raw: str | None) -> OfferStatus:
+    """Normalize status."""
     if not raw:
         return OfferStatus.DRAFT
     return OfferStatus(raw.lower())
 
 
 def normalize_financial_capacity(raw: str | None) -> FinancialCapacity:
+    """Normalize financial capacity."""
     value = raw or FinancialCapacity.LOW_INCOME
     if value == "LOW":
         return FinancialCapacity.LOW_INCOME

@@ -1,3 +1,5 @@
+"""State repository."""
+
 from typing import Any
 from uuid import UUID
 
@@ -11,14 +13,14 @@ from src.shared.domain.datetime_utils import utc_now
 
 
 class StateRepository:
-    """
-    Persistence gateway for agent state checkpoints.
+    """Persistence gateway for agent state checkpoints.
 
     Provides upsert-style save (create-or-update) and soft-deactivation
     for session timeout scenarios.  All queries enforce tenant isolation.
     """
 
     def __init__(self, db: Session) -> None:
+        """Initialize repository with database session."""
         self.db = db
 
     def get_active_checkpoint(

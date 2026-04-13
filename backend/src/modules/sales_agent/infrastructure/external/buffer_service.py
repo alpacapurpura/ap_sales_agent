@@ -1,3 +1,5 @@
+"""Buffer Service infrastructure module."""
+
 import json
 import time
 
@@ -9,11 +11,10 @@ logger = structlog.get_logger()
 
 
 class SmartBufferService:
-    """
-    Manages the message buffer in Redis for the Dynamic Debounce strategy.
-    """
+    """Manages the message buffer in Redis for the Dynamic Debounce strategy."""
 
     def __init__(self) -> None:
+        """Initialize service with dependencies."""
         self.redis = redis_client
         self.buffer_ttl = 3600  # 1 hour expiration for stale buffers
 
@@ -33,9 +34,7 @@ class SmartBufferService:
         channel_type: str,
         metadata: dict | None = None,
     ) -> None:
-        """
-        Appends a message to the user's buffer and updates the last timestamp.
-        """
+        """Append a message to the user's buffer and updates the last timestamp."""
         # 1. Push text to list
         self.redis.rpush(self._key_buffer(user_id), text)
         self.redis.expire(self._key_buffer(user_id), self.buffer_ttl)
@@ -51,26 +50,21 @@ class SmartBufferService:
         self.redis.expire(self._key_meta(user_id), self.buffer_ttl)
 
     def get_metadata(self, user_id: str) -> dict:
-        """
-        Retrieves stored metadata.
-        """
+        """Retrieve stored metadata."""
         raw = self.redis.hget(self._key_meta(user_id), "metadata_json")
         return json.loads(raw) if raw else {}
 
     def get_last_timestamp(self, user_id: str) -> float:
-        """
-        Returns the timestamp of the last received message.
-        """
+        """Return the timestamp of the last received message."""
         ts = self.redis.hget(self._key_meta(user_id), "last_ts")
         return float(ts) if ts else 0.0
 
     def get_channel_type(self, user_id: str) -> str | None:
+        """Retrieve channel type."""
         return self.redis.hget(self._key_meta(user_id), "channel_type")
 
     def get_and_clear_buffer(self, user_id: str) -> list[str]:
-        """
-        Retrieves all messages and clears the buffer atomically-ish.
-        """
+        """Retrieve all messages and clears the buffer atomically-ish."""
         pipe = self.redis.pipeline()
         pipe.lrange(self._key_buffer(user_id), 0, -1)
         pipe.delete(self._key_buffer(user_id))
@@ -78,26 +72,21 @@ class SmartBufferService:
         return results[0]  # List of messages
 
     def peek_buffer(self, user_id: str) -> list[str]:
-        """
-        Returns current messages without clearing.
-        """
+        """Return current messages without clearing."""
         return self.redis.lrange(self._key_buffer(user_id), 0, -1)
 
     def acquire_lock(self, user_id: str, expire: int = 30) -> bool:
-        """
-        Tries to acquire a lock for processing. Returns True if acquired.
-        """
+        """Try to acquire a lock for processing. Return True if acquired."""
         return bool(
             self.redis.set(self._key_lock(user_id), "locked", ex=expire, nx=True),
         )
 
     def release_lock(self, user_id: str) -> None:
+        """Release lock."""
         self.redis.delete(self._key_lock(user_id))
 
     def clear_user_cache(self, user_id: str) -> bool:
-        """
-        Clears all buffer and metadata keys for a user.
-        """
+        """Clear all buffer and metadata keys for a user."""
         try:
             keys = [
                 self._key_buffer(user_id),

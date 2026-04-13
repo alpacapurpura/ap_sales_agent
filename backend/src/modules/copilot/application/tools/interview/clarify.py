@@ -20,6 +20,7 @@ def clarify(items: list[dict]) -> str:
 
     Returns:
         JSON with brief visible text and a clarify_card ui_action.
+
     """
     capped_items = items[:2]
 

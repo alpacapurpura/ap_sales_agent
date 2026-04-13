@@ -1,3 +1,5 @@
+"""Safety Service infrastructure module."""
+
 import re
 
 import structlog
@@ -12,13 +14,14 @@ logger = structlog.get_logger()
 
 
 class SafetyLayerService:
-    """
-    Orchestrates the detection and replacement of sensitive data using:
+    """Orchestrate the detection and replacement of sensitive data.
+
     1. Deterministic Regex/Keyword Matching (Fast, Rule-based)
     2. Contextual LLM Verification (Slow, Intelligent)
     """
 
     def __init__(self) -> None:
+        """Initialize service with dependencies."""
         self.llm_service = LLMFactory.get_service()
 
     def _get_rules(self, db: Session) -> list:
@@ -26,9 +29,7 @@ class SafetyLayerService:
         return []
 
     async def sanitize_content(self, content: str) -> tuple[str, bool]:
-        """
-        Main entry point. Returns (sanitized_content, was_modified).
-        """
+        """Sanitize content and return (sanitized_content, was_modified)."""
         if not content:
             return content, False
 
@@ -102,8 +103,8 @@ class SafetyLayerService:
         full_context: str,
         instruction: str,
     ) -> bool:
-        """
-        Uses LLM (Fast Model) to verify if the match actually violates the rule in this specific context.
+        """Use LLM (Fast Model) to verify if the match actually violates the rule in this specific context.
+
         Returns True if it SHOULD be replaced.
         """
         try:

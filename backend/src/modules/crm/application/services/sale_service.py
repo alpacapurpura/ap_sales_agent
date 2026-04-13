@@ -1,3 +1,5 @@
+"""CRM sale service."""
+
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
@@ -11,7 +13,10 @@ from src.shared.domain.events import EventBus
 
 
 class SaleService:
+    """Service for sale operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize sale service."""
         self.repository = SaleRepository(db)
 
     def create_sale(
@@ -26,6 +31,7 @@ class SaleService:
         metadata: dict | None = None,
         status: SaleStatus = SaleStatus.COMPLETED,
     ) -> Sale:
+        """Create sale."""
         # Determine Stage logic:
         # If the customer has 0 COMPLETED sales, this is CONVERSION (Acquisition).
         # If they have > 0, it is EXPANSION (Retention/Upsell).

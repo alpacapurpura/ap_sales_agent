@@ -1,5 +1,4 @@
-"""
-Tool Registry — route-based tool selection for the copilot.
+"""Tool Registry — route-based tool selection for the copilot.
 
 Maps frontend routes to the subset of tools the LLM should have access to.
 This keeps the tool set focused and reduces noise for the LLM.
@@ -123,6 +122,7 @@ def get_tools_for_route(route: str | None) -> list:
 
     Returns:
         List of LangChain tool functions.
+
     """
     matched_groups = _match_route(route)
     tools = []

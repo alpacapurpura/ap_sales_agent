@@ -1,3 +1,5 @@
+"""File parsing service for PDF, DOCX, and text files."""
+
 import io
 
 import docx
@@ -9,15 +11,11 @@ logger = structlog.get_logger()
 
 
 class FileParsingService:
-    """
-    Service for parsing text from uploaded files (PDF, DOCX, TXT/MD).
-    """
+    """Service for parsing text from uploaded files (PDF, DOCX, TXT/MD)."""
 
     @staticmethod
     async def parse_file(file: UploadFile) -> str:
-        """
-        Parses an uploaded file and returns its text content.
-        """
+        """Parse an uploaded file and return its text content."""
         content = await file.read()
         filename = file.filename.lower()
 
@@ -45,6 +43,7 @@ class FileParsingService:
 
     @staticmethod
     def parse_pdf(content: bytes) -> str:
+        """Extract text from PDF bytes."""
         text = ""
         try:
             pdf_file = io.BytesIO(content)
@@ -60,6 +59,7 @@ class FileParsingService:
 
     @staticmethod
     def parse_docx(content: bytes) -> str:
+        """Extract text from DOCX bytes."""
         text = ""
         try:
             docx_file = io.BytesIO(content)

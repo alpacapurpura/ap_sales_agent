@@ -86,6 +86,7 @@ class ExpansionStageService:
         connection_port: ConnectionPort | None = None,
         offer_port: OfferReadPort | None = None,
     ) -> None:
+        """Initialize expansion stage service."""
         self.db = db
         self.cache = cache
         self.connection_port = connection_port

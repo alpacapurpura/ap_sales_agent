@@ -30,6 +30,7 @@ class CampaignService:
     """Read-only service for campaign hierarchy queries."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize campaign service."""
         self._db = db
 
     def get_overview(self, tenant_id: UUID) -> CampaignOverviewDTO:
@@ -354,6 +355,7 @@ class CampaignService:
         )
 
     def get_ad_sets(self, tenant_id: UUID, campaign_external_id: str) -> list[AdSetDTO]:
+        """Return ad sets."""
         rows = self._db.execute(
             text("""
                 SELECT s.*,
@@ -393,6 +395,7 @@ class CampaignService:
         ]
 
     def get_ads(self, tenant_id: UUID, ad_set_external_id: str) -> list[AdDTO]:
+        """Return ads."""
         rows = self._db.execute(
             text("""
                 SELECT * FROM ads

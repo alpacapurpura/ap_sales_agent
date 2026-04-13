@@ -181,6 +181,7 @@ class EmailDashboardService:
     """
 
     def __init__(self, db: Session) -> None:
+        """Initialize email dashboard service."""
         self._repo = OfficialMetricsRepository(db)
         self._db = db
 
@@ -191,6 +192,7 @@ class EmailDashboardService:
         tenant_id: UUID,
         period: str = "30d",
     ) -> EmailDashboardDTO:
+        """Return dashboard."""
         days = PERIOD_DAYS.get(period, 30)
         end = utc_today()
         start = end - timedelta(days=days)
@@ -363,6 +365,7 @@ class EmailDashboardService:
         tenant_id: UUID,
         period: str = "30d",
     ) -> EmailCampaignsResponseDTO:
+        """Return campaigns."""
         days = PERIOD_DAYS.get(period, 30)
         end = utc_today()
         start = end - timedelta(days=days)
@@ -720,6 +723,7 @@ class EmailDashboardService:
         tenant_id: UUID,
         period: str = "30d",
     ) -> EmailHealthResponseDTO:
+        """Return health."""
         days = PERIOD_DAYS.get(period, 30)
         end = utc_today()
         start = end - timedelta(days=days)
@@ -801,6 +805,7 @@ class EmailDashboardService:
         tenant_id: UUID,
         period: str = "30d",
     ) -> EmailGrowthResponseDTO:
+        """Return growth."""
         days = PERIOD_DAYS.get(period, 30)
         end = utc_today()
         start = end - timedelta(days=days)

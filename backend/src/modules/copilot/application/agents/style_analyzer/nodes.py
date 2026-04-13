@@ -1,3 +1,5 @@
+"""Copilot style analyzer agent node functions."""
+
 import json
 import re
 
@@ -18,9 +20,9 @@ logger = structlog.get_logger()
 
 
 def clean_text_regex(text: str) -> str:
-    """
-    Advanced Regex cleaning to save tokens before LLM.
-    Removes common WhatsApp/Telegram export artifacts and noise.
+    """Clean text with advanced regex to save tokens before LLM.
+
+    Remove common WhatsApp/Telegram export artifacts and noise.
     """
     # 1. Remove timestamps (e.g., [10/12/24, 15:30:22], 12/10/2024 10:30 a. m.)
     text = re.sub(
@@ -57,9 +59,9 @@ def clean_text_regex(text: str) -> str:
 
 @trace_node("janitor")
 def node_janitor(state: OnboardingState) -> dict[str, str]:
-    """
-    Step 1: Clean the raw input using Regex + Smart Sampling.
-    Optimization: Avoids sending huge context to LLM if not necessary.
+    """Clean the raw input using Regex and Smart Sampling.
+
+    Avoid sending huge context to LLM if not necessary (Step 1).
     """
     raw_input = state["raw_input"]
 
@@ -93,9 +95,7 @@ def node_janitor(state: OnboardingState) -> dict[str, str]:
 
 @trace_node("psychologist")
 def node_psychologist(state: OnboardingState) -> dict[str, str | dict]:
-    """
-    Step 2: Analyze the style using Metaprompting (Smart Model).
-    """
+    """Step 2: Analyze the style using Metaprompting (Smart Model)."""
     cleaned_input = state.get("cleaned_input", "")
 
     if not cleaned_input:
@@ -134,9 +134,7 @@ def node_psychologist(state: OnboardingState) -> dict[str, str | dict]:
 
 @trace_node("architect")
 def node_architect(state: OnboardingState) -> dict[str, str]:
-    """
-    Step 3: Generate the System Instruction (Smart Model).
-    """
+    """Step 3: Generate the System Instruction (Smart Model)."""
     style_profile = state.get("style_profile")
 
     if not style_profile:
@@ -163,9 +161,7 @@ def node_architect(state: OnboardingState) -> dict[str, str]:
 
 @trace_node("simulator")
 def node_simulator(state: OnboardingState) -> dict[str, list]:
-    """
-    Step 4: Generate examples (Fast Model).
-    """
+    """Step 4: Generate examples (Fast Model)."""
     instruction = state.get("system_instruction")
 
     if not instruction:

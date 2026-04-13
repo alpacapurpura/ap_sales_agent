@@ -26,6 +26,7 @@ class CloserStudioService:
     """Orchestrates Closer Studio queries and actions."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize service with dependencies."""
         self.db = db
 
     # ── List conversations ──────────────────────────────────────────────
@@ -42,7 +43,6 @@ class CloserStudioService:
         offset: int = 0,
     ) -> tuple[list[dict], int]:
         """Return active conversations with last message preview."""
-
         # Subquery: last message per lead
         last_msg_sq = (
             select(
@@ -158,7 +158,6 @@ class CloserStudioService:
         before: datetime | None = None,
     ) -> dict | None:
         """Full conversation detail with paginated messages."""
-
         lead = (
             self.db.execute(
                 select(LeadModel)
@@ -247,6 +246,7 @@ class CloserStudioService:
     # ── STOP ────────────────────────────────────────────────────────────
 
     def stop_ai(self, tenant_id: UUID, lead_id: UUID, user_id: UUID) -> dict | None:
+        """Stop ai."""
         checkpoint = self._get_checkpoint(tenant_id, lead_id)
         if not checkpoint:
             return None
@@ -278,6 +278,7 @@ class CloserStudioService:
         lead_id: UUID,
         objective: str | None = None,
     ) -> dict | None:
+        """Resume ai."""
         checkpoint = self._get_checkpoint(tenant_id, lead_id)
         if not checkpoint:
             return None
@@ -370,6 +371,7 @@ class CloserStudioService:
         lead_id: UUID,
         objective: str | None = None,
     ) -> dict | None:
+        """Reactivate."""
         checkpoint = self._get_checkpoint(tenant_id, lead_id)
         if not checkpoint:
             return None
@@ -445,6 +447,7 @@ class CloserStudioService:
     # ── Frozen List ─────────────────────────────────────────────────────
 
     def list_frozen(self, tenant_id: UUID) -> list[dict]:
+        """List frozen."""
         stmt = (
             select(LeadModel, AgentStateCheckpointModel)
             .join(
@@ -485,6 +488,7 @@ class CloserStudioService:
     # ── KPIs ────────────────────────────────────────────────────────────
 
     def get_kpis(self, tenant_id: UUID) -> dict:
+        """Retrieve kpis."""
         base = select(
             func.count().label("total"),
             func.sum(

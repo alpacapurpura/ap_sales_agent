@@ -46,6 +46,7 @@ class MetricsCache:
 
         Args:
             redis_client: A Redis client (from redis-py or compatible).
+
         """
         self._redis = redis_client
 
@@ -58,6 +59,7 @@ class MetricsCache:
 
         Returns:
             Parsed dict on cache hit, None on miss or Redis error.
+
         """
         try:
             key = self._key(tenant_id, stage, period)

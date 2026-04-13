@@ -43,9 +43,11 @@ class YouTubeProvider(BaseMetricsProvider):
     """Extracts YouTube organic metrics via YouTube Analytics API v2."""
 
     def provider_name(self) -> str:
+        """Execute provider name operation."""
         return "youtube"
 
     def rate_limit_config(self) -> dict:
+        """Execute rate limit config operation."""
         return {"requests_per_minute": 30, "burst_size": 10}
 
     async def extract_metrics(
@@ -56,6 +58,7 @@ class YouTubeProvider(BaseMetricsProvider):
         end_date: date,
         stage: str = "attraction",
     ) -> ExtractionResult:
+        """Extract metrics."""
         if not credentials.get("token") and not credentials.get("refresh_token"):
             logger.warning("youtube_provider_no_credentials tenant=%s", tenant_id)
             return ExtractionResult()

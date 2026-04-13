@@ -30,6 +30,7 @@ def offer_alternatives(
 
     Returns:
         JSON with empty text and an alternatives_card ui_action.
+
     """
     return json.dumps(
         {

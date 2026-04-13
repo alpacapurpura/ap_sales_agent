@@ -11,6 +11,8 @@ from pydantic import BaseModel, Field
 
 
 class ConversationListItem(BaseModel):
+    """Conversation List Item DTO."""
+
     lead_id: UUID
     customer_profile_id: UUID | None = None
     display_name: str
@@ -28,6 +30,8 @@ class ConversationListItem(BaseModel):
 
 
 class ConversationListResponse(BaseModel):
+    """Conversation List Response DTO."""
+
     conversations: list[ConversationListItem]
     total: int
 
@@ -36,6 +40,8 @@ class ConversationListResponse(BaseModel):
 
 
 class MessageItem(BaseModel):
+    """Message Item DTO."""
+
     id: UUID
     role: str
     content: str
@@ -46,6 +52,8 @@ class MessageItem(BaseModel):
 
 
 class ConversationDetail(BaseModel):
+    """Conversation Detail DTO."""
+
     lead_id: UUID
     display_name: str
     channel: str | None = None
@@ -69,31 +77,41 @@ class ConversationDetail(BaseModel):
 
 
 class StopRequest(BaseModel):
-    pass
+    """Stop Request DTO."""
 
 
 class StopResponse(BaseModel):
+    """Stop Response DTO."""
+
     lead_id: UUID
     handler_mode: str
     paused_at: datetime | None = None
 
 
 class ResumeRequest(BaseModel):
+    """Resume Request DTO."""
+
     objective: str | None = None
 
 
 class ResumeResponse(BaseModel):
+    """Resume Response DTO."""
+
     lead_id: UUID
     handler_mode: str
     resume_objective: str | None = None
 
 
 class SendMessageRequest(BaseModel):
+    """Send Message Request DTO."""
+
     content: str = Field(..., min_length=1, max_length=4000)
     mode: str = Field(default="direct", pattern=r"^(direct|instruction)$")
 
 
 class SendMessageResponse(BaseModel):
+    """Send Message Response DTO."""
+
     message_id: UUID
     content: str
     mode: str
@@ -101,26 +119,36 @@ class SendMessageResponse(BaseModel):
 
 
 class NudgeRequest(BaseModel):
+    """Nudge Request DTO."""
+
     context: str | None = None
 
 
 class NudgeResponse(BaseModel):
+    """Nudge Response DTO."""
+
     message_id: UUID | None = None
     content: str
     sent_to_channel: bool = False
 
 
 class ReactivateRequest(BaseModel):
+    """Reactivate Request DTO."""
+
     objective: str | None = None
 
 
 class ReactivateResponse(BaseModel):
+    """Reactivate Response DTO."""
+
     lead_id: UUID
     handler_mode: str
     message_sent: bool = False
 
 
 class DiagnoseResponse(BaseModel):
+    """Diagnose Response DTO."""
+
     lead_id: UUID
     diagnosis: dict
     generated_at: datetime
@@ -130,6 +158,8 @@ class DiagnoseResponse(BaseModel):
 
 
 class FrozenConversation(BaseModel):
+    """Frozen Conversation DTO."""
+
     lead_id: UUID
     display_name: str
     channel: str | None = None
@@ -148,6 +178,8 @@ class FrozenConversation(BaseModel):
 
 
 class CloserKPIs(BaseModel):
+    """Closer KPIs DTO."""
+
     total_active: int = 0
     handled_by_ai: int = 0
     handled_by_human: int = 0

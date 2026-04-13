@@ -23,6 +23,7 @@ def complete_interview(
 
     Returns:
         JSON with celebration text and interview_complete ui_action.
+
     """
     return json.dumps(
         {

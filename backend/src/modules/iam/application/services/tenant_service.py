@@ -1,3 +1,5 @@
+"""Tenant Service for the iam module."""
+
 import uuid
 
 from sqlalchemy.exc import IntegrityError
@@ -10,7 +12,10 @@ from src.modules.iam.infrastructure.repositories.tenant_repository import (
 
 
 class TenantService:
+    """Manage tenant operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize TenantService."""
         self.db = db
         self.repository = TenantRepository(db)
 
@@ -26,8 +31,8 @@ class TenantService:
         company_name: str,
         agent_persona: str,
     ) -> tuple[Tenant | None, str | None]:
-        """
-        Crea un nuevo tenant.
+        """Crea un nuevo tenant.
+
         Retorna (Tenant, None) si es exitoso, o (None, error_msg) si falla.
         """
         try:
@@ -62,8 +67,8 @@ class TenantService:
         can_use_keys: bool,
         is_active: bool,
     ) -> tuple[Tenant | None, str | None]:
-        """
-        Actualiza un tenant existente.
+        """Actualiza un tenant existente.
+
         Retorna (Tenant, None) si es exitoso, o (None, error_msg) si falla.
         """
         try:

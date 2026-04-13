@@ -14,6 +14,8 @@ from src.shared.domain.base_entity import Base
 
 
 class ExternalProductMappingModel(Base):
+    """SQLAlchemy model for external product mapping table."""
+
     __tablename__ = "external_product_mappings"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

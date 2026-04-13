@@ -1,3 +1,5 @@
+"""Calendar Event Service for the commercial_calendar module."""
+
 import uuid
 from datetime import date, timedelta
 from uuid import UUID
@@ -12,7 +14,10 @@ from src.shared.domain.datetime_utils import utc_today
 
 
 class CalendarEventService:
+    """Manage calendar event operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize CalendarEventService."""
         self.repo = CalendarEventRepository(db)
 
     def list_events(
@@ -23,6 +28,7 @@ class CalendarEventService:
         week: int | None = None,
         category: str | None = None,
     ) -> list[CalendarEvent]:
+        """List events."""
         return self.repo.list_events(
             country_code=country_code,
             year=year,
@@ -32,6 +38,7 @@ class CalendarEventService:
         )
 
     def get_current_week_number(self) -> tuple[int, int]:
+        """Retrieve current week number."""
         today = utc_today()
         iso = today.isocalendar()
         return iso[1], iso[0]  # (week, year)
@@ -41,6 +48,7 @@ class CalendarEventService:
         country_code: str,
         tenant_id: UUID | None = None,
     ) -> list[CalendarEvent]:
+        """Retrieve current week events."""
         week, year = self.get_current_week_number()
         return self.repo.list_events(
             country_code=country_code,
@@ -59,6 +67,7 @@ class CalendarEventService:
         description: str | None = None,
         tenant_id: UUID | None = None,
     ) -> list[CalendarEvent]:
+        """Create a new event."""
         if date_end is None or date_end <= date_start:
             date_end = date_start
 
@@ -92,6 +101,7 @@ class CalendarEventService:
         description: str | None = None,
         tenant_id: UUID | None = None,
     ) -> CalendarEvent | None:
+        """Update event."""
         existing = self.repo.get_by_id(event_id, tenant_id=tenant_id)
         if existing is None:
             return None
@@ -110,6 +120,7 @@ class CalendarEventService:
         return self.repo.update(updated)
 
     def delete_event(self, event_id: UUID, tenant_id: UUID | None = None) -> bool:
+        """Delete event."""
         return self.repo.delete(event_id)
 
     def get_by_id(
@@ -117,4 +128,5 @@ class CalendarEventService:
         event_id: UUID,
         tenant_id: UUID | None = None,
     ) -> CalendarEvent | None:
+        """Retrieve by id."""
         return self.repo.get_by_id(event_id, tenant_id=tenant_id)

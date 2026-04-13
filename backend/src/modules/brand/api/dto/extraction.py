@@ -1,9 +1,13 @@
+"""Brand extraction DTOs."""
+
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class ExtractRequest(BaseModel):
+    """Request schema for extract."""
+
     url: str = Field(..., description="URL to scrape")
     type: Literal["brand_identity"] = Field(
         "brand_identity",

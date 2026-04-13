@@ -1,3 +1,5 @@
+"""Domain Service for the tenant_domains module."""
+
 import socket
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
@@ -26,7 +28,10 @@ _KNOWN_PROVIDERS: dict[str, dict[str, str]] = {
 
 
 class DomainService:
+    """Manage domain operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize DomainService."""
         self.repo = DomainRepositoryImpl(db)
         self.cf = CloudflareClient()
 
@@ -141,9 +146,11 @@ class DomainService:
         self.repo.soft_delete(domain_id, tenant_id)
 
     def list_domains(self, tenant_id: UUID) -> list[TenantDomain]:
+        """List domains."""
         return self.repo.list_by_tenant(tenant_id)
 
     def get_domain(self, domain_id: UUID, tenant_id: UUID) -> TenantDomain | None:
+        """Retrieve domain."""
         return self.repo.get_by_id(domain_id, tenant_id)
 
     def set_primary(self, domain_id: UUID, tenant_id: UUID) -> TenantDomain:
@@ -162,15 +169,15 @@ class DomainService:
 
     @staticmethod
     def _extract_root_domain(hostname: str) -> str:
-        """Extract root domain: 'go.visionarias.lat' -> 'visionarias.lat'"""
+        """Extract root domain: 'go.visionarias.lat' -> 'visionarias.lat'."""
         parts = hostname.split(".")
         if len(parts) >= 2:
             return ".".join(parts[-2:])
         return hostname
 
     def detect_domain_conflict(self, hostname: str) -> dict | None:
-        """
-        Check if the root domain's A record points to a known provider (e.g. Shopify).
+        """Check if the root domain's A record points to a known provider (e.g. Shopify).
+
         Returns conflict info with a subdomain suggestion, or None if clean.
         """
         root_domain = self._extract_root_domain(hostname)

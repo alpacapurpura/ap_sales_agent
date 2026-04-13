@@ -1,3 +1,5 @@
+"""Offer repository."""
+
 from typing import Any
 from uuid import UUID
 
@@ -21,7 +23,10 @@ from src.shared.domain.datetime_utils import utc_now
 
 
 class OfferRepository:
+    """Repository for offer persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize repository with database session."""
         self.db = db
 
     def _to_domain(self, model: ProductModel) -> Offer:
@@ -256,6 +261,7 @@ class OfferRepository:
         return True
 
     def create(self, offer: Offer) -> Offer:
+        """Create."""
         model = self._to_model(offer)
         self.db.add(model)
         self.db.commit()
@@ -263,6 +269,7 @@ class OfferRepository:
         return self._to_domain(model)
 
     def update(self, offer: Offer, tenant_id: UUID) -> Offer:
+        """Update."""
         stmt = select(ProductModel).where(
             ProductModel.id == offer.id,
             ProductModel.tenant_id == tenant_id,

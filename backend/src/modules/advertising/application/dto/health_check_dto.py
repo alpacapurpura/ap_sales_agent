@@ -22,6 +22,8 @@ class _CamelModel(BaseModel):
 
 
 class CampaignHealthDTO(_CamelModel):
+    """Data transfer object for campaign health."""
+
     external_id: str
     name: str
     objective: str | None = None
@@ -34,6 +36,8 @@ class CampaignHealthDTO(_CamelModel):
 
 
 class OfferCoverageDTO(_CamelModel):
+    """Data transfer object for offer coverage."""
+
     offer_id: UUID
     offer_name: str
     archetype: str
@@ -44,6 +48,8 @@ class OfferCoverageDTO(_CamelModel):
 
 
 class UnassignedTargetDTO(_CamelModel):
+    """Data transfer object for unassigned target."""
+
     target_type: Literal["campaign", "ad_set"]
     external_id: str
     name: str
@@ -52,6 +58,8 @@ class UnassignedTargetDTO(_CamelModel):
 
 
 class RecommendationDTO(_CamelModel):
+    """Data transfer object for recommendation."""
+
     type: str
     severity: Literal["info", "warning", "critical"]
     title: str
@@ -63,6 +71,8 @@ class RecommendationDTO(_CamelModel):
 
 
 class MetaHealthCheckDTO(_CamelModel):
+    """Data transfer object for meta health check."""
+
     overall_status: Literal["healthy", "needs_attention", "critical"]
     active_campaigns: list[CampaignHealthDTO]
     offers_coverage: list[OfferCoverageDTO]

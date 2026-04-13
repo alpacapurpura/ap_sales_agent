@@ -1,6 +1,4 @@
-"""
-Connections tools — give the copilot access to integration status details.
-"""
+"""Connections tools — give the copilot access to integration status details."""
 
 import structlog
 from langchain_core.tools import tool
@@ -19,6 +17,7 @@ def get_connections_detail() -> str:
     Returns:
         Lista de conexiones configuradas con su estado (activa/inactiva),
         tipo de canal y fecha de configuración.
+
     """
     tenant_id = get_tenant_id()
     if not tenant_id:

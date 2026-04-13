@@ -20,6 +20,7 @@ class BrandReadPortImpl(BrandReadPort):
     """Reads brand identity from tenant config_json."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize brand read port impl."""
         self.db = db
 
     async def get_industry(self, tenant_id: UUID) -> str | None:

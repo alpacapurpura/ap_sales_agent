@@ -1,18 +1,22 @@
+"""Base infrastructure."""
+
 from abc import ABC, abstractmethod
 from typing import BinaryIO
 
 
 class StorageStrategy(ABC):
+    """Implement storage storage strategy."""
+
     @abstractmethod
     def get_file_bytes(self, storage_path: str) -> bytes:
-        """
-        Read file bytes from storage.
+        """Read file bytes from storage.
 
         Args:
             storage_path: The internal path/key returned by save().
 
         Returns:
             bytes: Raw file content.
+
         """
 
     @abstractmethod
@@ -22,8 +26,7 @@ class StorageStrategy(ABC):
         filename: str,
         path_prefix: str = "",
     ) -> tuple[str, str]:
-        """
-        Save a file to storage.
+        """Save a file to storage.
 
         Args:
             file_obj: The file-like object to save.
@@ -34,16 +37,17 @@ class StorageStrategy(ABC):
             Tuple[str, str]: (storage_path, public_url)
             - storage_path: Internal path or key (e.g., local path or S3 key).
             - public_url: Accessible URL for the file.
+
         """
 
     @abstractmethod
     def delete(self, storage_path: str) -> bool:
-        """
-        Delete a file from storage.
+        """Delete a file from storage.
 
         Args:
             storage_path: The internal path/key returned by save().
 
         Returns:
             bool: True if deleted or didn't exist, False on error.
+
         """

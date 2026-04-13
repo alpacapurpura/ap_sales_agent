@@ -1,3 +1,5 @@
+"""CRM CDP DTOs."""
+
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -6,6 +8,8 @@ from pydantic import BaseModel
 
 
 class ProfileResponse(BaseModel):
+    """Response schema for profile."""
+
     id: UUID
     tenant_id: str
     lifecycle_stage: str | None
@@ -18,16 +22,22 @@ class ProfileResponse(BaseModel):
     computed_traits: dict[str, Any]
 
     class Config:
+        """Model configuration."""
+
         from_attributes = True
 
 
 class RFMResponse(BaseModel):
+    """Response schema for r f m."""
+
     recency: float
     frequency: float
     monetary: float
 
 
 class EventCreate(BaseModel):
+    """Represent event create data."""
+
     profile_id: UUID | None = None
     event_type: str
     event_name: str | None = None
@@ -38,9 +48,13 @@ class EventCreate(BaseModel):
 
 
 class EventResponse(BaseModel):
+    """Response schema for event."""
+
     id: UUID
     event_type: str
     occurred_at: datetime
 
     class Config:
+        """Model configuration."""
+
         from_attributes = True

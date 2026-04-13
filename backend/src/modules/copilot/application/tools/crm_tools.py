@@ -1,6 +1,4 @@
-"""
-CRM tools — give the copilot access to lead and sales pipeline data.
-"""
+"""CRM tools — give the copilot access to lead and sales pipeline data."""
 
 import json
 
@@ -25,6 +23,7 @@ def get_lead_summary(temperature: str | None = None, limit: int = 10) -> str:
 
     Returns:
         Resumen de leads con scoring e información relevante.
+
     """
     tenant_id = get_tenant_id()
     if not tenant_id:
@@ -98,6 +97,7 @@ def get_pipeline_overview() -> str:
 
     Returns:
         Resumen del pipeline de ventas.
+
     """
     tenant_id = get_tenant_id()
     if not tenant_id:

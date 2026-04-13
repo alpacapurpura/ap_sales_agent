@@ -118,6 +118,7 @@ async def list_assets(
     limit: Annotated[int, Query(ge=1, le=200)] = 24,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AssetListResponse:
+    """List assets."""
     items, total = _service(db).list_assets(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
@@ -148,6 +149,7 @@ async def upload_asset(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> OfferAssetResponse:
+    """Upload asset."""
     content = await file.read()
     asset = _service(db).upload_asset(
         tenant_id=user.tenant_id,
@@ -169,6 +171,7 @@ async def generate_asset(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> OfferAssetResponse:
+    """Generate asset."""
     asset = _service(db).generate_asset(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
@@ -186,6 +189,7 @@ async def get_asset(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> OfferAssetResponse:
+    """Retrieve asset."""
     try:
         asset = _service(db).get_asset(
             tenant_id=user.tenant_id,
@@ -205,6 +209,7 @@ async def update_asset(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> OfferAssetResponse:
+    """Update asset."""
     try:
         asset = _service(db).update_asset(
             tenant_id=user.tenant_id,
@@ -224,6 +229,7 @@ async def delete_asset(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> None:
+    """Delete asset."""
     try:
         _service(db).delete_asset(
             tenant_id=user.tenant_id,
@@ -243,6 +249,7 @@ async def get_asset_download_url(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> AssetDownloadUrlResponse:
+    """Retrieve asset download url."""
     try:
         url = _service(db).get_download_url(
             tenant_id=user.tenant_id,

@@ -1,3 +1,5 @@
+"""User Repository implementation."""
+
 from uuid import UUID
 
 from sqlalchemy import select
@@ -8,28 +10,35 @@ from src.modules.iam.infrastructure.models.user_model import UserModel
 
 
 class UserRepository:
+    """Concrete repository implementation for user."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize UserRepository."""
         self.db = db
 
     def get_by_id(self, user_id: UUID) -> User | None:
+        """Retrieve by id."""
         model = self.db.execute(select(UserModel).where(UserModel.id == user_id)).scalars().first()
         if model:
             return User.model_validate(model)
         return None
 
     def get_by_email(self, email: str) -> User | None:
+        """Retrieve by email."""
         model = self.db.execute(select(UserModel).where(UserModel.email == email)).scalars().first()
         if model:
             return User.model_validate(model)
         return None
 
     def get_by_clerk_id(self, clerk_id: str) -> User | None:
+        """Retrieve by clerk id."""
         model = self.db.execute(select(UserModel).where(UserModel.clerk_id == clerk_id)).scalars().first()
         if model:
             return User.model_validate(model)
         return None
 
     def create(self, user: User) -> User:
+        """Handle create operation."""
         db_user = UserModel(
             id=user.id,
             full_name=user.full_name,
@@ -45,6 +54,7 @@ class UserRepository:
         return User.model_validate(db_user)
 
     def update(self, user: User) -> User:
+        """Handle update operation."""
         db_user = self.db.execute(select(UserModel).where(UserModel.id == user.id)).scalars().first()
         if db_user:
             db_user.full_name = user.full_name

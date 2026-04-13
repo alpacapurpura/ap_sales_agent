@@ -48,8 +48,10 @@ _STATUS_TO_LIFECYCLE: dict[OfferStatus, OfferLifecycleStatus] = {
 
 
 def _to_lifecycle(status: OfferStatus | str) -> OfferLifecycleStatus | None:
-    """Return the lifecycle projection of an OfferStatus, or None if the
-    status is outside the writable subset (e.g. ``WAITLIST``)."""
+    """Return the lifecycle projection of an OfferStatus, or None if the.
+
+    status is outside the writable subset (e.g. ``WAITLIST``).
+    """
     if isinstance(status, str):
         try:
             status = OfferStatus(status)
@@ -66,6 +68,7 @@ class OfferLifecycleService:
         offer_service: OfferService,
         event_bus: object | None = None,
     ) -> None:
+        """Initialize service with dependencies."""
         self._offers = offer_service
         self._events = event_bus
 
@@ -83,6 +86,7 @@ class OfferLifecycleService:
         Raises:
             ValueError: offer not found.
             InvalidTransitionError: transition not allowed by the state machine.
+
         """
         offer = self._offers.get_offer(offer_id, tenant_id)
         if offer is None:

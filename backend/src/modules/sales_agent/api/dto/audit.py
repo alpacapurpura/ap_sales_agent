@@ -10,6 +10,8 @@ from pydantic import BaseModel
 
 
 class AuditLeadSummary(BaseModel):
+    """Audit Lead Summary DTO."""
+
     id: str
     full_name: str
     telegram_id: str | None = None
@@ -18,6 +20,8 @@ class AuditLeadSummary(BaseModel):
 
 
 class AuditLeadListItem(BaseModel):
+    """Audit Lead List Item DTO."""
+
     lead: AuditLeadSummary
     last_activity: str | None = None
 
@@ -26,6 +30,8 @@ class AuditLeadListItem(BaseModel):
 
 
 class AuditLeadDetail(BaseModel):
+    """Audit Lead Detail DTO."""
+
     id: str
     full_name: str
     # email and phone are intentionally None — PII not exposed via this endpoint
@@ -44,12 +50,16 @@ class AuditLeadDetail(BaseModel):
 
 
 class LLMLogSummary(BaseModel):
+    """LLMLog Summary DTO."""
+
     model: str | None = None
     total_tokens: int = 0
     prompt_template: str | None = None
 
 
 class TimelineEvent(BaseModel):
+    """Timeline Event DTO."""
+
     type: str  # "message" | "trace"
     id: str
     created_at: str | None = None
@@ -67,6 +77,8 @@ class TimelineEvent(BaseModel):
 
 
 class LLMLogDetail(BaseModel):
+    """LLMLog Detail DTO."""
+
     id: str
     model: str | None = None
     prompt_template: str
@@ -78,6 +90,8 @@ class LLMLogDetail(BaseModel):
 
 
 class TraceDetail(BaseModel):
+    """Trace Detail DTO."""
+
     id: str
     node_name: str | None = None
     input_state: dict[str, Any] | None = None
@@ -91,4 +105,6 @@ class TraceDetail(BaseModel):
 
 
 class ClearHistoryResponse(BaseModel):
+    """Clear History Response DTO."""
+
     status: str

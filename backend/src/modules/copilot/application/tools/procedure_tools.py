@@ -1,5 +1,4 @@
-"""
-Procedure Tools — start, check status, and advance guided procedures.
+"""Procedure Tools — start, check status, and advance guided procedures.
 
 Returns markdown for the LLM + ui_action for the frontend stepper.
 """

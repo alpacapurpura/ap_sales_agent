@@ -28,7 +28,10 @@ if TYPE_CHECKING:
 
 
 class OfferAssetRepository(IOfferAssetRepository):
+    """Repository for offer asset persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize repository with database session."""
         self.db = db
 
     # ------------------------------------------------------------------ mapping
@@ -76,6 +79,7 @@ class OfferAssetRepository(IOfferAssetRepository):
     # ------------------------------------------------------------------ CRUD
 
     def create(self, asset: OfferAsset) -> OfferAsset:
+        """Create."""
         model = OfferAssetModel(id=asset.id)
         self._apply_domain_to_model(model, asset)
         self.db.add(model)
@@ -89,6 +93,7 @@ class OfferAssetRepository(IOfferAssetRepository):
         offer_id: UUID,
         asset_id: UUID,
     ) -> OfferAsset | None:
+        """Retrieve by id."""
         stmt = select(OfferAssetModel).where(
             OfferAssetModel.id == asset_id,
             OfferAssetModel.tenant_id == tenant_id,
@@ -110,6 +115,7 @@ class OfferAssetRepository(IOfferAssetRepository):
         limit: int = 24,
         offset: int = 0,
     ) -> tuple[list[OfferAsset], int]:
+        """List."""
         base_filters = [
             OfferAssetModel.tenant_id == tenant_id,
             OfferAssetModel.offer_id == offer_id,
@@ -146,6 +152,7 @@ class OfferAssetRepository(IOfferAssetRepository):
         return [self._to_domain(r) for r in rows], total
 
     def update(self, asset: OfferAsset) -> OfferAsset:
+        """Update."""
         stmt = select(OfferAssetModel).where(
             OfferAssetModel.id == asset.id,
             OfferAssetModel.tenant_id == asset.tenant_id,
@@ -161,6 +168,7 @@ class OfferAssetRepository(IOfferAssetRepository):
         return self._to_domain(model)
 
     def soft_delete(self, tenant_id: UUID, offer_id: UUID, asset_id: UUID) -> bool:
+        """Soft delete."""
         stmt = select(OfferAssetModel).where(
             OfferAssetModel.id == asset_id,
             OfferAssetModel.tenant_id == tenant_id,
@@ -175,6 +183,7 @@ class OfferAssetRepository(IOfferAssetRepository):
         return True
 
     def count_by_offer(self, tenant_id: UUID, offer_id: UUID) -> int:
+        """Count by offer."""
         stmt = select(func.count(OfferAssetModel.id)).where(
             OfferAssetModel.tenant_id == tenant_id,
             OfferAssetModel.offer_id == offer_id,

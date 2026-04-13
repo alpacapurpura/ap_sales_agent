@@ -1,3 +1,5 @@
+"""SQLAlchemy model for tenant model."""
+
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
@@ -9,6 +11,8 @@ from src.shared.domain.base_entity import Base
 
 
 class TenantModel(Base):
+    """SQLAlchemy model for tenant."""
+
     __tablename__ = "tenants"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

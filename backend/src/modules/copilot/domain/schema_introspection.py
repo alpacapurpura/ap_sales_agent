@@ -1,5 +1,4 @@
-"""
-Schema Introspection Utility — Discover sections and fields dynamically from Pydantic models.
+"""Schema Introspection Utility — Discover sections and fields dynamically from Pydantic models.
 
 This replaces all hardcoded field name lists in copilot tools.
 When you add/remove fields from any Pydantic model, the copilot detects
@@ -74,8 +73,7 @@ def is_list_type(tp: type) -> bool:
 
 
 def get_model_sections(model_class: type[BaseModel]) -> dict[str, SectionInfo]:
-    """
-    Discover sections and fields of any Pydantic model dynamically.
+    """Discover sections and fields of any Pydantic model dynamically.
 
     A "section" is a field whose type is:
     - Another Pydantic BaseModel (nested object with sub-fields)
@@ -139,8 +137,7 @@ def check_section_completion(
     data: dict,
     sections: dict[str, SectionInfo],
 ) -> dict[str, CompletionStatus]:
-    """
-    Check completion status dynamically — NEVER hardcodes field names.
+    """Check completion status dynamically — NEVER hardcodes field names.
 
     Args:
         data: model_dump() output (dict)
@@ -148,6 +145,7 @@ def check_section_completion(
 
     Returns:
         Dict mapping section_name -> CompletionStatus
+
     """
     results: dict[str, CompletionStatus] = {}
 

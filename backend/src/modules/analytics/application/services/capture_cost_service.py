@@ -26,6 +26,7 @@ class CaptureCostService:
     """Cost retrieval, proration, and CAL calculation for capture metrics."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize capture cost service."""
         self.db = db
 
     def get_channel_costs(

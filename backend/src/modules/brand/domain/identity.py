@@ -1,3 +1,5 @@
+"""Brand identity value objects."""
+
 from typing import Any
 
 from pydantic import ConfigDict, Field
@@ -6,6 +8,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class BrandVisuals(BaseEntity):
+    """Represent brand visuals data."""
+
     # === COLORES (core) ===
     primary_color: str | None = None
     secondary_color: str | None = None  # 2nd brand color (sections, headers)
@@ -61,8 +65,8 @@ class BrandVisuals(BaseEntity):
 
 
 class BrandIdentity(BaseEntity):
-    """
-    Core identity of the brand.
+    """Represent the core identity of the brand.
+
     Visual aspects are delegated to BrandVisuals.
     """
 

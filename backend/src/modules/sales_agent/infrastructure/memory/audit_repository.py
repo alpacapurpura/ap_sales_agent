@@ -1,3 +1,5 @@
+"""Audit repository."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -18,12 +20,16 @@ if TYPE_CHECKING:
 
 
 class AuditRepository(EpisodicMemoryStore):
+    """Repository for audit persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize repository with database session."""
         self.db = db
 
     # --- EpisodicMemoryStore Implementation ---
 
     def get_chat_history(self, user_id: str, limit: int = 10) -> list[Any]:
+        """Retrieve chat history."""
         # Return last N messages in ascending order (oldest to newest) for context
         msgs = (
             self.db.execute(
@@ -42,6 +48,7 @@ class AuditRepository(EpisodicMemoryStore):
         channel: str,
         tenant_id: str | None = None,
     ) -> Any:  # noqa: ANN401 — matches abstract interface
+        """Log message."""
         msg = Message(
             user_id=user_id,
             tenant_id=tenant_id,
@@ -54,6 +61,7 @@ class AuditRepository(EpisodicMemoryStore):
         return msg
 
     def get_last_message(self, user_id: str) -> Any:  # noqa: ANN401 — matches abstract interface
+        """Retrieve last message."""
         return (
             self.db.execute(
                 select(Message).where(Message.user_id == user_id).order_by(Message.created_at.desc()),
@@ -74,6 +82,7 @@ class AuditRepository(EpisodicMemoryStore):
         execution_time_ms: float,
         tenant_id: UUID | None = None,
     ) -> AgentTrace:
+        """Create trace."""
         trace = AgentTrace(
             user_id=user_id,
             tenant_id=tenant_id,
@@ -99,6 +108,7 @@ class AuditRepository(EpisodicMemoryStore):
         tokens_output: int,
         metadata: dict[str, Any] | None = None,
     ) -> LLMLog:
+        """Create llm log."""
         log = LLMLog(
             trace_id=trace_id,
             model=model,
@@ -114,6 +124,7 @@ class AuditRepository(EpisodicMemoryStore):
         return log
 
     def get_recent_users(self, tenant_id: UUID | None, limit: int = 20) -> list[Any]:
+        """Retrieve recent users."""
         # Join AgentTrace with LeadModel to get recent active leads
         # Query Traces, group by user_id, max(created_at)
         base_stmt = select(
@@ -135,6 +146,7 @@ class AuditRepository(EpisodicMemoryStore):
         return self.db.execute(stmt).all()
 
     def clear_user_history(self, lead_id: str, tenant_id: str) -> bool:
+        """Clear user history."""
         from sqlalchemy import text
 
         lead_uuid = str(lead_id)
@@ -177,6 +189,7 @@ class AuditRepository(EpisodicMemoryStore):
         return True
 
     def get_full_timeline(self, lead_id: str, tenant_id: str, limit: int = 50) -> list[dict[str, Any]]:
+        """Retrieve full timeline."""
         messages = (
             self.db.execute(
                 select(Message).where(Message.user_id == lead_id).order_by(Message.created_at.desc()).limit(limit),
@@ -238,6 +251,7 @@ class AuditRepository(EpisodicMemoryStore):
         return timeline[:limit]
 
     def get_trace_details(self, trace_id: str, tenant_id: str) -> dict[str, Any] | None:
+        """Retrieve trace details."""
         trace = self.db.execute(select(AgentTrace).where(AgentTrace.id == trace_id)).scalars().first()
         if not trace:
             return None
@@ -271,4 +285,5 @@ class AuditRepository(EpisodicMemoryStore):
         }
 
     def close(self) -> None:
+        """Close."""
         self.db.close()

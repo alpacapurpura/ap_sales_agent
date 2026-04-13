@@ -1,3 +1,5 @@
+"""Tracing infrastructure module."""
+
 from __future__ import annotations
 
 import contextvars
@@ -154,8 +156,8 @@ def _handle_trace_error(
 
 
 def trace_node(node_name: str) -> Callable:
-    """
-    Decorator to trace LangGraph nodes.
+    """Trace LangGraph nodes.
+
     Captures input state, output state, execution time, and sets context for LLM logs.
     Supports both sync and async functions.
     """

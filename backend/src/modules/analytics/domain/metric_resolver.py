@@ -42,6 +42,7 @@ def _extract_multiplier(formula: str | None) -> float:
         "spend / impressions x 1000" → 1000.0
         "spend / clicks" → 1.0
         "meta_conversion_value / spend" → 1.0
+
     """
     if not formula:
         return 1.0
@@ -108,6 +109,7 @@ class MetricResolver:
 
         Returns:
             Dict mapping requested metric name → aggregated value (or None if not computable)
+
         """
         # Step 1: Filter to account-level only
         account_rows = self._filter_account_level(daily_rows)
@@ -151,6 +153,7 @@ class MetricResolver:
 
         Returns:
             Dict mapping requested metric name → sorted list of (date, value) tuples
+
         """
         # Step 1: Filter to account-level only
         account_rows = self._filter_account_level(daily_rows)
@@ -242,6 +245,7 @@ class MetricResolver:
 
         Returns:
             Dict mapping requested metric name → resolved value (or None)
+
         """
         result: dict[str, float | None] = {}
 

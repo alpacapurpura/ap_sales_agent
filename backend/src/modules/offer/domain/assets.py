@@ -17,6 +17,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class OfferAsset(BaseEntity):
+    """Offer Asset."""
+
     id: UUID = Field(default_factory=uuid4)
     tenant_id: UUID
     offer_id: UUID

@@ -17,6 +17,7 @@ class ReferralService:
     """Manage referral codes for evangelist customers."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize referral service."""
         self.db = db
 
     def generate_code(self, tenant_id: UUID, customer_id: UUID) -> ReferralCodeModel:

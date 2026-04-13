@@ -1,3 +1,5 @@
+"""Google Analytics channel adapter."""
+
 import asyncio
 import json
 import os
@@ -29,8 +31,8 @@ SCOPES = ["https://www.googleapis.com/auth/analytics.readonly"]
 
 
 class GoogleAnalyticsAdapter:
-    """
-    Adapter for Google Analytics 4 API.
+    """Adapter for Google Analytics 4 API.
+
     Handles OAuth2 flow and wraps analytics operations.
     """
 
@@ -39,6 +41,7 @@ class GoogleAnalyticsAdapter:
         client_config: dict[str, str],
         credentials_data: dict[str, Any] | None = None,
     ) -> None:
+        """Initialize adapter with credentials."""
         self.client_config = client_config
         self.credentials_data = credentials_data
         self.creds = None
@@ -54,6 +57,7 @@ class GoogleAnalyticsAdapter:
             self.creds = Credentials.from_authorized_user_info(credentials_data, SCOPES)
 
     def get_client_config(self) -> dict[str, Any]:
+        """Retrieve client config."""
         return {
             "web": {
                 "client_id": self.client_config.get("client_id"),
@@ -64,7 +68,7 @@ class GoogleAnalyticsAdapter:
         }
 
     def get_authorization_url(self, redirect_uri: str | None = None) -> tuple[str, str]:
-        """Generates the authorization URL and state."""
+        """Generate the authorization URL and state."""
         flow = Flow.from_client_config(self.get_client_config(), scopes=SCOPES)
         flow.redirect_uri = redirect_uri or settings.GOOGLE_REDIRECT_URI
 
@@ -90,14 +94,14 @@ class GoogleAnalyticsAdapter:
             raise
 
     def get_service(self) -> object:
-        """Returns the Google Analytics Admin service resource."""
+        """Return the Google Analytics Admin service resource."""
         if not self.creds:
             msg = "Credentials not initialized"
             raise ValueError(msg)
         return build("analyticsadmin", "v1beta", credentials=self.creds)
 
     def get_account_summaries(self) -> list[dict[str, Any]]:
-        """Gets a list of account summaries which includes accounts and properties."""
+        """Get a list of account summaries which includes accounts and properties."""
         service = self.get_service()
         try:
             # accountSummaries.list returns a structure with account summaries
@@ -112,6 +116,7 @@ class GoogleAnalyticsAdapter:
 
         Returns:
             [{"property_id": "123", "display_name": "My Site", "account_name": "My Account"}, ...]
+
         """
         try:
             summaries = self.get_account_summaries()
@@ -135,7 +140,7 @@ class GoogleAnalyticsAdapter:
         return properties
 
     def _get_data_client(self) -> BetaAnalyticsDataClient:
-        """Returns a GA4 Data API client using current credentials."""
+        """Return a GA4 Data API client using current credentials."""
         if not self.creds:
             msg = "Credentials not initialized"
             raise ValueError(msg)
@@ -149,8 +154,7 @@ class GoogleAnalyticsAdapter:
         start_date: str = "30daysAgo",
         end_date: str = "today",
     ) -> dict:
-        """
-        Run a GA4 report with arbitrary dimensions and metrics.
+        """Run a GA4 report with arbitrary dimensions and metrics.
 
         Wraps the synchronous BetaAnalyticsDataClient.run_report() call
         in asyncio.to_thread() to avoid blocking the FastAPI event loop.

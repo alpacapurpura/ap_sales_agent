@@ -1,3 +1,5 @@
+"""Availability Schema domain definitions."""
+
 import uuid
 
 from pydantic import Field
@@ -6,16 +8,22 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class TimeRange(BaseEntity):
+    """Represent time range."""
+
     start: str
     end: str
 
 
 class DaySchedule(BaseEntity):
+    """Represent day schedule."""
+
     active: bool
     ranges: list[TimeRange] = []
 
 
 class WeeklySchedule(BaseEntity):
+    """Represent weekly schedule."""
+
     monday: DaySchedule = Field(default_factory=lambda: DaySchedule(active=False))
     tuesday: DaySchedule = Field(default_factory=lambda: DaySchedule(active=False))
     wednesday: DaySchedule = Field(default_factory=lambda: DaySchedule(active=False))
@@ -26,6 +34,8 @@ class WeeklySchedule(BaseEntity):
 
 
 class AvailabilitySchedule(BaseEntity):
+    """Represent availability schedule."""
+
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     timezone: str = "UTC"
@@ -34,6 +44,8 @@ class AvailabilitySchedule(BaseEntity):
 
 
 class ScheduleUpdate(BaseEntity):
+    """Represent schedule update."""
+
     name: str | None = None
     timezone: str | None = None
     is_default: bool | None = None

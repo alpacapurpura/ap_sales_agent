@@ -1,3 +1,5 @@
+"""CRM lead metrics repository."""
+
 import uuid
 
 from sqlalchemy import desc, func, or_, select
@@ -24,6 +26,8 @@ _CHANNEL_ATTR_MAP: dict[str, str] = {
 
 
 class LeadRepository(BaseRepository):
+    """Repository for lead persistence."""
+
     @staticmethod
     def _set_channel_id(
         lead_orm: LeadModel,
@@ -38,9 +42,7 @@ class LeadRepository(BaseRepository):
             setattr(lead_orm, attr, channel_user_id)
 
     def count_total(self, tenant_id: uuid.UUID) -> int:
-        """
-        Cuenta el total de leads activos.
-        """
+        """Cuenta el total de leads activos."""
         return (
             self.db.execute(
                 select(func.count(LeadModel.id)).where(
@@ -52,9 +54,7 @@ class LeadRepository(BaseRepository):
         )
 
     def count_qualified(self, tenant_id: uuid.UUID) -> int:
-        """
-        Cuenta leads calificados (score alto o no fríos).
-        """
+        """Cuenta leads calificados (score alto o no fríos)."""
         return (
             self.db.execute(
                 select(func.count(LeadModel.id)).where(
@@ -67,9 +67,7 @@ class LeadRepository(BaseRepository):
         )
 
     def get_by_id(self, lead_id: str | uuid.UUID) -> Lead | None:
-        """
-        Robustly fetch lead by ID, handling string/UUID conversion.
-        """
+        """Robustly fetch lead by ID, handling string/UUID conversion."""
         if isinstance(lead_id, str):
             try:
                 lead_id = uuid.UUID(lead_id)
@@ -88,9 +86,7 @@ class LeadRepository(BaseRepository):
         return None
 
     def get_by_channel_id(self, channel: str, user_id: str) -> Lead | None:
-        """
-        Find a lead by their channel-specific ID (Telegram, WhatsApp, etc).
-        """
+        """Find a lead by their channel-specific ID (Telegram, WhatsApp, etc)."""
         attr = _CHANNEL_ATTR_MAP.get(channel)
         if not attr:
             return None
@@ -107,9 +103,7 @@ class LeadRepository(BaseRepository):
         return None
 
     def get_active_lead(self, customer_id: uuid.UUID) -> Lead | None:
-        """
-        Obtiene el lead activo (más reciente) para un cliente.
-        """
+        """Obtiene el lead activo (más reciente) para un cliente."""
         stmt = (
             select(LeadModel)
             .where(
@@ -135,13 +129,11 @@ class LeadRepository(BaseRepository):
         channel_user_id: str | None = None,
         customer_id: uuid.UUID | None = None,
     ) -> Lead:
-        """
-        Create a new Lead from a channel interaction.
-        If a lead already exists for this channel_user_id, returns it (linking customer if needed).
-        If customer_id is provided, creates a Lead linked to that customer.
-        Otherwise creates a new CustomerProfile first.
-        """
+        """Create a new Lead from a channel interaction.
 
+        Return existing lead if one exists for this channel_user_id (linking customer if needed).
+        Create a Lead linked to the customer_id if provided, otherwise create a new CustomerProfile first.
+        """
         # First, check if a lead already exists for this channel ID
         if channel and channel_user_id:
             existing = self.get_by_channel_id(channel, channel_user_id)
@@ -203,6 +195,7 @@ class LeadRepository(BaseRepository):
         lead_id: str | uuid.UUID,
         psychographics_update: dict,
     ) -> Lead | None:
+        """Update profile."""
         # Fetch ORM object to update
         if isinstance(lead_id, str):
             try:

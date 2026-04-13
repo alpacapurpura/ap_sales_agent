@@ -1,5 +1,4 @@
-"""
-Tool functions for the sales agent subgraph.
+"""Tool functions for the sales agent subgraph.
 
 Each tool receives the full agent state dict and an optional DB session.
 Tools return a dict with at minimum {"status": "...", "message": "..."}.
@@ -17,7 +16,7 @@ logger = structlog.get_logger()
 
 
 def tool_send_payment_link(state: dict[str, Any], db: Any = None) -> dict[str, str]:  # noqa: ANN401 — dynamic type (optional DB session)
-    """Returns the checkout URL for the active offer."""
+    """Return the checkout URL for the active offer."""
     product = state.get("active_product") or {}
     url = product.get("checkout_page_url")
     if not url:
@@ -34,7 +33,7 @@ def tool_send_payment_link(state: dict[str, Any], db: Any = None) -> dict[str, s
 
 
 def tool_check_schedule(state: dict[str, Any], db: Any = None) -> dict[str, Any]:  # noqa: ANN401 — dynamic type (optional DB session)
-    """Returns scheduling availability info."""
+    """Return scheduling availability info."""
     product = state.get("active_product") or {}
     calendar_type_id = product.get("calendar_type_id")
     if not calendar_type_id:
@@ -87,7 +86,7 @@ def tool_recommend_product(state: dict[str, Any], db: Any = None) -> dict[str, A
 
 
 def tool_escalate_to_human(state: dict[str, Any], db: Any = None) -> dict[str, str]:  # noqa: ANN401 — dynamic type (optional DB session)
-    """Flags the conversation for human takeover."""
+    """Flag the conversation for human takeover."""
     return {
         "status": "escalated",
         "message": (

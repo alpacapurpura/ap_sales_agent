@@ -10,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class ExtractionRunModel(Base):
+    """SQLAlchemy model for extraction run."""
+
     __tablename__ = "extraction_runs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

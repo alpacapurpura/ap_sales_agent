@@ -1,3 +1,5 @@
+"""User domain definitions."""
+
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -8,9 +10,7 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class User(BaseEntity):
-    """
-    System User / Admin / Dashboard User Domain Model.
-    """
+    """System User / Admin / Dashboard User Domain Model."""
 
     id: UUID
     full_name: str | None = None
@@ -27,9 +27,7 @@ class User(BaseEntity):
 
 
 class SystemUserProfile(BaseEntity):
-    """
-    Response model for current authenticated user profile.
-    """
+    """Response model for current authenticated user profile."""
 
     id: str
     full_name: str | None
@@ -38,9 +36,7 @@ class SystemUserProfile(BaseEntity):
 
 
 class TeamMemberCreate(BaseEntity):
-    """
-    Request model for adding a new user to the team.
-    """
+    """Request model for adding a new user to the team."""
 
     full_name: str
     email: str
@@ -48,9 +44,7 @@ class TeamMemberCreate(BaseEntity):
 
 
 class TeamMemberSchema(BaseEntity):
-    """
-    Response model for team members listing.
-    """
+    """Response model for team members listing."""
 
     id: str
     full_name: str | None

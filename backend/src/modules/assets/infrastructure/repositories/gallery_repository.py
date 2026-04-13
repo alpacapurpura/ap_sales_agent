@@ -1,3 +1,5 @@
+"""Gallery Repository implementation."""
+
 from uuid import UUID
 
 from sqlalchemy import select
@@ -9,7 +11,10 @@ from src.shared.domain.datetime_utils import utc_now
 
 
 class GalleryRepository:
+    """Concrete repository implementation for gallery."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize GalleryRepository."""
         self.db = db
 
     def _to_domain(self, model: GalleryImageModel) -> GalleryImage:
@@ -45,6 +50,7 @@ class GalleryRepository:
         )
 
     def create(self, entity: GalleryImage) -> GalleryImage:
+        """Handle create operation."""
         model = self._to_model(entity)
         self.db.add(model)
         self.db.commit()
@@ -52,6 +58,7 @@ class GalleryRepository:
         return self._to_domain(model)
 
     def get_by_id(self, image_id: UUID, tenant_id: UUID) -> GalleryImage | None:
+        """Retrieve by id."""
         stmt = select(GalleryImageModel).where(
             GalleryImageModel.id == image_id,
             GalleryImageModel.tenant_id == tenant_id,
@@ -63,6 +70,7 @@ class GalleryRepository:
         return None
 
     def list_by_offer(self, offer_id: UUID) -> list[GalleryImage]:
+        """List by offer."""
         stmt = select(GalleryImageModel).where(
             GalleryImageModel.offer_id == offer_id,
             GalleryImageModel.deleted_at.is_(None),
@@ -71,6 +79,7 @@ class GalleryRepository:
         return [self._to_domain(m) for m in models]
 
     def list_by_tenant(self, tenant_id: UUID) -> list[GalleryImage]:
+        """List by tenant."""
         stmt = select(GalleryImageModel).where(
             GalleryImageModel.tenant_id == tenant_id,
             GalleryImageModel.deleted_at.is_(None),
@@ -79,6 +88,7 @@ class GalleryRepository:
         return [self._to_domain(m) for m in models]
 
     def delete(self, image_id: UUID) -> bool:
+        """Handle delete operation."""
         stmt = select(GalleryImageModel).where(
             GalleryImageModel.id == image_id,
             GalleryImageModel.deleted_at.is_(None),

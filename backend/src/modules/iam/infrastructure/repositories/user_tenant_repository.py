@@ -1,3 +1,5 @@
+"""User Tenant Repository implementation."""
+
 from uuid import UUID
 
 from sqlalchemy import select
@@ -9,12 +11,15 @@ from src.modules.iam.infrastructure.models.user_tenant_model import UserTenantMo
 
 
 class UserTenantRepository:
+    """Concrete repository implementation for user tenant."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize UserTenantRepository."""
         self.db = db
 
     def get_tenants_for_user(self, user_id: UUID) -> list[tuple[Tenant, str]]:
-        """
-        Returns a list of (Tenant, role) tuples for a given user.
+        """Return a list of (Tenant, role) tuples for a given user.
+
         Only returns active tenants.
         """
         results = self.db.execute(

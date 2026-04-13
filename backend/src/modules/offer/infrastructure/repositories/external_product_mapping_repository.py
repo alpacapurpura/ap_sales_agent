@@ -11,7 +11,10 @@ from src.modules.offer.infrastructure.models.external_product_mapping_model impo
 
 
 class ExternalProductMappingRepository:
+    """Repository for external product mapping persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize repository with database session."""
         self.db = db
 
     def get_by_external_id(
@@ -20,6 +23,7 @@ class ExternalProductMappingRepository:
         source: str,
         external_id: str,
     ) -> ExternalProductMappingModel | None:
+        """Retrieve by external id."""
         stmt = select(ExternalProductMappingModel).where(
             ExternalProductMappingModel.tenant_id == tenant_id,
             ExternalProductMappingModel.source == source,
@@ -32,6 +36,7 @@ class ExternalProductMappingRepository:
         tenant_id: UUID,
         offer_id: UUID,
     ) -> list[ExternalProductMappingModel]:
+        """Retrieve by offer id."""
         stmt = select(ExternalProductMappingModel).where(
             ExternalProductMappingModel.tenant_id == tenant_id,
             ExternalProductMappingModel.offer_id == offer_id,
@@ -43,6 +48,7 @@ class ExternalProductMappingRepository:
         tenant_id: UUID,
         source: str,
     ) -> list[ExternalProductMappingModel]:
+        """List by source."""
         stmt = select(ExternalProductMappingModel).where(
             ExternalProductMappingModel.tenant_id == tenant_id,
             ExternalProductMappingModel.source == source,
@@ -58,6 +64,7 @@ class ExternalProductMappingRepository:
         external_name: str | None = None,
         metadata_info: dict | None = None,
     ) -> ExternalProductMappingModel:
+        """Create mapping."""
         mapping = ExternalProductMappingModel(
             tenant_id=tenant_id,
             offer_id=offer_id,
@@ -71,6 +78,7 @@ class ExternalProductMappingRepository:
         return mapping
 
     def delete_mapping(self, mapping_id: UUID, tenant_id: UUID) -> bool:
+        """Delete mapping."""
         stmt = delete(ExternalProductMappingModel).where(
             ExternalProductMappingModel.id == mapping_id,
             ExternalProductMappingModel.tenant_id == tenant_id,

@@ -1,3 +1,5 @@
+"""Style analyzer agent graph definition."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -20,6 +22,7 @@ if TYPE_CHECKING:
 
 
 def create_onboarding_graph() -> CompiledStateGraph:
+    """Create onboarding graph."""
     workflow = StateGraph(OnboardingState)
 
     # Add Nodes

@@ -24,6 +24,7 @@ class ManyChatProvider(BaseMetricsProvider):
     """Provider that reads pre-ingested ManyChat metrics."""
 
     def __init__(self, db: Session | None = None) -> None:
+        """Initialize many chat provider."""
         self._db = db
 
     async def extract_metrics(
@@ -43,7 +44,9 @@ class ManyChatProvider(BaseMetricsProvider):
         return ExtractionResult()
 
     def provider_name(self) -> str:
+        """Execute provider name operation."""
         return "manychat"
 
     def rate_limit_config(self) -> dict:
+        """Execute rate limit config operation."""
         return {"requests_per_minute": 10, "burst_size": 5}

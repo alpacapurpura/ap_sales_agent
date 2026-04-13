@@ -1,3 +1,5 @@
+"""Channel domain module."""
+
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -9,6 +11,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class ChannelConnection(BaseEntity):
+    """Channel Connection."""
+
     id: UUID
     tenant_id: UUID
     channel_type: ChannelType

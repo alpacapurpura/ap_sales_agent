@@ -36,8 +36,7 @@ GRAPH_API_BASE = "https://graph.facebook.com/v24.0"
 
 
 class PeriodAggregateError(ValueError):
-    """Raised when ``_parse_ads_row`` receives a Meta Insights row that
-    aggregates more than one day.
+    """Raise when ``_parse_ads_row`` receives a Meta Insights row spanning multiple days.
 
     Per-day metrics tables only accept single-day rows. Period aggregates
     (``date_start != date_stop``) must either come from an ``/insights``
@@ -232,13 +231,14 @@ def _emit_ig_follows_metrics(
 
 
 class MetaProvider(BaseMetricsProvider):
-    """Extracts metrics from Meta Graph API for Instagram organic,
-    Facebook organic, and Meta Ads."""
+    """Extract metrics from Meta Graph API for IG organic, FB organic, and Meta Ads."""
 
     def provider_name(self) -> str:
+        """Execute provider name operation."""
         return "meta"
 
     def has_period_extraction(self) -> bool:
+        """Check if  period extraction."""
         return True
 
     async def extract_period_metrics(
@@ -421,6 +421,7 @@ class MetaProvider(BaseMetricsProvider):
         return metrics
 
     def rate_limit_config(self) -> dict:
+        """Execute rate limit config operation."""
         return {"requests_per_minute": 200, "burst_size": 50}
 
     async def extract_metrics(
@@ -431,6 +432,7 @@ class MetaProvider(BaseMetricsProvider):
         end_date: date,
         stage: str = "attraction",
     ) -> ExtractionResult:
+        """Extract metrics."""
         access_token = credentials.get("access_token")
         if not access_token:
             logger.warning("meta_provider_no_access_token tenant=%s", tenant_id)
@@ -1046,6 +1048,7 @@ class MetaProvider(BaseMetricsProvider):
             PeriodAggregateError: if the row represents a multi-day aggregate
                 (``date_start != date_stop``). This is an architectural
                 invariant — per-day tables must never receive aggregated data.
+
         """
         # Invariant: refuse period-aggregated rows outright.
         MetaProvider._assert_single_day_row(data)

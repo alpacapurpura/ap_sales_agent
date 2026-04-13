@@ -1,3 +1,5 @@
+"""Public Links API endpoints."""
+
 import datetime
 from typing import Any
 
@@ -10,6 +12,8 @@ from src.shared.links.schemas import (
 
 
 class BookingRequest(BaseModel):
+    """Schema for booking request."""
+
     slot_time: datetime.datetime
     duration_minutes: int = 30
     name: str
@@ -20,6 +24,8 @@ class BookingRequest(BaseModel):
 
 
 class EventTypeResolveResponse(BaseModel):
+    """Schema for event type resolve response."""
+
     event_type: EventType
     tenant_name: str
     tenant_avatar: str | None = None
@@ -27,6 +33,8 @@ class EventTypeResolveResponse(BaseModel):
 
 
 class BookingLinkResolveResponse(BaseModel):
+    """Schema for booking link resolve response."""
+
     valid: bool
     event_slug: str
     lead_name: str | None = None
@@ -37,9 +45,13 @@ class BookingLinkResolveResponse(BaseModel):
 
 
 class SlotsResponse(BaseModel):
+    """Schema for slots response."""
+
     slots: list[datetime.datetime]
 
 
 class BookingConfirmationResponse(BaseModel):
+    """Schema for booking confirmation response."""
+
     status: str
     event: dict[str, Any]

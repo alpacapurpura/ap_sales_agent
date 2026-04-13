@@ -33,6 +33,8 @@ logger = structlog.get_logger(__name__)
 
 @dataclass
 class MetricRow:
+    """Represent metric row."""
+
     metric_name: str
     value: float
     unit: str
@@ -49,6 +51,7 @@ class MetricsRepository:
     DEFAULT_CHANNEL_SLUG = "meta-ads"
 
     def __init__(self, db: Session) -> None:
+        """Initialize MetricsRepository."""
         self._db = db
 
     def detect_currency(

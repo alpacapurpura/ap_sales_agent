@@ -23,7 +23,10 @@ if TYPE_CHECKING:
 
 
 class LaunchEditionRepository:
+    """Repository for launch edition persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize repository with database session."""
         self.db = db
 
     def _to_domain(self, model: LaunchEditionModel) -> LaunchEdition:
@@ -53,6 +56,7 @@ class LaunchEditionRepository:
         )
 
     def get_next_edition_number(self, offer_id: UUID) -> int:
+        """Retrieve next edition number."""
         stmt = select(
             func.coalesce(func.max(LaunchEditionModel.edition_number), 0),
         ).where(
@@ -76,6 +80,7 @@ class LaunchEditionRepository:
         location_override: dict | None = None,
         notes: str | None = None,
     ) -> LaunchEdition:
+        """Create."""
         edition_number = self.get_next_edition_number(offer_id)
         if not edition_name:
             edition_name = f"Edición #{edition_number}"
@@ -107,6 +112,7 @@ class LaunchEditionRepository:
         return self._to_domain(model)
 
     def get_by_id(self, edition_id: UUID, tenant_id: UUID) -> LaunchEdition | None:
+        """Retrieve by id."""
         stmt = select(LaunchEditionModel).where(
             LaunchEditionModel.id == edition_id,
             LaunchEditionModel.tenant_id == tenant_id,
@@ -115,6 +121,7 @@ class LaunchEditionRepository:
         return self._to_domain(model) if model else None
 
     def list_by_offer(self, offer_id: UUID, tenant_id: UUID) -> list[LaunchEdition]:
+        """List by offer."""
         stmt = (
             select(LaunchEditionModel)
             .where(
@@ -128,6 +135,7 @@ class LaunchEditionRepository:
         return [self._to_domain(m) for m in models]
 
     def update(self, edition_id: UUID, tenant_id: UUID, data: dict) -> LaunchEdition:
+        """Update."""
         stmt = select(LaunchEditionModel).where(
             LaunchEditionModel.id == edition_id,
             LaunchEditionModel.tenant_id == tenant_id,
@@ -155,4 +163,5 @@ class LaunchEditionRepository:
         return self._to_domain(model)
 
     def soft_delete(self, edition_id: UUID, tenant_id: UUID) -> None:
+        """Soft delete."""
         self.update(edition_id, tenant_id, {"status": EditionStatus.CANCELLED.value})

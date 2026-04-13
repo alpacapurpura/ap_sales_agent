@@ -1,3 +1,5 @@
+"""CRM sale domain model."""
+
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -9,6 +11,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class Sale(BaseEntity):
+    """Represent sale data."""
+
     id: UUID
     tenant_id: UUID
     customer_id: UUID

@@ -10,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class ReferralCodeModel(Base):
+    """SQLAlchemy model for referral code."""
+
     __tablename__ = "referral_codes"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

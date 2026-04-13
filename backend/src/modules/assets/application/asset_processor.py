@@ -1,3 +1,5 @@
+"""Asset Processor application layer."""
+
 from typing import Any
 
 import structlog
@@ -9,16 +11,18 @@ logger = structlog.get_logger()
 
 
 class AssetProcessor:
+    """Represent asset processor."""
+
     def __init__(self) -> None:
-        pass
+        """Initialize AssetProcessor."""
 
     async def process_asset(
         self,
         asset: Asset,
         file_data: bytes | str,
     ) -> dict[str, Any]:
-        """
-        Process asset to extract AI metadata.
+        """Process asset to extract AI metadata.
+
         file_data can be raw bytes (from R2/cloud) or a local filesystem path (legacy).
         """
         if asset.type == AssetType.IMAGE:

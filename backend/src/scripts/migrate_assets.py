@@ -1,3 +1,5 @@
+"""Migrate offer_gallery_images table to assets."""
+
 import sys
 from pathlib import Path
 
@@ -12,6 +14,7 @@ from src.core.database import engine
 
 
 def migrate() -> None:
+    """Run the assets table migration."""
     print("Starting Assets Module Migration...")
     with engine.connect() as connection:
         trans = connection.begin()

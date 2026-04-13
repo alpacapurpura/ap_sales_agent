@@ -61,7 +61,10 @@ def _best_thumbnail_url(
 
 
 class AdPerformanceService:
+    """Service for ad performance operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize ad performance service."""
         self._db = db
 
     def _date_range(self, period: str) -> tuple[date, date]:
@@ -150,6 +153,7 @@ class AdPerformanceService:
         period: str,
         limit: int = 10,
     ) -> AdPerformanceListDTO:
+        """Return top ads."""
         start_date, end_date = self._date_range(period)
 
         rows = self._db.execute(

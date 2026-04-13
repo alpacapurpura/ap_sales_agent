@@ -51,6 +51,8 @@ _DEFAULT_MIME_BY_TYPE: dict[KnowledgeSourceType, str] = {
 
 
 class OfferKnowledgeService:
+    """Service for offer knowledge operations."""
+
     def __init__(
         self,
         *,
@@ -59,6 +61,7 @@ class OfferKnowledgeService:
         rag_indexer: IRAGIndexerPort,
         event_bus: object | None = None,
     ) -> None:
+        """Initialize service with dependencies."""
         self._repo = knowledge_repo
         self._storage = file_storage
         self._indexer = rag_indexer
@@ -73,6 +76,7 @@ class OfferKnowledgeService:
         search: str | None = None,
         type_: KnowledgeSourceType | None = None,
     ) -> list[KnowledgeSource]:
+        """List sources."""
         return self._repo.list(tenant_id, offer_id, search=search, type_=type_)
 
     # ---------------------------------------------------------------- get
@@ -83,6 +87,7 @@ class OfferKnowledgeService:
         offer_id: UUID,
         source_id: UUID,
     ) -> KnowledgeSource:
+        """Retrieve source."""
         source = self._repo.get_by_id(tenant_id, offer_id, source_id)
         if source is None:
             raise KnowledgeSourceNotFoundError(source_id)
@@ -100,6 +105,7 @@ class OfferKnowledgeService:
         mime_type: str | None = None,
         name: str | None = None,
     ) -> KnowledgeSource:
+        """Upload source."""
         mime = mime_type or _DEFAULT_MIME_BY_TYPE.get(type_, "application/octet-stream")
         folder = f"offers/{offer_id}/knowledge"
         file_url, size_bytes = self._storage.upload(
@@ -147,6 +153,7 @@ class OfferKnowledgeService:
         type_: KnowledgeSourceType,
         name: str | None = None,
     ) -> KnowledgeSource:
+        """Add url source."""
         source = KnowledgeSource(
             tenant_id=tenant_id,
             offer_id=offer_id,
@@ -181,6 +188,7 @@ class OfferKnowledgeService:
         offer_id: UUID,
         source_id: UUID,
     ) -> None:
+        """Delete source."""
         source = self._repo.get_by_id(tenant_id, offer_id, source_id)
         if source is None:
             raise KnowledgeSourceNotFoundError(source_id)
@@ -209,6 +217,7 @@ class OfferKnowledgeService:
         offer_id: UUID,
         source_id: UUID,
     ) -> KnowledgeSource:
+        """Reindex source."""
         source = self._repo.get_by_id(tenant_id, offer_id, source_id)
         if source is None:
             raise KnowledgeSourceNotFoundError(source_id)

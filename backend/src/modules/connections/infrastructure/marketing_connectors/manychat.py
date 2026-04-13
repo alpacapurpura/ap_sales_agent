@@ -1,3 +1,5 @@
+"""Manychat marketing connector."""
+
 from typing import Any
 
 import httpx

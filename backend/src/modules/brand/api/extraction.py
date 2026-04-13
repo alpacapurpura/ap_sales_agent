@@ -1,3 +1,5 @@
+"""Brand extraction API endpoints."""
+
 import json
 from datetime import UTC, datetime
 from typing import Annotated, Literal
@@ -37,11 +39,10 @@ async def extract_data(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> BrandVisualsResponse:
-    """
-    Extracts structured data from a URL using the Web Extractor Subgraph.
-    Currently supports: 'brand_identity'.
-    """
+    """Extract structured data from a URL using the Web Extractor Subgraph.
 
+    Currently support: 'brand_identity'.
+    """
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,
@@ -85,9 +86,9 @@ async def extract_full_brand(
     include_assets: Annotated[bool, Form()] = False,
     files: Annotated[list[UploadFile], File()] = [],  # noqa: B006
 ) -> ExtractFullBrandResponse:
-    """
-    Dispatches full brand extraction as an async job.
-    Returns 202 with job_id for polling via GET /extract-full-brand/status/{job_id}.
+    """Dispatch full brand extraction as an async job.
+
+    Return 202 with job_id for polling via GET /extract-full-brand/status/{job_id}.
     """
     # Parse uploaded files (UploadFile can't be serialized to ARQ)
     extracted_file_text = ""
@@ -179,7 +180,6 @@ async def get_extraction_status(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ExtractionStatusResponse:
     """Poll extraction job progress. Returns status, progress %, and current stage."""
-
     # Validate job_id format
     try:
         UUID(job_id)
@@ -216,7 +216,6 @@ async def list_extraction_traces(
     limit: int = 20,
 ) -> list[ExtractionTraceSummaryResponse]:
     """List recent brand extraction traces for the current tenant."""
-
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,
@@ -257,7 +256,6 @@ async def get_extraction_trace(
     db: Annotated[Session, Depends(get_db)],
 ) -> ExtractionTraceResponse:
     """Get full trace detail including all events."""
-
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,

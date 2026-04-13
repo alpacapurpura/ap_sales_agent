@@ -1,3 +1,5 @@
+"""Offer Gallery API endpoints."""
+
 from typing import Annotated
 from uuid import UUID
 
@@ -31,6 +33,7 @@ async def upload_offer_image(
     tenant_id: Annotated[str, Depends(get_current_tenant_id)],
     description: Annotated[str, Form()] = "",
 ) -> AssetDto:
+    """Upload offer image."""
     try:
         service = AssetsService(db)
         return service.upload_asset(
@@ -53,6 +56,7 @@ def list_offer_images(
     db: Annotated[Session, Depends(get_db)],
     tenant_id: Annotated[str, Depends(get_current_tenant_id)],
 ) -> list[AssetDto]:
+    """List offer images."""
     service = AssetsService(db)
     # This might need a new method in service or just use list_by_offer
     # But list_by_offer doesn't check tenant_id (repo does check offer_id which is
@@ -70,6 +74,7 @@ def delete_offer_image(
     db: Annotated[Session, Depends(get_db)],
     tenant_id: Annotated[str, Depends(get_current_tenant_id)],
 ) -> dict[str, str]:
+    """Delete offer image."""
     service = AssetsService(db)
     # Pass offer_id to ensure ownership check
     success = service.delete_asset(

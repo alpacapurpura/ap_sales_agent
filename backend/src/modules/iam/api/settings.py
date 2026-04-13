@@ -1,3 +1,5 @@
+"""Settings API endpoints."""
+
 import secrets
 import string
 from typing import Annotated
@@ -37,6 +39,7 @@ router = APIRouter()
 
 
 def generate_secret_key(length: int = 32) -> str:
+    """Handle generate secret key request."""
     alphabet = string.ascii_letters + string.digits
     return "".join(secrets.choice(alphabet) for i in range(length))
 
@@ -46,9 +49,7 @@ async def get_general_settings(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> GeneralSettings:
-    """
-    Get current General configuration for the user's tenant.
-    """
+    """Get current General configuration for the user's tenant."""
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,
@@ -71,9 +72,7 @@ async def update_general_settings(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> GeneralSettings:
-    """
-    Update General configuration for the user's tenant.
-    """
+    """Update General configuration for the user's tenant."""
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,
@@ -104,9 +103,7 @@ async def get_ai_settings(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> AISettings:
-    """
-    Get current AI configuration for the user's tenant.
-    """
+    """Get current AI configuration for the user's tenant."""
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,
@@ -129,9 +126,7 @@ async def get_user_profile(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> SystemUserProfile:
-    """
-    Get current user profile and tenant info.
-    """
+    """Get current user profile and tenant info."""
     logger.info(
         "get_user_profile_called",
         user_email=current_user.email,
@@ -178,9 +173,7 @@ async def get_webhook_settings(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> WebhookSettings:
-    """
-    Get Webhook configuration for the user's tenant.
-    """
+    """Get Webhook configuration for the user's tenant."""
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,
@@ -212,9 +205,7 @@ async def regenerate_webhook_secret(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> WebhookSettings:
-    """
-    Regenerate Webhook Secret for the user's tenant.
-    """
+    """Regenerate Webhook Secret for the user's tenant."""
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,
@@ -253,9 +244,7 @@ async def update_ai_settings(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> AISettings:
-    """
-    Update AI API Keys for the user's tenant.
-    """
+    """Update AI API Keys for the user's tenant."""
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,
@@ -289,9 +278,7 @@ async def get_team_members(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> list[TeamMemberSchema]:
-    """
-    List all team members for the current tenant.
-    """
+    """List all team members for the current tenant."""
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,
@@ -354,9 +341,7 @@ async def create_team_member(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> TeamMemberSchema:
-    """
-    Create a new user for the team (Max 3 users total).
-    """
+    """Create a new user for the team (Max 3 users total)."""
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,

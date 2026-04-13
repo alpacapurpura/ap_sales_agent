@@ -1,5 +1,4 @@
-"""
-CRM event handler registration.
+"""CRM event handler registration.
 
 Subscribes to domain events via the shared EventBus.
 Called once at app startup via register_event_handlers().

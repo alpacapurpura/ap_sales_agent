@@ -26,6 +26,7 @@ def advance_block(
 
     Returns:
         JSON with confirmation text and preview_update with persisted=true.
+
     """
     text = "¡Guardado!"
     if next_block_label:

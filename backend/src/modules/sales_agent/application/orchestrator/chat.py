@@ -1,3 +1,5 @@
+"""Chat application module."""
+
 from __future__ import annotations
 
 import asyncio
@@ -74,15 +76,19 @@ logger = structlog.get_logger()
 
 
 class ChatOrchestrator:
+    """Chat Orchestrator."""
+
     _instance = None
 
     def __new__(cls) -> Self:
+        """Implement __new__."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
 
     def __init__(self) -> None:
+        """Initialize instance."""
         if self._initialized:
             return
         self.buffer_service = SmartBufferService()
@@ -95,9 +101,7 @@ class ChatOrchestrator:
         tenant_id: str | None = None,
         db: Session = None,
     ) -> None:
-        """
-        Handles Telegram Webhook with Multi-Tenant support.
-        """
+        """Handle Telegram Webhook with Multi-Tenant support."""
         token = None
         if tenant_id and db:
             try:
@@ -137,9 +141,9 @@ class ChatOrchestrator:
         payload: dict,
         background_tasks: BackgroundTasks,
     ) -> None:
+        """Handle whatsapp webhook."""
         # WhatsApp logic is now handled via direct router-to-service calls or unified webhook handler.
         # This method is kept for backward compatibility but should be deprecated.
-        pass
 
     async def _handle_incoming_webhook(
         self,
@@ -173,9 +177,7 @@ class ChatOrchestrator:
         background_tasks.add_task(self.smart_debounce_task, buffer_key, channel_adapter)
 
     async def smart_debounce_task(self, buffer_key: str, channel_adapter: BaseChannel) -> None:
-        """
-        Orchestrates the Dynamic Debounce logic.
-        """
+        """Orchestrates the Dynamic Debounce logic."""
         try:
             # 1. Initial Buffer (Wait for fast interruptions)
             await asyncio.sleep(0.5)

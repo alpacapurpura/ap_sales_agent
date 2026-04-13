@@ -24,6 +24,7 @@ class OfficialMetricsRepository:
     """CRUD operations for the official_metrics table."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize official metrics repository."""
         self.db = db
 
     _UPSERT_FROM_STAGING_SQL = text("""
@@ -161,10 +162,10 @@ class OfficialMetricsRepository:
         stage_slug: str,
         period_type: str = "last_30_days",
     ) -> list:
-        """Aggregated metrics for dashboard display.
+        """Return aggregated metrics for dashboard display.
 
-        Returns channel-level summaries for the given stage and period.
-        Delegates to metric_aggregations table for pre-computed data.
+        Return channel-level summaries for the given stage and period.
+        Delegate to metric_aggregations table for pre-computed data.
         """
         from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
             MetricAggregationModel,

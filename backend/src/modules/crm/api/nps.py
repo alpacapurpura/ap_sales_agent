@@ -17,12 +17,16 @@ router = APIRouter(prefix="/nps", tags=["CRM - NPS"])
 
 
 class CreateSurveyRequest(BaseModel):
+    """Request schema for create survey."""
+
     customer_id: str | None = None  # null = per-offer batch
     offer_id: str | None = None
     delivery_channel: str = "universal_link"
 
 
 class SurveyResponse(BaseModel):
+    """Response schema for survey."""
+
     id: str
     token: str
     status: str
@@ -31,6 +35,8 @@ class SurveyResponse(BaseModel):
 
 
 class SubmitNpsRequest(BaseModel):
+    """Request schema for submit nps."""
+
     score: int  # 0-10
     feedback_text: str | None = None
     testimonial_text: str | None = None
@@ -39,6 +45,8 @@ class SubmitNpsRequest(BaseModel):
 
 
 class NpsSummaryResponse(BaseModel):
+    """Response schema for nps summary."""
+
     nps_score: float | None
     standard_nps: float | None
     promoter_count: int
@@ -50,6 +58,8 @@ class NpsSummaryResponse(BaseModel):
 
 
 class EvangelistCandidateResponse(BaseModel):
+    """Response schema for evangelist candidate."""
+
     customer_id: str
     full_name: str | None
     nps_score: int

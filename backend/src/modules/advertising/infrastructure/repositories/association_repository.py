@@ -19,6 +19,7 @@ class AssociationRepository:
     """Data-access layer for ad_offer_associations."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize AssociationRepository."""
         self._db = db
 
     # ── Reads ────────────────────────────────────────────────────────────

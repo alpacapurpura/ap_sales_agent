@@ -1,6 +1,4 @@
-"""
-Sales Agent tools — give the copilot access to the AI sales agent status.
-"""
+"""Sales Agent tools — give the copilot access to the AI sales agent status."""
 
 import structlog
 from langchain_core.tools import tool
@@ -18,6 +16,7 @@ def get_sales_agent_status() -> str:
 
     Returns:
         Resumen del estado y actividad del agente de ventas.
+
     """
     tenant_id = get_tenant_id()
     if not tenant_id:

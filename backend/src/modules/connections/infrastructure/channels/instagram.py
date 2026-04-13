@@ -1,3 +1,5 @@
+"""Instagram channel adapter."""
+
 import logging
 from typing import Any
 
@@ -11,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class InstagramChannel(MetaAdapter, BaseChannel):
-    """
-    Channel adapter for Instagram via Meta Graph API.
+    """Channel adapter for Instagram via Meta Graph API.
+
     Inherits from MetaAdapter for OAuth/Token handling.
     Inherits from BaseChannel for unified interface.
     """
@@ -22,6 +24,7 @@ class InstagramChannel(MetaAdapter, BaseChannel):
         client_config: dict[str, Any],
         credentials_data: dict[str, Any] | None = None,
     ) -> None:
+        """Initialize instance."""
         access_token = credentials_data.get("access_token") if credentials_data else None
         super().__init__(access_token=access_token)
         self.client_config = client_config or {}
@@ -32,8 +35,8 @@ class InstagramChannel(MetaAdapter, BaseChannel):
             self.BASE_URL = "https://graph.facebook.com"
 
     def normalize_payload(self, payload: dict[str, Any]) -> IncomingMessage | None:
-        """
-        Normalize Instagram Webhook Payload.
+        """Normalize Instagram Webhook Payload.
+
         Docs: https://developers.facebook.com/docs/messenger-platform/instagram/features/webhook
         """
         try:
@@ -76,8 +79,8 @@ class InstagramChannel(MetaAdapter, BaseChannel):
             return None
 
     async def send_message(self, message: OutgoingMessage) -> dict[str, Any]:
-        """
-        Send message via Instagram Graph API.
+        """Send message via Instagram Graph API.
+
         Docs: https://developers.facebook.com/docs/messenger-platform/instagram/features/send-message
         """
         if not self.access_token:
@@ -101,9 +104,7 @@ class InstagramChannel(MetaAdapter, BaseChannel):
             return response.json()
 
     async def set_typing_status(self, user_id: str) -> None:
-        """
-        Send 'typing_on' sender action.
-        """
+        """Send 'typing_on' sender action."""
         if not self.access_token:
             return
 

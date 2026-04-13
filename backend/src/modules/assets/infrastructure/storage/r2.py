@@ -1,3 +1,5 @@
+"""R2 infrastructure."""
+
 import uuid
 from pathlib import Path
 from typing import BinaryIO
@@ -14,6 +16,7 @@ class R2StorageStrategy(StorageStrategy):
     """Cloudflare R2 storage via S3-compatible API."""
 
     def __init__(self) -> None:
+        """Initialize R2StorageStrategy."""
         self.bucket = settings.R2_BUCKET_NAME
         self.public_base_url = settings.R2_PUBLIC_URL.rstrip("/")
         self.client = boto3.client(
@@ -26,6 +29,7 @@ class R2StorageStrategy(StorageStrategy):
         )
 
     def get_file_bytes(self, storage_path: str) -> bytes:
+        """Retrieve file bytes."""
         response = self.client.get_object(Bucket=self.bucket, Key=storage_path)
         return response["Body"].read()
 
@@ -35,6 +39,7 @@ class R2StorageStrategy(StorageStrategy):
         filename: str,
         path_prefix: str = "",
     ) -> tuple[str, str]:
+        """Persist the entity to the database."""
         ext = Path(filename).suffix
         unique_name = f"{uuid.uuid4()}{ext}"
         key = f"{path_prefix}/{unique_name}" if path_prefix else unique_name
@@ -52,6 +57,7 @@ class R2StorageStrategy(StorageStrategy):
         return key, public_url
 
     def delete(self, storage_path: str) -> bool:
+        """Handle delete operation."""
         try:
             self.client.delete_object(Bucket=self.bucket, Key=storage_path)
         except Exception:  # noqa: BLE001 — infrastructure resilience

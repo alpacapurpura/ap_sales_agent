@@ -1,3 +1,5 @@
+"""SQLAlchemy model for calendar event model."""
+
 import uuid
 
 from sqlalchemy import Column, Date, DateTime, Integer, String, Text
@@ -8,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class CalendarEventModel(Base):
+    """SQLAlchemy model for calendar event."""
+
     __tablename__ = "commercial_calendar_events"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

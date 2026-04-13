@@ -1,3 +1,5 @@
+"""Scoring engine for analytics."""
+
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -8,6 +10,8 @@ from src.modules.crm.infrastructure.repositories.customer_repository import (
 
 
 class LeadScoringEngine:
+    """Engine for lead scoring computation."""
+
     # Definición básica de puntajes por tipo de evento
     # Esto idealmente debería ser configurable por Tenant
     EVENT_SCORES = {
@@ -24,17 +28,18 @@ class LeadScoringEngine:
     }
 
     def __init__(self, db: Session) -> None:
+        """Initialize lead scoring engine."""
         self.repository = JourneyEventRepository(db)
 
     def calculate_score(self, profile_id: UUID) -> int:
-        """
-        Calcula el puntaje de lead basado en el historial de eventos.
+        """Calcula el puntaje de lead basado en el historial de eventos.
 
         Args:
             profile_id: ID del perfil del cliente
 
         Returns:
             Puntaje total calculado.
+
         """
         # 1. Obtener todos los eventos del perfil
         events = self.repository.get_timeline(profile_id)

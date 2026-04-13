@@ -1,5 +1,4 @@
-"""
-Brand read tools — allow the copilot to read the current brand configuration.
+"""Brand read tools — allow the copilot to read the current brand configuration.
 
 These tools give the copilot context about the user's brand so it can make
 informed suggestions and proposals.
@@ -82,6 +81,7 @@ def get_brand_data(section: str | None = None) -> str:
 
     Returns:
         The brand data as formatted text.
+
     """
     tenant_id = get_tenant_id()
     if not tenant_id:

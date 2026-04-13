@@ -1,3 +1,5 @@
+"""Streamlit admin: Tenant CRUD management."""
+
 from __future__ import annotations
 
 import pandas as pd
@@ -8,6 +10,7 @@ from src.modules.iam.application.services.tenant_service import TenantService
 
 
 def get_tenants() -> list:
+    """Fetch all tenants from the database."""
     db = SessionLocal()
     try:
         service = TenantService(db)
@@ -17,6 +20,7 @@ def get_tenants() -> list:
 
 
 def create_tenant(name: str, slug: str, can_use_keys: bool, company_name: str, agent_persona: str) -> tuple:
+    """Create a new tenant with the given configuration."""
     db = SessionLocal()
     try:
         service = TenantService(db)
@@ -32,6 +36,7 @@ def create_tenant(name: str, slug: str, can_use_keys: bool, company_name: str, a
 
 
 def update_tenant(tenant_id: object, name: str, slug: str, can_use_keys: bool, is_active: bool) -> tuple:
+    """Update an existing tenant's properties."""
     db = SessionLocal()
     try:
         service = TenantService(db)
@@ -41,6 +46,7 @@ def update_tenant(tenant_id: object, name: str, slug: str, can_use_keys: bool, i
 
 
 def render_tenants_view() -> None:
+    """Render the tenant management page with list, create, and edit tabs."""
     st.title("🏢 Gestión de Tenants")
 
     # Cargar tenants al inicio para usar en todas las pestañas

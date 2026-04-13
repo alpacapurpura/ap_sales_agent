@@ -1,5 +1,4 @@
-"""
-Generic Module Data Tool — reads data from ANY module via MODULE_REGISTRY.
+"""Generic Module Data Tool — reads data from ANY module via MODULE_REGISTRY.
 
 Replaces brand_tools.py and offer_tools.py with a single dynamic tool.
 When you add a field to BrandIdentity, the copilot sees it automatically
@@ -212,6 +211,7 @@ def get_module_data(module: str, section: str | None = None) -> str:
 
     Returns:
         Los datos del módulo formateados como texto.
+
     """
     registry = get_module_registry()
     descriptor = registry.get(module)

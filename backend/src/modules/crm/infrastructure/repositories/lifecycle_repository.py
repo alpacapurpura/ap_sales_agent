@@ -1,5 +1,4 @@
-"""
-Repository for lifecycle transition audit records.
+"""Repository for lifecycle transition audit records.
 
 All queries enforce tenant_id filtering for multitenant isolation.
 Uses SQLAlchemy 2.0 syntax (select(Model)).
@@ -21,6 +20,7 @@ class LifecycleRepository:
     """CRUD for lifecycle_transitions table."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize lifecycle repository."""
         self.db = db
 
     def create_transition(

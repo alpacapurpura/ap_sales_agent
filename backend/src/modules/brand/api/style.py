@@ -1,3 +1,5 @@
+"""Brand style API endpoints."""
+
 from typing import Annotated, Any
 
 import structlog
@@ -35,9 +37,9 @@ async def analyze_style(
     text_input: Annotated[str | None, Form()] = None,
     file: Annotated[UploadFile | None, File()] = None,
 ) -> StyleAnalysisResponse:
-    """
-    Analyzes the style of the provided chat history (text or file).
-    Runs the 'Ingestion Subgraph' (Janitor -> Psychologist -> Architect -> Simulator).
+    """Analyze the style of the provided chat history (text or file).
+
+    Run the 'Ingestion Subgraph' (Janitor -> Psychologist -> Architect -> Simulator).
     """
     user_id = str(current_user.id)
     logger.info("style_analysis_started", user_id=user_id)

@@ -30,6 +30,8 @@ logger = structlog.get_logger(__name__)
 
 
 class OfferCountsService:
+    """Service for offer counts operations."""
+
     def __init__(
         self,
         *,
@@ -37,11 +39,13 @@ class OfferCountsService:
         knowledge_repo: IKnowledgeSourceRepository,
         advertising_port: AdvertisingReadPort,
     ) -> None:
+        """Initialize service with dependencies."""
         self._asset_repo = asset_repo
         self._knowledge_repo = knowledge_repo
         self._advertising_port = advertising_port
 
     def get_counts(self, *, tenant_id: UUID, offer_id: UUID) -> dict[str, int]:
+        """Retrieve counts."""
         assets = self._asset_repo.count_by_offer(tenant_id, offer_id)
         knowledge = self._knowledge_repo.count_by_offer(tenant_id, offer_id)
         campaigns = self._safe_campaign_count(tenant_id, offer_id)

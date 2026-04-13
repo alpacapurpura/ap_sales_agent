@@ -1,3 +1,5 @@
+"""Google Calendar channel adapter."""
+
 import datetime
 import json
 import logging
@@ -26,33 +28,31 @@ SCOPES = [
 
 
 class GoogleCalendarAdapter(BaseConnector):
-    """
-    Adapter for Google Calendar API.
+    """Adapter for Google Calendar API.
+
     Handles OAuth2 flow and wraps calendar operations.
     """
 
     def __init__(self, credentials_data: dict[str, Any] | None = None) -> None:
+        """Initialize adapter with credentials."""
         self.credentials_data = credentials_data
         self.creds = None
         if credentials_data:
             self.creds = Credentials.from_authorized_user_info(credentials_data, SCOPES)
 
     def sync_contacts(self, tenant_id: str) -> list[dict[str, Any]]:
-        """
-        Sync contacts implementation (Placeholder).
-        """
+        """Sync contacts implementation (Placeholder)."""
         return []
 
     def sync_events(self, tenant_id: str) -> list[dict[str, Any]]:
-        """
-        Sync events implementation (Next 30 days).
-        """
+        """Sync events implementation (Next 30 days)."""
         now = utc_now()
         end = now + datetime.timedelta(days=30)
         return self.list_events(now, end)
 
     @staticmethod
     def get_client_config() -> dict[str, Any]:
+        """Retrieve client config."""
         return {
             "web": {
                 "client_id": settings.GOOGLE_CLIENT_ID,
@@ -64,7 +64,7 @@ class GoogleCalendarAdapter(BaseConnector):
 
     @staticmethod
     def get_authorization_url(redirect_uri: str | None = None) -> tuple[str, str]:
-        """Generates the authorization URL and state."""
+        """Generate the authorization URL and state."""
         flow = Flow.from_client_config(
             GoogleCalendarAdapter.get_client_config(),
             scopes=SCOPES,
@@ -99,7 +99,7 @@ class GoogleCalendarAdapter(BaseConnector):
             raise
 
     def get_service(self) -> object:
-        """Returns the Google Calendar service resource."""
+        """Return the Google Calendar service resource."""
         if not self.creds:
             msg = "Credentials not initialized"
             raise ValueError(msg)
@@ -111,7 +111,7 @@ class GoogleCalendarAdapter(BaseConnector):
         end_time: datetime.datetime,
         calendar_id: str = "primary",
     ) -> list[dict[str, Any]]:
-        """Wraps the freebusy query."""
+        """Wrap the freebusy query."""
         service = self.get_service()
         body = {
             "timeMin": start_time.isoformat(),  # Input should be ISO format with offset or Z
@@ -134,7 +134,7 @@ class GoogleCalendarAdapter(BaseConnector):
         attendees: list[str],
         calendar_id: str = "primary",
     ) -> dict[str, Any]:
-        """Creates an event with Google Meet link."""
+        """Create an event with Google Meet link."""
         service = self.get_service()
 
         event = {
@@ -170,7 +170,7 @@ class GoogleCalendarAdapter(BaseConnector):
         end_time: datetime.datetime,
         calendar_id: str = "primary",
     ) -> list[dict[str, Any]]:
-        """Lists events for the sales dashboard."""
+        """List events for the sales dashboard."""
         service = self.get_service()
         try:
             events_result = (

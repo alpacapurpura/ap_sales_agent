@@ -24,8 +24,7 @@ async def copilot_chat(
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     db: Annotated[Session, Depends(get_db)],
 ) -> StreamingResponse:
-    """
-    Stream a copilot response via Server-Sent Events.
+    """Stream a copilot response via Server-Sent Events.
 
     The client should consume this as an SSE stream. Each event has:
     - event: text_chunk | tool_start | tool_result | status | done | error

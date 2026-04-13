@@ -29,4 +29,5 @@ class ExtractionResult:
 
     @property
     def has_partial_failures(self) -> bool:
+        """Check if  partial failures."""
         return len(self.failures) > 0 and len(self.metrics) > 0

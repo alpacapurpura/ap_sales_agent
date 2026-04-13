@@ -76,7 +76,7 @@ def normalize_url(url: str | None) -> str:
 
 
 def urls_match(url_a: str | None, url_b: str | None) -> bool:
-    """True if two URLs (after normalization) share the same path prefix.
+    """Return True if two URLs (after normalization) share the same path prefix.
 
     Match is symmetric: one URL may contain the other. This allows a
     specific ad landing page to match a shorter offer URL and vice versa.

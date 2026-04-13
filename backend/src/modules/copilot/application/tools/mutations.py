@@ -1,5 +1,4 @@
-"""
-Mutation tools — allow the copilot to propose changes to form fields.
+"""Mutation tools — allow the copilot to propose changes to form fields.
 
 These tools emit proposal ui_actions that the frontend renders as
 confirmation cards. The user must approve before any changes are applied.
@@ -17,6 +16,7 @@ def propose_field_updates(updates: list[dict]) -> dict:
 
     Returns:
         A proposal payload that the frontend will render for confirmation.
+
     """
     validated = []
     for u in updates:

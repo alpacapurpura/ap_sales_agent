@@ -1,5 +1,4 @@
-"""
-YouTube Analytics API Router.
+"""YouTube Analytics API Router.
 
 Exposes channel overview, daily views, top videos, demographics,
 and traffic sources for the Growth Studio and Sales Studio.
@@ -48,6 +47,8 @@ class VideoDetail(BaseModel):
 
 
 class TopVideosResponse(BaseModel):
+    """Top Videos Response DTO."""
+
     status: str
     data: list[VideoDetail]
     start_date: str
@@ -129,8 +130,8 @@ async def get_overview(
     start_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
     end_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
 ) -> dict[str, str | dict]:
-    """
-    Aggregate channel metrics: views, watch time, subscribers, avg duration.
+    """Aggregate channel metrics: views, watch time, subscribers, avg duration.
+
     Defaults to last 30 days.
     """
     sd, ed = _default_dates(start_date, end_date)
@@ -205,7 +206,7 @@ async def get_traffic_sources(
     start_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
     end_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
 ) -> dict[str, str | list[dict]]:
-    """Views by traffic source (search, suggested, external, etc.)."""
+    """View by traffic source (search, suggested, external, etc.)."""
     sd, ed = _default_dates(start_date, end_date)
     try:
         data = adapter.get_traffic_sources(sd, ed)
@@ -224,7 +225,7 @@ async def get_countries(
     end_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
     max_results: Annotated[int, Query(ge=1, le=50)] = 10,
 ) -> dict[str, str | list[dict]]:
-    """Views by country."""
+    """View by country."""
     sd, ed = _default_dates(start_date, end_date)
     try:
         data = adapter.get_countries(sd, ed, max_results=max_results)

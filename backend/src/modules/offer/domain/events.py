@@ -22,12 +22,16 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class DomainEvent(BaseEntity):
+    """Domain Event."""
+
     event_id: UUID = Field(default_factory=uuid4)
     tenant_id: UUID
     occurred_at: datetime
 
 
 class OfferStatusChanged(DomainEvent):
+    """Offer Status Changed."""
+
     offer_id: UUID
     from_status: OfferLifecycleStatus
     to_status: OfferLifecycleStatus
@@ -35,6 +39,8 @@ class OfferStatusChanged(DomainEvent):
 
 
 class OfferAssetCreated(DomainEvent):
+    """Offer Asset Created."""
+
     offer_id: UUID
     asset_id: UUID
     type: AssetType
@@ -42,17 +48,23 @@ class OfferAssetCreated(DomainEvent):
 
 
 class OfferAssetDeleted(DomainEvent):
+    """Offer Asset Deleted."""
+
     offer_id: UUID
     asset_id: UUID
 
 
 class KnowledgeSourceCreated(DomainEvent):
+    """Knowledge Source Created."""
+
     offer_id: UUID
     source_id: UUID
     type: str
 
 
 class KnowledgeSourceIndexed(DomainEvent):
+    """Knowledge Source Indexed."""
+
     offer_id: UUID
     source_id: UUID
     chunk_count: int
@@ -60,17 +72,23 @@ class KnowledgeSourceIndexed(DomainEvent):
 
 
 class KnowledgeSourceDeleted(DomainEvent):
+    """Knowledge Source Deleted."""
+
     offer_id: UUID
     source_id: UUID
 
 
 class LandingGenerationRequested(DomainEvent):
+    """Landing Generation Requested."""
+
     offer_id: UUID
     snapshot_version: str
     job_id: UUID
 
 
 class LandingRegenerationRequested(DomainEvent):
+    """Landing Regeneration Requested."""
+
     offer_id: UUID
     previous_snapshot_version: str | None
     snapshot_version: str
@@ -78,11 +96,15 @@ class LandingRegenerationRequested(DomainEvent):
 
 
 class LandingPublished(DomainEvent):
+    """Landing Published."""
+
     offer_id: UUID
     landing_page_id: UUID
 
 
 class LandingUnpublished(DomainEvent):
+    """Landing Unpublished."""
+
     offer_id: UUID
     landing_page_id: UUID
     reason: str

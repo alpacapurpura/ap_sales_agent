@@ -1,3 +1,5 @@
+"""Mailerlite marketing connector."""
+
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -10,11 +12,10 @@ logger = structlog.get_logger()
 
 
 class MailerliteConnector(BaseConnector):
-    """
-    Conector para sincronizar datos con MailerLite.
-    """
+    """Conector para sincronizar datos con MailerLite."""
 
     def __init__(self, api_key: str = "") -> None:
+        """Initialize instance."""
         self.api_key = api_key
         self._headers = {
             "Authorization": f"Bearer {api_key}",
@@ -25,9 +26,7 @@ class MailerliteConnector(BaseConnector):
 
     @staticmethod
     async def verify_connection(api_key: str) -> tuple[bool, dict[str, Any]]:
-        """
-        Verifica si la API Key es válida haciendo una llamada a /api/account.
-        """
+        """Verifica si la API Key es válida haciendo una llamada a /api/account."""
         url = "https://connect.mailerlite.com/api/account"
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -51,8 +50,7 @@ class MailerliteConnector(BaseConnector):
         self,
         hours: int = 7,
     ) -> list[dict[str, Any]]:
-        """
-        Fetch recent campaign subscriber activity (opens/clicks) from Mailerlite API.
+        """Fetch recent campaign subscriber activity (opens/clicks) from Mailerlite API.
 
         Used by the ETL backup sync to recover missed webhook events.
 
@@ -61,6 +59,7 @@ class MailerliteConnector(BaseConnector):
 
         Returns:
             List of activity dicts with keys: email, campaign_id, campaign_name, event_type.
+
         """
         cutoff = datetime.now(UTC) - timedelta(hours=hours)
         activities: list[dict[str, Any]] = []
@@ -153,11 +152,13 @@ class MailerliteConnector(BaseConnector):
         return activities
 
     def sync_contacts(self, tenant_id: str) -> list[dict[str, Any]]:
+        """Sync contacts."""
         # Stub: Implementar lógica real de MailerLite para obtener suscriptores
         logger.info("mailerlite_sync_contacts_started", tenant_id=tenant_id)
         return []
 
     def sync_events(self, tenant_id: str) -> list[dict[str, Any]]:
+        """Sync events."""
         # Stub: Implementar lógica real de MailerLite para obtener eventos (aperturas, clics, etc.)
         logger.info("mailerlite_sync_events_started", tenant_id=tenant_id)
         return []

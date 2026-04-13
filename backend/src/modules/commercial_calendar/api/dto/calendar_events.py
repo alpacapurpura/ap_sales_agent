@@ -1,3 +1,5 @@
+"""Calendar Events API endpoints."""
+
 from datetime import date as DateType  # noqa: N812 — field named 'date' shadows type
 from datetime import datetime
 from uuid import UUID
@@ -6,6 +8,8 @@ from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class CalendarEventCreate(BaseModel):
+    """Schema for calendar event create."""
+
     model_config = ConfigDict(from_attributes=True)
 
     country_code: str
@@ -18,6 +22,7 @@ class CalendarEventCreate(BaseModel):
     @field_validator("country_code")
     @classmethod
     def validate_country_code(cls, v: str) -> str:
+        """Validate country code."""
         if len(v) != 2:
             msg = "country_code must be a 2-letter ISO code"
             raise ValueError(msg)
@@ -25,6 +30,8 @@ class CalendarEventCreate(BaseModel):
 
 
 class CalendarEventUpdate(BaseModel):
+    """Schema for calendar event update."""
+
     model_config = ConfigDict(from_attributes=True)
 
     country_code: str | None = None
@@ -36,6 +43,7 @@ class CalendarEventUpdate(BaseModel):
     @field_validator("country_code")
     @classmethod
     def validate_country_code(cls, v: str | None) -> str | None:
+        """Validate country code."""
         if v is not None and len(v) != 2:
             msg = "country_code must be a 2-letter ISO code"
             raise ValueError(msg)
@@ -43,6 +51,8 @@ class CalendarEventUpdate(BaseModel):
 
 
 class CalendarEventResponse(BaseModel):
+    """Schema for calendar event response."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID

@@ -1,3 +1,5 @@
+"""V1 channel adapter."""
+
 from typing import Any
 
 import httpx
@@ -6,11 +8,10 @@ from .base import BaseEvolutionApi
 
 
 class EvolutionApiV1(BaseEvolutionApi):
-    """
-    Strategy for Evolution API v1.x (Stable for WSL2/Dev).
-    """
+    """Strategy for Evolution API v1.x (Stable for WSL2/Dev)."""
 
     async def create_instance(self, token: str) -> dict[str, Any]:
+        """Create instance."""
         url = f"{self.base_url}/instance/create"
         payload = {
             "instanceName": self.tenant_id,
@@ -32,6 +33,7 @@ class EvolutionApiV1(BaseEvolutionApi):
             }
 
     async def configure_webhook(self, webhook_url: str) -> dict[str, Any]:
+        """Configure webhook."""
         # V1 Webhook Config
         url = f"{self.base_url}/webhook/set/{self.tenant_id}"
         payload = {

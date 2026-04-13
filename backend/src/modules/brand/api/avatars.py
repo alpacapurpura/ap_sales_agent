@@ -1,3 +1,5 @@
+"""Brand avatars API endpoints."""
+
 import uuid
 from typing import Annotated
 
@@ -22,6 +24,7 @@ async def list_avatars(
     user: Annotated[User, Depends(get_current_user)],
     scope: str = "GLOBAL",
 ) -> list[AvatarResponse]:
+    """List avatars."""
     repo = AvatarRepository(db)
     # Scope filtering moved to Repo
     return repo.get_by_tenant(user.tenant_id, scope=scope)
@@ -33,6 +36,7 @@ async def create_avatar(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> AvatarResponse:
+    """Create avatar."""
     repo = AvatarRepository(db)
 
     new_avatar = Avatar(
@@ -57,6 +61,7 @@ async def get_avatar(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> AvatarResponse:
+    """Return avatar."""
     repo = AvatarRepository(db)
     avatar = repo.get_by_id(uuid.UUID(avatar_id), tenant_id=user.tenant_id)
 
@@ -72,6 +77,7 @@ async def update_avatar(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> AvatarResponse:
+    """Update avatar."""
     repo = AvatarRepository(db)
     # Verify ownership first
     existing = repo.get_by_id(uuid.UUID(avatar_id), tenant_id=user.tenant_id)
@@ -94,6 +100,7 @@ async def delete_avatar(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> None:
+    """Delete avatar."""
     repo = AvatarRepository(db)
     # Verify ownership first
     existing = repo.get_by_id(uuid.UUID(avatar_id), tenant_id=user.tenant_id)
@@ -111,6 +118,7 @@ async def set_default_avatar(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> AvatarResponse:
+    """Set default avatar."""
     repo = AvatarRepository(db)
     # Verify ownership first
     existing = repo.get_by_id(uuid.UUID(avatar_id), tenant_id=user.tenant_id)

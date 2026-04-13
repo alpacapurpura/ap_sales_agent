@@ -31,6 +31,7 @@ class GoogleAdsAdapter:
         client_id: str | None = None,
         client_secret: str | None = None,
     ) -> None:
+        """Initialize adapter with credentials."""
         self.developer_token = developer_token
         self.client_id = client_id
         self.client_secret = client_secret
@@ -57,6 +58,7 @@ class GoogleAdsAdapter:
         Returns:
             List of row dicts with campaign and metric fields.
             Returns empty list on any error (graceful degradation).
+
         """
         if not developer_token:
             logger.warning("google_ads_missing_developer_token")
@@ -136,7 +138,7 @@ class GoogleAdsAdapter:
         credentials: dict,
         query: str,
     ) -> list:
-        """Synchronous execution of search_term_view query."""
+        """Execute search_term_view query synchronously."""
         try:
             from google.ads.googleads.client import GoogleAdsClient
         except ImportError:
@@ -176,7 +178,7 @@ class GoogleAdsAdapter:
         credentials: dict,
         query: str,
     ) -> list[dict[str, Any]]:
-        """Synchronous GAQL query execution using google-ads client.
+        """Execute GAQL query synchronously using google-ads client.
 
         Imports google.ads.googleads lazily to avoid import errors when
         the google-ads package is not installed.
@@ -256,7 +258,7 @@ class GoogleAdsAdapter:
         developer_token: str,
         credentials: dict,
     ) -> str | None:
-        """Synchronous query for customer.currency_code."""
+        """Query customer.currency_code synchronously."""
         try:
             from google.ads.googleads.client import GoogleAdsClient
         except ImportError:

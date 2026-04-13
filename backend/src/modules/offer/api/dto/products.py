@@ -1,3 +1,5 @@
+"""Products DTOs."""
+
 import uuid
 from typing import Any
 
@@ -7,6 +9,8 @@ from src.modules.offer.domain.enums import OfferArchetype, OfferStatus, OfferVal
 
 
 class ProductResponse(BaseModel):
+    """Product Response DTO."""
+
     id: uuid.UUID
     name: str
     status: str
@@ -42,6 +46,7 @@ class ProductResponse(BaseModel):
     @field_validator("pricing_options", mode="before")
     @classmethod
     def normalize_pricing(cls, v: object) -> list[dict[str, Any]] | object:
+        """Normalize pricing."""
         if isinstance(v, dict):
             return [v]
         return v
@@ -70,6 +75,8 @@ class ProductResponse(BaseModel):
 
 
 class ProductCreate(BaseModel):
+    """Product Create DTO."""
+
     name: str
     archetype: OfferArchetype
     format_hint: str | None = None
@@ -90,6 +97,7 @@ class ProductCreate(BaseModel):
     @field_validator("archetype", mode="before")
     @classmethod
     def normalize_archetype(cls, v: object) -> object:
+        """Normalize archetype."""
         if v is None:
             return v
         if isinstance(v, str):
@@ -99,12 +107,15 @@ class ProductCreate(BaseModel):
     @field_validator("status", mode="before")
     @classmethod
     def normalize_status(cls, v: object) -> object:
+        """Normalize status."""
         if isinstance(v, str):
             return v.lower()
         return v
 
 
 class ProductUpdate(BaseModel):
+    """Product Update DTO."""
+
     name: str | None = None
     internal_sku: str | None = None
     archetype: OfferArchetype | None = None

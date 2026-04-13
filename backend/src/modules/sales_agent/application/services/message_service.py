@@ -1,3 +1,5 @@
+"""Message service."""
+
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -10,7 +12,10 @@ from src.modules.sales_agent.infrastructure.repositories.message_repository impo
 
 
 class MessageService:
+    """Service for message operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize service with dependencies."""
         self.db = db
         self.repository = MessageRepository(db)
 
@@ -23,6 +28,7 @@ class MessageService:
         channel: str | None = None,
         metadata: dict | None = None,
     ) -> Message:
+        """Save message."""
         import uuid
 
         new_message = Message(
@@ -42,4 +48,5 @@ class MessageService:
         tenant_id: UUID,
         limit: int = 50,
     ) -> list[Message]:
+        """Retrieve history."""
         return self.repository.get_history(lead_id, tenant_id=tenant_id, limit=limit)

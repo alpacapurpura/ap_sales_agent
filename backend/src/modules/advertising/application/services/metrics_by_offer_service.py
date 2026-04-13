@@ -134,6 +134,7 @@ class MetricsByOfferService:
     """Compose MetricsByOfferDTO from associations + official metrics."""
 
     def __init__(self, db: Session, offer_read_port: OfferReadPort) -> None:
+        """Initialize MetricsByOfferService."""
         self._db = db
         self._offer_read_port = offer_read_port
         self._association_repo = AssociationRepository(db)
@@ -145,6 +146,7 @@ class MetricsByOfferService:
         period: str = "30d",
         tenant_locale: TenantLocale | None = None,
     ) -> MetricsByOfferDTO:
+        """Execute the main operation."""
         locale = tenant_locale or TenantLocale.default()
         start_date, end_date = resolve_period_window(period, tz=locale.timezone)
         currency = self._metrics_repo.detect_currency(tenant_id)

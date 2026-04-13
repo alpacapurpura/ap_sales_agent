@@ -51,6 +51,7 @@ class OfferExtractionService:
     """
 
     def __init__(self, db: Session, tenant_id: UUID, offer_id: UUID) -> None:
+        """Initialize service with dependencies."""
         self.db = db
         self.tenant_id = tenant_id
         self.offer_id = offer_id
@@ -136,7 +137,7 @@ class OfferExtractionService:
         user_prompt: str,
         per_call_timeout: float = 120.0,
     ) -> BaseModel:
-        """Generic wrapper for running a single extraction section with timing and timeout."""
+        """Run a single extraction section with timing and timeout."""
         t0 = time.time()
         try:
             logger.info(

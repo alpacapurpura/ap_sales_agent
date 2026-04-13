@@ -1,3 +1,5 @@
+"""Brand positioning value objects."""
+
 import uuid
 
 from pydantic import ConfigDict, Field
@@ -81,9 +83,9 @@ class ReasonToBelieve(BaseEntity):
 
 
 class BrandPositioning(BaseEntity):
-    """
-    Brand Love Key framework: Complete brand positioning model.
-    Covers competitive environment, consumer insight, benefits, values, RTBs,
+    """Represent complete brand positioning using the Brand Love Key framework.
+
+    Cover competitive environment, consumer insight, benefits, values, RTBs,
     discriminator and brand essence.
     """
 

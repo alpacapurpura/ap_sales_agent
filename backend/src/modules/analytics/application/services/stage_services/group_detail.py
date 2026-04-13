@@ -31,6 +31,7 @@ class GroupDetailService:
     """Provides detail data for a single channel group within a stage."""
 
     def __init__(self, cache: MetricsCache | None = None) -> None:
+        """Initialize group detail service."""
         self.cache = cache
 
     async def get_group_detail(

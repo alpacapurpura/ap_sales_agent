@@ -42,6 +42,7 @@ class StubLandingGenerationRepository(ILandingGenerationRepository):
     """
 
     def get_by_offer_id(self, tenant_id: UUID, offer_id: UUID) -> object | None:
+        """Retrieve by offer id."""
         _ = (tenant_id, offer_id)
         return None
 
@@ -54,6 +55,7 @@ class StubLandingGenerationRepository(ILandingGenerationRepository):
         job_id: UUID,
         job_status: str,
     ) -> object:
+        """Upsert for generation."""
         return _StubLanding(
             id=offer_id,
             tenant_id=tenant_id,
@@ -64,6 +66,7 @@ class StubLandingGenerationRepository(ILandingGenerationRepository):
         )
 
     def save(self, landing: object) -> object:
+        """Save."""
         return landing
 
 

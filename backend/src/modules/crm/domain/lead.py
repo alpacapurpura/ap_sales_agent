@@ -1,3 +1,5 @@
+"""CRM lead domain model."""
+
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -16,9 +18,9 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class UserProfile(BaseEntity):
-    """
-    The 'Valeria' Profile.
-    Centralizes all user data extracted during conversation.
+    """Represent the 'Valeria' user profile.
+
+    Centralize all user data extracted during conversation.
     """
 
     # --- Identidad (Optional) ---
@@ -105,9 +107,9 @@ class UserProfile(BaseEntity):
 
 
 class Lead(BaseEntity):
-    """
-    Lead Domain Model (Pydantic).
-    Represents a potential customer interacting via various channels.
+    """Represent a potential customer interacting via various channels.
+
+    Lead domain model (Pydantic).
     """
 
     id: UUID

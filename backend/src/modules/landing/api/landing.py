@@ -1,3 +1,5 @@
+"""Landing API endpoints."""
+
 from typing import Annotated, Any
 from uuid import UUID
 
@@ -20,6 +22,7 @@ async def create_landing(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> LandingPage:
+    """Create a new landing."""
     service = LandingService(db)
     slug = payload.get("slug")
     offer_id = payload.get("offer_id")
@@ -38,6 +41,7 @@ def list_landings(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> list[LandingPage]:
+    """List landings."""
     service = LandingService(db)
     return service.list_landings(user.tenant_id)
 
@@ -48,6 +52,7 @@ def get_landing(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> LandingPage:
+    """Retrieve landing."""
     service = LandingService(db)
     try:
         landing_uuid = UUID(landing_id)
@@ -70,6 +75,7 @@ def get_landing_by_offer(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> LandingPage:
+    """Retrieve landing by offer."""
     service = LandingService(db)
     try:
         offer_uuid = UUID(offer_id)
@@ -89,6 +95,7 @@ def update_landing_by_offer(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> LandingPage:
+    """Update landing by offer."""
     service = LandingService(db)
     try:
         offer_uuid = UUID(offer_id)
@@ -112,6 +119,7 @@ def update_landing(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> LandingPage:
+    """Update landing."""
     service = LandingService(db)
     try:
         landing_uuid = UUID(landing_id)
@@ -142,6 +150,7 @@ def get_offer_landing(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> LandingPage:
+    """Retrieve offer landing."""
     service = LandingService(db)
     landing = service.get_landing_by_offer(user.tenant_id, offer_id)
     if not landing:
@@ -155,6 +164,7 @@ def generate_offer_landing(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> LandingPage:
+    """Handle generate offer landing request."""
     service = LandingService(db)
     try:
         return service.generate_landing_for_offer(user.tenant_id, offer_id)
@@ -171,6 +181,7 @@ def update_offer_landing(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> LandingPage:
+    """Update offer landing."""
     service = LandingService(db)
     try:
         return service.update_landing_for_offer(user.tenant_id, offer_id, config)
@@ -187,6 +198,7 @@ def regenerate_block(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> RegenerateBlockResponse:
+    """Handle regenerate block request."""
     service = LandingService(db)
     # The offer_id is part of the path, we could use it to validate ownership if needed.
     # For now, we assume the user context is enough for this stateless operation or future checks.

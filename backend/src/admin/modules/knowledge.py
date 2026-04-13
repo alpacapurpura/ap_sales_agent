@@ -13,10 +13,12 @@ from src.modules.copilot.infrastructure.knowledge.vector_store import (
 
 
 def get_store() -> CopilotKnowledgeStore:
+    """Create a new knowledge store instance."""
     return CopilotKnowledgeStore()
 
 
 def render_knowledge_page() -> None:
+    """Render the copilot knowledge base management page."""
     st.title("🧠 Knowledge Base — Copilot")
 
     # ── Guia contextual permanente ──

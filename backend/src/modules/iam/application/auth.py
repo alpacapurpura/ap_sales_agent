@@ -1,3 +1,5 @@
+"""Auth application layer."""
+
 import logging
 import os
 
@@ -28,9 +30,7 @@ except Exception as e:  # noqa: BLE001 — service resilience
 
 
 def verify_token_payload(token: str) -> dict:
-    """
-    Core verification logic, independent of FastAPI Depends.
-    """
+    """Core verification logic, independent of FastAPI Depends."""
     if not CLERK_ISSUER:
         raise HTTPException(
             status_code=500,
@@ -62,7 +62,5 @@ def verify_token_payload(token: str) -> dict:
 
 
 def verify_clerk_token(credentials: HTTPAuthorizationCredentials = Security(security)) -> dict:
-    """
-    Verifies the Bearer Token extracted from the Authorization header against Clerk's JWKS.
-    """
+    """Verify the Bearer Token extracted from the Authorization header against Clerk's JWKS."""
     return verify_token_payload(credentials.credentials)

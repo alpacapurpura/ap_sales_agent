@@ -23,6 +23,7 @@ class CaptureMetricsRepository:
     """CRM-based lead count and conversation aggregation for capture metrics."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize capture metrics repository."""
         self.db = db
 
     def count_leads_by_source(

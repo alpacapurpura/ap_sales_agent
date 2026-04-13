@@ -20,6 +20,7 @@ class MetricAggregationRepository:
     """CRUD operations for the metric_aggregations table."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize metric aggregation repository."""
         self.db = db
 
     _DELETE_SCOPE_SQL = text("""

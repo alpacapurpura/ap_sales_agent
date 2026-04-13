@@ -1,3 +1,5 @@
+"""Message SQLAlchemy model."""
+
 import uuid as uuid_mod
 from typing import Any
 
@@ -10,6 +12,8 @@ from src.shared.domain.base_entity import Base
 
 
 class MessageModel(Base):
+    """SQLAlchemy model for message table."""
+
     __tablename__ = "messages"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid_mod.uuid4)
@@ -45,12 +49,15 @@ class MessageModel(Base):
     # Aliases for backward compatibility with code using old names
     @property
     def lead_id(self) -> uuid_mod.UUID | None:
+        """Lead id."""
         return self.user_id
 
     @property
     def sender_type(self) -> str | None:
+        """Sender type."""
         return self.role
 
     @property
     def metadata_info(self) -> dict[str, Any] | None:
+        """Metadata info."""
         return self.metadata_log

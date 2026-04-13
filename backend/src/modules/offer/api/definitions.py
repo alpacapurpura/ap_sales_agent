@@ -1,3 +1,5 @@
+"""Definitions API endpoints."""
+
 from typing import Any
 
 from fastapi import APIRouter
@@ -34,8 +36,8 @@ router = APIRouter(tags=["System Definitions"])
 
 @router.get("/definitions/offer-studio")
 async def get_offer_studio_definitions() -> dict[str, Any]:
-    """
-    Returns all the Enum options and Metadata required to build the Offer Studio Form dynamically.
+    """Return all the Enum options and Metadata required to build the Offer Studio Form dynamically.
+
     Includes rich descriptions, hints, and value mapping.
     """
     return {

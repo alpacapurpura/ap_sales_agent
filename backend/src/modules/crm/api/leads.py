@@ -1,3 +1,5 @@
+"""CRM leads API endpoints."""
+
 from typing import Annotated
 from uuid import UUID
 
@@ -22,10 +24,9 @@ async def search_leads(
     user: Annotated[User, Depends(get_current_user)],
     limit: int = 10,
 ) -> list[Lead]:
-    """
-    Search leads by name or email.
-    TODO: Implement search logic in LeadService/Repository.
-    For now returning empty list or placeholder.
+    """Search leads by name or email.
+
+    Return empty list placeholder until search logic is implemented.
     """
     return []
 
@@ -36,9 +37,7 @@ async def get_lead(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Lead:
-    """
-    Get a specific lead by ID.
-    """
+    """Get a specific lead by ID."""
     service = LeadService(db)
     try:
         lead = service.get_lead(UUID(lead_id))

@@ -1,3 +1,5 @@
+"""Event Type Service for the scheduling module."""
+
 import uuid
 from uuid import UUID
 
@@ -13,7 +15,10 @@ logger = structlog.get_logger()
 
 
 class EventTypeService:
+    """Manage event type operations."""
+
     def __init__(self, db: Session, tenant_id: UUID) -> None:
+        """Initialize EventTypeService."""
         self.db = db
         self.tenant_id = tenant_id
 
@@ -22,9 +27,7 @@ class EventTypeService:
         return self.db.execute(stmt).scalars().first()
 
     def _migrate_event_type(self, data: dict) -> dict:
-        """
-        Migrate legacy EventType structure.
-        """
+        """Migrate legacy EventType structure."""
         # Ensure ID exists
         if not data.get("id"):
             data["id"] = str(uuid.uuid4())
@@ -49,6 +52,7 @@ class EventTypeService:
         return data
 
     def list_event_types(self) -> list[EventType]:
+        """List event types."""
         tenant = self._get_tenant()
         if not tenant:
             return []
@@ -69,6 +73,7 @@ class EventTypeService:
         return results
 
     def get_event_type(self, event_type_id: str) -> EventType | None:
+        """Retrieve event type."""
         tenant = self._get_tenant()
         if not tenant:
             return None
@@ -85,6 +90,7 @@ class EventTypeService:
         return None
 
     def get_by_slug(self, slug: str) -> EventType | None:
+        """Retrieve by slug."""
         tenant = self._get_tenant()
         if not tenant:
             return None
@@ -98,6 +104,7 @@ class EventTypeService:
         return None
 
     def create_event_type(self, event_type: EventType) -> EventType:
+        """Create a new event type."""
         tenant = self._get_tenant()
         config = dict(tenant.config_json or {})
         event_types = config.get("event_types", [])
@@ -123,6 +130,7 @@ class EventTypeService:
         event_type_id: str,
         update: EventTypeUpdate,
     ) -> EventType | None:
+        """Update event type."""
         tenant = self._get_tenant()
         config = dict(tenant.config_json or {})
         event_types = config.get("event_types", [])
@@ -168,6 +176,7 @@ class EventTypeService:
         return EventType(**current)
 
     def delete_event_type(self, event_type_id: str) -> bool:
+        """Delete event type."""
         tenant = self._get_tenant()
         config = dict(tenant.config_json or {})
         event_types = config.get("event_types", [])

@@ -1,3 +1,5 @@
+"""Repositories package."""
+
 from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
     ChannelConnectionRepository,
 )

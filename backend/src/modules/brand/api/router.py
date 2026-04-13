@@ -1,3 +1,5 @@
+"""Brand API router."""
+
 from typing import Annotated
 
 import structlog
@@ -22,9 +24,7 @@ async def get_brand_settings(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> BrandSettings:
-    """
-    Get Global Brand Settings for the user's tenant.
-    """
+    """Get Global Brand Settings for the user's tenant."""
     if not current_user.tenant_id:
         logger.error(
             "get_brand_settings_error",
@@ -64,9 +64,7 @@ async def update_brand_settings(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> BrandSettings:
-    """
-    Update Global Brand Settings for the user's tenant.
-    """
+    """Update Global Brand Settings for the user's tenant."""
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,

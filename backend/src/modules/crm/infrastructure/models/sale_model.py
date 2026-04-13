@@ -1,3 +1,5 @@
+"""CRM sale SQLAlchemy model."""
+
 import uuid
 
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, String
@@ -10,6 +12,8 @@ from src.shared.domain.base_entity import Base
 
 
 class SaleModel(Base):
+    """SQLAlchemy model for sale."""
+
     __tablename__ = "sales"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

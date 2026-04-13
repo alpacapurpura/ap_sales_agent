@@ -1,5 +1,5 @@
-"""
-Cloudflare API client for Custom Domains feature.
+"""Cloudflare API client for Custom Domains feature.
+
 Handles: Custom Hostnames API + Workers KV API.
 """
 
@@ -14,9 +14,12 @@ logger = structlog.get_logger()
 
 
 class CloudflareClient:
+    """Client for cloudflare API."""
+
     BASE_URL = "https://api.cloudflare.com/client/v4"
 
     def __init__(self) -> None:
+        """Initialize CloudflareClient."""
         self.zone_id = settings.CLOUDFLARE_ZONE_ID
         self.account_id = settings.CLOUDFLARE_ACCOUNT_ID
         self.kv_namespace_id = settings.CLOUDFLARE_KV_NAMESPACE_ID

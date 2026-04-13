@@ -1,6 +1,4 @@
-"""
-Knowledge tools — search the copilot knowledge base.
-"""
+"""Knowledge tools — search the copilot knowledge base."""
 
 from uuid import UUID
 
@@ -61,6 +59,7 @@ def search_knowledge_base(query: str, scope: str = "all") -> str:
 
     Returns:
         Resultados relevantes formateados como markdown.
+
     """
     tenant_id = get_tenant_id()
     if not tenant_id:

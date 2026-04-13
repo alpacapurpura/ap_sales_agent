@@ -1,3 +1,5 @@
+"""Copilot actions API endpoints."""
+
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -32,6 +34,7 @@ async def extract_brand_data(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> BrandVisuals:
+    """Extract brand data."""
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,
@@ -70,6 +73,7 @@ async def extract_full_brand_data(
     include_visuals: Annotated[bool, Form()] = False,
     files: Annotated[list[UploadFile], File()] = [],  # noqa: B006
 ) -> BrandSettings:
+    """Extract full brand data."""
     extracted_file_text = ""
     for file in files:
         content = await FileParsingService.parse_file(file)
@@ -106,6 +110,7 @@ async def generate_offer_psychology(
     db: Annotated[Session, Depends(get_db)],
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
 ) -> PsychologyGenerationResponse:
+    """Execute generate offer psychology operation."""
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
 

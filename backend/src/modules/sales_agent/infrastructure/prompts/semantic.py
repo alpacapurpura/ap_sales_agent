@@ -1,3 +1,5 @@
+"""Semantic infrastructure module."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -16,8 +18,8 @@ logger = structlog.get_logger()
 
 
 async def check_is_complete(text: str, tenant: TenantModel | None = None) -> bool:
-    """
-    Uses a fast LLM to check if the text is a complete thought/sentence.
+    """Use a fast LLM to check if the text is a complete thought/sentence.
+
     Returns True if complete (reduce buffer), False if incomplete (wait more).
     """
     if not text or len(text.strip()) < 3:

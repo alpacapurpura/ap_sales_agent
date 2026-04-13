@@ -1,3 +1,5 @@
+"""Landing Service for the landing module."""
+
 # NOTE(async-migration): This service uses Session (sync). Needs migration to AsyncSession.
 from uuid import UUID
 
@@ -13,7 +15,10 @@ from src.modules.landing.infrastructure.repositories.landing_repository import (
 
 
 class LandingService:
+    """Manage landing operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize LandingService."""
         self.db = db
         self.repository = LandingRepository(db)
 
@@ -24,6 +29,7 @@ class LandingService:
         offer_id: UUID | None = None,
         config: LandingPageConfig | None = None,
     ) -> LandingPage:
+        """Create a new landing."""
         import uuid
 
         # Default Config
@@ -51,6 +57,7 @@ class LandingService:
         return self.repository.create(landing)
 
     def get_landing(self, landing_id: UUID) -> LandingPage | None:
+        """Retrieve landing."""
         return self.repository.get_by_id(landing_id)
 
     def get_landing_by_offer(
@@ -58,12 +65,15 @@ class LandingService:
         tenant_id: UUID,
         offer_id: UUID,
     ) -> LandingPage | None:
+        """Retrieve landing by offer."""
         return self.repository.get_by_offer(tenant_id, offer_id)
 
     def list_landings(self, tenant_id: UUID) -> list[LandingPage]:
+        """List landings."""
         return self.repository.list_by_tenant(tenant_id)
 
     def update_landing(self, landing_id: UUID, config: dict) -> LandingPage:
+        """Update landing."""
         landing = self.repository.get_by_id(landing_id)
         if not landing:
             msg = "Landing not found"
@@ -75,6 +85,7 @@ class LandingService:
         return self.repository.update(landing)
 
     def publish_landing(self, landing_id: UUID) -> LandingPage:
+        """Publish landing."""
         landing = self.repository.get_by_id(landing_id)
         if not landing:
             msg = "Landing not found"
@@ -88,6 +99,7 @@ class LandingService:
         tenant_id: UUID,
         offer_id: UUID,
     ) -> LandingPage:
+        """Generate landing for offer."""
         # Check if landing already exists
         existing = self.repository.get_by_offer(tenant_id, offer_id)
         if existing:
@@ -144,6 +156,7 @@ class LandingService:
         offer_id: UUID,
         config_updates: dict,
     ) -> LandingPage:
+        """Update landing for offer."""
         landing = self.repository.get_by_offer(tenant_id, offer_id)
         if not landing:
             msg = "Landing page not found for this offer"
@@ -175,6 +188,7 @@ class LandingService:
         block_type: str,
         context: dict | None = None,
     ) -> str:
+        """Handle regenerate block operation."""
         # Mock AI generation logic
         # Returns modified content to simulate AI improvement
         return f"{current_content} (Optimized by AI)"

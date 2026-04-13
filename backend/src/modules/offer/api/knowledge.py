@@ -131,6 +131,7 @@ async def list_knowledge_sources(
     search: Annotated[str | None, Query()] = None,
     type_: Annotated[KnowledgeSourceType | None, Query(alias="type")] = None,
 ) -> KnowledgeListResponse:
+    """List knowledge sources."""
     sources = _service(db).list_sources(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
@@ -155,6 +156,7 @@ async def upload_knowledge_source(
     user: Annotated[User, Depends(get_current_user)],
     name: Annotated[str | None, Form()] = None,
 ) -> KnowledgeSourceResponse:
+    """Upload knowledge source."""
     content = await file.read()
     source = _service(db).upload_source(
         tenant_id=user.tenant_id,
@@ -177,6 +179,7 @@ async def add_knowledge_url(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> KnowledgeSourceResponse:
+    """Add knowledge url."""
     source = _service(db).add_url_source(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
@@ -194,6 +197,7 @@ async def delete_knowledge_source(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> None:
+    """Delete knowledge source."""
     try:
         _service(db).delete_source(
             tenant_id=user.tenant_id,
@@ -213,6 +217,7 @@ async def reindex_knowledge_source(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> KnowledgeSourceResponse:
+    """Reindex knowledge source."""
     try:
         source = _service(db).reindex_source(
             tenant_id=user.tenant_id,

@@ -1,3 +1,5 @@
+"""Event Bus application module."""
+
 import logging
 from collections.abc import Callable
 
@@ -7,14 +9,14 @@ logger = logging.getLogger(__name__)
 
 
 class EventBus:
-    """
-    In-memory Event Bus for dispatching domain events.
-    """
+    """In-memory Event Bus for dispatching domain events."""
 
     def __init__(self) -> None:
+        """Initialize instance."""
         self._subscribers: dict[type[DomainEvent], list[Callable]] = {}
 
     def subscribe(self, event_type: type[DomainEvent], handler: Callable) -> None:
+        """Subscribe."""
         if event_type not in self._subscribers:
             self._subscribers[event_type] = []
         self._subscribers[event_type].append(handler)
@@ -25,6 +27,7 @@ class EventBus:
         )
 
     async def publish(self, event: DomainEvent) -> None:
+        """Publish."""
         event_type = type(event)
         if event_type in self._subscribers:
             for handler in self._subscribers[event_type]:

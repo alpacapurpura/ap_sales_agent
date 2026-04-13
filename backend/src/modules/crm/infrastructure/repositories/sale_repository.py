@@ -1,3 +1,5 @@
+"""CRM sale repository."""
+
 from datetime import datetime
 from uuid import UUID
 
@@ -10,7 +12,10 @@ from src.modules.crm.infrastructure.models.sale_model import SaleModel
 
 
 class SaleRepository:
+    """Repository for sale persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize sale repository."""
         self.db = db
 
     def _to_domain(self, model: SaleModel) -> Sale:
@@ -33,6 +38,7 @@ class SaleRepository:
         )
 
     def save(self, sale: Sale) -> Sale:
+        """Execute save operation."""
         model = self.db.execute(select(SaleModel).where(SaleModel.id == sale.id)).scalars().first()
         if not model:
             model = SaleModel(id=sale.id)
@@ -56,10 +62,12 @@ class SaleRepository:
         return self._to_domain(model)
 
     def find_by_id(self, sale_id: UUID) -> Sale | None:
+        """Find by id."""
         model = self.db.execute(select(SaleModel).where(SaleModel.id == sale_id)).scalars().first()
         return self._to_domain(model) if model else None
 
     def find_by_customer_id(self, customer_id: UUID) -> list[Sale]:
+        """Find by customer id."""
         models = (
             self.db.execute(
                 select(SaleModel).where(SaleModel.customer_id == customer_id),
@@ -70,6 +78,7 @@ class SaleRepository:
         return [self._to_domain(m) for m in models]
 
     def count_sales_by_customer(self, customer_id: UUID) -> int:
+        """Count sales by customer."""
         return (
             self.db.execute(
                 select(func.count(SaleModel.id)).where(
@@ -86,6 +95,7 @@ class SaleRepository:
         start: datetime,
         end: datetime,
     ) -> list[Sale]:
+        """Return sales by date range."""
         models = (
             self.db.execute(
                 select(SaleModel)

@@ -1,3 +1,5 @@
+"""Tenant Router API endpoints."""
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -12,9 +14,7 @@ router = APIRouter()
 
 @router.get("/")
 async def list_tenants(db: Annotated[Session, Depends(get_db)]) -> list[Tenant]:
-    """
-    List all tenants (Admin only - TODO: Add admin protection).
-    """
+    """List all tenants (Admin only - TODO: Add admin protection)."""
     service = TenantService(db)
     return service.get_all_tenants()
 
@@ -28,9 +28,7 @@ async def create_tenant(
     db: Annotated[Session, Depends(get_db)],
     can_use_keys: bool = False,
 ) -> Tenant:
-    """
-    Create a new tenant.
-    """
+    """Create a new tenant."""
     service = TenantService(db)
     tenant, error = service.create_tenant(
         name=name,

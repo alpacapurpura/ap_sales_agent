@@ -18,14 +18,20 @@ router = APIRouter(prefix="/referrals", tags=["CRM - Referrals"])
 
 
 class PromoteRequest(BaseModel):
+    """Request schema for promote."""
+
     customer_id: str  # UUID as string
 
 
 class GenerateCodeRequest(BaseModel):
+    """Request schema for generate code."""
+
     customer_id: str  # UUID as string
 
 
 class ReferralCodeResponse(BaseModel):
+    """Response schema for referral code."""
+
     id: str
     customer_id: str
     code: str
@@ -34,6 +40,8 @@ class ReferralCodeResponse(BaseModel):
 
 
 class PromoteResponse(BaseModel):
+    """Response schema for promote."""
+
     profile_id: str
     referral_code: str
     lifecycle_stage: str

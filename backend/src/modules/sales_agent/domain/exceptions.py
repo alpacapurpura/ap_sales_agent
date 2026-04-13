@@ -1,7 +1,11 @@
+"""Exceptions domain module."""
+
+
 class DomainError(Exception):
     """Base exception for domain errors."""
 
     def __init__(self, message: str) -> None:
+        """Initialize instance."""
         self.message = message
         super().__init__(self.message)
 

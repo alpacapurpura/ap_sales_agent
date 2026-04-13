@@ -1,3 +1,5 @@
+"""User Service for the iam module."""
+
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -9,14 +11,15 @@ from src.modules.iam.infrastructure.repositories.user_tenant_repository import (
 
 
 class UserService:
+    """Manage user operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize UserService."""
         self.db = db
         self.user_tenant_repository = UserTenantRepository(db)
 
     def get_user_tenants(self, user_id: UUID) -> list[TenantSchema]:
-        """
-        List all tenants the current user has access to.
-        """
+        """List all tenants the current user has access to."""
         tenant_roles = self.user_tenant_repository.get_tenants_for_user(user_id)
 
         return [

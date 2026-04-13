@@ -1,3 +1,5 @@
+"""Gallery Service for the assets module."""
+
 import shutil
 from pathlib import Path
 from typing import BinaryIO
@@ -14,7 +16,10 @@ from src.modules.assets.infrastructure.repositories.gallery_repository import (
 
 
 class GalleryService:
+    """Manage gallery operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize GalleryService."""
         self.db = db
         self.repository = GalleryRepository(db)
         self.upload_dir = settings.UPLOAD_DIR
@@ -29,6 +34,7 @@ class GalleryService:
         background_tasks: BackgroundTasks,
         offer_id: UUID | None = None,
     ) -> GalleryImage:
+        """Upload image."""
         import uuid
 
         image_id = uuid.uuid4()
@@ -70,6 +76,7 @@ class GalleryService:
         return created_image
 
     def list_images(self, tenant_id: UUID) -> list[GalleryImage]:
+        """List images."""
         return self.repository.list_by_tenant(tenant_id)
 
     def delete_image(
@@ -78,6 +85,7 @@ class GalleryService:
         image_id: UUID,
         offer_id: UUID | None = None,
     ) -> bool:
+        """Delete image."""
         image = self.repository.get_by_id(image_id, tenant_id=tenant_id)
         if not image or str(image.tenant_id) != str(tenant_id):
             return False

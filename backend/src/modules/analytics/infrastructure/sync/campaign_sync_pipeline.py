@@ -27,6 +27,7 @@ class CampaignSyncPipeline:
         provider: MetaCampaignProvider,
         repository: CampaignRepository,
     ) -> None:
+        """Initialize campaign sync pipeline."""
         self._provider = provider
         self._repo = repository
 

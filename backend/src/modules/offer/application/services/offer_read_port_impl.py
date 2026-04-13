@@ -19,6 +19,7 @@ class OfferReadPortImpl(OfferReadPort):
     """Adapter implementing OfferReadPort for the offer bounded context."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize instance."""
         self.db = db
 
     async def get_offers_by_tenant(self, tenant_id: UUID) -> list[OfferReadDTO]:

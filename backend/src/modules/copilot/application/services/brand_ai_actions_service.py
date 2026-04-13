@@ -1,3 +1,5 @@
+"""Brand AI actions service for copilot."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
@@ -16,7 +18,10 @@ if TYPE_CHECKING:
 
 
 class CopilotBrandAIActionsService:
+    """Service for copilot brand a i actions operations."""
+
     def __init__(self, db: Session, tenant_id: UUID) -> None:
+        """Initialize copilot brand a i actions service."""
         self.db = db
         self.tenant_id = tenant_id
         self.brand_extraction_service = BrandExtractionService(db, tenant_id)
@@ -26,6 +31,7 @@ class CopilotBrandAIActionsService:
         url: str,
         extraction_type: Literal["brand_identity"],
     ) -> BrandVisuals:
+        """Extract brand identity."""
         if extraction_type != "brand_identity":
             msg = f"Unsupported extraction type: {extraction_type}"
             raise ValueError(msg)
@@ -43,6 +49,7 @@ class CopilotBrandAIActionsService:
         progress_callback: Callable[[int, str], None] | None = None,
         trace: ExtractionTraceCollector | None = None,
     ) -> BrandSettings:
+        """Extract full brand."""
         return await self.brand_extraction_service.extract_all(
             url=url,
             text=text,

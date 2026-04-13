@@ -1,3 +1,5 @@
+"""Webhook API endpoints."""
+
 import uuid
 from typing import Annotated
 
@@ -22,9 +24,7 @@ def get_tenant_by_secret(
     x_webhook_secret: str = Header(..., alias="X-Webhook-Secret"),
     db: Session = Depends(get_db),
 ) -> Tenant:
-    """
-    Validates the Webhook Secret and sets the Tenant Context.
-    """
+    """Validate the Webhook Secret and sets the Tenant Context."""
     tenant = db.execute(select(Tenant).where(Tenant.webhook_secret == x_webhook_secret)).scalars().first()
     if not tenant:
         # Security: Generic error or specific? Specific is fine for API.
@@ -45,8 +45,7 @@ async def webhook_chat(
     payload: Annotated[dict, Body()],
     tenant: Annotated[Tenant, Depends(get_tenant_by_secret)],
 ) -> dict[str, str | dict[str, str]]:
-    """
-    Generic Webhook Endpoint for AI Agent.
+    """Handle generic webhook request for AI Agent.
 
     Payload:
     {
@@ -60,6 +59,7 @@ async def webhook_chat(
         "response": "Hello! How can I help?",
         "metadata": { ... }
     }
+
     """
     user_id = payload.get("user_id")
     message_text = payload.get("message")

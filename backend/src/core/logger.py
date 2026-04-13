@@ -1,3 +1,5 @@
+"""Structured logging configuration using structlog."""
+
 import logging
 import sys
 
@@ -5,10 +7,7 @@ import structlog
 
 
 def configure_logging() -> None:
-    """
-    Configures structlog to work with standard logging and output JSON.
-    """
-
+    """Configure structlog to work with standard logging and output JSON."""
     # 1. Configure Standard Library Logging (for libraries like uvicorn, sqlalchemy)
     logging.basicConfig(
         format="%(message)s",

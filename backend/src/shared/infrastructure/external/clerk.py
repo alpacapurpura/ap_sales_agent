@@ -1,3 +1,5 @@
+"""Clerk authentication service client for user management."""
+
 import os
 from typing import Any
 
@@ -8,7 +10,10 @@ logger = structlog.get_logger()
 
 
 class ClerkService:
+    """HTTP client for the Clerk Backend API."""
+
     def __init__(self) -> None:
+        """Initialize with the Clerk secret key from environment."""
         self.secret_key = os.getenv("CLERK_SECRET_KEY")
         self.api_url = "https://api.clerk.com/v1"
 
@@ -22,10 +27,7 @@ class ClerkService:
         first_name: str,
         last_name: str | None = None,
     ) -> dict[str, Any]:
-        """
-        Creates a user in Clerk via Backend API.
-        Returns the Clerk User Object or raises RuntimeError/ValueError.
-        """
+        """Create a user in Clerk via Backend API."""
         if not self.secret_key:
             msg = "CLERK_SECRET_KEY is missing"
             raise RuntimeError(msg)
@@ -82,6 +84,7 @@ class ClerkService:
         raise RuntimeError(msg)
 
     def get_user_by_email(self, email: str) -> dict[str, Any] | None:
+        """Look up a Clerk user by email address."""
         if not self.secret_key:
             return None
 
@@ -105,10 +108,7 @@ class ClerkService:
         user_id: str,
         public_metadata: dict[str, Any],
     ) -> bool:
-        """
-        Updates the user's public metadata (e.g., tenant_id, role).
-        This metadata is accessible in the Frontend via Clerk Session.
-        """
+        """Update the user's public metadata (e.g., tenant_id, role)."""
         if not self.secret_key:
             return False
 
@@ -141,9 +141,7 @@ class ClerkService:
             return False
 
     def update_user_password(self, user_id: str, password: str) -> bool:
-        """
-        Updates the user's password.
-        """
+        """Update the user's password in Clerk."""
         if not self.secret_key:
             return False
 
@@ -172,9 +170,7 @@ class ClerkService:
             return False
 
     def ban_user(self, user_id: str) -> bool:
-        """
-        Bans the user.
-        """
+        """Ban a user in Clerk."""
         if not self.secret_key:
             return False
 
@@ -201,9 +197,7 @@ class ClerkService:
             return False
 
     def unban_user(self, user_id: str) -> bool:
-        """
-        Unbans the user.
-        """
+        """Unban a user in Clerk."""
         if not self.secret_key:
             return False
 
@@ -230,9 +224,7 @@ class ClerkService:
             return False
 
     def delete_user(self, user_id: str) -> bool:
-        """
-        Deletes the user.
-        """
+        """Delete a user from Clerk."""
         if not self.secret_key:
             return False
 

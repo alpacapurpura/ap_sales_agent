@@ -1,3 +1,5 @@
+"""CRM customer repository."""
+
 import uuid
 from datetime import UTC, datetime
 from typing import Any
@@ -19,7 +21,10 @@ logger = structlog.get_logger()
 
 
 class CustomerRepository:
+    """Repository for customer persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize customer repository."""
         self.db = db
 
     def _to_domain(self, model: CustomerProfileModel) -> CustomerProfile:
@@ -58,9 +63,9 @@ class CustomerRepository:
         identity_value: str,
         tenant_id: UUID,
     ) -> CustomerProfile | None:
-        """
-        Find a profile by one of its identities.
-        Compares using the enum value (lowercase) which matches the PostgreSQL
+        """Find a profile by one of its identities.
+
+        Compare using the enum value (lowercase) which matches the PostgreSQL
         identitytype enum labels.
         """
         stmt = select(CustomerIdentityModel).where(
@@ -75,6 +80,7 @@ class CustomerRepository:
         return None
 
     def create(self, profile: CustomerProfile) -> CustomerProfile:
+        """Execute create operation."""
         model = CustomerProfileModel(
             id=profile.id,
             tenant_id=profile.tenant_id,
@@ -114,9 +120,9 @@ class CustomerRepository:
         lead_source: str | None = None,
         lead_source_detail: str | None = None,
     ) -> CustomerProfile:
-        """
-        Creates a new customer profile with an initial identity.
-        Optionally sets lead_source and lead_source_detail for capture tracking.
+        """Create a new customer profile with an initial identity.
+
+        Optionally set lead_source and lead_source_detail for capture tracking.
         """
         profile_id = uuid.uuid4()
 
@@ -236,6 +242,7 @@ class CustomerRepository:
         )
 
     def count_by_stage(self, tenant_id: UUID, stage: LifecycleStage) -> int:
+        """Count by stage."""
         result = self.db.execute(
             select(func.count())
             .select_from(CustomerProfileModel)
@@ -248,7 +255,10 @@ class CustomerRepository:
 
 
 class JourneyEventRepository:
+    """Repository for journey event persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize journey event repository."""
         self.db = db
 
     def track_event(
@@ -298,6 +308,7 @@ class JourneyEventRepository:
         return event
 
     def get_unique_visitors(self, tenant_id: UUID) -> int:
+        """Return unique visitors."""
         try:
             result = self.db.execute(
                 select(func.count())

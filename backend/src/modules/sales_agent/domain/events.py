@@ -1,3 +1,5 @@
+"""Events domain module."""
+
 import uuid
 from datetime import datetime
 
@@ -14,4 +16,6 @@ class DomainEvent(BaseModel):
     version: int = 1
 
     class Config:
+        """Model configuration."""
+
         arbitrary_types_allowed = True

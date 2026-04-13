@@ -78,7 +78,7 @@ def get_tenant_name(tenant_id: object) -> str:
 
 
 def completion_flag(ratio: float) -> str:
-    """🟢 >70%, 🟡 30-70%, 🔴 <30%"""
+    """🟢 >70%, 🟡 30-70%, 🔴 <30%."""
     if ratio > 0.7:
         return "🟢"
     if ratio >= 0.3:
@@ -87,7 +87,7 @@ def completion_flag(ratio: float) -> str:
 
 
 def health_flag(days_inactive: int) -> str:
-    """🟢 <7d, 🟡 7-14d, 🔴 >14d"""
+    """🟢 <7d, 🟡 7-14d, 🔴 >14d."""
     if days_inactive < 7:
         return "🟢"
     if days_inactive <= 14:
@@ -96,7 +96,7 @@ def health_flag(days_inactive: int) -> str:
 
 
 def pct_flag(pct: float) -> str:
-    """🟢 <10%, 🟡 10-20%, 🔴 >20%"""
+    """🟢 <10%, 🟡 10-20%, 🔴 >20%."""
     if pct > 20:
         return "🔴"
     if pct > 10:

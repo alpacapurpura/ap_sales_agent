@@ -1,9 +1,13 @@
+"""Offer Ai Schemas domain module."""
+
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 
 class PsychologyGenerationRequest(BaseModel):
+    """Psychology Generation Request DTO."""
+
     avatar_id: UUID = Field(..., description="ID of the Avatar to analyze")
     offer_name: str = Field(..., description="Name of the offer/product")
     offer_description: str | None = Field(
@@ -21,5 +25,7 @@ class PsychologyGenerationRequest(BaseModel):
 
 
 class PsychologyGenerationResponse(BaseModel):
+    """Psychology Generation Response DTO."""
+
     pains: list[str] = Field(..., description="List of 5 refined pain points")
     desires: list[str] = Field(..., description="List of 5 refined desires")

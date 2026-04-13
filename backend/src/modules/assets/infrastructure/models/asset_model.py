@@ -1,3 +1,5 @@
+"""SQLAlchemy model for asset model."""
+
 import uuid
 
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text
@@ -9,10 +11,10 @@ from src.shared.domain.base_entity import Base
 
 
 class AssetModel(Base):
-    """
-    Generic Asset storage for Tenants.
+    """Generic Asset storage for Tenants.
+
     Renamed from GalleryImageModel to AssetModel.
-    Table: assets (renamed from offer_gallery_images)
+    Table: assets (renamed from offer_gallery_images).
     """
 
     __tablename__ = "assets"

@@ -1,3 +1,5 @@
+"""Brand strategy value objects."""
+
 import uuid
 from typing import Any
 
@@ -7,6 +9,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class BrandCompetitor(BaseEntity):
+    """Represent brand competitor data."""
+
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     differentiation: str | None = None
@@ -14,6 +18,8 @@ class BrandCompetitor(BaseEntity):
 
 
 class BrandMethodologyPillar(BaseEntity):
+    """Represent brand methodology pillar data."""
+
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     title: str
     description: str | None = None
@@ -21,8 +27,8 @@ class BrandMethodologyPillar(BaseEntity):
 
 
 class BrandStrategy(BaseEntity):
-    """
-    Brand methodology — proprietary framework, method, or system.
+    """Represent brand methodology as a proprietary framework, method, or system.
+
     Strategic positioning fields (UVP, competitors, etc.) live in BrandPositioning.
     """
 
@@ -42,6 +48,7 @@ class BrandStrategy(BaseEntity):
     @model_validator(mode="before")
     @classmethod
     def migrate_legacy_fields(cls, data: Any) -> Any:  # noqa: ANN401
+        """Execute migrate legacy fields operation."""
         if isinstance(data, dict):
             # Migrar methodology_pillars_legacy -> methodology_pillars
             pillars = data.get("methodology_pillars")

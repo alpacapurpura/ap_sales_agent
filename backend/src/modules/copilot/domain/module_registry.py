@@ -1,5 +1,4 @@
-"""
-Module Registry — Single source of truth for modules the copilot can introspect.
+"""Module Registry — Single source of truth for modules the copilot can introspect.
 
 Each ModuleDescriptor declares HOW to read a module's data and model class.
 The copilot never hardcodes field names; instead it uses the model_class for

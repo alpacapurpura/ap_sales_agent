@@ -1,5 +1,4 @@
-"""
-First Setup Procedure — meta-procedure for onboarding new tenants.
+"""First Setup Procedure — meta-procedure for onboarding new tenants.
 
 Chains: brand identity → positioning → first offer → first connection.
 """

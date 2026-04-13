@@ -29,6 +29,7 @@ class CampaignTemplateService:
     """Match an offer with the best-fit campaign template."""
 
     def __init__(self, db: Session, offer_read_port: OfferReadPort) -> None:
+        """Initialize CampaignTemplateService."""
         self._db = db
         self._offer_read_port = offer_read_port
         self._template_repo = CampaignTemplateRepository(db)

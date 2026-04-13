@@ -154,10 +154,14 @@ class BaseMetricsProvider(ABC):
         Override in providers that have NON_AGGREGABLE metrics.
 
         Args:
+            tenant_id: Tenant identifier.
+            credentials: Provider authentication credentials.
             period_type: "weekly", "monthly", or "quarterly".
             period_start: First day of the period.
             period_end: Last day of the period.
             metric_names: NON_AGGREGABLE metric names to extract.
+            stage: Funnel stage for extraction context.
+
         """
         return ExtractionResult()
 

@@ -1,5 +1,4 @@
-"""
-TenantKnowledgeBuilder: Builds the Agent Knowledge System (AKS) for each tenant.
+"""TenantKnowledgeBuilder: Builds the Agent Knowledge System (AKS) for each tenant.
 
 Mirrors the CLAUDE.md pattern: a single, always-loaded identity document that gives
 the Sales Agent complete context about the business it represents. Built dynamically
@@ -30,19 +29,20 @@ logger = logging.getLogger(__name__)
 
 
 class TenantKnowledgeBuilder:
-    """
-    Constructs the agent_identity prompt for a given tenant by reading
+    """Constructs the agent_identity prompt for a given tenant by reading.
+
     Brand and Offer data from the database and rendering agent_identity.j2.
     """
 
     def __init__(self, db: Session) -> None:
+        """Initialize instance."""
         self.brand_repo = BrandRepository(db)
         self.avatar_repo = AvatarRepository(db)
         self.offer_repo = OfferRepository(db)
 
     def build_identity(self, tenant_id: UUID) -> str:
-        """
-        Build the complete agent identity document for this tenant.
+        """Build the complete agent identity document for this tenant.
+
         Returns a rendered string ready to be prepended to any specialist prompt.
         """
         try:

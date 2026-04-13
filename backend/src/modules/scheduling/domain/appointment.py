@@ -1,3 +1,5 @@
+"""Appointment domain definitions."""
+
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -9,6 +11,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class Appointment(BaseEntity):
+    """Represent appointment."""
+
     id: UUID
     tenant_id: UUID | None = None
     lead_id: UUID | None = None

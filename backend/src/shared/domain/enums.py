@@ -11,6 +11,8 @@ from enum import StrEnum
 
 
 class IdentityType(StrEnum):
+    """Customer identity channel types for CDP resolution."""
+
     EMAIL = "email"
     PHONE = "phone"
     COOKIE_ID = "cookie_id"
@@ -23,6 +25,8 @@ class IdentityType(StrEnum):
 
 
 class LifecycleStage(StrEnum):
+    """Customer lifecycle stage in the bowtie funnel."""
+
     SUBSCRIBER = "subscriber"
     LEAD = "lead"
     MQL = "mql"
@@ -34,6 +38,8 @@ class LifecycleStage(StrEnum):
 
 
 class FinancialCapacity(StrEnum):
+    """Lead financial capacity classification."""
+
     BROKE_STUDENT = "BROKE_STUDENT"
     LOW_INCOME = "LOW_INCOME"
     MIDDLE_CLASS = "MIDDLE_CLASS"
@@ -43,6 +49,8 @@ class FinancialCapacity(StrEnum):
 
 
 class AvatarPersona(StrEnum):
+    """Buyer persona archetype for sales agent behavior."""
+
     NEWBIE = "NEWBIE"
     SKEPTIC = "SKEPTIC"
     VIP = "VIP"
@@ -51,6 +59,8 @@ class AvatarPersona(StrEnum):
 
 
 class SaleStatus(StrEnum):
+    """Transaction completion status."""
+
     COMPLETED = "COMPLETED"
     REFUNDED = "REFUNDED"
     PENDING = "PENDING"
@@ -58,11 +68,15 @@ class SaleStatus(StrEnum):
 
 
 class SaleStage(StrEnum):
+    """Bowtie funnel sale stage."""
+
     CONVERSION = "CONVERSION"
     EXPANSION = "EXPANSION"
 
 
 class LeadTemperature(StrEnum):
+    """Lead engagement temperature for sales prioritization."""
+
     COLD = "COLD"
     WARM = "WARM"
     HOT = "HOT"
@@ -72,6 +86,8 @@ class LeadTemperature(StrEnum):
 
 
 class ChannelType(StrEnum):
+    """External communication and integration channel types."""
+
     TELEGRAM = "telegram"
     WHATSAPP = "whatsapp"  # Evolution / QR
     WHATSAPP_CLOUD = "whatsapp_cloud"  # Meta Cloud API

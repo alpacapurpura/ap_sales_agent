@@ -1,3 +1,5 @@
+"""Vector Store infrastructure module."""
+
 import logging
 import uuid
 from typing import Any
@@ -15,7 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class QdrantVectorStore(SemanticMemoryStore):
+    """Qdrant Vector Store."""
+
     def __init__(self) -> None:
+        """Initialize instance."""
         # Initialize Qdrant Client
         self.client = QdrantClient(
             url=settings.QDRANT_URL,
@@ -53,9 +58,7 @@ class QdrantVectorStore(SemanticMemoryStore):
         self,
         collection_name: str = settings.QDRANT_COLLECTION_HYBRID,
     ) -> None:
-        """
-        Checks if collection exists, if not creates it with Hybrid config.
-        """
+        """Check if collection exists, if not creates it with Hybrid config."""
         collections = self.client.get_collections()
         exists = any(c.name == collection_name for c in collections.collections)
 
@@ -87,9 +90,7 @@ class QdrantVectorStore(SemanticMemoryStore):
         metadatas: list[dict],
         collection_name: str = settings.QDRANT_COLLECTION_HYBRID,
     ) -> None:
-        """
-        Embeds and indexes texts into Qdrant using Hybrid (Dense + Sparse).
-        """
+        """Embeds and indexes texts into Qdrant using Hybrid (Dense + Sparse)."""
         self.ensure_collection_exists(collection_name)
 
         # 1. Generate Dense Embeddings (OpenAI/Gemini)
@@ -308,6 +309,7 @@ class QdrantVectorStore(SemanticMemoryStore):
 
     # Additional methods not in interface but useful
     def delete_collection(self, collection_name: str) -> bool:
+        """Delete collection."""
         try:
             self.client.delete_collection(collection_name=collection_name)
         except Exception:
@@ -322,6 +324,7 @@ class QdrantVectorStore(SemanticMemoryStore):
         collection_name: str,
         source_filename: str,
     ) -> bool:
+        """Delete vectors by source."""
         try:
             self.client.delete(
                 collection_name=collection_name,

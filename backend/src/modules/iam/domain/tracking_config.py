@@ -1,7 +1,11 @@
+"""Tracking Config domain definitions."""
+
 from pydantic import BaseModel, ConfigDict
 
 
 class TrackingConfig(BaseModel):
+    """Schema for tracking config."""
+
     model_config = ConfigDict(from_attributes=True)
 
     # GTM-XXXX

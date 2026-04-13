@@ -1,3 +1,5 @@
+"""Google Analytics API endpoints."""
+
 import asyncio
 from typing import Annotated
 
@@ -35,6 +37,8 @@ logger = structlog.get_logger()
 
 
 class GoogleAnalyticsConfig(BaseModel):
+    """Google Analytics Config schema."""
+
     client_id: str
     client_secret: str
 
@@ -97,6 +101,7 @@ async def get_auth_url(
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     redirect_uri: str | None = None,
 ) -> dict[str, str]:
+    """Retrieve auth url."""
     connection = repo.get_by_tenant_and_type(
         user.tenant_id,
         ChannelType.GOOGLE_ANALYTICS,
@@ -125,6 +130,7 @@ async def oauth_callback(
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     redirect_uri: Annotated[str | None, Body(embed=True)] = None,
 ) -> GoogleAnalyticsCallbackResponse:
+    """Oauth callback."""
     connection = repo.get_by_tenant_and_type(
         user.tenant_id,
         ChannelType.GOOGLE_ANALYTICS,
@@ -183,6 +189,7 @@ async def get_status(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> GoogleAnalyticsStatusResponse:
+    """Retrieve status."""
     connection = repo.get_by_tenant_and_type(
         user.tenant_id,
         ChannelType.GOOGLE_ANALYTICS,
@@ -219,6 +226,7 @@ async def get_properties(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> list[GA4PropertySummary]:
+    """Retrieve properties."""
     connection = repo.get_active(user.tenant_id, ChannelType.GOOGLE_ANALYTICS)
 
     if not connection or not connection.credentials:
@@ -242,6 +250,7 @@ async def select_property(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> PropertySelectResponse:
+    """Select property."""
     connection = repo.get_active(user.tenant_id, ChannelType.GOOGLE_ANALYTICS)
 
     if not connection or not connection.credentials:
@@ -291,6 +300,7 @@ async def disconnect(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> dict[str, str]:
+    """Disconnect."""
     connection = repo.get_by_tenant_and_type(
         user.tenant_id,
         ChannelType.GOOGLE_ANALYTICS,
@@ -305,6 +315,7 @@ async def test_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> dict[str, str | list[dict] | None]:
+    """Test connection."""
     connection = repo.get_active(user.tenant_id, ChannelType.GOOGLE_ANALYTICS)
 
     if not connection or not connection.credentials:

@@ -1,3 +1,5 @@
+"""Brand issue reproduction test."""
+
 import sys
 from pathlib import Path
 
@@ -22,6 +24,7 @@ except ImportError as e:
 
 
 def run_tests() -> None:
+    """Run tests."""
     print("Running reproduction script...")
 
     # 1. Test BrandSettings(**None)

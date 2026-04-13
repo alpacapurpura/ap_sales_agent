@@ -1,3 +1,5 @@
+"""CRM infrastructure models package."""
+
 from src.modules.crm.infrastructure.models.customer_model import (
     CustomerIdentityModel,
     CustomerProfileModel,

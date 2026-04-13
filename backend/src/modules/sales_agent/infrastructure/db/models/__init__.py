@@ -1,3 +1,4 @@
+"""Models package."""
 # Bootstrap Module: Import all models here to ensure SQLAlchemy Registry is fully populated.
 # This prevents "Lazy Loading" errors and "Mapper failed to initialize" issues in modular architectures.
 # NOTE: Cross-module models are registered via shared/infrastructure/model_registry.py.

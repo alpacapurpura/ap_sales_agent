@@ -1,3 +1,5 @@
+"""SQLAlchemy model for gallery model."""
+
 import uuid
 
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text
@@ -8,9 +10,9 @@ from src.shared.domain.base_entity import Base
 
 
 class GalleryImageModel(Base):
-    """
-    Images specific to a Product/Offer with AI-generated metadata.
-    Stored in static/offers/{offer_id}/gallery/
+    """Images specific to a Product/Offer with AI-generated metadata.
+
+    Stored in static/offers/{offer_id}/gallery/.
     """
 
     __tablename__ = "offer_gallery_images"

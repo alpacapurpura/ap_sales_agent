@@ -31,6 +31,7 @@ def compute_channel_totals(channels: list[ChannelMetricDTO]) -> dict[str, float]
 
     Returns:
         Dict mapping metric name to total value (ADDITIVE only).
+
     """
     totals: dict[str, float] = defaultdict(float)
     skipped: set[str] = set()

@@ -1,3 +1,5 @@
+"""Extraction DTOs."""
+
 from pydantic import BaseModel, ConfigDict
 
 

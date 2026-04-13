@@ -67,13 +67,17 @@ GAQL_CAMPAIGN_METRICS_DAILY = """
 
 
 class GoogleAdsProvider(BaseMetricsProvider):
-    """Extracts metrics from Google Ads API, separating YouTube Ads
-    (VIDEO campaigns) from Search/Display campaigns."""
+    """Extract metrics from Google Ads API.
+
+    Separate YouTube Ads (VIDEO campaigns) from Search/Display campaigns.
+    """
 
     def provider_name(self) -> str:
+        """Execute provider name operation."""
         return "google_ads"
 
     def rate_limit_config(self) -> dict:
+        """Execute rate limit config operation."""
         return {"requests_per_minute": 100, "burst_size": 20}
 
     async def extract_metrics(
@@ -84,6 +88,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         end_date: date,
         stage: str = "attraction",
     ) -> ExtractionResult:
+        """Extract metrics."""
         customer_id = credentials.get("customer_id")
         developer_token = credentials.get(
             "developer_token",

@@ -33,9 +33,11 @@ class MetaPixelProvider(BaseMetricsProvider):
     """Extracts Meta Pixel event counts via the Marketing API."""
 
     def provider_name(self) -> str:
+        """Execute provider name operation."""
         return "meta_pixel"
 
     def rate_limit_config(self) -> dict:
+        """Execute rate limit config operation."""
         return {"requests_per_minute": 30, "burst_size": 10}
 
     async def extract_metrics(
@@ -46,6 +48,7 @@ class MetaPixelProvider(BaseMetricsProvider):
         end_date: date,
         stage: str = "attraction",
     ) -> ExtractionResult:
+        """Extract metrics."""
         pixel_id = credentials.get("asset_id")
         access_token = credentials.get("access_token")
         if not pixel_id or not access_token:

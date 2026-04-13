@@ -1,9 +1,13 @@
+"""Brand story value objects."""
+
 from pydantic import ConfigDict, Field
 
 from src.shared.domain.base_entity import BaseEntity
 
 
 class BrandStoryMilestone(BaseEntity):
+    """Represent brand story milestone data."""
+
     id: str | None = None
     year: str | None = None
     title: str | None = None
@@ -12,9 +16,7 @@ class BrandStoryMilestone(BaseEntity):
 
 
 class BrandStory(BaseEntity):
-    """
-    The narrative and history of the brand.
-    """
+    """The narrative and history of the brand."""
 
     origin_story: str | None = Field(None)
     mission: str | None = Field(None)

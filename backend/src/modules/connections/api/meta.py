@@ -1,3 +1,5 @@
+"""Meta API endpoints."""
+
 from typing import Annotated
 from uuid import UUID
 
@@ -419,6 +421,7 @@ async def verify_webhook(
     token: Annotated[str, Query(alias="hub.verify_token")],
     challenge: Annotated[str, Query(alias="hub.challenge")],
 ) -> int:
+    """Verify webhook."""
     verify_token = settings.META_VERIFY_TOKEN
     if not verify_token:
         raise HTTPException(
@@ -436,6 +439,7 @@ async def webhook_event(
     verified: Annotated[bool, Depends(verify_meta_signature)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> dict[str, str]:
+    """Webhook event."""
     try:
         entry = payload.get("entry", [])[0]
         account_id = entry.get("id")
@@ -527,6 +531,7 @@ async def get_auth_url(
     user: Annotated[User, Depends(get_current_user)],
     redirect_uri: str | None = None,
 ) -> dict[str, str]:
+    """Retrieve auth url."""
     if not redirect_uri:
         raise HTTPException(status_code=400, detail="Redirect URI is required")
 
@@ -548,6 +553,7 @@ async def oauth_callback(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> dict[str, str | bool | dict[str, str]]:
+    """Oauth callback."""
     logger.info(
         "meta_oauth_callback_start",
         tenant_id=str(user.tenant_id),
@@ -694,6 +700,8 @@ async def oauth_callback(
 
 
 class SetPrimaryAssetRequest(PydanticBaseModel):
+    """Set Primary Asset Request."""
+
     asset_type: str  # "facebook_page", "instagram_account", "meta_ads_account"
     asset_id: str
 
@@ -748,6 +756,7 @@ async def get_status(
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     debug: Annotated[bool, Query(description="Include diagnostic info in response")] = False,
 ) -> dict:
+    """Retrieve status."""
     # Platform credentials from .env — the user never configures these
     is_configured = bool(settings.META_APP_ID and settings.META_APP_SECRET)
 
@@ -795,6 +804,7 @@ async def disconnect(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> dict[str, str]:
+    """Disconnect."""
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
     if connection:
         # Deactivate all child asset connections first
@@ -819,6 +829,7 @@ async def test_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> dict[str, str | dict[str, str] | None]:
+    """Test connection."""
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
 
     if not connection or not connection.credentials:
@@ -852,7 +863,7 @@ async def get_assets(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> MetaAssetsResponse:
-    """Returns the list of Meta business assets stored in the DB for this tenant."""
+    """Return the list of Meta business assets stored in the DB for this tenant."""
     existing = repo.get_all_by_tenant_and_types(user.tenant_id, _ASSET_CHANNEL_TYPES)
     _by_id: dict[str, ChannelConnectionModel] = {
         conn.config.get("asset_id", ""): conn for conn in existing if conn.config
@@ -945,8 +956,8 @@ async def sync_assets(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> MetaAssetsResponse:
-    """
-    Pulls business assets from Meta API and upserts them in the DB.
+    """Pull business assets from Meta API and upserts them in the DB.
+
     Preserves is_active state for existing assets.
     Returns the refreshed asset list.
     """

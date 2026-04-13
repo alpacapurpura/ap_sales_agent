@@ -1,6 +1,4 @@
-"""
-CopilotOrchestrator — Manages conversation state and streams responses via SSE.
-"""
+"""CopilotOrchestrator — Manages conversation state and streams responses via SSE."""
 
 import json
 import uuid
@@ -32,12 +30,13 @@ REDIS_CONV_TTL = 3600
 
 
 class CopilotOrchestrator:
-    """
-    Orchestrates the Copilot agent: manages conversation state,
-    persists history, and streams SSE events to the frontend.
+    """Orchestrate the Copilot agent.
+
+    Manage conversation state, persist history, and stream SSE events to the frontend.
     """
 
     def __init__(self, db: Session) -> None:
+        """Initialize copilot orchestrator."""
         self.db = db
         self.conv_repo = ConversationRepository(db)
 
@@ -50,9 +49,7 @@ class CopilotOrchestrator:
         conversation_id: str | None = None,
         context: ClientContextDTO | None = None,
     ) -> AsyncGenerator[str, None]:
-        """
-        Process a user message and yield SSE events.
-        """
+        """Process a user message and yield SSE events."""
         # 1. Resolve or create conversation
         conv_id = conversation_id or str(uuid.uuid4())
         conv_uuid = UUID(conv_id)

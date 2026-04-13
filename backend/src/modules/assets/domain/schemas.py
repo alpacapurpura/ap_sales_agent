@@ -1,3 +1,5 @@
+"""Pydantic schemas for the assets module."""
+
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -6,6 +8,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class AssetDto(BaseEntity):
+    """Represent asset dto."""
+
     id: UUID
     tenant_id: UUID | None = None
     offer_id: UUID | None = None  # Optional now
@@ -29,4 +33,4 @@ class AssetDto(BaseEntity):
 
 # Backward Compatibility
 class GalleryImageDto(AssetDto):
-    pass
+    """Represent gallery image dto."""

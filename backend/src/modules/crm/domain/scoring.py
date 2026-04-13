@@ -1,5 +1,4 @@
-"""
-CRM Scoring Configuration.
+"""CRM Scoring Configuration.
 
 Frozen dataclasses defining scoring weights, thresholds, decay, and inactivity.
 Change requires deploy -- versioned in git by design.

@@ -1,5 +1,4 @@
-"""
-SemanticRouter: Intent detection via cosine similarity with tenant-aware routes.
+"""SemanticRouter: Intent detection via cosine similarity with tenant-aware routes.
 
 System routes (security, generic objections, pains, desires) are always loaded.
 Tenant routes (offer-specific objections with trigger_phrases) are overlaid per tenant.
@@ -132,8 +131,7 @@ SYSTEM_ROUTES: dict[str, list[str]] = {
 
 
 class SemanticRouter:
-    """
-    Tenant-aware semantic router using cosine similarity.
+    """Tenant-aware semantic router using cosine similarity.
 
     System routes are loaded once at startup. Tenant-specific routes
     (from Offer objections trigger_phrases) are overlaid per-tenant
@@ -149,6 +147,7 @@ class SemanticRouter:
     _tenant_cache: dict[UUID, tuple[list[str], np.ndarray]] = {}
 
     def __new__(cls) -> Self:
+        """Implement __new__."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._initialize_model()
@@ -199,13 +198,14 @@ class SemanticRouter:
 
     @classmethod
     def register_tenant_routes(cls, tenant_id: UUID, offers_data: list) -> None:
-        """
-        Build tenant-specific routes from Offer objections and overlay them.
+        """Build tenant-specific routes from Offer objections and overlay them.
+
         Call this during TenantKnowledgeBuilder.build_identity() to prime the cache.
 
         Args:
             tenant_id: The tenant UUID.
             offers_data: List of offer dicts (from model_dump), each with 'objections'.
+
         """
         if cls._model is None:
             cls._initialize_model()
@@ -257,8 +257,8 @@ class SemanticRouter:
         tenant_id: UUID | None = None,
         threshold: float = 0.65,
     ) -> tuple[str | None, float]:
-        """
-        Detects the intent of a given text using cosine similarity.
+        """Detect the intent of a given text using cosine similarity.
+
         If tenant_id is provided and has cached routes, uses tenant+system routes.
         Otherwise falls back to system routes only.
 
@@ -300,8 +300,8 @@ class SemanticRouter:
         existing_signals: list,
         tenant_id: UUID | None = None,
     ) -> tuple[str | None, float, list]:
-        """
-        Detects intent AND accumulates buying signals.
+        """Detect intent AND accumulates buying signals.
+
         Returns (intent, score, updated_signals).
         """
         intent, score = cls.detect_intent(text, tenant_id)

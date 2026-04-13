@@ -1,3 +1,5 @@
+"""Brand domain aggregates."""
+
 from typing import Any
 
 from pydantic import ConfigDict, Field, model_validator
@@ -20,8 +22,8 @@ from .team import (
 
 
 class BrandSettings(BaseEntity):
-    """
-    Configuration for the Brand Identity, Story, Strategy, and Team.
+    """Configure the Brand Identity, Story, Strategy, and Team.
+
     Stored in Tenant.config_json['brand_settings'].
     """
 

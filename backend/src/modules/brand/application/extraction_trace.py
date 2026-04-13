@@ -34,6 +34,7 @@ class ExtractionTraceCollector:
         include_visuals: bool = False,
         include_assets: bool = False,
     ) -> None:
+        """Initialize extraction trace collector."""
         self._db = db
         self._trace_id = uuid4()
         self._tenant_id = tenant_id
@@ -74,12 +75,15 @@ class ExtractionTraceCollector:
         self._events.append(entry)
 
     def set_content_length(self, length: int) -> None:
+        """Set content length."""
         self._content_length = length
 
     def set_sections_total(self, total: int) -> None:
+        """Set sections total."""
         self._sections_total = total
 
     def crawl_start(self, url: str) -> None:
+        """Execute crawl start operation."""
         self._append("crawl_start", url=url)
 
     def crawl_end(
@@ -89,6 +93,7 @@ class ExtractionTraceCollector:
         content_len: int = 0,
         visual_len: int = 0,
     ) -> None:
+        """Execute crawl end operation."""
         self._append(
             "crawl_end",
             duration_s=duration_s,
@@ -97,12 +102,15 @@ class ExtractionTraceCollector:
         )
 
     def wave_start(self, wave: int, sections: list[str]) -> None:
+        """Execute wave start operation."""
         self._append("wave_start", wave=wave, sections=sections)
 
     def wave_pause(self, wave: int, delay_s: float) -> None:
+        """Execute wave pause operation."""
         self._append("wave_pause", wave=wave, delay_s=delay_s)
 
     def section_start(self, section: str, *, prompt_length: int = 0) -> None:
+        """Execute section start operation."""
         self._append("section_start", section=section, prompt_length=prompt_length)
 
     def section_success(
@@ -113,6 +121,7 @@ class ExtractionTraceCollector:
         field_count: int = 0,
         fields: list[str] | None = None,
     ) -> None:
+        """Execute section success operation."""
         self._append(
             "section_success",
             section=section,
@@ -129,6 +138,7 @@ class ExtractionTraceCollector:
         error: str = "",
         error_type: str = "",
     ) -> None:
+        """Execute section failed operation."""
         self._append(
             "section_failed",
             section=section,
@@ -144,6 +154,7 @@ class ExtractionTraceCollector:
         *,
         timeout_limit: float = 0,
     ) -> None:
+        """Execute section timeout operation."""
         self._append(
             "section_timeout",
             section=section,
@@ -152,9 +163,11 @@ class ExtractionTraceCollector:
         )
 
     def merge_start(self) -> None:
+        """Execute merge start operation."""
         self._append("merge_start")
 
     def merge_end(self, duration_s: float) -> None:
+        """Execute merge end operation."""
         self._append("merge_end", duration_s=duration_s)
 
     # ------------------------------------------------------------------

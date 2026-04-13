@@ -1,3 +1,5 @@
+"""Copilot event SQLAlchemy model."""
+
 import uuid
 
 from sqlalchemy import Column, DateTime, String
@@ -8,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class CopilotEventModel(Base):
+    """SQLAlchemy model for copilot event."""
+
     __tablename__ = "copilot_events"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -25,4 +29,5 @@ class CopilotEventModel(Base):
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self) -> str:
+        """Return string representation."""
         return f"<CopilotEvent id={self.id} type={self.event_type} tenant={self.tenant_id}>"

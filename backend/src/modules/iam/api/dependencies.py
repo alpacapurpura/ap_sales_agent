@@ -1,3 +1,5 @@
+"""Dependencies API endpoints."""
+
 import os
 from typing import Any
 from uuid import UUID
@@ -30,8 +32,8 @@ def get_optional_current_user(
     db: Session = Depends(get_db),
     credentials: HTTPAuthorizationCredentials | None = Depends(security_optional),
 ) -> User | None:
-    """
-    Returns User if token is present and valid, else None.
+    """Return User if token is present and valid, else None.
+
     Does NOT raise 401/403 for missing token.
     """
     if not credentials:
@@ -63,9 +65,7 @@ async def get_optional_tenant_context(
     x_tenant_id: str | None = Header(None, alias="X-Tenant-ID"),
     db: Session = Depends(get_db),
 ) -> UUID | None:
-    """
-    Optional tenant context. Returns None if no user/tenant.
-    """
+    """Resolve optional tenant context, returning None if no user or tenant."""
     if not user:
         return None
 
@@ -276,8 +276,8 @@ def get_user_from_token(
 
 
 def get_current_user_global(user: User = Depends(get_user_from_token)) -> User:
-    """
-    Returns the current user WITHOUT enforcing tenant context.
+    """Return the current user WITHOUT enforcing tenant context.
+
     Useful for endpoints that list tenants or user settings.
     """
     return user
@@ -288,9 +288,7 @@ def get_current_user(
     user: User = Depends(get_user_from_token),
     x_tenant_id: str | None = Header(None, alias="X-Tenant-ID"),
 ) -> User:
-    """
-    Resolves the DB User and Enforces Strict Tenant Isolation via X-Tenant-ID header.
-    """
+    """Resolve the DB User and Enforces Strict Tenant Isolation via X-Tenant-ID header."""
     email = user.email
 
     # Multi-Tenant Logic
@@ -377,9 +375,7 @@ async def get_tenant_context(
     user: User = Depends(get_current_user),
     x_tenant_id: str | None = Header(None, alias="X-Tenant-ID"),
 ) -> UUID | None:
-    """
-    Determines Tenant ID and sets ContextVar.
-    """
+    """Determine Tenant ID and sets ContextVar."""
     tenant_id = user.tenant_id
 
     if tenant_id:
@@ -391,8 +387,8 @@ async def get_tenant_context(
 
 
 def get_current_tenant_id(user: User = Depends(get_current_user)) -> str:
-    """
-    Returns the tenant_id as string for dependency injection.
+    """Return the tenant_id as string for dependency injection.
+
     Ensures user belongs to a tenant.
     """
     if not user.tenant_id:

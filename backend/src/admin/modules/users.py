@@ -1,3 +1,5 @@
+"""Streamlit admin: User management per tenant."""
+
 from __future__ import annotations
 
 import time
@@ -44,6 +46,7 @@ def get_users(tenant_id: object) -> list:
 
 
 def render_users_view() -> None:
+    """Render the user management page for the selected tenant."""
     st.title("👥 Gestión de Usuarios")
 
     # 1. Select Tenant

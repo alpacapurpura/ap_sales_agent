@@ -1,3 +1,5 @@
+"""CRM customer service."""
+
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -14,7 +16,10 @@ from src.modules.crm.infrastructure.repositories.customer_repository import (
 
 
 class CustomerService:
+    """Service for customer operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize customer service."""
         self.db = db
         self.repository = CustomerRepository(db)
         self.event_repo = JourneyEventRepository(db)
@@ -25,9 +30,7 @@ class CustomerService:
         traits: dict[str, Any],
         identities: dict[str, str],
     ) -> CustomerProfile:
-        """
-        Identity Resolution: Find existing profile by ANY identity, or create new.
-        """
+        """Identity Resolution: Find existing profile by ANY identity, or create new."""
         # 1. Try to find by identities
         profile = None
 

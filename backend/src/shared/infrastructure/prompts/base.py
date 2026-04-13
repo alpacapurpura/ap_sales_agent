@@ -1,3 +1,5 @@
+"""Hybrid prompt loader with DB, file, and cache resolution."""
+
 import logging
 from pathlib import Path
 from typing import Any
@@ -16,10 +18,13 @@ logger = logging.getLogger(__name__)
 
 
 class PromptLoader:
+    """Load and render Jinja2 prompts from DB or filesystem with caching."""
+
     def __init__(
         self,
         templates_dir: str = "src/modules/copilot/infrastructure/prompts/templates",
     ) -> None:
+        """Initialize the prompt loader with a templates directory."""
         base_path = Path.cwd()
         full_path = str(base_path / templates_dir)
         self.fs_env = Environment(
@@ -130,6 +135,7 @@ class PromptLoader:
         return template.render(**kwargs)
 
     def render(self, template_name: str, **kwargs: Any) -> str:  # noqa: ANN401 — template variable expansion
+        """Render a prompt template by name using the configured resolution strategy."""
         key = template_name.replace(".j2", "")
         mode = settings.PROMPT_SOURCE
         tenant_id = get_tenant_id()
@@ -169,6 +175,7 @@ class PromptLoader:
             raise
 
     def invalidate_cache(self, key: str) -> None:
+        """Remove all cached entries for the given prompt key."""
         keys_to_remove = [cache_key for cache_key in self._cache if cache_key[0] == key]
         for cache_key in keys_to_remove:
             del self._cache[cache_key]

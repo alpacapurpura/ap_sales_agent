@@ -12,7 +12,10 @@ from src.shared.domain.ports import ProductMappingPort
 
 
 class ProductMappingPortImpl(ProductMappingPort):
+    """Product Mapping Port Impl."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize instance."""
         self.db = db
         self.repo = ExternalProductMappingRepository(db)
 
@@ -22,6 +25,7 @@ class ProductMappingPortImpl(ProductMappingPort):
         source: str,
         external_product_id: str,
     ) -> UUID | None:
+        """Resolve offer id."""
         mapping = await asyncio.to_thread(
             self.repo.get_by_external_id,
             tenant_id,
@@ -36,6 +40,7 @@ class ProductMappingPortImpl(ProductMappingPort):
         source: str,
         external_ids: list[str],
     ) -> dict[str, UUID]:
+        """Bulk resolve."""
         return await asyncio.to_thread(
             self.repo.bulk_resolve,
             tenant_id,

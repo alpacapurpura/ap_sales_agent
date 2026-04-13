@@ -1,3 +1,5 @@
+"""Auth Router API endpoints."""
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -14,9 +16,7 @@ router = APIRouter()
 
 @router.get("/me")
 async def get_current_user_profile(user: Annotated[User, Depends(get_user_from_token)]) -> User:
-    """
-    Get current user profile based on Clerk Token.
-    """
+    """Get current user profile based on Clerk Token."""
     return user
 
 
@@ -25,8 +25,8 @@ async def get_my_tenants(
     user: Annotated[User, Depends(get_user_from_token)],
     db: Annotated[Session, Depends(get_db)],
 ) -> list[TenantSchema]:
-    """
-    List all tenants the current user belongs to.
+    """List all tenants the current user belongs to.
+
     Used for the organization switcher in frontend.
     """
     service = UserService(db)

@@ -1,3 +1,5 @@
+"""Streamlit admin panel entry point."""
+
 import os
 import sys
 from pathlib import Path
@@ -34,6 +36,7 @@ st.markdown(
 
 
 def main() -> None:
+    """Render the admin panel sidebar navigation and route to pages."""
     st.sidebar.title("🛠️ Panel Admin")
     st.sidebar.caption(f"Env: {os.getenv('PROFILE', 'dev')}")
     st.sidebar.divider()

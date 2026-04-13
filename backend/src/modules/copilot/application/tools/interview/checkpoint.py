@@ -29,6 +29,7 @@ def checkpoint(
 
     Returns:
         JSON with brief text and a checkpoint_card ui_action.
+
     """
     return json.dumps(
         {

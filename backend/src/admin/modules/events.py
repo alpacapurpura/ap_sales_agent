@@ -5,6 +5,7 @@ import streamlit as st
 
 
 def render_events_page() -> None:
+    """Render the copilot intelligence analytics page."""
     st.title("🧠 Inteligencia Copilot")
 
     from src.admin.modules._shared import (

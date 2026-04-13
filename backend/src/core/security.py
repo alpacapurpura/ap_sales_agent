@@ -1,3 +1,5 @@
+"""Password hashing, encryption, and key derivation utilities."""
+
 import base64
 import hashlib
 
@@ -10,10 +12,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a plain password against a bcrypt hash."""
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
+    """Hash a password using bcrypt."""
     return pwd_context.hash(password)
 
 
@@ -35,6 +39,6 @@ def decrypt_string(token: str, key: str) -> str:
 
 
 def get_encryption_key() -> str:
-    """Derives a URL-safe base64 32-byte key from settings.API_SECRET_KEY."""
+    """Derive a URL-safe base64 32-byte key from settings.API_SECRET_KEY."""
     digest = hashlib.sha256(settings.API_SECRET_KEY.encode()).digest()
     return base64.urlsafe_b64encode(digest).decode()

@@ -7,6 +7,7 @@ import streamlit as st
 
 
 def render_home_dashboard() -> None:
+    """Render the central command dashboard with system-wide KPIs."""
     st.title("🎯 Comando Central")
 
     # ── KPIs Row 1 ──

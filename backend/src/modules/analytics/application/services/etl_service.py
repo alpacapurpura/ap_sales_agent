@@ -107,6 +107,7 @@ class ETLService:
         connection_port: ConnectionPort,
         cache: MetricsCache,
     ) -> None:
+        """Initialize e t l service."""
         self.db = db
         self.connection_port = connection_port
         self.cache = cache
@@ -133,6 +134,7 @@ class ETLService:
 
         Returns:
             ExtractionRunModel with final status (last stage's run).
+
         """
         # Default date range: last 30 days
         if end_date is None:
@@ -207,6 +209,7 @@ class ETLService:
 
         Returns:
             List of ExtractionRunModel results.
+
         """
         connections = await self.connection_port.list_active_connections(tenant_id)
         results = []

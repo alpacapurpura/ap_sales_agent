@@ -29,7 +29,10 @@ DOMAIN_LABELS = {
 
 
 class InterviewService:
+    """Service for interview operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize interview service."""
         self.db = db
         self.session_repo = InterviewSessionRepository(db)
         self.conversation_repo = ConversationRepository(db)
@@ -44,6 +47,7 @@ class InterviewService:
         entity_id: UUID | None = None,
         initial_mapa: dict | None = None,
     ) -> dict:
+        """Start interview."""
         if resume_session_id:
             session = self.session_repo.get_by_id(resume_session_id, tenant_id)
             if not session or session.status != InterviewStatus.PAUSED:
@@ -98,6 +102,7 @@ class InterviewService:
         }
 
     def get_active(self, tenant_id: UUID) -> dict | None:
+        """Return active."""
         for domain in DOMAIN_CONFIGS:
             session = self.session_repo.get_active_by_domain(tenant_id, domain)
             if session:
@@ -113,6 +118,7 @@ class InterviewService:
         return None
 
     def get_state(self, session_id: UUID, tenant_id: UUID) -> dict | None:
+        """Return state."""
         session = self.session_repo.get_by_id(session_id, tenant_id)
         if not session:
             return None
@@ -126,6 +132,7 @@ class InterviewService:
         }
 
     def pause(self, session_id: UUID, tenant_id: UUID) -> bool:
+        """Execute pause operation."""
         session = self.session_repo.get_by_id(session_id, tenant_id)
         if not session or session.status != InterviewStatus.ACTIVE:
             return False
@@ -135,6 +142,7 @@ class InterviewService:
         return True
 
     def abandon(self, session_id: UUID, tenant_id: UUID) -> bool:
+        """Execute abandon operation."""
         session = self.session_repo.get_by_id(session_id, tenant_id)
         if not session or session.status not in (
             InterviewStatus.ACTIVE,

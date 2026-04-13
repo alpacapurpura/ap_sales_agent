@@ -1,0 +1,1 @@
+"""Copilot repositories package."""

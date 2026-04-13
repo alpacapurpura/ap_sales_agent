@@ -1,3 +1,5 @@
+"""Booking Link infrastructure."""
+
 import uuid
 
 from sqlalchemy import Column, DateTime, ForeignKey, String
@@ -8,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class BookingLink(Base):
+    """Represent booking link."""
+
     __tablename__ = "booking_links"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

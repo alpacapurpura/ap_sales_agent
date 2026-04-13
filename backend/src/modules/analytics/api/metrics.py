@@ -1,3 +1,5 @@
+"""Analytics metrics API endpoints."""
+
 from datetime import UTC, date, datetime, timedelta
 from enum import StrEnum
 from typing import Annotated, TypeVar
@@ -64,6 +66,8 @@ _REFRESH_COOLDOWN = timedelta(seconds=ETLConfig.PER_PROVIDER_REFRESH_COOLDOWN)
 
 
 class SyncProviderResult(BaseModel):
+    """Represent sync provider result data."""
+
     provider: str
     status: str  # "ok" | "skipped_cooldown" | "failed"
     loaded: int | None = None
@@ -74,6 +78,8 @@ class SyncProviderResult(BaseModel):
 
 
 class SyncAllResponse(BaseModel):
+    """Response schema for sync all."""
+
     status: str
     providers_synced: int
     providers_skipped_cooldown: int
@@ -87,16 +93,22 @@ class SyncAllResponse(BaseModel):
 
 
 class SankeyNodeDTO(BaseModel):
+    """Data transfer object for sankey node."""
+
     name: str
 
 
 class SankeyLinkDTO(BaseModel):
+    """Data transfer object for sankey link."""
+
     source: int
     target: int
     value: int
 
 
 class SankeyRawMetricsDTO(BaseModel):
+    """Data transfer object for sankey raw metrics."""
+
     visitors: int
     leads: int
     qualified: int
@@ -107,6 +119,8 @@ class SankeyRawMetricsDTO(BaseModel):
 
 
 class MarketingSankeyResponse(BaseModel):
+    """Response schema for marketing sankey."""
+
     nodes: list[SankeyNodeDTO]
     links: list[SankeyLinkDTO]
     raw_metrics: SankeyRawMetricsDTO
@@ -116,6 +130,8 @@ class MarketingSankeyResponse(BaseModel):
 
 
 class ChannelRefreshResponse(BaseModel):
+    """Response schema for channel refresh."""
+
     status: str
     run_id: str
     provider: str
@@ -126,6 +142,8 @@ class ChannelRefreshResponse(BaseModel):
 
 
 class InitialLoadResponse(BaseModel):
+    """Response schema for initial load."""
+
     status: str
     total_days: int
     loaded_days: int
@@ -133,6 +151,8 @@ class InitialLoadResponse(BaseModel):
 
 
 class InitialLoadStatusResponse(BaseModel):
+    """Response schema for initial load status."""
+
     status: str
     total: int | None = None
     loaded: int | None = None
@@ -192,9 +212,7 @@ async def get_marketing_sankey(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> MarketingSankeyResponse:
-    """
-    Get Marketing Sankey Metrics (7 Nodes).
-    """
+    """Get Marketing Sankey Metrics (7 Nodes)."""
     service = MetricsService(db)
     return service.get_marketing_sankey_metrics(user.tenant_id)
 
@@ -588,9 +606,9 @@ async def get_stage_timeseries(
     range_days: Annotated[int, Query()] = 30,
     granularity: Annotated[str, Query()] = "daily",
 ) -> StageTimeSeriesDTO:
-    """Generic time-series endpoint for chart visualizations.
+    """Return generic time-series data for chart visualizations.
 
-    Returns daily/weekly data points grouped by channel for any funnel stage.
+    Return daily/weekly data points grouped by channel for any funnel stage.
     Reusable across all stages — just change the stage and metric params.
     """
     if stage not in _VALID_STAGES:
@@ -691,6 +709,8 @@ class MetricCatalogResponse(BaseModel):
 
 
 class SyncIgDmResponse(BaseModel):
+    """Response schema for sync ig dm."""
+
     status: str
     synced_messages: int
     new_leads: int
@@ -1006,12 +1026,16 @@ async def get_initial_load_status(
 
 
 class PeriodExtractionRequest(BaseModel):
+    """Request schema for period extraction."""
+
     period_type: str  # weekly, monthly, quarterly
     period_start: date
     period_end: date
 
 
 class PeriodExtractionResultDTO(BaseModel):
+    """Data transfer object for period extraction result."""
+
     provider: str
     status: str
     metrics_count: int | None = None
@@ -1021,6 +1045,8 @@ class PeriodExtractionResultDTO(BaseModel):
 
 
 class PeriodExtractionResponse(BaseModel):
+    """Response schema for period extraction."""
+
     status: str
     results: list[PeriodExtractionResultDTO]
 
@@ -1078,12 +1104,16 @@ async def trigger_period_extraction(
 
 
 class TenantPeriodConfigDTO(BaseModel):
+    """Data transfer object for tenant period config."""
+
     weekly_start_day: int
     fiscal_year_start_month: int
     fiscal_year_start_day: int
 
 
 class TenantPeriodConfigUpdateDTO(BaseModel):
+    """Data transfer object for tenant period config update."""
+
     weekly_start_day: int | None = None
     fiscal_year_start_month: int | None = None
     fiscal_year_start_day: int | None = None

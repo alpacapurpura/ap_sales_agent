@@ -351,13 +351,14 @@ def _parse_iso_date(value: str | None) -> datetime | None:
 
 
 class MailerLiteProvider(BaseMetricsProvider):
-    """Extracts email-marketing metrics from MailerLite, dispatched by
-    funnel stage."""
+    """Extract email-marketing metrics from MailerLite dispatched by funnel stage."""
 
     def provider_name(self) -> str:
+        """Execute provider name operation."""
         return "mailerlite"
 
     def rate_limit_config(self) -> dict:
+        """Execute rate limit config operation."""
         return {"requests_per_minute": 100, "burst_size": 20}
 
     # ------------------------------------------------------------------
@@ -399,6 +400,7 @@ class MailerLiteProvider(BaseMetricsProvider):
         end_date: date,
         stage: str = "nurture",
     ) -> ExtractionResult:
+        """Extract metrics."""
         api_key = credentials.get("api_key")
         if not api_key:
             logger.warning("mailerlite_no_api_key", tenant_id=str(tenant_id))
@@ -821,8 +823,10 @@ class MailerLiteProvider(BaseMetricsProvider):
         campaign: dict,
         group_to_stage: dict[str, str],
     ) -> str:
-        """Determine which funnel stage a campaign belongs to based on
-        its targeted groups. Defaults to 'nurture' if no group match."""
+        """Determine which funnel stage a campaign belongs to based on its targeted groups.
+
+        Default to 'nurture' if no group match.
+        """
         # MailerLite campaigns have a 'groups' field listing targeted groups
         groups = campaign.get("groups", [])
         if not groups:

@@ -27,19 +27,25 @@ if TYPE_CHECKING:
 
 
 class PsychologyGeneratorPort(ABC):
+    """Psychology Generator Port."""
+
     @abstractmethod
     async def generate_psychology(
         self,
         request: PsychologyGenerationRequest,
         tenant_id: UUID,
-    ) -> PsychologyGenerationResponse: ...
+    ) -> PsychologyGenerationResponse:
+        """Generate psychology."""
+        ...
 
 
 class IOfferAssetRepository(ABC):
     """Repository port for offer assets. Implementations live in infra."""
 
     @abstractmethod
-    def create(self, asset: OfferAsset) -> OfferAsset: ...
+    def create(self, asset: OfferAsset) -> OfferAsset:
+        """Create."""
+        ...
 
     @abstractmethod
     def get_by_id(
@@ -47,7 +53,9 @@ class IOfferAssetRepository(ABC):
         tenant_id: UUID,
         offer_id: UUID,
         asset_id: UUID,
-    ) -> OfferAsset | None: ...
+    ) -> OfferAsset | None:
+        """Retrieve by id."""
+        ...
 
     @abstractmethod
     def list(
@@ -61,23 +69,33 @@ class IOfferAssetRepository(ABC):
         sort: str = "created_desc",
         limit: int = 24,
         offset: int = 0,
-    ) -> tuple[list[OfferAsset], int]: ...
+    ) -> tuple[list[OfferAsset], int]:
+        """List."""
+        ...
 
     @abstractmethod
-    def update(self, asset: OfferAsset) -> OfferAsset: ...
+    def update(self, asset: OfferAsset) -> OfferAsset:
+        """Update."""
+        ...
 
     @abstractmethod
-    def soft_delete(self, tenant_id: UUID, offer_id: UUID, asset_id: UUID) -> bool: ...
+    def soft_delete(self, tenant_id: UUID, offer_id: UUID, asset_id: UUID) -> bool:
+        """Soft delete."""
+        ...
 
     @abstractmethod
-    def count_by_offer(self, tenant_id: UUID, offer_id: UUID) -> int: ...
+    def count_by_offer(self, tenant_id: UUID, offer_id: UUID) -> int:
+        """Count by offer."""
+        ...
 
 
 class IKnowledgeSourceRepository(ABC):
     """Repository port for knowledge sources."""
 
     @abstractmethod
-    def create(self, source: KnowledgeSource) -> KnowledgeSource: ...
+    def create(self, source: KnowledgeSource) -> KnowledgeSource:
+        """Create."""
+        ...
 
     @abstractmethod
     def get_by_id(
@@ -85,7 +103,9 @@ class IKnowledgeSourceRepository(ABC):
         tenant_id: UUID,
         offer_id: UUID,
         source_id: UUID,
-    ) -> KnowledgeSource | None: ...
+    ) -> KnowledgeSource | None:
+        """Retrieve by id."""
+        ...
 
     @abstractmethod
     def list(
@@ -95,19 +115,29 @@ class IKnowledgeSourceRepository(ABC):
         *,
         search: str | None = None,
         type_: KnowledgeSourceType | None = None,
-    ) -> list[KnowledgeSource]: ...
+    ) -> list[KnowledgeSource]:
+        """List."""
+        ...
 
     @abstractmethod
-    def update(self, source: KnowledgeSource) -> KnowledgeSource: ...
+    def update(self, source: KnowledgeSource) -> KnowledgeSource:
+        """Update."""
+        ...
 
     @abstractmethod
-    def soft_delete(self, tenant_id: UUID, offer_id: UUID, source_id: UUID) -> bool: ...
+    def soft_delete(self, tenant_id: UUID, offer_id: UUID, source_id: UUID) -> bool:
+        """Soft delete."""
+        ...
 
     @abstractmethod
-    def count_by_offer(self, tenant_id: UUID, offer_id: UUID) -> int: ...
+    def count_by_offer(self, tenant_id: UUID, offer_id: UUID) -> int:
+        """Count by offer."""
+        ...
 
     @abstractmethod
-    def count_indexed_by_offer(self, tenant_id: UUID, offer_id: UUID) -> int: ...
+    def count_indexed_by_offer(self, tenant_id: UUID, offer_id: UUID) -> int:
+        """Count indexed by offer."""
+        ...
 
 
 class IFileStoragePort(ABC):
@@ -121,16 +151,24 @@ class IFileStoragePort(ABC):
         filename: str,
         content: BinaryIO,
         mime_type: str,
-    ) -> tuple[str, int]: ...  # (public_url, size_bytes)
+    ) -> tuple[str, int]:  # (public_url, size_bytes)
+        """Upload."""
+        ...
 
     @abstractmethod
-    def get_download_stream(self, file_url: str) -> BinaryIO: ...
+    def get_download_stream(self, file_url: str) -> BinaryIO:
+        """Retrieve download stream."""
+        ...
 
     @abstractmethod
-    def get_signed_url(self, file_url: str, *, expires_in: int = 900) -> str: ...
+    def get_signed_url(self, file_url: str, *, expires_in: int = 900) -> str:
+        """Retrieve signed url."""
+        ...
 
     @abstractmethod
-    def delete(self, file_url: str) -> None: ...
+    def delete(self, file_url: str) -> None:
+        """Delete."""
+        ...
 
 
 class ILandingGenerationRepository(ABC):
@@ -143,7 +181,9 @@ class ILandingGenerationRepository(ABC):
     """
 
     @abstractmethod
-    def get_by_offer_id(self, tenant_id: UUID, offer_id: UUID) -> object | None: ...
+    def get_by_offer_id(self, tenant_id: UUID, offer_id: UUID) -> object | None:
+        """Retrieve by offer id."""
+        ...
 
     @abstractmethod
     def upsert_for_generation(
@@ -154,10 +194,14 @@ class ILandingGenerationRepository(ABC):
         snapshot_version: str,
         job_id: UUID,
         job_status: str,
-    ) -> object: ...
+    ) -> object:
+        """Upsert for generation."""
+        ...
 
     @abstractmethod
-    def save(self, landing: object) -> object: ...
+    def save(self, landing: object) -> object:
+        """Save."""
+        ...
 
 
 class IRAGIndexerPort(ABC):
@@ -174,18 +218,28 @@ class IRAGIndexerPort(ABC):
         self,
         source: KnowledgeSource,
         raw_bytes: bytes | None = None,
-    ) -> tuple[list[str], int]: ...  # (qdrant_point_ids, chunk_count)
+    ) -> tuple[list[str], int]:  # (qdrant_point_ids, chunk_count)
+        """Index source."""
+        ...
 
     @abstractmethod
-    def reindex_source(self, source: KnowledgeSource) -> tuple[list[str], int]: ...
+    def reindex_source(self, source: KnowledgeSource) -> tuple[list[str], int]:
+        """Reindex source."""
+        ...
 
     @abstractmethod
-    def delete_source(self, source: KnowledgeSource) -> None: ...
+    def delete_source(self, source: KnowledgeSource) -> None:
+        """Delete source."""
+        ...
 
 
 class IOfferCompletionService(ABC):
+    """Service for ioffer completion operations."""
+
     @abstractmethod
-    def compute(self, offer: Offer) -> float: ...
+    def compute(self, offer: Offer) -> float:
+        """Compute."""
+        ...
 
 
 __all__ = [

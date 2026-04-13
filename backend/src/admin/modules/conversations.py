@@ -5,6 +5,7 @@ import streamlit as st
 
 
 def render_conversations_page() -> None:
+    """Render the copilot conversation explorer page."""
     st.title("💬 Explorador de Conversaciones")
 
     from src.admin.modules._shared import (

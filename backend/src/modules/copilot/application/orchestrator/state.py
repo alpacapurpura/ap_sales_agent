@@ -1,3 +1,5 @@
+"""Copilot orchestrator state definitions."""
+
 from typing import Annotated, Any, TypedDict
 from uuid import UUID
 
@@ -15,9 +17,9 @@ class ClientContext(TypedDict, total=False):
 
 
 class CopilotState(TypedDict):
-    """
-    State for the agentic Copilot (ReAct loop with tools).
-    Uses LangChain message objects for compatibility with tool-calling.
+    """Define state for the agentic Copilot (ReAct loop with tools).
+
+    Use LangChain message objects for compatibility with tool-calling.
     """
 
     # LangChain messages (HumanMessage, AIMessage, ToolMessage, etc.)
@@ -53,6 +55,7 @@ def create_initial_copilot_state(
     conversation_id: str,
     client_context: ClientContext | None = None,
 ) -> CopilotState:
+    """Create initial copilot state."""
     return {
         "messages": [],
         "user_id": user_id,

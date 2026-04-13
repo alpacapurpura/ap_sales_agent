@@ -31,6 +31,7 @@ def _format_lead_option(lead_tuple: tuple) -> str:
 
 
 def render_sales_audit_page() -> None:
+    """Render the sales agent audit timeline page."""
     st.title("🔍 Auditoría Sales Agent")
     st.markdown(
         "Visualiza las conversaciones de los leads y las trazas de ejecución de los nodos del agente.",

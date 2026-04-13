@@ -1,3 +1,5 @@
+"""FastAPI application entry point — mounts all module routers."""
+
 import time
 import uuid
 from collections.abc import Callable
@@ -158,6 +160,7 @@ async def sentry_tenant_middleware(request: Request, call_next: Callable) -> Res
 
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next: Callable) -> Response:
+    """Log HTTP requests with timing and correlation ID."""
     request_id = str(uuid.uuid4())
     structlog.contextvars.clear_contextvars()
     structlog.contextvars.bind_contextvars(request_id=request_id)
@@ -202,11 +205,13 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Return 422 with structured validation error details."""
     return JSONResponse(status_code=422, content={"detail": exc.errors()})
 
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Capture unhandled exceptions in Sentry and return 500."""
     import sentry_sdk
 
     sentry_sdk.capture_exception(exc)
@@ -215,6 +220,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 
 @app.on_event("startup")
 def on_startup() -> None:
+    """Initialize database and register domain event handlers."""
     init_db()
 
     # Register CRM domain event handlers (EventBus wiring)

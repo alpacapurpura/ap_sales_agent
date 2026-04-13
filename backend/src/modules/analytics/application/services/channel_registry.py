@@ -744,6 +744,7 @@ class ChannelRegistry:
     """
 
     def __init__(self, connection_port: ConnectionPort) -> None:
+        """Initialize channel registry."""
         self._connection_port = connection_port
 
     async def get_stage_channels(self, stage_slug: str) -> list[dict]:
@@ -762,6 +763,7 @@ class ChannelRegistry:
                 "connected": [{"slug": ..., "connected": True, ...}, ...],
                 "available": [{"slug": ..., "connected": False, "badge_type": "configurar", ...}, ...]
             }
+
         """
         channels = get_stage_channels(stage_slug)
         active_connections = await self._connection_port.list_active_connections(

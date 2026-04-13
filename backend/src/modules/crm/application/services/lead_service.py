@@ -1,3 +1,5 @@
+"""CRM lead service."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -11,11 +13,15 @@ if TYPE_CHECKING:
 
 
 class LeadService:
+    """Service for lead operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize lead service."""
         self.db = db
         self.repository = LeadRepository(db)
 
     def get_lead(self, lead_id: UUID) -> Lead | None:
+        """Return lead."""
         return self.repository.get_by_id(lead_id)
 
     def find_lead_by_channel(
@@ -24,6 +30,7 @@ class LeadService:
         channel_id: str,
         tenant_id: UUID,
     ) -> Lead | None:
+        """Find lead by channel."""
         return self.repository.get_by_channel_id(channel, channel_id, tenant_id)
 
     def create_lead(
@@ -32,6 +39,7 @@ class LeadService:
         profile: UserProfile | None = None,
         **channel_ids: str,
     ) -> Lead:
+        """Create lead."""
         new_lead = Lead(
             id=UUID(
                 int=0,
@@ -48,11 +56,15 @@ class LeadService:
         return self.repository.create(new_lead)
 
     def update_lead(self, lead: Lead) -> Lead:
+        """Update lead."""
         return self.repository.update(lead)
 
 
 class PipelineService:
+    """Service for pipeline operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize pipeline service."""
         self.db = db
         self.lead_repo = LeadRepository(db)
 

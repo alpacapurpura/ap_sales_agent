@@ -1,3 +1,5 @@
+"""Database engine, session factory, and Redis client initialization."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

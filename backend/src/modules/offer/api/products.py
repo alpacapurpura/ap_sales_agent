@@ -1,3 +1,5 @@
+"""Products API endpoints."""
+
 from typing import Annotated, Any
 from uuid import UUID
 
@@ -47,6 +49,7 @@ async def list_products(
     limit: int = 20,
     skip: int = 0,
 ) -> list[Offer]:
+    """List products."""
     service = OfferService(db)
     # Filter by user's tenant
     return service.list_offers(user.tenant_id)
@@ -59,6 +62,7 @@ async def create_product(
     user: Annotated[User, Depends(get_current_user)],
     locale: Annotated[TenantLocale, Depends(get_tenant_locale)],
 ) -> Offer:
+    """Create product."""
     service = OfferService(db)
     return service.create_offer(
         name=product.name,
@@ -94,6 +98,7 @@ async def get_product(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Offer:
+    """Retrieve product."""
     service = OfferService(db)
     product = service.get_offer(UUID(product_id), user.tenant_id)
     if not product:
@@ -152,6 +157,7 @@ async def update_product(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Offer:
+    """Update product."""
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -170,6 +176,7 @@ async def update_identity(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Offer:
+    """Update identity."""
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -188,6 +195,7 @@ async def update_strategy(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Offer:
+    """Update strategy."""
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -206,6 +214,7 @@ async def update_promise(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Offer:
+    """Update promise."""
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -224,6 +233,7 @@ async def update_psychology(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Offer:
+    """Update psychology."""
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -242,6 +252,7 @@ async def update_value_stack(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Offer:
+    """Update value stack."""
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -260,6 +271,7 @@ async def update_pricing(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Offer:
+    """Update pricing."""
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -278,6 +290,7 @@ async def update_details(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Offer:
+    """Update details."""
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -296,6 +309,7 @@ async def update_visuals(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Offer:
+    """Update visuals."""
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -314,6 +328,7 @@ async def update_closing(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Offer:
+    """Update closing."""
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -332,6 +347,7 @@ async def update_resources(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Offer:
+    """Update resources."""
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -350,6 +366,7 @@ async def update_instructors(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> Offer:
+    """Update instructors."""
     service = OfferService(db)
     try:
         return service.patch_offer(

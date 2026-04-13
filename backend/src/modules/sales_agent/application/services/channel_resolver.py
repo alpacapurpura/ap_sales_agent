@@ -35,6 +35,7 @@ class ChannelResolver:
     """Resolves and instantiates the channel adapter for outbound messaging."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize instance."""
         self.db = db
 
     def resolve(
@@ -43,8 +44,7 @@ class ChannelResolver:
         lead: LeadModel,
         preferred_channel: str | None = None,
     ) -> tuple[BaseChannel, str] | None:
-        """
-        Return (adapter, channel_user_id) for the lead's channel.
+        """Return (adapter, channel_user_id) for the lead's channel.
 
         Priority: preferred_channel > checkpoint channel > first available.
         """
@@ -147,7 +147,7 @@ class ChannelResolver:
         text: str,
         preferred_channel: str | None = None,
     ) -> bool:
-        """Convenience: resolve channel and send message in one call."""
+        """Resolve channel and send message in one call."""
         resolved = self.resolve(tenant_id, lead, preferred_channel)
         if not resolved:
             return False

@@ -1,5 +1,4 @@
-"""
-CRM domain events — re-exported from shared for backward compatibility.
+"""CRM domain events — re-exported from shared for backward compatibility.
 
 Canonical location: src.shared.domain.events
 New code should import directly from src.shared.domain.events.

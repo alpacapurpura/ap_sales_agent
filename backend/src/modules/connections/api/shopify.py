@@ -1,3 +1,5 @@
+"""Shopify API endpoints."""
+
 import uuid
 from typing import Annotated, Any
 
@@ -25,10 +27,14 @@ public_router = APIRouter()
 
 
 class ShopifyAuthUrlRequest(BaseModel):
+    """Shopify Auth Url Request DTO."""
+
     shop_url: str
 
 
 class ShopifyExchangeRequest(BaseModel):
+    """Shopify Exchange Request DTO."""
+
     code: str
     shop: str
     hmac: str
@@ -38,18 +44,24 @@ class ShopifyExchangeRequest(BaseModel):
 
 
 class ShopifyStatusResponse(BaseModel):
+    """Shopify Status Response DTO."""
+
     is_connected: bool
     shop_url: str | None = None
     shop_info: dict[str, Any] | None = None
 
 
 class ConnectionResponse(BaseModel):
+    """Connection Response DTO."""
+
     status: str
     message: str
     details: dict[str, Any] | None = None
 
 
 class ShopifyAuthUrlResponse(BaseModel):
+    """Shopify Auth Url Response DTO."""
+
     auth_url: str
 
 
@@ -83,6 +95,7 @@ async def get_shopify_status(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> ShopifyStatusResponse:
+    """Retrieve shopify status."""
     connection = repo.get_active(user.tenant_id, ChannelType.SHOPIFY)
 
     if not connection:
@@ -100,6 +113,7 @@ async def generate_auth_url(
     request: ShopifyAuthUrlRequest,
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
+    """Generate auth url."""
     state = str(user.tenant_id)
 
     base_url = settings.DASHBOARD_DOMAIN.rstrip("/")
@@ -124,6 +138,7 @@ async def exchange_shopify_token(
     request: ShopifyExchangeRequest,
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> ConnectionResponse:
+    """Exchange shopify token."""
     params = request.model_dump(exclude_none=True)
 
     if not ShopifyConnector.verify_hmac(params):
@@ -171,6 +186,7 @@ async def auth_callback(
     request: Request,
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> RedirectResponse:
+    """Auth callback."""
     params = dict(request.query_params)
 
     if not ShopifyConnector.verify_hmac(params):
@@ -227,8 +243,8 @@ async def quick_connect_shopify(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> ConnectionResponse:
-    """
-    Connect to Shopify using Client Credentials Grant (no browser redirect).
+    """Connect to Shopify using Client Credentials Grant (no browser redirect).
+
     Only works for stores in the same Shopify organization as the app.
     """
     shop_url = request.shop_url.replace("https://", "").replace("http://", "").strip("/")
@@ -271,6 +287,7 @@ async def disconnect_shopify(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> ConnectionResponse:
+    """Disconnect shopify."""
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.SHOPIFY)
 
     if not connection:
@@ -289,6 +306,7 @@ async def test_shopify_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> ConnectionResponse:
+    """Test shopify connection."""
     connection = repo.get_active(user.tenant_id, ChannelType.SHOPIFY)
 
     if not connection:

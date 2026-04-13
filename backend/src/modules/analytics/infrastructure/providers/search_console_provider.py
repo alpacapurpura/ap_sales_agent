@@ -30,9 +30,11 @@ class SearchConsoleProvider(BaseMetricsProvider):
     """Extracts Google Search Console organic search metrics."""
 
     def provider_name(self) -> str:
+        """Execute provider name operation."""
         return "search_console"
 
     def rate_limit_config(self) -> dict:
+        """Execute rate limit config operation."""
         return {"requests_per_minute": 20, "burst_size": 10}
 
     async def extract_metrics_daily(
@@ -70,6 +72,7 @@ class SearchConsoleProvider(BaseMetricsProvider):
         end_date: date,
         stage: str = "attraction",
     ) -> ExtractionResult:
+        """Extract metrics."""
         if stage != "attraction":
             return ExtractionResult()
 

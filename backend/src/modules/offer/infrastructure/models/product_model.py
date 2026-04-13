@@ -1,3 +1,5 @@
+"""Product SQLAlchemy model."""
+
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
@@ -8,8 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class ProductModel(Base):
-    """
-    SQLAlchemy model for Offers/Products.
+    """SQLAlchemy model for Offers/Products.
+
     Renamed from Product to ProductModel in code, but keeps table 'products' for now.
     """
 

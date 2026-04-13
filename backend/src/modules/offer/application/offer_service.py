@@ -1,3 +1,5 @@
+"""Offer service."""
+
 from typing import Any
 from uuid import UUID
 
@@ -18,14 +20,19 @@ from src.shared.domain.enums import FinancialCapacity
 
 
 class OfferService:
+    """Service for offer operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize service with dependencies."""
         self.db = db
         self.repository = OfferRepository(db)
 
     def get_offer(self, offer_id: UUID, tenant_id: UUID) -> Offer | None:
+        """Retrieve offer."""
         return self.repository.get_by_id(offer_id, tenant_id)
 
     def list_offers(self, tenant_id: UUID) -> list[Offer]:
+        """List offers."""
         return self.repository.get_all_by_tenant(tenant_id)
 
     def create_offer(
@@ -42,6 +49,7 @@ class OfferService:
         value_level: OfferValueLevel | None = None,
         currency: str | None = None,
     ) -> Offer:
+        """Create offer."""
         new_offer = Offer(
             tenant_id=tenant_id,
             public_name=name,
@@ -68,6 +76,7 @@ class OfferService:
         return self.repository.create(new_offer)
 
     def update_offer(self, offer: Offer, tenant_id: UUID) -> Offer:
+        """Update offer."""
         return self.repository.update(offer, tenant_id)
 
     def list_archived_offers(self, tenant_id: UUID) -> list[Offer]:
@@ -131,6 +140,7 @@ class OfferService:
         tenant_id: UUID,
         update_data: dict[str, Any],
     ) -> Offer:
+        """Patch offer."""
         offer = self.repository.get_by_id(offer_id, tenant_id)
         if not offer:
             msg = f"Offer with id {offer_id} not found"

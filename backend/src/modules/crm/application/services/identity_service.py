@@ -1,3 +1,5 @@
+"""CRM identity resolution service."""
+
 from typing import Any
 from uuid import UUID
 
@@ -11,7 +13,10 @@ from src.modules.crm.infrastructure.repositories.customer_repository import (
 
 
 class IdentityService:
+    """Service for identity operations."""
+
     def __init__(self, customer_repository: CustomerRepository) -> None:
+        """Initialize identity service."""
         self.customer_repository = customer_repository
 
     def get_or_create_customer(
@@ -23,11 +28,11 @@ class IdentityService:
         lead_source: str | None = None,
         lead_source_detail: str | None = None,
     ) -> tuple[CustomerProfile, bool]:
-        """
-        Busca un cliente por su identidad. Si no existe, lo crea.
+        """Busca un cliente por su identidad. Si no existe, lo crea.
 
         Returns:
             Tuple of (profile, was_created). was_created is True only for new profiles.
+
         """
         # Intentar buscar cliente existente pasando tenant_id explícitamente
         existing_customer = self.customer_repository.find_by_identity(

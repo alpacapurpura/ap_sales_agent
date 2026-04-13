@@ -42,6 +42,7 @@ class PeriodExtractionPipeline:
         run_repo: ExtractionRunRepository,
         cache: MetricsCache,
     ) -> None:
+        """Initialize period extraction pipeline."""
         self.db = db
         self.provider = provider
         self.connection_port = connection_port

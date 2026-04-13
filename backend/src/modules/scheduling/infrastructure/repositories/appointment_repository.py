@@ -1,3 +1,5 @@
+"""Appointment Repository implementation."""
+
 from datetime import datetime
 from uuid import UUID
 
@@ -12,7 +14,10 @@ from src.modules.scheduling.infrastructure.models.appointment_model import (
 
 
 class AppointmentRepository:
+    """Concrete repository implementation for appointment."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize AppointmentRepository."""
         self.db = db
 
     def _to_domain(self, model: AppointmentModel) -> Appointment:
@@ -44,6 +49,7 @@ class AppointmentRepository:
         end: datetime,
         tenant_id: UUID,
     ) -> list[Appointment]:
+        """Retrieve appointments by date range."""
         stmt = (
             select(AppointmentModel)
             .where(

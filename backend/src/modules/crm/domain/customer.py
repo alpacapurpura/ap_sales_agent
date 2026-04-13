@@ -1,3 +1,5 @@
+"""CRM customer domain model."""
+
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -9,6 +11,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class CustomerIdentity(BaseEntity):
+    """Represent customer identity data."""
+
     id: UUID
     profile_id: UUID
     tenant_id: UUID | None = None
@@ -23,6 +27,8 @@ class CustomerIdentity(BaseEntity):
 
 
 class CustomerProfile(BaseEntity):
+    """Represent customer profile data."""
+
     id: UUID
     tenant_id: UUID | None = None
 

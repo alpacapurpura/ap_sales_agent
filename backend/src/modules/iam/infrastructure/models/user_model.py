@@ -1,3 +1,5 @@
+"""SQLAlchemy model for user model."""
+
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, String
@@ -9,8 +11,8 @@ from src.shared.domain.base_entity import Base
 
 
 class UserModel(Base):
-    """
-    System User / Admin / Dashboard User.
+    """System User / Admin / Dashboard User.
+
     Separated from 'Lead' (Chatbot User).
     """
 

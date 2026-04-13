@@ -1,0 +1,1 @@
+"""Tenant domains API package."""

@@ -1,3 +1,5 @@
+"""SQLAlchemy model for user tenant model."""
+
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
@@ -6,6 +8,8 @@ from src.shared.domain.base_entity import Base
 
 
 class UserTenantModel(Base):
+    """SQLAlchemy model for user tenant."""
+
     __tablename__ = "user_tenants"
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), primary_key=True)

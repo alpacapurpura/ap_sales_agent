@@ -1,14 +1,20 @@
+"""Meta DTOs."""
+
 from typing import Any
 
 from pydantic import BaseModel
 
 
 class MetaConfigRequest(BaseModel):
+    """Meta Config Request DTO."""
+
     app_id: str
     app_secret: str
 
 
 class MetaStatusResponse(BaseModel):
+    """Meta Status Response DTO."""
+
     is_connected: bool
     is_configured: bool = False
     name: str | None = None
@@ -20,6 +26,8 @@ class MetaStatusResponse(BaseModel):
 
 
 class FacebookPageAsset(BaseModel):
+    """Facebook Page Asset DTO."""
+
     page_id: str
     page_name: str
     category: str | None = None
@@ -32,6 +40,8 @@ class FacebookPageAsset(BaseModel):
 
 
 class InstagramAccountAsset(BaseModel):
+    """Instagram Account Asset DTO."""
+
     ig_account_id: str
     ig_username: str
     profile_picture_url: str | None = None
@@ -43,6 +53,8 @@ class InstagramAccountAsset(BaseModel):
 
 
 class MetaAdsAccountAsset(BaseModel):
+    """Meta Ads Account Asset DTO."""
+
     ad_account_id: str
     ad_account_name: str
     currency: str | None = None
@@ -52,6 +64,8 @@ class MetaAdsAccountAsset(BaseModel):
 
 
 class MetaPixelAsset(BaseModel):
+    """Meta Pixel Asset DTO."""
+
     pixel_id: str
     pixel_name: str
     linked_ad_account_id: str | None = None
@@ -60,6 +74,8 @@ class MetaPixelAsset(BaseModel):
 
 
 class WhatsAppPhoneNumber(BaseModel):
+    """Whats App Phone Number DTO."""
+
     phone_number_id: str
     display_phone_number: str | None = None
     verified_name: str | None = None
@@ -67,6 +83,8 @@ class WhatsAppPhoneNumber(BaseModel):
 
 
 class WhatsAppBusinessAsset(BaseModel):
+    """Whats App Business Asset DTO."""
+
     waba_id: str
     waba_name: str
     currency: str | None = None
@@ -79,6 +97,8 @@ class WhatsAppBusinessAsset(BaseModel):
 
 
 class MetaAssetsResponse(BaseModel):
+    """Meta Assets Response DTO."""
+
     pages: list[FacebookPageAsset] = []
     instagram_accounts: list[InstagramAccountAsset] = []
     ads_accounts: list[MetaAdsAccountAsset] = []
@@ -88,4 +108,6 @@ class MetaAssetsResponse(BaseModel):
 
 
 class ToggleAssetRequest(BaseModel):
+    """Toggle Asset Request DTO."""
+
     is_active: bool

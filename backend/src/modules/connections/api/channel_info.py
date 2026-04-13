@@ -69,6 +69,8 @@ _ACCOUNT_NAME_KEYS: dict[str, str] = {
 
 
 class ChannelInfoResponse(BaseModel):
+    """Channel Info Response DTO."""
+
     provider: str
     is_connected: bool
     is_configured: bool = False

@@ -17,10 +17,14 @@ from src.shared.domain.datetime_utils import utc_now
 
 
 class InterviewSessionRepository:
+    """Repository for interview session persistence."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize interview session repository."""
         self.db = db
 
     def save(self, session: InterviewSession) -> None:
+        """Execute save operation."""
         existing = (
             self.db.execute(
                 select(InterviewSessionModel).where(
@@ -59,6 +63,7 @@ class InterviewSessionRepository:
             self.db.add(model)
 
     def get_by_id(self, session_id: UUID, tenant_id: UUID) -> InterviewSession | None:
+        """Return by id."""
         model = (
             self.db.execute(
                 select(InterviewSessionModel).where(
@@ -77,6 +82,7 @@ class InterviewSessionRepository:
         tenant_id: UUID,
         domain: str,
     ) -> InterviewSession | None:
+        """Return active by domain."""
         model = (
             self.db.execute(
                 select(InterviewSessionModel).where(
@@ -92,6 +98,7 @@ class InterviewSessionRepository:
         return self._to_entity(model) if model else None
 
     def soft_delete(self, session_id: UUID, tenant_id: UUID) -> None:
+        """Execute soft delete operation."""
         model = (
             self.db.execute(
                 select(InterviewSessionModel).where(

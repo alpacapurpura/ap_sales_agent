@@ -1,3 +1,5 @@
+"""Service for creating, resolving, and revoking shareable links."""
+
 import datetime
 import secrets
 import string
@@ -16,14 +18,14 @@ logger = structlog.get_logger()
 
 
 class LinkService:
+    """Manage shareable links with token generation, resolution, and revocation."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize with a database session."""
         self.db = db
 
     def generate_token(self, length: int = 12) -> str:
-        """
-        Generates a URL-safe unique token.
-        Combines random chars with a timestamp component to ensure low collision probability.
-        """
+        """Generate a URL-safe unique token with random and timestamp components."""
         # 1. Random Component
         alphabet = string.ascii_letters + string.digits
         random_part = "".join(secrets.choice(alphabet) for _ in range(length))
@@ -41,9 +43,7 @@ class LinkService:
         expires_days: int | None = None,
         created_by: uuid.UUID | None = None,
     ) -> ShareableLink:
-        """
-        Creates a new secure shareable link.
-        """
+        """Create a new secure shareable link."""
         if params is None:
             params = {}
         token = self.generate_token()
@@ -75,11 +75,7 @@ class LinkService:
         return link
 
     def resolve_link(self, token: str) -> ShareableLink | None:
-        """
-        Validates and retrieves a link.
-        Checks: Exists, Is Active, Not Expired.
-        Increments visit count.
-        """
+        """Validate, retrieve, and increment visit count for a link token."""
         stmt = select(ShareableLink).where(ShareableLink.token == token)
         link = self.db.execute(stmt).scalar_one_or_none()
 
@@ -105,6 +101,7 @@ class LinkService:
         return link
 
     def revoke_link(self, token: str) -> bool:
+        """Deactivate a shareable link by token."""
         stmt = select(ShareableLink).where(ShareableLink.token == token)
         link = self.db.execute(stmt).scalar_one_or_none()
 
@@ -116,4 +113,5 @@ class LinkService:
         return False
 
     def get_tenant_for_link(self, link: ShareableLink) -> Tenant | None:
+        """Fetch the tenant associated with a shareable link."""
         return self.db.get(Tenant, link.tenant_id)

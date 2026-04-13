@@ -34,6 +34,7 @@ class EvangelizationRepository:
     """CRM aggregate queries for evangelization (Stage 7) metrics."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize evangelization repository."""
         self.db = db
 
     async def get_evangelization_data(

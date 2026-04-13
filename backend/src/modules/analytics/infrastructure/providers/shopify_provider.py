@@ -31,6 +31,7 @@ class ShopifyProvider(BaseMetricsProvider):
     """Extracts metrics from Shopify Admin API for opportunity and sales stages."""
 
     def __init__(self) -> None:
+        """Initialize shopify provider."""
         self._last_orders: list[dict] = []
         self._last_checkouts: list[dict] = []
 
@@ -43,9 +44,11 @@ class ShopifyProvider(BaseMetricsProvider):
         return self._last_checkouts
 
     def provider_name(self) -> str:
+        """Execute provider name operation."""
         return "shopify"
 
     def has_period_extraction(self) -> bool:
+        """Check if  period extraction."""
         return True
 
     async def extract_period_metrics(
@@ -117,6 +120,7 @@ class ShopifyProvider(BaseMetricsProvider):
         return ExtractionResult(metrics=metrics)
 
     def rate_limit_config(self) -> dict:
+        """Execute rate limit config operation."""
         return {"requests_per_minute": 40, "burst_size": 10}
 
     async def extract_metrics(
@@ -127,6 +131,7 @@ class ShopifyProvider(BaseMetricsProvider):
         end_date: date,
         stage: str = "attraction",
     ) -> ExtractionResult:
+        """Extract metrics."""
         access_token = credentials.get("access_token")
         shop_domain = credentials.get("shop_domain") or credentials.get("shop_url", "")
 

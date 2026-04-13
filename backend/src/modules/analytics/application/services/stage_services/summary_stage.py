@@ -34,6 +34,7 @@ class SummaryStageService:
         connection_port: ConnectionPort | None = None,
         offer_port: OfferReadPort | None = None,
     ) -> None:
+        """Initialize summary stage service."""
         self.db = db
         self.cache = cache
         self.connection_port = connection_port

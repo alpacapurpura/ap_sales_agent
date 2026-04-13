@@ -1,3 +1,5 @@
+"""Domain Entity domain definitions."""
+
 from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
@@ -6,6 +8,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class DomainStatus(StrEnum):
+    """Enumerate domain status values."""
+
     PENDING_VERIFICATION = "pending_verification"
     VERIFYING = "verifying"
     ACTIVE = "active"
@@ -14,11 +18,15 @@ class DomainStatus(StrEnum):
 
 
 class DomainType(StrEnum):
+    """Enumerate domain type values."""
+
     PLATFORM = "platform"
     CUSTOM = "custom"
 
 
 class TenantDomain(BaseEntity):
+    """Represent tenant domain."""
+
     id: UUID
     tenant_id: UUID
     hostname: str

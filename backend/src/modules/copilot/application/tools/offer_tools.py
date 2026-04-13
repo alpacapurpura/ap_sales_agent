@@ -1,5 +1,4 @@
-"""
-Offer read tools — allow the copilot to read the current offers/products.
+"""Offer read tools — allow the copilot to read the current offers/products.
 
 These tools give the copilot context about the user's offer ladder so it can
 make informed suggestions and proposals.
@@ -146,6 +145,7 @@ def get_offer_data(offer_id: str | None = None) -> str:
 
     Returns:
         The offer data as formatted text.
+
     """
     tenant_id = get_tenant_id()
     if not tenant_id:

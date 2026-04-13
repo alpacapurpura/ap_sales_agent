@@ -1,5 +1,4 @@
-"""
-Booking URL helper.
+"""Booking URL helper.
 
 Returns the base URL for booking pages, preferring the tenant's primary
 active custom domain over the platform DASHBOARD_DOMAIN fallback.
@@ -16,8 +15,7 @@ logger = structlog.get_logger()
 
 
 def get_booking_base_url(tenant_id: UUID | str, db: Session) -> str:
-    """
-    Returns the booking base URL for a tenant.
+    """Return the booking base URL for a tenant.
 
     Uses the tenant's primary active custom domain when available;
     falls back to settings.DASHBOARD_DOMAIN otherwise.

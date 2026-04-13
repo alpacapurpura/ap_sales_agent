@@ -23,13 +23,14 @@ logger = structlog.get_logger(__name__)
 
 
 class TikTokProvider(BaseMetricsProvider):
-    """Extracts metrics from TikTok Business API for organic
-    and paid channels."""
+    """Extract metrics from TikTok Business API for organic and paid channels."""
 
     def provider_name(self) -> str:
+        """Execute provider name operation."""
         return "tiktok"
 
     def rate_limit_config(self) -> dict:
+        """Execute rate limit config operation."""
         return {"requests_per_minute": 60, "burst_size": 10}
 
     async def extract_metrics(
@@ -40,6 +41,7 @@ class TikTokProvider(BaseMetricsProvider):
         end_date: date,
         stage: str = "attraction",
     ) -> ExtractionResult:
+        """Extract metrics."""
         access_token = credentials.get("access_token")
         if not access_token:
             logger.warning("tiktok_provider_no_access_token tenant=%s", tenant_id)

@@ -1,3 +1,5 @@
+"""Channel Connection repository."""
+
 from uuid import UUID
 
 from sqlalchemy import select
@@ -11,13 +13,14 @@ from src.modules.connections.infrastructure.models.channel_connection_model impo
 
 
 class ChannelConnectionRepository:
-    """
-    Repository for ChannelConnection entities.
+    """Repository for ChannelConnection entities.
+
     Encapsulates all DB access for channel_connections using SQLAlchemy 2.0 syntax.
     Credentials are encrypted/decrypted transparently by the EncryptedJSON column type.
     """
 
     def __init__(self, db: Session) -> None:
+        """Initialize repository with database session."""
         self.db = db
 
     # --- Mapping ---
@@ -117,6 +120,7 @@ class ChannelConnectionRepository:
         return normalized
 
     def get_active_shopify_by_shop(self, shop: str) -> ChannelConnectionModel | None:
+        """Retrieve active shopify by shop."""
         normalized_shop = self._normalize_shop_domain(shop)
         stmt = select(ChannelConnectionModel).where(
             ChannelConnectionModel.channel_type == ChannelType.SHOPIFY.value,
@@ -236,7 +240,9 @@ class ChannelConnectionRepository:
 
     def revoke(self, connection: ChannelConnectionModel) -> ChannelConnectionModel:
         """Full OAuth revocation: clear credentials and set is_active=False.
-        Use this for user-initiated disconnect (not individual service toggles)."""
+
+        Use this for user-initiated disconnect (not individual service toggles).
+        """
         connection.credentials = {}
         connection.is_active = False
         self.db.commit()

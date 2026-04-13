@@ -43,9 +43,11 @@ class CRMInternalProvider(BaseMetricsProvider):
     """Extracts cold-contact metrics from CRM journey events."""
 
     def provider_name(self) -> str:
+        """Execute provider name operation."""
         return "crm_internal"
 
     def rate_limit_config(self) -> dict:
+        """Execute rate limit config operation."""
         return {"requests_per_minute": 100, "burst_size": 50}
 
     async def extract_metrics(
@@ -56,6 +58,7 @@ class CRMInternalProvider(BaseMetricsProvider):
         end_date: date,
         stage: str = "attraction",
     ) -> ExtractionResult:
+        """Extract metrics."""
         db = credentials.get("db_session")
         if db is None:
             logger.warning("crm_internal_provider_no_db_session tenant=%s", tenant_id)

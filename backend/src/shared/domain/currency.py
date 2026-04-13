@@ -1,5 +1,5 @@
-"""
-Centralized currency definitions and conversion utilities.
+"""Centralized currency definitions and conversion utilities.
+
 Single source of truth -- frontend mirrors these in currencies.ts.
 """
 

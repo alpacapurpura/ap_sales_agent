@@ -1,5 +1,4 @@
-"""
-Offer Ladder analysis tools — deterministic gap analysis for the copilot.
+"""Offer Ladder analysis tools — deterministic gap analysis for the copilot.
 
 Analyzes the tenant's current offer ladder (5 value levels) and identifies
 gaps, suggesting what to create next with priorities and archetypes.
@@ -237,6 +236,7 @@ def analyze_offer_ladder() -> str:
 
     Returns:
         Structured markdown with current status, gap analysis, and completeness score.
+
     """
     tenant_id = get_tenant_id()
     if not tenant_id:

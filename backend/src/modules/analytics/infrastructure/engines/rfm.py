@@ -1,3 +1,5 @@
+"""RFM analysis engine."""
+
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -9,19 +11,21 @@ from src.modules.crm.infrastructure.repositories.customer_repository import (
 
 
 class RFMCalculationEngine:
+    """Engine for r f m calculation computation."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize r f m calculation engine."""
         self.repository = JourneyEventRepository(db)
 
     def calculate_rfm(self, profile_id: UUID) -> dict[str, float]:
-        """
-        Calcula las métricas RFM (Recencia, Frecuencia, Valor Monetario)
-        para un perfil de cliente dado.
+        """Calculate RFM metrics (Recency, Frequency, Monetary) for a customer profile.
 
         Args:
             profile_id: ID del perfil del cliente
 
         Returns:
             Diccionario con claves: recency, frequency, monetary
+
         """
         # 1. Obtener todos los eventos para filtrar por compras
         events = self.repository.get_timeline(profile_id)

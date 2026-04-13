@@ -1,3 +1,5 @@
+"""Calendar Event Repository implementation."""
+
 from datetime import UTC, date, datetime
 from uuid import UUID
 
@@ -11,7 +13,10 @@ from src.modules.commercial_calendar.infrastructure.models.calendar_event_model 
 
 
 class CalendarEventRepository:
+    """Concrete repository implementation for calendar event."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize CalendarEventRepository."""
         self.db = db
 
     def _to_domain(self, model: CalendarEventModel) -> CalendarEvent:
@@ -50,6 +55,7 @@ class CalendarEventRepository:
         week: int | None = None,
         category: str | None = None,
     ) -> list[CalendarEvent]:
+        """List events."""
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.country_code == country_code,
             CalendarEventModel.year == year,
@@ -74,6 +80,7 @@ class CalendarEventRepository:
         event_id: UUID,
         tenant_id: UUID | None = None,
     ) -> CalendarEvent | None:
+        """Retrieve by id."""
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.id == event_id,
             CalendarEventModel.deleted_at == None,
@@ -87,6 +94,7 @@ class CalendarEventRepository:
         return self._to_domain(model) if model else None
 
     def create(self, entity: CalendarEvent) -> CalendarEvent:
+        """Handle create operation."""
         model = self._to_model(entity)
         self.db.add(model)
         self.db.commit()
@@ -94,6 +102,7 @@ class CalendarEventRepository:
         return self._to_domain(model)
 
     def bulk_create(self, entities: list[CalendarEvent]) -> list[CalendarEvent]:
+        """Handle bulk create operation."""
         models = [self._to_model(e) for e in entities]
         self.db.add_all(models)
         self.db.commit()
@@ -102,6 +111,7 @@ class CalendarEventRepository:
         return [self._to_domain(m) for m in models]
 
     def update(self, entity: CalendarEvent) -> CalendarEvent | None:
+        """Handle update operation."""
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.id == entity.id,
             CalendarEventModel.deleted_at == None,
@@ -122,6 +132,7 @@ class CalendarEventRepository:
         return self._to_domain(model)
 
     def delete(self, event_id: UUID) -> bool:
+        """Handle delete operation."""
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.id == event_id,
             CalendarEventModel.deleted_at == None,
@@ -141,6 +152,7 @@ class CalendarEventRepository:
         name: str,
         tenant_id: UUID | None,
     ) -> bool:
+        """Handle exists operation."""
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.country_code == country_code,
             CalendarEventModel.date == event_date,

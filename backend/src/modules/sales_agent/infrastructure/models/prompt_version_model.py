@@ -1,3 +1,5 @@
+"""Prompt Version SQLAlchemy model."""
+
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
@@ -8,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class PromptVersion(Base):
+    """Prompt Version."""
+
     __tablename__ = "prompt_versions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

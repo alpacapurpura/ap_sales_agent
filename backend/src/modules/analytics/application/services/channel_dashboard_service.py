@@ -314,6 +314,7 @@ class ChannelDashboardService:
         db: Session,
         brand_port: BrandReadPort | None = None,
     ) -> None:
+        """Initialize channel dashboard service."""
         self.repo = OfficialMetricsRepository(db)
         self.period_repo = PeriodMetricsRepository(db)
         self.brand_port = brand_port

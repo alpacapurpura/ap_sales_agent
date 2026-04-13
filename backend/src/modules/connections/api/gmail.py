@@ -1,3 +1,5 @@
+"""Gmail API endpoints."""
+
 from typing import Annotated
 
 import structlog
@@ -28,6 +30,7 @@ async def get_auth_url(
     user: Annotated[User, Depends(get_current_user)],
     redirect_uri: str | None = None,
 ) -> dict[str, str]:
+    """Retrieve auth url."""
     url, state = GmailAdapter.get_authorization_url(redirect_uri)
     return {"url": url, "state": state}
 
@@ -39,6 +42,7 @@ async def oauth_callback(
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     redirect_uri: Annotated[str | None, Body(embed=True)] = None,
 ) -> dict[str, str]:
+    """Oauth callback."""
     try:
         creds_data = GmailAdapter.exchange_code(code, redirect_uri)
     except Exception as e:
@@ -76,6 +80,7 @@ async def get_status(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> GmailStatusResponse:
+    """Retrieve status."""
     connection = repo.get_active(user.tenant_id, ChannelType.GMAIL)
 
     if not connection:
@@ -92,6 +97,7 @@ async def disconnect(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> dict[str, str]:
+    """Disconnect."""
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.GMAIL)
     if connection:
         repo.deactivate(connection)
@@ -103,6 +109,7 @@ async def test_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ) -> dict[str, str | dict[str, str] | None]:
+    """Test connection."""
     connection = repo.get_active(user.tenant_id, ChannelType.GMAIL)
 
     if not connection or not connection.credentials:

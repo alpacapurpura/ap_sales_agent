@@ -11,6 +11,8 @@ def _to_camel(s: str) -> str:
 
 
 class AdCampaignTemplateDTO(BaseModel):
+    """Data transfer object for ad campaign template."""
+
     model_config = ConfigDict(
         from_attributes=True,
         populate_by_name=True,

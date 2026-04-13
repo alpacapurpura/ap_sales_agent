@@ -1,3 +1,5 @@
+"""CRM lead SQLAlchemy model."""
+
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
@@ -9,6 +11,8 @@ from src.shared.domain.base_entity import Base
 
 
 class LeadModel(Base):
+    """SQLAlchemy model for lead."""
+
     __tablename__ = "leads"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

@@ -1,3 +1,5 @@
+"""Agenda API endpoints."""
+
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Literal
 from uuid import UUID
@@ -22,6 +24,8 @@ router = APIRouter(tags=["Scheduling - Agenda"])
 
 
 class AgendaItem(BaseModel):
+    """Schema for agenda item."""
+
     id: UUID
     summary: str
     start_time: datetime
@@ -37,6 +41,7 @@ async def get_agenda(
     user: Annotated[User, Depends(get_current_user)],
     range_: Annotated[Literal["today", "week"], Query(alias="range")] = "today",
 ) -> list[AgendaItem]:
+    """Retrieve agenda."""
     repo = AppointmentRepository(db)
     now = datetime.now(UTC)
 
@@ -80,10 +85,14 @@ async def get_agenda(
 
 
 class AppointmentStatusUpdate(BaseModel):
+    """Schema for appointment status update."""
+
     status: str = Field(..., description="New status: COMPLETED, NO_SHOW, CANCELLED")
 
 
 class AppointmentStatusResponse(BaseModel):
+    """Schema for appointment status response."""
+
     model_config = ConfigDict(from_attributes=True)
 
     status: str

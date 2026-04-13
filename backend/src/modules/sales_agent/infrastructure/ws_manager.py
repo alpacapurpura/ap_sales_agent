@@ -14,18 +14,19 @@ logger = structlog.get_logger()
 
 
 class ConnectionManager:
-    """
-    Manages WebSocket connections per tenant.
+    """Manages WebSocket connections per tenant.
 
     Uses an in-process dict for dev. For horizontal scaling, swap the
     _emit_to_connections call with Redis pub/sub.
     """
 
     def __init__(self) -> None:
+        """Initialize instance."""
         # tenant_id -> set of active WebSocket connections
         self._connections: dict[str, set[WebSocket]] = {}
 
     async def connect(self, tenant_id: str, ws: WebSocket) -> None:
+        """Connect."""
         await ws.accept()
         if tenant_id not in self._connections:
             self._connections[tenant_id] = set()
@@ -37,6 +38,7 @@ class ConnectionManager:
         )
 
     def disconnect(self, tenant_id: str, ws: WebSocket) -> None:
+        """Disconnect."""
         if tenant_id in self._connections:
             self._connections[tenant_id].discard(ws)
             if not self._connections[tenant_id]:
@@ -63,6 +65,7 @@ class ConnectionManager:
 
     @property
     def active_count(self) -> int:
+        """Active count."""
         return sum(len(conns) for conns in self._connections.values())
 
 

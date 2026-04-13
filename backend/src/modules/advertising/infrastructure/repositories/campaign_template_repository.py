@@ -12,9 +12,11 @@ class CampaignTemplateRepository:
     """Data-access layer for ad_campaign_templates (tenant-agnostic)."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize CampaignTemplateRepository."""
         self._db = db
 
     def list_all(self) -> list[AdCampaignTemplateModel]:
+        """List all."""
         stmt = select(AdCampaignTemplateModel).order_by(
             AdCampaignTemplateModel.priority.desc(),
         )

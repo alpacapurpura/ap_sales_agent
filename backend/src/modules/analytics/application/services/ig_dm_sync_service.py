@@ -42,6 +42,7 @@ class InstagramDMSyncService:
     """Sync historical Instagram DM conversations into journey_events."""
 
     def __init__(self, db: Session, connection_port: ConnectionPort) -> None:
+        """Initialize instagram d m sync service."""
         self.db = db
         self.connection_port = connection_port
 

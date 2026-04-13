@@ -14,6 +14,8 @@ from src.shared.domain.base_entity import Base
 
 
 class ChannelCostSettingModel(Base):
+    """SQLAlchemy model for channel cost setting."""
+
     __tablename__ = "channel_cost_settings"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

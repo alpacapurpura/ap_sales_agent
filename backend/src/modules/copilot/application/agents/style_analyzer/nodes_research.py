@@ -1,3 +1,5 @@
+"""Copilot style analyzer research node functions."""
+
 from typing import Any
 
 from src.modules.copilot.application.agents.style_analyzer.state import OnboardingState
@@ -7,9 +9,7 @@ from src.modules.sales_agent.infrastructure.monitoring.tracing import trace_node
 
 @trace_node("researcher")
 def node_researcher(state: OnboardingState) -> dict[str, Any]:
-    """
-    Research Agent: Scrapes the target URL to enrich the offer context.
-    """
+    """Research Agent: Scrapes the target URL to enrich the offer context."""
     target_url = state.get("target_url")
 
     if not target_url:

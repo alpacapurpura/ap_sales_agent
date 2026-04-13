@@ -1,3 +1,5 @@
+"""SQLAlchemy model for appointment model."""
+
 import uuid
 
 from sqlalchemy import Column, DateTime, ForeignKey, String
@@ -9,6 +11,8 @@ from src.shared.domain.base_entity import Base
 
 
 class AppointmentModel(Base):
+    """SQLAlchemy model for appointment."""
+
     __tablename__ = "appointments"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

@@ -1,3 +1,5 @@
+"""Event Types API endpoints."""
+
 from typing import Annotated
 
 import structlog
@@ -21,6 +23,7 @@ async def list_event_types(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> list[EventType]:
+    """List event types."""
     service = EventTypeService(db, user.tenant_id)
     return service.list_event_types()
 
@@ -31,6 +34,7 @@ async def create_event_type(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> EventType:
+    """Create a new event type."""
     service = EventTypeService(db, user.tenant_id)
     return service.create_event_type(event_type)
 
@@ -42,6 +46,7 @@ async def update_event_type(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> EventType:
+    """Update event type."""
     service = EventTypeService(db, user.tenant_id)
     updated = service.update_event_type(event_type_id, update)
     if not updated:
@@ -55,6 +60,7 @@ async def delete_event_type(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
+    """Delete event type."""
     service = EventTypeService(db, user.tenant_id)
     deleted = service.delete_event_type(event_type_id)
     if not deleted:

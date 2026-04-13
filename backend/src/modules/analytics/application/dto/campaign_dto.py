@@ -8,6 +8,8 @@ from pydantic import BaseModel
 
 
 class CampaignDTO(BaseModel):
+    """Data transfer object for campaign."""
+
     external_id: str
     name: str
     objective: str | None = None
@@ -25,6 +27,8 @@ class CampaignDTO(BaseModel):
 
 
 class AdSetDTO(BaseModel):
+    """Data transfer object for ad set."""
+
     external_id: str
     campaign_external_id: str
     name: str
@@ -38,6 +42,8 @@ class AdSetDTO(BaseModel):
 
 
 class AdDTO(BaseModel):
+    """Data transfer object for ad."""
+
     external_id: str
     name: str
     status: str | None = None
@@ -49,6 +55,8 @@ class AdDTO(BaseModel):
 
 
 class RecommendationDTO(BaseModel):
+    """Data transfer object for recommendation."""
+
     recommendation_type: str
     source: str
     title: str | None = None
@@ -61,6 +69,8 @@ class RecommendationDTO(BaseModel):
 
 
 class CampaignOverviewDTO(BaseModel):
+    """Data transfer object for campaign overview."""
+
     campaigns: list[CampaignDTO]
     recommendations: list[RecommendationDTO]
     total_campaigns: int

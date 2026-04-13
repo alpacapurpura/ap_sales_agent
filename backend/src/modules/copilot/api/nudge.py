@@ -1,5 +1,4 @@
-"""
-Proactive Nudge Endpoint — returns contextual suggestions based on module completion state.
+"""Proactive Nudge Endpoint — returns contextual suggestions based on module completion state.
 
 Uses MODULE_REGISTRY + schema_introspection to detect gaps dynamically.
 Caches results in Redis for 5 minutes per tenant+route.

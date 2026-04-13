@@ -1,3 +1,5 @@
+"""Webhooks API endpoints."""
+
 import uuid
 from typing import Annotated
 
@@ -16,9 +18,7 @@ logger = structlog.get_logger()
 
 
 async def _handle_user_sync(repo: UserRepository, data: dict, event_type: str) -> None:
-    """
-    Syncs user data from Clerk to local DB.
-    """
+    """Synchronize user data from Clerk to local DB."""
     clerk_id = data.get("id")
     email_addresses = data.get("email_addresses", [])
     primary_email_id = data.get("primary_email_address_id")
@@ -72,9 +72,7 @@ async def _handle_user_sync(repo: UserRepository, data: dict, event_type: str) -
 
 
 async def _handle_user_deletion(repo: UserRepository, data: dict) -> None:
-    """
-    Soft deletes user when deleted in Clerk.
-    """
+    """Soft deletes user when deleted in Clerk."""
     clerk_id = data.get("id")
     user = repo.get_by_clerk_id(clerk_id)
 
@@ -88,11 +86,10 @@ async def _handle_user_deletion(repo: UserRepository, data: dict) -> None:
 
 @router.post("/clerk", status_code=status.HTTP_200_OK)
 async def clerk_webhook_handler(request: Request, db: Annotated[Session, Depends(get_db)]) -> dict[str, str]:
-    """
-    Handle incoming webhooks from Clerk (User Created, Updated, Deleted).
+    """Handle incoming webhooks from Clerk (User Created, Updated, Deleted).
+
     Verifies the signature using Svix.
     """
-
     # 1. Get Headers
     headers = request.headers
     payload = await request.body()

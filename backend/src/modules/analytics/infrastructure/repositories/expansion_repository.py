@@ -23,6 +23,7 @@ class ExpansionMetricsRepository:
     """Aggregate expansion-stage metrics from CRM tables."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize expansion metrics repository."""
         self.db = db
 
     def get_expansion_sales_grouped(
@@ -40,6 +41,7 @@ class ExpansionMetricsRepository:
         Returns:
             {"renewals": [(offer_id, count, amount, currency), ...],
              "upsells": [(offer_id, count, amount, currency), ...]}
+
         """
         base_where = [
             SaleModel.tenant_id == tenant_id,

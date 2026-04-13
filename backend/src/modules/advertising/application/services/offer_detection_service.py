@@ -55,6 +55,7 @@ class OfferDetectionService:
     """Suggest offer associations for unassigned campaigns/ad sets."""
 
     def __init__(self, db: Session, offer_read_port: OfferReadPort) -> None:
+        """Initialize OfferDetectionService."""
         self._db = db
         self._offer_read_port = offer_read_port
         self._catalog_repo = MetaCatalogRepository(db)

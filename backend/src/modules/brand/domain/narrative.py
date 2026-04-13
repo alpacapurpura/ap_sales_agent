@@ -1,3 +1,5 @@
+"""Brand narrative value objects."""
+
 import uuid
 
 from pydantic import ConfigDict, Field
@@ -79,9 +81,9 @@ class StoryBrandOutcome(BaseEntity):
 
 
 class BrandNarrative(BaseEntity):
-    """
-    StoryBrand framework (Donald Miller): Complete brand narrative model.
-    Hero → Problem → Guide → Plan → CTA → Outcome.
+    """Represent the complete brand narrative using StoryBrand framework (Donald Miller).
+
+    Hero -> Problem -> Guide -> Plan -> CTA -> Outcome.
     """
 
     hero: StoryBrandHero | None = None

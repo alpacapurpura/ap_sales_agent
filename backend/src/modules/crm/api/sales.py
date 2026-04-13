@@ -1,3 +1,5 @@
+"""CRM sales API endpoints."""
+
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Literal
 from uuid import UUID
@@ -20,6 +22,8 @@ router = APIRouter(tags=["Sales"])
 
 
 class TickerItem(BaseModel):
+    """Represent ticker item data."""
+
     id: UUID
     amount: float
     currency: str
@@ -30,6 +34,8 @@ class TickerItem(BaseModel):
 
 
 class SaleCreate(BaseModel):
+    """Represent sale create data."""
+
     customer_id: UUID
     offer_id: UUID
     amount: float
@@ -41,6 +47,8 @@ class SaleCreate(BaseModel):
 
 
 class SaleResponse(BaseModel):
+    """Response schema for sale."""
+
     id: UUID
     tenant_id: UUID
     customer_id: UUID
@@ -65,6 +73,7 @@ def create_sale(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> SaleResponse:
+    """Create sale."""
     service = SaleService(db)
     # Instantiate service logic
     new_sale = service.create_sale(
@@ -103,6 +112,7 @@ async def get_ticker(
     user: Annotated[User, Depends(get_current_user)],
     range_: Annotated[Literal["today", "week", "30d", "all"], Query(alias="range")] = "30d",
 ) -> list[TickerItem]:
+    """Return ticker."""
     repo = SaleRepository(db)
     now = datetime.now(UTC)
 

@@ -75,6 +75,7 @@ class AdoptionStageService:
         connection_port: ConnectionPort | None = None,
         offer_port: OfferReadPort | None = None,
     ) -> None:
+        """Initialize adoption stage service."""
         self.db = db
         self.cache = cache
         self.connection_port = connection_port

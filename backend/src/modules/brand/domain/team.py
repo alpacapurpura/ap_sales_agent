@@ -1,3 +1,5 @@
+"""Brand team value objects."""
+
 from typing import Any
 
 from pydantic import ConfigDict, Field, model_validator
@@ -6,6 +8,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class KeyFigure(BaseEntity):
+    """Represent key figure data."""
+
     id: str
     name: str
     role: str
@@ -26,6 +30,8 @@ class KeyFigure(BaseEntity):
 
 
 class BrandTeamWrapper(BaseEntity):
+    """Represent brand team wrapper data."""
+
     key_leadership: list[KeyFigure] = Field(
         default_factory=list,
         description="Personas clave identificadas",
@@ -35,6 +41,8 @@ class BrandTeamWrapper(BaseEntity):
 
 
 class BrandContact(BaseEntity):
+    """Represent brand contact data."""
+
     # Frontend ContactData fields
     support_email: str | None = None
     sales_email: str | None = None
@@ -58,9 +66,7 @@ class BrandContact(BaseEntity):
     @model_validator(mode="before")
     @classmethod
     def migrate_legacy_fields(cls, data: Any) -> Any:  # noqa: ANN401
-        """
-        Migrate legacy fields (email, website, social dict) into structured fields.
-        """
+        """Migrate legacy fields (email, website, social dict) into structured fields."""
         if isinstance(data, dict):
             # 1. Migrate email -> support_email
             if not data.get("support_email") and data.get("email"):
@@ -85,6 +91,8 @@ class BrandContact(BaseEntity):
 
 
 class BrandTestimonial(BaseEntity):
+    """Represent brand testimonial data."""
+
     # Frontend TestimonialItem fields
     id: str | None = None
     type: str | None = "text"  # "text" | "video"
@@ -105,6 +113,7 @@ class BrandTestimonial(BaseEntity):
     @model_validator(mode="before")
     @classmethod
     def migrate_legacy_testimonial(cls, data: Any) -> Any:  # noqa: ANN401
+        """Execute migrate legacy testimonial operation."""
         if isinstance(data, dict):
             if not data.get("author_name") and data.get("author"):
                 data["author_name"] = data["author"]
@@ -118,6 +127,8 @@ class BrandTestimonial(BaseEntity):
 
 
 class BrandAuthorityItem(BaseEntity):
+    """Represent brand authority item data."""
+
     # Frontend AuthorityItem fields
     id: str | None = None
     entity_name: str | None = None
@@ -135,6 +146,7 @@ class BrandAuthorityItem(BaseEntity):
     @model_validator(mode="before")
     @classmethod
     def migrate_legacy_authority(cls, data: Any) -> Any:  # noqa: ANN401
+        """Execute migrate legacy authority operation."""
         if isinstance(data, dict):
             if not data.get("entity_name") and data.get("title"):
                 data["entity_name"] = data["title"]
@@ -144,8 +156,8 @@ class BrandAuthorityItem(BaseEntity):
 
 
 class BrandTeam(BaseEntity):
-    """
-    Legacy Information about the people behind the brand.
+    """Hold legacy information about the people behind the brand.
+
     Kept for backward compatibility or metadata.
     """
 

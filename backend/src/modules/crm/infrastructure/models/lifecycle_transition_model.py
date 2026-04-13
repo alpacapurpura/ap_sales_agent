@@ -1,5 +1,4 @@
-"""
-Lifecycle Transition audit trail model.
+"""Lifecycle Transition audit trail model.
 
 Records every lifecycle_stage change with full context:
 who triggered it, why, the score at the time, and any extra metadata.
@@ -18,6 +17,8 @@ from src.shared.domain.base_entity import Base
 
 
 class LifecycleTransitionModel(Base):
+    """SQLAlchemy model for lifecycle transition."""
+
     __tablename__ = "lifecycle_transitions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

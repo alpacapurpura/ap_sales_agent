@@ -44,6 +44,7 @@ def _get_module_completion(db: Session, tenant_id: object, module_id: str, regis
 
 
 def render_tenant_health() -> None:
+    """Render the cross-tenant health overview with drill-down."""
     st.title("🏥 Salud de Tenants")
 
     from src.admin.modules._shared import (

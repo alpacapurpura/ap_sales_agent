@@ -10,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class AdRecommendationModel(Base):
+    """SQLAlchemy model for ad recommendation."""
+
     __tablename__ = "ad_recommendations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

@@ -30,6 +30,7 @@ async def run_offer_extraction(
     update_instructions: str | None = None,
     **_extra_kwargs: object,
 ) -> dict:
+    """Run offer extraction."""
     redis = ctx.get("redis_cache")
     progress_key = f"offer_extract:{tenant_id}:{job_id}"
 

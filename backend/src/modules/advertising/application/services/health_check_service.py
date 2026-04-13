@@ -62,6 +62,7 @@ class HealthCheckService:
     """Build the MetaHealthCheckDTO for a tenant."""
 
     def __init__(self, db: Session, offer_read_port: OfferReadPort) -> None:
+        """Initialize HealthCheckService."""
         self._db = db
         self._offer_read_port = offer_read_port
         self._catalog_repo = MetaCatalogRepository(db)
@@ -69,6 +70,7 @@ class HealthCheckService:
         self._metrics_repo = MetricsRepository(db)
 
     async def run(self, tenant_id: UUID) -> MetaHealthCheckDTO:
+        """Execute the main operation."""
         catalog = self._catalog_repo.load(tenant_id)
         all_offers = await self._offer_read_port.get_offers_by_tenant(tenant_id)
         active_offers = [o for o in all_offers if (o.status or "active") not in {"archived", "draft"}]

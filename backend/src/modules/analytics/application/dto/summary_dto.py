@@ -9,6 +9,8 @@ from pydantic import BaseModel
 
 
 class StageSummaryKpiDTO(BaseModel):
+    """Data transfer object for stage summary kpi."""
+
     stage: str
     main_kpi: float
     main_label: str
@@ -19,6 +21,8 @@ class StageSummaryKpiDTO(BaseModel):
 
 
 class BowtiesSummaryDTO(BaseModel):
+    """Data transfer object for bowties summary."""
+
     stages: list[StageSummaryKpiDTO]
     period: str
     last_updated: str | None = None

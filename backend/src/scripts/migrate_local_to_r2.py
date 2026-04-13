@@ -1,5 +1,4 @@
-"""
-Migration script: Move existing LOCAL assets to Cloudflare R2.
+"""Migration script: Move existing LOCAL assets to Cloudflare R2.
 
 Usage (inside container):
     docker exec -it visionarias_brain_dev python src/scripts/migrate_local_to_r2.py
@@ -35,6 +34,7 @@ from src.modules.assets.infrastructure.storage.r2 import R2StorageStrategy
 
 
 def migrate(dry_run: bool = False) -> None:
+    """Move locally-stored assets to Cloudflare R2."""
     print(f"{'[DRY RUN] ' if dry_run else ''}Starting LOCAL → R2 asset migration...")
     print(f"  Bucket:     {settings.R2_BUCKET_NAME}")
     print(f"  Endpoint:   {settings.R2_ENDPOINT_URL}")

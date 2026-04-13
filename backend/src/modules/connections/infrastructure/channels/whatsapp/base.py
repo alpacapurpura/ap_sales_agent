@@ -1,3 +1,5 @@
+"""Base channel adapter."""
+
 import contextlib
 from typing import Any
 
@@ -12,9 +14,7 @@ logger = structlog.get_logger()
 
 
 class BaseEvolutionApi(WhatsAppProvider):
-    """
-    Base strategy for Evolution API (Common logic for V1 and V2).
-    """
+    """Base strategy for Evolution API (Common logic for V1 and V2)."""
 
     def _normalize_jid(self, user_id: str) -> str:
         """Ensure JID has the correct suffix."""
@@ -23,8 +23,8 @@ class BaseEvolutionApi(WhatsAppProvider):
         return user_id
 
     def normalize_payload(self, payload: dict[str, Any]) -> IncomingMessage | None:
-        """
-        Common payload normalization logic.
+        """Normalize payload with common logic.
+
         Extracts message text, sender info, and metadata.
         """
         data = payload.get("data", {})
@@ -65,6 +65,7 @@ class BaseEvolutionApi(WhatsAppProvider):
         )
 
     async def send_message(self, message: OutgoingMessage) -> dict[str, Any]:
+        """Send message."""
         url = f"{self.base_url}/message/sendText/{self.tenant_id}"
 
         remote_jid = self._normalize_jid(message.user_id)
@@ -98,6 +99,7 @@ class BaseEvolutionApi(WhatsAppProvider):
                 raise
 
     async def set_typing_status(self, user_id: str) -> None:
+        """Set typing status."""
         url = f"{self.base_url}/chat/sendPresence/{self.tenant_id}"
         remote_jid = self._normalize_jid(user_id)
 
@@ -107,18 +109,21 @@ class BaseEvolutionApi(WhatsAppProvider):
                 await client.post(url, json=payload, headers=self.headers, timeout=5.0)
 
     async def delete_instance(self) -> dict[str, Any]:
+        """Delete instance."""
         url = f"{self.base_url}/instance/delete/{self.tenant_id}"
         async with httpx.AsyncClient() as client:
             resp = await client.delete(url, headers=self.headers)
             return {"status": resp.status_code}
 
     async def logout(self) -> dict[str, Any]:
+        """Logout."""
         url = f"{self.base_url}/instance/logout/{self.tenant_id}"
         async with httpx.AsyncClient() as client:
             resp = await client.delete(url, headers=self.headers)
             return {"status": resp.status_code}
 
     async def check_status(self) -> dict[str, Any]:
+        """Check status."""
         url = f"{self.base_url}/instance/connectionState/{self.tenant_id}"
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, headers=self.headers, timeout=5.0)
@@ -131,6 +136,7 @@ class BaseEvolutionApi(WhatsAppProvider):
             return {"exists": True, "state": "error", "error": resp.text}
 
     async def get_qr(self) -> dict[str, Any]:
+        """Retrieve qr."""
         url = f"{self.base_url}/instance/connect/{self.tenant_id}"
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, headers=self.headers)

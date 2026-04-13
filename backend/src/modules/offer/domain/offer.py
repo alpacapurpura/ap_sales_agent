@@ -1,3 +1,5 @@
+"""Offer domain module."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -40,6 +42,8 @@ ARCHETYPE_TO_DETAILS_MAPPING: dict[OfferArchetype, type[BaseEntity]] = {
 
 
 class PricingStructure(BaseEntity):
+    """Pricing Structure."""
+
     label: str
     plan_type: PaymentPlanType | None = None
     total_amount: float
@@ -55,6 +59,8 @@ class PricingStructure(BaseEntity):
 
 
 class DeliverableItem(BaseEntity):
+    """Deliverable Item."""
+
     name: str
     format: DeliverableFormat
     quantity: str
@@ -72,9 +78,7 @@ class ObjectionItem(BaseEntity):
 
 
 class Offer(BaseEntity):
-    """
-    La Entidad Oferta Maestra con Detalles Polimórficos.
-    """
+    """La Entidad Oferta Maestra con Detalles Polimórficos."""
 
     id: UUID | None = None
     tenant_id: UUID | None = None
@@ -155,14 +159,17 @@ class Offer(BaseEntity):
 
     @property
     def is_archived(self) -> bool:
+        """Check if archived."""
         return self.archived_at is not None
 
     @property
     def is_deleted(self) -> bool:
+        """Check if deleted."""
         return self.deleted_at is not None
 
     @model_validator(mode="after")
     def validate_consistency(self) -> Offer:
+        """Validate consistency."""
         if self.delivery_model is None:
             self.delivery_model = ARCHETYPE_DEFAULT_DELIVERY.get(self.archetype)
 
@@ -190,11 +197,15 @@ class Offer(BaseEntity):
 
 
 class OfferIdentityUpdate(BaseEntity):
+    """Offer Identity Update."""
+
     internal_sku: str | None = None
     public_name: str | None = None
 
 
 class OfferStrategyUpdate(BaseEntity):
+    """Offer Strategy Update."""
+
     value_level: OfferValueLevel | None = Field(
         None,
         serialization_alias="offer_value_level",
@@ -203,12 +214,16 @@ class OfferStrategyUpdate(BaseEntity):
 
 
 class OfferPromiseUpdate(BaseEntity):
+    """Offer Promise Update."""
+
     headline_promise: str | None = None
     primary_outcome: str | None = None
     time_to_value: str | None = None
 
 
 class OfferPsychologyUpdate(BaseEntity):
+    """Offer Psychology Update."""
+
     target_avatar_match: list[AvatarPersona] | None = None
     anti_avatar_keywords: list[str] | None = None
     marketing_pain_points: list[str] | None = None
@@ -217,17 +232,23 @@ class OfferPsychologyUpdate(BaseEntity):
 
 
 class OfferValueStackUpdate(BaseEntity):
+    """Offer Value Stack Update."""
+
     deliverables: list[DeliverableItem] | None = None
     includes_offers: list[UUID] | None = None
 
 
 class OfferPricingUpdate(BaseEntity):
+    """Offer Pricing Update."""
+
     pricing_options: list[PricingStructure] | None = None
     price_pay_in_full: float | None = None
     currency: str | None = None
 
 
 class OfferDetailsUpdate(BaseEntity):
+    """Offer Details Update."""
+
     specific_details: ProductDetails | ServiceDetails | ProgramDetails | SubscriptionDetails | EventDetails | None = (
         None
     )
@@ -237,11 +258,15 @@ class OfferDetailsUpdate(BaseEntity):
 
 
 class OfferVisualsUpdate(BaseEntity):
+    """Offer Visuals Update."""
+
     vsl_link: str | None = None
     metadata_info: dict[str, Any] | None = None
 
 
 class OfferClosingUpdate(BaseEntity):
+    """Offer Closing Update."""
+
     guarantee_type: GuaranteeType | None = None
     guarantee_terms: str | None = None
     checkout_page_url: str | None = None
@@ -253,8 +278,12 @@ class OfferClosingUpdate(BaseEntity):
 
 
 class OfferResourcesUpdate(BaseEntity):
+    """Offer Resources Update."""
+
     landing_page_config: dict[str, Any] | None = None
 
 
 class OfferInstructorsUpdate(BaseEntity):
+    """Offer Instructors Update."""
+
     instructors: list[str] | None = None

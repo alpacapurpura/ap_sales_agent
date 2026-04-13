@@ -1,3 +1,5 @@
+"""Brand domain entities."""
+
 from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
@@ -8,6 +10,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class ExtractRequest(BaseEntity):
+    """Request schema for extract."""
+
     url: str = Field(..., description="URL to scrape")
     type: Literal["brand_identity"] = Field(
         "brand_identity",
@@ -16,6 +20,8 @@ class ExtractRequest(BaseEntity):
 
 
 class Avatar(BaseEntity):
+    """Represent avatar data."""
+
     id: UUID
     tenant_id: UUID | None = None
     user_id: UUID | None = None

@@ -1,3 +1,5 @@
+"""Offer Ai API endpoints."""
+
 from typing import Annotated
 from uuid import UUID
 
@@ -24,8 +26,8 @@ async def generate_offer_psychology(
     db: Annotated[Session, Depends(get_db)],
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
 ) -> PsychologyGenerationResponse:
-    """
-    Generates AI-powered psychology insights (pains & desires) for an offer.
+    """Generate AI-powered psychology insights (pains & desires) for an offer.
+
     Requires an Avatar ID and Offer Context.
     """
     if not tenant_id:

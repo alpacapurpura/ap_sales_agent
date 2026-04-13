@@ -1,5 +1,4 @@
-"""
-Procedure Engine — schema-driven multi-step workflows for the copilot.
+"""Procedure Engine — schema-driven multi-step workflows for the copilot.
 
 Procedures are declared with steps that reference MODULE_REGISTRY modules.
 Completion is checked dynamically via schema_introspection — no hardcoded fields.
@@ -20,6 +19,8 @@ from src.modules.copilot.domain.schema_introspection import (
 
 @dataclass
 class ProcedureStep:
+    """Handle procedure step logic."""
+
     step_id: str
     module_id: str  # "brand", "offer" → lookup in MODULE_REGISTRY
     section_id: str | None  # Section in the Pydantic model (auto-discovered)
@@ -31,6 +32,8 @@ class ProcedureStep:
 
 @dataclass
 class Procedure:
+    """Handle procedure logic."""
+
     procedure_id: str
     name: str
     description: str

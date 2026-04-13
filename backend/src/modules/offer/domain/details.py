@@ -1,3 +1,5 @@
+"""Details domain module."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -21,6 +23,8 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class SessionDetails(BaseEntity):
+    """Session Details."""
+
     title: str
     day_of_week: str
     time: str
@@ -28,6 +32,8 @@ class SessionDetails(BaseEntity):
 
 
 class ProductDetails(BaseEntity):
+    """Product Details."""
+
     fulfillment_type: FulfillmentType | None = None
     access_url: HttpUrl | None = None
     access_instructions: str | None = None
@@ -41,6 +47,7 @@ class ProductDetails(BaseEntity):
 
     @model_validator(mode="after")
     def validate_fulfillment_logic(self) -> ProductDetails:
+        """Validate fulfillment logic."""
         if self.format == DigitalFormat.PHYSICAL_ITEM and self.fulfillment_type != FulfillmentType.PHYSICAL_SHIPPING:
             msg = "Format is PHYSICAL but fulfillment is set to Digital."
             raise ValueError(msg)
@@ -48,6 +55,8 @@ class ProductDetails(BaseEntity):
 
 
 class ServiceDetails(BaseEntity):
+    """Service for details operations."""
+
     category: ServiceCategory | None = None
     interaction_mode: InteractionMode | None = None
     frequency_type: ServiceFrequency | None = None
@@ -66,12 +75,16 @@ class ServiceDetails(BaseEntity):
 
 
 class ProgramModule(BaseEntity):
+    """Program Module."""
+
     title: str
     description: str | None = None
     topics: list[str] = []
 
 
 class ProgramDetails(BaseEntity):
+    """Program Details."""
+
     curriculum: list[ProgramModule] = []
     structure_type: ProgramStructure | None = None
     start_date: datetime | None = None
@@ -93,6 +106,7 @@ class ProgramDetails(BaseEntity):
 
     @model_validator(mode="after")
     def validate_program_logic(self) -> ProgramDetails:
+        """Validate program logic."""
         if self.start_date and self.end_date and self.end_date < self.start_date:
             msg = "End date cannot be before start date."
             raise ValueError(msg)
@@ -100,6 +114,8 @@ class ProgramDetails(BaseEntity):
 
 
 class SubscriptionDetails(BaseEntity):
+    """Subscription Details."""
+
     billing_cycle: BillingFrequency | None = None
     trial_period_days: int = 0
     tier_name: str | None = None
@@ -111,6 +127,8 @@ class SubscriptionDetails(BaseEntity):
 
 
 class EventDetails(BaseEntity):
+    """Event Details."""
+
     start_date: datetime | None = None
     end_date: datetime | None = None
     timezone: str = "UTC"
@@ -129,6 +147,7 @@ class EventDetails(BaseEntity):
 
     @model_validator(mode="after")
     def validate_event_logistics(self) -> EventDetails:
+        """Validate event logistics."""
         if self.start_date and self.end_date and self.end_date <= self.start_date:
             msg = "Event end_date must be after start_date."
             raise ValueError(msg)

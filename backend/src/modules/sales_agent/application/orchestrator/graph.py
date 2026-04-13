@@ -1,3 +1,5 @@
+"""Graph application module."""
+
 from typing import Any
 
 from langgraph.graph import END, START, StateGraph
@@ -10,18 +12,14 @@ from src.modules.sales_agent.infrastructure.monitoring.tracing import trace_node
 # Nodes
 @trace_node("main_supervisor")
 def supervisor_node(state: AgentState) -> dict[str, str]:
-    """
-    Main entry point. Routes to sub-agents.
-    """
+    """Route to sub-agents as the main entry point."""
     # For now, simple pass-through to Sales Agent
     return {"next_node": "sales_agent"}
 
 
 @trace_node("sales_agent_subgraph_wrapper")
 def sales_agent_node(state: AgentState) -> dict[str, Any]:
-    """
-    Wraps the Sales Subgraph.
-    """
+    """Invoke the Sales Subgraph."""
     # Invoke the subgraph here
     result = sales_app.invoke(state)
     return result

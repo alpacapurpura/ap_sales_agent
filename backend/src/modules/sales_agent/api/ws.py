@@ -16,8 +16,7 @@ async def closer_studio_ws(
     websocket: WebSocket,
     tenant_id: str = Query(...),
 ) -> None:
-    """
-    WebSocket endpoint for Closer Studio.
+    """WebSocket endpoint for Closer Studio.
 
     Connect with: ws://<host>/ws/closer-studio?tenant_id=<uuid>
 

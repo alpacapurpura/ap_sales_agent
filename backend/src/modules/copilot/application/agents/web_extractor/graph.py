@@ -1,9 +1,13 @@
+"""Copilot web extractor agent graph definition."""
+
 from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
 
 class WebExtractorState(TypedDict):
+    """Define web extractor state typed dictionary."""
+
     url: str
     content: str | None
     metadata: dict[str, Any] | None
@@ -11,9 +15,7 @@ class WebExtractorState(TypedDict):
 
 
 def extract_node(state: WebExtractorState) -> dict[str, str | dict[str, str]]:
-    """
-    Placeholder for web extraction logic.
-    """
+    """Hold placeholder for web extraction logic."""
     # In real impl, this would use Firecrawl or similar
     return {
         "content": f"Mock content from {state['url']}",

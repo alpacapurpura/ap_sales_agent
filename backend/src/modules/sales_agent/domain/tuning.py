@@ -1,5 +1,4 @@
-"""
-Centralized tunable parameters for the sales agent.
+"""Centralized tunable parameters for the sales agent.
 
 Adjust these values to tune agent behavior without modifying business logic.
 """

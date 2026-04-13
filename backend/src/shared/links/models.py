@@ -1,3 +1,5 @@
+"""SQLAlchemy model for shareable links."""
+
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
@@ -8,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class ShareableLink(Base):
+    """Persistent shareable link with token, expiration, and visit tracking."""
+
     __tablename__ = "shareable_links"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

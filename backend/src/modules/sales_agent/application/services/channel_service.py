@@ -1,3 +1,5 @@
+"""Channel service."""
+
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -10,7 +12,10 @@ from src.shared.domain.enums import ChannelType
 
 
 class ChannelService:
+    """Service for channel operations."""
+
     def __init__(self, db: Session) -> None:
+        """Initialize service with dependencies."""
         self.db = db
         self.repository = ChannelRepository(db)
 
@@ -19,6 +24,7 @@ class ChannelService:
         tenant_id: UUID,
         channel_type: ChannelType,
     ) -> ChannelConnection | None:
+        """Retrieve active channel."""
         return self.repository.get_active_connection(tenant_id, channel_type)
 
     def register_channel(
@@ -28,6 +34,7 @@ class ChannelService:
         credentials: dict,
         config: dict | None = None,
     ) -> ChannelConnection:
+        """Register channel."""
         import uuid
 
         # Check if exists and update or create new? For now simple create

@@ -1,0 +1,1 @@
+"""Channel adapter infrastructure package."""

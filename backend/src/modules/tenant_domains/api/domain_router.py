@@ -1,3 +1,5 @@
+"""Domain Router API endpoints."""
+
 from typing import Annotated
 from uuid import UUID
 
@@ -47,6 +49,7 @@ async def create_domain(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> DomainResponse:
+    """Create a new domain."""
     service = DomainService(db)
     try:
         if body.domain_type == DomainType.PLATFORM:
@@ -87,6 +90,7 @@ async def list_domains(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> list[DomainResponse]:
+    """List domains."""
     service = DomainService(db)
     domains = service.list_domains(tenant_id=user.tenant_id)
     return [_to_response(d) for d in domains]
@@ -98,6 +102,7 @@ async def get_domain(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> DomainResponse:
+    """Retrieve domain."""
     service = DomainService(db)
     domain = service.get_domain(domain_id=domain_id, tenant_id=user.tenant_id)
     if not domain:
@@ -112,6 +117,7 @@ async def set_primary(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> DomainResponse:
+    """Handle set primary request."""
     if not body.is_primary:
         raise HTTPException(
             status_code=400,
@@ -131,6 +137,7 @@ async def delete_domain(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> None:
+    """Delete domain."""
     service = DomainService(db)
     try:
         service.delete_domain(domain_id=domain_id, tenant_id=user.tenant_id)
@@ -144,6 +151,7 @@ async def verify_domain(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> DomainResponse:
+    """Verify domain."""
     service = DomainService(db)
     try:
         domain = service.verify_domain(domain_id=domain_id, tenant_id=user.tenant_id)

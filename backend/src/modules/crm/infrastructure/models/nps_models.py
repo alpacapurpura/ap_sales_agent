@@ -10,6 +10,8 @@ from src.shared.domain.base_entity import Base
 
 
 class NpsSurveyModel(Base):
+    """SQLAlchemy model for nps survey."""
+
     __tablename__ = "nps_surveys"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -37,6 +39,8 @@ class NpsSurveyModel(Base):
 
 
 class NpsResponseModel(Base):
+    """SQLAlchemy model for nps response."""
+
     __tablename__ = "nps_responses"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
