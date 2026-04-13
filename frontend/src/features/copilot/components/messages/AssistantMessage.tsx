@@ -98,7 +98,11 @@ export function AssistantMessage({ message, isStreaming }: AssistantMessageProps
                 return action.clarify_items ? (
                   <ClarifyCard
                     key={`clarify-${idx}`}
-                    items={action.clarify_items}
+                    items={action.clarify_items.map((item) => ({
+                      fieldPath: item.field_path,
+                      issue: item.issue,
+                      options: item.options,
+                    }))}
                     onResolve={() => {}}
                     status={action.card_status === "resolved" ? "resolved" : "pending"}
                   />

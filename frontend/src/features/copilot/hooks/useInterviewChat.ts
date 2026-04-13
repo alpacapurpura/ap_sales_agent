@@ -1,21 +1,35 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-import { useAuth } from "@clerk/nextjs";
+/**
+ * @deprecated Use useCopilotChat instead. This wrapper exists for backward
+ * compatibility with InterviewSplitView until Phase 3 replaces it.
+ *
+ * All interview chat now goes through the unified /copilot/chat endpoint
+ * with interview_session_id in the context payload.
+ */
+
+import { useEffect, useCallback } from "react";
 import { useCopilotStore } from "../store/copilot-store";
-import { streamCopilotChat, getCopilotHeaders } from "../api/copilot-api";
-import { config } from "@/lib/config";
+import { useCopilotChat } from "./useCopilotChat";
 
-const API_URL = config.api.baseUrl;
-
-// ── Interview-specific UIAction types ──────────────────────────────────────
-
+// Re-export interview-specific types for backward compatibility
 export type InterviewUIActionType =
   | "preview_update"
   | "alternatives_card"
   | "clarify_card"
   | "checkpoint_card"
   | "interview_complete";
+
+export type InterviewStatus = "idle" | "thinking" | "streaming";
+
+export interface InterviewMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  uiActions?: InterviewUIAction[];
+}
+
+// ── Detailed card action types (kept for backward compatibility with consumers) ──
 
 export interface PreviewUpdateAction {
   type: "preview_update";
@@ -70,223 +84,64 @@ export type InterviewUIAction =
   | CheckpointCardAction
   | InterviewCompleteAction;
 
-// ── Message type for the interview chat ────────────────────────────────────
+// ── Hook ────────────────────────────────────────────────────────────────────
 
-export interface InterviewMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  uiActions?: InterviewUIAction[];
-}
+export function useInterviewChat(
+  sessionId: string | null,
+  conversationId: string | null,
+) {
+  const { sendMessage: _send, stopStreaming } = useCopilotChat();
 
-export type InterviewStatus = "idle" | "thinking" | "streaming" | "done";
+  // Sync sessionId into the store
+  useEffect(() => {
+    if (sessionId) {
+      useCopilotStore.getState().setInterviewSession(sessionId);
+    }
+  }, [sessionId]);
 
-// ── Hook ───────────────────────────────────────────────────────────────────
+  // Sync conversationId into the store
+  useEffect(() => {
+    if (conversationId) {
+      useCopilotStore.getState().setConversationId(conversationId);
+    }
+  }, [conversationId]);
 
-export function useInterviewChat(sessionId: string | null, conversationId: string | null) {
-  const [messages, setMessages] = useState<InterviewMessage[]>([]);
-  const [status, setStatus] = useState<InterviewStatus>("idle");
-
-  const { getToken } = useAuth();
-  const abortRef = useRef<AbortController | null>(null);
-
-  // Add initial assistant message (e.g. from startInterview.initial_message)
-  const addInitialMessage = useCallback((content: string) => {
-    setMessages([
-      {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content,
-      },
-    ]);
-  }, []);
-
-  // Core send logic — used by both sendMessage and sendCardAction
-  const send = useCallback(
-    async (text: string, isCardAction: boolean = false) => {
-      if (!text.trim()) return;
-
-      // Add user message (card actions also show the user bubble)
-      const userMsg: InterviewMessage = {
-        id: crypto.randomUUID(),
-        role: "user",
-        content: text.trim(),
-      };
-      setMessages((prev) => [...prev, userMsg]);
-
-      // Add placeholder assistant message for streaming
-      const assistantId = crypto.randomUUID();
-      const assistantMsg: InterviewMessage = {
-        id: assistantId,
-        role: "assistant",
-        content: "",
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-
-      // Abort any in-flight request
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-
-      setStatus("thinking");
-
-      try {
-        const token = await getToken();
-        if (!token) {
-          setMessages((prev) => {
-            const copy = [...prev];
-            const last = copy[copy.length - 1];
-            if (last && last.role === "assistant") {
-              copy[copy.length - 1] = {
-                ...last,
-                content: "_Error: No se pudo obtener el token de autenticación._",
-              };
-            }
-            return copy;
-          });
-          setStatus("idle");
-          return;
-        }
-
-        // If we have an interview session, use the dedicated interview endpoint.
-        // It accepts the same SSE format as the copilot chat endpoint.
-        // Falls back to the general copilot chat with conversationId when no session.
-        if (sessionId) {
-          await streamInterviewMessage(
-            sessionId,
-            text.trim(),
-            {
-              onTextChunk: (chunk) => {
-                setStatus("streaming");
-                setMessages((prev) => {
-                  const copy = [...prev];
-                  const last = copy[copy.length - 1];
-                  if (last && last.role === "assistant") {
-                    copy[copy.length - 1] = {
-                      ...last,
-                      content: last.content + chunk,
-                    };
-                  }
-                  return copy;
-                });
-              },
-              onStatus: (state) => {
-                setStatus(state as InterviewStatus);
-              },
-              onDone: (_convId) => {
-                setStatus("idle");
-              },
-              onError: (message) => {
-                setMessages((prev) => {
-                  const copy = [...prev];
-                  const last = copy[copy.length - 1];
-                  if (last && last.role === "assistant") {
-                    copy[copy.length - 1] = {
-                      ...last,
-                      content: `_Error: ${message}_`,
-                    };
-                  }
-                  return copy;
-                });
-                setStatus("idle");
-              },
-              onUIAction: (action) => {
-                const uiAction = action as unknown as InterviewUIAction;
-                handleUIAction(uiAction, setMessages, setStatus);
-              },
-            },
-            token,
-            controller.signal,
-          );
-        } else {
-          // Fallback: use the existing copilot chat SSE endpoint with conversation_id
-          await streamCopilotChat(
-            {
-              message: text.trim(),
-              conversation_id: conversationId,
-              context: { locale: "es" },
-            },
-            {
-              onTextChunk: (chunk) => {
-                setStatus("streaming");
-                setMessages((prev) => {
-                  const copy = [...prev];
-                  const last = copy[copy.length - 1];
-                  if (last && last.role === "assistant") {
-                    copy[copy.length - 1] = {
-                      ...last,
-                      content: last.content + chunk,
-                    };
-                  }
-                  return copy;
-                });
-              },
-              onStatus: (state) => {
-                setStatus(state as InterviewStatus);
-              },
-              onDone: (_convId) => {
-                setStatus("idle");
-              },
-              onError: (message) => {
-                setMessages((prev) => {
-                  const copy = [...prev];
-                  const last = copy[copy.length - 1];
-                  if (last && last.role === "assistant") {
-                    copy[copy.length - 1] = {
-                      ...last,
-                      content: `_Error: ${message}_`,
-                    };
-                  }
-                  return copy;
-                });
-                setStatus("idle");
-              },
-              onUIAction: (action) => {
-                const uiAction = action as unknown as InterviewUIAction;
-                handleUIAction(uiAction, setMessages, setStatus);
-              },
-            },
-            token,
-            controller.signal,
-          );
-        }
-      } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-          setMessages((prev) => {
-            const copy = [...prev];
-            const last = copy[copy.length - 1];
-            if (last && last.role === "assistant") {
-              copy[copy.length - 1] = {
-                ...last,
-                content: "_Error de conexión. Intenta de nuevo._",
-              };
-            }
-            return copy;
-          });
-          setStatus("idle");
-        }
-      }
-
-      void isCardAction; // used for semantic clarity only
-    },
-    [sessionId, conversationId, getToken],
+  // Map store messages to InterviewMessage shape
+  const messages = useCopilotStore((s) =>
+    s.messages.map((m) => ({
+      id: m.id,
+      role: m.role,
+      content: m.content,
+      uiActions: m.uiActions as InterviewUIAction[] | undefined,
+    })),
   );
 
-  /** Send a user-typed message */
+  const status = useCopilotStore((s) => {
+    if (s.status === "done") return "idle" as InterviewStatus;
+    return s.status as InterviewStatus;
+  });
+
   const sendMessage = useCallback(
-    (text: string) => send(text, false),
-    [send],
+    async (text: string) => {
+      await _send(text);
+    },
+    [_send],
   );
 
-  /** Send a card action on behalf of the user (auto-send) */
   const sendCardAction = useCallback(
-    (text: string) => send(text, true),
-    [send],
+    async (text: string) => {
+      await _send(text);
+    },
+    [_send],
   );
 
-  const stopStreaming = useCallback(() => {
-    abortRef.current?.abort();
-    setStatus("idle");
+  const addInitialMessage = useCallback((content: string) => {
+    useCopilotStore.getState().addMessage({
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content,
+      timestamp: Date.now(),
+    });
   }, []);
 
   return {
@@ -297,141 +152,4 @@ export function useInterviewChat(sessionId: string | null, conversationId: strin
     stopStreaming,
     addInitialMessage,
   };
-}
-
-// ── UI Action handler ───────────────────────────────────────────────────────
-
-function handleUIAction(
-  uiAction: InterviewUIAction,
-  setMessages: React.Dispatch<React.SetStateAction<InterviewMessage[]>>,
-  _setStatus: React.Dispatch<React.SetStateAction<InterviewStatus>>,
-) {
-  if (uiAction.type === "preview_update") {
-    // Silent update — no card rendered, just propagate to store
-    useCopilotStore.getState().updateInterviewPreview(uiAction.delta);
-    return;
-  }
-
-  if (uiAction.type === "interview_complete") {
-    // Attach card to last assistant message; the card handles routing
-    setMessages((prev) => {
-      const copy = [...prev];
-      const last = copy[copy.length - 1];
-      if (last && last.role === "assistant") {
-        const existing = last.uiActions ?? [];
-        copy[copy.length - 1] = {
-          ...last,
-          uiActions: [...existing, uiAction],
-        };
-      }
-      return copy;
-    });
-    // Clear interview state from store (routing is done by the card component)
-    useCopilotStore.getState().clearInterview();
-    return;
-  }
-
-  // All other card types: attach to the last assistant message
-  setMessages((prev) => {
-    const copy = [...prev];
-    const last = copy[copy.length - 1];
-    if (last && last.role === "assistant") {
-      const existing = last.uiActions ?? [];
-      copy[copy.length - 1] = {
-        ...last,
-        uiActions: [...existing, uiAction],
-      };
-    }
-    return copy;
-  });
-}
-
-// ── Interview-specific SSE streaming ───────────────────────────────────────
-
-async function streamInterviewMessage(
-  sessionId: string,
-  message: string,
-  callbacks: {
-    onTextChunk: (content: string) => void;
-    onStatus: (state: string) => void;
-    onDone: (conversationId: string) => void;
-    onError: (message: string) => void;
-    onUIAction?: (action: Record<string, unknown>) => void;
-  },
-  token: string,
-  signal?: AbortSignal,
-): Promise<void> {
-  const headers = getCopilotHeaders(token);
-  headers["Content-Type"] = "application/json";
-
-  const response = await fetch(
-    `${API_URL}/api/v1/copilot/interview/${sessionId}/message`,
-    {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ message }),
-      signal,
-    },
-  );
-
-  if (!response.ok) {
-    const text = await response.text();
-    callbacks.onError(`Error ${response.status}: ${text}`);
-    return;
-  }
-
-  const reader = response.body?.getReader();
-  if (!reader) {
-    callbacks.onError("No readable stream available");
-    return;
-  }
-
-  const decoder = new TextDecoder();
-  let buffer = "";
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-
-      const lines = buffer.split("\n");
-      buffer = lines.pop() ?? "";
-
-      let currentEvent = "";
-      for (const line of lines) {
-        if (line.startsWith("event: ")) {
-          currentEvent = line.slice(7).trim();
-        } else if (line.startsWith("data: ")) {
-          const dataStr = line.slice(6);
-          try {
-            const data = JSON.parse(dataStr) as Record<string, unknown>;
-            switch (currentEvent) {
-              case "text_chunk":
-                callbacks.onTextChunk(data.content as string);
-                break;
-              case "ui_action":
-                callbacks.onUIAction?.(data);
-                break;
-              case "status":
-                callbacks.onStatus(data.state as string);
-                break;
-              case "done":
-                callbacks.onDone(data.conversation_id as string);
-                break;
-              case "error":
-                callbacks.onError(data.message as string);
-                break;
-            }
-          } catch {
-            // Skip malformed JSON
-          }
-          currentEvent = "";
-        }
-      }
-    }
-  } finally {
-    reader.releaseLock();
-  }
 }
