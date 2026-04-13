@@ -4,9 +4,11 @@ import json
 
 from langchain_core.tools import tool
 
+from src.modules.copilot.domain.schema_introspection import validate_field_path
+
 
 @tool
-def extract_structured(session_id: str, extractions: list[dict]) -> str:
+def extract_structured(session_id: str, domain: str, extractions: list[dict]) -> str:
     """Extract structured data from the user's last message into the mapa_global.
 
     INVOKE THIS ON EVERY TURN. It is silent — the user does not see any text output.
@@ -14,6 +16,7 @@ def extract_structured(session_id: str, extractions: list[dict]) -> str:
 
     Args:
         session_id: The interview session UUID.
+        domain: The interview domain (e.g. "brand", "offer"). Used to validate field paths.
         extractions: List of extracted data items. Each has:
             - field_path: Dot-notation path (e.g., "story.origin_story", "positioning.competitors")
             - value: The extracted value (string, list, or dict) — redacted with expert frameworks
@@ -22,10 +25,12 @@ def extract_structured(session_id: str, extractions: list[dict]) -> str:
 
     Returns:
         JSON with empty text and a preview_update ui_action containing the delta.
+        Includes a "skipped" list of field_paths that failed validation.
 
     """
     delta = {}
     confidence_map = {}
+    skipped: list[str] = []
 
     for item in extractions:
         field_path = item.get("field_path", "")
@@ -33,6 +38,10 @@ def extract_structured(session_id: str, extractions: list[dict]) -> str:
         confidence = item.get("confidence", 1.0)
 
         if not field_path or value is None:
+            continue
+
+        if not validate_field_path(domain, field_path):
+            skipped.append(field_path)
             continue
 
         delta[field_path] = value
@@ -47,6 +56,7 @@ def extract_structured(session_id: str, extractions: list[dict]) -> str:
                 "session_id": session_id,
                 "delta": delta,
                 "confidence_map": confidence_map,
+                "skipped": skipped,
             },
         },
     )

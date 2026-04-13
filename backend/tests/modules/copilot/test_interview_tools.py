@@ -22,6 +22,7 @@ class TestExtractStructured:
         result = extract_structured.invoke(
             {
                 "session_id": str(uuid4()),
+                "domain": "brand",
                 "extractions": [
                     {
                         "field_path": "story.origin_story",
@@ -40,6 +41,7 @@ class TestExtractStructured:
         result = extract_structured.invoke(
             {
                 "session_id": str(uuid4()),
+                "domain": "brand",
                 "extractions": [],
             },
         )
@@ -50,9 +52,10 @@ class TestExtractStructured:
         result = extract_structured.invoke(
             {
                 "session_id": str(uuid4()),
+                "domain": "brand",
                 "extractions": [
                     {
-                        "field_path": "positioning.competitors",
+                        "field_path": "positioning.unique_value_proposition",
                         "value": ["A", "B"],
                         "confidence": 0.6,
                         "source": "inferred",
@@ -61,13 +64,14 @@ class TestExtractStructured:
             },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
-        assert "positioning.competitors" in parsed["ui_action"]["confidence_map"]
-        assert parsed["ui_action"]["confidence_map"]["positioning.competitors"] == 0.6
+        assert "positioning.unique_value_proposition" in parsed["ui_action"]["confidence_map"]
+        assert parsed["ui_action"]["confidence_map"]["positioning.unique_value_proposition"] == 0.6
 
     def test_text_is_empty_silent(self):
         result = extract_structured.invoke(
             {
                 "session_id": str(uuid4()),
+                "domain": "brand",
                 "extractions": [
                     {
                         "field_path": "story.mission",
@@ -85,6 +89,7 @@ class TestExtractStructured:
         result = extract_structured.invoke(
             {
                 "session_id": str(uuid4()),
+                "domain": "brand",
                 "extractions": [
                     {
                         "field_path": "",
@@ -98,6 +103,44 @@ class TestExtractStructured:
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert parsed["ui_action"]["delta"] == {}
+
+    def test_invalid_field_path_is_skipped(self):
+        result = extract_structured.invoke(
+            {
+                "session_id": str(uuid4()),
+                "domain": "brand",
+                "extractions": [
+                    {
+                        "field_path": "hallucinated_section.fake_field",
+                        "value": "should be rejected",
+                        "confidence": 1.0,
+                        "source": "inferred",
+                    },
+                ],
+            },
+        )
+        parsed = json.loads(result) if isinstance(result, str) else result
+        assert parsed["ui_action"]["delta"] == {}
+        assert "hallucinated_section.fake_field" in parsed["ui_action"]["skipped"]
+
+    def test_unknown_domain_skips_all(self):
+        result = extract_structured.invoke(
+            {
+                "session_id": str(uuid4()),
+                "domain": "unknown_domain",
+                "extractions": [
+                    {
+                        "field_path": "identity.brand_name",
+                        "value": "Test Brand",
+                        "confidence": 1.0,
+                        "source": "user_explicit",
+                    },
+                ],
+            },
+        )
+        parsed = json.loads(result) if isinstance(result, str) else result
+        assert parsed["ui_action"]["delta"] == {}
+        assert "identity.brand_name" in parsed["ui_action"]["skipped"]
 
 
 class TestOfferAlternatives:

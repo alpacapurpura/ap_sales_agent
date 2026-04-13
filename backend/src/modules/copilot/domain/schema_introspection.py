@@ -221,3 +221,77 @@ def format_completion_markdown(
 def _humanize(name: str) -> str:
     """Convert snake_case to Title Case."""
     return name.replace("_", " ").title()
+
+
+# Module-level cache: domain -> set of valid field paths.
+# Populated lazily on first call per domain.
+_DOMAIN_FIELD_CACHE: dict[str, set[str]] = {}
+
+
+def _build_brand_paths() -> set[str]:
+    """Discover all valid field paths for the 'brand' domain from BrandSettings.
+
+    Imports lazily to avoid circular imports (copilot -> brand).
+    Returns a set of valid paths: section names and section.field dot-notation.
+    """
+    from src.modules.brand.domain.aggregates import BrandSettings
+
+    paths: set[str] = set()
+    sections = get_model_sections(BrandSettings)
+    for section_name, section_info in sections.items():
+        paths.add(section_name)
+        for field_name in section_info.fields:
+            paths.add(f"{section_name}.{field_name}")
+    return paths
+
+
+def _build_offer_paths() -> set[str]:
+    """Discover all valid field paths for the 'offer' domain from PERSISTABLE_FIELDS.
+
+    Imports lazily to avoid circular imports (copilot -> offer).
+    Offer fields are flat (no dot-notation) — top-level entity attributes.
+    """
+    from src.modules.copilot.infrastructure.persisters.offer_persister import (
+        PERSISTABLE_FIELDS,
+    )
+
+    return set(PERSISTABLE_FIELDS)
+
+
+_DOMAIN_BUILDERS: dict[str, type] = {
+    "brand": _build_brand_paths,  # type: ignore[assignment]
+    "offer": _build_offer_paths,  # type: ignore[assignment]
+}
+
+
+def validate_field_path(domain: str, field_path: str) -> bool:
+    """Validate that field_path exists in the domain's schema.
+
+    Uses lazy-loaded domain model mapping. For 'brand', checks against
+    BrandSettings sections (section names and section.field dot-notation).
+    For 'offer', checks against PERSISTABLE_FIELDS (flat field names).
+    Returns False for unknown domains or empty field_path.
+
+    Args:
+        domain: The interview domain (e.g. 'brand', 'offer').
+        field_path: Dot-notation or flat field path to validate.
+
+    Returns:
+        True if the path is valid for the domain, False otherwise.
+
+    """
+    if not field_path:
+        return False
+
+    if domain not in _DOMAIN_BUILDERS:
+        return False
+
+    if domain not in _DOMAIN_FIELD_CACHE:
+        builder = _DOMAIN_BUILDERS[domain]
+        _DOMAIN_FIELD_CACHE[domain] = builder()  # type: ignore[operator]
+
+    valid_paths = _DOMAIN_FIELD_CACHE[domain]
+
+    # Exact match covers both section names ("identity") and dot-notation
+    # paths ("identity.brand_name"). _build_brand_paths emits both forms.
+    return field_path in valid_paths
