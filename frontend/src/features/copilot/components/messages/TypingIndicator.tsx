@@ -8,7 +8,7 @@ import { Sparkles } from "lucide-react";
  */
 export function TypingIndicator() {
   return (
-    <div className="flex gap-2.5 px-4 py-1" aria-label="El asistente está escribiendo">
+    <div className="flex gap-2.5 px-4 py-1" data-testid="typing-indicator" aria-label="El asistente está escribiendo">
       <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/40">
         <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
       </div>

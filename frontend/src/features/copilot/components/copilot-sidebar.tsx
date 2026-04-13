@@ -74,6 +74,7 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
 
       {/* ── Sidebar container ─────────────────────────────────────── */}
       <aside
+        data-testid="copilot-sidebar"
         className={cn(
           // Base layout
           "flex-shrink-0 h-full overflow-hidden border-l border-slate-200 bg-white",

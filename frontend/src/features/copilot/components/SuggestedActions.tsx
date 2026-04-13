@@ -79,7 +79,7 @@ export function SuggestedActions() {
   };
 
   return (
-    <div className="space-y-2 px-4 pb-2">
+    <div className="space-y-2 px-4 pb-2" data-testid="suggested-actions">
       <div className="flex items-center gap-1.5 text-xs text-slate-400">
         <Lightbulb className="h-3 w-3" />
         <span>Sugerencias</span>

@@ -64,7 +64,7 @@ export function FocusBar() {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="flex items-center gap-2 border-b border-slate-200 bg-purple-50 px-3 py-2 dark:border-slate-700 dark:bg-purple-900/20">
+      <div className="flex items-center gap-2 border-b border-slate-200 bg-purple-50 px-3 py-2 dark:border-slate-700 dark:bg-purple-900/20" data-testid="focus-bar">
         <Icon className="h-4 w-4 shrink-0 text-purple-600 dark:text-purple-400" />
         <span className="min-w-0 truncate text-xs font-medium text-purple-800 dark:text-purple-300">
           {focusEntity.label}

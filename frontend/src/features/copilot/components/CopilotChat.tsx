@@ -89,6 +89,7 @@ export const CopilotChat = memo(function CopilotChat() {
       {/* Messages area — virtualized */}
       <div
         ref={scrollRef}
+        data-testid="copilot-messages"
         className="flex-1 overflow-y-auto px-4 py-4"
       >
         {messages.length === 0 ? (
