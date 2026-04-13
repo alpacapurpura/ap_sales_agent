@@ -4,6 +4,9 @@ Analyzes the tenant's current offer ladder (5 value levels) and identifies
 gaps, suggesting what to create next with priorities and archetypes.
 """
 
+from collections.abc import Iterator
+from contextlib import contextmanager
+
 import structlog
 from langchain_core.tools import tool
 from sqlalchemy import text
@@ -13,6 +16,23 @@ from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
 
 logger = structlog.get_logger()
+
+
+@contextmanager
+def _safe_session() -> Iterator[Session]:
+    """Yield a sync SessionLocal and guarantee close on any exit path.
+
+    Using a context manager (rather than a bare try/finally) ensures that
+    `db.close()` is called even when `SessionLocal()` itself is the call that
+    raises — a bare ``db = SessionLocal(); try: ...; finally: db.close()``
+    would leave the session open if construction fails.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 GROUP_LABELS = {
     "lead_magnet": "Lead Magnet",
@@ -243,8 +263,7 @@ def analyze_offer_ladder() -> str:
         return "Error: No se pudo determinar el tenant. Asegurate de estar autenticado."
 
     tid = str(tenant_id)
-    db = SessionLocal()
-    try:
+    with _safe_session() as db:
         brand = _fetch_brand_context(db, tid)
         offers = _fetch_offers(db, tid)
         groups = _group_by_level(offers)
@@ -263,8 +282,6 @@ def analyze_offer_ladder() -> str:
         )
 
         return "\n".join(parts)
-    finally:
-        db.close()
 
 
 OFFER_LADDER_TOOLS = [analyze_offer_ladder]
