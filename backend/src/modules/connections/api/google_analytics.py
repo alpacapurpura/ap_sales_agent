@@ -141,7 +141,9 @@ async def oauth_callback(
         token_data = await asyncio.to_thread(adapter.exchange_code, code, redirect_uri)
     except Exception as e:
         logger.error("google_analytics_oauth_exchange_failed", error=str(e))
-        raise HTTPException(status_code=400, detail="Error de autenticacion con Google")
+        raise HTTPException(
+            status_code=400, detail="Error de autenticacion con Google"
+        ) from e
 
     # Save credentials FIRST (don't block on Admin API)
     full_creds = dict(connection.credentials)
@@ -224,7 +226,7 @@ async def get_properties(
         logger.error("google_analytics_properties_failed", error=str(e))
         raise HTTPException(
             status_code=500, detail="Error al obtener propiedades de Google Analytics"
-        )
+        ) from e
 
 
 @router.put("/properties/select", response_model=PropertySelectResponse)

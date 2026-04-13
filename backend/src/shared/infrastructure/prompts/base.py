@@ -156,7 +156,8 @@ class PromptLoader:
                 template = self.fs_env.from_string(template_content)
                 return template.render(**full_context)
             if mode == PromptSource.DB:
-                raise ValueError(f"Prompt '{key}' not found in DB (Strict Mode)")
+                msg = f"Prompt '{key}' not found in DB (Strict Mode)"
+                raise ValueError(msg)
             return self._load_from_file(key, template_name, **full_context)
         except Exception as exc:
             logger.error(f"Error rendering prompt '{key}': {exc}")

@@ -69,7 +69,7 @@ class CaptureStageService:
         manychat-ig card is removed and the ig-dm card gets sub_sources
         showing the per-source breakdown.
         """
-        # Pair: (meta_slug, manychat_slug)
+        # Each pair maps a Meta slug to its ManyChat equivalent
         merge_pairs = [
             ("ig-dm", "manychat-ig"),
             ("whatsapp-inbound", "manychat-wa"),

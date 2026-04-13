@@ -119,18 +119,17 @@ class GroupDetailService:
     @staticmethod
     def _map_channel(ch: dict) -> ChannelMetricDTO:
         """Map a raw channel dict from cache to ChannelMetricDTO."""
-        metrics = []
-        for m in ch.get("metrics", []):
-            if isinstance(m, dict):
-                metrics.append(
-                    MetricValueDTO(
-                        name=m.get("name", ""),
-                        value=float(m.get("value", 0)),
-                        unit=m.get("unit", "count"),
-                        currency=m.get("currency"),
-                        breakdown=m.get("breakdown"),
-                    )
-                )
+        metrics = [
+            MetricValueDTO(
+                name=m.get("name", ""),
+                value=float(m.get("value", 0)),
+                unit=m.get("unit", "count"),
+                currency=m.get("currency"),
+                breakdown=m.get("breakdown"),
+            )
+            for m in ch.get("metrics", [])
+            if isinstance(m, dict)
+        ]
 
         return ChannelMetricDTO(
             slug=ch.get("slug", ""),

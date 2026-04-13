@@ -99,14 +99,13 @@ def render_events_page():  # noqa: C901
                     st.subheader("Top Tenants por Volumen")
                     by_tenant = repo.get_events_grouped_by_tenant(days=days)
                     if by_tenant:
-                        tenant_rows = []
-                        for item in by_tenant[:10]:
-                            tenant_rows.append(
-                                {
-                                    "Tenant": get_tenant_name(item["tenant_id"]),
-                                    "Eventos": item["event_count"],
-                                }
-                            )
+                        tenant_rows = [
+                            {
+                                "Tenant": get_tenant_name(item["tenant_id"]),
+                                "Eventos": item["event_count"],
+                            }
+                            for item in by_tenant[:10]
+                        ]
                         df_t = pd.DataFrame(tenant_rows)
                         st.bar_chart(df_t.set_index("Tenant"))
             finally:

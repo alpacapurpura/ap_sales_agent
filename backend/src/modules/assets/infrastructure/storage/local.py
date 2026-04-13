@@ -21,8 +21,7 @@ class LocalStorageStrategy(StorageStrategy):
         unique_name = f"{uuid.uuid4()}{ext}"
 
         # Determine full path
-        # If path_prefix is provided, create subdirectories
-        # Example: static/uploads/tenant_id/image.png
+        # When path_prefix is provided, creates subdirectories under upload_dir
 
         relative_path = (
             os.path.join(path_prefix, unique_name) if path_prefix else unique_name

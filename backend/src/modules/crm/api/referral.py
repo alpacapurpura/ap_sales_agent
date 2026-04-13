@@ -79,7 +79,9 @@ async def promote_to_evangelist(
     try:
         customer_id = UUID(body.customer_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid customer_id format")
+        raise HTTPException(
+            status_code=400, detail="Invalid customer_id format"
+        ) from None
 
     svc = LifecycleService(db)
     try:
@@ -90,7 +92,7 @@ async def promote_to_evangelist(
         )
         db.commit()
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
     return PromoteResponse(
         profile_id=str(profile.id),
@@ -111,7 +113,9 @@ async def generate_referral_code(
     try:
         customer_id = UUID(body.customer_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid customer_id format")
+        raise HTTPException(
+            status_code=400, detail="Invalid customer_id format"
+        ) from None
 
     svc = ReferralService(db)
 

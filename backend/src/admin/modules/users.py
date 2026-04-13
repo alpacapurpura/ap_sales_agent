@@ -184,7 +184,7 @@ def render_users_view():  # noqa: C901
                                         except Exception as e:
                                             st.error(f"❌ Error Clerk: {e}")
 
-                    # Action: Block/Unblock (Global)
+                    # -- Block/Unblock (Global) --
                     with col_act2:  # noqa: SIM117
                         with st.container(border=True):
                             st.markdown("#### 🚫 Gestión de Acceso")

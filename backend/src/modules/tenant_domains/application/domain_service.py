@@ -89,9 +89,11 @@ class DomainService:
         """Trigger a verification check with Cloudflare."""
         domain = self.repo.get_by_id(domain_id, tenant_id)
         if not domain:
-            raise ValueError("Domain not found")
+            msg = "Domain not found"
+            raise ValueError(msg)
         if not domain.cloudflare_hostname_id:
-            raise ValueError("No CF hostname ID — cannot verify")
+            msg = "No CF hostname ID — cannot verify"
+            raise ValueError(msg)
 
         cf_status = self.cf.get_hostname_status(domain.cloudflare_hostname_id)
         ssl = cf_status.get("ssl", {})
@@ -121,7 +123,8 @@ class DomainService:
         """Soft delete domain and clean up CF resources."""
         domain = self.repo.get_by_id(domain_id, tenant_id)
         if not domain:
-            raise ValueError("Domain not found")
+            msg = "Domain not found"
+            raise ValueError(msg)
         if domain.cloudflare_hostname_id:
             try:
                 self.cf.delete_custom_hostname(domain.cloudflare_hostname_id)
@@ -148,7 +151,8 @@ class DomainService:
                 self.repo.update(d)
         domain = self.repo.get_by_id(domain_id, tenant_id)
         if not domain:
-            raise ValueError("Domain not found")
+            msg = "Domain not found"
+            raise ValueError(msg)
         domain.is_primary = True
         return self.repo.update(domain)
 

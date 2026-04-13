@@ -15,7 +15,7 @@ from tests.architecture.conftest import (
 
 # ──────────────────────────────────────────────────────────────
 # KNOWN VIOLATIONS — ratchet: only remove lines, never add.
-# Format: "source_module -> target_module | file_relative_path"
+# Expected format — "source_module -> target_module | file_relative_path"
 # ──────────────────────────────────────────────────────────────
 KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     # --- analytics ---
@@ -161,9 +161,11 @@ def test_domain_layer_has_no_framework_imports():
             continue
 
         for imp in parse_imports(py_file):
-            for prefix in forbidden_prefixes:
-                if imp.startswith(prefix):
-                    violations.append(f"{rel}: imports {imp}")
+            violations.extend(
+                f"{rel}: imports {imp}"
+                for prefix in forbidden_prefixes
+                if imp.startswith(prefix)
+            )
 
     assert violations == [], (
         "Domain layer files import framework code.\n"

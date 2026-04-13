@@ -156,7 +156,8 @@ class TestConnectionPortImplGetCredentials:
         port.repo.get_active = MagicMock(return_value=conn)
 
         async def mock_refresh_fail(c):
-            raise TokenRefreshFailed("Token refresh failed", provider="meta")
+            msg = "Token refresh failed"
+            raise TokenRefreshFailed(msg, provider="meta")
 
         port._refresh_token = mock_refresh_fail
 

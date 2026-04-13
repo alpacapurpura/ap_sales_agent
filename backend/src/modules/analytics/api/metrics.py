@@ -733,7 +733,7 @@ async def sync_ig_dm(
         raise HTTPException(
             status_code=500,
             detail=f"IG DM sync failed: {exc!s}",
-        )
+        ) from exc
 
     # Set cooldown
     if redis_client:
@@ -813,7 +813,7 @@ async def refresh_channel_metrics(
         raise HTTPException(
             status_code=500,
             detail=f"Extraction failed: {exc!s}",
-        )
+        ) from exc
 
 
 @router.get("/catalog", response_model=MetricCatalogResponse)
@@ -966,7 +966,7 @@ async def trigger_initial_load(
         raise HTTPException(
             status_code=500,
             detail=f"Initial load failed: {exc!s}",
-        )
+        ) from exc
 
 
 @router.get("/{provider}/initial-load/status", response_model=InitialLoadStatusResponse)
@@ -1060,7 +1060,7 @@ async def trigger_period_extraction(
         raise HTTPException(
             status_code=500,
             detail=f"Period extraction failed: {exc!s}",
-        )
+        ) from exc
 
 
 # ─── Tenant Period Config Endpoint ───────────────────────────────────────────

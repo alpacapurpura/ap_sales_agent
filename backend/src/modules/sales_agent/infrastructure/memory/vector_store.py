@@ -231,16 +231,15 @@ class QdrantVectorStore(SemanticMemoryStore):
             logger.info(f"Dense search found {len(response.points)} raw candidates")
 
             # Map results for Reranker
-            passages = []
-            for hit in response.points:
-                passages.append(
-                    {
-                        "id": hit.id,
-                        "text": hit.payload.get("content", ""),
-                        "meta": hit.payload,
-                        "score": hit.score,
-                    }
-                )
+            passages = [
+                {
+                    "id": hit.id,
+                    "text": hit.payload.get("content", ""),
+                    "meta": hit.payload,
+                    "score": hit.score,
+                }
+                for hit in response.points
+            ]
 
             # 4. Reranking (FlashRank)
             if enable_rerank and self.ranker and passages:

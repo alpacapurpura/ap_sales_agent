@@ -186,7 +186,7 @@ async def submit_nps_response(
         )
         db.commit()
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
     return NpsSubmitResponse(
         id=str(response.id),

@@ -86,20 +86,19 @@ class MetricsRepository:
         if metric_names:
             stmt = stmt.where(OfficialMetricModel.metric_name.in_(metric_names))
         result = self._db.execute(stmt)
-        rows: list[MetricRow] = []
-        for m in result.scalars().all():
-            rows.append(
-                MetricRow(
-                    metric_name=m.metric_name,
-                    value=float(m.value or 0.0),
-                    unit=m.unit,
-                    currency=m.currency,
-                    metric_date=m.metric_date,
-                    campaign_id=m.campaign_id,
-                    ad_set_id=m.ad_set_id,
-                    ad_id=m.ad_id,
-                )
+        rows: list[MetricRow] = [
+            MetricRow(
+                metric_name=m.metric_name,
+                value=float(m.value or 0.0),
+                unit=m.unit,
+                currency=m.currency,
+                metric_date=m.metric_date,
+                campaign_id=m.campaign_id,
+                ad_set_id=m.ad_set_id,
+                ad_id=m.ad_id,
             )
+            for m in result.scalars().all()
+        ]
         return rows
 
     def list_period_metrics_for_reach(

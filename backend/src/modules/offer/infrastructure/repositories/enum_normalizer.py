@@ -3,6 +3,8 @@
 All functions are pure (no side effects, no DB access) and can be tested in isolation.
 """
 
+import contextlib
+
 from src.modules.offer.domain.enums import (
     DeliverableFormat,
     GuaranteeType,
@@ -70,7 +72,8 @@ def normalize_archetype(raw: str, offer_id=None) -> OfferArchetype:
             structlog.get_logger().warning(
                 "invalid_archetype", raw=raw, offer_id=str(offer_id)
             )
-            raise ValueError(f"Invalid OfferArchetype in DB: {raw}")
+            msg = f"Invalid OfferArchetype in DB: {raw}"
+            raise ValueError(msg) from None
 
 
 def normalize_status(raw: str | None) -> OfferStatus:
@@ -103,10 +106,8 @@ def normalize_pricing_options(pricing_raw: list) -> list[dict]:
             try:
                 PaymentPlanType(new_p["plan_type"])
             except ValueError:
-                try:
+                with contextlib.suppress(ValueError, AttributeError):
                     new_p["plan_type"] = new_p["plan_type"].lower()
-                except (ValueError, AttributeError):
-                    pass
         result.append(new_p)
     return result
 
@@ -126,10 +127,8 @@ def normalize_deliverables(deliverables_raw: list) -> list[dict]:
             try:
                 DeliverableFormat(fmt)
             except ValueError:
-                try:
+                with contextlib.suppress(ValueError, AttributeError):
                     new_d["format"] = fmt.lower()
-                except (ValueError, AttributeError):
-                    pass
         result.append(new_d)
     return result
 

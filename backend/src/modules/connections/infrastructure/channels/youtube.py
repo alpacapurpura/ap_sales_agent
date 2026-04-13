@@ -79,7 +79,8 @@ class YoutubeAdapter:
     def get_service(self):
         """Returns the YouTube service resource."""
         if not self.creds:
-            raise ValueError("Credentials not initialized")
+            msg = "Credentials not initialized"
+            raise ValueError(msg)
         return build("youtube", "v3", credentials=self.creds)
 
     def get_channel_info(self) -> dict[str, Any]:

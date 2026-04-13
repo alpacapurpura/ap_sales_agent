@@ -162,7 +162,7 @@ async def create_edition(
             notes=body.notes,
         )
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
     return _build_response(svc, edition, user.tenant_id)
 
 
@@ -202,7 +202,7 @@ async def update_edition(
             body.model_dump(exclude_unset=True),
         )
     except ValueError:
-        raise HTTPException(status_code=404, detail="Edition not found")
+        raise HTTPException(status_code=404, detail="Edition not found") from None
     return _build_response(svc, edition, user.tenant_id)
 
 
@@ -235,5 +235,5 @@ async def duplicate_edition(
     try:
         edition = svc.duplicate_edition(UUID(edition_id), user.tenant_id)
     except ValueError:
-        raise HTTPException(status_code=404, detail="Edition not found")
+        raise HTTPException(status_code=404, detail="Edition not found") from None
     return _build_response(svc, edition, user.tenant_id)

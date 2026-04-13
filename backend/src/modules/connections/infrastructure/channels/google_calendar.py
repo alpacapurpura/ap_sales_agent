@@ -99,7 +99,8 @@ class GoogleCalendarAdapter(BaseConnector):
     def get_service(self):
         """Returns the Google Calendar service resource."""
         if not self.creds:
-            raise ValueError("Credentials not initialized")
+            msg = "Credentials not initialized"
+            raise ValueError(msg)
         return build("calendar", "v3", credentials=self.creds)
 
     def list_busy_periods(

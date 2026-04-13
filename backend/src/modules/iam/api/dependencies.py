@@ -304,7 +304,7 @@ def get_current_user(
                 raise HTTPException(
                     status_code=400,
                     detail="Invalid X-Tenant-ID header format (UUID or Slug)",
-                )
+                ) from None
             target_tenant_id = tenant.id
 
         # Verify user has access to this tenant

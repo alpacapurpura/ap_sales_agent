@@ -52,9 +52,11 @@ async def extract_data(
     try:
         data = await service.extract_visuals_only(request.url)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal extraction error: {e!s}")
+        raise HTTPException(
+            status_code=500, detail=f"Internal extraction error: {e!s}"
+        ) from e
 
     if not data:
         raise HTTPException(
@@ -183,7 +185,7 @@ async def get_extraction_status(
     try:
         UUIDType(job_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid job ID format")
+        raise HTTPException(status_code=400, detail="Invalid job ID format") from None
 
     progress_key = f"brand_extract:{current_user.tenant_id}:{job_id}"
     raw = redis_client.get(progress_key) if redis_client else None
@@ -267,7 +269,7 @@ async def get_extraction_trace(
     try:
         UUIDType(trace_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid trace ID format")
+        raise HTTPException(status_code=400, detail="Invalid trace ID format") from None
 
     stmt = select(BrandExtractionTrace).where(
         BrandExtractionTrace.id == trace_id,

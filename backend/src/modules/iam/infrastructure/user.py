@@ -85,7 +85,8 @@ class UserRepository(BaseRepository):
             .first()
         )
         if not user_orm:
-            raise ValueError(f"User {user.id} not found")
+            msg = f"User {user.id} not found"
+            raise ValueError(msg)
 
         # Update fields
         user_orm.full_name = user.full_name

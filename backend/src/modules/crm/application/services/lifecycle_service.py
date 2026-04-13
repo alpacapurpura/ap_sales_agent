@@ -12,6 +12,7 @@ Responsibilities:
 CUSTOMER stage profiles are exempt from scoring-driven transitions.
 """
 
+import contextlib
 import logging
 from datetime import UTC, datetime
 from typing import Any
@@ -240,7 +241,8 @@ class LifecycleService:
 
         profile = self._load_profile_for_update(profile_id, tenant_id)
         if profile is None:
-            raise ValueError(f"Profile {profile_id} not found for tenant {tenant_id}")
+            msg = f"Profile {profile_id} not found for tenant {tenant_id}"
+            raise ValueError(msg)
 
         # Step 1: Transition lifecycle stage
         self._transition(
@@ -276,10 +278,8 @@ class LifecycleService:
             CustomerProfileModel.id == profile_id,
             CustomerProfileModel.tenant_id == tenant_id,
         )
-        try:
+        with contextlib.suppress(Exception):
             stmt = stmt.with_for_update()
-        except Exception:  # noqa: S110 — SQLite doesn't support FOR UPDATE
-            pass
         result = self.db.execute(stmt)
         return result.scalars().first()
 

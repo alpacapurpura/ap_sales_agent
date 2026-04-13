@@ -48,13 +48,13 @@ class TelegramService:
                         status_code=resp.status_code,
                         body=resp.text,
                     )
-                    raise ValueError(
-                        "Token de Telegram invalido. Verifique e intente nuevamente."
-                    )
+                    msg = "Token de Telegram invalido. Verifique e intente nuevamente."
+                    raise ValueError(msg)
                 bot_info = resp.json().get("result", {})
             except httpx.RequestError as e:
                 logger.error("telegram_connection_error", error=str(e))
-                raise RuntimeError(f"Error conectando con Telegram: {e!s}")
+                msg = f"Error conectando con Telegram: {e!s}"
+                raise RuntimeError(msg) from e
 
         # 2. Set Webhook
         final_domain = None
@@ -104,7 +104,8 @@ class TelegramService:
 
             except httpx.RequestError as e:
                 logger.error("webhook_network_error", error=str(e))
-                raise RuntimeError(f"Error configurando Webhook: {e!s}")
+                msg = f"Error configurando Webhook: {e!s}"
+                raise RuntimeError(msg) from e
 
         # 3. Save to DB
         metadata = {
@@ -126,11 +127,13 @@ class TelegramService:
         connection = self.repo.get_active(tenant_id, ChannelType.TELEGRAM)
 
         if not connection:
-            raise ValueError("No hay conexion de Telegram activa.")
+            msg = "No hay conexion de Telegram activa."
+            raise ValueError(msg)
 
         token = connection.credentials.get("token")
         if not token:
-            raise RuntimeError("Credenciales corruptas.")
+            msg = "Credenciales corruptas."
+            raise RuntimeError(msg)
 
         async with httpx.AsyncClient() as client:
             try:
@@ -154,7 +157,8 @@ class TelegramService:
         connection = self.repo.get_active(tenant_id, ChannelType.TELEGRAM)
 
         if not connection:
-            raise ValueError("No hay conexion activa para desconectar.")
+            msg = "No hay conexion activa para desconectar."
+            raise ValueError(msg)
 
         token = connection.credentials.get("token")
         if token:

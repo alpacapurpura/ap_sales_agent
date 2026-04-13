@@ -135,7 +135,7 @@ async def get_overview(
         return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
     except Exception as e:
         logger.error("youtube_analytics_overview_failed", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/daily-views", response_model=YouTubeAnalyticsDataResponse)
@@ -151,7 +151,7 @@ async def get_daily_views(
         return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
     except Exception as e:
         logger.error("youtube_analytics_daily_views_failed", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/top-videos", response_model=YouTubeAnalyticsDataResponse)
@@ -168,7 +168,7 @@ async def get_top_videos(
         return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
     except Exception as e:
         logger.error("youtube_analytics_top_videos_failed", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/demographics", response_model=YouTubeAnalyticsDataResponse)
@@ -184,7 +184,7 @@ async def get_demographics(
         return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
     except Exception as e:
         logger.error("youtube_analytics_demographics_failed", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/traffic-sources", response_model=YouTubeAnalyticsDataResponse)
@@ -200,7 +200,7 @@ async def get_traffic_sources(
         return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
     except Exception as e:
         logger.error("youtube_analytics_traffic_sources_failed", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/countries", response_model=YouTubeAnalyticsDataResponse)
@@ -217,7 +217,7 @@ async def get_countries(
         return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
     except Exception as e:
         logger.error("youtube_analytics_countries_failed", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/top-videos-enriched", response_model=TopVideosResponse)
@@ -235,7 +235,7 @@ async def get_top_videos_enriched(
         return TopVideosResponse(status="ok", data=videos, start_date=sd, end_date=ed)
     except Exception as e:
         logger.error("youtube_analytics_top_videos_enriched_failed", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/test", response_model=ConnectionTestResponse)

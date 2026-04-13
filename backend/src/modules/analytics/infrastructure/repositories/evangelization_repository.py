@@ -232,8 +232,7 @@ class EvangelizationRepository:
         total_referrals_sent = int(result[0]) if result else 0
         referral_conversions = int(result[1]) if result else 0
 
-        # K = (total_referrals_sent / evangelists_with_codes) *
-        #     (referral_conversions / total_referrals_sent)
+        # K-factor = avg referrals per evangelist * conversion rate
         if evangelists_with_codes == 0 or total_referrals_sent == 0:
             k_factor = 0.0
         else:
@@ -391,7 +390,7 @@ class EvangelizationRepository:
         )
         source_value = self.db.execute(source_stmt).scalar() or 0
 
-        # Target: evangelists
+        # Count evangelists as target segment
         target_stmt = select(func.count(CustomerProfileModel.id)).where(
             CustomerProfileModel.tenant_id == tenant_id,
             CustomerProfileModel.lifecycle_stage == LifecycleStage.EVANGELIST,

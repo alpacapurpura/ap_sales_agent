@@ -286,14 +286,13 @@ class StageOverviewService:
         if not isinstance(raw, list):
             return []
 
-        result: list[BottleneckOverviewDTO] = []
-        for b in raw:
-            if isinstance(b, dict):
-                result.append(
-                    BottleneckOverviewDTO(
-                        type=b.get("type", ""),
-                        metric_label=b.get("metric_label", ""),
-                        severity=b.get("severity", "normal"),
-                    )
-                )
+        result: list[BottleneckOverviewDTO] = [
+            BottleneckOverviewDTO(
+                type=b.get("type", ""),
+                metric_label=b.get("metric_label", ""),
+                severity=b.get("severity", "normal"),
+            )
+            for b in raw
+            if isinstance(b, dict)
+        ]
         return result

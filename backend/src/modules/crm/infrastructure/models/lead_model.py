@@ -61,4 +61,3 @@ class LeadModel(Base):
     appointments = relationship(
         "AppointmentModel", back_populates="lead", cascade="all, delete-orphan"
     )
-    # agent_traces = relationship("src.shared.infrastructure.models.agent_trace_model.AgentTrace", back_populates="lead", cascade="all, delete-orphan")

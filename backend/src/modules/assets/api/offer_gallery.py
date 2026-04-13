@@ -43,7 +43,7 @@ async def upload_offer_image(
         )
     except Exception as e:
         logger.error("offer_upload_failed", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/{offer_id}/gallery", response_model=list[AssetDto])

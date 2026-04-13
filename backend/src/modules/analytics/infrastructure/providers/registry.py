@@ -35,9 +35,8 @@ def get_provider(provider_name: str) -> BaseMetricsProvider:
     cls = PROVIDER_REGISTRY.get(provider_name)
     if cls is None:
         registered = ", ".join(sorted(PROVIDER_REGISTRY.keys())) or "(none)"
-        raise ValueError(
-            f"Unknown provider: '{provider_name}'. Registered providers: {registered}"
-        )
+        msg = f"Unknown provider: '{provider_name}'. Registered providers: {registered}"
+        raise ValueError(msg)
     return cls()
 
 

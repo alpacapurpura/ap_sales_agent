@@ -71,7 +71,9 @@ async def oauth_callback(
         creds_data = GoogleCalendarAdapter.exchange_code(code, redirect_uri)
     except Exception as e:
         logger.error("oauth_exchange_failed", error=str(e))
-        raise HTTPException(status_code=400, detail="Error de autenticacion con Google")
+        raise HTTPException(
+            status_code=400, detail="Error de autenticacion con Google"
+        ) from e
 
     try:
         adapter = GoogleCalendarAdapter(creds_data)
@@ -255,7 +257,7 @@ async def book_meeting(
         return {"status": "booked", "event_link": event.get("htmlLink")}
     except Exception as e:
         logger.error("booking_failed", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/appointments", response_model=list[AppointmentItem])

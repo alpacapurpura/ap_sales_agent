@@ -1,10 +1,13 @@
 from typing import TypeVar
 
+import structlog
 from pydantic import BaseModel
 
 from src.modules.copilot.application.agents.web_extractor.graph import (
     web_extractor_graph,
 )
+
+logger = structlog.get_logger()
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -53,7 +56,7 @@ async def extract_from_url(
         result = await web_extractor_graph.ainvoke(initial_state)
 
         if result.get("error"):
-            print(f"Web Extraction Error for {url}: {result['error']}")
+            logger.error("web_extraction_error", url=url, error=result["error"])
             return None
 
         extracted_data = result.get("extracted_data")
@@ -64,5 +67,5 @@ async def extract_from_url(
         return schema.model_validate(extracted_data)
 
     except Exception as e:
-        print(f"Web Extraction Critical Error: {e}")
+        logger.exception("web_extraction_critical_error", url=url, error=str(e))
         return None

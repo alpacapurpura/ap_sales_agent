@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import time
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -72,8 +73,6 @@ class ChatOrchestrator:
     def __init__(self):
         if self._initialized:
             return
-        # Legacy/Global channels (fallback)
-        # self.whatsapp_channel = WhatsAppChannel() # Removed: WhatsAppChannel requires tenant_id
         self.buffer_service = SmartBufferService()
         self._initialized = True
 
@@ -249,8 +248,6 @@ class ChatOrchestrator:
 
             finally:
                 self.buffer_service.release_lock(buffer_key)
-                # Cleanup cache for this user/key
-                # self.buffer_service.clear_user_cache(buffer_key) # Optional, but good for hygiene
 
         except Exception as e:
             logger.error(f"Error in smart debounce task: {e}", exc_info=True)
@@ -458,10 +455,8 @@ class ChatOrchestrator:
                 )
             except Exception as e:
                 logger.warning("checkpoint_load_failed", error=str(e))
-                try:
+                with contextlib.suppress(Exception):
                     db.rollback()
-                except Exception:  # noqa: S110
-                    pass
 
             # ── Closer Studio: handler_mode check ──
             # If handler_mode is "human", the owner is in control.
@@ -525,10 +520,8 @@ class ChatOrchestrator:
                 except Exception as e:
                     logger.warning(f"Could not build agent identity: {e}")
                     # Rollback to clear any failed transaction state on shared db session
-                    try:
+                    with contextlib.suppress(Exception):
                         db.rollback()
-                    except Exception:  # noqa: S110
-                        pass
 
             # 3. Prepare Initial State
             active_product, launch_stage = biz_repo.get_current_launch_product()
@@ -708,10 +701,8 @@ class ChatOrchestrator:
             async def _keep_typing():
                 while True:
                     await asyncio.sleep(3)
-                    try:
+                    with contextlib.suppress(Exception):
                         await channel_adapter.set_typing_status(incoming.user_id)
-                    except Exception:  # noqa: S110
-                        pass
 
             typing_task = asyncio.create_task(_keep_typing())
             try:
@@ -747,10 +738,8 @@ class ChatOrchestrator:
                     db.commit()
                 except Exception as e:
                     logger.error("checkpoint_save_failed", error=str(e))
-                    try:
+                    with contextlib.suppress(Exception):
                         db.rollback()
-                    except Exception:  # noqa: S110
-                        pass
 
             # 4. Extract Response
             last_msg = result["messages"][-1]

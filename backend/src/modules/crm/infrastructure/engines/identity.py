@@ -43,7 +43,8 @@ class IdentityResolutionEngine:
         # Por seguridad, debería ser obligatorio.
         tenant_id = traits.get("tenant_id")
         if not tenant_id:
-            raise ValueError("tenant_id is required for creating a new profile")
+            msg = "tenant_id is required for creating a new profile"
+            raise ValueError(msg)
 
         profile_data = {
             "tenant_id": tenant_id,

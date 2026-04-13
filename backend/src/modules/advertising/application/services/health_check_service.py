@@ -229,40 +229,42 @@ class HealthCheckService:
         out: list[RecommendationDTO] = []
 
         # Broken expectations → critical
-        for c in active_campaigns_health:
-            if c.has_issue and c.issue_text:
-                out.append(
-                    RecommendationDTO(
-                        type="configure_pixel",
-                        severity="critical",
-                        title=f"Revisá el píxel de '{c.name}'",
-                        body=c.issue_text,
-                        action_label="Diagnosticar píxel",
-                        action_url=None,
-                        related_offer_id=None,
-                        related_target_id=c.external_id,
-                    )
-                )
+        out.extend(
+            RecommendationDTO(
+                type="configure_pixel",
+                severity="critical",
+                title=f"Revisá el píxel de '{c.name}'",
+                body=c.issue_text,
+                action_label="Diagnosticar píxel",
+                action_url=None,
+                related_offer_id=None,
+                related_target_id=c.external_id,
+            )
+            for c in active_campaigns_health
+            if c.has_issue and c.issue_text
+        )
 
         # Offers without campaigns → warning
-        for cov in offers_coverage:
-            if not cov.has_active_campaign:
-                out.append(
-                    RecommendationDTO(
-                        type="create_campaign",
-                        severity="warning",
-                        title=f"'{cov.offer_name}' no tiene campaña activa",
-                        body=(
-                            f"Esta offer espera generar {cov.expected_metric_label_es.lower()}s "
-                            f"pero no tenés ninguna campaña asociada. Creá una campaña "
-                            f"con el objetivo correcto para empezar a medirla."
-                        ),
-                        action_label="Crear campaña",
-                        action_url=None,
-                        related_offer_id=cov.offer_id,
-                        related_target_id=None,
-                    )
-                )
+        out.extend(
+            RecommendationDTO(
+                type="create_campaign",
+                severity="warning",
+                title=f"'{cov.offer_name}' no tiene campaña activa",
+                body=(
+                    f"Esta offer espera generar "
+                    f"{cov.expected_metric_label_es.lower()}s "
+                    f"pero no tenés ninguna campaña asociada. Creá una "
+                    f"campaña con el objetivo correcto para empezar a "
+                    f"medirla."
+                ),
+                action_label="Crear campaña",
+                action_url=None,
+                related_offer_id=cov.offer_id,
+                related_target_id=None,
+            )
+            for cov in offers_coverage
+            if not cov.has_active_campaign
+        )
 
         # Unassigned active targets → info
         if unassigned:

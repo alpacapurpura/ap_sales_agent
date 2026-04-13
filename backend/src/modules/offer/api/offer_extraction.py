@@ -123,7 +123,7 @@ async def get_offer_extraction_status(
     try:
         UUIDType(job_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid job ID format")
+        raise HTTPException(status_code=400, detail="Invalid job ID format") from None
 
     progress_key = f"offer_extract:{current_user.tenant_id}:{job_id}"
     raw = redis_client.get(progress_key) if redis_client else None

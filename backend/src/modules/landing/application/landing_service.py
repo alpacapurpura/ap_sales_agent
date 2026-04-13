@@ -64,7 +64,8 @@ class LandingService:
     def update_landing(self, landing_id: UUID, config: dict) -> LandingPage:
         landing = self.repository.get_by_id(landing_id)
         if not landing:
-            raise ValueError("Landing not found")
+            msg = "Landing not found"
+            raise ValueError(msg)
 
         # Merge config
         # In a real app, careful merging of nested pydantic models
@@ -74,7 +75,8 @@ class LandingService:
     def publish_landing(self, landing_id: UUID) -> LandingPage:
         landing = self.repository.get_by_id(landing_id)
         if not landing:
-            raise ValueError("Landing not found")
+            msg = "Landing not found"
+            raise ValueError(msg)
 
         landing.is_published = True
         return self.repository.update(landing)
@@ -99,7 +101,8 @@ class LandingService:
             .first()
         )
         if not row:
-            raise ValueError("Offer not found")
+            msg = "Offer not found"
+            raise ValueError(msg)
 
         import json as _json
 
@@ -140,7 +143,8 @@ class LandingService:
     ) -> LandingPage:
         landing = self.repository.get_by_offer(tenant_id, offer_id)
         if not landing:
-            raise ValueError("Landing page not found for this offer")
+            msg = "Landing page not found for this offer"
+            raise ValueError(msg)
 
         # Get current config as dict and update
         current_config_dict = landing.config.model_dump()

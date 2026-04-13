@@ -597,7 +597,7 @@ async def handle_mailerlite_webhook(
     try:
         payload = await request.json()
     except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+        raise HTTPException(status_code=400, detail="Invalid JSON payload") from None
 
     event_type = payload.get("type", "")
     subscriber = payload.get("subscriber", {})
@@ -675,7 +675,7 @@ async def mailerlite_webhook_legacy(request: Request, db: Session = Depends(get_
         return {"status": "received", "source": "mailerlite"}
     except Exception as e:
         logger.error("mailerlite_webhook_error", error=str(e))
-        raise HTTPException(status_code=400, detail="Invalid payload")
+        raise HTTPException(status_code=400, detail="Invalid payload") from e
 
 
 @router.post("/manychat/{tenant_id}", status_code=status.HTTP_200_OK)
@@ -703,9 +703,9 @@ async def handle_manychat_webhook(
         raw = await request.json()
         dto = ManyChatWebhookPayload(**raw)
     except ValidationError as ve:
-        raise HTTPException(status_code=422, detail=ve.errors())
+        raise HTTPException(status_code=422, detail=ve.errors()) from ve
     except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+        raise HTTPException(status_code=400, detail="Invalid JSON payload") from None
 
     payload = dto.model_dump()
     event_type = dto.event_type

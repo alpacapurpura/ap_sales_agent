@@ -1,6 +1,8 @@
 import json
 import re
 
+import structlog
+
 from src.core.enums import ModelRole
 from src.modules.copilot.application.agents.style_analyzer.prompts import (
     ARCHITECT_PROMPT,
@@ -11,6 +13,8 @@ from src.modules.copilot.application.agents.style_analyzer.prompts import (
 from src.modules.copilot.application.agents.style_analyzer.state import OnboardingState
 from src.modules.sales_agent.infrastructure.monitoring.tracing import trace_node
 from src.shared.infrastructure.llm.factory import LLMFactory
+
+logger = structlog.get_logger()
 
 
 def clean_text_regex(text: str) -> str:
@@ -80,7 +84,7 @@ def node_janitor(state: OnboardingState):
             max_output_tokens=2000,
         )
     except Exception as e:
-        print(f"Janitor Error: {e}")
+        logger.error("janitor_llm_cleaning_failed", error=str(e))
         # Fallback to regex output
         cleaned_text = sampled_text
 
@@ -113,17 +117,15 @@ def node_psychologist(state: OnboardingState):
         try:
             style_profile = json.loads(json_str)
         except json.JSONDecodeError as e:
-            print(f"Psychologist JSON Parse Error. Raw output:\n{analysis_json}")
+            logger.error("psychologist_json_parse_error", raw_output=analysis_json)
             raise e
 
         return {"style_profile": style_profile}
 
     except Exception as e:
-        import traceback
-
-        traceback.print_exc()
-        print(f"Psychologist Error Type: {type(e)}")
-        print(f"Psychologist Error: {e}")
+        logger.exception(
+            "psychologist_analysis_failed", error_type=type(e).__name__, error=str(e)
+        )
         return {"error": f"Failed to analyze style: {e!s}"}
 
 
@@ -152,7 +154,7 @@ def node_architect(state: OnboardingState):
         return {"system_instruction": instruction.strip()}
 
     except Exception as e:
-        print(f"Architect Error: {e}")
+        logger.error("architect_instruction_generation_failed", error=str(e))
         return {"error": f"Failed to generate instruction: {e!s}"}
 
 
@@ -182,6 +184,6 @@ def node_simulator(state: OnboardingState):
         return {"simulation_examples": examples}
 
     except Exception as e:
-        print(f"Simulator Error: {e}")
+        logger.error("simulator_example_generation_failed", error=str(e))
         # Return empty list rather than fail
         return {"simulation_examples": []}

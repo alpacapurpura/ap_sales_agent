@@ -88,9 +88,8 @@ class OfferRepository:
                 try:
                     offer_data["specific_details"] = detail_class(**normalized)
                 except Exception as e:
-                    raise ValueError(
-                        f"Error parsing specific_details for offer {model.id}: {e!s}"
-                    )
+                    msg = f"Error parsing specific_details for offer {model.id}: {e!s}"
+                    raise ValueError(msg) from e
 
         return Offer(**offer_data)
 
@@ -276,7 +275,8 @@ class OfferRepository:
         )
         model = self.db.execute(stmt).scalar_one_or_none()
         if not model:
-            raise ValueError("Offer not found")
+            msg = "Offer not found"
+            raise ValueError(msg)
 
         new_model_data = self._to_model(offer)
 

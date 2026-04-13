@@ -74,7 +74,9 @@ async def create_domain(
         raise
     except Exception:
         logger.exception("domain_create_failed", tenant_id=str(user.tenant_id))
-        raise HTTPException(status_code=500, detail="Internal error creating domain")
+        raise HTTPException(
+            status_code=500, detail="Internal error creating domain"
+        ) from None
     return _to_response(domain)
 
 
@@ -116,7 +118,7 @@ async def set_primary(
     try:
         domain = service.set_primary(domain_id=domain_id, tenant_id=user.tenant_id)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
     return _to_response(domain)
 
 
@@ -130,7 +132,7 @@ async def delete_domain(
     try:
         service.delete_domain(domain_id=domain_id, tenant_id=user.tenant_id)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.post("/{domain_id}/verify", response_model=DomainResponse)
@@ -143,10 +145,12 @@ async def verify_domain(
     try:
         domain = service.verify_domain(domain_id=domain_id, tenant_id=user.tenant_id)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         logger.error("domain_verify_error", error=str(e), domain_id=str(domain_id))
-        raise HTTPException(status_code=502, detail="Cloudflare verification failed")
+        raise HTTPException(
+            status_code=502, detail="Cloudflare verification failed"
+        ) from e
     return _to_response(domain)
 
 

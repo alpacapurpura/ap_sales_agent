@@ -49,10 +49,12 @@ def verify_token_payload(token: str) -> dict:
         return payload
     except jwt.exceptions.PyJWTError as e:
         logger.error(f"JWT Validation Error: {e}")
-        raise HTTPException(status_code=401, detail=f"Invalid Token: {e!s}")
+        raise HTTPException(status_code=401, detail=f"Invalid Token: {e!s}") from e
     except Exception as e:
         logger.error(f"Token Verification Error: {e}")
-        raise HTTPException(status_code=401, detail="Could not verify credentials")
+        raise HTTPException(
+            status_code=401, detail="Could not verify credentials"
+        ) from e
 
 
 def verify_clerk_token(credentials: HTTPAuthorizationCredentials = Security(security)):

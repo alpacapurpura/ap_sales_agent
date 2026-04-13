@@ -4,6 +4,7 @@ Runs every 4 hours via ARQ cron. Scans active checkpoints and marks
 conversations as frozen when the last message is older than 72 hours.
 """
 
+import contextlib
 import logging
 from datetime import datetime, timedelta, timezone
 
@@ -77,9 +78,7 @@ async def run_frozen_detection(ctx: dict) -> None:
 
     except Exception as e:
         logger.error("frozen_detection_failed", error=str(e), exc_info=True)
-        try:
+        with contextlib.suppress(Exception):
             db.rollback()
-        except Exception:  # noqa: S110
-            pass
     finally:
         db.close()

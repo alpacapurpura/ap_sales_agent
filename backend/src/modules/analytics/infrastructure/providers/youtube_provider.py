@@ -73,8 +73,9 @@ class YouTubeProvider(BaseMetricsProvider):
                 tenant_id=str(tenant_id),
                 error=str(exc),
             )
+            msg = f"YouTube OAuth token revoked/expired: {exc}"
             raise ConnectionRevokedException(
-                f"YouTube OAuth token revoked/expired: {exc}",
+                msg,
                 channel_type="youtube",
             ) from exc
 

@@ -115,7 +115,7 @@ async def oauth_callback(
         logger.error("youtube_oauth_exchange_failed", error=str(e))
         raise HTTPException(
             status_code=400, detail=f"Error de autenticacion con Google: {e!s}"
-        )
+        ) from e
 
     try:
         authenticated_adapter = YoutubeAdapter(
@@ -124,13 +124,14 @@ async def oauth_callback(
         channel_info = authenticated_adapter.get_channel_info()
         channel_id = channel_info.get("id")
         if not channel_id:
-            raise ValueError("No YouTube channel found for this account")
+            msg = "No YouTube channel found for this account"
+            raise ValueError(msg)
     except Exception as e:
         logger.error("failed_to_get_youtube_channel", error=str(e))
         raise HTTPException(
             status_code=400,
             detail="No se pudo obtener el canal de YouTube. Verifica que tengas un canal creado.",
-        )
+        ) from e
 
     config_data = {
         "channel_id": channel_id,

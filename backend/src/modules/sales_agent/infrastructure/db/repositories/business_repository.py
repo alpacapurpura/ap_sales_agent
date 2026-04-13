@@ -11,8 +11,7 @@ class BusinessRepository:
         self.db = db
 
     def get_current_launch_product(self):
-        # Find active product
-        # Returns (Product, stage_name)
+        # Find active product and return it with its stage name
         product = (
             self.db.execute(select(Product).where(Product.status == "active"))
             .scalars()

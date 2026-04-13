@@ -66,7 +66,9 @@ def _resolve_tenant_id(
         try:
             return uuid.UUID(state)
         except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid state parameter")
+            raise HTTPException(
+                status_code=400, detail="Invalid state parameter"
+            ) from None
 
     connection = repo.get_active_shopify_by_shop(shop)
     if not connection:

@@ -213,7 +213,8 @@ class OfferCompletionService:
     def compute(self, *, offer_id: UUID, tenant_id: UUID) -> dict[str, Any]:
         offer = self._offers.get_offer(offer_id, tenant_id)
         if offer is None:
-            raise ValueError(f"Offer {offer_id} not found for tenant {tenant_id}")
+            msg = f"Offer {offer_id} not found for tenant {tenant_id}"
+            raise ValueError(msg)
 
         sections = _sections_for(getattr(offer, "archetype", None))
         completed = 0

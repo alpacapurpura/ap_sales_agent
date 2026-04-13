@@ -159,8 +159,9 @@ class SearchConsoleProvider(BaseMetricsProvider):
                 tenant_id=str(tenant_id),
                 error=str(exc),
             )
+            msg = f"Search Console OAuth token revoked/expired: {exc}"
             raise ConnectionRevokedException(
-                f"Search Console OAuth token revoked/expired: {exc}",
+                msg,
                 channel_type="search_console",
             ) from exc
 

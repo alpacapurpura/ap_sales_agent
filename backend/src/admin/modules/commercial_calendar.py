@@ -96,21 +96,20 @@ def render_commercial_calendar_page():
                 f"No hay eventos para {COUNTRIES.get(country_code, country_code)} {int(year)}."
             )
         else:
-            rows = []
-            for e in events:
-                rows.append(
-                    {
-                        "Fecha": e.date.strftime("%d/%m/%Y"),
-                        "Sem.": e.week_number,
-                        "Nombre": e.name,
-                        "Categoría": CATEGORY_LABELS.get(
-                            e.category or "", e.category or "—"
-                        ),
-                        "Fuente": "🔵 Sistema" if e.is_system else "🟢 Tenant",
-                        "_week": e.week_number,
-                        "_id": str(e.id),
-                    }
-                )
+            rows = [
+                {
+                    "Fecha": e.date.strftime("%d/%m/%Y"),
+                    "Sem.": e.week_number,
+                    "Nombre": e.name,
+                    "Categoría": CATEGORY_LABELS.get(
+                        e.category or "", e.category or "—"
+                    ),
+                    "Fuente": "🔵 Sistema" if e.is_system else "🟢 Tenant",
+                    "_week": e.week_number,
+                    "_id": str(e.id),
+                }
+                for e in events
+            ]
 
             df = pd.DataFrame(rows)
 

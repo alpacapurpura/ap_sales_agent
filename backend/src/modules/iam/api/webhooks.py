@@ -116,7 +116,7 @@ async def clerk_webhook_handler(request: Request, db=Depends(get_db)):
         evt = wh.verify(payload, headers)
     except WebhookVerificationError as e:
         logger.error("clerk_webhook_verification_failed", error=str(e))
-        raise HTTPException(status_code=400, detail="Invalid signature")
+        raise HTTPException(status_code=400, detail="Invalid signature") from e
 
     # 3. Process Event
     data = evt.get("data", {})
@@ -141,6 +141,6 @@ async def clerk_webhook_handler(request: Request, db=Depends(get_db)):
         )
         # We catch internal errors to avoid retrying if it's a logic error,
         # but for now let's raise 500 to let Clerk retry network blips.
-        raise HTTPException(status_code=500, detail="Error processing webhook")
+        raise HTTPException(status_code=500, detail="Error processing webhook") from e
 
     return {"status": "success"}

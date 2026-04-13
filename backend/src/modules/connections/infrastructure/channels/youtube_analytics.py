@@ -49,7 +49,8 @@ class YouTubeAnalyticsAdapter:
         resp = service.channels().list(mine=True, part="id").execute()
         items = resp.get("items", [])
         if not items:
-            raise ValueError("No se encontró un canal de YouTube para esta cuenta.")
+            msg = "No se encontró un canal de YouTube para esta cuenta."
+            raise ValueError(msg)
         return items[0]["id"]
 
     def _query(

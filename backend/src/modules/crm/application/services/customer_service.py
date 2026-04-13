@@ -28,7 +28,7 @@ class CustomerService:
         # 1. Try to find by identities
         profile = None
 
-        # Priority: UserID > Email > Phone
+        # Lookup priority order: UserID, then Email, then Phone
         if "user_id" in identities:
             profile = self.repository.find_by_identity(
                 IdentityType.USER_ID, identities["user_id"], tenant_id

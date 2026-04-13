@@ -23,7 +23,8 @@ class ClerkService:
         Returns the Clerk User Object or raises Exception.
         """
         if not self.secret_key:
-            raise Exception("CLERK_SECRET_KEY is missing")
+            msg = "CLERK_SECRET_KEY is missing"
+            raise Exception(msg)
 
         url = f"{self.api_url}/users"
         headers = {
@@ -59,33 +60,34 @@ class ClerkService:
                 )
                 # Check if it's "form_identifier_exists"
                 if any(e.get("code") == "form_identifier_exists" for e in error_detail):
-                    raise Exception(
-                        "El usuario ya existe en Clerk (form_identifier_exists)."
-                    )
+                    msg = "El usuario ya existe en Clerk (form_identifier_exists)."
+                    raise Exception(msg)
                 if any(e.get("code") == "password_pwned" for e in error_detail):
-                    raise Exception("La contraseña es muy común o insegura.")
+                    msg = "La contraseña es muy común o insegura."
+                    raise Exception(msg)
 
                 msg = (
                     error_detail[0].get("message")
                     if error_detail
                     else "Datos inválidos"
                 )
-                raise Exception(f"Error Clerk: {msg}")
+                msg = f"Error Clerk: {msg}"
+                raise Exception(msg)
             logger.error(
                 "clerk_create_user_error",
                 status=response.status_code,
                 body=response.text,
             )
-            raise Exception(
-                f"Error desconocido Clerk ({response.status_code}): {response.text}"
-            )
+            msg = f"Error desconocido Clerk ({response.status_code}): {response.text}"
+            raise Exception(msg)
 
         except Exception as e:
             # Re-raise explicit exceptions
             if "El usuario ya existe" in str(e):
                 raise e
             logger.error("clerk_service_exception", error=str(e))
-            raise Exception(f"Error de conexión con Clerk: {e!s}")
+            msg = f"Error de conexión con Clerk: {e!s}"
+            raise Exception(msg) from e
 
     def get_user_by_email(self, email: str) -> dict[str, Any] | None:
         if not self.secret_key:

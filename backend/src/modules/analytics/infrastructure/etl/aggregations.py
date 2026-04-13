@@ -124,7 +124,7 @@ def compute_aggregations(
                 # Last value in the period (snapshot = state, not flow)
                 last_date = max(period_values.keys())
                 return period_values[last_date]
-            # ADDITIVE: SUM
+            # Additive metrics are summed
             return sum(period_values.values())
 
         # Weekly aggregations

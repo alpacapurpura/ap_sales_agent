@@ -110,8 +110,9 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 end_date=period_end.isoformat(),
             )
         except (RefreshError, TransportError) as exc:
+            msg = f"Google Analytics OAuth token revoked/expired: {exc}"
             raise ConnectionRevokedException(
-                f"Google Analytics OAuth token revoked/expired: {exc}",
+                msg,
                 channel_type="google_analytics",
             ) from exc
 
@@ -193,8 +194,9 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 tenant_id=str(tenant_id),
                 error=str(exc),
             )
+            msg = f"Google Analytics OAuth token revoked/expired: {exc}"
             raise ConnectionRevokedException(
-                f"Google Analytics OAuth token revoked/expired: {exc}",
+                msg,
                 channel_type="google_analytics",
             ) from exc
 
@@ -563,8 +565,9 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 tenant_id=str(tenant_id),
                 error=str(exc),
             )
+            msg = f"Google Analytics OAuth token revoked/expired: {exc}"
             raise ConnectionRevokedException(
-                f"Google Analytics OAuth token revoked/expired: {exc}",
+                msg,
                 channel_type="google_analytics",
             ) from exc
 

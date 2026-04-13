@@ -103,33 +103,32 @@ class MetaCampaignProvider:
             "campaigns",
         )
 
-        campaigns = []
-        for row in rows:
-            campaigns.append(
-                {
-                    "external_id": row["id"],
-                    "name": row.get("name", ""),
-                    "objective": row.get("objective"),
-                    "status": row.get("status"),
-                    "effective_status": row.get("effective_status"),
-                    "bid_strategy": row.get("bid_strategy"),
-                    "daily_budget": int(row["daily_budget"])
-                    if row.get("daily_budget")
-                    else None,
-                    "lifetime_budget": int(row["lifetime_budget"])
-                    if row.get("lifetime_budget")
-                    else None,
-                    "budget_remaining": int(row["budget_remaining"])
-                    if row.get("budget_remaining")
-                    else None,
-                    "buying_type": row.get("buying_type", "AUCTION"),
-                    "special_ad_categories": row.get("special_ad_categories", []),
-                    "start_time": row.get("start_time"),
-                    "stop_time": row.get("stop_time"),
-                    "external_created_time": row.get("created_time"),
-                    "external_updated_time": row.get("updated_time"),
-                }
-            )
+        campaigns = [
+            {
+                "external_id": row["id"],
+                "name": row.get("name", ""),
+                "objective": row.get("objective"),
+                "status": row.get("status"),
+                "effective_status": row.get("effective_status"),
+                "bid_strategy": row.get("bid_strategy"),
+                "daily_budget": int(row["daily_budget"])
+                if row.get("daily_budget")
+                else None,
+                "lifetime_budget": int(row["lifetime_budget"])
+                if row.get("lifetime_budget")
+                else None,
+                "budget_remaining": int(row["budget_remaining"])
+                if row.get("budget_remaining")
+                else None,
+                "buying_type": row.get("buying_type", "AUCTION"),
+                "special_ad_categories": row.get("special_ad_categories", []),
+                "start_time": row.get("start_time"),
+                "stop_time": row.get("stop_time"),
+                "external_created_time": row.get("created_time"),
+                "external_updated_time": row.get("updated_time"),
+            }
+            for row in rows
+        ]
         return campaigns
 
     async def extract_ad_sets(
@@ -184,19 +183,19 @@ class MetaCampaignProvider:
                 }
             )
 
-            for rec in row.get("recommendations", []):
-                inline_recs.append(
-                    {
-                        "source": "ad_set",
-                        "recommendation_type": str(rec.get("code", "")),
-                        "object_ids": [row["id"]],
-                        "title": rec.get("title"),
-                        "body": rec.get("message"),
-                        "blame_field": rec.get("blame_field"),
-                        "importance": rec.get("importance"),
-                        "confidence": rec.get("confidence"),
-                    }
-                )
+            inline_recs.extend(
+                {
+                    "source": "ad_set",
+                    "recommendation_type": str(rec.get("code", "")),
+                    "object_ids": [row["id"]],
+                    "title": rec.get("title"),
+                    "body": rec.get("message"),
+                    "blame_field": rec.get("blame_field"),
+                    "importance": rec.get("importance"),
+                    "confidence": rec.get("confidence"),
+                }
+                for rec in row.get("recommendations", [])
+            )
         return ad_sets, inline_recs
 
     async def extract_ads(
@@ -242,19 +241,19 @@ class MetaCampaignProvider:
                 }
             )
 
-            for rec in row.get("recommendations", []):
-                inline_recs.append(
-                    {
-                        "source": "ad",
-                        "recommendation_type": str(rec.get("code", "")),
-                        "object_ids": [row["id"]],
-                        "title": rec.get("title"),
-                        "body": rec.get("message"),
-                        "blame_field": rec.get("blame_field"),
-                        "importance": rec.get("importance"),
-                        "confidence": rec.get("confidence"),
-                    }
-                )
+            inline_recs.extend(
+                {
+                    "source": "ad",
+                    "recommendation_type": str(rec.get("code", "")),
+                    "object_ids": [row["id"]],
+                    "title": rec.get("title"),
+                    "body": rec.get("message"),
+                    "blame_field": rec.get("blame_field"),
+                    "importance": rec.get("importance"),
+                    "confidence": rec.get("confidence"),
+                }
+                for rec in row.get("recommendations", [])
+            )
         # Enrich video ads with high-resolution thumbnails
         await self._enrich_video_thumbnails(client, credentials, ads)
 

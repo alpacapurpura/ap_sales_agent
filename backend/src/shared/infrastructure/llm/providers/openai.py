@@ -1,5 +1,6 @@
 from typing import Any
 
+import structlog
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
@@ -11,6 +12,8 @@ from src.modules.sales_agent.infrastructure.memory.audit_repository import (
 )
 from src.modules.sales_agent.infrastructure.monitoring.tracing import current_trace_id
 from src.shared.infrastructure.llm.base import BaseLLMService
+
+logger = structlog.get_logger()
 
 # Legacy string → ModelRole mapping (backwards-compat)
 _LEGACY_MODEL_TYPE_MAP: dict[str, ModelRole] = {
@@ -173,7 +176,7 @@ class OpenAIService(BaseLLMService):
                     )
                     repo.close()
                 except Exception as log_err:
-                    print(f"Failed to log LLM call: {log_err}")
+                    logger.warning("llm_call_logging_failed", error=str(log_err))
 
         return response_text
 

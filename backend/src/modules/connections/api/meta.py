@@ -540,7 +540,9 @@ async def oauth_callback(
         logger.error(
             "meta_oauth_exchange_failed", error=str(e), tenant_id=str(user.tenant_id)
         )
-        raise HTTPException(status_code=400, detail="Error de autenticacion con Meta")
+        raise HTTPException(
+            status_code=400, detail="Error de autenticacion con Meta"
+        ) from e
 
     try:
         adapter_with_token = MetaAdapter(access_token=creds_data.get("access_token"))
@@ -548,7 +550,8 @@ async def oauth_callback(
         user_id = profile.get("id")
         name = profile.get("name")
         if not user_id:
-            raise ValueError("User ID not found in profile")
+            msg = "User ID not found in profile"
+            raise ValueError(msg)
         logger.info(
             "meta_oauth_profile_ok",
             tenant_id=str(user.tenant_id),
@@ -561,7 +564,7 @@ async def oauth_callback(
         )
         raise HTTPException(
             status_code=400, detail="No se pudo obtener el perfil de Meta."
-        )
+        ) from e
 
     # Log and store granted permissions for diagnostics
     granted_permissions: list[str] = []
@@ -932,7 +935,7 @@ async def sync_assets(
         logger.error("meta_sync_assets_failed", error=str(e))
         raise HTTPException(
             status_code=502, detail=f"Error consultando activos de Meta: {e}"
-        )
+        ) from e
 
     # Flatten primary asset IDs to master for ETL
     try:

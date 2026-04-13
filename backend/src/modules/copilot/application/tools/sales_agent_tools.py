@@ -92,8 +92,7 @@ def get_sales_agent_status() -> str:
 
         if channel_dist:
             lines.append("\n### Por Canal")
-            for ch in channel_dist:
-                lines.append(f"  - {ch['ch']}: {ch['cnt']} leads")
+            lines.extend(f"  - {ch['ch']}: {ch['cnt']} leads" for ch in channel_dist)
 
         return "\n".join(lines)
     except Exception as e:

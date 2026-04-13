@@ -44,9 +44,8 @@ class LLMFactory:
             return cls.get_service()
 
         # 3. No permission -> Error
-        raise ValueError(
-            "AI Configuration Error: No API Key provided and platform keys are disabled for this tenant."
-        )
+        msg = "AI Configuration Error: No API Key provided and platform keys are disabled for this tenant."
+        raise ValueError(msg)
 
     @classmethod
     def _create_service_instance(
@@ -58,7 +57,8 @@ class LLMFactory:
             from src.shared.infrastructure.llm.providers.gemini import GeminiService
 
             return GeminiService(api_key=api_key)
-        raise ValueError(f"Unsupported AI Provider: {provider}")
+        msg = f"Unsupported AI Provider: {provider}"
+        raise ValueError(msg)
 
     # Deprecated: Kept for internal compatibility
     @classmethod

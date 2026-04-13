@@ -45,8 +45,7 @@ def parse_imports(filepath: Path) -> list[str]:
         if isinstance(node, ast.ImportFrom) and node.module:
             imports.append(node.module)
         elif isinstance(node, ast.Import):
-            for alias in node.names:
-                imports.append(alias.name)
+            imports.extend(alias.name for alias in node.names)
     return imports
 
 

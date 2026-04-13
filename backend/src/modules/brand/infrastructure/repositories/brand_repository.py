@@ -49,7 +49,8 @@ class BrandRepository:
         result = self.db.execute(stmt)
         tenant = result.scalars().first()
         if not tenant:
-            raise ValueError("Tenant not found")
+            msg = "Tenant not found"
+            raise ValueError(msg)
 
         config = dict(tenant.config_json or {})
         settings_dict = settings.model_dump(mode="json")

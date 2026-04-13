@@ -47,7 +47,8 @@ class InterviewService:
         if resume_session_id:
             session = self.session_repo.get_by_id(resume_session_id, tenant_id)
             if not session or session.status != InterviewStatus.PAUSED:
-                raise ValueError("Session not found or not paused")
+                msg = "Session not found or not paused"
+                raise ValueError(msg)
             session.resume()
             self.session_repo.save(session)
             self.db.commit()
@@ -63,7 +64,8 @@ class InterviewService:
 
         existing = self.session_repo.get_active_by_domain(tenant_id, domain)
         if existing:
-            raise ValueError("Active session exists for this domain")
+            msg = "Active session exists for this domain"
+            raise ValueError(msg)
 
         config = get_interview_config(domain)
 

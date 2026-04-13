@@ -76,7 +76,8 @@ class ExtractionRunRepository:
         run = self.db.execute(stmt).scalars().first()
 
         if run is None:
-            raise ValueError(f"ExtractionRun {run_id} not found")
+            msg = f"ExtractionRun {run_id} not found"
+            raise ValueError(msg)
 
         run.status = status.value
         run.error = error

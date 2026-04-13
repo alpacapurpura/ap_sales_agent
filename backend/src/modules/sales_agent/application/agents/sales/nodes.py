@@ -215,16 +215,18 @@ def node_signal_accumulator(state: AgentState) -> dict[str, Any]:
     # Accumulate buying signals
     current_signals = list(state.get("buying_signals") or [])
     if signals:
-        for sig in signals.get("buying", []):
-            current_signals.append({"type": sig, "turn": state.get("turn_count", 0)})
+        current_signals.extend(
+            {"type": sig, "turn": state.get("turn_count", 0)}
+            for sig in signals.get("buying", [])
+        )
         updates["buying_signals"] = current_signals
 
         # Update objection history
         current_obj = list(state.get("objection_history") or [])
-        for obj in signals.get("objections", []):
-            current_obj.append(
-                {"type": obj, "turn": state.get("turn_count", 0), "resolved": False}
-            )
+        current_obj.extend(
+            {"type": obj, "turn": state.get("turn_count", 0), "resolved": False}
+            for obj in signals.get("objections", [])
+        )
         updates["objection_history"] = current_obj
 
     # Update lead score

@@ -1,12 +1,12 @@
-import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
+import structlog
 
 from .base import BaseConnector
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 
 class MailerliteConnector(BaseConnector):
@@ -156,12 +156,12 @@ class MailerliteConnector(BaseConnector):
 
     def sync_contacts(self, tenant_id: str) -> list[dict[str, Any]]:
         # TODO: Implementar lógica real de MailerLite para obtener suscriptores
-        print(f"Sincronizando contactos de MailerLite para tenant {tenant_id}")
+        logger.info("mailerlite_sync_contacts_started", tenant_id=tenant_id)
         return []
 
     def sync_events(self, tenant_id: str) -> list[dict[str, Any]]:
         # TODO: Implementar lógica real de MailerLite para obtener eventos (aperturas, clics, etc.)
-        print(f"Sincronizando eventos de MailerLite para tenant {tenant_id}")
+        logger.info("mailerlite_sync_events_started", tenant_id=tenant_id)
         return []
 
 

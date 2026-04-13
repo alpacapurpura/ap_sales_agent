@@ -42,7 +42,7 @@ class TestResolveAdditive:
     def test_sums_only_account_level_rows(self) -> None:
         """BUG1 regression: campaign-level rows must NOT be included in the sum."""
         rows = [
-            # Account-level (campaign_id=None)
+            # Account-level rows have no campaign_id
             _row(D1, "spend", 100.0),
             _row(D2, "spend", 200.0),
             # Campaign-level — should be EXCLUDED
@@ -279,9 +279,9 @@ class TestResolveDailyTimeseries:
         resolver = MetricResolver()
         result = resolver.resolve_daily_timeseries(rows, ["CTR"])
         assert len(result["CTR"]) == 2
-        # D1: 10/1000*100 = 1.0
+        # Day 1 expected CTR: 1.0
         assert result["CTR"][0] == (D1, pytest.approx(1.0))
-        # D2: 30/2000*100 = 1.5
+        # Day 2 expected CTR: 1.5
         assert result["CTR"][1] == (D2, pytest.approx(1.5))
 
     def test_daily_filters_account_level_only(self) -> None:

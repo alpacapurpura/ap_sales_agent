@@ -127,7 +127,8 @@ class LaunchEditionRepository:
         )
         model = self.db.execute(stmt).scalar_one_or_none()
         if not model:
-            raise ValueError(f"Edition {edition_id} not found")
+            msg = f"Edition {edition_id} not found"
+            raise ValueError(msg)
 
         for key, value in data.items():
             if (

@@ -6,6 +6,7 @@ follow_up_cadence, and sends value-driven nudges at the configured delays.
 Modeled on frozen_detection.py but sends outbound messages.
 """
 
+import contextlib
 import logging
 from datetime import datetime, timezone
 
@@ -198,9 +199,7 @@ async def run_follow_up_engine(ctx: dict) -> None:
 
     except Exception as e:
         logger.error("follow_up_engine_failed", error=str(e), exc_info=True)
-        try:
+        with contextlib.suppress(Exception):
             db.rollback()
-        except Exception:  # noqa: S110
-            pass
     finally:
         db.close()

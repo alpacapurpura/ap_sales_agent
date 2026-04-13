@@ -195,17 +195,16 @@ class AuditRepository(EpisodicMemoryStore):
             .all()
         )
 
-        timeline = []
-        for m in messages:
-            timeline.append(
-                {
-                    "type": "message",
-                    "id": str(m.id),
-                    "role": m.role,
-                    "content": m.content,
-                    "created_at": m.created_at,
-                }
-            )
+        timeline = [
+            {
+                "type": "message",
+                "id": str(m.id),
+                "role": m.role,
+                "content": m.content,
+                "created_at": m.created_at,
+            }
+            for m in messages
+        ]
 
         for t in traces:
             llm_summary = None

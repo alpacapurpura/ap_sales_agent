@@ -158,7 +158,7 @@ async def update_product(
             UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
         )
     except ValueError:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail="Product not found") from None
 
 
 @router.patch("/{product_id}/identity", response_model=Offer)
@@ -174,7 +174,7 @@ async def update_identity(
             UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
         )
     except ValueError:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail="Product not found") from None
 
 
 @router.patch("/{product_id}/strategy", response_model=Offer)
@@ -190,7 +190,7 @@ async def update_strategy(
             UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
         )
     except ValueError:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail="Product not found") from None
 
 
 @router.patch("/{product_id}/promise", response_model=Offer)
@@ -206,7 +206,7 @@ async def update_promise(
             UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
         )
     except ValueError:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail="Product not found") from None
 
 
 @router.patch("/{product_id}/psychology", response_model=Offer)
@@ -222,7 +222,7 @@ async def update_psychology(
             UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
         )
     except ValueError:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail="Product not found") from None
 
 
 @router.patch("/{product_id}/value_stack", response_model=Offer)
@@ -238,7 +238,7 @@ async def update_value_stack(
             UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
         )
     except ValueError:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail="Product not found") from None
 
 
 @router.patch("/{product_id}/pricing", response_model=Offer)
@@ -254,7 +254,7 @@ async def update_pricing(
             UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
         )
     except ValueError:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail="Product not found") from None
 
 
 @router.patch("/{product_id}/details", response_model=Offer)
@@ -270,7 +270,7 @@ async def update_details(
             UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
         )
     except ValueError:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail="Product not found") from None
 
 
 @router.patch("/{product_id}/visuals", response_model=Offer)
@@ -286,7 +286,7 @@ async def update_visuals(
             UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
         )
     except ValueError:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail="Product not found") from None
 
 
 @router.patch("/{product_id}/closing", response_model=Offer)
@@ -302,7 +302,7 @@ async def update_closing(
             UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
         )
     except ValueError:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail="Product not found") from None
 
 
 @router.patch("/{product_id}/resources", response_model=Offer)
@@ -318,7 +318,7 @@ async def update_resources(
             UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
         )
     except ValueError:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail="Product not found") from None
 
 
 @router.patch("/{product_id}/instructors", response_model=Offer)
@@ -334,4 +334,4 @@ async def update_instructors(
             UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
         )
     except ValueError:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail="Product not found") from None

@@ -918,12 +918,13 @@ class MetaProvider(BaseMetricsProvider):
         date_start_str = data.get("date_start")
         date_stop_str = data.get("date_stop")
         if date_start_str and date_stop_str and date_start_str != date_stop_str:
-            raise PeriodAggregateError(
+            msg = (
                 "Refusing to parse multi-day Meta Insights row "
                 f"(date_start={date_start_str}, date_stop={date_stop_str}). "
                 "Use time_increment=1 in the API request, or route this row "
                 "through extract_period_metrics() for NON_AGGREGABLE metrics."
             )
+            raise PeriodAggregateError(msg)
 
     @staticmethod
     def _parse_ads_row(
@@ -990,31 +991,31 @@ class MetaProvider(BaseMetricsProvider):
                 )
 
         # B) Outbound clicks (list of AdsActionStats)
-        for entry in data.get("outbound_clicks", []):
-            if entry.get("action_type") == "outbound_click":
-                metrics.append(
-                    ExtractedMetric(
-                        provider="meta",
-                        channel_slug="meta-ads",
-                        metric_name="meta_outbound_clicks",
-                        value=float(entry.get("value", 0)),
-                        unit="count",
-                        date=metric_date,
-                    )
-                )
-        for entry in data.get("cost_per_outbound_click", []):
-            if entry.get("action_type") == "outbound_click":
-                metrics.append(
-                    ExtractedMetric(
-                        provider="meta",
-                        channel_slug="meta-ads",
-                        metric_name="meta_cost_per_outbound_click",
-                        value=float(entry.get("value", 0)),
-                        unit="currency",
-                        currency=currency,
-                        date=metric_date,
-                    )
-                )
+        metrics.extend(
+            ExtractedMetric(
+                provider="meta",
+                channel_slug="meta-ads",
+                metric_name="meta_outbound_clicks",
+                value=float(entry.get("value", 0)),
+                unit="count",
+                date=metric_date,
+            )
+            for entry in data.get("outbound_clicks", [])
+            if entry.get("action_type") == "outbound_click"
+        )
+        metrics.extend(
+            ExtractedMetric(
+                provider="meta",
+                channel_slug="meta-ads",
+                metric_name="meta_cost_per_outbound_click",
+                value=float(entry.get("value", 0)),
+                unit="currency",
+                currency=currency,
+                date=metric_date,
+            )
+            for entry in data.get("cost_per_outbound_click", [])
+            if entry.get("action_type") == "outbound_click"
+        )
 
         # C) Actions → expanded conversions (using _META_ACTION_MAP)
         action_counts: dict[str, float] = defaultdict(float)
@@ -1036,22 +1037,23 @@ class MetaProvider(BaseMetricsProvider):
             )
 
         # D) Action values → monetary conversion value
-        for entry in data.get("action_values", []):
-            if entry.get("action_type") in (
+        metrics.extend(
+            ExtractedMetric(
+                provider="meta",
+                channel_slug="meta-ads",
+                metric_name="meta_conversion_value",
+                value=float(entry.get("value", 0)),
+                unit="currency",
+                currency=currency,
+                date=metric_date,
+            )
+            for entry in data.get("action_values", [])
+            if entry.get("action_type")
+            in (
                 "offsite_conversion.fb_pixel_purchase",
                 "onsite_conversion.purchase",
-            ):
-                metrics.append(
-                    ExtractedMetric(
-                        provider="meta",
-                        channel_slug="meta-ads",
-                        metric_name="meta_conversion_value",
-                        value=float(entry.get("value", 0)),
-                        unit="currency",
-                        currency=currency,
-                        date=metric_date,
-                    )
-                )
+            )
+        )
 
         # E) Cost per action type
         for entry in data.get("cost_per_action_type", []):
@@ -1085,18 +1087,18 @@ class MetaProvider(BaseMetricsProvider):
                 )
 
         # F) ROAS
-        for entry in data.get("purchase_roas", []):
-            if entry.get("action_type") == "omni_purchase":
-                metrics.append(
-                    ExtractedMetric(
-                        provider="meta",
-                        channel_slug="meta-ads",
-                        metric_name="meta_purchase_roas",
-                        value=float(entry.get("value", 0)),
-                        unit="ratio",
-                        date=metric_date,
-                    )
-                )
+        metrics.extend(
+            ExtractedMetric(
+                provider="meta",
+                channel_slug="meta-ads",
+                metric_name="meta_purchase_roas",
+                value=float(entry.get("value", 0)),
+                unit="ratio",
+                date=metric_date,
+            )
+            for entry in data.get("purchase_roas", [])
+            if entry.get("action_type") == "omni_purchase"
+        )
 
         # G) Video metrics
         _VIDEO_FIELDS = [

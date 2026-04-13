@@ -180,21 +180,21 @@ class AdoptionStageService:
             )
 
         # Per-offer bottleneck
-        for offer in offer_list:
-            if offer.health_pct < 60.0:
-                bottlenecks.append(
-                    BottleneckDTO(
-                        type="offer_low_health",
-                        metric_label=f"Salud: {offer.public_name}",
-                        current_rate=offer.health_pct,
-                        severity="warning",
-                        threshold=60.0,
-                        tip=(
-                            "Revisa el engagement de este producto -- mas de "
-                            "la mitad de sus clientes estan inactivos"
-                        ),
-                    )
-                )
+        bottlenecks.extend(
+            BottleneckDTO(
+                type="offer_low_health",
+                metric_label=f"Salud: {offer.public_name}",
+                current_rate=offer.health_pct,
+                severity="warning",
+                threshold=60.0,
+                tip=(
+                    "Revisa el engagement de este producto -- mas de "
+                    "la mitad de sus clientes estan inactivos"
+                ),
+            )
+            for offer in offer_list
+            if offer.health_pct < 60.0
+        )
 
         now = dt_cls.now(UTC)
 

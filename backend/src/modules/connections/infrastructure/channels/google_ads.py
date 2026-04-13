@@ -155,16 +155,16 @@ class GoogleAdsAdapter:
         results = []
         try:
             response = ga_service.search(customer_id=customer_id, query=query)
-            for row in response:
-                results.append(
-                    {
-                        "search_term": row.search_term_view.search_term,
-                        "impressions": row.metrics.impressions,
-                        "clicks": row.metrics.clicks,
-                        "conversions": row.metrics.conversions,
-                        "cost_micros": row.metrics.cost_micros,
-                    }
-                )
+            results.extend(
+                {
+                    "search_term": row.search_term_view.search_term,
+                    "impressions": row.metrics.impressions,
+                    "clicks": row.metrics.clicks,
+                    "conversions": row.metrics.conversions,
+                    "cost_micros": row.metrics.cost_micros,
+                }
+                for row in response
+            )
         except Exception:
             logger.exception("google_ads_search_terms_search_exception")
         return results
@@ -202,24 +202,26 @@ class GoogleAdsAdapter:
         rows: list[dict[str, Any]] = []
         try:
             response = ga_service.search(customer_id=customer_id, query=query)
-            for row in response:
-                rows.append(
-                    {
-                        "campaign_id": str(row.campaign.id),
-                        "campaign_name": row.campaign.name,
-                        "advertising_channel_type": row.campaign.advertising_channel_type.name,
-                        "impressions": row.metrics.impressions,
-                        "clicks": row.metrics.clicks,
-                        "conversions": row.metrics.conversions,
-                        "cost_micros": row.metrics.cost_micros,
-                        "conversions_value": row.metrics.conversions_value,
-                        "ctr": row.metrics.ctr,
-                        "average_cpc": row.metrics.average_cpc,
-                        "segments_date": getattr(
-                            getattr(row, "segments", None), "date", ""
-                        ),
-                    }
-                )
+            rows.extend(
+                {
+                    "campaign_id": str(row.campaign.id),
+                    "campaign_name": row.campaign.name,
+                    "advertising_channel_type": row.campaign.advertising_channel_type.name,
+                    "impressions": row.metrics.impressions,
+                    "clicks": row.metrics.clicks,
+                    "conversions": row.metrics.conversions,
+                    "cost_micros": row.metrics.cost_micros,
+                    "conversions_value": row.metrics.conversions_value,
+                    "ctr": row.metrics.ctr,
+                    "average_cpc": row.metrics.average_cpc,
+                    "segments_date": getattr(
+                        getattr(row, "segments", None),
+                        "date",
+                        "",
+                    ),
+                }
+                for row in response
+            )
         except Exception:
             logger.exception("google_ads_search_exception")
 

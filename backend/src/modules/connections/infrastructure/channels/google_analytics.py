@@ -89,7 +89,8 @@ class GoogleAnalyticsAdapter:
     def get_service(self):
         """Returns the Google Analytics Admin service resource."""
         if not self.creds:
-            raise ValueError("Credentials not initialized")
+            msg = "Credentials not initialized"
+            raise ValueError(msg)
         return build("analyticsadmin", "v1beta", credentials=self.creds)
 
     def get_account_summaries(self) -> list[dict[str, Any]]:
@@ -135,7 +136,8 @@ class GoogleAnalyticsAdapter:
     def _get_data_client(self) -> BetaAnalyticsDataClient:
         """Returns a GA4 Data API client using current credentials."""
         if not self.creds:
-            raise ValueError("Credentials not initialized")
+            msg = "Credentials not initialized"
+            raise ValueError(msg)
         return BetaAnalyticsDataClient(credentials=self.creds)
 
     async def run_report(
@@ -186,14 +188,13 @@ class GoogleAnalyticsAdapter:
 
     def _normalize_report_response(self, response) -> dict:
         """Convert GA4 RunReportResponse to a plain dict."""
-        rows = []
-        for row in response.rows:
-            rows.append(
-                {
-                    "dimensions": [dv.value for dv in row.dimension_values],
-                    "metrics": [mv.value for mv in row.metric_values],
-                }
-            )
+        rows = [
+            {
+                "dimensions": [dv.value for dv in row.dimension_values],
+                "metrics": [mv.value for mv in row.metric_values],
+            }
+            for row in response.rows
+        ]
         return {
             "row_count": response.row_count,
             "rows": rows,

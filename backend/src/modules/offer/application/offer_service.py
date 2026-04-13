@@ -130,7 +130,8 @@ class OfferService:
     ) -> Offer:
         offer = self.repository.get_by_id(offer_id, tenant_id)
         if not offer:
-            raise ValueError(f"Offer with id {offer_id} not found")
+            msg = f"Offer with id {offer_id} not found"
+            raise ValueError(msg)
 
         current_data = offer.model_dump()
 
@@ -148,15 +149,15 @@ class OfferService:
                         **update_data["specific_details"]
                     )
                 except Exception as e:
-                    raise ValueError(
-                        f"Invalid specific_details structure for archetype {archetype}: {e!s}"
-                    )
+                    msg = f"Invalid specific_details structure for archetype {archetype}: {e!s}"
+                    raise ValueError(msg) from e
 
         current_data.update(update_data)
 
         try:
             updated_offer = Offer.model_validate(current_data)
         except Exception as e:
-            raise ValueError(f"Invalid update data: {e!s}")
+            msg = f"Invalid update data: {e!s}"
+            raise ValueError(msg) from e
 
         return self.repository.update(updated_offer, tenant_id)

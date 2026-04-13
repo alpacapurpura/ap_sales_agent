@@ -30,10 +30,12 @@ class CopilotOfferPsychologyService(PsychologyGeneratorPort):
     ) -> PsychologyGenerationResponse:
         avatar = self.avatar_repo.get_by_id(request.avatar_id)
         if not avatar:
-            raise ValueError(f"Avatar with ID {request.avatar_id} not found")
+            msg = f"Avatar with ID {request.avatar_id} not found"
+            raise ValueError(msg)
 
         if avatar.tenant_id and str(avatar.tenant_id) != str(tenant_id):
-            raise ValueError("Avatar not found in this tenant")
+            msg = "Avatar not found in this tenant"
+            raise ValueError(msg)
 
         system_prompt_content = prompt_loader.render(
             template_name="offer_psychology_generator.j2",

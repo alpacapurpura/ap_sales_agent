@@ -182,10 +182,11 @@ class Offer(BaseEntity):
             and self.specific_details is not None
             and not isinstance(self.specific_details, expected_detail_class)
         ):
-            raise ValueError(
+            msg = (
                 f"Polymorphism Error: Archetype {self.archetype.value} expects "
                 f"{expected_detail_class.__name__}, got {type(self.specific_details).__name__}"
             )
+            raise ValueError(msg)
 
         return self
 

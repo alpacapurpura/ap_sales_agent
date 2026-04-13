@@ -10,7 +10,7 @@ from src.modules.sales_agent.infrastructure.memory.audit_repository import (
 
 
 def _format_lead_option(lead_tuple):
-    # lead_tuple is (LeadModel, last_activity)
+    # Unpack tuple: first element is LeadModel, second is last_activity
     lead = lead_tuple[0]
     last_act = lead_tuple[1]
 

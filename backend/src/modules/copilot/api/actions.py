@@ -40,11 +40,11 @@ async def extract_brand_data(
     try:
         data = await service.extract_brand_identity(request.url, request.type)
     except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error))
+        raise HTTPException(status_code=400, detail=str(error)) from error
     except Exception as error:
         raise HTTPException(
             status_code=500, detail=f"Internal extraction error: {error!s}"
-        )
+        ) from error
 
     if not data:
         raise HTTPException(
@@ -111,6 +111,8 @@ async def generate_offer_psychology(
     try:
         return await service.generate_psychology(request, tenant_id)
     except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error))
+        raise HTTPException(status_code=404, detail=str(error)) from error
     except Exception as error:
-        raise HTTPException(status_code=500, detail=f"AI Generation failed: {error!s}")
+        raise HTTPException(
+            status_code=500, detail=f"AI Generation failed: {error!s}"
+        ) from error

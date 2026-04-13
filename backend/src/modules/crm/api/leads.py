@@ -26,8 +26,6 @@ async def search_leads(
     TODO: Implement search logic in LeadService/Repository.
     For now returning empty list or placeholder.
     """
-    # service = LeadService(db)
-    # return service.search_leads(user.tenant_id, q, limit)
     return []
 
 
@@ -42,7 +40,7 @@ async def get_lead(
     try:
         lead = service.get_lead(UUID(lead_id))
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid UUID format")
+        raise HTTPException(status_code=400, detail="Invalid UUID format") from None
 
     if not lead or str(lead.tenant_id) != str(user.tenant_id):
         raise HTTPException(status_code=404, detail="Lead not found")

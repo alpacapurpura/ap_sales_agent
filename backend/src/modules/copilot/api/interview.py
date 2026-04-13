@@ -45,7 +45,7 @@ def start_interview(
             resume_session_id=request.resume_session_id,
         )
     except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e)) from e
     return result
 
 

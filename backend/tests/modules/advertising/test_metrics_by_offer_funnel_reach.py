@@ -260,7 +260,7 @@ class TestPerOfferReach:
         assert len(result.offers) == 1
         off = result.offers[0]
         assert off.reach == 3200.0
-        # frequency = impressions / reach
+        # Frequency is calculated as impressions divided by reach
         assert off.frequency == round(5000 / 3200, 2)
         # funnel exists + is a subset (only this campaign's rows)
         by_metric = {s.metric_name: s for s in off.funnel}

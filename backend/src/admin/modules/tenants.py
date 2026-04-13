@@ -53,18 +53,17 @@ def render_tenants_view():
             st.info("No hay tenants registrados aún.")
         else:
             # Preparamos datos para mostrar
-            data = []
-            for t in tenants:
-                data.append(
-                    {
-                        "ID": str(t.id),
-                        "Nombre": t.name,
-                        "Slug": t.slug,
-                        "Activo": t.is_active,
-                        "Usa Keys Plataforma": t.can_use_platform_keys,
-                        "Creado": t.created_at,
-                    }
-                )
+            data = [
+                {
+                    "ID": str(t.id),
+                    "Nombre": t.name,
+                    "Slug": t.slug,
+                    "Activo": t.is_active,
+                    "Usa Keys Plataforma": t.can_use_platform_keys,
+                    "Creado": t.created_at,
+                }
+                for t in tenants
+            ]
 
             df = pd.DataFrame(data)
             st.dataframe(

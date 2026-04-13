@@ -327,8 +327,9 @@ async def _api_get(
 
     # Exhausted retries
     logger.error("mailerlite_retries_exhausted", url=url)
+    msg = "Rate limit retries exhausted"
     raise httpx.HTTPStatusError(
-        "Rate limit retries exhausted",
+        msg,
         request=resp.request,  # type: ignore[possibly-undefined]
         response=resp,  # type: ignore[possibly-undefined]
     )
@@ -591,17 +592,17 @@ class MailerLiteProvider(BaseMetricsProvider):
             daily_active[day] = max(0, active_total - cumulative_after)
             cumulative_after += daily_new_subs.get(day, 0)
 
-        for day in all_days:
-            metrics.append(
-                ExtractedMetric(
-                    provider="mailerlite",
-                    channel_slug=slug,
-                    metric_name="active_subscribers",
-                    value=daily_active[day],
-                    unit="count",
-                    date=day,
-                )
+        metrics.extend(
+            ExtractedMetric(
+                provider="mailerlite",
+                channel_slug=slug,
+                metric_name="active_subscribers",
+                value=daily_active[day],
+                unit="count",
+                date=day,
             )
+            for day in all_days
+        )
 
         return metrics
 
@@ -963,7 +964,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                     )
                 )
 
-        # Derived: bounce_rate
+        # Derive bounce_rate from sent, hard_bounces, soft_bounces
         sent = totals.get("emails_sent", 0.0)
         hard = totals.get("hard_bounces", 0.0)
         soft = totals.get("soft_bounces", 0.0)
@@ -979,7 +980,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                 )
             )
 
-        # Derived: unsubscribe_rate
+        # Derive unsubscribe_rate from unsubscribes and sent
         unsubs = totals.get("unsubscribes", 0.0)
         if sent > 0:
             metrics.append(

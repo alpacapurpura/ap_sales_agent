@@ -129,7 +129,8 @@ class LeadRepository:
             .first()
         )
         if not model:
-            raise ValueError("Lead not found")
+            msg = "Lead not found"
+            raise ValueError(msg)
 
         # Update fields
         # Note: A smarter merge/update strategy is needed for production to avoid overwriting race conditions

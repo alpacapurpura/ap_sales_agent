@@ -13,7 +13,8 @@ class TestTenantLocale:
         locale = TenantLocale(currency="PEN", timezone="America/Lima")
         try:
             locale.currency = "USD"  # type: ignore[misc]
-            raise AssertionError("Should have raised")
+            msg = "Should have raised"
+            raise AssertionError(msg)
         except AttributeError:
             pass
 

@@ -198,7 +198,7 @@ STAGE_CHANNEL_MAP: dict[str, list[dict]] = {
                 "top_queries",
             ],
         },
-        # Paid: reach + clicks + conversions + spend
+        # Paid channel — reach, clicks, conversions, spend
         {
             "slug": "meta-ads",
             "name": "Meta Ads",
@@ -299,7 +299,7 @@ STAGE_CHANNEL_MAP: dict[str, list[dict]] = {
                 "conversion_value",
             ],
         },
-        # Outbound: contacts + responses
+        # Outbound channel — contacts, responses
         {
             "slug": "cold-contact",
             "name": "Cold Contact",

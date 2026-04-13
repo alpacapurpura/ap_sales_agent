@@ -20,8 +20,6 @@ class GeminiService(BaseLLMService):
         self.embedding_model_name = "models/embedding-001"
 
         if not self.api_key:
-            # Only raise if strictly required and not provided
-            # raise ValueError("GEMINI_API_KEY is not set in configuration.")
             pass
 
         # Initialize LangChain Chat Model

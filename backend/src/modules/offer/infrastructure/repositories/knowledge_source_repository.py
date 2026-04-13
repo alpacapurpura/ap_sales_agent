@@ -140,7 +140,8 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
         )
         model = self.db.execute(stmt).scalar_one_or_none()
         if model is None:
-            raise ValueError(f"KnowledgeSource {source.id} not found for update")
+            msg = f"KnowledgeSource {source.id} not found for update"
+            raise ValueError(msg)
         self._apply_domain_to_model(model, source)
         self.db.flush()
         self.db.refresh(model)

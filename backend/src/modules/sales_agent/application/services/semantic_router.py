@@ -234,7 +234,7 @@ class SemanticRouter:
             norms = np.linalg.norm(tenant_embeddings, axis=1, keepdims=True)
             tenant_embeddings = tenant_embeddings / norms
 
-            # Merge: system + tenant
+            # Combine system routes with tenant-specific routes
             combined_names = cls._system_route_names + tenant_route_names
             combined_embeddings = np.vstack([cls._system_embeddings, tenant_embeddings])
 

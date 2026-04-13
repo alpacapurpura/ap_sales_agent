@@ -41,20 +41,23 @@ async def oauth_callback(
         creds_data = GmailAdapter.exchange_code(code, redirect_uri)
     except Exception as e:
         logger.error("gmail_oauth_exchange_failed", error=str(e))
-        raise HTTPException(status_code=400, detail="Error de autenticacion con Google")
+        raise HTTPException(
+            status_code=400, detail="Error de autenticacion con Google"
+        ) from e
 
     try:
         adapter = GmailAdapter(creds_data)
         profile = adapter.get_profile()
         email = profile.get("emailAddress")
         if not email:
-            raise ValueError("Email address not found in profile")
+            msg = "Email address not found in profile"
+            raise ValueError(msg)
     except Exception as e:
         logger.error("failed_to_get_gmail_profile", error=str(e))
         raise HTTPException(
             status_code=400,
             detail="No se pudo obtener el perfil de Gmail. Verifica los permisos.",
-        )
+        ) from e
 
     repo.upsert(
         tenant_id=user.tenant_id,

@@ -109,7 +109,7 @@ def get_model_sections(model_class: type[BaseModel]) -> dict[str, SectionInfo]:
                 inner_type_name=inner_type.__name__,
             )
         elif is_list_of_pydantic(inner_type):
-            # List[PydanticModel]
+            # Handle list of Pydantic models
             item_type = get_args(inner_type)[0]
             sub_fields = list(item_type.model_fields.keys())
             field_descs = {

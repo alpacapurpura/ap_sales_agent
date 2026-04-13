@@ -76,7 +76,8 @@ class GmailAdapter:
     def get_service(self):
         """Returns the Gmail service resource."""
         if not self.creds:
-            raise ValueError("Credentials not initialized")
+            msg = "Credentials not initialized"
+            raise ValueError(msg)
         return build("gmail", "v1", credentials=self.creds)
 
     def get_profile(self) -> dict[str, Any]:
@@ -86,7 +87,8 @@ class GmailAdapter:
             profile = service.users().getProfile(userId="me").execute()
             if not profile or "emailAddress" not in profile:
                 logger.error(f"Gmail Profile Response Invalid: {profile}")
-                raise ValueError("Could not retrieve email address from Gmail API")
+                msg = "Could not retrieve email address from Gmail API"
+                raise ValueError(msg)
             return profile
         except Exception as e:
             logger.error(f"Error fetching profile: {e}")

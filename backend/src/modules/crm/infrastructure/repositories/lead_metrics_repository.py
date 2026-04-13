@@ -174,7 +174,8 @@ class LeadRepository(BaseRepository):
             return Lead.model_validate(lead_orm)
 
         if not full_name:
-            raise ValueError("full_name is required when creating a new customer lead")
+            msg = "full_name is required when creating a new customer lead"
+            raise ValueError(msg)
 
         # Create Customer Profile first
         customer = CustomerProfile(full_name=full_name)

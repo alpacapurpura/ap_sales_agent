@@ -139,7 +139,7 @@ async def oauth_callback(
         raise HTTPException(
             status_code=400,
             detail="Error de autenticación con Google. Intenta de nuevo.",
-        )
+        ) from e
 
     # Get user profile to obtain email address
     try:

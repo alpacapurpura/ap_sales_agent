@@ -142,7 +142,8 @@ class MetaAdapter:
     async def get_user_profile(self) -> dict[str, Any]:
         """Gets the user's profile (id, name) via the facebook_business SDK."""
         if not self._api_instance:
-            raise ValueError("Access token not initialized")
+            msg = "Access token not initialized"
+            raise ValueError(msg)
 
         api = self._api_instance  # Capture for closure — ensures tenant isolation
 
@@ -183,7 +184,8 @@ class MetaAdapter:
         Returns a structured dict with keys: pages, instagram_accounts, ads_accounts.
         """
         if not self.access_token:
-            raise ValueError("Access token not initialized")
+            msg = "Access token not initialized"
+            raise ValueError(msg)
 
         token = self.access_token
         base = f"{self.BASE_URL}/{self.API_VERSION}"
@@ -297,16 +299,16 @@ class MetaAdapter:
 
         # ── Ad Accounts ───────────────────────────────────────────────────────
         if ads_raw.status_code == 200:
-            for ad in ads_raw.json().get("data", []):
-                ads_accounts.append(
-                    {
-                        "ad_account_id": ad.get("account_id")
-                        or ad.get("id", "").replace("act_", ""),
-                        "ad_account_name": ad.get("name", ""),
-                        "currency": ad.get("currency"),
-                        "account_status": ad.get("account_status"),
-                    }
-                )
+            ads_accounts.extend(
+                {
+                    "ad_account_id": ad.get("account_id")
+                    or ad.get("id", "").replace("act_", ""),
+                    "ad_account_name": ad.get("name", ""),
+                    "currency": ad.get("currency"),
+                    "account_status": ad.get("account_status"),
+                }
+                for ad in ads_raw.json().get("data", [])
+            )
         else:
             logger.warning(
                 "meta_get_adaccounts_failed",
@@ -344,14 +346,14 @@ class MetaAdapter:
                         body=px_resp.text[:300],
                     )
                     continue
-                for px in px_resp.json().get("data", []):
-                    pixels.append(
-                        {
-                            "pixel_id": px.get("id"),
-                            "pixel_name": px.get("name", ""),
-                            "linked_ad_account_id": ad["ad_account_id"],
-                        }
-                    )
+                pixels.extend(
+                    {
+                        "pixel_id": px.get("id"),
+                        "pixel_name": px.get("name", ""),
+                        "linked_ad_account_id": ad["ad_account_id"],
+                    }
+                    for px in px_resp.json().get("data", [])
+                )
 
         # ── WhatsApp Business Accounts (via Business Manager) ─────────────────
         whatsapp_accounts: list[dict[str, Any]] = []

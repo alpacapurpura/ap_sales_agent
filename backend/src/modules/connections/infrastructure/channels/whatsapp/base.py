@@ -1,3 +1,4 @@
+import contextlib
 from typing import Any
 
 import httpx
@@ -96,10 +97,8 @@ class BaseEvolutionApi(WhatsAppProvider):
 
         payload = {"number": remote_jid, "presence": "composing", "delay": 1200}
         async with httpx.AsyncClient() as client:
-            try:
+            with contextlib.suppress(Exception):
                 await client.post(url, json=payload, headers=self.headers, timeout=5.0)
-            except Exception:  # noqa: S110
-                pass
 
     async def delete_instance(self) -> dict[str, Any]:
         url = f"{self.base_url}/instance/delete/{self.tenant_id}"

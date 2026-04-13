@@ -126,7 +126,8 @@ class TestStep1_IdentityResolution:
         """Unknown channels should fall back to EXTERNAL_ID."""
         try:
             IdentityType("unknown_channel")
-            raise AssertionError("Should have raised ValueError")
+            msg = "Should have raised ValueError"
+            raise AssertionError(msg)
         except ValueError:
             identity_type = IdentityType.EXTERNAL_ID
             assert identity_type == IdentityType.EXTERNAL_ID

@@ -106,7 +106,7 @@ class SalesStageService:
         stage_revenue: dict[str, float] = {"adquisicion": 0.0, "expansion": 0.0}
 
         for row in raw_sales:
-            # row: (stage, offer_id, source, currency, count, total_revenue, unique_customers)
+            # Fields: stage, offer_id, source, currency, count, total_revenue, unique_customers
             stage_val = row[0]
             offer_id = str(row[1])
             source = row[2] or "MANUAL"
@@ -233,16 +233,15 @@ class SalesStageService:
                 group_customers += data["unique_customers"]
 
             # Build TierGroupDTOs in display order
-            tiers = []
-            for tier_key in TIER_DISPLAY_ORDER:
-                if tier_key in offers_by_tier:
-                    tiers.append(
-                        TierGroupDTO(
-                            tier_key=tier_key,
-                            tier_label=TIER_LABELS[tier_key],
-                            offers=offers_by_tier[tier_key],
-                        )
-                    )
+            tiers = [
+                TierGroupDTO(
+                    tier_key=tier_key,
+                    tier_label=TIER_LABELS[tier_key],
+                    offers=offers_by_tier[tier_key],
+                )
+                for tier_key in TIER_DISPLAY_ORDER
+                if tier_key in offers_by_tier
+            ]
 
             rev_pct = (
                 round(group_revenue / total_revenue_all * 100, 1)

@@ -19,7 +19,8 @@ class CalendarEventCreate(BaseModel):
     @classmethod
     def validate_country_code(cls, v: str) -> str:
         if len(v) != 2:
-            raise ValueError("country_code must be a 2-letter ISO code")
+            msg = "country_code must be a 2-letter ISO code"
+            raise ValueError(msg)
         return v.upper()
 
 
@@ -36,7 +37,8 @@ class CalendarEventUpdate(BaseModel):
     @classmethod
     def validate_country_code(cls, v: str | None) -> str | None:
         if v is not None and len(v) != 2:
-            raise ValueError("country_code must be a 2-letter ISO code")
+            msg = "country_code must be a 2-letter ISO code"
+            raise ValueError(msg)
         return v.upper() if v else v
 
 

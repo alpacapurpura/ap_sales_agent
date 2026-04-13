@@ -65,25 +65,23 @@ def _build_official_rows(
     channels = channels or _CHANNELS
     metrics = metrics or _METRICS
     base_date = date(2026, 1, 1)
-    rows: list[dict] = []
-    for day_offset in range(num_days):
-        d = base_date + timedelta(days=day_offset)
-        for ch in channels:
-            for metric in metrics:
-                rows.append(
-                    {
-                        "channel_slug": ch,
-                        "metric_name": metric,
-                        "value": 100.0 + day_offset,
-                        "unit": "count",
-                        "currency": None,
-                        "cost_type": None,
-                        "metric_date": d,
-                        "iso_week_start": d - timedelta(days=d.weekday()),
-                        "month_key": d.strftime("%Y-%m"),
-                        "quarter_key": f"{d.year}-Q{(d.month - 1) // 3 + 1}",
-                    }
-                )
+    rows: list[dict] = [
+        {
+            "channel_slug": ch,
+            "metric_name": metric,
+            "value": 100.0 + day_offset,
+            "unit": "count",
+            "currency": None,
+            "cost_type": None,
+            "metric_date": (d := base_date + timedelta(days=day_offset)),
+            "iso_week_start": d - timedelta(days=d.weekday()),
+            "month_key": d.strftime("%Y-%m"),
+            "quarter_key": f"{d.year}-Q{(d.month - 1) // 3 + 1}",
+        }
+        for day_offset in range(num_days)
+        for ch in channels
+        for metric in metrics
+    ]
     return rows
 
 
@@ -198,9 +196,7 @@ class TestMetricCatalogLookupPerformance:
         assert len(catalog_names) > 0, "METRIC_CATALOG is empty"
 
         # Pick up to 100 names to look up (cycle if catalog is smaller)
-        lookup_names = []
-        for i in range(100):
-            lookup_names.append(catalog_names[i % len(catalog_names)])
+        lookup_names = [catalog_names[i % len(catalog_names)] for i in range(100)]
 
         iterations = 1000
         total_lookups = len(lookup_names) * iterations

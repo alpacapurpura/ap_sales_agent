@@ -435,10 +435,10 @@ async def create_team_member(
             raise HTTPException(
                 status_code=400,
                 detail="El usuario ya existe en el sistema de identidad.",
-            )
+            ) from e
         raise HTTPException(
             status_code=500, detail=f"Error creando usuario en Clerk: {e!s}"
-        )
+        ) from e
 
     # Create DB User
     # FIX: Remove tenant_id from User constructor

@@ -59,8 +59,7 @@ class InstagramChannel(MetaAdapter, BaseChannel):
             text = message.get("text")
 
             if not sender_id or not text:
-                # Log but return None for non-text messages (likes, deliveries, reads)
-                # logger.debug("Ignored non-text or system message", extra={"payload_keys": payload.keys()})
+                # Non-text messages (likes, deliveries, reads) are ignored
                 return None
 
             return IncomingMessage(
@@ -84,7 +83,8 @@ class InstagramChannel(MetaAdapter, BaseChannel):
         Docs: https://developers.facebook.com/docs/messenger-platform/instagram/features/send-message
         """
         if not self.access_token:
-            raise ValueError("Missing access_token for InstagramChannel")
+            msg = "Missing access_token for InstagramChannel"
+            raise ValueError(msg)
 
         url = f"{self.BASE_URL}/{self.API_VERSION}/me/messages"
 

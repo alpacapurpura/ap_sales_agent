@@ -117,9 +117,8 @@ class AIActionService:
             error=str(last_error) if last_error else "unknown",
             model_type=resolved_policy.model.model_type,
         )
-        raise ValueError(
-            "La IA generó una respuesta inválida para la acción solicitada."
-        )
+        msg = "La IA generó una respuesta inválida para la acción solicitada."
+        raise ValueError(msg)
 
     @staticmethod
     def _extract_json(raw: str) -> str:
@@ -145,14 +144,20 @@ class AIActionService:
         policy: AIActionPolicy,
     ) -> None:
         if not action_name.strip():
-            raise ValueError("action_name is required")
+            msg = "action_name is required"
+            raise ValueError(msg)
         if not system_prompt.strip():
-            raise ValueError("system_prompt is required")
+            msg = "system_prompt is required"
+            raise ValueError(msg)
         if not user_prompt.strip():
-            raise ValueError("user_prompt is required")
+            msg = "user_prompt is required"
+            raise ValueError(msg)
         if policy.retries < 1:
-            raise ValueError("retries must be >= 1")
+            msg = "retries must be >= 1"
+            raise ValueError(msg)
         if not (0 <= policy.model.temperature <= 2):
-            raise ValueError("temperature must be between 0 and 2")
+            msg = "temperature must be between 0 and 2"
+            raise ValueError(msg)
         if policy.model.max_output_tokens < 64:
-            raise ValueError("max_output_tokens must be >= 64")
+            msg = "max_output_tokens must be >= 64"
+            raise ValueError(msg)

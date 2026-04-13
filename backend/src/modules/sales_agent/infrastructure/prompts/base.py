@@ -42,7 +42,7 @@ class PromptLoader:
         )
 
         # 2. Caché en Memoria Multitenant
-        # Estructura: { (key, tenant_id): {"content": "...", "version": 1, "loaded_at": timestamp} }
+        # Keyed by (key, tenant_id) tuples; values hold content, version, and loaded_at
         self._cache: dict[tuple[str, UUID | None], dict[str, Any]] = {}
 
         # 3. Caché de Configuración de Tenant (para evitar query en cada render)
@@ -180,7 +180,8 @@ class PromptLoader:
                 template = self.fs_env.from_string(template_content)
                 return template.render(**full_context)
             if mode == PromptSource.DB:
-                raise ValueError(f"Prompt '{key}' not found in DB (Strict Mode)")
+                msg = f"Prompt '{key}' not found in DB (Strict Mode)"
+                raise ValueError(msg)
 
             # Fallback a archivo (System Defaults locales)
             return self._load_from_file(key, template_name, **full_context)

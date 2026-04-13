@@ -376,7 +376,8 @@ class AvailabilityService:
     ) -> dict[str, Any]:
 
         if not self.adapter:
-            raise ValueError("Calendar not connected")
+            msg = "Calendar not connected"
+            raise ValueError(msg)
 
         # Ensure slot_time is aware
         if slot_time.tzinfo is None:

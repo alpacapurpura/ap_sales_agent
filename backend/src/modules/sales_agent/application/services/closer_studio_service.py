@@ -186,7 +186,7 @@ class CloserStudioService:
             .order_by(AgentStateCheckpointModel.updated_at.desc())
         ).scalar_one_or_none()
 
-        # Messages (paginated)
+        # Fetch messages with optional pagination
         msg_stmt = select(MessageModel).where(
             MessageModel.user_id == lead_id,
             MessageModel.tenant_id == tenant_id,

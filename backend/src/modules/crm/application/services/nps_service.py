@@ -81,7 +81,8 @@ class NpsService:
         Update customer_profile.computed_traits['nps_score'] = score via JSONB update.
         """
         if not (0 <= score <= 10):
-            raise ValueError(f"NPS score must be 0-10, got {score}")
+            msg = f"NPS score must be 0-10, got {score}"
+            raise ValueError(msg)
 
         response = NpsResponseModel(
             tenant_id=tenant_id,

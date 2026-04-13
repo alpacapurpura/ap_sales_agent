@@ -109,9 +109,8 @@ class DomainRepositoryImpl(DomainRepository):
         result = self.db.execute(stmt)
         model = result.scalar_one_or_none()
         if model is None:
-            raise ValueError(
-                f"Domain {domain.id} not found for tenant {domain.tenant_id}"
-            )
+            msg = f"Domain {domain.id} not found for tenant {domain.tenant_id}"
+            raise ValueError(msg)
         model.status = domain.status.value
         model.is_primary = domain.is_primary
         model.cloudflare_hostname_id = domain.cloudflare_hostname_id

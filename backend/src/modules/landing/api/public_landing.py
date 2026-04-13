@@ -78,7 +78,9 @@ def get_public_landing(
     try:
         tenant_uuid = UUID(x_tenant_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="X-Tenant-ID must be a valid UUID")
+        raise HTTPException(
+            status_code=400, detail="X-Tenant-ID must be a valid UUID"
+        ) from None
 
     service = LandingService(db)
     landing = service.get_public_landing(slug=slug, tenant_id=tenant_uuid)

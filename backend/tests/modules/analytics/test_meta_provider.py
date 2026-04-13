@@ -1870,7 +1870,7 @@ class TestInstagramFollowTypeBreakdown:
         """
         from datetime import datetime as dt
 
-        # Per-day (gained, lost)
+        # Daily follower changes as (gained, lost) tuples
         day_values: dict[int, tuple[int, int]] = {
             int(dt.combine(date(2026, 3, 1), dt.min.time()).timestamp()): (10, 2),
             int(dt.combine(date(2026, 3, 2), dt.min.time()).timestamp()): (5, 0),

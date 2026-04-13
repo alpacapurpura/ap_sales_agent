@@ -106,7 +106,7 @@ def get_public_slots(
         slots = av_service.get_available_slots(start_date, end_date)
         return SlotsResponse(slots=slots)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 # --- Event Type Public Endpoints ---
@@ -128,7 +128,9 @@ def resolve_event_type_by_tenant_id(
     try:
         tenant_uuid = UUID(x_tenant_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid X-Tenant-ID format")
+        raise HTTPException(
+            status_code=400, detail="Invalid X-Tenant-ID format"
+        ) from None
 
     stmt = select(TenantModel).where(TenantModel.id == tenant_uuid)
     tenant = db.execute(stmt).scalar_one_or_none()
@@ -203,7 +205,7 @@ def get_event_type_slots(
         slots = av_service.get_event_type_slots(event_type, start_date, end_date)
         return SlotsResponse(slots=slots)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post(
@@ -278,7 +280,7 @@ def book_event_type(
         )
         return BookingConfirmationResponse(status="success", event=event)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/{token}/book", response_model=BookingConfirmationResponse)
@@ -311,4 +313,4 @@ def public_book_meeting(
         )
         return BookingConfirmationResponse(status="success", event=event)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

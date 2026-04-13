@@ -133,11 +133,12 @@ def get_pipeline_overview() -> str:
         lines.append(f"**Total:** {total_count} ventas, ${total_revenue:,.2f}\n")
 
         lines.append("### Por Etapa y Estado")
-        for r in rows:
-            lines.append(
-                f"  - {r['stage']} / {r['status']}: "
-                f"{r['cnt']} ventas, ${float(r['total_amount']):,.2f} {r['currency']}"
-            )
+        lines.extend(
+            f"  - {r['stage']} / {r['status']}: "
+            f"{r['cnt']} ventas, "
+            f"${float(r['total_amount']):,.2f} {r['currency']}"
+            for r in rows
+        )
 
         return "\n".join(lines)
     except Exception as e:

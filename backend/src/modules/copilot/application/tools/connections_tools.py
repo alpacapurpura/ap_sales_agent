@@ -76,8 +76,7 @@ def get_connections_detail() -> str:
 
         if suggested:
             lines.append("\n### Conexiones Sugeridas")
-            for s in suggested:
-                lines.append(f"  - {s}")
+            lines.extend(f"  - {s}" for s in suggested)
 
         return "\n".join(lines)
     except Exception as e:

@@ -303,7 +303,8 @@ class BrandExtractionService:
         """
         content = await self.crawler.crawl_content_with_styles(url)
         if not content.strip():
-            raise ValueError("Could not crawl content from URL")
+            msg = "Could not crawl content from URL"
+            raise ValueError(msg)
         prompt = self._render_prompt(
             "brand_extract_visuals", content, "", "", max_chars=40000
         )

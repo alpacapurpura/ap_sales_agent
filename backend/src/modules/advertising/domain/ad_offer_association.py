@@ -41,12 +41,10 @@ class AdOfferAssociation(BaseModel):
         if self.association_type == AssociationType.EXCLUDED_BRANDING:
             # Branding exclusions must NOT point to an offer.
             if self.offer_id is not None:
-                raise ValueError(
-                    "excluded_branding associations cannot have offer_id set"
-                )
+                msg = "excluded_branding associations cannot have offer_id set"
+                raise ValueError(msg)
         # Every other association type requires an offer_id.
         elif self.offer_id is None:
-            raise ValueError(
-                f"association_type={self.association_type.value} requires offer_id"
-            )
+            msg = f"association_type={self.association_type.value} requires offer_id"
+            raise ValueError(msg)
         return self

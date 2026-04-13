@@ -183,7 +183,7 @@ async def create_whatsapp_session(
             error=str(e),
             traceback=traceback.format_exc(),
         )
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/whatsapp/qr", response_model=WhatsAppQRResponse)
@@ -216,7 +216,7 @@ async def get_whatsapp_qr(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.delete("/whatsapp/session")
@@ -247,7 +247,7 @@ async def delete_whatsapp_session(
 
         return {"status": "deleted"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/whatsapp/webhook/{tenant_id}")

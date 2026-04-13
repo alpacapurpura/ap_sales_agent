@@ -135,7 +135,7 @@ async def override_stage(
         raise HTTPException(
             status_code=400,
             detail=f"Invalid stage '{body.new_stage}'. Valid stages: {valid}",
-        )
+        ) from None
 
     svc = LifecycleService(db)
 

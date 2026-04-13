@@ -51,13 +51,15 @@ class LaunchEdition(BaseEntity):
     @model_validator(mode="after")
     def validate_dates(self):
         if self.end_date and self.end_date < self.start_date:
-            raise ValueError("end_date cannot be before start_date")
+            msg = "end_date cannot be before start_date"
+            raise ValueError(msg)
         if (
             self.registration_start
             and self.registration_end
             and self.registration_end < self.registration_start
         ):
-            raise ValueError("registration_end cannot be before registration_start")
+            msg = "registration_end cannot be before registration_start"
+            raise ValueError(msg)
         return self
 
 

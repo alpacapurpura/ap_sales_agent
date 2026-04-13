@@ -32,7 +32,6 @@ class ProductModel(Base):
 
     # Polymorphic Content Fields
     pricing = Column(JSONB, default=list)  # List of PricingStructure
-    # price_pay_in_full = Column(Float, nullable=True) # REMOVED: Not in DB
     # Nullable: resolved to TenantLocale.currency by the application layer.
     currency = Column(String, nullable=True)
     dates = Column(JSONB, default=dict)  # Legacy dates, kept for migration safety
@@ -41,7 +40,6 @@ class ProductModel(Base):
         JSONB, default=dict
     )  # The BIG JSONB for polymorphic details
     deliverables = Column(JSONB, default=list)  # List of DeliverableItem
-    # instructors = Column(JSONB, default=list) # REMOVED: Not in DB
 
     # Marketing & Copy
     headline_promise = Column(String, nullable=True)

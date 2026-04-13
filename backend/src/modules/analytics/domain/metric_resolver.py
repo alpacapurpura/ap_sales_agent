@@ -66,8 +66,8 @@ def _get_formula_components(
         return None
 
     if defn.aggregation == AggregationType.WEIGHTED_AVERAGE:
-        # WEIGHTED_AVERAGE: formula is "numerator / denominator [* multiplier]"
-        # weight_metric is the denominator
+        # For weighted averages the formula follows "numerator / denominator [* multiplier]"
+        # where weight_metric is the denominator
         if defn.formula and defn.weight_metric:
             # Parse "clicks / impressions * 100" to extract numerator="clicks"
             parts = defn.formula.split("/")

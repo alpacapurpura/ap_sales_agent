@@ -268,7 +268,8 @@ class TestYouTubeCardMetrics:
             if name == "get_channel_overview":
                 return MOCK_OVERVIEW
             if name == "get_card_metrics":
-                raise RuntimeError("Card metrics unavailable")
+                msg = "Card metrics unavailable"
+                raise RuntimeError(msg)
             return fn(*args, **kwargs)
 
         thread_patch = patch(

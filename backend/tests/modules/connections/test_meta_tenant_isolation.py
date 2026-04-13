@@ -95,7 +95,8 @@ class TestSequentialTenantIsolation:
                     user.api_get.return_value = user
                     user.export_all_data.return_value = tenant_b_data
                 else:
-                    raise AssertionError("User created without explicit api parameter")
+                    msg = "User created without explicit api parameter"
+                    raise AssertionError(msg)
                 return user
 
             mock_user_class.side_effect = make_user
@@ -178,7 +179,8 @@ class TestConcurrentTenantIsolation:
                     user.api_get.return_value = user
                     user.export_all_data.return_value = tenant_b_data
                 else:
-                    raise AssertionError("User created without explicit api parameter")
+                    msg = "User created without explicit api parameter"
+                    raise AssertionError(msg)
                 return user
 
             mock_user_class.side_effect = make_user
@@ -251,7 +253,8 @@ class TestConcurrentTenantIsolation:
                     user.api_get.return_value = user
                     user.export_all_data.return_value = tenant_b_data
                 else:
-                    raise AssertionError("User created without explicit api parameter")
+                    msg = "User created without explicit api parameter"
+                    raise AssertionError(msg)
                 return user
 
             mock_user_class.side_effect = make_user

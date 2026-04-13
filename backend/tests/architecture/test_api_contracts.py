@@ -12,7 +12,7 @@ from tests.architecture.conftest import MODULES_DIR
 
 # ──────────────────────────────────────────────────────────────
 # KNOWN VIOLATIONS — ratchet: only remove lines, never add.
-# Format: "module/api/filename.py::function_name"
+# Expected format — "module/api/filename.py::function_name"
 # ──────────────────────────────────────────────────────────────
 KNOWN_MISSING_RESPONSE_MODEL: set[str] = set()
 

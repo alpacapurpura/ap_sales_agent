@@ -216,8 +216,9 @@ def test_parse_ads_row_has_period_aggregate_guard():
         if helper_fn is not None and _raises_period_aggregate_error(helper_fn):
             return
 
-    raise AssertionError(
+    msg = (
         "_parse_ads_row must raise PeriodAggregateError (directly or via a "
         "helper it calls) when it receives a multi-day row. This is the "
         "last line of defence against the Visionarias contamination pattern."
     )
+    raise AssertionError(msg)

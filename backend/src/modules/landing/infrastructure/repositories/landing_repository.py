@@ -89,7 +89,8 @@ class LandingRepository:
         )
         model = self.db.execute(stmt).scalars().first()
         if not model:
-            raise ValueError("Landing Page not found")
+            msg = "Landing Page not found"
+            raise ValueError(msg)
 
         model.slug = entity.slug
         model.config = entity.config.model_dump(mode="json")

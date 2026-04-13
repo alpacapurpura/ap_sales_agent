@@ -48,7 +48,7 @@ async def upload_asset(
         )
     except Exception as e:
         logger.error("upload_failed", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/", response_model=list[AssetDto])

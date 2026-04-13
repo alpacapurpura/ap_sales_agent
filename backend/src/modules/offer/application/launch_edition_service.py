@@ -39,7 +39,8 @@ class LaunchEditionService:
     ) -> LaunchEdition:
         offer = self.offer_repo.get_by_id(offer_id, tenant_id)
         if not offer:
-            raise ValueError(f"Offer {offer_id} not found")
+            msg = f"Offer {offer_id} not found"
+            raise ValueError(msg)
 
         return self.repo.create(
             offer_id=offer_id,
@@ -73,7 +74,8 @@ class LaunchEditionService:
     def duplicate_edition(self, edition_id: UUID, tenant_id: UUID) -> LaunchEdition:
         original = self.repo.get_by_id(edition_id, tenant_id)
         if not original:
-            raise ValueError(f"Edition {edition_id} not found")
+            msg = f"Edition {edition_id} not found"
+            raise ValueError(msg)
 
         return self.repo.create(
             offer_id=original.offer_id,
@@ -96,7 +98,8 @@ class LaunchEditionService:
         """Return (pricing_list, currency). Uses override if set, else offer's pricing."""
         offer = self.offer_repo.get_by_id(edition.offer_id, tenant_id)
         if not offer:
-            raise ValueError(f"Offer {edition.offer_id} not found")
+            msg = f"Offer {edition.offer_id} not found"
+            raise ValueError(msg)
 
         currency = offer.currency
 

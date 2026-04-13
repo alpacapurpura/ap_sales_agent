@@ -152,7 +152,8 @@ class OfferAssetRepository(IOfferAssetRepository):
         )
         model = self.db.execute(stmt).scalar_one_or_none()
         if model is None:
-            raise ValueError(f"OfferAsset {asset.id} not found for update")
+            msg = f"OfferAsset {asset.id} not found for update"
+            raise ValueError(msg)
         self._apply_domain_to_model(model, asset)
         self.db.flush()
         self.db.refresh(model)

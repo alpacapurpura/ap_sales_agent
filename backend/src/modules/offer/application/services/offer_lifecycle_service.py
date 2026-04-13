@@ -86,7 +86,8 @@ class OfferLifecycleService:
         """
         offer = self._offers.get_offer(offer_id, tenant_id)
         if offer is None:
-            raise ValueError(f"Offer {offer_id} not found for tenant {tenant_id}")
+            msg = f"Offer {offer_id} not found for tenant {tenant_id}"
+            raise ValueError(msg)
 
         # Archived-at flag wins over status string for "is this archived?"
         # The repo keeps status="archived" in sync, but we treat the

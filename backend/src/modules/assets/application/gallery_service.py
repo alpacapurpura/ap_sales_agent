@@ -33,8 +33,7 @@ class GalleryService:
         image_id = uuid.uuid4()
 
         # 1. Save File
-        # Structure: static/uploads/{tenant_id}/{offer_id}/{filename}
-        # For simplicity: static/uploads/{filename}_{uuid}
+        # Saves to static/uploads/{uuid}_{filename}
         safe_filename = f"{image_id}_{filename}"
         file_path = os.path.join(self.upload_dir, safe_filename)
 
@@ -51,7 +50,8 @@ class GalleryService:
             # Check GalleryImageModel.offer_id nullable? It is nullable=False in model above.
             # So we MUST provide offer_id. If not provided, maybe use a default or error.
             # Let's assume frontend sends it, or we create a "General" offer for the tenant.
-            raise ValueError("Offer ID is required for gallery upload")
+            msg = "Offer ID is required for gallery upload"
+            raise ValueError(msg)
 
         image = GalleryImage(
             id=image_id,
@@ -65,9 +65,6 @@ class GalleryService:
         )
 
         created_image = self.repository.create(image)
-
-        # 3. Trigger AI Analysis (Background)
-        # background_tasks.add_task(self.analyze_image, created_image.id)
 
         return created_image
 

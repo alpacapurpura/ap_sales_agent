@@ -56,7 +56,8 @@ class ReferralService:
                     raise
 
         # Should never reach here due to raise above, but satisfy type checker
-        raise RuntimeError("Failed to generate unique referral code after 3 attempts")
+        msg = "Failed to generate unique referral code after 3 attempts"
+        raise RuntimeError(msg)
 
     def get_codes_by_tenant(
         self, tenant_id: UUID, active_only: bool = True

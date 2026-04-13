@@ -163,8 +163,6 @@ class LandingPageConfig(BaseEntity):
 
         expected_type = mapping.get(self.archetype)
         if expected_type and not isinstance(self.content, expected_type):
-            # Strict validation might be annoying during migration or partial updates
-            # raise ValueError(f"Content mismatch")
             pass
 
         return self

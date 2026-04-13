@@ -148,8 +148,9 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 tenant_id=str(tenant_id),
                 error=str(exc),
             )
+            msg = f"Google Ads OAuth token revoked/expired: {exc}"
             raise ConnectionRevokedException(
-                f"Google Ads OAuth token revoked/expired: {exc}",
+                msg,
                 channel_type="google_ads",
             ) from exc
 
@@ -389,8 +390,9 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 tenant_id=str(tenant_id),
                 error=str(exc),
             )
+            msg = f"Google Ads OAuth token revoked/expired: {exc}"
             raise ConnectionRevokedException(
-                f"Google Ads OAuth token revoked/expired: {exc}",
+                msg,
                 channel_type="google_ads",
             ) from exc
         failures = [fail] if fail else []

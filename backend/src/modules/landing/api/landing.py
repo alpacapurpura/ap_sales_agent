@@ -50,7 +50,9 @@ def get_landing(
         landing_uuid = UUID(landing_id)
     except ValueError:
         # If not a valid UUID, let it pass to next route or return 404
-        raise HTTPException(status_code=404, detail="Invalid Landing ID format")
+        raise HTTPException(
+            status_code=404, detail="Invalid Landing ID format"
+        ) from None
 
     landing = service.get_landing(landing_uuid)
     if not landing or str(landing.tenant_id) != str(user.tenant_id):
@@ -66,7 +68,7 @@ def get_landing_by_offer(
     try:
         offer_uuid = UUID(offer_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid Offer ID format")
+        raise HTTPException(status_code=400, detail="Invalid Offer ID format") from None
 
     landing = service.get_landing_by_offer(user.tenant_id, offer_uuid)
     if not landing:
@@ -85,7 +87,7 @@ def update_landing_by_offer(
     try:
         offer_uuid = UUID(offer_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid Offer ID format")
+        raise HTTPException(status_code=400, detail="Invalid Offer ID format") from None
 
     landing = service.get_landing_by_offer(user.tenant_id, offer_uuid)
     if not landing:
@@ -94,7 +96,7 @@ def update_landing_by_offer(
     try:
         return service.update_landing(landing.id, payload)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.patch("/{landing_id}", response_model=LandingPage)
@@ -108,7 +110,9 @@ def update_landing(
     try:
         landing_uuid = UUID(landing_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid Landing ID format")
+        raise HTTPException(
+            status_code=400, detail="Invalid Landing ID format"
+        ) from None
 
     # Check ownership
     landing = service.get_landing(landing_uuid)
@@ -119,7 +123,7 @@ def update_landing(
         # Payload is the full config object usually
         return service.update_landing(landing_uuid, payload)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 # --- New Endpoints ---
@@ -148,9 +152,9 @@ def generate_offer_landing(
     try:
         return service.generate_landing_for_offer(user.tenant_id, offer_id)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.put("/{offer_id}/landing", response_model=LandingPage)
@@ -164,9 +168,9 @@ def update_offer_landing(
     try:
         return service.update_landing_for_offer(user.tenant_id, offer_id, config)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post(
@@ -190,4 +194,4 @@ def regenerate_block(
         )
         return RegenerateBlockResponse(content=new_content)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e

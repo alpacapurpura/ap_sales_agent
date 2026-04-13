@@ -5,6 +5,7 @@ These tools give the copilot context about the user's offer ladder so it can
 make informed suggestions and proposals.
 """
 
+import contextlib
 import json
 from uuid import UUID
 
@@ -80,10 +81,8 @@ def _format_offer_summary(offer: dict) -> str:
     pricing = offer.get("pricing")
     if pricing:
         if isinstance(pricing, str):
-            try:
+            with contextlib.suppress(json.JSONDecodeError, TypeError):
                 pricing = json.loads(pricing)
-            except (json.JSONDecodeError, TypeError):
-                pass
         if isinstance(pricing, list) and pricing:
             currency = offer.get("currency", "USD")
             lines.append(
@@ -108,30 +107,24 @@ def _format_offer_detail(offer: dict) -> str:
     if offer.get("marketing_pain_points"):
         pains = offer["marketing_pain_points"]
         if isinstance(pains, str):
-            try:
+            with contextlib.suppress(json.JSONDecodeError, TypeError):
                 pains = json.loads(pains)
-            except (json.JSONDecodeError, TypeError):
-                pass
         if isinstance(pains, list) and pains:
             lines.append(f"  Puntos de dolor: {', '.join(str(p) for p in pains)}")
 
     if offer.get("marketing_desires"):
         desires = offer["marketing_desires"]
         if isinstance(desires, str):
-            try:
+            with contextlib.suppress(json.JSONDecodeError, TypeError):
                 desires = json.loads(desires)
-            except (json.JSONDecodeError, TypeError):
-                pass
         if isinstance(desires, list) and desires:
             lines.append(f"  Deseos: {', '.join(str(d) for d in desires)}")
 
     if offer.get("objections"):
         objs = offer["objections"]
         if isinstance(objs, str):
-            try:
+            with contextlib.suppress(json.JSONDecodeError, TypeError):
                 objs = json.loads(objs)
-            except (json.JSONDecodeError, TypeError):
-                pass
         if isinstance(objs, list) and objs:
             lines.append(f"  Objeciones: {', '.join(str(o) for o in objs)}")
 

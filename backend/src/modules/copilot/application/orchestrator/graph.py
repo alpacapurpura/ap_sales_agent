@@ -51,7 +51,7 @@ def _get_completion_snapshot(tenant_id) -> str:
     db = SessionLocal()
     lines = []
     try:
-        # Brand (introspectable)
+        # ── Brand (introspectable) ──
         brand_desc = registry.get("brand")
         if brand_desc and brand_desc.model_class and brand_desc.repo_factory:
             try:

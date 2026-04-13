@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = ""  # Set in .env per environment
 
-    # Meta (Facebook/Instagram)
+    # -- Meta (Facebook/Instagram) --
     META_APP_ID: str = ""
     META_APP_SECRET: str = ""
     META_VERIFY_TOKEN: str = ""

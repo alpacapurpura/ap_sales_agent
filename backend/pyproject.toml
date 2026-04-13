@@ -126,21 +126,15 @@ ignore = [
     "FBT002",   # Boolean default value in function def — common pattern
     "ISC001",   # Implicit string concat — conflicts with ruff format
     # === Progressive adoption: fix gradually, remove from ignore ===
-    "B904",     # raise-without-from (109) — refactor incrementally
-    "UP042",    # StrEnum migration (61) — coordinate with tests
-    "T201",     # print statements (60) — replace with structlog
-    "SIM105",   # contextlib.suppress (12)
-    "EM101",    # Raw string in exception (94) — refactor to variables
-    "EM102",    # f-string in exception — same as EM101
+    # B904, SIM105, EM101, EM102, ERA001, PERF401, T201 — ENFORCED (2026-04-12)
+    "UP042",    # StrEnum migration (78) — coordinate with tests
     "PLR0912",  # Too many branches (44) — refactor complex functions
     "PLR0915",  # Too many statements (42) — same
-    "ERA001",   # Commented-out code (33) — cleanup debt
     "DTZ003",   # datetime.utcnow() — migrate to timezone-aware
     "DTZ006",   # datetime.fromtimestamp without tz
     "DTZ007",   # datetime.strptime without tz
     "DTZ011",   # datetime.date.today() �� migrate to timezone-aware
     "PERF203",  # try-except in loop (26) — review case by case
-    "PERF401",  # manual-list-comprehension (24) — convert loops to list comp
     "N818",     # Exception suffix naming — existing patterns
     "N806",     # non-lowercase variable (8) — API_URL patterns in functions
     "N801",     # invalid class name (5) — existing naming patterns
@@ -171,9 +165,16 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "ARG",     # unused args common in fixtures/parametrize
     "PT",      # pytest style — legacy tests have mixed patterns
     "PLR2004", # magic values in test assertions are fine
+    "T201",    # print() in tests is acceptable for debugging output
 ]
 "src/tests/**/*.py" = [
-    "S101", "ARG", "PT", "PLR2004",
+    "S101", "ARG", "PT", "PLR2004", "T201",
+]
+"src/scripts/**/*.py" = [
+    "T201",    # CLI scripts legitimately use print() for output
+]
+"src/modules/brand/tests/**/*.py" = [
+    "S101", "ARG", "PT", "PLR2004", "T201",
 ]
 "src/admin/**/*.py" = [
     "PLR0911",  # too many return statements — Streamlit pages
