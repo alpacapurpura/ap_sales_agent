@@ -9,7 +9,7 @@ import uuid
 from datetime import date
 from uuid import UUID
 
-from sqlalchemy import select, text
+from sqlalchemy import case, func, select, text
 from sqlalchemy.orm import Session
 
 from src.modules.analytics.infrastructure.models.period_metrics_model import (
@@ -121,30 +121,57 @@ class PeriodMetricsRepository:
         start_date: date,
         end_date: date,
     ) -> float | None:
-        """Find the best matching period metric value for a date range.
+        """Find the best matching period metric for the given date range.
 
-        Looks for a period_metrics row whose period_start/period_end
-        best covers the requested [start_date, end_date] range.
-        Priority: period that contains the requested range, ordered by
-        shortest (most precise) period first.
+        Looks for a period_metrics row whose (period_start, period_end)
+        best covers the requested (start_date, end_date).
+        Returns the value if found, None otherwise.
 
-        Returns the metric value if found, None otherwise.
+        Strategy:
+        - Filter by tenant_id, channel_slug, metric_name
+        - Only channel-level rows (no campaign/ad dimensions)
+        - period_start <= start_date AND period_end >= end_date (contains the range)
+          OR has overlapping days with the range
+        - Order by coverage (most overlapping days first)
+        - Return first result's value, or None if empty
         """
+        # Compute overlap: MIN(period_end, end_date) - MAX(period_start, start_date) + 1
+        overlap_days = (
+            func.least(PeriodMetricModel.period_end, end_date)
+            - func.greatest(PeriodMetricModel.period_start, start_date)
+            + 1
+        )
+
         stmt = (
             select(PeriodMetricModel.value)
             .where(
                 PeriodMetricModel.tenant_id == tenant_id,
                 PeriodMetricModel.channel_slug == channel_slug,
                 PeriodMetricModel.metric_name == metric_name,
-                PeriodMetricModel.period_start <= start_date,
-                PeriodMetricModel.period_end >= end_date,
+                # Must have some overlap with the requested range
+                PeriodMetricModel.period_start <= end_date,
+                PeriodMetricModel.period_end >= start_date,
+                # Channel-level only (no campaign/ad dimensions)
+                PeriodMetricModel.campaign_id.is_(None),
+                PeriodMetricModel.ad_set_id.is_(None),
+                PeriodMetricModel.ad_id.is_(None),
             )
             .order_by(
-                # Prefer shortest covering period (most precise)
-                (PeriodMetricModel.period_end - PeriodMetricModel.period_start),
+                # Prefer exact containment first (contains the full range)
+                case(
+                    (
+                        (PeriodMetricModel.period_start <= start_date)
+                        & (PeriodMetricModel.period_end >= end_date),
+                        0,
+                    ),
+                    else_=1,
+                ),
+                # Then by most overlapping days
+                overlap_days.desc(),
             )
             .limit(1)
         )
+
         row = self.db.execute(stmt).first()
         if row is None:
             return None

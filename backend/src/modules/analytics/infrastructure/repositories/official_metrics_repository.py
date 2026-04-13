@@ -303,16 +303,8 @@ class OfficialMetricsRepository:
         """Get daily metric values for a channel in a date range.
 
         Returns list of (metric_date, metric_name, value) tuples for time series charts.
-
-        Granularity handling: the same (tenant, channel, metric, day) tuple may have
-        rows at account-level (all dim IDs NULL), campaign-level (campaign_id set,
-        ad_set_id/ad_id NULL), ad-set level, or ad level. Summing blindly double- or
-        triple-counts values. Strategy per day+metric:
-
-        1. If an account-level row exists, use it.
-        2. Otherwise, sum campaign-level rows (campaign_id NOT NULL, ad_set_id NULL,
-           ad_id NULL).
-        3. Ignore ad-set and ad-level rows (they are breakdowns of campaign totals).
+        Filters to account-level only (campaign_id/ad_set_id/ad_id all NULL)
+        to prevent double-counting with campaign-level rows.
         """
         # Account-level rows (all granularity IDs NULL)
         account_stmt = select(
@@ -342,7 +334,7 @@ class OfficialMetricsRepository:
                 OfficialMetricModel.channel_slug == channel_slug,
                 OfficialMetricModel.metric_name.in_(metric_names),
                 OfficialMetricModel.metric_date.between(start_date, end_date),
-                OfficialMetricModel.campaign_id.is_not(None),
+                OfficialMetricModel.campaign_id.is_(None),
                 OfficialMetricModel.ad_set_id.is_(None),
                 OfficialMetricModel.ad_id.is_(None),
             )
@@ -381,10 +373,7 @@ class OfficialMetricsRepository:
 
         Uses catalog-aware aggregation: SUM for additive metrics,
         latest value for snapshots/non-aggregable.
-
-        Granularity handling (see get_channel_daily_metrics): for each
-        (metric, day), prefer the account-level row; fall back to the SUM
-        of campaign-level rows. Ignore ad-set and ad-level rows.
+        Filters to account-level only to prevent double-counting.
 
         Returns: {metric_name: aggregated_value}
         """
@@ -414,7 +403,7 @@ class OfficialMetricsRepository:
                 OfficialMetricModel.tenant_id == tenant_id,
                 OfficialMetricModel.channel_slug == channel_slug,
                 OfficialMetricModel.metric_date.between(start_date, end_date),
-                OfficialMetricModel.campaign_id.is_not(None),
+                OfficialMetricModel.campaign_id.is_(None),
                 OfficialMetricModel.ad_set_id.is_(None),
                 OfficialMetricModel.ad_id.is_(None),
             )
@@ -446,3 +435,46 @@ class OfficialMetricsRepository:
                 result[metric_name] = latest[1]
 
         return result
+
+    def get_channel_raw_daily_rows(
+        self,
+        tenant_id: UUID,
+        channel_slug: str,
+        start_date: date,
+        end_date: date,
+    ) -> list[tuple[date, str, float, str | None, str | None, str | None]]:
+        """Get ALL daily metric rows with dimension info for MetricResolver.
+
+        Returns raw rows as (metric_date, metric_name, value, campaign_id,
+        ad_set_id, ad_id). Does NOT filter by dimension level and does NOT
+        aggregate — the MetricResolver handles filtering and aggregation.
+        Ordered by metric_date.
+        """
+        stmt = (
+            select(
+                OfficialMetricModel.metric_date,
+                OfficialMetricModel.metric_name,
+                OfficialMetricModel.value,
+                OfficialMetricModel.campaign_id,
+                OfficialMetricModel.ad_set_id,
+                OfficialMetricModel.ad_id,
+            )
+            .where(
+                OfficialMetricModel.tenant_id == tenant_id,
+                OfficialMetricModel.channel_slug == channel_slug,
+                OfficialMetricModel.metric_date.between(start_date, end_date),
+            )
+            .order_by(OfficialMetricModel.metric_date)
+        )
+        rows = self.db.execute(stmt).all()
+        return [
+            (
+                row.metric_date,
+                row.metric_name,
+                float(row.value),
+                row.campaign_id,
+                row.ad_set_id,
+                row.ad_id,
+            )
+            for row in rows
+        ]

@@ -354,10 +354,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.50'
-          memory: 256M
+          cpus: '0.25'
+          memory: 192M
         reservations:
-          memory: 128M
+          memory: 64M
 
   postgres:
     image: postgres:15-alpine
@@ -377,9 +377,9 @@ services:
       resources:
         limits:
           cpus: '0.50'
-          memory: 256M
+          memory: 192M
         reservations:
-          memory: 128M
+          memory: 64M
 
   # --- ETL Scheduler ---
   scheduler:

@@ -69,14 +69,18 @@ def _aggregate_metrics(
     return result
 
 
-def _make_daily_timeseries(
+def _make_raw_daily_rows(
     metrics_by_date: dict[date, dict[str, float]],
-) -> list[tuple[date, str, float]]:
-    """Simulate get_channel_daily_metrics output."""
+) -> list[tuple[date, str, float, str | None, str | None, str | None]]:
+    """Simulate get_channel_raw_daily_rows output.
+
+    Returns (date, metric_name, value, campaign_id, ad_set_id, ad_id) tuples
+    with all dimension IDs set to None (account-level).
+    """
     rows = []
     for d, metrics in sorted(metrics_by_date.items()):
         for metric_name, value in metrics.items():
-            rows.append((d, metric_name, value))
+            rows.append((d, metric_name, value, None, None, None))
     return rows
 
 
@@ -90,23 +94,24 @@ def _make_service_with_mocks(
     """Create a ChannelDashboardService with mocked repos.
 
     Mocks:
-    - repo.get_channel_metrics_for_period (called twice: current + previous)
-    - repo.get_channel_daily_metrics (called once for timeseries)
+    - repo.get_channel_raw_daily_rows (called 3 times: current, previous, daily)
+    - repo.db.execute (for currency detection query)
     - period_repo.get_best_period_metric (called for period overrides)
     """
     service = ChannelDashboardService(mock_db, brand_port=mock_brand_port)
 
-    current_aggregated = _aggregate_metrics(current_metrics_by_date)
-    previous_aggregated = _aggregate_metrics(previous_metrics_by_date)
-    daily_ts = _make_daily_timeseries(current_metrics_by_date)
+    current_raw = _make_raw_daily_rows(current_metrics_by_date)
+    previous_raw = _make_raw_daily_rows(previous_metrics_by_date)
+    daily_raw = _make_raw_daily_rows(current_metrics_by_date)
 
-    # Mock get_channel_metrics_for_period (called twice via asyncio.to_thread)
-    service.repo.get_channel_metrics_for_period = MagicMock(
-        side_effect=[current_aggregated, previous_aggregated]
+    # Mock get_channel_raw_daily_rows (called 3 times via asyncio.to_thread)
+    service.repo.get_channel_raw_daily_rows = MagicMock(
+        side_effect=[current_raw, previous_raw, daily_raw]
     )
 
-    # Mock get_channel_daily_metrics (called once via asyncio.to_thread)
-    service.repo.get_channel_daily_metrics = MagicMock(return_value=daily_ts)
+    # Mock currency detection query
+    service.repo.db = MagicMock()
+    service.repo.db.execute.return_value.fetchone.return_value = None
 
     # Mock period_metrics repo
     service.period_repo.get_best_period_metric = MagicMock(side_effect=period_metric_fn)

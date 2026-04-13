@@ -19,12 +19,8 @@ interface CostosTabProps {
 
 const COST_METRICS = ['CPC', 'CPM', 'CPL', 'CPA'];
 
-/** Metrics that require Meta Pixel to report meaningful data. When value is 0, show "--" placeholder. */
-const PIXEL_DEPENDENT_METRICS = new Set(['ROAS', 'CPA', 'CPL', 'conversions']);
-
-function isPixelPlaceholder(metricName: string, value: number): boolean {
-  return PIXEL_DEPENDENT_METRICS.has(metricName) && value === 0;
-}
+/** Metrics that require Meta Pixel (conversions/leads tracking) to have meaningful values */
+const PIXEL_DEPENDENT_COST_METRICS = new Set(['CPL', 'CPA']);
 
 const COST_TOOLTIPS: Record<string, string> = {
   CPC: 'CPC = Cuánto pagas cada vez que alguien hace clic en tu anuncio. Menor es mejor.',
@@ -83,12 +79,19 @@ export function CostosTab({ data, campaignData, isLoading }: CostosTabProps) {
     ? Math.max(...campaignsWithCpa.map(c => c.metrics.cpa ?? 0))
     : 1;
 
+  // Benchmark reference line for CPC cost evolution
+  const cpcKpi = costKpis.find(k => k.metricName === 'CPC');
+  const cpcBenchmarkMedian = cpcKpi?.benchmark?.median;
+
   return (
     <div className="space-y-6">
       {/* 4 Cost KPIs with benchmarks */}
       <ChartSection slug="kpis-costos">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {costKpis.map(kpi => (
+          {costKpis.map(kpi => {
+            const isPixelDependent = PIXEL_DEPENDENT_COST_METRICS.has(kpi.metricName);
+            const hasNoPixelValue = isPixelDependent && (kpi.currentValue === 0 || kpi.currentValue == null);
+            return (
             <div
               key={kpi.metricName}
               className="space-y-1.5 rounded-lg border bg-card p-4"
@@ -96,8 +99,8 @@ export function CostosTab({ data, campaignData, isLoading }: CostosTabProps) {
             >
               <p className="text-xs text-muted-foreground">{kpi.displayName}</p>
               <p className="text-2xl font-semibold tabular-nums">
-                {isPixelPlaceholder(kpi.metricName, kpi.currentValue) ? (
-                  <span title="Requiere Meta Pixel configurado">--</span>
+                {hasNoPixelValue ? (
+                  <span className="text-muted-foreground" title="Requiere Meta Pixel configurado">--</span>
                 ) : (
                   formatMoney(kpi.currentValue, kpi.currency || tenantCurrency)
                 )}
@@ -110,7 +113,8 @@ export function CostosTab({ data, campaignData, isLoading }: CostosTabProps) {
                 />
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       </ChartSection>
 
@@ -137,18 +141,14 @@ export function CostosTab({ data, campaignData, isLoading }: CostosTabProps) {
                 <Line type="monotone" dataKey="CPC" stroke="var(--color-CPC)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="CPM" stroke="var(--color-CPM)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="CPL" stroke="var(--color-CPL)" strokeWidth={2} dot={false} />
-                {(() => {
-                  const cpcBenchmark = costKpis.find(k => k.metricName === 'CPC')?.benchmark;
-                  return cpcBenchmark ? (
-                    <ReferenceLine
-                      y={cpcBenchmark.median}
-                      stroke="var(--color-CPC)"
-                      strokeDasharray="4 6"
-                      strokeOpacity={0.3}
-                      label={{ value: 'Prom. CPC', position: 'right', fontSize: 9, fill: 'var(--color-CPC)' }}
-                    />
-                  ) : null;
-                })()}
+                {cpcBenchmarkMedian != null && (
+                  <ReferenceLine
+                    y={cpcBenchmarkMedian}
+                    stroke="#71717a"
+                    strokeDasharray="5 5"
+                    label={{ value: `Promedio: $${cpcBenchmarkMedian}`, position: 'right', fill: '#71717a', fontSize: 11 }}
+                  />
+                )}
               </LineChart>
             </ChartContainer>
           </div>

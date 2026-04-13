@@ -5,9 +5,9 @@ were doing `SUM(value)` across all rows without filtering by granularity
 (campaign_id/ad_set_id/ad_id). When account-level + campaign-level + ad-level
 rows coexisted for the same day, the totals were inflated 2x or 3x.
 
-Fix: prefer account-level rows (all dim IDs NULL) when present; otherwise
-fall back to summing campaign-level rows (campaign_id NOT NULL, ad_set_id
-and ad_id NULL). This guarantees a single granularity per day.
+Fix: filter to account-level rows only (all dim IDs NULL) to prevent
+double-counting. Campaign-level / ad-level data is accessed via
+`get_channel_raw_daily_rows` + `MetricResolver` when needed.
 """
 
 import uuid
@@ -126,8 +126,13 @@ class TestGetChannelDailyMetrics:
 
         assert result == [(day, "spend", 100.0)]
 
-    def test_case_b_only_campaign_level_sums_campaigns(self, db, tenant_id):
-        """When only campaign-level rows exist (no account), sum them."""
+    def test_case_b_only_campaign_level_returns_empty(self, db, tenant_id):
+        """When only campaign-level rows exist (no account-level), return empty.
+
+        Account-level only filtering means campaign-level rows are invisible
+        to these methods. The dashboard uses get_channel_raw_daily_rows +
+        MetricResolver for full data access.
+        """
         day = date(2026, 4, 1)
 
         _insert_metric(
@@ -154,11 +159,11 @@ class TestGetChannelDailyMetrics:
             end_date=day,
         )
 
-        assert result == [(day, "spend", 50.0)]
+        assert result == []
 
-    def test_case_c_mixed_days_uses_per_day_fallback(self, db, tenant_id):
+    def test_case_c_mixed_days_only_returns_account_level(self, db, tenant_id):
         """Day 1 has account-level; day 2 has only campaign-level.
-        Each day uses the appropriate source independently.
+        Only day 1 is returned since filtering is account-level only.
         """
         day1 = date(2026, 4, 5)
         day2 = date(2026, 4, 6)
@@ -180,7 +185,7 @@ class TestGetChannelDailyMetrics:
             campaign_id="camp_2",
         )
 
-        # Day 2: only campaigns — should sum them
+        # Day 2: only campaigns — not returned (account-level only)
         _insert_metric(
             db,
             tenant_id=tenant_id,
@@ -207,7 +212,7 @@ class TestGetChannelDailyMetrics:
 
         result_dict = {(r[0], r[1]): r[2] for r in result}
         assert result_dict[(day1, "spend")] == 70.0
-        assert result_dict[(day2, "spend")] == 25.0
+        assert (day2, "spend") not in result_dict
 
     def test_case_e_ad_set_only_rows_not_counted_as_account_level(self, db, tenant_id):
         """Rows with ad_set_id set (but ad_id NULL) are NOT account-level."""
@@ -267,12 +272,12 @@ class TestGetChannelDailyMetrics:
 class TestGetChannelMetricsForPeriod:
     """Tests for get_channel_metrics_for_period granularity handling."""
 
-    def test_case_d_period_prefers_account_then_falls_back_per_day(self, db, tenant_id):
-        """Aggregate period: for each day, pick account-level if present,
-        otherwise sum campaign-level. Then SUM additive metric across days.
+    def test_case_d_period_uses_account_level_only(self, db, tenant_id):
+        """Aggregate period: only account-level rows are summed.
+        Days with only campaign-level data are excluded.
         """
         day1 = date(2026, 4, 5)  # account-level exists ($70)
-        day2 = date(2026, 4, 6)  # only campaign-level ($25)
+        day2 = date(2026, 4, 6)  # only campaign-level (excluded)
         day3 = date(2026, 4, 7)  # both — account wins ($100)
 
         # Day 1
@@ -285,7 +290,7 @@ class TestGetChannelMetricsForPeriod:
             campaign_id="c1",
         )
 
-        # Day 2
+        # Day 2 (campaign-only — excluded from account-level filter)
         _insert_metric(
             db,
             tenant_id=tenant_id,
@@ -327,8 +332,9 @@ class TestGetChannelMetricsForPeriod:
             end_date=day3,
         )
 
-        # 70 (account) + 25 (campaign fallback) + 100 (account) = 195
-        assert totals["spend"] == 195.0
+        # 70 (account day1) + 100 (account day3) = 170
+        # Day 2 has no account-level rows, so excluded
+        assert totals["spend"] == 170.0
 
     def test_period_ignores_ad_and_adset_rows(self, db, tenant_id):
         """Only account-level or campaign-level rows should participate."""

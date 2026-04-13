@@ -29,7 +29,7 @@ from src.modules.analytics.domain.industry_benchmarks import (
     normalize_industry,
 )
 from src.modules.analytics.domain.metric_catalog import get_metric_def
-from src.modules.analytics.domain.metric_resolver import MetricResolver
+from src.modules.analytics.domain.metric_resolver import ALIAS_MAP, MetricResolver
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
@@ -301,6 +301,9 @@ def _compute_derived_metrics(metrics: dict[str, float]) -> dict[str, float]:
 class ChannelDashboardService:
     """Builds the channel dashboard response with KPIs, time series, funnel, and alerts."""
 
+    # NON_AGGREGABLE metrics that should be overridden with period_metrics
+    _PERIOD_OVERRIDE_METRICS = ("reach",)
+
     def __init__(
         self,
         db: Session,
@@ -341,50 +344,59 @@ class ChannelDashboardService:
         # Use channel-specific timeseries metrics when available
         timeseries_metrics = config.timeseries_metrics or []
 
-        # Resolve aliases to canonical names + collect component metrics
-        # needed for DERIVED/WEIGHTED_AVERAGE recalculation (CPC, CPM, CTR, etc.)
-        resolver = MetricResolver()
-        daily_fetch_metrics = self._resolve_daily_fetch_metrics(
-            resolver, timeseries_metrics
-        )
-
-        # Fetch data in parallel via thread pool (sync repo)
-        current_metrics, previous_metrics, daily_data = await asyncio.gather(
+        # Fetch raw daily rows in parallel via thread pool (sync repo)
+        current_raw, previous_raw, daily_raw = await asyncio.gather(
             asyncio.to_thread(
-                self.repo.get_channel_metrics_for_period,
+                self.repo.get_channel_raw_daily_rows,
                 tenant_id,
                 channel_slug,
                 start,
                 today,
             ),
             asyncio.to_thread(
-                self.repo.get_channel_metrics_for_period,
+                self.repo.get_channel_raw_daily_rows,
                 tenant_id,
                 channel_slug,
                 prev_start,
                 prev_end,
             ),
             asyncio.to_thread(
-                self.repo.get_channel_daily_metrics,
+                self.repo.get_channel_raw_daily_rows,
                 tenant_id,
                 channel_slug,
-                daily_fetch_metrics,
                 start,
                 today,
             ),
         )
 
-        # Override NON_AGGREGABLE metrics (reach) with period_metrics when available
-        self._apply_period_overrides(
-            current_metrics, tenant_id, channel_slug, start, today
-        )
-        self._apply_period_overrides(
-            previous_metrics, tenant_id, channel_slug, prev_start, prev_end
-        )
+        # Use MetricResolver for correct aggregation (fixes double-counting,
+        # derived metric recalculation, and alias mapping)
+        resolver = MetricResolver()
 
-        # Compute derived metrics (e.g. ig_engagement_rate)
-        _compute_derived_metrics(current_metrics)
-        _compute_derived_metrics(previous_metrics)
+        # Resolve period KPIs via MetricResolver
+        all_requested = list(set(config.hero_metrics) | set(timeseries_metrics))
+        current_metrics = resolver.resolve_period_kpis(current_raw, all_requested)
+        previous_metrics = resolver.resolve_period_kpis(previous_raw, all_requested)
+
+        # Also compute channel-specific derived metrics not in the catalog
+        # (IG engagement rate, card click rate, etc.)
+        current_flat = {k: v for k, v in current_metrics.items() if v is not None}
+        previous_flat = {k: v for k, v in previous_metrics.items() if v is not None}
+        _compute_derived_metrics(current_flat)
+        _compute_derived_metrics(previous_flat)
+        # Merge back computed derived metrics
+        current_metrics.update(current_flat)
+        previous_metrics.update(previous_flat)
+
+        # Override NON_AGGREGABLE metrics with period_metrics if available
+        await self._apply_period_overrides(
+            current_flat, tenant_id, channel_slug, start, today
+        )
+        await self._apply_period_overrides(
+            previous_flat, tenant_id, channel_slug, prev_start, prev_end
+        )
+        current_metrics.update(current_flat)
+        previous_metrics.update(previous_flat)
 
         # Resolve aliases and recalculate derived metrics (ROAS, CTR, CPC, etc.)
         all_metric_names = list(config.hero_metrics) + [
@@ -430,11 +442,11 @@ class ChannelDashboardService:
             channel_currency,
         )
 
-        # Build time series — resolve derived metrics (CPC, CPM, CTR, ROAS)
-        # from raw component data (spend, clicks, impressions, etc.)
-        raw_rows = [(d, name, val, None, None, None) for d, name, val in daily_data]
-        resolved_ts = resolver.resolve_daily_timeseries(raw_rows, timeseries_metrics)
-        time_series = self._build_time_series_from_resolved(resolved_ts)
+        # Build time series using MetricResolver for correct daily derivation
+        resolved_daily = resolver.resolve_daily_timeseries(
+            daily_raw, timeseries_metrics
+        )
+        time_series = self._build_time_series_from_resolved(resolved_daily)
 
         # Build funnel
         funnel = self._build_funnel(current_metrics, config)
@@ -461,15 +473,65 @@ class ChannelDashboardService:
 
     _resolver = MetricResolver()
 
+    async def _apply_period_overrides(
+        self,
+        metrics: dict[str, float],
+        tenant_id: UUID,
+        channel_slug: str,
+        start_date: date,
+        end_date: date,
+    ) -> None:
+        """Override NON_AGGREGABLE metrics with period_metrics values.
+
+        For metrics like reach (unique people), summing daily values overcounts.
+        If period_metrics has a row covering the requested date range, use that
+        instead. Then recompute frequency = impressions / reach.
+        """
+        for metric_name in self._PERIOD_OVERRIDE_METRICS:
+            if metric_name not in metrics:
+                continue
+
+            period_value = await asyncio.to_thread(
+                self.period_repo.get_best_period_metric,
+                tenant_id,
+                channel_slug,
+                metric_name,
+                start_date,
+                end_date,
+            )
+
+            if period_value is not None:
+                logger.info(
+                    "period_metric_override",
+                    metric_name=metric_name,
+                    daily_value=metrics[metric_name],
+                    period_value=period_value,
+                    tenant_id=str(tenant_id),
+                    channel_slug=channel_slug,
+                )
+                metrics[metric_name] = period_value
+
+        # Recompute frequency from (potentially overridden) reach + summed impressions
+        reach_val = metrics.get("reach", 0)
+        impressions_sum = metrics.get("impressions", 0)
+        if reach_val > 0 and impressions_sum > 0:
+            metrics["frequency"] = round(impressions_sum / reach_val, 2)
+
     def _build_kpis(
         self,
-        current: dict[str, float],
-        previous: dict[str, float],
+        current: dict[str, float | None],
+        previous: dict[str, float | None],
         industry: IndustryCategory,
         config: ChannelDashboardConfig | None = None,
         channel_currency: str | None = None,
     ) -> list[MetricKpiDTO]:
-        """Build KPI cards with deltas and benchmarks."""
+        """Build KPI cards with deltas and benchmarks.
+
+        Uses ALIAS_MAP to resolve hero_metrics names (e.g. "ROAS") to
+        canonical catalog names (e.g. "meta_purchase_roas") for display_name
+        and unit lookup, while keeping the original name for benchmark lookup
+        (benchmarks use the alias names like "CTR", "ROAS").
+        """
         fallback_config = _CHANNEL_CONFIGS.get("meta-ads", _DEFAULT_CONFIG)
         hero_metrics = config.hero_metrics if config else fallback_config.hero_metrics
         kpis: list[MetricKpiDTO] = []
@@ -485,17 +547,15 @@ class ChannelDashboardService:
                 delta_abs = current_val - prev_val
                 delta_pct = round((delta_abs / prev_val) * 100, 1)
 
-            # Resolve alias to canonical name for catalog/benchmark lookup
-            canonical = self._resolver.resolve_alias(metric_name)
+            # Resolve alias to canonical name for catalog lookup
+            canonical = ALIAS_MAP.get(metric_name, metric_name)
             defn = get_metric_def(canonical)
             display_name = defn.display_name if defn else metric_name
             unit = defn.unit.value if defn else "count"
             higher_is_better = defn.higher_is_better if defn else True
 
-            # Benchmark lookup — try canonical name first, then alias
-            benchmark_entry = get_benchmarks(industry, canonical)
-            if benchmark_entry is None:
-                benchmark_entry = get_benchmarks(industry, metric_name)
+            # Benchmark lookup — benchmarks use alias names (CTR, ROAS, etc.)
+            benchmark_entry = get_benchmarks(industry, metric_name)
             benchmark = None
             if benchmark_entry:
                 benchmark = BenchmarkRangeDTO(
@@ -553,41 +613,6 @@ class ChannelDashboardService:
                     fetch_set.add(components[1])  # denominator
         return list(fetch_set)
 
-    def _build_time_series_from_resolved(
-        self,
-        resolved: dict[str, list[tuple[date, float]]],
-    ) -> list[MetricTimeSeriesDTO]:
-        """Build time series DTOs from MetricResolver output.
-
-        Args:
-            resolved: {metric_name: [(date, value), ...]} from resolve_daily_timeseries
-        """
-        resolver = self._resolver
-        series: list[MetricTimeSeriesDTO] = []
-        for metric_name, points in resolved.items():
-            if not points:
-                continue
-            canonical = resolver.resolve_alias(metric_name)
-            defn = get_metric_def(canonical)
-            display_name = defn.display_name if defn else metric_name
-            unit = defn.unit.value if defn else "count"
-
-            data_points = [
-                TimeSeriesDataPointDTO(date=d.isoformat(), value=round(v, 2))
-                for d, v in points  # already sorted by resolver
-            ]
-
-            series.append(
-                MetricTimeSeriesDTO(
-                    metric_name=metric_name,
-                    display_name=display_name,
-                    unit=unit,
-                    data_points=data_points,
-                )
-            )
-
-        return series
-
     def _build_time_series(
         self,
         daily_data: list[tuple[date, str, float]],
@@ -620,9 +645,45 @@ class ChannelDashboardService:
 
         return series
 
+    def _build_time_series_from_resolved(
+        self,
+        resolved: dict[str, list[tuple[date, float]]],
+    ) -> list[MetricTimeSeriesDTO]:
+        """Build time series DTOs from MetricResolver output.
+
+        The resolver returns {metric_name: [(date, value), ...]} with
+        aliases preserved and derived metrics already recalculated per-day.
+        """
+        series: list[MetricTimeSeriesDTO] = []
+        for metric_name, points in resolved.items():
+            if not points:
+                continue
+
+            canonical = ALIAS_MAP.get(metric_name, metric_name)
+            defn = get_metric_def(canonical)
+            display_name = defn.display_name if defn else metric_name
+            unit = defn.unit.value if defn else "count"
+
+            sorted_points = sorted(points, key=lambda x: x[0])
+            data_points = [
+                TimeSeriesDataPointDTO(date=d.isoformat(), value=round(v, 2))
+                for d, v in sorted_points
+            ]
+
+            series.append(
+                MetricTimeSeriesDTO(
+                    metric_name=metric_name,
+                    display_name=display_name,
+                    unit=unit,
+                    data_points=data_points,
+                )
+            )
+
+        return series
+
     def _build_funnel(
         self,
-        metrics: dict[str, float],
+        metrics: dict[str, float | None],
         config: ChannelDashboardConfig | None = None,
     ) -> AdFunnelDTO:
         """Build the ad conversion funnel with step-to-step rates."""
@@ -632,7 +693,8 @@ class ChannelDashboardService:
         prev_value: float | None = None
 
         for label, metric_name in funnel_steps:
-            value = metrics.get(metric_name, 0.0)
+            raw_value = metrics.get(metric_name)
+            value = raw_value if raw_value is not None else 0.0
             conv_rate = None
             if prev_value is not None and prev_value > 0:
                 conv_rate = round((value / prev_value) * 100, 2)
@@ -649,44 +711,9 @@ class ChannelDashboardService:
 
         return AdFunnelDTO(steps=steps)
 
-    def _apply_period_overrides(
-        self,
-        metrics: dict[str, float],
-        tenant_id: UUID,
-        channel_slug: str,
-        start_date: date,
-        end_date: date,
-    ) -> None:
-        """Override NON_AGGREGABLE metrics with period_metrics data when available.
-
-        For metrics like 'reach' that cannot be summed across days, check
-        period_metrics for a value covering the requested date range. If found,
-        override the daily-derived value.
-
-        Always recomputes frequency = impressions / reach (using the best
-        available reach value) since frequency depends on period-level reach.
-        """
-        period_reach = self.period_repo.get_best_period_metric(
-            tenant_id=tenant_id,
-            channel_slug=channel_slug,
-            metric_name="reach",
-            start_date=start_date,
-            end_date=end_date,
-        )
-        if period_reach is not None and period_reach > 0:
-            metrics["reach"] = period_reach
-
-        # Always recompute frequency from impressions / reach
-        reach = metrics.get("reach", 0)
-        impressions = metrics.get("impressions", 0)
-        if reach > 0 and impressions > 0:
-            metrics["frequency"] = impressions / reach
-        else:
-            metrics.pop("frequency", None)
-
     def _check_frequency(
         self,
-        metrics: dict[str, float],
+        metrics: dict[str, float | None],
     ) -> FrequencyAlertDTO | None:
         """Check if ad frequency exceeds fatigue thresholds."""
         freq = metrics.get("frequency")
