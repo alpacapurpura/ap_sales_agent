@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type DocumentStatus = "pending" | "processing" | "done" | "error";
+export type DocumentStatus = "pending" | "processing" | "done" | "error";
 
 interface DocumentChipProps extends React.HTMLAttributes<HTMLDivElement> {
   file: File;
