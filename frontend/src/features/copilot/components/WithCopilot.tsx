@@ -23,9 +23,13 @@ export function WithCopilot({ fieldId, fieldLabel, getValue, children }: WithCop
   const removeSelectedField = useCopilotStore((s) => s.removeSelectedField);
   const openPanel = useCopilotStore((s) => s.openPanel);
 
+  const focusEntity = useCopilotStore((s) => s.focusEntity);
+  const inFocusMode = focusEntity !== null;
+
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isHighlighted, setIsHighlighted] = useState(false);
+  const [aiModified, setAiModified] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Stable ref for getValue — avoids effect churn from inline arrow props
@@ -71,12 +75,24 @@ export function WithCopilot({ fieldId, fieldLabel, getValue, children }: WithCop
       if (detail.fieldId === fieldId) {
         setIsHighlighted(true);
         setTimeout(() => setIsHighlighted(false), 2500);
+        if (inFocusMode) {
+          setAiModified(true);
+        }
       }
     };
 
     window.addEventListener("copilot:field-update", handler);
     return () => window.removeEventListener("copilot:field-update", handler);
-  }, [fieldId]);
+  }, [fieldId, inFocusMode]);
+
+  // Clear AI badge when user manually edits the field
+  useEffect(() => {
+    if (!aiModified || !containerRef.current) return;
+    const clearBadge = () => setAiModified(false);
+    const container = containerRef.current;
+    container.addEventListener("input", clearBadge);
+    return () => container.removeEventListener("input", clearBadge);
+  }, [aiModified]);
 
   return (
     <div
@@ -130,6 +146,13 @@ export function WithCopilot({ fieldId, fieldLabel, getValue, children }: WithCop
           </>
         )}
       </button>
+
+      {/* AI modified badge — shown in focus mode after copilot updates the field */}
+      {aiModified && inFocusMode && (
+        <span className="absolute -top-3.5 left-3 z-10 rounded-full bg-purple-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm">
+          IA
+        </span>
+      )}
 
       {children}
     </div>
