@@ -4,9 +4,7 @@ import { memo, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AppSidebar } from "@/components/shared/layout/app-sidebar";
 import { SidebarProvider, useSidebar } from "@/components/shared/layout/sidebar-context";
-import { CopilotPanel } from "@/features/copilot/components/CopilotPanel";
-import { useCopilotStore } from "@/features/copilot/store/copilot-store";
-import { InterviewBanner } from "@/components/shared/interview-banner";
+import { CopilotSidebar } from "@/features/copilot/components/copilot-sidebar";
 import { cn } from "@/lib/utils";
 
 // Routes that should render in workspace-style full-width mode. Add new
@@ -38,7 +36,6 @@ const MemoizedChildren = memo(function MemoizedChildren({
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isCollapsed } = useSidebar();
-  const isCopilotOpen = useCopilotStore((s) => s.isOpen);
   const pathname = usePathname() ?? "";
 
   // Defer the full-width decision to post-mount to avoid hydration
@@ -53,21 +50,20 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   return (
-    <div className="min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <AppSidebar />
       <main
         className={cn(
-          "min-h-screen pt-16 md:pt-0 transition-all duration-300 ease-in-out",
+          "flex-1 min-w-0 overflow-y-auto",
+          "pt-16 md:pt-0 transition-[margin] duration-300 ease-in-out",
           isCollapsed ? "md:ml-20" : "md:ml-64",
-          isCopilotOpen ? "pr-[380px]" : "pr-[60px]"
         )}
       >
-        <InterviewBanner />
         <MemoizedChildren isFullWidth={isFullWidth}>
           {children}
         </MemoizedChildren>
       </main>
-      <CopilotPanel />
+      <CopilotSidebar />
     </div>
   );
 }
