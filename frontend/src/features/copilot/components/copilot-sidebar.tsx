@@ -8,6 +8,7 @@ import { CopilotChat } from "./CopilotChat";
 import { CopilotRail } from "./CopilotRail";
 import { CopilotHeader } from "./copilot-header";
 import { CopilotPreviewPane } from "./copilot-preview-pane";
+import { FocusBar } from "./focus-bar";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_WIDTHS = {
@@ -43,6 +44,7 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
           {/* Chat column — always 380px */}
           <div className="flex w-[380px] shrink-0 flex-col">
             <CopilotHeader />
+            <FocusBar />
             <CopilotChat />
           </div>
         </div>
