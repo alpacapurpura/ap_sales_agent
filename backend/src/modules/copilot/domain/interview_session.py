@@ -90,6 +90,18 @@ class InterviewSession:
         else:
             self.bloque_actual = block_ids[current_idx + 1]
 
+    def revert_to_block(self, block_id: str) -> None:
+        """Revert to a previous block, keeping mapa_global data intact."""
+        bloques = self.config_snapshot["bloques"]
+        block_ids = [b["id"] for b in bloques]
+        if block_id not in block_ids:
+            msg = f"Block '{block_id}' not found in interview config"
+            raise ValueError(msg)
+        target_idx = block_ids.index(block_id)
+        self.bloques_completados = [b for b in self.bloques_completados if block_ids.index(b) < target_idx]
+        self.bloque_actual = block_id
+        self.status = InterviewStatus.ACTIVE
+
     def pause(self) -> None:
         """Execute pause operation."""
         self.status = InterviewStatus.PAUSED
