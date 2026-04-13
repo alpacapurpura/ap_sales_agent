@@ -11,16 +11,20 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.modules.copilot.infrastructure.context.focus_context_loader import (
+    FocusContextLoader,
+)
 from src.modules.copilot.infrastructure.context.offer_context_loader import (
     OfferContextLoader,
 )
 
 CONTEXT_LOADERS: dict[str, type] = {
     "offer_context": OfferContextLoader,
+    "focus_context": FocusContextLoader,
 }
 
 
-def get_context_loader(key: str, db: AsyncSession) -> OfferContextLoader:
+def get_context_loader(key: str, db: AsyncSession) -> OfferContextLoader | FocusContextLoader:
     """Get context loader by key.
 
     Args:
