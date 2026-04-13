@@ -324,38 +324,16 @@ async def get_stage_overview(
     group summaries, optional mini-funnel and bottlenecks) instead of the
     ~500+ fields from the full detail endpoint.
 
-    Cache-first with DB fallback: reads from Redis caches, but when cache
-    is empty falls back to the detail service to query DB and warm cache.
+    Cache-first with on-demand fallback: reads from Redis caches,
+    computes from DB if cache is empty.
     """
     if period not in _VALID_PERIODS:
         raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
 
     cache = MetricsCache(redis_client)
-    overview_svc = StageOverviewService(cache=cache)
-    overview = await overview_svc.get_stage_overview(
-        str(user.tenant_id), stage.value, period
-    )
-
-    # Fallback: if cache was empty, warm it via the stage service (DB query)
-    if not overview.channel_list and not overview.groups:
-        await _warm_stage_cache(db, cache, user.tenant_id, stage.value, period)
-        # Invalidate any stale overview cache before re-reading
-        try:
-            overview_key = cache._key(
-                str(user.tenant_id), f"overview_{stage.value}", period
-            )
-            cache._redis.delete(overview_key)
-        except Exception:
-            import structlog
-
-            structlog.get_logger().debug(
-                "overview_cache_invalidation_failed", stage=stage.value
-            )
-        overview = await overview_svc.get_stage_overview(
-            str(user.tenant_id), stage.value, period
-        )
-
-    return overview
+    connection_port = ConnectionPortImpl(db)
+    service = StageOverviewService(cache=cache, db=db, connection_port=connection_port)
+    return await service.get_stage_overview(str(user.tenant_id), stage.value, period)
 
 
 @router.get("/{stage}/groups/{group_key}", response_model=GroupDetailDTO)

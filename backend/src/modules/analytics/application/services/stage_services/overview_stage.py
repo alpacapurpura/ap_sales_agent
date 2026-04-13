@@ -7,9 +7,14 @@ channel list with 1 headline KPI, group summaries, bottlenecks).
 Cache strategy:
   1. Check overview-specific cache: metrics:{tenant_id}:overview_{stage}:{period}
   2. On miss, read the full stage cache (already computed by detail endpoints)
-  3. Extract overview fields from the cached stage data
-  4. Cache the overview with 5-min TTL
+  3. If no stage cache either, compute on-demand via MetricsService fallback
+  4. Extract overview fields from the cached stage data
+  5. Cache the overview with 5-min TTL (skip caching empty overviews)
 """
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import structlog
 
@@ -24,7 +29,12 @@ from src.modules.analytics.application.dto.stage_overview_dto import (
 from src.modules.analytics.application.services.stage_services.constants import (
     STAGE_GROUPS as _STAGE_GROUPS,
 )
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+    from src.modules.analytics.domain.ports import ConnectionPort
+    from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 
 logger = structlog.get_logger()
 
@@ -58,8 +68,15 @@ OVERVIEW_TTL = 300  # 5 minutes
 class StageOverviewService:
     """Provides lightweight stage overview data for progressive loading."""
 
-    def __init__(self, cache: MetricsCache | None = None):
+    def __init__(
+        self,
+        cache: MetricsCache | None = None,
+        db: Session | None = None,
+        connection_port: ConnectionPort | None = None,
+    ):
         self.cache = cache
+        self.db = db
+        self.connection_port = connection_port
 
     async def get_stage_overview(
         self, tenant_id: str, stage: str, period: str
@@ -69,32 +86,40 @@ class StageOverviewService:
         Strategy:
         1. Check overview-specific cache
         2. On miss, read the full stage cache
-        3. Extract overview fields
-        4. Cache the overview
+        3. If no stage cache, compute on-demand via MetricsService
+        4. Extract overview fields
+        5. Cache the overview (skip empty overviews)
         """
-        # 1. Check overview cache
+        # 1. Check overview cache — but only trust non-empty cached overviews
         if self.cache is not None:
             overview_key = f"overview_{stage}"
             cached = await self.cache.get(tenant_id, overview_key, period)
             if cached is not None:
-                logger.debug(
-                    "stage_overview_cache_hit",
-                    tenant_id=tenant_id,
-                    stage=stage,
-                    period=period,
-                )
-                return StageOverviewDTO(**cached)
+                dto = StageOverviewDTO(**cached)
+                if dto.channel_list:
+                    logger.debug(
+                        "stage_overview_cache_hit",
+                        tenant_id=tenant_id,
+                        stage=stage,
+                        period=period,
+                    )
+                    return dto
+                # Empty overview cached — fall through to recompute
 
         # 2. Read full stage cache
         stage_data: dict | None = None
         if self.cache is not None:
             stage_data = await self.cache.get(tenant_id, stage, period)
 
-        # 3. Extract overview from stage data
+        # 3. If no stage cache, compute on-demand via MetricsService
+        if stage_data is None and self.db is not None:
+            stage_data = await self._compute_stage_data(tenant_id, stage, period)
+
+        # 4. Extract overview from stage data
         overview = self._extract_overview(stage, stage_data)
 
-        # 4. Cache the overview (skip empty overviews to avoid cache poisoning)
-        if self.cache is not None and (overview.channel_list or overview.groups):
+        # 5. Cache the overview — but only if non-empty
+        if self.cache is not None and overview.channel_list:
             overview_key = f"overview_{stage}"
             await self.cache.set(tenant_id, overview_key, period, overview.model_dump())
 
@@ -107,6 +132,59 @@ class StageOverviewService:
             groups=len(overview.groups),
         )
         return overview
+
+    async def _compute_stage_data(
+        self, tenant_id: str, stage: str, period: str
+    ) -> dict | None:
+        """Compute full stage data on-demand when cache is empty.
+
+        Calls MetricsService which reads from DB and populates the stage cache.
+        Returns the model_dump() of the computed DTO.
+
+        Only supports stages that accept a `period` string parameter
+        (attraction, capture, nurture). Other stages use start_date/end_date
+        and are computed via their legacy endpoints or the scheduler.
+        """
+        from uuid import UUID
+
+        from src.modules.analytics.application.services.metrics_service import (
+            MetricsService,
+        )
+
+        # Only period-based stages support on-demand fallback
+        _PERIOD_STAGE_METHODS: dict[str, str] = {
+            "attraction": "get_attraction_metrics",
+            "capture": "get_capture_metrics",
+            "nurture": "get_nurturing_metrics",
+        }
+
+        method_name = _PERIOD_STAGE_METHODS.get(stage)
+        if method_name is None:
+            return None
+
+        tid = UUID(tenant_id)
+        service = MetricsService(
+            self.db,  # type: ignore[arg-type]
+            cache=self.cache,
+            connection_port=self.connection_port,
+        )
+
+        try:
+            method = getattr(service, method_name)
+            result = await method(tid, period=period)
+            logger.info(
+                "stage_overview_computed_on_demand",
+                tenant_id=tenant_id,
+                stage=stage,
+            )
+            return result.model_dump()
+        except Exception:
+            logger.exception(
+                "stage_overview_on_demand_failed",
+                tenant_id=tenant_id,
+                stage=stage,
+            )
+            return None
 
     def _extract_overview(
         self, stage: str, stage_data: dict | None

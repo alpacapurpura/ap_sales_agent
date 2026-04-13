@@ -333,12 +333,24 @@ class TestStageOverviewService:
     async def test_overview_returns_cached_if_available(
         self, mock_cache, test_tenant_id
     ):
-        """Service returns cached overview without recomputing."""
+        """Service returns cached non-empty overview without recomputing."""
         cached_overview = {
             "stage": "attraction",
             "header_kpis": {"total_reach": 9999.0},
             "groups": [],
-            "channel_list": [],
+            "channel_list": [
+                {
+                    "slug": "meta-ads",
+                    "name": "Meta Ads",
+                    "channel_type": "paid",
+                    "group_key": "paid",
+                    "connected": True,
+                    "headline_kpi": {"name": "reach", "value": 9999.0, "unit": "count"},
+                    "last_updated": None,
+                    "stale": False,
+                    "provider_name": "meta",
+                },
+            ],
             "bottlenecks": [],
             "period": "last_30_days",
             "last_updated": None,
@@ -356,6 +368,7 @@ class TestStageOverviewService:
             test_tenant_id, "attraction", "last_30_days"
         )
         assert result.header_kpis["total_reach"] == 9999.0
+        assert len(result.channel_list) == 1
         # set should NOT be called since we got a cache hit
         mock_cache.set.assert_not_called()
 
