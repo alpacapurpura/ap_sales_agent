@@ -9,10 +9,10 @@ import { useProactiveNudges } from "../hooks/useProactiveNudges";
 import { reportCopilotEvent } from "../api/copilot-api";
 
 export function CopilotRail() {
-  const { openPanel, messages } = useCopilotStore();
+  const openPanel = useCopilotStore((s) => s.openPanel);
+  const hasMessages = useCopilotStore((s) => s.messages.length > 0);
   const { nudges } = useProactiveNudges();
   const { getToken } = useAuth();
-  const hasMessages = messages.length > 0;
   const hasNudges = nudges.length > 0;
 
   const handleOpen = () => {

@@ -1,15 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
-vi.mock("@/features/copilot/store/copilot-store", () => ({
-  useCopilotStore: vi.fn(() => ({
-    openPanel: mockOpenPanel,
-    addSelectedField: mockAddSelectedField,
-  })),
-}));
-
 const mockOpenPanel = vi.fn();
 const mockAddSelectedField = vi.fn();
+
+const mockStoreState = {
+  openPanel: mockOpenPanel,
+  addSelectedField: mockAddSelectedField,
+};
+
+vi.mock("@/features/copilot/store/copilot-store", () => ({
+  useCopilotStore: vi.fn((selector?: (s: typeof mockStoreState) => unknown) =>
+    selector ? selector(mockStoreState) : mockStoreState
+  ),
+}));
 
 import { SectionChatTrigger } from "../section-chat-trigger";
 

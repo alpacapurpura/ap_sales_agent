@@ -35,7 +35,7 @@ function addDismissed(id: string) {
 }
 
 export function useProactiveNudges() {
-  const { currentRoute } = useCopilotStore();
+  const currentRoute = useCopilotStore((s) => s.currentRoute);
   const { getToken } = useAuth();
   const [nudges, setNudges] = useState<Nudge[]>([]);
 

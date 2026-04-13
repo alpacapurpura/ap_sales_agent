@@ -23,7 +23,8 @@ export const SectionChatTrigger = forwardRef<
   HTMLButtonElement,
   SectionChatTriggerProps
 >(({ sectionId, sectionLabel, className, ...props }, ref) => {
-  const { openPanel, addSelectedField } = useCopilotStore();
+  const openPanel = useCopilotStore((s) => s.openPanel);
+  const addSelectedField = useCopilotStore((s) => s.addSelectedField);
 
   const handleClick = useCallback(() => {
     addSelectedField({
