@@ -1,22 +1,25 @@
-// Side-effect import: registers buyer_persona preview in the PreviewRegistry
-import "@/features/brand/components/interview/previews/register-persona-preview";
-
-import { InterviewSplitView } from "@/features/copilot/components/interview/interview-split-view";
+import { redirect } from "next/navigation";
 
 interface PageProps {
+  params: Promise<{ tenantId: string }>;
   searchParams: Promise<{ personaId?: string; session?: string }>;
 }
 
 export default async function BuyerPersonaInterviewPage({
+  params,
   searchParams,
 }: PageProps) {
-  const params = await searchParams;
-  return (
-    <InterviewSplitView
-      domain="buyer_persona"
-      sessionId={params.session}
-      entityId={params.personaId}
-      routeBase="brand-studio/interview/buyer-persona"
-    />
-  );
+  const { tenantId } = await params;
+  const { session, personaId } = await searchParams;
+
+  // Redirect to brand-studio with interview query param for sidebar activation
+  const query = new URLSearchParams();
+  if (session) query.set("interview", session);
+  if (personaId) query.set("personaId", personaId);
+  query.set("domain", "buyer_persona");
+
+  const qs = query.toString();
+  const target = `/${tenantId}/brand-studio${qs ? `?${qs}` : ""}`;
+
+  redirect(target);
 }
