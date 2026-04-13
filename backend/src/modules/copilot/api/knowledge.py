@@ -1,5 +1,6 @@
 """REST endpoints for copilot knowledge base management."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -32,10 +33,10 @@ class SearchResult(BaseModel):
 
 @router.post("/ingest", response_model=IngestDocumentResponse)
 async def ingest_document(
-    file: UploadFile = File(...),
-    scope: str = Form("business"),
-    source_label: str = Form("upload"),
-    tenant_id: UUID | None = Depends(get_tenant_context),
+    file: Annotated[UploadFile, File()],
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    scope: Annotated[str, Form()] = "business",
+    source_label: Annotated[str, Form()] = "upload",
 ):
     """Ingest a document (PDF/DOCX/TXT/MD) into the knowledge base."""
     if not tenant_id:
@@ -59,9 +60,9 @@ async def ingest_document(
 @router.get("/search", response_model=SearchKnowledgeResponse)
 async def search_knowledge(
     query: str,
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     scope: str = "all",
     limit: int = 5,
-    tenant_id: UUID | None = Depends(get_tenant_context),
 ):
     """Search the knowledge base."""
     if not tenant_id:
@@ -85,7 +86,7 @@ async def search_knowledge(
 @router.delete("/{document_id}")
 async def delete_document(
     document_id: str,
-    tenant_id: UUID | None = Depends(get_tenant_context),
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
 ):
     """Delete a document from the knowledge base."""
     if not tenant_id:

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Annotated, Any
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -41,8 +41,8 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
 
 @router.get("/status", response_model=ManyChatStatusResponse)
 async def get_manychat_status(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     connection = repo.get_active(user.tenant_id, ChannelType.MANYCHAT)
 
@@ -58,8 +58,8 @@ async def get_manychat_status(
 @router.post("/connect", response_model=ConnectionResponse)
 async def connect_manychat(
     request: ManyChatConnectRequest,
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     is_valid, result = await ManyChatConnector.verify_connection(
         api_key=request.api_key,
@@ -87,8 +87,8 @@ async def connect_manychat(
 
 @router.post("/disconnect", response_model=ConnectionResponse)
 async def disconnect_manychat(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.MANYCHAT)
 
@@ -105,8 +105,8 @@ async def disconnect_manychat(
 
 @router.post("/test", response_model=ConnectionResponse)
 async def test_manychat_connection(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     connection = repo.get_active(user.tenant_id, ChannelType.MANYCHAT)
 

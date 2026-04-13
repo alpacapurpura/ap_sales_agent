@@ -1,3 +1,5 @@
+from typing import Annotated
+
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -16,8 +18,8 @@ logger = structlog.get_logger()
 
 @router.get("", response_model=list[EventType])
 async def list_event_types(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = EventTypeService(db, user.tenant_id)
     return service.list_event_types()
@@ -26,8 +28,8 @@ async def list_event_types(
 @router.post("", response_model=EventType)
 async def create_event_type(
     event_type: EventType,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = EventTypeService(db, user.tenant_id)
     return service.create_event_type(event_type)
@@ -37,8 +39,8 @@ async def create_event_type(
 async def update_event_type(
     event_type_id: str,
     update: EventTypeUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = EventTypeService(db, user.tenant_id)
     updated = service.update_event_type(event_type_id, update)
@@ -50,8 +52,8 @@ async def update_event_type(
 @router.delete("/{event_type_id}")
 async def delete_event_type(
     event_type_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = EventTypeService(db, user.tenant_id)
     deleted = service.delete_event_type(event_type_id)

@@ -105,11 +105,17 @@ def _find_route_decorators(filepath: Path) -> list[dict]:
                         if match:
                             status_code = int(match.group(1))
 
+            # In modern FastAPI (0.95+), a return type annotation (-> Type)
+            # is equivalent to response_model=Type for PII protection.
+            has_return_type = node.returns is not None and not (
+                isinstance(node.returns, ast.Constant) and node.returns.value is None
+            )
+
             routes.append(
                 {
                     "function": node.name,
                     "method": func.attr.upper(),
-                    "has_response_model": has_response_model,
+                    "has_response_model": has_response_model or has_return_type,
                     "status_code": status_code,
                     "line": node.lineno,
                 },

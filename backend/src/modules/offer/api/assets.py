@@ -6,7 +6,7 @@ The real R2/S3 backend will be wired later without touching this router.
 
 from datetime import timedelta
 from io import BytesIO
-from typing import BinaryIO
+from typing import Annotated, BinaryIO
 from uuid import UUID, uuid4
 
 from fastapi import (
@@ -108,15 +108,15 @@ def _to_response(asset) -> OfferAssetResponse:  # type: ignore[no-untyped-def]
 @router.get("/{offer_id}/assets", response_model=AssetListResponse)
 async def list_assets(
     offer_id: str,
-    search: str | None = Query(None),
-    type_: AssetType | None = Query(None, alias="type"),
-    source: AssetSource | None = Query(None),
-    sort: str = Query("created_desc"),
-    limit: int = Query(24, ge=1, le=200),
-    offset: int = Query(0, ge=0),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> AssetListResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    search: Annotated[str | None, Query()] = None,
+    type_: Annotated[AssetType | None, Query(alias="type")] = None,
+    source: Annotated[AssetSource | None, Query()] = None,
+    sort: Annotated[str, Query()] = "created_desc",
+    limit: Annotated[int, Query(ge=1, le=200)] = 24,
+    offset: Annotated[int, Query(ge=0)] = 0,
+):
     items, total = _service(db).list_assets(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
@@ -142,12 +142,12 @@ async def list_assets(
 )
 async def upload_asset(
     offer_id: str,
-    file: UploadFile = File(...),
-    name: str = Form(...),
-    type_: AssetType = Form(..., alias="type"),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> OfferAssetResponse:
+    file: Annotated[UploadFile, File()],
+    name: Annotated[str, Form()],
+    type_: Annotated[AssetType, Form(alias="type")],
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     content = await file.read()
     asset = _service(db).upload_asset(
         tenant_id=user.tenant_id,
@@ -167,9 +167,9 @@ async def upload_asset(
 async def generate_asset(
     offer_id: str,
     body: AssetGenerateRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> OfferAssetResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     asset = _service(db).generate_asset(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
@@ -184,9 +184,9 @@ async def generate_asset(
 async def get_asset(
     offer_id: str,
     asset_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> OfferAssetResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     try:
         asset = _service(db).get_asset(
             tenant_id=user.tenant_id,
@@ -203,9 +203,9 @@ async def update_asset(
     offer_id: str,
     asset_id: str,
     body: AssetUpdateRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> OfferAssetResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     try:
         asset = _service(db).update_asset(
             tenant_id=user.tenant_id,
@@ -222,8 +222,8 @@ async def update_asset(
 async def delete_asset(
     offer_id: str,
     asset_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ) -> None:
     try:
         _service(db).delete_asset(
@@ -242,9 +242,9 @@ async def delete_asset(
 async def get_asset_download_url(
     offer_id: str,
     asset_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> AssetDownloadUrlResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     try:
         url = _service(db).get_download_url(
             tenant_id=user.tenant_id,

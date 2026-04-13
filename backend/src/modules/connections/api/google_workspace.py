@@ -8,7 +8,7 @@ ONCE and the resulting credentials are distributed to each service.
 
 import json
 import os
-from typing import Any
+from typing import Annotated, Any
 
 import sentry_sdk
 import structlog
@@ -94,7 +94,7 @@ def _get_client_config() -> dict:
 
 @router.get("/auth-url")
 async def get_auth_url(
-    user: User = Depends(get_current_user),
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Returns a Google OAuth URL requesting ALL workspace scopes at once."""
     flow = Flow.from_client_config(
@@ -114,9 +114,9 @@ async def get_auth_url(
 
 @router.post("/callback")
 async def oauth_callback(
-    code: str = Body(..., embed=True),
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    code: Annotated[str, Body(embed=True)],
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     """
     Exchanges the authorization code ONCE and stores the resulting credentials
@@ -219,8 +219,8 @@ async def oauth_callback(
 
 @router.get("/status", response_model=WorkspaceStatusResponse)
 async def get_status(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     """Returns the connection status for all 4 Google services."""
     services: dict[str, dict] = {}
@@ -257,9 +257,9 @@ async def get_status(
 @router.patch("/services/{service}", response_model=ToggleServiceResponse)
 async def toggle_service(
     service: str,
-    is_active: bool = Body(..., embed=True),
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    is_active: Annotated[bool, Body(embed=True)],
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     """Activates or deactivates a specific Google service without revoking OAuth."""
     if service not in SERVICE_MAP:
@@ -284,8 +284,8 @@ async def toggle_service(
 
 @router.delete("/")
 async def disconnect_all(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     """Soft-deletes all Google service connections for this tenant."""
     deactivated = []
@@ -453,8 +453,8 @@ def _run_service_test(
 
 @router.post("/test", response_model=ConnectionTestResponse)
 async def test_connection(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     """
     Tests the Google Workspace connection by probing each active service.

@@ -1,5 +1,6 @@
 import secrets
 import string
+from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
@@ -42,8 +43,8 @@ def generate_secret_key(length=32):
 
 @router.get("/general", response_model=GeneralSettings)
 async def get_general_settings(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Get current General configuration for the user's tenant.
@@ -67,8 +68,8 @@ async def get_general_settings(
 @router.patch("/general", response_model=GeneralSettings)
 async def update_general_settings(
     settings: GeneralSettingsUpdate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Update General configuration for the user's tenant.
@@ -100,8 +101,8 @@ async def update_general_settings(
 
 @router.get("/ai", response_model=AISettings)
 async def get_ai_settings(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Get current AI configuration for the user's tenant.
@@ -125,8 +126,8 @@ async def get_ai_settings(
 
 @router.get("/profile", response_model=SystemUserProfile)
 async def get_user_profile(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Get current user profile and tenant info.
@@ -174,8 +175,8 @@ async def get_user_profile(
 
 @router.get("/webhook", response_model=WebhookSettings)
 async def get_webhook_settings(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Get Webhook configuration for the user's tenant.
@@ -208,8 +209,8 @@ async def get_webhook_settings(
 
 @router.post("/webhook/regenerate", response_model=WebhookSettings)
 async def regenerate_webhook_secret(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Regenerate Webhook Secret for the user's tenant.
@@ -249,8 +250,8 @@ async def regenerate_webhook_secret(
 @router.patch("/ai", response_model=AISettings)
 async def update_ai_settings(
     settings: TenantSettingsUpdate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Update AI API Keys for the user's tenant.
@@ -285,8 +286,8 @@ async def update_ai_settings(
 
 @router.get("/team", response_model=list[TeamMemberSchema])
 async def get_team_members(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     List all team members for the current tenant.
@@ -350,8 +351,8 @@ async def get_team_members(
 @router.post("/team", response_model=TeamMemberSchema)
 async def create_team_member(
     user_in: TeamMemberCreate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Create a new user for the team (Max 3 users total).

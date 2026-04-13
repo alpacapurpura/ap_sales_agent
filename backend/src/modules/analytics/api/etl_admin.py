@@ -8,6 +8,7 @@ Provides:
 
 import logging
 from datetime import UTC, datetime, timedelta
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -75,7 +76,7 @@ tenant_router = APIRouter()
 
 
 @health_router.get("/health/etl", response_model=ETLHealthResponse)
-def get_etl_health(db: Session = Depends(get_db)):
+def get_etl_health(db: Annotated[Session, Depends(get_db)]):
     """Return ETL pipeline health status.
 
     No authentication required — this is a health endpoint.
@@ -132,8 +133,8 @@ def get_etl_health(db: Session = Depends(get_db)):
 @tenant_router.post("/etl/retry/{run_id}", response_model=RetryResponse)
 async def retry_extraction(
     run_id: UUID,
-    x_tenant_id: str = Header(..., alias="X-Tenant-ID"),
-    db: Session = Depends(get_db),
+    x_tenant_id: Annotated[str, Header(alias="X-Tenant-ID")],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Manually retry a failed extraction run.
 
@@ -210,8 +211,8 @@ async def retry_extraction(
 
 @tenant_router.get("/etl/status", response_model=ETLStatusResponse)
 def get_etl_status(
-    x_tenant_id: str = Header(..., alias="X-Tenant-ID"),
-    db: Session = Depends(get_db),
+    x_tenant_id: Annotated[str, Header(alias="X-Tenant-ID")],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Return the latest extraction run per provider for the tenant.
 

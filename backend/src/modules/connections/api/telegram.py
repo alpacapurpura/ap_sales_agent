@@ -1,3 +1,5 @@
+from typing import Annotated
+
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -40,7 +42,7 @@ async def telegram_webhook_tenant(
     tenant_id: str,
     request: Request,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Multi-Tenant Webhook. Resolves bot token from Tenant configuration.
@@ -60,8 +62,8 @@ async def telegram_webhook_tenant(
 
 @router.get("/status", response_model=ChannelStatusResponse)
 async def get_telegram_status(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """
     Get current Telegram connection status for the tenant.
@@ -79,8 +81,8 @@ async def get_telegram_status(
 async def connect_telegram(
     payload: TelegramConnectRequest,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """
     Connect a Telegram Bot to the tenant.
@@ -103,8 +105,8 @@ async def connect_telegram(
 
 @router.post("/test", response_model=ConnectionTestResponse)
 async def test_telegram_connection(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """
     Test the current Telegram connection.
@@ -122,8 +124,8 @@ async def test_telegram_connection(
 
 @router.delete("/disconnect")
 async def disconnect_telegram(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """
     Disconnect Telegram: Delete Webhook and deactivate in DB.

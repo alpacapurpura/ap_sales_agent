@@ -1,9 +1,7 @@
 """Voice API — speech-to-text transcription endpoint."""
 
-from __future__ import annotations
-
 from typing import Annotated
-from uuid import UUID  # noqa: TC003 — runtime for FastAPI DI
+from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, File, UploadFile
@@ -19,7 +17,7 @@ logger = structlog.get_logger()
 router = APIRouter(tags=["Copilot - Voice"])
 
 
-@router.post("/transcribe", response_model=TranscriptionResponse)
+@router.post("/transcribe")
 async def transcribe_audio(
     file: Annotated[UploadFile, File(...)],
     tenant_id: Annotated[UUID, Depends(get_tenant_context)],

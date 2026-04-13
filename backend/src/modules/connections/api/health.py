@@ -5,6 +5,7 @@ Returns health status: healthy, expiring_soon, expired, not_connected.
 """
 
 from datetime import datetime, timedelta, timezone
+from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
@@ -155,9 +156,9 @@ def evaluate_connection_health(
 @router.get("/{channel_slug}/health", response_model=ConnectionHealthResponse)
 async def get_connection_health(
     channel_slug: str,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> ConnectionHealthResponse:
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
     """Return health status for a specific channel connection."""
     channel_type = _SLUG_TO_CHANNEL_TYPE.get(channel_slug)
     if channel_type is None:

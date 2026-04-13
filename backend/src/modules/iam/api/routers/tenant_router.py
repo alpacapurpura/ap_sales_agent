@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -9,7 +11,7 @@ router = APIRouter()
 
 
 @router.get("/", response_model=list[Tenant])
-async def list_tenants(db: Session = Depends(get_db)):
+async def list_tenants(db: Annotated[Session, Depends(get_db)]):
     """
     List all tenants (Admin only - TODO: Add admin protection).
     """
@@ -23,8 +25,8 @@ async def create_tenant(
     slug: str,
     company_name: str,
     agent_persona: str,
+    db: Annotated[Session, Depends(get_db)],
     can_use_keys: bool = False,
-    db: Session = Depends(get_db),
 ):
     """
     Create a new tenant.

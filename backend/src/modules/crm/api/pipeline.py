@@ -5,6 +5,7 @@ All endpoints require X-Tenant-ID header for multitenant isolation.
 """
 
 from datetime import datetime
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -70,10 +71,10 @@ class StageOverrideResponse(BaseModel):
 
 @router.get("/pipeline", response_model=list[PipelineItem])
 async def get_pipeline(
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
     min_score: int = 50,
     limit: int = 20,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
 ):
     """Get high-intent leads for the pipeline view."""
     # Fallback to simple query until repo method is robust
@@ -113,8 +114,8 @@ async def get_pipeline(
 async def override_stage(
     profile_id: UUID,
     body: StageOverrideRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Manual override of a profile's lifecycle stage.
 
@@ -179,9 +180,9 @@ async def override_stage(
 )
 async def get_transitions(
     profile_id: UUID,
-    limit: int = Query(50, ge=1, le=200),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Get lifecycle transition audit trail for a profile.
 

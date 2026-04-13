@@ -1,4 +1,5 @@
 import uuid
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -17,9 +18,9 @@ router = APIRouter()
 
 @router.get("/", response_model=list[AvatarResponse])
 async def list_avatars(
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
     scope: str = "GLOBAL",
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
 ):
     repo = AvatarRepository(db)
     # Scope filtering moved to Repo
@@ -29,8 +30,8 @@ async def list_avatars(
 @router.post("/", response_model=AvatarResponse)
 async def create_avatar(
     avatar_dto: AvatarCreate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     repo = AvatarRepository(db)
 
@@ -53,8 +54,8 @@ async def create_avatar(
 @router.get("/{avatar_id}", response_model=AvatarResponse)
 async def get_avatar(
     avatar_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     repo = AvatarRepository(db)
     avatar = repo.get_by_id(uuid.UUID(avatar_id), tenant_id=user.tenant_id)
@@ -68,8 +69,8 @@ async def get_avatar(
 async def update_avatar(
     avatar_id: str,
     avatar_update: AvatarUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     repo = AvatarRepository(db)
     # Verify ownership first
@@ -90,8 +91,8 @@ async def update_avatar(
 @router.delete("/{avatar_id}", status_code=204)
 async def delete_avatar(
     avatar_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     repo = AvatarRepository(db)
     # Verify ownership first
@@ -107,8 +108,8 @@ async def delete_avatar(
 @router.post("/{avatar_id}/set-default", response_model=AvatarResponse)
 async def set_default_avatar(
     avatar_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     repo = AvatarRepository(db)
     # Verify ownership first

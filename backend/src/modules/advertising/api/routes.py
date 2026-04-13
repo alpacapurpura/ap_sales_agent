@@ -1,11 +1,10 @@
 """FastAPI router for the advertising module."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
 
 from src.core.database import get_db
 from src.modules.advertising.application.dto.association_dto import (
@@ -36,23 +35,19 @@ from src.modules.advertising.domain.enums import (
     expected_metric_label_es,
     resolve_expected_metric,
 )
+from src.modules.advertising.infrastructure.models.ad_offer_association_model import (
+    AdOfferAssociationModel,
+)
 from src.modules.advertising.infrastructure.repositories.association_repository import (
     AssociationRepository,
 )
 from src.modules.iam.api.dependencies import get_current_user, get_tenant_locale
+from src.modules.iam.domain.user import User
 from src.modules.offer.application.services.offer_read_port_impl import (
     OfferReadPortImpl,
 )
-
-if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
-
-    from src.modules.advertising.infrastructure.models.ad_offer_association_model import (
-        AdOfferAssociationModel,
-    )
-    from src.modules.iam.domain.user import User
-    from src.shared.domain.locale import TenantLocale
-    from src.shared.domain.ports import OfferReadDTO, OfferReadPort
+from src.shared.domain.locale import TenantLocale
+from src.shared.domain.ports import OfferReadDTO, OfferReadPort
 
 router = APIRouter(prefix="/advertising", tags=["Advertising"])
 
@@ -109,13 +104,12 @@ async def _association_to_dto(
 
 @router.post(
     "/associations",
-    response_model=AssociationDTO,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_association(
     payload: AssociationCreateDTO,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> AssociationDTO:
     """Create or replace an association between a Meta target and an offer."""
     tenant = _tenant_id(user)
@@ -152,8 +146,8 @@ async def create_association(
 )
 async def delete_association(
     association_id: UUID,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> None:
     tenant = _tenant_id(user)
     repo = AssociationRepository(db)
@@ -163,12 +157,12 @@ async def delete_association(
     db.commit()
 
 
-@router.get("/associations", response_model=list[AssociationDTO])
+@router.get("/associations")
 async def list_associations(
-    target_type: str | None = Query(default=None),
-    offer_id: UUID | None = Query(default=None),
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    target_type: Annotated[str | None, Query()] = None,
+    offer_id: Annotated[UUID | None, Query()] = None,
 ) -> list[AssociationDTO]:
     tenant = _tenant_id(user)
     repo = AssociationRepository(db)
@@ -178,10 +172,10 @@ async def list_associations(
     return [await _association_to_dto(r, port, tenant) for r in rows]
 
 
-@router.get("/offers", response_model=list[OfferSummaryDTO])
+@router.get("/offers")
 async def list_offers_for_assignment(
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> list[OfferSummaryDTO]:
     """List every active offer from the Offer Studio for the assignment drawer.
 
@@ -235,10 +229,10 @@ async def list_offers_for_assignment(
     return out
 
 
-@router.post("/associations/auto-detect", response_model=list[AssociationSuggestionDTO])
+@router.post("/associations/auto-detect")
 async def auto_detect_associations(
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> list[AssociationSuggestionDTO]:
     tenant = _tenant_id(user)
     port = _get_offer_port(db)
@@ -248,12 +242,11 @@ async def auto_detect_associations(
 
 @router.post(
     "/associations/apply-suggestions",
-    response_model=list[AssociationDTO],
 )
 async def apply_suggestions(
     items: list[ApplySuggestionItemDTO],
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> list[AssociationDTO]:
     tenant = _tenant_id(user)
     repo = AssociationRepository(db)
@@ -276,11 +269,11 @@ async def apply_suggestions(
 # ── Health check ───────────────────────────────────────────────────────────
 
 
-@router.get("/health-check", response_model=MetaHealthCheckDTO)
+@router.get("/health-check")
 async def get_health_check(
-    provider: str = Query(default="meta"),
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    provider: Annotated[str, Query()] = "meta",
 ) -> MetaHealthCheckDTO:
     """Diagnostic snapshot of the tenant's Meta Ads account configuration."""
     if provider != "meta":
@@ -294,12 +287,12 @@ async def get_health_check(
 # ── Metrics by offer ───────────────────────────────────────────────────────
 
 
-@router.get("/metrics-by-offer", response_model=MetricsByOfferDTO)
+@router.get("/metrics-by-offer")
 async def get_metrics_by_offer(
-    period: str = Query(default="30d"),
-    user: User = Depends(get_current_user),
-    tenant_locale: TenantLocale = Depends(get_tenant_locale),
-    db: Session = Depends(get_db),
+    user: Annotated[User, Depends(get_current_user)],
+    tenant_locale: Annotated[TenantLocale, Depends(get_tenant_locale)],
+    db: Annotated[Session, Depends(get_db)],
+    period: Annotated[str, Query()] = "30d",
 ) -> MetricsByOfferDTO:
     """Return Meta ads metrics aggregated per offer."""
     if period not in {"7d", "30d", "90d"}:
@@ -316,11 +309,11 @@ async def get_metrics_by_offer(
 # ── Campaign templates ─────────────────────────────────────────────────────
 
 
-@router.get("/campaign-templates/suggest", response_model=AdCampaignTemplateDTO)
+@router.get("/campaign-templates/suggest")
 async def suggest_campaign_template(
-    offer_id: UUID = Query(...),
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    offer_id: Annotated[UUID, Query()],
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> AdCampaignTemplateDTO:
     tenant = _tenant_id(user)
     port = _get_offer_port(db)

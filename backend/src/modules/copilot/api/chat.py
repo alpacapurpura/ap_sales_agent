@@ -1,5 +1,6 @@
 """SSE streaming chat endpoint for the Copilot agent."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -19,9 +20,9 @@ router = APIRouter()
 @router.post("/chat")
 async def copilot_chat(
     request: CopilotChatRequest,
-    current_user: User = Depends(get_current_user),
-    tenant_id: UUID | None = Depends(get_tenant_context),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Stream a copilot response via Server-Sent Events.

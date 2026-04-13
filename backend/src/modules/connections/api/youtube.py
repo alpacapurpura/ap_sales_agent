@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Annotated, Any
 
 import structlog
 from fastapi import APIRouter, Body, Depends, HTTPException
@@ -54,10 +54,10 @@ def _get_youtube_config(db: Session, tenant_id: Any) -> dict[str, str]:
 
 @router.put("/config", response_model=YoutubeUpdateConfigResponse)
 async def update_config(
-    client_id: str = Body(..., embed=True),
-    client_secret: str = Body(..., embed=True),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    client_id: Annotated[str, Body(embed=True)],
+    client_secret: Annotated[str, Body(embed=True)],
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     from sqlalchemy import select
 
@@ -88,9 +88,9 @@ async def update_config(
 
 @router.get("/auth-url")
 async def get_auth_url(
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
     redirect_uri: str | None = None,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
 ):
     client_config = _get_youtube_config(db, user.tenant_id)
     adapter = YoutubeAdapter(client_config=client_config)
@@ -100,11 +100,11 @@ async def get_auth_url(
 
 @router.post("/callback")
 async def oauth_callback(
-    code: str = Body(..., embed=True),
-    redirect_uri: str | None = Body(None, embed=True),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    code: Annotated[str, Body(embed=True)],
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
+    redirect_uri: Annotated[str | None, Body(embed=True)] = None,
 ):
     client_config = _get_youtube_config(db, user.tenant_id)
     adapter = YoutubeAdapter(client_config=client_config)
@@ -155,9 +155,9 @@ async def oauth_callback(
 
 @router.get("/status", response_model=YoutubeStatusResponse)
 async def get_status(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     try:
         _get_youtube_config(db, user.tenant_id)
@@ -182,8 +182,8 @@ async def get_status(
 
 @router.delete("/disconnect")
 async def disconnect(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.YOUTUBE)
     if connection:
@@ -193,9 +193,9 @@ async def disconnect(
 
 @router.post("/test", response_model=ConnectionTestResponse)
 async def test_connection(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     connection = repo.get_active(user.tenant_id, ChannelType.YOUTUBE)
 

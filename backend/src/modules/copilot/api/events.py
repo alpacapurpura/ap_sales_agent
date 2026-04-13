@@ -1,5 +1,6 @@
 """Copilot event tracking API — record and query behavioral events."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -31,9 +32,9 @@ class RecordEventRequest(BaseModel):
 @router.post("/record", status_code=201, response_model=RecordEventResponse)
 def record_event(
     request: RecordEventRequest,
-    current_user: User = Depends(get_current_user),
-    tenant_id: UUID | None = Depends(get_tenant_context),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
@@ -54,10 +55,10 @@ def record_event(
 
 @router.get("/summary", response_model=EventSummaryResponse)
 def event_summary(
+    current_user: Annotated[User, Depends(get_current_user)],
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    db: Annotated[Session, Depends(get_db)],
     days: int = 30,
-    current_user: User = Depends(get_current_user),
-    tenant_id: UUID | None = Depends(get_tenant_context),
-    db: Session = Depends(get_db),
 ):
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
@@ -69,10 +70,10 @@ def event_summary(
 
 @router.get("/insights", response_model=EventInsightsResponse)
 def event_insights(
+    current_user: Annotated[User, Depends(get_current_user)],
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    db: Annotated[Session, Depends(get_db)],
     days: int = 30,
-    current_user: User = Depends(get_current_user),
-    tenant_id: UUID | None = Depends(get_tenant_context),
-    db: Session = Depends(get_db),
 ):
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")

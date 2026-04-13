@@ -1,6 +1,7 @@
 """Campaign management API routes."""
 
 import json
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -50,8 +51,8 @@ _VALID_PERIODS = {"7d", "30d", "90d"}
 
 @router.get("", response_model=CampaignOverviewDTO)
 async def get_campaigns_overview(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = CampaignService(db)
     return service.get_overview(user.tenant_id)
@@ -59,9 +60,9 @@ async def get_campaigns_overview(
 
 @router.get("/performance", response_model=CampaignPerformanceDTO)
 async def get_campaigns_performance(
-    period: str = Query(default="30d"),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    period: Annotated[str, Query()] = "30d",
 ):
     """Get all campaigns with aggregated performance metrics."""
     if period not in _VALID_PERIODS:
@@ -75,9 +76,9 @@ async def get_campaigns_performance(
 
 @router.get("/creatives", response_model=CreativesOverviewDTO)
 async def get_creatives_overview(
-    period: str = Query(default="30d"),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    period: Annotated[str, Query()] = "30d",
 ):
     """Get ad gallery with creative details and video retention metrics.
 
@@ -95,10 +96,10 @@ async def get_creatives_overview(
 
 @router.get("/ads/performance", response_model=AdPerformanceListDTO)
 async def get_ads_performance(
-    period: str = Query(default="30d"),
-    limit: int = Query(default=10, ge=1, le=50),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    period: Annotated[str, Query()] = "30d",
+    limit: Annotated[int, Query(ge=1, le=50)] = 10,
 ):
     """Get top ads with per-ad performance metrics (ROAS, CPA, CTR, CPC)."""
     if period not in _VALID_PERIODS:
@@ -112,9 +113,9 @@ async def get_ads_performance(
 
 @router.get("/ads/format-comparison", response_model=FormatComparisonDTO)
 async def get_ads_format_comparison(
-    period: str = Query(default="30d"),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    period: Annotated[str, Query()] = "30d",
 ):
     """Get aggregated metrics by ad format (video, carousel, image)."""
     if period not in _VALID_PERIODS:
@@ -129,8 +130,8 @@ async def get_ads_format_comparison(
 @router.get("/{campaign_external_id}/adsets", response_model=list[AdSetDTO])
 async def get_campaign_ad_sets(
     campaign_external_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = CampaignService(db)
     return service.get_ad_sets(user.tenant_id, campaign_external_id)
@@ -139,8 +140,8 @@ async def get_campaign_ad_sets(
 @router.get("/adsets/{ad_set_external_id}/ads", response_model=list[AdDTO])
 async def get_ad_set_ads(
     ad_set_external_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = CampaignService(db)
     return service.get_ads(user.tenant_id, ad_set_external_id)
@@ -148,7 +149,7 @@ async def get_ad_set_ads(
 
 @router.get("/sync/status", response_model=CampaignSyncStatusDTO)
 async def get_campaign_sync_status(
-    user: User = Depends(get_current_user),
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Get the status of the last campaign sync job for this tenant."""
     from src.core.database import redis_client
@@ -173,8 +174,8 @@ async def get_campaign_sync_status(
 
 @router.post("/sync", response_model=CampaignSyncResponse)
 async def trigger_campaign_sync(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = CampaignService(db)
     return await service.trigger_sync(user.tenant_id)

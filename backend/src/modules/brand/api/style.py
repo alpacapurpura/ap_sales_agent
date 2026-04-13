@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Annotated, Any
 
 import structlog
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -30,10 +30,10 @@ class StyleAnalysisResponse(BaseModel):
 
 @router.post("/analyze-style", response_model=StyleAnalysisResponse)
 async def analyze_style(
-    text_input: str | None = Form(None),
-    file: UploadFile | None = File(None),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    text_input: Annotated[str | None, Form()] = None,
+    file: Annotated[UploadFile | None, File()] = None,
 ):
     """
     Analyzes the style of the provided chat history (text or file).

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -15,8 +15,8 @@ router = APIRouter()
 @router.post("/identify", response_model=CustomerProfile)
 async def identify_customer(
     payload: dict[str, Any],
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """
     Identify a customer (create or update profile).

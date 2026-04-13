@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -11,7 +13,7 @@ router = APIRouter()
 
 
 @router.get("/me", response_model=User)
-async def get_current_user_profile(user: User = Depends(get_user_from_token)):
+async def get_current_user_profile(user: Annotated[User, Depends(get_user_from_token)]):
     """
     Get current user profile based on Clerk Token.
     """
@@ -20,8 +22,8 @@ async def get_current_user_profile(user: User = Depends(get_user_from_token)):
 
 @router.get("/me/tenants", response_model=list[TenantSchema])
 async def get_my_tenants(
-    user: User = Depends(get_user_from_token),
-    db: Session = Depends(get_db),
+    user: Annotated[User, Depends(get_user_from_token)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     List all tenants the current user belongs to.

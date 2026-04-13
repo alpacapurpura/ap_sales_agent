@@ -7,7 +7,7 @@ Aggregates KPIs + campaign rows scoped to a single offer using the
 """
 
 from datetime import timedelta
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
@@ -44,12 +44,12 @@ def _resolve_period(period: str | None) -> tuple:
 @router.get("/{offer_id}/campaigns", response_model=OfferCampaignsViewDTO)
 async def get_offer_campaigns(
     offer_id: str,
-    status: str = Query("all"),
-    channel: str | None = Query(None),
-    period: str | None = Query(None),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> OfferCampaignsViewDTO:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    status: Annotated[str, Query()] = "all",
+    channel: Annotated[str | None, Query()] = None,
+    period: Annotated[str | None, Query()] = None,
+):
     """Return aggregated campaigns for the given offer."""
     adapter = OfferCampaignsReadAdapter()
     normalized_status: Literal["all", "active", "paused", "ended"] = (

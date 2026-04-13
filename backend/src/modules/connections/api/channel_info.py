@@ -6,6 +6,7 @@ for a given provider. Used by the ChannelDetailSidebar in the frontend.
 
 from collections.abc import Callable
 from datetime import date
+from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
@@ -151,9 +152,9 @@ def _get_meta_children(repo: ChannelConnectionRepository, tenant_id) -> list[dic
 @router.get("/{provider}", response_model=ChannelInfoResponse)
 async def get_channel_info(
     provider: str,
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
-    db: Session = Depends(get_db),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Get enriched connection info for a provider, used by ChannelDetailSidebar."""
     channel_types = _PROVIDER_CHANNEL_TYPES.get(provider)

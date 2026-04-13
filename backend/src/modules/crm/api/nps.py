@@ -1,5 +1,7 @@
 """CRM NPS API: survey creation, public response, and evangelist candidate listing."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -79,8 +81,8 @@ class NpsSubmitResponse(BaseModel):
 @router.post("/surveys", response_model=SurveyResponse)
 async def create_survey(
     body: CreateSurveyRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Create NPS survey. Returns survey with unique token URL."""
     from uuid import UUID
@@ -111,7 +113,7 @@ async def create_survey(
 @router.get("/survey/{token}", response_model=SurveyPublicResponse)
 async def get_survey(
     token: str,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Public endpoint (no auth) -- retrieve survey by token for respondent.
 
@@ -144,7 +146,7 @@ async def get_survey(
 async def submit_nps_response(
     token: str,
     body: SubmitNpsRequest,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Public endpoint (no auth) -- submit NPS response.
 
@@ -198,8 +200,8 @@ async def submit_nps_response(
 
 @router.get("/summary", response_model=NpsSummaryResponse)
 async def get_nps_summary(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Get NPS summary metrics for tenant."""
     from src.modules.crm.application.services.nps_service import NpsService
@@ -212,8 +214,8 @@ async def get_nps_summary(
 
 @router.get("/candidates", response_model=list[EvangelistCandidateResponse])
 async def get_evangelist_candidates(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Get customers with NPS >= 9 not yet promoted to EVANGELIST."""
     from src.modules.crm.application.services.nps_service import NpsService

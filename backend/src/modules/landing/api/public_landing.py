@@ -7,6 +7,7 @@ Cloudflare Worker that resolves custom domains. Until then clients must
 supply it explicitly.
 """
 
+from typing import Annotated
 from uuid import UUID
 
 import structlog
@@ -64,9 +65,9 @@ class PublicLandingResponse(BaseModel):
 )
 def get_public_landing(
     slug: str,
-    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-ID"),
-    db: Session = Depends(get_db),
-) -> PublicLandingResponse:
+    db: Annotated[Session, Depends(get_db)],
+    x_tenant_id: Annotated[str | None, Header(alias="X-Tenant-ID")] = None,
+):
     """Return a landing page by slug scoped to the given tenant.
 
     - Returns 400 if X-Tenant-ID header is missing.

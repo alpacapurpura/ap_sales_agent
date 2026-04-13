@@ -1,6 +1,6 @@
 import json
 from datetime import UTC, datetime
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
 import structlog
@@ -34,8 +34,8 @@ router = APIRouter()
 @router.post("/extract", response_model=BrandVisualsResponse)
 async def extract_data(
     request: ExtractRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Extracts structured data from a URL using the Web Extractor Subgraph.
@@ -75,16 +75,16 @@ async def extract_data(
 )
 async def extract_full_brand(
     request: Request,
-    url: str | None = Form(None),
-    text: str | None = Form(None),
-    mode: Literal["initial", "update"] = Form("initial"),
-    update_instructions: str | None = Form(None),
-    dry_run: bool = Form(default=False),
-    include_visuals: bool = Form(default=False),
-    include_assets: bool = Form(default=False),
-    files: list[UploadFile] = File(default_factory=list),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    url: Annotated[str | None, Form()] = None,
+    text: Annotated[str | None, Form()] = None,
+    mode: Annotated[Literal["initial", "update"], Form()] = "initial",
+    update_instructions: Annotated[str | None, Form()] = None,
+    dry_run: Annotated[bool, Form()] = False,
+    include_visuals: Annotated[bool, Form()] = False,
+    include_assets: Annotated[bool, Form()] = False,
+    files: Annotated[list[UploadFile], File()] = [],  # noqa: B006
 ):
     """
     Dispatches full brand extraction as an async job.
@@ -178,7 +178,7 @@ async def extract_full_brand(
 )
 async def get_extraction_status(
     job_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     """Poll extraction job progress. Returns status, progress %, and current stage."""
 
@@ -214,9 +214,9 @@ async def get_extraction_status(
     response_model=list[ExtractionTraceSummaryResponse],
 )
 async def list_extraction_traces(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
     limit: int = 20,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
 ):
     """List recent brand extraction traces for the current tenant."""
 
@@ -256,8 +256,8 @@ async def list_extraction_traces(
 @router.get("/extraction-traces/{trace_id}", response_model=ExtractionTraceResponse)
 async def get_extraction_trace(
     trace_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Get full trace detail including all events."""
 

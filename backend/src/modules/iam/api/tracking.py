@@ -1,3 +1,4 @@
+from typing import Annotated
 from uuid import UUID
 
 import structlog
@@ -19,9 +20,9 @@ public_router = APIRouter()
 
 @router.get("/tracking", response_model=TrackingConfig, summary="Get tracking config")
 async def get_tracking_config(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> TrackingConfig:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     """Get current tracking configuration for the tenant."""
     if not user.tenant_id:
         raise HTTPException(
@@ -45,9 +46,9 @@ async def get_tracking_config(
 )
 async def update_tracking_config(
     config: TrackingConfig,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> TrackingConfig:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     """Update GTM, Meta Pixel, GA4 tracking configuration for the tenant."""
     if not user.tenant_id:
         raise HTTPException(
@@ -78,8 +79,8 @@ async def update_tracking_config(
 )
 async def get_public_tracking_config(
     tenant_id: UUID,
-    db: Session = Depends(get_db),
-) -> TrackingConfig:
+    db: Annotated[Session, Depends(get_db)],
+):
     """
     Public endpoint: returns tracking config for a tenant.
     Called by public site layout to inject GTM/Pixel scripts.

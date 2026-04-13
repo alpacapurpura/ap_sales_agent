@@ -1,5 +1,6 @@
 """Interview Engine REST API endpoints."""
 
+from typing import Annotated
 from uuid import UUID
 
 import structlog
@@ -20,6 +21,7 @@ from src.modules.copilot.application.services.document_processor import (
 )
 from src.modules.copilot.application.services.interview_service import InterviewService
 from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
+from src.modules.iam.domain.user import User
 from src.shared.application.ai_action_service import AIActionService
 
 logger = structlog.get_logger()
@@ -30,9 +32,9 @@ router = APIRouter()
 @router.post("/start", response_model=StartInterviewResponse)
 def start_interview(
     request: StartInterviewRequest,
-    current_user=Depends(get_current_user),
-    tenant_id: UUID | None = Depends(get_tenant_context),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
@@ -52,8 +54,8 @@ def start_interview(
 @router.get("/active", response_model=ActiveInterviewResponse)
 def get_active_interview(
     response: Response,
-    tenant_id: UUID | None = Depends(get_tenant_context),
-    db: Session = Depends(get_db),
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    db: Annotated[Session, Depends(get_db)],
     _=Depends(get_current_user),
 ):
     if not tenant_id:
@@ -68,8 +70,8 @@ def get_active_interview(
 @router.get("/{session_id}/state", response_model=InterviewStateResponse)
 def get_interview_state(
     session_id: UUID,
-    tenant_id: UUID | None = Depends(get_tenant_context),
-    db: Session = Depends(get_db),
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    db: Annotated[Session, Depends(get_db)],
     _=Depends(get_current_user),
 ):
     if not tenant_id:
@@ -84,8 +86,8 @@ def get_interview_state(
 @router.post("/{session_id}/pause", response_model=InterviewStatusResponse)
 def pause_interview(
     session_id: UUID,
-    tenant_id: UUID | None = Depends(get_tenant_context),
-    db: Session = Depends(get_db),
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    db: Annotated[Session, Depends(get_db)],
     _=Depends(get_current_user),
 ):
     if not tenant_id:
@@ -100,8 +102,8 @@ def pause_interview(
 @router.post("/{session_id}/abandon", response_model=InterviewStatusResponse)
 def abandon_interview(
     session_id: UUID,
-    tenant_id: UUID | None = Depends(get_tenant_context),
-    db: Session = Depends(get_db),
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    db: Annotated[Session, Depends(get_db)],
     _=Depends(get_current_user),
 ):
     if not tenant_id:
@@ -116,10 +118,10 @@ def abandon_interview(
 @router.post("/{session_id}/documents", response_model=DocumentProcessingResponse)
 async def process_interview_documents(
     session_id: UUID,
-    files: list[UploadFile] = File(...),
-    tenant_id: UUID | None = Depends(get_tenant_context),
-    _=Depends(get_current_user),
-    db: Session = Depends(get_db),
+    files: Annotated[list[UploadFile], File()],
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    _: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Process uploaded documents and merge extracted data into mapa_global.
 

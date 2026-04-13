@@ -4,6 +4,7 @@ Returns aggregated counts (assets, campaigns, knowledge) used by the
 header tab bar. Delegates entirely to ``OfferCountsService``.
 """
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
@@ -32,9 +33,9 @@ router = APIRouter()
 @router.get("/{offer_id}/counts", response_model=OfferCountsResponse)
 async def get_offer_counts(
     offer_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> OfferCountsResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     """Return the tab-bar counts for the given offer."""
     service = OfferCountsService(
         asset_repo=OfferAssetRepository(db),

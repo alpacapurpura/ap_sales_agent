@@ -6,6 +6,7 @@ Caches results in Redis for 5 minutes per tenant+route.
 """
 
 import hashlib
+from typing import Annotated
 from uuid import UUID
 
 import structlog
@@ -218,7 +219,7 @@ def _cache_key(tenant_id: UUID, route: str | None) -> str:
 
 
 @router.get("/nudge-context", response_model=NudgeContextResponse)
-def get_nudge_context(route: str | None = Query(None)):
+def get_nudge_context(route: Annotated[str | None, Query()] = None):
     """Return proactive nudges based on module completion state and current route."""
     import time
 

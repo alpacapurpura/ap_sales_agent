@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -42,10 +42,10 @@ async def get_offer_metadata():
 # to fetch". Mounting the route at "" lets it match the stripped path directly.
 @router.get("", response_model=list[Offer])
 async def list_products(
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
     limit: int = 20,
     skip: int = 0,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
 ):
     service = OfferService(db)
     # Filter by user's tenant
@@ -55,9 +55,9 @@ async def list_products(
 @router.post("", response_model=Offer)
 async def create_product(
     product: ProductCreate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-    locale: TenantLocale = Depends(get_tenant_locale),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    locale: Annotated[TenantLocale, Depends(get_tenant_locale)],
 ):
     service = OfferService(db)
     return service.create_offer(
@@ -80,8 +80,8 @@ async def create_product(
 # not interpret "archived" as a UUID path parameter.
 @router.get("/archived", response_model=list[Offer])
 async def list_archived_products(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Return offers that have been archived (reversible) but not deleted."""
     service = OfferService(db)
@@ -91,8 +91,8 @@ async def list_archived_products(
 @router.get("/{product_id}", response_model=Offer)
 async def get_product(
     product_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = OfferService(db)
     product = service.get_offer(UUID(product_id), user.tenant_id)
@@ -104,8 +104,8 @@ async def get_product(
 @router.post("/{product_id}/archive", response_model=Offer)
 async def archive_product(
     product_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Archive an offer. Reversible via /restore.
 
@@ -118,8 +118,8 @@ async def archive_product(
 @router.post("/{product_id}/restore", response_model=Offer)
 async def restore_product(
     product_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Restore a previously archived offer (clears archived_at).
 
@@ -132,8 +132,8 @@ async def restore_product(
 @router.delete("/{product_id}", status_code=204)
 async def delete_product(
     product_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Soft-delete an offer. Requires the offer to be archived first (409 otherwise).
 
@@ -149,8 +149,8 @@ async def delete_product(
 async def update_product(
     product_id: str,
     update: ProductUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = OfferService(db)
     try:
@@ -167,8 +167,8 @@ async def update_product(
 async def update_identity(
     product_id: str,
     update: OfferIdentityUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = OfferService(db)
     try:
@@ -185,8 +185,8 @@ async def update_identity(
 async def update_strategy(
     product_id: str,
     update: OfferStrategyUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = OfferService(db)
     try:
@@ -203,8 +203,8 @@ async def update_strategy(
 async def update_promise(
     product_id: str,
     update: OfferPromiseUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = OfferService(db)
     try:
@@ -221,8 +221,8 @@ async def update_promise(
 async def update_psychology(
     product_id: str,
     update: OfferPsychologyUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = OfferService(db)
     try:
@@ -239,8 +239,8 @@ async def update_psychology(
 async def update_value_stack(
     product_id: str,
     update: OfferValueStackUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = OfferService(db)
     try:
@@ -257,8 +257,8 @@ async def update_value_stack(
 async def update_pricing(
     product_id: str,
     update: OfferPricingUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = OfferService(db)
     try:
@@ -275,8 +275,8 @@ async def update_pricing(
 async def update_details(
     product_id: str,
     update: OfferDetailsUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = OfferService(db)
     try:
@@ -293,8 +293,8 @@ async def update_details(
 async def update_visuals(
     product_id: str,
     update: OfferVisualsUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = OfferService(db)
     try:
@@ -311,8 +311,8 @@ async def update_visuals(
 async def update_closing(
     product_id: str,
     update: OfferClosingUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = OfferService(db)
     try:
@@ -329,8 +329,8 @@ async def update_closing(
 async def update_resources(
     product_id: str,
     update: OfferResourcesUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = OfferService(db)
     try:
@@ -347,8 +347,8 @@ async def update_resources(
 async def update_instructors(
     product_id: str,
     update: OfferInstructorsUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = OfferService(db)
     try:

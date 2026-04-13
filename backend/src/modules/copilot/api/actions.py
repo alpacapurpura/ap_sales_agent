@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -28,8 +28,8 @@ router = APIRouter()
 @router.post("/brand/extract", response_model=BrandExtractResponse)
 async def extract_brand_data(
     request: ExtractRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     if not current_user.tenant_id:
         raise HTTPException(
@@ -59,15 +59,15 @@ async def extract_brand_data(
 
 @router.post("/brand/extract-full", response_model=BrandSettings)
 async def extract_full_brand_data(
-    url: str | None = Form(None),
-    text: str | None = Form(None),
-    mode: Literal["initial", "update"] = Form("initial"),
-    update_instructions: str | None = Form(None),
-    dry_run: bool = Form(default=False),
-    include_visuals: bool = Form(default=False),
-    files: list[UploadFile] = File(default_factory=list),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    url: Annotated[str | None, Form()] = None,
+    text: Annotated[str | None, Form()] = None,
+    mode: Annotated[Literal["initial", "update"], Form()] = "initial",
+    update_instructions: Annotated[str | None, Form()] = None,
+    dry_run: Annotated[bool, Form()] = False,
+    include_visuals: Annotated[bool, Form()] = False,
+    files: Annotated[list[UploadFile], File()] = [],  # noqa: B006
 ):
     extracted_file_text = ""
     for file in files:
@@ -102,8 +102,8 @@ async def extract_full_brand_data(
 @router.post("/offer/psychology", response_model=PsychologyGenerationResponse)
 async def generate_offer_psychology(
     request: PsychologyGenerationRequest,
-    db: Session = Depends(get_db),
-    tenant_id: UUID | None = Depends(get_tenant_context),
+    db: Annotated[Session, Depends(get_db)],
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
 ):
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")

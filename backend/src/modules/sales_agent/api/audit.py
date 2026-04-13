@@ -1,3 +1,4 @@
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -28,8 +29,8 @@ router = APIRouter()
 
 @router.get("/leads", response_model=list[AuditLeadListItem])
 def list_audit_leads(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """List recent active leads with their last activity timestamp."""
     repo = AuditRepository(db)
@@ -75,8 +76,8 @@ def list_audit_leads(
 @router.get("/leads/{lead_id}", response_model=AuditLeadDetail)
 def get_lead_details(
     lead_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Get full lead profile details."""
     lead = (
@@ -109,8 +110,8 @@ def get_lead_details(
 @router.get("/leads/{lead_id}/timeline", response_model=list[TimelineEvent])
 def get_lead_timeline(
     lead_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Get combined message + trace timeline for a lead."""
     # Verify lead belongs to tenant
@@ -156,8 +157,8 @@ def get_lead_timeline(
 @router.delete("/leads/{lead_id}/history", response_model=ClearHistoryResponse)
 def clear_lead_history(
     lead_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Clear all traces for a lead."""
     lead = (
@@ -181,8 +182,8 @@ def clear_lead_history(
 @router.get("/traces/{trace_id}", response_model=TraceDetail)
 def get_trace_details(
     trace_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Get detailed trace with LLM logs."""
     repo = AuditRepository(db)

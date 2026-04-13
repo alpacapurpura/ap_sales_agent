@@ -1,3 +1,4 @@
+from typing import Annotated
 from uuid import UUID
 
 import structlog
@@ -25,10 +26,10 @@ router = APIRouter()
 async def upload_offer_image(
     offer_id: str,
     background_tasks: BackgroundTasks,
-    file: UploadFile = File(...),
-    description: str = Form(""),
-    db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_current_tenant_id),
+    file: Annotated[UploadFile, File()],
+    db: Annotated[Session, Depends(get_db)],
+    tenant_id: Annotated[str, Depends(get_current_tenant_id)],
+    description: Annotated[str, Form()] = "",
 ):
     try:
         service = AssetsService(db)
@@ -49,8 +50,8 @@ async def upload_offer_image(
 @router.get("/{offer_id}/gallery", response_model=list[AssetDto])
 def list_offer_images(
     offer_id: str,
-    db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_current_tenant_id),
+    db: Annotated[Session, Depends(get_db)],
+    tenant_id: Annotated[str, Depends(get_current_tenant_id)],
 ):
     service = AssetsService(db)
     # This might need a new method in service or just use list_by_offer
@@ -66,8 +67,8 @@ def list_offer_images(
 def delete_offer_image(
     offer_id: str,  # Kept for URL compatibility
     image_id: str,
-    db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_current_tenant_id),
+    db: Annotated[Session, Depends(get_db)],
+    tenant_id: Annotated[str, Depends(get_current_tenant_id)],
 ):
     service = AssetsService(db)
     # Pass offer_id to ensure ownership check

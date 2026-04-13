@@ -1,3 +1,4 @@
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -37,12 +38,12 @@ def _to_response(event) -> CalendarEventResponse:
 
 @router.get("/events", response_model=list[CalendarEventResponse])
 def list_events(
-    country_code: str = Query(..., min_length=2, max_length=2),
-    year: int = Query(...),
-    week: int | None = Query(None),
-    category: str | None = Query(None),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    country_code: Annotated[str, Query(min_length=2, max_length=2)],
+    year: Annotated[int, Query()],
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    week: Annotated[int | None, Query()] = None,
+    category: Annotated[str | None, Query()] = None,
 ):
     service = CalendarEventService(db)
     events = service.list_events(
@@ -57,9 +58,9 @@ def list_events(
 
 @router.get("/events/current-week", response_model=list[CalendarEventResponse])
 def get_current_week(
-    country_code: str = Query(..., min_length=2, max_length=2),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    country_code: Annotated[str, Query(min_length=2, max_length=2)],
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = CalendarEventService(db)
     events = service.get_current_week_events(
@@ -72,8 +73,8 @@ def get_current_week(
 @router.post("/events", response_model=list[CalendarEventResponse], status_code=201)
 def create_event(
     body: CalendarEventCreate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = CalendarEventService(db)
     created = service.create_event(
@@ -92,8 +93,8 @@ def create_event(
 def update_event(
     event_id: UUID,
     body: CalendarEventUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = CalendarEventService(db)
     existing = service.get_by_id(event_id, tenant_id=user.tenant_id)
@@ -122,8 +123,8 @@ def update_event(
 @router.delete("/events/{event_id}", status_code=204)
 def delete_event(
     event_id: UUID,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = CalendarEventService(db)
     existing = service.get_by_id(event_id, tenant_id=user.tenant_id)

@@ -1,3 +1,5 @@
+from typing import Annotated
+
 import structlog
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel as PydanticBaseModel
@@ -412,9 +414,9 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
 
 @router.get("/webhook")
 async def verify_webhook(
-    mode: str = Query(..., alias="hub.mode"),
-    token: str = Query(..., alias="hub.verify_token"),
-    challenge: str = Query(..., alias="hub.challenge"),
+    mode: Annotated[str, Query(alias="hub.mode")],
+    token: Annotated[str, Query(alias="hub.verify_token")],
+    challenge: Annotated[str, Query(alias="hub.challenge")],
 ):
     verify_token = settings.META_VERIFY_TOKEN
     if not verify_token:
@@ -429,9 +431,9 @@ async def verify_webhook(
 
 @router.post("/webhook")
 async def webhook_event(
-    payload: dict = Body(...),
-    verified: bool = Depends(verify_meta_signature),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    payload: Annotated[dict, Body()],
+    verified: Annotated[bool, Depends(verify_meta_signature)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     try:
         entry = payload.get("entry", [])[0]
@@ -488,8 +490,8 @@ async def webhook_event(
 @router.put("/configure", response_model=StatusSavedResponse)
 async def configure(
     data: MetaConfigRequest,
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     """Save Meta app credentials (app_id / app_secret) for this tenant."""
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
@@ -521,8 +523,8 @@ async def configure(
 
 @router.get("/auth-url")
 async def get_auth_url(
+    user: Annotated[User, Depends(get_current_user)],
     redirect_uri: str | None = None,
-    user: User = Depends(get_current_user),
 ):
     if not redirect_uri:
         raise HTTPException(status_code=400, detail="Redirect URI is required")
@@ -540,10 +542,10 @@ async def get_auth_url(
 
 @router.post("/callback")
 async def oauth_callback(
-    code: str = Body(..., embed=True),
-    redirect_uri: str = Body(..., embed=True),
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    code: Annotated[str, Body(embed=True)],
+    redirect_uri: Annotated[str, Body(embed=True)],
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     logger.info(
         "meta_oauth_callback_start",
@@ -698,8 +700,8 @@ class SetPrimaryAssetRequest(PydanticBaseModel):
 @router.put("/primary-asset", response_model=SetPrimaryAssetResponse)
 async def set_primary_asset(
     body: SetPrimaryAssetRequest,
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     """Set the primary asset for analytics tracking."""
     type_map = {
@@ -741,12 +743,9 @@ async def set_primary_asset(
 
 @router.get("/status", response_model=MetaStatusResponse)
 async def get_status(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
-    debug: bool = Query(
-        default=False,
-        description="Include diagnostic info in response",
-    ),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
+    debug: Annotated[bool, Query(description="Include diagnostic info in response")] = False,
 ):
     # Platform credentials from .env — the user never configures these
     is_configured = bool(settings.META_APP_ID and settings.META_APP_SECRET)
@@ -792,8 +791,8 @@ async def get_status(
 
 @router.delete("/disconnect")
 async def disconnect(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
     if connection:
@@ -816,8 +815,8 @@ async def disconnect(
 
 @router.post("/test", response_model=ConnectionTestResponse)
 async def test_connection(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
 
@@ -849,8 +848,8 @@ async def test_connection(
 
 @router.get("/assets", response_model=MetaAssetsResponse)
 async def get_assets(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     """Returns the list of Meta business assets stored in the DB for this tenant."""
     existing = repo.get_all_by_tenant_and_types(user.tenant_id, _ASSET_CHANNEL_TYPES)
@@ -942,8 +941,8 @@ async def get_assets(
 
 @router.post("/assets/sync", response_model=MetaAssetsResponse)
 async def sync_assets(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     """
     Pulls business assets from Meta API and upserts them in the DB.
@@ -994,8 +993,8 @@ async def toggle_asset(
     channel_type: str,
     asset_id: str,
     body: ToggleAssetRequest,
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     """Activates or deactivates a specific Meta asset without revoking the master OAuth."""
     type_map = {ct.value: ct for ct in _ASSET_CHANNEL_TYPES}

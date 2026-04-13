@@ -1,7 +1,7 @@
 """API endpoints for launch editions (sub-resource of offers)."""
 
 from datetime import datetime
-from typing import Any
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -118,8 +118,8 @@ def _build_response(
 )
 async def list_editions(
     offer_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     svc = LaunchEditionService(db)
     editions = svc.list_editions(UUID(offer_id), user.tenant_id)
@@ -134,8 +134,8 @@ async def list_editions(
 async def create_edition(
     offer_id: str,
     body: LaunchEditionCreateDTO,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     svc = LaunchEditionService(db)
     from src.modules.offer.domain.offer import PricingStructure
@@ -171,8 +171,8 @@ async def create_edition(
 async def get_edition(
     offer_id: str,
     edition_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     svc = LaunchEditionService(db)
     edition = svc.get_edition(UUID(edition_id), user.tenant_id)
@@ -189,8 +189,8 @@ async def update_edition(
     offer_id: str,
     edition_id: str,
     body: LaunchEditionUpdateDTO,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     svc = LaunchEditionService(db)
     try:
@@ -211,8 +211,8 @@ async def update_edition(
 async def delete_edition(
     offer_id: str,
     edition_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     svc = LaunchEditionService(db)
     svc.delete_edition(UUID(edition_id), user.tenant_id)
@@ -226,8 +226,8 @@ async def delete_edition(
 async def duplicate_edition(
     offer_id: str,
     edition_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     svc = LaunchEditionService(db)
     try:

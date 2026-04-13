@@ -1,6 +1,6 @@
 import json
 from datetime import UTC, datetime
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
 import structlog
@@ -27,14 +27,14 @@ router = APIRouter()
 )
 async def extract_full_offer(
     request: Request,
-    offer_id: str = Form(...),
-    url: str | None = Form(None),
-    text: str | None = Form(None),
-    mode: Literal["initial", "update"] = Form("initial"),
-    update_instructions: str | None = Form(None),
-    files: list[UploadFile] = File(default_factory=list),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    offer_id: Annotated[str, Form()],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    url: Annotated[str | None, Form()] = None,
+    text: Annotated[str | None, Form()] = None,
+    mode: Annotated[Literal["initial", "update"], Form()] = "initial",
+    update_instructions: Annotated[str | None, Form()] = None,
+    files: Annotated[list[UploadFile], File()] = [],  # noqa: B006
 ):
     # Parse files
     extracted_file_text = ""
@@ -117,7 +117,7 @@ async def extract_full_offer(
 )
 async def get_offer_extraction_status(
     job_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     try:
         UUID(job_id)

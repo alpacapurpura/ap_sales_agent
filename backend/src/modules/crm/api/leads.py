@@ -1,3 +1,4 @@
+from typing import Annotated
 from uuid import UUID
 
 import structlog
@@ -16,10 +17,10 @@ logger = structlog.get_logger()
 
 @router.get("/search", response_model=list[Lead])
 async def search_leads(
-    q: str = Query(..., min_length=2),
+    q: Annotated[str, Query(min_length=2)],
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
     limit: int = 10,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
 ):
     """
     Search leads by name or email.
@@ -32,8 +33,8 @@ async def search_leads(
 @router.get("/{lead_id}", response_model=Lead)
 async def get_lead(
     lead_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """
     Get a specific lead by ID.

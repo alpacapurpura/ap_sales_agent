@@ -1,4 +1,5 @@
 import uuid
+from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Body, Depends, Header, HTTPException
@@ -41,8 +42,8 @@ def get_tenant_by_secret(
 
 @router.post("/chat")
 async def webhook_chat(
-    payload: dict = Body(...),
-    tenant: Tenant = Depends(get_tenant_by_secret),
+    payload: Annotated[dict, Body()],
+    tenant: Annotated[Tenant, Depends(get_tenant_by_secret)],
 ):
     """
     Generic Webhook Endpoint for AI Agent.

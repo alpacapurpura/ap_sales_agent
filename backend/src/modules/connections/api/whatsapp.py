@@ -1,6 +1,7 @@
 import asyncio
 import traceback
 import uuid
+from typing import Annotated
 
 import structlog
 from fastapi import (
@@ -43,9 +44,9 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
 
 @router.get("/webhooks/whatsapp")
 async def verify_whatsapp_webhook(
-    mode: str = Query(alias="hub.mode"),
-    token: str = Query(alias="hub.verify_token"),
-    challenge: str = Query(alias="hub.challenge"),
+    mode: Annotated[str, Query(alias="hub.mode")],
+    token: Annotated[str, Query(alias="hub.verify_token")],
+    challenge: Annotated[str, Query(alias="hub.challenge")],
 ):
     if mode == "subscribe" and token == settings.WHATSAPP_VERIFY_TOKEN:
         return int(challenge)
@@ -64,8 +65,8 @@ async def whatsapp_webhook(request: Request, background_tasks: BackgroundTasks):
 
 @router.get("/whatsapp/status", response_model=WhatsAppStatusResponse)
 async def get_whatsapp_status(
-    tenant_id: str = Depends(get_current_tenant_id),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    tenant_id: Annotated[str, Depends(get_current_tenant_id)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     tenant_uuid = uuid.UUID(tenant_id)
 
@@ -122,9 +123,9 @@ async def get_whatsapp_status(
 
 @router.post("/whatsapp/session", response_model=WhatsAppSessionResponse)
 async def create_whatsapp_session(
-    provider: str = Body("evolution", embed=True),
-    tenant_id: str = Depends(get_current_tenant_id),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    tenant_id: Annotated[str, Depends(get_current_tenant_id)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
+    provider: Annotated[str, Body(embed=True)] = "evolution",
 ):
     if provider == "meta":
         return {"status": "error", "message": "Meta integration coming soon"}
@@ -188,7 +189,7 @@ async def create_whatsapp_session(
 
 @router.get("/whatsapp/qr", response_model=WhatsAppQRResponse)
 async def get_whatsapp_qr(
-    tenant_id: str = Depends(get_current_tenant_id),
+    tenant_id: Annotated[str, Depends(get_current_tenant_id)],
 ):
     channel = WhatsAppChannel(tenant_id)
 
@@ -223,9 +224,9 @@ async def get_whatsapp_qr(
 
 @router.delete("/whatsapp/session")
 async def delete_whatsapp_session(
+    tenant_id: Annotated[str, Depends(get_current_tenant_id)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     provider: str = "evolution",
-    tenant_id: str = Depends(get_current_tenant_id),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
 ):
     tenant_uuid = uuid.UUID(tenant_id)
 
@@ -258,7 +259,7 @@ async def delete_whatsapp_session(
 @router.post("/whatsapp/webhook/{tenant_id}")
 async def handle_whatsapp_webhook(
     tenant_id: str,
-    payload: dict = Body(...),
+    payload: Annotated[dict, Body()],
     background_tasks: BackgroundTasks = None,
 ):
     from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator

@@ -1,5 +1,5 @@
 import uuid
-from typing import Any
+from typing import Annotated, Any
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -80,8 +80,8 @@ def _resolve_tenant_id(
 
 @router.get("/status", response_model=ShopifyStatusResponse)
 async def get_shopify_status(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     connection = repo.get_active(user.tenant_id, ChannelType.SHOPIFY)
 
@@ -98,7 +98,7 @@ async def get_shopify_status(
 @router.post("/generate-auth-url", response_model=ShopifyAuthUrlResponse)
 async def generate_auth_url(
     request: ShopifyAuthUrlRequest,
-    user: User = Depends(get_current_user),
+    user: Annotated[User, Depends(get_current_user)],
 ):
     state = str(user.tenant_id)
 
@@ -122,7 +122,7 @@ async def generate_auth_url(
 @public_router.post("/auth/exchange", response_model=ConnectionResponse)
 async def exchange_shopify_token(
     request: ShopifyExchangeRequest,
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     params = request.model_dump(exclude_none=True)
 
@@ -169,7 +169,7 @@ async def exchange_shopify_token(
 @public_router.get("/auth/callback")
 async def auth_callback(
     request: Request,
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     params = dict(request.query_params)
 
@@ -224,8 +224,8 @@ async def auth_callback(
 @router.post("/quick-connect", response_model=ConnectionResponse)
 async def quick_connect_shopify(
     request: ShopifyAuthUrlRequest,
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     """
     Connect to Shopify using Client Credentials Grant (no browser redirect).
@@ -268,8 +268,8 @@ async def quick_connect_shopify(
 
 @router.post("/disconnect", response_model=ConnectionResponse)
 async def disconnect_shopify(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.SHOPIFY)
 
@@ -286,8 +286,8 @@ async def disconnect_shopify(
 
 @router.post("/test", response_model=ConnectionResponse)
 async def test_shopify_connection(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     connection = repo.get_active(user.tenant_id, ChannelType.SHOPIFY)
 

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -17,8 +17,8 @@ router = APIRouter()
 @router.post("/", response_model=LandingPage)
 async def create_landing(
     payload: dict[str, Any],
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = LandingService(db)
     slug = payload.get("slug")
@@ -35,8 +35,8 @@ async def create_landing(
 
 @router.get("/", response_model=list[LandingPage])
 def list_landings(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = LandingService(db)
     return service.list_landings(user.tenant_id)
@@ -45,8 +45,8 @@ def list_landings(
 @router.get("/{landing_id}", response_model=LandingPage)
 def get_landing(
     landing_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = LandingService(db)
     try:
@@ -67,8 +67,8 @@ def get_landing(
 @router.get("/offer/{offer_id}", response_model=LandingPage)
 def get_landing_by_offer(
     offer_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = LandingService(db)
     try:
@@ -86,8 +86,8 @@ def get_landing_by_offer(
 def update_landing_by_offer(
     offer_id: str,
     payload: dict[str, Any],
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = LandingService(db)
     try:
@@ -109,8 +109,8 @@ def update_landing_by_offer(
 def update_landing(
     landing_id: str,
     payload: dict[str, Any],
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = LandingService(db)
     try:
@@ -139,8 +139,8 @@ def update_landing(
 @router.get("/{offer_id}/landing", response_model=LandingPage)
 def get_offer_landing(
     offer_id: UUID,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = LandingService(db)
     landing = service.get_landing_by_offer(user.tenant_id, offer_id)
@@ -152,8 +152,8 @@ def get_offer_landing(
 @router.post("/{offer_id}/landing/generate", response_model=LandingPage)
 def generate_offer_landing(
     offer_id: UUID,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = LandingService(db)
     try:
@@ -168,8 +168,8 @@ def generate_offer_landing(
 def update_offer_landing(
     offer_id: UUID,
     config: dict[str, Any],
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = LandingService(db)
     try:
@@ -187,8 +187,8 @@ def update_offer_landing(
 def regenerate_block(
     offer_id: UUID,
     payload: RegenerateBlockRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = LandingService(db)
     # The offer_id is part of the path, we could use it to validate ownership if needed.

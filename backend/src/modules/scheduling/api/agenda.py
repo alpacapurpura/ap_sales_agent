@@ -1,5 +1,5 @@
 from datetime import UTC, datetime, timedelta
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -33,9 +33,9 @@ class AgendaItem(BaseModel):
 
 @router.get("/", response_model=list[AgendaItem])
 async def get_agenda(
-    range_: Literal["today", "week"] = Query(default="today", alias="range"),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    range_: Annotated[Literal["today", "week"], Query(alias="range")] = "today",
 ):
     repo = AppointmentRepository(db)
     now = datetime.now(UTC)
@@ -96,8 +96,8 @@ class AppointmentStatusResponse(BaseModel):
 async def update_appointment_status(
     appointment_id: UUID,
     payload: AppointmentStatusUpdate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Update appointment status and publish event via EventBus."""
     from src.modules.scheduling.domain.enums import AppointmentStatus

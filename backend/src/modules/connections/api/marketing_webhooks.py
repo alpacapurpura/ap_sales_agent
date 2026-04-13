@@ -7,6 +7,7 @@ events into journey_events with identity resolution and scoring.
 """
 
 from collections.abc import Callable
+from typing import Annotated
 from uuid import UUID
 
 import structlog
@@ -607,8 +608,8 @@ async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> 
 @router.post("/shopify", status_code=status.HTTP_200_OK)
 async def shopify_webhook(
     request: Request,
-    verified: bool = Depends(verify_shopify_signature),
-    db: Session = Depends(get_db),
+    verified: Annotated[bool, Depends(verify_shopify_signature)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Receive and process Shopify webhooks.
 
@@ -653,7 +654,7 @@ async def shopify_webhook(
 async def handle_mailerlite_webhook(
     tenant_id: UUID,
     request: Request,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Handle Mailerlite webhook events (campaign.open, campaign.click).
 
@@ -731,7 +732,7 @@ async def handle_mailerlite_webhook(
 
 
 @router.post("/mailerlite", status_code=status.HTTP_200_OK)
-async def mailerlite_webhook_legacy(request: Request, db: Session = Depends(get_db)):
+async def mailerlite_webhook_legacy(request: Request, db: Annotated[Session, Depends(get_db)]):
     """Legacy Mailerlite webhook (no tenant_id). Kept for backward compatibility."""
     try:
         payload = await request.json()
@@ -751,7 +752,7 @@ async def mailerlite_webhook_legacy(request: Request, db: Session = Depends(get_
 async def handle_manychat_webhook(
     tenant_id: UUID,
     request: Request,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Receive ManyChat events via External Request blocks.
 

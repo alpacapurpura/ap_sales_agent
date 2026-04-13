@@ -122,6 +122,7 @@ select = [
     "EXE",                     # flake8-executable
     # --- Wave 5 ---
     "E501",                    # line-too-long (line-length=120)
+    "FAST",                    # fastapi: Annotated dependencies
     # --- Wave 4: fix + activate ---
     "NPY",                     # numpy deprecated APIs
     "PYI",                     # stub file / typing best practices

@@ -6,6 +6,7 @@ rules live in ``LandingGenerationService``; this layer only wires
 dependencies and maps domain exceptions onto HTTP codes.
 """
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -59,9 +60,9 @@ def _map_landing_not_ready(exc: LandingNotReadyError) -> HTTPException:
 @router.get("/{offer_id}/landing/status", response_model=LandingStatusResponse)
 async def get_landing_status(
     offer_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> LandingStatusResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     """Return the current landing generation/publish state."""
     service = _build_service(db)
     status = service.get_status(
@@ -84,9 +85,9 @@ async def get_landing_status(
 )
 async def generate_landing(
     offer_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> LandingGenerateResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     """Queue an initial landing generation job."""
     service = _build_service(db)
     try:
@@ -111,9 +112,9 @@ async def generate_landing(
 )
 async def regenerate_landing(
     offer_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> LandingGenerateResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     """Queue a regeneration of the landing."""
     service = _build_service(db)
     try:
@@ -136,9 +137,9 @@ async def regenerate_landing(
 )
 async def publish_landing(
     offer_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> LandingPublishResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     """Publish the landing (sets ``is_published=True``)."""
     service = _build_service(db)
     try:
@@ -157,9 +158,9 @@ async def publish_landing(
 )
 async def unpublish_landing(
     offer_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> LandingUnpublishResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     """Unpublish the landing (sets ``is_published=False``)."""
     service = _build_service(db)
     try:

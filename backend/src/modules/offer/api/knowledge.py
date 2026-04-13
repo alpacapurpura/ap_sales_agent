@@ -6,7 +6,7 @@ the indexer stub without touching this router.
 """
 
 from io import BytesIO
-from typing import BinaryIO
+from typing import Annotated, BinaryIO
 from uuid import UUID, uuid4
 
 from fastapi import (
@@ -126,11 +126,11 @@ def _to_response(source: KnowledgeSource) -> KnowledgeSourceResponse:
 @router.get("/{offer_id}/knowledge", response_model=KnowledgeListResponse)
 async def list_knowledge_sources(
     offer_id: str,
-    search: str | None = Query(None),
-    type_: KnowledgeSourceType | None = Query(None, alias="type"),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> KnowledgeListResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    search: Annotated[str | None, Query()] = None,
+    type_: Annotated[KnowledgeSourceType | None, Query(alias="type")] = None,
+):
     sources = _service(db).list_sources(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
@@ -150,12 +150,12 @@ async def list_knowledge_sources(
 )
 async def upload_knowledge_source(
     offer_id: str,
-    file: UploadFile = File(...),
-    name: str | None = Form(None),
-    type_: KnowledgeSourceType = Form(..., alias="type"),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> KnowledgeSourceResponse:
+    file: Annotated[UploadFile, File()],
+    type_: Annotated[KnowledgeSourceType, Form(alias="type")],
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    name: Annotated[str | None, Form()] = None,
+):
     content = await file.read()
     source = _service(db).upload_source(
         tenant_id=user.tenant_id,
@@ -176,9 +176,9 @@ async def upload_knowledge_source(
 async def add_knowledge_url(
     offer_id: str,
     body: KnowledgeUrlRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> KnowledgeSourceResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     source = _service(db).add_url_source(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
@@ -193,8 +193,8 @@ async def add_knowledge_url(
 async def delete_knowledge_source(
     offer_id: str,
     source_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ) -> None:
     try:
         _service(db).delete_source(
@@ -213,9 +213,9 @@ async def delete_knowledge_source(
 async def reindex_knowledge_source(
     offer_id: str,
     source_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> KnowledgeSourceResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     try:
         source = _service(db).reindex_source(
             tenant_id=user.tenant_id,

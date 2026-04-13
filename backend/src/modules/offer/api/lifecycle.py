@@ -5,6 +5,7 @@ switcher calls. Maps domain exceptions to HTTP status codes; all business
 rules live in ``OfferLifecycleService``.
 """
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -30,9 +31,9 @@ router = APIRouter()
 async def change_offer_status(
     offer_id: str,
     body: OfferStatusChangeRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-) -> OfferStatusChangeResponse:
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
     """Transition an offer through the writable lifecycle states."""
     offer_service = OfferService(db)
     lifecycle_service = OfferLifecycleService(offer_service=offer_service)

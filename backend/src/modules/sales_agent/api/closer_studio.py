@@ -1,6 +1,7 @@
 """Closer Studio API — conversation supervision and control for the business owner."""
 
 from datetime import datetime
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -39,14 +40,14 @@ router = APIRouter()
 
 @router.get("/conversations", response_model=ConversationListResponse)
 def list_conversations(
-    temperature: str | None = Query(None),
-    handler_mode: str | None = Query(None),
-    channel: str | None = Query(None),
-    search: str | None = Query(None),
-    limit: int = Query(50, ge=1, le=200),
-    offset: int = Query(0, ge=0),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    temperature: Annotated[str | None, Query()] = None,
+    handler_mode: Annotated[str | None, Query()] = None,
+    channel: Annotated[str | None, Query()] = None,
+    search: Annotated[str | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ):
     svc = CloserStudioService(db)
     conversations, total = svc.list_conversations(
@@ -67,10 +68,10 @@ def list_conversations(
 @router.get("/conversations/{lead_id}", response_model=ConversationDetail)
 def get_conversation(
     lead_id: UUID,
-    message_limit: int = Query(50, ge=1, le=200),
-    before: datetime | None = Query(None),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    message_limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    before: Annotated[datetime | None, Query()] = None,
 ):
     svc = CloserStudioService(db)
     detail = svc.get_conversation_detail(
@@ -90,9 +91,9 @@ def get_conversation(
 @router.post("/conversations/{lead_id}/stop", response_model=StopResponse)
 async def stop_ai(
     lead_id: UUID,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
     body: StopRequest = None,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
 ):
     svc = CloserStudioService(db)
     result = svc.stop_ai(user.tenant_id, lead_id, user.id)
@@ -123,9 +124,9 @@ async def stop_ai(
 @router.post("/conversations/{lead_id}/resume", response_model=ResumeResponse)
 async def resume_ai(
     lead_id: UUID,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
     body: ResumeRequest = ResumeRequest(),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
 ):
     svc = CloserStudioService(db)
     result = svc.resume_ai(user.tenant_id, lead_id, objective=body.objective)
@@ -153,8 +154,8 @@ async def resume_ai(
 async def send_message(
     lead_id: UUID,
     body: SendMessageRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     svc = CloserStudioService(db)
     result = svc.send_message(
@@ -188,9 +189,9 @@ async def send_message(
 @router.post("/conversations/{lead_id}/nudge", response_model=NudgeResponse)
 def nudge(
     lead_id: UUID,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
     body: NudgeRequest = NudgeRequest(),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
 ):
     # For now, nudge stores as instruction for AI to generate proactive message
     svc = CloserStudioService(db)
@@ -221,9 +222,9 @@ def nudge(
 @router.post("/conversations/{lead_id}/reactivate", response_model=ReactivateResponse)
 def reactivate(
     lead_id: UUID,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
     body: ReactivateRequest = ReactivateRequest(),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
 ):
     svc = CloserStudioService(db)
     result = svc.reactivate(user.tenant_id, lead_id, objective=body.objective)
@@ -239,8 +240,8 @@ def reactivate(
 @router.post("/conversations/{lead_id}/diagnose", response_model=DiagnoseResponse)
 async def diagnose(
     lead_id: UUID,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     svc = CloserStudioService(db)
     result = await svc.diagnose(user.tenant_id, lead_id)
@@ -255,8 +256,8 @@ async def diagnose(
 
 @router.get("/frozen", response_model=list[FrozenConversation])
 def list_frozen(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     svc = CloserStudioService(db)
     return [FrozenConversation(**f) for f in svc.list_frozen(user.tenant_id)]
@@ -267,8 +268,8 @@ def list_frozen(
 
 @router.get("/kpis", response_model=CloserKPIs)
 def get_kpis(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     svc = CloserStudioService(db)
     return CloserKPIs(**svc.get_kpis(user.tenant_id))

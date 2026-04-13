@@ -1,3 +1,5 @@
+from typing import Annotated
+
 import structlog
 from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -23,8 +25,8 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
 
 @router.get("/auth-url")
 async def get_auth_url(
+    user: Annotated[User, Depends(get_current_user)],
     redirect_uri: str | None = None,
-    user: User = Depends(get_current_user),
 ):
     url, state = GmailAdapter.get_authorization_url(redirect_uri)
     return {"url": url, "state": state}
@@ -32,10 +34,10 @@ async def get_auth_url(
 
 @router.post("/callback")
 async def oauth_callback(
-    code: str = Body(..., embed=True),
-    redirect_uri: str | None = Body(None, embed=True),
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    code: Annotated[str, Body(embed=True)],
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
+    redirect_uri: Annotated[str | None, Body(embed=True)] = None,
 ):
     try:
         creds_data = GmailAdapter.exchange_code(code, redirect_uri)
@@ -71,8 +73,8 @@ async def oauth_callback(
 
 @router.get("/status", response_model=GmailStatusResponse)
 async def get_status(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     connection = repo.get_active(user.tenant_id, ChannelType.GMAIL)
 
@@ -87,8 +89,8 @@ async def get_status(
 
 @router.delete("/disconnect")
 async def disconnect(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.GMAIL)
     if connection:
@@ -98,8 +100,8 @@ async def disconnect(
 
 @router.post("/test", response_model=ConnectionTestResponse)
 async def test_connection(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
+    user: Annotated[User, Depends(get_current_user)],
+    repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
 ):
     connection = repo.get_active(user.tenant_id, ChannelType.GMAIL)
 

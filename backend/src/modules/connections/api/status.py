@@ -4,6 +4,8 @@ Returns the connection status for ALL providers of a tenant in a single call.
 Used by the Connections Hub to show status badges on each card.
 """
 
+from typing import Annotated
+
 import structlog
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -66,9 +68,9 @@ def _mask_pii(value: str, channel_type: str) -> str:
 
 @router.get("/status", response_model=BatchConnectionStatusResponse)
 async def get_all_connections_status(
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> BatchConnectionStatusResponse:
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
     """Return connection status for every channel type the tenant has."""
     repo = ChannelConnectionRepository(db)
     all_connections = repo.get_all_by_tenant(user.tenant_id)

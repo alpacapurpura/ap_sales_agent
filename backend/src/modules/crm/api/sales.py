@@ -1,5 +1,5 @@
 from datetime import UTC, datetime, timedelta
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
@@ -62,8 +62,8 @@ class SaleResponse(BaseModel):
 @router.post("/", response_model=SaleResponse)
 def create_sale(
     sale_in: SaleCreate,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = SaleService(db)
     # Instantiate service logic
@@ -99,12 +99,9 @@ def create_sale(
 
 @router.get("/ticker", response_model=list[TickerItem])
 async def get_ticker(
-    range_: Literal["today", "week", "30d", "all"] = Query(
-        default="30d",
-        alias="range",
-    ),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    range_: Annotated[Literal["today", "week", "30d", "all"], Query(alias="range")] = "30d",
 ):
     repo = SaleRepository(db)
     now = datetime.now(UTC)

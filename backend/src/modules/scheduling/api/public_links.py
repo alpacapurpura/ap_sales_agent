@@ -1,4 +1,5 @@
 import datetime
+from typing import Annotated
 from uuid import UUID
 
 import structlog
@@ -34,7 +35,7 @@ router = APIRouter()
 
 
 @router.get("/booking-links/{token}", response_model=BookingLinkResolveResponse)
-def resolve_booking_link(token: str, db: Session = Depends(get_db)):
+def resolve_booking_link(token: str, db: Annotated[Session, Depends(get_db)]):
     stmt = select(BookingLink).where(
         BookingLink.token == token,
         BookingLink.status == "ACTIVE",
@@ -64,7 +65,7 @@ def resolve_booking_link(token: str, db: Session = Depends(get_db)):
 
 
 @router.get("/resolve/{token}", response_model=LinkResolveResponse)
-def resolve_link(token: str, db: Session = Depends(get_db)):
+def resolve_link(token: str, db: Annotated[Session, Depends(get_db)]):
     service = LinkService(db)
     link = service.resolve_link(token)
 
@@ -90,7 +91,7 @@ def get_public_slots(
     token: str,
     start_date: datetime.date,
     end_date: datetime.date,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Public endpoint to fetch slots via token authentication.
@@ -116,8 +117,8 @@ def get_public_slots(
 @router.get("/event-types/by-id/{event_slug}", response_model=EventTypeResolveResponse)
 def resolve_event_type_by_tenant_id(
     event_slug: str,
-    db: Session = Depends(get_db),
-    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-ID"),
+    db: Annotated[Session, Depends(get_db)],
+    x_tenant_id: Annotated[str | None, Header(alias="X-Tenant-ID")] = None,
 ):
     """
     Resolve an event type using X-Tenant-ID header (UUID).
@@ -164,7 +165,7 @@ def resolve_event_type_by_tenant_id(
 def resolve_event_type(
     tenant_slug: str,
     event_slug: str,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     stmt = select(Tenant).where(Tenant.slug == tenant_slug)
     tenant = db.execute(stmt).scalars().first()
@@ -194,7 +195,7 @@ def get_event_type_slots(
     event_slug: str,
     start_date: datetime.date,
     end_date: datetime.date,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     stmt = select(Tenant).where(Tenant.slug == tenant_slug)
     tenant = db.execute(stmt).scalars().first()
@@ -222,7 +223,7 @@ def book_event_type(
     tenant_slug: str,
     event_slug: str,
     payload: BookingRequest,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     tenant_stmt = select(Tenant).where(Tenant.slug == tenant_slug)
     tenant = db.execute(tenant_stmt).scalars().first()
@@ -294,7 +295,7 @@ def book_event_type(
 def public_book_meeting(
     token: str,
     payload: BookingRequest,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     link_service = LinkService(db)
     link = link_service.resolve_link(token)

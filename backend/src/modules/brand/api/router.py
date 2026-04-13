@@ -1,3 +1,5 @@
+from typing import Annotated
+
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -17,8 +19,8 @@ router = APIRouter()
 
 @router.get("", response_model=BrandSettings)
 async def get_brand_settings(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Get Global Brand Settings for the user's tenant.
@@ -59,8 +61,8 @@ async def get_brand_settings(
 @router.patch("", response_model=BrandSettings)
 async def update_brand_settings(
     settings: BrandSettings,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Update Global Brand Settings for the user's tenant.

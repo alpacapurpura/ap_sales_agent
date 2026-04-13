@@ -1,3 +1,5 @@
+from typing import Annotated
+
 import structlog
 from fastapi import APIRouter, Depends, Request, status
 
@@ -13,7 +15,7 @@ router = APIRouter()
 @router.post("/customers/data_request", status_code=status.HTTP_200_OK)
 async def customers_data_request(
     request: Request,
-    verified: bool = Depends(verify_shopify_signature),
+    verified: Annotated[bool, Depends(verify_shopify_signature)],
 ):
     """
     GDPR: Request customer data.
@@ -43,7 +45,7 @@ async def customers_data_request(
 @router.post("/customers/redact", status_code=status.HTTP_200_OK)
 async def customers_redact(
     request: Request,
-    verified: bool = Depends(verify_shopify_signature),
+    verified: Annotated[bool, Depends(verify_shopify_signature)],
 ):
     """
     GDPR: Erase customer data.
@@ -72,7 +74,7 @@ async def customers_redact(
 @router.post("/shop/redact", status_code=status.HTTP_200_OK)
 async def shop_redact(
     request: Request,
-    verified: bool = Depends(verify_shopify_signature),
+    verified: Annotated[bool, Depends(verify_shopify_signature)],
 ):
     """
     GDPR: Erase shop data.

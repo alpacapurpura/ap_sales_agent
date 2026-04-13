@@ -1,3 +1,4 @@
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -20,8 +21,8 @@ router = APIRouter()
 @router.post("/psychology", response_model=PsychologyGenerationResponse)
 async def generate_offer_psychology(
     request: PsychologyGenerationRequest,
-    db: Session = Depends(get_db),
-    tenant_id: UUID | None = Depends(get_tenant_context),
+    db: Annotated[Session, Depends(get_db)],
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
 ):
     """
     Generates AI-powered psychology insights (pains & desires) for an offer.

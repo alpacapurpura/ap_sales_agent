@@ -1,5 +1,6 @@
 """CRM Referral API: code generation, listing, and evangelist promotion."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -43,8 +44,8 @@ class PromoteResponse(BaseModel):
 
 @router.get("", response_model=list[ReferralCodeResponse])
 async def list_referral_codes(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """List all active referral codes for tenant."""
     from src.modules.crm.application.services.referral_service import ReferralService
@@ -67,8 +68,8 @@ async def list_referral_codes(
 @router.post("/promote", response_model=PromoteResponse)
 async def promote_to_evangelist(
     body: PromoteRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Promote customer to EVANGELIST lifecycle stage + generate referral code.
 
@@ -105,8 +106,8 @@ async def promote_to_evangelist(
 @router.post("/generate", response_model=ReferralCodeResponse)
 async def generate_referral_code(
     body: GenerateCodeRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     """Generate referral code for an existing evangelist who doesn't have one yet."""
     from src.modules.crm.application.services.referral_service import ReferralService

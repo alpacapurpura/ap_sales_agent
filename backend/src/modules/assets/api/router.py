@@ -1,3 +1,4 @@
+from typing import Annotated
 from uuid import UUID
 
 import structlog
@@ -26,11 +27,11 @@ router = APIRouter()
 @router.post("/upload", response_model=AssetDto)
 async def upload_asset(
     background_tasks: BackgroundTasks,
-    file: UploadFile = File(...),
-    description: str | None = Form(None),
-    offer_id: str | None = Form(None),  # Optional now
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    file: Annotated[UploadFile, File()],
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    description: Annotated[str | None, Form()] = None,
+    offer_id: Annotated[str | None, Form()] = None,  # Optional now
 ):
     try:
         service = AssetsService(db)
@@ -53,13 +54,9 @@ async def upload_asset(
 
 @router.get("/", response_model=list[AssetDto])
 def list_assets(
-    type_: str | None = Query(
-        None,
-        alias="type",
-        description="Filter by asset type (IMAGE, VIDEO, etc)",
-    ),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    type_: Annotated[str | None, Query(alias="type", description="Filter by asset type (IMAGE, VIDEO, etc)")] = None,
 ):
     service = AssetsService(db)
     return service.list_assets(tenant_id=user.tenant_id, asset_type=type_)
@@ -68,8 +65,8 @@ def list_assets(
 @router.delete("/{asset_id}")
 def delete_asset(
     asset_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
 ):
     service = AssetsService(db)
     success = service.delete_asset(tenant_id=user.tenant_id, asset_id=UUID(asset_id))
