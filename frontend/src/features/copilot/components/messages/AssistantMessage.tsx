@@ -2,6 +2,10 @@
 
 import { Sparkles } from "lucide-react";
 import type { CopilotMessage } from "../../store/copilot-store";
+import { AlternativesCard } from "../cards/alternatives-card";
+import { ClarifyCard } from "../cards/clarify-card";
+import { CheckpointCard } from "../cards/checkpoint-card";
+import { InterviewCompleteCard } from "../cards/interview-complete-card";
 import { ComparisonTable } from "./ComparisonTable";
 import { MetricSummaryCard } from "./MetricSummaryCard";
 import { MultiOptionSelector } from "./MultiOptionSelector";
@@ -71,6 +75,64 @@ export function AssistantMessage({ message, isStreaming }: AssistantMessageProps
                     fieldId={action.field_id}
                   />
                 ) : null;
+              case "alternatives_card":
+                return action.alternatives ? (
+                  <AlternativesCard
+                    key={`alt-${idx}`}
+                    fieldPath={action.field_path ?? ""}
+                    question={action.question ?? ""}
+                    alternatives={action.alternatives.map((a) => ({
+                      id: a.id,
+                      title: a.title,
+                      description: a.description,
+                      recommended: a.recommended ?? false,
+                      recommendationReason: a.recommendation_reason,
+                    }))}
+                    allowCustom={action.allow_custom ?? false}
+                    onSelect={() => {}}
+                    onCustom={() => {}}
+                    status={action.card_status === "resolved" ? "resolved" : "pending"}
+                  />
+                ) : null;
+              case "clarify_card":
+                return action.clarify_items ? (
+                  <ClarifyCard
+                    key={`clarify-${idx}`}
+                    items={action.clarify_items}
+                    onResolve={() => {}}
+                    status={action.card_status === "resolved" ? "resolved" : "pending"}
+                  />
+                ) : null;
+              case "checkpoint_card":
+                return (
+                  <CheckpointCard
+                    key={`checkpoint-${idx}`}
+                    blockId={action.block_id ?? ""}
+                    blockLabel={action.block_label ?? ""}
+                    summary={action.summary ?? {}}
+                    healthScore={action.health_score ?? 0}
+                    blocksProgress={action.blocks_progress ?? { completed: 0, total: 0 }}
+                    onConfirm={() => {}}
+                    onRevise={() => {}}
+                    status={
+                      action.card_status === "confirmed"
+                        ? "confirmed"
+                        : action.card_status === "revising"
+                          ? "revising"
+                          : "pending"
+                    }
+                  />
+                );
+              case "interview_complete":
+                return (
+                  <InterviewCompleteCard
+                    key={`complete-${idx}`}
+                    healthScore={action.health_score ?? 0}
+                    redirect={action.redirect ?? "/"}
+                  />
+                );
+              case "preview_update":
+                return null;
               default:
                 return (
                   <NavigationCard key={`${action.type}-${idx}`} action={action} />
