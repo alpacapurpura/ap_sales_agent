@@ -164,10 +164,10 @@ class PromptLoader:
         cache_key = (key, tenant_id)
 
         # A. Intentar Caché
-        TTL_SECONDS = 60
+        ttl_seconds = 60
         if cache_key in self._cache:
             last_load = self._cache[cache_key].get("loaded_at", 0)
-            if datetime.datetime.now().timestamp() - last_load < TTL_SECONDS:
+            if datetime.datetime.now().timestamp() - last_load < ttl_seconds:
                 template_content = self._cache[cache_key]["content"]
 
         # B. Intentar DB

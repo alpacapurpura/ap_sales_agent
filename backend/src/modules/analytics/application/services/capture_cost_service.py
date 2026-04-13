@@ -114,7 +114,7 @@ class CaptureCostService:
             return {}
 
         # Category-to-channel mapping for capture stage
-        _CATEGORY_CHANNELS = {
+        _category_channels = {
             "organic_management": {"ig-dm", "fb-messenger", "tiktok-dm"},
             "paid_management": _PAID_CHANNEL_SLUGS,
             "video": {"ig-dm", "tiktok-dm"},
@@ -126,7 +126,7 @@ class CaptureCostService:
 
         for cost_entry in rows:
             category = cost_entry.proration_category
-            eligible = _CATEGORY_CHANNELS.get(category)
+            eligible = _category_channels.get(category)
 
             if eligible is None:
                 # full_service -> all connected

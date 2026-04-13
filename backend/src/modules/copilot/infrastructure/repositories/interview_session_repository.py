@@ -105,7 +105,7 @@ class InterviewSessionRepository:
 
     def _to_entity(self, model: InterviewSessionModel) -> InterviewSession:
         return InterviewSession(
-            id=model.id,
+            id_=model.id,
             tenant_id=model.tenant_id,
             domain=model.domain,
             config_snapshot=model.config_snapshot,

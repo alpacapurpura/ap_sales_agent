@@ -588,24 +588,24 @@ class MetricsService:
             OfficialMetricModel,
         )
 
-        M = OfficialMetricModel
+        m = OfficialMetricModel
 
         # Current period: group by date, channel_slug
         stmt = (
             sa_select(
-                M.metric_date,
-                M.channel_slug,
-                sa_f.sum(M.value).label("total"),
+                m.metric_date,
+                m.channel_slug,
+                sa_f.sum(m.value).label("total"),
             )
             .where(
-                M.tenant_id == tenant_id,
-                M.channel_slug.in_(channel_slugs),
-                M.metric_name.in_(db_metric_names),
-                M.metric_date >= start_date,
-                M.metric_date <= now,
+                m.tenant_id == tenant_id,
+                m.channel_slug.in_(channel_slugs),
+                m.metric_name.in_(db_metric_names),
+                m.metric_date >= start_date,
+                m.metric_date <= now,
             )
-            .group_by(M.metric_date, M.channel_slug)
-            .order_by(M.metric_date)
+            .group_by(m.metric_date, m.channel_slug)
+            .order_by(m.metric_date)
         )
         rows = self.db.execute(stmt).all()
 
@@ -655,17 +655,17 @@ class MetricsService:
         # 6. Previous period totals
         prev_stmt = (
             sa_select(
-                M.channel_slug,
-                sa_f.sum(M.value).label("total"),
+                m.channel_slug,
+                sa_f.sum(m.value).label("total"),
             )
             .where(
-                M.tenant_id == tenant_id,
-                M.channel_slug.in_(channel_slugs),
-                M.metric_name.in_(db_metric_names),
-                M.metric_date >= prev_start,
-                M.metric_date < start_date,
+                m.tenant_id == tenant_id,
+                m.channel_slug.in_(channel_slugs),
+                m.metric_name.in_(db_metric_names),
+                m.metric_date >= prev_start,
+                m.metric_date < start_date,
             )
-            .group_by(M.channel_slug)
+            .group_by(m.channel_slug)
         )
         prev_rows = self.db.execute(prev_stmt).all()
         previous_period_totals = (

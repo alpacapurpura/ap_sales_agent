@@ -106,7 +106,7 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
         offer_id: UUID,
         *,
         search: str | None = None,
-        type: KnowledgeSourceType | None = None,
+        type_: KnowledgeSourceType | None = None,
     ) -> list[KnowledgeSource]:
         filters = [
             KnowledgeSourceModel.tenant_id == tenant_id,
@@ -121,8 +121,8 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
                     KnowledgeSourceModel.source_url.ilike(like),
                 )
             )
-        if type is not None:
-            filters.append(KnowledgeSourceModel.type == type.value)
+        if type_ is not None:
+            filters.append(KnowledgeSourceModel.type == type_.value)
 
         stmt = (
             select(KnowledgeSourceModel)

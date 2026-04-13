@@ -708,7 +708,9 @@ async def set_primary_asset(
 async def get_status(
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
-    debug: bool = Query(False, description="Include diagnostic info in response"),
+    debug: bool = Query(
+        default=False, description="Include diagnostic info in response"
+    ),
 ):
     # Platform credentials from .env — the user never configures these
     is_configured = bool(settings.META_APP_ID and settings.META_APP_SECRET)

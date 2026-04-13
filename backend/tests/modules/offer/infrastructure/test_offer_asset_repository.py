@@ -32,7 +32,7 @@ def _build_asset(
     offer_id: uuid.UUID,
     *,
     name: str = "Asset",
-    type: AssetType = AssetType.FLYER,
+    type_: AssetType = AssetType.FLYER,
     source: AssetSource = AssetSource.AI,
     status: AssetStatus = AssetStatus.DRAFT,
 ) -> OfferAsset:
@@ -40,7 +40,7 @@ def _build_asset(
         tenant_id=tenant_id,
         offer_id=offer_id,
         name=name,
-        type=type,
+        type=type_,
         source=source,
         status=status,
         editable_in_puck=(source == AssetSource.AI),
@@ -138,7 +138,7 @@ class TestList:
                 tenant_a,
                 offer_id,
                 name="AI flyer",
-                type=AssetType.FLYER,
+                type_=AssetType.FLYER,
                 source=AssetSource.AI,
             )
         )
@@ -147,12 +147,12 @@ class TestList:
                 tenant_a,
                 offer_id,
                 name="External video",
-                type=AssetType.VIDEO,
+                type_=AssetType.VIDEO,
                 source=AssetSource.EXTERNAL,
             )
         )
 
-        items, total = repo.list(tenant_a, offer_id, type=AssetType.VIDEO)
+        items, total = repo.list(tenant_a, offer_id, type_=AssetType.VIDEO)
         assert total == 1
         assert items[0].name == "External video"
 

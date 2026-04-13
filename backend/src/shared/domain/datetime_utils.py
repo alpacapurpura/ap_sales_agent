@@ -4,15 +4,21 @@ Rules:
 - Backend ALWAYS stores UTC.
 - Frontend converts to tenant timezone for display.
 - Use utc_now() instead of datetime.utcnow() (deprecated Python 3.12+).
+- Use utc_today() instead of date.today() (timezone-naive).
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from zoneinfo import ZoneInfo
 
 
 def utc_now() -> datetime:
     """Timezone-aware UTC now. Drop-in replacement for deprecated datetime.utcnow()."""
     return datetime.now(UTC)
+
+
+def utc_today() -> date:
+    """Today's date in UTC. Drop-in replacement for timezone-naive date.today()."""
+    return datetime.now(UTC).date()
 
 
 def to_tenant_tz(dt: datetime, tz_name: str) -> datetime:

@@ -8,6 +8,7 @@ from src.modules.commercial_calendar.domain.calendar_event import CalendarEvent
 from src.modules.commercial_calendar.infrastructure.repositories.calendar_event_repository import (
     CalendarEventRepository,
 )
+from src.shared.domain.datetime_utils import utc_today
 
 
 class CalendarEventService:
@@ -31,7 +32,7 @@ class CalendarEventService:
         )
 
     def get_current_week_number(self) -> tuple[int, int]:
-        today = date.today()
+        today = utc_today()
         iso = today.isocalendar()
         return iso[1], iso[0]  # (week, year)
 

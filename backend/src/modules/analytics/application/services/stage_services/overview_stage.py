@@ -152,13 +152,13 @@ class StageOverviewService:
         )
 
         # Only period-based stages support on-demand fallback
-        _PERIOD_STAGE_METHODS: dict[str, str] = {
+        _period_stage_methods: dict[str, str] = {
             "attraction": "get_attraction_metrics",
             "capture": "get_capture_metrics",
             "nurture": "get_nurturing_metrics",
         }
 
-        method_name = _PERIOD_STAGE_METHODS.get(stage)
+        method_name = _period_stage_methods.get(stage)
         if method_name is None:
             return None
 

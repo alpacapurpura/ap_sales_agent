@@ -125,7 +125,7 @@ def _to_response(source: KnowledgeSource) -> KnowledgeSourceResponse:
 async def list_knowledge_sources(
     offer_id: str,
     search: str | None = Query(None),
-    type: KnowledgeSourceType | None = Query(None),
+    type_: KnowledgeSourceType | None = Query(None, alias="type"),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> KnowledgeListResponse:
@@ -133,7 +133,7 @@ async def list_knowledge_sources(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
         search=search,
-        type=type,
+        type_=type_,
     )
     return KnowledgeListResponse(
         items=[_to_response(s) for s in sources],
@@ -150,7 +150,7 @@ async def upload_knowledge_source(
     offer_id: str,
     file: UploadFile = File(...),
     name: str | None = Form(None),
-    type: KnowledgeSourceType = Form(...),
+    type_: KnowledgeSourceType = Form(..., alias="type"),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> KnowledgeSourceResponse:
@@ -160,7 +160,7 @@ async def upload_knowledge_source(
         offer_id=UUID(offer_id),
         file_bytes=content,
         filename=file.filename or (name or "upload"),
-        type=type,
+        type_=type_,
         name=name,
     )
     return _to_response(source)
@@ -181,7 +181,7 @@ async def add_knowledge_url(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
         url=str(body.url),
-        type=body.type,
+        type_=body.type,
         name=body.name,
     )
     return _to_response(source)

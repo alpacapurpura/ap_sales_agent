@@ -36,6 +36,7 @@ from src.modules.analytics.infrastructure.repositories.official_metrics_reposito
 from src.modules.analytics.infrastructure.repositories.period_metrics_repository import (
     PeriodMetricsRepository,
 )
+from src.shared.domain.datetime_utils import utc_today
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -322,7 +323,7 @@ class ChannelDashboardService:
         """Assemble the full channel dashboard."""
         config = _CHANNEL_CONFIGS.get(channel_slug, _DEFAULT_CONFIG)
         days = _PERIOD_DAYS.get(period, 30)
-        today = date.today()
+        today = utc_today()
         start = today - timedelta(days=days)
         prev_start = start - timedelta(days=days)
         prev_end = start - timedelta(days=1)

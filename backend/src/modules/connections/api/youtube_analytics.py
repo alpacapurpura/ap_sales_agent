@@ -27,6 +27,7 @@ from src.modules.connections.infrastructure.repositories import (
 )
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
+from src.shared.domain.datetime_utils import utc_today
 
 router = APIRouter(tags=["youtube-analytics"])
 
@@ -82,7 +83,7 @@ def _default_dates(
     end_date: str | None,
 ) -> tuple[str, str]:
     """Defaults to last 30 days if no dates provided."""
-    today = datetime.date.today()
+    today = utc_today()
     if not end_date:
         end_date = today.isoformat()
     if not start_date:
@@ -243,7 +244,7 @@ async def test_connection(
     adapter: YouTubeAnalyticsAdapter = Depends(_get_adapter),
 ):
     """Test the connection by fetching the last 7 days overview."""
-    today = datetime.date.today()
+    today = utc_today()
     start = (today - datetime.timedelta(days=7)).isoformat()
     end = today.isoformat()
     try:

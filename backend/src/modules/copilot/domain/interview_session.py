@@ -24,7 +24,7 @@ class InterviewSession:
     def __init__(
         self,
         *,
-        id: UUID,
+        id_: UUID,
         tenant_id: UUID,
         domain: str,
         config_snapshot: dict,
@@ -36,7 +36,7 @@ class InterviewSession:
         messages_count: int,
         entity_id: UUID | None = None,
     ):
-        self.id = id
+        self.id = id_
         self.tenant_id = tenant_id
         self.domain = domain
         self.config_snapshot = config_snapshot
@@ -60,7 +60,7 @@ class InterviewSession:
         initial_mapa: dict | None = None,
     ) -> InterviewSession:
         return cls(
-            id=uuid4(),
+            id_=uuid4(),
             tenant_id=tenant_id,
             domain=domain,
             config_snapshot=asdict(config),

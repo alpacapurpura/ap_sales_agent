@@ -1,7 +1,7 @@
 """Campaign management service — queries campaign hierarchy data."""
 
 import logging
-from datetime import date, timedelta
+from datetime import timedelta
 from typing import TYPE_CHECKING
 from uuid import UUID
 
@@ -15,6 +15,7 @@ from src.modules.analytics.application.dto.campaign_dto import (
     CampaignOverviewDTO,
     RecommendationDTO,
 )
+from src.shared.domain.datetime_utils import utc_today
 
 if TYPE_CHECKING:
     from src.modules.analytics.application.dto.campaign_dto import (
@@ -150,7 +151,7 @@ class CampaignService:
 
         # Parse period
         days = {"7d": 7, "30d": 30, "90d": 90}.get(period, 30)
-        end_date = date.today()
+        end_date = utc_today()
         start_date = end_date - timedelta(days=days)
 
         # 1. Campaigns with counts
@@ -482,7 +483,7 @@ class CampaignService:
         )
 
         days = {"7d": 7, "30d": 30, "90d": 90}.get(period, 30)
-        end_date = date.today()
+        end_date = utc_today()
         start_date = end_date - timedelta(days=days)
 
         # 1. Ads with campaign names

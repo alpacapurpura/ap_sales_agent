@@ -51,6 +51,7 @@ from src.modules.analytics.infrastructure.models.official_metrics_model import (
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
+from src.shared.domain.datetime_utils import utc_today
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -194,7 +195,7 @@ class EmailDashboardService:
         period: str = "30d",
     ) -> EmailDashboardDTO:
         days = PERIOD_DAYS.get(period, 30)
-        end = date.today()
+        end = utc_today()
         start = end - timedelta(days=days)
         prev_start = start - timedelta(days=days)
         prev_end = start - timedelta(days=1)
@@ -353,7 +354,7 @@ class EmailDashboardService:
         period: str = "30d",
     ) -> EmailCampaignsResponseDTO:
         days = PERIOD_DAYS.get(period, 30)
-        end = date.today()
+        end = utc_today()
         start = end - timedelta(days=days)
 
         campaigns = await self._get_campaign_list(tenant_id, start, end)
@@ -425,7 +426,7 @@ class EmailDashboardService:
         campaign_id (= automation_id from Mailerlite).
         """
         days = PERIOD_DAYS.get(period, 30)
-        end = date.today()
+        end = utc_today()
         start = end - timedelta(days=days)
 
         automations = await self._get_automation_list(tenant_id, start, end)
@@ -598,7 +599,7 @@ class EmailDashboardService:
         Per-subscriber segmentation requires future ETL enhancement.
         """
         days = PERIOD_DAYS.get(period, 30)
-        end = date.today()
+        end = utc_today()
         start = end - timedelta(days=days)
 
         current = self._repo.get_channel_metrics_for_period(
@@ -703,7 +704,7 @@ class EmailDashboardService:
         period: str = "30d",
     ) -> EmailHealthResponseDTO:
         days = PERIOD_DAYS.get(period, 30)
-        end = date.today()
+        end = utc_today()
         start = end - timedelta(days=days)
         prev_start = start - timedelta(days=days)
         prev_end = start - timedelta(days=1)
@@ -774,7 +775,7 @@ class EmailDashboardService:
         period: str = "30d",
     ) -> EmailGrowthResponseDTO:
         days = PERIOD_DAYS.get(period, 30)
-        end = date.today()
+        end = utc_today()
         start = end - timedelta(days=days)
         prev_start = start - timedelta(days=days)
         prev_end = start - timedelta(days=1)

@@ -64,14 +64,14 @@ def _make_source_mock(
     *,
     tenant_id,
     offer_id,
-    type=KnowledgeSourceType.PDF,
+    type_=KnowledgeSourceType.PDF,
     status=KnowledgeSourceStatus.PROCESSING,
 ):
     m = MagicMock(spec=KnowledgeSource)
     m.id = uuid4()
     m.tenant_id = tenant_id
     m.offer_id = offer_id
-    m.type = type
+    m.type = type_
     m.status = status
     return m
 
@@ -90,7 +90,7 @@ def test_upload_source_stores_file_creates_row_indexes(
         offer_id=offer_id,
         file_bytes=b"pdf-bytes",
         filename="whitepaper.pdf",
-        type=KnowledgeSourceType.PDF,
+        type_=KnowledgeSourceType.PDF,
         mime_type="application/pdf",
     )
 
@@ -113,7 +113,7 @@ def test_add_url_source_creates_row_and_indexes(
     stub = _make_source_mock(
         tenant_id=tenant_id,
         offer_id=offer_id,
-        type=KnowledgeSourceType.URL_YOUTUBE,
+        type_=KnowledgeSourceType.URL_YOUTUBE,
     )
     knowledge_repo.create.return_value = stub
 
@@ -121,7 +121,7 @@ def test_add_url_source_creates_row_and_indexes(
         tenant_id=tenant_id,
         offer_id=offer_id,
         url="https://youtu.be/abc",
-        type=KnowledgeSourceType.URL_YOUTUBE,
+        type_=KnowledgeSourceType.URL_YOUTUBE,
         name="Intro video",
     )
 
@@ -141,11 +141,11 @@ def test_list_sources_passes_filters(service, knowledge_repo, tenant_id, offer_i
         tenant_id=tenant_id,
         offer_id=offer_id,
         search="pdf",
-        type=KnowledgeSourceType.PDF,
+        type_=KnowledgeSourceType.PDF,
     )
     call = knowledge_repo.list.call_args
     assert call.kwargs["search"] == "pdf"
-    assert call.kwargs["type"] == KnowledgeSourceType.PDF
+    assert call.kwargs["type_"] == KnowledgeSourceType.PDF
 
 
 # ------------------------------------------------------------------ delete

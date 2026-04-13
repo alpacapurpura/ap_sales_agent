@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy import text as sa_text
@@ -100,18 +100,20 @@ def create_sale(
 
 @router.get("/ticker", response_model=list[TickerItem])
 async def get_ticker(
-    range: Literal["today", "week", "30d", "all"] = "30d",
+    range_: Literal["today", "week", "30d", "all"] = Query(
+        default="30d", alias="range"
+    ),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     repo = SaleRepository(db)
     now = datetime.now(UTC)
 
-    if range == "today":
+    if range_ == "today":
         start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif range == "week":
+    elif range_ == "week":
         start = now - timedelta(days=7)
-    elif range == "30d":
+    elif range_ == "30d":
         start = now - timedelta(days=30)
     else:
         start = datetime.min.replace(tzinfo=UTC)

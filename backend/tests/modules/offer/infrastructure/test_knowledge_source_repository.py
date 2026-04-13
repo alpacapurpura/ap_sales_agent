@@ -36,14 +36,14 @@ def _build_source(
     offer_id: uuid.UUID,
     *,
     name: str = "Source",
-    type: KnowledgeSourceType = KnowledgeSourceType.PDF,
+    type_: KnowledgeSourceType = KnowledgeSourceType.PDF,
     status: KnowledgeSourceStatus = KnowledgeSourceStatus.QUEUED,
 ) -> KnowledgeSource:
     return KnowledgeSource(
         tenant_id=tenant_id,
         offer_id=offer_id,
         name=name,
-        type=type,
+        type=type_,
         status=status,
     )
 
@@ -123,25 +123,25 @@ class TestList:
         offer_id = _make_offer(db, tenant_a)
         repo = KnowledgeSourceRepository(db)
         repo.create(
-            _build_source(tenant_a, offer_id, name="PDF", type=KnowledgeSourceType.PDF)
+            _build_source(tenant_a, offer_id, name="PDF", type_=KnowledgeSourceType.PDF)
         )
         repo.create(
             _build_source(
                 tenant_a,
                 offer_id,
                 name="Video",
-                type=KnowledgeSourceType.VIDEO,
+                type_=KnowledgeSourceType.VIDEO,
             )
         )
 
-        items = repo.list(tenant_a, offer_id, type=KnowledgeSourceType.VIDEO)
+        items = repo.list(tenant_a, offer_id, type_=KnowledgeSourceType.VIDEO)
         assert len(items) == 1
         assert items[0].name == "Video"
 
     def test_list_search_matches_url(self, db: Session, tenant_a: uuid.UUID):
         offer_id = _make_offer(db, tenant_a)
         repo = KnowledgeSourceRepository(db)
-        src = _build_source(tenant_a, offer_id, type=KnowledgeSourceType.URL_ARTICLE)
+        src = _build_source(tenant_a, offer_id, type_=KnowledgeSourceType.URL_ARTICLE)
         src.source_url = "https://blog.example/article-42"
         repo.create(src)
         repo.create(_build_source(tenant_a, offer_id, name="Other"))

@@ -45,7 +45,7 @@ def render_capability_catalog():  # noqa: C901
         return
 
     # Group labels
-    GROUP_LABELS = {
+    group_labels = {
         "navigation": (
             "🧭 Navegacion",
             "Herramientas para navegar al usuario a paginas y campos",
@@ -87,7 +87,7 @@ def render_capability_catalog():  # noqa: C901
         )
 
         for group_name, tools in TOOL_GROUPS.items():
-            label, desc = GROUP_LABELS.get(group_name, (group_name, ""))
+            label, desc = group_labels.get(group_name, (group_name, ""))
             with st.expander(f"{label} ({len(tools)} tools)", expanded=False):
                 st.caption(desc)
                 for tool in tools:

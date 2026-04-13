@@ -126,14 +126,13 @@ async def _handle_manychat_event(
     db: Session, tenant_id: UUID, payload: dict, channel: str
 ) -> None:
     """Process a ManyChat webhook event into journey_events + official_metrics."""
-    from datetime import date as date_cls
-
     from src.modules.analytics.application.services.manychat_metrics_promoter import (
         ManyChatMetricsPromoter,
     )
     from src.modules.crm.application.services.customer_service import CustomerService
     from src.modules.crm.application.services.lifecycle_service import LifecycleService
     from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
+    from src.shared.domain.datetime_utils import utc_today as date_cls_today
 
     event_type = payload.get("event_type", "")
     event_name = _MANYCHAT_EVENT_MAP.get(event_type, f"manychat_{event_type}")
@@ -243,7 +242,7 @@ async def _handle_manychat_event(
         lifecycle_svc.recalculate_score(profile.id, tenant_id)
 
     # 4. Promote metric to official_metrics for Growth Studio
-    today = date_cls.today()
+    today = date_cls_today()
     metric_name = _event_to_metric_name(event_type, payload)
     stage_slug = _event_to_stage(event_type, payload)
 

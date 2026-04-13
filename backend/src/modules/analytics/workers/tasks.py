@@ -25,9 +25,11 @@ async def _maybe_enqueue_period_extraction(ctx: dict, db, tenant_id: str) -> Non
 
     Called after a successful daily ETL to bootstrap period data on first run.
     """
-    from datetime import date, timedelta
+    from datetime import timedelta
 
     from sqlalchemy import func, select
+
+    from src.shared.domain.datetime_utils import utc_today
 
     redis = ctx.get("redis")
     if not redis:
@@ -48,7 +50,7 @@ async def _maybe_enqueue_period_extraction(ctx: dict, db, tenant_id: str) -> Non
         if count > 0:
             return  # Already has period data
 
-        today = date.today()
+        today = utc_today()
         # Enqueue weekly: current week (Mon-Sun or custom)
         week_start = today - timedelta(days=today.weekday())
         week_end = week_start + timedelta(days=6)

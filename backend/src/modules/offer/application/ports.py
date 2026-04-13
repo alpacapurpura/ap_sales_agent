@@ -51,7 +51,7 @@ class IOfferAssetRepository(ABC):
         offer_id: UUID,
         *,
         search: str | None = None,
-        type: AssetType | None = None,
+        type_: AssetType | None = None,
         source: AssetSource | None = None,
         sort: str = "created_desc",
         limit: int = 24,
@@ -86,7 +86,7 @@ class IKnowledgeSourceRepository(ABC):
         offer_id: UUID,
         *,
         search: str | None = None,
-        type: KnowledgeSourceType | None = None,
+        type_: KnowledgeSourceType | None = None,
     ) -> list[KnowledgeSource]: ...
 
     @abstractmethod

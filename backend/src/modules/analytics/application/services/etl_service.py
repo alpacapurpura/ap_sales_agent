@@ -46,6 +46,7 @@ from src.modules.analytics.infrastructure.repositories.official_metrics_reposito
 from src.modules.analytics.infrastructure.repositories.staging_repository import (
     StagingMetricsRepository,
 )
+from src.shared.domain.datetime_utils import utc_today
 
 logger = logging.getLogger(__name__)
 
@@ -102,12 +103,12 @@ class ETLService:
         """
         # Default date range: last 30 days
         if end_date is None:
-            end_date = date.today() - timedelta(days=1)
+            end_date = utc_today() - timedelta(days=1)
         if start_date is None:
             start_date = end_date - timedelta(days=30)
 
         # Enforce max lookback
-        earliest = date.today() - timedelta(days=_MAX_LOOKBACK_DAYS)
+        earliest = utc_today() - timedelta(days=_MAX_LOOKBACK_DAYS)
         start_date = max(start_date, earliest)
 
         # Multi-stage providers: iterate all stages (same as run_initial_load)
@@ -443,11 +444,11 @@ class ETLService:
         # Determine which stages to extract
         stages = PROVIDER_STAGES.get(provider_name, [stage])
 
-        end_date = date.today() - timedelta(days=1)
-        start_date = date.today() - timedelta(days=days)
+        end_date = utc_today() - timedelta(days=1)
+        start_date = utc_today() - timedelta(days=days)
 
         # Enforce max lookback
-        earliest = date.today() - timedelta(days=_MAX_LOOKBACK_DAYS)
+        earliest = utc_today() - timedelta(days=_MAX_LOOKBACK_DAYS)
         start_date = max(start_date, earliest)
 
         period_config = self._get_period_config(tenant_id)

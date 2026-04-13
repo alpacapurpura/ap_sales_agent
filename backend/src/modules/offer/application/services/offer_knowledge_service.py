@@ -73,9 +73,9 @@ class OfferKnowledgeService:
         tenant_id: UUID,
         offer_id: UUID,
         search: str | None = None,
-        type: KnowledgeSourceType | None = None,
+        type_: KnowledgeSourceType | None = None,
     ) -> list[KnowledgeSource]:
-        return self._repo.list(tenant_id, offer_id, search=search, type=type)
+        return self._repo.list(tenant_id, offer_id, search=search, type_=type_)
 
     # ---------------------------------------------------------------- get
     def get_source(
@@ -94,11 +94,11 @@ class OfferKnowledgeService:
         offer_id: UUID,
         file_bytes: bytes,
         filename: str,
-        type: KnowledgeSourceType,
+        type_: KnowledgeSourceType,
         mime_type: str | None = None,
         name: str | None = None,
     ) -> KnowledgeSource:
-        mime = mime_type or _DEFAULT_MIME_BY_TYPE.get(type, "application/octet-stream")
+        mime = mime_type or _DEFAULT_MIME_BY_TYPE.get(type_, "application/octet-stream")
         folder = f"offers/{offer_id}/knowledge"
         file_url, size_bytes = self._storage.upload(
             tenant_id=tenant_id,
@@ -111,7 +111,7 @@ class OfferKnowledgeService:
             tenant_id=tenant_id,
             offer_id=offer_id,
             name=name or filename,
-            type=type,
+            type=type_,
             status=KnowledgeSourceStatus.PROCESSING,
             file_url=file_url,
             mime_type=mime,
@@ -142,14 +142,14 @@ class OfferKnowledgeService:
         tenant_id: UUID,
         offer_id: UUID,
         url: str,
-        type: KnowledgeSourceType,
+        type_: KnowledgeSourceType,
         name: str | None = None,
     ) -> KnowledgeSource:
         source = KnowledgeSource(
             tenant_id=tenant_id,
             offer_id=offer_id,
             name=name or url,
-            type=type,
+            type=type_,
             status=KnowledgeSourceStatus.PROCESSING,
             source_url=url,
         )

@@ -61,7 +61,7 @@ class OfferAssetService:
         tenant_id: UUID,
         offer_id: UUID,
         search: str | None = None,
-        type: AssetType | None = None,
+        type_: AssetType | None = None,
         source: AssetSource | None = None,
         sort: str = "created_desc",
         limit: int = 24,
@@ -71,7 +71,7 @@ class OfferAssetService:
             tenant_id,
             offer_id,
             search=search,
-            type=type,
+            type_=type_,
             source=source,
             sort=sort,
             limit=limit,
@@ -95,10 +95,10 @@ class OfferAssetService:
         offer_id: UUID,
         file_bytes: bytes,
         filename: str,
-        type: AssetType,
+        type_: AssetType,
         mime_type: str | None = None,
     ) -> OfferAsset:
-        mime = mime_type or _DEFAULT_MIME_BY_TYPE.get(type, "application/octet-stream")
+        mime = mime_type or _DEFAULT_MIME_BY_TYPE.get(type_, "application/octet-stream")
         stream: BytesIO = BytesIO(file_bytes)
         folder = f"offers/{offer_id}/assets"
         file_url, size_bytes = self._storage.upload(
@@ -112,7 +112,7 @@ class OfferAssetService:
             tenant_id=tenant_id,
             offer_id=offer_id,
             name=filename,
-            type=type,
+            type=type_,
             source=AssetSource.EXTERNAL,
             status=AssetStatus.READY,
             file_url=file_url,
@@ -127,7 +127,7 @@ class OfferAssetService:
             asset_id=str(created.id),
             offer_id=str(offer_id),
             tenant_id=str(tenant_id),
-            type=type.value,
+            type=type_.value,
         )
         return created
 
@@ -137,7 +137,7 @@ class OfferAssetService:
         *,
         tenant_id: UUID,
         offer_id: UUID,
-        type: AssetType,
+        type_: AssetType,
         prompt_params: dict[str, Any] | None = None,
         name: str | None = None,
     ) -> OfferAsset:
@@ -146,8 +146,8 @@ class OfferAssetService:
         asset = OfferAsset(
             tenant_id=tenant_id,
             offer_id=offer_id,
-            name=name or f"AI {type.value}",
-            type=type,
+            name=name or f"AI {type_.value}",
+            type=type_,
             source=AssetSource.AI,
             status=AssetStatus.PROCESSING,
             prompt_params=prompt_params,
@@ -160,7 +160,7 @@ class OfferAssetService:
             asset_id=str(created.id),
             offer_id=str(offer_id),
             tenant_id=str(tenant_id),
-            type=type.value,
+            type=type_.value,
         )
         return created
 
@@ -178,8 +178,8 @@ class OfferAssetService:
             raise AssetNotFoundError(asset_id)
         # Whitelist the mutable fields — status and provenance remain
         # controlled by the service itself.
-        _MUTABLE = {"name", "metadata", "thumbnail_url"}
-        patch = {k: v for k, v in fields.items() if k in _MUTABLE}
+        _mutable = {"name", "metadata", "thumbnail_url"}
+        patch = {k: v for k, v in fields.items() if k in _mutable}
         if not patch:
             return asset
         current = asset.model_dump()

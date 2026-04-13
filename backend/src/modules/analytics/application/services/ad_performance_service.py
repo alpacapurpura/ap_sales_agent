@@ -18,6 +18,7 @@ from src.modules.analytics.application.dto.campaign_dto import (
     FormatComparisonDTO,
     FormatComparisonItemDTO,
 )
+from src.shared.domain.datetime_utils import utc_today
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -65,7 +66,7 @@ class AdPerformanceService:
 
     def _date_range(self, period: str) -> tuple[date, date]:
         days = _PERIOD_TO_DAYS.get(period, 30)
-        end = date.today()
+        end = utc_today()
         start = end - timedelta(days=days)
         return start, end
 

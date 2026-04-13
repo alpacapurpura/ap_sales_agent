@@ -199,9 +199,9 @@ def _calendar_repo_factory(db):
 
 
 def _calendar_read_fn(repo, tenant_id):
-    from datetime import date
+    from src.shared.domain.datetime_utils import utc_today
 
-    today = date.today()
+    today = utc_today()
     return repo.list_events(
         country_code="PE",
         year=today.year,

@@ -432,7 +432,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
 
     def _segment_report(self, report: dict, metric_date: date) -> list[ExtractedMetric]:
         """Segment GA4 report rows into channel slugs."""
-        _EMPTY_CHANNEL = {
+        _empty_channel = {
             "sessions": 0.0,
             "users": 0.0,
             "bounceRate": 0.0,
@@ -443,9 +443,9 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             "engagementRate": 0.0,
         }
         channel_data: dict[str, dict[str, float]] = {
-            "google-organic": {**_EMPTY_CHANNEL},
-            "direct": {**_EMPTY_CHANNEL},
-            "ai-search-organic": {**_EMPTY_CHANNEL},
+            "google-organic": {**_empty_channel},
+            "direct": {**_empty_channel},
+            "ai-search-organic": {**_empty_channel},
         }
         # Track session counts for weighted bounceRate averaging
         _session_counts: dict[str, float] = {
@@ -641,7 +641,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         from datetime import UTC
         from datetime import datetime as dt
 
-        _METRIC_NAMES = [
+        _metric_names = [
             "sessions",
             "users",
             "bounceRate",
@@ -686,7 +686,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
 
             key = (slug, date_str)
             if key not in day_data:
-                day_data[key] = dict.fromkeys(_METRIC_NAMES, 0.0)
+                day_data[key] = dict.fromkeys(_metric_names, 0.0)
                 day_sessions[key] = 0.0
 
             day_data[key]["sessions"] += sessions

@@ -109,7 +109,7 @@ def _to_response(asset) -> OfferAssetResponse:  # type: ignore[no-untyped-def]
 async def list_assets(
     offer_id: str,
     search: str | None = Query(None),
-    type: AssetType | None = Query(None),
+    type_: AssetType | None = Query(None, alias="type"),
     source: AssetSource | None = Query(None),
     sort: str = Query("created_desc"),
     limit: int = Query(24, ge=1, le=200),
@@ -121,7 +121,7 @@ async def list_assets(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
         search=search,
-        type=type,
+        type_=type_,
         source=source,
         sort=sort,
         limit=limit,
@@ -144,7 +144,7 @@ async def upload_asset(
     offer_id: str,
     file: UploadFile = File(...),
     name: str = Form(...),
-    type: AssetType = Form(...),
+    type_: AssetType = Form(..., alias="type"),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> OfferAssetResponse:
@@ -154,7 +154,7 @@ async def upload_asset(
         offer_id=UUID(offer_id),
         file_bytes=content,
         filename=file.filename or name,
-        type=type,
+        type_=type_,
     )
     return _to_response(asset)
 
@@ -173,7 +173,7 @@ async def generate_asset(
     asset = _service(db).generate_asset(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
-        type=body.type,
+        type_=body.type,
         prompt_params=body.prompt_params,
         name=body.name,
     )

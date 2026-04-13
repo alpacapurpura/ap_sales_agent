@@ -12,7 +12,7 @@ targets, and actionable recommendations.
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import timedelta
 from typing import TYPE_CHECKING
 
 from src.modules.advertising.application.dto.association_dto import AssociationDTO
@@ -40,6 +40,7 @@ from src.modules.advertising.infrastructure.repositories.meta_catalog_repository
 from src.modules.advertising.infrastructure.repositories.metrics_repository import (
     MetricsRepository,
 )
+from src.shared.domain.datetime_utils import utc_today
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -397,7 +398,7 @@ class HealthCheckService:
         return f"Objetivo: {label}."
 
     def _has_recent_purchases(self, tenant_id: UUID, campaign_external_id: str) -> bool:
-        today = date.today()
+        today = utc_today()
         start = today - timedelta(days=BROKEN_EXPECTATION_DAYS)
         rows = self._metrics_repo.load_rows(
             tenant_id,

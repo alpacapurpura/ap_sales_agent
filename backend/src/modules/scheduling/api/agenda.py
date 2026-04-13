@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
@@ -33,14 +33,14 @@ class AgendaItem(BaseModel):
 
 @router.get("/", response_model=list[AgendaItem])
 async def get_agenda(
-    range: Literal["today", "week"] = "today",
+    range_: Literal["today", "week"] = Query(default="today", alias="range"),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     repo = AppointmentRepository(db)
     now = datetime.now(UTC)
 
-    if range == "today":
+    if range_ == "today":
         start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         end = start + timedelta(days=1)
     else:  # week

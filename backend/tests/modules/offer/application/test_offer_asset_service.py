@@ -85,7 +85,7 @@ def test_upload_asset_stores_file_and_persists_row(
         offer_id=offer_id,
         file_bytes=b"raw pdf bytes",
         filename="brief.pdf",
-        type=AssetType.DOCUMENT,
+        type_=AssetType.DOCUMENT,
         mime_type="application/pdf",
     )
 
@@ -121,7 +121,7 @@ def test_generate_asset_creates_processing_stub(
     result = service.generate_asset(
         tenant_id=tenant_id,
         offer_id=offer_id,
-        type=AssetType.FLYER,
+        type_=AssetType.FLYER,
         prompt_params={"style": "bold", "palette": "warm"},
     )
 
@@ -142,7 +142,7 @@ def test_list_assets_passes_filters_through(service, asset_repo, tenant_id, offe
         tenant_id=tenant_id,
         offer_id=offer_id,
         search="foo",
-        type=AssetType.VIDEO,
+        type_=AssetType.VIDEO,
         source=AssetSource.AI,
         sort="name_asc",
         limit=12,
@@ -150,7 +150,7 @@ def test_list_assets_passes_filters_through(service, asset_repo, tenant_id, offe
     )
     call = asset_repo.list.call_args
     assert call.kwargs["search"] == "foo"
-    assert call.kwargs["type"] == AssetType.VIDEO
+    assert call.kwargs["type_"] == AssetType.VIDEO
     assert call.kwargs["source"] == AssetSource.AI
     assert call.kwargs["sort"] == "name_asc"
     assert call.kwargs["limit"] == 12

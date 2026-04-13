@@ -956,7 +956,7 @@ class MetaProvider(BaseMetricsProvider):
         metrics: list[ExtractedMetric] = []
 
         # A) Simple numeric fields
-        _SIMPLE_FIELDS = [
+        _simple_fields = [
             ("reach", "reach", "count", None),
             ("impressions", "impressions", "count", None),
             ("clicks", "clicks", "count", None),
@@ -975,7 +975,7 @@ class MetaProvider(BaseMetricsProvider):
                 currency,
             ),
         ]
-        for api_field, metric_name, unit, cur in _SIMPLE_FIELDS:
+        for api_field, metric_name, unit, cur in _simple_fields:
             val = data.get(api_field)
             if val is not None:
                 metrics.append(
@@ -1101,7 +1101,7 @@ class MetaProvider(BaseMetricsProvider):
         )
 
         # G) Video metrics
-        _VIDEO_FIELDS = [
+        _video_fields = [
             ("video_p25_watched_actions", "meta_video_p25"),
             ("video_p50_watched_actions", "meta_video_p50"),
             ("video_p75_watched_actions", "meta_video_p75"),
@@ -1109,7 +1109,7 @@ class MetaProvider(BaseMetricsProvider):
             ("video_30_sec_watched_actions", "meta_video_30sec"),
             ("video_avg_time_watched_actions", "meta_video_avg_watch_time"),
         ]
-        for api_field, metric_name in _VIDEO_FIELDS:
+        for api_field, metric_name in _video_fields:
             for entry in data.get(api_field, []):
                 if entry.get("action_type") == "video_view":
                     unit = "seconds" if "avg" in api_field else "count"

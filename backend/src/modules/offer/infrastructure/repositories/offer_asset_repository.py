@@ -103,7 +103,7 @@ class OfferAssetRepository(IOfferAssetRepository):
         offer_id: UUID,
         *,
         search: str | None = None,
-        type: AssetType | None = None,
+        type_: AssetType | None = None,
         source: AssetSource | None = None,
         sort: str = "created_desc",
         limit: int = 24,
@@ -122,8 +122,8 @@ class OfferAssetRepository(IOfferAssetRepository):
                     OfferAssetModel.mime_type.ilike(like),
                 )
             )
-        if type is not None:
-            base_filters.append(OfferAssetModel.type == type.value)
+        if type_ is not None:
+            base_filters.append(OfferAssetModel.type == type_.value)
         if source is not None:
             base_filters.append(OfferAssetModel.source == source.value)
 

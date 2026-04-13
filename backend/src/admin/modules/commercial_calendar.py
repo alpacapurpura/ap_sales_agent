@@ -1,7 +1,5 @@
 """Streamlit admin module para Calendario Comercial."""
 
-from datetime import date
-
 import pandas as pd
 import streamlit as st
 
@@ -10,6 +8,7 @@ from src.modules.commercial_calendar.application.calendar_event_service import (
     CalendarEventService,
 )
 from src.modules.commercial_calendar.domain.enums import EventCategory
+from src.shared.domain.datetime_utils import utc_today
 
 COUNTRIES = {
     "PE": "Perú",
@@ -55,7 +54,7 @@ def render_commercial_calendar_page():
         )
     with col_ano:
         year = st.number_input(
-            "Año", min_value=2024, max_value=2030, value=date.today().year, step=1
+            "Año", min_value=2024, max_value=2030, value=utc_today().year, step=1
         )
 
     service, db = _get_service()
@@ -65,7 +64,7 @@ def render_commercial_calendar_page():
         db.close()
 
     with col_info:
-        st.metric("Semana actual", f"Semana {current_week} de {date.today().year}")
+        st.metric("Semana actual", f"Semana {current_week} de {utc_today().year}")
 
     st.divider()
 
@@ -114,7 +113,7 @@ def render_commercial_calendar_page():
             df = pd.DataFrame(rows)
 
             # Highlight semana actual (year coincidente)
-            if int(year) == date.today().year:
+            if int(year) == utc_today().year:
                 st.caption(f"✨ Semana actual resaltada: **Semana {current_week}**")
 
                 def highlight_week(row):
@@ -168,7 +167,7 @@ def render_commercial_calendar_page():
                     format_func=lambda v: CATEGORY_LABELS.get(v, v),
                 )
             with c2:
-                fecha_inicio = st.date_input("Fecha inicio", value=date.today())
+                fecha_inicio = st.date_input("Fecha inicio", value=utc_today())
                 fecha_fin = st.date_input(
                     "Fecha fin (opcional — para rangos)", value=None
                 )

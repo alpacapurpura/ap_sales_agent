@@ -128,16 +128,13 @@ ignore = [
     # === Progressive adoption: fix gradually, remove from ignore ===
     # B904, SIM105, EM101, EM102, ERA001, PERF401, T201 — ENFORCED (2026-04-12)
     # DTZ003, DTZ006, DTZ007, PERF203, N818, N811, N814, N815, RUF002, PLW0603, PLW2901, PLC0206, UP042 — ENFORCED (2026-04-13)
+    # FBT003, N806, A002, DTZ011 — ENFORCED (2026-04-13)
     "PLR0912",  # Too many branches (40) — refactor complex functions
     "PLR0915",  # Too many statements (38) — same
-    "DTZ011",   # datetime.date.today() (27) — migrate to timezone-aware
-    "N806",     # non-lowercase variable (12) — API_URL patterns in functions
     "N801",     # invalid class name (6) — existing naming patterns
     "N802",     # invalid function name (5) — test_ endpoints in FastAPI
-    "PT028",    # pytest param with default (23) — false positive on FastAPI test_ endpoints
+    "PT028",    # pytest param with default (22) — false positive on FastAPI test_ endpoints
     "PLR0911",  # too many return statements (12) — refactor complex functions
-    "FBT003",   # boolean positional value in call (7) — common FastAPI/Pydantic pattern
-    "A002",     # builtin argument shadowing (19) — `type`, `id` common in domain models
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -154,9 +151,11 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "PT",      # pytest style — legacy tests have mixed patterns
     "PLR2004", # magic values in test assertions are fine
     "T201",    # print() in tests is acceptable for debugging output
+    "N806",    # MockClient = MagicMock(...) is standard test pattern
+    "DTZ011",  # date.today() in test fixtures is acceptable
 ]
 "src/tests/**/*.py" = [
-    "S101", "ARG", "PT", "PLR2004", "T201",
+    "S101", "ARG", "PT", "PLR2004", "T201", "N806", "DTZ011",
 ]
 "src/scripts/**/*.py" = [
     "T201",    # CLI scripts legitimately use print() for output

@@ -53,14 +53,14 @@ async def upload_asset(
 
 @router.get("/", response_model=list[AssetDto])
 def list_assets(
-    type: str | None = Query(
-        None, description="Filter by asset type (IMAGE, VIDEO, etc)"
+    type_: str | None = Query(
+        None, alias="type", description="Filter by asset type (IMAGE, VIDEO, etc)"
     ),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     service = AssetsService(db)
-    return service.list_assets(tenant_id=user.tenant_id, asset_type=type)
+    return service.list_assets(tenant_id=user.tenant_id, asset_type=type_)
 
 
 @router.delete("/{asset_id}")
