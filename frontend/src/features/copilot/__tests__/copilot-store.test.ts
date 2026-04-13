@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useCopilotStore } from '@/features/copilot/store/copilot-store';
+import { useCopilotStore, MAX_MESSAGES } from '@/features/copilot/store/copilot-store';
 import type { CopilotMessage, UIAction, ActiveProcedure } from '@/features/copilot/store/copilot-store';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -90,6 +90,52 @@ describe('copilot-store', () => {
     expect(messages).toHaveLength(2);
     expect(messages[0].content).toBe('First');
     expect(messages[1].content).toBe('Second');
+  });
+
+  // ── Message limit (MAX_MESSAGES) ───────────────────────────────────────────
+
+  it('MAX_MESSAGES is exported and equals 100', () => {
+    expect(MAX_MESSAGES).toBe(100);
+  });
+
+  it('addMessage does not trim when count is at the limit', () => {
+    const msgs = Array.from({ length: MAX_MESSAGES }, (_, i) =>
+      makeMessage({ id: `msg-${i}`, content: `Message ${i}` })
+    );
+    msgs.forEach((m) => useCopilotStore.getState().addMessage(m));
+    expect(useCopilotStore.getState().messages).toHaveLength(MAX_MESSAGES);
+  });
+
+  it('addMessage trims oldest messages when limit is exceeded', () => {
+    // Fill to MAX_MESSAGES, then add one more
+    const msgs = Array.from({ length: MAX_MESSAGES }, (_, i) =>
+      makeMessage({ id: `msg-${i}`, content: `Message ${i}` })
+    );
+    msgs.forEach((m) => useCopilotStore.getState().addMessage(m));
+
+    const overflow = makeMessage({ id: 'msg-overflow', content: 'Overflow' });
+    useCopilotStore.getState().addMessage(overflow);
+
+    const { messages } = useCopilotStore.getState();
+    expect(messages).toHaveLength(MAX_MESSAGES);
+    // Oldest message (index 0) should be trimmed
+    expect(messages[0].id).toBe('msg-1');
+    // The overflow message should be the last one
+    expect(messages[messages.length - 1].id).toBe('msg-overflow');
+  });
+
+  it('addMessage keeps only the last MAX_MESSAGES when many are added', () => {
+    const total = MAX_MESSAGES + 50;
+    for (let i = 0; i < total; i++) {
+      useCopilotStore.getState().addMessage(
+        makeMessage({ id: `msg-${i}`, content: `Message ${i}` })
+      );
+    }
+    const { messages } = useCopilotStore.getState();
+    expect(messages).toHaveLength(MAX_MESSAGES);
+    // The first retained message should be msg-50 (total - MAX_MESSAGES)
+    expect(messages[0].id).toBe('msg-50');
+    expect(messages[messages.length - 1].id).toBe(`msg-${total - 1}`);
   });
 
   // ── enqueuUIAction / dequeuUIAction ────────────────────────────────────────

@@ -168,11 +168,25 @@ interface CopilotState {
 
 }
 
+// ── Constants ────────────────────────────────────────────────────────
+
+/** Maximum number of messages kept in memory. Oldest are trimmed when exceeded. */
+export const MAX_MESSAGES = 100;
+
 // ── Helpers ──────────────────────────────────────────────────────────
 
 /** Compute isOpen from sidebarState */
 function deriveIsOpen(sidebarState: SidebarState): boolean {
   return sidebarState !== "collapsed";
+}
+
+/**
+ * Append a message to the list and enforce the MAX_MESSAGES limit.
+ * Returns a new array with at most MAX_MESSAGES entries (oldest trimmed).
+ */
+function appendWithLimit(messages: CopilotMessage[], msg: CopilotMessage): CopilotMessage[] {
+  const next = [...messages, msg];
+  return next.length > MAX_MESSAGES ? next.slice(next.length - MAX_MESSAGES) : next;
 }
 
 // ── Store ───────────────────────────────────────────────────────────
@@ -201,7 +215,7 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
   setConversationId: (id) => set({ conversationId: id }),
 
   addMessage: (msg) =>
-    set((s) => ({ messages: [...s.messages, msg] })),
+    set((s) => ({ messages: appendWithLimit(s.messages, msg) })),
 
   appendToLastAssistant: (chunk) =>
     set((s) => {
