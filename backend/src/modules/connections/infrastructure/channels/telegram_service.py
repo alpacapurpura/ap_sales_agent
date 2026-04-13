@@ -53,7 +53,7 @@ class TelegramService:
                     raise ValueError(msg)
                 bot_info = resp.json().get("result", {})
             except httpx.RequestError as e:
-                logger.error("telegram_connection_error", error=str(e))
+                logger.exception("telegram_connection_error", error=str(e))
                 msg = f"Error conectando con Telegram: {e!s}"
                 raise RuntimeError(msg) from e
 
@@ -97,14 +97,14 @@ class TelegramService:
                             error_detail = (
                                 f"Telegram Error: {error_json.get('description')}"
                             )
-                    except Exception as e:
+                    except (ValueError, KeyError) as e:
                         logger.warning("failed_to_parse_telegram_error", error=str(e))
                     raise RuntimeError(error_detail)
 
                 logger.info("webhook_set_success", response=webhook_resp.json())
 
             except httpx.RequestError as e:
-                logger.error("webhook_network_error", error=str(e))
+                logger.exception("webhook_network_error", error=str(e))
                 msg = f"Error configurando Webhook: {e!s}"
                 raise RuntimeError(msg) from e
 
@@ -148,12 +148,14 @@ class TelegramService:
                         "message": "Conexion exitosa",
                         "data": resp.json(),
                     }
+            except httpx.HTTPError as e:
+                return {"status": "error", "message": f"Error de red: {e!s}"}
+
+            else:
                 return {
                     "status": "error",
                     "message": "El token parece invalido o expirado.",
                 }
-            except Exception as e:
-                return {"status": "error", "message": f"Error de red: {e!s}"}
 
     async def disconnect(self, tenant_id: UUID) -> dict[str, Any]:
         connection = self.repo.get_active(tenant_id, ChannelType.TELEGRAM)
@@ -169,8 +171,10 @@ class TelegramService:
                     await client.get(
                         f"https://api.telegram.org/bot{token}/deleteWebhook",
                     )
-                except Exception as e:
-                    logger.warning(f"Failed to delete webhook during disconnect: {e}")
+                except httpx.HTTPError as e:
+                    logger.warning(
+                        "Failed to delete webhook during disconnect", error=str(e)
+                    )
 
         self.repo.deactivate(connection)
 

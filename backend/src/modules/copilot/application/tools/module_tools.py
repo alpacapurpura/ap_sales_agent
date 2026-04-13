@@ -196,7 +196,7 @@ def _read_and_format_module(
             )  # type: ignore[union-attr]
         return _format_model_result(data, descriptor, section)
     except Exception as e:
-        logger.error("module_tools_error", module=module, error=str(e))
+        logger.exception("module_tools_error", module=module, error=str(e))
         return f"Error leyendo {descriptor.label}: {e!s}"  # type: ignore[union-attr]
     finally:
         db.close()

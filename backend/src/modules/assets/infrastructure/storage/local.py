@@ -1,6 +1,6 @@
-import os
 import shutil
 import uuid
+from pathlib import Path
 from typing import BinaryIO
 
 from src.core.config import settings
@@ -11,7 +11,7 @@ from .base import StorageStrategy
 class LocalStorageStrategy(StorageStrategy):
     def __init__(self, upload_dir: str = settings.UPLOAD_DIR):
         self.upload_dir = upload_dir
-        os.makedirs(self.upload_dir, exist_ok=True)
+        Path(self.upload_dir).mkdir(parents=True, exist_ok=True)
 
     def save(
         self,
@@ -20,22 +20,22 @@ class LocalStorageStrategy(StorageStrategy):
         path_prefix: str = "",
     ) -> tuple[str, str]:
         # Generate safe filename
-        ext = os.path.splitext(filename)[1]
+        ext = Path(filename).suffix
         unique_name = f"{uuid.uuid4()}{ext}"
 
         # Determine full path
         # When path_prefix is provided, creates subdirectories under upload_dir
 
         relative_path = (
-            os.path.join(path_prefix, unique_name) if path_prefix else unique_name
+            str(Path(path_prefix) / unique_name) if path_prefix else unique_name
         )
-        full_path = os.path.join(self.upload_dir, relative_path)
+        full_path = str(Path(self.upload_dir) / relative_path)
 
         # Ensure directory exists
-        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+        Path(full_path).parent.mkdir(parents=True, exist_ok=True)
 
         # Write file
-        with open(full_path, "wb") as buffer:
+        with Path(full_path).open("wb") as buffer:
             shutil.copyfileobj(file_obj, buffer)
 
         # Construct public URL
@@ -46,20 +46,21 @@ class LocalStorageStrategy(StorageStrategy):
         # So if file is at static/uploads/foo.png, url is /static/uploads/foo.png
 
         # Normalize paths for URL (replace backslashes on Windows)
-        url_path = os.path.join(self.upload_dir, relative_path).replace("\\", "/")
+        url_path = str(Path(self.upload_dir) / relative_path).replace("\\", "/")
         if not url_path.startswith("/"):
             url_path = "/" + url_path
 
         return full_path, url_path
 
     def get_file_bytes(self, storage_path: str) -> bytes:
-        with open(storage_path, "rb") as f:
-            return f.read()
+        return Path(storage_path).read_bytes()
 
     def delete(self, storage_path: str) -> bool:
         try:
-            if os.path.exists(storage_path):
-                os.remove(storage_path)
-            return True
-        except Exception:
+            p = Path(storage_path)
+            if p.exists():
+                p.unlink()
+        except OSError:
             return False
+        else:
+            return True

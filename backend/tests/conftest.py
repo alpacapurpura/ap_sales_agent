@@ -14,10 +14,10 @@ for mod_name in ("passlib", "passlib.context", "passlib.hash"):
         sys.modules[mod_name] = MagicMock()
 
 # --- Monkeypatch PostgreSQL Types for SQLite ---
-from sqlalchemy.dialects import postgresql  # noqa: E402
-from sqlalchemy.types import CHAR, Text, TypeDecorator  # noqa: E402
+from sqlalchemy.dialects import postgresql
+from sqlalchemy.types import CHAR, Text, TypeDecorator
 
-from src.shared.domain.base_entity import Base  # noqa: E402
+from src.shared.domain.base_entity import Base
 
 
 class MockJSONB(TypeDecorator):
@@ -45,7 +45,7 @@ class MockJSONB(TypeDecorator):
 
         try:
             return json.loads(value)
-        except Exception:
+        except Exception:  # noqa: BLE001 — test infrastructure resilience
             return {}
 
 
@@ -95,58 +95,58 @@ def db_engine():
     # Import all models to ensure they are registered and relationships can be resolved
     try:
         from src.modules.brand.infrastructure.models.avatar_model import (
-            AvatarModel,  # noqa: F401
+            AvatarModel,
         )
         from src.modules.brand.infrastructure.models.extraction_trace_model import (
-            BrandExtractionTrace,  # noqa: F401
+            BrandExtractionTrace,
         )
         from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import (
-            CalendarEventModel,  # noqa: F401
+            CalendarEventModel,
         )
         from src.modules.connections.infrastructure.models.channel_connection_model import (
-            ChannelConnectionModel,  # noqa: F401
+            ChannelConnectionModel,
         )
         from src.modules.copilot.infrastructure.models.interview_session_model import (
-            InterviewSessionModel,  # noqa: F401
+            InterviewSessionModel,
         )
         from src.modules.crm.infrastructure.models.lead_model import (
-            LeadModel,  # noqa: F401
+            LeadModel,
         )
         from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
-            LifecycleTransitionModel,  # noqa: F401
+            LifecycleTransitionModel,
         )
         from src.modules.crm.infrastructure.models.sale_model import (
-            SaleModel,  # noqa: F401
+            SaleModel,
         )
         from src.modules.iam.infrastructure.models.tenant_model import (
-            TenantModel,  # noqa: F401
+            TenantModel,
         )
         from src.modules.landing.infrastructure.models.landing_model import (
-            LandingPageModel,  # noqa: F401
+            LandingPageModel,
         )
         from src.modules.offer.infrastructure.models.knowledge_source_model import (
-            KnowledgeSourceModel,  # noqa: F401
+            KnowledgeSourceModel,
         )
         from src.modules.offer.infrastructure.models.launch_edition_model import (
-            LaunchEditionModel,  # noqa: F401
+            LaunchEditionModel,
         )
         from src.modules.offer.infrastructure.models.offer_asset_model import (
-            OfferAssetModel,  # noqa: F401
+            OfferAssetModel,
         )
         from src.modules.offer.infrastructure.models.product_model import (
-            ProductModel,  # noqa: F401
+            ProductModel,
         )
         from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
-            AgentStateCheckpointModel,  # noqa: F401
+            AgentStateCheckpointModel,
         )
         from src.modules.sales_agent.infrastructure.models.message_model import (
-            MessageModel,  # noqa: F401
+            MessageModel,
         )
         from src.modules.scheduling.infrastructure.models.appointment_model import (
-            AppointmentModel,  # noqa: F401
+            AppointmentModel,
         )
         from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import (
-            TenantDomainModel,  # noqa: F401
+            TenantDomainModel,
         )
     except ImportError as e:
         print(f"Warning: Could not import some models: {e}")

@@ -238,7 +238,7 @@ ARCHETYPE_DEFAULT_DELIVERY: dict[OfferArchetype, OfferDeliveryModel] = {
 
 def get_enum_options(
     enum_class: type[Enum],
-    metadata: dict[str, dict[str, Any]] = None,
+    metadata: dict[str, dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     options = []
     for e in enum_class:

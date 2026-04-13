@@ -13,7 +13,7 @@ from googleapiclient.discovery import build
 from src.core.config import settings
 
 # Allow OAuth scope to change
-os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"  # noqa: S105
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class GmailAdapter:
         }
 
     @staticmethod
-    def get_authorization_url(redirect_uri: str = None) -> tuple[str, str]:
+    def get_authorization_url(redirect_uri: str | None = None) -> tuple[str, str]:
         """Generates the authorization URL and state."""
         flow = Flow.from_client_config(GmailAdapter.get_client_config(), scopes=SCOPES)
         flow.redirect_uri = redirect_uri or settings.GOOGLE_REDIRECT_URI
@@ -61,7 +61,7 @@ class GmailAdapter:
         return authorization_url, state
 
     @staticmethod
-    def exchange_code(code: str, redirect_uri: str = None) -> dict[str, Any]:
+    def exchange_code(code: str, redirect_uri: str | None = None) -> dict[str, Any]:
         """Exchanges the authorization code for tokens."""
         flow = Flow.from_client_config(GmailAdapter.get_client_config(), scopes=SCOPES)
 
@@ -71,8 +71,8 @@ class GmailAdapter:
             flow.fetch_token(code=code)
             creds = flow.credentials
             return json.loads(creds.to_json())
-        except Exception as e:
-            logger.error(f"Error exchanging code for token: {e}")
+        except Exception:
+            logger.exception("Error exchanging code for token")
             raise
 
     def get_service(self):
@@ -88,13 +88,15 @@ class GmailAdapter:
         try:
             profile = service.users().getProfile(userId="me").execute()
             if not profile or "emailAddress" not in profile:
-                logger.error(f"Gmail Profile Response Invalid: {profile}")
+                logger.error("Gmail Profile Response Invalid: %s", profile)
                 msg = "Could not retrieve email address from Gmail API"
-                raise ValueError(msg)
-            return profile
-        except Exception as e:
-            logger.error(f"Error fetching profile: {e}")
+                raise ValueError(msg)  # noqa: TRY301
+        except Exception:
+            logger.exception("Error fetching profile")
             raise
+
+        else:
+            return profile
 
     def send_email(self, to_email: str, subject: str, body_html: str) -> dict[str, Any]:
         """Sends an HTML email."""
@@ -114,7 +116,8 @@ class GmailAdapter:
                 .send(userId="me", body={"raw": raw_message})
                 .execute()
             )
-            return message
-        except Exception as e:
-            logger.error(f"Error sending email to {to_email}: {e}")
+        except Exception:
+            logger.exception("Error sending email to %s", to_email)
             raise
+        else:
+            return message

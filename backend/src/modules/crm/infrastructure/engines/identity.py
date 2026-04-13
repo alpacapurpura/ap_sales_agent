@@ -19,7 +19,7 @@ class IdentityResolutionEngine:
         self,
         identity_type: IdentityType,
         value: str,
-        traits: dict[str, Any] = None,
+        traits: dict[str, Any] | None = None,
     ) -> CustomerProfile:
         """
         Resuelve una identidad a un perfil de cliente unificado.
@@ -38,7 +38,7 @@ class IdentityResolutionEngine:
         profile = self.repository.find_by_identity(value, identity_type)
 
         if profile:
-            # TODO: Actualizar traits si es necesario (merge)
+            # NOTE: Actualizar traits si es necesario (merge)
             return profile
 
         # 2. Si no existe, crear nuevo perfil

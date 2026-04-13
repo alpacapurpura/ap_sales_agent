@@ -18,7 +18,7 @@ def sample_asset(db, seed_tenant, tenant_id):
         filename="logo.png",
         mime_type="image/png",
         storage_provider=StorageProvider.LOCAL.value,
-        storage_path="/tmp/assets/logo.png",  # noqa: S108
+        storage_path="/tmp/assets/logo.png",
         public_url="/static/uploads/logo.png",
         status=AssetStatus.COMPLETED.value,
     )

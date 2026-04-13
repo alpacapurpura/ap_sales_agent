@@ -293,7 +293,7 @@ class MetaCampaignProvider:
                 thumbs = resp.json().get("thumbnails", {}).get("data", [])
                 if thumbs:
                     ad["creative_image_url"] = thumbs[0]["uri"]
-            except Exception:
+            except httpx.HTTPError:
                 logger.debug("video_thumbnail_fetch_failed video_id=%s", vid)
 
     async def extract_account_recommendations(

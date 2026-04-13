@@ -70,7 +70,7 @@ async def oauth_callback(
     try:
         creds_data = GoogleCalendarAdapter.exchange_code(code, redirect_uri)
     except Exception as e:
-        logger.error("oauth_exchange_failed", error=str(e))
+        logger.exception("oauth_exchange_failed", error=str(e))
         raise HTTPException(
             status_code=400,
             detail="Error de autenticacion con Google",
@@ -81,7 +81,7 @@ async def oauth_callback(
         service = adapter.get_service()
         calendar = service.calendars().get(calendarId="primary").execute()
         email = calendar.get("id")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning("failed_to_get_calendar_info", error=str(e))
         email = "Unknown"
 
@@ -226,7 +226,7 @@ async def test_connection(
             "data": {"busy_slots": len(busy), "email": connection.config.get("email")},
         }
     except Exception as e:
-        logger.error("calendar_test_failed", error=str(e))
+        logger.exception("calendar_test_failed", error=str(e))
         return {"status": "error", "message": str(e)}
 
 
@@ -258,7 +258,7 @@ async def book_meeting(
         )
         return {"status": "booked", "event_link": event.get("htmlLink")}
     except Exception as e:
-        logger.error("booking_failed", error=str(e))
+        logger.exception("booking_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 

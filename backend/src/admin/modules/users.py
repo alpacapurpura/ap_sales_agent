@@ -46,7 +46,7 @@ def get_users(tenant_id):
         db.close()
 
 
-def render_users_view():  # noqa: C901
+def render_users_view():
     st.title("👥 Gestión de Usuarios")
 
     # 1. Select Tenant
@@ -148,7 +148,7 @@ def render_users_view():  # noqa: C901
                     col_act1, col_act2, col_act3 = st.columns(3)
 
                     # Action: Change Password
-                    with col_act1:  # noqa: SIM117
+                    with col_act1:
                         with st.container(border=True):
                             st.markdown("#### 🔐 Cambiar Contraseña")
                             with st.form("change_pwd_form"):
@@ -184,11 +184,11 @@ def render_users_view():  # noqa: C901
                                                 st.error(
                                                     "❌ Error al actualizar en Clerk. Verifique logs (Posible password débil o pwned).",
                                                 )
-                                        except Exception as e:
+                                        except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
                                             st.error(f"❌ Error Clerk: {e}")
 
                     # -- Block/Unblock (Global) --
-                    with col_act2:  # noqa: SIM117
+                    with col_act2:
                         with st.container(border=True):
                             st.markdown("#### 🚫 Gestión de Acceso")
                             status_label = (
@@ -209,7 +209,7 @@ def render_users_view():  # noqa: C901
                                 ):
                                     # 1. Ban in Clerk
                                     clerk_success = True
-                                    if target_user.clerk_id:  # noqa: SIM102
+                                    if target_user.clerk_id:
                                         if not clerk.ban_user(target_user.clerk_id):
                                             st.warning(
                                                 "⚠️ No se pudo banear en Clerk (o no existe), pero se bloqueará localmente.",
@@ -238,7 +238,7 @@ def render_users_view():  # noqa: C901
                             ):
                                 # 1. Unban in Clerk
                                 clerk_success = True
-                                if target_user.clerk_id:  # noqa: SIM102
+                                if target_user.clerk_id:
                                     if not clerk.unban_user(target_user.clerk_id):
                                         st.warning(
                                             "⚠️ No se pudo desbanear en Clerk, pero se activará localmente.",
@@ -260,7 +260,7 @@ def render_users_view():  # noqa: C901
                                 st.rerun()
 
                     # Action: Remove from Tenant (Soft-Delete)
-                    with col_act3:  # noqa: SIM117
+                    with col_act3:
                         with st.container(border=True):
                             st.markdown("#### 🗑️ Eliminar del Tenant")
                             st.caption(
@@ -405,7 +405,7 @@ def render_users_view():  # noqa: C901
                                     )
                                     time.sleep(1.5)
                                     st.rerun()
-                                except Exception as e_react:
+                                except Exception as e_react:  # noqa: BLE001 — Streamlit UI error boundary
                                     db.rollback()
                                     st.error(
                                         f"❌ Error al reactivar usuario: {e_react}",
@@ -443,7 +443,7 @@ def render_users_view():  # noqa: C901
 
                                     time.sleep(1.5)
                                     st.rerun()
-                                except Exception as e_link:
+                                except Exception as e_link:  # noqa: BLE001 — Streamlit UI error boundary
                                     db.rollback()
                                     st.error(f"❌ Error al asignar usuario: {e_link}")
 
@@ -491,7 +491,7 @@ def render_users_view():  # noqa: C901
                                                     new_pass,
                                                 )
                                     else:
-                                        raise e_clerk
+                                        raise
 
                             # 3. Create in Local DB
                             if created_clerk_id:
@@ -521,13 +521,13 @@ def render_users_view():  # noqa: C901
 
                                     time.sleep(1.5)
                                     st.rerun()
-                                except Exception as db_e:
+                                except Exception as db_e:  # noqa: BLE001 — Streamlit UI error boundary
                                     db.rollback()
                                     st.error(f"❌ Error al guardar en DB Local: {db_e}")
                             else:
                                 st.error("❌ No se pudo obtener ID de Clerk.")
 
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
                         st.error(f"❌ Error del proceso: {e!s}")
                     finally:
                         db.close()

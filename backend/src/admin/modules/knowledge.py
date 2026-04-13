@@ -16,7 +16,7 @@ def get_store() -> CopilotKnowledgeStore:
     return CopilotKnowledgeStore()
 
 
-def render_knowledge_page():  # noqa: C901
+def render_knowledge_page():
     st.title("🧠 Knowledge Base — Copilot")
 
     # ── Guia contextual permanente ──
@@ -94,7 +94,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                 st.caption(f"Total: {len(all_docs)} chunks")
             else:
                 st.info("No hay documentos indexados.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
             st.error(f"Error: {e}")
 
     # --- TAB 1: Dashboard ---
@@ -115,7 +115,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                 st.error(f"Error: {stats['error']}")
             else:
                 st.success(f"Status: {stats.get('status', 'unknown')}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
             st.error(f"Error conectando a Qdrant: {e}")
 
     # --- TAB 2: Explorar Documentos ---
@@ -156,7 +156,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                     st.caption(f"Mostrando {len(docs)} documentos")
                 else:
                     st.info("No se encontraron documentos.")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
                 st.error(f"Error: {e}")
 
     # --- TAB 3: Buscar ---
@@ -203,7 +203,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                             st.json(meta)
                 else:
                     st.info("Sin resultados.")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
                 st.error(f"Error: {e}")
 
     # --- TAB 4: Ingestar ---
@@ -274,7 +274,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                         )
                     else:
                         st.warning("No se pudo extraer texto del archivo.")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
                     st.error(f"Error: {e}")
 
         st.divider()
@@ -294,7 +294,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                     st.warning(
                         "No se encontraron datos del tenant para generar resumen.",
                     )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
                 st.error(f"Error: {e}")
 
     # --- TAB 5: Eliminar ---
@@ -323,5 +323,5 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                         st.success("Documento eliminado.")
                     else:
                         st.error("Error eliminando documento.")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
                     st.error(f"Error: {e}")

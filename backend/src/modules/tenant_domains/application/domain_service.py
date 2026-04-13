@@ -51,7 +51,7 @@ class DomainService:
                     "type": "platform",
                 },
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — service resilience
             logger.warning("cf_kv_sync_failed", hostname=hostname, error=str(e))
         return saved
 
@@ -79,7 +79,7 @@ class DomainService:
             if cname_target:
                 domain.verification_cname_target = cname_target
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "cf_custom_hostname_create_failed",
                 hostname=hostname,
                 error=str(e),
@@ -111,7 +111,7 @@ class DomainService:
                         "type": "custom",
                     },
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — service resilience
                 logger.warning(
                     "cf_kv_sync_failed",
                     hostname=domain.hostname,
@@ -132,11 +132,11 @@ class DomainService:
         if domain.cloudflare_hostname_id:
             try:
                 self.cf.delete_custom_hostname(domain.cloudflare_hostname_id)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — service resilience
                 logger.warning("cf_delete_failed", error=str(e))
         try:
             self.cf.delete_kv(domain.hostname)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — service resilience
             logger.warning("cf_kv_delete_failed", error=str(e))
         self.repo.soft_delete(domain_id, tenant_id)
 

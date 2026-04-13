@@ -40,13 +40,8 @@ class EncryptedJSON(TypeDecorator):
         if isinstance(value, dict) and "_encrypted" in value:
             encrypted_str = value["_encrypted"]
             key = get_encryption_key()
-            try:
-                decrypted_json_str = decrypt_string(encrypted_str, key)
-                return json.loads(decrypted_json_str)
-            except Exception:
-                # In case of decryption failure, we might want to log it or raise an error.
-                # For now, let's re-raise to be safe.
-                raise
+            decrypted_json_str = decrypt_string(encrypted_str, key)
+            return json.loads(decrypted_json_str)
 
         # If it's not encrypted (legacy data), return as is
         return value

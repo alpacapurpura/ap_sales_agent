@@ -37,7 +37,7 @@ async def sync_manychat_subscribers(tenant_id: UUID, db: Session) -> dict:
     conn_stmt = select(ChannelConnectionModel).where(
         ChannelConnectionModel.tenant_id == tenant_id,
         ChannelConnectionModel.channel_type == "manychat",
-        ChannelConnectionModel.is_active == True,  # noqa: E712
+        ChannelConnectionModel.is_active == True,
     )
     connection = db.execute(conn_stmt).scalar_one_or_none()
     if not connection:

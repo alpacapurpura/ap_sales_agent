@@ -20,7 +20,7 @@ def _postgres_available() -> bool:
         host = settings.POSTGRES_HOST
         with socket.create_connection((host, 5432), timeout=1):
             return True
-    except (OSError, Exception):
+    except (OSError, Exception):  # noqa: BLE001 — test infrastructure resilience
         return False
 
 
@@ -30,38 +30,38 @@ if not _postgres_available():
         allow_module_level=True,
     )
 
-from uuid import UUID  # noqa: E402
+from uuid import UUID
 
-from sqlalchemy import text  # noqa: E402
+from sqlalchemy import text
 
-from src.core.context import set_tenant_id  # noqa: E402
-from src.core.database import SessionLocal  # noqa: E402
-from src.modules.crm.application.services.identity_service import (  # noqa: E402
+from src.core.context import set_tenant_id
+from src.core.database import SessionLocal
+from src.modules.crm.application.services.identity_service import (
     IdentityService,
 )
-from src.modules.crm.domain.enums import IdentityType, LifecycleStage  # noqa: E402
-from src.modules.crm.infrastructure.models.customer_model import (  # noqa: E402
+from src.modules.crm.domain.enums import IdentityType, LifecycleStage
+from src.modules.crm.infrastructure.models.customer_model import (
     CustomerIdentityModel,
     CustomerProfileModel,
 )
-from src.modules.crm.infrastructure.repositories.customer_repository import (  # noqa: E402
+from src.modules.crm.infrastructure.repositories.customer_repository import (
     CustomerRepository,
 )
-from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (  # noqa: E402
+from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
     LeadRepository,
 )
 
 # Import all related models so SQLAlchemy can resolve relationships
-from src.modules.iam.infrastructure.models.tenant_model import (  # noqa: E402, F401
+from src.modules.iam.infrastructure.models.tenant_model import (  # noqa: F401
     TenantModel,
 )
-from src.modules.sales_agent.infrastructure.memory.audit_repository import (  # noqa: E402
+from src.modules.sales_agent.infrastructure.memory.audit_repository import (
     AuditRepository,
 )
-from src.modules.sales_agent.infrastructure.models.message_model import (  # noqa: E402, F401
+from src.modules.sales_agent.infrastructure.models.message_model import (  # noqa: F401
     MessageModel,
 )
-from src.modules.scheduling.infrastructure.models.appointment_model import (  # noqa: E402, F401
+from src.modules.scheduling.infrastructure.models.appointment_model import (  # noqa: F401
     AppointmentModel,
 )
 

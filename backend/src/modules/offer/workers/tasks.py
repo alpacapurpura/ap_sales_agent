@@ -43,7 +43,7 @@ async def run_offer_extraction(
     try:
         db_factory = ctx["db_factory"]
         db = db_factory()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — worker task error boundary
         _fail_progress(
             redis,
             progress_key,
@@ -104,9 +104,8 @@ async def run_offer_extraction(
             tenant_id,
             job_id,
         )
-        return {"status": "success", "tenant_id": tenant_id, "job_id": job_id}
 
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — worker task error boundary
         _fail_progress(
             redis,
             progress_key,
@@ -115,6 +114,8 @@ async def run_offer_extraction(
         )
         return {"status": "failed", "tenant_id": tenant_id, "error": str(exc)}
 
+    else:
+        return {"status": "success", "tenant_id": tenant_id, "job_id": job_id}
     finally:
         if db:
             db.close()

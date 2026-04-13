@@ -43,9 +43,10 @@ async def check_is_complete(text: str, tenant=None) -> bool:
             result=content,
             is_complete=is_complete,
         )
-        return is_complete
 
-    except Exception as e:
-        logger.error(f"Semantic check failed: {e}")
+    except Exception:
+        logger.exception("Semantic check failed")
         # Fail safe: Default to False (wait longer) to avoid interrupting
         return False
+    else:
+        return is_complete

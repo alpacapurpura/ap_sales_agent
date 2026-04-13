@@ -8,7 +8,7 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 
 # Allow OAuth scope to change
-os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"  # noqa: S105
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
 logger = logging.getLogger(__name__)
 
@@ -74,8 +74,8 @@ class YoutubeAdapter:
             flow.fetch_token(code=code)
             creds = flow.credentials
             return json.loads(creds.to_json())
-        except Exception as e:
-            logger.error(f"Error exchanging code for token: {e}")
+        except Exception:
+            logger.exception("Error exchanging code for token")
             raise
 
     def get_service(self):
@@ -111,6 +111,6 @@ class YoutubeAdapter:
                 "statistics": channel.get("statistics"),
                 "publishedAt": channel.get("snippet", {}).get("publishedAt"),
             }
-        except Exception as e:
-            logger.error(f"Error fetching YouTube channel info: {e}")
+        except Exception:
+            logger.exception("Error fetching YouTube channel info")
             raise

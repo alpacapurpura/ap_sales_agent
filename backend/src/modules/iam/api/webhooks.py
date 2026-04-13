@@ -115,7 +115,7 @@ async def clerk_webhook_handler(request: Request, db=Depends(get_db)):
         # verify returns the event payload as a dict
         evt = wh.verify(payload, headers)
     except WebhookVerificationError as e:
-        logger.error("clerk_webhook_verification_failed", error=str(e))
+        logger.exception("clerk_webhook_verification_failed", error=str(e))
         raise HTTPException(status_code=400, detail="Invalid signature") from e
 
     # 3. Process Event
@@ -138,7 +138,7 @@ async def clerk_webhook_handler(request: Request, db=Depends(get_db)):
             logger.info("clerk_webhook_ignored_type", event_type=event_type)
 
     except Exception as e:
-        logger.error(
+        logger.exception(
             "clerk_webhook_processing_error",
             error=str(e),
             event_type=event_type,

@@ -107,7 +107,7 @@ class GoogleAdsAdapter:
                 AND campaign.status = 'ENABLED'
             ORDER BY metrics.impressions DESC
             LIMIT 50
-        """  # noqa: S608
+        """
         if not developer_token:
             return []
         try:

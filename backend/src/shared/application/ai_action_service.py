@@ -88,8 +88,7 @@ class AIActionService:
                     ),
                     model_type=resolved_policy.model.model_type,
                 )
-                return parsed
-            except (json.JSONDecodeError, ValidationError, Exception) as error:
+            except (json.JSONDecodeError, ValidationError, Exception) as error:  # noqa: BLE001 — service resilience
                 last_error = error
                 raw_preview = (
                     llm_response[:300] if "llm_response" in locals() else "N/A"
@@ -111,6 +110,8 @@ class AIActionService:
                 if attempt < resolved_policy.retries:
                     time.sleep(resolved_policy.retry_delay_seconds * attempt)
 
+            else:
+                return parsed
         self.logger.error(
             "ai_action_failure",
             action_name=action_name,

@@ -123,7 +123,7 @@ class AssetsService:
                 self._update_asset_in_db(db, asset)
 
             except Exception as e:
-                logger.error("asset_processing_error", error=str(e))
+                logger.exception("asset_processing_error", error=str(e))
                 asset.status = AssetStatus.FAILED
                 asset.error_message = str(e)
                 self._update_asset_in_db(db, asset)
@@ -131,7 +131,7 @@ class AssetsService:
                 db.close()
 
         except Exception as e:
-            logger.error("background_task_failed", error=str(e))
+            logger.exception("background_task_failed", error=str(e))
 
     def _update_asset_in_db(self, db: Session, asset: Asset):
         from sqlalchemy import update

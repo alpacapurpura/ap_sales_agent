@@ -20,7 +20,7 @@ def _get_module_completion(db, tenant_id, module_id, registry) -> float:
     try:
         repo = descriptor.repo_factory(db)
         data = descriptor.read_fn(repo, tenant_id)
-    except Exception:
+    except Exception:  # noqa: BLE001 — Streamlit UI error boundary
         return 0.0
     if not data:
         return 0.0
@@ -37,7 +37,7 @@ def _get_module_completion(db, tenant_id, module_id, registry) -> float:
     return 1.0
 
 
-def render_tenant_health():  # noqa: C901
+def render_tenant_health():
     st.title("🏥 Salud de Tenants")
 
     from src.admin.modules._shared import (
@@ -183,7 +183,7 @@ def render_tenant_health():  # noqa: C901
         finally:
             db.close()
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
         st.error(f"Error: {e}")
         import traceback
 
@@ -253,7 +253,7 @@ def render_tenant_health():  # noqa: C901
                             for sec_name, sec_status in completion.items():
                                 icon = "✅" if sec_status.is_configured else "❌"
                                 st.caption(f"  {icon} {sec_name}")
-                    except Exception:  # noqa: S110
+                    except Exception:  # noqa: BLE001 — Streamlit UI error boundary
                         pass
 
                 # Count for list-based modules
@@ -263,7 +263,7 @@ def render_tenant_health():  # noqa: C901
                         data = descriptor.read_fn(repo, sel_tid)
                         count = len(data) if isinstance(data, list) else 0
                         st.caption(f"  {count} items")
-                    except Exception:  # noqa: S110
+                    except Exception:  # noqa: BLE001 — Streamlit UI error boundary
                         pass
         finally:
             db_detail.close()

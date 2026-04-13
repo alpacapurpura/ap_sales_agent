@@ -46,7 +46,7 @@ class CaptureMetricsRepository:
                 CustomerProfileModel.first_seen_at >= start_date,
                 CustomerProfileModel.first_seen_at <= end_date,
                 CustomerProfileModel.lead_source.isnot(None),
-                CustomerProfileModel.is_inactive == False,  # noqa: E712
+                CustomerProfileModel.is_inactive == False,
             )
             .group_by(CustomerProfileModel.lead_source)
         )
@@ -85,7 +85,7 @@ class CaptureMetricsRepository:
                 CustomerProfileModel.first_seen_at >= start_date,
                 CustomerProfileModel.first_seen_at <= end_date,
                 CustomerProfileModel.lead_source.isnot(None),
-                CustomerProfileModel.is_inactive == False,  # noqa: E712
+                CustomerProfileModel.is_inactive == False,
             )
             .group_by(CustomerProfileModel.lead_source)
         )
@@ -108,7 +108,7 @@ class CaptureMetricsRepository:
         """
         # JourneyEventModel does not have session_id, so use distinct profile_id
         # as approximation for unique conversations.
-        # TODO: Add session tracking to JourneyEventModel for more accurate counts.
+        # NOTE: Add session tracking to JourneyEventModel for more accurate counts.
         channel_col = func.jsonb_extract_path_text(
             JourneyEventModel.properties,
             "channel_slug",

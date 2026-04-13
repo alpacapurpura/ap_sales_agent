@@ -233,7 +233,7 @@ class LandingGenerationService:
             return
         try:
             self._events.publish(event)
-        except Exception:
+        except Exception:  # noqa: BLE001 — service resilience
             logger.warning("offer_landing_event_publish_failed")
 
 

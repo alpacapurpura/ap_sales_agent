@@ -43,14 +43,16 @@ class TenantService:
             )
 
             created_tenant = self.repository.create(new_tenant)
-            return created_tenant, None
 
         except IntegrityError:
             self.db.rollback()
             return None, "Error: El Slug ya existe."
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — service resilience
             self.db.rollback()
             return None, str(e)
+
+        else:
+            return created_tenant, None
 
     def update_tenant(
         self,
@@ -79,11 +81,12 @@ class TenantService:
             tenant.is_active = is_active
 
             updated_tenant = self.repository.update(tenant)
-            return updated_tenant, None
 
         except IntegrityError:
             self.db.rollback()
             return None, "Error: El Slug ya existe."
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — service resilience
             self.db.rollback()
             return None, str(e)
+        else:
+            return updated_tenant, None

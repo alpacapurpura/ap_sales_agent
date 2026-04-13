@@ -111,13 +111,15 @@ async def get_status(
     try:
         adapter = YouTubeAnalyticsAdapter(connection.credentials)
         channel_id = adapter.get_channel_id()
+    except Exception as e:  # noqa: BLE001 — API error boundary
+        logger.warning("youtube_analytics_status_failed", error=str(e))
+        return {"is_connected": True, "channel_id": None}
+
+    else:
         return {
             "is_connected": True,
             "channel_id": channel_id,
         }
-    except Exception as e:
-        logger.warning("youtube_analytics_status_failed", error=str(e))
-        return {"is_connected": True, "channel_id": None}
 
 
 @router.get("/overview", response_model=YouTubeAnalyticsDataResponse)
@@ -133,10 +135,12 @@ async def get_overview(
     sd, ed = _default_dates(start_date, end_date)
     try:
         data = adapter.get_channel_overview(sd, ed)
-        return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
     except Exception as e:
-        logger.error("youtube_analytics_overview_failed", error=str(e))
+        logger.exception("youtube_analytics_overview_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+    else:
+        return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
 
 
 @router.get("/daily-views", response_model=YouTubeAnalyticsDataResponse)
@@ -149,10 +153,12 @@ async def get_daily_views(
     sd, ed = _default_dates(start_date, end_date)
     try:
         data = adapter.get_daily_views(sd, ed)
-        return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
     except Exception as e:
-        logger.error("youtube_analytics_daily_views_failed", error=str(e))
+        logger.exception("youtube_analytics_daily_views_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+    else:
+        return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
 
 
 @router.get("/top-videos", response_model=YouTubeAnalyticsDataResponse)
@@ -166,10 +172,12 @@ async def get_top_videos(
     sd, ed = _default_dates(start_date, end_date)
     try:
         data = adapter.get_top_videos(sd, ed, max_results=max_results)
-        return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
     except Exception as e:
-        logger.error("youtube_analytics_top_videos_failed", error=str(e))
+        logger.exception("youtube_analytics_top_videos_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+    else:
+        return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
 
 
 @router.get("/demographics", response_model=YouTubeAnalyticsDataResponse)
@@ -182,10 +190,12 @@ async def get_demographics(
     sd, ed = _default_dates(start_date, end_date)
     try:
         data = adapter.get_demographics(sd, ed)
-        return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
     except Exception as e:
-        logger.error("youtube_analytics_demographics_failed", error=str(e))
+        logger.exception("youtube_analytics_demographics_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+    else:
+        return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
 
 
 @router.get("/traffic-sources", response_model=YouTubeAnalyticsDataResponse)
@@ -198,10 +208,12 @@ async def get_traffic_sources(
     sd, ed = _default_dates(start_date, end_date)
     try:
         data = adapter.get_traffic_sources(sd, ed)
-        return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
     except Exception as e:
-        logger.error("youtube_analytics_traffic_sources_failed", error=str(e))
+        logger.exception("youtube_analytics_traffic_sources_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+    else:
+        return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
 
 
 @router.get("/countries", response_model=YouTubeAnalyticsDataResponse)
@@ -215,10 +227,12 @@ async def get_countries(
     sd, ed = _default_dates(start_date, end_date)
     try:
         data = adapter.get_countries(sd, ed, max_results=max_results)
-        return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
     except Exception as e:
-        logger.error("youtube_analytics_countries_failed", error=str(e))
+        logger.exception("youtube_analytics_countries_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+    else:
+        return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
 
 
 @router.get("/top-videos-enriched", response_model=TopVideosResponse)
@@ -235,7 +249,7 @@ async def get_top_videos_enriched(
         videos = [VideoDetail(**v) for v in data]
         return TopVideosResponse(status="ok", data=videos, start_date=sd, end_date=ed)
     except Exception as e:
-        logger.error("youtube_analytics_top_videos_enriched_failed", error=str(e))
+        logger.exception("youtube_analytics_top_videos_enriched_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -250,6 +264,10 @@ async def test_connection(
     try:
         overview = adapter.get_channel_overview(start, end)
         channel_id = adapter.get_channel_id()
+    except Exception as e:
+        logger.exception("youtube_analytics_test_failed", error=str(e))
+        return {"status": "error", "message": str(e)}
+    else:
         return {
             "status": "ok",
             "message": "Conexión con YouTube Analytics exitosa",
@@ -259,6 +277,3 @@ async def test_connection(
                 **overview,
             },
         }
-    except Exception as e:
-        logger.error("youtube_analytics_test_failed", error=str(e))
-        return {"status": "error", "message": str(e)}

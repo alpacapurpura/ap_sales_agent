@@ -150,7 +150,7 @@ async def create_whatsapp_session(
                 status=resp.get("status"),
                 body=resp.get("text"),
             )
-            raise HTTPException(
+            raise HTTPException(  # noqa: TRY301
                 status_code=500,
                 detail=f"Failed to create instance: {resp.get('text')}",
             )
@@ -174,17 +174,18 @@ async def create_whatsapp_session(
             config={},
         )
 
-        return {"status": "created", "instance": tenant_id}
-
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
+        logger.exception(
             "whatsapp_create_session_failed",
             error=str(e),
             traceback=traceback.format_exc(),
         )
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+    else:
+        return {"status": "created", "instance": tenant_id}
 
 
 @router.get("/whatsapp/qr", response_model=WhatsAppQRResponse)
@@ -208,11 +209,11 @@ async def get_whatsapp_qr(
 
             return data
         if resp.get("status") == 404:
-            raise HTTPException(
+            raise HTTPException(  # noqa: TRY301
                 status_code=404,
                 detail="Instance not found. Create session first.",
             )
-        raise HTTPException(
+        raise HTTPException(  # noqa: TRY301
             status_code=500,
             detail=f"Evolution Error: {resp.get('text')}",
         )
@@ -249,9 +250,11 @@ async def delete_whatsapp_session(
         if connection:
             repo.deactivate(connection)
 
-        return {"status": "deleted"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+    else:
+        return {"status": "deleted"}
 
 
 @router.post("/whatsapp/webhook/{tenant_id}")

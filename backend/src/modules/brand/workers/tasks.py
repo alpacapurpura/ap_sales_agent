@@ -61,7 +61,7 @@ async def run_brand_extraction(
     try:
         db_factory = ctx["db_factory"]
         db = db_factory()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — worker task error boundary
         _fail_progress(
             redis,
             progress_key,
@@ -104,7 +104,7 @@ async def run_brand_extraction(
             include_visuals=include_visuals,
             include_assets=include_assets,
         )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — worker task error boundary
         logger.warning("Could not create trace collector: %s", exc)
 
     try:
@@ -150,14 +150,13 @@ async def run_brand_extraction(
             tenant_id,
             job_id,
         )
-        return {"status": "success", "tenant_id": tenant_id, "job_id": job_id}
 
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — worker task error boundary
         # Save trace even on failure
         if trace:
             try:
                 trace.finish(status="failed", error_message=str(exc))
-            except Exception:
+            except Exception:  # noqa: BLE001 — worker task error boundary
                 logger.warning("Could not save failure trace", exc_info=True)
 
         _fail_progress(
@@ -168,6 +167,8 @@ async def run_brand_extraction(
         )
         return {"status": "failed", "tenant_id": tenant_id, "error": str(exc)}
 
+    else:
+        return {"status": "success", "tenant_id": tenant_id, "job_id": job_id}
     finally:
         if db:
             db.close()

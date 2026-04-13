@@ -20,8 +20,8 @@ class MessageService:
         sender: MessageSender,
         lead_id: UUID,
         tenant_id: UUID,
-        channel: str = None,
-        metadata: dict = None,
+        channel: str | None = None,
+        metadata: dict | None = None,
     ) -> Message:
         import uuid
 

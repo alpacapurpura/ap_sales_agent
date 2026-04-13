@@ -50,4 +50,4 @@ class TestProviderToChannelTypeMapping:
 
         with patch.object(port.repo, "get_active", return_value=mock_conn):
             creds = await port.get_credentials(TENANT_ID, "google_ads")
-            assert creds.credentials["access_token"] == "test"  # noqa: S105
+            assert creds.credentials["access_token"] == "test"

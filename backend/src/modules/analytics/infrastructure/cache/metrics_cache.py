@@ -59,7 +59,7 @@ class MetricsCache:
             if raw is None:
                 return None
             return json.loads(raw)
-        except Exception:
+        except Exception:  # noqa: BLE001 — cache resilience (no redis import)
             logger.debug(
                 "Redis cache get failed for tenant=%s stage=%s period=%s",
                 tenant_id,
@@ -78,7 +78,7 @@ class MetricsCache:
             key = self._key(tenant_id, stage, period)
             ttl = STAGE_TTL.get(stage, DEFAULT_TTL)
             self._redis.setex(key, ttl, json.dumps(data))
-        except Exception:
+        except Exception:  # noqa: BLE001 — cache resilience (no redis import)
             logger.debug(
                 "Redis cache set failed for tenant=%s stage=%s period=%s",
                 tenant_id,
@@ -97,7 +97,7 @@ class MetricsCache:
             keys = self._redis.keys(pattern)
             if keys:
                 self._redis.delete(*keys)
-        except Exception:
+        except Exception:  # noqa: BLE001 — cache resilience (no redis import)
             logger.debug(
                 "Redis cache invalidation failed for tenant=%s",
                 tenant_id,

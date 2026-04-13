@@ -74,7 +74,7 @@ class TestRunCampaignSyncTask:
         assert isinstance(passed_creds, dict), (
             f"Expected dict, got {type(passed_creds).__name__}"
         )
-        assert passed_creds["access_token"] == "tok123"  # noqa: S105
+        assert passed_creds["access_token"] == "tok123"
         assert passed_creds["ad_account_id"] == "act_456"
         assert result["status"] == "success"
 

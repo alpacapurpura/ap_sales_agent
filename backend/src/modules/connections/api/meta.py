@@ -250,7 +250,7 @@ async def _sync_assets_for_tenant(
                 "El token no tiene el permiso instagram_basic. "
                 "Agréguelo en la configuración de Facebook Login for Business y reconecte.",
             )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning("meta_sync_permissions_check_failed", error=str(e))
 
     raw = await adapter.get_business_assets()
@@ -481,7 +481,7 @@ async def webhook_event(
     try:
         await orchestrator.process_chat_flow(channel, incoming)
     except Exception as e:
-        logger.error("meta_webhook_process_error", error=str(e))
+        logger.exception("meta_webhook_process_error", error=str(e))
 
     return {"status": "processed"}
 
@@ -568,7 +568,7 @@ async def oauth_callback(
             has_access_token=bool(creds_data.get("access_token")),
         )
     except Exception as e:
-        logger.error(
+        logger.exception(
             "meta_oauth_exchange_failed",
             error=str(e),
             tenant_id=str(user.tenant_id),
@@ -585,7 +585,7 @@ async def oauth_callback(
         name = profile.get("name")
         if not user_id:
             msg = "User ID not found in profile"
-            raise ValueError(msg)
+            raise ValueError(msg)  # noqa: TRY301
         logger.info(
             "meta_oauth_profile_ok",
             tenant_id=str(user.tenant_id),
@@ -593,7 +593,7 @@ async def oauth_callback(
             meta_name=name,
         )
     except Exception as e:
-        logger.error(
+        logger.exception(
             "meta_oauth_profile_failed",
             error=str(e),
             tenant_id=str(user.tenant_id),
@@ -612,7 +612,7 @@ async def oauth_callback(
             tenant_id=str(user.tenant_id),
             permissions=granted_permissions,
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning("meta_oauth_permissions_fetch_failed", error=str(e))
 
     config = {
@@ -672,7 +672,7 @@ async def oauth_callback(
             instagram=len(raw.get("instagram_accounts", [])),
             ads=len(raw.get("ads_accounts", [])),
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning(
             "meta_oauth_auto_sync_failed",
             error=str(e),
@@ -682,7 +682,7 @@ async def oauth_callback(
     # Flatten primary asset IDs to master for ETL
     try:
         _flatten_asset_ids_to_master(repo, user.tenant_id, master)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning("meta_flatten_after_oauth_failed", error=str(e))
 
     return {
@@ -848,10 +848,12 @@ async def test_connection(
     try:
         adapter = MetaAdapter(access_token=access_token)
         profile = await adapter.get_user_profile()
-        return {"status": "ok", "message": "Conexion exitosa", "data": profile}
     except Exception as e:
-        logger.error("meta_test_failed", error=str(e))
+        logger.exception("meta_test_failed", error=str(e))
         return {"status": "error", "message": str(e)}
+
+    else:
+        return {"status": "ok", "message": "Conexion exitosa", "data": profile}
 
 
 # ---------------------------------------------------------------------------
@@ -984,7 +986,7 @@ async def sync_assets(
             master,
         )
     except Exception as e:
-        logger.error("meta_sync_assets_failed", error=str(e))
+        logger.exception("meta_sync_assets_failed", error=str(e))
         raise HTTPException(
             status_code=502,
             detail=f"Error consultando activos de Meta: {e}",
@@ -993,7 +995,7 @@ async def sync_assets(
     # Flatten primary asset IDs to master for ETL
     try:
         _flatten_asset_ids_to_master(repo, user.tenant_id, master)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning("meta_flatten_after_sync_failed", error=str(e))
 
     # Return the refreshed asset list with warnings
@@ -1036,7 +1038,7 @@ async def toggle_asset(
         master = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
         if master:
             _flatten_asset_ids_to_master(repo, user.tenant_id, master)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning("meta_flatten_after_toggle_failed", error=str(e))
 
     return {

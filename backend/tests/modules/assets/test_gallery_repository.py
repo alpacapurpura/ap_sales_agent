@@ -10,14 +10,14 @@ from src.modules.assets.infrastructure.repositories.gallery_repository import (
 
 def _make_gallery_image(
     tenant_id: uuid.UUID,
-    offer_id: uuid.UUID = None,
+    offer_id: uuid.UUID | None = None,
 ) -> GalleryImage:
     return GalleryImage(
         id=uuid.uuid4(),
         tenant_id=tenant_id,
         offer_id=offer_id or uuid.uuid4(),
         filename="test.png",
-        storage_path="/tmp/test.png",  # noqa: S108
+        storage_path="/tmp/test.png",
         public_url="https://example.com/test.png",
         user_description="Test image",
         ai_description="A test image",

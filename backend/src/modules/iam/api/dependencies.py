@@ -55,8 +55,10 @@ def get_optional_current_user(
         )
         if user:
             return User.model_validate(user)
+    except Exception:  # noqa: BLE001 — API error boundary
         return None
-    except Exception:
+
+    else:
         return None
 
 
@@ -171,10 +173,12 @@ def _resolve_email_from_clerk_api(
         if email:
             logger.info("email_resolved_via_clerk_api", email=email)
 
-        return email, clerk_user
     except Exception as e:
-        logger.error("clerk_api_fallback_failed", error=str(e))
+        logger.exception("clerk_api_fallback_failed", error=str(e))
         return None, None
+
+    else:
+        return email, clerk_user
 
 
 def _resolve_name(token_payload: dict, clerk_user_data: dict | None) -> str | None:

@@ -63,7 +63,7 @@ class OfferCountsService:
                 status="all",
                 channel=None,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 — service resilience
             logger.warning(
                 "offer_counts_advertising_fallback",
                 offer_id=str(offer_id),

@@ -1,5 +1,5 @@
-import os
 import shutil
+from pathlib import Path
 from uuid import UUID
 
 from fastapi import BackgroundTasks
@@ -17,7 +17,7 @@ class GalleryService:
         self.db = db
         self.repository = GalleryRepository(db)
         self.upload_dir = settings.UPLOAD_DIR
-        os.makedirs(self.upload_dir, exist_ok=True)
+        Path(self.upload_dir).mkdir(parents=True, exist_ok=True)
 
     def upload_image(
         self,
@@ -35,9 +35,9 @@ class GalleryService:
         # 1. Save File
         # Saves to static/uploads/{uuid}_{filename}
         safe_filename = f"{image_id}_{filename}"
-        file_path = os.path.join(self.upload_dir, safe_filename)
+        file_path = str(Path(self.upload_dir) / safe_filename)
 
-        with open(file_path, "wb") as buffer:
+        with Path(file_path).open("wb") as buffer:
             shutil.copyfileobj(file_obj, buffer)
 
         public_url = f"/static/uploads/{safe_filename}"  # Assuming static mount
@@ -85,7 +85,8 @@ class GalleryService:
             return False
 
         # Delete file
-        if os.path.exists(image.file_path):
-            os.remove(image.file_path)
+        fp = Path(image.file_path)
+        if fp.exists():
+            fp.unlink()
 
         return self.repository.delete(image_id)

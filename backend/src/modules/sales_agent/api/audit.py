@@ -36,7 +36,7 @@ def list_audit_leads(
 
     try:
         rows = repo.get_recent_users(user.tenant_id, limit=30)
-    except Exception:
+    except Exception:  # noqa: BLE001 — agent resilience
         # Fallback: if agent_traces table is empty or has issues,
         # return leads that have messages instead
         subq = (

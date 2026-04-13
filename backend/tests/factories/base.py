@@ -52,29 +52,29 @@ class TenantFactory(factory.Factory):
         satisfy SQLAlchemy's lazy relationship resolution."""
         # These imports register models so SA can resolve relationship strings
         from src.modules.brand.infrastructure.models.avatar_model import (
-            AvatarModel as AvatarORM,  # noqa: F401
+            AvatarModel as AvatarORM,
         )
         from src.modules.connections.infrastructure.models.channel_connection_model import (
-            ChannelConnectionModel,  # noqa: F401
+            ChannelConnectionModel,
         )
         from src.modules.crm.infrastructure.models.lead_model import (
-            LeadModel,  # noqa: F401
+            LeadModel,
         )
         from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
-            LifecycleTransitionModel,  # noqa: F401
+            LifecycleTransitionModel,
         )
         from src.modules.crm.infrastructure.models.sale_model import (
-            SaleModel,  # noqa: F401
+            SaleModel,
         )
         from src.modules.iam.infrastructure.models.tenant_model import TenantModel
         from src.modules.offer.infrastructure.models.product_model import (
-            ProductModel,  # noqa: F401
+            ProductModel,
         )
         from src.modules.sales_agent.infrastructure.models.message_model import (
-            MessageModel,  # noqa: F401
+            MessageModel,
         )
         from src.modules.scheduling.infrastructure.models.appointment_model import (
-            AppointmentModel,  # noqa: F401
+            AppointmentModel,
         )
 
         return TenantModel(**kwargs)

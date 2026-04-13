@@ -16,6 +16,8 @@ from src.modules.sales_agent.application.services.semantic_router import (
     SemanticRouter,
 )
 
+_rng = np.random.default_rng(42)
+
 # ---------------------------------------------------------------------------
 # System route initialization tests
 # ---------------------------------------------------------------------------
@@ -63,7 +65,7 @@ class TestSystemRoutes:
 
 class TestDetectIntentEdgeCases:
     @patch.object(SemanticRouter, "_model", MagicMock())
-    @patch.object(SemanticRouter, "_system_embeddings", np.random.randn(5, 10))
+    @patch.object(SemanticRouter, "_system_embeddings", _rng.standard_normal((5, 10)))
     @patch.object(SemanticRouter, "_system_route_names", ["a", "b", "c", "d", "e"])
     def test_returns_none_for_short_text(self):
         """Text shorter than 2 characters -> (None, 0.0)."""
@@ -71,7 +73,7 @@ class TestDetectIntentEdgeCases:
         assert result == (None, 0.0)
 
     @patch.object(SemanticRouter, "_model", MagicMock())
-    @patch.object(SemanticRouter, "_system_embeddings", np.random.randn(5, 10))
+    @patch.object(SemanticRouter, "_system_embeddings", _rng.standard_normal((5, 10)))
     @patch.object(SemanticRouter, "_system_route_names", ["a", "b", "c", "d", "e"])
     def test_returns_none_for_empty_text(self):
         """Empty text -> (None, 0.0)."""
@@ -79,7 +81,7 @@ class TestDetectIntentEdgeCases:
         assert result == (None, 0.0)
 
     @patch.object(SemanticRouter, "_model", MagicMock())
-    @patch.object(SemanticRouter, "_system_embeddings", np.random.randn(5, 10))
+    @patch.object(SemanticRouter, "_system_embeddings", _rng.standard_normal((5, 10)))
     @patch.object(SemanticRouter, "_system_route_names", ["a", "b", "c", "d", "e"])
     def test_returns_none_for_whitespace_only(self):
         """Whitespace-only text -> (None, 0.0)."""

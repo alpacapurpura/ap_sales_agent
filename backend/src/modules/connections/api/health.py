@@ -62,10 +62,11 @@ def _parse_expires_at(raw_value: str) -> datetime | None:
         dt = datetime.fromisoformat(raw_value)
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
-        return dt
     except (ValueError, TypeError):
         pass
 
+    else:
+        return dt
     # Try unix timestamp (int or float as string)
     try:
         ts = float(raw_value)

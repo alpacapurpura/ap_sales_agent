@@ -133,7 +133,7 @@ class EvangelizationRepository:
                 CustomerProfileModel.tenant_id == tenant_id,
                 ReferralCodeModel.tenant_id == tenant_id,
                 CustomerProfileModel.lifecycle_stage == LifecycleStage.EVANGELIST,
-                ReferralCodeModel.is_active == True,  # noqa: E712
+                ReferralCodeModel.is_active == True,
             )
         )
         results = self.db.execute(stmt).all()
@@ -219,7 +219,7 @@ class EvangelizationRepository:
         # Count active referral codes
         codes_stmt = select(func.count(ReferralCodeModel.id)).where(
             ReferralCodeModel.tenant_id == tenant_id,
-            ReferralCodeModel.is_active == True,  # noqa: E712
+            ReferralCodeModel.is_active == True,
         )
         evangelists_with_codes = self.db.execute(codes_stmt).scalar() or 0
 
@@ -365,13 +365,13 @@ class EvangelizationRepository:
         stmt = select(
             func.count(NpsResponseModel.id)
             .filter(
-                NpsResponseModel.consent_public_use == True,  # noqa: E712
+                NpsResponseModel.consent_public_use == True,
                 NpsResponseModel.testimonial_text.isnot(None),
             )
             .label("written"),
             func.count(NpsResponseModel.id)
             .filter(
-                NpsResponseModel.consent_public_use == True,  # noqa: E712
+                NpsResponseModel.consent_public_use == True,
                 NpsResponseModel.testimonial_audio_url.isnot(None),
             )
             .label("audio"),
@@ -397,7 +397,7 @@ class EvangelizationRepository:
                     LifecycleStage.EVANGELIST,
                 ],
             ),
-            CustomerProfileModel.is_inactive == False,  # noqa: E712
+            CustomerProfileModel.is_inactive == False,
         )
         source_value = self.db.execute(source_stmt).scalar() or 0
 

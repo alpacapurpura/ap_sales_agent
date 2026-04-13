@@ -46,5 +46,5 @@ class AssetProcessor:
                 "raw_analysis": result,
             }
         except Exception as e:
-            logger.error("asset_processing_failed", error=str(e))
+            logger.exception("asset_processing_failed", error=str(e))
             return {"error": str(e)}

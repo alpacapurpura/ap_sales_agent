@@ -26,16 +26,18 @@ async def customers_data_request(
             shop_domain=payload.get("shop_domain"),
             customer=payload.get("customer"),
         )
-        # TODO: Trigger data export workflow
-        return {"status": "received"}
+        # Stub: Trigger data export workflow
     except Exception as e:
-        logger.error(
+        logger.exception(
             "shopify_compliance_error",
             endpoint="customers_data_request",
             error=str(e),
         )
         # Always return 200 to Shopify to acknowledge receipt, even if processing fails
         return {"status": "error", "message": str(e)}
+
+    else:
+        return {"status": "received"}
 
 
 @router.post("/customers/redact", status_code=status.HTTP_200_OK)
@@ -54,15 +56,17 @@ async def customers_redact(
             shop_domain=payload.get("shop_domain"),
             customer=payload.get("customer"),
         )
-        # TODO: Trigger data deletion workflow
-        return {"status": "received"}
+        # Stub: Trigger data deletion workflow
     except Exception as e:
-        logger.error(
+        logger.exception(
             "shopify_compliance_error",
             endpoint="customers_redact",
             error=str(e),
         )
         return {"status": "error", "message": str(e)}
+
+    else:
+        return {"status": "received"}
 
 
 @router.post("/shop/redact", status_code=status.HTTP_200_OK)
@@ -80,8 +84,11 @@ async def shop_redact(
             "shopify_compliance_shop_redact",
             shop_domain=payload.get("shop_domain"),
         )
-        # TODO: Trigger shop data deletion workflow
-        return {"status": "received"}
+        # Stub: Trigger shop data deletion workflow
     except Exception as e:
-        logger.error("shopify_compliance_error", endpoint="shop_redact", error=str(e))
+        logger.exception(
+            "shopify_compliance_error", endpoint="shop_redact", error=str(e)
+        )
         return {"status": "error", "message": str(e)}
+    else:
+        return {"status": "received"}

@@ -82,7 +82,7 @@ def node_janitor(state: OnboardingState):
             max_output_tokens=2000,
         )
     except Exception as e:
-        logger.error("janitor_llm_cleaning_failed", error=str(e))
+        logger.exception("janitor_llm_cleaning_failed", error=str(e))
         cleaned_text = sampled_text
 
     return {"cleaned_input": cleaned_text}
@@ -109,11 +109,9 @@ def node_psychologist(state: OnboardingState):
         json_str = analysis_json.replace("```json", "").replace("```", "").strip()
         try:
             style_profile = json.loads(json_str)
-        except json.JSONDecodeError as e:
-            logger.error("psychologist_json_parse_error", raw_output=analysis_json)
-            raise e
-
-        return {"style_profile": style_profile}
+        except json.JSONDecodeError:
+            logger.exception("psychologist_json_parse_error", raw_output=analysis_json)
+            raise
 
     except Exception as e:
         logger.exception(
@@ -122,6 +120,9 @@ def node_psychologist(state: OnboardingState):
             error=str(e),
         )
         return {"error": f"Failed to analyze style: {e!s}"}
+
+    else:
+        return {"style_profile": style_profile}
 
 
 def node_architect(state: OnboardingState):
@@ -147,7 +148,7 @@ def node_architect(state: OnboardingState):
         return {"system_instruction": instruction.strip()}
 
     except Exception as e:
-        logger.error("architect_instruction_generation_failed", error=str(e))
+        logger.exception("architect_instruction_generation_failed", error=str(e))
         return {"error": f"Failed to generate instruction: {e!s}"}
 
 
@@ -172,8 +173,8 @@ def node_simulator(state: OnboardingState):
         json_str = examples_json.replace("```json", "").replace("```", "").strip()
         examples = json.loads(json_str)
 
-        return {"simulation_examples": examples}
-
     except Exception as e:
-        logger.error("simulator_example_generation_failed", error=str(e))
+        logger.exception("simulator_example_generation_failed", error=str(e))
         return {"simulation_examples": []}
+    else:
+        return {"simulation_examples": examples}

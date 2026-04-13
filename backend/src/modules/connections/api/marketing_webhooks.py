@@ -368,7 +368,7 @@ async def _resolve_tenant(db: Session, shop_domain: str) -> UUID | None:
 
     stmt = select(ChannelConnectionModel.tenant_id).where(
         ChannelConnectionModel.channel_type == "shopify",
-        ChannelConnectionModel.is_active == True,  # noqa: E712
+        ChannelConnectionModel.is_active == True,
     )
     results = db.execute(stmt).all()
 
@@ -377,7 +377,7 @@ async def _resolve_tenant(db: Session, shop_domain: str) -> UUID | None:
         conn_stmt = select(ChannelConnectionModel.config).where(
             ChannelConnectionModel.tenant_id == tenant_id,
             ChannelConnectionModel.channel_type == "shopify",
-            ChannelConnectionModel.is_active == True,  # noqa: E712
+            ChannelConnectionModel.is_active == True,
         )
         config = db.execute(conn_stmt).scalar_one_or_none()
         if config and config.get("shop_domain") == shop_domain:
@@ -601,7 +601,7 @@ async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> 
     )
 
 
-# TODO: Background task to detect abandoned carts (checkouts older than 1h
+# NOTE: Background task to detect abandoned carts (checkouts older than 1h
 # without matching order). For now, cart_abandoned events will come from a
 # future background job. Do NOT handle in webhook.
 
@@ -647,12 +647,13 @@ async def shopify_webhook(
         else:
             logger.info("shopify_webhook_unhandled_topic", topic=topic)
 
-        return {"status": "processed", "topic": topic}
-
     except Exception as e:
-        logger.error("shopify_webhook_error", error=str(e))
+        logger.exception("shopify_webhook_error", error=str(e))
         # Always return 200 OK to prevent Shopify retries
         return {"status": "error", "detail": "processing_failed"}
+
+    else:
+        return {"status": "processed", "topic": topic}
 
 
 @router.post("/mailerlite/{tenant_id}", status_code=status.HTTP_200_OK)
@@ -668,7 +669,7 @@ async def handle_mailerlite_webhook(
     """
     try:
         payload = await request.json()
-    except Exception:
+    except (ValueError, TypeError):
         raise HTTPException(status_code=400, detail="Invalid JSON payload") from None
 
     event_type = payload.get("type", "")
@@ -686,7 +687,7 @@ async def handle_mailerlite_webhook(
     stmt = select(CustomerProfileModel).where(
         CustomerProfileModel.tenant_id == tenant_id,
         CustomerProfileModel.primary_email == email,
-        CustomerProfileModel.is_inactive == False,  # noqa: E712
+        CustomerProfileModel.is_inactive == False,
     )
     result = db.execute(stmt)
     profile = result.scalar_one_or_none()
@@ -745,10 +746,12 @@ async def mailerlite_webhook_legacy(request: Request, db: Session = Depends(get_
             "mailerlite_webhook_received_legacy",
             payload_keys=list(payload.keys()),
         )
-        return {"status": "received", "source": "mailerlite"}
     except Exception as e:
-        logger.error("mailerlite_webhook_error", error=str(e))
+        logger.exception("mailerlite_webhook_error", error=str(e))
         raise HTTPException(status_code=400, detail="Invalid payload") from e
+
+    else:
+        return {"status": "received", "source": "mailerlite"}
 
 
 @router.post("/manychat/{tenant_id}", status_code=status.HTTP_200_OK)
@@ -777,7 +780,7 @@ async def handle_manychat_webhook(
         dto = ManyChatWebhookPayload(**raw)
     except ValidationError as ve:
         raise HTTPException(status_code=422, detail=ve.errors()) from ve
-    except Exception:
+    except (ValueError, TypeError):
         raise HTTPException(status_code=400, detail="Invalid JSON payload") from None
 
     payload = dto.model_dump()
@@ -792,7 +795,7 @@ async def handle_manychat_webhook(
     conn_stmt = select(ChannelConnectionModel).where(
         ChannelConnectionModel.tenant_id == tenant_id,
         ChannelConnectionModel.channel_type == "manychat",
-        ChannelConnectionModel.is_active == True,  # noqa: E712
+        ChannelConnectionModel.is_active == True,
     )
     connection = db.execute(conn_stmt).scalar_one_or_none()
     if not connection:

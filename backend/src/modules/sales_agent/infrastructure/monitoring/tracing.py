@@ -61,7 +61,7 @@ def _setup_trace(node_name: str, state: dict):
     tenant_uuid = state.get("tenant_id")
 
     if not user_uuid:
-        logger.warning(f"TRACING: Missing user_id in state for node {node_name}")
+        logger.warning("TRACING: Missing user_id in state for node %s", node_name)
 
     session_id = f"sess_{user_uuid}_{int(start_time / 3600)}"
     input_snapshot = _build_input_snapshot(state)
@@ -80,7 +80,10 @@ def _setup_trace(node_name: str, state: dict):
     token = current_trace_id.set(trace_id_val)
 
     logger.debug(
-        f"TRACING: Node={node_name}, UserID={user_uuid}, TraceID={trace_id_val}",
+        "TRACING: Node=%s, UserID=%s, TraceID=%s",
+        node_name,
+        user_uuid,
+        trace_id_val,
     )
 
     return start_time, db, repo, trace, token
@@ -106,8 +109,8 @@ def _finalize_trace(node_name: str, start_time, repo, trace, token, result_state
             trace.execution_time_ms = execution_time
             _extract_rl_fields(trace, result_state)
             repo.db.commit()
-    except Exception as e:
-        logger.error(f"TRACING FINALIZE ERROR in {node_name}: {e}")
+    except Exception:
+        logger.exception("TRACING FINALIZE ERROR in %s", node_name)
     finally:
         current_trace_id.reset(token)
         repo.close()
@@ -115,12 +118,12 @@ def _finalize_trace(node_name: str, start_time, repo, trace, token, result_state
 
 def _handle_trace_error(node_name: str, e, repo, trace, token):
     """Handle trace error: log, persist error state, clean up."""
-    logger.error(f"TRACING ERROR in {node_name}: {e}")
+    logger.error("TRACING ERROR in %s: %s", node_name, e)
     if trace:
         try:
             trace.output_state = {"error": str(e)}
             repo.db.commit()
-        except Exception:  # noqa: S110
+        except Exception:  # noqa: BLE001 — agent resilience
             pass
     current_trace_id.reset(token)
     repo.close()
@@ -150,10 +153,12 @@ def _make_async_wrapper(func, node_name: str):
         try:
             result_state = await func(state, *args, **kwargs)
             _finalize_trace(node_name, start_time, repo, trace, token, result_state)
-            return result_state
         except Exception as e:
             _handle_trace_error(node_name, e, repo, trace, token)
-            raise e
+            raise
+
+        else:
+            return result_state
 
     return wrapper_async
 
@@ -167,9 +172,11 @@ def _make_sync_wrapper(func, node_name: str):
         try:
             result_state = func(state, *args, **kwargs)
             _finalize_trace(node_name, start_time, repo, trace, token, result_state)
-            return result_state
         except Exception as e:
             _handle_trace_error(node_name, e, repo, trace, token)
-            raise e
+            raise
+
+        else:
+            return result_state
 
     return wrapper_sync

@@ -72,34 +72,34 @@ class AgentState(TypedDict):
 def create_initial_state(
     user_id: str,
     tenant_id: str,
-    session_id: str = None,
-    lead_data: dict = None,
-    tenant_config: dict = None,
-    history: list[dict[str, Any]] = None,
-    user_profile: dict = None,
+    session_id: str | None = None,
+    lead_data: dict | None = None,
+    tenant_config: dict | None = None,
+    history: list[dict[str, Any]] | None = None,
+    user_profile: dict | None = None,
     session_active: bool = True,
-    active_enrollment: dict = None,
-    active_product: dict = None,
-    last_intent: str = None,
-    launch_stage: str = None,
-    agent_identity: str = None,
+    active_enrollment: dict | None = None,
+    active_product: dict | None = None,
+    last_intent: str | None = None,
+    launch_stage: str | None = None,
+    agent_identity: str | None = None,
     # Checkpoint-persisted fields
-    buying_signals: list[dict[str, Any]] = None,
-    objection_history: list[dict[str, Any]] = None,
-    qualification_answers: dict = None,
-    turn_count: int = None,
-    customer_profile_id: UUID = None,
-    channel_type: str = None,
-    close_strategy: str = None,
-    current_state: str = None,
-    lead_score: int = None,
+    buying_signals: list[dict[str, Any]] | None = None,
+    objection_history: list[dict[str, Any]] | None = None,
+    qualification_answers: dict | None = None,
+    turn_count: int | None = None,
+    customer_profile_id: UUID | None = None,
+    channel_type: str | None = None,
+    close_strategy: str | None = None,
+    current_state: str | None = None,
+    lead_score: int | None = None,
     # Session continuity (Fase 2)
-    session_gap_hours: float = None,
-    last_session_summary: str = None,
-    is_returning_user: bool = None,
+    session_gap_hours: float | None = None,
+    last_session_summary: str | None = None,
+    is_returning_user: bool | None = None,
     # Question fatigue (Fase 3)
-    consecutive_questions: int = None,
-    follow_up_cadence: dict = None,
+    consecutive_questions: int | None = None,
+    follow_up_cadence: dict | None = None,
 ) -> AgentState:
     """
     Factory for creating a clean AgentState.
@@ -108,12 +108,12 @@ def create_initial_state(
     # Ensure UUIDs
     try:
         uid = UUID(user_id) if isinstance(user_id, str) else user_id
-    except Exception:
+    except Exception:  # noqa: BLE001 — orchestrator resilience
         uid = None
 
     try:
         tid = UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
-    except Exception:
+    except Exception:  # noqa: BLE001 — orchestrator resilience
         tid = None
 
     return {

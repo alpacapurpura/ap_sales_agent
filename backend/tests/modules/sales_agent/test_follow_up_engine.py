@@ -8,7 +8,7 @@ Covers:
 """
 
 import importlib
-import os
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -22,17 +22,17 @@ from src.modules.sales_agent.domain.tuning import FOLLOW_UP_CADENCES
 
 _TRACE_PATCH = "src.modules.sales_agent.infrastructure.monitoring.tracing.trace_node"
 
-TEMPLATES_DIR = os.path.join(
-    os.path.dirname(__file__),
-    "..",
-    "..",
-    "..",
-    "src",
-    "modules",
-    "sales_agent",
-    "infrastructure",
-    "prompts",
-    "templates",
+TEMPLATES_DIR = str(
+    Path(__file__).parent
+    / ".."
+    / ".."
+    / ".."
+    / "src"
+    / "modules"
+    / "sales_agent"
+    / "infrastructure"
+    / "prompts"
+    / "templates"
 )
 
 
@@ -86,8 +86,8 @@ def _base_state(**overrides) -> dict:
 @pytest.fixture
 def jinja_env():
     return Environment(
-        loader=FileSystemLoader(os.path.abspath(TEMPLATES_DIR)),
-        autoescape=False,  # noqa: S701 — Jinja templates are server-side prompts, not HTML
+        loader=FileSystemLoader(str(Path(TEMPLATES_DIR).resolve())),
+        autoescape=False,
         trim_blocks=True,
         lstrip_blocks=True,
     )

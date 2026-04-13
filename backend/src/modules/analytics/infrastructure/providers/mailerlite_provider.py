@@ -144,7 +144,7 @@ _AUTOMATION_TYPE_KEYWORDS: dict[str, list[str]] = {
 }
 
 
-def _parse_rate(raw: dict[str, float | str] | float | int | None) -> float:
+def _parse_rate(raw: dict[str, float | str] | float | None) -> float:
     """Normalize a MailerLite rate value to a 0-100 percentage.
 
     MailerLite returns one of:

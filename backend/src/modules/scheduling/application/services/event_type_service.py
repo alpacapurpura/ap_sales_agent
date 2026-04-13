@@ -60,9 +60,10 @@ class EventTypeService:
             try:
                 data = self._migrate_event_type(et.copy())
                 results.append(EventType(**data))
-            except Exception as e:
-                logger.error(
-                    f"Failed to migrate event type {et.get('id', 'unknown')}: {e}",
+            except Exception:
+                logger.exception(
+                    "Failed to migrate event type %s",
+                    et.get("id", "unknown"),
                 )
                 continue
         return results

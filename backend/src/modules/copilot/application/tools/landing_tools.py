@@ -68,7 +68,7 @@ def get_landing_pages(status: str | None = None) -> str:
 
         return "\n".join(lines)
     except Exception as e:
-        logger.error("landing_tools_error", error=str(e))
+        logger.exception("landing_tools_error", error=str(e))
         return f"Error consultando landing pages: {e!s}"
     finally:
         db.close()

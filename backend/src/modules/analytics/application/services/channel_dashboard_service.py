@@ -445,7 +445,7 @@ class ChannelDashboardService:
             ).fetchone()
             raw = currency_row._mapping["currency"] if currency_row else None
             channel_currency = raw if isinstance(raw, str) else None
-        except Exception:
+        except (TypeError, ValueError):
             channel_currency = None
 
         # Build KPIs

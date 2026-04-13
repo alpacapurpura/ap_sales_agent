@@ -80,7 +80,7 @@ class ChatOrchestrator:
         self,
         payload: dict,
         background_tasks: BackgroundTasks,
-        tenant_id: str = None,
+        tenant_id: str | None = None,
         db: Session = None,
     ):
         """
@@ -106,7 +106,7 @@ class ChatOrchestrator:
                 if conn and conn.credentials:
                     token = conn.credentials.get("token")
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "error_resolving_telegram_connection",
                     error=str(e),
                     tenant_id=tenant_id,
@@ -135,7 +135,7 @@ class ChatOrchestrator:
         channel_adapter,
         payload: dict,
         background_tasks: BackgroundTasks,
-        tenant_id: str = None,
+        tenant_id: str | None = None,
     ):
         incoming = channel_adapter.normalize_payload(payload)
         if not incoming:
@@ -198,8 +198,10 @@ class ChatOrchestrator:
                         .scalars()
                         .first()
                     )
-                except Exception as e:
-                    logger.warning(f"Could not fetch tenant for semantic check: {e}")
+                except Exception as e:  # noqa: BLE001 — orchestrator resilience
+                    logger.warning(
+                        "Could not fetch tenant for semantic check", error=str(e)
+                    )
                 finally:
                     if db_tmp:
                         db_tmp.close()
@@ -260,7 +262,7 @@ class ChatOrchestrator:
                 self.buffer_service.release_lock(buffer_key)
 
         except Exception as e:
-            logger.error(f"Error in smart debounce task: {e}", exc_info=True)
+            logger.exception("Error in smart debounce task", error=str(e))
 
     # ── Helpers for process_chat_flow ──────────────────────────────────────
 
@@ -278,10 +280,12 @@ class ChatOrchestrator:
             )
             if tenant_obj:
                 return tenant_uuid, tenant_obj.config_json or {}
-            return tenant_uuid, {}
-        except Exception as e:
-            logger.error(f"Error fetching tenant config: {e}")
+        except Exception:
+            logger.exception("Error fetching tenant config")
             return None, {}
+
+        else:
+            return tenant_uuid, {}
 
     @staticmethod
     def _resolve_customer(
@@ -345,7 +349,7 @@ class ChatOrchestrator:
                 customer_profile_id=customer.id,
                 access_token=creds.credentials.get("access_token", ""),
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 — orchestrator resilience
             logger.warning("ig_profile_enrichment_failed", exc_info=True)
 
     @staticmethod
@@ -379,7 +383,7 @@ class ChatOrchestrator:
                 event_type="track",
                 properties=event_props,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 — orchestrator resilience
             logger.warning("failed_to_track_message_received", exc_info=True)
 
     @staticmethod
@@ -457,7 +461,7 @@ class ChatOrchestrator:
                     "handler_mode": "human",
                 },
             )
-        except Exception:  # noqa: S110 — WS is best-effort
+        except Exception:  # noqa: BLE001 — orchestrator resilience
             pass
         return True
 
@@ -542,7 +546,7 @@ class ChatOrchestrator:
                             metadata={"prompt_template": "summary_generator"},
                         )
                         last_session_summary = summary.strip()
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001 — orchestrator resilience
                         logger.warning(
                             "session_summary_generation_failed",
                             error=str(e),
@@ -581,11 +585,17 @@ class ChatOrchestrator:
             safety = SafetyLayerService()
             sanitized, was_modified = await safety.sanitize_content(text)
             if was_modified:
-                logger.warning(f"{direction}_sanitized", original_preview=text[:50])
-            return sanitized
-        except Exception as e:
-            logger.warning(f"safety_{direction}_sanitization_failed", error=str(e))
+                logger.warning(
+                    "content_sanitized", direction=direction, original_preview=text[:50]
+                )
+        except Exception as e:  # noqa: BLE001 — orchestrator resilience
+            logger.warning(
+                "safety_sanitization_failed", direction=direction, error=str(e)
+            )
             return text
+
+        else:
+            return sanitized
 
     @staticmethod
     def _save_checkpoint(
@@ -625,7 +635,7 @@ class ChatOrchestrator:
             )
             db.commit()
         except Exception as e:
-            logger.error("checkpoint_save_failed", error=str(e))
+            logger.exception("checkpoint_save_failed", error=str(e))
             with contextlib.suppress(Exception):
                 db.rollback()
 
@@ -654,7 +664,7 @@ class ChatOrchestrator:
                     "funnel_stage": result.get("current_state", "rapport"),
                 },
             )
-        except Exception:  # noqa: S110 — WS is best-effort
+        except Exception:  # noqa: BLE001 — orchestrator resilience
             pass
 
     # ── Additional helpers for process_chat_flow ─────────────────────────
@@ -718,8 +728,8 @@ class ChatOrchestrator:
         try:
             knowledge_builder = TenantKnowledgeBuilder(db)
             return knowledge_builder.build_identity(tenant_uuid)
-        except Exception as e:
-            logger.warning(f"Could not build agent identity: {e}")
+        except Exception as e:  # noqa: BLE001 — orchestrator resilience
+            logger.warning("Could not build agent identity", error=str(e))
             with contextlib.suppress(Exception):
                 db.rollback()
             return None
@@ -837,10 +847,14 @@ class ChatOrchestrator:
                 initial_state["detected_intent"] = detected_intent
                 initial_state["buying_signals"] = updated_signals
                 logger.debug(
-                    f"Semantic intent: {detected_intent} (score={intent_score:.2f})",
+                    "semantic_intent_detected",
+                    intent=detected_intent,
+                    score=round(intent_score, 2),
                 )
-        except Exception as e:
-            logger.warning(f"Semantic router failed, continuing without intent: {e}")
+        except Exception as e:  # noqa: BLE001 — orchestrator resilience
+            logger.warning(
+                "Semantic router failed, continuing without intent", error=str(e)
+            )
 
     async def _invoke_agent_with_typing(
         self,
@@ -924,7 +938,7 @@ class ChatOrchestrator:
             return None
         try:
             return state_repo.get_active_checkpoint(tenant_uuid, user_id)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — orchestrator resilience
             logger.warning("checkpoint_load_failed", error=str(e))
             with contextlib.suppress(Exception):
                 db.rollback()
@@ -946,19 +960,19 @@ class ChatOrchestrator:
         self,
         channel_adapter,
         incoming: IncomingMessage,
-        tenant_id: str = None,
+        tenant_id: str | None = None,
     ):
         """Core Logic: Ejecuta el agente con un mensaje YA CONSTRUIDO (y debounced)."""
         if tenant_id:
             try:
                 set_tenant_id(UUID(tenant_id))
             except Exception:
-                logger.error(f"Invalid tenant_id format: {tenant_id}")
+                logger.exception("Invalid tenant_id format", tenant_id=tenant_id)
 
         try:
             await channel_adapter.set_typing_status(incoming.user_id)
-        except Exception as e:
-            logger.warning(f"Could not set typing status in flow: {e}")
+        except Exception as e:  # noqa: BLE001 — orchestrator resilience
+            logger.warning("Could not set typing status in flow", error=str(e))
 
         db = SessionLocal()
         lead_repo, identity_service, audit_repo, biz_repo = self._init_repos(db)
@@ -1061,7 +1075,7 @@ class ChatOrchestrator:
             )
 
         except Exception as e:
-            logger.error(f"Error processing message: {e}", exc_info=True)
+            logger.exception("Error processing message", error=str(e))
             try:
                 if incoming and incoming.user_id:
                     error_msg = OutgoingMessage(
@@ -1069,8 +1083,8 @@ class ChatOrchestrator:
                         text="Lo siento, ocurrio un error tecnico interno.",
                     )
                     await channel_adapter.send_message(error_msg)
-            except Exception as e_fallback:
-                logger.error(f"Could not send fallback error message: {e_fallback}")
+            except Exception:
+                logger.exception("Could not send fallback error message")
 
         finally:
             lead_repo.close()

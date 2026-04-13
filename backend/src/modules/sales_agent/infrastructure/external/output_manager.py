@@ -83,7 +83,7 @@ class OutputManager:
             try:
                 await channel_adapter.send_message(outgoing)
             except Exception as e:
-                logger.error("error_sending_chunk", user_id=user_id, error=str(e))
+                logger.exception("error_sending_chunk", user_id=user_id, error=str(e))
                 # Continue sending other chunks? Or abort?
                 # Better to continue in case it's a transient issue, but usually aborts.
                 # We'll log and continue.
@@ -91,7 +91,7 @@ class OutputManager:
             # 4. Cognitive Pause (Micro-delay)
             # Don't wait after the last message
             if i < len(chunks) - 1:
-                pause = random.uniform(*cls.MICRO_DELAY_RANGE)  # noqa: S311
+                pause = random.uniform(*cls.MICRO_DELAY_RANGE)
                 await asyncio.sleep(pause)
 
     @classmethod
@@ -158,7 +158,7 @@ class OutputManager:
         base_seconds = (length / cls.CPM_SPEED) * 60
 
         # Apply jitter
-        jitter = random.uniform(*cls.JITTER_RANGE)  # noqa: S311
+        jitter = random.uniform(*cls.JITTER_RANGE)
         final_time = base_seconds * jitter
 
         # Clamp values

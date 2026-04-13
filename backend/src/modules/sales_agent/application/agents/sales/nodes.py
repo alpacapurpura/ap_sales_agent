@@ -115,7 +115,7 @@ def node_sales_supervisor(state: AgentState) -> dict[str, Any]:
             metadata={"prompt_template": "supervisor_routing"},
         )
         decision = decision.strip().lower().replace('"', "")
-    except Exception:
+    except Exception:  # noqa: BLE001 — agent resilience
         decision = "qualifier"
 
     # Map scheduler → closer for backward compat
@@ -390,7 +390,7 @@ def node_tool_executor(state: AgentState) -> dict[str, Any]:
     try:
         result = tool_fn(state, db=state.get("_db"))
         result_text = json.dumps(result, ensure_ascii=False)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — agent resilience
         result_text = json.dumps(
             {"status": "error", "message": str(e)},
             ensure_ascii=False,

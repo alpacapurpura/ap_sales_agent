@@ -138,6 +138,6 @@ class InstagramProfileEnricher:
                 return None
 
             return response.json()
-        except Exception:
+        except Exception:  # noqa: BLE001 — service resilience
             logger.warning("ig_profile_fetch_error", igsid=igsid, exc_info=True)
             return None

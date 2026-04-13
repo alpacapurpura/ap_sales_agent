@@ -68,7 +68,7 @@ async def analyze_style(
 
         # 3. Check for errors
         if result.get("error"):
-            raise HTTPException(status_code=500, detail=result["error"])
+            raise HTTPException(status_code=500, detail=result["error"])  # noqa: TRY301
 
         # 4. Save to Database
         # We manually save here to keep the graph pure
@@ -97,5 +97,5 @@ async def analyze_style(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error("style_analysis_failed", error=str(e))
+        logger.exception("style_analysis_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e

@@ -166,7 +166,7 @@ class CustomerRepository:
             CustomerProfileModel.tenant_id == tenant_id,
             func.jsonb_extract_path_text(CustomerProfileModel.traits, trait_key)
             == trait_value,
-            CustomerProfileModel.is_inactive == False,  # noqa: E712
+            CustomerProfileModel.is_inactive == False,
         )
         model = self.db.execute(stmt).scalars().first()
         if model:
@@ -312,5 +312,5 @@ class JourneyEventRepository:
                 ),
             )
             return result.scalar() or 0
-        except Exception:
+        except Exception:  # noqa: BLE001 — infrastructure resilience
             return 0

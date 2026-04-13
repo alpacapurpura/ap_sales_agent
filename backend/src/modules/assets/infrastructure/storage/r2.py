@@ -1,5 +1,5 @@
-import os
 import uuid
+from pathlib import Path
 from typing import BinaryIO
 
 import boto3
@@ -35,7 +35,7 @@ class R2StorageStrategy(StorageStrategy):
         filename: str,
         path_prefix: str = "",
     ) -> tuple[str, str]:
-        ext = os.path.splitext(filename)[1]
+        ext = Path(filename).suffix
         unique_name = f"{uuid.uuid4()}{ext}"
         key = f"{path_prefix}/{unique_name}" if path_prefix else unique_name
 
@@ -54,6 +54,7 @@ class R2StorageStrategy(StorageStrategy):
     def delete(self, storage_path: str) -> bool:
         try:
             self.client.delete_object(Bucket=self.bucket, Key=storage_path)
-            return True
-        except Exception:
+        except Exception:  # noqa: BLE001 — infrastructure resilience
             return False
+        else:
+            return True

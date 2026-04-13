@@ -19,7 +19,9 @@ class EventBus:
             self._subscribers[event_type] = []
         self._subscribers[event_type].append(handler)
         logger.info(
-            f"Subscribed handler {handler.__name__} to event {event_type.__name__}",
+            "Subscribed handler %s to event %s",
+            handler.__name__,
+            event_type.__name__,
         )
 
     async def publish(self, event: DomainEvent):
@@ -28,11 +30,11 @@ class EventBus:
             for handler in self._subscribers[event_type]:
                 try:
                     await handler(event)
-                except Exception as e:
-                    logger.error(f"Error handling event {event_type.__name__}: {e!s}")
+                except Exception:
+                    logger.exception("Error handling event %s", event_type.__name__)
                     # We might want to re-raise or handle errors differently depending on strategy
         else:
-            logger.debug(f"No subscribers for event {event_type.__name__}")
+            logger.debug("No subscribers for event %s", event_type.__name__)
 
 
 # Global instance

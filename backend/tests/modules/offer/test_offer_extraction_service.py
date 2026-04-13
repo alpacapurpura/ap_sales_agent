@@ -1,6 +1,7 @@
 """Tests for OfferExtractionService — TDD RED→GREEN."""
 
 import uuid
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -69,8 +70,7 @@ class TestOfferExtractionServiceInit:
         )
 
         source = inspect.getfile(OfferExtractionService)
-        with open(source) as f:
-            source_code = f.read()
+        source_code = Path(source).read_text()
         assert "from src.shared.infrastructure.web.crawler import" in source_code
         assert "from src.modules.brand" not in source_code
 

@@ -74,7 +74,7 @@ class InstagramChannel(MetaAdapter, BaseChannel):
                 },
             )
         except (IndexError, AttributeError) as e:
-            logger.warning(f"Failed to normalize Instagram payload: {e}")
+            logger.warning("Failed to normalize Instagram payload: %s", e)
             return None
 
     async def send_message(self, message: OutgoingMessage) -> dict[str, Any]:
@@ -121,5 +121,5 @@ class InstagramChannel(MetaAdapter, BaseChannel):
         try:
             async with httpx.AsyncClient() as client:
                 await client.post(url, json=data, headers=headers)
-        except Exception as e:
-            logger.warning(f"Failed to set typing status: {e}")
+        except httpx.HTTPError as e:
+            logger.warning("Failed to set typing status: %s", e)

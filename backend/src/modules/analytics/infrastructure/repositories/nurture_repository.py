@@ -75,7 +75,7 @@ class NurtureMetricsRepository:
                     LifecycleStage.EVANGELIST,
                 ],
             ),
-            CustomerProfileModel.is_inactive == False,  # noqa: E712
+            CustomerProfileModel.is_inactive == False,
         )
         result = self.db.execute(stmt).scalar()
         return int(result) if result else 0

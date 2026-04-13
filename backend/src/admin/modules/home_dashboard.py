@@ -75,7 +75,7 @@ def render_home_dashboard():
                 store = CopilotKnowledgeStore()
                 kb_stats = store.get_collection_stats()
                 kb_docs = kb_stats.get("points_count", 0)
-            except Exception:
+            except Exception:  # noqa: BLE001 — Streamlit UI error boundary
                 kb_docs = "?"
 
             # Row 1
@@ -123,7 +123,7 @@ def render_home_dashboard():
         finally:
             db.close()
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
         st.error(f"Error cargando dashboard: {e}")
         import traceback
 
@@ -167,7 +167,7 @@ def render_home_dashboard():
                 col_bar.progress(min(row["Tenants"] / total, 1.0))
                 col_num.write(f"{int(row['Tenants'])}/{total} ({row['Porcentaje']}%)")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
             st.error(f"Error: {e}")
 
     # ── Alertas de Salud ──
@@ -231,7 +231,7 @@ def render_home_dashboard():
             if not has_alerts:
                 st.success("✅ Todo en orden — sin alertas activas")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
             st.error(f"Error: {e}")
 
     # ── Actividad Reciente ──
@@ -266,5 +266,5 @@ def render_home_dashboard():
                     st.info("Sin eventos recientes.")
             finally:
                 db3.close()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
             st.error(f"Error: {e}")

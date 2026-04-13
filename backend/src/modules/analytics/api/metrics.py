@@ -301,7 +301,7 @@ async def _warm_stage_cache(
             )
             now = datetime.now(UTC)
             await svc.get_metrics(tenant_id, now - timedelta(days=30), now)
-    except Exception:
+    except Exception:  # noqa: BLE001 — API error boundary
         import structlog
 
         structlog.get_logger().warning(

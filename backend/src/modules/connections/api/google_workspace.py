@@ -36,7 +36,7 @@ from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 
 # Allow OAuth scope changes (e.g. if user granted extra scopes previously)
-os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"  # noqa: S105
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
 router = APIRouter(tags=["google-workspace"])
 logger = structlog.get_logger()
@@ -135,7 +135,7 @@ async def oauth_callback(
         creds = flow.credentials
         creds_data = json.loads(creds.to_json())
     except Exception as e:
-        logger.error("google_workspace_oauth_exchange_failed", error=str(e))
+        logger.exception("google_workspace_oauth_exchange_failed", error=str(e))
         raise HTTPException(
             status_code=400,
             detail="Error de autenticación con Google. Intenta de nuevo.",
@@ -147,7 +147,7 @@ async def oauth_callback(
         gmail_service = build("gmail", "v1", credentials=gmail_creds)
         profile = gmail_service.users().getProfile(userId="me").execute()
         email = profile.get("emailAddress", "")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning("google_workspace_profile_fetch_failed", error=str(e))
         email = ""
 
@@ -202,7 +202,7 @@ async def oauth_callback(
                 channel_id=channel_info["id"],
                 channel_title=channel_info.get("title"),
             )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning(
             "google_workspace_youtube_discovery_failed",
             tenant_id=str(user.tenant_id),
@@ -394,7 +394,6 @@ def _run_service_test(
     """
     try:
         data = test_fn(creds_data)
-        return {"status": "ok", "data": data}
     except RefreshError as exc:
         logger.warning(
             "google_workspace_test_refresh_error",
@@ -417,7 +416,7 @@ def _run_service_test(
                 scope.set_tag("service", service_slug)
                 scope.set_tag("failure_type", "google_api_5xx")
                 sentry_sdk.capture_exception(exc)
-        logger.error(
+        logger.exception(
             "google_workspace_test_http_error",
             tenant_id=str(tenant_id),
             service=service_slug,
@@ -436,7 +435,7 @@ def _run_service_test(
             scope.set_tag("service", service_slug)
             scope.set_tag("failure_type", "unexpected")
             sentry_sdk.capture_exception(exc)
-        logger.error(
+        logger.exception(
             "google_workspace_test_unexpected_error",
             tenant_id=str(tenant_id),
             service=service_slug,
@@ -447,6 +446,9 @@ def _run_service_test(
             "error": f"Error inesperado: {type(exc).__name__}",
             "detail": str(exc),
         }
+
+    else:
+        return {"status": "ok", "data": data}
 
 
 @router.post("/test", response_model=ConnectionTestResponse)

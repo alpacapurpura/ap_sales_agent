@@ -125,7 +125,7 @@ class OfferKnowledgeService:
         self._emit_created(created)
         try:
             self._indexer.index_source(created, raw_bytes=file_bytes)
-        except Exception:
+        except Exception:  # noqa: BLE001 — knowledge store resilience
             logger.warning(
                 "offer_knowledge_index_failed",
                 source_id=str(created.id),
@@ -161,7 +161,7 @@ class OfferKnowledgeService:
         self._emit_created(created)
         try:
             self._indexer.index_source(created)
-        except Exception:
+        except Exception:  # noqa: BLE001 — knowledge store resilience
             logger.warning(
                 "offer_knowledge_index_failed",
                 source_id=str(created.id),
@@ -188,7 +188,7 @@ class OfferKnowledgeService:
             raise KnowledgeSourceNotFoundError(source_id)
         try:
             self._indexer.delete_source(source)
-        except Exception:
+        except Exception:  # noqa: BLE001 — knowledge store resilience
             logger.warning(
                 "offer_knowledge_indexer_delete_failed",
                 source_id=str(source_id),
@@ -219,7 +219,7 @@ class OfferKnowledgeService:
         updated = self._repo.update(source)
         try:
             self._indexer.reindex_source(updated)
-        except Exception:
+        except Exception:  # noqa: BLE001 — knowledge store resilience
             logger.warning(
                 "offer_knowledge_reindex_failed",
                 source_id=str(source_id),
@@ -244,7 +244,7 @@ class OfferKnowledgeService:
         )
         try:
             self._events.publish(event)
-        except Exception:
+        except Exception:  # noqa: BLE001 — knowledge store resilience
             logger.warning(
                 "offer_knowledge_event_publish_failed",
                 source_id=str(source.id),
@@ -267,7 +267,7 @@ class OfferKnowledgeService:
         )
         try:
             self._events.publish(event)
-        except Exception:
+        except Exception:  # noqa: BLE001 — knowledge store resilience
             logger.warning(
                 "offer_knowledge_event_publish_failed",
                 source_id=str(source_id),

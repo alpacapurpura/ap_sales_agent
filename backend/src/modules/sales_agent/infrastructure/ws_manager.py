@@ -55,7 +55,7 @@ class ConnectionManager:
         for ws in connections:
             try:
                 await ws.send_text(payload)
-            except Exception:
+            except Exception:  # noqa: BLE001 — agent resilience
                 dead.append(ws)
 
         for ws in dead:

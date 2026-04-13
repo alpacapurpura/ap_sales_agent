@@ -87,7 +87,7 @@ def get_lead_summary(temperature: str | None = None, limit: int = 10) -> str:
 
         return "\n".join(lines)
     except Exception as e:
-        logger.error("crm_tools_lead_error", error=str(e))
+        logger.exception("crm_tools_lead_error", error=str(e))
         return f"Error consultando leads: {e!s}"
     finally:
         db.close()
@@ -142,7 +142,7 @@ def get_pipeline_overview() -> str:
 
         return "\n".join(lines)
     except Exception as e:
-        logger.error("crm_tools_pipeline_error", error=str(e))
+        logger.exception("crm_tools_pipeline_error", error=str(e))
         return f"Error consultando pipeline: {e!s}"
     finally:
         db.close()

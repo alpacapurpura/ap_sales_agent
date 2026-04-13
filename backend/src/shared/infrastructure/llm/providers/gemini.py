@@ -68,7 +68,7 @@ class GeminiService(BaseLLMService):
 
         except Exception as e:
             response_text = f"ERROR: {e!s}"
-            raise e
+            raise
 
         # Logging logic removed to decouple shared from sales_agent.
 

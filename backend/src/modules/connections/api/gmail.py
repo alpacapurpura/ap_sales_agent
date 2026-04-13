@@ -40,7 +40,7 @@ async def oauth_callback(
     try:
         creds_data = GmailAdapter.exchange_code(code, redirect_uri)
     except Exception as e:
-        logger.error("gmail_oauth_exchange_failed", error=str(e))
+        logger.exception("gmail_oauth_exchange_failed", error=str(e))
         raise HTTPException(
             status_code=400,
             detail="Error de autenticacion con Google",
@@ -52,9 +52,9 @@ async def oauth_callback(
         email = profile.get("emailAddress")
         if not email:
             msg = "Email address not found in profile"
-            raise ValueError(msg)
+            raise ValueError(msg)  # noqa: TRY301
     except Exception as e:
-        logger.error("failed_to_get_gmail_profile", error=str(e))
+        logger.exception("failed_to_get_gmail_profile", error=str(e))
         raise HTTPException(
             status_code=400,
             detail="No se pudo obtener el perfil de Gmail. Verifica los permisos.",
@@ -109,7 +109,8 @@ async def test_connection(
     try:
         adapter = GmailAdapter(connection.credentials)
         profile = adapter.get_profile()
-        return {"status": "ok", "message": "Conexion exitosa", "data": profile}
     except Exception as e:
-        logger.error("gmail_test_failed", error=str(e))
+        logger.exception("gmail_test_failed", error=str(e))
         return {"status": "error", "message": str(e)}
+    else:
+        return {"status": "ok", "message": "Conexion exitosa", "data": profile}

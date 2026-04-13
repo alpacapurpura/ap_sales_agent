@@ -127,7 +127,7 @@ class OpenAIService(BaseLLMService):
                 metadata=meta_log,
             )
             repo.close()
-        except Exception as log_err:
+        except Exception as log_err:  # noqa: BLE001 — provider resilience
             logger.warning("llm_call_logging_failed", error=str(log_err))
 
     def generate_response(
@@ -164,7 +164,7 @@ class OpenAIService(BaseLLMService):
 
         except Exception as e:
             response_text = f"ERROR: {e!s}"
-            raise e
+            raise
         finally:
             self._log_to_trace(
                 system_prompt,

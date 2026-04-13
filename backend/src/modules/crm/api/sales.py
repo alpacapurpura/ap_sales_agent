@@ -94,7 +94,7 @@ def create_sale(
         metadata=new_sale.metadata,
         occurred_at=new_sale.occurred_at,
         created_at=new_sale.created_at
-        or datetime.now(),  # Fallback if created_at is None immediately
+        or datetime.now(UTC),  # Fallback if created_at is None immediately
     )
 
 

@@ -249,9 +249,8 @@ class BrandExtractionService:
                 content_input_length=len(content),
                 current_data_length=len(current_data or ""),
             )
-            return rendered
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "prompt_render_failed",
                 template=template_name,
                 error=str(e),
@@ -259,6 +258,9 @@ class BrandExtractionService:
                 traceback=traceback.format_exc(),
             )
             raise
+
+        else:
+            return rendered
 
     def _append_schema_instruction(
         self,
@@ -353,7 +355,11 @@ class BrandExtractionService:
         trace = self._trace
         t0 = time.time()
         try:
-            logger.info(f"extract_{section_name}_starting", prompt_length=len(prompt))
+            logger.info(
+                "extract_section_starting",
+                section=section_name,
+                prompt_length=len(prompt),
+            )
             if trace:
                 trace.section_start(section_name, prompt_length=len(prompt))
             result = await asyncio.wait_for(
@@ -375,7 +381,8 @@ class BrandExtractionService:
             elapsed = time.time() - t0
             extracted = result.model_dump(exclude_unset=True, exclude_none=True)
             logger.info(
-                f"extract_{section_name}_success",
+                "extract_section_success",
+                section=section_name,
                 fields_extracted=list(extracted.keys()),
                 field_count=len(extracted),
                 duration_s=round(elapsed, 2),
@@ -387,11 +394,11 @@ class BrandExtractionService:
                     field_count=len(extracted),
                     fields=list(extracted.keys()),
                 )
-            return result
         except TimeoutError:
             elapsed = time.time() - t0
-            logger.error(
-                f"extract_{section_name}_timeout",
+            logger.exception(
+                "extract_section_timeout",
+                section=section_name,
                 timeout=per_call_timeout,
                 duration_s=round(elapsed, 2),
             )
@@ -404,8 +411,9 @@ class BrandExtractionService:
             return default_result
         except Exception as e:
             elapsed = time.time() - t0
-            logger.error(
-                f"extract_{section_name}_failed",
+            logger.exception(
+                "extract_section_failed",
+                section=section_name,
                 error=str(e),
                 error_type=type(e).__name__,
                 duration_s=round(elapsed, 2),
@@ -419,6 +427,9 @@ class BrandExtractionService:
                     error_type=type(e).__name__,
                 )
             return default_result
+
+        else:
+            return result
 
     # ------------------------------------------------------------------
     # Individual section extractors
@@ -641,7 +652,7 @@ class BrandExtractionService:
                 instructions=instructions or "None",
             )
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "prompt_render_failed",
                 template="brand_extract_communication_assets",
                 error=str(e),

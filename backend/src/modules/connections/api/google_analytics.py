@@ -145,7 +145,7 @@ async def oauth_callback(
         adapter = _build_adapter(connection)
         token_data = await asyncio.to_thread(adapter.exchange_code, code, redirect_uri)
     except Exception as e:
-        logger.error("google_analytics_oauth_exchange_failed", error=str(e))
+        logger.exception("google_analytics_oauth_exchange_failed", error=str(e))
         raise HTTPException(
             status_code=400,
             detail="Error de autenticacion con Google",
@@ -167,7 +167,7 @@ async def oauth_callback(
 
         # Update config with account count
         repo.update_config(connection, {"account_count": len(flat)})
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning(
             "google_analytics_properties_fetch_failed",
             error=str(e),
@@ -230,7 +230,7 @@ async def get_properties(
         flat = await asyncio.to_thread(adapter.get_flat_properties)
         return [GA4PropertySummary(**p) for p in flat]
     except Exception as e:
-        logger.error("google_analytics_properties_failed", error=str(e))
+        logger.exception("google_analytics_properties_failed", error=str(e))
         raise HTTPException(
             status_code=500,
             detail="Error al obtener propiedades de Google Analytics",
@@ -256,7 +256,7 @@ async def select_property(
         match = next((p for p in flat if p["property_id"] == body.property_id), None)
         if match:
             display_name = match["display_name"]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning("property_validation_skipped", error=str(e))
         # Allow saving anyway (manual input fallback)
 
@@ -314,7 +314,8 @@ async def test_connection(
     try:
         adapter = _build_adapter(connection, with_creds=True)
         summaries = await asyncio.to_thread(adapter.get_account_summaries)
-        return {"status": "ok", "message": "Conexion exitosa", "data": summaries}
     except Exception as e:
-        logger.error("google_analytics_test_failed", error=str(e))
+        logger.exception("google_analytics_test_failed", error=str(e))
         return {"status": "error", "message": str(e)}
+    else:
+        return {"status": "ok", "message": "Conexion exitosa", "data": summaries}

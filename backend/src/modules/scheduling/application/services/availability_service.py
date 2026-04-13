@@ -141,9 +141,10 @@ class AvailabilityService:
                 # Deep copy to avoid mutating cache/original if referenced elsewhere
                 data = self._migrate_schedule_structure(s.copy())
                 results.append(AvailabilitySchedule(**data))
-            except Exception as e:
-                logger.error(
-                    f"Failed to migrate schedule {s.get('id', 'unknown')}: {e}",
+            except Exception:
+                logger.exception(
+                    "Failed to migrate schedule %s",
+                    s.get("id", "unknown"),
                 )
                 # Skip invalid entries to prevent crashing the whole list
                 continue
@@ -294,8 +295,8 @@ class AvailabilityService:
                     start = datetime.datetime.fromisoformat(start_str)
                     end = datetime.datetime.fromisoformat(end_str)
                     busy_intervals.append((start, end))
-            except Exception as e:
-                logger.error(f"Failed to fetch busy periods: {e}")
+            except Exception:
+                logger.exception("Failed to fetch busy periods")
 
         available_slots = []
 
@@ -316,9 +317,10 @@ class AvailabilityService:
                     if schedule_config.timezone:
                         try:
                             tz = ZoneInfo(schedule_config.timezone)
-                        except Exception:
+                        except (KeyError, ValueError):
                             logger.warning(
-                                f"Invalid timezone {schedule_config.timezone}, falling back to UTC",
+                                "Invalid timezone, falling back to UTC",
+                                timezone=schedule_config.timezone,
                             )
 
                     # Create local time then convert to UTC
@@ -451,8 +453,8 @@ class AvailabilityService:
             else:
                 logger.warning("Appointment created without Lead linkage (no email/id)")
 
-        except Exception as e:
-            logger.error(f"Failed to persist appointment in DB: {e}")
+        except Exception:
+            logger.exception("Failed to persist appointment in DB")
 
         # Send Email if Gmail connected
         gmail_adapter = self._get_gmail_adapter()
@@ -479,9 +481,9 @@ class AvailabilityService:
                 </div>
                 """
                 gmail_adapter.send_email(lead_data["email"], email_subject, email_body)
-                logger.info(f"Confirmation email sent to {lead_data['email']}")
-            except Exception as e:
-                logger.error(f"Failed to send confirmation email: {e}")
+                logger.info("Confirmation email sent", recipient=lead_data["email"])
+            except Exception:
+                logger.exception("Failed to send confirmation email")
 
         return event
 
@@ -505,8 +507,8 @@ class AvailabilityService:
     def watch_calendar(
         self,
         calendar_id: str = "primary",
-        channel_id: str = None,
-        address: str = None,
+        channel_id: str | None = None,
+        address: str | None = None,
     ) -> dict[str, Any]:
         """
         Placeholder/Skeleton for Webhook Setup.
@@ -532,8 +534,8 @@ class AvailabilityService:
         }
 
         try:
-            logger.info(f"Setting up calendar watch on {webhook_address}")
+            logger.info("Setting up calendar watch", webhook_address=webhook_address)
             return service.events().watch(calendarId=calendar_id, body=body).execute()
         except Exception as e:
-            logger.error(f"Failed to setup calendar watch: {e}")
+            logger.exception("Failed to setup calendar watch")
             return {"error": str(e)}

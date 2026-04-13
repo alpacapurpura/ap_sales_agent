@@ -163,9 +163,10 @@ class SemanticRouter:
                 model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
                 cache_dir="/app/model_cache",
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — agent resilience
             logger.warning(
-                f"Could not load multilingual model, falling back to default: {e}",
+                "Could not load multilingual model, falling back to default: %s",
+                e,
             )
             cls._model = TextEmbedding(cache_dir="/app/model_cache")
 
@@ -186,11 +187,12 @@ class SemanticRouter:
             norms = np.linalg.norm(cls._system_embeddings, axis=1, keepdims=True)
             cls._system_embeddings = cls._system_embeddings / norms
             logger.info(
-                f"Semantic Router initialized with {len(SYSTEM_ROUTES)} system routes "
-                f"and {len(all_anchors)} anchors.",
+                "Semantic Router initialized with %d system routes and %d anchors.",
+                len(SYSTEM_ROUTES),
+                len(all_anchors),
             )
-        except Exception as e:
-            logger.error(f"Failed to compute system embeddings: {e}")
+        except Exception:
+            logger.exception("Failed to compute system embeddings")
             cls._system_embeddings = None
             raise
 
@@ -240,11 +242,12 @@ class SemanticRouter:
 
             cls._tenant_cache[tenant_id] = (combined_names, combined_embeddings)
             logger.info(
-                f"Registered {len(tenant_anchors)} tenant-specific anchors "
-                f"for tenant {tenant_id}",
+                "Registered %d tenant-specific anchors for tenant %s",
+                len(tenant_anchors),
+                tenant_id,
             )
-        except Exception as e:
-            logger.error(f"Failed to register tenant routes for {tenant_id}: {e}")
+        except Exception:
+            logger.exception("Failed to register tenant routes for %s", tenant_id)
 
     @classmethod
     def detect_intent(

@@ -114,7 +114,6 @@ class BaseMetricsProvider(ABC):
                 extractor=extractor_name,
                 metrics_count=len(result),
             )
-            return result, None
         except Exception as exc:
             sentry_sdk.set_tag("provider", self.provider_name())
             sentry_sdk.set_tag("sub_extractor", extractor_name)
@@ -135,6 +134,9 @@ class BaseMetricsProvider(ABC):
                 error=str(exc)[:500],
                 error_type=error_type,
             )
+
+        else:
+            return result, None
 
     async def extract_period_metrics(
         self,

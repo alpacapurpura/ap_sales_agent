@@ -33,7 +33,7 @@ def _make_event(
     event_date: date = date(2026, 7, 1),
     name: str = "Test Event",
     category: str = "feriado_nacional",
-    description: str = None,
+    description: str | None = None,
 ) -> CalendarEvent:
     iso = event_date.isocalendar()
     return CalendarEvent(

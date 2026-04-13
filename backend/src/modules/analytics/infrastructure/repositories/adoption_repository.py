@@ -53,10 +53,10 @@ class AdoptionMetricsRepository:
                 SaleModel.offer_id,
                 func.count(distinct(CustomerProfileModel.id)).label("total"),
                 func.count(distinct(CustomerProfileModel.id))
-                .filter(CustomerProfileModel.is_inactive == False)  # noqa: E712
+                .filter(CustomerProfileModel.is_inactive == False)
                 .label("active"),
                 func.count(distinct(CustomerProfileModel.id))
-                .filter(CustomerProfileModel.is_inactive == True)  # noqa: E712
+                .filter(CustomerProfileModel.is_inactive == True)
                 .label("inactive"),
             )
             .join(

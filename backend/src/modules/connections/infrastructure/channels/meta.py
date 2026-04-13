@@ -164,7 +164,7 @@ async def _fetch_whatsapp_accounts(token: str, base: str) -> list[dict[str, Any]
             return whatsapp_accounts
 
         whatsapp_accounts = await _enrich_wabas_with_phones(wabas, token, base)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — infrastructure resilience
         logger.warning("meta_whatsapp_fetch_error", error=str(e))
 
     return whatsapp_accounts
@@ -316,8 +316,8 @@ class MetaAdapter:
                 access_token=self.access_token,
             )
             self._api_instance = FacebookAdsApi(session, api_version=self.API_VERSION)
-        except Exception as e:
-            logger.error(f"Failed to initialize FacebookAdsApi: {e}")
+        except Exception:
+            logger.exception("Failed to initialize FacebookAdsApi")
             raise
 
     def get_authorization_url(
@@ -373,7 +373,9 @@ class MetaAdapter:
                 params=params,
             )
             if response.status_code != 200:
-                logger.error(f"Error exchanging code for token: {response.text}")
+                logger.error(
+                    "Error exchanging code for token", response_text=response.text
+                )
                 response.raise_for_status()
 
             token_data = response.json()
@@ -401,9 +403,13 @@ class MetaAdapter:
                         token_data["expires_in"] = long_data.get("expires_in")
                         logger.info("meta_token_extended_to_long_lived")
                     else:
-                        logger.warning(f"Could not extend token: {long_lived.text}")
-                except Exception as e:
-                    logger.warning(f"Token extension failed, using short-lived: {e}")
+                        logger.warning(
+                            "Could not extend token", response_text=long_lived.text
+                        )
+                except Exception as e:  # noqa: BLE001 — infrastructure resilience
+                    logger.warning(
+                        "Token extension failed, using short-lived", error=str(e)
+                    )
 
             return token_data
 

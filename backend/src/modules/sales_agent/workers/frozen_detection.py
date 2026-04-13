@@ -77,7 +77,7 @@ async def run_frozen_detection(ctx: dict) -> None:
             logger.debug("frozen_detection_complete", frozen_count=0)
 
     except Exception as e:
-        logger.error("frozen_detection_failed", error=str(e), exc_info=True)
+        logger.exception("frozen_detection_failed", error=str(e))
         with contextlib.suppress(Exception):
             db.rollback()
     finally:

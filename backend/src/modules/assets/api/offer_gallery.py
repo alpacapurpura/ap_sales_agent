@@ -42,7 +42,7 @@ async def upload_offer_image(
             offer_id=UUID(offer_id),
         )
     except Exception as e:
-        logger.error("offer_upload_failed", error=str(e))
+        logger.exception("offer_upload_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 

@@ -70,6 +70,37 @@ PERIOD_DAYS: dict[str, int] = {"7d": 7, "30d": 30, "90d": 90}
 # -- Pure functions (testable without DB) --------------------------------------
 
 
+def _score_ratio(value: float, benchmark: float) -> int:
+    """Score a metric as a ratio against its benchmark (0-100)."""
+    ratio = value / benchmark if benchmark > 0 else 0
+    if ratio >= 1.1:
+        return 100
+    if ratio >= 0.9:
+        return 80
+    if ratio >= 0.7:
+        return 60
+    if ratio >= 0.5:
+        return 40
+    return 20
+
+
+def _score_color(score: int) -> str:
+    """Map a 0-100 score to a traffic-light color."""
+    if score >= 70:
+        return "green"
+    if score >= 50:
+        return "yellow"
+    return "red"
+
+
+def _score_thresholds(value: float, thresholds: list[tuple[float, int]]) -> int:
+    """Return the score for the first threshold the value meets (descending)."""
+    for threshold, score in thresholds:
+        if value >= threshold:
+            return score
+    return thresholds[-1][1] if thresholds else 20
+
+
 def compute_health_score(
     open_rate: float,
     benchmark_open_rate: float,
@@ -79,50 +110,17 @@ def compute_health_score(
     list_growth_rate: float,
 ) -> EmailHealthScoreDTO:
     """Compute composite email health score 0-100."""
-
-    def _score_ratio(value: float, benchmark: float) -> int:
-        ratio = value / benchmark if benchmark > 0 else 0
-        if ratio >= 1.1:
-            return 100
-        if ratio >= 0.9:
-            return 80
-        if ratio >= 0.7:
-            return 60
-        if ratio >= 0.5:
-            return 40
-        return 20
-
-    def _score_color(score: int) -> str:
-        if score >= 70:
-            return "green"
-        if score >= 50:
-            return "yellow"
-        return "red"
-
     engagement_score = _score_ratio(open_rate, benchmark_open_rate)
     contenido_score = _score_ratio(ctor, benchmark_ctor)
 
-    if deliverability_rate >= 97:
-        delivery_score = 100
-    elif deliverability_rate >= 95:
-        delivery_score = 80
-    elif deliverability_rate >= 90:
-        delivery_score = 60
-    elif deliverability_rate >= 85:
-        delivery_score = 40
-    else:
-        delivery_score = 20
-
-    if list_growth_rate >= 5:
-        growth_score = 100
-    elif list_growth_rate >= 2:
-        growth_score = 80
-    elif list_growth_rate >= 0:
-        growth_score = 60
-    elif list_growth_rate >= -2:
-        growth_score = 40
-    else:
-        growth_score = 20
+    delivery_score = _score_thresholds(
+        deliverability_rate,
+        [(97, 100), (95, 80), (90, 60), (85, 40), (-float("inf"), 20)],
+    )
+    growth_score = _score_thresholds(
+        list_growth_rate,
+        [(5, 100), (2, 80), (0, 60), (-2, 40), (-float("inf"), 20)],
+    )
 
     total = int(
         engagement_score * 0.30

@@ -111,7 +111,7 @@ def _fetch_brand_context(db, tenant_id: str) -> dict | None:
             .first()
         )
         return dict(row) if row else None
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — tool execution resilience
         logger.warning(
             "offer_ladder_brand_fetch_error",
             tenant_id=tenant_id,
@@ -137,7 +137,7 @@ def _fetch_offers(db, tenant_id: str) -> list[dict]:
             .all()
         )
         return [dict(r) for r in rows]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — tool execution resilience
         logger.warning("offer_ladder_fetch_error", tenant_id=tenant_id, error=str(e))
         return []
 

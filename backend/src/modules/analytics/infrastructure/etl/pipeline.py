@@ -197,8 +197,6 @@ class ETLPipeline:
                 duration,
             )
 
-            return run
-
         except ConnectionRevokedError as exc:
             self._handle_pipeline_failure(
                 run_id,
@@ -212,7 +210,7 @@ class ETLPipeline:
             )
             return run
 
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 — ETL pipeline resilience
             self._handle_pipeline_failure(
                 run_id,
                 start_time,
@@ -223,6 +221,9 @@ class ETLPipeline:
                 exc,
                 log_level="error",
             )
+            return run
+
+        else:
             return run
 
     async def _extract_and_load(

@@ -2,15 +2,15 @@ import base64
 import hashlib
 import hmac
 import json
-import os
 import sys
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 # Ensure backend path is in sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../..")))
+sys.path.append(str((Path(__file__).parent / "../../../..").resolve()))
 
 
 @pytest.fixture(scope="module")
@@ -41,8 +41,8 @@ def mock_settings():
     with patch(
         "src.modules.connections.api.dependencies.webhook_security.settings",
     ) as mock:
-        mock.SHOPIFY_API_SECRET = "test_shopify_secret"  # noqa: S105
-        mock.META_APP_SECRET = "test_meta_secret"  # noqa: S105
+        mock.SHOPIFY_API_SECRET = "test_shopify_secret"
+        mock.META_APP_SECRET = "test_meta_secret"
         yield mock
 
 

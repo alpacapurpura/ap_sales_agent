@@ -32,7 +32,7 @@ class ManyChatConnector(BaseConnector):
                 return False, {
                     "error": f"Status: {response.status_code}, Body: {response.text}",
                 }
-        except Exception as e:
+        except httpx.HTTPError as e:
             return False, {"error": str(e)}
 
     @staticmethod
@@ -54,7 +54,7 @@ class ManyChatConnector(BaseConnector):
                     if data.get("status") == "success":
                         return True, data.get("data", {})
                 return False, {"error": f"Status: {response.status_code}"}
-        except Exception as e:
+        except httpx.HTTPError as e:
             return False, {"error": str(e)}
 
     @staticmethod
@@ -82,7 +82,7 @@ class ManyChatConnector(BaseConnector):
                     if data.get("status") == "success":
                         return True, data.get("data", [])
                 return False, {"error": f"Status: {response.status_code}"}
-        except Exception as e:
+        except httpx.HTTPError as e:
             return False, {"error": str(e)}
 
     @staticmethod
@@ -101,7 +101,7 @@ class ManyChatConnector(BaseConnector):
                     if data.get("status") == "success":
                         return True, data.get("data", [])
                 return False, []
-        except Exception:
+        except httpx.HTTPError:
             return False, []
 
     @staticmethod
@@ -120,5 +120,5 @@ class ManyChatConnector(BaseConnector):
                     if data.get("status") == "success":
                         return True, data.get("data", [])
                 return False, []
-        except Exception:
+        except httpx.HTTPError:
             return False, []

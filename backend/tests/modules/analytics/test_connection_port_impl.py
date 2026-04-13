@@ -68,7 +68,7 @@ class TestConnectionPortImplGetCredentials:
 
         assert isinstance(result, ConnectionCredentials)
         assert result.channel_type == "meta"
-        assert result.credentials["access_token"] == "valid-token"  # noqa: S105
+        assert result.credentials["access_token"] == "valid-token"
 
     def test_raises_connection_revoked_when_no_active_connection(self):
         """No active connection -> ConnectionRevokedError."""

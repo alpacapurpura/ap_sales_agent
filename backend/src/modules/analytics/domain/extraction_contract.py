@@ -85,7 +85,7 @@ class ProviderStatus(StrEnum):
     """Registered in PROVIDER_REGISTRY but currently failing in production.
     See ``known_issues``."""
 
-    PASS_THROUGH = "pass_through"  # noqa: S105 — status enum, not a credential
+    PASS_THROUGH = "pass_through"
     """By design returns an empty ExtractionResult. Data arrives via another
     path (webhook ingestion, internal DB)."""
 
@@ -99,11 +99,11 @@ class AuthType(StrEnum):
     OAUTH2_REFRESH = "oauth2_with_refresh"
     """Standard OAuth 2.0 with refresh token rotation."""
 
-    LONG_LIVED_TOKEN = "long_lived_token"  # noqa: S105 — auth-type enum label, not a credential
+    LONG_LIVED_TOKEN = "long_lived_token"
     """Long-lived access token without refresh (Meta system user, Mailerlite
     API key, etc.)."""
 
-    SHOPIFY_ADMIN_TOKEN = "shopify_admin_token"  # noqa: S105 — auth-type enum label, not a credential
+    SHOPIFY_ADMIN_TOKEN = "shopify_admin_token"
     """Shopify Admin API token issued during the OAuth handshake."""
 
     API_KEY = "api_key"

@@ -9,7 +9,7 @@ from src.modules.sales_agent.infrastructure.repositories.message_repository impo
 )
 
 
-def _make_message(tenant_id: uuid.UUID, lead_id: uuid.UUID = None) -> Message:
+def _make_message(tenant_id: uuid.UUID, lead_id: uuid.UUID | None = None) -> Message:
     return Message(
         id=uuid.uuid4(),
         tenant_id=tenant_id,

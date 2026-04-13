@@ -31,7 +31,7 @@ class SmartBufferService:
         user_id: str,
         text: str,
         channel_type: str,
-        metadata: dict = None,
+        metadata: dict | None = None,
     ):
         """
         Appends a message to the user's buffer and updates the last timestamp.
@@ -105,7 +105,8 @@ class SmartBufferService:
                 self._key_lock(user_id),
             ]
             self.redis.delete(*keys)
-            return True
         except Exception as e:
-            logger.error("error_clearing_cache", user_id=user_id, error=str(e))
+            logger.exception("error_clearing_cache", user_id=user_id, error=str(e))
             return False
+        else:
+            return True

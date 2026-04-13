@@ -38,7 +38,7 @@ class AuditRepository(EpisodicMemoryStore):
         role: str,
         content: str,
         channel: str,
-        tenant_id: str = None,
+        tenant_id: str | None = None,
     ) -> Any:
         msg = Message(
             user_id=user_id,

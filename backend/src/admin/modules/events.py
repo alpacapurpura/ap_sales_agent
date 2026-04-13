@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 
-def render_events_page():  # noqa: C901
+def render_events_page():
     st.title("🧠 Inteligencia Copilot")
 
     from src.admin.modules._shared import (
@@ -110,7 +110,7 @@ def render_events_page():  # noqa: C901
                         st.bar_chart(df_t.set_index("Tenant"))
             finally:
                 db.close()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
             st.error(f"Error: {e}")
 
     # ── Tab 2: Friccion ──
@@ -152,7 +152,7 @@ def render_events_page():  # noqa: C901
                     st.info("Sin datos de aperturas del copilot.")
             finally:
                 db.close()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
             st.error(f"Error: {e}")
 
     # ── Tab 3: Procedimientos ──
@@ -211,7 +211,7 @@ def render_events_page():  # noqa: C901
                     st.info("Sin datos de procedimientos.")
             finally:
                 db.close()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
             st.error(f"Error: {e}")
 
     # ── Tab 4: Engagement ──
@@ -283,7 +283,7 @@ def render_events_page():  # noqa: C901
 
             finally:
                 db.close()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
             st.error(f"Error: {e}")
 
     # ── Tab 5: Explorar ──
@@ -346,5 +346,5 @@ def render_events_page():  # noqa: C901
                     st.info("Sin eventos.")
             finally:
                 db.close()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
             st.error(f"Error: {e}")

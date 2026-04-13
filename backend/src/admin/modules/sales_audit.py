@@ -30,7 +30,7 @@ def _format_lead_option(lead_tuple):
     return f"{name} ({channel}) - {date_str}"
 
 
-def render_sales_audit_page():  # noqa: C901
+def render_sales_audit_page():
     st.title("🔍 Auditoría Sales Agent")
     st.markdown(
         "Visualiza las conversaciones de los leads y las trazas de ejecución de los nodos del agente.",

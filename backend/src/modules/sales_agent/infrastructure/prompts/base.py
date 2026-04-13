@@ -1,6 +1,5 @@
-import datetime
 import logging
-import os
+from pathlib import Path
 from typing import Any
 from uuid import UUID
 
@@ -15,6 +14,7 @@ from src.modules.iam.infrastructure.models.tenant_model import TenantModel as Te
 from src.modules.sales_agent.infrastructure.models.prompt_version_model import (
     PromptVersion,
 )
+from src.shared.domain.datetime_utils import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +30,9 @@ class PromptLoader:
         templates_dir: str = "src/modules/sales_agent/infrastructure/prompts/templates",
     ):
         # 1. Configurar File System Loader (Fallback)
-        base_path = os.getcwd()
+        base_path = Path.cwd()
         self.templates_dir = templates_dir
-        full_path = os.path.join(base_path, templates_dir)
+        full_path = str(base_path / templates_dir)
 
         self.fs_env = Environment(
             loader=FileSystemLoader(full_path),
@@ -64,10 +64,11 @@ class PromptLoader:
             )
             config = tenant.config_json if tenant and tenant.config_json else {}
             self._tenant_config_cache[tenant_id] = config
-            return config
-        except Exception as e:
-            logger.warning(f"Error loading tenant config: {e}")
+        except Exception as e:  # noqa: BLE001 — agent resilience
+            logger.warning("Error loading tenant config: %s", e)
             return {}
+        else:
+            return config
         finally:
             db.close()
 
@@ -114,9 +115,10 @@ class PromptLoader:
                 self._update_cache(key, tenant_id, prompt)
                 return prompt.content
 
+        except Exception as e:  # noqa: BLE001 — agent resilience
+            logger.warning("Error loading prompt '%s' from DB: %s", key, e)
             return None
-        except Exception as e:
-            logger.warning(f"Error loading prompt '{key}' from DB: {e}")
+        else:
             return None
         finally:
             db.close()
@@ -125,7 +127,7 @@ class PromptLoader:
         self._cache[(key, tenant_id)] = {
             "content": prompt.content,
             "version": prompt.version,
-            "loaded_at": datetime.datetime.now().timestamp(),
+            "loaded_at": utc_now().timestamp(),
         }
 
     def _load_from_file(self, key: str, template_name: str, **kwargs: Any) -> str:
@@ -167,7 +169,7 @@ class PromptLoader:
         ttl_seconds = 60
         if cache_key in self._cache:
             last_load = self._cache[cache_key].get("loaded_at", 0)
-            if datetime.datetime.now().timestamp() - last_load < ttl_seconds:
+            if utc_now().timestamp() - last_load < ttl_seconds:
                 template_content = self._cache[cache_key]["content"]
 
         # B. Intentar DB
@@ -181,16 +183,16 @@ class PromptLoader:
                 return template.render(**full_context)
             if mode == PromptSource.DB:
                 msg = f"Prompt '{key}' not found in DB (Strict Mode)"
-                raise ValueError(msg)
+                raise ValueError(msg)  # noqa: TRY301
 
             # Fallback a archivo (System Defaults locales)
             return self._load_from_file(key, template_name, **full_context)
 
-        except Exception as e:
-            logger.error(f"Error rendering prompt '{key}': {e}")
+        except Exception:
+            logger.exception("Error rendering prompt '%s'", key)
             if mode != PromptSource.DB:
                 return self._load_from_file(key, template_name, **full_context)
-            raise e
+            raise
 
     def invalidate_cache(self, key: str):
         """Limpia caché (OJO: Limpia para TODOS los tenants por seguridad o solo uno?)"""

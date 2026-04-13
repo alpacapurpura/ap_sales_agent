@@ -26,7 +26,7 @@ import src.modules.scheduling.infrastructure.models.appointment_model
 
 try:
     import src.modules.crm.infrastructure.models.sale_model
-    import src.modules.offer.infrastructure.models.product_model  # noqa: F401
+    import src.modules.offer.infrastructure.models.product_model
 except ImportError:
     pass
 

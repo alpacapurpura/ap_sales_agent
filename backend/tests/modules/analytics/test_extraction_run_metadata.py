@@ -70,7 +70,7 @@ def db():
     from sqlalchemy.orm import sessionmaker
 
     from src.modules.analytics.infrastructure.models.extraction_run_model import (
-        ExtractionRunModel,  # noqa: F401
+        ExtractionRunModel,
     )
     from src.shared.domain.base_entity import Base
 

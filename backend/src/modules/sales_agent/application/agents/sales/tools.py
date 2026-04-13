@@ -68,7 +68,7 @@ def tool_check_schedule(state: dict[str, Any], db: Any = None) -> dict[str, Any]
             "calendar_type_id": str(calendar_type_id),
         }
     except Exception as e:
-        logger.error("tool_check_schedule_error", error=str(e))
+        logger.exception("tool_check_schedule_error", error=str(e))
         return {"status": "error", "message": "Error verificando disponibilidad."}
 
 

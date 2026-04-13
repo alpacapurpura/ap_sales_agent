@@ -45,7 +45,7 @@ def _track_knowledge_search(
             db.commit()
         finally:
             db.close()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — tool execution resilience
         logger.debug("knowledge_search_tracking_error", error=str(e))
 
 
@@ -68,7 +68,7 @@ def search_knowledge_base(query: str, scope: str = "all") -> str:
         store = CopilotKnowledgeStore()
         results = store.search(query, str(tenant_id), scope, limit=5)
     except Exception as e:
-        logger.error("knowledge_search_error", error=str(e))
+        logger.exception("knowledge_search_error", error=str(e))
         return "Error buscando en la base de conocimiento."
 
     if not results:

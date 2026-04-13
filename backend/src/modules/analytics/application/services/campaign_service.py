@@ -551,7 +551,7 @@ class CampaignService:
         """
         try:
             return await self._sync_campaigns_inline(tenant_id)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 — service resilience
             logger.warning("Inline campaign sync failed, falling back to ARQ: %s", exc)
             return await self._enqueue_campaign_sync_arq(tenant_id)
 

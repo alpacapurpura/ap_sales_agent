@@ -1,10 +1,11 @@
 import os
 import sys
+from pathlib import Path
 
 import streamlit as st
 
 # Add project root to path to import src modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+sys.path.append(str((Path(__file__).parent / "../..").resolve()))
 
 # --- Bootstrap all models so SQLAlchemy mapper resolves cross-module relationships ---
 import src.shared.infrastructure.model_registry  # noqa: F401

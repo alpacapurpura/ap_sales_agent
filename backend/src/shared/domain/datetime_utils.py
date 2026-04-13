@@ -46,6 +46,7 @@ def is_valid_timezone(tz_name: str) -> bool:
     """Check if a string is a valid IANA timezone identifier."""
     try:
         ZoneInfo(tz_name)
-        return True
     except (KeyError, ValueError):
         return False
+    else:
+        return True

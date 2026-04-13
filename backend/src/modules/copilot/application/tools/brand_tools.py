@@ -26,7 +26,7 @@ def _get_brand_settings(db, tenant_id: UUID):
     repo = BrandRepository(db)
     try:
         return repo.get_settings(tenant_id)
-    except Exception:
+    except Exception:  # noqa: BLE001 — tool execution resilience
         logger.warning("brand_tools_get_settings_error", tenant_id=str(tenant_id))
         return None
 

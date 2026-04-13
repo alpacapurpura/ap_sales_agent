@@ -23,7 +23,7 @@ try:
     _redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
     _redis_client.ping()
     logger.info("redis_connected", url=settings.REDIS_URL)
-except Exception as exc:
+except (redis.ConnectionError, redis.TimeoutError, OSError) as exc:
     logger.warning(
         "redis_unavailable",
         url=settings.REDIS_URL,

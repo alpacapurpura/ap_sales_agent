@@ -386,7 +386,7 @@ class CampaignRepository:
                   AND provider = :provider
                   AND deleted_at IS NULL
                   AND external_id NOT IN ({placeholders})
-            """,  # noqa: S608 — table is a trusted internal constant, not user input
+            """,
             ),
             params,
         )

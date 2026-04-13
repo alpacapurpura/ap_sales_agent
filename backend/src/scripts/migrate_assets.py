@@ -1,14 +1,14 @@
-import os
 import sys
+from pathlib import Path
 
 from sqlalchemy import text
 
 # Adjust PYTHONPATH
-current_dir = os.path.dirname(os.path.abspath(__file__))
-backend_dir = os.path.abspath(os.path.join(current_dir, "../../"))
-sys.path.append(backend_dir)
+current_dir = Path(__file__).resolve().parent
+backend_dir = (current_dir / "../../").resolve()
+sys.path.append(str(backend_dir))
 
-from src.core.database import engine  # noqa: E402
+from src.core.database import engine
 
 
 def migrate():
@@ -23,7 +23,7 @@ def migrate():
                     text("ALTER TABLE offer_gallery_images RENAME TO assets;"),
                 )
                 print("✅ Table renamed.")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — migration script resilience
                 if "does not exist" in str(e):
                     print(
                         "⚠️ Table 'offer_gallery_images' not found. Checking if 'assets' exists...",
@@ -63,7 +63,7 @@ def migrate():
                         print(f"ℹ️ Column '{col_name}' already exists.")
                     else:
                         print(f"❌ Error adding column '{col_name}': {e}")
-                        raise e
+                        raise
 
             # 4. Data Migration (Backfill)
             print("Backfilling data...")
@@ -84,7 +84,7 @@ def migrate():
             trans.commit()
             print("🎉 Migration completed successfully!")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — migration script resilience
             trans.rollback()
             print(f"❌ Migration failed: {e}")
             sys.exit(1)

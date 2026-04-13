@@ -128,7 +128,7 @@ class OpportunityMetricsRepository:
                 try:
                     value_result = self.db.execute(value_stmt).scalar()
                     counts[name]["value"] = float(value_result or 0.0)
-                except Exception:
+                except (TypeError, ValueError):
                     logger.warning("Could not sum total_price for %s events", name)
                     counts[name]["value"] = 0.0
 

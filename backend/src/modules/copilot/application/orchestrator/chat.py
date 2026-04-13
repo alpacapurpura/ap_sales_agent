@@ -108,7 +108,9 @@ class CopilotOrchestrator:
                     yield sse_event
 
         except Exception as e:
-            logger.error("copilot_stream_error", error=str(e), conversation_id=conv_id)
+            logger.exception(
+                "copilot_stream_error", error=str(e), conversation_id=conv_id
+            )
             yield SSEEvent(
                 event="error",
                 data={
@@ -269,7 +271,7 @@ class CopilotOrchestrator:
             if cached:
                 raw_messages = json.loads(cached)
                 return self._deserialize_messages(raw_messages)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — Redis cache resilience
             logger.debug("redis_history_miss", conv_id=conv_id, error=str(e))
 
         # Fallback to DB
@@ -282,7 +284,7 @@ class CopilotOrchestrator:
                         REDIS_CONV_TTL,
                         json.dumps(conv_model.messages, ensure_ascii=False),
                     )
-            except Exception:  # noqa: S110
+            except Exception:  # noqa: BLE001 — orchestrator resilience
                 pass
             return self._deserialize_messages(conv_model.messages)
 
@@ -302,7 +304,7 @@ class CopilotOrchestrator:
                 REDIS_CONV_TTL,
                 json.dumps(existing, ensure_ascii=False),
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — Redis cache resilience
             logger.debug("redis_cache_error", error=str(e))
 
     @staticmethod

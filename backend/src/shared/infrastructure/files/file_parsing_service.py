@@ -36,7 +36,7 @@ class FileParsingService:
                 logger.warning("Unsupported file type", filename=filename)
                 return ""
         except Exception as e:
-            logger.error("Error parsing file", filename=filename, error=str(e))
+            logger.exception("Error parsing file", filename=filename, error=str(e))
             # Return empty string on error to allow process to continue with other inputs
             return ""
         finally:
@@ -54,8 +54,8 @@ class FileParsingService:
                 if extracted:
                     text += extracted + "\n"
         except Exception as e:
-            logger.error("PDF parsing error", error=str(e))
-            raise e
+            logger.exception("PDF parsing error", error=str(e))
+            raise
         return text
 
     @staticmethod
@@ -68,6 +68,6 @@ class FileParsingService:
                 if paragraph.text:
                     text += paragraph.text + "\n"
         except Exception as e:
-            logger.error("DOCX parsing error", error=str(e))
-            raise e
+            logger.exception("DOCX parsing error", error=str(e))
+            raise
         return text

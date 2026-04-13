@@ -207,11 +207,10 @@ async def run_follow_up_engine(ctx: dict) -> None:
                 if await _process_single_checkpoint(db, cp, now):
                     sent_count += 1
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "follow_up_single_failed",
                     lead_id=str(cp.lead_id),
                     error=str(e),
-                    exc_info=True,
                 )
                 continue
 
@@ -222,7 +221,7 @@ async def run_follow_up_engine(ctx: dict) -> None:
             logger.debug("follow_up_engine_complete", sent_count=0)
 
     except Exception as e:
-        logger.error("follow_up_engine_failed", error=str(e), exc_info=True)
+        logger.exception("follow_up_engine_failed", error=str(e))
         with contextlib.suppress(Exception):
             db.rollback()
     finally:

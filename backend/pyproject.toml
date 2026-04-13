@@ -109,31 +109,69 @@ select = [
     "EM",                      # flake8-errmsg: exception messages
     # --- Structure ---
     "INP",                     # implicit namespace package: require __init__.py
+    # --- Wave 4: zero-effort wins (0 violations) ---
+    "YTT",                     # flake8-2020: sys.version checks
+    "ASYNC",                   # flake8-async: async patterns
+    "FA",                      # flake8-future-annotations
+    "ICN",                     # flake8-import-conventions
+    "Q",                       # flake8-quotes
+    "SLOT",                    # flake8-slots
+    "TID",                     # flake8-tidy-imports
+    "INT",                     # flake8-gettext
+    "T10",                     # flake8-debugger
+    "EXE",                     # flake8-executable
+    # --- Wave 4: fix + activate ---
+    "NPY",                     # numpy deprecated APIs
+    "PYI",                     # stub file / typing best practices
+    "PTH",                     # flake8-use-pathlib
+    "TD",                      # flake8-todos: TODO format
+    "FIX",                     # flake8-fixme: flag remaining TODOs
+    "G",                       # flake8-logging-format
+    "TRY",                     # tryceratops: exception patterns
+    "BLE",                     # flake8-blind-except
 ]
 ignore = [
-    # === Permanent ignores (false positives for our stack) ===
-    "B008",     # Function calls in defaults — FastAPI Depends/Header/Query
-    "RET504",   # Unnecessary var before return — readability
+    # === Permanent ignores — false positives for FastAPI/DDD/Spanish stack ===
+    "B008",     # Function calls in defaults — FastAPI Depends/Header/Query. 652 usos.
+    "RET504",   # Unnecessary var before return — readability preference
     "UP017",    # datetime.UTC alias — prefer explicit timezone.utc
-    "PLR2004",  # Magic values in comparisons — too noisy, low value
-    "PLR0913",  # Too many function arguments — FastAPI/DDD pattern
-    "PLC0415",  # import not at top — conditional imports are intentional
-    "ARG001",   # Unused function argument — interface contracts, FastAPI deps
-    "ARG002",   # Unused method argument — interface implementations
-    "RUF001",   # Ambiguous unicode — Spanish text in prompts is intentional
-    "RUF012",   # Mutable ClassVar — Pydantic models handle this differently
-    "RUF013",   # PEP 484 Optional — overlap with UP045
-    "DTZ005",   # datetime.now() without tz — will fix progressively
-    "FBT001",   # Boolean positional arg in function def — common in services
-    "FBT002",   # Boolean default value in function def — common pattern
+    "PLR2004",  # Magic values in comparisons — too noisy, low value. 194 usos.
+    "PLR0913",  # Too many function arguments — FastAPI/DDD constructors. 145 usos.
+    "PLC0415",  # import not at top — conditional imports avoid circulars. 383 usos.
+    "ARG001",   # Unused function argument — FastAPI deps, interface contracts. 45 usos.
+    "ARG002",   # Unused method argument — interface implementations. 80 usos.
+    "RUF001",   # Ambiguous unicode — Spanish text in prompts is intentional. 37 usos.
+    "RUF012",   # Mutable ClassVar — Pydantic models handle this differently. 44 usos.
+    "FBT001",   # Boolean positional arg — common in services. 61 usos.
+    "FBT002",   # Boolean default value — common pattern. 33 usos.
+    "PT028",    # Pytest fixture default — false positive on FastAPI test_* with Depends()
+    # === Format conflicts ===
     "ISC001",   # Implicit string concat — conflicts with ruff format
-    "COM812",   # Trailing comma — conflicts with ruff format (ruff format handles commas)
-    "PT028",    # Pytest fixture default — false positive on FastAPI test_* endpoints with Depends()
+    "COM812",   # Trailing comma — conflicts with ruff format
+    # === Bandit security false positives (OAuth/connection/Docker config) ===
+    "S105",     # Hardcoded password string — OAUTHLIB_RELAX_TOKEN_SCOPE, credential enums
+    "S106",     # Hardcoded password func arg — OAuth/API credential fields
+    "S107",     # Hardcoded password default — credential config patterns
+    "S108",     # Hardcoded temp file — /tmp paths in Docker config
+    "S104",     # Hardcoded bind-all-interfaces — Docker dev server uses 0.0.0.0
+    "S110",     # try-except-pass — intentional resilience in orchestrators
+    "S311",     # Non-cryptographic random — request IDs, not security
+    "S324",     # Insecure hash — MD5 for cache keys, not security
+    "S608",     # SQL injection — false positive on GAQL (Google Ads Query Language)
+    "S701",     # Jinja2 autoescape — intentionally disabled for prompt templates
+    # === SQLAlchemy patterns (== True/False/None required for SQL generation) ===
+    "E712",     # True/False comparison — Model.col == True generates WHERE col = TRUE
+    "E711",     # None comparison — Model.col == None generates WHERE col IS NULL
+    # === Import order (sys.path manipulation, conditional loading) ===
+    "E402",     # Module import not at top — sys.path + conditional imports
+    # === Tryceratops — too opinionated for enforcement ===
+    "TRY300",   # try-consider-else — reduces readability in our patterns
     # === Progressive adoption: fix gradually, remove from ignore ===
     # B904, SIM105, EM101, EM102, ERA001, PERF401, T201 — ENFORCED (2026-04-12)
     # DTZ003, DTZ006, DTZ007, PERF203, N818, N811, N814, N815, RUF002, PLW0603, PLW2901, PLC0206, UP042 — ENFORCED (2026-04-13)
     # FBT003, N806, A002, DTZ011 — ENFORCED (2026-04-13)
-    # N801, N802, PLR0911, PLR0912, PLR0915 — ENFORCED (2026-04-13, Wave 3)
+    # N801, N802, PLR0911, PLR0912, PLR0915 — ENFORCED (Wave 3, 2026-04-13)
+    # RUF013, DTZ005 — ENFORCED (Wave 4, 2026-04-13): 42 + 7 fixes
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -153,6 +191,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "N806",    # MockClient = MagicMock(...) is standard test pattern
     "DTZ011",  # date.today() in test fixtures is acceptable
     "PLR0912", # complex test helper functions are acceptable
+    "F401",    # side-effect imports for model registration in conftest
 ]
 "src/tests/**/*.py" = [
     "S101", "ARG", "PT", "PLR2004", "T201", "N806", "DTZ011", "PLR0912",
@@ -167,13 +206,16 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "S101", "ARG", "PT", "PLR2004", "T201",
 ]
 "src/admin/**/*.py" = [
+    "C901",     # too complex — Streamlit pages are monolithic by design
     "PLR0911",  # too many return statements — Streamlit pages
     "PLR0912",  # too many branches — Streamlit pages
     "PLR0915",  # too many statements — Streamlit pages
+    "SIM102",   # collapsible if — Streamlit nested conditionals clearer separate
+    "SIM117",   # multiple with — Streamlit col/container nesting is idiomatic
 ]
 
 [tool.ruff.lint.mccabe]
-max-complexity = 20  # Start permissive, lower to 15 gradually
+max-complexity = 15  # Wave 4: lowered from 20 (industry standard: 10)
 
 [tool.ruff.lint.flake8-type-checking]
 # Classes whose annotations are evaluated at runtime (Pydantic, SA 2.0).

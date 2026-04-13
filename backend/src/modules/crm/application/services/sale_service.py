@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
@@ -47,7 +47,7 @@ class SaleService:
             source=source,
             payment_method=payment_method,
             metadata=metadata or {},
-            occurred_at=datetime.now(),
+            occurred_at=datetime.now(UTC),
         )
 
         saved_sale = self.repository.save(sale)

@@ -67,7 +67,7 @@ class Procedure:
         try:
             repo = descriptor.repo_factory(db)
             data = descriptor.read_fn(repo, tenant_id)
-        except Exception:
+        except Exception:  # noqa: BLE001 — copilot resilience
             return False
 
         if not data:

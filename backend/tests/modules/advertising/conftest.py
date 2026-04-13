@@ -9,10 +9,10 @@ from uuid import UUID
 import pytest
 
 # Import models so Base.metadata registers them before create_all runs.
-from src.modules.advertising.infrastructure.models.ad_campaign_template_model import (  # noqa: F401
+from src.modules.advertising.infrastructure.models.ad_campaign_template_model import (
     AdCampaignTemplateModel,
 )
-from src.modules.advertising.infrastructure.models.ad_offer_association_model import (  # noqa: F401
+from src.modules.advertising.infrastructure.models.ad_offer_association_model import (
     AdOfferAssociationModel,
 )
 from src.modules.analytics.infrastructure.models.ad_campaign_model import (

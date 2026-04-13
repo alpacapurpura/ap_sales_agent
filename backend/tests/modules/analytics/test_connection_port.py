@@ -42,7 +42,7 @@ class TestConnectionPort:
 class TestConnectionCredentials:
     def test_validates_model(self, mock_connection_credentials):
         assert mock_connection_credentials.channel_type == "meta"
-        assert mock_connection_credentials.credentials["access_token"] == "test-token"  # noqa: S105
+        assert mock_connection_credentials.credentials["access_token"] == "test-token"
         assert mock_connection_credentials.config["page_id"] == "123456"
 
     def test_fields_required(self):

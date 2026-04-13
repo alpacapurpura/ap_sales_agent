@@ -212,11 +212,9 @@ class PeriodExtractionPipeline:
                 duration_seconds=round(duration, 2),
             )
             self.db.commit()
-            logger.error(
-                "Period extraction failed: tenant=%s provider=%s error=%s",
+            logger.exception(
+                "Period extraction failed: tenant=%s provider=%s",
                 tenant_id,
                 provider_name,
-                exc,
-                exc_info=True,
             )
             return {"provider": provider_name, "status": "failed", "error": str(exc)}

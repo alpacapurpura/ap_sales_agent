@@ -57,7 +57,7 @@ async def create_domain(
         else:
             conflict = service.detect_domain_conflict(body.hostname)
             if conflict:
-                raise HTTPException(
+                raise HTTPException(  # noqa: TRY301
                     status_code=409,
                     detail={
                         "code": "DOMAIN_CONFLICT",
@@ -149,7 +149,7 @@ async def verify_domain(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        logger.error("domain_verify_error", error=str(e), domain_id=str(domain_id))
+        logger.exception("domain_verify_error", error=str(e), domain_id=str(domain_id))
         raise HTTPException(
             status_code=502,
             detail="Cloudflare verification failed",

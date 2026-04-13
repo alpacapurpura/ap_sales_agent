@@ -1,4 +1,4 @@
-# TODO(async-migration): This service uses Session (sync). Needs migration to AsyncSession.
+# NOTE(async-migration): This service uses Session (sync). Needs migration to AsyncSession.
 from uuid import UUID
 
 from sqlalchemy import text as sa_text

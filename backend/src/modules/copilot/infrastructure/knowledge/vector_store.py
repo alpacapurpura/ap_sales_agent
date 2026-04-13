@@ -36,7 +36,7 @@ class CopilotKnowledgeStore:
                 model_name=settings.QDRANT_SPARSE_MODEL,
             )
         except Exception as e:
-            logger.error("copilot_knowledge_sparse_init_error", error=str(e))
+            logger.exception("copilot_knowledge_sparse_init_error", error=str(e))
             self.sparse_model = None
 
         try:
@@ -45,7 +45,7 @@ class CopilotKnowledgeStore:
                 cache_dir="/app/model_cache",
             )
         except Exception as e:
-            logger.error("copilot_knowledge_ranker_init_error", error=str(e))
+            logger.exception("copilot_knowledge_ranker_init_error", error=str(e))
             self.ranker = None
 
     def ensure_collection(self) -> None:
@@ -127,7 +127,7 @@ class CopilotKnowledgeStore:
                 except AttributeError:
                     reranked = self.ranker.rank(rerank_req)
                 passages = reranked[:limit]
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — copilot resilience
                 logger.warning("copilot_knowledge_rerank_error", error=str(e))
                 passages = passages[:limit]
         else:
@@ -196,25 +196,29 @@ class CopilotKnowledgeStore:
                     ),
                 ),
             )
-            return True
         except Exception as e:
-            logger.error("copilot_knowledge_delete_error", error=str(e))
+            logger.exception("copilot_knowledge_delete_error", error=str(e))
             return False
+
+        else:
+            return True
 
     def get_collection_stats(self) -> dict:
         """Get collection stats for admin dashboard."""
         try:
             self.ensure_collection()
             info = self.client.get_collection(self.COLLECTION)
+        except Exception as e:
+            logger.exception("copilot_knowledge_stats_error", error=str(e))
+            return {"collection": self.COLLECTION, "error": str(e)}
+
+        else:
             return {
                 "collection": self.COLLECTION,
                 "vectors_count": info.vectors_count,
                 "points_count": info.points_count,
                 "status": info.status.value if info.status else "unknown",
             }
-        except Exception as e:
-            logger.error("copilot_knowledge_stats_error", error=str(e))
-            return {"collection": self.COLLECTION, "error": str(e)}
 
     def list_documents(
         self,
@@ -264,5 +268,5 @@ class CopilotKnowledgeStore:
                 for p in points
             ]
         except Exception as e:
-            logger.error("copilot_knowledge_list_error", error=str(e))
+            logger.exception("copilot_knowledge_list_error", error=str(e))
             return []

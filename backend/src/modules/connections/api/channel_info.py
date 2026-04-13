@@ -221,7 +221,7 @@ async def get_channel_info(
                 "error": latest_run.error,
                 "duration_seconds": latest_run.duration_seconds,
             }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning("channel_info_extraction_lookup_failed", error=str(e))
 
     # Cross-module read: data range from official_metrics
@@ -250,7 +250,7 @@ async def get_channel_info(
                 else str(row[1]),
                 "total_records": row[2],
             }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning("channel_info_data_range_lookup_failed", error=str(e))
 
     return ChannelInfoResponse(

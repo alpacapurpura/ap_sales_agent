@@ -192,7 +192,7 @@ async def retry_extraction(
         )
         await pool.close()
     except Exception as exc:
-        logger.error("Failed to enqueue retry job: %s", str(exc))
+        logger.exception("Failed to enqueue retry job")
         raise HTTPException(
             status_code=500,
             detail="Failed to enqueue retry job",

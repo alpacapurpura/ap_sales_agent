@@ -305,14 +305,14 @@ class ExtractionOrchestrator:
             try:
                 return await svc.crawler.crawl_content(url)
             except Exception as e:
-                logger.error("crawl_failed", error=str(e))
+                logger.exception("crawl_failed", error=str(e))
                 return ""
 
         async def safe_crawl_styles() -> str:
             try:
                 return await svc.crawler.crawl_content_with_styles(url)
             except Exception as e:
-                logger.error("crawl_styles_failed", error=str(e))
+                logger.exception("crawl_styles_failed", error=str(e))
                 return ""
 
         enriched_visual_content = ""

@@ -22,8 +22,8 @@ security = HTTPBearer()
 # Cachear las llaves públicas para no pedirlas en cada request
 try:
     jwks_client = jwt.PyJWKClient(JWKS_URL)
-except Exception as e:
-    logger.warning(f"Could not initialize JWKS client: {e}")
+except Exception as e:  # noqa: BLE001 — service resilience
+    logger.warning("Could not initialize JWKS client: %s", e)
     jwks_client = None
 
 
@@ -47,16 +47,18 @@ def verify_token_payload(token: str) -> dict:
             options={"verify_aud": False},
             leeway=60,  # Add 60s leeway for clock skew
         )
-        return payload
     except jwt.exceptions.PyJWTError as e:
-        logger.error(f"JWT Validation Error: {e}")
+        logger.exception("JWT Validation Error")
         raise HTTPException(status_code=401, detail=f"Invalid Token: {e!s}") from e
     except Exception as e:
-        logger.error(f"Token Verification Error: {e}")
+        logger.exception("Token Verification Error")
         raise HTTPException(
             status_code=401,
             detail="Could not verify credentials",
         ) from e
+
+    else:
+        return payload
 
 
 def verify_clerk_token(credentials: HTTPAuthorizationCredentials = Security(security)):

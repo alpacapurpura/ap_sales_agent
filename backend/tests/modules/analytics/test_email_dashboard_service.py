@@ -2,7 +2,7 @@
 
 import json
 import uuid
-from collections import namedtuple
+from typing import NamedTuple
 from unittest.mock import MagicMock
 
 from src.modules.analytics.application.services.email_dashboard_service import (
@@ -120,11 +120,14 @@ class TestEngagementSegmentation:
 
 TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 
+
 # Simulate rows from official_metrics grouped by campaign_id + metric_name
-_AutoRow = namedtuple(
-    "AutoRow",
-    ["campaign_id", "metric_name", "total_value", "extra", "last_date"],
-)
+class _AutoRow(NamedTuple):
+    campaign_id: str
+    metric_name: str
+    total_value: float
+    extra: str
+    last_date: str
 
 
 def _make_auto_rows():

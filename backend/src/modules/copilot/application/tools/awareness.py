@@ -30,7 +30,7 @@ def _check_introspectable_module(db, tenant_id: UUID, descriptor) -> dict:
     try:
         repo = descriptor.repo_factory(db)
         data = descriptor.read_fn(repo, tenant_id)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — tool execution resilience
         logger.warning(
             "awareness_read_error",
             module=descriptor.module_id,
@@ -63,7 +63,7 @@ def _check_offer_completion(db, tenant_id: UUID) -> dict:
             ).scalar()
             or 0
         )
-    except Exception:
+    except (TypeError, ValueError):
         count = 0
 
     configured = count > 0
@@ -88,7 +88,7 @@ def _check_connections_completion(db, tenant_id: UUID) -> dict:
             .mappings()
             .all()
         )
-    except Exception:
+    except (TypeError, ValueError):
         rows = []
 
     connected = [r["channel_type"] for r in rows if r.get("is_active")]
@@ -122,7 +122,7 @@ def _check_landing_completion(db, tenant_id: UUID) -> dict:
             ).scalar()
             or 0
         )
-    except Exception:
+    except (TypeError, ValueError):
         total, published = 0, 0
 
     configured = total > 0
@@ -147,7 +147,7 @@ def _check_crm_completion(db, tenant_id: UUID) -> dict:
             ).scalar()
             or 0
         )
-    except Exception:
+    except (TypeError, ValueError):
         lead_count, sale_count = 0, 0
 
     configured = lead_count > 0

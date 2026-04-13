@@ -79,7 +79,7 @@ async def _maybe_enqueue_period_extraction(ctx: dict, db, tenant_id: str) -> Non
             "Period extraction auto-triggered for tenant=%s (period_metrics was empty)",
             tenant_id,
         )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — worker task error boundary
         logger.warning(
             "Failed to auto-trigger period extraction for tenant=%s: %s",
             tenant_id,
@@ -146,15 +146,13 @@ async def run_tenant_extraction(
             check_in_id=check_in_id,
             status=MonitorStatus.OK,
         )
-        return {"status": "success", "tenant_id": tenant_id, "provider": provider}
 
     except ConnectionRevokedError as exc:
         # Permanent failure — do not retry revoked connections
-        logger.error(
-            "Connection revoked for tenant=%s provider=%s: %s",
+        logger.exception(
+            "Connection revoked for tenant=%s provider=%s",
             tenant_id,
             provider,
-            str(exc),
         )
         capture_checkin(
             monitor_slug="etl-daily-extraction",
@@ -190,6 +188,8 @@ async def run_tenant_extraction(
         )
         raise Retry(defer=defer_seconds) from exc
 
+    else:
+        return {"status": "success", "tenant_id": tenant_id, "provider": provider}
     finally:
         db.close()
 
@@ -254,20 +254,12 @@ async def run_initial_load(
             provider,
             initial_days,
         )
-        return {
-            "status": "success",
-            "tenant_id": tenant_id,
-            "provider": provider,
-            "initial_days": initial_days,
-            **result,
-        }
 
     except ConnectionRevokedError as exc:
-        logger.error(
-            "Connection revoked during initial load for tenant=%s provider=%s: %s",
+        logger.exception(
+            "Connection revoked during initial load for tenant=%s provider=%s",
             tenant_id,
             provider,
-            str(exc),
         )
         if redis:
             redis.setex(
@@ -304,6 +296,14 @@ async def run_initial_load(
             sentry_sdk.capture_exception(exc)
         raise Retry(defer=defer_seconds) from exc
 
+    else:
+        return {
+            "status": "success",
+            "tenant_id": tenant_id,
+            "provider": provider,
+            "initial_days": initial_days,
+            **result,
+        }
     finally:
         db.close()
 
@@ -354,12 +354,6 @@ async def run_period_extraction(
             period_end,
             results,
         )
-        return {
-            "status": "success",
-            "tenant_id": tenant_id,
-            "period_type": period_type,
-            "results": results,
-        }
 
     except Exception as exc:
         job_try = ctx.get("job_try", 1)
@@ -381,6 +375,13 @@ async def run_period_extraction(
             _sentry.capture_exception(exc)
         raise Retry(defer=defer_seconds) from exc
 
+    else:
+        return {
+            "status": "success",
+            "tenant_id": tenant_id,
+            "period_type": period_type,
+            "results": results,
+        }
     finally:
         db.close()
 
@@ -456,14 +457,12 @@ async def run_campaign_sync(
             provider,
             result,
         )
-        return sync_result
 
     except ConnectionRevokedError as exc:
-        logger.error(
-            "Connection revoked for campaign sync tenant=%s provider=%s: %s",
+        logger.exception(
+            "Connection revoked for campaign sync tenant=%s provider=%s",
             tenant_id,
             provider,
-            str(exc),
         )
         return {"status": "revoked", "tenant_id": tenant_id, "error": str(exc)}
 
@@ -488,6 +487,8 @@ async def run_campaign_sync(
             sentry_sdk.capture_exception(exc)
         raise Retry(defer=defer_seconds) from exc
 
+    else:
+        return sync_result
     finally:
         db.close()
 
@@ -532,7 +533,6 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
             check_in_id=check_in_id,
             status=MonitorStatus.OK,
         )
-        return {"status": "ok", "synced": synced_count}
 
     except Exception as exc:
         logger.exception("Mailerlite ETL backup sync failed globally")
@@ -545,6 +545,8 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
         db.rollback()
         return {"status": "error", "reason": "global_failure"}
 
+    else:
+        return {"status": "ok", "synced": synced_count}
     finally:
         db.close()
 
@@ -561,7 +563,7 @@ def _get_active_mailerlite_connections(db):
         select(ChannelConnectionModel).where(
             and_(
                 ChannelConnectionModel.channel_type == "mailerlite",
-                ChannelConnectionModel.is_active == True,  # noqa: E712
+                ChannelConnectionModel.is_active == True,
             ),
         ),
     )
@@ -577,7 +579,7 @@ async def _sync_mailerlite_tenants(db, connections) -> int:
             synced_count += await _sync_single_tenant(db, conn, tenant_id)
             db.commit()
         except Exception as e:
-            logger.error("Mailerlite ETL sync failed for tenant %s: %s", tenant_id, e)
+            logger.exception("Mailerlite ETL sync failed for tenant %s", tenant_id)
             sentry_sdk.capture_exception(e)
             db.rollback()
     return synced_count
@@ -630,7 +632,7 @@ async def _sync_single_tenant(db, conn, tenant_id) -> int:
                 and_(
                     CustomerProfileModel.tenant_id == tenant_id,
                     CustomerProfileModel.primary_email == email,
-                    CustomerProfileModel.is_inactive == False,  # noqa: E712
+                    CustomerProfileModel.is_inactive == False,
                 ),
             ),
         )
@@ -696,7 +698,6 @@ async def run_manychat_subscriber_sync(
             tenant_id,
             result,
         )
-        return result
 
     except Exception as exc:
         job_try = ctx.get("job_try", 1)
@@ -710,13 +711,14 @@ async def run_manychat_subscriber_sync(
             raise Retry(
                 defer=CacheConfig.DETAIL_STAGE_TTL,
             ) from exc  # Retry in 5 minutes
-        logger.error(
-            "ManyChat sync permanently failed for tenant=%s: %s",
+        logger.exception(
+            "ManyChat sync permanently failed for tenant=%s",
             tenant_id,
-            str(exc),
         )
         return {"status": "error", "error": str(exc)}
 
+    else:
+        return result
     finally:
         db.close()
 
@@ -758,7 +760,6 @@ async def run_inactivity_detection(ctx: dict) -> dict:
             check_in_id=check_in_id,
             status=MonitorStatus.OK,
         )
-        return result
 
     except Exception as exc:
         db.rollback()
@@ -771,5 +772,7 @@ async def run_inactivity_detection(ctx: dict) -> dict:
         )
         raise
 
+    else:
+        return result
     finally:
         db.close()

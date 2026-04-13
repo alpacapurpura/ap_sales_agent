@@ -31,10 +31,11 @@ class QdrantVectorStore(SemanticMemoryStore):
                 model_name=settings.QDRANT_SPARSE_MODEL,
             )
             logger.info(
-                f"Sparse embedding model loaded: {settings.QDRANT_SPARSE_MODEL}",
+                "Sparse embedding model loaded: %s",
+                settings.QDRANT_SPARSE_MODEL,
             )
-        except Exception as e:
-            logger.error(f"Failed to load sparse embedding model: {e}")
+        except Exception:
+            logger.exception("Failed to load sparse embedding model")
             self.sparse_embedding_model = None
 
         # Initialize Reranker
@@ -44,8 +45,8 @@ class QdrantVectorStore(SemanticMemoryStore):
                 cache_dir="/app/model_cache",
             )
             logger.info("Reranker model loaded.")
-        except Exception as e:
-            logger.error(f"Failed to load reranker: {e}")
+        except Exception:
+            logger.exception("Failed to load reranker")
             self.ranker = None
 
     def ensure_collection_exists(
@@ -59,7 +60,7 @@ class QdrantVectorStore(SemanticMemoryStore):
         exists = any(c.name == collection_name for c in collections.collections)
 
         if not exists:
-            logger.info(f"Creating Hybrid collection {collection_name}...")
+            logger.info("Creating Hybrid collection %s...", collection_name)
             self.client.create_collection(
                 collection_name=collection_name,
                 vectors_config={
@@ -76,9 +77,9 @@ class QdrantVectorStore(SemanticMemoryStore):
                     ),
                 },
             )
-            logger.info(f"Collection {collection_name} created.")
+            logger.info("Collection %s created.", collection_name)
         else:
-            logger.info(f"Collection {collection_name} already exists.")
+            logger.info("Collection %s already exists.", collection_name)
 
     def add_texts(
         self,
@@ -121,7 +122,7 @@ class QdrantVectorStore(SemanticMemoryStore):
             points.append(point)
 
         self.client.upsert(collection_name=collection_name, points=points)
-        logger.info(f"Indexed {len(texts)} documents (Hybrid).")
+        logger.info("Indexed %d documents (Hybrid).", len(texts))
 
     def _build_filter_conditions(
         self,
@@ -266,7 +267,7 @@ class QdrantVectorStore(SemanticMemoryStore):
                 models.Filter(must=filter_conditions) if filter_conditions else None
             )
 
-            logger.info(f"Qdrant Query: '{query_text}'")
+            logger.info("Qdrant Query: '%s'", query_text)
 
             search_limit = limit * 3 if enable_rerank else limit
             response = self.client.query_points(
@@ -277,7 +278,7 @@ class QdrantVectorStore(SemanticMemoryStore):
                 limit=search_limit,
             )
 
-            logger.info(f"Dense search found {len(response.points)} raw candidates")
+            logger.info("Dense search found %d raw candidates", len(response.points))
 
             passages = [
                 {
@@ -303,18 +304,20 @@ class QdrantVectorStore(SemanticMemoryStore):
 
             return self._format_context(final_results)
 
-        except Exception as e:
-            logger.error(f"Error searching Qdrant: {e}")
+        except Exception:
+            logger.exception("Error searching Qdrant")
             return ""
 
     # Additional methods not in interface but useful
     def delete_collection(self, collection_name: str) -> bool:
         try:
             self.client.delete_collection(collection_name=collection_name)
-            return True
-        except Exception as e:
-            logger.error(f"Error deleting collection: {e}")
+        except Exception:
+            logger.exception("Error deleting collection")
             return False
+
+        else:
+            return True
 
     def delete_vectors_by_source(
         self,
@@ -335,7 +338,8 @@ class QdrantVectorStore(SemanticMemoryStore):
                     ),
                 ),
             )
-            return True
-        except Exception as e:
-            logger.error(f"Error deleting vectors: {e}")
+        except Exception:
+            logger.exception("Error deleting vectors")
             return False
+        else:
+            return True

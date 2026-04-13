@@ -70,7 +70,7 @@ def _get_completion_snapshot(tenant_id) -> str:
                     )
                 else:
                     lines.append(f"### ⚠️ {brand_desc.label}\n  Sin datos configurados")
-            except Exception:
+            except Exception:  # noqa: BLE001 — orchestrator resilience
                 lines.append(f"### ⚠️ {brand_desc.label}\n  Error al leer datos")
 
         # Offer (SQL count)
@@ -86,7 +86,7 @@ def _get_completion_snapshot(tenant_id) -> str:
             )
             icon = "✅" if count > 0 else "⚠️"
             lines.append(f"### {icon} Offer Studio\n  {count} oferta(s) configurada(s)")
-        except Exception:  # noqa: S110
+        except Exception:  # noqa: BLE001 — orchestrator resilience
             pass
 
         # Connections (SQL count)
@@ -102,10 +102,10 @@ def _get_completion_snapshot(tenant_id) -> str:
             )
             icon = "✅" if conn_count > 0 else "⚠️"
             lines.append(f"### {icon} Conexiones\n  {conn_count} activa(s)")
-        except Exception:  # noqa: S110
+        except Exception:  # noqa: BLE001 — orchestrator resilience
             pass
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — orchestrator resilience
         logger.warning("completion_snapshot_error", error=str(e))
     finally:
         db.close()
@@ -189,7 +189,7 @@ def _get_behavior_summary(tenant_id, user_id) -> str:
                 )
 
         return "\n".join(lines) if lines else ""
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — orchestrator resilience
         logger.warning("behavior_summary_error", error=str(e))
         return ""
     finally:
@@ -206,7 +206,7 @@ def build_system_prompt(state: CopilotState) -> str:
     if tenant_id:
         try:
             snapshot = _get_completion_snapshot(tenant_id)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — orchestrator resilience
             logger.warning("snapshot_build_error", error=str(e))
 
     # Build module list from registry
@@ -222,7 +222,7 @@ def build_system_prompt(state: CopilotState) -> str:
     if tenant_id and user_id:
         try:
             behavior_summary = _get_behavior_summary(tenant_id, user_id)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — orchestrator resilience
             logger.warning("behavior_summary_build_error", error=str(e))
 
     # Active tool names
@@ -261,7 +261,7 @@ def build_system_prompt(state: CopilotState) -> str:
             available_tools=active_tools,
             active_procedure=active_procedure_ctx,
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — orchestrator resilience
         logger.warning("copilot_system_prompt_fallback", error=str(e))
         return (
             "Eres el Copilot de Nicolify, un asistente experto en marketing y ventas. "
@@ -335,7 +335,7 @@ def tool_executor_node(state: CopilotState) -> dict:
                     ),
                 )
             except Exception as e:
-                logger.error("copilot_tool_error", tool=tool_name, error=str(e))
+                logger.exception("copilot_tool_error", tool=tool_name, error=str(e))
                 tool_messages.append(
                     ToolMessage(
                         content=f"Error ejecutando {tool_name}: {e!s}",

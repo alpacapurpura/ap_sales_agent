@@ -14,7 +14,7 @@ import pytest
 # ---------------------------------------------------------------------------
 
 
-def _checkout_payload(email: str = "buyer@example.com", token: str = "tok_123") -> dict:  # noqa: S107
+def _checkout_payload(email: str = "buyer@example.com", token: str = "tok_123") -> dict:
     return {
         "email": email,
         "token": token,
@@ -87,7 +87,7 @@ async def test_checkout_created_creates_journey_event():
     assert event.event_name == "checkout_initiated"
     assert event.event_type == "track"
     assert event.properties["source"] == "shopify"
-    assert event.properties["checkout_token"] == "tok_123"  # noqa: S105
+    assert event.properties["checkout_token"] == "tok_123"
     assert event.properties["total_price"] == 49.99
     assert event.tenant_id == tenant_id
 

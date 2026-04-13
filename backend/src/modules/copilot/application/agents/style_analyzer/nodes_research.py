@@ -26,7 +26,7 @@ def node_researcher(state: OnboardingState) -> dict[str, Any]:
 
         summary = f"Landing Page Analysis:\n{page_analysis}\n\nSearch Context:\n{search_results}"
 
-        return {"research_summary": summary}
-
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — copilot resilience
         return {"research_summary": f"Research failed: {e!s}", "error": str(e)}
+    else:
+        return {"research_summary": summary}

@@ -473,7 +473,7 @@ class WebCrawler:
                         sub_response = await client.get(sub_url)
                         sub_response.raise_for_status()
                         return sub_url, extract_text_from_html(sub_response.text)
-                    except Exception:
+                    except Exception:  # noqa: BLE001 — web crawler resilience
                         return sub_url, ""
 
                 subpage_results = await asyncio.gather(
@@ -498,11 +498,13 @@ class WebCrawler:
                 pages_crawled=pages_crawled,
                 total_chars=len(result),
             )
-            return result
 
         except Exception as e:
-            logger.error("crawl_exception", url=url, error=str(e))
+            logger.exception("crawl_exception", url=url, error=str(e))
             return ""
+
+        else:
+            return result
 
     async def crawl_content_with_styles(self, url: str) -> str:
         """Crawl the main page preserving CSS data for visual identity extraction."""
@@ -541,7 +543,7 @@ class WebCrawler:
                             css_resp.raise_for_status()
                             raw_css = css_resp.text
                             return extract_css_relevant(raw_css)
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001 — web crawler resilience
                             logger.warning(
                                 "external_css_fetch_failed",
                                 css_url=css_url,
@@ -570,7 +572,7 @@ class WebCrawler:
                 )
                 return result
         except Exception as e:
-            logger.error("crawl_with_styles_exception", url=url, error=str(e))
+            logger.exception("crawl_with_styles_exception", url=url, error=str(e))
             return ""
 
 

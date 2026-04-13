@@ -205,13 +205,11 @@ class ETLService:
                     tenant_id,
                     exc,
                 )
-            except Exception as exc:
-                logger.error(
-                    "ETL extraction failed for provider %s tenant %s: %s",
+            except Exception:
+                logger.exception(
+                    "ETL extraction failed for provider %s tenant %s",
                     provider_name,
                     tenant_id,
-                    exc,
-                    exc_info=True,
                 )
 
         return results
@@ -999,7 +997,7 @@ class ETLService:
                 period_start=start_date,
                 period_end=end_date,
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 — service resilience
             logger.warning(
                 "Period extraction failed (non-fatal): tenant=%s provider=%s error=%s",
                 tenant_id,

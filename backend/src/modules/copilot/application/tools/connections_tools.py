@@ -80,7 +80,7 @@ def get_connections_detail() -> str:
 
         return "\n".join(lines)
     except Exception as e:
-        logger.error("connections_tools_error", error=str(e))
+        logger.exception("connections_tools_error", error=str(e))
         return f"Error consultando conexiones: {e!s}"
     finally:
         db.close()

@@ -87,3 +87,35 @@ Hallazgos detectados por Claude Code durante ejecución. Revisar y resolver.
 - **Problema:** Después de cambiar la lista de full-width patterns en el dashboard layout, Turbopack dev sirvió un bundle SSR stale mientras el cliente fast-refreshed con código nuevo. Hydration mismatch sin posibilidad de reconciliación.
 - **Fix aplicado:** Diferir la decisión a `useEffect` (initial render = false, flip post-mount).
 - [ ] Patrón general: cuando un client layout decide rendering basado en `usePathname()`, usar useState+useEffect para evitar cache staleness en dev. El "single-frame flash" es preferible al crash.
+
+## Stubs y mejoras pendientes extraídas de TODO comments — 2026-04-13
+
+### 16. Shopify GDPR compliance endpoints son stubs
+- `connections/api/shopify_compliance.py`: los 3 endpoints (`customers/data_request`, `customers/redact`, `shop/redact`) solo loguean y devuelven 200. No ejecutan export ni deletion real.
+- [ ] Implementar workflow de data export para `customers/data_request`
+- [ ] Implementar workflow de data deletion para `customers/redact` y `shop/redact`
+
+### 17. MailerLite sync_contacts y sync_events son stubs
+- `connections/infrastructure/marketing_connectors/mailerlite.py`: ambos métodos devuelven `[]`.
+- [ ] Implementar `sync_contacts` con la API real de MailerLite
+- [ ] Implementar `sync_events` con la API real de MailerLite (aperturas, clics, etc.)
+
+### 18. CRM: update/merge de traits no implementado
+- `crm/application/services/customer_service.py` y `crm/infrastructure/engines/identity.py`: cuando se encuentra un perfil existente, no se actualizan traits (merge).
+- [ ] Implementar lógica de merge de traits al encontrar perfil existente (en customer_service y identity engine)
+
+### 19. Offer campaigns adapter es stub
+- `advertising/application/services/offer_campaigns_read_adapter.py`: devuelve KPIs vacíos. Necesita que advertising exponga `offer_id` en sus tablas de campaign/ad.
+- [ ] Wire real aggregation cuando advertising exponga `offer_id` en campaign/ad tables
+
+### 20. Capture repository: session tracking para conversaciones
+- `analytics/infrastructure/repositories/capture_repository.py`: usa `distinct profile_id` como aproximación de conversaciones únicas.
+- [ ] Agregar session tracking a JourneyEventModel para conteos de conversación más precisos
+
+### 21. Landing service usa Session (sync) en vez de AsyncSession
+- `landing/application/landing_service.py`: necesita migración a AsyncSession.
+- [ ] Migrar landing_service.py de Session sync a AsyncSession
+
+### 22. Shopify abandoned cart detection
+- `connections/api/marketing_webhooks.py`: la detección de carritos abandonados (checkouts >1h sin order) no está implementada.
+- [ ] Implementar background task para detectar abandoned carts (checkouts >1h sin matching order)

@@ -186,16 +186,17 @@ async def logging_middleware(request: Request, call_next):
             status_code=response.status_code,
             process_time=process_time,
         )
-        return response
     except Exception as e:
         process_time = time.perf_counter() - start_time
-        logger.error(
+        logger.exception(
             "http_request_failed",
             error=str(e),
             process_time=process_time,
-            exc_info=True,
         )
-        raise e
+        raise
+
+    else:
+        return response
 
 
 @app.exception_handler(RequestValidationError)
@@ -229,7 +230,7 @@ async def startup_arq_pool():
             RedisSettings.from_dsn(settings.REDIS_URL),
         )
         logger.info("arq_pool_connected", redis_url=settings.REDIS_URL)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 — startup/health resilience
         logger.warning(
             "arq_pool_unavailable",
             redis_url=settings.REDIS_URL,
@@ -259,7 +260,7 @@ def health_check():
         return JSONResponse(
             content={"status": "ok", "version": settings.SENTRY_RELEASE},
         )
-    except Exception:
+    except Exception:  # noqa: BLE001 — startup/health resilience
         return JSONResponse(
             content={"status": "error", "postgres": "unreachable"},
             status_code=503,
@@ -284,7 +285,7 @@ def readiness_check():
     try:
         db.execute(text("SELECT 1"))
         checks["postgres"] = "ok"
-    except Exception:
+    except Exception:  # noqa: BLE001 — startup/health resilience
         checks["postgres"] = "error"
         healthy = False
     finally:
@@ -294,7 +295,7 @@ def readiness_check():
     try:
         redis_client.ping()
         checks["redis"] = "ok"
-    except Exception:
+    except Exception:  # noqa: BLE001 — startup/health resilience
         checks["redis"] = "error"
         healthy = False
 
@@ -304,7 +305,7 @@ def readiness_check():
         checks["qdrant"] = "ok" if resp.status_code == 200 else "error"
         if resp.status_code != 200:
             healthy = False
-    except Exception:
+    except Exception:  # noqa: BLE001 — startup/health resilience
         checks["qdrant"] = "error"
         healthy = False
 
@@ -314,7 +315,7 @@ def readiness_check():
     try:
         last_tick = redis_client.get("scheduler:last_tick")
         checks["scheduler"] = "ok" if last_tick else "stale"
-    except Exception:
+    except Exception:  # noqa: BLE001 — startup/health resilience
         checks["scheduler"] = "error"
 
     status_code = 200 if healthy else 503
@@ -772,4 +773,4 @@ app.include_router(
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)  # noqa: S104
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -15,7 +15,7 @@ from src.modules.connections.infrastructure.marketing_connectors.base import (
 from src.shared.domain.datetime_utils import utc_now
 
 # Allow OAuth scope to change (e.g. if user granted extra scopes previously)
-os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"  # noqa: S105
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ class GoogleCalendarAdapter(BaseConnector):
         }
 
     @staticmethod
-    def get_authorization_url(redirect_uri: str = None) -> tuple[str, str]:
+    def get_authorization_url(redirect_uri: str | None = None) -> tuple[str, str]:
         """Generates the authorization URL and state."""
         flow = Flow.from_client_config(
             GoogleCalendarAdapter.get_client_config(),
@@ -79,7 +79,7 @@ class GoogleCalendarAdapter(BaseConnector):
         return authorization_url, state
 
     @staticmethod
-    def exchange_code(code: str, redirect_uri: str = None) -> dict[str, Any]:
+    def exchange_code(code: str, redirect_uri: str | None = None) -> dict[str, Any]:
         """Exchanges the authorization code for tokens."""
         flow = Flow.from_client_config(
             GoogleCalendarAdapter.get_client_config(),
@@ -94,8 +94,8 @@ class GoogleCalendarAdapter(BaseConnector):
             flow.fetch_token(code=code)
             creds = flow.credentials
             return json.loads(creds.to_json())
-        except Exception as e:
-            logger.error(f"Error exchanging code for token: {e}")
+        except Exception:
+            logger.exception("Error exchanging code for token")
             raise
 
     def get_service(self):
@@ -123,8 +123,8 @@ class GoogleCalendarAdapter(BaseConnector):
             return (
                 events_result.get("calendars", {}).get(calendar_id, {}).get("busy", [])
             )
-        except Exception as e:
-            logger.error(f"Error fetching busy periods: {e}")
+        except Exception:
+            logger.exception("Error fetching busy periods")
             raise
 
     def create_event(
@@ -151,7 +151,7 @@ class GoogleCalendarAdapter(BaseConnector):
             "attendees": [{"email": email} for email in attendees],
             "conferenceData": {
                 "createRequest": {
-                    "requestId": f"req-{int(datetime.datetime.now().timestamp())}",
+                    "requestId": f"req-{int(utc_now().timestamp())}",
                     "conferenceSolutionKey": {"type": "hangoutsMeet"},
                 },
             },
@@ -163,10 +163,12 @@ class GoogleCalendarAdapter(BaseConnector):
                 .insert(calendarId=calendar_id, body=event, conferenceDataVersion=1)
                 .execute()
             )
-            return event
-        except Exception as e:
-            logger.error(f"Error creating event: {e}")
+        except Exception:
+            logger.exception("Error creating event")
             raise
+
+        else:
+            return event
 
     def list_events(
         self,
@@ -189,6 +191,6 @@ class GoogleCalendarAdapter(BaseConnector):
                 .execute()
             )
             return events_result.get("items", [])
-        except Exception as e:
-            logger.error(f"Error listing events: {e}")
+        except Exception:
+            logger.exception("Error listing events")
             raise

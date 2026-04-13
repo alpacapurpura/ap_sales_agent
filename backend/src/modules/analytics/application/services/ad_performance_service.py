@@ -117,7 +117,7 @@ class AdPerformanceService:
                 WHERE a.tenant_id = :tenant_id
                   AND a.external_id IN ({placeholders})
                   AND a.deleted_at IS NULL
-            """),  # noqa: S608 — placeholders are parameterised, not user input
+            """),
             params,
         ).fetchall()
 

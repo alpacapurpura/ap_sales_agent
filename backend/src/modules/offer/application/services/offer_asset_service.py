@@ -233,7 +233,7 @@ class OfferAssetService:
         )
         try:
             self._events.publish(event)
-        except Exception:
+        except Exception:  # noqa: BLE001 — service resilience
             logger.warning("offer_asset_event_publish_failed", asset_id=str(asset.id))
 
     def _emit_deleted(self, *, tenant_id: UUID, offer_id: UUID, asset_id: UUID) -> None:
@@ -247,7 +247,7 @@ class OfferAssetService:
         )
         try:
             self._events.publish(event)
-        except Exception:
+        except Exception:  # noqa: BLE001 — service resilience
             logger.warning("offer_asset_event_publish_failed", asset_id=str(asset_id))
 
 

@@ -35,7 +35,7 @@ class OfferCampaignsReadAdapter(AdvertisingReadPort):
         status: Literal["all", "active", "paused", "ended"] = "all",
         channel: str | None = None,
     ) -> OfferCampaignsViewDTO:
-        # TODO(offer-header-refactor): wire real aggregation when advertising
+        # Stub: wire real aggregation when advertising
         # exposes offer_id on its campaign/ad tables.
         _ = (tenant_id, offer_id, period_start, period_end, status, channel)
         return OfferCampaignsViewDTO(

@@ -46,7 +46,6 @@ class ReferralService:
                     customer_id,
                     tenant_id,
                 )
-                return record
             except IntegrityError:
                 self.db.rollback()
                 logger.warning(
@@ -57,6 +56,8 @@ class ReferralService:
                 if attempt == 2:
                     raise
 
+            else:
+                return record
         # Should never reach here due to raise above, but satisfy type checker
         msg = "Failed to generate unique referral code after 3 attempts"
         raise RuntimeError(msg)
@@ -191,11 +192,10 @@ class ReferralService:
                     tenant_id,
                 )
 
-        except Exception as e:
-            logger.error(
-                "Failed to extract Shopify codes for tenant %s: %s",
+        except Exception:
+            logger.exception(
+                "Failed to extract Shopify codes for tenant %s",
                 tenant_id,
-                str(e),
             )
 
         return imported

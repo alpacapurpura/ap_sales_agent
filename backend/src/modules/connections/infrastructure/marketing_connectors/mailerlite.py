@@ -44,7 +44,7 @@ class MailerliteConnector(BaseConnector):
                 return False, {
                     "error": f"Status: {response.status_code}, Body: {response.text}",
                 }
-        except Exception as e:
+        except httpx.HTTPError as e:
             return False, {"error": str(e)}
 
     async def get_recent_campaign_activity(
@@ -146,7 +146,7 @@ class MailerliteConnector(BaseConnector):
                 str(e),
             )
             return []
-        except Exception as e:
+        except (ValueError, KeyError) as e:
             logger.warning(
                 "Unexpected error fetching Mailerlite campaign activity: %s",
                 str(e),
@@ -156,12 +156,12 @@ class MailerliteConnector(BaseConnector):
         return activities
 
     def sync_contacts(self, tenant_id: str) -> list[dict[str, Any]]:
-        # TODO: Implementar lógica real de MailerLite para obtener suscriptores
+        # Stub: Implementar lógica real de MailerLite para obtener suscriptores
         logger.info("mailerlite_sync_contacts_started", tenant_id=tenant_id)
         return []
 
     def sync_events(self, tenant_id: str) -> list[dict[str, Any]]:
-        # TODO: Implementar lógica real de MailerLite para obtener eventos (aperturas, clics, etc.)
+        # Stub: Implementar lógica real de MailerLite para obtener eventos (aperturas, clics, etc.)
         logger.info("mailerlite_sync_events_started", tenant_id=tenant_id)
         return []
 

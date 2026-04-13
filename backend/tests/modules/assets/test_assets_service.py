@@ -24,7 +24,7 @@ def _make_service(db, storage_mock):
 
 
 def _make_storage_mock(
-    storage_path="/tmp/fake/logo.png",  # noqa: S108
+    storage_path="/tmp/fake/logo.png",
     public_url="/static/uploads/fake/logo.png",
 ):
     mock = MagicMock()

@@ -84,23 +84,24 @@ class TelegramChannel(BaseChannel):
             try:
                 response = await client.post(url, json=payload, timeout=10.0)
                 response.raise_for_status()
-                logger.info(f"Message sent to Telegram user {message.user_id}")
+                logger.info("Message sent to Telegram user %s", message.user_id)
                 return response.json()
             except httpx.HTTPStatusError as e:
                 # If 400 Bad Request (likely Markdown error), retry as plain text
                 if e.response.status_code == 400:
                     logger.warning(
-                        f"Telegram Markdown send failed ({e}), retrying as plain text...",
+                        "Telegram Markdown send failed (%s), retrying as plain text...",
+                        e,
                     )
                     payload.pop("parse_mode")
                     retry_response = await client.post(url, json=payload, timeout=10.0)
                     retry_response.raise_for_status()
                     return retry_response.json()
-                logger.error(f"Failed to send Telegram message: {e}")
-                raise e
-            except httpx.HTTPError as e:
-                logger.error(f"Failed to send Telegram message (Network): {e}")
-                raise e
+                logger.exception("Failed to send Telegram message")
+                raise
+            except httpx.HTTPError:
+                logger.exception("Failed to send Telegram message (Network)")
+                raise
 
     async def set_typing_status(self, user_id: str) -> None:
         """
@@ -118,5 +119,5 @@ class TelegramChannel(BaseChannel):
             try:
                 # Fire and forget
                 await client.post(url, json=payload, timeout=5.0)
-            except Exception as e:
-                logger.warning(f"Failed to send typing status to Telegram: {e}")
+            except httpx.HTTPError as e:
+                logger.warning("Failed to send typing status to Telegram: %s", e)

@@ -34,14 +34,17 @@ def normalize_delivery_model(raw: str | None) -> str | None:
         return None
     try:
         OfferDeliveryModel(raw)
-        return raw
     except ValueError:
         try:
             lowered = raw.lower()
             OfferDeliveryModel(lowered)
-            return lowered
         except ValueError:
             return None
+
+        else:
+            return lowered
+    else:
+        return raw
 
 
 def normalize_guarantee_type(raw: str | None) -> str:
@@ -50,14 +53,17 @@ def normalize_guarantee_type(raw: str | None) -> str:
         return "none"
     try:
         GuaranteeType(value)
-        return value
     except ValueError:
         try:
             lowered = value.lower()
             GuaranteeType(lowered)
-            return lowered
         except ValueError:
             return "none"
+
+        else:
+            return lowered
+    else:
+        return value
 
 
 def normalize_archetype(raw: str, offer_id=None) -> OfferArchetype:

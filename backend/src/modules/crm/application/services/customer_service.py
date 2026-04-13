@@ -54,7 +54,7 @@ class CustomerService:
             )
 
         # 2. If found, update traits (merge)
-        # TODO: Implement update logic in repo
+        # NOTE: Implement update logic in repo
 
         # 3. If not found, create new
         if not profile:

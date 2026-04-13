@@ -112,7 +112,7 @@ async def oauth_callback(
     try:
         creds_data = adapter.exchange_code(code, redirect_uri)
     except Exception as e:
-        logger.error("youtube_oauth_exchange_failed", error=str(e))
+        logger.exception("youtube_oauth_exchange_failed", error=str(e))
         raise HTTPException(
             status_code=400,
             detail=f"Error de autenticacion con Google: {e!s}",
@@ -127,9 +127,9 @@ async def oauth_callback(
         channel_id = channel_info.get("id")
         if not channel_id:
             msg = "No YouTube channel found for this account"
-            raise ValueError(msg)
+            raise ValueError(msg)  # noqa: TRY301
     except Exception as e:
-        logger.error("failed_to_get_youtube_channel", error=str(e))
+        logger.exception("failed_to_get_youtube_channel", error=str(e))
         raise HTTPException(
             status_code=400,
             detail="No se pudo obtener el canal de YouTube. Verifica que tengas un canal creado.",
@@ -210,7 +210,8 @@ async def test_connection(
             credentials_data=connection.credentials,
         )
         channel_info = adapter.get_channel_info()
-        return {"status": "ok", "message": "Conexion exitosa", "data": channel_info}
     except Exception as e:
-        logger.error("youtube_test_failed", error=str(e))
+        logger.exception("youtube_test_failed", error=str(e))
         return {"status": "error", "message": str(e)}
+    else:
+        return {"status": "ok", "message": "Conexion exitosa", "data": channel_info}

@@ -1,12 +1,12 @@
-import os
 import sys
+from pathlib import Path
 
 # Ajustar PYTHONPATH para que encuentre 'src'
 # Asumiendo que el script está en backend/src/modules/brand/tests/repro_issue.py
 # Necesitamos agregar 'backend/' al path para importar 'src.modules...'
-current_dir = os.path.dirname(os.path.abspath(__file__))
-backend_dir = os.path.abspath(os.path.join(current_dir, "../../../../"))
-sys.path.append(backend_dir)
+current_dir = Path(__file__).resolve().parent
+backend_dir = (current_dir / "../../../../").resolve()
+sys.path.append(str(backend_dir))
 
 try:
     from src.modules.brand.domain.models import BrandSettings
@@ -30,7 +30,7 @@ def run_tests():
         # This is expected to crash because **None is invalid syntax/runtime behavior
         BrandSettings(**None)
         print("PASSED")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — test infrastructure resilience
         print(f"CRASHED: {type(e).__name__}: {e}")
 
     # 2. Test Logic Simulation (WITH FIX)
@@ -48,7 +48,7 @@ def run_tests():
         try:
             BrandSettings(**brand_data)
             print("PASSED: BrandSettings(**{}) works!")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — test infrastructure resilience
             print(f"FAILED: BrandSettings(**{{}}) raised {e}")
     else:
         print(f"FAILED: brand_data is {brand_data}")

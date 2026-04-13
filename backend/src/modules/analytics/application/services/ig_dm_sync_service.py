@@ -130,7 +130,7 @@ class InstagramDMSyncService:
                             customer_profile_id=customer.id,
                             access_token=page_token,
                         )
-                    except Exception:
+                    except Exception:  # noqa: BLE001 — service resilience
                         logger.warning(
                             "ig_dm_sync_enrich_failed",
                             igsid=sender_id,
@@ -198,7 +198,7 @@ class InstagramDMSyncService:
                 )
                 return ""
             return response.json().get("access_token", "")
-        except Exception:
+        except httpx.HTTPError:
             logger.warning("ig_dm_page_token_exchange_error", exc_info=True)
             return ""
 
@@ -226,7 +226,7 @@ class InstagramDMSyncService:
                 )
                 return []
             return response.json().get("data", [])
-        except Exception:
+        except httpx.HTTPError:
             logger.warning("ig_conversations_fetch_error", exc_info=True)
             return []
 
@@ -253,7 +253,7 @@ class InstagramDMSyncService:
                 )
                 return []
             return response.json().get("data", [])
-        except Exception:
+        except httpx.HTTPError:
             logger.warning(
                 "ig_messages_fetch_error",
                 conversation_id=conversation_id,

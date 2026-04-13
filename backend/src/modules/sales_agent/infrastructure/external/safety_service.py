@@ -74,8 +74,10 @@ class SafetyLayerService:
                             category=rule.category,
                         )
 
-                except re.error as e:
-                    logger.error(f"Invalid regex pattern for rule {rule.id}: {e}")
+                except re.error:
+                    logger.exception(
+                        "Invalid regex pattern for rule", rule_id=str(rule.id)
+                    )
                     continue
 
             # --- PHASE 2: SYSTEM GUARDRAILS (Hardcoded criticals) ---
@@ -122,7 +124,7 @@ class SafetyLayerService:
 
             return "YES" in response.strip().upper()
 
-        except Exception as e:
-            logger.error(f"Safety Layer LLM Check Failed: {e}")
+        except Exception:
+            logger.exception("Safety Layer LLM Check Failed")
             # Fail safe: If LLM fails, assume it IS sensitive to be safe (Paranoid Mode)
             return True

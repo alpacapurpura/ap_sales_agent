@@ -36,7 +36,7 @@ class TestTenant:
             config_json={"company_name": "Big Corp"},
             openai_api_key="sk-abc",
             gemini_api_key="gm-xyz",
-            webhook_secret="secret",  # noqa: S106
+            webhook_secret="secret",
             can_use_platform_keys=True,
             is_active=False,
         )
@@ -131,9 +131,9 @@ class TestWebhookSettings:
     def test_with_secret(self):
         w = WebhookSettings(
             webhook_url="https://example.com/hook",
-            webhook_secret="mysecret",  # noqa: S106
+            webhook_secret="mysecret",
         )
-        assert w.webhook_secret == "mysecret"  # noqa: S105
+        assert w.webhook_secret == "mysecret"
 
     def test_url_required(self):
         with pytest.raises(ValidationError):
@@ -225,10 +225,10 @@ class TestTeamMemberCreate:
         m = TeamMemberCreate(
             full_name="Bob",
             email="bob@example.com",
-            password="secret123",  # noqa: S106
+            password="secret123",
         )
         assert m.full_name == "Bob"
-        assert m.password == "secret123"  # noqa: S105
+        assert m.password == "secret123"
 
     def test_all_fields_required(self):
         with pytest.raises(ValidationError):

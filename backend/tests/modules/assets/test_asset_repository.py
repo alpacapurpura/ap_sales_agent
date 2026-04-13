@@ -21,7 +21,7 @@ def _make_asset(tenant_id: uuid.UUID, **kwargs) -> Asset:
         "filename": "test.png",
         "mime_type": "image/png",
         "storage_provider": StorageProvider.LOCAL.value,
-        "storage_path": "/tmp/test.png",  # noqa: S108
+        "storage_path": "/tmp/test.png",
         "public_url": "/static/uploads/test.png",
         "status": AssetStatus.PROCESSING.value,
     }

@@ -111,7 +111,7 @@ async def stop_ai(
                 "handler_mode": "human",
             },
         )
-    except Exception:  # noqa: S110
+    except Exception:  # noqa: BLE001 — agent resilience
         pass
 
     return StopResponse(**result)
@@ -140,7 +140,7 @@ async def resume_ai(
             str(user.tenant_id),
             {"type": "handler_changed", "lead_id": str(lead_id), "handler_mode": "ai"},
         )
-    except Exception:  # noqa: S110
+    except Exception:  # noqa: BLE001 — agent resilience
         pass
 
     return ResumeResponse(**result)

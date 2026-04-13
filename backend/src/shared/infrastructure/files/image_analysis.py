@@ -1,5 +1,6 @@
 import base64
 import json
+from pathlib import Path
 
 import structlog
 from langchain_core.messages import HumanMessage
@@ -23,7 +24,7 @@ class ImageAnalysisService:
         """Accept raw bytes (from cloud storage) or a local file path."""
         if isinstance(image_data, bytes):
             return base64.b64encode(image_data).decode("utf-8")
-        with open(image_data, "rb") as f:
+        with Path(image_data).open("rb") as f:
             return base64.b64encode(f.read()).decode("utf-8")
 
     async def analyze(self, image_data: bytes | str, user_context: str = "") -> dict:
@@ -57,5 +58,5 @@ class ImageAnalysisService:
             return json.loads(content)
 
         except Exception as e:
-            logger.error("image_analysis_failed", error=str(e))
+            logger.exception("image_analysis_failed", error=str(e))
             return {"description": "Analysis failed", "colors": []}

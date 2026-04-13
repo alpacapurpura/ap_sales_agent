@@ -82,18 +82,20 @@ class BaseEvolutionApi(WhatsAppProvider):
                 if response.status_code not in [200, 201]:
                     # Use class name in log to distinguish V1/V2
                     logger.error(
-                        f"whatsapp_{self.__class__.__name__.lower()}_send_failed",
+                        "whatsapp_send_failed",
+                        provider=self.__class__.__name__.lower(),
                         status=response.status_code,
                         body=response.text,
                     )
                     return {"error": f"Evolution API Error: {response.status_code}"}
                 return response.json()
             except Exception as e:
-                logger.error(
-                    f"whatsapp_{self.__class__.__name__.lower()}_network_error",
+                logger.exception(
+                    "whatsapp_network_error",
+                    provider=self.__class__.__name__.lower(),
                     error=str(e),
                 )
-                raise e
+                raise
 
     async def set_typing_status(self, user_id: str) -> None:
         url = f"{self.base_url}/chat/sendPresence/{self.tenant_id}"

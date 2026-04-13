@@ -19,7 +19,7 @@ from googleapiclient.discovery import build
 from src.core.config import settings
 
 # Allow OAuth scope to change
-os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"  # noqa: S105
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
 logger = structlog.get_logger(__name__)
 
@@ -62,7 +62,7 @@ class GoogleAnalyticsAdapter:
             },
         }
 
-    def get_authorization_url(self, redirect_uri: str = None) -> tuple[str, str]:
+    def get_authorization_url(self, redirect_uri: str | None = None) -> tuple[str, str]:
         """Generates the authorization URL and state."""
         flow = Flow.from_client_config(self.get_client_config(), scopes=SCOPES)
         flow.redirect_uri = redirect_uri or settings.GOOGLE_REDIRECT_URI
@@ -74,7 +74,9 @@ class GoogleAnalyticsAdapter:
         )
         return authorization_url, state
 
-    def exchange_code(self, code: str, redirect_uri: str = None) -> dict[str, Any]:
+    def exchange_code(
+        self, code: str, redirect_uri: str | None = None
+    ) -> dict[str, Any]:
         """Exchanges the authorization code for tokens."""
         flow = Flow.from_client_config(self.get_client_config(), scopes=SCOPES)
 
@@ -84,8 +86,8 @@ class GoogleAnalyticsAdapter:
             flow.fetch_token(code=code)
             creds = flow.credentials
             return json.loads(creds.to_json())
-        except Exception as e:
-            logger.error(f"Error exchanging code for token: {e}")
+        except Exception:
+            logger.exception("Error exchanging code for token")
             raise
 
     def get_service(self):
@@ -102,8 +104,8 @@ class GoogleAnalyticsAdapter:
             # accountSummaries.list returns a structure with account summaries
             response = service.accountSummaries().list().execute()
             return response.get("accountSummaries", [])
-        except Exception as e:
-            logger.error(f"Error fetching account summaries: {e}")
+        except Exception:
+            logger.exception("Error fetching account summaries")
             raise
 
     def get_flat_properties(self) -> list[dict[str, str]]:
@@ -114,8 +116,8 @@ class GoogleAnalyticsAdapter:
         """
         try:
             summaries = self.get_account_summaries()
-        except Exception as e:
-            logger.warning(f"Could not fetch account summaries: {e}")
+        except Exception as e:  # noqa: BLE001 — infrastructure resilience
+            logger.warning("Could not fetch account summaries", error=str(e))
             return []
 
         properties = []

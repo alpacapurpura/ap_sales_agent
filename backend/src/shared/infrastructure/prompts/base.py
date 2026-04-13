@@ -1,6 +1,5 @@
-import datetime
 import logging
-import os
+from pathlib import Path
 from typing import Any
 from uuid import UUID
 
@@ -11,6 +10,7 @@ from src.core.config import settings
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
 from src.core.enums import PromptSource
+from src.shared.domain.datetime_utils import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +20,8 @@ class PromptLoader:
         self,
         templates_dir: str = "src/modules/copilot/infrastructure/prompts/templates",
     ):
-        base_path = os.getcwd()
-        full_path = os.path.join(base_path, templates_dir)
+        base_path = Path.cwd()
+        full_path = str(base_path / templates_dir)
         self.fs_env = Environment(
             loader=FileSystemLoader(full_path),
             autoescape=select_autoescape(["html", "xml"]),
@@ -51,10 +51,11 @@ class PromptLoader:
                 result["config_json"] if result and result.get("config_json") else {}
             )
             self._tenant_config_cache[tenant_id] = config
-            return config
-        except Exception as exc:
-            logger.warning(f"Error loading tenant config: {exc}")
+        except Exception as exc:  # noqa: BLE001 — prompt loading resilience
+            logger.warning("Error loading tenant config: %s", exc)
             return {}
+        else:
+            return config
         finally:
             db.close()
 
@@ -67,7 +68,7 @@ class PromptLoader:
         self._cache[(key, tenant_id)] = {
             "content": prompt["content"],
             "version": prompt.get("version", 1),
-            "loaded_at": datetime.datetime.now().timestamp(),
+            "loaded_at": utc_now().timestamp(),
         }
 
     def _get_from_db(self, key: str, tenant_id: UUID | None) -> str | None:
@@ -117,9 +118,10 @@ class PromptLoader:
             if global_prompt:
                 self._update_cache(key, tenant_id, global_prompt)
                 return global_prompt["content"]
+        except Exception as exc:  # noqa: BLE001 — prompt loading resilience
+            logger.warning("Error loading prompt '%s' from DB: %s", key, exc)
             return None
-        except Exception as exc:
-            logger.warning(f"Error loading prompt '{key}' from DB: {exc}")
+        else:
             return None
         finally:
             db.close()
@@ -148,7 +150,7 @@ class PromptLoader:
         ttl_seconds = 60
         if cache_key in self._cache:
             last_load = self._cache[cache_key].get("loaded_at", 0)
-            if datetime.datetime.now().timestamp() - last_load < ttl_seconds:
+            if utc_now().timestamp() - last_load < ttl_seconds:
                 template_content = self._cache[cache_key]["content"]
 
         if not template_content:
@@ -160,10 +162,10 @@ class PromptLoader:
                 return template.render(**full_context)
             if mode == PromptSource.DB:
                 msg = f"Prompt '{key}' not found in DB (Strict Mode)"
-                raise ValueError(msg)
+                raise ValueError(msg)  # noqa: TRY301
             return self._load_from_file(key, template_name, **full_context)
-        except Exception as exc:
-            logger.error(f"Error rendering prompt '{key}': {exc}")
+        except Exception:
+            logger.exception("Error rendering prompt '%s'", key)
             if mode != PromptSource.DB:
                 return self._load_from_file(key, template_name, **full_context)
             raise

@@ -89,14 +89,16 @@ async def connect_telegram(
     service = TelegramService(db)
     try:
         result = await service.connect(user.tenant_id, payload.token)
-        return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e)) from e
     except Exception as e:
-        logger.error("telegram_connect_error", error=str(e))
+        logger.exception("telegram_connect_error", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+    else:
+        return result
 
 
 @router.post("/test", response_model=ConnectionTestResponse)
@@ -114,7 +116,7 @@ async def test_telegram_connection(
         raise HTTPException(status_code=404, detail=str(e)) from e
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — API error boundary
         return {"status": "error", "message": f"Error inesperado: {e!s}"}
 
 
@@ -132,7 +134,7 @@ async def disconnect_telegram(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     except Exception as e:
-        logger.error("telegram_disconnect_error", error=str(e))
+        logger.exception("telegram_disconnect_error", error=str(e))
         raise HTTPException(
             status_code=500,
             detail="Error al desconectar Telegram.",

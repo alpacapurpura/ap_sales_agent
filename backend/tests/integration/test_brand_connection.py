@@ -9,9 +9,9 @@ pytest.skip(
     "src.modules.landing.brand sub-module not yet implemented",
     allow_module_level=True,
 )
-from fastapi.testclient import TestClient  # noqa: E402
-from sqlalchemy import Boolean, Column, String, create_engine  # noqa: E402
-from sqlalchemy.orm import declarative_base, sessionmaker  # noqa: E402
+from fastapi.testclient import TestClient
+from sqlalchemy import Boolean, Column, String, create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 # --- MOCK SETUP ---
 # Mock dependencies to avoid importing the whole backend stack
@@ -45,7 +45,7 @@ with patch("src.modules.iam.infrastructure.models.TenantModel", MockTenantModel)
     from src.modules.landing.brand.api.router import router
 
 # --- APP SETUP ---
-from fastapi import FastAPI  # noqa: E402
+from fastapi import FastAPI
 
 app = FastAPI()
 app.include_router(router, prefix="/api/v1/settings")

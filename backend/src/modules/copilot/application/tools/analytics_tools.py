@@ -102,7 +102,7 @@ def get_funnel_metrics(period: str | None = None) -> str:
             },
         )
     except Exception as e:
-        logger.error("analytics_tools_error", error=str(e))
+        logger.exception("analytics_tools_error", error=str(e))
         return f"Error consultando métricas: {e!s}"
     finally:
         db.close()

@@ -80,7 +80,7 @@ async def poll_domain_verification(ctx: dict) -> dict:
                     tenant_id=str(record.tenant_id),
                     hostname=record.hostname,
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 — worker task error boundary
                 errors += 1
                 sentry_sdk.capture_exception(exc)
                 logger.warning(
@@ -101,7 +101,6 @@ async def poll_domain_verification(ctx: dict) -> dict:
             check_in_id=check_in_id,
             status=MonitorStatus.OK,
         )
-        return {"processed": processed, "errors": errors}
     except Exception as exc:
         sentry_sdk.capture_exception(exc)
         capture_checkin(
@@ -110,5 +109,7 @@ async def poll_domain_verification(ctx: dict) -> dict:
             status=MonitorStatus.ERROR,
         )
         raise
+    else:
+        return {"processed": processed, "errors": errors}
     finally:
         db.close()

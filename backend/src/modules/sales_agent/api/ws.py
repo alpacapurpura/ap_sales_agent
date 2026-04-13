@@ -39,6 +39,6 @@ async def closer_studio_ws(
                 await websocket.send_text("pong")
     except WebSocketDisconnect:
         ws_manager.disconnect(tenant_id, websocket)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — agent resilience
         logger.warning("ws_error", tenant_id=tenant_id, error=str(e))
         ws_manager.disconnect(tenant_id, websocket)

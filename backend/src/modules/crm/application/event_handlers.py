@@ -123,7 +123,7 @@ def _handle_appointment_event(event: DomainEvent, journey_event_name: str) -> No
                         select(CustomerProfileModel).where(
                             CustomerProfileModel.tenant_id == event.tenant_id,
                             CustomerProfileModel.primary_email == lead.email,
-                            CustomerProfileModel.is_inactive == False,  # noqa: E712
+                            CustomerProfileModel.is_inactive == False,
                         ),
                     ).scalar_one_or_none()
 

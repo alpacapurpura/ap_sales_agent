@@ -19,19 +19,19 @@ Run with --dry-run to preview without making changes.
 """
 
 import argparse
-import os
 import sys
+from pathlib import Path
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-backend_dir = os.path.abspath(os.path.join(current_dir, "../../"))
-sys.path.insert(0, backend_dir)
+current_dir = Path(__file__).resolve().parent
+backend_dir = (current_dir / "../../").resolve()
+sys.path.insert(0, str(backend_dir))
 
-from src.core.config import settings  # noqa: E402
-from src.core.database import SessionLocal  # noqa: E402
-from src.modules.assets.infrastructure.models.asset_model import (  # noqa: E402
+from src.core.config import settings
+from src.core.database import SessionLocal
+from src.modules.assets.infrastructure.models.asset_model import (
     AssetModel,
 )
-from src.modules.assets.infrastructure.storage.r2 import R2StorageStrategy  # noqa: E402
+from src.modules.assets.infrastructure.storage.r2 import R2StorageStrategy
 
 
 def migrate(dry_run: bool = False):
@@ -62,7 +62,7 @@ def migrate(dry_run: bool = False):
 
         for asset in assets:
             local_path = asset.storage_path
-            if not local_path or not os.path.exists(local_path):
+            if not local_path or not Path(local_path).exists():
                 print(f"  ⚠️  SKIP  {asset.id} — file not found at: {local_path}")
                 skipped += 1
                 continue
@@ -91,7 +91,7 @@ def migrate(dry_run: bool = False):
                 continue
 
             try:
-                with open(local_path, "rb") as f:
+                with Path(local_path).open("rb") as f:
                     r2.client.put_object(
                         Bucket=r2.bucket,
                         Key=r2_key,
@@ -109,11 +109,11 @@ def migrate(dry_run: bool = False):
                 db.commit()
 
                 # Remove local file
-                os.remove(local_path)
+                Path(local_path).unlink()
                 print("     ✅ Migrated & local file deleted.\n")
                 success += 1
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — migration script resilience
                 db.rollback()
                 print(f"     ❌ FAILED: {e}\n")
                 failed += 1

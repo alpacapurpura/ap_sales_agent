@@ -133,7 +133,7 @@ class ChannelResolver:
                     credentials_data=conn.credentials or {},
                 )
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "channel_adapter_creation_failed",
                 ch_type=ch_type,
                 error=str(e),
@@ -156,7 +156,8 @@ class ChannelResolver:
         try:
             msg = OutgoingMessage(user_id=user_id, text=text)
             await adapter.send_message(msg)
-            return True
         except Exception as e:
-            logger.error("send_to_lead_failed", lead_id=str(lead.id), error=str(e))
+            logger.exception("send_to_lead_failed", lead_id=str(lead.id), error=str(e))
             return False
+        else:
+            return True

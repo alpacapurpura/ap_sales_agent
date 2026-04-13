@@ -53,15 +53,15 @@ class CalendarEventRepository:
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.country_code == country_code,
             CalendarEventModel.year == year,
-            CalendarEventModel.deleted_at == None,  # noqa: E711
+            CalendarEventModel.deleted_at == None,
         )
         if tenant_id is not None:
             stmt = stmt.where(
-                (CalendarEventModel.tenant_id == None)  # noqa: E711
+                (CalendarEventModel.tenant_id == None)
                 | (CalendarEventModel.tenant_id == tenant_id),
             )
         else:
-            stmt = stmt.where(CalendarEventModel.tenant_id == None)  # noqa: E711
+            stmt = stmt.where(CalendarEventModel.tenant_id == None)
         if week is not None:
             stmt = stmt.where(CalendarEventModel.week_number == week)
         if category is not None:
@@ -77,12 +77,12 @@ class CalendarEventRepository:
     ) -> CalendarEvent | None:
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.id == event_id,
-            CalendarEventModel.deleted_at == None,  # noqa: E711
+            CalendarEventModel.deleted_at == None,
         )
         if tenant_id is not None:
             stmt = stmt.where(
                 (CalendarEventModel.tenant_id == tenant_id)
-                | (CalendarEventModel.tenant_id == None),  # noqa: E711
+                | (CalendarEventModel.tenant_id == None),
             )
         result = self.db.execute(stmt)
         model = result.scalar_one_or_none()
@@ -106,7 +106,7 @@ class CalendarEventRepository:
     def update(self, entity: CalendarEvent) -> CalendarEvent | None:
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.id == entity.id,
-            CalendarEventModel.deleted_at == None,  # noqa: E711
+            CalendarEventModel.deleted_at == None,
         )
         result = self.db.execute(stmt)
         model = result.scalar_one_or_none()
@@ -126,7 +126,7 @@ class CalendarEventRepository:
     def delete(self, event_id: UUID) -> bool:
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.id == event_id,
-            CalendarEventModel.deleted_at == None,  # noqa: E711
+            CalendarEventModel.deleted_at == None,
         )
         result = self.db.execute(stmt)
         model = result.scalar_one_or_none()
@@ -147,10 +147,10 @@ class CalendarEventRepository:
             CalendarEventModel.country_code == country_code,
             CalendarEventModel.date == event_date,
             CalendarEventModel.name == name,
-            CalendarEventModel.deleted_at == None,  # noqa: E711
+            CalendarEventModel.deleted_at == None,
         )
         if tenant_id is None:
-            stmt = stmt.where(CalendarEventModel.tenant_id == None)  # noqa: E711
+            stmt = stmt.where(CalendarEventModel.tenant_id == None)
         else:
             stmt = stmt.where(CalendarEventModel.tenant_id == tenant_id)
         result = self.db.execute(stmt)

@@ -60,7 +60,7 @@ def _get_module_completion_ratio(
     try:
         repo = descriptor.repo_factory(db)
         data = descriptor.read_fn(repo, tenant_id)
-    except Exception:
+    except Exception:  # noqa: BLE001 — copilot resilience
         return None
 
     if not data:
@@ -197,7 +197,7 @@ def _generate_nudges(tenant_id: UUID, route: str | None) -> list[dict]:
         if incomplete:
             nudges.append(incomplete)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — copilot resilience
         logger.warning("nudge_generation_error", error=str(e))
     finally:
         db.close()
@@ -211,7 +211,7 @@ _CACHE_TTL = 300  # 5 minutes
 
 
 def _cache_key(tenant_id: UUID, route: str | None) -> str:
-    route_hash = hashlib.md5((route or "").encode()).hexdigest()[:8]  # noqa: S324
+    route_hash = hashlib.md5((route or "").encode()).hexdigest()[:8]
     return f"copilot:nudge:{tenant_id}:{route_hash}"
 
 

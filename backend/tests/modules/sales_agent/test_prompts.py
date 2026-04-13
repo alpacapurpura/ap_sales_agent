@@ -5,30 +5,30 @@ expected structural elements (output format blocks, framework references,
 channel-specific formatting, new humanization rules).
 """
 
-import os
+from pathlib import Path
 
 import pytest
 from jinja2 import Environment, FileSystemLoader
 
-TEMPLATES_DIR = os.path.join(
-    os.path.dirname(__file__),
-    "..",
-    "..",
-    "..",
-    "src",
-    "modules",
-    "sales_agent",
-    "infrastructure",
-    "prompts",
-    "templates",
+TEMPLATES_DIR = str(
+    Path(__file__).parent
+    / ".."
+    / ".."
+    / ".."
+    / "src"
+    / "modules"
+    / "sales_agent"
+    / "infrastructure"
+    / "prompts"
+    / "templates"
 )
 
 
 @pytest.fixture
 def jinja_env():
     return Environment(
-        loader=FileSystemLoader(os.path.abspath(TEMPLATES_DIR)),
-        autoescape=False,  # noqa: S701 — Jinja templates are server-side prompts, not HTML
+        loader=FileSystemLoader(str(Path(TEMPLATES_DIR).resolve())),
+        autoescape=False,
         trim_blocks=True,
         lstrip_blocks=True,
     )

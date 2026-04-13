@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 
-def render_conversations_page():  # noqa: C901
+def render_conversations_page():
     st.title("💬 Explorador de Conversaciones")
 
     from src.admin.modules._shared import (
@@ -83,7 +83,7 @@ def render_conversations_page():  # noqa: C901
 
         finally:
             db.close()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
         st.error(f"Error cargando stats: {e}")
         convs = []
 

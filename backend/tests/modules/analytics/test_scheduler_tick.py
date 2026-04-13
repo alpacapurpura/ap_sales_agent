@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import src.shared.infrastructure.model_registry  # noqa: F401 — register all SA models
+import src.shared.infrastructure.model_registry
 from src.modules.analytics.workers.scheduler import run_tick_scheduler
 
 

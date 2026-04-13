@@ -100,7 +100,7 @@ class ShopifyConnector(BaseConnector):
                 )
                 return None, f"Failed to exchange token: {response.text}"
         except Exception as e:
-            logger.error("shopify_token_exchange_error", error=str(e))
+            logger.exception("shopify_token_exchange_error", error=str(e))
             return None, str(e)
 
     @staticmethod
@@ -145,7 +145,7 @@ class ShopifyConnector(BaseConnector):
                 )
                 return None, f"Client credentials failed: {response.text}"
         except Exception as e:
-            logger.error("shopify_client_credentials_error", error=str(e))
+            logger.exception("shopify_client_credentials_error", error=str(e))
             return None, str(e)
 
     def sync_contacts(self, tenant_id: str) -> list[dict[str, Any]]:
@@ -229,8 +229,8 @@ class ShopifyConnector(BaseConnector):
                 return False, {"error": f"Shopify API error: {response.status_code}"}
 
         except httpx.RequestError as e:
-            logger.error("shopify_network_error", error=str(e))
+            logger.exception("shopify_network_error", error=str(e))
             return False, {"error": f"Network error: {e!s}"}
         except Exception as e:
-            logger.error("shopify_unexpected_error", error=str(e))
+            logger.exception("shopify_unexpected_error", error=str(e))
             return False, {"error": f"Unexpected error: {e!s}"}

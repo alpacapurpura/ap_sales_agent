@@ -31,7 +31,8 @@ def node_researcher(state: OnboardingState) -> dict[str, Any]:
         )
         page_analysis = _research_service.analyze_url(target_url)
         summary = f"Landing Page Analysis:\n{page_analysis}\n\nSearch Context:\n{search_results}"
-        return {"research_summary": summary}
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — service resilience
         return {"research_summary": f"Research failed: {e!s}", "error": str(e)}
+    else:
+        return {"research_summary": summary}

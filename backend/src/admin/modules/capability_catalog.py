@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 
-def render_capability_catalog():  # noqa: C901
+def render_capability_catalog():
     st.title("🔧 Capacidades del Copilot")
 
     # KPIs — static counts from code
@@ -44,7 +44,7 @@ def render_capability_catalog():  # noqa: C901
             help="Modulos que el copilot puede introspeccionar",
         )
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
         st.error(f"Error cargando capacidades: {e}")
         return
 
@@ -313,5 +313,5 @@ def render_capability_catalog():  # noqa: C901
                         )
                 finally:
                     db.close()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
                 st.error(f"Error: {e}")

@@ -96,7 +96,7 @@ def get_sales_agent_status() -> str:
 
         return "\n".join(lines)
     except Exception as e:
-        logger.error("sales_agent_tools_error", error=str(e))
+        logger.exception("sales_agent_tools_error", error=str(e))
         return f"Error consultando agente de ventas: {e!s}"
     finally:
         db.close()

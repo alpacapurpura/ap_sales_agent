@@ -24,11 +24,11 @@ class ClerkService:
     ) -> dict[str, Any]:
         """
         Creates a user in Clerk via Backend API.
-        Returns the Clerk User Object or raises Exception.
+        Returns the Clerk User Object or raises RuntimeError/ValueError.
         """
         if not self.secret_key:
             msg = "CLERK_SECRET_KEY is missing"
-            raise Exception(msg)
+            raise RuntimeError(msg)
 
         url = f"{self.api_url}/users"
         headers = {
@@ -50,49 +50,36 @@ class ClerkService:
         try:
             logger.info("creating_clerk_user", email=email)
             response = httpx.post(url, headers=headers, json=payload, timeout=10.0)
-
-            if response.status_code in {
-                200,
-                201,
-            }:  # Clerk returns 200 OK for user creation often, but docs say 200 or 201
-                return response.json()
-            if response.status_code == 422:
-                # Often means user already exists or password too weak
-                error_detail = response.json().get("errors", [])
-                logger.warning(
-                    "clerk_create_user_failed_validation",
-                    errors=error_detail,
-                )
-                # Check if it's "form_identifier_exists"
-                if any(e.get("code") == "form_identifier_exists" for e in error_detail):
-                    msg = "El usuario ya existe en Clerk (form_identifier_exists)."
-                    raise Exception(msg)
-                if any(e.get("code") == "password_pwned" for e in error_detail):
-                    msg = "La contraseña es muy común o insegura."
-                    raise Exception(msg)
-
-                msg = (
-                    error_detail[0].get("message")
-                    if error_detail
-                    else "Datos inválidos"
-                )
-                msg = f"Error Clerk: {msg}"
-                raise Exception(msg)
-            logger.error(
-                "clerk_create_user_error",
-                status=response.status_code,
-                body=response.text,
-            )
-            msg = f"Error desconocido Clerk ({response.status_code}): {response.text}"
-            raise Exception(msg)
-
         except Exception as e:
-            # Re-raise explicit exceptions
-            if "El usuario ya existe" in str(e):
-                raise e
-            logger.error("clerk_service_exception", error=str(e))
+            logger.exception("clerk_service_exception")
             msg = f"Error de conexión con Clerk: {e!s}"
-            raise Exception(msg) from e
+            raise RuntimeError(msg) from e
+
+        if response.status_code in {200, 201}:
+            return response.json()
+        if response.status_code == 422:
+            error_detail = response.json().get("errors", [])
+            logger.warning(
+                "clerk_create_user_failed_validation",
+                errors=error_detail,
+            )
+            if any(e.get("code") == "form_identifier_exists" for e in error_detail):
+                msg = "El usuario ya existe en Clerk (form_identifier_exists)."
+                raise ValueError(msg)
+            if any(e.get("code") == "password_pwned" for e in error_detail):
+                msg = "La contraseña es muy común o insegura."
+                raise ValueError(msg)
+
+            msg = error_detail[0].get("message") if error_detail else "Datos inválidos"
+            msg = f"Error Clerk: {msg}"
+            raise ValueError(msg)
+        logger.error(
+            "clerk_create_user_error",
+            status=response.status_code,
+            body=response.text,
+        )
+        msg = f"Error desconocido Clerk ({response.status_code}): {response.text}"
+        raise RuntimeError(msg)
 
     def get_user_by_email(self, email: str) -> dict[str, Any] | None:
         if not self.secret_key:
@@ -104,12 +91,14 @@ class ClerkService:
 
         try:
             response = httpx.get(url, headers=headers, params=params, timeout=5.0)
+        except Exception:
+            logger.exception("clerk_get_user_error")
+            return None
+        else:
             if response.status_code == 200:
                 users = response.json()
                 return users[0] if users else None
-        except Exception as e:
-            logger.error("clerk_get_user_error", error=str(e))
-            return None
+        return None
 
     def update_user_metadata(
         self,
@@ -133,6 +122,10 @@ class ClerkService:
 
         try:
             response = httpx.patch(url, headers=headers, json=payload, timeout=5.0)
+        except Exception:
+            logger.exception("clerk_metadata_update_exception")
+            return False
+        else:
             if response.status_code == 200:
                 logger.info(
                     "clerk_metadata_updated",
@@ -145,9 +138,6 @@ class ClerkService:
                 status=response.status_code,
                 body=response.text,
             )
-            return False
-        except Exception as e:
-            logger.error("clerk_metadata_update_exception", error=str(e))
             return False
 
     def update_user_password(self, user_id: str, password: str) -> bool:
@@ -167,6 +157,10 @@ class ClerkService:
 
         try:
             response = httpx.patch(url, headers=headers, json=payload, timeout=5.0)
+        except Exception:
+            logger.exception("clerk_password_update_exception")
+            return False
+        else:
             if response.status_code == 200:
                 logger.info("clerk_password_updated", user_id=user_id)
                 return True
@@ -175,9 +169,6 @@ class ClerkService:
                 status=response.status_code,
                 body=response.text,
             )
-            return False
-        except Exception as e:
-            logger.error("clerk_password_update_exception", error=str(e))
             return False
 
     def ban_user(self, user_id: str) -> bool:
@@ -195,6 +186,10 @@ class ClerkService:
 
         try:
             response = httpx.post(url, headers=headers, timeout=5.0)
+        except Exception:
+            logger.exception("clerk_user_ban_exception")
+            return False
+        else:
             if response.status_code == 200:
                 logger.info("clerk_user_banned", user_id=user_id)
                 return True
@@ -203,9 +198,6 @@ class ClerkService:
                 status=response.status_code,
                 body=response.text,
             )
-            return False
-        except Exception as e:
-            logger.error("clerk_user_ban_exception", error=str(e))
             return False
 
     def unban_user(self, user_id: str) -> bool:
@@ -223,6 +215,10 @@ class ClerkService:
 
         try:
             response = httpx.post(url, headers=headers, timeout=5.0)
+        except Exception:
+            logger.exception("clerk_user_unban_exception")
+            return False
+        else:
             if response.status_code == 200:
                 logger.info("clerk_user_unbanned", user_id=user_id)
                 return True
@@ -231,9 +227,6 @@ class ClerkService:
                 status=response.status_code,
                 body=response.text,
             )
-            return False
-        except Exception as e:
-            logger.error("clerk_user_unban_exception", error=str(e))
             return False
 
     def delete_user(self, user_id: str) -> bool:
@@ -248,6 +241,10 @@ class ClerkService:
 
         try:
             response = httpx.delete(url, headers=headers, timeout=5.0)
+        except Exception:
+            logger.exception("clerk_user_delete_exception")
+            return False
+        else:
             if response.status_code == 200:
                 logger.info("clerk_user_deleted", user_id=user_id)
                 return True
@@ -256,7 +253,4 @@ class ClerkService:
                 status=response.status_code,
                 body=response.text,
             )
-            return False
-        except Exception as e:
-            logger.error("clerk_user_delete_exception", error=str(e))
             return False

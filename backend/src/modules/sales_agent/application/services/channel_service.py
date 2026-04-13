@@ -26,7 +26,7 @@ class ChannelService:
         tenant_id: UUID,
         channel_type: ChannelType,
         credentials: dict,
-        config: dict = None,
+        config: dict | None = None,
     ) -> ChannelConnection:
         import uuid
 

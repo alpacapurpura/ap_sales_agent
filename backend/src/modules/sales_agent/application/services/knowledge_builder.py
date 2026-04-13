@@ -84,8 +84,8 @@ class TenantKnowledgeBuilder:
             # 4. Register tenant-specific semantic routes (objection trigger_phrases)
             try:
                 SemanticRouter.register_tenant_routes(tenant_id, offers_data)
-            except Exception as e:
-                logger.warning(f"Could not register tenant semantic routes: {e}")
+            except Exception as e:  # noqa: BLE001 — agent resilience
+                logger.warning("Could not register tenant semantic routes: %s", e)
 
             # 5. Render the agent_identity template
             rendered = prompt_loader.render(
@@ -111,15 +111,16 @@ class TenantKnowledgeBuilder:
                 has_team=len(team) > 0,
             )
 
-            return rendered
-
-        except Exception as e:
-            logger.error(
-                f"Error building agent identity for tenant {tenant_id}: {e}",
-                exc_info=True,
+        except Exception:
+            logger.exception(
+                "Error building agent identity for tenant %s",
+                tenant_id,
             )
             # Return a minimal fallback so the agent can still function
             return self._fallback_identity()
+
+        else:
+            return rendered
 
     @staticmethod
     def _fallback_identity() -> str:

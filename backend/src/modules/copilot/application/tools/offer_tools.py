@@ -52,7 +52,7 @@ def _fetch_offers(db, tenant_id: UUID, offer_id: str | None = None) -> list[dict
                 .mappings()
                 .all()
             )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — tool execution resilience
         logger.warning(
             "offer_tools_fetch_error",
             tenant_id=str(tenant_id),
