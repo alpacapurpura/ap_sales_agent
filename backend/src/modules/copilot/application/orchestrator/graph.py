@@ -21,7 +21,7 @@ from src.modules.copilot.application.orchestrator.context_budget import truncate
 from src.modules.copilot.application.orchestrator.state import CopilotState
 from src.modules.copilot.application.tools.registry import (
     get_all_tools,
-    get_tools_for_route,
+    get_tools_for_context,
 )
 from src.modules.copilot.domain.module_registry import get_module_registry
 from src.modules.copilot.infrastructure.prompts.base import prompt_loader
@@ -330,10 +330,9 @@ def agent_node(state: CopilotState) -> dict:
     llm = LLMFactory.get_service().get_client(ModelRole.AGENT)
     llm = llm.bind(temperature=0.6)
 
-    # Dynamic tool selection based on route
+    # Dynamic tool selection based on mode (interview > focus > chat)
     ctx = state.get("client_context", {})
-    current_route = ctx.get("current_route")
-    tools = get_tools_for_route(current_route)
+    tools = get_tools_for_context(ctx)
 
     if tools:
         llm = llm.bind_tools(tools)
@@ -360,10 +359,9 @@ def tool_executor_node(state: CopilotState) -> dict:
     if not isinstance(last_message, AIMessage) or not last_message.tool_calls:
         return {"messages": []}
 
-    # Build tool map from route-scoped tools + all tools as fallback
+    # Build tool map from mode-scoped tools + all tools as fallback
     ctx = state.get("client_context", {})
-    current_route = ctx.get("current_route")
-    route_tools = get_tools_for_route(current_route)
+    route_tools = get_tools_for_context(ctx)
     all_tools = get_all_tools()
 
     # Route tools first, then fallback to all tools for robustness

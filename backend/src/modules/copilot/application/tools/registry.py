@@ -153,6 +153,32 @@ def get_all_tools() -> list:
     return tools
 
 
+def get_tools_for_context(context: dict | None) -> list:
+    """Return tools based on mode (interview > focus > chat).
+
+    Mode is determined by context fields:
+    - interview_session_id present -> Interview mode (interview + knowledge tools)
+    - focus present -> Focus mode (route-based + knowledge, no mutation)
+    - Neither -> Chat mode (route-based, current behavior)
+    """
+    if not context:
+        return get_tools_for_route(None)
+
+    # Interview mode: interview + knowledge tools only
+    if context.get("interview_session_id"):
+        tools = []
+        seen: set[str] = set()
+        for group_name in ("interview", "knowledge"):
+            for t in TOOL_GROUPS.get(group_name, []):
+                if t.name not in seen:
+                    tools.append(t)
+                    seen.add(t.name)
+        return tools
+
+    # Chat mode (and future Focus mode): route-based selection
+    return get_tools_for_route(context.get("current_route"))
+
+
 def _match_route(route: str | None) -> list[str]:
     """Find which tool groups match the current route."""
     if not route:
