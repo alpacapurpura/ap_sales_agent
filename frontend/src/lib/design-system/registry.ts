@@ -286,7 +286,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     variants: [],
     props: ['open', 'onClose', 'className'],
     description:
-      'Copilot-aware slide-out detail panel. Positions itself to the left of the CopilotPanel (respects open/rail width). Use instead of Sheet when the panel must coexist with the copilot.',
+      'Copilot-aware slide-out detail panel. Positions itself to the left of the CopilotSidebar (respects open/rail width). Use instead of Sheet when the panel must coexist with the copilot.',
   },
   {
     name: 'Table',
