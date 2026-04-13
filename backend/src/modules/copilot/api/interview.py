@@ -46,6 +46,7 @@ def start_interview(
             user_id=current_user.id,
             domain=request.domain,
             resume_session_id=request.resume_session_id,
+            entity_id=request.entity_id,
         )
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e)) from e

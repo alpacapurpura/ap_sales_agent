@@ -10,6 +10,7 @@ class StartInterviewRequest(BaseModel):
 
     domain: str = "brand"
     resume_session_id: UUID | None = None
+    entity_id: UUID | None = None
 
 
 class StartInterviewResponse(BaseModel):

@@ -215,3 +215,29 @@ class TestAbandon:
             response = client.post(f"/api/v1/copilot/interview/{session_id}/abandon")
 
         assert response.status_code == 400
+
+
+class TestStartInterviewRequestEntityId:
+    """Test that StartInterviewRequest accepts entity_id."""
+
+    def test_start_request_with_entity_id(self) -> None:
+        from src.modules.copilot.api.interview_dto import StartInterviewRequest
+
+        eid = uuid4()
+        req = StartInterviewRequest(domain="offer", entity_id=eid)
+        assert req.entity_id == eid
+        assert req.domain == "offer"
+
+    def test_start_request_without_entity_id(self) -> None:
+        from src.modules.copilot.api.interview_dto import StartInterviewRequest
+
+        req = StartInterviewRequest(domain="brand")
+        assert req.entity_id is None
+
+    def test_start_request_defaults(self) -> None:
+        from src.modules.copilot.api.interview_dto import StartInterviewRequest
+
+        req = StartInterviewRequest()
+        assert req.domain == "brand"
+        assert req.entity_id is None
+        assert req.resume_session_id is None
