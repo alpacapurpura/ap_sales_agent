@@ -1,4 +1,10 @@
-"""Offer interview configuration — 6 thematic blocks for irresistible offer design."""
+"""Offer interview configuration.
+
+Static config (6 blocks) registered for backward compatibility.
+Dynamic factory ``get_offer_interview_config(archetype)`` generates a 7-block
+config adapted to the offer's archetype (3 universal_first + 1 archetype-specific
++ 3 universal_final), injected between the universal first and final blocks.
+"""
 
 from src.modules.copilot.domain.interview_config import (
     InterviewBlock,
@@ -6,7 +12,11 @@ from src.modules.copilot.domain.interview_config import (
     register_interview_config,
 )
 
-OFFER_BLOCKS = [
+# ---------------------------------------------------------------------------
+# Universal first blocks -- strategy, promise, psychology (positions 0-2)
+# ---------------------------------------------------------------------------
+
+_UNIVERSAL_FIRST: list[InterviewBlock] = [
     InterviewBlock(
         id="identity_strategy",
         label="Identidad y Estrategia",
@@ -79,26 +89,121 @@ OFFER_BLOCKS = [
         ),
         coverage_threshold=0.8,
     ),
-    InterviewBlock(
-        id="pricing",
-        label="Pricing y Garantía",
+]
+
+# ---------------------------------------------------------------------------
+# Archetype-specific blocks — one per archetype (position 3)
+# ---------------------------------------------------------------------------
+
+ARCHETYPE_BLOCKS: dict[str, InterviewBlock] = {
+    "producto": InterviewBlock(
+        id="product_details",
+        label="Detalles del Producto Digital",
         campos_objetivo=[
-            "pricing_options",
-            "price_pay_in_full",
-            "guarantee_type",
-            "guarantee_terms",
+            "specific_details",
+            "format_hint",
+            "access_duration_text",
+            "instructors",
         ],
         prompt_context=(
-            "Diseña la estructura de precio, opciones de pago, y garantía que reduzca "
-            "riesgo percibido. "
-            "Aplica anclaje: ¿cuál es el valor real de lo que incluye? "
-            "Fraccionamiento: ¿cómo hacer cuotas accesibles? "
-            "Comparación: vs el costo de NO resolver el problema. "
-            "Garantía: condicional (requiere acción) vs incondicional (money-back). "
-            "Alinear tipo de garantía con delivery_model y archetype."
+            "Captura los detalles específicos del PRODUCTO DIGITAL. "
+            "Formato: ¿curso, ebook, template, software, físico? "
+            "¿Cómo se entrega el acceso? (URL, descarga, envío) "
+            "¿Tiene DRM o es descargable libremente? "
+            "Tiempo estimado de consumo. "
+            "Si tiene componente físico: logística, peso, inventario. "
+            "Instructores o autores relevantes si aplica."
         ),
         coverage_threshold=0.7,
     ),
+    "programa": InterviewBlock(
+        id="program_details",
+        label="Detalles del Programa",
+        campos_objetivo=[
+            "specific_details",
+            "has_editions",
+            "instructors",
+            "access_duration_text",
+        ],
+        prompt_context=(
+            "Captura los detalles del PROGRAMA formativo. "
+            "Currículum: módulos, temas por módulo, secuencia pedagógica. "
+            "Estructura: ¿cohorts en vivo, asincrónico, híbrido? "
+            "Fechas de inicio/fin y límite de cupos. "
+            "¿Hay sesiones en vivo? Frecuencia y duración. "
+            "¿Incluye certificación, comunidad, tareas? "
+            "Instructores o coaches del programa."
+        ),
+        coverage_threshold=0.7,
+    ),
+    "servicio": InterviewBlock(
+        id="service_details",
+        label="Detalles del Servicio",
+        campos_objetivo=[
+            "specific_details",
+            "has_editions",
+            "instructors",
+            "support_duration_days",
+        ],
+        prompt_context=(
+            "Captura los detalles del SERVICIO profesional. "
+            "Categoría: consultoría, agencia, freelance, coaching. "
+            "Modo de interacción: síncrono, asíncrono, mixto. "
+            "Frecuencia de entregables y rondas de revisión. "
+            "Duración del contrato o engagement mínimo. "
+            "¿Requiere brief de onboarding o firma de contrato? "
+            "Métricas de éxito y SLA si aplica."
+        ),
+        coverage_threshold=0.7,
+    ),
+    "membresia": InterviewBlock(
+        id="subscription_details",
+        label="Detalles de la Membresía",
+        campos_objetivo=[
+            "specific_details",
+            "access_duration_text",
+            "instructors",
+            "includes_offers",
+        ],
+        prompt_context=(
+            "Captura los detalles de la MEMBRESÍA o suscripción. "
+            "Ciclo de facturación: mensual, trimestral, anual. "
+            "Nombre del tier y plataforma de acceso. "
+            "¿Incluye período de prueba? Duración. "
+            "Frecuencia de actualización de contenido. "
+            "¿Hay eventos de networking o invitados expertos? "
+            "Política de cancelación. "
+            "¿Qué otros offers incluye o da acceso como beneficio?"
+        ),
+        coverage_threshold=0.7,
+    ),
+    "experiencia": InterviewBlock(
+        id="event_details",
+        label="Detalles de la Experiencia / Evento",
+        campos_objetivo=[
+            "specific_details",
+            "has_editions",
+            "instructors",
+            "access_duration_text",
+        ],
+        prompt_context=(
+            "Captura los detalles de la EXPERIENCIA o evento. "
+            "Fechas, zona horaria y tipo de locación (virtual/presencial/híbrido). "
+            "Si es presencial: venue, ciudad, traslado, alojamiento. "
+            "Si es virtual: URL de sala y grabación. "
+            "Agenda de highlights — momentos clave del evento. "
+            "Ponentes, facilitadores o guests. "
+            "Dress code y restricciones dietéticas si aplica."
+        ),
+        coverage_threshold=0.7,
+    ),
+}
+
+# ---------------------------------------------------------------------------
+# Universal final blocks -- value stack, pricing, closing (positions 4-6)
+# ---------------------------------------------------------------------------
+
+_UNIVERSAL_FINAL: list[InterviewBlock] = [
     InterviewBlock(
         id="value_stack",
         label="Value Stack y Entregables",
@@ -120,6 +225,26 @@ OFFER_BLOCKS = [
             "¿Incluye acceso a otros offers? "
             "¿Por cuánto tiempo tiene acceso? "
             "¿Cuántos días de soporte post-compra?"
+        ),
+        coverage_threshold=0.7,
+    ),
+    InterviewBlock(
+        id="pricing",
+        label="Pricing y Garantía",
+        campos_objetivo=[
+            "pricing_options",
+            "price_pay_in_full",
+            "guarantee_type",
+            "guarantee_terms",
+        ],
+        prompt_context=(
+            "Diseña la estructura de precio, opciones de pago, y garantía que reduzca "
+            "riesgo percibido. "
+            "Aplica anclaje: ¿cuál es el valor real de lo que incluye? "
+            "Fraccionamiento: ¿cómo hacer cuotas accesibles? "
+            "Comparación: vs el costo de NO resolver el problema. "
+            "Garantía: condicional (requiere acción) vs incondicional (money-back). "
+            "Alinear tipo de garantía con delivery_model y archetype."
         ),
         coverage_threshold=0.7,
     ),
@@ -148,6 +273,22 @@ OFFER_BLOCKS = [
     ),
 ]
 
+# ---------------------------------------------------------------------------
+# Static config — 6 blocks, kept for backward compatibility
+# Original order: identity_strategy, promise, psychology, pricing, value_stack, closing
+# ---------------------------------------------------------------------------
+
+_PRICING_BLOCK = _UNIVERSAL_FINAL[1]  # pricing
+_VALUE_STACK_BLOCK = _UNIVERSAL_FINAL[0]  # value_stack
+_CLOSING_BLOCK = _UNIVERSAL_FINAL[2]  # closing
+
+OFFER_BLOCKS: list[InterviewBlock] = [
+    *_UNIVERSAL_FIRST,
+    _PRICING_BLOCK,
+    _VALUE_STACK_BLOCK,
+    _CLOSING_BLOCK,
+]
+
 OFFER_INTERVIEW_CONFIG = InterviewConfig(
     domain="offer",
     objetivo=("Diseñar un offer irresistible, diferenciado, y alineado con el ladder de valor del negocio"),
@@ -168,3 +309,49 @@ OFFER_INTERVIEW_CONFIG = InterviewConfig(
 )
 
 register_interview_config("offer", OFFER_INTERVIEW_CONFIG)
+
+
+# ---------------------------------------------------------------------------
+# Dynamic factory — 7 blocks, archetype-aware
+# ---------------------------------------------------------------------------
+
+
+def get_offer_interview_config(archetype: str) -> InterviewConfig:
+    """Return a dynamic 7-block InterviewConfig adapted to the offer's archetype.
+
+    Block layout:
+      0. identity_strategy  ── universal first
+      1. promise             ── universal first
+      2. psychology          ── universal first
+      3. <archetype_block>   ── archetype-specific (position 3)
+      4. value_stack         ── universal final
+      5. pricing             ── universal final
+      6. closing             ── universal final
+
+    For unknown archetypes falls back to the static OFFER_INTERVIEW_CONFIG.
+    """
+    archetype_block = ARCHETYPE_BLOCKS.get(archetype)
+    if archetype_block is None:
+        return OFFER_INTERVIEW_CONFIG
+
+    dynamic_bloques: list[InterviewBlock] = [
+        *_UNIVERSAL_FIRST,
+        archetype_block,
+        *_UNIVERSAL_FINAL,
+    ]
+
+    return InterviewConfig(
+        domain=OFFER_INTERVIEW_CONFIG.domain,
+        objetivo=OFFER_INTERVIEW_CONFIG.objetivo,
+        bloques=dynamic_bloques,
+        output_schema_path=OFFER_INTERVIEW_CONFIG.output_schema_path,
+        datos_previos_fields=OFFER_INTERVIEW_CONFIG.datos_previos_fields,
+        tono=OFFER_INTERVIEW_CONFIG.tono,
+        expertise_template=OFFER_INTERVIEW_CONFIG.expertise_template,
+        document_extraction_template=OFFER_INTERVIEW_CONFIG.document_extraction_template,
+        rag_collection=OFFER_INTERVIEW_CONFIG.rag_collection,
+        initial_research_enabled=OFFER_INTERVIEW_CONFIG.initial_research_enabled,
+        context_loader=OFFER_INTERVIEW_CONFIG.context_loader,
+        max_mensajes=OFFER_INTERVIEW_CONFIG.max_mensajes,
+        supported_file_types=OFFER_INTERVIEW_CONFIG.supported_file_types,
+    )
