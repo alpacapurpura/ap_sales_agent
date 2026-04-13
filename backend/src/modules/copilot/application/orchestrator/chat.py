@@ -21,6 +21,9 @@ from src.modules.copilot.infrastructure.models.conversation_model import (
 from src.modules.copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
 )
+from src.modules.copilot.infrastructure.repositories.interview_session_repository import (
+    InterviewSessionRepository,
+)
 
 logger = structlog.get_logger()
 
@@ -39,6 +42,27 @@ class CopilotOrchestrator:
         """Initialize copilot orchestrator."""
         self.db = db
         self.conv_repo = ConversationRepository(db)
+
+    def _build_client_context(self, context: ClientContextDTO | None) -> dict:
+        """Build client context dict from DTO, including focus and interview fields."""
+        if not context:
+            return {
+                "current_route": None,
+                "selected_fields": [],
+                "form_data": {},
+                "locale": "es",
+            }
+        ctx: dict = {
+            "current_route": context.current_route,
+            "selected_fields": [f.model_dump() if hasattr(f, "model_dump") else f for f in context.selected_fields],
+            "form_data": context.form_data,
+            "locale": context.locale,
+        }
+        if context.focus:
+            ctx["focus"] = context.focus.model_dump()
+        if context.interview_session_id:
+            ctx["interview_session_id"] = context.interview_session_id
+        return ctx
 
     async def stream_chat(
         self,
@@ -65,14 +89,7 @@ class CopilotOrchestrator:
             self.db.commit()
 
         # 2. Build state
-        client_ctx = {
-            "current_route": context.current_route if context else None,
-            "selected_fields": [
-                f.model_dump() if hasattr(f, "model_dump") else f for f in (context.selected_fields if context else [])
-            ],
-            "form_data": context.form_data if context else {},
-            "locale": context.locale if context else "es",
-        }
+        client_ctx = self._build_client_context(context)
 
         state = create_initial_copilot_state(
             user_id=user_id,
@@ -80,6 +97,22 @@ class CopilotOrchestrator:
             conversation_id=conv_id,
             client_context=client_ctx,
         )
+
+        # 2b. Load interview session if interview_session_id is present
+        if client_ctx.get("interview_session_id"):
+            try:
+                session_repo = InterviewSessionRepository(self.db)
+                interview_session = session_repo.get_by_id(
+                    UUID(client_ctx["interview_session_id"]),
+                    tenant_id,
+                )
+                if interview_session:
+                    state["interview_session"] = interview_session
+            except (ValueError, TypeError):
+                logger.warning(
+                    "invalid_interview_session_id",
+                    session_id=client_ctx["interview_session_id"],
+                )
 
         # 3. Load conversation history from Redis (fast) or DB (fallback)
         history_messages = self._load_history(conv_id, tenant_id, existing_conv)

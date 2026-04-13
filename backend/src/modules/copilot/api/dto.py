@@ -7,6 +7,13 @@ from pydantic import BaseModel, Field
 # ── Request ──────────────────────────────────────────────────────────
 
 
+class FocusContextDTO(BaseModel):
+    """Focus context for Focus and Interview modes."""
+
+    domain: str  # "offer", "brand", "buyer_persona"
+    entity_id: str | None = None
+
+
 class ClientContextDTO(BaseModel):
     """Data transfer object for client context."""
 
@@ -14,6 +21,8 @@ class ClientContextDTO(BaseModel):
     selected_fields: list[dict[str, str]] = Field(default_factory=list)
     form_data: dict[str, Any] = Field(default_factory=dict)
     locale: str = "es"
+    focus: FocusContextDTO | None = None
+    interview_session_id: str | None = None
 
 
 class CopilotChatRequest(BaseModel):
