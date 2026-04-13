@@ -71,8 +71,26 @@ export interface CopilotMessage {
 
 export type CopilotStatus = "idle" | "thinking" | "streaming" | "done";
 
+export type SidebarState = "collapsed" | "open" | "expanded";
+
+export interface FocusEntity {
+  domain: "brand" | "offer" | "buyer_persona";
+  entityId?: string;
+  label: string;
+}
+
+export interface InterviewProgress {
+  currentBlock: string;
+  blocksCompleted: string[];
+  totalBlocks: number;
+}
+
 interface CopilotState {
-  // Panel UI
+  // Panel UI — sidebarState is the source of truth
+  sidebarState: SidebarState;
+  setSidebarState: (state: SidebarState) => void;
+
+  // Backward-compat: isOpen derived from sidebarState (true when open or expanded)
   isOpen: boolean;
   togglePanel: () => void;
   openPanel: () => void;
@@ -112,23 +130,58 @@ interface CopilotState {
   updateFieldValue: (fieldId: string, value: string) => void;
   clearSelectedFields: () => void;
 
-  // Interview mode
-  interviewMode: boolean;
+  // Focus mode
+  focusEntity: FocusEntity | null;
+  focusSnapshot: Record<string, unknown> | null;
+  setFocusEntity: (entity: FocusEntity) => void;
+  setFocusSnapshot: (snapshot: Record<string, unknown>) => void;
+  clearFocus: () => void;
+
+  // Interview mode — interviewSessionId is source of truth
   interviewSessionId: string | null;
-  interviewPreviewData: Record<string, unknown> | null;
-  setInterviewMode: (active: boolean, sessionId?: string) => void;
-  updateInterviewPreview: (delta: Record<string, unknown>) => void;
+  interviewProgress: InterviewProgress | null;
+  setInterviewSession: (id: string) => void;
+  setInterviewProgress: (p: InterviewProgress) => void;
   clearInterview: () => void;
+
+  // Backward-compat: interviewMode derived from interviewSessionId
+  interviewMode: boolean;
+  setInterviewMode: (active: boolean, sessionId?: string) => void;
+
+  // Preview data — previewData is source of truth
+  previewData: Record<string, unknown> | null;
+  updatePreviewData: (delta: Record<string, unknown>) => void;
+  clearPreviewData: () => void;
+
+  // Backward-compat: interviewPreviewData aliases previewData
+  interviewPreviewData: Record<string, unknown> | null;
+  updateInterviewPreview: (delta: Record<string, unknown>) => void;
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────
+
+/** Compute isOpen from sidebarState */
+function deriveIsOpen(sidebarState: SidebarState): boolean {
+  return sidebarState !== "collapsed";
 }
 
 // ── Store ───────────────────────────────────────────────────────────
 
 export const useCopilotStore = create<CopilotState>((set, get) => ({
-  // Panel
+  // Panel — sidebarState as source of truth; isOpen kept in sync
+  sidebarState: "collapsed",
   isOpen: false,
-  togglePanel: () => set((s) => ({ isOpen: !s.isOpen })),
-  openPanel: () => set({ isOpen: true }),
-  closePanel: () => set({ isOpen: false }),
+
+  setSidebarState: (state) =>
+    set({ sidebarState: state, isOpen: deriveIsOpen(state) }),
+
+  togglePanel: () =>
+    set((s) => {
+      const next: SidebarState = s.sidebarState === "collapsed" ? "open" : "collapsed";
+      return { sidebarState: next, isOpen: deriveIsOpen(next) };
+    }),
+  openPanel: () => set({ sidebarState: "open", isOpen: true }),
+  closePanel: () => set({ sidebarState: "collapsed", isOpen: false }),
 
   // Conversation
   conversationId: null,
@@ -208,19 +261,63 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
     })),
   clearSelectedFields: () => set({ selectedFields: [] }),
 
-  // Interview mode
-  interviewMode: false,
+  // Focus mode
+  focusEntity: null,
+  focusSnapshot: null,
+  setFocusEntity: (entity) => set({ focusEntity: entity }),
+  setFocusSnapshot: (snapshot) => set({ focusSnapshot: snapshot }),
+  clearFocus: () => set({ focusEntity: null, focusSnapshot: null }),
+
+  // Interview mode — interviewSessionId as source of truth; interviewMode kept in sync
   interviewSessionId: null,
-  interviewPreviewData: null,
+  interviewProgress: null,
+  interviewMode: false,
 
-  setInterviewMode: (active, sessionId) =>
-    set({ interviewMode: active, interviewSessionId: sessionId ?? null }),
+  setInterviewSession: (id) =>
+    set({ interviewSessionId: id, interviewMode: true }),
 
-  updateInterviewPreview: (delta) =>
-    set((state) => ({
-      interviewPreviewData: { ...(state.interviewPreviewData ?? {}), ...delta },
-    })),
+  setInterviewProgress: (p) => set({ interviewProgress: p }),
 
   clearInterview: () =>
-    set({ interviewMode: false, interviewSessionId: null, interviewPreviewData: null }),
+    set({
+      interviewSessionId: null,
+      interviewProgress: null,
+      interviewMode: false,
+      previewData: null,
+      interviewPreviewData: null,
+    }),
+
+  // Backward-compat: setInterviewMode(true, id) sets session; setInterviewMode(false) clears
+  setInterviewMode: (active, sessionId) => {
+    if (active) {
+      set({ interviewMode: true, interviewSessionId: sessionId ?? null });
+    } else {
+      set({
+        interviewMode: false,
+        interviewSessionId: null,
+        interviewProgress: null,
+        previewData: null,
+        interviewPreviewData: null,
+      });
+    }
+  },
+
+  // Preview data — previewData is source of truth; interviewPreviewData kept in sync
+  previewData: null,
+  interviewPreviewData: null,
+
+  updatePreviewData: (delta) =>
+    set((state) => {
+      const merged = { ...(state.previewData ?? {}), ...delta };
+      return { previewData: merged, interviewPreviewData: merged };
+    }),
+
+  clearPreviewData: () => set({ previewData: null, interviewPreviewData: null }),
+
+  // Backward-compat alias
+  updateInterviewPreview: (delta) =>
+    set((state) => {
+      const merged = { ...(state.previewData ?? {}), ...delta };
+      return { previewData: merged, interviewPreviewData: merged };
+    }),
 }));

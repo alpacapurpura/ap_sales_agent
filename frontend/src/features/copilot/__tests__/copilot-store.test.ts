@@ -28,7 +28,7 @@ describe('copilot-store', () => {
   beforeEach(() => {
     // Reset store to initial state before each test
     useCopilotStore.setState({
-      isOpen: false,
+      sidebarState: 'collapsed',
       conversationId: null,
       messages: [],
       status: 'idle',
@@ -36,6 +36,11 @@ describe('copilot-store', () => {
       pendingUIActions: [],
       activeProcedure: null,
       selectedFields: [],
+      focusEntity: null,
+      focusSnapshot: null,
+      interviewSessionId: null,
+      interviewProgress: null,
+      previewData: null,
     });
   });
 
@@ -48,7 +53,7 @@ describe('copilot-store', () => {
   });
 
   it('togglePanel flips isOpen from true to false', () => {
-    useCopilotStore.setState({ isOpen: true });
+    useCopilotStore.setState({ sidebarState: 'open' });
     const { togglePanel } = useCopilotStore.getState();
     togglePanel();
     expect(useCopilotStore.getState().isOpen).toBe(false);
@@ -61,7 +66,7 @@ describe('copilot-store', () => {
   });
 
   it('closePanel sets isOpen to false', () => {
-    useCopilotStore.setState({ isOpen: true });
+    useCopilotStore.setState({ sidebarState: 'open' });
     const { closePanel } = useCopilotStore.getState();
     closePanel();
     expect(useCopilotStore.getState().isOpen).toBe(false);
@@ -179,5 +184,149 @@ describe('copilot-store', () => {
 
     useCopilotStore.getState().clearActiveProcedure();
     expect(useCopilotStore.getState().activeProcedure).toBeNull();
+  });
+});
+
+describe('Focus and Interview state', () => {
+  beforeEach(() => {
+    useCopilotStore.setState({
+      sidebarState: 'collapsed',
+      focusEntity: null,
+      focusSnapshot: null,
+      interviewSessionId: null,
+      interviewProgress: null,
+      previewData: null,
+    });
+  });
+
+  it('should default to no focus entity', () => {
+    const state = useCopilotStore.getState();
+    expect(state.focusEntity).toBeNull();
+    expect(state.focusSnapshot).toBeNull();
+  });
+
+  it('should set and clear focus entity', () => {
+    const { setFocusEntity, clearFocus } = useCopilotStore.getState();
+    setFocusEntity({ domain: 'offer', entityId: '123', label: 'Mi Oferta' });
+
+    expect(useCopilotStore.getState().focusEntity).toEqual({
+      domain: 'offer',
+      entityId: '123',
+      label: 'Mi Oferta',
+    });
+
+    clearFocus();
+    expect(useCopilotStore.getState().focusEntity).toBeNull();
+    expect(useCopilotStore.getState().focusSnapshot).toBeNull();
+  });
+
+  it('should set and clear interview session', () => {
+    const { setInterviewSession, clearInterview } = useCopilotStore.getState();
+    setInterviewSession('session-abc');
+
+    expect(useCopilotStore.getState().interviewSessionId).toBe('session-abc');
+
+    clearInterview();
+    expect(useCopilotStore.getState().interviewSessionId).toBeNull();
+    expect(useCopilotStore.getState().interviewProgress).toBeNull();
+  });
+
+  it('should update and clear preview data', () => {
+    const { updatePreviewData, clearPreviewData } = useCopilotStore.getState();
+    updatePreviewData({ 'strategy.name': 'Test' });
+    updatePreviewData({ 'pricing.amount': 100 });
+
+    const state = useCopilotStore.getState();
+    expect(state.previewData).toEqual({
+      'strategy.name': 'Test',
+      'pricing.amount': 100,
+    });
+
+    clearPreviewData();
+    expect(useCopilotStore.getState().previewData).toBeNull();
+  });
+});
+
+describe('sidebarState', () => {
+  beforeEach(() => {
+    useCopilotStore.setState({ sidebarState: 'collapsed' });
+  });
+
+  it('should default to collapsed', () => {
+    expect(useCopilotStore.getState().sidebarState).toBe('collapsed');
+  });
+
+  it('should transition between states', () => {
+    const { setSidebarState } = useCopilotStore.getState();
+    setSidebarState('open');
+    expect(useCopilotStore.getState().sidebarState).toBe('open');
+
+    setSidebarState('expanded');
+    expect(useCopilotStore.getState().sidebarState).toBe('expanded');
+
+    setSidebarState('collapsed');
+    expect(useCopilotStore.getState().sidebarState).toBe('collapsed');
+  });
+});
+
+describe('backward compatibility', () => {
+  beforeEach(() => {
+    useCopilotStore.setState({
+      sidebarState: 'collapsed',
+      interviewSessionId: null,
+      interviewProgress: null,
+      previewData: null,
+    });
+  });
+
+  it('isOpen should reflect sidebarState', () => {
+    const { setSidebarState } = useCopilotStore.getState();
+    setSidebarState('collapsed');
+    expect(useCopilotStore.getState().isOpen).toBe(false);
+
+    setSidebarState('open');
+    expect(useCopilotStore.getState().isOpen).toBe(true);
+
+    setSidebarState('expanded');
+    expect(useCopilotStore.getState().isOpen).toBe(true);
+  });
+
+  it('togglePanel should work with sidebarState', () => {
+    const { togglePanel, setSidebarState } = useCopilotStore.getState();
+    setSidebarState('collapsed');
+    togglePanel();
+    expect(useCopilotStore.getState().sidebarState).toBe('open');
+
+    togglePanel();
+    expect(useCopilotStore.getState().sidebarState).toBe('collapsed');
+  });
+
+  it('openPanel should set sidebarState to open', () => {
+    useCopilotStore.getState().openPanel();
+    expect(useCopilotStore.getState().sidebarState).toBe('open');
+  });
+
+  it('closePanel should set sidebarState to collapsed', () => {
+    useCopilotStore.getState().setSidebarState('open');
+    useCopilotStore.getState().closePanel();
+    expect(useCopilotStore.getState().sidebarState).toBe('collapsed');
+  });
+
+  it('interviewMode should derive from interviewSessionId', () => {
+    useCopilotStore.getState().setInterviewSession('sess-1');
+    expect(useCopilotStore.getState().interviewMode).toBe(true);
+
+    useCopilotStore.getState().clearInterview();
+    expect(useCopilotStore.getState().interviewMode).toBe(false);
+  });
+
+  it('updateInterviewPreview should alias updatePreviewData', () => {
+    useCopilotStore.getState().updateInterviewPreview({ key: 'val' });
+    expect(useCopilotStore.getState().previewData).toEqual({ key: 'val' });
+  });
+
+  it('interviewPreviewData should alias previewData', () => {
+    useCopilotStore.getState().updatePreviewData({ aliasTest: 'works' });
+    expect(useCopilotStore.getState().interviewPreviewData).toEqual({ aliasTest: 'works' });
   });
 });
