@@ -34,6 +34,7 @@ class InterviewSession:
         bloques_completados: list[str],
         status: InterviewStatus,
         messages_count: int,
+        entity_id: UUID | None = None,
     ):
         self.id = id
         self.tenant_id = tenant_id
@@ -45,6 +46,7 @@ class InterviewSession:
         self.bloques_completados = bloques_completados
         self.status = status
         self.messages_count = messages_count
+        self.entity_id = entity_id
 
     @classmethod
     def create(
@@ -54,6 +56,8 @@ class InterviewSession:
         domain: str,
         config: InterviewConfig,
         conversation_id: UUID,
+        entity_id: UUID | None = None,
+        initial_mapa: dict | None = None,
     ) -> InterviewSession:
         return cls(
             id=uuid4(),
@@ -61,11 +65,12 @@ class InterviewSession:
             domain=domain,
             config_snapshot=asdict(config),
             conversation_id=conversation_id,
-            mapa_global={},
+            mapa_global=initial_mapa or {},
             bloque_actual=config.bloques[0].id,
             bloques_completados=[],
             status=InterviewStatus.ACTIVE,
             messages_count=0,
+            entity_id=entity_id,
         )
 
     def advance_block(self, block_id: str) -> None:

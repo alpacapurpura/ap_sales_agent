@@ -1,11 +1,14 @@
 """Interview Engine orchestration service."""
 
+# Ensure domain configs are registered on import
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
 
-from src.modules.copilot.domain.interview_configs.brand_config import (
-    BRAND_INTERVIEW_CONFIG,
+import src.modules.copilot.domain.interview_configs.brand_config  # noqa: F401
+from src.modules.copilot.domain.interview_config import (
+    DOMAIN_CONFIGS,
+    get_interview_config,
 )
 from src.modules.copilot.domain.interview_session import (
     InterviewSession,
@@ -18,12 +21,10 @@ from src.modules.copilot.infrastructure.repositories.interview_session_repositor
     InterviewSessionRepository,
 )
 
-DOMAIN_CONFIGS = {
-    "brand": BRAND_INTERVIEW_CONFIG,
-}
-
 DOMAIN_LABELS = {
     "brand": "Brand Studio",
+    "buyer_persona": "Buyer Persona",
+    "offer": "Offer Studio",
 }
 
 
@@ -40,6 +41,8 @@ class InterviewService:
         user_id: UUID,
         domain: str,
         resume_session_id: UUID | None = None,
+        entity_id: UUID | None = None,
+        initial_mapa: dict | None = None,
     ) -> dict:
         if resume_session_id:
             session = self.session_repo.get_by_id(resume_session_id, tenant_id)
@@ -62,9 +65,7 @@ class InterviewService:
         if existing:
             raise ValueError("Active session exists for this domain")
 
-        config = DOMAIN_CONFIGS.get(domain)
-        if not config:
-            raise ValueError(f"No config for domain '{domain}'")
+        config = get_interview_config(domain)
 
         conversation_id = uuid4()
         self.conversation_repo.create(
@@ -79,6 +80,8 @@ class InterviewService:
             domain=domain,
             config=config,
             conversation_id=conversation_id,
+            entity_id=entity_id,
+            initial_mapa=initial_mapa,
         )
         self.session_repo.save(session)
         self.db.commit()
@@ -141,3 +144,18 @@ class InterviewService:
         self.session_repo.save(session)
         self.db.commit()
         return True
+
+    def get_session(self, session_id: UUID, tenant_id: UUID) -> InterviewSession | None:
+        """Retrieve a session by ID and tenant. Returns None if not found."""
+        return self.session_repo.get_by_id(session_id, tenant_id)
+
+    def update_mapa_global(
+        self, *, session_id: UUID, tenant_id: UUID, delta: dict
+    ) -> None:
+        """Merge delta into the session's mapa_global and persist."""
+        session = self.session_repo.get_by_id(session_id, tenant_id)
+        if not session:
+            return
+        session.update_mapa_global(delta)
+        self.session_repo.save(session)
+        self.db.commit()

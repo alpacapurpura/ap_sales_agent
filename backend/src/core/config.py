@@ -137,6 +137,9 @@ class Settings(BaseSettings):
     CLERK_SECRET_KEY: str = ""
     CLERK_WEBHOOK_SECRET: str = ""
 
+    # Tavily (web search for AI agents)
+    TAVILY_API_KEY: str = ""
+
     # Sentry / Environment
     SENTRY_DSN: str = ""
     SENTRY_WORKER_DSN: str = (

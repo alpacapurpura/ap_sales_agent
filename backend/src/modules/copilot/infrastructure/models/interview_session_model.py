@@ -22,6 +22,7 @@ class InterviewSessionModel(Base):
     bloques_completados = Column(JSONB, nullable=False, default=list)
     status = Column(String(20), nullable=False, default="active")
     messages_count = Column(Integer, nullable=False, default=0)
+    entity_id = Column(UUID(as_uuid=True), nullable=True)
     created_at = Column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

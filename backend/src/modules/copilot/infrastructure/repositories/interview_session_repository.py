@@ -38,6 +38,7 @@ class InterviewSessionRepository:
             existing.bloques_completados = session.bloques_completados
             existing.status = session.status.value
             existing.messages_count = session.messages_count
+            existing.entity_id = session.entity_id
             existing.updated_at = utc_now()
             flag_modified(existing, "mapa_global")
             flag_modified(existing, "bloques_completados")
@@ -53,6 +54,7 @@ class InterviewSessionRepository:
                 bloques_completados=session.bloques_completados,
                 status=session.status.value,
                 messages_count=session.messages_count,
+                entity_id=session.entity_id,
             )
             self.db.add(model)
 
@@ -113,4 +115,5 @@ class InterviewSessionRepository:
             bloques_completados=model.bloques_completados,
             status=InterviewStatus(model.status),
             messages_count=model.messages_count,
+            entity_id=model.entity_id,
         )

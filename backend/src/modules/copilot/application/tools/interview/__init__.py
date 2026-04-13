@@ -12,6 +12,7 @@ from src.modules.copilot.application.tools.interview.extract_structured import (
 from src.modules.copilot.application.tools.interview.offer_alternatives import (
     offer_alternatives,
 )
+from src.modules.copilot.application.tools.interview.web_research import web_research
 
 INTERVIEW_TOOLS = [
     extract_structured,
@@ -20,4 +21,5 @@ INTERVIEW_TOOLS = [
     checkpoint,
     advance_block,
     complete_interview,
+    web_research,
 ]
