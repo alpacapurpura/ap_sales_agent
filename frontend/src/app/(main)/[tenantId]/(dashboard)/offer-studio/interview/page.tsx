@@ -1,22 +1,20 @@
-// Side-effect import: registers offer preview in the PreviewRegistry
-import "@/features/offer-studio/components/interview/register-offer-preview";
-
-import { InterviewSplitView } from "@/features/copilot/components/interview/interview-split-view";
+import { redirect } from "next/navigation";
 
 interface PageProps {
+  params: Promise<{ tenantId: string }>;
   searchParams: Promise<{ offerId?: string; session?: string }>;
 }
 
-export default async function OfferInterviewPage({
-  searchParams,
-}: PageProps) {
-  const params = await searchParams;
-  return (
-    <InterviewSplitView
-      domain="offer"
-      sessionId={params.session}
-      entityId={params.offerId}
-      routeBase="offer-studio/interview"
-    />
-  );
+export default async function OfferInterviewPage({ params, searchParams }: PageProps) {
+  const { tenantId } = await params;
+  const { session, offerId } = await searchParams;
+
+  // Redirect to offer editor/dashboard with interview query param for sidebar activation
+  const base = offerId
+    ? `/${tenantId}/offer-studio/offer/${offerId}`
+    : `/${tenantId}/offer-studio`;
+
+  const target = session ? `${base}?interview=${session}` : base;
+
+  redirect(target);
 }
