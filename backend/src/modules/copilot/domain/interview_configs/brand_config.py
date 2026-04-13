@@ -1,6 +1,10 @@
 """Brand Studio interview configuration — 5 thematic blocks."""
 
-from src.modules.copilot.domain.interview_config import InterviewBlock, InterviewConfig
+from src.modules.copilot.domain.interview_config import (
+    InterviewBlock,
+    InterviewConfig,
+    register_interview_config,
+)
 
 BRAND_INTERVIEW_CONFIG = InterviewConfig(
     domain="brand",
@@ -103,4 +107,7 @@ BRAND_INTERVIEW_CONFIG = InterviewConfig(
     tono="consultor senior, cercano, directo, experto en branding",
     expertise_template="brand_expertise",
     rag_collection="brand_examples",
+    document_extraction_template="brand_doc_extraction",
 )
+
+register_interview_config("brand", BRAND_INTERVIEW_CONFIG)

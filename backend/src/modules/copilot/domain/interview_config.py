@@ -1,4 +1,6 @@
-"""Interview configuration value objects (frozen, immutable)."""
+"""Interview configuration value objects (frozen, immutable) + domain registry."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 
@@ -27,3 +29,30 @@ class InterviewConfig:
     expertise_template: str
     max_mensajes: int = 60
     rag_collection: str | None = None
+
+    # Phase 3: Document processing
+    document_extraction_template: str | None = None
+    supported_file_types: tuple[str, ...] = (".pdf", ".docx", ".txt", ".md", ".pptx")
+
+    # Phase 3: Research & context
+    initial_research_enabled: bool = False
+    context_loader: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Domain config registry
+# ---------------------------------------------------------------------------
+
+DOMAIN_CONFIGS: dict[str, InterviewConfig] = {}
+
+
+def register_interview_config(domain: str, config: InterviewConfig) -> None:
+    """Register an interview config for a domain."""
+    DOMAIN_CONFIGS[domain] = config
+
+
+def get_interview_config(domain: str) -> InterviewConfig:
+    """Retrieve interview config by domain. Raises ValueError if not found."""
+    if domain not in DOMAIN_CONFIGS:
+        raise ValueError(f"No interview config registered for domain: {domain}")
+    return DOMAIN_CONFIGS[domain]
