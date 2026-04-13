@@ -4,6 +4,27 @@ import { Suspense, lazy, useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import { useCopilotStore } from "../store/copilot-store";
 import { getPreviewEntry } from "../config/interview-preview-registry";
+import type { PreviewRegistryEntry } from "../config/interview-preview-registry";
+import type { ComponentType } from "react";
+import type { PreviewSummaryProps, PreviewSectionsProps } from "../config/interview-preview-registry";
+
+// ── Lazy component cache (stable references across renders) ───────────────
+const lazyCache = new Map<string, {
+  Summary: ComponentType<PreviewSummaryProps>;
+  Sections: ComponentType<PreviewSectionsProps>;
+}>();
+
+function getLazyComponents(domain: string, entry: PreviewRegistryEntry) {
+  const cached = lazyCache.get(domain);
+  if (cached) return cached;
+
+  const pair = {
+    Summary: lazy(entry.summaryComponent),
+    Sections: lazy(entry.sectionsComponent),
+  };
+  lazyCache.set(domain, pair);
+  return pair;
+}
 
 function PreviewLoader() {
   return (
@@ -18,18 +39,18 @@ export function CopilotPreviewPane() {
   const previewData = useCopilotStore((s) => s.previewData);
   const focusSnapshot = useCopilotStore((s) => s.focusSnapshot);
 
+  const domain = focusEntity?.domain ?? null;
+
   const entry = useMemo(
-    () => (focusEntity ? getPreviewEntry(focusEntity.domain) : null),
-    [focusEntity?.domain],
+    () => (domain ? getPreviewEntry(domain) : null),
+    [domain],
   );
 
-  if (!focusEntity || !entry) return null;
+  if (!focusEntity || !entry || !domain) return null;
 
+  const { Summary, Sections } = getLazyComponents(domain, entry);
   const data = previewData ?? focusSnapshot ?? {};
   const hasData = Object.keys(data).length > 0;
-
-  const SummaryComponent = lazy(entry.summaryComponent);
-  const SectionsComponent = lazy(entry.sectionsComponent);
 
   return (
     <div className="flex h-full flex-col bg-slate-50 dark:bg-slate-800/50">
@@ -43,8 +64,8 @@ export function CopilotPreviewPane() {
       <div className="flex-1 overflow-y-auto p-4">
         {hasData ? (
           <Suspense fallback={<PreviewLoader />}>
-            <SummaryComponent data={data} completenessScore={0} />
-            <SectionsComponent data={data} currentBlock="" blocksCompleted={[]} />
+            <Summary data={data} completenessScore={0} />
+            <Sections data={data} currentBlock="" blocksCompleted={[]} />
           </Suspense>
         ) : (
           <div className="flex h-full items-center justify-center text-center">
