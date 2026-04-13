@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, ArrowRight, Loader2, SkipForward, Rocket } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, SkipForward, Rocket, Sparkles } from "lucide-react";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import {
   archetypeSupportsEditions,
@@ -35,6 +35,7 @@ interface CreateOfferWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreateOffer: (data: WizardResult) => Promise<void>;
+  onCreateWithIA?: (data: WizardResult) => Promise<void>;
   creating?: boolean;
 }
 
@@ -63,7 +64,7 @@ const ARCHETYPE_ORDER: OfferArchetype[] = [
   OfferArchetype.EXPERIENCIA,
 ];
 
-export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating = false }: CreateOfferWizardProps) {
+export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateWithIA, creating = false }: CreateOfferWizardProps) {
   const { currency: tenantCurrency } = useTenantLocale();
   const [step, setStep] = useState(1);
   const [selectedArchetype, setSelectedArchetype] = useState<OfferArchetype | null>(null);
@@ -162,6 +163,22 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
       is_lead_magnet: effectiveLeadMagnet,
       // Only send the wizard answer when the user actually got to the question.
       // Otherwise let the backend apply the archetype-aware default.
+      has_editions: showsEditionsStep ? hasEditions : undefined,
+      headline_promise: headlinePromise || undefined,
+      status: OfferStatus.DRAFT,
+      delivery_model: selectedDeliveryModel,
+      value_level: selectedValueLevel,
+      specific_details: selectedSpecificDetails,
+    });
+  };
+
+  const handleCreateWithIA = async () => {
+    if (!selectedArchetype || !offerName.trim() || !onCreateWithIA) return;
+    await onCreateWithIA({
+      archetype: selectedArchetype,
+      format_hint: formatHint || undefined,
+      name: offerName.trim(),
+      is_lead_magnet: effectiveLeadMagnet,
       has_editions: showsEditionsStep ? hasEditions : undefined,
       headline_promise: headlinePromise || undefined,
       status: OfferStatus.DRAFT,
@@ -515,6 +532,16 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
                 >
                   Completar despues
                 </Button>
+                {onCreateWithIA && (
+                  <Button
+                    variant="secondary"
+                    onClick={handleCreateWithIA}
+                    disabled={creating || !offerName.trim()}
+                  >
+                    <Sparkles className="mr-1 h-3 w-3" />
+                    Crear con asistente IA
+                  </Button>
+                )}
                 <Button
                   onClick={handleCreate}
                   disabled={creating || !offerName.trim()}
@@ -533,6 +560,16 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
                 >
                   Completar despues
                 </Button>
+                {onCreateWithIA && (
+                  <Button
+                    variant="secondary"
+                    onClick={handleCreateWithIA}
+                    disabled={creating || !offerName.trim()}
+                  >
+                    <Sparkles className="mr-1 h-3 w-3" />
+                    Crear con asistente IA
+                  </Button>
+                )}
                 <Button
                   onClick={handleCreate}
                   disabled={creating || !offerName.trim()}
