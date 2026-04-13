@@ -269,6 +269,83 @@ describe('sidebarState', () => {
   });
 });
 
+describe('Interview UIAction types', () => {
+  beforeEach(() => {
+    useCopilotStore.setState({
+      messages: [],
+      status: 'idle',
+    });
+  });
+
+  it('should support alternatives_card UIAction type', () => {
+    const msg: CopilotMessage = {
+      id: 'msg-1',
+      role: 'assistant',
+      content: 'Here are some options:',
+      timestamp: Date.now(),
+      uiActions: [{
+        type: 'alternatives_card',
+        field_path: 'strategy.target_audience',
+        question: 'Who is your target audience?',
+        alternatives: [
+          { id: '1', title: 'Option A', description: 'First option', recommended: true },
+          { id: '2', title: 'Option B', description: 'Second option' },
+        ],
+        allow_custom: true,
+        card_status: 'pending',
+      }],
+    };
+    useCopilotStore.getState().addMessage(msg);
+    const stored = useCopilotStore.getState().messages[0];
+    expect(stored.uiActions![0].type).toBe('alternatives_card');
+    expect(stored.uiActions![0].alternatives).toHaveLength(2);
+  });
+
+  it('should support checkpoint_card UIAction type', () => {
+    const msg: CopilotMessage = {
+      id: 'msg-2',
+      role: 'assistant',
+      content: 'Block complete!',
+      timestamp: Date.now(),
+      uiActions: [{
+        type: 'checkpoint_card',
+        block_id: 'strategy',
+        block_label: 'Estrategia',
+        summary: { name: 'Test' },
+        health_score: 85,
+        blocks_progress: { completed: 1, total: 5 },
+        card_status: 'pending',
+      }],
+    };
+    useCopilotStore.getState().addMessage(msg);
+    const action = useCopilotStore.getState().messages[0].uiActions![0];
+    expect(action.type).toBe('checkpoint_card');
+    expect(action.health_score).toBe(85);
+  });
+
+  it('should update UIAction status via updateUIActionStatus', () => {
+    const msg: CopilotMessage = {
+      id: 'msg-3',
+      role: 'assistant',
+      content: 'Options:',
+      timestamp: Date.now(),
+      uiActions: [{
+        type: 'alternatives_card',
+        card_status: 'pending',
+      }],
+    };
+    useCopilotStore.getState().addMessage(msg);
+    useCopilotStore.getState().updateUIActionStatus('msg-3', 0, 'resolved');
+    const action = useCopilotStore.getState().messages[0].uiActions![0];
+    expect(action.card_status).toBe('resolved');
+  });
+
+  it('updateUIActionStatus is no-op for non-existent message', () => {
+    useCopilotStore.getState().updateUIActionStatus('non-existent', 0, 'resolved');
+    expect(useCopilotStore.getState().messages).toHaveLength(0);
+  });
+});
+
 describe('backward compatibility', () => {
   beforeEach(() => {
     useCopilotStore.setState({

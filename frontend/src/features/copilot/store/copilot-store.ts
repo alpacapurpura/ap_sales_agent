@@ -26,7 +26,9 @@ export interface ActiveProcedure {
 
 export interface UIAction {
   type: "navigate" | "scroll_to_field" | "open_form" | "proposal" | "procedure_progress"
-       | "metric_summary" | "comparison" | "checklist" | "multi_option";
+       | "metric_summary" | "comparison" | "checklist" | "multi_option"
+       | "alternatives_card" | "clarify_card" | "checkpoint_card" | "interview_complete"
+       | "preview_update";
   route?: string;
   page_label?: string;
   section_id?: string;
@@ -46,6 +48,20 @@ export interface UIAction {
   recommended?: string;
   items?: Array<{ label: string; done: boolean; route?: string }>;
   options?: Array<{ id: string; title: string; content: string }>;
+  // Interview card fields
+  field_path?: string;
+  question?: string;
+  alternatives?: Array<{ id: string; title: string; description: string; recommended?: boolean; recommendation_reason?: string }>;
+  allow_custom?: boolean;
+  clarify_items?: Array<{ field_path: string; issue: string; options: string[] }>;
+  block_id?: string;
+  block_label?: string;
+  summary?: Record<string, string>;
+  health_score?: number;
+  blocks_progress?: { completed: number; total: number };
+  card_status?: "pending" | "resolved" | "confirmed" | "revising";
+  redirect?: string;
+  delta?: Record<string, unknown>;
 }
 
 export interface SelectedField {
@@ -106,6 +122,7 @@ interface CopilotState {
   addMessage: (msg: CopilotMessage) => void;
   appendToLastAssistant: (chunk: string) => void;
   addUIActionToLastAssistant: (action: UIAction) => void;
+  updateUIActionStatus: (messageId: string, actionIndex: number, status: string) => void;
   setStatus: (status: CopilotStatus) => void;
   clearMessages: () => void;
 
@@ -211,6 +228,19 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
         const existing = last.uiActions ?? [];
         msgs[msgs.length - 1] = { ...last, uiActions: [...existing, action] };
       }
+      return { messages: msgs };
+    }),
+
+  updateUIActionStatus: (messageId, actionIndex, status) =>
+    set((s) => {
+      const msgs = [...s.messages];
+      const msgIdx = msgs.findIndex((m) => m.id === messageId);
+      if (msgIdx === -1) return s;
+      const msg = msgs[msgIdx];
+      if (!msg.uiActions || !msg.uiActions[actionIndex]) return s;
+      const actions = [...msg.uiActions];
+      actions[actionIndex] = { ...actions[actionIndex], card_status: status as UIAction["card_status"] };
+      msgs[msgIdx] = { ...msg, uiActions: actions };
       return { messages: msgs };
     }),
 
