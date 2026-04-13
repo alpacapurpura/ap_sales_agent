@@ -40,6 +40,7 @@ TOOL_GROUPS: dict[str, list] = {
 # More specific routes should be listed before generic ones.
 # "*" is the fallback for any unmatched route.
 ROUTE_TOOL_MAP: dict[str, list[str]] = {
+    "brand-studio/interview/buyer-persona": ["interview", "knowledge"],
     "brand-studio/interview": ["interview", "knowledge"],
     "brand-studio": [
         "navigation",
@@ -49,6 +50,7 @@ ROUTE_TOOL_MAP: dict[str, list[str]] = {
         "procedure",
         "knowledge",
     ],
+    "offer-studio/interview": ["interview", "knowledge"],
     "offer-studio": [
         "navigation",
         "awareness",
