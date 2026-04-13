@@ -1,9 +1,9 @@
 """Domain enums for the analytics ETL infrastructure."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class CostType(str, Enum):
+class CostType(StrEnum):
     """Classifies the financial nature of a metric's associated channel/stage."""
 
     NEUTRAL = "neutral"
@@ -12,7 +12,7 @@ class CostType(str, Enum):
     REVENUE = "revenue"
 
 
-class MetricUnit(str, Enum):
+class MetricUnit(StrEnum):
     """Unit of measurement for a metric value."""
 
     COUNT = "count"
@@ -23,7 +23,7 @@ class MetricUnit(str, Enum):
     JSON = "json"
 
 
-class ExtractionStatus(str, Enum):
+class ExtractionStatus(StrEnum):
     """Lifecycle status of an ETL extraction run."""
 
     PENDING = "pending"
@@ -34,7 +34,7 @@ class ExtractionStatus(str, Enum):
     RETRYING = "retrying"
 
 
-class AggregationType(str, Enum):
+class AggregationType(StrEnum):
     """Defines how a metric should be aggregated across time periods."""
 
     ADDITIVE = "additive"  # SUM seguro (clicks, spend, sessions)
@@ -46,7 +46,7 @@ class AggregationType(str, Enum):
     SNAPSHOT = "snapshot"  # Último valor del período (active_subscribers)
 
 
-class PeriodType(str, Enum):
+class PeriodType(StrEnum):
     """Time period granularity for metric aggregation and extraction."""
 
     DAILY = "daily"
@@ -56,7 +56,7 @@ class PeriodType(str, Enum):
     LAST_30_DAYS = "last_30_days"
 
 
-class ExtractionType(str, Enum):
+class ExtractionType(StrEnum):
     """Whether an extraction run covers daily or period-level data."""
 
     DAILY = "daily"

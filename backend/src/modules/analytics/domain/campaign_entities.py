@@ -5,10 +5,10 @@ Value objects and enums — no framework imports.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 
-class CampaignObjective(str, Enum):
+class CampaignObjective(StrEnum):
     """Meta ODAX (Outcome-Driven Ad Experiences) objectives."""
 
     OUTCOME_AWARENESS = "OUTCOME_AWARENESS"
@@ -29,7 +29,7 @@ class CampaignObjective(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class CampaignStatus(str, Enum):
+class CampaignStatus(StrEnum):
     ACTIVE = "ACTIVE"
     PAUSED = "PAUSED"
     DELETED = "DELETED"
@@ -38,7 +38,7 @@ class CampaignStatus(str, Enum):
     WITH_ISSUES = "WITH_ISSUES"
 
 
-class EffectiveStatus(str, Enum):
+class EffectiveStatus(StrEnum):
     """Effective status includes inherited states from parent objects."""
 
     ACTIVE = "ACTIVE"
@@ -54,20 +54,20 @@ class EffectiveStatus(str, Enum):
     PREAPPROVED = "PREAPPROVED"
 
 
-class BidStrategy(str, Enum):
+class BidStrategy(StrEnum):
     LOWEST_COST_WITHOUT_CAP = "LOWEST_COST_WITHOUT_CAP"
     LOWEST_COST_WITH_BID_CAP = "LOWEST_COST_WITH_BID_CAP"
     COST_CAP = "COST_CAP"
     LOWEST_COST_WITH_MIN_ROAS = "LOWEST_COST_WITH_MIN_ROAS"
 
 
-class LearningStage(str, Enum):
+class LearningStage(StrEnum):
     LEARNING = "LEARNING"
     SUCCESS = "SUCCESS"
     FAIL = "FAIL"
 
 
-class RecommendationSource(str, Enum):
+class RecommendationSource(StrEnum):
     """Where the recommendation came from."""
 
     ACCOUNT = "account"  # GET /act_{id}/recommendations

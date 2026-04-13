@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum
 
 # Re-export shared enums for internal CRM backwards-compatibility
 from src.shared.domain.enums import (  # noqa: F401
@@ -12,7 +12,7 @@ from src.shared.domain.enums import (  # noqa: F401
 )
 
 
-class SophisticationLevel(str, Enum):
+class SophisticationLevel(StrEnum):
     UNAWARE = "UNAWARE"
     PROBLEM_AWARE = "PROBLEM_AWARE"
     SOLUTION_AWARE = "SOLUTION_AWARE"
@@ -20,7 +20,7 @@ class SophisticationLevel(str, Enum):
     MOST_AWARE = "MOST_AWARE"
 
 
-class AuthorityLevel(str, Enum):
+class AuthorityLevel(StrEnum):
     SOLO = "SOLO"
     PARTNER = "PARTNER"
     INFLUENCER = "INFLUENCER"
@@ -28,7 +28,7 @@ class AuthorityLevel(str, Enum):
     COMMITTEE = "COMMITTEE"
 
 
-class FunnelStage(str, Enum):
+class FunnelStage(StrEnum):
     RAPPORT = "S1_Rapport"
     DISCOVERY = "S2_Discovery"
     GAP = "S3_Gap"
@@ -38,7 +38,7 @@ class FunnelStage(str, Enum):
     DOWNSELL_EXIT = "DOWNSELL_EXIT"
 
 
-class LeadStatus(str, Enum):
+class LeadStatus(StrEnum):
     AWARENESS = "awareness"
     QUALIFIED = "qualified"
     DISQUALIFIED = "disqualified"
@@ -49,20 +49,20 @@ class LeadStatus(str, Enum):
     DOWNSELL_ACCEPTED = "downsell_accepted"
 
 
-class ProductLaunchStage(str, Enum):
+class ProductLaunchStage(StrEnum):
     PRE_LAUNCH = "pre_launch"
     OPEN_CART = "open_cart"
     CLOSE_CART = "close_cart"
     EVERGREEN = "evergreen"
 
 
-class BusinessStage(str, Enum):
+class BusinessStage(StrEnum):
     ACTIVE = "Negocio Activo"
     IDEA = "Idea Clara"
     NONE = "Sin Idea"
 
 
-class PaymentMethod(str, Enum):
+class PaymentMethod(StrEnum):
     CREDIT_CARD = "CREDIT_CARD"
     WIRE = "WIRE"
     CASH = "CASH"

@@ -1,16 +1,16 @@
 """Domain enums for the advertising module (offer-campaign association)."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class AssociationTargetType(str, Enum):
+class AssociationTargetType(StrEnum):
     """Level at which an association targets a Meta object."""
 
     CAMPAIGN = "campaign"
     AD_SET = "ad_set"
 
 
-class AssociationType(str, Enum):
+class AssociationType(StrEnum):
     """How the association was produced."""
 
     MANUAL = "manual"
@@ -21,7 +21,7 @@ class AssociationType(str, Enum):
     SUGGESTED = "suggested"  # auto-detected but pending user confirmation
 
 
-class AssociationConfidence(str, Enum):
+class AssociationConfidence(StrEnum):
     """Confidence level for auto-detected associations."""
 
     HIGH = "high"
@@ -29,7 +29,7 @@ class AssociationConfidence(str, Enum):
     LOW = "low"
 
 
-class OfferExpectedMetric(str, Enum):
+class OfferExpectedMetric(StrEnum):
     """Primary outcome metric expected for an offer.
 
     Derived from the offer archetype + onboarding_action + is_lead_magnet.

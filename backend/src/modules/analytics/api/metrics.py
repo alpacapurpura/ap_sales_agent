@@ -1,5 +1,5 @@
 from datetime import UTC, date, datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from typing import TypeVar
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -298,7 +298,7 @@ async def _warm_stage_cache(
         )
 
 
-class FunnelStage(str, Enum):
+class FunnelStage(StrEnum):
     """Valid funnel stages for the overview endpoint."""
 
     attraction = "attraction"

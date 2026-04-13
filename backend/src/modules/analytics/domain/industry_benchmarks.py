@@ -7,10 +7,10 @@ Data sourced from Klipfolio / MetricHQ industry averages.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
-class IndustryCategory(str, Enum):
+class IndustryCategory(StrEnum):
     """Broad industry verticals for benchmark segmentation."""
 
     EDUCATION = "education"

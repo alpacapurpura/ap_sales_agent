@@ -1,7 +1,7 @@
 """LaunchEdition domain entity — represents one launch of an offer."""
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 from uuid import UUID
 
@@ -11,7 +11,7 @@ from src.modules.offer.domain.offer import PricingStructure
 from src.shared.domain.base_entity import BaseEntity
 
 
-class EditionStatus(str, Enum):
+class EditionStatus(StrEnum):
     DRAFT = "draft"
     UPCOMING = "upcoming"
     ACTIVE = "active"

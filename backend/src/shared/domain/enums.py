@@ -5,12 +5,12 @@ cross-module DDD boundary violations.  Each source module
 re-exports these for internal backwards-compatibility.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 # ── Originally in crm/domain/enums.py ────���─────────────────────
 
 
-class IdentityType(str, Enum):
+class IdentityType(StrEnum):
     EMAIL = "email"
     PHONE = "phone"
     COOKIE_ID = "cookie_id"
@@ -22,7 +22,7 @@ class IdentityType(str, Enum):
     TIKTOK = "tiktok"
 
 
-class LifecycleStage(str, Enum):
+class LifecycleStage(StrEnum):
     SUBSCRIBER = "subscriber"
     LEAD = "lead"
     MQL = "mql"
@@ -33,7 +33,7 @@ class LifecycleStage(str, Enum):
     CHURNED = "churned"
 
 
-class FinancialCapacity(str, Enum):
+class FinancialCapacity(StrEnum):
     BROKE_STUDENT = "BROKE_STUDENT"
     LOW_INCOME = "LOW_INCOME"
     MIDDLE_CLASS = "MIDDLE_CLASS"
@@ -42,7 +42,7 @@ class FinancialCapacity(str, Enum):
     ULTRA_HIGH_NET_WORTH = "ULTRA_HIGH_NET_WORTH"
 
 
-class AvatarPersona(str, Enum):
+class AvatarPersona(StrEnum):
     NEWBIE = "NEWBIE"
     SKEPTIC = "SKEPTIC"
     VIP = "VIP"
@@ -50,19 +50,19 @@ class AvatarPersona(str, Enum):
     RESEARCHER = "RESEARCHER"
 
 
-class SaleStatus(str, Enum):
+class SaleStatus(StrEnum):
     COMPLETED = "COMPLETED"
     REFUNDED = "REFUNDED"
     PENDING = "PENDING"
     FAILED = "FAILED"
 
 
-class SaleStage(str, Enum):
+class SaleStage(StrEnum):
     CONVERSION = "CONVERSION"
     EXPANSION = "EXPANSION"
 
 
-class LeadTemperature(str, Enum):
+class LeadTemperature(StrEnum):
     COLD = "COLD"
     WARM = "WARM"
     HOT = "HOT"
@@ -71,7 +71,7 @@ class LeadTemperature(str, Enum):
 # ── Originally in connections/domain/enums.py ────────────��─────
 
 
-class ChannelType(str, Enum):
+class ChannelType(StrEnum):
     TELEGRAM = "telegram"
     WHATSAPP = "whatsapp"  # Evolution / QR
     WHATSAPP_CLOUD = "whatsapp_cloud"  # Meta Cloud API

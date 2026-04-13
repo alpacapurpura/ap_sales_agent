@@ -8,11 +8,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 
-class OfferLifecycleStatus(str, Enum):
+class OfferLifecycleStatus(StrEnum):
     """Writable lifecycle status as exposed by the header switcher.
 
     Subset of ``OfferStatus`` that the UI can mutate. ``WAITLIST`` and

@@ -26,14 +26,14 @@ When you add a new provider or change what an existing provider extracts:
 """
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 # ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
 
 
-class ExtractionMode(str, Enum):
+class ExtractionMode(StrEnum):
     """How and when a provider's extraction is invoked."""
 
     DAILY_ETL = "daily_etl"
@@ -71,7 +71,7 @@ class ExtractionMode(str, Enum):
     ``crm_internal``."""
 
 
-class ProviderStatus(str, Enum):
+class ProviderStatus(StrEnum):
     """Operational status of the provider in production."""
 
     PRODUCTION = "production"
@@ -93,7 +93,7 @@ class ProviderStatus(str, Enum):
     """Should not be used; kept for backwards compatibility."""
 
 
-class AuthType(str, Enum):
+class AuthType(StrEnum):
     """How a provider authenticates against its external source."""
 
     OAUTH2_REFRESH = "oauth2_with_refresh"

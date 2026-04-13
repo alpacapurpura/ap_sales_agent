@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class LandingPageArchetype(str, Enum):
+class LandingPageArchetype(StrEnum):
     THE_SQUEEZE = "THE_SQUEEZE"
     THE_EVENT = "THE_EVENT"
     THE_FLASH_OFFER = "THE_FLASH_OFFER"
@@ -10,7 +10,7 @@ class LandingPageArchetype(str, Enum):
     THE_BROCHURE = "THE_BROCHURE"
 
 
-class LandingPageFont(str, Enum):
+class LandingPageFont(StrEnum):
     SANS_SERIF = "SANS_SERIF"
     SERIF = "SERIF"
     MONO = "MONO"

@@ -1,11 +1,11 @@
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from src.shared.domain.base_entity import BaseEntity
 
 
-class DomainStatus(str, Enum):
+class DomainStatus(StrEnum):
     PENDING_VERIFICATION = "pending_verification"
     VERIFYING = "verifying"
     ACTIVE = "active"
@@ -13,7 +13,7 @@ class DomainStatus(str, Enum):
     SUSPENDED = "suspended"
 
 
-class DomainType(str, Enum):
+class DomainType(StrEnum):
     PLATFORM = "platform"
     CUSTOM = "custom"
 

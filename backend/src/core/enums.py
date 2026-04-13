@@ -1,18 +1,18 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class PromptSource(str, Enum):
+class PromptSource(StrEnum):
     HYBRID = "hybrid"  # DB > File (Default)
     FILE = "file"  # Local File System only (Dev)
     DB = "db"  # DB Only (Strict Prod)
 
 
-class AIProvider(str, Enum):
+class AIProvider(StrEnum):
     OPENAI = "openai"
     GEMINI = "gemini"
 
 
-class ModelRole(str, Enum):
+class ModelRole(StrEnum):
     """Semantic roles for AI model selection.
 
     Each role maps to a specific model via env vars (AI_MODEL_<ROLE>).

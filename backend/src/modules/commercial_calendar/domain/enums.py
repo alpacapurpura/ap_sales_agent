@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class EventCategory(str, Enum):
+class EventCategory(StrEnum):
     FERIADO = "feriado"
     CAMPANA = "campaña"
     CYBER = "cyber"
