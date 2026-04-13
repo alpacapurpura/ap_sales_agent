@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
-import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -14,7 +13,6 @@ import { useOffer } from "../../hooks/use-offer";
 import { OfferNavRail } from "../navigation/OfferNavRail";
 import { OfferLivePreview } from "./offer-live-preview";
 import { OfferEditSheetManager } from "./offer-edit-sheet-manager";
-import { OfferSmartFillDialog } from "./components/smart-fill/offer-smart-fill-dialog";
 
 /**
  * Inner editor content rendered inside the persistent Offer Studio shell
@@ -32,12 +30,10 @@ export function OfferEditorContent({ offerId }: { offerId: string }) {
   const params = useParams();
   const tenantId = params?.tenantId as string;
 
-  const queryClient = useQueryClient();
   const { offer, formValues, loading, saving, error, saveOffer, saveSection } =
     useOffer(offerId);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [editingSection, setEditingSection] = useState<string | null>(null);
-  const [isSmartFillOpen, setIsSmartFillOpen] = useState(false);
 
   const form = useForm<OfferFormValues>({
     resolver: zodResolver(OfferSchema) as Resolver<OfferFormValues>,
@@ -132,14 +128,6 @@ export function OfferEditorContent({ offerId }: { offerId: string }) {
           isSaving={saving}
         />
 
-        <OfferSmartFillDialog
-          open={isSmartFillOpen}
-          onOpenChange={setIsSmartFillOpen}
-          offerId={offerId}
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["offer", offerId] });
-          }}
-        />
       </main>
     </div>
   );

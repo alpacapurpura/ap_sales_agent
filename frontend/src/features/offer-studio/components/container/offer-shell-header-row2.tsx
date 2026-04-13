@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { getOfferHealth } from "../../utils/offer-health";
 import { getSectionsForOffer, SECTION_REGISTRY } from "../../config/offer-builder-config";
-import { AutocompletarIAButton } from "./autocompletar-ia-button";
+import { FocusModeButton } from "@/features/copilot/components/focus-mode-button";
 import { LandingActionButton } from "./landing-action-button";
 import { OfferProgressBar } from "./offer-progress-bar";
 import { useOfferShell } from "./offer-shell";
@@ -35,7 +35,12 @@ export function OfferShellHeaderRow2() {
 
       <div className="flex shrink-0 items-center gap-2">
         <LandingActionButton offerId={offer.id} tenantId={tenantId} />
-        <AutocompletarIAButton offerId={offer.id} />
+        <FocusModeButton
+          domain="offer"
+          entityId={offer.id}
+          label={offer.public_name ?? "Oferta"}
+          entityData={offer as unknown as Record<string, unknown>}
+        />
       </div>
     </div>
   );
