@@ -7,6 +7,13 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 
 
+class FocusContext(TypedDict, total=False):
+    """Focus context sent when the user activates Focus or Interview mode."""
+
+    domain: str  # "offer", "brand", "buyer_persona"
+    entity_id: str  # UUID of the focused entity (omit for brand singleton)
+
+
 class ClientContext(TypedDict, total=False):
     """Context sent from the frontend with each message."""
 
@@ -14,6 +21,8 @@ class ClientContext(TypedDict, total=False):
     selected_fields: list[dict[str, str]]  # [{field_id, field_label, field_value}]
     form_data: dict[str, Any]  # Current form snapshot (partial)
     locale: str  # e.g. "es"
+    focus: FocusContext  # Active when Focus or Interview mode is on
+    interview_session_id: str  # Active interview session UUID
 
 
 class CopilotState(TypedDict):
