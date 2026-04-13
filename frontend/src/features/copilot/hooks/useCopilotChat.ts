@@ -4,6 +4,7 @@ import { useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useCopilotStore, type UIAction } from "../store/copilot-store";
 import { streamCopilotChat, reportCopilotEvent } from "../api/copilot-api";
+import { handleUIAction } from "./useCopilotUIAction";
 
 /**
  * Unified chat hook for all copilot modes (chat, focus, interview).
@@ -14,6 +15,12 @@ import { streamCopilotChat, reportCopilotEvent } from "../api/copilot-api";
  * - Neither → Chat mode
  *
  * All messages go through POST /copilot/chat with mode context in the payload.
+ *
+ * Single-flight guarantee: if a stream is already in progress when sendMessage
+ * is called, the previous request is aborted BEFORE new messages are added to
+ * the store. Streaming callbacks are bound to the specific assistant-message ID
+ * created for this send, so late callbacks from aborted streams cannot write to
+ * the wrong placeholder.
  */
 export function useCopilotChat() {
   const conversationId = useCopilotStore((s) => s.conversationId);
@@ -21,11 +28,25 @@ export function useCopilotChat() {
 
   const { getToken } = useAuth();
 
+  /** AbortController for the currently in-flight SSE request. */
   const abortRef = useRef<AbortController | null>(null);
+  /**
+   * ID of the assistant-message placeholder that the current stream writes to.
+   * Stale callbacks from a previously aborted stream check this ref; if their
+   * target ID no longer matches, they silently discard the update.
+   */
+  const activeAssistantIdRef = useRef<string | null>(null);
 
   const sendMessage = useCallback(
     async (text: string) => {
       if (!text.trim()) return;
+
+      // ── Single-flight guard ──────────────────────────────────────────────
+      // Abort BEFORE touching the store so stale callbacks fire on the OLD
+      // activeAssistantIdRef value and self-discard (see guards in callbacks).
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
 
       const store = useCopilotStore.getState();
 
@@ -50,18 +71,21 @@ export function useCopilotChat() {
       };
       store.addMessage(assistantMsg);
 
-      // Abort any in-flight request
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
+      // Register the new placeholder as the active target AFTER adding it
+      activeAssistantIdRef.current = assistantMsg.id;
 
       store.setStatus("thinking");
+
+      // Capture the assistant ID for the closures below so they can self-check
+      const myAssistantId = assistantMsg.id;
 
       try {
         const token = await getToken();
         if (!token) {
-          store.appendToLastAssistant("\n\n_Error: No se pudo obtener el token de autenticación._");
-          store.setStatus("idle");
+          if (activeAssistantIdRef.current === myAssistantId) {
+            store.appendToLastAssistant("\n\n_Error: No se pudo obtener el token de autenticación._");
+            store.setStatus("idle");
+          }
           return;
         }
 
@@ -82,6 +106,13 @@ export function useCopilotChat() {
           is_first_message: currentMessages.length <= 2,
           mode,
         }, token);
+
+        /**
+         * Guard: returns true only if this stream's placeholder is still the
+         * active one. Stale callbacks from a previously aborted stream will
+         * fail this check and silently discard their update.
+         */
+        const isActive = () => activeAssistantIdRef.current === myAssistantId;
 
         await streamCopilotChat(
           {
@@ -104,34 +135,40 @@ export function useCopilotChat() {
           },
           {
             onTextChunk: (content) => {
+              if (!isActive()) return;
               useCopilotStore.getState().appendToLastAssistant(content);
             },
             onStatus: (state) => {
+              if (!isActive()) return;
               useCopilotStore.getState().setStatus(state as "idle" | "thinking" | "streaming" | "done");
             },
             onDone: (convId) => {
+              if (!isActive()) return;
               useCopilotStore.getState().setConversationId(convId);
               useCopilotStore.getState().setStatus("idle");
             },
             onError: (message) => {
+              if (!isActive()) return;
               useCopilotStore.getState().appendToLastAssistant(`\n\n_Error: ${message}_`);
               useCopilotStore.getState().setStatus("idle");
             },
             onToolStart: (tool) => {
+              if (!isActive()) return;
               useCopilotStore.getState().appendToLastAssistant(`\n🔧 _${tool}..._\n`);
             },
             onToolResult: () => {
               // Tool result feeds back into the LLM via subsequent text_chunk
             },
             onUIAction: (action) => {
-              _handleUIAction(action as unknown as UIAction);
+              if (!isActive()) return;
+              handleUIAction(action as unknown as UIAction);
             },
           },
           token,
           controller.signal,
         );
       } catch (err) {
-        if ((err as Error).name !== "AbortError") {
+        if ((err as Error).name !== "AbortError" && activeAssistantIdRef.current === myAssistantId) {
           useCopilotStore.getState().appendToLastAssistant("\n\n_Error de conexión. Intenta de nuevo._");
           useCopilotStore.getState().setStatus("idle");
         }
@@ -157,49 +194,3 @@ export function useCopilotChat() {
   return { sendMessage, sendCardAction, stopStreaming };
 }
 
-/**
- * Route UIAction based on type.
- * Interview-specific actions get special handling.
- */
-function _handleUIAction(action: UIAction): void {
-  const store = useCopilotStore.getState();
-
-  switch (action.type) {
-    // Silent: update preview data, don't show as card
-    case "preview_update":
-      if (action.delta) {
-        store.updatePreviewData(action.delta);
-      }
-      return;
-
-    // Interview complete: attach card + clear interview state
-    case "interview_complete":
-      store.addUIActionToLastAssistant(action);
-      store.clearInterview();
-      return;
-
-    // Navigation: attach card + enqueue for router
-    case "navigate":
-      store.addUIActionToLastAssistant(action);
-      store.enqueuUIAction(action);
-      return;
-
-    // Procedure progress: update store for stepper
-    case "procedure_progress":
-      store.addUIActionToLastAssistant(action);
-      if (action.procedure_id && action.steps) {
-        store.setActiveProcedure({
-          id: action.procedure_id,
-          name: action.procedure_name || action.procedure_id,
-          steps: action.steps,
-          currentStepIndex: action.current_step_index ?? 0,
-        });
-      }
-      return;
-
-    // All other types (proposal, alternatives_card, clarify_card, checkpoint_card, etc.)
-    default:
-      store.addUIActionToLastAssistant(action);
-      return;
-  }
-}
