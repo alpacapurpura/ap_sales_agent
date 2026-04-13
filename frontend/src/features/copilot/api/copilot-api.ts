@@ -91,11 +91,31 @@ export function reportCopilotEvent(
   });
 }
 
+/** Retry configuration for SSE stream failures. */
+const SSE_RETRY_CONFIG = {
+  maxAttempts: 3,
+  baseDelayMs: 1000,
+} as const;
+
 /**
- * Streams a copilot chat response via SSE.
- * Uses native fetch + ReadableStream (no external lib needed).
+ * Returns true if the error is a network-level failure that warrants a retry.
+ * Network errors (connection refused, timeout, etc.) may be transient.
+ * Server errors (4xx/5xx) indicate the request was received — do NOT retry.
  */
-export async function streamCopilotChat(
+function isRetryableError(error: unknown): boolean {
+  // TypeError is thrown by fetch for network failures (no response received)
+  if (error instanceof TypeError) return true;
+  // AbortError means the user or AbortController cancelled — do NOT retry
+  if (error instanceof DOMException && error.name === "AbortError") return false;
+  return false;
+}
+
+/**
+ * Executes one SSE streaming attempt (single fetch + stream read-loop).
+ * Returns true if the stream completed successfully (received "done" event).
+ * Throws on network error. Calls onError + returns false on server errors.
+ */
+async function attemptSSEStream(
   payload: CopilotChatPayload,
   callbacks: {
     onTextChunk: (content: string) => void;
@@ -108,10 +128,11 @@ export async function streamCopilotChat(
   },
   token: string,
   signal?: AbortSignal,
-): Promise<void> {
+): Promise<boolean> {
   const headers = getCopilotHeaders(token);
   headers["Content-Type"] = "application/json";
 
+  // Network errors here (connection refused, timeout) bubble up as TypeError
   const response = await fetch(`${API_URL}/api/v1/copilot/chat`, {
     method: "POST",
     headers,
@@ -120,15 +141,16 @@ export async function streamCopilotChat(
   });
 
   if (!response.ok) {
+    // Server returned an HTTP error — request was received, do not retry
     const text = await response.text();
     callbacks.onError(`Error ${response.status}: ${text}`);
-    return;
+    return false;
   }
 
   const reader = response.body?.getReader();
   if (!reader) {
     callbacks.onError("No readable stream available");
-    return;
+    return false;
   }
 
   const decoder = new TextDecoder();
@@ -136,6 +158,7 @@ export async function streamCopilotChat(
 
   try {
     while (true) {
+      // Network drop mid-stream throws TypeError here — let it bubble up
       const { done, value } = await reader.read();
       if (done) break;
 
@@ -163,6 +186,68 @@ export async function streamCopilotChat(
     }
   } finally {
     reader.releaseLock();
+  }
+
+  return true;
+}
+
+/**
+ * Streams a copilot chat response via SSE.
+ * Uses native fetch + ReadableStream (no external lib needed).
+ *
+ * Retry strategy: network errors (TypeError) are retried up to 3 times with
+ * exponential backoff (1s, 2s, 4s). Server errors (4xx/5xx) are NOT retried
+ * because the request was received by the server. AbortSignal cancellations
+ * are never retried.
+ */
+export async function streamCopilotChat(
+  payload: CopilotChatPayload,
+  callbacks: {
+    onTextChunk: (content: string) => void;
+    onToolStart?: (tool: string, args: Record<string, unknown>) => void;
+    onToolResult?: (tool: string, result: string) => void;
+    onUIAction?: (action: Record<string, unknown>) => void;
+    onStatus: (state: string) => void;
+    onDone: (conversationId: string) => void;
+    onError: (message: string) => void;
+    onRetry?: (attempt: number, maxAttempts: number) => void;
+  },
+  token: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const { maxAttempts, baseDelayMs } = SSE_RETRY_CONFIG;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      // If AbortSignal is already aborted, stop immediately without an error
+      if (signal?.aborted) return;
+
+      await attemptSSEStream(payload, callbacks, token, signal);
+      // Attempt returned without throwing — stream completed (or server error
+      // was already reported via onError). Either way, we're done.
+      return;
+    } catch (error) {
+      // Propagate abort cancellations immediately — user intent, not a failure
+      if (signal?.aborted) return;
+
+      if (!isRetryableError(error)) {
+        // Non-network error (unexpected) — report and bail
+        const message = error instanceof Error ? error.message : String(error);
+        callbacks.onError(`Stream error: ${message}`);
+        return;
+      }
+
+      // Network error — retry if attempts remain
+      if (attempt < maxAttempts) {
+        callbacks.onRetry?.(attempt, maxAttempts);
+        const delayMs = baseDelayMs * Math.pow(2, attempt - 1); // 1s, 2s, 4s
+        await new Promise<void>((resolve) => setTimeout(resolve, delayMs));
+      } else {
+        // All attempts exhausted
+        const message = error instanceof Error ? error.message : String(error);
+        callbacks.onError(`Connection failed after ${maxAttempts} attempts: ${message}`);
+      }
+    }
   }
 }
 
