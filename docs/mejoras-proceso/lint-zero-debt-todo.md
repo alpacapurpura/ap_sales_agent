@@ -59,24 +59,39 @@
 Scripts (`src/scripts/`) and test helpers exempted via per-file-ignores.
 PT028 already in permanent ignore since Wave 2.
 
-**Total Wave 1+2+3:** 29 reglas enforced, ~660 fixes, **0 violations remaining in `ruff check`**
+### Wave 3b (2026-04-13) — 2 reglas, ~2,578 fixes (527 files)
+| Regla | Violaciones | Fix | Status |
+|-------|-------------|-----|--------|
+| COM812 (trailing commas) | 2,349 | `ruff --fix`, luego movido a permanent ignore (conflicto con ruff format) | ENFORCED via format |
+| INP001 (missing __init__.py) | 236 | 66 __init__.py creados (src/tests/ exempted) | ENFORCED |
 
-## Wave 4: Reglas NO activadas (~13,712 violaciones)
+**Total Wave 1+2+3:** 31 reglas enforced + INP, ~3,240 fixes, **0 violations remaining in `ruff check`**
 
-### Auto-fix posible
-- [ ] **COM812** (2,338) — Trailing commas. `ruff --fix --select COM812`
-- [ ] **INP001** (236) — Missing `__init__.py`. Crear archivos vacíos
+## Wave 4: Audit-Ready — Plan detallado
 
-### Migración masiva (agentes por módulo)
-- [ ] **FAST** (785) — FastAPI endpoints sin `Annotated`. Migrar `Depends(x)` → `Annotated[T, Depends(x)]`
-- [ ] **E501** (857) — Lines >88 chars. Mix de auto-fix y manual
-- [ ] **TRY** (272) — Exception patterns (TRY003, etc.)
+> Plan completo: `docs/superpowers/plans/2026-04-13-lint-wave4-audit-ready.md`
+>
+> Prompt: "Ejecuta Wave 4 del lint audit-ready. Plan: `docs/superpowers/plans/2026-04-13-lint-wave4-audit-ready.md`"
 
-### Massive (miles, requieren estrategia)
-- [ ] **ANN** (4,698) — Type annotations en todo el codebase
-- [ ] **D** (4,526) — Docstrings en todo el codebase
+### Resumen por fase
 
-## Estrategia recomendada para Wave 4
+| Fase | Reglas | Violaciones | Esfuerzo |
+|------|--------|-------------|----------|
+| 0: Zero-effort | 10 categorias con 0 violaciones | 0 | 5 min |
+| 1: Quick fixes | DTZ005, RUF013, NPY, PYI, PTH, TD, FIX | ~138 | 3h |
+| 2: Medium | FAST, BLE, G, TRY, E501 | ~2,286 | 24h (3-4 sesiones) |
+| 3: Massive | ANN, D | ~9,441 | Sprints dedicados |
+| 4: Hardening | mccabe 15, cleanup per-file-ignores | ~26 | 2h |
 
-Pick from the auto-fixable rules first (COM812, INP001), then migrate FAST (Annotated).
-ANN and D are massive (9,000+ violations) — defer until a dedicated sprint.
+### Global ignore audit (17 reglas)
+- **13 permanentes:** B008, PLC0415, PLR2004, PLR0913, ARG001, ARG002, RUF001, RUF012, RET504, UP017, PT028, ISC001, COM812
+- **2 format conflicts:** ISC001, COM812
+- **3 graduables:** DTZ005 (7), FBT001 (61), FBT002 (33)
+
+### Objetivo audit-ready
+- 42+ categorias activas (actual: 31+INP)
+- mccabe max-complexity: 15 (actual: 20)
+- 0 violaciones globales
+- <14 reglas en ignore global (todas justificadas)
+- Type coverage: 50%+ (actual: ~30%)
+- Docstring coverage: 40%+ (actual: ~20%)
