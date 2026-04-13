@@ -3,7 +3,9 @@
 # Ensure domain configs are registered on import
 from uuid import UUID, uuid4
 
+import structlog
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 import src.modules.copilot.domain.interview_configs.brand_config  # noqa: F401
@@ -25,6 +27,8 @@ from src.modules.copilot.infrastructure.repositories.interview_session_repositor
     InterviewSessionRepository,
 )
 from src.modules.offer.infrastructure.models.product_model import ProductModel
+
+logger = structlog.get_logger(__name__)
 
 DOMAIN_LABELS = {
     "brand": "Brand Studio",
@@ -116,8 +120,32 @@ class InterviewService:
             entity_id=entity_id,
             initial_mapa=initial_mapa,
         )
-        self.session_repo.save(session)
-        self.db.commit()
+
+        try:
+            self.session_repo.save(session)
+            self.db.commit()
+        except IntegrityError:
+            self.db.rollback()
+            # Race condition: another request created an active session
+            # between our check and our insert. Return the existing one.
+            existing = self.session_repo.get_active_by_domain(tenant_id, domain)
+            if existing:
+                logger.warning(
+                    "interview.duplicate_prevented",
+                    tenant_id=str(tenant_id),
+                    domain=domain,
+                )
+                return {
+                    "session_id": existing.id,
+                    "conversation_id": existing.conversation_id,
+                    "config": existing.config_snapshot,
+                    "initial_message": (
+                        f"¡Hola! Vamos a construir tu {DOMAIN_LABELS.get(domain, 'proyecto')}"
+                        f" juntos. Cuéntame, ¿cómo nació tu negocio?"
+                    ),
+                }
+            # Not a duplicate race — re-raise the original error
+            raise
 
         return {
             "session_id": session.id,
@@ -185,6 +213,22 @@ class InterviewService:
     def get_session(self, session_id: UUID, tenant_id: UUID) -> InterviewSession | None:
         """Retrieve a session by ID and tenant. Returns None if not found."""
         return self.session_repo.get_by_id(session_id, tenant_id)
+
+    def expire_stale_sessions(
+        self,
+        *,
+        tenant_id: UUID,
+        max_inactive_days: int = 7,
+    ) -> int:
+        """Mark sessions as ABANDONED if inactive for more than max_inactive_days.
+
+        Only affects ACTIVE and PAUSED sessions. Completed and already-abandoned
+        sessions are left untouched. Returns the number of sessions expired.
+        """
+        return self.session_repo.expire_stale(
+            tenant_id=tenant_id,
+            max_inactive_days=max_inactive_days,
+        )
 
     def update_mapa_global(
         self,

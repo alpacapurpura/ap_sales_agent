@@ -1,8 +1,9 @@
 """Repository for InterviewSession persistence."""
 
+from datetime import timedelta
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -96,6 +97,37 @@ class InterviewSessionRepository:
             .first()
         )
         return self._to_entity(model) if model else None
+
+    def expire_stale(
+        self,
+        tenant_id: UUID,
+        max_inactive_days: int = 7,
+    ) -> int:
+        """Mark ACTIVE/PAUSED sessions as ABANDONED if inactive > max_inactive_days.
+
+        Returns the number of sessions expired.
+        """
+        cutoff = utc_now() - timedelta(days=max_inactive_days)
+        result = self.db.execute(
+            update(InterviewSessionModel)
+            .where(
+                InterviewSessionModel.tenant_id == tenant_id,
+                InterviewSessionModel.status.in_(
+                    [
+                        InterviewStatus.ACTIVE.value,
+                        InterviewStatus.PAUSED.value,
+                    ]
+                ),
+                InterviewSessionModel.updated_at < cutoff,
+                InterviewSessionModel.deleted_at.is_(None),
+            )
+            .values(
+                status=InterviewStatus.ABANDONED.value,
+                updated_at=utc_now(),
+            )
+        )
+        self.db.commit()
+        return result.rowcount
 
     def soft_delete(self, session_id: UUID, tenant_id: UUID) -> None:
         """Execute soft delete operation."""
