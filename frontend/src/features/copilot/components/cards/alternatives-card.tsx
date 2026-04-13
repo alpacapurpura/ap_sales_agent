@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface Alternative {
@@ -21,7 +21,7 @@ interface AlternativesCardProps {
   status: "pending" | "resolved";
 }
 
-export function AlternativesCard({
+export const AlternativesCard = memo(function AlternativesCard({
   question,
   alternatives,
   allowCustom,
@@ -33,7 +33,7 @@ export function AlternativesCard({
   const isResolved = status === "resolved";
 
   return (
-    <div className="rounded-xl border border-purple-500 bg-[#1e1b4b] p-3.5">
+    <div className="animate-in slide-in-from-bottom-2 fade-in duration-300 rounded-xl border border-purple-500 bg-[#1e1b4b] p-3.5">
       <div className="mb-2.5 flex items-center gap-1.5 text-xs font-semibold text-purple-300">
         <span>💡</span>
         <span>{question}</span>
@@ -44,11 +44,13 @@ export function AlternativesCard({
           <button
             key={alt.id}
             disabled={isResolved}
-            onClick={() => !isResolved && setSelected(alt.id)}
+            onClick={() => {
+              if (!isResolved) setSelected(alt.id);
+            }}
             className={cn(
-              "w-full rounded-lg border bg-black/30 p-2.5 text-left transition-all",
+              "w-full rounded-lg border bg-black/30 p-2.5 text-left transition-all duration-150",
               selected === alt.id
-                ? "border-purple-400 bg-purple-500/15 ring-1 ring-purple-400"
+                ? "scale-95 border-purple-400 bg-purple-500/15 ring-1 ring-purple-400"
                 : "border-[#3d3d5c] hover:border-purple-400/50",
               isResolved && "cursor-default opacity-60"
             )}
@@ -68,7 +70,7 @@ export function AlternativesCard({
         <button
           disabled={!selected || isResolved}
           onClick={() => selected && onSelect(selected)}
-          className="flex-1 rounded-md bg-purple-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+          className="flex-1 rounded-md bg-purple-600 px-3 py-1.5 text-xs font-medium text-white transition-transform duration-150 active:scale-95 disabled:opacity-50"
           aria-label="Seleccionar"
         >
           Seleccionar
@@ -77,7 +79,7 @@ export function AlternativesCard({
           <button
             disabled={isResolved}
             onClick={onCustom}
-            className="rounded-md border border-gray-600 px-3 py-1.5 text-xs text-gray-300 disabled:opacity-50"
+            className="rounded-md border border-gray-600 px-3 py-1.5 text-xs text-gray-300 transition-transform duration-150 active:scale-95 disabled:opacity-50"
           >
             Otro
           </button>
@@ -85,4 +87,5 @@ export function AlternativesCard({
       </div>
     </div>
   );
-}
+});
+AlternativesCard.displayName = "AlternativesCard";

@@ -1,7 +1,8 @@
 "use client";
 
+import { memo, useCallback } from "react";
 import { Sparkles } from "lucide-react";
-import type { CopilotMessage } from "../../store/copilot-store";
+import type { CopilotMessage, UIAction } from "../../store/copilot-store";
 import { AlternativesCard } from "../cards/alternatives-card";
 import { ClarifyCard } from "../cards/clarify-card";
 import { CheckpointCard } from "../cards/checkpoint-card";
@@ -19,11 +20,152 @@ interface AssistantMessageProps {
   sendCardAction?: (messageId: string, actionIndex: number, text: string) => void;
 }
 
-export function AssistantMessage({ message, isStreaming, sendCardAction }: AssistantMessageProps) {
+/** Renders a single UIAction card. Extracted to keep the parent render function readable. */
+function renderUIAction(
+  action: UIAction,
+  idx: number,
+  messageId: string,
+  sendCardAction: ((messageId: string, actionIndex: number, text: string) => void) | undefined,
+): React.ReactNode {
+  switch (action.type) {
+    case "proposal":
+      return action.updates ? (
+        <ProposalCard key={`proposal-${idx}`} updates={action.updates} />
+      ) : null;
+    case "metric_summary":
+      return action.metrics ? (
+        <MetricSummaryCard key={`metric-${idx}`} metrics={action.metrics} />
+      ) : null;
+    case "comparison":
+      return action.columns && action.rows ? (
+        <ComparisonTable
+          key={`comparison-${idx}`}
+          columns={action.columns}
+          rows={action.rows}
+          recommended={action.recommended}
+        />
+      ) : null;
+    case "checklist":
+      return action.items ? (
+        <ProgressChecklist key={`checklist-${idx}`} items={action.items} />
+      ) : null;
+    case "multi_option":
+      return action.options && action.field_id ? (
+        <MultiOptionSelector
+          key={`option-${idx}`}
+          options={action.options}
+          fieldId={action.field_id}
+        />
+      ) : null;
+    case "alternatives_card":
+      return action.alternatives ? (
+        <AlternativesCard
+          key={`alt-${idx}`}
+          fieldPath={action.field_path ?? ""}
+          question={action.question ?? ""}
+          alternatives={action.alternatives.map((a) => ({
+            id: a.id,
+            title: a.title,
+            description: a.description,
+            recommended: a.recommended ?? false,
+            recommendationReason: a.recommendation_reason,
+          }))}
+          allowCustom={action.allow_custom ?? false}
+          onSelect={(altId) => {
+            const alt = action.alternatives?.find((a) => a.id === altId);
+            if (alt && sendCardAction) {
+              sendCardAction(messageId, idx, `Selecciono: ${alt.title}`);
+            }
+          }}
+          onCustom={() => {
+            if (sendCardAction) {
+              sendCardAction(messageId, idx, "Prefiero otra opción personalizada");
+            }
+          }}
+          status={action.card_status === "resolved" ? "resolved" : "pending"}
+        />
+      ) : null;
+    case "clarify_card":
+      return action.clarify_items ? (
+        <ClarifyCard
+          key={`clarify-${idx}`}
+          items={action.clarify_items.map((item) => ({
+            fieldPath: item.field_path,
+            issue: item.issue,
+            options: item.options,
+          }))}
+          onResolve={(resolution) => {
+            if (sendCardAction) {
+              sendCardAction(messageId, idx, resolution);
+            }
+          }}
+          status={action.card_status === "resolved" ? "resolved" : "pending"}
+        />
+      ) : null;
+    case "checkpoint_card":
+      return (
+        <CheckpointCard
+          key={`checkpoint-${idx}`}
+          blockId={action.block_id ?? ""}
+          blockLabel={action.block_label ?? ""}
+          summary={action.summary ?? {}}
+          healthScore={action.health_score ?? 0}
+          blocksProgress={action.blocks_progress ?? { completed: 0, total: 0 }}
+          onConfirm={() => {
+            if (sendCardAction) {
+              sendCardAction(messageId, idx, "Confirmo, sigamos al siguiente bloque");
+            }
+          }}
+          onRevise={() => {
+            if (sendCardAction) {
+              sendCardAction(messageId, idx, "Quiero ajustar algo en este bloque");
+            }
+          }}
+          status={
+            action.card_status === "confirmed"
+              ? "confirmed"
+              : action.card_status === "revising"
+                ? "revising"
+                : "pending"
+          }
+        />
+      );
+    case "interview_complete":
+      return (
+        <InterviewCompleteCard
+          key={`complete-${idx}`}
+          healthScore={action.health_score ?? 0}
+          redirect={action.redirect ?? "/"}
+        />
+      );
+    case "preview_update":
+      return null;
+    default:
+      return (
+        <NavigationCard key={`${action.type}-${idx}`} action={action} />
+      );
+  }
+}
+
+export const AssistantMessage = memo(function AssistantMessage({
+  message,
+  isStreaming,
+  sendCardAction,
+}: AssistantMessageProps) {
   const hasUIActions = message.uiActions && message.uiActions.length > 0;
 
+  // Stable callback reference so memo on card components isn't broken by
+  // new function identity on every parent render.
+  const stableSendCardAction = useCallback(
+    (messageId: string, actionIndex: number, text: string) => {
+      sendCardAction?.(messageId, actionIndex, text);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sendCardAction],
+  );
+
   return (
-    <div className="flex gap-2.5">
+    <div className="flex gap-2.5 animate-in slide-in-from-bottom-2 fade-in duration-300">
       <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/40">
         <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
       </div>
@@ -45,127 +187,11 @@ export function AssistantMessage({ message, isStreaming, sendCardAction }: Assis
 
         {/* Render navigation/action cards, proposals, and generative UI */}
         {hasUIActions &&
-          message.uiActions!.map((action, idx) => {
-            switch (action.type) {
-              case "proposal":
-                return action.updates ? (
-                  <ProposalCard key={`proposal-${idx}`} updates={action.updates} />
-                ) : null;
-              case "metric_summary":
-                return action.metrics ? (
-                  <MetricSummaryCard key={`metric-${idx}`} metrics={action.metrics} />
-                ) : null;
-              case "comparison":
-                return action.columns && action.rows ? (
-                  <ComparisonTable
-                    key={`comparison-${idx}`}
-                    columns={action.columns}
-                    rows={action.rows}
-                    recommended={action.recommended}
-                  />
-                ) : null;
-              case "checklist":
-                return action.items ? (
-                  <ProgressChecklist key={`checklist-${idx}`} items={action.items} />
-                ) : null;
-              case "multi_option":
-                return action.options && action.field_id ? (
-                  <MultiOptionSelector
-                    key={`option-${idx}`}
-                    options={action.options}
-                    fieldId={action.field_id}
-                  />
-                ) : null;
-              case "alternatives_card":
-                return action.alternatives ? (
-                  <AlternativesCard
-                    key={`alt-${idx}`}
-                    fieldPath={action.field_path ?? ""}
-                    question={action.question ?? ""}
-                    alternatives={action.alternatives.map((a) => ({
-                      id: a.id,
-                      title: a.title,
-                      description: a.description,
-                      recommended: a.recommended ?? false,
-                      recommendationReason: a.recommendation_reason,
-                    }))}
-                    allowCustom={action.allow_custom ?? false}
-                    onSelect={(altId) => {
-                      const alt = action.alternatives?.find((a) => a.id === altId);
-                      if (alt && sendCardAction) {
-                        sendCardAction(message.id, idx, `Selecciono: ${alt.title}`);
-                      }
-                    }}
-                    onCustom={() => {
-                      if (sendCardAction) {
-                        sendCardAction(message.id, idx, "Prefiero otra opción personalizada");
-                      }
-                    }}
-                    status={action.card_status === "resolved" ? "resolved" : "pending"}
-                  />
-                ) : null;
-              case "clarify_card":
-                return action.clarify_items ? (
-                  <ClarifyCard
-                    key={`clarify-${idx}`}
-                    items={action.clarify_items.map((item) => ({
-                      fieldPath: item.field_path,
-                      issue: item.issue,
-                      options: item.options,
-                    }))}
-                    onResolve={(resolution) => {
-                      if (sendCardAction) {
-                        sendCardAction(message.id, idx, resolution);
-                      }
-                    }}
-                    status={action.card_status === "resolved" ? "resolved" : "pending"}
-                  />
-                ) : null;
-              case "checkpoint_card":
-                return (
-                  <CheckpointCard
-                    key={`checkpoint-${idx}`}
-                    blockId={action.block_id ?? ""}
-                    blockLabel={action.block_label ?? ""}
-                    summary={action.summary ?? {}}
-                    healthScore={action.health_score ?? 0}
-                    blocksProgress={action.blocks_progress ?? { completed: 0, total: 0 }}
-                    onConfirm={() => {
-                      if (sendCardAction) {
-                        sendCardAction(message.id, idx, "Confirmo, sigamos al siguiente bloque");
-                      }
-                    }}
-                    onRevise={() => {
-                      if (sendCardAction) {
-                        sendCardAction(message.id, idx, "Quiero ajustar algo en este bloque");
-                      }
-                    }}
-                    status={
-                      action.card_status === "confirmed"
-                        ? "confirmed"
-                        : action.card_status === "revising"
-                          ? "revising"
-                          : "pending"
-                    }
-                  />
-                );
-              case "interview_complete":
-                return (
-                  <InterviewCompleteCard
-                    key={`complete-${idx}`}
-                    healthScore={action.health_score ?? 0}
-                    redirect={action.redirect ?? "/"}
-                  />
-                );
-              case "preview_update":
-                return null;
-              default:
-                return (
-                  <NavigationCard key={`${action.type}-${idx}`} action={action} />
-                );
-            }
-          })}
+          message.uiActions!.map((action, idx) =>
+            renderUIAction(action, idx, message.id, stableSendCardAction),
+          )}
       </div>
     </div>
   );
-}
+});
+AssistantMessage.displayName = "AssistantMessage";

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Lightbulb, X } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { reportCopilotEvent } from "../api/copilot-api";
@@ -19,7 +20,7 @@ interface NudgeBannerProps {
   onDismiss: (id: string) => void;
 }
 
-export function NudgeBanner({ nudge, onAction, onDismiss }: NudgeBannerProps) {
+export const NudgeBanner = memo(function NudgeBanner({ nudge, onAction, onDismiss }: NudgeBannerProps) {
   const { getToken } = useAuth();
 
   const handleAction = () => {
@@ -74,4 +75,5 @@ export function NudgeBanner({ nudge, onAction, onDismiss }: NudgeBannerProps) {
       </div>
     </div>
   );
-}
+});
+NudgeBanner.displayName = "NudgeBanner";

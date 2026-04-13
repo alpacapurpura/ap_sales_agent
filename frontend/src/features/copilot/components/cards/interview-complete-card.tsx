@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useCopilotStore } from "../../store/copilot-store";
 
@@ -13,7 +14,10 @@ const DOMAIN_LABELS: Record<string, string> = {
   "/offer-studio": "Offer Studio",
 };
 
-export function InterviewCompleteCard({ healthScore, redirect }: InterviewCompleteCardProps) {
+export const InterviewCompleteCard = memo(function InterviewCompleteCard({
+  healthScore,
+  redirect,
+}: InterviewCompleteCardProps) {
   const router = useRouter();
   const params = useParams();
   const tenantId = params.tenantId as string;
@@ -29,15 +33,16 @@ export function InterviewCompleteCard({ healthScore, redirect }: InterviewComple
   };
 
   return (
-    <div className="rounded-xl border border-green-500 bg-green-900/20 p-4 text-center">
+    <div className="animate-in slide-in-from-bottom-2 fade-in duration-300 rounded-xl border border-green-500 bg-green-900/20 p-4 text-center">
       <div className="text-2xl font-bold text-green-500">{healthScore}%</div>
       <div className="mt-1 text-xs text-green-400">¡Tu perfil está completo!</div>
       <button
         onClick={handleClick}
-        className="mt-3 rounded-md bg-green-600 px-4 py-2 text-xs font-medium text-white hover:bg-green-700"
+        className="mt-3 rounded-md bg-green-600 px-4 py-2 text-xs font-medium text-white transition-transform duration-150 active:scale-95 hover:bg-green-700"
       >
         Ver {label} →
       </button>
     </div>
   );
-}
+});
+InterviewCompleteCard.displayName = "InterviewCompleteCard";
