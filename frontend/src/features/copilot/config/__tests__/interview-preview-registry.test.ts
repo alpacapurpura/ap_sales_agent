@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeEach } from "vitest";
+/**
+ * Legacy tests for the backward-compatible API surface of the preview registry.
+ *
+ * NOTE: registerPreview() and clearPreviewRegistry() are now no-ops — the registry
+ * is static. These tests verify that the backward-compatible functions still
+ * behave consistently with their documented contracts under the new design.
+ */
+import { describe, it, expect } from "vitest";
 import {
   registerPreview,
   getPreview,
@@ -7,53 +14,35 @@ import {
 } from "../interview-preview-registry";
 
 const mockConfig: PreviewConfig = {
-  summaryComponent: () => null,
-  sectionsComponent: () => null,
-  emptyStateMessage: "No hay datos todavia",
+  summaryComponent: (() => null) as any,
+  sectionsComponent: (() => null) as any,
+  emptyStateMessage: "No hay datos todavía",
 };
 
-const mockConfigWithTabs: PreviewConfig = {
-  summaryComponent: () => null,
-  sectionsComponent: () => null,
-  tabsComponent: () => null,
-  emptyStateMessage: "Sin datos",
-};
-
-describe("interview-preview-registry", () => {
-  beforeEach(() => {
-    clearPreviewRegistry();
+describe("interview-preview-registry (backward-compat)", () => {
+  it("clearPreviewRegistry is a no-op and does not throw", () => {
+    expect(() => clearPreviewRegistry()).not.toThrow();
   });
 
-  it("registers and retrieves a preview config", () => {
-    registerPreview("brand", mockConfig);
+  it("registerPreview is a no-op and does not throw", () => {
+    expect(() => registerPreview("brand", mockConfig)).not.toThrow();
+  });
+
+  it("getPreview returns a config for built-in domains (brand)", () => {
     const result = getPreview("brand");
-    expect(result).toBe(mockConfig);
+    expect(result).toBeDefined();
+    expect(result.emptyStateMessage).toBeTruthy();
   });
 
-  it("throws for unregistered domain", () => {
+  it("getPreview returns a config for built-in domains (buyer_persona)", () => {
+    const result = getPreview("buyer_persona");
+    expect(result).toBeDefined();
+    expect(result.emptyStateMessage).toBeTruthy();
+  });
+
+  it("getPreview throws for a domain that was never registered", () => {
     expect(() => getPreview("nonexistent_xyz")).toThrow(
       "No preview registered for domain: nonexistent_xyz",
     );
-  });
-
-  it("registers config with optional tabsComponent", () => {
-    registerPreview("brand_with_tabs", mockConfigWithTabs);
-    const result = getPreview("brand_with_tabs");
-    expect(result.tabsComponent).toBeDefined();
-  });
-
-  it("overwrites existing registration for the same domain", () => {
-    registerPreview("brand", mockConfig);
-    registerPreview("brand", mockConfigWithTabs);
-    const result = getPreview("brand");
-    expect(result).toBe(mockConfigWithTabs);
-  });
-
-  it("supports multiple domains simultaneously", () => {
-    registerPreview("brand", mockConfig);
-    registerPreview("buyer_persona", mockConfigWithTabs);
-
-    expect(getPreview("brand")).toBe(mockConfig);
-    expect(getPreview("buyer_persona")).toBe(mockConfigWithTabs);
   });
 });
