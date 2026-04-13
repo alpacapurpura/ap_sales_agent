@@ -37,7 +37,7 @@ BATCH_SIZE = 500
 class InactivityService:
     """Batch inactivity detection and score decay engine."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.lifecycle_repo = LifecycleRepository(db)
 

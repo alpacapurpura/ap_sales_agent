@@ -4,7 +4,7 @@ import sys
 import structlog
 
 
-def configure_logging():
+def configure_logging() -> None:
     """
     Configures structlog to work with standard logging and output JSON.
     """

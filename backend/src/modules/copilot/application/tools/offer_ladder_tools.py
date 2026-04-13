@@ -8,6 +8,7 @@ gaps, suggesting what to create next with priorities and archetypes.
 import structlog
 from langchain_core.tools import tool
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
@@ -93,7 +94,7 @@ GAP_REASONING = {
 }
 
 
-def _fetch_brand_context(db, tenant_id: str) -> dict | None:
+def _fetch_brand_context(db: Session, tenant_id: str) -> dict | None:
     """Fetch brand info for contextual suggestions."""
     try:
         row = (
@@ -118,7 +119,7 @@ def _fetch_brand_context(db, tenant_id: str) -> dict | None:
         return None
 
 
-def _fetch_offers(db, tenant_id: str) -> list[dict]:
+def _fetch_offers(db: Session, tenant_id: str) -> list[dict]:
     """Fetch active offers grouped by value level."""
     try:
         rows = (

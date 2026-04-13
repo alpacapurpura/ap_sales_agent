@@ -73,7 +73,7 @@ class StageOverviewService:
         cache: MetricsCache | None = None,
         db: Session | None = None,
         connection_port: ConnectionPort | None = None,
-    ):
+    ) -> None:
         self.cache = cache
         self.db = db
         self.connection_port = connection_port

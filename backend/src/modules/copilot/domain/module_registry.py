@@ -6,11 +6,17 @@ The copilot never hardcodes field names; instead it uses the model_class for
 Pydantic introspection and the repo/read functions for data access.
 """
 
+from __future__ import annotations
+
 import functools
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from uuid import UUID
 
 
 @dataclass
@@ -159,14 +165,14 @@ def _build_registry() -> dict[str, ModuleDescriptor]:
 # ── Lazy loaders (avoid circular imports) ─────────────────────────────
 
 
-def _lazy_brand_settings():
+def _lazy_brand_settings() -> type[BaseModel]:
     """Return BrandSettings class — imported lazily."""
     from src.modules.brand.domain.aggregates import BrandSettings
 
     return BrandSettings
 
 
-def _brand_repo_factory(db):
+def _brand_repo_factory(db: object) -> object:
     from src.modules.brand.infrastructure.repositories.brand_repository import (
         BrandRepository,
     )
@@ -174,11 +180,11 @@ def _brand_repo_factory(db):
     return BrandRepository(db)
 
 
-def _brand_read_fn(repo, tenant_id):
-    return repo.get_settings(tenant_id)
+def _brand_read_fn(repo: object, tenant_id: UUID) -> object | None:
+    return repo.get_settings(tenant_id)  # type: ignore[union-attr]
 
 
-def _offer_repo_factory(db):
+def _offer_repo_factory(db: object) -> object:
     from src.modules.offer.infrastructure.repositories.offer_repository import (
         OfferRepository,
     )
@@ -186,11 +192,11 @@ def _offer_repo_factory(db):
     return OfferRepository(db)
 
 
-def _offer_read_fn(repo, tenant_id):
-    return repo.get_all_by_tenant(tenant_id)
+def _offer_read_fn(repo: object, tenant_id: UUID) -> list:
+    return repo.get_all_by_tenant(tenant_id)  # type: ignore[union-attr]
 
 
-def _connections_repo_factory(db):
+def _connections_repo_factory(db: object) -> object:
     from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
         ChannelConnectionRepository,
     )
@@ -198,11 +204,11 @@ def _connections_repo_factory(db):
     return ChannelConnectionRepository(db)
 
 
-def _connections_read_fn(repo, tenant_id):
-    return repo.get_all_by_tenant(tenant_id)
+def _connections_read_fn(repo: object, tenant_id: UUID) -> list:
+    return repo.get_all_by_tenant(tenant_id)  # type: ignore[union-attr]
 
 
-def _calendar_repo_factory(db):
+def _calendar_repo_factory(db: object) -> object:
     from src.modules.commercial_calendar.infrastructure.repositories.calendar_event_repository import (
         CalendarEventRepository,
     )
@@ -210,18 +216,18 @@ def _calendar_repo_factory(db):
     return CalendarEventRepository(db)
 
 
-def _calendar_read_fn(repo, tenant_id):
+def _calendar_read_fn(repo: object, tenant_id: UUID) -> list:
     from src.shared.domain.datetime_utils import utc_today
 
     today = utc_today()
-    return repo.list_events(
+    return repo.list_events(  # type: ignore[union-attr]
         country_code="PE",
         year=today.year,
         tenant_id=tenant_id,
     )
 
 
-def _landing_repo_factory(db):
+def _landing_repo_factory(db: object) -> object:
     from src.modules.landing.infrastructure.repositories.landing_repository import (
         LandingRepository,
     )
@@ -229,8 +235,8 @@ def _landing_repo_factory(db):
     return LandingRepository(db)
 
 
-def _landing_read_fn(repo, tenant_id):
-    return repo.list_by_tenant(tenant_id)
+def _landing_read_fn(repo: object, tenant_id: UUID) -> list:
+    return repo.list_by_tenant(tenant_id)  # type: ignore[union-attr]
 
 
 # ── Singleton ─────────────────────────────────────────────────────────

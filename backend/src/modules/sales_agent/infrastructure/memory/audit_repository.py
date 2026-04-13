@@ -1,4 +1,6 @@
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
@@ -11,9 +13,12 @@ from src.modules.sales_agent.infrastructure.models.message_model import (
     MessageModel as Message,
 )
 
+if TYPE_CHECKING:
+    from uuid import UUID
+
 
 class AuditRepository(EpisodicMemoryStore):
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     # --- EpisodicMemoryStore Implementation ---
@@ -36,7 +41,7 @@ class AuditRepository(EpisodicMemoryStore):
         content: str,
         channel: str,
         tenant_id: str | None = None,
-    ) -> Any:
+    ) -> Any:  # noqa: ANN401 — matches abstract interface
         msg = Message(
             user_id=user_id,
             tenant_id=tenant_id,
@@ -48,7 +53,7 @@ class AuditRepository(EpisodicMemoryStore):
         self.db.commit()
         return msg
 
-    def get_last_message(self, user_id: str) -> Any:
+    def get_last_message(self, user_id: str) -> Any:  # noqa: ANN401 — matches abstract interface
         return (
             self.db.execute(
                 select(Message).where(Message.user_id == user_id).order_by(Message.created_at.desc()),
@@ -61,14 +66,14 @@ class AuditRepository(EpisodicMemoryStore):
 
     def create_trace(
         self,
-        user_id,
-        session_id,
-        node_name,
-        input_state,
-        output_state,
-        execution_time_ms,
-        tenant_id=None,
-    ):
+        user_id: UUID | None,
+        session_id: str,
+        node_name: str,
+        input_state: dict[str, Any],
+        output_state: dict[str, Any],
+        execution_time_ms: float,
+        tenant_id: UUID | None = None,
+    ) -> AgentTrace:
         trace = AgentTrace(
             user_id=user_id,
             tenant_id=tenant_id,
@@ -85,15 +90,15 @@ class AuditRepository(EpisodicMemoryStore):
 
     def create_llm_log(
         self,
-        trace_id,
-        model,
-        prompt_template,
-        prompt_rendered,
-        response_text,
-        tokens_input,
-        tokens_output,
-        metadata=None,
-    ):
+        trace_id: UUID | None,
+        model: str,
+        prompt_template: str | None,
+        prompt_rendered: str,
+        response_text: str,
+        tokens_input: int,
+        tokens_output: int,
+        metadata: dict[str, Any] | None = None,
+    ) -> LLMLog:
         log = LLMLog(
             trace_id=trace_id,
             model=model,
@@ -108,7 +113,7 @@ class AuditRepository(EpisodicMemoryStore):
         self.db.commit()
         return log
 
-    def get_recent_users(self, tenant_id, limit=20):
+    def get_recent_users(self, tenant_id: UUID | None, limit: int = 20) -> list[Any]:
         # Join AgentTrace with LeadModel to get recent active leads
         # Query Traces, group by user_id, max(created_at)
         base_stmt = select(
@@ -129,7 +134,7 @@ class AuditRepository(EpisodicMemoryStore):
 
         return self.db.execute(stmt).all()
 
-    def clear_user_history(self, lead_id, tenant_id):
+    def clear_user_history(self, lead_id: str, tenant_id: str) -> bool:
         from sqlalchemy import text
 
         lead_uuid = str(lead_id)
@@ -171,7 +176,7 @@ class AuditRepository(EpisodicMemoryStore):
         self.db.commit()
         return True
 
-    def get_full_timeline(self, lead_id, tenant_id, limit=50):
+    def get_full_timeline(self, lead_id: str, tenant_id: str, limit: int = 50) -> list[dict[str, Any]]:
         messages = (
             self.db.execute(
                 select(Message).where(Message.user_id == lead_id).order_by(Message.created_at.desc()).limit(limit),
@@ -232,7 +237,7 @@ class AuditRepository(EpisodicMemoryStore):
         timeline.sort(key=lambda x: x["created_at"], reverse=True)
         return timeline[:limit]
 
-    def get_trace_details(self, trace_id, tenant_id):
+    def get_trace_details(self, trace_id: str, tenant_id: str) -> dict[str, Any] | None:
         trace = self.db.execute(select(AgentTrace).where(AgentTrace.id == trace_id)).scalars().first()
         if not trace:
             return None
@@ -265,5 +270,5 @@ class AuditRepository(EpisodicMemoryStore):
             ],
         }
 
-    def close(self):
+    def close(self) -> None:
         self.db.close()

@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import structlog
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -5,10 +9,13 @@ from src.core.enums import ModelRole
 from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 from src.shared.infrastructure.llm.factory import LLMFactory
 
+if TYPE_CHECKING:
+    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+
 logger = structlog.get_logger()
 
 
-async def check_is_complete(text: str, tenant=None) -> bool:
+async def check_is_complete(text: str, tenant: TenantModel | None = None) -> bool:
     """
     Uses a fast LLM to check if the text is a complete thought/sentence.
     Returns True if complete (reduce buffer), False if incomplete (wait more).

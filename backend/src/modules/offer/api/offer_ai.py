@@ -18,12 +18,12 @@ from src.modules.offer.domain.offer_ai_schemas import (
 router = APIRouter()
 
 
-@router.post("/psychology", response_model=PsychologyGenerationResponse)
+@router.post("/psychology")
 async def generate_offer_psychology(
     request: PsychologyGenerationRequest,
     db: Annotated[Session, Depends(get_db)],
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
-):
+) -> PsychologyGenerationResponse:
     """
     Generates AI-powered psychology insights (pains & desires) for an offer.
     Requires an Avatar ID and Offer Context.

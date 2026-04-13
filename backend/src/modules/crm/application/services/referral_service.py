@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class ReferralService:
     """Manage referral codes for evangelist customers."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def generate_code(self, tenant_id: UUID, customer_id: UUID) -> ReferralCodeModel:

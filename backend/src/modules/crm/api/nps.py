@@ -78,12 +78,12 @@ class NpsSubmitResponse(BaseModel):
 # --- Endpoints ---
 
 
-@router.post("/surveys", response_model=SurveyResponse)
+@router.post("/surveys")
 async def create_survey(
     body: CreateSurveyRequest,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> SurveyResponse:
     """Create NPS survey. Returns survey with unique token URL."""
     from uuid import UUID
 
@@ -110,11 +110,11 @@ async def create_survey(
     )
 
 
-@router.get("/survey/{token}", response_model=SurveyPublicResponse)
+@router.get("/survey/{token}")
 async def get_survey(
     token: str,
     db: Annotated[Session, Depends(get_db)],
-):
+) -> SurveyPublicResponse:
     """Public endpoint (no auth) -- retrieve survey by token for respondent.
 
     Returns survey details. No tenant auth needed.
@@ -142,12 +142,12 @@ async def get_survey(
     )
 
 
-@router.post("/survey/{token}/respond", response_model=NpsSubmitResponse)
+@router.post("/survey/{token}/respond")
 async def submit_nps_response(
     token: str,
     body: SubmitNpsRequest,
     db: Annotated[Session, Depends(get_db)],
-):
+) -> NpsSubmitResponse:
     """Public endpoint (no auth) -- submit NPS response.
 
     Validates score 0-10. Updates survey status. Stores response.
@@ -198,11 +198,11 @@ async def submit_nps_response(
     )
 
 
-@router.get("/summary", response_model=NpsSummaryResponse)
+@router.get("/summary")
 async def get_nps_summary(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> NpsSummaryResponse:
     """Get NPS summary metrics for tenant."""
     from src.modules.crm.application.services.nps_service import NpsService
 
@@ -212,11 +212,11 @@ async def get_nps_summary(
     return NpsSummaryResponse(**summary)
 
 
-@router.get("/candidates", response_model=list[EvangelistCandidateResponse])
+@router.get("/candidates")
 async def get_evangelist_candidates(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[EvangelistCandidateResponse]:
     """Get customers with NPS >= 9 not yet promoted to EVANGELIST."""
     from src.modules.crm.application.services.nps_service import NpsService
 

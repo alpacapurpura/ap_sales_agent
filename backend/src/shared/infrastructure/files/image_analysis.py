@@ -12,7 +12,7 @@ logger = structlog.get_logger()
 
 
 class ImageAnalysisService:
-    def __init__(self):
+    def __init__(self) -> None:
         base_llm = LLMFactory.get_service().get_client(ModelRole.VISION)
         self.llm = base_llm.bind(
             temperature=0.2,

@@ -13,7 +13,7 @@ logger = structlog.get_logger()
 
 
 class ConversationRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def create(

@@ -147,7 +147,7 @@ def _merge_strategy(current: BrandStrategy | None, new: BrandStrategy) -> dict:
     return existing
 
 
-def _parse_locations(raw_locations) -> list[str]:
+def _parse_locations(raw_locations: str | list[str] | object) -> list[str]:
     """Normalize locations from LLM output (string, list, or other)."""
     if isinstance(raw_locations, str):
         return [loc.strip() for loc in raw_locations.split(",") if loc.strip()]
@@ -343,10 +343,10 @@ class ExtractionOrchestrator:
 
     def _log_extraction_summary(
         self,
-        positioning,
-        narrative,
-        communication_assets,
-        extracted_visuals,
+        positioning: BrandPositioning,
+        narrative: BrandNarrative,
+        communication_assets: CommunicationAssets,
+        extracted_visuals: BrandVisuals | None,
         include_assets: bool,
         total_sections: int,
     ) -> int:
@@ -523,8 +523,8 @@ class ExtractionOrchestrator:
         content: str,
         current_data_str: str,
         update_instructions: str | None,
-        positioning,
-        narrative,
+        positioning: BrandPositioning,
+        narrative: BrandNarrative,
         wave_num: int | None = None,
         trace: ExtractionTraceCollector | None = None,
     ) -> CommunicationAssets:
@@ -558,12 +558,12 @@ class ExtractionOrchestrator:
 
     def _store_section_results(
         self,
-        identity,
-        story,
-        strategy,
-        people_contact,
-        testimonials_data,
-        authority_data,
+        identity: BrandIdentity,
+        story: BrandStory,
+        strategy: BrandStrategy,
+        people_contact: BrandPeopleContactExtraction,
+        testimonials_data: BrandTestimonialsExtraction,
+        authority_data: BrandAuthorityExtraction,
     ) -> None:
         """Store per-section results for summary logging."""
         self._last_identity = identity

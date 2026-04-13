@@ -20,7 +20,7 @@ from src.shared.application.ai_action_service import (
 
 
 class CopilotOfferPsychologyService(PsychologyGeneratorPort):
-    def __init__(self, session: Session):
+    def __init__(self, session: Session) -> None:
         self.session = session
         self.avatar_repo = AvatarRepository(session)
         self.ai_action_service = AIActionService()

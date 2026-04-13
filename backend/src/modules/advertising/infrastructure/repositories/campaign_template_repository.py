@@ -11,7 +11,7 @@ from src.modules.advertising.infrastructure.models.ad_campaign_template_model im
 class CampaignTemplateRepository:
     """Data-access layer for ad_campaign_templates (tenant-agnostic)."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self._db = db
 
     def list_all(self) -> list[AdCampaignTemplateModel]:

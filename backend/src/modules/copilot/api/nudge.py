@@ -11,11 +11,12 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Query
+from sqlalchemy.orm import Session
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
 from src.modules.copilot.api.dto import NudgeContextResponse
-from src.modules.copilot.domain.module_registry import get_module_registry
+from src.modules.copilot.domain.module_registry import ModuleDescriptor, get_module_registry
 from src.modules.copilot.domain.schema_introspection import (
     check_section_completion,
     get_model_sections,
@@ -48,10 +49,10 @@ def _compute_model_completion(data: object, model_class: type) -> float:
 
 
 def _get_module_completion_ratio(
-    db,
+    db: Session,
     tenant_id: UUID,
     module_id: str,
-    registry,
+    registry: dict[str, ModuleDescriptor],
 ) -> float | None:
     """Return 0.0-1.0 completion ratio for a module, or None if not readable."""
     descriptor = registry.get(module_id)
@@ -91,8 +92,8 @@ def _resolve_route_module(route: str | None) -> str | None:
 
 def _check_empty_module(
     route_module: str | None,
-    completions: dict,
-    registry,
+    completions: dict[str, float],
+    registry: dict[str, ModuleDescriptor],
 ) -> dict | None:
     """Rule 1: EmptyModuleNudge — current route's module is empty."""
     if not route_module or route_module not in completions:
@@ -151,8 +152,8 @@ def _check_cross_module_gaps(completions: dict) -> list[dict]:
 
 def _check_incomplete_module(
     route_module: str | None,
-    completions: dict,
-    registry,
+    completions: dict[str, float],
+    registry: dict[str, ModuleDescriptor],
 ) -> dict | None:
     """Rule 4: IncompleteModuleNudge — module has <30% completion."""
     if not route_module or route_module not in completions:
@@ -219,7 +220,7 @@ def _cache_key(tenant_id: UUID, route: str | None) -> str:
 
 
 @router.get("/nudge-context", response_model=NudgeContextResponse)
-def get_nudge_context(route: Annotated[str | None, Query()] = None):
+def get_nudge_context(route: Annotated[str | None, Query()] = None) -> dict:
     """Return proactive nudges based on module completion state and current route."""
     import time
 

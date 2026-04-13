@@ -23,7 +23,7 @@ from src.modules.analytics.infrastructure.models.official_metrics_model import (
 class OfficialMetricsRepository:
     """CRUD operations for the official_metrics table."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     _UPSERT_FROM_STAGING_SQL = text("""

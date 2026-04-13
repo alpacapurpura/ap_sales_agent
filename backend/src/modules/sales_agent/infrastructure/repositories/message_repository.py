@@ -9,7 +9,7 @@ from src.modules.sales_agent.infrastructure.models.message_model import MessageM
 
 
 class MessageRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def _to_domain(self, model: MessageModel) -> Message:

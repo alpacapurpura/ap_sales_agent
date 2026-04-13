@@ -5,8 +5,10 @@ These tools give the copilot context about the user's brand so it can make
 informed suggestions and proposals.
 """
 
+from __future__ import annotations
+
 import json
-from uuid import UUID
+from typing import TYPE_CHECKING
 
 import structlog
 from langchain_core.tools import tool
@@ -14,10 +16,15 @@ from langchain_core.tools import tool
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
 
+if TYPE_CHECKING:
+    from uuid import UUID
+
+    from sqlalchemy.orm import Session
+
 logger = structlog.get_logger()
 
 
-def _get_brand_settings(db, tenant_id: UUID):
+def _get_brand_settings(db: Session, tenant_id: UUID) -> object | None:
     """Fetch and return the BrandSettings model for a tenant."""
     from src.modules.brand.infrastructure.repositories.brand_repository import (
         BrandRepository,

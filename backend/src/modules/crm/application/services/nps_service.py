@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class NpsService:
     """Manage NPS surveys, responses, scoring, and evangelist candidate detection."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def create_survey(

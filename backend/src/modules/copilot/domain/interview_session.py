@@ -35,7 +35,7 @@ class InterviewSession:
         status: InterviewStatus,
         messages_count: int,
         entity_id: UUID | None = None,
-    ):
+    ) -> None:
         self.id = id_
         self.tenant_id = tenant_id
         self.domain = domain

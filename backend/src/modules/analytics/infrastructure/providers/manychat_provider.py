@@ -6,17 +6,24 @@ promoted. This allows the ETL pipeline to include ManyChat in
 aggregation and cache invalidation flows.
 """
 
-from datetime import date
-from uuid import UUID
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import BaseMetricsProvider
+
+if TYPE_CHECKING:
+    from datetime import date
+    from uuid import UUID
+
+    from sqlalchemy.orm import Session
 
 
 class ManyChatProvider(BaseMetricsProvider):
     """Provider that reads pre-ingested ManyChat metrics."""
 
-    def __init__(self, db=None):
+    def __init__(self, db: Session | None = None) -> None:
         self._db = db
 
     async def extract_metrics(

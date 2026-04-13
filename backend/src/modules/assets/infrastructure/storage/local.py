@@ -9,7 +9,7 @@ from .base import StorageStrategy
 
 
 class LocalStorageStrategy(StorageStrategy):
-    def __init__(self, upload_dir: str = settings.UPLOAD_DIR):
+    def __init__(self, upload_dir: str = settings.UPLOAD_DIR) -> None:
         self.upload_dir = upload_dir
         Path(self.upload_dir).mkdir(parents=True, exist_ok=True)
 

@@ -12,7 +12,7 @@ from src.shared.domain.ports import ProductMappingPort
 
 
 class ProductMappingPortImpl(ProductMappingPort):
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repo = ExternalProductMappingRepository(db)
 

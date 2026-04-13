@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class QdrantVectorStore(SemanticMemoryStore):
-    def __init__(self):
+    def __init__(self) -> None:
         # Initialize Qdrant Client
         self.client = QdrantClient(
             url=settings.QDRANT_URL,
@@ -52,7 +52,7 @@ class QdrantVectorStore(SemanticMemoryStore):
     def ensure_collection_exists(
         self,
         collection_name: str = settings.QDRANT_COLLECTION_HYBRID,
-    ):
+    ) -> None:
         """
         Checks if collection exists, if not creates it with Hybrid config.
         """

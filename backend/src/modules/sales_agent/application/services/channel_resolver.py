@@ -34,7 +34,7 @@ _CHANNEL_MAP = {
 class ChannelResolver:
     """Resolves and instantiates the channel adapter for outbound messaging."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def resolve(

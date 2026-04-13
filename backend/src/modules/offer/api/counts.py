@@ -30,12 +30,12 @@ from src.modules.offer.infrastructure.repositories.offer_asset_repository import
 router = APIRouter()
 
 
-@router.get("/{offer_id}/counts", response_model=OfferCountsResponse)
+@router.get("/{offer_id}/counts")
 async def get_offer_counts(
     offer_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> OfferCountsResponse:
     """Return the tab-bar counts for the given offer."""
     service = OfferCountsService(
         asset_repo=OfferAssetRepository(db),

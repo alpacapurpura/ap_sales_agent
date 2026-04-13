@@ -8,11 +8,10 @@ Stage-specific `get_*_metrics()` methods have been migrated to individual
 stage services under `stage_services/`.
 """
 
-from datetime import datetime
-from typing import Any
-from uuid import UUID
+from __future__ import annotations
 
-from sqlalchemy.orm import Session
+from datetime import date, datetime
+from typing import TYPE_CHECKING, Any
 
 from src.modules.analytics.application.dto.summary_dto import (
     BowtiesSummaryDTO,
@@ -23,8 +22,6 @@ from src.modules.analytics.application.dto.timeseries_dto import (
     StageTimeSeriesDTO,
     TimeSeriesPointDTO,
 )
-from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
     ChannelConnectionRepository,
 )
@@ -36,6 +33,15 @@ from src.modules.crm.infrastructure.repositories.lead_metrics_repository import 
     LeadRepository,
 )
 from src.shared.domain.enums import ChannelType, LifecycleStage
+
+if TYPE_CHECKING:
+    from collections import OrderedDict
+    from uuid import UUID
+
+    from sqlalchemy.orm import Session
+
+    from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
+    from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 
 # Maps our channel slugs to the ChannelType enum for connection lookups (sankey legacy)
 _CHANNEL_CONNECTION_MAP: dict[str, ChannelType] = {
@@ -70,7 +76,7 @@ class MetricsService:
         cache: MetricsCache | None = None,
         connection_port: ConnectionPort | None = None,
         offer_port: OfferReadPort | None = None,
-    ):
+    ) -> None:
         self.db = db
         self.cache = cache
         self.connection_port = connection_port
@@ -666,12 +672,12 @@ class MetricsService:
 
     def _query_timeseries_rows(
         self,
-        tenant_id,
-        channel_slugs,
-        db_metric_names,
-        start_date,
-        end_date,
-    ):
+        tenant_id: UUID,
+        channel_slugs: list[str],
+        db_metric_names: list[str],
+        start_date: date,
+        end_date: date,
+    ) -> list[Any]:
         """Query official_metrics for current period, grouped by date and channel."""
         from sqlalchemy import func as sa_f
         from sqlalchemy import select as sa_select
@@ -696,7 +702,7 @@ class MetricsService:
         return self.db.execute(stmt).all()
 
     @staticmethod
-    def _build_date_map(rows, granularity):
+    def _build_date_map(rows: list[Any], granularity: str) -> tuple[OrderedDict, set[str]]:
         """Build date_map from query rows and optionally aggregate to weekly."""
         from collections import OrderedDict
         from datetime import timedelta
@@ -727,11 +733,11 @@ class MetricsService:
 
     def _query_previous_period_totals(
         self,
-        tenant_id,
-        channel_slugs,
-        db_metric_names,
-        prev_start,
-        start_date,
+        tenant_id: UUID,
+        channel_slugs: list[str],
+        db_metric_names: list[str],
+        prev_start: date,
+        start_date: date,
     ) -> dict[str, float] | None:
         """Query previous period totals for delta% calculation."""
         from sqlalchemy import func as sa_f

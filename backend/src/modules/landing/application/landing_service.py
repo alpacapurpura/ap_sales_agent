@@ -13,7 +13,7 @@ from src.modules.landing.infrastructure.repositories.landing_repository import (
 
 
 class LandingService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repository = LandingRepository(db)
 

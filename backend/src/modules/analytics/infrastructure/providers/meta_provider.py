@@ -9,10 +9,12 @@ Uses httpx async client (NOT FacebookAdsApi.init() singleton).
 Per Phase 1 decision: per-instance API pattern for tenant isolation.
 """
 
+from __future__ import annotations
+
 import json
 from collections import defaultdict
 from datetime import date, datetime, timedelta
-from uuid import UUID
+from typing import TYPE_CHECKING
 
 import httpx
 import structlog
@@ -23,6 +25,10 @@ from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from uuid import UUID
 
 logger = structlog.get_logger(__name__)
 
@@ -77,7 +83,7 @@ _ADS_EXPANDED_FIELDS = (
 _IG_INSIGHTS_MAX_DAYS = ETLConfig.IG_INSIGHTS_MAX_CHUNK_DAYS  # Meta enforces ≤30 days for period=day
 
 
-def _ig_day_chunks(start_date: date, end_date: date):
+def _ig_day_chunks(start_date: date, end_date: date) -> Generator[tuple[date, date]]:
     """Yield (chunk_start, chunk_end) pairs of at most 30 days."""
     cursor = start_date
     while cursor < end_date:
@@ -1024,7 +1030,7 @@ class MetaProvider(BaseMetricsProvider):
         data: dict,
         currency: str,
         metric_date: date,
-    ) -> list["ExtractedMetric"]:
+    ) -> list[ExtractedMetric]:
         """Parse a single Ads Insights API row into ExtractedMetric list.
 
         Shared by _extract_meta_ads (aggregated) and _extract_meta_ads_daily (per-day).
@@ -1414,13 +1420,13 @@ class MetaProvider(BaseMetricsProvider):
 
     async def _fetch_ig_daily_breakdown(
         self,
-        client,
-        headers,
-        ig_account_id,
-        since_ts,
-        until_ts,
-        current,
-        metrics,
+        client: httpx.AsyncClient,
+        headers: dict[str, str],
+        ig_account_id: str,
+        since_ts: int,
+        until_ts: int,
+        current: date,
+        metrics: list[ExtractedMetric],
     ) -> None:
         """Call A: Breakdownable metrics (exclude AD) for a single day."""
         bd_resp = await client.get(
@@ -1455,13 +1461,13 @@ class MetaProvider(BaseMetricsProvider):
 
     async def _fetch_ig_daily_no_breakdown(
         self,
-        client,
-        headers,
-        ig_account_id,
-        since_ts,
-        until_ts,
-        current,
-        metrics,
+        client: httpx.AsyncClient,
+        headers: dict[str, str],
+        ig_account_id: str,
+        since_ts: int,
+        until_ts: int,
+        current: date,
+        metrics: list[ExtractedMetric],
     ) -> None:
         """Call B: Non-breakdownable metrics for a single day."""
         nb_resp = await client.get(
@@ -1495,13 +1501,13 @@ class MetaProvider(BaseMetricsProvider):
 
     async def _fetch_ig_daily_follows(
         self,
-        client,
-        headers,
-        ig_account_id,
-        since_ts,
-        until_ts,
-        current,
-        metrics,
+        client: httpx.AsyncClient,
+        headers: dict[str, str],
+        ig_account_id: str,
+        since_ts: int,
+        until_ts: int,
+        current: date,
+        metrics: list[ExtractedMetric],
     ) -> None:
         """Call C: follows_and_unfollows with follow_type breakdown for a single day."""
         ft_resp = await client.get(

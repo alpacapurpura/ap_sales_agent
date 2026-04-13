@@ -14,7 +14,7 @@ from src.modules.copilot.infrastructure.repositories.event_repository import (
 logger = structlog.get_logger()
 
 
-async def cleanup_old_events(ctx):
+async def cleanup_old_events(ctx: dict) -> None:
     """Soft-delete copilot events older than 90 days. Runs daily via ARQ."""
     check_in_id = capture_checkin(
         monitor_slug="copilot-event-cleanup",

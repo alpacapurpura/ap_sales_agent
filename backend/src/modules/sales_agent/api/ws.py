@@ -15,7 +15,7 @@ router = APIRouter()
 async def closer_studio_ws(
     websocket: WebSocket,
     tenant_id: str = Query(...),
-):
+) -> None:
     """
     WebSocket endpoint for Closer Studio.
 

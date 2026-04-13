@@ -16,23 +16,23 @@ from src.modules.iam.domain.user import User
 router = APIRouter()
 
 
-@router.get("/", response_model=list[AvatarResponse])
+@router.get("/")
 async def list_avatars(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     scope: str = "GLOBAL",
-):
+) -> list[AvatarResponse]:
     repo = AvatarRepository(db)
     # Scope filtering moved to Repo
     return repo.get_by_tenant(user.tenant_id, scope=scope)
 
 
-@router.post("/", response_model=AvatarResponse)
+@router.post("/")
 async def create_avatar(
     avatar_dto: AvatarCreate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> AvatarResponse:
     repo = AvatarRepository(db)
 
     new_avatar = Avatar(
@@ -51,12 +51,12 @@ async def create_avatar(
     return created
 
 
-@router.get("/{avatar_id}", response_model=AvatarResponse)
+@router.get("/{avatar_id}")
 async def get_avatar(
     avatar_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> AvatarResponse:
     repo = AvatarRepository(db)
     avatar = repo.get_by_id(uuid.UUID(avatar_id), tenant_id=user.tenant_id)
 
@@ -65,13 +65,13 @@ async def get_avatar(
     return avatar
 
 
-@router.patch("/{avatar_id}", response_model=AvatarResponse)
+@router.patch("/{avatar_id}")
 async def update_avatar(
     avatar_id: str,
     avatar_update: AvatarUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> AvatarResponse:
     repo = AvatarRepository(db)
     # Verify ownership first
     existing = repo.get_by_id(uuid.UUID(avatar_id), tenant_id=user.tenant_id)
@@ -93,7 +93,7 @@ async def delete_avatar(
     avatar_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> None:
     repo = AvatarRepository(db)
     # Verify ownership first
     existing = repo.get_by_id(uuid.UUID(avatar_id), tenant_id=user.tenant_id)
@@ -105,12 +105,12 @@ async def delete_avatar(
         raise HTTPException(status_code=500, detail="Failed to delete avatar")
 
 
-@router.post("/{avatar_id}/set-default", response_model=AvatarResponse)
+@router.post("/{avatar_id}/set-default")
 async def set_default_avatar(
     avatar_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> AvatarResponse:
     repo = AvatarRepository(db)
     # Verify ownership first
     existing = repo.get_by_id(uuid.UUID(avatar_id), tenant_id=user.tenant_id)

@@ -48,7 +48,7 @@ class MetricsRepository:
 
     DEFAULT_CHANNEL_SLUG = "meta-ads"
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self._db = db
 
     def detect_currency(

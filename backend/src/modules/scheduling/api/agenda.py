@@ -31,12 +31,12 @@ class AgendaItem(BaseModel):
     meeting_link: str | None = None
 
 
-@router.get("/", response_model=list[AgendaItem])
+@router.get("/")
 async def get_agenda(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     range_: Annotated[Literal["today", "week"], Query(alias="range")] = "today",
-):
+) -> list[AgendaItem]:
     repo = AppointmentRepository(db)
     now = datetime.now(UTC)
 
@@ -98,7 +98,7 @@ async def update_appointment_status(
     payload: AppointmentStatusUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> dict[str, str]:
     """Update appointment status and publish event via EventBus."""
     from src.modules.scheduling.domain.enums import AppointmentStatus
 

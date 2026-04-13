@@ -1,9 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import redis
 import structlog
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import MetaData, create_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from src.core.config import settings
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 logger = structlog.get_logger(__name__)
 
@@ -35,7 +42,7 @@ except (redis.ConnectionError, redis.TimeoutError, OSError) as exc:
 redis_client: redis.Redis | None = _redis_client
 
 
-def get_db():
+def get_db() -> Generator[Session, None, None]:
     """Dependency for FastAPI routers to get a database session."""
     db = SessionLocal()
     try:
@@ -44,7 +51,7 @@ def get_db():
         db.close()
 
 
-def init_db(base_metadata=None):
+def init_db(base_metadata: MetaData | None = None) -> None:
     """Initialize database tables."""
     if base_metadata:
         base_metadata.create_all(bind=engine)

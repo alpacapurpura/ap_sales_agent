@@ -12,7 +12,7 @@ from src.modules.crm.infrastructure.repositories.customer_repository import (
 
 
 class IdentityResolutionEngine:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.repository = CustomerRepository(db)
 
     def resolve(

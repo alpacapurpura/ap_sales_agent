@@ -75,8 +75,8 @@ health_router = APIRouter()
 tenant_router = APIRouter()
 
 
-@health_router.get("/health/etl", response_model=ETLHealthResponse)
-def get_etl_health(db: Annotated[Session, Depends(get_db)]):
+@health_router.get("/health/etl")
+def get_etl_health(db: Annotated[Session, Depends(get_db)]) -> ETLHealthResponse:
     """Return ETL pipeline health status.
 
     No authentication required — this is a health endpoint.
@@ -130,12 +130,12 @@ def get_etl_health(db: Annotated[Session, Depends(get_db)]):
     )
 
 
-@tenant_router.post("/etl/retry/{run_id}", response_model=RetryResponse)
+@tenant_router.post("/etl/retry/{run_id}")
 async def retry_extraction(
     run_id: UUID,
     x_tenant_id: Annotated[str, Header(alias="X-Tenant-ID")],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> RetryResponse:
     """Manually retry a failed extraction run.
 
     Enforces a 15-minute cooldown between retry attempts for the same
@@ -209,11 +209,11 @@ async def retry_extraction(
     return RetryResponse(status="queued", run_id=str(run_id))
 
 
-@tenant_router.get("/etl/status", response_model=ETLStatusResponse)
+@tenant_router.get("/etl/status")
 def get_etl_status(
     x_tenant_id: Annotated[str, Header(alias="X-Tenant-ID")],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> ETLStatusResponse:
     """Return the latest extraction run per provider for the tenant.
 
     Used by the frontend for the "Ultima actualizacion" display.

@@ -11,7 +11,7 @@ from src.shared.domain.events import EventBus
 
 
 class SaleService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.repository = SaleRepository(db)
 
     def create_sale(

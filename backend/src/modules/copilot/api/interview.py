@@ -29,13 +29,13 @@ logger = structlog.get_logger()
 router = APIRouter()
 
 
-@router.post("/start", response_model=StartInterviewResponse)
+@router.post("/start")
 def start_interview(
     request: StartInterviewRequest,
     current_user: Annotated[User, Depends(get_current_user)],
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> StartInterviewResponse:
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
     svc = InterviewService(db)
@@ -56,8 +56,8 @@ def get_active_interview(
     response: Response,
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     db: Annotated[Session, Depends(get_db)],
-    _=Depends(get_current_user),
-):
+    _: Annotated[User, Depends(get_current_user)],
+) -> ActiveInterviewResponse | Response:
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
     svc = InterviewService(db)
@@ -67,13 +67,13 @@ def get_active_interview(
     return result
 
 
-@router.get("/{session_id}/state", response_model=InterviewStateResponse)
+@router.get("/{session_id}/state")
 def get_interview_state(
     session_id: UUID,
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     db: Annotated[Session, Depends(get_db)],
-    _=Depends(get_current_user),
-):
+    _: Annotated[User, Depends(get_current_user)],
+) -> InterviewStateResponse:
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
     svc = InterviewService(db)
@@ -88,8 +88,8 @@ def pause_interview(
     session_id: UUID,
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     db: Annotated[Session, Depends(get_db)],
-    _=Depends(get_current_user),
-):
+    _: Annotated[User, Depends(get_current_user)],
+) -> dict[str, str]:
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
     svc = InterviewService(db)
@@ -104,8 +104,8 @@ def abandon_interview(
     session_id: UUID,
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     db: Annotated[Session, Depends(get_db)],
-    _=Depends(get_current_user),
-):
+    _: Annotated[User, Depends(get_current_user)],
+) -> dict[str, str]:
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
     svc = InterviewService(db)
@@ -115,14 +115,14 @@ def abandon_interview(
     return {"status": "abandoned"}
 
 
-@router.post("/{session_id}/documents", response_model=DocumentProcessingResponse)
+@router.post("/{session_id}/documents")
 async def process_interview_documents(
     session_id: UUID,
     files: Annotated[list[UploadFile], File()],
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     _: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> DocumentProcessingResponse:
     """Process uploaded documents and merge extracted data into mapa_global.
 
     Synchronous (blocking) — the consultant digests everything before continuing.

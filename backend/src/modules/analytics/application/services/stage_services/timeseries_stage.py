@@ -4,19 +4,25 @@ Handles get_stage_timeseries() logic: daily/weekly chart data
 for any funnel stage, grouped by channel.
 """
 
-from collections import OrderedDict
-from datetime import UTC, datetime
-from uuid import UUID
+from __future__ import annotations
 
-from sqlalchemy.orm import Session
+from collections import OrderedDict
+from datetime import UTC, date, datetime
+from typing import TYPE_CHECKING
 
 from src.modules.analytics.application.dto.timeseries_dto import (
     ChannelInfoDTO,
     StageTimeSeriesDTO,
     TimeSeriesPointDTO,
 )
-from src.modules.analytics.domain.ports import ConnectionPort
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+
+if TYPE_CHECKING:
+    from uuid import UUID
+
+    from sqlalchemy.orm import Session
+
+    from src.modules.analytics.domain.ports import ConnectionPort
+    from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 
 # Suggested hex colors per channel slug (frontend may override)
 _CHANNEL_COLORS: dict[str, str] = {
@@ -70,7 +76,7 @@ class TimeseriesStageService:
         db: Session,
         cache: MetricsCache | None = None,
         connection_port: ConnectionPort | None = None,
-    ):
+    ) -> None:
         self.db = db
         self.cache = cache
         self.connection_port = connection_port
@@ -86,8 +92,8 @@ class TimeseriesStageService:
 
     @staticmethod
     def _aggregate_weekly(
-        date_map: "OrderedDict",
-    ) -> "OrderedDict":
+        date_map: OrderedDict,
+    ) -> OrderedDict:
         """Collapse daily data points into ISO-week buckets."""
         from datetime import timedelta
 
@@ -105,8 +111,8 @@ class TimeseriesStageService:
         tenant_id: UUID,
         channel_slugs: list[str],
         db_metric_names: list[str],
-        start_date,
-        now,
+        start_date: date,
+        now: date,
     ) -> list:
         """Query official_metrics for the current period."""
         from sqlalchemy import func as sa_f
@@ -136,8 +142,8 @@ class TimeseriesStageService:
         tenant_id: UUID,
         channel_slugs: list[str],
         db_metric_names: list[str],
-        prev_start,
-        start_date,
+        prev_start: date,
+        start_date: date,
     ) -> dict[str, float] | None:
         """Query previous period totals for delta% calculation."""
         from sqlalchemy import func as sa_f

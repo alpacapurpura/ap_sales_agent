@@ -8,7 +8,7 @@ from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 
 
 class TenantRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def get_by_id(self, tenant_id: UUID) -> Tenant | None:

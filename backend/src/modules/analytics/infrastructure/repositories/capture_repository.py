@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class CaptureMetricsRepository:
     """CRM-based lead count and conversation aggregation for capture metrics."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def count_leads_by_source(

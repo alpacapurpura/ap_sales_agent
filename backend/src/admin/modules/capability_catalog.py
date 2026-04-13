@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 
-def render_capability_catalog():
+def render_capability_catalog() -> None:
     st.title("🔧 Capacidades del Copilot")
 
     # KPIs — static counts from code

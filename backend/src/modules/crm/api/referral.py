@@ -42,11 +42,11 @@ class PromoteResponse(BaseModel):
 # --- Endpoints ---
 
 
-@router.get("", response_model=list[ReferralCodeResponse])
+@router.get("")
 async def list_referral_codes(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[ReferralCodeResponse]:
     """List all active referral codes for tenant."""
     from src.modules.crm.application.services.referral_service import ReferralService
 
@@ -65,12 +65,12 @@ async def list_referral_codes(
     ]
 
 
-@router.post("/promote", response_model=PromoteResponse)
+@router.post("/promote")
 async def promote_to_evangelist(
     body: PromoteRequest,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> PromoteResponse:
     """Promote customer to EVANGELIST lifecycle stage + generate referral code.
 
     Uses LifecycleService.promote_to_evangelist atomically.
@@ -103,12 +103,12 @@ async def promote_to_evangelist(
     )
 
 
-@router.post("/generate", response_model=ReferralCodeResponse)
+@router.post("/generate")
 async def generate_referral_code(
     body: GenerateCodeRequest,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> ReferralCodeResponse:
     """Generate referral code for an existing evangelist who doesn't have one yet."""
     from src.modules.crm.application.services.referral_service import ReferralService
 

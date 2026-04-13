@@ -32,8 +32,8 @@ from src.shared.domain.enums import AvatarPersona, FinancialCapacity, LeadTemper
 router = APIRouter(tags=["System Definitions"])
 
 
-@router.get("/definitions/offer-studio", response_model=dict[str, Any])
-async def get_offer_studio_definitions():
+@router.get("/definitions/offer-studio")
+async def get_offer_studio_definitions() -> dict[str, Any]:
     """
     Returns all the Enum options and Metadata required to build the Offer Studio Form dynamically.
     Includes rich descriptions, hints, and value mapping.

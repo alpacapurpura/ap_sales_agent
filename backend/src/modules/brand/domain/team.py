@@ -57,7 +57,7 @@ class BrandContact(BaseEntity):
 
     @model_validator(mode="before")
     @classmethod
-    def migrate_legacy_fields(cls, data: Any) -> Any:
+    def migrate_legacy_fields(cls, data: Any) -> Any:  # noqa: ANN401
         """
         Migrate legacy fields (email, website, social dict) into structured fields.
         """
@@ -104,7 +104,7 @@ class BrandTestimonial(BaseEntity):
 
     @model_validator(mode="before")
     @classmethod
-    def migrate_legacy_testimonial(cls, data: Any) -> Any:
+    def migrate_legacy_testimonial(cls, data: Any) -> Any:  # noqa: ANN401
         if isinstance(data, dict):
             if not data.get("author_name") and data.get("author"):
                 data["author_name"] = data["author"]
@@ -134,7 +134,7 @@ class BrandAuthorityItem(BaseEntity):
 
     @model_validator(mode="before")
     @classmethod
-    def migrate_legacy_authority(cls, data: Any) -> Any:
+    def migrate_legacy_authority(cls, data: Any) -> Any:  # noqa: ANN401
         if isinstance(data, dict):
             if not data.get("entity_name") and data.get("title"):
                 data["entity_name"] = data["title"]

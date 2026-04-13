@@ -21,7 +21,7 @@ class InstagramChannel(MetaAdapter, BaseChannel):
         self,
         client_config: dict[str, Any],
         credentials_data: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         access_token = credentials_data.get("access_token") if credentials_data else None
         super().__init__(access_token=access_token)
         self.client_config = client_config or {}

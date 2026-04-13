@@ -11,7 +11,7 @@ logger = structlog.get_logger()
 
 
 class CopilotEventRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def record(
@@ -36,7 +36,7 @@ class CopilotEventRepository:
         self.db.flush()
         return event
 
-    def _active_filter(self):
+    def _active_filter(self) -> bool:
         return CopilotEventModel.deleted_at.is_(None)
 
     def get_user_behavior_summary(

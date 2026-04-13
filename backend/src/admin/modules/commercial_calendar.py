@@ -40,7 +40,7 @@ def _get_service() -> tuple[CalendarEventService, object]:
     return CalendarEventService(db), db
 
 
-def render_commercial_calendar_page():
+def render_commercial_calendar_page() -> None:
     st.title("📅 Calendario Comercial")
 
     # ── Controles globales ──────────────────────────────────────────────────
@@ -121,7 +121,7 @@ def render_commercial_calendar_page():
             if int(year) == utc_today().year:
                 st.caption(f"✨ Semana actual resaltada: **Semana {current_week}**")
 
-                def highlight_week(row):
+                def highlight_week(row: pd.Series) -> list[str]:
                     if row["_week"] == current_week:
                         return ["background-color: #fef9c3"] * len(row)
                     return [""] * len(row)

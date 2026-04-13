@@ -7,6 +7,7 @@ for a given provider. Used by the ChannelDetailSidebar in the frontend.
 from collections.abc import Callable
 from datetime import date
 from typing import Annotated
+from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
@@ -126,7 +127,7 @@ def _build_details(provider: str, config: dict, credentials: dict) -> dict:
     return builder(config, credentials) if builder else {}
 
 
-def _get_meta_children(repo: ChannelConnectionRepository, tenant_id) -> list[dict]:
+def _get_meta_children(repo: ChannelConnectionRepository, tenant_id: UUID) -> list[dict]:
     """Get Meta child assets (pages, IG, ads) for display in sidebar."""
     asset_types = [
         ChannelType.FACEBOOK_PAGE,
@@ -149,13 +150,13 @@ def _get_meta_children(repo: ChannelConnectionRepository, tenant_id) -> list[dic
     return result
 
 
-@router.get("/{provider}", response_model=ChannelInfoResponse)
+@router.get("/{provider}")
 async def get_channel_info(
     provider: str,
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> ChannelInfoResponse:
     """Get enriched connection info for a provider, used by ChannelDetailSidebar."""
     channel_types = _PROVIDER_CHANNEL_TYPES.get(provider)
     if not channel_types:

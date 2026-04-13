@@ -22,7 +22,7 @@ from src.shared.domain.enums import LifecycleStage, SaleStage, SaleStatus
 class ExpansionMetricsRepository:
     """Aggregate expansion-stage metrics from CRM tables."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def get_expansion_sales_grouped(

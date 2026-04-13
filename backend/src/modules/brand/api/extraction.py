@@ -31,12 +31,12 @@ router = APIRouter()
 # Removed FullBrandExtractionRequest as it's now handled via Form/File parameters
 
 
-@router.post("/extract", response_model=BrandVisualsResponse)
+@router.post("/extract")
 async def extract_data(
     request: ExtractRequest,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> BrandVisualsResponse:
     """
     Extracts structured data from a URL using the Web Extractor Subgraph.
     Currently supports: 'brand_identity'.
@@ -70,7 +70,6 @@ async def extract_data(
 
 @router.post(
     "/extract-full-brand",
-    response_model=ExtractFullBrandResponse,
     status_code=202,
 )
 async def extract_full_brand(
@@ -85,7 +84,7 @@ async def extract_full_brand(
     include_visuals: Annotated[bool, Form()] = False,
     include_assets: Annotated[bool, Form()] = False,
     files: Annotated[list[UploadFile], File()] = [],  # noqa: B006
-):
+) -> ExtractFullBrandResponse:
     """
     Dispatches full brand extraction as an async job.
     Returns 202 with job_id for polling via GET /extract-full-brand/status/{job_id}.
@@ -174,12 +173,11 @@ async def extract_full_brand(
 
 @router.get(
     "/extract-full-brand/status/{job_id}",
-    response_model=ExtractionStatusResponse,
 )
 async def get_extraction_status(
     job_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
-):
+) -> ExtractionStatusResponse:
     """Poll extraction job progress. Returns status, progress %, and current stage."""
 
     # Validate job_id format
@@ -211,13 +209,12 @@ async def get_extraction_status(
 
 @router.get(
     "/extraction-traces",
-    response_model=list[ExtractionTraceSummaryResponse],
 )
 async def list_extraction_traces(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
     limit: int = 20,
-):
+) -> list[ExtractionTraceSummaryResponse]:
     """List recent brand extraction traces for the current tenant."""
 
     if not current_user.tenant_id:
@@ -253,12 +250,12 @@ async def list_extraction_traces(
     ]
 
 
-@router.get("/extraction-traces/{trace_id}", response_model=ExtractionTraceResponse)
+@router.get("/extraction-traces/{trace_id}")
 async def get_extraction_trace(
     trace_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> ExtractionTraceResponse:
     """Get full trace detail including all events."""
 
     if not current_user.tenant_id:

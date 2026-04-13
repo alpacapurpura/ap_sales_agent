@@ -35,7 +35,7 @@ def record_event(
     current_user: Annotated[User, Depends(get_current_user)],
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> dict[str, bool]:
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
 
@@ -59,7 +59,7 @@ def event_summary(
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     db: Annotated[Session, Depends(get_db)],
     days: int = 30,
-):
+) -> dict[str, str | int | dict[str, int]]:
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
 
@@ -74,7 +74,7 @@ def event_insights(
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     db: Annotated[Session, Depends(get_db)],
     days: int = 30,
-):
+) -> dict[str, str | int | dict]:
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
 

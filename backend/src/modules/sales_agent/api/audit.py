@@ -27,11 +27,11 @@ from src.modules.sales_agent.infrastructure.models.message_model import MessageM
 router = APIRouter()
 
 
-@router.get("/leads", response_model=list[AuditLeadListItem])
+@router.get("/leads")
 def list_audit_leads(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[AuditLeadListItem]:
     """List recent active leads with their last activity timestamp."""
     repo = AuditRepository(db)
 
@@ -73,12 +73,12 @@ def list_audit_leads(
     return result
 
 
-@router.get("/leads/{lead_id}", response_model=AuditLeadDetail)
+@router.get("/leads/{lead_id}")
 def get_lead_details(
     lead_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> AuditLeadDetail:
     """Get full lead profile details."""
     lead = (
         db.execute(
@@ -107,12 +107,12 @@ def get_lead_details(
     )
 
 
-@router.get("/leads/{lead_id}/timeline", response_model=list[TimelineEvent])
+@router.get("/leads/{lead_id}/timeline")
 def get_lead_timeline(
     lead_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[TimelineEvent]:
     """Get combined message + trace timeline for a lead."""
     # Verify lead belongs to tenant
     lead = (
@@ -154,12 +154,12 @@ def get_lead_timeline(
     return result
 
 
-@router.delete("/leads/{lead_id}/history", response_model=ClearHistoryResponse)
+@router.delete("/leads/{lead_id}/history")
 def clear_lead_history(
     lead_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> ClearHistoryResponse:
     """Clear all traces for a lead."""
     lead = (
         db.execute(
@@ -179,12 +179,12 @@ def clear_lead_history(
     return ClearHistoryResponse(status="ok")
 
 
-@router.get("/traces/{trace_id}", response_model=TraceDetail)
+@router.get("/traces/{trace_id}")
 def get_trace_details(
     trace_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> TraceDetail:
     """Get detailed trace with LLM logs."""
     repo = AuditRepository(db)
     details = repo.get_trace_details(trace_id, str(user.tenant_id))

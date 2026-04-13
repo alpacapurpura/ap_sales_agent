@@ -16,7 +16,7 @@ router = APIRouter()
 async def customers_data_request(
     request: Request,
     verified: Annotated[bool, Depends(verify_shopify_signature)],
-):
+) -> dict[str, str]:
     """
     GDPR: Request customer data.
     Shopify sends this when a merchant or customer requests their data.
@@ -46,7 +46,7 @@ async def customers_data_request(
 async def customers_redact(
     request: Request,
     verified: Annotated[bool, Depends(verify_shopify_signature)],
-):
+) -> dict[str, str]:
     """
     GDPR: Erase customer data.
     Shopify sends this when a merchant or customer requests deletion.
@@ -75,7 +75,7 @@ async def customers_redact(
 async def shop_redact(
     request: Request,
     verified: Annotated[bool, Depends(verify_shopify_signature)],
-):
+) -> dict[str, str]:
     """
     GDPR: Erase shop data.
     Shopify sends this when a merchant uninstalls the app and 48 hours have passed.

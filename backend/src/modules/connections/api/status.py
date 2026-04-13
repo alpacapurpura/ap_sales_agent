@@ -66,11 +66,11 @@ def _mask_pii(value: str, channel_type: str) -> str:
     return value
 
 
-@router.get("/status", response_model=BatchConnectionStatusResponse)
+@router.get("/status")
 async def get_all_connections_status(
     user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> BatchConnectionStatusResponse:
     """Return connection status for every channel type the tenant has."""
     repo = ChannelConnectionRepository(db)
     all_connections = repo.get_all_by_tenant(user.tenant_id)

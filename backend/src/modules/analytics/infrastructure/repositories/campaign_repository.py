@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class CampaignRepository:
     """CRUD operations for campaign hierarchy + recommendations."""
 
-    def __init__(self, session: Session):
+    def __init__(self, session: Session) -> None:
         self._session = session
 
     # ── Campaigns ──

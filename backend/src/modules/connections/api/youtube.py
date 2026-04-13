@@ -1,4 +1,5 @@
-from typing import Annotated, Any
+from typing import Annotated
+from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Body, Depends, HTTPException
@@ -28,7 +29,7 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
     return ChannelConnectionRepository(db)
 
 
-def _get_youtube_config(db: Session, tenant_id: Any) -> dict[str, str]:
+def _get_youtube_config(db: Session, tenant_id: UUID) -> dict[str, str]:
     """Retrieve YouTube App configuration from Tenant config."""
     from sqlalchemy import select
 
@@ -58,7 +59,7 @@ async def update_config(
     client_secret: Annotated[str, Body(embed=True)],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> dict[str, str]:
     from sqlalchemy import select
 
     stmt = select(TenantModel).where(TenantModel.id == user.tenant_id)
@@ -91,7 +92,7 @@ async def get_auth_url(
     user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
     redirect_uri: str | None = None,
-):
+) -> dict[str, str]:
     client_config = _get_youtube_config(db, user.tenant_id)
     adapter = YoutubeAdapter(client_config=client_config)
     url, state = adapter.get_authorization_url(redirect_uri)
@@ -105,7 +106,7 @@ async def oauth_callback(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     redirect_uri: Annotated[str | None, Body(embed=True)] = None,
-):
+) -> dict[str, str | dict]:
     client_config = _get_youtube_config(db, user.tenant_id)
     adapter = YoutubeAdapter(client_config=client_config)
 
@@ -153,12 +154,12 @@ async def oauth_callback(
     return {"status": "connected", "channel": config_data}
 
 
-@router.get("/status", response_model=YoutubeStatusResponse)
+@router.get("/status")
 async def get_status(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> YoutubeStatusResponse:
     try:
         _get_youtube_config(db, user.tenant_id)
         is_configured = True
@@ -184,7 +185,7 @@ async def get_status(
 async def disconnect(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str]:
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.YOUTUBE)
     if connection:
         repo.deactivate(connection)
@@ -196,7 +197,7 @@ async def test_connection(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str | dict | None]:
     connection = repo.get_active(user.tenant_id, ChannelType.YOUTUBE)
 
     if not connection or not connection.credentials:

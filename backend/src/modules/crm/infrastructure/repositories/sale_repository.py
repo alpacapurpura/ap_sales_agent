@@ -10,7 +10,7 @@ from src.modules.crm.infrastructure.models.sale_model import SaleModel
 
 
 class SaleRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def _to_domain(self, model: SaleModel) -> Sale:

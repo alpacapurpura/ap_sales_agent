@@ -8,10 +8,16 @@ MetricsCache is a thin wrapper around Redis that:
 Key format: metrics:{tenant_id}:{stage}:{period}
 """
 
+from __future__ import annotations
+
 import json
 import logging
+from typing import TYPE_CHECKING
 
 from src.modules.analytics.application.config import CacheConfig
+
+if TYPE_CHECKING:
+    from redis import Redis
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +41,7 @@ DEFAULT_TTL = CacheConfig.DEFAULT_TTL
 class MetricsCache:
     """Redis-backed cache for dashboard metrics with silent fallback."""
 
-    def __init__(self, redis_client):
+    def __init__(self, redis_client: Redis | None) -> None:
         """Initialize with a redis client instance.
 
         Args:

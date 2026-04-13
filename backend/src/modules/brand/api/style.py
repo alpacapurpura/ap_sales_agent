@@ -28,13 +28,13 @@ class StyleAnalysisResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-@router.post("/analyze-style", response_model=StyleAnalysisResponse)
+@router.post("/analyze-style")
 async def analyze_style(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
     text_input: Annotated[str | None, Form()] = None,
     file: Annotated[UploadFile | None, File()] = None,
-):
+) -> StyleAnalysisResponse:
     """
     Analyzes the style of the provided chat history (text or file).
     Runs the 'Ingestion Subgraph' (Janitor -> Psychologist -> Architect -> Simulator).

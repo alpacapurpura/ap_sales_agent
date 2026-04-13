@@ -21,7 +21,7 @@ except ImportError as e:
         sys.exit(1)
 
 
-def run_tests():
+def run_tests() -> None:
     print("Running reproduction script...")
 
     # 1. Test BrandSettings(**None)

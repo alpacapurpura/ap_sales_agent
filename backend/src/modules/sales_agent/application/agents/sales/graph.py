@@ -1,4 +1,5 @@
 from langgraph.graph import END, START, StateGraph
+from langgraph.graph.state import CompiledStateGraph
 
 from src.modules.sales_agent.application.agents.sales.nodes import (
     node_closer,
@@ -36,7 +37,7 @@ def _route_after_accumulator(state: AgentState) -> str:
     return "respond"
 
 
-def create_sales_subgraph():
+def create_sales_subgraph() -> CompiledStateGraph:
     workflow = StateGraph(AgentState)
 
     # Nodes

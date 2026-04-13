@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 class LifecycleService:
     """Scoring engine and lifecycle stage manager."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.lifecycle_repo = LifecycleRepository(db)
 

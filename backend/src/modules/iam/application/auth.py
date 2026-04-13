@@ -61,7 +61,7 @@ def verify_token_payload(token: str) -> dict:
         return payload
 
 
-def verify_clerk_token(credentials: HTTPAuthorizationCredentials = Security(security)):
+def verify_clerk_token(credentials: HTTPAuthorizationCredentials = Security(security)) -> dict:
     """
     Verifies the Bearer Token extracted from the Authorization header against Clerk's JWKS.
     """

@@ -11,10 +11,10 @@ class EventBus:
     In-memory Event Bus for dispatching domain events.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._subscribers: dict[type[DomainEvent], list[Callable]] = {}
 
-    def subscribe(self, event_type: type[DomainEvent], handler: Callable):
+    def subscribe(self, event_type: type[DomainEvent], handler: Callable) -> None:
         if event_type not in self._subscribers:
             self._subscribers[event_type] = []
         self._subscribers[event_type].append(handler)
@@ -24,7 +24,7 @@ class EventBus:
             event_type.__name__,
         )
 
-    async def publish(self, event: DomainEvent):
+    async def publish(self, event: DomainEvent) -> None:
         event_type = type(event)
         if event_type in self._subscribers:
             for handler in self._subscribers[event_type]:

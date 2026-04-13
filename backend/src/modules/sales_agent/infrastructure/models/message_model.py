@@ -1,4 +1,5 @@
-import uuid
+import uuid as uuid_mod
+from typing import Any
 
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -11,7 +12,7 @@ from src.shared.domain.base_entity import Base
 class MessageModel(Base):
     __tablename__ = "messages"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid_mod.uuid4)
     user_id = Column(
         "user_id",
         UUID(as_uuid=True),
@@ -43,13 +44,13 @@ class MessageModel(Base):
 
     # Aliases for backward compatibility with code using old names
     @property
-    def lead_id(self):
+    def lead_id(self) -> uuid_mod.UUID | None:
         return self.user_id
 
     @property
-    def sender_type(self):
+    def sender_type(self) -> str | None:
         return self.role
 
     @property
-    def metadata_info(self):
+    def metadata_info(self) -> dict[str, Any] | None:
         return self.metadata_log

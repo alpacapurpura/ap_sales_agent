@@ -8,7 +8,7 @@ from src.modules.offer.domain.offer_ai_schemas import (
 
 
 class OfferGeneratorService:
-    def __init__(self, psychology_port: PsychologyGeneratorPort):
+    def __init__(self, psychology_port: PsychologyGeneratorPort) -> None:
         self.psychology_port = psychology_port
 
     async def generate_psychology(

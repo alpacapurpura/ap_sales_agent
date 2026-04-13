@@ -13,7 +13,7 @@ from .base import StorageStrategy
 class R2StorageStrategy(StorageStrategy):
     """Cloudflare R2 storage via S3-compatible API."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.bucket = settings.R2_BUCKET_NAME
         self.public_base_url = settings.R2_PUBLIC_URL.rstrip("/")
         self.client = boto3.client(

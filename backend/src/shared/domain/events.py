@@ -47,7 +47,7 @@ class EventBus:
         cls._handlers.setdefault(event_name, []).append(handler)
 
     @classmethod
-    def publish(cls, event: DomainEvent, session: Any | None = None) -> None:
+    def publish(cls, event: DomainEvent, session: Any | None = None) -> None:  # noqa: ANN401 — SQLAlchemy event listener signature
         """Publish an event.
 
         If session is provided, dispatch is deferred until after session.commit().
@@ -57,7 +57,7 @@ class EventBus:
             from sqlalchemy import event as sa_event
 
             @sa_event.listens_for(session, "after_commit", once=True)
-            def _on_commit(sess: Any) -> None:
+            def _on_commit(sess: Any) -> None:  # noqa: ANN401 — SQLAlchemy event listener signature
                 cls._dispatch(event)
         else:
             cls._dispatch(event)

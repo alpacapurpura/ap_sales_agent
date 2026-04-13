@@ -17,7 +17,7 @@ from src.modules.analytics.infrastructure.repositories.official_metrics_reposito
 
 
 class ManyChatMetricsPromoter:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.official_repo = OfficialMetricsRepository(db)
 

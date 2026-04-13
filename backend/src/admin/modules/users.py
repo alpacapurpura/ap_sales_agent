@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import time
 
 import pandas as pd
@@ -15,7 +17,7 @@ from src.shared.infrastructure.external.clerk import ClerkService
 logger = structlog.get_logger()
 
 
-def get_tenants():
+def get_tenants() -> list:
     """Fetch all active tenants for the dropdown."""
     db = SessionLocal()
     try:
@@ -24,7 +26,7 @@ def get_tenants():
         db.close()
 
 
-def get_users(tenant_id):
+def get_users(tenant_id: object) -> list:
     """Fetch users belonging to a specific tenant."""
     db = SessionLocal()
     try:
@@ -41,7 +43,7 @@ def get_users(tenant_id):
         db.close()
 
 
-def render_users_view():
+def render_users_view() -> None:
     st.title("👥 Gestión de Usuarios")
 
     # 1. Select Tenant

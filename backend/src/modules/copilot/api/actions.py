@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from src.core.database import get_db
 from src.modules.brand.api.dto.extraction import ExtractRequest
 from src.modules.brand.domain.aggregates import BrandSettings
+from src.modules.brand.domain.identity import BrandVisuals
 from src.modules.copilot.api.dto import BrandExtractResponse
 from src.modules.copilot.application.services.brand_ai_actions_service import (
     CopilotBrandAIActionsService,
@@ -30,7 +31,7 @@ async def extract_brand_data(
     request: ExtractRequest,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> BrandVisuals:
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,
@@ -57,7 +58,7 @@ async def extract_brand_data(
     return data
 
 
-@router.post("/brand/extract-full", response_model=BrandSettings)
+@router.post("/brand/extract-full")
 async def extract_full_brand_data(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
@@ -68,7 +69,7 @@ async def extract_full_brand_data(
     dry_run: Annotated[bool, Form()] = False,
     include_visuals: Annotated[bool, Form()] = False,
     files: Annotated[list[UploadFile], File()] = [],  # noqa: B006
-):
+) -> BrandSettings:
     extracted_file_text = ""
     for file in files:
         content = await FileParsingService.parse_file(file)
@@ -99,12 +100,12 @@ async def extract_full_brand_data(
     )
 
 
-@router.post("/offer/psychology", response_model=PsychologyGenerationResponse)
+@router.post("/offer/psychology")
 async def generate_offer_psychology(
     request: PsychologyGenerationRequest,
     db: Annotated[Session, Depends(get_db)],
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
-):
+) -> PsychologyGenerationResponse:
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
 

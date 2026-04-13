@@ -114,13 +114,12 @@ def _build_response(
 
 @router.get(
     "/{offer_id}/editions",
-    response_model=list[LaunchEditionResponse],
 )
 async def list_editions(
     offer_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[LaunchEditionResponse]:
     svc = LaunchEditionService(db)
     editions = svc.list_editions(UUID(offer_id), user.tenant_id)
     return [_build_response(svc, e, user.tenant_id) for e in editions]
@@ -128,7 +127,6 @@ async def list_editions(
 
 @router.post(
     "/{offer_id}/editions",
-    response_model=LaunchEditionResponse,
     status_code=201,
 )
 async def create_edition(
@@ -136,7 +134,7 @@ async def create_edition(
     body: LaunchEditionCreateDTO,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> LaunchEditionResponse:
     svc = LaunchEditionService(db)
     from src.modules.offer.domain.offer import PricingStructure
 
@@ -166,14 +164,13 @@ async def create_edition(
 
 @router.get(
     "/{offer_id}/editions/{edition_id}",
-    response_model=LaunchEditionResponse,
 )
 async def get_edition(
     offer_id: str,
     edition_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> LaunchEditionResponse:
     svc = LaunchEditionService(db)
     edition = svc.get_edition(UUID(edition_id), user.tenant_id)
     if not edition or str(edition.offer_id) != offer_id:
@@ -183,7 +180,6 @@ async def get_edition(
 
 @router.patch(
     "/{offer_id}/editions/{edition_id}",
-    response_model=LaunchEditionResponse,
 )
 async def update_edition(
     offer_id: str,
@@ -191,7 +187,7 @@ async def update_edition(
     body: LaunchEditionUpdateDTO,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> LaunchEditionResponse:
     svc = LaunchEditionService(db)
     try:
         edition = svc.update_edition(
@@ -213,14 +209,13 @@ async def delete_edition(
     edition_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> None:
     svc = LaunchEditionService(db)
     svc.delete_edition(UUID(edition_id), user.tenant_id)
 
 
 @router.post(
     "/{offer_id}/editions/{edition_id}/duplicate",
-    response_model=LaunchEditionResponse,
     status_code=201,
 )
 async def duplicate_edition(
@@ -228,7 +223,7 @@ async def duplicate_edition(
     edition_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> LaunchEditionResponse:
     svc = LaunchEditionService(db)
     try:
         edition = svc.duplicate_edition(UUID(edition_id), user.tenant_id)

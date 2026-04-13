@@ -17,7 +17,7 @@ from src.shared.domain.datetime_utils import utc_now
 
 
 class InterviewSessionRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def save(self, session: InterviewSession) -> None:

@@ -19,7 +19,7 @@ logger = structlog.get_logger()
 
 
 class DomainRepositoryImpl(DomainRepository):
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def _to_domain(self, model: TenantDomainModel) -> TenantDomain:

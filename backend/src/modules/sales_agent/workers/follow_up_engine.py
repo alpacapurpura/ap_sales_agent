@@ -11,6 +11,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from src.core.enums import ModelRole
 from src.modules.sales_agent.application.services.channel_resolver import (
@@ -26,7 +27,7 @@ from src.shared.infrastructure.llm.factory import LLMFactory
 logger = logging.getLogger(__name__)
 
 
-def _mark_exhausted(cp, now: datetime, follow_ups_sent: int) -> None:
+def _mark_exhausted(cp: AgentStateCheckpointModel, now: datetime, follow_ups_sent: int) -> None:
     """Mark a checkpoint as follow-up exhausted (frozen)."""
     cp.frozen_reason = "follow_up_exhausted"
     cp.frozen_at = now
@@ -58,7 +59,7 @@ def _is_ready_for_follow_up(cadence: dict, follow_ups_sent: int, now: datetime) 
     return now >= next_follow_up_at
 
 
-def _generate_nudge_text(cp, follow_ups_sent: int) -> str:
+def _generate_nudge_text(cp: AgentStateCheckpointModel, follow_ups_sent: int) -> str:
     """Generate the follow-up nudge message via LLM."""
     session_summary = (cp.lead_data or {}).get("session_summary", "")
     offer_name = (
@@ -88,7 +89,12 @@ def _generate_nudge_text(cp, follow_ups_sent: int) -> str:
     )
 
 
-async def _send_and_log_nudge(db, cp, nudge_text: str, follow_ups_sent: int) -> bool:
+async def _send_and_log_nudge(
+    db: Session,
+    cp: AgentStateCheckpointModel,
+    nudge_text: str,
+    follow_ups_sent: int,
+) -> bool:
     """Send the nudge via channel resolver and log in audit trail. Returns True if sent."""
     from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
         LeadRepository,
@@ -134,7 +140,7 @@ async def _send_and_log_nudge(db, cp, nudge_text: str, follow_ups_sent: int) -> 
     return True
 
 
-def _should_skip_checkpoint(cp, now: datetime) -> bool:
+def _should_skip_checkpoint(cp: AgentStateCheckpointModel, now: datetime) -> bool:
     """Return True if this checkpoint should be skipped for follow-up."""
     cadence = cp.follow_up_cadence or {}
     delays = cadence.get("delays_hours", [])
@@ -153,7 +159,7 @@ def _should_skip_checkpoint(cp, now: datetime) -> bool:
     return now.weekday() >= 5
 
 
-async def _process_single_checkpoint(db, cp, now: datetime) -> bool:
+async def _process_single_checkpoint(db: Session, cp: AgentStateCheckpointModel, now: datetime) -> bool:
     """Process a single checkpoint for follow-up. Returns True if a nudge was sent."""
     if _should_skip_checkpoint(cp, now):
         return False

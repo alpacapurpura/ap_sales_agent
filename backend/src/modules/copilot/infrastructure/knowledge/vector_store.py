@@ -24,7 +24,7 @@ class CopilotKnowledgeStore:
 
     COLLECTION = "copilot_knowledge"
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.client = QdrantClient(
             url=settings.QDRANT_URL,
             api_key=settings.QDRANT_API_KEY or None,

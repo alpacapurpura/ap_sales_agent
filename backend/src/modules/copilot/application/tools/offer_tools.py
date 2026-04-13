@@ -12,6 +12,7 @@ from uuid import UUID
 import structlog
 from langchain_core.tools import tool
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
@@ -19,7 +20,7 @@ from src.core.database import SessionLocal
 logger = structlog.get_logger()
 
 
-def _fetch_offers(db, tenant_id: UUID, offer_id: str | None = None) -> list[dict]:
+def _fetch_offers(db: Session, tenant_id: UUID, offer_id: str | None = None) -> list[dict]:
     """Fetch offers from the products table."""
     try:
         if offer_id:
@@ -97,7 +98,7 @@ def _format_offer_summary(offer: dict) -> str:
     return "\n".join(lines)
 
 
-def _parse_json_list(value) -> list | None:
+def _parse_json_list(value: object) -> list | None:
     """Parse a value that may be a JSON string or list, return list or None."""
     if isinstance(value, str):
         with contextlib.suppress(json.JSONDecodeError, TypeError):

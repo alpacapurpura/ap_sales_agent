@@ -9,7 +9,7 @@ from src.modules.landing.infrastructure.models.landing_model import LandingPageM
 
 
 class LandingRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def _to_domain(self, model: LandingPageModel) -> LandingPage:

@@ -9,7 +9,7 @@ from src.shared.domain.datetime_utils import utc_now
 
 
 class AssetRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def _to_domain(self, model: AssetModel) -> Asset:

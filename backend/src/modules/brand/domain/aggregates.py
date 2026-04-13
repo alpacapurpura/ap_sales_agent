@@ -29,7 +29,7 @@ class BrandSettings(BaseEntity):
 
     @model_validator(mode="before")
     @classmethod
-    def migrate_strategy_to_positioning(cls, data: Any) -> Any:
+    def migrate_strategy_to_positioning(cls, data: Any) -> Any:  # noqa: ANN401
         """Migrate fields removed from BrandStrategy into BrandPositioning.
 
         Handles legacy JSON where unique_value_proposition and competitors

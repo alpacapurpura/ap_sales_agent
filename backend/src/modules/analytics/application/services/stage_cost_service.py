@@ -32,7 +32,7 @@ class StageCostService:
     in group headers per CONTEXT.md decision.
     """
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def get_channel_costs(

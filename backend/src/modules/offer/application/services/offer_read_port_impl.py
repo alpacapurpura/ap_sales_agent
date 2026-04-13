@@ -18,7 +18,7 @@ from src.shared.domain.ports import OfferReadDTO, OfferReadPort
 class OfferReadPortImpl(OfferReadPort):
     """Adapter implementing OfferReadPort for the offer bounded context."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     async def get_offers_by_tenant(self, tenant_id: UUID) -> list[OfferReadDTO]:

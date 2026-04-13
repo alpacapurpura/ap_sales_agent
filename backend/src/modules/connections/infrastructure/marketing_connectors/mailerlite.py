@@ -14,7 +14,7 @@ class MailerliteConnector(BaseConnector):
     Conector para sincronizar datos con MailerLite.
     """
 
-    def __init__(self, api_key: str = ""):
+    def __init__(self, api_key: str = "") -> None:
         self.api_key = api_key
         self._headers = {
             "Authorization": f"Bearer {api_key}",

@@ -41,7 +41,7 @@ class ProductResponse(BaseModel):
 
     @field_validator("pricing_options", mode="before")
     @classmethod
-    def normalize_pricing(cls, v):
+    def normalize_pricing(cls, v: object) -> list[dict[str, Any]] | object:
         if isinstance(v, dict):
             return [v]
         return v

@@ -1,14 +1,26 @@
+from __future__ import annotations
+
 import asyncio
 import contextlib
 import time
 import uuid
 from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING, Self
 from uuid import UUID
 
 import structlog
-from fastapi import BackgroundTasks
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+
+if TYPE_CHECKING:
+    from fastapi import BackgroundTasks
+    from sqlalchemy.orm import Session
+
+    from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
+    from src.modules.crm.infrastructure.models.lead_model import LeadModel
+    from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
+        AgentStateCheckpointModel,
+    )
+    from src.shared.infrastructure.channels.base import BaseChannel
 
 from src.core.context import set_tenant_id
 from src.core.database import SessionLocal
@@ -64,13 +76,13 @@ logger = structlog.get_logger()
 class ChatOrchestrator:
     _instance = None
 
-    def __new__(cls):
+    def __new__(cls) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         if self._initialized:
             return
         self.buffer_service = SmartBufferService()
@@ -82,7 +94,7 @@ class ChatOrchestrator:
         background_tasks: BackgroundTasks,
         tenant_id: str | None = None,
         db: Session = None,
-    ):
+    ) -> None:
         """
         Handles Telegram Webhook with Multi-Tenant support.
         """
@@ -124,18 +136,18 @@ class ChatOrchestrator:
         self,
         payload: dict,
         background_tasks: BackgroundTasks,
-    ):
+    ) -> None:
         # WhatsApp logic is now handled via direct router-to-service calls or unified webhook handler.
         # This method is kept for backward compatibility but should be deprecated.
         pass
 
     async def _handle_incoming_webhook(
         self,
-        channel_adapter,
+        channel_adapter: BaseChannel,
         payload: dict,
         background_tasks: BackgroundTasks,
         tenant_id: str | None = None,
-    ):
+    ) -> None:
         incoming = channel_adapter.normalize_payload(payload)
         if not incoming:
             return
@@ -160,7 +172,7 @@ class ChatOrchestrator:
         # Launch Smart Debounce Task
         background_tasks.add_task(self.smart_debounce_task, buffer_key, channel_adapter)
 
-    async def smart_debounce_task(self, buffer_key: str, channel_adapter):
+    async def smart_debounce_task(self, buffer_key: str, channel_adapter: BaseChannel) -> None:
         """
         Orchestrates the Dynamic Debounce logic.
         """
@@ -317,7 +329,7 @@ class ChatOrchestrator:
         db: Session,
         tenant_uuid: UUID,
         user_id_str: str,
-        customer,
+        customer: CustomerProfileModel,
         was_created: bool,
     ) -> None:
         """Enrich Instagram profile with name/username/pic from User Profile API."""
@@ -347,7 +359,7 @@ class ChatOrchestrator:
     def _track_message_event(
         db: Session,
         tenant_uuid: UUID,
-        customer,
+        customer: CustomerProfileModel,
         capture_slug: str,
         channel_type: str,
         incoming: IncomingMessage,
@@ -380,7 +392,7 @@ class ChatOrchestrator:
     @staticmethod
     def _update_customer_traits(
         db: Session,
-        customer,
+        customer: CustomerProfileModel,
         incoming: IncomingMessage,
     ) -> None:
         """Update customer profile traits from incoming message metadata."""
@@ -420,8 +432,8 @@ class ChatOrchestrator:
     @staticmethod
     async def _handle_human_mode(
         db: Session,
-        checkpoint,
-        user,
+        checkpoint: AgentStateCheckpointModel | None,
+        user: LeadModel,
         tenant_uuid: UUID | None,
         tenant_id: str | None,
         incoming: IncomingMessage,
@@ -459,7 +471,7 @@ class ChatOrchestrator:
         return True
 
     @staticmethod
-    def _determine_session_state(audit_repo: AuditRepository, user) -> dict:
+    def _determine_session_state(audit_repo: AuditRepository, user: LeadModel) -> dict:
         """Determine session state from last message. Returns dict with state fields."""
         last_msg = audit_repo.get_last_message(user.id)
         result = {
@@ -488,13 +500,13 @@ class ChatOrchestrator:
 
     @staticmethod
     def _build_checkpoint_data(
-        checkpoint,
+        checkpoint: AgentStateCheckpointModel | None,
         session_active: bool,
         history: list,
         base_profile: dict,
         state_repo: StateRepository,
         tenant_uuid: UUID | None,
-        user,
+        user: LeadModel,
     ) -> tuple[dict, str | None]:
         """Build checkpoint_data dict and last_session_summary from checkpoint state."""
         checkpoint_data: dict = {}
@@ -549,7 +561,7 @@ class ChatOrchestrator:
         return checkpoint_data, last_session_summary
 
     @staticmethod
-    def _build_user_profile(user) -> dict:
+    def _build_user_profile(user: LeadModel) -> dict:
         """Build base profile dict from user's profile_data + style fields."""
         if user and user.profile_data:
             base_profile = (
@@ -589,8 +601,8 @@ class ChatOrchestrator:
         db: Session,
         state_repo: StateRepository,
         tenant_uuid: UUID,
-        user,
-        customer,
+        user: LeadModel,
+        customer: CustomerProfileModel,
         channel_type: str,
         initial_state: dict,
         result: dict,
@@ -629,7 +641,7 @@ class ChatOrchestrator:
     @staticmethod
     async def _emit_assistant_ws_event(
         tenant_uuid: UUID,
-        user,
+        user: LeadModel,
         bot_text: str,
         result: dict,
     ) -> None:
@@ -724,19 +736,19 @@ class ChatOrchestrator:
     def _build_initial_state(
         self,
         *,
-        db,
-        biz_repo,
-        audit_repo,
-        user,
-        customer,
-        tenant_id,
-        tenant_uuid,
-        tenant_config,
-        incoming,
-        session_state,
-        agent_identity,
-        checkpoint,
-        state_repo,
+        db: Session,
+        biz_repo: BusinessRepository,
+        audit_repo: AuditRepository,
+        user: LeadModel,
+        customer: CustomerProfileModel,
+        tenant_id: str | None,
+        tenant_uuid: UUID | None,
+        tenant_config: dict,
+        incoming: IncomingMessage,
+        session_state: dict,
+        agent_identity: str | None,
+        checkpoint: AgentStateCheckpointModel | None,
+        state_repo: StateRepository,
     ) -> tuple[dict, str | None]:
         """Prepare the initial agent state dict. Returns (initial_state, last_session_summary)."""
         active_product, launch_stage = biz_repo.get_current_launch_product()
@@ -799,7 +811,7 @@ class ChatOrchestrator:
         self,
         incoming: IncomingMessage,
         initial_state: dict,
-        checkpoint,
+        checkpoint: AgentStateCheckpointModel | None,
         db: Session,
         tenant_uuid: UUID | None,
     ) -> None:
@@ -837,13 +849,13 @@ class ChatOrchestrator:
 
     async def _invoke_agent_with_typing(
         self,
-        channel_adapter,
+        channel_adapter: BaseChannel,
         incoming: IncomingMessage,
         initial_state: dict,
     ) -> dict:
         """Invoke the agent graph while sending periodic typing indicators."""
 
-        async def _keep_typing():
+        async def _keep_typing() -> None:
             while True:
                 await asyncio.sleep(3)
                 with contextlib.suppress(Exception):
@@ -857,11 +869,11 @@ class ChatOrchestrator:
 
     async def _deliver_response(
         self,
-        channel_adapter,
+        channel_adapter: BaseChannel,
         incoming: IncomingMessage,
         result: dict,
         audit_repo: AuditRepository,
-        user,
+        user: LeadModel,
         channel_type: str,
         tenant_uuid: UUID | None,
     ) -> None:
@@ -907,9 +919,9 @@ class ChatOrchestrator:
     def _load_checkpoint(
         db: Session,
         state_repo: StateRepository,
-        tenant_uuid,
-        user_id,
-    ):
+        tenant_uuid: UUID | None,
+        user_id: UUID,
+    ) -> AgentStateCheckpointModel | None:
         """Load active checkpoint, rolling back on failure."""
         if not tenant_uuid:
             return None
@@ -922,7 +934,7 @@ class ChatOrchestrator:
             return None
 
     @staticmethod
-    def _resolve_lead(lead_repo, customer_id, channel_type: str, user_id_str: str):
+    def _resolve_lead(lead_repo: LeadRepository, customer_id: UUID, channel_type: str, user_id_str: str) -> LeadModel:
         """Get or create active lead for customer."""
         user = lead_repo.get_active_lead(customer_id)
         if not user:
@@ -935,10 +947,10 @@ class ChatOrchestrator:
 
     async def process_chat_flow(
         self,
-        channel_adapter,
+        channel_adapter: BaseChannel,
         incoming: IncomingMessage,
         tenant_id: str | None = None,
-    ):
+    ) -> None:
         """Core Logic: Ejecuta el agente con un mensaje YA CONSTRUIDO (y debounced)."""
         if tenant_id:
             try:

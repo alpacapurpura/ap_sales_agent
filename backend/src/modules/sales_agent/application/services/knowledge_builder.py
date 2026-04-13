@@ -35,7 +35,7 @@ class TenantKnowledgeBuilder:
     Brand and Offer data from the database and rendering agent_identity.j2.
     """
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.brand_repo = BrandRepository(db)
         self.avatar_repo = AvatarRepository(db)
         self.offer_repo = OfferRepository(db)

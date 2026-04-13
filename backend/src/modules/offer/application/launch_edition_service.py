@@ -17,7 +17,7 @@ from src.modules.offer.infrastructure.repositories.offer_repository import (
 
 
 class LaunchEditionService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repo = LaunchEditionRepository(db)
         self.offer_repo = OfferRepository(db)

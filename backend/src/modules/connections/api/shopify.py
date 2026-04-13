@@ -78,11 +78,11 @@ def _resolve_tenant_id(
     return connection.tenant_id
 
 
-@router.get("/status", response_model=ShopifyStatusResponse)
+@router.get("/status")
 async def get_shopify_status(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> ShopifyStatusResponse:
     connection = repo.get_active(user.tenant_id, ChannelType.SHOPIFY)
 
     if not connection:
@@ -99,7 +99,7 @@ async def get_shopify_status(
 async def generate_auth_url(
     request: ShopifyAuthUrlRequest,
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> dict[str, str]:
     state = str(user.tenant_id)
 
     base_url = settings.DASHBOARD_DOMAIN.rstrip("/")
@@ -119,11 +119,11 @@ async def generate_auth_url(
     return {"auth_url": auth_url}
 
 
-@public_router.post("/auth/exchange", response_model=ConnectionResponse)
+@public_router.post("/auth/exchange")
 async def exchange_shopify_token(
     request: ShopifyExchangeRequest,
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> ConnectionResponse:
     params = request.model_dump(exclude_none=True)
 
     if not ShopifyConnector.verify_hmac(params):
@@ -170,7 +170,7 @@ async def exchange_shopify_token(
 async def auth_callback(
     request: Request,
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> RedirectResponse:
     params = dict(request.query_params)
 
     if not ShopifyConnector.verify_hmac(params):
@@ -221,12 +221,12 @@ async def auth_callback(
     )
 
 
-@router.post("/quick-connect", response_model=ConnectionResponse)
+@router.post("/quick-connect")
 async def quick_connect_shopify(
     request: ShopifyAuthUrlRequest,
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> ConnectionResponse:
     """
     Connect to Shopify using Client Credentials Grant (no browser redirect).
     Only works for stores in the same Shopify organization as the app.
@@ -266,11 +266,11 @@ async def quick_connect_shopify(
     )
 
 
-@router.post("/disconnect", response_model=ConnectionResponse)
+@router.post("/disconnect")
 async def disconnect_shopify(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> ConnectionResponse:
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.SHOPIFY)
 
     if not connection:
@@ -284,11 +284,11 @@ async def disconnect_shopify(
     )
 
 
-@router.post("/test", response_model=ConnectionResponse)
+@router.post("/test")
 async def test_shopify_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> ConnectionResponse:
     connection = repo.get_active(user.tenant_id, ChannelType.SHOPIFY)
 
     if not connection:

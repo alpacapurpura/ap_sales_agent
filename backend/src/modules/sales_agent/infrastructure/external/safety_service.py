@@ -18,7 +18,7 @@ class SafetyLayerService:
     2. Contextual LLM Verification (Slow, Intelligent)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.llm_service = LLMFactory.get_service()
 
     def _get_rules(self, db: Session) -> list:

@@ -22,7 +22,7 @@ router = APIRouter()
 
 
 # Keep using AssetDto as response model (compatible with GalleryImageDto)
-@router.post("/{offer_id}/gallery/upload", response_model=AssetDto)
+@router.post("/{offer_id}/gallery/upload")
 async def upload_offer_image(
     offer_id: str,
     background_tasks: BackgroundTasks,
@@ -30,7 +30,7 @@ async def upload_offer_image(
     db: Annotated[Session, Depends(get_db)],
     tenant_id: Annotated[str, Depends(get_current_tenant_id)],
     description: Annotated[str, Form()] = "",
-):
+) -> AssetDto:
     try:
         service = AssetsService(db)
         return service.upload_asset(
@@ -47,12 +47,12 @@ async def upload_offer_image(
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@router.get("/{offer_id}/gallery", response_model=list[AssetDto])
+@router.get("/{offer_id}/gallery")
 def list_offer_images(
     offer_id: str,
     db: Annotated[Session, Depends(get_db)],
     tenant_id: Annotated[str, Depends(get_current_tenant_id)],
-):
+) -> list[AssetDto]:
     service = AssetsService(db)
     # This might need a new method in service or just use list_by_offer
     # But list_by_offer doesn't check tenant_id (repo does check offer_id which is
@@ -69,7 +69,7 @@ def delete_offer_image(
     image_id: str,
     db: Annotated[Session, Depends(get_db)],
     tenant_id: Annotated[str, Depends(get_current_tenant_id)],
-):
+) -> dict[str, str]:
     service = AssetsService(db)
     # Pass offer_id to ensure ownership check
     success = service.delete_asset(

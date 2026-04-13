@@ -27,13 +27,13 @@ from src.modules.offer.domain.exceptions import InvalidTransitionError
 router = APIRouter()
 
 
-@router.post("/{offer_id}/status", response_model=OfferStatusChangeResponse)
+@router.post("/{offer_id}/status")
 async def change_offer_status(
     offer_id: str,
     body: OfferStatusChangeRequest,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> OfferStatusChangeResponse:
     """Transition an offer through the writable lifecycle states."""
     offer_service = OfferService(db)
     lifecycle_service = OfferLifecycleService(offer_service=offer_service)

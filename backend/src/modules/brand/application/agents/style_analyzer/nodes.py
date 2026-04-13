@@ -54,7 +54,7 @@ def clean_text_regex(text: str) -> str:
     return text.strip()
 
 
-def node_janitor(state: OnboardingState):
+def node_janitor(state: OnboardingState) -> dict[str, str]:
     """
     Step 1: Clean the raw input using Regex + Smart Sampling.
     Optimization: Avoids sending huge context to LLM if not necessary.
@@ -85,7 +85,7 @@ def node_janitor(state: OnboardingState):
     return {"cleaned_input": cleaned_text}
 
 
-def node_psychologist(state: OnboardingState):
+def node_psychologist(state: OnboardingState) -> dict[str, str | dict[str, str]]:
     """
     Step 2: Analyze the style using Metaprompting (Smart Model).
     """
@@ -122,7 +122,7 @@ def node_psychologist(state: OnboardingState):
         return {"style_profile": style_profile}
 
 
-def node_architect(state: OnboardingState):
+def node_architect(state: OnboardingState) -> dict[str, str]:
     """
     Step 3: Generate the System Instruction (Smart Model).
     """
@@ -149,7 +149,7 @@ def node_architect(state: OnboardingState):
         return {"error": f"Failed to generate instruction: {e!s}"}
 
 
-def node_simulator(state: OnboardingState):
+def node_simulator(state: OnboardingState) -> dict[str, list[str]]:
     """
     Step 4: Generate examples (Fast Model).
     """

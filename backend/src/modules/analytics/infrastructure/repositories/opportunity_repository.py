@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class OpportunityMetricsRepository:
     """CRM-based SQL counting, checkout event aggregation, and meeting metrics."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def count_new_sqls(

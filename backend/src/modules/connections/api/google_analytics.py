@@ -61,7 +61,7 @@ async def save_config(
     config: GoogleAnalyticsConfig,
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str]:
     """Save Google Analytics client configuration (client_id, client_secret)."""
     connection = repo.get_by_tenant_and_type(
         user.tenant_id,
@@ -96,7 +96,7 @@ async def get_auth_url(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     redirect_uri: str | None = None,
-):
+) -> dict[str, str]:
     connection = repo.get_by_tenant_and_type(
         user.tenant_id,
         ChannelType.GOOGLE_ANALYTICS,
@@ -118,13 +118,13 @@ async def get_auth_url(
     return {"url": url, "state": state}
 
 
-@router.post("/callback", response_model=GoogleAnalyticsCallbackResponse)
+@router.post("/callback")
 async def oauth_callback(
     code: Annotated[str, Body(embed=True)],
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     redirect_uri: Annotated[str | None, Body(embed=True)] = None,
-):
+) -> GoogleAnalyticsCallbackResponse:
     connection = repo.get_by_tenant_and_type(
         user.tenant_id,
         ChannelType.GOOGLE_ANALYTICS,
@@ -178,11 +178,11 @@ async def oauth_callback(
     return GoogleAnalyticsCallbackResponse(status="connected", properties=properties)
 
 
-@router.get("/status", response_model=GoogleAnalyticsStatusResponse)
+@router.get("/status")
 async def get_status(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> GoogleAnalyticsStatusResponse:
     connection = repo.get_by_tenant_and_type(
         user.tenant_id,
         ChannelType.GOOGLE_ANALYTICS,
@@ -214,11 +214,11 @@ async def get_status(
     )
 
 
-@router.get("/properties", response_model=list[GA4PropertySummary])
+@router.get("/properties")
 async def get_properties(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> list[GA4PropertySummary]:
     connection = repo.get_active(user.tenant_id, ChannelType.GOOGLE_ANALYTICS)
 
     if not connection or not connection.credentials:
@@ -236,12 +236,12 @@ async def get_properties(
         ) from e
 
 
-@router.put("/properties/select", response_model=PropertySelectResponse)
+@router.put("/properties/select")
 async def select_property(
     body: PropertySelectRequest,
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> PropertySelectResponse:
     connection = repo.get_active(user.tenant_id, ChannelType.GOOGLE_ANALYTICS)
 
     if not connection or not connection.credentials:
@@ -290,7 +290,7 @@ async def select_property(
 async def disconnect(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str]:
     connection = repo.get_by_tenant_and_type(
         user.tenant_id,
         ChannelType.GOOGLE_ANALYTICS,
@@ -304,7 +304,7 @@ async def disconnect(
 async def test_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str | list[dict] | None]:
     connection = repo.get_active(user.tenant_id, ChannelType.GOOGLE_ANALYTICS)
 
     if not connection or not connection.credentials:

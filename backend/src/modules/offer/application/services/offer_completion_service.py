@@ -124,7 +124,7 @@ _OPTIONAL_SECTIONS = {
 }
 
 
-def _has(value: Any) -> bool:
+def _has(value: object) -> bool:
     if value is None:
         return False
     if isinstance(value, str):

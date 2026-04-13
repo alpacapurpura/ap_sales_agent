@@ -8,8 +8,10 @@ Completion is checked dynamically via schema_introspection — no hardcoded fiel
 from dataclasses import dataclass, field
 from uuid import UUID
 
+from sqlalchemy.orm import Session
+
 from src.core.database import SessionLocal
-from src.modules.copilot.domain.module_registry import get_module_registry
+from src.modules.copilot.domain.module_registry import ModuleDescriptor, get_module_registry
 from src.modules.copilot.domain.schema_introspection import (
     check_section_completion,
     get_model_sections,
@@ -56,7 +58,12 @@ class Procedure:
             db.close()
 
     @staticmethod
-    def _is_step_complete(step: ProcedureStep, tenant_id: UUID, db, registry) -> bool:
+    def _is_step_complete(
+        step: ProcedureStep,
+        tenant_id: UUID,
+        db: Session,
+        registry: dict[str, ModuleDescriptor],
+    ) -> bool:
         descriptor = registry.get(step.module_id)
         if not descriptor or not descriptor.repo_factory:
             return False

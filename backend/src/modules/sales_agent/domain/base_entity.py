@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -9,6 +11,6 @@ class BaseEntity(BaseModel):
 
     model_config = ConfigDict(from_attributes=True, arbitrary_types_allowed=True)
 
-    def dict(self, *args, **kwargs):
+    def dict(self, *args: Any, **kwargs: Any) -> dict[str, Any]:  # noqa: ANN401 — Pydantic compat wrapper
         """Wrapper for model_dump to maintain compatibility if needed"""
         return self.model_dump(*args, **kwargs)

@@ -41,7 +41,7 @@ class PeriodExtractionPipeline:
         period_repo: PeriodMetricsRepository,
         run_repo: ExtractionRunRepository,
         cache: MetricsCache,
-    ):
+    ) -> None:
         self.db = db
         self.provider = provider
         self.connection_port = connection_port

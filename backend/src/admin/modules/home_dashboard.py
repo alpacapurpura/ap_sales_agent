@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 
 
-def render_home_dashboard():
+def render_home_dashboard() -> None:
     st.title("🎯 Comando Central")
 
     # ── KPIs Row 1 ──

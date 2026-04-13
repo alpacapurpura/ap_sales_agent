@@ -26,7 +26,7 @@ class CampaignSyncPipeline:
         self,
         provider: MetaCampaignProvider,
         repository: CampaignRepository,
-    ):
+    ) -> None:
         self._provider = provider
         self._repo = repository
 

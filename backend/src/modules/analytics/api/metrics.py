@@ -1,6 +1,7 @@
 from datetime import UTC, date, datetime, timedelta
 from enum import StrEnum
 from typing import Annotated, TypeVar
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel
@@ -163,11 +164,11 @@ _SLUG_TO_PROVIDER: dict[str, str] = {
 }
 
 
-@router.get("/summary", response_model=BowtiesSummaryDTO)
+@router.get("/summary")
 async def get_summary_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> BowtiesSummaryDTO:
     """Lightweight KPIs for the Bowtie funnel row.
 
     Returns ~15 fields total (2 KPIs per stage x 8 stages) instead of
@@ -186,11 +187,11 @@ async def get_summary_metrics(
     return await service.get_bowtie_summary(user.tenant_id)
 
 
-@router.get("/sankey", response_model=MarketingSankeyResponse)
+@router.get("/sankey")
 async def get_marketing_sankey(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> MarketingSankeyResponse:
     """
     Get Marketing Sankey Metrics (7 Nodes).
     """
@@ -252,7 +253,7 @@ def _filter_groups(dto: T, requested_groups: list[str]) -> T:
 async def _warm_stage_cache(
     db: Session,
     cache: MetricsCache,
-    tenant_id,
+    tenant_id: UUID,
     stage: str,
     period: str,
 ) -> None:
@@ -324,13 +325,13 @@ class FunnelStage(StrEnum):
     evangelization = "evangelization"
 
 
-@router.get("/{stage}/overview", response_model=StageOverviewDTO)
+@router.get("/{stage}/overview")
 async def get_stage_overview(
     stage: Annotated[FunnelStage, Path()],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     period: Annotated[str, Query()] = "last_30_days",
-):
+) -> StageOverviewDTO:
     """Lightweight overview for a funnel stage.
 
     Returns ~50-100 fields (header KPIs, channel list with 1 headline KPI,
@@ -349,13 +350,13 @@ async def get_stage_overview(
     return await service.get_stage_overview(str(user.tenant_id), stage.value, period)
 
 
-@router.get("/{stage}/groups/{group_key}", response_model=GroupDetailDTO)
+@router.get("/{stage}/groups/{group_key}")
 async def get_group_detail(
     stage: Annotated[FunnelStage, Path()],
     group_key: Annotated[str, Path()],
     user: Annotated[User, Depends(get_current_user)],
     period: Annotated[str, Query()] = "last_30_days",
-):
+) -> GroupDetailDTO:
     """Detail for a single channel group within a stage (Tier 2).
 
     Returns full metrics for one group's channels only, much lighter
@@ -374,7 +375,7 @@ async def get_group_detail(
     )
 
 
-@router.get("/attraction", response_model=AttractionDetailDTO)
+@router.get("/attraction")
 async def get_attraction_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
@@ -382,7 +383,7 @@ async def get_attraction_metrics(
     groups: Annotated[
         str | None, Query(description="Comma-separated group keys to filter (e.g., organic_social,paid)")
     ] = None,
-):
+) -> AttractionDetailDTO:
     """Get Attraction stage metrics with dynamic channel list from ETL tables.
 
     Supports period-aware queries: last_30_days, weekly, monthly, quarterly.
@@ -399,7 +400,7 @@ async def get_attraction_metrics(
     return result
 
 
-@router.get("/capture", response_model=CaptureDetailDTO)
+@router.get("/capture")
 async def get_capture_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
@@ -407,7 +408,7 @@ async def get_capture_metrics(
     groups: Annotated[
         str | None, Query(description="Comma-separated group keys to filter (e.g., web_infrastructure,ai_agent)")
     ] = None,
-):
+) -> CaptureDetailDTO:
     """Get Capture (Stage 1) detail panel metrics."""
     if period not in _VALID_PERIODS:
         raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
@@ -420,7 +421,7 @@ async def get_capture_metrics(
     return result
 
 
-@router.get("/nurturing", response_model=NurtureDetailDTO)
+@router.get("/nurturing")
 async def get_nurturing_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
@@ -428,7 +429,7 @@ async def get_nurturing_metrics(
     groups: Annotated[
         str | None, Query(description="Comma-separated group keys to filter (e.g., retargeting,automation)")
     ] = None,
-):
+) -> NurtureDetailDTO:
     """Get Nurturing (Stage 2) detail panel metrics."""
     if period not in _VALID_PERIODS:
         raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
@@ -441,14 +442,14 @@ async def get_nurturing_metrics(
     return result
 
 
-@router.get("/opportunity", response_model=OpportunityDetailDTO)
+@router.get("/opportunity")
 async def get_opportunity_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     groups: Annotated[
         str | None, Query(description="Comma-separated group keys to filter (e.g., checkout,payment_links)")
     ] = None,
-):
+) -> OpportunityDetailDTO:
     """Get Opportunity (Stage 3) detail panel metrics.
 
     Returns SQL pipeline counts (checkout, meetings, payment links),
@@ -466,11 +467,11 @@ async def get_opportunity_metrics(
     return result
 
 
-@router.get("/sales", response_model=SalesDetailDTO)
+@router.get("/sales")
 async def get_sales_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> SalesDetailDTO:
     """Get Sales (Stage 4) detail panel metrics.
 
     Returns revenue broken down by Offer Ladder position with CONVERSION/EXPANSION
@@ -491,11 +492,11 @@ async def get_sales_metrics(
     return await service.get_metrics(user.tenant_id, start_date, now)
 
 
-@router.get("/adoption", response_model=AdoptionDetailDTO)
+@router.get("/adoption")
 async def get_adoption_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> AdoptionDetailDTO:
     """Get Adoption (Stage 5) detail panel metrics.
 
     Returns customer health post-purchase: active vs inactive per offer,
@@ -515,11 +516,11 @@ async def get_adoption_metrics(
     return await service.get_metrics(user.tenant_id, start_date, now)
 
 
-@router.get("/expansion", response_model=ExpansionDetailDTO)
+@router.get("/expansion")
 async def get_expansion_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> ExpansionDetailDTO:
     """Get Expansion (Stage 6) detail panel metrics.
 
     Returns Net MRR, Avg LTV, Churn Rate, and three offer-grouped
@@ -540,11 +541,11 @@ async def get_expansion_metrics(
     return await service.get_metrics(user.tenant_id, start_date, now)
 
 
-@router.get("/evangelization", response_model=EvangelizationDetailDTO)
+@router.get("/evangelization")
 async def get_evangelization_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> EvangelizationDetailDTO:
     """Get Evangelization (Stage 7) detail panel metrics.
 
     Returns K-Factor, referral conversions, NPS score, evangelist profiles,
@@ -578,7 +579,7 @@ _VALID_GRANULARITIES = {"daily", "weekly"}
 _VALID_RANGES = {7, 30, 90}
 
 
-@router.get("/timeseries", response_model=StageTimeSeriesDTO)
+@router.get("/timeseries")
 async def get_stage_timeseries(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
@@ -586,7 +587,7 @@ async def get_stage_timeseries(
     metric: Annotated[str, Query()] = "visitors",
     range_days: Annotated[int, Query()] = 30,
     granularity: Annotated[str, Query()] = "daily",
-):
+) -> StageTimeSeriesDTO:
     """Generic time-series endpoint for chart visualizations.
 
     Returns daily/weekly data points grouped by channel for any funnel stage.
@@ -620,12 +621,12 @@ async def get_stage_timeseries(
 _SYNC_ALL_COOLDOWN = timedelta(minutes=2)
 
 
-@router.post("/sync", response_model=SyncAllResponse)
+@router.post("/sync")
 async def sync_all_sources(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     days: Annotated[int, Query(ge=1, le=90)] = 30,
-):
+) -> SyncAllResponse:
     """Sync all connected providers for the tenant.
 
     Runs gap-detection initial-load for each provider with an active
@@ -697,11 +698,11 @@ class SyncIgDmResponse(BaseModel):
     remaining_minutes: int | None = None
 
 
-@router.post("/sync-ig-dm", response_model=SyncIgDmResponse)
+@router.post("/sync-ig-dm")
 async def sync_ig_dm(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> SyncIgDmResponse:
     """Sync Instagram DM conversations via the Conversations API.
 
     Fetches historical DM messages and creates journey_events with dedup
@@ -765,13 +766,12 @@ async def sync_ig_dm(
 
 @router.post(
     "/attraction/refresh/{channel_slug}",
-    response_model=ChannelRefreshResponse,
 )
 async def refresh_channel_metrics(
     channel_slug: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> ChannelRefreshResponse:
     """Trigger re-extraction for a single channel's provider.
 
     Applies a 15-minute cooldown per provider+tenant to prevent abuse.
@@ -827,10 +827,10 @@ async def refresh_channel_metrics(
         ) from exc
 
 
-@router.get("/catalog", response_model=MetricCatalogResponse)
+@router.get("/catalog")
 def get_metric_catalog(
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> MetricCatalogResponse:
     """Return the full metric catalog with aggregation semantics.
 
     Useful for frontend to display metric descriptions, units, and
@@ -861,14 +861,13 @@ def get_metric_catalog(
 
 @router.get(
     "/channel/{channel_slug}/dashboard",
-    response_model=ChannelDashboardDTO,
 )
 async def get_channel_dashboard(
     channel_slug: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     period: Annotated[str, Query()] = "30d",
-):
+) -> ChannelDashboardDTO:
     """Get a channel-specific dashboard with KPIs, benchmarks, time series, and funnel.
 
     Returns industry-contextualized benchmarks based on the tenant's brand identity.
@@ -895,14 +894,13 @@ async def get_channel_dashboard(
 
 @router.get(
     "/channel/{channel_slug}/demographics",
-    response_model=DemographicsDTO,
 )
 async def get_channel_demographics(
     channel_slug: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     period: Annotated[str, Query()] = "30d",
-):
+) -> DemographicsDTO:
     """Get audience demographics breakdown for a channel.
 
     Parses breakdown data from official_metrics extra JSON column for
@@ -926,13 +924,13 @@ async def get_channel_demographics(
 _VALID_PROVIDERS = {"meta", "google_analytics", "google_ads", "shopify", "mailerlite"}
 
 
-@router.post("/{provider}/initial-load", response_model=InitialLoadResponse)
+@router.post("/{provider}/initial-load")
 async def trigger_initial_load(
     provider: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     days: Annotated[int, Query(ge=1, le=ETLConfig.MAX_LOOKBACK_DAYS)] = 30,
-):
+) -> InitialLoadResponse:
     """Load historical metrics day-by-day for any provider, skipping already-loaded days.
 
     Idempotent: repeated calls only fetch missing days.
@@ -980,11 +978,11 @@ async def trigger_initial_load(
         ) from exc
 
 
-@router.get("/{provider}/initial-load/status", response_model=InitialLoadStatusResponse)
+@router.get("/{provider}/initial-load/status")
 async def get_initial_load_status(
     provider: str,
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> InitialLoadStatusResponse:
     """Check progress of an initial load (reads from Redis)."""
     if provider not in _VALID_PROVIDERS:
         raise HTTPException(status_code=404, detail=f"Unknown provider: {provider}")
@@ -1027,14 +1025,14 @@ class PeriodExtractionResponse(BaseModel):
     results: list[PeriodExtractionResultDTO]
 
 
-@router.post("/trigger-period-extraction", response_model=PeriodExtractionResponse)
+@router.post("/trigger-period-extraction")
 async def trigger_period_extraction(
     period_type: Annotated[str, Query()],
     period_start: Annotated[date, Query()],
     period_end: Annotated[date, Query()],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> PeriodExtractionResponse:
     """Manually trigger period extraction for NON_AGGREGABLE metrics.
 
     Extracts deduplicated reach/users/frequency for all providers
@@ -1091,11 +1089,11 @@ class TenantPeriodConfigUpdateDTO(BaseModel):
     fiscal_year_start_day: int | None = None
 
 
-@router.get("/period-config", response_model=TenantPeriodConfigDTO)
+@router.get("/period-config")
 async def get_period_config(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> TenantPeriodConfigDTO:
     """Get the tenant's period configuration."""
     from sqlalchemy import select as sa_select
 
@@ -1115,12 +1113,12 @@ async def get_period_config(
     )
 
 
-@router.patch("/period-config", response_model=TenantPeriodConfigDTO)
+@router.patch("/period-config")
 async def update_period_config(
     payload: TenantPeriodConfigUpdateDTO,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> TenantPeriodConfigDTO:
     """Update the tenant's period configuration.
 
     Changes affect future aggregation calculations and period boundary detection.

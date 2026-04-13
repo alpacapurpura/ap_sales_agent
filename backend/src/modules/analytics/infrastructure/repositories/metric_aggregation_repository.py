@@ -19,7 +19,7 @@ from src.modules.analytics.infrastructure.models.metric_aggregation_model import
 class MetricAggregationRepository:
     """CRUD operations for the metric_aggregations table."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     _DELETE_SCOPE_SQL = text("""

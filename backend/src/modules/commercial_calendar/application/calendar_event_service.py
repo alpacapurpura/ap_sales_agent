@@ -12,7 +12,7 @@ from src.shared.domain.datetime_utils import utc_today
 
 
 class CalendarEventService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.repo = CalendarEventRepository(db)
 
     def list_events(

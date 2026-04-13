@@ -23,7 +23,7 @@ class LeadScoringEngine:
         "purchase": 100,
     }
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.repository = JourneyEventRepository(db)
 
     def calculate_score(self, profile_id: UUID) -> int:

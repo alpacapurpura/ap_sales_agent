@@ -1,9 +1,10 @@
 import time
 import uuid
+from collections.abc import Callable
 
 import structlog
 from arq.connections import RedisSettings, create_pool
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -145,7 +146,7 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def sentry_tenant_middleware(request: Request, call_next):
+async def sentry_tenant_middleware(request: Request, call_next: Callable) -> Response:
     """Tag every Sentry event/transaction with the tenant_id from the request header."""
     import sentry_sdk
 
@@ -156,7 +157,7 @@ async def sentry_tenant_middleware(request: Request, call_next):
 
 
 @app.middleware("http")
-async def logging_middleware(request: Request, call_next):
+async def logging_middleware(request: Request, call_next: Callable) -> Response:
     request_id = str(uuid.uuid4())
     structlog.contextvars.clear_contextvars()
     structlog.contextvars.bind_contextvars(request_id=request_id)
@@ -200,12 +201,12 @@ async def logging_middleware(request: Request, call_next):
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     return JSONResponse(status_code=422, content={"detail": exc.errors()})
 
 
 @app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     import sentry_sdk
 
     sentry_sdk.capture_exception(exc)
@@ -213,7 +214,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 @app.on_event("startup")
-def on_startup():
+def on_startup() -> None:
     init_db()
 
     # Register CRM domain event handlers (EventBus wiring)
@@ -223,7 +224,7 @@ def on_startup():
 
 
 @app.on_event("startup")
-async def startup_arq_pool():
+async def startup_arq_pool() -> None:
     """Create shared ARQ connection pool for job dispatch."""
     try:
         app.state.arq_pool = await create_pool(
@@ -241,14 +242,14 @@ async def startup_arq_pool():
 
 
 @app.on_event("shutdown")
-async def shutdown_arq_pool():
+async def shutdown_arq_pool() -> None:
     """Close ARQ connection pool."""
     if hasattr(app.state, "arq_pool") and app.state.arq_pool:
         await app.state.arq_pool.close()
 
 
 @app.get("/health")
-def health_check():
+def health_check() -> JSONResponse:
     """Liveness probe — lightweight, used by Docker healthcheck.
 
     Returns 200 if the API process is alive and can reach Postgres.
@@ -270,7 +271,7 @@ def health_check():
 
 
 @app.get("/health/ready")
-def readiness_check():
+def readiness_check() -> JSONResponse:
     """Readiness probe — deep check of all dependencies.
 
     Used by external monitoring / post-deploy healthcheck job.
@@ -326,7 +327,7 @@ def readiness_check():
 
 
 @app.get("/")
-def root_redirect():
+def root_redirect() -> Response:
     """Redirect Shopify admin 'App opened' requests to the frontend dashboard."""
     from fastapi.responses import RedirectResponse
 

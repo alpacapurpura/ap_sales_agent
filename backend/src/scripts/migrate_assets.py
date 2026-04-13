@@ -11,7 +11,7 @@ sys.path.append(str(backend_dir))
 from src.core.database import engine
 
 
-def migrate():
+def migrate() -> None:
     print("Starting Assets Module Migration...")
     with engine.connect() as connection:
         trans = connection.begin()

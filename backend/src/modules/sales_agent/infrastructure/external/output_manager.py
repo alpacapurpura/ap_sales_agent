@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import asyncio
 import json
 import random
 import re
+from typing import TYPE_CHECKING
 
 import structlog
 
@@ -21,6 +24,9 @@ from src.modules.sales_agent.domain.tuning import (
     TYPING_JITTER,
 )
 from src.shared.domain.messages import OutgoingMessage
+
+if TYPE_CHECKING:
+    from src.shared.infrastructure.channels.base import BaseChannel
 
 logger = structlog.get_logger()
 
@@ -43,9 +49,9 @@ class OutputManager:
         cls,
         user_id: str,
         raw_response: str,
-        channel_adapter,
+        channel_adapter: BaseChannel,
         channel_type: str = "telegram",
-    ):
+    ) -> None:
         """
         Parses the raw LLM response and sends it as chunks with human-like delays.
         """

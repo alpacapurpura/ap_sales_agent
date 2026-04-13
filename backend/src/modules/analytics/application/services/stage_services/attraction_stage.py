@@ -108,7 +108,7 @@ class AttractionStageService:
         db: Session,
         cache: MetricsCache | None = None,
         connection_port: ConnectionPort | None = None,
-    ):
+    ) -> None:
         self.db = db
         self.cache = cache
         self.connection_port = connection_port

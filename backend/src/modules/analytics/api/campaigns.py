@@ -49,21 +49,21 @@ router = APIRouter(prefix="/campaigns", tags=["Analytics - Campaigns"])
 _VALID_PERIODS = {"7d", "30d", "90d"}
 
 
-@router.get("", response_model=CampaignOverviewDTO)
+@router.get("")
 async def get_campaigns_overview(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> CampaignOverviewDTO:
     service = CampaignService(db)
     return service.get_overview(user.tenant_id)
 
 
-@router.get("/performance", response_model=CampaignPerformanceDTO)
+@router.get("/performance")
 async def get_campaigns_performance(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     period: Annotated[str, Query()] = "30d",
-):
+) -> CampaignPerformanceDTO:
     """Get all campaigns with aggregated performance metrics."""
     if period not in _VALID_PERIODS:
         raise HTTPException(
@@ -74,12 +74,12 @@ async def get_campaigns_performance(
     return service.get_performance(user.tenant_id, period)
 
 
-@router.get("/creatives", response_model=CreativesOverviewDTO)
+@router.get("/creatives")
 async def get_creatives_overview(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     period: Annotated[str, Query()] = "30d",
-):
+) -> CreativesOverviewDTO:
     """Get ad gallery with creative details and video retention metrics.
 
     Returns all ads with campaign names, creative thumbnails, and
@@ -94,13 +94,13 @@ async def get_creatives_overview(
     return service.get_creatives_overview(user.tenant_id, period)
 
 
-@router.get("/ads/performance", response_model=AdPerformanceListDTO)
+@router.get("/ads/performance")
 async def get_ads_performance(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     period: Annotated[str, Query()] = "30d",
     limit: Annotated[int, Query(ge=1, le=50)] = 10,
-):
+) -> AdPerformanceListDTO:
     """Get top ads with per-ad performance metrics (ROAS, CPA, CTR, CPC)."""
     if period not in _VALID_PERIODS:
         raise HTTPException(
@@ -111,12 +111,12 @@ async def get_ads_performance(
     return service.get_top_ads(user.tenant_id, "meta-ads", period, limit)
 
 
-@router.get("/ads/format-comparison", response_model=FormatComparisonDTO)
+@router.get("/ads/format-comparison")
 async def get_ads_format_comparison(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     period: Annotated[str, Query()] = "30d",
-):
+) -> FormatComparisonDTO:
     """Get aggregated metrics by ad format (video, carousel, image)."""
     if period not in _VALID_PERIODS:
         raise HTTPException(
@@ -127,30 +127,30 @@ async def get_ads_format_comparison(
     return service.get_format_comparison(user.tenant_id, "meta-ads", period)
 
 
-@router.get("/{campaign_external_id}/adsets", response_model=list[AdSetDTO])
+@router.get("/{campaign_external_id}/adsets")
 async def get_campaign_ad_sets(
     campaign_external_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[AdSetDTO]:
     service = CampaignService(db)
     return service.get_ad_sets(user.tenant_id, campaign_external_id)
 
 
-@router.get("/adsets/{ad_set_external_id}/ads", response_model=list[AdDTO])
+@router.get("/adsets/{ad_set_external_id}/ads")
 async def get_ad_set_ads(
     ad_set_external_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[AdDTO]:
     service = CampaignService(db)
     return service.get_ads(user.tenant_id, ad_set_external_id)
 
 
-@router.get("/sync/status", response_model=CampaignSyncStatusDTO)
+@router.get("/sync/status")
 async def get_campaign_sync_status(
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> CampaignSyncStatusDTO:
     """Get the status of the last campaign sync job for this tenant."""
     from src.core.database import redis_client
 
@@ -172,10 +172,10 @@ async def get_campaign_sync_status(
     )
 
 
-@router.post("/sync", response_model=CampaignSyncResponse)
+@router.post("/sync")
 async def trigger_campaign_sync(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> CampaignSyncResponse:
     service = CampaignService(db)
     return await service.trigger_sync(user.tenant_id)

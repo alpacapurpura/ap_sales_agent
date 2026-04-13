@@ -18,11 +18,11 @@ router = APIRouter()
 public_router = APIRouter()
 
 
-@router.get("/tracking", response_model=TrackingConfig, summary="Get tracking config")
+@router.get("/tracking", summary="Get tracking config")
 async def get_tracking_config(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> TrackingConfig:
     """Get current tracking configuration for the tenant."""
     if not user.tenant_id:
         raise HTTPException(
@@ -41,14 +41,13 @@ async def get_tracking_config(
 
 @router.patch(
     "/tracking",
-    response_model=TrackingConfig,
     summary="Update tracking config",
 )
 async def update_tracking_config(
     config: TrackingConfig,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> TrackingConfig:
     """Update GTM, Meta Pixel, GA4 tracking configuration for the tenant."""
     if not user.tenant_id:
         raise HTTPException(
@@ -74,13 +73,12 @@ async def update_tracking_config(
 
 @public_router.get(
     "/tracking/{tenant_id}",
-    response_model=TrackingConfig,
     summary="Public tracking config",
 )
 async def get_public_tracking_config(
     tenant_id: UUID,
     db: Annotated[Session, Depends(get_db)],
-):
+) -> TrackingConfig:
     """
     Public endpoint: returns tracking config for a tenant.
     Called by public site layout to inject GTM/Pixel scripts.

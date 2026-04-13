@@ -30,7 +30,7 @@ class GmailAdapter:
     Handles OAuth2 flow and wraps email operations.
     """
 
-    def __init__(self, credentials_data: dict[str, Any] | None = None):
+    def __init__(self, credentials_data: dict[str, Any] | None = None) -> None:
         self.credentials_data = credentials_data
         self.creds = None
         if credentials_data:
@@ -75,7 +75,7 @@ class GmailAdapter:
             logger.exception("Error exchanging code for token")
             raise
 
-    def get_service(self):
+    def get_service(self) -> object:
         """Returns the Gmail service resource."""
         if not self.creds:
             msg = "Credentials not initialized"

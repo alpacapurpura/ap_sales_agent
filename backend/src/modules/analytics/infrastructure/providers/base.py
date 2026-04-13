@@ -93,7 +93,7 @@ class BaseMetricsProvider(ABC):
     async def _safe_extract(
         self,
         fn: Callable,
-        *args,
+        *args: object,
         extractor_name: str,
     ) -> tuple[list[ExtractedMetric], SubExtractorFailure | None]:
         """Run a sub-extractor safely, capturing exceptions as SubExtractorFailure.

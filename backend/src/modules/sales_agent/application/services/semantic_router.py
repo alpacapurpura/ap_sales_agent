@@ -6,6 +6,7 @@ Tenant routes (offer-specific objections with trigger_phrases) are overlaid per 
 """
 
 import logging
+from typing import Self
 from uuid import UUID
 
 import numpy as np
@@ -147,7 +148,7 @@ class SemanticRouter:
     # Per-tenant overlay cache: {tenant_id: (route_names, embeddings)}
     _tenant_cache: dict[UUID, tuple[list[str], np.ndarray]] = {}
 
-    def __new__(cls):
+    def __new__(cls) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._initialize_model()
@@ -155,7 +156,7 @@ class SemanticRouter:
         return cls._instance
 
     @classmethod
-    def _initialize_model(cls):
+    def _initialize_model(cls) -> None:
         """Load the embedding model once."""
         logger.info("Initializing Semantic Router model...")
         try:
@@ -171,7 +172,7 @@ class SemanticRouter:
             cls._model = TextEmbedding(cache_dir="/app/model_cache")
 
     @classmethod
-    def _initialize_system_routes(cls):
+    def _initialize_system_routes(cls) -> None:
         """Pre-compute embeddings for system routes (runs once at startup)."""
         cls._system_route_names = []
         all_anchors = []
@@ -197,7 +198,7 @@ class SemanticRouter:
             raise
 
     @classmethod
-    def register_tenant_routes(cls, tenant_id: UUID, offers_data: list):
+    def register_tenant_routes(cls, tenant_id: UUID, offers_data: list) -> None:
         """
         Build tenant-specific routes from Offer objections and overlay them.
         Call this during TenantKnowledgeBuilder.build_identity() to prime the cache.
@@ -322,6 +323,6 @@ class SemanticRouter:
         return intent, score, existing_signals
 
     @classmethod
-    def invalidate_tenant(cls, tenant_id: UUID):
+    def invalidate_tenant(cls, tenant_id: UUID) -> None:
         """Remove cached tenant routes (e.g., when offers are updated)."""
         cls._tenant_cache.pop(tenant_id, None)

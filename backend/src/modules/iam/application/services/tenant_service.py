@@ -10,7 +10,7 @@ from src.modules.iam.infrastructure.repositories.tenant_repository import (
 
 
 class TenantService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repository = TenantRepository(db)
 

@@ -193,7 +193,7 @@ def _resolve_name(token_payload: dict, clerk_user_data: dict | None) -> str | No
 
 def _sync_clerk_fields(
     db: Session,
-    user_orm,
+    user_orm: UserModel,
     clerk_id: str,
     name: str | None,
     email: str,

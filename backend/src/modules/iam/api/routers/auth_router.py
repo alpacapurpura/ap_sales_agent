@@ -12,19 +12,19 @@ from src.modules.iam.domain.user import User
 router = APIRouter()
 
 
-@router.get("/me", response_model=User)
-async def get_current_user_profile(user: Annotated[User, Depends(get_user_from_token)]):
+@router.get("/me")
+async def get_current_user_profile(user: Annotated[User, Depends(get_user_from_token)]) -> User:
     """
     Get current user profile based on Clerk Token.
     """
     return user
 
 
-@router.get("/me/tenants", response_model=list[TenantSchema])
+@router.get("/me/tenants")
 async def get_my_tenants(
     user: Annotated[User, Depends(get_user_from_token)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> list[TenantSchema]:
     """
     List all tenants the current user belongs to.
     Used for the organization switcher in frontend.

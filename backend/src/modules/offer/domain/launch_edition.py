@@ -1,5 +1,7 @@
 """LaunchEdition domain entity — represents one launch of an offer."""
 
+from __future__ import annotations
+
 from datetime import datetime
 from enum import StrEnum
 from typing import Any
@@ -49,7 +51,7 @@ class LaunchEdition(BaseEntity):
     updated_at: datetime | None = None
 
     @model_validator(mode="after")
-    def validate_dates(self):
+    def validate_dates(self) -> LaunchEdition:
         if self.end_date and self.end_date < self.start_date:
             msg = "end_date cannot be before start_date"
             raise ValueError(msg)

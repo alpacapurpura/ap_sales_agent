@@ -36,6 +36,7 @@ from src.modules.offer.application.services.offer_asset_service import (
 )
 from src.modules.offer.domain.enums import AssetSource, AssetType
 from src.modules.offer.domain.exceptions import AssetNotFoundError
+from src.modules.offer.infrastructure.models.offer_asset_model import OfferAssetModel
 from src.modules.offer.infrastructure.repositories.offer_asset_repository import (
     OfferAssetRepository,
 )
@@ -83,7 +84,7 @@ def _service(db: Session) -> OfferAssetService:
     )
 
 
-def _to_response(asset) -> OfferAssetResponse:  # type: ignore[no-untyped-def]
+def _to_response(asset: OfferAssetModel) -> OfferAssetResponse:
     return OfferAssetResponse.model_validate(
         {
             "id": asset.id,
@@ -105,7 +106,7 @@ def _to_response(asset) -> OfferAssetResponse:  # type: ignore[no-untyped-def]
     )
 
 
-@router.get("/{offer_id}/assets", response_model=AssetListResponse)
+@router.get("/{offer_id}/assets")
 async def list_assets(
     offer_id: str,
     db: Annotated[Session, Depends(get_db)],
@@ -116,7 +117,7 @@ async def list_assets(
     sort: Annotated[str, Query()] = "created_desc",
     limit: Annotated[int, Query(ge=1, le=200)] = 24,
     offset: Annotated[int, Query(ge=0)] = 0,
-):
+) -> AssetListResponse:
     items, total = _service(db).list_assets(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
@@ -137,7 +138,6 @@ async def list_assets(
 
 @router.post(
     "/{offer_id}/assets/upload",
-    response_model=OfferAssetResponse,
     status_code=201,
 )
 async def upload_asset(
@@ -147,7 +147,7 @@ async def upload_asset(
     type_: Annotated[AssetType, Form(alias="type")],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> OfferAssetResponse:
     content = await file.read()
     asset = _service(db).upload_asset(
         tenant_id=user.tenant_id,
@@ -161,7 +161,6 @@ async def upload_asset(
 
 @router.post(
     "/{offer_id}/assets/generate",
-    response_model=OfferAssetResponse,
     status_code=201,
 )
 async def generate_asset(
@@ -169,7 +168,7 @@ async def generate_asset(
     body: AssetGenerateRequest,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> OfferAssetResponse:
     asset = _service(db).generate_asset(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
@@ -180,13 +179,13 @@ async def generate_asset(
     return _to_response(asset)
 
 
-@router.get("/{offer_id}/assets/{asset_id}", response_model=OfferAssetResponse)
+@router.get("/{offer_id}/assets/{asset_id}")
 async def get_asset(
     offer_id: str,
     asset_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> OfferAssetResponse:
     try:
         asset = _service(db).get_asset(
             tenant_id=user.tenant_id,
@@ -198,14 +197,14 @@ async def get_asset(
     return _to_response(asset)
 
 
-@router.patch("/{offer_id}/assets/{asset_id}", response_model=OfferAssetResponse)
+@router.patch("/{offer_id}/assets/{asset_id}")
 async def update_asset(
     offer_id: str,
     asset_id: str,
     body: AssetUpdateRequest,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> OfferAssetResponse:
     try:
         asset = _service(db).update_asset(
             tenant_id=user.tenant_id,
@@ -237,14 +236,13 @@ async def delete_asset(
 
 @router.get(
     "/{offer_id}/assets/{asset_id}/download",
-    response_model=AssetDownloadUrlResponse,
 )
 async def get_asset_download_url(
     offer_id: str,
     asset_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> AssetDownloadUrlResponse:
     try:
         url = _service(db).get_download_url(
             tenant_id=user.tenant_id,

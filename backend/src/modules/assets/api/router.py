@@ -24,7 +24,7 @@ logger = structlog.get_logger()
 router = APIRouter()
 
 
-@router.post("/upload", response_model=AssetDto)
+@router.post("/upload")
 async def upload_asset(
     background_tasks: BackgroundTasks,
     file: Annotated[UploadFile, File()],
@@ -32,7 +32,7 @@ async def upload_asset(
     user: Annotated[User, Depends(get_current_user)],
     description: Annotated[str | None, Form()] = None,
     offer_id: Annotated[str | None, Form()] = None,  # Optional now
-):
+) -> AssetDto:
     try:
         service = AssetsService(db)
         # Convert offer_id to UUID if provided
@@ -52,12 +52,12 @@ async def upload_asset(
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@router.get("/", response_model=list[AssetDto])
+@router.get("/")
 def list_assets(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     type_: Annotated[str | None, Query(alias="type", description="Filter by asset type (IMAGE, VIDEO, etc)")] = None,
-):
+) -> list[AssetDto]:
     service = AssetsService(db)
     return service.list_assets(tenant_id=user.tenant_id, asset_type=type_)
 
@@ -67,7 +67,7 @@ def delete_asset(
     asset_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> dict[str, str]:
     service = AssetsService(db)
     success = service.delete_asset(tenant_id=user.tenant_id, asset_id=UUID(asset_id))
 

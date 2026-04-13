@@ -1,14 +1,22 @@
+from __future__ import annotations
+
 import contextvars
 import functools
 import inspect
 import logging
 import time
+from typing import TYPE_CHECKING, Any
 
-from src.modules.sales_agent.application.orchestrator.state import AgentState
 from src.modules.sales_agent.infrastructure.db.database import SessionLocal
 from src.modules.sales_agent.infrastructure.memory.audit_repository import (
     AuditRepository,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from src.modules.sales_agent.application.orchestrator.state import AgentState
+    from src.modules.sales_agent.infrastructure.models.agent_trace_model import AgentTrace
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +59,10 @@ def _build_output_snapshot(result_state: dict) -> dict:
     }
 
 
-def _setup_trace(node_name: str, state: dict):
+def _setup_trace(
+    node_name: str,
+    state: dict,
+) -> tuple[float, Any, AuditRepository, AgentTrace | None, contextvars.Token[str | None]]:
     """Create initial trace and set context variable. Returns trace context tuple."""
     start_time = time.time()
     db = SessionLocal()
@@ -89,7 +100,7 @@ def _setup_trace(node_name: str, state: dict):
     return start_time, db, repo, trace, token
 
 
-def _extract_rl_fields(trace, result_state: dict) -> None:
+def _extract_rl_fields(trace: AgentTrace | None, result_state: dict) -> None:
     """Extract RL / Data Flywheel fields from result into trace."""
     if not isinstance(result_state, dict):
         return
@@ -98,7 +109,14 @@ def _extract_rl_fields(trace, result_state: dict) -> None:
             setattr(trace, field, result_state[field])
 
 
-def _finalize_trace(node_name: str, start_time, repo, trace, token, result_state):
+def _finalize_trace(
+    node_name: str,
+    start_time: float,
+    repo: AuditRepository,
+    trace: AgentTrace | None,
+    token: contextvars.Token[str | None],
+    result_state: dict,
+) -> None:
     """Update trace with output snapshot and commit."""
     try:
         execution_time = (time.time() - start_time) * 1000
@@ -116,7 +134,13 @@ def _finalize_trace(node_name: str, start_time, repo, trace, token, result_state
         repo.close()
 
 
-def _handle_trace_error(node_name: str, e, repo, trace, token):
+def _handle_trace_error(
+    node_name: str,
+    e: Exception,
+    repo: AuditRepository,
+    trace: AgentTrace | None,
+    token: contextvars.Token[str | None],
+) -> None:
     """Handle trace error: log, persist error state, clean up."""
     logger.error("TRACING ERROR in %s: %s", node_name, e)
     if trace:
@@ -129,14 +153,14 @@ def _handle_trace_error(node_name: str, e, repo, trace, token):
     repo.close()
 
 
-def trace_node(node_name: str):
+def trace_node(node_name: str) -> Callable:
     """
     Decorator to trace LangGraph nodes.
     Captures input state, output state, execution time, and sets context for LLM logs.
     Supports both sync and async functions.
     """
 
-    def decorator(func):
+    def decorator(func: Callable) -> Callable:
         if inspect.iscoroutinefunction(func):
             return _make_async_wrapper(func, node_name)
         return _make_sync_wrapper(func, node_name)
@@ -144,11 +168,11 @@ def trace_node(node_name: str):
     return decorator
 
 
-def _make_async_wrapper(func, node_name: str):
+def _make_async_wrapper(func: Callable, node_name: str) -> Callable:
     """Create an async tracing wrapper for the given function."""
 
     @functools.wraps(func)
-    async def wrapper_async(state: AgentState, *args, **kwargs):
+    async def wrapper_async(state: AgentState, *args: Any, **kwargs: Any) -> dict:  # noqa: ANN401
         start_time, _db, repo, trace, token = _setup_trace(node_name, state)
         try:
             result_state = await func(state, *args, **kwargs)
@@ -163,11 +187,11 @@ def _make_async_wrapper(func, node_name: str):
     return wrapper_async
 
 
-def _make_sync_wrapper(func, node_name: str):
+def _make_sync_wrapper(func: Callable, node_name: str) -> Callable:
     """Create a sync tracing wrapper for the given function."""
 
     @functools.wraps(func)
-    def wrapper_sync(state: AgentState, *args, **kwargs):
+    def wrapper_sync(state: AgentState, *args: Any, **kwargs: Any) -> dict:  # noqa: ANN401
         start_time, _db, repo, trace, token = _setup_trace(node_name, state)
         try:
             result_state = func(state, *args, **kwargs)

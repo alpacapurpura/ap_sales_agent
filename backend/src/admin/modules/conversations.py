@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 
-def render_conversations_page():
+def render_conversations_page() -> None:
     st.title("💬 Explorador de Conversaciones")
 
     from src.admin.modules._shared import (

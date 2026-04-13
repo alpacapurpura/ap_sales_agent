@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Literal
 from src.modules.brand.application.extraction_service import BrandExtractionService
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from uuid import UUID
 
     from sqlalchemy.orm import Session
@@ -15,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class CopilotBrandAIActionsService:
-    def __init__(self, db: Session, tenant_id: UUID):
+    def __init__(self, db: Session, tenant_id: UUID) -> None:
         self.db = db
         self.tenant_id = tenant_id
         self.brand_extraction_service = BrandExtractionService(db, tenant_id)
@@ -39,7 +40,7 @@ class CopilotBrandAIActionsService:
         dry_run: bool = False,
         include_visuals: bool = False,
         include_assets: bool = False,
-        progress_callback=None,
+        progress_callback: Callable[[int, str], None] | None = None,
         trace: ExtractionTraceCollector | None = None,
     ) -> BrandSettings:
         return await self.brand_extraction_service.extract_all(

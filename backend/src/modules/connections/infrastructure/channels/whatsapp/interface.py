@@ -9,7 +9,7 @@ class WhatsAppProvider(ABC):
     Abstract Strategy for WhatsApp Evolution API Providers.
     """
 
-    def __init__(self, tenant_id: str, base_url: str, api_key: str):
+    def __init__(self, tenant_id: str, base_url: str, api_key: str) -> None:
         self.tenant_id = tenant_id
         self.base_url = base_url
         self.headers = {"apikey": api_key, "Content-Type": "application/json"}

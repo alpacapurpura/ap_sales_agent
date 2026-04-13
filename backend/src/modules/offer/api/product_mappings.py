@@ -82,12 +82,12 @@ class SourceProductOut(BaseModel):
     mapping_id: UUID | None = None
 
 
-@router.get("/product-mappings", response_model=list[ProductMappingOut])
+@router.get("/product-mappings")
 async def list_product_mappings(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     source: Annotated[str, Query()] = "shopify",
-):
+) -> list[ProductMappingOut]:
     """List all external product mappings for the tenant."""
     repo = ExternalProductMappingRepository(db)
     mappings = repo.list_by_source(user.tenant_id, source)
@@ -146,12 +146,12 @@ def _merge_mappings_into_products(
             pdata["is_mapped"] = False
 
 
-@router.get("/product-mappings/source-products", response_model=list[SourceProductOut])
+@router.get("/product-mappings/source-products")
 async def list_source_products(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     source: Annotated[str, Query()] = "shopify",
-):
+) -> list[SourceProductOut]:
     """List ALL products from a source (mapped + unmapped) with metrics."""
     from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
     from src.modules.offer.infrastructure.models.product_model import ProductModel
@@ -204,12 +204,12 @@ async def list_source_products(
     return sorted(product_map.values(), key=lambda x: x["total_price"], reverse=True)
 
 
-@router.get("/product-mappings/unmatched", response_model=list[UnmatchedProductOut])
+@router.get("/product-mappings/unmatched")
 async def list_unmatched_products(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     source: Annotated[str, Query()] = "shopify",
-):
+) -> list[UnmatchedProductOut]:
     """List external products seen in journey_events that have no mapping."""
     from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
 
@@ -260,14 +260,13 @@ async def list_unmatched_products(
 
 @router.post(
     "/product-mappings",
-    response_model=CreateProductMappingOut,
     status_code=201,
 )
 async def create_product_mapping(
     payload: CreateProductMappingIn,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> CreateProductMappingOut:
     """Create a new external product → offer mapping with retroactive backfill."""
     from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
     from src.modules.crm.infrastructure.models.sale_model import SaleModel
@@ -402,7 +401,7 @@ async def delete_product_mapping(
     mapping_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> None:
     """Delete a product mapping."""
     repo = ExternalProductMappingRepository(db)
     deleted = repo.delete_mapping(mapping_id, user.tenant_id)
@@ -445,13 +444,12 @@ class OfferProductDetailOut(BaseModel):
 
 @router.get(
     "/product-mappings/{offer_id}/products-detail",
-    response_model=OfferProductDetailOut,
 )
 async def get_offer_products_detail(
     offer_id: Annotated[UUID, Path()],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> OfferProductDetailOut:
     """Return aggregated product-level metrics for a single offer."""
     from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
     from src.modules.crm.infrastructure.models.sale_model import SaleModel

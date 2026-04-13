@@ -33,7 +33,7 @@ st.markdown(
 )
 
 
-def main():
+def main() -> None:
     st.sidebar.title("🛠️ Panel Admin")
     st.sidebar.caption(f"Env: {os.getenv('PROFILE', 'dev')}")
     st.sidebar.divider()

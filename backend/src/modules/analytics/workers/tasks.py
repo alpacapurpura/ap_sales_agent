@@ -4,8 +4,18 @@ All service imports are done lazily inside function bodies (late binding)
 to avoid import-time issues when dependent modules haven't been executed yet.
 """
 
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING
 from uuid import UUID
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+    from src.modules.connections.infrastructure.models.channel_connection_model import (
+        ChannelConnectionModel,
+    )
 
 import sentry_sdk
 import structlog
@@ -20,7 +30,7 @@ logger = structlog.get_logger(__name__)
 FIBONACCI_BACKOFF = [1, 1, 2, 3, 5, 8, 13]
 
 
-async def _maybe_enqueue_period_extraction(ctx: dict, db, tenant_id: str) -> None:
+async def _maybe_enqueue_period_extraction(ctx: dict, db: Session, tenant_id: str) -> None:
     """Enqueue period extraction for current week+month if period_metrics is empty.
 
     Called after a successful daily ETL to bootstrap period data on first run.
@@ -224,7 +234,7 @@ async def run_initial_load(
         connection_port = ConnectionPortImpl(db)
         etl_service = ETLService(db=db, connection_port=connection_port, cache=cache)
 
-        def on_progress(loaded, total, status):
+        def on_progress(loaded: int, total: int, status: str) -> None:
             if redis:
                 redis.setex(
                     progress_key,
@@ -548,7 +558,7 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
         db.close()
 
 
-def _get_active_mailerlite_connections(db):
+def _get_active_mailerlite_connections(db: Session) -> list[ChannelConnectionModel]:
     """Fetch all active Mailerlite connections."""
     from sqlalchemy import and_, select
 
@@ -567,7 +577,7 @@ def _get_active_mailerlite_connections(db):
     return result.scalars().all()
 
 
-async def _sync_mailerlite_tenants(db, connections) -> int:
+async def _sync_mailerlite_tenants(db: Session, connections: list[ChannelConnectionModel]) -> int:
     """Sync campaign activities for each tenant with a Mailerlite connection."""
     synced_count = 0
     for conn in connections:
@@ -582,7 +592,7 @@ async def _sync_mailerlite_tenants(db, connections) -> int:
     return synced_count
 
 
-async def _sync_single_tenant(db, conn, tenant_id) -> int:
+async def _sync_single_tenant(db: Session, conn: ChannelConnectionModel, tenant_id: UUID) -> int:
     """Sync a single tenant's Mailerlite activities. Returns events synced."""
     from sqlalchemy import and_, select
 

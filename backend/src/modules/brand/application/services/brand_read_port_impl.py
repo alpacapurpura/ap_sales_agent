@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class BrandReadPortImpl(BrandReadPort):
     """Reads brand identity from tenant config_json."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     async def get_industry(self, tenant_id: UUID) -> str | None:

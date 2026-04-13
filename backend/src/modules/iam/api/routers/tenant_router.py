@@ -10,8 +10,8 @@ from src.modules.iam.domain.tenant import Tenant
 router = APIRouter()
 
 
-@router.get("/", response_model=list[Tenant])
-async def list_tenants(db: Annotated[Session, Depends(get_db)]):
+@router.get("/")
+async def list_tenants(db: Annotated[Session, Depends(get_db)]) -> list[Tenant]:
     """
     List all tenants (Admin only - TODO: Add admin protection).
     """
@@ -19,7 +19,7 @@ async def list_tenants(db: Annotated[Session, Depends(get_db)]):
     return service.get_all_tenants()
 
 
-@router.post("/", response_model=Tenant)
+@router.post("/")
 async def create_tenant(
     name: str,
     slug: str,
@@ -27,7 +27,7 @@ async def create_tenant(
     agent_persona: str,
     db: Annotated[Session, Depends(get_db)],
     can_use_keys: bool = False,
-):
+) -> Tenant:
     """
     Create a new tenant.
     """

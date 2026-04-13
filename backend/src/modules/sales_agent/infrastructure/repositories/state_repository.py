@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import select, update
@@ -17,7 +18,7 @@ class StateRepository:
     for session timeout scenarios.  All queries enforce tenant isolation.
     """
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def get_active_checkpoint(
@@ -42,7 +43,7 @@ class StateRepository:
         self,
         tenant_id: UUID,
         lead_id: UUID,
-        **fields,
+        **fields: Any,  # noqa: ANN401 — dynamic checkpoint fields
     ) -> AgentStateCheckpointModel:
         """Create or update the active checkpoint for a tenant + lead."""
         existing = self.get_active_checkpoint(tenant_id, lead_id)

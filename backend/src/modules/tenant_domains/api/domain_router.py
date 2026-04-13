@@ -23,7 +23,7 @@ logger = structlog.get_logger()
 router = APIRouter()
 
 
-def _to_response(domain) -> DomainResponse:
+def _to_response(domain: object) -> DomainResponse:
     return DomainResponse(
         id=domain.id,
         tenant_id=domain.tenant_id,
@@ -41,12 +41,12 @@ def _to_response(domain) -> DomainResponse:
     )
 
 
-@router.post("/", response_model=DomainResponse, status_code=201)
+@router.post("/", status_code=201)
 async def create_domain(
     body: DomainCreate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> DomainResponse:
     service = DomainService(db)
     try:
         if body.domain_type == DomainType.PLATFORM:
@@ -82,22 +82,22 @@ async def create_domain(
     return _to_response(domain)
 
 
-@router.get("/", response_model=list[DomainResponse])
+@router.get("/")
 async def list_domains(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[DomainResponse]:
     service = DomainService(db)
     domains = service.list_domains(tenant_id=user.tenant_id)
     return [_to_response(d) for d in domains]
 
 
-@router.get("/{domain_id}", response_model=DomainResponse)
+@router.get("/{domain_id}")
 async def get_domain(
     domain_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> DomainResponse:
     service = DomainService(db)
     domain = service.get_domain(domain_id=domain_id, tenant_id=user.tenant_id)
     if not domain:
@@ -105,13 +105,13 @@ async def get_domain(
     return _to_response(domain)
 
 
-@router.patch("/{domain_id}", response_model=DomainResponse)
+@router.patch("/{domain_id}")
 async def set_primary(
     domain_id: UUID,
     body: DomainSetPrimary,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> DomainResponse:
     if not body.is_primary:
         raise HTTPException(
             status_code=400,
@@ -138,12 +138,12 @@ async def delete_domain(
         raise HTTPException(status_code=404, detail=str(e)) from e
 
 
-@router.post("/{domain_id}/verify", response_model=DomainResponse)
+@router.post("/{domain_id}/verify")
 async def verify_domain(
     domain_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> DomainResponse:
     service = DomainService(db)
     try:
         domain = service.verify_domain(domain_id=domain_id, tenant_id=user.tenant_id)
@@ -158,12 +158,12 @@ async def verify_domain(
     return _to_response(domain)
 
 
-@router.get("/{domain_id}/instructions", response_model=DomainInstructionsResponse)
+@router.get("/{domain_id}/instructions")
 async def get_domain_instructions(
     domain_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> DomainInstructionsResponse:
     """Return DNS setup instructions for a custom domain."""
     service = DomainService(db)
     domain = service.get_domain_instructions(

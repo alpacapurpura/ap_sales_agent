@@ -41,7 +41,7 @@ class BrandStrategy(BaseEntity):
 
     @model_validator(mode="before")
     @classmethod
-    def migrate_legacy_fields(cls, data: Any) -> Any:
+    def migrate_legacy_fields(cls, data: Any) -> Any:  # noqa: ANN401
         if isinstance(data, dict):
             # Migrar methodology_pillars_legacy -> methodology_pillars
             pillars = data.get("methodology_pillars")

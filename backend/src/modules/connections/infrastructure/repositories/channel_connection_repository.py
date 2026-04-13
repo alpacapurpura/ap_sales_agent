@@ -17,7 +17,7 @@ class ChannelConnectionRepository:
     Credentials are encrypted/decrypted transparently by the EncryptedJSON column type.
     """
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     # --- Mapping ---

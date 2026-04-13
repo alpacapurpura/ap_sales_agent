@@ -34,8 +34,8 @@ router = APIRouter()
 # --- Endpoints ---
 
 
-@router.get("/booking-links/{token}", response_model=BookingLinkResolveResponse)
-def resolve_booking_link(token: str, db: Annotated[Session, Depends(get_db)]):
+@router.get("/booking-links/{token}")
+def resolve_booking_link(token: str, db: Annotated[Session, Depends(get_db)]) -> BookingLinkResolveResponse:
     stmt = select(BookingLink).where(
         BookingLink.token == token,
         BookingLink.status == "ACTIVE",
@@ -64,8 +64,8 @@ def resolve_booking_link(token: str, db: Annotated[Session, Depends(get_db)]):
     )
 
 
-@router.get("/resolve/{token}", response_model=LinkResolveResponse)
-def resolve_link(token: str, db: Annotated[Session, Depends(get_db)]):
+@router.get("/resolve/{token}")
+def resolve_link(token: str, db: Annotated[Session, Depends(get_db)]) -> LinkResolveResponse:
     service = LinkService(db)
     link = service.resolve_link(token)
 
@@ -86,13 +86,13 @@ def resolve_link(token: str, db: Annotated[Session, Depends(get_db)]):
     )
 
 
-@router.get("/{token}/slots", response_model=SlotsResponse)
+@router.get("/{token}/slots")
 def get_public_slots(
     token: str,
     start_date: datetime.date,
     end_date: datetime.date,
     db: Annotated[Session, Depends(get_db)],
-):
+) -> SlotsResponse:
     """
     Public endpoint to fetch slots via token authentication.
     """
@@ -114,12 +114,12 @@ def get_public_slots(
 # --- Event Type Public Endpoints ---
 
 
-@router.get("/event-types/by-id/{event_slug}", response_model=EventTypeResolveResponse)
+@router.get("/event-types/by-id/{event_slug}")
 def resolve_event_type_by_tenant_id(
     event_slug: str,
     db: Annotated[Session, Depends(get_db)],
     x_tenant_id: Annotated[str | None, Header(alias="X-Tenant-ID")] = None,
-):
+) -> EventTypeResolveResponse:
     """
     Resolve an event type using X-Tenant-ID header (UUID).
     Used by booking pages under custom domains where tenant_slug is not in the URL.
@@ -160,13 +160,12 @@ def resolve_event_type_by_tenant_id(
 
 @router.get(
     "/event-types/{tenant_slug}/{event_slug}",
-    response_model=EventTypeResolveResponse,
 )
 def resolve_event_type(
     tenant_slug: str,
     event_slug: str,
     db: Annotated[Session, Depends(get_db)],
-):
+) -> EventTypeResolveResponse:
     stmt = select(Tenant).where(Tenant.slug == tenant_slug)
     tenant = db.execute(stmt).scalars().first()
     if not tenant:
@@ -188,7 +187,6 @@ def resolve_event_type(
 
 @router.get(
     "/event-types/{tenant_slug}/{event_slug}/slots",
-    response_model=SlotsResponse,
 )
 def get_event_type_slots(
     tenant_slug: str,
@@ -196,7 +194,7 @@ def get_event_type_slots(
     start_date: datetime.date,
     end_date: datetime.date,
     db: Annotated[Session, Depends(get_db)],
-):
+) -> SlotsResponse:
     stmt = select(Tenant).where(Tenant.slug == tenant_slug)
     tenant = db.execute(stmt).scalars().first()
     if not tenant:
@@ -217,14 +215,13 @@ def get_event_type_slots(
 
 @router.post(
     "/event-types/{tenant_slug}/{event_slug}/book",
-    response_model=BookingConfirmationResponse,
 )
 def book_event_type(
     tenant_slug: str,
     event_slug: str,
     payload: BookingRequest,
     db: Annotated[Session, Depends(get_db)],
-):
+) -> BookingConfirmationResponse:
     tenant_stmt = select(Tenant).where(Tenant.slug == tenant_slug)
     tenant = db.execute(tenant_stmt).scalars().first()
     if not tenant:
@@ -291,12 +288,12 @@ def book_event_type(
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@router.post("/{token}/book", response_model=BookingConfirmationResponse)
+@router.post("/{token}/book")
 def public_book_meeting(
     token: str,
     payload: BookingRequest,
     db: Annotated[Session, Depends(get_db)],
-):
+) -> BookingConfirmationResponse:
     link_service = LinkService(db)
     link = link_service.resolve_link(token)
 

@@ -12,16 +12,20 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from uuid import UUID
 
     from src.modules.analytics.domain.period_config import TenantPeriodConfig
+    from src.modules.analytics.infrastructure.models.staging_metrics_model import (
+        StagingMetricModel,
+    )
 
 logger = logging.getLogger(__name__)
 
 
 def transform_staging_to_official(
-    staging_rows,
+    staging_rows: list[StagingMetricModel],
     cost_type_fn: Callable[[str, str], str | None],
-    extraction_run_id=None,
+    extraction_run_id: UUID | None = None,
     stage_slug: str = "attraction",
     period_config: TenantPeriodConfig | None = None,
 ) -> list[dict]:

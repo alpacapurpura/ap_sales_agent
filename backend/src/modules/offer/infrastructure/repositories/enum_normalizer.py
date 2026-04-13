@@ -66,7 +66,7 @@ def normalize_guarantee_type(raw: str | None) -> str:
         return value
 
 
-def normalize_archetype(raw: str, offer_id=None) -> OfferArchetype:
+def normalize_archetype(raw: str, offer_id: object = None) -> OfferArchetype:
     try:
         return OfferArchetype(raw)
     except ValueError:

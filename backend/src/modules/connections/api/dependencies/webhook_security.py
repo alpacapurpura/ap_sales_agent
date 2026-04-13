@@ -10,7 +10,7 @@ from src.core.config import settings
 logger = structlog.get_logger()
 
 
-async def verify_shopify_signature(request: Request):
+async def verify_shopify_signature(request: Request) -> bool:
     """
     Verifica la firma HMAC-SHA256 de Shopify.
     Header: X-Shopify-Hmac-Sha256
@@ -54,7 +54,7 @@ async def verify_shopify_signature(request: Request):
     return True
 
 
-async def verify_meta_signature(request: Request):
+async def verify_meta_signature(request: Request) -> bool:
     """
     Verifica la firma HMAC-SHA256 de Meta (Facebook/Instagram).
     Header: X-Hub-Signature-256

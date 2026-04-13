@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
@@ -56,7 +57,7 @@ _ASSET_CHANNEL_TYPES = [
 
 def _upsert_asset(
     repo: ChannelConnectionRepository,
-    tenant_id,
+    tenant_id: UUID,
     channel_type: ChannelType,
     asset_id: str,
     config: dict,
@@ -78,7 +79,7 @@ def _upsert_asset(
         )
 
 
-def _sync_pages(repo, tenant_id, raw: dict, master: ChannelConnectionModel) -> None:
+def _sync_pages(repo: ChannelConnectionRepository, tenant_id: UUID, raw: dict, master: ChannelConnectionModel) -> None:
     for page in raw.get("pages", []):
         page_id = page["page_id"]
         page_token = page.pop("page_access_token", None)
@@ -104,8 +105,8 @@ def _sync_pages(repo, tenant_id, raw: dict, master: ChannelConnectionModel) -> N
 
 
 def _sync_instagram_accounts(
-    repo,
-    tenant_id,
+    repo: ChannelConnectionRepository,
+    tenant_id: UUID,
     raw: dict,
     master: ChannelConnectionModel,
 ) -> None:
@@ -133,8 +134,8 @@ def _sync_instagram_accounts(
 
 
 def _sync_ad_accounts(
-    repo,
-    tenant_id,
+    repo: ChannelConnectionRepository,
+    tenant_id: UUID,
     raw: dict,
     master: ChannelConnectionModel,
 ) -> None:
@@ -150,7 +151,7 @@ def _sync_ad_accounts(
         _upsert_asset(repo, tenant_id, ChannelType.META_ADS_ACCOUNT, ad_id, config, {})
 
 
-def _sync_pixels(repo, tenant_id, raw: dict, master: ChannelConnectionModel) -> None:
+def _sync_pixels(repo: ChannelConnectionRepository, tenant_id: UUID, raw: dict, master: ChannelConnectionModel) -> None:
     for px in raw.get("pixels", []):
         px_id = px["pixel_id"]
         config = {
@@ -163,8 +164,8 @@ def _sync_pixels(repo, tenant_id, raw: dict, master: ChannelConnectionModel) -> 
 
 
 def _sync_whatsapp_accounts(
-    repo,
-    tenant_id,
+    repo: ChannelConnectionRepository,
+    tenant_id: UUID,
     raw: dict,
     master: ChannelConnectionModel,
 ) -> None:
@@ -192,7 +193,7 @@ def _sync_whatsapp_accounts(
 
 def _cleanup_stale_assets(
     repo: ChannelConnectionRepository,
-    tenant_id,
+    tenant_id: UUID,
     raw: dict,
 ) -> None:
     """Remove assets from DB that Meta no longer returns (e.g. permissions revoked)."""
@@ -222,7 +223,7 @@ def _cleanup_stale_assets(
 async def _sync_assets_for_tenant(
     adapter: MetaAdapter,
     repo: ChannelConnectionRepository,
-    tenant_id,
+    tenant_id: UUID,
     master: ChannelConnectionModel,
 ) -> tuple[dict, list[str]]:
     """Fetch business assets from Meta API and store them.
@@ -336,7 +337,7 @@ def _flatten_ad_account(ad: ChannelConnectionModel | None) -> tuple[dict, dict]:
 
 def _flatten_asset_ids_to_master(
     repo: ChannelConnectionRepository,
-    tenant_id,
+    tenant_id: UUID,
     master: ChannelConnectionModel,
 ) -> dict:
     """Resolve primary assets and flatten their IDs into the master META connection."""
@@ -417,7 +418,7 @@ async def verify_webhook(
     mode: Annotated[str, Query(alias="hub.mode")],
     token: Annotated[str, Query(alias="hub.verify_token")],
     challenge: Annotated[str, Query(alias="hub.challenge")],
-):
+) -> int:
     verify_token = settings.META_VERIFY_TOKEN
     if not verify_token:
         raise HTTPException(
@@ -434,7 +435,7 @@ async def webhook_event(
     payload: Annotated[dict, Body()],
     verified: Annotated[bool, Depends(verify_meta_signature)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str]:
     try:
         entry = payload.get("entry", [])[0]
         account_id = entry.get("id")
@@ -492,7 +493,7 @@ async def configure(
     data: MetaConfigRequest,
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str]:
     """Save Meta app credentials (app_id / app_secret) for this tenant."""
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
 
@@ -525,7 +526,7 @@ async def configure(
 async def get_auth_url(
     user: Annotated[User, Depends(get_current_user)],
     redirect_uri: str | None = None,
-):
+) -> dict[str, str]:
     if not redirect_uri:
         raise HTTPException(status_code=400, detail="Redirect URI is required")
 
@@ -546,7 +547,7 @@ async def oauth_callback(
     redirect_uri: Annotated[str, Body(embed=True)],
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str | bool | dict[str, str]]:
     logger.info(
         "meta_oauth_callback_start",
         tenant_id=str(user.tenant_id),
@@ -702,7 +703,7 @@ async def set_primary_asset(
     body: SetPrimaryAssetRequest,
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str]:
     """Set the primary asset for analytics tracking."""
     type_map = {
         "facebook_page": "primary_page_id",
@@ -746,7 +747,7 @@ async def get_status(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     debug: Annotated[bool, Query(description="Include diagnostic info in response")] = False,
-):
+) -> dict:
     # Platform credentials from .env — the user never configures these
     is_configured = bool(settings.META_APP_ID and settings.META_APP_SECRET)
 
@@ -793,7 +794,7 @@ async def get_status(
 async def disconnect(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str]:
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
     if connection:
         # Deactivate all child asset connections first
@@ -817,7 +818,7 @@ async def disconnect(
 async def test_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str | dict[str, str] | None]:
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
 
     if not connection or not connection.credentials:
@@ -846,11 +847,11 @@ async def test_connection(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/assets", response_model=MetaAssetsResponse)
+@router.get("/assets")
 async def get_assets(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> MetaAssetsResponse:
     """Returns the list of Meta business assets stored in the DB for this tenant."""
     existing = repo.get_all_by_tenant_and_types(user.tenant_id, _ASSET_CHANNEL_TYPES)
     _by_id: dict[str, ChannelConnectionModel] = {
@@ -939,11 +940,11 @@ async def get_assets(
     )
 
 
-@router.post("/assets/sync", response_model=MetaAssetsResponse)
+@router.post("/assets/sync")
 async def sync_assets(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> MetaAssetsResponse:
     """
     Pulls business assets from Meta API and upserts them in the DB.
     Preserves is_active state for existing assets.
@@ -995,7 +996,7 @@ async def toggle_asset(
     body: ToggleAssetRequest,
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str | bool]:
     """Activates or deactivates a specific Meta asset without revoking the master OAuth."""
     type_map = {ct.value: ct for ct in _ASSET_CHANNEL_TYPES}
     if channel_type not in type_map:

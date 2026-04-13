@@ -65,7 +65,7 @@ def render_tenant_selector(key: str, allow_all: bool = True) -> UUID | None:
     return UUID(tenants[idx]["id"])
 
 
-def get_tenant_name(tenant_id) -> str:
+def get_tenant_name(tenant_id: object) -> str:
     """Lookup tenant name by UUID. Returns str(uuid)[:8] as fallback."""
     tenant_id_str = str(tenant_id)
     for t in get_tenant_options():

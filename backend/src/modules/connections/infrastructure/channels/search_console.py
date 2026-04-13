@@ -25,10 +25,10 @@ class SearchConsoleAdapter:
     from the Google Workspace OAuth flow.
     """
 
-    def __init__(self, credentials_data: dict[str, Any]):
+    def __init__(self, credentials_data: dict[str, Any]) -> None:
         self.creds = Credentials.from_authorized_user_info(credentials_data, SCOPES)
 
-    def _get_service(self):
+    def _get_service(self) -> object:
         return build("searchconsole", "v1", credentials=self.creds)
 
     async def query_analytics(

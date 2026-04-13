@@ -10,7 +10,7 @@ from src.modules.sales_agent.infrastructure.repositories.message_repository impo
 
 
 class MessageService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repository = MessageRepository(db)
 

@@ -12,7 +12,7 @@ logger = structlog.get_logger()
 
 
 class BrandRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def get_settings(self, tenant_id: UUID) -> BrandSettings:

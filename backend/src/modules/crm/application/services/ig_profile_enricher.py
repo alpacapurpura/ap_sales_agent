@@ -27,7 +27,7 @@ _IG_PROFILE_FIELDS = "name,username,profile_pic,follower_count,is_user_follow_bu
 class InstagramProfileEnricher:
     """Enriches a CustomerProfile with data from the Instagram User Profile API."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     async def enrich(

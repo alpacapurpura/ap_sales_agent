@@ -162,7 +162,7 @@ class BrandExtractionService:
     _truncate_at_page_boundary = staticmethod(truncate_at_page_boundary)
     _is_empty = staticmethod(is_empty)
 
-    def __init__(self, db: Session, tenant_id: UUID):
+    def __init__(self, db: Session, tenant_id: UUID) -> None:
         self.db = db
         self.tenant_id = tenant_id
         self.repository = BrandRepository(db)

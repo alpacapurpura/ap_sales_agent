@@ -14,7 +14,7 @@ from src.modules.crm.infrastructure.repositories.customer_repository import (
 
 
 class CustomerService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repository = CustomerRepository(db)
         self.event_repo = JourneyEventRepository(db)

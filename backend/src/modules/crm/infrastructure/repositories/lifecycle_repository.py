@@ -20,7 +20,7 @@ from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
 class LifecycleRepository:
     """CRUD for lifecycle_transitions table."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def create_transition(

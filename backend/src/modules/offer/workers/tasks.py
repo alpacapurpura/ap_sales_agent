@@ -9,7 +9,7 @@ from uuid import UUID
 logger = logging.getLogger(__name__)
 
 
-def _fail_progress(redis, progress_key: str, error_msg: str, log_detail: str):
+def _fail_progress(redis: object, progress_key: str, error_msg: str, log_detail: str) -> None:
     logger.error("Offer extraction task error: %s", log_detail)
     if redis:
         redis.setex(
@@ -28,7 +28,7 @@ async def run_offer_extraction(
     text: str | None,
     mode: str,
     update_instructions: str | None = None,
-    **_extra_kwargs,
+    **_extra_kwargs: object,
 ) -> dict:
     redis = ctx.get("redis_cache")
     progress_key = f"offer_extract:{tenant_id}:{job_id}"
@@ -54,7 +54,7 @@ async def run_offer_extraction(
 
     started_at = datetime.now(UTC).isoformat()
 
-    def on_progress(progress_pct: int, stage: str):
+    def on_progress(progress_pct: int, stage: str) -> None:
         if redis:
             redis.setex(
                 progress_key,

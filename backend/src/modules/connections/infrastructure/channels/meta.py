@@ -294,7 +294,7 @@ class MetaAdapter:
         app_id: str | None = None,
         app_secret: str | None = None,
         access_token: str | None = None,
-    ):
+    ) -> None:
         self.app_id = app_id or settings.META_APP_ID
         self.app_secret = app_secret or settings.META_APP_SECRET
         self.access_token = access_token
@@ -306,7 +306,7 @@ class MetaAdapter:
         if self.access_token:
             self._init_api()
 
-    def _init_api(self):
+    def _init_api(self) -> None:
         """Create a per-instance API object. Never call FacebookAdsApi.init()."""
         try:
             session = FacebookSession(
@@ -414,7 +414,7 @@ class MetaAdapter:
 
         api = self._api_instance  # Capture for closure — ensures tenant isolation
 
-        def _get_profile():
+        def _get_profile() -> User:
             me = User(fbid="me", api=api)
             return me.api_get(fields=["id", "name", "email"])
 

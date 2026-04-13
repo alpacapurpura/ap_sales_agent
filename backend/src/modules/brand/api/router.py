@@ -17,11 +17,11 @@ logger = structlog.get_logger()
 router = APIRouter()
 
 
-@router.get("", response_model=BrandSettings)
+@router.get("")
 async def get_brand_settings(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> BrandSettings:
     """
     Get Global Brand Settings for the user's tenant.
     """
@@ -58,12 +58,12 @@ async def get_brand_settings(
     return settings
 
 
-@router.patch("", response_model=BrandSettings)
+@router.patch("")
 async def update_brand_settings(
     settings: BrandSettings,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> BrandSettings:
     """
     Update Global Brand Settings for the user's tenant.
     """

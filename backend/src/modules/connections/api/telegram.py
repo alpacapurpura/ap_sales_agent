@@ -28,7 +28,7 @@ orchestrator = ChatOrchestrator()
 
 
 @router.post("/webhooks/telegram")
-async def telegram_webhook_legacy(request: Request, background_tasks: BackgroundTasks):
+async def telegram_webhook_legacy(request: Request, background_tasks: BackgroundTasks) -> dict[str, str]:
     """
     Legacy Global Webhook. Uses settings.TELEGRAM_BOT_TOKEN.
     """
@@ -43,7 +43,7 @@ async def telegram_webhook_tenant(
     request: Request,
     background_tasks: BackgroundTasks,
     db: Annotated[Session, Depends(get_db)],
-):
+) -> dict[str, str]:
     """
     Multi-Tenant Webhook. Resolves bot token from Tenant configuration.
     """
@@ -60,11 +60,11 @@ async def telegram_webhook_tenant(
 # --- Endpoints ---
 
 
-@router.get("/status", response_model=ChannelStatusResponse)
+@router.get("/status")
 async def get_telegram_status(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> ChannelStatusResponse:
     """
     Get current Telegram connection status for the tenant.
     """
@@ -77,13 +77,13 @@ async def get_telegram_status(
     return ChannelStatusResponse(**status_data)
 
 
-@router.post("/connect", response_model=TelegramConnectResponse)
+@router.post("/connect")
 async def connect_telegram(
     payload: TelegramConnectRequest,
     background_tasks: BackgroundTasks,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> TelegramConnectResponse:
     """
     Connect a Telegram Bot to the tenant.
     Validates token, sets webhook, and saves to DB.
@@ -107,7 +107,7 @@ async def connect_telegram(
 async def test_telegram_connection(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> ConnectionTestResponse | dict[str, str]:
     """
     Test the current Telegram connection.
     """
@@ -126,7 +126,7 @@ async def test_telegram_connection(
 async def disconnect_telegram(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> dict[str, str]:
     """
     Disconnect Telegram: Delete Webhook and deactivate in DB.
     """

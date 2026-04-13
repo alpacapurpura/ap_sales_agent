@@ -13,10 +13,10 @@ class WebhookAdapter:
     Collects responses in-memory to return them in the HTTP response.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.responses: list[str] = []
 
-    async def send_message(self, message: OutgoingMessage):
+    async def send_message(self, message: OutgoingMessage) -> None:
         """
         Stores the message content.
         """
@@ -27,14 +27,14 @@ class WebhookAdapter:
         )
         self.responses.append(message.text)
 
-    async def set_typing_status(self, user_id: str):
+    async def set_typing_status(self, user_id: str) -> None:
         """
         No-op for API, or could potentially send an intermediate event if we supported streaming.
         For now, just log.
         """
         logger.debug("webhook_adapter_typing", user_id=user_id)
 
-    def normalize_payload(self, payload: Any):
+    def normalize_payload(self, payload: Any) -> None:  # noqa: ANN401 — webhook payload structure varies
         """
         Not used in the synchronous flow, but kept for interface consistency.
         """

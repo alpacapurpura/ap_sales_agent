@@ -18,7 +18,7 @@ from src.shared.domain.enums import FinancialCapacity
 
 
 class OfferService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repository = OfferRepository(db)
 

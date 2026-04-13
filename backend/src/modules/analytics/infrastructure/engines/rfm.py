@@ -9,7 +9,7 @@ from src.modules.crm.infrastructure.repositories.customer_repository import (
 
 
 class RFMCalculationEngine:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.repository = JourneyEventRepository(db)
 
     def calculate_rfm(self, profile_id: UUID) -> dict[str, float]:

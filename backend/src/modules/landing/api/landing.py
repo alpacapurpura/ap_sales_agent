@@ -14,12 +14,12 @@ from src.modules.landing.schemas import RegenerateBlockRequest, RegenerateBlockR
 router = APIRouter()
 
 
-@router.post("/", response_model=LandingPage)
+@router.post("/")
 async def create_landing(
     payload: dict[str, Any],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> LandingPage:
     service = LandingService(db)
     slug = payload.get("slug")
     offer_id = payload.get("offer_id")
@@ -33,21 +33,21 @@ async def create_landing(
     )
 
 
-@router.get("/", response_model=list[LandingPage])
+@router.get("/")
 def list_landings(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[LandingPage]:
     service = LandingService(db)
     return service.list_landings(user.tenant_id)
 
 
-@router.get("/{landing_id}", response_model=LandingPage)
+@router.get("/{landing_id}")
 def get_landing(
     landing_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> LandingPage:
     service = LandingService(db)
     try:
         landing_uuid = UUID(landing_id)
@@ -64,12 +64,12 @@ def get_landing(
     return landing
 
 
-@router.get("/offer/{offer_id}", response_model=LandingPage)
+@router.get("/offer/{offer_id}")
 def get_landing_by_offer(
     offer_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> LandingPage:
     service = LandingService(db)
     try:
         offer_uuid = UUID(offer_id)
@@ -82,13 +82,13 @@ def get_landing_by_offer(
     return landing
 
 
-@router.patch("/offer/{offer_id}", response_model=LandingPage)
+@router.patch("/offer/{offer_id}")
 def update_landing_by_offer(
     offer_id: str,
     payload: dict[str, Any],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> LandingPage:
     service = LandingService(db)
     try:
         offer_uuid = UUID(offer_id)
@@ -105,13 +105,13 @@ def update_landing_by_offer(
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
-@router.patch("/{landing_id}", response_model=LandingPage)
+@router.patch("/{landing_id}")
 def update_landing(
     landing_id: str,
     payload: dict[str, Any],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> LandingPage:
     service = LandingService(db)
     try:
         landing_uuid = UUID(landing_id)
@@ -136,12 +136,12 @@ def update_landing(
 # --- New Endpoints ---
 
 
-@router.get("/{offer_id}/landing", response_model=LandingPage)
+@router.get("/{offer_id}/landing")
 def get_offer_landing(
     offer_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> LandingPage:
     service = LandingService(db)
     landing = service.get_landing_by_offer(user.tenant_id, offer_id)
     if not landing:
@@ -149,12 +149,12 @@ def get_offer_landing(
     return landing
 
 
-@router.post("/{offer_id}/landing/generate", response_model=LandingPage)
+@router.post("/{offer_id}/landing/generate")
 def generate_offer_landing(
     offer_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> LandingPage:
     service = LandingService(db)
     try:
         return service.generate_landing_for_offer(user.tenant_id, offer_id)
@@ -164,13 +164,13 @@ def generate_offer_landing(
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@router.put("/{offer_id}/landing", response_model=LandingPage)
+@router.put("/{offer_id}/landing")
 def update_offer_landing(
     offer_id: UUID,
     config: dict[str, Any],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> LandingPage:
     service = LandingService(db)
     try:
         return service.update_landing_for_offer(user.tenant_id, offer_id, config)
@@ -180,16 +180,13 @@ def update_offer_landing(
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
-@router.post(
-    "/{offer_id}/landing/ai/regenerate-block",
-    response_model=RegenerateBlockResponse,
-)
+@router.post("/{offer_id}/landing/ai/regenerate-block")
 def regenerate_block(
     offer_id: UUID,
     payload: RegenerateBlockRequest,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> RegenerateBlockResponse:
     service = LandingService(db)
     # The offer_id is part of the path, we could use it to validate ownership if needed.
     # For now, we assume the user context is enough for this stateless operation or future checks.

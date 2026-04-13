@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -160,7 +162,7 @@ class Offer(BaseEntity):
         return self.deleted_at is not None
 
     @model_validator(mode="after")
-    def validate_consistency(self):
+    def validate_consistency(self) -> Offer:
         if self.delivery_model is None:
             self.delivery_model = ARCHETYPE_DEFAULT_DELIVERY.get(self.archetype)
 

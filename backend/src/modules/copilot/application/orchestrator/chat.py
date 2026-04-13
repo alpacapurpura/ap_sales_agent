@@ -17,6 +17,9 @@ from src.modules.copilot.application.orchestrator.graph import copilot_graph
 from src.modules.copilot.application.orchestrator.state import (
     create_initial_copilot_state,
 )
+from src.modules.copilot.infrastructure.models.conversation_model import (
+    CopilotConversationModel,
+)
 from src.modules.copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
 )
@@ -34,7 +37,7 @@ class CopilotOrchestrator:
     persists history, and streams SSE events to the frontend.
     """
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.conv_repo = ConversationRepository(db)
 
@@ -233,7 +236,7 @@ class CopilotOrchestrator:
         message: str,
         full_response: str,
         accumulated_messages: list,
-        existing_conv,
+        existing_conv: CopilotConversationModel,
     ) -> None:
         """Persist conversation messages to DB and Redis cache."""
         if not full_response and not accumulated_messages:
@@ -259,7 +262,7 @@ class CopilotOrchestrator:
         self.db.commit()
         self._cache_history(conv_id, tenant_id, new_messages)
 
-    def _load_history(self, conv_id: str, tenant_id: UUID, conv_model) -> list:
+    def _load_history(self, conv_id: str, tenant_id: UUID, conv_model: CopilotConversationModel) -> list:
         """Load conversation history, preferring Redis cache."""
         # Try Redis first
         redis_key = f"{REDIS_CONV_PREFIX}{conv_id}"

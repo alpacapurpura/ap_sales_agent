@@ -272,7 +272,7 @@ class SalesStageService:
         cache: MetricsCache | None = None,
         connection_port: ConnectionPort | None = None,
         offer_port: OfferReadPort | None = None,
-    ):
+    ) -> None:
         self.db = db
         self.cache = cache
         self.connection_port = connection_port

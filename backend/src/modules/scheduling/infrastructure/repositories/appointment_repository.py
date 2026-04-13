@@ -12,7 +12,7 @@ from src.modules.scheduling.infrastructure.models.appointment_model import (
 
 
 class AppointmentRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def _to_domain(self, model: AppointmentModel) -> Appointment:

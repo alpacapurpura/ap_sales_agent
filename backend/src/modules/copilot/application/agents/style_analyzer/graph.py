@@ -1,4 +1,5 @@
 from langgraph.graph import END, START, StateGraph
+from langgraph.graph.state import CompiledStateGraph
 
 from src.modules.copilot.application.agents.style_analyzer.nodes import (
     node_architect,
@@ -12,7 +13,7 @@ from src.modules.copilot.application.agents.style_analyzer.nodes_research import
 from src.modules.copilot.application.agents.style_analyzer.state import OnboardingState
 
 
-def create_onboarding_graph():
+def create_onboarding_graph() -> CompiledStateGraph:
     workflow = StateGraph(OnboardingState)
 
     # Add Nodes

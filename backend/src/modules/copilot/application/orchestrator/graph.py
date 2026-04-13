@@ -11,6 +11,7 @@ The system prompt is enriched with a completion snapshot and module list.
 """
 
 from typing import Literal
+from uuid import UUID
 
 import structlog
 from langchain_core.messages import AIMessage, SystemMessage
@@ -32,7 +33,7 @@ logger = structlog.get_logger()
 # ── Nodes ────────────────────────────────────────────────────────────
 
 
-def _get_completion_snapshot(tenant_id) -> str:
+def _get_completion_snapshot(tenant_id: UUID) -> str:
     """Build a quick completion snapshot for the system prompt.
 
     Uses the awareness tool logic directly (not via tool invocation)
@@ -113,7 +114,7 @@ def _get_completion_snapshot(tenant_id) -> str:
     return "\n\n".join(lines) if lines else ""
 
 
-def _get_behavior_summary(tenant_id, user_id) -> str:
+def _get_behavior_summary(tenant_id: UUID, user_id: UUID) -> str:
     """Build a user behavior summary from copilot events for the system prompt."""
     from src.core.database import SessionLocal
     from src.modules.copilot.infrastructure.repositories.event_repository import (

@@ -33,7 +33,7 @@ from src.shared.domain.enums import LifecycleStage, SaleStatus
 class EvangelizationRepository:
     """CRM aggregate queries for evangelization (Stage 7) metrics."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     async def get_evangelization_data(

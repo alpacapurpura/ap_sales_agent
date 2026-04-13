@@ -35,6 +35,7 @@ from src.modules.advertising.infrastructure.repositories.association_repository 
 )
 from src.modules.advertising.infrastructure.repositories.meta_catalog_repository import (
     CampaignSnapshot,
+    MetaCatalog,
     MetaCatalogRepository,
 )
 from src.modules.advertising.infrastructure.repositories.metrics_repository import (
@@ -197,7 +198,7 @@ class HealthCheckService:
 
     def _collect_unassigned(
         self,
-        catalog,
+        catalog: MetaCatalog,
         assoc_by_target: dict[tuple[str, str], AdOfferAssociationModel],
     ) -> list[UnassignedTargetDTO]:
         out: list[UnassignedTargetDTO] = []
@@ -322,10 +323,10 @@ class HealthCheckService:
     def _derive_status(
         self,
         *,
-        active_campaigns_health,
-        offers_coverage,
-        unassigned,
-        recommendations,
+        active_campaigns_health: list[CampaignHealthDTO],
+        offers_coverage: list[OfferCoverageDTO],
+        unassigned: list[UnassignedTargetDTO],
+        recommendations: list[RecommendationDTO],
     ) -> tuple[str, str]:
         critical = any(r.severity == "critical" for r in recommendations)
         warnings = [r for r in recommendations if r.severity == "warning"]

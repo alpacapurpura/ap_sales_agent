@@ -10,7 +10,7 @@ from src.shared.domain.enums import ChannelType
 
 
 class ChannelService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repository = ChannelRepository(db)
 

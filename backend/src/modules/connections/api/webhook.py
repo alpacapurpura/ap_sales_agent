@@ -44,7 +44,7 @@ def get_tenant_by_secret(
 async def webhook_chat(
     payload: Annotated[dict, Body()],
     tenant: Annotated[Tenant, Depends(get_tenant_by_secret)],
-):
+) -> dict[str, str | dict[str, str]]:
     """
     Generic Webhook Endpoint for AI Agent.
 

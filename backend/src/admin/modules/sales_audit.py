@@ -9,7 +9,7 @@ from src.modules.sales_agent.infrastructure.memory.audit_repository import (
 )
 
 
-def _format_lead_option(lead_tuple):
+def _format_lead_option(lead_tuple: tuple) -> str:
     # Unpack tuple: first element is LeadModel, second is last_activity
     lead = lead_tuple[0]
     last_act = lead_tuple[1]
@@ -30,7 +30,7 @@ def _format_lead_option(lead_tuple):
     return f"{name} ({channel}) - {date_str}"
 
 
-def render_sales_audit_page():
+def render_sales_audit_page() -> None:
     st.title("🔍 Auditoría Sales Agent")
     st.markdown(
         "Visualiza las conversaciones de los leads y las trazas de ejecución de los nodos del agente.",

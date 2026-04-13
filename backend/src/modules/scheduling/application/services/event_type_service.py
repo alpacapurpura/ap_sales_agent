@@ -13,7 +13,7 @@ logger = structlog.get_logger()
 
 
 class EventTypeService:
-    def __init__(self, db: Session, tenant_id: UUID):
+    def __init__(self, db: Session, tenant_id: UUID) -> None:
         self.db = db
         self.tenant_id = tenant_id
 

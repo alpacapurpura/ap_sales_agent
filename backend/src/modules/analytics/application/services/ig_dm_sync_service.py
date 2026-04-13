@@ -41,7 +41,7 @@ _GRAPH_API_BASE = "https://graph.facebook.com/v21.0"
 class InstagramDMSyncService:
     """Sync historical Instagram DM conversations into journey_events."""
 
-    def __init__(self, db: Session, connection_port: ConnectionPort):
+    def __init__(self, db: Session, connection_port: ConnectionPort) -> None:
         self.db = db
         self.connection_port = connection_port
 

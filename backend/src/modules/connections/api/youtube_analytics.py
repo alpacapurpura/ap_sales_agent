@@ -99,7 +99,7 @@ def _default_dates(
 async def get_status(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, bool | str | None]:
     """Check if YouTube Analytics is connected and retrieve channel info."""
     connection = repo.get_active(user.tenant_id, ChannelType.YOUTUBE_ANALYTICS)
     if not connection:
@@ -128,7 +128,7 @@ async def get_overview(
     adapter: Annotated[YouTubeAnalyticsAdapter, Depends(_get_adapter)],
     start_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
     end_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
-):
+) -> dict[str, str | dict]:
     """
     Aggregate channel metrics: views, watch time, subscribers, avg duration.
     Defaults to last 30 days.
@@ -149,7 +149,7 @@ async def get_daily_views(
     adapter: Annotated[YouTubeAnalyticsAdapter, Depends(_get_adapter)],
     start_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
     end_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
-):
+) -> dict[str, str | list[dict]]:
     """Daily time-series of views and watch time."""
     sd, ed = _default_dates(start_date, end_date)
     try:
@@ -168,7 +168,7 @@ async def get_top_videos(
     start_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
     end_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
     max_results: Annotated[int, Query(ge=1, le=50)] = 10,
-):
+) -> dict[str, str | list[dict]]:
     """Top videos by views in the date range."""
     sd, ed = _default_dates(start_date, end_date)
     try:
@@ -186,7 +186,7 @@ async def get_demographics(
     adapter: Annotated[YouTubeAnalyticsAdapter, Depends(_get_adapter)],
     start_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
     end_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
-):
+) -> dict[str, str | list[dict]]:
     """Audience demographics (age group + gender)."""
     sd, ed = _default_dates(start_date, end_date)
     try:
@@ -204,7 +204,7 @@ async def get_traffic_sources(
     adapter: Annotated[YouTubeAnalyticsAdapter, Depends(_get_adapter)],
     start_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
     end_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
-):
+) -> dict[str, str | list[dict]]:
     """Views by traffic source (search, suggested, external, etc.)."""
     sd, ed = _default_dates(start_date, end_date)
     try:
@@ -223,7 +223,7 @@ async def get_countries(
     start_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
     end_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
     max_results: Annotated[int, Query(ge=1, le=50)] = 10,
-):
+) -> dict[str, str | list[dict]]:
     """Views by country."""
     sd, ed = _default_dates(start_date, end_date)
     try:
@@ -236,13 +236,13 @@ async def get_countries(
         return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
 
 
-@router.get("/top-videos-enriched", response_model=TopVideosResponse)
+@router.get("/top-videos-enriched")
 async def get_top_videos_enriched(
     adapter: Annotated[YouTubeAnalyticsAdapter, Depends(_get_adapter)],
     start_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
     end_date: Annotated[str | None, Query(description="YYYY-MM-DD")] = None,
     max_results: Annotated[int, Query(ge=1, le=50)] = 10,
-):
+) -> TopVideosResponse:
     """Top videos enriched with title, thumbnail, duration from Data API v3."""
     sd, ed = _default_dates(start_date, end_date)
     try:
@@ -257,7 +257,7 @@ async def get_top_videos_enriched(
 @router.post("/test", response_model=ConnectionTestResponse)
 async def test_connection(
     adapter: Annotated[YouTubeAnalyticsAdapter, Depends(_get_adapter)],
-):
+) -> dict[str, str | dict | None]:
     """Test the connection by fetching the last 7 days overview."""
     today = utc_today()
     start = (today - datetime.timedelta(days=7)).isoformat()

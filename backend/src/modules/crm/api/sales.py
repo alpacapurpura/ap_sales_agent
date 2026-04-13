@@ -59,12 +59,12 @@ class SaleResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-@router.post("/", response_model=SaleResponse)
+@router.post("/")
 def create_sale(
     sale_in: SaleCreate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> SaleResponse:
     service = SaleService(db)
     # Instantiate service logic
     new_sale = service.create_sale(
@@ -97,12 +97,12 @@ def create_sale(
     )
 
 
-@router.get("/ticker", response_model=list[TickerItem])
+@router.get("/ticker")
 async def get_ticker(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     range_: Annotated[Literal["today", "week", "30d", "all"], Query(alias="range")] = "30d",
-):
+) -> list[TickerItem]:
     repo = SaleRepository(db)
     now = datetime.now(UTC)
 

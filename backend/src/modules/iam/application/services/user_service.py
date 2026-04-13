@@ -9,7 +9,7 @@ from src.modules.iam.infrastructure.repositories.user_tenant_repository import (
 
 
 class UserService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.user_tenant_repository = UserTenantRepository(db)
 

@@ -5,10 +5,10 @@ from src.core.database import SessionLocal
 
 
 class BaseRepository:
-    def __init__(self, db: Session = None):
+    def __init__(self, db: Session = None) -> None:
         self.db = db or SessionLocal()
 
-    def close(self):
+    def close(self) -> None:
         self.db.close()
 
     def _apply_tenant_filter(self, query: Query, model: type) -> Query:
@@ -20,7 +20,7 @@ class BaseRepository:
             return query.filter(model.tenant_id == tenant_id)
         return query
 
-    def _set_tenant(self, instance: object):
+    def _set_tenant(self, instance: object) -> None:
         """
         Sets the tenant_id on an instance before saving.
         """

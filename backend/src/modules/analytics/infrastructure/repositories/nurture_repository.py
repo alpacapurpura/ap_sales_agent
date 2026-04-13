@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class NurtureMetricsRepository:
     """CRM-based MQL counting, source attribution, and email event aggregation."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def count_new_mqls(

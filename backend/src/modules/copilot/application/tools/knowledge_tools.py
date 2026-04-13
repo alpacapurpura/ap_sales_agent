@@ -2,6 +2,8 @@
 Knowledge tools — search the copilot knowledge base.
 """
 
+from uuid import UUID
+
 import structlog
 from langchain_core.tools import tool
 
@@ -14,7 +16,7 @@ logger = structlog.get_logger()
 
 
 def _track_knowledge_search(
-    tenant_id,
+    tenant_id: UUID,
     query: str,
     scope: str,
     results_count: int,

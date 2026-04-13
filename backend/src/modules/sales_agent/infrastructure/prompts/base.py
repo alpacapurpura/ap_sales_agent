@@ -28,7 +28,7 @@ class PromptLoader:
     def __init__(
         self,
         templates_dir: str = "src/modules/sales_agent/infrastructure/prompts/templates",
-    ):
+    ) -> None:
         # 1. Configurar File System Loader (Fallback)
         base_path = Path.cwd()
         self.templates_dir = templates_dir
@@ -119,20 +119,20 @@ class PromptLoader:
         finally:
             db.close()
 
-    def _update_cache(self, key: str, tenant_id: UUID | None, prompt: PromptVersion):
+    def _update_cache(self, key: str, tenant_id: UUID | None, prompt: PromptVersion) -> None:
         self._cache[(key, tenant_id)] = {
             "content": prompt.content,
             "version": prompt.version,
             "loaded_at": utc_now().timestamp(),
         }
 
-    def _load_from_file(self, key: str, template_name: str, **kwargs: Any) -> str:
+    def _load_from_file(self, key: str, template_name: str, **kwargs: Any) -> str:  # noqa: ANN401 — dynamic template context
         """Carga y renderiza directamente desde archivo."""
         fname = f"{key}.j2" if not template_name.endswith(".j2") else template_name
         template = self.fs_env.get_template(fname)
         return template.render(**kwargs)
 
-    def render(self, template_name: str, **kwargs: Any) -> str:
+    def render(self, template_name: str, **kwargs: Any) -> str:  # noqa: ANN401 — dynamic template context
         """
         Renderiza un prompt con las variables inyectadas + Contexto Tenant.
         """
@@ -190,7 +190,7 @@ class PromptLoader:
                 return self._load_from_file(key, template_name, **full_context)
             raise
 
-    def invalidate_cache(self, key: str):
+    def invalidate_cache(self, key: str) -> None:
         """Limpia caché (OJO: Limpia para TODOS los tenants por seguridad o solo uno?)"""
         # Simple: Limpiar todo lo relacionado a esa key
         keys_to_remove = [k for k in self._cache if k[0] == key]

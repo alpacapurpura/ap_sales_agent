@@ -25,7 +25,7 @@ _PAID_CHANNEL_SLUGS = {"meta-ads", "google-ads", "tiktok-ads", "yt-ads"}
 class CaptureCostService:
     """Cost retrieval, proration, and CAL calculation for capture metrics."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def get_channel_costs(

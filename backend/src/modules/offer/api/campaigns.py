@@ -6,7 +6,7 @@ Aggregates KPIs + campaign rows scoped to a single offer using the
 ``shared/links/ports/advertising.py``.
 """
 
-from datetime import timedelta
+from datetime import date, timedelta
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -28,7 +28,7 @@ router = APIRouter()
 _ALLOWED_STATUS = {"all", "active", "paused", "ended"}
 
 
-def _resolve_period(period: str | None) -> tuple:
+def _resolve_period(period: str | None) -> tuple[date, date]:
     """Map a period shortcut to a ``(start, end)`` date range."""
     end = utc_now().date()
     days_by_period = {
@@ -41,7 +41,7 @@ def _resolve_period(period: str | None) -> tuple:
     return end - timedelta(days=days), end
 
 
-@router.get("/{offer_id}/campaigns", response_model=OfferCampaignsViewDTO)
+@router.get("/{offer_id}/campaigns")
 async def get_offer_campaigns(
     offer_id: str,
     db: Annotated[Session, Depends(get_db)],
@@ -49,7 +49,7 @@ async def get_offer_campaigns(
     status: Annotated[str, Query()] = "all",
     channel: Annotated[str | None, Query()] = None,
     period: Annotated[str | None, Query()] = None,
-):
+) -> OfferCampaignsViewDTO:
     """Return aggregated campaigns for the given offer."""
     adapter = OfferCampaignsReadAdapter()
     normalized_status: Literal["all", "active", "paused", "ended"] = (

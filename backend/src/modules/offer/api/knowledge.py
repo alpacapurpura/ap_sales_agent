@@ -123,14 +123,14 @@ def _to_response(source: KnowledgeSource) -> KnowledgeSourceResponse:
     )
 
 
-@router.get("/{offer_id}/knowledge", response_model=KnowledgeListResponse)
+@router.get("/{offer_id}/knowledge")
 async def list_knowledge_sources(
     offer_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     search: Annotated[str | None, Query()] = None,
     type_: Annotated[KnowledgeSourceType | None, Query(alias="type")] = None,
-):
+) -> KnowledgeListResponse:
     sources = _service(db).list_sources(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
@@ -145,7 +145,6 @@ async def list_knowledge_sources(
 
 @router.post(
     "/{offer_id}/knowledge/upload",
-    response_model=KnowledgeSourceResponse,
     status_code=201,
 )
 async def upload_knowledge_source(
@@ -155,7 +154,7 @@ async def upload_knowledge_source(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     name: Annotated[str | None, Form()] = None,
-):
+) -> KnowledgeSourceResponse:
     content = await file.read()
     source = _service(db).upload_source(
         tenant_id=user.tenant_id,
@@ -170,7 +169,6 @@ async def upload_knowledge_source(
 
 @router.post(
     "/{offer_id}/knowledge/url",
-    response_model=KnowledgeSourceResponse,
     status_code=201,
 )
 async def add_knowledge_url(
@@ -178,7 +176,7 @@ async def add_knowledge_url(
     body: KnowledgeUrlRequest,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> KnowledgeSourceResponse:
     source = _service(db).add_url_source(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
@@ -208,14 +206,13 @@ async def delete_knowledge_source(
 
 @router.post(
     "/{offer_id}/knowledge/{source_id}/reindex",
-    response_model=KnowledgeSourceResponse,
 )
 async def reindex_knowledge_source(
     offer_id: str,
     source_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> KnowledgeSourceResponse:
     try:
         source = _service(db).reindex_source(
             tenant_id=user.tenant_id,

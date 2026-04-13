@@ -39,11 +39,11 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
     return ChannelConnectionRepository(db)
 
 
-@router.get("/status", response_model=ManyChatStatusResponse)
+@router.get("/status")
 async def get_manychat_status(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> ManyChatStatusResponse:
     connection = repo.get_active(user.tenant_id, ChannelType.MANYCHAT)
 
     if not connection:
@@ -55,12 +55,12 @@ async def get_manychat_status(
     )
 
 
-@router.post("/connect", response_model=ConnectionResponse)
+@router.post("/connect")
 async def connect_manychat(
     request: ManyChatConnectRequest,
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> ConnectionResponse:
     is_valid, result = await ManyChatConnector.verify_connection(
         api_key=request.api_key,
     )
@@ -85,11 +85,11 @@ async def connect_manychat(
     )
 
 
-@router.post("/disconnect", response_model=ConnectionResponse)
+@router.post("/disconnect")
 async def disconnect_manychat(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> ConnectionResponse:
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.MANYCHAT)
 
     if not connection:
@@ -103,11 +103,11 @@ async def disconnect_manychat(
     )
 
 
-@router.post("/test", response_model=ConnectionResponse)
+@router.post("/test")
 async def test_manychat_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> ConnectionResponse:
     connection = repo.get_active(user.tenant_id, ChannelType.MANYCHAT)
 
     if not connection:

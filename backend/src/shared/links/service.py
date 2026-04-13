@@ -16,7 +16,7 @@ logger = structlog.get_logger()
 
 
 class LinkService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def generate_token(self, length: int = 12) -> str:

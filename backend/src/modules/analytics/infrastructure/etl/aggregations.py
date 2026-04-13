@@ -195,7 +195,7 @@ def _append_multi_period_aggregations(
     )
 
 
-def _agg_dict(**kwargs) -> dict:
+def _agg_dict(**kwargs: object) -> dict:
     """Build a dict matching MetricAggregationModel columns."""
     return kwargs
 

@@ -19,7 +19,7 @@ class PromptLoader:
     def __init__(
         self,
         templates_dir: str = "src/modules/copilot/infrastructure/prompts/templates",
-    ):
+    ) -> None:
         base_path = Path.cwd()
         full_path = str(base_path / templates_dir)
         self.fs_env = Environment(
@@ -124,12 +124,12 @@ class PromptLoader:
         finally:
             db.close()
 
-    def _load_from_file(self, key: str, template_name: str, **kwargs: Any) -> str:
+    def _load_from_file(self, key: str, template_name: str, **kwargs: Any) -> str:  # noqa: ANN401 — template variable expansion
         filename = f"{key}.j2" if not template_name.endswith(".j2") else template_name
         template = self.fs_env.get_template(filename)
         return template.render(**kwargs)
 
-    def render(self, template_name: str, **kwargs: Any) -> str:
+    def render(self, template_name: str, **kwargs: Any) -> str:  # noqa: ANN401 — template variable expansion
         key = template_name.replace(".j2", "")
         mode = settings.PROMPT_SOURCE
         tenant_id = get_tenant_id()

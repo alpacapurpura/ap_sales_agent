@@ -69,13 +69,13 @@ class StageOverrideResponse(BaseModel):
 # --- Endpoints ---
 
 
-@router.get("/pipeline", response_model=list[PipelineItem])
+@router.get("/pipeline")
 async def get_pipeline(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     min_score: int = 50,
     limit: int = 20,
-):
+) -> list[PipelineItem]:
     """Get high-intent leads for the pipeline view."""
     # Fallback to simple query until repo method is robust
     leads_orm = (
@@ -110,13 +110,13 @@ async def get_pipeline(
     return results
 
 
-@router.put("/pipeline/{profile_id}/stage", response_model=StageOverrideResponse)
+@router.put("/pipeline/{profile_id}/stage")
 async def override_stage(
     profile_id: UUID,
     body: StageOverrideRequest,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> StageOverrideResponse:
     """Manual override of a profile's lifecycle stage.
 
     Requires X-Tenant-ID header. Creates audit trail with triggered_by='manual'.
@@ -176,14 +176,13 @@ async def override_stage(
 
 @router.get(
     "/pipeline/{profile_id}/transitions",
-    response_model=list[TransitionResponse],
 )
 async def get_transitions(
     profile_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
-):
+) -> list[TransitionResponse]:
     """Get lifecycle transition audit trail for a profile.
 
     Returns most recent transitions first. Requires X-Tenant-ID header.

@@ -16,7 +16,7 @@ def get_store() -> CopilotKnowledgeStore:
     return CopilotKnowledgeStore()
 
 
-def render_knowledge_page():
+def render_knowledge_page() -> None:
     st.title("🧠 Knowledge Base — Copilot")
 
     # ── Guia contextual permanente ──

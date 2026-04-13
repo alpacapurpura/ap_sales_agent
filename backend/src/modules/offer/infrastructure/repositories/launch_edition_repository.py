@@ -1,9 +1,10 @@
 """Repository for LaunchEdition CRUD operations."""
 
-from uuid import UUID
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
 
 from src.modules.offer.domain.launch_edition import (
     EditionStatus,
@@ -14,9 +15,15 @@ from src.modules.offer.infrastructure.models.launch_edition_model import (
     LaunchEditionModel,
 )
 
+if TYPE_CHECKING:
+    from datetime import datetime
+    from uuid import UUID
+
+    from sqlalchemy.orm import Session
+
 
 class LaunchEditionRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def _to_domain(self, model: LaunchEditionModel) -> LaunchEdition:
@@ -58,11 +65,11 @@ class LaunchEditionRepository:
         self,
         offer_id: UUID,
         tenant_id: UUID,
-        start_date,
+        start_date: datetime,
         edition_name: str | None = None,
-        end_date=None,
-        registration_start=None,
-        registration_end=None,
+        end_date: datetime | None = None,
+        registration_start: datetime | None = None,
+        registration_end: datetime | None = None,
         timezone: str = "UTC",
         pricing_override: list[PricingStructure] | None = None,
         capacity: int | None = None,

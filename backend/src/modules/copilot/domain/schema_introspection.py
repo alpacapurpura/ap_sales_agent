@@ -7,7 +7,7 @@ the change automatically via model_fields introspection.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, get_args, get_origin
+from typing import get_args, get_origin
 
 from pydantic import BaseModel
 
@@ -35,7 +35,7 @@ class CompletionStatus:
     details: dict[str, bool] = field(default_factory=dict)  # field_name -> has_value
 
 
-def unwrap_optional(annotation) -> Any:
+def unwrap_optional(annotation: type) -> type:
     """Unwrap Optional[X] -> X, handling Union[X, None]."""
     origin = get_origin(annotation)
     if origin is type(None):
@@ -50,7 +50,7 @@ def unwrap_optional(annotation) -> Any:
     return annotation
 
 
-def is_pydantic_model(tp) -> bool:
+def is_pydantic_model(tp: type) -> bool:
     """Check if a type is a Pydantic BaseModel subclass."""
     try:
         return isinstance(tp, type) and issubclass(tp, BaseModel)
@@ -58,7 +58,7 @@ def is_pydantic_model(tp) -> bool:
         return False
 
 
-def is_list_of_pydantic(tp) -> bool:
+def is_list_of_pydantic(tp: type) -> bool:
     """Check if type is List[SomePydanticModel]."""
     origin = get_origin(tp)
     if origin is list:
@@ -68,7 +68,7 @@ def is_list_of_pydantic(tp) -> bool:
     return False
 
 
-def is_list_type(tp) -> bool:
+def is_list_type(tp: type) -> bool:
     """Check if type is any List[...]."""
     return get_origin(tp) is list
 

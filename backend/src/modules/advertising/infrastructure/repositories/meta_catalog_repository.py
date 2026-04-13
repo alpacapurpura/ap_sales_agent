@@ -74,7 +74,7 @@ class MetaCatalog:
 class MetaCatalogRepository:
     """Loader for the Meta catalog tables filtered by tenant."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self._db = db
 
     def load(self, tenant_id: UUID) -> MetaCatalog:

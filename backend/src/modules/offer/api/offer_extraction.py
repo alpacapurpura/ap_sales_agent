@@ -22,7 +22,6 @@ router = APIRouter()
 
 @router.post(
     "/extract-full-offer",
-    response_model=ExtractFullOfferResponse,
     status_code=202,
 )
 async def extract_full_offer(
@@ -35,7 +34,7 @@ async def extract_full_offer(
     mode: Annotated[Literal["initial", "update"], Form()] = "initial",
     update_instructions: Annotated[str | None, Form()] = None,
     files: Annotated[list[UploadFile], File()] = [],  # noqa: B006
-):
+) -> ExtractFullOfferResponse:
     # Parse files
     extracted_file_text = ""
     for file in files:
@@ -113,12 +112,11 @@ async def extract_full_offer(
 
 @router.get(
     "/extract-full-offer/status/{job_id}",
-    response_model=OfferExtractionStatusResponse,
 )
 async def get_offer_extraction_status(
     job_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
-):
+) -> OfferExtractionStatusResponse:
     try:
         UUID(job_id)
     except ValueError:

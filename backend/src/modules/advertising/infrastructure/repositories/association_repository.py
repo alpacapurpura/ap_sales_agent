@@ -18,7 +18,7 @@ from src.modules.advertising.infrastructure.models.ad_offer_association_model im
 class AssociationRepository:
     """Data-access layer for ad_offer_associations."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self._db = db
 
     # ── Reads ────────────────────────────────────────────────────────────

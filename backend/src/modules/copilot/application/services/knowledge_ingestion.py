@@ -6,9 +6,10 @@ import uuid
 
 import structlog
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from sqlalchemy.orm import Session
 
 from src.core.database import SessionLocal
-from src.modules.copilot.domain.module_registry import get_module_registry
+from src.modules.copilot.domain.module_registry import ModuleDescriptor, get_module_registry
 from src.modules.copilot.infrastructure.knowledge.vector_store import (
     CopilotKnowledgeStore,
 )
@@ -16,7 +17,7 @@ from src.modules.copilot.infrastructure.knowledge.vector_store import (
 logger = structlog.get_logger()
 
 
-def _summarize_brand(registry, db, tenant_id: str) -> list[str]:
+def _summarize_brand(registry: dict[str, ModuleDescriptor], db: Session, tenant_id: str) -> list[str]:
     """Summarize brand data into markdown lines."""
     parts: list[str] = []
     brand_desc = registry.get("brand")
@@ -45,7 +46,7 @@ def _summarize_brand(registry, db, tenant_id: str) -> list[str]:
     return parts
 
 
-def _summarize_offers(registry, db, tenant_id: str) -> list[str]:
+def _summarize_offers(registry: dict[str, ModuleDescriptor], db: Session, tenant_id: str) -> list[str]:
     """Summarize offer data into markdown lines."""
     parts: list[str] = []
     offer_desc = registry.get("offer")
@@ -64,7 +65,7 @@ def _summarize_offers(registry, db, tenant_id: str) -> list[str]:
     return parts
 
 
-def _summarize_connections(registry, db, tenant_id: str) -> list[str]:
+def _summarize_connections(registry: dict[str, ModuleDescriptor], db: Session, tenant_id: str) -> list[str]:
     """Summarize active connections into markdown lines."""
     parts: list[str] = []
     conn_desc = registry.get("connections")
@@ -88,7 +89,7 @@ def _summarize_connections(registry, db, tenant_id: str) -> list[str]:
 class KnowledgeIngestionService:
     """Handles document chunking, embedding, and upsert into Qdrant."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.store = CopilotKnowledgeStore()
         self.splitter = RecursiveCharacterTextSplitter(
             chunk_size=800,

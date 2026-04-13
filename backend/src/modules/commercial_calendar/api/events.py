@@ -19,7 +19,7 @@ from src.modules.iam.domain.user import User
 router = APIRouter()
 
 
-def _to_response(event) -> CalendarEventResponse:
+def _to_response(event: object) -> CalendarEventResponse:
     return CalendarEventResponse(
         id=event.id,
         tenant_id=event.tenant_id,
@@ -36,7 +36,7 @@ def _to_response(event) -> CalendarEventResponse:
     )
 
 
-@router.get("/events", response_model=list[CalendarEventResponse])
+@router.get("/events")
 def list_events(
     country_code: Annotated[str, Query(min_length=2, max_length=2)],
     year: Annotated[int, Query()],
@@ -44,7 +44,7 @@ def list_events(
     user: Annotated[User, Depends(get_current_user)],
     week: Annotated[int | None, Query()] = None,
     category: Annotated[str | None, Query()] = None,
-):
+) -> list[CalendarEventResponse]:
     service = CalendarEventService(db)
     events = service.list_events(
         country_code=country_code.upper(),
@@ -56,12 +56,12 @@ def list_events(
     return [_to_response(e) for e in events]
 
 
-@router.get("/events/current-week", response_model=list[CalendarEventResponse])
+@router.get("/events/current-week")
 def get_current_week(
     country_code: Annotated[str, Query(min_length=2, max_length=2)],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[CalendarEventResponse]:
     service = CalendarEventService(db)
     events = service.get_current_week_events(
         country_code=country_code.upper(),
@@ -70,12 +70,12 @@ def get_current_week(
     return [_to_response(e) for e in events]
 
 
-@router.post("/events", response_model=list[CalendarEventResponse], status_code=201)
+@router.post("/events", status_code=201)
 def create_event(
     body: CalendarEventCreate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[CalendarEventResponse]:
     service = CalendarEventService(db)
     created = service.create_event(
         country_code=body.country_code,
@@ -89,13 +89,13 @@ def create_event(
     return [_to_response(e) for e in created]
 
 
-@router.put("/events/{event_id}", response_model=CalendarEventResponse)
+@router.put("/events/{event_id}")
 def update_event(
     event_id: UUID,
     body: CalendarEventUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> CalendarEventResponse:
     service = CalendarEventService(db)
     existing = service.get_by_id(event_id, tenant_id=user.tenant_id)
     if existing is None:
@@ -125,7 +125,7 @@ def delete_event(
     event_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> None:
     service = CalendarEventService(db)
     existing = service.get_by_id(event_id, tenant_id=user.tenant_id)
     if existing is None:

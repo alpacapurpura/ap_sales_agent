@@ -19,7 +19,7 @@ from src.modules.analytics.infrastructure.models.extraction_run_model import (
 class ExtractionRunRepository:
     """CRUD operations for the extraction_runs table."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def create(

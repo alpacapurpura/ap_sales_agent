@@ -1,13 +1,19 @@
 """Streamlit admin: Salud de Tenants — cross-tenant health overview with drill-down."""
 
+from __future__ import annotations
+
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 import pandas as pd
 import streamlit as st
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def _get_module_completion(db, tenant_id, module_id, registry) -> float:
+
+def _get_module_completion(db: Session, tenant_id: object, module_id: str, registry: object) -> float:
     """Return 0.0-1.0 completion for a module."""
     from src.modules.copilot.domain.schema_introspection import (
         check_section_completion,
@@ -37,7 +43,7 @@ def _get_module_completion(db, tenant_id, module_id, registry) -> float:
     return 1.0
 
 
-def render_tenant_health():
+def render_tenant_health() -> None:
     st.title("🏥 Salud de Tenants")
 
     from src.admin.modules._shared import (

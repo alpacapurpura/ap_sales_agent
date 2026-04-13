@@ -20,7 +20,7 @@ from src.modules.analytics.infrastructure.models.period_metrics_model import (
 class PeriodMetricsRepository:
     """CRUD operations for the period_metrics table."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     _UPSERT_SQL = text("""

@@ -30,7 +30,7 @@ GROUP_DETAIL_TTL = 300  # 5 minutes
 class GroupDetailService:
     """Provides detail data for a single channel group within a stage."""
 
-    def __init__(self, cache: MetricsCache | None = None):
+    def __init__(self, cache: MetricsCache | None = None) -> None:
         self.cache = cache
 
     async def get_group_detail(

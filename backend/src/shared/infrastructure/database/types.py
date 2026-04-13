@@ -1,6 +1,7 @@
 import json
 from typing import Any
 
+from sqlalchemy import Dialect
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.types import TypeDecorator
 
@@ -18,7 +19,7 @@ class EncryptedJSON(TypeDecorator):
     impl = JSONB
     cache_ok = True
 
-    def process_bind_param(self, value: dict | list | None, dialect) -> dict | None:
+    def process_bind_param(self, value: dict | list | None, dialect: Dialect) -> dict | None:
         if value is None:
             return None
 
@@ -32,7 +33,7 @@ class EncryptedJSON(TypeDecorator):
         # Return as a JSON object with a specific key to mark it as encrypted
         return {"_encrypted": encrypted_str}
 
-    def process_result_value(self, value: Any | None, dialect) -> dict | list | None:
+    def process_result_value(self, value: Any | None, dialect: Dialect) -> dict | list | None:  # noqa: ANN401 — generic SA type handler
         if value is None:
             return None
 

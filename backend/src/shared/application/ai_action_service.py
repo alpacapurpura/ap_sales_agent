@@ -33,7 +33,7 @@ class AIActionPolicy:
 
 
 class AIActionService:
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = structlog.get_logger()
 
     def run_structured_action(

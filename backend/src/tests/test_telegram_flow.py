@@ -108,7 +108,7 @@ def cleanup_test_data(db):
 class TestStep1IdentityResolution:
     """Step 1: IdentityType mapping from channel_type string."""
 
-    def test_telegram_maps_to_identity_type(self):
+    def test_telegram_maps_to_identity_type(self) -> None:
         """channel_type 'telegram' should map to IdentityType.TELEGRAM."""
         channel_type = "telegram"
         identity_type = IdentityType(channel_type)
@@ -116,12 +116,12 @@ class TestStep1IdentityResolution:
         assert identity_type.name == "TELEGRAM"
         assert identity_type.value == "telegram"
 
-    def test_whatsapp_maps_to_identity_type(self):
+    def test_whatsapp_maps_to_identity_type(self) -> None:
         channel_type = "whatsapp"
         identity_type = IdentityType(channel_type)
         assert identity_type == IdentityType.WHATSAPP
 
-    def test_unknown_channel_falls_back(self):
+    def test_unknown_channel_falls_back(self) -> None:
         """Unknown channels should fall back to EXTERNAL_ID."""
         try:
             IdentityType("unknown_channel")
@@ -135,7 +135,7 @@ class TestStep1IdentityResolution:
 class TestStep2CustomerProfileCreation:
     """Step 2: get_or_create_customer — creates CustomerProfile + CustomerIdentity."""
 
-    def test_create_new_customer_via_identity_service(self, db, cleanup_test_data):
+    def test_create_new_customer_via_identity_service(self, db, cleanup_test_data) -> None:
         """First contact: should create both profile and identity."""
         test_user_id = cleanup_test_data
         set_tenant_id(TENANT_ID)
@@ -170,7 +170,7 @@ class TestStep2CustomerProfileCreation:
         assert identity is not None
         assert identity.profile_id == customer.id
 
-    def test_find_existing_customer(self, db, cleanup_test_data):
+    def test_find_existing_customer(self, db, cleanup_test_data) -> None:
         """Second contact: should find existing profile, not create duplicate."""
         test_user_id = cleanup_test_data
         set_tenant_id(TENANT_ID)
@@ -196,7 +196,7 @@ class TestStep2CustomerProfileCreation:
 
         assert customer1.id == customer2.id, "Should return same customer, not create duplicate"
 
-    def test_lifecycle_stage_default(self, db, cleanup_test_data):
+    def test_lifecycle_stage_default(self, db, cleanup_test_data) -> None:
         """New customer should get SUBSCRIBER lifecycle stage (tests enum compatibility)."""
         test_user_id = cleanup_test_data
         set_tenant_id(TENANT_ID)
@@ -220,7 +220,7 @@ class TestStep2CustomerProfileCreation:
 class TestStep3LeadCreation:
     """Step 3: get_active_lead / create_lead — Lead linked to Customer."""
 
-    def test_create_lead_for_new_customer(self, db, cleanup_test_data):
+    def test_create_lead_for_new_customer(self, db, cleanup_test_data) -> None:
         """Should create lead linked to customer with telegram_id set."""
         test_user_id = cleanup_test_data
         set_tenant_id(TENANT_ID)
@@ -250,7 +250,7 @@ class TestStep3LeadCreation:
         assert user.customer_id == customer.id
         assert user.telegram_id == test_user_id
 
-    def test_duplicate_lead_returns_existing(self, db, cleanup_test_data):
+    def test_duplicate_lead_returns_existing(self, db, cleanup_test_data) -> None:
         """Creating lead with same telegram_id should return existing, not crash."""
         test_user_id = cleanup_test_data
         set_tenant_id(TENANT_ID)
@@ -286,7 +286,7 @@ class TestStep3LeadCreation:
 class TestStep4AuditLogging:
     """Step 4: Message logging in audit repository."""
 
-    def test_log_and_retrieve_message(self, db, cleanup_test_data):
+    def test_log_and_retrieve_message(self, db, cleanup_test_data) -> None:
         """Should log user message and retrieve it."""
         test_user_id = cleanup_test_data
         set_tenant_id(TENANT_ID)
@@ -329,7 +329,7 @@ class TestStep4AuditLogging:
 class TestStep5FullFlowIntegration:
     """Step 5: Full flow simulation (everything before agent invocation)."""
 
-    def test_complete_pre_agent_flow(self, db, cleanup_test_data):
+    def test_complete_pre_agent_flow(self, db, cleanup_test_data) -> None:
         """
         Simulates the full process_chat_flow up to agent invocation:
         1. Map channel to IdentityType

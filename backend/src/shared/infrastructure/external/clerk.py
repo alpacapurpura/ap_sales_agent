@@ -8,7 +8,7 @@ logger = structlog.get_logger()
 
 
 class ClerkService:
-    def __init__(self):
+    def __init__(self) -> None:
         self.secret_key = os.getenv("CLERK_SECRET_KEY")
         self.api_url = "https://api.clerk.com/v1"
 

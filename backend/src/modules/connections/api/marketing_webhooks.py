@@ -122,7 +122,7 @@ def _resolve_manychat_profile(
     tenant_id: UUID,
     payload: dict,
     channel_slug: str,
-):
+) -> object | None:
     """Resolve or create a customer profile from ManyChat subscriber data."""
     from src.modules.crm.application.services.customer_service import CustomerService
 
@@ -207,7 +207,7 @@ def _build_manychat_event_properties(
 def _create_journey_events(
     db: Session,
     tenant_id: UUID,
-    profile,
+    profile: object,
     event_name: str,
     event_type: str,
     properties: dict,
@@ -610,7 +610,7 @@ async def shopify_webhook(
     request: Request,
     verified: Annotated[bool, Depends(verify_shopify_signature)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> dict[str, str]:
     """Receive and process Shopify webhooks.
 
     Reads X-Shopify-Topic and X-Shopify-Shop-Domain headers to dispatch
@@ -655,7 +655,7 @@ async def handle_mailerlite_webhook(
     tenant_id: UUID,
     request: Request,
     db: Annotated[Session, Depends(get_db)],
-):
+) -> dict[str, str]:
     """Handle Mailerlite webhook events (campaign.open, campaign.click).
 
     Creates journey_events and triggers lead score recalculation.
@@ -732,7 +732,7 @@ async def handle_mailerlite_webhook(
 
 
 @router.post("/mailerlite", status_code=status.HTTP_200_OK)
-async def mailerlite_webhook_legacy(request: Request, db: Annotated[Session, Depends(get_db)]):
+async def mailerlite_webhook_legacy(request: Request, db: Annotated[Session, Depends(get_db)]) -> dict[str, str]:
     """Legacy Mailerlite webhook (no tenant_id). Kept for backward compatibility."""
     try:
         payload = await request.json()
@@ -753,7 +753,7 @@ async def handle_manychat_webhook(
     tenant_id: UUID,
     request: Request,
     db: Annotated[Session, Depends(get_db)],
-):
+) -> dict[str, str]:
     """Receive ManyChat events via External Request blocks.
 
     Event types:

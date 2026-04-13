@@ -22,7 +22,7 @@ class LLMFactory:
         return cls._instance
 
     @classmethod
-    def get_service_for_tenant(cls, tenant) -> BaseLLMService:
+    def get_service_for_tenant(cls, tenant: object) -> BaseLLMService:
         """
         Creates a new service instance for the specific tenant configuration.
         """

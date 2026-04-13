@@ -743,7 +743,7 @@ class ChannelRegistry:
     - available: channels without connections (show "Configurar" badge)
     """
 
-    def __init__(self, connection_port: ConnectionPort):
+    def __init__(self, connection_port: ConnectionPort) -> None:
         self._connection_port = connection_port
 
     async def get_stage_channels(self, stage_slug: str) -> list[dict]:

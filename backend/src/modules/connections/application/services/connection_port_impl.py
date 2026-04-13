@@ -21,6 +21,9 @@ from src.modules.analytics.domain.exceptions import (
 )
 from src.modules.analytics.domain.ports import ConnectionCredentials, ConnectionPort
 from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.models.channel_connection_model import (
+    ChannelConnectionModel,
+)
 from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
     ChannelConnectionRepository,
 )
@@ -70,7 +73,7 @@ class ConnectionPortImpl(ConnectionPort):
     transparently refreshes expired OAuth tokens, persisting the new tokens.
     """
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repo = ChannelConnectionRepository(db)
 
@@ -216,7 +219,7 @@ class ConnectionPortImpl(ConnectionPort):
             logger.warning("Could not parse expires_at: %s", expires_at_str)
             return False
 
-    async def _refresh_token(self, conn) -> dict:
+    async def _refresh_token(self, conn: ChannelConnectionModel) -> dict:
         """Refresh the OAuth token for the given connection.
 
         Supports Meta (token exchange) and Google (refresh_token grant).

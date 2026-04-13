@@ -29,7 +29,7 @@ DOMAIN_LABELS = {
 
 
 class InterviewService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.session_repo = InterviewSessionRepository(db)
         self.conversation_repo = ConversationRepository(db)

@@ -13,7 +13,7 @@ class GeminiService(BaseLLMService):
     Concrete implementation for Google Gemini (Adapter Pattern).
     """
 
-    def __init__(self, api_key: str | None = None):
+    def __init__(self, api_key: str | None = None) -> None:
         self.api_key = api_key or settings.GEMINI_API_KEY
         self.model_name = settings.GEMINI_MODEL
         # Gemini embedding model usually is "models/embedding-001"
@@ -40,7 +40,7 @@ class GeminiService(BaseLLMService):
         messages: list[dict[str, str]],
         system_prompt: str | None = None,
         model_type: str = "smart",
-        **kwargs,
+        **kwargs: Any,  # noqa: ANN401 — Gemini SDK types
     ) -> str:
         """
         Adapts the generic message format to LangChain's format for Gemini.
@@ -74,8 +74,8 @@ class GeminiService(BaseLLMService):
 
         return response_text
 
-    def get_embedding_model(self) -> Any:
+    def get_embedding_model(self) -> Any:  # noqa: ANN401 — Gemini SDK types
         return self.embeddings
 
-    def get_client(self, role: ModelRole = ModelRole.REASONING) -> Any:
+    def get_client(self, role: ModelRole = ModelRole.REASONING) -> Any:  # noqa: ANN401 — Gemini SDK types
         return self.chat_model

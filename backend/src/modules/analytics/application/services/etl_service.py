@@ -5,23 +5,42 @@ Provides high-level operations for the API and scheduler layers:
 - run_all_providers: extract from all active connections
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import uuid
-from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta
+from typing import TYPE_CHECKING
 from uuid import UUID
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from sqlalchemy.orm import Session
+
+    from src.modules.analytics.domain.period_config import TenantPeriodConfig
+    from src.modules.analytics.domain.ports import ConnectionPort
+    from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+    from src.modules.analytics.infrastructure.models.extraction_run_model import (
+        ExtractionRunModel,
+    )
+    from src.modules.analytics.infrastructure.providers.base import (
+        BaseMetricsProvider,
+        ExtractedMetric,
+    )
+    from src.modules.crm.application.services.customer_service import CustomerService
+    from src.modules.offer.infrastructure.repositories.external_product_mapping_repository import (
+        ExternalProductMappingRepository,
+    )
+
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
 from src.modules.analytics.application.config import ETLConfig
 from src.modules.analytics.application.cost_type_mapping import get_cost_type
 from src.modules.analytics.application.services.channel_registry import (
     CHANNEL_TYPE_TO_PROVIDERS,
 )
-from src.modules.analytics.domain.ports import ConnectionPort
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.infrastructure.etl.aggregations import compute_aggregations
 from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
 from src.modules.analytics.infrastructure.etl.transformers import (
@@ -87,7 +106,7 @@ class ETLService:
         db: Session,
         connection_port: ConnectionPort,
         cache: MetricsCache,
-    ):
+    ) -> None:
         self.db = db
         self.connection_port = connection_port
         self.cache = cache
@@ -99,7 +118,7 @@ class ETLService:
         start_date: date | None = None,
         end_date: date | None = None,
         stage: str = "attraction",
-    ):
+    ) -> ExtractionRunModel | None:
         """Run ETL extraction for a single provider.
 
         For multi-stage providers (e.g. mailerlite -> capture + nurture),
@@ -165,7 +184,7 @@ class ETLService:
 
         return last_run
 
-    def _get_period_config(self, tenant_id: UUID):
+    def _get_period_config(self, tenant_id: UUID) -> TenantPeriodConfig:
         """Resolve TenantPeriodConfig from the tenant's DB columns."""
         from src.modules.analytics.domain.period_config import TenantPeriodConfig
         from src.modules.iam.infrastructure.models.tenant_model import TenantModel
@@ -180,7 +199,7 @@ class ETLService:
             fiscal_year_start_day=tenant.fiscal_year_start_day or 1,
         )
 
-    async def run_all_providers(self, tenant_id: UUID):
+    async def run_all_providers(self, tenant_id: UUID) -> list[ExtractionRunModel | None]:
         """Run ETL extraction for all active provider connections.
 
         Iterates through the tenant's active connections and runs
@@ -590,9 +609,9 @@ class ETLService:
         self,
         tenant_id: UUID,
         provider_name: str,
-        extracted: list,
+        extracted: list[ExtractedMetric],
         run_id: UUID,
-        period_config,
+        period_config: TenantPeriodConfig,
         staging_repo: StagingMetricsRepository,
         official_repo: OfficialMetricsRepository,
     ) -> None:
@@ -643,7 +662,7 @@ class ETLService:
     def _create_shopify_crm_records(
         self,
         tenant_id: UUID,
-        provider,
+        provider: BaseMetricsProvider,
     ) -> dict:
         """Create journey_events + SaleModel from cached Shopify orders/checkouts.
 
@@ -703,8 +722,8 @@ class ETLService:
         self,
         tenant_id: UUID,
         orders: list[dict],
-        customer_svc,
-        mapping_repo,
+        customer_svc: CustomerService,
+        mapping_repo: ExternalProductMappingRepository,
     ) -> tuple[int, int]:
         """Process completed orders into journey_events + SaleModel. Returns (orders_processed, sales_created)."""
         from sqlalchemy import func as sa_func
@@ -816,12 +835,12 @@ class ETLService:
         profile_id: UUID,
         line_items_data: list[dict],
         currency: str,
-        occurred_at,
-        mapping_repo,
-        sa_select,
-        SaleModel,  # noqa: N803
-        SaleStage,  # noqa: N803
-        SaleStatus,  # noqa: N803
+        occurred_at: datetime | None,
+        mapping_repo: ExternalProductMappingRepository,
+        sa_select: Callable[..., object],
+        SaleModel: type,  # noqa: N803
+        SaleStage: type,  # noqa: N803
+        SaleStatus: type,  # noqa: N803
     ) -> int:
         """Create SaleModel per line_item. Returns count of sales created."""
         product_ids = [li["product_id"] for li in line_items_data if li["product_id"]]
@@ -876,7 +895,7 @@ class ETLService:
         tenant_id: UUID,
         checkouts: list[dict],
         completed_tokens: set[str],
-        customer_svc,
+        customer_svc: CustomerService,
     ) -> int:
         """Process abandoned checkouts into journey_events. Returns checkouts_processed."""
         from sqlalchemy import func as sa_func
@@ -997,7 +1016,7 @@ class ETLService:
             )
 
     @staticmethod
-    def _parse_shopify_datetime(iso_str: str):
+    def _parse_shopify_datetime(iso_str: str) -> datetime | None:
         """Parse Shopify ISO datetime to Python datetime."""
         if not iso_str:
             return None

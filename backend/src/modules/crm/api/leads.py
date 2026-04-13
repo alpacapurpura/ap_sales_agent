@@ -15,13 +15,13 @@ router = APIRouter(tags=["leads"])
 logger = structlog.get_logger()
 
 
-@router.get("/search", response_model=list[Lead])
+@router.get("/search")
 async def search_leads(
     q: Annotated[str, Query(min_length=2)],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     limit: int = 10,
-):
+) -> list[Lead]:
     """
     Search leads by name or email.
     TODO: Implement search logic in LeadService/Repository.
@@ -30,12 +30,12 @@ async def search_leads(
     return []
 
 
-@router.get("/{lead_id}", response_model=Lead)
+@router.get("/{lead_id}")
 async def get_lead(
     lead_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Lead:
     """
     Get a specific lead by ID.
     """

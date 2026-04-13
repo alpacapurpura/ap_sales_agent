@@ -37,7 +37,7 @@ async def ingest_document(
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     scope: Annotated[str, Form()] = "business",
     source_label: Annotated[str, Form()] = "upload",
-):
+) -> dict:
     """Ingest a document (PDF/DOCX/TXT/MD) into the knowledge base."""
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
@@ -63,7 +63,7 @@ async def search_knowledge(
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     scope: str = "all",
     limit: int = 5,
-):
+) -> dict:
     """Search the knowledge base."""
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
@@ -87,7 +87,7 @@ async def search_knowledge(
 async def delete_document(
     document_id: str,
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
-):
+) -> dict[str, bool]:
     """Delete a document from the knowledge base."""
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")

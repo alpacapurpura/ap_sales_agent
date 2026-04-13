@@ -19,7 +19,7 @@ logger = structlog.get_logger()
 
 
 class CustomerRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def _to_domain(self, model: CustomerProfileModel) -> CustomerProfile:
@@ -235,7 +235,7 @@ class CustomerRepository:
             tenant_id=str(tenant_id),
         )
 
-    def count_by_stage(self, tenant_id: UUID, stage: Any) -> int:
+    def count_by_stage(self, tenant_id: UUID, stage: LifecycleStage) -> int:
         result = self.db.execute(
             select(func.count())
             .select_from(CustomerProfileModel)
@@ -248,7 +248,7 @@ class CustomerRepository:
 
 
 class JourneyEventRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def track_event(

@@ -15,7 +15,7 @@ logger = structlog.get_logger()
 
 
 class TelegramService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repo = ChannelConnectionRepository(db)
 

@@ -53,13 +53,13 @@ class EpisodicMemoryStore(ABC):
         content: str,
         channel: str,
         tenant_id: str | None = None,
-    ) -> Any:
+    ) -> Any:  # noqa: ANN401 — return type varies by implementation
         """
         Store a new message in the episode.
         """
 
     @abstractmethod
-    def get_last_message(self, user_id: str) -> Any:
+    def get_last_message(self, user_id: str) -> Any:  # noqa: ANN401 — return type varies by implementation
         """
         Retrieve the most recent message.
         """

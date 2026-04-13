@@ -11,7 +11,7 @@ from src.modules.commercial_calendar.infrastructure.models.calendar_event_model 
 
 
 class CalendarEventRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def _to_domain(self, model: CalendarEventModel) -> CalendarEvent:

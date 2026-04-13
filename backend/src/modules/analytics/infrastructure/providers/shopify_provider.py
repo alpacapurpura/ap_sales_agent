@@ -30,7 +30,7 @@ API_VERSION = "2026-01"
 class ShopifyProvider(BaseMetricsProvider):
     """Extracts metrics from Shopify Admin API for opportunity and sales stages."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._last_orders: list[dict] = []
         self._last_checkouts: list[dict] = []
 

@@ -12,7 +12,7 @@ class WhatsAppChannel(BaseChannel):
     Delegates to the configured Evolution API Provider (V1/V2).
     """
 
-    def __init__(self, tenant_id: str):
+    def __init__(self, tenant_id: str) -> None:
         self.tenant_id = tenant_id
         self.provider = get_whatsapp_provider(tenant_id)
 

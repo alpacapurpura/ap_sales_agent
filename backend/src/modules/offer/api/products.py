@@ -28,8 +28,8 @@ from src.shared.domain.locale import TenantLocale
 router = APIRouter()
 
 
-@router.get("/metadata/hints", response_model=dict[str, Any])
-async def get_offer_metadata():
+@router.get("/metadata/hints")
+async def get_offer_metadata() -> dict[str, Any]:
     """Exposes business logic hints for UI components."""
     return {}
 
@@ -40,25 +40,25 @@ async def get_offer_metadata():
 # route would redirect to "/x/" which the browser then tries to fetch via
 # the same rewrite, which strips the slash again, causing "TypeError: Failed
 # to fetch". Mounting the route at "" lets it match the stripped path directly.
-@router.get("", response_model=list[Offer])
+@router.get("")
 async def list_products(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     limit: int = 20,
     skip: int = 0,
-):
+) -> list[Offer]:
     service = OfferService(db)
     # Filter by user's tenant
     return service.list_offers(user.tenant_id)
 
 
-@router.post("", response_model=Offer)
+@router.post("")
 async def create_product(
     product: ProductCreate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     locale: Annotated[TenantLocale, Depends(get_tenant_locale)],
-):
+) -> Offer:
     service = OfferService(db)
     return service.create_offer(
         name=product.name,
@@ -78,22 +78,22 @@ async def create_product(
 
 # NOTE: /archived must be registered BEFORE /{product_id} so FastAPI does
 # not interpret "archived" as a UUID path parameter.
-@router.get("/archived", response_model=list[Offer])
+@router.get("/archived")
 async def list_archived_products(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[Offer]:
     """Return offers that have been archived (reversible) but not deleted."""
     service = OfferService(db)
     return service.list_archived_offers(user.tenant_id)
 
 
-@router.get("/{product_id}", response_model=Offer)
+@router.get("/{product_id}")
 async def get_product(
     product_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     service = OfferService(db)
     product = service.get_offer(UUID(product_id), user.tenant_id)
     if not product:
@@ -101,12 +101,12 @@ async def get_product(
     return product
 
 
-@router.post("/{product_id}/archive", response_model=Offer)
+@router.post("/{product_id}/archive")
 async def archive_product(
     product_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     """Archive an offer. Reversible via /restore.
 
     Also unpublishes the embedded landing page config as a side-effect.
@@ -115,12 +115,12 @@ async def archive_product(
     return service.archive_offer(UUID(product_id), user.tenant_id)
 
 
-@router.post("/{product_id}/restore", response_model=Offer)
+@router.post("/{product_id}/restore")
 async def restore_product(
     product_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     """Restore a previously archived offer (clears archived_at).
 
     Landing pages are not auto-republished — user must republish manually.
@@ -134,7 +134,7 @@ async def delete_product(
     product_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> None:
     """Soft-delete an offer. Requires the offer to be archived first (409 otherwise).
 
     The offer is hidden from both the active and archived lists. Data is
@@ -145,13 +145,13 @@ async def delete_product(
     service.delete_offer(UUID(product_id), user.tenant_id)
 
 
-@router.patch("/{product_id}", response_model=Offer)
+@router.patch("/{product_id}")
 async def update_product(
     product_id: str,
     update: ProductUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -163,13 +163,13 @@ async def update_product(
         raise HTTPException(status_code=404, detail="Product not found") from None
 
 
-@router.patch("/{product_id}/identity", response_model=Offer)
+@router.patch("/{product_id}/identity")
 async def update_identity(
     product_id: str,
     update: OfferIdentityUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -181,13 +181,13 @@ async def update_identity(
         raise HTTPException(status_code=404, detail="Product not found") from None
 
 
-@router.patch("/{product_id}/strategy", response_model=Offer)
+@router.patch("/{product_id}/strategy")
 async def update_strategy(
     product_id: str,
     update: OfferStrategyUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -199,13 +199,13 @@ async def update_strategy(
         raise HTTPException(status_code=404, detail="Product not found") from None
 
 
-@router.patch("/{product_id}/promise", response_model=Offer)
+@router.patch("/{product_id}/promise")
 async def update_promise(
     product_id: str,
     update: OfferPromiseUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -217,13 +217,13 @@ async def update_promise(
         raise HTTPException(status_code=404, detail="Product not found") from None
 
 
-@router.patch("/{product_id}/psychology", response_model=Offer)
+@router.patch("/{product_id}/psychology")
 async def update_psychology(
     product_id: str,
     update: OfferPsychologyUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -235,13 +235,13 @@ async def update_psychology(
         raise HTTPException(status_code=404, detail="Product not found") from None
 
 
-@router.patch("/{product_id}/value_stack", response_model=Offer)
+@router.patch("/{product_id}/value_stack")
 async def update_value_stack(
     product_id: str,
     update: OfferValueStackUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -253,13 +253,13 @@ async def update_value_stack(
         raise HTTPException(status_code=404, detail="Product not found") from None
 
 
-@router.patch("/{product_id}/pricing", response_model=Offer)
+@router.patch("/{product_id}/pricing")
 async def update_pricing(
     product_id: str,
     update: OfferPricingUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -271,13 +271,13 @@ async def update_pricing(
         raise HTTPException(status_code=404, detail="Product not found") from None
 
 
-@router.patch("/{product_id}/details", response_model=Offer)
+@router.patch("/{product_id}/details")
 async def update_details(
     product_id: str,
     update: OfferDetailsUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -289,13 +289,13 @@ async def update_details(
         raise HTTPException(status_code=404, detail="Product not found") from None
 
 
-@router.patch("/{product_id}/visuals", response_model=Offer)
+@router.patch("/{product_id}/visuals")
 async def update_visuals(
     product_id: str,
     update: OfferVisualsUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -307,13 +307,13 @@ async def update_visuals(
         raise HTTPException(status_code=404, detail="Product not found") from None
 
 
-@router.patch("/{product_id}/closing", response_model=Offer)
+@router.patch("/{product_id}/closing")
 async def update_closing(
     product_id: str,
     update: OfferClosingUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -325,13 +325,13 @@ async def update_closing(
         raise HTTPException(status_code=404, detail="Product not found") from None
 
 
-@router.patch("/{product_id}/resources", response_model=Offer)
+@router.patch("/{product_id}/resources")
 async def update_resources(
     product_id: str,
     update: OfferResourcesUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     service = OfferService(db)
     try:
         return service.patch_offer(
@@ -343,13 +343,13 @@ async def update_resources(
         raise HTTPException(status_code=404, detail="Product not found") from None
 
 
-@router.patch("/{product_id}/instructors", response_model=Offer)
+@router.patch("/{product_id}/instructors")
 async def update_instructors(
     product_id: str,
     update: OfferInstructorsUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> Offer:
     service = OfferService(db)
     try:
         return service.patch_offer(

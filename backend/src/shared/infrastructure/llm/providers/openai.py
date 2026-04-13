@@ -30,7 +30,7 @@ class OpenAIService(BaseLLMService):
     Uses role-based model selection via ModelRole enum.
     """
 
-    def __init__(self, api_key: str | None = None):
+    def __init__(self, api_key: str | None = None) -> None:
         self.api_key = api_key or settings.OPENAI_API_KEY
         self._models: dict[str, ChatOpenAI] = {}  # cache by model name
 
@@ -101,7 +101,7 @@ class OpenAIService(BaseLLMService):
         self,
         system_prompt: str | None,
         messages: list,
-        selected_model,
+        selected_model: ChatOpenAI | None,
         response_text: str,
         tokens_in: int,
         tokens_out: int,
@@ -135,7 +135,7 @@ class OpenAIService(BaseLLMService):
         messages: list[dict[str, str]],
         system_prompt: str | None = None,
         model_type: str | ModelRole = "smart",
-        **kwargs,
+        **kwargs: Any,  # noqa: ANN401 — OpenAI SDK types
     ) -> str:
         """Adapts the generic message format to LangChain's format and invokes the model."""
         response_text = ""
@@ -178,7 +178,7 @@ class OpenAIService(BaseLLMService):
 
         return response_text
 
-    def get_embedding_model(self) -> Any:
+    def get_embedding_model(self) -> Any:  # noqa: ANN401 — OpenAI SDK types
         return self.embeddings
 
     def get_client(self, role: ModelRole = ModelRole.REASONING) -> ChatOpenAI:

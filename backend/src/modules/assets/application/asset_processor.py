@@ -9,7 +9,7 @@ logger = structlog.get_logger()
 
 
 class AssetProcessor:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     async def process_asset(

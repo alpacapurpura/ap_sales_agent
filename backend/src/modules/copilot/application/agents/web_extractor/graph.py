@@ -10,7 +10,7 @@ class WebExtractorState(TypedDict):
     error: str | None
 
 
-def extract_node(state: WebExtractorState):
+def extract_node(state: WebExtractorState) -> dict[str, str | dict[str, str]]:
     """
     Placeholder for web extraction logic.
     """

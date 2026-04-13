@@ -153,7 +153,7 @@ class LandingPageConfig(BaseEntity):
     is_published: bool = False
 
     @model_validator(mode="after")
-    def validate_content_matches_archetype(self):
+    def validate_content_matches_archetype(self) -> "LandingPageConfig":
         """
         Ensures the content object matches the selected archetype.
         """

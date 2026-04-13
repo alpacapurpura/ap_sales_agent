@@ -10,6 +10,7 @@ from google.analytics.data_v1beta.types import (
     Dimension,
     Metric,
     RunReportRequest,
+    RunReportResponse,
 )
 from google.auth.exceptions import RefreshError, TransportError
 from google.oauth2.credentials import Credentials
@@ -37,7 +38,7 @@ class GoogleAnalyticsAdapter:
         self,
         client_config: dict[str, str],
         credentials_data: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         self.client_config = client_config
         self.credentials_data = credentials_data
         self.creds = None
@@ -88,7 +89,7 @@ class GoogleAnalyticsAdapter:
             logger.exception("Error exchanging code for token")
             raise
 
-    def get_service(self):
+    def get_service(self) -> object:
         """Returns the Google Analytics Admin service resource."""
         if not self.creds:
             msg = "Credentials not initialized"
@@ -186,7 +187,7 @@ class GoogleAnalyticsAdapter:
             raise
         return self._normalize_report_response(response)
 
-    def _normalize_report_response(self, response) -> dict:
+    def _normalize_report_response(self, response: RunReportResponse) -> dict:
         """Convert GA4 RunReportResponse to a plain dict."""
         rows = [
             {

@@ -23,7 +23,7 @@ from src.modules.copilot.domain.schema_introspection import (
 logger = structlog.get_logger()
 
 
-def _format_section_data(section_name: str, data) -> str:
+def _format_section_data(section_name: str, data: object) -> str:
     """Format a section's data as readable text for the LLM."""
     if data is None:
         return f"### {section_name}\n(sin datos)\n"

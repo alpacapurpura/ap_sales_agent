@@ -123,6 +123,7 @@ select = [
     # --- Wave 5 ---
     "E501",                    # line-too-long (line-length=120)
     "FAST",                    # fastapi: Annotated dependencies
+    "ANN",                     # type annotations (src/ only, tests exempt)
     # --- Wave 4: fix + activate ---
     "NPY",                     # numpy deprecated APIs
     "PYI",                     # stub file / typing best practices
@@ -195,10 +196,12 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "DTZ011",  # date.today() in test fixtures is acceptable
     "PLR0912", # complex test helper functions are acceptable
     "F401",    # side-effect imports for model registration in conftest
+    "ANN",     # type annotations not required in tests
 ]
 "src/tests/**/*.py" = [
     "S101", "ARG", "PT", "PLR2004", "T201", "N806", "DTZ011", "PLR0912",
     "INP001",  # src/tests/ is a testpath, not a package — __init__.py conflicts with tests/
+    "ANN",     # type annotations not required in tests
 ]
 "src/scripts/**/*.py" = [
     "T201",    # CLI scripts legitimately use print() for output
@@ -206,7 +209,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "PLR0915", # one-shot migration scripts — not worth refactoring
 ]
 "src/modules/brand/tests/**/*.py" = [
-    "S101", "ARG", "PT", "PLR2004", "T201",
+    "S101", "ARG", "PT", "PLR2004", "T201", "ANN",
 ]
 "src/admin/**/*.py" = [
     "C901",     # too complex — Streamlit pages are monolithic by design

@@ -12,10 +12,11 @@ from uuid import UUID
 import structlog
 from langchain_core.tools import tool
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
-from src.modules.copilot.domain.module_registry import get_module_registry
+from src.modules.copilot.domain.module_registry import ModuleDescriptor, get_module_registry
 from src.modules.copilot.domain.schema_introspection import (
     check_section_completion,
     format_completion_markdown,
@@ -25,7 +26,7 @@ from src.modules.copilot.domain.schema_introspection import (
 logger = structlog.get_logger()
 
 
-def _check_introspectable_module(db, tenant_id: UUID, descriptor) -> dict:
+def _check_introspectable_module(db: Session, tenant_id: UUID, descriptor: ModuleDescriptor) -> dict:
     """Check completion for a module that has a Pydantic model_class."""
     try:
         repo = descriptor.repo_factory(db)
@@ -51,7 +52,7 @@ def _check_introspectable_module(db, tenant_id: UUID, descriptor) -> dict:
     }
 
 
-def _check_offer_completion(db, tenant_id: UUID) -> dict:
+def _check_offer_completion(db: Session, tenant_id: UUID) -> dict:
     """Check offer configuration status via SQL count."""
     try:
         count = (
@@ -75,7 +76,7 @@ def _check_offer_completion(db, tenant_id: UUID) -> dict:
     }
 
 
-def _check_connections_completion(db, tenant_id: UUID) -> dict:
+def _check_connections_completion(db: Session, tenant_id: UUID) -> dict:
     """Check which integrations are connected."""
     try:
         rows = (
@@ -103,7 +104,7 @@ def _check_connections_completion(db, tenant_id: UUID) -> dict:
     return {"configured": configured, "markdown": markdown}
 
 
-def _check_landing_completion(db, tenant_id: UUID) -> dict:
+def _check_landing_completion(db: Session, tenant_id: UUID) -> dict:
     """Check landing page status."""
     try:
         total = (
@@ -130,7 +131,7 @@ def _check_landing_completion(db, tenant_id: UUID) -> dict:
     return {"configured": configured, "markdown": markdown}
 
 
-def _check_crm_completion(db, tenant_id: UUID) -> dict:
+def _check_crm_completion(db: Session, tenant_id: UUID) -> dict:
     """Check CRM data status."""
     try:
         lead_count = (

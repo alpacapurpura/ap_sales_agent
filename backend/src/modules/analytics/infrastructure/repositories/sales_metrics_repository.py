@@ -28,7 +28,7 @@ class SaleAggregation(NamedTuple):
 class SalesMetricsRepository:
     """Aggregate completed sales by stage, offer_id, source, currency."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def get_sales_summary(

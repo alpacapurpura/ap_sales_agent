@@ -8,7 +8,9 @@ ONCE and the resulting credentials are distributed to each service.
 
 import json
 import os
+from collections.abc import Callable
 from typing import Annotated, Any
+from uuid import UUID
 
 import sentry_sdk
 import structlog
@@ -95,7 +97,7 @@ def _get_client_config() -> dict:
 @router.get("/auth-url")
 async def get_auth_url(
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> dict[str, str]:
     """Returns a Google OAuth URL requesting ALL workspace scopes at once."""
     flow = Flow.from_client_config(
         _get_client_config(),
@@ -117,7 +119,7 @@ async def oauth_callback(
     code: Annotated[str, Body(embed=True)],
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str | dict[str, str | dict[str, str] | None] | None]:
     """
     Exchanges the authorization code ONCE and stores the resulting credentials
     for all 4 Google services (Gmail, Calendar, Analytics, YouTube).
@@ -221,7 +223,7 @@ async def oauth_callback(
 async def get_status(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, bool | str | dict[str, dict[str, bool]] | None]:
     """Returns the connection status for all 4 Google services."""
     services: dict[str, dict] = {}
     any_connected = False
@@ -260,7 +262,7 @@ async def toggle_service(
     is_active: Annotated[bool, Body(embed=True)],
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str | bool]:
     """Activates or deactivates a specific Google service without revoking OAuth."""
     if service not in SERVICE_MAP:
         raise HTTPException(status_code=400, detail=f"Servicio desconocido: {service}")
@@ -286,7 +288,7 @@ async def toggle_service(
 async def disconnect_all(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str | list[str]]:
     """Soft-deletes all Google service connections for this tenant."""
     deactivated = []
     for service_slug, channel_type in SERVICE_MAP.items():
@@ -373,7 +375,7 @@ def _test_youtube(creds_data: dict) -> dict:
 
 
 # Maps service slug -> test function
-_SERVICE_TESTS: dict[str, callable] = {
+_SERVICE_TESTS: dict[str, Callable[[dict], dict]] = {
     "gmail": _test_gmail,
     "calendar": _test_calendar,
     "analytics": _test_analytics,
@@ -382,10 +384,10 @@ _SERVICE_TESTS: dict[str, callable] = {
 
 
 def _run_service_test(
-    test_fn: callable,
+    test_fn: Callable[[dict], dict],
     creds_data: dict,
     service_slug: str,
-    tenant_id: Any,
+    tenant_id: UUID,
 ) -> dict:
     """Execute a single service test and return a result dict.
 
@@ -451,11 +453,11 @@ def _run_service_test(
         return {"status": "ok", "data": data}
 
 
-@router.post("/test", response_model=ConnectionTestResponse)
+@router.post("/test")
 async def test_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> ConnectionTestResponse:
     """
     Tests the Google Workspace connection by probing each active service.
     Returns per-service results or the exact failure reason.

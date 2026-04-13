@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from langgraph.graph import END, START, StateGraph
 
 from src.modules.brand.application.agents.style_analyzer.nodes import (
@@ -11,8 +15,11 @@ from src.modules.brand.application.agents.style_analyzer.nodes_research import (
 )
 from src.modules.brand.application.agents.style_analyzer.state import OnboardingState
 
+if TYPE_CHECKING:
+    from langgraph.graph.state import CompiledStateGraph
 
-def create_onboarding_graph():
+
+def create_onboarding_graph() -> CompiledStateGraph:
     workflow = StateGraph(OnboardingState)
 
     # Add Nodes

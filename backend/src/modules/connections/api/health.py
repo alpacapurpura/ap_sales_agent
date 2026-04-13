@@ -153,12 +153,12 @@ def evaluate_connection_health(
     )
 
 
-@router.get("/{channel_slug}/health", response_model=ConnectionHealthResponse)
+@router.get("/{channel_slug}/health")
 async def get_connection_health(
     channel_slug: str,
     user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> ConnectionHealthResponse:
     """Return health status for a specific channel connection."""
     channel_type = _SLUG_TO_CHANNEL_TYPE.get(channel_slug)
     if channel_type is None:

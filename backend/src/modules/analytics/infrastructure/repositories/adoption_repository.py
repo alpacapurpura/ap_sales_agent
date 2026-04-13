@@ -33,7 +33,7 @@ _CUSTOMER_STAGES = [
 class AdoptionMetricsRepository:
     """CRM aggregate queries for adoption (Stage 5) metrics."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def get_customer_health_by_offer(

@@ -9,7 +9,7 @@ from uuid import UUID
 logger = logging.getLogger(__name__)
 
 
-def _fail_progress(redis, progress_key: str, error_msg: str, log_detail: str):
+def _fail_progress(redis: object, progress_key: str, error_msg: str, log_detail: str) -> None:
     """Write a user-friendly failure to Redis and log the full detail for debugging."""
     logger.error("Brand extraction task error: %s", log_detail)
     if redis:
@@ -37,8 +37,8 @@ async def run_brand_extraction(
     include_visuals: bool = False,
     include_assets: bool = False,
     dry_run: bool = False,
-    **_extra_kwargs,
-) -> dict:
+    **_extra_kwargs: object,
+) -> dict[str, str]:
     """Execute brand extraction as a background job.
 
     Writes progress to Redis at each extraction wave so the frontend
@@ -72,7 +72,7 @@ async def run_brand_extraction(
 
     started_at = datetime.now(UTC).isoformat()
 
-    def on_progress(progress_pct: int, stage: str):
+    def on_progress(progress_pct: int, stage: str) -> None:
         if redis:
             redis.setex(
                 progress_key,

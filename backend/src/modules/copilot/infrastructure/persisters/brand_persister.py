@@ -13,7 +13,7 @@ from src.modules.brand.infrastructure.repositories.brand_repository import (
 class BrandPersister:
     """Writes confirmed interview data to BrandSettings (Tenant.config_json)."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repo = BrandRepository(db)
 

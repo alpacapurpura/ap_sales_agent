@@ -9,7 +9,7 @@ from src.shared.domain.datetime_utils import utc_now
 
 
 class AvatarRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def get_by_tenant(self, tenant_id: UUID, scope: str | None = None) -> list[Avatar]:

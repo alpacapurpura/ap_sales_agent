@@ -12,12 +12,12 @@ from src.modules.iam.domain.user import User
 router = APIRouter()
 
 
-@router.post("/identify", response_model=CustomerProfile)
+@router.post("/identify")
 async def identify_customer(
     payload: dict[str, Any],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> CustomerProfile:
     """
     Identify a customer (create or update profile).
     Payload should contain 'traits' and optional 'userId'.

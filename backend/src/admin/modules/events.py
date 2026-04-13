@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 
-def render_events_page():
+def render_events_page() -> None:
     st.title("🧠 Inteligencia Copilot")
 
     from src.admin.modules._shared import (

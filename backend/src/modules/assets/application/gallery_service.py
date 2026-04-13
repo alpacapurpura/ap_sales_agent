@@ -1,5 +1,6 @@
 import shutil
 from pathlib import Path
+from typing import BinaryIO
 from uuid import UUID
 
 from fastapi import BackgroundTasks
@@ -13,7 +14,7 @@ from src.modules.assets.infrastructure.repositories.gallery_repository import (
 
 
 class GalleryService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repository = GalleryRepository(db)
         self.upload_dir = settings.UPLOAD_DIR
@@ -22,7 +23,7 @@ class GalleryService:
     def upload_image(
         self,
         tenant_id: UUID,
-        file_obj,
+        file_obj: BinaryIO,
         filename: str,
         description: str,
         background_tasks: BackgroundTasks,

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pandas as pd
 import streamlit as st
 
@@ -5,7 +7,7 @@ from src.core.database import SessionLocal
 from src.modules.iam.application.services.tenant_service import TenantService
 
 
-def get_tenants():
+def get_tenants() -> list:
     db = SessionLocal()
     try:
         service = TenantService(db)
@@ -14,7 +16,7 @@ def get_tenants():
         db.close()
 
 
-def create_tenant(name, slug, can_use_keys, company_name, agent_persona):
+def create_tenant(name: str, slug: str, can_use_keys: bool, company_name: str, agent_persona: str) -> tuple:
     db = SessionLocal()
     try:
         service = TenantService(db)
@@ -29,7 +31,7 @@ def create_tenant(name, slug, can_use_keys, company_name, agent_persona):
         db.close()
 
 
-def update_tenant(tenant_id, name, slug, can_use_keys, is_active):
+def update_tenant(tenant_id: object, name: str, slug: str, can_use_keys: bool, is_active: bool) -> tuple:
     db = SessionLocal()
     try:
         service = TenantService(db)
@@ -38,7 +40,7 @@ def update_tenant(tenant_id, name, slug, can_use_keys, is_active):
         db.close()
 
 
-def render_tenants_view():
+def render_tenants_view() -> None:
     st.title("🏢 Gestión de Tenants")
 
     # Cargar tenants al inicio para usar en todas las pestañas

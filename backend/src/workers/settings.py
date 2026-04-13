@@ -48,7 +48,7 @@ class WorkerSettings:
     job_timeout = 600  # 10 minutes per job
 
     @staticmethod
-    async def on_startup(ctx):
+    async def on_startup(ctx: dict) -> None:
         """Initialize DB session factory, Redis, and Sentry for worker."""
         from src.core.database import SessionLocal, redis_client
         from src.core.sentry import init_sentry
@@ -58,7 +58,7 @@ class WorkerSettings:
         ctx["redis_cache"] = redis_client
 
     @staticmethod
-    async def on_shutdown(ctx):
+    async def on_shutdown(ctx: dict) -> None:
         """Cleanup worker resources."""
 
 
@@ -122,7 +122,7 @@ class SchedulerSettings:
     ]
 
     @staticmethod
-    async def on_startup(ctx):
+    async def on_startup(ctx: dict) -> None:
         """Initialize DB session factory, Redis, and Sentry for scheduler."""
         from src.core.database import SessionLocal, redis_client
         from src.core.sentry import init_sentry
@@ -132,5 +132,5 @@ class SchedulerSettings:
         ctx["redis_cache"] = redis_client
 
     @staticmethod
-    async def on_shutdown(ctx):
+    async def on_shutdown(ctx: dict) -> None:
         """Cleanup scheduler resources."""

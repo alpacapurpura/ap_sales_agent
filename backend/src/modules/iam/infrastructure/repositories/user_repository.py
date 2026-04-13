@@ -8,7 +8,7 @@ from src.modules.iam.infrastructure.models.user_model import UserModel
 
 
 class UserRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def get_by_id(self, user_id: UUID) -> User | None:

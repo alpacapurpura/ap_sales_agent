@@ -11,7 +11,7 @@ from src.modules.crm.infrastructure.repositories.customer_repository import (
 
 
 class IdentityService:
-    def __init__(self, customer_repository: CustomerRepository):
+    def __init__(self, customer_repository: CustomerRepository) -> None:
         self.customer_repository = customer_repository
 
     def get_or_create_customer(

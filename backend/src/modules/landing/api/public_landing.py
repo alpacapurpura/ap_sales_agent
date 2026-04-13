@@ -59,7 +59,6 @@ class PublicLandingResponse(BaseModel):
 
 @router.get(
     "/landing/{slug}",
-    response_model=PublicLandingResponse,
     summary="Get a published landing page by slug (public)",
     tags=["Public - Landing"],
 )
@@ -67,7 +66,7 @@ def get_public_landing(
     slug: str,
     db: Annotated[Session, Depends(get_db)],
     x_tenant_id: Annotated[str | None, Header(alias="X-Tenant-ID")] = None,
-):
+) -> PublicLandingResponse:
     """Return a landing page by slug scoped to the given tenant.
 
     - Returns 400 if X-Tenant-ID header is missing.

@@ -34,7 +34,7 @@ from src.modules.assets.infrastructure.models.asset_model import (
 from src.modules.assets.infrastructure.storage.r2 import R2StorageStrategy
 
 
-def migrate(dry_run: bool = False):
+def migrate(dry_run: bool = False) -> None:
     print(f"{'[DRY RUN] ' if dry_run else ''}Starting LOCAL → R2 asset migration...")
     print(f"  Bucket:     {settings.R2_BUCKET_NAME}")
     print(f"  Endpoint:   {settings.R2_ENDPOINT_URL}")

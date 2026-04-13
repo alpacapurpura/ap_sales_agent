@@ -20,7 +20,7 @@ logger = structlog.get_logger()
 
 
 class AssetsService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repository = AssetRepository(db)
         self.storage = get_storage_strategy()
@@ -97,7 +97,7 @@ class AssetsService:
         asset_id: UUID,
         tenant_id: UUID,
         storage_path: str,
-    ):
+    ) -> None:
         """Background task: fetch file bytes from storage, then run AI processing."""
         try:
             from src.core.database import SessionLocal
@@ -133,7 +133,7 @@ class AssetsService:
         except Exception as e:
             logger.exception("background_task_failed", error=str(e))
 
-    def _update_asset_in_db(self, db: Session, asset: Asset):
+    def _update_asset_in_db(self, db: Session, asset: Asset) -> None:
         from sqlalchemy import update
 
         from src.modules.assets.infrastructure.models.asset_model import AssetModel

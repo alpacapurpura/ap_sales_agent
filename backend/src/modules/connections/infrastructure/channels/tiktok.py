@@ -27,7 +27,7 @@ class TikTokAdapter:
     All methods return empty lists on failure (graceful degradation).
     """
 
-    def __init__(self, access_token: str | None = None):
+    def __init__(self, access_token: str | None = None) -> None:
         self.access_token = access_token
 
     async def get_advertiser_currency(

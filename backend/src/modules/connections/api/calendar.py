@@ -55,7 +55,7 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
 async def get_auth_url(
     user: Annotated[User, Depends(get_current_user)],
     redirect_uri: str | None = None,
-):
+) -> dict[str, str]:
     url, state = GoogleCalendarAdapter.get_authorization_url(redirect_uri)
     return {"url": url, "state": state}
 
@@ -67,7 +67,7 @@ async def oauth_callback(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
     redirect_uri: Annotated[str | None, Body(embed=True)] = None,
-):
+) -> dict[str, str]:
     try:
         creds_data = GoogleCalendarAdapter.exchange_code(code, redirect_uri)
     except Exception as e:
@@ -96,12 +96,12 @@ async def oauth_callback(
     return {"status": "connected", "email": email}
 
 
-@router.get("/status", response_model=CalendarStatusResponse)
+@router.get("/status")
 async def get_status(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> CalendarStatusResponse:
     connection = repo.get_active(user.tenant_id, ChannelType.GOOGLE_CALENDAR)
 
     stmt = (
@@ -135,7 +135,7 @@ async def get_status(
 async def create_booking_link(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> dict[str, str]:
     service = LinkService(db)
     link = service.create_link(
         tenant_id=user.tenant_id,
@@ -151,7 +151,7 @@ async def create_personalized_link(
     payload: CreateBookingLinkRequest,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> dict[str, str | datetime.datetime | None]:
     lead = (
         db.execute(
             select(Lead).where(
@@ -196,7 +196,7 @@ async def create_personalized_link(
 async def disconnect(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str]:
     connection = repo.get_by_tenant_and_type(
         user.tenant_id,
         ChannelType.GOOGLE_CALENDAR,
@@ -210,7 +210,7 @@ async def disconnect(
 async def test_connection(
     user: Annotated[User, Depends(get_current_user)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
-):
+) -> dict[str, str | dict[str, str | int] | None]:
     connection = repo.get_active(user.tenant_id, ChannelType.GOOGLE_CALENDAR)
 
     if not connection or not connection.credentials:
@@ -231,14 +231,14 @@ async def test_connection(
         return {"status": "error", "message": str(e)}
 
 
-@router.get("/slots", response_model=SlotsResponse)
+@router.get("/slots")
 async def get_slots(
     start_date: datetime.date,
     end_date: datetime.date,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     duration: int = 30,
-):
+) -> SlotsResponse:
     service = AvailabilityService(db, user.tenant_id)
     slots = service.get_available_slots(start_date, end_date, duration_minutes=duration)
     return {"slots": slots}
@@ -249,7 +249,7 @@ async def book_meeting(
     payload: BookMeetingRequest,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> dict[str, str | None]:
     service = AvailabilityService(db, user.tenant_id)
     try:
         event = service.book_meeting(
@@ -269,7 +269,7 @@ async def list_appointments(
     end_date: datetime.date,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[dict[str, str | list[str] | None]]:
     service = AvailabilityService(db, user.tenant_id)
     events = service.list_appointments(start_date, end_date)
 
@@ -295,32 +295,32 @@ async def list_appointments(
 # --- Availability Management Endpoints ---
 
 
-@router.get("/schedules", response_model=list[AvailabilitySchedule])
+@router.get("/schedules")
 async def list_schedules(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> list[AvailabilitySchedule]:
     service = AvailabilityService(db, user.tenant_id)
     return service.list_schedules()
 
 
-@router.post("/schedules", response_model=AvailabilitySchedule)
+@router.post("/schedules")
 async def create_schedule(
     schedule: AvailabilitySchedule,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> AvailabilitySchedule:
     service = AvailabilityService(db, user.tenant_id)
     return service.create_schedule(schedule)
 
 
-@router.patch("/schedules/{schedule_id}", response_model=AvailabilitySchedule)
+@router.patch("/schedules/{schedule_id}")
 async def update_schedule(
     schedule_id: str,
     update: ScheduleUpdate,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> AvailabilitySchedule:
     service = AvailabilityService(db, user.tenant_id)
     updated = service.update_schedule(schedule_id, update)
     if not updated:
@@ -333,7 +333,7 @@ async def delete_schedule(
     schedule_id: str,
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-):
+) -> dict[str, str]:
     service = AvailabilityService(db, user.tenant_id)
     deleted = service.delete_schedule(schedule_id)
     if not deleted:

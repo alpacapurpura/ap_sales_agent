@@ -25,7 +25,7 @@ logger = structlog.get_logger()
 class CloserStudioService:
     """Orchestrates Closer Studio queries and actions."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     # ── List conversations ──────────────────────────────────────────────

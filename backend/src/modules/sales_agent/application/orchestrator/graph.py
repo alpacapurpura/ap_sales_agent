@@ -1,3 +1,5 @@
+from typing import Any
+
 from langgraph.graph import END, START, StateGraph
 
 from src.modules.sales_agent.application.agents.sales.graph import sales_app
@@ -7,7 +9,7 @@ from src.modules.sales_agent.infrastructure.monitoring.tracing import trace_node
 
 # Nodes
 @trace_node("main_supervisor")
-def supervisor_node(state: AgentState):
+def supervisor_node(state: AgentState) -> dict[str, str]:
     """
     Main entry point. Routes to sub-agents.
     """
@@ -16,7 +18,7 @@ def supervisor_node(state: AgentState):
 
 
 @trace_node("sales_agent_subgraph_wrapper")
-def sales_agent_node(state: AgentState):
+def sales_agent_node(state: AgentState) -> dict[str, Any]:
     """
     Wraps the Sales Subgraph.
     """

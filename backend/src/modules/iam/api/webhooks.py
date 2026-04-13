@@ -1,7 +1,9 @@
 import uuid
+from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.orm import Session
 from svix.webhooks import Webhook, WebhookVerificationError
 
 from src.core.config import settings
@@ -13,7 +15,7 @@ router = APIRouter()
 logger = structlog.get_logger()
 
 
-async def _handle_user_sync(repo: UserRepository, data: dict, event_type: str):
+async def _handle_user_sync(repo: UserRepository, data: dict, event_type: str) -> None:
     """
     Syncs user data from Clerk to local DB.
     """
@@ -69,7 +71,7 @@ async def _handle_user_sync(repo: UserRepository, data: dict, event_type: str):
         logger.info("clerk_user_synced_updated", email=email, clerk_id=clerk_id)
 
 
-async def _handle_user_deletion(repo: UserRepository, data: dict):
+async def _handle_user_deletion(repo: UserRepository, data: dict) -> None:
     """
     Soft deletes user when deleted in Clerk.
     """
@@ -85,7 +87,7 @@ async def _handle_user_deletion(repo: UserRepository, data: dict):
 
 
 @router.post("/clerk", status_code=status.HTTP_200_OK)
-async def clerk_webhook_handler(request: Request, db=Depends(get_db)):
+async def clerk_webhook_handler(request: Request, db: Annotated[Session, Depends(get_db)]) -> dict[str, str]:
     """
     Handle incoming webhooks from Clerk (User Created, Updated, Deleted).
     Verifies the signature using Svix.

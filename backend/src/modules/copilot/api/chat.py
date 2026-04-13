@@ -23,7 +23,7 @@ async def copilot_chat(
     current_user: Annotated[User, Depends(get_current_user)],
     tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
     db: Annotated[Session, Depends(get_db)],
-):
+) -> StreamingResponse:
     """
     Stream a copilot response via Server-Sent Events.
 

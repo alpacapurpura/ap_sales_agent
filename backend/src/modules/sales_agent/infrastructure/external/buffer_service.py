@@ -13,7 +13,7 @@ class SmartBufferService:
     Manages the message buffer in Redis for the Dynamic Debounce strategy.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.redis = redis_client
         self.buffer_ttl = 3600  # 1 hour expiration for stale buffers
 
@@ -32,7 +32,7 @@ class SmartBufferService:
         text: str,
         channel_type: str,
         metadata: dict | None = None,
-    ):
+    ) -> None:
         """
         Appends a message to the user's buffer and updates the last timestamp.
         """
@@ -91,7 +91,7 @@ class SmartBufferService:
             self.redis.set(self._key_lock(user_id), "locked", ex=expire, nx=True),
         )
 
-    def release_lock(self, user_id: str):
+    def release_lock(self, user_id: str) -> None:
         self.redis.delete(self._key_lock(user_id))
 
     def clear_user_cache(self, user_id: str) -> bool:

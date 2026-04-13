@@ -4,21 +4,20 @@ Sequence: extract -> stage -> transform -> official -> aggregate -> cache invali
 All DB operations run in a single transaction. On failure, everything rolls back.
 """
 
+from __future__ import annotations
+
 import time
 import uuid
-from datetime import date
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 import sentry_sdk
 import structlog
-from sqlalchemy.orm import Session
 
 from src.modules.analytics.application.cost_type_mapping import get_cost_type
 from src.modules.analytics.domain.enums import ExtractionStatus
 from src.modules.analytics.domain.exceptions import ConnectionRevokedError
 from src.modules.analytics.domain.period_config import TenantPeriodConfig
-from src.modules.analytics.domain.ports import ConnectionPort
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.infrastructure.etl.aggregations import (
     compute_aggregations,
 )
@@ -31,19 +30,31 @@ from src.modules.analytics.infrastructure.models.metric_aggregation_model import
 from src.modules.analytics.infrastructure.models.staging_metrics_model import (
     StagingMetricModel,
 )
-from src.modules.analytics.infrastructure.providers.base import BaseMetricsProvider
-from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
-    ExtractionRunRepository,
-)
 from src.modules.analytics.infrastructure.repositories.metric_aggregation_repository import (
     MetricAggregationRepository,
 )
-from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
-    OfficialMetricsRepository,
-)
-from src.modules.analytics.infrastructure.repositories.staging_repository import (
-    StagingMetricsRepository,
-)
+
+if TYPE_CHECKING:
+    from datetime import date
+
+    from sqlalchemy.orm import Session
+
+    from src.modules.analytics.domain.extraction_result import ExtractionResult
+    from src.modules.analytics.domain.ports import ConnectionPort
+    from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+    from src.modules.analytics.infrastructure.models.extraction_run_model import (
+        ExtractionRunModel,
+    )
+    from src.modules.analytics.infrastructure.providers.base import BaseMetricsProvider
+    from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
+        ExtractionRunRepository,
+    )
+    from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
+        OfficialMetricsRepository,
+    )
+    from src.modules.analytics.infrastructure.repositories.staging_repository import (
+        StagingMetricsRepository,
+    )
 
 logger = structlog.get_logger(__name__)
 
@@ -75,7 +86,7 @@ def _build_staging_models(
     ]
 
 
-def _determine_status(result) -> ExtractionStatus:
+def _determine_status(result: ExtractionResult) -> ExtractionStatus:
     """Determine final extraction status from result."""
     if result.failures and result.metrics:
         return ExtractionStatus.PARTIAL_SUCCESS
@@ -101,7 +112,7 @@ class ETLPipeline:
         run_repo: ExtractionRunRepository,
         cache: MetricsCache,
         period_config: TenantPeriodConfig | None = None,
-    ):
+    ) -> None:
         self.db = db
         self.provider = provider
         self.connection_port = connection_port
@@ -117,7 +128,7 @@ class ETLPipeline:
         start_date: date,
         end_date: date,
         stage: str = "attraction",
-    ):
+    ) -> ExtractionRunModel:
         """Execute the full ETL pipeline for a tenant and date range.
 
         Steps:
@@ -228,13 +239,13 @@ class ETLPipeline:
 
     async def _extract_and_load(
         self,
-        tenant_id,
-        provider_name,
-        start_date,
-        end_date,
-        stage,
-        run_id,
-    ):
+        tenant_id: UUID,
+        provider_name: str,
+        start_date: date,
+        end_date: date,
+        stage: str,
+        run_id: UUID,
+    ) -> tuple[ExtractionResult, int]:
         """Steps 2-7: Extract, stage, transform, upsert, aggregate. Returns (result, rows_staged)."""
         creds = await self.connection_port.get_credentials(tenant_id, provider_name)
         provider_creds = {**creds.credentials, **creds.config}
@@ -278,7 +289,7 @@ class ETLPipeline:
 
         return result, rows_staged
 
-    def _record_run_result(self, run_id, result, rows_staged, duration):
+    def _record_run_result(self, run_id: UUID, result: ExtractionResult, rows_staged: int, duration: float) -> None:
         """Determine final status from extraction result and update the run."""
         final_status = _determine_status(result)
         final_error = None
@@ -306,16 +317,16 @@ class ETLPipeline:
 
     def _handle_pipeline_failure(
         self,
-        run_id,
-        start_time,
-        tenant_id,
-        provider_name,
-        error_msg,
-        failure_type,
-        exc,
+        run_id: UUID,
+        start_time: float,
+        tenant_id: UUID,
+        provider_name: str,
+        error_msg: str,
+        failure_type: str,
+        exc: Exception,
         *,
-        log_level="error",
-    ):
+        log_level: str = "error",
+    ) -> None:
         """Rollback, record failure, report to Sentry."""
         self.db.rollback()
         duration = time.monotonic() - start_time

@@ -16,7 +16,7 @@ class TelegramChannel(BaseChannel):
     Supports multi-tenant configuration via token injection.
     """
 
-    def __init__(self, token: str | None = None):
+    def __init__(self, token: str | None = None) -> None:
         """
         Initialize with specific bot token.
         If no token provided, falls back to settings.TELEGRAM_BOT_TOKEN (legacy/global mode).

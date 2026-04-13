@@ -1,13 +1,17 @@
-from uuid import UUID
+from __future__ import annotations
 
-from sqlalchemy.orm import Session
+from typing import TYPE_CHECKING
+from uuid import UUID
 
 from src.modules.crm.domain.lead import Lead, UserProfile
 from src.modules.crm.infrastructure.repositories.lead_repository import LeadRepository
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
 
 class LeadService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.repository = LeadRepository(db)
 
@@ -26,7 +30,7 @@ class LeadService:
         self,
         tenant_id: UUID,
         profile: UserProfile | None = None,
-        **channel_ids,
+        **channel_ids: str,
     ) -> Lead:
         new_lead = Lead(
             id=UUID(
@@ -48,7 +52,7 @@ class LeadService:
 
 
 class PipelineService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
         self.lead_repo = LeadRepository(db)
 
@@ -58,7 +62,7 @@ class PipelineService:
         new_stage: str,
         admin_user_id: str | None = None,
         note: str = "",
-    ):
+    ) -> None:
         """Move a profile to a new lifecycle stage via manual override.
 
         Delegates to LifecycleService.force_stage for audit trail and validation.

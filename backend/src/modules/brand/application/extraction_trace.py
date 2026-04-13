@@ -33,7 +33,7 @@ class ExtractionTraceCollector:
         url: str | None = None,
         include_visuals: bool = False,
         include_assets: bool = False,
-    ):
+    ) -> None:
         self._db = db
         self._trace_id = uuid4()
         self._tenant_id = tenant_id
@@ -59,7 +59,7 @@ class ExtractionTraceCollector:
         *,
         section: str | None = None,
         duration_s: float | None = None,
-        **meta: Any,
+        **meta: Any,  # noqa: ANN401
     ) -> None:
         entry: dict[str, Any] = {
             "event": event,

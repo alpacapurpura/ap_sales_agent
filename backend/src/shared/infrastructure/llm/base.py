@@ -16,7 +16,7 @@ class BaseLLMService(ABC):
         messages: list[dict[str, str]],
         system_prompt: str | None = None,
         model_type: str = "smart",
-        **kwargs,
+        **kwargs: Any,  # noqa: ANN401 — abstract LLM interface
     ) -> str:
         """
         Generates a text response from the LLM.
@@ -32,9 +32,9 @@ class BaseLLMService(ABC):
         """
 
     @abstractmethod
-    def get_embedding_model(self) -> Any:
+    def get_embedding_model(self) -> Any:  # noqa: ANN401 — abstract LLM interface
         """Returns a LangChain-compatible embedding model object."""
 
     @abstractmethod
-    def get_client(self, role: ModelRole = ModelRole.REASONING) -> Any:
+    def get_client(self, role: ModelRole = ModelRole.REASONING) -> Any:  # noqa: ANN401 — abstract LLM interface
         """Returns the underlying chat model client for the given role."""

@@ -31,13 +31,13 @@ class YouTubeAnalyticsAdapter:
     (stored in ChannelConnection.credentials).
     """
 
-    def __init__(self, credentials_data: dict[str, Any]):
+    def __init__(self, credentials_data: dict[str, Any]) -> None:
         self.creds = Credentials.from_authorized_user_info(credentials_data, SCOPES)
 
-    def _get_analytics_service(self):
+    def _get_analytics_service(self) -> object:
         return build("youtubeAnalytics", "v2", credentials=self.creds)
 
-    def _get_data_service(self):
+    def _get_data_service(self) -> object:
         """YouTube Data API v3 — used only to resolve the channel ID."""
         return build("youtube", "v3", credentials=self.creds)
 

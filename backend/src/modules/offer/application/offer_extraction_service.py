@@ -50,7 +50,7 @@ class OfferExtractionService:
     are run in two concurrent waves and persisted via OfferService.patch_offer.
     """
 
-    def __init__(self, db: Session, tenant_id: UUID, offer_id: UUID):
+    def __init__(self, db: Session, tenant_id: UUID, offer_id: UUID) -> None:
         self.db = db
         self.tenant_id = tenant_id
         self.offer_id = offer_id

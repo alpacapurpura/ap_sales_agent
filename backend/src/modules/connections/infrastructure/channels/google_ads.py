@@ -30,7 +30,7 @@ class GoogleAdsAdapter:
         developer_token: str | None = None,
         client_id: str | None = None,
         client_secret: str | None = None,
-    ):
+    ) -> None:
         self.developer_token = developer_token
         self.client_id = client_id
         self.client_secret = client_secret
