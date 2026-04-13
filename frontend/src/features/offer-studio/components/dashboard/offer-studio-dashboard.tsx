@@ -7,6 +7,8 @@ import { useNavigation } from "@/components/shared/navigation";
 import { offerApi } from "@/features/offer-studio/api";
 import { useArchiveOffer } from "@/features/offer-studio/hooks/use-offer";
 import { Offer, OfferValueLevel } from "@/features/offer-studio/types";
+import { startInterview } from "@/features/copilot/api/interview-api";
+import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 import { LeadMagnetStreamCard } from "./lead-magnet-stream-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -179,6 +181,56 @@ export function OfferStudioDashboard({
     }
   };
 
+  const handleCreateOfferWithIA = async (wizardData: WizardResult) => {
+    setCreating(true);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("No authenticated");
+
+      const newOffer = await offerApi.createOffer({
+        public_name: wizardData.name,
+        archetype: wizardData.archetype,
+        format_hint: wizardData.format_hint,
+        is_lead_magnet: wizardData.is_lead_magnet,
+        has_editions: wizardData.has_editions,
+        headline_promise: wizardData.headline_promise,
+        status: wizardData.status,
+        delivery_model: wizardData.delivery_model,
+        offer_value_level: wizardData.value_level,
+        specific_details: wizardData.specific_details,
+      } as any, token);
+
+      if (newOffer.id) {
+        setIsWizardOpen(false);
+
+        // Activar entrevista en sidebar
+        const store = useCopilotStore.getState();
+        store.setFocusEntity({
+          domain: "offer",
+          entityId: newOffer.id,
+          label: wizardData.name,
+        });
+
+        const interview = await startInterview(token, "offer", newOffer.id);
+        store.setInterviewSession(interview.session_id);
+        store.setConversationId(interview.conversation_id);
+        store.addMessage({
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: interview.initial_message,
+          timestamp: Date.now(),
+        });
+        store.setSidebarState("expanded");
+
+        navigate(`/${tenantId}/offer-studio/offer/${newOffer.id}`);
+      }
+    } catch (err) {
+      console.error("Error creating offer with IA:", err);
+    } finally {
+      setCreating(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -306,6 +358,7 @@ export function OfferStudioDashboard({
         open={isWizardOpen}
         onOpenChange={setIsWizardOpen}
         onCreateOffer={handleCreateOffer}
+        onCreateWithIA={handleCreateOfferWithIA}
         creating={creating}
       />
     </div>
