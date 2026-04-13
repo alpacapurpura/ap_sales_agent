@@ -161,18 +161,11 @@ interface CopilotState {
   setInterviewProgress: (p: InterviewProgress) => void;
   clearInterview: () => void;
 
-  // Backward-compat: interviewMode derived from interviewSessionId
-  interviewMode: boolean;
-  setInterviewMode: (active: boolean, sessionId?: string) => void;
-
   // Preview data — previewData is source of truth
   previewData: Record<string, unknown> | null;
   updatePreviewData: (delta: Record<string, unknown>) => void;
   clearPreviewData: () => void;
 
-  // Backward-compat: interviewPreviewData aliases previewData
-  interviewPreviewData: Record<string, unknown> | null;
-  updateInterviewPreview: (delta: Record<string, unknown>) => void;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -298,13 +291,12 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
   setFocusSnapshot: (snapshot) => set({ focusSnapshot: snapshot }),
   clearFocus: () => set({ focusEntity: null, focusSnapshot: null }),
 
-  // Interview mode — interviewSessionId as source of truth; interviewMode kept in sync
+  // Interview mode — interviewSessionId as source of truth
   interviewSessionId: null,
   interviewProgress: null,
-  interviewMode: false,
 
   setInterviewSession: (id) =>
-    set({ interviewSessionId: id, interviewMode: true }),
+    set({ interviewSessionId: id }),
 
   setInterviewProgress: (p) => set({ interviewProgress: p }),
 
@@ -312,42 +304,17 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
     set({
       interviewSessionId: null,
       interviewProgress: null,
-      interviewMode: false,
       previewData: null,
-      interviewPreviewData: null,
     }),
 
-  // Backward-compat: setInterviewMode(true, id) sets session; setInterviewMode(false) clears
-  setInterviewMode: (active, sessionId) => {
-    if (active) {
-      set({ interviewMode: true, interviewSessionId: sessionId ?? null });
-    } else {
-      set({
-        interviewMode: false,
-        interviewSessionId: null,
-        interviewProgress: null,
-        previewData: null,
-        interviewPreviewData: null,
-      });
-    }
-  },
-
-  // Preview data — previewData is source of truth; interviewPreviewData kept in sync
+  // Preview data — previewData is source of truth
   previewData: null,
-  interviewPreviewData: null,
 
   updatePreviewData: (delta) =>
     set((state) => {
       const merged = { ...(state.previewData ?? {}), ...delta };
-      return { previewData: merged, interviewPreviewData: merged };
+      return { previewData: merged };
     }),
 
-  clearPreviewData: () => set({ previewData: null, interviewPreviewData: null }),
-
-  // Backward-compat alias
-  updateInterviewPreview: (delta) =>
-    set((state) => {
-      const merged = { ...(state.previewData ?? {}), ...delta };
-      return { previewData: merged, interviewPreviewData: merged };
-    }),
+  clearPreviewData: () => set({ previewData: null }),
 }));

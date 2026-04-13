@@ -389,21 +389,4 @@ describe('backward compatibility', () => {
     expect(useCopilotStore.getState().sidebarState).toBe('collapsed');
   });
 
-  it('interviewMode should derive from interviewSessionId', () => {
-    useCopilotStore.getState().setInterviewSession('sess-1');
-    expect(useCopilotStore.getState().interviewMode).toBe(true);
-
-    useCopilotStore.getState().clearInterview();
-    expect(useCopilotStore.getState().interviewMode).toBe(false);
-  });
-
-  it('updateInterviewPreview should alias updatePreviewData', () => {
-    useCopilotStore.getState().updateInterviewPreview({ key: 'val' });
-    expect(useCopilotStore.getState().previewData).toEqual({ key: 'val' });
-  });
-
-  it('interviewPreviewData should alias previewData', () => {
-    useCopilotStore.getState().updatePreviewData({ aliasTest: 'works' });
-    expect(useCopilotStore.getState().interviewPreviewData).toEqual({ aliasTest: 'works' });
-  });
 });

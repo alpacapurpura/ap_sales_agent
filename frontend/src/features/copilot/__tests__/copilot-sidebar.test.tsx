@@ -52,12 +52,10 @@ describe("CopilotSidebar", () => {
       interviewSessionId: null,
       interviewProgress: null,
       previewData: null,
-      interviewPreviewData: null,
       currentRoute: null,
       pendingUIActions: [],
       selectedFields: [],
       activeProcedure: null,
-      interviewMode: false,
     });
   });
 
