@@ -1,10 +1,13 @@
 """Focus Mode tool — write a single field to the focused entity."""
 
 import json
+from collections.abc import Iterator
+from contextlib import contextmanager
 from uuid import UUID
 
 import structlog
 from langchain_core.tools import tool
+from sqlalchemy.orm import Session
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
@@ -12,6 +15,16 @@ from src.modules.copilot.domain.schema_introspection import validate_field_path
 from src.modules.copilot.infrastructure.persisters.persister_registry import get_persister
 
 logger = structlog.get_logger()
+
+
+@contextmanager
+def _safe_session() -> Iterator[Session]:
+    """Yield a SessionLocal and guarantee close on any exit path."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 @tool
@@ -42,7 +55,7 @@ def entity_write(
         ``preview_update`` on success, or ``{"error": "..."}`` on failure.
 
     """
-    # Validate field path before touching the DB.
+    # ── Fail-fast validation (no DB session needed) ──────────────────────
     if not validate_field_path(domain, field_path):
         return json.dumps({"error": f"Campo '{field_path}' no es válido para el dominio '{domain}'."})
 
@@ -50,28 +63,32 @@ def entity_write(
     if tenant_id is None:
         return json.dumps({"error": "No se pudo determinar el tenant."})
 
-    db = SessionLocal()
+    # Parse UUID before opening a session — avoids leaking on bad input.
     try:
-        persister = get_persister(domain, db)
         eid = UUID(entity_id) if entity_id else None
-        persister.persist(
-            tenant_id=tenant_id,
-            mapa_global={field_path: value},
-            fields_to_persist=[field_path],
-            entity_id=eid,
-        )
-        return json.dumps(
-            {
-                "text": f"Actualizado: {field_path}",
-                "ui_action": {
-                    "type": "preview_update",
-                    "delta": {field_path: value},
-                    "reason": reason,
-                },
-            }
-        )
-    except Exception:
-        logger.exception("entity_write_error", domain=domain, field_path=field_path)
-        return json.dumps({"error": f"No se pudo escribir el campo '{field_path}'."})
-    finally:
-        db.close()
+    except (ValueError, AttributeError):
+        return json.dumps({"error": f"entity_id '{entity_id}' no es un UUID válido."})
+
+    # ── DB work inside context manager — session always closes ───────────
+    with _safe_session() as db:
+        try:
+            persister = get_persister(domain, db)
+            persister.persist(
+                tenant_id=tenant_id,
+                mapa_global={field_path: value},
+                fields_to_persist=[field_path],
+                entity_id=eid,
+            )
+            return json.dumps(
+                {
+                    "text": f"Actualizado: {field_path}",
+                    "ui_action": {
+                        "type": "preview_update",
+                        "delta": {field_path: value},
+                        "reason": reason,
+                    },
+                }
+            )
+        except Exception:
+            logger.exception("entity_write_error", domain=domain, field_path=field_path)
+            return json.dumps({"error": f"No se pudo escribir el campo '{field_path}'."})

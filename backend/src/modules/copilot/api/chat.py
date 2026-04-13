@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from src.core.context import set_user_id
 from src.core.database import get_db
+from src.core.rate_limit import check_rate_limit
 from src.modules.copilot.api.dto import CopilotChatRequest
 from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
 from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
@@ -34,6 +35,9 @@ async def copilot_chat(
         raise HTTPException(status_code=401, detail="Tenant ID required")
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User not associated with a tenant")
+
+    # Rate limit: 30 messages per minute per user
+    check_rate_limit(user_id=str(current_user.id), scope="copilot-chat")
 
     set_user_id(current_user.id)
 

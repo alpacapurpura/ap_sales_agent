@@ -1,16 +1,29 @@
 """Focus Mode tool — restore the entity to its snapshot state (undo all changes)."""
 
 import json
+from collections.abc import Iterator
+from contextlib import contextmanager
 from uuid import UUID
 
 import structlog
 from langchain_core.tools import tool
+from sqlalchemy.orm import Session
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
 from src.modules.copilot.infrastructure.persisters.persister_registry import get_persister
 
 logger = structlog.get_logger()
+
+
+@contextmanager
+def _safe_session() -> Iterator[Session]:
+    """Yield a SessionLocal and guarantee close on any exit path."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 @tool
@@ -39,32 +52,37 @@ def entity_undo_all(
         on success, or ``{"error": "..."}`` on failure.
 
     """
+    # ── Fail-fast validation (no DB session needed) ──────────────────────
     tenant_id = get_tenant_id()
     if tenant_id is None:
         return json.dumps({"error": "No se pudo determinar el tenant."})
 
-    db = SessionLocal()
+    # Parse UUID before opening a session — avoids leaking on bad input.
     try:
-        persister = get_persister(domain, db)
         eid = UUID(entity_id) if entity_id else None
-        fields_to_restore = list(snapshot.keys())
-        persister.persist(
-            tenant_id=tenant_id,
-            mapa_global=snapshot,
-            fields_to_persist=fields_to_restore,
-            entity_id=eid,
-        )
-        return json.dumps(
-            {
-                "text": "Entidad restaurada al estado inicial del focus.",
-                "ui_action": {
-                    "type": "preview_update",
-                    "delta": snapshot,
-                },
-            }
-        )
-    except Exception:
-        logger.exception("entity_undo_all_error", domain=domain, entity_id=entity_id)
-        return json.dumps({"error": f"No se pudo restaurar la entidad '{entity_id}'."})
-    finally:
-        db.close()
+    except (ValueError, AttributeError):
+        return json.dumps({"error": f"entity_id '{entity_id}' no es un UUID válido."})
+
+    # ── DB work inside context manager — session always closes ───────────
+    with _safe_session() as db:
+        try:
+            persister = get_persister(domain, db)
+            fields_to_restore = list(snapshot.keys())
+            persister.persist(
+                tenant_id=tenant_id,
+                mapa_global=snapshot,
+                fields_to_persist=fields_to_restore,
+                entity_id=eid,
+            )
+            return json.dumps(
+                {
+                    "text": "Entidad restaurada al estado inicial del focus.",
+                    "ui_action": {
+                        "type": "preview_update",
+                        "delta": snapshot,
+                    },
+                }
+            )
+        except Exception:
+            logger.exception("entity_undo_all_error", domain=domain, entity_id=entity_id)
+            return json.dumps({"error": f"No se pudo restaurar la entidad '{entity_id}'."})

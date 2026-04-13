@@ -1,6 +1,8 @@
 """CopilotOrchestrator — Manages conversation state and streams responses via SSE."""
 
+import asyncio
 import json
+import os
 import uuid
 from collections.abc import AsyncGenerator
 from uuid import UUID
@@ -31,6 +33,13 @@ logger = structlog.get_logger()
 # Redis key prefix for active conversation context (TTL 1h)
 REDIS_CONV_PREFIX = "copilot:conv:"
 REDIS_CONV_TTL = 3600
+
+# LLM streaming timeout (seconds). If the LLM hangs, the SSE stream will
+# emit an error event after this duration instead of blocking indefinitely.
+# Configurable via env var COPILOT_STREAM_TIMEOUT_SECONDS.
+COPILOT_STREAM_TIMEOUT_SECONDS: int = int(
+    os.environ.get("COPILOT_STREAM_TIMEOUT_SECONDS", "60"),
+)
 
 
 class CopilotOrchestrator:
@@ -91,8 +100,8 @@ class CopilotOrchestrator:
         conv_id = conversation_id or str(uuid.uuid4())
         conv_uuid = UUID(conv_id)
 
-        # Try to load existing conversation from DB
-        existing_conv = self.conv_repo.get_by_id(conv_uuid, tenant_id)
+        # Try to load existing conversation from DB (user_id = ownership check)
+        existing_conv = self.conv_repo.get_by_id(conv_uuid, tenant_id, user_id)
         if not existing_conv:
             existing_conv = self.conv_repo.create(
                 conversation_id=conv_uuid,
@@ -146,16 +155,35 @@ class CopilotOrchestrator:
         try:
             yield SSEEvent(event="status", data={"state": "streaming"}).to_sse()
 
-            async for event in copilot_graph.astream_events(state, version="v2"):
-                sse_event, text_chunk = self._process_stream_event(
-                    event,
-                    accumulated_messages,
-                    last_tool_call_ids,
-                )
-                if text_chunk:
-                    full_response += text_chunk
-                if sse_event:
-                    yield sse_event
+            async with asyncio.timeout(COPILOT_STREAM_TIMEOUT_SECONDS):
+                async for event in copilot_graph.astream_events(state, version="v2"):
+                    sse_event, text_chunk = self._process_stream_event(
+                        event,
+                        accumulated_messages,
+                        last_tool_call_ids,
+                    )
+                    if text_chunk:
+                        full_response += text_chunk
+                    if sse_event:
+                        yield sse_event
+
+        except TimeoutError:
+            logger.warning(
+                "copilot_stream_timeout",
+                conversation_id=conv_id,
+                timeout_seconds=COPILOT_STREAM_TIMEOUT_SECONDS,
+                partial_response_length=len(full_response),
+            )
+            yield SSEEvent(
+                event="error",
+                data={
+                    "message": (
+                        "La respuesta del asistente excedió el tiempo límite. "
+                        "Tu mensaje parcial se ha conservado. Intenta de nuevo."
+                    ),
+                },
+            ).to_sse()
+            # Partial response and accumulated_messages are preserved for persistence
 
         except Exception as e:
             logger.exception("copilot_stream_error", error=str(e), conversation_id=conv_id)

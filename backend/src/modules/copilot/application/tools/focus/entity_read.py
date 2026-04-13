@@ -1,15 +1,28 @@
 """Focus Mode tool — read the current state of the focused entity."""
 
 import json
+from collections.abc import Iterator
+from contextlib import contextmanager
 
 import structlog
 from langchain_core.tools import tool
+from sqlalchemy.orm import Session
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
 from src.modules.copilot.infrastructure.context.focus_context_loader import FocusContextLoader
 
 logger = structlog.get_logger()
+
+
+@contextmanager
+def _safe_session() -> Iterator[Session]:
+    """Yield a SessionLocal and guarantee close on any exit path."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 @tool
@@ -42,24 +55,24 @@ def entity_read(
         ``{"error": "..."}`` on failure.
 
     """
+    # ── Fail-fast validation (no DB session needed) ──────────────────────
     tenant_id = get_tenant_id()
     if tenant_id is None:
         return json.dumps({"error": "No se pudo determinar el tenant."})
 
-    db = SessionLocal()
-    try:
-        loader = FocusContextLoader(db)
-        data = loader.load(tenant_id=tenant_id, domain=domain, entity_id=entity_id)
+    # ── DB work inside context manager — session always closes ───────────
+    with _safe_session() as db:
+        try:
+            loader = FocusContextLoader(db)
+            data = loader.load(tenant_id=tenant_id, domain=domain, entity_id=entity_id)
 
-        if section:
-            dot_prefix = f"{section}."
-            us_prefix = f"{section}_"
-            filtered = {k: v for k, v in data.items() if k.startswith((dot_prefix, us_prefix)) or k == section}
-            return json.dumps({"data": filtered, "section": section})
+            if section:
+                dot_prefix = f"{section}."
+                us_prefix = f"{section}_"
+                filtered = {k: v for k, v in data.items() if k.startswith((dot_prefix, us_prefix)) or k == section}
+                return json.dumps({"data": filtered, "section": section})
 
-        return json.dumps({"data": data})
-    except Exception:
-        logger.exception("entity_read_error", domain=domain, entity_id=entity_id)
-        return json.dumps({"error": f"No se pudo leer la entidad '{entity_id}' del dominio '{domain}'."})
-    finally:
-        db.close()
+            return json.dumps({"data": data})
+        except Exception:
+            logger.exception("entity_read_error", domain=domain, entity_id=entity_id)
+            return json.dumps({"error": f"No se pudo leer la entidad '{entity_id}' del dominio '{domain}'."})
