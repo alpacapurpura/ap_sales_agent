@@ -13,9 +13,13 @@ def get_persister(domain: str, db: Session):
     from src.modules.copilot.infrastructure.persisters.brand_persister import (
         BrandPersister,
     )
+    from src.modules.copilot.infrastructure.persisters.offer_persister import (
+        OfferPersister,
+    )
 
     registry = {
         "brand": BrandPersister,
+        "offer": OfferPersister,
     }
     persister_cls = registry.get(domain)
     if not persister_cls:
