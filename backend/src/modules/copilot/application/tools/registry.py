@@ -8,6 +8,7 @@ from src.modules.copilot.application.tools.analytics_tools import ANALYTICS_TOOL
 from src.modules.copilot.application.tools.awareness import AWARENESS_TOOLS
 from src.modules.copilot.application.tools.connections_tools import CONNECTIONS_TOOLS
 from src.modules.copilot.application.tools.crm_tools import CRM_TOOLS
+from src.modules.copilot.application.tools.focus import FOCUS_TOOLS
 from src.modules.copilot.application.tools.interview import INTERVIEW_TOOLS
 from src.modules.copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
 from src.modules.copilot.application.tools.landing_tools import LANDING_TOOLS
@@ -33,6 +34,7 @@ TOOL_GROUPS: dict[str, list] = {
     "knowledge": KNOWLEDGE_TOOLS,
     "offer_ladder": OFFER_LADDER_TOOLS,
     "interview": INTERVIEW_TOOLS,
+    "focus": FOCUS_TOOLS,
 }
 
 # Route prefix -> which tool groups are available.
@@ -153,6 +155,33 @@ def get_all_tools() -> list:
     return tools
 
 
+def _collect_groups(group_names: tuple[str, ...]) -> list:
+    """Collect tools from the given group names, deduplicating by name."""
+    tools = []
+    seen: set[str] = set()
+    for group_name in group_names:
+        for t in TOOL_GROUPS.get(group_name, []):
+            if t.name not in seen:
+                tools.append(t)
+                seen.add(t.name)
+    return tools
+
+
+def _get_tools_for_focus(route: str | None) -> list:
+    """Build the focus-mode tool list: focus + shared groups + route tools (no mutation)."""
+    tools = _collect_groups(("focus", "knowledge", "awareness", "module_data"))
+    seen: set[str] = {t.name for t in tools}
+    excluded = {"mutation"}
+    for group_name in _match_route(route):
+        if group_name in excluded:
+            continue
+        for t in TOOL_GROUPS.get(group_name, []):
+            if t.name not in seen:
+                tools.append(t)
+                seen.add(t.name)
+    return tools
+
+
 def get_tools_for_context(context: dict | None) -> list:
     """Return tools based on mode (interview > focus > chat).
 
@@ -166,16 +195,13 @@ def get_tools_for_context(context: dict | None) -> list:
 
     # Interview mode: interview + knowledge tools only
     if context.get("interview_session_id"):
-        tools = []
-        seen: set[str] = set()
-        for group_name in ("interview", "knowledge"):
-            for t in TOOL_GROUPS.get(group_name, []):
-                if t.name not in seen:
-                    tools.append(t)
-                    seen.add(t.name)
-        return tools
+        return _collect_groups(("interview", "knowledge"))
 
-    # Chat mode (and future Focus mode): route-based selection
+    # Focus mode: focus + knowledge + awareness + module_data + route domain tools, no mutation
+    if context.get("focus"):
+        return _get_tools_for_focus(context.get("current_route"))
+
+    # Chat mode: route-based selection
     return get_tools_for_route(context.get("current_route"))
 
 
