@@ -20,7 +20,7 @@ export const CopilotChat = memo(function CopilotChat() {
   const activeProcedure = useCopilotStore((s) => s.activeProcedure);
   const isOpen = useCopilotStore((s) => s.isOpen);
   const clearActiveProcedure = useCopilotStore((s) => s.clearActiveProcedure);
-  const { sendMessage, stopStreaming } = useCopilotChat();
+  const { sendMessage, sendCardAction, stopStreaming } = useCopilotChat();
   const { nudges, dismissNudge } = useProactiveNudges();
   const { getToken } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -99,6 +99,7 @@ export const CopilotChat = memo(function CopilotChat() {
               key={msg.id}
               message={msg}
               isStreaming={isLoading && idx === messages.length - 1}
+              sendCardAction={sendCardAction}
             />
           ),
         )}

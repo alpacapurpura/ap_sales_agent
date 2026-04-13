@@ -16,9 +16,10 @@ import { ProposalCard } from "./ProposalCard";
 interface AssistantMessageProps {
   message: CopilotMessage;
   isStreaming?: boolean;
+  sendCardAction?: (messageId: string, actionIndex: number, text: string) => void;
 }
 
-export function AssistantMessage({ message, isStreaming }: AssistantMessageProps) {
+export function AssistantMessage({ message, isStreaming, sendCardAction }: AssistantMessageProps) {
   const hasUIActions = message.uiActions && message.uiActions.length > 0;
 
   return (
@@ -89,8 +90,17 @@ export function AssistantMessage({ message, isStreaming }: AssistantMessageProps
                       recommendationReason: a.recommendation_reason,
                     }))}
                     allowCustom={action.allow_custom ?? false}
-                    onSelect={() => {}}
-                    onCustom={() => {}}
+                    onSelect={(altId) => {
+                      const alt = action.alternatives?.find((a) => a.id === altId);
+                      if (alt && sendCardAction) {
+                        sendCardAction(message.id, idx, `Selecciono: ${alt.title}`);
+                      }
+                    }}
+                    onCustom={() => {
+                      if (sendCardAction) {
+                        sendCardAction(message.id, idx, "Prefiero otra opción personalizada");
+                      }
+                    }}
                     status={action.card_status === "resolved" ? "resolved" : "pending"}
                   />
                 ) : null;
@@ -103,7 +113,11 @@ export function AssistantMessage({ message, isStreaming }: AssistantMessageProps
                       issue: item.issue,
                       options: item.options,
                     }))}
-                    onResolve={() => {}}
+                    onResolve={(resolution) => {
+                      if (sendCardAction) {
+                        sendCardAction(message.id, idx, resolution);
+                      }
+                    }}
                     status={action.card_status === "resolved" ? "resolved" : "pending"}
                   />
                 ) : null;
@@ -116,8 +130,16 @@ export function AssistantMessage({ message, isStreaming }: AssistantMessageProps
                     summary={action.summary ?? {}}
                     healthScore={action.health_score ?? 0}
                     blocksProgress={action.blocks_progress ?? { completed: 0, total: 0 }}
-                    onConfirm={() => {}}
-                    onRevise={() => {}}
+                    onConfirm={() => {
+                      if (sendCardAction) {
+                        sendCardAction(message.id, idx, "Confirmo, sigamos al siguiente bloque");
+                      }
+                    }}
+                    onRevise={() => {
+                      if (sendCardAction) {
+                        sendCardAction(message.id, idx, "Quiero ajustar algo en este bloque");
+                      }
+                    }}
                     status={
                       action.card_status === "confirmed"
                         ? "confirmed"
