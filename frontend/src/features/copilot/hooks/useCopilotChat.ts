@@ -5,8 +5,17 @@ import { useAuth } from "@clerk/nextjs";
 import { useCopilotStore, type UIAction } from "../store/copilot-store";
 import { streamCopilotChat, reportCopilotEvent } from "../api/copilot-api";
 
+/**
+ * Unified chat hook for all copilot modes (chat, focus, interview).
+ *
+ * Mode is determined by the store state:
+ * - interviewSessionId set → Interview mode
+ * - focusEntity set → Focus mode
+ * - Neither → Chat mode
+ *
+ * All messages go through POST /copilot/chat with mode context in the payload.
+ */
 export function useCopilotChat() {
-  // Subscribe only to reactive values; read functions from getState() inside callbacks
   const conversationId = useCopilotStore((s) => s.conversationId);
   const currentRoute = useCopilotStore((s) => s.currentRoute);
 
@@ -49,7 +58,6 @@ export function useCopilotChat() {
       store.setStatus("thinking");
 
       try {
-        // Get Clerk auth token
         const token = await getToken();
         if (!token) {
           store.appendToLastAssistant("\n\n_Error: No se pudo obtener el token de autenticación._");
@@ -59,14 +67,20 @@ export function useCopilotChat() {
 
         // Collect fresh field values from mounted WithCopilot components
         window.dispatchEvent(new CustomEvent("copilot:collect-values"));
-        const freshFields = useCopilotStore.getState().selectedFields;
-        const currentMessages = useCopilotStore.getState().messages;
+        const freshState = useCopilotStore.getState();
+        const freshFields = freshState.selectedFields;
+        const currentMessages = freshState.messages;
+
+        // Determine mode from store state
+        const mode = freshState.interviewSessionId ? "interview"
+          : freshState.focusEntity ? "focus" : "chat";
 
         // Track message_sent event
         reportCopilotEvent("message_sent", {
           message_length: text.trim().length,
           has_selected_fields: freshFields.length > 0,
-          is_first_message: currentMessages.length <= 2, // user + assistant placeholder
+          is_first_message: currentMessages.length <= 2,
+          mode,
         }, token);
 
         await streamCopilotChat(
@@ -81,6 +95,11 @@ export function useCopilotChat() {
                 field_value: f.fieldValue,
               })),
               locale: "es",
+              focus: freshState.focusEntity ? {
+                domain: freshState.focusEntity.domain,
+                entity_id: freshState.focusEntity.entityId ?? null,
+              } : null,
+              interview_session_id: freshState.interviewSessionId ?? null,
             },
           },
           {
@@ -105,22 +124,7 @@ export function useCopilotChat() {
               // Tool result feeds back into the LLM via subsequent text_chunk
             },
             onUIAction: (action) => {
-              const uiAction = action as unknown as UIAction;
-              // Attach to the current assistant message for rendering NavigationCards
-              useCopilotStore.getState().addUIActionToLastAssistant(uiAction);
-              // Navigation actions execute immediately (reads, not writes)
-              if (uiAction.type === "navigate") {
-                useCopilotStore.getState().enqueuUIAction(uiAction);
-              }
-              // Procedure progress → update store for stepper
-              if (uiAction.type === "procedure_progress" && uiAction.procedure_id && uiAction.steps) {
-                useCopilotStore.getState().setActiveProcedure({
-                  id: uiAction.procedure_id,
-                  name: uiAction.procedure_name || uiAction.procedure_id,
-                  steps: uiAction.steps,
-                  currentStepIndex: uiAction.current_step_index ?? 0,
-                });
-              }
+              _handleUIAction(action as unknown as UIAction);
             },
           },
           token,
@@ -136,10 +140,66 @@ export function useCopilotChat() {
     [conversationId, currentRoute, getToken],
   );
 
+  const sendCardAction = useCallback(
+    async (messageId: string, actionIndex: number, text: string) => {
+      // Update card status to resolved before sending
+      useCopilotStore.getState().updateUIActionStatus(messageId, actionIndex, "resolved");
+      await sendMessage(text);
+    },
+    [sendMessage],
+  );
+
   const stopStreaming = useCallback(() => {
     abortRef.current?.abort();
     useCopilotStore.getState().setStatus("idle");
   }, []);
 
-  return { sendMessage, stopStreaming };
+  return { sendMessage, sendCardAction, stopStreaming };
+}
+
+/**
+ * Route UIAction based on type.
+ * Interview-specific actions get special handling.
+ */
+function _handleUIAction(action: UIAction): void {
+  const store = useCopilotStore.getState();
+
+  switch (action.type) {
+    // Silent: update preview data, don't show as card
+    case "preview_update":
+      if (action.delta) {
+        store.updatePreviewData(action.delta);
+      }
+      return;
+
+    // Interview complete: attach card + clear interview state
+    case "interview_complete":
+      store.addUIActionToLastAssistant(action);
+      store.clearInterview();
+      return;
+
+    // Navigation: attach card + enqueue for router
+    case "navigate":
+      store.addUIActionToLastAssistant(action);
+      store.enqueuUIAction(action);
+      return;
+
+    // Procedure progress: update store for stepper
+    case "procedure_progress":
+      store.addUIActionToLastAssistant(action);
+      if (action.procedure_id && action.steps) {
+        store.setActiveProcedure({
+          id: action.procedure_id,
+          name: action.procedure_name || action.procedure_id,
+          steps: action.steps,
+          currentStepIndex: action.current_step_index ?? 0,
+        });
+      }
+      return;
+
+    // All other types (proposal, alternatives_card, clarify_card, checkpoint_card, etc.)
+    default:
+      store.addUIActionToLastAssistant(action);
+      return;
+  }
 }
