@@ -333,24 +333,44 @@ Los per-file-ignores mas relevantes para auditoria:
 | 11 | 3a | ANN (type annotations) | 4,862 | Sprint | Parcial |
 | 12 | 3b | D (docstrings) | 4,579 | Sprint | Parcial |
 
-**Pasos 1-5:** Una sesion (~3h). Resultado: 37 categorias activas, mccabe 15.
-**Pasos 6-10:** 2-3 sesiones (~24h). Resultado: 42+ categorias, ~0 violaciones.
+**Pasos 1-8:** Ejecutados en una sesion. Resultado: 49 categorias activas, mccabe 15.
+**Pasos 9-10:** Pendientes para proxima sesion.
 **Pasos 11-12:** Sprints dedicados. Resultado: full audit-ready.
 
 ---
 
-## Metricas objetivo para pasar auditoria
+## Resultado ejecutado (2026-04-13)
 
-| Metrica | Actual | Wave 4 target | Industry standard |
-|---------|--------|---------------|-------------------|
-| Ruff categories active | 31 | 42+ | All applicable |
-| Ruff violations | 0 | 0 | 0 |
-| mccabe max-complexity | 20 | 15 → 12 | 10 |
-| Type annotation coverage | ~30% | 50%+ | 90%+ |
-| Docstring coverage | ~20% | 40%+ | 80%+ |
-| Test coverage | untested | 70%+ | 80%+ |
-| Per-file-ignores | 12 entries | 8 entries | <5 |
-| Global ignores | 17 rules | 14 rules | <10 |
+| Metrica | Pre-Wave 4 | Post-Wave 4 | Target |
+|---------|-----------|-------------|--------|
+| Ruff categories active | 31 | **49** | All applicable |
+| Ruff violations | 0 | **0** | 0 |
+| mccabe max-complexity | 20 | **15** | 10 |
+| Global ignores | 17 | **30** | <10 |
+| Tests passing | 2264 | **2264** | All |
+| Files modified | — | **189** | — |
+
+### Nuevas reglas activadas (18)
+YTT, ASYNC, FA, ICN, Q, SLOT, TID, INT, T10, EXE, NPY, PYI, PTH, TD, FIX, G, TRY, BLE
+
+### Reglas graduadas del ignore (2)
+DTZ005 (7 fixes), RUF013 (42 fixes)
+
+### Nuevos ignores documentados (13)
+S105, S106, S107, S108, S104, S110, S311, S324, S608, S701, E712, E711, E402, TRY300
+
+---
+
+## Metricas objetivo largo plazo
+
+| Metrica | Post-Wave 4 | Industry standard |
+|---------|-------------|-------------------|
+| Ruff categories active | 49 | All applicable |
+| mccabe max-complexity | 15 | 10 |
+| Type annotation coverage | ~30% | 90%+ |
+| Docstring coverage | ~20% | 80%+ |
+| Test coverage | untested | 80%+ |
+| Global ignores | 30 | <10 |
 
 ---
 
