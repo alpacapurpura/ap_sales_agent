@@ -1,9 +1,7 @@
 "use client";
 
-import { memo, useEffect, useRef, useState } from "react";
-import { Send, Square } from "lucide-react";
+import { memo, useEffect, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { Button } from "@/components/ui/button";
 import { useCopilotStore } from "../store/copilot-store";
 import { useCopilotChat } from "../hooks/useCopilotChat";
 import { useProactiveNudges } from "../hooks/useProactiveNudges";
@@ -14,6 +12,7 @@ import { SuggestedActions } from "./SuggestedActions";
 import { ContextChips } from "./ContextChips";
 import { ProcedureProgress } from "./ProcedureProgress";
 import { NudgeBanner } from "./NudgeBanner";
+import { CopilotInput } from "./copilot-input";
 
 export const CopilotChat = memo(function CopilotChat() {
   const messages = useCopilotStore((s) => s.messages);
@@ -24,9 +23,7 @@ export const CopilotChat = memo(function CopilotChat() {
   const { sendMessage, stopStreaming } = useCopilotChat();
   const { nudges, dismissNudge } = useProactiveNudges();
   const { getToken } = useAuth();
-  const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
   const prevOpenRef = useRef(isOpen);
 
   const isLoading = status === "thinking" || status === "streaming";
@@ -37,11 +34,6 @@ export const CopilotChat = memo(function CopilotChat() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
-
-  // Focus input on mount
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
 
   // Detect procedure_abandoned when panel closes mid-procedure
   useEffect(() => {
@@ -63,19 +55,6 @@ export const CopilotChat = memo(function CopilotChat() {
     }
     prevOpenRef.current = isOpen;
   }, [isOpen, activeProcedure, getToken, clearActiveProcedure]);
-
-  const handleSubmit = () => {
-    if (!input.trim() || isLoading) return;
-    sendMessage(input);
-    setInput("");
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
-    }
-  };
 
   return (
     <div className="flex h-full flex-col">
@@ -133,42 +112,19 @@ export const CopilotChat = memo(function CopilotChat() {
 
       {/* Input area */}
       <div className="border-t border-slate-200 p-3 dark:border-slate-700">
-        <div className="flex items-end gap-2">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Escribe tu mensaje..."
-            rows={1}
-            className="flex-1 resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition-colors placeholder:text-slate-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-            style={{ maxHeight: "120px" }}
-            onInput={(e) => {
-              const target = e.target as HTMLTextAreaElement;
-              target.style.height = "auto";
-              target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
-            }}
-          />
-          {isLoading ? (
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={stopStreaming}
-              className="h-9 w-9 shrink-0 text-slate-500 hover:text-red-500"
-            >
-              <Square className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              size="icon"
-              onClick={handleSubmit}
-              disabled={!input.trim()}
-              className="h-9 w-9 shrink-0 bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-40"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+        <CopilotInput
+          onSend={sendMessage}
+          disabled={isLoading}
+          placeholder="Escribe tu mensaje..."
+        />
+        {isLoading && (
+          <button
+            onClick={stopStreaming}
+            className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700"
+          >
+            Detener
+          </button>
+        )}
       </div>
     </div>
   );
