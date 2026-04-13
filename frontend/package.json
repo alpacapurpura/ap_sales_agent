@@ -43,6 +43,7 @@
     "@radix-ui/react-tooltip": "^1.1.4",
     "@sentry/nextjs": "^10.47.0",
     "@tanstack/react-query": "^5.90.19",
+    "@tanstack/react-virtual": "^3.13.23",
     "@types/uuid": "^10.0.0",
     "@visx/gradient": "^3.12.0",
     "@visx/group": "^3.12.0",

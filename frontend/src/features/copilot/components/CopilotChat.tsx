@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useEffect, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAuth } from "@clerk/nextjs";
 import { useCopilotStore } from "../store/copilot-store";
 import { useCopilotChat } from "../hooks/useCopilotChat";
@@ -8,6 +9,7 @@ import { useProactiveNudges } from "../hooks/useProactiveNudges";
 import { reportCopilotEvent } from "../api/copilot-api";
 import { UserMessage } from "./messages/UserMessage";
 import { AssistantMessage } from "./messages/AssistantMessage";
+import { TypingIndicator } from "./messages/TypingIndicator";
 import { SuggestedActions } from "./SuggestedActions";
 import { ContextChips } from "./ContextChips";
 import { ProcedureProgress } from "./ProcedureProgress";
@@ -23,17 +25,37 @@ export const CopilotChat = memo(function CopilotChat() {
   const { sendMessage, sendCardAction, stopStreaming } = useCopilotChat();
   const { nudges, dismissNudge } = useProactiveNudges();
   const { getToken } = useAuth();
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevOpenRef = useRef(isOpen);
 
   const isLoading = status === "thinking" || status === "streaming";
 
-  // Auto-scroll on new messages
+  // Show typing indicator when the assistant hasn't emitted any content yet
+  const showTypingIndicator =
+    status === "thinking" ||
+    (status === "streaming" &&
+      messages.length > 0 &&
+      messages[messages.length - 1].role === "assistant" &&
+      messages[messages.length - 1].content === "");
+
+  // Virtualizer — measures each item dynamically so variable-height messages work
+  const virtualizer = useVirtualizer({
+    count: messages.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 80,
+    overscan: 5,
+    measureElement(element) {
+      return element.getBoundingClientRect().height;
+    },
+  });
+
+  // Auto-scroll to bottom on new messages or typing indicator change
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages.length, showTypingIndicator]);
 
   // Detect procedure_abandoned when panel closes mid-procedure
   useEffect(() => {
@@ -56,17 +78,20 @@ export const CopilotChat = memo(function CopilotChat() {
     prevOpenRef.current = isOpen;
   }, [isOpen, activeProcedure, getToken, clearActiveProcedure]);
 
+  const virtualItems = virtualizer.getVirtualItems();
+  const totalSize = virtualizer.getTotalSize();
+
   return (
     <div className="flex h-full flex-col">
       {/* Procedure stepper */}
       {activeProcedure && <ProcedureProgress />}
 
-      {/* Messages area */}
+      {/* Messages area — virtualized */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
+        className="flex-1 overflow-y-auto px-4 py-4"
       >
-        {messages.length === 0 && (
+        {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center text-sm text-slate-400">
             {/* Nudge banners when no messages */}
             {nudges.length > 0 ? (
@@ -89,19 +114,47 @@ export const CopilotChat = memo(function CopilotChat() {
               </>
             )}
           </div>
+        ) : (
+          /* Virtual scroll container — total height drives the scrollbar */
+          <div style={{ height: `${totalSize}px`, position: "relative" }}>
+            {virtualItems.map((virtualItem) => {
+              const msg = messages[virtualItem.index];
+              return (
+                <div
+                  key={virtualItem.key}
+                  data-index={virtualItem.index}
+                  ref={virtualizer.measureElement}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    transform: `translateY(${virtualItem.start}px)`,
+                    paddingBottom: "16px",
+                  }}
+                >
+                  {msg.role === "user" ? (
+                    <UserMessage message={msg} />
+                  ) : (
+                    <AssistantMessage
+                      message={msg}
+                      isStreaming={
+                        isLoading && virtualItem.index === messages.length - 1
+                      }
+                      sendCardAction={sendCardAction}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
 
-        {messages.map((msg, idx) =>
-          msg.role === "user" ? (
-            <UserMessage key={msg.id} message={msg} />
-          ) : (
-            <AssistantMessage
-              key={msg.id}
-              message={msg}
-              isStreaming={isLoading && idx === messages.length - 1}
-              sendCardAction={sendCardAction}
-            />
-          ),
+        {/* Typing indicator rendered outside virtual list so it always sticks below */}
+        {showTypingIndicator && (
+          <div className="mt-2">
+            <TypingIndicator />
+          </div>
         )}
       </div>
 
