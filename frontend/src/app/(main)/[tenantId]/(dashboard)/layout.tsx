@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { AppSidebar } from "@/components/shared/layout/app-sidebar";
 import { SidebarProvider, useSidebar } from "@/components/shared/layout/sidebar-context";
 import { CopilotSidebar } from "@/features/copilot/components/copilot-sidebar";
+import { CopilotStatusBar } from "@/features/copilot/components/copilot-status-bar";
 import { cn } from "@/lib/utils";
 
 // Routes that should render in workspace-style full-width mode. Add new
@@ -59,6 +60,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           isCollapsed ? "md:ml-20" : "md:ml-64",
         )}
       >
+        <CopilotStatusBar />
         <MemoizedChildren isFullWidth={isFullWidth}>
           {children}
         </MemoizedChildren>
