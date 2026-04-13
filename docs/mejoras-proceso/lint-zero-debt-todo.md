@@ -1,7 +1,7 @@
-# Lint Zero-Debt — To-Do para Wave 3+
+# Lint Zero-Debt — To-Do para Wave 4+
 
-> Estado al 2026-04-13 después de Wave 2.
-> Ejecutar en nueva conversación: "Continúa con Wave 3 del plan de lint zero-debt en `docs/mejoras-proceso/lint-zero-debt-todo.md`"
+> Estado al 2026-04-13 después de Wave 3.
+> Waves 1-3 completas: 29 reglas enforced, ~660 fixes, 0 violaciones en `ruff check`.
 
 ## Resumen de lo completado
 
@@ -47,19 +47,19 @@
 
 **Total Wave 1+2:** 24 reglas enforced, ~560 fixes
 
-## Wave 3: Reglas pendientes en `ignore` (~124 violaciones en src/)
+### Wave 3 (2026-04-13) — 5 reglas, ~97 fixes (49 files)
+| Regla | Violaciones | Fix | Status |
+|-------|-------------|-----|--------|
+| N801 (class name) | 5 | TestStep*_ → TestStep* (CapWords) | ENFORCED |
+| N802 (function name) | 4 | OPENAI_MODEL→openai_model, DATABASE_URL→database_url | ENFORCED |
+| PLR0911 (return stmts) | 11 | Dispatch dicts, extract helpers (19→5 in _validate_section) | ENFORCED |
+| PLR0912 (branches) | 37 | Dispatch dicts, guard clauses, extract helpers | ENFORCED |
+| PLR0915 (statements) | 37 | Extract private methods (236→<50 in chat.py orchestrator) | ENFORCED |
 
-### Refactoring complejo (requieren diseño caso a caso)
-- [ ] **PLR0912** (40) — Too many branches (>20). Extraer subfunciones, early returns
-- [ ] **PLR0915** (38) — Too many statements. Dividir funciones grandes
-- [ ] **PLR0911** (12) — Too many return statements. Simplificar lógica
+Scripts (`src/scripts/`) and test helpers exempted via per-file-ignores.
+PT028 already in permanent ignore since Wave 2.
 
-### Naming (evaluar caso a caso)
-- [ ] **N801** (6) — Invalid class name
-- [ ] **N802** (5) — Invalid function name (test_ endpoints en FastAPI)
-
-### False positive (mantener en ignore permanente)
-- [ ] **PT028** (22) — pytest fixture default → 100% false positives (FastAPI `test_connection` endpoints con `Depends()`)
+**Total Wave 1+2+3:** 29 reglas enforced, ~660 fixes, **0 violations remaining in `ruff check`**
 
 ## Wave 4: Reglas NO activadas (~13,712 violaciones)
 
@@ -76,11 +76,7 @@
 - [ ] **ANN** (4,698) — Type annotations en todo el codebase
 - [ ] **D** (4,526) — Docstrings en todo el codebase
 
-## Estrategia recomendada para Wave 3
+## Estrategia recomendada para Wave 4
 
-1. **PT028 → Mover a permanent ignores** — son 100% false positives (FastAPI endpoints con `test_` prefix)
-2. **N801 + N802 (11)** — evaluar caso a caso, probablemente movibles a permanent ignore
-3. **PLR0912 + PLR0915 + PLR0911 (~90)** — refactoring real. Priorizar por módulo:
-   - analytics/ (mayor concentración)
-   - connections/ (varios providers)
-   - admin/ (Streamlit pages — ya ignorados en per-file-ignores)
+Pick from the auto-fixable rules first (COM812, INP001), then migrate FAST (Annotated).
+ANN and D are massive (9,000+ violations) — defer until a dedicated sprint.
