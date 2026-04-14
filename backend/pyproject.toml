@@ -224,6 +224,11 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "SIM102",   # collapsible if — Streamlit nested conditionals clearer separate
     "SIM117",   # multiple with — Streamlit col/container nesting is idiomatic
 ]
+"alembic/versions/*.py" = [
+    "INP001",  # alembic/versions/ is not a package — no __init__.py by convention
+    "D103",    # upgrade()/downgrade() don't need docstrings in migrations
+    "D415",    # migration file docstrings follow alembic template (no trailing punctuation)
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

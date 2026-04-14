@@ -100,6 +100,9 @@ def db_engine():
         from src.modules.brand.infrastructure.models.extraction_trace_model import (
             BrandExtractionTrace,
         )
+        from src.modules.brand.infrastructure.models.personality_model import (
+            PersonalityProfileModel,
+        )
         from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import (
             CalendarEventModel,
         )
