@@ -131,7 +131,7 @@ init_sentry("api")
 configure_logging()
 logger = structlog.get_logger()
 
-app = FastAPI(title=settings.PROJECT_NAME)
+app = FastAPI(title=settings.PROJECT_NAME, redirect_slashes=False)
 
 # Mount Static Files
 app.mount("/static", StaticFiles(directory="static"), name="static")

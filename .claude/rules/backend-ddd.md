@@ -21,6 +21,12 @@ description: DDD architecture rules for backend Python code
 - Use `structlog` for logging, not `print()` or `import logging`
 - Pydantic v2 for all DTOs — use `model_config = ConfigDict(...)`, not inner `class Config`
 
+## FastAPI App Configuration
+- `FastAPI(redirect_slashes=False)` is **mandatory** in `main.py`. The default (`True`) emits 307 on POST
+  without trailing slash; Next.js proxy strips the slash and drops the request body silently.
+  The arch test `test_fastapi_app_has_redirect_slashes_disabled` enforces this.
+- Never set `redirect_slashes=False` on individual `APIRouter` instances — the app-level setting covers all routes.
+
 ## Cross-Module Imports
 - **Default: forbidden.** Module A cannot import from module B's domain/infrastructure/application.
 - **Allowed exceptions:** `copilot` may import from other modules (it's an infra-like orchestrator). Use `shared/links/` for all other inter-module communication.

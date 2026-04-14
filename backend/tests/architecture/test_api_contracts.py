@@ -123,6 +123,44 @@ def _find_route_decorators(filepath: Path) -> list[dict]:
     return routes
 
 
+def test_fastapi_app_has_redirect_slashes_disabled():
+    """FastAPI app MUST be created with redirect_slashes=False.
+
+    FastAPI(redirect_slashes=True) (the default) emits HTTP 307 when a POST request
+    arrives without a trailing slash. The Next.js proxy strips the slash before
+    forwarding, so the request body is silently dropped — mutations fail with no error.
+
+    Setting redirect_slashes=False at the app level covers all included routers.
+    Individual APIRouter instances must NOT set redirect_slashes=False (redundant noise).
+    """
+    main_py = Path(__file__).resolve().parents[2] / "src" / "main.py"
+    tree = ast.parse(main_py.read_text(encoding="utf-8"))
+
+    found = False
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign):
+            continue
+        if not isinstance(node.value, ast.Call):
+            continue
+        func = node.value.func
+        if not (isinstance(func, ast.Name) and func.id == "FastAPI"):
+            continue
+        for kw in node.value.keywords:
+            if kw.arg == "redirect_slashes":
+                assert isinstance(kw.value, ast.Constant) and kw.value.value is False, (
+                    "FastAPI(redirect_slashes=...) must be False.\n"
+                    "True (the default) causes 307 redirects that silently drop POST bodies via Next.js proxy."
+                )
+                found = True
+                break
+
+    assert found, (
+        "FastAPI app in main.py is missing redirect_slashes=False.\n"
+        "Fix: app = FastAPI(title=settings.PROJECT_NAME, redirect_slashes=False)\n"
+        "This prevents 307 redirects that silently drop POST bodies when Next.js proxy strips trailing slashes."
+    )
+
+
 def test_all_endpoints_have_response_model():
     """Every endpoint must declare response_model= unless exempt.
 

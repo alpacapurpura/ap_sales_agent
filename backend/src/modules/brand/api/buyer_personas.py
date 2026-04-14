@@ -19,7 +19,7 @@ from src.modules.brand.infrastructure.repositories.buyer_persona_repository impo
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 
-router = APIRouter(redirect_slashes=False)
+router = APIRouter()
 
 # Fields that count toward completeness (profile-only, not metadata).
 _PROFILE_FIELDS = (
