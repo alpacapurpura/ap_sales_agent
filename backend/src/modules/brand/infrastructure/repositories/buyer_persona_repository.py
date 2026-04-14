@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import structlog
+from pydantic import ValidationError
 from sqlalchemy import select
 
 if TYPE_CHECKING:
@@ -16,6 +18,8 @@ from src.modules.brand.infrastructure.models.buyer_persona_model import (
     BuyerPersonaModel,
 )
 from src.shared.domain.datetime_utils import utc_now
+
+logger = structlog.get_logger()
 
 
 class BuyerPersonaRepository:
@@ -81,7 +85,17 @@ class BuyerPersonaRepository:
             stmt = stmt.where(BuyerPersonaModel.scope == scope)
         result = self.db.execute(stmt)
         models = result.scalars().all()
-        return [BuyerPersona.model_validate(m) for m in models]
+        valid: list[BuyerPersona] = []
+        for m in models:
+            try:
+                valid.append(BuyerPersona.model_validate(m))
+            except ValidationError:
+                logger.warning(
+                    "buyer_persona.corrupt_row_skipped",
+                    persona_id=str(m.id),
+                    tenant_id=str(m.tenant_id),
+                )
+        return valid
 
     def update(
         self,

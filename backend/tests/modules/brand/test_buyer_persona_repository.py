@@ -5,6 +5,9 @@ import uuid
 from sqlalchemy.orm import Session
 
 from src.modules.brand.domain.buyer_persona import BuyerPersona
+from src.modules.brand.infrastructure.models.buyer_persona_model import (
+    BuyerPersonaModel,
+)
 from src.modules.brand.infrastructure.repositories.buyer_persona_repository import (
     BuyerPersonaRepository,
 )
@@ -286,3 +289,36 @@ class TestBuyerPersonaRepository:
             "discount",
         ]
         assert retrieved.completeness_score == 65.0
+
+    def test_list_by_tenant_skips_corrupt_rows(self, db: Session) -> None:
+        """list_by_tenant must skip rows that fail Pydantic validation.
+
+        Regression: if a previous AI run stored e.g. pain_points as a string
+        instead of list[dict], model_validate() raised ValidationError and the
+        entire list call crashed — returning [] to the caller.  The fix logs a
+        warning and skips the corrupt row so valid personas still appear.
+        """
+        repo = BuyerPersonaRepository(db)
+
+        # Insert one valid persona via the repo.
+        valid = _make_persona(name="Valid Persona")
+        repo.create(valid)
+
+        # Insert a corrupt row directly via ORM, bypassing domain validation.
+        corrupt = BuyerPersonaModel(
+            id=uuid.uuid4(),
+            tenant_id=TENANT_A,
+            user_id=USER_A,
+            name="Corrupt Persona",
+            scope="GLOBAL",
+            # pain_points must be list[dict]; storing a raw string triggers ValidationError.
+            pain_points="corrupted string instead of list",
+        )
+        db.add(corrupt)
+        db.commit()
+
+        results = repo.list_by_tenant(tenant_id=TENANT_A)
+
+        # Must return the valid persona without raising, skipping the corrupt one.
+        assert len(results) == 1
+        assert results[0].name == "Valid Persona"
