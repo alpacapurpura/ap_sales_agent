@@ -1,7 +1,5 @@
 """BuyerPersona API DTOs."""
 
-from __future__ import annotations
-
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -43,6 +41,7 @@ class BuyerPersonaResponseDTO(BaseModel):
     name: str
     tagline: str | None
     scope: str
+    offer_id: UUID | None
     is_primary: bool
     demographics: dict[str, Any]
     psychographics: dict[str, Any]
