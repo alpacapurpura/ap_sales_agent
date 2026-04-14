@@ -26,7 +26,7 @@ describe("Brand Section Config", () => {
           expect(item.id).toBeTruthy();
           expect(item.label).toBeTruthy();
           expect(item.scrollTo).toBeTruthy();
-          expect(item.validators.length).toBeGreaterThan(0);
+          // validators may be empty for UI-only nav items (e.g., voice-personality)
         }
       }
     });
@@ -84,11 +84,13 @@ describe("Brand Section Config", () => {
     });
 
     it("should return complete for full data", () => {
-      const item = BRAND_SECTIONS.esencia.navItems[3]; // credibility (authority)
+      // Find credibility by id — avoids index fragility when nav items shift
+      const item = BRAND_SECTIONS.esencia.navItems.find((i) => i.id === "credibility");
+      expect(item).toBeDefined();
       const settings = {
         authority_vault: [{ id: "1", entity_name: "Press" }],
       } as unknown as BrandSettings;
-      const health = computeNavItemHealth(item, settings);
+      const health = computeNavItemHealth(item!, settings);
       expect(health.status).toBe("complete");
       expect(health.score).toBe(100);
     });
