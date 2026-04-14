@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
-import { useBrandStudio } from "@/features/brand/context/brand-studio-context";
 import { BrandSectionShell } from "../layout/brand-section-shell";
 import { SectionHeader } from "../layout/section-header";
 import { BRAND_SECTIONS, buildSectionNavItems } from "../../config/sections";
@@ -19,7 +18,6 @@ const SECTION = BRAND_SECTIONS.publico;
  */
 export function PublicoView() {
   const { settings } = useBrandSettings();
-  const { openEdit, openSmartFill } = useBrandStudio();
 
   const navItems = useMemo(
     () => (settings ? buildSectionNavItems("publico", settings) : []),
@@ -32,11 +30,7 @@ export function PublicoView() {
     <BrandSectionShell title={SECTION.label} subtitle={SECTION.subtitle} navItems={navItems}>
       <div id="avatars" className="space-y-8">
         <SectionHeader title="Buyer Personas" subtitle="Perfiles completos de tu cliente ideal." />
-        <AvatarsSection
-          visuals={settings.visuals ?? {}}
-          onEdit={(item) => openEdit("avatars", item)}
-          onExtract={() => openSmartFill("update")}
-        />
+        <AvatarsSection />
       </div>
     </BrandSectionShell>
   );

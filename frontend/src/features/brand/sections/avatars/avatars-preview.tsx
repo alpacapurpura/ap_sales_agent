@@ -1,173 +1,189 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
-import { BrandVisuals } from "@/features/brand/types";
-import { Users, Star, Plus, Sparkles } from "lucide-react";
+import { Users, Sparkles, PenLine, Plus } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { avatarApi, Avatar as AvatarBase } from "@/lib/api/avatar";
+import { FocusModeButton } from "@/features/copilot/components/focus-mode-button";
+import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 
-interface AvatarDisplay extends AvatarBase {
-  headshot_url?: string;
-  avatar_url?: string;
-  role?: string;
-}
+import { useBuyerPersonas } from "../../hooks/useBuyerPersonas";
 
-import { Badge } from "@/components/ui/badge";
-import { validateAvatar } from "../../utils/brand-validation";
-import { cn } from "@/lib/utils";
-
-interface AvatarsSectionProps {
-  visuals: BrandVisuals;
-  onEdit: (avatar?: AvatarDisplay) => void;
+export interface AvatarsSectionProps {
+  // Legacy props kept for compatibility with publico-view.tsx — unused in this implementation
+  visuals?: Record<string, unknown>;
+  onEdit?: (item?: unknown) => void;
   onExtract?: () => void;
+  onStartInterview?: () => void;
 }
 
-export function AvatarsSection({ visuals, onEdit, onExtract }: AvatarsSectionProps) {
+export function AvatarsSection(_props: AvatarsSectionProps) {
   const { getToken } = useAuth();
+  const router = useRouter();
+  const params = useParams<{ tenantId: string }>();
+  const { tenantId } = params;
 
-  const { data: avatars, isLoading } = useQuery<AvatarDisplay[]>({
-    queryKey: ["avatars"],
-    queryFn: async () => {
+  const { personas, isLoading, create } = useBuyerPersonas();
+  const setFocusEntity = useCopilotStore((s) => s.setFocusEntity);
+  const setFocusSnapshot = useCopilotStore((s) => s.setFocusSnapshot);
+  const setInterviewSession = useCopilotStore((s) => s.setInterviewSession);
+  const setConversationId = useCopilotStore((s) => s.setConversationId);
+  const addMessage = useCopilotStore((s) => s.addMessage);
+  const clearSelectedFields = useCopilotStore((s) => s.clearSelectedFields);
+  const setSidebarState = useCopilotStore((s) => s.setSidebarState);
+
+  const handleModoInteligente = async () => {
+    try {
+      const persona = await create({ name: "Mi buyer persona" });
       const token = await getToken();
-      if (!token) return [];
-      try {
-        // Assuming listAvatars can handle filtered queries or returns all
-        return await avatarApi.listAvatars(token, "GLOBAL");
-      } catch (e) {
-        console.error(e);
-        // Return empty array instead of throwing to prevent component crash
-        return [];
+      if (!token) return;
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/copilot/interview/start`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ domain: "buyer_persona", entity_id: persona.id }),
+      });
+
+      setFocusEntity({ domain: "buyer_persona", entityId: persona.id, label: persona.name });
+      setFocusSnapshot(persona as unknown as Record<string, unknown>);
+      clearSelectedFields();
+
+      if (res.ok) {
+        const interview = (await res.json()) as {
+          session_id?: string;
+          conversation_id?: string;
+          initial_message?: string;
+        };
+        if (interview.session_id) setInterviewSession(interview.session_id);
+        if (interview.conversation_id) setConversationId(interview.conversation_id);
+        if (interview.initial_message) {
+          addMessage({
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: interview.initial_message,
+            timestamp: Date.now(),
+          });
+        }
       }
-    },
-    // Prevent retry on 404 or auth errors to avoid spamming console
-    retry: (failureCount, error: Error) => {
-      if (error.message.includes("404") || error.message.includes("401")) return false;
-      return failureCount < 2;
-    },
-  });
+
+      setSidebarState("expanded");
+    } catch (err) {
+      console.warn("Failed to start intelligent mode:", err);
+    }
+  };
+
+  const handleModoManual = async () => {
+    try {
+      const persona = await create({ name: "Mi buyer persona" });
+      router.push(`/${tenantId}/brand-studio/publico/persona/${persona.id}`);
+    } catch (err) {
+      console.warn("Failed to create persona:", err);
+    }
+  };
+
+  const handleCardClick = (personaId: string) => {
+    router.push(`/${tenantId}/brand-studio/publico/persona/${personaId}`);
+  };
 
   if (isLoading) {
     return (
-      <div className="pl-0 md:pl-14 py-6">
-        <div className="flex gap-4">
-          <Skeleton className="h-20 w-20 rounded-full" />
-          <Skeleton className="h-20 w-20 rounded-full" />
-          <Skeleton className="h-20 w-20 rounded-full" />
+      <section className="group relative -mx-4 p-6 rounded-xl">
+        <div className="flex items-center gap-3 mb-6 text-muted-foreground">
+          <div className="p-2 rounded-md bg-muted">
+            <Users className="w-5 h-5" />
+          </div>
+          <h3 className="text-sm font-semibold uppercase tracking-wider">Buyer Personas</h3>
         </div>
-      </div>
+        <div className="flex gap-4">
+          <Skeleton className="h-32 w-40 rounded-xl" />
+          <Skeleton className="h-32 w-40 rounded-xl" />
+          <Skeleton className="h-32 w-40 rounded-xl" />
+        </div>
+      </section>
     );
   }
 
-  // Ensure avatars is an array
-  const safeAvatars = Array.isArray(avatars) ? avatars : [];
-  const hasContent = safeAvatars.length > 0;
+  const hasPersonas = personas.length > 0;
 
   return (
     <section className="group relative -mx-4 p-6 rounded-xl transition-all duration-300 hover:bg-muted/40">
       {/* Header */}
-      <div
-        className="flex items-center gap-3 mb-6 text-muted-foreground group-hover:text-primary transition-colors cursor-pointer"
-        onClick={() => onEdit()}
-      >
+      <div className="flex items-center gap-3 mb-6 text-muted-foreground group-hover:text-primary transition-colors">
         <div className="p-2 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
           <Users className="w-5 h-5" />
         </div>
-        <h3 className="text-sm font-semibold uppercase tracking-wider">Target & Buyer Personas</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wider">Buyer Personas</h3>
       </div>
 
-      {!hasContent ? (
+      {!hasPersonas ? (
+        /* Empty state */
         <div className="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed rounded-xl bg-muted/20 hover:bg-muted/30 transition-colors">
           <div className="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-4 shadow-sm">
-            <Sparkles className="w-6 h-6" />
+            <Users className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">Sin Target & Buyer Personas</h3>
+          <h3 className="text-lg font-semibold mb-2">Sin Buyer Personas</h3>
           <p className="text-sm text-muted-foreground mb-6 max-w-sm leading-relaxed">
-            No tienes perfiles de clientes definidos. Extrae la información de tu buyer persona
-            automáticamente desde tus documentos.
+            ¿Cómo quieres crear tu primer buyer persona?
           </p>
-          <div className="flex flex-col gap-3 w-full max-w-xs">
+          <div className="flex gap-4">
             <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onExtract) {
-                  onExtract();
-                } else {
-                  onEdit();
-                }
-              }}
-              className="w-full shadow-lg shadow-purple-500/20 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-none"
+              onClick={() => void handleModoInteligente()}
+              className="shadow-lg shadow-purple-500/20 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-none"
             >
               <Sparkles className="w-4 h-4 mr-2" />
-              Extraer de Documentos
+              Modo Inteligente
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit();
-              }}
-            >
-              Crearlo Juntos.
+            <Button variant="outline" onClick={() => void handleModoManual()}>
+              <PenLine className="w-4 h-4 mr-2" />
+              Modo Manual
             </Button>
           </div>
         </div>
       ) : (
-        <div className="pl-0 md:pl-14">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8">
-            {safeAvatars.map((avatar) => {
-              const status = validateAvatar(avatar);
-              const isComplete = status.status === "complete";
-
-              return (
-                <div
-                  key={avatar.id}
-                  className="flex flex-col items-center text-center group/avatar cursor-pointer"
-                  onClick={() => onEdit(avatar)}
-                >
-                  <div className="relative mb-3">
-                    <Avatar className="h-20 w-20 border-2 border-transparent group-hover/avatar:border-primary transition-colors">
-                      {/* Assuming avatar object has these fields */}
-                      <AvatarImage src={avatar.headshot_url || avatar.avatar_url} />
-                      <AvatarFallback className="text-lg font-bold bg-muted">
-                        {avatar.name?.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    {/* Status Indicator */}
-                    <div
-                      className={cn(
-                        "absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-background",
-                        isComplete ? "bg-green-500" : "bg-amber-500",
-                      )}
-                      title={isComplete ? "Completo" : "Faltan datos"}
-                    />
-                  </div>
-                  <h4 className="font-medium text-foreground text-sm truncate w-full px-2">
-                    {avatar.name}
-                  </h4>
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                    {avatar.role || "Cliente Ideal"}
-                  </p>
-                </div>
-              );
-            })}
-
-            {/* Add New Trigger (Visual) */}
+        /* Persona cards */
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {personas.map((persona) => (
             <div
-              className="flex flex-col items-center justify-center text-center group/add cursor-pointer"
-              onClick={() => onEdit()}
+              key={persona.id}
+              className="flex flex-col items-center p-4 rounded-xl border border-border/50 bg-card hover:border-primary/30 hover:bg-muted/40 transition-all cursor-pointer"
+              onClick={() => handleCardClick(persona.id)}
             >
-              <div className="h-20 w-20 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center mb-3 group-hover/add:border-primary/50 group-hover/add:bg-primary/5 transition-colors">
-                <Plus className="w-6 h-6 text-muted-foreground group-hover/add:text-primary" />
+              <Avatar className="h-14 w-14 mb-3">
+                <AvatarFallback className="text-sm font-bold bg-gradient-to-br from-purple-500 to-indigo-600 text-white">
+                  {persona.name.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <h4 className="font-medium text-sm text-center truncate w-full">{persona.name}</h4>
+              <div className="w-full mt-2 mb-3">
+                <Progress value={persona.completeness_score} className="h-1.5" />
+                <span className="text-[10px] text-muted-foreground mt-1 block text-center">
+                  {Math.round(persona.completeness_score)}% completo
+                </span>
               </div>
-              <span className="text-sm text-muted-foreground group-hover/add:text-primary">
-                Nuevo
-              </span>
+              <FocusModeButton
+                domain="buyer_persona"
+                entityId={persona.id}
+                label={persona.name}
+                entityData={persona as unknown as Record<string, unknown>}
+                className="w-full rounded-full text-xs h-7"
+              />
             </div>
+          ))}
+
+          {/* Add new persona */}
+          <div
+            className="flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed border-border/50 hover:border-primary/30 hover:bg-muted/30 transition-all cursor-pointer min-h-[180px]"
+            onClick={() => void handleModoManual()}
+          >
+            <Plus className="w-6 h-6 text-muted-foreground mb-2" />
+            <span className="text-sm text-muted-foreground">Nueva Persona</span>
           </div>
         </div>
       )}
