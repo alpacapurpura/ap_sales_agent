@@ -19,6 +19,9 @@ from src.modules.brand.infrastructure.repositories.avatar_repository import (
 from src.modules.brand.infrastructure.repositories.brand_repository import (
     BrandRepository,
 )
+from src.modules.brand.infrastructure.repositories.personality_repository import (
+    PersonalityProfileRepository,
+)
 from src.modules.offer.infrastructure.repositories.offer_repository import (
     OfferRepository,
 )
@@ -39,6 +42,7 @@ class TenantKnowledgeBuilder:
         self.brand_repo = BrandRepository(db)
         self.avatar_repo = AvatarRepository(db)
         self.offer_repo = OfferRepository(db)
+        self.personality_repo = PersonalityProfileRepository(db)
 
     def build_identity(self, tenant_id: UUID) -> str:
         """Build the complete agent identity document for this tenant.
@@ -50,6 +54,9 @@ class TenantKnowledgeBuilder:
             brand = self.brand_repo.get_settings(tenant_id)
             avatars = self.avatar_repo.get_by_tenant(tenant_id)
             offers = self.offer_repo.get_all_by_tenant(tenant_id)
+
+            # Load active personality profile for voice configuration (new)
+            personality_profile = self.personality_repo.get_active(tenant_id=tenant_id)
 
             # 2. Prepare template context using full model dumps
             # New fields added to these models will automatically flow into templates
@@ -81,7 +88,13 @@ class TenantKnowledgeBuilder:
             except Exception as e:  # noqa: BLE001 — agent resilience
                 logger.warning("Could not register tenant semantic routes: %s", e)
 
-            # 5. Render the agent_identity template
+            # 5. Resolve personality instruction (new system takes priority over voice_tone)
+            if personality_profile and personality_profile.system_instruction:
+                personality_instruction = personality_profile.system_instruction
+            else:
+                personality_instruction = None
+
+            # 6. Render the agent_identity template
             rendered = prompt_loader.render(
                 "agent_identity",
                 # Full dumps (schema-resilient)
@@ -103,6 +116,8 @@ class TenantKnowledgeBuilder:
                 has_avatars=len(avatar_data) > 0,
                 has_testimonials=len(testimonials) > 0,
                 has_team=len(team) > 0,
+                # Personality voice configuration (new)
+                personality_instruction=personality_instruction,
             )
 
         except Exception:
