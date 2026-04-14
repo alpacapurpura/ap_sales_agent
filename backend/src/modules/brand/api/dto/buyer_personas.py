@@ -1,7 +1,7 @@
 """BuyerPersona API DTOs."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -12,7 +12,7 @@ class BuyerPersonaCreateDTO(BaseModel):
 
     name: str
     tagline: str | None = None
-    scope: str = "GLOBAL"
+    scope: Literal["GLOBAL", "OFFER", "CAMPAIGN"] = "GLOBAL"
     offer_id: UUID | None = None
 
 

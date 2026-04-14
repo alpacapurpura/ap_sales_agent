@@ -101,7 +101,7 @@ class BuyerPersonaRepository:
             return None
 
         for key, value in updates.items():
-            if hasattr(model, key) and value is not None:
+            if hasattr(model, key):
                 setattr(model, key, value)
 
         self.db.commit()

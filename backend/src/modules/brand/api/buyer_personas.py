@@ -1,7 +1,7 @@
 """BuyerPersona REST API endpoints."""
 
 import uuid
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -49,7 +49,7 @@ def _calc_completeness(persona: BuyerPersona) -> float:
 async def list_buyer_personas(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-    scope: str | None = None,
+    scope: Literal["GLOBAL", "OFFER", "CAMPAIGN"] | None = None,
 ) -> list[BuyerPersona]:
     """List buyer personas for the tenant."""
     repo = BuyerPersonaRepository(db)
@@ -99,24 +99,17 @@ async def update_buyer_persona(
 ) -> BuyerPersona:
     """Partial update — only sent fields are written."""
     repo = BuyerPersonaRepository(db)
-    updates = dto.model_dump(exclude_unset=True)
-    updated = repo.update(user.tenant_id, persona_id, updates)
-    if not updated:
+
+    existing = repo.get_by_id(user.tenant_id, persona_id)
+    if not existing:
         raise HTTPException(status_code=404, detail="Buyer persona not found")
 
-    # Recalculate completeness after update and persist if changed.
-    score = _calc_completeness(updated)
-    if score != updated.completeness_score:
-        refreshed = repo.update(
-            user.tenant_id,
-            persona_id,
-            {"completeness_score": score},
-        )
-        # repo.update returns None only when the row vanished — guard just in case.
-        if refreshed is not None:
-            updated = refreshed
+    updates = dto.model_dump(exclude_unset=True)
+    # Compute completeness from merged state so a single UPDATE covers everything.
+    merged = existing.model_copy(update=updates)
+    updates["completeness_score"] = _calc_completeness(merged)
 
-    return updated
+    return repo.update(user.tenant_id, persona_id, updates)
 
 
 @router.delete("/{persona_id}", status_code=204)
