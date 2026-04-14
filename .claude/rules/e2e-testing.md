@@ -10,6 +10,38 @@
 - Solo styling (usar visual regression)
 - Funciones utilitarias (usar Vitest)
 
+## Preflight Check — OBLIGATORIO antes de CADA ejecución de Playwright
+
+**SIEMPRE correr el preflight ANTES de cualquier `npx playwright test`:**
+
+```bash
+cd /home/chris/AISALESHT && bash scripts/e2e-preflight.sh
+```
+
+El preflight verifica (en 3 segundos):
+1. Docker containers corriendo y frontend respondiendo 200
+2. No hay "Module not found" en logs (causa #1 de 500 en frontend)
+3. Clerk auth state existe y no está expirado
+4. Variables de entorno E2E presentes en .env
+
+**Si el preflight falla, NO correr Playwright.** Seguir las instrucciones de fix que muestra.
+
+**Si frontend responde 500:**
+```bash
+# Ver qué módulo falta
+docker logs visionarias_client_dev 2>&1 | grep "Module not found"
+# Instalar DENTRO del container (no local — Docker tiene su propio node_modules)
+docker exec visionarias_client_dev npm install <módulo-faltante>
+docker compose restart client_dashboard_dev
+# Esperar 20-30s y verificar
+sleep 25 && curl -s -o /dev/null -w "%{http_code}" http://localhost:3000
+```
+
+**SIEMPRE usar `E2E_BASE_URL` para evitar que Playwright intente arrancar su propio webServer:**
+```bash
+E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke
+```
+
 ## Execution — Native Playwright in WSL
 
 **NUNCA usar Docker para E2E localmente** (`make e2e`, `make e2e-smoke` crashean la laptop).
@@ -17,16 +49,16 @@
 
 ```bash
 # Smoke tests (rápido, ~2 min)
-cd frontend && npx playwright test --project=smoke
+E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke
 
 # Regression suite (más lento)
-cd frontend && npx playwright test --project=regression
+cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=regression
 
 # Test específico
-cd frontend && npx playwright test --project=smoke --grep "test-name"
+cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke --grep "test-name"
 
 # Solo setup (verificar que Clerk autentica)
-cd frontend && npx playwright test --project=setup
+cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=setup
 ```
 
 **Requisitos para que funcione:**
