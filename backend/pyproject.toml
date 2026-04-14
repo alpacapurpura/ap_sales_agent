@@ -208,9 +208,6 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "ANN",     # type annotations not required in tests
     "D",       # docstrings not required in tests
 ]
-"src/modules/brand/api/personality.py" = [
-    "FAST001",  # response_model= is REQUIRED by PII sanitisation rule — not redundant
-]
 "src/scripts/**/*.py" = [
     "T201",    # CLI scripts legitimately use print() for output
     "PLR0912", # one-shot migration scripts — not worth refactoring

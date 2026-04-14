@@ -2,7 +2,7 @@
 
 7 REST endpoints for personality profile management.
 All endpoints filter by X-Tenant-ID via get_current_user dependency.
-All endpoints declare response_model= (PII compliance).
+All endpoints use return type annotations as response models (PII compliance).
 """
 
 from datetime import datetime
@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from src.core.database import get_db
 from src.modules.brand.application.services.personality_service import PersonalityService
 from src.modules.brand.domain.personality import PERSONALITY_PRESETS
+from src.modules.brand.infrastructure.repositories.personality_repository import PersonalityProfileRepository
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 
@@ -100,7 +101,7 @@ def _model_to_dto(model: object) -> PersonalityProfileDTO:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/presets", response_model=list[PresetSummaryDTO])
+@router.get("/presets")
 async def list_presets(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[PresetSummaryDTO]:
@@ -126,7 +127,7 @@ async def list_presets(
     return summaries
 
 
-@router.get("/active", response_model=PersonalityProfileDTO | None)
+@router.get("/active")
 async def get_active_profile(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
@@ -144,7 +145,7 @@ async def get_active_profile(
     return _model_to_dto(model)
 
 
-@router.post("/select-preset", response_model=PersonalityProfileDTO)
+@router.post("/select-preset")
 async def select_preset(
     request: SelectPresetRequest,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -175,7 +176,7 @@ async def select_preset(
     return _model_to_dto(model)
 
 
-@router.post("/clone", response_model=PersonalityProfileDTO, status_code=501)
+@router.post("/clone", status_code=501)
 async def clone_from_chat(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
@@ -199,7 +200,7 @@ async def clone_from_chat(
     )
 
 
-@router.put("/{profile_id}/dimensions", response_model=PersonalityProfileDTO)
+@router.put("/{profile_id}/dimensions")
 async def update_dimensions(
     profile_id: UUID,
     request: UpdateDimensionsRequest,
@@ -239,7 +240,7 @@ async def update_dimensions(
     return _model_to_dto(model)
 
 
-@router.post("/{profile_id}/simulate", response_model=SimulationDTO)
+@router.post("/{profile_id}/simulate")
 async def simulate_responses(
     profile_id: UUID,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -257,10 +258,6 @@ async def simulate_responses(
         "personality.simulate",
         tenant_id=str(current_user.tenant_id),
         profile_id=str(profile_id),
-    )
-
-    from src.modules.brand.infrastructure.repositories.personality_repository import (
-        PersonalityProfileRepository,
     )
 
     repo = PersonalityProfileRepository(db)
