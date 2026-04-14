@@ -568,7 +568,10 @@ export function PersonaDetailView({ personaId }: PersonaDetailViewProps) {
   const router = useRouter();
   const params = useParams<{ tenantId: string }>();
   const tenantId = params?.tenantId ?? "";
-  const { persona, isLoading, isSaving, savedAt, debouncedSave } = useBuyerPersona(personaId);
+  const { persona, isLoading, isSaving, savedAt, debouncedSave } = useBuyerPersona(
+    tenantId,
+    personaId,
+  );
   const [activeSection, setActiveSection] = useState<SectionId>("demographics");
 
   if (isLoading) return <LoadingSkeleton />;
