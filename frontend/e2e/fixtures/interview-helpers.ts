@@ -10,7 +10,7 @@
  * the real Clerk session token is used automatically.
  */
 
-import { type Page, type BrowserContext } from '@playwright/test';
+import { type Page } from '@playwright/test';
 import { type CopilotPage } from '../pages/copilot.pom';
 
 // ── Types (mirrored from lib/api/buyer-persona.ts) ───────────────────────────
@@ -39,7 +39,10 @@ export interface BuyerPersona {
 
 // ── Config ───────────────────────────────────────────────────────────────────
 
-const BACKEND_URL = process.env.E2E_BACKEND_URL ?? 'http://localhost:8000';
+// For page.evaluate() calls (browser context), use relative URLs so requests
+// go through the Next.js rewrite proxy (/api/v1/* → INTERNAL_API_URL/api/v1/*).
+// Direct http://localhost:8000 from the browser would hit CORS restrictions.
+const BROWSER_API_BASE = '';
 
 // ── Token helper ─────────────────────────────────────────────────────────────
 
@@ -83,7 +86,7 @@ export async function listPersonasViaAPI(
       if (!res.ok) return [];
       return res.json() as Promise<unknown[]>;
     },
-    { backendUrl: BACKEND_URL, tid: tenantId },
+    { backendUrl: BROWSER_API_BASE, tid: tenantId },
   ) as Promise<BuyerPersona[]>;
 }
 
@@ -109,7 +112,7 @@ export async function getPersonaViaAPI(
       if (!res.ok) return null;
       return res.json() as Promise<unknown>;
     },
-    { backendUrl: BACKEND_URL, tid: tenantId, id: personaId },
+    { backendUrl: BROWSER_API_BASE, tid: tenantId, id: personaId },
   ) as Promise<BuyerPersona | null>;
 }
 
@@ -144,7 +147,7 @@ export async function deleteAllPersonasViaAPI(
 
       return deleted;
     },
-    { backendUrl: BACKEND_URL, tid: tenantId },
+    { backendUrl: BROWSER_API_BASE, tid: tenantId },
   ) as Promise<number>;
 }
 
@@ -180,7 +183,7 @@ export async function abandonActiveInterviewViaAPI(
       );
       return abandonRes.ok;
     },
-    { backendUrl: BACKEND_URL, tid: tenantId },
+    { backendUrl: BROWSER_API_BASE, tid: tenantId },
   ) as Promise<boolean>;
 }
 
