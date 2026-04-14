@@ -35,7 +35,11 @@ export function ProposalCard({ updates }: ProposalCardProps) {
     setStatus("applied");
     getToken().then((token) => {
       if (token) {
-        reportCopilotEvent("proposal_accepted", { field_count: updates.length, field_ids: fieldIds }, token);
+        reportCopilotEvent(
+          "proposal_accepted",
+          { field_count: updates.length, field_ids: fieldIds },
+          token,
+        );
       }
     });
   };
@@ -44,7 +48,11 @@ export function ProposalCard({ updates }: ProposalCardProps) {
     setStatus("rejected");
     getToken().then((token) => {
       if (token) {
-        reportCopilotEvent("proposal_rejected", { field_count: updates.length, field_ids: fieldIds }, token);
+        reportCopilotEvent(
+          "proposal_rejected",
+          { field_count: updates.length, field_ids: fieldIds },
+          token,
+        );
       }
     });
   };
@@ -62,15 +70,9 @@ export function ProposalCard({ updates }: ProposalCardProps) {
     >
       <div className="mb-2 flex items-center gap-1.5">
         <Pencil className="h-3.5 w-3.5 text-purple-500" />
-        <span className="font-medium text-slate-700 dark:text-slate-200">
-          Propuesta de cambios
-        </span>
-        {status === "applied" && (
-          <span className="ml-auto text-xs text-green-600">Aplicado</span>
-        )}
-        {status === "rejected" && (
-          <span className="ml-auto text-xs text-slate-400">Rechazado</span>
-        )}
+        <span className="font-medium text-slate-700 dark:text-slate-200">Propuesta de cambios</span>
+        {status === "applied" && <span className="ml-auto text-xs text-green-600">Aplicado</span>}
+        {status === "rejected" && <span className="ml-auto text-xs text-slate-400">Rechazado</span>}
       </div>
 
       <div className="space-y-1.5">
@@ -82,13 +84,9 @@ export function ProposalCard({ updates }: ProposalCardProps) {
             <div className="text-xs font-medium text-slate-500 dark:text-slate-400">
               {update.field_id}
             </div>
-            <div className="mt-0.5 text-slate-800 dark:text-slate-200">
-              {update.new_value}
-            </div>
+            <div className="mt-0.5 text-slate-800 dark:text-slate-200">{update.new_value}</div>
             {update.reason && (
-              <div className="mt-0.5 text-[11px] italic text-slate-400">
-                {update.reason}
-              </div>
+              <div className="mt-0.5 text-[11px] italic text-slate-400">{update.reason}</div>
             )}
           </div>
         ))}

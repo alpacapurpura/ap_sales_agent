@@ -42,18 +42,10 @@ describe("FocusModeButton", () => {
   it("clears selected fields when activating focus", async () => {
     const user = userEvent.setup();
     useCopilotStore.setState({
-      selectedFields: [
-        { fieldId: "field-1", fieldLabel: "Label 1", fieldValue: "Value 1" },
-      ],
+      selectedFields: [{ fieldId: "field-1", fieldLabel: "Label 1", fieldValue: "Value 1" }],
     });
 
-    render(
-      <FocusModeButton
-        domain="brand"
-        label="Mi Marca"
-        entityData={{ name: "Brand" }}
-      />,
-    );
+    render(<FocusModeButton domain="brand" label="Mi Marca" entityData={{ name: "Brand" }} />);
 
     await user.click(screen.getByRole("button"));
 
@@ -62,13 +54,7 @@ describe("FocusModeButton", () => {
   });
 
   it("renders Focus text", () => {
-    render(
-      <FocusModeButton
-        domain="brand"
-        label="Mi Marca"
-        entityData={{}}
-      />,
-    );
+    render(<FocusModeButton domain="brand" label="Mi Marca" entityData={{}} />);
     expect(screen.getByText("Focus")).toBeDefined();
   });
 
@@ -92,11 +78,7 @@ describe("FocusModeButton", () => {
   it("works without entityId", async () => {
     const user = userEvent.setup();
     render(
-      <FocusModeButton
-        domain="brand"
-        label="Generic Brand"
-        entityData={{ name: "Generic" }}
-      />,
+      <FocusModeButton domain="brand" label="Generic Brand" entityData={{ name: "Generic" }} />,
     );
 
     await user.click(screen.getByRole("button"));
@@ -108,12 +90,7 @@ describe("FocusModeButton", () => {
 
   it("applies custom className", () => {
     const { container } = render(
-      <FocusModeButton
-        domain="brand"
-        label="Test"
-        entityData={{}}
-        className="custom-class"
-      />,
+      <FocusModeButton domain="brand" label="Test" entityData={{}} className="custom-class" />,
     );
 
     const button = container.querySelector("button");
@@ -149,13 +126,7 @@ describe("FocusModeButton", () => {
     const user = userEvent.setup();
     const entityData = { name: "Static" };
 
-    render(
-      <FocusModeButton
-        domain="brand"
-        label="Mi Marca"
-        entityData={entityData}
-      />,
-    );
+    render(<FocusModeButton domain="brand" label="Mi Marca" entityData={entityData} />);
 
     await user.click(screen.getByRole("button"));
 
@@ -187,13 +158,7 @@ describe("FocusModeButton", () => {
   it("does not throw when prefetchFn is not provided and hovering", async () => {
     const user = userEvent.setup();
 
-    render(
-      <FocusModeButton
-        domain="brand"
-        label="No Prefetch"
-        entityData={{}}
-      />,
-    );
+    render(<FocusModeButton domain="brand" label="No Prefetch" entityData={{}} />);
 
     // Should not throw
     await expect(user.hover(screen.getByRole("button"))).resolves.toBeUndefined();

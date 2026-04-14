@@ -1,10 +1,6 @@
 // Offer knowledge sources hooks — CONTRACT.md §5.4
 import { useAuth } from "@clerk/nextjs";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { knowledgeApi } from "../api/knowledge-api";
 import type {
@@ -17,10 +13,7 @@ import type {
 const knowledgeKey = (offerId: string, query?: KnowledgeListQuery) =>
   ["offer", offerId, "knowledge", query ?? {}] as const;
 
-export function useKnowledgeSources(
-  offerId: string,
-  query?: KnowledgeListQuery,
-) {
+export function useKnowledgeSources(offerId: string, query?: KnowledgeListQuery) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 
   return useQuery<KnowledgeListResponse, Error>({
@@ -35,10 +28,7 @@ export function useKnowledgeSources(
   });
 }
 
-const invalidateKnowledge = (
-  queryClient: ReturnType<typeof useQueryClient>,
-  offerId: string,
-) => {
+const invalidateKnowledge = (queryClient: ReturnType<typeof useQueryClient>, offerId: string) => {
   queryClient.invalidateQueries({ queryKey: ["offer", offerId, "knowledge"] });
   queryClient.invalidateQueries({ queryKey: ["offer", offerId, "counts"] });
 };
@@ -67,22 +57,20 @@ export function useAddKnowledgeUrl(offerId: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
 
-  return useMutation<KnowledgeSourceResponse, Error, KnowledgeUrlIngestPayload>(
-    {
-      mutationFn: async (payload) => {
-        const token = await getToken();
-        if (!token) throw new Error("No autenticado");
-        return knowledgeApi.addUrl(offerId, payload, token);
-      },
-      onSuccess: () => {
-        invalidateKnowledge(queryClient, offerId);
-        toast.success("URL añadida a la base de conocimiento");
-      },
-      onError: (err) => {
-        toast.error(err.message || "Error al registrar la URL");
-      },
+  return useMutation<KnowledgeSourceResponse, Error, KnowledgeUrlIngestPayload>({
+    mutationFn: async (payload) => {
+      const token = await getToken();
+      if (!token) throw new Error("No autenticado");
+      return knowledgeApi.addUrl(offerId, payload, token);
     },
-  );
+    onSuccess: () => {
+      invalidateKnowledge(queryClient, offerId);
+      toast.success("URL añadida a la base de conocimiento");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Error al registrar la URL");
+    },
+  });
 }
 
 export function useDeleteKnowledge(offerId: string) {

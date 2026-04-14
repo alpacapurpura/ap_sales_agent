@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState } from "react";
 
 /**
  * Storage + TTL for the 24h-ignore feature. Exported under `__` prefix so
  * tests can reference them without leaking them into the public API.
  */
-export const __IGNORE_STORAGE_KEY = 'meta-ads-ignored-notices-v1';
+export const __IGNORE_STORAGE_KEY = "meta-ads-ignored-notices-v1";
 export const __IGNORE_TTL_MS = 24 * 60 * 60 * 1000;
 
 type StoredEntry = [string, number];
 
 function readEntries(): StoredEntry[] {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(__IGNORE_STORAGE_KEY);
     if (!raw) return [];
@@ -22,8 +22,8 @@ function readEntries(): StoredEntry[] {
       (entry): entry is StoredEntry =>
         Array.isArray(entry) &&
         entry.length === 2 &&
-        typeof entry[0] === 'string' &&
-        typeof entry[1] === 'number',
+        typeof entry[0] === "string" &&
+        typeof entry[1] === "number",
     );
   } catch {
     return [];
@@ -31,7 +31,7 @@ function readEntries(): StoredEntry[] {
 }
 
 function writeEntries(entries: StoredEntry[]): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(__IGNORE_STORAGE_KEY, JSON.stringify(entries));
   } catch {
@@ -61,7 +61,7 @@ export function useIgnoredNotices() {
   const [ignored, setIgnored] = useState<Set<string>>(() => loadFreshIds());
 
   const ignore = useCallback((id: string) => {
-    setIgnored(prev => {
+    setIgnored((prev) => {
       if (prev.has(id)) return prev;
       const next = new Set(prev);
       next.add(id);
@@ -75,10 +75,7 @@ export function useIgnoredNotices() {
     });
   }, []);
 
-  const isIgnored = useCallback(
-    (id: string) => ignored.has(id),
-    [ignored],
-  );
+  const isIgnored = useCallback((id: string) => ignored.has(id), [ignored]);
 
   return { ignored, ignore, isIgnored };
 }

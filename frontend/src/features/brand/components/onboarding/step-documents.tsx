@@ -21,14 +21,20 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function StepDocuments({ files, onAddFiles, onRemoveFile, onNext, onBack }: StepDocumentsProps) {
+export function StepDocuments({
+  files,
+  onAddFiles,
+  onRemoveFile,
+  onNext,
+  onBack,
+}: StepDocumentsProps) {
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       const droppedFiles = Array.from(e.dataTransfer.files);
       onAddFiles(droppedFiles);
     },
-    [onAddFiles]
+    [onAddFiles],
   );
 
   const handleFileInput = useCallback(
@@ -38,7 +44,7 @@ export function StepDocuments({ files, onAddFiles, onRemoveFile, onNext, onBack 
         e.target.value = "";
       }
     },
-    [onAddFiles]
+    [onAddFiles],
   );
 
   return (
@@ -59,7 +65,7 @@ export function StepDocuments({ files, onAddFiles, onRemoveFile, onNext, onBack 
         onDrop={handleDrop}
         className={cn(
           "relative flex min-h-[160px] flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-colors",
-          "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30"
+          "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30",
         )}
       >
         <Upload className="mb-3 h-8 w-8 text-muted-foreground" />

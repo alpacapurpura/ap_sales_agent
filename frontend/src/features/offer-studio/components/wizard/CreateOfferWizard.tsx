@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { OfferArchetype, OfferDeliveryModel, OfferValueLevel, OfferStatus } from "@/features/offer-studio/types";
+import {
+  OfferArchetype,
+  OfferDeliveryModel,
+  OfferValueLevel,
+  OfferStatus,
+} from "@/features/offer-studio/types";
 import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
 import {
   FORMAT_PRESETS,
@@ -64,7 +69,13 @@ const ARCHETYPE_ORDER: OfferArchetype[] = [
   OfferArchetype.EXPERIENCIA,
 ];
 
-export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateWithIA, creating = false }: CreateOfferWizardProps) {
+export function CreateOfferWizard({
+  open,
+  onOpenChange,
+  onCreateOffer,
+  onCreateWithIA,
+  creating = false,
+}: CreateOfferWizardProps) {
   const { currency: tenantCurrency } = useTenantLocale();
   const [step, setStep] = useState(1);
   const [selectedArchetype, setSelectedArchetype] = useState<OfferArchetype | null>(null);
@@ -75,9 +86,15 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
   const [isLeadMagnet, setIsLeadMagnet] = useState(false);
   const [headlinePromise, setHeadlinePromise] = useState("");
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
-  const [selectedDeliveryModel, setSelectedDeliveryModel] = useState<OfferDeliveryModel | undefined>(undefined);
-  const [selectedValueLevel, setSelectedValueLevel] = useState<OfferValueLevel | undefined>(undefined);
-  const [selectedSpecificDetails, setSelectedSpecificDetails] = useState<Record<string, unknown> | undefined>(undefined);
+  const [selectedDeliveryModel, setSelectedDeliveryModel] = useState<
+    OfferDeliveryModel | undefined
+  >(undefined);
+  const [selectedValueLevel, setSelectedValueLevel] = useState<OfferValueLevel | undefined>(
+    undefined,
+  );
+  const [selectedSpecificDetails, setSelectedSpecificDetails] = useState<
+    Record<string, unknown> | undefined
+  >(undefined);
   // Wizard answer for "will this offer run in editions?". Defaults to true for
   // archetypes that support editions; ignored otherwise.
   const [hasEditions, setHasEditions] = useState<boolean>(true);
@@ -100,9 +117,7 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
 
   const showsEditionsStep =
     selectedArchetype !== null && archetypeSupportsEditions(selectedArchetype);
-  const editionsCopy = selectedArchetype
-    ? getEditionsCopy(selectedArchetype)
-    : null;
+  const editionsCopy = selectedArchetype ? getEditionsCopy(selectedArchetype) : null;
   const totalSteps = showsEditionsStep ? 5 : 4;
   const finalStep = totalSteps;
 
@@ -218,7 +233,7 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
               key={s}
               className={cn(
                 "h-1.5 flex-1 rounded-full transition-colors",
-                s <= step ? "bg-primary" : "bg-muted"
+                s <= step ? "bg-primary" : "bg-muted",
               )}
             />
           ))}
@@ -237,7 +252,7 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
                     onClick={() => handleSelectArchetype(archetype)}
                     className={cn(
                       "flex flex-col items-start gap-2 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-primary/50",
-                      "bg-background cursor-pointer"
+                      "bg-background cursor-pointer",
                     )}
                   >
                     <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -247,7 +262,9 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
                       <p className="font-semibold text-sm">{m.label}</p>
                       <p className="text-xs text-muted-foreground leading-snug">{m.subtitle}</p>
                     </div>
-                    <p className="text-[10px] text-muted-foreground/70 line-clamp-2">{m.examples}</p>
+                    <p className="text-[10px] text-muted-foreground/70 line-clamp-2">
+                      {m.examples}
+                    </p>
                   </button>
                 );
               })}
@@ -269,7 +286,7 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
                         isCustom
                           ? "border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 bg-background"
                           : "border border-border hover:border-primary/50 bg-background",
-                        selectedPresetId === preset.id && "border-primary ring-1 ring-primary/20"
+                        selectedPresetId === preset.id && "border-primary ring-1 ring-primary/20",
                       )}
                     >
                       <div className="flex items-center justify-between w-full">
@@ -293,7 +310,12 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
                 })}
               </div>
 
-              <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleSkipFormat}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground"
+                onClick={handleSkipFormat}
+              >
                 <SkipForward className="mr-1 h-3 w-3" />
                 Saltar este paso
               </Button>
@@ -353,7 +375,9 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
               <div className="space-y-2">
                 <Label htmlFor="wizard-price">Precio ({tenantCurrency})</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">{tenantCurrency}</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">
+                    {tenantCurrency}
+                  </span>
                   <Input
                     id="wizard-price"
                     type="number"
@@ -368,7 +392,9 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
                   />
                 </div>
                 {priceNum === 0 && (
-                  <p className="text-xs text-muted-foreground">Se marcara como Lead Magnet automaticamente.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Se marcara como Lead Magnet automaticamente.
+                  </p>
                 )}
               </div>
 
@@ -407,7 +433,9 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
           {step === 4 && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="wizard-promise">En una frase, que resultado logra tu cliente?</Label>
+                <Label htmlFor="wizard-promise">
+                  En una frase, que resultado logra tu cliente?
+                </Label>
                 <Textarea
                   id="wizard-promise"
                   value={headlinePromise}
@@ -418,7 +446,8 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Puedes completar esto despues desde el editor. No te preocupes si no lo tienes claro aun.
+                Puedes completar esto despues desde el editor. No te preocupes si no lo tienes claro
+                aun.
               </p>
             </div>
           )}
@@ -443,13 +472,13 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
                     "flex items-center gap-3 p-4 rounded-xl border text-left transition-all hover:border-primary/50 cursor-pointer",
                     hasEditions
                       ? "border-primary ring-1 ring-primary/20 bg-primary/5"
-                      : "border-border bg-background"
+                      : "border-border bg-background",
                   )}
                 >
                   <div
                     className={cn(
                       "h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0",
-                      hasEditions ? "border-primary" : "border-muted-foreground/40"
+                      hasEditions ? "border-primary" : "border-muted-foreground/40",
                     )}
                   >
                     {hasEditions && <div className="h-2 w-2 rounded-full bg-primary" />}
@@ -464,13 +493,13 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
                     "flex items-center gap-3 p-4 rounded-xl border text-left transition-all hover:border-primary/50 cursor-pointer",
                     !hasEditions
                       ? "border-primary ring-1 ring-primary/20 bg-primary/5"
-                      : "border-border bg-background"
+                      : "border-border bg-background",
                   )}
                 >
                   <div
                     className={cn(
                       "h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0",
-                      !hasEditions ? "border-primary" : "border-muted-foreground/40"
+                      !hasEditions ? "border-primary" : "border-muted-foreground/40",
                     )}
                   >
                     {!hasEditions && <div className="h-2 w-2 rounded-full bg-primary" />}
@@ -479,9 +508,7 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
                 </button>
               </div>
 
-              <p className="text-xs text-muted-foreground">
-                {editionsCopy.helper}
-              </p>
+              <p className="text-xs text-muted-foreground">{editionsCopy.helper}</p>
             </div>
           )}
         </div>
@@ -497,10 +524,7 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
           </div>
           <div className="flex items-center gap-2">
             {step === 3 && (
-              <Button
-                onClick={() => setStep(4)}
-                disabled={!offerName.trim()}
-              >
+              <Button onClick={() => setStep(4)} disabled={!offerName.trim()}>
                 Siguiente
                 <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
@@ -514,10 +538,7 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
                 >
                   Completar despues
                 </Button>
-                <Button
-                  onClick={() => setStep(5)}
-                  disabled={!offerName.trim()}
-                >
+                <Button onClick={() => setStep(5)} disabled={!offerName.trim()}>
                   Siguiente
                   <ArrowRight className="ml-1 h-3 w-3" />
                 </Button>
@@ -542,10 +563,7 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
                     Crear con asistente IA
                   </Button>
                 )}
-                <Button
-                  onClick={handleCreate}
-                  disabled={creating || !offerName.trim()}
-                >
+                <Button onClick={handleCreate} disabled={creating || !offerName.trim()}>
                   {creating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Crear Oferta
                 </Button>
@@ -570,10 +588,7 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, onCreateW
                     Crear con asistente IA
                   </Button>
                 )}
-                <Button
-                  onClick={handleCreate}
-                  disabled={creating || !offerName.trim()}
-                >
+                <Button onClick={handleCreate} disabled={creating || !offerName.trim()}>
                   {creating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Crear Oferta
                 </Button>

@@ -13,11 +13,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CURRENCIES, Currency } from "@/lib/constants/currencies";
 
 interface CurrencySelectorProps {
@@ -50,9 +46,7 @@ export function CurrencySelector({
             <span className="flex items-center gap-2">
               <span className="text-lg">{selectedCurrency.flag}</span>
               <span>{selectedCurrency.code}</span>
-              <span className="text-muted-foreground text-xs">
-                - {selectedCurrency.name}
-              </span>
+              <span className="text-muted-foreground text-xs">- {selectedCurrency.name}</span>
             </span>
           ) : (
             "Select currency..."
@@ -82,14 +76,12 @@ export function CurrencySelector({
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === currency.code ? "opacity-100" : "opacity-0"
+                      value === currency.code ? "opacity-100" : "opacity-0",
                     )}
                   />
                   <span className="mr-2 text-lg">{currency.flag}</span>
                   <span className="font-medium">{currency.code}</span>
-                  <span className="ml-2 text-muted-foreground">
-                    {currency.name}
-                  </span>
+                  <span className="ml-2 text-muted-foreground">{currency.name}</span>
                 </CommandItem>
               ))}
             </CommandGroup>

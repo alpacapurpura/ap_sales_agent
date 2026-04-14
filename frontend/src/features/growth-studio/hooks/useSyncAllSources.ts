@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@clerk/nextjs';
-import { metricsApi } from '../api/metrics-api';
-import type { SyncAllResponse } from '../api/metrics-api';
+import { useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/nextjs";
+import { metricsApi } from "../api/metrics-api";
+import type { SyncAllResponse } from "../api/metrics-api";
 
 export function useSyncAllSources() {
   const { getToken } = useAuth();
@@ -11,21 +11,21 @@ export function useSyncAllSources() {
   const mutation = useMutation({
     mutationFn: async (days: number = 30): Promise<SyncAllResponse> => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return metricsApi.triggerSyncAll(token, days);
     },
     onSuccess: () => {
       // Invalidate all stage queries so dashboards refresh
-      queryClient.invalidateQueries({ queryKey: ['attraction-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['capture-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['nurture-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['opportunity-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['sales-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['adoption-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['expansion-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['evangelization-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['bowties-summary'] });
-      queryClient.invalidateQueries({ queryKey: ['stage-timeseries'] });
+      queryClient.invalidateQueries({ queryKey: ["attraction-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["capture-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["nurture-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["opportunity-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["sales-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["adoption-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["expansion-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["evangelization-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["bowties-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["stage-timeseries"] });
     },
   });
 

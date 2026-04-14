@@ -30,8 +30,7 @@ export function OfferEditorContent({ offerId }: { offerId: string }) {
   const params = useParams();
   const tenantId = params?.tenantId as string;
 
-  const { offer, formValues, loading, saving, error, saveOffer, saveSection } =
-    useOffer(offerId);
+  const { offer, formValues, loading, saving, error, saveOffer, saveSection } = useOffer(offerId);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [editingSection, setEditingSection] = useState<string | null>(null);
 
@@ -83,9 +82,7 @@ export function OfferEditorContent({ offerId }: { offerId: string }) {
   if (error || !offer) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 bg-background">
-        <p className="font-medium text-destructive">
-          {error ?? "Oferta no encontrada"}
-        </p>
+        <p className="font-medium text-destructive">{error ?? "Oferta no encontrada"}</p>
         <Link href={`/${tenantId}/offer-studio`}>
           <Button variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -97,11 +94,7 @@ export function OfferEditorContent({ offerId }: { offerId: string }) {
   }
 
   return (
-    <div
-      className="flex h-full flex-1 overflow-hidden"
-      role="region"
-      aria-label="Editor de oferta"
-    >
+    <div className="flex h-full flex-1 overflow-hidden" role="region" aria-label="Editor de oferta">
       <OfferNavRail
         offer={offer}
         activeSection={activeSection ?? ""}
@@ -109,10 +102,7 @@ export function OfferEditorContent({ offerId }: { offerId: string }) {
         className="z-20 h-full flex-none border-r bg-muted/10"
       />
 
-      <main
-        className="relative flex-1 overflow-y-auto scroll-smooth"
-        id="offer-editor-main"
-      >
+      <main className="relative flex-1 overflow-y-auto scroll-smooth" id="offer-editor-main">
         <div className="min-h-full pb-20">
           <div className="mx-auto max-w-5xl p-8">
             <OfferLivePreview form={form} onEdit={setEditingSection} />
@@ -127,7 +117,6 @@ export function OfferEditorContent({ offerId }: { offerId: string }) {
           onSave={handleSectionSave}
           isSaving={saving}
         />
-
       </main>
     </div>
   );

@@ -65,7 +65,11 @@ const getNavItems = (tenantId: string): NavItem[] => [
       { title: "Esencia", href: `/${tenantId}/brand-studio/esencia`, icon: Building2 },
       { title: "Estrategia", href: `/${tenantId}/brand-studio/estrategia`, icon: Crosshair },
       { title: "Publico", href: `/${tenantId}/brand-studio/publico`, icon: UserSearch },
-      { title: "Identidad Creativa", href: `/${tenantId}/brand-studio/identidad-creativa`, icon: Palette },
+      {
+        title: "Identidad Creativa",
+        href: `/${tenantId}/brand-studio/identidad-creativa`,
+        icon: Palette,
+      },
     ],
   },
   {
@@ -79,10 +83,18 @@ const getNavItems = (tenantId: string): NavItem[] => [
     icon: Megaphone,
     children: [
       { title: "Atracción", href: `/${tenantId}/growth-studio/atraccion-captura`, icon: Magnet },
-      { title: "Nutrición", href: `/${tenantId}/growth-studio/nutricion-oportunidad`, icon: Sprout },
+      {
+        title: "Nutrición",
+        href: `/${tenantId}/growth-studio/nutricion-oportunidad`,
+        icon: Sprout,
+      },
       { title: "Ventas", href: `/${tenantId}/growth-studio/ventas`, icon: ShoppingCart },
       { title: "Adopción", href: `/${tenantId}/growth-studio/adopcion`, icon: UserCheck },
-      { title: "Expansión", href: `/${tenantId}/growth-studio/expansion-evangelizacion`, icon: Rocket },
+      {
+        title: "Expansión",
+        href: `/${tenantId}/growth-studio/expansion-evangelizacion`,
+        icon: Rocket,
+      },
     ],
   },
   {
@@ -121,8 +133,18 @@ interface NavItemRendererProps {
   onToggleExpand: (href: string) => void;
 }
 
-function NavItemRenderer({ item, pathname, mobile, isCollapsed, mounted, onMobileClose, expandedHref, onToggleExpand }: NavItemRendererProps) {
-  const isParentActive = pathname.startsWith(item.href) ||
+function NavItemRenderer({
+  item,
+  pathname,
+  mobile,
+  isCollapsed,
+  mounted,
+  onMobileClose,
+  expandedHref,
+  onToggleExpand,
+}: NavItemRendererProps) {
+  const isParentActive =
+    pathname.startsWith(item.href) ||
     (item.children?.some((child) => pathname.startsWith(child.href)) ?? false);
   const hasChildren = item.children && item.children.length > 0;
   const isExpanded = item.href === expandedHref;
@@ -142,10 +164,15 @@ function NavItemRenderer({ item, pathname, mobile, isCollapsed, mounted, onMobil
           isActive
             ? "bg-primary/10 text-primary"
             : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
-          isCollapsed && !mobile && "justify-center px-2"
+          isCollapsed && !mobile && "justify-center px-2",
         )}
       >
-        <item.icon className={cn("h-5 w-5 shrink-0 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+        <item.icon
+          className={cn(
+            "h-5 w-5 shrink-0 transition-colors",
+            isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+          )}
+        />
         {showExpanded && mounted && <span>{item.title}</span>}
       </NavLink>
     );
@@ -154,7 +181,9 @@ function NavItemRenderer({ item, pathname, mobile, isCollapsed, mounted, onMobil
       return (
         <Tooltip>
           <TooltipTrigger asChild>{link}</TooltipTrigger>
-          <TooltipContent side="right" className="font-medium">{item.title}</TooltipContent>
+          <TooltipContent side="right" className="font-medium">
+            {item.title}
+          </TooltipContent>
         </Tooltip>
       );
     }
@@ -175,15 +204,24 @@ function NavItemRenderer({ item, pathname, mobile, isCollapsed, mounted, onMobil
               "flex items-center justify-center rounded-lg px-2 py-2.5 text-sm font-semibold transition-all w-full group",
               isParentActive
                 ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
             )}
           >
-            <item.icon className={cn("h-5 w-5 shrink-0 transition-colors", isParentActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+            <item.icon
+              className={cn(
+                "h-5 w-5 shrink-0 transition-colors",
+                isParentActive
+                  ? "text-primary"
+                  : "text-muted-foreground group-hover:text-foreground",
+              )}
+            />
           </NavLink>
         </TooltipTrigger>
         <TooltipContent side="right" className="p-0">
           <div className="py-1 min-w-[160px]">
-            <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground">{item.title}</div>
+            <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+              {item.title}
+            </div>
             {item.children!.map((child) => {
               const isChildActive = pathname.startsWith(child.href);
               return (
@@ -193,9 +231,7 @@ function NavItemRenderer({ item, pathname, mobile, isCollapsed, mounted, onMobil
                   loadingClassName="opacity-70"
                   className={cn(
                     "flex items-center gap-2 px-2 py-1.5 text-sm transition-colors",
-                    isChildActive
-                      ? "text-primary font-medium"
-                      : "text-foreground hover:bg-muted"
+                    isChildActive ? "text-primary font-medium" : "text-foreground hover:bg-muted",
                   )}
                 >
                   <child.icon className="h-4 w-4 shrink-0" />
@@ -218,27 +254,36 @@ function NavItemRenderer({ item, pathname, mobile, isCollapsed, mounted, onMobil
           "flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold transition-all w-full group",
           isParentActive
             ? "bg-primary/10 text-primary"
-            : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+            : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
         )}
       >
         <div className="flex items-center gap-3">
-          <item.icon className={cn("h-5 w-5 shrink-0 transition-colors", isParentActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+          <item.icon
+            className={cn(
+              "h-5 w-5 shrink-0 transition-colors",
+              isParentActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+            )}
+          />
           {mounted && <span className="flex-1 text-left">{item.title}</span>}
         </div>
         {mounted && (
-          <ChevronDown className={cn(
-            "h-4 w-4 shrink-0 transition-transform duration-200",
-            isExpanded ? "rotate-0" : "-rotate-90",
-            isParentActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-          )} />
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 shrink-0 transition-transform duration-200",
+              isExpanded ? "rotate-0" : "-rotate-90",
+              isParentActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+            )}
+          />
         )}
       </button>
 
       {/* Children */}
-      <div className={cn(
-        "overflow-hidden transition-all duration-200",
-        isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-      )}>
+      <div
+        className={cn(
+          "overflow-hidden transition-all duration-200",
+          isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
+        )}
+      >
         <div className="ml-5 pl-4 border-l-2 border-border/50 space-y-1 py-1">
           {item.children!.map((child) => {
             const isChildActive = pathname.startsWith(child.href);
@@ -253,14 +298,21 @@ function NavItemRenderer({ item, pathname, mobile, isCollapsed, mounted, onMobil
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all relative group",
                   isChildActive
                     ? "text-primary bg-background shadow-sm border border-border/50"
-                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
                 )}
               >
                 {/* Active indicator pill (Hostinger style) */}
                 {isChildActive && (
                   <div className="absolute left-[-18px] w-[3px] h-[70%] bg-primary rounded-r-full" />
                 )}
-                <child.icon className={cn("h-4 w-4 shrink-0", isChildActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+                <child.icon
+                  className={cn(
+                    "h-4 w-4 shrink-0",
+                    isChildActive
+                      ? "text-primary"
+                      : "text-muted-foreground group-hover:text-foreground",
+                  )}
+                />
                 {mounted && <span>{child.title}</span>}
               </NavLink>
             );
@@ -284,14 +336,21 @@ interface NavContentProps {
   mounted: boolean;
 }
 
-const NavContent = memo(function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpen, pathname, mounted }: NavContentProps) {
+const NavContent = memo(function NavContent({
+  mobile = false,
+  isCollapsed,
+  toggleSidebar,
+  setIsMobileOpen,
+  pathname,
+  mounted,
+}: NavContentProps) {
   const { user } = useUser();
   const { data: profile } = useUserProfile();
   const { resolvedTheme } = useTheme();
   const [logoError, setLogoError] = useState(false);
   const [isoError, setIsoError] = useState(false);
 
-  const pathSegments = pathname.split('/').filter(Boolean);
+  const pathSegments = pathname.split("/").filter(Boolean);
   const currentTenantId = pathSegments[0] || profile?.tenant?.id || "";
 
   const navItems = useMemo(() => getNavItems(currentTenantId), [currentTenantId]);
@@ -305,9 +364,7 @@ const NavContent = memo(function NavContent({ mobile = false, isCollapsed, toggl
   // Accordion: only one parent expanded at a time
   // Derive the active parent from pathname so we don't need a setState-in-effect.
   const activeParentHref = useMemo(() => {
-    const active = navItems.find(
-      (item) => item.children?.length && matchesNavItem(item, pathname)
-    );
+    const active = navItems.find((item) => item.children?.length && matchesNavItem(item, pathname));
     return active?.href ?? null;
   }, [navItems, pathname, matchesNavItem]);
 
@@ -327,39 +384,40 @@ const NavContent = memo(function NavContent({ mobile = false, isCollapsed, toggl
   }, []);
 
   // Use a stable src during SSR/hydration to avoid mismatch; switch after mount.
-  const fullLogoSrc = mounted && resolvedTheme === "dark"
-    ? "/nico-assets/logotipo/logotipo-fondooscuro-nicolify.svg"
-    : "/nico-assets/logotipo/logotipo-fondoclaro-nicolify.svg";
+  const fullLogoSrc =
+    mounted && resolvedTheme === "dark"
+      ? "/nico-assets/logotipo/logotipo-fondooscuro-nicolify.svg"
+      : "/nico-assets/logotipo/logotipo-fondoclaro-nicolify.svg";
 
   return (
     <div className="flex h-full flex-col gap-0 group/sidebar">
       {/* HEADER: APP LOGO + COLLAPSE BUTTON */}
-      <div className={cn(
-        "h-16 border-b flex items-center relative",
-        isCollapsed && !mobile ? "justify-center px-0" : "justify-between px-6"
-      )}>
+      <div
+        className={cn(
+          "h-16 border-b flex items-center relative",
+          isCollapsed && !mobile ? "justify-center px-0" : "justify-between px-6",
+        )}
+      >
         {!isCollapsed || mobile ? (
           logoError ? (
             <span className="font-bold text-xl tracking-tight">Nicolify</span>
           ) : (
-            <img 
-              src={fullLogoSrc} 
-              alt="Nicolify" 
+            <img
+              src={fullLogoSrc}
+              alt="Nicolify"
               className="w-full max-w-[120px] object-contain"
               onError={() => setLogoError(true)}
             />
           )
+        ) : isoError ? (
+          <span className="font-bold text-xl">N</span>
         ) : (
-          isoError ? (
-            <span className="font-bold text-xl">N</span>
-          ) : (
-            <img 
-              src="/nico-assets/isotipo/isotipo-nicolify.svg" 
-              alt="N" 
-              className="w-8 h-8 object-contain"
-              onError={() => setIsoError(true)}
-            />
-          )
+          <img
+            src="/nico-assets/isotipo/isotipo-nicolify.svg"
+            alt="N"
+            className="w-8 h-8 object-contain"
+            onError={() => setIsoError(true)}
+          />
         )}
       </div>
 
@@ -405,15 +463,23 @@ const NavContent = memo(function NavContent({ mobile = false, isCollapsed, toggl
                   onClick={toggleSidebar}
                   className={cn(
                     "h-10 rounded-lg text-muted-foreground bg-background hover:bg-background/80 hover:text-foreground transition-all",
-                    isCollapsed ? "w-10" : "w-full flex justify-between px-3"
+                    isCollapsed ? "w-10" : "w-full flex justify-between px-3",
                   )}
                 >
                   {!isCollapsed && <span className="text-sm font-medium">Ocultar menú</span>}
-                  {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+                  {isCollapsed ? (
+                    <PanelLeftOpen className="h-5 w-5" />
+                  ) : (
+                    <PanelLeftClose className="h-5 w-5" />
+                  )}
                   <span className="sr-only">{isCollapsed ? "Expandir menú" : "Ocultar menú"}</span>
                 </Button>
               </TooltipTrigger>
-              {isCollapsed && <TooltipContent side="right" className="font-medium">Expandir menú</TooltipContent>}
+              {isCollapsed && (
+                <TooltipContent side="right" className="font-medium">
+                  Expandir menú
+                </TooltipContent>
+              )}
             </Tooltip>
           </TooltipProvider>
         </div>
@@ -421,8 +487,12 @@ const NavContent = memo(function NavContent({ mobile = false, isCollapsed, toggl
 
       {/* USER PROFILE & SETTINGS */}
       <div className="border-t bg-muted/10">
-        <div className={cn("flex items-center justify-between py-4 px-4 max-w-[220px]", isCollapsed && !mobile && "flex-col justify-center gap-4 px-4")}>
-          
+        <div
+          className={cn(
+            "flex items-center justify-between py-4 px-4 max-w-[220px]",
+            isCollapsed && !mobile && "flex-col justify-center gap-4 px-4",
+          )}
+        >
           <ModeToggle />
           <div className="flex items-center">
             {mounted && <UserButton />}
@@ -434,9 +504,13 @@ const NavContent = memo(function NavContent({ mobile = false, isCollapsed, toggl
                   loadingClassName="opacity-70"
                   onClick={() => mobile && setIsMobileOpen(false)}
                 >
-                    <span className="text-sm font-semibold truncate block">{user?.fullName || "Usuario"}</span>
+                  <span className="text-sm font-semibold truncate block">
+                    {user?.fullName || "Usuario"}
+                  </span>
                 </NavLink>
-                <span className="text-xs text-muted-foreground truncate">{user?.primaryEmailAddress?.emailAddress || "Gestión de perfil"}</span>
+                <span className="text-xs text-muted-foreground truncate">
+                  {user?.primaryEmailAddress?.emailAddress || "Gestión de perfil"}
+                </span>
               </div>
             )}
           </div>
@@ -452,7 +526,7 @@ NavContent.displayName = "NavContent";
 // ---------------------------------------------------------------------------
 
 export function AppSidebar() {
-  const pathname = usePathname() ?? '';
+  const pathname = usePathname() ?? "";
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { isCollapsed, toggleSidebar } = useSidebar();
   const [isMounted, setIsMounted] = useState(false);
@@ -470,7 +544,7 @@ export function AppSidebar() {
       <aside
         className={cn(
           "hidden border-r bg-card md:flex md:flex-col fixed inset-y-0 z-50 transition-all duration-300 ease-in-out",
-          isCollapsed ? "w-20" : "w-64"
+          isCollapsed ? "w-20" : "w-64",
         )}
       >
         <NavContent
@@ -494,7 +568,9 @@ export function AppSidebar() {
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-72" aria-describedby="mobile-nav-desc">
                 <SheetTitle className="sr-only">Menú de Navegación</SheetTitle>
-                <div id="mobile-nav-desc" className="sr-only">Menú de navegación principal</div>
+                <div id="mobile-nav-desc" className="sr-only">
+                  Menú de navegación principal
+                </div>
                 <NavContent
                   mobile
                   isCollapsed={isCollapsed}
@@ -510,7 +586,11 @@ export function AppSidebar() {
               <Menu className="h-5 w-5" />
             </Button>
           )}
-          <img src="/_temp/logotipo/logotipo-fondoclaro-nicolify.svg" alt="Nicolify" className="h-6 object-contain" />
+          <img
+            src="/_temp/logotipo/logotipo-fondoclaro-nicolify.svg"
+            alt="Nicolify"
+            className="h-6 object-contain"
+          />
         </div>
       </div>
     </>

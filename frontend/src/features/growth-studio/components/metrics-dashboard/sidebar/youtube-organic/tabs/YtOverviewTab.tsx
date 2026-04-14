@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from "lucide-react";
 import {
   Bar,
   ComposedChart,
@@ -9,15 +9,15 @@ import {
   XAxis,
   YAxis,
   Tooltip as RechartsTooltip,
-} from 'recharts';
+} from "recharts";
 
-import { ChartContainer } from '@/components/ui/chart';
-import type { ChannelDashboardData } from '../../../../../types/metrics';
-import { YouTubeHeroKpiGrid } from '../YouTubeHeroKpiGrid';
-import { MetaAdsMiniFunnel } from '../../meta-ads/MetaAdsMiniFunnel';
-import { YouTubeSubscriberGrowth } from '../YouTubeSubscriberGrowth';
-import { ChartInfoTooltip } from '../../ig-organic/ChartInfoTooltip';
-import { ChartSection } from '../../shared/ChartSection';
+import { ChartContainer } from "@/components/ui/chart";
+import type { ChannelDashboardData } from "../../../../../types/metrics";
+import { YouTubeHeroKpiGrid } from "../YouTubeHeroKpiGrid";
+import { MetaAdsMiniFunnel } from "../../meta-ads/MetaAdsMiniFunnel";
+import { YouTubeSubscriberGrowth } from "../YouTubeSubscriberGrowth";
+import { ChartInfoTooltip } from "../../ig-organic/ChartInfoTooltip";
+import { ChartSection } from "../../shared/ChartSection";
 
 interface YtOverviewTabProps {
   data: ChannelDashboardData | undefined;
@@ -41,17 +41,18 @@ export function YtOverviewTab({ data, isLoading }: YtOverviewTabProps) {
     );
   }
 
-  const viewsSeries = data.timeSeries.find(ts => ts.metricName === 'views');
-  const watchTimeSeries = data.timeSeries.find(ts => ts.metricName === 'watch_time_minutes');
+  const viewsSeries = data.timeSeries.find((ts) => ts.metricName === "views");
+  const watchTimeSeries = data.timeSeries.find((ts) => ts.metricName === "watch_time_minutes");
 
-  const compositeData = viewsSeries?.dataPoints.map(vp => {
-    const wt = watchTimeSeries?.dataPoints.find(wp => wp.date === vp.date);
-    return {
-      date: vp.date.slice(5),
-      views: vp.value,
-      watchTime: wt?.value ?? 0,
-    };
-  }) ?? [];
+  const compositeData =
+    viewsSeries?.dataPoints.map((vp) => {
+      const wt = watchTimeSeries?.dataPoints.find((wp) => wp.date === vp.date);
+      return {
+        date: vp.date.slice(5),
+        views: vp.value,
+        watchTime: wt?.value ?? 0,
+      };
+    }) ?? [];
 
   return (
     <div className="space-y-8">
@@ -68,8 +69,8 @@ export function YtOverviewTab({ data, isLoading }: YtOverviewTabProps) {
             />
             <ChartContainer
               config={{
-                views: { label: 'Vistas', color: 'hsl(var(--chart-1))' },
-                watchTime: { label: 'Minutos Vistos', color: 'hsl(var(--chart-2))' },
+                views: { label: "Vistas", color: "hsl(var(--chart-1))" },
+                watchTime: { label: "Minutos Vistos", color: "hsl(var(--chart-2))" },
               }}
               className="h-[250px] w-full"
             >
@@ -79,8 +80,20 @@ export function YtOverviewTab({ data, isLoading }: YtOverviewTabProps) {
                 <YAxis yAxisId="left" className="text-xs" />
                 <YAxis yAxisId="right" orientation="right" className="text-xs" />
                 <RechartsTooltip />
-                <Bar yAxisId="left" dataKey="views" fill="var(--color-views)" radius={[2, 2, 0, 0]} />
-                <Line yAxisId="right" type="monotone" dataKey="watchTime" stroke="var(--color-watchTime)" strokeWidth={2} dot={false} />
+                <Bar
+                  yAxisId="left"
+                  dataKey="views"
+                  fill="var(--color-views)"
+                  radius={[2, 2, 0, 0]}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="watchTime"
+                  stroke="var(--color-watchTime)"
+                  strokeWidth={2}
+                  dot={false}
+                />
               </ComposedChart>
             </ChartContainer>
           </div>

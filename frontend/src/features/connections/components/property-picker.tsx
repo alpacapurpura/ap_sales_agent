@@ -26,10 +26,14 @@ interface PropertyPickerProps {
   isChangeMode?: boolean;
 }
 
-export function PropertyPicker({ properties, onSelected, isChangeMode = false }: PropertyPickerProps) {
+export function PropertyPicker({
+  properties,
+  onSelected,
+  isChangeMode = false,
+}: PropertyPickerProps) {
   const { getToken } = useAuth();
   const [selectedId, setSelectedId] = useState<string>(
-    properties.length === 1 ? properties[0].property_id : ""
+    properties.length === 1 ? properties[0].property_id : "",
   );
   const [manualId, setManualId] = useState("");
   const [showManual, setShowManual] = useState(properties.length === 0);
@@ -101,7 +105,8 @@ export function PropertyPicker({ properties, onSelected, isChangeMode = false }:
             <Alert className="bg-green-50 text-green-800 border-green-200 dark:bg-green-950/30 dark:text-green-200 dark:border-green-800">
               <CheckCircle className="h-4 w-4" />
               <AlertDescription className="text-xs">
-                Detectamos tu propiedad automaticamente: <strong>{properties[0].display_name}</strong>
+                Detectamos tu propiedad automaticamente:{" "}
+                <strong>{properties[0].display_name}</strong>
               </AlertDescription>
             </Alert>
           )}
@@ -119,7 +124,8 @@ export function PropertyPicker({ properties, onSelected, isChangeMode = false }:
           <Alert className="bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-800">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription className="text-xs">
-              Ingresa el Property ID numerico de GA4. Lo encuentras en Google Analytics → Admin → Configuracion de la propiedad.
+              Ingresa el Property ID numerico de GA4. Lo encuentras en Google Analytics → Admin →
+              Configuracion de la propiedad.
             </AlertDescription>
           </Alert>
 

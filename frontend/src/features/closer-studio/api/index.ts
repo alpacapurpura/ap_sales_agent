@@ -126,10 +126,7 @@ export async function reactivate(
   return json(res);
 }
 
-export async function diagnose(
-  token: string,
-  leadId: string,
-): Promise<DiagnoseResponse> {
+export async function diagnose(token: string, leadId: string): Promise<DiagnoseResponse> {
   const res = await fetchClient(`${BASE}/conversations/${leadId}/diagnose`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },

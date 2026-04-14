@@ -1,6 +1,6 @@
-import type { ChannelDashboardData } from '../../../../types/metrics';
+import type { ChannelDashboardData } from "../../../../types/metrics";
 
-export type WebsiteDashboardTab = 'overview' | 'trafico' | 'contenido' | 'conversiones';
+export type WebsiteDashboardTab = "overview" | "trafico" | "contenido" | "conversiones";
 
 export type WebsiteTrafficSource = {
   source: string;

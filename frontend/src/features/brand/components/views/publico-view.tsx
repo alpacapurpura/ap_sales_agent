@@ -22,8 +22,8 @@ export function PublicoView() {
   const { openEdit, openSmartFill } = useBrandStudio();
 
   const navItems = useMemo(
-    () => settings ? buildSectionNavItems("publico", settings) : [],
-    [settings]
+    () => (settings ? buildSectionNavItems("publico", settings) : []),
+    [settings],
   );
 
   if (!settings) return null;
@@ -31,10 +31,7 @@ export function PublicoView() {
   return (
     <BrandSectionShell title={SECTION.label} subtitle={SECTION.subtitle} navItems={navItems}>
       <div id="avatars" className="space-y-8">
-        <SectionHeader
-          title="Buyer Personas"
-          subtitle="Perfiles completos de tu cliente ideal."
-        />
+        <SectionHeader title="Buyer Personas" subtitle="Perfiles completos de tu cliente ideal." />
         <AvatarsSection
           visuals={settings.visuals ?? {}}
           onEdit={(item) => openEdit("avatars", item)}

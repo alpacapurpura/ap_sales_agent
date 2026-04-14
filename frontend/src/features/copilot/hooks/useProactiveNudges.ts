@@ -60,9 +60,7 @@ export function useProactiveNudges() {
 
         const data = await res.json();
         const dismissed = getDismissed();
-        const filtered = (data.nudges || []).filter(
-          (n: Nudge) => !dismissed.has(n.id),
-        );
+        const filtered = (data.nudges || []).filter((n: Nudge) => !dismissed.has(n.id));
         if (!cancelled) setNudges(filtered);
       } catch {
         // Nudges are best-effort
@@ -70,7 +68,9 @@ export function useProactiveNudges() {
     }
 
     fetchNudges();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [currentRoute, getToken]);
 
   const dismissNudge = useCallback((id: string) => {

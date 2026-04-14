@@ -8,9 +8,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 const mockUseLandingStatus = vi.fn();
 
 vi.mock("../../../hooks/use-landing-status", async () => {
-  const actual = await vi.importActual<
-    typeof import("../../../hooks/use-landing-status")
-  >("../../../hooks/use-landing-status");
+  const actual = await vi.importActual<typeof import("../../../hooks/use-landing-status")>(
+    "../../../hooks/use-landing-status",
+  );
   return {
     ...actual,
     useLandingStatus: (...args: unknown[]) => mockUseLandingStatus(...args),
@@ -71,9 +71,7 @@ describe("LandingActionButton", () => {
   it("renders 'Generar landing con IA' when state is 'ready-to-generate'", () => {
     mockStatus("ready-to-generate", { completion_percentage: 95 });
     renderWithTooltip(<LandingActionButton offerId="offer-1" tenantId="acme" />);
-    expect(
-      screen.getByRole("button", { name: /Generar landing con IA/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Generar landing con IA/i })).toBeInTheDocument();
   });
 
   it("renders 'Abrir landing' when state is 'in-sync'", () => {
@@ -84,9 +82,7 @@ describe("LandingActionButton", () => {
       completion_percentage: 100,
     });
     renderWithTooltip(<LandingActionButton offerId="offer-1" tenantId="acme" />);
-    expect(
-      screen.getByRole("button", { name: /Abrir landing/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Abrir landing/i })).toBeInTheDocument();
   });
 
   it("renders 'Abrir landing' with outdated indicator when state is 'outdated'", () => {
@@ -97,9 +93,7 @@ describe("LandingActionButton", () => {
       completion_percentage: 100,
     });
     renderWithTooltip(<LandingActionButton offerId="offer-1" tenantId="acme" />);
-    expect(
-      screen.getByRole("button", { name: /Abrir landing/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Abrir landing/i })).toBeInTheDocument();
     // Outdated shows a warning indicator
     expect(screen.getByTestId("landing-outdated-dot")).toBeInTheDocument();
   });

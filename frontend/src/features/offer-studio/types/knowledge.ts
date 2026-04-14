@@ -1,8 +1,5 @@
 // Knowledge source types — CONTRACT.md §6.6
-import type {
-  KnowledgeSourceStatus,
-  KnowledgeSourceType,
-} from "./enums";
+import type { KnowledgeSourceStatus, KnowledgeSourceType } from "./enums";
 
 export interface KnowledgeListQuery {
   search?: string;

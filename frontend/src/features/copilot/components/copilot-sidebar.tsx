@@ -100,9 +100,7 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
             {isExpanded && (
               <MobileViewToggle
                 view={mobileView}
-                onToggle={() =>
-                  setMobileView((v) => (v === "chat" ? "preview" : "chat"))
-                }
+                onToggle={() => setMobileView((v) => (v === "chat" ? "preview" : "chat"))}
               />
             )}
 

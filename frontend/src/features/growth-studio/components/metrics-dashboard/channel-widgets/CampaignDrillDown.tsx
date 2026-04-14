@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import type { CampaignMetric, MetricValue } from '../../../types/metrics';
-import { METRIC_LABELS } from '../../../lib/metric-labels';
-import { formatMoney } from '@/lib/format-money';
-import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import type { CampaignMetric, MetricValue } from "../../../types/metrics";
+import { METRIC_LABELS } from "../../../lib/metric-labels";
+import { formatMoney } from "@/lib/format-money";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 // Format helpers (inline to avoid cross-file dependency)
 function formatNumber(n: number): string {
@@ -16,8 +16,8 @@ function formatNumber(n: number): string {
 }
 
 function formatMetricValue(m: MetricValue, fallbackCurrency: string): string {
-  if (m.unit === 'currency') return formatMoney(m.value, m.currency || fallbackCurrency);
-  if (m.unit === 'percentage') return `${m.value.toFixed(1)}%`;
+  if (m.unit === "currency") return formatMoney(m.value, m.currency || fallbackCurrency);
+  if (m.unit === "percentage") return `${m.value.toFixed(1)}%`;
   return formatNumber(m.value);
 }
 
@@ -32,11 +32,7 @@ export function CampaignDrillDown({ campaigns, children }: CampaignDrillDownProp
 
   if (campaigns.length === 0) {
     // No campaign data yet -- render the row content normally
-    return (
-      <div className="relative">
-        {children}
-      </div>
-    );
+    return <div className="relative">{children}</div>;
   }
 
   return (
@@ -46,7 +42,7 @@ export function CampaignDrillDown({ campaigns, children }: CampaignDrillDownProp
           <div className="flex items-center">
             <div className="flex-1">{children}</div>
             <ChevronDown
-              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 mr-3 ${open ? 'rotate-180' : ''}`}
+              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 mr-3 ${open ? "rotate-180" : ""}`}
             />
           </div>
         </div>

@@ -11,7 +11,7 @@ export function snakeToCamel(s: string): string {
 }
 
 export function camelToSnake(s: string): string {
-  return s.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+  return s.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
 /**
@@ -20,9 +20,9 @@ export function camelToSnake(s: string): string {
  */
 export function camelizeKeys<T>(obj: unknown): T {
   if (Array.isArray(obj)) {
-    return obj.map(item => camelizeKeys<unknown>(item)) as T;
+    return obj.map((item) => camelizeKeys<unknown>(item)) as T;
   }
-  if (obj !== null && typeof obj === 'object') {
+  if (obj !== null && typeof obj === "object") {
     const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
       result[snakeToCamel(key)] = camelizeKeys(value);
@@ -38,9 +38,9 @@ export function camelizeKeys<T>(obj: unknown): T {
  */
 export function snakeifyKeys<T>(obj: unknown): T {
   if (Array.isArray(obj)) {
-    return obj.map(item => snakeifyKeys<unknown>(item)) as T;
+    return obj.map((item) => snakeifyKeys<unknown>(item)) as T;
   }
-  if (obj !== null && typeof obj === 'object') {
+  if (obj !== null && typeof obj === "object") {
     const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
       result[camelToSnake(key)] = snakeifyKeys(value);

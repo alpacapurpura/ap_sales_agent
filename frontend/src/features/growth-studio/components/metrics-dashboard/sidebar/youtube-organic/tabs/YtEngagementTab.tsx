@@ -1,21 +1,14 @@
-'use client';
+"use client";
 
-import { Loader2 } from 'lucide-react';
-import {
-  Line,
-  LineChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip as RechartsTooltip,
-} from 'recharts';
+import { Loader2 } from "lucide-react";
+import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from "recharts";
 
-import { ChartContainer } from '@/components/ui/chart';
-import { BenchmarkBadge } from '../../../channel-widgets/BenchmarkBadge';
-import { MetricInfoCard } from '../../../channel-widgets/KpiTooltip';
-import { ChartInfoTooltip } from '../../ig-organic/ChartInfoTooltip';
-import { ChartSection } from '../../shared/ChartSection';
-import type { ChannelDashboardData } from '../../../../../types/metrics';
+import { ChartContainer } from "@/components/ui/chart";
+import { BenchmarkBadge } from "../../../channel-widgets/BenchmarkBadge";
+import { MetricInfoCard } from "../../../channel-widgets/KpiTooltip";
+import { ChartInfoTooltip } from "../../ig-organic/ChartInfoTooltip";
+import { ChartSection } from "../../shared/ChartSection";
+import type { ChannelDashboardData } from "../../../../../types/metrics";
 
 interface YtEngagementTabProps {
   data: ChannelDashboardData | undefined;
@@ -39,8 +32,10 @@ export function YtEngagementTab({ data, isLoading }: YtEngagementTabProps) {
     );
   }
 
-  const engagementMetrics = ['comments', 'shares', 'engagement'];
-  const engagementSeries = data.timeSeries.filter(ts => engagementMetrics.includes(ts.metricName));
+  const engagementMetrics = ["comments", "shares", "engagement"];
+  const engagementSeries = data.timeSeries.filter((ts) =>
+    engagementMetrics.includes(ts.metricName),
+  );
 
   // Merge all engagement metrics by date
   const dateMap = new Map<string, Record<string, string | number>>();
@@ -55,8 +50,8 @@ export function YtEngagementTab({ data, isLoading }: YtEngagementTabProps) {
   const chartData = Array.from(dateMap.values());
 
   // Card/End screen CTR KPIs
-  const cardCtrKpi = data.kpis.find(k => k.metricName === 'card_click_rate');
-  const endScreenCtrKpi = data.kpis.find(k => k.metricName === 'end_screen_click_rate');
+  const cardCtrKpi = data.kpis.find((k) => k.metricName === "card_click_rate");
+  const endScreenCtrKpi = data.kpis.find((k) => k.metricName === "end_screen_click_rate");
 
   return (
     <div className="space-y-8">
@@ -112,9 +107,9 @@ export function YtEngagementTab({ data, isLoading }: YtEngagementTabProps) {
             />
             <ChartContainer
               config={{
-                comments: { label: 'Comentarios', color: 'hsl(var(--chart-1))' },
-                shares: { label: 'Compartidos', color: 'hsl(var(--chart-2))' },
-                engagement: { label: 'Engagement Total', color: 'hsl(var(--chart-3))' },
+                comments: { label: "Comentarios", color: "hsl(var(--chart-1))" },
+                shares: { label: "Compartidos", color: "hsl(var(--chart-2))" },
+                engagement: { label: "Engagement Total", color: "hsl(var(--chart-3))" },
               }}
               className="h-[250px] w-full"
             >
@@ -123,9 +118,27 @@ export function YtEngagementTab({ data, isLoading }: YtEngagementTabProps) {
                 <XAxis dataKey="date" className="text-xs" />
                 <YAxis className="text-xs" />
                 <RechartsTooltip />
-                <Line type="monotone" dataKey="comments" stroke="var(--color-comments)" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="shares" stroke="var(--color-shares)" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="engagement" stroke="var(--color-engagement)" strokeWidth={2} dot={false} />
+                <Line
+                  type="monotone"
+                  dataKey="comments"
+                  stroke="var(--color-comments)"
+                  strokeWidth={2}
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="shares"
+                  stroke="var(--color-shares)"
+                  strokeWidth={2}
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="engagement"
+                  stroke="var(--color-engagement)"
+                  strokeWidth={2}
+                  dot={false}
+                />
               </LineChart>
             </ChartContainer>
           </div>

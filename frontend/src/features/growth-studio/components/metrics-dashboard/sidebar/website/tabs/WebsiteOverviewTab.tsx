@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { Loader2 } from 'lucide-react';
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts';
+import { Loader2 } from "lucide-react";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from "recharts";
 
-import { ChartContainer } from '@/components/ui/chart';
-import { HeroKpiGrid } from '../../shared/HeroKpiGrid';
-import { MetaAdsMiniFunnel } from '../../meta-ads/MetaAdsMiniFunnel';
-import { ChartInfoTooltip } from '../../shared/ChartInfoTooltip';
-import { ChartSection } from '../../shared/ChartSection';
-import type { WebsiteData } from '../types';
+import { ChartContainer } from "@/components/ui/chart";
+import { HeroKpiGrid } from "../../shared/HeroKpiGrid";
+import { MetaAdsMiniFunnel } from "../../meta-ads/MetaAdsMiniFunnel";
+import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
+import { ChartSection } from "../../shared/ChartSection";
+import type { WebsiteData } from "../types";
 
-const HERO_METRICS = ['sessions', 'engagementRate', 'conversions'] as const;
+const HERO_METRICS = ["sessions", "engagementRate", "conversions"] as const;
 
 interface WebsiteOverviewTabProps {
   data: WebsiteData | undefined;
@@ -34,9 +34,9 @@ export function WebsiteOverviewTab({ data, isLoading }: WebsiteOverviewTabProps)
     );
   }
 
-  const sessionsSeries = data.timeSeries.find(ts => ts.metricName === 'sessions');
+  const sessionsSeries = data.timeSeries.find((ts) => ts.metricName === "sessions");
   const chartData =
-    sessionsSeries?.dataPoints.map(p => ({
+    sessionsSeries?.dataPoints.map((p) => ({
       date: p.date.slice(5),
       sessions: p.value,
     })) ?? [];
@@ -61,7 +61,7 @@ export function WebsiteOverviewTab({ data, isLoading }: WebsiteOverviewTabProps)
             />
             <ChartContainer
               config={{
-                sessions: { label: 'Sesiones', color: 'hsl(var(--chart-1))' },
+                sessions: { label: "Sesiones", color: "hsl(var(--chart-1))" },
               }}
               className="h-[250px] w-full"
             >

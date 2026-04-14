@@ -17,12 +17,17 @@ interface AvatarFormProps {
   embedded?: boolean;
 }
 
-export function AvatarForm({ initialData, onSubmit, isSubmitting = false, embedded = false }: AvatarFormProps) {
+export function AvatarForm({
+  initialData,
+  onSubmit,
+  isSubmitting = false,
+  embedded = false,
+}: AvatarFormProps) {
   const [formData, setFormData] = useState<CreateAvatarDTO>({
     name: initialData?.name || "",
     icp_description: initialData?.icp_description || "",
     anti_avatar: initialData?.anti_avatar || "",
-    scope: initialData?.scope || "GLOBAL"
+    scope: initialData?.scope || "GLOBAL",
   });
 
   const handleChange = (field: keyof CreateAvatarDTO, value: string) => {
@@ -38,7 +43,11 @@ export function AvatarForm({ initialData, onSubmit, isSubmitting = false, embedd
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">Nombre del Avatar</Label>
-        <WithCopilot fieldId="avatar_name" fieldLabel="Nombre del Avatar" getValue={() => formData.name || ""}>
+        <WithCopilot
+          fieldId="avatar_name"
+          fieldLabel="Nombre del Avatar"
+          getValue={() => formData.name || ""}
+        >
           <Input
             id="name"
             placeholder="Ej: Emprendedores Tech"
@@ -51,7 +60,11 @@ export function AvatarForm({ initialData, onSubmit, isSubmitting = false, embedd
 
       <div className="space-y-2">
         <Label htmlFor="icp">Descripción del Cliente Ideal (ICP)</Label>
-        <WithCopilot fieldId="icp_description" fieldLabel="Descripción del ICP" getValue={() => formData.icp_description || ""}>
+        <WithCopilot
+          fieldId="icp_description"
+          fieldLabel="Descripción del ICP"
+          getValue={() => formData.icp_description || ""}
+        >
           <Textarea
             id="icp"
             placeholder="Describe al cliente perfecto: demografía, dolores, deseos..."
@@ -64,7 +77,11 @@ export function AvatarForm({ initialData, onSubmit, isSubmitting = false, embedd
 
       <div className="space-y-2">
         <Label htmlFor="anti_avatar">Anti-Avatar</Label>
-        <WithCopilot fieldId="anti_avatar" fieldLabel="Anti-Avatar" getValue={() => formData.anti_avatar || ""}>
+        <WithCopilot
+          fieldId="anti_avatar"
+          fieldLabel="Anti-Avatar"
+          getValue={() => formData.anti_avatar || ""}
+        >
           <Textarea
             id="anti_avatar"
             placeholder="¿A quién NO queremos venderle?"
@@ -78,7 +95,11 @@ export function AvatarForm({ initialData, onSubmit, isSubmitting = false, embedd
 
   const SubmitButton = (
     <Button type="submit" disabled={isSubmitting || !formData.name}>
-      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+      {isSubmitting ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <Save className="mr-2 h-4 w-4" />
+      )}
       Guardar Avatar
     </Button>
   );
@@ -87,9 +108,7 @@ export function AvatarForm({ initialData, onSubmit, isSubmitting = false, embedd
     return (
       <form onSubmit={handleSubmit} className="space-y-6">
         {FormFields}
-        <div className="flex justify-end pt-2">
-          {SubmitButton}
-        </div>
+        <div className="flex justify-end pt-2">{SubmitButton}</div>
       </form>
     );
   }
@@ -100,12 +119,8 @@ export function AvatarForm({ initialData, onSubmit, isSubmitting = false, embedd
         <CardHeader>
           <CardTitle>Configuración del Avatar</CardTitle>
         </CardHeader>
-        <CardContent>
-          {FormFields}
-        </CardContent>
-        <CardFooter className="flex justify-end">
-          {SubmitButton}
-        </CardFooter>
+        <CardContent>{FormFields}</CardContent>
+        <CardFooter className="flex justify-end">{SubmitButton}</CardFooter>
       </Card>
     </form>
   );

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -10,8 +10,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import type { CandidatoData } from '../../../types/metrics';
+} from "@/components/ui/dialog";
+import type { CandidatoData } from "../../../types/metrics";
 
 interface Props {
   candidatos: CandidatoData[];
@@ -39,7 +39,7 @@ export function CandidatosBanner({ candidatos, onPromote, isPromoting }: Props) 
           </div>
         </div>
         <p className="text-xs text-muted-foreground">
-          Clientes con NPS {'>'}= 9 sin codigo de referido
+          Clientes con NPS {">"}= 9 sin codigo de referido
         </p>
 
         {/* Candidate rows */}
@@ -75,13 +75,18 @@ export function CandidatosBanner({ candidatos, onPromote, isPromoting }: Props) 
       </div>
 
       {/* Confirmation Dialog */}
-      <Dialog open={confirmId !== null} onOpenChange={(open) => { if (!open) setConfirmId(null); }}>
+      <Dialog
+        open={confirmId !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmId(null);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Promover a Evangelista</DialogTitle>
             <DialogDescription>
-              Se creara un codigo de referido unico para{' '}
-              {selectedCandidate?.fullName ?? 'este cliente'}. Podras compartirlo con el para que
+              Se creara un codigo de referido unico para{" "}
+              {selectedCandidate?.fullName ?? "este cliente"}. Podras compartirlo con el para que
               recomiende tu negocio.
             </DialogDescription>
           </DialogHeader>
@@ -98,7 +103,7 @@ export function CandidatosBanner({ candidatos, onPromote, isPromoting }: Props) 
                 }
               }}
             >
-              {isPromoting ? 'Procesando...' : 'Confirmar'}
+              {isPromoting ? "Procesando..." : "Confirmar"}
             </Button>
           </DialogFooter>
         </DialogContent>

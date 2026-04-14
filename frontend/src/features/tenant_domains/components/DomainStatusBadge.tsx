@@ -30,10 +30,7 @@ interface DomainStatusBadgeProps {
 export function DomainStatusBadge({ status, className }: DomainStatusBadgeProps) {
   const cfg = STATUS_CONFIG[status];
   return (
-    <Badge
-      variant={cfg.variant}
-      className={cn(cfg.className, className)}
-    >
+    <Badge variant={cfg.variant} className={cn(cfg.className, className)}>
       {cfg.label}
     </Badge>
   );

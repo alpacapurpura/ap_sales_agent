@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { ExternalLink, Sparkles } from 'lucide-react';
+import { ExternalLink, Sparkles } from "lucide-react";
 
 import {
   DetailPanel,
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
-} from '@/components/ui/detail-panel';
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
-import { diagnoseStep } from '../../../../../utils/automation-health';
+} from "@/components/ui/detail-panel";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { diagnoseStep } from "../../../../../utils/automation-health";
 import {
   AUTOMATION_METRIC_INFO,
   type MetricInfo,
-} from '../../../../../utils/automation-metric-info';
-import type { AutomationStep } from '../../../../../types/mail-types';
-import { MetricInfoTooltip } from './MetricInfoTooltip';
+} from "../../../../../utils/automation-metric-info";
+import type { AutomationStep } from "../../../../../types/mail-types";
+import { MetricInfoTooltip } from "./MetricInfoTooltip";
 
 interface AutomationStepSidebarProps {
   step: AutomationStep | null;
@@ -57,7 +57,7 @@ export function AutomationStepSidebar({
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <DetailPanelTitle className="truncate">
-                  {step.subject || '(sin asunto)'}
+                  {step.subject || "(sin asunto)"}
                 </DetailPanelTitle>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Email {step.stepNumber} de {totalSteps} · {automationName}
@@ -92,8 +92,7 @@ export function AutomationStepSidebar({
 // ─── Sections ───────────────────────────────────────────────────────
 
 function MetricsSection({ step }: { step: AutomationStep }) {
-  const ctor =
-    step.uniqueOpens > 0 ? (step.uniqueClicks / step.uniqueOpens) * 100 : 0;
+  const ctor = step.uniqueOpens > 0 ? (step.uniqueClicks / step.uniqueOpens) * 100 : 0;
 
   const openClass = colorForRate(step.openRate, 50, 30);
   const clickClass = colorForRate(step.clickRate, 5, 2);
@@ -144,57 +143,54 @@ function MetricsSection({ step }: { step: AutomationStep }) {
 }
 
 function BenchmarksSection({ step }: { step: AutomationStep }) {
-  const ctor =
-    step.uniqueOpens > 0 ? (step.uniqueClicks / step.uniqueOpens) * 100 : 0;
-  const unsubRate =
-    step.emailsSent > 0 ? (step.unsubscribes / step.emailsSent) * 100 : 0;
-  const bounceRate =
-    step.emailsSent > 0 ? (step.bounces / step.emailsSent) * 100 : 0;
+  const ctor = step.uniqueOpens > 0 ? (step.uniqueClicks / step.uniqueOpens) * 100 : 0;
+  const unsubRate = step.emailsSent > 0 ? (step.unsubscribes / step.emailsSent) * 100 : 0;
+  const bounceRate = step.emailsSent > 0 ? (step.bounces / step.emailsSent) * 100 : 0;
 
   const bouncesInfo: MetricInfo = {
-    title: 'Rebotes',
+    title: "Rebotes",
     description:
-      'Promedio industria: 0.58%. Rebotes altos = lista desactualizada o emails inválidos. Afecta la reputación del dominio.',
+      "Promedio industria: 0.58%. Rebotes altos = lista desactualizada o emails inválidos. Afecta la reputación del dominio.",
   };
 
   const rows = [
     {
-      label: 'Open Rate',
+      label: "Open Rate",
       value: step.openRate,
       benchmark: BENCHMARKS.openRate,
-      suffix: '%',
+      suffix: "%",
       higherBetter: true,
       info: AUTOMATION_METRIC_INFO.openRate,
     },
     {
-      label: 'Click Rate',
+      label: "Click Rate",
       value: step.clickRate,
       benchmark: BENCHMARKS.clickRate,
-      suffix: '%',
+      suffix: "%",
       higherBetter: true,
       info: AUTOMATION_METRIC_INFO.clickRate,
     },
     {
-      label: 'CTOR',
+      label: "CTOR",
       value: ctor,
       benchmark: BENCHMARKS.ctor,
-      suffix: '%',
+      suffix: "%",
       higherBetter: true,
       info: AUTOMATION_METRIC_INFO.ctor,
     },
     {
-      label: 'Desuscripciones',
+      label: "Desuscripciones",
       value: unsubRate,
       benchmark: BENCHMARKS.unsubRate,
-      suffix: '%',
+      suffix: "%",
       higherBetter: false,
       info: AUTOMATION_METRIC_INFO.unsubs,
     },
     {
-      label: 'Rebotes',
+      label: "Rebotes",
       value: bounceRate,
       benchmark: BENCHMARKS.bounceRate,
-      suffix: '%',
+      suffix: "%",
       higherBetter: false,
       info: bouncesInfo,
     },
@@ -221,12 +217,12 @@ function BenchmarksSection({ step }: { step: AutomationStep }) {
               </span>
               <span
                 className={cn(
-                  'font-semibold tabular-nums',
-                  isBetter ? 'text-emerald-500' : 'text-amber-500',
+                  "font-semibold tabular-nums",
+                  isBetter ? "text-emerald-500" : "text-amber-500",
                 )}
               >
                 {row.value.toFixed(1)}
-                {row.suffix}{' '}
+                {row.suffix}{" "}
                 <span className="text-[10px] font-normal text-muted-foreground">
                   vs {row.benchmark}
                   {row.suffix}
@@ -251,7 +247,7 @@ function PreviewSection({ step }: { step: AutomationStep }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={step.screenshotUrl}
-            alt={`Vista previa de ${step.subject ?? 'email'}`}
+            alt={`Vista previa de ${step.subject ?? "email"}`}
             className="w-full object-cover max-h-[320px]"
           />
         ) : (
@@ -261,7 +257,7 @@ function PreviewSection({ step }: { step: AutomationStep }) {
         )}
         <div className="flex items-center justify-between border-t px-3 py-2">
           <a
-            href={step.previewUrl ?? '#'}
+            href={step.previewUrl ?? "#"}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 text-[11px] text-primary hover:underline"
@@ -298,10 +294,7 @@ function DiagnosisSection({
         {hasIssues ? (
           <ul className="space-y-1.5">
             {insights.map((insight, i) => (
-              <li
-                key={i}
-                className="pl-4 text-xs text-muted-foreground leading-relaxed relative"
-              >
+              <li key={i} className="pl-4 text-xs text-muted-foreground leading-relaxed relative">
                 <span className="absolute left-0 text-primary">→</span>
                 {insight}
               </li>
@@ -309,8 +302,8 @@ function DiagnosisSection({
           </ul>
         ) : (
           <p className="text-xs text-muted-foreground">
-            Este email tiene performance saludable. Considera replicar su
-            estructura (subject, tono, CTA) en otros emails de la secuencia.
+            Este email tiene performance saludable. Considera replicar su estructura (subject, tono,
+            CTA) en otros emails de la secuencia.
           </p>
         )}
       </div>
@@ -318,25 +311,16 @@ function DiagnosisSection({
   );
 }
 
-function DetailsSection({
-  step,
-  totalSteps,
-}: {
-  step: AutomationStep;
-  totalSteps: number;
-}) {
+function DetailsSection({ step, totalSteps }: { step: AutomationStep; totalSteps: number }) {
   return (
     <section>
       <h4 className="mb-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         Detalles del email
       </h4>
       <div className="rounded-lg border bg-card p-3.5 space-y-2">
-        <DetailRow label="Subject" value={step.subject ?? '—'} />
-        <DetailRow label="De" value={step.fromName ?? '—'} />
-        <DetailRow
-          label="Posición"
-          value={`${step.stepNumber} de ${totalSteps}`}
-        />
+        <DetailRow label="Subject" value={step.subject ?? "—"} />
+        <DetailRow label="De" value={step.fromName ?? "—"} />
+        <DetailRow label="Posición" value={`${step.stepNumber} de ${totalSteps}`} />
       </div>
     </section>
   );
@@ -357,9 +341,7 @@ function MetricBox({
 }) {
   return (
     <div className="rounded-lg border bg-card px-3 py-2.5 text-center">
-      <p className={cn('text-lg font-bold tabular-nums', valueClass)}>
-        {value}
-      </p>
+      <p className={cn("text-lg font-bold tabular-nums", valueClass)}>{value}</p>
       <div className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
         {label}
         <MetricInfoTooltip info={info} iconSize="xs" />
@@ -372,19 +354,13 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between text-xs border-b border-border/30 pb-2 last:border-0 last:pb-0">
       <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-foreground truncate max-w-[60%] text-right">
-        {value}
-      </span>
+      <span className="font-medium text-foreground truncate max-w-[60%] text-right">{value}</span>
     </div>
   );
 }
 
-function colorForRate(
-  value: number,
-  goodThreshold: number,
-  midThreshold: number,
-) {
-  if (value >= goodThreshold) return 'text-emerald-500';
-  if (value >= midThreshold) return 'text-amber-500';
-  return 'text-red-500';
+function colorForRate(value: number, goodThreshold: number, midThreshold: number) {
+  if (value >= goodThreshold) return "text-emerald-500";
+  if (value >= midThreshold) return "text-amber-500";
+  return "text-red-500";
 }

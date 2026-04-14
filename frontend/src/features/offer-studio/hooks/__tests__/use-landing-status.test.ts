@@ -32,10 +32,7 @@ vi.mock("sonner", () => ({
 
 // ── Imports after mocks ──────────────────────────────────────────────────────
 
-import {
-  deriveLandingUiState,
-  useLandingStatus,
-} from "../use-landing-status";
+import { deriveLandingUiState, useLandingStatus } from "../use-landing-status";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -47,11 +44,7 @@ function createWrapper() {
     },
   });
   function Wrapper({ children }: { children: React.ReactNode }) {
-    return React.createElement(
-      QueryClientProvider,
-      { client: queryClient },
-      children,
-    );
+    return React.createElement(QueryClientProvider, { client: queryClient }, children);
   }
   return Wrapper;
 }
@@ -76,15 +69,13 @@ const baseStatus: LandingStatusResponse = {
 
 describe("deriveLandingUiState", () => {
   it("returns 'disabled' when completion < 90 and not generated", () => {
-    expect(
-      deriveLandingUiState({ ...baseStatus, completion_percentage: 50 }),
-    ).toBe("disabled");
+    expect(deriveLandingUiState({ ...baseStatus, completion_percentage: 50 })).toBe("disabled");
   });
 
   it("returns 'ready-to-generate' when completion >= 90 and not generated", () => {
-    expect(
-      deriveLandingUiState({ ...baseStatus, completion_percentage: 95 }),
-    ).toBe("ready-to-generate");
+    expect(deriveLandingUiState({ ...baseStatus, completion_percentage: 95 })).toBe(
+      "ready-to-generate",
+    );
   });
 
   it("returns 'in-sync' when generated and not outdated", () => {
@@ -110,9 +101,9 @@ describe("deriveLandingUiState", () => {
   });
 
   it("treats completion_percentage exactly 90 as ready-to-generate", () => {
-    expect(
-      deriveLandingUiState({ ...baseStatus, completion_percentage: 90 }),
-    ).toBe("ready-to-generate");
+    expect(deriveLandingUiState({ ...baseStatus, completion_percentage: 90 })).toBe(
+      "ready-to-generate",
+    );
   });
 });
 

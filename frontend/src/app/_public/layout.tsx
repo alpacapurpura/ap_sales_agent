@@ -11,24 +11,16 @@ function sanitizeTrackingId(value: string): string {
   return value.replace(/[^a-zA-Z0-9\-_.:/]/g, "");
 }
 
-export default async function PublicSiteLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function PublicSiteLayout({ children }: { children: React.ReactNode }) {
   const headersList = await headers();
   const tenantId = headersList.get("X-Tenant-ID") ?? "";
   const tracking = tenantId ? await getTrackingConfig(tenantId) : null;
 
-  const gtmId = tracking?.gtm_container_id
-    ? sanitizeTrackingId(tracking.gtm_container_id)
-    : null;
+  const gtmId = tracking?.gtm_container_id ? sanitizeTrackingId(tracking.gtm_container_id) : null;
   const gtmServerUrl = tracking?.gtm_server_url
     ? sanitizeTrackingId(tracking.gtm_server_url)
     : null;
-  const pixelId = tracking?.meta_pixel_id
-    ? sanitizeTrackingId(tracking.meta_pixel_id)
-    : null;
+  const pixelId = tracking?.meta_pixel_id ? sanitizeTrackingId(tracking.meta_pixel_id) : null;
   const gaMeasurementId = tracking?.ga_measurement_id
     ? sanitizeTrackingId(tracking.ga_measurement_id)
     : null;

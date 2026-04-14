@@ -1,12 +1,7 @@
 import { OfferValueLevel } from "@/features/offer-studio/types";
 import { cn } from "@/lib/utils";
 import { Lightbulb, Zap, Users, Trophy, Building2 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface LadderProgressBarProps {
   filledGroups: Set<OfferValueLevel>;
@@ -83,7 +78,7 @@ const STEPS = [
 ];
 
 export function LadderProgressBar({ filledGroups, score, percentage }: LadderProgressBarProps) {
-  const filledCount = STEPS.filter(s => filledGroups.has(s.level)).length;
+  const filledCount = STEPS.filter((s) => filledGroups.has(s.level)).length;
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -109,14 +104,14 @@ export function LadderProgressBar({ filledGroups, score, percentage }: LadderPro
                       roundedRight,
                       filled
                         ? cn(step.filledBg, step.filledBorder)
-                        : "bg-muted/30 border-dashed border-muted-foreground/15 dark:bg-muted/10"
+                        : "bg-muted/30 border-dashed border-muted-foreground/15 dark:bg-muted/10",
                     )}
                   >
                     {/* Status dot — tiny indicator */}
                     <div
                       className={cn(
                         "h-1.5 w-1.5 rounded-full shrink-0 transition-colors duration-300",
-                        filled ? step.filledDot : "bg-muted-foreground/20"
+                        filled ? step.filledDot : "bg-muted-foreground/20",
                       )}
                     />
 
@@ -124,7 +119,7 @@ export function LadderProgressBar({ filledGroups, score, percentage }: LadderPro
                     <Icon
                       className={cn(
                         "h-3.5 w-3.5 shrink-0 transition-colors duration-300",
-                        filled ? step.filledIcon : "text-muted-foreground/40"
+                        filled ? step.filledIcon : "text-muted-foreground/40",
                       )}
                     />
 
@@ -132,7 +127,7 @@ export function LadderProgressBar({ filledGroups, score, percentage }: LadderPro
                     <span
                       className={cn(
                         "text-[11px] font-medium truncate hidden min-[900px]:inline transition-colors duration-300",
-                        filled ? step.filledText : "text-muted-foreground/40"
+                        filled ? step.filledText : "text-muted-foreground/40",
                       )}
                     >
                       {step.shortLabel}
@@ -163,14 +158,18 @@ export function LadderProgressBar({ filledGroups, score, percentage }: LadderPro
           <div className="relative h-9 w-9">
             <svg viewBox="0 0 36 36" className="h-9 w-9 -rotate-90">
               <circle
-                cx="18" cy="18" r="15"
+                cx="18"
+                cy="18"
+                r="15"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="3"
                 className="text-muted/60"
               />
               <circle
-                cx="18" cy="18" r="15"
+                cx="18"
+                cy="18"
+                r="15"
                 fill="none"
                 strokeWidth="3"
                 strokeLinecap="round"
@@ -181,7 +180,7 @@ export function LadderProgressBar({ filledGroups, score, percentage }: LadderPro
                     ? "text-emerald-500"
                     : percentage >= 40
                       ? "text-blue-500"
-                      : "text-amber-500"
+                      : "text-amber-500",
                 )}
               />
             </svg>

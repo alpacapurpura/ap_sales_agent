@@ -47,9 +47,20 @@ export function getCopilotHeaders(token: string): Record<string, string> {
     const pathSegments = window.location.pathname.split("/").filter(Boolean);
     if (pathSegments.length > 0) {
       const globals = [
-        "sign-in", "sign-up", "forbidden", "visit", "api", "p",
-        "onboarding", "settings", "admin", "dashboard", "_next",
-        "connections", "static", "favicon.ico",
+        "sign-in",
+        "sign-up",
+        "forbidden",
+        "visit",
+        "api",
+        "p",
+        "onboarding",
+        "settings",
+        "admin",
+        "dashboard",
+        "_next",
+        "connections",
+        "static",
+        "favicon.ico",
       ];
       if (!globals.includes(pathSegments[0])) {
         headers["X-Tenant-ID"] = pathSegments[0];

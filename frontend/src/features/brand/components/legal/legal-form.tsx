@@ -7,7 +7,15 @@ import * as z from "zod";
 import { BrandIdentity } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
@@ -53,8 +61,8 @@ export function LegalForm({ initialData, onSave, isSaving }: LegalFormProps) {
   function onSubmit(values: z.infer<typeof formSchema>) {
     // Merge with existing identity data to avoid data loss on other fields
     const finalData = {
-        ...initialData,
-        ...values
+      ...initialData,
+      ...values,
     };
     onSave(finalData);
   }
@@ -70,93 +78,92 @@ export function LegalForm({ initialData, onSave, isSaving }: LegalFormProps) {
       <CardContent className="px-0">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="legal_name"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Razón Social</FormLabel>
-                        <FormControl>
-                        <Input placeholder="Ej: Visionarias LLC" {...field} />
-                        </FormControl>
-                        <FormDescription>Nombre legal de la empresa.</FormDescription>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="tax_id"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Identificación Fiscal (RUC/NIT)</FormLabel>
-                        <FormControl>
-                        <Input placeholder="Ej: 20601234567" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
+              <FormField
+                control={form.control}
+                name="legal_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Razón Social</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ej: Visionarias LLC" {...field} />
+                    </FormControl>
+                    <FormDescription>Nombre legal de la empresa.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="tax_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Identificación Fiscal (RUC/NIT)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ej: 20601234567" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <FormField
-                control={form.control}
-                name="fiscal_address"
-                render={({ field }) => (
+              control={form.control}
+              name="fiscal_address"
+              render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Dirección Fiscal</FormLabel>
-                    <FormControl>
+                  <FormLabel>Dirección Fiscal</FormLabel>
+                  <FormControl>
                     <Input placeholder="Dirección registrada en sunat/hacienda" {...field} />
-                    </FormControl>
-                    <FormMessage />
+                  </FormControl>
+                  <FormMessage />
                 </FormItem>
-                )}
+              )}
             />
 
             <FormField
-                control={form.control}
-                name="legal_representative"
-                render={({ field }) => (
+              control={form.control}
+              name="legal_representative"
+              render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Representante Legal</FormLabel>
-                    <FormControl>
+                  <FormLabel>Representante Legal</FormLabel>
+                  <FormControl>
                     <Input placeholder="Nombre Completo" {...field} />
-                    </FormControl>
-                    <FormDescription>Persona con poderes de firma.</FormDescription>
-                    <FormMessage />
+                  </FormControl>
+                  <FormDescription>Persona con poderes de firma.</FormDescription>
+                  <FormMessage />
                 </FormItem>
-                )}
+              )}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="terms_url"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Link Términos y Condiciones</FormLabel>
-                        <FormControl>
-                        <Input placeholder="https://.../terminos" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="privacy_url"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Link Política de Privacidad</FormLabel>
-                        <FormControl>
-                        <Input placeholder="https://.../privacidad" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
+              <FormField
+                control={form.control}
+                name="terms_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Link Términos y Condiciones</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://.../terminos" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="privacy_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Link Política de Privacidad</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://.../privacidad" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <Button type="submit" disabled={isSaving} className="w-full">

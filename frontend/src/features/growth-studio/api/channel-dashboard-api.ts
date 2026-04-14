@@ -1,6 +1,6 @@
-import { fetchClient } from '@/lib/http-client';
-import { config } from '@/lib/config';
-import type { ChannelDashboardData, MetaAdsPeriod } from '../types/metrics';
+import { fetchClient } from "@/lib/http-client";
+import { config } from "@/lib/config";
+import type { ChannelDashboardData, MetaAdsPeriod } from "../types/metrics";
 
 const API_URL = config.api.baseUrl;
 
@@ -55,7 +55,7 @@ function mapResponse(raw: ChannelDashboardResponse): ChannelDashboardData {
     channelName: raw.channel_name,
     industryCategory: raw.industry_category,
     period: raw.period,
-    kpis: raw.kpis.map(k => ({
+    kpis: raw.kpis.map((k) => ({
       metricName: k.metric_name,
       displayName: k.display_name,
       currentValue: k.current_value,
@@ -67,25 +67,27 @@ function mapResponse(raw: ChannelDashboardResponse): ChannelDashboardData {
       higherIsBetter: k.higher_is_better,
       benchmark: k.benchmark,
     })),
-    timeSeries: raw.time_series.map(ts => ({
+    timeSeries: raw.time_series.map((ts) => ({
       metricName: ts.metric_name,
       displayName: ts.display_name,
       unit: ts.unit,
       dataPoints: ts.data_points,
     })),
     funnel: {
-      steps: raw.funnel.steps.map(s => ({
+      steps: raw.funnel.steps.map((s) => ({
         label: s.label,
         metricName: s.metric_name,
         value: s.value,
         conversionRate: s.conversion_rate_from_previous,
       })),
     },
-    frequencyAlert: raw.frequency_alert ? {
-      currentValue: raw.frequency_alert.current_value,
-      severity: raw.frequency_alert.severity as 'warning' | 'critical',
-      message: raw.frequency_alert.message,
-    } : null,
+    frequencyAlert: raw.frequency_alert
+      ? {
+          currentValue: raw.frequency_alert.current_value,
+          severity: raw.frequency_alert.severity as "warning" | "critical",
+          message: raw.frequency_alert.message,
+        }
+      : null,
     extraData: raw.extra_data ?? null,
   };
 }
@@ -93,7 +95,7 @@ function mapResponse(raw: ChannelDashboardResponse): ChannelDashboardData {
 export async function fetchChannelDashboard(
   token: string,
   channelSlug: string,
-  period: MetaAdsPeriod = '30d',
+  period: MetaAdsPeriod = "30d",
 ): Promise<ChannelDashboardData> {
   const url = `${API_URL}/api/v1/analytics/metrics/channel/${channelSlug}/dashboard?period=${period}`;
   const res = await fetchClient(url, {

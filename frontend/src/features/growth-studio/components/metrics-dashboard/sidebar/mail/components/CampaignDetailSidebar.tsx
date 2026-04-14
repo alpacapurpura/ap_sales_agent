@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { ExternalLink, Sparkles } from 'lucide-react';
+import { ExternalLink, Sparkles } from "lucide-react";
 
 import {
   DetailPanel,
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
-} from '@/components/ui/detail-panel';
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
-import { diagnoseCampaign } from '../../../../../utils/campaign-health';
+} from "@/components/ui/detail-panel";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { diagnoseCampaign } from "../../../../../utils/campaign-health";
 import {
   AUTOMATION_METRIC_INFO,
   type MetricInfo,
-} from '../../../../../utils/automation-metric-info';
-import type { EmailCampaign } from '../../../../../types/mail-types';
-import { MetricInfoTooltip } from './MetricInfoTooltip';
+} from "../../../../../utils/automation-metric-info";
+import type { EmailCampaign } from "../../../../../types/mail-types";
+import { MetricInfoTooltip } from "./MetricInfoTooltip";
 
 interface CampaignDetailSidebarProps {
   campaign: EmailCampaign | null;
@@ -37,10 +37,7 @@ const BENCHMARKS = {
  * Mirrors the automation step sidebar but without step context (no previous
  * step, no sequence position) and adds bounce rate diagnosis.
  */
-export function CampaignDetailSidebar({
-  campaign,
-  onClose,
-}: CampaignDetailSidebarProps) {
+export function CampaignDetailSidebar({ campaign, onClose }: CampaignDetailSidebarProps) {
   const isOpen = campaign !== null;
 
   return (
@@ -57,11 +54,11 @@ export function CampaignDetailSidebar({
                   {campaign.campaignName}
                   {campaign.sentDate && (
                     <>
-                      {' · '}
-                      {new Date(campaign.sentDate).toLocaleDateString('es', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
+                      {" · "}
+                      {new Date(campaign.sentDate).toLocaleDateString("es", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
                       })}
                     </>
                   )}
@@ -146,48 +143,46 @@ function MetricsSection({ campaign }: { campaign: EmailCampaign }) {
 
 function BenchmarksSection({ campaign }: { campaign: EmailCampaign }) {
   const unsubRate =
-    campaign.emailsSent > 0
-      ? (campaign.unsubscribes / campaign.emailsSent) * 100
-      : 0;
+    campaign.emailsSent > 0 ? (campaign.unsubscribes / campaign.emailsSent) * 100 : 0;
 
   const rows = [
     {
-      label: 'Open Rate',
+      label: "Open Rate",
       value: campaign.openRate,
       benchmark: BENCHMARKS.openRate,
-      suffix: '%',
+      suffix: "%",
       higherBetter: true,
       info: AUTOMATION_METRIC_INFO.openRate,
     },
     {
-      label: 'Click Rate',
+      label: "Click Rate",
       value: campaign.clickRate,
       benchmark: BENCHMARKS.clickRate,
-      suffix: '%',
+      suffix: "%",
       higherBetter: true,
       info: AUTOMATION_METRIC_INFO.clickRate,
     },
     {
-      label: 'CTOR',
+      label: "CTOR",
       value: campaign.clickToOpenRate,
       benchmark: BENCHMARKS.ctor,
-      suffix: '%',
+      suffix: "%",
       higherBetter: true,
       info: AUTOMATION_METRIC_INFO.ctor,
     },
     {
-      label: 'Desuscripciones',
+      label: "Desuscripciones",
       value: unsubRate,
       benchmark: BENCHMARKS.unsubRate,
-      suffix: '%',
+      suffix: "%",
       higherBetter: false,
       info: AUTOMATION_METRIC_INFO.unsubs,
     },
     {
-      label: 'Rebotes',
+      label: "Rebotes",
       value: campaign.bounceRate,
       benchmark: BENCHMARKS.bounceRate,
-      suffix: '%',
+      suffix: "%",
       higherBetter: false,
       info: AUTOMATION_METRIC_INFO.bounces,
     },
@@ -214,12 +209,12 @@ function BenchmarksSection({ campaign }: { campaign: EmailCampaign }) {
               </span>
               <span
                 className={cn(
-                  'font-semibold tabular-nums',
-                  isBetter ? 'text-emerald-500' : 'text-amber-500',
+                  "font-semibold tabular-nums",
+                  isBetter ? "text-emerald-500" : "text-amber-500",
                 )}
               >
                 {row.value.toFixed(1)}
-                {row.suffix}{' '}
+                {row.suffix}{" "}
                 <span className="text-[10px] font-normal text-muted-foreground">
                   vs {row.benchmark}
                   {row.suffix}
@@ -244,7 +239,7 @@ function PreviewSection({ campaign }: { campaign: EmailCampaign }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={campaign.screenshotUrl}
-            alt={`Vista previa de ${campaign.campaignSubject ?? 'email'}`}
+            alt={`Vista previa de ${campaign.campaignSubject ?? "email"}`}
             className="w-full object-cover max-h-[320px]"
           />
         ) : (
@@ -254,7 +249,7 @@ function PreviewSection({ campaign }: { campaign: EmailCampaign }) {
         )}
         <div className="flex items-center justify-between border-t px-3 py-2">
           <a
-            href={campaign.previewUrl ?? '#'}
+            href={campaign.previewUrl ?? "#"}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 text-[11px] text-primary hover:underline"
@@ -285,10 +280,7 @@ function DiagnosisSection({ campaign }: { campaign: EmailCampaign }) {
         {hasIssues ? (
           <ul className="space-y-1.5">
             {insights.map((insight, i) => (
-              <li
-                key={i}
-                className="pl-4 text-xs text-muted-foreground leading-relaxed relative"
-              >
+              <li key={i} className="pl-4 text-xs text-muted-foreground leading-relaxed relative">
                 <span className="absolute left-0 text-primary">→</span>
                 {insight}
               </li>
@@ -296,8 +288,8 @@ function DiagnosisSection({ campaign }: { campaign: EmailCampaign }) {
           </ul>
         ) : (
           <p className="text-xs text-muted-foreground">
-            Esta campaña tiene performance saludable. Considera replicar su
-            estructura (subject, tono, CTA) en futuras campañas.
+            Esta campaña tiene performance saludable. Considera replicar su estructura (subject,
+            tono, CTA) en futuras campañas.
           </p>
         )}
       </div>
@@ -312,16 +304,16 @@ function DetailsSection({ campaign }: { campaign: EmailCampaign }) {
         Detalles de la campaña
       </h4>
       <div className="rounded-lg border bg-card p-3.5 space-y-2">
-        <DetailRow label="Subject" value={campaign.campaignSubject ?? '—'} />
+        <DetailRow label="Subject" value={campaign.campaignSubject ?? "—"} />
         <DetailRow label="Nombre" value={campaign.campaignName} />
         <DetailRow label="Tipo" value={campaign.campaignType} />
         {campaign.sentDate && (
           <DetailRow
             label="Fecha de envío"
-            value={new Date(campaign.sentDate).toLocaleDateString('es', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
+            value={new Date(campaign.sentDate).toLocaleDateString("es", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
             })}
           />
         )}
@@ -345,9 +337,7 @@ function MetricBox({
 }) {
   return (
     <div className="rounded-lg border bg-card px-3 py-2.5 text-center">
-      <p className={cn('text-lg font-bold tabular-nums', valueClass)}>
-        {value}
-      </p>
+      <p className={cn("text-lg font-bold tabular-nums", valueClass)}>{value}</p>
       <div className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
         {label}
         <MetricInfoTooltip info={info} iconSize="xs" />
@@ -360,19 +350,13 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between text-xs border-b border-border/30 pb-2 last:border-0 last:pb-0">
       <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-foreground truncate max-w-[60%] text-right">
-        {value}
-      </span>
+      <span className="font-medium text-foreground truncate max-w-[60%] text-right">{value}</span>
     </div>
   );
 }
 
-function colorForRate(
-  value: number,
-  goodThreshold: number,
-  midThreshold: number,
-) {
-  if (value >= goodThreshold) return 'text-emerald-500';
-  if (value >= midThreshold) return 'text-amber-500';
-  return 'text-red-500';
+function colorForRate(value: number, goodThreshold: number, midThreshold: number) {
+  if (value >= goodThreshold) return "text-emerald-500";
+  if (value >= midThreshold) return "text-amber-500";
+  return "text-red-500";
 }

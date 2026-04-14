@@ -2,11 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
-import {
-  EventType,
-  eventTypesApi,
-  EventTypeUpdate
-} from "@/lib/api/event-types";
+import { EventType, eventTypesApi, EventTypeUpdate } from "@/lib/api/event-types";
 import { AvailabilitySchedule, availabilityApi } from "@/lib/api/availability";
 import { settingsApi } from "@/lib/api/settings";
 import { Button } from "@/components/ui/button";
@@ -18,7 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Settings2,
@@ -30,7 +26,7 @@ import {
   Trash2,
   Clock,
   Code,
-  Link as LinkIcon
+  Link as LinkIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -56,7 +52,7 @@ export function EventTypeView() {
       const [etData, avData, profile] = await Promise.all([
         eventTypesApi.listEventTypes(token),
         availabilityApi.listSchedules(token),
-        settingsApi.getProfile(token)
+        settingsApi.getProfile(token),
       ]);
 
       setEventTypes(etData);
@@ -107,7 +103,7 @@ export function EventTypeView() {
       const newEt = {
         ...rest,
         title: `${rest.title} (Copia)`,
-        slug: `${rest.slug}-copy`
+        slug: `${rest.slug}-copy`,
       };
       await eventTypesApi.createEventType(newEt, token);
       toast.success("Duplicado correctamente");
@@ -125,7 +121,7 @@ export function EventTypeView() {
 
   const handleToggleHidden = async (et: EventType, checked: boolean) => {
     // Optimistic update
-    const updated = eventTypes.map(e => e.id === et.id ? { ...e, is_hidden: !checked } : e);
+    const updated = eventTypes.map((e) => (e.id === et.id ? { ...e, is_hidden: !checked } : e));
     setEventTypes(updated);
 
     try {
@@ -165,11 +161,18 @@ export function EventTypeView() {
                       <Clock className="mr-1 h-3 w-3" />
                       {et.duration}m
                     </Badge>
-                    {et.is_hidden && <Badge variant="outline" className="text-muted-foreground">Oculto</Badge>}
+                    {et.is_hidden && (
+                      <Badge variant="outline" className="text-muted-foreground">
+                        Oculto
+                      </Badge>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 mt-4 sm:mt-0" onClick={(e) => e.stopPropagation()}>
+                <div
+                  className="flex items-center gap-2 mt-4 sm:mt-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="flex items-center gap-2 mr-2">
                     <span className="text-sm text-muted-foreground hidden sm:inline-block">
                       {et.is_hidden ? "Oculto" : "Visible"}
@@ -191,10 +194,20 @@ export function EventTypeView() {
                   </Button>
 
                   <div className="flex items-center border rounded-md bg-background">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-none border-r" onClick={() => window.open(`/book/${tenantSlug}/${et.slug}`, '_blank')}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-none border-r"
+                      onClick={() => window.open(`/book/${tenantSlug}/${et.slug}`, "_blank")}
+                    >
                       <ExternalLink className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-none border-r" onClick={() => handleCopyLink(et.slug)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-none border-r"
+                      onClick={() => handleCopyLink(et.slug)}
+                    >
                       <Copy className="h-4 w-4" />
                     </Button>
                     <DropdownMenu>
@@ -214,7 +227,10 @@ export function EventTypeView() {
                           <Code className="mr-2 h-4 w-4" /> Insertar
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDelete(et.id)}>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => handleDelete(et.id)}
+                        >
                           <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -232,7 +248,6 @@ export function EventTypeView() {
           )}
         </div>
       )}
-
       <EventTypeSidebar
         open={isSidebarOpen}
         onOpenChange={setIsSidebarOpen}
@@ -243,7 +258,6 @@ export function EventTypeView() {
           fetchData();
         }}
       />
-
       {selectedEventForLink && (
         <GenerateLinkModal
           open={!!selectedEventForLink}

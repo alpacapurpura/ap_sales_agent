@@ -10,7 +10,7 @@ import {
   AccessDuration,
   DeliverableFormat,
   PricingStructure,
-  AssetType
+  AssetType,
 } from "../types";
 import { OfferFormValues } from "../types/schema";
 
@@ -118,7 +118,7 @@ export interface BackendOffer {
 const normalizeEnum = <T extends string>(
   value: string | null | undefined,
   enumObj: Record<string, T>,
-  defaultValue: T
+  defaultValue: T,
 ): T => {
   if (!value) return defaultValue;
 
@@ -130,9 +130,7 @@ const normalizeEnum = <T extends string>(
 
   // 2. Case-insensitive match
   const stringValue = String(value).toUpperCase();
-  const match = enumValues.find(
-    (v) => String(v).toUpperCase() === stringValue
-  );
+  const match = enumValues.find((v) => String(v).toUpperCase() === stringValue);
 
   if (match) return match;
 
@@ -174,24 +172,24 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     format_hint: data.format_hint,
     is_lead_magnet: data.is_lead_magnet || false,
     shows_as_lead_magnet: data.shows_as_lead_magnet || false,
-    
+
     headline_promise: data.headline_promise,
     primary_outcome: data.primary_outcome,
     time_to_value: data.time_to_value,
-    
+
     pricing: (data.pricing_options || data.pricing || []).map((p: BackendPricing) => ({
-        label: p.label || "Standard",
-        total_amount: Number(p.total_amount) || 0,
-        plan_type: p.plan_type,
-        // Pass-through: let UI resolve fallback via useTenantLocale()
-        currency: p.currency || data.currency || undefined,
-        deposit_required: Number(p.deposit_required) || 0,
-        number_of_installments: Number(p.number_of_installments) || 1,
-        installment_amount: Number(p.installment_amount) || 0
+      label: p.label || "Standard",
+      total_amount: Number(p.total_amount) || 0,
+      plan_type: p.plan_type,
+      // Pass-through: let UI resolve fallback via useTenantLocale()
+      currency: p.currency || data.currency || undefined,
+      deposit_required: Number(p.deposit_required) || 0,
+      number_of_installments: Number(p.number_of_installments) || 1,
+      installment_amount: Number(p.installment_amount) || 0,
     })) as PricingStructure[],
     // Pass-through: let UI resolve fallback via useTenantLocale()
     currency: data.currency || undefined,
-    
+
     specific_details: data.specific_details || {},
     metadata_info: metadata,
     avatar_id: data.avatar_id,
@@ -199,43 +197,47 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     marketing_pain_points: data.marketing_pain_points || [],
     marketing_desires: data.marketing_desires || [],
     objections: (data.objections || []).map((o: BackendObjection) => ({
-        id: o.id,
-        type: o.type || "custom",
-        trigger_phrases: o.trigger_phrases || [],
-        strategy: o.strategy || "",
-        rebuttal: o.rebuttal || "",
+      id: o.id,
+      type: o.type || "custom",
+      trigger_phrases: o.trigger_phrases || [],
+      strategy: o.strategy || "",
+      rebuttal: o.rebuttal || "",
     })),
     deliverables: (data.deliverables || []).map((d: BackendDeliverable) => ({
-        name: d.name ?? "",
-        format: d.format || DeliverableFormat.VIDEO,
-        quantity: String(d.quantity || "1"),
-        value_stack_price: Number(d.value_stack_price) || 0
+      name: d.name ?? "",
+      format: d.format || DeliverableFormat.VIDEO,
+      quantity: String(d.quantity || "1"),
+      value_stack_price: Number(d.value_stack_price) || 0,
     })),
     target_avatar_match: data.target_avatar_match || [],
     prerequisites: data.prerequisites || [],
     includes_offers: data.includes_offers || [],
     assets: (data.assets || []).map((a: BackendAsset) => ({
-        id: a.id,
-        type: (a.type as AssetType) || AssetType.URL,
-        name: a.name ?? "",
-        url: a.url ?? "",
-        size: a.size,
-        trigger_context: a.trigger_context,
-        is_knowledge_base: a.is_knowledge_base,
+      id: a.id,
+      type: (a.type as AssetType) || AssetType.URL,
+      name: a.name ?? "",
+      url: a.url ?? "",
+      size: a.size,
+      trigger_context: a.trigger_context,
+      is_knowledge_base: a.is_knowledge_base,
     })),
 
     guarantee_type: (data.guarantee_type as GuaranteeType) || GuaranteeType.NONE,
     guarantee_terms: data.guarantee_terms,
-    
+
     // Prioridad: metadata -> campo directo
-    access_duration: ((metadata.access_duration as string | undefined) || data.access_duration) as AccessDuration,
-    access_duration_text: (metadata.access_duration_text as string | undefined) || data.access_duration_text,
-    support_duration_days: (metadata.support_duration_days as number | undefined) || data.support_duration_days,
-    
+    access_duration: ((metadata.access_duration as string | undefined) ||
+      data.access_duration) as AccessDuration,
+    access_duration_text:
+      (metadata.access_duration_text as string | undefined) || data.access_duration_text,
+    support_duration_days:
+      (metadata.support_duration_days as number | undefined) || data.support_duration_days,
+
     instructors: data.instructors || [],
-    
+
     // Prioridad: metadata -> campo directo
-    onboarding_action: ((metadata.onboarding_action as string | undefined) || data.onboarding_action) as OnboardingMechanism,
+    onboarding_action: ((metadata.onboarding_action as string | undefined) ||
+      data.onboarding_action) as OnboardingMechanism,
     onboarding_url: (metadata.onboarding_url as string | undefined) || data.onboarding_url,
     calendar_type_id: (metadata.calendar_type_id as string | undefined) || data.calendar_type_id,
     checkout_page_url: (metadata.checkout_page_url as string | undefined) || data.checkout_page_url,
@@ -252,35 +254,37 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
  * Útil para inicializar el formulario en DynamicOfferEditor.
  */
 export const offerToFormValues = (offer: Offer): OfferFormValues => {
-    return {
-        ...offer,
-        public_name: offer.name,
-        pricing_options: offer.pricing || [],
-        // Aseguramos que los campos opcionales no sean undefined si el schema lo requiere
-        // aunque OfferFormValues usa partials/optionals mayormente.
-    } as unknown as OfferFormValues;
+  return {
+    ...offer,
+    public_name: offer.name,
+    pricing_options: offer.pricing || [],
+    // Aseguramos que los campos opcionales no sean undefined si el schema lo requiere
+    // aunque OfferFormValues usa partials/optionals mayormente.
+  } as unknown as OfferFormValues;
 };
 
 /**
  * Convierte los valores del formulario al payload que espera el backend.
  */
-export const frontendToBackend = (values: OfferFormValues | Partial<OfferFormValues>): Record<string, any> => {
-    const { pricing_options, ...rest } = values;
-    const payload: Record<string, any> = { ...rest };
+export const frontendToBackend = (
+  values: OfferFormValues | Partial<OfferFormValues>,
+): Record<string, unknown> => {
+  const { pricing_options, ...rest } = values;
+  const payload: Record<string, unknown> = { ...rest };
 
-    // Map public_name -> name (ProductCreate expects 'name')
-    if (values.public_name && !payload.name) {
-        payload.name = values.public_name;
-    }
+  // Map public_name -> name (ProductCreate expects 'name')
+  if (values.public_name && !payload.name) {
+    payload.name = values.public_name;
+  }
 
-    // pricing_options -> pricing
-    if (pricing_options) {
-        payload.pricing = pricing_options;
-    } else if ((values as any).pricing) {
-        payload.pricing = (values as any).pricing;
-    }
+  // pricing_options -> pricing
+  if (pricing_options) {
+    payload.pricing = pricing_options;
+  } else if ("pricing" in values && values.pricing) {
+    payload.pricing = values.pricing;
+  }
 
-    delete payload.metadata_info;
+  delete payload.metadata_info;
 
-    return payload;
+  return payload;
 };

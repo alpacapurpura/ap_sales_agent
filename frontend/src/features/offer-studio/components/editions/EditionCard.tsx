@@ -37,7 +37,9 @@ export function EditionCard({ edition, onEdit, onDuplicate, onDelete }: EditionC
   const mainPrice = edition.effective_pricing[0];
 
   return (
-    <Card className={cn("border-l-4 transition-all hover:bg-muted/30", STATUS_BORDER[edition.status])}>
+    <Card
+      className={cn("border-l-4 transition-all hover:bg-muted/30", STATUS_BORDER[edition.status])}
+    >
       <CardContent className="p-4 space-y-3">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -55,7 +57,12 @@ export function EditionCard({ edition, onEdit, onDuplicate, onDelete }: EditionC
               <Copy className="h-3.5 w-3.5" />
             </Button>
             {!isCompleted && (
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={onDelete}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-destructive"
+                onClick={onDelete}
+              >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             )}
@@ -82,9 +89,7 @@ export function EditionCard({ edition, onEdit, onDuplicate, onDelete }: EditionC
             <span className="font-bold">
               {formatMoney(mainPrice.total_amount, edition.currency)}
             </span>
-            <span className="text-xs text-muted-foreground">
-              {mainPrice.label}
-            </span>
+            <span className="text-xs text-muted-foreground">{mainPrice.label}</span>
             {hasOverride ? (
               <span className="text-xs text-amber-500 font-medium">Precio especial</span>
             ) : (

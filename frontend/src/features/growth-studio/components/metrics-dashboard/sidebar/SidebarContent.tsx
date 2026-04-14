@@ -1,21 +1,30 @@
-'use client';
+"use client";
 
-import type { CSSProperties } from 'react';
-import { useAuth } from '@clerk/nextjs';
-import { useQuery } from '@tanstack/react-query';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { ExternalLink, Package, PlusCircle, RefreshCw, Settings, ShoppingBag, TrendingUp, Users } from 'lucide-react';
-import type { MetricClickData, StageId } from '../../../types/metrics';
-import { getChannelColor, getChannelIcon } from '../../../lib/channelIcons';
-import { METRIC_LABELS } from '../../../lib/metric-labels';
-import { formatMoney } from '@/lib/format-money';
-import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
-import { formatTenantDate } from '@/lib/format-date';
-import { getOfferProductsDetail } from '../../../api/product-mapping-api';
-import type { OfferProductDetail } from '../../../api/product-mapping-api';
+import type { CSSProperties } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  ExternalLink,
+  Package,
+  PlusCircle,
+  RefreshCw,
+  Settings,
+  ShoppingBag,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+import type { MetricClickData, StageId } from "../../../types/metrics";
+import { getChannelColor, getChannelIcon } from "../../../lib/channelIcons";
+import { METRIC_LABELS } from "../../../lib/metric-labels";
+import { formatMoney } from "@/lib/format-money";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatTenantDate } from "@/lib/format-date";
+import { getOfferProductsDetail } from "../../../api/product-mapping-api";
+import type { OfferProductDetail } from "../../../api/product-mapping-api";
 
 interface SidebarContentProps {
   /** The metric that was clicked; null if sidebar was opened without context */
@@ -27,17 +36,17 @@ interface SidebarContentProps {
 // ─── Stage label mapping ───────────────────────────────────────────────────────
 
 const STAGE_NAMES: Record<StageId, string> = {
-  ATRACCION_CAPTURA: 'Atracción & Captura',
-  ATRACCION: 'Atracción',
-  CAPTURA: 'Captura',
-  NUTRICION_OPORTUNIDAD: 'Nutrición & Oportunidad',
-  NUTRICION: 'Nutrición',
-  OPORTUNIDAD: 'Oportunidad',
-  VENTAS: 'Ventas',
-  ADOPCION: 'Adopción',
-  EXPANSION: 'Expansión',
-  EVANGELIZACION: 'Evangelización',
-  EXPANSION_EVANGELIZACION: 'Expansión & Evangelización',
+  ATRACCION_CAPTURA: "Atracción & Captura",
+  ATRACCION: "Atracción",
+  CAPTURA: "Captura",
+  NUTRICION_OPORTUNIDAD: "Nutrición & Oportunidad",
+  NUTRICION: "Nutrición",
+  OPORTUNIDAD: "Oportunidad",
+  VENTAS: "Ventas",
+  ADOPCION: "Adopción",
+  EXPANSION: "Expansión",
+  EVANGELIZACION: "Evangelización",
+  EXPANSION_EVANGELIZACION: "Expansión & Evangelización",
 };
 
 // ─── Shared placeholders ───────────────────────────────────────────────────────
@@ -56,7 +65,7 @@ interface ActionButtonsProps {
 }
 
 function ActionButtons({ stageId, channelSlug }: ActionButtonsProps) {
-  const stageName = stageId ? STAGE_NAMES[stageId] : 'esta etapa';
+  const stageName = stageId ? STAGE_NAMES[stageId] : "esta etapa";
 
   return (
     <div className="space-y-2">
@@ -64,34 +73,19 @@ function ActionButtons({ stageId, channelSlug }: ActionButtonsProps) {
         Acciones disponibles
       </p>
 
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full justify-start gap-2"
-        disabled
-      >
+      <Button variant="outline" size="sm" className="w-full justify-start gap-2" disabled>
         <PlusCircle className="h-3.5 w-3.5 flex-shrink-0" />
         <ProximamenteBadge />
         Crear campaña para {stageName}
       </Button>
 
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full justify-start gap-2"
-        disabled
-      >
+      <Button variant="outline" size="sm" className="w-full justify-start gap-2" disabled>
         <Settings className="h-3.5 w-3.5 flex-shrink-0" />
         <ProximamenteBadge />
-        Editar configuración{channelSlug ? ` de ${channelSlug}` : ''}
+        Editar configuración{channelSlug ? ` de ${channelSlug}` : ""}
       </Button>
 
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full justify-start gap-2"
-        disabled
-      >
+      <Button variant="outline" size="sm" className="w-full justify-start gap-2" disabled>
         <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
         <ProximamenteBadge />
         Ver historial detallado
@@ -102,7 +96,15 @@ function ActionButtons({ stageId, channelSlug }: ActionButtonsProps) {
 
 // Channel icon wrapper (avoids creating components during render)
 /* eslint-disable react-hooks/static-components -- dynamic icon from registry */
-function ChannelIconInline({ slug, className, style }: { slug: string; className?: string; style?: CSSProperties }) {
+function ChannelIconInline({
+  slug,
+  className,
+  style,
+}: {
+  slug: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
   const Icon = getChannelIcon(slug);
   return <Icon className={className} style={style} />;
 }
@@ -118,11 +120,13 @@ function ChannelInfoCard({ channelSlug }: ChannelInfoCardProps) {
   return (
     <Card className="border-muted">
       <CardContent className="py-3 px-4 space-y-2">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Canal
-        </p>
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Canal</p>
         <div className="flex items-center gap-2">
-          <ChannelIconInline slug={channelSlug} className="w-4 h-4 flex-shrink-0" style={{ color: iconColor }} />
+          <ChannelIconInline
+            slug={channelSlug}
+            className="w-4 h-4 flex-shrink-0"
+            style={{ color: iconColor }}
+          />
           <span className="text-sm font-mono">{channelSlug}</span>
         </div>
         <div className="space-y-1">
@@ -153,7 +157,8 @@ function AttractionMetricDetail({ metric }: { metric: MetricClickData }) {
           Atracción — Tráfico y alcance de canales orgánicos y pagados
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta métrica mide el volumen de personas que llegan a tu ecosistema a través de {metric.channelName || metric.channelSlug}.
+          Esta métrica mide el volumen de personas que llegan a tu ecosistema a través de{" "}
+          {metric.channelName || metric.channelSlug}.
         </p>
       </div>
 
@@ -167,7 +172,9 @@ function AttractionMetricDetail({ metric }: { metric: MetricClickData }) {
               <Card key={idx} className="border-muted bg-card shadow-sm">
                 <CardContent className="p-3 flex flex-col items-center justify-center text-center">
                   <span className="text-xl font-bold text-foreground">
-                    {m.currency ? formatMoney(m.value, m.currency, { fractionDigits: 0 }) : `${m.value.toLocaleString('es-ES')}${m.unit || ''}`}
+                    {m.currency
+                      ? formatMoney(m.value, m.currency, { fractionDigits: 0 })
+                      : `${m.value.toLocaleString("es-ES")}${m.unit || ""}`}
                   </span>
                   <span className="text-[10px] text-muted-foreground mt-1">
                     {METRIC_LABELS[m.name] || m.name}
@@ -203,7 +210,8 @@ function CaptureMetricDetail({ metric }: { metric: MetricClickData }) {
           Captura — Leads generados desde formularios y agentes conversacionales
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta metrica mide cuantos visitantes se convirtieron en contactos capturados via {metric.channelName || metric.channelSlug}.
+          Esta metrica mide cuantos visitantes se convirtieron en contactos capturados via{" "}
+          {metric.channelName || metric.channelSlug}.
         </p>
       </div>
 
@@ -217,7 +225,9 @@ function CaptureMetricDetail({ metric }: { metric: MetricClickData }) {
               <Card key={idx} className="border-muted bg-card shadow-sm">
                 <CardContent className="p-3 flex flex-col items-center justify-center text-center">
                   <span className="text-xl font-bold text-foreground">
-                    {m.currency ? formatMoney(m.value, m.currency, { fractionDigits: 0 }) : `${m.value.toLocaleString('es-ES')}${m.unit || ''}`}
+                    {m.currency
+                      ? formatMoney(m.value, m.currency, { fractionDigits: 0 })
+                      : `${m.value.toLocaleString("es-ES")}${m.unit || ""}`}
                   </span>
                   <span className="text-[10px] text-muted-foreground mt-1">
                     {METRIC_LABELS[m.name] || m.name}
@@ -245,7 +255,7 @@ function CaptureMetricDetail({ metric }: { metric: MetricClickData }) {
 
 function NurtureMetricDetail({ metric }: { metric: MetricClickData }) {
   const hasMetrics = metric.channelMetrics && metric.channelMetrics.length > 0;
-  
+
   return (
     <div className="space-y-4">
       <div className="rounded-md bg-pink-50 dark:bg-pink-950/20 border border-pink-200 dark:border-pink-800 p-3">
@@ -253,10 +263,11 @@ function NurtureMetricDetail({ metric }: { metric: MetricClickData }) {
           Nutrición — MQLs calificados por retargeting y automatizaciones
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta métrica mide leads que alcanzaron calificación de marketing (MQL) via {metric.channelName || metric.channelSlug}.
+          Esta métrica mide leads que alcanzaron calificación de marketing (MQL) via{" "}
+          {metric.channelName || metric.channelSlug}.
         </p>
       </div>
-      
+
       {hasMetrics && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
@@ -267,7 +278,9 @@ function NurtureMetricDetail({ metric }: { metric: MetricClickData }) {
               <Card key={idx} className="border-muted bg-card shadow-sm">
                 <CardContent className="p-3 flex flex-col items-center justify-center text-center">
                   <span className="text-xl font-bold text-foreground">
-                    {m.currency ? formatMoney(m.value, m.currency, { fractionDigits: 0 }) : `${m.value.toLocaleString('es-ES')}${m.unit || ''}`}
+                    {m.currency
+                      ? formatMoney(m.value, m.currency, { fractionDigits: 0 })
+                      : `${m.value.toLocaleString("es-ES")}${m.unit || ""}`}
                   </span>
                   <span className="text-[10px] text-muted-foreground mt-1">
                     {METRIC_LABELS[m.name] || m.name}
@@ -303,7 +316,8 @@ function OpportunityMetricDetail({ metric }: { metric: MetricClickData }) {
           Oportunidad — SQLs listos para decision de compra
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta metrica mide leads que llegaron a checkout o calificacion via {metric.channelName || metric.channelSlug}.
+          Esta metrica mide leads que llegaron a checkout o calificacion via{" "}
+          {metric.channelName || metric.channelSlug}.
         </p>
       </div>
 
@@ -317,7 +331,9 @@ function OpportunityMetricDetail({ metric }: { metric: MetricClickData }) {
               <Card key={idx} className="border-muted bg-card shadow-sm">
                 <CardContent className="p-3 flex flex-col items-center justify-center text-center">
                   <span className="text-xl font-bold text-foreground">
-                    {m.currency ? formatMoney(m.value, m.currency, { fractionDigits: 0 }) : `${m.value.toLocaleString('es-ES')}${m.unit || ''}`}
+                    {m.currency
+                      ? formatMoney(m.value, m.currency, { fractionDigits: 0 })
+                      : `${m.value.toLocaleString("es-ES")}${m.unit || ""}`}
                   </span>
                   <span className="text-[10px] text-muted-foreground mt-1">
                     {METRIC_LABELS[m.name] || m.name}
@@ -343,10 +359,26 @@ function OpportunityMetricDetail({ metric }: { metric: MetricClickData }) {
   );
 }
 
-function SalesBreakdownRow({ label, value, currency, isMoney = true }: { label: string; value: number; currency?: string; isMoney?: boolean }) {
-  const formatted = isMoney && currency
-    ? new Intl.NumberFormat('es-MX', { style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value)
-    : value.toLocaleString('es-ES');
+function SalesBreakdownRow({
+  label,
+  value,
+  currency,
+  isMoney = true,
+}: {
+  label: string;
+  value: number;
+  currency?: string;
+  isMoney?: boolean;
+}) {
+  const formatted =
+    isMoney && currency
+      ? new Intl.NumberFormat("es-MX", {
+          style: "currency",
+          currency,
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(value)
+      : value.toLocaleString("es-ES");
   return (
     <div className="flex justify-between items-center py-1.5">
       <span className="text-xs text-muted-foreground">{label}</span>
@@ -356,7 +388,12 @@ function SalesBreakdownRow({ label, value, currency, isMoney = true }: { label: 
 }
 
 function SalesRateBadge({ label, value }: { label: string; value: number }) {
-  const color = value > 20 ? 'text-red-600 dark:text-red-400' : value > 10 ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400';
+  const color =
+    value > 20
+      ? "text-red-600 dark:text-red-400"
+      : value > 10
+        ? "text-amber-600 dark:text-amber-400"
+        : "text-green-600 dark:text-green-400";
   return (
     <div className="flex justify-between items-center py-1">
       <span className="text-xs text-muted-foreground">{label}</span>
@@ -372,9 +409,9 @@ function RevenueMetricDetail({ metric }: { metric: MetricClickData }) {
   const grossRevenue = d.totalRevenue || 0;
   const netSales = d.netSales || 0;
   const orderCount = d.sqls || 0; // using sqls as proxy if order_count not separate
-  const discountRate = orderCount > 0 ? ((d.discountUsageCount || 0) / orderCount * 100) : 0;
-  const refundRate = orderCount > 0 ? ((d.refundCount || 0) / orderCount * 100) : 0;
-  const netRatio = grossRevenue > 0 ? (netSales / grossRevenue * 100) : 100;
+  const discountRate = orderCount > 0 ? ((d.discountUsageCount || 0) / orderCount) * 100 : 0;
+  const refundRate = orderCount > 0 ? ((d.refundCount || 0) / orderCount) * 100 : 0;
+  const netRatio = grossRevenue > 0 ? (netSales / grossRevenue) * 100 : 100;
 
   return (
     <div className="space-y-4">
@@ -390,18 +427,39 @@ function RevenueMetricDetail({ metric }: { metric: MetricClickData }) {
       {/* Net vs Gross */}
       <Card className="border-muted">
         <CardContent className="py-3 px-4 space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Ingresos Brutos vs Netos</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+            Ingresos Brutos vs Netos
+          </p>
           <div className="flex items-center gap-3 mt-2">
             <div className="flex-1">
               <div className="h-2 rounded-full bg-muted overflow-hidden">
-                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(netRatio, 100)}%` }} />
+                <div
+                  className="h-full rounded-full bg-emerald-500"
+                  style={{ width: `${Math.min(netRatio, 100)}%` }}
+                />
               </div>
             </div>
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{netRatio.toFixed(1)}%</span>
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+              {netRatio.toFixed(1)}%
+            </span>
           </div>
           <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
-            <span>Neto: {new Intl.NumberFormat('es-MX', { style: 'currency', currency, minimumFractionDigits: 0 }).format(netSales)}</span>
-            <span>Bruto: {new Intl.NumberFormat('es-MX', { style: 'currency', currency, minimumFractionDigits: 0 }).format(grossRevenue)}</span>
+            <span>
+              Neto:{" "}
+              {new Intl.NumberFormat("es-MX", {
+                style: "currency",
+                currency,
+                minimumFractionDigits: 0,
+              }).format(netSales)}
+            </span>
+            <span>
+              Bruto:{" "}
+              {new Intl.NumberFormat("es-MX", {
+                style: "currency",
+                currency,
+                minimumFractionDigits: 0,
+              }).format(grossRevenue)}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -409,10 +467,20 @@ function RevenueMetricDetail({ metric }: { metric: MetricClickData }) {
       {/* Breakdown */}
       <Card className="border-muted">
         <CardContent className="py-3 px-4">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">Desglose</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">
+            Desglose
+          </p>
           <SalesBreakdownRow label="Descuentos" value={d.totalDiscounts || 0} currency={currency} />
-          <SalesBreakdownRow label="Impuestos recaudados" value={d.totalTax || 0} currency={currency} />
-          <SalesBreakdownRow label="Ingresos por envio" value={d.shippingRevenue || 0} currency={currency} />
+          <SalesBreakdownRow
+            label="Impuestos recaudados"
+            value={d.totalTax || 0}
+            currency={currency}
+          />
+          <SalesBreakdownRow
+            label="Ingresos por envio"
+            value={d.shippingRevenue || 0}
+            currency={currency}
+          />
           <SalesBreakdownRow label="Reembolsos" value={d.refundAmount || 0} currency={currency} />
           <Separator className="my-2" />
           <SalesRateBadge label="Tasa de descuento" value={discountRate} />
@@ -429,7 +497,7 @@ function CustomersMetricDetail({ metric }: { metric: MetricClickData }) {
   const d = metric.extraData || {};
   const newCustomers = d.newCustomers || 0;
   const repeatCustomers = d.repeatCustomers || 0;
-  const repeatRate = newCustomers > 0 ? (repeatCustomers / newCustomers * 100) : 0;
+  const repeatRate = newCustomers > 0 ? (repeatCustomers / newCustomers) * 100 : 0;
   const currency = metric.currency || tenantCurrency;
   const cac = d.cac || 0;
 
@@ -447,13 +515,17 @@ function CustomersMetricDetail({ metric }: { metric: MetricClickData }) {
       <div className="grid grid-cols-2 gap-2">
         <Card className="border-muted bg-card shadow-sm">
           <CardContent className="p-3 flex flex-col items-center justify-center text-center">
-            <span className="text-2xl font-bold text-foreground">{newCustomers.toLocaleString('es-ES')}</span>
+            <span className="text-2xl font-bold text-foreground">
+              {newCustomers.toLocaleString("es-ES")}
+            </span>
             <span className="text-[10px] text-muted-foreground mt-1">Nuevos</span>
           </CardContent>
         </Card>
         <Card className="border-muted bg-card shadow-sm">
           <CardContent className="p-3 flex flex-col items-center justify-center text-center">
-            <span className="text-2xl font-bold text-foreground">{repeatCustomers.toLocaleString('es-ES')}</span>
+            <span className="text-2xl font-bold text-foreground">
+              {repeatCustomers.toLocaleString("es-ES")}
+            </span>
             <span className="text-[10px] text-muted-foreground mt-1">Recurrentes</span>
           </CardContent>
         </Card>
@@ -461,11 +533,17 @@ function CustomersMetricDetail({ metric }: { metric: MetricClickData }) {
 
       <Card className="border-muted">
         <CardContent className="py-3 px-4">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">Indicadores</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">
+            Indicadores
+          </p>
           <SalesBreakdownRow label="Tasa de recompra" value={repeatRate} isMoney={false} />
           <SalesBreakdownRow label="CAC promedio" value={cac} currency={currency} />
           {d.totalRevenue > 0 && newCustomers > 0 && (
-            <SalesBreakdownRow label="Ticket promedio" value={d.totalRevenue / newCustomers} currency={currency} />
+            <SalesBreakdownRow
+              label="Ticket promedio"
+              value={d.totalRevenue / newCustomers}
+              currency={currency}
+            />
           )}
         </CardContent>
       </Card>
@@ -494,13 +572,17 @@ function PipelineMetricDetail({ metric }: { metric: MetricClickData }) {
       <div className="grid grid-cols-2 gap-2">
         <Card className="border-muted bg-card shadow-sm">
           <CardContent className="p-3 flex flex-col items-center justify-center text-center">
-            <span className="text-2xl font-bold text-foreground">{sqls.toLocaleString('es-ES')}</span>
+            <span className="text-2xl font-bold text-foreground">
+              {sqls.toLocaleString("es-ES")}
+            </span>
             <span className="text-[10px] text-muted-foreground mt-1">SQLs (Oportunidades)</span>
           </CardContent>
         </Card>
         <Card className="border-muted bg-card shadow-sm">
           <CardContent className="p-3 flex flex-col items-center justify-center text-center">
-            <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">{newCustomers.toLocaleString('es-ES')}</span>
+            <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">
+              {newCustomers.toLocaleString("es-ES")}
+            </span>
             <span className="text-[10px] text-muted-foreground mt-1">Convertidos</span>
           </CardContent>
         </Card>
@@ -508,17 +590,26 @@ function PipelineMetricDetail({ metric }: { metric: MetricClickData }) {
 
       <Card className="border-muted">
         <CardContent className="py-3 px-4">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">Conversión</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">
+            Conversión
+          </p>
           <div className="flex items-center gap-3 mt-1">
             <div className="flex-1">
               <div className="h-2 rounded-full bg-muted overflow-hidden">
-                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(conversionRate, 100)}%` }} />
+                <div
+                  className="h-full rounded-full bg-emerald-500"
+                  style={{ width: `${Math.min(conversionRate, 100)}%` }}
+                />
               </div>
             </div>
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{conversionRate.toFixed(1)}%</span>
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+              {conversionRate.toFixed(1)}%
+            </span>
           </div>
           <p className="text-[10px] text-muted-foreground mt-2">
-            {sqls - newCustomers > 0 ? `${(sqls - newCustomers).toLocaleString('es-ES')} oportunidades no convertidas` : 'Todas las oportunidades convertidas'}
+            {sqls - newCustomers > 0
+              ? `${(sqls - newCustomers).toLocaleString("es-ES")} oportunidades no convertidas`
+              : "Todas las oportunidades convertidas"}
           </p>
         </CardContent>
       </Card>
@@ -532,10 +623,10 @@ function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: 
   const { timezone } = useTenantLocale();
 
   const { data, isLoading, error } = useQuery<OfferProductDetail>({
-    queryKey: ['offer-products-detail', offerId],
+    queryKey: ["offer-products-detail", offerId],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return getOfferProductsDetail(token, offerId);
     },
     staleTime: 2 * 60 * 1000,
@@ -563,22 +654,22 @@ function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: 
     formatMoney(value, cur || currency, { fractionDigits: 0 });
 
   const archetypeLabels: Record<string, string> = {
-    producto: 'Producto',
-    programa: 'Programa',
-    servicio: 'Servicio',
-    membresia: 'Membresía',
-    experiencia: 'Experiencia',
+    producto: "Producto",
+    programa: "Programa",
+    servicio: "Servicio",
+    membresia: "Membresía",
+    experiencia: "Experiencia",
   };
 
   const sources = Object.entries(data.source_breakdown || {});
-  const maxWeeklyRevenue = Math.max(...(data.weekly_revenue.map(w => w.revenue)), 1);
+  const maxWeeklyRevenue = Math.max(...data.weekly_revenue.map((w) => w.revenue), 1);
 
   return (
     <div className="space-y-4">
       {/* Section 1: Summary */}
       <div className="rounded-md bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 p-3">
         <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
-          {data.offer_name || 'Oferta'}
+          {data.offer_name || "Oferta"}
         </p>
         {data.offer_type && (
           <Badge variant="secondary" className="mt-1 text-[10px]">
@@ -591,7 +682,9 @@ function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: 
         <Card className="border-muted bg-card shadow-sm">
           <CardContent className="p-3 flex flex-col items-center justify-center text-center">
             <ShoppingBag className="w-4 h-4 text-emerald-500 mb-1" />
-            <span className="text-lg font-bold text-foreground">{fmt(data.total_revenue, data.currency)}</span>
+            <span className="text-lg font-bold text-foreground">
+              {fmt(data.total_revenue, data.currency)}
+            </span>
             <span className="text-[10px] text-muted-foreground">Revenue Total</span>
           </CardContent>
         </Card>
@@ -622,7 +715,7 @@ function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: 
       {(data.first_sale || data.last_sale) && (
         <p className="text-[10px] text-muted-foreground text-center">
           {data.first_sale && `Primera venta: ${formatTenantDate(data.first_sale, timezone)}`}
-          {data.first_sale && data.last_sale && ' — '}
+          {data.first_sale && data.last_sale && " — "}
           {data.last_sale && `Última: ${formatTenantDate(data.last_sale, timezone)}`}
         </p>
       )}
@@ -657,11 +750,19 @@ function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: 
             </p>
             <div className="flex flex-wrap gap-1.5">
               {sources.map(([src, count]) => {
-                let badgeClass = 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
-                if (src === 'SHOPIFY') badgeClass = 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
-                else if (src === 'AGENT') badgeClass = 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800';
+                let badgeClass =
+                  "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700";
+                if (src === "SHOPIFY")
+                  badgeClass =
+                    "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800";
+                else if (src === "AGENT")
+                  badgeClass =
+                    "bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800";
                 return (
-                  <span key={src} className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${badgeClass}`}>
+                  <span
+                    key={src}
+                    className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${badgeClass}`}
+                  >
                     {src}: {count}
                   </span>
                 );
@@ -681,7 +782,9 @@ function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: 
             {data.products.map((p) => (
               <Card key={p.external_id} className="border-muted">
                 <CardContent className="py-3 px-4">
-                  <p className="text-sm font-medium truncate">{p.external_name || `#${p.external_id}`}</p>
+                  <p className="text-sm font-medium truncate">
+                    {p.external_name || `#${p.external_id}`}
+                  </p>
                   <div className="mt-2 space-y-1.5">
                     {/* Revenue bar */}
                     <div className="flex items-center gap-2">
@@ -699,7 +802,9 @@ function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: 
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
-                        <p className="text-xs font-bold">{fmt(p.total_revenue, p.currency || data.currency)}</p>
+                        <p className="text-xs font-bold">
+                          {fmt(p.total_revenue, p.currency || data.currency)}
+                        </p>
                         <p className="text-[9px] text-muted-foreground">Revenue</p>
                       </div>
                       <div>
@@ -723,7 +828,9 @@ function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: 
           <Card className="border-dashed">
             <CardContent className="py-3 px-4">
               <p className="text-xs text-muted-foreground italic">
-                Las ventas de esta oferta provienen de {sources.map(([s]) => s).join(', ') || 'fuentes directas'}. No tiene productos Shopify asociados.
+                Las ventas de esta oferta provienen de{" "}
+                {sources.map(([s]) => s).join(", ") || "fuentes directas"}. No tiene productos
+                Shopify asociados.
               </p>
             </CardContent>
           </Card>
@@ -737,13 +844,18 @@ function SalesMetricDetail({ metric }: { metric: MetricClickData }) {
   const { currency: tenantCurrency } = useTenantLocale();
   // Route to specialized detail based on metricName
   switch (metric.metricName) {
-    case 'offer_detail':
-      return <OfferRevenueDetail offerId={metric.channelSlug} currency={metric.currency || tenantCurrency} />;
-    case 'revenue':
+    case "offer_detail":
+      return (
+        <OfferRevenueDetail
+          offerId={metric.channelSlug}
+          currency={metric.currency || tenantCurrency}
+        />
+      );
+    case "revenue":
       return <RevenueMetricDetail metric={metric} />;
-    case 'customers':
+    case "customers":
       return <CustomersMetricDetail metric={metric} />;
-    case 'pipeline':
+    case "pipeline":
       return <PipelineMetricDetail metric={metric} />;
     default:
       return (
@@ -770,12 +882,15 @@ function AdoptionMetricDetail({ metric }: { metric: MetricClickData }) {
           Adopción — Salud y activación de clientes existentes
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta métrica mide el porcentaje de clientes que están usando activamente tu producto/servicio.
+          Esta métrica mide el porcentaje de clientes que están usando activamente tu
+          producto/servicio.
         </p>
       </div>
       <Card className="border-dashed">
         <CardContent className="py-3 px-4">
-          <p className="text-xs text-muted-foreground font-medium mb-2">Detalle de activación por oferta</p>
+          <p className="text-xs text-muted-foreground font-medium mb-2">
+            Detalle de activación por oferta
+          </p>
           <p className="text-xs text-muted-foreground italic">
             Historial de activación — próxima versión
           </p>
@@ -787,43 +902,41 @@ function AdoptionMetricDetail({ metric }: { metric: MetricClickData }) {
 }
 
 function ExpansionMetricDetail({ metric }: { metric: MetricClickData }) {
-  let title = 'Expansión — Ingreso recurrente, upsell y cancelaciones';
-  let desc = 'Esta métrica refleja el movimiento neto de MRR en el período actual.';
-  let analysisTitle = 'Análisis de oportunidad';
-  let analysisDesc = 'La inteligencia del sistema ha detectado que existe una gran oportunidad de optimización realizando acciones de retención o upsell.';
-  
-  if (metric.metricName === 'retencion') {
-    title = 'Optimizar Retención';
-    desc = 'Mantén la fidelidad de tus clientes activos.';
-    analysisDesc = 'Enviar correo de agradecimiento y contenido exclusivo a los retenidos para asegurar el próximo mes.';
-  } else if (metric.metricName === 'crecimiento') {
-    title = 'Lanzar Campaña de Upsell';
-    desc = 'Aumenta el LTV ofreciendo productos de mayor valor.';
-    analysisDesc = 'Lanzar un correo promocional automatizado a la base de clientes actuales para ofrecer este producto adicional.';
-  } else if (metric.metricName === 'cancelaciones') {
-    title = 'Entrevistas de Salida';
-    desc = 'Descubre por qué tus clientes están cancelando.';
-    analysisDesc = 'Configurar un flujo automático por WhatsApp con la IA para preguntar por qué cancelaron y ofrecer un downsell.';
+  let title = "Expansión — Ingreso recurrente, upsell y cancelaciones";
+  let desc = "Esta métrica refleja el movimiento neto de MRR en el período actual.";
+  let analysisTitle = "Análisis de oportunidad";
+  let analysisDesc =
+    "La inteligencia del sistema ha detectado que existe una gran oportunidad de optimización realizando acciones de retención o upsell.";
+
+  if (metric.metricName === "retencion") {
+    title = "Optimizar Retención";
+    desc = "Mantén la fidelidad de tus clientes activos.";
+    analysisDesc =
+      "Enviar correo de agradecimiento y contenido exclusivo a los retenidos para asegurar el próximo mes.";
+  } else if (metric.metricName === "crecimiento") {
+    title = "Lanzar Campaña de Upsell";
+    desc = "Aumenta el LTV ofreciendo productos de mayor valor.";
+    analysisDesc =
+      "Lanzar un correo promocional automatizado a la base de clientes actuales para ofrecer este producto adicional.";
+  } else if (metric.metricName === "cancelaciones") {
+    title = "Entrevistas de Salida";
+    desc = "Descubre por qué tus clientes están cancelando.";
+    analysisDesc =
+      "Configurar un flujo automático por WhatsApp con la IA para preguntar por qué cancelaron y ofrecer un downsell.";
   }
 
   return (
     <div className="space-y-4">
       <div className="rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-3">
-        <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">
-          {title}
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          {desc}
-        </p>
+        <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">{title}</p>
+        <p className="text-xs text-muted-foreground mt-1">{desc}</p>
       </div>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-lg p-4">
         <h4 className="text-sm font-semibold text-emerald-900 dark:text-emerald-200 border-b border-emerald-200 dark:border-emerald-800 pb-2 mb-2 flex items-center">
           <TrendingUp className="w-4 h-4 mr-1" /> {analysisTitle}
         </h4>
-        <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
-          {analysisDesc}
-        </p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">{analysisDesc}</p>
       </div>
 
       <ActionButtons stageId="EXPANSION" channelSlug={metric.channelSlug} />
@@ -832,51 +945,50 @@ function ExpansionMetricDetail({ metric }: { metric: MetricClickData }) {
 }
 
 function EvangelizationMetricDetail({ metric }: { metric: MetricClickData }) {
-  let title = 'Evangelización — K-Factor, referidos y NPS';
-  let desc = 'Esta métrica mide el impacto viral de tus clientes más satisfechos.';
-  let analysisTitle = 'Análisis de oportunidad';
-  let analysisDesc = 'Identifica a tus promotores para generar referidos y contenido UGC.';
-  
-  if (metric.metricName === 'setup_nps') {
-    title = 'Configurar NPS';
-    desc = 'Aún no tienes información de referidos.';
-    analysisDesc = 'Lanza tu primera encuesta NPS a tus clientes activos para conocer su satisfacción.';
-  } else if (metric.metricName === 'promotores') {
-    title = 'Solicitar Testimonios';
-    desc = 'Aprovecha la alta satisfacción de tus clientes.';
-    analysisDesc = 'Envía un flujo automático por WhatsApp pidiendo un video testimonio a cambio de un bonus.';
-  } else if (metric.metricName === 'ugc_count') {
-    title = 'Aprovechar UGC';
-    desc = 'Utiliza el contenido generado por tus usuarios.';
-    analysisDesc = 'Recopila estas menciones y reseñas en redes para inyectarlas en tus Ads de retargeting.';
-  } else if (metric.metricName === 'conversions') {
-    title = 'Optimizar Referidos';
-    desc = 'Mejora el rendimiento de tus enlaces compartidos.';
-    analysisDesc = 'Mejora la recompensa por referir. Ofrece comisión recurrente para subir el K-Factor a más de 1.0.';
-  } else if (metric.metricName === 'count') {
-    title = 'Obtener Candidatos / Activar Evangelistas';
-    desc = 'Invita a tus promotores a unirse al programa de referidos.';
-    analysisDesc = 'La IA puede invitarles a unirse al programa de referidos de forma automatizada.';
+  let title = "Evangelización — K-Factor, referidos y NPS";
+  let desc = "Esta métrica mide el impacto viral de tus clientes más satisfechos.";
+  let analysisTitle = "Análisis de oportunidad";
+  let analysisDesc = "Identifica a tus promotores para generar referidos y contenido UGC.";
+
+  if (metric.metricName === "setup_nps") {
+    title = "Configurar NPS";
+    desc = "Aún no tienes información de referidos.";
+    analysisDesc =
+      "Lanza tu primera encuesta NPS a tus clientes activos para conocer su satisfacción.";
+  } else if (metric.metricName === "promotores") {
+    title = "Solicitar Testimonios";
+    desc = "Aprovecha la alta satisfacción de tus clientes.";
+    analysisDesc =
+      "Envía un flujo automático por WhatsApp pidiendo un video testimonio a cambio de un bonus.";
+  } else if (metric.metricName === "ugc_count") {
+    title = "Aprovechar UGC";
+    desc = "Utiliza el contenido generado por tus usuarios.";
+    analysisDesc =
+      "Recopila estas menciones y reseñas en redes para inyectarlas en tus Ads de retargeting.";
+  } else if (metric.metricName === "conversions") {
+    title = "Optimizar Referidos";
+    desc = "Mejora el rendimiento de tus enlaces compartidos.";
+    analysisDesc =
+      "Mejora la recompensa por referir. Ofrece comisión recurrente para subir el K-Factor a más de 1.0.";
+  } else if (metric.metricName === "count") {
+    title = "Obtener Candidatos / Activar Evangelistas";
+    desc = "Invita a tus promotores a unirse al programa de referidos.";
+    analysisDesc =
+      "La IA puede invitarles a unirse al programa de referidos de forma automatizada.";
   }
 
   return (
     <div className="space-y-4">
       <div className="rounded-md bg-fuchsia-50 dark:bg-fuchsia-950/20 border border-fuchsia-200 dark:border-fuchsia-800 p-3">
-        <p className="text-xs text-fuchsia-700 dark:text-fuchsia-300 font-medium">
-          {title}
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          {desc}
-        </p>
+        <p className="text-xs text-fuchsia-700 dark:text-fuchsia-300 font-medium">{title}</p>
+        <p className="text-xs text-muted-foreground mt-1">{desc}</p>
       </div>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-lg p-4">
         <h4 className="text-sm font-semibold text-emerald-900 dark:text-emerald-200 border-b border-emerald-200 dark:border-emerald-800 pb-2 mb-2 flex items-center">
           <TrendingUp className="w-4 h-4 mr-1" /> {analysisTitle}
         </h4>
-        <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
-          {analysisDesc}
-        </p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">{analysisDesc}</p>
       </div>
 
       <ActionButtons stageId="EVANGELIZACION" channelSlug={metric.channelSlug} />
@@ -889,7 +1001,9 @@ function DefaultMetricDetail({ metric }: { metric: MetricClickData }) {
     <div className="space-y-4">
       <Card className="border-dashed">
         <CardContent className="py-3 px-4">
-          <p className="text-xs text-muted-foreground font-medium mb-2">Informacion de la metrica</p>
+          <p className="text-xs text-muted-foreground font-medium mb-2">
+            Informacion de la metrica
+          </p>
           <p className="text-xs text-muted-foreground italic">
             Detalles adicionales — proxima version
           </p>
@@ -929,11 +1043,14 @@ export function SidebarContent({ metric, stageId }: SidebarContentProps) {
       {/* Metric context header */}
       <div className="space-y-1">
         <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-          {metric.channelName ? 'Canal' : 'Metrica'}
+          {metric.channelName ? "Canal" : "Metrica"}
         </p>
         <p className="text-sm font-semibold">{metric.channelName || metricLabel}</p>
         <p className="text-xs text-muted-foreground">
-          {metric.channelName ? `Metrica principal: ${metricLabel}` : `Canal: ${metric.channelSlug}`} &mdash; Etapa: {STAGE_NAMES[stageId]}
+          {metric.channelName
+            ? `Metrica principal: ${metricLabel}`
+            : `Canal: ${metric.channelSlug}`}{" "}
+          &mdash; Etapa: {STAGE_NAMES[stageId]}
         </p>
       </div>
 
@@ -942,21 +1059,21 @@ export function SidebarContent({ metric, stageId }: SidebarContentProps) {
       {/* Stage-specific content */}
       {(() => {
         switch (stageId) {
-          case 'ATRACCION':
+          case "ATRACCION":
             return <AttractionMetricDetail metric={metric} />;
-          case 'CAPTURA':
+          case "CAPTURA":
             return <CaptureMetricDetail metric={metric} />;
-          case 'NUTRICION':
+          case "NUTRICION":
             return <NurtureMetricDetail metric={metric} />;
-          case 'OPORTUNIDAD':
+          case "OPORTUNIDAD":
             return <OpportunityMetricDetail metric={metric} />;
-          case 'VENTAS':
+          case "VENTAS":
             return <SalesMetricDetail metric={metric} />;
-          case 'ADOPCION':
+          case "ADOPCION":
             return <AdoptionMetricDetail metric={metric} />;
-          case 'EXPANSION':
+          case "EXPANSION":
             return <ExpansionMetricDetail metric={metric} />;
-          case 'EVANGELIZACION':
+          case "EVANGELIZACION":
             return <EvangelizationMetricDetail metric={metric} />;
           default:
             return <DefaultMetricDetail metric={metric} />;

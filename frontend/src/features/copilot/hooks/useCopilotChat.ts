@@ -83,7 +83,9 @@ export function useCopilotChat() {
         const token = await getToken();
         if (!token) {
           if (activeAssistantIdRef.current === myAssistantId) {
-            store.appendToLastAssistant("\n\n_Error: No se pudo obtener el token de autenticación._");
+            store.appendToLastAssistant(
+              "\n\n_Error: No se pudo obtener el token de autenticación._",
+            );
             store.setStatus("idle");
           }
           return;
@@ -96,16 +98,23 @@ export function useCopilotChat() {
         const currentMessages = freshState.messages;
 
         // Determine mode from store state
-        const mode = freshState.interviewSessionId ? "interview"
-          : freshState.focusEntity ? "focus" : "chat";
+        const mode = freshState.interviewSessionId
+          ? "interview"
+          : freshState.focusEntity
+            ? "focus"
+            : "chat";
 
         // Track message_sent event
-        reportCopilotEvent("message_sent", {
-          message_length: text.trim().length,
-          has_selected_fields: freshFields.length > 0,
-          is_first_message: currentMessages.length <= 2,
-          mode,
-        }, token);
+        reportCopilotEvent(
+          "message_sent",
+          {
+            message_length: text.trim().length,
+            has_selected_fields: freshFields.length > 0,
+            is_first_message: currentMessages.length <= 2,
+            mode,
+          },
+          token,
+        );
 
         /**
          * Guard: returns true only if this stream's placeholder is still the
@@ -126,10 +135,12 @@ export function useCopilotChat() {
                 field_value: f.fieldValue,
               })),
               locale: "es",
-              focus: freshState.focusEntity ? {
-                domain: freshState.focusEntity.domain,
-                entity_id: freshState.focusEntity.entityId ?? null,
-              } : null,
+              focus: freshState.focusEntity
+                ? {
+                    domain: freshState.focusEntity.domain,
+                    entity_id: freshState.focusEntity.entityId ?? null,
+                  }
+                : null,
               interview_session_id: freshState.interviewSessionId ?? null,
             },
           },
@@ -140,7 +151,9 @@ export function useCopilotChat() {
             },
             onStatus: (state) => {
               if (!isActive()) return;
-              useCopilotStore.getState().setStatus(state as "idle" | "thinking" | "streaming" | "done");
+              useCopilotStore
+                .getState()
+                .setStatus(state as "idle" | "thinking" | "streaming" | "done");
             },
             onDone: (convId) => {
               if (!isActive()) return;
@@ -168,8 +181,13 @@ export function useCopilotChat() {
           controller.signal,
         );
       } catch (err) {
-        if ((err as Error).name !== "AbortError" && activeAssistantIdRef.current === myAssistantId) {
-          useCopilotStore.getState().appendToLastAssistant("\n\n_Error de conexión. Intenta de nuevo._");
+        if (
+          (err as Error).name !== "AbortError" &&
+          activeAssistantIdRef.current === myAssistantId
+        ) {
+          useCopilotStore
+            .getState()
+            .appendToLastAssistant("\n\n_Error de conexión. Intenta de nuevo._");
           useCopilotStore.getState().setStatus("idle");
         }
       }
@@ -193,4 +211,3 @@ export function useCopilotChat() {
 
   return { sendMessage, sendCardAction, stopStreaming };
 }
-

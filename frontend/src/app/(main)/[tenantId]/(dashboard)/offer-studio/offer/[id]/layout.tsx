@@ -28,11 +28,7 @@ export default function OfferLayout({
 }) {
   const { tenantId, id: offerId } = use(params);
   const { offer, loading: offerLoading, error: offerError } = useOffer(offerId);
-  const {
-    data: counts,
-    isLoading: countsLoading,
-    error: countsError,
-  } = useOfferCounts(offerId);
+  const { data: counts, isLoading: countsLoading, error: countsError } = useOfferCounts(offerId);
 
   if (offerLoading || countsLoading) {
     return (
@@ -45,9 +41,7 @@ export default function OfferLayout({
   if (offerError || !offer) {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4 bg-background">
-        <p className="font-medium text-destructive">
-          {offerError ?? "Oferta no encontrada"}
-        </p>
+        <p className="font-medium text-destructive">{offerError ?? "Oferta no encontrada"}</p>
         <Link href={`/${tenantId}/offer-studio`}>
           <Button variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />

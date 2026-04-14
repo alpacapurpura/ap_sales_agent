@@ -18,10 +18,6 @@ export function IdentityManager() {
   if (!settings) return null;
 
   return (
-    <IdentityForm
-      initialData={settings.identity ?? {}}
-      onSave={updateIdentity}
-      isSaving={saving}
-    />
+    <IdentityForm initialData={settings.identity ?? {}} onSave={updateIdentity} isSaving={saving} />
   );
 }

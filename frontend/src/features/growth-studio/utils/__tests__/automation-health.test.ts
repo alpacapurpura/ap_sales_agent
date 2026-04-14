@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
 import {
   computeHealthScore,
@@ -6,15 +6,15 @@ import {
   diagnoseStep,
   findBestStep,
   findAttentionStep,
-} from '../automation-health';
-import type { EmailAutomation, AutomationStep } from '../../types/mail-types';
+} from "../automation-health";
+import type { EmailAutomation, AutomationStep } from "../../types/mail-types";
 
 function buildAutomation(overrides: Partial<EmailAutomation> = {}): EmailAutomation {
   return {
-    automationId: 'a1',
-    name: 'Test',
-    automationType: 'welcome',
-    status: 'active',
+    automationId: "a1",
+    name: "Test",
+    automationType: "welcome",
+    status: "active",
     activeSubscribers: 10,
     completed: 5,
     emailsSent: 20,
@@ -30,11 +30,11 @@ function buildAutomation(overrides: Partial<EmailAutomation> = {}): EmailAutomat
 
 function buildStep(overrides: Partial<AutomationStep> = {}): AutomationStep {
   return {
-    stepId: 's1',
+    stepId: "s1",
     stepNumber: 1,
-    type: 'email',
-    subject: 'Test email',
-    fromName: 'Me',
+    type: "email",
+    subject: "Test email",
+    fromName: "Me",
     emailsSent: 10,
     uniqueOpens: 8,
     openRate: 80,
@@ -50,8 +50,8 @@ function buildStep(overrides: Partial<AutomationStep> = {}): AutomationStep {
   };
 }
 
-describe('computeHealthScore', () => {
-  it('returns 0 when automation has no data', () => {
+describe("computeHealthScore", () => {
+  it("returns 0 when automation has no data", () => {
     const auto = buildAutomation({
       openRate: 0,
       clickRate: 0,
@@ -63,7 +63,7 @@ describe('computeHealthScore', () => {
     expect(computeHealthScore(auto)).toBe(0);
   });
 
-  it('returns high score (>70) for excellent automation', () => {
+  it("returns high score (>70) for excellent automation", () => {
     const auto = buildAutomation({
       openRate: 90,
       clickRate: 30,
@@ -74,7 +74,7 @@ describe('computeHealthScore', () => {
     expect(computeHealthScore(auto)).toBeGreaterThan(70);
   });
 
-  it('returns low score (<40) for poor automation', () => {
+  it("returns low score (<40) for poor automation", () => {
     const auto = buildAutomation({
       openRate: 10,
       clickRate: 0.5,
@@ -86,7 +86,7 @@ describe('computeHealthScore', () => {
     expect(computeHealthScore(auto)).toBeLessThan(40);
   });
 
-  it('penalizes high unsubscribe rate', () => {
+  it("penalizes high unsubscribe rate", () => {
     const baseline = buildAutomation({
       openRate: 60,
       clickRate: 10,
@@ -100,81 +100,81 @@ describe('computeHealthScore', () => {
   });
 });
 
-describe('computeDropoff', () => {
-  it('returns 0 when both steps have same sent', () => {
+describe("computeDropoff", () => {
+  it("returns 0 when both steps have same sent", () => {
     expect(computeDropoff(100, 100)).toBe(0);
   });
 
-  it('returns 50 when half drop off', () => {
+  it("returns 50 when half drop off", () => {
     expect(computeDropoff(100, 50)).toBe(50);
   });
 
-  it('returns 0 when previous step had 0 sent (avoid div by zero)', () => {
+  it("returns 0 when previous step had 0 sent (avoid div by zero)", () => {
     expect(computeDropoff(0, 0)).toBe(0);
   });
 
-  it('returns 100 when all drop off', () => {
+  it("returns 100 when all drop off", () => {
     expect(computeDropoff(100, 0)).toBe(100);
   });
 });
 
-describe('diagnoseStep', () => {
-  it('flags high open + low click as weak CTA', () => {
+describe("diagnoseStep", () => {
+  it("flags high open + low click as weak CTA", () => {
     const step = buildStep({ openRate: 70, clickRate: 1 });
     const insights = diagnoseStep(step);
-    expect(insights.some((i) => i.includes('CTA'))).toBe(true);
+    expect(insights.some((i) => i.includes("CTA"))).toBe(true);
   });
 
-  it('flags low open rate', () => {
+  it("flags low open rate", () => {
     const step = buildStep({ openRate: 15, clickRate: 2 });
     const insights = diagnoseStep(step);
-    expect(insights.some((i) => i.toLowerCase().includes('apertura'))).toBe(true);
+    expect(insights.some((i) => i.toLowerCase().includes("apertura"))).toBe(true);
   });
 
-  it('flags high unsubscribes', () => {
+  it("flags high unsubscribes", () => {
     const step = buildStep({ unsubscribes: 5, emailsSent: 20 });
     const insights = diagnoseStep(step);
-    expect(insights.some((i) => i.toLowerCase().includes('desuscrip'))).toBe(true);
+    expect(insights.some((i) => i.toLowerCase().includes("desuscrip"))).toBe(true);
   });
 
-  it('flags steep drop vs previous step', () => {
+  it("flags steep drop vs previous step", () => {
     const prev = buildStep({ openRate: 90 });
     const current = buildStep({ openRate: 30 });
     const insights = diagnoseStep(current, prev);
-    expect(insights.some((i) => i.toLowerCase().includes('caída'))).toBe(true);
+    expect(insights.some((i) => i.toLowerCase().includes("caída"))).toBe(true);
   });
 
-  it('returns empty for healthy step', () => {
+  it("returns empty for healthy step", () => {
     const step = buildStep({ openRate: 70, clickRate: 15, unsubscribes: 0 });
     expect(diagnoseStep(step)).toEqual([]);
   });
 });
 
-describe('findBestStep', () => {
-  it('returns null for empty list', () => {
+describe("findBestStep", () => {
+  it("returns null for empty list", () => {
     expect(findBestStep([])).toBeNull();
   });
 
-  it('picks step with highest open × click product', () => {
+  it("picks step with highest open × click product", () => {
     const steps = [
-      buildStep({ stepId: 's1', openRate: 80, clickRate: 10 }), // 800
-      buildStep({ stepId: 's2', openRate: 60, clickRate: 20 }), // 1200
-      buildStep({ stepId: 's3', openRate: 70, clickRate: 5 }), // 350
+      buildStep({ stepId: "s1", openRate: 80, clickRate: 10 }), // 800
+      buildStep({ stepId: "s2", openRate: 60, clickRate: 20 }), // 1200
+      buildStep({ stepId: "s3", openRate: 70, clickRate: 5 }), // 350
     ];
-    expect(findBestStep(steps)?.stepId).toBe('s2');
+    expect(findBestStep(steps)?.stepId).toBe("s2");
   });
 
-  it('ignores non-email steps', () => {
+  it("ignores non-email steps", () => {
     const steps = [
-      buildStep({ stepId: 's1', type: 'delay', openRate: 100, clickRate: 100 }),
-      buildStep({ stepId: 's2', type: 'email', openRate: 50, clickRate: 5 }),
+      buildStep({ stepId: "s1", type: "delay", openRate: 100, clickRate: 100 }),
+      buildStep({ stepId: "s2", type: "email", openRate: 50, clickRate: 5 }),
     ];
-    expect(findBestStep(steps)?.stepId).toBe('s2');
+    expect(findBestStep(steps)?.stepId).toBe("s2");
   });
 });
 
-describe('findAttentionStep', () => {
-  it('returns null when all emails perform OK', () => {
+describe("findAttentionStep", () => {
+  it("returns null when all emails perform OK", () => {
     const steps = [
       buildStep({ openRate: 60, clickRate: 10 }),
       buildStep({ openRate: 55, clickRate: 8 }),
@@ -182,19 +182,19 @@ describe('findAttentionStep', () => {
     expect(findAttentionStep(steps)).toBeNull();
   });
 
-  it('flags step with 0 click rate', () => {
+  it("flags step with 0 click rate", () => {
     const steps = [
-      buildStep({ stepId: 's1', openRate: 60, clickRate: 10 }),
-      buildStep({ stepId: 's2', openRate: 40, clickRate: 0 }),
+      buildStep({ stepId: "s1", openRate: 60, clickRate: 10 }),
+      buildStep({ stepId: "s2", openRate: 40, clickRate: 0 }),
     ];
-    expect(findAttentionStep(steps)?.stepId).toBe('s2');
+    expect(findAttentionStep(steps)?.stepId).toBe("s2");
   });
 
-  it('flags step with very low open rate', () => {
+  it("flags step with very low open rate", () => {
     const steps = [
-      buildStep({ stepId: 's1', openRate: 80, clickRate: 15 }),
-      buildStep({ stepId: 's2', openRate: 10, clickRate: 2 }),
+      buildStep({ stepId: "s1", openRate: 80, clickRate: 15 }),
+      buildStep({ stepId: "s2", openRate: 10, clickRate: 2 }),
     ];
-    expect(findAttentionStep(steps)?.stepId).toBe('s2');
+    expect(findAttentionStep(steps)?.stepId).toBe("s2");
   });
 });

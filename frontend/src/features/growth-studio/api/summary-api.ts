@@ -1,7 +1,7 @@
-import { fetchClient } from '@/lib/http-client';
-import { config } from '@/lib/config';
-import { ENABLE_MOCKS } from '@/lib/mock-config';
-import type { BowtiesSummary, StageSummaryKpi } from '../types/summary';
+import { fetchClient } from "@/lib/http-client";
+import { config } from "@/lib/config";
+import { ENABLE_MOCKS } from "@/lib/mock-config";
+import type { BowtiesSummary, StageSummaryKpi } from "../types/summary";
 
 const API_URL = config.api.baseUrl;
 
@@ -35,15 +35,72 @@ export async function fetchBowtiesSummary(token: string): Promise<BowtiesSummary
 
 export const MOCK_BOWTIES_SUMMARY: BowtiesSummary = {
   stages: [
-    { stage: 'attraction', mainKpi: 45000, mainLabel: 'visitantes', secondaryKpi: 8, secondaryLabel: 'canales activos' },
-    { stage: 'capture', mainKpi: 8500, mainLabel: 'leads', secondaryKpi: 18.9, secondaryLabel: 'tasa conversion', secondaryUnit: '%' },
-    { stage: 'nurture', mainKpi: 3200, mainLabel: 'MQLs', secondaryKpi: 37.6, secondaryLabel: 'engagement rate', secondaryUnit: '%' },
-    { stage: 'opportunity', mainKpi: 850, mainLabel: 'SQLs', secondaryKpi: 26.6, secondaryLabel: 'pipeline value', secondaryUnit: '%' },
-    { stage: 'sales', mainKpi: 1260000, mainLabel: 'revenue', mainUnit: '$', secondaryKpi: 52.9, secondaryLabel: 'conversion', secondaryUnit: '%' },
-    { stage: 'adoption', mainKpi: 88.9, mainLabel: 'salud %', mainUnit: '%', secondaryKpi: 400, secondaryLabel: 'activos' },
-    { stage: 'expansion', mainKpi: 42000, mainLabel: 'net MRR', mainUnit: '$', secondaryKpi: 2.3, secondaryLabel: 'churn rate', secondaryUnit: '%' },
-    { stage: 'evangelization', mainKpi: 1.8, mainLabel: 'k-factor', secondaryKpi: 15.2, secondaryLabel: 'conversion', secondaryUnit: '%' },
+    {
+      stage: "attraction",
+      mainKpi: 45000,
+      mainLabel: "visitantes",
+      secondaryKpi: 8,
+      secondaryLabel: "canales activos",
+    },
+    {
+      stage: "capture",
+      mainKpi: 8500,
+      mainLabel: "leads",
+      secondaryKpi: 18.9,
+      secondaryLabel: "tasa conversion",
+      secondaryUnit: "%",
+    },
+    {
+      stage: "nurture",
+      mainKpi: 3200,
+      mainLabel: "MQLs",
+      secondaryKpi: 37.6,
+      secondaryLabel: "engagement rate",
+      secondaryUnit: "%",
+    },
+    {
+      stage: "opportunity",
+      mainKpi: 850,
+      mainLabel: "SQLs",
+      secondaryKpi: 26.6,
+      secondaryLabel: "pipeline value",
+      secondaryUnit: "%",
+    },
+    {
+      stage: "sales",
+      mainKpi: 1260000,
+      mainLabel: "revenue",
+      mainUnit: "$",
+      secondaryKpi: 52.9,
+      secondaryLabel: "conversion",
+      secondaryUnit: "%",
+    },
+    {
+      stage: "adoption",
+      mainKpi: 88.9,
+      mainLabel: "salud %",
+      mainUnit: "%",
+      secondaryKpi: 400,
+      secondaryLabel: "activos",
+    },
+    {
+      stage: "expansion",
+      mainKpi: 42000,
+      mainLabel: "net MRR",
+      mainUnit: "$",
+      secondaryKpi: 2.3,
+      secondaryLabel: "churn rate",
+      secondaryUnit: "%",
+    },
+    {
+      stage: "evangelization",
+      mainKpi: 1.8,
+      mainLabel: "k-factor",
+      secondaryKpi: 15.2,
+      secondaryLabel: "conversion",
+      secondaryUnit: "%",
+    },
   ],
-  period: 'last_30_days',
-  lastUpdated: '2026-03-14T03:15:00Z',
+  period: "last_30_days",
+  lastUpdated: "2026-03-14T03:15:00Z",
 };

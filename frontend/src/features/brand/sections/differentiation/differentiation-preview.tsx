@@ -13,22 +13,26 @@ interface DifferentiationPreviewProps {
 
 const TOOLTIPS: Record<string, string> = {
   "Propuesta Unica": "Lo que te hace irremplazable -- por que alguien te elige a ti y no a otro",
-  "Discriminador": "La razon especifica por la que eres diferente (no mejor, DIFERENTE)",
-  "RTBs": "Pruebas concretas de que tu promesa es real (datos, casos, certificaciones)",
+  Discriminador: "La razon especifica por la que eres diferente (no mejor, DIFERENTE)",
+  RTBs: "Pruebas concretas de que tu promesa es real (datos, casos, certificaciones)",
 };
 
 function SectionLabel({ label }: { label: string }) {
   const tip = TOOLTIPS[label];
   return (
     <div className="flex items-center gap-1.5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
       {tip && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Info className="w-3 h-3 text-muted-foreground/60 cursor-help" />
             </TooltipTrigger>
-            <TooltipContent className="max-w-[250px]"><p className="text-xs">{tip}</p></TooltipContent>
+            <TooltipContent className="max-w-[250px]">
+              <p className="text-xs">{tip}</p>
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       )}
@@ -71,7 +75,8 @@ export function DifferentiationPreview({ positioning, onEdit }: DifferentiationP
         </div>
         <div className="pl-0 md:pl-14">
           <p className="text-lg text-muted-foreground italic mb-2">
-            &quot;Si no puedes explicar en una frase por que eres diferente, tu cliente tampoco puede.&quot;
+            &quot;Si no puedes explicar en una frase por que eres diferente, tu cliente tampoco
+            puede.&quot;
           </p>
           <span className="text-sm text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
             <Pencil className="w-4 h-4" />

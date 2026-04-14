@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { PendientesView } from '../pendientes/PendientesView';
-import type { MetaAdsPeriod } from '../../../../../types/metrics';
+import { PendientesView } from "../pendientes/PendientesView";
+import type { MetaAdsPeriod } from "../../../../../types/metrics";
 
 interface PendientesTabProps {
   period: MetaAdsPeriod;
@@ -9,11 +9,7 @@ interface PendientesTabProps {
   onBackToCampaigns: () => void;
 }
 
-export function PendientesTab({
-  period,
-  onPeriodChange,
-  onBackToCampaigns,
-}: PendientesTabProps) {
+export function PendientesTab({ period, onPeriodChange, onBackToCampaigns }: PendientesTabProps) {
   return (
     <div className="h-[calc(100vh-140px)]">
       <PendientesView

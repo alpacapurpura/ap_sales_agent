@@ -5,6 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
 import { VoiceForm } from "./voice-form";
+import type { VoiceAnalysisResult } from "./voice-form";
 import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,7 +18,7 @@ export function VoiceManager() {
 
   const [analyzing, setAnalyzing] = useState(false);
   const [step, setStep] = useState<"upload" | "result">("upload");
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<VoiceAnalysisResult | undefined>(undefined);
   const [error, setError] = useState("");
   const [voiceTone, setVoiceTone] = useState<string | null>(null);
   const [savingTone, setSavingTone] = useState(false);
@@ -56,8 +57,8 @@ export function VoiceManager() {
       if (data.style_profile?.tone) {
         setVoiceTone(data.style_profile.tone);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setAnalyzing(false);
     }
@@ -65,7 +66,7 @@ export function VoiceManager() {
 
   const handleReset = () => {
     setStep("upload");
-    setResult(null);
+    setResult(undefined);
     setError("");
   };
 
@@ -87,7 +88,9 @@ export function VoiceManager() {
     <div className="space-y-8">
       {/* Voice Tone Field */}
       <div className="space-y-3">
-        <Label htmlFor="voice_tone" className="text-base font-semibold">Tono de Voz</Label>
+        <Label htmlFor="voice_tone" className="text-base font-semibold">
+          Tono de Voz
+        </Label>
         <Textarea
           id="voice_tone"
           value={currentVoiceTone}
@@ -96,15 +99,16 @@ export function VoiceManager() {
           className="min-h-[80px]"
         />
         <p className="text-xs text-muted-foreground">
-          Describe como habla tu marca. El SDR usara este tono en todas sus conversaciones. Si ejecutas la Clonacion de Estilo abajo, este campo se actualiza automaticamente.
+          Describe como habla tu marca. El SDR usara este tono en todas sus conversaciones. Si
+          ejecutas la Clonacion de Estilo abajo, este campo se actualiza automaticamente.
         </p>
         {voiceTone !== null && voiceTone !== (settings?.identity?.voice_tone ?? "") && (
-          <Button
-            onClick={handleSaveVoiceTone}
-            disabled={savingTone}
-            size="sm"
-          >
-            {savingTone ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+          <Button onClick={handleSaveVoiceTone} disabled={savingTone} size="sm">
+            {savingTone ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
             Guardar Tono
           </Button>
         )}

@@ -1,48 +1,50 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
-import { AlertTriangle, CheckCircle2, Package } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { metricsApi, type SourceProduct } from '../../../api/metrics-api';
-import { offerApi } from '@/features/offer-studio/api';
-import type { Offer } from '@/features/offer-studio/types';
-import { AssociationDialog } from './AssociationDialog';
-import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
+import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { AlertTriangle, CheckCircle2, Package } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { metricsApi, type SourceProduct } from "../../../api/metrics-api";
+import { offerApi } from "@/features/offer-studio/api";
+import type { Offer } from "@/features/offer-studio/types";
+import { AssociationDialog } from "./AssociationDialog";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 const EMPTY_PRODUCTS: SourceProduct[] = [];
 const EMPTY_OFFERS: Offer[] = [];
 
 const SOURCE_LABELS: Record<string, string> = {
-  shopify: 'Shopify',
-  woocommerce: 'WooCommerce',
-  stripe: 'Stripe',
+  shopify: "Shopify",
+  woocommerce: "WooCommerce",
+  stripe: "Stripe",
 };
 
 interface SourceProductsProps {
   source?: string;
 }
 
-export function SourceProducts({ source = 'shopify' }: SourceProductsProps) {
+export function SourceProducts({ source = "shopify" }: SourceProductsProps) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const { currency: tenantCurrency } = useTenantLocale();
   const [dialogProduct, setDialogProduct] = useState<SourceProduct | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  const { data: products = EMPTY_PRODUCTS, isLoading: loadingProducts } = useQuery<SourceProduct[]>({
-    queryKey: ['source-products', source],
-    queryFn: async () => {
-      const token = await getToken();
-      if (!token) return [];
-      return metricsApi.getSourceProducts(token, source);
+  const { data: products = EMPTY_PRODUCTS, isLoading: loadingProducts } = useQuery<SourceProduct[]>(
+    {
+      queryKey: ["source-products", source],
+      queryFn: async () => {
+        const token = await getToken();
+        if (!token) return [];
+        return metricsApi.getSourceProducts(token, source);
+      },
+      staleTime: 5 * 60 * 1000,
     },
-    staleTime: 5 * 60 * 1000,
-  });
+  );
 
   const { data: offers = EMPTY_OFFERS } = useQuery<Offer[]>({
-    queryKey: ['offers'],
+    queryKey: ["offers"],
     queryFn: async () => {
       const token = await getToken();
       if (!token) return [];
@@ -59,12 +61,13 @@ export function SourceProducts({ source = 'shopify' }: SourceProductsProps) {
   }, [toast]);
 
   const handleAssociationSuccess = (salesCreated: number) => {
-    const msg = salesCreated > 0
-      ? `Producto asociado. ${salesCreated} venta${salesCreated !== 1 ? 's' : ''} retroactiva${salesCreated !== 1 ? 's' : ''} creada${salesCreated !== 1 ? 's' : ''}.`
-      : 'Producto asociado correctamente.';
+    const msg =
+      salesCreated > 0
+        ? `Producto asociado. ${salesCreated} venta${salesCreated !== 1 ? "s" : ""} retroactiva${salesCreated !== 1 ? "s" : ""} creada${salesCreated !== 1 ? "s" : ""}.`
+        : "Producto asociado correctamente.";
     setToast(msg);
-    void queryClient.invalidateQueries({ queryKey: ['source-products', source] });
-    void queryClient.invalidateQueries({ queryKey: ['sales-detail'] });
+    void queryClient.invalidateQueries({ queryKey: ["source-products", source] });
+    void queryClient.invalidateQueries({ queryKey: ["sales-detail"] });
   };
 
   const unmappedProducts = products.filter((p) => !p.is_mapped);
@@ -75,8 +78,8 @@ export function SourceProducts({ source = 'shopify' }: SourceProductsProps) {
   const sourceLabel = SOURCE_LABELS[source] || source;
 
   const formatCurrency = (value: number, currency: string | null) =>
-    new Intl.NumberFormat('es-MX', {
-      style: 'currency',
+    new Intl.NumberFormat("es-MX", {
+      style: "currency",
       currency: currency || tenantCurrency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
@@ -124,7 +127,7 @@ export function SourceProducts({ source = 'shopify' }: SourceProductsProps) {
                   {formatCurrency(product.total_price, product.currency)}
                 </p>
                 <p className="text-[10px] text-muted-foreground">
-                  {product.event_count} transaccion{product.event_count !== 1 ? 'es' : ''}
+                  {product.event_count} transaccion{product.event_count !== 1 ? "es" : ""}
                 </p>
               </div>
 
@@ -150,7 +153,9 @@ export function SourceProducts({ source = 'shopify' }: SourceProductsProps) {
         offers={offers}
         source={source}
         open={dialogProduct !== null}
-        onOpenChange={(open) => { if (!open) setDialogProduct(null); }}
+        onOpenChange={(open) => {
+          if (!open) setDialogProduct(null);
+        }}
         onSuccess={handleAssociationSuccess}
       />
     </>

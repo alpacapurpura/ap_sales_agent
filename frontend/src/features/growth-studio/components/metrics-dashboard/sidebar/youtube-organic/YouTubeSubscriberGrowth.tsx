@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { TrendingDown, TrendingUp, Users } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { MetricKpiData } from '../../../../types/metrics';
+import { TrendingDown, TrendingUp, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { MetricKpiData } from "../../../../types/metrics";
 
 interface YouTubeSubscriberGrowthProps {
   kpis: MetricKpiData[];
 }
 
 export function YouTubeSubscriberGrowth({ kpis }: YouTubeSubscriberGrowthProps) {
-  const gainedKpi = kpis.find(k => k.metricName === 'subscribers_gained');
-  const lostKpi = kpis.find(k => k.metricName === 'subscribers_lost');
+  const gainedKpi = kpis.find((k) => k.metricName === "subscribers_gained");
+  const lostKpi = kpis.find((k) => k.metricName === "subscribers_lost");
 
   if (!gainedKpi) return null;
 
@@ -33,12 +33,13 @@ export function YouTubeSubscriberGrowth({ kpis }: YouTubeSubscriberGrowthProps) 
             <p className="text-sm text-muted-foreground">Suscriptores netos (periodo)</p>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-semibold tabular-nums">
-                {isPositive ? '+' : ''}{net.toLocaleString('en-US')}
+                {isPositive ? "+" : ""}
+                {net.toLocaleString("en-US")}
               </span>
               <span
                 className={cn(
-                  'inline-flex items-center gap-0.5 text-xs font-medium',
-                  isPositive ? 'text-emerald-600' : 'text-red-600',
+                  "inline-flex items-center gap-0.5 text-xs font-medium",
+                  isPositive ? "text-emerald-600" : "text-red-600",
                 )}
               >
                 {isPositive ? (
@@ -48,15 +49,17 @@ export function YouTubeSubscriberGrowth({ kpis }: YouTubeSubscriberGrowthProps) 
                 )}
                 {gainedKpi.deltaPct != null
                   ? `${Math.abs(gainedKpi.deltaPct).toFixed(1)}% vs anterior`
-                  : isPositive ? 'Creciendo' : 'Decreciendo'}
+                  : isPositive
+                    ? "Creciendo"
+                    : "Decreciendo"}
               </span>
             </div>
           </div>
         </div>
         {lost > 0 && (
           <div className="mt-3 flex gap-4 text-xs text-muted-foreground border-t pt-3">
-            <span className="text-emerald-600">+{gained.toLocaleString('en-US')} ganados</span>
-            <span className="text-red-600">-{lost.toLocaleString('en-US')} perdidos</span>
+            <span className="text-emerald-600">+{gained.toLocaleString("en-US")} ganados</span>
+            <span className="text-red-600">-{lost.toLocaleString("en-US")} perdidos</span>
           </div>
         )}
       </div>

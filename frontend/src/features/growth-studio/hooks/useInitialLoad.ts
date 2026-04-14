@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@clerk/nextjs';
-import { metricsApi } from '../api/metrics-api';
+import { useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/nextjs";
+import { metricsApi } from "../api/metrics-api";
 
 interface InitialLoadParams {
   provider: string;
@@ -15,13 +15,13 @@ export function useInitialLoad() {
   const mutation = useMutation({
     mutationFn: async ({ provider, days = 30 }: InitialLoadParams) => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return metricsApi.triggerInitialLoad(token, provider, days);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attraction-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['sales-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['bowties-summary'] });
+      queryClient.invalidateQueries({ queryKey: ["attraction-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["sales-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["bowties-summary"] });
     },
   });
 

@@ -53,11 +53,7 @@ import {
 // Types
 // ---------------------------------------------------------------------------
 
-export type BrandSectionId =
-  | "esencia"
-  | "estrategia"
-  | "publico"
-  | "identidad-creativa";
+export type BrandSectionId = "esencia" | "estrategia" | "publico" | "identidad-creativa";
 
 export interface SectionNavItemConfig {
   /** Unique key within the section */
@@ -113,11 +109,35 @@ export const BRAND_SECTIONS: Record<BrandSectionId, BrandSectionConfig> = {
     icon: Building2,
     slug: "esencia",
     navItems: [
-      { id: "origin", label: "Origen", icon: BookOpen, scrollTo: "story", validators: [vIdentity, vStory] },
-      { id: "personality", label: "Personalidad", icon: Target, scrollTo: "values-essence", validators: [vPositioning] },
+      {
+        id: "origin",
+        label: "Origen",
+        icon: BookOpen,
+        scrollTo: "story",
+        validators: [vIdentity, vStory],
+      },
+      {
+        id: "personality",
+        label: "Personalidad",
+        icon: Target,
+        scrollTo: "values-essence",
+        validators: [vPositioning],
+      },
       { id: "team", label: "Equipo", icon: Users, scrollTo: "team", validators: [vTeam] },
-      { id: "credibility", label: "Credibilidad", icon: Award, scrollTo: "authority", validators: [vAuthority] },
-      { id: "contact", label: "Contacto", icon: Contact, scrollTo: "contact", validators: [vContact] },
+      {
+        id: "credibility",
+        label: "Credibilidad",
+        icon: Award,
+        scrollTo: "authority",
+        validators: [vAuthority],
+      },
+      {
+        id: "contact",
+        label: "Contacto",
+        icon: Contact,
+        scrollTo: "contact",
+        validators: [vContact],
+      },
     ],
   },
 
@@ -128,10 +148,34 @@ export const BRAND_SECTIONS: Record<BrandSectionId, BrandSectionConfig> = {
     icon: Crosshair,
     slug: "estrategia",
     navItems: [
-      { id: "positioning", label: "Posicionamiento", icon: Trophy, scrollTo: "positioning", validators: [vPositioning] },
-      { id: "market", label: "Mercado", icon: Crosshair, scrollTo: "market", validators: [vPositioning] },
-      { id: "storybrand", label: "StoryBrand", icon: BookOpen, scrollTo: "storybrand", validators: [vNarrative] },
-      { id: "methodology", label: "Metodologia", icon: Compass, scrollTo: "methodology", validators: [vStrategy] },
+      {
+        id: "positioning",
+        label: "Posicionamiento",
+        icon: Trophy,
+        scrollTo: "positioning",
+        validators: [vPositioning],
+      },
+      {
+        id: "market",
+        label: "Mercado",
+        icon: Crosshair,
+        scrollTo: "market",
+        validators: [vPositioning],
+      },
+      {
+        id: "storybrand",
+        label: "StoryBrand",
+        icon: BookOpen,
+        scrollTo: "storybrand",
+        validators: [vNarrative],
+      },
+      {
+        id: "methodology",
+        label: "Metodologia",
+        icon: Compass,
+        scrollTo: "methodology",
+        validators: [vStrategy],
+      },
     ],
   },
 
@@ -142,7 +186,13 @@ export const BRAND_SECTIONS: Record<BrandSectionId, BrandSectionConfig> = {
     icon: UserSearch,
     slug: "publico",
     navItems: [
-      { id: "avatars", label: "Buyer Personas", icon: UserSearch, scrollTo: "avatars", validators: [vAvatars] },
+      {
+        id: "avatars",
+        label: "Buyer Personas",
+        icon: UserSearch,
+        scrollTo: "avatars",
+        validators: [vAvatars],
+      },
     ],
   },
 
@@ -153,12 +203,36 @@ export const BRAND_SECTIONS: Record<BrandSectionId, BrandSectionConfig> = {
     icon: Palette,
     slug: "identidad-creativa",
     navItems: [
-      { id: "gallery", label: "Galeria de Marca", icon: LayoutGrid, scrollTo: "gallery", validators: [vVisuals] },
-      { id: "design-system", label: "Sistema de Diseno", icon: Palette, scrollTo: "visuals", validators: [vVisuals] },
+      {
+        id: "gallery",
+        label: "Galeria de Marca",
+        icon: LayoutGrid,
+        scrollTo: "gallery",
+        validators: [vVisuals],
+      },
+      {
+        id: "design-system",
+        label: "Sistema de Diseno",
+        icon: Palette,
+        scrollTo: "visuals",
+        validators: [vVisuals],
+      },
       { id: "logos", label: "Logos", icon: ImageIcon, scrollTo: "logos", validators: [vVisuals] },
       { id: "voice", label: "Voz AI", icon: Mic, scrollTo: "voice", validators: [vVoice] },
-      { id: "concepts", label: "Conceptos Creativos", icon: Lightbulb, scrollTo: "creative-concepts", validators: [vCommAssets] },
-      { id: "funnel-assets", label: "Assets por Funnel", icon: LayoutGrid, scrollTo: "funnel-assets", validators: [vCommAssets] },
+      {
+        id: "concepts",
+        label: "Conceptos Creativos",
+        icon: Lightbulb,
+        scrollTo: "creative-concepts",
+        validators: [vCommAssets],
+      },
+      {
+        id: "funnel-assets",
+        label: "Assets por Funnel",
+        icon: LayoutGrid,
+        scrollTo: "funnel-assets",
+        validators: [vCommAssets],
+      },
     ],
   },
 };
@@ -174,7 +248,10 @@ export const EDIT_MODE_META: Record<EditMode, { title: string; desc: string }> =
   legal: { title: "Datos Legales", desc: "Informacion fiscal y legal." },
   authority: { title: "Autoridad & Prensa", desc: "Gestiona premios y apariciones en medios." },
   team: { title: "Equipo", desc: "Gestiona los miembros clave de la marca." },
-  testimonials: { title: "Testimonios", desc: "Gestiona la prueba social y opiniones de clientes." },
+  testimonials: {
+    title: "Testimonios",
+    desc: "Gestiona la prueba social y opiniones de clientes.",
+  },
   avatars: { title: "Avatares", desc: "Personaliza los avatares para diferentes canales." },
   contact: { title: "Contacto", desc: "Informacion publica de contacto." },
   visuals: { title: "Identidad Visual", desc: "Colores, tipografia y estilo." },
@@ -182,10 +259,19 @@ export const EDIT_MODE_META: Record<EditMode, { title: string; desc: string }> =
   logos: { title: "Kit de Logos", desc: "Gestiona las variantes de tu logo." },
   story: { title: "Historia de Origen", desc: "El relato fundacional de tu marca." },
   methodology: { title: "Metodologia", desc: "Tus pilares y metodos unicos." },
-  positioning: { title: "Posicionamiento", desc: "Entorno competitivo, insight y beneficios (Brand Love Key)." },
-  "values-essence": { title: "Valores & Esencia", desc: "Valores, personalidad, RTBs y esencia de marca." },
+  positioning: {
+    title: "Posicionamiento",
+    desc: "Entorno competitivo, insight y beneficios (Brand Love Key).",
+  },
+  "values-essence": {
+    title: "Valores & Esencia",
+    desc: "Valores, personalidad, RTBs y esencia de marca.",
+  },
   storybrand: { title: "Narrativa StoryBrand", desc: "El viaje del heroe de tu marca." },
-  "communication-assets": { title: "Activos de Comunicacion", desc: "Conceptos creativos y piezas por etapa de funnel." },
+  "communication-assets": {
+    title: "Activos de Comunicacion",
+    desc: "Conceptos creativos y piezas por etapa de funnel.",
+  },
 };
 
 /** Ordered list of sections for sidebar rendering */
@@ -205,7 +291,7 @@ export const BRAND_SECTION_ORDER: BrandSectionId[] = [
  */
 export function computeNavItemHealth(
   item: SectionNavItemConfig,
-  settings: BrandSettings
+  settings: BrandSettings,
 ): { score: number; status: "complete" | "partial" | "empty"; missingFields: string[] } {
   const results = item.validators.map((v) => v(settings));
   if (results.length === 0) return { score: 0, status: "empty", missingFields: [] };
@@ -213,7 +299,11 @@ export function computeNavItemHealth(
   const score = Math.round(results.reduce((a, r) => a + r.score, 0) / results.length);
   const allComplete = results.every((r) => r.status === "complete");
   const allEmpty = results.every((r) => r.status === "empty");
-  const status = allComplete ? "complete" as const : allEmpty ? "empty" as const : "partial" as const;
+  const status = allComplete
+    ? ("complete" as const)
+    : allEmpty
+      ? ("empty" as const)
+      : ("partial" as const);
   const missingFields = results.flatMap((r) => r.missingFields);
 
   return { score, status, missingFields };
@@ -222,10 +312,7 @@ export function computeNavItemHealth(
 /**
  * Build the full nav item array with computed health for a section.
  */
-export function buildSectionNavItems(
-  sectionId: BrandSectionId,
-  settings: BrandSettings
-) {
+export function buildSectionNavItems(sectionId: BrandSectionId, settings: BrandSettings) {
   const section = BRAND_SECTIONS[sectionId];
   return section.navItems.map((item) => ({
     ...item,

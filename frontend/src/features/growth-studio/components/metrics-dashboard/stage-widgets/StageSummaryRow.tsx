@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { memo, useCallback } from 'react';
-import { usePathname } from 'next/navigation';
-import { useNavigation } from '@/components/shared/navigation';
-import type { StageId, StageSummary } from '../../../types/metrics';
-import { StageCard } from './StageCard';
-import { STAGE_TO_SLUG } from '../context/GrowthStudioContext';
-import { cn } from '@/lib/utils';
+import { memo, useCallback } from "react";
+import { usePathname } from "next/navigation";
+import { useNavigation } from "@/components/shared/navigation";
+import type { StageId, StageSummary } from "../../../types/metrics";
+import { StageCard } from "./StageCard";
+import { STAGE_TO_SLUG } from "../context/GrowthStudioContext";
+import { cn } from "@/lib/utils";
 
 interface StageSummaryRowProps {
   stages: StageSummary[];
@@ -31,25 +31,28 @@ export const StageSummaryRow = memo(function StageSummaryRow({
   const pathname = usePathname();
 
   // Derive tenantId + base path from current pathname
-  const segments = pathname?.split('/').filter(Boolean) ?? [];
-  const tenantId = segments[0] ?? '';
+  const segments = pathname?.split("/").filter(Boolean) ?? [];
+  const tenantId = segments[0] ?? "";
 
-  const handleStageClick = useCallback((id: StageId) => {
-    const slug = STAGE_TO_SLUG[id as keyof typeof STAGE_TO_SLUG];
-    if (slug) {
-      navigate(`/${tenantId}/growth-studio/${slug}`);
-    }
-  }, [navigate, tenantId]);
+  const handleStageClick = useCallback(
+    (id: StageId) => {
+      const slug = STAGE_TO_SLUG[id as keyof typeof STAGE_TO_SLUG];
+      if (slug) {
+        navigate(`/${tenantId}/growth-studio/${slug}`);
+      }
+    },
+    [navigate, tenantId],
+  );
 
   return (
     <div className="w-full overflow-x-auto pb-4 scrollbar-thin">
       <div
         className={cn(
           "min-w-[800px] flex items-stretch justify-center relative rounded-2xl overflow-hidden h-[120px]",
-          "bg-gradient-to-r from-blue-600 via-violet-600 via-emerald-600 via-amber-500 to-rose-600"
+          "bg-gradient-to-r from-blue-600 via-violet-600 via-emerald-600 via-amber-500 to-rose-600",
         )}
         style={{
-          clipPath: "polygon(0 0, 50% 12%, 100% 0, 100% 100%, 50% 88%, 0 100%)"
+          clipPath: "polygon(0 0, 50% 12%, 100% 0, 100% 100%, 50% 88%, 0 100%)",
         }}
       >
         {stages.map((stage, index) => {
@@ -58,10 +61,7 @@ export const StageSummaryRow = memo(function StageSummaryRow({
           const isLast = index === stages.length - 1;
 
           return (
-            <div
-              key={stage.id}
-              className="flex-1 relative flex"
-            >
+            <div key={stage.id} className="flex-1 relative flex">
               <StageCard
                 stage={stage}
                 isActive={isActive}
@@ -80,4 +80,4 @@ export const StageSummaryRow = memo(function StageSummaryRow({
     </div>
   );
 });
-StageSummaryRow.displayName = 'StageSummaryRow';
+StageSummaryRow.displayName = "StageSummaryRow";

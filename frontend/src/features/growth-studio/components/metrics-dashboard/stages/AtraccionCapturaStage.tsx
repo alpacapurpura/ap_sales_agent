@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { AttractionCaptureDetail } from '../detail-panels/AttractionCaptureDetail';
-import { useGrowthStudioContext } from '../context/GrowthStudioContext';
+import { AttractionCaptureDetail } from "../detail-panels/AttractionCaptureDetail";
+import { useGrowthStudioContext } from "../context/GrowthStudioContext";
 
 export function AtraccionCapturaStage() {
-  const { handleMetricClick, handleConfigure, handleChannelClick, handleDisconnectedClick, handleNoDataClick } = useGrowthStudioContext();
+  const {
+    handleMetricClick,
+    handleConfigure,
+    handleChannelClick,
+    handleDisconnectedClick,
+    handleNoDataClick,
+  } = useGrowthStudioContext();
   return (
     <AttractionCaptureDetail
       onMetricClick={handleMetricClick}

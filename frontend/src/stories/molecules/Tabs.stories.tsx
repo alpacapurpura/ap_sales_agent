@@ -1,10 +1,10 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const meta = {
-  title: 'Molecules/Tabs',
+  title: "Molecules/Tabs",
   component: Tabs,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof Tabs>;
 
 export default meta;
@@ -19,19 +19,13 @@ export const Default: Story = {
         <TabsTrigger value="tab3">Settings</TabsTrigger>
       </TabsList>
       <TabsContent value="tab1">
-        <p className="text-sm text-muted-foreground p-4">
-          Make changes to your account here.
-        </p>
+        <p className="text-sm text-muted-foreground p-4">Make changes to your account here.</p>
       </TabsContent>
       <TabsContent value="tab2">
-        <p className="text-sm text-muted-foreground p-4">
-          Change your password here.
-        </p>
+        <p className="text-sm text-muted-foreground p-4">Change your password here.</p>
       </TabsContent>
       <TabsContent value="tab3">
-        <p className="text-sm text-muted-foreground p-4">
-          Manage your settings here.
-        </p>
+        <p className="text-sm text-muted-foreground p-4">Manage your settings here.</p>
       </TabsContent>
     </Tabs>
   ),

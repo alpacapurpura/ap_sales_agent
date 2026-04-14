@@ -1,30 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const code = searchParams.get('code');
-  const hmac = searchParams.get('hmac');
-  const shop = searchParams.get('shop');
-  const state = searchParams.get('state');
-  const host = searchParams.get('host');
-  const timestamp = searchParams.get('timestamp');
+  const code = searchParams.get("code");
+  const hmac = searchParams.get("hmac");
+  const shop = searchParams.get("shop");
+  const state = searchParams.get("state");
+  const host = searchParams.get("host");
+  const timestamp = searchParams.get("timestamp");
   const appId = process.env.SHOPIFY_API_KEY;
 
   // state contains tenantId (UUID) set during auth URL generation
-  const connectionsPath = state ? `/${state}/connections/shopify` : '/';
+  const connectionsPath = state ? `/${state}/connections/shopify` : "/";
 
   if (!code || !hmac || !shop) {
-    return NextResponse.redirect(new URL(`${connectionsPath}?status=error&message=Missing required parameters`, request.url));
+    return NextResponse.redirect(
+      new URL(`${connectionsPath}?status=error&message=Missing required parameters`, request.url),
+    );
   }
 
   if (!appId) {
-    return NextResponse.redirect(new URL(`${connectionsPath}?status=error&message=Missing SHOPIFY_API_KEY configuration`, request.url));
+    return NextResponse.redirect(
+      new URL(
+        `${connectionsPath}?status=error&message=Missing SHOPIFY_API_KEY configuration`,
+        request.url,
+      ),
+    );
   }
 
   try {
-    const backendUrl = process.env.INTERNAL_API_URL || 'http://visionarias_brain_dev:8000';
+    const backendUrl = process.env.INTERNAL_API_URL || "http://visionarias_brain_dev:8000";
     let exchangeSuccess = false;
-    let errorDetail = '';
+    let errorDetail = "";
     const exchangePayload: Record<string, string> = {
       code,
       hmac,
@@ -43,49 +50,54 @@ export async function GET(request: NextRequest) {
 
     try {
       const response = await fetch(`${backendUrl}/api/v1/connections/shopify/auth/exchange`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(exchangePayload),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        errorDetail = errorData.detail || 'Failed to exchange token';
-        console.error('Shopify Exchange Error:', errorDetail);
+        errorDetail = errorData.detail || "Failed to exchange token";
+        console.error("Shopify Exchange Error:", errorDetail);
       } else {
         exchangeSuccess = true;
       }
     } catch (error: any) {
-      console.error('Shopify Network Error:', error);
+      console.error("Shopify Network Error:", error);
       errorDetail = error.message;
     }
 
     if (host) {
-      const shopName = shop.replace('.myshopify.com', '');
+      const shopName = shop.replace(".myshopify.com", "");
       const adminUrl = new URL(`https://admin.shopify.com/store/${shopName}/apps/${appId}`);
-      adminUrl.searchParams.set('host', host);
-      adminUrl.searchParams.set('shop', shop);
-      adminUrl.searchParams.set('status', exchangeSuccess ? 'success' : 'error');
+      adminUrl.searchParams.set("host", host);
+      adminUrl.searchParams.set("shop", shop);
+      adminUrl.searchParams.set("status", exchangeSuccess ? "success" : "error");
       if (!exchangeSuccess && errorDetail) {
-        adminUrl.searchParams.set('message', errorDetail);
+        adminUrl.searchParams.set("message", errorDetail);
       }
       return NextResponse.redirect(adminUrl);
     }
 
     const redirectUrl = new URL(connectionsPath, request.url);
     if (exchangeSuccess) {
-      redirectUrl.searchParams.set('status', 'success');
-      redirectUrl.searchParams.set('channel', 'shopify');
+      redirectUrl.searchParams.set("status", "success");
+      redirectUrl.searchParams.set("channel", "shopify");
     } else {
-      redirectUrl.searchParams.set('status', 'error');
-      redirectUrl.searchParams.set('message', errorDetail);
+      redirectUrl.searchParams.set("status", "error");
+      redirectUrl.searchParams.set("message", errorDetail);
     }
 
     return NextResponse.redirect(redirectUrl);
   } catch (error: any) {
-    console.error('Shopify Auth Fatal Error:', error);
-    return NextResponse.redirect(new URL(`${connectionsPath}?status=error&message=${encodeURIComponent(error.message)}`, request.url));
+    console.error("Shopify Auth Fatal Error:", error);
+    return NextResponse.redirect(
+      new URL(
+        `${connectionsPath}?status=error&message=${encodeURIComponent(error.message)}`,
+        request.url,
+      ),
+    );
   }
 }

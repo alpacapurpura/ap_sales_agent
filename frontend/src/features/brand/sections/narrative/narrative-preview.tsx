@@ -28,24 +28,15 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
     narrative.problem?.external_problem ||
     narrative.problem?.internal_problem ||
     narrative.problem?.philosophical_problem;
-  const hasGuide =
-    narrative.guide?.empathy_statement || narrative.guide?.authority_statement;
+  const hasGuide = narrative.guide?.empathy_statement || narrative.guide?.authority_statement;
   const hasPlan = narrative.plan && narrative.plan.length > 0;
-  const hasCta =
-    narrative.cta?.direct_cta || narrative.cta?.transitional_cta;
+  const hasCta = narrative.cta?.direct_cta || narrative.cta?.transitional_cta;
   const hasOutcome =
-    narrative.outcome?.success_transformation ||
-    narrative.outcome?.failure_consequence;
+    narrative.outcome?.success_transformation || narrative.outcome?.failure_consequence;
   const hasOneLiner = !!narrative.one_liner;
 
   const isEmpty =
-    !hasHero &&
-    !hasProblem &&
-    !hasGuide &&
-    !hasPlan &&
-    !hasCta &&
-    !hasOutcome &&
-    !hasOneLiner;
+    !hasHero && !hasProblem && !hasGuide && !hasPlan && !hasCta && !hasOutcome && !hasOneLiner;
 
   if (isEmpty) {
     return (
@@ -57,9 +48,7 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
           <div className="p-2 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
             <BookOpen className="w-5 h-5" />
           </div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider">
-            Narrativa StoryBrand
-          </h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wider">Narrativa StoryBrand</h3>
         </div>
         <div className="pl-0 md:pl-14">
           <p className="text-lg text-muted-foreground italic mb-2">
@@ -85,9 +74,7 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
           <div className="p-2 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
             <BookOpen className="w-5 h-5" />
           </div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider">
-            Narrativa StoryBrand
-          </h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wider">Narrativa StoryBrand</h3>
         </div>
         <Button
           variant="ghost"
@@ -122,9 +109,7 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-muted-foreground">
               <User className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                El Heroe
-              </span>
+              <span className="text-xs font-semibold uppercase tracking-wider">El Heroe</span>
               <Badge variant="outline" className="text-[10px] ml-1">
                 Paso 1
               </Badge>
@@ -145,9 +130,7 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
                   <span className="text-[11px] text-muted-foreground uppercase tracking-wide block mb-1">
                     Deseo
                   </span>
-                  <p className="text-sm leading-relaxed text-foreground">
-                    {narrative.hero.desire}
-                  </p>
+                  <p className="text-sm leading-relaxed text-foreground">{narrative.hero.desire}</p>
                 </div>
               )}
             </div>
@@ -159,9 +142,7 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-muted-foreground">
               <AlertTriangle className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                El Problema
-              </span>
+              <span className="text-xs font-semibold uppercase tracking-wider">El Problema</span>
               <Badge variant="outline" className="text-[10px] ml-1">
                 Paso 2
               </Badge>
@@ -172,9 +153,7 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
                   <span className="text-[11px] text-muted-foreground uppercase tracking-wide block mb-1">
                     Villano
                   </span>
-                  <p className="text-sm text-foreground font-medium">
-                    {narrative.problem.villain}
-                  </p>
+                  <p className="text-sm text-foreground font-medium">{narrative.problem.villain}</p>
                 </div>
               )}
               {narrative.problem?.external_problem && (
@@ -182,9 +161,7 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
                   <span className="text-[11px] text-muted-foreground uppercase tracking-wide block mb-1">
                     Externo
                   </span>
-                  <p className="text-sm text-foreground">
-                    {narrative.problem.external_problem}
-                  </p>
+                  <p className="text-sm text-foreground">{narrative.problem.external_problem}</p>
                 </div>
               )}
               {narrative.problem?.internal_problem && (
@@ -192,9 +169,7 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
                   <span className="text-[11px] text-muted-foreground uppercase tracking-wide block mb-1">
                     Interno
                   </span>
-                  <p className="text-sm text-foreground">
-                    {narrative.problem.internal_problem}
-                  </p>
+                  <p className="text-sm text-foreground">{narrative.problem.internal_problem}</p>
                 </div>
               )}
               {narrative.problem?.philosophical_problem && (
@@ -216,9 +191,7 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Compass className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                El Guia
-              </span>
+              <span className="text-xs font-semibold uppercase tracking-wider">El Guia</span>
               <Badge variant="outline" className="text-[10px] ml-1">
                 Paso 3
               </Badge>
@@ -253,9 +226,7 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-muted-foreground">
               <ListOrdered className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                El Plan
-              </span>
+              <span className="text-xs font-semibold uppercase tracking-wider">El Plan</span>
               <Badge variant="outline" className="text-[10px] ml-1">
                 Paso 4
               </Badge>
@@ -309,9 +280,7 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
                   <span className="text-[11px] text-muted-foreground uppercase tracking-wide block mb-1">
                     CTA Directo
                   </span>
-                  <p className="text-sm font-semibold text-primary">
-                    {narrative.cta.direct_cta}
-                  </p>
+                  <p className="text-sm font-semibold text-primary">{narrative.cta.direct_cta}</p>
                 </div>
               )}
               {narrative.cta?.transitional_cta && (
@@ -319,9 +288,7 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
                   <span className="text-[11px] text-muted-foreground uppercase tracking-wide block mb-1">
                     CTA Transicional
                   </span>
-                  <p className="text-sm text-foreground">
-                    {narrative.cta.transitional_cta}
-                  </p>
+                  <p className="text-sm text-foreground">{narrative.cta.transitional_cta}</p>
                 </div>
               )}
             </div>
@@ -333,9 +300,7 @@ export function NarrativePreview({ narrative, onEdit }: NarrativePreviewProps) {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-muted-foreground">
               <TrendingUp className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                Resultado
-              </span>
+              <span className="text-xs font-semibold uppercase tracking-wider">Resultado</span>
               <Badge variant="outline" className="text-[10px] ml-1">
                 Paso 6
               </Badge>

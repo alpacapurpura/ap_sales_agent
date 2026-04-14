@@ -1,19 +1,19 @@
-import React from 'react';
-import { OfferFormValues } from '../../../../types/schema';
-import { useFormContext } from 'react-hook-form';
-import { ShieldCheck } from 'lucide-react';
-import { GuaranteeType } from '../../../../types';
+import React from "react";
+import { OfferFormValues } from "../../../../types/schema";
+import { useFormContext } from "react-hook-form";
+import { ShieldCheck } from "lucide-react";
+import { GuaranteeType } from "../../../../types";
 
 interface ClosingPreviewProps {
   data?: Partial<OfferFormValues>;
 }
 
 const GUARANTEE_LABELS: Record<string, string> = {
-    [GuaranteeType.NONE]: "Sin Reembolsos",
-    [GuaranteeType.UNCONDITIONAL_30_DAY]: "Garantía Incondicional (30 Días)",
-    [GuaranteeType.CONDITIONAL_ACTION_BASED]: "Garantía Condicional",
-    [GuaranteeType.DOUBLE_MONEY_BACK]: "Doble Devolución",
-    [GuaranteeType.SATISFACTION_OR_FREE_WORK]: "Satisfacción o Trabajo Gratis"
+  [GuaranteeType.NONE]: "Sin Reembolsos",
+  [GuaranteeType.UNCONDITIONAL_30_DAY]: "Garantía Incondicional (30 Días)",
+  [GuaranteeType.CONDITIONAL_ACTION_BASED]: "Garantía Condicional",
+  [GuaranteeType.DOUBLE_MONEY_BACK]: "Doble Devolución",
+  [GuaranteeType.SATISFACTION_OR_FREE_WORK]: "Satisfacción o Trabajo Gratis",
 };
 
 export const ClosingPreview = ({ data: propsData }: ClosingPreviewProps) => {
@@ -25,7 +25,7 @@ export const ClosingPreview = ({ data: propsData }: ClosingPreviewProps) => {
   const { guarantee_type, guarantee_terms } = data;
 
   if (guarantee_type === GuaranteeType.NONE && !guarantee_terms) {
-      return null;
+    return null;
   }
 
   return (
@@ -44,7 +44,7 @@ export const ClosingPreview = ({ data: propsData }: ClosingPreviewProps) => {
 
       {guarantee_terms && (
         <div className="text-xs text-muted-foreground/80 max-w-xs leading-relaxed">
-           &quot;{guarantee_terms}&quot;
+          &quot;{guarantee_terms}&quot;
         </div>
       )}
     </div>

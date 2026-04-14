@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils';
-import type { EmailCampaignSummary } from '../../../../types/mail-types';
+import { cn } from "@/lib/utils";
+import type { EmailCampaignSummary } from "../../../../types/mail-types";
 
 interface MailCampaignCardsProps {
   bestCampaign: EmailCampaignSummary | null;
@@ -11,14 +11,14 @@ interface MailCampaignCardsProps {
 function formatSentCount(count: number): string {
   if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
   if (count >= 1_000) return `${(count / 1_000).toFixed(1)}k`;
-  return count.toLocaleString('es-ES');
+  return count.toLocaleString("es-ES");
 }
 
 function formatDate(isoDate: string): string {
   try {
-    return new Intl.DateTimeFormat('es-ES', {
-      day: 'numeric',
-      month: 'short',
+    return new Intl.DateTimeFormat("es-ES", {
+      day: "numeric",
+      month: "short",
     }).format(new Date(isoDate));
   } catch {
     return isoDate;
@@ -33,10 +33,8 @@ interface CampaignCardProps {
 
 function CampaignCard({ title, campaign, borderColor }: CampaignCardProps) {
   return (
-    <div className={cn('rounded-lg border bg-card p-3 border-l-4', borderColor)}>
-      <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1.5">
-        {title}
-      </p>
+    <div className={cn("rounded-lg border bg-card p-3 border-l-4", borderColor)}>
+      <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1.5">{title}</p>
       <p className="text-sm font-medium truncate" title={campaign.campaignName}>
         {campaign.campaignName}
       </p>
@@ -51,7 +49,9 @@ function CampaignCard({ title, campaign, borderColor }: CampaignCardProps) {
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Enviados</span>
-          <span className="font-medium tabular-nums">{formatSentCount(campaign.sentCount)} env.</span>
+          <span className="font-medium tabular-nums">
+            {formatSentCount(campaign.sentCount)} env.
+          </span>
         </div>
         {campaign.sentDate && (
           <div className="flex justify-between">

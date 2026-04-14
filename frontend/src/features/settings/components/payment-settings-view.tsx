@@ -1,11 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
+import { useState } from "react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
   CardContent,
@@ -13,12 +9,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import {
   CreditCard,
   Key,
@@ -28,15 +24,15 @@ import {
   Loader2,
   ShieldCheck,
   ShieldAlert,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import { PaymentGatewayConfig as ConfigType } from "@/features/sales/types/sales-studio"
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { PaymentGatewayConfig as ConfigType } from "@/features/sales/types/sales-studio";
 
 export function PaymentSettingsView() {
-  const [activeProvider, setActiveProvider] = useState<"culqi" | "mercadopago">("culqi")
-  const [mode, setMode] = useState<"sandbox" | "production">("sandbox")
-  const [isTesting, setIsTesting] = useState(false)
-  const [testResult, setTestResult] = useState<"success" | "error" | null>(null)
+  const [activeProvider, setActiveProvider] = useState<"culqi" | "mercadopago">("culqi");
+  const [mode, setMode] = useState<"sandbox" | "production">("sandbox");
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
 
   const [config, setConfig] = useState<Record<string, ConfigType>>({
     culqi: {
@@ -53,29 +49,29 @@ export function PaymentSettingsView() {
       productionKeys: { publicKey: "", secretKey: "" },
       isEnabled: false,
     },
-  })
+  });
 
   const handleModeChange = (checked: boolean) => {
-    setMode(checked ? "production" : "sandbox")
-    setTestResult(null)
-  }
+    setMode(checked ? "production" : "sandbox");
+    setTestResult(null);
+  };
 
   const handleTestConnection = async () => {
-    setIsTesting(true)
-    setTestResult(null)
+    setIsTesting(true);
+    setTestResult(null);
 
     setTimeout(() => {
-      setIsTesting(false)
-      const currentConfig = config[activeProvider]
-      const keys = mode === "sandbox" ? currentConfig.sandboxKeys : currentConfig.productionKeys
+      setIsTesting(false);
+      const currentConfig = config[activeProvider];
+      const keys = mode === "sandbox" ? currentConfig.sandboxKeys : currentConfig.productionKeys;
 
       if (keys.publicKey && keys.secretKey) {
-        setTestResult("success")
+        setTestResult("success");
       } else {
-        setTestResult("error")
+        setTestResult("error");
       }
-    }, 1500)
-  }
+    }, 1500);
+  };
 
   const updateKeys = (keyType: "publicKey" | "secretKey", value: string) => {
     setConfig((prev) => ({
@@ -87,11 +83,11 @@ export function PaymentSettingsView() {
           [keyType]: value,
         },
       },
-    }))
-  }
+    }));
+  };
 
-  const currentConfig = config[activeProvider]
-  const currentKeys = mode === "sandbox" ? currentConfig.sandboxKeys : currentConfig.productionKeys
+  const currentConfig = config[activeProvider];
+  const currentKeys = mode === "sandbox" ? currentConfig.sandboxKeys : currentConfig.productionKeys;
 
   return (
     <Card>
@@ -100,12 +96,15 @@ export function PaymentSettingsView() {
           <CreditCard className="h-5 w-5" />
           Pasarelas de Pago
         </CardTitle>
-        <CardDescription>
-          Gestiona tus pasarelas de pago y credenciales de API.
-        </CardDescription>
+        <CardDescription>Gestiona tus pasarelas de pago y credenciales de API.</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="culqi" value={activeProvider} onValueChange={(v) => setActiveProvider(v as "culqi" | "mercadopago")} className="w-full">
+        <Tabs
+          defaultValue="culqi"
+          value={activeProvider}
+          onValueChange={(v) => setActiveProvider(v as "culqi" | "mercadopago")}
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="culqi">Culqi</TabsTrigger>
             <TabsTrigger value="mercadopago">Mercado Pago</TabsTrigger>
@@ -116,27 +115,50 @@ export function PaymentSettingsView() {
               <div className="space-y-0.5">
                 <Label className="text-base">Entorno de Ejecución</Label>
                 <p className="text-sm text-muted-foreground">
-                  {mode === "sandbox" ? "Modo Pruebas (No cobra dinero real)" : "Modo Producción (Transacciones reales)"}
+                  {mode === "sandbox"
+                    ? "Modo Pruebas (No cobra dinero real)"
+                    : "Modo Producción (Transacciones reales)"}
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className={cn("text-xs font-medium", mode === "sandbox" ? "text-yellow-600" : "text-muted-foreground")}>Sandbox</span>
-                <Switch
-                  checked={mode === "production"}
-                  onCheckedChange={handleModeChange}
-                />
-                <span className={cn("text-xs font-medium", mode === "production" ? "text-green-600" : "text-muted-foreground")}>Producción</span>
+                <span
+                  className={cn(
+                    "text-xs font-medium",
+                    mode === "sandbox" ? "text-yellow-600" : "text-muted-foreground",
+                  )}
+                >
+                  Sandbox
+                </span>
+                <Switch checked={mode === "production"} onCheckedChange={handleModeChange} />
+                <span
+                  className={cn(
+                    "text-xs font-medium",
+                    mode === "production" ? "text-green-600" : "text-muted-foreground",
+                  )}
+                >
+                  Producción
+                </span>
               </div>
             </div>
 
-            <Card className={cn(mode === "sandbox" ? "border-yellow-200 bg-yellow-50/10" : "border-green-200 bg-green-50/10")}>
+            <Card
+              className={cn(
+                mode === "sandbox"
+                  ? "border-yellow-200 bg-yellow-50/10"
+                  : "border-green-200 bg-green-50/10",
+              )}
+            >
               <CardHeader>
                 <CardTitle className="text-sm font-medium flex items-center justify-between">
                   Credenciales de {activeProvider === "culqi" ? "Culqi" : "Mercado Pago"} ({mode})
                   {mode === "sandbox" ? (
-                    <Badge variant="outline" className="border-yellow-500 text-yellow-600 gap-1"><ShieldCheck className="h-3 w-3" /> Test Mode</Badge>
+                    <Badge variant="outline" className="border-yellow-500 text-yellow-600 gap-1">
+                      <ShieldCheck className="h-3 w-3" /> Test Mode
+                    </Badge>
                   ) : (
-                    <Badge variant="outline" className="border-green-500 text-green-600 gap-1"><ShieldAlert className="h-3 w-3" /> Live Mode</Badge>
+                    <Badge variant="outline" className="border-green-500 text-green-600 gap-1">
+                      <ShieldAlert className="h-3 w-3" /> Live Mode
+                    </Badge>
                   )}
                 </CardTitle>
                 <CardDescription>
@@ -203,5 +225,5 @@ export function PaymentSettingsView() {
         </Tabs>
       </CardContent>
     </Card>
-  )
+  );
 }

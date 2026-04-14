@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
-import { useAuth } from '@clerk/nextjs';
-import { settingsApi } from '@/lib/api/settings';
+import { createContext, useContext, useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { settingsApi } from "@/lib/api/settings";
 
 export interface TenantLocale {
   currency: string;
@@ -11,8 +11,8 @@ export interface TenantLocale {
 }
 
 const DEFAULT_LOCALE: TenantLocale = {
-  currency: 'USD',
-  timezone: 'UTC',
+  currency: "USD",
+  timezone: "UTC",
 };
 
 const TenantLocaleContext = createContext<TenantLocale>(DEFAULT_LOCALE);
@@ -22,13 +22,8 @@ interface TenantLocaleProviderProps {
   initialLocale?: TenantLocale;
 }
 
-export function TenantLocaleProvider({
-  children,
-  initialLocale,
-}: TenantLocaleProviderProps) {
-  const [locale, setLocale] = useState<TenantLocale>(
-    initialLocale ?? DEFAULT_LOCALE,
-  );
+export function TenantLocaleProvider({ children, initialLocale }: TenantLocaleProviderProps) {
+  const [locale, setLocale] = useState<TenantLocale>(initialLocale ?? DEFAULT_LOCALE);
   const { getToken } = useAuth();
 
   useEffect(() => {
@@ -44,8 +39,8 @@ export function TenantLocaleProvider({
         const settings = await settingsApi.getGeneralSettings(token);
         if (!cancelled) {
           setLocale({
-            currency: settings.default_currency || 'USD',
-            timezone: settings.timezone || 'UTC',
+            currency: settings.default_currency || "USD",
+            timezone: settings.timezone || "UTC",
           });
         }
       } catch {
@@ -59,11 +54,7 @@ export function TenantLocaleProvider({
     };
   }, [getToken, initialLocale]);
 
-  return (
-    <TenantLocaleContext.Provider value={locale}>
-      {children}
-    </TenantLocaleContext.Provider>
-  );
+  return <TenantLocaleContext.Provider value={locale}>{children}</TenantLocaleContext.Provider>;
 }
 
 export function useTenantLocale(): TenantLocale {

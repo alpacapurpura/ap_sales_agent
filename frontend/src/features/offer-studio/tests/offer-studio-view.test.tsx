@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, act } from "@testing-library/react";
 import { OfferStudioView } from "../components/dashboard/OfferStudioView";
-import { OfferValueLevel, OfferArchetype, OfferDeliveryModel, OfferStatus, GuaranteeType } from "../types";
+import {
+  OfferValueLevel,
+  OfferArchetype,
+  OfferDeliveryModel,
+  OfferStatus,
+  GuaranteeType,
+} from "../types";
 import type { Offer } from "../types";
 
 // --- Mocks ---

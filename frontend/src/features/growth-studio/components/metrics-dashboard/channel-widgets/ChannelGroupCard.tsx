@@ -1,17 +1,11 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import {
-  Megaphone,
-  Share2,
-  Search,
-  PhoneOutgoing,
-  PlusCircle,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { formatMoney } from '@/lib/format-money';
-import type { ChannelMetric, GroupType, MetricClickData, StageId } from '../../../types/metrics';
-import { ChannelRow } from './ChannelRow';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Megaphone, Share2, Search, PhoneOutgoing, PlusCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { formatMoney } from "@/lib/format-money";
+import type { ChannelMetric, GroupType, MetricClickData, StageId } from "../../../types/metrics";
+import { ChannelRow } from "./ChannelRow";
 
 interface ChannelGroupCardProps {
   title: string;
@@ -43,18 +37,18 @@ function fmtCurrency(n: number, currency: string): string {
 /** Icon + accent color per group type. */
 function getGroupMeta(groupType: GroupType) {
   switch (groupType) {
-    case 'paid':
-      return { Icon: Megaphone, accent: 'text-amber-400', bg: 'bg-amber-500/10' };
-    case 'organic_social':
-      return { Icon: Share2, accent: 'text-violet-400', bg: 'bg-violet-500/10' };
-    case 'ga4_search':
-      return { Icon: Search, accent: 'text-blue-400', bg: 'bg-blue-500/10' };
-    case 'outbound':
-      return { Icon: PhoneOutgoing, accent: 'text-emerald-400', bg: 'bg-emerald-500/10' };
-    case 'available':
-      return { Icon: PlusCircle, accent: 'text-muted-foreground', bg: 'bg-muted/30' };
+    case "paid":
+      return { Icon: Megaphone, accent: "text-amber-400", bg: "bg-amber-500/10" };
+    case "organic_social":
+      return { Icon: Share2, accent: "text-violet-400", bg: "bg-violet-500/10" };
+    case "ga4_search":
+      return { Icon: Search, accent: "text-blue-400", bg: "bg-blue-500/10" };
+    case "outbound":
+      return { Icon: PhoneOutgoing, accent: "text-emerald-400", bg: "bg-emerald-500/10" };
+    case "available":
+      return { Icon: PlusCircle, accent: "text-muted-foreground", bg: "bg-muted/30" };
     default:
-      return { Icon: Share2, accent: 'text-primary', bg: 'bg-primary/10' };
+      return { Icon: Share2, accent: "text-primary", bg: "bg-primary/10" };
   }
 }
 
@@ -65,34 +59,70 @@ function extractCurrency(channels: ChannelMetric[]): string {
       if (m.currency) return m.currency;
     }
   }
-  return 'USD';
+  return "USD";
 }
 
 /** Build metric chip data per group type. */
 function getMetricChips(groupType: GroupType, totals: Record<string, number>, currency: string) {
   switch (groupType) {
-    case 'organic_social':
+    case "organic_social":
       return [
-        { label: 'Alcance', value: formatNumber(totals.reach ?? 0), color: 'bg-blue-500/15 text-blue-400' },
-        { label: 'Engagement', value: formatNumber(totals.engagement ?? 0), color: 'bg-violet-500/15 text-violet-400' },
+        {
+          label: "Alcance",
+          value: formatNumber(totals.reach ?? 0),
+          color: "bg-blue-500/15 text-blue-400",
+        },
+        {
+          label: "Engagement",
+          value: formatNumber(totals.engagement ?? 0),
+          color: "bg-violet-500/15 text-violet-400",
+        },
       ];
-    case 'ga4_search':
+    case "ga4_search":
       return [
-        { label: 'Sesiones', value: formatNumber(totals.sessions ?? 0), color: 'bg-blue-500/15 text-blue-400' },
-        { label: 'Usuarios', value: formatNumber(totals.users ?? 0), color: 'bg-cyan-500/15 text-cyan-400' },
+        {
+          label: "Sesiones",
+          value: formatNumber(totals.sessions ?? 0),
+          color: "bg-blue-500/15 text-blue-400",
+        },
+        {
+          label: "Usuarios",
+          value: formatNumber(totals.users ?? 0),
+          color: "bg-cyan-500/15 text-cyan-400",
+        },
       ];
-    case 'paid':
+    case "paid":
       return [
-        { label: 'Alcance', value: formatNumber(totals.reach ?? 0), color: 'bg-amber-500/15 text-amber-400' },
-        { label: 'Clicks', value: formatNumber(totals.clicks ?? 0), color: 'bg-orange-500/15 text-orange-400' },
-        { label: 'Gasto', value: fmtCurrency(totals.spend ?? 0, currency), color: 'bg-red-500/15 text-red-300' },
+        {
+          label: "Alcance",
+          value: formatNumber(totals.reach ?? 0),
+          color: "bg-amber-500/15 text-amber-400",
+        },
+        {
+          label: "Clicks",
+          value: formatNumber(totals.clicks ?? 0),
+          color: "bg-orange-500/15 text-orange-400",
+        },
+        {
+          label: "Gasto",
+          value: fmtCurrency(totals.spend ?? 0, currency),
+          color: "bg-red-500/15 text-red-300",
+        },
       ];
-    case 'outbound':
+    case "outbound":
       return [
-        { label: 'Contactos', value: formatNumber(totals.contacts ?? 0), color: 'bg-emerald-500/15 text-emerald-400' },
-        { label: 'Respuestas', value: formatNumber(totals.responses ?? 0), color: 'bg-teal-500/15 text-teal-400' },
+        {
+          label: "Contactos",
+          value: formatNumber(totals.contacts ?? 0),
+          color: "bg-emerald-500/15 text-emerald-400",
+        },
+        {
+          label: "Respuestas",
+          value: formatNumber(totals.responses ?? 0),
+          color: "bg-teal-500/15 text-teal-400",
+        },
       ];
-    case 'available':
+    case "available":
       return [];
     default:
       return [];
@@ -101,7 +131,16 @@ function getMetricChips(groupType: GroupType, totals: Record<string, number>, cu
 
 /* ── component ────────────────────────────────────────────────────────── */
 
-export function ChannelGroupCard({ title, totals, channels, groupType, stageId, onMetricClick, onChannelClick, onConfigure }: ChannelGroupCardProps) {
+export function ChannelGroupCard({
+  title,
+  totals,
+  channels,
+  groupType,
+  stageId,
+  onMetricClick,
+  onChannelClick,
+  onConfigure,
+}: ChannelGroupCardProps) {
   const { Icon, accent, bg } = getGroupMeta(groupType);
   const currency = extractCurrency(channels);
   const chips = getMetricChips(groupType, totals, currency);
@@ -109,7 +148,7 @@ export function ChannelGroupCard({ title, totals, channels, groupType, stageId, 
   const connectedChannels = channels.filter((c) => c.connected);
   const availableChannels = channels.filter((c) => !c.connected);
 
-  const isAvailableGroup = groupType === 'available';
+  const isAvailableGroup = groupType === "available";
   const totalCount = channels.length;
   const connectedCount = connectedChannels.length;
 
@@ -120,8 +159,8 @@ export function ChannelGroupCard({ title, totals, channels, groupType, stageId, 
         <div className="flex items-center justify-between gap-3">
           {/* Left: icon + title + count */}
           <div className="flex items-center gap-3 min-w-0">
-            <div className={cn('flex items-center justify-center w-8 h-8 rounded-lg shrink-0', bg)}>
-              <Icon className={cn('w-4 h-4', accent)} />
+            <div className={cn("flex items-center justify-center w-8 h-8 rounded-lg shrink-0", bg)}>
+              <Icon className={cn("w-4 h-4", accent)} />
             </div>
             <div className="min-w-0">
               <h3 className="text-sm font-semibold leading-tight truncate">{title}</h3>
@@ -129,8 +168,8 @@ export function ChannelGroupCard({ title, totals, channels, groupType, stageId, 
                 {isAvailableGroup
                   ? `${totalCount} canales por configurar`
                   : connectedCount > 0
-                    ? `${totalCount} canal${totalCount !== 1 ? 'es' : ''} · ${connectedCount} conectado${connectedCount !== 1 ? 's' : ''}`
-                    : `${totalCount} canal${totalCount !== 1 ? 'es' : ''}`}
+                    ? `${totalCount} canal${totalCount !== 1 ? "es" : ""} · ${connectedCount} conectado${connectedCount !== 1 ? "s" : ""}`
+                    : `${totalCount} canal${totalCount !== 1 ? "es" : ""}`}
               </span>
             </div>
           </div>
@@ -142,12 +181,14 @@ export function ChannelGroupCard({ title, totals, channels, groupType, stageId, 
                 <span
                   key={chip.label}
                   className={cn(
-                    'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold tabular-nums',
+                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold tabular-nums",
                     chip.color,
                   )}
                 >
                   {chip.value}
-                  <span className="font-normal opacity-70 text-[10px]">{chip.label.toLowerCase()}</span>
+                  <span className="font-normal opacity-70 text-[10px]">
+                    {chip.label.toLowerCase()}
+                  </span>
                 </span>
               ))}
             </div>

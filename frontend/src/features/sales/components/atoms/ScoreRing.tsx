@@ -7,12 +7,7 @@ interface ScoreRingProps {
   className?: string;
 }
 
-export function ScoreRing({ 
-  score, 
-  size = 40, 
-  strokeWidth = 3, 
-  className 
-}: ScoreRingProps) {
+export function ScoreRing({ score, size = 40, strokeWidth = 3, className }: ScoreRingProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = Math.min(Math.max(score, 0), 100);
@@ -55,9 +50,7 @@ export function ScoreRing({
           className={cn("transition-all duration-500 ease-out", colorClass)}
         />
       </svg>
-      <span className="absolute text-xs font-semibold text-muted-foreground">
-        {score}
-      </span>
+      <span className="absolute text-xs font-semibold text-muted-foreground">{score}</span>
     </div>
   );
 }

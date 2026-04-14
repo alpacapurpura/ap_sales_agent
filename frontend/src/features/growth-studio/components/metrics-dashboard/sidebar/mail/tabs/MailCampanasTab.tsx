@@ -1,25 +1,25 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Loader2, ArrowUp, ArrowDown, Star, ChevronDown } from 'lucide-react';
+import { useState, useMemo } from "react";
+import { Loader2, ArrowUp, ArrowDown, Star, ChevronDown } from "lucide-react";
 
-import { cn } from '@/lib/utils';
-import { useMailCampaigns } from '../../../../../hooks/useMailDashboard';
-import { ChartSection } from '../../shared/ChartSection';
-import { ChartInfoTooltip } from '../../shared/ChartInfoTooltip';
-import { computeCampaignHealthScore } from '../../../../../utils/campaign-health';
+import { cn } from "@/lib/utils";
+import { useMailCampaigns } from "../../../../../hooks/useMailDashboard";
+import { ChartSection } from "../../shared/ChartSection";
+import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
+import { computeCampaignHealthScore } from "../../../../../utils/campaign-health";
 import {
   AUTOMATION_METRIC_INFO,
   type MetricInfo,
-} from '../../../../../utils/automation-metric-info';
-import { MetricInfoTooltip } from '../components/MetricInfoTooltip';
-import { CampaignDetailSidebar } from '../components/CampaignDetailSidebar';
-import type { MetaAdsPeriod } from '../../../../../types/metrics';
+} from "../../../../../utils/automation-metric-info";
+import { MetricInfoTooltip } from "../components/MetricInfoTooltip";
+import { CampaignDetailSidebar } from "../components/CampaignDetailSidebar";
+import type { MetaAdsPeriod } from "../../../../../types/metrics";
 import type {
   EmailCampaign,
   EmailTypePerformance,
   EmailCampaignSummary,
-} from '../../../../../types/mail-types';
+} from "../../../../../types/mail-types";
 
 interface MailCampanasTabProps {
   period: MetaAdsPeriod;
@@ -28,52 +28,60 @@ interface MailCampanasTabProps {
 // Type card colors and icons
 const TYPE_CONFIG: Record<
   string,
-  { icon: string; color: string; bgClass: string; textClass: string; borderClass: string; tagBg: string; tagText: string }
+  {
+    icon: string;
+    color: string;
+    bgClass: string;
+    textClass: string;
+    borderClass: string;
+    tagBg: string;
+    tagText: string;
+  }
 > = {
   newsletter: {
-    icon: '\uD83D\uDCF0',
-    color: 'gray',
-    bgClass: 'bg-neutral-500/5',
-    textClass: 'text-neutral-400',
-    borderClass: 'border-t-neutral-400',
-    tagBg: 'bg-neutral-500/10',
-    tagText: 'text-neutral-400',
+    icon: "\uD83D\uDCF0",
+    color: "gray",
+    bgClass: "bg-neutral-500/5",
+    textClass: "text-neutral-400",
+    borderClass: "border-t-neutral-400",
+    tagBg: "bg-neutral-500/10",
+    tagText: "text-neutral-400",
   },
   lanzamiento: {
-    icon: '\uD83D\uDE80',
-    color: 'purple',
-    bgClass: 'bg-violet-500/5',
-    textClass: 'text-violet-400',
-    borderClass: 'border-t-violet-400',
-    tagBg: 'bg-violet-500/10',
-    tagText: 'text-violet-400',
+    icon: "\uD83D\uDE80",
+    color: "purple",
+    bgClass: "bg-violet-500/5",
+    textClass: "text-violet-400",
+    borderClass: "border-t-violet-400",
+    tagBg: "bg-violet-500/10",
+    tagText: "text-violet-400",
   },
   promocion: {
-    icon: '\uD83C\uDF81',
-    color: 'amber',
-    bgClass: 'bg-amber-500/5',
-    textClass: 'text-amber-400',
-    borderClass: 'border-t-amber-400',
-    tagBg: 'bg-amber-500/10',
-    tagText: 'text-amber-400',
+    icon: "\uD83C\uDF81",
+    color: "amber",
+    bgClass: "bg-amber-500/5",
+    textClass: "text-amber-400",
+    borderClass: "border-t-amber-400",
+    tagBg: "bg-amber-500/10",
+    tagText: "text-amber-400",
   },
   contenido: {
-    icon: '\uD83D\uDCDA',
-    color: 'blue',
-    bgClass: 'bg-blue-500/5',
-    textClass: 'text-blue-400',
-    borderClass: 'border-t-blue-400',
-    tagBg: 'bg-blue-500/10',
-    tagText: 'text-blue-400',
+    icon: "\uD83D\uDCDA",
+    color: "blue",
+    bgClass: "bg-blue-500/5",
+    textClass: "text-blue-400",
+    borderClass: "border-t-blue-400",
+    tagBg: "bg-blue-500/10",
+    tagText: "text-blue-400",
   },
   reengagement: {
-    icon: '\uD83D\uDC8C',
-    color: 'red',
-    bgClass: 'bg-red-500/5',
-    textClass: 'text-red-400',
-    borderClass: 'border-t-red-400',
-    tagBg: 'bg-red-500/10',
-    tagText: 'text-red-400',
+    icon: "\uD83D\uDC8C",
+    color: "red",
+    bgClass: "bg-red-500/5",
+    textClass: "text-red-400",
+    borderClass: "border-t-red-400",
+    tagBg: "bg-red-500/10",
+    tagText: "text-red-400",
   },
 };
 
@@ -81,64 +89,60 @@ const DEFAULT_TYPE_CONFIG = TYPE_CONFIG.newsletter;
 
 // Sort column types
 type SortColumn =
-  | 'campaignName'
-  | 'campaignType'
-  | 'sentDate'
-  | 'emailsSent'
-  | 'openRate'
-  | 'clickRate'
-  | 'clickToOpenRate'
-  | 'bounceRate'
-  | 'unsubscribes'
-  | 'healthScore';
+  | "campaignName"
+  | "campaignType"
+  | "sentDate"
+  | "emailsSent"
+  | "openRate"
+  | "clickRate"
+  | "clickToOpenRate"
+  | "bounceRate"
+  | "unsubscribes"
+  | "healthScore";
 
-type SortDirection = 'asc' | 'desc';
+type SortDirection = "asc" | "desc";
 
 const OPEN_RATE_BENCHMARK = 21.5;
 const CTOR_BENCHMARK = 10.5;
 
 export function MailCampanasTab({ period }: MailCampanasTabProps) {
   const { data, isLoading } = useMailCampaigns(period);
-  const [sortColumn, setSortColumn] = useState<SortColumn>('openRate');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [sortColumn, setSortColumn] = useState<SortColumn>("openRate");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [activeTypeFilter, setActiveTypeFilter] = useState<string | null>(null);
-  const [selectedCampaign, setSelectedCampaign] = useState<EmailCampaign | null>(
-    null,
-  );
+  const [selectedCampaign, setSelectedCampaign] = useState<EmailCampaign | null>(null);
 
   const filteredCampaigns = useMemo(() => {
     if (!data) return [];
     let campaigns = [...data.campaigns];
     if (activeTypeFilter) {
-      campaigns = campaigns.filter(c => c.campaignType === activeTypeFilter);
+      campaigns = campaigns.filter((c) => c.campaignType === activeTypeFilter);
     }
     campaigns.sort((a, b) => {
       // Health score is computed, not a direct field
-      if (sortColumn === 'healthScore') {
+      if (sortColumn === "healthScore") {
         const aScore = computeCampaignHealthScore(a);
         const bScore = computeCampaignHealthScore(b);
-        return sortDirection === 'asc' ? aScore - bScore : bScore - aScore;
+        return sortDirection === "asc" ? aScore - bScore : bScore - aScore;
       }
       const aVal = a[sortColumn];
       const bVal = b[sortColumn];
-      if (typeof aVal === 'string' && typeof bVal === 'string') {
-        return sortDirection === 'asc'
-          ? aVal.localeCompare(bVal)
-          : bVal.localeCompare(aVal);
+      if (typeof aVal === "string" && typeof bVal === "string") {
+        return sortDirection === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
       }
       const aNum = (aVal as number | null) ?? 0;
       const bNum = (bVal as number | null) ?? 0;
-      return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+      return sortDirection === "asc" ? aNum - bNum : bNum - aNum;
     });
     return campaigns;
   }, [data, activeTypeFilter, sortColumn, sortDirection]);
 
   const handleSort = (column: SortColumn) => {
     if (sortColumn === column) {
-      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortColumn(column);
-      setSortDirection('desc');
+      setSortDirection("desc");
     }
   };
 
@@ -164,103 +168,100 @@ export function MailCampanasTab({ period }: MailCampanasTabProps) {
 
   return (
     <>
-    <div className="space-y-8 max-w-[1200px] mx-auto">
-      {/* Section 1: Type Performance Cards */}
-      {data.typePerformance.length > 0 && (
-        <ChartSection slug="rendimiento-por-tipo">
-          <TypePerformanceCards types={data.typePerformance} />
-        </ChartSection>
-      )}
-
-      {/* Section 2: Horizontal Bar Charts (Open Rate + CTOR by type) */}
-      {data.typePerformance.length > 0 && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <ChartSection slug="open-rate-por-tipo">
-            <HorizontalBarChart
-              title="Open Rate por Tipo"
-              subtitle={`Comparación visual con benchmark de industria (línea naranja = ${OPEN_RATE_BENCHMARK}%)`}
-              types={data.typePerformance}
-              valueKey="avgOpenRate"
-              benchmarkValue={OPEN_RATE_BENCHMARK}
-              maxScale={50}
-            />
-          </ChartSection>
-
-          <ChartSection slug="ctor-por-tipo">
-            <HorizontalBarChart
-              title="CTOR por Tipo"
-              subtitle={`Click-to-Open Rate (benchmark: ${CTOR_BENCHMARK}%)`}
-              types={data.typePerformance}
-              valueKey="avgCtor"
-              benchmarkValue={CTOR_BENCHMARK}
-              maxScale={30}
-            />
-          </ChartSection>
-        </div>
-      )}
-
-      {/* Section 3: Full Campaign Table */}
-      <ChartSection slug="todas-campanas">
-        <div className="rounded-lg border bg-card p-5 space-y-4">
-          <ChartInfoTooltip
-            title="Todas las Campañas"
-            description="Ordenar por cualquier columna. Filtrar por tipo."
-          />
-
-          {/* Filter Bar */}
-          <div className="flex flex-wrap items-center gap-2">
-            <FilterButton
-              label={`Todas (${data.campaigns.length})`}
-              active={activeTypeFilter === null}
-              onClick={() => setActiveTypeFilter(null)}
-            />
-            {data.typePerformance.map(tp => (
-              <FilterButton
-                key={tp.campaignType}
-                label={`${tp.campaignType} (${tp.campaignCount})`}
-                active={activeTypeFilter === tp.campaignType}
-                onClick={() =>
-                  setActiveTypeFilter(
-                    activeTypeFilter === tp.campaignType ? null : tp.campaignType,
-                  )
-                }
-              />
-            ))}
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <CampaignTable
-              campaigns={filteredCampaigns}
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-              onRowClick={handleRowClick}
-            />
-          </div>
-        </div>
-      </ChartSection>
-
-      {/* Section 4: Subject Lines + Insights */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {data.topSubjects.length > 0 && (
-          <ChartSection slug="mejores-subjects">
-            <TopSubjectLines subjects={data.topSubjects} />
+      <div className="space-y-8 max-w-[1200px] mx-auto">
+        {/* Section 1: Type Performance Cards */}
+        {data.typePerformance.length > 0 && (
+          <ChartSection slug="rendimiento-por-tipo">
+            <TypePerformanceCards types={data.typePerformance} />
           </ChartSection>
         )}
 
-        <ChartSection slug="insights-campanas">
-          <CampaignInsights
-            types={data.typePerformance}
-            campaigns={data.campaigns}
-          />
+        {/* Section 2: Horizontal Bar Charts (Open Rate + CTOR by type) */}
+        {data.typePerformance.length > 0 && (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <ChartSection slug="open-rate-por-tipo">
+              <HorizontalBarChart
+                title="Open Rate por Tipo"
+                subtitle={`Comparación visual con benchmark de industria (línea naranja = ${OPEN_RATE_BENCHMARK}%)`}
+                types={data.typePerformance}
+                valueKey="avgOpenRate"
+                benchmarkValue={OPEN_RATE_BENCHMARK}
+                maxScale={50}
+              />
+            </ChartSection>
+
+            <ChartSection slug="ctor-por-tipo">
+              <HorizontalBarChart
+                title="CTOR por Tipo"
+                subtitle={`Click-to-Open Rate (benchmark: ${CTOR_BENCHMARK}%)`}
+                types={data.typePerformance}
+                valueKey="avgCtor"
+                benchmarkValue={CTOR_BENCHMARK}
+                maxScale={30}
+              />
+            </ChartSection>
+          </div>
+        )}
+
+        {/* Section 3: Full Campaign Table */}
+        <ChartSection slug="todas-campanas">
+          <div className="rounded-lg border bg-card p-5 space-y-4">
+            <ChartInfoTooltip
+              title="Todas las Campañas"
+              description="Ordenar por cualquier columna. Filtrar por tipo."
+            />
+
+            {/* Filter Bar */}
+            <div className="flex flex-wrap items-center gap-2">
+              <FilterButton
+                label={`Todas (${data.campaigns.length})`}
+                active={activeTypeFilter === null}
+                onClick={() => setActiveTypeFilter(null)}
+              />
+              {data.typePerformance.map((tp) => (
+                <FilterButton
+                  key={tp.campaignType}
+                  label={`${tp.campaignType} (${tp.campaignCount})`}
+                  active={activeTypeFilter === tp.campaignType}
+                  onClick={() =>
+                    setActiveTypeFilter(
+                      activeTypeFilter === tp.campaignType ? null : tp.campaignType,
+                    )
+                  }
+                />
+              ))}
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <CampaignTable
+                campaigns={filteredCampaigns}
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                onRowClick={handleRowClick}
+              />
+            </div>
+          </div>
         </ChartSection>
+
+        {/* Section 4: Subject Lines + Insights */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {data.topSubjects.length > 0 && (
+            <ChartSection slug="mejores-subjects">
+              <TopSubjectLines subjects={data.topSubjects} />
+            </ChartSection>
+          )}
+
+          <ChartSection slug="insights-campanas">
+            <CampaignInsights types={data.typePerformance} campaigns={data.campaigns} />
+          </ChartSection>
+        </div>
       </div>
-    </div>
-    <CampaignDetailSidebar
-      campaign={selectedCampaign}
-      onClose={() => setSelectedCampaign(null)}
-    />
+      <CampaignDetailSidebar
+        campaign={selectedCampaign}
+        onClose={() => setSelectedCampaign(null)}
+      />
     </>
   );
 }
@@ -276,20 +277,19 @@ function TypePerformanceCards({ types }: { types: EmailTypePerformance[] }) {
         Rendimiento por Tipo de Email
       </p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {types.map(tp => {
+        {types.map((tp) => {
           const config = TYPE_CONFIG[tp.campaignType] ?? DEFAULT_TYPE_CONFIG;
-          const rankColor =
-            tp.rankLabel.includes('Mejor')
-              ? 'text-emerald-500'
-              : tp.rankLabel.includes('Menor')
-                ? 'text-red-500'
-                : 'text-amber-500';
+          const rankColor = tp.rankLabel.includes("Mejor")
+            ? "text-emerald-500"
+            : tp.rankLabel.includes("Menor")
+              ? "text-red-500"
+              : "text-amber-500";
 
           return (
             <div
               key={tp.campaignType}
               className={cn(
-                'rounded-lg border border-t-[3px] p-4 space-y-3',
+                "rounded-lg border border-t-[3px] p-4 space-y-3",
                 config.borderClass,
                 config.bgClass,
               )}
@@ -298,8 +298,8 @@ function TypePerformanceCards({ types }: { types: EmailTypePerformance[] }) {
                 <span className="text-lg">{config.icon}</span>
                 <p className="mt-1 text-sm font-semibold">{tp.campaignType}</p>
                 <p className="text-[11px] text-muted-foreground">
-                  {tp.campaignCount} campaña{tp.campaignCount !== 1 ? 's' : ''} &middot;{' '}
-                  {tp.totalSent.toLocaleString('en-US')} enviados
+                  {tp.campaignCount} campaña{tp.campaignCount !== 1 ? "s" : ""} &middot;{" "}
+                  {tp.totalSent.toLocaleString("en-US")} enviados
                 </p>
               </div>
 
@@ -314,17 +314,11 @@ function TypePerformanceCards({ types }: { types: EmailTypePerformance[] }) {
                   value={`${tp.avgCtor.toFixed(1)}%`}
                   isGood={tp.avgCtor > CTOR_BENCHMARK}
                 />
-                <TypeMetricRow
-                  label="Bajas"
-                  value={tp.totalUnsubs.toLocaleString('en-US')}
-                />
+                <TypeMetricRow label="Bajas" value={tp.totalUnsubs.toLocaleString("en-US")} />
               </div>
 
               <p
-                className={cn(
-                  'text-[10px] font-medium pt-2 border-t border-border/50',
-                  rankColor,
-                )}
+                className={cn("text-[10px] font-medium pt-2 border-t border-border/50", rankColor)}
               >
                 {tp.rankLabel}
               </p>
@@ -350,9 +344,9 @@ function TypeMetricRow({
       <span className="text-muted-foreground">{label}</span>
       <span
         className={cn(
-          'font-semibold tabular-nums',
-          isGood === true && 'text-emerald-600',
-          isGood === false && 'text-foreground',
+          "font-semibold tabular-nums",
+          isGood === true && "text-emerald-600",
+          isGood === false && "text-foreground",
         )}
       >
         {value}
@@ -372,7 +366,7 @@ function HorizontalBarChart({
   title: string;
   subtitle: string;
   types: EmailTypePerformance[];
-  valueKey: 'avgOpenRate' | 'avgCtor';
+  valueKey: "avgOpenRate" | "avgCtor";
   benchmarkValue: number;
   maxScale: number;
 }) {
@@ -381,22 +375,21 @@ function HorizontalBarChart({
 
   // Color gradient per type
   const BAR_GRADIENTS: Record<string, string> = {
-    newsletter: 'from-neutral-600 to-neutral-400',
-    lanzamiento: 'from-violet-600 to-violet-400',
-    promocion: 'from-amber-600 to-amber-400',
-    contenido: 'from-blue-600 to-blue-400',
-    reengagement: 'from-red-600 to-red-400',
+    newsletter: "from-neutral-600 to-neutral-400",
+    lanzamiento: "from-violet-600 to-violet-400",
+    promocion: "from-amber-600 to-amber-400",
+    contenido: "from-blue-600 to-blue-400",
+    reengagement: "from-red-600 to-red-400",
   };
 
   return (
     <div className="rounded-lg border bg-card p-5 space-y-3">
       <ChartInfoTooltip title={title} description={subtitle} />
       <div className="space-y-3 pt-1">
-        {sorted.map(tp => {
+        {sorted.map((tp) => {
           const value = tp[valueKey];
           const widthPct = Math.min((value / maxScale) * 100, 100);
-          const gradientClass =
-            BAR_GRADIENTS[tp.campaignType] ?? BAR_GRADIENTS.newsletter;
+          const gradientClass = BAR_GRADIENTS[tp.campaignType] ?? BAR_GRADIENTS.newsletter;
 
           return (
             <div key={tp.campaignType} className="flex items-center gap-3">
@@ -406,7 +399,7 @@ function HorizontalBarChart({
               <div className="relative flex-1 h-7 rounded-md bg-muted/30 overflow-hidden">
                 <div
                   className={cn(
-                    'h-full rounded-md bg-gradient-to-r flex items-center px-2.5',
+                    "h-full rounded-md bg-gradient-to-r flex items-center px-2.5",
                     gradientClass,
                   )}
                   style={{ width: `${widthPct}%` }}
@@ -448,10 +441,10 @@ function FilterButton({
       type="button"
       onClick={onClick}
       className={cn(
-        'rounded-md px-3 py-1.5 text-xs font-medium border transition-colors',
+        "rounded-md px-3 py-1.5 text-xs font-medium border transition-colors",
         active
-          ? 'bg-muted text-foreground border-border'
-          : 'bg-transparent text-muted-foreground border-border/50 hover:border-border',
+          ? "bg-muted text-foreground border-border"
+          : "bg-transparent text-muted-foreground border-border/50 hover:border-border",
       )}
     >
       {label}
@@ -465,7 +458,7 @@ function SortHeader({
   sortColumn,
   sortDirection,
   onSort,
-  align = 'center',
+  align = "center",
   info,
 }: {
   label: string;
@@ -473,15 +466,15 @@ function SortHeader({
   sortColumn: SortColumn;
   sortDirection: SortDirection;
   onSort: (column: SortColumn) => void;
-  align?: 'left' | 'center' | 'right';
+  align?: "left" | "center" | "right";
   info?: MetricInfo;
 }) {
   const isActive = sortColumn === column;
   return (
     <th
       className={cn(
-        'py-2 px-2 font-medium cursor-pointer select-none hover:text-foreground transition-colors',
-        align === 'left' ? 'text-left' : align === 'right' ? 'text-right' : 'text-center',
+        "py-2 px-2 font-medium cursor-pointer select-none hover:text-foreground transition-colors",
+        align === "left" ? "text-left" : align === "right" ? "text-right" : "text-center",
       )}
       onClick={() => onSort(column)}
     >
@@ -489,7 +482,7 @@ function SortHeader({
         {label}
         {info && <MetricInfoTooltip info={info} side="bottom" iconSize="xs" />}
         {isActive ? (
-          sortDirection === 'desc' ? (
+          sortDirection === "desc" ? (
             <ArrowDown className="h-3 w-3 text-amber-500" />
           ) : (
             <ArrowUp className="h-3 w-3 text-amber-500" />
@@ -505,33 +498,31 @@ function SortHeader({
 function HealthBar({ score }: { score: number }) {
   const barColor =
     score >= 70
-      ? 'bg-emerald-500'
+      ? "bg-emerald-500"
       : score >= 40
-        ? 'bg-amber-500'
+        ? "bg-amber-500"
         : score > 0
-          ? 'bg-red-500'
-          : 'bg-muted-foreground';
+          ? "bg-red-500"
+          : "bg-muted-foreground";
 
   const textColor =
     score >= 70
-      ? 'text-emerald-500'
+      ? "text-emerald-500"
       : score >= 40
-        ? 'text-amber-500'
+        ? "text-amber-500"
         : score > 0
-          ? 'text-red-500'
-          : 'text-muted-foreground';
+          ? "text-red-500"
+          : "text-muted-foreground";
 
   return (
     <div className="flex items-center gap-2 justify-center">
       <div className="h-1.5 w-12 overflow-hidden rounded-full bg-muted/30">
         <div
-          className={cn('h-full rounded-full transition-all', barColor)}
+          className={cn("h-full rounded-full transition-all", barColor)}
           style={{ width: `${score}%` }}
         />
       </div>
-      <span className={cn('text-xs font-bold tabular-nums', textColor)}>
-        {score || '\u2014'}
-      </span>
+      <span className={cn("text-xs font-bold tabular-nums", textColor)}>{score || "\u2014"}</span>
     </div>
   );
 }
@@ -652,7 +643,7 @@ function CampaignTable({
               <td className="py-2.5 px-2 text-center">
                 <span
                   className={cn(
-                    'inline-block rounded-full px-2 py-0.5 text-[10px] font-medium',
+                    "inline-block rounded-full px-2 py-0.5 text-[10px] font-medium",
                     config.tagBg,
                     config.tagText,
                   )}
@@ -662,90 +653,83 @@ function CampaignTable({
               </td>
               <td className="py-2.5 px-2 text-center text-muted-foreground">
                 {campaign.sentDate
-                  ? new Date(campaign.sentDate).toLocaleDateString('es', {
-                      day: 'numeric',
-                      month: 'short',
+                  ? new Date(campaign.sentDate).toLocaleDateString("es", {
+                      day: "numeric",
+                      month: "short",
                     })
-                  : '-'}
+                  : "-"}
               </td>
               <td className="py-2.5 px-2 text-center tabular-nums">
-                {campaign.emailsSent.toLocaleString('en-US')}
+                {campaign.emailsSent.toLocaleString("en-US")}
               </td>
               <td className="py-2.5 px-2 text-center">
                 <span
                   className={cn(
-                    'font-semibold tabular-nums',
+                    "font-semibold tabular-nums",
                     isHighOpen
-                      ? 'text-emerald-600'
+                      ? "text-emerald-600"
                       : isLowOpen
-                        ? 'text-red-500'
-                        : 'text-foreground',
+                        ? "text-red-500"
+                        : "text-foreground",
                   )}
                 >
                   {campaign.openRate.toFixed(1)}%
                 </span>
                 <span
                   className={cn(
-                    'inline-block h-1 rounded-sm ml-1.5 align-middle',
+                    "inline-block h-1 rounded-sm ml-1.5 align-middle",
                     isHighOpen
-                      ? 'bg-emerald-500'
+                      ? "bg-emerald-500"
                       : isLowOpen
-                        ? 'bg-red-500'
-                        : 'bg-muted-foreground/30',
+                        ? "bg-red-500"
+                        : "bg-muted-foreground/30",
                   )}
                   style={{ width: `${openBarWidth}px` }}
                 />
               </td>
               <td
                 className={cn(
-                  'py-2.5 px-2 text-center tabular-nums',
-                  campaign.clickRate > 2.3 && 'text-emerald-600',
+                  "py-2.5 px-2 text-center tabular-nums",
+                  campaign.clickRate > 2.3 && "text-emerald-600",
                 )}
               >
                 {campaign.clickRate.toFixed(1)}%
               </td>
               <td
                 className={cn(
-                  'py-2.5 px-2 text-center tabular-nums',
-                  isHighCtor && 'text-emerald-600',
+                  "py-2.5 px-2 text-center tabular-nums",
+                  isHighCtor && "text-emerald-600",
                 )}
               >
                 {campaign.clickToOpenRate.toFixed(1)}%
               </td>
               <td
                 className={cn(
-                  'py-2.5 px-2 text-center tabular-nums',
-                  campaign.bounceRate > 2 && 'text-amber-600',
+                  "py-2.5 px-2 text-center tabular-nums",
+                  campaign.bounceRate > 2 && "text-amber-600",
                 )}
               >
                 {campaign.bounceRate.toFixed(1)}%
               </td>
-              <td className="py-2.5 px-2 text-center tabular-nums">
-                {campaign.unsubscribes}
-              </td>
+              <td className="py-2.5 px-2 text-center tabular-nums">{campaign.unsubscribes}</td>
               <td className="py-2.5 px-2">
                 <HealthBar score={computeCampaignHealthScore(campaign)} />
               </td>
               <td className="py-2.5 px-2 text-center">
-                {idx === 0 && sortColumn === 'openRate' && sortDirection === 'desc' && (
+                {idx === 0 && sortColumn === "openRate" && sortDirection === "desc" && (
                   <Star className="h-3 w-3 text-emerald-500 inline" />
                 )}
                 {idx === campaigns.length - 1 &&
-                  sortColumn === 'openRate' &&
-                  sortDirection === 'desc' &&
-                  campaigns.length > 1 && (
-                    <ArrowDown className="h-3 w-3 text-red-500 inline" />
-                  )}
+                  sortColumn === "openRate" &&
+                  sortDirection === "desc" &&
+                  campaigns.length > 1 && <ArrowDown className="h-3 w-3 text-red-500 inline" />}
               </td>
             </tr>
           );
         })}
         {campaigns.length === 0 && (
           <tr>
-            <td
-              colSpan={12}
-              className="py-8 text-center text-sm text-muted-foreground"
-            >
+            <td colSpan={12} className="py-8 text-center text-sm text-muted-foreground">
               No hay campañas para este filtro.
             </td>
           </tr>
@@ -769,9 +753,9 @@ function TopSubjectLines({ subjects }: { subjects: EmailCampaignSummary[] }) {
             <div
               key={`${subject.campaignName}-${idx}`}
               className={cn(
-                'flex items-center gap-3 rounded-md p-2.5',
-                'bg-muted/20 border-l-[3px]',
-                isTop ? 'border-emerald-500' : 'border-muted-foreground/20',
+                "flex items-center gap-3 rounded-md p-2.5",
+                "bg-muted/20 border-l-[3px]",
+                isTop ? "border-emerald-500" : "border-muted-foreground/20",
               )}
             >
               <span className="text-[11px] text-muted-foreground/60 w-5 shrink-0 text-center">
@@ -785,10 +769,11 @@ function TopSubjectLines({ subjects }: { subjects: EmailCampaignSummary[] }) {
                   {subject.campaignType}
                   {subject.sentDate && (
                     <>
-                      {' '}&middot;{' '}
-                      {new Date(subject.sentDate).toLocaleDateString('es', {
-                        day: 'numeric',
-                        month: 'short',
+                      {" "}
+                      &middot;{" "}
+                      {new Date(subject.sentDate).toLocaleDateString("es", {
+                        day: "numeric",
+                        month: "short",
                       })}
                     </>
                   )}
@@ -797,8 +782,8 @@ function TopSubjectLines({ subjects }: { subjects: EmailCampaignSummary[] }) {
               <div className="text-right shrink-0">
                 <p
                   className={cn(
-                    'text-base font-bold tabular-nums',
-                    isTop ? 'text-emerald-600' : 'text-foreground',
+                    "text-base font-bold tabular-nums",
+                    isTop ? "text-emerald-600" : "text-foreground",
                   )}
                 >
                   {subject.openRate.toFixed(1)}%
@@ -820,7 +805,7 @@ function CampaignInsights({
   types: EmailTypePerformance[];
   campaigns: EmailCampaign[];
 }) {
-  const insights: Array<{ text: string; type: 'positive' | 'warning' }> = [];
+  const insights: Array<{ text: string; type: "positive" | "warning" }> = [];
 
   // Best type vs worst type
   if (types.length >= 2) {
@@ -831,35 +816,35 @@ function CampaignInsights({
       const ratio = (best.avgOpenRate / worst.avgOpenRate).toFixed(1);
       insights.push({
         text: `Los emails de "${best.campaignType}" obtienen ${ratio}x más engagement que los "${worst.campaignType}". Considere reducir frecuencia de ${worst.campaignType} o mejorar sus subject lines.`,
-        type: 'positive',
+        type: "positive",
       });
     }
   }
 
   // Campaigns below benchmark
-  const belowBenchmark = campaigns.filter(c => c.openRate < OPEN_RATE_BENCHMARK);
+  const belowBenchmark = campaigns.filter((c) => c.openRate < OPEN_RATE_BENCHMARK);
   if (belowBenchmark.length > 0 && campaigns.length > 0) {
     const pct = ((belowBenchmark.length / campaigns.length) * 100).toFixed(0);
     insights.push({
       text: `${pct}% de las campañas (${belowBenchmark.length} de ${campaigns.length}) están por debajo del benchmark de apertura (${OPEN_RATE_BENCHMARK}%). Revise segmentación y subject lines.`,
-      type: 'warning',
+      type: "warning",
     });
   }
 
   // High unsubs in any type
-  const highUnsubs = types.filter(t => t.totalUnsubs > 5);
+  const highUnsubs = types.filter((t) => t.totalUnsubs > 5);
   if (highUnsubs.length > 0) {
-    const names = highUnsubs.map(t => t.campaignType).join(', ');
+    const names = highUnsubs.map((t) => t.campaignType).join(", ");
     insights.push({
       text: `Tipos con bajas elevadas: ${names}. Revise frecuencia de envío y relevancia del contenido.`,
-      type: 'warning',
+      type: "warning",
     });
   }
 
   if (insights.length === 0) {
     insights.push({
-      text: 'El rendimiento general de las campañas es saludable. Mantén la estrategia actual y experimenta con nuevos formatos.',
-      type: 'positive',
+      text: "El rendimiento general de las campañas es saludable. Mantén la estrategia actual y experimenta con nuevos formatos.",
+      type: "positive",
     });
   }
 
@@ -874,23 +859,19 @@ function CampaignInsights({
           <div
             key={idx}
             className={cn(
-              'rounded-md border-l-[3px] px-3 py-2.5 bg-muted/20',
-              insight.type === 'positive'
-                ? 'border-emerald-500'
-                : 'border-amber-500',
+              "rounded-md border-l-[3px] px-3 py-2.5 bg-muted/20",
+              insight.type === "positive" ? "border-emerald-500" : "border-amber-500",
             )}
           >
             <p className="text-xs text-muted-foreground leading-relaxed">
               <span
                 className={cn(
-                  'font-semibold',
-                  insight.type === 'positive'
-                    ? 'text-emerald-600'
-                    : 'text-amber-600',
+                  "font-semibold",
+                  insight.type === "positive" ? "text-emerald-600" : "text-amber-600",
                 )}
               >
-                {insight.type === 'positive' ? 'Hallazgo:' : 'Alerta:'}
-              </span>{' '}
+                {insight.type === "positive" ? "Hallazgo:" : "Alerta:"}
+              </span>{" "}
               {insight.text}
             </p>
           </div>

@@ -60,9 +60,7 @@ const STATUS_CLASSES: Record<string, string> = {
 export function CampaignsView({ offerId }: { offerId: string }) {
   const { tenantId } = useOfferShell();
   const [statusFilter, setStatusFilter] = useState<CampaignStatusFilter>("all");
-  const [channelFilter, setChannelFilter] = useState<
-    "all" | "meta" | "google" | "tiktok"
-  >("all");
+  const [channelFilter, setChannelFilter] = useState<"all" | "meta" | "google" | "tiktok">("all");
 
   const query = useMemo<OfferCampaignsQuery>(() => {
     const filters: OfferCampaignsQuery = {};
@@ -71,17 +69,10 @@ export function CampaignsView({ offerId }: { offerId: string }) {
     return filters;
   }, [statusFilter, channelFilter]);
 
-  const { data, isLoading, isError, error, refetch } = useOfferCampaigns(
-    offerId,
-    query,
-  );
+  const { data, isLoading, isError, error, refetch } = useOfferCampaigns(offerId, query);
 
   return (
-    <div
-      className="space-y-5 p-6"
-      role="region"
-      aria-label="Campañas de la oferta"
-    >
+    <div className="space-y-5 p-6" role="region" aria-label="Campañas de la oferta">
       <CampaignsKpiRow kpis={data?.kpis} isLoading={isLoading} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -101,9 +92,7 @@ export function CampaignsView({ offerId }: { offerId: string }) {
           />
         </div>
         <Button size="sm" asChild>
-          <Link
-            href={`/${tenantId}/growth-studio/advertising?offer_id=${offerId}`}
-          >
+          <Link href={`/${tenantId}/growth-studio/advertising?offer_id=${offerId}`}>
             <Plus className="mr-1.5 h-3.5 w-3.5" aria-hidden />
             Crear campaña
           </Link>
@@ -117,12 +106,7 @@ export function CampaignsView({ offerId }: { offerId: string }) {
           <AlertTitle>Error al cargar las campañas</AlertTitle>
           <AlertDescription className="flex items-center justify-between gap-2">
             <span>{error?.message ?? "Intentalo nuevamente."}</span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
-            >
+            <Button type="button" variant="outline" size="sm" onClick={() => refetch()}>
               Reintentar
             </Button>
           </AlertDescription>
@@ -168,18 +152,11 @@ function CampaignsKpiRow({ kpis, isLoading }: CampaignsKpiRowProps) {
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       <KpiCard label="Campañas activas" value={String(kpis.active_count)} />
-      <KpiCard
-        label="Inversión 7d"
-        value={formatMoney(kpis.spend_7d, currency)}
-      />
+      <KpiCard label="Inversión 7d" value={formatMoney(kpis.spend_7d, currency)} />
       <KpiCard label="Leads 7d" value={String(kpis.leads_7d)} />
       <KpiCard
         label="CPL promedio"
-        value={
-          kpis.avg_cpl_7d !== null
-            ? formatMoney(kpis.avg_cpl_7d, currency)
-            : "—"
-        }
+        value={kpis.avg_cpl_7d !== null ? formatMoney(kpis.avg_cpl_7d, currency) : "—"}
       />
     </div>
   );
@@ -188,9 +165,7 @@ function CampaignsKpiRow({ kpis, isLoading }: CampaignsKpiRowProps) {
 function KpiCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-border bg-card/30 p-3">
-      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="text-xl font-bold tabular-nums">{value}</p>
     </div>
   );
@@ -204,11 +179,7 @@ interface CampaignsTableProps {
   fallbackCurrency: string | null;
 }
 
-function CampaignsTable({
-  rows,
-  tenantId,
-  fallbackCurrency,
-}: CampaignsTableProps) {
+function CampaignsTable({ rows, tenantId, fallbackCurrency }: CampaignsTableProps) {
   const { currency: tenantCurrency } = useTenantLocale();
 
   return (
@@ -227,32 +198,17 @@ function CampaignsTable({
         </TableHeader>
         <TableBody>
           {rows.map((row) => {
-            const rowCurrency =
-              row.currency ?? fallbackCurrency ?? tenantCurrency;
+            const rowCurrency = row.currency ?? fallbackCurrency ?? tenantCurrency;
             const statusKey = row.status.toLowerCase();
             const statusLabel = STATUS_LABEL[statusKey] ?? row.status;
-            const statusClass =
-              STATUS_CLASSES[statusKey] ?? STATUS_CLASSES.ended;
-            const isFinished =
-              statusKey === "ended" || statusKey === "finished";
+            const statusClass = STATUS_CLASSES[statusKey] ?? STATUS_CLASSES.ended;
+            const isFinished = statusKey === "ended" || statusKey === "finished";
             return (
-              <TableRow
-                key={row.id}
-                className={cn(isFinished && "opacity-60")}
-              >
+              <TableRow key={row.id} className={cn(isFinished && "opacity-60")}>
                 <TableCell>
-                  <p
-                    className={cn(
-                      "font-medium",
-                      isFinished && "line-through",
-                    )}
-                  >
-                    {row.name}
-                  </p>
+                  <p className={cn("font-medium", isFinished && "line-through")}>{row.name}</p>
                 </TableCell>
-                <TableCell className="text-xs capitalize">
-                  {row.channel}
-                </TableCell>
+                <TableCell className="text-xs capitalize">{row.channel}</TableCell>
                 <TableCell>
                   <span
                     className={cn(
@@ -266,9 +222,7 @@ function CampaignsTable({
                 <TableCell className="text-right tabular-nums">
                   {formatMoney(row.spend, rowCurrency)}
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
-                  {row.leads}
-                </TableCell>
+                <TableCell className="text-right tabular-nums">{row.leads}</TableCell>
                 <TableCell className="text-right tabular-nums">
                   {row.cpl !== null ? formatMoney(row.cpl, rowCurrency) : "—"}
                 </TableCell>
@@ -284,10 +238,7 @@ function CampaignsTable({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <ExternalLink
-                        className="h-4 w-4 text-muted-foreground"
-                        aria-hidden
-                      />
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" aria-hidden />
                     </Link>
                   </Button>
                 </TableCell>
@@ -302,10 +253,7 @@ function CampaignsTable({
 
 function CampaignsTableSkeleton() {
   return (
-    <div
-      className="rounded-lg border border-border p-4"
-      aria-label="Cargando campañas"
-    >
+    <div className="rounded-lg border border-border p-4" aria-label="Cargando campañas">
       {Array.from({ length: 5 }).map((_, idx) => (
         <div key={idx} className="flex items-center gap-3 py-3">
           <Skeleton className="h-8 w-8 rounded" />
@@ -319,13 +267,7 @@ function CampaignsTableSkeleton() {
   );
 }
 
-function CampaignsEmptyState({
-  tenantId,
-  offerId,
-}: {
-  tenantId: string;
-  offerId: string;
-}) {
+function CampaignsEmptyState({ tenantId, offerId }: { tenantId: string; offerId: string }) {
   return (
     <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed p-12 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-muted/30">
@@ -334,14 +276,12 @@ function CampaignsEmptyState({
       <div className="space-y-1">
         <h3 className="font-semibold">Sin campañas para esta oferta</h3>
         <p className="max-w-sm text-xs text-muted-foreground">
-          Creá una campaña en Advertising Studio para empezar a promocionar
-          esta oferta. Vas a ver acá sus métricas e inversión en tiempo real.
+          Creá una campaña en Advertising Studio para empezar a promocionar esta oferta. Vas a ver
+          acá sus métricas e inversión en tiempo real.
         </p>
       </div>
       <Button size="sm" asChild>
-        <Link
-          href={`/${tenantId}/growth-studio/advertising?offer_id=${offerId}`}
-        >
+        <Link href={`/${tenantId}/growth-studio/advertising?offer_id=${offerId}`}>
           <Plus className="mr-1.5 h-3.5 w-3.5" aria-hidden />
           Crear campaña
         </Link>
@@ -359,12 +299,7 @@ interface ChipGroupProps<T extends string> {
   onChange: (value: T) => void;
 }
 
-function ChipGroup<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-}: ChipGroupProps<T>) {
+function ChipGroup<T extends string>({ label, value, options, onChange }: ChipGroupProps<T>) {
   return (
     <div className="flex items-center gap-2" role="group" aria-label={label}>
       <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">

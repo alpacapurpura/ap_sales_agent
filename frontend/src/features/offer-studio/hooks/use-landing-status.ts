@@ -20,15 +20,9 @@ const COMPLETION_THRESHOLD = 90;
  * - `in-sync`           → landing generated and matches the latest offer version.
  * - `outdated`          → landing generated but offer changed since then.
  */
-export type LandingUiState =
-  | "disabled"
-  | "ready-to-generate"
-  | "in-sync"
-  | "outdated";
+export type LandingUiState = "disabled" | "ready-to-generate" | "in-sync" | "outdated";
 
-export function deriveLandingUiState(
-  status: LandingStatusResponse,
-): LandingUiState {
+export function deriveLandingUiState(status: LandingStatusResponse): LandingUiState {
   if (!status.is_generated) {
     if (status.completion_percentage < COMPLETION_THRESHOLD) {
       return "disabled";

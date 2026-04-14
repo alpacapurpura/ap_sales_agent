@@ -71,8 +71,7 @@ export function useAutoSave<TPayload>(
       setLastSavedAt(new Date());
     } catch (err) {
       if (!isMountedRef.current) return;
-      const normalised =
-        err instanceof Error ? err : new Error("Error al guardar");
+      const normalised = err instanceof Error ? err : new Error("Error al guardar");
       setError(normalised);
       setState("error");
     }
@@ -97,8 +96,7 @@ export function useAutoSave<TPayload>(
   );
 
   const retry = useCallback(() => {
-    const payload =
-      pendingPayloadRef.current ?? lastAttemptedPayloadRef.current;
+    const payload = pendingPayloadRef.current ?? lastAttemptedPayloadRef.current;
     if (payload === null) return;
     void performSave(payload);
   }, [performSave]);

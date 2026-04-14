@@ -55,7 +55,7 @@ export enum GuaranteeType {
   CONDITIONAL_ACTION_BASED = "conditional_action_based",
   UNCONDITIONAL_30_DAY = "unconditional_30_day",
   DOUBLE_MONEY_BACK = "double_money_back",
-  SATISFACTION_OR_FREE_WORK = "satisfaction_or_free_work"
+  SATISFACTION_OR_FREE_WORK = "satisfaction_or_free_work",
 }
 
 export enum DeliverableFormat {
@@ -67,28 +67,28 @@ export enum DeliverableFormat {
   COMMUNITY_ACCESS = "community_access",
   SOFTWARE_ACCESS = "software_access",
   PHYSICAL_ITEM = "physical_item",
-  SERVICE_HOURS = "service_hours"
+  SERVICE_HOURS = "service_hours",
 }
 
 export enum FinancialCapacity {
   LOW = "low",
   MEDIUM = "medium",
   HIGH = "high",
-  ULTRA_HIGH = "ultra_high"
+  ULTRA_HIGH = "ultra_high",
 }
 
 export enum OnboardingMechanism {
   INSTANT_ACCESS_EMAIL = "instant_access_email",
   BOOK_KICKOFF_CALL = "book_kickoff_call",
   FILL_INTAKE_FORM = "fill_intake_form",
-  JOIN_COMMUNITY = "join_community"
+  JOIN_COMMUNITY = "join_community",
 }
 
 export enum FulfillmentType {
   DIGITAL_DOWNLOAD = "digital_download",
   LMS_ACCESS = "lms_access",
   PHYSICAL_SHIPPING = "physical_shipping",
-  MANUAL_PROVISIONING = "manual_provisioning"
+  MANUAL_PROVISIONING = "manual_provisioning",
 }
 
 export enum DigitalFormat {
@@ -97,14 +97,14 @@ export enum DigitalFormat {
   AUDIO_SERIES = "audio_series",
   NOTION_TEMPLATE = "notion_template",
   SOFTWARE_SAAS = "software_access",
-  PHYSICAL_ITEM = "physical_item"
+  PHYSICAL_ITEM = "physical_item",
 }
 
 export enum ProgramStructure {
   FIXED_COHORT = "fixed_cohort",
   ROLLING_ADMISSION = "rolling_admission",
   CHALLENGE = "challenge",
-  MEMBERSHIP = "membership"
+  MEMBERSHIP = "membership",
 }
 
 export enum LiveInteractionType {
@@ -112,7 +112,7 @@ export enum LiveInteractionType {
   GROUP_Q_AND_A = "group_q_and_a",
   ONE_ON_ONE_CHECKINS = "one_on_one_checkins",
   HOT_SEATS = "hot_seats",
-  WORKSHOPS = "workshops"
+  WORKSHOPS = "workshops",
 }
 
 export enum CommunityPlatform {
@@ -123,70 +123,70 @@ export enum CommunityPlatform {
   SKOOL = "skool",
   CIRCLE = "circle",
   FACEBOOK_GROUP = "facebook_group",
-  SLACK = "slack"
+  SLACK = "slack",
 }
 
 export enum ServiceCategory {
   ADVISORY = "advisory",
   AGENCY = "agency",
-  AUTHORITY = "authority"
+  AUTHORITY = "authority",
 }
 
 export enum InteractionMode {
   SYNC = "sync",
   ASYNC = "async",
-  HYBRID = "hybrid"
+  HYBRID = "hybrid",
 }
 
 export enum ServiceFrequency {
   ONE_OFF = "one_off",
-  RETAINER = "retainer"
+  RETAINER = "retainer",
 }
 
 export enum EventLocationType {
   VIRTUAL = "virtual",
   PHYSICAL_LOCAL = "physical_local",
-  DESTINATION_RETREAT = "destination_retreat"
+  DESTINATION_RETREAT = "destination_retreat",
 }
 
 export enum AccommodationType {
   NOT_INCLUDED = "not_included",
   SHARED_ROOM = "shared_room",
   PRIVATE_ROOM = "private_room",
-  LUXURY_SUITE = "luxury_suite"
+  LUXURY_SUITE = "luxury_suite",
 }
 
 export enum PaymentPlanType {
   ONE_TIME = "one_time",
   SUBSCRIPTION = "subscription",
-  PAYMENT_PLAN = "payment_plan"
+  PAYMENT_PLAN = "payment_plan",
 }
 
 export enum AccessDuration {
   LIFETIME = "lifetime",
   LIMITED_TIME = "limited_time",
-  SUBSCRIPTION_ACTIVE = "subscription_active"
+  SUBSCRIPTION_ACTIVE = "subscription_active",
 }
 
 export enum PrerequisiteType {
   NONE = "none",
   APPLICATION_APPROVED = "application_approved",
   PRIOR_PROGRAM_COMPLETION = "prior_program_completion",
-  INCOME_LEVEL = "income_level"
+  INCOME_LEVEL = "income_level",
 }
 
 export enum BillingFrequency {
   MONTHLY = "monthly",
   QUARTERLY = "quarterly",
   ANNUAL = "annual",
-  ONE_OFF = "one_off"
+  ONE_OFF = "one_off",
 }
 
 export enum AvatarPersona {
   BEGINNER = "BEGINNER",
   INTERMEDIATE = "INTERMEDIATE",
   ADVANCED = "ADVANCED",
-  EXPERT = "EXPERT"
+  EXPERT = "EXPERT",
 }
 
 export enum AssetType {
@@ -195,7 +195,7 @@ export enum AssetType {
   AUDIO = "AUDIO",
   PDF = "PDF",
   TXT = "TXT",
-  URL = "URL"
+  URL = "URL",
 }
 
 // --- INTERFACES ---
@@ -294,9 +294,9 @@ export interface Offer {
   vsl_link?: string;
 
   landing_page_config?: {
-      is_published: boolean;
-      slug: string;
-      [key: string]: any;
+    is_published: boolean;
+    slug: string;
+    [key: string]: any;
   };
 
   // Lifecycle (SaaS archive + soft-delete)
@@ -311,18 +311,18 @@ export interface DeliverableItem {
 }
 
 export interface AvatarDefinition {
-    icp_description?: string;
-    anti_avatar?: string;
-    voice_tone_config?: Record<string, any>;
-    pain_points?: string[];
-    desires?: string[];
-    awareness_level?: string;
-    sophistication_level?: string;
+  icp_description?: string;
+  anti_avatar?: string;
+  voice_tone_config?: Record<string, any>;
+  pain_points?: string[];
+  desires?: string[];
+  awareness_level?: string;
+  sophistication_level?: string;
 }
 
 export interface ObjectionItem {
   id?: string;
-  type: string;  // "price" | "time" | "trust" | "partner" | "custom"
+  type: string; // "price" | "time" | "trust" | "partner" | "custom"
   trigger_phrases: string[];
   strategy: string;
   rebuttal: string;

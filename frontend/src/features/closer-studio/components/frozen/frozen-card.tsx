@@ -48,9 +48,7 @@ export function FrozenCard({ conversation: c }: FrozenCardProps) {
               </>
             )}
           </div>
-          {c.frozen_reason && (
-            <p className="text-xs text-orange-600 mt-0.5">{c.frozen_reason}</p>
-          )}
+          {c.frozen_reason && <p className="text-xs text-orange-600 mt-0.5">{c.frozen_reason}</p>}
         </div>
 
         {/* Quick actions */}
@@ -74,11 +72,7 @@ export function FrozenCard({ conversation: c }: FrozenCardProps) {
             <RotateCcw className="h-3.5 w-3.5 mr-1" />
             Reactivar
           </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setExpanded(!expanded)}
-          >
+          <Button size="sm" variant="ghost" onClick={() => setExpanded(!expanded)}>
             <ChevronDown className={cn("h-4 w-4 transition-transform", expanded && "rotate-180")} />
           </Button>
         </div>
@@ -91,9 +85,7 @@ export function FrozenCard({ conversation: c }: FrozenCardProps) {
           {diagnosis && (
             <div className="space-y-1.5">
               <div className="text-xs font-medium text-muted-foreground">Diagnostico AI</div>
-              {diagnosis.summary && (
-                <p className="text-xs">{diagnosis.summary}</p>
-              )}
+              {diagnosis.summary && <p className="text-xs">{diagnosis.summary}</p>}
               {diagnosis.recommendation && (
                 <p className="text-xs text-violet-600 bg-violet-50 px-2 py-1.5 rounded dark:bg-violet-950/30 dark:text-violet-300">
                   💡 {diagnosis.recommendation}
@@ -106,7 +98,9 @@ export function FrozenCard({ conversation: c }: FrozenCardProps) {
           {c.last_message_preview && (
             <div>
               <div className="text-xs font-medium text-muted-foreground mb-1">Ultimo mensaje</div>
-              <p className="text-xs text-muted-foreground italic">&ldquo;{c.last_message_preview}&rdquo;</p>
+              <p className="text-xs text-muted-foreground italic">
+                &ldquo;{c.last_message_preview}&rdquo;
+              </p>
             </div>
           )}
 

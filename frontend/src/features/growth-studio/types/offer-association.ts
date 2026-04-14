@@ -5,35 +5,35 @@
  * Everything is camelCase — conversion from snake_case happens in the API layer.
  */
 
-export type TargetType = 'campaign' | 'ad_set';
+export type TargetType = "campaign" | "ad_set";
 
 export type AssociationType =
-  | 'manual'
-  | 'auto_landing_url'
-  | 'auto_keyword'
-  | 'auto_objective'
-  | 'excluded_branding'
-  | 'suggested';
+  | "manual"
+  | "auto_landing_url"
+  | "auto_keyword"
+  | "auto_objective"
+  | "excluded_branding"
+  | "suggested";
 
-export type AssociationConfidence = 'high' | 'medium' | 'low';
+export type AssociationConfidence = "high" | "medium" | "low";
 
 export type ExpectedMetric =
-  | 'lead'
-  | 'message'
-  | 'purchase'
-  | 'subscription'
-  | 'call_booked'
-  | 'form_submit';
+  | "lead"
+  | "message"
+  | "purchase"
+  | "subscription"
+  | "call_booked"
+  | "form_submit";
 
-export type HealthStatus = 'healthy' | 'needs_attention' | 'critical';
+export type HealthStatus = "healthy" | "needs_attention" | "critical";
 
-export type RecommendationSeverity = 'info' | 'warning' | 'critical';
+export type RecommendationSeverity = "info" | "warning" | "critical";
 
 export type RecommendationType =
-  | 'create_campaign'
-  | 'fix_objective'
-  | 'configure_pixel'
-  | 'assign_offer';
+  | "create_campaign"
+  | "fix_objective"
+  | "configure_pixel"
+  | "assign_offer";
 
 // ---------------------------------------------------------------------------
 // Offer summary (for the assignment drawer dropdown)
@@ -71,7 +71,7 @@ export interface AssociationCreatePayload {
   targetType: TargetType;
   targetExternalId: string;
   offerId: string | null;
-  associationType: 'manual' | 'excluded_branding';
+  associationType: "manual" | "excluded_branding";
   notes?: string | null;
 }
 
@@ -181,7 +181,7 @@ export interface OfferMetrics {
   primaryResultCount: number;
   primaryCostPerResult: number | null;
   primaryMetricName: string;
-  primaryMetricUnit: 'currency' | 'count' | 'ratio';
+  primaryMetricUnit: "currency" | "count" | "ratio";
   roas: number | null;
 
   // Individual typed secondary metrics (was `secondaryMetrics: Record<string, number>`).
@@ -273,32 +273,32 @@ export interface AdCampaignTemplate {
  * `mixed` = "Todas las offers" — no common secondary metric, just spend bars.
  */
 export type InversionChartMode =
-  | 'traffic'
-  | 'leads'
-  | 'messages'
-  | 'purchases'
-  | 'subscriptions'
-  | 'calls'
-  | 'forms'
-  | 'mixed';
+  | "traffic"
+  | "leads"
+  | "messages"
+  | "purchases"
+  | "subscriptions"
+  | "calls"
+  | "forms"
+  | "mixed";
 
 /**
  * Map an offer's expected metric to the chart mode.
  */
 export function expectedMetricToChartMode(metric: ExpectedMetric): InversionChartMode {
   switch (metric) {
-    case 'lead':
-      return 'leads';
-    case 'message':
-      return 'messages';
-    case 'purchase':
-      return 'purchases';
-    case 'subscription':
-      return 'subscriptions';
-    case 'call_booked':
-      return 'calls';
-    case 'form_submit':
-      return 'forms';
+    case "lead":
+      return "leads";
+    case "message":
+      return "messages";
+    case "purchase":
+      return "purchases";
+    case "subscription":
+      return "subscriptions";
+    case "call_booked":
+      return "calls";
+    case "form_submit":
+      return "forms";
   }
 }
 
@@ -306,11 +306,11 @@ export function expectedMetricToChartMode(metric: ExpectedMetric): InversionChar
  * Emoji icon for an offer archetype — used in chips and dropdowns.
  */
 export function archetypeEmoji(archetype: string | null | undefined): string {
-  const upper = (archetype ?? '').toUpperCase();
-  if (upper === 'PRODUCTO') return '🧲';
-  if (upper === 'PROGRAMA') return '📚';
-  if (upper === 'SERVICIO') return '⭐';
-  if (upper === 'MEMBRESIA') return '👥';
-  if (upper === 'EXPERIENCIA') return '🎟️';
-  return '📦';
+  const upper = (archetype ?? "").toUpperCase();
+  if (upper === "PRODUCTO") return "🧲";
+  if (upper === "PROGRAMA") return "📚";
+  if (upper === "SERVICIO") return "⭐";
+  if (upper === "MEMBRESIA") return "👥";
+  if (upper === "EXPERIENCIA") return "🎟️";
+  return "📦";
 }

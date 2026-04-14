@@ -26,16 +26,22 @@ const validateSection = (sectionId: string, offer: Offer): SectionHealth => {
 
     case "strategy":
       // Requerido: Avatar match o Pain points
-      if ((!offer.target_avatar_match || offer.target_avatar_match.length === 0) && 
-          (!offer.marketing_pain_points || offer.marketing_pain_points.length === 0)) {
+      if (
+        (!offer.target_avatar_match || offer.target_avatar_match.length === 0) &&
+        (!offer.marketing_pain_points || offer.marketing_pain_points.length === 0)
+      ) {
         return { status: "incomplete", message: "Definir estrategia o avatar" };
       }
       return { status: "complete" };
 
     case "psychology":
       // Requerido: Pain points y Desires
-      if ((!offer.marketing_pain_points || offer.marketing_pain_points.length === 0) || 
-          (!offer.marketing_desires || offer.marketing_desires.length === 0)) {
+      if (
+        !offer.marketing_pain_points ||
+        offer.marketing_pain_points.length === 0 ||
+        !offer.marketing_desires ||
+        offer.marketing_desires.length === 0
+      ) {
         return { status: "incomplete", message: "Faltan puntos de dolor/deseo" };
       }
       return { status: "complete" };
@@ -71,7 +77,7 @@ const validateSection = (sectionId: string, offer: Offer): SectionHealth => {
         return { status: "incomplete", message: "Faltan detalles específicos" };
       }
       return { status: "complete" };
-    
+
     case "instructors":
       if (offer.instructors && offer.instructors.length > 0) {
         return { status: "complete" };
@@ -94,7 +100,7 @@ const validateSection = (sectionId: string, offer: Offer): SectionHealth => {
  */
 export function getOfferHealth(offer: Offer): OfferHealth {
   const sections = getSectionsForOffer(offer);
-  
+
   if (sections.length === 0) {
     return {
       completionPercentage: 0,
@@ -122,9 +128,8 @@ export function getOfferHealth(offer: Offer): OfferHealth {
     }
   });
 
-  const completionPercentage = totalRequired > 0 
-    ? Math.round((completedCount / totalRequired) * 100) 
-    : 100; // Si no hay requeridos, está "completo" o es trivial
+  const completionPercentage =
+    totalRequired > 0 ? Math.round((completedCount / totalRequired) * 100) : 100; // Si no hay requeridos, está "completo" o es trivial
 
   return {
     completionPercentage,

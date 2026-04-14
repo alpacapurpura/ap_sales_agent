@@ -5,10 +5,7 @@ interface PageProps {
   searchParams: Promise<{ personaId?: string; session?: string }>;
 }
 
-export default async function BuyerPersonaInterviewPage({
-  params,
-  searchParams,
-}: PageProps) {
+export default async function BuyerPersonaInterviewPage({ params, searchParams }: PageProps) {
   const { tenantId } = await params;
   const { session, personaId } = await searchParams;
 

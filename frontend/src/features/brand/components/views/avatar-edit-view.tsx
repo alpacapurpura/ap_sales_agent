@@ -20,7 +20,11 @@ export function AvatarEditView({ avatarId, callbackUrl }: AvatarEditViewProps) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: avatar, isLoading, isError } = useQuery({
+  const {
+    data: avatar,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["avatar", avatarId],
     queryFn: async () => {
       const token = await getToken();
@@ -42,9 +46,9 @@ export function AvatarEditView({ avatarId, callbackUrl }: AvatarEditViewProps) {
       toast.success("Avatar actualizado exitosamente");
 
       if (callbackUrl) {
-          navigate(callbackUrl);
+        navigate(callbackUrl);
       } else {
-          window.history.back();
+        window.history.back();
       }
     },
     onError: () => toast.error("Error al actualizar el avatar"),
@@ -63,8 +67,13 @@ export function AvatarEditView({ avatarId, callbackUrl }: AvatarEditViewProps) {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] gap-4">
         <h2 className="text-xl font-semibold text-destructive">Error al cargar el avatar</h2>
-        <p className="text-muted-foreground">No se pudo encontrar el avatar solicitado o no tienes permisos.</p>
-        <Button onClick={() => callbackUrl ? navigate(callbackUrl) : window.history.back()} variant="outline">
+        <p className="text-muted-foreground">
+          No se pudo encontrar el avatar solicitado o no tienes permisos.
+        </p>
+        <Button
+          onClick={() => (callbackUrl ? navigate(callbackUrl) : window.history.back())}
+          variant="outline"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" /> Volver
         </Button>
       </div>
@@ -74,12 +83,18 @@ export function AvatarEditView({ avatarId, callbackUrl }: AvatarEditViewProps) {
   return (
     <div className="container max-w-3xl py-8 space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => callbackUrl ? navigate(callbackUrl) : window.history.back()}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => (callbackUrl ? navigate(callbackUrl) : window.history.back())}
+        >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Editar Avatar</h1>
-          <p className="text-muted-foreground">Modifica los detalles psicográficos de tu cliente ideal.</p>
+          <p className="text-muted-foreground">
+            Modifica los detalles psicográficos de tu cliente ideal.
+          </p>
         </div>
       </div>
 
@@ -87,7 +102,7 @@ export function AvatarEditView({ avatarId, callbackUrl }: AvatarEditViewProps) {
         <CardHeader>
           <CardTitle>{avatar.name}</CardTitle>
           <CardDescription>
-             Editando identidad {avatar.scope === 'GLOBAL' ? 'Global' : 'Específica'}.
+            Editando identidad {avatar.scope === "GLOBAL" ? "Global" : "Específica"}.
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -1,9 +1,4 @@
-export type DomainStatus =
-  | "pending_verification"
-  | "verifying"
-  | "active"
-  | "failed"
-  | "suspended";
+export type DomainStatus = "pending_verification" | "verifying" | "active" | "failed" | "suspended";
 
 export type DomainType = "platform" | "custom";
 
@@ -48,8 +43,6 @@ export interface DomainConflict {
 
 export function isDomainConflict(err: unknown): err is DomainConflict {
   return (
-    typeof err === "object" &&
-    err !== null &&
-    (err as DomainConflict).code === "DOMAIN_CONFLICT"
+    typeof err === "object" && err !== null && (err as DomainConflict).code === "DOMAIN_CONFLICT"
   );
 }

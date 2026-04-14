@@ -1,24 +1,39 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { useStageTimeSeries } from '../../../hooks/useStageDetail';
-import { useStageOverview } from '../../../hooks/useStageOverview';
-import { useIntersectionObserver } from '../../../hooks/useIntersectionObserver';
-import { useGrowthSync } from '../../../context/growth-sync-context';
-import { ActionPanel } from '../action-widgets/ActionPanel';
-import DetailSkeleton from '../ui/DetailSkeleton';
-import DetailError from '../ui/DetailError';
-import type { MetricClickData, StageTimeSeries as TSType, ChannelMetric } from '../../../types/metrics';
-import { Button } from '@/components/ui/button';
-import { Settings, RefreshCw, Plug, Zap, Megaphone, UserPlus, Coins, TrendingUp, Globe, Bot } from 'lucide-react';
-import { DateRangePicker } from '../ui/DateRangePicker';
-import { AttractionScorecards } from '../attraction/AttractionScorecards';
-import { AttractionTrendChart } from '../attraction/AttractionTrendChart';
-import { CaptureBreakdownChart } from '../attraction/CaptureBreakdownChart';
-import { ConversionBridge } from '../attraction/ConversionBridge';
-import { LazyChannelGroup } from '../channel-widgets/LazyChannelGroup';
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { useStageTimeSeries } from "../../../hooks/useStageDetail";
+import { useStageOverview } from "../../../hooks/useStageOverview";
+import { useIntersectionObserver } from "../../../hooks/useIntersectionObserver";
+import { useGrowthSync } from "../../../context/growth-sync-context";
+import { ActionPanel } from "../action-widgets/ActionPanel";
+import DetailSkeleton from "../ui/DetailSkeleton";
+import DetailError from "../ui/DetailError";
+import type {
+  MetricClickData,
+  StageTimeSeries as TSType,
+  ChannelMetric,
+} from "../../../types/metrics";
+import { Button } from "@/components/ui/button";
+import {
+  Settings,
+  RefreshCw,
+  Plug,
+  Zap,
+  Megaphone,
+  UserPlus,
+  Coins,
+  TrendingUp,
+  Globe,
+  Bot,
+} from "lucide-react";
+import { DateRangePicker } from "../ui/DateRangePicker";
+import { AttractionScorecards } from "../attraction/AttractionScorecards";
+import { AttractionTrendChart } from "../attraction/AttractionTrendChart";
+import { CaptureBreakdownChart } from "../attraction/CaptureBreakdownChart";
+import { ConversionBridge } from "../attraction/ConversionBridge";
+import { LazyChannelGroup } from "../channel-widgets/LazyChannelGroup";
 
-import { useGrowthStudioContext } from '../context/GrowthStudioContext';
+import { useGrowthStudioContext } from "../context/GrowthStudioContext";
 
 // ─── Mobile Charts Expand ────────────────────────────────────────────────────
 
@@ -37,13 +52,8 @@ function MobileChartsExpand({
 
   return (
     <div className="md:hidden">
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full"
-        onClick={() => setExpanded(!expanded)}
-      >
-        {expanded ? 'Ocultar gráficos' : 'Ver gráficos'}
+      <Button variant="outline" size="sm" className="w-full" onClick={() => setExpanded(!expanded)}>
+        {expanded ? "Ocultar gráficos" : "Ver gráficos"}
       </Button>
       {expanded && (
         <div className="mt-4 space-y-4">
@@ -73,31 +83,49 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   onNoDataClick,
 }: AttractionCaptureDetailProps) {
   // ─── TIER 1: Lightweight overviews (render immediately) ─────────────
-  const { data: attrOverview, isLoading: attrLoading, error: attrError, refetch: refetchAttr } = useStageOverview('attraction');
-  const { data: capOverview, isLoading: capLoading, error: capError, refetch: refetchCap } = useStageOverview('capture');
+  const {
+    data: attrOverview,
+    isLoading: attrLoading,
+    error: attrError,
+    refetch: refetchAttr,
+  } = useStageOverview("attraction");
+  const {
+    data: capOverview,
+    isLoading: capLoading,
+    error: capError,
+    refetch: refetchCap,
+  } = useStageOverview("capture");
   const { startSync, isSyncing } = useGrowthSync();
   const { pendingChannelSlug, resolvePendingChannel } = useGrowthStudioContext();
 
   // Resolve deep link ?channel= once overview data arrives
   useEffect(() => {
     if (!pendingChannelSlug) return;
-    const allChannels = [
-      ...(attrOverview?.channelList ?? []),
-      ...(capOverview?.channelList ?? []),
-    ];
+    const allChannels = [...(attrOverview?.channelList ?? []), ...(capOverview?.channelList ?? [])];
     if (allChannels.length > 0) {
       resolvePendingChannel(allChannels);
     }
-  }, [pendingChannelSlug, attrOverview?.channelList, capOverview?.channelList, resolvePendingChannel]);
+  }, [
+    pendingChannelSlug,
+    attrOverview?.channelList,
+    capOverview?.channelList,
+    resolvePendingChannel,
+  ]);
 
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [rangeDays, setRangeDays] = useState(30);
-  const granularity = rangeDays >= 90 ? 'weekly' : 'daily';
+  const granularity = rangeDays >= 90 ? "weekly" : "daily";
 
   // ─── TIER 3: Charts deferred until visible ──────────────────────────
-  const { ref: chartsRef, isVisible: chartsVisible } = useIntersectionObserver({ rootMargin: '200px' });
+  const { ref: chartsRef, isVisible: chartsVisible } = useIntersectionObserver({
+    rootMargin: "200px",
+  });
   const { data: timeSeries, isLoading: tsLoading } = useStageTimeSeries(
-    'attraction', 'reach', rangeDays, granularity, { enabled: chartsVisible },
+    "attraction",
+    "reach",
+    rangeDays,
+    granularity,
+    { enabled: chartsVisible },
   );
 
   // ─── Computed totals from overview headerKpis ───────────────────────
@@ -105,59 +133,82 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   const totalVisitors = attrOverview?.headerKpis?.total_sessions ?? 0;
   const totalSpend = 0; // Spend only available in Tier 2 — scorecards show 0 until groups load
   const totalLeads = capOverview?.headerKpis?.total_leads ?? 0;
-  const leadConvRate = useMemo(() => totalVisitors > 0 ? (totalLeads / totalVisitors) * 100 : 0, [totalVisitors, totalLeads]);
+  const leadConvRate = useMemo(
+    () => (totalVisitors > 0 ? (totalLeads / totalVisitors) * 100 : 0),
+    [totalVisitors, totalLeads],
+  );
 
   // ─── Channel groupings from overview channelList ────────────────────
   const paidChannels = useMemo(
-    () => attrOverview?.channelList.filter(c => c.groupKey === 'paid') ?? [],
+    () => attrOverview?.channelList.filter((c) => c.groupKey === "paid") ?? [],
     [attrOverview?.channelList],
   );
   const organicChannels = useMemo(
-    () => attrOverview?.channelList.filter(c =>
-      c.groupKey === 'organic_social' || c.groupKey === 'ga4_search',
-    ) ?? [],
+    () =>
+      attrOverview?.channelList.filter(
+        (c) => c.groupKey === "organic_social" || c.groupKey === "ga4_search",
+      ) ?? [],
     [attrOverview?.channelList],
   );
   const webCaptureChannels = useMemo(
-    () => capOverview?.channelList.filter(c => c.groupKey === 'web_infrastructure') ?? [],
+    () => capOverview?.channelList.filter((c) => c.groupKey === "web_infrastructure") ?? [],
     [capOverview?.channelList],
   );
   const messagingCaptureChannels = useMemo(
-    () => capOverview?.channelList.filter(c => c.groupKey === 'ai_agent') ?? [],
+    () => capOverview?.channelList.filter((c) => c.groupKey === "ai_agent") ?? [],
     [capOverview?.channelList],
   );
 
   // Build ChannelMetric[] for CaptureBreakdownChart from overview data
   const allCaptureChannels: ChannelMetric[] = useMemo(
-    () => [...webCaptureChannels, ...messagingCaptureChannels].map(ch => ({
-      slug: ch.slug,
-      name: ch.name,
-      channelType: ch.channelType,
-      metrics: ch.headlineKpi ? [{ name: ch.headlineKpi.name, value: ch.headlineKpi.value, unit: ch.headlineKpi.unit }] : [],
-      sourceLabel: ch.name,
-      connected: ch.connected,
-      lastUpdated: ch.lastUpdated,
-      stale: ch.stale,
-      providerName: ch.providerName,
-    })),
+    () =>
+      [...webCaptureChannels, ...messagingCaptureChannels].map((ch) => ({
+        slug: ch.slug,
+        name: ch.name,
+        channelType: ch.channelType,
+        metrics: ch.headlineKpi
+          ? [{ name: ch.headlineKpi.name, value: ch.headlineKpi.value, unit: ch.headlineKpi.unit }]
+          : [],
+        sourceLabel: ch.name,
+        connected: ch.connected,
+        lastUpdated: ch.lastUpdated,
+        stale: ch.stale,
+        providerName: ch.providerName,
+      })),
     [webCaptureChannels, messagingCaptureChannels],
   );
 
   // ─── Handlers ──────────────────────────────────────────────────────
-  const handleChannelClick = useCallback((channel: ChannelMetric) => {
-    onChannelClick?.(channel);
-  }, [onChannelClick]);
+  const handleChannelClick = useCallback(
+    (channel: ChannelMetric) => {
+      onChannelClick?.(channel);
+    },
+    [onChannelClick],
+  );
 
   // ─── Loading / Error / Empty ──────────────────────────────────────
   if (attrLoading || capLoading) {
-    return <DetailSkeleton isLoading><></></DetailSkeleton>;
+    return (
+      <DetailSkeleton isLoading>
+        <></>
+      </DetailSkeleton>
+    );
   }
 
   if (attrError || capError) {
     return (
       <DetailError
-        error={attrError instanceof Error ? attrError : (capError instanceof Error ? capError : new Error('Error desconocido'))}
-        onRetry={() => { void refetchAttr(); void refetchCap(); }}
+        error={
+          attrError instanceof Error
+            ? attrError
+            : capError instanceof Error
+              ? capError
+              : new Error("Error desconocido")
+        }
+        onRetry={() => {
+          void refetchAttr();
+          void refetchCap();
+        }}
         lastData={attrOverview || capOverview}
       />
     );
@@ -169,7 +220,6 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
 
   return (
     <div className="space-y-6 animate-fade-in bg-background p-6 rounded-2xl text-foreground border border-border">
-
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
@@ -182,12 +232,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
           <p className="text-muted-foreground text-sm mt-1">Tu embudo de adquisición de leads</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => startSync(30)}
-            disabled={isSyncing}
-          >
+          <Button variant="outline" size="sm" onClick={() => startSync(30)} disabled={isSyncing}>
             <RefreshCw className="mr-2 h-4 w-4" />
             Sincronizar
           </Button>
@@ -204,7 +249,9 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
         <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
           <div className="text-center py-12 px-4 rounded-xl border-2 border-dashed border-border bg-muted/50">
             <Plug className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-foreground mb-1">Tu ecosistema digital está vacío</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-1">
+              Tu ecosistema digital está vacío
+            </h3>
             <p className="text-muted-foreground max-w-sm mx-auto mb-4">
               Conecta tus primeros canales de atracción para empezar a medir todo en un solo lugar.
             </p>
@@ -229,7 +276,10 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
           />
 
           {/* Section 2: Charts Side-by-Side (deferred until visible) */}
-          <div ref={chartsRef as React.Ref<HTMLDivElement>} className="hidden md:grid md:grid-cols-2 gap-4">
+          <div
+            ref={chartsRef as React.Ref<HTMLDivElement>}
+            className="hidden md:grid md:grid-cols-2 gap-4"
+          >
             {chartsVisible ? (
               <>
                 <AttractionTrendChart timeSeries={timeSeries} isLoading={tsLoading} />
@@ -255,7 +305,6 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
 
           {/* Section 4: Two-Column Layout — Attraction + Capture */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-
             {/* COLUMNA ATRACCIÓN */}
             <div className="space-y-6">
               <div className="border-b border-border pb-2">
@@ -342,15 +391,18 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
           </div>
 
           {/* Section 5: Connect More CTA */}
-          {(attrOverview?.channelList.some(c => !c.connected) || capOverview?.channelList.some(c => !c.connected)) && (
+          {(attrOverview?.channelList.some((c) => !c.connected) ||
+            capOverview?.channelList.some((c) => !c.connected)) && (
             <div className="bg-muted/30 border border-dashed border-border rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-medium text-foreground">Conectar más canales</p>
-                <p className="text-xs text-muted-foreground">Expande tu ecosistema para capturar más leads</p>
+                <p className="text-xs text-muted-foreground">
+                  Expande tu ecosistema para capturar más leads
+                </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                {[...attrOverview?.channelList ?? [], ...capOverview?.channelList ?? []]
-                  .filter(ch => !ch.connected)
+                {[...(attrOverview?.channelList ?? []), ...(capOverview?.channelList ?? [])]
+                  .filter((ch) => !ch.connected)
                   .slice(0, 4)
                   .map((ch) => (
                     <button
@@ -367,7 +419,6 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
           )}
         </>
       )}
-
     </div>
   );
 });

@@ -17,16 +17,12 @@ describe("InterviewModeButton", () => {
 
   it("renders with default label", () => {
     render(<InterviewModeButton domain="brand" />);
-    expect(
-      screen.getByRole("button", { name: /modo entrevista/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /modo entrevista/i })).toBeInTheDocument();
   });
 
   it("renders with custom label", () => {
     render(<InterviewModeButton domain="brand" label="Iniciar entrevista" />);
-    expect(
-      screen.getByRole("button", { name: /iniciar entrevista/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /iniciar entrevista/i })).toBeInTheDocument();
   });
 
   it("navigates to brand interview route on click", () => {
@@ -36,37 +32,29 @@ describe("InterviewModeButton", () => {
   });
 
   it("navigates to buyer_persona interview route with personaId", () => {
-    render(
-      <InterviewModeButton domain="buyer_persona" entityId="persona-123" />
-    );
+    render(<InterviewModeButton domain="buyer_persona" entityId="persona-123" />);
     fireEvent.click(screen.getByRole("button"));
     expect(pushMock).toHaveBeenCalledWith(
-      "/test-tenant/brand-studio/interview/buyer-persona?personaId=persona-123"
+      "/test-tenant/brand-studio/interview/buyer-persona?personaId=persona-123",
     );
   });
 
   it("navigates to buyer_persona interview route without entityId", () => {
     render(<InterviewModeButton domain="buyer_persona" />);
     fireEvent.click(screen.getByRole("button"));
-    expect(pushMock).toHaveBeenCalledWith(
-      "/test-tenant/brand-studio/interview/buyer-persona"
-    );
+    expect(pushMock).toHaveBeenCalledWith("/test-tenant/brand-studio/interview/buyer-persona");
   });
 
   it("navigates to offer interview route with offerId", () => {
     render(<InterviewModeButton domain="offer" entityId="offer-456" />);
     fireEvent.click(screen.getByRole("button"));
-    expect(pushMock).toHaveBeenCalledWith(
-      "/test-tenant/offer-studio/interview?offerId=offer-456"
-    );
+    expect(pushMock).toHaveBeenCalledWith("/test-tenant/offer-studio/interview?offerId=offer-456");
   });
 
   it("navigates to offer interview route without entityId", () => {
     render(<InterviewModeButton domain="offer" />);
     fireEvent.click(screen.getByRole("button"));
-    expect(pushMock).toHaveBeenCalledWith(
-      "/test-tenant/offer-studio/interview"
-    );
+    expect(pushMock).toHaveBeenCalledWith("/test-tenant/offer-studio/interview");
   });
 
   it("renders the sparkles icon", () => {

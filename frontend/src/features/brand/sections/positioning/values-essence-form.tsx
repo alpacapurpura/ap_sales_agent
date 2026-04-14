@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Save, Loader2 } from "lucide-react";
 import { Trash2 } from "lucide-react";
 import { RtbItemForm } from "./rtb-item-form";
@@ -188,7 +194,9 @@ export function ValuesEssenceForm({ positioning, onSave, isSaving }: ValuesEssen
           </SelectTrigger>
           <SelectContent>
             {ARCHETYPE_OPTIONS.map((a) => (
-              <SelectItem key={a} value={a}>{a}</SelectItem>
+              <SelectItem key={a} value={a}>
+                {a}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -217,7 +225,8 @@ export function ValuesEssenceForm({ positioning, onSave, isSaving }: ValuesEssen
           ))}
           {rtbs.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4 italic">
-              Sin razones para creer. Agrega datos, casos de éxito o certificaciones que respalden tu marca.
+              Sin razones para creer. Agrega datos, casos de éxito o certificaciones que respalden
+              tu marca.
             </p>
           )}
         </div>
@@ -225,7 +234,9 @@ export function ValuesEssenceForm({ positioning, onSave, isSaving }: ValuesEssen
 
       {/* Discriminator */}
       <div className="space-y-2 border-t pt-6">
-        <Label htmlFor="discriminator" className="text-base font-semibold">Discriminador</Label>
+        <Label htmlFor="discriminator" className="text-base font-semibold">
+          Discriminador
+        </Label>
         <Textarea
           id="discriminator"
           value={data.discriminator || ""}
@@ -234,13 +245,16 @@ export function ValuesEssenceForm({ positioning, onSave, isSaving }: ValuesEssen
           className="min-h-[80px]"
         />
         <p className="text-xs text-muted-foreground">
-          La razon #1 por la que te eligen a TI. No es un beneficio generico — es algo que SOLO tu tienes.
+          La razon #1 por la que te eligen a TI. No es un beneficio generico — es algo que SOLO tu
+          tienes.
         </p>
       </div>
 
       {/* Brand Essence */}
       <div className="space-y-2 border-t pt-6">
-        <Label htmlFor="brand_essence" className="text-base font-semibold">Esencia de Marca</Label>
+        <Label htmlFor="brand_essence" className="text-base font-semibold">
+          Esencia de Marca
+        </Label>
         <Input
           id="brand_essence"
           value={data.brand_essence || ""}
@@ -249,7 +263,8 @@ export function ValuesEssenceForm({ positioning, onSave, isSaving }: ValuesEssen
           className="text-lg font-medium"
         />
         <p className="text-xs text-muted-foreground">
-          El alma de tu marca en 2-3 palabras. Solo uso interno. Ej: Nike &rarr; &apos;Athletic Excellence&apos;
+          El alma de tu marca en 2-3 palabras. Solo uso interno. Ej: Nike &rarr; &apos;Athletic
+          Excellence&apos;
         </p>
       </div>
 

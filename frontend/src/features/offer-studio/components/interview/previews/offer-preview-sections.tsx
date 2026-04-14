@@ -72,12 +72,7 @@ const SECTIONS: SectionConfig[] = [
   {
     key: "closing",
     label: "Cierre",
-    fields: [
-      "guarantee_type",
-      "guarantee_terms",
-      "onboarding_action",
-      "checkout_page_url",
-    ],
+    fields: ["guarantee_type", "guarantee_terms", "onboarding_action", "checkout_page_url"],
   },
 ];
 
@@ -111,10 +106,7 @@ const GUARANTEE_LABELS: Record<string, string> = {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function computeSectionProgress(
-  data: Record<string, unknown>,
-  fields: string[]
-): number {
+function computeSectionProgress(data: Record<string, unknown>, fields: string[]): number {
   if (fields.length === 0) return 0;
   let filled = 0;
   for (const field of fields) {
@@ -127,9 +119,7 @@ function computeSectionProgress(
 }
 
 function PendingText() {
-  return (
-    <span className="text-xs italic text-muted-foreground">Pendiente...</span>
-  );
+  return <span className="text-xs italic text-muted-foreground">Pendiente...</span>;
 }
 
 // ── Section content renderers ────────────────────────────────────────────────
@@ -140,10 +130,7 @@ function IdentityContent({ data }: { data: Record<string, unknown> }) {
       <FieldRow label="Nombre" value={data.public_name as string} />
       <FieldRow label="Arquetipo" value={data.archetype as string} />
       <FieldRow label="Nivel de valor" value={data.value_level as string} />
-      <FieldRow
-        label="Modelo de entrega"
-        value={data.delivery_model as string}
-      />
+      <FieldRow label="Modelo de entrega" value={data.delivery_model as string} />
     </div>
   );
 }
@@ -151,14 +138,8 @@ function IdentityContent({ data }: { data: Record<string, unknown> }) {
 function StrategyContent({ data }: { data: Record<string, unknown> }) {
   return (
     <div className="space-y-2">
-      <FieldRow
-        label="Resultado principal"
-        value={data.primary_outcome as string}
-      />
-      <FieldRow
-        label="Tiempo al resultado"
-        value={data.time_to_value as string}
-      />
+      <FieldRow label="Resultado principal" value={data.primary_outcome as string} />
+      <FieldRow label="Tiempo al resultado" value={data.time_to_value as string} />
     </div>
   );
 }
@@ -166,18 +147,9 @@ function StrategyContent({ data }: { data: Record<string, unknown> }) {
 function PromiseContent({ data }: { data: Record<string, unknown> }) {
   return (
     <div className="space-y-2">
-      <FieldRow
-        label="Promesa principal"
-        value={data.headline_promise as string}
-      />
-      <FieldRow
-        label="Resultado principal"
-        value={data.primary_outcome as string}
-      />
-      <FieldRow
-        label="Tiempo al resultado"
-        value={data.time_to_value as string}
-      />
+      <FieldRow label="Promesa principal" value={data.headline_promise as string} />
+      <FieldRow label="Resultado principal" value={data.primary_outcome as string} />
+      <FieldRow label="Tiempo al resultado" value={data.time_to_value as string} />
     </div>
   );
 }
@@ -191,9 +163,7 @@ function PsychologyContent({ data }: { data: Record<string, unknown> }) {
     <div className="space-y-3">
       {/* Pains */}
       <div>
-        <p className="text-xs font-medium text-muted-foreground mb-1.5">
-          Dolores
-        </p>
+        <p className="text-xs font-medium text-muted-foreground mb-1.5">Dolores</p>
         {pains.length > 0 ? (
           <div className="space-y-1">
             {pains.map((pain, i) => (
@@ -212,9 +182,7 @@ function PsychologyContent({ data }: { data: Record<string, unknown> }) {
 
       {/* Desires */}
       <div>
-        <p className="text-xs font-medium text-muted-foreground mb-1.5">
-          Deseos
-        </p>
+        <p className="text-xs font-medium text-muted-foreground mb-1.5">Deseos</p>
         {desires.length > 0 ? (
           <div className="space-y-1">
             {desires.map((desire, i) => (
@@ -233,9 +201,7 @@ function PsychologyContent({ data }: { data: Record<string, unknown> }) {
 
       {/* Objections */}
       <div>
-        <p className="text-xs font-medium text-muted-foreground mb-1.5">
-          Objeciones
-        </p>
+        <p className="text-xs font-medium text-muted-foreground mb-1.5">Objeciones</p>
         {objections.length > 0 ? (
           <div className="space-y-1">
             {objections.map((obj, i) => (
@@ -243,12 +209,8 @@ function PsychologyContent({ data }: { data: Record<string, unknown> }) {
                 key={i}
                 className="rounded-md border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-xs text-foreground"
               >
-                <span className="font-medium">
-                  {obj.trigger_phrases?.[0] ?? obj.type}
-                </span>
-                {obj.rebuttal && (
-                  <p className="mt-0.5 text-muted-foreground">{obj.rebuttal}</p>
-                )}
+                <span className="font-medium">{obj.trigger_phrases?.[0] ?? obj.type}</span>
+                {obj.rebuttal && <p className="mt-0.5 text-muted-foreground">{obj.rebuttal}</p>}
               </div>
             ))}
           </div>
@@ -269,9 +231,7 @@ function PricingContent({ data }: { data: Record<string, unknown> }) {
     <div className="space-y-3">
       {/* Pricing options */}
       <div>
-        <p className="text-xs font-medium text-muted-foreground mb-1.5">
-          Opciones de precio
-        </p>
+        <p className="text-xs font-medium text-muted-foreground mb-1.5">Opciones de precio</p>
         {pricing.length > 0 ? (
           <div className="space-y-1.5">
             {pricing.map((opt, i) => (
@@ -280,18 +240,15 @@ function PricingContent({ data }: { data: Record<string, unknown> }) {
                 className="rounded-md border border-white/10 bg-white/5 px-2.5 py-2 text-xs"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">
-                    {opt.label ?? "Plan"}
-                  </span>
+                  <span className="text-muted-foreground">{opt.label ?? "Plan"}</span>
                   <span className="font-bold text-foreground">
-                    {opt.currency ?? "USD"}{" "}
-                    {opt.total_amount?.toLocaleString() ?? "0"}
+                    {opt.currency ?? "USD"} {opt.total_amount?.toLocaleString() ?? "0"}
                   </span>
                 </div>
                 {(opt.number_of_installments ?? 0) > 1 && (
                   <p className="mt-0.5 text-muted-foreground">
-                    {opt.number_of_installments} cuotas de{" "}
-                    {opt.currency ?? "USD"} {opt.installment_amount}
+                    {opt.number_of_installments} cuotas de {opt.currency ?? "USD"}{" "}
+                    {opt.installment_amount}
                   </p>
                 )}
               </div>
@@ -304,18 +261,11 @@ function PricingContent({ data }: { data: Record<string, unknown> }) {
 
       {/* Guarantee */}
       <div>
-        <p className="text-xs font-medium text-muted-foreground mb-1">
-          Garant\u00eda
-        </p>
+        <p className="text-xs font-medium text-muted-foreground mb-1">Garant\u00eda</p>
         {guaranteeType ? (
           <p className="text-xs text-foreground">
             {GUARANTEE_LABELS[guaranteeType] ?? guaranteeType}
-            {guaranteeTerms && (
-              <span className="text-muted-foreground">
-                {" "}
-                - {guaranteeTerms}
-              </span>
-            )}
+            {guaranteeTerms && <span className="text-muted-foreground"> - {guaranteeTerms}</span>}
           </p>
         ) : (
           <PendingText />
@@ -330,9 +280,7 @@ function ValueStackContent({ data }: { data: Record<string, unknown> }) {
 
   return (
     <div>
-      <p className="text-xs font-medium text-muted-foreground mb-1.5">
-        Entregables
-      </p>
+      <p className="text-xs font-medium text-muted-foreground mb-1.5">Entregables</p>
       {deliverables.length > 0 ? (
         <div className="space-y-1">
           {deliverables.map((del, i) => (
@@ -342,12 +290,9 @@ function ValueStackContent({ data }: { data: Record<string, unknown> }) {
             >
               <span className="text-green-400">&#10003;</span>
               <span className="flex-1 text-foreground">{del.name}</span>
-              {del.value_stack_price !== undefined &&
-                del.value_stack_price > 0 && (
-                  <span className="text-muted-foreground">
-                    ${del.value_stack_price}
-                  </span>
-                )}
+              {del.value_stack_price !== undefined && del.value_stack_price > 0 && (
+                <span className="text-muted-foreground">${del.value_stack_price}</span>
+              )}
             </div>
           ))}
         </div>
@@ -367,11 +312,7 @@ function ClosingContent({ data }: { data: Record<string, unknown> }) {
     <div className="space-y-2">
       <FieldRow
         label="Garant\u00eda"
-        value={
-          guaranteeType
-            ? GUARANTEE_LABELS[guaranteeType] ?? guaranteeType
-            : undefined
-        }
+        value={guaranteeType ? (GUARANTEE_LABELS[guaranteeType] ?? guaranteeType) : undefined}
       />
       <FieldRow label="Onboarding" value={onboardingAction} />
       <FieldRow label="Checkout URL" value={checkoutUrl} />
@@ -381,21 +322,11 @@ function ClosingContent({ data }: { data: Record<string, unknown> }) {
 
 // ── Shared field row ─────────────────────────────────────────────────────────
 
-function FieldRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | undefined | null;
-}) {
+function FieldRow({ label, value }: { label: string; value: string | undefined | null }) {
   return (
     <div>
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      {value ? (
-        <p className="text-xs text-foreground">{value}</p>
-      ) : (
-        <PendingText />
-      )}
+      {value ? <p className="text-xs text-foreground">{value}</p> : <PendingText />}
     </div>
   );
 }
@@ -440,7 +371,7 @@ export function OfferPreviewSections({
 
   const completedSet = useMemo(
     () => new Set(blocksCompleted.map((b) => BLOCK_TO_SECTION[b] ?? b)),
-    [blocksCompleted]
+    [blocksCompleted],
   );
 
   return (
@@ -459,7 +390,7 @@ export function OfferPreviewSections({
                 className={cn(
                   "rounded-lg border border-white/10 bg-white/[0.02] p-3 transition-all",
                   isActive && "ring-1 ring-orange-500/50 border-orange-500/30",
-                  isCompleted && "border-green-500/20"
+                  isCompleted && "border-green-500/20",
                 )}
               >
                 {/* Section header */}
@@ -471,14 +402,12 @@ export function OfferPreviewSections({
                         ? "text-orange-400"
                         : isCompleted
                           ? "text-green-400"
-                          : "text-muted-foreground"
+                          : "text-muted-foreground",
                     )}
                   >
                     {section.label}
                   </h4>
-                  <span className="text-[10px] text-muted-foreground">
-                    {progress}%
-                  </span>
+                  <span className="text-[10px] text-muted-foreground">{progress}%</span>
                 </div>
 
                 {/* Progress bar */}
@@ -490,7 +419,7 @@ export function OfferPreviewSections({
                       ? "bg-orange-500"
                       : isCompleted
                         ? "bg-green-500"
-                        : "bg-muted-foreground/30"
+                        : "bg-muted-foreground/30",
                   )}
                 />
 

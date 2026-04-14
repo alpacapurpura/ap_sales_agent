@@ -15,12 +15,7 @@ describe("AutoSaveIndicator", () => {
   });
 
   it("renders 'Guardado hace' when state is 'saved'", () => {
-    render(
-      <AutoSaveIndicator
-        state="saved"
-        lastSavedAt={new Date(Date.now() - 5_000)}
-      />,
-    );
+    render(<AutoSaveIndicator state="saved" lastSavedAt={new Date(Date.now() - 5_000)} />);
     expect(screen.getByText(/Guardado/)).toBeInTheDocument();
   });
 

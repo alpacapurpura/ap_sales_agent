@@ -1,16 +1,16 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 
 const meta = {
-  title: 'Atoms/Select',
+  title: "Atoms/Select",
   component: Select,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof Select>;
 
 export default meta;

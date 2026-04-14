@@ -16,12 +16,15 @@ export interface LadderCompleteness {
   score: "vacia" | "iniciando" | "creciendo" | "completa" | "avanzada";
 }
 
-const GROUP_CONFIG: Record<OfferValueLevel, {
-  label: string;
-  description: string;
-  priority: LadderGap["priority"];
-  suggestedPresetIds: string[];
-}> = {
+const GROUP_CONFIG: Record<
+  OfferValueLevel,
+  {
+    label: string;
+    description: string;
+    priority: LadderGap["priority"];
+    suggestedPresetIds: string[];
+  }
+> = {
   [OfferValueLevel.LEAD_MAGNET]: {
     label: "Lead Magnet",
     description: "Necesitas un recurso gratuito para atraer prospectos.",

@@ -31,9 +31,6 @@ export const LIFECYCLE_TRANSITIONS: Record<
   archived: new Set<OfferLifecycleStatus>(), // terminal — use /restore
 };
 
-export function canTransition(
-  from: OfferLifecycleStatus,
-  to: OfferLifecycleStatus,
-): boolean {
+export function canTransition(from: OfferLifecycleStatus, to: OfferLifecycleStatus): boolean {
   return LIFECYCLE_TRANSITIONS[from].has(to);
 }

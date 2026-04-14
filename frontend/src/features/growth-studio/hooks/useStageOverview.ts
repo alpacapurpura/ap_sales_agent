@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@clerk/nextjs';
-import { stageOverviewApi } from '../api/stage-overview-api';
-import { useGrowthStudioContext } from '../components/metrics-dashboard/context/GrowthStudioContext';
-import type { StageOverview } from '../types/metrics';
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@clerk/nextjs";
+import { stageOverviewApi } from "../api/stage-overview-api";
+import { useGrowthStudioContext } from "../components/metrics-dashboard/context/GrowthStudioContext";
+import type { StageOverview } from "../types/metrics";
 
 interface UseStageOverviewOptions {
   /** When false, the query will not execute. Defaults to true. */
@@ -20,15 +20,14 @@ interface UseStageOverviewOptions {
  */
 export function useStageOverview(stage: string, options?: UseStageOverviewOptions) {
   const { getToken } = useAuth();
-  const tenantId = typeof window !== 'undefined'
-    ? localStorage.getItem('x-tenant-id') : null;
+  const tenantId = typeof window !== "undefined" ? localStorage.getItem("x-tenant-id") : null;
   const { selectedPeriod } = useGrowthStudioContext();
 
   return useQuery<StageOverview>({
-    queryKey: ['stage-overview', tenantId, stage, selectedPeriod],
+    queryKey: ["stage-overview", tenantId, stage, selectedPeriod],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return stageOverviewApi.getStageOverview(token, stage, selectedPeriod);
     },
     staleTime: 1000 * 60 * 5, // 5 min — same as detail hooks

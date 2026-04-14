@@ -1,4 +1,4 @@
-import { Lightbulb } from 'lucide-react';
+import { Lightbulb } from "lucide-react";
 
 /**
  * Educational block explaining how Meta campaigns should be structured.
@@ -18,14 +18,18 @@ export function BestPracticesBlock() {
       </p>
       <ul className="space-y-2 text-xs">
         <li className="flex gap-2">
-          <span className="text-emerald-500 shrink-0" aria-hidden="true">✓</span>
+          <span className="text-emerald-500 shrink-0" aria-hidden="true">
+            ✓
+          </span>
           <span>
             <strong className="text-foreground">1 campaña por producto/servicio</strong> (offer) —
             más simple de gestionar y medir
           </span>
         </li>
         <li className="flex gap-2">
-          <span className="text-emerald-500 shrink-0" aria-hidden="true">✓</span>
+          <span className="text-emerald-500 shrink-0" aria-hidden="true">
+            ✓
+          </span>
           <span>
             <strong className="text-foreground">
               El objective de la campaña define qué métrica vas a ver
@@ -40,19 +44,23 @@ export function BestPracticesBlock() {
           </span>
         </li>
         <li className="flex gap-2">
-          <span className="text-emerald-500 shrink-0" aria-hidden="true">✓</span>
+          <span className="text-emerald-500 shrink-0" aria-hidden="true">
+            ✓
+          </span>
           <span>
             <strong className="text-foreground">
               Dentro de cada campaña, 2-3 ad sets con audiencias distintas
-            </strong>{' '}
+            </strong>{" "}
             — Meta aprende más rápido
           </span>
         </li>
         <li className="flex gap-2">
-          <span className="text-emerald-500 shrink-0" aria-hidden="true">✓</span>
+          <span className="text-emerald-500 shrink-0" aria-hidden="true">
+            ✓
+          </span>
           <span>
-            <strong className="text-foreground">3-6 anuncios por ad set</strong> — Meta rota y
-            elige el mejor
+            <strong className="text-foreground">3-6 anuncios por ad set</strong> — Meta rota y elige
+            el mejor
           </span>
         </li>
       </ul>

@@ -49,9 +49,7 @@ export function StepSourcePicker({
   return (
     <div className="mx-auto max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-10 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Construyamos tu marca
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Construyamos tu marca</h1>
         <p className="mt-3 text-muted-foreground">
           ¿Qué tienes disponible? Selecciona todo lo que aplique.
         </p>
@@ -69,13 +67,13 @@ export function StepSourcePicker({
                 "group relative flex items-start gap-4 rounded-xl border-2 p-5 text-left transition-all",
                 isSelected
                   ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50 hover:bg-muted/40"
+                  : "border-border hover:border-primary/50 hover:bg-muted/40",
               )}
             >
               <div
                 className={cn(
                   "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg transition-colors",
-                  isSelected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                  isSelected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
                 )}
               >
                 <Icon className="h-5 w-5" />

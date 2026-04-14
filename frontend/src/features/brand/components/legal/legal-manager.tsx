@@ -18,10 +18,6 @@ export function LegalManager() {
   if (!settings) return null;
 
   return (
-    <LegalForm
-      initialData={settings.identity ?? {}}
-      onSave={updateIdentity}
-      isSaving={saving}
-    />
+    <LegalForm initialData={settings.identity ?? {}} onSave={updateIdentity} isSaving={saving} />
   );
 }

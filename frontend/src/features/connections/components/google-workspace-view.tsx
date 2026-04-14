@@ -4,9 +4,21 @@ import { useState, useEffect, useCallback } from "react";
 import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
 import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
 import { useAuth } from "@clerk/nextjs";
-import { connectionsApi, GA4Property, GoogleAnalyticsStatusResponse, TestResponse } from "@/lib/api/connections";
+import {
+  connectionsApi,
+  GA4Property,
+  GoogleAnalyticsStatusResponse,
+  TestResponse,
+} from "@/lib/api/connections";
 import { PropertyPicker } from "@/features/connections/components/property-picker";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
@@ -125,13 +137,13 @@ const ServiceCard = ({ definition, status, isToggling, onToggle }: ServiceCardPr
     <div
       className={cn(
         "flex items-start gap-4 rounded-lg border p-4 transition-colors",
-        isActive ? "border-border bg-card" : "border-border/50 bg-muted/30"
+        isActive ? "border-border bg-card" : "border-border/50 bg-muted/30",
       )}
     >
       <div
         className={cn(
           "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border",
-          isActive ? "bg-background" : "bg-muted"
+          isActive ? "bg-background" : "bg-muted",
         )}
       >
         <Icon className={cn("h-5 w-5", definition.iconColor)} />
@@ -141,7 +153,10 @@ const ServiceCard = ({ definition, status, isToggling, onToggle }: ServiceCardPr
         <div className="flex items-center gap-2">
           <span className="font-medium text-sm">{definition.label}</span>
           {isActive && (
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200">
+            <Badge
+              variant="secondary"
+              className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200"
+            >
               Activo
             </Badge>
           )}
@@ -180,7 +195,8 @@ const PreConsentScreen = ({ onConnect, isConnecting }: PreConsentScreenProps) =>
         <ShieldCheck className="h-4 w-4" />
         <AlertTitle className="text-sm font-semibold">Un solo login, control total</AlertTitle>
         <AlertDescription className="text-xs mt-1">
-          Conectas tu cuenta una vez y luego activas o desactivas cada servicio de forma individual desde este panel — sin logueos adicionales.
+          Conectas tu cuenta una vez y luego activas o desactivas cada servicio de forma individual
+          desde este panel — sin logueos adicionales.
         </AlertDescription>
       </Alert>
 
@@ -205,7 +221,8 @@ const PreConsentScreen = ({ onConnect, isConnecting }: PreConsentScreenProps) =>
       </div>
 
       <p className="text-[11px] text-muted-foreground">
-        Puedes desactivar servicios individuales en cualquier momento desde este panel sin necesidad de revocar tu cuenta completa.
+        Puedes desactivar servicios individuales en cualquier momento desde este panel sin necesidad
+        de revocar tu cuenta completa.
       </p>
     </CardContent>
     <CardFooter>
@@ -364,7 +381,7 @@ export function GoogleWorkspaceView() {
                 [serviceKey]: { ...prev.services[serviceKey], is_active: isActive },
               },
             }
-          : prev
+          : prev,
       );
     } catch (error: any) {
       console.error(error);
@@ -465,8 +482,7 @@ export function GoogleWorkspaceView() {
             <CardDescription className="mt-1">
               {status.email ? (
                 <>
-                  Cuenta:{" "}
-                  <span className="font-medium text-foreground">{status.email}</span>
+                  Cuenta: <span className="font-medium text-foreground">{status.email}</span>
                 </>
               ) : (
                 "Tu cuenta de Google está activa."
@@ -476,36 +492,49 @@ export function GoogleWorkspaceView() {
 
           <div className="flex items-center gap-2 shrink-0">
             <Button variant="outline" size="sm" onClick={handleTest} disabled={testing}>
-              {testing ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Activity className="mr-1.5 h-4 w-4" />}
+              {testing ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Activity className="mr-1.5 h-4 w-4" />
+              )}
               Probar Conexión
             </Button>
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-destructive"
+                >
                   <Unlink className="mr-1.5 h-4 w-4" />
                   Desvincular
                 </Button>
               </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>¿Desvincular Google Workspace?</DialogTitle>
-                <DialogDescription>
-                  Se desactivarán todos los servicios de Google: Gmail, Calendar, Analytics y YouTube. Las citas y correos existentes no se eliminarán.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => {}}>
-                  Cancelar
-                </Button>
-                <Button variant="destructive" onClick={handleDisconnectAll} disabled={isDisconnecting}>
-                  {isDisconnecting ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    "Sí, desvincular todo"
-                  )}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>¿Desvincular Google Workspace?</DialogTitle>
+                  <DialogDescription>
+                    Se desactivarán todos los servicios de Google: Gmail, Calendar, Analytics y
+                    YouTube. Las citas y correos existentes no se eliminarán.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => {}}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDisconnectAll}
+                    disabled={isDisconnecting}
+                  >
+                    {isDisconnecting ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      "Sí, desvincular todo"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
             </Dialog>
           </div>
         </div>
@@ -517,8 +546,10 @@ export function GoogleWorkspaceView() {
           <Alert
             variant={testResult.status === "active" ? "default" : "destructive"}
             className={cn(
-              testResult.status === "active" && "bg-green-500/15 text-green-700 border-green-500/30 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20",
-              testResult.status === "partial" && "bg-amber-500/15 text-amber-700 border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
+              testResult.status === "active" &&
+                "bg-green-500/15 text-green-700 border-green-500/30 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20",
+              testResult.status === "partial" &&
+                "bg-amber-500/15 text-amber-700 border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
             )}
           >
             {testResult.status === "active" ? (
@@ -616,7 +647,10 @@ export function GoogleWorkspaceView() {
             <Separator className="my-4" />
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">
-                GA4: <strong className="text-foreground">{gaStatus.selected_property.display_name}</strong>
+                GA4:{" "}
+                <strong className="text-foreground">
+                  {gaStatus.selected_property.display_name}
+                </strong>
               </span>
               <button
                 type="button"

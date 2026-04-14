@@ -1,7 +1,7 @@
-import { AtraccionCapturaStage } from '@/features/growth-studio/components/metrics-dashboard/stages/AtraccionCapturaStage';
+import { AtraccionCapturaStage } from "@/features/growth-studio/components/metrics-dashboard/stages/AtraccionCapturaStage";
 
 export const metadata = {
-  title: 'Atracción & Captura | Growth Studio',
+  title: "Atracción & Captura | Growth Studio",
 };
 
 export default function AtraccionCapturaPage() {

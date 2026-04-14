@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useCallback, type ReactNode } from 'react';
-import { useSyncAllSources } from '../hooks/useSyncAllSources';
-import type { SyncAllResponse } from '../api/metrics-api';
+import { createContext, useContext, useCallback, type ReactNode } from "react";
+import { useSyncAllSources } from "../hooks/useSyncAllSources";
+import type { SyncAllResponse } from "../api/metrics-api";
 
 interface GrowthSyncContextValue {
   startSync: (days?: number) => void;
@@ -16,7 +16,7 @@ const GrowthSyncContext = createContext<GrowthSyncContextValue | null>(null);
 
 export function useGrowthSync() {
   const ctx = useContext(GrowthSyncContext);
-  if (!ctx) throw new Error('useGrowthSync must be used inside GrowthSyncProvider');
+  if (!ctx) throw new Error("useGrowthSync must be used inside GrowthSyncProvider");
   return ctx;
 }
 
@@ -30,8 +30,7 @@ export function GrowthSyncProvider({ children }: { children: ReactNode }) {
     [trigger],
   );
 
-  const syncError =
-    error instanceof Error ? error : error ? new Error(String(error)) : null;
+  const syncError = error instanceof Error ? error : error ? new Error(String(error)) : null;
 
   return (
     <GrowthSyncContext.Provider

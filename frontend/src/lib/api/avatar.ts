@@ -16,7 +16,7 @@ export interface CreateAvatarDTO {
   name: string;
   icp_description?: string;
   anti_avatar?: string;
-  voice_tone_config?: Record<string, any>;
+  voice_tone_config?: Record<string, unknown>;
   scope?: "GLOBAL" | "OFFER_SPECIFIC";
 }
 
@@ -40,9 +40,9 @@ export const avatarApi = {
   createAvatar: async (token: string, data: CreateAvatarDTO): Promise<Avatar> => {
     const res = await fetchClient(`${API_URL}/api/v1/brand/avatars/`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
@@ -50,12 +50,16 @@ export const avatarApi = {
     return res.json();
   },
 
-  updateAvatar: async (token: string, id: string, data: Partial<CreateAvatarDTO>): Promise<Avatar> => {
+  updateAvatar: async (
+    token: string,
+    id: string,
+    data: Partial<CreateAvatarDTO>,
+  ): Promise<Avatar> => {
     const res = await fetchClient(`${API_URL}/api/v1/brand/avatars/${id}`, {
       method: "PATCH",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });

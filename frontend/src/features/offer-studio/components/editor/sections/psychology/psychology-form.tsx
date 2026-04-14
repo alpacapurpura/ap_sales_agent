@@ -16,10 +16,18 @@ const PsychologySchema = OfferSchema.pick({
   objections: true,
   avatar_id: true, // Needed for generation logic context
   public_name: true, // Needed for generation logic context
-  headline_promise: true // Needed for generation logic context
+  headline_promise: true, // Needed for generation logic context
 });
 
-type PsychologyFormValues = Pick<OfferFormValues, "marketing_pain_points" | "marketing_desires" | "objections" | "avatar_id" | "public_name" | "headline_promise">;
+type PsychologyFormValues = Pick<
+  OfferFormValues,
+  | "marketing_pain_points"
+  | "marketing_desires"
+  | "objections"
+  | "avatar_id"
+  | "public_name"
+  | "headline_promise"
+>;
 
 export interface PsychologyFormProps {
   defaultValues: Partial<OfferFormValues>;
@@ -42,37 +50,40 @@ function PsychologyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
     setGeneratingPsychology(true);
 
     try {
-        const token = await getToken();
-        if (!token) return;
+      const token = await getToken();
+      if (!token) return;
 
-        const result = await offerApi.generatePsychology({
-            avatar_id: avatarId,
-            offer_name: offerName,
-            offer_description: offerDesc,
-            current_pains: currentPains,
-            current_desires: currentDesires
-        }, token);
+      const result = await offerApi.generatePsychology(
+        {
+          avatar_id: avatarId,
+          offer_name: offerName,
+          offer_description: offerDesc,
+          current_pains: currentPains,
+          current_desires: currentDesires,
+        },
+        token,
+      );
 
-        // Replace with AI suggestions
-        form.setValue("marketing_pain_points", result.pains as any);
-        form.setValue("marketing_desires", result.desires as any);
-        
-        toast.success("Psicología generada con IA exitosamente");
+      // Replace with AI suggestions
+      form.setValue("marketing_pain_points", result.pains);
+      form.setValue("marketing_desires", result.desires);
+
+      toast.success("Psicología generada con IA exitosamente");
     } catch (e) {
-        toast.error("Error generando psicología con IA");
-        console.error(e);
+      toast.error("Error generando psicología con IA");
+      console.error(e);
     } finally {
-        setGeneratingPsychology(false);
+      setGeneratingPsychology(false);
     }
   };
 
   return (
     <div className="space-y-6">
       <OfferPsychologyCard
-          control={form.control}
-          onGenerate={handleGeneratePsychology}
-          avatarSelected={!!form.watch("avatar_id")}
-          isGenerating={generatingPsychology}
+        control={form.control}
+        onGenerate={handleGeneratePsychology}
+        avatarSelected={!!form.watch("avatar_id")}
+        isGenerating={generatingPsychology}
       />
       <OfferObjectionsCard control={form.control} />
     </div>
@@ -86,7 +97,7 @@ export function PsychologyForm({ defaultValues: propValues, onSave }: Psychology
     objections: propValues?.objections || [],
     avatar_id: propValues?.avatar_id || "",
     public_name: propValues?.public_name || "",
-    headline_promise: propValues?.headline_promise || ""
+    headline_promise: propValues?.headline_promise || "",
   };
 
   const handleSave = async (data: PsychologyFormValues) => {
@@ -99,9 +110,7 @@ export function PsychologyForm({ defaultValues: propValues, onSave }: Psychology
       defaultValues={defaultValues}
       onSubmit={handleSave}
     >
-      {(form) => (
-        <PsychologyContent form={form as unknown as UseFormReturn<OfferFormValues>} />
-      )}
+      {(form) => <PsychologyContent form={form as unknown as UseFormReturn<OfferFormValues>} />}
     </SectionFormWrapper>
   );
 }

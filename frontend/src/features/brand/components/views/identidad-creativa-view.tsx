@@ -26,8 +26,8 @@ export function IdentidadCreativaView() {
   const { openEdit } = useBrandStudio();
 
   const navItems = useMemo(
-    () => settings ? buildSectionNavItems("identidad-creativa", settings) : [],
-    [settings]
+    () => (settings ? buildSectionNavItems("identidad-creativa", settings) : []),
+    [settings],
   );
 
   if (!settings) return null;
@@ -36,10 +36,7 @@ export function IdentidadCreativaView() {
     <BrandSectionShell title={SECTION.label} subtitle={SECTION.subtitle} navItems={navItems}>
       {/* Galeria de Marca */}
       <div id="gallery" className="space-y-8">
-        <SectionHeader
-          title="Galeria de Marca"
-          subtitle="Media assets de la marca."
-        />
+        <SectionHeader title="Galeria de Marca" subtitle="Media assets de la marca." />
         <GalleryManager visuals={settings.visuals ?? {}} />
       </div>
 
@@ -58,26 +55,14 @@ export function IdentidadCreativaView() {
 
       {/* Logos */}
       <div id="logos" className="space-y-8">
-        <SectionHeader
-          title="Logo Kit"
-          subtitle="Variantes de tu logo para distintos contextos."
-        />
-        <LogoKitPreview
-          visuals={settings.visuals ?? {}}
-          onEdit={() => openEdit("logos")}
-        />
+        <SectionHeader title="Logo Kit" subtitle="Variantes de tu logo para distintos contextos." />
+        <LogoKitPreview visuals={settings.visuals ?? {}} onEdit={() => openEdit("logos")} />
       </div>
 
       {/* Voz AI */}
       <div id="voice" className="space-y-8">
-        <SectionHeader
-          title="Voz AI"
-          subtitle="Idioma, tono y estilo de comunicacion."
-        />
-        <VoiceSection
-          identity={settings.identity ?? {}}
-          onEdit={() => openEdit("voice")}
-        />
+        <SectionHeader title="Voz AI" subtitle="Idioma, tono y estilo de comunicacion." />
+        <VoiceSection identity={settings.identity ?? {}} onEdit={() => openEdit("voice")} />
       </div>
 
       {/* Conceptos Creativos & Funnel Assets */}
@@ -88,7 +73,13 @@ export function IdentidadCreativaView() {
         />
         <div id="funnel-assets">
           <AssetsPreview
-            communicationAssets={settings.communication_assets ?? { creative_concepts: [], assets: [], custom_asset_types: [] }}
+            communicationAssets={
+              settings.communication_assets ?? {
+                creative_concepts: [],
+                assets: [],
+                custom_asset_types: [],
+              }
+            }
             onEdit={() => openEdit("communication-assets")}
           />
         </div>

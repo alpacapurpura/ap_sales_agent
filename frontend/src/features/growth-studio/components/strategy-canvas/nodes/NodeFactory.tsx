@@ -1,6 +1,6 @@
-import React from 'react';
-import { Group } from '@visx/group';
-import { VisxNode } from '../utils/adapter';
+import React from "react";
+import { Group } from "@visx/group";
+import { VisxNode } from "../utils/adapter";
 
 // Props passed by Visx Sankey to the node component
 export interface NodeFactoryProps {
@@ -12,14 +12,14 @@ export interface NodeFactoryProps {
 }
 
 const NodeFactory: React.FC<NodeFactoryProps> = ({ node, x, y, width, height }) => {
-  const isPositiveTrend = node.efficiencyMetric.trend === 'up';
-  const isNegativeTrend = node.efficiencyMetric.trend === 'down';
-  
-  const trendColor = isPositiveTrend 
-    ? 'text-emerald-600' 
-    : isNegativeTrend 
-      ? 'text-red-600' 
-      : 'text-gray-500';
+  const isPositiveTrend = node.efficiencyMetric.trend === "up";
+  const isNegativeTrend = node.efficiencyMetric.trend === "down";
+
+  const trendColor = isPositiveTrend
+    ? "text-emerald-600"
+    : isNegativeTrend
+      ? "text-red-600"
+      : "text-gray-500";
 
   return (
     <Group top={y} left={x}>

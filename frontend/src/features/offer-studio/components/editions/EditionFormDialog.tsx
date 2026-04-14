@@ -70,7 +70,7 @@ export function EditionFormDialog({
   const [capacity, setCapacity] = useState<string>(edition?.capacity?.toString() ?? "");
   const [status, setStatus] = useState<EditionStatus>(edition?.status ?? EditionStatus.DRAFT);
   const [pricingOverride, setPricingOverride] = useState<PricingStructure[] | null>(
-    edition?.pricing_override ?? null
+    edition?.pricing_override ?? null,
   );
   const [notes, setNotes] = useState(edition?.notes ?? "");
   const [saving, setSaving] = useState(false);

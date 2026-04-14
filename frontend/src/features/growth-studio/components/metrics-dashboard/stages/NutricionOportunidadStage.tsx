@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { NurtureOpportunityDetail } from '../detail-panels/NurtureOpportunityDetail';
-import { useGrowthStudioContext } from '../context/GrowthStudioContext';
+import { NurtureOpportunityDetail } from "../detail-panels/NurtureOpportunityDetail";
+import { useGrowthStudioContext } from "../context/GrowthStudioContext";
 
 export function NutricionOportunidadStage() {
-  const { handleMetricClick, handleChannelClick, handleConfigure, handleDisconnectedClick, handleNoDataClick } = useGrowthStudioContext();
+  const {
+    handleMetricClick,
+    handleChannelClick,
+    handleConfigure,
+    handleDisconnectedClick,
+    handleNoDataClick,
+  } = useGrowthStudioContext();
   return (
     <NurtureOpportunityDetail
       onMetricClick={handleMetricClick}

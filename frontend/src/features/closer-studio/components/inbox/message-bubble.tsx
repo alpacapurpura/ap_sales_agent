@@ -67,10 +67,12 @@ export function MessageBubble({ message: m }: MessageBubbleProps) {
       >
         <p className="whitespace-pre-wrap break-words">{m.content}</p>
         {m.created_at && (
-          <span className={cn(
-            "text-[10px] block mt-1",
-            isUser ? "text-background/60" : "text-muted-foreground"
-          )}>
+          <span
+            className={cn(
+              "text-[10px] block mt-1",
+              isUser ? "text-background/60" : "text-muted-foreground",
+            )}
+          >
             {formatMessageTime(m.created_at, timezone)}
           </span>
         )}

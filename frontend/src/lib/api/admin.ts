@@ -20,15 +20,18 @@ export const adminApi = {
   },
 
   updateTenantPermissions: async (token: string, tenantId: string, canUsePlatformKeys: boolean) => {
-    const res = await fetchClient(`${config.api.baseUrl}/api/v1/iam/tenants/${tenantId}/permissions`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    const res = await fetchClient(
+      `${config.api.baseUrl}/api/v1/iam/tenants/${tenantId}/permissions`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ can_use_platform_keys: canUsePlatformKeys }),
       },
-      body: JSON.stringify({ can_use_platform_keys: canUsePlatformKeys }),
-    });
+    );
     if (!res.ok) throw new Error("Failed to update permissions");
     return res.json();
-  }
+  },
 };

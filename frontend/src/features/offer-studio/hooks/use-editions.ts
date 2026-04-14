@@ -9,7 +9,11 @@ export function useEditions(offerId: string) {
   const queryClient = useQueryClient();
   const queryKey = ["editions", offerId];
 
-  const { data: editions = [], isLoading, error } = useQuery({
+  const {
+    data: editions = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey,
     queryFn: async () => {
       const token = await getToken();
@@ -34,13 +38,7 @@ export function useEditions(offerId: string) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({
-      editionId,
-      data,
-    }: {
-      editionId: string;
-      data: LaunchEditionUpdate;
-    }) => {
+    mutationFn: async ({ editionId, data }: { editionId: string; data: LaunchEditionUpdate }) => {
       const token = await getToken();
       if (!token) throw new Error("No autenticado");
       return editionsApi.update(offerId, editionId, data, token);

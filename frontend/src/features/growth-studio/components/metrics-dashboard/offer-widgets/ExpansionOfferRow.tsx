@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import type { ExpansionOfferData } from '../../../types/metrics';
-import { formatDualCurrency } from '@/lib/format-money';
+import type { ExpansionOfferData } from "../../../types/metrics";
+import { formatDualCurrency } from "@/lib/format-money";
 
 interface ExpansionOfferRowProps {
   offer: ExpansionOfferData;
@@ -19,8 +19,9 @@ export function ExpansionOfferRow({ offer, isChurn = false }: ExpansionOfferRowP
           <span>{offer.count}</span>
           <span className="text-[10px] text-muted-foreground">transacciones</span>
         </div>
-        <span className={isChurn ? 'text-red-600 dark:text-red-400' : ''}>
-          {isChurn ? '-' : ''}{revenueText}
+        <span className={isChurn ? "text-red-600 dark:text-red-400" : ""}>
+          {isChurn ? "-" : ""}
+          {revenueText}
         </span>
       </div>
     </div>

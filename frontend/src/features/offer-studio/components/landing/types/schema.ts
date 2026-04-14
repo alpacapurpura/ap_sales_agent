@@ -122,12 +122,12 @@ export interface BrochureContent {
 
 // --- MASTER CONFIG ---
 
-export type LandingPageContent = 
-  | SqueezeContent 
-  | EventContent 
-  | FlashOfferContent 
-  | TransformerContent 
-  | VelvetRopeContent 
+export type LandingPageContent =
+  | SqueezeContent
+  | EventContent
+  | FlashOfferContent
+  | TransformerContent
+  | VelvetRopeContent
   | BrochureContent
   | Record<string, any>; // Puck Data Support
 

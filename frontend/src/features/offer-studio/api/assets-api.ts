@@ -19,19 +19,13 @@ const buildQueryString = (query?: AssetListQuery): string => {
   if (query.source) params.set("source", query.source);
   if (query.sort) params.set("sort", query.sort);
   if (typeof query.limit === "number") params.set("limit", String(query.limit));
-  if (typeof query.offset === "number")
-    params.set("offset", String(query.offset));
+  if (typeof query.offset === "number") params.set("offset", String(query.offset));
   const qs = params.toString();
   return qs ? `?${qs}` : "";
 };
 
-const readErrorDetail = async (
-  res: Response,
-  fallback: string,
-): Promise<string> => {
-  const body = (await res
-    .json()
-    .catch(() => ({ detail: res.statusText }))) as { detail?: string };
+const readErrorDetail = async (res: Response, fallback: string): Promise<string> => {
+  const body = (await res.json().catch(() => ({ detail: res.statusText }))) as { detail?: string };
   return body.detail ?? fallback;
 };
 
@@ -48,45 +42,29 @@ export const assetsApi = {
       },
     );
     if (!res.ok) {
-      throw new Error(
-        await readErrorDetail(res, "Error al cargar los recursos"),
-      );
+      throw new Error(await readErrorDetail(res, "Error al cargar los recursos"));
     }
     return (await res.json()) as AssetListResponse;
   },
 
-  get: async (
-    offerId: string,
-    assetId: string,
-    token: string,
-  ): Promise<AssetResponse> => {
-    const res = await fetchClient(
-      `${API_URL}/api/v1/offer/products/${offerId}/assets/${assetId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
+  get: async (offerId: string, assetId: string, token: string): Promise<AssetResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/offer/products/${offerId}/assets/${assetId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (!res.ok) {
       throw new Error(await readErrorDetail(res, "Error al cargar el recurso"));
     }
     return (await res.json()) as AssetResponse;
   },
 
-  upload: async (
-    offerId: string,
-    file: File,
-    token: string,
-  ): Promise<AssetResponse> => {
+  upload: async (offerId: string, file: File, token: string): Promise<AssetResponse> => {
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetchClient(
-      `${API_URL}/api/v1/offer/products/${offerId}/assets/upload`,
-      {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      },
-    );
+    const res = await fetchClient(`${API_URL}/api/v1/offer/products/${offerId}/assets/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
     if (!res.ok) {
       throw new Error(await readErrorDetail(res, "Error al subir el recurso"));
     }
@@ -98,21 +76,16 @@ export const assetsApi = {
     payload: AssetGeneratePayload,
     token: string,
   ): Promise<AssetResponse> => {
-    const res = await fetchClient(
-      `${API_URL}/api/v1/offer/products/${offerId}/assets/generate`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+    const res = await fetchClient(`${API_URL}/api/v1/offer/products/${offerId}/assets/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify(payload),
+    });
     if (!res.ok) {
-      throw new Error(
-        await readErrorDetail(res, "Error al generar el recurso"),
-      );
+      throw new Error(await readErrorDetail(res, "Error al generar el recurso"));
     }
     return (await res.json()) as AssetResponse;
   },
@@ -123,41 +96,27 @@ export const assetsApi = {
     payload: AssetUpdatePayload,
     token: string,
   ): Promise<AssetResponse> => {
-    const res = await fetchClient(
-      `${API_URL}/api/v1/offer/products/${offerId}/assets/${assetId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+    const res = await fetchClient(`${API_URL}/api/v1/offer/products/${offerId}/assets/${assetId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify(payload),
+    });
     if (!res.ok) {
-      throw new Error(
-        await readErrorDetail(res, "Error al actualizar el recurso"),
-      );
+      throw new Error(await readErrorDetail(res, "Error al actualizar el recurso"));
     }
     return (await res.json()) as AssetResponse;
   },
 
-  remove: async (
-    offerId: string,
-    assetId: string,
-    token: string,
-  ): Promise<void> => {
-    const res = await fetchClient(
-      `${API_URL}/api/v1/offer/products/${offerId}/assets/${assetId}`,
-      {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
+  remove: async (offerId: string, assetId: string, token: string): Promise<void> => {
+    const res = await fetchClient(`${API_URL}/api/v1/offer/products/${offerId}/assets/${assetId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (!res.ok) {
-      throw new Error(
-        await readErrorDetail(res, "Error al eliminar el recurso"),
-      );
+      throw new Error(await readErrorDetail(res, "Error al eliminar el recurso"));
     }
   },
 

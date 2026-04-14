@@ -4,7 +4,13 @@ import { ReasonToBelieve } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
@@ -29,10 +35,7 @@ export function RtbItemForm({ rtb, onChange, onRemove }: RtbItemFormProps) {
         <div className="grid grid-cols-[140px_1fr] gap-2">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Tipo</Label>
-            <Select
-              value={rtb.type || ""}
-              onValueChange={(val) => onChange({ ...rtb, type: val })}
-            >
+            <Select value={rtb.type || ""} onValueChange={(val) => onChange({ ...rtb, type: val })}>
               <SelectTrigger className="h-9">
                 <SelectValue placeholder="Seleccionar..." />
               </SelectTrigger>
@@ -47,7 +50,11 @@ export function RtbItemForm({ rtb, onChange, onRemove }: RtbItemFormProps) {
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Declaración</Label>
-            <WithCopilot fieldId={`rtb_${rtb.id}_statement`} fieldLabel="RTB Declaración" getValue={() => rtb.statement || ""}>
+            <WithCopilot
+              fieldId={`rtb_${rtb.id}_statement`}
+              fieldLabel="RTB Declaración"
+              getValue={() => rtb.statement || ""}
+            >
               <Input
                 value={rtb.statement || ""}
                 onChange={(e) => onChange({ ...rtb, statement: e.target.value })}

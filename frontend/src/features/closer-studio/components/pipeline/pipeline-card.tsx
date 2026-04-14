@@ -57,7 +57,11 @@ export function PipelineCard({ conversation: c, onClick }: PipelineCardProps) {
           <div
             className={cn(
               "h-full rounded-full transition-all",
-              c.lead_score >= 70 ? "bg-green-500" : c.lead_score >= 40 ? "bg-yellow-500" : "bg-red-400",
+              c.lead_score >= 70
+                ? "bg-green-500"
+                : c.lead_score >= 40
+                  ? "bg-yellow-500"
+                  : "bg-red-400",
             )}
             style={{ width: `${Math.min(c.lead_score, 100)}%` }}
           />

@@ -26,12 +26,12 @@ export const dashboardService = {
       total_sales: 0,
       appointments_today: 0,
       conversion_rate: 0,
-      active_leads: 0
+      active_leads: 0,
     };
   },
 
   getActivity: async (): Promise<ActivityItem[]> => {
     // TODO: implement when endpoints are ready
     return [];
-  }
+  },
 };

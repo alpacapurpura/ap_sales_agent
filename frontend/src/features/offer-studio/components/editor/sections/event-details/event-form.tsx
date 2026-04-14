@@ -11,15 +11,15 @@ import { Switch } from "@/components/ui/switch";
 import { RichSelect } from "@/components/ui/rich-select";
 import { SmartDateTimePicker } from "@/components/ui/smart-datetime-picker";
 import { TimezoneSelect } from "@/components/ui/timezone-select";
-import { 
-  EVENT_LOCATION_METADATA, 
-  ACCOMMODATION_METADATA, 
-  getEnumOptions 
+import {
+  EVENT_LOCATION_METADATA,
+  ACCOMMODATION_METADATA,
+  getEnumOptions,
 } from "../../../../types/enum-metadata";
 import { Card, CardContent } from "@/components/ui/card";
 
 const EventDetailsSchema = OfferSchema.pick({
-  specific_details: true
+  specific_details: true,
 });
 
 type EventDetailsFormValues = Pick<OfferFormValues, "specific_details">;
@@ -38,115 +38,122 @@ function EventDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> })
       <CardContent className="pt-6">
         <div className="space-y-6">
           <h3 className="text-lg font-medium">Logística del Evento</h3>
-          
+
           <FormField
             control={form.control}
-        name="specific_details.timezone"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Zona Horaria</FormLabel>
-            <TimezoneSelect 
-              value={field.value as string} 
-              onValueChange={field.onChange} 
-            />
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <div className="grid grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="specific_details.start_date"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Fecha Inicio</FormLabel>
-              <SmartDateTimePicker 
-                value={field.value as string} 
-                onChange={field.onChange} 
-                timezone={timezone}
-              />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="specific_details.end_date"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Fecha Fin</FormLabel>
-               <SmartDateTimePicker 
-                value={field.value as string} 
-                onChange={field.onChange} 
-                timezone={timezone}
-              />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-
-      <FormField
-        control={form.control}
-        name="specific_details.location_type"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Tipo de Ubicación</FormLabel>
-            <RichSelect 
-              options={getEnumOptions(EVENT_LOCATION_METADATA)}
-              value={field.value as string}
-              onValueChange={field.onChange}
-            />
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      {(form.watch("specific_details.location_type") === EventLocationType.PHYSICAL_LOCAL || 
-        form.watch("specific_details.location_type") === EventLocationType.DESTINATION_RETREAT) && (
-        <div className="border p-4 rounded-md space-y-4">
-          <h4 className="font-medium text-sm text-muted-foreground">Detalles Físicos</h4>
-          <FormField
-            control={form.control}
-            name="specific_details.venue_name"
+            name="specific_details.timezone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nombre del Lugar (Venue)</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ej. Hotel Xcaret" {...field} value={field.value as string || ""} />
-                </FormControl>
+                <FormLabel>Zona Horaria</FormLabel>
+                <TimezoneSelect value={field.value as string} onValueChange={field.onChange} />
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="specific_details.start_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Fecha Inicio</FormLabel>
+                  <SmartDateTimePicker
+                    value={field.value as string}
+                    onChange={field.onChange}
+                    timezone={timezone}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="specific_details.end_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Fecha Fin</FormLabel>
+                  <SmartDateTimePicker
+                    value={field.value as string}
+                    onChange={field.onChange}
+                    timezone={timezone}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
           <FormField
             control={form.control}
-            name="specific_details.venue_address"
+            name="specific_details.location_type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Dirección</FormLabel>
-                <FormControl>
-                  <Input placeholder="Calle 123..." {...field} value={field.value as string || ""} />
-                </FormControl>
+                <FormLabel>Tipo de Ubicación</FormLabel>
+                <RichSelect
+                  options={getEnumOptions(EVENT_LOCATION_METADATA)}
+                  value={field.value as string}
+                  onValueChange={field.onChange}
+                />
                 <FormMessage />
               </FormItem>
             )}
           />
-        </div>
-      )}
-      
-      {form.watch("specific_details.location_type") === EventLocationType.DESTINATION_RETREAT && (
-          <div className="border p-4 rounded-md space-y-4 bg-muted/20">
-             <h4 className="font-medium text-sm text-muted-foreground">Logística de Retiro</h4>
-             <FormField
+
+          {(form.watch("specific_details.location_type") === EventLocationType.PHYSICAL_LOCAL ||
+            form.watch("specific_details.location_type") ===
+              EventLocationType.DESTINATION_RETREAT) && (
+            <div className="border p-4 rounded-md space-y-4">
+              <h4 className="font-medium text-sm text-muted-foreground">Detalles Físicos</h4>
+              <FormField
+                control={form.control}
+                name="specific_details.venue_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre del Lugar (Venue)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej. Hotel Xcaret"
+                        {...field}
+                        value={(field.value as string) || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="specific_details.venue_address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Dirección</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Calle 123..."
+                        {...field}
+                        value={(field.value as string) || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+
+          {form.watch("specific_details.location_type") ===
+            EventLocationType.DESTINATION_RETREAT && (
+            <div className="border p-4 rounded-md space-y-4 bg-muted/20">
+              <h4 className="font-medium text-sm text-muted-foreground">Logística de Retiro</h4>
+              <FormField
                 control={form.control}
                 name="specific_details.accommodation_type"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Alojamiento Incluido</FormLabel>
-                    <RichSelect 
+                    <RichSelect
                       options={getEnumOptions(ACCOMMODATION_METADATA)}
                       value={field.value as string}
                       onValueChange={field.onChange}
@@ -164,16 +171,13 @@ function EventDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> })
                       <FormLabel>Transporte Incluido</FormLabel>
                     </div>
                     <FormControl>
-                      <Switch
-                        checked={field.value as boolean}
-                        onCheckedChange={field.onChange}
-                      />
+                      <Switch checked={field.value as boolean} onCheckedChange={field.onChange} />
                     </FormControl>
                   </FormItem>
                 )}
               />
-          </div>
-      )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -182,7 +186,7 @@ function EventDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> })
 
 export function EventDetailsForm({ defaultValues: propValues, onSave }: EventDetailsFormProps) {
   const defaultValues: EventDetailsFormValues = {
-    specific_details: propValues?.specific_details || {}
+    specific_details: propValues?.specific_details || {},
   };
 
   const handleSave = async (data: EventDetailsFormValues) => {
@@ -196,9 +200,7 @@ export function EventDetailsForm({ defaultValues: propValues, onSave }: EventDet
         defaultValues={defaultValues}
         onSubmit={handleSave}
       >
-        {(form) => (
-          <EventDetailsContent form={form as unknown as UseFormReturn<OfferFormValues>} />
-        )}
+        {(form) => <EventDetailsContent form={form as unknown as UseFormReturn<OfferFormValues>} />}
       </SectionFormWrapper>
       <EditionsOptIn
         archetype={OfferArchetype.EXPERIENCIA}

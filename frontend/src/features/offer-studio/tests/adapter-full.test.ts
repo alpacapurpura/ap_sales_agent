@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { backendToFrontend, offerToFormValues, frontendToBackend, BackendOffer } from "../api/adapter";
+import {
+  backendToFrontend,
+  offerToFormValues,
+  frontendToBackend,
+  BackendOffer,
+} from "../api/adapter";
 import { MOCK_BACKEND_RESPONSE, MOCK_OFFER_NORMALIZED } from "./fixtures";
 import {
   OfferArchetype,

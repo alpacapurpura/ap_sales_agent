@@ -1,22 +1,22 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { ProgramDetailsForm } from '../program-form';
-import { useForm } from 'react-hook-form';
-import { Form } from '@/components/ui/form';
-import { OfferFormValues } from '../../../../../types/schema';
-import { ProgramStructure, OfferStatus, OfferArchetype } from '../../../../../types';
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { ProgramDetailsForm } from "../program-form";
+import { useForm } from "react-hook-form";
+import { Form } from "@/components/ui/form";
+import { OfferFormValues } from "../../../../../types/schema";
+import { ProgramStructure, OfferStatus, OfferArchetype } from "../../../../../types";
 
 // Mock complex UI components to avoid JSDOM issues
-vi.mock('@/components/ui/smart-datetime-picker', () => ({
-  SmartDateTimePicker: () => <div data-testid="smart-datetime-picker">Picker</div>
+vi.mock("@/components/ui/smart-datetime-picker", () => ({
+  SmartDateTimePicker: () => <div data-testid="smart-datetime-picker">Picker</div>,
 }));
 
-vi.mock('@/components/ui/timezone-select', () => ({
-  TimezoneSelect: () => <div data-testid="timezone-select">Timezone</div>
+vi.mock("@/components/ui/timezone-select", () => ({
+  TimezoneSelect: () => <div data-testid="timezone-select">Timezone</div>,
 }));
 
-vi.mock('@/components/ui/rich-select', () => ({
-  RichSelect: () => <div data-testid="rich-select">Select</div>
+vi.mock("@/components/ui/rich-select", () => ({
+  RichSelect: () => <div data-testid="rich-select">Select</div>,
 }));
 
 function Wrapper() {
@@ -27,9 +27,9 @@ function Wrapper() {
       archetype: OfferArchetype.PROGRAMA,
       specific_details: {
         structure_type: ProgramStructure.FIXED_COHORT,
-        schedule: []
-      }
-    }
+        schedule: [],
+      },
+    },
   });
 
   return (
@@ -39,8 +39,8 @@ function Wrapper() {
         defaultValues={{
           specific_details: {
             structure_type: ProgramStructure.FIXED_COHORT,
-            schedule: []
-          }
+            schedule: [],
+          },
         }}
         onSave={async () => {}}
       />
@@ -48,16 +48,16 @@ function Wrapper() {
   );
 }
 
-describe('ProgramDetailsForm', () => {
-  it('renders without crashing', () => {
+describe("ProgramDetailsForm", () => {
+  it("renders without crashing", () => {
     render(<Wrapper />);
-    
+
     // Check for the section headers we added/modified
-    expect(screen.getByText('Diseño del Programa')).toBeDefined();
-    expect(screen.getByText('Calendario de Lanzamiento')).toBeDefined();
-    
+    expect(screen.getByText("Diseño del Programa")).toBeDefined();
+    expect(screen.getByText("Calendario de Lanzamiento")).toBeDefined();
+
     // Check for the Labels we fixed (they should be rendered as Label now)
-    expect(screen.getByText('Fecha y Hora de Inicio (Kick-off)')).toBeDefined();
-    expect(screen.getByText('Fecha de Fin (Graduación)')).toBeDefined();
+    expect(screen.getByText("Fecha y Hora de Inicio (Kick-off)")).toBeDefined();
+    expect(screen.getByText("Fecha de Fin (Graduación)")).toBeDefined();
   });
 });

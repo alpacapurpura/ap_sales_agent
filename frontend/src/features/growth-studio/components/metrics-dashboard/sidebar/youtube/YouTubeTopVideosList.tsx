@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { Loader2, Youtube } from 'lucide-react';
-import Image from 'next/image';
-import { useYoutubeTopVideos } from '../../../../hooks/useYoutubeAnalytics';
+import { Loader2, Youtube } from "lucide-react";
+import Image from "next/image";
+import { useYoutubeTopVideos } from "../../../../hooks/useYoutubeAnalytics";
 
 function formatDuration(iso: string): string {
   // Parse ISO 8601 duration like PT1H2M30S
   const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (!match) return iso;
-  const h = match[1] ? `${match[1]}:` : '';
-  const m = (match[2] || '0').padStart(h ? 2 : 1, '0');
-  const s = (match[3] || '0').padStart(2, '0');
+  const h = match[1] ? `${match[1]}:` : "";
+  const m = (match[2] || "0").padStart(h ? 2 : 1, "0");
+  const s = (match[3] || "0").padStart(2, "0");
   return `${h}${m}:${s}`;
 }
 
 function formatNumber(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return n.toLocaleString('es-ES');
+  return n.toLocaleString("es-ES");
 }
 
 interface YouTubeTopVideosListProps {
@@ -38,20 +38,23 @@ export function YouTubeTopVideosList({ enabled }: YouTubeTopVideosListProps) {
 
   if (error) {
     return (
-      <p className="text-xs text-destructive py-4 text-center">Error al cargar videos: {error.message}</p>
+      <p className="text-xs text-destructive py-4 text-center">
+        Error al cargar videos: {error.message}
+      </p>
     );
   }
 
   if (!data || data.length === 0) {
-    return (
-      <p className="text-xs text-muted-foreground py-4 text-center">Sin datos de videos</p>
-    );
+    return <p className="text-xs text-muted-foreground py-4 text-center">Sin datos de videos</p>;
   }
 
   return (
     <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
       {data.map((video, idx) => (
-        <div key={video.videoId || idx} className="flex gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+        <div
+          key={video.videoId || idx}
+          className="flex gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+        >
           {/* Thumbnail with duration overlay */}
           <div className="relative flex-shrink-0 w-[120px] h-[68px] rounded-md overflow-hidden bg-muted">
             {video.thumbnailUrl ? (

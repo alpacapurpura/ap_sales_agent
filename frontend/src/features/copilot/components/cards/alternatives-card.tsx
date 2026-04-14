@@ -52,15 +52,13 @@ export const AlternativesCard = memo(function AlternativesCard({
               selected === alt.id
                 ? "scale-95 border-purple-400 bg-purple-500/15 ring-1 ring-purple-400"
                 : "border-[#3d3d5c] hover:border-purple-400/50",
-              isResolved && "cursor-default opacity-60"
+              isResolved && "cursor-default opacity-60",
             )}
           >
             <div className="text-xs font-semibold text-gray-200">{alt.title}</div>
             <div className="mt-0.5 text-[10px] text-gray-400">{alt.description}</div>
             {alt.recommended && alt.recommendationReason && (
-              <div className="mt-1 text-[10px] text-purple-300">
-                ✨ {alt.recommendationReason}
-              </div>
+              <div className="mt-1 text-[10px] text-purple-300">✨ {alt.recommendationReason}</div>
             )}
           </button>
         ))}

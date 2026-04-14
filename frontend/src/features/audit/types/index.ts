@@ -30,8 +30,8 @@ export interface TimelineEvent {
 export interface TraceDetail {
   id: string;
   node_name: string;
-  input_state: any;
-  output_state: any;
+  input_state: Record<string, unknown> | null;
+  output_state: Record<string, unknown> | null;
   execution_time_ms: number;
   created_at: string;
   llm_logs: LLMLog[];
@@ -45,7 +45,7 @@ export interface LLMLog {
   response_text: string;
   tokens_input: number;
   tokens_output: number;
-  metadata: any;
+  metadata: Record<string, unknown>;
 }
 
 export interface LeadDetails {
@@ -57,7 +57,7 @@ export interface LeadDetails {
   whatsapp_id: string | null;
   instagram_id: string | null;
   tiktok_id: string | null;
-  profile_data: any;
+  profile_data: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }

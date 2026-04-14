@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export interface ChannelRowActionsProps {
   /** Whether the channel has stale data (controls visibility of refresh button) */
@@ -30,9 +30,9 @@ export const ChannelRowActions = React.memo(function ChannelRowActions({
       className="h-7 w-7"
       onClick={onRefresh}
       disabled={refreshing || cooldown}
-      title={cooldown ? 'Disponible en unos minutos' : 'Actualizar datos'}
+      title={cooldown ? "Disponible en unos minutos" : "Actualizar datos"}
     >
-      <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+      <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
     </Button>
   );
 });

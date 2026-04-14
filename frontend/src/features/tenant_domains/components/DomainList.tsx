@@ -23,20 +23,14 @@ function DomainRow({ domain }: DomainRowProps) {
   const verifyDomain = useVerifyDomain();
 
   const canSetPrimary = !domain.is_primary && domain.status === "active";
-  const canVerify =
-    domain.status === "pending_verification" || domain.status === "failed";
-  const isActionPending =
-    deleteDomain.isPending ||
-    setPrimary.isPending ||
-    verifyDomain.isPending;
+  const canVerify = domain.status === "pending_verification" || domain.status === "failed";
+  const isActionPending = deleteDomain.isPending || setPrimary.isPending || verifyDomain.isPending;
 
   return (
     <div className="flex items-center gap-3 rounded-lg border px-4 py-3">
       <div className="flex flex-1 flex-col gap-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-mono text-sm font-medium truncate">
-            {domain.hostname}
-          </span>
+          <span className="font-mono text-sm font-medium truncate">{domain.hostname}</span>
           {domain.is_primary && (
             <Badge variant="outline" className="text-xs shrink-0">
               Principal

@@ -149,12 +149,13 @@ interface AssetToggleRowProps {
   onToggle: (val: boolean) => void;
 }
 
-const AssetToggleRow = ({ isActive, hasCredentials, isToggling, onToggle }: AssetToggleRowProps) => (
-  <Switch
-    checked={isActive}
-    disabled={isToggling || !hasCredentials}
-    onCheckedChange={onToggle}
-  />
+const AssetToggleRow = ({
+  isActive,
+  hasCredentials,
+  isToggling,
+  onToggle,
+}: AssetToggleRowProps) => (
+  <Switch checked={isActive} disabled={isToggling || !hasCredentials} onCheckedChange={onToggle} />
 );
 
 // ─── Not Connected Screen ─────────────────────────────────────────────────────
@@ -176,7 +177,8 @@ function NotConnectedScreen({
           Conectar Meta Business Suite
         </CardTitle>
         <CardDescription>
-          Vincula tu cuenta de Meta para gestionar Páginas de Facebook, Instagram Business y Anuncios.
+          Vincula tu cuenta de Meta para gestionar Páginas de Facebook, Instagram Business y
+          Anuncios.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -184,8 +186,8 @@ function NotConnectedScreen({
           <Facebook className="h-4 w-4" />
           <AlertTitle className="text-sm font-semibold">Un login, control total</AlertTitle>
           <AlertDescription className="text-xs mt-1">
-            Conectas tu cuenta Business Manager una vez y luego activas o desactivas
-            cada Página, cuenta de Instagram o cuenta publicitaria de forma individual.
+            Conectas tu cuenta Business Manager una vez y luego activas o desactivas cada Página,
+            cuenta de Instagram o cuenta publicitaria de forma individual.
           </AlertDescription>
         </Alert>
         {!isConfigured && (
@@ -260,10 +262,9 @@ export function MetaView() {
     const token = await getToken();
     if (!token) return;
     try {
-      const res = await fetchClient(
-        `${appConfig.api.baseUrl}/api/v1/connections/meta/assets`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await fetchClient(`${appConfig.api.baseUrl}/api/v1/connections/meta/assets`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (res.ok) {
         const data: MetaAssetsResponse = await res.json();
         setAssets(data);
@@ -316,7 +317,7 @@ export function MetaView() {
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -326,7 +327,10 @@ export function MetaView() {
       setAssets(data);
       setSyncWarnings(data.warnings ?? []);
       const total =
-        data.pages.length + data.instagram_accounts.length + data.ads_accounts.length + data.pixels.length;
+        data.pages.length +
+        data.instagram_accounts.length +
+        data.ads_accounts.length +
+        data.pixels.length;
       toast.success(`Activos sincronizados: ${total} encontrado${total !== 1 ? "s" : ""}`);
     } catch (e: any) {
       toast.error(e.message || "Error al sincronizar activos de Meta");
@@ -336,11 +340,7 @@ export function MetaView() {
   };
 
   // ── Toggle asset ──
-  const handleToggle = async (
-    channelType: string,
-    assetId: string,
-    isActive: boolean
-  ) => {
+  const handleToggle = async (channelType: string, assetId: string, isActive: boolean) => {
     const key = `${channelType}:${assetId}`;
     try {
       setTogglingAsset(key);
@@ -352,7 +352,7 @@ export function MetaView() {
           method: "PATCH",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ is_active: isActive }),
-        }
+        },
       );
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -363,8 +363,9 @@ export function MetaView() {
         if (!prev) return prev;
         const update = <T extends { is_active: boolean }>(
           arr: T[],
-          idFn: (item: T) => string
-        ): T[] => arr.map((item) => (idFn(item) === assetId ? { ...item, is_active: isActive } : item));
+          idFn: (item: T) => string,
+        ): T[] =>
+          arr.map((item) => (idFn(item) === assetId ? { ...item, is_active: isActive } : item));
         return {
           ...prev,
           pages: update(prev.pages, (p) => p.page_id),
@@ -435,19 +436,16 @@ export function MetaView() {
               </CardTitle>
               <CardDescription className="mt-1">
                 {status.name ? (
-                  <>Cuenta: <span className="font-medium text-foreground">{status.name}</span></>
+                  <>
+                    Cuenta: <span className="font-medium text-foreground">{status.name}</span>
+                  </>
                 ) : (
                   "Tu cuenta de Meta está activa."
                 )}
               </CardDescription>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSync}
-                disabled={syncing}
-              >
+              <Button variant="outline" size="sm" onClick={handleSync} disabled={syncing}>
                 {syncing ? (
                   <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                 ) : (
@@ -455,12 +453,7 @@ export function MetaView() {
                 )}
                 Sincronizar activos
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleConnect}
-                disabled={connecting}
-              >
+              <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>
                 {connecting ? (
                   <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                 ) : (
@@ -470,7 +463,11 @@ export function MetaView() {
               </Button>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-destructive"
+                  >
                     <Trash2 className="mr-1.5 h-4 w-4" />
                     Desvincular
                   </Button>
@@ -479,13 +476,22 @@ export function MetaView() {
                   <DialogHeader>
                     <DialogTitle>¿Desvincular Meta?</DialogTitle>
                     <DialogDescription>
-                      Se desactivarán todas las Páginas, cuentas de Instagram y cuentas publicitarias conectadas.
+                      Se desactivarán todas las Páginas, cuentas de Instagram y cuentas
+                      publicitarias conectadas.
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter>
                     <Button variant="outline">Cancelar</Button>
-                    <Button variant="destructive" onClick={handleDisconnect} disabled={disconnecting}>
-                      {disconnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Sí, desvincular"}
+                    <Button
+                      variant="destructive"
+                      onClick={handleDisconnect}
+                      disabled={disconnecting}
+                    >
+                      {disconnecting ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        "Sí, desvincular"
+                      )}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -504,7 +510,11 @@ export function MetaView() {
                   Aún no se han sincronizado los activos de tu Business Manager.
                 </p>
                 <Button onClick={handleSync} disabled={syncing} variant="outline" size="sm">
-                  {syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                  {syncing ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                  )}
                   Sincronizar ahora
                 </Button>
               </div>
@@ -527,27 +537,30 @@ export function MetaView() {
       )}
 
       {/* Informative alert when at least one category is empty */}
-      {assets && (assets.pages.length === 0 || assets.instagram_accounts.length === 0 ||
-        assets.ads_accounts.length === 0 || assets.pixels.length === 0) && (
-        <Alert className="bg-blue-50 text-blue-900 border-blue-200 dark:bg-blue-950/30 dark:text-blue-200 dark:border-blue-800">
-          <Info className="h-4 w-4" />
-          <AlertTitle className="text-sm font-semibold">¿Falta algo?</AlertTitle>
-          <AlertDescription className="text-xs mt-1">
-            Si no ves todas tus páginas, cuentas de Instagram o publicitarias, puede que
-            necesites reconectar para actualizar los permisos otorgados a Nicolify.
-            <Button
-              variant="link"
-              size="sm"
-              className="h-auto p-0 ml-1 text-xs text-blue-700 dark:text-blue-300"
-              onClick={handleConnect}
-              disabled={connecting}
-            >
-              {connecting ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : null}
-              Reconectar permisos
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
+      {assets &&
+        (assets.pages.length === 0 ||
+          assets.instagram_accounts.length === 0 ||
+          assets.ads_accounts.length === 0 ||
+          assets.pixels.length === 0) && (
+          <Alert className="bg-blue-50 text-blue-900 border-blue-200 dark:bg-blue-950/30 dark:text-blue-200 dark:border-blue-800">
+            <Info className="h-4 w-4" />
+            <AlertTitle className="text-sm font-semibold">¿Falta algo?</AlertTitle>
+            <AlertDescription className="text-xs mt-1">
+              Si no ves todas tus páginas, cuentas de Instagram o publicitarias, puede que necesites
+              reconectar para actualizar los permisos otorgados a Nicolify.
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto p-0 ml-1 text-xs text-blue-700 dark:text-blue-300"
+                onClick={handleConnect}
+                disabled={connecting}
+              >
+                {connecting ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : null}
+                Reconectar permisos
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
       {/* Asset sections — always show all 4 categories when assets have been fetched */}
       {assets && (
@@ -570,13 +583,20 @@ export function MetaView() {
                       key={page.page_id}
                       className={cn(
                         "flex items-center gap-3 rounded-lg border p-3 transition-colors",
-                        page.is_active ? "border-border bg-card" : "border-border/50 bg-muted/30"
+                        page.is_active ? "border-border bg-card" : "border-border/50 bg-muted/30",
                       )}
                     >
                       {/* Avatar */}
                       <div className="h-10 w-10 shrink-0 rounded-lg overflow-hidden border bg-muted flex items-center justify-center">
                         {page.picture_url ? (
-                          <Image src={page.picture_url} alt={page.page_name} width={40} height={40} className="h-full w-full object-cover" unoptimized />
+                          <Image
+                            src={page.picture_url}
+                            alt={page.page_name}
+                            width={40}
+                            height={40}
+                            className="h-full w-full object-cover"
+                            unoptimized
+                          />
                         ) : (
                           <ImageIcon className="h-5 w-5 text-muted-foreground" />
                         )}
@@ -586,12 +606,18 @@ export function MetaView() {
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-medium text-sm truncate">{page.page_name}</span>
                           {page.is_active && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200"
+                            >
                               Activa
                             </Badge>
                           )}
                           {page.is_active && status?.config?.tracked_page_id === page.page_id && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-amber-700 bg-amber-100 border-amber-200">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] px-1.5 py-0 text-amber-700 bg-amber-100 border-amber-200"
+                            >
                               <Star className="h-2.5 w-2.5 mr-0.5 fill-current" /> Analytics
                             </Badge>
                           )}
@@ -606,28 +632,31 @@ export function MetaView() {
                           )}
                           {page.instagram_username && (
                             <span className="flex items-center gap-0.5 text-pink-500">
-                              <Instagram className="h-3 w-3" />
-                              @{page.instagram_username}
+                              <Instagram className="h-3 w-3" />@{page.instagram_username}
                             </span>
                           )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {page.is_active && assets.pages.length > 1 && status?.config?.tracked_page_id !== page.page_id && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-[10px] h-7 px-2"
-                            disabled={settingPrimary === `facebook_page:${page.page_id}`}
-                            onClick={() => handleSetPrimary("facebook_page", page.page_id)}
-                          >
-                            {settingPrimary === `facebook_page:${page.page_id}` ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <><Star className="h-3 w-3 mr-1" /> Usar para Analytics</>
-                            )}
-                          </Button>
-                        )}
+                        {page.is_active &&
+                          assets.pages.length > 1 &&
+                          status?.config?.tracked_page_id !== page.page_id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-[10px] h-7 px-2"
+                              disabled={settingPrimary === `facebook_page:${page.page_id}`}
+                              onClick={() => handleSetPrimary("facebook_page", page.page_id)}
+                            >
+                              {settingPrimary === `facebook_page:${page.page_id}` ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <>
+                                  <Star className="h-3 w-3 mr-1" /> Usar para Analytics
+                                </>
+                              )}
+                            </Button>
+                          )}
                         <AssetToggleRow
                           isActive={page.is_active}
                           hasCredentials={page.has_credentials}
@@ -641,10 +670,15 @@ export function MetaView() {
               ) : (
                 <div className="flex flex-col items-center py-4 text-center gap-2">
                   <p className="text-sm text-muted-foreground">
-                    No se encontraron Páginas. Puede que no hayas seleccionado tus páginas al conectar Meta.
+                    No se encontraron Páginas. Puede que no hayas seleccionado tus páginas al
+                    conectar Meta.
                   </p>
                   <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>
-                    {connecting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Link className="mr-1.5 h-4 w-4" />}
+                    {connecting ? (
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link className="mr-1.5 h-4 w-4" />
+                    )}
                     Reconectar permisos
                   </Button>
                 </div>
@@ -670,12 +704,19 @@ export function MetaView() {
                       key={ig.ig_account_id}
                       className={cn(
                         "flex items-center gap-3 rounded-lg border p-3 transition-colors",
-                        ig.is_active ? "border-border bg-card" : "border-border/50 bg-muted/30"
+                        ig.is_active ? "border-border bg-card" : "border-border/50 bg-muted/30",
                       )}
                     >
                       <div className="h-10 w-10 shrink-0 rounded-full overflow-hidden border bg-muted flex items-center justify-center">
                         {ig.profile_picture_url ? (
-                          <Image src={ig.profile_picture_url} alt={ig.ig_username} width={40} height={40} className="h-full w-full object-cover" unoptimized />
+                          <Image
+                            src={ig.profile_picture_url}
+                            alt={ig.ig_username}
+                            width={40}
+                            height={40}
+                            className="h-full w-full object-cover"
+                            unoptimized
+                          />
                         ) : (
                           <Instagram className="h-5 w-5 text-pink-400" />
                         )}
@@ -684,12 +725,18 @@ export function MetaView() {
                         <div className="flex items-center gap-1.5">
                           <span className="font-medium text-sm">@{ig.ig_username}</span>
                           {ig.is_active && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200"
+                            >
                               Activa
                             </Badge>
                           )}
                           {ig.is_active && status?.config?.tracked_ig_id === ig.ig_account_id && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-amber-700 bg-amber-100 border-amber-200">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] px-1.5 py-0 text-amber-700 bg-amber-100 border-amber-200"
+                            >
                               <Star className="h-2.5 w-2.5 mr-0.5 fill-current" /> Analytics
                             </Badge>
                           )}
@@ -710,26 +757,34 @@ export function MetaView() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {ig.is_active && assets.instagram_accounts.length > 1 && status?.config?.tracked_ig_id !== ig.ig_account_id && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-[10px] h-7 px-2"
-                            disabled={settingPrimary === `instagram_account:${ig.ig_account_id}`}
-                            onClick={() => handleSetPrimary("instagram_account", ig.ig_account_id)}
-                          >
-                            {settingPrimary === `instagram_account:${ig.ig_account_id}` ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <><Star className="h-3 w-3 mr-1" /> Usar para Analytics</>
-                            )}
-                          </Button>
-                        )}
+                        {ig.is_active &&
+                          assets.instagram_accounts.length > 1 &&
+                          status?.config?.tracked_ig_id !== ig.ig_account_id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-[10px] h-7 px-2"
+                              disabled={settingPrimary === `instagram_account:${ig.ig_account_id}`}
+                              onClick={() =>
+                                handleSetPrimary("instagram_account", ig.ig_account_id)
+                              }
+                            >
+                              {settingPrimary === `instagram_account:${ig.ig_account_id}` ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <>
+                                  <Star className="h-3 w-3 mr-1" /> Usar para Analytics
+                                </>
+                              )}
+                            </Button>
+                          )}
                         <AssetToggleRow
                           isActive={ig.is_active}
                           hasCredentials={ig.has_credentials}
                           isToggling={isToggling}
-                          onToggle={(val) => handleToggle("instagram_account", ig.ig_account_id, val)}
+                          onToggle={(val) =>
+                            handleToggle("instagram_account", ig.ig_account_id, val)
+                          }
                         />
                       </div>
                     </div>
@@ -738,10 +793,16 @@ export function MetaView() {
               ) : (
                 <div className="flex flex-col items-center py-4 text-center gap-2">
                   <p className="text-sm text-muted-foreground">
-                    No se encontraron cuentas de Instagram Business. Esto suele pasar cuando no seleccionaste la Página vinculada a tu cuenta de IG al conectar. Reconecta para elegir las páginas correctas.
+                    No se encontraron cuentas de Instagram Business. Esto suele pasar cuando no
+                    seleccionaste la Página vinculada a tu cuenta de IG al conectar. Reconecta para
+                    elegir las páginas correctas.
                   </p>
                   <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>
-                    {connecting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Link className="mr-1.5 h-4 w-4" />}
+                    {connecting ? (
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link className="mr-1.5 h-4 w-4" />
+                    )}
                     Reconectar permisos
                   </Button>
                 </div>
@@ -762,15 +823,14 @@ export function MetaView() {
                 assets.ads_accounts.map((ad) => {
                   const key = `meta_ads_account:${ad.ad_account_id}`;
                   const isToggling = togglingAsset === key;
-                  const statusInfo = ad.account_status != null
-                    ? AD_ACCOUNT_STATUS[ad.account_status]
-                    : undefined;
+                  const statusInfo =
+                    ad.account_status != null ? AD_ACCOUNT_STATUS[ad.account_status] : undefined;
                   return (
                     <div
                       key={ad.ad_account_id}
                       className={cn(
                         "flex items-center gap-3 rounded-lg border p-3 transition-colors",
-                        ad.is_active ? "border-border bg-card" : "border-border/50 bg-muted/30"
+                        ad.is_active ? "border-border bg-card" : "border-border/50 bg-muted/30",
                       )}
                     >
                       <div className="h-10 w-10 shrink-0 rounded-lg border bg-muted flex items-center justify-center">
@@ -780,15 +840,22 @@ export function MetaView() {
                         <div className="flex items-center gap-1.5">
                           <span className="font-medium text-sm truncate">{ad.ad_account_name}</span>
                           {ad.is_active && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200"
+                            >
                               Activa
                             </Badge>
                           )}
-                          {ad.is_active && status?.config?.tracked_ad_account_id === ad.ad_account_id && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-amber-700 bg-amber-100 border-amber-200">
-                              <Star className="h-2.5 w-2.5 mr-0.5 fill-current" /> Analytics
-                            </Badge>
-                          )}
+                          {ad.is_active &&
+                            status?.config?.tracked_ad_account_id === ad.ad_account_id && (
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] px-1.5 py-0 text-amber-700 bg-amber-100 border-amber-200"
+                              >
+                                <Star className="h-2.5 w-2.5 mr-0.5 fill-current" /> Analytics
+                              </Badge>
+                            )}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
                           {ad.currency && <span>{ad.currency}</span>}
@@ -799,26 +866,32 @@ export function MetaView() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {ad.is_active && assets.ads_accounts.length > 1 && status?.config?.tracked_ad_account_id !== ad.ad_account_id && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-[10px] h-7 px-2"
-                            disabled={settingPrimary === `meta_ads_account:${ad.ad_account_id}`}
-                            onClick={() => handleSetPrimary("meta_ads_account", ad.ad_account_id)}
-                          >
-                            {settingPrimary === `meta_ads_account:${ad.ad_account_id}` ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <><Star className="h-3 w-3 mr-1" /> Usar para Analytics</>
-                            )}
-                          </Button>
-                        )}
+                        {ad.is_active &&
+                          assets.ads_accounts.length > 1 &&
+                          status?.config?.tracked_ad_account_id !== ad.ad_account_id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-[10px] h-7 px-2"
+                              disabled={settingPrimary === `meta_ads_account:${ad.ad_account_id}`}
+                              onClick={() => handleSetPrimary("meta_ads_account", ad.ad_account_id)}
+                            >
+                              {settingPrimary === `meta_ads_account:${ad.ad_account_id}` ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <>
+                                  <Star className="h-3 w-3 mr-1" /> Usar para Analytics
+                                </>
+                              )}
+                            </Button>
+                          )}
                         <AssetToggleRow
                           isActive={ad.is_active}
                           hasCredentials={ad.has_credentials}
                           isToggling={isToggling}
-                          onToggle={(val) => handleToggle("meta_ads_account", ad.ad_account_id, val)}
+                          onToggle={(val) =>
+                            handleToggle("meta_ads_account", ad.ad_account_id, val)
+                          }
                         />
                       </div>
                     </div>
@@ -827,10 +900,15 @@ export function MetaView() {
               ) : (
                 <div className="flex flex-col items-center py-4 text-center gap-2">
                   <p className="text-sm text-muted-foreground">
-                    No se encontraron cuentas publicitarias. Si tienes una, reconecta para otorgar acceso.
+                    No se encontraron cuentas publicitarias. Si tienes una, reconecta para otorgar
+                    acceso.
                   </p>
                   <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>
-                    {connecting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Link className="mr-1.5 h-4 w-4" />}
+                    {connecting ? (
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link className="mr-1.5 h-4 w-4" />
+                    )}
                     Reconectar permisos
                   </Button>
                 </div>
@@ -856,7 +934,7 @@ export function MetaView() {
                       key={px.pixel_id}
                       className={cn(
                         "flex items-center gap-3 rounded-lg border p-3 transition-colors",
-                        px.is_active ? "border-border bg-card" : "border-border/50 bg-muted/30"
+                        px.is_active ? "border-border bg-card" : "border-border/50 bg-muted/30",
                       )}
                     >
                       <div className="h-10 w-10 shrink-0 rounded-lg border bg-muted flex items-center justify-center">
@@ -866,7 +944,10 @@ export function MetaView() {
                         <div className="flex items-center gap-1.5">
                           <span className="font-medium text-sm truncate">{px.pixel_name}</span>
                           {px.is_active && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200"
+                            >
                               Activo
                             </Badge>
                           )}
@@ -893,10 +974,15 @@ export function MetaView() {
               ) : (
                 <div className="flex flex-col items-center py-4 text-center gap-2">
                   <p className="text-sm text-muted-foreground">
-                    No se encontraron Meta Pixels. Si tienes uno configurado en tu cuenta publicitaria, reconecta para otorgar acceso.
+                    No se encontraron Meta Pixels. Si tienes uno configurado en tu cuenta
+                    publicitaria, reconecta para otorgar acceso.
                   </p>
                   <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>
-                    {connecting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Link className="mr-1.5 h-4 w-4" />}
+                    {connecting ? (
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link className="mr-1.5 h-4 w-4" />
+                    )}
                     Reconectar permisos
                   </Button>
                 </div>
@@ -922,7 +1008,7 @@ export function MetaView() {
                       key={wa.waba_id}
                       className={cn(
                         "flex items-center gap-3 rounded-lg border p-3 transition-colors",
-                        wa.is_active ? "border-border bg-card" : "border-border/50 bg-muted/30"
+                        wa.is_active ? "border-border bg-card" : "border-border/50 bg-muted/30",
                       )}
                     >
                       <div className="h-10 w-10 shrink-0 rounded-lg border bg-muted flex items-center justify-center">
@@ -932,7 +1018,10 @@ export function MetaView() {
                         <div className="flex items-center gap-1.5">
                           <span className="font-medium text-sm truncate">{wa.waba_name}</span>
                           {wa.is_active && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200"
+                            >
                               Activa
                             </Badge>
                           )}
@@ -940,20 +1029,30 @@ export function MetaView() {
                         <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground flex-wrap">
                           {wa.business_name && <span>{wa.business_name}</span>}
                           {wa.currency && <span>{wa.currency}</span>}
-                          {wa.phone_numbers.length > 0 && wa.phone_numbers.map((ph) => (
-                            <span key={ph.phone_number_id} className="flex items-center gap-0.5 text-green-600">
-                              <Phone className="h-3 w-3" />
-                              {ph.display_phone_number}
-                              {ph.verified_name && <span className="text-muted-foreground ml-0.5">({ph.verified_name})</span>}
-                            </span>
-                          ))}
+                          {wa.phone_numbers.length > 0 &&
+                            wa.phone_numbers.map((ph) => (
+                              <span
+                                key={ph.phone_number_id}
+                                className="flex items-center gap-0.5 text-green-600"
+                              >
+                                <Phone className="h-3 w-3" />
+                                {ph.display_phone_number}
+                                {ph.verified_name && (
+                                  <span className="text-muted-foreground ml-0.5">
+                                    ({ph.verified_name})
+                                  </span>
+                                )}
+                              </span>
+                            ))}
                         </div>
                       </div>
                       <AssetToggleRow
                         isActive={wa.is_active}
                         hasCredentials={wa.has_credentials}
                         isToggling={isToggling}
-                        onToggle={(val) => handleToggle("whatsapp_business_account", wa.waba_id, val)}
+                        onToggle={(val) =>
+                          handleToggle("whatsapp_business_account", wa.waba_id, val)
+                        }
                       />
                     </div>
                   );
@@ -961,10 +1060,15 @@ export function MetaView() {
               ) : (
                 <div className="flex flex-col items-center py-4 text-center gap-2">
                   <p className="text-sm text-muted-foreground">
-                    No se encontró ninguna cuenta de WhatsApp Business vinculada. Si usas WhatsApp Business, reconecta tu cuenta de Meta para otorgar acceso.
+                    No se encontró ninguna cuenta de WhatsApp Business vinculada. Si usas WhatsApp
+                    Business, reconecta tu cuenta de Meta para otorgar acceso.
                   </p>
                   <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>
-                    {connecting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Link className="mr-1.5 h-4 w-4" />}
+                    {connecting ? (
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link className="mr-1.5 h-4 w-4" />
+                    )}
                     Reconectar permisos
                   </Button>
                 </div>

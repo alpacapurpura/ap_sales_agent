@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface DetailErrorProps {
   /** The error that occurred while loading metrics */
@@ -37,12 +37,7 @@ export default function DetailError({ error, onRetry, lastData }: DetailErrorPro
             <p className="text-xs text-muted-foreground">
               No se pudo conectar con el servidor. Verifica tu conexion e intenta nuevamente.
             </p>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={onRetry}
-              className="mt-1"
-            >
+            <Button variant="destructive" size="sm" onClick={onRetry} className="mt-1">
               Reintentar
             </Button>
           </div>

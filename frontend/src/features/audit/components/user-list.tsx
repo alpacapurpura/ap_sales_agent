@@ -7,12 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -34,18 +29,19 @@ export function LeadList({
   const { data: leads, isLoading } = useAuditLeads();
   const [search, setSearch] = useState("");
 
-  const filteredLeads = leads?.filter((item) =>
-    (item.lead.full_name || "")
-      .toLowerCase()
-      .includes(search.toLowerCase()) ||
-    (item.lead.telegram_id || "").includes(search) ||
-    (item.lead.whatsapp_id || "").includes(search)
+  const filteredLeads = leads?.filter(
+    (item) =>
+      (item.lead.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (item.lead.telegram_id || "").includes(search) ||
+      (item.lead.whatsapp_id || "").includes(search),
   );
 
   return (
     <Card className="h-full flex flex-col border-r rounded-none border-y-0 border-l-0 transition-all duration-300">
       <CardHeader className={cn("p-4 border-b", isCollapsed && "p-2")}>
-        <div className={cn("flex items-center", isCollapsed ? "justify-center" : "justify-between")}>
+        <div
+          className={cn("flex items-center", isCollapsed ? "justify-center" : "justify-between")}
+        >
           {!isCollapsed && <CardTitle className="text-lg">Leads</CardTitle>}
           <Button
             variant="ghost"
@@ -53,7 +49,11 @@ export function LeadList({
             onClick={onToggle}
             className={cn("h-8 w-8", isCollapsed && "h-10 w-10")}
           >
-            {isCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+            {isCollapsed ? (
+              <PanelLeftOpen className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" />
+            )}
           </Button>
         </div>
         {!isCollapsed && (
@@ -87,7 +87,7 @@ export function LeadList({
                 className={cn(
                   "rounded-lg cursor-pointer transition-colors flex items-center hover:bg-muted",
                   isCollapsed ? "justify-center p-2" : "p-3 gap-3",
-                  selectedLeadId === item.lead.id ? "bg-muted" : "bg-transparent"
+                  selectedLeadId === item.lead.id ? "bg-muted" : "bg-transparent",
                 )}
               >
                 <Avatar className="h-10 w-10">
@@ -101,8 +101,8 @@ export function LeadList({
                         {item.lead.telegram_id
                           ? "Telegram"
                           : item.lead.whatsapp_id
-                          ? "WhatsApp"
-                          : "Web"}
+                            ? "WhatsApp"
+                            : "Web"}
                       </span>
                       <span>
                         {item.last_activity &&
@@ -121,17 +121,15 @@ export function LeadList({
               return (
                 <TooltipProvider key={item.lead.id}>
                   <Tooltip delayDuration={0}>
-                    <TooltipTrigger asChild>
-                      {Content}
-                    </TooltipTrigger>
+                    <TooltipTrigger asChild>{Content}</TooltipTrigger>
                     <TooltipContent side="right">
                       <p className="font-medium">{leadName}</p>
                       <p className="text-xs text-muted-foreground">
                         {item.lead.telegram_id
                           ? "Telegram"
                           : item.lead.whatsapp_id
-                          ? "WhatsApp"
-                          : "Web"}
+                            ? "WhatsApp"
+                            : "Web"}
                       </p>
                     </TooltipContent>
                   </Tooltip>

@@ -35,7 +35,7 @@ describe("AlternativesCard", () => {
         onSelect={vi.fn()}
         onCustom={vi.fn()}
         status="pending"
-      />
+      />,
     );
     expect(screen.getByText("The Magician")).toBeInTheDocument();
     expect(screen.getByText("The Hero")).toBeInTheDocument();
@@ -52,7 +52,7 @@ describe("AlternativesCard", () => {
         onSelect={vi.fn()}
         onCustom={vi.fn()}
         status="pending"
-      />
+      />,
     );
     expect(screen.getByText(/Matches your brand/)).toBeInTheDocument();
   });
@@ -68,7 +68,7 @@ describe("AlternativesCard", () => {
         onSelect={onSelect}
         onCustom={vi.fn()}
         status="pending"
-      />
+      />,
     );
     fireEvent.click(screen.getByText("The Hero"));
     fireEvent.click(screen.getByRole("button", { name: /seleccionar/i }));
@@ -85,7 +85,7 @@ describe("AlternativesCard", () => {
         onSelect={vi.fn()}
         onCustom={vi.fn()}
         status="resolved"
-      />
+      />,
     );
     expect(screen.getByRole("button", { name: /seleccionar/i })).toBeDisabled();
   });
@@ -100,7 +100,7 @@ describe("AlternativesCard", () => {
         onSelect={vi.fn()}
         onCustom={vi.fn()}
         status="pending"
-      />
+      />,
     );
     expect(screen.getByText("Otro")).toBeInTheDocument();
   });
@@ -115,7 +115,7 @@ describe("AlternativesCard", () => {
         onSelect={vi.fn()}
         onCustom={vi.fn()}
         status="pending"
-      />
+      />,
     );
     expect(screen.queryByText("Otro")).not.toBeInTheDocument();
   });
@@ -131,7 +131,7 @@ describe("AlternativesCard", () => {
         onSelect={vi.fn()}
         onCustom={onCustom}
         status="pending"
-      />
+      />,
     );
     fireEvent.click(screen.getByText("Otro"));
     expect(onCustom).toHaveBeenCalled();
@@ -147,7 +147,7 @@ describe("AlternativesCard", () => {
         onSelect={vi.fn()}
         onCustom={vi.fn()}
         status="pending"
-      />
+      />,
     );
     expect(screen.getByRole("button", { name: /seleccionar/i })).toBeDisabled();
     fireEvent.click(screen.getByText("The Magician"));

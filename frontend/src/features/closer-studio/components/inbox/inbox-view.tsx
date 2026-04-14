@@ -29,7 +29,9 @@ export function InboxView() {
           setSelectedLeadId(saved);
           router.replace(`${pathname}?lead=${saved}`, { scroll: false });
         }
-      } catch { /* localStorage unavailable — non-critical */ }
+      } catch {
+        /* localStorage unavailable — non-critical */
+      }
     }
   }, [searchParams, selectedLeadId, setSelectedLeadId, tenantId, router, pathname]);
 

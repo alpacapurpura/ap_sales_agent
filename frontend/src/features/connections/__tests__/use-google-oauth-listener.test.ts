@@ -1,58 +1,58 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
-import { useGoogleOAuthListener } from '@/features/connections/hooks/use-google-oauth-listener';
-import { OAUTH_MESSAGE_TYPES } from '@/features/connections/lib/oauth-constants';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook } from "@testing-library/react";
+import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
+import { OAUTH_MESSAGE_TYPES } from "@/features/connections/lib/oauth-constants";
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-describe('useGoogleOAuthListener', () => {
+describe("useGoogleOAuthListener", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('registers a message event listener on mount', () => {
-    const addSpy = vi.spyOn(window, 'addEventListener');
+  it("registers a message event listener on mount", () => {
+    const addSpy = vi.spyOn(window, "addEventListener");
     const onSuccess = vi.fn();
 
     renderHook(() => useGoogleOAuthListener({ onSuccess }));
 
-    expect(addSpy).toHaveBeenCalledWith('message', expect.any(Function));
+    expect(addSpy).toHaveBeenCalledWith("message", expect.any(Function));
   });
 
-  it('removes the message event listener on unmount', () => {
-    const removeSpy = vi.spyOn(window, 'removeEventListener');
+  it("removes the message event listener on unmount", () => {
+    const removeSpy = vi.spyOn(window, "removeEventListener");
     const onSuccess = vi.fn();
 
     const { unmount } = renderHook(() => useGoogleOAuthListener({ onSuccess }));
     unmount();
 
-    expect(removeSpy).toHaveBeenCalledWith('message', expect.any(Function));
+    expect(removeSpy).toHaveBeenCalledWith("message", expect.any(Function));
   });
 
-  it('calls onSuccess with code when GOOGLE_SUCCESS message is received from same origin', async () => {
+  it("calls onSuccess with code when GOOGLE_SUCCESS message is received from same origin", async () => {
     const onSuccess = vi.fn();
     renderHook(() => useGoogleOAuthListener({ onSuccess }));
 
-    const event = new MessageEvent('message', {
-      data: { type: OAUTH_MESSAGE_TYPES.GOOGLE_SUCCESS, code: 'auth-code-123' },
+    const event = new MessageEvent("message", {
+      data: { type: OAUTH_MESSAGE_TYPES.GOOGLE_SUCCESS, code: "auth-code-123" },
       origin: window.location.origin,
     });
     window.dispatchEvent(event);
 
     // Allow async handler to complete
     await vi.waitFor(() => {
-      expect(onSuccess).toHaveBeenCalledWith('auth-code-123');
+      expect(onSuccess).toHaveBeenCalledWith("auth-code-123");
     });
   });
 
-  it('ignores messages from different origins (origin validation)', () => {
+  it("ignores messages from different origins (origin validation)", () => {
     const onSuccess = vi.fn();
     const onError = vi.fn();
     renderHook(() => useGoogleOAuthListener({ onSuccess, onError }));
 
-    const event = new MessageEvent('message', {
-      data: { type: OAUTH_MESSAGE_TYPES.GOOGLE_SUCCESS, code: 'stolen-code' },
-      origin: 'https://evil.example.com',
+    const event = new MessageEvent("message", {
+      data: { type: OAUTH_MESSAGE_TYPES.GOOGLE_SUCCESS, code: "stolen-code" },
+      origin: "https://evil.example.com",
     });
     window.dispatchEvent(event);
 
@@ -60,28 +60,28 @@ describe('useGoogleOAuthListener', () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
-  it('calls onError when GOOGLE_ERROR message is received from same origin', () => {
+  it("calls onError when GOOGLE_ERROR message is received from same origin", () => {
     const onSuccess = vi.fn();
     const onError = vi.fn();
     renderHook(() => useGoogleOAuthListener({ onSuccess, onError }));
 
-    const event = new MessageEvent('message', {
-      data: { type: OAUTH_MESSAGE_TYPES.GOOGLE_ERROR, error: 'access_denied' },
+    const event = new MessageEvent("message", {
+      data: { type: OAUTH_MESSAGE_TYPES.GOOGLE_ERROR, error: "access_denied" },
       origin: window.location.origin,
     });
     window.dispatchEvent(event);
 
-    expect(onError).toHaveBeenCalledWith('access_denied');
+    expect(onError).toHaveBeenCalledWith("access_denied");
     expect(onSuccess).not.toHaveBeenCalled();
   });
 
-  it('does not register listener when enabled is false', () => {
-    const addSpy = vi.spyOn(window, 'addEventListener');
+  it("does not register listener when enabled is false", () => {
+    const addSpy = vi.spyOn(window, "addEventListener");
     const onSuccess = vi.fn();
 
     renderHook(() => useGoogleOAuthListener({ onSuccess, enabled: false }));
 
-    const messageListeners = addSpy.mock.calls.filter(([event]) => event === 'message');
+    const messageListeners = addSpy.mock.calls.filter(([event]) => event === "message");
     expect(messageListeners).toHaveLength(0);
   });
 
@@ -90,12 +90,12 @@ describe('useGoogleOAuthListener', () => {
     const onError = vi.fn();
     renderHook(() => useGoogleOAuthListener({ onSuccess, onError }));
 
-    const event = new MessageEvent('message', {
+    const event = new MessageEvent("message", {
       data: { type: OAUTH_MESSAGE_TYPES.GOOGLE_ERROR },
       origin: window.location.origin,
     });
     window.dispatchEvent(event);
 
-    expect(onError).toHaveBeenCalledWith('Unknown error');
+    expect(onError).toHaveBeenCalledWith("Unknown error");
   });
 });

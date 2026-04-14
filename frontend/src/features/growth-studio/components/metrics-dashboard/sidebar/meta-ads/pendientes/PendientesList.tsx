@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import { CheckCircle2, Sparkles, Loader2 } from 'lucide-react';
+import { useMemo, useState } from "react";
+import { CheckCircle2, Sparkles, Loader2 } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
-import { PendienteItem } from './PendienteItem';
-import type { PendingReason } from './PendienteItem';
-import type { CampaignWithMetrics } from '../../../../../types/metrics';
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { PendienteItem } from "./PendienteItem";
+import type { PendingReason } from "./PendienteItem";
+import type { CampaignWithMetrics } from "../../../../../types/metrics";
 
 export interface PendingCampaign {
   campaign: CampaignWithMetrics;
   reason: PendingReason;
 }
 
-type FilterType = 'all' | 'no_offer' | 'no_utm';
+type FilterType = "all" | "no_offer" | "no_utm";
 
 interface PendientesListProps {
   items: PendingCampaign[];
@@ -38,17 +38,17 @@ export function PendientesList({
   isAutoDetecting,
   onBackToCampaigns,
 }: PendientesListProps) {
-  const [filter, setFilter] = useState<FilterType>('all');
+  const [filter, setFilter] = useState<FilterType>("all");
 
   const counts = useMemo(() => {
-    const noOffer = items.filter(i => i.reason === 'no_offer').length;
-    const noUtm = items.filter(i => i.reason === 'no_utm').length;
+    const noOffer = items.filter((i) => i.reason === "no_offer").length;
+    const noUtm = items.filter((i) => i.reason === "no_utm").length;
     return { noOffer, noUtm, total: items.length };
   }, [items]);
 
   const filtered = useMemo(() => {
-    if (filter === 'all') return items;
-    return items.filter(i => i.reason === filter);
+    if (filter === "all") return items;
+    return items.filter((i) => i.reason === filter);
   }, [items, filter]);
 
   if (isLoading) {
@@ -62,7 +62,7 @@ export function PendientesList({
           </div>
         </div>
         <div className="p-4 space-y-2">
-          {[1, 2, 3, 4].map(i => (
+          {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-16 w-full" />
           ))}
         </div>
@@ -107,12 +107,12 @@ export function PendientesList({
           {counts.noOffer > 0 && (
             <button
               type="button"
-              onClick={() => setFilter(f => (f === 'no_offer' ? 'all' : 'no_offer'))}
+              onClick={() => setFilter((f) => (f === "no_offer" ? "all" : "no_offer"))}
               className={cn(
-                'rounded-full px-2.5 py-0.5 text-[10px] font-medium transition-colors',
-                filter === 'no_offer'
-                  ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400'
-                  : 'bg-zinc-800 border border-zinc-700 text-zinc-500 hover:text-zinc-400',
+                "rounded-full px-2.5 py-0.5 text-[10px] font-medium transition-colors",
+                filter === "no_offer"
+                  ? "bg-amber-500/15 border border-amber-500/30 text-amber-400"
+                  : "bg-zinc-800 border border-zinc-700 text-zinc-500 hover:text-zinc-400",
               )}
             >
               Sin offer ({counts.noOffer})
@@ -121,21 +121,21 @@ export function PendientesList({
           {counts.noUtm > 0 && (
             <button
               type="button"
-              onClick={() => setFilter(f => (f === 'no_utm' ? 'all' : 'no_utm'))}
+              onClick={() => setFilter((f) => (f === "no_utm" ? "all" : "no_utm"))}
               className={cn(
-                'rounded-full px-2.5 py-0.5 text-[10px] font-medium transition-colors',
-                filter === 'no_utm'
-                  ? 'bg-blue-500/15 border border-blue-500/30 text-blue-400'
-                  : 'bg-zinc-800 border border-zinc-700 text-zinc-500 hover:text-zinc-400',
+                "rounded-full px-2.5 py-0.5 text-[10px] font-medium transition-colors",
+                filter === "no_utm"
+                  ? "bg-blue-500/15 border border-blue-500/30 text-blue-400"
+                  : "bg-zinc-800 border border-zinc-700 text-zinc-500 hover:text-zinc-400",
               )}
             >
               Sin UTM ({counts.noUtm})
             </button>
           )}
-          {filter !== 'all' && (
+          {filter !== "all" && (
             <button
               type="button"
-              onClick={() => setFilter('all')}
+              onClick={() => setFilter("all")}
               className="rounded-full bg-zinc-800 border border-zinc-700 px-2.5 py-0.5 text-[10px] text-zinc-500 hover:text-zinc-400"
             >
               Todos
@@ -164,7 +164,7 @@ export function PendientesList({
             </Button>
           </div>
         ) : (
-          filtered.map(item => (
+          filtered.map((item) => (
             <PendienteItem
               key={item.campaign.externalId}
               campaign={item.campaign}

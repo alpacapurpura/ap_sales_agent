@@ -1,17 +1,17 @@
-import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
-import { Label } from './label'
+import { render, screen } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import { Label } from "./label";
 
-describe('Label Component', () => {
-  it('renders correctly', () => {
-    render(<Label>Test Label</Label>)
-    const label = screen.getByText('Test Label')
-    expect(label).toBeInTheDocument()
-  })
+describe("Label Component", () => {
+  it("renders correctly", () => {
+    render(<Label>Test Label</Label>);
+    const label = screen.getByText("Test Label");
+    expect(label).toBeInTheDocument();
+  });
 
-  it('applies custom classes', () => {
-    render(<Label className="custom-class">Test Label</Label>)
-    const label = screen.getByText('Test Label')
-    expect(label).toHaveClass('custom-class')
-  })
-})
+  it("applies custom classes", () => {
+    render(<Label className="custom-class">Test Label</Label>);
+    const label = screen.getByText("Test Label");
+    expect(label).toHaveClass("custom-class");
+  });
+});

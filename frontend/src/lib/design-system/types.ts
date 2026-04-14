@@ -5,7 +5,7 @@
  * Used by: Playground page, Claude (AI component generation), audit tooling.
  */
 
-export type AtomicLevel = 'token' | 'atom' | 'molecule' | 'organism';
+export type AtomicLevel = "token" | "atom" | "molecule" | "organism";
 
 export interface ComponentEntry {
   /** Display name, e.g. "Button" */
@@ -15,7 +15,7 @@ export interface ComponentEntry {
   /** Path relative to frontend/src */
   filePath: string;
   /** Origin of the component */
-  source: 'shadcn' | 'shared' | 'feature';
+  source: "shadcn" | "shared" | "feature";
   /** Feature slice name (only for source === 'feature') */
   featureSlice?: string;
   /** CVA variant names if applicable */
@@ -29,7 +29,7 @@ export interface ComponentEntry {
 }
 
 export interface DesignToken {
-  category: 'color' | 'typography' | 'spacing' | 'radius' | 'shadow';
+  category: "color" | "typography" | "spacing" | "radius" | "shadow";
   name: string;
   cssVar?: string;
   tailwindClass: string;

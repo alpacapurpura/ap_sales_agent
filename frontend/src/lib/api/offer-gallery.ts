@@ -16,7 +16,12 @@ export interface OfferGalleryImage {
 const API_URL = config.api.baseUrl;
 
 export const offerGalleryApi = {
-  upload: async (token: string, offerId: string, file: File, description: string): Promise<OfferGalleryImage> => {
+  upload: async (
+    token: string,
+    offerId: string,
+    file: File,
+    description: string,
+  ): Promise<OfferGalleryImage> => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("description", description);

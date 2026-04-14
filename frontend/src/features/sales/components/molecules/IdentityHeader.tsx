@@ -4,15 +4,7 @@ import { TemperatureBadge } from "../atoms/TemperatureBadge";
 import { ScoreRing } from "../atoms/ScoreRing";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ArrowLeft, 
-  Linkedin, 
-  Globe, 
-  MapPin, 
-  Calendar,
-  MoreVertical,
-  Edit
-} from "lucide-react";
+import { ArrowLeft, Linkedin, Globe, MapPin, Calendar, MoreVertical, Edit } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 interface IdentityHeaderProps {
@@ -67,13 +59,13 @@ export function IdentityHeader({ lead, onBack }: IdentityHeaderProps) {
             <ScoreRing score={lead.score} size={56} strokeWidth={4} />
           </div>
           <div className="flex gap-2">
-             <Button variant="outline">
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
-             </Button>
-             <Button variant="ghost" size="icon">
-                <MoreVertical className="h-5 w-5" />
-             </Button>
+            <Button variant="outline">
+              <Edit className="h-4 w-4 mr-2" />
+              Editar
+            </Button>
+            <Button variant="ghost" size="icon">
+              <MoreVertical className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </div>
@@ -82,23 +74,23 @@ export function IdentityHeader({ lead, onBack }: IdentityHeaderProps) {
 
       <div className="flex items-center justify-between text-sm">
         <div className="flex gap-6">
-           <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
-              <Linkedin className="h-4 w-4" />
-              <span>LinkedIn Profile</span>
-           </div>
-           <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
-              <Globe className="h-4 w-4" />
-              <span>Website</span>
-           </div>
-           <div className="flex items-center gap-2 text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              <span>Madrid, España</span>
-           </div>
+          <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
+            <Linkedin className="h-4 w-4" />
+            <span>LinkedIn Profile</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
+            <Globe className="h-4 w-4" />
+            <span>Website</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin className="h-4 w-4" />
+            <span>Madrid, España</span>
+          </div>
         </div>
-        
+
         <div className="flex items-center gap-2 text-muted-foreground">
-           <Calendar className="h-4 w-4" />
-           <span>Creado: 12 Feb 2024</span>
+          <Calendar className="h-4 w-4" />
+          <span>Creado: 12 Feb 2024</span>
         </div>
       </div>
     </div>

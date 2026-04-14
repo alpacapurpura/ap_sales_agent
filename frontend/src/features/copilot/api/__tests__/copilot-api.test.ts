@@ -137,9 +137,9 @@ describe("getCopilotHeaders", () => {
 
 describe("reportCopilotEvent", () => {
   it("fires a POST to the events endpoint with store state", () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(null, { status: 200 })
-    );
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
 
     reportCopilotEvent("click", { target: "button" }, "tok-abc");
 
@@ -157,9 +157,9 @@ describe("reportCopilotEvent", () => {
   });
 
   it("does not throw when the fetch call rejects (best-effort)", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(
-      new TypeError("Network failure")
-    );
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(new TypeError("Network failure"));
 
     // Should not throw
     expect(() => reportCopilotEvent("ping", {}, "tok")).not.toThrow();
@@ -188,7 +188,7 @@ describe("streamCopilotChat — SSE event parsing", () => {
         [{ event: "text_chunk", data: { content: "Hola " } }],
         [{ event: "text_chunk", data: { content: "mundo" } }],
         [{ event: "done", data: { conversation_id: "c1" } }],
-      ])
+      ]),
     );
 
     const cbs = makeCallbacks();
@@ -201,9 +201,7 @@ describe("streamCopilotChat — SSE event parsing", () => {
 
   it("calls onDone with conversation_id from done event", async () => {
     fetchSpy.mockResolvedValue(
-      buildSSEResponse([
-        [{ event: "done", data: { conversation_id: "conv-xyz" } }],
-      ])
+      buildSSEResponse([[{ event: "done", data: { conversation_id: "conv-xyz" } }]]),
     );
 
     const cbs = makeCallbacks();
@@ -217,7 +215,7 @@ describe("streamCopilotChat — SSE event parsing", () => {
       buildSSEResponse([
         [{ event: "status", data: { state: "thinking" } }],
         [{ event: "done", data: { conversation_id: "c2" } }],
-      ])
+      ]),
     );
 
     const cbs = makeCallbacks();
@@ -232,7 +230,7 @@ describe("streamCopilotChat — SSE event parsing", () => {
         [{ event: "tool_start", data: { tool: "search", args: { q: "brand" } } }],
         [{ event: "tool_result", data: { tool: "search", result: "Found" } }],
         [{ event: "done", data: { conversation_id: "c3" } }],
-      ])
+      ]),
     );
 
     const cbs = makeCallbacks();
@@ -248,7 +246,7 @@ describe("streamCopilotChat — SSE event parsing", () => {
       buildSSEResponse([
         [{ event: "ui_action", data: action }],
         [{ event: "done", data: { conversation_id: "c4" } }],
-      ])
+      ]),
     );
 
     const cbs = makeCallbacks();
@@ -259,9 +257,7 @@ describe("streamCopilotChat — SSE event parsing", () => {
 
   it("calls onError for server-sent error events", async () => {
     fetchSpy.mockResolvedValue(
-      buildSSEResponse([
-        [{ event: "error", data: { message: "Rate limit exceeded" } }],
-      ])
+      buildSSEResponse([[{ event: "error", data: { message: "Rate limit exceeded" } }]]),
     );
 
     const cbs = makeCallbacks();
@@ -271,16 +267,12 @@ describe("streamCopilotChat — SSE event parsing", () => {
   });
 
   it("calls onError for HTTP error responses (no retry)", async () => {
-    fetchSpy.mockResolvedValue(
-      new Response("Unauthorized", { status: 401 })
-    );
+    fetchSpy.mockResolvedValue(new Response("Unauthorized", { status: 401 }));
 
     const cbs = makeCallbacks();
     await streamCopilotChat(DEFAULT_PAYLOAD, cbs, "tok");
 
-    expect(cbs.onError).toHaveBeenCalledWith(
-      expect.stringContaining("401")
-    );
+    expect(cbs.onError).toHaveBeenCalledWith(expect.stringContaining("401"));
     // HTTP errors must not trigger retry
     expect(cbs.onRetry).not.toHaveBeenCalled();
     // Fetch should be called only once
@@ -290,8 +282,7 @@ describe("streamCopilotChat — SSE event parsing", () => {
   it("skips malformed JSON lines without calling onError", async () => {
     // Craft a raw SSE chunk with invalid JSON
     const badChunk = new TextEncoder().encode(
-      "event: text_chunk\ndata: {not json}\n\n" +
-      "event: done\ndata: {\"conversation_id\":\"c5\"}\n\n"
+      "event: text_chunk\ndata: {not json}\n\n" + 'event: done\ndata: {"conversation_id":"c5"}\n\n',
     );
     const stream = new ReadableStream<Uint8Array>({
       start(controller) {
@@ -342,7 +333,7 @@ describe("streamCopilotChat — retry on network error", () => {
     expect(cbs.onRetry).toHaveBeenNthCalledWith(1, 1, 3);
     expect(cbs.onRetry).toHaveBeenNthCalledWith(2, 2, 3);
     expect(cbs.onError).toHaveBeenCalledWith(
-      expect.stringContaining("Connection failed after 3 attempts")
+      expect.stringContaining("Connection failed after 3 attempts"),
     );
   });
 
@@ -350,9 +341,7 @@ describe("streamCopilotChat — retry on network error", () => {
     fetchSpy
       .mockRejectedValueOnce(new TypeError("Transient error"))
       .mockResolvedValue(
-        buildSSEResponse([
-          [{ event: "done", data: { conversation_id: "retry-conv" } }],
-        ])
+        buildSSEResponse([[{ event: "done", data: { conversation_id: "retry-conv" } }]]),
       );
 
     const cbs = makeCallbacks();
@@ -377,9 +366,7 @@ describe("streamCopilotChat — retry on network error", () => {
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     expect(cbs.onRetry).not.toHaveBeenCalled();
-    expect(cbs.onError).toHaveBeenCalledWith(
-      expect.stringContaining("Stream error")
-    );
+    expect(cbs.onError).toHaveBeenCalledWith(expect.stringContaining("Stream error"));
   });
 });
 
@@ -422,7 +409,7 @@ describe("streamCopilotChat — AbortSignal", () => {
 
   it("passes AbortSignal through to fetch", async () => {
     fetchSpy.mockResolvedValue(
-      buildSSEResponse([[{ event: "done", data: { conversation_id: "c6" } }]])
+      buildSSEResponse([[{ event: "done", data: { conversation_id: "c6" } }]]),
     );
     const controller = new AbortController();
 

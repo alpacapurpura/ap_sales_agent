@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useCallback, type ReactNode } from 'react';
-import { Link2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { useCallback, type ReactNode } from "react";
+import { Link2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ChartSectionProps {
   /** Unique slug within the current tab — becomes the DOM id and hash anchor */
@@ -19,7 +19,7 @@ export function ChartSection({ slug, children }: ChartSectionProps) {
     const url = new URL(window.location.href);
     url.hash = slug;
     void navigator.clipboard.writeText(url.toString());
-    toast.success('Enlace copiado');
+    toast.success("Enlace copiado");
   }, [slug]);
 
   return (

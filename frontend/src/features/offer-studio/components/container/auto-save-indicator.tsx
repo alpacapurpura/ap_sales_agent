@@ -41,10 +41,7 @@ export function AutoSaveIndicator({
   if (state === "saving") {
     return (
       <div
-        className={cn(
-          "flex items-center gap-1.5 text-xs text-muted-foreground",
-          className,
-        )}
+        className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", className)}
         aria-live="polite"
       >
         <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
@@ -56,10 +53,7 @@ export function AutoSaveIndicator({
   if (state === "saved") {
     return (
       <div
-        className={cn(
-          "flex items-center gap-1.5 text-xs text-muted-foreground",
-          className,
-        )}
+        className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", className)}
         aria-live="polite"
       >
         <Check className="h-3 w-3 text-emerald-500" aria-hidden />
@@ -73,13 +67,7 @@ export function AutoSaveIndicator({
 
   // state === "error"
   return (
-    <div
-      className={cn(
-        "flex items-center gap-2 text-xs text-destructive",
-        className,
-      )}
-      role="alert"
-    >
+    <div className={cn("flex items-center gap-2 text-xs text-destructive", className)} role="alert">
       <AlertCircle className="h-3 w-3" aria-hidden />
       <span>{errorMessage || "Error al guardar"}</span>
       {onRetry ? (

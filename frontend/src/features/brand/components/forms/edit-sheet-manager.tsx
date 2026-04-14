@@ -1,9 +1,22 @@
 "use client";
 
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
-  BrandSettings, BrandIdentity, KeyFigure, AuthorityItem, ContactData,
-  BrandVisuals, BrandStrategy, BrandStory, TestimonialItem,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  BrandSettings,
+  BrandIdentity,
+  KeyFigure,
+  AuthorityItem,
+  ContactData,
+  BrandVisuals,
+  BrandStrategy,
+  BrandStory,
+  TestimonialItem,
 } from "@/features/brand/types";
 import type { EditMode } from "../../types/edit-mode";
 import { EDIT_MODE_META } from "../../config/sections";
@@ -75,10 +88,12 @@ interface EditSheetManagerProps {
 }
 
 const PlaceholderForm = ({ name }: { name: string }) => (
-    <div className="p-8 text-center border-2 border-dashed rounded-xl bg-muted/20">
-        <p className="text-muted-foreground">El formulario de <strong>{name}</strong> esta en construccion.</p>
-        <p className="text-xs text-muted-foreground mt-2">Pronto podras editar esta seccion.</p>
-    </div>
+  <div className="p-8 text-center border-2 border-dashed rounded-xl bg-muted/20">
+    <p className="text-muted-foreground">
+      El formulario de <strong>{name}</strong> esta en construccion.
+    </p>
+    <p className="text-xs text-muted-foreground mt-2">Pronto podras editar esta seccion.</p>
+  </div>
 );
 
 export function EditSheetManager({
@@ -88,7 +103,7 @@ export function EditSheetManager({
   onClose,
   settings,
   saving,
-  handlers
+  handlers,
 }: EditSheetManagerProps) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
@@ -97,88 +112,101 @@ export function EditSheetManager({
 
   // Avatar Handler
   const handleAvatarSubmit = async (data: CreateAvatarDTO) => {
-      try {
-          const token = await getToken();
-          if (!token) return;
+    try {
+      const token = await getToken();
+      if (!token) return;
 
-          if (selectedItem && "id" in selectedItem && selectedItem.id) {
-              await fetch(`${config.api.baseUrl}/api/v1/avatars/${selectedItem.id}`, {
-                  method: 'PATCH',
-                  headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                  body: JSON.stringify(data)
-              });
-              toast.success("Avatar actualizado");
-          } else {
-              // Create
-              await avatarApi.createAvatar(token, data);
-              toast.success("Avatar creado");
-          }
-          queryClient.invalidateQueries({ queryKey: ["avatars"] });
-          onClose();
-      } catch (e) {
-          console.error(e);
-          toast.error("Error al guardar avatar");
+      if (selectedItem && "id" in selectedItem && selectedItem.id) {
+        await fetch(`${config.api.baseUrl}/api/v1/avatars/${selectedItem.id}`, {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        toast.success("Avatar actualizado");
+      } else {
+        // Create
+        await avatarApi.createAvatar(token, data);
+        toast.success("Avatar creado");
       }
+      queryClient.invalidateQueries({ queryKey: ["avatars"] });
+      onClose();
+    } catch (e) {
+      console.error(e);
+      toast.error("Error al guardar avatar");
+    }
   };
 
   // Team Member Handler (Single Item Update)
   const handleTeamMemberSave = async (member: KeyFigure) => {
-      let newTeam = [...(settings.team ?? [])];
-      const index = newTeam.findIndex(m => m.id === member.id);
+    let newTeam = [...(settings.team ?? [])];
+    const index = newTeam.findIndex((m) => m.id === member.id);
 
-      if (member.is_primary_voice) {
-          newTeam = newTeam.map(m => ({ ...m, is_primary_voice: false }));
-      }
+    if (member.is_primary_voice) {
+      newTeam = newTeam.map((m) => ({ ...m, is_primary_voice: false }));
+    }
 
-      if (index >= 0) {
-          newTeam[index] = member;
-      } else {
-          newTeam.push(member);
-      }
-      await handlers.onUpdateTeam(newTeam);
-      onClose();
+    if (index >= 0) {
+      newTeam[index] = member;
+    } else {
+      newTeam.push(member);
+    }
+    await handlers.onUpdateTeam(newTeam);
+    onClose();
   };
 
   // Authority Item Handler
   const handleAuthorityItemSave = async (item: AuthorityItem) => {
-      let newVault = [...(settings.authority_vault ?? [])];
-      const index = newVault.findIndex(i => i.id === item.id);
+    let newVault = [...(settings.authority_vault ?? [])];
+    const index = newVault.findIndex((i) => i.id === item.id);
 
-      if (index >= 0) {
-          newVault[index] = item;
-      } else {
-          newVault.push(item);
-      }
-      await handlers.onUpdateVault(newVault);
-      onClose();
+    if (index >= 0) {
+      newVault[index] = item;
+    } else {
+      newVault.push(item);
+    }
+    await handlers.onUpdateVault(newVault);
+    onClose();
   };
 
   const renderContent = () => {
-      // Special cases that require props
-      if (mode === "team") {
-          return selectedItem
-              ? <TeamMemberForm initialData={selectedItem as KeyFigure} onSave={handleTeamMemberSave} isSaving={saving} embedded />
-              : <TeamManager />;
-      }
-      if (mode === "authority") {
-          return selectedItem
-              ? <AuthorityItemForm initialData={selectedItem as AuthorityItem} onSave={handleAuthorityItemSave} isSaving={saving} />
-              : <AuthorityManager />;
-      }
-      if (mode === "avatars") {
-          return (
-              <AvatarForm
-                  initialData={(selectedItem as Partial<CreateAvatarDTO>) || undefined}
-                  onSubmit={handleAvatarSubmit}
-                  isSubmitting={saving}
-                  embedded
-              />
-          );
-      }
+    // Special cases that require props
+    if (mode === "team") {
+      return selectedItem ? (
+        <TeamMemberForm
+          initialData={selectedItem as KeyFigure}
+          onSave={handleTeamMemberSave}
+          isSaving={saving}
+          embedded
+        />
+      ) : (
+        <TeamManager />
+      );
+    }
+    if (mode === "authority") {
+      return selectedItem ? (
+        <AuthorityItemForm
+          initialData={selectedItem as AuthorityItem}
+          onSave={handleAuthorityItemSave}
+          isSaving={saving}
+        />
+      ) : (
+        <AuthorityManager />
+      );
+    }
+    if (mode === "avatars") {
+      return (
+        <AvatarForm
+          initialData={(selectedItem as Partial<CreateAvatarDTO>) || undefined}
+          onSubmit={handleAvatarSubmit}
+          isSubmitting={saving}
+          embedded
+        />
+      );
+    }
 
-      // Registry lookup
-      const Component = MODE_COMPONENT[mode];
-      return Component ? <Component /> : <PlaceholderForm name={mode} />;
+    // Registry lookup
+    const Component = MODE_COMPONENT[mode];
+    return Component ? <Component /> : <PlaceholderForm name={mode} />;
   };
 
   return (

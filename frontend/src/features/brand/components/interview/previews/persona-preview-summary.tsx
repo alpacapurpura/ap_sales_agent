@@ -14,56 +14,49 @@ function getInitial(name: string | undefined): string {
 
 // ── Component ───────────────────────────────────────────────────────────────
 
-export const PersonaPreviewSummary = forwardRef<
-  HTMLDivElement,
-  PreviewSummaryProps
->(({ data, completenessScore, ...props }, ref) => {
-  const name = (data.name as string) || "";
-  const tagline = (data.tagline as string) || "";
-  const displayName = name || "Buyer Persona";
-  const initial = getInitial(name);
+export const PersonaPreviewSummary = forwardRef<HTMLDivElement, PreviewSummaryProps>(
+  ({ data, completenessScore, ...props }, ref) => {
+    const name = (data.name as string) || "";
+    const tagline = (data.tagline as string) || "";
+    const displayName = name || "Buyer Persona";
+    const initial = getInitial(name);
 
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        "flex items-center gap-4 px-5 py-4 border-b border-white/5",
-        "bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/5",
-      )}
-      {...props}
-    >
-      {/* Avatar circle */}
+    return (
       <div
+        ref={ref}
         className={cn(
-          "flex h-12 w-12 shrink-0 items-center justify-center rounded-full",
-          "bg-gradient-to-br from-indigo-500 to-purple-600",
-          "text-lg font-bold text-white",
+          "flex items-center gap-4 px-5 py-4 border-b border-white/5",
+          "bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/5",
         )}
+        {...props}
       >
-        {initial}
-      </div>
+        {/* Avatar circle */}
+        <div
+          className={cn(
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-full",
+            "bg-gradient-to-br from-indigo-500 to-purple-600",
+            "text-lg font-bold text-white",
+          )}
+        >
+          {initial}
+        </div>
 
-      {/* Name + tagline */}
-      <div className="flex flex-col gap-0.5 min-w-0">
-        <span className="text-sm font-semibold text-foreground truncate">
-          {displayName}
-        </span>
-        {tagline && (
-          <span className="text-xs text-muted-foreground truncate">
-            {tagline}
-          </span>
-        )}
-      </div>
+        {/* Name + tagline */}
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <span className="text-sm font-semibold text-foreground truncate">{displayName}</span>
+          {tagline && <span className="text-xs text-muted-foreground truncate">{tagline}</span>}
+        </div>
 
-      {/* Completeness score badge */}
-      <Badge
-        variant="secondary"
-        className="ml-auto shrink-0 bg-purple-500/20 text-purple-300 border-purple-500/30"
-      >
-        {completenessScore}%
-      </Badge>
-    </div>
-  );
-});
+        {/* Completeness score badge */}
+        <Badge
+          variant="secondary"
+          className="ml-auto shrink-0 bg-purple-500/20 text-purple-300 border-purple-500/30"
+        >
+          {completenessScore}%
+        </Badge>
+      </div>
+    );
+  },
+);
 
 PersonaPreviewSummary.displayName = "PersonaPreviewSummary";

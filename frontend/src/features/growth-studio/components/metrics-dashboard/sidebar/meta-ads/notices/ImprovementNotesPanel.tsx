@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   AlertCircle,
   AlertTriangle,
@@ -8,14 +8,10 @@ import {
   ChevronDown,
   ChevronUp,
   EyeOff,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { cn } from '@/lib/utils';
-import type {
-  ImprovementNotice,
-  NoticeSeverity,
-  SeverityBreakdown,
-} from './types';
+import { cn } from "@/lib/utils";
+import type { ImprovementNotice, NoticeSeverity, SeverityBreakdown } from "./types";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -47,42 +43,40 @@ export interface ImprovementNotesPanelProps {
 // ---------------------------------------------------------------------------
 
 function dominantSeverity(severity: SeverityBreakdown): NoticeSeverity {
-  if (severity.critical > 0) return 'critical';
-  if (severity.warning > 0) return 'warning';
-  return 'info';
+  if (severity.critical > 0) return "critical";
+  if (severity.warning > 0) return "warning";
+  return "info";
 }
 
 function severityBorderClass(sev: NoticeSeverity): string {
   switch (sev) {
-    case 'critical':
-      return 'border-red-500/40 bg-red-500/5';
-    case 'warning':
-      return 'border-amber-500/30 bg-amber-500/5';
-    case 'info':
-      return 'border-blue-500/30 bg-blue-500/5';
+    case "critical":
+      return "border-red-500/40 bg-red-500/5";
+    case "warning":
+      return "border-amber-500/30 bg-amber-500/5";
+    case "info":
+      return "border-blue-500/30 bg-blue-500/5";
   }
 }
 
 function severityIcon(sev: NoticeSeverity) {
-  if (sev === 'critical') {
+  if (sev === "critical") {
     return <AlertCircle className="h-5 w-5 text-red-500" aria-hidden="true" />;
   }
-  if (sev === 'warning') {
-    return (
-      <AlertTriangle className="h-5 w-5 text-amber-500" aria-hidden="true" />
-    );
+  if (sev === "warning") {
+    return <AlertTriangle className="h-5 w-5 text-amber-500" aria-hidden="true" />;
   }
   return <CheckCircle2 className="h-5 w-5 text-blue-500" aria-hidden="true" />;
 }
 
 function severityLeftBar(sev: NoticeSeverity): string {
   switch (sev) {
-    case 'critical':
-      return 'border-l-red-500 bg-red-500/5';
-    case 'warning':
-      return 'border-l-amber-500 bg-amber-500/5';
-    case 'info':
-      return 'border-l-blue-500 bg-blue-500/5';
+    case "critical":
+      return "border-l-red-500 bg-red-500/5";
+    case "warning":
+      return "border-l-amber-500 bg-amber-500/5";
+    case "info":
+      return "border-l-blue-500 bg-blue-500/5";
   }
 }
 
@@ -93,21 +87,15 @@ function pluralize(n: number, singular: string, plural: string): string {
 function buildHeaderSubtitle(severity: SeverityBreakdown): string {
   const parts: string[] = [];
   if (severity.critical > 0) {
-    parts.push(
-      `${severity.critical} ${pluralize(severity.critical, 'crítica', 'críticas')}`,
-    );
+    parts.push(`${severity.critical} ${pluralize(severity.critical, "crítica", "críticas")}`);
   }
   if (severity.warning > 0) {
-    parts.push(
-      `${severity.warning} ${pluralize(severity.warning, 'advertencia', 'advertencias')}`,
-    );
+    parts.push(`${severity.warning} ${pluralize(severity.warning, "advertencia", "advertencias")}`);
   }
   if (severity.info > 0) {
-    parts.push(
-      `${severity.info} ${pluralize(severity.info, 'recomendación', 'recomendaciones')}`,
-    );
+    parts.push(`${severity.info} ${pluralize(severity.info, "recomendación", "recomendaciones")}`);
   }
-  return parts.join(' · ');
+  return parts.join(" · ");
 }
 
 // ---------------------------------------------------------------------------
@@ -124,7 +112,7 @@ function NoticeCard({ notice, onIgnore, onClick }: NoticeCardProps) {
   return (
     <div
       className={cn(
-        'rounded-md border border-l-[3px] border-border p-3',
+        "rounded-md border border-l-[3px] border-border p-3",
         severityLeftBar(notice.severity),
       )}
     >
@@ -138,11 +126,7 @@ function NoticeCard({ notice, onIgnore, onClick }: NoticeCardProps) {
               </span>
             )}
           </div>
-          {notice.body && (
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              {notice.body}
-            </p>
-          )}
+          {notice.body && <p className="mt-0.5 text-[11px] text-muted-foreground">{notice.body}</p>}
         </div>
         <div className="flex shrink-0 items-center gap-1">
           {onClick && (
@@ -201,17 +185,12 @@ export function ImprovementNotesPanel({
   const total = notices.length;
   const sev = dominantSeverity(severity);
   const title =
-    headerTitle ??
-    `Tienes ${total} ${pluralize(total, 'cosa por mejorar', 'cosas por mejorar')}`;
+    headerTitle ?? `Tienes ${total} ${pluralize(total, "cosa por mejorar", "cosas por mejorar")}`;
   const subtitle = buildHeaderSubtitle(severity);
 
   return (
     <div
-      className={cn(
-        'rounded-lg border p-4',
-        severityBorderClass(sev),
-        className,
-      )}
+      className={cn("rounded-lg border p-4", severityBorderClass(sev), className)}
       data-testid="improvement-notes-panel"
     >
       <div className="flex items-start justify-between gap-3">
@@ -219,28 +198,22 @@ export function ImprovementNotesPanel({
           {severityIcon(sev)}
           <div className="min-w-0">
             <h3 className="text-sm font-semibold">{title}</h3>
-            {subtitle && (
-              <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
-            )}
+            {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
           </div>
         </div>
         <button
           type="button"
-          onClick={() => setExpanded(v => !v)}
-          aria-label={expanded ? 'Ocultar detalle' : 'Ver detalle'}
+          onClick={() => setExpanded((v) => !v)}
+          aria-label={expanded ? "Ocultar detalle" : "Ver detalle"}
           className="shrink-0 rounded-md p-1 text-muted-foreground hover:text-foreground"
         >
-          {expanded ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
+          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </button>
       </div>
 
       {expanded && (
         <div className="mt-3 space-y-2">
-          {notices.map(notice => (
+          {notices.map((notice) => (
             <NoticeCard
               key={notice.id}
               notice={notice}

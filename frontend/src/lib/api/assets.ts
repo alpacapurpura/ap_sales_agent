@@ -10,7 +10,7 @@ export interface Asset {
   mime_type?: string;
   public_url: string;
   user_description?: string;
-  ai_metadata?: Record<string, any>;
+  ai_metadata?: Record<string, unknown>;
   ai_description?: string; // Legacy/Mapped
   ai_colors?: string[]; // Legacy/Mapped
   status: "processing" | "completed" | "failed";
@@ -23,15 +23,26 @@ async function throwWithDetail(res: Response, fallback: string): Promise<never> 
   let detail = fallback;
   try {
     const body = await res.json();
-    if (body.detail) detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+    if (body.detail)
+      detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
   } catch {
-    try { const t = await res.text(); if (t) detail = t; } catch { /* ignore */ }
+    try {
+      const t = await res.text();
+      if (t) detail = t;
+    } catch {
+      /* ignore */
+    }
   }
   throw new Error(detail);
 }
 
 export const assetsApi = {
-  upload: async (token: string, file: File, description?: string, offer_id?: string): Promise<Asset> => {
+  upload: async (
+    token: string,
+    file: File,
+    description?: string,
+    offer_id?: string,
+  ): Promise<Asset> => {
     const formData = new FormData();
     formData.append("file", file);
     if (description) formData.append("description", description);

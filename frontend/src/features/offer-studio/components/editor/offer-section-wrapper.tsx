@@ -22,12 +22,12 @@ export function OfferSectionWrapper({
   icon,
   isEmpty,
   onEdit,
-  children
+  children,
 }: OfferSectionWrapperProps) {
   return (
     <OfferSection id={id} onEdit={onEdit}>
       <OfferSection.Header title={title} icon={icon} description={description} />
-      
+
       {isEmpty ? (
         <OfferSection.EmptyState quote={quote} actionLabel={actionLabel} />
       ) : (

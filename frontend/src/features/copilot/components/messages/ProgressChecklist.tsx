@@ -17,10 +17,14 @@ export function ProgressChecklist({ items }: ProgressChecklistProps) {
     enqueuUIAction({ type: "navigate", route: item.route });
     getToken().then((token) => {
       if (token) {
-        reportCopilotEvent("checklist_item_clicked", {
-          label: item.label,
-          route: item.route || "",
-        }, token);
+        reportCopilotEvent(
+          "checklist_item_clicked",
+          {
+            label: item.label,
+            route: item.route || "",
+          },
+          token,
+        );
       }
     });
   };

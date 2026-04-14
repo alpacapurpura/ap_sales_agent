@@ -1,31 +1,31 @@
-"use client"
+"use client";
 
-import { Suspense } from "react"
-import { useParams } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { NavLink } from "@/components/shared/navigation"
-import { getProvider } from "@/features/connections/config/provider-registry"
-import { OAuthCallbackHandler } from "@/features/connections/components/oauth-callback-handler"
-import { useSearchParams } from "next/navigation"
+import { Suspense } from "react";
+import { useParams } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { NavLink } from "@/components/shared/navigation";
+import { getProvider } from "@/features/connections/config/provider-registry";
+import { OAuthCallbackHandler } from "@/features/connections/components/oauth-callback-handler";
+import { useSearchParams } from "next/navigation";
 
 function DetailContent() {
-  const params = useParams()
-  const searchParams = useSearchParams()
-  const tenantId = params?.tenantId as string
-  const providerId = params?.provider as string
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const tenantId = params?.tenantId as string;
+  const providerId = params?.provider as string;
 
   // OAuth callback detection (popup mode)
   const isPopupCallback =
     typeof window !== "undefined" &&
     !!window.opener &&
-    !!(searchParams?.get("code") || searchParams?.get("error"))
+    !!(searchParams?.get("code") || searchParams?.get("error"));
 
   if (isPopupCallback) {
-    return <OAuthCallbackHandler provider="auto" />
+    return <OAuthCallbackHandler provider="auto" />;
   }
 
-  const provider = getProvider(providerId)
+  const provider = getProvider(providerId);
 
   if (!provider) {
     return (
@@ -38,17 +38,21 @@ function DetailContent() {
           </Button>
         </NavLink>
       </div>
-    )
+    );
   }
 
-  const ProviderComponent = provider.component
+  const ProviderComponent = provider.component;
 
   return (
     <div className="space-y-6 p-6 md:p-10 pb-16">
       {/* Breadcrumb / back link */}
       <div className="flex items-center gap-4">
         <NavLink href={`/${tenantId}/connections`} loadingClassName="opacity-70">
-          <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 text-muted-foreground hover:text-foreground"
+          >
             <ArrowLeft className="h-4 w-4" />
             Conexiones
           </Button>
@@ -70,7 +74,7 @@ function DetailContent() {
         <ProviderComponent />
       </Suspense>
     </div>
-  )
+  );
 }
 
 export function ConnectionDetailLayout() {
@@ -78,5 +82,5 @@ export function ConnectionDetailLayout() {
     <Suspense fallback={<div className="p-10 text-muted-foreground">Cargando...</div>}>
       <DetailContent />
     </Suspense>
-  )
+  );
 }

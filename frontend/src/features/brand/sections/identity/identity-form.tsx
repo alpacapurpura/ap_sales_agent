@@ -2,14 +2,29 @@
 
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
+import type { UseFormSetValue } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { BrandIdentity } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
@@ -64,13 +79,13 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
   }, [initialData, form]);
 
   // Sync copilot field updates with form
-  useCopilotFieldSync(form.setValue as any);
+  useCopilotFieldSync(form.setValue as unknown as UseFormSetValue<Record<string, unknown>>);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     // Preserve existing legal fields that are not in this form
     const finalData = {
-        ...initialData,
-        ...values
+      ...initialData,
+      ...values,
     };
     onSave(finalData);
   }
@@ -80,64 +95,79 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
       <CardContent className="px-0">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            
             {/* Core Identity */}
             <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="brand_name"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Nombre de Marca</FormLabel>
-                            <WithCopilot fieldId="brand_name" fieldLabel="Nombre de Marca" getValue={() => field.value || ""}>
-                              <FormControl>
-                                <Input placeholder="Ej: Nicolify" {...field} />
-                              </FormControl>
-                            </WithCopilot>
-                            <FormDescription>El nombre comercial público.</FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="tagline"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Slogan / Tagline</FormLabel>
-                            <WithCopilot fieldId="tagline" fieldLabel="Slogan / Tagline" getValue={() => field.value || ""}>
-                              <FormControl>
-                                <Input placeholder="Ej: Transformando el futuro..." {...field} />
-                              </FormControl>
-                            </WithCopilot>
-                            <FormDescription>La frase que va debajo de tu logo. Ej: Nike &rarr; &apos;Just Do It&apos;</FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                </div>
-
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
+                  control={form.control}
+                  name="brand_name"
+                  render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Bio de Marca</FormLabel>
-                        <WithCopilot fieldId="description" fieldLabel="Bio de Marca" getValue={() => field.value || ""}>
-                          <FormControl>
-                            <Textarea
-                                placeholder="Describe brevemente qué hace tu empresa y para quién..."
-                                className="resize-none"
-                                {...field}
-                            />
-                          </FormControl>
-                        </WithCopilot>
-                        <FormDescription>Para perfiles de redes, SEO y presentaciones rapidas.</FormDescription>
-                        <FormMessage />
+                      <FormLabel>Nombre de Marca</FormLabel>
+                      <WithCopilot
+                        fieldId="brand_name"
+                        fieldLabel="Nombre de Marca"
+                        getValue={() => field.value || ""}
+                      >
+                        <FormControl>
+                          <Input placeholder="Ej: Nicolify" {...field} />
+                        </FormControl>
+                      </WithCopilot>
+                      <FormDescription>El nombre comercial público.</FormDescription>
+                      <FormMessage />
                     </FormItem>
-                    )}
+                  )}
                 />
+                <FormField
+                  control={form.control}
+                  name="tagline"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Slogan / Tagline</FormLabel>
+                      <WithCopilot
+                        fieldId="tagline"
+                        fieldLabel="Slogan / Tagline"
+                        getValue={() => field.value || ""}
+                      >
+                        <FormControl>
+                          <Input placeholder="Ej: Transformando el futuro..." {...field} />
+                        </FormControl>
+                      </WithCopilot>
+                      <FormDescription>
+                        La frase que va debajo de tu logo. Ej: Nike &rarr; &apos;Just Do It&apos;
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bio de Marca</FormLabel>
+                    <WithCopilot
+                      fieldId="description"
+                      fieldLabel="Bio de Marca"
+                      getValue={() => field.value || ""}
+                    >
+                      <FormControl>
+                        <Textarea
+                          placeholder="Describe brevemente qué hace tu empresa y para quién..."
+                          className="resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                    </WithCopilot>
+                    <FormDescription>
+                      Para perfiles de redes, SEO y presentaciones rapidas.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* Context & Details */}
@@ -146,9 +176,13 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
                 control={form.control}
                 name="website"
                 render={({ field }) => (
-                <FormItem>
+                  <FormItem>
                     <FormLabel>Sitio Web Principal</FormLabel>
-                    <WithCopilot fieldId="website" fieldLabel="Sitio Web Principal" getValue={() => field.value || ""}>
+                    <WithCopilot
+                      fieldId="website"
+                      fieldLabel="Sitio Web Principal"
+                      getValue={() => field.value || ""}
+                    >
                       <FormControl>
                         <Input placeholder="https://..." {...field} />
                       </FormControl>
@@ -163,7 +197,11 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Año de Fundación</FormLabel>
-                    <WithCopilot fieldId="founding_year" fieldLabel="Año de Fundación" getValue={() => field.value || ""}>
+                    <WithCopilot
+                      fieldId="founding_year"
+                      fieldLabel="Año de Fundación"
+                      getValue={() => field.value || ""}
+                    >
                       <FormControl>
                         <Input placeholder="Ej: 2023" {...field} />
                       </FormControl>
@@ -175,72 +213,82 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="industry"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Industria / Nicho</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                            <SelectTrigger>
-                            <SelectValue placeholder="Selecciona una industria" />
-                            </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            <SelectItem value="Marketing & Agencias">Marketing & Agencias</SelectItem>
-                            <SelectItem value="Coaching & Consultoría">Coaching & Consultoría</SelectItem>
-                            <SelectItem value="Salud & Fitness">Salud & Fitness</SelectItem>
-                            <SelectItem value="Inversiones & Finanzas">Inversiones & Finanzas</SelectItem>
-                            <SelectItem value="Real Estate">Real Estate</SelectItem>
-                            <SelectItem value="SaaS / Software">SaaS / Software</SelectItem>
-                            <SelectItem value="E-learning / Educación">E-learning / Educación</SelectItem>
-                            <SelectItem value="Otro">Otro</SelectItem>
-                        </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="language"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Idioma Principal</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                            <SelectTrigger>
-                            <SelectValue placeholder="Selecciona un idioma" />
-                            </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            <SelectItem value="Español">Español</SelectItem>
-                            <SelectItem value="Inglés">Inglés</SelectItem>
-                            <SelectItem value="Portugués">Portugués</SelectItem>
-                        </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
+              <FormField
+                control={form.control}
+                name="industry"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Industria / Nicho</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona una industria" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Marketing & Agencias">Marketing & Agencias</SelectItem>
+                        <SelectItem value="Coaching & Consultoría">
+                          Coaching & Consultoría
+                        </SelectItem>
+                        <SelectItem value="Salud & Fitness">Salud & Fitness</SelectItem>
+                        <SelectItem value="Inversiones & Finanzas">
+                          Inversiones & Finanzas
+                        </SelectItem>
+                        <SelectItem value="Real Estate">Real Estate</SelectItem>
+                        <SelectItem value="SaaS / Software">SaaS / Software</SelectItem>
+                        <SelectItem value="E-learning / Educación">
+                          E-learning / Educación
+                        </SelectItem>
+                        <SelectItem value="Otro">Otro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="language"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Idioma Principal</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona un idioma" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Español">Español</SelectItem>
+                        <SelectItem value="Inglés">Inglés</SelectItem>
+                        <SelectItem value="Portugués">Portugués</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
-             <FormField
-                control={form.control}
-                name="timezone"
-                render={({ field }) => (
+            <FormField
+              control={form.control}
+              name="timezone"
+              render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Zona Horaria Base</FormLabel>
-                    <WithCopilot fieldId="timezone" fieldLabel="Zona Horaria Base" getValue={() => field.value || ""}>
-                      <FormControl>
-                        <Input placeholder="Ej: America/Lima" {...field} />
-                      </FormControl>
-                    </WithCopilot>
-                    <FormDescription>Para saludos y agenda.</FormDescription>
-                    <FormMessage />
+                  <FormLabel>Zona Horaria Base</FormLabel>
+                  <WithCopilot
+                    fieldId="timezone"
+                    fieldLabel="Zona Horaria Base"
+                    getValue={() => field.value || ""}
+                  >
+                    <FormControl>
+                      <Input placeholder="Ej: America/Lima" {...field} />
+                    </FormControl>
+                  </WithCopilot>
+                  <FormDescription>Para saludos y agenda.</FormDescription>
+                  <FormMessage />
                 </FormItem>
-                )}
+              )}
             />
 
             <Button type="submit" disabled={isSaving} className="w-full">

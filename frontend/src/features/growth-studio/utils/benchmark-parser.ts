@@ -12,18 +12,19 @@ export interface ParsedBenchmark {
   low: number | null;
   high: number | null;
   median: number | null;
-  unit: 'percentage' | 'currency' | 'count' | 'ratio';
+  unit: "percentage" | "currency" | "count" | "ratio";
   rawText: string;
 }
 
 const RANGE_PATTERN = /([\d.]+)\s*[-\u2013]\s*([\d.]+)\s*(%|x|\$)?/;
-const SINGLE_VALUE_PATTERN = /(?:promedio|average|t\u00edpico|mean)\s*[:\s]?\s*\$?([\d.]+)\s*(%|x)?/i;
+const SINGLE_VALUE_PATTERN =
+  /(?:promedio|average|t\u00edpico|mean)\s*[:\s]?\s*\$?([\d.]+)\s*(%|x)?/i;
 const PERCENTAGE_PATTERN = /([\d.]+)\s*%/g;
 
 export function parseBenchmarkText(text: string): ParsedBenchmark | null {
   if (!text) return null;
 
-  const cleaned = text.replace(/^Referencia[^:]*:\s*/i, '');
+  const cleaned = text.replace(/^Referencia[^:]*:\s*/i, "");
 
   // Try range pattern first (e.g., "0.9-2.19%")
   const rangeMatch = cleaned.match(RANGE_PATTERN);
@@ -68,7 +69,7 @@ export function parseBenchmarkText(text: string): ParsedBenchmark | null {
       low: sorted[0],
       high: sorted[sorted.length - 1],
       median: Math.round(((sorted[0] + sorted[sorted.length - 1]) / 2) * 100) / 100,
-      unit: 'percentage',
+      unit: "percentage",
       rawText: text,
     };
   }
@@ -79,9 +80,9 @@ export function parseBenchmarkText(text: string): ParsedBenchmark | null {
 function detectUnit(
   hint: string | undefined,
   fullText: string,
-): 'percentage' | 'currency' | 'count' | 'ratio' {
-  if (hint === '%' || fullText.includes('%')) return 'percentage';
-  if (hint === '$' || fullText.includes('$')) return 'currency';
-  if (hint === 'x' || fullText.includes('x ')) return 'ratio';
-  return 'count';
+): "percentage" | "currency" | "count" | "ratio" {
+  if (hint === "%" || fullText.includes("%")) return "percentage";
+  if (hint === "$" || fullText.includes("$")) return "currency";
+  if (hint === "x" || fullText.includes("x ")) return "ratio";
+  return "count";
 }

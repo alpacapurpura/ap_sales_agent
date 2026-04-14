@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Badge } from '@/components/ui/badge';
-import type { EvangelistData } from '../../../types/metrics';
-import { formatDualCurrency } from '@/lib/format-money';
+import { Badge } from "@/components/ui/badge";
+import type { EvangelistData } from "../../../types/metrics";
+import { formatDualCurrency } from "@/lib/format-money";
 
 interface Props {
   evangelist: EvangelistData;
@@ -25,11 +25,11 @@ export function EvangelistCard({ evangelist }: Props) {
               variant="secondary"
               className={
                 evangelist.isActive
-                  ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400'
-                  : 'bg-muted text-muted-foreground'
+                  ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400"
+                  : "bg-muted text-muted-foreground"
               }
             >
-              {evangelist.isActive ? 'Activo' : 'Inactivo'}
+              {evangelist.isActive ? "Activo" : "Inactivo"}
             </Badge>
           </div>
           <span className="text-xs text-muted-foreground font-mono">
@@ -43,7 +43,11 @@ export function EvangelistCard({ evangelist }: Props) {
         <span>Referidos enviados: {evangelist.referralsSent}</span>
         <span>Convertidos: {evangelist.conversions}</span>
         <span className="font-semibold">
-          {formatDualCurrency(evangelist.revenueAttributed, evangelist.currency, evangelist.usdRevenue)}
+          {formatDualCurrency(
+            evangelist.revenueAttributed,
+            evangelist.currency,
+            evangelist.usdRevenue,
+          )}
         </span>
       </div>
     </div>

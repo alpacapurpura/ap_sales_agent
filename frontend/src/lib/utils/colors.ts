@@ -48,7 +48,9 @@ export function adjustBrightness(hex: string, percent: number): string {
 }
 
 export function hexToHsl(hex: string): string {
-  let r = 0, g = 0, b = 0;
+  let r = 0,
+    g = 0,
+    b = 0;
   if (hex.length === 4) {
     r = parseInt("0x" + hex[1] + hex[1]);
     g = parseInt("0x" + hex[2] + hex[2]);
@@ -58,9 +60,15 @@ export function hexToHsl(hex: string): string {
     g = parseInt("0x" + hex[3] + hex[4]);
     b = parseInt("0x" + hex[5] + hex[6]);
   }
-  r /= 255; g /= 255; b /= 255;
-  const cmin = Math.min(r,g,b), cmax = Math.max(r,g,b), delta = cmax - cmin;
-  let h = 0, s = 0, l = 0;
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const cmin = Math.min(r, g, b),
+    cmax = Math.max(r, g, b),
+    delta = cmax - cmin;
+  let h = 0,
+    s = 0,
+    l = 0;
 
   if (delta === 0) h = 0;
   else if (cmax === r) h = ((g - b) / delta) % 6;

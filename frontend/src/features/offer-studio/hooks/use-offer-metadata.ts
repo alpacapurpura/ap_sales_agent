@@ -11,7 +11,7 @@ export function useOfferMetadata() {
       const token = await getToken();
       if (!token) return {};
       const res = await fetchClient("/products/metadata/hints", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to fetch metadata");
       return res.json();

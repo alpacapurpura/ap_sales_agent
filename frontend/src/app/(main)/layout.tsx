@@ -31,9 +31,7 @@ export default function MainLayout({
     <ClerkProvider>
       <Providers>
         <Suspense fallback={<LoadingScreen />}>
-          <TenantGuard>
-            {children}
-          </TenantGuard>
+          <TenantGuard>{children}</TenantGuard>
         </Suspense>
       </Providers>
     </ClerkProvider>

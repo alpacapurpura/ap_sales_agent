@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { memo, useMemo } from 'react';
-import { Area, AreaChart } from 'recharts';
-import { ChartContainer } from '@/components/ui/chart';
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import type { StageTimeSeries } from '../../../types/metrics';
-import { formatMetricValue } from '../../../utils/format-metric-value';
-import { MetricInfoCard } from '../channel-widgets/KpiTooltip';
+import { memo, useMemo } from "react";
+import { Area, AreaChart } from "recharts";
+import { ChartContainer } from "@/components/ui/chart";
+import { TrendingUp, TrendingDown } from "lucide-react";
+import type { StageTimeSeries } from "../../../types/metrics";
+import { formatMetricValue } from "../../../utils/format-metric-value";
+import { MetricInfoCard } from "../channel-widgets/KpiTooltip";
 
 interface AttractionScorecardsProps {
   timeSeries: StageTimeSeries | undefined;
@@ -22,13 +22,17 @@ interface AttractionScorecardsProps {
 interface ScorecardData {
   label: string;
   value: number;
-  format: 'number' | 'percent' | 'money';
+  format: "number" | "percent" | "money";
   delta: number | null;
   sparkData: { v: number }[];
   metricName?: string;
 }
 
-const FORMAT_MAP: Record<string, string> = { number: 'count', percent: 'percentage', money: 'currency' };
+const FORMAT_MAP: Record<string, string> = {
+  number: "count",
+  percent: "percentage",
+  money: "currency",
+};
 
 function computeDelta(current: number, previous: number | null): number | null {
   if (previous === null || previous === 0) return null;
@@ -42,7 +46,7 @@ export const AttractionScorecards = memo(function AttractionScorecards({
   totalLeads,
   leadConvRate,
   totalSpend,
-  currency = 'USD',
+  currency = "USD",
 }: AttractionScorecardsProps) {
   const cards = useMemo((): ScorecardData[] => {
     // Build sparkline from timeseries data (sum all channels per day)
@@ -63,46 +67,46 @@ export const AttractionScorecards = memo(function AttractionScorecards({
 
     return [
       {
-        label: 'Impresiones',
+        label: "Impresiones",
         value: totalImpressions,
-        format: 'number',
+        format: "number",
         delta: reachDelta,
         sparkData: dailyTotals,
-        metricName: 'impressions',
+        metricName: "impressions",
       },
       {
-        label: 'Visitantes',
+        label: "Visitantes",
         value: totalVisitors,
-        format: 'number',
+        format: "number",
         delta: null,
         sparkData: [],
-        metricName: 'users',
+        metricName: "users",
       },
       {
-        label: 'Leads',
+        label: "Leads",
         value: totalLeads,
-        format: 'number',
+        format: "number",
         delta: null,
         sparkData: [],
       },
       {
-        label: 'Conv. %',
+        label: "Conv. %",
         value: leadConvRate,
-        format: 'percent',
+        format: "percent",
         delta: null,
         sparkData: [],
       },
       {
-        label: 'CPL',
+        label: "CPL",
         value: cpl,
-        format: 'money',
+        format: "money",
         delta: null,
         sparkData: [],
       },
     ];
   }, [timeSeries, totalImpressions, totalVisitors, totalLeads, leadConvRate, totalSpend]);
 
-  const sparkConfig = { v: { color: 'hsl(var(--primary))' } };
+  const sparkConfig = { v: { color: "hsl(var(--primary))" } };
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
@@ -124,7 +128,10 @@ export const AttractionScorecards = memo(function AttractionScorecards({
           )}
           <div className="flex items-end justify-between gap-2">
             <span className="text-2xl font-black text-foreground leading-none">
-              {formatMetricValue(card.value, FORMAT_MAP[card.format] ?? 'count', { currency, percentDecimals: 1 })}
+              {formatMetricValue(card.value, FORMAT_MAP[card.format] ?? "count", {
+                currency,
+                percentDecimals: 1,
+              })}
             </span>
             {card.sparkData.length > 2 && (
               <ChartContainer config={sparkConfig} className="h-[28px] w-[56px] !aspect-auto">
@@ -142,9 +149,16 @@ export const AttractionScorecards = memo(function AttractionScorecards({
             )}
           </div>
           {card.delta !== null && (
-            <div className={`flex items-center gap-1 text-xs font-medium ${card.delta >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-              {card.delta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-              {card.delta >= 0 ? '+' : ''}{card.delta.toFixed(1)}% vs anterior
+            <div
+              className={`flex items-center gap-1 text-xs font-medium ${card.delta >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}
+            >
+              {card.delta >= 0 ? (
+                <TrendingUp className="h-3 w-3" />
+              ) : (
+                <TrendingDown className="h-3 w-3" />
+              )}
+              {card.delta >= 0 ? "+" : ""}
+              {card.delta.toFixed(1)}% vs anterior
             </div>
           )}
         </div>

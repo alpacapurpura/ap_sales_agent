@@ -74,36 +74,36 @@
 html.dark {
   /* Dark Mode: Slate/Blueish Gray Background & White Text */
   /* Background: Slate 950-ish */
-  --background: 222.2 47.4% 11.2%; 
+  --background: 222.2 47.4% 11.2%;
   --foreground: 210 40% 98%;
-  
+
   /* Card: Slightly lighter than bg for depth */
   --card: 217.2 32.6% 17.5%;
   --card-foreground: 210 40% 98%;
-  
+
   /* Popover: Same as card */
   --popover: 217.2 32.6% 17.5%;
   --popover-foreground: 210 40% 98%;
-  
+
   /* Primary: White/Light Blue for buttons */
   --primary: 210 40% 98%;
   --primary-foreground: 222.2 47.4% 11.2%;
-  
+
   /* Secondary: Muted Blue/Gray */
   --secondary: 217.2 32.6% 17.5%;
   --secondary-foreground: 210 40% 98%;
-  
+
   /* Muted: Low contrast text/bg — lighter than card (17.5%) for visible tracks */
   --muted: 217.2 32.6% 25%;
   --muted-foreground: 215 20.2% 65.1%;
-  
+
   /* Accent: Hover states */
   --accent: 217.2 32.6% 17.5%;
   --accent-foreground: 210 40% 98%;
-  
+
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 210 40% 98%;
-  
+
   /* Borders: Visible but subtle */
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
@@ -159,8 +159,14 @@ html.dark {
 
 /* Panel fade-in: used on detail panel content wrapper (animate-fade-in class) */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
@@ -169,8 +175,15 @@ html.dark {
 
 /* Bottleneck banner pulse for critical severity alerts */
 @keyframes pulseBorder {
-  0%, 100% { border-color: hsl(0 84.2% 60.2%); box-shadow: 0 0 0 0 hsl(0 84.2% 60.2% / 0.2); }
-  50%       { border-color: hsl(0 84.2% 40%); box-shadow: 0 0 0 3px hsl(0 84.2% 40% / 0); }
+  0%,
+  100% {
+    border-color: hsl(0 84.2% 60.2%);
+    box-shadow: 0 0 0 0 hsl(0 84.2% 60.2% / 0.2);
+  }
+  50% {
+    border-color: hsl(0 84.2% 40%);
+    box-shadow: 0 0 0 3px hsl(0 84.2% 40% / 0);
+  }
 }
 
 .bottleneck-critical {
@@ -179,8 +192,12 @@ html.dark {
 
 /* Skeleton shimmer — used in legacy Skeleton components (shadcn animate-pulse used by default) */
 @keyframes shimmer {
-  0%   { background-position: -1000px 0; }
-  100% { background-position: 1000px 0; }
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
 }
 
 .skeleton-loading {
@@ -197,9 +214,15 @@ html.dark {
 /* ─── Copilot Highlight Animation ────────────────────────────────────────── */
 
 @keyframes copilotPulse {
-  0%   { box-shadow: 0 0 0 0 hsl(270 70% 60% / 0.4); }
-  50%  { box-shadow: 0 0 0 6px hsl(270 70% 60% / 0); }
-  100% { box-shadow: 0 0 0 0 hsl(270 70% 60% / 0); }
+  0% {
+    box-shadow: 0 0 0 0 hsl(270 70% 60% / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px hsl(270 70% 60% / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 hsl(270 70% 60% / 0);
+  }
 }
 
 .copilot-highlight {

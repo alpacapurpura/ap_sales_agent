@@ -6,11 +6,7 @@ import { OfferValueLevel } from "../types";
 describe("LadderProgressBar", () => {
   it("renders all 5 level segments", () => {
     render(
-      <LadderProgressBar
-        filledGroups={new Set<OfferValueLevel>()}
-        score="vacia"
-        percentage={0}
-      />,
+      <LadderProgressBar filledGroups={new Set<OfferValueLevel>()} score="vacia" percentage={0} />,
     );
     // Each step renders a tooltip with the level label
     expect(screen.getByText("Ladder")).toBeInTheDocument();
@@ -18,13 +14,8 @@ describe("LadderProgressBar", () => {
   });
 
   it("shows filled count matching filledGroups size", () => {
-    const filled = new Set([
-      OfferValueLevel.LEAD_MAGNET,
-      OfferValueLevel.TRANSFORMACION,
-    ]);
-    render(
-      <LadderProgressBar filledGroups={filled} score="creciendo" percentage={40} />,
-    );
+    const filled = new Set([OfferValueLevel.LEAD_MAGNET, OfferValueLevel.TRANSFORMACION]);
+    render(<LadderProgressBar filledGroups={filled} score="creciendo" percentage={40} />);
     expect(screen.getByText("2/5")).toBeInTheDocument();
     expect(screen.getByText("40")).toBeInTheDocument();
   });
@@ -37,9 +28,7 @@ describe("LadderProgressBar", () => {
       OfferValueLevel.MAXIMIZACION,
       OfferValueLevel.CORPORATIVO,
     ]);
-    render(
-      <LadderProgressBar filledGroups={filled} score="avanzada" percentage={100} />,
-    );
+    render(<LadderProgressBar filledGroups={filled} score="avanzada" percentage={100} />);
     expect(screen.getByText("5/5")).toBeInTheDocument();
     expect(screen.getByText("100")).toBeInTheDocument();
   });

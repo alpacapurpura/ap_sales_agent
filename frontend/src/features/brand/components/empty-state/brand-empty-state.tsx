@@ -8,10 +8,5 @@ interface BrandEmptyStateProps {
 }
 
 export function BrandEmptyState({ onStartAI, onStartManual }: BrandEmptyStateProps) {
-  return (
-    <OnboardingWizard
-      onComplete={onStartAI}
-      onManual={onStartManual}
-    />
-  );
+  return <OnboardingWizard onComplete={onStartAI} onManual={onStartManual} />;
 }

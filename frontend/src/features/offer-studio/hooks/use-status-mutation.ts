@@ -3,20 +3,14 @@ import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { statusApi } from "../api/status-api";
-import type {
-  ChangeOfferStatusPayload,
-  OfferStatusResponse,
-} from "../types/lifecycle";
+import type { ChangeOfferStatusPayload, OfferStatusResponse } from "../types/lifecycle";
 
 interface UseChangeOfferStatusOptions {
   onSuccess?: (data: OfferStatusResponse) => void;
   onError?: (error: Error) => void;
 }
 
-export function useChangeOfferStatus(
-  offerId: string,
-  options?: UseChangeOfferStatusOptions,
-) {
+export function useChangeOfferStatus(offerId: string, options?: UseChangeOfferStatusOptions) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
 
@@ -40,8 +34,7 @@ export function useChangeOfferStatus(
       options?.onSuccess?.(data);
     },
     onError: (err) => {
-      const message =
-        err instanceof Error ? err.message : "Error al cambiar el estado";
+      const message = err instanceof Error ? err.message : "Error al cambiar el estado";
       toast.error(message);
       options?.onError?.(err);
     },

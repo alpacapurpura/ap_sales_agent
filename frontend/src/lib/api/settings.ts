@@ -109,8 +109,8 @@ export const settingsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Failed to create team member");
+      const err = await res.json();
+      throw new Error(err.detail || "Failed to create team member");
     }
     return res.json();
   },
@@ -130,7 +130,7 @@ export const settingsApi = {
       headers: {
         Authorization: `Bearer ${token}`,
         "Cache-Control": "no-cache",
-        "Pragma": "no-cache",
+        Pragma: "no-cache",
       },
     });
     if (!res.ok) throw new Error("Failed to fetch user profile");
@@ -193,7 +193,7 @@ export const settingsApi = {
 
   updateGeneralSettings: async (
     data: Partial<GeneralSettings>,
-    token: string
+    token: string,
   ): Promise<GeneralSettings> => {
     const res = await fetchClient(`${API_URL}/api/v1/iam/settings/general`, {
       method: "PATCH",

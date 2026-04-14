@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep *)",
+      "Bash(rm *)",
+      "Bash(git checkout *)",
+      "Bash(pkill *)",
+      "Bash(true)"
+    ]
+  },
+  "$version": 3
+}

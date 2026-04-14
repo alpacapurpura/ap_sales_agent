@@ -1,11 +1,16 @@
-'use client';
+"use client";
 
-import { Instagram } from 'lucide-react';
-import type { ChannelMetric } from '../../../../types/metrics';
-import { ChannelOverviewPanel } from '../shared/ChannelOverviewPanel';
-import { IgOrganicGrowthIndicator } from './IgOrganicGrowthIndicator';
+import { Instagram } from "lucide-react";
+import type { ChannelMetric } from "../../../../types/metrics";
+import { ChannelOverviewPanel } from "../shared/ChannelOverviewPanel";
+import { IgOrganicGrowthIndicator } from "./IgOrganicGrowthIndicator";
 
-const HERO_METRICS = ['total_interactions', 'ig_views', 'ig_follows_and_unfollows', 'ig_engagement_rate'];
+const HERO_METRICS = [
+  "total_interactions",
+  "ig_views",
+  "ig_follows_and_unfollows",
+  "ig_engagement_rate",
+];
 
 interface IgOrganicOverviewPanelProps {
   channel: ChannelMetric;

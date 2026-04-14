@@ -30,15 +30,15 @@ export const getSectionFields = (sectionId: string): (keyof OfferFormValues)[] =
     case "event_details":
     case "subscription_details":
       return [
-        "specific_details", 
-        "access_duration", 
-        "access_duration_text", 
+        "specific_details",
+        "access_duration",
+        "access_duration_text",
         "support_duration_days",
         "onboarding_action",
         "onboarding_url",
         "calendar_type_id",
         "checkout_page_url",
-        "vsl_link"
+        "vsl_link",
       ];
     default:
       return [];
@@ -51,8 +51,8 @@ export const getSectionFields = (sectionId: string): (keyof OfferFormValues)[] =
  * asegurando que se envíe el objeto completo del estado actual.
  */
 export const getSectionData = (
-  sectionId: string, 
-  allValues: OfferFormValues
+  sectionId: string,
+  allValues: OfferFormValues,
 ): Partial<OfferFormValues> => {
   const fields = getSectionFields(sectionId);
   const data: Partial<OfferFormValues> = {};
@@ -60,7 +60,7 @@ export const getSectionData = (
   fields.forEach((field) => {
     // Skip special handling fields in the generic loop to avoid double assignment
     if (field === "specific_details" || field === "assets") return;
-    
+
     // @ts-ignore
     data[field] = allValues[field];
   });
@@ -70,10 +70,10 @@ export const getSectionData = (
     // Asegurar que specific_details se envíe completo y manejar posibles nulos
     data.specific_details = allValues.specific_details ? { ...allValues.specific_details } : {};
   }
-  
+
   if (fields.includes("assets")) {
-      // Asegurar que assets se envíe completo
-      data.assets = allValues.assets ? [...allValues.assets] : [];
+    // Asegurar que assets se envíe completo
+    data.assets = allValues.assets ? [...allValues.assets] : [];
   }
 
   return data;

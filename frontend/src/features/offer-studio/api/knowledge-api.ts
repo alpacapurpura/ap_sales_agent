@@ -19,13 +19,8 @@ const buildQueryString = (query?: KnowledgeListQuery): string => {
   return qs ? `?${qs}` : "";
 };
 
-const readErrorDetail = async (
-  res: Response,
-  fallback: string,
-): Promise<string> => {
-  const body = (await res
-    .json()
-    .catch(() => ({ detail: res.statusText }))) as { detail?: string };
+const readErrorDetail = async (res: Response, fallback: string): Promise<string> => {
+  const body = (await res.json().catch(() => ({ detail: res.statusText }))) as { detail?: string };
   return body.detail ?? fallback;
 };
 
@@ -42,32 +37,21 @@ export const knowledgeApi = {
       },
     );
     if (!res.ok) {
-      throw new Error(
-        await readErrorDetail(res, "Error al cargar las fuentes de conocimiento"),
-      );
+      throw new Error(await readErrorDetail(res, "Error al cargar las fuentes de conocimiento"));
     }
     return (await res.json()) as KnowledgeListResponse;
   },
 
-  upload: async (
-    offerId: string,
-    file: File,
-    token: string,
-  ): Promise<KnowledgeSourceResponse> => {
+  upload: async (offerId: string, file: File, token: string): Promise<KnowledgeSourceResponse> => {
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetchClient(
-      `${API_URL}/api/v1/offer/products/${offerId}/knowledge/upload`,
-      {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      },
-    );
+    const res = await fetchClient(`${API_URL}/api/v1/offer/products/${offerId}/knowledge/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
     if (!res.ok) {
-      throw new Error(
-        await readErrorDetail(res, "Error al subir el archivo de conocimiento"),
-      );
+      throw new Error(await readErrorDetail(res, "Error al subir el archivo de conocimiento"));
     }
     return (await res.json()) as KnowledgeSourceResponse;
   },
@@ -77,30 +61,21 @@ export const knowledgeApi = {
     payload: KnowledgeUrlIngestPayload,
     token: string,
   ): Promise<KnowledgeSourceResponse> => {
-    const res = await fetchClient(
-      `${API_URL}/api/v1/offer/products/${offerId}/knowledge/url`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+    const res = await fetchClient(`${API_URL}/api/v1/offer/products/${offerId}/knowledge/url`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify(payload),
+    });
     if (!res.ok) {
-      throw new Error(
-        await readErrorDetail(res, "Error al registrar la URL"),
-      );
+      throw new Error(await readErrorDetail(res, "Error al registrar la URL"));
     }
     return (await res.json()) as KnowledgeSourceResponse;
   },
 
-  remove: async (
-    offerId: string,
-    sourceId: string,
-    token: string,
-  ): Promise<void> => {
+  remove: async (offerId: string, sourceId: string, token: string): Promise<void> => {
     const res = await fetchClient(
       `${API_URL}/api/v1/offer/products/${offerId}/knowledge/${sourceId}`,
       {
@@ -109,9 +84,7 @@ export const knowledgeApi = {
       },
     );
     if (!res.ok) {
-      throw new Error(
-        await readErrorDetail(res, "Error al eliminar la fuente"),
-      );
+      throw new Error(await readErrorDetail(res, "Error al eliminar la fuente"));
     }
   },
 
@@ -128,9 +101,7 @@ export const knowledgeApi = {
       },
     );
     if (!res.ok) {
-      throw new Error(
-        await readErrorDetail(res, "Error al reindexar la fuente"),
-      );
+      throw new Error(await readErrorDetail(res, "Error al reindexar la fuente"));
     }
     return (await res.json()) as KnowledgeSourceResponse;
   },

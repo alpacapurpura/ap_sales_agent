@@ -1,57 +1,27 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import {
-  VoiceButton,
-  RecordingIndicator,
-  TranscribingIndicator,
-} from "../voice-button";
+import { VoiceButton, RecordingIndicator, TranscribingIndicator } from "../voice-button";
 
 describe("VoiceButton", () => {
   it("renders mic button with correct idle aria-label", () => {
-    render(
-      <VoiceButton
-        isRecording={false}
-        isTranscribing={false}
-        onMicClick={vi.fn()}
-      />,
-    );
+    render(<VoiceButton isRecording={false} isTranscribing={false} onMicClick={vi.fn()} />);
     expect(screen.getByRole("button", { name: "Micrófono" })).toBeInTheDocument();
   });
 
   it("renders mic button with recording aria-label when recording", () => {
-    render(
-      <VoiceButton
-        isRecording={true}
-        isTranscribing={false}
-        onMicClick={vi.fn()}
-      />,
-    );
-    expect(
-      screen.getByRole("button", { name: "Detener grabación" }),
-    ).toBeInTheDocument();
+    render(<VoiceButton isRecording={true} isTranscribing={false} onMicClick={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "Detener grabación" })).toBeInTheDocument();
   });
 
   it("calls onMicClick when button is clicked", async () => {
     const onMicClick = vi.fn().mockResolvedValue(undefined);
-    render(
-      <VoiceButton
-        isRecording={false}
-        isTranscribing={false}
-        onMicClick={onMicClick}
-      />,
-    );
+    render(<VoiceButton isRecording={false} isTranscribing={false} onMicClick={onMicClick} />);
     fireEvent.click(screen.getByRole("button", { name: "Micrófono" }));
     expect(onMicClick).toHaveBeenCalledTimes(1);
   });
 
   it("is disabled when isTranscribing is true", () => {
-    render(
-      <VoiceButton
-        isRecording={false}
-        isTranscribing={true}
-        onMicClick={vi.fn()}
-      />,
-    );
+    render(<VoiceButton isRecording={false} isTranscribing={true} onMicClick={vi.fn()} />);
     expect(screen.getByRole("button", { name: "Micrófono" })).toBeDisabled();
   });
 
@@ -106,13 +76,7 @@ describe("RecordingIndicator", () => {
 
   it("calls onStop when stop button clicked", () => {
     const onStop = vi.fn().mockResolvedValue(undefined);
-    render(
-      <RecordingIndicator
-        duration={10}
-        onCancel={vi.fn()}
-        onStop={onStop}
-      />,
-    );
+    render(<RecordingIndicator duration={10} onCancel={vi.fn()} onStop={onStop} />);
     fireEvent.click(screen.getByRole("button", { name: "Detener grabación" }));
     expect(onStop).toHaveBeenCalledTimes(1);
   });

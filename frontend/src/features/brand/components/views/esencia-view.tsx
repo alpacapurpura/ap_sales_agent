@@ -29,8 +29,8 @@ export function EsenciaView() {
   const { openEdit, openSmartFill } = useBrandStudio();
 
   const navItems = useMemo(
-    () => settings ? buildSectionNavItems("esencia", settings) : [],
-    [settings]
+    () => (settings ? buildSectionNavItems("esencia", settings) : []),
+    [settings],
   );
 
   if (!settings) return null;
@@ -61,7 +61,11 @@ export function EsenciaView() {
 
       {/* Personalidad */}
       <div id="values-essence" className="space-y-8">
-        <SectionHeader title="Personalidad" subtitle="Valores, arquetipo y esencia de marca." tooltip="Basado en Brand Love Key" />
+        <SectionHeader
+          title="Personalidad"
+          subtitle="Valores, arquetipo y esencia de marca."
+          tooltip="Basado en Brand Love Key"
+        />
         <ValuesEssencePreview
           positioning={settings.positioning ?? { reasons_to_believe: [] }}
           onEdit={() => openEdit("values-essence")}
@@ -70,7 +74,10 @@ export function EsenciaView() {
 
       {/* Equipo + Testimonios */}
       <div id="team" className="space-y-8">
-        <SectionHeader title="Equipo & Testimonios" subtitle="Las personas detras de la marca y prueba social." />
+        <SectionHeader
+          title="Equipo & Testimonios"
+          subtitle="Las personas detras de la marca y prueba social."
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <TeamSection
             team={settings.team ?? []}

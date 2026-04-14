@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { Badge } from '@/components/ui/badge';
-import { formatMoney } from '@/lib/format-money';
-import type { StageSummary } from '../../../types/metrics';
+import { Badge } from "@/components/ui/badge";
+import { formatMoney } from "@/lib/format-money";
+import type { StageSummary } from "../../../types/metrics";
 
 interface PlaceholderDetailProps {
   stage: StageSummary;
 }
 
 function formatKpiValue(value: number | string, unit?: string): string {
-  if (typeof value === 'string') return value;
+  if (typeof value === "string") return value;
   // 3-letter uppercase = currency code
   if (unit && /^[A-Z]{3}$/.test(unit)) {
     return formatMoney(value, unit, { fractionDigits: 0 });
   }
-  if (unit === '$') {
+  if (unit === "$") {
     // Legacy fallback -- treat as USD
-    return formatMoney(value, 'USD', { fractionDigits: 0 });
+    return formatMoney(value, "USD", { fractionDigits: 0 });
   }
-  if (unit === '%') return `${value}%`;
+  if (unit === "%") return `${value}%`;
   if (value >= 1000) return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}k`;
   return value.toLocaleString();
 }
@@ -31,9 +31,7 @@ export function PlaceholderDetail({ stage }: PlaceholderDetailProps) {
       </Badge>
       <div>
         <h4 className="text-lg font-semibold">{stage.label}</h4>
-        <p className="text-sm text-muted-foreground mt-1 max-w-md">
-          {stage.description}
-        </p>
+        <p className="text-sm text-muted-foreground mt-1 max-w-md">{stage.description}</p>
       </div>
       <div className="flex gap-8 mt-2">
         <div className="text-center">

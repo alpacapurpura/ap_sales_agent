@@ -1,17 +1,13 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const meta = {
-  title: 'Molecules/Popover',
+  title: "Molecules/Popover",
   component: Popover,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof Popover>;
 
 export default meta;
@@ -27,9 +23,7 @@ export const Default: Story = {
         <div className="grid gap-4">
           <div className="space-y-2">
             <h4 className="font-medium leading-none">Dimensions</h4>
-            <p className="text-sm text-muted-foreground">
-              Set the dimensions for the layer.
-            </p>
+            <p className="text-sm text-muted-foreground">Set the dimensions for the layer.</p>
           </div>
           <div className="grid gap-2">
             <div className="grid grid-cols-3 items-center gap-4">

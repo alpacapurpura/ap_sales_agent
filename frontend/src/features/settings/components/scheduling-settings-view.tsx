@@ -1,25 +1,17 @@
-"use client"
+"use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { AvailabilityView } from "@/features/sales/components/availability-view"
-import { EventTypeView } from "@/features/sales/components/event-type-view"
-import { Clock, Settings2 } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AvailabilityView } from "@/features/sales/components/availability-view";
+import { EventTypeView } from "@/features/sales/components/event-type-view";
+import { Clock, Settings2 } from "lucide-react";
 
 export function SchedulingSettingsView() {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Configuración de Agenda</CardTitle>
-        <CardDescription>
-          Gestiona tu disponibilidad y tipos de eventos.
-        </CardDescription>
+        <CardDescription>Gestiona tu disponibilidad y tipos de eventos.</CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="availability">
@@ -57,5 +49,5 @@ export function SchedulingSettingsView() {
         </Tabs>
       </CardContent>
     </Card>
-  )
+  );
 }

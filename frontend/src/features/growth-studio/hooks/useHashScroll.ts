@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 interface UseHashScrollOptions {
   /** Pixel offset from top to account for sticky headers/tab bars. Default: 100 */
@@ -10,16 +10,14 @@ interface UseHashScrollOptions {
 }
 
 function scrollToHash(hash: string, offset: number) {
-  const el =
-    document.getElementById(hash) ??
-    document.querySelector(`[data-section="${hash}"]`);
+  const el = document.getElementById(hash) ?? document.querySelector(`[data-section="${hash}"]`);
   if (!el) return;
 
   const y = el.getBoundingClientRect().top + window.scrollY - offset;
-  window.scrollTo({ top: y, behavior: 'smooth' });
+  window.scrollTo({ top: y, behavior: "smooth" });
 
-  el.classList.add('copilot-highlight');
-  setTimeout(() => el.classList.remove('copilot-highlight'), 3000);
+  el.classList.add("copilot-highlight");
+  setTimeout(() => el.classList.remove("copilot-highlight"), 3000);
 }
 
 /**
@@ -47,7 +45,7 @@ export function useHashScroll(opts?: UseHashScrollOptions) {
       if (hash) scrollToHash(hash, offset);
     }
 
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
   }, [offset]);
 }

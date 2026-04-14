@@ -15,10 +15,7 @@ export function NavigationCard({ action }: NavigationCardProps) {
   const { executeAction } = useCopilotNavigator();
   const { getToken } = useAuth();
 
-  const label =
-    action.page_label ??
-    action.route?.split("/").pop() ??
-    "Destino";
+  const label = action.page_label ?? action.route?.split("/").pop() ?? "Destino";
 
   const sublabel = action.section_id ? `> ${action.section_id}` : undefined;
 
@@ -26,11 +23,15 @@ export function NavigationCard({ action }: NavigationCardProps) {
     executeAction(action);
     getToken().then((token) => {
       if (token) {
-        reportCopilotEvent("navigation_clicked", {
-          route: action.route || "",
-          page_label: label,
-          section_id: action.section_id || "",
-        }, token);
+        reportCopilotEvent(
+          "navigation_clicked",
+          {
+            route: action.route || "",
+            page_label: label,
+            section_id: action.section_id || "",
+          },
+          token,
+        );
       }
     });
   };
@@ -44,12 +45,8 @@ export function NavigationCard({ action }: NavigationCardProps) {
       <div className="flex items-center gap-2">
         <MapPin className="h-4 w-4 shrink-0 text-purple-500" />
         <div>
-          <span className="font-medium text-slate-700 dark:text-slate-200">
-            {label}
-          </span>
-          {sublabel && (
-            <span className="ml-1 text-xs text-slate-400">{sublabel}</span>
-          )}
+          <span className="font-medium text-slate-700 dark:text-slate-200">{label}</span>
+          {sublabel && <span className="ml-1 text-xs text-slate-400">{sublabel}</span>}
         </div>
       </div>
       <ArrowRight className="h-3.5 w-3.5 text-purple-400" />

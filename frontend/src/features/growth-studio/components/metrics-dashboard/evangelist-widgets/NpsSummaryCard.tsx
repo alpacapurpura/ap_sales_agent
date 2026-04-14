@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import type { NpsSummaryData } from '../../../types/metrics';
+import type { NpsSummaryData } from "../../../types/metrics";
 
 interface Props {
   nps: NpsSummaryData;
@@ -32,12 +32,13 @@ export function NpsSummaryCard({ nps, ugcCount, ugcWritten, ugcAudio }: Props) {
       {/* NPS Score */}
       <div className="flex items-baseline gap-2">
         <span className="text-xl font-semibold tabular-nums">
-          {nps.npsScore?.toFixed(1) ?? '--'}
+          {nps.npsScore?.toFixed(1) ?? "--"}
         </span>
         <span className="text-xs text-muted-foreground">/ 10</span>
         {nps.standardNps != null && (
           <span className="text-xs text-muted-foreground ml-2">
-            (eNPS: {nps.standardNps > 0 ? '+' : ''}{nps.standardNps})
+            (eNPS: {nps.standardNps > 0 ? "+" : ""}
+            {nps.standardNps})
           </span>
         )}
       </div>
@@ -80,7 +81,9 @@ export function NpsSummaryCard({ nps, ugcCount, ugcWritten, ugcAudio }: Props) {
       <div className="text-xs text-muted-foreground">
         <span>Testimonios recopilados: {ugcCount}</span>
         <br />
-        <span>Escritos: {ugcWritten} | Audio: {ugcAudio}</span>
+        <span>
+          Escritos: {ugcWritten} | Audio: {ugcAudio}
+        </span>
       </div>
     </div>
   );

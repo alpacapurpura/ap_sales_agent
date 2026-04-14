@@ -20,14 +20,18 @@ function SectionLabel({ label }: { label: string }) {
   const tip = TOOLTIPS[label];
   return (
     <div className="flex items-center gap-1.5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
       {tip && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Info className="w-3 h-3 text-muted-foreground/60 cursor-help" />
             </TooltipTrigger>
-            <TooltipContent className="max-w-[250px]"><p className="text-xs">{tip}</p></TooltipContent>
+            <TooltipContent className="max-w-[250px]">
+              <p className="text-xs">{tip}</p>
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       )}
@@ -102,14 +106,18 @@ export function MarketPreview({ positioning, onEdit }: MarketPreviewProps) {
             )}
             {env?.philosophical_enemy && (
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Enemigo Filosofico</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                  Enemigo Filosofico
+                </p>
                 <p className="text-sm text-foreground">{env.philosophical_enemy}</p>
               </div>
             )}
 
             {env?.direct_competitors && env.direct_competitors.length > 0 && (
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Competidores Directos</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Competidores Directos
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {env.direct_competitors.map((c) => (
                     <Badge key={c.id} variant="secondary" className="text-xs">
@@ -125,7 +133,9 @@ export function MarketPreview({ positioning, onEdit }: MarketPreviewProps) {
 
             {env?.indirect_competitors && env.indirect_competitors.length > 0 && (
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Competidores Indirectos</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Competidores Indirectos
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {env.indirect_competitors.map((c) => (
                     <Badge key={c.id} variant="outline" className="text-xs">

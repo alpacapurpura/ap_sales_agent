@@ -13,15 +13,15 @@ export function formatMoney(
     locale?: string;
   },
 ): string {
-  const locale = options?.locale ?? 'en-US';
+  const locale = options?.locale ?? "en-US";
 
   const formatOptions: Intl.NumberFormatOptions = {
-    style: 'currency',
+    style: "currency",
     currency,
   };
 
   if (options?.compact) {
-    formatOptions.notation = 'compact';
+    formatOptions.notation = "compact";
     formatOptions.maximumFractionDigits = 1;
   } else if (options?.fractionDigits !== undefined) {
     formatOptions.minimumFractionDigits = options.fractionDigits;
@@ -42,12 +42,12 @@ export function formatDualCurrency(
     ...options,
   });
 
-  if (currency === 'USD') return main;
+  if (currency === "USD") return main;
 
   if (usdAmount != null) {
-    const usdFormatted = formatMoney(usdAmount, 'USD', {
+    const usdFormatted = formatMoney(usdAmount, "USD", {
       fractionDigits: 0,
-      locale: 'en-US',
+      locale: "en-US",
       ...options,
     });
     return `${main} (~${usdFormatted} USD)`;
@@ -95,12 +95,12 @@ export function formatAggregatedMoney(
 ): string {
   const main = formatMoney(tenantAmount, tenantCurrency, { fractionDigits: 0 });
 
-  if (tenantCurrency === 'USD') return main;
+  if (tenantCurrency === "USD") return main;
 
   if (usdAmount != null) {
-    const usdFormatted = formatMoney(usdAmount, 'USD', {
+    const usdFormatted = formatMoney(usdAmount, "USD", {
       fractionDigits: 0,
-      locale: 'en-US',
+      locale: "en-US",
     });
     return `${main} (~ ${usdFormatted} USD)`;
   }

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 
 interface ConnectionBadgeProps {
   connected: boolean;
@@ -24,14 +24,20 @@ export function ConnectionBadge({ connected, onConfigure, comingSoon }: Connecti
 
   if (comingSoon) {
     return (
-      <Badge variant="outline" className="border-muted-foreground/20 text-muted-foreground/50 cursor-default">
+      <Badge
+        variant="outline"
+        className="border-muted-foreground/20 text-muted-foreground/50 cursor-default"
+      >
         Próximamente..
       </Badge>
     );
   }
 
   const badge = (
-    <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground hover:border-primary hover:text-primary cursor-pointer transition-colors">
+    <Badge
+      variant="outline"
+      className="border-muted-foreground/30 text-muted-foreground hover:border-primary hover:text-primary cursor-pointer transition-colors"
+    >
       Configurar
     </Badge>
   );

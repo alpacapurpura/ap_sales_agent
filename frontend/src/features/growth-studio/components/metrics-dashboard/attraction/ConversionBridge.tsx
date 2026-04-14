@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { memo } from 'react';
-import { ArrowRight, TrendingUp, TrendingDown } from 'lucide-react';
+import { memo } from "react";
+import { ArrowRight, TrendingUp, TrendingDown } from "lucide-react";
 
 interface ConversionBridgeProps {
   impressions: number;
@@ -15,7 +15,7 @@ interface ConversionBridgeProps {
 function formatNum(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return n.toLocaleString('es-ES');
+  return n.toLocaleString("es-ES");
 }
 
 export const ConversionBridge = memo(function ConversionBridge({
@@ -43,7 +43,7 @@ export const ConversionBridge = memo(function ConversionBridge({
         <div className="flex-1">
           <p className="text-sm font-semibold mb-1">{formatNum(impressions)} impresiones</p>
           <div className="w-full bg-muted rounded-full h-2.5">
-            <div className="bg-blue-500 h-full rounded-full" style={{ width: '100%' }} />
+            <div className="bg-blue-500 h-full rounded-full" style={{ width: "100%" }} />
           </div>
         </div>
 
@@ -54,7 +54,7 @@ export const ConversionBridge = memo(function ConversionBridge({
         <div className="flex-1">
           <p className="text-sm font-semibold mb-1">{formatNum(visitors)} visitas</p>
           <div className="w-full bg-muted rounded-full h-2.5">
-            <div className="bg-blue-400 h-full rounded-full" style={{ width: '100%' }} />
+            <div className="bg-blue-400 h-full rounded-full" style={{ width: "100%" }} />
           </div>
         </div>
 
@@ -65,7 +65,7 @@ export const ConversionBridge = memo(function ConversionBridge({
         <div className="flex-[0.4]">
           <p className="text-sm font-semibold mb-1">{formatNum(leads)} leads</p>
           <div className="w-full bg-muted rounded-full h-2.5">
-            <div className="bg-emerald-500 h-full rounded-full" style={{ width: '100%' }} />
+            <div className="bg-emerald-500 h-full rounded-full" style={{ width: "100%" }} />
           </div>
         </div>
       </div>
@@ -107,9 +107,16 @@ function RatePill({ rate, label, delta }: { rate: number; label: string; delta: 
       <span className="text-lg font-bold text-emerald-500">{rate.toFixed(1)}%</span>
       <span className="text-[10px] text-muted-foreground">{label}</span>
       {delta != null && (
-        <span className={`flex items-center gap-0.5 text-[10px] font-medium ${isPositive ? 'text-emerald-500/70' : 'text-red-500/70'}`}>
-          {isPositive ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
-          {delta >= 0 ? '+' : ''}{delta.toFixed(1)}pp
+        <span
+          className={`flex items-center gap-0.5 text-[10px] font-medium ${isPositive ? "text-emerald-500/70" : "text-red-500/70"}`}
+        >
+          {isPositive ? (
+            <TrendingUp className="h-2.5 w-2.5" />
+          ) : (
+            <TrendingDown className="h-2.5 w-2.5" />
+          )}
+          {delta >= 0 ? "+" : ""}
+          {delta.toFixed(1)}pp
         </span>
       )}
       <ArrowRight className="w-3.5 h-3.5 text-muted-foreground mt-0.5" />

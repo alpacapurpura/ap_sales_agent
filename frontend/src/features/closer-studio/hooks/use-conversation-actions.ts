@@ -130,5 +130,12 @@ export function useConversationActions(leadId: string | null) {
     },
   });
 
-  return { stop, resume, send, nudge: nudgeAction, reactivate: reactivateAction, diagnose: diagnoseAction };
+  return {
+    stop,
+    resume,
+    send,
+    nudge: nudgeAction,
+    reactivate: reactivateAction,
+    diagnose: diagnoseAction,
+  };
 }

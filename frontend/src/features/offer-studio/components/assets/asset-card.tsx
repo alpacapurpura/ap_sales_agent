@@ -12,12 +12,7 @@ import {
 } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { AssetResponse } from "../../types/assets";
 
@@ -99,12 +94,7 @@ export interface AssetCardProps {
   onEdit?: (asset: AssetResponse) => void;
 }
 
-export function AssetCard({
-  asset,
-  onPreview,
-  onDownload,
-  onEdit,
-}: AssetCardProps) {
+export function AssetCard({ asset, onPreview, onDownload, onEdit }: AssetCardProps) {
   const gradient = TYPE_GRADIENT[asset.type] ?? TYPE_GRADIENT.flyer;
   const corner = useMemo(() => resolveDurationBadge(asset), [asset]);
   const isExternal = asset.source === "external";
@@ -136,9 +126,7 @@ export function AssetCard({
         <div
           className={cn(
             "absolute left-2 top-2 flex items-center gap-1 rounded border bg-background/80 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide backdrop-blur",
-            isExternal
-              ? "border-warning/30 text-warning"
-              : "border-info/30 text-info",
+            isExternal ? "border-warning/30 text-warning" : "border-info/30 text-info",
           )}
         >
           {isExternal ? null : <Sparkles className="h-2.5 w-2.5" aria-hidden />}
@@ -199,9 +187,7 @@ export function AssetCard({
                 </span>
               </TooltipTrigger>
               <TooltipContent>
-                {canEditInPuck
-                  ? "Editar en Puck"
-                  : "Los assets externos no se editan en Puck"}
+                {canEditInPuck ? "Editar en Puck" : "Los assets externos no se editan en Puck"}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -211,8 +197,7 @@ export function AssetCard({
       <div>
         <p className="truncate text-xs font-medium">{asset.name}</p>
         <p className="text-[10px] text-muted-foreground">
-          {formatRelativeDate(asset.created_at)} ·{" "}
-          {isExternal ? "Externo" : "IA"}
+          {formatRelativeDate(asset.created_at)} · {isExternal ? "Externo" : "IA"}
         </p>
       </div>
     </div>

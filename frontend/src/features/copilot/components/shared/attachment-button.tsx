@@ -5,17 +5,16 @@ import { Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-interface AttachmentButtonProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> {
+interface AttachmentButtonProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "onClick"
+> {
   onFilesSelected: (files: File[]) => void;
   disabled?: boolean;
   accept?: string;
 }
 
-export const AttachmentButton = forwardRef<
-  HTMLButtonElement,
-  AttachmentButtonProps
->(
+export const AttachmentButton = forwardRef<HTMLButtonElement, AttachmentButtonProps>(
   (
     {
       onFilesSelected,
@@ -24,7 +23,7 @@ export const AttachmentButton = forwardRef<
       className,
       ...props
     },
-    ref
+    ref,
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -72,6 +71,6 @@ export const AttachmentButton = forwardRef<
         />
       </>
     );
-  }
+  },
 );
 AttachmentButton.displayName = "AttachmentButton";

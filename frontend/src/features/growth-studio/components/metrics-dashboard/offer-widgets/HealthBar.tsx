@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 interface HealthBarProps {
   activeCount: number;

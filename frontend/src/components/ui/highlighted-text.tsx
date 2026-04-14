@@ -12,19 +12,19 @@ interface HighlightedTextProps {
  * Highlights matches of a query within a text string.
  * Case-insensitive.
  */
-export function HighlightedText({ 
-  text, 
-  query, 
+export function HighlightedText({
+  text,
+  query,
   className,
-  highlightClassName = "bg-yellow-200 text-black rounded-[1px] px-0.5" 
+  highlightClassName = "bg-yellow-200 text-black rounded-[1px] px-0.5",
 }: HighlightedTextProps) {
   if (!query || !text) {
     return <span className={className}>{text}</span>;
   }
 
   // Escape special regex characters in query
-  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'));
+  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escapedQuery})`, "gi"));
 
   return (
     <span className={className}>

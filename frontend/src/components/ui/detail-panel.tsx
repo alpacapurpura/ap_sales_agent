@@ -1,24 +1,18 @@
-'use client';
+"use client";
 
-import {
-  type ReactNode,
-  type HTMLAttributes,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useCopilotOffset } from '@/hooks/use-copilot-offset';
+import { type ReactNode, type HTMLAttributes, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useCopilotOffset } from "@/hooks/use-copilot-offset";
 
 // ── Constants ────────────────────────────────────────────────────────
 const ANIMATION_MS = 300;
 
 const SIZE_CLASSES = {
-  sm: 'sm:w-[400px]',
-  md: 'sm:w-[550px]',
-  lg: 'sm:w-[650px]',
+  sm: "sm:w-[400px]",
+  md: "sm:w-[550px]",
+  lg: "sm:w-[650px]",
 } as const;
 
 // ── Hook: keep component mounted during exit animation ───────────────
@@ -33,12 +27,11 @@ function useDetailPanelTransition(open: boolean) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setMounted(true);
       // Next frame: trigger enter animation
-       
+
       requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
     } else {
-       
       setVisible(false);
-       
+
       const timer = setTimeout(() => setMounted(false), ANIMATION_MS);
       return () => clearTimeout(timer);
     }
@@ -53,10 +46,10 @@ interface DetailPanelProps {
   onClose: () => void;
   children: ReactNode;
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
 }
 
-function DetailPanel({ open, onClose, children, className, size = 'sm' }: DetailPanelProps) {
+function DetailPanel({ open, onClose, children, className, size = "sm" }: DetailPanelProps) {
   const { mounted, visible } = useDetailPanelTransition(open);
   const copilotWidth = useCopilotOffset();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -66,10 +59,10 @@ function DetailPanel({ open, onClose, children, className, size = 'sm' }: Detail
   useEffect(() => {
     if (!mounted) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
   }, [mounted, onClose]);
 
   // Focus management
@@ -91,8 +84,8 @@ function DetailPanel({ open, onClose, children, className, size = 'sm' }: Detail
       {/* Overlay — does NOT cover the copilot */}
       <div
         className={cn(
-          'fixed top-0 bottom-0 left-0 z-[45] bg-black/50 transition-opacity duration-300',
-          visible ? 'opacity-100' : 'opacity-0',
+          "fixed top-0 bottom-0 left-0 z-[45] bg-black/50 transition-opacity duration-300",
+          visible ? "opacity-100" : "opacity-0",
         )}
         style={{ right: `${copilotWidth}px` }}
         onClick={onClose}
@@ -107,8 +100,8 @@ function DetailPanel({ open, onClose, children, className, size = 'sm' }: Detail
         tabIndex={-1}
         className={cn(
           `fixed top-0 bottom-0 z-[45] flex w-full flex-col overflow-y-auto border-l bg-background shadow-lg outline-none ${SIZE_CLASSES[size]}`,
-          'transition-transform duration-300 ease-in-out',
-          visible ? 'translate-x-0' : 'translate-x-full',
+          "transition-transform duration-300 ease-in-out",
+          visible ? "translate-x-0" : "translate-x-full",
           className,
         )}
         style={{ right: `${copilotWidth}px` }}
@@ -122,20 +115,12 @@ function DetailPanel({ open, onClose, children, className, size = 'sm' }: Detail
 
 // ── Sub-components ───────────────────────────────────────────────────
 function DetailPanelHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn('flex flex-col gap-1.5 px-6 pt-6', className)}
-      {...props}
-    />
-  );
+  return <div className={cn("flex flex-col gap-1.5 px-6 pt-6", className)} {...props} />;
 }
 
 function DetailPanelTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h2
-      className={cn('text-lg font-semibold leading-none tracking-tight', className)}
-      {...props}
-    />
+    <h2 className={cn("text-lg font-semibold leading-none tracking-tight", className)} {...props} />
   );
 }
 
@@ -149,7 +134,7 @@ function DetailPanelClose({ onClose, className, ...props }: DetailPanelCloseProp
       type="button"
       onClick={onClose}
       className={cn(
-        'inline-flex h-7 w-7 items-center justify-center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+        "inline-flex h-7 w-7 items-center justify-center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
         className,
       )}
       {...props}
@@ -160,9 +145,4 @@ function DetailPanelClose({ onClose, className, ...props }: DetailPanelCloseProp
   );
 }
 
-export {
-  DetailPanel,
-  DetailPanelHeader,
-  DetailPanelTitle,
-  DetailPanelClose,
-};
+export { DetailPanel, DetailPanelHeader, DetailPanelTitle, DetailPanelClose };

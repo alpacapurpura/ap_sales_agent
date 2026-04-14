@@ -3,7 +3,14 @@
 import { useClerk } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, LogOut } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 
 export default function ForbiddenPage() {
   const { signOut } = useClerk();
@@ -21,22 +28,15 @@ export default function ForbiddenPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center text-slate-600">
-          <p>
-            No tiene los permisos suficientes para acceder a las funciones.
-          </p>
+          <p>No tiene los permisos suficientes para acceder a las funciones.</p>
           <p className="mt-4">
-            Por favor contáctese con el administrador de su organización o, si quiere adquirir una suscripción comuníquese a:
+            Por favor contáctese con el administrador de su organización o, si quiere adquirir una
+            suscripción comuníquese a:
           </p>
-          <p className="mt-2 font-medium text-primary">
-            hola@alpacapurpura.lat
-          </p>
+          <p className="mt-2 font-medium text-primary">hola@alpacapurpura.lat</p>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={() => signOut({ redirectUrl: '/' })}
-          >
+          <Button variant="outline" className="gap-2" onClick={() => signOut({ redirectUrl: "/" })}>
             <LogOut className="h-4 w-4" />
             Intentar con otra cuenta
           </Button>

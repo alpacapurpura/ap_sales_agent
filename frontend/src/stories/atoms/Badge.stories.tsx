@@ -1,14 +1,14 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { Badge } from '@/components/ui/badge';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { Badge } from "@/components/ui/badge";
 
 const meta = {
-  title: 'Atoms/Badge',
+  title: "Atoms/Badge",
   component: Badge,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'secondary', 'destructive', 'outline'],
+      control: "select",
+      options: ["default", "secondary", "destructive", "outline"],
     },
   },
 } satisfies Meta<typeof Badge>;
@@ -16,7 +16,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = { args: { children: 'Badge', variant: 'default' } };
-export const Secondary: Story = { args: { children: 'Secondary', variant: 'secondary' } };
-export const Destructive: Story = { args: { children: 'Destructive', variant: 'destructive' } };
-export const Outline: Story = { args: { children: 'Outline', variant: 'outline' } };
+export const Default: Story = { args: { children: "Badge", variant: "default" } };
+export const Secondary: Story = { args: { children: "Secondary", variant: "secondary" } };
+export const Destructive: Story = { args: { children: "Destructive", variant: "destructive" } };
+export const Outline: Story = { args: { children: "Outline", variant: "outline" } };

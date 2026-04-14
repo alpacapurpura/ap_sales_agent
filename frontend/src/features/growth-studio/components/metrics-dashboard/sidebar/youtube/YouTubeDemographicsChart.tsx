@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { Loader2 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { useYoutubeDemographics, useYoutubeCountries } from '../../../../hooks/useYoutubeAnalytics';
+import { Loader2 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { useYoutubeDemographics, useYoutubeCountries } from "../../../../hooks/useYoutubeAnalytics";
 
 function formatNumber(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return n.toLocaleString('es-ES');
+  return n.toLocaleString("es-ES");
 }
 
 // Country code to flag emoji
 function countryFlag(code: string): string {
-  if (!code || code.length !== 2) return '';
+  if (!code || code.length !== 2) return "";
   const offset = 127397;
-  return String.fromCodePoint(...[...code.toUpperCase()].map(c => c.charCodeAt(0) + offset));
+  return String.fromCodePoint(...[...code.toUpperCase()].map((c) => c.charCodeAt(0) + offset));
 }
 
 interface YouTubeDemographicsChartProps {
@@ -39,29 +39,35 @@ export function YouTubeDemographicsChart({ enabled }: YouTubeDemographicsChartPr
     for (const d of demographics) {
       const age = d.ageGroup;
       if (!ageGroups[age]) ageGroups[age] = { male: 0, female: 0 };
-      if (d.gender === 'male') ageGroups[age].male += d.viewerPercentage;
-      else if (d.gender === 'female') ageGroups[age].female += d.viewerPercentage;
+      if (d.gender === "male") ageGroups[age].male += d.viewerPercentage;
+      else if (d.gender === "female") ageGroups[age].female += d.viewerPercentage;
     }
   }
 
-  const AGE_ORDER = ['age13-17', 'age18-24', 'age25-34', 'age35-44', 'age45-54', 'age55-64', 'age65-'];
+  const AGE_ORDER = [
+    "age13-17",
+    "age18-24",
+    "age25-34",
+    "age35-44",
+    "age45-54",
+    "age55-64",
+    "age65-",
+  ];
   const AGE_LABELS: Record<string, string> = {
-    'age13-17': '13-17',
-    'age18-24': '18-24',
-    'age25-34': '25-34',
-    'age35-44': '35-44',
-    'age45-54': '45-54',
-    'age55-64': '55-64',
-    'age65-': '65+',
+    "age13-17": "13-17",
+    "age18-24": "18-24",
+    "age25-34": "25-34",
+    "age35-44": "35-44",
+    "age45-54": "45-54",
+    "age55-64": "55-64",
+    "age65-": "65+",
   };
 
-  const chartData = AGE_ORDER
-    .filter(age => ageGroups[age])
-    .map(age => ({
-      name: AGE_LABELS[age] || age,
-      Hombres: Math.round((ageGroups[age]?.male || 0) * 10) / 10,
-      Mujeres: Math.round((ageGroups[age]?.female || 0) * 10) / 10,
-    }));
+  const chartData = AGE_ORDER.filter((age) => ageGroups[age]).map((age) => ({
+    name: AGE_LABELS[age] || age,
+    Hombres: Math.round((ageGroups[age]?.male || 0) * 10) / 10,
+    Mujeres: Math.round((ageGroups[age]?.female || 0) * 10) / 10,
+  }));
 
   const topCountries = countries?.slice(0, 5) || [];
   const totalViews = topCountries.reduce((sum, c) => sum + c.views, 0) || 1;
@@ -78,7 +84,10 @@ export function YouTubeDemographicsChart({ enabled }: YouTubeDemographicsChartPr
             <BarChart data={chartData} margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
               <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} unit="%" />
-              <Tooltip formatter={(value: number) => [`${value}%`]} contentStyle={{ fontSize: 12 }} />
+              <Tooltip
+                formatter={(value: number) => [`${value}%`]}
+                contentStyle={{ fontSize: 12 }}
+              />
               <Legend wrapperStyle={{ fontSize: 10 }} />
               <Bar dataKey="Hombres" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} />
               <Bar dataKey="Mujeres" stackId="a" fill="#ec4899" radius={[4, 4, 0, 0]} />

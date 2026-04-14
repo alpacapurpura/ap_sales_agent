@@ -1,10 +1,10 @@
-import { formatTenantDate, formatTenantTime } from '@/lib/format-date';
+import { formatTenantDate, formatTenantTime } from "@/lib/format-date";
 
 /**
  * Return a human-readable relative time string like "hace 3m", "hace 2h", "hace 1d".
  * Falls back to a formatted date for dates older than 7 days, using the tenant timezone.
  */
-export function formatDistanceToNow(dateStr: string, timezone = 'UTC'): string {
+export function formatDistanceToNow(dateStr: string, timezone = "UTC"): string {
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -19,13 +19,13 @@ export function formatDistanceToNow(dateStr: string, timezone = 'UTC'): string {
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return `hace ${diffDays}d`;
 
-  return formatTenantDate(dateStr, timezone, 'd MMM');
+  return formatTenantDate(dateStr, timezone, "d MMM");
 }
 
 /**
  * Format a datetime for message timestamps in the tenant's timezone.
  */
-export function formatMessageTime(dateStr: string | null, timezone = 'UTC'): string {
+export function formatMessageTime(dateStr: string | null, timezone = "UTC"): string {
   if (!dateStr) return "";
   return formatTenantTime(dateStr, timezone);
 }

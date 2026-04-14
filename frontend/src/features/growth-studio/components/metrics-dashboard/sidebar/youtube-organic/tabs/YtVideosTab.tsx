@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from "lucide-react";
 
-import type { ChannelDashboardData } from '../../../../../types/metrics';
-import { YouTubeTopVideosList } from '../../youtube/YouTubeTopVideosList';
-import { YouTubeTrafficSourcesChart } from '../../youtube/YouTubeTrafficSourcesChart';
-import { ChartInfoTooltip } from '../../ig-organic/ChartInfoTooltip';
-import { ChartSection } from '../../shared/ChartSection';
+import type { ChannelDashboardData } from "../../../../../types/metrics";
+import { YouTubeTopVideosList } from "../../youtube/YouTubeTopVideosList";
+import { YouTubeTrafficSourcesChart } from "../../youtube/YouTubeTrafficSourcesChart";
+import { ChartInfoTooltip } from "../../ig-organic/ChartInfoTooltip";
+import { ChartSection } from "../../shared/ChartSection";
 
 interface YtVideosTabProps {
   data: ChannelDashboardData | undefined;

@@ -12,32 +12,42 @@
  * existing Copilot prompts and any bookmarked/shared URLs.
  */
 export const DASHBOARD_SECTIONS = {
-  'ig-organic': {
-    overview: ['kpis', 'engagement-vs-vistas', 'embudo', 'crecimiento'],
-    contenido: ['engagement-diario', 'distribucion-engagement'],
-    audiencia: ['seguidores-netos', 'demografia'],
-    alcance: ['tendencia-vistas', 'taps-perfil'],
+  "ig-organic": {
+    overview: ["kpis", "engagement-vs-vistas", "embudo", "crecimiento"],
+    contenido: ["engagement-diario", "distribucion-engagement"],
+    audiencia: ["seguidores-netos", "demografia"],
+    alcance: ["tendencia-vistas", "taps-perfil"],
   },
-  'meta-ads': {
-    resumen: ['kpis', 'alertas', 'inversion-vs-resultados', 'embudo'],
-    campanas: ['campanas-tabla'],
-    creativos: ['top-creativos', 'comparacion-formato', 'retencion-video'],
-    audiencia: ['alcance-frecuencia', 'demografia'],
-    costos: ['kpis-costos', 'tendencia-costos', 'desglose-costos-campana'],
+  "meta-ads": {
+    resumen: ["kpis", "alertas", "inversion-vs-resultados", "embudo"],
+    campanas: ["campanas-tabla"],
+    creativos: ["top-creativos", "comparacion-formato", "retencion-video"],
+    audiencia: ["alcance-frecuencia", "demografia"],
+    costos: ["kpis-costos", "tendencia-costos", "desglose-costos-campana"],
   },
-  'yt-organic': {
-    overview: ['kpis', 'vistas-vs-minutos', 'embudo', 'crecimiento-suscriptores'],
-    videos: ['top-videos', 'fuentes-trafico'],
-    audiencia: ['demografia'],
-    engagement: ['kpis-ctr', 'tendencia-engagement'],
-    retencion: ['kpis-retencion', 'tendencia-retencion'],
+  "yt-organic": {
+    overview: ["kpis", "vistas-vs-minutos", "embudo", "crecimiento-suscriptores"],
+    videos: ["top-videos", "fuentes-trafico"],
+    audiencia: ["demografia"],
+    engagement: ["kpis-ctr", "tendencia-engagement"],
+    retencion: ["kpis-retencion", "tendencia-retencion"],
   },
-  'email-nurture': {
-    overview: ['kpis', 'volumen-vs-engagement', 'embudo', 'crecimiento-lista'],
-    engagement: ['kpis-engagement', 'engagement-diario', 'distribucion-engagement', 'tendencia-ctor'],
-    entregabilidad: ['salud-entregabilidad', 'kpis-entregabilidad', 'desglose-rebotes', 'tendencia-salud'],
-    lista: ['kpis-lista', 'crecimiento-lista', 'ratio-churn', 'formularios'],
-    automatizacion: ['kpis-automatizacion', 'funnel-automatizacion', 'tendencia-completado'],
+  "email-nurture": {
+    overview: ["kpis", "volumen-vs-engagement", "embudo", "crecimiento-lista"],
+    engagement: [
+      "kpis-engagement",
+      "engagement-diario",
+      "distribucion-engagement",
+      "tendencia-ctor",
+    ],
+    entregabilidad: [
+      "salud-entregabilidad",
+      "kpis-entregabilidad",
+      "desglose-rebotes",
+      "tendencia-salud",
+    ],
+    lista: ["kpis-lista", "crecimiento-lista", "ratio-churn", "formularios"],
+    automatizacion: ["kpis-automatizacion", "funnel-automatizacion", "tendencia-completado"],
   },
 } as const;
 

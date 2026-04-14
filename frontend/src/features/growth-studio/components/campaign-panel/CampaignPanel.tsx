@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@clerk/nextjs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, Megaphone, Target } from 'lucide-react';
-import { fetchCampaignOverview, triggerCampaignSync } from '../../api/campaigns-api';
-import { CampaignCard } from './CampaignCard';
-import { RecommendationsList } from './RecommendationsList';
-import type { CampaignOverview } from '../../types/campaigns';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/nextjs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { RefreshCw, Megaphone, Target } from "lucide-react";
+import { fetchCampaignOverview, triggerCampaignSync } from "../../api/campaigns-api";
+import { CampaignCard } from "./CampaignCard";
+import { RecommendationsList } from "./RecommendationsList";
+import type { CampaignOverview } from "../../types/campaigns";
 
 export function CampaignPanel() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery<CampaignOverview>({
-    queryKey: ['campaigns', 'overview'],
+    queryKey: ["campaigns", "overview"],
     queryFn: async () => {
-      const token = (await getToken()) ?? '';
+      const token = (await getToken()) ?? "";
       return fetchCampaignOverview(token);
     },
     staleTime: 5 * 60 * 1000,
@@ -26,11 +26,11 @@ export function CampaignPanel() {
 
   const syncMutation = useMutation({
     mutationFn: async () => {
-      const token = (await getToken()) ?? '';
+      const token = (await getToken()) ?? "";
       return triggerCampaignSync(token);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
     },
   });
 
@@ -80,7 +80,7 @@ export function CampaignPanel() {
             </div>
             {overview.last_synced && (
               <span className="text-xs text-muted-foreground">
-                Último sync: {new Date(overview.last_synced).toLocaleString('es-MX')}
+                Último sync: {new Date(overview.last_synced).toLocaleString("es-MX")}
               </span>
             )}
           </div>
@@ -90,8 +90,8 @@ export function CampaignPanel() {
             onClick={() => syncMutation.mutate()}
             disabled={syncMutation.isPending}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-            {syncMutation.isPending ? 'Sincronizando...' : 'Sincronizar'}
+            <RefreshCw className={`h-4 w-4 mr-2 ${syncMutation.isPending ? "animate-spin" : ""}`} />
+            {syncMutation.isPending ? "Sincronizando..." : "Sincronizar"}
           </Button>
         </CardContent>
       </Card>

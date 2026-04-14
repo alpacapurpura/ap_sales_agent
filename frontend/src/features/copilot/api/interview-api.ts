@@ -52,7 +52,10 @@ export async function getActiveInterview(token: string): Promise<ActiveInterview
   return res.json() as Promise<ActiveInterviewResponse>;
 }
 
-export async function getInterviewState(token: string, sessionId: string): Promise<InterviewStateResponse> {
+export async function getInterviewState(
+  token: string,
+  sessionId: string,
+): Promise<InterviewStateResponse> {
   const res = await fetchClient(`${API_URL}/api/v1/copilot/interview/${sessionId}/state`, {
     headers: { Authorization: `Bearer ${token}` },
   });

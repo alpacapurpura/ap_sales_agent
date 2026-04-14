@@ -38,9 +38,9 @@ export function BrandStudioTabs({ activeTab, onTabChange, settings }: BrandStudi
           acc[id] = computeSectionHealth(id, settings);
           return acc;
         },
-        {} as Record<BrandSectionId, number>
+        {} as Record<BrandSectionId, number>,
       ),
-    [settings]
+    [settings],
   );
 
   return (

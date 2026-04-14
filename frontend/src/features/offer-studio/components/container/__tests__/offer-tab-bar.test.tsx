@@ -45,12 +45,8 @@ describe("OfferTabBar", () => {
     render(<OfferTabBar {...baseProps} />);
     expect(screen.getByRole("link", { name: /Editor/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Assets/i })).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /Campañas/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /Conocimiento/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Campañas/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Conocimiento/i })).toBeInTheDocument();
   });
 
   it("renders count badges for assets, campaigns and knowledge", () => {
@@ -64,28 +60,18 @@ describe("OfferTabBar", () => {
   it("marks Editor as active on the base route", () => {
     mockUsePathname.mockReturnValue("/acme/offer-studio/offer/offer-1");
     render(<OfferTabBar {...baseProps} />);
-    expect(
-      screen.getByRole("link", { name: /Editor/i }),
-    ).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Editor/i })).toHaveAttribute("aria-current", "page");
   });
 
   it("marks Assets as active on the assets sub-route", () => {
-    mockUsePathname.mockReturnValue(
-      "/acme/offer-studio/offer/offer-1/assets",
-    );
+    mockUsePathname.mockReturnValue("/acme/offer-studio/offer/offer-1/assets");
     render(<OfferTabBar {...baseProps} />);
-    expect(
-      screen.getByRole("link", { name: /Assets/i }),
-    ).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Assets/i })).toHaveAttribute("aria-current", "page");
   });
 
   it("marks Campañas as active on the campaigns sub-route", () => {
-    mockUsePathname.mockReturnValue(
-      "/acme/offer-studio/offer/offer-1/campaigns",
-    );
+    mockUsePathname.mockReturnValue("/acme/offer-studio/offer/offer-1/campaigns");
     render(<OfferTabBar {...baseProps} />);
-    expect(
-      screen.getByRole("link", { name: /Campañas/i }),
-    ).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Campañas/i })).toHaveAttribute("aria-current", "page");
   });
 });

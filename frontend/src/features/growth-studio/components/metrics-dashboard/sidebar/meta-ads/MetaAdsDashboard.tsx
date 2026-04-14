@@ -1,39 +1,36 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useMemo } from 'react';
-import { createPortal } from 'react-dom';
-import { ArrowLeft, BarChart3, RefreshCw } from 'lucide-react';
-import { useRouter, useSearchParams, useParams } from 'next/navigation';
+import { useState, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
+import { ArrowLeft, BarChart3, RefreshCw } from "lucide-react";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
-import { useHashScroll } from '../../../../hooks/useHashScroll';
-import { useConnectionHealth } from '../../../../hooks/useConnectionHealth';
-import { useSyncChannel } from '../../../../hooks/useSyncChannel';
-import { useCampaignPerformance } from '../../../../api/campaigns-api';
-import {
-  useAssociations,
-  useMetaHealthCheck,
-} from '../../../../api/offer-association-api';
-import type { MetaAdsPeriod, MetaAdsDashboardTab } from '../../../../types/metrics';
-import { ConnectionHealthBanner } from '../../../connection-health-banner';
-import { MetaAdsPeriodSelector } from './MetaAdsPeriodSelector';
-import { MetaAdsOnboardingModal } from './MetaAdsOnboardingModal';
-import { ResumenTab } from './tabs/ResumenTab';
-import { CampaignsTab } from './tabs/CampaignsTab';
-import { CreativosTab } from './tabs/CreativosTab';
-import { AudienciaTab } from './tabs/AudienciaTab';
-import { CostosTab } from './tabs/CostosTab';
-import { PendientesTab } from './tabs/PendientesTab';
-import { useMetaAdsNotices } from './notices/useMetaAdsNotices';
-import { TabBadge } from './notices/TabBadge';
-import { computeMetaAdsOnboardingTrigger } from './hooks/useMetaAdsOnboardingTrigger';
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
+import { useHashScroll } from "../../../../hooks/useHashScroll";
+import { useConnectionHealth } from "../../../../hooks/useConnectionHealth";
+import { useSyncChannel } from "../../../../hooks/useSyncChannel";
+import { useCampaignPerformance } from "../../../../api/campaigns-api";
+import { useAssociations, useMetaHealthCheck } from "../../../../api/offer-association-api";
+import type { MetaAdsPeriod, MetaAdsDashboardTab } from "../../../../types/metrics";
+import { ConnectionHealthBanner } from "../../../connection-health-banner";
+import { MetaAdsPeriodSelector } from "./MetaAdsPeriodSelector";
+import { MetaAdsOnboardingModal } from "./MetaAdsOnboardingModal";
+import { ResumenTab } from "./tabs/ResumenTab";
+import { CampaignsTab } from "./tabs/CampaignsTab";
+import { CreativosTab } from "./tabs/CreativosTab";
+import { AudienciaTab } from "./tabs/AudienciaTab";
+import { CostosTab } from "./tabs/CostosTab";
+import { PendientesTab } from "./tabs/PendientesTab";
+import { useMetaAdsNotices } from "./notices/useMetaAdsNotices";
+import { TabBadge } from "./notices/TabBadge";
+import { computeMetaAdsOnboardingTrigger } from "./hooks/useMetaAdsOnboardingTrigger";
 
-const ONBOARDING_DISMISSED_KEY = 'meta-ads-onboarding-dismissed';
-import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
-import { formatTenantDateTime } from '@/lib/format-date';
+const ONBOARDING_DISMISSED_KEY = "meta-ads-onboarding-dismissed";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatTenantDateTime } from "@/lib/format-date";
 
 interface MetaAdsDashboardProps {
   onClose?: () => void;
@@ -41,7 +38,14 @@ interface MetaAdsDashboardProps {
   isRouteBased?: boolean;
 }
 
-const VALID_TABS: MetaAdsDashboardTab[] = ['resumen', 'campanas', 'pendientes', 'creativos', 'audiencia', 'costos'];
+const VALID_TABS: MetaAdsDashboardTab[] = [
+  "resumen",
+  "campanas",
+  "pendientes",
+  "creativos",
+  "audiencia",
+  "costos",
+];
 
 export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsDashboardProps) {
   const { timezone } = useTenantLocale();
@@ -50,20 +54,23 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   const searchParams = useSearchParams();
   const tenantId = params?.tenantId as string;
 
-  const tabFromUrl = searchParams?.get('tab') ?? initialTab ?? 'resumen';
-  const periodFromUrl = (searchParams?.get('period') ?? '30d') as MetaAdsPeriod;
+  const tabFromUrl = searchParams?.get("tab") ?? initialTab ?? "resumen";
+  const periodFromUrl = (searchParams?.get("period") ?? "30d") as MetaAdsPeriod;
   const [period, setPeriod] = useState<MetaAdsPeriod>(periodFromUrl);
   const [activeTab, setActiveTab] = useState<MetaAdsDashboardTab>(
     VALID_TABS.includes(tabFromUrl as MetaAdsDashboardTab)
       ? (tabFromUrl as MetaAdsDashboardTab)
-      : 'resumen',
+      : "resumen",
   );
-  const { data: dashboardData, isLoading: isDashboardLoading } = useChannelDashboard('meta-ads', period);
+  const { data: dashboardData, isLoading: isDashboardLoading } = useChannelDashboard(
+    "meta-ads",
+    period,
+  );
   const { data: campaignData, isLoading: isCampaignLoading } = useCampaignPerformance(period);
-  const { data: health } = useConnectionHealth('meta-ads');
+  const { data: health } = useConnectionHealth("meta-ads");
   const { data: associations } = useAssociations();
   const { data: metaHealthCheck } = useMetaHealthCheck();
-  const { sync, isSyncing, cooldownMinutes } = useSyncChannel('meta-ads');
+  const { sync, isSyncing, cooldownMinutes } = useSyncChannel("meta-ads");
   useHashScroll();
 
   // Pending campaign count for the tab badge (cheap — no useMemo needed)
@@ -71,7 +78,7 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   if (campaignData?.campaigns && associations) {
     const assocIds = new Set<string>();
     for (const a of associations) {
-      if (a.targetType === 'campaign') assocIds.add(a.targetExternalId);
+      if (a.targetType === "campaign") assocIds.add(a.targetExternalId);
     }
     for (const c of campaignData.campaigns) {
       if (!assocIds.has(c.externalId)) unassignedCount++;
@@ -92,9 +99,9 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   // the modal does not flicker while `campaignData`/`associations` resolve at
   // different times. See `hooks/useMetaAdsOnboardingTrigger.ts`.
   const [hasUserDismissedOnboarding, setHasUserDismissedOnboarding] = useState(() => {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === "undefined") return false;
     try {
-      return localStorage.getItem(ONBOARDING_DISMISSED_KEY) === '1';
+      return localStorage.getItem(ONBOARDING_DISMISSED_KEY) === "1";
     } catch {
       return false;
     }
@@ -113,7 +120,7 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   const handleOnboardingOpenChange = useCallback((open: boolean) => {
     if (!open) {
       try {
-        localStorage.setItem(ONBOARDING_DISMISSED_KEY, '1');
+        localStorage.setItem(ONBOARDING_DISMISSED_KEY, "1");
       } catch {
         /* noop */
       }
@@ -122,54 +129,52 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   }, []);
 
   const handleOpenAssignCampaigns = useCallback(() => {
-    setActiveTab('campanas');
+    setActiveTab("campanas");
     const url = new URL(window.location.href);
-    url.searchParams.set('tab', 'campanas');
-    url.searchParams.set('assign', 'true');
-    window.history.replaceState(null, '', url.toString());
+    url.searchParams.set("tab", "campanas");
+    url.searchParams.set("assign", "true");
+    window.history.replaceState(null, "", url.toString());
   }, []);
 
   const handlePeriodChange = useCallback((p: MetaAdsPeriod) => {
     setPeriod(p);
     const url = new URL(window.location.href);
-    if (p === '30d') { url.searchParams.delete('period'); } else { url.searchParams.set('period', p); }
-    window.history.replaceState(null, '', url.toString());
+    if (p === "30d") {
+      url.searchParams.delete("period");
+    } else {
+      url.searchParams.set("period", p);
+    }
+    window.history.replaceState(null, "", url.toString());
   }, []);
 
-  const handleTabChange = useCallback(
-    (value: string) => {
-      const tab = value as MetaAdsDashboardTab;
-      setActiveTab(tab);
-      const url = new URL(window.location.href);
-      if (tab === 'resumen') {
-        url.searchParams.delete('tab');
-      } else {
-        url.searchParams.set('tab', tab);
-      }
-      // Regular tab clicks should not force the notices panel open.
-      url.searchParams.delete('notices');
-      window.history.replaceState(null, '', url.toString());
-    },
-    [],
-  );
+  const handleTabChange = useCallback((value: string) => {
+    const tab = value as MetaAdsDashboardTab;
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    if (tab === "resumen") {
+      url.searchParams.delete("tab");
+    } else {
+      url.searchParams.set("tab", tab);
+    }
+    // Regular tab clicks should not force the notices panel open.
+    url.searchParams.delete("notices");
+    window.history.replaceState(null, "", url.toString());
+  }, []);
 
   // Deep-link navigation from the Resumen overview: change tab + auto-open
   // that tab's ImprovementNotesPanel by writing `?notices=open` into the URL.
   // The target tab reads it via useSearchParams and resets it after mount.
-  const handleNavigateFromOverview = useCallback(
-    (tab: MetaAdsDashboardTab) => {
-      setActiveTab(tab);
-      const url = new URL(window.location.href);
-      if (tab === 'resumen') {
-        url.searchParams.delete('tab');
-      } else {
-        url.searchParams.set('tab', tab);
-      }
-      url.searchParams.set('notices', 'open');
-      window.history.replaceState(null, '', url.toString());
-    },
-    [],
-  );
+  const handleNavigateFromOverview = useCallback((tab: MetaAdsDashboardTab) => {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    if (tab === "resumen") {
+      url.searchParams.delete("tab");
+    } else {
+      url.searchParams.set("tab", tab);
+    }
+    url.searchParams.set("notices", "open");
+    window.history.replaceState(null, "", url.toString());
+  }, []);
 
   const handleBack = useCallback(() => {
     if (onClose) {
@@ -180,7 +185,13 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   }, [onClose, router, tenantId]);
 
   const content = (
-    <div className={isRouteBased ? 'flex flex-col min-h-screen bg-background' : 'fixed inset-0 z-50 flex flex-col bg-background'}>
+    <div
+      className={
+        isRouteBased
+          ? "flex flex-col min-h-screen bg-background"
+          : "fixed inset-0 z-50 flex flex-col bg-background"
+      }
+    >
       {/* Header */}
       <div className="flex items-center justify-between border-b px-6 py-3">
         <div className="flex items-center gap-3">
@@ -208,14 +219,14 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
             disabled={isSyncing || cooldownMinutes > 0}
             className="gap-1.5 text-xs"
           >
-            <RefreshCw className={cn('h-3 w-3', isSyncing && 'animate-spin')} />
-            {isSyncing ? 'Sincronizando…' : 'Sincronizar'}
+            <RefreshCw className={cn("h-3 w-3", isSyncing && "animate-spin")} />
+            {isSyncing ? "Sincronizando…" : "Sincronizar"}
           </Button>
         </div>
       </div>
 
       {/* Connection Health Banner */}
-      {health && health.status !== 'healthy' && (
+      {health && health.status !== "healthy" && (
         <div className="px-6 pt-4">
           <ConnectionHealthBanner
             status={health.status}
@@ -290,18 +301,20 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
             <CampaignsTab
               data={campaignData}
               isLoading={isCampaignLoading}
-              currency={campaignData?.currency ?? dashboardData?.kpis.find(k => k.currency)?.currency}
+              currency={
+                campaignData?.currency ?? dashboardData?.kpis.find((k) => k.currency)?.currency
+              }
               period={period}
               notices={noticesSummary.byTab.campanas}
               noticesSeverity={noticesSummary.severityPerTab.campanas}
-              onNavigateToPendientes={() => handleTabChange('pendientes')}
+              onNavigateToPendientes={() => handleTabChange("pendientes")}
             />
           </TabsContent>
           <TabsContent value="pendientes" className="m-0 flex-1">
             <PendientesTab
               period={period}
               onPeriodChange={handlePeriodChange}
-              onBackToCampaigns={() => handleTabChange('campanas')}
+              onBackToCampaigns={() => handleTabChange("campanas")}
             />
           </TabsContent>
           <TabsContent value="creativos" className="m-0 p-6">
@@ -331,6 +344,6 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   );
 
   if (isRouteBased) return content;
-  if (typeof document === 'undefined') return null;
+  if (typeof document === "undefined") return null;
   return createPortal(content, document.body);
 }

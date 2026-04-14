@@ -22,7 +22,9 @@ export function SectionHeader({ title, subtitle, tooltip }: SectionHeaderProps) 
               <TooltipTrigger asChild>
                 <Info className="w-4 h-4 text-muted-foreground cursor-help" />
               </TooltipTrigger>
-              <TooltipContent><p>{tooltip}</p></TooltipContent>
+              <TooltipContent>
+                <p>{tooltip}</p>
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}

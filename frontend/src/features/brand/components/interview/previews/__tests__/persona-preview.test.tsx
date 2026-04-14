@@ -18,29 +18,17 @@ describe("PersonaPreviewSummary", () => {
   });
 
   it("renders avatar with first letter of name", () => {
-    render(
-      <PersonaPreviewSummary
-        data={{ name: "Carlos Mendez" }}
-        completenessScore={30}
-      />,
-    );
+    render(<PersonaPreviewSummary data={{ name: "Carlos Mendez" }} completenessScore={30} />);
     expect(screen.getByText("C")).toBeInTheDocument();
   });
 
   it("renders completeness score as percentage", () => {
-    render(
-      <PersonaPreviewSummary
-        data={{ name: "Test" }}
-        completenessScore={75}
-      />,
-    );
+    render(<PersonaPreviewSummary data={{ name: "Test" }} completenessScore={75} />);
     expect(screen.getByText("75%")).toBeInTheDocument();
   });
 
   it("renders placeholder when name is missing", () => {
-    render(
-      <PersonaPreviewSummary data={{}} completenessScore={0} />,
-    );
+    render(<PersonaPreviewSummary data={{}} completenessScore={0} />);
     expect(screen.getByText("Buyer Persona")).toBeInTheDocument();
     expect(screen.getByText("?")).toBeInTheDocument();
   });
@@ -70,9 +58,7 @@ describe("PersonaPreviewSections", () => {
       { description: "Automatizar su marketing" },
       { description: "Crecer en redes sociales" },
     ],
-    objections: [
-      { description: "Es muy caro" },
-    ],
+    objections: [{ description: "Es muy caro" }],
     channels: ["Instagram", "TikTok", "Email"],
     journey: {
       awareness: "Busca en Google",
@@ -107,64 +93,34 @@ describe("PersonaPreviewSections", () => {
       />,
     );
 
-    expect(
-      screen.getByText("No tiene tiempo para marketing"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("No sabe como crear contenido"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("No tiene tiempo para marketing")).toBeInTheDocument();
+    expect(screen.getByText("No sabe como crear contenido")).toBeInTheDocument();
   });
 
   it("renders desires with data", () => {
-    render(
-      <PersonaPreviewSections
-        data={fullData}
-        currentBlock="desires"
-        blocksCompleted={[]}
-      />,
-    );
+    render(<PersonaPreviewSections data={fullData} currentBlock="desires" blocksCompleted={[]} />);
 
-    expect(
-      screen.getByText("Automatizar su marketing"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Crecer en redes sociales"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Automatizar su marketing")).toBeInTheDocument();
+    expect(screen.getByText("Crecer en redes sociales")).toBeInTheDocument();
   });
 
   it("renders objections with data", () => {
     render(
-      <PersonaPreviewSections
-        data={fullData}
-        currentBlock="objections"
-        blocksCompleted={[]}
-      />,
+      <PersonaPreviewSections data={fullData} currentBlock="objections" blocksCompleted={[]} />,
     );
 
     expect(screen.getByText("Es muy caro")).toBeInTheDocument();
   });
 
   it("shows 'Pendiente...' placeholder for empty sections", () => {
-    render(
-      <PersonaPreviewSections
-        data={{}}
-        currentBlock=""
-        blocksCompleted={[]}
-      />,
-    );
+    render(<PersonaPreviewSections data={{}} currentBlock="" blocksCompleted={[]} />);
 
     const pendingItems = screen.getAllByText("Pendiente...");
     expect(pendingItems.length).toBeGreaterThan(0);
   });
 
   it("renders channels list", () => {
-    render(
-      <PersonaPreviewSections
-        data={fullData}
-        currentBlock="channels"
-        blocksCompleted={[]}
-      />,
-    );
+    render(<PersonaPreviewSections data={fullData} currentBlock="channels" blocksCompleted={[]} />);
 
     expect(screen.getByText("Instagram")).toBeInTheDocument();
     expect(screen.getByText("TikTok")).toBeInTheDocument();

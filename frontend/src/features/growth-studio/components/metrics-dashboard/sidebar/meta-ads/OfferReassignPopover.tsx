@@ -1,31 +1,27 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import {
   useCreateAssociation,
   useDeleteAssociation,
   useOffersForAssignment,
-} from '../../../../api/offer-association-api';
-import { archetypeEmoji } from '../../../../types/offer-association';
-import type { Association } from '../../../../types/offer-association';
+} from "../../../../api/offer-association-api";
+import { archetypeEmoji } from "../../../../types/offer-association";
+import type { Association } from "../../../../types/offer-association";
 
-const OPTION_BRANDING = '__branding__';
+const OPTION_BRANDING = "__branding__";
 
 interface OfferReassignPopoverProps {
   campaign: {
@@ -47,27 +43,27 @@ export function OfferReassignPopover({
   const createMutation = useCreateAssociation();
   const deleteMutation = useDeleteAssociation();
 
-  const isBranding = association.associationType === 'excluded_branding';
+  const isBranding = association.associationType === "excluded_branding";
   const currentLabel = isBranding
-    ? '🎯 Branding'
-    : `${archetypeEmoji(association.offerArchetype)} ${association.offerName ?? 'Offer asociada'}`;
+    ? "🎯 Branding"
+    : `${archetypeEmoji(association.offerArchetype)} ${association.offerName ?? "Offer asociada"}`;
 
   async function handleChange(value: string) {
     setSaving(true);
     try {
       if (value === OPTION_BRANDING) {
         await createMutation.mutateAsync({
-          targetType: 'campaign',
+          targetType: "campaign",
           targetExternalId: campaign.externalId,
           offerId: null,
-          associationType: 'excluded_branding',
+          associationType: "excluded_branding",
         });
       } else {
         await createMutation.mutateAsync({
-          targetType: 'campaign',
+          targetType: "campaign",
           targetExternalId: campaign.externalId,
           offerId: value,
-          associationType: 'manual',
+          associationType: "manual",
         });
       }
       setOpen(false);
@@ -89,16 +85,10 @@ export function OfferReassignPopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
-      <PopoverContent
-        side="bottom"
-        align="start"
-        className="w-[280px] p-4 space-y-3"
-      >
+      <PopoverContent side="bottom" align="start" className="w-[280px] p-4 space-y-3">
         {/* Current offer */}
         <div>
-          <p className="text-xs font-medium text-muted-foreground">
-            Offer actual:
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">Offer actual:</p>
           <p className="text-sm mt-0.5">{currentLabel}</p>
         </div>
 
@@ -106,29 +96,20 @@ export function OfferReassignPopover({
 
         {/* Change dropdown */}
         <div className="space-y-1.5">
-          <p className="text-xs font-medium text-muted-foreground">
-            Cambiar a:
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">Cambiar a:</p>
           <div className="flex items-center gap-2">
-            <Select
-              onValueChange={v => void handleChange(v)}
-              disabled={saving}
-            >
+            <Select onValueChange={(v) => void handleChange(v)} disabled={saving}>
               <SelectTrigger className="h-8 text-xs flex-1">
                 <SelectValue placeholder="Elegir offer..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={OPTION_BRANDING}>
-                  🎯 Marcar como Branding
-                </SelectItem>
+                <SelectItem value={OPTION_BRANDING}>🎯 Marcar como Branding</SelectItem>
                 {(offers ?? [])
-                  .filter(o => o.id !== association.offerId)
-                  .map(o => (
+                  .filter((o) => o.id !== association.offerId)
+                  .map((o) => (
                     <SelectItem key={o.id} value={o.id}>
                       <span className="flex items-center gap-1.5">
-                        <span aria-hidden="true">
-                          {archetypeEmoji(o.archetype)}
-                        </span>
+                        <span aria-hidden="true">{archetypeEmoji(o.archetype)}</span>
                         <span>{o.name}</span>
                         <span className="text-[10px] text-muted-foreground">
                           · {o.expectedMetricLabelEs}
@@ -138,9 +119,7 @@ export function OfferReassignPopover({
                   ))}
               </SelectContent>
             </Select>
-            {saving && (
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
-            )}
+            {saving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />}
           </div>
         </div>
 

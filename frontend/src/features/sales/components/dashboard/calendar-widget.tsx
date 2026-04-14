@@ -8,7 +8,14 @@ import { connectionsApi } from "@/lib/api/connections";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon, Clock, Settings2, Loader2, ChevronRight, MapPin } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Settings2,
+  Loader2,
+  ChevronRight,
+  MapPin,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface CalendarWidgetProps {
@@ -33,9 +40,9 @@ export function CalendarWidget({ onAppointmentClick, onConfigClick }: CalendarWi
       const end = endOfMonth(currentDate);
 
       const data = await connectionsApi.listAppointments(
-        format(start, 'yyyy-MM-dd'),
-        format(end, 'yyyy-MM-dd'),
-        token
+        format(start, "yyyy-MM-dd"),
+        format(end, "yyyy-MM-dd"),
+        token,
       );
       setAppointments(data);
     } catch (error) {
@@ -53,19 +60,17 @@ export function CalendarWidget({ onAppointmentClick, onConfigClick }: CalendarWi
     setMonth(newMonth);
   };
 
-  const selectedDayAppointments = appointments.filter(appt =>
-    date && isSameDay(parseISO(appt.start), date)
+  const selectedDayAppointments = appointments.filter(
+    (appt) => date && isSameDay(parseISO(appt.start), date),
   );
 
   // Mark days with appointments
-  const daysWithAppointments = appointments.map(appt => new Date(appt.start));
+  const daysWithAppointments = appointments.map((appt) => new Date(appt.start));
 
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-base font-semibold">
-          Agenda
-        </CardTitle>
+        <CardTitle className="text-base font-semibold">Agenda</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 p-0 flex flex-col md:flex-row h-full">
         <div className="p-4 border-r md:w-auto flex justify-center">
@@ -78,10 +83,10 @@ export function CalendarWidget({ onAppointmentClick, onConfigClick }: CalendarWi
             locale={es}
             className="rounded-md border shadow-sm"
             modifiers={{
-              booked: daysWithAppointments
+              booked: daysWithAppointments,
             }}
             modifiersStyles={{
-              booked: { fontWeight: 'bold', textDecoration: 'underline', color: 'var(--primary)' }
+              booked: { fontWeight: "bold", textDecoration: "underline", color: "var(--primary)" },
             }}
           />
         </div>
@@ -113,7 +118,10 @@ export function CalendarWidget({ onAppointmentClick, onConfigClick }: CalendarWi
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" />
-                      <span>{format(parseISO(appt.start), "HH:mm")} - {format(parseISO(appt.end), "HH:mm")}</span>
+                      <span>
+                        {format(parseISO(appt.start), "HH:mm")} -{" "}
+                        {format(parseISO(appt.end), "HH:mm")}
+                      </span>
                     </div>
                     {appt.location && (
                       <div className="flex items-center gap-1">

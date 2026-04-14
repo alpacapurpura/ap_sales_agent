@@ -1,27 +1,23 @@
-'use client';
+"use client";
 
-import { memo, useState, type ReactNode } from 'react';
-import { ExternalLink, Loader2, RefreshCw, type LucideIcon } from 'lucide-react';
+import { memo, useState, type ReactNode } from "react";
+import { ExternalLink, Loader2, RefreshCw, type LucideIcon } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
-} from '@/components/ui/detail-panel';
-import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
-import { useSyncChannel } from '../../../../hooks/useSyncChannel';
-import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
-import { formatTenantDateTime } from '@/lib/format-date';
-import type {
-  ChannelDashboardData,
-  ChannelMetric,
-  MetaAdsPeriod,
-} from '../../../../types/metrics';
-import { PeriodSelector } from './PeriodSelector';
-import { HeroKpiGrid } from './HeroKpiGrid';
-import { MetaAdsMiniFunnel } from '../meta-ads/MetaAdsMiniFunnel';
+} from "@/components/ui/detail-panel";
+import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
+import { useSyncChannel } from "../../../../hooks/useSyncChannel";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatTenantDateTime } from "@/lib/format-date";
+import type { ChannelDashboardData, ChannelMetric, MetaAdsPeriod } from "../../../../types/metrics";
+import { PeriodSelector } from "./PeriodSelector";
+import { HeroKpiGrid } from "./HeroKpiGrid";
+import { MetaAdsMiniFunnel } from "../meta-ads/MetaAdsMiniFunnel";
 
 interface FormatOptions {
   /** Number of decimal places for percentage values (default: 2) */
@@ -57,14 +53,14 @@ export const ChannelOverviewPanel = memo(function ChannelOverviewPanel({
   icon: Icon,
   iconColor,
   heroMetrics,
-  gradientPrefix = 'ch',
+  gradientPrefix = "ch",
   dashboardSlug,
   showMetricInfoCard = true,
   formatOptions,
   children,
 }: ChannelOverviewPanelProps) {
   const { timezone } = useTenantLocale();
-  const [period, setPeriod] = useState<MetaAdsPeriod>('30d');
+  const [period, setPeriod] = useState<MetaAdsPeriod>("30d");
   const slug = dashboardSlug ?? channel.slug;
   const { data, isLoading } = useChannelDashboard(slug, period);
   const { sync, isSyncing, cooldownMinutes } = useSyncChannel(slug);
@@ -93,9 +89,13 @@ export const ChannelOverviewPanel = memo(function ChannelOverviewPanel({
             className="h-7 w-7"
             onClick={() => sync()}
             disabled={isSyncing || cooldownMinutes > 0}
-            title={cooldownMinutes > 0 ? `Disponible en ${Math.ceil(cooldownMinutes)} min` : 'Sincronizar'}
+            title={
+              cooldownMinutes > 0
+                ? `Disponible en ${Math.ceil(cooldownMinutes)} min`
+                : "Sincronizar"
+            }
           >
-            <RefreshCw className={cn('h-3.5 w-3.5', isSyncing && 'animate-spin')} />
+            <RefreshCw className={cn("h-3.5 w-3.5", isSyncing && "animate-spin")} />
           </Button>
           {onExpand && (
             <Button
@@ -140,4 +140,4 @@ export const ChannelOverviewPanel = memo(function ChannelOverviewPanel({
   );
 });
 
-ChannelOverviewPanel.displayName = 'ChannelOverviewPanel';
+ChannelOverviewPanel.displayName = "ChannelOverviewPanel";

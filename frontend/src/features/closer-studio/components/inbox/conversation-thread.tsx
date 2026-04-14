@@ -49,9 +49,7 @@ export function ConversationThread({ leadId }: ConversationThreadProps) {
 
   const isHuman = detail.handler_mode === "human";
 
-  const pausedAtFormatted = detail.paused_at
-    ? formatTenantTime(detail.paused_at, timezone)
-    : null;
+  const pausedAtFormatted = detail.paused_at ? formatTenantTime(detail.paused_at, timezone) : null;
 
   return (
     <div className="flex flex-col h-full">

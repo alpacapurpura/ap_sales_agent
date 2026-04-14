@@ -64,12 +64,16 @@ export const CopilotChat = memo(function CopilotChat() {
       if (!allCompleted) {
         getToken().then((token) => {
           if (token) {
-            reportCopilotEvent("procedure_abandoned", {
-              procedure_id: activeProcedure.id,
-              procedure_name: activeProcedure.name,
-              abandoned_at_step: activeProcedure.currentStepIndex,
-              total_steps: activeProcedure.steps.length,
-            }, token);
+            reportCopilotEvent(
+              "procedure_abandoned",
+              {
+                procedure_id: activeProcedure.id,
+                procedure_name: activeProcedure.name,
+                abandoned_at_step: activeProcedure.currentStepIndex,
+                total_steps: activeProcedure.steps.length,
+              },
+              token,
+            );
           }
         });
         clearActiveProcedure();
@@ -139,9 +143,7 @@ export const CopilotChat = memo(function CopilotChat() {
                   ) : (
                     <AssistantMessage
                       message={msg}
-                      isStreaming={
-                        isLoading && virtualItem.index === messages.length - 1
-                      }
+                      isStreaming={isLoading && virtualItem.index === messages.length - 1}
                       sendCardAction={sendCardAction}
                     />
                   )}

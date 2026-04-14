@@ -5,7 +5,7 @@
  * Pure functions — no React dependencies. Fully testable in isolation.
  */
 
-import type { EmailAutomation, AutomationStep } from '../types/mail-types';
+import type { EmailAutomation, AutomationStep } from "../types/mail-types";
 
 /**
  * Clamp a value to [0, 100].
@@ -38,8 +38,7 @@ function normalize(value: number, refMax: number): number {
 export function computeHealthScore(auto: EmailAutomation): number {
   if (auto.emailsSent === 0) return 0;
 
-  const unsubRate =
-    auto.emailsSent > 0 ? (auto.unsubscribes / auto.emailsSent) * 100 : 0;
+  const unsubRate = auto.emailsSent > 0 ? (auto.unsubscribes / auto.emailsSent) * 100 : 0;
 
   const score =
     0.3 * normalize(auto.openRate, 100) +
@@ -69,36 +68,32 @@ export function computeDropoff(previousSent: number, currentSent: number): numbe
  *  - High unsub → content mismatch
  *  - Steep drop vs previous → sequence fatigue
  */
-export function diagnoseStep(
-  step: AutomationStep,
-  previousStep?: AutomationStep,
-): string[] {
+export function diagnoseStep(step: AutomationStep, previousStep?: AutomationStep): string[] {
   const insights: string[] = [];
-  if (step.type !== 'email') return insights;
+  if (step.type !== "email") return insights;
 
   if (step.openRate > 50 && step.clickRate < 2) {
     insights.push(
-      'Subject line efectivo pero CTA débil — prueba un botón más visible o copy más directo',
+      "Subject line efectivo pero CTA débil — prueba un botón más visible o copy más directo",
     );
   }
 
   if (step.openRate < 25 && step.emailsSent > 0) {
     insights.push(
-      'Apertura baja — prueba un subject más específico, personalizado o cambia el horario de envío',
+      "Apertura baja — prueba un subject más específico, personalizado o cambia el horario de envío",
     );
   }
 
-  const unsubRate =
-    step.emailsSent > 0 ? (step.unsubscribes / step.emailsSent) * 100 : 0;
+  const unsubRate = step.emailsSent > 0 ? (step.unsubscribes / step.emailsSent) * 100 : 0;
   if (unsubRate > 5 || step.unsubscribes > 3) {
     insights.push(
-      'Desuscripciones altas — el contenido no cumple la expectativa del suscriptor; revisa frecuencia y relevancia',
+      "Desuscripciones altas — el contenido no cumple la expectativa del suscriptor; revisa frecuencia y relevancia",
     );
   }
 
   if (
     previousStep &&
-    previousStep.type === 'email' &&
+    previousStep.type === "email" &&
     previousStep.openRate > 0 &&
     step.openRate < previousStep.openRate * 0.6
   ) {
@@ -116,7 +111,7 @@ export function diagnoseStep(
  * Uses open × click product as a proxy for engagement quality.
  */
 function scoreStep(step: AutomationStep): number {
-  if (step.type !== 'email') return -1;
+  if (step.type !== "email") return -1;
   return step.openRate * step.clickRate;
 }
 
@@ -125,7 +120,7 @@ function scoreStep(step: AutomationStep): number {
  * Returns null if the sequence has no email steps.
  */
 export function findBestStep(steps: AutomationStep[]): AutomationStep | null {
-  const emailSteps = steps.filter((s) => s.type === 'email');
+  const emailSteps = steps.filter((s) => s.type === "email");
   if (emailSteps.length === 0) return null;
 
   let best = emailSteps[0];
@@ -146,10 +141,8 @@ export function findBestStep(steps: AutomationStep[]): AutomationStep | null {
  * are performing acceptably.
  */
 export function findAttentionStep(steps: AutomationStep[]): AutomationStep | null {
-  const emailSteps = steps.filter((s) => s.type === 'email');
-  const problems = emailSteps.filter(
-    (s) => s.clickRate === 0 || s.openRate < 20,
-  );
+  const emailSteps = steps.filter((s) => s.type === "email");
+  const problems = emailSteps.filter((s) => s.clickRate === 0 || s.openRate < 20);
   if (problems.length === 0) return null;
 
   let worst = problems[0];

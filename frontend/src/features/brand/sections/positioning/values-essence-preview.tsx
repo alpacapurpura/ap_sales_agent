@@ -20,10 +20,7 @@ export function ValuesEssencePreview({ positioning, onEdit }: ValuesEssencePrevi
     values?.archetype;
 
   const hasContent =
-    hasValues ||
-    rtbs.length > 0 ||
-    positioning.discriminator ||
-    positioning.brand_essence;
+    hasValues || rtbs.length > 0 || positioning.discriminator || positioning.brand_essence;
 
   if (!hasContent) {
     return (
@@ -78,7 +75,9 @@ export function ValuesEssencePreview({ positioning, onEdit }: ValuesEssencePrevi
         {/* Brand Essence */}
         {positioning.brand_essence && (
           <div className="text-center py-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Esencia de Marca</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+              Esencia de Marca
+            </p>
             <p className="text-2xl md:text-3xl font-serif font-medium text-foreground tracking-tight">
               {positioning.brand_essence}
             </p>
@@ -88,7 +87,9 @@ export function ValuesEssencePreview({ positioning, onEdit }: ValuesEssencePrevi
         {/* Discriminator */}
         {positioning.discriminator && (
           <div className="border-l-2 border-primary/30 pl-6">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Discriminador</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+              Discriminador
+            </p>
             <p className="text-sm text-foreground font-medium">{positioning.discriminator}</p>
           </div>
         )}
@@ -98,10 +99,14 @@ export function ValuesEssencePreview({ positioning, onEdit }: ValuesEssencePrevi
           <div className="space-y-4">
             {values?.core_values && values.core_values.length > 0 && (
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Valores Centrales</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Valores Centrales
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {values.core_values.map((v, i) => (
-                    <Badge key={i} variant="secondary" className="text-xs">{v}</Badge>
+                    <Badge key={i} variant="secondary" className="text-xs">
+                      {v}
+                    </Badge>
                   ))}
                 </div>
               </div>
@@ -109,10 +114,14 @@ export function ValuesEssencePreview({ positioning, onEdit }: ValuesEssencePrevi
 
             {values?.personality_traits && values.personality_traits.length > 0 && (
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Rasgos de Personalidad</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Rasgos de Personalidad
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {values.personality_traits.map((t, i) => (
-                    <Badge key={i} variant="outline" className="text-xs">{t}</Badge>
+                    <Badge key={i} variant="outline" className="text-xs">
+                      {t}
+                    </Badge>
                   ))}
                 </div>
               </div>
@@ -120,7 +129,9 @@ export function ValuesEssencePreview({ positioning, onEdit }: ValuesEssencePrevi
 
             {values?.archetype && (
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Arquetipo</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Arquetipo
+                </p>
                 <Badge className="text-xs">{values.archetype}</Badge>
               </div>
             )}

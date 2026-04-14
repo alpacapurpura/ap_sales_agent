@@ -42,7 +42,10 @@ export const availabilityApi = {
     return res.json();
   },
 
-  createSchedule: async (schedule: Omit<AvailabilitySchedule, 'id'>, token: string): Promise<AvailabilitySchedule> => {
+  createSchedule: async (
+    schedule: Omit<AvailabilitySchedule, "id">,
+    token: string,
+  ): Promise<AvailabilitySchedule> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/calendar/schedules`, {
       method: "POST",
       headers: {
@@ -55,7 +58,11 @@ export const availabilityApi = {
     return res.json();
   },
 
-  updateSchedule: async (id: string, update: ScheduleUpdate, token: string): Promise<AvailabilitySchedule> => {
+  updateSchedule: async (
+    id: string,
+    update: ScheduleUpdate,
+    token: string,
+  ): Promise<AvailabilitySchedule> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/calendar/schedules/${id}`, {
       method: "PATCH",
       headers: {
@@ -74,5 +81,5 @@ export const availabilityApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error deleting schedule");
-  }
+  },
 };

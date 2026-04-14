@@ -31,35 +31,35 @@ export interface PreviewRegistryEntry {
 const PREVIEW_REGISTRY: Record<string, PreviewRegistryEntry> = {
   brand: {
     summaryComponent: () =>
-      import(
-        "@/features/brand/components/interview/brand-preview-summary"
-      ).then((m) => ({ default: m.BrandPreviewSummary })),
+      import("@/features/brand/components/interview/brand-preview-summary").then((m) => ({
+        default: m.BrandPreviewSummary,
+      })),
     sectionsComponent: () =>
-      import(
-        "@/features/brand/components/interview/brand-preview-sections"
-      ).then((m) => ({ default: m.BrandPreviewSections })),
+      import("@/features/brand/components/interview/brand-preview-sections").then((m) => ({
+        default: m.BrandPreviewSections,
+      })),
     emptyStateMessage: "Responde las preguntas para construir tu perfil de marca.",
   },
   offer: {
     summaryComponent: () =>
-      import(
-        "@/features/offer-studio/components/interview/previews/offer-preview-summary"
-      ).then((m) => ({ default: m.OfferPreviewSummary })),
+      import("@/features/offer-studio/components/interview/previews/offer-preview-summary").then(
+        (m) => ({ default: m.OfferPreviewSummary }),
+      ),
     sectionsComponent: () =>
-      import(
-        "@/features/offer-studio/components/interview/previews/offer-preview-sections"
-      ).then((m) => ({ default: m.OfferPreviewSections })),
+      import("@/features/offer-studio/components/interview/previews/offer-preview-sections").then(
+        (m) => ({ default: m.OfferPreviewSections }),
+      ),
     emptyStateMessage: "Describe tu oferta para ver la vista previa en vivo.",
   },
   buyer_persona: {
     summaryComponent: () =>
-      import(
-        "@/features/brand/components/interview/previews/persona-preview-summary"
-      ).then((m) => ({ default: m.PersonaPreviewSummary })),
+      import("@/features/brand/components/interview/previews/persona-preview-summary").then(
+        (m) => ({ default: m.PersonaPreviewSummary }),
+      ),
     sectionsComponent: () =>
-      import(
-        "@/features/brand/components/interview/previews/persona-preview-sections"
-      ).then((m) => ({ default: m.PersonaPreviewSections })),
+      import("@/features/brand/components/interview/previews/persona-preview-sections").then(
+        (m) => ({ default: m.PersonaPreviewSections }),
+      ),
     emptyStateMessage: "Comienza la entrevista para construir tu buyer persona.",
   },
 };
@@ -80,4 +80,3 @@ export function getPreviewEntry(domain: string): PreviewRegistryEntry | null {
 export function getSupportedDomains(): string[] {
   return Object.keys(PREVIEW_REGISTRY);
 }
-

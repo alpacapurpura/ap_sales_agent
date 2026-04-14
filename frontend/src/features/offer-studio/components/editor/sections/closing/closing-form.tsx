@@ -6,7 +6,14 @@ import { UseFormReturn } from "react-hook-form";
 import { SectionFormWrapper } from "../common/section-form-wrapper";
 import { OfferSchema, OfferFormValues } from "../../../../types/schema";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+  FormDescription,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RichSelect } from "@/components/ui/rich-select";
@@ -22,10 +29,17 @@ const ClosingSchema = OfferSchema.pick({
   checkout_page_url: true,
   calendar_type_id: true,
   guarantee_type: true,
-  guarantee_terms: true
+  guarantee_terms: true,
 });
 
-type ClosingFormValues = Pick<OfferFormValues, "onboarding_action" | "checkout_page_url" | "calendar_type_id" | "guarantee_type" | "guarantee_terms">;
+type ClosingFormValues = Pick<
+  OfferFormValues,
+  | "onboarding_action"
+  | "checkout_page_url"
+  | "calendar_type_id"
+  | "guarantee_type"
+  | "guarantee_terms"
+>;
 
 export interface ClosingFormProps {
   defaultValues: Partial<OfferFormValues>;
@@ -47,164 +61,220 @@ function ClosingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   });
 
   const onboardingOptions = [
-      { value: OnboardingMechanism.INSTANT_ACCESS_EMAIL, label: "Acceso Instantáneo (Email)", description: "El usuario recibe acceso inmediato por email. Ideal para productos digitales." },
-      { value: OnboardingMechanism.BOOK_KICKOFF_CALL, label: "Agendar Cita (Kickoff Call)", description: "Muestra el calendario para agendar. Ideal para High Ticket." },
-      { value: OnboardingMechanism.FILL_INTAKE_FORM, label: "Formulario de Intake", description: "Requiere llenar un formulario antes de comenzar." },
-      { value: OnboardingMechanism.JOIN_COMMUNITY, label: "Invitación a Comunidad", description: "Acceso directo a Discord/Skool/WhatsApp." },
+    {
+      value: OnboardingMechanism.INSTANT_ACCESS_EMAIL,
+      label: "Acceso Instantáneo (Email)",
+      description: "El usuario recibe acceso inmediato por email. Ideal para productos digitales.",
+    },
+    {
+      value: OnboardingMechanism.BOOK_KICKOFF_CALL,
+      label: "Agendar Cita (Kickoff Call)",
+      description: "Muestra el calendario para agendar. Ideal para High Ticket.",
+    },
+    {
+      value: OnboardingMechanism.FILL_INTAKE_FORM,
+      label: "Formulario de Intake",
+      description: "Requiere llenar un formulario antes de comenzar.",
+    },
+    {
+      value: OnboardingMechanism.JOIN_COMMUNITY,
+      label: "Invitación a Comunidad",
+      description: "Acceso directo a Discord/Skool/WhatsApp.",
+    },
   ];
 
   const guaranteeOptions = [
     {
       value: GuaranteeType.UNCONDITIONAL_30_DAY,
       label: "Incondicional (30 Días)",
-      description: "Devolución total sin preguntas dentro de 30 días."
+      description: "Devolución total sin preguntas dentro de 30 días.",
     },
     {
       value: GuaranteeType.CONDITIONAL_ACTION_BASED,
       label: "Condicional (Basada en Acción)",
-      description: "Reembolso solo si demuestran haber hecho el trabajo."
+      description: "Reembolso solo si demuestran haber hecho el trabajo.",
     },
     {
       value: GuaranteeType.DOUBLE_MONEY_BACK,
       label: "Doble Devolución",
-      description: "Si no funciona, devuelves el doble. Máxima confianza."
+      description: "Si no funciona, devuelves el doble. Máxima confianza.",
     },
     {
       value: GuaranteeType.SATISFACTION_OR_FREE_WORK,
       label: "Satisfacción o Trabajo Gratis",
-      description: "Si no estás satisfecho, trabajo adicional sin costo."
+      description: "Si no estás satisfecho, trabajo adicional sin costo.",
     },
     {
       value: GuaranteeType.NONE,
       label: "Sin Reembolsos (Venta Final)",
-      description: "Estricto. Ideal para servicios ya consumidos o eventos."
-    }
+      description: "Estricto. Ideal para servicios ya consumidos o eventos.",
+    },
   ];
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
-        {/* CARD A: ENTRY METHOD */}
-        <Card className="border-emerald-100 dark:border-emerald-900/50 shadow-sm h-full">
-            <CardHeader className="pb-3 border-b bg-emerald-50/50 dark:bg-emerald-950/20">
-                <CardTitle className="text-base flex items-center gap-2">
-                    <Target className="w-4 h-4 text-emerald-600"/> 
-                    Método de Entrada
-                </CardTitle>
-                <CardDescription>¿Cómo compran o agendan?</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-4">
-                <FormField control={form.control} name="onboarding_action" render={({ field }) => (
-                    <FormItem>
-                        <RichSelect 
-                            options={onboardingOptions}
-                            value={field.value || undefined}
-                            onValueChange={field.onChange}
-                            placeholder="Selecciona método..."
+      {/* CARD A: ENTRY METHOD */}
+      <Card className="border-emerald-100 dark:border-emerald-900/50 shadow-sm h-full">
+        <CardHeader className="pb-3 border-b bg-emerald-50/50 dark:bg-emerald-950/20">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Target className="w-4 h-4 text-emerald-600" />
+            Método de Entrada
+          </CardTitle>
+          <CardDescription>¿Cómo compran o agendan?</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-4">
+          <FormField
+            control={form.control}
+            name="onboarding_action"
+            render={({ field }) => (
+              <FormItem>
+                <RichSelect
+                  options={onboardingOptions}
+                  value={field.value || undefined}
+                  onValueChange={field.onChange}
+                  placeholder="Selecciona método..."
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {form.watch("onboarding_action") === OnboardingMechanism.INSTANT_ACCESS_EMAIL && (
+            <div className="pt-2 animate-in fade-in slide-in-from-top-2">
+              <FormField
+                control={form.control}
+                name="checkout_page_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
+                      Link de Pago
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://stripe.com/..."
+                        {...field}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+
+          {form.watch("onboarding_action") === OnboardingMechanism.BOOK_KICKOFF_CALL && (
+            <div className="pt-2 animate-in fade-in slide-in-from-top-2">
+              <FormField
+                control={form.control}
+                name="calendar_type_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
+                      Tipo de Cita
+                    </FormLabel>
+                    <RichSelect
+                      options={appointmentTypes.map((t) => ({
+                        value: t.id,
+                        label: t.title,
+                        description: `${t.duration} min • /${t.slug}`,
+                      }))}
+                      value={field.value || undefined}
+                      onValueChange={field.onChange}
+                      placeholder="Selecciona tipo de cita..."
+                    />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* CARD B: RISK REVERSAL */}
+      <Card className="border-emerald-100 dark:border-emerald-900/50 shadow-sm h-full">
+        <CardHeader className="pb-3 border-b bg-emerald-50/50 dark:bg-emerald-950/20">
+          <CardTitle className="text-base flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            Garantía
+          </CardTitle>
+          <CardDescription>Elimina el riesgo de compra.</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-4">
+          <FormField
+            control={form.control}
+            name="guarantee_type"
+            render={({ field }) => (
+              <FormItem>
+                <RichSelect
+                  options={guaranteeOptions}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  placeholder="Selecciona nivel de riesgo..."
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Conditional Inputs for Guarantee Terms */}
+          {form.watch("guarantee_type") === GuaranteeType.UNCONDITIONAL_30_DAY && (
+            <div className="pt-2 animate-in fade-in slide-in-from-top-2">
+              <FormField
+                control={form.control}
+                name="guarantee_terms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
+                      Días para Reembolso
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          placeholder="30"
+                          {...field}
+                          value={field.value || ""}
+                          className="pl-9"
                         />
-                        <FormMessage />
-                    </FormItem>
-                )} />
-
-                {form.watch("onboarding_action") === OnboardingMechanism.INSTANT_ACCESS_EMAIL && (
-                    <div className="pt-2 animate-in fade-in slide-in-from-top-2">
-                        <FormField control={form.control} name="checkout_page_url" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">Link de Pago</FormLabel>
-                                <FormControl><Input placeholder="https://stripe.com/..." {...field} value={field.value || ""} /></FormControl>
-                            </FormItem>
-                        )} />
-                    </div>
+                        <div className="absolute left-3 top-2.5 text-xs text-muted-foreground font-bold">
+                          #
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormDescription className="text-xs">
+                      El cliente tiene X días para pedir su dinero de vuelta.
+                    </FormDescription>
+                  </FormItem>
                 )}
-                
-                {form.watch("onboarding_action") === OnboardingMechanism.BOOK_KICKOFF_CALL && (
-                    <div className="pt-2 animate-in fade-in slide-in-from-top-2">
-                        <FormField control={form.control} name="calendar_type_id" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">Tipo de Cita</FormLabel>
-                                <RichSelect 
-                                    options={appointmentTypes.map(t => ({
-                                        value: t.id,
-                                        label: t.title,
-                                        description: `${t.duration} min • /${t.slug}`
-                                    }))}
-                                    value={field.value || undefined}
-                                    onValueChange={field.onChange}
-                                    placeholder="Selecciona tipo de cita..."
-                                />
-                            </FormItem>
-                        )} />
-                    </div>
-                )}
-            </CardContent>
-        </Card>
+              />
+            </div>
+          )}
 
-        {/* CARD B: RISK REVERSAL */}
-        <Card className="border-emerald-100 dark:border-emerald-900/50 shadow-sm h-full">
-            <CardHeader className="pb-3 border-b bg-emerald-50/50 dark:bg-emerald-950/20">
-                <CardTitle className="text-base flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600"/> 
-                    Garantía
-                </CardTitle>
-                <CardDescription>Elimina el riesgo de compra.</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-4">
-                    <FormField control={form.control} name="guarantee_type" render={({ field }) => (
-                    <FormItem>
-                        <RichSelect 
-                            options={guaranteeOptions}
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            placeholder="Selecciona nivel de riesgo..."
-                        />
-                        <FormMessage />
-                    </FormItem>
-                )} />
-
-                {/* Conditional Inputs for Guarantee Terms */}
-                {form.watch("guarantee_type") === GuaranteeType.UNCONDITIONAL_30_DAY && (
-                    <div className="pt-2 animate-in fade-in slide-in-from-top-2">
-                        <FormField control={form.control} name="guarantee_terms" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">Días para Reembolso</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                        <Input 
-                                            type="number" 
-                                            placeholder="30" 
-                                            {...field} 
-                                            value={field.value || ""} 
-                                            className="pl-9"
-                                        />
-                                        <div className="absolute left-3 top-2.5 text-xs text-muted-foreground font-bold">#</div>
-                                    </div>
-                                </FormControl>
-                                <FormDescription className="text-xs">
-                                    El cliente tiene X días para pedir su dinero de vuelta.
-                                </FormDescription>
-                            </FormItem>
-                        )} />
-                    </div>
+          {form.watch("guarantee_type") === GuaranteeType.CONDITIONAL_ACTION_BASED && (
+            <div className="pt-2 animate-in fade-in slide-in-from-top-2">
+              <FormField
+                control={form.control}
+                name="guarantee_terms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">
+                      Condiciones Requeridas
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Ej. Haber completado el módulo 3 y asistido a 2 llamadas..."
+                        {...field}
+                        value={field.value || ""}
+                        className="min-h-[80px] text-sm"
+                      />
+                    </FormControl>
+                  </FormItem>
                 )}
-
-                {form.watch("guarantee_type") === GuaranteeType.CONDITIONAL_ACTION_BASED && (
-                    <div className="pt-2 animate-in fade-in slide-in-from-top-2">
-                        <FormField control={form.control} name="guarantee_terms" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">Condiciones Requeridas</FormLabel>
-                                <FormControl>
-                                    <Textarea 
-                                        placeholder="Ej. Haber completado el módulo 3 y asistido a 2 llamadas..." 
-                                        {...field} 
-                                        value={field.value || ""} 
-                                        className="min-h-[80px] text-sm"
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )} />
-                    </div>
-                )}
-            </CardContent>
-        </Card>
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -215,7 +285,7 @@ export function ClosingForm({ defaultValues: propValues, onSave }: ClosingFormPr
     checkout_page_url: propValues?.checkout_page_url || "",
     calendar_type_id: propValues?.calendar_type_id || "",
     guarantee_type: propValues?.guarantee_type || GuaranteeType.NONE,
-    guarantee_terms: propValues?.guarantee_terms || ""
+    guarantee_terms: propValues?.guarantee_terms || "",
   };
 
   const handleSave = async (data: ClosingFormValues) => {
@@ -228,9 +298,7 @@ export function ClosingForm({ defaultValues: propValues, onSave }: ClosingFormPr
       defaultValues={defaultValues}
       onSubmit={handleSave}
     >
-      {(form) => (
-        <ClosingContent form={form as unknown as UseFormReturn<OfferFormValues>} />
-      )}
+      {(form) => <ClosingContent form={form as unknown as UseFormReturn<OfferFormValues>} />}
     </SectionFormWrapper>
   );
 }

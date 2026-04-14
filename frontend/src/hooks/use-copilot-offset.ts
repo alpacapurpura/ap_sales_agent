@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useCopilotStore } from '@/features/copilot/store/copilot-store';
+import { useEffect, useState } from "react";
+import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 
 export const COPILOT_OPEN_WIDTH = 380;
 export const COPILOT_RAIL_WIDTH = 60;
@@ -20,8 +20,8 @@ export function useCopilotOffset() {
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < SM_BREAKPOINT);
     check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
   }, []);
 
   if (isMobile) return 0;

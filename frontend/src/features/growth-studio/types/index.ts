@@ -1,9 +1,9 @@
 export enum LifecycleStage {
-  LEAD = 'lead',
-  ONBOARDING = 'onboarding',
-  ACTIVE = 'active',
-  AT_RISK = 'at_risk',
-  CHURNED = 'churned',
+  LEAD = "lead",
+  ONBOARDING = "onboarding",
+  ACTIVE = "active",
+  AT_RISK = "at_risk",
+  CHURNED = "churned",
 }
 
 export interface RFMData {
@@ -29,9 +29,9 @@ export interface CustomerProfile {
 export interface JourneyEvent {
   id: string;
   profileId: string;
-  eventType: 'email_open' | 'click' | 'purchase' | 'page_view' | 'support_ticket';
+  eventType: "email_open" | "click" | "purchase" | "page_view" | "support_ticket";
   timestamp: string; // ISO date string
   description: string;
-  channel: 'email' | 'web' | 'sms' | 'whatsapp';
+  channel: "email" | "web" | "sms" | "whatsapp";
   metadata?: Record<string, any>;
 }

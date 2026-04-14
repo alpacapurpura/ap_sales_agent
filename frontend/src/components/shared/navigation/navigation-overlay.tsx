@@ -15,7 +15,6 @@ export function NavigationOverlay() {
   // this effect legitimately syncs local UI state with external navigation state.
   useEffect(() => {
     if (isNavigating) {
-       
       const timer = setTimeout(() => setShowOverlay(true), DEBOUNCE_MS);
       return () => clearTimeout(timer);
     }

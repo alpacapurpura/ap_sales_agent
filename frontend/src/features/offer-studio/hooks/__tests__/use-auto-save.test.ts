@@ -66,9 +66,7 @@ describe("useAutoSave", () => {
           resolveSave = resolve;
         }),
     );
-    const { result } = renderHook(() =>
-      useAutoSave<string>({ saveFn, delay: 100 }),
-    );
+    const { result } = renderHook(() => useAutoSave<string>({ saveFn, delay: 100 }));
 
     act(() => {
       result.current.trigger("payload");
@@ -95,9 +93,7 @@ describe("useAutoSave", () => {
   it("transitions to error state and exposes the error", async () => {
     const failure = new Error("boom");
     const saveFn = vi.fn().mockRejectedValue(failure);
-    const { result } = renderHook(() =>
-      useAutoSave<string>({ saveFn, delay: 50 }),
-    );
+    const { result } = renderHook(() => useAutoSave<string>({ saveFn, delay: 50 }));
 
     act(() => {
       result.current.trigger("payload");
@@ -118,9 +114,7 @@ describe("useAutoSave", () => {
       .mockRejectedValueOnce(new Error("first-failure"))
       .mockResolvedValueOnce(undefined);
 
-    const { result } = renderHook(() =>
-      useAutoSave<string>({ saveFn, delay: 10 }),
-    );
+    const { result } = renderHook(() => useAutoSave<string>({ saveFn, delay: 10 }));
 
     act(() => {
       result.current.trigger("payload");
@@ -145,9 +139,7 @@ describe("useAutoSave", () => {
 
   it("cancel clears a pending save without firing saveFn", () => {
     const saveFn = vi.fn().mockResolvedValue(undefined);
-    const { result } = renderHook(() =>
-      useAutoSave<string>({ saveFn, delay: 200 }),
-    );
+    const { result } = renderHook(() => useAutoSave<string>({ saveFn, delay: 200 }));
 
     act(() => {
       result.current.trigger("payload");

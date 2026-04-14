@@ -1,29 +1,23 @@
-import { notFound } from 'next/navigation';
-import type { Metadata } from 'next';
-import { SqueezeServerTpl } from '@/features/offer-studio/components/landing/templates/server/SqueezeServerTpl';
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { SqueezeServerTpl } from "@/features/offer-studio/components/landing/templates/server/SqueezeServerTpl";
 import type {
   LandingPageConfig,
   SqueezeContent,
-} from '@/features/offer-studio/components/landing/types/schema';
-import { LandingPageArchetype } from '@/features/offer-studio/components/landing/types/schema';
-import { config } from '@/lib/config';
+} from "@/features/offer-studio/components/landing/types/schema";
+import { LandingPageArchetype } from "@/features/offer-studio/components/landing/types/schema";
+import { config } from "@/lib/config";
 
 // --- DATA FETCHING ---
 
-async function getLandingPage(
-  slug: string,
-  tenantId: string
-): Promise<LandingPageConfig | null> {
+async function getLandingPage(slug: string, tenantId: string): Promise<LandingPageConfig | null> {
   try {
-    const res = await fetch(
-      `${config.api.baseUrl}/api/v1/public/landing/${slug}`,
-      {
-        headers: {
-          ...(tenantId ? { "X-Tenant-ID": tenantId } : {}),
-        },
-        next: { revalidate: 60 },
-      }
-    );
+    const res = await fetch(`${config.api.baseUrl}/api/v1/public/landing/${slug}`, {
+      headers: {
+        ...(tenantId ? { "X-Tenant-ID": tenantId } : {}),
+      },
+      next: { revalidate: 60 },
+    });
     if (!res.ok) return null;
     return res.json() as Promise<LandingPageConfig>;
   } catch {
@@ -40,11 +34,11 @@ interface PageProps {
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const query = await searchParams;
-  const tenantId = typeof query.tenant === 'string' ? query.tenant : '';
+  const tenantId = typeof query.tenant === "string" ? query.tenant : "";
   const landing = await getLandingPage(slug, tenantId);
 
   if (!landing) {
-    return { title: 'Página no encontrada' };
+    return { title: "Página no encontrada" };
   }
 
   return {
@@ -53,7 +47,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     openGraph: {
       title: landing.seo_title ?? undefined,
       description: landing.seo_description ?? undefined,
-      type: 'website',
+      type: "website",
     },
     robots: {
       index: landing.is_published,
@@ -67,7 +61,7 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const query = await searchParams;
   // Backward-compat: tenant UUID passed as ?tenant=<uuid> query param
-  const tenantId = typeof query.tenant === 'string' ? query.tenant : '';
+  const tenantId = typeof query.tenant === "string" ? query.tenant : "";
 
   const landing = await getLandingPage(slug, tenantId);
 
@@ -77,12 +71,7 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
 
   switch (landing.archetype) {
     case LandingPageArchetype.THE_SQUEEZE:
-      return (
-        <SqueezeServerTpl
-          content={landing.content as SqueezeContent}
-          theme={landing.theme}
-        />
-      );
+      return <SqueezeServerTpl content={landing.content as SqueezeContent} theme={landing.theme} />;
     case LandingPageArchetype.THE_EVENT:
       return <div>Event Template Coming Soon</div>;
     default:

@@ -21,8 +21,8 @@ const labels: Record<LeadTemperature, string> = {
 
 export function TemperatureBadge({ temperature, className }: TemperatureBadgeProps) {
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn("capitalize font-medium border", variants[temperature], className)}
     >
       {labels[temperature]}

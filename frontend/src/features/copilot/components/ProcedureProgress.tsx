@@ -15,9 +15,7 @@ export function ProcedureProgress() {
   return (
     <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
-          {name}
-        </span>
+        <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">{name}</span>
         <button
           onClick={clearActiveProcedure}
           className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
@@ -36,7 +34,7 @@ export function ProcedureProgress() {
                   "mx-0.5 h-0.5 w-3",
                   step.status === "completed" || (idx <= currentStepIndex && allComplete)
                     ? "bg-green-400"
-                    : "bg-slate-200 dark:bg-slate-700"
+                    : "bg-slate-200 dark:bg-slate-700",
                 )}
               />
             )}
@@ -44,12 +42,10 @@ export function ProcedureProgress() {
               <div
                 className={cn(
                   "h-3 w-3 rounded-full border-2 transition-all",
-                  step.status === "completed" &&
-                    "border-green-500 bg-green-500",
-                  step.status === "current" &&
-                    "animate-pulse border-purple-500 bg-purple-500",
+                  step.status === "completed" && "border-green-500 bg-green-500",
+                  step.status === "current" && "animate-pulse border-purple-500 bg-purple-500",
                   step.status === "pending" &&
-                    "border-slate-300 bg-slate-100 dark:border-slate-600 dark:bg-slate-800"
+                    "border-slate-300 bg-slate-100 dark:border-slate-600 dark:bg-slate-800",
                 )}
               />
               {/* Tooltip on hover */}
@@ -68,9 +64,7 @@ export function ProcedureProgress() {
         </p>
       )}
       {allComplete && (
-        <p className="mt-2 text-[11px] text-green-600 dark:text-green-400">
-          Completado
-        </p>
+        <p className="mt-2 text-[11px] text-green-600 dark:text-green-400">Completado</p>
       )}
     </div>
   );

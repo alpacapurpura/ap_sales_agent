@@ -18,9 +18,9 @@ export type Props = {
 };
 
 export type RootProps = {
-    children: React.ReactNode;
-    theme: LandingPageTheme;
-}
+  children: React.ReactNode;
+  theme: LandingPageTheme;
+};
 
 export const config: Config<Props, RootProps> = {
   categories: {
@@ -32,41 +32,46 @@ export const config: Config<Props, RootProps> = {
   },
   root: {
     fields: {
-        theme: {
-            type: "object",
-            objectFields: {
-                primary_color: { type: "text", label: "Color Primario" },
-                secondary_color: { type: "text", label: "Color Secundario" },
-                font_pair: { 
-                    type: "select", 
-                    label: "Tipografía",
-                    options: [
-                        { label: "Sans Serif", value: "SANS_SERIF" },
-                        { label: "Serif", value: "SERIF" },
-                        { label: "Modern", value: "MODERN" }
-                    ]
-                },
-                dark_mode: { type: "radio", label: "Modo Oscuro", options: [{ label: "No", value: false }, { label: "Sí", value: true }] }
-            }
-        }
+      theme: {
+        type: "object",
+        objectFields: {
+          primary_color: { type: "text", label: "Color Primario" },
+          secondary_color: { type: "text", label: "Color Secundario" },
+          font_pair: {
+            type: "select",
+            label: "Tipografía",
+            options: [
+              { label: "Sans Serif", value: "SANS_SERIF" },
+              { label: "Serif", value: "SERIF" },
+              { label: "Modern", value: "MODERN" },
+            ],
+          },
+          dark_mode: {
+            type: "radio",
+            label: "Modo Oscuro",
+            options: [
+              { label: "No", value: false },
+              { label: "Sí", value: true },
+            ],
+          },
+        },
+      },
     },
     render: ({ children, theme }) => {
-        // Default fallback if theme is undefined (e.g. new page)
-        const safeTheme = theme || {
-            primary_color: '#3b82f6',
-            secondary_color: '#eff6ff',
-            font_pair: 'SANS_SERIF',
-            dark_mode: false
-        };
-        
-        return (
-            <LandingThemeProvider theme={safeTheme}>
-                <div className="min-h-screen bg-white font-sans">
-                    {children}
-                </div>
-            </LandingThemeProvider>
-        );
-    }
+      // Default fallback if theme is undefined (e.g. new page)
+      const safeTheme = theme || {
+        primary_color: "#3b82f6",
+        secondary_color: "#eff6ff",
+        font_pair: "SANS_SERIF",
+        dark_mode: false,
+      };
+
+      return (
+        <LandingThemeProvider theme={safeTheme}>
+          <div className="min-h-screen bg-white font-sans">{children}</div>
+        </LandingThemeProvider>
+      );
+    },
   },
   components: {
     HeroSection: {
@@ -76,18 +81,18 @@ export const config: Config<Props, RootProps> = {
         cta_text: { type: "text" },
         scarcity_text: { type: "text" },
         layout: {
-            type: "select",
-            options: [
-                { label: "Centrado (Classic)", value: "centered" },
-                { label: "Dividido (Split)", value: "split" },
-                { label: "Fondo Inmersivo (Background)", value: "background" },
-                { label: "Video Sales Letter (VSL)", value: "vsl" },
-                { label: "Urgencia (Countdown)", value: "urgency" },
-                { label: "Quiz (Micro-compromiso)", value: "quiz" }
-            ]
+          type: "select",
+          options: [
+            { label: "Centrado (Classic)", value: "centered" },
+            { label: "Dividido (Split)", value: "split" },
+            { label: "Fondo Inmersivo (Background)", value: "background" },
+            { label: "Video Sales Letter (VSL)", value: "vsl" },
+            { label: "Urgencia (Countdown)", value: "urgency" },
+            { label: "Quiz (Micro-compromiso)", value: "quiz" },
+          ],
         },
         image_url: { type: "text", label: "URL Imagen/Video (Fondo/Lado)" },
-        video_url: { type: "text", label: "URL Video (Solo VSL)" }
+        video_url: { type: "text", label: "URL Video (Solo VSL)" },
       },
       render: (props) => <HeroSection {...props} />,
     },
@@ -135,13 +140,13 @@ export const config: Config<Props, RootProps> = {
         price_offer: { type: "text" },
         cta_text: { type: "text" },
         bonuses: {
-            type: "array",
-            getItemSummary: (item) => item.title || "Bonus",
-            arrayFields: {
-                title: { type: "text" },
-                description: { type: "textarea" },
-            }
-        }
+          type: "array",
+          getItemSummary: (item) => item.title || "Bonus",
+          arrayFields: {
+            title: { type: "text" },
+            description: { type: "textarea" },
+          },
+        },
       },
       render: (props) => <OfferSection {...props} />,
     },

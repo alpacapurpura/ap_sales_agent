@@ -17,6 +17,6 @@ export function openOAuthPopup({
   return window.open(
     url,
     name,
-    `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
+    `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`,
   );
 }

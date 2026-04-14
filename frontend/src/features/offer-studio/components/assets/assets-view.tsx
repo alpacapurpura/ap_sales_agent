@@ -7,15 +7,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAssets, useUploadAsset } from "../../hooks/use-assets";
-import type {
-  AssetListQuery,
-  AssetResponse,
-  AssetSortKey,
-} from "../../types/assets";
-import type {
-  OfferAssetSource,
-  OfferAssetType,
-} from "../../types/enums";
+import type { AssetListQuery, AssetResponse, AssetSortKey } from "../../types/assets";
+import type { OfferAssetSource, OfferAssetType } from "../../types/enums";
 import { AssetCard } from "./asset-card";
 import { AssetToolbar } from "./asset-toolbar";
 import { AssetGenerationWizardDialog } from "./asset-generation-wizard-dialog";
@@ -77,11 +70,7 @@ export function AssetsView({ offerId }: { offerId: string }) {
   };
 
   return (
-    <div
-      className="space-y-5 p-6"
-      role="region"
-      aria-label="Biblioteca de assets"
-    >
+    <div className="space-y-5 p-6" role="region" aria-label="Biblioteca de assets">
       <AssetToolbar
         search={search}
         onSearchChange={setSearch}
@@ -105,12 +94,7 @@ export function AssetsView({ offerId }: { offerId: string }) {
           <AlertTitle>Error al cargar los assets</AlertTitle>
           <AlertDescription className="flex items-center justify-between gap-2">
             <span>{error?.message ?? "Intentalo nuevamente."}</span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
-            >
+            <Button type="button" variant="outline" size="sm" onClick={() => refetch()}>
               Reintentar
             </Button>
           </AlertDescription>
@@ -118,10 +102,7 @@ export function AssetsView({ offerId }: { offerId: string }) {
       )}
 
       {!isLoading && !isError && data && data.items.length === 0 && (
-        <AssetsEmptyState
-          onUpload={handleUpload}
-          onGenerate={() => setWizardOpen(true)}
-        />
+        <AssetsEmptyState onUpload={handleUpload} onGenerate={() => setWizardOpen(true)} />
       )}
 
       {!isLoading && !isError && data && data.items.length > 0 && (
@@ -142,10 +123,7 @@ export function AssetsView({ offerId }: { offerId: string }) {
         </div>
       )}
 
-      <AssetGenerationWizardDialog
-        open={wizardOpen}
-        onOpenChange={setWizardOpen}
-      />
+      <AssetGenerationWizardDialog open={wizardOpen} onOpenChange={setWizardOpen} />
     </div>
   );
 }
@@ -192,8 +170,8 @@ function AssetsEmptyState({
       <div className="space-y-1">
         <h3 className="font-semibold">Todavía no hay assets para esta oferta</h3>
         <p className="max-w-sm text-xs text-muted-foreground">
-          Generá tu primer flyer, video o carrusel con IA usando la información
-          de tu oferta. También podés subir assets ya creados.
+          Generá tu primer flyer, video o carrusel con IA usando la información de tu oferta.
+          También podés subir assets ya creados.
         </p>
       </div>
       <div className="flex flex-wrap justify-center gap-2">

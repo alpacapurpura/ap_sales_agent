@@ -1,36 +1,33 @@
-export type StrategyStage = 
-  | 'UNIVERSE' 
-  | 'ACQUISITION' 
-  | 'ACTIVATION' 
-  | 'NUTRITION' 
-  | 'CONVERSION' 
-  | 'ADOPTION' 
-  | 'EXPANSION' 
-  | 'EVANGELIZATION';
+export type StrategyStage =
+  | "UNIVERSE"
+  | "ACQUISITION"
+  | "ACTIVATION"
+  | "NUTRITION"
+  | "CONVERSION"
+  | "ADOPTION"
+  | "EXPANSION"
+  | "EVANGELIZATION";
 
-export type ChannelType = 
-  | 'PAID_MEDIA' 
-  | 'ORGANIC_SEARCH' 
-  | 'ORGANIC_SOCIAL' 
-  | 'OWNED_MEDIA' 
-  | 'SALES_TEAM' 
-  | 'PARTNERS';
+export type ChannelType =
+  | "PAID_MEDIA"
+  | "ORGANIC_SEARCH"
+  | "ORGANIC_SOCIAL"
+  | "OWNED_MEDIA"
+  | "SALES_TEAM"
+  | "PARTNERS";
 
-export type ActionStatus = 
-  | 'POTENTIAL'   // Gray, Dotted
-  | 'HEALTHY'     // Solid, Colored
-  | 'BOTTLENECK'; // Red, Pulsing
+export type ActionStatus =
+  | "POTENTIAL" // Gray, Dotted
+  | "HEALTHY" // Solid, Colored
+  | "BOTTLENECK"; // Red, Pulsing
 
-export type FinancialNature = 
-  | 'EXPENSE' 
-  | 'REVENUE' 
-  | 'NEUTRAL';
+export type FinancialNature = "EXPENSE" | "REVENUE" | "NEUTRAL";
 
 export interface NodeMetric {
   value: number;
   label: string;
   unit?: string; // '$', '%', etc.
-  trend?: 'up' | 'down' | 'neutral';
+  trend?: "up" | "down" | "neutral";
 }
 
 export interface MarketingNode {

@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Rocket } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { OfferArchetype } from "@/features/offer-studio/types";
 import type { OfferFormValues } from "@/features/offer-studio/types/schema";
@@ -28,11 +24,7 @@ interface EditionsOptInProps {
  * EXPERIENCIA). PRODUCTO and MEMBRESIA never get one — their domain
  * validator forces has_editions=false regardless.
  */
-export function EditionsOptIn({
-  archetype,
-  currentValue,
-  onSave,
-}: EditionsOptInProps) {
+export function EditionsOptIn({ archetype, currentValue, onSave }: EditionsOptInProps) {
   const copy = getEditionsCopy(archetype);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -59,11 +51,7 @@ export function EditionsOptIn({
             type="button"
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            {open ? (
-              <ChevronUp className="h-3 w-3" />
-            ) : (
-              <ChevronDown className="h-3 w-3" />
-            )}
+            {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             Opciones avanzadas
           </button>
         </CollapsibleTrigger>
@@ -94,11 +82,7 @@ export function EditionsOptIn({
                 onClick={handleToggle}
                 disabled={saving}
               >
-                {saving
-                  ? "Guardando..."
-                  : enabled
-                  ? "Desactivar ediciones"
-                  : "Activar ediciones"}
+                {saving ? "Guardando..." : enabled ? "Desactivar ediciones" : "Activar ediciones"}
               </Button>
             </div>
           </div>

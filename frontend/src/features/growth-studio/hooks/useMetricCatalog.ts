@@ -1,17 +1,17 @@
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@clerk/nextjs';
-import { metricsApi } from '../api/metrics-api';
-import type { MetricCatalogEntry, MetricCatalog } from '../types/metrics';
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@clerk/nextjs";
+import { metricsApi } from "../api/metrics-api";
+import type { MetricCatalogEntry, MetricCatalog } from "../types/metrics";
 
 export function useMetricCatalog() {
   const { getToken } = useAuth();
 
   const { data } = useQuery<MetricCatalog>({
-    queryKey: ['metric-catalog'],
+    queryKey: ["metric-catalog"],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return metricsApi.getMetricCatalog(token);
     },
     staleTime: 1000 * 60 * 60, // 1-hour cache — catalog rarely changes
@@ -33,8 +33,7 @@ export function useMetricCatalog() {
     getLabel: (name: string, fallback?: string): string =>
       catalogByName[name]?.display_name ?? fallback ?? name,
     /** True only for ADDITIVE metrics — safe to sum across channels/groups. */
-    isAdditive: (name: string): boolean =>
-      catalogByName[name]?.aggregation === 'additive',
+    isAdditive: (name: string): boolean => catalogByName[name]?.aggregation === "additive",
     /** Returns full tooltip data for a metric, or undefined if not found. */
     getTooltipData: (name: string) => {
       const e = catalogByName[name];

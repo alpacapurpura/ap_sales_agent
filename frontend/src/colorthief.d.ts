@@ -5,10 +5,7 @@ declare module "colorthief" {
   type RGBColor = [number, number, number];
 
   class ColorThief {
-    getColor(
-      sourceImage: HTMLImageElement | HTMLCanvasElement,
-      quality?: number,
-    ): RGBColor | null;
+    getColor(sourceImage: HTMLImageElement | HTMLCanvasElement, quality?: number): RGBColor | null;
     getPalette(
       sourceImage: HTMLImageElement | HTMLCanvasElement,
       colorCount?: number,

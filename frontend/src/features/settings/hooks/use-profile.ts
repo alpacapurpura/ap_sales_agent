@@ -6,10 +6,10 @@ import { settingsApi, SystemUserProfile } from "@/lib/api/settings";
 
 export function useUserProfile() {
   const { getToken, isLoaded, isSignedIn } = useAuth();
-  
+
   // Read tenant ID to invalidate cache on switch
   // This is safe because useQuery handles the key change
-  const tenantId = typeof window !== 'undefined' ? localStorage.getItem('x-tenant-id') : null;
+  const tenantId = typeof window !== "undefined" ? localStorage.getItem("x-tenant-id") : null;
 
   return useQuery<SystemUserProfile>({
     queryKey: ["user-profile", tenantId], // Include tenantId in key to force refresh on switch

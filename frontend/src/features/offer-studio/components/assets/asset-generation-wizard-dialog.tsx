@@ -34,9 +34,8 @@ export function AssetGenerationWizardDialog({
           </div>
           <DialogTitle>Generar asset con IA</DialogTitle>
           <DialogDescription>
-            Próximamente. El wizard te permitirá elegir el tipo (flyer, video,
-            carrusel), ajustar parámetros y generar el asset con IA usando la
-            información de tu oferta.
+            Próximamente. El wizard te permitirá elegir el tipo (flyer, video, carrusel), ajustar
+            parámetros y generar el asset con IA usando la información de tu oferta.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

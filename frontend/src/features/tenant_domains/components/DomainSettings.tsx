@@ -33,20 +33,13 @@ export function DomainSettings({ tenantSlug }: DomainSettingsProps) {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">Dominios personalizados</h3>
-          <Button
-            size="sm"
-            className="gap-1.5"
-            onClick={() => setWizardOpen(true)}
-          >
+          <Button size="sm" className="gap-1.5" onClick={() => setWizardOpen(true)}>
             <Plus className="h-4 w-4" />
             Añadir dominio
           </Button>
         </div>
 
-        <DomainList
-          domains={domains ?? []}
-          isLoading={isLoading}
-        />
+        <DomainList domains={domains ?? []} isLoading={isLoading} />
       </div>
 
       <CustomDomainWizard open={wizardOpen} onOpenChange={setWizardOpen} />

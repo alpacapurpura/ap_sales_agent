@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { TrendingDown, TrendingUp, UserMinus, UserPlus, Users } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { MetricKpiData } from '../../../../types/metrics';
+import { TrendingDown, TrendingUp, UserMinus, UserPlus, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { MetricKpiData } from "../../../../types/metrics";
 
 interface IgOrganicGrowthIndicatorProps {
   kpis: MetricKpiData[];
 }
 
 function formatSigned(value: number): string {
-  if (value > 0) return `+${value.toLocaleString('en-US')}`;
-  return value.toLocaleString('en-US');
+  if (value > 0) return `+${value.toLocaleString("en-US")}`;
+  return value.toLocaleString("en-US");
 }
 
 export function IgOrganicGrowthIndicator({ kpis }: IgOrganicGrowthIndicatorProps) {
-  const netKpi = kpis.find(k => k.metricName === 'ig_follows_and_unfollows');
-  const gainedKpi = kpis.find(k => k.metricName === 'ig_follows_gained');
-  const lostKpi = kpis.find(k => k.metricName === 'ig_follows_lost');
+  const netKpi = kpis.find((k) => k.metricName === "ig_follows_and_unfollows");
+  const gainedKpi = kpis.find((k) => k.metricName === "ig_follows_gained");
+  const lostKpi = kpis.find((k) => k.metricName === "ig_follows_lost");
 
   // We must have at least gained + lost (the source of truth). The net KPI is
   // derived server-side but we recompute it client-side as a consistency guard.
@@ -48,14 +48,20 @@ export function IgOrganicGrowthIndicator({ kpis }: IgOrganicGrowthIndicatorProps
               </span>
               <span
                 className={cn(
-                  'inline-flex items-center gap-0.5 text-xs font-medium',
-                  isPositive ? 'text-emerald-600' : 'text-red-600',
+                  "inline-flex items-center gap-0.5 text-xs font-medium",
+                  isPositive ? "text-emerald-600" : "text-red-600",
                 )}
               >
-                {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                {isPositive ? (
+                  <TrendingUp className="h-3 w-3" />
+                ) : (
+                  <TrendingDown className="h-3 w-3" />
+                )}
                 {deltaPct != null
                   ? `${Math.abs(deltaPct).toFixed(1)}% vs anterior`
-                  : isPositive ? 'Creciendo' : 'Decreciendo'}
+                  : isPositive
+                    ? "Creciendo"
+                    : "Decreciendo"}
               </span>
             </div>
           </div>
@@ -66,7 +72,7 @@ export function IgOrganicGrowthIndicator({ kpis }: IgOrganicGrowthIndicatorProps
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Ganados</p>
               <p className="text-sm font-semibold tabular-nums text-emerald-600">
-                +{gained.toLocaleString('en-US')}
+                +{gained.toLocaleString("en-US")}
               </p>
             </div>
           </div>
@@ -75,7 +81,7 @@ export function IgOrganicGrowthIndicator({ kpis }: IgOrganicGrowthIndicatorProps
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Perdidos</p>
               <p className="text-sm font-semibold tabular-nums text-red-600">
-                −{lost.toLocaleString('en-US')}
+                −{lost.toLocaleString("en-US")}
               </p>
             </div>
           </div>

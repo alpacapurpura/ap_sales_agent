@@ -1,8 +1,21 @@
-import { fetchClient } from '@/lib/http-client';
-import { config } from '@/lib/config';
-import { ENABLE_MOCKS } from '@/lib/mock-config';
-import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, EvangelizationDetail, ExpansionOfferData, ExpansionGroupData, StageTimeSeries, MetricCatalog } from '../types/metrics';
-import { mapChannel, mapGroup } from './mappers/shared';
+import { fetchClient } from "@/lib/http-client";
+import { config } from "@/lib/config";
+import { ENABLE_MOCKS } from "@/lib/mock-config";
+import type {
+  AttractionDetail,
+  CaptureDetail,
+  NurtureDetail,
+  OpportunityDetail,
+  SalesDetail,
+  AdoptionDetail,
+  ExpansionDetailData,
+  EvangelizationDetail,
+  ExpansionOfferData,
+  ExpansionGroupData,
+  StageTimeSeries,
+  MetricCatalog,
+} from "../types/metrics";
+import { mapChannel, mapGroup } from "./mappers/shared";
 
 const API_URL = config.api.baseUrl;
 
@@ -68,9 +81,9 @@ function mapOpportunityResponse(raw: any): OpportunityDetail {
       costPerSql: raw.header_kpis?.cost_per_sql ?? null,
     },
     miniFunnel: {
-      sourceLabel: raw.mini_funnel?.source_label ?? 'MQLs',
+      sourceLabel: raw.mini_funnel?.source_label ?? "MQLs",
       sourceValue: raw.mini_funnel?.source_value ?? 0,
-      targetLabel: raw.mini_funnel?.target_label ?? 'SQLs',
+      targetLabel: raw.mini_funnel?.target_label ?? "SQLs",
       targetValue: raw.mini_funnel?.target_value ?? 0,
       conversionRate: raw.mini_funnel?.conversion_rate ?? 0,
     },
@@ -85,8 +98,10 @@ function mapOpportunityResponse(raw: any): OpportunityDetail {
       threshold: b.threshold,
       tip: b.tip,
     })),
-    available: raw.available ? { channels: (raw.available.channels ?? []).map(mapChannel) } : undefined,
-    period: raw.period ?? 'last_30_days',
+    available: raw.available
+      ? { channels: (raw.available.channels ?? []).map(mapChannel) }
+      : undefined,
+    period: raw.period ?? "last_30_days",
     lastUpdated: raw.last_updated,
   };
 }
@@ -130,7 +145,7 @@ function mapSalesResponse(raw: any): SalesDetail {
     headerKpis: {
       totalRevenue: raw.header_kpis?.total_revenue ?? 0,
       totalRevenueUsd: raw.header_kpis?.total_revenue_usd ?? null,
-      currency: raw.header_kpis?.currency ?? 'MXN',
+      currency: raw.header_kpis?.currency ?? "MXN",
       newCustomers: raw.header_kpis?.new_customers ?? 0,
       cac: raw.header_kpis?.cac ?? null,
       cacIncomplete: raw.header_kpis?.cac_incomplete ?? false,
@@ -145,12 +160,12 @@ function mapSalesResponse(raw: any): SalesDetail {
       shopifyRevenue: raw.header_kpis?.shopify_revenue ?? 0,
       shopifyOrderCount: raw.header_kpis?.shopify_order_count ?? 0,
       shopifyAvgOrderValue: raw.header_kpis?.shopify_avg_order_value ?? 0,
-      shopifyCurrency: raw.header_kpis?.shopify_currency ?? 'USD',
+      shopifyCurrency: raw.header_kpis?.shopify_currency ?? "USD",
     },
     miniFunnel: {
-      sourceLabel: raw.mini_funnel?.source_label ?? 'Oportunidades',
+      sourceLabel: raw.mini_funnel?.source_label ?? "Oportunidades",
       sourceValue: raw.mini_funnel?.source_value ?? 0,
-      targetLabel: raw.mini_funnel?.target_label ?? 'Ventas',
+      targetLabel: raw.mini_funnel?.target_label ?? "Ventas",
       targetValue: raw.mini_funnel?.target_value ?? 0,
       conversionRate: raw.mini_funnel?.conversion_rate ?? 0,
     },
@@ -164,7 +179,7 @@ function mapSalesResponse(raw: any): SalesDetail {
       threshold: b.threshold,
       tip: b.tip,
     })),
-    period: raw.period ?? 'last_30_days',
+    period: raw.period ?? "last_30_days",
     lastUpdated: raw.last_updated,
   };
 }
@@ -177,13 +192,13 @@ function mapAdoptionResponse(raw: any): AdoptionDetail {
       avgTtvDays: raw.header_kpis?.avg_ttv_days ?? null,
       refundCount: raw.header_kpis?.refund_count ?? 0,
       refundAmount: raw.header_kpis?.refund_amount ?? 0,
-      refundCurrency: raw.header_kpis?.refund_currency ?? 'USD',
+      refundCurrency: raw.header_kpis?.refund_currency ?? "USD",
       refundAmountUsd: raw.header_kpis?.refund_amount_usd ?? null,
     },
     miniFunnel: {
-      sourceLabel: raw.mini_funnel?.source_label ?? 'Ventas',
+      sourceLabel: raw.mini_funnel?.source_label ?? "Ventas",
       sourceValue: raw.mini_funnel?.source_value ?? 0,
-      targetLabel: raw.mini_funnel?.target_label ?? 'Activos',
+      targetLabel: raw.mini_funnel?.target_label ?? "Activos",
       targetValue: raw.mini_funnel?.target_value ?? 0,
       conversionRate: raw.mini_funnel?.conversion_rate ?? 0,
     },
@@ -204,7 +219,7 @@ function mapAdoptionResponse(raw: any): AdoptionDetail {
       threshold: b.threshold,
       tip: b.tip,
     })),
-    period: raw.period ?? 'last_30_days',
+    period: raw.period ?? "last_30_days",
     lastUpdated: raw.last_updated,
   };
 }
@@ -238,15 +253,15 @@ function mapExpansionResponse(raw: any): ExpansionDetailData {
     headerKpis: {
       netMrr: raw.header_kpis?.net_mrr ?? 0,
       netMrrUsd: raw.header_kpis?.net_mrr_usd ?? null,
-      currency: raw.header_kpis?.currency ?? 'MXN',
+      currency: raw.header_kpis?.currency ?? "MXN",
       avgLtv: raw.header_kpis?.avg_ltv ?? 0,
       avgLtvUsd: raw.header_kpis?.avg_ltv_usd ?? null,
       churnRatePct: raw.header_kpis?.churn_rate_pct ?? 0,
     },
     miniFunnel: {
-      sourceLabel: raw.mini_funnel?.source_label ?? 'Activos',
+      sourceLabel: raw.mini_funnel?.source_label ?? "Activos",
       sourceValue: raw.mini_funnel?.source_value ?? 0,
-      targetLabel: raw.mini_funnel?.target_label ?? 'Expansion',
+      targetLabel: raw.mini_funnel?.target_label ?? "Expansion",
       targetValue: raw.mini_funnel?.target_value ?? 0,
       conversionRate: raw.mini_funnel?.conversion_rate ?? 0,
     },
@@ -261,7 +276,7 @@ function mapExpansionResponse(raw: any): ExpansionDetailData {
       threshold: b.threshold,
       tip: b.tip,
     })),
-    period: raw.period ?? 'last_30_days',
+    period: raw.period ?? "last_30_days",
     lastUpdated: raw.last_updated,
   };
 }
@@ -273,13 +288,13 @@ function mapEvangelizationResponse(raw: any): EvangelizationDetail {
       npsScore: raw.header_kpis?.nps_score ?? null,
       referralRevenue: raw.header_kpis?.referral_revenue ?? 0,
       referralRevenueUsd: raw.header_kpis?.referral_revenue_usd ?? null,
-      currency: raw.header_kpis?.currency ?? 'MXN',
+      currency: raw.header_kpis?.currency ?? "MXN",
       activeEvangelists: raw.header_kpis?.active_evangelists ?? 0,
     },
     miniFunnel: {
-      sourceLabel: raw.mini_funnel?.source_label ?? 'Clientes Activos',
+      sourceLabel: raw.mini_funnel?.source_label ?? "Clientes Activos",
       sourceValue: raw.mini_funnel?.source_value ?? 0,
-      targetLabel: raw.mini_funnel?.target_label ?? 'Evangelistas',
+      targetLabel: raw.mini_funnel?.target_label ?? "Evangelistas",
       targetValue: raw.mini_funnel?.target_value ?? 0,
       conversionRate: raw.mini_funnel?.conversion_rate ?? 0,
     },
@@ -290,7 +305,7 @@ function mapEvangelizationResponse(raw: any): EvangelizationDetail {
       referralsSent: e.referrals_sent,
       conversions: e.conversions,
       revenueAttributed: e.revenue_attributed,
-      currency: e.currency ?? 'MXN',
+      currency: e.currency ?? "MXN",
       usdRevenue: e.usd_revenue ?? null,
       isActive: e.is_active,
     })),
@@ -321,52 +336,73 @@ function mapEvangelizationResponse(raw: any): EvangelizationDetail {
       threshold: b.threshold,
       tip: b.tip,
     })),
-    period: raw.period ?? 'last_30_days',
+    period: raw.period ?? "last_30_days",
     lastUpdated: raw.last_updated,
   };
 }
 
-export type PeriodType = 'last_30_days' | 'weekly' | 'monthly' | 'quarterly';
+export type PeriodType = "last_30_days" | "weekly" | "monthly" | "quarterly";
 
 function buildPeriodUrl(base: string, period?: PeriodType): string {
-  if (!period || period === 'last_30_days') return base;
-  const sep = base.includes('?') ? '&' : '?';
+  if (!period || period === "last_30_days") return base;
+  const sep = base.includes("?") ? "&" : "?";
   return `${base}${sep}period=${period}`;
 }
 
 export const metricsApi = {
   getAttractionDetail: async (token: string, period?: PeriodType): Promise<AttractionDetail> => {
-    if (ENABLE_MOCKS) { const { MOCK_ATTRACTION_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_ATTRACTION_DETAIL; }
-    const res = await fetchClient(buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/attraction`, period), {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    if (ENABLE_MOCKS) {
+      const { MOCK_ATTRACTION_DETAIL } = await import("../__mocks__/metrics-mock-data");
+      return MOCK_ATTRACTION_DETAIL;
+    }
+    const res = await fetchClient(
+      buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/attraction`, period),
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     if (!res.ok) throw new Error(`Attraction API returned ${res.status}`);
     const data = await res.json();
     return mapResponse(data);
   },
 
   getCaptureDetail: async (token: string, period?: PeriodType): Promise<CaptureDetail> => {
-    if (ENABLE_MOCKS) { const { MOCK_CAPTURE_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_CAPTURE_DETAIL; }
-    const res = await fetchClient(buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/capture`, period), {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    if (ENABLE_MOCKS) {
+      const { MOCK_CAPTURE_DETAIL } = await import("../__mocks__/metrics-mock-data");
+      return MOCK_CAPTURE_DETAIL;
+    }
+    const res = await fetchClient(
+      buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/capture`, period),
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     if (!res.ok) throw new Error(`Capture API returned ${res.status}`);
     const data = await res.json();
     return mapCaptureResponse(data);
   },
 
   getNurtureDetail: async (token: string, period?: PeriodType): Promise<NurtureDetail> => {
-    if (ENABLE_MOCKS) { const { MOCK_NURTURE_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_NURTURE_DETAIL; }
-    const res = await fetchClient(buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/nurturing`, period), {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    if (ENABLE_MOCKS) {
+      const { MOCK_NURTURE_DETAIL } = await import("../__mocks__/metrics-mock-data");
+      return MOCK_NURTURE_DETAIL;
+    }
+    const res = await fetchClient(
+      buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/nurturing`, period),
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     if (!res.ok) throw new Error(`Nurture API returned ${res.status}`);
     const data = await res.json();
     return mapNurtureResponse(data);
   },
 
   getOpportunityDetail: async (token: string): Promise<OpportunityDetail> => {
-    if (ENABLE_MOCKS) { const { MOCK_OPPORTUNITY_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_OPPORTUNITY_DETAIL; }
+    if (ENABLE_MOCKS) {
+      const { MOCK_OPPORTUNITY_DETAIL } = await import("../__mocks__/metrics-mock-data");
+      return MOCK_OPPORTUNITY_DETAIL;
+    }
     const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/opportunity`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -376,7 +412,10 @@ export const metricsApi = {
   },
 
   getSalesDetail: async (token: string): Promise<SalesDetail> => {
-    if (ENABLE_MOCKS) { const { MOCK_SALES_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_SALES_DETAIL; }
+    if (ENABLE_MOCKS) {
+      const { MOCK_SALES_DETAIL } = await import("../__mocks__/metrics-mock-data");
+      return MOCK_SALES_DETAIL;
+    }
     const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/sales`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -386,7 +425,10 @@ export const metricsApi = {
   },
 
   getAdoptionDetail: async (token: string): Promise<AdoptionDetail> => {
-    if (ENABLE_MOCKS) { const { MOCK_ADOPTION_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_ADOPTION_DETAIL; }
+    if (ENABLE_MOCKS) {
+      const { MOCK_ADOPTION_DETAIL } = await import("../__mocks__/metrics-mock-data");
+      return MOCK_ADOPTION_DETAIL;
+    }
     const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/adoption`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -396,7 +438,10 @@ export const metricsApi = {
   },
 
   getExpansionDetail: async (token: string): Promise<ExpansionDetailData> => {
-    if (ENABLE_MOCKS) { const { MOCK_EXPANSION_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_EXPANSION_DETAIL; }
+    if (ENABLE_MOCKS) {
+      const { MOCK_EXPANSION_DETAIL } = await import("../__mocks__/metrics-mock-data");
+      return MOCK_EXPANSION_DETAIL;
+    }
     const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/expansion`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -406,7 +451,10 @@ export const metricsApi = {
   },
 
   getEvangelizationDetail: async (token: string): Promise<EvangelizationDetail> => {
-    if (ENABLE_MOCKS) { const { MOCK_EVANGELIZATION_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_EVANGELIZATION_DETAIL; }
+    if (ENABLE_MOCKS) {
+      const { MOCK_EVANGELIZATION_DETAIL } = await import("../__mocks__/metrics-mock-data");
+      return MOCK_EVANGELIZATION_DETAIL;
+    }
     const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/evangelization`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -430,17 +478,19 @@ export const metricsApi = {
     rangeDays: number,
     granularity: string,
   ): Promise<StageTimeSeries> => {
-    if (ENABLE_MOCKS) { const { MOCK_TIME_SERIES } = await import('../__mocks__/metrics-mock-data'); return MOCK_TIME_SERIES; }
+    if (ENABLE_MOCKS) {
+      const { MOCK_TIME_SERIES } = await import("../__mocks__/metrics-mock-data");
+      return MOCK_TIME_SERIES;
+    }
     const params = new URLSearchParams({
       stage,
       metric,
       range_days: String(rangeDays),
       granularity,
     });
-    const res = await fetchClient(
-      `${API_URL}/api/v1/analytics/metrics/timeseries?${params}`,
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/timeseries?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (!res.ok) throw new Error(`TimeSeries API returned ${res.status}`);
     const raw = await res.json();
     return {
@@ -452,11 +502,13 @@ export const metricsApi = {
         date: dp.date,
         channels: dp.channels,
       })),
-      channelsPresent: raw.channels_present.map((ch: { slug: string; name: string; color: string }) => ({
-        slug: ch.slug,
-        name: ch.name,
-        color: ch.color,
-      })),
+      channelsPresent: raw.channels_present.map(
+        (ch: { slug: string; name: string; color: string }) => ({
+          slug: ch.slug,
+          name: ch.name,
+          color: ch.color,
+        }),
+      ),
       periodTotals: raw.period_totals,
       previousPeriodTotals: raw.previous_period_totals ?? null,
     };

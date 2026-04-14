@@ -1,1 +1,1 @@
-export { PeriodSelector as ChannelPeriodSelector } from '../shared/PeriodSelector';
+export { PeriodSelector as ChannelPeriodSelector } from "../shared/PeriodSelector";

@@ -1,9 +1,9 @@
-import { useAuth } from '@clerk/nextjs';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from "@clerk/nextjs";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { fetchClient } from '@/lib/http-client';
-import { config } from '@/lib/config';
-import { camelizeKeys, snakeifyKeys } from '@/lib/case-conversion';
+import { fetchClient } from "@/lib/http-client";
+import { config } from "@/lib/config";
+import { camelizeKeys, snakeifyKeys } from "@/lib/case-conversion";
 import type {
   AdCampaignTemplate,
   Association,
@@ -13,8 +13,8 @@ import type {
   MetaHealthCheck,
   MetricsByOffer,
   OfferSummary,
-} from '../types/offer-association';
-import type { MetaAdsPeriod } from '../types/metrics';
+} from "../types/offer-association";
+import type { MetaAdsPeriod } from "../types/metrics";
 
 const API_URL = config.api.baseUrl;
 
@@ -23,7 +23,7 @@ const API_URL = config.api.baseUrl;
 function authHeaders(token: string): Record<string, string> {
   return {
     Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   };
 }
 
@@ -36,10 +36,10 @@ export async function fetchAssociations(
   filters?: AssociationsFilters,
 ): Promise<Association[]> {
   const params = new URLSearchParams();
-  if (filters?.targetType) params.set('target_type', filters.targetType);
-  if (filters?.offerId) params.set('offer_id', filters.offerId);
+  if (filters?.targetType) params.set("target_type", filters.targetType);
+  if (filters?.offerId) params.set("offer_id", filters.offerId);
   const qs = params.toString();
-  const url = `${API_URL}/api/v1/advertising/associations${qs ? `?${qs}` : ''}`;
+  const url = `${API_URL}/api/v1/advertising/associations${qs ? `?${qs}` : ""}`;
   const res = await fetchClient(url, { headers: authHeaders(token) });
   if (!res.ok) throw new Error(`fetchAssociations failed: ${res.status}`);
   const json: unknown = await res.json();
@@ -52,7 +52,7 @@ export async function createAssociation(
 ): Promise<Association> {
   const url = `${API_URL}/api/v1/advertising/associations`;
   const res = await fetchClient(url, {
-    method: 'POST',
+    method: "POST",
     headers: authHeaders(token),
     body: JSON.stringify(snakeifyKeys(payload)),
   });
@@ -61,24 +61,19 @@ export async function createAssociation(
   return camelizeKeys<Association>(json);
 }
 
-export async function deleteAssociation(
-  token: string,
-  associationId: string,
-): Promise<void> {
+export async function deleteAssociation(token: string, associationId: string): Promise<void> {
   const url = `${API_URL}/api/v1/advertising/associations/${associationId}`;
   const res = await fetchClient(url, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: authHeaders(token),
   });
   if (!res.ok) throw new Error(`deleteAssociation failed: ${res.status}`);
 }
 
-export async function autoDetectSuggestions(
-  token: string,
-): Promise<AssociationSuggestion[]> {
+export async function autoDetectSuggestions(token: string): Promise<AssociationSuggestion[]> {
   const url = `${API_URL}/api/v1/advertising/associations/auto-detect`;
   const res = await fetchClient(url, {
-    method: 'POST',
+    method: "POST",
     headers: authHeaders(token),
     body: JSON.stringify({}),
   });
@@ -92,7 +87,7 @@ export async function applySuggestions(
   suggestions: AssociationSuggestion[],
 ): Promise<Association[]> {
   const url = `${API_URL}/api/v1/advertising/associations/apply-suggestions`;
-  const body = suggestions.map(s => ({
+  const body = suggestions.map((s) => ({
     target_type: s.targetType,
     target_external_id: s.targetExternalId,
     offer_id: s.suggestedOfferId,
@@ -100,7 +95,7 @@ export async function applySuggestions(
     confidence: s.confidence,
   }));
   const res = await fetchClient(url, {
-    method: 'POST',
+    method: "POST",
     headers: authHeaders(token),
     body: JSON.stringify(body),
   });
@@ -109,9 +104,7 @@ export async function applySuggestions(
   return camelizeKeys<Association[]>(json);
 }
 
-export async function fetchMetaHealthCheck(
-  token: string,
-): Promise<MetaHealthCheck> {
+export async function fetchMetaHealthCheck(token: string): Promise<MetaHealthCheck> {
   const url = `${API_URL}/api/v1/advertising/health-check?provider=meta`;
   const res = await fetchClient(url, { headers: authHeaders(token) });
   if (!res.ok) throw new Error(`fetchMetaHealthCheck failed: ${res.status}`);
@@ -121,7 +114,7 @@ export async function fetchMetaHealthCheck(
 
 export async function fetchMetricsByOffer(
   token: string,
-  period: MetaAdsPeriod = '30d',
+  period: MetaAdsPeriod = "30d",
 ): Promise<MetricsByOffer> {
   const url = `${API_URL}/api/v1/advertising/metrics-by-offer?period=${period}`;
   const res = await fetchClient(url, { headers: authHeaders(token) });
@@ -130,9 +123,7 @@ export async function fetchMetricsByOffer(
   return camelizeKeys<MetricsByOffer>(json);
 }
 
-export async function fetchOffersForAssignment(
-  token: string,
-): Promise<OfferSummary[]> {
+export async function fetchOffersForAssignment(token: string): Promise<OfferSummary[]> {
   const url = `${API_URL}/api/v1/advertising/offers`;
   const res = await fetchClient(url, { headers: authHeaders(token) });
   if (!res.ok) throw new Error(`fetchOffersForAssignment failed: ${res.status}`);
@@ -159,10 +150,10 @@ export async function fetchCampaignTemplateForOffer(
 export function useAssociations(filters?: AssociationsFilters) {
   const { getToken } = useAuth();
   return useQuery({
-    queryKey: ['advertising', 'associations', filters ?? {}],
+    queryKey: ["advertising", "associations", filters ?? {}],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return fetchAssociations(token, filters);
     },
     staleTime: 2 * 60 * 1000,
@@ -175,14 +166,14 @@ export function useCreateAssociation() {
   return useMutation({
     mutationFn: async (payload: AssociationCreatePayload) => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return createAssociation(token, payload);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['advertising', 'associations'] });
-      qc.invalidateQueries({ queryKey: ['advertising', 'health-check'] });
-      qc.invalidateQueries({ queryKey: ['advertising', 'metrics-by-offer'] });
-      qc.invalidateQueries({ queryKey: ['advertising', 'campaigns-with-offers'] });
+      qc.invalidateQueries({ queryKey: ["advertising", "associations"] });
+      qc.invalidateQueries({ queryKey: ["advertising", "health-check"] });
+      qc.invalidateQueries({ queryKey: ["advertising", "metrics-by-offer"] });
+      qc.invalidateQueries({ queryKey: ["advertising", "campaigns-with-offers"] });
     },
   });
 }
@@ -193,13 +184,13 @@ export function useDeleteAssociation() {
   return useMutation({
     mutationFn: async (associationId: string) => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return deleteAssociation(token, associationId);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['advertising', 'associations'] });
-      qc.invalidateQueries({ queryKey: ['advertising', 'health-check'] });
-      qc.invalidateQueries({ queryKey: ['advertising', 'metrics-by-offer'] });
+      qc.invalidateQueries({ queryKey: ["advertising", "associations"] });
+      qc.invalidateQueries({ queryKey: ["advertising", "health-check"] });
+      qc.invalidateQueries({ queryKey: ["advertising", "metrics-by-offer"] });
     },
   });
 }
@@ -209,7 +200,7 @@ export function useAutoDetectSuggestions() {
   return useMutation({
     mutationFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return autoDetectSuggestions(token);
     },
   });
@@ -221,13 +212,13 @@ export function useApplySuggestions() {
   return useMutation({
     mutationFn: async (suggestions: AssociationSuggestion[]) => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return applySuggestions(token, suggestions);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['advertising', 'associations'] });
-      qc.invalidateQueries({ queryKey: ['advertising', 'health-check'] });
-      qc.invalidateQueries({ queryKey: ['advertising', 'metrics-by-offer'] });
+      qc.invalidateQueries({ queryKey: ["advertising", "associations"] });
+      qc.invalidateQueries({ queryKey: ["advertising", "health-check"] });
+      qc.invalidateQueries({ queryKey: ["advertising", "metrics-by-offer"] });
     },
   });
 }
@@ -235,10 +226,10 @@ export function useApplySuggestions() {
 export function useMetaHealthCheck(enabled = true) {
   const { getToken } = useAuth();
   return useQuery({
-    queryKey: ['advertising', 'health-check', 'meta'],
+    queryKey: ["advertising", "health-check", "meta"],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return fetchMetaHealthCheck(token);
     },
     enabled,
@@ -246,16 +237,13 @@ export function useMetaHealthCheck(enabled = true) {
   });
 }
 
-export function useMetricsByOffer(
-  period: MetaAdsPeriod = '30d',
-  enabled = true,
-) {
+export function useMetricsByOffer(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   return useQuery({
-    queryKey: ['advertising', 'metrics-by-offer', period],
+    queryKey: ["advertising", "metrics-by-offer", period],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return fetchMetricsByOffer(token, period);
     },
     enabled,
@@ -266,10 +254,10 @@ export function useMetricsByOffer(
 export function useOffersForAssignment(enabled = true) {
   const { getToken } = useAuth();
   return useQuery({
-    queryKey: ['advertising', 'offers-for-assignment'],
+    queryKey: ["advertising", "offers-for-assignment"],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return fetchOffersForAssignment(token);
     },
     enabled,
@@ -277,16 +265,14 @@ export function useOffersForAssignment(enabled = true) {
   });
 }
 
-export function useCampaignTemplateForOffer(
-  offerId: string | null | undefined,
-) {
+export function useCampaignTemplateForOffer(offerId: string | null | undefined) {
   const { getToken } = useAuth();
   return useQuery({
-    queryKey: ['advertising', 'campaign-template', offerId],
+    queryKey: ["advertising", "campaign-template", offerId],
     queryFn: async () => {
       if (!offerId) return null;
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return fetchCampaignTemplateForOffer(token, offerId);
     },
     enabled: !!offerId,

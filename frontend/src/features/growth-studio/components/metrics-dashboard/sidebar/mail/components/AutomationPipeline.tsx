@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { Clock, Sparkles, AlertTriangle, TrendingDown } from 'lucide-react';
+import { Clock, Sparkles, AlertTriangle, TrendingDown } from "lucide-react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 import {
   computeDropoff,
   diagnoseStep,
   findBestStep,
   findAttentionStep,
-} from '../../../../../utils/automation-health';
-import { AUTOMATION_METRIC_INFO } from '../../../../../utils/automation-metric-info';
-import type { AutomationStep } from '../../../../../types/mail-types';
-import { MetricInfoTooltip } from './MetricInfoTooltip';
+} from "../../../../../utils/automation-health";
+import { AUTOMATION_METRIC_INFO } from "../../../../../utils/automation-metric-info";
+import type { AutomationStep } from "../../../../../types/mail-types";
+import { MetricInfoTooltip } from "./MetricInfoTooltip";
 
 interface AutomationPipelineProps {
   steps: AutomationStep[];
@@ -25,11 +25,8 @@ interface AutomationPipelineProps {
  * showing delay and drop-off, best/attention badges, and an AI insight
  * summary computed from the deterministic diagnosis rules.
  */
-export function AutomationPipeline({
-  steps,
-  onStepClick,
-}: AutomationPipelineProps) {
-  const emailSteps = steps.filter((s) => s.type === 'email');
+export function AutomationPipeline({ steps, onStepClick }: AutomationPipelineProps) {
+  const emailSteps = steps.filter((s) => s.type === "email");
 
   if (emailSteps.length === 0) {
     return (
@@ -51,7 +48,7 @@ export function AutomationPipeline({
       <div className="flex items-center justify-between">
         <h4 className="text-xs font-semibold text-muted-foreground">
           Secuencia de emails — {emailSteps.length} paso
-          {emailSteps.length === 1 ? '' : 's'}
+          {emailSteps.length === 1 ? "" : "s"}
         </h4>
         {insights.headline && (
           <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -64,7 +61,7 @@ export function AutomationPipeline({
       {/* Horizontal pipeline */}
       <div className="flex items-stretch gap-0 overflow-x-auto pb-2">
         {steps.map((step, idx) => {
-          if (step.type === 'delay') {
+          if (step.type === "delay") {
             return <DelayConnector key={step.stepId} step={step} />;
           }
 
@@ -76,9 +73,7 @@ export function AutomationPipeline({
 
           return (
             <div key={step.stepId} className="flex items-stretch">
-              {prevEmailStep && !hasDelayBefore(steps, idx) && (
-                <StepConnector dropoff={dropoff} />
-              )}
+              {prevEmailStep && !hasDelayBefore(steps, idx) && <StepConnector dropoff={dropoff} />}
               <EmailNode
                 step={step}
                 isBest={bestStep?.stepId === step.stepId}
@@ -123,28 +118,26 @@ interface EmailNodeProps {
 function EmailNode({ step, isBest, isAttention, onClick }: EmailNodeProps) {
   const openClass =
     step.openRate >= 50
-      ? 'text-emerald-500'
+      ? "text-emerald-500"
       : step.openRate >= 30
-        ? 'text-amber-500'
-        : 'text-red-500';
+        ? "text-amber-500"
+        : "text-red-500";
   const clickClass =
     step.clickRate >= 5
-      ? 'text-emerald-500'
+      ? "text-emerald-500"
       : step.clickRate >= 2
-        ? 'text-amber-500'
-        : 'text-red-500';
+        ? "text-amber-500"
+        : "text-red-500";
 
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        'relative w-[190px] shrink-0 rounded-lg border bg-card p-3.5 text-left transition-all cursor-pointer',
-        'hover:border-primary hover:shadow-[0_0_0_1px_hsl(var(--primary)),0_4px_20px_rgba(99,102,241,0.15)]',
-        isBest && 'border-emerald-500 shadow-[0_0_0_1px_rgba(16,185,129,0.3)]',
-        isAttention &&
-          !isBest &&
-          'border-red-500 shadow-[0_0_0_1px_rgba(239,68,68,0.2)]',
+        "relative w-[190px] shrink-0 rounded-lg border bg-card p-3.5 text-left transition-all cursor-pointer",
+        "hover:border-primary hover:shadow-[0_0_0_1px_hsl(var(--primary)),0_4px_20px_rgba(99,102,241,0.15)]",
+        isBest && "border-emerald-500 shadow-[0_0_0_1px_rgba(16,185,129,0.3)]",
+        isAttention && !isBest && "border-red-500 shadow-[0_0_0_1px_rgba(239,68,68,0.2)]",
       )}
     >
       {isBest && (
@@ -162,33 +155,25 @@ function EmailNode({ step, isBest, isAttention, onClick }: EmailNodeProps) {
         <span>Email {step.stepNumber}</span>
         <span>{step.emailsSent} enviados</span>
       </div>
-      <p className="mt-1 truncate text-xs font-medium">
-        {step.subject || '(sin asunto)'}
-      </p>
+      <p className="mt-1 truncate text-xs font-medium">{step.subject || "(sin asunto)"}</p>
 
       <div className="mt-2.5 grid grid-cols-2 gap-1.5">
         <div className="rounded bg-muted/20 py-1 text-center">
-          <p className={cn('text-sm font-bold tabular-nums', openClass)}>
+          <p className={cn("text-sm font-bold tabular-nums", openClass)}>
             {step.openRate.toFixed(1)}%
           </p>
           <div className="flex items-center justify-center gap-0.5 text-[9px] uppercase text-muted-foreground">
             Open
-            <MetricInfoTooltip
-              info={AUTOMATION_METRIC_INFO.stepOpen}
-              iconSize="xs"
-            />
+            <MetricInfoTooltip info={AUTOMATION_METRIC_INFO.stepOpen} iconSize="xs" />
           </div>
         </div>
         <div className="rounded bg-muted/20 py-1 text-center">
-          <p className={cn('text-sm font-bold tabular-nums', clickClass)}>
+          <p className={cn("text-sm font-bold tabular-nums", clickClass)}>
             {step.clickRate.toFixed(1)}%
           </p>
           <div className="flex items-center justify-center gap-0.5 text-[9px] uppercase text-muted-foreground">
             Click
-            <MetricInfoTooltip
-              info={AUTOMATION_METRIC_INFO.stepClick}
-              iconSize="xs"
-            />
+            <MetricInfoTooltip info={AUTOMATION_METRIC_INFO.stepClick} iconSize="xs" />
           </div>
         </div>
       </div>
@@ -203,12 +188,12 @@ interface StepConnectorProps {
 function StepConnector({ dropoff }: StepConnectorProps) {
   const dropoffClass =
     dropoff === null
-      ? 'text-muted-foreground'
+      ? "text-muted-foreground"
       : dropoff < 10
-        ? 'text-emerald-500'
+        ? "text-emerald-500"
         : dropoff < 30
-          ? 'text-amber-500'
-          : 'text-red-500';
+          ? "text-amber-500"
+          : "text-red-500";
 
   return (
     <div className="flex min-w-[72px] flex-col items-center justify-center px-2">
@@ -219,7 +204,7 @@ function StepConnector({ dropoff }: StepConnectorProps) {
         {dropoff !== null && (
           <p
             className={cn(
-              'flex items-center justify-center gap-0.5 text-[10px] font-semibold whitespace-nowrap',
+              "flex items-center justify-center gap-0.5 text-[10px] font-semibold whitespace-nowrap",
               dropoffClass,
             )}
           >
@@ -233,10 +218,10 @@ function StepConnector({ dropoff }: StepConnectorProps) {
 }
 
 const DELAY_UNIT_LABELS: Record<string, [string, string]> = {
-  minutes: ['minuto', 'minutos'],
-  hours: ['hora', 'horas'],
-  days: ['día', 'días'],
-  weeks: ['semana', 'semanas'],
+  minutes: ["minuto", "minutos"],
+  hours: ["hora", "horas"],
+  days: ["día", "días"],
+  weeks: ["semana", "semanas"],
 };
 
 function formatDelayLabel(value: number | null, unit: string | null): string {
@@ -276,14 +261,14 @@ function FunnelBar({ steps }: FunnelBarProps) {
           const width = (s.emailsSent / maxSent) * 100;
           const color =
             s.openRate >= 50
-              ? 'bg-emerald-500/70'
+              ? "bg-emerald-500/70"
               : s.openRate >= 30
-                ? 'bg-amber-500/70'
-                : 'bg-red-500/70';
+                ? "bg-amber-500/70"
+                : "bg-red-500/70";
           return (
             <div
               key={s.stepId}
-              className={cn('h-full transition-all', color)}
+              className={cn("h-full transition-all", color)}
               style={{ width: `${width}%` }}
             />
           );
@@ -299,19 +284,16 @@ function FunnelBar({ steps }: FunnelBarProps) {
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
-function findPreviousEmail(
-  steps: AutomationStep[],
-  currentIdx: number,
-): AutomationStep | null {
+function findPreviousEmail(steps: AutomationStep[], currentIdx: number): AutomationStep | null {
   for (let i = currentIdx - 1; i >= 0; i--) {
-    if (steps[i].type === 'email') return steps[i];
+    if (steps[i].type === "email") return steps[i];
   }
   return null;
 }
 
 function hasDelayBefore(steps: AutomationStep[], currentIdx: number): boolean {
   if (currentIdx === 0) return false;
-  return steps[currentIdx - 1].type === 'delay';
+  return steps[currentIdx - 1].type === "delay";
 }
 
 interface SequenceInsights {
@@ -349,10 +331,10 @@ function computeSequenceInsights(emailSteps: AutomationStep[]): SequenceInsights
       headline = `Engagement cae ${dropPct}% a lo largo de la secuencia`;
       headlineIcon = <TrendingDown className="h-3 w-3 text-red-500" />;
     } else if (messages.length === 0) {
-      headline = 'Secuencia saludable — replica este formato';
+      headline = "Secuencia saludable — replica este formato";
       headlineIcon = <Sparkles className="h-3 w-3 text-emerald-500" />;
     } else {
-      headline = `${messages.length} oportunidad${messages.length === 1 ? '' : 'es'} de mejora`;
+      headline = `${messages.length} oportunidad${messages.length === 1 ? "" : "es"} de mejora`;
       headlineIcon = <AlertTriangle className="h-3 w-3 text-amber-500" />;
     }
   }

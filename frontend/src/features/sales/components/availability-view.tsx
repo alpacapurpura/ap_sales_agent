@@ -7,14 +7,26 @@ import {
   WeeklySchedule,
   DaySchedule,
   TimeRange,
-  availabilityApi
+  availabilityApi,
 } from "@/lib/api/availability";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Plus, Trash2, Copy, Globe, Clock, Check } from "lucide-react";
@@ -39,7 +51,7 @@ const TIMEZONES = [
   "America/New_York",
   "America/Los_Angeles",
   "Europe/Madrid",
-  "UTC"
+  "UTC",
 ];
 
 const generateTimeOptions = () => {
@@ -58,7 +70,7 @@ const TIME_OPTIONS = generateTimeOptions();
 
 // --- Components ---
 
-function TimeSelect({ value, onChange }: { value: string, onChange: (val: string) => void }) {
+function TimeSelect({ value, onChange }: { value: string; onChange: (val: string) => void }) {
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="w-[100px]">
@@ -113,7 +125,7 @@ export function AvailabilityView() {
         friday: { active: true, ranges: [{ start: "09:00", end: "17:00" }] },
         saturday: { active: false, ranges: [] },
         sunday: { active: false, ranges: [] },
-      }
+      },
     };
 
     try {
@@ -141,7 +153,9 @@ export function AvailabilityView() {
         <Plus className="h-4 w-4" /> Nuevo
       </Button>
       {loading ? (
-        <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
+        <div className="flex justify-center p-8">
+          <Loader2 className="animate-spin" />
+        </div>
       ) : (
         <div className="grid gap-4">
           {schedules.map((schedule) => (
@@ -157,10 +171,14 @@ export function AvailabilityView() {
                     {schedule.is_default && <Badge variant="secondary">Predeterminado</Badge>}
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1"><Globe className="h-3 w-3" /> {schedule.timezone}</span>
+                    <span className="flex items-center gap-1">
+                      <Globe className="h-3 w-3" /> {schedule.timezone}
+                    </span>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon"><Clock className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon">
+                  <Clock className="h-4 w-4" />
+                </Button>
               </CardContent>
             </Card>
           ))}
@@ -171,14 +189,16 @@ export function AvailabilityView() {
           )}
         </div>
       )}
-
-      <Sheet open={isSheetOpen} onOpenChange={(open) => {
-        setIsSheetOpen(open);
-        if (!open) {
-          fetchSchedules(); // Refresh on close to ensure sync
-          setSelectedSchedule(null);
-        }
-      }}>
+      <Sheet
+        open={isSheetOpen}
+        onOpenChange={(open) => {
+          setIsSheetOpen(open);
+          if (!open) {
+            fetchSchedules(); // Refresh on close to ensure sync
+            setSelectedSchedule(null);
+          }
+        }}
+      >
         <SheetContent className="sm:max-w-xl w-full overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Editar Disponibilidad</SheetTitle>
@@ -199,19 +219,25 @@ export function AvailabilityView() {
   );
 }
 
-function ScheduleEditor({ initialSchedule, onSave }: { initialSchedule: AvailabilitySchedule, onSave: () => void }) {
+function ScheduleEditor({
+  initialSchedule,
+  onSave,
+}: {
+  initialSchedule: AvailabilitySchedule;
+  onSave: () => void;
+}) {
   const { getToken } = useAuth();
   const [schedule, setSchedule] = useState<AvailabilitySchedule>(initialSchedule);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const updateDay = (day: keyof WeeklySchedule, updates: Partial<DaySchedule>) => {
-    setSchedule(prev => ({
+    setSchedule((prev) => ({
       ...prev,
       schedule: {
         ...prev.schedule,
-        [day]: { ...prev.schedule[day], ...updates }
-      }
+        [day]: { ...prev.schedule[day], ...updates },
+      },
     }));
   };
 
@@ -227,7 +253,7 @@ function ScheduleEditor({ initialSchedule, onSave }: { initialSchedule: Availabi
     }
 
     updateDay(day, {
-      ranges: [...currentRanges, { start: newStart, end: newEnd }]
+      ranges: [...currentRanges, { start: newStart, end: newEnd }],
     });
   };
 
@@ -237,7 +263,12 @@ function ScheduleEditor({ initialSchedule, onSave }: { initialSchedule: Availabi
     updateDay(day, { ranges: newRanges });
   };
 
-  const updateRange = (day: keyof WeeklySchedule, index: number, field: 'start' | 'end', value: string) => {
+  const updateRange = (
+    day: keyof WeeklySchedule,
+    index: number,
+    field: "start" | "end",
+    value: string,
+  ) => {
     const newRanges = [...schedule.schedule[day].ranges];
     newRanges[index] = { ...newRanges[index], [field]: value };
     updateDay(day, { ranges: newRanges });
@@ -291,9 +322,15 @@ function ScheduleEditor({ initialSchedule, onSave }: { initialSchedule: Availabi
             value={schedule.timezone}
             onValueChange={(v) => setSchedule({ ...schedule, timezone: v })}
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
-              {TIMEZONES.map(tz => <SelectItem key={tz} value={tz}>{tz}</SelectItem>)}
+              {TIMEZONES.map((tz) => (
+                <SelectItem key={tz} value={tz}>
+                  {tz}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -345,12 +382,12 @@ function ScheduleEditor({ initialSchedule, onSave }: { initialSchedule: Availabi
                         <div key={idx} className="flex items-center gap-2">
                           <TimeSelect
                             value={range.start}
-                            onChange={(v) => updateRange(key, idx, 'start', v)}
+                            onChange={(v) => updateRange(key, idx, "start", v)}
                           />
                           <span className="text-muted-foreground">-</span>
                           <TimeSelect
                             value={range.end}
-                            onChange={(v) => updateRange(key, idx, 'end', v)}
+                            onChange={(v) => updateRange(key, idx, "end", v)}
                           />
                           <Button
                             variant="ghost"
@@ -373,7 +410,11 @@ function ScheduleEditor({ initialSchedule, onSave }: { initialSchedule: Availabi
 
       <div className="flex items-center justify-between pt-4 border-t">
         <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-          {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
+          {deleting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Trash2 className="h-4 w-4 mr-2" />
+          )}
           Eliminar
         </Button>
         <Button onClick={handleSave} disabled={saving}>

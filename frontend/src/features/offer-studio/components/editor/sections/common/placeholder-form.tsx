@@ -1,7 +1,7 @@
-import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { OfferFormValues } from '../../../../types/schema';
+import React from "react";
+import { UseFormReturn } from "react-hook-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { OfferFormValues } from "../../../../types/schema";
 
 export interface PlaceholderFormProps {
   sectionId?: string;
@@ -12,7 +12,14 @@ export interface PlaceholderFormProps {
   form?: UseFormReturn<OfferFormValues>;
 }
 
-export const PlaceholderForm = ({ sectionId, title, children, defaultValues, onSave, form }: PlaceholderFormProps) => {
+export const PlaceholderForm = ({
+  sectionId,
+  title,
+  children,
+  defaultValues,
+  onSave,
+  form,
+}: PlaceholderFormProps) => {
   return (
     <Card className="w-full">
       <CardHeader>

@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import type { ExpansionGroupData } from '../../../types/metrics';
-import { ExpansionOfferRow } from './ExpansionOfferRow';
-import { formatDualCurrency } from '@/lib/format-money';
+import type { ExpansionGroupData } from "../../../types/metrics";
+import { ExpansionOfferRow } from "./ExpansionOfferRow";
+import { formatDualCurrency } from "@/lib/format-money";
 
 interface ExpansionGroupProps {
   group: ExpansionGroupData;
-  variant?: 'default' | 'churn';
+  variant?: "default" | "churn";
 }
 
-export function ExpansionGroup({ group, variant = 'default' }: ExpansionGroupProps) {
-  const isChurn = variant === 'churn';
-  const borderClass = isChurn ? 'border-l-2 border-red-200 dark:border-red-800 pl-2' : '';
+export function ExpansionGroup({ group, variant = "default" }: ExpansionGroupProps) {
+  const isChurn = variant === "churn";
+  const borderClass = isChurn ? "border-l-2 border-red-200 dark:border-red-800 pl-2" : "";
 
   return (
     <div className={borderClass}>
@@ -21,7 +21,9 @@ export function ExpansionGroup({ group, variant = 'default' }: ExpansionGroupPro
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold">{group.groupLabel}</span>
           {group.ratePct != null && (
-            <span className={`text-sm font-semibold tabular-nums ${isChurn ? 'text-red-600 dark:text-red-400' : ''}`}>
+            <span
+              className={`text-sm font-semibold tabular-nums ${isChurn ? "text-red-600 dark:text-red-400" : ""}`}
+            >
               {group.ratePct.toFixed(1)}%
             </span>
           )}
@@ -31,8 +33,9 @@ export function ExpansionGroup({ group, variant = 'default' }: ExpansionGroupPro
         {/* Aggregate row */}
         <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
           <span>{group.totalCount} transacciones</span>
-          <span className={isChurn ? 'text-red-600 dark:text-red-400' : ''}>
-            {isChurn ? '-' : ''}{formatDualCurrency(group.totalRevenue, group.currency, group.totalRevenueUsd)}
+          <span className={isChurn ? "text-red-600 dark:text-red-400" : ""}>
+            {isChurn ? "-" : ""}
+            {formatDualCurrency(group.totalRevenue, group.currency, group.totalRevenueUsd)}
           </span>
         </div>
       </div>
@@ -45,9 +48,7 @@ export function ExpansionGroup({ group, variant = 'default' }: ExpansionGroupPro
           ))}
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground px-3 py-2">
-          Sin transacciones en este periodo
-        </p>
+        <p className="text-xs text-muted-foreground px-3 py-2">Sin transacciones en este periodo</p>
       )}
     </div>
   );

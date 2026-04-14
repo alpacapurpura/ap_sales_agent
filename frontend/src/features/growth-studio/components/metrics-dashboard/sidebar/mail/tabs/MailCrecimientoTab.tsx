@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { Loader2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Loader2, TrendingUp, TrendingDown } from "lucide-react";
 import {
   Bar,
   ComposedChart,
@@ -11,21 +11,21 @@ import {
   XAxis,
   YAxis,
   Tooltip as RechartsTooltip,
-} from 'recharts';
+} from "recharts";
 
-import { cn } from '@/lib/utils';
-import { ChartContainer } from '@/components/ui/chart';
-import { MetricInfoPopover } from '@/components/shared/MetricInfoPopover';
-import { useMailGrowth } from '../../../../../hooks/useMailDashboard';
-import { formatMetricValue } from '../../../../../utils/format-metric-value';
-import { ChartSection } from '../../shared/ChartSection';
-import { ChartInfoTooltip } from '../../shared/ChartInfoTooltip';
-import type { MetaAdsPeriod, MetricKpiData } from '../../../../../types/metrics';
+import { cn } from "@/lib/utils";
+import { ChartContainer } from "@/components/ui/chart";
+import { MetricInfoPopover } from "@/components/shared/MetricInfoPopover";
+import { useMailGrowth } from "../../../../../hooks/useMailDashboard";
+import { formatMetricValue } from "../../../../../utils/format-metric-value";
+import { ChartSection } from "../../shared/ChartSection";
+import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
+import type { MetaAdsPeriod, MetricKpiData } from "../../../../../types/metrics";
 import type {
   EmailGrowthData,
   EmailSourcePerformance,
   EngagementDecay,
-} from '../../../../../types/mail-types';
+} from "../../../../../types/mail-types";
 
 interface MailCrecimientoTabProps {
   period: MetaAdsPeriod;
@@ -34,22 +34,21 @@ interface MailCrecimientoTabProps {
 // KPI definitions
 const GROWTH_KPIS = [
   {
-    metricName: 'active_subscribers',
-    description: 'Total de suscriptores activos en tu lista al final del periodo.',
+    metricName: "active_subscribers",
+    description: "Total de suscriptores activos en tu lista al final del periodo.",
   },
   {
-    metricName: 'new_subscribers',
-    description: 'Nuevos suscriptores adquiridos durante el periodo seleccionado.',
+    metricName: "new_subscribers",
+    description: "Nuevos suscriptores adquiridos durante el periodo seleccionado.",
   },
   {
-    metricName: 'unsubscribes',
-    description: 'Suscriptores que se dieron de baja en el periodo.',
+    metricName: "unsubscribes",
+    description: "Suscriptores que se dieron de baja en el periodo.",
   },
   {
-    metricName: 'list_growth_rate',
-    description:
-      'Tasa de crecimiento neto de la lista. Un 2-5% mensual es saludable.',
-    formula: '(Nuevos - Bajas) / Total anterior x 100',
+    metricName: "list_growth_rate",
+    description: "Tasa de crecimiento neto de la lista. Un 2-5% mensual es saludable.",
+    formula: "(Nuevos - Bajas) / Total anterior x 100",
   },
 ];
 
@@ -117,8 +116,8 @@ export function MailCrecimientoTab({ period }: MailCrecimientoTabProps) {
 function KpiRow({ data }: { data: EmailGrowthData }) {
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {GROWTH_KPIS.map(config => {
-        const kpi = data.kpis.find(k => k.metricName === config.metricName);
+      {GROWTH_KPIS.map((config) => {
+        const kpi = data.kpis.find((k) => k.metricName === config.metricName);
         if (!kpi) return null;
 
         return (
@@ -149,8 +148,7 @@ function KpiCard({
   });
 
   const isPositive =
-    kpi.deltaPct != null &&
-    (kpi.higherIsBetter ? kpi.deltaPct >= 0 : kpi.deltaPct <= 0);
+    kpi.deltaPct != null && (kpi.higherIsBetter ? kpi.deltaPct >= 0 : kpi.deltaPct <= 0);
 
   return (
     <div className="rounded-lg border bg-card p-3.5 space-y-1">
@@ -158,13 +156,9 @@ function KpiCard({
         displayName={kpi.displayName}
         description={description}
         formula={formula}
-        benchmark={
-          kpi.benchmark ? { value: kpi.benchmark.median } : undefined
-        }
+        benchmark={kpi.benchmark ? { value: kpi.benchmark.median } : undefined}
       >
-        <span className="text-[11px] text-muted-foreground">
-          {kpi.displayName}
-        </span>
+        <span className="text-[11px] text-muted-foreground">{kpi.displayName}</span>
       </MetricInfoPopover>
 
       <p className="text-xl font-semibold tabular-nums">{formattedValue}</p>
@@ -173,16 +167,12 @@ function KpiCard({
         <div className="flex items-center gap-1">
           <span
             className={cn(
-              'inline-flex items-center gap-0.5 text-[11px] font-medium',
-              isPositive ? 'text-emerald-600' : 'text-red-600',
+              "inline-flex items-center gap-0.5 text-[11px] font-medium",
+              isPositive ? "text-emerald-600" : "text-red-600",
             )}
           >
-            {isPositive ? (
-              <TrendingUp className="h-3 w-3" />
-            ) : (
-              <TrendingDown className="h-3 w-3" />
-            )}
-            {kpi.unit === 'percentage'
+            {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            {kpi.unit === "percentage"
               ? `${Math.abs(kpi.deltaAbsolute ?? 0).toFixed(1)}pp`
               : `${Math.abs(kpi.deltaPct).toFixed(0)}%`}
             <span className="text-muted-foreground font-normal"> vs anterior</span>
@@ -195,20 +185,40 @@ function KpiCard({
 
 // #8: Spanish month names for date formatting
 const MONTHS_ES = [
-  'ene', 'feb', 'mar', 'abr', 'may', 'jun',
-  'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
+  "ene",
+  "feb",
+  "mar",
+  "abr",
+  "may",
+  "jun",
+  "jul",
+  "ago",
+  "sep",
+  "oct",
+  "nov",
+  "dic",
 ];
 
 function formatDateEs(isoDate: string): string {
-  const [, month, day] = isoDate.split('-');
+  const [, month, day] = isoDate.split("-");
   return `${parseInt(day, 10)} ${MONTHS_ES[parseInt(month, 10) - 1]}`;
 }
 
 function formatDateEsLong(isoDate: string): string {
-  const [, month, day] = isoDate.split('-');
+  const [, month, day] = isoDate.split("-");
   const monthNames = [
-    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre",
   ];
   return `${parseInt(day, 10)} de ${monthNames[parseInt(month, 10) - 1]}`;
 }
@@ -221,7 +231,11 @@ interface TooltipEntry {
   payload?: Record<string, unknown>;
 }
 
-function GrowthTooltip({ active, payload, label }: {
+function GrowthTooltip({
+  active,
+  payload,
+  label,
+}: {
   active?: boolean;
   payload?: TooltipEntry[];
   label?: string;
@@ -229,26 +243,26 @@ function GrowthTooltip({ active, payload, label }: {
   if (!active || !payload?.length) return null;
 
   const LABELS: Record<string, string> = {
-    new_subscribers: 'Nuevos suscriptores',
-    unsubscribes: 'Bajas',
-    active_subscribers: 'Total activos',
+    new_subscribers: "Nuevos suscriptores",
+    unsubscribes: "Bajas",
+    active_subscribers: "Total activos",
   };
 
   const COLORS: Record<string, string> = {
-    new_subscribers: 'rgb(34, 197, 94)',
-    unsubscribes: 'rgb(239, 68, 68)',
-    active_subscribers: 'rgb(59, 130, 246)',
+    new_subscribers: "rgb(34, 197, 94)",
+    unsubscribes: "rgb(239, 68, 68)",
+    active_subscribers: "rgb(59, 130, 246)",
   };
 
   const originalDate = payload[0]?.payload?.isoDate as string | undefined;
-  const dateLabel = originalDate ? formatDateEsLong(originalDate) : (label ?? '');
+  const dateLabel = originalDate ? formatDateEsLong(originalDate) : (label ?? "");
 
   return (
     <div className="rounded-lg border bg-card px-3 py-2.5 shadow-lg">
       {/* #3: Date header */}
       <p className="mb-1.5 text-xs font-medium capitalize">{dateLabel}</p>
       <div className="space-y-1">
-        {payload.map(entry => {
+        {payload.map((entry) => {
           const absValue = Math.abs(entry.value);
           // #5: Hide metrics with value 0
           if (absValue === 0) return null;
@@ -264,9 +278,7 @@ function GrowthTooltip({ active, payload, label }: {
                 <span className="text-muted-foreground">{LABELS[key] ?? key}</span>
               </div>
               {/* #2: Formatted number */}
-              <span className="font-medium tabular-nums">
-                {absValue.toLocaleString('es-PE')}
-              </span>
+              <span className="font-medium tabular-nums">{absValue.toLocaleString("es-PE")}</span>
             </div>
           );
         })}
@@ -276,19 +288,19 @@ function GrowthTooltip({ active, payload, label }: {
 }
 
 function GrowthChart({ data }: { data: EmailGrowthData }) {
-  const newSubsSeries = data.timeSeries.find(
-    ts => ts.metricName === 'new_subscribers',
-  );
-  const unsubsSeries = data.timeSeries.find(
-    ts => ts.metricName === 'unsubscribes',
-  );
-  const activeSeries = data.timeSeries.find(
-    ts => ts.metricName === 'active_subscribers',
-  );
+  const newSubsSeries = data.timeSeries.find((ts) => ts.metricName === "new_subscribers");
+  const unsubsSeries = data.timeSeries.find((ts) => ts.metricName === "unsubscribes");
+  const activeSeries = data.timeSeries.find((ts) => ts.metricName === "active_subscribers");
 
   const dateMap = new Map<
     string,
-    { date: string; isoDate: string; new_subscribers: number; unsubscribes: number; active_subscribers: number }
+    {
+      date: string;
+      isoDate: string;
+      new_subscribers: number;
+      unsubscribes: number;
+      active_subscribers: number;
+    }
   >();
 
   const getEntry = (isoDate: string) =>
@@ -318,15 +330,13 @@ function GrowthChart({ data }: { data: EmailGrowthData }) {
 
   // #13: Only days with activity (new_subscribers > 0 or unsubscribes != 0)
   const compositeData = Array.from(dateMap.values())
-    .filter(d => d.new_subscribers > 0 || d.unsubscribes < 0)
+    .filter((d) => d.new_subscribers > 0 || d.unsubscribes < 0)
     .sort((a, b) => a.isoDate.localeCompare(b.isoDate));
 
   if (compositeData.length === 0) {
     return (
       <div className="rounded-lg border bg-card p-5">
-        <p className="text-sm text-muted-foreground">
-          Sin datos de crecimiento para graficar.
-        </p>
+        <p className="text-sm text-muted-foreground">Sin datos de crecimiento para graficar.</p>
       </div>
     );
   }
@@ -338,7 +348,7 @@ function GrowthChart({ data }: { data: EmailGrowthData }) {
   }
 
   // #6: Right Y-axis domain — tight range so the line variation is visible
-  const activeValues = compositeData.map(d => d.active_subscribers).filter(v => v > 0);
+  const activeValues = compositeData.map((d) => d.active_subscribers).filter((v) => v > 0);
   const activeMin = Math.min(...activeValues);
   const activeMax = Math.max(...activeValues);
   const activeMargin = Math.max(Math.ceil((activeMax - activeMin) * 0.3), 5);
@@ -351,8 +361,8 @@ function GrowthChart({ data }: { data: EmailGrowthData }) {
   const totalNew = compositeData.reduce((s, d) => s + d.new_subscribers, 0);
   const totalUnsubs = compositeData.reduce((s, d) => s + Math.abs(d.unsubscribes), 0);
   const net = totalNew - totalUnsubs;
-  const narrativeClass = net >= 0 ? 'text-emerald-500' : 'text-red-500';
-  const narrativeSign = net >= 0 ? '+' : '';
+  const narrativeClass = net >= 0 ? "text-emerald-500" : "text-red-500";
+  const narrativeSign = net >= 0 ? "+" : "";
 
   return (
     <div className="rounded-lg border bg-card p-5 space-y-3">
@@ -362,25 +372,26 @@ function GrowthChart({ data }: { data: EmailGrowthData }) {
       />
       {/* #12: Narrative line */}
       <p className="text-xs text-muted-foreground">
-        Tu lista creció{' '}
-        <span className={cn('font-semibold', narrativeClass)}>
-          {narrativeSign}{net}
-        </span>
-        {' '}neto: +{totalNew} nuevos, -{totalUnsubs} bajas
+        Tu lista creció{" "}
+        <span className={cn("font-semibold", narrativeClass)}>
+          {narrativeSign}
+          {net}
+        </span>{" "}
+        neto: +{totalNew} nuevos, -{totalUnsubs} bajas
       </p>
       <ChartContainer
         config={{
           new_subscribers: {
-            label: 'Nuevos suscriptores',
-            color: 'hsl(142, 71%, 45%)',
+            label: "Nuevos suscriptores",
+            color: "hsl(142, 71%, 45%)",
           },
           unsubscribes: {
-            label: 'Bajas',
-            color: 'hsl(0, 84%, 60%)',
+            label: "Bajas",
+            color: "hsl(0, 84%, 60%)",
           },
           active_subscribers: {
-            label: 'Total activos',
-            color: 'hsl(217, 91%, 60%)',
+            label: "Total activos",
+            color: "hsl(217, 91%, 60%)",
           },
         }}
         className="h-[280px] w-full"
@@ -388,11 +399,7 @@ function GrowthChart({ data }: { data: EmailGrowthData }) {
         <ComposedChart data={compositeData} barSize={24}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted/40" />
           {/* #8: Date format "16 mar" */}
-          <XAxis
-            dataKey="date"
-            className="text-xs"
-            tick={{ fontSize: 11 }}
-          />
+          <XAxis dataKey="date" className="text-xs" tick={{ fontSize: 11 }} />
           {/* #7: Left Y-axis with absolute values */}
           <YAxis
             yAxisId="left"
@@ -407,7 +414,7 @@ function GrowthChart({ data }: { data: EmailGrowthData }) {
             className="text-xs"
             tick={{ fontSize: 11 }}
             domain={rightDomain}
-            tickFormatter={(v: number) => v.toLocaleString('es-PE')}
+            tickFormatter={(v: number) => v.toLocaleString("es-PE")}
           />
           {/* #1-5: Custom tooltip */}
           <RechartsTooltip content={<GrowthTooltip />} />
@@ -422,7 +429,7 @@ function GrowthChart({ data }: { data: EmailGrowthData }) {
               dataKey="new_subscribers"
               position="top"
               className="fill-emerald-400 text-[10px] font-medium"
-              formatter={(v: number) => (v > 0 ? v : '')}
+              formatter={(v: number) => (v > 0 ? v : "")}
             />
           </Bar>
           <Bar
@@ -435,7 +442,7 @@ function GrowthChart({ data }: { data: EmailGrowthData }) {
               dataKey="unsubscribes"
               position="bottom"
               className="fill-red-400 text-[10px] font-medium"
-              formatter={(v: number) => (v < 0 ? Math.abs(v) : '')}
+              formatter={(v: number) => (v < 0 ? Math.abs(v) : "")}
             />
           </Bar>
           {/* #9: Line without dots */}
@@ -468,10 +475,8 @@ function GrowthChart({ data }: { data: EmailGrowthData }) {
 }
 
 function SourcesChart({ sources }: { sources: EmailSourcePerformance[] }) {
-  const maxCount = Math.max(...sources.map(s => s.subscriberCount), 1);
-  const sorted = [...sources].sort(
-    (a, b) => b.subscriberCount - a.subscriberCount,
-  );
+  const maxCount = Math.max(...sources.map((s) => s.subscriberCount), 1);
+  const sorted = [...sources].sort((a, b) => b.subscriberCount - a.subscriberCount);
 
   return (
     <div className="rounded-lg border bg-card p-5 space-y-3">
@@ -480,18 +485,15 @@ function SourcesChart({ sources }: { sources: EmailSourcePerformance[] }) {
         description="De dónde vienen los nuevos suscriptores y su tasa de conversión."
       />
       <div className="space-y-3 pt-1">
-        {sorted.map(source => {
-          const widthPct = Math.max(
-            (source.subscriberCount / maxCount) * 100,
-            5,
-          );
+        {sorted.map((source) => {
+          const widthPct = Math.max((source.subscriberCount / maxCount) * 100, 5);
 
           return (
             <div key={source.source} className="space-y-1">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-medium">{source.label}</span>
                 <span className="text-muted-foreground tabular-nums">
-                  {source.subscriberCount.toLocaleString('en-US')}{' '}
+                  {source.subscriberCount.toLocaleString("en-US")}{" "}
                   <span className="text-[10px]">({source.percentage.toFixed(0)}%)</span>
                 </span>
               </div>
@@ -517,7 +519,7 @@ function SourcesChart({ sources }: { sources: EmailSourcePerformance[] }) {
 
 function RetentionCurve({ retention }: { retention: EngagementDecay[] }) {
   // Map retention data to bar chart format
-  const barData = retention.map(r => ({
+  const barData = retention.map((r) => ({
     label: r.periodLabel,
     retained: r.openRate,
   }));
@@ -532,7 +534,7 @@ function RetentionCurve({ retention }: { retention: EngagementDecay[] }) {
       />
       <ChartContainer
         config={{
-          retained: { label: '% Retenidos', color: 'hsl(217, 91%, 60%)' },
+          retained: { label: "% Retenidos", color: "hsl(217, 91%, 60%)" },
         }}
         className="h-[200px] w-full"
       >
@@ -541,11 +543,7 @@ function RetentionCurve({ retention }: { retention: EngagementDecay[] }) {
           <XAxis dataKey="label" className="text-xs" />
           <YAxis className="text-xs" unit="%" />
           <RechartsTooltip />
-          <Bar
-            dataKey="retained"
-            fill="var(--color-retained)"
-            radius={[4, 4, 0, 0]}
-          />
+          <Bar dataKey="retained" fill="var(--color-retained)" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ChartContainer>
 
@@ -553,10 +551,9 @@ function RetentionCurve({ retention }: { retention: EngagementDecay[] }) {
       {retention.length >= 2 && (
         <div className="rounded-md border-l-[3px] border-blue-500 bg-muted/30 px-3 py-2">
           <p className="text-xs text-muted-foreground">
-            <span className="font-semibold text-blue-600">Retención:</span>{' '}
-            {retention[retention.length - 1].openRate.toFixed(0)}% de los
-            suscriptores siguen activos a los{' '}
-            {retention[retention.length - 1].periodLabel}.
+            <span className="font-semibold text-blue-600">Retención:</span>{" "}
+            {retention[retention.length - 1].openRate.toFixed(0)}% de los suscriptores siguen
+            activos a los {retention[retention.length - 1].periodLabel}.
           </p>
         </div>
       )}

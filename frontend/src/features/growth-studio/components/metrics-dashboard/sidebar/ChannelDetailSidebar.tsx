@@ -293,25 +293,7 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
                     </div>
                   )}
                   {/* Provider-specific details */}
-                  {Object.entries(info.details).map(([key, val]) => {
-                    if (!val || key === 'granted_permissions' || key === 'statistics') return null;
-                    if (typeof val === 'boolean') {
-                      return (
-                        <div key={key} className="flex justify-between">
-                          <span className="text-muted-foreground">{key.replace(/_/g, ' ')}</span>
-                          <Badge variant={val ? 'default' : 'secondary'} className="text-[10px]">
-                            {val ? 'Sí' : 'No'}
-                          </Badge>
-                        </div>
-                      );
-                    }
-                    return (
-                      <div key={key} className="flex justify-between">
-                        <span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}</span>
-                        <span className="font-mono text-xs">{String(val)}</span>
-                      </div>
-                    );
-                  })}
+                  <DetailsEntries details={info.details} />
                   {/* YouTube statistics */}
                   {info.details.statistics && typeof info.details.statistics === 'object' && (
                     <div className="mt-2 grid grid-cols-3 gap-2">

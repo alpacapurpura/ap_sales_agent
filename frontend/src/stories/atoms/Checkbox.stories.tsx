@@ -1,11 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 const meta = {
-  title: 'Atoms/Checkbox',
+  title: "Atoms/Checkbox",
   component: Checkbox,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof Checkbox>;
 
 export default meta;

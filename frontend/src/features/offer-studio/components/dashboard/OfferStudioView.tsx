@@ -22,7 +22,7 @@ export function OfferStudioView() {
   const [ladderData, setLadderData] = useState<LadderData | null>(null);
 
   const handleLadderComputed = useCallback((data: LadderData) => {
-    setLadderData(prev => {
+    setLadderData((prev) => {
       if (
         prev &&
         prev.percentage === data.percentage &&

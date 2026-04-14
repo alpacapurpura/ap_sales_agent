@@ -57,17 +57,34 @@ export function BrandStudioProvider({ children }: { children: ReactNode }) {
     setHasDismissedEmptyState(true);
   }, []);
 
-  const value = useMemo<BrandStudioContextType>(() => ({
-    editMode, selectedItem, openEdit, closeSheet,
-    isSmartFillOpen, smartFillMode, openSmartFill, closeSmartFill,
-    hasDismissedEmptyState, dismissEmptyState,
-  }), [editMode, selectedItem, openEdit, closeSheet, isSmartFillOpen, smartFillMode, openSmartFill, closeSmartFill, hasDismissedEmptyState, dismissEmptyState]);
-
-  return (
-    <BrandStudioContext.Provider value={value}>
-      {children}
-    </BrandStudioContext.Provider>
+  const value = useMemo<BrandStudioContextType>(
+    () => ({
+      editMode,
+      selectedItem,
+      openEdit,
+      closeSheet,
+      isSmartFillOpen,
+      smartFillMode,
+      openSmartFill,
+      closeSmartFill,
+      hasDismissedEmptyState,
+      dismissEmptyState,
+    }),
+    [
+      editMode,
+      selectedItem,
+      openEdit,
+      closeSheet,
+      isSmartFillOpen,
+      smartFillMode,
+      openSmartFill,
+      closeSmartFill,
+      hasDismissedEmptyState,
+      dismissEmptyState,
+    ],
   );
+
+  return <BrandStudioContext.Provider value={value}>{children}</BrandStudioContext.Provider>;
 }
 
 export function useBrandStudio() {

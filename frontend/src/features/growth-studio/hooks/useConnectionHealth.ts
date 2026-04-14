@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@clerk/nextjs';
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@clerk/nextjs";
 
-import { fetchClient } from '@/lib/http-client';
-import { config } from '@/lib/config';
+import { fetchClient } from "@/lib/http-client";
+import { config } from "@/lib/config";
 
 const API_URL = config.api.baseUrl;
 
 export interface ConnectionHealthData {
-  status: 'healthy' | 'expiring_soon' | 'expired' | 'not_connected';
+  status: "healthy" | "expiring_soon" | "expired" | "not_connected";
   channelSlug: string;
   expiresAt: string | null;
   message: string;
@@ -24,7 +24,7 @@ interface ConnectionHealthResponse {
 
 function mapResponse(raw: ConnectionHealthResponse): ConnectionHealthData {
   return {
-    status: raw.status as ConnectionHealthData['status'],
+    status: raw.status as ConnectionHealthData["status"],
     channelSlug: raw.channel_slug,
     expiresAt: raw.expires_at,
     message: raw.message,
@@ -46,18 +46,17 @@ export async function fetchConnectionHealth(
 
 export function useConnectionHealth(channelSlug: string, enabled = true) {
   const { getToken } = useAuth();
-  const tenantId =
-    typeof window !== 'undefined' ? localStorage.getItem('x-tenant-id') : null;
+  const tenantId = typeof window !== "undefined" ? localStorage.getItem("x-tenant-id") : null;
 
   return useQuery<ConnectionHealthData>({
-    queryKey: ['connection-health', tenantId, channelSlug],
+    queryKey: ["connection-health", tenantId, channelSlug],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return fetchConnectionHealth(token, channelSlug);
     },
     enabled,
-    staleTime: 5 * 60 * 1000,  // 5 minutes
-    gcTime: 30 * 60 * 1000,    // 30 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 }

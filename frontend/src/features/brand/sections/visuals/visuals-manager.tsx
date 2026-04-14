@@ -18,10 +18,6 @@ export function VisualsManager() {
   if (!settings) return null;
 
   return (
-    <VisualsForm
-      initialData={settings.visuals ?? {}}
-      onSave={updateVisuals}
-      isSaving={saving}
-    />
+    <VisualsForm initialData={settings.visuals ?? {}} onSave={updateVisuals} isSaving={saving} />
   );
 }

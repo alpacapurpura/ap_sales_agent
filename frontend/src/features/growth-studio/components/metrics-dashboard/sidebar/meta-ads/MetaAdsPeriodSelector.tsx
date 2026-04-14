@@ -1,1 +1,1 @@
-export { PeriodSelector as MetaAdsPeriodSelector } from '../shared/PeriodSelector';
+export { PeriodSelector as MetaAdsPeriodSelector } from "../shared/PeriodSelector";

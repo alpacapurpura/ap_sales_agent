@@ -1,21 +1,21 @@
-import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import React from "react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
 
 // ── Mocks ────────────────────────────────────────────────────────────────
-vi.mock('next/link', () => ({
+vi.mock("next/link", () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) =>
-    React.createElement('a', { href, 'data-testid': 'link' }, children),
+    React.createElement("a", { href, "data-testid": "link" }, children),
 }));
 
-vi.mock('next/navigation', () => ({
-  useParams: () => ({ tenantId: 'test-tenant' }),
+vi.mock("next/navigation", () => ({
+  useParams: () => ({ tenantId: "test-tenant" }),
 }));
 
 // ── Import after mocks ──────────────────────────────────────────────────
-import { ConnectionHealthBanner } from '../connection-health-banner';
+import { ConnectionHealthBanner } from "../connection-health-banner";
 
-describe('ConnectionHealthBanner', () => {
+describe("ConnectionHealthBanner", () => {
   it('renders nothing when status is "healthy"', () => {
     const { container } = render(
       <ConnectionHealthBanner
@@ -24,7 +24,7 @@ describe('ConnectionHealthBanner', () => {
         message="Conexión activa y saludable."
       />,
     );
-    expect(container.innerHTML).toBe('');
+    expect(container.innerHTML).toBe("");
   });
 
   it('renders yellow warning banner when status is "expiring_soon"', () => {
@@ -38,8 +38,8 @@ describe('ConnectionHealthBanner', () => {
     );
 
     expect(screen.getByText(/El token vence en 5 día\(s\)/)).toBeDefined();
-    const link = screen.getByRole('link');
-    expect(link.textContent).toContain('Reconectar');
+    const link = screen.getByRole("link");
+    expect(link.textContent).toContain("Reconectar");
   });
 
   it('renders red error banner when status is "expired"', () => {
@@ -52,8 +52,8 @@ describe('ConnectionHealthBanner', () => {
     );
 
     expect(screen.getByText(/El token ha expirado/)).toBeDefined();
-    const link = screen.getByRole('link');
-    expect(link.textContent).toContain('Reconectar');
+    const link = screen.getByRole("link");
+    expect(link.textContent).toContain("Reconectar");
   });
 
   it('renders blue info banner when status is "not_connected"', () => {
@@ -66,21 +66,21 @@ describe('ConnectionHealthBanner', () => {
     );
 
     expect(screen.getByText(/No hay conexión activa/)).toBeDefined();
-    const link = screen.getByRole('link');
-    expect(link.textContent).toContain('Conectar');
+    const link = screen.getByRole("link");
+    expect(link.textContent).toContain("Conectar");
   });
 
-  it('renders nothing for unknown/undefined status (defense-in-depth)', () => {
+  it("renders nothing for unknown/undefined status (defense-in-depth)", () => {
     // E2E mocks or future backend changes may produce unexpected status values.
     // The component must never crash — it should degrade to invisible.
     const { container: c1 } = render(
       <ConnectionHealthBanner
-        status={'unknown_value' as any}
+        status={"unknown_value" as any}
         channelSlug="meta-ads"
         message="Unexpected status"
       />,
     );
-    expect(c1.innerHTML).toBe('');
+    expect(c1.innerHTML).toBe("");
 
     const { container: c2 } = render(
       <ConnectionHealthBanner
@@ -89,10 +89,10 @@ describe('ConnectionHealthBanner', () => {
         message="Undefined status"
       />,
     );
-    expect(c2.innerHTML).toBe('');
+    expect(c2.innerHTML).toBe("");
   });
 
-  it('links to /connections page in all non-healthy cases', () => {
+  it("links to /connections page in all non-healthy cases", () => {
     const { unmount } = render(
       <ConnectionHealthBanner
         status="expired"
@@ -101,8 +101,8 @@ describe('ConnectionHealthBanner', () => {
       />,
     );
 
-    const link = screen.getByRole('link');
-    expect(link.getAttribute('href')).toContain('/connections');
+    const link = screen.getByRole("link");
+    expect(link.getAttribute("href")).toContain("/connections");
     unmount();
 
     render(
@@ -113,7 +113,7 @@ describe('ConnectionHealthBanner', () => {
       />,
     );
 
-    const link2 = screen.getByRole('link');
-    expect(link2.getAttribute('href')).toContain('/connections');
+    const link2 = screen.getByRole("link");
+    expect(link2.getAttribute("href")).toContain("/connections");
   });
 });

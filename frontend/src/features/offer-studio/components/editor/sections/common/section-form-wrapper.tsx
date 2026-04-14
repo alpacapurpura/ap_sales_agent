@@ -20,13 +20,13 @@ export function SectionFormWrapper<T extends FieldValues>({
   onSubmit,
   children,
   className,
-  submitLabel = "Guardar Cambios"
+  submitLabel = "Guardar Cambios",
 }: SectionFormWrapperProps<T>) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<T>({
     resolver: zodResolver(schema),
-    defaultValues
+    defaultValues,
   });
 
   const handleSubmit = async (values: T) => {
@@ -45,7 +45,7 @@ export function SectionFormWrapper<T extends FieldValues>({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           {children(form)}
-          
+
           <div className="flex justify-end pt-4 border-t">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

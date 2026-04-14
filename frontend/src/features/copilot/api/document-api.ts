@@ -14,23 +14,20 @@ export interface DocumentProcessingResponse {
 export async function processInterviewDocuments(
   sessionId: string,
   files: File[],
-  token: string
+  token: string,
 ): Promise<DocumentProcessingResponse> {
   const formData = new FormData();
   for (const file of files) {
     formData.append("files", file);
   }
 
-  const res = await fetchClient(
-    `${API_URL}/api/v1/copilot/interview/${sessionId}/documents`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    }
-  );
+  const res = await fetchClient(`${API_URL}/api/v1/copilot/interview/${sessionId}/documents`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
 
   if (!res.ok) {
     throw new Error(`Document processing failed: ${res.status}`);

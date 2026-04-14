@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useCallback } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useCallback } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
-const CHANNEL_PARAM = 'channel';
+const CHANNEL_PARAM = "channel";
 
 /**
  * Hook that syncs Growth Studio channel sidebar state with URL search params.

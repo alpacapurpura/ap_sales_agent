@@ -38,7 +38,7 @@ export function OAuthCallbackHandler({ provider = "auto" }: OAuthCallbackHandler
         ? OAUTH_MESSAGE_TYPES.META_ERROR
         : OAUTH_MESSAGE_TYPES.GOOGLE_ERROR;
       window.opener.postMessage({ type: messageType, error }, window.location.origin);
-       
+
       setStatus("error");
     }
 

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseIntersectionObserverOptions {
   /** Extra margin around root to pre-fetch before element is visible. Default: '0px' */
@@ -40,7 +40,7 @@ export function useIntersectionObserver(options?: UseIntersectionObserverOptions
         }
       },
       {
-        rootMargin: options?.rootMargin ?? '0px',
+        rootMargin: options?.rootMargin ?? "0px",
         threshold: options?.threshold ?? 0,
       },
     );

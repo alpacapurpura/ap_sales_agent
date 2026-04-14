@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { renderHook, act } from "@testing-library/react";
 
 // ── IntersectionObserver mock ──────────────────────────────────────────────────
 
@@ -11,14 +11,17 @@ const mockUnobserve = vi.fn();
 const mockDisconnect = vi.fn();
 
 class MockIntersectionObserver {
-  constructor(callback: IntersectionCallback, public options?: IntersectionObserverInit) {
+  constructor(
+    callback: IntersectionCallback,
+    public options?: IntersectionObserverInit,
+  ) {
     mockCallback = callback;
   }
   observe = mockObserve;
   unobserve = mockUnobserve;
   disconnect = mockDisconnect;
   root = null;
-  rootMargin = '';
+  rootMargin = "";
   thresholds: number[] = [];
   takeRecords = () => [] as IntersectionObserverEntry[];
 }
@@ -28,7 +31,8 @@ const OriginalIO = globalThis.IntersectionObserver;
 beforeEach(() => {
   mockCallback = null;
   vi.clearAllMocks();
-  globalThis.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver;
+  globalThis.IntersectionObserver =
+    MockIntersectionObserver as unknown as typeof IntersectionObserver;
 });
 
 afterEach(() => {
@@ -38,28 +42,28 @@ afterEach(() => {
 // ── Tests ──────────────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-let useIntersectionObserver: typeof import('../useIntersectionObserver').useIntersectionObserver;
+let useIntersectionObserver: typeof import("../useIntersectionObserver").useIntersectionObserver;
 
 beforeEach(async () => {
   // Re-import to pick up mock
-  const mod = await import('../useIntersectionObserver');
+  const mod = await import("../useIntersectionObserver");
   useIntersectionObserver = mod.useIntersectionObserver;
 });
 
-describe('useIntersectionObserver', () => {
-  it('returns isVisible=false initially', () => {
+describe("useIntersectionObserver", () => {
+  it("returns isVisible=false initially", () => {
     const { result } = renderHook(() => useIntersectionObserver());
     expect(result.current.isVisible).toBe(false);
   });
 
-  it('returns a ref callback', () => {
+  it("returns a ref callback", () => {
     const { result } = renderHook(() => useIntersectionObserver());
-    expect(typeof result.current.ref).toBe('function');
+    expect(typeof result.current.ref).toBe("function");
   });
 
-  it('observes the element when ref is attached', () => {
+  it("observes the element when ref is attached", () => {
     const { result } = renderHook(() => useIntersectionObserver());
-    const element = document.createElement('div');
+    const element = document.createElement("div");
 
     act(() => {
       result.current.ref(element);
@@ -68,9 +72,9 @@ describe('useIntersectionObserver', () => {
     expect(mockObserve).toHaveBeenCalledWith(element);
   });
 
-  it('returns isVisible=true when element enters viewport', () => {
+  it("returns isVisible=true when element enters viewport", () => {
     const { result } = renderHook(() => useIntersectionObserver());
-    const element = document.createElement('div');
+    const element = document.createElement("div");
 
     act(() => {
       result.current.ref(element);
@@ -83,9 +87,9 @@ describe('useIntersectionObserver', () => {
     expect(result.current.isVisible).toBe(true);
   });
 
-  it('stays visible once seen (no flicker on scroll out)', () => {
+  it("stays visible once seen (no flicker on scroll out)", () => {
     const { result } = renderHook(() => useIntersectionObserver());
-    const element = document.createElement('div');
+    const element = document.createElement("div");
 
     act(() => {
       result.current.ref(element);
@@ -103,7 +107,7 @@ describe('useIntersectionObserver', () => {
     expect(result.current.isVisible).toBe(true);
   });
 
-  it('disconnects on unmount', () => {
+  it("disconnects on unmount", () => {
     const { unmount } = renderHook(() => useIntersectionObserver());
     unmount();
     expect(mockDisconnect).toHaveBeenCalled();

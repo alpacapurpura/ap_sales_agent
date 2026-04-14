@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import {
   Sheet,
   SheetContent,
@@ -6,19 +6,19 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 const meta = {
-  title: 'Molecules/Sheet',
+  title: "Molecules/Sheet",
   component: Sheet,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof Sheet>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const SheetDemo = ({ side = 'right' }: { side?: 'top' | 'right' | 'bottom' | 'left' }) => (
+const SheetDemo = ({ side = "right" }: { side?: "top" | "right" | "bottom" | "left" }) => (
   <Sheet>
     <SheetTrigger asChild>
       <Button variant="outline">Open {side}</Button>
@@ -26,9 +26,7 @@ const SheetDemo = ({ side = 'right' }: { side?: 'top' | 'right' | 'bottom' | 'le
     <SheetContent side={side}>
       <SheetHeader>
         <SheetTitle>Sheet Title</SheetTitle>
-        <SheetDescription>
-          This is a sheet that slides in from the {side}.
-        </SheetDescription>
+        <SheetDescription>This is a sheet that slides in from the {side}.</SheetDescription>
       </SheetHeader>
       <div className="py-4">
         <p>Sheet content goes here.</p>

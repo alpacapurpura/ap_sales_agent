@@ -31,11 +31,7 @@ export function LandingKebabMenu({
   onUnpublish,
 }: LandingKebabMenuProps) {
   const openPuck = () => {
-    window.open(
-      `/${tenantId}/editor/${offerId}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    window.open(`/${tenantId}/editor/${offerId}`, "_blank", "noopener,noreferrer");
   };
 
   return (

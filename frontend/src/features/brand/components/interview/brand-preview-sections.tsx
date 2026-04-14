@@ -48,9 +48,7 @@ function PreviewSection({ activeTab }: { activeTab: BrandSectionId }) {
  * Renders tab bar + section view content. The active tab is synced
  * with the current interview block (via BLOCK_TO_TAB mapping).
  */
-export function BrandPreviewSections({
-  currentBlock,
-}: PreviewSectionsProps) {
+export function BrandPreviewSections({ currentBlock }: PreviewSectionsProps) {
   const { settings } = useBrandSettings();
   const previewData = useCopilotStore((s) => s.previewData);
 
@@ -85,11 +83,7 @@ export function BrandPreviewSections({
   return (
     <>
       {/* Tab bar for switching preview sections */}
-      <BrandStudioTabs
-        activeTab={activeTab}
-        onTabChange={setManualTab}
-        settings={mergedSettings}
-      />
+      <BrandStudioTabs activeTab={activeTab} onTabChange={setManualTab} settings={mergedSettings} />
 
       {/* Section preview content */}
       <div className="flex-1 overflow-hidden">

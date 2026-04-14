@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { createPortal } from 'react-dom';
-import { ArrowLeft, Globe, RefreshCw } from 'lucide-react';
-import { useRouter, useSearchParams, useParams } from 'next/navigation';
+import { useState, useCallback } from "react";
+import { createPortal } from "react-dom";
+import { ArrowLeft, Globe, RefreshCw } from "lucide-react";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
-import { useHashScroll } from '../../../../hooks/useHashScroll';
-import { useSyncChannel } from '../../../../hooks/useSyncChannel';
-import type { MetaAdsPeriod } from '../../../../types/metrics';
-import { PeriodSelector } from '../shared/PeriodSelector';
-import type { WebsiteDashboardTab, WebsiteData } from './types';
-import { WebsiteOverviewTab } from './tabs/WebsiteOverviewTab';
-import { WebsiteTrafficTab } from './tabs/WebsiteTrafficTab';
-import { WebsiteContentTab } from './tabs/WebsiteContentTab';
-import { WebsiteConversionsTab } from './tabs/WebsiteConversionsTab';
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
+import { useHashScroll } from "../../../../hooks/useHashScroll";
+import { useSyncChannel } from "../../../../hooks/useSyncChannel";
+import type { MetaAdsPeriod } from "../../../../types/metrics";
+import { PeriodSelector } from "../shared/PeriodSelector";
+import type { WebsiteDashboardTab, WebsiteData } from "./types";
+import { WebsiteOverviewTab } from "./tabs/WebsiteOverviewTab";
+import { WebsiteTrafficTab } from "./tabs/WebsiteTrafficTab";
+import { WebsiteContentTab } from "./tabs/WebsiteContentTab";
+import { WebsiteConversionsTab } from "./tabs/WebsiteConversionsTab";
 
 interface WebsiteDashboardProps {
   onClose?: () => void;
@@ -25,7 +25,7 @@ interface WebsiteDashboardProps {
   isRouteBased?: boolean;
 }
 
-const VALID_TABS: WebsiteDashboardTab[] = ['overview', 'trafico', 'contenido', 'conversiones'];
+const VALID_TABS: WebsiteDashboardTab[] = ["overview", "trafico", "contenido", "conversiones"];
 
 export function WebsiteDashboard({ onClose, initialTab, isRouteBased }: WebsiteDashboardProps) {
   const router = useRouter();
@@ -33,16 +33,16 @@ export function WebsiteDashboard({ onClose, initialTab, isRouteBased }: WebsiteD
   const searchParams = useSearchParams();
   const tenantId = params?.tenantId as string;
 
-  const tabFromUrl = searchParams?.get('tab') ?? initialTab ?? 'overview';
+  const tabFromUrl = searchParams?.get("tab") ?? initialTab ?? "overview";
   const [activeTab, setActiveTab] = useState<WebsiteDashboardTab>(
     VALID_TABS.includes(tabFromUrl as WebsiteDashboardTab)
       ? (tabFromUrl as WebsiteDashboardTab)
-      : 'overview',
+      : "overview",
   );
-  const periodFromUrl = (searchParams?.get('period') ?? '30d') as MetaAdsPeriod;
+  const periodFromUrl = (searchParams?.get("period") ?? "30d") as MetaAdsPeriod;
   const [period, setPeriod] = useState<MetaAdsPeriod>(periodFromUrl);
-  const { data, isLoading } = useChannelDashboard('website-total', period);
-  const { sync, isSyncing, cooldownMinutes } = useSyncChannel('website-total');
+  const { data, isLoading } = useChannelDashboard("website-total", period);
+  const { sync, isSyncing, cooldownMinutes } = useSyncChannel("website-total");
   useHashScroll();
 
   const websiteData = data as WebsiteData | undefined;
@@ -50,24 +50,24 @@ export function WebsiteDashboard({ onClose, initialTab, isRouteBased }: WebsiteD
   const handlePeriodChange = useCallback((p: MetaAdsPeriod) => {
     setPeriod(p);
     const url = new URL(window.location.href);
-    if (p === '30d') {
-      url.searchParams.delete('period');
+    if (p === "30d") {
+      url.searchParams.delete("period");
     } else {
-      url.searchParams.set('period', p);
+      url.searchParams.set("period", p);
     }
-    window.history.replaceState(null, '', url.toString());
+    window.history.replaceState(null, "", url.toString());
   }, []);
 
   const handleTabChange = useCallback((value: string) => {
     const tab = value as WebsiteDashboardTab;
     setActiveTab(tab);
     const url = new URL(window.location.href);
-    if (tab === 'overview') {
-      url.searchParams.delete('tab');
+    if (tab === "overview") {
+      url.searchParams.delete("tab");
     } else {
-      url.searchParams.set('tab', tab);
+      url.searchParams.set("tab", tab);
     }
-    window.history.replaceState(null, '', url.toString());
+    window.history.replaceState(null, "", url.toString());
   }, []);
 
   const handleBack = useCallback(() => {
@@ -82,8 +82,8 @@ export function WebsiteDashboard({ onClose, initialTab, isRouteBased }: WebsiteD
     <div
       className={
         isRouteBased
-          ? 'flex flex-col min-h-screen bg-background'
-          : 'fixed inset-0 z-50 flex flex-col bg-background'
+          ? "flex flex-col min-h-screen bg-background"
+          : "fixed inset-0 z-50 flex flex-col bg-background"
       }
     >
       <div className="flex items-center justify-between border-b px-6 py-3">
@@ -106,8 +106,8 @@ export function WebsiteDashboard({ onClose, initialTab, isRouteBased }: WebsiteD
             disabled={isSyncing || cooldownMinutes > 0}
             className="gap-1.5 text-xs"
           >
-            <RefreshCw className={cn('h-3 w-3', isSyncing && 'animate-spin')} />
-            {isSyncing ? 'Sincronizando…' : 'Sincronizar'}
+            <RefreshCw className={cn("h-3 w-3", isSyncing && "animate-spin")} />
+            {isSyncing ? "Sincronizando…" : "Sincronizar"}
           </Button>
         </div>
       </div>
@@ -145,6 +145,6 @@ export function WebsiteDashboard({ onClose, initialTab, isRouteBased }: WebsiteD
   );
 
   if (isRouteBased) return dashboardContent;
-  if (typeof document === 'undefined') return null;
+  if (typeof document === "undefined") return null;
   return createPortal(dashboardContent, document.body);
 }

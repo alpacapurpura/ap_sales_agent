@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils';
-import type { NoticeSeverity } from './types';
+import { cn } from "@/lib/utils";
+import type { NoticeSeverity } from "./types";
 
 interface TabBadgeProps {
   count: number;
@@ -21,22 +21,22 @@ export function TabBadge({ count, severity, className }: TabBadgeProps) {
 
   const color = (() => {
     switch (severity) {
-      case 'critical':
-        return 'bg-red-500/20 text-red-400 border-red-500/40';
-      case 'warning':
-        return 'bg-amber-500/20 text-amber-400 border-amber-500/40';
-      case 'info':
+      case "critical":
+        return "bg-red-500/20 text-red-400 border-red-500/40";
+      case "warning":
+        return "bg-amber-500/20 text-amber-400 border-amber-500/40";
+      case "info":
       default:
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/40';
+        return "bg-blue-500/20 text-blue-400 border-blue-500/40";
     }
   })();
 
-  const label = count > 9 ? '9+' : String(count);
+  const label = count > 9 ? "9+" : String(count);
 
   return (
     <span
       className={cn(
-        'ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full border px-1 text-[10px] font-semibold tabular-nums',
+        "ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full border px-1 text-[10px] font-semibold tabular-nums",
         color,
         className,
       )}

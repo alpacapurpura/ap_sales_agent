@@ -1,8 +1,8 @@
-import type { MetricValue } from '../types/metrics';
+import type { MetricValue } from "../types/metrics";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export type MetricFormat = 'number' | 'currency' | 'percentage' | 'duration';
+export type MetricFormat = "number" | "currency" | "percentage" | "duration";
 
 /** Specification of a metric for display in compact row or expanded grid. */
 export interface MetricDisplaySpec {
@@ -13,7 +13,7 @@ export interface MetricDisplaySpec {
   /** Format hint (auto-detected from unit if omitted). */
   format?: MetricFormat;
   /** Responsive visibility: 'always' (default) or 'sm' (hidden below 640px). */
-  responsive?: 'always' | 'sm';
+  responsive?: "always" | "sm";
 }
 
 /** Display configuration for a specific channel. */
@@ -23,7 +23,7 @@ export interface ChannelDisplayConfig {
   /** Primary metric for card view in ChannelGroup. */
   primaryMetric: { name: string; label: string };
   /** Layout hint: 'row' = inline pills (default), 'expanded' = grid. */
-  layout?: 'row' | 'expanded';
+  layout?: "row" | "expanded";
   /** Metrics for the expanded grid view (only when layout='expanded'). */
   expandedMetrics?: MetricDisplaySpec[];
 }
@@ -31,51 +31,51 @@ export interface ChannelDisplayConfig {
 // ─── Registry (single source of truth) ──────────────────────────────────────
 
 export const CHANNEL_DISPLAY_REGISTRY: Record<string, ChannelDisplayConfig> = {
-  'ig-organic': {
+  "ig-organic": {
     summaryMetrics: [
-      { name: 'ig_views', label: 'Vistas' },
-      { name: 'reach', label: 'Alcance' },
-      { name: 'total_interactions', label: 'Interacciones' },
-      { name: 'ig_followers_count', label: 'Seguidores' },
+      { name: "ig_views", label: "Vistas" },
+      { name: "reach", label: "Alcance" },
+      { name: "total_interactions", label: "Interacciones" },
+      { name: "ig_followers_count", label: "Seguidores" },
     ],
-    primaryMetric: { name: 'reach', label: 'alcance' },
+    primaryMetric: { name: "reach", label: "alcance" },
   },
-  'meta-ads': {
+  "meta-ads": {
     summaryMetrics: [
-      { name: 'impressions', label: 'Impresiones' },
-      { name: 'reach', label: 'Alcance' },
-      { name: 'spend', label: 'Inversión', format: 'currency' },
-      { name: 'cpc', label: 'CPC', format: 'currency', responsive: 'sm' },
-      { name: 'cpm', label: 'CPM', format: 'currency', responsive: 'sm' },
+      { name: "impressions", label: "Impresiones" },
+      { name: "reach", label: "Alcance" },
+      { name: "spend", label: "Inversión", format: "currency" },
+      { name: "cpc", label: "CPC", format: "currency", responsive: "sm" },
+      { name: "cpm", label: "CPM", format: "currency", responsive: "sm" },
     ],
-    primaryMetric: { name: 'impressions', label: 'impresiones' },
+    primaryMetric: { name: "impressions", label: "impresiones" },
   },
-  'yt-organic': {
+  "yt-organic": {
     summaryMetrics: [
-      { name: 'views', label: 'Vistas' },
-      { name: 'watch_time_minutes', label: 'Min. Vistos' },
-      { name: 'engagement', label: 'Engagement' },
-      { name: 'subscribers_gained', label: 'Suscriptores' },
+      { name: "views", label: "Vistas" },
+      { name: "watch_time_minutes", label: "Min. Vistos" },
+      { name: "engagement", label: "Engagement" },
+      { name: "subscribers_gained", label: "Suscriptores" },
     ],
-    primaryMetric: { name: 'views', label: 'vistas' },
+    primaryMetric: { name: "views", label: "vistas" },
   },
-  'email-nurture': {
+  "email-nurture": {
     summaryMetrics: [
-      { name: 'open_rate', label: 'Apertura', format: 'percentage' },
-      { name: 'click_to_open_rate', label: 'CTOR', format: 'percentage' },
-      { name: 'emails_sent', label: 'Enviados' },
-      { name: 'active_subscribers', label: 'Suscriptores' },
+      { name: "open_rate", label: "Apertura", format: "percentage" },
+      { name: "click_to_open_rate", label: "CTOR", format: "percentage" },
+      { name: "emails_sent", label: "Enviados" },
+      { name: "active_subscribers", label: "Suscriptores" },
     ],
-    primaryMetric: { name: 'open_rate', label: 'tasa de apertura' },
+    primaryMetric: { name: "open_rate", label: "tasa de apertura" },
   },
-  'website-total': {
+  "website-total": {
     summaryMetrics: [
-      { name: 'sessions', label: 'Sesiones' },
-      { name: 'engagementRate', label: 'Engagement', format: 'percentage' },
-      { name: 'bounceRate', label: 'Bounce', format: 'percentage' },
-      { name: 'conversions', label: 'Conversiones' },
+      { name: "sessions", label: "Sesiones" },
+      { name: "engagementRate", label: "Engagement", format: "percentage" },
+      { name: "bounceRate", label: "Bounce", format: "percentage" },
+      { name: "conversions", label: "Conversiones" },
     ],
-    primaryMetric: { name: 'sessions', label: 'sesiones' },
+    primaryMetric: { name: "sessions", label: "sesiones" },
   },
 };
 
@@ -93,13 +93,13 @@ export function getChannelConfig(slug: string): ChannelDisplayConfig | undefined
  */
 export function getSummaryMetrics(slug: string, allMetrics: MetricValue[]): MetricValue[] {
   const config = CHANNEL_DISPLAY_REGISTRY[slug];
-  const filtered = allMetrics.filter(m => m.name !== 'conversations');
+  const filtered = allMetrics.filter((m) => m.name !== "conversations");
 
   if (!config) return filtered;
 
-  const specNames = config.summaryMetrics.map(s => s.name);
+  const specNames = config.summaryMetrics.map((s) => s.name);
   return specNames
-    .map(name => filtered.find(m => m.name === name))
+    .map((name) => filtered.find((m) => m.name === name))
     .filter((m): m is MetricValue => m !== undefined);
 }
 
@@ -116,16 +116,16 @@ export function getPrimaryMetricSpec(
   if (config) return config.primaryMetric;
 
   switch (channelType) {
-    case 'paid':
-    case 'retargeting':
-      return { name: 'impressions', label: 'impresiones' };
-    case 'organic_social':
-    case 'organic':
-      return { name: 'reach', label: 'alcance' };
-    case 'outbound':
-      return { name: 'contacts', label: 'contactos' };
+    case "paid":
+    case "retargeting":
+      return { name: "impressions", label: "impresiones" };
+    case "organic_social":
+    case "organic":
+      return { name: "reach", label: "alcance" };
+    case "outbound":
+      return { name: "contacts", label: "contactos" };
     default:
-      return { name: 'leads', label: 'leads' };
+      return { name: "leads", label: "leads" };
   }
 }
 

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import type { StageId, StageSummary } from '../../../types/metrics';
-import type { StageSummaryKpi } from '../../../types/summary';
-import { STAGE_SUMMARIES } from '../../../api/stage-summaries-fallback';
-import { useBowtiesSummary } from '../../../hooks/useBowtiesSummary';
+import type { StageId, StageSummary } from "../../../types/metrics";
+import type { StageSummaryKpi } from "../../../types/summary";
+import { STAGE_SUMMARIES } from "../../../api/stage-summaries-fallback";
+import { useBowtiesSummary } from "../../../hooks/useBowtiesSummary";
 
 /**
  * Fetches the lightweight Bowtie summary (1 request) and composes the 5
@@ -38,43 +38,51 @@ export function useStageSummaries() {
     };
   }
 
-  const attraction = getKpi('attraction', baseSummaries[0]);
-  const capture = getKpi('capture', baseSummaries[1]);
-  const nurture = getKpi('nurture', baseSummaries[2]);
-  const opportunity = getKpi('opportunity', baseSummaries[3]);
-  const sales = getKpi('sales', baseSummaries[4]);
-  const adoption = getKpi('adoption', baseSummaries[5]);
-  const expansion = getKpi('expansion', baseSummaries[6]);
-  const evangelization = getKpi('evangelization', baseSummaries[7]);
+  const attraction = getKpi("attraction", baseSummaries[0]);
+  const capture = getKpi("capture", baseSummaries[1]);
+  const nurture = getKpi("nurture", baseSummaries[2]);
+  const opportunity = getKpi("opportunity", baseSummaries[3]);
+  const sales = getKpi("sales", baseSummaries[4]);
+  const adoption = getKpi("adoption", baseSummaries[5]);
+  const expansion = getKpi("expansion", baseSummaries[6]);
+  const evangelization = getKpi("evangelization", baseSummaries[7]);
 
   const enrichedSummaries: StageSummary[] = [
     {
-      id: 'ATRACCION_CAPTURA',
+      id: "ATRACCION_CAPTURA",
       order: 0,
-      label: 'Atraccion & Captura',
-      description: 'Etapa 1 y 2 - Trafico y visitantes convertidos a leads',
+      label: "Atraccion & Captura",
+      description: "Etapa 1 y 2 - Trafico y visitantes convertidos a leads",
       mainKpi: attraction.mainKpi,
-      secondaryKpi: { label: 'leads', value: capture.mainKpi.value, unit: capture.mainKpi.unit },
+      secondaryKpi: { label: "leads", value: capture.mainKpi.value, unit: capture.mainKpi.unit },
       hasDetail: true,
     },
     {
-      id: 'NUTRICION_OPORTUNIDAD',
+      id: "NUTRICION_OPORTUNIDAD",
       order: 1,
-      label: 'Nutricion & Oportunidad',
-      description: 'Etapa 3 y 4 - Calentamiento de leads y generacion de intenciones de compra',
+      label: "Nutricion & Oportunidad",
+      description: "Etapa 3 y 4 - Calentamiento de leads y generacion de intenciones de compra",
       mainKpi: nurture.mainKpi,
-      secondaryKpi: { label: 'SQLs', value: opportunity.mainKpi.value, unit: opportunity.mainKpi.unit },
+      secondaryKpi: {
+        label: "SQLs",
+        value: opportunity.mainKpi.value,
+        unit: opportunity.mainKpi.unit,
+      },
       hasDetail: true,
     },
     sales,
     adoption,
     {
-      id: 'EXPANSION_EVANGELIZACION',
+      id: "EXPANSION_EVANGELIZACION",
       order: 4,
-      label: 'Expansion & Evangelizacion',
-      description: 'Etapa 5 y 6 - Retencion, crecimiento de LTV y referidos',
+      label: "Expansion & Evangelizacion",
+      description: "Etapa 5 y 6 - Retencion, crecimiento de LTV y referidos",
       mainKpi: expansion.mainKpi,
-      secondaryKpi: { label: 'k-factor', value: evangelization.mainKpi.value, unit: evangelization.mainKpi.unit },
+      secondaryKpi: {
+        label: "k-factor",
+        value: evangelization.mainKpi.value,
+        unit: evangelization.mainKpi.unit,
+      },
       hasDetail: true,
     },
   ];

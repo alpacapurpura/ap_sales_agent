@@ -24,19 +24,25 @@ interface SectionNavRailProps {
   className?: string;
 }
 
-export function SectionNavRail({ title, subtitle, items, activeSection, onNavigate, className }: SectionNavRailProps) {
+export function SectionNavRail({
+  title,
+  subtitle,
+  items,
+  activeSection,
+  onNavigate,
+  className,
+}: SectionNavRailProps) {
   const [isHovered, setIsHovered] = useState(false);
 
-  const overallScore = items.length > 0
-    ? Math.round(items.reduce((a, i) => a + i.score, 0) / items.length)
-    : 0;
+  const overallScore =
+    items.length > 0 ? Math.round(items.reduce((a, i) => a + i.score, 0) / items.length) : 0;
 
   return (
     <div
       className={cn(
         "hidden md:flex flex-col h-full border-r bg-background transition-all duration-300 ease-in-out group overflow-hidden sticky top-0",
         isHovered ? "w-64 shadow-xl" : "w-16",
-        className
+        className,
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -55,7 +61,7 @@ export function SectionNavRail({ title, subtitle, items, activeSection, onNaviga
             <path
               className={cn(
                 "transition-all duration-1000 ease-out",
-                overallScore === 100 ? "text-green-500" : "text-primary"
+                overallScore === 100 ? "text-green-500" : "text-primary",
               )}
               strokeDasharray={`${overallScore}, 100`}
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -67,10 +73,12 @@ export function SectionNavRail({ title, subtitle, items, activeSection, onNaviga
           <span className="absolute text-[10px] font-bold">{overallScore}</span>
         </div>
 
-        <div className={cn(
-          "absolute left-16 right-0 px-4 transition-opacity duration-300",
-          isHovered ? "opacity-100 delay-100" : "opacity-0 pointer-events-none"
-        )}>
+        <div
+          className={cn(
+            "absolute left-16 right-0 px-4 transition-opacity duration-300",
+            isHovered ? "opacity-100 delay-100" : "opacity-0 pointer-events-none",
+          )}
+        >
           <p className="text-sm font-bold truncate">{title}</p>
           <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
         </div>
@@ -89,7 +97,9 @@ export function SectionNavRail({ title, subtitle, items, activeSection, onNaviga
               onClick={() => onNavigate(item.scrollTo)}
               className={cn(
                 "relative flex items-center h-10 w-full transition-all group/item px-4",
-                isActive ? "bg-primary/5 text-primary" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                isActive
+                  ? "bg-primary/5 text-primary"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
               )}
             >
               {isActive && (
@@ -97,24 +107,41 @@ export function SectionNavRail({ title, subtitle, items, activeSection, onNaviga
               )}
 
               <div className="relative shrink-0 flex items-center justify-center w-8 h-8">
-                <item.icon className={cn("h-4 w-4 transition-transform group-hover/item:scale-110", isActive && "text-primary")} />
-                <div className={cn(
-                  "absolute top-1 right-1 h-1.5 w-1.5 rounded-full border border-background ring-1 ring-background",
-                  isComplete ? "bg-green-500" : isEmpty ? "bg-muted-foreground/30" : "bg-amber-500"
-                )} />
+                <item.icon
+                  className={cn(
+                    "h-4 w-4 transition-transform group-hover/item:scale-110",
+                    isActive && "text-primary",
+                  )}
+                />
+                <div
+                  className={cn(
+                    "absolute top-1 right-1 h-1.5 w-1.5 rounded-full border border-background ring-1 ring-background",
+                    isComplete
+                      ? "bg-green-500"
+                      : isEmpty
+                        ? "bg-muted-foreground/30"
+                        : "bg-amber-500",
+                  )}
+                />
               </div>
 
-              <div className={cn(
-                "ml-4 flex-1 text-left transition-opacity duration-300 flex items-center justify-between",
-                isHovered ? "opacity-100 delay-75" : "opacity-0 w-0 overflow-hidden"
-              )}>
+              <div
+                className={cn(
+                  "ml-4 flex-1 text-left transition-opacity duration-300 flex items-center justify-between",
+                  isHovered ? "opacity-100 delay-75" : "opacity-0 w-0 overflow-hidden",
+                )}
+              >
                 <span className="font-medium text-sm whitespace-nowrap">{item.label}</span>
-                <span className={cn(
-                  "text-[10px] px-1.5 rounded-full shrink-0 ml-2 font-medium",
-                  isComplete ? "bg-green-100 text-green-700" :
-                  isEmpty ? "bg-muted text-muted-foreground" :
-                  "bg-amber-100 text-amber-700"
-                )}>
+                <span
+                  className={cn(
+                    "text-[10px] px-1.5 rounded-full shrink-0 ml-2 font-medium",
+                    isComplete
+                      ? "bg-green-100 text-green-700"
+                      : isEmpty
+                        ? "bg-muted text-muted-foreground"
+                        : "bg-amber-100 text-amber-700",
+                  )}
+                >
                   {item.score}%
                 </span>
               </div>
@@ -125,10 +152,12 @@ export function SectionNavRail({ title, subtitle, items, activeSection, onNaviga
 
       {/* FOOTER: Collapse Hint */}
       <div className="h-12 border-t flex items-center justify-center text-muted-foreground shrink-0">
-        <ChevronRight className={cn(
-          "h-4 w-4 transition-transform duration-300",
-          isHovered ? "rotate-180" : "rotate-0"
-        )} />
+        <ChevronRight
+          className={cn(
+            "h-4 w-4 transition-transform duration-300",
+            isHovered ? "rotate-180" : "rotate-0",
+          )}
+        />
       </div>
     </div>
   );

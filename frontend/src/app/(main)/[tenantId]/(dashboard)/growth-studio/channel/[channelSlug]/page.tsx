@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
-import { getStageForChannel } from '@/features/growth-studio/config/channel-stage-map';
+import { redirect } from "next/navigation";
+import { getStageForChannel } from "@/features/growth-studio/config/channel-stage-map";
 
 interface ChannelDashboardPageProps {
   params: Promise<{ tenantId: string; channelSlug: string }>;
@@ -11,10 +11,13 @@ interface ChannelDashboardPageProps {
  * /[tenantId]/growth-studio/channel/[channelSlug]
  *   -> /[tenantId]/growth-studio/[stageSlug]/[channelSlug]
  */
-export default async function ChannelDashboardPage({ params, searchParams }: ChannelDashboardPageProps) {
+export default async function ChannelDashboardPage({
+  params,
+  searchParams,
+}: ChannelDashboardPageProps) {
   const { tenantId, channelSlug } = await params;
   const { tab } = await searchParams;
   const stageSlug = getStageForChannel(channelSlug);
-  const tabQuery = tab ? `?tab=${encodeURIComponent(tab)}` : '';
+  const tabQuery = tab ? `?tab=${encodeURIComponent(tab)}` : "";
   redirect(`/${tenantId}/growth-studio/${stageSlug}/${channelSlug}${tabQuery}`);
 }

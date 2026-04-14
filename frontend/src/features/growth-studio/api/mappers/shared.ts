@@ -1,4 +1,4 @@
-import type { ChannelMetric, MetricValue } from '../../types/metrics';
+import type { ChannelMetric, MetricValue } from "../../types/metrics";
 
 export function mapMetric(raw: any): MetricValue {
   return {

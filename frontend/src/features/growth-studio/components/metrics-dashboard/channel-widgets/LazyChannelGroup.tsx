@@ -1,30 +1,35 @@
-'use client';
+"use client";
 
-import { memo, useMemo } from 'react';
-import type React from 'react';
-import type { LucideIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useIntersectionObserver } from '../../../hooks/useIntersectionObserver';
-import { useGroupDetail } from '../../../hooks/useGroupDetail';
-import { ChannelRow } from './ChannelRow';
-import { ChannelChip } from './ChannelChip';
-import { classifyChannel } from '../../../lib/classifyChannel';
-import type { ChannelOverview, ChannelMetric, MetricClickData, StageId } from '../../../types/metrics';
+import { memo, useMemo } from "react";
+import type React from "react";
+import type { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useIntersectionObserver } from "../../../hooks/useIntersectionObserver";
+import { useGroupDetail } from "../../../hooks/useGroupDetail";
+import { ChannelRow } from "./ChannelRow";
+import { ChannelChip } from "./ChannelChip";
+import { classifyChannel } from "../../../lib/classifyChannel";
+import type {
+  ChannelOverview,
+  ChannelMetric,
+  MetricClickData,
+  StageId,
+} from "../../../types/metrics";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion';
+} from "@/components/ui/accordion";
 
 const COLOR_MAP = {
   blue: {
-    headerIcon: 'text-blue-600',
-    headerBg: 'bg-blue-500/5',
+    headerIcon: "text-blue-600",
+    headerBg: "bg-blue-500/5",
   },
   violet: {
-    headerIcon: 'text-violet-600',
-    headerBg: 'bg-violet-500/5',
+    headerIcon: "text-violet-600",
+    headerBg: "bg-violet-500/5",
   },
 } as const;
 
@@ -74,7 +79,7 @@ export const LazyChannelGroup = memo(function LazyChannelGroup({
   overviewChannels,
   defaultOpen = true,
   stageId,
-  rootMargin = '200px',
+  rootMargin = "200px",
   headerIcon: HeaderIcon,
   baseColor,
   summary,
@@ -98,7 +103,9 @@ export const LazyChannelGroup = memo(function LazyChannelGroup({
       slug: ch.slug,
       name: ch.name,
       channelType: ch.channelType,
-      metrics: ch.headlineKpi ? [{ name: ch.headlineKpi.name, value: ch.headlineKpi.value, unit: ch.headlineKpi.unit }] : [],
+      metrics: ch.headlineKpi
+        ? [{ name: ch.headlineKpi.name, value: ch.headlineKpi.value, unit: ch.headlineKpi.unit }]
+        : [],
       sourceLabel: ch.name,
       connected: ch.connected,
       lastUpdated: ch.lastUpdated,
@@ -113,7 +120,7 @@ export const LazyChannelGroup = memo(function LazyChannelGroup({
     const chips: ChannelMetric[] = [];
     for (const ch of channels) {
       const cat = classifyChannel(ch);
-      if (cat === 'active' || cat === 'proximamente') {
+      if (cat === "active" || cat === "proximamente") {
         rows.push(ch);
       } else {
         chips.push(ch);
@@ -127,22 +134,24 @@ export const LazyChannelGroup = memo(function LazyChannelGroup({
   const colors = baseColor ? COLOR_MAP[baseColor] : null;
 
   return (
-    <div ref={ref as React.Ref<HTMLDivElement>} className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
+    <div
+      ref={ref as React.Ref<HTMLDivElement>}
+      className="bg-card rounded-lg border border-border shadow-sm overflow-hidden"
+    >
       <Accordion type="single" collapsible defaultValue={defaultOpen ? groupKey : undefined}>
         <AccordionItem value={groupKey} className="border-none">
-          <AccordionTrigger className={cn(
-            'hover:no-underline py-3 px-4 border-b border-border',
-            colors?.headerBg,
-          )}>
+          <AccordionTrigger
+            className={cn("hover:no-underline py-3 px-4 border-b border-border", colors?.headerBg)}
+          >
             <div className="flex items-center justify-between w-full pr-2">
               <span className="font-medium text-sm text-foreground/90 flex items-center">
-                {HeaderIcon && <HeaderIcon className={cn('w-4 h-4 mr-2', colors?.headerIcon)} />}
+                {HeaderIcon && <HeaderIcon className={cn("w-4 h-4 mr-2", colors?.headerIcon)} />}
                 {title}
               </span>
               <div className="flex gap-4 text-xs">
                 {summary && <span className="text-muted-foreground">{summary}</span>}
                 <span className="text-muted-foreground">
-                  ({channels.length} {channels.length === 1 ? 'canal' : 'canales'})
+                  ({channels.length} {channels.length === 1 ? "canal" : "canales"})
                 </span>
               </div>
             </div>
@@ -169,7 +178,7 @@ export const LazyChannelGroup = memo(function LazyChannelGroup({
                     <ChannelChip
                       key={ch.slug}
                       channel={ch}
-                      variant={ch.connected ? 'no-data' : 'disconnected'}
+                      variant={ch.connected ? "no-data" : "disconnected"}
                       onDisconnectedClick={onDisconnectedClick}
                       onNoDataClick={onNoDataClick}
                     />
@@ -183,4 +192,4 @@ export const LazyChannelGroup = memo(function LazyChannelGroup({
     </div>
   );
 });
-LazyChannelGroup.displayName = 'LazyChannelGroup';
+LazyChannelGroup.displayName = "LazyChannelGroup";

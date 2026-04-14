@@ -1,20 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import {
-  CheckCircle2,
-  ExternalLink,
-  Loader2,
-  Sparkles,
-  Wand2,
-} from "lucide-react";
+import { CheckCircle2, ExternalLink, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useLandingStatus } from "../../hooks/use-landing-status";
 import { GenerateLandingConfirmDialog } from "./generate-landing-confirm-dialog";
@@ -40,10 +29,7 @@ export interface LandingActionButtonProps {
  *                          amber accent and "Regenerar (recomendado)" at the
  *                          top of the kebab.
  */
-export function LandingActionButton({
-  offerId,
-  tenantId,
-}: LandingActionButtonProps) {
+export function LandingActionButton({ offerId, tenantId }: LandingActionButtonProps) {
   const {
     data: status,
     uiState,
@@ -77,12 +63,7 @@ export function LandingActionButton({
         <Tooltip>
           <TooltipTrigger asChild>
             <span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled
-                className="h-8 gap-1.5 opacity-60"
-              >
+              <Button variant="outline" size="sm" disabled className="h-8 gap-1.5 opacity-60">
                 <Wand2 className="h-3.5 w-3.5" />
                 Generar landing
                 <span className="ml-1 rounded bg-muted/60 px-1 text-[10px] font-bold">
@@ -174,8 +155,7 @@ export function LandingActionButton({
           <Tooltip>
             <TooltipTrigger asChild>{button}</TooltipTrigger>
             <TooltipContent>
-              Tu oferta cambió desde que generaste la landing. Regenerá para
-              sincronizarla.
+              Tu oferta cambió desde que generaste la landing. Regenerá para sincronizarla.
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

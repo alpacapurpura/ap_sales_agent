@@ -1,48 +1,60 @@
-"use client"
+"use client";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { BrandIcon } from "@/components/ui/brand-icons"
-import { Cable } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { type ProviderDefinition } from "@/features/connections/config/provider-registry"
-import { type ProviderStatus } from "@/features/connections/hooks/use-all-connections-status"
-import { NavLink } from "@/components/shared/navigation"
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { BrandIcon } from "@/components/ui/brand-icons";
+import { Cable } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { type ProviderDefinition } from "@/features/connections/config/provider-registry";
+import { type ProviderStatus } from "@/features/connections/hooks/use-all-connections-status";
+import { NavLink } from "@/components/shared/navigation";
 
 interface ConnectionCardProps {
-  provider: ProviderDefinition
-  status?: ProviderStatus
-  tenantId: string
+  provider: ProviderDefinition;
+  status?: ProviderStatus;
+  tenantId: string;
 }
 
 /** Known icon names that BrandIcon can render */
 const KNOWN_ICONS = new Set([
-  "facebook", "fb", "meta", "instagram", "ig", "whatsapp", "wa",
-  "youtube", "yt", "tiktok", "linkedin", "google", "ga4",
-  "manychat", "telegram", "shopify", "mailerlite",
-])
+  "facebook",
+  "fb",
+  "meta",
+  "instagram",
+  "ig",
+  "whatsapp",
+  "wa",
+  "youtube",
+  "yt",
+  "tiktok",
+  "linkedin",
+  "google",
+  "ga4",
+  "manychat",
+  "telegram",
+  "shopify",
+  "mailerlite",
+]);
 
 /** Renders BrandIcon with Cable fallback for unknown names */
 function ProviderIcon({ name, className }: { name: string; className?: string }) {
-  const normalized = name.toLowerCase()
-  const isKnown = Array.from(KNOWN_ICONS).some(
-    (k) => normalized.includes(k) || normalized === k
-  )
-  if (isKnown) return <BrandIcon name={name} className={className} />
-  return <Cable className={className} />
+  const normalized = name.toLowerCase();
+  const isKnown = Array.from(KNOWN_ICONS).some((k) => normalized.includes(k) || normalized === k);
+  if (isKnown) return <BrandIcon name={name} className={className} />;
+  return <Cable className={className} />;
 }
 
 export function ConnectionCard({ provider, status, tenantId }: ConnectionCardProps) {
-  const isConnected = status?.isConnected ?? false
-  const isComingSoon = provider.status === "coming_soon"
+  const isConnected = status?.isConnected ?? false;
+  const isComingSoon = provider.status === "coming_soon";
 
   const iconColorClass = isConnected
     ? "text-green-700 dark:text-green-400"
-    : "text-muted-foreground group-hover:text-primary"
+    : "text-muted-foreground group-hover:text-primary";
 
   const iconBgClass = isConnected
     ? "bg-green-100 dark:bg-green-900/30"
-    : "bg-muted group-hover:bg-primary/10"
+    : "bg-muted group-hover:bg-primary/10";
 
   if (isComingSoon) {
     return (
@@ -66,7 +78,7 @@ export function ConnectionCard({ provider, status, tenantId }: ConnectionCardPro
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -78,12 +90,17 @@ export function ConnectionCard({ provider, status, tenantId }: ConnectionCardPro
       <Card
         className={cn(
           "group relative overflow-hidden transition-all hover:shadow-md hover:border-primary/30 cursor-pointer",
-          isConnected && "border-green-500/30 bg-green-50/50 dark:bg-green-950/10"
+          isConnected && "border-green-500/30 bg-green-50/50 dark:bg-green-950/10",
         )}
       >
         <CardContent className="p-5">
           <div className="flex items-start gap-4">
-            <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", iconBgClass)}>
+            <div
+              className={cn(
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
+                iconBgClass,
+              )}
+            >
               <ProviderIcon name={provider.icon} className={cn("h-5 w-5", iconColorClass)} />
             </div>
             <div className="min-w-0 flex-1">
@@ -115,5 +132,5 @@ export function ConnectionCard({ provider, status, tenantId }: ConnectionCardPro
         </CardContent>
       </Card>
     </NavLink>
-  )
+  );
 }

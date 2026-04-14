@@ -1,38 +1,54 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Upload, FileText, CheckCircle, Loader2, MessageSquare } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useState } from "react";
+import { Upload, FileText, CheckCircle, Loader2, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+export interface VoiceAnalysisResult {
+  style_profile?: {
+    tone?: string;
+    signature_phrases?: string[];
+    response_structure?: string;
+  };
+  simulation_examples?: string[];
+}
 
 interface VoiceFormProps {
   onAnalyze: (text?: string, file?: File) => Promise<void>;
   onReset: () => void;
   loading: boolean;
   error?: string;
-  result?: any;
+  result?: VoiceAnalysisResult;
   step: "upload" | "result";
 }
 
 export function VoiceForm({ onAnalyze, onReset, loading, error, result, step }: VoiceFormProps) {
-  const [textInput, setTextInput] = useState("")
-  const [file, setFile] = useState<File | null>(null)
-  const [localError, setLocalError] = useState("")
+  const [textInput, setTextInput] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [localError, setLocalError] = useState("");
 
   const handleAnalyzeClick = () => {
     if (!textInput && !file) {
-      setLocalError("Por favor, proporciona texto o un archivo.")
-      return
+      setLocalError("Por favor, proporciona texto o un archivo.");
+      return;
     }
-    setLocalError("")
-    onAnalyze(textInput || undefined, file || undefined)
-  }
+    setLocalError("");
+    onAnalyze(textInput || undefined, file || undefined);
+  };
 
   return (
     <div className="space-y-6">
@@ -41,7 +57,8 @@ export function VoiceForm({ onAnalyze, onReset, loading, error, result, step }: 
           <CardHeader className="px-0 pt-0">
             <CardTitle>Clonación de Estilo</CardTitle>
             <CardDescription>
-              Sube tus mejores chats para que Visionaria aprenda a hablar exactamente como tú. Pega un historial de chat (WhatsApp/Email) o sube un archivo .txt exportado.
+              Sube tus mejores chats para que Visionaria aprenda a hablar exactamente como tú. Pega
+              un historial de chat (WhatsApp/Email) o sube un archivo .txt exportado.
             </CardDescription>
           </CardHeader>
           <CardContent className="px-0 space-y-6">
@@ -57,12 +74,12 @@ export function VoiceForm({ onAnalyze, onReset, loading, error, result, step }: 
                 <TabsTrigger value="paste">Pegar Texto</TabsTrigger>
                 <TabsTrigger value="file">Subir Archivo</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="paste" className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label>Historial de Chat</Label>
-                  <Textarea 
-                    placeholder="[10:00] Yo: Hola cliente... [10:01] Cliente: Hola..." 
+                  <Textarea
+                    placeholder="[10:00] Yo: Hola cliente... [10:01] Cliente: Hola..."
                     className="min-h-[200px] font-mono text-sm"
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
@@ -72,7 +89,7 @@ export function VoiceForm({ onAnalyze, onReset, loading, error, result, step }: 
                   </p>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="file" className="space-y-4 py-4">
                 <div className="flex items-center justify-center w-full">
                   <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
@@ -83,9 +100,9 @@ export function VoiceForm({ onAnalyze, onReset, loading, error, result, step }: 
                       </p>
                       <p className="text-xs text-muted-foreground">TXT, PDF (Max 5MB)</p>
                     </div>
-                    <Input 
-                      type="file" 
-                      className="hidden" 
+                    <Input
+                      type="file"
+                      className="hidden"
                       onChange={(e) => setFile(e.target.files?.[0] || null)}
                     />
                   </label>
@@ -101,7 +118,9 @@ export function VoiceForm({ onAnalyze, onReset, loading, error, result, step }: 
 
             <Button onClick={handleAnalyzeClick} disabled={loading} className="w-full">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? "Analizando (The Janitor -> Psychologist -> Architect)..." : "Analizar Estilo"}
+              {loading
+                ? "Analizando (The Janitor -> Psychologist -> Architect)..."
+                : "Analizar Estilo"}
             </Button>
           </CardContent>
         </Card>
@@ -129,16 +148,22 @@ export function VoiceForm({ onAnalyze, onReset, loading, error, result, step }: 
                   <p className="font-medium">{result.style_profile?.tone}</p>
                 </div>
                 <div>
-                  <Label className="text-xs uppercase text-muted-foreground">Muletillas (Signature Phrases)</Label>
+                  <Label className="text-xs uppercase text-muted-foreground">
+                    Muletillas (Signature Phrases)
+                  </Label>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {result.style_profile?.signature_phrases?.map((p: string, i: number) => (
-                      <Badge key={i} variant="secondary">{p}</Badge>
+                      <Badge key={i} variant="secondary">
+                        {p}
+                      </Badge>
                     ))}
                   </div>
                 </div>
                 <div>
                   <Label className="text-xs uppercase text-muted-foreground">Estructura</Label>
-                  <p className="text-sm text-muted-foreground">{result.style_profile?.response_structure}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {result.style_profile?.response_structure}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -163,12 +188,12 @@ export function VoiceForm({ onAnalyze, onReset, loading, error, result, step }: 
               </CardContent>
             </Card>
           </div>
-          
+
           <Button onClick={onReset} variant="outline" className="w-full">
             Volver a intentar
           </Button>
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -63,15 +63,19 @@ export function TierComparisonBuilder({ form }: TierComparisonBuilderProps) {
           <div className="text-center py-12 text-muted-foreground">
             <DollarSign className="w-10 h-10 mx-auto mb-3 opacity-20" />
             <p>No hay tiers definidos.</p>
-            <p className="text-xs">Agrega un tier para comenzar a construir tu tabla comparativa.</p>
+            <p className="text-xs">
+              Agrega un tier para comenzar a construir tu tabla comparativa.
+            </p>
           </div>
         ) : (
-          <div className={cn(
-            "grid gap-6",
-            fields.length === 1 && "grid-cols-1 max-w-md mx-auto",
-            fields.length === 2 && "grid-cols-1 md:grid-cols-2",
-            fields.length >= 3 && "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
-          )}>
+          <div
+            className={cn(
+              "grid gap-6",
+              fields.length === 1 && "grid-cols-1 max-w-md mx-auto",
+              fields.length === 2 && "grid-cols-1 md:grid-cols-2",
+              fields.length >= 3 && "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+            )}
+          >
             {fields.map((field, index) => {
               const isHighlighted = form.watch(`pricing_options.${index}.is_highlighted`);
               const benefits = form.watch(`pricing_options.${index}.benefits`) || [];
@@ -83,7 +87,7 @@ export function TierComparisonBuilder({ form }: TierComparisonBuilderProps) {
                     "relative rounded-xl border-2 p-5 space-y-4 transition-all",
                     isHighlighted
                       ? "border-primary bg-primary/5 shadow-md"
-                      : "border-border bg-background"
+                      : "border-border bg-background",
                   )}
                 >
                   {isHighlighted && (
@@ -133,7 +137,7 @@ export function TierComparisonBuilder({ form }: TierComparisonBuilderProps) {
                               type="number"
                               className="text-3xl font-black border-none p-0 h-auto focus-visible:ring-0 bg-transparent w-32"
                               {...f}
-                              onChange={e => f.onChange(e.target.valueAsNumber)}
+                              onChange={(e) => f.onChange(e.target.valueAsNumber)}
                             />
                           </FormControl>
                           <span className="text-sm text-muted-foreground">/ mes</span>
@@ -149,10 +153,7 @@ export function TierComparisonBuilder({ form }: TierComparisonBuilderProps) {
                     render={({ field: f }) => (
                       <FormItem className="flex items-center gap-2">
                         <FormControl>
-                          <Switch
-                            checked={f.value}
-                            onCheckedChange={f.onChange}
-                          />
+                          <Switch checked={f.value} onCheckedChange={f.onChange} />
                         </FormControl>
                         <FormLabel className="text-xs text-muted-foreground !mt-0">
                           Marcar como &ldquo;Mas Popular&rdquo;

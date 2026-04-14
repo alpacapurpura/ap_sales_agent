@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { BarChart3, CheckCircle2, Target } from 'lucide-react';
+import { useState } from "react";
+import { BarChart3, CheckCircle2, Target } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,10 +11,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { BestPracticesBlock } from './BestPracticesBlock';
+} from "@/components/ui/dialog";
+import { BestPracticesBlock } from "./BestPracticesBlock";
 
-const DISMISSED_KEY = 'meta-ads-onboarding-dismissed';
+const DISMISSED_KEY = "meta-ads-onboarding-dismissed";
 
 export interface OnboardingCampaign {
   externalId: string;
@@ -33,23 +33,23 @@ interface MetaAdsOnboardingModalProps {
 type Step = 1 | 2 | 3;
 
 function objectiveLabelEs(objective: string | null): string {
-  if (!objective) return '';
+  if (!objective) return "";
   const map: Record<string, string> = {
-    OUTCOME_SALES: 'Ventas',
-    OUTCOME_LEADS: 'Leads',
-    OUTCOME_ENGAGEMENT: 'Interacción',
-    OUTCOME_AWARENESS: 'Alcance',
-    OUTCOME_TRAFFIC: 'Tráfico',
-    OUTCOME_MESSAGES: 'Mensajes',
-    CONVERSIONS: 'Conversiones',
-    LINK_CLICKS: 'Clics',
+    OUTCOME_SALES: "Ventas",
+    OUTCOME_LEADS: "Leads",
+    OUTCOME_ENGAGEMENT: "Interacción",
+    OUTCOME_AWARENESS: "Alcance",
+    OUTCOME_TRAFFIC: "Tráfico",
+    OUTCOME_MESSAGES: "Mensajes",
+    CONVERSIONS: "Conversiones",
+    LINK_CLICKS: "Clics",
   };
-  return map[objective] ?? objective.replace(/^OUTCOME_/, '').replace(/_/g, ' ');
+  return map[objective] ?? objective.replace(/^OUTCOME_/, "").replace(/_/g, " ");
 }
 
 function persistDismiss() {
   try {
-    localStorage.setItem(DISMISSED_KEY, '1');
+    localStorage.setItem(DISMISSED_KEY, "1");
   } catch {
     /* noop */
   }
@@ -61,7 +61,7 @@ export function MetaAdsOnboardingModal(props: MetaAdsOnboardingModalProps) {
   return (
     <Dialog
       open={props.open}
-      onOpenChange={o => {
+      onOpenChange={(o) => {
         if (!o) {
           persistDismiss();
         }
@@ -105,9 +105,7 @@ function ModalBody({ onOpenChange, campaigns, onAssignNow }: ModalBodyProps) {
         <div className="py-2">
           <BestPracticesBlock />
           <div className="mt-4 rounded-md border bg-card p-3">
-            <p className="text-xs font-medium mb-2 text-muted-foreground">
-              Jerarquía de Meta:
-            </p>
+            <p className="text-xs font-medium mb-2 text-muted-foreground">Jerarquía de Meta:</p>
             <div className="flex flex-wrap items-center gap-1 text-[11px]">
               <span className="rounded bg-zinc-500/10 px-2 py-0.5">Cuenta</span>
               <span className="text-muted-foreground">›</span>
@@ -140,16 +138,14 @@ function ModalBody({ onOpenChange, campaigns, onAssignNow }: ModalBodyProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Target className="h-5 w-5 text-blue-500" aria-hidden="true" />
-            Detectamos {campaigns.length} campaña{campaigns.length === 1 ? '' : 's'} activa
-            {campaigns.length === 1 ? '' : 's'}
+            Detectamos {campaigns.length} campaña{campaigns.length === 1 ? "" : "s"} activa
+            {campaigns.length === 1 ? "" : "s"}
           </DialogTitle>
-          <DialogDescription>
-            ¿Vamos a asociarlas ahora con tus offers?
-          </DialogDescription>
+          <DialogDescription>¿Vamos a asociarlas ahora con tus offers?</DialogDescription>
         </DialogHeader>
         <div className="py-2 max-h-[240px] overflow-y-auto">
           <div className="space-y-1.5">
-            {campaigns.map(c => (
+            {campaigns.map((c) => (
               <div
                 key={c.externalId}
                 className="flex items-center justify-between gap-2 rounded-md border bg-card px-3 py-2"

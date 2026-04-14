@@ -21,9 +21,7 @@ export function ContactSidebar({ leadId }: ContactSidebarProps) {
 
   const leadData = detail.lead_data ?? {};
   const qa = detail.qualification_answers ?? {};
-  const currentStageIdx = LIFECYCLE_STAGES.indexOf(
-    (detail.pipeline_stage ?? "LEAD").toUpperCase(),
-  );
+  const currentStageIdx = LIFECYCLE_STAGES.indexOf((detail.pipeline_stage ?? "LEAD").toUpperCase());
 
   return (
     <div className="p-4 space-y-5">
@@ -40,7 +38,12 @@ export function ContactSidebar({ leadId }: ContactSidebarProps) {
             )}
           </div>
         </div>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSidebarOpen(false)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() => setSidebarOpen(false)}
+        >
           <X className="h-4 w-4" />
         </Button>
       </div>

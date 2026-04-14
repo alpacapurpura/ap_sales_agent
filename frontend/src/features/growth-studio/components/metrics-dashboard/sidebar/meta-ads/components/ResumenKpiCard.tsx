@@ -1,18 +1,14 @@
-'use client';
+"use client";
 
-import { HelpCircle, Info, TrendingDown, TrendingUp } from 'lucide-react';
+import { HelpCircle, Info, TrendingDown, TrendingUp } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { formatMoney } from '@/lib/format-money';
-import { cn } from '@/lib/utils';
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatMoney } from "@/lib/format-money";
+import { cn } from "@/lib/utils";
 
-import { RESUMEN_TOOLTIPS } from '../copy/tooltips';
-import type { ResumenKpiCard as ResumenKpiCardData } from '../hooks/useResumenViewData';
+import { RESUMEN_TOOLTIPS } from "../copy/tooltips";
+import type { ResumenKpiCard as ResumenKpiCardData } from "../hooks/useResumenViewData";
 
 interface ResumenKpiCardProps {
   card: ResumenKpiCardData;
@@ -24,26 +20,26 @@ interface ResumenKpiCardProps {
 // ---------------------------------------------------------------------------
 
 function formatCardValue(card: ResumenKpiCardData): string {
-  if (card.kind === 'unavailable' || card.value == null) return '—';
+  if (card.kind === "unavailable" || card.value == null) return "—";
   const { value, unit, currency } = card;
-  if (unit === 'currency') return formatMoney(value, currency);
-  if (unit === 'percentage') return `${value.toFixed(2)}%`;
-  if (unit === 'ratio') return `${value.toFixed(2)}x`;
+  if (unit === "currency") return formatMoney(value, currency);
+  if (unit === "percentage") return `${value.toFixed(2)}%`;
+  if (unit === "ratio") return `${value.toFixed(2)}x`;
   if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
-  return value.toLocaleString('es');
+  return value.toLocaleString("es");
 }
 
 function ariaValueFor(card: ResumenKpiCardData): string {
-  if (card.kind === 'unavailable' || card.value == null) return 'no disponible';
+  if (card.kind === "unavailable" || card.value == null) return "no disponible";
   switch (card.unit) {
-    case 'currency':
+    case "currency":
       return `${card.value} ${card.currency}`;
-    case 'percentage':
+    case "percentage":
       return `${card.value} por ciento`;
-    case 'ratio':
+    case "ratio":
       return `${card.value} veces`;
     default:
-      return card.value.toLocaleString('es');
+      return card.value.toLocaleString("es");
   }
 }
 
@@ -53,7 +49,7 @@ function ariaValueFor(card: ResumenKpiCardData): string {
 
 export function ResumenKpiCard({ card, onCtaClick }: ResumenKpiCardProps) {
   // ── CTA variant ─────────────────────────────────────────────────────────
-  if (card.kind === 'cta') {
+  if (card.kind === "cta") {
     return (
       <div
         role="group"
@@ -85,7 +81,7 @@ export function ResumenKpiCard({ card, onCtaClick }: ResumenKpiCardProps) {
     ? RESUMEN_TOOLTIPS[card.unavailableTooltipKey]
     : null;
 
-  const isUnavailable = card.kind === 'unavailable';
+  const isUnavailable = card.kind === "unavailable";
   const deltaPct = card.deltaPct;
   const showDelta = !isUnavailable && deltaPct != null;
 
@@ -94,29 +90,27 @@ export function ResumenKpiCard({ card, onCtaClick }: ResumenKpiCardProps) {
   //   higherIsBetter = false → positive delta is bad  (red),     negative good (emerald)
   //   higherIsBetter = null  → neutral muted color regardless of sign
   const deltaToneClass = ((): string => {
-    if (!showDelta || deltaPct == null) return 'text-muted-foreground';
-    if (card.higherIsBetter == null) return 'text-muted-foreground';
+    if (!showDelta || deltaPct == null) return "text-muted-foreground";
+    if (card.higherIsBetter == null) return "text-muted-foreground";
     const isGood = card.higherIsBetter ? deltaPct >= 0 : deltaPct <= 0;
-    return isGood ? 'text-emerald-600 dark:text-emerald-500' : 'text-red-600 dark:text-red-500';
+    return isGood ? "text-emerald-600 dark:text-emerald-500" : "text-red-600 dark:text-red-500";
   })();
 
   // Aria-label — always includes label, spoken value, delta sentence (when
   // present), and the tooltip body so screen-reader users get the same
   // context a hover user gets.
   const ariaTooltipText = [
-    tooltip ? `${tooltip.title}. ${tooltip.body}` : '',
-    unavailableTooltip ? `${unavailableTooltip.title}. ${unavailableTooltip.body}` : '',
+    tooltip ? `${tooltip.title}. ${tooltip.body}` : "",
+    unavailableTooltip ? `${unavailableTooltip.title}. ${unavailableTooltip.body}` : "",
   ]
     .filter(Boolean)
-    .join(' ');
+    .join(" ");
 
   const ariaLabel = isUnavailable
-    ? `${card.label}: dato no disponible.${ariaTooltipText ? ` ${ariaTooltipText}` : ''}`
+    ? `${card.label}: dato no disponible.${ariaTooltipText ? ` ${ariaTooltipText}` : ""}`
     : `${card.label}: ${ariaValueFor(card)}${
-        showDelta && deltaPct != null
-          ? `, variación ${deltaPct}% respecto al período anterior`
-          : ''
-      }.${ariaTooltipText ? ` ${ariaTooltipText}` : ''}`;
+        showDelta && deltaPct != null ? `, variación ${deltaPct}% respecto al período anterior` : ""
+      }.${ariaTooltipText ? ` ${ariaTooltipText}` : ""}`;
 
   return (
     <Tooltip>
@@ -127,9 +121,9 @@ export function ResumenKpiCard({ card, onCtaClick }: ResumenKpiCardProps) {
           aria-label={ariaLabel}
           data-testid={`kpi-card-${card.key}`}
           className={cn(
-            'rounded-lg border bg-card p-3 space-y-1 relative group min-h-[92px]',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-            isUnavailable && 'bg-muted/30',
+            "rounded-lg border bg-card p-3 space-y-1 relative group min-h-[92px]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+            isUnavailable && "bg-muted/30",
           )}
         >
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
@@ -143,8 +137,8 @@ export function ResumenKpiCard({ card, onCtaClick }: ResumenKpiCardProps) {
           <div className="flex items-center gap-1.5">
             <p
               className={cn(
-                'text-xl font-bold tabular-nums leading-none',
-                isUnavailable ? 'text-muted-foreground/60' : 'text-foreground',
+                "text-xl font-bold tabular-nums leading-none",
+                isUnavailable ? "text-muted-foreground/60" : "text-foreground",
               )}
             >
               {formatCardValue(card)}
@@ -161,7 +155,7 @@ export function ResumenKpiCard({ card, onCtaClick }: ResumenKpiCardProps) {
           {showDelta && deltaPct != null && (
             <span
               className={cn(
-                'inline-flex items-center gap-0.5 text-[10px] font-medium',
+                "inline-flex items-center gap-0.5 text-[10px] font-medium",
                 deltaToneClass,
               )}
             >
@@ -179,9 +173,7 @@ export function ResumenKpiCard({ card, onCtaClick }: ResumenKpiCardProps) {
         {tooltip && (
           <div className="space-y-1">
             <p className="font-semibold text-xs">{tooltip.title}</p>
-            <p className="text-[11px] text-muted-foreground leading-snug">
-              {tooltip.body}
-            </p>
+            <p className="text-[11px] text-muted-foreground leading-snug">{tooltip.body}</p>
           </div>
         )}
         {unavailableTooltip && (

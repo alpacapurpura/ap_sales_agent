@@ -1,36 +1,31 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ImprovementNotesPanel } from '../ImprovementNotesPanel';
-import type { ImprovementNotice } from '../types';
+import { ImprovementNotesPanel } from "../ImprovementNotesPanel";
+import type { ImprovementNotice } from "../types";
 
-function makeNotice(
-  overrides: Partial<ImprovementNotice> = {},
-): ImprovementNotice {
+function makeNotice(overrides: Partial<ImprovementNotice> = {}): ImprovementNotice {
   return {
-    id: 'meta:CAMPAIGN_BUDGET_LEARNINGS:c1',
-    category: 'campaign',
-    severity: 'warning',
-    title: 'Tu campaña está aprendiendo',
-    body: 'Evita cambios grandes en presupuesto.',
-    contextLabel: 'Campaña: Ventas PRO',
-    targetExternalId: 'c1',
+    id: "meta:CAMPAIGN_BUDGET_LEARNINGS:c1",
+    category: "campaign",
+    severity: "warning",
+    title: "Tu campaña está aprendiendo",
+    body: "Evita cambios grandes en presupuesto.",
+    contextLabel: "Campaña: Ventas PRO",
+    targetExternalId: "c1",
     ...overrides,
   };
 }
 
-describe('ImprovementNotesPanel', () => {
+describe("ImprovementNotesPanel", () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  it('renders nothing when there are no notices', () => {
+  it("renders nothing when there are no notices", () => {
     const { container } = render(
-      <ImprovementNotesPanel
-        notices={[]}
-        severity={{ critical: 0, warning: 0, info: 0 }}
-      />,
+      <ImprovementNotesPanel notices={[]} severity={{ critical: 0, warning: 0, info: 0 }} />,
     );
     expect(container.firstChild).toBeNull();
   });
@@ -43,35 +38,26 @@ describe('ImprovementNotesPanel', () => {
       />,
     );
 
-    expect(
-      screen.getByText(/Tienes 1 cosa por mejorar/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Tienes 1 cosa por mejorar/i)).toBeInTheDocument();
     // Notice body should NOT be in the DOM — panel starts collapsed.
-    expect(
-      screen.queryByText('Evita cambios grandes en presupuesto.'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Evita cambios grandes en presupuesto.")).not.toBeInTheDocument();
   });
 
-  it('uses plural form when there are multiple notices', () => {
+  it("uses plural form when there are multiple notices", () => {
     render(
       <ImprovementNotesPanel
-        notices={[
-          makeNotice({ id: '1' }),
-          makeNotice({ id: '2', severity: 'critical' }),
-        ]}
+        notices={[makeNotice({ id: "1" }), makeNotice({ id: "2", severity: "critical" })]}
         severity={{ critical: 1, warning: 1, info: 0 }}
       />,
     );
 
-    expect(
-      screen.getByText(/Tienes 2 cosas por mejorar/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Tienes 2 cosas por mejorar/i)).toBeInTheDocument();
   });
 
-  it('shows a severity breakdown in the header', () => {
+  it("shows a severity breakdown in the header", () => {
     render(
       <ImprovementNotesPanel
-        notices={[makeNotice({ severity: 'critical' }), makeNotice({ id: '2' })]}
+        notices={[makeNotice({ severity: "critical" }), makeNotice({ id: "2" })]}
         severity={{ critical: 1, warning: 1, info: 0 }}
       />,
     );
@@ -81,7 +67,7 @@ describe('ImprovementNotesPanel', () => {
     expect(screen.getByText(/1 advertencia/i)).toBeInTheDocument();
   });
 
-  it('expands on header click and reveals the notice cards', () => {
+  it("expands on header click and reveals the notice cards", () => {
     render(
       <ImprovementNotesPanel
         notices={[makeNotice()]}
@@ -89,14 +75,12 @@ describe('ImprovementNotesPanel', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /ver detalle|ocultar detalle/i }));
+    fireEvent.click(screen.getByRole("button", { name: /ver detalle|ocultar detalle/i }));
 
-    expect(
-      screen.getByText('Evita cambios grandes en presupuesto.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Evita cambios grandes en presupuesto.")).toBeInTheDocument();
   });
 
-  it('respects forceOpen prop (expanded on first render)', () => {
+  it("respects forceOpen prop (expanded on first render)", () => {
     render(
       <ImprovementNotesPanel
         notices={[makeNotice()]}
@@ -106,30 +90,28 @@ describe('ImprovementNotesPanel', () => {
     );
 
     // Body should be visible without needing to click.
-    expect(
-      screen.getByText('Evita cambios grandes en presupuesto.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Evita cambios grandes en presupuesto.")).toBeInTheDocument();
   });
 
-  it('calls onIgnore when the ignore button is clicked on a notice', () => {
+  it("calls onIgnore when the ignore button is clicked on a notice", () => {
     const onIgnore = vi.fn();
     render(
       <ImprovementNotesPanel
-        notices={[makeNotice({ id: 'notice-1' })]}
+        notices={[makeNotice({ id: "notice-1" })]}
         severity={{ critical: 0, warning: 1, info: 0 }}
         forceOpen
         onIgnore={onIgnore}
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Ignorar/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Ignorar/i }));
 
-    expect(onIgnore).toHaveBeenCalledWith('notice-1');
+    expect(onIgnore).toHaveBeenCalledWith("notice-1");
   });
 
-  it('calls onNoticeClick when the notice body is clicked', () => {
+  it("calls onNoticeClick when the notice body is clicked", () => {
     const onNoticeClick = vi.fn();
-    const notice = makeNotice({ id: 'notice-1' });
+    const notice = makeNotice({ id: "notice-1" });
     render(
       <ImprovementNotesPanel
         notices={[notice]}
@@ -139,19 +121,19 @@ describe('ImprovementNotesPanel', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Ver en detalle/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Ver en detalle/i }));
 
     expect(onNoticeClick).toHaveBeenCalledWith(notice);
   });
 
-  it('uses critical styling when any notice is critical', () => {
+  it("uses critical styling when any notice is critical", () => {
     const { container } = render(
       <ImprovementNotesPanel
-        notices={[makeNotice({ severity: 'critical' })]}
+        notices={[makeNotice({ severity: "critical" })]}
         severity={{ critical: 1, warning: 0, info: 0 }}
       />,
     );
     // Red border class indicates critical styling.
-    expect(container.querySelector('.border-red-500\\/40, .border-red-500\\/30')).toBeTruthy();
+    expect(container.querySelector(".border-red-500\\/40, .border-red-500\\/30")).toBeTruthy();
   });
 });

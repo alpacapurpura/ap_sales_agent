@@ -7,7 +7,7 @@ import { InstructorsSelector } from "./instructors-selector";
 import { KeyFigure } from "@/features/brand/types";
 
 const InstructorsSchema = OfferSchema.pick({
-  instructors: true
+  instructors: true,
 });
 
 type InstructorsFormValues = Pick<OfferFormValues, "instructors">;
@@ -20,20 +20,35 @@ export interface InstructorsFormProps {
   onRefresh?: () => void;
 }
 
-function InstructorsContent({ form, availableInstructors, onRefresh }: { form: UseFormReturn<OfferFormValues>, availableInstructors: KeyFigure[], onRefresh?: () => void }) {
+function InstructorsContent({
+  form,
+  availableInstructors,
+  onRefresh,
+}: {
+  form: UseFormReturn<OfferFormValues>;
+  availableInstructors: KeyFigure[];
+  onRefresh?: () => void;
+}) {
   return (
-    <InstructorsSelector 
+    <InstructorsSelector
       selectedInstructorIds={(form.watch("instructors") || []) as string[]}
-      onUpdate={(ids) => form.setValue("instructors", ids, { shouldDirty: true, shouldValidate: true })}
+      onUpdate={(ids) =>
+        form.setValue("instructors", ids, { shouldDirty: true, shouldValidate: true })
+      }
       availableInstructors={availableInstructors}
       onRefresh={onRefresh}
     />
   );
 }
 
-export function InstructorsForm({ defaultValues: propValues, onSave, availableInstructors, onRefresh }: InstructorsFormProps) {
+export function InstructorsForm({
+  defaultValues: propValues,
+  onSave,
+  availableInstructors,
+  onRefresh,
+}: InstructorsFormProps) {
   const defaultValues: InstructorsFormValues = {
-    instructors: propValues?.instructors || []
+    instructors: propValues?.instructors || [],
   };
 
   const handleSave = async (data: InstructorsFormValues) => {
@@ -47,10 +62,10 @@ export function InstructorsForm({ defaultValues: propValues, onSave, availableIn
       onSubmit={handleSave}
     >
       {(form) => (
-        <InstructorsContent 
-            form={form as unknown as UseFormReturn<OfferFormValues>} 
-            availableInstructors={availableInstructors}
-            onRefresh={onRefresh}
+        <InstructorsContent
+          form={form as unknown as UseFormReturn<OfferFormValues>}
+          availableInstructors={availableInstructors}
+          onRefresh={onRefresh}
         />
       )}
     </SectionFormWrapper>

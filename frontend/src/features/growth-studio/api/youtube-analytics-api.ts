@@ -1,11 +1,11 @@
-import { fetchClient } from '@/lib/http-client';
-import { config } from '@/lib/config';
+import { fetchClient } from "@/lib/http-client";
+import { config } from "@/lib/config";
 import type {
   YouTubeTopVideo,
   YouTubeTrafficSource,
   YouTubeDemographic,
   YouTubeCountry,
-} from '../types/metrics';
+} from "../types/metrics";
 
 const API_URL = config.api.baseUrl;
 
@@ -15,7 +15,7 @@ function buildUrl(path: string, params: Record<string, string | number | undefin
     if (v !== undefined) qs.set(k, String(v));
   }
   const query = qs.toString();
-  return `${API_URL}/api/v1/connections/youtube-analytics/${path}${query ? `?${query}` : ''}`;
+  return `${API_URL}/api/v1/connections/youtube-analytics/${path}${query ? `?${query}` : ""}`;
 }
 
 export async function getYoutubeTopVideosEnriched(
@@ -24,7 +24,11 @@ export async function getYoutubeTopVideosEnriched(
   endDate?: string,
   maxResults?: number,
 ): Promise<YouTubeTopVideo[]> {
-  const url = buildUrl('top-videos-enriched', { start_date: startDate, end_date: endDate, max_results: maxResults });
+  const url = buildUrl("top-videos-enriched", {
+    start_date: startDate,
+    end_date: endDate,
+    max_results: maxResults,
+  });
   const res = await fetchClient(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -49,7 +53,7 @@ export async function getYoutubeTrafficSources(
   startDate?: string,
   endDate?: string,
 ): Promise<YouTubeTrafficSource[]> {
-  const url = buildUrl('traffic-sources', { start_date: startDate, end_date: endDate });
+  const url = buildUrl("traffic-sources", { start_date: startDate, end_date: endDate });
   const res = await fetchClient(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -67,7 +71,7 @@ export async function getYoutubeDemographics(
   startDate?: string,
   endDate?: string,
 ): Promise<YouTubeDemographic[]> {
-  const url = buildUrl('demographics', { start_date: startDate, end_date: endDate });
+  const url = buildUrl("demographics", { start_date: startDate, end_date: endDate });
   const res = await fetchClient(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -86,7 +90,11 @@ export async function getYoutubeCountries(
   endDate?: string,
   maxResults?: number,
 ): Promise<YouTubeCountry[]> {
-  const url = buildUrl('countries', { start_date: startDate, end_date: endDate, max_results: maxResults });
+  const url = buildUrl("countries", {
+    start_date: startDate,
+    end_date: endDate,
+    max_results: maxResults,
+  });
   const res = await fetchClient(url, {
     headers: { Authorization: `Bearer ${token}` },
   });

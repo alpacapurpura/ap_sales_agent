@@ -1,18 +1,25 @@
-import { fetchClient } from '@/lib/http-client';
-import { config } from '@/lib/config';
+import { fetchClient } from "@/lib/http-client";
+import { config } from "@/lib/config";
 
 const API_URL = config.api.baseUrl;
 
-export async function triggerInitialLoad(token: string, provider: string, days: number = 30): Promise<{
+export async function triggerInitialLoad(
+  token: string,
+  provider: string,
+  days: number = 30,
+): Promise<{
   status: string;
   total_days: number;
   loaded_days: number;
   skipped_days: number;
 }> {
-  const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/${provider}/initial-load?days=${days}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const res = await fetchClient(
+    `${API_URL}/api/v1/analytics/metrics/${provider}/initial-load?days=${days}`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
   if (!res.ok) {
     const errData = await res.json().catch(() => ({}));
     throw new Error(errData.detail || `Initial load failed (${res.status})`);
@@ -20,15 +27,21 @@ export async function triggerInitialLoad(token: string, provider: string, days: 
   return res.json();
 }
 
-export async function getInitialLoadStatus(token: string, provider: string): Promise<{
+export async function getInitialLoadStatus(
+  token: string,
+  provider: string,
+): Promise<{
   status: string;
   total_days?: number;
   completed_days?: number;
 }> {
-  const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/${provider}/initial-load/status`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) return { status: 'idle' };
+  const res = await fetchClient(
+    `${API_URL}/api/v1/analytics/metrics/${provider}/initial-load/status`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+  if (!res.ok) return { status: "idle" };
   return res.json();
 }
 
@@ -36,7 +49,7 @@ export async function getInitialLoadStatus(token: string, provider: string): Pro
 
 export interface SyncProviderResult {
   provider: string;
-  status: 'ok' | 'skipped_cooldown' | 'failed';
+  status: "ok" | "skipped_cooldown" | "failed";
   loaded?: number;
   skipped?: number;
   total?: number;
@@ -59,7 +72,7 @@ export async function triggerSyncAll(token: string, days: number = 30): Promise<
   const timeout = setTimeout(() => controller.abort(), 120_000);
   try {
     const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/sync?days=${days}`, {
-      method: 'POST',
+      method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       signal: controller.signal,
     });
@@ -69,8 +82,8 @@ export async function triggerSyncAll(token: string, days: number = 30): Promise<
     }
     return res.json();
   } catch (err) {
-    if (err instanceof DOMException && err.name === 'AbortError') {
-      throw new Error('Sincronizacion agotada (>2 min). Intenta de nuevo.');
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error("Sincronizacion agotada (>2 min). Intenta de nuevo.");
     }
     throw err;
   } finally {

@@ -23,7 +23,7 @@ import {
   BillingFrequency,
   AvatarPersona,
   AssetType,
-  FinancialCapacity
+  FinancialCapacity,
 } from ".";
 
 const emptyStringToNull = (val: unknown) => {
@@ -33,10 +33,11 @@ const emptyStringToNull = (val: unknown) => {
 };
 
 // Robust schema for dates that handles empty strings from forms
-const nullableDateSchema = z.union([z.string().datetime(), z.literal("")])
+const nullableDateSchema = z
+  .union([z.string().datetime(), z.literal("")])
   .optional()
   .nullable()
-  .transform(val => (val === "" ? null : val));
+  .transform((val) => (val === "" ? null : val));
 
 // --- Details Schemas ---
 
@@ -50,7 +51,7 @@ export const ProductDetailsSchema = z.object({
   requires_shipping: z.boolean().default(false),
   sku_inventory_code: z.string().optional().nullable(),
   stock_quantity: z.number().optional().nullable(),
-  shipping_weight_grams: z.number().optional().nullable()
+  shipping_weight_grams: z.number().optional().nullable(),
 });
 
 export const ServiceDetailsSchema = z.object({
@@ -68,20 +69,20 @@ export const ServiceDetailsSchema = z.object({
   audience_reach_metric: z.string().optional().nullable(),
   technical_requirements: z.string().optional().nullable(),
   usage_rights_description: z.string().optional().nullable(),
-  requires_contract_signature: z.boolean().default(false)
+  requires_contract_signature: z.boolean().default(false),
 });
 
 const SessionDetailsSchema = z.object({
   title: z.string(),
   day_of_week: z.string(),
   time: z.string(),
-  duration_minutes: z.number().default(60)
+  duration_minutes: z.number().default(60),
 });
 
 const ProgramModuleSchema = z.object({
   title: z.string().min(1, "El título es obligatorio"),
   description: z.string().optional().nullable(),
-  topics: z.array(z.string()).default([])
+  topics: z.array(z.string()).default([]),
 });
 
 export const ProgramDetailsSchema = z.object({
@@ -103,7 +104,7 @@ export const ProgramDetailsSchema = z.object({
   community_platform: z.nativeEnum(CommunityPlatform).default(CommunityPlatform.NONE),
   community_invite_link: z.string().url().optional().nullable(),
   has_certification: z.boolean().default(false),
-  homework_submission_required: z.boolean().default(false)
+  homework_submission_required: z.boolean().default(false),
 });
 
 export const SubscriptionDetailsSchema = z.object({
@@ -114,7 +115,7 @@ export const SubscriptionDetailsSchema = z.object({
   cancellation_policy: z.string().optional().nullable(),
   content_update_freq: z.string().optional().nullable(),
   expert_guests: z.boolean().default(false),
-  networking_events: z.boolean().default(false)
+  networking_events: z.boolean().default(false),
 });
 
 export const EventDetailsSchema = z.object({
@@ -132,9 +133,8 @@ export const EventDetailsSchema = z.object({
   is_transfer_included: z.boolean().default(false),
   agenda_highlights: z.array(z.string()).default([]),
   dress_code: z.string().optional().nullable(),
-  dietary_restrictions_form_url: z.string().url().optional().nullable()
+  dietary_restrictions_form_url: z.string().url().optional().nullable(),
 });
-
 
 // --- Shared Schemas ---
 
@@ -153,14 +153,14 @@ export const PricingStructureSchema = z.object({
   // Membership tier fields
   benefits: z.array(z.string()).default([]),
   is_highlighted: z.boolean().default(false),
-  cta_text: z.string().optional().nullable()
+  cta_text: z.string().optional().nullable(),
 });
 
 export const DeliverableItemSchema = z.object({
   name: z.string(),
   format: z.nativeEnum(DeliverableFormat),
   quantity: z.string(),
-  value_stack_price: z.number()
+  value_stack_price: z.number(),
 });
 
 export const ObjectionItemSchema = z.object({
@@ -168,7 +168,7 @@ export const ObjectionItemSchema = z.object({
   type: z.string().min(1, "Tipo es obligatorio"),
   trigger_phrases: z.array(z.string()).default([]),
   strategy: z.string().default(""),
-  rebuttal: z.string().default("")
+  rebuttal: z.string().default(""),
 });
 
 export const OfferAssetSchema = z.object({
@@ -178,9 +178,8 @@ export const OfferAssetSchema = z.object({
   url: z.string().url(),
   size: z.string().optional(),
   trigger_context: z.string().optional(),
-  is_knowledge_base: z.boolean().default(false)
+  is_knowledge_base: z.boolean().default(false),
 });
-
 
 // --- Main Offer Schema ---
 
@@ -196,7 +195,7 @@ export const OfferSchema = z.object({
   has_editions: z.boolean().optional(),
   offer_value_level: z.nativeEnum(OfferValueLevel).optional().nullable(),
   delivery_model: z.nativeEnum(OfferDeliveryModel).optional().nullable(),
-  
+
   headline_promise: z.string().optional(),
   avatar_id: z.string().uuid().optional().nullable(),
   target_avatar_match: z.array(z.nativeEnum(AvatarPersona)).default([]),
@@ -205,41 +204,41 @@ export const OfferSchema = z.object({
   objections: z.array(ObjectionItemSchema).default([]),
   primary_outcome: z.string().optional(),
   time_to_value: z.string().optional(),
-  
+
   access_duration: z.nativeEnum(AccessDuration).optional().nullable(),
   access_duration_text: z.string().optional().nullable(), // For specific text like "1 Year", "6 Months"
   support_duration_days: z.number().optional().nullable(),
   instructors: z.array(z.string()).default([]),
-  
+
   requires_application: z.boolean().default(false),
   min_financial_capacity: z.nativeEnum(FinancialCapacity).default(FinancialCapacity.LOW),
   prerequisites: z.array(z.union([z.nativeEnum(PrerequisiteType), z.string()])).default([]),
   anti_avatar_keywords: z.array(z.string()).default([]),
-  
+
   pricing_options: z.array(PricingStructureSchema).default([]),
   price_pay_in_full: z.number().optional().nullable(),
   // Optional — resolved at render time via useTenantLocale() fallback chain.
   currency: z.string().optional(),
-  
+
   guarantee_type: z.nativeEnum(GuaranteeType).default(GuaranteeType.NONE),
   guarantee_terms: z.string().optional().nullable(),
-  
+
   downsell_offer_id: z.string().uuid().optional().nullable(),
   upsell_offer_id: z.string().uuid().optional().nullable(),
   includes_offers: z.array(z.string().uuid()).default([]),
   deliverables: z.array(DeliverableItemSchema).default([]),
   assets: z.array(OfferAssetSchema).default([]),
-  
+
   onboarding_action: z.nativeEnum(OnboardingMechanism).optional().nullable(),
   onboarding_url: z.string().url().optional().nullable(),
-  
+
   vsl_link: z.string().optional().nullable(),
   checkout_page_url: z.string().optional().nullable(),
   calendar_type_id: z.string().optional().nullable(),
-  
+
   status: z.nativeEnum(OfferStatus).default(OfferStatus.DRAFT),
-  
-  specific_details: z.record(z.string(), z.any()).optional().nullable()
+
+  specific_details: z.record(z.string(), z.any()).optional().nullable(),
 });
 
 export type OfferFormValues = z.infer<typeof OfferSchema>;

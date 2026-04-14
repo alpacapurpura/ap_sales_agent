@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   ChevronDown,
@@ -11,36 +11,28 @@ import {
   Play,
   Sparkles,
   TrendingUp,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { formatMoney } from '@/lib/format-money';
-import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
-import { formatTenantDate, formatTenantDateTime } from '@/lib/format-date';
-import { cn } from '@/lib/utils';
-import { ChartSection } from '../../shared/ChartSection';
-import { useAssociations } from '../../../../../api/offer-association-api';
-import { archetypeEmoji } from '../../../../../types/offer-association';
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatMoney } from "@/lib/format-money";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatTenantDate, formatTenantDateTime } from "@/lib/format-date";
+import { cn } from "@/lib/utils";
+import { ChartSection } from "../../shared/ChartSection";
+import { useAssociations } from "../../../../../api/offer-association-api";
+import { archetypeEmoji } from "../../../../../types/offer-association";
 import type {
   CampaignPerformanceData,
   CampaignWithMetrics,
   MetaAdsPeriod,
-} from '../../../../../types/metrics';
-import type { Association } from '../../../../../types/offer-association';
-import { OfferAssignmentDrawerConnected } from '../OfferAssignmentDrawerConnected';
-import { OfferReassignPopover } from '../OfferReassignPopover';
-import { ImprovementNotesPanel } from '../notices/ImprovementNotesPanel';
-import { useIgnoredNotices } from '../notices/useIgnoredNotices';
-import type {
-  ImprovementNotice,
-  SeverityBreakdown,
-} from '../notices/types';
+} from "../../../../../types/metrics";
+import type { Association } from "../../../../../types/offer-association";
+import { OfferAssignmentDrawerConnected } from "../OfferAssignmentDrawerConnected";
+import { OfferReassignPopover } from "../OfferReassignPopover";
+import { ImprovementNotesPanel } from "../notices/ImprovementNotesPanel";
+import { useIgnoredNotices } from "../notices/useIgnoredNotices";
+import type { ImprovementNotice, SeverityBreakdown } from "../notices/types";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -63,37 +55,37 @@ interface CampaignsTabProps {
 // ---------------------------------------------------------------------------
 
 /** Resolve a currency string falling back to the provided fallback. */
-function cur(currency: string | undefined | null, fallback = 'USD'): string {
+function cur(currency: string | undefined | null, fallback = "USD"): string {
   return currency || fallback;
 }
 
 /** Format a monetary value with fallback currency. */
-function money(value: number, currency: string | undefined | null, fallback = 'USD'): string {
+function money(value: number, currency: string | undefined | null, fallback = "USD"): string {
   return formatMoney(value, cur(currency, fallback));
 }
 
 /** Map campaign effective status to a visual status category. */
 function campaignStatusCategory(
   campaign: CampaignWithMetrics,
-): 'active' | 'learning' | 'error' | 'paused' | 'completed' {
-  const es = (campaign.effectiveStatus ?? '').toUpperCase();
+): "active" | "learning" | "error" | "paused" | "completed" {
+  const es = (campaign.effectiveStatus ?? "").toUpperCase();
   const health = campaign.health;
 
-  if (es === 'PAUSED') return 'paused';
-  if (es === 'CAMPAIGN_PAUSED') return 'paused';
-  if (es === 'COMPLETED' || es === 'ARCHIVED') return 'completed';
+  if (es === "PAUSED") return "paused";
+  if (es === "CAMPAIGN_PAUSED") return "paused";
+  if (es === "COMPLETED" || es === "ARCHIVED") return "completed";
 
   // Learning / in-process
-  if (es === 'IN_PROCESS' || es === 'PENDING_REVIEW' || es === 'WITH_ISSUES') {
-    if (es === 'WITH_ISSUES' || health === 'critical') return 'error';
-    return 'learning';
+  if (es === "IN_PROCESS" || es === "PENDING_REVIEW" || es === "WITH_ISSUES") {
+    if (es === "WITH_ISSUES" || health === "critical") return "error";
+    return "learning";
   }
 
   // Active but with health issues
-  if (health === 'critical') return 'error';
-  if (health === 'warning') return 'learning';
+  if (health === "critical") return "error";
+  if (health === "warning") return "learning";
 
-  return 'active';
+  return "active";
 }
 
 /** Sort priority: critical first, then warning, then good/active, then paused/completed. */
@@ -111,98 +103,98 @@ function statusSortOrder(campaign: CampaignWithMetrics): number {
 
 /** Status dot CSS classes. */
 function statusDotClasses(category: ReturnType<typeof campaignStatusCategory>): string {
-  const base = 'inline-block h-2 w-2 shrink-0 rounded-full';
+  const base = "inline-block h-2 w-2 shrink-0 rounded-full";
   switch (category) {
-    case 'active':
-      return cn(base, 'bg-emerald-500 shadow-[0_0_0_0_rgba(34,197,94,0.4)] animate-pulse');
-    case 'learning':
-      return cn(base, 'bg-amber-500 shadow-[0_0_0_0_rgba(234,179,8,0.4)] animate-pulse');
-    case 'error':
-      return cn(base, 'bg-red-500 shadow-[0_0_0_0_rgba(239,68,68,0.4)] animate-pulse');
-    case 'paused':
-    case 'completed':
-      return cn(base, 'bg-zinc-500');
+    case "active":
+      return cn(base, "bg-emerald-500 shadow-[0_0_0_0_rgba(34,197,94,0.4)] animate-pulse");
+    case "learning":
+      return cn(base, "bg-amber-500 shadow-[0_0_0_0_rgba(234,179,8,0.4)] animate-pulse");
+    case "error":
+      return cn(base, "bg-red-500 shadow-[0_0_0_0_rgba(239,68,68,0.4)] animate-pulse");
+    case "paused":
+    case "completed":
+      return cn(base, "bg-zinc-500");
   }
 }
 
 /** CTR indicator dot color. */
 function ctrIndicator(ctr: number | null): string {
-  if (ctr == null) return 'bg-zinc-500';
-  if (ctr >= 2) return 'bg-emerald-500';
-  if (ctr >= 1) return 'bg-amber-500';
-  return 'bg-red-500';
+  if (ctr == null) return "bg-zinc-500";
+  if (ctr >= 2) return "bg-emerald-500";
+  if (ctr >= 1) return "bg-amber-500";
+  return "bg-red-500";
 }
 
 /** Frequency indicator dot color. */
 function freqIndicator(freq: number | null): string {
-  if (freq == null) return 'bg-zinc-500';
-  if (freq < 3) return 'bg-emerald-500';
-  if (freq <= 4) return 'bg-amber-500';
-  return 'bg-red-500';
+  if (freq == null) return "bg-zinc-500";
+  if (freq < 3) return "bg-emerald-500";
+  if (freq <= 4) return "bg-amber-500";
+  return "bg-red-500";
 }
 
 /** Color class for a metric based on campaign health. */
-function healthColor(health: 'good' | 'warning' | 'critical'): string {
+function healthColor(health: "good" | "warning" | "critical"): string {
   switch (health) {
-    case 'good':
-      return 'text-emerald-400';
-    case 'warning':
-      return 'text-amber-400';
-    case 'critical':
-      return 'text-red-400';
+    case "good":
+      return "text-emerald-400";
+    case "warning":
+      return "text-amber-400";
+    case "critical":
+      return "text-red-400";
   }
 }
 
 /** Health badge label. */
-function healthBadgeLabel(health: 'good' | 'warning' | 'critical'): string | null {
+function healthBadgeLabel(health: "good" | "warning" | "critical"): string | null {
   switch (health) {
-    case 'good':
-      return 'Excelente';
-    case 'warning':
-      return 'Aceptable';
-    case 'critical':
-      return 'Atención';
+    case "good":
+      return "Excelente";
+    case "warning":
+      return "Aceptable";
+    case "critical":
+      return "Atención";
   }
 }
 
 /** Health badge CSS. */
-function healthBadgeClasses(health: 'good' | 'warning' | 'critical'): string {
+function healthBadgeClasses(health: "good" | "warning" | "critical"): string {
   switch (health) {
-    case 'good':
-      return 'bg-emerald-500/10 text-emerald-400';
-    case 'warning':
-      return 'bg-amber-500/10 text-amber-400';
-    case 'critical':
-      return 'bg-red-500/10 text-red-400';
+    case "good":
+      return "bg-emerald-500/10 text-emerald-400";
+    case "warning":
+      return "bg-amber-500/10 text-amber-400";
+    case "critical":
+      return "bg-red-500/10 text-red-400";
   }
 }
 
 /** Budget pacing bar color based on ratio. */
 function budgetBarColor(ratio: number): string {
-  if (ratio > 0.9) return 'bg-red-500/60';
-  if (ratio > 0.7) return 'bg-amber-500/60';
-  return 'bg-emerald-500/60';
+  if (ratio > 0.9) return "bg-red-500/60";
+  if (ratio > 0.7) return "bg-amber-500/60";
+  return "bg-emerald-500/60";
 }
 
 /** Formatted objective label. */
 function objectiveLabel(objective: string | null): string {
-  if (!objective) return '';
+  if (!objective) return "";
   const map: Record<string, string> = {
-    OUTCOME_SALES: 'Ventas',
-    OUTCOME_LEADS: 'Leads',
-    OUTCOME_ENGAGEMENT: 'Interacción',
-    OUTCOME_AWARENESS: 'Alcance',
-    OUTCOME_TRAFFIC: 'Tráfico',
-    OUTCOME_APP_PROMOTION: 'App',
-    CONVERSIONS: 'Conversiones',
-    LINK_CLICKS: 'Clics',
-    REACH: 'Alcance',
-    BRAND_AWARENESS: 'Marca',
-    POST_ENGAGEMENT: 'Interacción',
-    VIDEO_VIEWS: 'Video',
-    LEAD_GENERATION: 'Leads',
+    OUTCOME_SALES: "Ventas",
+    OUTCOME_LEADS: "Leads",
+    OUTCOME_ENGAGEMENT: "Interacción",
+    OUTCOME_AWARENESS: "Alcance",
+    OUTCOME_TRAFFIC: "Tráfico",
+    OUTCOME_APP_PROMOTION: "App",
+    CONVERSIONS: "Conversiones",
+    LINK_CLICKS: "Clics",
+    REACH: "Alcance",
+    BRAND_AWARENESS: "Marca",
+    POST_ENGAGEMENT: "Interacción",
+    VIDEO_VIEWS: "Video",
+    LEAD_GENERATION: "Leads",
   };
-  return map[objective] ?? objective.replace(/^OUTCOME_/, '').replace(/_/g, ' ');
+  return map[objective] ?? objective.replace(/^OUTCOME_/, "").replace(/_/g, " ");
 }
 
 // ---------------------------------------------------------------------------
@@ -249,10 +241,10 @@ function CampaignSummaryKpis({
   const { campaigns } = data;
 
   const activeCount = campaigns.filter(
-    c => campaignStatusCategory(c) === 'active' || campaignStatusCategory(c) === 'learning',
+    (c) => campaignStatusCategory(c) === "active" || campaignStatusCategory(c) === "learning",
   ).length;
-  const pausedCount = campaigns.filter(c => campaignStatusCategory(c) === 'paused').length;
-  const errorCount = campaigns.filter(c => campaignStatusCategory(c) === 'error').length;
+  const pausedCount = campaigns.filter((c) => campaignStatusCategory(c) === "paused").length;
+  const errorCount = campaigns.filter((c) => campaignStatusCategory(c) === "error").length;
 
   const totalSpend = campaigns.reduce((sum, c) => sum + c.metrics.spend, 0);
   const totalConversions = campaigns.reduce((sum, c) => sum + c.metrics.conversions, 0);
@@ -264,10 +256,8 @@ function CampaignSummaryKpis({
   );
   const weightedRoas =
     totalSpendForRoas > 0
-      ? campaigns.reduce(
-          (sum, c) => sum + (c.metrics.roas ?? 0) * c.metrics.spend,
-          0,
-        ) / totalSpendForRoas
+      ? campaigns.reduce((sum, c) => sum + (c.metrics.roas ?? 0) * c.metrics.spend, 0) /
+        totalSpendForRoas
       : 0;
 
   return (
@@ -287,17 +277,17 @@ function CampaignSummaryKpis({
         <div className="mt-1 flex flex-wrap gap-1.5">
           {activeCount > 0 && (
             <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
-              {activeCount} activa{activeCount !== 1 ? 's' : ''}
+              {activeCount} activa{activeCount !== 1 ? "s" : ""}
             </span>
           )}
           {pausedCount > 0 && (
             <span className="inline-flex items-center rounded-full bg-zinc-500/10 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
-              {pausedCount} pausada{pausedCount !== 1 ? 's' : ''}
+              {pausedCount} pausada{pausedCount !== 1 ? "s" : ""}
             </span>
           )}
           {errorCount > 0 && (
             <span className="inline-flex items-center rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-400">
-              {errorCount} error{errorCount !== 1 ? 'es' : ''}
+              {errorCount} error{errorCount !== 1 ? "es" : ""}
             </span>
           )}
         </div>
@@ -374,11 +364,11 @@ function CampaignRow({
 }) {
   const { timezone } = useTenantLocale();
   const cat = campaignStatusCategory(campaign);
-  const isPaused = cat === 'paused';
-  const isCompleted = cat === 'completed';
+  const isPaused = cat === "paused";
+  const isCompleted = cat === "completed";
   const isInactive = isPaused || isCompleted;
-  const isLearning = cat === 'learning';
-  const isError = cat === 'error';
+  const isLearning = cat === "learning";
+  const isError = cat === "error";
 
   const { metrics } = campaign;
 
@@ -391,9 +381,9 @@ function CampaignRow({
     <div
       id={`campaign-row-${campaign.externalId}`}
       className={cn(
-        'scroll-mt-24 border-b border-zinc-800/60 transition-colors hover:bg-zinc-800/30',
-        isError && 'bg-red-500/[0.02]',
-        isInactive && 'opacity-60',
+        "scroll-mt-24 border-b border-zinc-800/60 transition-colors hover:bg-zinc-800/30",
+        isError && "bg-red-500/[0.02]",
+        isInactive && "opacity-60",
       )}
     >
       <div className="grid grid-cols-[1fr_100px_100px_100px_80px_80px_80px_72px_90px] items-center gap-2 px-4 py-3">
@@ -401,12 +391,7 @@ function CampaignRow({
         <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-2">
             <span className={statusDotClasses(cat)} />
-            <span
-              className={cn(
-                'truncate text-sm font-medium',
-                isInactive && 'text-zinc-400',
-              )}
-            >
+            <span className={cn("truncate text-sm font-medium", isInactive && "text-zinc-400")}>
               {campaign.name}
             </span>
             {isLearning && (
@@ -446,7 +431,7 @@ function CampaignRow({
                 campaign={{ externalId: campaign.externalId, name: campaign.name }}
                 association={association}
               >
-                {association.associationType === 'excluded_branding' ? (
+                {association.associationType === "excluded_branding" ? (
                   <button
                     type="button"
                     className="inline-flex items-center gap-1 rounded-full border border-zinc-600/60 bg-zinc-700/10 px-2 py-0.5 text-[10px] text-zinc-400 transition-colors hover:border-zinc-500 hover:bg-zinc-700/20 hover:text-zinc-300"
@@ -459,10 +444,8 @@ function CampaignRow({
                     type="button"
                     className="inline-flex items-center gap-1 rounded-full border border-blue-500/40 bg-blue-500/10 px-2 py-0.5 text-[10px] text-blue-400 transition-colors hover:border-blue-400 hover:bg-blue-500/20 hover:text-blue-300"
                   >
-                    <span aria-hidden="true">
-                      {archetypeEmoji(association.offerArchetype)}
-                    </span>
-                    {association.offerName ?? 'Offer asociada'}
+                    <span aria-hidden="true">{archetypeEmoji(association.offerArchetype)}</span>
+                    {association.offerName ?? "Offer asociada"}
                   </button>
                 )}
               </OfferReassignPopover>
@@ -479,15 +462,15 @@ function CampaignRow({
               </BadgeTooltip>
             )}
             <span className="text-[10px] text-zinc-600">
-              {campaign.adSetsCount} ad set{campaign.adSetsCount !== 1 ? 's' : ''} &middot;{' '}
-              {campaign.adsCount} anuncio{campaign.adsCount !== 1 ? 's' : ''}
+              {campaign.adSetsCount} ad set{campaign.adSetsCount !== 1 ? "s" : ""} &middot;{" "}
+              {campaign.adsCount} anuncio{campaign.adsCount !== 1 ? "s" : ""}
             </span>
             {/* Budget pacing bar */}
             {budgetRatio != null && dailyBudget != null && !isInactive && (
               <div className="flex items-center gap-1.5">
                 <div className="h-1 w-16 overflow-hidden rounded-sm bg-zinc-700">
                   <div
-                    className={cn('h-full rounded-sm', budgetBarColor(budgetRatio))}
+                    className={cn("h-full rounded-sm", budgetBarColor(budgetRatio))}
                     style={{ width: `${(budgetRatio * 100).toFixed(0)}%` }}
                   />
                 </div>
@@ -499,8 +482,7 @@ function CampaignRow({
             {/* Paused date */}
             {isPaused && campaign.stopTime && (
               <span className="text-[10px] text-zinc-600">
-                Pausada el{' '}
-                {formatTenantDate(campaign.stopTime, timezone, 'd MMM')}
+                Pausada el {formatTenantDate(campaign.stopTime, timezone, "d MMM")}
               </span>
             )}
           </div>
@@ -508,17 +490,15 @@ function CampaignRow({
 
         {/* Spend */}
         <div className="text-right">
-          <p className={cn('text-sm tabular-nums', isInactive ? 'text-zinc-500' : 'font-semibold')}>
+          <p className={cn("text-sm tabular-nums", isInactive ? "text-zinc-500" : "font-semibold")}>
             {money(metrics.spend, currency)}
           </p>
-          {!isInactive && metrics.spend > 0 && (
-            <p className="text-[10px] text-zinc-500">total</p>
-          )}
+          {!isInactive && metrics.spend > 0 && <p className="text-[10px] text-zinc-500">total</p>}
         </div>
 
         {/* Results */}
         <div className="text-right">
-          <p className={cn('text-sm tabular-nums', isInactive ? 'text-zinc-500' : 'font-semibold')}>
+          <p className={cn("text-sm tabular-nums", isInactive ? "text-zinc-500" : "font-semibold")}>
             {metrics.conversions.toLocaleString()}
           </p>
           {!isInactive && campaign.objective && (
@@ -532,16 +512,16 @@ function CampaignRow({
         <div className="text-right">
           <p
             className={cn(
-              'text-sm tabular-nums',
-              isInactive ? 'text-zinc-500' : cn('font-semibold', healthColor(campaign.health)),
+              "text-sm tabular-nums",
+              isInactive ? "text-zinc-500" : cn("font-semibold", healthColor(campaign.health)),
             )}
           >
-            {metrics.cpa != null ? money(metrics.cpa, currency) : '—'}
+            {metrics.cpa != null ? money(metrics.cpa, currency) : "—"}
           </p>
           {!isInactive && metrics.cpa != null && (
             <span
               className={cn(
-                'inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px]',
+                "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px]",
                 healthBadgeClasses(campaign.health),
               )}
             >
@@ -554,30 +534,33 @@ function CampaignRow({
         <div className="text-right">
           <p
             className={cn(
-              'text-sm tabular-nums',
-              isInactive ? 'text-zinc-500' : cn('font-bold', healthColor(campaign.health)),
+              "text-sm tabular-nums",
+              isInactive ? "text-zinc-500" : cn("font-bold", healthColor(campaign.health)),
             )}
           >
-            {metrics.roas != null ? `${metrics.roas.toFixed(1)}x` : '—'}
+            {metrics.roas != null ? `${metrics.roas.toFixed(1)}x` : "—"}
           </p>
         </div>
 
         {/* CTR */}
         <div className="text-right">
-          <p className={cn('text-sm tabular-nums', isInactive && 'text-zinc-500')}>
-            {metrics.ctr != null ? `${metrics.ctr.toFixed(1)}%` : '—'}
+          <p className={cn("text-sm tabular-nums", isInactive && "text-zinc-500")}>
+            {metrics.ctr != null ? `${metrics.ctr.toFixed(1)}%` : "—"}
           </p>
           {!isInactive && metrics.ctr != null && (
             <span
-              className={cn('mt-0.5 inline-block h-1.5 w-1.5 rounded-full', ctrIndicator(metrics.ctr))}
+              className={cn(
+                "mt-0.5 inline-block h-1.5 w-1.5 rounded-full",
+                ctrIndicator(metrics.ctr),
+              )}
             />
           )}
         </div>
 
         {/* CPC */}
         <div className="text-right">
-          <p className={cn('text-sm tabular-nums', isInactive && 'text-zinc-500')}>
-            {metrics.cpc != null ? money(metrics.cpc, currency) : '—'}
+          <p className={cn("text-sm tabular-nums", isInactive && "text-zinc-500")}>
+            {metrics.cpc != null ? money(metrics.cpc, currency) : "—"}
           </p>
         </div>
 
@@ -585,22 +568,22 @@ function CampaignRow({
         <div className="text-right">
           <p
             className={cn(
-              'text-sm tabular-nums',
+              "text-sm tabular-nums",
               isInactive
-                ? 'text-zinc-500'
+                ? "text-zinc-500"
                 : metrics.frequency != null && metrics.frequency > 4
-                  ? 'text-red-400'
+                  ? "text-red-400"
                   : metrics.frequency != null && metrics.frequency > 3
-                    ? 'text-amber-400'
-                    : '',
+                    ? "text-amber-400"
+                    : "",
             )}
           >
-            {metrics.frequency != null ? metrics.frequency.toFixed(1) : '—'}
+            {metrics.frequency != null ? metrics.frequency.toFixed(1) : "—"}
           </p>
           {!isInactive && metrics.frequency != null && (
             <span
               className={cn(
-                'mt-0.5 inline-block h-1.5 w-1.5 rounded-full',
+                "mt-0.5 inline-block h-1.5 w-1.5 rounded-full",
                 freqIndicator(metrics.frequency),
               )}
             />
@@ -629,17 +612,17 @@ function CampaignRow({
                   <button
                     type="button"
                     className={cn(
-                      'rounded-md border p-1.5 transition-all hover:-translate-y-px',
+                      "rounded-md border p-1.5 transition-all hover:-translate-y-px",
                       isError
-                        ? 'border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20'
-                        : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-amber-500/30 hover:text-amber-400',
+                        ? "border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                        : "border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-amber-500/30 hover:text-amber-400",
                     )}
                   >
                     <Pause className="h-3.5 w-3.5" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="text-xs">
-                  Pausar campaña{isError ? ' (recomendado)' : ''}
+                  Pausar campaña{isError ? " (recomendado)" : ""}
                 </TooltipContent>
               </Tooltip>
             </>
@@ -694,8 +677,8 @@ function CampaignRow({
               <button
                 type="button"
                 className={cn(
-                  'rounded-md border border-zinc-700 bg-zinc-800 p-1.5 transition-all hover:-translate-y-px hover:text-blue-400',
-                  isInactive ? 'text-zinc-500' : 'text-zinc-400',
+                  "rounded-md border border-zinc-700 bg-zinc-800 p-1.5 transition-all hover:-translate-y-px hover:text-blue-400",
+                  isInactive ? "text-zinc-500" : "text-zinc-400",
                 )}
               >
                 <ChevronDown className="h-3.5 w-3.5" />
@@ -760,9 +743,7 @@ function IndicatorGuide() {
               <span className="text-zinc-500">Dentro de rango</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-red-400">
-                Atención
-              </span>
+              <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-red-400">Atención</span>
               <span className="text-zinc-500">Alerta</span>
             </div>
           </div>
@@ -793,15 +774,15 @@ function IndicatorGuide() {
           <div className="space-y-1 text-zinc-400">
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              {'< 3 — Saludable'}
+              {"< 3 — Saludable"}
             </div>
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-              {'3-4 — Atención'}
+              {"3-4 — Atención"}
             </div>
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-              {'> 4 — Saturación'}
+              {"> 4 — Saturación"}
             </div>
           </div>
         </div>
@@ -820,7 +801,7 @@ export function CampaignsTab({
   data,
   isLoading,
   currency,
-  period = '30d',
+  period = "30d",
   notices = [],
   noticesSeverity = EMPTY_SEVERITY,
   onNavigateToPendientes,
@@ -832,7 +813,7 @@ export function CampaignsTab({
   // The Resumen overview can deep-link to this tab and request that the
   // notices panel starts expanded. Read it once on mount; subsequent tab
   // visits (regular click) do not force the panel open.
-  const forceOpenNotices = searchParams?.get('notices') === 'open';
+  const forceOpenNotices = searchParams?.get("notices") === "open";
 
   // Offer-association layer — associations are used for row-level badges.
   // Campaign list + offer list are fetched internally by the connected drawer,
@@ -840,14 +821,14 @@ export function CampaignsTab({
   const { data: associations } = useAssociations();
 
   // Drawer state + auto-open from ?assign=true query param
-  const shouldAutoOpen = searchParams?.get('assign') === 'true';
+  const shouldAutoOpen = searchParams?.get("assign") === "true";
   const [isDrawerOpen, setIsDrawerOpen] = useState(shouldAutoOpen);
 
   // Index associations by target for O(1) lookup from rows
   const associationByCampaign = useMemo(() => {
     const map = new Map<string, Association>();
     for (const a of associations ?? []) {
-      if (a.targetType === 'campaign') {
+      if (a.targetType === "campaign") {
         map.set(a.targetExternalId, a);
       }
     }
@@ -882,8 +863,8 @@ export function CampaignsTab({
     (a, b) => statusSortOrder(a) - statusSortOrder(b),
   );
 
-  const unassignedActiveCount = sortedCampaigns.filter(c => {
-    const isActive = (c.effectiveStatus ?? '').toUpperCase() === 'ACTIVE';
+  const unassignedActiveCount = sortedCampaigns.filter((c) => {
+    const isActive = (c.effectiveStatus ?? "").toUpperCase() === "ACTIVE";
     return isActive && !associationByCampaign.has(c.externalId);
   }).length;
 
@@ -899,8 +880,8 @@ export function CampaignsTab({
                 Rendimiento individual por campaña
                 {data.lastSynced && (
                   <>
-                    {' '}
-                    &middot; Última sincronización:{' '}
+                    {" "}
+                    &middot; Última sincronización:{" "}
                     {formatTenantDateTime(data.lastSynced, timezone)}
                   </>
                 )}
@@ -920,7 +901,7 @@ export function CampaignsTab({
               )}
               <Button
                 type="button"
-                variant={unassignedActiveCount > 0 ? 'default' : 'outline'}
+                variant={unassignedActiveCount > 0 ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsDrawerOpen(true)}
                 className="gap-1.5"
@@ -942,12 +923,10 @@ export function CampaignsTab({
             severity={noticesSeverity}
             forceOpen={forceOpenNotices}
             onIgnore={ignore}
-            onNoticeClick={notice => {
-              if (notice.targetExternalId && typeof window !== 'undefined') {
-                const el = document.getElementById(
-                  `campaign-row-${notice.targetExternalId}`,
-                );
-                el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            onNoticeClick={(notice) => {
+              if (notice.targetExternalId && typeof window !== "undefined") {
+                const el = document.getElementById(`campaign-row-${notice.targetExternalId}`);
+                el?.scrollIntoView({ behavior: "smooth", block: "center" });
               }
             }}
           />
@@ -982,7 +961,7 @@ export function CampaignsTab({
             </div>
 
             {/* Campaign rows */}
-            {sortedCampaigns.map(campaign => (
+            {sortedCampaigns.map((campaign) => (
               <CampaignRow
                 key={campaign.externalId}
                 campaign={campaign}

@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { Globe } from 'lucide-react';
-import type { ChannelMetric } from '../../../../types/metrics';
-import { ChannelOverviewPanel } from '../shared/ChannelOverviewPanel';
+import { Globe } from "lucide-react";
+import type { ChannelMetric } from "../../../../types/metrics";
+import { ChannelOverviewPanel } from "../shared/ChannelOverviewPanel";
 
 const HERO_METRICS = [
-  'sessions',
-  'engagementRate',
-  'bounceRate',
-  'conversions',
-  'averageSessionDuration',
-  'users',
+  "sessions",
+  "engagementRate",
+  "bounceRate",
+  "conversions",
+  "averageSessionDuration",
+  "users",
 ];
 
 interface WebsiteOverviewPanelProps {
@@ -20,11 +20,7 @@ interface WebsiteOverviewPanelProps {
   initialTab?: string | null;
 }
 
-export function WebsiteOverviewPanel({
-  channel,
-  onClose,
-  onExpand,
-}: WebsiteOverviewPanelProps) {
+export function WebsiteOverviewPanel({ channel, onClose, onExpand }: WebsiteOverviewPanelProps) {
   return (
     <ChannelOverviewPanel
       channel={channel}

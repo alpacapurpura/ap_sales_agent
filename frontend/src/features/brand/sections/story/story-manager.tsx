@@ -17,11 +17,5 @@ export function StoryManager() {
 
   if (!settings) return null;
 
-  return (
-    <StoryForm
-      initialData={settings.story ?? {}}
-      onSave={updateStory}
-      isSaving={saving}
-    />
-  );
+  return <StoryForm initialData={settings.story ?? {}} onSave={updateStory} isSaving={saving} />;
 }

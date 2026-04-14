@@ -1,10 +1,10 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { Switch } from '@/components/ui/switch';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { Switch } from "@/components/ui/switch";
 
 const meta = {
-  title: 'Atoms/Switch',
+  title: "Atoms/Switch",
   component: Switch,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof Switch>;
 
 export default meta;

@@ -11,11 +11,7 @@ import { OfferEditorContent } from "@/features/offer-studio/components/editor/of
  * renders ONLY the inner section list + live preview. The legacy
  * `<OfferStudioLayout>` wrapper has been retired.
  */
-export default function OfferEditorPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function OfferEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   return (
     <ErrorBoundary>

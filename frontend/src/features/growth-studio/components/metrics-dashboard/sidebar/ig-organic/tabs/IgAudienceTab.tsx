@@ -1,12 +1,20 @@
-'use client';
+"use client";
 
-import { Loader2 } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend } from 'recharts';
+import { Loader2 } from "lucide-react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
+  Legend,
+} from "recharts";
 
-import { ChartContainer } from '@/components/ui/chart';
-import type { ChannelDashboardData } from '../../../../../types/metrics';
-import { ChartInfoTooltip } from '../ChartInfoTooltip';
-import { ChartSection } from '../../shared/ChartSection';
+import { ChartContainer } from "@/components/ui/chart";
+import type { ChannelDashboardData } from "../../../../../types/metrics";
+import { ChartInfoTooltip } from "../ChartInfoTooltip";
+import { ChartSection } from "../../shared/ChartSection";
 
 interface IgAudienceTabProps {
   data: ChannelDashboardData | undefined;
@@ -21,11 +29,21 @@ interface FollowsDailyPoint {
 }
 
 export function IgAudienceTab({ data, isLoading }: IgAudienceTabProps) {
-  if (isLoading) return <div className="flex items-center justify-center py-24"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
-  if (!data) return <div className="py-24 text-center text-sm text-muted-foreground">No hay datos disponibles</div>;
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  if (!data)
+    return (
+      <div className="py-24 text-center text-sm text-muted-foreground">
+        No hay datos disponibles
+      </div>
+    );
 
-  const gainedSeries = data.timeSeries.find(ts => ts.metricName === 'ig_follows_gained');
-  const lostSeries = data.timeSeries.find(ts => ts.metricName === 'ig_follows_lost');
+  const gainedSeries = data.timeSeries.find((ts) => ts.metricName === "ig_follows_gained");
+  const lostSeries = data.timeSeries.find((ts) => ts.metricName === "ig_follows_lost");
 
   // Join gained + lost by date so both bars align. Show lost as negative so the
   // chart reads "above = new followers, below = unfollows, bar balance = net".
@@ -71,15 +89,22 @@ export function IgAudienceTab({ data, isLoading }: IgAudienceTabProps) {
             />
             <div className="flex items-baseline gap-4 text-xs">
               <span className="text-muted-foreground">
-                Período: <span className="font-semibold tabular-nums text-foreground">{totalNet >= 0 ? '+' : ''}{totalNet.toLocaleString('en-US')}</span> netos
+                Período:{" "}
+                <span className="font-semibold tabular-nums text-foreground">
+                  {totalNet >= 0 ? "+" : ""}
+                  {totalNet.toLocaleString("en-US")}
+                </span>{" "}
+                netos
               </span>
-              <span className="text-emerald-600">+{totalGained.toLocaleString('en-US')} ganados</span>
-              <span className="text-red-600">−{totalLost.toLocaleString('en-US')} perdidos</span>
+              <span className="text-emerald-600">
+                +{totalGained.toLocaleString("en-US")} ganados
+              </span>
+              <span className="text-red-600">−{totalLost.toLocaleString("en-US")} perdidos</span>
             </div>
             <ChartContainer
               config={{
-                gained: { label: 'Seguidores ganados', color: 'hsl(142, 76%, 36%)' },
-                lost: { label: 'Seguidores perdidos', color: 'hsl(0, 74%, 50%)' },
+                gained: { label: "Seguidores ganados", color: "hsl(142, 76%, 36%)" },
+                lost: { label: "Seguidores perdidos", color: "hsl(0, 74%, 50%)" },
               }}
               className="h-[280px] w-full"
             >
@@ -89,14 +114,24 @@ export function IgAudienceTab({ data, isLoading }: IgAudienceTabProps) {
                 <YAxis className="text-xs" />
                 <RechartsTooltip
                   formatter={(value: number, key: string) => {
-                    const label = key === 'gained' ? 'Ganados' : 'Perdidos';
-                    const rendered = key === 'lost' ? Math.abs(value) : value;
-                    return [rendered.toLocaleString('en-US'), label];
+                    const label = key === "gained" ? "Ganados" : "Perdidos";
+                    const rendered = key === "lost" ? Math.abs(value) : value;
+                    return [rendered.toLocaleString("en-US"), label];
                   }}
                 />
                 <Legend />
-                <Bar dataKey="gained" stackId="follows" fill="var(--color-gained)" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="lost" stackId="follows" fill="var(--color-lost)" radius={[0, 0, 2, 2]} />
+                <Bar
+                  dataKey="gained"
+                  stackId="follows"
+                  fill="var(--color-gained)"
+                  radius={[2, 2, 0, 0]}
+                />
+                <Bar
+                  dataKey="lost"
+                  stackId="follows"
+                  fill="var(--color-lost)"
+                  radius={[0, 0, 2, 2]}
+                />
               </BarChart>
             </ChartContainer>
           </div>
@@ -104,10 +139,17 @@ export function IgAudienceTab({ data, isLoading }: IgAudienceTabProps) {
       )}
       <ChartSection slug="demografia">
         <div className="space-y-2">
-          <ChartInfoTooltip title="Demografía de la Audiencia" description="Distribución por edad, género y ubicación de tus seguidores." />
+          <ChartInfoTooltip
+            title="Demografía de la Audiencia"
+            description="Distribución por edad, género y ubicación de tus seguidores."
+          />
           <div className="rounded-lg border bg-muted/30 p-6 text-center">
-            <p className="text-sm text-muted-foreground">Datos demográficos disponibles próximamente</p>
-            <p className="text-xs text-muted-foreground mt-1">Edad, género y ubicación de seguidores y cuentas engaged</p>
+            <p className="text-sm text-muted-foreground">
+              Datos demográficos disponibles próximamente
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Edad, género y ubicación de seguidores y cuentas engaged
+            </p>
           </div>
         </div>
       </ChartSection>

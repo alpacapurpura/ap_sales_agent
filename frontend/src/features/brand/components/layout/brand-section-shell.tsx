@@ -49,9 +49,7 @@ export function BrandSectionShell({ title, subtitle, navItems, children }: Brand
 
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full w-full">
-            <div className="max-w-5xl mx-auto pb-20 space-y-16 px-6 md:px-12 py-8">
-              {children}
-            </div>
+            <div className="max-w-5xl mx-auto pb-20 space-y-16 px-6 md:px-12 py-8">{children}</div>
           </ScrollArea>
         </div>
       </main>

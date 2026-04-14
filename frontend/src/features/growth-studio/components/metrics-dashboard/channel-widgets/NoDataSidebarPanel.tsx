@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { Zap } from 'lucide-react';
+import { Zap } from "lucide-react";
 import {
   DetailPanel,
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
-} from '@/components/ui/detail-panel';
-import { Button } from '@/components/ui/button';
-import type { ChannelMetric } from '../../../types/metrics';
-import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
+} from "@/components/ui/detail-panel";
+import { Button } from "@/components/ui/button";
+import type { ChannelMetric } from "../../../types/metrics";
+import { getChannelIcon, getChannelColor } from "../../../lib/channelIcons";
 
 interface NoDataSidebarPanelProps {
   isOpen: boolean;
@@ -49,8 +49,8 @@ export function NoDataSidebarPanel({ isOpen, onClose, channel }: NoDataSidebarPa
         </h3>
 
         <p className="text-sm text-muted-foreground max-w-xs mb-6">
-          Pronto podrás crear acciones automáticas para activar este canal y
-          sacarle el máximo provecho a tu conexión.
+          Pronto podrás crear acciones automáticas para activar este canal y sacarle el máximo
+          provecho a tu conexión.
         </p>
 
         <Button variant="outline" onClick={onClose}>

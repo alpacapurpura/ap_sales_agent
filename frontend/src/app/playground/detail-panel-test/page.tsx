@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   DetailPanel,
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
-} from '@/components/ui/detail-panel';
-import { useCopilotStore } from '@/features/copilot/store/copilot-store';
+} from "@/components/ui/detail-panel";
+import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 
 /**
  * Playground page for testing DetailPanel positioning with CopilotPanel.
@@ -27,31 +27,29 @@ export default function DetailPanelTestPage() {
       </p>
 
       <div className="flex gap-3 mb-8">
-        <Button
-          data-testid="open-panel"
-          onClick={() => setPanelOpen(true)}
-        >
+        <Button data-testid="open-panel" onClick={() => setPanelOpen(true)}>
           Open DetailPanel
         </Button>
-        <Button
-          data-testid="toggle-copilot"
-          variant="outline"
-          onClick={togglePanel}
-        >
-          {copilotOpen ? 'Collapse Copilot' : 'Expand Copilot'}
+        <Button data-testid="toggle-copilot" variant="outline" onClick={togglePanel}>
+          {copilotOpen ? "Collapse Copilot" : "Expand Copilot"}
         </Button>
       </div>
 
       <div className="text-sm space-y-1">
-        <p>Copilot state: <strong data-testid="copilot-state">{copilotOpen ? 'OPEN (380px)' : 'COLLAPSED (60px rail)'}</strong></p>
-        <p>DetailPanel state: <strong data-testid="panel-state">{panelOpen ? 'OPEN' : 'CLOSED'}</strong></p>
+        <p>
+          Copilot state:{" "}
+          <strong data-testid="copilot-state">
+            {copilotOpen ? "OPEN (380px)" : "COLLAPSED (60px rail)"}
+          </strong>
+        </p>
+        <p>
+          DetailPanel state:{" "}
+          <strong data-testid="panel-state">{panelOpen ? "OPEN" : "CLOSED"}</strong>
+        </p>
       </div>
 
       {/* Simulated copilot — same positioning as real CopilotPanel. Hidden on mobile like the real one. */}
-      <div
-        data-testid="mock-copilot"
-        className="fixed right-0 top-0 z-40 hidden sm:flex h-screen"
-      >
+      <div data-testid="mock-copilot" className="fixed right-0 top-0 z-40 hidden sm:flex h-screen">
         {copilotOpen ? (
           <div className="flex h-full w-[380px] flex-col border-l border-slate-200 bg-purple-600 text-white items-center justify-center">
             <p className="text-lg font-bold">Copilot Panel</p>
@@ -59,7 +57,9 @@ export default function DetailPanelTestPage() {
           </div>
         ) : (
           <div className="flex h-full w-[60px] flex-col items-center border-l border-slate-200 bg-purple-700 py-4 text-white justify-center">
-            <p className="text-xs writing-mode-vertical" style={{ writingMode: 'vertical-lr' }}>Rail 60px</p>
+            <p className="text-xs writing-mode-vertical" style={{ writingMode: "vertical-lr" }}>
+              Rail 60px
+            </p>
           </div>
         )}
       </div>
@@ -87,7 +87,8 @@ export default function DetailPanelTestPage() {
             </div>
             <Separator />
             <p className="text-sm text-muted-foreground">
-              If you can see the purple copilot panel to the right of this, the positioning is correct.
+              If you can see the purple copilot panel to the right of this, the positioning is
+              correct.
             </p>
           </div>
         </div>

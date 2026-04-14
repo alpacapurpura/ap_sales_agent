@@ -1,36 +1,36 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { ExternalLink, Loader2, Mail, RefreshCw, AlertTriangle } from 'lucide-react';
+import { useState } from "react";
+import { ExternalLink, Loader2, Mail, RefreshCw, AlertTriangle } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
-} from '@/components/ui/detail-panel';
-import { cn } from '@/lib/utils';
-import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
-import { formatTenantDateTime } from '@/lib/format-date';
-import { useMailDashboard } from '../../../../hooks/useMailDashboard';
-import { useSyncChannel } from '../../../../hooks/useSyncChannel';
-import type { ChannelMetric, MetaAdsPeriod } from '../../../../types/metrics';
-import type { FunnelStep } from '../../../../types/metrics';
-import { PeriodSelector } from '../shared/PeriodSelector';
-import { HeroKpiGrid } from '../shared/HeroKpiGrid';
-import { MailHealthScore } from './MailHealthScore';
-import { MailCampaignCards } from './MailCampaignCards';
-import { MailDeliverabilityHealth } from './MailDeliverabilityHealth';
+} from "@/components/ui/detail-panel";
+import { cn } from "@/lib/utils";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatTenantDateTime } from "@/lib/format-date";
+import { useMailDashboard } from "../../../../hooks/useMailDashboard";
+import { useSyncChannel } from "../../../../hooks/useSyncChannel";
+import type { ChannelMetric, MetaAdsPeriod } from "../../../../types/metrics";
+import type { FunnelStep } from "../../../../types/metrics";
+import { PeriodSelector } from "../shared/PeriodSelector";
+import { HeroKpiGrid } from "../shared/HeroKpiGrid";
+import { MailHealthScore } from "./MailHealthScore";
+import { MailCampaignCards } from "./MailCampaignCards";
+import { MailDeliverabilityHealth } from "./MailDeliverabilityHealth";
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
 const HERO_METRICS = [
-  'open_rate',
-  'click_to_open_rate',
-  'deliverability_rate',
-  'list_growth_rate',
+  "open_rate",
+  "click_to_open_rate",
+  "deliverability_rate",
+  "list_growth_rate",
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ interface MailMiniFunnelProps {
 
 function MailMiniFunnel({ steps }: MailMiniFunnelProps) {
   if (steps.length === 0) return null;
-  const maxValue = Math.max(...steps.map(s => s.value), 1);
+  const maxValue = Math.max(...steps.map((s) => s.value), 1);
 
   return (
     <div className="space-y-2">
@@ -57,24 +57,18 @@ function MailMiniFunnel({ steps }: MailMiniFunnelProps) {
               <span className="text-muted-foreground">{step.label}</span>
               <div className="flex items-center gap-2">
                 <span className="font-medium tabular-nums">
-                  {step.value.toLocaleString('es-ES')}
+                  {step.value.toLocaleString("es-ES")}
                 </span>
                 {step.conversionRate != null && i > 0 && (
-                  <span className="text-muted-foreground">
-                    ({step.conversionRate.toFixed(1)}%)
-                  </span>
+                  <span className="text-muted-foreground">({step.conversionRate.toFixed(1)}%)</span>
                 )}
               </div>
             </div>
             <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
               <div
                 className={cn(
-                  'h-full rounded-full transition-all',
-                  i === 0
-                    ? 'bg-amber-500'
-                    : i === 1
-                      ? 'bg-amber-400'
-                      : 'bg-amber-300',
+                  "h-full rounded-full transition-all",
+                  i === 0 ? "bg-amber-500" : i === 1 ? "bg-amber-400" : "bg-amber-300",
                 )}
                 // Inline style required for dynamic percentage width calculation
                 style={{ width: `${Math.max((step.value / maxValue) * 100, 2)}%` }}
@@ -98,17 +92,11 @@ interface MailOverviewPanelProps {
   initialTab?: string | null;
 }
 
-export function MailOverviewPanel({
-  channel,
-  onClose,
-  onExpand,
-}: MailOverviewPanelProps) {
+export function MailOverviewPanel({ channel, onClose, onExpand }: MailOverviewPanelProps) {
   const { timezone } = useTenantLocale();
-  const [period, setPeriod] = useState<MetaAdsPeriod>('30d');
+  const [period, setPeriod] = useState<MetaAdsPeriod>("30d");
   const { data, isLoading, isError, error } = useMailDashboard(period);
-  const { sync, isSyncing, cooldownMinutes } = useSyncChannel(
-    channel.slug ?? 'email-nurture',
-  );
+  const { sync, isSyncing, cooldownMinutes } = useSyncChannel(channel.slug ?? "email-nurture");
 
   return (
     <div className="flex h-full flex-col">
@@ -139,12 +127,10 @@ export function MailOverviewPanel({
             title={
               cooldownMinutes > 0
                 ? `Disponible en ${Math.ceil(cooldownMinutes)} min`
-                : 'Sincronizar'
+                : "Sincronizar"
             }
           >
-            <RefreshCw
-              className={cn('h-3.5 w-3.5', isSyncing && 'animate-spin')}
-            />
+            <RefreshCw className={cn("h-3.5 w-3.5", isSyncing && "animate-spin")} />
           </Button>
           {onExpand && (
             <Button
@@ -177,7 +163,7 @@ export function MailOverviewPanel({
               <p className="text-xs text-muted-foreground max-w-[280px]">
                 {error instanceof Error
                   ? error.message
-                  : 'Verifica que el endpoint de email esté disponible e intenta de nuevo.'}
+                  : "Verifica que el endpoint de email esté disponible e intenta de nuevo."}
               </p>
             </div>
           </div>

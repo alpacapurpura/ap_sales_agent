@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { useMemo, useState, useCallback } from 'react';
-import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { useMemo, useState, useCallback } from "react";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { ArrowLeft, AlertTriangle } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { useCampaignPerformance } from '../../../../../api/campaigns-api';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useCampaignPerformance } from "../../../../../api/campaigns-api";
 import {
   useAssociations,
   useAutoDetectSuggestions,
   useOffersForAssignment,
   useMetaHealthCheck,
-} from '../../../../../api/offer-association-api';
-import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
-import type { MetaAdsPeriod } from '../../../../../types/metrics';
-import { MetaAdsPeriodSelector } from '../MetaAdsPeriodSelector';
-import { PendientesList } from './PendientesList';
-import type { PendingCampaign } from './PendientesList';
-import { PendienteDetailPanel } from './PendienteDetailPanel';
+} from "../../../../../api/offer-association-api";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import type { MetaAdsPeriod } from "../../../../../types/metrics";
+import { MetaAdsPeriodSelector } from "../MetaAdsPeriodSelector";
+import { PendientesList } from "./PendientesList";
+import type { PendingCampaign } from "./PendientesList";
+import { PendienteDetailPanel } from "./PendienteDetailPanel";
 
 interface PendientesViewProps {
   period?: MetaAdsPeriod;
@@ -27,7 +27,7 @@ interface PendientesViewProps {
 }
 
 export function PendientesView({
-  period = '30d',
+  period = "30d",
   onPeriodChange,
   onBackToCampaigns,
 }: PendientesViewProps) {
@@ -37,7 +37,7 @@ export function PendientesView({
   const tenantId = params?.tenantId as string;
   const { currency: tenantCurrency } = useTenantLocale();
 
-  const campaignFromUrl = searchParams?.get('campaign') ?? null;
+  const campaignFromUrl = searchParams?.get("campaign") ?? null;
   const [selectedId, setSelectedId] = useState<string | null>(campaignFromUrl);
 
   const { data: campaignData, isLoading: campaignsLoading } = useCampaignPerformance(period);
@@ -51,7 +51,7 @@ export function PendientesView({
   const associatedIds = useMemo(() => {
     const set = new Set<string>();
     for (const a of associations ?? []) {
-      if (a.targetType === 'campaign') {
+      if (a.targetType === "campaign") {
         set.add(a.targetExternalId);
       }
     }
@@ -62,7 +62,7 @@ export function PendientesView({
     const set = new Set<string>();
     if (healthCheck?.activeCampaigns) {
       for (const c of healthCheck.activeCampaigns) {
-        if (c.hasIssue && c.issueText?.toLowerCase().includes('utm')) {
+        if (c.hasIssue && c.issueText?.toLowerCase().includes("utm")) {
           set.add(c.externalId);
         }
       }
@@ -76,15 +76,15 @@ export function PendientesView({
 
     for (const c of campaigns) {
       if (!associatedIds.has(c.externalId)) {
-        items.push({ campaign: c, reason: 'no_offer' });
+        items.push({ campaign: c, reason: "no_offer" });
       } else if (utmIssueIds.has(c.externalId)) {
-        items.push({ campaign: c, reason: 'no_utm' });
+        items.push({ campaign: c, reason: "no_utm" });
       }
     }
 
     items.sort((a, b) => {
-      const aActive = (a.campaign.effectiveStatus ?? '').toUpperCase() === 'ACTIVE';
-      const bActive = (b.campaign.effectiveStatus ?? '').toUpperCase() === 'ACTIVE';
+      const aActive = (a.campaign.effectiveStatus ?? "").toUpperCase() === "ACTIVE";
+      const bActive = (b.campaign.effectiveStatus ?? "").toUpperCase() === "ACTIVE";
       if (aActive && !bActive) return -1;
       if (!aActive && bActive) return 1;
       return a.campaign.name.localeCompare(b.campaign.name);
@@ -93,12 +93,13 @@ export function PendientesView({
     return items;
   }, [campaignData?.campaigns, associatedIds, utmIssueIds]);
 
-  const effectiveSelectedId = selectedId && pendingItems.some(i => i.campaign.externalId === selectedId)
-    ? selectedId
-    : pendingItems[0]?.campaign.externalId ?? null;
+  const effectiveSelectedId =
+    selectedId && pendingItems.some((i) => i.campaign.externalId === selectedId)
+      ? selectedId
+      : (pendingItems[0]?.campaign.externalId ?? null);
 
   const selectedCampaign = useMemo(
-    () => pendingItems.find(i => i.campaign.externalId === effectiveSelectedId)?.campaign ?? null,
+    () => pendingItems.find((i) => i.campaign.externalId === effectiveSelectedId)?.campaign ?? null,
     [pendingItems, effectiveSelectedId],
   );
 
@@ -106,7 +107,7 @@ export function PendientesView({
 
   const handleAssigned = useCallback(() => {
     const currentIndex = pendingItems.findIndex(
-      i => i.campaign.externalId === effectiveSelectedId,
+      (i) => i.campaign.externalId === effectiveSelectedId,
     );
     const nextItem = pendingItems[currentIndex + 1] ?? pendingItems[currentIndex - 1];
     setSelectedId(nextItem?.campaign.externalId ?? null);
@@ -116,9 +117,7 @@ export function PendientesView({
     if (onBackToCampaigns) {
       onBackToCampaigns();
     } else {
-      router.push(
-        `/${tenantId}/growth-studio/atraccion-captura/meta-ads?tab=campanas`,
-      );
+      router.push(`/${tenantId}/growth-studio/atraccion-captura/meta-ads?tab=campanas`);
     }
   }, [onBackToCampaigns, router, tenantId]);
 
@@ -131,12 +130,7 @@ export function PendientesView({
           <p className="text-xs text-muted-foreground mt-1">
             Intenta de nuevo o vuelve a la vista de campañas.
           </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleBack}
-            className="mt-4 text-xs"
-          >
+          <Button variant="outline" size="sm" onClick={handleBack} className="mt-4 text-xs">
             Volver a Campañas
           </Button>
         </CardContent>
@@ -149,12 +143,7 @@ export function PendientesView({
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="gap-1.5 text-xs"
-          >
+          <Button variant="ghost" size="sm" onClick={handleBack} className="gap-1.5 text-xs">
             <ArrowLeft className="h-3.5 w-3.5" />
             Campañas
           </Button>
@@ -167,9 +156,7 @@ export function PendientesView({
             )}
           </h1>
         </div>
-        {onPeriodChange && (
-          <MetaAdsPeriodSelector value={period} onChange={onPeriodChange} />
-        )}
+        {onPeriodChange && <MetaAdsPeriodSelector value={period} onChange={onPeriodChange} />}
       </div>
 
       {/* Split view */}

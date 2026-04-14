@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 interface MetricInfoPopoverProps {
@@ -43,11 +39,7 @@ export function MetricInfoPopover({
             i
           </button>
         </PopoverTrigger>
-        <PopoverContent
-          side="top"
-          align="start"
-          className="w-72 p-3 text-sm"
-        >
+        <PopoverContent side="top" align="start" className="w-72 p-3 text-sm">
           <div className="space-y-2">
             <p className="font-semibold text-foreground">{displayName}</p>
             <p className="text-xs text-muted-foreground">{description}</p>
@@ -58,23 +50,17 @@ export function MetricInfoPopover({
             )}
             {benchmark && (
               <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">
-                  Benchmark industria:
-                </span>
+                <span className="text-muted-foreground">Benchmark industria:</span>
                 <span className="font-semibold text-emerald-500">
                   {benchmark.value}
                   {benchmark.source && (
-                    <span className="ml-1 text-muted-foreground/50">
-                      ({benchmark.source})
-                    </span>
+                    <span className="ml-1 text-muted-foreground/50">({benchmark.source})</span>
                   )}
                 </span>
               </div>
             )}
             {interpretation && (
-              <p className="text-xs text-muted-foreground/80 italic">
-                {interpretation}
-              </p>
+              <p className="text-xs text-muted-foreground/80 italic">{interpretation}</p>
             )}
           </div>
         </PopoverContent>

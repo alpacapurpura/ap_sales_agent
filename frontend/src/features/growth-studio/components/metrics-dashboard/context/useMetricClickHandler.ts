@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import type { MetricClickData } from '../../../types/metrics';
+import { useState, useCallback } from "react";
+import type { MetricClickData } from "../../../types/metrics";
 
 /**
  * Encapsulates metric sidebar open/close state.

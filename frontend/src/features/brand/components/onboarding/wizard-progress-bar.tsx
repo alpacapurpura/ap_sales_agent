@@ -18,7 +18,7 @@ export function WizardProgressBar({ currentIndex, totalSteps, labels }: WizardPr
               "flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-all",
               i < currentIndex && "bg-primary text-primary-foreground",
               i === currentIndex && "bg-primary text-primary-foreground ring-4 ring-primary/20",
-              i > currentIndex && "border-2 border-muted-foreground/30 text-muted-foreground"
+              i > currentIndex && "border-2 border-muted-foreground/30 text-muted-foreground",
             )}
           >
             {i < currentIndex ? "✓" : i + 1}
@@ -27,7 +27,7 @@ export function WizardProgressBar({ currentIndex, totalSteps, labels }: WizardPr
             <span
               className={cn(
                 "hidden text-xs font-medium sm:inline",
-                i <= currentIndex ? "text-foreground" : "text-muted-foreground"
+                i <= currentIndex ? "text-foreground" : "text-muted-foreground",
               )}
             >
               {labels[i]}
@@ -37,7 +37,7 @@ export function WizardProgressBar({ currentIndex, totalSteps, labels }: WizardPr
             <div
               className={cn(
                 "h-0.5 w-8 transition-colors",
-                i < currentIndex ? "bg-primary" : "bg-muted-foreground/30"
+                i < currentIndex ? "bg-primary" : "bg-muted-foreground/30",
               )}
             />
           )}

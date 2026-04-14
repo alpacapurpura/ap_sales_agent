@@ -1,15 +1,9 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
-import type {
-  CampaignPerformanceData,
-  CampaignRecommendation,
-} from '../../../../../types/metrics';
-import type {
-  MetaHealthCheck,
-  Recommendation,
-} from '../../../../../types/offer-association';
+import type { CampaignPerformanceData, CampaignRecommendation } from "../../../../../types/metrics";
+import type { MetaHealthCheck, Recommendation } from "../../../../../types/offer-association";
 import {
   categoryToTab,
   maxSeverity,
@@ -20,8 +14,8 @@ import {
   type NoticeTab,
   type NoticesSummary,
   type SeverityBreakdown,
-} from './types';
-import { useIgnoredNotices } from './useIgnoredNotices';
+} from "./types";
+import { useIgnoredNotices } from "./useIgnoredNotices";
 
 // ---------------------------------------------------------------------------
 // Categorization
@@ -35,43 +29,43 @@ import { useIgnoredNotices } from './useIgnoredNotices';
  * creative). Unknown types fall back to `campaign` which is the safest default.
  */
 export function categorizeMetaRec(recType: string): NoticeCategory {
-  const t = (recType ?? '').toUpperCase();
+  const t = (recType ?? "").toUpperCase();
 
   // Audience: overlap, saturation, frequency, reach expansion, detailed targeting.
   if (
-    t.includes('AUDIENCE') ||
-    t.includes('OVERLAP') ||
-    t.includes('SATURATION') ||
-    t.includes('FREQUENCY') ||
-    t.includes('REACH_EXPANSION') ||
-    t.includes('DETAILED_TARGETING')
+    t.includes("AUDIENCE") ||
+    t.includes("OVERLAP") ||
+    t.includes("SATURATION") ||
+    t.includes("FREQUENCY") ||
+    t.includes("REACH_EXPANSION") ||
+    t.includes("DETAILED_TARGETING")
   ) {
-    return 'audience';
+    return "audience";
   }
 
   // Creative: fatigue, CTR decline, creative diversity, ad creative issues.
   if (
-    t.includes('CREATIVE') ||
-    t.includes('AD_CREATIVE') ||
-    t.includes('CTR_DROP') ||
-    t.includes('FATIGUE')
+    t.includes("CREATIVE") ||
+    t.includes("AD_CREATIVE") ||
+    t.includes("CTR_DROP") ||
+    t.includes("FATIGUE")
   ) {
-    return 'creative';
+    return "creative";
   }
 
   // Cost: bid strategy, CPA/CPC/CPM guidance.
   if (
-    t.includes('BID') ||
-    t.includes('CPA') ||
-    t.includes('CPC') ||
-    t.includes('CPM') ||
-    t.includes('COST_CAP')
+    t.includes("BID") ||
+    t.includes("CPA") ||
+    t.includes("CPC") ||
+    t.includes("CPM") ||
+    t.includes("COST_CAP")
   ) {
-    return 'cost';
+    return "cost";
   }
 
   // Default: campaign state, budget, delivery, learning, status issues.
-  return 'campaign';
+  return "campaign";
 }
 
 /**
@@ -80,7 +74,7 @@ export function categorizeMetaRec(recType: string): NoticeCategory {
  * belong to the Campañas tab.
  */
 function categorizeStructuralRec(_rec: Recommendation): NoticeCategory {
-  return 'campaign';
+  return "campaign";
 }
 
 // ---------------------------------------------------------------------------
@@ -88,10 +82,10 @@ function categorizeStructuralRec(_rec: Recommendation): NoticeCategory {
 // ---------------------------------------------------------------------------
 
 function importanceToSeverity(importance: string | null): NoticeSeverity {
-  const upper = (importance ?? '').toUpperCase();
-  if (upper === 'CRITICAL') return 'critical';
-  if (upper === 'HIGH') return 'warning';
-  return 'info';
+  const upper = (importance ?? "").toUpperCase();
+  if (upper === "CRITICAL") return "critical";
+  if (upper === "HIGH") return "warning";
+  return "info";
 }
 
 function makeEmptyBreakdown(): SeverityBreakdown {
@@ -114,7 +108,7 @@ function buildMetaNotice(
 ): ImprovementNotice | null {
   // Accept the rec if at least one of its object ids is an active campaign,
   // OR if the rec has no object ids at all (global recommendation).
-  const activeIds = rec.objectIds.filter(id => activeCampaignIds.has(id));
+  const activeIds = rec.objectIds.filter((id) => activeCampaignIds.has(id));
   if (rec.objectIds.length > 0 && activeIds.length === 0) return null;
 
   const targetId = activeIds[0] ?? null;
@@ -129,13 +123,13 @@ function buildMetaNotice(
 
   // Stable id: source + type + sorted active ids. Keeps the same id across
   // refetches so ignore-state persists correctly.
-  const id = `meta:${rec.recommendationType}:${[...activeIds].sort().join(',')}`;
+  const id = `meta:${rec.recommendationType}:${[...activeIds].sort().join(",")}`;
 
   return {
     id,
     category: categorizeMetaRec(rec.recommendationType),
     severity: importanceToSeverity(rec.importance),
-    title: rec.title ?? 'Recomendación',
+    title: rec.title ?? "Recomendación",
     body: rec.body,
     contextLabel,
     targetExternalId: targetId,
@@ -153,11 +147,8 @@ function buildStructuralNotice(
     const isActive = activeCampaignIds.has(rec.relatedTargetId);
     if (!isActive) {
       // Second chance: unassigned targets whose raw status is ACTIVE.
-      const unassigned = health.unassignedTargets.find(
-        t => t.externalId === rec.relatedTargetId,
-      );
-      const unassignedActive =
-        unassigned && (unassigned.status ?? '').toUpperCase() === 'ACTIVE';
+      const unassigned = health.unassignedTargets.find((t) => t.externalId === rec.relatedTargetId);
+      const unassignedActive = unassigned && (unassigned.status ?? "").toUpperCase() === "ACTIVE";
       if (!unassignedActive) return null;
     }
   }
@@ -167,23 +158,18 @@ function buildStructuralNotice(
     if (rec.relatedTargetId) {
       const name =
         nameById.get(rec.relatedTargetId) ??
-        health.activeCampaigns.find(c => c.externalId === rec.relatedTargetId)
-          ?.name ??
-        health.unassignedTargets.find(t => t.externalId === rec.relatedTargetId)
-          ?.name;
+        health.activeCampaigns.find((c) => c.externalId === rec.relatedTargetId)?.name ??
+        health.unassignedTargets.find((t) => t.externalId === rec.relatedTargetId)?.name;
       if (name) return `Campaña: ${name}`;
     }
     if (rec.relatedOfferId) {
-      const offer = health.offersCoverage.find(
-        o => o.offerId === rec.relatedOfferId,
-      );
+      const offer = health.offersCoverage.find((o) => o.offerId === rec.relatedOfferId);
       if (offer) return `Offer: ${offer.offerName}`;
     }
     return null;
   })();
 
-  const targetKey =
-    rec.relatedTargetId ?? rec.relatedOfferId ?? 'global';
+  const targetKey = rec.relatedTargetId ?? rec.relatedOfferId ?? "global";
   const id = `struct:${rec.type}:${targetKey}`;
 
   return {
@@ -227,8 +213,8 @@ export function useMetaAdsNotices({
   return useMemo(() => {
     const activeCampaignIds = new Set(
       (campaignData?.campaigns ?? [])
-        .filter(c => (c.effectiveStatus ?? '').toUpperCase() === 'ACTIVE')
-        .map(c => c.externalId),
+        .filter((c) => (c.effectiveStatus ?? "").toUpperCase() === "ACTIVE")
+        .map((c) => c.externalId),
     );
 
     const nameById = new Map<string, string>();
@@ -247,12 +233,7 @@ export function useMetaAdsNotices({
     // Nicolify structural recommendations.
     if (healthCheck) {
       for (const rec of healthCheck.recommendations) {
-        const notice = buildStructuralNotice(
-          rec,
-          healthCheck,
-          activeCampaignIds,
-          nameById,
-        );
+        const notice = buildStructuralNotice(rec, healthCheck, activeCampaignIds, nameById);
         if (notice) raw.push(notice);
       }
     }
@@ -271,7 +252,7 @@ export function useMetaAdsNotices({
     }
 
     // Apply ignore filter.
-    const visible = Array.from(byId.values()).filter(n => !ignored.has(n.id));
+    const visible = Array.from(byId.values()).filter((n) => !ignored.has(n.id));
 
     // Group by tab + sort by severity.
     const byTab = makeEmptyByTab<ImprovementNotice[]>(() => []);
@@ -279,9 +260,7 @@ export function useMetaAdsNotices({
       byTab[categoryToTab(notice.category)].push(notice);
     }
     for (const tab of Object.keys(byTab) as NoticeTab[]) {
-      byTab[tab].sort(
-        (a, b) => severityRank(a.severity) - severityRank(b.severity),
-      );
+      byTab[tab].sort((a, b) => severityRank(a.severity) - severityRank(b.severity));
     }
 
     // Severity breakdowns.
@@ -306,10 +285,7 @@ export function useMetaAdsNotices({
       for (const notice of items) {
         severity[notice.severity] += 1;
         severityPerTab[tab][notice.severity] += 1;
-        maxSeverityPerTab[tab] = maxSeverity(
-          maxSeverityPerTab[tab],
-          notice.severity,
-        );
+        maxSeverityPerTab[tab] = maxSeverity(maxSeverityPerTab[tab], notice.severity);
       }
     }
 

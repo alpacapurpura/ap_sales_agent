@@ -1,34 +1,34 @@
-'use client';
+"use client";
 
-import React from 'react';
-import type { MetricValue, MetricClickData, StageId } from '../../../types/metrics';
-import { METRIC_LABELS } from '../../../lib/metric-labels';
-import { getChannelConfig } from '../../../config/channel-display-registry';
-import { CostLink } from './CostLink';
-import { formatNum, formatCurrency } from '../utils/format';
-import { MetricInfoCard } from './KpiTooltip';
+import React from "react";
+import type { MetricValue, MetricClickData, StageId } from "../../../types/metrics";
+import { METRIC_LABELS } from "../../../lib/metric-labels";
+import { getChannelConfig } from "../../../config/channel-display-registry";
+import { CostLink } from "./CostLink";
+import { formatNum, formatCurrency } from "../utils/format";
+import { MetricInfoCard } from "./KpiTooltip";
 
 /* ── Formatting helpers ──────────────────────────────────────────────── */
 
 /** Breakdown key -> Spanish label. */
 const BREAKDOWN_LABELS: Record<string, string> = {
-  likes: 'likes',
-  comments: 'comentarios',
-  shares: 'compartidos',
-  saves: 'guardados',
-  reactions: 'reacciones',
-  campaigns: 'Campañas',
-  seo: 'SEO',
-  ai_search: 'AI Search',
-  google_ads: 'Google Ads',
-  direct: 'Directo',
+  likes: "likes",
+  comments: "comentarios",
+  shares: "compartidos",
+  saves: "guardados",
+  reactions: "reacciones",
+  campaigns: "Campañas",
+  seo: "SEO",
+  ai_search: "AI Search",
+  google_ads: "Google Ads",
+  direct: "Directo",
 };
 
 function formatBreakdown(breakdown: Record<string, number>): string {
   return Object.entries(breakdown)
     .filter(([, v]) => v > 0)
     .map(([key, val]) => `${BREAKDOWN_LABELS[key] ?? key} ${formatNum(val)}`)
-    .join(', ');
+    .join(", ");
 }
 
 /* ── MetricDisplay (internal) ────────────────────────────────────────── */
@@ -38,13 +38,22 @@ interface MetricDisplayProps {
   channelSlug?: string;
   stageId?: StageId;
   onMetricClick?: (metric: MetricClickData) => void;
-  catalogByName?: Record<string, { display_name: string; interpretation: string; formula?: string; benchmarks?: string | null }>;
+  catalogByName?: Record<
+    string,
+    { display_name: string; interpretation: string; formula?: string; benchmarks?: string | null }
+  >;
 }
 
-function MetricDisplay({ metric, channelSlug, stageId, onMetricClick, catalogByName }: MetricDisplayProps) {
+function MetricDisplay({
+  metric,
+  channelSlug,
+  stageId,
+  onMetricClick,
+  catalogByName,
+}: MetricDisplayProps) {
   const catalogEntry = catalogByName?.[metric.name];
   const label = catalogEntry?.display_name ?? METRIC_LABELS[metric.name] ?? metric.name;
-  const isCurrency = metric.unit === 'currency';
+  const isCurrency = metric.unit === "currency";
   const formatted = isCurrency
     ? formatCurrency(metric.value, metric.currency)
     : formatNum(metric.value);
@@ -54,7 +63,9 @@ function MetricDisplay({ metric, channelSlug, stageId, onMetricClick, catalogByN
   const content = (
     <div className="flex flex-col items-end min-w-[52px]">
       <MetricInfoCard metricName={metric.name}>
-        <span className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight">{label}</span>
+        <span className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight">
+          {label}
+        </span>
       </MetricInfoCard>
       <span className="text-sm font-semibold tabular-nums leading-tight">{formatted}</span>
       {metric.breakdown && Object.keys(metric.breakdown).length > 0 && (
@@ -68,13 +79,15 @@ function MetricDisplay({ metric, channelSlug, stageId, onMetricClick, catalogByN
   if (canClick) {
     return (
       <button
-        onClick={() => onMetricClick({
-          stageId,
-          channelSlug,
-          metricName: metric.name,
-          currentValue: metric.value,
-          currency: metric.currency,
-        })}
+        onClick={() =>
+          onMetricClick({
+            stageId,
+            channelSlug,
+            metricName: metric.name,
+            currentValue: metric.value,
+            currency: metric.currency,
+          })
+        }
         className="cursor-pointer hover:bg-primary/5 px-1.5 py-1 rounded-md transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
       >
         {content}
@@ -103,7 +116,10 @@ export interface ChannelRowMetricsProps {
   /** Whether the channel has a zero leads metric */
   hasZeroLeads: boolean;
   /** Catalog entries for display_name resolution */
-  catalogByName: Record<string, { display_name: string; interpretation: string; formula?: string; benchmarks?: string | null }>;
+  catalogByName: Record<
+    string,
+    { display_name: string; interpretation: string; formula?: string; benchmarks?: string | null }
+  >;
   /** Callback when user clicks a metric value */
   onMetricClick?: (metric: MetricClickData) => void;
 }
@@ -132,24 +148,26 @@ export const ChannelRowMetrics = React.memo(function ChannelRowMetrics({
     return (
       <div className="flex flex-col items-end">
         <span className="text-sm font-semibold text-muted-foreground">0 leads</span>
-        <span className="text-[10px] text-muted-foreground">Sin actividad en los ultimos 30 dias</span>
+        <span className="text-[10px] text-muted-foreground">
+          Sin actividad en los ultimos 30 dias
+        </span>
       </div>
     );
   }
 
   const config = getChannelConfig(channelSlug);
-  const specMap = new Map(config?.summaryMetrics.map(s => [s.name, s]));
+  const specMap = new Map(config?.summaryMetrics.map((s) => [s.name, s]));
 
   return (
     <>
       {displayMetrics.map((m) => {
         // CostLink for unconfigured costs (value is 0/null and channel is connected)
-        if (m.name === 'cost' && m.unit === 'currency' && m.value === 0 && connected) {
+        if (m.name === "cost" && m.unit === "currency" && m.value === 0 && connected) {
           return <CostLink key={m.name} />;
         }
 
         // Leads metric with conversations secondary line
-        if (m.name === 'leads' && conversationsMetric) {
+        if (m.name === "leads" && conversationsMetric) {
           const canClick = onMetricClick && stageId;
           const leadsLabel = catalogByName[m.name]?.display_name ?? METRIC_LABELS[m.name] ?? m.name;
           const leadsContent = (
@@ -157,9 +175,11 @@ export const ChannelRowMetrics = React.memo(function ChannelRowMetrics({
               <span className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight">
                 {leadsLabel}
               </span>
-              <span className="text-sm font-semibold tabular-nums leading-tight">{formatNum(m.value)}</span>
+              <span className="text-sm font-semibold tabular-nums leading-tight">
+                {formatNum(m.value)}
+              </span>
               <span className="text-[10px] text-muted-foreground">
-                de {conversationsMetric.value.toLocaleString('es-ES')} conversaciones
+                de {conversationsMetric.value.toLocaleString("es-ES")} conversaciones
               </span>
             </div>
           );
@@ -167,12 +187,14 @@ export const ChannelRowMetrics = React.memo(function ChannelRowMetrics({
             return (
               <button
                 key={m.name}
-                onClick={() => onMetricClick({
-                  stageId,
-                  channelSlug,
-                  metricName: m.name,
-                  currentValue: m.value,
-                })}
+                onClick={() =>
+                  onMetricClick({
+                    stageId,
+                    channelSlug,
+                    metricName: m.name,
+                    currentValue: m.value,
+                  })
+                }
                 className="cursor-pointer hover:bg-primary/5 px-1.5 py-1 rounded-md transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 title={`Ver detalle: ${leadsLabel}`}
               >
@@ -195,8 +217,12 @@ export const ChannelRowMetrics = React.memo(function ChannelRowMetrics({
         );
 
         const spec = specMap.get(m.name);
-        if (spec?.responsive === 'sm') {
-          return <div key={m.name} className="hidden sm:flex">{pill}</div>;
+        if (spec?.responsive === "sm") {
+          return (
+            <div key={m.name} className="hidden sm:flex">
+              {pill}
+            </div>
+          );
         }
 
         return pill;

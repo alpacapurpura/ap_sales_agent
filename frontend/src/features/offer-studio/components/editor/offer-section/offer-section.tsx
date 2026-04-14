@@ -26,20 +26,14 @@ interface OfferSectionProps extends React.HTMLAttributes<HTMLElement> {
   isEmpty?: boolean;
 }
 
-function OfferSection({
-  children,
-  className,
-  onEdit,
-  isEmpty,
-  ...props
-}: OfferSectionProps) {
+function OfferSection({ children, className, onEdit, isEmpty, ...props }: OfferSectionProps) {
   return (
     <OfferSectionContext.Provider value={{ onEdit, isEmpty }}>
       <section
         onClick={onEdit}
         className={cn(
           "group relative -mx-4 p-6 rounded-xl transition-all duration-300 hover:bg-muted/40 cursor-pointer scroll-mt-24",
-          className
+          className,
         )}
         {...props}
       >
@@ -68,7 +62,7 @@ function OfferSectionHeader({
     <div
       className={cn(
         "flex items-center gap-3 mb-6 text-muted-foreground group-hover:text-primary transition-colors",
-        className
+        className,
       )}
     >
       {Icon && (
@@ -126,7 +120,7 @@ function OfferSectionControls({ className }: OfferSectionControlsProps) {
     <div
       className={cn(
         "absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity",
-        className
+        className,
       )}
     >
       <Button variant="ghost" size="sm" className="h-8 w-8 p-0">

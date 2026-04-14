@@ -14,10 +14,7 @@ interface MultiOptionSelectorProps {
 
 type SelectorStatus = "pending" | "applied";
 
-export function MultiOptionSelector({
-  options,
-  fieldId,
-}: MultiOptionSelectorProps) {
+export function MultiOptionSelector({ options, fieldId }: MultiOptionSelectorProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [status, setStatus] = useState<SelectorStatus>("pending");
   const { getToken } = useAuth();
@@ -34,11 +31,15 @@ export function MultiOptionSelector({
     setStatus("applied");
     getToken().then((token) => {
       if (token) {
-        reportCopilotEvent("option_selected", {
-          field_id: fieldId,
-          selected_option_id: selected.id,
-          selected_title: selected.title,
-        }, token);
+        reportCopilotEvent(
+          "option_selected",
+          {
+            field_id: fieldId,
+            selected_option_id: selected.id,
+            selected_title: selected.title,
+          },
+          token,
+        );
       }
     });
   };
@@ -62,12 +63,8 @@ export function MultiOptionSelector({
                 : "",
             ].join(" ")}
           >
-            <div className="font-medium text-slate-700 dark:text-slate-200">
-              {opt.title}
-            </div>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-              {opt.content}
-            </p>
+            <div className="font-medium text-slate-700 dark:text-slate-200">{opt.title}</div>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{opt.content}</p>
           </Card>
         );
       })}
@@ -83,9 +80,7 @@ export function MultiOptionSelector({
         </Button>
       )}
 
-      {status === "applied" && (
-        <span className="text-xs text-green-600">Aplicado</span>
-      )}
+      {status === "applied" && <span className="text-xs text-green-600">Aplicado</span>}
     </div>
   );
 }

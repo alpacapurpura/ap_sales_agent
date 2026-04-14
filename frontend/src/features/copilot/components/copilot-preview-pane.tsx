@@ -6,13 +6,19 @@ import { useCopilotStore } from "../store/copilot-store";
 import { getPreviewEntry } from "../config/interview-preview-registry";
 import type { PreviewRegistryEntry } from "../config/interview-preview-registry";
 import type { ComponentType } from "react";
-import type { PreviewSummaryProps, PreviewSectionsProps } from "../config/interview-preview-registry";
+import type {
+  PreviewSummaryProps,
+  PreviewSectionsProps,
+} from "../config/interview-preview-registry";
 
 // ── Lazy component cache (stable references across renders) ───────────────
-const lazyCache = new Map<string, {
-  Summary: ComponentType<PreviewSummaryProps>;
-  Sections: ComponentType<PreviewSectionsProps>;
-}>();
+const lazyCache = new Map<
+  string,
+  {
+    Summary: ComponentType<PreviewSummaryProps>;
+    Sections: ComponentType<PreviewSectionsProps>;
+  }
+>();
 
 function getLazyComponents(domain: string, entry: PreviewRegistryEntry) {
   const cached = lazyCache.get(domain);
@@ -41,10 +47,7 @@ export function CopilotPreviewPane() {
 
   const domain = focusEntity?.domain ?? null;
 
-  const entry = useMemo(
-    () => (domain ? getPreviewEntry(domain) : null),
-    [domain],
-  );
+  const entry = useMemo(() => (domain ? getPreviewEntry(domain) : null), [domain]);
 
   if (!focusEntity || !entry || !domain) return null;
 
@@ -53,11 +56,12 @@ export function CopilotPreviewPane() {
   const hasData = Object.keys(data).length > 0;
 
   return (
-    <div className="flex h-full w-full flex-col bg-slate-50 dark:bg-slate-800/50 animate-in fade-in-0 slide-in-from-left-2 duration-200" data-testid="copilot-preview-pane">
+    <div
+      className="flex h-full w-full flex-col bg-slate-50 dark:bg-slate-800/50 animate-in fade-in-0 slide-in-from-left-2 duration-200"
+      data-testid="copilot-preview-pane"
+    >
       <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
-        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-          Vista previa
-        </h3>
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Vista previa</h3>
         <p className="mt-0.5 text-xs text-slate-500">{focusEntity.label}</p>
       </div>
 

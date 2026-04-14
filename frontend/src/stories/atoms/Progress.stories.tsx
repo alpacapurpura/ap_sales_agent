@@ -1,12 +1,12 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { Progress } from '@/components/ui/progress';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { Progress } from "@/components/ui/progress";
 
 const meta = {
-  title: 'Atoms/Progress',
+  title: "Atoms/Progress",
   component: Progress,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
-    value: { control: { type: 'range', min: 0, max: 100 } },
+    value: { control: { type: "range", min: 0, max: 100 } },
   },
 } satisfies Meta<typeof Progress>;
 

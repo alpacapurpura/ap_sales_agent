@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { RefreshCw } from 'lucide-react';
-import type { OfferSaleData } from '../../../types/metrics';
+import { RefreshCw } from "lucide-react";
+import type { OfferSaleData } from "../../../types/metrics";
 
 interface OfferCardProps {
   offer: OfferSaleData;
@@ -12,13 +12,13 @@ interface OfferCardProps {
 
 function getTierIndicator(tierKey: string) {
   switch (tierKey) {
-    case 'low_ticket':
+    case "low_ticket":
       return <span className="text-xs font-medium text-muted-foreground">$</span>;
-    case 'mid_ticket':
+    case "mid_ticket":
       return <span className="text-xs font-medium text-muted-foreground">$$</span>;
-    case 'high_ticket':
+    case "high_ticket":
       return <span className="text-xs font-medium text-muted-foreground">$$$</span>;
-    case 'recurrente':
+    case "recurrente":
       return <RefreshCw className="h-4 w-4 text-muted-foreground" />;
     default:
       return null;
@@ -26,22 +26,22 @@ function getTierIndicator(tierKey: string) {
 }
 
 function formatRevenue(amount: number, currency: string, usdAmount: number | null): string {
-  const fmt = new Intl.NumberFormat('es-MX', {
-    style: 'currency',
+  const fmt = new Intl.NumberFormat("es-MX", {
+    style: "currency",
     currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
   const main = fmt.format(amount);
 
-  if (currency === 'USD') {
+  if (currency === "USD") {
     return main;
   }
 
   if (usdAmount != null) {
-    const usdFmt = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    const usdFmt = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     });
@@ -70,14 +70,19 @@ export function OfferCard({ offer, tierKey, onRevenueClick }: OfferCardProps) {
   const sources = Object.entries(sourceBreakdown)
     .filter(([, count]) => count > 0)
     .map(([source, count]) => `${source}: ${count}`)
-    .join(' | ');
+    .join(" | ");
 
   const hasSubscriptionData = newSubscriptions != null || renewals != null;
 
   const subFmt = (amount: number | null) =>
     amount != null
-      ? new Intl.NumberFormat('es-MX', { style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount)
-      : '';
+      ? new Intl.NumberFormat("es-MX", {
+          style: "currency",
+          currency,
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(amount)
+      : "";
 
   return (
     <div className="rounded-lg border p-3 hover:bg-muted/50 transition-colors">
@@ -104,19 +109,21 @@ export function OfferCard({ offer, tierKey, onRevenueClick }: OfferCardProps) {
       </div>
 
       {/* Line 2: Source breakdown */}
-      {sources && (
-        <p className="text-xs text-muted-foreground mt-1">{sources}</p>
-      )}
+      {sources && <p className="text-xs text-muted-foreground mt-1">{sources}</p>}
 
       {/* Line 3: Subscription split (conditional) */}
       {hasSubscriptionData && (
         <p className="text-xs text-muted-foreground mt-1">
           {newSubscriptions != null && subscriptionNewLabel && (
-            <>{newSubscriptions} {subscriptionNewLabel} ({subFmt(newSubscriptionRevenue)})</>
+            <>
+              {newSubscriptions} {subscriptionNewLabel} ({subFmt(newSubscriptionRevenue)})
+            </>
           )}
-          {newSubscriptions != null && renewals != null && ' | '}
+          {newSubscriptions != null && renewals != null && " | "}
           {renewals != null && subscriptionRenewalLabel && (
-            <>{renewals} {subscriptionRenewalLabel} ({subFmt(renewalRevenue)})</>
+            <>
+              {renewals} {subscriptionRenewalLabel} ({subFmt(renewalRevenue)})
+            </>
           )}
         </p>
       )}

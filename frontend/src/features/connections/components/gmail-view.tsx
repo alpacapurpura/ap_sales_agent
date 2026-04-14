@@ -5,7 +5,14 @@ import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-
 import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
 import { useAuth } from "@clerk/nextjs";
 import { connectionsApi } from "@/lib/api/connections";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, CheckCircle, Mail, Trash2, ExternalLink, Activity } from "lucide-react";
@@ -22,7 +29,7 @@ import {
 
 export function GmailView() {
   const { getToken } = useAuth();
-  
+
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<{ is_connected: boolean; email?: string } | null>(null);
   const [connecting, setConnecting] = useState(false);
@@ -88,11 +95,10 @@ export function GmailView() {
       // Must match the redirect URI registered in Google Cloud Console
       const redirectUri = window.location.origin + "/connections/google/callback";
       const { url } = await connectionsApi.getGmailAuthUrl(token, redirectUri);
-      
+
       openOAuthPopup({ url, name: "GmailAuth" });
 
       setTimeout(() => setConnecting(false), 60000); // 1 min timeout
-
     } catch (error: any) {
       console.error(error);
       toast.error("No se pudo iniciar la conexión");
@@ -101,22 +107,22 @@ export function GmailView() {
   };
 
   const handleTest = async () => {
-      try {
-          setTesting(true);
-          setTestResult(null);
-          const token = await getToken();
-          if (!token) return;
-          
-          const res = await connectionsApi.testGmail(token);
-          setTestResult(res);
-          toast.success("Prueba de conexión exitosa");
-      } catch (error: any) {
-          console.error(error);
-          toast.error(error.message || "Error en la prueba");
-          setTestResult({ status: "error", message: error.message });
-      } finally {
-          setTesting(false);
-      }
+    try {
+      setTesting(true);
+      setTestResult(null);
+      const token = await getToken();
+      if (!token) return;
+
+      const res = await connectionsApi.testGmail(token);
+      setTestResult(res);
+      toast.success("Prueba de conexión exitosa");
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Error en la prueba");
+      setTestResult({ status: "error", message: error.message });
+    } finally {
+      setTesting(false);
+    }
   };
 
   const handleDisconnect = async () => {
@@ -160,26 +166,34 @@ export function GmailView() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-            <Alert className="bg-blue-50 text-blue-800 border-blue-200">
-                <ExternalLink className="h-4 w-4" />
-                <AlertTitle>Requisito Google Workspace</AlertTitle>
-                <AlertDescription>
-                    Actualmente solo soportamos cuentas de Google Workspace (Empresariales).
-                </AlertDescription>
-            </Alert>
-            <div className="text-sm text-muted-foreground">
-                <p>Al conectar, permitirás que el sistema:</p>
-                <ul className="list-disc list-inside mt-2 space-y-1 ml-2">
-                    <li>Enviar correos electrónicos en tu nombre.</li>
-                    <li>Leer tu dirección de correo para identificación.</li>
-                </ul>
-            </div>
+          <Alert className="bg-blue-50 text-blue-800 border-blue-200">
+            <ExternalLink className="h-4 w-4" />
+            <AlertTitle>Requisito Google Workspace</AlertTitle>
+            <AlertDescription>
+              Actualmente solo soportamos cuentas de Google Workspace (Empresariales).
+            </AlertDescription>
+          </Alert>
+          <div className="text-sm text-muted-foreground">
+            <p>Al conectar, permitirás que el sistema:</p>
+            <ul className="list-disc list-inside mt-2 space-y-1 ml-2">
+              <li>Enviar correos electrónicos en tu nombre.</li>
+              <li>Leer tu dirección de correo para identificación.</li>
+            </ul>
+          </div>
         </CardContent>
         <CardFooter>
-            <Button onClick={handleConnect} disabled={connecting} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
-                {connecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
-                Conectar con Gmail
-            </Button>
+          <Button
+            onClick={handleConnect}
+            disabled={connecting}
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
+          >
+            {connecting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Mail className="mr-2 h-4 w-4" />
+            )}
+            Conectar con Gmail
+          </Button>
         </CardFooter>
       </Card>
     );
@@ -187,82 +201,107 @@ export function GmailView() {
 
   return (
     <div className="space-y-6">
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Mail className="h-6 w-6 text-red-500" />
-                        Gmail Conectado
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">
-                        <CheckCircle className="h-4 w-4" />
-                        Activo
-                    </div>
-                </CardTitle>
-                <CardDescription>
-                    Tu correo está conectado y listo para enviar notificaciones.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="space-y-1">
-                    <span className="text-muted-foreground text-xs uppercase tracking-wider">Cuenta Conectada</span>
-                    <p className="font-medium text-lg flex items-center gap-2">
-                        {status.email || "Usuario de Google"}
-                        {status.email && (
-                            <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground font-normal">
-                                {status.email.split('@')[1]}
-                            </span>
-                        )}
-                    </p>
-                </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Mail className="h-6 w-6 text-red-500" />
+              Gmail Conectado
+            </div>
+            <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">
+              <CheckCircle className="h-4 w-4" />
+              Activo
+            </div>
+          </CardTitle>
+          <CardDescription>
+            Tu correo está conectado y listo para enviar notificaciones.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-1">
+            <span className="text-muted-foreground text-xs uppercase tracking-wider">
+              Cuenta Conectada
+            </span>
+            <p className="font-medium text-lg flex items-center gap-2">
+              {status.email || "Usuario de Google"}
+              {status.email && (
+                <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground font-normal">
+                  {status.email.split("@")[1]}
+                </span>
+              )}
+            </p>
+          </div>
 
-                {testResult && (
-                    <Alert variant={testResult.status === "ok" ? "default" : "destructive"} className={testResult.status === "ok" ? "bg-green-500/15 text-green-700 border-green-500/30 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20" : ""}>
-                        <Activity className="h-4 w-4" />
-                        <AlertTitle>{testResult.status === "ok" ? "Conexión Estable" : "Error de Conexión"}</AlertTitle>
-                        <AlertDescription>
-                            {testResult.message}
-                            {testResult.data && (
-                                <div className="mt-2 text-xs bg-background/50 p-2 rounded overflow-x-auto text-foreground border border-border/50 grid gap-1">
-                                    <div><strong>Email:</strong> {testResult.data.emailAddress}</div>
-                                    <div><strong>Mensajes Total:</strong> {testResult.data.messagesTotal}</div>
-                                    <div><strong>Threads Total:</strong> {testResult.data.threadsTotal}</div>
-                                </div>
-                            )}
-                        </AlertDescription>
-                    </Alert>
+          {testResult && (
+            <Alert
+              variant={testResult.status === "ok" ? "default" : "destructive"}
+              className={
+                testResult.status === "ok"
+                  ? "bg-green-500/15 text-green-700 border-green-500/30 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20"
+                  : ""
+              }
+            >
+              <Activity className="h-4 w-4" />
+              <AlertTitle>
+                {testResult.status === "ok" ? "Conexión Estable" : "Error de Conexión"}
+              </AlertTitle>
+              <AlertDescription>
+                {testResult.message}
+                {testResult.data && (
+                  <div className="mt-2 text-xs bg-background/50 p-2 rounded overflow-x-auto text-foreground border border-border/50 grid gap-1">
+                    <div>
+                      <strong>Email:</strong> {testResult.data.emailAddress}
+                    </div>
+                    <div>
+                      <strong>Mensajes Total:</strong> {testResult.data.messagesTotal}
+                    </div>
+                    <div>
+                      <strong>Threads Total:</strong> {testResult.data.threadsTotal}
+                    </div>
+                  </div>
                 )}
-            </CardContent>
-            <CardFooter className="flex flex-col sm:flex-row gap-3 justify-between border-t pt-6">
-                <Button variant="outline" onClick={handleTest} disabled={testing}>
-                    {testing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Activity className="mr-2 h-4 w-4" />}
-                    Probar Conexión
-                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+        <CardFooter className="flex flex-col sm:flex-row gap-3 justify-between border-t pt-6">
+          <Button variant="outline" onClick={handleTest} disabled={testing}>
+            {testing ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Activity className="mr-2 h-4 w-4" />
+            )}
+            Probar Conexión
+          </Button>
 
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="destructive" disabled={disconnecting}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Desconectar
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>¿Desvincular Gmail?</DialogTitle>
-                            <DialogDescription>
-                                El sistema dejará de enviar correos de confirmación automáticamente.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                            <Button variant="outline">Cancelar</Button>
-                            <Button variant="destructive" onClick={handleDisconnect} disabled={disconnecting}>
-                                {disconnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Sí, desconectar"}
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            </CardFooter>
-        </Card>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="destructive" disabled={disconnecting}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Desconectar
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>¿Desvincular Gmail?</DialogTitle>
+                <DialogDescription>
+                  El sistema dejará de enviar correos de confirmación automáticamente.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline">Cancelar</Button>
+                <Button variant="destructive" onClick={handleDisconnect} disabled={disconnecting}>
+                  {disconnecting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    "Sí, desconectar"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

@@ -6,23 +6,21 @@ import { LogoKit } from "./logo-kit";
 import { Loader2 } from "lucide-react";
 
 export function LogoKitManager() {
-    const { settings, updateVisuals, loading } = useBrandSettings();
+  const { settings, updateVisuals, loading } = useBrandSettings();
 
-    if (loading) {
-        return (
-            <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-        );
-    }
-
-    if (!settings) return null;
-
-    const handleLogoChange = (updatedLogos: BrandLogos) => {
-        updateVisuals({ ...settings.visuals, logos: updatedLogos });
-    };
-
+  if (loading) {
     return (
-        <LogoKit logos={settings.visuals?.logos ?? {}} onChange={handleLogoChange} />
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     );
+  }
+
+  if (!settings) return null;
+
+  const handleLogoChange = (updatedLogos: BrandLogos) => {
+    updateVisuals({ ...settings.visuals, logos: updatedLogos });
+  };
+
+  return <LogoKit logos={settings.visuals?.logos ?? {}} onChange={handleLogoChange} />;
 }

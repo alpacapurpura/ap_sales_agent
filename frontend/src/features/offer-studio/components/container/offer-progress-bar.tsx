@@ -28,21 +28,12 @@ export function OfferProgressBar({
 
   return (
     <div
-      className={cn(
-        "flex min-w-0 flex-1 items-center gap-3",
-        className,
-      )}
+      className={cn("flex min-w-0 flex-1 items-center gap-3", className)}
       role="group"
       aria-label="Progreso de la oferta"
     >
-      <span className="shrink-0 text-sm font-bold tabular-nums text-primary">
-        {safePercent}%
-      </span>
-      <Progress
-        value={safePercent}
-        className="h-2 flex-1"
-        aria-label="Porcentaje completado"
-      />
+      <span className="shrink-0 text-sm font-bold tabular-nums text-primary">{safePercent}%</span>
+      <Progress value={safePercent} className="h-2 flex-1" aria-label="Porcentaje completado" />
       <p className="shrink-0 truncate text-xs text-muted-foreground">
         <span className="tabular-nums">
           {completed} de {total} secciones

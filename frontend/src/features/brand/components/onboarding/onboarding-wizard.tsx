@@ -84,8 +84,8 @@ export function OnboardingWizard({ onComplete, onManual }: OnboardingWizardProps
           </div>
           <h2 className="text-2xl font-bold text-foreground">Entrevista IA</h2>
           <p className="mt-3 text-muted-foreground">
-            Próximamente podrás completar tu marca conversando con nuestra IA.
-            Por ahora, usa la configuración manual.
+            Próximamente podrás completar tu marca conversando con nuestra IA. Por ahora, usa la
+            configuración manual.
           </p>
           <button
             type="button"

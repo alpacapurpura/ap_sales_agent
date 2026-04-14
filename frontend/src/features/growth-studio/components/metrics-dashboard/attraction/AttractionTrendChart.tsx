@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { memo, useMemo } from 'react';
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { memo, useMemo } from "react";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -9,11 +9,11 @@ import {
   ChartLegend,
   ChartLegendContent,
   type ChartConfig,
-} from '@/components/ui/chart';
-import type { StageTimeSeries } from '../../../types/metrics';
-import { getChannelColor } from '../../../config/channel-chart-config';
-import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
-import { formatTenantDate } from '@/lib/format-date';
+} from "@/components/ui/chart";
+import type { StageTimeSeries } from "../../../types/metrics";
+import { getChannelColor } from "../../../config/channel-chart-config";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatTenantDate } from "@/lib/format-date";
 
 interface AttractionTrendChartProps {
   timeSeries: StageTimeSeries | undefined;
@@ -23,7 +23,10 @@ interface AttractionTrendChartProps {
 /** Max channels to show individually — rest grouped as "otros". */
 const MAX_CHANNELS = 6;
 
-export const AttractionTrendChart = memo(function AttractionTrendChart({ timeSeries, isLoading }: AttractionTrendChartProps) {
+export const AttractionTrendChart = memo(function AttractionTrendChart({
+  timeSeries,
+  isLoading,
+}: AttractionTrendChartProps) {
   const { timezone } = useTenantLocale();
   const { chartData, channelKeys, chartConfig } = useMemo(() => {
     if (!timeSeries?.dataPoints.length || !timeSeries.channelsPresent.length) {
@@ -41,7 +44,7 @@ export const AttractionTrendChart = memo(function AttractionTrendChart({ timeSer
 
     // Build keys list
     const keys = top.map((ch) => ch.slug);
-    if (hasOtros) keys.push('otros');
+    if (hasOtros) keys.push("otros");
 
     // Build chart config
     const cfg: ChartConfig = {};
@@ -52,7 +55,7 @@ export const AttractionTrendChart = memo(function AttractionTrendChart({ timeSer
       };
     }
     if (hasOtros) {
-      cfg['otros'] = { label: 'Otros', color: '#9CA3AF' };
+      cfg["otros"] = { label: "Otros", color: "#9CA3AF" };
     }
 
     // Build flat chart data
@@ -64,7 +67,7 @@ export const AttractionTrendChart = memo(function AttractionTrendChart({ timeSer
         row[ch.slug] = dp.channels[ch.slug] ?? 0;
       }
       if (hasOtros) {
-        row['otros'] = rest.reduce((sum, ch) => sum + (dp.channels[ch.slug] ?? 0), 0);
+        row["otros"] = rest.reduce((sum, ch) => sum + (dp.channels[ch.slug] ?? 0), 0);
       }
       return row;
     });
@@ -100,20 +103,20 @@ export const AttractionTrendChart = memo(function AttractionTrendChart({ timeSer
             axisLine={false}
             tickMargin={8}
             tickFormatter={(v: string) => {
-              return formatTenantDate(v + 'T00:00:00', timezone, 'MMM d');
+              return formatTenantDate(v + "T00:00:00", timezone, "MMM d");
             }}
           />
           <YAxis
             tickLine={false}
             axisLine={false}
-            tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v)}
+            tickFormatter={(v: number) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v))}
             width={45}
           />
           <ChartTooltip
             content={
               <ChartTooltipContent
                 labelFormatter={(val) => {
-                  return formatTenantDate(String(val) + 'T00:00:00', timezone, 'eee, d MMM');
+                  return formatTenantDate(String(val) + "T00:00:00", timezone, "eee, d MMM");
                 }}
               />
             }

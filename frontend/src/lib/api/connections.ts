@@ -7,7 +7,7 @@ export interface ChannelStatusResponse {
   is_connected: boolean;
   bot_name?: string;
   username?: string;
-  config?: Record<string, any>;
+  config?: Record<string, unknown>;
 }
 
 export interface TelegramConnectRequest {
@@ -17,8 +17,8 @@ export interface TelegramConnectRequest {
 export interface TestResponse {
   status: string;
   message: string;
-  data?: any;
-  details?: Record<string, any>;
+  data?: unknown;
+  details?: Record<string, unknown>;
 }
 
 export interface ShopifyConnectRequest {
@@ -35,12 +35,21 @@ export interface ShopifyStatusResponse extends ChannelStatusResponse {
   scope?: string;
 }
 
+export interface CalendarStatusResponse extends ChannelStatusResponse {
+  email?: string;
+  booking_link?: string;
+}
+
+export interface GmailStatusResponse extends ChannelStatusResponse {
+  email?: string;
+}
+
 export interface MailerliteConnectRequest {
   api_key: string;
 }
 
 export interface MailerliteStatusResponse extends ChannelStatusResponse {
-  account_info?: Record<string, any>;
+  account_info?: Record<string, unknown>;
 }
 
 export interface ManyChatConnectRequest {
@@ -48,7 +57,7 @@ export interface ManyChatConnectRequest {
 }
 
 export interface ManyChatStatusResponse extends ChannelStatusResponse {
-  account_info?: Record<string, any>;
+  account_info?: Record<string, unknown>;
 }
 
 export interface GA4Property {
@@ -63,7 +72,7 @@ export interface SelectedProperty {
 }
 
 export interface GoogleAnalyticsStatusResponse extends ChannelStatusResponse {
-  account_summary?: any[];
+  account_summary?: unknown[];
   is_configured?: boolean;
   selected_property?: SelectedProperty | null;
 }
@@ -88,7 +97,7 @@ export interface YoutubeStatusResponse extends ChannelStatusResponse {
   is_configured?: boolean;
   channel_id?: string;
   channel_title?: string;
-  channel_data?: Record<string, any>;
+  channel_data?: Record<string, unknown>;
 }
 
 export interface ConnectionStatusItem {
@@ -108,13 +117,13 @@ export interface ChannelInfoResponse {
   is_configured: boolean;
   display_name?: string;
   account_name?: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   children: Array<{
     channel_type: string;
     asset_id?: string;
     name?: string;
     is_active: boolean;
-    details: Record<string, any>;
+    details: Record<string, unknown>;
   }>;
   last_extraction?: {
     status: string;
@@ -135,7 +144,10 @@ export const connectionsApi = {
   // ... existing methods ...
 
   // Google Analytics
-  configureGoogleAnalytics: async (data: GoogleAnalyticsConfigRequest, token: string): Promise<any> => {
+  configureGoogleAnalytics: async (
+    data: GoogleAnalyticsConfigRequest,
+    token: string,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/google-analytics/configure`, {
       method: "POST",
       headers: {
@@ -145,8 +157,8 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error configurando Google Analytics");
+      const err = await res.json();
+      throw new Error(err.detail || "Error configurando Google Analytics");
     }
     return res.json();
   },
@@ -168,10 +180,13 @@ export const connectionsApi = {
     return res.json();
   },
 
-  getMetaAuthUrl: async (token: string, redirectUri?: string): Promise<{url: string, state: string}> => {
+  getMetaAuthUrl: async (
+    token: string,
+    redirectUri?: string,
+  ): Promise<{ url: string; state: string }> => {
     let url = `${API_URL}/api/v1/connections/meta/auth-url`;
     if (redirectUri) {
-        url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
     }
     const res = await fetchClient(url, {
       headers: { Authorization: `Bearer ${token}` },
@@ -180,18 +195,18 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectMeta: async (code: string, token: string, redirectUri?: string): Promise<any> => {
-     const res = await fetchClient(`${API_URL}/api/v1/connections/meta/callback`, {
+  connectMeta: async (code: string, token: string, redirectUri?: string): Promise<Record<string, unknown>> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/meta/callback`, {
       method: "POST",
-      headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` 
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error conectando Meta");
+      const err = await res.json();
+      throw new Error(err.detail || "Error conectando Meta");
     }
     return res.json();
   },
@@ -212,16 +227,19 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error probando conexión Meta");
+      const err = await res.json();
+      throw new Error(err.detail || "Error probando conexión Meta");
     }
     return res.json();
   },
 
-  getGoogleAnalyticsAuthUrl: async (token: string, redirectUri?: string): Promise<{url: string, state: string}> => {
+  getGoogleAnalyticsAuthUrl: async (
+    token: string,
+    redirectUri?: string,
+  ): Promise<{ url: string; state: string }> => {
     let url = `${API_URL}/api/v1/connections/google-analytics/auth-url`;
     if (redirectUri) {
-        url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
     }
     const res = await fetchClient(url, {
       headers: { Authorization: `Bearer ${token}` },
@@ -230,18 +248,22 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectGoogleAnalytics: async (code: string, token: string, redirectUri?: string): Promise<GoogleAnalyticsCallbackResponse> => {
-     const res = await fetchClient(`${API_URL}/api/v1/connections/google-analytics/callback`, {
+  connectGoogleAnalytics: async (
+    code: string,
+    token: string,
+    redirectUri?: string,
+  ): Promise<GoogleAnalyticsCallbackResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/google-analytics/callback`, {
       method: "POST",
-      headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` 
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error conectando Google Analytics");
+      const err = await res.json();
+      throw new Error(err.detail || "Error conectando Google Analytics");
     }
     return res.json();
   },
@@ -262,8 +284,8 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error probando conexión Google Analytics");
+      const err = await res.json();
+      throw new Error(err.detail || "Error probando conexión Google Analytics");
     }
     return res.json();
   },
@@ -276,15 +298,18 @@ export const connectionsApi = {
     return res.json();
   },
 
-  selectGoogleAnalyticsProperty: async (propertyId: string, token: string): Promise<any> => {
-    const res = await fetchClient(`${API_URL}/api/v1/connections/google-analytics/properties/select`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+  selectGoogleAnalyticsProperty: async (propertyId: string, token: string): Promise<Record<string, unknown>> => {
+    const res = await fetchClient(
+      `${API_URL}/api/v1/connections/google-analytics/properties/select`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ property_id: propertyId }),
       },
-      body: JSON.stringify({ property_id: propertyId }),
-    });
+    );
     if (!res.ok) {
       const err = await res.json();
       throw new Error(err.detail || "Error seleccionando propiedad");
@@ -301,7 +326,10 @@ export const connectionsApi = {
     return res.json();
   },
 
-  generateShopifyAuthUrl: async (data: ShopifyAuthUrlRequest, token: string): Promise<{ auth_url: string }> => {
+  generateShopifyAuthUrl: async (
+    data: ShopifyAuthUrlRequest,
+    token: string,
+  ): Promise<{ auth_url: string }> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/shopify/generate-auth-url`, {
       method: "POST",
       headers: {
@@ -311,13 +339,13 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error generando URL de autorización");
+      const err = await res.json();
+      throw new Error(err.detail || "Error generando URL de autorización");
     }
     return res.json();
   },
 
-  quickConnectShopify: async (data: ShopifyAuthUrlRequest, token: string): Promise<any> => {
+  quickConnectShopify: async (data: ShopifyAuthUrlRequest, token: string): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/shopify/quick-connect`, {
       method: "POST",
       headers: {
@@ -327,13 +355,13 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error conectando Shopify");
+      const err = await res.json();
+      throw new Error(err.detail || "Error conectando Shopify");
     }
     return res.json();
   },
 
-  connectShopify: async (data: ShopifyConnectRequest, token: string): Promise<any> => {
+  connectShopify: async (data: ShopifyConnectRequest, token: string): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/shopify/connect`, {
       method: "POST",
       headers: {
@@ -343,8 +371,8 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error conectando Shopify");
+      const err = await res.json();
+      throw new Error(err.detail || "Error conectando Shopify");
     }
     return res.json();
   },
@@ -357,8 +385,8 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error probando conexión Shopify");
+      const err = await res.json();
+      throw new Error(err.detail || "Error probando conexión Shopify");
     }
     return res.json();
   },
@@ -383,7 +411,7 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectTelegram: async (data: TelegramConnectRequest, token: string): Promise<any> => {
+  connectTelegram: async (data: TelegramConnectRequest, token: string): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/telegram/connect`, {
       method: "POST",
       headers: {
@@ -393,8 +421,8 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error conectando Telegram");
+      const err = await res.json();
+      throw new Error(err.detail || "Error conectando Telegram");
     }
     return res.json();
   },
@@ -407,8 +435,8 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error probando conexión");
+      const err = await res.json();
+      throw new Error(err.detail || "Error probando conexión");
     }
     return res.json();
   },
@@ -424,18 +452,21 @@ export const connectionsApi = {
   },
 
   // Google Calendar
-  getCalendarStatus: async (token: string): Promise<any> => {
+  getCalendarStatus: async (token: string): Promise<CalendarStatusResponse> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/calendar/status`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de Calendario");
     return res.json();
   },
-  
-  getGoogleAuthUrl: async (token: string, redirectUri?: string): Promise<{url: string, state: string}> => {
+
+  getGoogleAuthUrl: async (
+    token: string,
+    redirectUri?: string,
+  ): Promise<{ url: string; state: string }> => {
     let url = `${API_URL}/api/v1/connections/calendar/auth-url`;
     if (redirectUri) {
-        url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
     }
     const res = await fetchClient(url, {
       headers: { Authorization: `Bearer ${token}` },
@@ -444,18 +475,18 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectGoogle: async (code: string, token: string, redirectUri?: string): Promise<any> => {
-     const res = await fetchClient(`${API_URL}/api/v1/connections/calendar/callback`, {
+  connectGoogle: async (code: string, token: string, redirectUri?: string): Promise<Record<string, unknown>> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/calendar/callback`, {
       method: "POST",
-      headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` 
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error conectando Google Calendar");
+      const err = await res.json();
+      throw new Error(err.detail || "Error conectando Google Calendar");
     }
     return res.json();
   },
@@ -476,18 +507,25 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error probando conexión");
+      const err = await res.json();
+      throw new Error(err.detail || "Error probando conexión");
     }
     return res.json();
   },
 
-  listAppointments: async (start: string, end: string, token: string): Promise<any[]> => {
-      const res = await fetchClient(`${API_URL}/api/v1/connections/calendar/appointments?start_date=${start}&end_date=${end}`, {
-          headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Error obteniendo citas");
-      return res.json();
+  listAppointments: async (
+    start: string,
+    end: string,
+    token: string,
+  ): Promise<unknown[]> => {
+    const res = await fetchClient(
+      `${API_URL}/api/v1/connections/calendar/appointments?start_date=${start}&end_date=${end}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    if (!res.ok) throw new Error("Error obteniendo citas");
+    return res.json();
   },
 
   generateBookingLink: async (token: string): Promise<{ token: string; url: string }> => {
@@ -500,7 +538,7 @@ export const connectionsApi = {
   },
 
   // Gmail
-  getGmailStatus: async (token: string): Promise<any> => {
+  getGmailStatus: async (token: string): Promise<GmailStatusResponse> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/gmail/status`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -508,10 +546,13 @@ export const connectionsApi = {
     return res.json();
   },
 
-  getGmailAuthUrl: async (token: string, redirectUri?: string): Promise<{url: string, state: string}> => {
+  getGmailAuthUrl: async (
+    token: string,
+    redirectUri?: string,
+  ): Promise<{ url: string; state: string }> => {
     let url = `${API_URL}/api/v1/connections/gmail/auth-url`;
     if (redirectUri) {
-        url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
     }
     const res = await fetchClient(url, {
       headers: { Authorization: `Bearer ${token}` },
@@ -520,18 +561,18 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectGmail: async (code: string, token: string, redirectUri?: string): Promise<any> => {
-     const res = await fetchClient(`${API_URL}/api/v1/connections/gmail/callback`, {
+  connectGmail: async (code: string, token: string, redirectUri?: string): Promise<Record<string, unknown>> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/gmail/callback`, {
       method: "POST",
-      headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` 
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error conectando Gmail");
+      const err = await res.json();
+      throw new Error(err.detail || "Error conectando Gmail");
     }
     return res.json();
   },
@@ -552,8 +593,8 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error probando conexión");
+      const err = await res.json();
+      throw new Error(err.detail || "Error probando conexión");
     }
     return res.json();
   },
@@ -567,7 +608,7 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectMailerLite: async (data: MailerliteConnectRequest, token: string): Promise<any> => {
+  connectMailerLite: async (data: MailerliteConnectRequest, token: string): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/mailerlite/connect`, {
       method: "POST",
       headers: {
@@ -577,8 +618,8 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error conectando MailerLite");
+      const err = await res.json();
+      throw new Error(err.detail || "Error conectando MailerLite");
     }
     return res.json();
   },
@@ -591,8 +632,8 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error probando conexión MailerLite");
+      const err = await res.json();
+      throw new Error(err.detail || "Error probando conexión MailerLite");
     }
     return res.json();
   },
@@ -616,7 +657,7 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectManyChat: async (data: ManyChatConnectRequest, token: string): Promise<any> => {
+  connectManyChat: async (data: ManyChatConnectRequest, token: string): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/manychat/connect`, {
       method: "POST",
       headers: {
@@ -626,8 +667,8 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error conectando ManyChat");
+      const err = await res.json();
+      throw new Error(err.detail || "Error conectando ManyChat");
     }
     return res.json();
   },
@@ -640,8 +681,8 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error probando conexión ManyChat");
+      const err = await res.json();
+      throw new Error(err.detail || "Error probando conexión ManyChat");
     }
     return res.json();
   },
@@ -665,7 +706,10 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectGoogleWorkspace: async (code: string, token: string): Promise<{ status: string; email: string }> => {
+  connectGoogleWorkspace: async (
+    code: string,
+    token: string,
+  ): Promise<{ status: string; email: string }> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/google/workspace/callback`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -678,7 +722,9 @@ export const connectionsApi = {
     return res.json();
   },
 
-  getGoogleWorkspaceStatus: async (token: string): Promise<{
+  getGoogleWorkspaceStatus: async (
+    token: string,
+  ): Promise<{
     is_connected: boolean;
     email?: string;
     services: Record<string, { is_active: boolean; has_credentials: boolean }>;
@@ -690,12 +736,19 @@ export const connectionsApi = {
     return res.json();
   },
 
-  toggleGoogleWorkspaceService: async (service: string, isActive: boolean, token: string): Promise<void> => {
-    const res = await fetchClient(`${API_URL}/api/v1/connections/google/workspace/services/${service}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ is_active: isActive }),
-    });
+  toggleGoogleWorkspaceService: async (
+    service: string,
+    isActive: boolean,
+    token: string,
+  ): Promise<void> => {
+    const res = await fetchClient(
+      `${API_URL}/api/v1/connections/google/workspace/services/${service}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ is_active: isActive }),
+      },
+    );
     if (!res.ok) {
       const err = await res.json();
       throw new Error(err.detail || "Error actualizando servicio");
@@ -731,10 +784,13 @@ export const connectionsApi = {
     return res.json();
   },
 
-  getYoutubeAuthUrl: async (token: string, redirectUri?: string): Promise<{url: string, state: string}> => {
+  getYoutubeAuthUrl: async (
+    token: string,
+    redirectUri?: string,
+  ): Promise<{ url: string; state: string }> => {
     let url = `${API_URL}/api/v1/connections/youtube/auth-url`;
     if (redirectUri) {
-        url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
     }
     const res = await fetchClient(url, {
       headers: { Authorization: `Bearer ${token}` },
@@ -743,18 +799,18 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectYoutube: async (code: string, token: string, redirectUri?: string): Promise<any> => {
-     const res = await fetchClient(`${API_URL}/api/v1/connections/youtube/callback`, {
+  connectYoutube: async (code: string, token: string, redirectUri?: string): Promise<Record<string, unknown>> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/youtube/callback`, {
       method: "POST",
-      headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` 
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error conectando YouTube");
+      const err = await res.json();
+      throw new Error(err.detail || "Error conectando YouTube");
     }
     return res.json();
   },
@@ -775,13 +831,13 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error probando conexión YouTube");
+      const err = await res.json();
+      throw new Error(err.detail || "Error probando conexión YouTube");
     }
     return res.json();
   },
 
-  configureYoutube: async (token: string, clientId: string, clientSecret: string): Promise<any> => {
+  configureYoutube: async (token: string, clientId: string, clientSecret: string): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/youtube/configure`, {
       method: "POST",
       headers: {
@@ -791,8 +847,8 @@ export const connectionsApi = {
       body: JSON.stringify({ client_id: clientId, client_secret: clientSecret }),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error configurando YouTube");
+      const err = await res.json();
+      throw new Error(err.detail || "Error configurando YouTube");
     }
     return res.json();
   },
@@ -816,7 +872,7 @@ export const connectionsApi = {
   },
 
   // Meta Primary Asset Selection
-  setMetaPrimaryAsset: async (assetType: string, assetId: string, token: string): Promise<any> => {
+  setMetaPrimaryAsset: async (assetType: string, assetId: string, token: string): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/meta/primary-asset`, {
       method: "PUT",
       headers: {

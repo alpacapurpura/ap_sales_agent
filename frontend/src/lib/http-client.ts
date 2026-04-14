@@ -12,28 +12,43 @@ export async function fetchClient(input: RequestInfo | URL, init?: RequestInit):
 
   // Inject Tenant ID from LocalStorage for strict multi-tenancy
   if (typeof window !== "undefined") {
-    let tenantId = localStorage.getItem('x-tenant-id');
+    let tenantId = localStorage.getItem("x-tenant-id");
 
     // PRIORITIZE URL Source of Truth
     try {
-        const pathSegments = window.location.pathname.split('/').filter(Boolean);
-        if (pathSegments.length > 0) {
-            const firstSegment = pathSegments[0];
-            const globals = ['sign-in', 'sign-up', 'forbidden', 'visit', 'api', 'p', 'onboarding', 'settings', 'admin', 'dashboard', '_next', 'connections', 'static', 'favicon.ico'];
-            if (!globals.includes(firstSegment)) {
-                 tenantId = firstSegment;
-            }
+      const pathSegments = window.location.pathname.split("/").filter(Boolean);
+      if (pathSegments.length > 0) {
+        const firstSegment = pathSegments[0];
+        const globals = [
+          "sign-in",
+          "sign-up",
+          "forbidden",
+          "visit",
+          "api",
+          "p",
+          "onboarding",
+          "settings",
+          "admin",
+          "dashboard",
+          "_next",
+          "connections",
+          "static",
+          "favicon.ico",
+        ];
+        if (!globals.includes(firstSegment)) {
+          tenantId = firstSegment;
         }
-    } catch (e) { }
+      }
+    } catch (e) {}
 
     if (tenantId) {
-      headers.set('X-Tenant-ID', tenantId);
+      headers.set("X-Tenant-ID", tenantId);
     }
   }
 
-  const finalConfig: RequestInit = { 
-      ...config,
-      headers: headers
+  const finalConfig: RequestInit = {
+    ...config,
+    headers: headers,
   };
 
   // Ejecutar la petición original con headers inyectados
@@ -41,7 +56,8 @@ export async function fetchClient(input: RequestInfo | URL, init?: RequestInit):
 
   // Capturar errores 5xx en Sentry (sanitize URL: strip query params and UUIDs)
   if (response.status >= 500) {
-    const rawUrl = input instanceof URL ? input.pathname : typeof input === "string" ? input : "request";
+    const rawUrl =
+      input instanceof URL ? input.pathname : typeof input === "string" ? input : "request";
     const sanitizedUrl = rawUrl
       .split("?")[0]
       .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/[id]");

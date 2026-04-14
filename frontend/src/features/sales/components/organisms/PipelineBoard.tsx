@@ -19,7 +19,7 @@ const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string }> = {
 };
 
 export function PipelineBoard({ leads, onLeadClick, className }: PipelineBoardProps) {
-  const columns: LeadStatus[] = ['new', 'contacted', 'qualified', 'proposal', 'won', 'lost'];
+  const columns: LeadStatus[] = ["new", "contacted", "qualified", "proposal", "won", "lost"];
 
   const getLeadsByStatus = (status: LeadStatus) => {
     return leads.filter((lead) => lead.status === status);
@@ -32,13 +32,13 @@ export function PipelineBoard({ leads, onLeadClick, className }: PipelineBoardPr
           {columns.map((status) => {
             const statusLeads = getLeadsByStatus(status);
             const config = STATUS_CONFIG[status];
-            
+
             return (
-              <div 
-                key={status} 
+              <div
+                key={status}
                 className={cn(
                   "w-[350px] shrink-0 rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col max-h-[calc(100vh-200px)]",
-                  config.color
+                  config.color,
                 )}
               >
                 <div className="p-4 font-semibold flex justify-between items-center border-b bg-muted/40 rounded-t-lg sticky top-0 z-10 backdrop-blur-sm">
@@ -47,7 +47,7 @@ export function PipelineBoard({ leads, onLeadClick, className }: PipelineBoardPr
                     {statusLeads.length}
                   </span>
                 </div>
-                
+
                 <div className="p-2 space-y-3 overflow-y-auto flex-1 custom-scrollbar">
                   {statusLeads.length === 0 ? (
                     <div className="h-24 flex items-center justify-center text-muted-foreground text-xs italic border-2 border-dashed rounded-md m-2">
@@ -55,7 +55,11 @@ export function PipelineBoard({ leads, onLeadClick, className }: PipelineBoardPr
                     </div>
                   ) : (
                     statusLeads.map((lead) => (
-                      <div key={lead.id} className="cursor-pointer" onClick={() => onLeadClick?.(lead)}>
+                      <div
+                        key={lead.id}
+                        className="cursor-pointer"
+                        onClick={() => onLeadClick?.(lead)}
+                      >
                         <LeadCard lead={lead} />
                       </div>
                     ))

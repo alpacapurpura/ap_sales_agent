@@ -1,10 +1,10 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { Skeleton } from '@/components/ui/skeleton';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const meta = {
-  title: 'Atoms/Skeleton',
+  title: "Atoms/Skeleton",
   component: Skeleton,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof Skeleton>;
 
 export default meta;

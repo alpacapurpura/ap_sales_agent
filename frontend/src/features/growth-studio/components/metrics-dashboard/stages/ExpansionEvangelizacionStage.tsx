@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { ExpansionEvangelizationDetail } from '../detail-panels/ExpansionEvangelizationDetail';
-import { useGrowthStudioContext } from '../context/GrowthStudioContext';
+import { ExpansionEvangelizationDetail } from "../detail-panels/ExpansionEvangelizationDetail";
+import { useGrowthStudioContext } from "../context/GrowthStudioContext";
 
 export function ExpansionEvangelizacionStage() {
   const { handleMetricClick } = useGrowthStudioContext();

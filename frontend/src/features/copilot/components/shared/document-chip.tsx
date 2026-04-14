@@ -1,13 +1,7 @@
 "use client";
 
 import { forwardRef } from "react";
-import {
-  FileText,
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  X,
-} from "lucide-react";
+import { FileText, Loader2, CheckCircle2, XCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type DocumentStatus = "pending" | "processing" | "done" | "error";
@@ -52,17 +46,13 @@ export const DocumentChip = forwardRef<HTMLDivElement, DocumentChipProps>(
         className={cn(
           "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs",
           cfg.color,
-          className
+          className,
         )}
         {...props}
       >
         {cfg.icon}
-        <span className="max-w-[120px] truncate text-gray-300">
-          {file.name}
-        </span>
-        {cfg.label && (
-          <span className="text-gray-500">{cfg.label}</span>
-        )}
+        <span className="max-w-[120px] truncate text-gray-300">{file.name}</span>
+        {cfg.label && <span className="text-gray-500">{cfg.label}</span>}
         {showRemove && (
           <button
             type="button"
@@ -75,6 +65,6 @@ export const DocumentChip = forwardRef<HTMLDivElement, DocumentChipProps>(
         )}
       </div>
     );
-  }
+  },
 );
 DocumentChip.displayName = "DocumentChip";

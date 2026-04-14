@@ -31,10 +31,7 @@ interface MockMediaRecorderInstance {
 
 let latestRecorderInstance: MockMediaRecorderInstance | null = null;
 
-function MockMediaRecorderConstructor(
-  _stream: MediaStream,
-  options?: { mimeType?: string },
-) {
+function MockMediaRecorderConstructor(_stream: MediaStream, options?: { mimeType?: string }) {
   const instance: MockMediaRecorderInstance = {
     start: vi.fn(() => {
       instance.state = "recording";
@@ -84,9 +81,12 @@ beforeEach(() => {
   });
 
   // Stub MediaRecorder global
-  vi.stubGlobal("MediaRecorder", Object.assign(MockMediaRecorderConstructor, {
-    isTypeSupported: vi.fn().mockReturnValue(true),
-  }));
+  vi.stubGlobal(
+    "MediaRecorder",
+    Object.assign(MockMediaRecorderConstructor, {
+      isTypeSupported: vi.fn().mockReturnValue(true),
+    }),
+  );
 });
 
 afterEach(() => {
@@ -144,9 +144,7 @@ describe("useVoiceRecorder", () => {
   });
 
   it("sets error when getUserMedia fails", async () => {
-    mockGetUserMedia.mockRejectedValueOnce(
-      new DOMException("Permission denied"),
-    );
+    mockGetUserMedia.mockRejectedValueOnce(new DOMException("Permission denied"));
 
     const useVoiceRecorder = await importHook();
     const { result } = renderHook(() => useVoiceRecorder());
@@ -156,9 +154,7 @@ describe("useVoiceRecorder", () => {
     });
 
     expect(result.current.isRecording).toBe(false);
-    expect(result.current.error).toBe(
-      "No se pudo acceder al micrófono. Verifica los permisos.",
-    );
+    expect(result.current.error).toBe("No se pudo acceder al micrófono. Verifica los permisos.");
   });
 
   it("stopRecording transcribes audio and returns text", async () => {
@@ -187,10 +183,7 @@ describe("useVoiceRecorder", () => {
     expect(transcript).toBe("Hola mundo");
     expect(result.current.isRecording).toBe(false);
     expect(result.current.isTranscribing).toBe(false);
-    expect(mockTranscribeAudio).toHaveBeenCalledWith(
-      expect.any(Blob),
-      "test-token",
-    );
+    expect(mockTranscribeAudio).toHaveBeenCalledWith(expect.any(Blob), "test-token");
   });
 
   it("sets error when transcription fails", async () => {
@@ -211,9 +204,7 @@ describe("useVoiceRecorder", () => {
     });
 
     expect(transcript).toBe("");
-    expect(result.current.error).toBe(
-      "Error al transcribir el audio. Intenta de nuevo.",
-    );
+    expect(result.current.error).toBe("Error al transcribir el audio. Intenta de nuevo.");
     expect(result.current.isTranscribing).toBe(false);
   });
 
@@ -279,9 +270,7 @@ describe("useVoiceRecorder", () => {
     });
 
     expect(transcript).toBe("");
-    expect(result.current.error).toBe(
-      "No se pudo obtener el token de autenticación.",
-    );
+    expect(result.current.error).toBe("No se pudo obtener el token de autenticación.");
     expect(mockTranscribeAudio).not.toHaveBeenCalled();
   });
 

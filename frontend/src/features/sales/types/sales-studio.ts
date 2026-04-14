@@ -9,8 +9,8 @@ export interface SalesMetrics {
 }
 
 export interface PaymentGatewayConfig {
-  provider: 'culqi' | 'mercadopago';
-  mode: 'sandbox' | 'production';
+  provider: "culqi" | "mercadopago";
+  mode: "sandbox" | "production";
   sandboxKeys: {
     publicKey: string;
     secretKey: string;
@@ -29,8 +29,8 @@ export interface SalesConversation {
   lastMessage: string;
   timestamp: string;
   unreadCount: number;
-  status: 'active' | 'closed' | 'pending';
-  platform: 'whatsapp' | 'instagram' | 'messenger';
+  status: "active" | "closed" | "pending";
+  platform: "whatsapp" | "instagram" | "messenger";
 }
 
 export interface Appointment {
@@ -39,7 +39,7 @@ export interface Appointment {
   start: string; // ISO date string
   end: string; // ISO date string
   attendees: string[];
-  status: 'confirmed' | 'pending' | 'cancelled' | 'completed';
+  status: "confirmed" | "pending" | "cancelled" | "completed";
   meetLink?: string;
 }
 

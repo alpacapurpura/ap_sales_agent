@@ -297,12 +297,7 @@ export function OfferStatusChangeModal({
         )}
 
         <DialogFooter className="gap-2 sm:gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
             Cancelar
           </Button>
           <Button
@@ -311,9 +306,7 @@ export function OfferStatusChangeModal({
             onClick={onConfirm}
             disabled={isSubmitting}
           >
-            {isSubmitting ? (
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            ) : null}
+            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
             {confirmLabel}
           </Button>
         </DialogFooter>

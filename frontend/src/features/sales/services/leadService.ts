@@ -23,9 +23,11 @@ export interface Lead {
 
 export const leadService = {
   getLeads: async (query: string): Promise<Lead[]> => {
-    const res = await fetchClient(`${BASE_URL}/api/v1/crm/leads/search?q=${encodeURIComponent(query)}`);
+    const res = await fetchClient(
+      `${BASE_URL}/api/v1/crm/leads/search?q=${encodeURIComponent(query)}`,
+    );
     if (!res.ok) {
-        throw new Error("Failed to fetch leads");
+      throw new Error("Failed to fetch leads");
     }
     return res.json();
   },
@@ -33,8 +35,8 @@ export const leadService = {
   getLead: async (id: string): Promise<Lead> => {
     const res = await fetchClient(`${BASE_URL}/api/v1/crm/leads/${id}`);
     if (!res.ok) {
-        throw new Error("Failed to fetch lead");
+      throw new Error("Failed to fetch lead");
     }
     return res.json();
-  }
+  },
 };

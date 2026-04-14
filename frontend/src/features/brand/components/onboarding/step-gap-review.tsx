@@ -33,7 +33,7 @@ export function StepGapReview({ settings, onFinish }: StepGapReviewProps) {
         config: BRAND_SECTIONS[id],
         ...computeSectionHealth(id, settings),
       })),
-    [settings]
+    [settings],
   );
 
   const overallScore = useMemo(() => {
@@ -48,7 +48,11 @@ export function StepGapReview({ settings, onFinish }: StepGapReviewProps) {
           <span className="text-2xl font-bold text-primary">{overallScore}%</span>
         </div>
         <h2 className="text-2xl font-bold text-foreground">
-          {overallScore >= 80 ? "¡Excelente extracción!" : overallScore >= 40 ? "Buen inicio" : "Tenemos una base"}
+          {overallScore >= 80
+            ? "¡Excelente extracción!"
+            : overallScore >= 40
+              ? "Buen inicio"
+              : "Tenemos una base"}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           {overallScore >= 80
@@ -63,7 +67,11 @@ export function StepGapReview({ settings, onFinish }: StepGapReviewProps) {
             key={id}
             className={cn(
               "rounded-xl border p-4 transition-colors",
-              score >= 80 ? "border-emerald-500/30 bg-emerald-500/5" : score > 0 ? "border-amber-500/30 bg-amber-500/5" : "border-border bg-muted/20"
+              score >= 80
+                ? "border-emerald-500/30 bg-emerald-500/5"
+                : score > 0
+                  ? "border-amber-500/30 bg-amber-500/5"
+                  : "border-border bg-muted/20",
             )}
           >
             <div className="flex items-center justify-between">
@@ -71,7 +79,12 @@ export function StepGapReview({ settings, onFinish }: StepGapReviewProps) {
                 {score >= 80 ? (
                   <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                 ) : (
-                  <AlertCircle className={cn("h-5 w-5", score > 0 ? "text-amber-500" : "text-muted-foreground")} />
+                  <AlertCircle
+                    className={cn(
+                      "h-5 w-5",
+                      score > 0 ? "text-amber-500" : "text-muted-foreground",
+                    )}
+                  />
                 )}
                 <div>
                   <h3 className="font-semibold text-foreground">{config.label}</h3>
@@ -86,7 +99,7 @@ export function StepGapReview({ settings, onFinish }: StepGapReviewProps) {
                     ? "border-emerald-500/30 text-emerald-400"
                     : score > 0
                       ? "border-amber-500/30 text-amber-400"
-                      : "text-muted-foreground"
+                      : "text-muted-foreground",
                 )}
               >
                 {score}%
@@ -104,10 +117,11 @@ export function StepGapReview({ settings, onFinish }: StepGapReviewProps) {
                       "text-[10px]",
                       item.status === "complete" && "bg-emerald-500/10 text-emerald-400",
                       item.status === "partial" && "border-amber-500/30 text-amber-400",
-                      item.status === "empty" && "text-muted-foreground"
+                      item.status === "empty" && "text-muted-foreground",
                     )}
                   >
-                    {item.status === "complete" ? "✓" : item.status === "partial" ? "◐" : "○"} {item.label}
+                    {item.status === "complete" ? "✓" : item.status === "partial" ? "◐" : "○"}{" "}
+                    {item.label}
                   </Badge>
                 ))}
               </div>

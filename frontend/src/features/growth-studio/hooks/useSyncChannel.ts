@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@clerk/nextjs';
-import { fetchClient } from '@/lib/http-client';
-import { config } from '@/lib/config';
+import { useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/nextjs";
+import { fetchClient } from "@/lib/http-client";
+import { config } from "@/lib/config";
 
 const API_URL = config.api.baseUrl;
 
@@ -32,12 +32,12 @@ export function useSyncChannel(channelSlug: string) {
   const mutation = useMutation<SyncChannelResult, SyncChannelError>({
     mutationFn: async () => {
       const token = await getToken();
-      if (!token) throw { detail: 'No auth token' } as SyncChannelError;
+      if (!token) throw { detail: "No auth token" } as SyncChannelError;
 
       const res = await fetchClient(
         `${API_URL}/api/v1/analytics/metrics/attraction/refresh/${channelSlug}`,
         {
-          method: 'POST',
+          method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         },
       );
@@ -45,7 +45,7 @@ export function useSyncChannel(channelSlug: string) {
       if (res.status === 429) {
         const errData = await res.json().catch(() => ({}));
         const err: SyncChannelError = {
-          detail: errData.detail ?? 'Rate limited',
+          detail: errData.detail ?? "Rate limited",
           remaining_minutes: errData.remaining_minutes,
         };
         throw err;
@@ -60,15 +60,15 @@ export function useSyncChannel(channelSlug: string) {
     },
     onSuccess: () => {
       // Invalidate channel-specific dashboard queries
-      queryClient.invalidateQueries({ queryKey: ['channel-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ["channel-dashboard"] });
       // Invalidate stage-level queries so ChannelRow data refreshes
-      queryClient.invalidateQueries({ queryKey: ['attraction-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['capture-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['nurture-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['bowties-summary'] });
+      queryClient.invalidateQueries({ queryKey: ["attraction-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["capture-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["nurture-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["bowties-summary"] });
       // Invalidate campaign data (for Meta Ads)
-      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-      queryClient.invalidateQueries({ queryKey: ['ad-performance'] });
+      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["ad-performance"] });
     },
   });
 

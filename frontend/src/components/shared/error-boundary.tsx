@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import * as Sentry from "@sentry/nextjs";
 import React, { Component, ErrorInfo, ReactNode } from "react";
@@ -37,10 +37,7 @@ class ErrorBoundary extends Component<Props, State> {
           <p className="text-muted-foreground">
             We encountered an unexpected error. Please try reloading the page.
           </p>
-          <Button
-            variant="outline"
-            onClick={() => window.location.reload()}
-          >
+          <Button variant="outline" onClick={() => window.location.reload()}>
             Reload Page
           </Button>
         </div>

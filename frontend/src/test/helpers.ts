@@ -1,5 +1,5 @@
-import React from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 /**
  * Creates a QueryClient configured for testing (no retries, no cache).
@@ -27,13 +27,15 @@ export function createHookWrapper() {
 /**
  * Standard mock for @clerk/nextjs useAuth.
  */
-export function mockAuth(overrides?: Partial<{
-  getToken: () => Promise<string | null>;
-  isLoaded: boolean;
-  isSignedIn: boolean;
-}>) {
+export function mockAuth(
+  overrides?: Partial<{
+    getToken: () => Promise<string | null>;
+    isLoaded: boolean;
+    isSignedIn: boolean;
+  }>,
+) {
   return {
-    getToken: overrides?.getToken ?? (async () => 'mock-test-token'),
+    getToken: overrides?.getToken ?? (async () => "mock-test-token"),
     isLoaded: overrides?.isLoaded ?? true,
     isSignedIn: overrides?.isSignedIn ?? true,
     ...overrides,
@@ -43,19 +45,21 @@ export function mockAuth(overrides?: Partial<{
 /**
  * Standard mock for next/navigation.
  */
-export function mockRouter(overrides?: Partial<{
-  push: (...args: unknown[]) => void;
-  replace: (...args: unknown[]) => void;
-  back: () => void;
-  params: Record<string, string>;
-  pathname: string;
-}>) {
+export function mockRouter(
+  overrides?: Partial<{
+    push: (...args: unknown[]) => void;
+    replace: (...args: unknown[]) => void;
+    back: () => void;
+    params: Record<string, string>;
+    pathname: string;
+  }>,
+) {
   return {
     push: overrides?.push ?? (() => {}),
     replace: overrides?.replace ?? (() => {}),
     back: overrides?.back ?? (() => {}),
     prefetch: () => Promise.resolve(),
-    pathname: overrides?.pathname ?? '/',
+    pathname: overrides?.pathname ?? "/",
     ...overrides,
   };
 }

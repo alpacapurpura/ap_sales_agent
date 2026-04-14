@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils';
-import type { EmailHealthScore } from '../../../../types/mail-types';
+import { cn } from "@/lib/utils";
+import type { EmailHealthScore } from "../../../../types/mail-types";
 
 interface MailHealthScoreProps {
   healthScore: EmailHealthScore;
@@ -9,15 +9,15 @@ interface MailHealthScoreProps {
 
 /** Map color strings from backend to Tailwind classes */
 const COLOR_MAP: Record<string, { bar: string; text: string }> = {
-  green: { bar: 'bg-emerald-500', text: 'text-emerald-500' },
-  yellow: { bar: 'bg-amber-500', text: 'text-amber-500' },
-  red: { bar: 'bg-red-500', text: 'text-red-500' },
+  green: { bar: "bg-emerald-500", text: "text-emerald-500" },
+  yellow: { bar: "bg-amber-500", text: "text-amber-500" },
+  red: { bar: "bg-red-500", text: "text-red-500" },
 };
 
 function getScoreColor(score: number): { text: string; bg: string } {
-  if (score >= 70) return { text: 'text-emerald-500', bg: 'bg-emerald-500' };
-  if (score >= 50) return { text: 'text-amber-500', bg: 'bg-amber-500' };
-  return { text: 'text-red-500', bg: 'bg-red-500' };
+  if (score >= 70) return { text: "text-emerald-500", bg: "bg-emerald-500" };
+  if (score >= 50) return { text: "text-amber-500", bg: "bg-amber-500" };
+  return { text: "text-red-500", bg: "bg-red-500" };
 }
 
 export function MailHealthScore({ healthScore }: MailHealthScoreProps) {
@@ -32,7 +32,7 @@ export function MailHealthScore({ healthScore }: MailHealthScoreProps) {
       <div className="rounded-lg border bg-card p-4">
         {/* Main score */}
         <div className="flex items-center gap-3 mb-4">
-          <span className={cn('text-4xl font-bold tabular-nums', totalColor)}>
+          <span className={cn("text-4xl font-bold tabular-nums", totalColor)}>
             {healthScore.total}
           </span>
           <span className="text-sm text-muted-foreground">/100</span>
@@ -46,10 +46,8 @@ export function MailHealthScore({ healthScore }: MailHealthScoreProps) {
             return (
               <div key={sub.area} className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-muted-foreground">
-                    {sub.label}
-                  </span>
-                  <span className={cn('text-[11px] font-medium tabular-nums', colorConfig.text)}>
+                  <span className="text-[11px] text-muted-foreground">{sub.label}</span>
+                  <span className={cn("text-[11px] font-medium tabular-nums", colorConfig.text)}>
                     {sub.score}
                   </span>
                 </div>
@@ -60,7 +58,7 @@ export function MailHealthScore({ healthScore }: MailHealthScoreProps) {
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-label={sub.label}
-                    className={cn('h-full rounded-full transition-all', colorConfig.bar)}
+                    className={cn("h-full rounded-full transition-all", colorConfig.bar)}
                     // Inline style required for dynamic percentage width
                     style={{ width: `${Math.max(sub.score, 2)}%` }}
                   />

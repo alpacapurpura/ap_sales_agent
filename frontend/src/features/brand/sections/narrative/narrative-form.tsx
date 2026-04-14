@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  BrandNarrative,
-  StoryBrandPlanStep,
-} from "@/features/brand/types";
+import { BrandNarrative, StoryBrandPlanStep } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,16 +48,13 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
   // --- Problem ---
   const updateProblem = (
     field: "villain" | "external_problem" | "internal_problem" | "philosophical_problem",
-    value: string
+    value: string,
   ) => {
     setForm({ ...form, problem: { ...form.problem, [field]: value } });
   };
 
   // --- Guide ---
-  const updateGuide = (
-    field: "empathy_statement" | "authority_statement",
-    value: string
-  ) => {
+  const updateGuide = (field: "empathy_statement" | "authority_statement", value: string) => {
     setForm({ ...form, guide: { ...form.guide, [field]: value } });
   };
 
@@ -77,9 +71,7 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
   };
 
   const updateStep = (id: string, field: "title" | "description", value: string) => {
-    const updated = form.plan.map((s) =>
-      s.id === id ? { ...s, [field]: value } : s
-    );
+    const updated = form.plan.map((s) => (s.id === id ? { ...s, [field]: value } : s));
     setForm({ ...form, plan: updated });
   };
 
@@ -98,7 +90,7 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
   // --- Outcome ---
   const updateOutcome = (
     field: "success_transformation" | "failure_consequence",
-    value: string
+    value: string,
   ) => {
     setForm({ ...form, outcome: { ...form.outcome, [field]: value } });
   };
@@ -116,7 +108,11 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </p>
         <div className="space-y-2">
           <Label htmlFor="hero_identity">Identidad del Heroe</Label>
-          <WithCopilot fieldId="hero_identity" fieldLabel="Identidad del Héroe" getValue={() => form.hero?.identity ?? ""}>
+          <WithCopilot
+            fieldId="hero_identity"
+            fieldLabel="Identidad del Héroe"
+            getValue={() => form.hero?.identity ?? ""}
+          >
             <Textarea
               id="hero_identity"
               value={form.hero?.identity ?? ""}
@@ -131,7 +127,11 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </div>
         <div className="space-y-2">
           <Label htmlFor="hero_desire">Deseo Principal</Label>
-          <WithCopilot fieldId="hero_desire" fieldLabel="Deseo Principal" getValue={() => form.hero?.desire ?? ""}>
+          <WithCopilot
+            fieldId="hero_desire"
+            fieldLabel="Deseo Principal"
+            getValue={() => form.hero?.desire ?? ""}
+          >
             <Textarea
               id="hero_desire"
               value={form.hero?.desire ?? ""}
@@ -156,7 +156,11 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </p>
         <div className="space-y-2">
           <Label htmlFor="villain">Villano</Label>
-          <WithCopilot fieldId="villain" fieldLabel="Villano" getValue={() => form.problem?.villain ?? ""}>
+          <WithCopilot
+            fieldId="villain"
+            fieldLabel="Villano"
+            getValue={() => form.problem?.villain ?? ""}
+          >
             <Input
               id="villain"
               value={form.problem?.villain ?? ""}
@@ -165,12 +169,17 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
             />
           </WithCopilot>
           <p className="text-xs text-muted-foreground">
-            El antagonista que causa la frustracion de tu cliente. Si ya definiste enemigos en Diferenciacion (Cap 2), tu villano suele ser una combinacion de ambos.
+            El antagonista que causa la frustracion de tu cliente. Si ya definiste enemigos en
+            Diferenciacion (Cap 2), tu villano suele ser una combinacion de ambos.
           </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="external_problem">Problema Externo</Label>
-          <WithCopilot fieldId="external_problem" fieldLabel="Problema Externo" getValue={() => form.problem?.external_problem ?? ""}>
+          <WithCopilot
+            fieldId="external_problem"
+            fieldLabel="Problema Externo"
+            getValue={() => form.problem?.external_problem ?? ""}
+          >
             <Textarea
               id="external_problem"
               value={form.problem?.external_problem ?? ""}
@@ -182,7 +191,11 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </div>
         <div className="space-y-2">
           <Label htmlFor="internal_problem">Problema Interno</Label>
-          <WithCopilot fieldId="internal_problem" fieldLabel="Problema Interno" getValue={() => form.problem?.internal_problem ?? ""}>
+          <WithCopilot
+            fieldId="internal_problem"
+            fieldLabel="Problema Interno"
+            getValue={() => form.problem?.internal_problem ?? ""}
+          >
             <Textarea
               id="internal_problem"
               value={form.problem?.internal_problem ?? ""}
@@ -194,7 +207,11 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </div>
         <div className="space-y-2">
           <Label htmlFor="philosophical_problem">Problema Filosofico</Label>
-          <WithCopilot fieldId="philosophical_problem" fieldLabel="Problema Filosófico" getValue={() => form.problem?.philosophical_problem ?? ""}>
+          <WithCopilot
+            fieldId="philosophical_problem"
+            fieldLabel="Problema Filosófico"
+            getValue={() => form.problem?.philosophical_problem ?? ""}
+          >
             <Textarea
               id="philosophical_problem"
               value={form.problem?.philosophical_problem ?? ""}
@@ -219,7 +236,11 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </p>
         <div className="space-y-2">
           <Label htmlFor="empathy_statement">Declaracion de Empatia</Label>
-          <WithCopilot fieldId="empathy_statement" fieldLabel="Declaración de Empatía" getValue={() => form.guide?.empathy_statement ?? ""}>
+          <WithCopilot
+            fieldId="empathy_statement"
+            fieldLabel="Declaración de Empatía"
+            getValue={() => form.guide?.empathy_statement ?? ""}
+          >
             <Textarea
               id="empathy_statement"
               value={form.guide?.empathy_statement ?? ""}
@@ -231,7 +252,11 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </div>
         <div className="space-y-2">
           <Label htmlFor="authority_statement">Declaracion de Autoridad</Label>
-          <WithCopilot fieldId="authority_statement" fieldLabel="Declaración de Autoridad" getValue={() => form.guide?.authority_statement ?? ""}>
+          <WithCopilot
+            fieldId="authority_statement"
+            fieldLabel="Declaración de Autoridad"
+            getValue={() => form.guide?.authority_statement ?? ""}
+          >
             <Textarea
               id="authority_statement"
               value={form.guide?.authority_statement ?? ""}
@@ -255,7 +280,9 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
           <h3 className="font-medium">4. El Plan</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          Define los pasos claros que tu cliente debe seguir. Maximo 4 pasos. Si tu marca tiene una metodologia (Cap 1), tus pasos suelen alinearse con sus pilares — pero redactalos desde la perspectiva del CLIENTE.
+          Define los pasos claros que tu cliente debe seguir. Maximo 4 pasos. Si tu marca tiene una
+          metodologia (Cap 1), tus pasos suelen alinearse con sus pilares — pero redactalos desde la
+          perspectiva del CLIENTE.
         </p>
 
         <div className="space-y-4">
@@ -300,9 +327,7 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
 
           {form.plan.length === 0 && (
             <div className="text-center py-8 border-2 border-dashed rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                No has definido los pasos del plan.
-              </p>
+              <p className="text-sm text-muted-foreground">No has definido los pasos del plan.</p>
             </div>
           )}
         </div>
@@ -322,11 +347,16 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
           <h3 className="font-medium">5. Llamada a la Accion</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          El CTA directo es la accion principal. El transicional es para quienes aun no estan listos.
+          El CTA directo es la accion principal. El transicional es para quienes aun no estan
+          listos.
         </p>
         <div className="space-y-2">
           <Label htmlFor="direct_cta">CTA Directo</Label>
-          <WithCopilot fieldId="direct_cta" fieldLabel="CTA Directo" getValue={() => form.cta?.direct_cta ?? ""}>
+          <WithCopilot
+            fieldId="direct_cta"
+            fieldLabel="CTA Directo"
+            getValue={() => form.cta?.direct_cta ?? ""}
+          >
             <Input
               id="direct_cta"
               value={form.cta?.direct_cta ?? ""}
@@ -337,7 +367,11 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </div>
         <div className="space-y-2">
           <Label htmlFor="transitional_cta">CTA Transicional</Label>
-          <WithCopilot fieldId="transitional_cta" fieldLabel="CTA Transicional" getValue={() => form.cta?.transitional_cta ?? ""}>
+          <WithCopilot
+            fieldId="transitional_cta"
+            fieldLabel="CTA Transicional"
+            getValue={() => form.cta?.transitional_cta ?? ""}
+          >
             <Input
               id="transitional_cta"
               value={form.cta?.transitional_cta ?? ""}
@@ -361,7 +395,11 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </p>
         <div className="space-y-2">
           <Label htmlFor="success_transformation">Transformacion de Exito</Label>
-          <WithCopilot fieldId="success_transformation" fieldLabel="Transformación de Éxito" getValue={() => form.outcome?.success_transformation ?? ""}>
+          <WithCopilot
+            fieldId="success_transformation"
+            fieldLabel="Transformación de Éxito"
+            getValue={() => form.outcome?.success_transformation ?? ""}
+          >
             <Textarea
               id="success_transformation"
               value={form.outcome?.success_transformation ?? ""}
@@ -373,7 +411,11 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </div>
         <div className="space-y-2">
           <Label htmlFor="failure_consequence">Consecuencia del Fracaso</Label>
-          <WithCopilot fieldId="failure_consequence" fieldLabel="Consecuencia del Fracaso" getValue={() => form.outcome?.failure_consequence ?? ""}>
+          <WithCopilot
+            fieldId="failure_consequence"
+            fieldLabel="Consecuencia del Fracaso"
+            getValue={() => form.outcome?.failure_consequence ?? ""}
+          >
             <Textarea
               id="failure_consequence"
               value={form.outcome?.failure_consequence ?? ""}
@@ -394,11 +436,16 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
           <h3 className="font-medium">7. One-Liner</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          Tu pitch de venta en 1 oracion. Formato: Problema + Solucion + Resultado. El SDR lo usa para abrir conversaciones.
+          Tu pitch de venta en 1 oracion. Formato: Problema + Solucion + Resultado. El SDR lo usa
+          para abrir conversaciones.
         </p>
         <div className="space-y-2">
           <Label htmlFor="one_liner">Tu One-Liner</Label>
-          <WithCopilot fieldId="one_liner" fieldLabel="One-Liner" getValue={() => form.one_liner ?? ""}>
+          <WithCopilot
+            fieldId="one_liner"
+            fieldLabel="One-Liner"
+            getValue={() => form.one_liner ?? ""}
+          >
             <Textarea
               id="one_liner"
               value={form.one_liner ?? ""}

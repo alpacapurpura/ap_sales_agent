@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Suspense, useRef, useEffect, useState } from 'react';
-import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { X, Loader2 } from 'lucide-react';
+import { Suspense, useRef, useEffect, useState } from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { X, Loader2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,9 +12,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { DialogOverlay } from '@/components/ui/dialog';
-import { getConnectionView } from '../../../lib/channelViewMap';
+} from "@/components/ui/alert-dialog";
+import { DialogOverlay } from "@/components/ui/dialog";
+import { getConnectionView } from "../../../lib/channelViewMap";
 
 /* eslint-disable react-hooks/static-components -- dynamic view from registry */
 function ConnectionViewRenderer({ channelSlug }: { channelSlug: string }) {
@@ -36,7 +36,11 @@ interface ChannelConnectionModalProps {
   onClose: () => void;
 }
 
-export function ChannelConnectionModal({ channelSlug, channelName, onClose }: ChannelConnectionModalProps) {
+export function ChannelConnectionModal({
+  channelSlug,
+  channelName,
+  onClose,
+}: ChannelConnectionModalProps) {
   const hasInteracted = useRef(false);
   const [showConfirm, setShowConfirm] = useState(false);
 

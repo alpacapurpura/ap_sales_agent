@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { OfferLifecycleStatus } from "../../types/enums";
 import { canTransition } from "../../types/lifecycle";
@@ -30,22 +25,19 @@ const PILLS: PillConfig[] = [
   {
     status: "draft",
     label: "Borrador",
-    tooltip:
-      "La oferta no es visible para el Sales Agent. Podés editarla libremente.",
+    tooltip: "La oferta no es visible para el Sales Agent. Podés editarla libremente.",
     activeClass: "bg-warning/20 text-warning border-warning/40",
   },
   {
     status: "active",
     label: "Activa",
-    tooltip:
-      "El Sales Agent la propone en conversaciones. La landing se sincroniza.",
+    tooltip: "El Sales Agent la propone en conversaciones. La landing se sincroniza.",
     activeClass: "bg-success/20 text-success border-success/40",
   },
   {
     status: "paused",
     label: "Pausada",
-    tooltip:
-      "El Sales Agent deja de proponerla pero la reconoce si un cliente la menciona.",
+    tooltip: "El Sales Agent deja de proponerla pero la reconoce si un cliente la menciona.",
     activeClass: "bg-muted text-foreground border-muted-foreground/40",
   },
 ];
@@ -77,10 +69,8 @@ export function OfferStatusSwitcher({
       >
         {PILLS.map((pill) => {
           const isSelected = pill.status === currentStatus;
-          const allowed =
-            !isArchived && canTransition(currentStatus, pill.status);
-          const pillDisabled =
-            disabled || isArchived || (!isSelected && !allowed);
+          const allowed = !isArchived && canTransition(currentStatus, pill.status);
+          const pillDisabled = disabled || isArchived || (!isSelected && !allowed);
 
           const button = (
             <button

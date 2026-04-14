@@ -1,13 +1,9 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
-import { Info, TrendingUp, TrendingDown } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { useMetricCatalog } from '../../../hooks/useMetricCatalog';
+import type { ReactNode } from "react";
+import { Info, TrendingUp, TrendingDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useMetricCatalog } from "../../../hooks/useMetricCatalog";
 
 interface MetricInfoCardProps {
   metricName: string;
@@ -42,7 +38,7 @@ export function MetricInfoCard({ metricName, children }: MetricInfoCardProps) {
         {data.benchmarks && (
           <p className="text-muted-foreground leading-relaxed border-t border-border pt-2">
             <span className="font-medium text-foreground">Referencia: </span>
-            {data.benchmarks.replace(/^Referencia:?\s*/i, '')}
+            {data.benchmarks.replace(/^Referencia:?\s*/i, "")}
           </p>
         )}
 
@@ -80,9 +76,7 @@ export function KpiTooltip({ label, hint }: { label: string; hint: string }) {
           <Info className="h-3 w-3 text-muted-foreground" />
         </span>
       </PopoverTrigger>
-      <PopoverContent className="max-w-[240px] text-xs">
-        {hint}
-      </PopoverContent>
+      <PopoverContent className="max-w-[240px] text-xs">{hint}</PopoverContent>
     </Popover>
   );
 }

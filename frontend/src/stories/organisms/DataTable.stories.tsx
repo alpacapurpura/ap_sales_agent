@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import {
   Table,
   TableBody,
@@ -6,31 +6,34 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 const meta = {
-  title: 'Organisms/DataTable',
+  title: "Organisms/DataTable",
   component: Table,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof Table>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 const data = [
-  { name: 'Ana Garcia', status: 'Active', email: 'ana@example.com' },
-  { name: 'Carlos Lopez', status: 'Inactive', email: 'carlos@example.com' },
-  { name: 'Maria Rodriguez', status: 'Active', email: 'maria@example.com' },
-  { name: 'Juan Martinez', status: 'Pending', email: 'juan@example.com' },
-  { name: 'Sofia Hernandez', status: 'Active', email: 'sofia@example.com' },
+  { name: "Ana Garcia", status: "Active", email: "ana@example.com" },
+  { name: "Carlos Lopez", status: "Inactive", email: "carlos@example.com" },
+  { name: "Maria Rodriguez", status: "Active", email: "maria@example.com" },
+  { name: "Juan Martinez", status: "Pending", email: "juan@example.com" },
+  { name: "Sofia Hernandez", status: "Active", email: "sofia@example.com" },
 ];
 
 const statusVariant = (status: string) => {
   switch (status) {
-    case 'Active': return 'default' as const;
-    case 'Inactive': return 'destructive' as const;
-    default: return 'secondary' as const;
+    case "Active":
+      return "default" as const;
+    case "Inactive":
+      return "destructive" as const;
+    default:
+      return "secondary" as const;
   }
 };
 

@@ -43,7 +43,7 @@ export const eventTypesApi = {
     return res.json();
   },
 
-  createEventType: async (eventType: Omit<EventType, 'id'>, token: string): Promise<EventType> => {
+  createEventType: async (eventType: Omit<EventType, "id">, token: string): Promise<EventType> => {
     const res = await fetchClient(`${API_URL}/api/v1/scheduling/event-types`, {
       method: "POST",
       headers: {
@@ -56,7 +56,11 @@ export const eventTypesApi = {
     return res.json();
   },
 
-  updateEventType: async (id: string, update: EventTypeUpdate, token: string): Promise<EventType> => {
+  updateEventType: async (
+    id: string,
+    update: EventTypeUpdate,
+    token: string,
+  ): Promise<EventType> => {
     const res = await fetchClient(`${API_URL}/api/v1/scheduling/event-types/${id}`, {
       method: "PATCH",
       headers: {
@@ -75,5 +79,5 @@ export const eventTypesApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error deleting event type");
-  }
+  },
 };

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   AlertCircle,
   AlertTriangle,
@@ -8,21 +8,12 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { cn } from '@/lib/utils';
-import type {
-  NoticeSeverity,
-  NoticeTab,
-  NoticesSummary,
-} from './types';
+import { cn } from "@/lib/utils";
+import type { NoticeSeverity, NoticeTab, NoticesSummary } from "./types";
 
-export type MetaAdsDashboardTab =
-  | 'resumen'
-  | 'campanas'
-  | 'creativos'
-  | 'audiencia'
-  | 'costos';
+export type MetaAdsDashboardTab = "resumen" | "campanas" | "creativos" | "audiencia" | "costos";
 
 interface ResumenHealthOverviewProps {
   summary: NoticesSummary;
@@ -36,49 +27,47 @@ const TAB_META: Array<{
   label: string;
   routeKey: MetaAdsDashboardTab;
 }> = [
-  { key: 'campanas', label: 'Campañas', routeKey: 'campanas' },
-  { key: 'creativos', label: 'Creativos', routeKey: 'creativos' },
-  { key: 'audiencia', label: 'Audiencia', routeKey: 'audiencia' },
-  { key: 'costos', label: 'Costos', routeKey: 'costos' },
+  { key: "campanas", label: "Campañas", routeKey: "campanas" },
+  { key: "creativos", label: "Creativos", routeKey: "creativos" },
+  { key: "audiencia", label: "Audiencia", routeKey: "audiencia" },
+  { key: "costos", label: "Costos", routeKey: "costos" },
 ];
 
 function dominantSeverity(summary: NoticesSummary): NoticeSeverity {
-  if (summary.severity.critical > 0) return 'critical';
-  if (summary.severity.warning > 0) return 'warning';
-  return 'info';
+  if (summary.severity.critical > 0) return "critical";
+  if (summary.severity.warning > 0) return "warning";
+  return "info";
 }
 
 function borderClass(sev: NoticeSeverity): string {
   switch (sev) {
-    case 'critical':
-      return 'border-red-500/40 bg-red-500/5';
-    case 'warning':
-      return 'border-amber-500/30 bg-amber-500/5';
-    case 'info':
-      return 'border-blue-500/30 bg-blue-500/5';
+    case "critical":
+      return "border-red-500/40 bg-red-500/5";
+    case "warning":
+      return "border-amber-500/30 bg-amber-500/5";
+    case "info":
+      return "border-blue-500/30 bg-blue-500/5";
   }
 }
 
 function iconFor(sev: NoticeSeverity) {
-  if (sev === 'critical') {
+  if (sev === "critical") {
     return <AlertCircle className="h-5 w-5 text-red-500" aria-hidden="true" />;
   }
-  if (sev === 'warning') {
-    return (
-      <AlertTriangle className="h-5 w-5 text-amber-500" aria-hidden="true" />
-    );
+  if (sev === "warning") {
+    return <AlertTriangle className="h-5 w-5 text-amber-500" aria-hidden="true" />;
   }
   return <CheckCircle2 className="h-5 w-5 text-blue-500" aria-hidden="true" />;
 }
 
 function severityDotClass(sev: NoticeSeverity): string {
   switch (sev) {
-    case 'critical':
-      return 'bg-red-500';
-    case 'warning':
-      return 'bg-amber-500';
-    case 'info':
-      return 'bg-blue-500';
+    case "critical":
+      return "bg-red-500";
+    case "warning":
+      return "bg-amber-500";
+    case "info":
+      return "bg-blue-500";
   }
 }
 
@@ -90,20 +79,20 @@ function subtitle(summary: NoticesSummary): string {
   const parts: string[] = [];
   if (summary.severity.critical > 0) {
     parts.push(
-      `${summary.severity.critical} ${pluralize(summary.severity.critical, 'crítica', 'críticas')}`,
+      `${summary.severity.critical} ${pluralize(summary.severity.critical, "crítica", "críticas")}`,
     );
   }
   if (summary.severity.warning > 0) {
     parts.push(
-      `${summary.severity.warning} ${pluralize(summary.severity.warning, 'advertencia', 'advertencias')}`,
+      `${summary.severity.warning} ${pluralize(summary.severity.warning, "advertencia", "advertencias")}`,
     );
   }
   if (summary.severity.info > 0) {
     parts.push(
-      `${summary.severity.info} ${pluralize(summary.severity.info, 'recomendación', 'recomendaciones')}`,
+      `${summary.severity.info} ${pluralize(summary.severity.info, "recomendación", "recomendaciones")}`,
     );
   }
-  return parts.join(' · ');
+  return parts.join(" · ");
 }
 
 /**
@@ -128,21 +117,13 @@ export function ResumenHealthOverview({
   if (summary.total === 0) {
     return (
       <div
-        className={cn(
-          'rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4',
-          className,
-        )}
+        className={cn("rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4", className)}
         data-testid="resumen-health-empty"
       >
         <div className="flex items-start gap-3">
-          <CheckCircle2
-            className="h-5 w-5 text-emerald-500 mt-0.5"
-            aria-hidden="true"
-          />
+          <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5" aria-hidden="true" />
           <div>
-            <h3 className="text-sm font-semibold text-emerald-50">
-              Todo en orden
-            </h3>
+            <h3 className="text-sm font-semibold text-emerald-50">Todo en orden</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">
               No detectamos nada urgente en tus campañas activas. Seguí así.
             </p>
@@ -155,16 +136,14 @@ export function ResumenHealthOverview({
   const sev = dominantSeverity(summary);
   const headerTitle = `Tienes ${summary.total} ${pluralize(
     summary.total,
-    'cosa por mejorar',
-    'cosas por mejorar',
+    "cosa por mejorar",
+    "cosas por mejorar",
   )}`;
-  const tabsWithNotices = TAB_META.filter(
-    meta => summary.perTabCounts[meta.key] > 0,
-  );
+  const tabsWithNotices = TAB_META.filter((meta) => summary.perTabCounts[meta.key] > 0);
 
   return (
     <div
-      className={cn('rounded-lg border p-4', borderClass(sev), className)}
+      className={cn("rounded-lg border p-4", borderClass(sev), className)}
       data-testid="resumen-health-panel"
     >
       <div className="flex items-start justify-between gap-3">
@@ -173,29 +152,25 @@ export function ResumenHealthOverview({
           <div className="min-w-0">
             <h3 className="text-sm font-semibold">{headerTitle}</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {subtitle(summary) || 'Revisá los detalles en cada pestaña.'}
+              {subtitle(summary) || "Revisá los detalles en cada pestaña."}
             </p>
           </div>
         </div>
         <button
           type="button"
-          onClick={() => setExpanded(v => !v)}
-          aria-label={expanded ? 'Ocultar detalle' : 'Ver detalle'}
+          onClick={() => setExpanded((v) => !v)}
+          aria-label={expanded ? "Ocultar detalle" : "Ver detalle"}
           className="shrink-0 rounded-md p-1 text-muted-foreground hover:text-foreground"
         >
-          {expanded ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
+          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </button>
       </div>
 
       {expanded && (
         <div className="mt-4 space-y-1.5">
-          {tabsWithNotices.map(meta => {
+          {tabsWithNotices.map((meta) => {
             const count = summary.perTabCounts[meta.key];
-            const maxSev = summary.maxSeverityPerTab[meta.key] ?? 'info';
+            const maxSev = summary.maxSeverityPerTab[meta.key] ?? "info";
             return (
               <button
                 key={meta.key}
@@ -206,15 +181,14 @@ export function ResumenHealthOverview({
                 <div className="flex items-center gap-2.5">
                   <span
                     className={cn(
-                      'inline-block h-2 w-2 shrink-0 rounded-full',
+                      "inline-block h-2 w-2 shrink-0 rounded-full",
                       severityDotClass(maxSev),
                     )}
                   />
                   <div>
                     <p className="text-sm font-medium">{meta.label}</p>
                     <p className="text-[11px] text-muted-foreground">
-                      {count}{' '}
-                      {pluralize(count, 'pendiente', 'pendientes')}
+                      {count} {pluralize(count, "pendiente", "pendientes")}
                     </p>
                   </div>
                 </div>

@@ -16,9 +16,9 @@
  * Split out as a pure function so it can be unit-tested in isolation
  * without mounting the full MetaAdsDashboard and its react-query tree.
  */
-import type { CampaignPerformanceData } from '../../../../../types/metrics';
-import type { Association } from '../../../../../types/offer-association';
-import type { OnboardingCampaign } from '../MetaAdsOnboardingModal';
+import type { CampaignPerformanceData } from "../../../../../types/metrics";
+import type { Association } from "../../../../../types/offer-association";
+import type { OnboardingCampaign } from "../MetaAdsOnboardingModal";
 
 export interface MetaAdsOnboardingTriggerInput {
   campaignData: CampaignPerformanceData | undefined;
@@ -48,8 +48,8 @@ export function computeMetaAdsOnboardingTrigger(
     associations.length === 0;
 
   const campaigns: OnboardingCampaign[] = (campaignData?.campaigns ?? [])
-    .filter(c => (c.effectiveStatus ?? '').toUpperCase() === 'ACTIVE')
-    .map(c => ({
+    .filter((c) => (c.effectiveStatus ?? "").toUpperCase() === "ACTIVE")
+    .map((c) => ({
       externalId: c.externalId,
       name: c.name,
       objective: c.objective,

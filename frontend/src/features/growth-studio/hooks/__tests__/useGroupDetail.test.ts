@@ -1,40 +1,40 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import React from 'react';
-import { renderHook, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import React from "react";
+import { renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
 
-vi.mock('@clerk/nextjs', () => ({
+vi.mock("@clerk/nextjs", () => ({
   useAuth: () => ({
-    getToken: vi.fn().mockResolvedValue('mock-token'),
+    getToken: vi.fn().mockResolvedValue("mock-token"),
   }),
 }));
 
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
-  usePathname: () => '/tenant/growth-studio/atraccion-captura',
+  usePathname: () => "/tenant/growth-studio/atraccion-captura",
   useSearchParams: () => ({
     get: () => null,
-    toString: () => '',
+    toString: () => "",
   }),
 }));
 
 const mockGetGroupDetail = vi.fn().mockResolvedValue({
   channels: [
     {
-      slug: 'meta-ads',
-      name: 'Meta Ads',
-      channelType: 'paid',
-      metrics: [{ name: 'spend', value: 1500 }],
-      sourceLabel: 'Meta',
+      slug: "meta-ads",
+      name: "Meta Ads",
+      channelType: "paid",
+      metrics: [{ name: "spend", value: 1500 }],
+      sourceLabel: "Meta",
       connected: true,
     },
   ],
   totals: { spend: 1500, impressions: 50000 },
 });
 
-vi.mock('../../api/stage-overview-api', () => ({
+vi.mock("../../api/stage-overview-api", () => ({
   stageOverviewApi: {
     getStageOverview: vi.fn().mockResolvedValue({}),
     getGroupDetail: (...args: unknown[]) => mockGetGroupDetail(...args),
@@ -43,8 +43,8 @@ vi.mock('../../api/stage-overview-api', () => ({
 
 // ── Import after mocks ────────────────────────────────────────────────────────
 
-import { useGroupDetail } from '../useGroupDetail';
-import { GrowthStudioProvider } from '../../components/metrics-dashboard/context/GrowthStudioContext';
+import { useGroupDetail } from "../useGroupDetail";
+import { GrowthStudioProvider } from "../../components/metrics-dashboard/context/GrowthStudioContext";
 
 // ── Wrapper ───────────────────────────────────────────────────────────────────
 
@@ -63,28 +63,27 @@ function createWrapper() {
 
 // ── Tests ──────────────────────────────────────────────────────────────────────
 
-describe('useGroupDetail', () => {
+describe("useGroupDetail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('x-tenant-id', 'test-tenant');
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("x-tenant-id", "test-tenant");
     }
   });
 
-  it('does NOT fetch when enabled=false (default)', async () => {
-    renderHook(() => useGroupDetail('attraction', 'paid'), {
+  it("does NOT fetch when enabled=false (default)", async () => {
+    renderHook(() => useGroupDetail("attraction", "paid"), {
       wrapper: createWrapper(),
     });
 
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
     expect(mockGetGroupDetail).not.toHaveBeenCalled();
   });
 
-  it('calls dedicated group endpoint when enabled=true', async () => {
-    const { result } = renderHook(
-      () => useGroupDetail('attraction', 'paid', { enabled: true }),
-      { wrapper: createWrapper() },
-    );
+  it("calls dedicated group endpoint when enabled=true", async () => {
+    const { result } = renderHook(() => useGroupDetail("attraction", "paid", { enabled: true }), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.data).toBeDefined();
@@ -92,34 +91,32 @@ describe('useGroupDetail', () => {
 
     // Verify it called the dedicated endpoint (not the full stage detail)
     expect(mockGetGroupDetail).toHaveBeenCalledWith(
-      'mock-token',
-      'attraction',
-      'paid',
-      'last_30_days',
+      "mock-token",
+      "attraction",
+      "paid",
+      "last_30_days",
     );
   });
 
-  it('maps response channels and totals correctly', async () => {
-    const { result } = renderHook(
-      () => useGroupDetail('attraction', 'paid', { enabled: true }),
-      { wrapper: createWrapper() },
-    );
+  it("maps response channels and totals correctly", async () => {
+    const { result } = renderHook(() => useGroupDetail("attraction", "paid", { enabled: true }), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.data).toBeDefined();
     });
 
     expect(result.current.data?.channels).toHaveLength(1);
-    expect(result.current.data?.channels[0].slug).toBe('meta-ads');
+    expect(result.current.data?.channels[0].slug).toBe("meta-ads");
     expect(result.current.data?.totals.spend).toBe(1500);
     expect(result.current.data?.totals.impressions).toBe(50000);
   });
 
-  it('includes correct queryKey with stage, groupKey, and period', () => {
-    const { result } = renderHook(
-      () => useGroupDetail('attraction', 'paid', { enabled: true }),
-      { wrapper: createWrapper() },
-    );
+  it("includes correct queryKey with stage, groupKey, and period", () => {
+    const { result } = renderHook(() => useGroupDetail("attraction", "paid", { enabled: true }), {
+      wrapper: createWrapper(),
+    });
 
     expect(result.current.isLoading).toBe(true);
   });

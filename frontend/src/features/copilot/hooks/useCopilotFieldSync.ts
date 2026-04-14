@@ -11,7 +11,7 @@ import type { UseFormSetValue } from "react-hook-form";
  */
 export function useCopilotFieldSync(
   setValue: UseFormSetValue<Record<string, unknown>>,
-  fieldMap?: Record<string, string>
+  fieldMap?: Record<string, string>,
 ) {
   useEffect(() => {
     const handler = (e: Event) => {

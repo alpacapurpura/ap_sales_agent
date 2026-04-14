@@ -1,52 +1,66 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 const meta = {
-  title: 'Tokens/Design Tokens',
-  tags: ['autodocs'],
+  title: "Tokens/Design Tokens",
+  tags: ["autodocs"],
 } satisfies Meta;
 
 export default meta;
 type Story = StoryObj;
 
 const colorTokens = [
-  'background', 'foreground',
-  'card', 'card-foreground',
-  'popover', 'popover-foreground',
-  'primary', 'primary-foreground',
-  'secondary', 'secondary-foreground',
-  'muted', 'muted-foreground',
-  'accent', 'accent-foreground',
-  'destructive', 'destructive-foreground',
-  'border', 'input', 'ring',
-  'sidebar-background', 'sidebar-foreground',
-  'sidebar-primary', 'sidebar-primary-foreground',
-  'sidebar-accent', 'sidebar-accent-foreground',
-  'sidebar-border', 'sidebar-ring',
+  "background",
+  "foreground",
+  "card",
+  "card-foreground",
+  "popover",
+  "popover-foreground",
+  "primary",
+  "primary-foreground",
+  "secondary",
+  "secondary-foreground",
+  "muted",
+  "muted-foreground",
+  "accent",
+  "accent-foreground",
+  "destructive",
+  "destructive-foreground",
+  "border",
+  "input",
+  "ring",
+  "sidebar-background",
+  "sidebar-foreground",
+  "sidebar-primary",
+  "sidebar-primary-foreground",
+  "sidebar-accent",
+  "sidebar-accent-foreground",
+  "sidebar-border",
+  "sidebar-ring",
 ];
 
 const typographySizes = [
-  { class: 'text-xs', label: 'text-xs (12px)' },
-  { class: 'text-sm', label: 'text-sm (14px)' },
-  { class: 'text-base', label: 'text-base (16px)' },
-  { class: 'text-lg', label: 'text-lg (18px)' },
-  { class: 'text-xl', label: 'text-xl (20px)' },
-  { class: 'text-2xl', label: 'text-2xl (24px)' },
-  { class: 'text-3xl', label: 'text-3xl (30px)' },
+  { class: "text-xs", label: "text-xs (12px)" },
+  { class: "text-sm", label: "text-sm (14px)" },
+  { class: "text-base", label: "text-base (16px)" },
+  { class: "text-lg", label: "text-lg (18px)" },
+  { class: "text-xl", label: "text-xl (20px)" },
+  { class: "text-2xl", label: "text-2xl (24px)" },
+  { class: "text-3xl", label: "text-3xl (30px)" },
 ];
 
 const spacingValues = [
-  { rem: '1rem', px: '16px' },
-  { rem: '2rem', px: '32px' },
-  { rem: '4rem', px: '64px' },
-  { rem: '8rem', px: '128px' },
+  { rem: "1rem", px: "16px" },
+  { rem: "2rem", px: "32px" },
+  { rem: "4rem", px: "64px" },
+  { rem: "8rem", px: "128px" },
 ];
 
 const radiusValues = [
-  { class: 'rounded-sm', label: 'rounded-sm' },
-  { class: 'rounded-md', label: 'rounded-md' },
-  { class: 'rounded-lg', label: 'rounded-lg' },
-  { class: 'rounded-xl', label: 'rounded-xl' },
-  { class: 'rounded-full', label: 'rounded-full' },
+  { class: "rounded-sm", label: "rounded-sm" },
+  { class: "rounded-md", label: "rounded-md" },
+  { class: "rounded-lg", label: "rounded-lg" },
+  { class: "rounded-xl", label: "rounded-xl" },
+  { class: "rounded-full", label: "rounded-full" },
 ];
 
 export const Default: Story = {
@@ -82,8 +96,12 @@ export const Default: Story = {
           <div className="space-y-2">
             {typographySizes.map(({ class: cls, label }) => (
               <div key={cls} className="flex items-baseline gap-4">
-                <span className="text-xs text-muted-foreground w-32 shrink-0 font-mono">{label}</span>
-                <span className={`${cls} font-sans`}>The quick brown fox jumps over the lazy dog</span>
+                <span className="text-xs text-muted-foreground w-32 shrink-0 font-mono">
+                  {label}
+                </span>
+                <span className={`${cls} font-sans`}>
+                  The quick brown fox jumps over the lazy dog
+                </span>
               </div>
             ))}
           </div>
@@ -91,7 +109,9 @@ export const Default: Story = {
           <div className="space-y-2">
             {typographySizes.map(({ class: cls, label }) => (
               <div key={`mono-${cls}`} className="flex items-baseline gap-4">
-                <span className="text-xs text-muted-foreground w-32 shrink-0 font-mono">{label}</span>
+                <span className="text-xs text-muted-foreground w-32 shrink-0 font-mono">
+                  {label}
+                </span>
                 <span className={`${cls} font-mono`}>const x = 42;</span>
               </div>
             ))}
@@ -105,11 +125,10 @@ export const Default: Story = {
         <div className="space-y-3">
           {spacingValues.map(({ rem, px }) => (
             <div key={rem} className="flex items-center gap-4">
-              <span className="text-xs text-muted-foreground w-24 shrink-0 font-mono">{rem} ({px})</span>
-              <div
-                className="h-8 bg-primary rounded"
-                style={{ width: rem }}
-              />
+              <span className="text-xs text-muted-foreground w-24 shrink-0 font-mono">
+                {rem} ({px})
+              </span>
+              <div className="h-8 bg-primary rounded" style={{ width: rem }} />
             </div>
           ))}
         </div>

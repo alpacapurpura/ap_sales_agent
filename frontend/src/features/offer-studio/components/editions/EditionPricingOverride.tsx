@@ -78,7 +78,13 @@ export function EditionPricingOverride({
               </div>
               {offerPricing[idx] && plan.total_amount < offerPricing[idx].total_amount && (
                 <span className="text-xs text-green-500 whitespace-nowrap">
-                  -{Math.round(((offerPricing[idx].total_amount - plan.total_amount) / offerPricing[idx].total_amount) * 100)}%
+                  -
+                  {Math.round(
+                    ((offerPricing[idx].total_amount - plan.total_amount) /
+                      offerPricing[idx].total_amount) *
+                      100,
+                  )}
+                  %
                 </span>
               )}
             </div>

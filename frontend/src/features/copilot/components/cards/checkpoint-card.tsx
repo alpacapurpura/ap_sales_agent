@@ -29,9 +29,7 @@ export const CheckpointCard = memo(function CheckpointCard({
     <div
       className={cn(
         "animate-in slide-in-from-bottom-2 fade-in duration-300 rounded-xl border p-3.5",
-        isConfirmed
-          ? "border-green-500 bg-green-900/20"
-          : "border-purple-500 bg-[#1e1b4b]"
+        isConfirmed ? "border-green-500 bg-green-900/20" : "border-purple-500 bg-[#1e1b4b]",
       )}
     >
       <div className="mb-2.5 flex items-center justify-between">
@@ -48,7 +46,7 @@ export const CheckpointCard = memo(function CheckpointCard({
                   ? "bg-green-500"
                   : i === blocksProgress.completed
                     ? "animate-pulse bg-purple-500"
-                    : "bg-gray-600"
+                    : "bg-gray-600",
               )}
             />
           ))}
@@ -60,8 +58,7 @@ export const CheckpointCard = memo(function CheckpointCard({
           const label = key.split(".").pop() ?? key;
           return (
             <div key={key}>
-              <span className="font-semibold text-purple-300">{label}:</span>{" "}
-              {val}
+              <span className="font-semibold text-purple-300">{label}:</span> {val}
             </div>
           );
         })}
@@ -73,10 +70,7 @@ export const CheckpointCard = memo(function CheckpointCard({
           <span className="text-sm font-bold text-green-500">{healthScore}%</span>
         </div>
         <div className="mt-1.5 h-1 rounded-full bg-black/30">
-          <div
-            className="h-1 rounded-full bg-green-500"
-            style={{ width: `${healthScore}%` }}
-          />
+          <div className="h-1 rounded-full bg-green-500" style={{ width: `${healthScore}%` }} />
         </div>
       </div>
 

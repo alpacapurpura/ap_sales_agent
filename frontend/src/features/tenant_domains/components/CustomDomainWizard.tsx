@@ -47,11 +47,7 @@ function CopyButton({ value, className }: CopyButtonProps) {
       onClick={handleCopy}
       aria-label="Copiar valor"
     >
-      {copied ? (
-        <Check className="h-3.5 w-3.5 text-green-500" />
-      ) : (
-        <Copy className="h-3.5 w-3.5" />
-      )}
+      {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
     </Button>
   );
 }
@@ -166,12 +162,9 @@ export function CustomDomainWizard({ open, onOpenChange }: CustomDomainWizardPro
             {step === "verify" && "Verificar dominio"}
           </DialogTitle>
           <DialogDescription>
-            {step === "input" &&
-              "Ingresa el dominio o subdominio que quieres usar con tu cuenta."}
-            {step === "dns" &&
-              "Añade el siguiente registro CNAME en tu proveedor de DNS."}
-            {step === "verify" &&
-              "Una vez añadido el registro DNS, verifica tu dominio."}
+            {step === "input" && "Ingresa el dominio o subdominio que quieres usar con tu cuenta."}
+            {step === "dns" && "Añade el siguiente registro CNAME en tu proveedor de DNS."}
+            {step === "verify" && "Una vez añadido el registro DNS, verifica tu dominio."}
           </DialogDescription>
         </DialogHeader>
 
@@ -262,9 +255,7 @@ export function CustomDomainWizard({ open, onOpenChange }: CustomDomainWizardPro
               <Button variant="outline" onClick={() => setStep("input")}>
                 Atrás
               </Button>
-              <Button onClick={() => setStep("verify")}>
-                He añadido el registro
-              </Button>
+              <Button onClick={() => setStep("verify")}>He añadido el registro</Button>
             </div>
           </div>
         )}
@@ -275,9 +266,7 @@ export function CustomDomainWizard({ open, onOpenChange }: CustomDomainWizardPro
             {verifySuccess ? (
               <div className="flex flex-col items-center gap-3 py-4">
                 <CheckCircle2 className="h-12 w-12 text-green-500" />
-                <p className="text-center font-semibold">
-                  ¡Dominio verificado correctamente!
-                </p>
+                <p className="text-center font-semibold">¡Dominio verificado correctamente!</p>
                 <p className="text-center text-sm text-muted-foreground">
                   {createdDomain?.hostname} ya está activo en tu cuenta.
                 </p>
@@ -286,10 +275,7 @@ export function CustomDomainWizard({ open, onOpenChange }: CustomDomainWizardPro
             ) : (
               <>
                 <p className="text-sm text-muted-foreground">
-                  Dominio:{" "}
-                  <span className="font-mono font-medium">
-                    {createdDomain?.hostname}
-                  </span>
+                  Dominio: <span className="font-mono font-medium">{createdDomain?.hostname}</span>
                 </p>
 
                 {verifyDomain.isError && (
@@ -316,13 +302,8 @@ export function CustomDomainWizard({ open, onOpenChange }: CustomDomainWizardPro
                   <Button variant="outline" onClick={() => setStep("dns")}>
                     Atrás
                   </Button>
-                  <Button
-                    onClick={handleVerify}
-                    disabled={verifyDomain.isPending}
-                  >
-                    {verifyDomain.isPending && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
+                  <Button onClick={handleVerify} disabled={verifyDomain.isPending}>
+                    {verifyDomain.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Verificar dominio
                   </Button>
                 </div>

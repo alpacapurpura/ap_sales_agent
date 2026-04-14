@@ -1,9 +1,9 @@
-import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useAttractionDetail } from '../useStageDetail';
-import type { AttractionDetail } from '@/features/growth-studio/types/metrics';
+import React from "react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useAttractionDetail } from "../useStageDetail";
+import type { AttractionDetail } from "@/features/growth-studio/types/metrics";
 
 // ── Inline test helpers (avoid .tsx import from .ts) ─────────────────────────
 
@@ -28,30 +28,30 @@ function createHookWrapper() {
 
 const mockGetAttractionDetail = vi.fn();
 
-vi.mock('@/features/growth-studio/api/metrics-api', () => ({
+vi.mock("@/features/growth-studio/api/metrics-api", () => ({
   metricsApi: {
     getAttractionDetail: (...args: unknown[]) => mockGetAttractionDetail(...args),
   },
 }));
 
-vi.mock('@clerk/nextjs', () => ({
+vi.mock("@clerk/nextjs", () => ({
   useAuth: () => ({
-    getToken: vi.fn().mockResolvedValue('mock-test-token'),
+    getToken: vi.fn().mockResolvedValue("mock-test-token"),
     isLoaded: true,
     isSignedIn: true,
   }),
 }));
 
-vi.mock('../../components/metrics-dashboard/context/GrowthStudioContext', () => ({
+vi.mock("../../components/metrics-dashboard/context/GrowthStudioContext", () => ({
   useGrowthStudioContext: () => ({
-    selectedPeriod: 'last_30_days',
+    selectedPeriod: "last_30_days",
   }),
 }));
 
 // ── Test Data ────────────────────────────────────────────────────────────────
 
 const mockAttractionData: AttractionDetail = {
-  period: '2026-03-01_2026-03-16',
+  period: "2026-03-01_2026-03-16",
   organicSocial: {
     totals: { reach: 15000, engagement: 450 },
     channels: [],
@@ -72,13 +72,13 @@ const mockAttractionData: AttractionDetail = {
 
 // ── Tests ────────────────────────────────────────────────────────────────────
 
-describe('useAttractionDetail', () => {
+describe("useAttractionDetail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Mock localStorage for tenant ID
-    Object.defineProperty(globalThis, 'localStorage', {
+    Object.defineProperty(globalThis, "localStorage", {
       value: {
-        getItem: vi.fn().mockReturnValue('test-tenant-id'),
+        getItem: vi.fn().mockReturnValue("test-tenant-id"),
         setItem: vi.fn(),
         removeItem: vi.fn(),
         clear: vi.fn(),
@@ -90,7 +90,7 @@ describe('useAttractionDetail', () => {
     });
   });
 
-  it('returns loading state initially before fetch completes', () => {
+  it("returns loading state initially before fetch completes", () => {
     mockGetAttractionDetail.mockReturnValue(new Promise(() => {})); // never resolves
     const { wrapper } = createHookWrapper();
 
@@ -100,7 +100,7 @@ describe('useAttractionDetail', () => {
     expect(result.current.data).toBeUndefined();
   });
 
-  it('returns attraction detail data on successful fetch', async () => {
+  it("returns attraction detail data on successful fetch", async () => {
     mockGetAttractionDetail.mockResolvedValue(mockAttractionData);
     const { wrapper } = createHookWrapper();
 
@@ -111,12 +111,12 @@ describe('useAttractionDetail', () => {
     });
 
     expect(result.current.data).toEqual(mockAttractionData);
-    expect(result.current.data?.period).toBe('2026-03-01_2026-03-16');
+    expect(result.current.data?.period).toBe("2026-03-01_2026-03-16");
     expect(result.current.data?.organicSocial.totals.reach).toBe(15000);
   });
 
-  it('surfaces error on failed fetch', async () => {
-    const apiError = new Error('Network Error: Unable to reach analytics API');
+  it("surfaces error on failed fetch", async () => {
+    const apiError = new Error("Network Error: Unable to reach analytics API");
     mockGetAttractionDetail.mockRejectedValue(apiError);
     const { wrapper } = createHookWrapper();
 
@@ -127,10 +127,10 @@ describe('useAttractionDetail', () => {
     });
 
     expect(result.current.error).toBeDefined();
-    expect(result.current.error?.message).toContain('Network Error');
+    expect(result.current.error?.message).toContain("Network Error");
   });
 
-  it('passes the auth token and period to the API function', async () => {
+  it("passes the auth token and period to the API function", async () => {
     mockGetAttractionDetail.mockResolvedValue(mockAttractionData);
     const { wrapper } = createHookWrapper();
 
@@ -141,10 +141,10 @@ describe('useAttractionDetail', () => {
     });
 
     // createStageDetailHook calls apiFn(token, selectedPeriod)
-    expect(mockGetAttractionDetail).toHaveBeenCalledWith('mock-test-token', 'last_30_days');
+    expect(mockGetAttractionDetail).toHaveBeenCalledWith("mock-test-token", "last_30_days");
   });
 
-  it('includes tenantId and period in the query key', async () => {
+  it("includes tenantId and period in the query key", async () => {
     mockGetAttractionDetail.mockResolvedValue(mockAttractionData);
     const { wrapper, queryClient } = createHookWrapper();
 
@@ -157,8 +157,12 @@ describe('useAttractionDetail', () => {
     // Verify queryKey structure: ['attraction-detail', tenantId, period]
     const queryCache = queryClient.getQueryCache();
     const queries = queryCache.getAll();
-    const attractionQuery = queries.find(q => q.queryKey[0] === 'attraction-detail');
+    const attractionQuery = queries.find((q) => q.queryKey[0] === "attraction-detail");
     expect(attractionQuery).toBeDefined();
-    expect(attractionQuery?.queryKey).toEqual(['attraction-detail', 'test-tenant-id', 'last_30_days']);
+    expect(attractionQuery?.queryKey).toEqual([
+      "attraction-detail",
+      "test-tenant-id",
+      "last_30_days",
+    ]);
   });
 });

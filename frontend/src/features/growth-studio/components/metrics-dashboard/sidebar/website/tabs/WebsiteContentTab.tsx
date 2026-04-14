@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from "lucide-react";
 
-import { cn } from '@/lib/utils';
-import { ChartInfoTooltip } from '../../shared/ChartInfoTooltip';
-import { ChartSection } from '../../shared/ChartSection';
-import type { WebsiteData } from '../types';
+import { cn } from "@/lib/utils";
+import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
+import { ChartSection } from "../../shared/ChartSection";
+import type { WebsiteData } from "../types";
 
 interface WebsiteContentTabProps {
   data: WebsiteData | undefined;
@@ -30,9 +30,8 @@ export function WebsiteContentTab({ data, isLoading }: WebsiteContentTabProps) {
   }
 
   const topPages = data.extraData?.top_pages;
-  const maxViews = topPages && topPages.length > 0
-    ? Math.max(...topPages.map(p => p.views), 1)
-    : 1;
+  const maxViews =
+    topPages && topPages.length > 0 ? Math.max(...topPages.map((p) => p.views), 1) : 1;
 
   return (
     <div className="space-y-8">
@@ -48,9 +47,7 @@ export function WebsiteContentTab({ data, isLoading }: WebsiteContentTabProps) {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground w-8">
-                      #
-                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground w-8">#</th>
                     <th className="px-3 py-2 text-left font-medium text-muted-foreground">
                       Página
                     </th>
@@ -67,20 +64,16 @@ export function WebsiteContentTab({ data, isLoading }: WebsiteContentTabProps) {
                   {topPages.slice(0, 10).map((page, i) => (
                     <tr
                       key={page.path}
-                      className={cn(
-                        'border-b last:border-b-0 transition-colors hover:bg-muted/30',
-                      )}
+                      className={cn("border-b last:border-b-0 transition-colors hover:bg-muted/30")}
                     >
-                      <td className="px-3 py-2 text-muted-foreground tabular-nums">
-                        {i + 1}
-                      </td>
+                      <td className="px-3 py-2 text-muted-foreground tabular-nums">{i + 1}</td>
                       <td className="px-3 py-2">
                         <span className="text-blue-600 dark:text-blue-400 font-mono text-xs truncate block max-w-[240px]">
                           {page.path}
                         </span>
                       </td>
                       <td className="px-3 py-2 text-right font-medium tabular-nums">
-                        {page.views.toLocaleString('en-US')}
+                        {page.views.toLocaleString("en-US")}
                       </td>
                       <td className="px-3 py-2 text-right text-muted-foreground tabular-nums">
                         {page.percentage.toFixed(1)}%

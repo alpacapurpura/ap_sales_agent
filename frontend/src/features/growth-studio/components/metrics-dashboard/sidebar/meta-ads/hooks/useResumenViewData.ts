@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Derivation hook for the Meta Ads Resumen tab.
@@ -15,32 +15,32 @@
  * loaded response and the current segmenter selection.
  */
 
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
 import type {
   ChannelDashboardData,
   FunnelStep as MiniFunnelStep,
   MetricTimeSeries,
-} from '../../../../../types/metrics';
+} from "../../../../../types/metrics";
 import type {
   BrandingAggregate,
   FunnelStep as OfferFunnelStep,
   MetricsByOffer,
   OfferMetrics,
   UnassignedAggregate,
-} from '../../../../../types/offer-association';
-import type { OfferSegmenterSelection } from '../OfferSegmenter';
+} from "../../../../../types/offer-association";
+import type { OfferSegmenterSelection } from "../OfferSegmenter";
 
 // ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
 
-export type ResumenKpiUnit = 'currency' | 'count' | 'percentage' | 'ratio';
+export type ResumenKpiUnit = "currency" | "count" | "percentage" | "ratio";
 
 export type ResumenKpiKind =
-  | 'value' // normal value rendered
-  | 'unavailable' // backend returned null → render "—" with tooltip
-  | 'cta'; // special action card (only used in the unassigned filter)
+  | "value" // normal value rendered
+  | "unavailable" // backend returned null → render "—" with tooltip
+  | "cta"; // special action card (only used in the unassigned filter)
 
 export interface ResumenKpiCard {
   /**
@@ -98,7 +98,7 @@ export interface ResumenKpiCard {
 
 export interface ResumenViewData {
   /** The active filter (mirrors `selectedOfferId`). */
-  filter: 'all' | 'offer' | 'branding' | 'unassigned';
+  filter: "all" | "offer" | "branding" | "unassigned";
 
   /**
    * Human-readable context label for the line under the segmenter
@@ -138,7 +138,7 @@ export interface ResumenViewData {
 // ---------------------------------------------------------------------------
 
 function toMiniFunnel(steps: OfferFunnelStep[]): MiniFunnelStep[] {
-  return steps.map(s => ({
+  return steps.map((s) => ({
     label: s.label,
     metricName: s.metricName,
     value: s.value,
@@ -155,16 +155,16 @@ function toMiniFunnel(steps: OfferFunnelStep[]): MiniFunnelStep[] {
 function offerToTimeSeries(offer: OfferMetrics): MetricTimeSeries[] {
   return [
     {
-      metricName: 'spend',
-      displayName: 'Inversión',
-      unit: 'currency',
-      dataPoints: offer.timeseries.map(p => ({ date: p.date, value: p.spend })),
+      metricName: "spend",
+      displayName: "Inversión",
+      unit: "currency",
+      dataPoints: offer.timeseries.map((p) => ({ date: p.date, value: p.spend })),
     },
     {
-      metricName: 'conversions',
+      metricName: "conversions",
       displayName: offer.primaryMetricName,
       unit: offer.primaryMetricUnit,
-      dataPoints: offer.timeseries.map(p => ({
+      dataPoints: offer.timeseries.map((p) => ({
         date: p.date,
         value: p.primaryResult,
       })),
@@ -185,61 +185,65 @@ interface PrimaryMetricCopy {
 
 function primaryMetricCopy(name: string, fallback: string): PrimaryMetricCopy {
   const lower = name.trim().toLowerCase();
-  if (lower.startsWith('lead')) {
+  if (lower.startsWith("lead")) {
     return {
-      resultsLabel: 'Leads',
-      resultsTooltipKey: 'results_leads',
-      costLabel: 'CPL',
-      costTooltipKey: 'cpl',
+      resultsLabel: "Leads",
+      resultsTooltipKey: "results_leads",
+      costLabel: "CPL",
+      costTooltipKey: "cpl",
     };
   }
-  if (lower.startsWith('compra') || lower.startsWith('purchase')) {
+  if (lower.startsWith("compra") || lower.startsWith("purchase")) {
     return {
-      resultsLabel: 'Compras',
-      resultsTooltipKey: 'results_purchases',
-      costLabel: 'CPA',
-      costTooltipKey: 'cpa',
+      resultsLabel: "Compras",
+      resultsTooltipKey: "results_purchases",
+      costLabel: "CPA",
+      costTooltipKey: "cpa",
     };
   }
-  if (lower.startsWith('mensaje') || lower.startsWith('message')) {
+  if (lower.startsWith("mensaje") || lower.startsWith("message")) {
     return {
-      resultsLabel: 'Mensajes',
-      resultsTooltipKey: 'results_messages',
-      costLabel: 'Costo por mensaje',
-      costTooltipKey: 'cost_per_message',
+      resultsLabel: "Mensajes",
+      resultsTooltipKey: "results_messages",
+      costLabel: "Costo por mensaje",
+      costTooltipKey: "cost_per_message",
     };
   }
-  if (lower.startsWith('llamada') || lower.startsWith('call')) {
+  if (lower.startsWith("llamada") || lower.startsWith("call")) {
     return {
-      resultsLabel: 'Llamadas',
-      resultsTooltipKey: 'results_calls',
-      costLabel: 'Costo por llamada',
-      costTooltipKey: 'cost_per_call',
+      resultsLabel: "Llamadas",
+      resultsTooltipKey: "results_calls",
+      costLabel: "Costo por llamada",
+      costTooltipKey: "cost_per_call",
     };
   }
-  if (lower.startsWith('registro') || lower.startsWith('registration') || lower.startsWith('subscription')) {
+  if (
+    lower.startsWith("registro") ||
+    lower.startsWith("registration") ||
+    lower.startsWith("subscription")
+  ) {
     return {
-      resultsLabel: 'Registros',
-      resultsTooltipKey: 'results_registrations',
-      costLabel: 'Costo por registro',
-      costTooltipKey: 'cost_per_registration',
+      resultsLabel: "Registros",
+      resultsTooltipKey: "results_registrations",
+      costLabel: "Costo por registro",
+      costTooltipKey: "cost_per_registration",
     };
   }
-  if (lower.startsWith('form')) {
+  if (lower.startsWith("form")) {
     return {
-      resultsLabel: 'Forms',
-      resultsTooltipKey: 'results_forms',
-      costLabel: 'Costo por form',
-      costTooltipKey: 'cost_per_form',
+      resultsLabel: "Forms",
+      resultsTooltipKey: "results_forms",
+      costLabel: "Costo por form",
+      costTooltipKey: "cost_per_form",
     };
   }
   // Unknown primary metric — use the backend label verbatim and the generic
   // cost-per-result copy so nothing invents a value.
   return {
     resultsLabel: fallback,
-    resultsTooltipKey: 'unavailable_metric_not_supported',
-    costLabel: 'Costo por resultado',
-    costTooltipKey: 'cost_per_result',
+    resultsTooltipKey: "unavailable_metric_not_supported",
+    costLabel: "Costo por resultado",
+    costTooltipKey: "cost_per_result",
   };
 }
 
@@ -279,15 +283,13 @@ function buildCard({
     key,
     label,
     tooltipKey,
-    unavailableTooltipKey: isUnavailable
-      ? (unavailableTooltipKey ?? 'unavailable_generic')
-      : null,
+    unavailableTooltipKey: isUnavailable ? (unavailableTooltipKey ?? "unavailable_generic") : null,
     value: isUnavailable ? null : value,
     currency,
     unit,
     higherIsBetter,
     deltaPct: null, // deltas only arrive from the backend today — open question #2
-    kind: isUnavailable ? 'unavailable' : 'value',
+    kind: isUnavailable ? "unavailable" : "value",
   };
 }
 
@@ -343,7 +345,7 @@ function buildAllCards(ctx: BuildContext): ResumenKpiCard[] {
   // offers + buckets.
   let channelCtr: number | null = null;
   if (channelData) {
-    const ctrKpi = channelData.kpis.find(k => k.metricName === 'CTR');
+    const ctrKpi = channelData.kpis.find((k) => k.metricName === "CTR");
     if (ctrKpi != null) channelCtr = ctrKpi.currentValue;
   }
   if (channelCtr == null) {
@@ -360,68 +362,65 @@ function buildAllCards(ctx: BuildContext): ResumenKpiCard[] {
 
   return [
     buildCard({
-      key: 'spend',
-      label: 'Inversión',
-      tooltipKey: 'spend',
+      key: "spend",
+      label: "Inversión",
+      tooltipKey: "spend",
       value: totalSpend,
       currency,
-      unit: 'currency',
+      unit: "currency",
     }),
     buildCard({
-      key: 'roas',
-      label: 'ROAS',
-      tooltipKey: 'roas',
+      key: "roas",
+      label: "ROAS",
+      tooltipKey: "roas",
       value: avgRoas,
       currency,
-      unit: 'ratio',
+      unit: "ratio",
       higherIsBetter: true,
-      unavailableTooltipKey: 'unavailable_pixel',
+      unavailableTooltipKey: "unavailable_pixel",
     }),
     buildCard({
-      key: 'results',
-      label: 'Resultados',
-      tooltipKey: 'results_all',
+      key: "results",
+      label: "Resultados",
+      tooltipKey: "results_all",
       value: totalResults,
       currency,
-      unit: 'count',
+      unit: "count",
       higherIsBetter: true,
     }),
     buildCard({
-      key: 'cpa',
-      label: 'CPA',
-      tooltipKey: 'cpa',
+      key: "cpa",
+      label: "CPA",
+      tooltipKey: "cpa",
       value: avgCpa,
       currency,
-      unit: 'currency',
+      unit: "currency",
       higherIsBetter: false,
-      unavailableTooltipKey: 'unavailable_pixel',
+      unavailableTooltipKey: "unavailable_pixel",
     }),
     buildCard({
-      key: 'ctr',
-      label: 'CTR',
-      tooltipKey: 'ctr',
+      key: "ctr",
+      label: "CTR",
+      tooltipKey: "ctr",
       value: channelCtr,
       currency,
-      unit: 'percentage',
+      unit: "percentage",
       higherIsBetter: true,
     }),
     buildCard({
-      key: 'reach',
-      label: 'Alcance',
-      tooltipKey: 'reach_all',
+      key: "reach",
+      label: "Alcance",
+      tooltipKey: "reach_all",
       value: metricsByOffer.reachAll,
       currency,
-      unit: 'count',
+      unit: "count",
       higherIsBetter: true,
-      unavailableTooltipKey: 'unavailable_period_pending',
+      unavailableTooltipKey: "unavailable_period_pending",
     }),
   ];
 }
 
-function buildOfferCards(
-  offer: OfferMetrics,
-  ctx: BuildContext,
-): ResumenKpiCard[] {
+function buildOfferCards(offer: OfferMetrics, ctx: BuildContext): ResumenKpiCard[] {
   const currency = offer.currency || ctx.currency;
   const copy = primaryMetricCopy(offer.primaryMetricName, offer.primaryMetricName);
   const pixelOff = offer.metricUnavailableReason != null;
@@ -430,216 +429,210 @@ function buildOfferCards(
   const hasRoas = offer.roas != null;
   const resultCard2: ResumenKpiCard = hasRoas
     ? buildCard({
-        key: 'roas_or_cost',
-        label: 'ROAS',
-        tooltipKey: 'roas',
+        key: "roas_or_cost",
+        label: "ROAS",
+        tooltipKey: "roas",
         value: offer.roas,
         currency,
-        unit: 'ratio',
+        unit: "ratio",
         higherIsBetter: true,
         forceUnavailable: pixelOff,
         unavailableTooltipKey: offer.metricUnavailableReason
           ? `unavailable_${offer.metricUnavailableReason}`
-          : 'unavailable_pixel',
+          : "unavailable_pixel",
       })
     : buildCard({
-        key: 'roas_or_cost',
-        label: 'Costo por resultado',
-        tooltipKey: 'cost_per_result',
+        key: "roas_or_cost",
+        label: "Costo por resultado",
+        tooltipKey: "cost_per_result",
         value: offer.primaryCostPerResult,
         currency,
-        unit: 'currency',
+        unit: "currency",
         higherIsBetter: false,
         forceUnavailable: pixelOff,
         unavailableTooltipKey: offer.metricUnavailableReason
           ? `unavailable_${offer.metricUnavailableReason}`
-          : 'unavailable_pixel',
+          : "unavailable_pixel",
       });
 
   // Card #3 — primary result count (always a real value, 0 is valid).
   const resultsCard: ResumenKpiCard = buildCard({
-    key: 'results',
+    key: "results",
     label: copy.resultsLabel,
     tooltipKey: copy.resultsTooltipKey,
     value: pixelOff ? null : offer.primaryResultCount,
     currency,
-    unit: 'count',
+    unit: "count",
     higherIsBetter: true,
     forceUnavailable: pixelOff,
     unavailableTooltipKey: offer.metricUnavailableReason
       ? `unavailable_${offer.metricUnavailableReason}`
-      : 'unavailable_pixel',
+      : "unavailable_pixel",
   });
 
   // Card #4 — cost-per-result with the metric-specific label.
   const costCard: ResumenKpiCard = buildCard({
-    key: 'cpa',
+    key: "cpa",
     label: copy.costLabel,
     tooltipKey: copy.costTooltipKey,
     value: offer.primaryCostPerResult,
     currency,
-    unit: 'currency',
+    unit: "currency",
     higherIsBetter: false,
     forceUnavailable: pixelOff,
     unavailableTooltipKey: offer.metricUnavailableReason
       ? `unavailable_${offer.metricUnavailableReason}`
-      : 'unavailable_pixel',
+      : "unavailable_pixel",
   });
 
   return [
     buildCard({
-      key: 'spend',
-      label: 'Inversión',
-      tooltipKey: 'spend',
+      key: "spend",
+      label: "Inversión",
+      tooltipKey: "spend",
       value: offer.totalSpend,
       currency,
-      unit: 'currency',
+      unit: "currency",
     }),
     resultCard2,
     resultsCard,
     costCard,
     buildCard({
-      key: 'ctr',
-      label: 'CTR',
-      tooltipKey: 'ctr',
+      key: "ctr",
+      label: "CTR",
+      tooltipKey: "ctr",
       value: offer.ctr,
       currency,
-      unit: 'percentage',
+      unit: "percentage",
       higherIsBetter: true,
     }),
     buildCard({
-      key: 'reach',
-      label: 'Alcance',
-      tooltipKey: 'reach_offer',
+      key: "reach",
+      label: "Alcance",
+      tooltipKey: "reach_offer",
       value: offer.reach,
       currency,
-      unit: 'count',
+      unit: "count",
       higherIsBetter: true,
-      unavailableTooltipKey: 'unavailable_reach_overlap',
+      unavailableTooltipKey: "unavailable_reach_overlap",
     }),
   ];
 }
 
-function buildBrandingCards(
-  aggregate: BrandingAggregate,
-  ctx: BuildContext,
-): ResumenKpiCard[] {
+function buildBrandingCards(aggregate: BrandingAggregate, ctx: BuildContext): ResumenKpiCard[] {
   const currency = ctx.currency;
   return [
     buildCard({
-      key: 'spend',
-      label: 'Inversión',
-      tooltipKey: 'spend_branding',
+      key: "spend",
+      label: "Inversión",
+      tooltipKey: "spend_branding",
       value: aggregate.totalSpend,
       currency,
-      unit: 'currency',
+      unit: "currency",
     }),
     buildCard({
-      key: 'reach',
-      label: 'Alcance',
-      tooltipKey: 'reach_branding',
+      key: "reach",
+      label: "Alcance",
+      tooltipKey: "reach_branding",
       value: aggregate.reach,
       currency,
-      unit: 'count',
+      unit: "count",
       higherIsBetter: true,
-      unavailableTooltipKey: 'unavailable_reach_overlap',
+      unavailableTooltipKey: "unavailable_reach_overlap",
     }),
     buildCard({
-      key: 'impressions',
-      label: 'Impresiones',
-      tooltipKey: 'impressions',
+      key: "impressions",
+      label: "Impresiones",
+      tooltipKey: "impressions",
       value: aggregate.impressions,
       currency,
-      unit: 'count',
+      unit: "count",
       higherIsBetter: true,
     }),
     buildCard({
-      key: 'cpm',
-      label: 'CPM',
-      tooltipKey: 'cpm',
+      key: "cpm",
+      label: "CPM",
+      tooltipKey: "cpm",
       value: aggregate.cpm,
       currency,
-      unit: 'currency',
+      unit: "currency",
       higherIsBetter: false,
     }),
     buildCard({
-      key: 'frequency',
-      label: 'Frecuencia',
-      tooltipKey: 'frequency',
+      key: "frequency",
+      label: "Frecuencia",
+      tooltipKey: "frequency",
       value: aggregate.frequency,
       currency,
-      unit: 'ratio',
-      unavailableTooltipKey: 'unavailable_reach_overlap',
+      unit: "ratio",
+      unavailableTooltipKey: "unavailable_reach_overlap",
     }),
     buildCard({
-      key: 'target_count',
-      label: 'Campañas activas',
-      tooltipKey: 'active_campaigns_branding',
+      key: "target_count",
+      label: "Campañas activas",
+      tooltipKey: "active_campaigns_branding",
       value: aggregate.targetCount,
       currency,
-      unit: 'count',
+      unit: "count",
     }),
   ];
 }
 
-function buildUnassignedCards(
-  aggregate: UnassignedAggregate,
-  ctx: BuildContext,
-): ResumenKpiCard[] {
+function buildUnassignedCards(aggregate: UnassignedAggregate, ctx: BuildContext): ResumenKpiCard[] {
   const currency = ctx.currency;
   return [
     buildCard({
-      key: 'spend',
-      label: 'Inversión',
-      tooltipKey: 'spend_unassigned',
+      key: "spend",
+      label: "Inversión",
+      tooltipKey: "spend_unassigned",
       value: aggregate.totalSpend,
       currency,
-      unit: 'currency',
+      unit: "currency",
     }),
     buildCard({
-      key: 'impressions',
-      label: 'Impresiones',
-      tooltipKey: 'impressions',
+      key: "impressions",
+      label: "Impresiones",
+      tooltipKey: "impressions",
       value: aggregate.impressions,
       currency,
-      unit: 'count',
+      unit: "count",
     }),
     buildCard({
-      key: 'clicks',
-      label: 'Clics',
-      tooltipKey: 'clicks',
+      key: "clicks",
+      label: "Clics",
+      tooltipKey: "clicks",
       value: aggregate.clicks,
       currency,
-      unit: 'count',
+      unit: "count",
     }),
     buildCard({
-      key: 'ctr',
-      label: 'CTR',
-      tooltipKey: 'ctr_unassigned',
+      key: "ctr",
+      label: "CTR",
+      tooltipKey: "ctr_unassigned",
       value: aggregate.ctr,
       currency,
-      unit: 'percentage',
+      unit: "percentage",
     }),
     buildCard({
-      key: 'target_count',
-      label: 'Campañas sin asignar',
-      tooltipKey: 'unassigned_campaigns',
+      key: "target_count",
+      label: "Campañas sin asignar",
+      tooltipKey: "unassigned_campaigns",
       value: aggregate.targetCount,
       currency,
-      unit: 'count',
+      unit: "count",
       higherIsBetter: false,
     }),
     {
-      key: 'action',
-      label: 'Acción requerida',
-      tooltipKey: 'unassigned_campaigns',
+      key: "action",
+      label: "Acción requerida",
+      tooltipKey: "unassigned_campaigns",
       unavailableTooltipKey: null,
       value: null,
       currency,
-      unit: 'count',
+      unit: "count",
       higherIsBetter: null,
       deltaPct: null,
-      kind: 'cta',
+      kind: "cta",
     },
   ];
 }
@@ -656,8 +649,8 @@ export interface UseResumenViewDataArgs {
 }
 
 const EMPTY: ResumenViewData = {
-  filter: 'all',
-  contextLabel: '',
+  filter: "all",
+  contextLabel: "",
   kpis: [],
   timeSeries: [],
   funnel: [],
@@ -680,12 +673,12 @@ export function useResumenViewData({
     };
 
     // "Sin asignar" — unassigned aggregate view.
-    if (selectedOfferId === 'unassigned') {
+    if (selectedOfferId === "unassigned") {
       const agg = metricsByOffer.unassigned;
       const empty = agg.targetCount === 0 && agg.totalSpend === 0;
       return {
-        filter: 'unassigned',
-        contextLabel: `${agg.targetCount} ${agg.targetCount === 1 ? 'campaña sin offer' : 'campañas sin offer'} · Asigná cada una para ver métricas por producto`,
+        filter: "unassigned",
+        contextLabel: `${agg.targetCount} ${agg.targetCount === 1 ? "campaña sin offer" : "campañas sin offer"} · Asigná cada una para ver métricas por producto`,
         kpis: buildUnassignedCards(agg, ctx),
         timeSeries: channelData?.timeSeries ?? [],
         funnel: toMiniFunnel(agg.funnel),
@@ -694,12 +687,12 @@ export function useResumenViewData({
     }
 
     // "Branding" — branding aggregate view.
-    if (selectedOfferId === 'branding') {
+    if (selectedOfferId === "branding") {
       const agg = metricsByOffer.brandingOnly;
       const empty = agg.targetCount === 0 && agg.totalSpend === 0;
       return {
-        filter: 'branding',
-        contextLabel: `Campañas de branding · ${agg.targetCount} ${agg.targetCount === 1 ? 'activa' : 'activas'} · Foco: alcance`,
+        filter: "branding",
+        contextLabel: `Campañas de branding · ${agg.targetCount} ${agg.targetCount === 1 ? "activa" : "activas"} · Foco: alcance`,
         kpis: buildBrandingCards(agg, ctx),
         timeSeries: channelData?.timeSeries ?? [],
         funnel: toMiniFunnel(agg.funnel),
@@ -708,21 +701,19 @@ export function useResumenViewData({
     }
 
     // Specific offer — find and build.
-    if (selectedOfferId !== 'all') {
-      const offer = metricsByOffer.offers.find(o => o.offerId === selectedOfferId);
+    if (selectedOfferId !== "all") {
+      const offer = metricsByOffer.offers.find((o) => o.offerId === selectedOfferId);
       if (!offer) return EMPTY;
       const copy = primaryMetricCopy(offer.primaryMetricName, offer.primaryMetricName);
       const empty =
-        offer.totalSpend === 0 &&
-        offer.primaryResultCount === 0 &&
-        offer.timeseries.length === 0;
-      const roasPart = offer.roas != null ? ` · ROAS ${offer.roas.toFixed(2)}x` : '';
+        offer.totalSpend === 0 && offer.primaryResultCount === 0 && offer.timeseries.length === 0;
+      const roasPart = offer.roas != null ? ` · ROAS ${offer.roas.toFixed(2)}x` : "";
       const costPart =
         offer.primaryCostPerResult != null
           ? ` · ${copy.costLabel} ${offer.primaryCostPerResult.toFixed(2)}`
-          : '';
+          : "";
       return {
-        filter: 'offer',
+        filter: "offer",
         contextLabel: `${offer.offerName} · Métrica primaria: ${offer.primaryMetricName}${costPart}${roasPart}`,
         kpis: buildOfferCards(offer, ctx),
         timeSeries: offerToTimeSeries(offer),
@@ -737,8 +728,8 @@ export function useResumenViewData({
       metricsByOffer.unassigned.totalSpend === 0 &&
       metricsByOffer.brandingOnly.totalSpend === 0;
     return {
-      filter: 'all',
-      contextLabel: 'Todas las offers',
+      filter: "all",
+      contextLabel: "Todas las offers",
       kpis: buildAllCards(ctx),
       timeSeries: channelData?.timeSeries ?? [],
       funnel: toMiniFunnel(metricsByOffer.funnelAll),

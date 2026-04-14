@@ -1,45 +1,61 @@
-import { lazy, type LazyExoticComponent, type ComponentType } from 'react';
+import { lazy, type LazyExoticComponent, type ComponentType } from "react";
 
 type LazyView = LazyExoticComponent<ComponentType<unknown>>;
 
 const MetaView: LazyView = lazy(() =>
-  import('@/features/connections/components/meta-view').then((m) => ({ default: m.MetaView }))
+  import("@/features/connections/components/meta-view").then((m) => ({ default: m.MetaView })),
 );
 
-const WhatsAppView: LazyView = lazy(() =>
-  import('@/features/connections/components/whatsapp-view')
+const WhatsAppView: LazyView = lazy(
+  () => import("@/features/connections/components/whatsapp-view"),
 );
 
 const ShopifyView: LazyView = lazy(() =>
-  import('@/features/connections/components/shopify-view').then((m) => ({ default: m.ShopifyView }))
+  import("@/features/connections/components/shopify-view").then((m) => ({
+    default: m.ShopifyView,
+  })),
 );
 
 const MailerLiteView: LazyView = lazy(() =>
-  import('@/features/connections/components/mailerlite-view').then((m) => ({ default: m.MailerLiteView }))
+  import("@/features/connections/components/mailerlite-view").then((m) => ({
+    default: m.MailerLiteView,
+  })),
 );
 
 const ManyChatView: LazyView = lazy(() =>
-  import('@/features/connections/components/manychat-view').then((m) => ({ default: m.ManyChatView }))
+  import("@/features/connections/components/manychat-view").then((m) => ({
+    default: m.ManyChatView,
+  })),
 );
 
 const TelegramView: LazyView = lazy(() =>
-  import('@/features/connections/components/telegram-view').then((m) => ({ default: m.TelegramView }))
+  import("@/features/connections/components/telegram-view").then((m) => ({
+    default: m.TelegramView,
+  })),
 );
 
 const GoogleWorkspaceView: LazyView = lazy(() =>
-  import('@/features/connections/components/google-workspace-view').then((m) => ({ default: m.GoogleWorkspaceView }))
+  import("@/features/connections/components/google-workspace-view").then((m) => ({
+    default: m.GoogleWorkspaceView,
+  })),
 );
 
 const GoogleAnalyticsView: LazyView = lazy(() =>
-  import('@/features/connections/components/google-analytics-view').then((m) => ({ default: m.GoogleAnalyticsView }))
+  import("@/features/connections/components/google-analytics-view").then((m) => ({
+    default: m.GoogleAnalyticsView,
+  })),
 );
 
 const GoogleCalendarView: LazyView = lazy(() =>
-  import('@/features/connections/components/google-calendar-view').then((m) => ({ default: m.GoogleCalendarView }))
+  import("@/features/connections/components/google-calendar-view").then((m) => ({
+    default: m.GoogleCalendarView,
+  })),
 );
 
 const YoutubeView: LazyView = lazy(() =>
-  import('@/features/connections/components/youtube-view').then((m) => ({ default: m.YoutubeView }))
+  import("@/features/connections/components/youtube-view").then((m) => ({
+    default: m.YoutubeView,
+  })),
 );
 
 /**
@@ -62,68 +78,68 @@ const YoutubeView: LazyView = lazy(() =>
  */
 const SLUG_TO_VIEW: Record<string, LazyView> = {
   // Meta provider
-  'ig-organic': MetaView,
-  'fb-organic': MetaView,
-  'meta-ads': MetaView,
-  'ig-dm': MetaView,
-  'fb-messenger': MetaView,
-  'meta-retargeting': MetaView,
+  "ig-organic": MetaView,
+  "fb-organic": MetaView,
+  "meta-ads": MetaView,
+  "ig-dm": MetaView,
+  "fb-messenger": MetaView,
+  "meta-retargeting": MetaView,
 
   // Google Analytics provider (uses Google Workspace OAuth)
-  'google-organic': GoogleWorkspaceView,
-  'direct': GoogleWorkspaceView,
-  'ai-search-organic': GoogleWorkspaceView,
+  "google-organic": GoogleWorkspaceView,
+  direct: GoogleWorkspaceView,
+  "ai-search-organic": GoogleWorkspaceView,
 
   // Google Ads provider (uses same Google OAuth as Analytics)
-  'google-ads': GoogleWorkspaceView,
-  'yt-ads': GoogleWorkspaceView,
-  'google-retargeting': GoogleWorkspaceView,
+  "google-ads": GoogleWorkspaceView,
+  "yt-ads": GoogleWorkspaceView,
+  "google-retargeting": GoogleWorkspaceView,
 
   // Search Console provider (uses same Google OAuth as Analytics)
-  'search-console': GoogleWorkspaceView,
+  "search-console": GoogleWorkspaceView,
 
   // YouTube organic — connects via Google Workspace OAuth (YouTube is a sub-service there)
-  'yt-organic': GoogleWorkspaceView,
+  "yt-organic": GoogleWorkspaceView,
 
   // WhatsApp provider
-  'whatsapp-inbound': WhatsAppView,
-  'whatsapp-outbound': WhatsAppView,
-  'whatsapp': WhatsAppView,
+  "whatsapp-inbound": WhatsAppView,
+  "whatsapp-outbound": WhatsAppView,
+  whatsapp: WhatsAppView,
 
   // Shopify provider
-  'shopify': ShopifyView,
-  'checkout-init': ShopifyView,
-  'abandoned-cart': ShopifyView,
+  shopify: ShopifyView,
+  "checkout-init": ShopifyView,
+  "abandoned-cart": ShopifyView,
 
   // Email marketing provider (provider-agnostic email-* slugs)
-  'email-capture': MailerLiteView,
-  'email-nurture': MailerLiteView,
-  'email-launch': MailerLiteView,
-  'email-delivery': MailerLiteView,
-  'email-onboarding': MailerLiteView,
-  'email-retention': MailerLiteView,
-  'email-upsell': MailerLiteView,
-  'email-referral': MailerLiteView,
+  "email-capture": MailerLiteView,
+  "email-nurture": MailerLiteView,
+  "email-launch": MailerLiteView,
+  "email-delivery": MailerLiteView,
+  "email-onboarding": MailerLiteView,
+  "email-retention": MailerLiteView,
+  "email-upsell": MailerLiteView,
+  "email-referral": MailerLiteView,
 
   // ManyChat provider
-  'manychat': ManyChatView,
-  'manychat-messenger': ManyChatView,
-  'manychat-ig': ManyChatView,
-  'manychat-wa': ManyChatView,
-  'manychat-sequences': ManyChatView,
-  'manychat-bofu': ManyChatView,
-  'manychat-comments': ManyChatView,
+  manychat: ManyChatView,
+  "manychat-messenger": ManyChatView,
+  "manychat-ig": ManyChatView,
+  "manychat-wa": ManyChatView,
+  "manychat-sequences": ManyChatView,
+  "manychat-bofu": ManyChatView,
+  "manychat-comments": ManyChatView,
 
   // Telegram provider
-  'telegram': TelegramView,
+  telegram: TelegramView,
 
   // Google sub-services (standalone views)
-  'google-workspace': GoogleWorkspaceView,
-  'gmail': GoogleWorkspaceView,
-  'google-analytics': GoogleAnalyticsView,
-  'ga4': GoogleAnalyticsView,
-  'google-calendar': GoogleCalendarView,
-  'youtube': YoutubeView,
+  "google-workspace": GoogleWorkspaceView,
+  gmail: GoogleWorkspaceView,
+  "google-analytics": GoogleAnalyticsView,
+  ga4: GoogleAnalyticsView,
+  "google-calendar": GoogleCalendarView,
+  youtube: YoutubeView,
 };
 
 export function getConnectionView(slug: string): LazyView | null {

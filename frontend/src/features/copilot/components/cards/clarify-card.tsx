@@ -14,7 +14,11 @@ interface ClarifyCardProps {
   status: "pending" | "resolved";
 }
 
-export const ClarifyCard = memo(function ClarifyCard({ items, onResolve, status }: ClarifyCardProps) {
+export const ClarifyCard = memo(function ClarifyCard({
+  items,
+  onResolve,
+  status,
+}: ClarifyCardProps) {
   const isResolved = status === "resolved";
 
   if (isResolved) {

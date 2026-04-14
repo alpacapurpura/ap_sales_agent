@@ -10,9 +10,7 @@ export default async function OfferInterviewPage({ params, searchParams }: PageP
   const { session, offerId } = await searchParams;
 
   // Redirect to offer editor/dashboard with interview query param for sidebar activation
-  const base = offerId
-    ? `/${tenantId}/offer-studio/offer/${offerId}`
-    : `/${tenantId}/offer-studio`;
+  const base = offerId ? `/${tenantId}/offer-studio/offer/${offerId}` : `/${tenantId}/offer-studio`;
 
   const target = session ? `${base}?interview=${session}` : base;
 

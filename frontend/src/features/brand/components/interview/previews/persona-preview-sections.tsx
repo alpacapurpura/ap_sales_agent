@@ -137,9 +137,7 @@ function KeyValueSection({
           <span className="text-muted-foreground shrink-0 min-w-[90px]">
             {getFieldLabel(sectionKey, key)}:
           </span>
-          <span className="text-foreground">
-            {formatValue(value)}
-          </span>
+          <span className="text-foreground">{formatValue(value)}</span>
         </div>
       ))}
     </div>
@@ -165,7 +163,7 @@ function ListItemsSection({
       {items.map((item, idx) => {
         const description =
           typeof item === "object" && item !== null
-            ? (item as Record<string, unknown>).description as string
+            ? ((item as Record<string, unknown>).description as string)
             : String(item);
 
         return (
@@ -211,9 +209,7 @@ function ListStringsSection({
 }
 
 function EmptyPlaceholder() {
-  return (
-    <span className="text-xs italic text-muted-foreground">Pendiente...</span>
-  );
+  return <span className="text-xs italic text-muted-foreground">Pendiente...</span>;
 }
 
 function formatValue(value: unknown): string {
@@ -224,83 +220,78 @@ function formatValue(value: unknown): string {
 
 // ── Main component ─────────────────────────────────────────────────────────
 
-export const PersonaPreviewSections = forwardRef<
-  HTMLDivElement,
-  PreviewSectionsProps
->(({ data, currentBlock, ...props }, ref) => {
-  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+export const PersonaPreviewSections = forwardRef<HTMLDivElement, PreviewSectionsProps>(
+  ({ data, currentBlock, ...props }, ref) => {
+    const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // Auto-scroll to active section when currentBlock changes
-  useEffect(() => {
-    if (!currentBlock) return;
-    const el = sectionRefs.current[currentBlock];
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [currentBlock]);
+    // Auto-scroll to active section when currentBlock changes
+    useEffect(() => {
+      if (!currentBlock) return;
+      const el = sectionRefs.current[currentBlock];
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, [currentBlock]);
 
-  return (
-    <div ref={ref} className="flex-1 overflow-hidden" {...props}>
-      <ScrollArea className="h-full">
-        <div className="space-y-4 p-4">
-          {SECTIONS.map((section) => {
-            const isActive = currentBlock === section.key;
-            const { filled, total } = countFilledFields(
-              data as Record<string, unknown>,
-              section.key,
-              section.type,
-            );
+    return (
+      <div ref={ref} className="flex-1 overflow-hidden" {...props}>
+        <ScrollArea className="h-full">
+          <div className="space-y-4 p-4">
+            {SECTIONS.map((section) => {
+              const isActive = currentBlock === section.key;
+              const { filled, total } = countFilledFields(
+                data as Record<string, unknown>,
+                section.key,
+                section.type,
+              );
 
-            return (
-              <div
-                key={section.key}
-                ref={(el) => {
-                  sectionRefs.current[section.key] = el;
-                }}
-                className={cn(
-                  "rounded-lg border p-3 transition-colors",
-                  isActive
-                    ? "border-purple-500/50 bg-purple-500/5"
-                    : "border-white/5 bg-card/50",
-                )}
-              >
-                {/* Section header */}
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-semibold text-foreground">
-                    {section.label}
-                  </h4>
-                  <span className="text-[10px] text-muted-foreground">
-                    {filled}/{total}
-                  </span>
+              return (
+                <div
+                  key={section.key}
+                  ref={(el) => {
+                    sectionRefs.current[section.key] = el;
+                  }}
+                  className={cn(
+                    "rounded-lg border p-3 transition-colors",
+                    isActive ? "border-purple-500/50 bg-purple-500/5" : "border-white/5 bg-card/50",
+                  )}
+                >
+                  {/* Section header */}
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs font-semibold text-foreground">{section.label}</h4>
+                    <span className="text-[10px] text-muted-foreground">
+                      {filled}/{total}
+                    </span>
+                  </div>
+
+                  {/* Section content */}
+                  {section.type === "key-value" && (
+                    <KeyValueSection
+                      data={data as Record<string, unknown>}
+                      sectionKey={section.key}
+                    />
+                  )}
+                  {section.type === "list-items" && (
+                    <ListItemsSection
+                      data={data as Record<string, unknown>}
+                      sectionKey={section.key}
+                      variant={section.variant ?? "default"}
+                    />
+                  )}
+                  {section.type === "list-strings" && (
+                    <ListStringsSection
+                      data={data as Record<string, unknown>}
+                      sectionKey={section.key}
+                    />
+                  )}
                 </div>
-
-                {/* Section content */}
-                {section.type === "key-value" && (
-                  <KeyValueSection
-                    data={data as Record<string, unknown>}
-                    sectionKey={section.key}
-                  />
-                )}
-                {section.type === "list-items" && (
-                  <ListItemsSection
-                    data={data as Record<string, unknown>}
-                    sectionKey={section.key}
-                    variant={section.variant ?? "default"}
-                  />
-                )}
-                {section.type === "list-strings" && (
-                  <ListStringsSection
-                    data={data as Record<string, unknown>}
-                    sectionKey={section.key}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </ScrollArea>
-    </div>
-  );
-});
+              );
+            })}
+          </div>
+        </ScrollArea>
+      </div>
+    );
+  },
+);
 
 PersonaPreviewSections.displayName = "PersonaPreviewSections";

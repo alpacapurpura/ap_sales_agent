@@ -59,10 +59,12 @@ function CallbackContent() {
     const token = await waitForToken();
 
     if (!token) {
-      console.error("[Meta OAuth] Could not get auth token - Clerk session not restored after redirect");
+      console.error(
+        "[Meta OAuth] Could not get auth token - Clerk session not restored after redirect",
+      );
       setError(
         "No se pudo restaurar la sesion despues de volver de Facebook. " +
-        "Intenta de nuevo o inicia sesion primero."
+          "Intenta de nuevo o inicia sesion primero.",
       );
       return;
     }
@@ -71,9 +73,7 @@ function CallbackContent() {
 
     // Read tenant ID from sessionStorage (saved before redirect) or localStorage
     const tenantId =
-      sessionStorage.getItem("meta_oauth_tenant_id") ||
-      localStorage.getItem("x-tenant-id") ||
-      "";
+      sessionStorage.getItem("meta_oauth_tenant_id") || localStorage.getItem("x-tenant-id") || "";
 
     const redirect_uri = `${window.location.origin}/connections/meta/callback`;
 
@@ -93,14 +93,11 @@ function CallbackContent() {
         hasTenantId: !!tenantId,
       });
 
-      const response = await fetch(
-        `${config.api.baseUrl}/api/v1/connections/meta/callback`,
-        {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ code, redirect_uri }),
-        }
-      );
+      const response = await fetch(`${config.api.baseUrl}/api/v1/connections/meta/callback`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ code, redirect_uri }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -121,13 +118,10 @@ function CallbackContent() {
 
       // Auto-sync assets (non-blocking, backend may have already done it)
       try {
-        await fetch(
-          `${config.api.baseUrl}/api/v1/connections/meta/assets/sync`,
-          {
-            method: "POST",
-            headers,
-          }
-        );
+        await fetch(`${config.api.baseUrl}/api/v1/connections/meta/assets/sync`, {
+          method: "POST",
+          headers,
+        });
       } catch {
         // Non-blocking
       }
@@ -167,9 +161,7 @@ function CallbackContent() {
 
   const handleGoBack = () => {
     const tenantId =
-      sessionStorage.getItem("meta_oauth_tenant_id") ||
-      localStorage.getItem("x-tenant-id") ||
-      "";
+      sessionStorage.getItem("meta_oauth_tenant_id") || localStorage.getItem("x-tenant-id") || "";
     sessionStorage.removeItem("meta_oauth_code");
     sessionStorage.removeItem("meta_oauth_tenant_id");
     router.push(tenantId ? `/${tenantId}/connections/meta` : "/");
@@ -217,7 +209,13 @@ function CallbackContent() {
 
 export default function MetaCallbackPage() {
   return (
-    <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex h-screen w-full items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      }
+    >
       <CallbackContent />
     </Suspense>
   );

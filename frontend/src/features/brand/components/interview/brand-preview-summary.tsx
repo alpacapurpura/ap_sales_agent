@@ -40,12 +40,8 @@ export function BrandPreviewSummary({ completenessScore }: PreviewSummaryProps) 
 
   return (
     <div className="flex items-center gap-2 px-4 py-2 border-b border-white/5 bg-background/50">
-      <span className="text-xs text-muted-foreground">
-        Completitud de marca
-      </span>
-      <span className="text-xs font-semibold text-purple-400">
-        {completenessScore}%
-      </span>
+      <span className="text-xs text-muted-foreground">Completitud de marca</span>
+      <span className="text-xs font-semibold text-purple-400">{completenessScore}%</span>
     </div>
   );
 }

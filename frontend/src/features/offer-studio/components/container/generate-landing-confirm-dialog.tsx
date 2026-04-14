@@ -43,9 +43,8 @@ export function GenerateLandingConfirmDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Generar landing con IA</AlertDialogTitle>
           <AlertDialogDescription>
-            Voy a generar la landing page de esta oferta usando la información
-            del editor. El proceso tarda alrededor de 30 segundos y podés
-            seguir editando mientras termina.
+            Voy a generar la landing page de esta oferta usando la información del editor. El
+            proceso tarda alrededor de 30 segundos y podés seguir editando mientras termina.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -59,9 +58,7 @@ export function GenerateLandingConfirmDialog({
               onConfirm();
             }}
           >
-            {isSubmitting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-            ) : null}
+            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden /> : null}
             Generar ahora
           </AlertDialogAction>
         </AlertDialogFooter>

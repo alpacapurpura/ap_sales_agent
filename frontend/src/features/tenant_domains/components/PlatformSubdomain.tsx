@@ -24,9 +24,7 @@ export function PlatformSubdomain({ tenantSlug, className }: PlatformSubdomainPr
   return (
     <Card className={cn("p-4", className)}>
       <div className="flex flex-col gap-1">
-        <p className="text-sm font-medium text-muted-foreground">
-          Tu dominio de plataforma
-        </p>
+        <p className="text-sm font-medium text-muted-foreground">Tu dominio de plataforma</p>
         <div className="flex items-center gap-2">
           <span className="font-mono text-sm font-semibold">{hostname}</span>
           <Button
@@ -43,9 +41,7 @@ export function PlatformSubdomain({ tenantSlug, className }: PlatformSubdomainPr
             )}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Para usar un dominio propio, añádelo abajo.
-        </p>
+        <p className="text-xs text-muted-foreground">Para usar un dominio propio, añádelo abajo.</p>
       </div>
     </Card>
   );

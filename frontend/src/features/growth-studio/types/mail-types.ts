@@ -3,7 +3,7 @@
  * Matches backend DTOs from analytics/api/metrics.py (camelCase frontend convention).
  */
 
-import type { MetricKpiData, MetricTimeSeries, FunnelStep } from './metrics';
+import type { MetricKpiData, MetricTimeSeries, FunnelStep } from "./metrics";
 
 // ---------------------------------------------------------------------------
 // Health Score
@@ -113,7 +113,7 @@ export interface EmailCampaignsData {
 // Automations Tab
 // ---------------------------------------------------------------------------
 
-export type AutomationStepType = 'email' | 'delay' | 'condition';
+export type AutomationStepType = "email" | "delay" | "condition";
 
 export interface AutomationStep {
   stepId: string;

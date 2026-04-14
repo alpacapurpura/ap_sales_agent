@@ -24,7 +24,7 @@ export function useOnboardingWizard() {
 
   const toggleSource = useCallback((source: OnboardingSource) => {
     setSelectedSources((prev) =>
-      prev.includes(source) ? prev.filter((s) => s !== source) : [...prev, source]
+      prev.includes(source) ? prev.filter((s) => s !== source) : [...prev, source],
     );
   }, []);
 

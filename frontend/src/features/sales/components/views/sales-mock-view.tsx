@@ -14,10 +14,7 @@ export function SalesMockView() {
   if (selectedLead) {
     return (
       <div className="h-[calc(100vh-4rem)] w-full bg-background animate-in fade-in slide-in-from-right-10 duration-300">
-        <LeadCommandCenter
-          lead={selectedLead}
-          onBack={() => setSelectedLead(null)}
-        />
+        <LeadCommandCenter lead={selectedLead} onBack={() => setSelectedLead(null)} />
       </div>
     );
   }
@@ -39,10 +36,7 @@ export function SalesMockView() {
       </div>
 
       <div className="flex-1 overflow-hidden p-6 bg-muted/10">
-        <PipelineBoard
-          leads={MOCK_LEADS}
-          onLeadClick={(lead) => setSelectedLead(lead)}
-        />
+        <PipelineBoard leads={MOCK_LEADS} onLeadClick={(lead) => setSelectedLead(lead)} />
       </div>
     </div>
   );

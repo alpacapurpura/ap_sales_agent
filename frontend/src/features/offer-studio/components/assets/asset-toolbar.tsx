@@ -11,13 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import type {
-  AssetSortKey,
-} from "../../types/assets";
-import type {
-  OfferAssetSource,
-  OfferAssetType,
-} from "../../types/enums";
+import type { AssetSortKey } from "../../types/assets";
+import type { OfferAssetSource, OfferAssetType } from "../../types/enums";
 
 export interface AssetToolbarProps {
   search: string;
@@ -111,13 +106,11 @@ export function AssetToolbar({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {(Object.entries(SORT_LABELS) as [AssetSortKey, string][]).map(
-              ([key, label]) => (
-                <DropdownMenuItem key={key} onClick={() => onSortChange(key)}>
-                  {label}
-                </DropdownMenuItem>
-              ),
-            )}
+            {(Object.entries(SORT_LABELS) as [AssetSortKey, string][]).map(([key, label]) => (
+              <DropdownMenuItem key={key} onClick={() => onSortChange(key)}>
+                {label}
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -149,12 +142,7 @@ export function AssetToolbar({
 
       {/* Row 2: type + source filters + counter */}
       <div className="flex flex-wrap items-center gap-4">
-        <ChipGroup
-          label="Tipo"
-          value={type}
-          options={TYPE_LABELS}
-          onChange={onTypeChange}
-        />
+        <ChipGroup label="Tipo" value={type} options={TYPE_LABELS} onChange={onTypeChange} />
         <div className="hidden h-5 w-px bg-border md:block" aria-hidden />
         <ChipGroup
           label="Origen"
@@ -163,8 +151,8 @@ export function AssetToolbar({
           onChange={onSourceChange}
         />
         <div className="ml-auto text-[11px] text-muted-foreground">
-          Mostrando <strong className="text-foreground">{totalShown}</strong>{" "}
-          de <strong className="text-foreground">{totalAssets}</strong>{" "}
+          Mostrando <strong className="text-foreground">{totalShown}</strong> de{" "}
+          <strong className="text-foreground">{totalAssets}</strong>{" "}
           {totalAssets === 1 ? "asset" : "assets"}
         </div>
       </div>
@@ -179,12 +167,7 @@ interface ChipGroupProps<T extends string> {
   onChange: (value: T) => void;
 }
 
-function ChipGroup<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-}: ChipGroupProps<T>) {
+function ChipGroup<T extends string>({ label, value, options, onChange }: ChipGroupProps<T>) {
   return (
     <div className="flex items-center gap-2" role="group" aria-label={label}>
       <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">

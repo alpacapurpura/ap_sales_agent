@@ -1,14 +1,14 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const meta = {
-  title: 'Atoms/Alert',
+  title: "Atoms/Alert",
   component: Alert,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'destructive'],
+      control: "select",
+      options: ["default", "destructive"],
     },
   },
 } satisfies Meta<typeof Alert>;
@@ -17,7 +17,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: { variant: 'default' },
+  args: { variant: "default" },
   render: (args) => (
     <Alert {...args}>
       <AlertTitle>Heads up!</AlertTitle>
@@ -27,7 +27,7 @@ export const Default: Story = {
 };
 
 export const Destructive: Story = {
-  args: { variant: 'destructive' },
+  args: { variant: "destructive" },
   render: (args) => (
     <Alert {...args}>
       <AlertTitle>Error</AlertTitle>

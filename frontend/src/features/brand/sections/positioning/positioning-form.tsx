@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BrandPositioning, BrandCompetitor, CompetitiveEnvironment, ConsumerInsight, BrandBenefits } from "@/features/brand/types";
+import {
+  BrandPositioning,
+  BrandCompetitor,
+  CompetitiveEnvironment,
+  ConsumerInsight,
+  BrandBenefits,
+} from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,7 +63,7 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
   const updateDirectCompetitor = (id: string, field: keyof BrandCompetitor, value: string) => {
     updateEnv({
       direct_competitors: env.direct_competitors.map((c) =>
-        c.id === id ? { ...c, [field]: value } : c
+        c.id === id ? { ...c, [field]: value } : c,
       ),
     });
   };
@@ -79,7 +85,7 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
   const updateIndirectCompetitor = (id: string, field: keyof BrandCompetitor, value: string) => {
     updateEnv({
       indirect_competitors: env.indirect_competitors.map((c) =>
-        c.id === id ? { ...c, [field]: value } : c
+        c.id === id ? { ...c, [field]: value } : c,
       ),
     });
   };
@@ -100,7 +106,9 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
   };
 
   const removeFunctionalBenefit = (index: number) => {
-    updateBenefits({ functional_benefits: benefits.functional_benefits.filter((_, i) => i !== index) });
+    updateBenefits({
+      functional_benefits: benefits.functional_benefits.filter((_, i) => i !== index),
+    });
   };
 
   // --- Emotional Benefits ---
@@ -115,7 +123,9 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
   };
 
   const removeEmotionalBenefit = (index: number) => {
-    updateBenefits({ emotional_benefits: benefits.emotional_benefits.filter((_, i) => i !== index) });
+    updateBenefits({
+      emotional_benefits: benefits.emotional_benefits.filter((_, i) => i !== index),
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -128,7 +138,11 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
       {/* UVP */}
       <div className="space-y-2">
         <Label htmlFor="uvp">Propuesta de Valor Unica (UVP)</Label>
-        <WithCopilot fieldId="unique_value_proposition" fieldLabel="Propuesta de Valor (UVP)" getValue={() => data.unique_value_proposition || ""}>
+        <WithCopilot
+          fieldId="unique_value_proposition"
+          fieldLabel="Propuesta de Valor (UVP)"
+          getValue={() => data.unique_value_proposition || ""}
+        >
           <Textarea
             id="uvp"
             value={data.unique_value_proposition || ""}
@@ -137,7 +151,9 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
             className="min-h-[100px]"
           />
         </WithCopilot>
-        <p className="text-xs text-muted-foreground">Tu promesa defensible. Completa: &apos;Somos los unicos que [X] porque [Y]&apos;</p>
+        <p className="text-xs text-muted-foreground">
+          Tu promesa defensible. Completa: &apos;Somos los unicos que [X] porque [Y]&apos;
+        </p>
       </div>
 
       {/* Enemies */}
@@ -145,7 +161,11 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
         <h4 className="text-base font-semibold">Enemigos de Marca</h4>
         <div className="space-y-2">
           <Label htmlFor="technical_enemy">Enemigo Técnico</Label>
-          <WithCopilot fieldId="technical_enemy" fieldLabel="Enemigo Técnico" getValue={() => env.technical_enemy || ""}>
+          <WithCopilot
+            fieldId="technical_enemy"
+            fieldLabel="Enemigo Técnico"
+            getValue={() => env.technical_enemy || ""}
+          >
             <Textarea
               id="technical_enemy"
               value={env.technical_enemy || ""}
@@ -157,7 +177,11 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
         </div>
         <div className="space-y-2">
           <Label htmlFor="philosophical_enemy">Enemigo Filosófico</Label>
-          <WithCopilot fieldId="philosophical_enemy" fieldLabel="Enemigo Filosófico" getValue={() => env.philosophical_enemy || ""}>
+          <WithCopilot
+            fieldId="philosophical_enemy"
+            fieldLabel="Enemigo Filosófico"
+            getValue={() => env.philosophical_enemy || ""}
+          >
             <Textarea
               id="philosophical_enemy"
               value={env.philosophical_enemy || ""}
@@ -235,7 +259,9 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
                 />
                 <Input
                   value={c.differentiation || ""}
-                  onChange={(e) => updateIndirectCompetitor(c.id, "differentiation", e.target.value)}
+                  onChange={(e) =>
+                    updateIndirectCompetitor(c.id, "differentiation", e.target.value)
+                  }
                   placeholder="Diferenciación vs. ellos"
                   className="flex-1"
                 />
@@ -264,7 +290,11 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
         <h4 className="text-base font-semibold">Consumer Insight</h4>
         <div className="space-y-2">
           <Label htmlFor="tension">Tensión</Label>
-          <WithCopilot fieldId="tension" fieldLabel="Tensión del Consumidor" getValue={() => insight.tension || ""}>
+          <WithCopilot
+            fieldId="tension"
+            fieldLabel="Tensión del Consumidor"
+            getValue={() => insight.tension || ""}
+          >
             <Textarea
               id="tension"
               value={insight.tension || ""}
@@ -276,7 +306,11 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
         </div>
         <div className="space-y-2">
           <Label htmlFor="observation">Observación</Label>
-          <WithCopilot fieldId="observation" fieldLabel="Observación" getValue={() => insight.observation || ""}>
+          <WithCopilot
+            fieldId="observation"
+            fieldLabel="Observación"
+            getValue={() => insight.observation || ""}
+          >
             <Textarea
               id="observation"
               value={insight.observation || ""}
@@ -288,7 +322,11 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
         </div>
         <div className="space-y-2">
           <Label htmlFor="implication">Implicación</Label>
-          <WithCopilot fieldId="implication" fieldLabel="Implicación" getValue={() => insight.implication || ""}>
+          <WithCopilot
+            fieldId="implication"
+            fieldLabel="Implicación"
+            getValue={() => insight.implication || ""}
+          >
             <Textarea
               id="implication"
               value={insight.implication || ""}

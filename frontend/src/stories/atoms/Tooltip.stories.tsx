@@ -1,16 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Button } from '@/components/ui/button';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
 const meta = {
-  title: 'Atoms/Tooltip',
+  title: "Atoms/Tooltip",
   component: Tooltip,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof Tooltip>;
 
 export default meta;

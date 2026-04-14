@@ -15,12 +15,10 @@ describe("DocumentChip", () => {
   });
 
   it("truncates long filenames", () => {
-    const file = makeFile(
-      "this-is-a-very-long-document-name-that-should-be-truncated.pdf"
-    );
+    const file = makeFile("this-is-a-very-long-document-name-that-should-be-truncated.pdf");
     render(<DocumentChip file={file} status="pending" />);
     const nameEl = screen.getByText(
-      "this-is-a-very-long-document-name-that-should-be-truncated.pdf"
+      "this-is-a-very-long-document-name-that-should-be-truncated.pdf",
     );
     expect(nameEl.className).toContain("truncate");
   });
@@ -48,9 +46,7 @@ describe("DocumentChip", () => {
     const onRemove = vi.fn();
     const file = makeFile("doc.pdf");
     render(<DocumentChip file={file} status="pending" onRemove={onRemove} />);
-    expect(
-      screen.getByRole("button", { name: "Eliminar documento" })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Eliminar documento" })).toBeInTheDocument();
   });
 
   it("calls onRemove when remove button is clicked", async () => {
@@ -59,9 +55,7 @@ describe("DocumentChip", () => {
     const file = makeFile("doc.pdf");
     render(<DocumentChip file={file} status="pending" onRemove={onRemove} />);
 
-    await user.click(
-      screen.getByRole("button", { name: "Eliminar documento" })
-    );
+    await user.click(screen.getByRole("button", { name: "Eliminar documento" }));
     expect(onRemove).toHaveBeenCalledOnce();
   });
 
@@ -69,16 +63,12 @@ describe("DocumentChip", () => {
     const onRemove = vi.fn();
     const file = makeFile("doc.pdf");
     render(<DocumentChip file={file} status="processing" onRemove={onRemove} />);
-    expect(
-      screen.queryByRole("button", { name: "Eliminar documento" })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Eliminar documento" })).not.toBeInTheDocument();
   });
 
   it("hides remove button when onRemove is not provided", () => {
     const file = makeFile("doc.pdf");
     render(<DocumentChip file={file} status="pending" />);
-    expect(
-      screen.queryByRole("button", { name: "Eliminar documento" })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Eliminar documento" })).not.toBeInTheDocument();
   });
 });

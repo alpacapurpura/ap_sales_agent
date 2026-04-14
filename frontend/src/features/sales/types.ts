@@ -1,5 +1,5 @@
-export type LeadTemperature = 'cold' | 'warm' | 'hot';
-export type LeadStatus = 'new' | 'contacted' | 'qualified' | 'proposal' | 'won' | 'lost';
+export type LeadTemperature = "cold" | "warm" | "hot";
+export type LeadStatus = "new" | "contacted" | "qualified" | "proposal" | "won" | "lost";
 
 export interface LeadCustomer {
   id: string;

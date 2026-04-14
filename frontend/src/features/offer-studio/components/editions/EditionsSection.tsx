@@ -6,7 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Rocket, Plus, CalendarPlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEditions } from "../../hooks/use-editions";
-import { LaunchEdition, LaunchEditionCreate, LaunchEditionUpdate, PricingStructure } from "../../types";
+import {
+  LaunchEdition,
+  LaunchEditionCreate,
+  LaunchEditionUpdate,
+  PricingStructure,
+} from "../../types";
 import { EditionCard } from "./EditionCard";
 import { EditionFormDialog } from "./EditionFormDialog";
 
@@ -17,14 +22,8 @@ interface EditionsSectionProps {
 }
 
 export function EditionsSection({ offerId, offerPricing, currency }: EditionsSectionProps) {
-  const {
-    editions,
-    loading,
-    createEdition,
-    updateEdition,
-    deleteEdition,
-    duplicateEdition,
-  } = useEditions(offerId);
+  const { editions, loading, createEdition, updateEdition, deleteEdition, duplicateEdition } =
+    useEditions(offerId);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEdition, setEditingEdition] = useState<LaunchEdition | undefined>();

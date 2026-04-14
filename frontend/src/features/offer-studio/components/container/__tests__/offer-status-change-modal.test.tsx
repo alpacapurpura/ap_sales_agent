@@ -23,31 +23,19 @@ describe("OfferStatusChangeModal", () => {
     render(<OfferStatusChangeModal {...baseProps} />);
     // 3 bullets for draft → active
     expect(
-      screen.getByText(
-        /Sales Agent empezará a proponerla en conversaciones/i,
-      ),
+      screen.getByText(/Sales Agent empezará a proponerla en conversaciones/i),
     ).toBeInTheDocument();
   });
 
   it("renders consequences for active → paused", () => {
-    render(
-      <OfferStatusChangeModal
-        {...baseProps}
-        fromStatus="active"
-        toStatus="paused"
-      />,
-    );
-    expect(
-      screen.getByText(/Sales Agent dejará de proponerla/i),
-    ).toBeInTheDocument();
+    render(<OfferStatusChangeModal {...baseProps} fromStatus="active" toStatus="paused" />);
+    expect(screen.getByText(/Sales Agent dejará de proponerla/i)).toBeInTheDocument();
   });
 
   it("calls onConfirm when the confirm button is clicked", () => {
     const onConfirm = vi.fn();
     render(<OfferStatusChangeModal {...baseProps} onConfirm={onConfirm} />);
-    fireEvent.click(
-      screen.getByRole("button", { name: /Activar|Confirmar/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /Activar|Confirmar/i }));
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 
@@ -60,8 +48,6 @@ describe("OfferStatusChangeModal", () => {
 
   it("disables the confirm button while submitting", () => {
     render(<OfferStatusChangeModal {...baseProps} isSubmitting={true} />);
-    expect(
-      screen.getByRole("button", { name: /Activar|Confirmar/i }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Activar|Confirmar/i })).toBeDisabled();
   });
 });

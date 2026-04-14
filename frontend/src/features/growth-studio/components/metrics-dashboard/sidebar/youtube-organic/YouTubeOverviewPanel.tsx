@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { Youtube } from 'lucide-react';
-import type { ChannelMetric } from '../../../../types/metrics';
-import { ChannelOverviewPanel } from '../shared/ChannelOverviewPanel';
-import { YouTubeSubscriberGrowth } from './YouTubeSubscriberGrowth';
+import { Youtube } from "lucide-react";
+import type { ChannelMetric } from "../../../../types/metrics";
+import { ChannelOverviewPanel } from "../shared/ChannelOverviewPanel";
+import { YouTubeSubscriberGrowth } from "./YouTubeSubscriberGrowth";
 
-const HERO_METRICS = ['views', 'watch_time_minutes', 'subscribers_gained', 'avg_view_percentage'];
+const HERO_METRICS = ["views", "watch_time_minutes", "subscribers_gained", "avg_view_percentage"];
 
 interface YouTubeOverviewPanelProps {
   channel: ChannelMetric;
@@ -14,11 +14,7 @@ interface YouTubeOverviewPanelProps {
   initialTab?: string | null;
 }
 
-export function YouTubeOverviewPanel({
-  channel,
-  onClose,
-  onExpand,
-}: YouTubeOverviewPanelProps) {
+export function YouTubeOverviewPanel({ channel, onClose, onExpand }: YouTubeOverviewPanelProps) {
   return (
     <ChannelOverviewPanel
       channel={channel}

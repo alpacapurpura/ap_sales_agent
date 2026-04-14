@@ -1,66 +1,66 @@
-import { type ComponentType, lazy } from "react"
+import { type ComponentType, lazy } from "react";
 
 export interface ProviderDefinition {
-  id: string
-  name: string
-  description: string
-  icon: string // For BrandIcon component
-  tags: string[]
-  status: "available" | "coming_soon"
+  id: string;
+  name: string;
+  description: string;
+  icon: string; // For BrandIcon component
+  tags: string[];
+  status: "available" | "coming_soon";
   /** Lazy-loaded component for the detail/config view */
-  component: ComponentType
+  component: ComponentType;
 }
 
 // Lazy-load each connection view to keep the hub bundle small
 const MetaView = lazy(() =>
-  import("@/features/connections/components/meta-view").then((m) => ({ default: m.MetaView }))
-)
+  import("@/features/connections/components/meta-view").then((m) => ({ default: m.MetaView })),
+);
 const ShopifyView = lazy(() =>
-  import("@/features/connections/components/shopify-view").then((m) => ({ default: m.ShopifyView }))
-)
-const WhatsAppView = lazy(() =>
-  import("@/features/connections/components/whatsapp-view")
-)
+  import("@/features/connections/components/shopify-view").then((m) => ({
+    default: m.ShopifyView,
+  })),
+);
+const WhatsAppView = lazy(() => import("@/features/connections/components/whatsapp-view"));
 const GoogleWorkspaceView = lazy(() =>
   import("@/features/connections/components/google-workspace-view").then((m) => ({
     default: m.GoogleWorkspaceView,
-  }))
-)
+  })),
+);
 const GoogleAnalyticsView = lazy(() =>
   import("@/features/connections/components/google-analytics-view").then((m) => ({
     default: m.GoogleAnalyticsView,
-  }))
-)
+  })),
+);
 const YouTubeView = lazy(() =>
   import("@/features/connections/components/youtube-view").then((m) => ({
     default: m.YoutubeView,
-  }))
-)
+  })),
+);
 const TelegramView = lazy(() =>
   import("@/features/connections/components/telegram-view").then((m) => ({
     default: m.TelegramView,
-  }))
-)
+  })),
+);
 const ManyChatView = lazy(() =>
   import("@/features/connections/components/manychat-view").then((m) => ({
     default: m.ManyChatView,
-  }))
-)
+  })),
+);
 const MailerLiteView = lazy(() =>
   import("@/features/connections/components/mailerlite-view").then((m) => ({
     default: m.MailerLiteView,
-  }))
-)
+  })),
+);
 const GmailView = lazy(() =>
   import("@/features/connections/components/gmail-view").then((m) => ({
     default: m.GmailView,
-  }))
-)
+  })),
+);
 const GoogleCalendarView = lazy(() =>
   import("@/features/connections/components/google-calendar-view").then((m) => ({
     default: m.GoogleCalendarView,
-  }))
-)
+  })),
+);
 
 /**
  * Provider Registry — single source of truth for all integrations.
@@ -187,20 +187,20 @@ export const PROVIDER_REGISTRY: ProviderDefinition[] = [
     status: "coming_soon",
     component: lazy(() => Promise.resolve({ default: () => null })),
   },
-]
+];
 
 /** Lookup provider by id */
 export function getProvider(id: string): ProviderDefinition | undefined {
-  return PROVIDER_REGISTRY.find((p) => p.id === id)
+  return PROVIDER_REGISTRY.find((p) => p.id === id);
 }
 
 /** Get unique tags from all providers, sorted alphabetically */
 export function getAllTags(): string[] {
-  const tags = new Set<string>()
+  const tags = new Set<string>();
   for (const p of PROVIDER_REGISTRY) {
-    for (const t of p.tags) tags.add(t)
+    for (const t of p.tags) tags.add(t);
   }
-  return Array.from(tags).sort()
+  return Array.from(tags).sort();
 }
 
 /**
@@ -221,4 +221,4 @@ export const PROVIDER_TO_CHANNEL_TYPES: Record<string, string[]> = {
   "google-calendar": ["google_calendar"],
   tiktok: [],
   webwidget: [],
-}
+};

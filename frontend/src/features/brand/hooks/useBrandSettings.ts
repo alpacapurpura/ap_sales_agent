@@ -1,8 +1,18 @@
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
 import {
-  BrandSettings, BrandIdentity, KeyFigure, AuthorityItem, ContactData, BrandVisuals, BrandStrategy, BrandStory, TestimonialItem,
-  BrandPositioning, BrandNarrative, CommunicationAssets
+  BrandSettings,
+  BrandIdentity,
+  KeyFigure,
+  AuthorityItem,
+  ContactData,
+  BrandVisuals,
+  BrandStrategy,
+  BrandStory,
+  TestimonialItem,
+  BrandPositioning,
+  BrandNarrative,
+  CommunicationAssets,
 } from "@/features/brand/types";
 import { brandApi } from "@/features/brand/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -36,8 +46,13 @@ export function useBrandSettings() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: settings, isLoading: loading, error, refetch } = useQuery({
-    queryKey: ['brand-settings'],
+  const {
+    data: settings,
+    isLoading: loading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["brand-settings"],
     queryFn: async () => {
       const token = await getToken();
       if (!token) return null;
@@ -49,30 +64,29 @@ export function useBrandSettings() {
 
   const updateMutation = useMutation({
     mutationFn: async (newSettings: BrandSettings) => {
-       const token = await getToken();
-       if (!token) throw new Error("No token");
-       return brandApi.updateBrandSettings(newSettings, token);
+      const token = await getToken();
+      if (!token) throw new Error("No token");
+      return brandApi.updateBrandSettings(newSettings, token);
     },
     onSuccess: (updated) => {
-       queryClient.setQueryData(['brand-settings'], updated);
+      queryClient.setQueryData(["brand-settings"], updated);
     },
     onError: (err) => {
-       console.error("Error saving settings:", err);
-       toast.error("No se pudo guardar.");
-    }
+      console.error("Error saving settings:", err);
+      toast.error("No se pudo guardar.");
+    },
   });
 
   // Factory for simple key-based updaters
-  const createUpdater = <K extends keyof BrandSettings>(
-    key: K,
-    successMsg: string
-  ) => async (value: BrandSettings[K]) => {
-    if (!settings) return;
-    try {
-      await updateMutation.mutateAsync({ ...settings, [key]: value });
-      toast.success(successMsg);
-    } catch {}
-  };
+  const createUpdater =
+    <K extends keyof BrandSettings>(key: K, successMsg: string) =>
+    async (value: BrandSettings[K]) => {
+      if (!settings) return;
+      try {
+        await updateMutation.mutateAsync({ ...settings, [key]: value });
+        toast.success(successMsg);
+      } catch {}
+    };
 
   const updateIdentity = createUpdater("identity", "Identidad corporativa actualizada.");
   const updateVisuals = createUpdater("visuals", "Identidad visual actualizada.");
@@ -83,7 +97,10 @@ export function useBrandSettings() {
   const updateTestimonials = createUpdater("testimonials", "Testimonios actualizados.");
   const updatePositioning = createUpdater("positioning", "Posicionamiento actualizado.");
   const updateNarrative = createUpdater("narrative", "Narrativa actualizada.");
-  const updateCommunicationAssets = createUpdater("communication_assets", "Activos de comunicacion actualizados.");
+  const updateCommunicationAssets = createUpdater(
+    "communication_assets",
+    "Activos de comunicacion actualizados.",
+  );
 
   // Special case: authority_vault key doesn't match param name
   const updateVault = async (vault: AuthorityItem[]) => {
@@ -97,25 +114,25 @@ export function useBrandSettings() {
   const updateAllSettings = async (partialSettings: Partial<BrandSettings>) => {
     if (!settings) return;
     const newSettings = {
-        ...settings,
-        ...partialSettings,
-        identity: { ...settings.identity, ...partialSettings.identity },
-        visuals: {
-            ...settings.visuals,
-            ...partialSettings.visuals,
-            logos: { ...settings.visuals?.logos, ...partialSettings.visuals?.logos }
-        },
-        story: { ...settings.story, ...partialSettings.story },
-        strategy: { methodology_pillars: [], ...settings.strategy, ...partialSettings.strategy },
-        contact: { ...settings.contact, ...partialSettings.contact },
-        team: partialSettings.team || settings.team,
-        testimonials: partialSettings.testimonials || settings.testimonials,
-        authority_vault: partialSettings.authority_vault || settings.authority_vault,
+      ...settings,
+      ...partialSettings,
+      identity: { ...settings.identity, ...partialSettings.identity },
+      visuals: {
+        ...settings.visuals,
+        ...partialSettings.visuals,
+        logos: { ...settings.visuals?.logos, ...partialSettings.visuals?.logos },
+      },
+      story: { ...settings.story, ...partialSettings.story },
+      strategy: { methodology_pillars: [], ...settings.strategy, ...partialSettings.strategy },
+      contact: { ...settings.contact, ...partialSettings.contact },
+      team: partialSettings.team || settings.team,
+      testimonials: partialSettings.testimonials || settings.testimonials,
+      authority_vault: partialSettings.authority_vault || settings.authority_vault,
     };
 
     try {
-        await updateMutation.mutateAsync(newSettings);
-        toast.success("Configuracion de marca actualizada correctamente.");
+      await updateMutation.mutateAsync(newSettings);
+      toast.success("Configuracion de marca actualizada correctamente.");
     } catch {}
   };
 
@@ -136,6 +153,6 @@ export function useBrandSettings() {
     updateNarrative,
     updateCommunicationAssets,
     updateAllSettings,
-    refetch
+    refetch,
   };
 }

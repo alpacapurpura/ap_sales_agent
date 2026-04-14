@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { memo, useMemo } from 'react';
-import type { ChannelMetric } from '../../../types/metrics';
-import { getChannelColor } from '../../../lib/channelIcons';
+import { memo, useMemo } from "react";
+import type { ChannelMetric } from "../../../types/metrics";
+import { getChannelColor } from "../../../lib/channelIcons";
 
 interface CaptureBreakdownChartProps {
   channels: ChannelMetric[];
@@ -17,7 +17,10 @@ interface ChartEntry {
   fill: string;
 }
 
-export const CaptureBreakdownChart = memo(function CaptureBreakdownChart({ channels, isLoading }: CaptureBreakdownChartProps) {
+export const CaptureBreakdownChart = memo(function CaptureBreakdownChart({
+  channels,
+  isLoading,
+}: CaptureBreakdownChartProps) {
   const { chartData, total } = useMemo(() => {
     if (!channels.length) {
       return { chartData: [] as ChartEntry[], total: 0 };
@@ -27,7 +30,7 @@ export const CaptureBreakdownChart = memo(function CaptureBreakdownChart({ chann
       .map((ch) => ({
         slug: ch.slug,
         name: ch.name,
-        leads: ch.metrics.find((m) => m.name === 'leads')?.value ?? 0,
+        leads: ch.metrics.find((m) => m.name === "leads")?.value ?? 0,
         color: getChannelColor(ch.slug),
       }))
       .filter((ch) => ch.leads > 0)
@@ -39,7 +42,7 @@ export const CaptureBreakdownChart = memo(function CaptureBreakdownChart({ chann
       name: ch.name,
       slug: ch.slug,
       value: ch.leads,
-      pct: totalLeads > 0 ? ((ch.leads / totalLeads) * 100).toFixed(1) : '0',
+      pct: totalLeads > 0 ? ((ch.leads / totalLeads) * 100).toFixed(1) : "0",
       fill: ch.color,
     }));
 
@@ -92,9 +95,13 @@ export const CaptureBreakdownChart = memo(function CaptureBreakdownChart({ chann
                 </div>
               </div>
               {barPct <= 15 && (
-                <span className="text-xs font-semibold tabular-nums text-foreground w-8">{entry.value}</span>
+                <span className="text-xs font-semibold tabular-nums text-foreground w-8">
+                  {entry.value}
+                </span>
               )}
-              <span className="text-[10px] text-muted-foreground w-10 text-right">{entry.pct}%</span>
+              <span className="text-[10px] text-muted-foreground w-10 text-right">
+                {entry.pct}%
+              </span>
             </div>
           );
         })}

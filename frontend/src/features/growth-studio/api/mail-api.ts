@@ -3,9 +3,9 @@
  * Maps snake_case backend responses to camelCase frontend types.
  */
 
-import { fetchClient } from '@/lib/http-client';
-import { config } from '@/lib/config';
-import type { MetaAdsPeriod } from '../types/metrics';
+import { fetchClient } from "@/lib/http-client";
+import { config } from "@/lib/config";
+import type { MetaAdsPeriod } from "../types/metrics";
 import type {
   EmailDashboardData,
   EmailCampaignsData,
@@ -27,8 +27,8 @@ import type {
   EngagementDecay,
   ActivityHeatmapCell,
   BounceBreakdown,
-} from '../types/mail-types';
-import type { MetricKpiData, MetricTimeSeries, FunnelStep } from '../types/metrics';
+} from "../types/mail-types";
+import type { MetricKpiData, MetricTimeSeries, FunnelStep } from "../types/metrics";
 
 const API_URL = config.api.baseUrl;
 
@@ -47,7 +47,7 @@ function mapKpi(raw: Record<string, unknown>): MetricKpiData {
     unit: raw.unit as string,
     currency: (raw.currency as string) ?? undefined,
     higherIsBetter: raw.higher_is_better as boolean,
-    benchmark: raw.benchmark ? (raw.benchmark as MetricKpiData['benchmark']) : null,
+    benchmark: raw.benchmark ? (raw.benchmark as MetricKpiData["benchmark"]) : null,
   };
 }
 
@@ -144,7 +144,7 @@ function mapEmailDashboardResponse(raw: Record<string, unknown>): EmailDashboard
 
 export async function fetchEmailDashboard(
   token: string,
-  period: MetaAdsPeriod = '30d',
+  period: MetaAdsPeriod = "30d",
 ): Promise<EmailDashboardData> {
   const url = `${API_URL}/api/v1/analytics/metrics/email/dashboard?period=${period}`;
   const res = await fetchClient(url, {
@@ -206,7 +206,7 @@ function mapEmailCampaignsResponse(raw: Record<string, unknown>): EmailCampaigns
 
 export async function fetchEmailCampaigns(
   token: string,
-  period: MetaAdsPeriod = '30d',
+  period: MetaAdsPeriod = "30d",
 ): Promise<EmailCampaignsData> {
   const url = `${API_URL}/api/v1/analytics/metrics/email/campaigns?period=${period}`;
   const res = await fetchClient(url, {
@@ -225,7 +225,7 @@ function mapAutomationStep(raw: Record<string, unknown>): AutomationStep {
   return {
     stepId: raw.step_id as string,
     stepNumber: raw.step_number as number,
-    type: raw.type as 'email' | 'delay' | 'condition',
+    type: raw.type as "email" | "delay" | "condition",
     subject: (raw.subject as string | null) ?? null,
     fromName: (raw.from_name as string | null) ?? null,
     emailsSent: (raw.emails_sent as number) ?? 0,
@@ -274,7 +274,7 @@ function mapEmailAutomationsResponse(raw: Record<string, unknown>): EmailAutomat
 
 export async function fetchEmailAutomations(
   token: string,
-  period: MetaAdsPeriod = '30d',
+  period: MetaAdsPeriod = "30d",
 ): Promise<EmailAutomationsData> {
   const url = `${API_URL}/api/v1/analytics/metrics/email/automations?period=${period}`;
   const res = await fetchClient(url, {
@@ -357,7 +357,7 @@ function mapEmailAudienceResponse(raw: Record<string, unknown>): EmailAudienceDa
 
 export async function fetchEmailAudience(
   token: string,
-  period: MetaAdsPeriod = '30d',
+  period: MetaAdsPeriod = "30d",
 ): Promise<EmailAudienceData> {
   const url = `${API_URL}/api/v1/analytics/metrics/email/audience?period=${period}`;
   const res = await fetchClient(url, {
@@ -402,7 +402,7 @@ function mapEmailHealthResponse(raw: Record<string, unknown>): EmailHealthData {
 
 export async function fetchEmailHealth(
   token: string,
-  period: MetaAdsPeriod = '30d',
+  period: MetaAdsPeriod = "30d",
 ): Promise<EmailHealthData> {
   const url = `${API_URL}/api/v1/analytics/metrics/email/health?period=${period}`;
   const res = await fetchClient(url, {
@@ -434,7 +434,7 @@ function mapEmailGrowthResponse(raw: Record<string, unknown>): EmailGrowthData {
 
 export async function fetchEmailGrowth(
   token: string,
-  period: MetaAdsPeriod = '30d',
+  period: MetaAdsPeriod = "30d",
 ): Promise<EmailGrowthData> {
   const url = `${API_URL}/api/v1/analytics/metrics/email/growth?period=${period}`;
   const res = await fetchClient(url, {

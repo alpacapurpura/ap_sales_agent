@@ -1,8 +1,8 @@
-import React from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { OfferFormValues } from '../../../../types/schema';
-import { User, Target, AlertCircle } from 'lucide-react';
-import { useFormContext } from 'react-hook-form';
+import React from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { OfferFormValues } from "../../../../types/schema";
+import { User, Target, AlertCircle } from "lucide-react";
+import { useFormContext } from "react-hook-form";
 
 interface StrategyPreviewProps {
   data?: Partial<OfferFormValues>;
@@ -22,12 +22,13 @@ export const StrategyPreview = ({ data: propsData }: StrategyPreviewProps) => {
   }
 
   const { avatar_id, marketing_pain_points, marketing_desires } = data;
-  
+
   // Prioritize pain points, fallback to desires
-  const highlights = (marketing_pain_points && marketing_pain_points.length > 0) 
-    ? marketing_pain_points 
-    : (marketing_desires || []);
-    
+  const highlights =
+    marketing_pain_points && marketing_pain_points.length > 0
+      ? marketing_pain_points
+      : marketing_desires || [];
+
   const displayHighlights = highlights.slice(0, 3);
   const hasHighlights = displayHighlights.length > 0;
   const isPainPoints = marketing_pain_points && marketing_pain_points.length > 0;
@@ -49,7 +50,9 @@ export const StrategyPreview = ({ data: propsData }: StrategyPreviewProps) => {
           </p>
           <p className="text-sm font-semibold text-foreground">
             {avatar_id ? (
-              <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{avatar_id.substring(0, 8)}...</span>
+              <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">
+                {avatar_id.substring(0, 8)}...
+              </span>
             ) : (
               <span className="text-muted-foreground italic text-xs">No seleccionado</span>
             )}
@@ -62,8 +65,8 @@ export const StrategyPreview = ({ data: propsData }: StrategyPreviewProps) => {
         {hasHighlights ? (
           <div className="flex flex-wrap gap-2 content-center justify-center sm:justify-start">
             {displayHighlights.map((point, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/40 text-secondary-foreground text-sm border border-transparent hover:border-border/50 transition-colors"
               >
                 {isPainPoints ? (
@@ -76,9 +79,9 @@ export const StrategyPreview = ({ data: propsData }: StrategyPreviewProps) => {
             ))}
           </div>
         ) : (
-            <div className="flex items-center justify-center sm:justify-start h-full text-muted-foreground text-sm italic">
-                Sin puntos de dolor definidos
-            </div>
+          <div className="flex items-center justify-center sm:justify-start h-full text-muted-foreground text-sm italic">
+            Sin puntos de dolor definidos
+          </div>
         )}
       </div>
     </div>

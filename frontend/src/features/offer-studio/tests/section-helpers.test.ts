@@ -91,7 +91,14 @@ const makeFormValues = (overrides: Partial<OfferFormValues> = {}): OfferFormValu
     marketing_pain_points: ["pain1"],
     marketing_desires: ["desire1"],
     deliverables: [{ name: "Module 1", format: "video", quantity: "1", value_stack_price: 50 }],
-    assets: [{ type: "IMAGE", name: "Hero", url: "https://example.com/hero.png", is_knowledge_base: false }],
+    assets: [
+      {
+        type: "IMAGE",
+        name: "Hero",
+        url: "https://example.com/hero.png",
+        is_knowledge_base: false,
+      },
+    ],
     specific_details: { key: "value" },
     guarantee_type: GuaranteeType.NONE,
     headline_promise: "Transform your life",

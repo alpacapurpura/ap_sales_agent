@@ -1,13 +1,13 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 const meta = {
-  title: 'Organisms/Form',
-  tags: ['autodocs'],
+  title: "Organisms/Form",
+  tags: ["autodocs"],
 } satisfies Meta;
 
 export default meta;
@@ -33,7 +33,9 @@ export const Default: Story = {
             <Label htmlFor="contact-message">Message</Label>
             <Textarea id="contact-message" placeholder="Type your message here" />
           </div>
-          <Button type="submit" className="w-full">Send Message</Button>
+          <Button type="submit" className="w-full">
+            Send Message
+          </Button>
         </form>
       </CardContent>
     </Card>

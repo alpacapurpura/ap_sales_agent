@@ -12,7 +12,13 @@ import { SmartFillDialog } from "@/features/brand/components/smart-fill/smart-fi
 import { BrandEmptyState } from "@/features/brand/components/empty-state/brand-empty-state";
 import { BrandStudioTabs } from "@/features/brand/components/tabs/brand-studio-tabs";
 import { BRAND_SECTIONS, type BrandSectionId } from "@/features/brand/config/sections";
-import type { BrandIdentity, ContactData, KeyFigure, TestimonialItem, BrandVisuals } from "@/features/brand/types";
+import type {
+  BrandIdentity,
+  ContactData,
+  KeyFigure,
+  TestimonialItem,
+  BrandVisuals,
+} from "@/features/brand/types";
 
 /**
  * Inner layout that consumes both BrandStudioContext and useBrandSettings.
@@ -63,7 +69,7 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
     (tab: BrandSectionId) => {
       router.push(`/${tenantId}/brand-studio/${BRAND_SECTIONS[tab].slug}`);
     },
-    [tenantId, router]
+    [tenantId, router],
   );
 
   // When the wizard completes extraction, refetch settings and dismiss empty state.
@@ -87,7 +93,9 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
       <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4">
         <div className="bg-destructive/10 text-destructive p-6 rounded-lg max-w-md text-center">
           <h3 className="font-semibold text-lg mb-2">Error al cargar configuración</h3>
-          <p className="text-sm mb-4 opacity-90">{error.message || "Ocurrió un error inesperado."}</p>
+          <p className="text-sm mb-4 opacity-90">
+            {error.message || "Ocurrió un error inesperado."}
+          </p>
           <button
             onClick={() => refetch()}
             className="px-4 py-2 bg-background border border-destructive/20 rounded hover:bg-background/80 text-sm font-medium transition-colors"
@@ -100,7 +108,9 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
   }
 
   if (!settings) {
-    return <div className="p-8 text-center text-muted-foreground">No se encontró la configuración.</div>;
+    return (
+      <div className="p-8 text-center text-muted-foreground">No se encontró la configuración.</div>
+    );
   }
 
   // --- Empty state (first-time user) ---
@@ -110,10 +120,7 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
   if (showEmptyState) {
     return (
       <div className="relative w-full h-[calc(100vh-4rem)] bg-background flex flex-col overflow-hidden">
-        <BrandEmptyState
-          onStartAI={handleWizardComplete}
-          onStartManual={dismissEmptyState}
-        />
+        <BrandEmptyState onStartAI={handleWizardComplete} onStartManual={dismissEmptyState} />
       </div>
     );
   }
@@ -145,11 +152,7 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
       <ThemeInjector visuals={settings.visuals ?? {}} />
 
       {/* Tab navigation between Brand Studio sections */}
-      <BrandStudioTabs
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        settings={settings}
-      />
+      <BrandStudioTabs activeTab={activeTab} onTabChange={handleTabChange} settings={settings} />
 
       {/* Page content (section view) */}
       {children}

@@ -1,11 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 const meta = {
-  title: 'Atoms/RadioGroup',
+  title: "Atoms/RadioGroup",
   component: RadioGroup,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof RadioGroup>;
 
 export default meta;

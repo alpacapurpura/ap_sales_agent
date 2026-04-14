@@ -1,15 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
-import { useParams } from 'next/navigation';
-import { Link2, Loader2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { metricsApi, type SourceProduct } from '../../../api/metrics-api';
-import type { Offer } from '@/features/offer-studio/types';
-import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
+import { useState } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { useParams } from "next/navigation";
+import { Link2, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { metricsApi, type SourceProduct } from "../../../api/metrics-api";
+import type { Offer } from "@/features/offer-studio/types";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 interface AssociationDialogProps {
   product: SourceProduct | null;
@@ -20,12 +26,19 @@ interface AssociationDialogProps {
   onSuccess: (salesCreated: number) => void;
 }
 
-export function AssociationDialog({ product, offers, source, open, onOpenChange, onSuccess }: AssociationDialogProps) {
+export function AssociationDialog({
+  product,
+  offers,
+  source,
+  open,
+  onOpenChange,
+  onSuccess,
+}: AssociationDialogProps) {
   const { getToken } = useAuth();
   const params = useParams();
   const tenantId = params?.tenantId as string;
   const { currency: tenantCurrency } = useTenantLocale();
-  const [selectedOfferId, setSelectedOfferId] = useState<string>('');
+  const [selectedOfferId, setSelectedOfferId] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   const handleAssociate = async () => {
@@ -41,7 +54,7 @@ export function AssociationDialog({ product, offers, source, open, onOpenChange,
         external_id: product.external_id,
         external_name: product.external_name ?? undefined,
       });
-      setSelectedOfferId('');
+      setSelectedOfferId("");
       onOpenChange(false);
       onSuccess(result.sales_created);
     } catch {
@@ -52,8 +65,8 @@ export function AssociationDialog({ product, offers, source, open, onOpenChange,
   };
 
   const formatCurrency = (value: number, currency: string | null) =>
-    new Intl.NumberFormat('es-MX', {
-      style: 'currency',
+    new Intl.NumberFormat("es-MX", {
+      style: "currency",
       currency: currency || tenantCurrency,
       minimumFractionDigits: 0,
     }).format(value);
@@ -75,8 +88,8 @@ export function AssociationDialog({ product, offers, source, open, onOpenChange,
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               {formatCurrency(product.total_price, product.currency)}
-              {' · '}
-              {product.event_count} transaccion{product.event_count !== 1 ? 'es' : ''}
+              {" · "}
+              {product.event_count} transaccion{product.event_count !== 1 ? "es" : ""}
             </p>
           </div>
 
@@ -104,7 +117,10 @@ export function AssociationDialog({ product, offers, source, open, onOpenChange,
                   <SelectContent>
                     {offers.map((offer) => (
                       <SelectItem key={String(offer.id)} value={String(offer.id)}>
-                        {offer.public_name || offer.name || offer.internal_sku || `Oferta ${String(offer.id).slice(0, 8)}`}
+                        {offer.public_name ||
+                          offer.name ||
+                          offer.internal_sku ||
+                          `Oferta ${String(offer.id).slice(0, 8)}`}
                       </SelectItem>
                     ))}
                   </SelectContent>

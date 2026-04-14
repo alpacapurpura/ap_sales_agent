@@ -17,22 +17,24 @@ export function ThemeInjector({ visuals }: ThemeInjectorProps) {
   // 1. Primary
   const primaryHsl = visuals.primary_color ? hexToHsl(visuals.primary_color) : null;
   // Calculate smart text-on-primary
-  const smartOnPrimary = visuals.primary_color ? getContrastColor(visuals.primary_color) : '#ffffff';
+  const smartOnPrimary = visuals.primary_color
+    ? getContrastColor(visuals.primary_color)
+    : "#ffffff";
   const onPrimaryHsl = hexToHsl(smartOnPrimary);
 
   return (
     <style jsx global>{`
       .brand-theme-scope {
         /* Core Colors - Only inject these to accent the system UI */
-        ${primaryHsl ? `--primary: ${primaryHsl};` : ''}
-        ${onPrimaryHsl ? `--primary-foreground: ${onPrimaryHsl};` : ''}
-        ${primaryHsl ? `--ring: ${primaryHsl};` : ''}
+        ${primaryHsl ? `--primary: ${primaryHsl};` : ""}
+        ${onPrimaryHsl ? `--primary-foreground: ${onPrimaryHsl};` : ""}
+        ${primaryHsl ? `--ring: ${primaryHsl};` : ""}
         
         /* Font Family Injection */
-        ${visuals.font_heading ? `--font-heading: ${visuals.font_heading}, sans-serif;` : ''}
-        ${visuals.font_body ? `--font-body: ${visuals.font_body}, sans-serif;` : ''}
+        ${visuals.font_heading ? `--font-heading: ${visuals.font_heading}, sans-serif;` : ""}
+        ${visuals.font_body ? `--font-body: ${visuals.font_body}, sans-serif;` : ""}
       }
-      
+
       /* Force overrides for specific utility classes to ensure primary accent works */
       .brand-theme-scope .bg-primary {
         background-color: ${visuals.primary_color} !important;
@@ -44,16 +46,16 @@ export function ThemeInjector({ visuals }: ThemeInjectorProps) {
       .brand-theme-scope .border-primary {
         border-color: ${visuals.primary_color} !important;
       }
-      
+
       /* Typography Application */
-      .brand-theme-scope h1, 
-      .brand-theme-scope h2, 
-      .brand-theme-scope h3, 
+      .brand-theme-scope h1,
+      .brand-theme-scope h2,
+      .brand-theme-scope h3,
       .brand-theme-scope h4 {
         font-family: var(--font-heading, inherit);
       }
-      .brand-theme-scope p, 
-      .brand-theme-scope span, 
+      .brand-theme-scope p,
+      .brand-theme-scope span,
       .brand-theme-scope div {
         font-family: var(--font-body, inherit);
       }

@@ -48,15 +48,10 @@ function parseSummaryData(data: Record<string, unknown>): ParsedSummary {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function OfferPreviewSummary({
-  data,
-  completenessScore,
-}: PreviewSummaryProps) {
+export function OfferPreviewSummary({ data, completenessScore }: PreviewSummaryProps) {
   const summary = useMemo(() => parseSummaryData(data), [data]);
 
-  const archetypeMeta = summary.archetype
-    ? ARCHETYPE_METADATA[summary.archetype]
-    : null;
+  const archetypeMeta = summary.archetype ? ARCHETYPE_METADATA[summary.archetype] : null;
 
   const ArchetypeIcon = archetypeMeta?.icon ?? null;
 
@@ -67,7 +62,7 @@ export function OfferPreviewSummary({
         <div
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
-            "bg-gradient-to-br from-orange-500 to-amber-500 text-white"
+            "bg-gradient-to-br from-orange-500 to-amber-500 text-white",
           )}
         >
           {ArchetypeIcon ? (
@@ -80,9 +75,7 @@ export function OfferPreviewSummary({
         {/* Name + tags */}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground truncate">
-            {summary.name ?? (
-              <span className="italic text-muted-foreground">Pendiente...</span>
-            )}
+            {summary.name ?? <span className="italic text-muted-foreground">Pendiente...</span>}
           </p>
 
           <div className="mt-1 flex flex-wrap gap-1.5">
@@ -117,9 +110,7 @@ export function OfferPreviewSummary({
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-muted-foreground">Completitud</span>
-          <span className="text-xs font-semibold text-orange-400">
-            {completenessScore}%
-          </span>
+          <span className="text-xs font-semibold text-orange-400">{completenessScore}%</span>
         </div>
       </div>
     </div>

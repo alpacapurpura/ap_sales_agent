@@ -12,14 +12,14 @@ export function AuditDashboard() {
 
   return (
     <div className="h-[calc(100vh-4rem)] flex gap-0">
-      <div 
+      <div
         className={cn(
           "flex-none h-full overflow-hidden border-r transition-all duration-300 ease-in-out",
-          isCollapsed ? "w-20" : "w-80"
+          isCollapsed ? "w-20" : "w-80",
         )}
       >
-        <LeadList 
-          selectedLeadId={selectedLeadId} 
+        <LeadList
+          selectedLeadId={selectedLeadId}
           onSelectLead={setSelectedLeadId}
           isCollapsed={isCollapsed}
           onToggle={() => setIsCollapsed(!isCollapsed)}
@@ -28,10 +28,10 @@ export function AuditDashboard() {
       <div className="flex-1 min-w-0 h-full overflow-hidden">
         {selectedLeadId ? (
           <div className="h-full">
-            <ChatTimeline 
-              leadId={selectedLeadId} 
-              onSelectEvent={(event) => setSelectedEventId(event.id)} 
-              selectedEventId={selectedEventId} 
+            <ChatTimeline
+              leadId={selectedLeadId}
+              onSelectEvent={(event) => setSelectedEventId(event.id)}
+              selectedEventId={selectedEventId}
             />
           </div>
         ) : (

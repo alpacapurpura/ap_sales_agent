@@ -9,20 +9,14 @@ import type {
 import { LandingPageArchetype } from "@/features/offer-studio/components/landing/types/schema";
 import { SqueezeServerTpl } from "@/features/offer-studio/components/landing/templates/server/SqueezeServerTpl";
 
-async function getPublicLanding(
-  slug: string,
-  tenantId: string
-): Promise<LandingPageConfig | null> {
+async function getPublicLanding(slug: string, tenantId: string): Promise<LandingPageConfig | null> {
   try {
-    const res = await fetch(
-      `${config.api.baseUrl}/api/v1/public/landing/${slug}`,
-      {
-        headers: {
-          "X-Tenant-ID": tenantId,
-        },
-        next: { revalidate: 60 },
-      }
-    );
+    const res = await fetch(`${config.api.baseUrl}/api/v1/public/landing/${slug}`, {
+      headers: {
+        "X-Tenant-ID": tenantId,
+      },
+      next: { revalidate: 60 },
+    });
     if (!res.ok) return null;
     return res.json() as Promise<LandingPageConfig>;
   } catch {
@@ -61,12 +55,7 @@ export default async function PublicLandingPage({ params }: PageProps) {
 
   switch (landing.archetype) {
     case LandingPageArchetype.THE_SQUEEZE:
-      return (
-        <SqueezeServerTpl
-          content={landing.content as SqueezeContent}
-          theme={landing.theme}
-        />
-      );
+      return <SqueezeServerTpl content={landing.content as SqueezeContent} theme={landing.theme} />;
     default:
       return <div>Template en construcción</div>;
   }

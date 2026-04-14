@@ -26,8 +26,8 @@ export function EstrategiaView() {
   const { openEdit } = useBrandStudio();
 
   const navItems = useMemo(
-    () => settings ? buildSectionNavItems("estrategia", settings) : [],
-    [settings]
+    () => (settings ? buildSectionNavItems("estrategia", settings) : []),
+    [settings],
   );
 
   if (!settings) return null;
@@ -74,12 +74,9 @@ export function EstrategiaView() {
 
       {/* Metodologia */}
       <div id="methodology" className="space-y-8">
-        <SectionHeader
-          title="Metodologia"
-          subtitle="Tus pilares y metodos unicos."
-        />
+        <SectionHeader title="Metodologia" subtitle="Tus pilares y metodos unicos." />
         <MethodologySection
-          strategy={settings.strategy ?? {} as BrandStrategy}
+          strategy={settings.strategy ?? ({} as BrandStrategy)}
           visuals={settings.visuals ?? {}}
           onEdit={() => openEdit("methodology")}
         />

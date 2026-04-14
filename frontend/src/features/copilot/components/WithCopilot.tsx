@@ -121,17 +121,13 @@ export function WithCopilot({ fieldId, fieldLabel, getValue, children }: WithCop
         onClick={handleToggle}
         className={[
           "absolute -top-3.5 right-3 z-10 flex items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-medium shadow-sm transition-all duration-200",
-          showButton
-            ? "translate-y-0 opacity-100"
-            : "pointer-events-none translate-y-1 opacity-0",
+          showButton ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-1 opacity-0",
           isSelected
             ? "border-purple-300 bg-purple-500 text-white hover:bg-purple-600"
             : "border-purple-200 bg-white text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:bg-slate-800 dark:text-purple-300 dark:hover:bg-slate-700",
         ].join(" ")}
         title={
-          isSelected
-            ? `Quitar "${fieldLabel}" del contexto`
-            : `Agregar "${fieldLabel}" al Copilot`
+          isSelected ? `Quitar "${fieldLabel}" del contexto` : `Agregar "${fieldLabel}" al Copilot`
         }
       >
         {isSelected ? (

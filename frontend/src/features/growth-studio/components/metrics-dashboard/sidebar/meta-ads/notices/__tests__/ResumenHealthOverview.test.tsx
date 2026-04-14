@@ -1,9 +1,9 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ResumenHealthOverview } from '../ResumenHealthOverview';
-import type { NoticesSummary } from '../types';
+import { ResumenHealthOverview } from "../ResumenHealthOverview";
+import type { NoticesSummary } from "../types";
 
 function makeSummary(overrides: Partial<NoticesSummary> = {}): NoticesSummary {
   const base: NoticesSummary = {
@@ -27,20 +27,16 @@ function makeSummary(overrides: Partial<NoticesSummary> = {}): NoticesSummary {
   return { ...base, ...overrides };
 }
 
-describe('ResumenHealthOverview', () => {
+describe("ResumenHealthOverview", () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  it('shows the celebratory empty state when there are zero notices', () => {
-    render(
-      <ResumenHealthOverview summary={makeSummary()} onNavigateToTab={vi.fn()} />,
-    );
+  it("shows the celebratory empty state when there are zero notices", () => {
+    render(<ResumenHealthOverview summary={makeSummary()} onNavigateToTab={vi.fn()} />);
 
     expect(screen.getByText(/Todo en orden/i)).toBeInTheDocument();
-    expect(
-      screen.queryByText(/cosas por mejorar/i),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/cosas por mejorar/i)).not.toBeInTheDocument();
   });
 
   it('shows "Tienes N cosas por mejorar" header when there are notices', () => {
@@ -51,8 +47,8 @@ describe('ResumenHealthOverview', () => {
           perTabCounts: { campanas: 2, creativos: 1, audiencia: 0, costos: 0 },
           severity: { critical: 1, warning: 2, info: 0 },
           maxSeverityPerTab: {
-            campanas: 'critical',
-            creativos: 'warning',
+            campanas: "critical",
+            creativos: "warning",
             audiencia: null,
             costos: null,
           },
@@ -64,7 +60,7 @@ describe('ResumenHealthOverview', () => {
     expect(screen.getByText(/Tienes 3 cosas por mejorar/i)).toBeInTheDocument();
   });
 
-  it('starts collapsed and expands on click', () => {
+  it("starts collapsed and expands on click", () => {
     render(
       <ResumenHealthOverview
         summary={makeSummary({
@@ -72,7 +68,7 @@ describe('ResumenHealthOverview', () => {
           perTabCounts: { campanas: 1, creativos: 0, audiencia: 0, costos: 0 },
           severity: { critical: 0, warning: 1, info: 0 },
           maxSeverityPerTab: {
-            campanas: 'warning',
+            campanas: "warning",
             creativos: null,
             audiencia: null,
             costos: null,
@@ -83,18 +79,14 @@ describe('ResumenHealthOverview', () => {
     );
 
     // Initially collapsed: per-tab rows not visible.
-    expect(screen.queryByRole('button', { name: /Ir a Campañas/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Ir a Campañas/i })).toBeNull();
 
-    fireEvent.click(
-      screen.getByRole('button', { name: /ver detalle/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /ver detalle/i }));
 
-    expect(
-      screen.getByRole('button', { name: /Ir a Campañas/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Ir a Campañas/i })).toBeInTheDocument();
   });
 
-  it('calls onNavigateToTab when a tab CTA is clicked', () => {
+  it("calls onNavigateToTab when a tab CTA is clicked", () => {
     const onNav = vi.fn();
     render(
       <ResumenHealthOverview
@@ -104,7 +96,7 @@ describe('ResumenHealthOverview', () => {
           severity: { critical: 0, warning: 2, info: 0 },
           maxSeverityPerTab: {
             campanas: null,
-            creativos: 'warning',
+            creativos: "warning",
             audiencia: null,
             costos: null,
           },
@@ -113,17 +105,13 @@ describe('ResumenHealthOverview', () => {
       />,
     );
 
-    fireEvent.click(
-      screen.getByRole('button', { name: /ver detalle/i }),
-    );
-    fireEvent.click(
-      screen.getByRole('button', { name: /Ir a Creativos/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /ver detalle/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Ir a Creativos/i }));
 
-    expect(onNav).toHaveBeenCalledWith('creativos');
+    expect(onNav).toHaveBeenCalledWith("creativos");
   });
 
-  it('only lists tabs that actually have pending notices', () => {
+  it("only lists tabs that actually have pending notices", () => {
     render(
       <ResumenHealthOverview
         summary={makeSummary({
@@ -131,7 +119,7 @@ describe('ResumenHealthOverview', () => {
           perTabCounts: { campanas: 1, creativos: 0, audiencia: 0, costos: 0 },
           severity: { critical: 0, warning: 1, info: 0 },
           maxSeverityPerTab: {
-            campanas: 'warning',
+            campanas: "warning",
             creativos: null,
             audiencia: null,
             costos: null,
@@ -141,21 +129,11 @@ describe('ResumenHealthOverview', () => {
       />,
     );
 
-    fireEvent.click(
-      screen.getByRole('button', { name: /ver detalle/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /ver detalle/i }));
 
-    expect(
-      screen.getByRole('button', { name: /Ir a Campañas/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /Ir a Creativos/i }),
-    ).toBeNull();
-    expect(
-      screen.queryByRole('button', { name: /Ir a Audiencia/i }),
-    ).toBeNull();
-    expect(
-      screen.queryByRole('button', { name: /Ir a Costos/i }),
-    ).toBeNull();
+    expect(screen.getByRole("button", { name: /Ir a Campañas/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Ir a Creativos/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Ir a Audiencia/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Ir a Costos/i })).toBeNull();
   });
 });

@@ -1,8 +1,8 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: 'Growth Studio | AI Sales Agent',
-  description: 'Manage your customer lifecycle, connections, and growth metrics.',
+  title: "Growth Studio | AI Sales Agent",
+  description: "Manage your customer lifecycle, connections, and growth metrics.",
 };
 
 export default async function GrowthStudioPage({

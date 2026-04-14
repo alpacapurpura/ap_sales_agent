@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { createPortal } from 'react-dom';
-import { ArrowLeft, Youtube, RefreshCw } from 'lucide-react';
-import { useRouter, useSearchParams, useParams } from 'next/navigation';
+import { useState, useCallback } from "react";
+import { createPortal } from "react-dom";
+import { ArrowLeft, Youtube, RefreshCw } from "lucide-react";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
-import { useHashScroll } from '../../../../hooks/useHashScroll';
-import { useSyncChannel } from '../../../../hooks/useSyncChannel';
-import type { MetaAdsPeriod, YouTubeDashboardTab } from '../../../../types/metrics';
-import { ChannelPeriodSelector } from '../ig-organic/ChannelPeriodSelector';
-import { YtOverviewTab } from './tabs/YtOverviewTab';
-import { YtVideosTab } from './tabs/YtVideosTab';
-import { YtAudienceTab } from './tabs/YtAudienceTab';
-import { YtEngagementTab } from './tabs/YtEngagementTab';
-import { YtRetentionTab } from './tabs/YtRetentionTab';
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
+import { useHashScroll } from "../../../../hooks/useHashScroll";
+import { useSyncChannel } from "../../../../hooks/useSyncChannel";
+import type { MetaAdsPeriod, YouTubeDashboardTab } from "../../../../types/metrics";
+import { ChannelPeriodSelector } from "../ig-organic/ChannelPeriodSelector";
+import { YtOverviewTab } from "./tabs/YtOverviewTab";
+import { YtVideosTab } from "./tabs/YtVideosTab";
+import { YtAudienceTab } from "./tabs/YtAudienceTab";
+import { YtEngagementTab } from "./tabs/YtEngagementTab";
+import { YtRetentionTab } from "./tabs/YtRetentionTab";
 
 interface YouTubeDashboardProps {
   onClose?: () => void;
@@ -25,7 +25,13 @@ interface YouTubeDashboardProps {
   isRouteBased?: boolean;
 }
 
-const VALID_TABS: YouTubeDashboardTab[] = ['overview', 'videos', 'audiencia', 'engagement', 'retencion'];
+const VALID_TABS: YouTubeDashboardTab[] = [
+  "overview",
+  "videos",
+  "audiencia",
+  "engagement",
+  "retencion",
+];
 
 export function YouTubeDashboard({ onClose, initialTab, isRouteBased }: YouTubeDashboardProps) {
   const router = useRouter();
@@ -33,39 +39,40 @@ export function YouTubeDashboard({ onClose, initialTab, isRouteBased }: YouTubeD
   const searchParams = useSearchParams();
   const tenantId = params?.tenantId as string;
 
-  const tabFromUrl = searchParams?.get('tab') ?? initialTab ?? 'overview';
+  const tabFromUrl = searchParams?.get("tab") ?? initialTab ?? "overview";
   const [activeTab, setActiveTab] = useState<YouTubeDashboardTab>(
     VALID_TABS.includes(tabFromUrl as YouTubeDashboardTab)
       ? (tabFromUrl as YouTubeDashboardTab)
-      : 'overview',
+      : "overview",
   );
-  const periodFromUrl = (searchParams?.get('period') ?? '30d') as MetaAdsPeriod;
+  const periodFromUrl = (searchParams?.get("period") ?? "30d") as MetaAdsPeriod;
   const [period, setPeriod] = useState<MetaAdsPeriod>(periodFromUrl);
-  const { data, isLoading } = useChannelDashboard('yt-organic', period);
-  const { sync, isSyncing, cooldownMinutes } = useSyncChannel('yt-organic');
+  const { data, isLoading } = useChannelDashboard("yt-organic", period);
+  const { sync, isSyncing, cooldownMinutes } = useSyncChannel("yt-organic");
   useHashScroll();
 
   const handlePeriodChange = useCallback((p: MetaAdsPeriod) => {
     setPeriod(p);
     const url = new URL(window.location.href);
-    if (p === '30d') { url.searchParams.delete('period'); } else { url.searchParams.set('period', p); }
-    window.history.replaceState(null, '', url.toString());
+    if (p === "30d") {
+      url.searchParams.delete("period");
+    } else {
+      url.searchParams.set("period", p);
+    }
+    window.history.replaceState(null, "", url.toString());
   }, []);
 
-  const handleTabChange = useCallback(
-    (value: string) => {
-      const tab = value as YouTubeDashboardTab;
-      setActiveTab(tab);
-      const url = new URL(window.location.href);
-      if (tab === 'overview') {
-        url.searchParams.delete('tab');
-      } else {
-        url.searchParams.set('tab', tab);
-      }
-      window.history.replaceState(null, '', url.toString());
-    },
-    [],
-  );
+  const handleTabChange = useCallback((value: string) => {
+    const tab = value as YouTubeDashboardTab;
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    if (tab === "overview") {
+      url.searchParams.delete("tab");
+    } else {
+      url.searchParams.set("tab", tab);
+    }
+    window.history.replaceState(null, "", url.toString());
+  }, []);
 
   const handleBack = useCallback(() => {
     if (onClose) {
@@ -76,7 +83,13 @@ export function YouTubeDashboard({ onClose, initialTab, isRouteBased }: YouTubeD
   }, [onClose, router, tenantId]);
 
   const dashboardContent = (
-    <div className={isRouteBased ? 'flex flex-col min-h-screen bg-background' : 'fixed inset-0 z-50 flex flex-col bg-background'}>
+    <div
+      className={
+        isRouteBased
+          ? "flex flex-col min-h-screen bg-background"
+          : "fixed inset-0 z-50 flex flex-col bg-background"
+      }
+    >
       <div className="flex items-center justify-between border-b px-6 py-3">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={handleBack} className="gap-1.5">
@@ -97,8 +110,8 @@ export function YouTubeDashboard({ onClose, initialTab, isRouteBased }: YouTubeD
             disabled={isSyncing || cooldownMinutes > 0}
             className="gap-1.5 text-xs"
           >
-            <RefreshCw className={cn('h-3 w-3', isSyncing && 'animate-spin')} />
-            {isSyncing ? 'Sincronizando…' : 'Sincronizar'}
+            <RefreshCw className={cn("h-3 w-3", isSyncing && "animate-spin")} />
+            {isSyncing ? "Sincronizando…" : "Sincronizar"}
           </Button>
         </div>
       </div>
@@ -141,6 +154,6 @@ export function YouTubeDashboard({ onClose, initialTab, isRouteBased }: YouTubeD
 
   if (isRouteBased) return dashboardContent;
 
-  if (typeof document === 'undefined') return null;
+  if (typeof document === "undefined") return null;
   return createPortal(dashboardContent, document.body);
 }

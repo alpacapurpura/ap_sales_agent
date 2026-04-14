@@ -16,11 +16,7 @@ interface ComparisonTableProps {
   recommended?: string;
 }
 
-export function ComparisonTable({
-  columns,
-  rows,
-  recommended,
-}: ComparisonTableProps) {
+export function ComparisonTable({ columns, rows, recommended }: ComparisonTableProps) {
   return (
     <div className="my-1 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
       <Table>
@@ -35,17 +31,11 @@ export function ComparisonTable({
         </TableHeader>
         <TableBody>
           {rows.map((row, idx) => {
-            const isRecommended =
-              recommended &&
-              Object.values(row).some((v) => v === recommended);
+            const isRecommended = recommended && Object.values(row).some((v) => v === recommended);
             return (
               <TableRow
                 key={idx}
-                className={
-                  isRecommended
-                    ? "bg-purple-50 dark:bg-purple-900/20"
-                    : undefined
-                }
+                className={isRecommended ? "bg-purple-50 dark:bg-purple-900/20" : undefined}
               >
                 {columns.map((col) => (
                   <TableCell key={col} className="text-xs">

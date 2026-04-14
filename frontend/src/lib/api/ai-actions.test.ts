@@ -11,7 +11,7 @@ vi.mock("@/lib/config", () => ({
 }));
 
 vi.mock("@/lib/http-client", () => ({
-  fetchClient: (...args: any[]) => fetchClientMock(...args),
+  fetchClient: (...args: unknown[]) => fetchClientMock(...args),
 }));
 
 import { aiActionsApi } from "./ai-actions";
@@ -23,7 +23,7 @@ describe("aiActionsApi", () => {
 
   it("usa la ruta offer/ai para psicología de oferta", async () => {
     fetchClientMock.mockResolvedValueOnce(
-      new Response(JSON.stringify({ pains: ["p1"], desires: ["d1"] }), { status: 200 })
+      new Response(JSON.stringify({ pains: ["p1"], desires: ["d1"] }), { status: 200 }),
     );
 
     const result = await aiActionsApi.generateOfferPsychology(
@@ -33,7 +33,7 @@ describe("aiActionsApi", () => {
         current_pains: [],
         current_desires: [],
       },
-      "token-123"
+      "token-123",
     );
 
     expect(result).toEqual({ pains: ["p1"], desires: ["d1"] });
@@ -41,13 +41,13 @@ describe("aiActionsApi", () => {
       "http://localhost:8000/api/v1/offer/ai/psychology",
       expect.objectContaining({
         method: "POST",
-      })
+      }),
     );
   });
 
   it("usa la ruta brand/tools para extracción de brand", async () => {
     fetchClientMock.mockResolvedValueOnce(
-      new Response(JSON.stringify({ brand_name: "Visionarias" }), { status: 200 })
+      new Response(JSON.stringify({ brand_name: "Visionarias" }), { status: 200 }),
     );
 
     const result = await aiActionsApi.extractBrandIdentity(
@@ -55,7 +55,7 @@ describe("aiActionsApi", () => {
         url: "https://visionarias.ai",
         type: "brand_identity",
       },
-      "token-123"
+      "token-123",
     );
 
     expect(result).toEqual({ brand_name: "Visionarias" });
@@ -63,13 +63,13 @@ describe("aiActionsApi", () => {
       "http://localhost:8000/api/v1/brand/tools/extract",
       expect.objectContaining({
         method: "POST",
-      })
+      }),
     );
   });
 
   it("usa FormData y ruta brand/tools para extracción full brand", async () => {
     fetchClientMock.mockResolvedValueOnce(
-      new Response(JSON.stringify({ identity: { brand_name: "Visionarias" } }), { status: 200 })
+      new Response(JSON.stringify({ identity: { brand_name: "Visionarias" } }), { status: 200 }),
     );
 
     const result = await aiActionsApi.extractFullBrand(
@@ -77,7 +77,7 @@ describe("aiActionsApi", () => {
         url: "https://visionarias.ai",
         mode: "initial",
       },
-      "token-123"
+      "token-123",
     );
 
     expect(result).toEqual({ identity: { brand_name: "Visionarias" } });
@@ -86,7 +86,7 @@ describe("aiActionsApi", () => {
       expect.objectContaining({
         method: "POST",
         body: expect.any(FormData),
-      })
+      }),
     );
   });
 });

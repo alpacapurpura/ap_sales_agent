@@ -2,15 +2,9 @@
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { campaignsApi } from "../api/campaigns-api";
-import type {
-  OfferCampaignsQuery,
-  OfferCampaignsResponse,
-} from "../types/campaigns";
+import type { OfferCampaignsQuery, OfferCampaignsResponse } from "../types/campaigns";
 
-export function useOfferCampaigns(
-  offerId: string,
-  filters?: OfferCampaignsQuery,
-) {
+export function useOfferCampaigns(offerId: string, filters?: OfferCampaignsQuery) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 
   return useQuery<OfferCampaignsResponse, Error>({

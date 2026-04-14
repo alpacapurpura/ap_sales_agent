@@ -70,9 +70,7 @@ export function OfferTabBar({ tenantId, offerId, counts }: OfferTabBarProps) {
     >
       {TABS.map((tab) => {
         const href = tab.suffix ? `${basePath}/${tab.suffix}` : basePath;
-        const isActive = tab.suffix
-          ? pathname?.startsWith(href) ?? false
-          : pathname === basePath;
+        const isActive = tab.suffix ? (pathname?.startsWith(href) ?? false) : pathname === basePath;
         const badgeValue = tab.badge?.(counts);
         const Icon = tab.icon;
 
@@ -84,26 +82,18 @@ export function OfferTabBar({ tenantId, offerId, counts }: OfferTabBarProps) {
             className={cn(
               "relative flex items-center gap-2 px-3 text-sm font-medium transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-              isActive
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground",
+              isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
             <Icon className="h-4 w-4" aria-hidden />
             <span>{tab.label}</span>
             {typeof badgeValue === "number" ? (
-              <Badge
-                variant="secondary"
-                className="h-5 min-w-5 px-1.5 text-[10px] tabular-nums"
-              >
+              <Badge variant="secondary" className="h-5 min-w-5 px-1.5 text-[10px] tabular-nums">
                 {badgeValue}
               </Badge>
             ) : null}
             {isActive ? (
-              <span
-                aria-hidden
-                className="absolute inset-x-0 bottom-0 h-[2px] bg-primary"
-              />
+              <span aria-hidden className="absolute inset-x-0 bottom-0 h-[2px] bg-primary" />
             ) : null}
           </Link>
         );

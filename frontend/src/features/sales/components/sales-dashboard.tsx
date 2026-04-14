@@ -18,7 +18,10 @@ export function SalesDashboard() {
           <p className="text-muted-foreground">Tu área Comercial y Ventas</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={() => setIsInboxOpen(true)} className="bg-primary text-primary-foreground">
+          <Button
+            onClick={() => setIsInboxOpen(true)}
+            className="bg-primary text-primary-foreground"
+          >
             <MessageSquare className="mr-2 h-4 w-4" />
             Inbox
           </Button>
@@ -29,10 +32,7 @@ export function SalesDashboard() {
       <ConversionCommandCenter />
 
       {/* Overlays */}
-      <SalesInboxSheet
-        open={isInboxOpen}
-        onOpenChange={setIsInboxOpen}
-      />
+      <SalesInboxSheet open={isInboxOpen} onOpenChange={setIsInboxOpen} />
     </div>
   );
 }

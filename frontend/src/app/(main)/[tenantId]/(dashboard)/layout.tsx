@@ -10,10 +10,7 @@ import { cn } from "@/lib/utils";
 
 // Routes that should render in workspace-style full-width mode. Add new
 // entries here when a new studio/editor needs the same treatment.
-const FULL_WIDTH_PATTERNS = [
-  "/sales/studio",
-  "/offer-studio/offer/",
-] as const;
+const FULL_WIDTH_PATTERNS = ["/sales/studio", "/offer-studio/offer/"] as const;
 
 function matchesFullWidth(pathname: string): boolean {
   return FULL_WIDTH_PATTERNS.some((pattern) => pathname.includes(pattern));
@@ -29,9 +26,7 @@ const MemoizedChildren = memo(function MemoizedChildren({
   return isFullWidth ? (
     <div className="h-screen pt-16 md:pt-0">{children}</div>
   ) : (
-    <div className="container mx-auto p-6 md:p-8 max-w-7xl h-full">
-      {children}
-    </div>
+    <div className="container mx-auto p-6 md:p-8 max-w-7xl h-full">{children}</div>
   );
 });
 
@@ -61,20 +56,14 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         )}
       >
         <CopilotStatusBar />
-        <MemoizedChildren isFullWidth={isFullWidth}>
-          {children}
-        </MemoizedChildren>
+        <MemoizedChildren isFullWidth={isFullWidth}>{children}</MemoizedChildren>
       </main>
       <CopilotSidebar />
     </div>
   );
 }
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <DashboardContent>{children}</DashboardContent>

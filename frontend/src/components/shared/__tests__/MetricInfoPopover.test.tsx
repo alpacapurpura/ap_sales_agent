@@ -10,11 +10,9 @@ describe("MetricInfoPopover", () => {
         description="Porcentaje de emails abiertos vs enviados"
       >
         <span>Open Rate</span>
-      </MetricInfoPopover>
+      </MetricInfoPopover>,
     );
-    expect(
-      screen.getByRole("button", { name: /info/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /info/i })).toBeInTheDocument();
     expect(screen.getByText("Open Rate")).toBeInTheDocument();
   });
 
@@ -27,7 +25,7 @@ describe("MetricInfoPopover", () => {
         benchmark={{ value: 21.5, source: "Campaign Monitor 2022" }}
       >
         <span>Open Rate</span>
-      </MetricInfoPopover>
+      </MetricInfoPopover>,
     );
     fireEvent.click(screen.getByRole("button", { name: /info/i }));
     expect(await screen.findByText("Tasa de Apertura")).toBeInTheDocument();
@@ -38,16 +36,11 @@ describe("MetricInfoPopover", () => {
 
   it("does not render popover content before click", () => {
     render(
-      <MetricInfoPopover
-        displayName="Click Rate"
-        description="Porcentaje de clicks"
-      >
+      <MetricInfoPopover displayName="Click Rate" description="Porcentaje de clicks">
         <span>Click Rate</span>
-      </MetricInfoPopover>
+      </MetricInfoPopover>,
     );
-    expect(
-      screen.queryByText("Porcentaje de clicks")
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Porcentaje de clicks")).not.toBeInTheDocument();
   });
 
   it("renders interpretation text when provided", async () => {
@@ -58,13 +51,11 @@ describe("MetricInfoPopover", () => {
         interpretation="Valores altos indican buena relevancia del contenido"
       >
         <span>CTR</span>
-      </MetricInfoPopover>
+      </MetricInfoPopover>,
     );
     fireEvent.click(screen.getByRole("button", { name: /info/i }));
     expect(
-      await screen.findByText(
-        "Valores altos indican buena relevancia del contenido"
-      )
+      await screen.findByText("Valores altos indican buena relevancia del contenido"),
     ).toBeInTheDocument();
   });
 
@@ -76,7 +67,7 @@ describe("MetricInfoPopover", () => {
         benchmark={{ value: 8.5 }}
       >
         <span>CPM</span>
-      </MetricInfoPopover>
+      </MetricInfoPopover>,
     );
     fireEvent.click(screen.getByRole("button", { name: /info/i }));
     expect(await screen.findByText("8.5")).toBeInTheDocument();
@@ -85,30 +76,21 @@ describe("MetricInfoPopover", () => {
 
   it("does not render formula section when formula is not provided", async () => {
     render(
-      <MetricInfoPopover
-        displayName="Gasto Total"
-        description="Total gastado en publicidad"
-      >
+      <MetricInfoPopover displayName="Gasto Total" description="Total gastado en publicidad">
         <span>Spend</span>
-      </MetricInfoPopover>
+      </MetricInfoPopover>,
     );
     fireEvent.click(screen.getByRole("button", { name: /info/i }));
-    expect(
-      await screen.findByText("Total gastado en publicidad")
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Total gastado en publicidad")).toBeInTheDocument();
     const codeElements = document.querySelectorAll("code");
     expect(codeElements.length).toBe(0);
   });
 
   it("applies custom className to wrapper", () => {
     const { container } = render(
-      <MetricInfoPopover
-        displayName="Test"
-        description="Test desc"
-        className="my-custom-class"
-      >
+      <MetricInfoPopover displayName="Test" description="Test desc" className="my-custom-class">
         <span>Test</span>
-      </MetricInfoPopover>
+      </MetricInfoPopover>,
     );
     const wrapper = container.firstElementChild;
     expect(wrapper?.classList.contains("my-custom-class")).toBe(true);

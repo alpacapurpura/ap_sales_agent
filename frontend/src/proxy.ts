@@ -6,18 +6,10 @@ const isPublicSiteRequest = (request: NextRequest) =>
   request.headers.get("X-Public-Site") === "true";
 
 // Routes that never require auth (sign-in would loop otherwise)
-const isPublicRoute = createRouteMatcher([
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/api/webhooks(.*)",
-]);
+const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/api/webhooks(.*)"]);
 
 // Dashboard routes — require Clerk auth
-const isDashboardRoute = createRouteMatcher([
-  "/(main)(.*)",
-  "/[tenantId](.*)",
-  "/onboarding(.*)",
-]);
+const isDashboardRoute = createRouteMatcher(["/(main)(.*)", "/[tenantId](.*)", "/onboarding(.*)"]);
 
 export default clerkMiddleware(async (auth, request) => {
   // Public site traffic (forwarded by Cloudflare Worker)

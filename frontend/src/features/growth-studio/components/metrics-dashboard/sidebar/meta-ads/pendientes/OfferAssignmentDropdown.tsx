@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 import {
   Select,
@@ -9,12 +9,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useCreateAssociation } from '../../../../../api/offer-association-api';
-import { archetypeEmoji } from '../../../../../types/offer-association';
-import type { OfferSummary } from '../../../../../types/offer-association';
+} from "@/components/ui/select";
+import { useCreateAssociation } from "../../../../../api/offer-association-api";
+import { archetypeEmoji } from "../../../../../types/offer-association";
+import type { OfferSummary } from "../../../../../types/offer-association";
 
-const OPTION_BRANDING = '__branding__';
+const OPTION_BRANDING = "__branding__";
 
 interface OfferAssignmentDropdownProps {
   campaignExternalId: string;
@@ -35,17 +35,17 @@ export function OfferAssignmentDropdown({
     try {
       if (value === OPTION_BRANDING) {
         await createMutation.mutateAsync({
-          targetType: 'campaign',
+          targetType: "campaign",
           targetExternalId: campaignExternalId,
           offerId: null,
-          associationType: 'excluded_branding',
+          associationType: "excluded_branding",
         });
       } else {
         await createMutation.mutateAsync({
-          targetType: 'campaign',
+          targetType: "campaign",
           targetExternalId: campaignExternalId,
           offerId: value,
-          associationType: 'manual',
+          associationType: "manual",
         });
       }
       onAssigned();
@@ -60,18 +60,13 @@ export function OfferAssignmentDropdown({
         Asignar offer a esta campaña
       </p>
       <div className="flex items-center gap-2">
-        <Select
-          onValueChange={v => void handleSelect(v)}
-          disabled={saving}
-        >
+        <Select onValueChange={(v) => void handleSelect(v)} disabled={saving}>
           <SelectTrigger className="h-9 text-xs flex-1 border-amber-500/30 bg-amber-500/5">
             <SelectValue placeholder="Elegir offer..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={OPTION_BRANDING}>
-              🎯 Marcar como Branding (sin offer)
-            </SelectItem>
-            {offers.map(o => (
+            <SelectItem value={OPTION_BRANDING}>🎯 Marcar como Branding (sin offer)</SelectItem>
+            {offers.map((o) => (
               <SelectItem key={o.id} value={o.id}>
                 <span className="flex items-center gap-1.5">
                   <span aria-hidden="true">{archetypeEmoji(o.archetype)}</span>
@@ -84,9 +79,7 @@ export function OfferAssignmentDropdown({
             ))}
           </SelectContent>
         </Select>
-        {saving && (
-          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
-        )}
+        {saving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />}
       </div>
     </div>
   );

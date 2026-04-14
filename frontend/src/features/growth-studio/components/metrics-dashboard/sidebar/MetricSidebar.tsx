@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
-import { TrendingUp, Info } from 'lucide-react';
+import type { ReactNode } from "react";
+import { TrendingUp, Info } from "lucide-react";
 import {
   DetailPanel,
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
-} from '@/components/ui/detail-panel';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import type { MetricClickData } from '../../../types/metrics';
-import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
-import { formatTenantDateTime } from '@/lib/format-date';
+} from "@/components/ui/detail-panel";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import type { MetricClickData } from "../../../types/metrics";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatTenantDateTime } from "@/lib/format-date";
 
 interface MetricSidebarProps {
   /** Whether the sidebar sheet is open */
@@ -42,8 +42,8 @@ export default function MetricSidebar({ isOpen, onClose, metric, children }: Met
 
   function formatValue(value: number, currency?: string): string {
     if (currency) {
-      return new Intl.NumberFormat('es-MX', {
-        style: 'currency',
+      return new Intl.NumberFormat("es-MX", {
+        style: "currency",
         currency,
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
@@ -51,7 +51,7 @@ export default function MetricSidebar({ isOpen, onClose, metric, children }: Met
     }
     if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
     if (value >= 1_000) return `${(value / 1_000).toFixed(1)}k`;
-    return value.toLocaleString('es-MX');
+    return value.toLocaleString("es-MX");
   }
 
   return (
@@ -61,7 +61,7 @@ export default function MetricSidebar({ isOpen, onClose, metric, children }: Met
           <DetailPanelTitle className="text-base font-semibold leading-tight">
             {hasMetric
               ? `${metric.channelSlug} — ${metric.metricName} detalle`
-              : 'Detalle de metrica'}
+              : "Detalle de metrica"}
           </DetailPanelTitle>
           {hasMetric && (
             <p className="text-xs text-muted-foreground capitalize">
@@ -97,8 +97,7 @@ export default function MetricSidebar({ isOpen, onClose, metric, children }: Met
               </div>
               {metric.lastUpdated && (
                 <p className="text-[10px] text-muted-foreground">
-                  Actualizado:{' '}
-                  {formatTenantDateTime(metric.lastUpdated.toISOString(), timezone)}
+                  Actualizado: {formatTenantDateTime(metric.lastUpdated.toISOString(), timezone)}
                 </p>
               )}
             </div>

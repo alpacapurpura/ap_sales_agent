@@ -32,9 +32,7 @@ export function PipelineColumn({ id, label, color, count, children }: PipelineCo
       </div>
 
       {/* Cards */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-2">
-        {children}
-      </div>
+      <div className="flex-1 overflow-y-auto p-2 space-y-2">{children}</div>
     </div>
   );
 }

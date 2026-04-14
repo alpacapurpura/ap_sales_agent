@@ -1,6 +1,15 @@
 export type StageId =
-  | 'ATRACCION_CAPTURA' | 'ATRACCION' | 'CAPTURA' | 'NUTRICION_OPORTUNIDAD' | 'NUTRICION' | 'OPORTUNIDAD'
-  | 'VENTAS' | 'ADOPCION' | 'EXPANSION_EVANGELIZACION' | 'EXPANSION' | 'EVANGELIZACION';
+  | "ATRACCION_CAPTURA"
+  | "ATRACCION"
+  | "CAPTURA"
+  | "NUTRICION_OPORTUNIDAD"
+  | "NUTRICION"
+  | "OPORTUNIDAD"
+  | "VENTAS"
+  | "ADOPCION"
+  | "EXPANSION_EVANGELIZACION"
+  | "EXPANSION"
+  | "EVANGELIZACION";
 
 /**
  * Single KPI header entry used in the 3-KPI header row of every detail panel.
@@ -83,11 +92,26 @@ export interface MetricValue {
   extra?: Record<string, unknown>;
 }
 
-export type GroupType = 'organic_social' | 'ga4_search' | 'paid' | 'outbound' | 'website' | 'web_infrastructure' | 'ai_agent' | 'retargeting' | 'automation' | 'checkout' | 'payment_links' | 'qualification' | 'adquisicion' | 'expansion' | 'available';
+export type GroupType =
+  | "organic_social"
+  | "ga4_search"
+  | "paid"
+  | "outbound"
+  | "website"
+  | "web_infrastructure"
+  | "ai_agent"
+  | "retargeting"
+  | "automation"
+  | "checkout"
+  | "payment_links"
+  | "qualification"
+  | "adquisicion"
+  | "expansion"
+  | "available";
 
 /** Sub-source breakdown for unified channels (e.g., Meta Direct + ManyChat) */
 export interface SubSource {
-  name: string;  // "Meta Direct", "ManyChat"
+  name: string; // "Meta Direct", "ManyChat"
   leads: number;
   conversations: number;
 }
@@ -135,7 +159,7 @@ export interface AttractionDetail {
 
 // === Capture (Stage 1) Types ===
 
-export type CaptureGroupType = 'web_infrastructure' | 'ai_agent' | 'available';
+export type CaptureGroupType = "web_infrastructure" | "ai_agent" | "available";
 
 export interface CaptureHeaderKpis {
   totalLeads: number;
@@ -144,9 +168,9 @@ export interface CaptureHeaderKpis {
 }
 
 export interface MiniFunnelData {
-  sourceLabel: string;  // "Visitantes"
+  sourceLabel: string; // "Visitantes"
   sourceValue: number;
-  targetLabel: string;  // "Leads"
+  targetLabel: string; // "Leads"
   targetValue: number;
   conversionRate: number; // percentage
 }
@@ -163,7 +187,7 @@ export interface CaptureDetail {
 
 // === Nurture (Stage 2) Types ===
 
-export type NurtureGroupType = 'retargeting' | 'automation' | 'available';
+export type NurtureGroupType = "retargeting" | "automation" | "available";
 
 export interface NurtureHeaderKpis {
   totalMqls: number;
@@ -189,26 +213,26 @@ export interface NurtureDetail {
 
 // === Opportunity (Stage 3) Types ===
 
-export type OpportunityGroupType = 'checkout' | 'payment_links' | 'qualification' | 'available';
+export type OpportunityGroupType = "checkout" | "payment_links" | "qualification" | "available";
 
 export interface OpportunityHeaderKpis {
   totalSqls: number;
-  conversionRate: number;        // percentage 0-100 (MQL -> SQL)
-  costPerSql: number | null;     // null = unconfigured
+  conversionRate: number; // percentage 0-100 (MQL -> SQL)
+  costPerSql: number | null; // null = unconfigured
 }
 
 export interface BottleneckData {
-  type: 'abandoned_cart' | 'meeting_no_show';
+  type: "abandoned_cart" | "meeting_no_show";
   metricLabel: string;
-  currentRate: number;           // percentage 0-100
-  severity: 'normal' | 'warning' | 'critical';
+  currentRate: number; // percentage 0-100
+  severity: "normal" | "warning" | "critical";
   threshold: number;
   tip: string;
 }
 
 export interface OpportunityDetail {
   headerKpis: OpportunityHeaderKpis;
-  miniFunnel: MiniFunnelData;    // reuse existing type
+  miniFunnel: MiniFunnelData; // reuse existing type
   checkout: TrafficGroup;
   paymentLinks: TrafficGroup;
   qualification: TrafficGroup;
@@ -224,7 +248,7 @@ export interface OfferSaleData {
   offerId: string;
   publicName: string;
   offerType: string;
-  pricingType: 'one_time' | 'subscription' | 'payment_plan';
+  pricingType: "one_time" | "subscription" | "payment_plan";
   totalRevenue: number;
   salesCount: number;
   currency: string;
@@ -245,7 +269,7 @@ export interface TierGroupData {
 }
 
 export interface RevenueGroupData {
-  groupKey: 'adquisicion' | 'expansion';
+  groupKey: "adquisicion" | "expansion";
   groupLabel: string;
   totalRevenue: number;
   totalRevenueUsd: number | null;
@@ -315,7 +339,7 @@ export interface AdoptionBottleneck {
   type: string;
   metricLabel: string;
   currentRate: number;
-  severity: 'normal' | 'warning' | 'critical';
+  severity: "normal" | "warning" | "critical";
   threshold: number;
   tip: string;
 }
@@ -341,7 +365,7 @@ export interface ExpansionOfferData {
 }
 
 export interface ExpansionGroupData {
-  groupKey: 'retencion' | 'crecimiento' | 'cancelaciones';
+  groupKey: "retencion" | "crecimiento" | "cancelaciones";
   groupLabel: string;
   groupSubtitle: string;
   totalCount: number;
@@ -365,7 +389,7 @@ export interface ExpansionBottleneck {
   type: string;
   metricLabel: string;
   currentRate: number;
-  severity: 'normal' | 'warning' | 'critical';
+  severity: "normal" | "warning" | "critical";
   threshold: number;
   tip: string;
 }
@@ -384,9 +408,9 @@ export interface ExpansionDetailData {
 // === Stage 7: Evangelizacion ===
 
 export interface EvangelizationHeaderKpis {
-  kFactor: number;           // X.XX
+  kFactor: number; // X.XX
   referralConversions: number;
-  npsScore: number | null;   // 0-10 scale, null if no data
+  npsScore: number | null; // 0-10 scale, null if no data
   referralRevenue: number;
   referralRevenueUsd: number | null;
   currency: string;
@@ -408,12 +432,12 @@ export interface EvangelistData {
 export interface CandidatoData {
   customerId: string;
   fullName: string;
-  npsScore: number;          // 0-10
+  npsScore: number; // 0-10
   respondedAt: string | null;
 }
 
 export interface NpsSummaryData {
-  npsScore: number | null;   // 0-10 average
+  npsScore: number | null; // 0-10 average
   standardNps: number | null; // -100 to +100
   promoterCount: number;
   passiveCount: number;
@@ -427,7 +451,7 @@ export interface EvangelizationBottleneck {
   type: string;
   metricLabel: string;
   currentRate: number;
-  severity: 'normal' | 'warning' | 'critical';
+  severity: "normal" | "warning" | "critical";
   threshold: number;
   tip: string;
 }
@@ -450,7 +474,12 @@ export interface EvangelizationDetail {
 // Metric Catalog (semantic aggregation rules)
 // ---------------------------------------------------------------------------
 
-export type MetricAggregation = 'additive' | 'weighted_average' | 'derived' | 'non_aggregable' | 'snapshot';
+export type MetricAggregation =
+  | "additive"
+  | "weighted_average"
+  | "derived"
+  | "non_aggregable"
+  | "snapshot";
 
 export interface MetricCatalogEntry {
   name: string;
@@ -491,7 +520,7 @@ export interface ChannelInfo {
 export interface StageTimeSeries {
   stage: string;
   metricName: string;
-  granularity: 'daily' | 'weekly';
+  granularity: "daily" | "weekly";
   rangeDays: number;
   dataPoints: TimeSeriesPoint[];
   channelsPresent: ChannelInfo[];
@@ -537,7 +566,7 @@ export interface YouTubeCountry {
 // Channel Dashboard (Meta Ads deep-dive)
 // ---------------------------------------------------------------------------
 
-export type MetaAdsPeriod = '7d' | '30d' | '90d';
+export type MetaAdsPeriod = "7d" | "30d" | "90d";
 
 export interface BenchmarkRange {
   low: number;
@@ -581,7 +610,7 @@ export interface FunnelStep {
 
 export interface FrequencyAlert {
   currentValue: number;
-  severity: 'warning' | 'critical';
+  severity: "warning" | "critical";
   message: string;
 }
 
@@ -597,18 +626,30 @@ export interface ChannelDashboardData {
   extraData?: Record<string, unknown> | null;
 }
 
-export type MetaAdsDashboardTab = 'resumen' | 'campanas' | 'pendientes' | 'creativos' | 'audiencia' | 'costos';
+export type MetaAdsDashboardTab =
+  | "resumen"
+  | "campanas"
+  | "pendientes"
+  | "creativos"
+  | "audiencia"
+  | "costos";
 
 /** Generic alias -- usable by any channel dashboard */
 export type ChannelDashboardPeriod = MetaAdsPeriod;
 
-export type IgOrganicDashboardTab = 'overview' | 'contenido' | 'audiencia' | 'alcance';
+export type IgOrganicDashboardTab = "overview" | "contenido" | "audiencia" | "alcance";
 
-export type YouTubeDashboardTab = 'overview' | 'videos' | 'audiencia' | 'engagement' | 'retencion';
+export type YouTubeDashboardTab = "overview" | "videos" | "audiencia" | "engagement" | "retencion";
 
-export type MailDashboardTab = 'panorama' | 'campanas' | 'automatizaciones' | 'audiencia' | 'entregabilidad' | 'crecimiento';
+export type MailDashboardTab =
+  | "panorama"
+  | "campanas"
+  | "automatizaciones"
+  | "audiencia"
+  | "entregabilidad"
+  | "crecimiento";
 
-export type WebsiteDashboardTab = 'overview' | 'trafico' | 'contenido' | 'conversiones';
+export type WebsiteDashboardTab = "overview" | "trafico" | "contenido" | "conversiones";
 
 // ── Campaign Performance Types ──
 
@@ -640,7 +681,7 @@ export interface CampaignWithMetrics {
   adSetsCount: number;
   adsCount: number;
   metrics: CampaignMetrics;
-  health: 'good' | 'warning' | 'critical';
+  health: "good" | "warning" | "critical";
 }
 
 export interface CampaignRecommendation {

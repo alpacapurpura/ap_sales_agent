@@ -1,15 +1,7 @@
 // Offer assets types — CONTRACT.md §6.5
-import type {
-  OfferAssetSource,
-  OfferAssetStatus,
-  OfferAssetType,
-} from "./enums";
+import type { OfferAssetSource, OfferAssetStatus, OfferAssetType } from "./enums";
 
-export type AssetSortKey =
-  | "created_desc"
-  | "created_asc"
-  | "name_asc"
-  | "name_desc";
+export type AssetSortKey = "created_desc" | "created_asc" | "name_asc" | "name_desc";
 
 export interface AssetListQuery {
   search?: string;

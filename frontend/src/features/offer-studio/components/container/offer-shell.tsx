@@ -23,9 +23,7 @@ const OfferShellContext = createContext<OfferShellContextValue | null>(null);
 export function useOfferShell(): OfferShellContextValue {
   const ctx = useContext(OfferShellContext);
   if (!ctx) {
-    throw new Error(
-      "useOfferShell must be used within an <OfferShell> provider.",
-    );
+    throw new Error("useOfferShell must be used within an <OfferShell> provider.");
   }
   return ctx;
 }
@@ -52,9 +50,7 @@ const DEFAULT_SNAPSHOT: OfferAutoSaveSnapshot = {
   lastSavedAt: null,
 };
 
-const OfferAutoSaveContext = createContext<OfferAutoSaveContextValue | null>(
-  null,
-);
+const OfferAutoSaveContext = createContext<OfferAutoSaveContextValue | null>(null);
 
 export function useOfferAutoSave(): OfferAutoSaveContextValue {
   const ctx = useContext(OfferAutoSaveContext);
@@ -84,9 +80,7 @@ export interface OfferShellProps {
  * mounted while `children` swap when the user moves between tabs.
  */
 export function OfferShell({ offer, counts, tenantId, children }: OfferShellProps) {
-  const [snapshot, setSnapshot] = useState<OfferAutoSaveSnapshot>(
-    DEFAULT_SNAPSHOT,
-  );
+  const [snapshot, setSnapshot] = useState<OfferAutoSaveSnapshot>(DEFAULT_SNAPSHOT);
 
   const shellValue = useMemo<OfferShellContextValue>(
     () => ({ offer, counts, tenantId }),
@@ -104,11 +98,7 @@ export function OfferShell({ offer, counts, tenantId, children }: OfferShellProp
         <div className="flex h-full flex-col bg-background">
           <OfferShellHeaderRow1 />
           <OfferShellHeaderRow2 />
-          <OfferTabBar
-            tenantId={tenantId}
-            offerId={offer.id}
-            counts={counts}
-          />
+          <OfferTabBar tenantId={tenantId} offerId={offer.id} counts={counts} />
           <main className="flex-1 overflow-y-auto">{children}</main>
         </div>
       </OfferAutoSaveContext.Provider>

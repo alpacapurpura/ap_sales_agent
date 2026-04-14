@@ -20,8 +20,7 @@ const COPY: Partial<Record<OfferArchetype, EditionsCopy>> = {
       "Las cohortes son grupos de alumnos que empiezan y terminan juntos en fechas fijas.",
     yesLabel: "Sí, en cohortes con fechas fijas",
     noLabel: "No, es evergreen (cada alumno entra cuando quiere)",
-    helper:
-      "Podés cambiar esta decisión más tarde desde la sección de detalles del programa.",
+    helper: "Podés cambiar esta decisión más tarde desde la sección de detalles del programa.",
   },
   [OfferArchetype.EXPERIENCIA]: {
     title: "¿Tendrá varias salidas en fechas distintas?",
@@ -29,17 +28,14 @@ const COPY: Partial<Record<OfferArchetype, EditionsCopy>> = {
       "Si vas a repetir esta experiencia en distintas fechas (ej: cada trimestre), elegí Sí.",
     yesLabel: "Sí, con múltiples salidas programadas",
     noLabel: "No, es una corrida única",
-    helper:
-      "Podés cambiar esta decisión más tarde desde la sección de detalles del evento.",
+    helper: "Podés cambiar esta decisión más tarde desde la sección de detalles del evento.",
   },
   [OfferArchetype.SERVICIO]: {
     title: "¿Se ofrecerá en convocatorias?",
-    description:
-      "Las convocatorias agrupan clientes que empiezan al mismo tiempo en fechas fijas.",
+    description: "Las convocatorias agrupan clientes que empiezan al mismo tiempo en fechas fijas.",
     yesLabel: "Sí, con convocatorias agrupadas",
     noLabel: "No, cada cliente agenda su propia fecha",
-    helper:
-      "Podés cambiar esta decisión más tarde desde la sección de detalles del servicio.",
+    helper: "Podés cambiar esta decisión más tarde desde la sección de detalles del servicio.",
   },
 };
 

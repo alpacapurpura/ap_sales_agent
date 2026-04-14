@@ -14,7 +14,7 @@ export type { UIAction };
  */
 function waitForElement(
   selector: string,
-  maxMs = 3000
+  maxMs = 3000,
 ): { promise: Promise<Element | null>; cancel: () => void } {
   let cancelled = false;
   let intervalId: ReturnType<typeof setInterval> | null = null;
@@ -78,11 +78,7 @@ function buildSectionSelector(sectionId: string): string {
 }
 
 function buildFieldSelector(fieldId: string): string {
-  return (
-    `#${CSS.escape(fieldId)}, ` +
-    `[data-field-id="${fieldId}"], ` +
-    `[name="${fieldId}"]`
-  );
+  return `#${CSS.escape(fieldId)}, ` + `[data-field-id="${fieldId}"], ` + `[name="${fieldId}"]`;
 }
 
 /**
@@ -114,9 +110,7 @@ export function useCopilotNavigator() {
         case "navigate": {
           if (!action.route) break;
           // Replace {tenantId} placeholder with actual tenant.
-          const route = tenantId
-            ? action.route.replace(/{tenantId}/g, tenantId)
-            : action.route;
+          const route = tenantId ? action.route.replace(/{tenantId}/g, tenantId) : action.route;
           navigate(route);
 
           // If a section_id is provided, wait for it to appear in the DOM
@@ -129,9 +123,7 @@ export function useCopilotNavigator() {
 
             promise.then((el) => {
               // Remove this canceller from the active list.
-              cancelersRef.current = cancelersRef.current.filter(
-                (c) => c !== cancel
-              );
+              cancelersRef.current = cancelersRef.current.filter((c) => c !== cancel);
 
               if (!el) return; // Element never appeared — give up silently.
 
@@ -162,13 +154,13 @@ export function useCopilotNavigator() {
                 formId: action.form_id,
                 prefillData: action.prefill_data,
               },
-            })
+            }),
           );
           break;
         }
       }
     },
-    [navigate, tenantId]
+    [navigate, tenantId],
   );
 
   // Process pending actions — read queue from store directly to avoid

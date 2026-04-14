@@ -1,28 +1,27 @@
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@clerk/nextjs';
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@clerk/nextjs";
 import {
   getYoutubeTopVideosEnriched,
   getYoutubeTrafficSources,
   getYoutubeDemographics,
   getYoutubeCountries,
-} from '../api/youtube-analytics-api';
+} from "../api/youtube-analytics-api";
 import type {
   YouTubeTopVideo,
   YouTubeTrafficSource,
   YouTubeDemographic,
   YouTubeCountry,
-} from '../types/metrics';
+} from "../types/metrics";
 
 export function useYoutubeTopVideos(enabled = false) {
   const { getToken } = useAuth();
-  const tenantId = typeof window !== 'undefined'
-    ? localStorage.getItem('x-tenant-id') : null;
+  const tenantId = typeof window !== "undefined" ? localStorage.getItem("x-tenant-id") : null;
 
   return useQuery<YouTubeTopVideo[]>({
-    queryKey: ['youtube-top-videos', tenantId],
+    queryKey: ["youtube-top-videos", tenantId],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return getYoutubeTopVideosEnriched(token);
     },
     enabled,
@@ -32,14 +31,13 @@ export function useYoutubeTopVideos(enabled = false) {
 
 export function useYoutubeTrafficSources(enabled = false) {
   const { getToken } = useAuth();
-  const tenantId = typeof window !== 'undefined'
-    ? localStorage.getItem('x-tenant-id') : null;
+  const tenantId = typeof window !== "undefined" ? localStorage.getItem("x-tenant-id") : null;
 
   return useQuery<YouTubeTrafficSource[]>({
-    queryKey: ['youtube-traffic-sources', tenantId],
+    queryKey: ["youtube-traffic-sources", tenantId],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return getYoutubeTrafficSources(token);
     },
     enabled,
@@ -49,14 +47,13 @@ export function useYoutubeTrafficSources(enabled = false) {
 
 export function useYoutubeDemographics(enabled = false) {
   const { getToken } = useAuth();
-  const tenantId = typeof window !== 'undefined'
-    ? localStorage.getItem('x-tenant-id') : null;
+  const tenantId = typeof window !== "undefined" ? localStorage.getItem("x-tenant-id") : null;
 
   return useQuery<YouTubeDemographic[]>({
-    queryKey: ['youtube-demographics', tenantId],
+    queryKey: ["youtube-demographics", tenantId],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return getYoutubeDemographics(token);
     },
     enabled,
@@ -66,14 +63,13 @@ export function useYoutubeDemographics(enabled = false) {
 
 export function useYoutubeCountries(enabled = false) {
   const { getToken } = useAuth();
-  const tenantId = typeof window !== 'undefined'
-    ? localStorage.getItem('x-tenant-id') : null;
+  const tenantId = typeof window !== "undefined" ? localStorage.getItem("x-tenant-id") : null;
 
   return useQuery<YouTubeCountry[]>({
-    queryKey: ['youtube-countries', tenantId],
+    queryKey: ["youtube-countries", tenantId],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return getYoutubeCountries(token);
     },
     enabled,

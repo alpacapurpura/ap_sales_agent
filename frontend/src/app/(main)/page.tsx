@@ -17,11 +17,11 @@ export default function RootPage() {
       if (lastTenantId) {
         router.replace(`/${lastTenantId}/brand-studio/esencia`);
       } else {
-        router.replace('/onboarding');
+        router.replace("/onboarding");
       }
     } else {
       // In case middleware missed it
-      router.replace('/sign-in');
+      router.replace("/sign-in");
     }
   }, [user, isLoaded, router]);
 

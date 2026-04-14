@@ -28,17 +28,11 @@ interface RecordingIndicatorProps {
   onStop: () => Promise<void>;
 }
 
-export function RecordingIndicator({
-  duration,
-  onCancel,
-  onStop,
-}: RecordingIndicatorProps) {
+export function RecordingIndicator({ duration, onCancel, onStop }: RecordingIndicatorProps) {
   return (
     <div className="flex flex-1 items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2">
       <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-      <span className="font-mono text-sm text-red-400">
-        {formatDuration(duration)}
-      </span>
+      <span className="font-mono text-sm text-red-400">{formatDuration(duration)}</span>
       <span className="text-xs text-gray-400">Grabando...</span>
       <div className="ml-auto flex items-center gap-1.5">
         <button

@@ -13,11 +13,11 @@
  * - Each notice lives in exactly one tab; Resumen aggregates counts.
  */
 
-export type NoticeCategory = 'campaign' | 'creative' | 'audience' | 'cost';
+export type NoticeCategory = "campaign" | "creative" | "audience" | "cost";
 
-export type NoticeTab = 'campanas' | 'creativos' | 'audiencia' | 'costos';
+export type NoticeTab = "campanas" | "creativos" | "audiencia" | "costos";
 
-export type NoticeSeverity = 'critical' | 'warning' | 'info';
+export type NoticeSeverity = "critical" | "warning" | "info";
 
 export interface ImprovementNotice {
   /**
@@ -59,25 +59,25 @@ export interface NoticesSummary {
 /** Map a notice category → its destination tab. */
 export function categoryToTab(category: NoticeCategory): NoticeTab {
   switch (category) {
-    case 'campaign':
-      return 'campanas';
-    case 'creative':
-      return 'creativos';
-    case 'audience':
-      return 'audiencia';
-    case 'cost':
-      return 'costos';
+    case "campaign":
+      return "campanas";
+    case "creative":
+      return "creativos";
+    case "audience":
+      return "audiencia";
+    case "cost":
+      return "costos";
   }
 }
 
 /** Ranking used to sort/compare severities. Lower number = more severe. */
 export function severityRank(severity: NoticeSeverity): number {
   switch (severity) {
-    case 'critical':
+    case "critical":
       return 0;
-    case 'warning':
+    case "warning":
       return 1;
-    case 'info':
+    case "info":
       return 2;
   }
 }

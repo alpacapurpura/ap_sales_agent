@@ -48,21 +48,18 @@ export function PipelineBoard() {
     return map;
   }, [data]);
 
-  const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over) return;
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
 
-      const leadId = active.id as string;
-      const newStage = over.id as string;
+    const leadId = active.id as string;
+    const newStage = over.id as string;
 
-      // Stage override via CRM pipeline endpoint
-      // This would call PUT /api/v1/crm/pipeline/{profile_id}/stage
-      // For now, we just invalidate
-      console.log("Move", leadId, "to", newStage);
-    },
-    [],
-  );
+    // Stage override via CRM pipeline endpoint
+    // This would call PUT /api/v1/crm/pipeline/{profile_id}/stage
+    // For now, we just invalidate
+    console.log("Move", leadId, "to", newStage);
+  }, []);
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

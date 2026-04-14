@@ -25,10 +25,21 @@ export interface ActiveProcedure {
 }
 
 export interface UIAction {
-  type: "navigate" | "scroll_to_field" | "open_form" | "proposal" | "procedure_progress"
-       | "metric_summary" | "comparison" | "checklist" | "multi_option"
-       | "alternatives_card" | "clarify_card" | "checkpoint_card" | "interview_complete"
-       | "preview_update";
+  type:
+    | "navigate"
+    | "scroll_to_field"
+    | "open_form"
+    | "proposal"
+    | "procedure_progress"
+    | "metric_summary"
+    | "comparison"
+    | "checklist"
+    | "multi_option"
+    | "alternatives_card"
+    | "clarify_card"
+    | "checkpoint_card"
+    | "interview_complete"
+    | "preview_update";
   route?: string;
   page_label?: string;
   section_id?: string;
@@ -51,7 +62,13 @@ export interface UIAction {
   // Interview card fields
   field_path?: string;
   question?: string;
-  alternatives?: Array<{ id: string; title: string; description: string; recommended?: boolean; recommendation_reason?: string }>;
+  alternatives?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    recommended?: boolean;
+    recommendation_reason?: string;
+  }>;
   allow_custom?: boolean;
   clarify_items?: Array<{ field_path: string; issue: string; options: string[] }>;
   block_id?: string;
@@ -122,7 +139,11 @@ interface CopilotState {
   addMessage: (msg: CopilotMessage) => void;
   appendToLastAssistant: (chunk: string) => void;
   addUIActionToLastAssistant: (action: UIAction) => void;
-  updateUIActionStatus: (messageId: string, actionIndex: number, status: NonNullable<UIAction["card_status"]>) => void;
+  updateUIActionStatus: (
+    messageId: string,
+    actionIndex: number,
+    status: NonNullable<UIAction["card_status"]>,
+  ) => void;
   setStatus: (status: CopilotStatus) => void;
   clearMessages: () => void;
 
@@ -165,7 +186,6 @@ interface CopilotState {
   previewData: Record<string, unknown> | null;
   updatePreviewData: (delta: Record<string, unknown>) => void;
   clearPreviewData: () => void;
-
 }
 
 // ── Constants ────────────────────────────────────────────────────────
@@ -196,8 +216,7 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
   sidebarState: "collapsed",
   isOpen: false,
 
-  setSidebarState: (state) =>
-    set({ sidebarState: state, isOpen: deriveIsOpen(state) }),
+  setSidebarState: (state) => set({ sidebarState: state, isOpen: deriveIsOpen(state) }),
 
   togglePanel: () =>
     set((s) => {
@@ -214,8 +233,7 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
 
   setConversationId: (id) => set({ conversationId: id }),
 
-  addMessage: (msg) =>
-    set((s) => ({ messages: appendWithLimit(s.messages, msg) })),
+  addMessage: (msg) => set((s) => ({ messages: appendWithLimit(s.messages, msg) })),
 
   appendToLastAssistant: (chunk) =>
     set((s) => {
@@ -261,8 +279,7 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
 
   // UI action queue
   pendingUIActions: [],
-  enqueuUIAction: (action) =>
-    set((s) => ({ pendingUIActions: [...s.pendingUIActions, action] })),
+  enqueuUIAction: (action) => set((s) => ({ pendingUIActions: [...s.pendingUIActions, action] })),
   dequeuUIAction: () => {
     const actions = get().pendingUIActions;
     if (actions.length === 0) return undefined;
@@ -293,7 +310,7 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
   updateFieldValue: (fieldId, value) =>
     set((s) => ({
       selectedFields: s.selectedFields.map((f) =>
-        f.fieldId === fieldId ? { ...f, fieldValue: value } : f
+        f.fieldId === fieldId ? { ...f, fieldValue: value } : f,
       ),
     })),
   clearSelectedFields: () => set({ selectedFields: [] }),
@@ -309,8 +326,7 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
   interviewSessionId: null,
   interviewProgress: null,
 
-  setInterviewSession: (id) =>
-    set({ interviewSessionId: id }),
+  setInterviewSession: (id) => set({ interviewSessionId: id }),
 
   setInterviewProgress: (p) => set({ interviewProgress: p }),
 

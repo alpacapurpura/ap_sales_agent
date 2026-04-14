@@ -15,7 +15,7 @@ export async function listDomains(token: string): Promise<TenantDomain[]> {
 export async function createDomain(
   token: string,
   hostname: string,
-  domainType: "platform" | "custom"
+  domainType: "platform" | "custom",
 ): Promise<TenantDomain> {
   const res = await fetchClient(BASE, {
     method: "POST",
@@ -40,10 +40,7 @@ export async function deleteDomain(token: string, id: string): Promise<void> {
   if (!res.ok) throw new Error("Error eliminando dominio");
 }
 
-export async function setPrimary(
-  token: string,
-  id: string
-): Promise<TenantDomain> {
+export async function setPrimary(token: string, id: string): Promise<TenantDomain> {
   const res = await fetchClient(`${BASE}/${id}`, {
     method: "PATCH",
     headers: {
@@ -56,10 +53,7 @@ export async function setPrimary(
   return res.json();
 }
 
-export async function verifyDomain(
-  token: string,
-  id: string
-): Promise<TenantDomain> {
+export async function verifyDomain(token: string, id: string): Promise<TenantDomain> {
   const res = await fetchClient(`${BASE}/${id}/verify`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
@@ -70,7 +64,7 @@ export async function verifyDomain(
 
 export async function getDomainInstructions(
   token: string,
-  id: string
+  id: string,
 ): Promise<DomainInstructions> {
   const res = await fetchClient(`${BASE}/${id}/instructions`, {
     headers: { Authorization: `Bearer ${token}` },

@@ -1,15 +1,15 @@
-import React from 'react';
-import { render, screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import React from "react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 // The card uses formatMoney, which pulls from tenant context transitively via
 // lib/format-money. format-money is a pure function — no mock needed.
 
-import { ResumenKpiCard } from '../ResumenKpiCard';
-import type { ResumenKpiCard as ResumenKpiCardData } from '../../hooks/useResumenViewData';
+import { ResumenKpiCard } from "../ResumenKpiCard";
+import type { ResumenKpiCard as ResumenKpiCardData } from "../../hooks/useResumenViewData";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -17,16 +17,16 @@ import type { ResumenKpiCard as ResumenKpiCardData } from '../../hooks/useResume
 
 function makeCard(overrides: Partial<ResumenKpiCardData> = {}): ResumenKpiCardData {
   return {
-    key: 'spend',
-    label: 'Inversión',
-    tooltipKey: 'spend',
+    key: "spend",
+    label: "Inversión",
+    tooltipKey: "spend",
     unavailableTooltipKey: null,
     value: 1234.56,
-    currency: 'PEN',
-    unit: 'currency',
+    currency: "PEN",
+    unit: "currency",
     higherIsBetter: null,
     deltaPct: null,
-    kind: 'value',
+    kind: "value",
     ...overrides,
   };
 }
@@ -43,21 +43,21 @@ function renderCard(card: ResumenKpiCardData, onCtaClick = vi.fn()) {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('ResumenKpiCard', () => {
-  it('renders label and a formatted currency value', () => {
+describe("ResumenKpiCard", () => {
+  it("renders label and a formatted currency value", () => {
     renderCard(makeCard());
-    expect(screen.getByText('Inversión')).toBeInTheDocument();
+    expect(screen.getByText("Inversión")).toBeInTheDocument();
     // formatMoney('PEN') uses es locale — just assert the number is rendered
     expect(screen.getByText(/1[.,]234[.,]56/)).toBeInTheDocument();
   });
 
-  it('renders a positive delta with the upward trend for higher-is-better metrics', () => {
+  it("renders a positive delta with the upward trend for higher-is-better metrics", () => {
     renderCard(
       makeCard({
-        key: 'roas',
-        label: 'ROAS',
-        tooltipKey: 'roas',
-        unit: 'ratio',
+        key: "roas",
+        label: "ROAS",
+        tooltipKey: "roas",
+        unit: "ratio",
         value: 2.4,
         higherIsBetter: true,
         deltaPct: 12.3,
@@ -71,10 +71,10 @@ describe('ResumenKpiCard', () => {
   it('renders a negative delta with downward trend for lower-is-better metrics as "good"', () => {
     renderCard(
       makeCard({
-        key: 'cpa',
-        label: 'CPA',
-        tooltipKey: 'cpa',
-        unit: 'currency',
+        key: "cpa",
+        label: "CPA",
+        tooltipKey: "cpa",
+        unit: "currency",
         value: 10,
         higherIsBetter: false,
         deltaPct: -5.5,
@@ -89,74 +89,74 @@ describe('ResumenKpiCard', () => {
   it('renders "—" with Info icon for unavailable cards and omits the delta', () => {
     renderCard(
       makeCard({
-        key: 'reach',
-        label: 'Alcance',
-        tooltipKey: 'reach_all',
-        unavailableTooltipKey: 'unavailable_generic',
+        key: "reach",
+        label: "Alcance",
+        tooltipKey: "reach_all",
+        unavailableTooltipKey: "unavailable_generic",
         value: null,
-        unit: 'count',
+        unit: "count",
         higherIsBetter: true,
         deltaPct: 10, // should be suppressed
-        kind: 'unavailable',
+        kind: "unavailable",
       }),
     );
-    const group = screen.getByRole('group');
-    expect(within(group).getByText('—')).toBeInTheDocument();
-    expect(screen.getByTestId('kpi-unavailable-icon')).toBeInTheDocument();
+    const group = screen.getByRole("group");
+    expect(within(group).getByText("—")).toBeInTheDocument();
+    expect(screen.getByTestId("kpi-unavailable-icon")).toBeInTheDocument();
     expect(within(group).queryByText(/vs ant\./)).toBeNull();
   });
 
   it('uses the "dato no disponible" aria-label for the unavailable state', () => {
     renderCard(
       makeCard({
-        key: 'reach',
-        label: 'Alcance',
-        tooltipKey: 'reach_all',
+        key: "reach",
+        label: "Alcance",
+        tooltipKey: "reach_all",
         unavailableTooltipKey: null,
         value: null,
-        unit: 'count',
+        unit: "count",
         higherIsBetter: true,
         deltaPct: null,
-        kind: 'unavailable',
+        kind: "unavailable",
       }),
     );
-    const group = screen.getByRole('group');
-    expect(group.getAttribute('aria-label')).toMatch(/Alcance: dato no disponible/);
+    const group = screen.getByRole("group");
+    expect(group.getAttribute("aria-label")).toMatch(/Alcance: dato no disponible/);
   });
 
-  it('embeds the spoken value in the aria-label for a normal card', () => {
+  it("embeds the spoken value in the aria-label for a normal card", () => {
     renderCard(
       makeCard({
-        key: 'ctr',
-        label: 'CTR',
-        tooltipKey: 'ctr',
-        unit: 'percentage',
+        key: "ctr",
+        label: "CTR",
+        tooltipKey: "ctr",
+        unit: "percentage",
         value: 2.45,
         higherIsBetter: true,
         deltaPct: 0.6,
       }),
     );
-    const group = screen.getByRole('group');
-    const label = group.getAttribute('aria-label') ?? '';
+    const group = screen.getByRole("group");
+    const label = group.getAttribute("aria-label") ?? "";
     expect(label).toMatch(/CTR: 2\.45 por ciento/);
     expect(label).toMatch(/variación 0\.6% respecto al período anterior/);
   });
 
-  it('shows tooltip content on hover', async () => {
+  it("shows tooltip content on hover", async () => {
     const user = userEvent.setup();
     renderCard(
       makeCard({
-        key: 'ctr',
-        label: 'CTR',
-        tooltipKey: 'ctr',
-        unit: 'percentage',
+        key: "ctr",
+        label: "CTR",
+        tooltipKey: "ctr",
+        unit: "percentage",
         value: 2.4,
         higherIsBetter: true,
       }),
     );
-    const trigger = screen.getByRole('group');
+    const trigger = screen.getByRole("group");
     await user.hover(trigger);
-    const tooltip = await screen.findByRole('tooltip');
+    const tooltip = await screen.findByRole("tooltip");
     expect(tooltip).toBeInTheDocument();
     // Shadcn tooltip has title + body — verify the title is rendered
     expect(within(tooltip).getByText(/CTR/)).toBeInTheDocument();
@@ -167,20 +167,20 @@ describe('ResumenKpiCard', () => {
     const user = userEvent.setup();
     renderCard(
       makeCard({
-        key: 'action',
-        label: '',
-        tooltipKey: '',
+        key: "action",
+        label: "",
+        tooltipKey: "",
         unavailableTooltipKey: null,
         value: null,
-        unit: 'count',
+        unit: "count",
         higherIsBetter: null,
         deltaPct: null,
-        kind: 'cta',
+        kind: "cta",
       }),
       onCtaClick,
     );
-    expect(screen.getByText('Acción requerida')).toBeInTheDocument();
-    const btn = screen.getByRole('button', { name: /Asignar ahora/i });
+    expect(screen.getByText("Acción requerida")).toBeInTheDocument();
+    const btn = screen.getByRole("button", { name: /Asignar ahora/i });
     await user.click(btn);
     expect(onCtaClick).toHaveBeenCalledTimes(1);
   });

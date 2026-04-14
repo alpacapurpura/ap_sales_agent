@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Sankey, SankeyGraph } from '@visx/sankey';
-import { ParentSize } from '@visx/responsive';
-import { sankeyJustify } from 'd3-sankey';
-import { StrategyCanvasConfig, MarketingNode, MarketingActionLink } from './config/types';
-import { adaptStrategyToVisx } from './utils/adapter';
-import NodeFactory from './nodes/NodeFactory';
-import BaseLink from './links/BaseLink';
-import ActionDetailsDrawer from './drawer/ActionDetailsDrawer';
+import React, { useState } from "react";
+import { Sankey, SankeyGraph } from "@visx/sankey";
+import { ParentSize } from "@visx/responsive";
+import { sankeyJustify } from "d3-sankey";
+import { StrategyCanvasConfig, MarketingNode, MarketingActionLink } from "./config/types";
+import { adaptStrategyToVisx } from "./utils/adapter";
+import NodeFactory from "./nodes/NodeFactory";
+import BaseLink from "./links/BaseLink";
+import ActionDetailsDrawer from "./drawer/ActionDetailsDrawer";
 
 interface StrategyCanvasProps {
   config: StrategyCanvasConfig;
@@ -18,7 +18,6 @@ const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
   const data = adaptStrategyToVisx(config);
   const [selectedLink, setSelectedLink] = useState<MarketingActionLink | null>(null);
 
-
   return (
     <div className="w-full h-full min-h-[600px] bg-slate-50 rounded-xl border border-slate-200 shadow-sm p-6 overflow-hidden relative flex flex-col">
       <div className="flex-1 overflow-x-auto overflow-y-hidden">
@@ -26,11 +25,17 @@ const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
           <ParentSize>
             {({ width, height }) => {
               if (width < 100 || height < 100) {
-                return <div className="p-4 text-xs text-gray-400">Waiting for dimensions... ({width}x{height})</div>;
+                return (
+                  <div className="p-4 text-xs text-gray-400">
+                    Waiting for dimensions... ({width}x{height})
+                  </div>
+                );
               }
 
               if (!data || !data.nodes || data.nodes.length === 0) {
-                return <div className="flex items-center justify-center h-full">No data available</div>;
+                return (
+                  <div className="flex items-center justify-center h-full">No data available</div>
+                );
               }
 
               return (
@@ -38,7 +43,10 @@ const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
                   root={data as unknown as SankeyGraph<MarketingNode, MarketingActionLink>}
                   nodeWidth={24}
                   nodePadding={20}
-                  extent={[[0, 0], [width, height]]}
+                  extent={[
+                    [0, 0],
+                    [width, height],
+                  ]}
                   nodeAlign={sankeyJustify}
                 >
                   {({ graph, createPath }) => {
@@ -55,7 +63,7 @@ const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
 
                     return (
                       <svg width={width} height={height} className="overflow-visible">
-                        <g style={{ mixBlendMode: 'multiply' }}>
+                        <g style={{ mixBlendMode: "multiply" }}>
                           {links.map((link, i) => (
                             <BaseLink
                               key={`link-${i}`}
@@ -63,7 +71,7 @@ const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
                               source={link.source as any}
                               target={link.target as any}
                               width={link.width ?? 1}
-                              pathData={createPath(link) ?? ''}
+                              pathData={createPath(link) ?? ""}
                               onClick={() => {
                                 setSelectedLink({
                                   ...(link as any),
@@ -93,8 +101,8 @@ const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
               );
             }}
           </ParentSize>
+        </div>
       </div>
-    </div>
       <ActionDetailsDrawer
         isOpen={!!selectedLink}
         onClose={() => setSelectedLink(null)}

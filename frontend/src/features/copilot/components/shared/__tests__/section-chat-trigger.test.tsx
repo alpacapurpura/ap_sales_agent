@@ -11,7 +11,7 @@ const mockStoreState = {
 
 vi.mock("@/features/copilot/store/copilot-store", () => ({
   useCopilotStore: vi.fn((selector?: (s: typeof mockStoreState) => unknown) =>
-    selector ? selector(mockStoreState) : mockStoreState
+    selector ? selector(mockStoreState) : mockStoreState,
   ),
 }));
 
@@ -24,27 +24,19 @@ describe("SectionChatTrigger", () => {
   });
 
   it("renders an icon button with accessible label", () => {
-    render(
-      <SectionChatTrigger sectionId="identity" sectionLabel="Identidad" />
-    );
-    expect(
-      screen.getByRole("button", { name: /consultar.*identidad/i })
-    ).toBeInTheDocument();
+    render(<SectionChatTrigger sectionId="identity" sectionLabel="Identidad" />);
+    expect(screen.getByRole("button", { name: /consultar.*identidad/i })).toBeInTheDocument();
   });
 
   it("renders the message circle icon", () => {
-    render(
-      <SectionChatTrigger sectionId="identity" sectionLabel="Identidad" />
-    );
+    render(<SectionChatTrigger sectionId="identity" sectionLabel="Identidad" />);
     const button = screen.getByRole("button");
     const svg = button.querySelector("svg");
     expect(svg).toBeTruthy();
   });
 
   it("opens copilot panel and sets context on click", () => {
-    render(
-      <SectionChatTrigger sectionId="tone" sectionLabel="Tono y Voz" />
-    );
+    render(<SectionChatTrigger sectionId="tone" sectionLabel="Tono y Voz" />);
     fireEvent.click(screen.getByRole("button"));
     expect(mockOpenPanel).toHaveBeenCalled();
     expect(mockAddSelectedField).toHaveBeenCalledWith({
@@ -56,11 +48,7 @@ describe("SectionChatTrigger", () => {
 
   it("applies additional className", () => {
     render(
-      <SectionChatTrigger
-        sectionId="identity"
-        sectionLabel="Identidad"
-        className="my-class"
-      />
+      <SectionChatTrigger sectionId="identity" sectionLabel="Identidad" className="my-class" />,
     );
     const button = screen.getByRole("button");
     expect(button.className).toContain("my-class");

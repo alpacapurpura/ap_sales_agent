@@ -30,7 +30,10 @@ const STATUS_CONFIG: Record<EditionStatus, { label: string; className: string }>
 export function EditionStatusBadge({ status }: { status: EditionStatus }) {
   const config = STATUS_CONFIG[status] ?? STATUS_CONFIG[EditionStatus.DRAFT];
   return (
-    <Badge variant="outline" className={cn("text-[10px] font-semibold uppercase", config.className)}>
+    <Badge
+      variant="outline"
+      className={cn("text-[10px] font-semibold uppercase", config.className)}
+    >
       {config.label}
     </Badge>
   );

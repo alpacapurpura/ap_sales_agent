@@ -21,7 +21,11 @@ interface ImportCurriculumDialogProps {
   onImport: (modules: any[]) => void;
 }
 
-export function ImportCurriculumDialog({ open, onOpenChange, onImport }: ImportCurriculumDialogProps) {
+export function ImportCurriculumDialog({
+  open,
+  onOpenChange,
+  onImport,
+}: ImportCurriculumDialogProps) {
   const [importText, setImportText] = useState("");
   const [isImporting, setIsImporting] = useState(false);
 
@@ -36,20 +40,21 @@ export function ImportCurriculumDialog({ open, onOpenChange, onImport }: ImportC
       const modules: any[] = [];
       let currentModule: any = null;
 
-      lines.forEach(line => {
+      lines.forEach((line) => {
         const trimmed = line.trim();
         if (!trimmed) return;
 
         // Detection Logic
-        const isModuleHeader = /^(module|módulo|week|semana|phase|fase)\s+\d+[:\.]?/i.test(trimmed) || 
-                               /^\d+\.\s+[A-Z]/.test(trimmed);
+        const isModuleHeader =
+          /^(module|módulo|week|semana|phase|fase)\s+\d+[:\.]?/i.test(trimmed) ||
+          /^\d+\.\s+[A-Z]/.test(trimmed);
 
         if (isModuleHeader || !currentModule) {
           // New Module
           currentModule = {
             title: trimmed.replace(/[:\.]\s*$/, ""),
             description: "",
-            topics: []
+            topics: [],
           };
           modules.push(currentModule);
         } else {
@@ -59,9 +64,9 @@ export function ImportCurriculumDialog({ open, onOpenChange, onImport }: ImportC
           } else {
             // Assume it's part of description if it's right after header, else topic
             if (currentModule.topics.length === 0 && !currentModule.description) {
-                currentModule.description = trimmed;
+              currentModule.description = trimmed;
             } else {
-                currentModule.topics.push(trimmed);
+              currentModule.topics.push(trimmed);
             }
           }
         }
@@ -74,11 +79,13 @@ export function ImportCurriculumDialog({ open, onOpenChange, onImport }: ImportC
         toast.success(`${modules.length} módulos importados correctamente`);
       } else {
         // Fallback: Treat whole text as one module
-        onImport([{
+        onImport([
+          {
             title: "Módulo Generado",
             description: importText,
-            topics: []
-        }]);
+            topics: [],
+          },
+        ]);
         setImportText("");
         onOpenChange(false);
         toast.success("Módulo generado correctamente");
@@ -103,27 +110,31 @@ export function ImportCurriculumDialog({ open, onOpenChange, onImport }: ImportC
             Pega tu temario o índice aquí. La IA detectará automáticamente módulos y lecciones.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="import-area">Contenido del Curso</Label>
-              <span className="text-xs text-muted-foreground">Soporta formato: &quot;Semana 1: Título&quot;</span>
+              <span className="text-xs text-muted-foreground">
+                Soporta formato: &quot;Semana 1: Título&quot;
+              </span>
             </div>
-            <Textarea 
-                id="import-area"
-                placeholder={`Semana 1: Fundamentos\n- Mentalidad\n- Configuración\n\nSemana 2: Estrategia\n- Avatar\n- Oferta`}
-                value={importText}
-                onChange={(e) => setImportText(e.target.value)}
-                className="min-h-[200px] font-mono text-sm"
+            <Textarea
+              id="import-area"
+              placeholder={`Semana 1: Fundamentos\n- Mentalidad\n- Configuración\n\nSemana 2: Estrategia\n- Avatar\n- Oferta`}
+              value={importText}
+              onChange={(e) => setImportText(e.target.value)}
+              className="min-h-[200px] font-mono text-sm"
             />
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button 
-            onClick={handleSmartImport} 
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSmartImport}
             disabled={!importText.trim() || isImporting}
             className="bg-indigo-600 hover:bg-indigo-700 text-white"
           >

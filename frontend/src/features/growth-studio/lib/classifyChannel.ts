@@ -1,4 +1,4 @@
-export type ChannelCategory = 'active' | 'disconnected' | 'no-data' | 'proximamente';
+export type ChannelCategory = "active" | "disconnected" | "no-data" | "proximamente";
 
 interface ClassifiableChannel {
   connected: boolean;
@@ -11,21 +11,21 @@ interface ClassifiableChannel {
  * Extracted from ChannelRow rendering logic for reuse in LazyChannelGroup.
  */
 export function classifyChannel(channel: ClassifiableChannel): ChannelCategory {
-  if (!channel.connected) return 'disconnected';
+  if (!channel.connected) return "disconnected";
 
   const hasEmptyOrZeroMetrics =
-    channel.metrics.length === 0 || channel.metrics.every(m => m.value === 0);
+    channel.metrics.length === 0 || channel.metrics.every((m) => m.value === 0);
 
   // "Próximamente" slugs — features not yet built
   if (
-    (channel.slug === 'ai-sdr' && hasEmptyOrZeroMetrics) ||
-    channel.slug === 'checkout-lp' ||
-    (channel.slug === 'link-enviado' && channel.metrics.length === 0)
+    (channel.slug === "ai-sdr" && hasEmptyOrZeroMetrics) ||
+    channel.slug === "checkout-lp" ||
+    (channel.slug === "link-enviado" && channel.metrics.length === 0)
   ) {
-    return 'proximamente';
+    return "proximamente";
   }
 
-  if (hasEmptyOrZeroMetrics) return 'no-data';
+  if (hasEmptyOrZeroMetrics) return "no-data";
 
-  return 'active';
+  return "active";
 }

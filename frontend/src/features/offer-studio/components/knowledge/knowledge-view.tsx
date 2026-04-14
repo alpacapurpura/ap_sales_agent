@@ -47,10 +47,7 @@ import {
   useUploadKnowledge,
 } from "../../hooks/use-knowledge";
 import { useOfferShell } from "../container/offer-shell";
-import type {
-  KnowledgeListQuery,
-  KnowledgeSourceResponse,
-} from "../../types/knowledge";
+import type { KnowledgeListQuery, KnowledgeSourceResponse } from "../../types/knowledge";
 import type { KnowledgeSourceType } from "../../types/enums";
 
 type TypeFilter = "all" | "pdf" | "video" | "url";
@@ -67,12 +64,7 @@ const URL_TYPES: Set<KnowledgeSourceType> = new Set([
   "url_article",
   "url_google_doc",
 ]);
-const PDF_TYPES: Set<KnowledgeSourceType> = new Set([
-  "pdf",
-  "docx",
-  "txt",
-  "markdown",
-]);
+const PDF_TYPES: Set<KnowledgeSourceType> = new Set(["pdf", "docx", "txt", "markdown"]);
 
 const STATUS_LABEL: Record<string, string> = {
   indexed: "Indexado",
@@ -88,10 +80,7 @@ const STATUS_CLASSES: Record<string, string> = {
   error: "bg-destructive/15 text-destructive border-destructive/30",
 };
 
-function matchesTypeFilter(
-  source: KnowledgeSourceResponse,
-  filter: TypeFilter,
-): boolean {
+function matchesTypeFilter(source: KnowledgeSourceResponse, filter: TypeFilter): boolean {
   if (filter === "all") return true;
   if (filter === "url") return URL_TYPES.has(source.type);
   if (filter === "pdf") return PDF_TYPES.has(source.type);
@@ -99,13 +88,7 @@ function matchesTypeFilter(
   return true;
 }
 
-function SourceIcon({
-  type,
-  className,
-}: {
-  type: KnowledgeSourceType;
-  className?: string;
-}) {
+function SourceIcon({ type, className }: { type: KnowledgeSourceType; className?: string }) {
   if (URL_TYPES.has(type)) {
     return <LinkIcon className={className} aria-hidden />;
   }
@@ -117,8 +100,7 @@ function SourceIcon({
 
 function sourceIconColors(type: KnowledgeSourceType) {
   if (URL_TYPES.has(type)) return "bg-success/15 border-success/30 text-success";
-  if (type === "video")
-    return "bg-destructive/15 border-destructive/30 text-destructive";
+  if (type === "video") return "bg-destructive/15 border-destructive/30 text-destructive";
   return "bg-info/15 border-info/30 text-info";
 }
 
@@ -149,18 +131,11 @@ export function KnowledgeView({ offerId }: { offerId: string }) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [urlDialogOpen, setUrlDialogOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] =
-    useState<KnowledgeSourceResponse | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<KnowledgeSourceResponse | null>(null);
 
-  const query = useMemo<KnowledgeListQuery>(
-    () => (search ? { search } : {}),
-    [search],
-  );
+  const query = useMemo<KnowledgeListQuery>(() => (search ? { search } : {}), [search]);
 
-  const { data, isLoading, isError, error, refetch } = useKnowledgeSources(
-    offerId,
-    query,
-  );
+  const { data, isLoading, isError, error, refetch } = useKnowledgeSources(offerId, query);
   const upload = useUploadKnowledge(offerId);
   const addUrl = useAddKnowledgeUrl(offerId);
   const remove = useDeleteKnowledge(offerId);
@@ -175,34 +150,21 @@ export function KnowledgeView({ offerId }: { offerId: string }) {
   };
 
   const filteredItems = useMemo(
-    () =>
-      (data?.items ?? []).filter((source) =>
-        matchesTypeFilter(source, typeFilter),
-      ),
+    () => (data?.items ?? []).filter((source) => matchesTypeFilter(source, typeFilter)),
     [data, typeFilter],
   );
 
   return (
-    <div
-      className="space-y-5 p-6"
-      role="region"
-      aria-label="Base de conocimiento"
-    >
+    <div className="space-y-5 p-6" role="region" aria-label="Base de conocimiento">
       {/* Intro callout */}
       <Alert className="border-info/30 bg-info/5 text-foreground">
         <Info className="h-4 w-4 text-info" aria-hidden />
-        <AlertTitle className="text-sm font-semibold">
-          Para qué sirve esta base
-        </AlertTitle>
+        <AlertTitle className="text-sm font-semibold">Para qué sirve esta base</AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground">
-          El Sales Agent lee estas fuentes para responder preguntas específicas
-          sobre <strong className="text-foreground">{offer.name}</strong>.
-          Cuando un cliente pregunte{" "}
-          <em className="text-foreground">
-            &ldquo;¿cuántos módulos son?&rdquo;
-          </em>
-          , el agente busca acá primero antes de responder. Sin fuentes, solo
-          puede usar lo que está en el editor.
+          El Sales Agent lee estas fuentes para responder preguntas específicas sobre{" "}
+          <strong className="text-foreground">{offer.name}</strong>. Cuando un cliente pregunte{" "}
+          <em className="text-foreground">&ldquo;¿cuántos módulos son?&rdquo;</em>, el agente busca
+          acá primero antes de responder. Sin fuentes, solo puede usar lo que está en el editor.
         </AlertDescription>
       </Alert>
 
@@ -272,12 +234,7 @@ export function KnowledgeView({ offerId }: { offerId: string }) {
           <AlertTitle>Error al cargar las fuentes</AlertTitle>
           <AlertDescription className="flex items-center justify-between gap-2">
             <span>{error?.message ?? "Intentalo nuevamente."}</span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
-            >
+            <Button type="button" variant="outline" size="sm" onClick={() => refetch()}>
               Reintentar
             </Button>
           </AlertDescription>
@@ -293,11 +250,7 @@ export function KnowledgeView({ offerId }: { offerId: string }) {
       )}
 
       {!isLoading && !isError && filteredItems.length > 0 && (
-        <ul
-          role="list"
-          aria-label="Lista de fuentes"
-          className="space-y-2"
-        >
+        <ul role="list" aria-label="Lista de fuentes" className="space-y-2">
           {filteredItems.map((source) => (
             <KnowledgeSourceRow
               key={source.id}
@@ -322,16 +275,13 @@ export function KnowledgeView({ offerId }: { offerId: string }) {
       />
 
       {/* Delete confirm */}
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Eliminar fuente</AlertDialogTitle>
             <AlertDialogDescription>
-              ¿Eliminar <strong>{deleteTarget?.name}</strong>? Se quitará del
-              índice del Sales Agent y ya no la podrá citar en respuestas.
+              ¿Eliminar <strong>{deleteTarget?.name}</strong>? Se quitará del índice del Sales Agent
+              y ya no la podrá citar en respuestas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -361,11 +311,7 @@ interface KnowledgeSourceRowProps {
   onDelete: () => void;
 }
 
-function KnowledgeSourceRow({
-  source,
-  onReindex,
-  onDelete,
-}: KnowledgeSourceRowProps) {
+function KnowledgeSourceRow({ source, onReindex, onDelete }: KnowledgeSourceRowProps) {
   const iconClass = sourceIconColors(source.type);
   const statusLabel = STATUS_LABEL[source.status] ?? source.status;
   const statusClass = STATUS_CLASSES[source.status] ?? STATUS_CLASSES.queued;
@@ -421,54 +367,23 @@ function KnowledgeSourceRow({
             {statusLabel}
           </span>
         </div>
-        <p className="truncate text-[11px] text-muted-foreground">
-          {metadataParts.join(" · ")}
-        </p>
+        <p className="truncate text-[11px] text-muted-foreground">{metadataParts.join(" · ")}</p>
       </div>
       <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
         {source.source_url || source.file_url ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Abrir fuente"
-            onClick={openSource}
-          >
-            <ExternalLink
-              className="h-4 w-4 text-muted-foreground"
-              aria-hidden
-            />
+          <Button variant="ghost" size="icon" aria-label="Abrir fuente" onClick={openSource}>
+            <ExternalLink className="h-4 w-4 text-muted-foreground" aria-hidden />
           </Button>
         ) : null}
         {source.file_url ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Descargar archivo"
-            onClick={downloadFile}
-          >
-            <Download
-              className="h-4 w-4 text-muted-foreground"
-              aria-hidden
-            />
+          <Button variant="ghost" size="icon" aria-label="Descargar archivo" onClick={downloadFile}>
+            <Download className="h-4 w-4 text-muted-foreground" aria-hidden />
           </Button>
         ) : null}
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Reindexar"
-          onClick={onReindex}
-        >
-          <RefreshCw
-            className="h-4 w-4 text-muted-foreground"
-            aria-hidden
-          />
+        <Button variant="ghost" size="icon" aria-label="Reindexar" onClick={onReindex}>
+          <RefreshCw className="h-4 w-4 text-muted-foreground" aria-hidden />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Eliminar"
-          onClick={onDelete}
-        >
+        <Button variant="ghost" size="icon" aria-label="Eliminar" onClick={onDelete}>
           <Trash2 className="h-4 w-4 text-destructive" aria-hidden />
         </Button>
       </div>
@@ -482,10 +397,7 @@ function KnowledgeListSkeleton() {
   return (
     <div className="space-y-2" aria-label="Cargando fuentes">
       {Array.from({ length: 4 }).map((_, idx) => (
-        <div
-          key={idx}
-          className="flex items-center gap-3 rounded-lg border border-border p-3"
-        >
+        <div key={idx} className="flex items-center gap-3 rounded-lg border border-border p-3">
           <Skeleton className="h-10 w-10 rounded-md" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-3 w-2/3" />
@@ -520,8 +432,8 @@ function KnowledgeEmptyState({
             : "Todavía no hay fuentes de conocimiento"}
         </h3>
         <p className="max-w-sm text-xs text-muted-foreground">
-          Subí PDFs, webinars o pegá URLs para que el Sales Agent pueda
-          responder preguntas específicas sobre esta oferta.
+          Subí PDFs, webinars o pegá URLs para que el Sales Agent pueda responder preguntas
+          específicas sobre esta oferta.
         </p>
       </div>
       {!hasAny && (
@@ -549,12 +461,7 @@ interface KnowledgeUrlDialogProps {
   onSubmit: (payload: { url: string; name?: string }) => void;
 }
 
-function KnowledgeUrlDialog({
-  open,
-  onOpenChange,
-  isPending,
-  onSubmit,
-}: KnowledgeUrlDialogProps) {
+function KnowledgeUrlDialog({ open, onOpenChange, isPending, onSubmit }: KnowledgeUrlDialogProps) {
   const [url, setUrl] = useState("");
   const [name, setName] = useState("");
 
@@ -576,8 +483,7 @@ function KnowledgeUrlDialog({
         <DialogHeader>
           <DialogTitle>Agregar fuente desde URL</DialogTitle>
           <DialogDescription>
-            Soportamos YouTube (transcripción automática), blog posts y Google
-            Docs públicos.
+            Soportamos YouTube (transcripción automática), blog posts y Google Docs públicos.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3 py-2">
@@ -607,17 +513,11 @@ function KnowledgeUrlDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isPending}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
             Cancelar
           </Button>
           <Button onClick={handleSubmit} disabled={isPending || !url.trim()}>
-            {isPending && (
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" aria-hidden />
-            )}
+            {isPending && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" aria-hidden />}
             Agregar
           </Button>
         </DialogFooter>
@@ -635,12 +535,7 @@ interface ChipGroupProps<T extends string> {
   onChange: (value: T) => void;
 }
 
-function ChipGroup<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-}: ChipGroupProps<T>) {
+function ChipGroup<T extends string>({ label, value, options, onChange }: ChipGroupProps<T>) {
   return (
     <div className="flex items-center gap-2" role="group" aria-label={label}>
       <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">

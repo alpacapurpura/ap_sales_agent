@@ -32,11 +32,16 @@ export function ActivityFeedWidget() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case "payment": return <CreditCard className="h-4 w-4 text-green-500" />;
-      case "appointment": return <CalendarCheck className="h-4 w-4 text-blue-500" />;
-      case "lead": return <UserPlus className="h-4 w-4 text-purple-500" />;
-      case "alert": return <AlertCircle className="h-4 w-4 text-red-500" />;
-      default: return <UserPlus className="h-4 w-4" />;
+      case "payment":
+        return <CreditCard className="h-4 w-4 text-green-500" />;
+      case "appointment":
+        return <CalendarCheck className="h-4 w-4 text-blue-500" />;
+      case "lead":
+        return <UserPlus className="h-4 w-4 text-purple-500" />;
+      case "alert":
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <UserPlus className="h-4 w-4" />;
     }
   };
 
@@ -50,10 +55,11 @@ export function ActivityFeedWidget() {
           <div className="space-y-4">
             {activities.length > 0 ? (
               activities.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3 pb-3 border-b last:border-0 last:pb-0">
-                  <div className="mt-1 bg-muted p-1.5 rounded-full">
-                    {getIcon(activity.type)}
-                  </div>
+                <div
+                  key={activity.id}
+                  className="flex items-start gap-3 pb-3 border-b last:border-0 last:pb-0"
+                >
+                  <div className="mt-1 bg-muted p-1.5 rounded-full">{getIcon(activity.type)}</div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium leading-none">{activity.title}</p>
@@ -65,7 +71,10 @@ export function ActivityFeedWidget() {
                       {activity.description}
                     </p>
                     {activity.amount && (
-                      <Badge variant="secondary" className="mt-1 text-xs font-normal text-green-700 bg-green-50 border-green-200">
+                      <Badge
+                        variant="secondary"
+                        className="mt-1 text-xs font-normal text-green-700 bg-green-50 border-green-200"
+                      >
                         +{activity.amount}
                       </Badge>
                     )}

@@ -30,9 +30,7 @@ export function OfferShellHeaderRow1() {
   const { offer, tenantId } = useOfferShell();
   const autoSave = useOfferAutoSave();
 
-  const [pendingStatus, setPendingStatus] = useState<
-    OfferLifecycleStatus | null
-  >(null);
+  const [pendingStatus, setPendingStatus] = useState<OfferLifecycleStatus | null>(null);
 
   const statusMutation = useChangeOfferStatus(offer.id, {
     onSuccess: () => setPendingStatus(null),
@@ -119,9 +117,7 @@ export function OfferShellHeaderRow1() {
                   event.preventDefault();
                   handleArchive();
                 }}
-                disabled={
-                  currentStatus === "archived" || statusMutation.isPending
-                }
+                disabled={currentStatus === "archived" || statusMutation.isPending}
               >
                 <Archive className="mr-2 h-4 w-4" aria-hidden />
                 Archivar
@@ -163,10 +159,7 @@ export function OfferShellHeaderRow1() {
   );
 }
 
-function buildFormatLabel(offer: {
-  archetype?: string;
-  format_hint?: string;
-}): string | null {
+function buildFormatLabel(offer: { archetype?: string; format_hint?: string }): string | null {
   if (offer.archetype && offer.format_hint) {
     return `${offer.archetype} · ${offer.format_hint}`;
   }

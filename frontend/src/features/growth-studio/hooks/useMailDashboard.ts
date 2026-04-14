@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@clerk/nextjs';
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@clerk/nextjs";
 
 import {
   fetchEmailDashboard,
@@ -10,7 +10,7 @@ import {
   fetchEmailAudience,
   fetchEmailHealth,
   fetchEmailGrowth,
-} from '../api/mail-api';
+} from "../api/mail-api";
 import type {
   EmailDashboardData,
   EmailCampaignsData,
@@ -18,31 +18,31 @@ import type {
   EmailAudienceData,
   EmailHealthData,
   EmailGrowthData,
-} from '../types/mail-types';
-import type { MetaAdsPeriod } from '../types/metrics';
+} from "../types/mail-types";
+import type { MetaAdsPeriod } from "../types/metrics";
 
 /**
  * Resolve tenant ID the same way useChannelDashboard does:
  * localStorage fallback (fetchClient also injects X-Tenant-ID automatically).
  */
 function getTenantId(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('x-tenant-id');
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("x-tenant-id");
 }
 
 // ---------------------------------------------------------------------------
 // Panorama / Sidebar (main dashboard)
 // ---------------------------------------------------------------------------
 
-export function useMailDashboard(period: MetaAdsPeriod = '30d', enabled = true) {
+export function useMailDashboard(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   const tenantId = getTenantId();
 
   return useQuery<EmailDashboardData>({
-    queryKey: ['mail-dashboard', tenantId, period],
+    queryKey: ["mail-dashboard", tenantId, period],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return fetchEmailDashboard(token, period);
     },
     enabled,
@@ -55,15 +55,15 @@ export function useMailDashboard(period: MetaAdsPeriod = '30d', enabled = true) 
 // Campaigns Tab
 // ---------------------------------------------------------------------------
 
-export function useMailCampaigns(period: MetaAdsPeriod = '30d', enabled = true) {
+export function useMailCampaigns(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   const tenantId = getTenantId();
 
   return useQuery<EmailCampaignsData>({
-    queryKey: ['mail-campaigns', tenantId, period],
+    queryKey: ["mail-campaigns", tenantId, period],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return fetchEmailCampaigns(token, period);
     },
     enabled,
@@ -76,15 +76,15 @@ export function useMailCampaigns(period: MetaAdsPeriod = '30d', enabled = true) 
 // Automations Tab
 // ---------------------------------------------------------------------------
 
-export function useMailAutomations(period: MetaAdsPeriod = '30d', enabled = true) {
+export function useMailAutomations(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   const tenantId = getTenantId();
 
   return useQuery<EmailAutomationsData>({
-    queryKey: ['mail-automations', tenantId, period],
+    queryKey: ["mail-automations", tenantId, period],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return fetchEmailAutomations(token, period);
     },
     enabled,
@@ -97,15 +97,15 @@ export function useMailAutomations(period: MetaAdsPeriod = '30d', enabled = true
 // Audience Tab
 // ---------------------------------------------------------------------------
 
-export function useMailAudience(period: MetaAdsPeriod = '30d', enabled = true) {
+export function useMailAudience(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   const tenantId = getTenantId();
 
   return useQuery<EmailAudienceData>({
-    queryKey: ['mail-audience', tenantId, period],
+    queryKey: ["mail-audience", tenantId, period],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return fetchEmailAudience(token, period);
     },
     enabled,
@@ -118,15 +118,15 @@ export function useMailAudience(period: MetaAdsPeriod = '30d', enabled = true) {
 // Health Tab (Entregabilidad)
 // ---------------------------------------------------------------------------
 
-export function useMailHealth(period: MetaAdsPeriod = '30d', enabled = true) {
+export function useMailHealth(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   const tenantId = getTenantId();
 
   return useQuery<EmailHealthData>({
-    queryKey: ['mail-health', tenantId, period],
+    queryKey: ["mail-health", tenantId, period],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return fetchEmailHealth(token, period);
     },
     enabled,
@@ -139,15 +139,15 @@ export function useMailHealth(period: MetaAdsPeriod = '30d', enabled = true) {
 // Growth Tab (Crecimiento)
 // ---------------------------------------------------------------------------
 
-export function useMailGrowth(period: MetaAdsPeriod = '30d', enabled = true) {
+export function useMailGrowth(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   const tenantId = getTenantId();
 
   return useQuery<EmailGrowthData>({
-    queryKey: ['mail-growth', tenantId, period],
+    queryKey: ["mail-growth", tenantId, period],
     queryFn: async () => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
+      if (!token) throw new Error("No auth token");
       return fetchEmailGrowth(token, period);
     },
     enabled,

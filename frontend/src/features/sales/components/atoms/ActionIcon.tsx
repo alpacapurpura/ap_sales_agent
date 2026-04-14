@@ -13,14 +13,14 @@ interface ActionIconProps {
   disabled?: boolean;
 }
 
-export function ActionIcon({ 
-  icon: Icon, 
-  label, 
-  onClick, 
-  variant = "ghost", 
+export function ActionIcon({
+  icon: Icon,
+  label,
+  onClick,
+  variant = "ghost",
   size = "icon",
   className,
-  disabled
+  disabled,
 }: ActionIconProps) {
   return (
     <TooltipProvider>

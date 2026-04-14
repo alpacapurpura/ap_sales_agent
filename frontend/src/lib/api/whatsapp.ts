@@ -8,7 +8,7 @@ export interface WhatsAppProviderStatus {
   profile?: {
     first_name?: string;
     remote_jid?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   detail?: string;
 }
@@ -35,14 +35,17 @@ export const whatsappApi = {
     return res.json();
   },
 
-  createSession: async (token: string, provider: "evolution" | "meta" = "evolution"): Promise<void> => {
+  createSession: async (
+    token: string,
+    provider: "evolution" | "meta" = "evolution",
+  ): Promise<void> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/whatsapp/session`, {
       method: "POST",
-      headers: { 
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ provider })
+      body: JSON.stringify({ provider }),
     });
     if (!res.ok) throw new Error("Error creating session");
   },
@@ -55,12 +58,18 @@ export const whatsappApi = {
     return res.json();
   },
 
-  disconnect: async (token: string, provider: "evolution" | "meta" = "evolution"): Promise<void> => {
+  disconnect: async (
+    token: string,
+    provider: "evolution" | "meta" = "evolution",
+  ): Promise<void> => {
     // Pass provider as query param
-    const res = await fetchClient(`${API_URL}/api/v1/connections/whatsapp/session?provider=${provider}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetchClient(
+      `${API_URL}/api/v1/connections/whatsapp/session?provider=${provider}`,
+      {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     if (!res.ok) throw new Error("Error disconnecting");
   },
 };

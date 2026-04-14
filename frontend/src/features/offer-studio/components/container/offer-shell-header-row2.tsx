@@ -20,10 +20,7 @@ export function OfferShellHeaderRow2() {
 
   return (
     <div
-      className={cn(
-        "flex h-[44px] items-center justify-between gap-4 border-b",
-        "bg-card/30 px-6",
-      )}
+      className={cn("flex h-[44px] items-center justify-between gap-4 border-b", "bg-card/30 px-6")}
     >
       <OfferProgressBar
         percentage={progress.percentage}
@@ -72,9 +69,7 @@ function computeProgress(offer: Parameters<typeof getOfferHealth>[0]): ProgressS
     }
   }
 
-  const nextMilestone = nextMilestoneId
-    ? SECTION_REGISTRY[nextMilestoneId]?.title ?? null
-    : null;
+  const nextMilestone = nextMilestoneId ? (SECTION_REGISTRY[nextMilestoneId]?.title ?? null) : null;
 
   return {
     percentage: health.completionPercentage,

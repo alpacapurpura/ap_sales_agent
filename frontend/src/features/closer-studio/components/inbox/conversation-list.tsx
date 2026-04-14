@@ -43,7 +43,9 @@ export function ConversationList() {
       // Persist last conversation per tenant
       try {
         localStorage.setItem(`closer-studio:lastLead:${tenantId}`, leadId);
-      } catch { /* quota exceeded — non-critical */ }
+      } catch {
+        /* quota exceeded — non-critical */
+      }
       router.replace(`${pathname}?lead=${leadId}`, { scroll: false });
     },
     [setSelectedLeadId, router, pathname, tenantId],

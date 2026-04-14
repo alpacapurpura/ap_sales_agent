@@ -1,9 +1,9 @@
-import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useBowtiesSummary } from '../useBowtiesSummary';
-import type { BowtiesSummary } from '@/features/growth-studio/types/summary';
+import React from "react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useBowtiesSummary } from "../useBowtiesSummary";
+import type { BowtiesSummary } from "@/features/growth-studio/types/summary";
 
 // ── Inline test helpers ──────────────────────────────────────────────────────
 
@@ -28,13 +28,13 @@ function createHookWrapper() {
 
 const mockFetchBowtiesSummary = vi.fn();
 
-vi.mock('@/features/growth-studio/api/summary-api', () => ({
+vi.mock("@/features/growth-studio/api/summary-api", () => ({
   fetchBowtiesSummary: (...args: unknown[]) => mockFetchBowtiesSummary(...args),
 }));
 
-vi.mock('@clerk/nextjs', () => ({
+vi.mock("@clerk/nextjs", () => ({
   useAuth: () => ({
-    getToken: vi.fn().mockResolvedValue('mock-test-token'),
+    getToken: vi.fn().mockResolvedValue("mock-test-token"),
     isLoaded: true,
     isSignedIn: true,
   }),
@@ -44,27 +44,84 @@ vi.mock('@clerk/nextjs', () => ({
 
 const mockSummaryData: BowtiesSummary = {
   stages: [
-    { stage: 'attraction', mainKpi: 45000, mainLabel: 'visitantes', secondaryKpi: 8, secondaryLabel: 'canales activos' },
-    { stage: 'capture', mainKpi: 8500, mainLabel: 'leads', secondaryKpi: 18.9, secondaryLabel: 'tasa conversion', secondaryUnit: '%' },
-    { stage: 'nurture', mainKpi: 3200, mainLabel: 'MQLs', secondaryKpi: 37.6, secondaryLabel: 'engagement rate', secondaryUnit: '%' },
-    { stage: 'opportunity', mainKpi: 850, mainLabel: 'SQLs', secondaryKpi: 26.6, secondaryLabel: 'pipeline value', secondaryUnit: '%' },
-    { stage: 'sales', mainKpi: 1260000, mainLabel: 'revenue', mainUnit: '$', secondaryKpi: 52.9, secondaryLabel: 'conversion', secondaryUnit: '%' },
-    { stage: 'adoption', mainKpi: 88.9, mainLabel: 'salud %', mainUnit: '%', secondaryKpi: 400, secondaryLabel: 'activos' },
-    { stage: 'expansion', mainKpi: 42000, mainLabel: 'net MRR', mainUnit: '$', secondaryKpi: 2.3, secondaryLabel: 'churn rate', secondaryUnit: '%' },
-    { stage: 'evangelization', mainKpi: 1.8, mainLabel: 'k-factor', secondaryKpi: 15.2, secondaryLabel: 'conversion', secondaryUnit: '%' },
+    {
+      stage: "attraction",
+      mainKpi: 45000,
+      mainLabel: "visitantes",
+      secondaryKpi: 8,
+      secondaryLabel: "canales activos",
+    },
+    {
+      stage: "capture",
+      mainKpi: 8500,
+      mainLabel: "leads",
+      secondaryKpi: 18.9,
+      secondaryLabel: "tasa conversion",
+      secondaryUnit: "%",
+    },
+    {
+      stage: "nurture",
+      mainKpi: 3200,
+      mainLabel: "MQLs",
+      secondaryKpi: 37.6,
+      secondaryLabel: "engagement rate",
+      secondaryUnit: "%",
+    },
+    {
+      stage: "opportunity",
+      mainKpi: 850,
+      mainLabel: "SQLs",
+      secondaryKpi: 26.6,
+      secondaryLabel: "pipeline value",
+      secondaryUnit: "%",
+    },
+    {
+      stage: "sales",
+      mainKpi: 1260000,
+      mainLabel: "revenue",
+      mainUnit: "$",
+      secondaryKpi: 52.9,
+      secondaryLabel: "conversion",
+      secondaryUnit: "%",
+    },
+    {
+      stage: "adoption",
+      mainKpi: 88.9,
+      mainLabel: "salud %",
+      mainUnit: "%",
+      secondaryKpi: 400,
+      secondaryLabel: "activos",
+    },
+    {
+      stage: "expansion",
+      mainKpi: 42000,
+      mainLabel: "net MRR",
+      mainUnit: "$",
+      secondaryKpi: 2.3,
+      secondaryLabel: "churn rate",
+      secondaryUnit: "%",
+    },
+    {
+      stage: "evangelization",
+      mainKpi: 1.8,
+      mainLabel: "k-factor",
+      secondaryKpi: 15.2,
+      secondaryLabel: "conversion",
+      secondaryUnit: "%",
+    },
   ],
-  period: 'last_30_days',
-  lastUpdated: '2026-03-14T03:15:00Z',
+  period: "last_30_days",
+  lastUpdated: "2026-03-14T03:15:00Z",
 };
 
 // ── Tests ────────────────────────────────────────────────────────────────────
 
-describe('useBowtiesSummary', () => {
+describe("useBowtiesSummary", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    Object.defineProperty(globalThis, 'localStorage', {
+    Object.defineProperty(globalThis, "localStorage", {
       value: {
-        getItem: vi.fn().mockReturnValue('test-tenant-id'),
+        getItem: vi.fn().mockReturnValue("test-tenant-id"),
         setItem: vi.fn(),
         removeItem: vi.fn(),
         clear: vi.fn(),
@@ -76,7 +133,7 @@ describe('useBowtiesSummary', () => {
     });
   });
 
-  it('returns loading state initially', () => {
+  it("returns loading state initially", () => {
     mockFetchBowtiesSummary.mockReturnValue(new Promise(() => {})); // never resolves
     const { wrapper } = createHookWrapper();
 
@@ -86,7 +143,7 @@ describe('useBowtiesSummary', () => {
     expect(result.current.data).toBeUndefined();
   });
 
-  it('returns summary data on successful fetch', async () => {
+  it("returns summary data on successful fetch", async () => {
     mockFetchBowtiesSummary.mockResolvedValue(mockSummaryData);
     const { wrapper } = createHookWrapper();
 
@@ -98,13 +155,13 @@ describe('useBowtiesSummary', () => {
 
     expect(result.current.data).toEqual(mockSummaryData);
     expect(result.current.data?.stages).toHaveLength(8);
-    expect(result.current.data?.period).toBe('last_30_days');
-    expect(result.current.data?.stages[0].stage).toBe('attraction');
+    expect(result.current.data?.period).toBe("last_30_days");
+    expect(result.current.data?.stages[0].stage).toBe("attraction");
     expect(result.current.data?.stages[0].mainKpi).toBe(45000);
   });
 
-  it('surfaces error on failed fetch', async () => {
-    const apiError = new Error('Summary API returned 500');
+  it("surfaces error on failed fetch", async () => {
+    const apiError = new Error("Summary API returned 500");
     mockFetchBowtiesSummary.mockRejectedValue(apiError);
     const { wrapper } = createHookWrapper();
 
@@ -115,10 +172,10 @@ describe('useBowtiesSummary', () => {
     });
 
     expect(result.current.error).toBeDefined();
-    expect(result.current.error?.message).toContain('Summary API returned 500');
+    expect(result.current.error?.message).toContain("Summary API returned 500");
   });
 
-  it('passes the auth token to fetchBowtiesSummary', async () => {
+  it("passes the auth token to fetchBowtiesSummary", async () => {
     mockFetchBowtiesSummary.mockResolvedValue(mockSummaryData);
     const { wrapper } = createHookWrapper();
 
@@ -128,10 +185,10 @@ describe('useBowtiesSummary', () => {
       expect(mockFetchBowtiesSummary).toHaveBeenCalled();
     });
 
-    expect(mockFetchBowtiesSummary).toHaveBeenCalledWith('mock-test-token');
+    expect(mockFetchBowtiesSummary).toHaveBeenCalledWith("mock-test-token");
   });
 
-  it('includes tenantId in the query key', async () => {
+  it("includes tenantId in the query key", async () => {
     mockFetchBowtiesSummary.mockResolvedValue(mockSummaryData);
     const { wrapper, queryClient } = createHookWrapper();
 
@@ -143,8 +200,8 @@ describe('useBowtiesSummary', () => {
 
     const queryCache = queryClient.getQueryCache();
     const queries = queryCache.getAll();
-    const summaryQuery = queries.find(q => q.queryKey[0] === 'bowties-summary');
+    const summaryQuery = queries.find((q) => q.queryKey[0] === "bowties-summary");
     expect(summaryQuery).toBeDefined();
-    expect(summaryQuery?.queryKey).toEqual(['bowties-summary', 'test-tenant-id']);
+    expect(summaryQuery?.queryKey).toEqual(["bowties-summary", "test-tenant-id"]);
   });
 });

@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 // Gallery mostly updates assets, so we use that part of the schema
 const GallerySchema = OfferSchema.pick({
-  assets: true
+  assets: true,
 });
 
 type GalleryFormValues = Pick<OfferFormValues, "assets">;
@@ -38,7 +38,7 @@ function GalleryContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
 
 export function GalleryForm({ defaultValues: propValues, onSave }: GalleryFormProps) {
   const defaultValues: GalleryFormValues = {
-    assets: propValues?.assets || []
+    assets: propValues?.assets || [],
   };
 
   const handleSave = async (data: GalleryFormValues) => {
@@ -51,9 +51,7 @@ export function GalleryForm({ defaultValues: propValues, onSave }: GalleryFormPr
       defaultValues={defaultValues}
       onSubmit={handleSave}
     >
-      {(form) => (
-        <GalleryContent form={form as unknown as UseFormReturn<OfferFormValues>} />
-      )}
+      {(form) => <GalleryContent form={form as unknown as UseFormReturn<OfferFormValues>} />}
     </SectionFormWrapper>
   );
 }

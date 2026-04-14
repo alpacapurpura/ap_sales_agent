@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { Loader2, ShoppingBag } from 'lucide-react';
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts';
+import { Loader2, ShoppingBag } from "lucide-react";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from "recharts";
 
-import { ChartContainer } from '@/components/ui/chart';
-import { MetaAdsMiniFunnel } from '../../meta-ads/MetaAdsMiniFunnel';
-import { ChartInfoTooltip } from '../../shared/ChartInfoTooltip';
-import { ChartSection } from '../../shared/ChartSection';
-import type { WebsiteData } from '../types';
+import { ChartContainer } from "@/components/ui/chart";
+import { MetaAdsMiniFunnel } from "../../meta-ads/MetaAdsMiniFunnel";
+import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
+import { ChartSection } from "../../shared/ChartSection";
+import type { WebsiteData } from "../types";
 
 interface WebsiteConversionsTabProps {
   data: WebsiteData | undefined;
@@ -32,16 +32,16 @@ export function WebsiteConversionsTab({ data, isLoading }: WebsiteConversionsTab
   }
 
   // Compute conversion rate from KPIs
-  const sessionsKpi = data.kpis.find(k => k.metricName === 'sessions');
-  const conversionsKpi = data.kpis.find(k => k.metricName === 'conversions');
+  const sessionsKpi = data.kpis.find((k) => k.metricName === "sessions");
+  const conversionsKpi = data.kpis.find((k) => k.metricName === "conversions");
   const sessions = sessionsKpi?.currentValue ?? 0;
   const conversions = conversionsKpi?.currentValue ?? 0;
   const conversionRate = sessions > 0 ? (conversions / sessions) * 100 : 0;
 
   // Conversion rate trend from time series
-  const conversionsSeries = data.timeSeries.find(ts => ts.metricName === 'conversions');
+  const conversionsSeries = data.timeSeries.find((ts) => ts.metricName === "conversions");
   const chartData =
-    conversionsSeries?.dataPoints.map(p => ({
+    conversionsSeries?.dataPoints.map((p) => ({
       date: p.date.slice(5),
       conversions: p.value,
     })) ?? [];
@@ -57,12 +57,10 @@ export function WebsiteConversionsTab({ data, isLoading }: WebsiteConversionsTab
           />
           <div className="rounded-lg border bg-card p-4">
             <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-bold tabular-nums">
-                {conversionRate.toFixed(2)}%
-              </span>
+              <span className="text-3xl font-bold tabular-nums">{conversionRate.toFixed(2)}%</span>
               <span className="text-sm text-muted-foreground">
-                {conversions.toLocaleString('en-US')} conversiones de{' '}
-                {sessions.toLocaleString('en-US')} sesiones
+                {conversions.toLocaleString("en-US")} conversiones de{" "}
+                {sessions.toLocaleString("en-US")} sesiones
               </span>
             </div>
           </div>
@@ -79,23 +77,15 @@ export function WebsiteConversionsTab({ data, isLoading }: WebsiteConversionsTab
             />
             <ChartContainer
               config={{
-                conversions: { label: 'Conversiones', color: 'hsl(var(--chart-3))' },
+                conversions: { label: "Conversiones", color: "hsl(var(--chart-3))" },
               }}
               className="h-[250px] w-full"
             >
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="web-conv-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="0%"
-                      stopColor="var(--color-conversions)"
-                      stopOpacity={0.3}
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor="var(--color-conversions)"
-                      stopOpacity={0}
-                    />
+                    <stop offset="0%" stopColor="var(--color-conversions)" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="var(--color-conversions)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

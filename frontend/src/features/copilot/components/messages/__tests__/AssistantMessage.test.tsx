@@ -30,8 +30,19 @@ describe("AssistantMessage — AlternativesCard callbacks", () => {
           field_path: "identity.archetype",
           question: "¿Cuál arquetipo?",
           alternatives: [
-            { id: "a1", title: "El Mago", description: "Transforma lo complejo", recommended: true, recommendation_reason: "Se adapta" },
-            { id: "a2", title: "El Héroe", description: "Empodera a los usuarios", recommended: false },
+            {
+              id: "a1",
+              title: "El Mago",
+              description: "Transforma lo complejo",
+              recommended: true,
+              recommendation_reason: "Se adapta",
+            },
+            {
+              id: "a2",
+              title: "El Héroe",
+              description: "Empodera a los usuarios",
+              recommended: false,
+            },
           ],
           allow_custom: false,
           card_status: "pending",
@@ -59,7 +70,12 @@ describe("AssistantMessage — AlternativesCard callbacks", () => {
           field_path: "identity.archetype",
           question: "¿Cuál arquetipo?",
           alternatives: [
-            { id: "a1", title: "El Mago", description: "Transforma lo complejo", recommended: false },
+            {
+              id: "a1",
+              title: "El Mago",
+              description: "Transforma lo complejo",
+              recommended: false,
+            },
           ],
           allow_custom: true,
           card_status: "pending",
@@ -83,7 +99,12 @@ describe("AssistantMessage — AlternativesCard callbacks", () => {
           field_path: "identity.archetype",
           question: "¿Cuál arquetipo?",
           alternatives: [
-            { id: "a1", title: "El Mago", description: "Transforma lo complejo", recommended: false },
+            {
+              id: "a1",
+              title: "El Mago",
+              description: "Transforma lo complejo",
+              recommended: false,
+            },
           ],
           allow_custom: true,
           card_status: "pending",
@@ -149,7 +170,11 @@ describe("AssistantMessage — CheckpointCard callbacks", () => {
     fireEvent.click(screen.getByRole("button", { name: /perfecto, sigamos/i }));
 
     expect(sendCardAction).toHaveBeenCalledOnce();
-    expect(sendCardAction).toHaveBeenCalledWith("msg-1", 0, "Confirmo, sigamos al siguiente bloque");
+    expect(sendCardAction).toHaveBeenCalledWith(
+      "msg-1",
+      0,
+      "Confirmo, sigamos al siguiente bloque",
+    );
   });
 
   it("calls sendCardAction with revise text when Ajustar button clicked", () => {
@@ -234,6 +259,10 @@ describe("AssistantMessage — uiAction index correctness", () => {
     // Click Perfecto on the CheckpointCard (second action, index 1)
     fireEvent.click(screen.getByRole("button", { name: /perfecto, sigamos/i }));
 
-    expect(sendCardAction).toHaveBeenCalledWith("msg-1", 1, "Confirmo, sigamos al siguiente bloque");
+    expect(sendCardAction).toHaveBeenCalledWith(
+      "msg-1",
+      1,
+      "Confirmo, sigamos al siguiente bloque",
+    );
   });
 });

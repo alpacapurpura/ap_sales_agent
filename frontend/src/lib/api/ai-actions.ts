@@ -28,15 +28,17 @@ export interface ExtractionStatus {
   error?: string;
 }
 
-export type FullBrandExtractInput = FormData | {
-  url?: string;
-  text?: string;
-  mode?: "initial" | "update";
-  update_instructions?: string;
-  dry_run?: boolean;
-  include_visuals?: boolean;
-  include_assets?: boolean;
-};
+export type FullBrandExtractInput =
+  | FormData
+  | {
+      url?: string;
+      text?: string;
+      mode?: "initial" | "update";
+      update_instructions?: string;
+      dry_run?: boolean;
+      include_visuals?: boolean;
+      include_assets?: boolean;
+    };
 
 function toFormData(input: FullBrandExtractInput): FormData {
   if (input instanceof FormData) {
@@ -48,8 +50,10 @@ function toFormData(input: FullBrandExtractInput): FormData {
   if (input.mode) form.append("mode", input.mode);
   if (input.update_instructions) form.append("update_instructions", input.update_instructions);
   if (typeof input.dry_run === "boolean") form.append("dry_run", String(input.dry_run));
-  if (typeof input.include_visuals === "boolean") form.append("include_visuals", String(input.include_visuals));
-  if (typeof input.include_assets === "boolean") form.append("include_assets", String(input.include_assets));
+  if (typeof input.include_visuals === "boolean")
+    form.append("include_visuals", String(input.include_visuals));
+  if (typeof input.include_assets === "boolean")
+    form.append("include_assets", String(input.include_assets));
   return form;
 }
 
@@ -90,7 +94,7 @@ export const aiActionsApi = {
       `${API_URL}/api/v1/brand/tools/extract-full-brand/status/${jobId}`,
       {
         headers: { Authorization: `Bearer ${token}` },
-      }
+      },
     );
     if (!response.ok) throw new Error(`Status check failed: ${response.status}`);
     return response.json();
@@ -105,7 +109,9 @@ export const aiActionsApi = {
       body: data,
     });
     if (!response.ok) {
-      throw new Error(`Failed to start offer extraction: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to start offer extraction: ${response.status} ${response.statusText}`,
+      );
     }
     return response.json();
   },
@@ -115,13 +121,16 @@ export const aiActionsApi = {
       `${API_URL}/api/v1/offer/tools/extract-full-offer/status/${jobId}`,
       {
         headers: { Authorization: `Bearer ${token}` },
-      }
+      },
     );
     if (!response.ok) throw new Error(`Status check failed: ${response.status}`);
     return response.json();
   },
 
-  async generateOfferPsychology(data: OfferPsychologyPayload, token: string): Promise<OfferPsychologyResult> {
+  async generateOfferPsychology(
+    data: OfferPsychologyPayload,
+    token: string,
+  ): Promise<OfferPsychologyResult> {
     const response = await fetchClient(`${API_URL}/api/v1/offer/ai/psychology`, {
       method: "POST",
       headers: {

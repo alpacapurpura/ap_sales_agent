@@ -100,14 +100,18 @@ export function ConversationItem({ conversation: c, isSelected, onSelect }: Conv
             {/* Channel */}
             {c.channel && (
               <span className="text-[10px] text-muted-foreground uppercase">
-                {c.channel === "instagram" ? "IG" : c.channel === "telegram" ? "TG" : c.channel === "whatsapp" ? "WA" : c.channel}
+                {c.channel === "instagram"
+                  ? "IG"
+                  : c.channel === "telegram"
+                    ? "TG"
+                    : c.channel === "whatsapp"
+                      ? "WA"
+                      : c.channel}
               </span>
             )}
 
             {/* Frozen indicator */}
-            {c.is_frozen && (
-              <AlertTriangle className="h-3 w-3 text-orange-500" />
-            )}
+            {c.is_frozen && <AlertTriangle className="h-3 w-3 text-orange-500" />}
 
             {/* Unread badge */}
             {c.unread_count > 0 && (

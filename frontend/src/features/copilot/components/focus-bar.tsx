@@ -13,12 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCopilotStore } from "../store/copilot-store";
 import { cn } from "@/lib/utils";
 
@@ -45,8 +40,7 @@ export function FocusBar() {
   const hasSnapshot = focusSnapshot && Object.keys(focusSnapshot).length > 0;
 
   /** Hay cambios sin guardar si previewData tiene alguna clave pendiente. */
-  const hasUnsavedChanges =
-    previewData !== null && Object.keys(previewData).length > 0;
+  const hasUnsavedChanges = previewData !== null && Object.keys(previewData).length > 0;
 
   const doExitFocus = () => {
     clearInterview();
@@ -64,7 +58,10 @@ export function FocusBar() {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="flex items-center gap-2 border-b border-slate-200 bg-purple-50 px-3 py-2 dark:border-slate-700 dark:bg-purple-900/20" data-testid="focus-bar">
+      <div
+        className="flex items-center gap-2 border-b border-slate-200 bg-purple-50 px-3 py-2 dark:border-slate-700 dark:bg-purple-900/20"
+        data-testid="focus-bar"
+      >
         <Icon className="h-4 w-4 shrink-0 text-purple-600 dark:text-purple-400" />
         <span className="min-w-0 truncate text-xs font-medium text-purple-800 dark:text-purple-300">
           {focusEntity.label}
@@ -78,7 +75,9 @@ export function FocusBar() {
               const isCurrent = i === interviewProgress.blocksCompleted.length;
               const tooltipLabel =
                 completedId ??
-                (isCurrent ? interviewProgress.currentBlock || `Bloque ${i + 1}` : `Bloque ${i + 1}`);
+                (isCurrent
+                  ? interviewProgress.currentBlock || `Bloque ${i + 1}`
+                  : `Bloque ${i + 1}`);
 
               return (
                 <Tooltip key={i}>
@@ -138,9 +137,8 @@ export function FocusBar() {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Salir del modo Focus?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tienes cambios sin guardar en esta sesión de entrevista. Si sales
-              ahora, se perderán los cambios pendientes que aún no han sido
-              aplicados al formulario.
+              Tienes cambios sin guardar en esta sesión de entrevista. Si sales ahora, se perderán
+              los cambios pendientes que aún no han sido aplicados al formulario.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
