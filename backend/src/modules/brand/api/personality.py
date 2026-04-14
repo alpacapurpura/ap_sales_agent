@@ -5,25 +5,20 @@ All endpoints filter by X-Tenant-ID via get_current_user dependency.
 All endpoints declare response_model= (PII compliance).
 """
 
-from __future__ import annotations
-
 from datetime import datetime
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile
 from pydantic import BaseModel, ConfigDict
+from sqlalchemy.orm import Session
 
 from src.core.database import get_db
 from src.modules.brand.application.services.personality_service import PersonalityService
 from src.modules.brand.domain.personality import PERSONALITY_PRESETS
 from src.modules.iam.api.dependencies import get_current_user
-
-if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
-
-    from src.modules.iam.domain.user import User
+from src.modules.iam.domain.user import User
 
 logger = structlog.get_logger()
 
