@@ -72,3 +72,53 @@ class TestValidateFieldPath:
     def test_brand_visuals_section(self) -> None:
         """visuals is a real section in BrandSettings."""
         assert validate_field_path("brand", "visuals") is True
+
+    # ── buyer_persona domain ─────────────────────────────────────────────────
+
+    def test_buyer_persona_all_campos_objetivo(self) -> None:
+        """Every campos_objetivo path in buyer_persona_config must be valid."""
+        from src.modules.copilot.domain.interview_configs.buyer_persona_config import (
+            BUYER_PERSONA_BLOCKS,
+        )
+
+        for block in BUYER_PERSONA_BLOCKS:
+            for path in block.campos_objetivo:
+                assert validate_field_path("buyer_persona", path) is True, (
+                    f"Block '{block.id}' path '{path}' rejected by validate_field_path"
+                )
+
+    def test_buyer_persona_demographics_known(self) -> None:
+        assert validate_field_path("buyer_persona", "demographics.age_range") is True
+        assert validate_field_path("buyer_persona", "demographics.location") is True
+        assert validate_field_path("buyer_persona", "demographics.occupation") is True
+
+    def test_buyer_persona_dict_prefix_fallback(self) -> None:
+        """Any demographics.* path is accepted even if not pre-registered."""
+        assert validate_field_path("buyer_persona", "demographics.marital_status") is True
+        assert validate_field_path("buyer_persona", "psychographics.hobbies") is True
+        assert validate_field_path("buyer_persona", "buyer_journey.post_purchase") is True
+
+    def test_buyer_persona_list_fields(self) -> None:
+        assert validate_field_path("buyer_persona", "pain_points") is True
+        assert validate_field_path("buyer_persona", "desires") is True
+        assert validate_field_path("buyer_persona", "objections") is True
+        assert validate_field_path("buyer_persona", "preferred_channels") is True
+        assert validate_field_path("buyer_persona", "purchase_triggers") is True
+        assert validate_field_path("buyer_persona", "anti_patterns") is True
+
+    def test_buyer_persona_scalar_fields(self) -> None:
+        assert validate_field_path("buyer_persona", "name") is True
+        assert validate_field_path("buyer_persona", "tagline") is True
+
+    def test_buyer_persona_rejects_garbage(self) -> None:
+        assert validate_field_path("buyer_persona", "nonexistent_section.fake_field") is False
+        assert validate_field_path("buyer_persona", "totally_fake") is False
+        assert validate_field_path("buyer_persona", "") is False
+        assert validate_field_path("buyer_persona", "id") is False
+        assert validate_field_path("buyer_persona", "tenant_id") is False
+
+    def test_buyer_persona_cache_hit(self) -> None:
+        """Second call for buyer_persona uses cached paths."""
+        r1 = validate_field_path("buyer_persona", "demographics.age_range")
+        r2 = validate_field_path("buyer_persona", "demographics.age_range")
+        assert r1 == r2 is True

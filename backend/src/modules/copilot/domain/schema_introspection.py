@@ -257,9 +257,77 @@ def _build_offer_paths() -> set[str]:
     return set(PERSISTABLE_FIELDS)
 
 
+def _build_buyer_persona_paths() -> set[str]:
+    """Discover all valid field paths for the 'buyer_persona' domain.
+
+    BuyerPersona uses plain dicts (not Pydantic sub-models), so Pydantic
+    introspection does not discover sub-fields. Paths are derived from:
+    - buyer_persona_config.py campos_objetivo (all interview block fields)
+    - buyer_persona_persister.py field type constants
+    - BuyerPersona domain entity field definitions
+
+    Dict fields (demographics, psychographics, buyer_journey) accept any
+    sub-key via prefix matching in validate_field_path — the exact set here
+    covers the known interview fields, but the validator also allows new
+    sub-keys under these parents.
+    """
+    # Top-level fields (list, scalar, dict parent names accepted as-is)
+    top_level = {
+        # Scalar
+        "name",
+        "tagline",
+        # List fields (stored directly)
+        "pain_points",
+        "desires",
+        "objections",
+        "preferred_channels",
+        "purchase_triggers",
+        "anti_patterns",
+        # Dict parent names (also valid as standalone)
+        "demographics",
+        "psychographics",
+        "buyer_journey",
+    }
+
+    # Known dot-notation sub-keys from interview config campos_objetivo
+    dot_notation = {
+        # demographics block
+        "demographics.age_range",
+        "demographics.location",
+        "demographics.occupation",
+        "demographics.income_range",
+        "demographics.education",
+        "demographics.family_status",
+        # psychographics block
+        "psychographics.values",
+        "psychographics.beliefs",
+        "psychographics.lifestyle",
+        "psychographics.personality_traits",
+        "psychographics.media_consumption",
+        # buyer_journey block
+        "buyer_journey.awareness",
+        "buyer_journey.consideration",
+        "buyer_journey.decision",
+        # pain/desire sub-fields used in campos_objetivo
+        "pain_points.emotional_impact",
+        "desires.urgency",
+    }
+
+    return top_level | dot_notation
+
+
+# Dict-field parents per domain: any dot-notation path whose prefix is in this
+# set is accepted even if the exact path was not pre-registered.  This allows
+# the LLM to use new sub-keys (e.g. demographics.marital_status) without
+# requiring a code change.
+_DOMAIN_DICT_PARENTS: dict[str, set[str]] = {
+    "buyer_persona": {"demographics", "psychographics", "buyer_journey"},
+}
+
 _DOMAIN_BUILDERS: dict[str, type] = {
     "brand": _build_brand_paths,  # type: ignore[assignment]
     "offer": _build_offer_paths,  # type: ignore[assignment]
+    "buyer_persona": _build_buyer_persona_paths,  # type: ignore[assignment]
 }
 
 
@@ -269,10 +337,13 @@ def validate_field_path(domain: str, field_path: str) -> bool:
     Uses lazy-loaded domain model mapping. For 'brand', checks against
     BrandSettings sections (section names and section.field dot-notation).
     For 'offer', checks against PERSISTABLE_FIELDS (flat field names).
+    For 'buyer_persona', checks against known interview fields; additionally
+    accepts any dot-notation path whose parent is a known dict field
+    (e.g. ``demographics.<anything>``).
     Returns False for unknown domains or empty field_path.
 
     Args:
-        domain: The interview domain (e.g. 'brand', 'offer').
+        domain: The interview domain (e.g. 'brand', 'offer', 'buyer_persona').
         field_path: Dot-notation or flat field path to validate.
 
     Returns:
@@ -293,4 +364,14 @@ def validate_field_path(domain: str, field_path: str) -> bool:
 
     # Exact match covers both section names ("identity") and dot-notation
     # paths ("identity.brand_name"). _build_brand_paths emits both forms.
-    return field_path in valid_paths
+    if field_path in valid_paths:
+        return True
+
+    # Prefix fallback: for domains with dict fields, accept any dot-notation
+    # path whose parent is a registered dict field (e.g. demographics.*)
+    dict_parents = _DOMAIN_DICT_PARENTS.get(domain)
+    if dict_parents and "." in field_path:
+        parent = field_path.split(".", 1)[0]
+        return parent in dict_parents
+
+    return False

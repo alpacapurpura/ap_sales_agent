@@ -91,9 +91,13 @@ export default defineConfig({
     {
       name: 'verify',
       testMatch: /.*\.verify\.spec\.ts/,
+      // Real AI interviews take 3-10 min per scenario — generous timeouts needed.
+      timeout: 300_000,
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'playwright/.clerk/user.json',
+        actionTimeout: 45_000,
+        navigationTimeout: 60_000,
       },
       dependencies: ['setup'],
     },
