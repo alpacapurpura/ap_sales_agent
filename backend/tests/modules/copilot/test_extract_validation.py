@@ -117,6 +117,18 @@ class TestValidateFieldPath:
         assert validate_field_path("buyer_persona", "id") is False
         assert validate_field_path("buyer_persona", "tenant_id") is False
 
+    def test_buyer_persona_dict_parents_invalid_as_top_level(self) -> None:
+        """Dict parent names must NOT be valid as standalone paths.
+
+        If accepted, the AI stores the whole dict as a string (e.g.
+        demographics = "Mujeres de 30 a 45 años..."), which breaks
+        BuyerPersona Pydantic validation when the record is reloaded.
+        The AI must use dot-notation: demographics.age_range, etc.
+        """
+        assert validate_field_path("buyer_persona", "demographics") is False
+        assert validate_field_path("buyer_persona", "psychographics") is False
+        assert validate_field_path("buyer_persona", "buyer_journey") is False
+
     def test_buyer_persona_cache_hit(self) -> None:
         """Second call for buyer_persona uses cached paths."""
         r1 = validate_field_path("buyer_persona", "demographics.age_range")

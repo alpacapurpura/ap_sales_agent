@@ -271,7 +271,11 @@ def _build_buyer_persona_paths() -> set[str]:
     covers the known interview fields, but the validator also allows new
     sub-keys under these parents.
     """
-    # Top-level fields (list, scalar, dict parent names accepted as-is)
+    # Top-level fields (list and scalar — accepted as-is)
+    # NOTE: dict parent names (demographics, psychographics, buyer_journey) are NOT here.
+    # The AI must use dot-notation for dict fields (e.g. "demographics.age_range").
+    # Accepting the parent name directly allows the AI to store the whole dict as a string,
+    # which breaks BuyerPersona Pydantic validation on reload.
     top_level = {
         # Scalar
         "name",
@@ -283,10 +287,6 @@ def _build_buyer_persona_paths() -> set[str]:
         "preferred_channels",
         "purchase_triggers",
         "anti_patterns",
-        # Dict parent names (also valid as standalone)
-        "demographics",
-        "psychographics",
-        "buyer_journey",
     }
 
     # Known dot-notation sub-keys from interview config campos_objetivo
