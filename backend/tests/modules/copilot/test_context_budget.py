@@ -6,6 +6,7 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, Tool
 
 from src.modules.copilot.application.orchestrator.context_budget import (
     _estimate_tokens,
+    sanitize_tool_calls,
     truncate_history,
 )
 
@@ -110,6 +111,45 @@ class TestTruncateHistory:
         assert len(system_msgs) >= 1
         assert "Previous conversation" in system_msgs[0].content
 
+    def test_truncation_removes_orphaned_tool_calls_at_split_boundary(self) -> None:
+        """When truncation cuts between an AIMessage(tool_calls) and its ToolMessages,
+        sanitize_tool_calls removes the orphaned AIMessage from the result."""
+        msgs = [
+            HumanMessage(content="Old question: " + self._LONG_CONTENT),
+            # This AIMessage with tool_calls lands in the OLD section after truncation;
+            # but its ToolMessage is just past the split boundary in RECENT. After
+            # the split the AIMessage is isolated — sanitize_tool_calls must drop it.
+            AIMessage(
+                content="",
+                tool_calls=[{"id": "orphan-id", "name": "some_tool", "args": {}}],
+            ),
+            # The ToolMessage that WOULD complete the above, but lands on the other
+            # side of the split boundary in RECENT after truncation.
+            ToolMessage(content="Tool result", tool_call_id="orphan-id"),
+            AIMessage(content="Based on the tool..."),
+            HumanMessage(content="Recent 1"),
+            AIMessage(content="Reply 1"),
+            HumanMessage(content="Recent 2"),
+            AIMessage(content="Reply 2"),
+            HumanMessage(content="Current"),
+            AIMessage(content="Current reply"),
+        ]
+        result = truncate_history(msgs, max_tokens=200)
+        # No AIMessage with unanswered tool_calls should remain
+        for i, msg in enumerate(result):
+            if isinstance(msg, AIMessage) and getattr(msg, "tool_calls", None):
+                expected_ids = {tc["id"] for tc in msg.tool_calls}
+                j = i + 1
+                found_ids: set[str] = set()
+                while j < len(result) and result[j].type == "tool":
+                    tool_call_id = getattr(result[j], "tool_call_id", None)
+                    if tool_call_id:
+                        found_ids.add(tool_call_id)
+                    j += 1
+                assert found_ids >= expected_ids, (
+                    f"Orphaned tool_calls found after truncation: {expected_ids - found_ids}"
+                )
+
     def test_tool_messages_in_recent_turns_preserved(self) -> None:
         msgs = [
             HumanMessage(content="Old question: " + self._LONG_CONTENT),
@@ -135,3 +175,72 @@ class TestTruncateHistory:
         result = truncate_history(msgs, max_tokens=200)
         tool_msgs = [m for m in result if isinstance(m, ToolMessage)]
         assert len(tool_msgs) >= 1
+
+
+class TestSanitizeToolCalls:
+    def test_no_tool_calls_unchanged(self) -> None:
+        msgs = [HumanMessage(content="Hi"), AIMessage(content="Hello")]
+        assert sanitize_tool_calls(msgs) == msgs
+
+    def test_complete_tool_call_chain_preserved(self) -> None:
+        msgs = [
+            HumanMessage(content="Use a tool"),
+            AIMessage(content="", tool_calls=[{"id": "tc1", "name": "tool", "args": {}}]),
+            ToolMessage(content="result", tool_call_id="tc1"),
+            AIMessage(content="Done"),
+        ]
+        result = sanitize_tool_calls(msgs)
+        assert len(result) == 4
+
+    def test_orphaned_tool_call_at_end_removed(self) -> None:
+        """AIMessage with tool_calls at end of history (no ToolMessage follows) is dropped."""
+        msgs = [
+            HumanMessage(content="Hi"),
+            AIMessage(content="", tool_calls=[{"id": "tc1", "name": "tool", "args": {}}]),
+        ]
+        result = sanitize_tool_calls(msgs)
+        # The orphaned AIMessage should be removed
+        assert all(not (isinstance(m, AIMessage) and getattr(m, "tool_calls", None)) for m in result)
+        assert len(result) == 1  # Only the HumanMessage remains
+
+    def test_partial_tool_messages_removed(self) -> None:
+        """AIMessage with 2 tool_calls but only 1 ToolMessage is dropped along with partial."""
+        msgs = [
+            HumanMessage(content="Hi"),
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {"id": "tc1", "name": "tool_a", "args": {}},
+                    {"id": "tc2", "name": "tool_b", "args": {}},
+                ],
+            ),
+            ToolMessage(content="result_a", tool_call_id="tc1"),
+            # tc2 has no corresponding ToolMessage
+            AIMessage(content="Continued"),
+        ]
+        result = sanitize_tool_calls(msgs)
+        # The orphaned AIMessage(tool_calls) and partial ToolMessage should be removed
+        ai_with_calls = [m for m in result if isinstance(m, AIMessage) and getattr(m, "tool_calls", None)]
+        assert len(ai_with_calls) == 0
+        # The final AIMessage("Continued") should still be there
+        assert any(isinstance(m, AIMessage) and m.content == "Continued" for m in result)
+
+    def test_multiple_orphans_all_removed(self) -> None:
+        """Multiple orphaned tool_calls sequences are all removed."""
+        msgs = [
+            HumanMessage(content="First"),
+            AIMessage(content="", tool_calls=[{"id": "tc1", "name": "tool", "args": {}}]),
+            # No ToolMessage for tc1
+            HumanMessage(content="Second"),
+            AIMessage(content="", tool_calls=[{"id": "tc2", "name": "tool", "args": {}}]),
+            # No ToolMessage for tc2
+            AIMessage(content="Final"),
+        ]
+        result = sanitize_tool_calls(msgs)
+        ai_with_calls = [m for m in result if isinstance(m, AIMessage) and getattr(m, "tool_calls", None)]
+        assert len(ai_with_calls) == 0
+        # Human messages and Final should remain
+        assert any(isinstance(m, AIMessage) and m.content == "Final" for m in result)
+
+    def test_empty_list_unchanged(self) -> None:
+        assert sanitize_tool_calls([]) == []

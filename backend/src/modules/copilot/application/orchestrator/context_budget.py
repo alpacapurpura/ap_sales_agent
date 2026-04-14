@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from langchain_core.messages import BaseMessage, SystemMessage
+from langchain_core.messages import AIMessage, BaseMessage, SystemMessage
 
 # Try to use tiktoken for accurate token counting (Claude uses ~cl100k_base tokens).
 # Fall back to the char-based heuristic if tiktoken is not available.
@@ -64,6 +64,44 @@ def _message_tokens(msg: BaseMessage) -> int:
     return tokens
 
 
+def sanitize_tool_calls(messages: list[BaseMessage]) -> list[BaseMessage]:
+    """Remove orphaned tool_calls from the message history.
+
+    An AIMessage with tool_calls is "orphaned" when the immediately following
+    messages do not include ToolMessages for ALL of its tool_call_ids.
+    OpenAI returns 400 in this case: "An assistant message with 'tool_calls'
+    must be followed by tool messages responding to each 'tool_call_id'".
+
+    This can happen when:
+    - The conversation was persisted mid-graph (tool executor didn't finish)
+    - truncate_history() cuts between an AIMessage and its ToolMessages
+    - DB deserialization loses some messages
+
+    Strategy: drop any AIMessage-with-tool_calls that is not followed by a
+    complete set of ToolMessages, along with any partial ToolMessages after it.
+    """
+    result: list[BaseMessage] = list(messages)
+    i = 0
+    while i < len(result):
+        msg = result[i]
+        if isinstance(msg, AIMessage) and getattr(msg, "tool_calls", None):
+            expected_ids: set[str] = {tc["id"] for tc in msg.tool_calls}
+            # Collect ToolMessages that immediately follow
+            j = i + 1
+            found_ids: set[str] = set()
+            while j < len(result) and result[j].type == "tool":
+                tool_call_id = getattr(result[j], "tool_call_id", None)
+                if tool_call_id:
+                    found_ids.add(tool_call_id)
+                j += 1
+            if found_ids < expected_ids:
+                # Drop the orphaned AIMessage + any partial ToolMessages
+                result = result[:i] + result[j:]
+                continue  # Re-check from same index after deletion
+        i += 1
+    return result
+
+
 def truncate_history(
     messages: list[BaseMessage],
     max_tokens: int = DEFAULT_BUDGET.history,
@@ -77,6 +115,10 @@ def truncate_history(
     """
     if not messages:
         return messages
+
+    # Sanitize first: remove orphaned tool_calls that could cause OpenAI 400s
+    # (e.g. from partial persistence or prior truncation at a bad boundary).
+    messages = sanitize_tool_calls(messages)
 
     total = sum(_message_tokens(m) for m in messages)
     if total <= max_tokens:
@@ -113,4 +155,7 @@ def truncate_history(
         f"- {t}" for t in topics[:10]
     )
 
-    return [SystemMessage(content=summary_text), *recent_messages]
+    truncated = [SystemMessage(content=summary_text), *recent_messages]
+    # Sanitize again: the split boundary may have landed between an AIMessage
+    # with tool_calls and its ToolMessages, introducing a new orphan.
+    return sanitize_tool_calls(truncated)
