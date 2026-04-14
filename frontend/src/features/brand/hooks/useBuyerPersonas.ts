@@ -2,6 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 
 import {
   buyerPersonaApi,
@@ -10,15 +11,17 @@ import {
   type BuyerPersonaSectionUpdateDTO,
 } from "@/lib/api/buyer-persona";
 
-const QUERY_KEY = ["buyer_personas"] as const;
 const NO_AUTH_TOKEN_ERROR = "No auth token";
 
 export function useBuyerPersonas() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
+  const params = useParams<{ tenantId: string }>();
+  const tenantId = params?.tenantId ?? "";
+  const queryKey = ["buyer_personas", tenantId] as const;
 
   const { data, isLoading, error } = useQuery<BuyerPersona[]>({
-    queryKey: QUERY_KEY,
+    queryKey: queryKey,
     queryFn: async () => {
       const token = await getToken();
       if (!token) return [];
@@ -37,7 +40,7 @@ export function useBuyerPersonas() {
       return buyerPersonaApi.create(token, dto);
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: queryKey });
     },
   });
 
@@ -54,7 +57,7 @@ export function useBuyerPersonas() {
       return buyerPersonaApi.patch(token, id, patchData);
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: queryKey });
     },
   });
 
@@ -65,7 +68,7 @@ export function useBuyerPersonas() {
       return buyerPersonaApi.delete(token, id);
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: queryKey });
     },
   });
 

@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { startInterview } from "@/features/copilot/api/interview-api";
 import { FocusModeButton } from "@/features/copilot/components/focus-mode-button";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 
@@ -45,37 +46,20 @@ export function AvatarsSection(_props: AvatarsSectionProps) {
       const token = await getToken();
       if (!token) return;
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/copilot/interview/start`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ domain: "buyer_persona", entity_id: persona.id }),
-      });
+      const interview = await startInterview(token, "buyer_persona", persona.id);
 
+      // All store mutations happen atomically AFTER confirmed success
       setFocusEntity({ domain: "buyer_persona", entityId: persona.id, label: persona.name });
       setFocusSnapshot(persona as unknown as Record<string, unknown>);
       clearSelectedFields();
-
-      if (res.ok) {
-        const interview = (await res.json()) as {
-          session_id?: string;
-          conversation_id?: string;
-          initial_message?: string;
-        };
-        if (interview.session_id) setInterviewSession(interview.session_id);
-        if (interview.conversation_id) setConversationId(interview.conversation_id);
-        if (interview.initial_message) {
-          addMessage({
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: interview.initial_message,
-            timestamp: Date.now(),
-          });
-        }
-      }
-
+      setInterviewSession(interview.session_id);
+      setConversationId(interview.conversation_id);
+      addMessage({
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: interview.initial_message,
+        timestamp: Date.now(),
+      });
       setSidebarState("expanded");
       setShowModeSelector(false);
     } catch (err) {
@@ -173,13 +157,15 @@ export function AvatarsSection(_props: AvatarsSectionProps) {
                     {Math.round(persona.completeness_score)}% completo
                   </span>
                 </div>
-                <FocusModeButton
-                  domain="buyer_persona"
-                  entityId={persona.id}
-                  label={persona.name}
-                  entityData={persona as unknown as Record<string, unknown>}
-                  className="w-full rounded-full text-xs h-7"
-                />
+                <div onClick={(e) => e.stopPropagation()}>
+                  <FocusModeButton
+                    domain="buyer_persona"
+                    entityId={persona.id}
+                    label={persona.name}
+                    entityData={persona as unknown as Record<string, unknown>}
+                    className="w-full rounded-full text-xs h-7"
+                  />
+                </div>
               </div>
             ))}
 
