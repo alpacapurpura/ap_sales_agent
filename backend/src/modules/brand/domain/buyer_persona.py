@@ -50,3 +50,7 @@ class BuyerPersona(BaseEntity):
     # Soft delete
     is_active: bool = True
     deleted_at: datetime | None = None
+
+    # Timestamps (populated by DB, optional when creating in-memory)
+    created_at: datetime | None = None
+    updated_at: datetime | None = None

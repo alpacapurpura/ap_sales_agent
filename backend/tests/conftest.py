@@ -97,6 +97,9 @@ def db_engine():
         from src.modules.brand.infrastructure.models.avatar_model import (
             AvatarModel,
         )
+        from src.modules.brand.infrastructure.models.buyer_persona_model import (
+            BuyerPersonaModel,
+        )
         from src.modules.brand.infrastructure.models.extraction_trace_model import (
             BrandExtractionTrace,
         )

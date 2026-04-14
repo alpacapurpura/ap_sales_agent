@@ -54,5 +54,5 @@ class BuyerPersonaResponseDTO(BaseModel):
     anti_patterns: list[str]
     completeness_score: float
     interview_session_id: UUID | None
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime | None
+    updated_at: datetime | None

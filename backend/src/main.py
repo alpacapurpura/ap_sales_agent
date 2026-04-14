@@ -34,6 +34,7 @@ from src.modules.assets.api import offer_gallery as assets_offers
 # 13. Assets
 from src.modules.assets.api import router as assets_gallery
 from src.modules.brand.api import avatars as brand_avatars
+from src.modules.brand.api import buyer_personas as brand_buyer_personas
 from src.modules.brand.api import extraction as brand_tools
 from src.modules.brand.api import personality as brand_personality
 from src.modules.brand.api import router as brand_settings
@@ -407,6 +408,12 @@ app.include_router(
     brand_personality.router,
     prefix="/api/v1/brand",
     tags=["Brand - Personality"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    brand_buyer_personas.router,
+    prefix="/api/v1/brand/buyer-personas",
+    tags=["Brand - Buyer Personas"],
     dependencies=[Depends(get_tenant_context)],
 )
 
