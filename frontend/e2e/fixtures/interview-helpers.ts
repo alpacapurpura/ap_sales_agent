@@ -299,10 +299,17 @@ export function captureCreatedPersonaId(page: Page): Promise<string> {
         response.url().includes('/api/v1/brand/buyer-personas') &&
         response.request().method() === 'POST'
       ) {
+        // Skip non-success responses (e.g., 307 redirects have no body)
+        if (response.status() < 200 || response.status() >= 300) return;
+
         clearTimeout(timeout);
         try {
           const body = (await response.json()) as { id: string };
-          resolve(body.id);
+          if (body.id) {
+            resolve(body.id);
+          } else {
+            reject(new Error('Persona creation response missing id field'));
+          }
         } catch {
           reject(new Error('Could not parse persona creation response'));
         }
