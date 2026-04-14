@@ -7,6 +7,9 @@ from typing import TYPE_CHECKING
 from src.modules.copilot.infrastructure.persisters.brand_persister import (
     BrandPersister,
 )
+from src.modules.copilot.infrastructure.persisters.buyer_persona_persister import (
+    BuyerPersonaPersister,
+)
 from src.modules.copilot.infrastructure.persisters.offer_persister import (
     OfferPersister,
 )
@@ -18,10 +21,11 @@ if TYPE_CHECKING:
 def get_persister(
     domain: str,
     db: Session,
-) -> BrandPersister | OfferPersister:
+) -> BrandPersister | BuyerPersonaPersister | OfferPersister:
     """Get the appropriate persister for a domain."""
-    registry: dict[str, type[BrandPersister | OfferPersister]] = {
+    registry: dict[str, type[BrandPersister | BuyerPersonaPersister | OfferPersister]] = {
         "brand": BrandPersister,
+        "buyer_persona": BuyerPersonaPersister,
         "offer": OfferPersister,
     }
     persister_cls = registry.get(domain)
