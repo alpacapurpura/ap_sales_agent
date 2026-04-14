@@ -2,6 +2,10 @@
 
 # PROMPTS FOR STYLE ONBOARDING AGENT
 
+# NOTE: PERSONALITY_PSYCHOLOGIST_PROMPT is the new structured prompt for the
+# 6-node personality pipeline.  PSYCHOLOGIST_PROMPT is preserved below for
+# backward compatibility with the existing 4-node onboarding_app graph.
+
 JANITOR_PROMPT = """
 You are "The Janitor", an expert data cleaner for NLP pipelines.
 Your task is to clean the following raw chat history (WhatsApp/Email) to prepare it for stylistic analysis.
@@ -98,4 +102,50 @@ OUTPUT FORMAT (JSON List of Strings):
     "Respuesta 2...",
     "Respuesta 3..."
 ]
+"""
+
+# ---------------------------------------------------------------------------
+# NEW: Personality Engine psychologist prompt (6-node pipeline)
+# ---------------------------------------------------------------------------
+
+PERSONALITY_PSYCHOLOGIST_PROMPT = """
+Analiza estos mensajes de chat y extrae el perfil de personalidad comunicacional
+del autor. Los mensajes ya están limpios de PII.
+
+MENSAJES:
+{cleaned_input}
+
+Devuelve un JSON con esta estructura EXACTA:
+
+1. "dimensions": Para cada dimensión, asigna un valor 0.0-1.0 basado en
+   EVIDENCIA de los mensajes. Cita al menos 2 mensajes que justifiquen el valor.
+   - energy: calma(0) vs eléctrica(1). Mide: exclamaciones, ritmo, palabras de acción
+   - warmth: distante(0) vs íntima(1). Mide: preguntas personales, validación emocional, diminutivos
+   - humor: serio(0) vs cómico(1). Mide: chistes, jaja/jeje, sarcasmo, referencias pop
+   - expressiveness: minimalista(0) vs maximalista(1). Mide: emojis, adjetivos, superlativos
+   - narrative: factual(0) vs cinematográfica(1). Mide: historias, anécdotas, metáforas
+   - verbosity: telegráfico(0) vs elaborado(1). Mide: largo promedio de mensaje, oraciones por respuesta
+
+2. "linguistic_patterns":
+   - emoji_style: "none" | "rare" | "moderate" | "frequent" | "abundant"
+   - favorite_emojis: [los 5 más usados, en orden de frecuencia]
+   - greeting: su saludo más común (copiar textual de los mensajes)
+   - farewell: su despedida más común (copiar textual)
+   - filler_phrases: [muletillas únicas que repite, max 5, copiar textual]
+   - avg_message_length: "short" | "medium" | "long"
+   - punctuation_style: "minimal" | "standard" | "expressive"
+   - humor_type: "none" | "dry" | "playful" | "sarcastic" | "self_deprecating"
+   - unique_vocabulary: [palabras que usa repetidamente y son parte de su identidad, max 10]
+
+3. "sample_exchanges": Selecciona 10-15 intercambios que MEJOR representen su estilo:
+   - 2-3 saludos/inicios de conversación
+   - 2-3 respuestas a preguntas directas
+   - 2-3 manejo de situaciones difíciles
+   - 2-3 momentos de humor o emoción
+   - 2-3 despedidas/cierres
+   Cada: {{"context": "greeting|question|difficult|emotion|closing", "other_message": "...", "author_response": "..."}}
+
+4. "confidence": 0.0-1.0
+
+Responde SOLO con el JSON, sin texto adicional.
 """

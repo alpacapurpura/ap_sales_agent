@@ -34,3 +34,22 @@ class OnboardingState(TypedDict):
 
     # Error Handling
     error: str | None
+
+    # ---------------------------------------------------------------
+    # Personality Engine fields (6-node pipeline)
+    # ---------------------------------------------------------------
+
+    # Output of node_parser — parsed messages from chat export
+    parsed_messages: list[dict]
+
+    # Output of node_psychologist (new pipeline)
+    personality_dimensions: dict  # {energy: 0.7, warmth: 0.8, ...}
+    personality_linguistic_patterns: dict  # emoji_style, greeting, etc.
+    personality_sample_exchanges: list[dict]  # best exchanges selected
+    personality_confidence: float  # extraction confidence 0.0-1.0
+
+    # Post-persist fields
+    personality_profile_id: str  # UUID of created PersonalityProfileModel
+
+    # Qdrant
+    anchor_count: int  # number of style anchors upserted
