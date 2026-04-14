@@ -68,7 +68,15 @@ class BuyerPersonaRepository:
         result = self.db.execute(stmt)
         model = result.scalars().first()
         if model:
-            return BuyerPersona.model_validate(model)
+            try:
+                return BuyerPersona.model_validate(model)
+            except ValidationError:
+                logger.warning(
+                    "buyer_persona.corrupt_row_skipped",
+                    persona_id=str(model.id),
+                    tenant_id=str(model.tenant_id),
+                )
+                return None
         return None
 
     def list_by_tenant(

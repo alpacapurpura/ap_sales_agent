@@ -178,6 +178,23 @@ class BuyerPersonaPersister:
                         updates[parent] = {}
                     updates[parent][key] = value
             else:
+                # Validate type before storing to prevent corrupt rows.
+                # AI sometimes returns a plain string for list/dict fields.
+                if field_path in _LIST_FIELDS:
+                    if not isinstance(value, list):
+                        logger.warning(
+                            "buyer_persona_persister.invalid_list_field_skipped",
+                            field=field_path,
+                            value_type=type(value).__name__,
+                        )
+                        continue
+                elif field_path in _DICT_FIELDS and not isinstance(value, dict):
+                    logger.warning(
+                        "buyer_persona_persister.invalid_dict_field_skipped",
+                        field=field_path,
+                        value_type=type(value).__name__,
+                    )
+                    continue
                 updates[field_path] = value
 
         return updates

@@ -290,6 +290,32 @@ class TestBuyerPersonaRepository:
         ]
         assert retrieved.completeness_score == 65.0
 
+    def test_get_by_id_returns_none_for_corrupt_row(self, db: Session) -> None:
+        """get_by_id must return None (not raise) for rows that fail Pydantic validation.
+
+        Regression: corrupt DB rows (e.g. pain_points stored as a string by the AI)
+        caused BuyerPersona.model_validate() to raise ValidationError, crashing
+        focus-context loading and the buyer persona persister.
+        """
+        repo = BuyerPersonaRepository(db)
+
+        corrupt_id = uuid.uuid4()
+        corrupt = BuyerPersonaModel(
+            id=corrupt_id,
+            tenant_id=TENANT_A,
+            user_id=USER_A,
+            name="Corrupt Persona",
+            scope="GLOBAL",
+            # pain_points must be list[dict]; storing a raw string triggers ValidationError.
+            pain_points="this is a string not a list",
+        )
+        db.add(corrupt)
+        db.commit()
+
+        # Must return None (gracefully skipping the corrupt row), not raise.
+        result = repo.get_by_id(tenant_id=TENANT_A, persona_id=corrupt_id)
+        assert result is None
+
     def test_list_by_tenant_skips_corrupt_rows(self, db: Session) -> None:
         """list_by_tenant must skip rows that fail Pydantic validation.
 

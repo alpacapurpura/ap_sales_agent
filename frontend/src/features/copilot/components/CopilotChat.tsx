@@ -31,13 +31,13 @@ export const CopilotChat = memo(function CopilotChat() {
 
   const isLoading = status === "thinking" || status === "streaming";
 
-  // Show typing indicator when the assistant hasn't emitted any content yet
+  // AssistantMessage renders its own animated dots when content is empty.
+  // Only show the external TypingIndicator when there is no empty assistant
+  // placeholder already in the list — otherwise two indicators appear at once.
+  const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
   const showTypingIndicator =
-    status === "thinking" ||
-    (status === "streaming" &&
-      messages.length > 0 &&
-      messages[messages.length - 1].role === "assistant" &&
-      messages[messages.length - 1].content === "");
+    (status === "thinking" || status === "streaming") &&
+    !(lastMsg?.role === "assistant" && lastMsg?.content === "");
 
   // Virtualizer — measures each item dynamically so variable-height messages work
   const virtualizer = useVirtualizer({

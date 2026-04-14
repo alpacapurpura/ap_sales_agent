@@ -122,6 +122,47 @@ class TestBuyerPersonaPersist:
             assert updates["demographics"]["age_range"] == "25-35"
 
 
+class TestBuildUpdatesListValidation:
+    """_build_updates must reject non-list values for list fields."""
+
+    def test_rejects_string_for_list_field(self) -> None:
+        """If the AI stores a list field as a plain string, it must be dropped.
+
+        Regression: the AI sometimes stores e.g. pain_points as a sentence
+        ('Su mayor dolor es...') instead of a list[dict]. Persisting that string
+        directly would corrupt the DB row and crash future model_validate() calls.
+        """
+        mapa_global = {
+            "pain_points": "Su mayor dolor es sentir que no tiene tiempo",  # string — invalid
+            "name": "María Creadora",
+        }
+        updates = BuyerPersonaPersister._build_updates(mapa_global, ["pain_points", "name"])
+
+        # Scalar 'name' accepted; list field 'pain_points' must be dropped
+        assert "name" in updates
+        assert "pain_points" not in updates
+
+    def test_accepts_list_for_list_field(self) -> None:
+        """Valid list values for list fields must be accepted."""
+        mapa_global = {
+            "pain_points": [{"description": "No time", "intensity": "high"}],
+        }
+        updates = BuyerPersonaPersister._build_updates(mapa_global, ["pain_points"])
+
+        assert "pain_points" in updates
+        assert updates["pain_points"] == [{"description": "No time", "intensity": "high"}]
+
+    def test_rejects_non_dict_for_dict_field(self) -> None:
+        """If a plain 'demographics' key gets a non-dict value, it must be dropped."""
+        # demographics is in _DICT_FIELDS; only dot-notation subkeys are the normal path,
+        # but if AI somehow passes the parent key directly with a string value, reject it.
+        mapa_global = {
+            "demographics": "some string value",  # invalid — must be a dict
+        }
+        updates = BuyerPersonaPersister._build_updates(mapa_global, ["demographics"])
+        assert "demographics" not in updates
+
+
 class TestBuyerPersonaLoadExisting:
     """Tests for load_existing method."""
 
