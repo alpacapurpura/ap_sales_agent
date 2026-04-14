@@ -72,6 +72,7 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     "offer -> advertising | offer/api/counts.py",
     # --- sales_agent ---
     "sales_agent -> brand | sales_agent/application/services/knowledge_builder.py",
+    "sales_agent -> brand | sales_agent/application/services/style_anchor_retriever.py",
     "sales_agent -> connections | sales_agent/application/orchestrator/chat.py",
     "sales_agent -> connections | sales_agent/application/services/channel_resolver.py",
     "sales_agent -> connections | sales_agent/application/services/channel_service.py",
