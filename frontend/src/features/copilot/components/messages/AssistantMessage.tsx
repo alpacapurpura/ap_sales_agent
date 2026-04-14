@@ -173,8 +173,14 @@ export const AssistantMessage = memo(function AssistantMessage({
             {message.content || (
               <span
                 className="inline-flex items-center gap-1 text-slate-400"
-                data-testid="typing-indicator"
-                aria-label="El asistente está escribiendo"
+                // data-testid only on the active streaming placeholder so
+                // Playwright strict-mode never resolves >1 typing indicator.
+                {...(isStreaming
+                  ? {
+                      "data-testid": "typing-indicator",
+                      "aria-label": "El asistente está escribiendo",
+                    }
+                  : {})}
               >
                 <span className="animate-pulse">●</span>
                 <span className="animate-pulse [animation-delay:200ms]">●</span>
