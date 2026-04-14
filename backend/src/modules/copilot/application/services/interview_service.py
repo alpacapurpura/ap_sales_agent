@@ -36,6 +36,26 @@ DOMAIN_LABELS = {
     "offer": "Offer Studio",
 }
 
+INITIAL_MESSAGES: dict[str, str] = {
+    "brand": ("¡Hola! Vamos a construir tu marca juntos. Cuéntame, ¿cómo nació tu negocio?"),
+    "buyer_persona": (
+        "Un buyer persona es el perfil de tu cliente ideal: quién es, "
+        "qué le duele, qué desea. Vamos a construirlo juntos con preguntas "
+        "simples.\n\n"
+        "Para empezar — ¿cómo quieres llamarle a este segmento de clientes?"
+    ),
+    "offer": ("¡Hola! Vamos a construir tu oferta juntos. Cuéntame, ¿qué problema resuelve tu producto o servicio?"),
+}
+
+
+def _initial_message(domain: str) -> str:
+    """Return the domain-specific opening message, falling back to a generic one."""
+    return INITIAL_MESSAGES.get(
+        domain,
+        f"¡Hola! Vamos a construir tu {DOMAIN_LABELS.get(domain, 'proyecto')} juntos. "
+        "Cuéntame, ¿cómo nació tu negocio?",
+    )
+
 
 def _load_offer_archetype(
     db: Session,
@@ -139,10 +159,7 @@ class InterviewService:
                     "session_id": existing.id,
                     "conversation_id": existing.conversation_id,
                     "config": existing.config_snapshot,
-                    "initial_message": (
-                        f"¡Hola! Vamos a construir tu {DOMAIN_LABELS.get(domain, 'proyecto')}"
-                        f" juntos. Cuéntame, ¿cómo nació tu negocio?"
-                    ),
+                    "initial_message": _initial_message(domain),
                 }
             # Not a duplicate race — re-raise the original error
             raise
@@ -151,10 +168,7 @@ class InterviewService:
             "session_id": session.id,
             "conversation_id": session.conversation_id,
             "config": session.config_snapshot,
-            "initial_message": (
-                f"¡Hola! Vamos a construir tu {DOMAIN_LABELS.get(domain, 'proyecto')}"
-                f" juntos. Cuéntame, ¿cómo nació tu negocio?"
-            ),
+            "initial_message": _initial_message(domain),
         }
 
     def get_active(self, tenant_id: UUID) -> dict | None:
