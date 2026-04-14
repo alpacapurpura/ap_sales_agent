@@ -12,11 +12,13 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from sqlalchemy.orm import Session
 
 from src.core.database import redis_client
+from src.core.enums import ModelRole
 from src.modules.copilot.api.dto import ClientContextDTO, SSEEvent
 from src.modules.copilot.application.orchestrator.graph import copilot_graph
 from src.modules.copilot.application.orchestrator.state import (
     create_initial_copilot_state,
 )
+from src.modules.copilot.application.orchestrator.usage_tracking import UsageAccumulator
 from src.modules.copilot.infrastructure.context.focus_context_loader import FocusContextLoader
 from src.modules.copilot.infrastructure.models.conversation_model import (
     CopilotConversationModel,
@@ -152,11 +154,15 @@ class CopilotOrchestrator:
         full_response = ""
         accumulated_messages: list = []  # Collect LangChain messages for persistence
         last_tool_call_ids: dict[str, str] = {}  # tool_name -> tool_call_id
+        from src.core.config import settings as _settings
+
+        usage = UsageAccumulator(model=_settings.get_model(ModelRole.AGENT))
         try:
             yield SSEEvent(event="status", data={"state": "streaming"}).to_sse()
 
             async with asyncio.timeout(COPILOT_STREAM_TIMEOUT_SECONDS):
                 async for event in copilot_graph.astream_events(state, version="v2"):
+                    usage.update_from_event(event)
                     sse_event, text_chunk = self._process_stream_event(
                         event,
                         accumulated_messages,
@@ -195,6 +201,9 @@ class CopilotOrchestrator:
             ).to_sse()
             full_response = ""
             accumulated_messages = []
+
+        # 5b. Log token usage and cost for this turn
+        usage.log(conversation_id=conv_id, tenant_id=str(tenant_id))
 
         # 6. Persist messages (full chain including tool_calls)
         self._persist_messages(
