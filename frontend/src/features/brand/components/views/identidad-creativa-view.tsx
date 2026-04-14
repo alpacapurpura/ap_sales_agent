@@ -11,7 +11,6 @@ import { BRAND_SECTIONS, buildSectionNavItems } from "../../config/sections";
 import { VisualsSection } from "../../sections/visuals/visuals-preview";
 import { LogoKitPreview } from "../../sections/logos/logo-kit-preview";
 import { GalleryManager } from "../../sections/gallery/gallery-manager";
-import { VoiceSection } from "../../sections/voice/voice-preview";
 import { AssetsPreview } from "../../sections/communication-assets/assets-preview";
 
 const SECTION = BRAND_SECTIONS["identidad-creativa"];
@@ -57,12 +56,6 @@ export function IdentidadCreativaView() {
       <div id="logos" className="space-y-8">
         <SectionHeader title="Logo Kit" subtitle="Variantes de tu logo para distintos contextos." />
         <LogoKitPreview visuals={settings.visuals ?? {}} onEdit={() => openEdit("logos")} />
-      </div>
-
-      {/* Voz AI */}
-      <div id="voice" className="space-y-8">
-        <SectionHeader title="Voz AI" subtitle="Idioma, tono y estilo de comunicacion." />
-        <VoiceSection identity={settings.identity ?? {}} onEdit={() => openEdit("voice")} />
       </div>
 
       {/* Conceptos Creativos & Funnel Assets */}

@@ -16,4 +16,5 @@ export type EditMode =
   | "positioning"
   | "values-essence"
   | "storybrand"
-  | "communication-assets";
+  | "communication-assets"
+  | "personality-profile";

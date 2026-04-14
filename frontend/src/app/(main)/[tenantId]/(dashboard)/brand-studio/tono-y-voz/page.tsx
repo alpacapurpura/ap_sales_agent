@@ -6,5 +6,5 @@ export default async function TonoVozRedirect({
   params: Promise<{ tenantId: string }>;
 }) {
   const { tenantId } = await params;
-  redirect(`/${tenantId}/brand-studio/identidad-creativa`);
+  redirect(`/${tenantId}/brand-studio/esencia#voice-personality`);
 }

@@ -40,6 +40,7 @@ import { PositioningManager } from "../../sections/positioning/positioning-manag
 import { ValuesEssenceManager } from "../../sections/positioning/values-essence-manager";
 import { NarrativeManager } from "../../sections/narrative/narrative-manager";
 import { AssetsManager } from "../../sections/communication-assets/assets-manager";
+import { PersonalityManager } from "../../sections/personality/personality-manager";
 
 // Existing Components for Complex Types (Team, Authority, Avatars)
 import { TeamManager } from "../../sections/team/team-manager";
@@ -64,6 +65,7 @@ const MODE_COMPONENT: Partial<Record<EditMode, React.ComponentType>> = {
   "values-essence": ValuesEssenceManager,
   storybrand: NarrativeManager,
   "communication-assets": AssetsManager,
+  "personality-profile": PersonalityManager,
 };
 
 type SelectedEditItem = KeyFigure | AuthorityItem | TestimonialItem | Avatar | null;

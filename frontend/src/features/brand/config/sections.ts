@@ -26,9 +26,9 @@ import {
   Palette,
   Image as ImageIcon,
   UserSearch,
-  Mic,
   Lightbulb,
   LayoutGrid,
+  Theater,
   type LucideIcon,
 } from "lucide-react";
 import type { BrandSettings } from "../types";
@@ -45,7 +45,6 @@ import {
   validateStrategy,
   validateAvatars,
   validateVisuals,
-  validateVoice,
   validateCommunicationAssets,
 } from "../utils/brand-validation";
 
@@ -94,7 +93,6 @@ const vNarrative = (s: BrandSettings) => validateNarrative(s.narrative);
 const vStrategy = (s: BrandSettings) => validateStrategy(s.strategy ?? { methodology_pillars: [] });
 const vAvatars = (s: BrandSettings) => validateAvatars(s.visuals ?? {});
 const vVisuals = (s: BrandSettings) => validateVisuals(s.visuals ?? {});
-const vVoice = (s: BrandSettings) => validateVoice(s.identity ?? {});
 const vCommAssets = (s: BrandSettings) => validateCommunicationAssets(s.communication_assets);
 
 // ---------------------------------------------------------------------------
@@ -122,6 +120,13 @@ export const BRAND_SECTIONS: Record<BrandSectionId, BrandSectionConfig> = {
         icon: Target,
         scrollTo: "values-essence",
         validators: [vPositioning],
+      },
+      {
+        id: "voice-personality",
+        label: "Voz & Personalidad",
+        icon: Theater,
+        scrollTo: "voice-personality",
+        validators: [],
       },
       { id: "team", label: "Equipo", icon: Users, scrollTo: "team", validators: [vTeam] },
       {
@@ -218,7 +223,6 @@ export const BRAND_SECTIONS: Record<BrandSectionId, BrandSectionConfig> = {
         validators: [vVisuals],
       },
       { id: "logos", label: "Logos", icon: ImageIcon, scrollTo: "logos", validators: [vVisuals] },
-      { id: "voice", label: "Voz AI", icon: Mic, scrollTo: "voice", validators: [vVoice] },
       {
         id: "concepts",
         label: "Conceptos Creativos",
@@ -271,6 +275,10 @@ export const EDIT_MODE_META: Record<EditMode, { title: string; desc: string }> =
   "communication-assets": {
     title: "Activos de Comunicacion",
     desc: "Conceptos creativos y piezas por etapa de funnel.",
+  },
+  "personality-profile": {
+    title: "Voz & Personalidad",
+    desc: "Configura cómo habla y se expresa tu agente de ventas.",
   },
 };
 

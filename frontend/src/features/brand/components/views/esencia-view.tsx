@@ -11,6 +11,7 @@ import { BRAND_SECTIONS, buildSectionNavItems } from "../../config/sections";
 import { HeaderSection } from "../../sections/identity/identity-header-preview";
 import { StorySection } from "../../sections/story/story-preview";
 import { ValuesEssencePreview } from "../../sections/positioning/values-essence-preview";
+import { PersonalitySection } from "../../sections/personality/personality-section";
 import { TeamSection } from "../../sections/team/team-preview";
 import { TestimonialsSection } from "../../sections/testimonials/testimonials-preview";
 import { TrustSection } from "../../sections/authority/authority-preview";
@@ -70,6 +71,15 @@ export function EsenciaView() {
           positioning={settings.positioning ?? { reasons_to_believe: [] }}
           onEdit={() => openEdit("values-essence")}
         />
+      </div>
+
+      {/* Voz & Personalidad */}
+      <div id="voice-personality" className="space-y-8">
+        <SectionHeader
+          title="Voz & Personalidad"
+          subtitle="Cómo habla y se expresa tu agente de ventas."
+        />
+        <PersonalitySection onConfigure={() => openEdit("personality-profile")} />
       </div>
 
       {/* Equipo + Testimonios */}
