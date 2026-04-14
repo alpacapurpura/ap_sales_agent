@@ -119,3 +119,4 @@ Hallazgos detectados por Claude Code durante ejecución. Revisar y resolver.
 ### 22. Shopify abandoned cart detection
 - `connections/api/marketing_webhooks.py`: la detección de carritos abandonados (checkouts >1h sin order) no está implementada.
 - [ ] Implementar background task para detectar abandoned carts (checkouts >1h sin matching order)
+[] BuyerPersonaPersister._create_new: pasar user_id real cuando el Interview Engine lo propague (actualmente usa tenant_id como fallback)

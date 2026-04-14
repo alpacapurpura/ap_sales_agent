@@ -267,7 +267,7 @@ class TestFacebookOrganic:
             {
                 "data": [
                     {
-                        "name": "page_impressions_organic_unique",
+                        "name": "page_total_media_view_unique",
                         "values": [{"value": 5000}],
                     },
                 ],
@@ -288,7 +288,7 @@ class TestFacebookOrganic:
         async def mock_get(url, **kwargs):
             params = kwargs.get("params", {})
             metric = params.get("metric", "")
-            if "page_impressions_organic_unique" in metric:
+            if "page_total_media_view_unique" in metric:
                 return mock_reach_response
             if "page_post_engagements" in metric:
                 return mock_engagement_response
@@ -952,7 +952,7 @@ class TestExtractMetricsDaily:
             {
                 "data": [
                     {
-                        "name": "page_impressions_organic_unique",
+                        "name": "page_total_media_view_unique",
                         "values": [
                             {"value": 3000, "end_time": "2026-03-01T08:00:00+0000"},
                             {"value": 4000, "end_time": "2026-03-02T08:00:00+0000"},
@@ -981,7 +981,7 @@ class TestExtractMetricsDaily:
             nonlocal call_count
             params = kwargs.get("params", {})
             metric = params.get("metric", "")
-            if "page_impressions_organic_unique" in metric:
+            if "page_total_media_view_unique" in metric:
                 return mock_reach_response
             if "page_post_engagements" in metric:
                 return mock_engagement_response
@@ -1390,11 +1390,12 @@ class TestExtractOrganicFromBreakdown:
 
 
 class TestFBOrganicMetricName:
-    """Verify FB organic uses the organic-only metric variant."""
+    """Verify FB organic uses the new page_total_media_view_unique metric (migrated from
+    deprecated page_impressions_organic_unique per Meta deprecation effective 2026-06-30)."""
 
     @pytest.mark.asyncio
-    async def test_uses_organic_unique_metric(self):
-        """Ensure _extract_facebook_organic requests page_impressions_organic_unique."""
+    async def test_uses_media_view_unique_metric(self):
+        """Ensure _extract_facebook_organic requests page_total_media_view_unique."""
         captured_params = []
 
         async def mock_get(url, **kwargs):
@@ -1417,9 +1418,9 @@ class TestFBOrganicMetricName:
                 date(2026, 3, 15),
             )
 
-        fb_reach_calls = [p for p in captured_params if "page_impressions" in p.get("metric", "")]
+        fb_reach_calls = [p for p in captured_params if "page_total_media_view_unique" in p.get("metric", "")]
         assert len(fb_reach_calls) >= 1
-        assert fb_reach_calls[0]["metric"] == "page_impressions_organic_unique"
+        assert fb_reach_calls[0]["metric"] == "page_total_media_view_unique"
 
 
 class TestMetaProviderErrorHandling:

@@ -846,14 +846,14 @@ class MetaProvider(BaseMetricsProvider):
 
         headers = _auth_headers(page_token)
 
-        # Page reach (organic only — excludes paid/boosted impressions).
-        # page_impressions_organic_unique works through v26.0 (~late 2026).
-        # Future: migrate to page_media_view + breakdown is_from_ads.
+        # Page reach — unique viewers (total, not organic-only).
+        # Migrated from deprecated page_impressions_organic_unique to
+        # page_total_media_view_unique per Meta deprecation effective 2026-06-30.
         reach_resp = await client.get(
             f"{GRAPH_API_BASE}/{page_id}/insights",
             headers=headers,
             params={
-                "metric": "page_impressions_organic_unique",
+                "metric": "page_total_media_view_unique",
                 "period": "day",
                 "since": int(
                     datetime.combine(start_date, datetime.min.time()).timestamp(),
@@ -1685,7 +1685,7 @@ class MetaProvider(BaseMetricsProvider):
         metrics: list[ExtractedMetric] = []
 
         for metric_name, channel_metric in [
-            ("page_impressions_organic_unique", "reach"),
+            ("page_total_media_view_unique", "reach"),
             ("page_post_engagements", "engagement"),
         ]:
             resp = await client.get(

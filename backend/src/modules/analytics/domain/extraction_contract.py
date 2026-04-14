@@ -611,7 +611,7 @@ def _meta_contract() -> ProviderContract:
                     "as of 2026-04-11."
                 ),
                 metrics=(
-                    MetricMapping("fb_page_reach", "page_impressions_unique", "count"),
+                    MetricMapping("fb_page_reach", "page_total_media_view_unique", "count"),
                     MetricMapping("fb_page_engagement", "page_engaged_users", "count"),
                 ),
             ),

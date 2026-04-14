@@ -1005,7 +1005,7 @@ Facebook page organic reach + engagement. NOTE: not currently populated for Visi
 
 | Canonical name | API field | Unit | Notes |
 |---|---|---|---|
-| `fb_page_reach` | `page_impressions_unique` | count | |
+| `fb_page_reach` | `page_total_media_view_unique` | count | |
 | `fb_page_engagement` | `page_engaged_users` | count | |
 
 ### Known issues
