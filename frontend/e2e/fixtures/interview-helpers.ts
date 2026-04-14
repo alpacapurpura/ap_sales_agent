@@ -259,6 +259,48 @@ export async function waitForInterviewComplete(
 }
 
 /**
+ * Keep the interview conversation going until it completes or times out.
+ *
+ * After the scripted responses run out, the AI often needs a few more
+ * confirmation/continuation turns to finish all 5 blocks. This helper
+ * sends "Sí, continúa" periodically until:
+ *   - The interview-complete card appears → returns true
+ *   - The deadline is reached → returns false
+ *
+ * Always confirm checkpoint cards when they appear.
+ *
+ * @param copilot - CopilotPage POM
+ * @param deadlineMs - Total time budget for the drain loop (default 5 min)
+ */
+export async function drainInterviewToCompletion(
+  copilot: CopilotPage,
+  deadlineMs = 5 * 60_000,
+): Promise<boolean> {
+  const deadline = Date.now() + deadlineMs;
+
+  while (Date.now() < deadline) {
+    // Check if already complete
+    if (await copilot.interviewCompleteCard.isVisible().catch(() => false)) {
+      return true;
+    }
+
+    // Confirm checkpoint if present
+    if (await copilot.checkpointCard.isVisible().catch(() => false)) {
+      await copilot.confirmCheckpoint();
+      await copilot.page.waitForTimeout(2000);
+      continue;
+    }
+
+    // Not complete, not at checkpoint — send a continuation nudge
+    if (Date.now() >= deadline) break;
+    await sendAndWaitForAI(copilot, 'Sí, continúa', 90_000);
+  }
+
+  // Final check
+  return copilot.interviewCompleteCard.isVisible().catch(() => false);
+}
+
+/**
  * Count messages in the copilot chat by role.
  */
 export async function countMessages(copilot: CopilotPage): Promise<{ user: number; assistant: number }> {

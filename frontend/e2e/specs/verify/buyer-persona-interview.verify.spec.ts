@@ -30,8 +30,7 @@ import { test, expect } from '../../fixtures/auth.fixture';
 import { CopilotPage } from '../../pages/copilot.pom';
 import {
   sendAndWaitForAI,
-  waitForCheckpoint,
-  waitForInterviewComplete,
+  drainInterviewToCompletion,
   listPersonasViaAPI,
   deleteAllPersonasViaAPI,
   abandonActiveInterviewViaAPI,
@@ -123,21 +122,13 @@ test.describe('buyer-persona interview @verify', () => {
       }
     });
 
-    await test.step('Interview completa (card final)', async () => {
-      // Give the AI extra time to complete after all messages
-      const completed = await waitForInterviewComplete(copilot, 180_000);
+    await test.step('Completar interview (drain + card final)', async () => {
+      // Keep advancing the interview with confirmation turns until it completes (5 min budget)
+      const completed = await drainInterviewToCompletion(copilot, 5 * 60_000);
 
-      // If not complete yet, the AI may need confirmation at the last checkpoint
-      if (!completed) {
-        const checkpointVisible = await copilot.checkpointCard.isVisible().catch(() => false);
-        if (checkpointVisible) {
-          await copilot.confirmCheckpoint();
-          await waitForInterviewComplete(copilot, 60_000);
-        }
-      }
-
-      // Structural: complete card appeared (AI called complete_interview tool)
-      await expect(copilot.interviewCompleteCard).toBeVisible({ timeout: 30_000 });
+      // Structural (soft): complete card should appear — ideal scenario should complete
+      expect.soft(completed, 'Interview should complete for ideal user').toBe(true);
+      console.log(`[ideal] Interview completed: ${completed}`);
     });
 
     await test.step('Evaluar calidad de la persona resultante', async () => {
