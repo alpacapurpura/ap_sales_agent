@@ -19,7 +19,7 @@ from src.modules.brand.infrastructure.repositories.buyer_persona_repository impo
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 
-router = APIRouter()
+router = APIRouter(redirect_slashes=False)
 
 # Fields that count toward completeness (profile-only, not metadata).
 _PROFILE_FIELDS = (
@@ -45,7 +45,8 @@ def _calc_completeness(persona: BuyerPersona) -> float:
     return round((filled / len(_PROFILE_FIELDS)) * 100, 1)
 
 
-@router.get("/", response_model=list[BuyerPersonaResponseDTO])
+@router.get("", response_model=list[BuyerPersonaResponseDTO])
+@router.get("/", response_model=list[BuyerPersonaResponseDTO], include_in_schema=False)
 async def list_buyer_personas(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
@@ -56,7 +57,8 @@ async def list_buyer_personas(
     return repo.list_by_tenant(user.tenant_id, scope=scope)
 
 
-@router.post("/", response_model=BuyerPersonaResponseDTO)
+@router.post("", response_model=BuyerPersonaResponseDTO)
+@router.post("/", response_model=BuyerPersonaResponseDTO, include_in_schema=False)
 async def create_buyer_persona(
     dto: BuyerPersonaCreateDTO,
     db: Annotated[Session, Depends(get_db)],
