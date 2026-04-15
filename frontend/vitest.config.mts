@@ -18,10 +18,12 @@ export default defineConfig({
       exclude: ['src/components/ui/**', '**/*.d.ts', '**/*.test.*'],
       reporter: ['text', 'text-summary'],
       thresholds: {
-        statements: 8,
-        branches: 5,
-        functions: 5,
-        lines: 8,
+        // Phase 4 Milestone 1: 20% (achieved 2026-04-15: actual ~25%/21%/22%/25%)
+        // Milestone 2 target: 40% — focus on hooks (React Query) and lib/utils
+        statements: 20,
+        branches: 20,
+        functions: 20,
+        lines: 20,
       },
     },
   },

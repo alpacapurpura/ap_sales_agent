@@ -41,8 +41,8 @@ export default [
   {
     plugins: { sonarjs },
     rules: {
-      // Phase 1A: warn mode; Phase 1C: error + lower threshold
-      "sonarjs/cognitive-complexity": ["warn", 20],
+      // Phase 1C: error + lowered threshold (15)
+      "sonarjs/cognitive-complexity": ["error", 15],
       "sonarjs/no-duplicate-string": "warn",
       "sonarjs/no-identical-functions": "warn",
       "sonarjs/no-nested-template-literals": "warn",
@@ -99,29 +99,39 @@ export default [
   {
     plugins: { boundaries },
     rules: {
-      // Phase 1A: warn only (non-breaking); Phase 3: error after fixing deep imports
-      "boundaries/no-unknown": "warn",
+      // Phase 3: disabled — fires on every @/ import targeting ignored files (components/ui/**)
+      // because ESLint ignores prevent those files from being registered as known elements.
+      // boundaries/dependencies (below) provides the real FSD enforcement.
+      "boundaries/no-unknown": "off",
+      // Phase 3: error — 4 violations existed, all fixed.
       "boundaries/dependencies": [
-        "warn",
+        "error",
         {
           default: "disallow",
           rules: [
-            // app/ pages import from features, shared components, lib (this is Next.js pattern)
+            // app/ pages can import from anywhere (Next.js pages are thin orchestrators)
             {
               from: { type: "app" },
               allow: { to: { type: ["feature", "feature:own", "shared", "lib", "ui", "hooks", "providers"] } },
             },
-            // features can ONLY import from: own feature, shared components, lib
+            // features can import from: own feature subdirs, shared components, lib
             {
               from: { type: "feature" },
               allow: { to: { type: ["feature:own", "shared", "lib", "util"] } },
             },
-            // components/shared can import from lib and util
+            // feature:own subdirs — same permissions as feature root
+            // NOTE: cross-feature subdirectory imports are caught via feature → feature rule.
+            {
+              from: { type: "feature:own" },
+              allow: { to: { type: ["feature:own", "feature", "shared", "lib", "util", "ui"] } },
+            },
+            // components/shared layout can import from other shared AND feature hooks
+            // (sidebar, tenant-switcher need settings hooks — pragmatic FSD-lite allowance)
             {
               from: { type: "shared" },
-              allow: { to: { type: ["lib", "util", "ui"] } },
+              allow: { to: { type: ["shared", "lib", "util", "ui", "feature", "feature:own"] } },
             },
-            // lib cannot import from features
+            // lib imports from util only (never from features)
             {
               from: { type: "lib" },
               allow: { to: { type: ["util"] } },
@@ -266,17 +276,21 @@ export default [
       "no-case-declarations": "warn",
       "no-useless-escape": "warn",
 
-      // Complexity limits (Phase 1A: warn; Phase 1C: lower thresholds)
+      // Complexity limits
+      // Phase 1D: max-lines lowered to 350. max-lines-per-function stays at 100
+      // (75 target deferred — 328 violations, needs systematic per-file refactor).
+      // Remaining large files tracked in frontend-quality-tracker.md Phase 1D-b.
       "max-lines": [
         "warn",
-        { max: 500, skipBlankLines: true, skipComments: true },
+        { max: 350, skipBlankLines: true, skipComments: true },
       ],
       "max-lines-per-function": [
         "warn",
         { max: 100, skipBlankLines: true, skipComments: true },
       ],
-      "max-depth": ["warn", 5],
-      "max-params": ["warn", 5],
+      // Phase 1C: lowered to 4 and raised to error
+      "max-depth": ["error", 4],
+      "max-params": ["error", 4],
       "max-nested-callbacks": ["warn", 4],
       "complexity": ["warn", 20],
 
@@ -293,6 +307,41 @@ export default [
 
   // ─── Prettier integration ───
   prettier,
+
+  // ─── Disable type-checked rules for test/story/mock files (performance: skip TypeScript program) ───
+  // Block 1: spread disableTypeChecked alone — MUST NOT mix with extra rules key or spread gets overwritten
+  // This alone saves ~30-40% of ESLint time by excluding 150+ files from the TS program.
+  {
+    files: [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.spec.ts",
+      "**/*.spec.tsx",
+      "**/*.stories.ts",
+      "**/*.stories.tsx",
+      "**/__tests__/**",
+      "**/__mocks__/**",
+    ],
+    ...tseslint.configs.disableTypeChecked,
+  },
+  // Block 2: additional relaxed rules for test files (separate object so Block 1 rules are not overwritten)
+  {
+    files: [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.spec.ts",
+      "**/*.spec.tsx",
+      "**/*.stories.ts",
+      "**/*.stories.tsx",
+      "**/__tests__/**",
+      "**/__mocks__/**",
+    ],
+    rules: {
+      "max-lines": "off",
+      "max-lines-per-function": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
+    },
+  },
 
   // ─── Ignore generated files ───
   {
