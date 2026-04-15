@@ -1,12 +1,13 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { BrandIdentity } from "@/features/brand/types";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -16,8 +17,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+
+import type { BrandIdentity } from "@/features/brand/types";
 
 const formSchema = z.object({
   legal_name: z.string().optional(),
@@ -64,7 +66,7 @@ export function LegalForm({ initialData, onSave, isSaving }: LegalFormProps) {
       ...initialData,
       ...values,
     };
-    onSave(finalData);
+    void onSave(finalData);
   }
 
   return (

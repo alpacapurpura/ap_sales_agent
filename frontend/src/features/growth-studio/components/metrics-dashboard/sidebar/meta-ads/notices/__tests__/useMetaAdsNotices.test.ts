@@ -1,13 +1,14 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useMetaAdsNotices } from "../useMetaAdsNotices";
+
 import type {
   CampaignPerformanceData,
   CampaignRecommendation,
   CampaignWithMetrics,
 } from "../../../../../../types/metrics";
 import type { MetaHealthCheck, Recommendation } from "../../../../../../types/offer-association";
-import { useMetaAdsNotices } from "../useMetaAdsNotices";
 
 // ---------------------------------------------------------------------------
 // Fixtures

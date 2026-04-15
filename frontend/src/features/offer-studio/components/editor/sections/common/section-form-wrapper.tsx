@@ -1,11 +1,15 @@
-import { useState } from "react";
-import { useForm, UseFormReturn, FieldValues, DefaultValues, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+
+import type { UseFormReturn, FieldValues, DefaultValues, SubmitHandler } from "react-hook-form";
 
 interface SectionFormWrapperProps<T extends FieldValues> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- React Hook Form + Zod v4 resolver generics require any
   schema: any;
   defaultValues: DefaultValues<T>;
   onSubmit: SubmitHandler<T>;

@@ -1,14 +1,16 @@
 "use client";
 
+import { Plus, Trash2, Save, Loader2, Flag } from "lucide-react";
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { BrandStory, BrandStoryMilestone } from "@/features/brand/types";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Save, Loader2, Flag } from "lucide-react";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
+
+import type { BrandStory, BrandStoryMilestone } from "@/features/brand/types";
 
 interface StoryFormProps {
   initialData: BrandStory;
@@ -25,7 +27,7 @@ export function StoryForm({ initialData, onSave, isSaving = false }: StoryFormPr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(story);
+    void onSave(story);
   };
 
   const addMilestone = () => {

@@ -1,6 +1,7 @@
 // Offer assets API adapter — CONTRACT.md §5.3
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
+
 import type {
   AssetGeneratePayload,
   AssetListQuery,

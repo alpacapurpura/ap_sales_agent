@@ -1,13 +1,14 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Cable } from "lucide-react";
+
+import { NavLink } from "@/components/shared/navigation";
 import { Badge } from "@/components/ui/badge";
 import { BrandIcon } from "@/components/ui/brand-icons";
-import { Cable } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 import { type ProviderDefinition } from "@/features/connections/config/provider-registry";
 import { type ProviderStatus } from "@/features/connections/hooks/use-all-connections-status";
-import { NavLink } from "@/components/shared/navigation";
+import { cn } from "@/lib/utils";
 
 interface ConnectionCardProps {
   provider: ProviderDefinition;

@@ -1,5 +1,6 @@
-import { fetchClient } from "@/lib/http-client";
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
+
 import type { TenantDomain, DomainInstructions } from "../types";
 
 const BASE = `${config.api.baseUrl}/api/v1/domains`;

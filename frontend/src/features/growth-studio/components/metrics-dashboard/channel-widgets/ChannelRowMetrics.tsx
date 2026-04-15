@@ -1,12 +1,15 @@
 "use client";
 
 import React from "react";
-import type { MetricValue, MetricClickData, StageId } from "../../../types/metrics";
-import { METRIC_LABELS } from "../../../lib/metric-labels";
+
 import { getChannelConfig } from "../../../config/channel-display-registry";
-import { CostLink } from "./CostLink";
+import { METRIC_LABELS } from "../../../lib/metric-labels";
 import { formatNum, formatCurrency } from "../utils/format";
+
+import { CostLink } from "./CostLink";
 import { MetricInfoCard } from "./KpiTooltip";
+
+import type { MetricValue, MetricClickData, StageId } from "../../../types/metrics";
 
 /* ── Formatting helpers ──────────────────────────────────────────────── */
 

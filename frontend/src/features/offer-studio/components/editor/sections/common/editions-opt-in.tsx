@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { ChevronDown, ChevronUp, Rocket } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
-import { OfferArchetype } from "@/features/offer-studio/types";
-import type { OfferFormValues } from "@/features/offer-studio/types/schema";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getEditionsCopy } from "@/features/offer-studio/utils/editions-copy";
+
+import type { OfferArchetype } from "@/features/offer-studio/types";
+import type { OfferFormValues } from "@/features/offer-studio/types/schema";
 
 interface EditionsOptInProps {
   archetype: OfferArchetype;

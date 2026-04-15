@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { LandingPageConfig } from "@/features/offer-studio/components/landing/types/schema";
 import { useAuth } from "@clerk/nextjs";
-import { offerApi } from "@/features/offer-studio/api";
-import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
+import { offerApi } from "@/features/offer-studio/api";
+
 import { PuckEditor } from "./PuckEditor";
+
+import type { LandingPageConfig } from "@/features/offer-studio/components/landing/types/schema";
 
 export function LandingPageEditor({
   initialConfig,
@@ -41,7 +44,7 @@ export function LandingPageEditor({
       }
     };
 
-    fetchConfig();
+    void fetchConfig();
   }, [offerId, initialConfig, getToken]);
 
   if (isLoading) {

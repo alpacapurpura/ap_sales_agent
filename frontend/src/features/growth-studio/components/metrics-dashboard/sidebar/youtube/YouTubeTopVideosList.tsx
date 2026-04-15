@@ -2,11 +2,12 @@
 
 import { Loader2, Youtube } from "lucide-react";
 import Image from "next/image";
+
 import { useYoutubeTopVideos } from "../../../../hooks/useYoutubeAnalytics";
 
 function formatDuration(iso: string): string {
   // Parse ISO 8601 duration like PT1H2M30S
-  const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  const match = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(iso);
   if (!match) return iso;
   const h = match[1] ? `${match[1]}:` : "";
   const m = (match[2] || "0").padStart(h ? 2 : 1, "0");

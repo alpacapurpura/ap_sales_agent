@@ -1,6 +1,12 @@
 "use client";
 
+import { PlusCircle, Download, Settings, RefreshCw } from "lucide-react";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -9,11 +15,6 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@/components/ui/sheet";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { PlusCircle, Download, Settings, RefreshCw } from "lucide-react";
-import { useState } from "react";
 
 interface ActionPanelProps {
   isOpen: boolean;

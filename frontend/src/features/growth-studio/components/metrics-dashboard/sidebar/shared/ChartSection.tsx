@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, type ReactNode } from "react";
 import { Link2 } from "lucide-react";
+import { useCallback, type ReactNode } from "react";
 import { toast } from "sonner";
 
 interface ChartSectionProps {

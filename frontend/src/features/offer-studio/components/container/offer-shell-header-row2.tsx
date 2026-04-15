@@ -1,10 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { cn } from "@/lib/utils";
-import { getOfferHealth } from "../../utils/offer-health";
-import { getSectionsForOffer, SECTION_REGISTRY } from "../../config/offer-builder-config";
+
 import { FocusModeButton } from "@/features/copilot/components/focus-mode-button";
+import { cn } from "@/lib/utils";
+
+import { getSectionsForOffer, SECTION_REGISTRY } from "../../config/offer-builder-config";
+import { getOfferHealth } from "../../utils/offer-health";
+
 import { LandingActionButton } from "./landing-action-button";
 import { OfferProgressBar } from "./offer-progress-bar";
 import { useOfferShell } from "./offer-shell";

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 import {
   Select,
@@ -10,8 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { useCreateAssociation } from "../../../../../api/offer-association-api";
 import { archetypeEmoji } from "../../../../../types/offer-association";
+
 import type { OfferSummary } from "../../../../../types/offer-association";
 
 const OPTION_BRANDING = "__branding__";

@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { Loader2, Copy, Check } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +13,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -18,10 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { leadsApi, Lead } from "@/lib/api/leads";
 import { bookingLinksApi } from "@/lib/api/booking-links";
-import { Loader2, Copy, Check } from "lucide-react";
-import { toast } from "sonner";
+import { leadsApi } from "@/lib/api/leads";
+
+import type { Lead } from "@/lib/api/leads";
 
 interface GenerateLinkModalProps {
   open: boolean;
@@ -86,7 +89,7 @@ export function GenerateLinkModal({ open, onOpenChange, eventSlug }: GenerateLin
 
   const copyToClipboard = () => {
     if (generatedUrl) {
-      navigator.clipboard.writeText(generatedUrl);
+      void navigator.clipboard.writeText(generatedUrl);
       toast.success("Copiado al portapapeles");
     }
   };

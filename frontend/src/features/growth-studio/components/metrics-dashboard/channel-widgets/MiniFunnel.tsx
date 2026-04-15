@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
+
 import type { MiniFunnelData } from "../../../types/metrics";
 
 interface MiniFunnelProps {

@@ -1,9 +1,12 @@
+import { aiActionsApi } from "@/lib/api/ai-actions";
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
-import { aiActionsApi, ExtractionStatus } from "@/lib/api/ai-actions";
-import { BrandSettings, BrandVisuals, FullBrandExtractionRequest } from "../types";
-import { MOCK_BRAND_SETTINGS } from "./mock-data";
 import { ENABLE_MOCKS as USE_MOCK_API } from "@/lib/mock-config";
+
+import { MOCK_BRAND_SETTINGS } from "./mock-data";
+
+import type { BrandSettings, BrandVisuals, FullBrandExtractionRequest } from "../types";
+import type { ExtractionStatus } from "@/lib/api/ai-actions";
 
 const API_URL = config.api.baseUrl;
 

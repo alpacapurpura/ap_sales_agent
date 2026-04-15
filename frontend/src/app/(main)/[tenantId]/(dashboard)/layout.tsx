@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+
 import { AppSidebar } from "@/components/shared/layout/app-sidebar";
 import { SidebarProvider, useSidebar } from "@/components/shared/layout/sidebar-context";
 import { CopilotSidebar } from "@/features/copilot/components/copilot-sidebar";

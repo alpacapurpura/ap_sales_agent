@@ -1,8 +1,11 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+
 import { useCopilotStore } from "../store/copilot-store";
+
 import type { FocusEntity } from "../store/copilot-store";
 
 interface FocusModeButtonProps {

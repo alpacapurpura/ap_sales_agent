@@ -1,13 +1,15 @@
 "use client";
 
+import { Save, Loader2, ArrowLeft } from "lucide-react";
 import { useState } from "react";
-import { CreativeConcept } from "@/features/brand/types";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Loader2, ArrowLeft } from "lucide-react";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
+
+import type { CreativeConcept } from "@/features/brand/types";
 
 interface ConceptFormProps {
   concept: CreativeConcept;

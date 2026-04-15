@@ -1,9 +1,11 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import Link, { type LinkProps } from "next/link";
 import { forwardRef, type AnchorHTMLAttributes } from "react";
-import { Loader2 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+
 import { useNavigation } from "./navigation-context";
 
 interface NavLinkProps

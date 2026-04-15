@@ -1,7 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import StrategyCanvas from "../StrategyCanvas";
+
 import { MOCK_CONFIG } from "../config/mock-data";
+import StrategyCanvas from "../StrategyCanvas";
 
 // Mock ParentSize to provide valid dimensions immediately
 vi.mock("@visx/responsive", async () => {

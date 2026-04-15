@@ -1,13 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { format, startOfMonth, endOfMonth, isSameDay, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { connectionsApi } from "@/lib/api/connections";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -16,17 +11,34 @@ import {
   ChevronRight,
   MapPin,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { connectionsApi } from "@/lib/api/connections";
+
+/** Google Calendar event shape returned by the connections API. */
+interface CalendarAppointment {
+  id?: string;
+  summary: string;
+  start: string;
+  end: string;
+  meet_link?: string;
+  attendees?: string[];
+  location?: string;
+}
 
 interface CalendarWidgetProps {
-  onAppointmentClick: (appointment: any) => void;
+  onAppointmentClick: (appointment: CalendarAppointment) => void;
   onConfigClick: () => void;
 }
 
 export function CalendarWidget({ onAppointmentClick, onConfigClick }: CalendarWidgetProps) {
   const { getToken } = useAuth();
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<CalendarAppointment[]>([]);
   const [loading, setLoading] = useState(false);
   const [month, setMonth] = useState<Date>(new Date());
 
@@ -44,7 +56,7 @@ export function CalendarWidget({ onAppointmentClick, onConfigClick }: CalendarWi
         format(end, "yyyy-MM-dd"),
         token,
       );
-      setAppointments(data);
+      setAppointments(data as CalendarAppointment[]);
     } catch (error) {
       console.error(error);
     } finally {
@@ -53,7 +65,7 @@ export function CalendarWidget({ onAppointmentClick, onConfigClick }: CalendarWi
   };
 
   useEffect(() => {
-    fetchAppointments(month);
+    void fetchAppointments(month);
   }, [month]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMonthChange = (newMonth: Date) => {

@@ -1,11 +1,12 @@
 import {
-  Offer,
   OfferArchetype,
   OfferValueLevel,
   OfferDeliveryModel,
   OfferStatus,
   GuaranteeType,
 } from "../types";
+
+import type { Offer } from "../types";
 
 export const MOCK_BACKEND_RESPONSE = {
   id: "217ff363-8e96-4132-9542-935499bc7efc",

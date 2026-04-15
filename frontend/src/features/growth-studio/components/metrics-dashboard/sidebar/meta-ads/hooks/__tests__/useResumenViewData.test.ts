@@ -2,6 +2,8 @@ import { renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { useResumenViewData } from "../useResumenViewData";
+
+import type { ChannelDashboardData } from "../../../../../../types/metrics";
 import type {
   BrandingAggregate,
   FunnelStep,
@@ -9,7 +11,6 @@ import type {
   OfferMetrics,
   UnassignedAggregate,
 } from "../../../../../../types/offer-association";
-import type { ChannelDashboardData } from "../../../../../../types/metrics";
 
 // ---------------------------------------------------------------------------
 // Factories

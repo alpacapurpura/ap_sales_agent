@@ -3,13 +3,14 @@
 import { Loader2, Users } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from "recharts";
 
-import { cn } from "@/lib/utils";
-import { ChartContainer } from "@/components/ui/chart";
 import { MetricInfoPopover } from "@/components/shared/MetricInfoPopover";
+import { ChartContainer } from "@/components/ui/chart";
+import { cn } from "@/lib/utils";
+
 import { useMailAudience } from "../../../../../hooks/useMailDashboard";
-import { ChartSection } from "../../shared/ChartSection";
 import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
-import type { MetaAdsPeriod } from "../../../../../types/metrics";
+import { ChartSection } from "../../shared/ChartSection";
+
 import type {
   EmailAudienceData,
   EmailEngagementSegment,
@@ -18,6 +19,7 @@ import type {
   EngagementDecay,
   ActivityHeatmapCell,
 } from "../../../../../types/mail-types";
+import type { MetaAdsPeriod } from "../../../../../types/metrics";
 
 interface MailAudienciaTabProps {
   period: MetaAdsPeriod;

@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useState } from "react";
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import type { CampaignMetric, MetricValue } from "../../../types/metrics";
-import { METRIC_LABELS } from "../../../lib/metric-labels";
-import { formatMoney } from "@/lib/format-money";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatMoney } from "@/lib/format-money";
+
+import { METRIC_LABELS } from "../../../lib/metric-labels";
+
+import type { CampaignMetric, MetricValue } from "../../../types/metrics";
 
 // Format helpers (inline to avoid cross-file dependency)
 function formatNumber(n: number): string {

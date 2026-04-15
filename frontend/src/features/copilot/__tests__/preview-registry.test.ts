@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { getPreviewEntry, getSupportedDomains } from "../config/interview-preview-registry";
 
 describe("Preview Registry (lazy)", () => {

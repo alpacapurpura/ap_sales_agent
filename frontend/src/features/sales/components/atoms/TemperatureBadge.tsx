@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { LeadTemperature } from "../../types";
+
+import type { LeadTemperature } from "../../types";
 
 interface TemperatureBadgeProps {
   temperature: LeadTemperature;

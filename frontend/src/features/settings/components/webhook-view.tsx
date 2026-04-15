@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { settingsApi, WebhookSettings } from "@/lib/api/settings";
+import { Loader2, Copy, RefreshCw, Eye, EyeOff, AlertTriangle, CheckCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,13 +15,6 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Copy, RefreshCw, Eye, EyeOff, AlertTriangle, CheckCircle } from "lucide-react";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +24,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { settingsApi } from "@/lib/api/settings";
+
+import type { WebhookSettings } from "@/lib/api/settings";
 
 export function WebhookView() {
   const { getToken } = useAuth();
@@ -52,11 +55,11 @@ export function WebhookView() {
   };
 
   useEffect(() => {
-    fetchSettings();
+    void fetchSettings();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCopy = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
+    void navigator.clipboard.writeText(text);
     toast.success(`${label} copiado al portapapeles`);
   };
 

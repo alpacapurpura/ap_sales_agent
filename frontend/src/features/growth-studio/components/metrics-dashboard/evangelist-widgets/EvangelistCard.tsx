@@ -1,8 +1,9 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import type { EvangelistData } from "../../../types/metrics";
 import { formatDualCurrency } from "@/lib/format-money";
+
+import type { EvangelistData } from "../../../types/metrics";
 
 interface Props {
   evangelist: EvangelistData;

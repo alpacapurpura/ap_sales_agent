@@ -1,11 +1,13 @@
 "use client";
 
-import { Lightbulb } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
+import { Lightbulb } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { useCopilotStore } from "../store/copilot-store";
-import { useCopilotChat } from "../hooks/useCopilotChat";
+
 import { reportCopilotEvent } from "../api/copilot-api";
+import { useCopilotChat } from "../hooks/useCopilotChat";
+import { useCopilotStore } from "../store/copilot-store";
 
 /**
  * Route-aware quick actions shown when the copilot chat is empty.
@@ -100,8 +102,8 @@ export function SuggestedActions() {
   const suggestions = getSuggestionsForRoute(currentRoute);
 
   const handleClick = (s: SuggestedAction) => {
-    sendMessage(s.prompt);
-    getToken().then((token) => {
+    void sendMessage(s.prompt);
+    void getToken().then((token) => {
       if (token) {
         reportCopilotEvent("suggested_action_clicked", { action_label: s.label }, token);
       }

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { cn } from "@/lib/utils";
 import { ChevronRight, type LucideIcon } from "lucide-react";
+import { useState } from "react";
+
+import { cn } from "@/lib/utils";
+
 import type { ValidationStatus } from "../../utils/brand-validation";
 
 export interface SectionNavItem {

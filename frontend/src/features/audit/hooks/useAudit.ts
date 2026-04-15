@@ -1,8 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
+
 import { fetchClient } from "@/lib/http-client";
+
 import { API_BASE } from "../api";
-import { AuditLead, LeadDetails, TimelineEvent, TraceDetail } from "../types";
+
+import type { AuditLead, LeadDetails, TimelineEvent, TraceDetail } from "../types";
 
 export function useAuditLeads() {
   const { getToken } = useAuth();

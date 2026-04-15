@@ -1,14 +1,12 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
-import type { Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Plus, Trash2, ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
-import type { BrandVisuals } from "@/features/brand/types";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -18,6 +16,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -27,8 +27,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Loader2, Plus, Trash2, ChevronDown } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+
+import type { BrandVisuals } from "@/features/brand/types";
+import type { Control } from "react-hook-form";
 const formSchema = z.object({
   // Colors (core)
   primary_color: z.string().min(1, "El color primario es requerido"),
@@ -92,7 +94,12 @@ function ColorInput({
   control,
 }: {
   label: string;
-  name: keyof VisualsSchema | "semantic_colors.success" | "semantic_colors.error" | "semantic_colors.warning" | "semantic_colors.info";
+  name:
+    | keyof VisualsSchema
+    | "semantic_colors.success"
+    | "semantic_colors.error"
+    | "semantic_colors.warning"
+    | "semantic_colors.info";
   desc?: string;
   control: Control<VisualsSchema>;
 }) {
@@ -103,33 +110,29 @@ function ColorInput({
       render={({ field }) => {
         const colorValue = (field.value as string) || "#ffffff";
         return (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <div className="flex gap-2 items-center">
-            <div
-              className="w-10 h-10 rounded border overflow-hidden shrink-0 shadow-sm"
-              style={{ backgroundColor: colorValue }}
-            >
-              <input
-                type="color"
-                className="w-[150%] h-[150%] -m-[25%] cursor-pointer opacity-0"
-                value={colorValue}
-                onChange={field.onChange}
-              />
+          <FormItem>
+            <FormLabel>{label}</FormLabel>
+            <div className="flex gap-2 items-center">
+              <div
+                className="w-10 h-10 rounded border overflow-hidden shrink-0 shadow-sm"
+                style={{ backgroundColor: colorValue }}
+              >
+                <input
+                  type="color"
+                  className="w-[150%] h-[150%] -m-[25%] cursor-pointer opacity-0"
+                  value={colorValue}
+                  onChange={field.onChange}
+                />
+              </div>
+              <FormControl>
+                <Input placeholder="#000000" {...field} value={colorValue} className="font-mono" />
+              </FormControl>
             </div>
-            <FormControl>
-              <Input
-                placeholder="#000000"
-                {...field}
-                value={colorValue}
-                className="font-mono"
-              />
-            </FormControl>
-          </div>
-          {desc && <FormDescription>{desc}</FormDescription>}
-          <FormMessage />
-        </FormItem>
-      )}}
+            {desc && <FormDescription>{desc}</FormDescription>}
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 }
@@ -214,7 +217,7 @@ export function VisualsForm({ initialData, onSave, isSaving }: VisualsFormProps)
         energy: (values.brand_mood?.energy as "low" | "medium" | "high") || undefined,
       },
     };
-    onSave(fullData);
+    void onSave(fullData);
   }
 
   // Collapsible section wrapper

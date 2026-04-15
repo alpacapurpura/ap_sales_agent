@@ -1,38 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
-import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
 import { useAuth } from "@clerk/nextjs";
-import {
-  connectionsApi,
-  GA4Property,
-  GoogleAnalyticsStatusResponse,
-  TestResponse,
-} from "@/lib/api/connections";
-import { PropertyPicker } from "@/features/connections/components/property-picker";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Loader2,
   CheckCircle,
@@ -47,8 +15,42 @@ import {
   XCircle,
   AlertTriangle,
 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { PropertyPicker } from "@/features/connections/components/property-picker";
+import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
+import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
+import { connectionsApi } from "@/lib/api/connections";
 import { cn } from "@/lib/utils";
+
+import type {
+  GA4Property,
+  GoogleAnalyticsStatusResponse,
+  TestResponse,
+} from "@/lib/api/connections";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -273,7 +275,7 @@ export function GoogleWorkspaceView() {
   }, [getToken]);
 
   useEffect(() => {
-    fetchStatus();
+    void fetchStatus();
   }, [fetchStatus]);
 
   // Listen for the OAuth code sent by the popup callback page
@@ -292,19 +294,19 @@ export function GoogleWorkspaceView() {
 
         // Check if GA needs property selection
         try {
-          const gaData = await connectionsApi.getGoogleAnalyticsStatus(token!);
+          const gaData = await connectionsApi.getGoogleAnalyticsStatus(token);
           setGaStatus(gaData);
           if (gaData.is_connected && !gaData.selected_property) {
-            const wsResult = await connectionsApi.getGoogleAnalyticsProperties(token!);
+            const wsResult = await connectionsApi.getGoogleAnalyticsProperties(token);
             setGa4Properties(wsResult);
             setShowGaPropertyPicker(true);
           }
         } catch (e) {
           console.error("Could not check GA status after workspace connect", e);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(error);
-        toast.error(error.message || "Error al conectar Google");
+        toast.error(error instanceof Error ? error.message : "Error al conectar Google");
       } finally {
         setIsConnecting(false);
       }
@@ -353,7 +355,7 @@ export function GoogleWorkspaceView() {
 
       // Safety timeout: reset button if popup is closed without completing
       setTimeout(() => setIsConnecting(false), 90_000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       toast.error("No se pudo iniciar la conexión con Google");
       setIsConnecting(false);
@@ -383,9 +385,9 @@ export function GoogleWorkspaceView() {
             }
           : prev,
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al actualizar el servicio");
+      toast.error(error instanceof Error ? error.message : "Error al actualizar el servicio");
       await fetchStatus(); // Re-sync on error
     } finally {
       setTogglingService(null);
@@ -401,9 +403,9 @@ export function GoogleWorkspaceView() {
       await connectionsApi.disconnectGoogleWorkspace(token);
       toast.success("Cuenta de Google desvinculada");
       await fetchStatus();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al desconectar");
+      toast.error(error instanceof Error ? error.message : "Error al desconectar");
     } finally {
       setIsDisconnecting(false);
     }
@@ -422,7 +424,7 @@ export function GoogleWorkspaceView() {
           // Silently ignore — GA status is supplementary
         }
       };
-      checkGa();
+      void checkGa();
     }
   }, [status?.is_connected]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -434,7 +436,7 @@ export function GoogleWorkspaceView() {
       const props = await connectionsApi.getGoogleAnalyticsProperties(token);
       setGa4Properties(props);
       setShowGaPropertyPicker(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       toast.error("Error al obtener propiedades de GA4");
       setGa4Properties([]);
@@ -572,20 +574,28 @@ export function GoogleWorkspaceView() {
               <p>{testResult.message}</p>
               {testResult.details && (
                 <div className="mt-2 space-y-1.5">
-                  {Object.entries(testResult.details).map(([service, result]) => (
-                    <div key={service} className="text-xs flex items-start gap-2">
-                      <span className="font-medium min-w-[70px]">{service}:</span>
-                      {result.status === "ok" ? (
-                        <span className="text-green-700 dark:text-green-400">
-                          OK — {JSON.stringify(result.data, null, 0).slice(0, 120)}
-                        </span>
-                      ) : result.status === "skipped" ? (
-                        <span className="text-muted-foreground">{result.reason}</span>
-                      ) : (
-                        <span className="text-red-700 dark:text-red-400">{result.error}</span>
-                      )}
-                    </div>
-                  ))}
+                  {Object.entries(testResult.details).map(([service, result]) => {
+                    const detail = result as {
+                      status?: string;
+                      data?: unknown;
+                      reason?: string;
+                      error?: string;
+                    };
+                    return (
+                      <div key={service} className="text-xs flex items-start gap-2">
+                        <span className="font-medium min-w-[70px]">{service}:</span>
+                        {detail.status === "ok" ? (
+                          <span className="text-green-700 dark:text-green-400">
+                            OK — {JSON.stringify(detail.data, null, 0).slice(0, 120)}
+                          </span>
+                        ) : detail.status === "skipped" ? (
+                          <span className="text-muted-foreground">{detail.reason}</span>
+                        ) : (
+                          <span className="text-red-700 dark:text-red-400">{detail.error}</span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </AlertDescription>

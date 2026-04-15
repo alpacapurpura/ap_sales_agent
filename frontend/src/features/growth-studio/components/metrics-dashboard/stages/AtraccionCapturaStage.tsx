@@ -1,7 +1,7 @@
 "use client";
 
-import { AttractionCaptureDetail } from "../detail-panels/AttractionCaptureDetail";
 import { useGrowthStudioContext } from "../context/GrowthStudioContext";
+import { AttractionCaptureDetail } from "../detail-panels/AttractionCaptureDetail";
 
 export function AtraccionCapturaStage() {
   const {

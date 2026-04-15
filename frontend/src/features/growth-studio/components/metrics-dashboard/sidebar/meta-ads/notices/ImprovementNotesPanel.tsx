@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   AlertCircle,
   AlertTriangle,
@@ -9,8 +8,10 @@ import {
   ChevronUp,
   EyeOff,
 } from "lucide-react";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
+
 import type { ImprovementNotice, NoticeSeverity, SeverityBreakdown } from "./types";
 
 // ---------------------------------------------------------------------------

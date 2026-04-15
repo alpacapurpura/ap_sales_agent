@@ -1,5 +1,6 @@
 import type { ChannelMetric, MetricValue } from "../../types/metrics";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 export function mapMetric(raw: any): MetricValue {
   return {
     name: raw.name,
@@ -10,6 +11,7 @@ export function mapMetric(raw: any): MetricValue {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 export function mapChannel(raw: any): ChannelMetric {
   return {
     slug: raw.slug,
@@ -28,6 +30,7 @@ export function mapChannel(raw: any): ChannelMetric {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 export function mapGroup(raw: any) {
   return {
     totals: raw.totals ?? {},

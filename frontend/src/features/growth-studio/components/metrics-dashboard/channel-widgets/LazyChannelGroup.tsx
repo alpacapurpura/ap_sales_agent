@@ -1,26 +1,30 @@
 "use client";
 
 import { memo, useMemo } from "react";
-import type React from "react";
-import type { LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useIntersectionObserver } from "../../../hooks/useIntersectionObserver";
-import { useGroupDetail } from "../../../hooks/useGroupDetail";
-import { ChannelRow } from "./ChannelRow";
-import { ChannelChip } from "./ChannelChip";
-import { classifyChannel } from "../../../lib/classifyChannel";
-import type {
-  ChannelOverview,
-  ChannelMetric,
-  MetricClickData,
-  StageId,
-} from "../../../types/metrics";
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
+
+import { useGroupDetail } from "../../../hooks/useGroupDetail";
+import { useIntersectionObserver } from "../../../hooks/useIntersectionObserver";
+import { classifyChannel } from "../../../lib/classifyChannel";
+
+import { ChannelChip } from "./ChannelChip";
+import { ChannelRow } from "./ChannelRow";
+
+import type {
+  ChannelOverview,
+  ChannelMetric,
+  MetricClickData,
+  StageId,
+} from "../../../types/metrics";
+import type { LucideIcon } from "lucide-react";
+import type React from "react";
 
 const COLOR_MAP = {
   blue: {

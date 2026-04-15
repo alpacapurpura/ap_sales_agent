@@ -1,12 +1,13 @@
 "use client";
 
+import { User } from "lucide-react";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { TestimonialItem } from "@/features/brand/types";
+
 import { Button } from "@/components/ui/button";
+import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -14,9 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
-import { DialogFooter } from "@/components/ui/dialog";
+
+import type { TestimonialItem } from "@/features/brand/types";
 
 interface TestimonialItemFormProps {
   initialData?: TestimonialItem;

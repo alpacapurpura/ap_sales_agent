@@ -1,6 +1,7 @@
-import { AvatarDefinition } from "@/features/offer-studio/types";
 import { config } from "../config";
 import { fetchClient } from "../http-client";
+
+import type { AvatarDefinition } from "@/features/offer-studio/types";
 
 const API_URL = config.api.baseUrl;
 
@@ -21,7 +22,7 @@ export interface CreateAvatarDTO {
 }
 
 export const avatarApi = {
-  listAvatars: async (token: string, scope: string = "GLOBAL"): Promise<Avatar[]> => {
+  listAvatars: async (token: string, scope = "GLOBAL"): Promise<Avatar[]> => {
     const res = await fetchClient(`${API_URL}/api/v1/brand/avatars/?scope=${scope}`, {
       headers: { Authorization: `Bearer ${token}` },
     });

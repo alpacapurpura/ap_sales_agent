@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { CHANNEL_STAGE_MAP, getStageForChannel } from "../channel-stage-map";
 
 describe("CHANNEL_STAGE_MAP", () => {

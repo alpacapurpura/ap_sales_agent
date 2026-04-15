@@ -4,8 +4,8 @@
  * metrics by date, renders lost values as negative (so the chart reads
  * "above zero = gained, below zero = lost"), and summarizes period totals.
  */
-import React from "react";
 import { render, screen } from "@testing-library/react";
+import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ChannelDashboardData } from "../../../../../../types/metrics";
@@ -126,12 +126,12 @@ describe("IgAudienceTab", () => {
     render(<IgAudienceTab data={data} isLoading={false} />);
 
     expect(capturedChartData.length).toBe(1);
-    const rendered = capturedChartData[0] as Array<{
+    const rendered = capturedChartData[0] as {
       date: string;
       gained: number;
       lost: number;
       net: number;
-    }>;
+    }[];
 
     // 3 days, sorted ascending by MM-DD
     expect(rendered).toHaveLength(3);
@@ -192,12 +192,12 @@ describe("IgAudienceTab", () => {
 
     render(<IgAudienceTab data={data} isLoading={false} />);
 
-    const rendered = capturedChartData[0] as Array<{
+    const rendered = capturedChartData[0] as {
       date: string;
       gained: number;
       lost: number;
       net: number;
-    }>;
+    }[];
     expect(rendered).toHaveLength(2);
     // 2026-04-01: gained=10, lost=-2, net=8
     // 2026-04-02: gained=0 (missing), lost=-5, net=-5

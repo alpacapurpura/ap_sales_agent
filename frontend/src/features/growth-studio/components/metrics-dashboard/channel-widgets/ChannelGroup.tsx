@@ -6,9 +6,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import type { ChannelMetric, GroupType, MetricClickData, StageId } from "../../../types/metrics";
 import { formatMoney } from "@/lib/format-money";
+
 import { ChannelRow } from "./ChannelRow";
+
+import type { ChannelMetric, GroupType, MetricClickData, StageId } from "../../../types/metrics";
 
 interface ChannelGroupProps {
   title: string;

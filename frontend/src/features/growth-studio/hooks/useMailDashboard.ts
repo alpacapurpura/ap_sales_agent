@@ -1,7 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
 
 import {
   fetchEmailDashboard,
@@ -11,6 +11,7 @@ import {
   fetchEmailHealth,
   fetchEmailGrowth,
 } from "../api/mail-api";
+
 import type {
   EmailDashboardData,
   EmailCampaignsData,

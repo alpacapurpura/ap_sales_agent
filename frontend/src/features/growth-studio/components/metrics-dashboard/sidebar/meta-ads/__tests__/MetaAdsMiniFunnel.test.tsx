@@ -16,13 +16,14 @@
  * rate row) and leave live-open rendering to E2E.
  */
 
-import React from "react";
 import { render, screen, within } from "@testing-library/react";
+import React from "react";
 import { describe, expect, it } from "vitest";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { MetaAdsMiniFunnel } from "../MetaAdsMiniFunnel";
+
 import type { FunnelStep } from "../../../../../types/metrics";
 
 function renderFunnel(ui: React.ReactElement) {

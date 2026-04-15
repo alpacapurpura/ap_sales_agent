@@ -1,5 +1,5 @@
-import { fetchClient } from "../http-client";
 import { config } from "../config";
+import { fetchClient } from "../http-client";
 
 export interface OfferGalleryImage {
   id: string;

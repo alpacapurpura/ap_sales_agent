@@ -4,10 +4,12 @@ import { Loader2 } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from "recharts";
 
 import { ChartContainer } from "@/components/ui/chart";
-import { HeroKpiGrid } from "../../shared/HeroKpiGrid";
+
 import { MetaAdsMiniFunnel } from "../../meta-ads/MetaAdsMiniFunnel";
 import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
 import { ChartSection } from "../../shared/ChartSection";
+import { HeroKpiGrid } from "../../shared/HeroKpiGrid";
+
 import type { WebsiteData } from "../types";
 
 const HERO_METRICS = ["sessions", "engagementRate", "conversions"] as const;

@@ -1,10 +1,11 @@
 "use client";
 
+import { Loader2, Users, Plus, GraduationCap } from "lucide-react";
 import { useState } from "react";
-import { KeyFigure } from "@/features/brand/types";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -15,9 +16,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Users, Plus, GraduationCap } from "lucide-react";
 import { TeamManager } from "@/features/brand/sections/team/team-manager";
 import { cn } from "@/lib/utils";
+
+import type { KeyFigure } from "@/features/brand/types";
 
 interface InstructorsSelectorProps {
   selectedInstructorIds: string[];

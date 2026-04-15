@@ -1,6 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { AssistantMessage } from "../AssistantMessage";
+
 import type { CopilotMessage } from "../../../store/copilot-store";
 
 // AssistantMessage uses Clerk auth internally via cards that may need router — mock it

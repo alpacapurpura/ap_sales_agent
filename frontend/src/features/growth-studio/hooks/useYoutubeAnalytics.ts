@@ -1,11 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
+
 import {
   getYoutubeTopVideosEnriched,
   getYoutubeTrafficSources,
   getYoutubeDemographics,
   getYoutubeCountries,
 } from "../api/youtube-analytics-api";
+
 import type {
   YouTubeTopVideo,
   YouTubeTrafficSource,

@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { connectionsApi, GA4Property } from "@/lib/api/connections";
+import { Loader2, CheckCircle, Globe, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,9 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, CheckCircle, Globe, AlertTriangle } from "lucide-react";
-import { toast } from "sonner";
+import { connectionsApi } from "@/lib/api/connections";
+
+import type { GA4Property } from "@/lib/api/connections";
 
 interface PropertyPickerProps {
   /** Properties returned from OAuth callback or /properties endpoint */
@@ -56,9 +59,9 @@ export function PropertyPicker({
       const name = properties.find((p) => p.property_id === propertyId)?.display_name || propertyId;
       toast.success(`Propiedad "${name}" configurada`);
       onSelected();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al guardar la propiedad");
+      toast.error(error instanceof Error ? error.message : "Error al guardar la propiedad");
     } finally {
       setSaving(false);
     }

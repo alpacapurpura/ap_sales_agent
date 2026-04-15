@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,12 +13,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
+interface CurriculumModule {
+  title: string;
+  description: string;
+  topics: string[];
+}
 
 interface ImportCurriculumDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onImport: (modules: any[]) => void;
+  onImport: (modules: CurriculumModule[]) => void;
 }
 
 export function ImportCurriculumDialog({
@@ -37,8 +44,8 @@ export function ImportCurriculumDialog({
       // 1. Detect Modules (e.g., "Module 1:", "Week 1:", "Semana 1:")
       // Regex looks for lines starting with typical module headers
       const lines = importText.split("\n");
-      const modules: any[] = [];
-      let currentModule: any = null;
+      const modules: CurriculumModule[] = [];
+      let currentModule: CurriculumModule | null = null;
 
       lines.forEach((line) => {
         const trimmed = line.trim();

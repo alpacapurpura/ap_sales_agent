@@ -1,5 +1,6 @@
-import { BrandStrategy, BrandVisuals } from "@/features/brand/types";
 import { Lightbulb, GraduationCap } from "lucide-react";
+
+import type { BrandStrategy, BrandVisuals } from "@/features/brand/types";
 
 interface MethodologySectionProps {
   strategy: BrandStrategy;

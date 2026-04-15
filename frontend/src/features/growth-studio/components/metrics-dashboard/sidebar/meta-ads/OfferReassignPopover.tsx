@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -13,12 +13,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+
 import {
   useCreateAssociation,
   useDeleteAssociation,
   useOffersForAssignment,
 } from "../../../../api/offer-association-api";
 import { archetypeEmoji } from "../../../../types/offer-association";
+
 import type { Association } from "../../../../types/offer-association";
 
 const OPTION_BRANDING = "__branding__";

@@ -1,8 +1,10 @@
 "use client";
 
 import { forwardRef, useRef, useEffect } from "react";
-import { cn } from "@/lib/utils";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+
 import type { PreviewSectionsProps } from "@/features/copilot/config/interview-preview-registry";
 
 // ── Section configuration ──────────────────────────────────────────────────
@@ -221,7 +223,7 @@ function formatValue(value: unknown): string {
 // ── Main component ─────────────────────────────────────────────────────────
 
 export const PersonaPreviewSections = forwardRef<HTMLDivElement, PreviewSectionsProps>(
-  ({ data, currentBlock, ...props }, ref) => {
+  ({ data, currentBlock, blocksCompleted: _blocksCompleted, ...props }, ref) => {
     const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
     // Auto-scroll to active section when currentBlock changes
@@ -239,11 +241,7 @@ export const PersonaPreviewSections = forwardRef<HTMLDivElement, PreviewSections
           <div className="space-y-4 p-4">
             {SECTIONS.map((section) => {
               const isActive = currentBlock === section.key;
-              const { filled, total } = countFilledFields(
-                data as Record<string, unknown>,
-                section.key,
-                section.type,
-              );
+              const { filled, total } = countFilledFields(data, section.key, section.type);
 
               return (
                 <div
@@ -266,23 +264,17 @@ export const PersonaPreviewSections = forwardRef<HTMLDivElement, PreviewSections
 
                   {/* Section content */}
                   {section.type === "key-value" && (
-                    <KeyValueSection
-                      data={data as Record<string, unknown>}
-                      sectionKey={section.key}
-                    />
+                    <KeyValueSection data={data} sectionKey={section.key} />
                   )}
                   {section.type === "list-items" && (
                     <ListItemsSection
-                      data={data as Record<string, unknown>}
+                      data={data}
                       sectionKey={section.key}
                       variant={section.variant ?? "default"}
                     />
                   )}
                   {section.type === "list-strings" && (
-                    <ListStringsSection
-                      data={data as Record<string, unknown>}
-                      sectionKey={section.key}
-                    />
+                    <ListStringsSection data={data} sectionKey={section.key} />
                   )}
                 </div>
               );

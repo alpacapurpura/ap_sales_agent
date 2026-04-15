@@ -1,19 +1,21 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { TrendingUp, Info } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DetailPanel,
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
 } from "@/components/ui/detail-panel";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import type { MetricClickData } from "../../../types/metrics";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantDateTime } from "@/lib/format-date";
+
+import type { MetricClickData } from "../../../types/metrics";
+import type { ReactNode } from "react";
 
 interface MetricSidebarProps {
   /** Whether the sidebar sheet is open */

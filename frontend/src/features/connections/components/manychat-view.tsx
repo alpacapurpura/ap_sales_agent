@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { connectionsApi, ManyChatStatusResponse } from "@/lib/api/connections";
+import { Loader2, CheckCircle, MessageCircle, Trash2, Activity } from "lucide-react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,12 +15,6 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, CheckCircle, MessageCircle, Trash2, Activity } from "lucide-react";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +24,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { connectionsApi } from "@/lib/api/connections";
+
+import type { ManyChatStatusResponse } from "@/lib/api/connections";
 
 export function ManyChatView() {
   const { getToken } = useAuth();
@@ -35,6 +38,7 @@ export function ManyChatView() {
   const [connecting, setConnecting] = useState(false);
   const [testing, setTesting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: define per-provider API response type
   const [testResult, setTestResult] = useState<any>(null);
 
   const fetchStatus = async () => {
@@ -53,7 +57,7 @@ export function ManyChatView() {
   };
 
   useEffect(() => {
-    fetchStatus();
+    void fetchStatus();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleConnect = async () => {
@@ -69,7 +73,7 @@ export function ManyChatView() {
 
       await connectionsApi.connectManyChat({ api_key: apiKey }, token);
       toast.success("ManyChat conectado exitosamente");
-      fetchStatus();
+      void fetchStatus();
       setApiKey("");
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Error al conectar ManyChat";
@@ -208,13 +212,13 @@ export function ManyChatView() {
                 Página / Cuenta
               </Label>
               <p className="font-medium text-lg flex items-center gap-2">
-                {status.account_info?.name || "Desconocido"}
+                {(status.account_info?.name as string) || "Desconocido"}
               </p>
             </div>
             <div className="space-y-1">
               <Label className="text-muted-foreground text-xs uppercase tracking-wider">ID</Label>
               <p className="font-medium text-sm text-muted-foreground break-all">
-                {status.account_info?.id || "N/A"}
+                {(status.account_info?.id as string) || "N/A"}
               </p>
             </div>
           </div>

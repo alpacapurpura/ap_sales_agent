@@ -1,21 +1,23 @@
 "use client";
 
 import { useMemo } from "react";
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
 import { useBrandStudio } from "@/features/brand/context/brand-studio-context";
-import { BrandSectionShell } from "../layout/brand-section-shell";
-import { SectionHeader } from "../layout/section-header";
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
 import { BRAND_SECTIONS, buildSectionNavItems } from "../../config/sections";
 
 // Preview components
-import { HeaderSection } from "../../sections/identity/identity-header-preview";
-import { StorySection } from "../../sections/story/story-preview";
-import { ValuesEssencePreview } from "../../sections/positioning/values-essence-preview";
-import { PersonalitySection } from "../../sections/personality/personality-section";
-import { TeamSection } from "../../sections/team/team-preview";
-import { TestimonialsSection } from "../../sections/testimonials/testimonials-preview";
 import { TrustSection } from "../../sections/authority/authority-preview";
 import { FooterSection } from "../../sections/contact/contact-footer-preview";
+import { HeaderSection } from "../../sections/identity/identity-header-preview";
+import { PersonalitySection } from "../../sections/personality/personality-section";
+import { ValuesEssencePreview } from "../../sections/positioning/values-essence-preview";
+import { StorySection } from "../../sections/story/story-preview";
+import { TeamSection } from "../../sections/team/team-preview";
+import { TestimonialsSection } from "../../sections/testimonials/testimonials-preview";
+import { BrandSectionShell } from "../layout/brand-section-shell";
+import { SectionHeader } from "../layout/section-header";
 
 const SECTION = BRAND_SECTIONS.esencia;
 

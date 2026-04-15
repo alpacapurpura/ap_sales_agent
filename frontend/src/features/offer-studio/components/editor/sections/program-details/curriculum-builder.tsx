@@ -1,19 +1,22 @@
 "use client";
 
-import { UseFormReturn, useFieldArray } from "react-hook-form";
-import { OfferFormValues } from "../../../../types/schema";
-import { FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import type { UseFormReturn } from "react-hook-form";
+
+interface CurriculumModule {
+  title: string;
+  description?: string | null;
+  topics: string[];
+}
+import { Plus, Trash2, GripVertical, Sparkles, BookOpen } from "lucide-react";
+import { useState } from "react";
+import { useFieldArray } from "react-hook-form";
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Plus, Trash2, GripVertical, Sparkles, BookOpen } from "lucide-react";
-import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,9 +28,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ImportCurriculumDialog } from "./import-curriculum-dialog";
 import { cn } from "@/lib/utils";
+
+import { ImportCurriculumDialog } from "./import-curriculum-dialog";
+
+import type { OfferFormValues } from "../../../../types/schema";
 
 export function CurriculumBuilder({ form }: { form: UseFormReturn<OfferFormValues> }) {
   // @ts-ignore - RHF limitations with polymorphic paths
@@ -38,7 +48,7 @@ export function CurriculumBuilder({ form }: { form: UseFormReturn<OfferFormValue
 
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
-  const handleImport = (modules: any[]) => {
+  const handleImport = (modules: CurriculumModule[]) => {
     modules.forEach((m) => append(m));
   };
 
@@ -271,7 +281,7 @@ function CurriculumModuleItem({
             </div>
 
             <div className="space-y-1">
-              {topics.map((_: any, tIndex: number) => (
+              {topics.map((_: unknown, tIndex: number) => (
                 <div key={tIndex} className="group/topic flex items-center gap-2">
                   <div className="h-1 w-1 rounded-full bg-indigo-300" />
                   <FormField

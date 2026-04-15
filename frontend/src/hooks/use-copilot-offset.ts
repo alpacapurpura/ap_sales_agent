@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 
 export const COPILOT_OPEN_WIDTH = 380;

@@ -2,7 +2,9 @@
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
 import { assetsApi } from "../api/assets-api";
+
 import type {
   AssetGeneratePayload,
   AssetListQuery,
@@ -29,8 +31,8 @@ export function useAssets(offerId: string, query?: AssetListQuery) {
 }
 
 const invalidateAssets = (queryClient: ReturnType<typeof useQueryClient>, offerId: string) => {
-  queryClient.invalidateQueries({ queryKey: ["offer", offerId, "assets"] });
-  queryClient.invalidateQueries({ queryKey: ["offer", offerId, "counts"] });
+  void queryClient.invalidateQueries({ queryKey: ["offer", offerId, "assets"] });
+  void queryClient.invalidateQueries({ queryKey: ["offer", offerId, "counts"] });
 };
 
 export function useUploadAsset(offerId: string) {

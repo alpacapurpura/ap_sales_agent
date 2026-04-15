@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
 import { QueryClient } from "@tanstack/react-query";
+import { describe, it, expect } from "vitest";
+
 import { createTestQueryClient, createHookWrapper, mockAuth, mockRouter } from "./helpers";
 
 describe("createTestQueryClient", () => {

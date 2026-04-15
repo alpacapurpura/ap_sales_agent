@@ -11,15 +11,17 @@ import {
   Tooltip as RechartsTooltip,
 } from "recharts";
 
-import { cn } from "@/lib/utils";
-import { ChartContainer } from "@/components/ui/chart";
 import { MetricInfoPopover } from "@/components/shared/MetricInfoPopover";
+import { ChartContainer } from "@/components/ui/chart";
+import { cn } from "@/lib/utils";
+
 import { useMailDashboard } from "../../../../../hooks/useMailDashboard";
 import { formatMetricValue } from "../../../../../utils/format-metric-value";
-import { ChartSection } from "../../shared/ChartSection";
 import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
-import type { MetaAdsPeriod, MetricKpiData } from "../../../../../types/metrics";
+import { ChartSection } from "../../shared/ChartSection";
+
 import type { EmailDashboardData, CampaignsVsAutomations } from "../../../../../types/mail-types";
+import type { MetaAdsPeriod, MetricKpiData } from "../../../../../types/metrics";
 
 interface MailPanoramaTabProps {
   period: MetaAdsPeriod;

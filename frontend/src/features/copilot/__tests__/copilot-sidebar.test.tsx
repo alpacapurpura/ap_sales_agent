@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/tenant-1/brand-studio",
@@ -36,8 +36,8 @@ vi.mock("../hooks/useCopilotNavigator", () => ({
   useCopilotNavigator: () => ({ executeAction: vi.fn() }),
 }));
 
-import { useCopilotStore } from "../store/copilot-store";
 import { CopilotSidebar } from "../components/copilot-sidebar";
+import { useCopilotStore } from "../store/copilot-store";
 
 describe("CopilotSidebar", () => {
   beforeEach(() => {

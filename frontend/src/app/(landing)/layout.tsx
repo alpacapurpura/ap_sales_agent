@@ -1,6 +1,8 @@
-import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+
 import { Toaster } from "@/components/ui/sonner";
+
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Visionary Canvas | Editor",

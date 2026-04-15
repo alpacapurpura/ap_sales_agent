@@ -1,19 +1,23 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
-import { Button } from "@/components/ui/button";
 import { Activity, Calendar, Clock, CornerDownLeft, Layers, Settings } from "lucide-react";
-import { ActionPanel } from "../action-widgets/ActionPanel";
+import React, { useState, useMemo, useCallback } from "react";
+
+import { Button } from "@/components/ui/button";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+
 import { useAdoptionDetail } from "../../../hooks/useStageDetail";
+import { ActionPanel } from "../action-widgets/ActionPanel";
 import { MiniFunnel } from "../channel-widgets/MiniFunnel";
 import { HealthBar } from "../offer-widgets/HealthBar";
 import { OfferHealthCard } from "../offer-widgets/OfferHealthCard";
-import { BottleneckBanner } from "./BottleneckBanner";
-import DetailSkeleton from "../ui/DetailSkeleton";
 import DetailEmpty from "../ui/DetailEmpty";
 import DetailError from "../ui/DetailError";
+import DetailSkeleton from "../ui/DetailSkeleton";
 import { formatLastUpdated, formatDualCurrency } from "../utils/format";
-import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+
+import { BottleneckBanner } from "./BottleneckBanner";
+
 import type { MetricClickData, StageSummary } from "../../../types/metrics";
 
 const ADOPCION_STAGE: StageSummary = {

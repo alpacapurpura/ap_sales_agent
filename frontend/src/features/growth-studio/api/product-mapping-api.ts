@@ -1,5 +1,5 @@
-import { fetchClient } from "@/lib/http-client";
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
 
 const API_URL = config.api.baseUrl;
 
@@ -48,7 +48,7 @@ export interface CreateProductMappingResult {
 
 export async function getUnmatchedProducts(
   token: string,
-  source: string = "shopify",
+  source = "shopify",
 ): Promise<UnmatchedProduct[]> {
   const res = await fetchClient(
     `${API_URL}/api/v1/offer/product-mappings/unmatched?source=${source}`,
@@ -62,7 +62,7 @@ export async function getUnmatchedProducts(
 
 export async function getSourceProducts(
   token: string,
-  source: string = "shopify",
+  source = "shopify",
 ): Promise<SourceProduct[]> {
   const res = await fetchClient(
     `${API_URL}/api/v1/offer/product-mappings/source-products?source=${source}`,
@@ -76,7 +76,7 @@ export async function getSourceProducts(
 
 export async function getProductMappings(
   token: string,
-  source: string = "shopify",
+  source = "shopify",
 ): Promise<ProductMapping[]> {
   const res = await fetchClient(`${API_URL}/api/v1/offer/product-mappings?source=${source}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -137,7 +137,7 @@ export interface OfferProductDetail {
   products: ProductMetric[];
   first_sale: string | null;
   last_sale: string | null;
-  weekly_revenue: Array<{ week: string; revenue: number }>;
+  weekly_revenue: { week: string; revenue: number }[];
 }
 
 export async function getOfferProductsDetail(

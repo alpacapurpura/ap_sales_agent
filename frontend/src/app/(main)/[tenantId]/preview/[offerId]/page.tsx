@@ -1,14 +1,16 @@
-import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
+
 import { SqueezeServerTpl } from "@/features/offer-studio/components/landing/templates/server/SqueezeServerTpl";
 import { TransformerServerTpl } from "@/features/offer-studio/components/landing/templates/server/TransformerServerTpl";
-import {
-  LandingPageArchetype,
+import { LandingPageArchetype } from "@/features/offer-studio/components/landing/types/schema";
+import { config } from "@/lib/config";
+
+import type {
   LandingPageConfig,
   SqueezeContent,
   TransformerContent,
 } from "@/features/offer-studio/components/landing/types/schema";
-import { config } from "@/lib/config";
 
 // --- DATA FETCHING (Authenticated) ---
 async function getLandingPageConfig(

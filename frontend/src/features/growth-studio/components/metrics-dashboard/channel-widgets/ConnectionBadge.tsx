@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+
 import { Badge } from "@/components/ui/badge";
 
 interface ConnectionBadgeProps {

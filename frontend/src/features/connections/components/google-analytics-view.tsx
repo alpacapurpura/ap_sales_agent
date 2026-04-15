@@ -1,23 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { connectionsApi, GoogleAnalyticsStatusResponse, GA4Property } from "@/lib/api/connections";
-import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
-import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
-import { PropertyPicker } from "@/features/connections/components/property-picker";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Loader2,
   CheckCircle,
@@ -28,7 +11,19 @@ import {
   Settings,
   Save,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +33,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PropertyPicker } from "@/features/connections/components/property-picker";
+import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
+import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
+import { connectionsApi } from "@/lib/api/connections";
+
+import type { GoogleAnalyticsStatusResponse, GA4Property } from "@/lib/api/connections";
 
 export function GoogleAnalyticsView() {
   const { getToken } = useAuth();
@@ -47,6 +50,7 @@ export function GoogleAnalyticsView() {
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [testing, setTesting] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: define per-provider API response type
   const [testResult, setTestResult] = useState<any>(null);
 
   // Configuration State
@@ -80,7 +84,7 @@ export function GoogleAnalyticsView() {
   };
 
   useEffect(() => {
-    fetchStatus();
+    void fetchStatus();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle OAuth Callback
@@ -92,7 +96,7 @@ export function GoogleAnalyticsView() {
         if (!token) return;
 
         toast.info("Finalizando conexion con Google Analytics...");
-        const redirectUri = window.location.origin + "/connections";
+        const redirectUri = `${window.location.origin}/connections`;
         const result = await connectionsApi.connectGoogleAnalytics(code, token, redirectUri);
 
         toast.success("Google Analytics conectado");
@@ -109,7 +113,8 @@ export function GoogleAnalyticsView() {
 
         await fetchStatus();
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Error al conectar Google Analytics";
+        const message =
+          error instanceof Error ? error.message : "Error al conectar Google Analytics";
         console.error(error);
         toast.error(message);
       } finally {
@@ -138,9 +143,9 @@ export function GoogleAnalyticsView() {
       toast.success("Configuracion guardada exitosamente");
       setConfigMode(false);
       await fetchStatus();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al guardar configuracion");
+      toast.error(error instanceof Error ? error.message : "Error al guardar configuracion");
     } finally {
       setSavingConfig(false);
     }
@@ -151,11 +156,11 @@ export function GoogleAnalyticsView() {
       setConnecting(true);
       const token = await getToken();
       if (!token) return;
-      const redirectUri = window.location.origin + "/connections";
+      const redirectUri = `${window.location.origin}/connections`;
       const { url } = await connectionsApi.getGoogleAnalyticsAuthUrl(token, redirectUri);
       openOAuthPopup({ url, name: "GoogleAnalyticsAuth" });
       setTimeout(() => setConnecting(false), 60000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       toast.error("No se pudo iniciar la conexion. Verifica tu configuracion.");
       setConnecting(false);
@@ -170,9 +175,9 @@ export function GoogleAnalyticsView() {
       const props = await connectionsApi.getGoogleAnalyticsProperties(token);
       setProperties(props);
       setShowPropertyPicker(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al obtener propiedades");
+      toast.error(error instanceof Error ? error.message : "Error al obtener propiedades");
       // Show picker with empty properties (manual fallback)
       setProperties([]);
       setShowPropertyPicker(true);
@@ -183,7 +188,7 @@ export function GoogleAnalyticsView() {
 
   const handlePropertySelected = () => {
     setShowPropertyPicker(false);
-    fetchStatus();
+    void fetchStatus();
   };
 
   const handleTest = async () => {
@@ -195,10 +200,11 @@ export function GoogleAnalyticsView() {
       const res = await connectionsApi.testGoogleAnalytics(token);
       setTestResult(res);
       toast.success("Prueba de conexion exitosa");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Error en la prueba";
       console.error(error);
-      toast.error(error.message || "Error en la prueba");
-      setTestResult({ status: "error", message: error.message });
+      toast.error(message);
+      setTestResult({ status: "error", message });
     } finally {
       setTesting(false);
     }
@@ -216,9 +222,9 @@ export function GoogleAnalyticsView() {
       );
       setTestResult(null);
       setShowPropertyPicker(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al desconectar");
+      toast.error(error instanceof Error ? error.message : "Error al desconectar");
     } finally {
       setDisconnecting(false);
     }
@@ -434,7 +440,13 @@ export function GoogleAnalyticsView() {
                       Cuentas encontradas: {testResult.data.length}
                     </p>
                     <ul className="list-disc pl-4">
-                      {testResult.data.map((acc: any, i: number) => (
+                      {(
+                        testResult.data as {
+                          account?: string;
+                          name?: string;
+                          displayName?: string;
+                        }[]
+                      ).map((acc, i: number) => (
                         <li key={i}>
                           {acc.account || acc.name} - {acc.displayName}
                         </li>

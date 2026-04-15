@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { AlertTriangle, CheckCircle2, Package } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, CheckCircle2, Package } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
-import { metricsApi, type SourceProduct } from "../../../api/metrics-api";
 import { offerApi } from "@/features/offer-studio/api";
-import type { Offer } from "@/features/offer-studio/types";
-import { AssociationDialog } from "./AssociationDialog";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+
+import { metricsApi, type SourceProduct } from "../../../api/metrics-api";
+
+import { AssociationDialog } from "./AssociationDialog";
+
+import type { Offer } from "@/features/offer-studio/types";
 
 const EMPTY_PRODUCTS: SourceProduct[] = [];
 const EMPTY_OFFERS: Offer[] = [];

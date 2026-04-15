@@ -1,7 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
+
 import { fetchConversationDetail } from "../api";
 
 export function useConversationDetail(leadId: string | null) {

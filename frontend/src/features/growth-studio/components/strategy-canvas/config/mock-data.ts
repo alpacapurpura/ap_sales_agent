@@ -1,4 +1,4 @@
-import { StrategyCanvasConfig, MarketingNode, MarketingActionLink } from "./types";
+import type { StrategyCanvasConfig, MarketingNode, MarketingActionLink } from "./types";
 
 export const STRATEGY_NODES: MarketingNode[] = [
   {

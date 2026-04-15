@@ -1,12 +1,12 @@
 "use client";
 
+import { User, Save, Loader2, X } from "lucide-react";
 import { useState, useEffect } from "react";
-import { KeyFigure } from "@/features/brand/types";
-import { config } from "@/lib/config";
+
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -15,10 +15,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { User, Save, Loader2, X } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { config } from "@/lib/config";
+
 import { ImageGalleryPicker } from "./image-gallery-picker";
+
+import type { KeyFigure } from "@/features/brand/types";
 
 interface TeamMemberFormProps {
   initialData: KeyFigure;

@@ -2,6 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from "recharts";
+
 import { useYoutubeDemographics, useYoutubeCountries } from "../../../../hooks/useYoutubeAnalytics";
 
 function formatNumber(n: number): string {
@@ -12,7 +13,7 @@ function formatNumber(n: number): string {
 
 // Country code to flag emoji
 function countryFlag(code: string): string {
-  if (!code || code.length !== 2) return "";
+  if (code?.length !== 2) return "";
   const offset = 127397;
   return String.fromCodePoint(...[...code.toUpperCase()].map((c) => c.charCodeAt(0) + offset));
 }

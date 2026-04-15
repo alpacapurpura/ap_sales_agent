@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
+
 import { useCopilotStore, MAX_MESSAGES } from "@/features/copilot/store/copilot-store";
+
 import type {
   CopilotMessage,
   UIAction,

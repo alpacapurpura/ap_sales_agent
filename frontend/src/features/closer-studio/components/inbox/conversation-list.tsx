@@ -1,21 +1,25 @@
 "use client";
 
-import { useRouter, usePathname, useParams } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { Search, Bot, User, AlertTriangle } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { useConversations } from "../../hooks/use-conversations";
-import { useCloserStore } from "../../store/closer-store";
-import { ConversationItem } from "./conversation-item";
-import type { Temperature, HandlerMode } from "../../types";
+import { useRouter, usePathname, useParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
-const FILTER_CHIPS: Array<{
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+
+import { useConversations } from "../../hooks/use-conversations";
+import { useCloserStore } from "../../store/closer-store";
+
+import { ConversationItem } from "./conversation-item";
+
+import type { Temperature, HandlerMode } from "../../types";
+
+const FILTER_CHIPS: {
   label: string;
   key: "temperature" | "handler_mode";
   value: string | null;
   icon?: React.ReactNode;
-}> = [
+}[] = [
   { label: "Todas", key: "temperature", value: null },
   { label: "Hot", key: "temperature", value: "hot" },
   { label: "Warm", key: "temperature", value: "warm" },

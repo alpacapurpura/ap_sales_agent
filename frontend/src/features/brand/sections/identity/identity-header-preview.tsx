@@ -1,10 +1,12 @@
-import { BrandIdentity, BrandVisuals, ContactData } from "@/features/brand/types";
-import { Button } from "@/components/ui/button";
 import { Edit2, Globe, Building2, Palette, Sparkles } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { config } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { getContrastColor } from "@/lib/utils/colors";
-import { config } from "@/lib/config";
+
+import type { BrandIdentity, BrandVisuals, ContactData } from "@/features/brand/types";
 
 interface BrandHeroSectionProps {
   identity: BrandIdentity;

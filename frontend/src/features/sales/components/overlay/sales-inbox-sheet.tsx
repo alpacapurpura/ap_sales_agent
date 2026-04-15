@@ -1,6 +1,16 @@
 "use client";
 
+import { cva } from "class-variance-authority";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
+import { MessageSquare, Send, ChevronLeft, Search, MoreVertical, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
   SheetContent,
@@ -9,17 +19,9 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { MessageSquare, Send, ChevronLeft, Search, MoreVertical, CheckCircle2 } from "lucide-react";
-import { SalesConversation } from "../../types/sales-studio";
-import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { cva } from "class-variance-authority";
+
+import type { SalesConversation } from "../../types/sales-studio";
 
 // Mock Data removed
 

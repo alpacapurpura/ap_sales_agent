@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { cn } from "@/lib/utils";
+
 import { Badge } from "@/components/ui/badge";
-import type { PreviewSummaryProps } from "@/features/copilot/config/interview-preview-registry";
 import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
+import { cn } from "@/lib/utils";
+
+import type { PreviewSummaryProps } from "@/features/copilot/config/interview-preview-registry";
 import type { OfferArchetype } from "@/features/offer-studio/types";
 
 // ── Value level display names ────────────────────────────────────────────────
@@ -36,7 +38,7 @@ function parseSummaryData(data: Record<string, unknown>): ParsedSummary {
   let price: number | null = null;
   let currency: string | null = null;
   const pricing = data.pricing_options as
-    | Array<{ total_amount?: number; currency?: string }>
+    | { total_amount?: number; currency?: string }[]
     | undefined;
   if (pricing && pricing.length > 0) {
     price = pricing[0].total_amount ?? null;

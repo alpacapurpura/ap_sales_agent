@@ -1,15 +1,17 @@
 "use client";
 
-import { Suspense, lazy, useMemo } from "react";
 import { Loader2 } from "lucide-react";
-import { useCopilotStore } from "../store/copilot-store";
+import { Suspense, lazy, useMemo } from "react";
+
 import { getPreviewEntry } from "../config/interview-preview-registry";
-import type { PreviewRegistryEntry } from "../config/interview-preview-registry";
-import type { ComponentType } from "react";
+import { useCopilotStore } from "../store/copilot-store";
+
 import type {
+  PreviewRegistryEntry,
   PreviewSummaryProps,
   PreviewSectionsProps,
 } from "../config/interview-preview-registry";
+import type { ComponentType } from "react";
 
 // ── Lazy component cache (stable references across renders) ───────────────
 const lazyCache = new Map<

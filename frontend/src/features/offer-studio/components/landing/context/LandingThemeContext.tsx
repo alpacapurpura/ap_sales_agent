@@ -1,5 +1,6 @@
 import React, { createContext, useContext } from "react";
-import { LandingPageTheme } from "@/features/offer-studio/components/landing/types/schema";
+
+import type { LandingPageTheme } from "@/features/offer-studio/components/landing/types/schema";
 
 const LandingThemeContext = createContext<LandingPageTheme | null>(null);
 

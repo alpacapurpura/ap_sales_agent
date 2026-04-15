@@ -1,18 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Offer, OfferArchetype, OfferStatus } from "@/features/offer-studio/types";
-import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Magnet, ExternalLink } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
+import { useParams } from "next/navigation";
+import { useState } from "react";
+import { useNavigation } from "@/components/shared/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,10 +15,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { cn } from "@/lib/utils";
-import { useParams } from "next/navigation";
-import { useNavigation } from "@/components/shared/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
+import { OfferArchetype, OfferStatus } from "@/features/offer-studio/types";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { cn } from "@/lib/utils";
+
+import type { Offer } from "@/features/offer-studio/types";
 
 interface LeadMagnetStreamCardProps {
   offer: Offer;
@@ -56,9 +59,7 @@ export function LeadMagnetStreamCard({ offer, onClick, onArchive }: LeadMagnetSt
   const { currency: tenantCurrency } = useTenantLocale();
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
 
-  const archetypeMeta = offer.archetype
-    ? ARCHETYPE_METADATA[offer.archetype as OfferArchetype]
-    : null;
+  const archetypeMeta = offer.archetype ? ARCHETYPE_METADATA[offer.archetype] : null;
   const Icon = archetypeMeta?.icon || Magnet;
   const colorClass = ARCHETYPE_COLORS[offer.archetype] || ARCHETYPE_COLORS.default;
   const typeLabel = archetypeMeta?.label || "Recurso";

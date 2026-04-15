@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+
 import type { NoticeSeverity } from "./types";
 
 interface TabBadgeProps {

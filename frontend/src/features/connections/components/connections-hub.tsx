@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Cable } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useParams } from "next/navigation";
+import { useState, useMemo } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PROVIDER_REGISTRY, getAllTags } from "@/features/connections/config/provider-registry";
 import { useAllConnectionsStatus } from "@/features/connections/hooks/use-all-connections-status";
+import { cn } from "@/lib/utils";
+
 import { ConnectionCard } from "./connection-card";
 
 const ALL_TAGS = getAllTags();

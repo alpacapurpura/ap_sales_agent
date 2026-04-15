@@ -1,5 +1,7 @@
 "use client";
 
+import { Clock, Settings2 } from "lucide-react";
+
 import {
   Dialog,
   DialogContent,
@@ -10,7 +12,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvailabilityView } from "@/features/sales/components/availability-view";
 import { EventTypeView } from "@/features/sales/components/event-type-view";
-import { Clock, Settings2 } from "lucide-react";
 
 interface AvailabilityModalProps {
   open: boolean;

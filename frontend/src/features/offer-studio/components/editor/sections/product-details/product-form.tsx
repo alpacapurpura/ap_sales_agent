@@ -1,19 +1,24 @@
 "use client";
 
-import { UseFormReturn } from "react-hook-form";
-import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
+import { Card, CardContent } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { FulfillmentType } from "../../../../types";
 import { RichSelect } from "@/components/ui/rich-select";
+import { Switch } from "@/components/ui/switch";
+
+import { FulfillmentType } from "../../../../types";
+import { OfferSchema } from "../../../../types/schema";
+import type { OfferFormValues } from "../../../../types/schema";
+
+import { SectionFormWrapper } from "../common/section-form-wrapper";
+
+import type { UseFormReturn } from "react-hook-form";
+
 import {
   FULFILLMENT_TYPE_METADATA,
   DIGITAL_FORMAT_METADATA,
   getEnumOptions,
 } from "../../../../types/enum-metadata";
-import { Card, CardContent } from "@/components/ui/card";
 
 const ProductDetailsSchema = OfferSchema.pick({
   specific_details: true,

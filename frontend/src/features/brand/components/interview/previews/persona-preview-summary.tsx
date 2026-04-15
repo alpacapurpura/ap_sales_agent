@@ -1,8 +1,10 @@
 "use client";
 
 import { forwardRef } from "react";
-import { cn } from "@/lib/utils";
+
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
 import type { PreviewSummaryProps } from "@/features/copilot/config/interview-preview-registry";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

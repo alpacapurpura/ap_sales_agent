@@ -1,9 +1,10 @@
-import React, { createContext, useContext } from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Clock } from "lucide-react";
+import React, { createContext, useContext } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useLandingTheme } from "@/features/offer-studio/components/landing/context/LandingThemeContext";
+import { cn } from "@/lib/utils";
 
 // --- Context ---
 type HeroLayout = "centered" | "split" | "background" | "vsl" | "urgency" | "quiz";

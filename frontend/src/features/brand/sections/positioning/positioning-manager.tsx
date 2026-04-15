@@ -1,8 +1,10 @@
 "use client";
 
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
-import { PositioningForm } from "./positioning-form";
 import { Loader2 } from "lucide-react";
+
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
+import { PositioningForm } from "./positioning-form";
 
 export function PositioningManager() {
   const { settings, saving, updatePositioning, loading } = useBrandSettings();

@@ -1,11 +1,14 @@
-import { Lead } from "../../types";
-import { LeadAvatar } from "../atoms/LeadAvatar";
-import { TemperatureBadge } from "../atoms/TemperatureBadge";
-import { ScoreRing } from "../atoms/ScoreRing";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Linkedin, Globe, MapPin, Calendar, MoreVertical, Edit } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+
+import { LeadAvatar } from "../atoms/LeadAvatar";
+import { ScoreRing } from "../atoms/ScoreRing";
+import { TemperatureBadge } from "../atoms/TemperatureBadge";
+
+import type { Lead } from "../../types";
 
 interface IdentityHeaderProps {
   lead: Lead;
@@ -13,7 +16,7 @@ interface IdentityHeaderProps {
 }
 
 export function IdentityHeader({ lead, onBack }: IdentityHeaderProps) {
-  const customer = lead.customer;
+  const { customer } = lead;
   const fullName = customer?.full_name ?? lead.name ?? "Cliente";
 
   return (

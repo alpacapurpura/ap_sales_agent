@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   DetailPanel,
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
 } from "@/components/ui/detail-panel";
+import { Separator } from "@/components/ui/separator";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 
 /**

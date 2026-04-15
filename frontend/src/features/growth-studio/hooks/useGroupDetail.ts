@@ -1,9 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
+
 import { stageOverviewApi } from "../api/stage-overview-api";
 import { useGrowthStudioContext } from "../components/metrics-dashboard/context/GrowthStudioContext";
+
 import type { TrafficGroup } from "../types/metrics";
 
 interface GroupDetailData {

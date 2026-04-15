@@ -1,5 +1,10 @@
 "use client";
 
+import { Loader2, Clock, Calendar, Brain, Zap, ChevronDown, ChevronRight } from "lucide-react";
+import { useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
   SheetContent,
@@ -7,15 +12,12 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTraceDetails } from "@/features/audit/hooks/useAudit";
-import { Loader2, Clock, Calendar, Brain, Zap, ChevronDown, ChevronRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { getNodeIcon, getNodeColor } from "./node-icons";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantTime } from "@/lib/format-date";
+import { cn } from "@/lib/utils";
+
+import { getNodeIcon, getNodeColor } from "./node-icons";
 
 interface NodeDetailsPanelProps {
   traceId: string | null;

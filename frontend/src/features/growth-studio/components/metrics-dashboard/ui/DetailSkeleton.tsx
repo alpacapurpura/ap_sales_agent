@@ -1,7 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+
+import type { ReactNode } from "react";
 
 interface DetailSkeletonProps {
   /** When true, renders animated shimmer skeleton. When false, renders children. */

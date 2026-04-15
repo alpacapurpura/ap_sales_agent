@@ -1,14 +1,19 @@
-import { UseFormReturn, useWatch } from "react-hook-form";
-import { OfferFormValues } from "../../types/schema";
-import { GuaranteeType } from "../../types";
-import { SECTION_REGISTRY, getSectionsForOffer } from "../../config/offer-builder-config";
-import { Button } from "@/components/ui/button";
 import { Edit3, Eye, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useMemo, useCallback } from "react";
+import { useWatch } from "react-hook-form";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+import { SECTION_REGISTRY, getSectionsForOffer } from "../../config/offer-builder-config";
+import { GuaranteeType } from "../../types";
+
 import { OfferSectionWrapper } from "./offer-section-wrapper";
 import { IdentityPreview } from "./sections/identity/identity-preview";
-import { useMemo, useCallback } from "react";
+import type { OfferFormValues } from "../../types/schema";
+
+import type { UseFormReturn } from "react-hook-form";
 
 interface OfferLivePreviewProps {
   form: UseFormReturn<OfferFormValues>;
@@ -114,14 +119,12 @@ export function OfferLivePreview({ form, onEdit }: OfferLivePreviewProps) {
         case "value_stack":
           return !formValues.deliverables || formValues.deliverables.length === 0;
         case "resources":
-          const resourceAssets = formValues.assets?.filter((a: any) =>
+          const resourceAssets = formValues.assets?.filter((a) =>
             ["PDF", "TXT", "URL", "AUDIO"].includes(a.type),
           );
           return !resourceAssets || resourceAssets.length === 0;
         case "gallery":
-          const mediaAssets = formValues.assets?.filter((a: any) =>
-            ["IMAGE", "VIDEO"].includes(a.type),
-          );
+          const mediaAssets = formValues.assets?.filter((a) => ["IMAGE", "VIDEO"].includes(a.type));
           return !mediaAssets || mediaAssets.length === 0;
         case "product_details":
         case "service_details":

@@ -1,6 +1,9 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
+import React from "react";
 import { describe, expect, it, vi } from "vitest";
+
+import { IgOrganicDashboard } from "../IgOrganicDashboard";
+
 import type { ChannelDashboardData } from "../../../../../types/metrics";
 
 // --- Mocks ---
@@ -90,8 +93,6 @@ vi.mock("../../../../../hooks/useMetricCatalog", () => ({
     getTooltipData: () => null,
   }),
 }));
-
-import { IgOrganicDashboard } from "../IgOrganicDashboard";
 
 describe("IgOrganicDashboard", () => {
   it("renders the dashboard header with Volver button", () => {

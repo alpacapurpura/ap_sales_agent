@@ -1,12 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { EventType, eventTypesApi, EventTypeUpdate } from "@/lib/api/event-types";
-import { AvailabilitySchedule } from "@/lib/api/availability";
+import { Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -15,20 +25,13 @@ import {
   SheetDescription,
   SheetFooter,
 } from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { connectionsApi } from "@/lib/api/connections";
+import { eventTypesApi, EventTypeUpdate } from "@/lib/api/event-types";
+
+import type { AvailabilitySchedule } from "@/lib/api/availability";
+import type { EventType } from "@/lib/api/event-types";
 
 interface EventTypeSidebarProps {
   open: boolean;
@@ -100,9 +103,11 @@ export function EventTypeSidebar({
           // Or I can call the calendar endpoint directly.
           // For now, I'll skip showing the specific email if I don't have the endpoint handy in frontend api.
           // But wait, `AvailabilityView` didn't use it.
-        } catch (e) {}
+        } catch {
+          // placeholder try block, not yet implemented
+        }
       };
-      fetchCal();
+      void fetchCal();
     }
   }, [open, initialData, availabilities, getToken]);
 
@@ -121,6 +126,7 @@ export function EventTypeSidebar({
           .replace(/(^-|-$)/g, "");
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API payload type mismatch with partial form data
       const payload = { ...formData, slug: finalSlug } as any;
 
       if (initialData?.id) {
@@ -139,21 +145,21 @@ export function EventTypeSidebar({
     }
   };
 
-  const updateSchedulingLimit = (field: string, value: any) => {
+  const updateSchedulingLimit = (field: string, value: string | number | boolean | null) => {
     setFormData((prev) => ({
       ...prev,
       scheduling_limits: { ...prev.scheduling_limits!, [field]: value },
     }));
   };
 
-  const updateBookingConfig = (field: string, value: any) => {
+  const updateBookingConfig = (field: string, value: string | number | boolean | null) => {
     setFormData((prev) => ({
       ...prev,
       booking_config: { ...prev.booking_config!, [field]: value },
     }));
   };
 
-  const updateConfirmationButton = (field: string, value: any) => {
+  const updateConfirmationButton = (field: string, value: string | number | boolean | null) => {
     setFormData((prev) => ({
       ...prev,
       confirmation_button: {

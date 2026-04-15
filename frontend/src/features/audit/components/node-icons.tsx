@@ -17,7 +17,7 @@ import {
   LogOut,
 } from "lucide-react";
 
-export function getNodeIcon(nodeName: string | undefined, hasLLM: boolean = false) {
+export function getNodeIcon(nodeName: string | undefined, hasLLM = false) {
   if (hasLLM) return Brain;
   if (!nodeName) return BrainCircuit;
 

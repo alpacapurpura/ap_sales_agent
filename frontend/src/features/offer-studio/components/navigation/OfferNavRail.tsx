@@ -1,11 +1,3 @@
-import React, { useState } from "react";
-import { Offer } from "@/features/offer-studio/types";
-import {
-  SECTION_REGISTRY,
-  getSectionsForOffer,
-} from "@/features/offer-studio/config/offer-builder-config";
-import { getOfferHealth } from "@/features/offer-studio/utils/offer-health";
-import { cn } from "@/lib/utils";
 import {
   Check,
   AlertCircle,
@@ -14,9 +6,19 @@ import {
   PanelLeftOpen,
   ChevronRight,
 } from "lucide-react";
+import React, { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import {
+  SECTION_REGISTRY,
+  getSectionsForOffer,
+} from "@/features/offer-studio/config/offer-builder-config";
+import { getOfferHealth } from "@/features/offer-studio/utils/offer-health";
+import { cn } from "@/lib/utils";
+
+import type { Offer } from "@/features/offer-studio/types";
 
 interface OfferNavRailProps {
   offer: Offer;

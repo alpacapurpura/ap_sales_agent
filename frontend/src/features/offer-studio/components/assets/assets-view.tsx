@@ -1,17 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { Image as ImageIcon, Sparkles, Upload } from "lucide-react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+
 import { useAssets, useUploadAsset } from "../../hooks/use-assets";
+
+import { AssetCard } from "./asset-card";
+import { AssetGenerationWizardDialog } from "./asset-generation-wizard-dialog";
+import { AssetToolbar } from "./asset-toolbar";
+
 import type { AssetListQuery, AssetResponse, AssetSortKey } from "../../types/assets";
 import type { OfferAssetSource, OfferAssetType } from "../../types/enums";
-import { AssetCard } from "./asset-card";
-import { AssetToolbar } from "./asset-toolbar";
-import { AssetGenerationWizardDialog } from "./asset-generation-wizard-dialog";
 
 /**
  * Main view for the Assets tab. Wraps `useAssets` with local filter state,
@@ -101,7 +105,7 @@ export function AssetsView({ offerId }: { offerId: string }) {
         </Alert>
       )}
 
-      {!isLoading && !isError && data && data.items.length === 0 && (
+      {!isLoading && !isError && data?.items.length === 0 && (
         <AssetsEmptyState onUpload={handleUpload} onGenerate={() => setWizardOpen(true)} />
       )}
 

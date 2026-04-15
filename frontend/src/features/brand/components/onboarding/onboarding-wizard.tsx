@@ -1,13 +1,14 @@
 "use client";
 
-import { useOnboardingWizard } from "../../hooks/useOnboardingWizard";
 import { useBrandSettings } from "../../hooks/useBrandSettings";
-import { WizardProgressBar } from "./wizard-progress-bar";
+import { useOnboardingWizard } from "../../hooks/useOnboardingWizard";
+
+import { StepDocuments } from "./step-documents";
+import { StepGapReview } from "./step-gap-review";
+import { StepProcessing } from "./step-processing";
 import { StepSourcePicker } from "./step-source-picker";
 import { StepWebsite } from "./step-website";
-import { StepDocuments } from "./step-documents";
-import { StepProcessing } from "./step-processing";
-import { StepGapReview } from "./step-gap-review";
+import { WizardProgressBar } from "./wizard-progress-bar";
 
 interface OnboardingWizardProps {
   onComplete: () => void;

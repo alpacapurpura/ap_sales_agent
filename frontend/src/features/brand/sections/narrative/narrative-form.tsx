@@ -1,12 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { BrandNarrative, StoryBrandPlanStep } from "@/features/brand/types";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import {
   User,
   AlertTriangle,
@@ -20,7 +13,16 @@ import {
   Save,
   Loader2,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
+
+import type { BrandNarrative, StoryBrandPlanStep } from "@/features/brand/types";
 
 interface NarrativeFormProps {
   narrative: BrandNarrative;
@@ -37,7 +39,7 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(form);
+    void onSave(form);
   };
 
   // --- Hero ---

@@ -1,11 +1,12 @@
 import {
-  Offer,
   OfferArchetype,
   OfferStatus,
   OfferValueLevel,
   OfferDeliveryModel,
   GuaranteeType,
 } from "../types";
+
+import type { Offer } from "../types";
 
 const createMockOffer = (
   id: string,

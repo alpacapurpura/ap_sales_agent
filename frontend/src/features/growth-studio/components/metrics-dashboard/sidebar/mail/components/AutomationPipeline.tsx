@@ -3,6 +3,7 @@
 import { Clock, Sparkles, AlertTriangle, TrendingDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+
 import {
   computeDropoff,
   diagnoseStep,
@@ -10,8 +11,10 @@ import {
   findAttentionStep,
 } from "../../../../../utils/automation-health";
 import { AUTOMATION_METRIC_INFO } from "../../../../../utils/automation-metric-info";
-import type { AutomationStep } from "../../../../../types/mail-types";
+
 import { MetricInfoTooltip } from "./MetricInfoTooltip";
+
+import type { AutomationStep } from "../../../../../types/mail-types";
 
 interface AutomationPipelineProps {
   steps: AutomationStep[];

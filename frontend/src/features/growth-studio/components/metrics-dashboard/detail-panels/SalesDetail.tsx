@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
-import { Button } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Banknote,
   Calendar,
@@ -13,19 +12,24 @@ import {
   ShoppingCart,
   AlertTriangle,
 } from "lucide-react";
-import { ActionPanel } from "../action-widgets/ActionPanel";
+import React, { useState, useMemo, useCallback } from "react";
+
+import { Button } from "@/components/ui/button";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+
+import { useInitialLoad } from "../../../hooks/useInitialLoad";
 import { useSalesDetail } from "../../../hooks/useStageDetail";
+import { ActionPanel } from "../action-widgets/ActionPanel";
 import { MiniFunnel } from "../channel-widgets/MiniFunnel";
 import { OfferLadder } from "../offer-widgets/OfferLadder";
 import { SourceProducts } from "../offer-widgets/SourceProducts";
-import { BottleneckBanner } from "./BottleneckBanner";
-import DetailSkeleton from "../ui/DetailSkeleton";
 import DetailEmpty from "../ui/DetailEmpty";
 import DetailError from "../ui/DetailError";
+import DetailSkeleton from "../ui/DetailSkeleton";
 import { formatLastUpdated, formatDualCurrency } from "../utils/format";
-import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
-import { useInitialLoad } from "../../../hooks/useInitialLoad";
-import { useQueryClient } from "@tanstack/react-query";
+
+import { BottleneckBanner } from "./BottleneckBanner";
+
 import type { MetricClickData, StageSummary } from "../../../types/metrics";
 
 const VENTAS_STAGE: StageSummary = {

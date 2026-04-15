@@ -1,25 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
-import {
-  AvailabilitySchedule,
-  WeeklySchedule,
-  DaySchedule,
-  TimeRange,
-  availabilityApi,
-} from "@/lib/api/availability";
+import { Loader2, Plus, Trash2, Copy, Globe, Clock, Check } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -27,11 +17,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Plus, Trash2, Copy, Globe, Clock, Check } from "lucide-react";
-import { toast } from "sonner";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
+import { TimeRange, availabilityApi } from "@/lib/api/availability";
 import { cn } from "@/lib/utils";
+
+import type { AvailabilitySchedule, WeeklySchedule, DaySchedule } from "@/lib/api/availability";
 
 // --- Constants & Helpers ---
 
@@ -109,11 +106,11 @@ export function AvailabilityView() {
   }, [getToken]);
 
   useEffect(() => {
-    fetchSchedules();
+    void fetchSchedules();
   }, [fetchSchedules]);
 
   const handleCreate = async () => {
-    const newSchedule: any = {
+    const newSchedule: Omit<AvailabilitySchedule, "id"> = {
       name: "Nueva Disponibilidad",
       is_default: schedules.length === 0,
       timezone: "America/Bogota",
@@ -194,7 +191,7 @@ export function AvailabilityView() {
         onOpenChange={(open) => {
           setIsSheetOpen(open);
           if (!open) {
-            fetchSchedules(); // Refresh on close to ensure sync
+            void fetchSchedules(); // Refresh on close to ensure sync
             setSelectedSchedule(null);
           }
         }}
@@ -209,7 +206,7 @@ export function AvailabilityView() {
               initialSchedule={selectedSchedule}
               onSave={() => {
                 setIsSheetOpen(false);
-                fetchSchedules();
+                void fetchSchedules();
               }}
             />
           )}
@@ -244,8 +241,8 @@ function ScheduleEditor({
   const addRange = (day: keyof WeeklySchedule) => {
     const currentRanges = schedule.schedule[day].ranges;
     const lastRange = currentRanges[currentRanges.length - 1];
-    let newStart = "09:00";
-    let newEnd = "17:00";
+    const newStart = "09:00";
+    const newEnd = "17:00";
 
     // Try to be smart about next slot
     if (lastRange) {
@@ -279,7 +276,7 @@ function ScheduleEditor({
       setSaving(true);
       const token = await getToken();
       if (!token) return;
-      await availabilityApi.updateSchedule(schedule.id!, schedule, token);
+      await availabilityApi.updateSchedule(schedule.id, schedule, token);
       toast.success("Guardado correctamente");
       onSave();
     } catch (error) {
@@ -290,12 +287,13 @@ function ScheduleEditor({
   };
 
   const handleDelete = async () => {
+    // eslint-disable-next-line no-alert -- TODO: replace with AlertDialog component
     if (!confirm("¿Estás seguro de borrar este horario?")) return;
     try {
       setDeleting(true);
       const token = await getToken();
       if (!token) return;
-      await availabilityApi.deleteSchedule(schedule.id!, token);
+      await availabilityApi.deleteSchedule(schedule.id, token);
       toast.success("Horario eliminado");
       onSave();
     } catch (error) {

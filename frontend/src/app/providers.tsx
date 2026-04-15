@@ -1,14 +1,15 @@
 "use client";
 
 import "../../sentry.client.config";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
-import { ThemeProvider } from "@/components/providers/theme-provider";
-import { NavigationProvider, NavigationOverlay } from "@/components/shared/navigation";
-import DevelopmentTools from "@/components/shared/development-tools";
-import { Toaster } from "@/components/ui/sonner";
 import { useUser } from "@clerk/nextjs";
 import * as Sentry from "@sentry/nextjs";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import DevelopmentTools from "@/components/shared/development-tools";
+import { NavigationProvider, NavigationOverlay } from "@/components/shared/navigation";
+import { Toaster } from "@/components/ui/sonner";
 import { TenantLocaleProvider } from "@/features/tenant/context/tenant-locale-context";
 
 export default function Providers({ children }: { children: React.ReactNode }) {

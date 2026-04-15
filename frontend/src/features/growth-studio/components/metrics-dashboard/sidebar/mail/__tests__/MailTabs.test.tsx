@@ -2,9 +2,16 @@
  * Tests for the 6 new Email Intelligence Hub tabs.
  * Each tab uses its own hook internally, so we mock the hooks.
  */
-import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
+import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { MailAutomatizacionesTab } from "../tabs/MailAutomatizacionesTab";
+import { MailCampanasTab } from "../tabs/MailCampanasTab";
+import { MailCrecimientoTab } from "../tabs/MailCrecimientoTab";
+import { MailEntregabilidadV2Tab } from "../tabs/MailEntregabilidadV2Tab";
+import { MailPanoramaTab } from "../tabs/MailPanoramaTab";
+
 import type {
   EmailDashboardData,
   EmailCampaignsData,
@@ -427,12 +434,7 @@ vi.mock("@/components/shared/MetricInfoPopover", () => ({
 }));
 
 // Lazy imports after mocks
-import { MailPanoramaTab } from "../tabs/MailPanoramaTab";
-import { MailCampanasTab } from "../tabs/MailCampanasTab";
-import { MailAutomatizacionesTab } from "../tabs/MailAutomatizacionesTab";
 import { MailAudienciaTab } from "../tabs/MailAudienciaTab";
-import { MailEntregabilidadV2Tab } from "../tabs/MailEntregabilidadV2Tab";
-import { MailCrecimientoTab } from "../tabs/MailCrecimientoTab";
 
 // =============================================================================
 // Tab 1: Panorama

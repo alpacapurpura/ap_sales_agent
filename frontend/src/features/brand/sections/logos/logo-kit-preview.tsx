@@ -1,8 +1,10 @@
 "use client";
 
-import { BrandVisuals, BrandLogos } from "@/features/brand/types";
 import { Image as ImageIcon, Upload } from "lucide-react";
+
 import { getAssetUrl } from "@/lib/utils/assets";
+
+import type { BrandVisuals, BrandLogos } from "@/features/brand/types";
 
 interface LogoKitPreviewProps {
   visuals: BrandVisuals;
@@ -10,7 +12,7 @@ interface LogoKitPreviewProps {
 }
 
 export function LogoKitPreview({ visuals, onEdit }: LogoKitPreviewProps) {
-  const logos = visuals.logos;
+  const { logos } = visuals;
   const hasLogos = logos?.primary || logos?.secondary || logos?.dark_mode || logos?.light_mode;
 
   const logoSlots: {

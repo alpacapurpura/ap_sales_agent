@@ -1,6 +1,7 @@
 "use client";
 
 import { useFrozen } from "../../hooks/use-frozen";
+
 import { FrozenCard } from "./frozen-card";
 
 export function FrozenList() {

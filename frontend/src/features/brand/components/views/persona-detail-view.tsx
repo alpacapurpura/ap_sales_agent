@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
-
 import { Check, Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
-import type { BuyerPersona, BuyerPersonaSectionUpdateDTO } from "@/lib/api/buyer-persona";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -15,6 +13,8 @@ import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { cn } from "@/lib/utils";
 
 import { useBuyerPersona } from "../../hooks/useBuyerPersona";
+
+import type { BuyerPersona, BuyerPersonaSectionUpdateDTO } from "@/lib/api/buyer-persona";
 
 // ---------------------------------------------------------------------------
 // Section config

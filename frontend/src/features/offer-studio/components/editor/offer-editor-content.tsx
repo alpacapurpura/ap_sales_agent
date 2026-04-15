@@ -1,18 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm, type Resolver } from "react-hook-form";
+
 import { Button } from "@/components/ui/button";
-import { OfferSchema, type OfferFormValues } from "../../types/schema";
-import { OfferStatus } from "../../types";
+
 import { useOffer } from "../../hooks/use-offer";
+import { OfferStatus } from "../../types";
+import { OfferSchema, type OfferFormValues } from "../../types/schema";
 import { OfferNavRail } from "../navigation/OfferNavRail";
-import { OfferLivePreview } from "./offer-live-preview";
+
 import { OfferEditSheetManager } from "./offer-edit-sheet-manager";
+import { OfferLivePreview } from "./offer-live-preview";
 
 /**
  * Inner editor content rendered inside the persistent Offer Studio shell

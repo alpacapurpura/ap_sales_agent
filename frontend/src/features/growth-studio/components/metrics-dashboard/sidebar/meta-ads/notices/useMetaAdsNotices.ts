@@ -2,8 +2,6 @@
 
 import { useMemo } from "react";
 
-import type { CampaignPerformanceData, CampaignRecommendation } from "../../../../../types/metrics";
-import type { MetaHealthCheck, Recommendation } from "../../../../../types/offer-association";
 import {
   categoryToTab,
   maxSeverity,
@@ -16,6 +14,9 @@ import {
   type SeverityBreakdown,
 } from "./types";
 import { useIgnoredNotices } from "./useIgnoredNotices";
+
+import type { CampaignPerformanceData, CampaignRecommendation } from "../../../../../types/metrics";
+import type { MetaHealthCheck, Recommendation } from "../../../../../types/offer-association";
 
 // ---------------------------------------------------------------------------
 // Categorization

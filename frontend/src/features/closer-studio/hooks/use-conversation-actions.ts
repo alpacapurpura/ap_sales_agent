@@ -1,9 +1,11 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
 import { stopAI, resumeAI, sendMessage, nudge, reactivate, diagnose } from "../api";
+
 import type { ConversationDetail, InputMode } from "../types";
 
 export function useConversationActions(leadId: string | null) {
@@ -11,7 +13,7 @@ export function useConversationActions(leadId: string | null) {
   const qc = useQueryClient();
 
   const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ["closer-studio"] });
+    void qc.invalidateQueries({ queryKey: ["closer-studio"] });
   };
 
   const detailKey = ["closer-studio", "detail", leadId];

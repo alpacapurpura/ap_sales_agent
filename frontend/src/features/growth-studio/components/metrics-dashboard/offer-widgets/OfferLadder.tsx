@@ -1,11 +1,13 @@
 "use client";
 
-import React from "react";
+import { Zap, Rocket, Briefcase, Layers, Package } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Zap, Rocket, Briefcase, Layers, Package } from "lucide-react";
-import type { RevenueGroupData, OfferSaleData, MetricClickData } from "../../../types/metrics";
+import React from "react";
+
 import { formatMoney } from "@/lib/format-money";
+
+import type { RevenueGroupData, OfferSaleData, MetricClickData } from "../../../types/metrics";
 
 interface OfferLadderProps {
   adquisicion: RevenueGroupData;
@@ -211,7 +213,7 @@ export function OfferLadder({ adquisicion, expansion, onMetricClick }: OfferLadd
   const maximizacionOffers = getAllOffersByTier("maximizacion");
   const corporativoOffers = getAllOffersByTier("corporativo");
 
-  const currency = adquisicion.currency;
+  const { currency } = adquisicion;
 
   return (
     <div className="pt-4 space-y-6">

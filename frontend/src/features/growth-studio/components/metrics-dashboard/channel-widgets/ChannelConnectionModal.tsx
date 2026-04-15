@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense, useRef, useEffect, useState } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X, Loader2 } from "lucide-react";
+import { Suspense, useRef, useEffect, useState } from "react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { DialogOverlay } from "@/components/ui/dialog";
+
 import { getConnectionView } from "../../../lib/channelViewMap";
 
 /* eslint-disable react-hooks/static-components -- dynamic view from registry */

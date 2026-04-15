@@ -1,5 +1,6 @@
-import { Offer } from "../types";
 import { getSectionsForOffer } from "../config/offer-builder-config";
+
+import type { Offer } from "../types";
 
 export interface SectionHealth {
   status: "complete" | "incomplete" | "optional";

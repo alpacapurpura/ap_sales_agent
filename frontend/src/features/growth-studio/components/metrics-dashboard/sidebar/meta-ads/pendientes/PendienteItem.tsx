@@ -1,7 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/format-money";
+import { cn } from "@/lib/utils";
+
 import type { CampaignWithMetrics } from "../../../../../types/metrics";
 
 export type PendingReason = "no_offer" | "no_utm";

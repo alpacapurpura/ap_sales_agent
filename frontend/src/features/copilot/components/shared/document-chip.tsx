@@ -1,7 +1,8 @@
 "use client";
 
-import { forwardRef } from "react";
 import { FileText, Loader2, CheckCircle2, XCircle, X } from "lucide-react";
+import { forwardRef } from "react";
+
 import { cn } from "@/lib/utils";
 
 export type DocumentStatus = "pending" | "processing" | "done" | "error";

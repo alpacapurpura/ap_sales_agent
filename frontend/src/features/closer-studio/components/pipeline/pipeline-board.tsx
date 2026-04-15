@@ -1,13 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { cn } from "@/lib/utils";
-import { useConversations } from "../../hooks/use-conversations";
-import { PipelineColumn } from "./pipeline-column";
-import { PipelineCard } from "./pipeline-card";
-import { useCloserStore } from "../../store/closer-store";
-import type { ConversationListItem } from "../../types";
 import {
   DndContext,
   closestCenter,
@@ -16,6 +9,17 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
+import { useMemo, useState, useCallback } from "react";
+
+import { cn } from "@/lib/utils";
+
+import { useConversations } from "../../hooks/use-conversations";
+import { useCloserStore } from "../../store/closer-store";
+
+import { PipelineCard } from "./pipeline-card";
+import { PipelineColumn } from "./pipeline-column";
+
+import type { ConversationListItem } from "../../types";
 
 const COLUMNS = [
   { id: "rapport", label: "Nuevo", color: "bg-slate-400" },
@@ -42,7 +46,7 @@ export function PipelineBoard() {
       if (map[mapped]) {
         map[mapped].push(conv);
       } else {
-        map["rapport"].push(conv);
+        map.rapport.push(conv);
       }
     }
     return map;

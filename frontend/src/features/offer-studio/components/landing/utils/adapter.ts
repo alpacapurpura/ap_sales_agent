@@ -1,15 +1,16 @@
-import { Data } from "@puckeditor/core";
-import { RootProps, Props } from "./puck.config";
-import {
+import { LandingPageArchetype } from "@/features/offer-studio/components/landing/types/schema";
+
+import type { RootProps, Props } from "./puck.config";
+import type {
   LandingPageConfig,
   TransformerContent,
-  LandingPageArchetype,
   SqueezeContent,
   FlashOfferContent,
 } from "@/features/offer-studio/components/landing/types/schema";
+import type { Data } from "@puckeditor/core";
 
 // Helper to generate a unique ID for blocks
-const generateId = (type: string) => type + "-" + Math.random().toString(36).substr(2, 9);
+const generateId = (type: string) => `${type}-${Math.random().toString(36).substr(2, 9)}`;
 
 // --- Archetype Transformers ---
 

@@ -1,11 +1,14 @@
+import { MessageCircle, Phone, Mail, MoreHorizontal } from "lucide-react";
+
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Lead } from "../../types";
+import { cn } from "@/lib/utils";
+
+import { ActionIcon } from "../atoms/ActionIcon";
 import { LeadAvatar } from "../atoms/LeadAvatar";
 import { ScoreRing } from "../atoms/ScoreRing";
 import { TemperatureBadge } from "../atoms/TemperatureBadge";
-import { ActionIcon } from "../atoms/ActionIcon";
-import { MessageCircle, Phone, Mail, MoreHorizontal } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+import type { Lead } from "../../types";
 
 interface LeadCardProps {
   lead: Lead;
@@ -14,7 +17,7 @@ interface LeadCardProps {
 }
 
 export function LeadCard({ lead, className, onClick }: LeadCardProps) {
-  const customer = lead.customer;
+  const { customer } = lead;
   const fullName = customer?.full_name ?? lead.name ?? "Cliente";
 
   return (

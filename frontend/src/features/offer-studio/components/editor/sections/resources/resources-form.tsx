@@ -1,16 +1,5 @@
 "use client";
 
-import { ChangeEvent, useState } from "react";
-import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
-import { AssetType } from "../../../../types";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import {
   UploadCloud,
   FileText,
@@ -21,6 +10,24 @@ import {
   Sparkles,
   BookOpen,
 } from "lucide-react";
+import { useState } from "react";
+import { useFieldArray } from "react-hook-form";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AssetType } from "../../../../types";
+import { OfferSchema } from "../../../../types/schema";
+import { SectionFormWrapper } from "../common/section-form-wrapper";
+
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { ChangeEvent } from "react";
+import type { UseFormReturn } from "react-hook-form";
 
 const ResourcesSchema = OfferSchema.pick({
   assets: true,

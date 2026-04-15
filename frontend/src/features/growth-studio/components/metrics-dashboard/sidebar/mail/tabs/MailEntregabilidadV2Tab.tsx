@@ -14,16 +14,18 @@ import {
   ReferenceArea,
 } from "recharts";
 
-import { cn } from "@/lib/utils";
-import { ChartContainer } from "@/components/ui/chart";
 import { MetricInfoPopover } from "@/components/shared/MetricInfoPopover";
+import { ChartContainer } from "@/components/ui/chart";
+import { cn } from "@/lib/utils";
+
 import { useMailHealth } from "../../../../../hooks/useMailDashboard";
 import { formatMetricValue } from "../../../../../utils/format-metric-value";
-import { MailHealthScore } from "../MailHealthScore";
-import { ChartSection } from "../../shared/ChartSection";
 import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
-import type { MetaAdsPeriod, MetricKpiData } from "../../../../../types/metrics";
+import { ChartSection } from "../../shared/ChartSection";
+import { MailHealthScore } from "../MailHealthScore";
+
 import type { EmailHealthData, BounceBreakdown } from "../../../../../types/mail-types";
+import type { MetaAdsPeriod, MetricKpiData } from "../../../../../types/metrics";
 
 interface MailEntregabilidadV2TabProps {
   period: MetaAdsPeriod;

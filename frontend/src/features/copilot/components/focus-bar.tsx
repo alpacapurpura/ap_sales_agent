@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { BookOpen, Package, Undo2, User, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,9 +13,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useCopilotStore } from "../store/copilot-store";
 import { cn } from "@/lib/utils";
+
+import { useCopilotStore } from "../store/copilot-store";
 
 const DOMAIN_ICONS: Record<string, typeof Package> = {
   offer: Package,

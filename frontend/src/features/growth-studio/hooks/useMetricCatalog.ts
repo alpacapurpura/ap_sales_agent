@@ -1,7 +1,9 @@
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
+
 import { metricsApi } from "../api/metrics-api";
+
 import type { MetricCatalogEntry, MetricCatalog } from "../types/metrics";
 
 export function useMetricCatalog() {

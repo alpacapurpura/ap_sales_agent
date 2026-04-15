@@ -1,7 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { useDroppable } from "@dnd-kit/core";
+
+import { cn } from "@/lib/utils";
 
 interface PipelineColumnProps {
   id: string;

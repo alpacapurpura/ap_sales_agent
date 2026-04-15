@@ -1,36 +1,40 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
-import { createPortal } from "react-dom";
 import { ArrowLeft, BarChart3, RefreshCw } from "lucide-react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
+import { useState, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatTenantDateTime } from "@/lib/format-date";
 import { cn } from "@/lib/utils";
-import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
-import { useHashScroll } from "../../../../hooks/useHashScroll";
-import { useConnectionHealth } from "../../../../hooks/useConnectionHealth";
-import { useSyncChannel } from "../../../../hooks/useSyncChannel";
+
 import { useCampaignPerformance } from "../../../../api/campaigns-api";
 import { useAssociations, useMetaHealthCheck } from "../../../../api/offer-association-api";
-import type { MetaAdsPeriod, MetaAdsDashboardTab } from "../../../../types/metrics";
+import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
+import { useConnectionHealth } from "../../../../hooks/useConnectionHealth";
+import { useHashScroll } from "../../../../hooks/useHashScroll";
+import { useSyncChannel } from "../../../../hooks/useSyncChannel";
 import { ConnectionHealthBanner } from "../../../connection-health-banner";
-import { MetaAdsPeriodSelector } from "./MetaAdsPeriodSelector";
+
+import { computeMetaAdsOnboardingTrigger } from "./hooks/useMetaAdsOnboardingTrigger";
 import { MetaAdsOnboardingModal } from "./MetaAdsOnboardingModal";
-import { ResumenTab } from "./tabs/ResumenTab";
-import { CampaignsTab } from "./tabs/CampaignsTab";
-import { CreativosTab } from "./tabs/CreativosTab";
+import { MetaAdsPeriodSelector } from "./MetaAdsPeriodSelector";
 import { AudienciaTab } from "./tabs/AudienciaTab";
+import { CampaignsTab } from "./tabs/CampaignsTab";
+import { ResumenTab } from "./tabs/ResumenTab";
+
+import type { MetaAdsPeriod, MetaAdsDashboardTab } from "../../../../types/metrics";
+
+import { CreativosTab } from "./tabs/CreativosTab";
 import { CostosTab } from "./tabs/CostosTab";
 import { PendientesTab } from "./tabs/PendientesTab";
 import { useMetaAdsNotices } from "./notices/useMetaAdsNotices";
 import { TabBadge } from "./notices/TabBadge";
-import { computeMetaAdsOnboardingTrigger } from "./hooks/useMetaAdsOnboardingTrigger";
 
 const ONBOARDING_DISMISSED_KEY = "meta-ads-onboarding-dismissed";
-import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
-import { formatTenantDateTime } from "@/lib/format-date";
 
 interface MetaAdsDashboardProps {
   onClose?: () => void;

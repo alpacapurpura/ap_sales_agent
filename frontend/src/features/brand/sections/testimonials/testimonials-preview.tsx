@@ -1,9 +1,11 @@
 "use client";
 
-import { TestimonialItem } from "@/features/brand/types";
 import { MessageSquareQuote, Plus, Video, Star, User } from "lucide-react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+
+import type { TestimonialItem } from "@/features/brand/types";
 
 interface TestimonialsSectionProps {
   testimonials: TestimonialItem[];

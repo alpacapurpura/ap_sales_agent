@@ -1,21 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { EventType, eventTypesApi, EventTypeUpdate } from "@/lib/api/event-types";
-import { AvailabilitySchedule, availabilityApi } from "@/lib/api/availability";
-import { settingsApi } from "@/lib/api/settings";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Settings2,
   Plus,
@@ -28,10 +13,30 @@ import {
   Code,
   Link as LinkIcon,
 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
+import { availabilityApi } from "@/lib/api/availability";
+import { eventTypesApi, EventTypeUpdate } from "@/lib/api/event-types";
+import { settingsApi } from "@/lib/api/settings";
 import { cn } from "@/lib/utils";
+
 import { EventTypeSidebar } from "./event-type-form";
 import { GenerateLinkModal } from "./generate-link-modal";
+
+import type { AvailabilitySchedule } from "@/lib/api/availability";
+import type { EventType } from "@/lib/api/event-types";
 
 export function EventTypeView() {
   const { getToken } = useAuth();
@@ -69,7 +74,7 @@ export function EventTypeView() {
   }, [getToken]);
 
   useEffect(() => {
-    fetchData();
+    void fetchData();
   }, [fetchData]);
 
   const handleCreate = () => {
@@ -83,13 +88,14 @@ export function EventTypeView() {
   };
 
   const handleDelete = async (id: string) => {
+    // eslint-disable-next-line no-alert -- TODO: replace with AlertDialog component
     if (!confirm("¿Estás seguro de eliminar este tipo de cita?")) return;
     try {
       const token = await getToken();
       if (!token) return;
       await eventTypesApi.deleteEventType(id, token);
       toast.success("Tipo de cita eliminado");
-      fetchData();
+      void fetchData();
     } catch (error) {
       toast.error("Error al eliminar");
     }
@@ -107,7 +113,7 @@ export function EventTypeView() {
       };
       await eventTypesApi.createEventType(newEt, token);
       toast.success("Duplicado correctamente");
-      fetchData();
+      void fetchData();
     } catch (error) {
       toast.error("Error al duplicar");
     }
@@ -115,7 +121,7 @@ export function EventTypeView() {
 
   const handleCopyLink = (slug: string) => {
     const url = `${window.location.origin}/book/${tenantSlug}/${slug}`;
-    navigator.clipboard.writeText(url);
+    void navigator.clipboard.writeText(url);
     toast.success("Link copiado al portapapeles");
   };
 
@@ -131,7 +137,7 @@ export function EventTypeView() {
       toast.success(checked ? "Visible en perfil" : "Oculto del perfil");
     } catch (error) {
       toast.error("Error al actualizar estado");
-      fetchData(); // Revert
+      void fetchData(); // Revert
     }
   };
 
@@ -255,7 +261,7 @@ export function EventTypeView() {
         availabilities={availabilities}
         onSave={() => {
           setIsSidebarOpen(false);
-          fetchData();
+          void fetchData();
         }}
       />
       {selectedEventForLink && (

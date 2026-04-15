@@ -1,10 +1,13 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Bot, User, Target, Info } from "lucide-react";
-import type { MessageItem } from "../../types";
-import { formatMessageTime } from "../../utils/format";
+
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { cn } from "@/lib/utils";
+
+import { formatMessageTime } from "../../utils/format";
+
+import type { MessageItem } from "../../types";
 
 interface MessageBubbleProps {
   message: MessageItem;

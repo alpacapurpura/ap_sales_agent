@@ -1,8 +1,9 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from "react";
-import type { EditMode } from "../types/edit-mode";
+
 import type { KeyFigure, AuthorityItem, TestimonialItem } from "../types";
+import type { EditMode } from "../types/edit-mode";
 import type { Avatar } from "@/lib/api/avatar";
 
 type SelectedEditItem = KeyFigure | AuthorityItem | TestimonialItem | Avatar | null;

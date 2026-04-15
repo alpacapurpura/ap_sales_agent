@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+
 import { config } from "./config";
 
 /**
@@ -39,7 +40,9 @@ export async function fetchClient(input: RequestInfo | URL, init?: RequestInit):
           tenantId = firstSegment;
         }
       }
-    } catch (e) {}
+    } catch {
+      // unable to parse tenantId from pathname — proceed without header
+    }
 
     if (tenantId) {
       headers.set("X-Tenant-ID", tenantId);

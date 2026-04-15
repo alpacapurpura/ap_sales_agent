@@ -1,5 +1,5 @@
-import { SankeyLink, SankeyNode } from "@visx/sankey";
-import { StrategyCanvasConfig, MarketingNode, MarketingActionLink } from "../config/types";
+import type { StrategyCanvasConfig, MarketingNode, MarketingActionLink } from "../config/types";
+import type { SankeyLink, SankeyNode } from "@visx/sankey";
 
 // Extended types for Visx compatibility
 export interface VisxNode extends MarketingNode, SankeyNode<MarketingNode, MarketingActionLink> {
@@ -29,7 +29,7 @@ export interface VisxGraphData {
  * - Maps string IDs to array indices for links.
  */
 export const adaptStrategyToVisx = (config: StrategyCanvasConfig): VisxGraphData => {
-  if (!config || !config.nodes) {
+  if (!config?.nodes) {
     return { nodes: [], links: [] };
   }
 

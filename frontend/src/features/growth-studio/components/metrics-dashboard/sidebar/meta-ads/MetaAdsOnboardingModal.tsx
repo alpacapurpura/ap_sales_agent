@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { BarChart3, CheckCircle2, Target } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
 import { BestPracticesBlock } from "./BestPracticesBlock";
 
 const DISMISSED_KEY = "meta-ads-onboarding-dismissed";
@@ -73,7 +74,7 @@ export function MetaAdsOnboardingModal(props: MetaAdsOnboardingModalProps) {
   );
 }
 
-interface ModalBodyProps extends MetaAdsOnboardingModalProps {}
+type ModalBodyProps = MetaAdsOnboardingModalProps;
 
 function ModalBody({ onOpenChange, campaigns, onAssignNow }: ModalBodyProps) {
   const [step, setStep] = useState<Step>(1);

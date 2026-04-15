@@ -1,14 +1,18 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Megaphone, Target } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
 import { fetchCampaignOverview, triggerCampaignSync } from "../../api/campaigns-api";
+
 import { CampaignCard } from "./CampaignCard";
 import { RecommendationsList } from "./RecommendationsList";
+
 import type { CampaignOverview } from "../../types/campaigns";
 
 export function CampaignPanel() {
@@ -30,7 +34,7 @@ export function CampaignPanel() {
       return triggerCampaignSync(token);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      void queryClient.invalidateQueries({ queryKey: ["campaigns"] });
     },
   });
 

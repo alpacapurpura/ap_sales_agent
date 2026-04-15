@@ -1,6 +1,7 @@
+import { ImagePlus } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ImagePlus } from "lucide-react";
 
 interface EditableImageProps {
   src?: string;
@@ -19,6 +20,7 @@ export function EditableImage({
 }: EditableImageProps) {
   const handleEdit = () => {
     if (!onChange) return;
+    // eslint-disable-next-line no-alert -- visual editor, prompt acceptable for dev/preview use
     const url = prompt("Ingresa la nueva URL de la imagen:", src);
     if (url) onChange(url);
   };

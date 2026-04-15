@@ -1,11 +1,14 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { Bot, User } from "lucide-react";
 import { useDraggable } from "@dnd-kit/core";
-import type { ConversationListItem } from "../../types";
-import { formatDistanceToNow } from "../../utils/format";
+import { Bot, User } from "lucide-react";
+
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { cn } from "@/lib/utils";
+
+import { formatDistanceToNow } from "../../utils/format";
+
+import type { ConversationListItem } from "../../types";
 
 interface PipelineCardProps {
   conversation: ConversationListItem;

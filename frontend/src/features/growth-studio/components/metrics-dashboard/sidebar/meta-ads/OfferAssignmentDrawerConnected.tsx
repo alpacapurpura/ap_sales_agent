@@ -11,12 +11,14 @@
 
 import { useMemo } from "react";
 
-import { useAssociations, useOffersForAssignment } from "../../../../api/offer-association-api";
 import { useCampaignPerformance } from "../../../../api/campaigns-api";
+import { useAssociations, useOffersForAssignment } from "../../../../api/offer-association-api";
+
+import { OfferAssignmentDrawer } from "./OfferAssignmentDrawer";
+
+import type { AssignmentOffer, AssignmentTarget } from "./OfferAssignmentDrawer";
 import type { MetaAdsPeriod } from "../../../../types/metrics";
 import type { Association } from "../../../../types/offer-association";
-import { OfferAssignmentDrawer } from "./OfferAssignmentDrawer";
-import type { AssignmentOffer, AssignmentTarget } from "./OfferAssignmentDrawer";
 
 interface OfferAssignmentDrawerConnectedProps {
   open: boolean;

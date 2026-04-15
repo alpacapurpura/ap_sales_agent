@@ -1,5 +1,6 @@
-import { BrandStrategy, BrandVisuals } from "@/features/brand/types";
 import { Target, Swords } from "lucide-react";
+
+import type { BrandStrategy, BrandVisuals } from "@/features/brand/types";
 
 interface StrategySectionProps {
   strategy: BrandStrategy;

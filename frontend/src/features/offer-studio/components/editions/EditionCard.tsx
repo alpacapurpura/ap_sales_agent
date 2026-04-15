@@ -1,12 +1,17 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Pencil, Copy, Trash2, CalendarDays, Users } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { formatMoney } from "@/lib/format-money";
-import { LaunchEdition, EditionStatus } from "../../types";
+import { cn } from "@/lib/utils";
+
+import { EditionStatus } from "../../types";
+
 import { EditionStatusBadge } from "./EditionStatusBadge";
+
+import type { LaunchEdition } from "../../types";
 
 const STATUS_BORDER: Record<EditionStatus, string> = {
   [EditionStatus.DRAFT]: "border-l-amber-500 border-dashed",

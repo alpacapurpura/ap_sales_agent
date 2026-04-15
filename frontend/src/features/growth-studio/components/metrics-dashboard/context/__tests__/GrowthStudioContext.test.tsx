@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { type ReactNode } from "react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   GrowthStudioProvider,
   useGrowthStudioContext,
@@ -43,8 +44,8 @@ describe("GrowthStudioContext", () => {
     it("maps all 5 stage slugs correctly", () => {
       expect(SLUG_TO_STAGE["atraccion-captura"]).toBe("ATRACCION_CAPTURA");
       expect(SLUG_TO_STAGE["nutricion-oportunidad"]).toBe("NUTRICION_OPORTUNIDAD");
-      expect(SLUG_TO_STAGE["ventas"]).toBe("VENTAS");
-      expect(SLUG_TO_STAGE["adopcion"]).toBe("ADOPCION");
+      expect(SLUG_TO_STAGE.ventas).toBe("VENTAS");
+      expect(SLUG_TO_STAGE.adopcion).toBe("ADOPCION");
       expect(SLUG_TO_STAGE["expansion-evangelizacion"]).toBe("EXPANSION_EVANGELIZACION");
     });
   });

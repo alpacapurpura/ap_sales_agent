@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { ExternalLink, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -9,16 +9,19 @@ import {
   DetailPanelTitle,
   DetailPanelClose,
 } from "@/components/ui/detail-panel";
-import { cn } from "@/lib/utils";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatMoney } from "@/lib/format-money";
-import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
+import { cn } from "@/lib/utils";
+
 import { useCampaignPerformance } from "../../../../api/campaigns-api";
-import type { ChannelMetric, MetaAdsPeriod, MetaAdsDashboardTab } from "../../../../types/metrics";
-import { MetaAdsPeriodSelector } from "./MetaAdsPeriodSelector";
+import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
+
 import { MetaAdsHeroKpiGrid } from "./MetaAdsHeroKpiGrid";
 import { MetaAdsMiniFunnel } from "./MetaAdsMiniFunnel";
+import { MetaAdsPeriodSelector } from "./MetaAdsPeriodSelector";
 import { ReachFrequencySection } from "./ReachFrequencySection";
-import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+
+import type { ChannelMetric, MetaAdsPeriod, MetaAdsDashboardTab } from "../../../../types/metrics";
 
 interface MetaAdsOverviewPanelProps {
   channel: ChannelMetric;

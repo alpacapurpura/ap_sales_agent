@@ -1,5 +1,6 @@
-import { fetchClient } from "@/lib/http-client";
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
+
 import type { ChannelDashboardData, MetaAdsPeriod } from "../types/metrics";
 
 const API_URL = config.api.baseUrl;
@@ -9,7 +10,7 @@ interface ChannelDashboardResponse {
   channel_name: string;
   industry_category: string;
   period: string;
-  kpis: Array<{
+  kpis: {
     metric_name: string;
     display_name: string;
     current_value: number;
@@ -26,20 +27,20 @@ interface ChannelDashboardResponse {
       unit: string;
       interpretation: string;
     } | null;
-  }>;
-  time_series: Array<{
+  }[];
+  time_series: {
     metric_name: string;
     display_name: string;
     unit: string;
-    data_points: Array<{ date: string; value: number }>;
-  }>;
+    data_points: { date: string; value: number }[];
+  }[];
   funnel: {
-    steps: Array<{
+    steps: {
       label: string;
       metric_name: string;
       value: number;
       conversion_rate_from_previous: number | null;
-    }>;
+    }[];
   };
   frequency_alert: {
     current_value: number;

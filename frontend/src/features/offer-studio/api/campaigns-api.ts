@@ -1,6 +1,7 @@
 // Offer campaigns API adapter — CONTRACT.md §5.5
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
+
 import type { OfferCampaignsQuery, OfferCampaignsResponse } from "../types/campaigns";
 
 const API_URL = config.api.baseUrl;

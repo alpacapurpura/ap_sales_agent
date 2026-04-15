@@ -1,11 +1,15 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { UseFormReturn } from "react-hook-form";
-import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
-import { OfferGallerySection } from "../../components/offer-gallery-section";
+
 import { Card, CardContent } from "@/components/ui/card";
+
+import { OfferSchema } from "../../../../types/schema";
+import { OfferGallerySection } from "../../components/offer-gallery-section";
+import { SectionFormWrapper } from "../common/section-form-wrapper";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { UseFormReturn } from "react-hook-form";
 
 // Gallery mostly updates assets, so we use that part of the schema
 const GallerySchema = OfferSchema.pick({

@@ -30,7 +30,6 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     const mql = window.matchMedia("(max-width: 1279px)");
     const handler = (e: MediaQueryListEvent | MediaQueryList) => {
       if (e.matches) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: responsive auto-collapse
         setIsCollapsed(true);
       }
     };

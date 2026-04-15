@@ -1,8 +1,10 @@
 "use client";
 
 import { Globe } from "lucide-react";
-import type { ChannelMetric } from "../../../../types/metrics";
+
 import { ChannelOverviewPanel } from "../shared/ChannelOverviewPanel";
+
+import type { ChannelMetric } from "../../../../types/metrics";
 
 const HERO_METRICS = [
   "sessions",

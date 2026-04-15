@@ -1,6 +1,7 @@
 import React from "react";
-import { VisxLink, VisxNode } from "../utils/adapter";
-import { ChannelType } from "../config/types";
+
+import type { ChannelType } from "../config/types";
+import type { VisxLink, VisxNode } from "../utils/adapter";
 
 const CHANNEL_COLORS: Record<ChannelType, string> = {
   PAID_MEDIA: "#3b82f6", // blue-500

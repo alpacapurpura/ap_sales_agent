@@ -1,26 +1,28 @@
 "use client";
 
-import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ChartSection } from "../../shared/ChartSection";
-import { MetaAdsMiniFunnel } from "../MetaAdsMiniFunnel";
-import { InversionChart } from "../InversionChart";
-import { ResumenHealthOverview } from "../notices/ResumenHealthOverview";
-import type { NoticesSummary } from "../notices/types";
-import { OfferSegmenter } from "../OfferSegmenter";
-import type { OfferSegmenterSelection } from "../OfferSegmenter";
-import { useMetricsByOffer } from "../../../../../api/offer-association-api";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+
+import { useMetricsByOffer } from "../../../../../api/offer-association-api";
+import { ChartSection } from "../../shared/ChartSection";
+import { ResumenKpiCard } from "../components/ResumenKpiCard";
+import { useResumenViewData } from "../hooks/useResumenViewData";
+import { InversionChart } from "../InversionChart";
+import { MetaAdsMiniFunnel } from "../MetaAdsMiniFunnel";
+import { ResumenHealthOverview } from "../notices/ResumenHealthOverview";
+import { OfferSegmenter } from "../OfferSegmenter";
+
 import type {
   ChannelDashboardData,
   CampaignPerformanceData,
   MetaAdsDashboardTab,
   MetaAdsPeriod,
 } from "../../../../../types/metrics";
-import { ResumenKpiCard } from "../components/ResumenKpiCard";
-import { useResumenViewData } from "../hooks/useResumenViewData";
+import type { NoticesSummary } from "../notices/types";
+import type { OfferSegmenterSelection } from "../OfferSegmenter";
 
 interface ResumenTabProps {
   data: ChannelDashboardData | undefined;

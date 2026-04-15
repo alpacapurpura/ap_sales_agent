@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+
 import type { EmailCampaignSummary } from "../../../../types/mail-types";
 
 interface MailCampaignCardsProps {

@@ -1,13 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { Loader2, UserPlus, Users } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -17,7 +27,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -26,18 +35,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { settingsApi, TeamMember } from "@/lib/api/settings";
-import { toast } from "sonner";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { settingsApi } from "@/lib/api/settings";
 import { formatTenantDate } from "@/lib/format-date";
+
+import type { TeamMember } from "@/lib/api/settings";
 
 const formSchema = z.object({
   full_name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -78,7 +80,7 @@ export function TeamView() {
   };
 
   useEffect(() => {
-    loadTeam();
+    void loadTeam();
   }, [getToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -91,10 +93,10 @@ export function TeamView() {
       toast.success("Usuario creado correctamente");
       setOpen(false);
       form.reset();
-      loadTeam();
-    } catch (error: any) {
+      void loadTeam();
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al crear usuario");
+      toast.error(error instanceof Error ? error.message : "Error al crear usuario");
     } finally {
       setIsCreating(false);
     }

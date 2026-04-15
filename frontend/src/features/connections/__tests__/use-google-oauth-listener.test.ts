@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
 import { OAUTH_MESSAGE_TYPES } from "@/features/connections/lib/oauth-constants";
 

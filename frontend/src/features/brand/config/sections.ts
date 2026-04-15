@@ -31,9 +31,7 @@ import {
   Theater,
   type LucideIcon,
 } from "lucide-react";
-import type { BrandSettings } from "../types";
-import type { EditMode } from "../types/edit-mode";
-import type { StatusResult } from "../utils/brand-validation";
+
 import {
   validateIdentity,
   validateStory,
@@ -47,6 +45,10 @@ import {
   validateVisuals,
   validateCommunicationAssets,
 } from "../utils/brand-validation";
+
+import type { BrandSettings } from "../types";
+import type { EditMode } from "../types/edit-mode";
+import type { StatusResult } from "../utils/brand-validation";
 
 // ---------------------------------------------------------------------------
 // Types

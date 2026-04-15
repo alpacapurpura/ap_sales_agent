@@ -1,14 +1,17 @@
 "use client";
 
-import { useNavigation } from "@/components/shared/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { avatarApi, CreateAvatarDTO } from "@/lib/api/avatar";
-import { AvatarForm } from "@/features/brand/sections/avatars/avatar-form";
 import { toast } from "sonner";
+
+import { useNavigation } from "@/components/shared/navigation";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { AvatarForm } from "@/features/brand/sections/avatars/avatar-form";
+import { avatarApi } from "@/lib/api/avatar";
+
+import type { CreateAvatarDTO } from "@/lib/api/avatar";
 
 interface AvatarEditViewProps {
   avatarId: string;
@@ -41,8 +44,8 @@ export function AvatarEditView({ avatarId, callbackUrl }: AvatarEditViewProps) {
       return avatarApi.updateAvatar(token, avatarId, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["avatars"] });
-      queryClient.invalidateQueries({ queryKey: ["avatar", avatarId] });
+      void queryClient.invalidateQueries({ queryKey: ["avatars"] });
+      void queryClient.invalidateQueries({ queryKey: ["avatar", avatarId] });
       toast.success("Avatar actualizado exitosamente");
 
       if (callbackUrl) {

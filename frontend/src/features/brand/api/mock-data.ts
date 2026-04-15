@@ -1,4 +1,4 @@
-import { BrandSettings } from "../types";
+import type { BrandSettings } from "../types";
 
 export const MOCK_BRAND_SETTINGS: BrandSettings = {
   identity: {

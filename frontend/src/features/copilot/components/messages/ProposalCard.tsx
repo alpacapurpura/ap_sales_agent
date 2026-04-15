@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { Check, X, Pencil } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
+import { Check, X, Pencil } from "lucide-react";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
-import type { ProposalUpdate } from "../../store/copilot-store";
+
 import { reportCopilotEvent } from "../../api/copilot-api";
+
+import type { ProposalUpdate } from "../../store/copilot-store";
 
 interface ProposalCardProps {
   updates: ProposalUpdate[];
@@ -33,7 +36,7 @@ export function ProposalCard({ updates }: ProposalCardProps) {
       );
     }
     setStatus("applied");
-    getToken().then((token) => {
+    void getToken().then((token) => {
       if (token) {
         reportCopilotEvent(
           "proposal_accepted",
@@ -46,7 +49,7 @@ export function ProposalCard({ updates }: ProposalCardProps) {
 
   const handleReject = () => {
     setStatus("rejected");
-    getToken().then((token) => {
+    void getToken().then((token) => {
       if (token) {
         reportCopilotEvent(
           "proposal_rejected",

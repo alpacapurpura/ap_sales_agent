@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { cn } from "@/lib/utils";
 import { Snowflake, RotateCcw, Stethoscope, ChevronDown } from "lucide-react";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useConversationActions } from "../../hooks/use-conversation-actions";
-import type { FrozenConversation } from "../../types";
-import { formatDistanceToNow } from "../../utils/format";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { cn } from "@/lib/utils";
+
+import { useConversationActions } from "../../hooks/use-conversation-actions";
+import { formatDistanceToNow } from "../../utils/format";
+
+import type { FrozenConversation } from "../../types";
 
 interface FrozenCardProps {
   conversation: FrozenConversation;

@@ -1,8 +1,10 @@
 "use client";
 
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
-import { LegalForm } from "./legal-form";
 import { Loader2 } from "lucide-react";
+
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
+import { LegalForm } from "./legal-form";
 
 export function LegalManager() {
   const { settings, updateIdentity, loading, saving } = useBrandSettings();

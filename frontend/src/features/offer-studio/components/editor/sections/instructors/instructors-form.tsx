@@ -1,10 +1,13 @@
 "use client";
 
-import { UseFormReturn } from "react-hook-form";
+import { OfferSchema } from "../../../../types/schema";
 import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
+
 import { InstructorsSelector } from "./instructors-selector";
-import { KeyFigure } from "@/features/brand/types";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { KeyFigure } from "@/features/brand/types";
+import type { UseFormReturn } from "react-hook-form";
 
 const InstructorsSchema = OfferSchema.pick({
   instructors: true,
@@ -31,7 +34,7 @@ function InstructorsContent({
 }) {
   return (
     <InstructorsSelector
-      selectedInstructorIds={(form.watch("instructors") || []) as string[]}
+      selectedInstructorIds={form.watch("instructors") || []}
       onUpdate={(ids) =>
         form.setValue("instructors", ids, { shouldDirty: true, shouldValidate: true })
       }

@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { Loader2, Settings as SettingsIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CurrencySelector } from "@/components/ui/currency-selector";
 import {
   Form,
   FormControl,
@@ -17,10 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { settingsApi } from "@/lib/api/settings";
-import { toast } from "sonner";
-import { CurrencySelector } from "@/components/ui/currency-selector";
 import { DEFAULT_CURRENCY } from "@/lib/constants/currencies";
 
 const formSchema = z.object({
@@ -53,7 +53,7 @@ export function GeneralSettingsForm() {
         toast.error("Error al cargar la configuración general.");
       }
     };
-    loadSettings();
+    void loadSettings();
   }, [getToken, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {

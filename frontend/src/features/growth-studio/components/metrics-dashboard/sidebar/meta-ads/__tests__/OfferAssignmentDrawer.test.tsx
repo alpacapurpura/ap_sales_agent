@@ -1,7 +1,7 @@
-import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, fireEvent } from "@testing-library/react";
+import React from "react";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 // Mock Clerk
 vi.mock("@clerk/nextjs", () => ({
@@ -20,6 +20,7 @@ vi.mock("@/lib/http-client", () => ({
 }));
 
 import { OfferAssignmentDrawer } from "../OfferAssignmentDrawer";
+
 import type { AssignmentTarget, AssignmentOffer } from "../OfferAssignmentDrawer";
 
 const OFFERS: AssignmentOffer[] = [

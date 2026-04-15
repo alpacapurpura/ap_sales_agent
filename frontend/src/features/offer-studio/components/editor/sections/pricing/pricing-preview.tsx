@@ -1,10 +1,12 @@
-import React from "react";
-import { Badge } from "@/components/ui/badge";
-import { OfferFormValues } from "../../../../types/schema";
-import { useFormContext } from "react-hook-form";
 import { CreditCard } from "lucide-react";
-import { formatMoney } from "@/lib/format-money";
+import React from "react";
+import { useFormContext } from "react-hook-form";
+
+import { Badge } from "@/components/ui/badge";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatMoney } from "@/lib/format-money";
+
+import type { OfferFormValues } from "../../../../types/schema";
 
 interface PricingPreviewProps {
   data?: Partial<OfferFormValues>;

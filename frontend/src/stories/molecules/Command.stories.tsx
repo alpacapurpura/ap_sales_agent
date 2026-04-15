@@ -1,4 +1,3 @@
-import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import {
   Command,
   CommandEmpty,
@@ -8,6 +7,8 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 const meta = {
   title: "Molecules/Command",

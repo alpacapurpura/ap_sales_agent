@@ -27,6 +27,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 
 import { RESUMEN_TOOLTIPS } from "./copy/tooltips";
+
 import type { FunnelStep } from "../../../../types/metrics";
 
 // ---------------------------------------------------------------------------
@@ -68,7 +69,7 @@ function rampFor(rate: number): { text: string; bar: string } {
     if (rate >= bucket.min) return { text: bucket.text, bar: bucket.bar };
   }
   // Unreachable — the last bucket matches -Infinity.
-  return { text: RATE_RAMP[RATE_RAMP.length - 1]!.text, bar: RATE_RAMP[RATE_RAMP.length - 1]!.bar };
+  return { text: RATE_RAMP[RATE_RAMP.length - 1].text, bar: RATE_RAMP[RATE_RAMP.length - 1].bar };
 }
 
 // ---------------------------------------------------------------------------

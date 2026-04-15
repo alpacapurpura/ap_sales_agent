@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+
 import { SalesDashboard } from "@/features/sales/components/sales-dashboard";
 
 export default function SalesResumenPage() {

@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { AlertCircle, Check, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
 import type { AutoSaveState } from "../../hooks/use-auto-save";
 
 export interface AutoSaveIndicatorProps {

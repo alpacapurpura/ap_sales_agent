@@ -1,10 +1,12 @@
 "use client";
 
-import { TestimonialItem } from "@/features/brand/types";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit2, Video, AlignLeft } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
+import type { TestimonialItem } from "@/features/brand/types";
 
 interface TestimonialsListProps {
   items: TestimonialItem[];

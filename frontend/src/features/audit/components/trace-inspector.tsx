@@ -1,7 +1,16 @@
 "use client";
 
-import { TimelineEvent } from "@/features/audit/types";
-import { useTraceDetails } from "@/features/audit/hooks/useAudit";
+import { format } from "date-fns";
+import { Loader2 } from "lucide-react";
+
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
   SheetContent,
@@ -10,16 +19,9 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { useTraceDetails } from "@/features/audit/hooks/useAudit";
+
+import type { TimelineEvent } from "@/features/audit/types";
 
 interface TraceInspectorProps {
   event: TimelineEvent | null;

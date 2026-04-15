@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { parseBenchmarkText } from "../benchmark-parser";
 
 describe("parseBenchmarkText", () => {

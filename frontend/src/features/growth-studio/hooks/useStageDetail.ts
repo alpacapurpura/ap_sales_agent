@@ -1,7 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
+
 import { metricsApi } from "../api/metrics-api";
 import { useGrowthStudioContext } from "../components/metrics-dashboard/context/GrowthStudioContext";
+
+import type { PeriodType } from "../api/stage-detail-api";
 import type {
   AttractionDetail,
   CaptureDetail,
@@ -13,7 +16,6 @@ import type {
   EvangelizationDetail,
   StageTimeSeries,
 } from "../types/metrics";
-import type { PeriodType } from "../api/stage-detail-api";
 
 interface StageDetailHookOptions {
   /** When false, the query will not execute. Defaults to true. */

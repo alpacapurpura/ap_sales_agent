@@ -1,7 +1,8 @@
 "use client";
 
-import type { ExpansionOfferData } from "../../../types/metrics";
 import { formatDualCurrency } from "@/lib/format-money";
+
+import type { ExpansionOfferData } from "../../../types/metrics";
 
 interface ExpansionOfferRowProps {
   offer: ExpansionOfferData;

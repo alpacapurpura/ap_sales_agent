@@ -1,8 +1,11 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
+import React from "react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { ChannelDashboardData } from "../../../../../types/metrics";
+
+import { AudienciaTab } from "../tabs/AudienciaTab";
+
 import type { DemographicsData } from "../../../../../api/campaigns-api";
+import type { ChannelDashboardData } from "../../../../../types/metrics";
 
 // --- Mocks ---
 vi.mock("@clerk/nextjs", () => ({
@@ -42,7 +45,6 @@ vi.mock("../../../../../api/campaigns-api", () => ({
 }));
 
 // Must import AFTER mocks are defined
-import { AudienciaTab } from "../tabs/AudienciaTab";
 
 const BASE_DASHBOARD_DATA: ChannelDashboardData = {
   channelSlug: "meta-ads",

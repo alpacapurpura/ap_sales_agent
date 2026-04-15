@@ -12,12 +12,14 @@ import {
 } from "recharts";
 
 import { ChartContainer } from "@/components/ui/chart";
-import type { ChannelDashboardData } from "../../../../../types/metrics";
-import { IgOrganicHeroKpiGrid } from "../IgOrganicHeroKpiGrid";
+
 import { MetaAdsMiniFunnel } from "../../meta-ads/MetaAdsMiniFunnel";
-import { IgOrganicGrowthIndicator } from "../IgOrganicGrowthIndicator";
-import { ChartInfoTooltip } from "../ChartInfoTooltip";
 import { ChartSection } from "../../shared/ChartSection";
+import { ChartInfoTooltip } from "../ChartInfoTooltip";
+import { IgOrganicGrowthIndicator } from "../IgOrganicGrowthIndicator";
+import { IgOrganicHeroKpiGrid } from "../IgOrganicHeroKpiGrid";
+
+import type { ChannelDashboardData } from "../../../../../types/metrics";
 
 interface IgOverviewTabProps {
   data: ChannelDashboardData | undefined;

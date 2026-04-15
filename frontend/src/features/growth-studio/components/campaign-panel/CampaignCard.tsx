@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+
 import { fetchCampaignAdSets } from "../../api/campaigns-api";
+
 import { AdSetDetail } from "./AdSetDetail";
+
 import type { Campaign, AdSet } from "../../types/campaigns";
 
 const STATUS_COLORS: Record<string, string> = {

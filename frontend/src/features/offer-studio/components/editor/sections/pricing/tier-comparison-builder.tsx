@@ -1,17 +1,21 @@
 "use client";
 
-import { UseFormReturn, useFieldArray } from "react-hook-form";
-import { OfferFormValues } from "../../../../types/schema";
-import { PaymentPlanType } from "../../../../types";
+import { Plus, Trash2, Star, DollarSign } from "lucide-react";
+import { useFieldArray } from "react-hook-form";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Star, DollarSign } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { cn } from "@/lib/utils";
+
+import { PaymentPlanType } from "../../../../types";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { UseFormReturn } from "react-hook-form";
 
 interface TierComparisonBuilderProps {
   form: UseFormReturn<OfferFormValues>;

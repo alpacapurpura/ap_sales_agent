@@ -1,11 +1,15 @@
 "use client";
 
 import { Loader2, Star, Trash2, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DomainStatusBadge } from "./DomainStatusBadge";
+
 import { useDeleteDomain, useSetPrimary, useVerifyDomain } from "../hooks/useDomains";
+
+import { DomainStatusBadge } from "./DomainStatusBadge";
+
 import type { TenantDomain } from "../types";
 
 interface DomainListProps {

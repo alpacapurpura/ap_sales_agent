@@ -1,10 +1,13 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { ProgramDetailsForm } from "../program-form";
 import { useForm } from "react-hook-form";
+import { describe, it, expect, vi } from "vitest";
+
 import { Form } from "@/components/ui/form";
-import { OfferFormValues } from "../../../../../types/schema";
+
 import { ProgramStructure, OfferStatus, OfferArchetype } from "../../../../../types";
+import { ProgramDetailsForm } from "../program-form";
+
+import type { OfferFormValues } from "../../../../../types/schema";
 
 // Mock complex UI components to avoid JSDOM issues
 vi.mock("@/components/ui/smart-datetime-picker", () => ({

@@ -1,22 +1,26 @@
 "use client";
 
-import { UseFormReturn } from "react-hook-form";
-import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { EditionsOptIn } from "../common/editions-opt-in";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
-import { EventLocationType, OfferArchetype } from "../../../../types";
+import { Card, CardContent } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+
+import { SectionFormWrapper } from "../common/section-form-wrapper";
+import type { OfferFormValues } from "../../../../types/schema";
+
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { RichSelect } from "@/components/ui/rich-select";
 import { SmartDateTimePicker } from "@/components/ui/smart-datetime-picker";
 import { TimezoneSelect } from "@/components/ui/timezone-select";
+import { EventLocationType, OfferArchetype } from "../../../../types";
+
 import {
   EVENT_LOCATION_METADATA,
   ACCOMMODATION_METADATA,
   getEnumOptions,
 } from "../../../../types/enum-metadata";
-import { Card, CardContent } from "@/components/ui/card";
+import { OfferSchema } from "../../../../types/schema";
+import { EditionsOptIn } from "../common/editions-opt-in";
+import type { UseFormReturn } from "react-hook-form";
 
 const EventDetailsSchema = OfferSchema.pick({
   specific_details: true,

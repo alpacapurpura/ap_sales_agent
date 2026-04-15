@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useCallback } from "react";
+
 import { useCloserStore } from "../store/closer-store";
 
 interface WSEvent {
@@ -32,9 +33,9 @@ export function useCloserWebSocket(tenantId: string | null) {
       switch (event.type) {
         case "new_message":
           // Invalidate conversation list + detail
-          qc.invalidateQueries({ queryKey: ["closer-studio", "conversations"] });
+          void qc.invalidateQueries({ queryKey: ["closer-studio", "conversations"] });
           if (event.lead_id) {
-            qc.invalidateQueries({
+            void qc.invalidateQueries({
               queryKey: ["closer-studio", "detail", event.lead_id],
             });
             // Increment unread if not currently viewing
@@ -46,7 +47,7 @@ export function useCloserWebSocket(tenantId: string | null) {
 
         case "handler_changed":
         case "conversation_updated":
-          qc.invalidateQueries({ queryKey: ["closer-studio"] });
+          void qc.invalidateQueries({ queryKey: ["closer-studio"] });
           break;
 
         default:

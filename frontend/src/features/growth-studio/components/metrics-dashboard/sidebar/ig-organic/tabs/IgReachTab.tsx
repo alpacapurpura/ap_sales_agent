@@ -13,9 +13,11 @@ import {
 } from "recharts";
 
 import { ChartContainer } from "@/components/ui/chart";
-import type { ChannelDashboardData } from "../../../../../types/metrics";
-import { ChartInfoTooltip } from "../ChartInfoTooltip";
+
 import { ChartSection } from "../../shared/ChartSection";
+import { ChartInfoTooltip } from "../ChartInfoTooltip";
+
+import type { ChannelDashboardData } from "../../../../../types/metrics";
 
 interface IgReachTabProps {
   data: ChannelDashboardData | undefined;

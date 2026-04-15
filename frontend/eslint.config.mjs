@@ -196,7 +196,15 @@ export default [
         "warn",
         { prefer: "type-imports" },
       ],
-      "@typescript-eslint/no-misused-promises": "error",
+      "@typescript-eslint/no-misused-promises": [
+        "error",
+        {
+          checksVoidReturn: {
+            attributes: false, // JSX event handlers (onClick, onSubmit) — standard React async pattern
+            arguments: false, // setInterval, setTimeout, Array.forEach callbacks
+          },
+        },
+      ],
       "@typescript-eslint/require-await": "warn",
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/prefer-nullish-coalescing": "warn",

@@ -1,17 +1,19 @@
 import { useAuth } from "@clerk/nextjs";
-import { toast } from "sonner";
-import { offerApi } from "../api";
-import { offerToFormValues } from "../api/adapter";
-import { getSectionData } from "../utils/section-helpers";
-import { Offer } from "../types";
-import { OfferFormValues } from "../types/schema";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { toast } from "sonner";
+
+import { offerApi } from "../api";
+import { offerToFormValues } from "../api/adapter";
+import { Offer } from "../types";
+import { getSectionData } from "../utils/section-helpers";
+
+import type { OfferFormValues } from "../types/schema";
 
 /** Invalidate both active and archived offer lists after a lifecycle change. */
 const invalidateOfferLists = (queryClient: ReturnType<typeof useQueryClient>) => {
-  queryClient.invalidateQueries({ queryKey: ["offers"] });
-  queryClient.invalidateQueries({ queryKey: ["offers", "archived"] });
+  void queryClient.invalidateQueries({ queryKey: ["offers"] });
+  void queryClient.invalidateQueries({ queryKey: ["offers", "archived"] });
 };
 
 /** Archive an offer (reversible). Unpublishes the embedded landing page. */
@@ -159,7 +161,7 @@ export function useOffer(offerId: string) {
     offer: offer || null,
     formValues,
     loading,
-    error: error ? (error as Error).message : null,
+    error: error ? error.message : null,
     saveOffer,
     saveSection,
     saving: saveOfferMutation.isPending || saveSectionMutation.isPending,

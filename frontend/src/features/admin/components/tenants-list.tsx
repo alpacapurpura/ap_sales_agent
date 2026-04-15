@@ -1,8 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { adminApi, Tenant } from "@/lib/api/admin";
+import { Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -11,10 +15,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { adminApi } from "@/lib/api/admin";
+
+import type { Tenant } from "@/lib/api/admin";
 
 export function TenantsClient() {
   const { getToken } = useAuth();
@@ -22,7 +25,7 @@ export function TenantsClient() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadTenants();
+    void loadTenants();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadTenants = async () => {
@@ -54,7 +57,7 @@ export function TenantsClient() {
     } catch (error) {
       console.error(error);
       toast.error("Error al actualizar");
-      loadTenants(); // Revert
+      void loadTenants(); // Revert
     }
   };
 

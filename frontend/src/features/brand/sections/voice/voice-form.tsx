@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { Upload, FileText, CheckCircle, Loader2, MessageSquare } from "lucide-react";
+import { useState } from "react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,12 +14,10 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
 
 export interface VoiceAnalysisResult {
   style_profile?: {
@@ -47,7 +48,7 @@ export function VoiceForm({ onAnalyze, onReset, loading, error, result, step }: 
       return;
     }
     setLocalError("");
-    onAnalyze(textInput || undefined, file || undefined);
+    void onAnalyze(textInput || undefined, file || undefined);
   };
 
   return (

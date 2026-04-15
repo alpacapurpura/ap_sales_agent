@@ -1,12 +1,13 @@
 "use client";
 
-import { CheckCircle2, Circle } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
-import { useCopilotStore } from "../../store/copilot-store";
+import { CheckCircle2, Circle } from "lucide-react";
+
 import { reportCopilotEvent } from "../../api/copilot-api";
+import { useCopilotStore } from "../../store/copilot-store";
 
 interface ProgressChecklistProps {
-  items: Array<{ label: string; done: boolean; route?: string }>;
+  items: { label: string; done: boolean; route?: string }[];
 }
 
 export function ProgressChecklist({ items }: ProgressChecklistProps) {
@@ -15,7 +16,7 @@ export function ProgressChecklist({ items }: ProgressChecklistProps) {
 
   const handleNavigate = (item: { label: string; route?: string }) => {
     enqueuUIAction({ type: "navigate", route: item.route });
-    getToken().then((token) => {
+    void getToken().then((token) => {
       if (token) {
         reportCopilotEvent(
           "checklist_item_clicked",

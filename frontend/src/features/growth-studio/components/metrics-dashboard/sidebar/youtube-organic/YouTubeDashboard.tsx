@@ -1,23 +1,26 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { ArrowLeft, Youtube, RefreshCw } from "lucide-react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
+import { useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+
 import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
 import { useHashScroll } from "../../../../hooks/useHashScroll";
 import { useSyncChannel } from "../../../../hooks/useSyncChannel";
-import type { MetaAdsPeriod, YouTubeDashboardTab } from "../../../../types/metrics";
 import { ChannelPeriodSelector } from "../ig-organic/ChannelPeriodSelector";
-import { YtOverviewTab } from "./tabs/YtOverviewTab";
-import { YtVideosTab } from "./tabs/YtVideosTab";
+
 import { YtAudienceTab } from "./tabs/YtAudienceTab";
 import { YtEngagementTab } from "./tabs/YtEngagementTab";
+import { YtOverviewTab } from "./tabs/YtOverviewTab";
 import { YtRetentionTab } from "./tabs/YtRetentionTab";
+import { YtVideosTab } from "./tabs/YtVideosTab";
+
+import type { MetaAdsPeriod, YouTubeDashboardTab } from "../../../../types/metrics";
 
 interface YouTubeDashboardProps {
   onClose?: () => void;

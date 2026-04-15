@@ -1,20 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
-import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
 import { useAuth } from "@clerk/nextjs";
-import { connectionsApi } from "@/lib/api/connections";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Loader2,
   CheckCircle,
@@ -25,7 +11,19 @@ import {
   Link as LinkIcon,
   Activity,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +33,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
+import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
+import { connectionsApi } from "@/lib/api/connections";
 
 export function GoogleCalendarView() {
   const { getToken } = useAuth();
@@ -48,6 +49,7 @@ export function GoogleCalendarView() {
   const [disconnecting, setDisconnecting] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [testing, setTesting] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: define per-provider API response type
   const [testResult, setTestResult] = useState<any>(null);
 
   const fetchStatus = async () => {
@@ -66,7 +68,7 @@ export function GoogleCalendarView() {
   };
 
   useEffect(() => {
-    fetchStatus();
+    void fetchStatus();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle OAuth Callback (Popup Listener)
@@ -80,15 +82,15 @@ export function GoogleCalendarView() {
         toast.info("Finalizando conexión con Google...");
 
         // Must match the redirect URI registered in Google Cloud Console
-        const redirectUri = window.location.origin + "/connections/google/callback";
+        const redirectUri = `${window.location.origin}/connections/google/callback`;
 
         await connectionsApi.connectGoogle(code, token, redirectUri);
         toast.success("Google Calendar conectado exitosamente");
 
         await fetchStatus();
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(error);
-        toast.error(error.message || "Error al conectar Google Calendar");
+        toast.error(error instanceof Error ? error.message : "Error al conectar Google Calendar");
       } finally {
         setConnecting(false);
       }
@@ -106,7 +108,7 @@ export function GoogleCalendarView() {
       if (!token) return;
 
       // Must match the redirect URI registered in Google Cloud Console
-      const redirectUri = window.location.origin + "/connections/google/callback";
+      const redirectUri = `${window.location.origin}/connections/google/callback`;
       const { url } = await connectionsApi.getGoogleAuthUrl(token, redirectUri);
 
       openOAuthPopup({ url, name: "GoogleCalendarAuth" });
@@ -120,7 +122,7 @@ export function GoogleCalendarView() {
       // Or just let user click again (but button is disabled).
       // Let's add a timeout for safety.
       setTimeout(() => setConnecting(false), 60000); // 1 min timeout
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       toast.error("No se pudo iniciar la conexión");
       setConnecting(false);
@@ -137,7 +139,7 @@ export function GoogleCalendarView() {
       toast.success("Enlace generado correctamente");
       // Update status with new link
       setStatus((prev) => (prev ? { ...prev, booking_link: res.url } : null));
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Error generando enlace");
     } finally {
       setGeneratingLink(false);
@@ -154,10 +156,13 @@ export function GoogleCalendarView() {
       const res = await connectionsApi.testCalendar(token);
       setTestResult(res);
       toast.success("Prueba de conexión exitosa");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error en la prueba");
-      setTestResult({ status: "error", message: error.message });
+      toast.error(error instanceof Error ? error.message : "Error en la prueba");
+      setTestResult({
+        status: "error",
+        message: error instanceof Error ? error.message : "Error desconocido",
+      });
     } finally {
       setTesting(false);
     }
@@ -173,9 +178,9 @@ export function GoogleCalendarView() {
       toast.success("Google Calendar desconectado");
       setStatus({ is_connected: false });
       setTestResult(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al desconectar");
+      toast.error(error instanceof Error ? error.message : "Error al desconectar");
     } finally {
       setDisconnecting(false);
     }
@@ -340,7 +345,7 @@ export function GoogleCalendarView() {
                   variant="secondary"
                   onClick={() => {
                     const url = `${window.location.origin}${status.booking_link}`;
-                    navigator.clipboard.writeText(url);
+                    void navigator.clipboard.writeText(url);
                     toast.success("Enlace copiado al portapapeles");
                   }}
                 >

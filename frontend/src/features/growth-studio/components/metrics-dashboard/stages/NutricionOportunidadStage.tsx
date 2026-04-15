@@ -1,7 +1,7 @@
 "use client";
 
-import { NurtureOpportunityDetail } from "../detail-panels/NurtureOpportunityDetail";
 import { useGrowthStudioContext } from "../context/GrowthStudioContext";
+import { NurtureOpportunityDetail } from "../detail-panels/NurtureOpportunityDetail";
 
 export function NutricionOportunidadStage() {
   const {

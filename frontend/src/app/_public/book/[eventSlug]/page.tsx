@@ -1,7 +1,9 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
+
 import { config } from "@/lib/config";
+
+import type { Metadata } from "next";
 
 interface EventType {
   id: string;

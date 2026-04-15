@@ -1,10 +1,11 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Clock, Settings2 } from "lucide-react";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvailabilityView } from "@/features/sales/components/availability-view";
 import { EventTypeView } from "@/features/sales/components/event-type-view";
-import { Clock, Settings2 } from "lucide-react";
 
 export function SchedulingSettingsView() {
   return (

@@ -2,7 +2,6 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useState } from "react";
 import {
   Users,
   Target,
@@ -25,15 +24,17 @@ import {
   Calendar,
   MousePointer2,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 // --- TYPES (Simplified for Playground) ---

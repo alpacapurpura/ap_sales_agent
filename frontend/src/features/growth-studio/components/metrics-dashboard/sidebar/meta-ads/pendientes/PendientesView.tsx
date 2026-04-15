@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
-import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { useMemo, useState, useCallback } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+
 import { useCampaignPerformance } from "../../../../../api/campaigns-api";
 import {
   useAssociations,
@@ -13,12 +15,13 @@ import {
   useOffersForAssignment,
   useMetaHealthCheck,
 } from "../../../../../api/offer-association-api";
-import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
-import type { MetaAdsPeriod } from "../../../../../types/metrics";
 import { MetaAdsPeriodSelector } from "../MetaAdsPeriodSelector";
-import { PendientesList } from "./PendientesList";
-import type { PendingCampaign } from "./PendientesList";
+
 import { PendienteDetailPanel } from "./PendienteDetailPanel";
+import { PendientesList } from "./PendientesList";
+
+import type { PendingCampaign } from "./PendientesList";
+import type { MetaAdsPeriod } from "../../../../../types/metrics";
 
 interface PendientesViewProps {
   period?: MetaAdsPeriod;

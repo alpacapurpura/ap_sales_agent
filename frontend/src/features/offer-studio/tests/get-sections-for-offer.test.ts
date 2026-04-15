@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { getSectionsForOffer } from "../config/offer-builder-config";
 import { OfferArchetype } from "../types";
 

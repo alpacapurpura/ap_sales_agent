@@ -1,8 +1,10 @@
 "use client";
 
-import { CommunicationAssets } from "@/features/brand/types";
-import { Badge } from "@/components/ui/badge";
 import { Megaphone, Lightbulb, Plus, PencilLine } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+
+import type { CommunicationAssets } from "@/features/brand/types";
 
 interface AssetsPreviewProps {
   communicationAssets: CommunicationAssets;

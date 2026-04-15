@@ -33,5 +33,5 @@ export interface JourneyEvent {
   timestamp: string; // ISO date string
   description: string;
   channel: "email" | "web" | "sms" | "whatsapp";
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }

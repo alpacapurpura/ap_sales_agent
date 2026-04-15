@@ -1,7 +1,10 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+
 import { OfferCard } from "../components/dashboard/offer-card";
+
 import { MOCK_OFFER_NORMALIZED } from "./fixtures";
+
 import type { Offer } from "../types";
 
 // Mock Next.js router

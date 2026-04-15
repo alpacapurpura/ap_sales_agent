@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
+
 import { AvatarEditView } from "@/features/brand/components/views/avatar-edit-view";
 
 export default function EditAvatarPage() {

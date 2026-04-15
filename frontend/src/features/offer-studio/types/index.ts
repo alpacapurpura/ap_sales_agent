@@ -256,11 +256,11 @@ export interface Offer {
   currency?: string;
 
   // Polymorphic details
-  specific_details?: Record<string, any>;
+  specific_details?: Record<string, unknown>;
 
   // Stats & Metadata
   active_clients?: number; // From specific_details or computed
-  metadata_info?: Record<string, any>;
+  metadata_info?: Record<string, unknown>;
 
   avatar_id?: string;
 
@@ -277,7 +277,7 @@ export interface Offer {
 
   // Additional Fields
   target_avatar_match?: string[];
-  prerequisites?: any[]; // Using any[] for now to match schema flexibility
+  prerequisites?: unknown[]; // Flexible schema — shape depends on offer type
   includes_offers?: string[];
 
   guarantee_type?: GuaranteeType;
@@ -296,7 +296,7 @@ export interface Offer {
   landing_page_config?: {
     is_published: boolean;
     slug: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 
   // Lifecycle (SaaS archive + soft-delete)
@@ -313,7 +313,7 @@ export interface DeliverableItem {
 export interface AvatarDefinition {
   icp_description?: string;
   anti_avatar?: string;
-  voice_tone_config?: Record<string, any>;
+  voice_tone_config?: Record<string, unknown>;
   pain_points?: string[];
   desires?: string[];
   awareness_level?: string;

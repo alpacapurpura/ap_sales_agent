@@ -1,20 +1,21 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { BrandStudioTabs } from "@/features/brand/components/tabs/brand-studio-tabs";
+import { EsenciaView } from "@/features/brand/components/views/esencia-view";
+import { EstrategiaView } from "@/features/brand/components/views/estrategia-view";
+import { IdentidadCreativaView } from "@/features/brand/components/views/identidad-creativa-view";
+import { PublicoView } from "@/features/brand/components/views/publico-view";
 import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
-import { BrandStudioTabs } from "@/features/brand/components/tabs/brand-studio-tabs";
+
 import type { BrandSectionId } from "@/features/brand/config/sections";
 import type { BrandSettings } from "@/features/brand/types";
 import type { PreviewSectionsProps } from "@/features/copilot/config/interview-preview-registry";
 
 // Section views
-import { EsenciaView } from "@/features/brand/components/views/esencia-view";
-import { EstrategiaView } from "@/features/brand/components/views/estrategia-view";
-import { PublicoView } from "@/features/brand/components/views/publico-view";
-import { IdentidadCreativaView } from "@/features/brand/components/views/identidad-creativa-view";
 
 // ── Block to Tab mapping (brand-specific) ───────────────────────────────────
 
@@ -70,7 +71,7 @@ export function BrandPreviewSections({ currentBlock }: PreviewSectionsProps) {
           typeof v === "object" && v !== null && !Array.isArray(v)
             ? {
                 ...((settings[k as keyof BrandSettings] as object) ?? {}),
-                ...(v as object),
+                ...v,
               }
             : v,
         ]),

@@ -1,7 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
-import { WithCopilot } from "../WithCopilot";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { useCopilotStore } from "../../store/copilot-store";
+import { WithCopilot } from "../WithCopilot";
 
 // Mock lucide-react icons to avoid SVG rendering issues in tests
 vi.mock("lucide-react", () => ({

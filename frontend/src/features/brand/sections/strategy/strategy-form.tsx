@@ -1,12 +1,14 @@
 "use client";
 
+import { Save, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { BrandStrategy } from "@/features/brand/types";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Loader2 } from "lucide-react";
+
+import type { BrandStrategy } from "@/features/brand/types";
 
 interface StrategyFormProps {
   initialData: BrandStrategy;
@@ -27,7 +29,7 @@ export function StrategyForm({ initialData, onSave, isSaving = false }: Strategy
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(strategy);
+    void onSave(strategy);
   };
 
   return (

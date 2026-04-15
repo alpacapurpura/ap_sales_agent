@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { LucideIcon } from "lucide-react";
+
+import type { LucideIcon } from "lucide-react";
 
 interface ActionIconProps {
   icon: LucideIcon;

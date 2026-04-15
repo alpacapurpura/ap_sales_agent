@@ -34,11 +34,7 @@ export interface TickerItem {
 }
 
 export const crmDashboardApi = {
-  getPipeline: async (
-    token: string,
-    minScore: number = 50,
-    limit: number = 20,
-  ): Promise<PipelineItem[]> => {
+  getPipeline: async (token: string, minScore = 50, limit = 20): Promise<PipelineItem[]> => {
     const res = await fetchClient(
       `${API_URL}/api/v1/crm/pipeline/pipeline?min_score=${minScore}&limit=${limit}`,
       {

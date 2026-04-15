@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
 
 import { CampaignDetailSidebar } from "../CampaignDetailSidebar";
+
 import type { EmailCampaign } from "../../../../../../types/mail-types";
 
 function buildCampaign(overrides: Partial<EmailCampaign> = {}): EmailCampaign {

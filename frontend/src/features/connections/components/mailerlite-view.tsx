@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { connectionsApi, MailerliteStatusResponse } from "@/lib/api/connections";
+import { Loader2, CheckCircle, Mail, Trash2, ExternalLink, Activity } from "lucide-react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,12 +15,6 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, CheckCircle, Mail, Trash2, ExternalLink, Activity } from "lucide-react";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +24,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { connectionsApi } from "@/lib/api/connections";
+
+import type { MailerliteStatusResponse } from "@/lib/api/connections";
 
 export function MailerLiteView() {
   const { getToken } = useAuth();
@@ -35,6 +38,7 @@ export function MailerLiteView() {
   const [connecting, setConnecting] = useState(false);
   const [testing, setTesting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: define per-provider API response type
   const [testResult, setTestResult] = useState<any>(null);
 
   const fetchStatus = async () => {
@@ -53,7 +57,7 @@ export function MailerLiteView() {
   };
 
   useEffect(() => {
-    fetchStatus();
+    void fetchStatus();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleConnect = async () => {
@@ -69,11 +73,11 @@ export function MailerLiteView() {
 
       await connectionsApi.connectMailerLite({ api_key: apiKey }, token);
       toast.success("MailerLite conectado exitosamente");
-      fetchStatus();
+      void fetchStatus();
       setApiKey("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al conectar MailerLite");
+      toast.error(error instanceof Error ? error.message : "Error al conectar MailerLite");
     } finally {
       setConnecting(false);
     }
@@ -89,10 +93,13 @@ export function MailerLiteView() {
       const res = await connectionsApi.testMailerLite(token);
       setTestResult(res);
       toast.success("Prueba de conexión exitosa");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error en la prueba");
-      setTestResult({ status: "error", message: error.message });
+      toast.error(error instanceof Error ? error.message : "Error en la prueba");
+      setTestResult({
+        status: "error",
+        message: error instanceof Error ? error.message : "Error desconocido",
+      });
     } finally {
       setTesting(false);
     }
@@ -108,9 +115,9 @@ export function MailerLiteView() {
       toast.success("MailerLite desconectado");
       setStatus({ is_connected: false });
       setTestResult(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al desconectar");
+      toast.error(error instanceof Error ? error.message : "Error al desconectar");
     } finally {
       setDisconnecting(false);
     }
@@ -208,7 +215,7 @@ export function MailerLiteView() {
                 Cuenta
               </Label>
               <p className="font-medium text-lg flex items-center gap-2">
-                {status.account_info?.data?.name || "Desconocido"}
+                {(status.account_info?.name as string) || "Desconocido"}
               </p>
             </div>
             <div className="space-y-1">
@@ -216,7 +223,7 @@ export function MailerLiteView() {
                 Email
               </Label>
               <p className="font-medium text-sm text-muted-foreground break-all">
-                {status.account_info?.data?.email || "N/A"}
+                {(status.account_info?.email as string) || "N/A"}
               </p>
             </div>
           </div>

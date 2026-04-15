@@ -1,18 +1,12 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
 import { Bot, ChevronRight, Loader2 } from "lucide-react";
+import React, { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { useMailAutomations } from "../../../../../hooks/useMailDashboard";
-import type {
-  AutomationStep,
-  EmailAutomation,
-  EmailAutomationsData,
-} from "../../../../../types/mail-types";
-import type { MetaAdsPeriod } from "../../../../../types/metrics";
 import { computeHealthScore } from "../../../../../utils/automation-health";
 import {
   AUTOMATION_METRIC_INFO,
@@ -22,6 +16,13 @@ import { ChartSection } from "../../shared/ChartSection";
 import { AutomationPipeline } from "../components/AutomationPipeline";
 import { AutomationStepSidebar } from "../components/AutomationStepSidebar";
 import { MetricInfoTooltip } from "../components/MetricInfoTooltip";
+
+import type {
+  AutomationStep,
+  EmailAutomation,
+  EmailAutomationsData,
+} from "../../../../../types/mail-types";
+import type { MetaAdsPeriod } from "../../../../../types/metrics";
 
 interface MailAutomatizacionesTabProps {
   period: MetaAdsPeriod;
@@ -44,7 +45,7 @@ const TYPE_LABELS: Record<string, { label: string; className: string }> = {
   },
 };
 
-const FILTER_OPTIONS: Array<{ value: string; label: string }> = [
+const FILTER_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "Todas" },
   { value: "welcome", label: "Bienvenida" },
   { value: "nurture", label: "Nutrición" },

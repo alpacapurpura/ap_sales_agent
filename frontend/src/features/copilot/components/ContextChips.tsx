@@ -1,8 +1,10 @@
 "use client";
 
-import { memo } from "react";
 import { X } from "lucide-react";
+import { memo } from "react";
+
 import { Badge } from "@/components/ui/badge";
+
 import { useCopilotStore } from "../store/copilot-store";
 
 /**

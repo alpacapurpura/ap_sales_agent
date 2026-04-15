@@ -38,21 +38,17 @@ import {
  * Encode a list of SSE event strings into a Uint8Array stream chunk.
  * Each event is two lines: "event: <type>\n" + "data: <json>\n" + "\n"
  */
-function buildSSEChunk(
-  events: Array<{ event: string; data: Record<string, unknown> }>,
-): Uint8Array {
+function buildSSEChunk(events: { event: string; data: Record<string, unknown> }[]): Uint8Array {
   const lines = events
     .map(({ event, data }) => `event: ${event}\ndata: ${JSON.stringify(data)}\n`)
     .join("\n");
-  return new TextEncoder().encode(lines + "\n");
+  return new TextEncoder().encode(`${lines}\n`);
 }
 
 /**
  * Build a minimal Response that yields a sequence of SSE chunks then ends.
  */
-function buildSSEResponse(
-  chunks: Array<Array<{ event: string; data: Record<string, unknown> }>>,
-): Response {
+function buildSSEResponse(chunks: { event: string; data: Record<string, unknown> }[][]): Response {
   let chunkIdx = 0;
   const stream = new ReadableStream<Uint8Array>({
     pull(controller) {
@@ -92,7 +88,7 @@ describe("getCopilotHeaders", () => {
 
   it("includes Authorization Bearer token", () => {
     const headers = getCopilotHeaders("my-token");
-    expect(headers["Authorization"]).toBe("Bearer my-token");
+    expect(headers.Authorization).toBe("Bearer my-token");
   });
 
   it("extracts X-Tenant-ID from first non-global path segment", () => {

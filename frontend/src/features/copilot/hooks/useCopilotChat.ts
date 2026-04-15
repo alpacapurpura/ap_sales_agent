@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useCopilotStore, type UIAction } from "../store/copilot-store";
+import { useCallback, useRef } from "react";
+
 import { streamCopilotChat, reportCopilotEvent } from "../api/copilot-api";
+import { useCopilotStore, type UIAction } from "../store/copilot-store";
+
 import { handleUIAction } from "./useCopilotUIAction";
 
 /**

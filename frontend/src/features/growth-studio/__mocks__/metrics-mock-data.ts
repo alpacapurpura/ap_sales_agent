@@ -1021,7 +1021,7 @@ function generateMockTimeSeries(): StageTimeSeries {
       "meta-ads": Math.floor((periodTotals["meta-ads"] ?? 0) * 0.85),
       "google-organic": Math.floor((periodTotals["google-organic"] ?? 0) * 0.92),
       "ig-organic": Math.floor((periodTotals["ig-organic"] ?? 0) * 1.05),
-      direct: Math.floor((periodTotals["direct"] ?? 0) * 0.98),
+      direct: Math.floor((periodTotals.direct ?? 0) * 0.98),
     },
   };
 }

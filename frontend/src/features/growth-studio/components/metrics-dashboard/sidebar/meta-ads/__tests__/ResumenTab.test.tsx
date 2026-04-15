@@ -1,7 +1,10 @@
-import React from "react";
-import { render, screen, fireEvent, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, fireEvent, within } from "@testing-library/react";
+import React from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { ResumenTab } from "../tabs/ResumenTab";
+
 import type { ChannelDashboardData, CampaignPerformanceData } from "../../../../../types/metrics";
 import type {
   BrandingAggregate,
@@ -59,7 +62,6 @@ vi.mock("recharts", async (importOriginal) => {
 });
 
 // Must import AFTER mocks
-import { ResumenTab } from "../tabs/ResumenTab";
 
 // ---------------------------------------------------------------------------
 // Test helpers

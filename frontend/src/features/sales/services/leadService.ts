@@ -1,5 +1,5 @@
-import { fetchClient } from "@/lib/http-client";
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
 
 const BASE_URL = config.api.baseUrl;
 
@@ -18,7 +18,7 @@ export interface Lead {
   intent_score: number;
   temperature: string;
   created_at?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export const leadService = {

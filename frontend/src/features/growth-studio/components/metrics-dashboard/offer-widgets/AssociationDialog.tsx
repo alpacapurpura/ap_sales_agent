@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useParams } from "next/navigation";
 import { Link2, Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useParams } from "next/navigation";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -13,9 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { metricsApi, type SourceProduct } from "../../../api/metrics-api";
-import type { Offer } from "@/features/offer-studio/types";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+
+import { metricsApi, type SourceProduct } from "../../../api/metrics-api";
+
+import type { Offer } from "@/features/offer-studio/types";
 
 interface AssociationDialogProps {
   product: SourceProduct | null;

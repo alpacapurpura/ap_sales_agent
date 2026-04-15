@@ -1,26 +1,5 @@
 "use client";
 
-import { UseFormReturn } from "react-hook-form";
-import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { EditionsOptIn } from "../common/editions-opt-in";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
-import {
-  OfferArchetype,
-  ProgramStructure,
-  LiveInteractionType,
-  CommunityPlatform,
-} from "../../../../types";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-  FormDescription,
-} from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RichSelect } from "@/components/ui/rich-select";
 import { SmartDateTimePicker } from "@/components/ui/smart-datetime-picker";
@@ -35,11 +14,35 @@ import { SessionScheduleBuilder } from "./session-schedule-builder";
 import { CurriculumBuilder } from "./curriculum-builder";
 import { CalendarIcon, Clock, Sparkles, Shield, ShieldCheck } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+  FormDescription,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+
+import {
+  OfferArchetype,
+  ProgramStructure,
+  LiveInteractionType,
+  CommunityPlatform,
+} from "../../../../types";
+import { OfferSchema } from "../../../../types/schema";
+import { EditionsOptIn } from "../common/editions-opt-in";
+import { SectionFormWrapper } from "../common/section-form-wrapper";
+
+import type { OfferFormValues } from "../../../../types/schema";
 
 const ProgramDetailsSchema = OfferSchema.pick({
   specific_details: true,

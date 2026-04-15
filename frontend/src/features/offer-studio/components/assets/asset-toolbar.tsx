@@ -1,8 +1,8 @@
 "use client";
 
-import { ChangeEvent, useRef } from "react";
 import { ArrowUpDown, Search, Sparkles, Upload } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { useRef } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,9 +10,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+
 import type { AssetSortKey } from "../../types/assets";
 import type { OfferAssetSource, OfferAssetType } from "../../types/enums";
+import type { ChangeEvent } from "react";
 
 export interface AssetToolbarProps {
   search: string;

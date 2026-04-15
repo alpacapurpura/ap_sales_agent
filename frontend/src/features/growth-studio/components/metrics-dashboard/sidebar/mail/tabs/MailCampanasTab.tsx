@@ -1,25 +1,27 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import { Loader2, ArrowUp, ArrowDown, Star, ChevronDown } from "lucide-react";
+import { useState, useMemo } from "react";
 
 import { cn } from "@/lib/utils";
+
 import { useMailCampaigns } from "../../../../../hooks/useMailDashboard";
-import { ChartSection } from "../../shared/ChartSection";
-import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
-import { computeCampaignHealthScore } from "../../../../../utils/campaign-health";
 import {
   AUTOMATION_METRIC_INFO,
   type MetricInfo,
 } from "../../../../../utils/automation-metric-info";
-import { MetricInfoTooltip } from "../components/MetricInfoTooltip";
+import { computeCampaignHealthScore } from "../../../../../utils/campaign-health";
+import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
+import { ChartSection } from "../../shared/ChartSection";
 import { CampaignDetailSidebar } from "../components/CampaignDetailSidebar";
-import type { MetaAdsPeriod } from "../../../../../types/metrics";
+import { MetricInfoTooltip } from "../components/MetricInfoTooltip";
+
 import type {
   EmailCampaign,
   EmailTypePerformance,
   EmailCampaignSummary,
 } from "../../../../../types/mail-types";
+import type { MetaAdsPeriod } from "../../../../../types/metrics";
 
 interface MailCampanasTabProps {
   period: MetaAdsPeriod;
@@ -805,7 +807,7 @@ function CampaignInsights({
   types: EmailTypePerformance[];
   campaigns: EmailCampaign[];
 }) {
-  const insights: Array<{ text: string; type: "positive" | "warning" }> = [];
+  const insights: { text: string; type: "positive" | "warning" }[] = [];
 
   // Best type vs worst type
   if (types.length >= 2) {

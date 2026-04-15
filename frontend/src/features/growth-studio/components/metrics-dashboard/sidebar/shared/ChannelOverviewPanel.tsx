@@ -1,23 +1,26 @@
 "use client";
 
-import { memo, useState, type ReactNode } from "react";
 import { ExternalLink, Loader2, RefreshCw, type LucideIcon } from "lucide-react";
+import { memo, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
 } from "@/components/ui/detail-panel";
-import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
-import { useSyncChannel } from "../../../../hooks/useSyncChannel";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantDateTime } from "@/lib/format-date";
-import type { ChannelDashboardData, ChannelMetric, MetaAdsPeriod } from "../../../../types/metrics";
-import { PeriodSelector } from "./PeriodSelector";
-import { HeroKpiGrid } from "./HeroKpiGrid";
+import { cn } from "@/lib/utils";
+
+import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
+import { useSyncChannel } from "../../../../hooks/useSyncChannel";
 import { MetaAdsMiniFunnel } from "../meta-ads/MetaAdsMiniFunnel";
+
+import { HeroKpiGrid } from "./HeroKpiGrid";
+import { PeriodSelector } from "./PeriodSelector";
+
+import type { ChannelDashboardData, ChannelMetric, MetaAdsPeriod } from "../../../../types/metrics";
 
 interface FormatOptions {
   /** Number of decimal places for percentage values (default: 2) */

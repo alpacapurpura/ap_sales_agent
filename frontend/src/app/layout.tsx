@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
 import NextTopLoader from "nextjs-toploader";
+
+import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {

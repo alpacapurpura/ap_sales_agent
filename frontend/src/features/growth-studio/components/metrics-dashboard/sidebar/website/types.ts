@@ -2,35 +2,35 @@ import type { ChannelDashboardData } from "../../../../types/metrics";
 
 export type WebsiteDashboardTab = "overview" | "trafico" | "contenido" | "conversiones";
 
-export type WebsiteTrafficSource = {
+export interface WebsiteTrafficSource {
   source: string;
   sessions: number;
   percentage: number;
-};
+}
 
-export type WebsiteDeviceSplit = {
+export interface WebsiteDeviceSplit {
   device: string;
   percentage: number;
-};
+}
 
-export type WebsiteTopPage = {
+export interface WebsiteTopPage {
   path: string;
   views: number;
   percentage: number;
-};
+}
 
-export type WebsiteCountry = {
+export interface WebsiteCountry {
   country: string;
   sessions: number;
   percentage: number;
-};
+}
 
-export type WebsiteExtraData = {
+export interface WebsiteExtraData {
   traffic_sources?: WebsiteTrafficSource[];
   device_split?: WebsiteDeviceSplit[];
   top_pages?: WebsiteTopPage[];
   country?: WebsiteCountry[];
-};
+}
 
 export type WebsiteData = ChannelDashboardData & {
   extraData?: WebsiteExtraData;

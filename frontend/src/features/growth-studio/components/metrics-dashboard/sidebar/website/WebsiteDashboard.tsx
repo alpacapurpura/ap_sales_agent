@@ -1,23 +1,26 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { ArrowLeft, Globe, RefreshCw } from "lucide-react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
+import { useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+
 import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
 import { useHashScroll } from "../../../../hooks/useHashScroll";
 import { useSyncChannel } from "../../../../hooks/useSyncChannel";
-import type { MetaAdsPeriod } from "../../../../types/metrics";
 import { PeriodSelector } from "../shared/PeriodSelector";
-import type { WebsiteDashboardTab, WebsiteData } from "./types";
-import { WebsiteOverviewTab } from "./tabs/WebsiteOverviewTab";
-import { WebsiteTrafficTab } from "./tabs/WebsiteTrafficTab";
+
 import { WebsiteContentTab } from "./tabs/WebsiteContentTab";
 import { WebsiteConversionsTab } from "./tabs/WebsiteConversionsTab";
+import { WebsiteOverviewTab } from "./tabs/WebsiteOverviewTab";
+import { WebsiteTrafficTab } from "./tabs/WebsiteTrafficTab";
+
+import type { WebsiteDashboardTab, WebsiteData } from "./types";
+import type { MetaAdsPeriod } from "../../../../types/metrics";
 
 interface WebsiteDashboardProps {
   onClose?: () => void;

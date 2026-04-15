@@ -1,6 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+
 import { AssistantMessage } from "../components/messages/AssistantMessage";
+
 import type { CopilotMessage } from "../store/copilot-store";
 
 // Mock card components to verify they're rendered

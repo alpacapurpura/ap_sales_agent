@@ -1,10 +1,12 @@
 "use client";
 
-import { BrandPositioning } from "@/features/brand/types";
+import { Crosshair, Quote, Pencil, Info } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Crosshair, Quote, Pencil, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+import type { BrandPositioning } from "@/features/brand/types";
 
 interface MarketPreviewProps {
   positioning: BrandPositioning;
@@ -41,7 +43,7 @@ function SectionLabel({ label }: { label: string }) {
 
 export function MarketPreview({ positioning, onEdit }: MarketPreviewProps) {
   const env = positioning.competitive_environment;
-  const insight = positioning.insight;
+  const { insight } = positioning;
 
   const hasEnvironment =
     env?.technical_enemy ||

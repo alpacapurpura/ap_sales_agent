@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   ChevronDown,
@@ -12,26 +10,30 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatMoney } from "@/lib/format-money";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantDate, formatTenantDateTime } from "@/lib/format-date";
+import { formatMoney } from "@/lib/format-money";
 import { cn } from "@/lib/utils";
-import { ChartSection } from "../../shared/ChartSection";
+
 import { useAssociations } from "../../../../../api/offer-association-api";
 import { archetypeEmoji } from "../../../../../types/offer-association";
+import { ChartSection } from "../../shared/ChartSection";
+import { ImprovementNotesPanel } from "../notices/ImprovementNotesPanel";
+import { useIgnoredNotices } from "../notices/useIgnoredNotices";
+import { OfferAssignmentDrawerConnected } from "../OfferAssignmentDrawerConnected";
+import { OfferReassignPopover } from "../OfferReassignPopover";
+
 import type {
   CampaignPerformanceData,
   CampaignWithMetrics,
   MetaAdsPeriod,
 } from "../../../../../types/metrics";
 import type { Association } from "../../../../../types/offer-association";
-import { OfferAssignmentDrawerConnected } from "../OfferAssignmentDrawerConnected";
-import { OfferReassignPopover } from "../OfferReassignPopover";
-import { ImprovementNotesPanel } from "../notices/ImprovementNotesPanel";
-import { useIgnoredNotices } from "../notices/useIgnoredNotices";
 import type { ImprovementNotice, SeverityBreakdown } from "../notices/types";
 
 // ---------------------------------------------------------------------------
@@ -69,7 +71,7 @@ function campaignStatusCategory(
   campaign: CampaignWithMetrics,
 ): "active" | "learning" | "error" | "paused" | "completed" {
   const es = (campaign.effectiveStatus ?? "").toUpperCase();
-  const health = campaign.health;
+  const { health } = campaign;
 
   if (es === "PAUSED") return "paused";
   if (es === "CAMPAIGN_PAUSED") return "paused";
@@ -373,7 +375,7 @@ function CampaignRow({
   const { metrics } = campaign;
 
   // Budget pacing
-  const dailyBudget = campaign.dailyBudget;
+  const { dailyBudget } = campaign;
   const budgetRatio =
     dailyBudget && dailyBudget > 0 ? Math.min(metrics.spend / dailyBudget, 1) : null;
 

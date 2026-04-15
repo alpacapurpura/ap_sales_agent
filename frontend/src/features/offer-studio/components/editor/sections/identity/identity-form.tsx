@@ -1,15 +1,19 @@
 "use client";
 
-import { UseFormReturn } from "react-hook-form";
-import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { OfferDeliveryModel as DeliveryModel, OfferArchetype } from "../../../../types";
-import { ARCHETYPE_METADATA } from "../../../../config/archetype-metadata";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
+
+import { ARCHETYPE_METADATA } from "../../../../config/archetype-metadata";
+import { OfferDeliveryModel as DeliveryModel } from "../../../../types";
+import { OfferSchema } from "../../../../types/schema";
+import { SectionFormWrapper } from "../common/section-form-wrapper";
+
+import type { OfferArchetype } from "../../../../types";
+import type { OfferFormValues } from "../../../../types/schema";
+import type { UseFormReturn } from "react-hook-form";
 
 // Define partial schema for Identity
 const IdentitySchema = OfferSchema.pick({

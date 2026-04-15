@@ -1,9 +1,11 @@
 "use client";
 
-import { KeyFigure, BrandVisuals } from "@/features/brand/types";
-import { config } from "@/lib/config";
 import { UserCheck, Star, Plus, User } from "lucide-react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { config } from "@/lib/config";
+
+import type { KeyFigure, BrandVisuals } from "@/features/brand/types";
 
 interface TeamSectionProps {
   team: KeyFigure[];

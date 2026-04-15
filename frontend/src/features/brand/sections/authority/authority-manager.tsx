@@ -1,15 +1,18 @@
 "use client";
 
+import { Award, Plus, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
-import { AuthorityItem } from "@/features/brand/types";
-import { AuthorityList } from "./authority-list";
-import { AuthorityItemForm } from "./authority-item-form";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Award, Plus, Loader2 } from "lucide-react";
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
+import { AuthorityItemForm } from "./authority-item-form";
+import { AuthorityList } from "./authority-list";
+
+import type { AuthorityItem } from "@/features/brand/types";
 
 export function AuthorityManager() {
   const { settings, updateVault, saving } = useBrandSettings();

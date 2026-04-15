@@ -1,17 +1,5 @@
 "use client";
 
-import { memo, useState } from "react";
-import {
-  Offer,
-  OfferArchetype,
-  OfferDeliveryModel,
-  OfferStatus,
-  OfferValueLevel,
-} from "@/features/offer-studio/types";
-import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
-import { HighlightedText } from "@/components/ui/highlighted-text";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   MoreHorizontal,
   Users,
@@ -24,12 +12,11 @@ import {
   Sparkles,
   ExternalLink,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
+import { cn } from "@/lib/utils";
+import { useParams } from "next/navigation";
+import { type ComponentType, memo, useState } from "react";
+import { useNavigation } from "@/components/shared/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,12 +27,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { useParams } from "next/navigation";
-import { useNavigation } from "@/components/shared/navigation";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { HighlightedText } from "@/components/ui/highlighted-text";
+import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
+import {
+  OfferArchetype,
+  OfferDeliveryModel,
+  OfferStatus,
+  OfferValueLevel,
+} from "@/features/offer-studio/types";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatMoney } from "@/lib/format-money";
+
+import type { Offer } from "@/features/offer-studio/types";
 
 interface OfferCardProps {
   offer: Offer;
@@ -71,7 +73,7 @@ const STATUS_CONFIG = {
   [OfferStatus.ARCHIVED]: { color: "bg-gray-600", label: "Archived" },
 };
 
-const LEVEL_ICONS: Record<string, any> = {
+const LEVEL_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   [OfferValueLevel.LEAD_MAGNET]: Package,
   [OfferValueLevel.ACTIVACION]: Zap,
   [OfferValueLevel.TRANSFORMACION]: Users,
@@ -117,9 +119,7 @@ export const OfferCard = memo(function OfferCard({
   const statusConfig = STATUS_CONFIG[offer.status] || STATUS_CONFIG[OfferStatus.DRAFT];
   const Icon = LEVEL_ICONS[offer.value_level] || Package;
 
-  const archetypeMeta = offer.archetype
-    ? ARCHETYPE_METADATA[offer.archetype as OfferArchetype]
-    : null;
+  const archetypeMeta = offer.archetype ? ARCHETYPE_METADATA[offer.archetype] : null;
   const typeLabel = archetypeMeta
     ? offer.format_hint
       ? `${archetypeMeta.label} - ${offer.format_hint}`

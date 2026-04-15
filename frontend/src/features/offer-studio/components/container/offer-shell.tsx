@@ -1,12 +1,14 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState } from "react";
-import type { Offer } from "@/features/offer-studio/types";
-import type { OfferCountsResponse } from "../../types/counts";
-import type { AutoSaveState } from "../../hooks/use-auto-save";
+
 import { OfferShellHeaderRow1 } from "./offer-shell-header-row1";
 import { OfferShellHeaderRow2 } from "./offer-shell-header-row2";
 import { OfferTabBar } from "./offer-tab-bar";
+
+import type { AutoSaveState } from "../../hooks/use-auto-save";
+import type { OfferCountsResponse } from "../../types/counts";
+import type { Offer } from "@/features/offer-studio/types";
 
 /**
  * Shared context exposing the offer, counts and tenant id to every widget

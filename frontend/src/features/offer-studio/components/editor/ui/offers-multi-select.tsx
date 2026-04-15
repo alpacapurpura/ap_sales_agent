@@ -1,9 +1,9 @@
-import * as React from "react";
-import { Check, ChevronsUpDown, X } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
+import { Check, ChevronsUpDown, X } from "lucide-react";
+import * as React from "react";
 
-import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Command,
@@ -14,8 +14,9 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
 import { offerApi } from "@/features/offer-studio/api";
+import { cn } from "@/lib/utils";
+
 import type { Offer } from "@/features/offer-studio/types";
 
 const EMPTY_OFFERS: Offer[] = [];

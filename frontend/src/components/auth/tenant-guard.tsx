@@ -1,7 +1,9 @@
 import { currentUser } from "@clerk/nextjs/server";
-import ForbiddenPage from "@/app/(main)/forbidden/page";
-import { ReactNode } from "react";
 import { headers } from "next/headers";
+
+import ForbiddenPage from "@/app/(main)/forbidden/page";
+
+import type { ReactNode } from "react";
 
 export async function TenantGuard({ children }: { children: ReactNode }) {
   let user;

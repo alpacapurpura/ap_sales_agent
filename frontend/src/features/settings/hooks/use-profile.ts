@@ -1,8 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
-import { settingsApi, SystemUserProfile } from "@/lib/api/settings";
+import { useQuery } from "@tanstack/react-query";
+
+import { settingsApi } from "@/lib/api/settings";
+
+import type { SystemUserProfile } from "@/lib/api/settings";
 
 export function useUserProfile() {
   const { getToken, isLoaded, isSignedIn } = useAuth();

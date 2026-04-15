@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { useEffect, useRef, useState, useCallback } from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from "@clerk/nextjs";
+
 import { brandApi } from "../../api";
 
 interface StepProcessingProps {
@@ -97,7 +99,7 @@ export function StepProcessing({
   // Auto-start extraction if no jobId yet
   useEffect(() => {
     if (!jobId && !isSubmitting) {
-      startExtraction();
+      void startExtraction();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -1,9 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
-import { connectionsApi, type ConnectionStatusItem } from "@/lib/api/connections";
+import { useQuery } from "@tanstack/react-query";
+
 import { PROVIDER_TO_CHANNEL_TYPES } from "@/features/connections/config/provider-registry";
+import { connectionsApi, type ConnectionStatusItem } from "@/lib/api/connections";
 
 export interface ProviderStatus {
   isConnected: boolean;

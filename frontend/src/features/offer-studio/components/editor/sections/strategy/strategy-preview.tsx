@@ -1,8 +1,10 @@
-import React from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { OfferFormValues } from "../../../../types/schema";
 import { User, Target, AlertCircle } from "lucide-react";
+import React from "react";
 import { useFormContext } from "react-hook-form";
+
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
+import type { OfferFormValues } from "../../../../types/schema";
 
 interface StrategyPreviewProps {
   data?: Partial<OfferFormValues>;

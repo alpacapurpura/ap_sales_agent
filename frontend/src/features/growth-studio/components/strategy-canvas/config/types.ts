@@ -54,7 +54,7 @@ export interface MarketingActionLink {
     revenue?: number;
     ctr?: number;
     cpa?: number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 

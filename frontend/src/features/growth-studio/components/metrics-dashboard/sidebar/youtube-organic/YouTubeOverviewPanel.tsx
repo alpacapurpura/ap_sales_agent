@@ -1,9 +1,12 @@
 "use client";
 
 import { Youtube } from "lucide-react";
-import type { ChannelMetric } from "../../../../types/metrics";
+
 import { ChannelOverviewPanel } from "../shared/ChannelOverviewPanel";
+
 import { YouTubeSubscriberGrowth } from "./YouTubeSubscriberGrowth";
+
+import type { ChannelMetric } from "../../../../types/metrics";
 
 const HERO_METRICS = ["views", "watch_time_minutes", "subscribers_gained", "avg_view_percentage"];
 

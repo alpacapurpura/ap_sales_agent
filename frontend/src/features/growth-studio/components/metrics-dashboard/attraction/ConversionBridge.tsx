@@ -1,7 +1,7 @@
 "use client";
 
-import { memo } from "react";
 import { ArrowRight, TrendingUp, TrendingDown } from "lucide-react";
+import { memo } from "react";
 
 interface ConversionBridgeProps {
   impressions: number;

@@ -1,14 +1,13 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { useEffect } from "react";
-import type { UseFormSetValue } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { BrandIdentity } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -18,6 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -25,10 +25,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { useCopilotFieldSync } from "@/features/copilot/hooks/useCopilotFieldSync";
+
+import type { BrandIdentity } from "@/features/brand/types";
+import type { UseFormSetValue } from "react-hook-form";
 
 const formSchema = z.object({
   brand_name: z.string().min(1, "El nombre de marca es requerido"),
@@ -87,7 +89,7 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
       ...initialData,
       ...values,
     };
-    onSave(finalData);
+    void onSave(finalData);
   }
 
   return (

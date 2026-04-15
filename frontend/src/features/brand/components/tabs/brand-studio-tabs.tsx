@@ -1,15 +1,18 @@
 "use client";
 
 import { useMemo } from "react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+
 import {
   BRAND_SECTIONS,
   BRAND_SECTION_ORDER,
   type BrandSectionId,
   buildSectionNavItems,
 } from "../../config/sections";
+
 import type { BrandSettings } from "../../types";
 
 interface BrandStudioTabsProps {

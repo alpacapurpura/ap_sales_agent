@@ -1,6 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
+
 import { fetchBowtiesSummary } from "../api/summary-api";
+
 import type { BowtiesSummary } from "../types/summary";
 
 export function useBowtiesSummary() {

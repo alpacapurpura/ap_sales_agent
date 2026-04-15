@@ -1,13 +1,14 @@
 "use client";
 
+import { Inbox, KanbanSquare, Snowflake, Wifi, WifiOff } from "lucide-react";
 import { usePathname } from "next/navigation";
+
 import { NavLink } from "@/components/shared/navigation";
 import { cn } from "@/lib/utils";
-import { Inbox, KanbanSquare, Snowflake } from "lucide-react";
-import { useKPIs } from "../hooks/use-kpis";
+
 import { useCloserWebSocket } from "../hooks/use-closer-ws";
+import { useKPIs } from "../hooks/use-kpis";
 import { useCloserStore } from "../store/closer-store";
-import { Wifi, WifiOff } from "lucide-react";
 
 interface CloserLayoutProps {
   tenantId: string;

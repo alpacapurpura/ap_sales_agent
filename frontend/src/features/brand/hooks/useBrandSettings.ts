@@ -1,10 +1,11 @@
 import { useAuth } from "@clerk/nextjs";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+import { brandApi } from "@/features/brand/api";
 import {
-  BrandSettings,
   BrandIdentity,
   KeyFigure,
-  AuthorityItem,
   ContactData,
   BrandVisuals,
   BrandStrategy,
@@ -14,8 +15,8 @@ import {
   BrandNarrative,
   CommunicationAssets,
 } from "@/features/brand/types";
-import { brandApi } from "@/features/brand/api";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+import type { BrandSettings, AuthorityItem } from "@/features/brand/types";
 
 function withDefaults(data: BrandSettings): BrandSettings {
   return {
@@ -85,7 +86,9 @@ export function useBrandSettings() {
       try {
         await updateMutation.mutateAsync({ ...settings, [key]: value });
         toast.success(successMsg);
-      } catch {}
+      } catch {
+        // mutation error state handles UI feedback
+      }
     };
 
   const updateIdentity = createUpdater("identity", "Identidad corporativa actualizada.");
@@ -108,7 +111,9 @@ export function useBrandSettings() {
     try {
       await updateMutation.mutateAsync({ ...settings, authority_vault: vault });
       toast.success("Respaldo institucional actualizado.");
-    } catch {}
+    } catch {
+      // mutation error state handles UI feedback
+    }
   };
 
   const updateAllSettings = async (partialSettings: Partial<BrandSettings>) => {
@@ -133,7 +138,9 @@ export function useBrandSettings() {
     try {
       await updateMutation.mutateAsync(newSettings);
       toast.success("Configuracion de marca actualizada correctamente.");
-    } catch {}
+    } catch {
+      // mutation error state handles UI feedback
+    }
   };
 
   return {

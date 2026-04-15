@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
 
 // Mock lucide-react icons used by archetype-metadata
 vi.mock("lucide-react", () => ({
@@ -11,8 +11,8 @@ vi.mock("lucide-react", () => ({
   CheckCircle2: (props: Record<string, unknown>) => <svg data-testid="icon-check" {...props} />,
 }));
 
-import { OfferPreviewSummary } from "../offer-preview-summary";
 import { OfferPreviewSections } from "../offer-preview-sections";
+import { OfferPreviewSummary } from "../offer-preview-summary";
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 

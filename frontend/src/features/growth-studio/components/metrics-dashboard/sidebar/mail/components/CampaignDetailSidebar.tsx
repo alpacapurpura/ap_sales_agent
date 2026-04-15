@@ -10,13 +10,16 @@ import {
 } from "@/components/ui/detail-panel";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { diagnoseCampaign } from "../../../../../utils/campaign-health";
+
 import {
   AUTOMATION_METRIC_INFO,
   type MetricInfo,
 } from "../../../../../utils/automation-metric-info";
-import type { EmailCampaign } from "../../../../../types/mail-types";
+import { diagnoseCampaign } from "../../../../../utils/campaign-health";
+
 import { MetricInfoTooltip } from "./MetricInfoTooltip";
+
+import type { EmailCampaign } from "../../../../../types/mail-types";
 
 interface CampaignDetailSidebarProps {
   campaign: EmailCampaign | null;

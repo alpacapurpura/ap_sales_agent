@@ -1,23 +1,25 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { Clock, ExternalLink, Film, Image, Loader2 } from "lucide-react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useState, useCallback } from "react";
 
-import { cn } from "@/lib/utils";
-import { formatMoney } from "@/lib/format-money";
 import {
   DetailPanel,
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
 } from "@/components/ui/detail-panel";
-import { ChartSection } from "../../shared/ChartSection";
+import { formatMoney } from "@/lib/format-money";
+import { cn } from "@/lib/utils";
+
 import {
   useCreativesOverview,
   useAdPerformance,
   useFormatComparison,
 } from "../../../../../api/campaigns-api";
+import { ChartSection } from "../../shared/ChartSection";
+
 import type { AdMetrics, FormatComparisonItem } from "../../../../../api/campaigns-api";
 import type { ChannelDashboardData, MetaAdsPeriod } from "../../../../../types/metrics";
 

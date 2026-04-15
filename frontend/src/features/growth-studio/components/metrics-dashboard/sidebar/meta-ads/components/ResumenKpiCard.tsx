@@ -8,6 +8,7 @@ import { formatMoney } from "@/lib/format-money";
 import { cn } from "@/lib/utils";
 
 import { RESUMEN_TOOLTIPS } from "../copy/tooltips";
+
 import type { ResumenKpiCard as ResumenKpiCardData } from "../hooks/useResumenViewData";
 
 interface ResumenKpiCardProps {
@@ -82,7 +83,7 @@ export function ResumenKpiCard({ card, onCtaClick }: ResumenKpiCardProps) {
     : null;
 
   const isUnavailable = card.kind === "unavailable";
-  const deltaPct = card.deltaPct;
+  const { deltaPct } = card;
   const showDelta = !isUnavailable && deltaPct != null;
 
   // Delta color semantics (UI-SPEC §7):

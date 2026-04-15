@@ -1,16 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
 import { CheckCircle2, AlertCircle, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useMemo } from "react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
 import {
   BRAND_SECTIONS,
   BRAND_SECTION_ORDER,
   type BrandSectionId,
   buildSectionNavItems,
 } from "../../config/sections";
+
 import type { BrandSettings } from "../../types";
 
 interface StepGapReviewProps {

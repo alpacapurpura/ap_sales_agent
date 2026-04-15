@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
-import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
 import { useAuth } from "@clerk/nextjs";
-import { connectionsApi } from "@/lib/api/connections";
+import { Loader2, CheckCircle, Mail, Trash2, ExternalLink, Activity } from "lucide-react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,10 +15,6 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, CheckCircle, Mail, Trash2, ExternalLink, Activity } from "lucide-react";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +24,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
+import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
+import { connectionsApi } from "@/lib/api/connections";
 
 export function GmailView() {
   const { getToken } = useAuth();
@@ -35,6 +36,7 @@ export function GmailView() {
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [testing, setTesting] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: define per-provider API response type
   const [testResult, setTestResult] = useState<any>(null);
 
   const fetchStatus = async () => {
@@ -53,7 +55,7 @@ export function GmailView() {
   };
 
   useEffect(() => {
-    fetchStatus();
+    void fetchStatus();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle OAuth Callback (Popup Listener)
@@ -67,15 +69,15 @@ export function GmailView() {
         toast.info("Finalizando conexión con Gmail...");
 
         // Must match the redirect URI registered in Google Cloud Console
-        const redirectUri = window.location.origin + "/connections/google/callback";
+        const redirectUri = `${window.location.origin}/connections/google/callback`;
 
         await connectionsApi.connectGmail(code, token, redirectUri);
         toast.success("Gmail conectado exitosamente");
 
         await fetchStatus();
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(error);
-        toast.error(error.message || "Error al conectar Gmail");
+        toast.error(error instanceof Error ? error.message : "Error al conectar Gmail");
       } finally {
         setConnecting(false);
       }
@@ -93,13 +95,13 @@ export function GmailView() {
       if (!token) return;
 
       // Must match the redirect URI registered in Google Cloud Console
-      const redirectUri = window.location.origin + "/connections/google/callback";
+      const redirectUri = `${window.location.origin}/connections/google/callback`;
       const { url } = await connectionsApi.getGmailAuthUrl(token, redirectUri);
 
       openOAuthPopup({ url, name: "GmailAuth" });
 
       setTimeout(() => setConnecting(false), 60000); // 1 min timeout
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       toast.error("No se pudo iniciar la conexión");
       setConnecting(false);
@@ -116,10 +118,13 @@ export function GmailView() {
       const res = await connectionsApi.testGmail(token);
       setTestResult(res);
       toast.success("Prueba de conexión exitosa");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error en la prueba");
-      setTestResult({ status: "error", message: error.message });
+      toast.error(error instanceof Error ? error.message : "Error en la prueba");
+      setTestResult({
+        status: "error",
+        message: error instanceof Error ? error.message : "Error desconocido",
+      });
     } finally {
       setTesting(false);
     }
@@ -135,9 +140,9 @@ export function GmailView() {
       toast.success("Gmail desconectado");
       setStatus({ is_connected: false });
       setTestResult(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al desconectar");
+      toast.error(error instanceof Error ? error.message : "Error al desconectar");
     } finally {
       setDisconnecting(false);
     }

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { toast } from "sonner";
 import { Loader2, AlertCircle, ArrowLeft, RefreshCw } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useRef, useState, useCallback, Suspense } from "react";
+import { toast } from "sonner";
+
 import { config } from "@/lib/config";
 
 function CallbackContent() {
@@ -149,14 +150,14 @@ function CallbackContent() {
     if (processedRef.current) return;
     processedRef.current = true;
 
-    handleCallback();
+    void handleCallback();
   }, [searchParams, handleCallback]);
 
   const handleRetry = () => {
     setError(null);
     setStatus("Reintentando conexion...");
     processedRef.current = false;
-    handleCallback();
+    void handleCallback();
   };
 
   const handleGoBack = () => {

@@ -1,10 +1,11 @@
 "use client";
 
-import { forwardRef, useCallback } from "react";
 import { MessageCircle } from "lucide-react";
+import { forwardRef, useCallback } from "react";
+
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
+import { cn } from "@/lib/utils";
 
 interface SectionChatTriggerProps extends Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,

@@ -1,12 +1,14 @@
 "use client";
 
-import { MessageCircle, Sparkles } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
+import { MessageCircle, Sparkles } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useCopilotStore } from "../store/copilot-store";
-import { useProactiveNudges } from "../hooks/useProactiveNudges";
+
 import { reportCopilotEvent } from "../api/copilot-api";
+import { useProactiveNudges } from "../hooks/useProactiveNudges";
+import { useCopilotStore } from "../store/copilot-store";
 
 export function CopilotRail() {
   const openPanel = useCopilotStore((s) => s.openPanel);
@@ -17,7 +19,7 @@ export function CopilotRail() {
 
   const handleOpen = () => {
     openPanel();
-    getToken().then((token) => {
+    void getToken().then((token) => {
       if (token) {
         reportCopilotEvent("copilot_opened", {}, token);
       }

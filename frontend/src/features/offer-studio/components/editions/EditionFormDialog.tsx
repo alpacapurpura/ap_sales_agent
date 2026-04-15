@@ -1,6 +1,9 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,10 +11,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -19,15 +20,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
-import {
+import { Textarea } from "@/components/ui/textarea";
+
+import { EditionStatus } from "../../types";
+
+import { EditionPricingOverride } from "./EditionPricingOverride";
+
+import type {
   LaunchEdition,
   LaunchEditionCreate,
   LaunchEditionUpdate,
-  EditionStatus,
   PricingStructure,
 } from "../../types";
-import { EditionPricingOverride } from "./EditionPricingOverride";
 
 interface EditionFormDialogProps {
   open: boolean;

@@ -41,7 +41,7 @@ export function adjustBrightness(hex: string, percent: number): string {
 
   const toHex = (n: number) => {
     const h = n.toString(16);
-    return h.length === 1 ? "0" + h : h;
+    return h.length === 1 ? `0${h}` : h;
   };
 
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
@@ -52,13 +52,13 @@ export function hexToHsl(hex: string): string {
     g = 0,
     b = 0;
   if (hex.length === 4) {
-    r = parseInt("0x" + hex[1] + hex[1]);
-    g = parseInt("0x" + hex[2] + hex[2]);
-    b = parseInt("0x" + hex[3] + hex[3]);
+    r = parseInt(`0x${hex[1]}${hex[1]}`);
+    g = parseInt(`0x${hex[2]}${hex[2]}`);
+    b = parseInt(`0x${hex[3]}${hex[3]}`);
   } else if (hex.length === 7) {
-    r = parseInt("0x" + hex[1] + hex[2]);
-    g = parseInt("0x" + hex[3] + hex[4]);
-    b = parseInt("0x" + hex[5] + hex[6]);
+    r = parseInt(`0x${hex[1]}${hex[2]}`);
+    g = parseInt(`0x${hex[3]}${hex[4]}`);
+    b = parseInt(`0x${hex[5]}${hex[6]}`);
   }
   r /= 255;
   g /= 255;

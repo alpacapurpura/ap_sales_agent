@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+
 import type { MetaAdsPeriod } from "../../../../types/metrics";
 
 const PERIODS: { value: MetaAdsPeriod; label: string }[] = [

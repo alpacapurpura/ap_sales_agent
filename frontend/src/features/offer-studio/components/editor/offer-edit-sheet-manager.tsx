@@ -1,3 +1,6 @@
+import { X } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -5,11 +8,11 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+
 import { SECTION_REGISTRY } from "../../config/offer-builder-config";
-import { UseFormReturn } from "react-hook-form";
-import { OfferFormValues } from "../../types/schema";
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+
+import type { OfferFormValues } from "../../types/schema";
+import type { UseFormReturn } from "react-hook-form";
 
 interface OfferEditSheetManagerProps {
   sectionId: string | null;

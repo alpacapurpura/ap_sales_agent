@@ -1,19 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useAuth } from "@clerk/nextjs";
+import ColorThief from "colorthief";
 import {
   Globe,
   Upload,
@@ -25,11 +13,25 @@ import {
   AlertTriangle,
   WifiOff,
 } from "lucide-react";
-import { BrandVisuals } from "@/features/brand/types";
-import { brandApi } from "@/features/brand/api";
-import ColorThief from "colorthief";
-import { useAuth } from "@clerk/nextjs";
+import { useState } from "react";
 import { toast } from "sonner";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { brandApi } from "@/features/brand/api";
+
+import type { BrandVisuals } from "@/features/brand/types";
 
 interface BrandVisualsWizardProps {
   isOpen: boolean;
@@ -191,7 +193,7 @@ export function BrandVisualsWizard({
           const [r2, g2, b2] = palette[1];
 
           const rgbToHex = (r: number, g: number, b: number) =>
-            "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+            `#${[r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("")}`;
 
           setSelectedVisuals({
             ...selectedVisuals,

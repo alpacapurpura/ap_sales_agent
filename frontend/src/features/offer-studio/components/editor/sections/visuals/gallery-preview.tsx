@@ -1,9 +1,11 @@
-import React from "react";
-import Image from "next/image";
-import { OfferFormValues } from "../../../../types/schema";
-import { useFormContext } from "react-hook-form";
 import { Play } from "lucide-react";
+import Image from "next/image";
+import React from "react";
+import { useFormContext } from "react-hook-form";
+
 import { AssetType } from "../../../../types";
+
+import type { OfferFormValues } from "../../../../types/schema";
 
 interface GalleryPreviewProps {
   data?: Partial<OfferFormValues>;

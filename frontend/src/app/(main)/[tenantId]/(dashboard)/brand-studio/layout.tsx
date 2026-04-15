@@ -1,17 +1,19 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
-import { usePathname, useRouter, useParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { BrandStudioProvider, useBrandStudio } from "@/features/brand/context/brand-studio-context";
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
-import { EditSheetManager } from "@/features/brand/components/forms/edit-sheet-manager";
-import { BrandVisualsWizard } from "@/features/brand/sections/visuals/brand-visuals-wizard";
-import { ThemeInjector } from "@/features/brand/sections/visuals/theme-injector";
-import { SmartFillDialog } from "@/features/brand/components/smart-fill/smart-fill-dialog";
+import { usePathname, useRouter, useParams } from "next/navigation";
+import { useCallback, useMemo } from "react";
+
 import { BrandEmptyState } from "@/features/brand/components/empty-state/brand-empty-state";
+import { EditSheetManager } from "@/features/brand/components/forms/edit-sheet-manager";
+import { SmartFillDialog } from "@/features/brand/components/smart-fill/smart-fill-dialog";
 import { BrandStudioTabs } from "@/features/brand/components/tabs/brand-studio-tabs";
 import { BRAND_SECTIONS, type BrandSectionId } from "@/features/brand/config/sections";
+import { BrandStudioProvider, useBrandStudio } from "@/features/brand/context/brand-studio-context";
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { BrandVisualsWizard } from "@/features/brand/sections/visuals/brand-visuals-wizard";
+import { ThemeInjector } from "@/features/brand/sections/visuals/theme-injector";
+
 import type {
   BrandIdentity,
   ContactData,
@@ -74,7 +76,7 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
 
   // When the wizard completes extraction, refetch settings and dismiss empty state.
   const handleWizardComplete = useCallback(() => {
-    refetch();
+    void refetch();
     dismissEmptyState();
   }, [refetch, dismissEmptyState]);
 

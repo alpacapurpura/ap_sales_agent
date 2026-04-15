@@ -1,9 +1,10 @@
 "use client";
 
-import type { StageId, StageSummary } from "../../../types/metrics";
-import type { StageSummaryKpi } from "../../../types/summary";
 import { STAGE_SUMMARIES } from "../../../api/stage-summaries-fallback";
 import { useBowtiesSummary } from "../../../hooks/useBowtiesSummary";
+
+import type { StageId, StageSummary } from "../../../types/metrics";
+import type { StageSummaryKpi } from "../../../types/summary";
 
 /**
  * Fetches the lightweight Bowtie summary (1 request) and composes the 5

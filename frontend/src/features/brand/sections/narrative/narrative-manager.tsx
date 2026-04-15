@@ -1,6 +1,7 @@
 "use client";
 
 import { useBrandSettings } from "../../hooks/useBrandSettings";
+
 import { NarrativeForm } from "./narrative-form";
 
 export function NarrativeManager() {

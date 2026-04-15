@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { getTrackingConfig } from "../utils/tracking";
+
 import type { TrackingConfig } from "../utils/tracking";
 
 // Mock config module to avoid env var issues in tests

@@ -1,10 +1,7 @@
-import { useFieldArray, Control } from "react-hook-form";
-import { OfferFormValues } from "@/features/offer-studio/types/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Sparkles, RefreshCw, AlertTriangle } from "lucide-react";
+import { useFieldArray } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,10 +13,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { AIAssistButton } from "../ai-assist-button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+
+import { AIAssistButton } from "../ai-assist-button";
+
+import type { OfferFormValues } from "@/features/offer-studio/types/schema";
+import type { Control } from "react-hook-form";
 
 interface OfferPsychologyCardProps {
   control: Control<OfferFormValues>;

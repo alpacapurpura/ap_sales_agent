@@ -1,18 +1,21 @@
 "use client";
 
-import { memo, useCallback } from "react";
 import { Sparkles } from "lucide-react";
-import type { CopilotMessage, UIAction } from "../../store/copilot-store";
+import { memo, useCallback } from "react";
+
 import { AlternativesCard } from "../cards/alternatives-card";
-import { ClarifyCard } from "../cards/clarify-card";
 import { CheckpointCard } from "../cards/checkpoint-card";
+import { ClarifyCard } from "../cards/clarify-card";
 import { InterviewCompleteCard } from "../cards/interview-complete-card";
+
 import { ComparisonTable } from "./ComparisonTable";
 import { MetricSummaryCard } from "./MetricSummaryCard";
 import { MultiOptionSelector } from "./MultiOptionSelector";
 import { NavigationCard } from "./NavigationCard";
 import { ProgressChecklist } from "./ProgressChecklist";
 import { ProposalCard } from "./ProposalCard";
+
+import type { CopilotMessage, UIAction } from "../../store/copilot-store";
 
 interface AssistantMessageProps {
   message: CopilotMessage;
@@ -158,7 +161,7 @@ export const AssistantMessage = memo(function AssistantMessage({
     (messageId: string, actionIndex: number, text: string) => {
       sendCardAction?.(messageId, actionIndex, text);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [sendCardAction],
   );
 

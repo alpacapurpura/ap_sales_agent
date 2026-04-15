@@ -1,7 +1,8 @@
 "use client";
 
-import { memo } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { memo } from "react";
+
 import { useCopilotStore } from "../../store/copilot-store";
 
 interface InterviewCompleteCardProps {

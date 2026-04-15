@@ -1,14 +1,16 @@
 "use client";
 
 import React from "react";
+
+import { Badge } from "@/components/ui/badge";
 import {
   DetailPanel,
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
 } from "@/components/ui/detail-panel";
-import { Badge } from "@/components/ui/badge";
-import { MarketingActionLink } from "../config/types";
+
+import type { MarketingActionLink } from "../config/types";
 
 interface ActionDetailsDrawerProps {
   isOpen: boolean;

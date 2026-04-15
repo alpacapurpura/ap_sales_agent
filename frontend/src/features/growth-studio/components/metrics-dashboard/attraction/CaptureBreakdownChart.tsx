@@ -1,8 +1,10 @@
 "use client";
 
 import { memo, useMemo } from "react";
-import type { ChannelMetric } from "../../../types/metrics";
+
 import { getChannelColor } from "../../../lib/channelIcons";
+
+import type { ChannelMetric } from "../../../types/metrics";
 
 interface CaptureBreakdownChartProps {
   channels: ChannelMetric[];

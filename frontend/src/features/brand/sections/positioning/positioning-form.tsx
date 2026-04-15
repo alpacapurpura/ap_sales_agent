@@ -1,19 +1,21 @@
 "use client";
 
+import { Plus, Trash2, Save, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import {
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
+
+import type {
   BrandPositioning,
   BrandCompetitor,
   CompetitiveEnvironment,
   ConsumerInsight,
   BrandBenefits,
 } from "@/features/brand/types";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Save, Loader2 } from "lucide-react";
-import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
 interface PositioningFormProps {
   positioning: BrandPositioning;
@@ -130,7 +132,7 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(data);
+    void onSave(data);
   };
 
   return (

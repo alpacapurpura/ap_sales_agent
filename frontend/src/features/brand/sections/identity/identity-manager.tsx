@@ -1,8 +1,10 @@
 "use client";
 
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
-import { IdentityForm } from "./identity-form";
 import { Loader2 } from "lucide-react";
+
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
+import { IdentityForm } from "./identity-form";
 
 export function IdentityManager() {
   const { settings, updateIdentity, loading, saving } = useBrandSettings();

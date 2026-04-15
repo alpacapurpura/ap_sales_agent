@@ -1,17 +1,19 @@
 "use client";
 
 import { useMemo } from "react";
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
 import { useBrandStudio } from "@/features/brand/context/brand-studio-context";
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
+import { BRAND_SECTIONS, buildSectionNavItems } from "../../config/sections";
+import { AssetsPreview } from "../../sections/communication-assets/assets-preview";
+import { GalleryManager } from "../../sections/gallery/gallery-manager";
+import { LogoKitPreview } from "../../sections/logos/logo-kit-preview";
+import { VisualsSection } from "../../sections/visuals/visuals-preview";
 import { BrandSectionShell } from "../layout/brand-section-shell";
 import { SectionHeader } from "../layout/section-header";
-import { BRAND_SECTIONS, buildSectionNavItems } from "../../config/sections";
 
 // Preview components
-import { VisualsSection } from "../../sections/visuals/visuals-preview";
-import { LogoKitPreview } from "../../sections/logos/logo-kit-preview";
-import { GalleryManager } from "../../sections/gallery/gallery-manager";
-import { AssetsPreview } from "../../sections/communication-assets/assets-preview";
 
 const SECTION = BRAND_SECTIONS["identidad-creativa"];
 

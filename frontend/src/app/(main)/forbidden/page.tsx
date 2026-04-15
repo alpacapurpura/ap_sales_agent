@@ -1,8 +1,9 @@
 "use client";
 
 import { useClerk } from "@clerk/nextjs";
-import { Button } from "@/components/ui/button";
 import { ShieldAlert, LogOut } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardHeader,

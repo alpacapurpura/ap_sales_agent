@@ -1,5 +1,5 @@
-import { fetchClient } from "@/lib/http-client";
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
 
 const API_URL = config.api.baseUrl;
 
@@ -30,7 +30,7 @@ export interface InterviewStateResponse {
 
 export async function startInterview(
   token: string,
-  domain: string = "brand",
+  domain = "brand",
   entityId?: string,
 ): Promise<StartInterviewResponse> {
   const body: Record<string, unknown> = { domain };

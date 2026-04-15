@@ -1,16 +1,20 @@
 "use client";
 
+import { Plus, Users } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import { KeyFigure } from "@/features/brand/types";
-import { useBrandSettings } from "../../hooks/useBrandSettings";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+import { useBrandSettings } from "../../hooks/useBrandSettings";
+
 import { TeamList } from "./team-list";
 import { TeamMemberForm } from "./team-member-form";
-import { toast } from "sonner";
+
+import type { KeyFigure } from "@/features/brand/types";
 
 export function TeamManager() {
   const { settings, updateTeam, saving } = useBrandSettings();

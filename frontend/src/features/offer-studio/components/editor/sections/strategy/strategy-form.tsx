@@ -2,10 +2,9 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
-import { UseFormReturn } from "react-hook-form";
-import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
-import { OfferArchetype } from "../../../../types";
+import { Target } from "lucide-react";
+import type { UseFormReturn } from "react-hook-form";
+
 import {
   FormField,
   FormItem,
@@ -16,10 +15,16 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RichSelect } from "@/components/ui/rich-select";
-import { ARCHETYPE_METADATA } from "../../../../config/archetype-metadata";
-import { Target } from "lucide-react";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
-import { avatarApi, Avatar } from "@/lib/api/avatar";
+import { avatarApi } from "@/lib/api/avatar";
+
+import { ARCHETYPE_METADATA } from "../../../../config/archetype-metadata";
+import { OfferArchetype } from "../../../../types";
+import { OfferSchema } from "../../../../types/schema";
+import { SectionFormWrapper } from "../common/section-form-wrapper";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { Avatar } from "@/lib/api/avatar";
 
 const EMPTY_AVATARS: Avatar[] = [];
 
@@ -114,7 +119,7 @@ function StrategyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                 value: a.id,
                 label: a.name,
                 description: a.icp_description
-                  ? a.icp_description.substring(0, 60) + "..."
+                  ? `${a.icp_description.substring(0, 60)}...`
                   : "Sin descripción",
               }))}
               value={field.value || undefined}

@@ -1,5 +1,3 @@
-import { ContactData, BrandVisuals, BrandIdentity } from "@/features/brand/types";
-import { Button } from "@/components/ui/button";
 import {
   Edit2,
   Mail,
@@ -14,7 +12,11 @@ import {
   Twitter,
   Video,
 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { getContrastColor } from "@/lib/utils/colors";
+
+import type { ContactData, BrandVisuals, BrandIdentity } from "@/features/brand/types";
 
 interface ContactFooterSectionProps {
   contact: ContactData;

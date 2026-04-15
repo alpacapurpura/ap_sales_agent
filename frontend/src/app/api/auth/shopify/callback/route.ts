@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+
+import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -64,9 +66,9 @@ export async function GET(request: NextRequest) {
       } else {
         exchangeSuccess = true;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Shopify Network Error:", error);
-      errorDetail = error.message;
+      errorDetail = error instanceof Error ? error.message : "Network error";
     }
 
     if (host) {
@@ -91,11 +93,11 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.redirect(redirectUrl);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Shopify Auth Fatal Error:", error);
     return NextResponse.redirect(
       new URL(
-        `${connectionsPath}?status=error&message=${encodeURIComponent(error.message)}`,
+        `${connectionsPath}?status=error&message=${encodeURIComponent(error instanceof Error ? error.message : "Fatal error")}`,
         request.url,
       ),
     );

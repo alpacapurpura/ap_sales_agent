@@ -1,9 +1,11 @@
 "use client";
 
-import { BrandPositioning } from "@/features/brand/types";
+import { Sparkles, Pencil, ShieldCheck } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Pencil, ShieldCheck } from "lucide-react";
+
+import type { BrandPositioning } from "@/features/brand/types";
 
 interface ValuesEssencePreviewProps {
   positioning: BrandPositioning;
@@ -11,7 +13,7 @@ interface ValuesEssencePreviewProps {
 }
 
 export function ValuesEssencePreview({ positioning, onEdit }: ValuesEssencePreviewProps) {
-  const values = positioning.values;
+  const { values } = positioning;
   const rtbs = positioning.reasons_to_believe ?? [];
 
   const hasValues =

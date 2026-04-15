@@ -1,8 +1,9 @@
-import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
+import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ImprovementNotesPanel } from "../ImprovementNotesPanel";
+
 import type { ImprovementNotice } from "../types";
 
 function makeNotice(overrides: Partial<ImprovementNotice> = {}): ImprovementNotice {

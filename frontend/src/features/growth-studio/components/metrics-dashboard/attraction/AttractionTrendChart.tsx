@@ -2,6 +2,7 @@
 
 import { memo, useMemo } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+
 import {
   ChartContainer,
   ChartTooltip,
@@ -10,10 +11,12 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import type { StageTimeSeries } from "../../../types/metrics";
-import { getChannelColor } from "../../../config/channel-chart-config";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantDate } from "@/lib/format-date";
+
+import { getChannelColor } from "../../../config/channel-chart-config";
+
+import type { StageTimeSeries } from "../../../types/metrics";
 
 interface AttractionTrendChartProps {
   timeSeries: StageTimeSeries | undefined;
@@ -55,7 +58,7 @@ export const AttractionTrendChart = memo(function AttractionTrendChart({
       };
     }
     if (hasOtros) {
-      cfg["otros"] = { label: "Otros", color: "#9CA3AF" };
+      cfg.otros = { label: "Otros", color: "#9CA3AF" };
     }
 
     // Build flat chart data
@@ -67,7 +70,7 @@ export const AttractionTrendChart = memo(function AttractionTrendChart({
         row[ch.slug] = dp.channels[ch.slug] ?? 0;
       }
       if (hasOtros) {
-        row["otros"] = rest.reduce((sum, ch) => sum + (dp.channels[ch.slug] ?? 0), 0);
+        row.otros = rest.reduce((sum, ch) => sum + (dp.channels[ch.slug] ?? 0), 0);
       }
       return row;
     });
@@ -103,7 +106,7 @@ export const AttractionTrendChart = memo(function AttractionTrendChart({
             axisLine={false}
             tickMargin={8}
             tickFormatter={(v: string) => {
-              return formatTenantDate(v + "T00:00:00", timezone, "MMM d");
+              return formatTenantDate(`${v}T00:00:00`, timezone, "MMM d");
             }}
           />
           <YAxis
@@ -116,7 +119,7 @@ export const AttractionTrendChart = memo(function AttractionTrendChart({
             content={
               <ChartTooltipContent
                 labelFormatter={(val) => {
-                  return formatTenantDate(String(val) + "T00:00:00", timezone, "eee, d MMM");
+                  return formatTenantDate(`${String(val)}T00:00:00`, timezone, "eee, d MMM");
                 }}
               />
             }

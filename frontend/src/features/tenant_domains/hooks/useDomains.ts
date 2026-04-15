@@ -2,6 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 import * as api from "../api";
 
 const QUERY_KEY = ["domains"] as const;

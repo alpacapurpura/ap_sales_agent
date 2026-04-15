@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, act } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { OfferStudioView } from "../components/dashboard/OfferStudioView";
 import {
   OfferValueLevel,
@@ -8,6 +9,7 @@ import {
   OfferStatus,
   GuaranteeType,
 } from "../types";
+
 import type { Offer } from "../types";
 
 // --- Mocks ---
@@ -73,8 +75,8 @@ vi.mock("../api", () => ({
 }));
 
 // Mock React Query to return stable data
-vi.mock("@tanstack/react-query", () => {
-  const actual = vi.importActual("@tanstack/react-query");
+vi.mock("@tanstack/react-query", async () => {
+  const actual = await vi.importActual("@tanstack/react-query");
   return {
     ...actual,
     useQuery: vi.fn().mockReturnValue({

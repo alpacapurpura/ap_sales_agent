@@ -1,9 +1,10 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
+import React from "react";
 import { describe, expect, it } from "vitest";
-import type { EmailHealthScore } from "../../../../../types/mail-types";
 
 import { MailHealthScore } from "../MailHealthScore";
+
+import type { EmailHealthScore } from "../../../../../types/mail-types";
 
 const HEALTHY_SCORE: EmailHealthScore = {
   total: 85,

@@ -1,7 +1,8 @@
 "use client";
 
-import { BrandVisuals } from "@/features/brand/types";
 import { getContrastColor, hexToHsl } from "@/lib/utils/colors";
+
+import type { BrandVisuals } from "@/features/brand/types";
 
 interface ThemeInjectorProps {
   visuals: BrandVisuals;

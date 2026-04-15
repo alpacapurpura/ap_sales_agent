@@ -1,8 +1,9 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
 import { ArrowRight, Check, Shield, Star } from "lucide-react";
-import { getContrastColor } from "@/lib/utils/colors";
+import React from "react";
+
+import { Button } from "@/components/ui/button";
 import { useLandingTheme } from "@/features/offer-studio/components/landing/context/LandingThemeContext";
+import { getContrastColor } from "@/lib/utils/colors";
 
 export interface BonusItem {
   title: string;

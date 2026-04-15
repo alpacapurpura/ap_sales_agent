@@ -1,8 +1,10 @@
 "use client";
 
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
-import { VisualsForm } from "./visuals-form";
 import { Loader2 } from "lucide-react";
+
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
+import { VisualsForm } from "./visuals-form";
 
 export function VisualsManager() {
   const { settings, updateVisuals, loading, saving } = useBrandSettings();

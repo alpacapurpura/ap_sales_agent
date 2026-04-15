@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 
 import { computeCampaignHealthScore, diagnoseCampaign } from "../campaign-health";
+
 import type { EmailCampaign } from "../../types/mail-types";
 
 function buildCampaign(overrides: Partial<EmailCampaign> = {}): EmailCampaign {

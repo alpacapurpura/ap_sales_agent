@@ -1,6 +1,7 @@
 // Barrel re-export — all existing imports continue to work
 
-import { metricsApi as _stageApi } from "./stage-detail-api";
+import { promoteToEvangelist, createNpsSurvey } from "./crm-actions-api";
+import { triggerInitialLoad, getInitialLoadStatus, triggerSyncAll } from "./etl-api";
 import {
   getUnmatchedProducts,
   getSourceProducts,
@@ -9,8 +10,7 @@ import {
   deleteProductMapping,
   getOfferProductsDetail,
 } from "./product-mapping-api";
-import { triggerInitialLoad, getInitialLoadStatus, triggerSyncAll } from "./etl-api";
-import { promoteToEvangelist, createNpsSurvey } from "./crm-actions-api";
+import { metricsApi as _stageApi } from "./stage-detail-api";
 
 /** Unified API object — backwards-compatible with the previous monolith */
 export const metricsApi = {

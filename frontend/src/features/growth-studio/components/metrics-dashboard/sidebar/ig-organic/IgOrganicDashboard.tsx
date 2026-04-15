@@ -1,22 +1,25 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { ArrowLeft, Instagram, RefreshCw } from "lucide-react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
+import { useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+
 import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
 import { useHashScroll } from "../../../../hooks/useHashScroll";
 import { useSyncChannel } from "../../../../hooks/useSyncChannel";
-import type { MetaAdsPeriod, IgOrganicDashboardTab } from "../../../../types/metrics";
+
 import { ChannelPeriodSelector } from "./ChannelPeriodSelector";
-import { IgOverviewTab } from "./tabs/IgOverviewTab";
-import { IgContentTab } from "./tabs/IgContentTab";
 import { IgAudienceTab } from "./tabs/IgAudienceTab";
+import { IgContentTab } from "./tabs/IgContentTab";
+import { IgOverviewTab } from "./tabs/IgOverviewTab";
 import { IgReachTab } from "./tabs/IgReachTab";
+
+import type { MetaAdsPeriod, IgOrganicDashboardTab } from "../../../../types/metrics";
 
 interface IgOrganicDashboardProps {
   onClose?: () => void;

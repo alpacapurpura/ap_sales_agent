@@ -1,6 +1,9 @@
-import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
+import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { WebsiteOverviewPanel } from "../WebsiteOverviewPanel";
+
 import type { ChannelDashboardData, ChannelMetric } from "../../../../../types/metrics";
 
 // --- Mocks ---
@@ -134,8 +137,6 @@ vi.mock("recharts", async (importOriginal) => {
     ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   };
 });
-
-import { WebsiteOverviewPanel } from "../WebsiteOverviewPanel";
 
 const WEBSITE_CHANNEL: ChannelMetric = {
   slug: "website-total",

@@ -2,13 +2,15 @@
 
 import { Info, Loader2, Users } from "lucide-react";
 
-import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+
 import { useDemographics } from "../../../../../api/campaigns-api";
-import type { DemographicSegment } from "../../../../../api/campaigns-api";
-import type { ChannelDashboardData, MetaAdsPeriod } from "../../../../../types/metrics";
 import { ChartSection } from "../../shared/ChartSection";
 import { ReachFrequencySection } from "../ReachFrequencySection";
+
+import type { DemographicSegment } from "../../../../../api/campaigns-api";
+import type { ChannelDashboardData, MetaAdsPeriod } from "../../../../../types/metrics";
 
 interface AudienciaTabProps {
   data: ChannelDashboardData | undefined;

@@ -7,6 +7,7 @@ import {
   findBestStep,
   findAttentionStep,
 } from "../automation-health";
+
 import type { EmailAutomation, AutomationStep } from "../../types/mail-types";
 
 function buildAutomation(overrides: Partial<EmailAutomation> = {}): EmailAutomation {

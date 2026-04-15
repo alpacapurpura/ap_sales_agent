@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { Check } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
+import { Check } from "lucide-react";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+
 import { reportCopilotEvent } from "../../api/copilot-api";
 
 interface MultiOptionSelectorProps {
-  options: Array<{ id: string; title: string; content: string }>;
+  options: { id: string; title: string; content: string }[];
   fieldId: string;
 }
 
@@ -29,7 +31,7 @@ export function MultiOptionSelector({ options, fieldId }: MultiOptionSelectorPro
       }),
     );
     setStatus("applied");
-    getToken().then((token) => {
+    void getToken().then((token) => {
       if (token) {
         reportCopilotEvent(
           "option_selected",

@@ -1,6 +1,7 @@
 import React from "react";
-import { OpportunityLane } from "./lanes/opportunity-lane";
+
 import { AgendaLane } from "./lanes/agenda-lane";
+import { OpportunityLane } from "./lanes/opportunity-lane";
 import { SalesLane } from "./lanes/sales-lane";
 
 export const ConversionCommandCenter = () => {

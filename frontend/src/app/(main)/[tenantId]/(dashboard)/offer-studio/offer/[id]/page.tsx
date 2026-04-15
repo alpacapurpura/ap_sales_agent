@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+
 import ErrorBoundary from "@/components/shared/error-boundary";
 import { OfferEditorContent } from "@/features/offer-studio/components/editor/offer-editor-content";
 

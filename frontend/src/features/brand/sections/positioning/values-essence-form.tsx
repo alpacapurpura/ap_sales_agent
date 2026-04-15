@@ -1,11 +1,11 @@
 "use client";
 
+import { Plus, Save, Loader2, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { BrandPositioning, BrandValues, ReasonToBelieve } from "@/features/brand/types";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -13,9 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Save, Loader2 } from "lucide-react";
-import { Trash2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+
 import { RtbItemForm } from "./rtb-item-form";
+
+import type { BrandPositioning, BrandValues, ReasonToBelieve } from "@/features/brand/types";
 
 interface ValuesEssenceFormProps {
   positioning: BrandPositioning;
@@ -109,7 +111,7 @@ export function ValuesEssenceForm({ positioning, onSave, isSaving }: ValuesEssen
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(data);
+    void onSave(data);
   };
 
   return (

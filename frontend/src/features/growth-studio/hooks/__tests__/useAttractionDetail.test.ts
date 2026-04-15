@@ -1,8 +1,10 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
 import { useAttractionDetail } from "../useStageDetail";
+
 import type { AttractionDetail } from "@/features/growth-studio/types/metrics";
 
 // ── Inline test helpers (avoid .tsx import from .ts) ─────────────────────────

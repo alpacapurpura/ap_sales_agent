@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useCallback, useDeferredValue } from "react";
-import { OfferStudioDashboard } from "@/features/offer-studio/components/dashboard/offer-studio-dashboard";
-import { LadderProgressBar } from "@/features/offer-studio/components/dashboard/ladder-progress-bar";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Search, Plus } from "lucide-react";
-import { OfferValueLevel } from "@/features/offer-studio/types";
+import { useState, useCallback, useDeferredValue } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { LadderProgressBar } from "@/features/offer-studio/components/dashboard/ladder-progress-bar";
+import { OfferStudioDashboard } from "@/features/offer-studio/components/dashboard/offer-studio-dashboard";
+
+import type { OfferValueLevel } from "@/features/offer-studio/types";
 
 interface LadderData {
   filledGroups: Set<OfferValueLevel>;
@@ -24,8 +26,7 @@ export function OfferStudioView() {
   const handleLadderComputed = useCallback((data: LadderData) => {
     setLadderData((prev) => {
       if (
-        prev &&
-        prev.percentage === data.percentage &&
+        prev?.percentage === data.percentage &&
         prev.score === data.score &&
         prev.filledGroups.size === data.filledGroups.size
       ) {

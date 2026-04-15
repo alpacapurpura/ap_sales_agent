@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { MessageSquare } from "lucide-react";
-import { SalesInboxSheet } from "./overlay/sales-inbox-sheet";
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+
 import { ConversionCommandCenter } from "./dashboard/conversion-command-center";
+import { SalesInboxSheet } from "./overlay/sales-inbox-sheet";
 
 export function SalesDashboard() {
   const [isInboxOpen, setIsInboxOpen] = useState(false);

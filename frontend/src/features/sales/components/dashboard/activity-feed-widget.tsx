@@ -1,15 +1,18 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { CreditCard, CalendarCheck, UserPlus, AlertCircle } from "lucide-react";
-
-import { dashboardService, ActivityItem } from "../../services/dashboardService";
 import { useEffect, useState } from "react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+import { dashboardService } from "../../services/dashboardService";
+
+import type { ActivityItem } from "../../services/dashboardService";
 
 export function ActivityFeedWidget() {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
@@ -27,7 +30,7 @@ export function ActivityFeedWidget() {
         setLoading(false);
       }
     };
-    loadActivity();
+    void loadActivity();
   }, []);
 
   const getIcon = (type: string) => {

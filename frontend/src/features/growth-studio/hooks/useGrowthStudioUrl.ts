@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
 
 const CHANNEL_PARAM = "channel";
 

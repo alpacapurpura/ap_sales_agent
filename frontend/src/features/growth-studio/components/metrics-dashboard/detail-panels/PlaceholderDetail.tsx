@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { formatMoney } from "@/lib/format-money";
+
 import type { StageSummary } from "../../../types/metrics";
 
 interface PlaceholderDetailProps {

@@ -1,12 +1,5 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
-import { useNurtureDetail, useOpportunityDetail } from "../../../hooks/useStageDetail";
-import { ActionPanel } from "../action-widgets/ActionPanel";
-import DetailSkeleton from "../ui/DetailSkeleton";
-import DetailError from "../ui/DetailError";
-import type { MetricClickData } from "../../../types/metrics";
-import { Button } from "@/components/ui/button";
 import {
   Settings,
   Calendar,
@@ -23,14 +16,22 @@ import {
   ShoppingCart,
   Plug,
 } from "lucide-react";
+import React, { useState, useMemo, useCallback } from "react";
+
 import { BrandIcon } from "@/components/ui/brand-icons";
-import { formatMoney } from "@/lib/format-money";
+import { Button } from "@/components/ui/button";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantTime } from "@/lib/format-date";
+import { formatMoney } from "@/lib/format-money";
+
+import { useNurtureDetail, useOpportunityDetail } from "../../../hooks/useStageDetail";
+import { classifyChannel } from "../../../lib/classifyChannel";
+import { ActionPanel } from "../action-widgets/ActionPanel";
 import { ChannelChip } from "../channel-widgets/ChannelChip";
 import { ChannelRow } from "../channel-widgets/ChannelRow";
-import { classifyChannel } from "../../../lib/classifyChannel";
-import type { ChannelMetric } from "../../../types/metrics";
+import DetailError from "../ui/DetailError";
+import DetailSkeleton from "../ui/DetailSkeleton";
+import type { MetricClickData, ChannelMetric, MetricValue } from "../../../types/metrics";
 
 interface NurtureOpportunityDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
@@ -123,7 +124,12 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
   );
 
   const handleMetricClick = useCallback(
-    (stageId: "NUTRICION" | "OPORTUNIDAD", channel: any, metricName: string, val: number) => {
+    (
+      stageId: "NUTRICION" | "OPORTUNIDAD",
+      channel: ChannelMetric,
+      metricName: string,
+      val: number,
+    ) => {
       if (onMetricClick) {
         onMetricClick({
           stageId,
@@ -182,7 +188,7 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
   const fmtMoney = (num: number) => formatMoney(num, currency, { fractionDigits: 0 });
 
   // Helper to get specific metric
-  const getMetric = (metrics: any[], name: string) =>
+  const getMetric = (metrics: MetricValue[], name: string) =>
     metrics.find((m) => m.name === name)?.value ?? 0;
 
   const oppQualificationChannels = oppData.qualification.channels || [];
@@ -190,9 +196,9 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
   const availableOppChannels = oppData.available?.channels || [];
 
   // Helper: split a channel list into active rows + chips
-  const splitChannels = (channels: any[]) => {
-    const rows: any[] = [];
-    const chips: any[] = [];
+  const splitChannels = (channels: ChannelMetric[]) => {
+    const rows: ChannelMetric[] = [];
+    const chips: ChannelMetric[] = [];
     for (const ch of channels) {
       const cat = classifyChannel(ch);
       if (cat === "active" || cat === "proximamente") rows.push(ch);
@@ -208,7 +214,7 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
     defaultMetricLabel,
     baseColor,
   }: {
-    channel: any;
+    channel: ChannelMetric;
     stageId: "NUTRICION" | "OPORTUNIDAD";
     defaultMetricName: string;
     defaultMetricLabel: string;

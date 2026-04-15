@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { archetypeSupportsEditions, getEditionsCopy } from "./editions-copy";
+
 import { OfferArchetype } from "@/features/offer-studio/types";
+
+import { archetypeSupportsEditions, getEditionsCopy } from "./editions-copy";
 
 describe("archetypeSupportsEditions", () => {
   it.each([

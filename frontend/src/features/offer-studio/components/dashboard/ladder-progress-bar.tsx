@@ -1,7 +1,8 @@
+import { Lightbulb, Zap, Users, Trophy, Building2 } from "lucide-react";
+
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { OfferValueLevel } from "@/features/offer-studio/types";
 import { cn } from "@/lib/utils";
-import { Lightbulb, Zap, Users, Trophy, Building2 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface LadderProgressBarProps {
   filledGroups: Set<OfferValueLevel>;

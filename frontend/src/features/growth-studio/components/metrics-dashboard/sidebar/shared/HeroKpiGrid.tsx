@@ -1,14 +1,16 @@
 "use client";
 
-import { memo } from "react";
 import { TrendingDown, TrendingUp } from "lucide-react";
+import { memo } from "react";
 import { Area, AreaChart } from "recharts";
 
 import { ChartContainer } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
+
 import { formatMetricValue } from "../../../../utils/format-metric-value";
 import { BenchmarkBadge } from "../../channel-widgets/BenchmarkBadge";
 import { MetricInfoCard } from "../../channel-widgets/KpiTooltip";
+
 import type { MetricKpiData, MetricTimeSeries } from "../../../../types/metrics";
 
 interface HeroKpiGridProps {

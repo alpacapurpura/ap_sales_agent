@@ -1,6 +1,9 @@
-import { fetchClient } from "@/lib/http-client";
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
 import { ENABLE_MOCKS } from "@/lib/mock-config";
+
+import { mapChannel, mapGroup } from "./mappers/shared";
+
 import type {
   AttractionDetail,
   CaptureDetail,
@@ -15,10 +18,10 @@ import type {
   StageTimeSeries,
   MetricCatalog,
 } from "../types/metrics";
-import { mapChannel, mapGroup } from "./mappers/shared";
 
 const API_URL = config.api.baseUrl;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 function mapResponse(raw: any): AttractionDetail {
   return {
     period: raw.period,
@@ -31,6 +34,7 @@ function mapResponse(raw: any): AttractionDetail {
     available: raw.available ? { channels: raw.available.channels.map(mapChannel) } : undefined,
   };
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 function mapCaptureResponse(raw: any): CaptureDetail {
   return {
     headerKpis: {
@@ -52,6 +56,7 @@ function mapCaptureResponse(raw: any): CaptureDetail {
     lastUpdated: raw.last_updated ?? undefined,
   };
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 function mapNurtureResponse(raw: any): NurtureDetail {
   return {
     headerKpis: {
@@ -73,6 +78,7 @@ function mapNurtureResponse(raw: any): NurtureDetail {
     lastUpdated: raw.last_updated ?? undefined,
   };
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 function mapOpportunityResponse(raw: any): OpportunityDetail {
   return {
     headerKpis: {
@@ -90,6 +96,7 @@ function mapOpportunityResponse(raw: any): OpportunityDetail {
     checkout: mapGroup(raw.checkout),
     paymentLinks: mapGroup(raw.payment_links),
     qualification: mapGroup(raw.qualification),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API response item
     bottlenecks: (raw.bottlenecks ?? []).map((b: any) => ({
       type: b.type,
       metricLabel: b.metric_label,
@@ -105,7 +112,9 @@ function mapOpportunityResponse(raw: any): OpportunityDetail {
     lastUpdated: raw.last_updated,
   };
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 function mapSalesResponse(raw: any): SalesDetail {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API response item
   const mapOffer = (o: any) => ({
     offerId: o.offer_id,
     publicName: o.public_name,
@@ -124,12 +133,14 @@ function mapSalesResponse(raw: any): SalesDetail {
     subscriptionRenewalLabel: o.subscription_renewal_label ?? null,
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API response item
   const mapTier = (t: any) => ({
     tierKey: t.tier_key,
     tierLabel: t.tier_label,
     offers: (t.offers ?? []).map(mapOffer),
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API response item
   const mapRevenueGroup = (g: any) => ({
     groupKey: g.group_key,
     groupLabel: g.group_label,
@@ -171,6 +182,7 @@ function mapSalesResponse(raw: any): SalesDetail {
     },
     adquisicion: mapRevenueGroup(raw.adquisicion),
     expansion: mapRevenueGroup(raw.expansion),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API response item
     bottlenecks: (raw.bottlenecks ?? []).map((b: any) => ({
       type: b.type,
       metricLabel: b.metric_label,
@@ -183,6 +195,7 @@ function mapSalesResponse(raw: any): SalesDetail {
     lastUpdated: raw.last_updated,
   };
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 function mapAdoptionResponse(raw: any): AdoptionDetail {
   return {
     headerKpis: {
@@ -202,6 +215,7 @@ function mapAdoptionResponse(raw: any): AdoptionDetail {
       targetValue: raw.mini_funnel?.target_value ?? 0,
       conversionRate: raw.mini_funnel?.conversion_rate ?? 0,
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API response item
     offers: (raw.offers ?? []).map((o: any) => ({
       offerId: o.offer_id,
       publicName: o.public_name,
@@ -211,6 +225,7 @@ function mapAdoptionResponse(raw: any): AdoptionDetail {
       healthPct: o.health_pct,
       ttvDays: o.ttv_days ?? null,
     })),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API response item
     bottlenecks: (raw.bottlenecks ?? []).map((b: any) => ({
       type: b.type,
       metricLabel: b.metric_label,
@@ -223,6 +238,7 @@ function mapAdoptionResponse(raw: any): AdoptionDetail {
     lastUpdated: raw.last_updated,
   };
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 function mapExpansionOffer(o: any): ExpansionOfferData {
   return {
     offerId: o.offer_id,
@@ -234,6 +250,7 @@ function mapExpansionOffer(o: any): ExpansionOfferData {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 function mapExpansionGroup(g: any): ExpansionGroupData {
   return {
     groupKey: g.group_key,
@@ -248,6 +265,7 @@ function mapExpansionGroup(g: any): ExpansionGroupData {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 function mapExpansionResponse(raw: any): ExpansionDetailData {
   return {
     headerKpis: {
@@ -268,6 +286,7 @@ function mapExpansionResponse(raw: any): ExpansionDetailData {
     retencion: mapExpansionGroup(raw.retencion),
     crecimiento: mapExpansionGroup(raw.crecimiento),
     cancelaciones: mapExpansionGroup(raw.cancelaciones),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API response item
     bottlenecks: (raw.bottlenecks ?? []).map((b: any) => ({
       type: b.type,
       metricLabel: b.metric_label,
@@ -280,6 +299,7 @@ function mapExpansionResponse(raw: any): ExpansionDetailData {
     lastUpdated: raw.last_updated,
   };
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 function mapEvangelizationResponse(raw: any): EvangelizationDetail {
   return {
     headerKpis: {
@@ -298,6 +318,7 @@ function mapEvangelizationResponse(raw: any): EvangelizationDetail {
       targetValue: raw.mini_funnel?.target_value ?? 0,
       conversionRate: raw.mini_funnel?.conversion_rate ?? 0,
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API response item
     referidos: (raw.referidos ?? []).map((e: any) => ({
       customerId: e.customer_id,
       fullName: e.full_name,
@@ -309,6 +330,7 @@ function mapEvangelizationResponse(raw: any): EvangelizationDetail {
       usdRevenue: e.usd_revenue ?? null,
       isActive: e.is_active,
     })),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API response item
     candidatos: (raw.candidatos ?? []).map((c: any) => ({
       customerId: c.customer_id,
       fullName: c.full_name,
@@ -328,6 +350,7 @@ function mapEvangelizationResponse(raw: any): EvangelizationDetail {
     ugcCount: raw.ugc_count ?? 0,
     ugcWritten: raw.ugc_written ?? 0,
     ugcAudio: raw.ugc_audio ?? 0,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API response item
     bottlenecks: (raw.bottlenecks ?? []).map((b: any) => ({
       type: b.type,
       metricLabel: b.metric_label,

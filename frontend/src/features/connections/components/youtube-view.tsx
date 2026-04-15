@@ -1,22 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { connectionsApi, YoutubeStatusResponse } from "@/lib/api/connections";
-import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
-import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Loader2,
   CheckCircle,
@@ -26,7 +10,19 @@ import {
   Activity,
   Settings,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +32,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
+import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
+import { connectionsApi } from "@/lib/api/connections";
+
+import type { YoutubeStatusResponse } from "@/lib/api/connections";
 
 export function YoutubeView() {
   const { getToken } = useAuth();
@@ -45,6 +48,7 @@ export function YoutubeView() {
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [testing, setTesting] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: define per-provider API response type
   const [testResult, setTestResult] = useState<any>(null);
 
   // Configuration State
@@ -87,16 +91,16 @@ export function YoutubeView() {
       toast.success("Configuración guardada");
       setShowConfigForm(false);
       await fetchStatus();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al guardar configuración");
+      toast.error(error instanceof Error ? error.message : "Error al guardar configuración");
     } finally {
       setSavingConfig(false);
     }
   };
 
   useEffect(() => {
-    fetchStatus();
+    void fetchStatus();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle OAuth Callback (Popup Listener)
@@ -110,15 +114,15 @@ export function YoutubeView() {
         toast.info("Finalizando conexión con YouTube...");
 
         // Use the callback route as redirect URI
-        const redirectUri = window.location.origin + "/connections";
+        const redirectUri = `${window.location.origin}/connections`;
 
         await connectionsApi.connectYoutube(code, token, redirectUri);
         toast.success("YouTube conectado exitosamente");
 
         await fetchStatus();
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(error);
-        toast.error(error.message || "Error al conectar YouTube");
+        toast.error(error instanceof Error ? error.message : "Error al conectar YouTube");
       } finally {
         setConnecting(false);
       }
@@ -136,13 +140,13 @@ export function YoutubeView() {
       if (!token) return;
 
       // Use the dedicated callback route
-      const redirectUri = window.location.origin + "/connections";
+      const redirectUri = `${window.location.origin}/connections`;
       const { url } = await connectionsApi.getYoutubeAuthUrl(token, redirectUri);
 
       openOAuthPopup({ url, name: "YoutubeAuth" });
 
       setTimeout(() => setConnecting(false), 60000); // 1 min timeout
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       toast.error("No se pudo iniciar la conexión");
       setConnecting(false);
@@ -159,10 +163,11 @@ export function YoutubeView() {
       const res = await connectionsApi.testYoutube(token);
       setTestResult(res);
       toast.success("Prueba de conexión exitosa");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Error en la prueba";
       console.error(error);
-      toast.error(error.message || "Error en la prueba");
-      setTestResult({ status: "error", message: error.message });
+      toast.error(message);
+      setTestResult({ status: "error", message });
     } finally {
       setTesting(false);
     }
@@ -178,9 +183,9 @@ export function YoutubeView() {
       toast.success("YouTube desconectado");
       setStatus({ is_connected: false });
       setTestResult(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al desconectar");
+      toast.error(error instanceof Error ? error.message : "Error al desconectar");
     } finally {
       setDisconnecting(false);
     }
@@ -238,7 +243,7 @@ export function YoutubeView() {
                   <br />
                   6. Agrega esta URL a URI de redireccionamiento autorizados:{" "}
                   <code className="bg-amber-100 px-1 rounded">
-                    {typeof window !== "undefined" ? window.location.origin + "/connections" : ""}
+                    {typeof window !== "undefined" ? `${window.location.origin}/connections` : ""}
                   </code>
                 </AlertDescription>
               </Alert>

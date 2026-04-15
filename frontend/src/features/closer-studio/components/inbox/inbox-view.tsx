@@ -2,10 +2,12 @@
 
 import { useSearchParams, useRouter, usePathname, useParams } from "next/navigation";
 import { useEffect } from "react";
+
 import { useCloserStore } from "../../store/closer-store";
+
+import { ContactSidebar } from "./contact-sidebar";
 import { ConversationList } from "./conversation-list";
 import { ConversationThread } from "./conversation-thread";
-import { ContactSidebar } from "./contact-sidebar";
 
 export function InboxView() {
   const searchParams = useSearchParams();

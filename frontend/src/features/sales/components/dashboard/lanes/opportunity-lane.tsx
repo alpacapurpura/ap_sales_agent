@@ -1,12 +1,15 @@
 "use client";
-import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { crmDashboardApi, PipelineItem } from "@/lib/api/crm-dashboard-api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MessageCircle, Flame, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, Flame, Loader2 } from "lucide-react";
+import { crmDashboardApi } from "@/lib/api/crm-dashboard-api";
+
+import type { PipelineItem } from "@/lib/api/crm-dashboard-api";
 
 export const OpportunityLane = () => {
   const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -30,7 +33,7 @@ export const OpportunityLane = () => {
         setLoading(false);
       }
     };
-    fetch();
+    void fetch();
   }, [getToken, isLoaded, isSignedIn]);
 
   return (

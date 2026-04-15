@@ -1,5 +1,6 @@
-import { fetchClient } from "@/lib/http-client";
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
+
 import type {
   StageOverview,
   ChannelOverview,

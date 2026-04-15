@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { UseFormReturn } from "react-hook-form";
+import { useState } from "react";
 import { toast } from "sonner";
-import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
-import { OfferPsychologyCard } from "../../components/cards/offer-psychology-card";
-import { OfferObjectionsCard } from "../../components/cards/offer-objections-card";
+
 import { offerApi } from "@/features/offer-studio/api";
+
+import { OfferSchema } from "../../../../types/schema";
+import { OfferObjectionsCard } from "../../components/cards/offer-objections-card";
+import { OfferPsychologyCard } from "../../components/cards/offer-psychology-card";
+import { SectionFormWrapper } from "../common/section-form-wrapper";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { UseFormReturn } from "react-hook-form";
 
 const PsychologySchema = OfferSchema.pick({
   marketing_pain_points: true,

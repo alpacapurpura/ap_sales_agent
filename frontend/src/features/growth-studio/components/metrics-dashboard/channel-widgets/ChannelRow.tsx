@@ -1,22 +1,26 @@
 "use client";
 
 import React from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+import { getSummaryMetrics } from "../../../config/channel-display-registry";
+import { useMetricCatalog } from "../../../hooks/useMetricCatalog";
+import { useSyncChannel } from "../../../hooks/useSyncChannel";
+import { getChannelIcon, getChannelColor } from "../../../lib/channelIcons";
+
+import { CampaignDrillDown } from "./CampaignDrillDown";
+import { ChannelRowActions } from "./ChannelRowActions";
+import { ChannelRowHeader } from "./ChannelRowHeader";
+import { ChannelRowMetrics } from "./ChannelRowMetrics";
+
 import type {
   ChannelMetric,
   CampaignMetric,
   MetricClickData,
   StageId,
 } from "../../../types/metrics";
-import { CampaignDrillDown } from "./CampaignDrillDown";
-import { getChannelIcon, getChannelColor } from "../../../lib/channelIcons";
-import { useMetricCatalog } from "../../../hooks/useMetricCatalog";
-import { useSyncChannel } from "../../../hooks/useSyncChannel";
-import { ChannelRowHeader } from "./ChannelRowHeader";
-import { ChannelRowMetrics } from "./ChannelRowMetrics";
-import { ChannelRowActions } from "./ChannelRowActions";
-import { getSummaryMetrics } from "../../../config/channel-display-registry";
 
 /** Convert hex color to rgba for backgrounds. */
 function hexToRgba(hex: string, alpha: number): string {
@@ -100,7 +104,7 @@ export const ChannelRow = React.memo(function ChannelRow({
 
   // ── Derived data for connected channels ─────────────────────────────
   const leadsMetric = channel.metrics.find((m) => m.name === "leads");
-  const hasZeroLeads = leadsMetric !== undefined && leadsMetric.value === 0;
+  const hasZeroLeads = leadsMetric?.value === 0;
   const hasNoData = channel.metrics.length === 0 || channel.metrics.every((m) => m.value === 0);
   const conversationsMetric = channel.metrics.find((m) => m.name === "conversations");
 

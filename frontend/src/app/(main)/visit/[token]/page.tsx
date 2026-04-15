@@ -1,13 +1,7 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
-import { LinkResolveResponse, publicApi } from "@/lib/api/public";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+import { format, parseISO, addMonths, subMonths } from "date-fns";
+import { es } from "date-fns/locale";
 import {
   Loader2,
   Calendar as CalendarIcon,
@@ -18,14 +12,23 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { format, parseISO, addMonths, subMonths } from "date-fns";
-import { es } from "date-fns/locale";
 import Image from "next/image";
-import { Calendar } from "@/components/ui/calendar";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { use, useEffect, useState } from "react";
+import { toast } from "sonner";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { publicApi } from "@/lib/api/public";
 import { cn } from "@/lib/utils";
+
+import type { LinkResolveResponse } from "@/lib/api/public";
 
 export default function PublicVisitPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
@@ -93,8 +96,8 @@ export default function PublicVisitPage({ params }: { params: Promise<{ token: s
         ...formData,
       });
       setStep("success");
-    } catch (err: any) {
-      toast.error(err.message || "Error al agendar");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Error al agendar");
     } finally {
       setBookingLoading(false);
     }

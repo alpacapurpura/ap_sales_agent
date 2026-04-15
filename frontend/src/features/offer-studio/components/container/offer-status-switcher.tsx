@@ -2,8 +2,10 @@
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { OfferLifecycleStatus } from "../../types/enums";
+
 import { canTransition } from "../../types/lifecycle";
+
+import type { OfferLifecycleStatus } from "../../types/enums";
 
 export interface OfferStatusSwitcherProps {
   currentStatus: OfferLifecycleStatus;

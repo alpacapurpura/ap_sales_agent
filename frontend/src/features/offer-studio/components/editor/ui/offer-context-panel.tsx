@@ -1,11 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { OfferFormValues } from "../../../types/schema";
-import { OfferArchetype } from "../../../types";
-import { Avatar } from "@/lib/api/avatar";
-import { ARCHETYPE_METADATA, ArchetypeMetadata } from "../../../config/archetype-metadata";
 import {
   ArrowRight,
   Lightbulb,
@@ -22,18 +14,10 @@ import {
   Edit,
   Maximize2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetFooter,
-} from "@/components/ui/sheet";
+import { toast } from "sonner";
+
+import { useNavigation } from "@/components/shared/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,10 +28,33 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useNavigation } from "@/components/shared/navigation";
-import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+
+import { cn } from "@/lib/utils";
+import { ARCHETYPE_METADATA } from "../../../config/archetype-metadata";
+import { OfferArchetype } from "../../../types";
+import { OfferFormValues } from "../../../types/schema";
+import type { Avatar } from "@/lib/api/avatar";
+
+import type { ArchetypeMetadata } from "../../../config/archetype-metadata";
+
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+} from "@/components/ui/sheet";
+
 import { InstructorsPreview } from "../sections/instructors/instructors-preview";
+
 import { formatMoney } from "@/lib/format-money";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 

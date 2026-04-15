@@ -3,7 +3,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { formatMoney } from "@/lib/format-money";
 import { cn } from "@/lib/utils";
+
 import { OfferAssignmentDropdown } from "./OfferAssignmentDropdown";
+
 import type { CampaignWithMetrics } from "../../../../../types/metrics";
 import type { OfferSummary } from "../../../../../types/offer-association";
 

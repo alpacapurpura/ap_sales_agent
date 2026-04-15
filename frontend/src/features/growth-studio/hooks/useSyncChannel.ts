@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
-import { fetchClient } from "@/lib/http-client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
 
 const API_URL = config.api.baseUrl;
 
@@ -60,15 +61,15 @@ export function useSyncChannel(channelSlug: string) {
     },
     onSuccess: () => {
       // Invalidate channel-specific dashboard queries
-      queryClient.invalidateQueries({ queryKey: ["channel-dashboard"] });
+      void queryClient.invalidateQueries({ queryKey: ["channel-dashboard"] });
       // Invalidate stage-level queries so ChannelRow data refreshes
-      queryClient.invalidateQueries({ queryKey: ["attraction-detail"] });
-      queryClient.invalidateQueries({ queryKey: ["capture-detail"] });
-      queryClient.invalidateQueries({ queryKey: ["nurture-detail"] });
-      queryClient.invalidateQueries({ queryKey: ["bowties-summary"] });
+      void queryClient.invalidateQueries({ queryKey: ["attraction-detail"] });
+      void queryClient.invalidateQueries({ queryKey: ["capture-detail"] });
+      void queryClient.invalidateQueries({ queryKey: ["nurture-detail"] });
+      void queryClient.invalidateQueries({ queryKey: ["bowties-summary"] });
       // Invalidate campaign data (for Meta Ads)
-      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
-      queryClient.invalidateQueries({ queryKey: ["ad-performance"] });
+      void queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      void queryClient.invalidateQueries({ queryKey: ["ad-performance"] });
     },
   });
 

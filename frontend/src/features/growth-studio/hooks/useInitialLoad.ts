@@ -1,6 +1,7 @@
-import { useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+
 import { metricsApi } from "../api/metrics-api";
 
 interface InitialLoadParams {
@@ -19,9 +20,9 @@ export function useInitialLoad() {
       return metricsApi.triggerInitialLoad(token, provider, days);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["attraction-detail"] });
-      queryClient.invalidateQueries({ queryKey: ["sales-detail"] });
-      queryClient.invalidateQueries({ queryKey: ["bowties-summary"] });
+      void queryClient.invalidateQueries({ queryKey: ["attraction-detail"] });
+      void queryClient.invalidateQueries({ queryKey: ["sales-detail"] });
+      void queryClient.invalidateQueries({ queryKey: ["bowties-summary"] });
     },
   });
 

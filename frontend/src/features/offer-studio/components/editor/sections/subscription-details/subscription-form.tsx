@@ -1,13 +1,17 @@
 "use client";
 
-import { UseFormReturn } from "react-hook-form";
-import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
-import { BILLING_FREQUENCY_METADATA, getEnumOptions } from "../../../../types/enum-metadata";
+import { Card, CardContent } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RichSelect } from "@/components/ui/rich-select";
-import { Card, CardContent } from "@/components/ui/card";
+
+import { BILLING_FREQUENCY_METADATA, getEnumOptions } from "../../../../types/enum-metadata";
+import { OfferSchema } from "../../../../types/schema";
+
+import { SectionFormWrapper } from "../common/section-form-wrapper";
+import type { OfferFormValues } from "../../../../types/schema";
+
+import type { UseFormReturn } from "react-hook-form";
 
 const SubscriptionDetailsSchema = OfferSchema.pick({
   specific_details: true,

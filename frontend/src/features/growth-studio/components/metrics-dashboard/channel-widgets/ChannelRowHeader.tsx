@@ -1,12 +1,15 @@
 "use client";
 
 import React from "react";
+
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import type { ChannelMetric } from "../../../types/metrics";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantDate } from "@/lib/format-date";
+import { cn } from "@/lib/utils";
+
 import { getChannelIcon } from "../../../lib/channelIcons";
+
+import type { ChannelMetric } from "../../../types/metrics";
 
 /** Convert hex color to rgba for backgrounds. */
 function hexToRgba(hex: string, alpha: number): string {

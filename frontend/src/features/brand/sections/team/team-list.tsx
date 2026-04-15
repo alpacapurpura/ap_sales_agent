@@ -1,14 +1,17 @@
 "use client";
 
+import { User, Edit2, Trash2 } from "lucide-react";
 import { memo } from "react";
-import { KeyFigure } from "@/features/brand/types";
-import { config } from "@/lib/config";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, Edit2, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { validateTeamMember } from "../../utils/brand-validation";
+import { config } from "@/lib/config";
 import { cn } from "@/lib/utils";
+
+import { validateTeamMember } from "../../utils/brand-validation";
+
+import type { KeyFigure } from "@/features/brand/types";
 
 interface TeamListProps {
   team: KeyFigure[];

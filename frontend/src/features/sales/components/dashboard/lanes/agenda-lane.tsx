@@ -1,13 +1,16 @@
 "use client";
-import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { crmDashboardApi, AgendaItem } from "@/lib/api/crm-dashboard-api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { format, parseISO } from "date-fns";
+import { Calendar, Video, Clock, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Calendar, Video, Clock, Loader2 } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { crmDashboardApi } from "@/lib/api/crm-dashboard-api";
+
+import type { AgendaItem } from "@/lib/api/crm-dashboard-api";
 
 export const AgendaLane = () => {
   const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -33,7 +36,7 @@ export const AgendaLane = () => {
         setLoading(false);
       }
     };
-    fetch();
+    void fetch();
   }, [getToken, isLoaded, isSignedIn, range]);
 
   return (

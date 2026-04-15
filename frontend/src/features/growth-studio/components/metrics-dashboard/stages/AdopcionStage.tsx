@@ -1,7 +1,7 @@
 "use client";
 
-import { AdoptionDetail } from "../detail-panels/AdoptionDetail";
 import { useGrowthStudioContext } from "../context/GrowthStudioContext";
+import { AdoptionDetail } from "../detail-panels/AdoptionDetail";
 
 export function AdopcionStage() {
   const { handleMetricClick } = useGrowthStudioContext();

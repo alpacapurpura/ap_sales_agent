@@ -1,14 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useMemo, useState } from "react";
-import { TimelineEvent } from "@/features/audit/types";
-import { useLeadTimeline } from "@/features/audit/hooks/useAudit";
-import { clearLeadHistory } from "@/features/audit/api";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { useAuth } from "@clerk/nextjs";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isToday, isYesterday } from "date-fns";
 import { es } from "date-fns/locale";
+import { Bot, User as UserIcon, ArrowRight, Activity, Trash2, AlertTriangle } from "lucide-react";
+import { useEffect, useRef, useMemo, useState } from "react";
+
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { clearLeadHistory } from "@/features/audit/api";
+import { useLeadTimeline } from "@/features/audit/hooks/useAudit";
+import { TimelineEvent } from "@/features/audit/types";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,14 +24,12 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Bot, User as UserIcon, ArrowRight, Activity, Trash2, AlertTriangle } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { ContextPanel } from "./context-panel";
 import { NodeDetailsPanel } from "./node-details-panel";
 import { getNodeIcon, getNodeColor } from "./node-icons";
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useAuth } from "@clerk/nextjs";
-import { toast } from "sonner";
 
 interface ChatTimelineProps {
   leadId: string | null;
@@ -75,7 +78,7 @@ export function ChatTimeline({ leadId, onSelectEvent, selectedEventId }: ChatTim
       return clearLeadHistory(token, id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["audit"] });
+      void queryClient.invalidateQueries({ queryKey: ["audit"] });
       setDeleteOpen(false);
     },
     onError: (error) => {
@@ -258,7 +261,7 @@ export function ChatTimeline({ leadId, onSelectEvent, selectedEventId }: ChatTim
         <div className="flex flex-col space-y-6 pb-4 max-w-3xl mx-auto">
           {groupedTimeline.map((group, groupIndex) => {
             if (group.type === "message") {
-              const event = group.event;
+              const { event } = group;
               const isSelected = selectedEventId === event.id;
               const isUser = event.role === "user";
 

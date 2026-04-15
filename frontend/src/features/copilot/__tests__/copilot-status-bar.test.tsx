@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@tanstack/react-query", () => ({
   useQuery: () => ({
@@ -18,8 +18,8 @@ vi.mock("@clerk/nextjs", () => ({
   useAuth: () => ({ getToken: () => Promise.resolve("token") }),
 }));
 
-import { useCopilotStore } from "../store/copilot-store";
 import { CopilotStatusBar } from "../components/copilot-status-bar";
+import { useCopilotStore } from "../store/copilot-store";
 
 describe("CopilotStatusBar", () => {
   beforeEach(() => {

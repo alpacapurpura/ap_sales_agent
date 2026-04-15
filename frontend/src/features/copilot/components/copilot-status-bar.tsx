@@ -1,10 +1,12 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
+
 import { Button } from "@/components/ui/button";
-import { useCopilotStore } from "../store/copilot-store";
+
 import { getActiveInterview } from "../api/interview-api";
+import { useCopilotStore } from "../store/copilot-store";
 
 export function CopilotStatusBar() {
   const interviewSessionId = useCopilotStore((s) => s.interviewSessionId);

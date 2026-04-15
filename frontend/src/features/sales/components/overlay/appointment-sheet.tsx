@@ -1,5 +1,10 @@
 "use client";
 
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Calendar as CalendarIcon, Clock, Video, User, XCircle, CheckCircle } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -8,13 +13,18 @@ import {
   SheetDescription,
   SheetFooter,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Clock, Video, User, XCircle, CheckCircle } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+
+/** Google Calendar event shape returned by the connections API. */
+interface CalendarAppointment {
+  summary: string;
+  start: string;
+  end: string;
+  meet_link?: string;
+  attendees?: string[];
+}
 
 interface AppointmentSheetProps {
-  appointment: any | null;
+  appointment: CalendarAppointment | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -73,13 +83,12 @@ export function AppointmentSheet({ appointment, open, onOpenChange }: Appointmen
               Asistentes
             </h4>
             <div className="space-y-2">
-              {appointment.attendees &&
-                appointment.attendees.map((email: string) => (
-                  <div key={email} className="flex items-center gap-2 p-2 border rounded-md">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{email}</span>
-                  </div>
-                ))}
+              {appointment.attendees?.map((email: string) => (
+                <div key={email} className="flex items-center gap-2 p-2 border rounded-md">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{email}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

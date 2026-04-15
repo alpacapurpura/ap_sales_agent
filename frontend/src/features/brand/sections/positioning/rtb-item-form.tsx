@@ -1,6 +1,7 @@
 "use client";
 
-import { ReasonToBelieve } from "@/features/brand/types";
+import { Trash2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,8 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash2 } from "lucide-react";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
+
+import type { ReasonToBelieve } from "@/features/brand/types";
 
 interface RtbItemFormProps {
   rtb: ReasonToBelieve;

@@ -5,10 +5,11 @@
  * response finishes streaming, the first stream's callbacks must NOT
  * write to the second assistant-message placeholder.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useCopilotStore } from "@/features/copilot/store/copilot-store";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { useCopilotChat } from "@/features/copilot/hooks/useCopilotChat";
+import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -22,7 +23,7 @@ type StreamCallbacks = Record<string, (...args: unknown[]) => void>;
 // Store callbacks per stream invocation so tests can simulate stale events
 const allStreamCallbacks: StreamCallbacks[] = [];
 let streamCallCount = 0;
-const resolveStreams: Array<() => void> = [];
+const resolveStreams: (() => void)[] = [];
 
 vi.mock("@/features/copilot/api/copilot-api", () => ({
   streamCopilotChat: vi.fn((_payload, callbacks, _token, _signal) => {
@@ -150,7 +151,7 @@ describe("useCopilotChat — single-flight guarantee", () => {
       void result.current.sendMessage("Mensaje B");
     });
 
-    const messages = useCopilotStore.getState().messages;
+    const { messages } = useCopilotStore.getState();
     // Should have exactly 4 messages: userA, assistantA, userB, assistantB
     const userMessages = messages.filter((m) => m.role === "user");
     const assistantMessages = messages.filter((m) => m.role === "assistant");

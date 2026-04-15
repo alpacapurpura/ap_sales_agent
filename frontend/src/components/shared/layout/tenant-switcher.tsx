@@ -1,8 +1,8 @@
 "use client";
 
-import * as React from "react";
 import { ChevronsUpDown, Check, Building2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useRouter, usePathname } from "next/navigation";
+import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,9 +13,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRouter, usePathname } from "next/navigation";
 import { useTenants } from "@/features/settings/hooks/use-tenants";
-import { TenantProfile } from "@/lib/api/settings";
+import { cn } from "@/lib/utils";
+
+import type { TenantProfile } from "@/lib/api/settings";
 
 interface TenantSwitcherProps {
   currentTenant: TenantProfile | null;

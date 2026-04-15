@@ -12,16 +12,18 @@ import {
 } from "recharts";
 
 import { ChartContainer } from "@/components/ui/chart";
-import { BenchmarkBadge } from "../../../channel-widgets/BenchmarkBadge";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatMoney } from "@/lib/format-money";
 import { cn } from "@/lib/utils";
+
+import { BenchmarkBadge } from "../../../channel-widgets/BenchmarkBadge";
 import { ChartSection } from "../../shared/ChartSection";
+
 import type {
   ChannelDashboardData,
   MetricKpiData,
   CampaignPerformanceData,
 } from "../../../../../types/metrics";
-import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 interface CostosTabProps {
   data: ChannelDashboardData | undefined;

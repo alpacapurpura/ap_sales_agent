@@ -1,19 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
-import { assetsApi } from "@/lib/api/assets";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Image as ImageIcon, Loader2, Upload, Check, Sparkles } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { assetsApi } from "@/lib/api/assets";
 import { config } from "@/lib/config";
+import { cn } from "@/lib/utils";
 
 interface SingleImagePickerProps {
   value?: string;
@@ -52,7 +53,7 @@ export function SingleImagePicker({ value, onChange, children }: SingleImagePick
     },
     onSuccess: (data) => {
       console.log("[SingleImagePicker] Upload success, data:", data);
-      queryClient.invalidateQueries({ queryKey: ["assets"] });
+      void queryClient.invalidateQueries({ queryKey: ["assets"] });
       setUploadFile(null);
       setUploadDesc("");
       if (data?.public_url) {

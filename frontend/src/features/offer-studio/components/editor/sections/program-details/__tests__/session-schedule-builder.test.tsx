@@ -1,10 +1,13 @@
-import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { SessionScheduleBuilder } from "../session-schedule-builder";
 import { useForm } from "react-hook-form";
+import { describe, it, expect } from "vitest";
+
 import { Form } from "@/components/ui/form";
-import { OfferFormValues } from "../../../../../types/schema";
+
 import { ProgramStructure, OfferStatus, OfferArchetype } from "../../../../../types";
+import { SessionScheduleBuilder } from "../session-schedule-builder";
+
+import type { OfferFormValues } from "../../../../../types/schema";
 
 // Wrapper component to provide Form context
 function Wrapper() {

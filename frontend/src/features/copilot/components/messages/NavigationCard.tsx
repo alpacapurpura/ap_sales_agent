@@ -1,11 +1,14 @@
 "use client";
 
-import { ArrowRight, MapPin } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
+import { ArrowRight, MapPin } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import type { UIAction } from "../../store/copilot-store";
-import { useCopilotNavigator } from "../../hooks/useCopilotNavigator";
+
 import { reportCopilotEvent } from "../../api/copilot-api";
+import { useCopilotNavigator } from "../../hooks/useCopilotNavigator";
+
+import type { UIAction } from "../../store/copilot-store";
 
 interface NavigationCardProps {
   action: UIAction;
@@ -21,7 +24,7 @@ export function NavigationCard({ action }: NavigationCardProps) {
 
   const handleClick = () => {
     executeAction(action);
-    getToken().then((token) => {
+    void getToken().then((token) => {
       if (token) {
         reportCopilotEvent(
           "navigation_clicked",

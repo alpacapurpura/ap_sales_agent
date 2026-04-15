@@ -1,11 +1,14 @@
 "use client";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Megaphone, Share2, Search, PhoneOutgoing, PlusCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatMoney } from "@/lib/format-money";
-import type { ChannelMetric, GroupType, MetricClickData, StageId } from "../../../types/metrics";
+import { cn } from "@/lib/utils";
+
 import { ChannelRow } from "./ChannelRow";
+
+import type { ChannelMetric, GroupType, MetricClickData, StageId } from "../../../types/metrics";
 
 interface ChannelGroupCardProps {
   title: string;

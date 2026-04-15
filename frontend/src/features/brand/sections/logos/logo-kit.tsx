@@ -1,11 +1,14 @@
 "use client";
 
-import { BrandLogos } from "@/features/brand/types";
-import { SingleImagePicker } from "../visuals/single-image-picker";
-import { Card } from "@/components/ui/card";
 import { Plus, Image as ImageIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+import { Card } from "@/components/ui/card";
 import { config } from "@/lib/config";
+import { cn } from "@/lib/utils";
+
+import { SingleImagePicker } from "../visuals/single-image-picker";
+
+import type { BrandLogos } from "@/features/brand/types";
 
 interface LogoKitProps {
   logos: BrandLogos;

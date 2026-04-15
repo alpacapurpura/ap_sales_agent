@@ -1,5 +1,6 @@
-import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { Suspense } from "react";
+
 import { OAuthCallbackHandler } from "@/features/connections/components/oauth-callback-handler";
 
 export default function GoogleCallbackPage() {

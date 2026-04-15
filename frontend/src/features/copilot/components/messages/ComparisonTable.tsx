@@ -12,7 +12,7 @@ import {
 
 interface ComparisonTableProps {
   columns: string[];
-  rows: Array<Record<string, string>>;
+  rows: Record<string, string>[];
   recommended?: string;
 }
 

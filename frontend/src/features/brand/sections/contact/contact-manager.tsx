@@ -1,8 +1,10 @@
 "use client";
 
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
-import { ContactForm } from "./contact-form";
 import { Loader2 } from "lucide-react";
+
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
+import { ContactForm } from "./contact-form";
 
 export function ContactManager() {
   const { settings, updateContact, loading, saving } = useBrandSettings();

@@ -1,6 +1,8 @@
 import React from "react";
-import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+
 import { Calendar } from "@/components/ui/calendar";
+
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 const meta = {
   title: "Molecules/Calendar",

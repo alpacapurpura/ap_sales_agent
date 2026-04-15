@@ -1,7 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth } from "@clerk/nextjs";
 import {
   RefreshCw,
   Settings,
@@ -12,79 +11,192 @@ import {
   Calendar,
   Database,
   Clock,
-} from 'lucide-react';
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DetailPanel,
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
-} from '@/components/ui/detail-panel';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-import { formatMoney } from '@/lib/format-money';
-import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
-import { formatTenantDate } from '@/lib/format-date';
-import type { ChannelMetric, MetricValue } from '../../../types/metrics';
-import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
-import { METRIC_LABELS } from '../../../lib/metric-labels';
-import { connectionsApi, type ChannelInfoResponse } from '@/lib/api/connections';
-import { useGrowthStudioContext } from '../context/GrowthStudioContext';
-import { useSyncChannel } from '../../../hooks/useSyncChannel';
-import { MetaAdsOverviewPanel } from './meta-ads/MetaAdsOverviewPanel';
-import { IgOrganicOverviewPanel } from './ig-organic/IgOrganicOverviewPanel';
-import { YouTubeOverviewPanel } from './youtube-organic/YouTubeOverviewPanel';
-import { YouTubeTopVideosList } from './youtube/YouTubeTopVideosList';
-import { YouTubeTrafficSourcesChart } from './youtube/YouTubeTrafficSourcesChart';
-import { YouTubeDemographicsChart } from './youtube/YouTubeDemographicsChart';
-import { MailOverviewPanel } from './mail/MailOverviewPanel';
-import { WebsiteOverviewPanel } from './website/WebsiteOverviewPanel';
+} from "@/components/ui/detail-panel";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { connectionsApi, type ChannelInfoResponse } from "@/lib/api/connections";
+import { formatTenantDate } from "@/lib/format-date";
+import { formatMoney } from "@/lib/format-money";
+import { cn } from "@/lib/utils";
+
+import { useSyncChannel } from "../../../hooks/useSyncChannel";
+import { getChannelIcon, getChannelColor } from "../../../lib/channelIcons";
+import { METRIC_LABELS } from "../../../lib/metric-labels";
+import { useGrowthStudioContext } from "../context/GrowthStudioContext";
+
+import { IgOrganicOverviewPanel } from "./ig-organic/IgOrganicOverviewPanel";
+import { MailOverviewPanel } from "./mail/MailOverviewPanel";
+import { MetaAdsOverviewPanel } from "./meta-ads/MetaAdsOverviewPanel";
+import { WebsiteOverviewPanel } from "./website/WebsiteOverviewPanel";
+import { YouTubeDemographicsChart } from "./youtube/YouTubeDemographicsChart";
+import { YouTubeTopVideosList } from "./youtube/YouTubeTopVideosList";
+import { YouTubeTrafficSourcesChart } from "./youtube/YouTubeTrafficSourcesChart";
+import { YouTubeOverviewPanel } from "./youtube-organic/YouTubeOverviewPanel";
+
+import type { ChannelMetric, MetricValue } from "../../../types/metrics";
 
 /** Section groupings for channels with many metrics. */
-const CHANNEL_METRIC_SECTIONS: Record<string, Array<{ title: string; metrics: string[] }>> = {
-  'ig-organic': [
-    { title: 'Visibilidad', metrics: ['reach', 'ig_views', 'ig_followers_count', 'ig_media_count'] },
-    { title: 'Audiencia', metrics: ['ig_follows_and_unfollows', 'ig_follows_gained', 'ig_follows_lost'] },
-    { title: 'Engagement', metrics: ['total_interactions', 'ig_likes', 'ig_comments', 'ig_shares', 'ig_saves', 'ig_replies', 'ig_reposts'] },
-    { title: 'Perfil', metrics: ['ig_accounts_engaged', 'ig_profile_links_taps'] },
-    { title: 'Demografía', metrics: ['ig_follower_demographics', 'ig_engaged_audience_demographics'] },
+const CHANNEL_METRIC_SECTIONS: Record<string, { title: string; metrics: string[] }[]> = {
+  "ig-organic": [
+    {
+      title: "Visibilidad",
+      metrics: ["reach", "ig_views", "ig_followers_count", "ig_media_count"],
+    },
+    {
+      title: "Audiencia",
+      metrics: ["ig_follows_and_unfollows", "ig_follows_gained", "ig_follows_lost"],
+    },
+    {
+      title: "Engagement",
+      metrics: [
+        "total_interactions",
+        "ig_likes",
+        "ig_comments",
+        "ig_shares",
+        "ig_saves",
+        "ig_replies",
+        "ig_reposts",
+      ],
+    },
+    { title: "Perfil", metrics: ["ig_accounts_engaged", "ig_profile_links_taps"] },
+    {
+      title: "Demografía",
+      metrics: ["ig_follower_demographics", "ig_engaged_audience_demographics"],
+    },
   ],
-  'yt-organic': [
-    { title: 'Alcance', metrics: ['views', 'avg_view_percentage'] },
-    { title: 'Engagement', metrics: ['engagement', 'comments', 'shares'] },
-    { title: 'Audiencia', metrics: ['subscribers_gained', 'subscribers_lost'] },
-    { title: 'Retención', metrics: ['watch_time_minutes', 'avg_view_duration'] },
-    { title: 'Conversión', metrics: ['card_clicks', 'card_click_rate', 'end_screen_clicks', 'end_screen_click_rate'] },
+  "yt-organic": [
+    { title: "Alcance", metrics: ["views", "avg_view_percentage"] },
+    { title: "Engagement", metrics: ["engagement", "comments", "shares"] },
+    { title: "Audiencia", metrics: ["subscribers_gained", "subscribers_lost"] },
+    { title: "Retención", metrics: ["watch_time_minutes", "avg_view_duration"] },
+    {
+      title: "Conversión",
+      metrics: ["card_clicks", "card_click_rate", "end_screen_clicks", "end_screen_click_rate"],
+    },
   ],
-  'meta-ads': [
-    { title: 'Rendimiento', metrics: ['reach', 'impressions', 'clicks', 'meta_inline_link_clicks', 'meta_outbound_clicks', 'meta_post_engagement', 'meta_landing_page_views'] },
-    { title: 'Costos', metrics: ['spend', 'cpc', 'cpm', 'meta_cpp', 'frequency', 'meta_cost_per_link_click', 'meta_cost_per_outbound_click'] },
-    { title: 'Conversiones', metrics: ['conversions', 'meta_leads', 'meta_add_to_cart', 'meta_initiate_checkout', 'meta_registrations', 'meta_view_content', 'meta_conversations_started'] },
-    { title: 'Valor & ROAS', metrics: ['meta_conversion_value', 'meta_purchase_roas', 'meta_cost_per_purchase', 'meta_cost_per_lead'] },
-    { title: 'Video', metrics: ['meta_video_views', 'meta_video_p25', 'meta_video_p50', 'meta_video_p75', 'meta_video_p100', 'meta_video_30sec', 'meta_video_avg_watch_time'] },
-    { title: 'Demografía', metrics: ['meta_reach_by_age', 'meta_spend_by_age', 'meta_impressions_by_age', 'meta_reach_by_gender', 'meta_spend_by_gender', 'meta_impressions_by_gender'] },
-    { title: 'Plataforma', metrics: ['meta_reach_by_placement', 'meta_spend_by_placement', 'meta_impressions_by_placement'] },
+  "meta-ads": [
+    {
+      title: "Rendimiento",
+      metrics: [
+        "reach",
+        "impressions",
+        "clicks",
+        "meta_inline_link_clicks",
+        "meta_outbound_clicks",
+        "meta_post_engagement",
+        "meta_landing_page_views",
+      ],
+    },
+    {
+      title: "Costos",
+      metrics: [
+        "spend",
+        "cpc",
+        "cpm",
+        "meta_cpp",
+        "frequency",
+        "meta_cost_per_link_click",
+        "meta_cost_per_outbound_click",
+      ],
+    },
+    {
+      title: "Conversiones",
+      metrics: [
+        "conversions",
+        "meta_leads",
+        "meta_add_to_cart",
+        "meta_initiate_checkout",
+        "meta_registrations",
+        "meta_view_content",
+        "meta_conversations_started",
+      ],
+    },
+    {
+      title: "Valor & ROAS",
+      metrics: [
+        "meta_conversion_value",
+        "meta_purchase_roas",
+        "meta_cost_per_purchase",
+        "meta_cost_per_lead",
+      ],
+    },
+    {
+      title: "Video",
+      metrics: [
+        "meta_video_views",
+        "meta_video_p25",
+        "meta_video_p50",
+        "meta_video_p75",
+        "meta_video_p100",
+        "meta_video_30sec",
+        "meta_video_avg_watch_time",
+      ],
+    },
+    {
+      title: "Demografía",
+      metrics: [
+        "meta_reach_by_age",
+        "meta_spend_by_age",
+        "meta_impressions_by_age",
+        "meta_reach_by_gender",
+        "meta_spend_by_gender",
+        "meta_impressions_by_gender",
+      ],
+    },
+    {
+      title: "Plataforma",
+      metrics: [
+        "meta_reach_by_placement",
+        "meta_spend_by_placement",
+        "meta_impressions_by_placement",
+      ],
+    },
   ],
 };
 
 function formatNumber(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
-  return n.toLocaleString('es-ES');
+  return n.toLocaleString("es-ES");
 }
 
-function formatCurrency(n: number, currency?: string, fallback = 'USD'): string {
+function formatCurrency(n: number, currency?: string, fallback = "USD"): string {
   return formatMoney(n, currency || fallback);
 }
 
 function hexToRgba(hex: string, alpha: number): string {
-  if (hex.startsWith('hsl')) return hex;
+  if (hex.startsWith("hsl")) return hex;
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function renderDetailEntries(details: Record<string, unknown>): React.ReactElement[] {
+  const elements: React.ReactElement[] = [];
+  for (const [key, value] of Object.entries(details)) {
+    if (key === "statistics") continue;
+    if (typeof value === "string" || typeof value === "number") {
+      elements.push(
+        <div key={key} className="flex justify-between">
+          <span className="text-muted-foreground capitalize">{key.replace(/_/g, " ")}</span>
+          <span className="font-medium">{value}</span>
+        </div>,
+      );
+    }
+  }
+  return elements;
 }
 
 function timeAgo(isoDate: string): string {
@@ -106,11 +218,16 @@ interface ChannelDetailSidebarProps {
   initialTab?: string | null;
 }
 
-export default function ChannelDetailSidebar({ isOpen, onClose, channel, initialTab }: ChannelDetailSidebarProps) {
+export default function ChannelDetailSidebar({
+  isOpen,
+  onClose,
+  channel,
+  initialTab,
+}: ChannelDetailSidebarProps) {
   const { timezone, currency: tenantCurrency } = useTenantLocale();
   const { handleOpenExpandedDashboard } = useGrowthStudioContext();
   const { getToken } = useAuth();
-  const { sync, isSyncing, cooldownMinutes } = useSyncChannel(channel?.slug ?? '');
+  const { sync, isSyncing, cooldownMinutes } = useSyncChannel(channel?.slug ?? "");
   const [info, setInfo] = useState<ChannelInfoResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,27 +250,29 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
         const data = await connectionsApi.getChannelInfo(providerName!, token);
         if (!cancelled) setInfo(data);
       } catch (e: unknown) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Error cargando info');
+        if (!cancelled) setError(e instanceof Error ? e.message : "Error cargando info");
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
-    fetchInfo();
-    return () => { cancelled = true; };
+    void fetchInfo();
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen, providerName, getToken]);
 
   if (!channel) return null;
 
   // Meta Ads: Wider sidebar with dedicated overview panel
-  if (channel.slug === 'meta-ads') {
+  if (channel.slug === "meta-ads") {
     return (
       <DetailPanel open={isOpen} onClose={onClose} size="lg">
         <MetaAdsOverviewPanel
           channel={channel}
           onClose={onClose}
-          onExpand={() => handleOpenExpandedDashboard('meta-ads')}
-          onExpandToTab={() => handleOpenExpandedDashboard('meta-ads')}
+          onExpand={() => handleOpenExpandedDashboard("meta-ads")}
+          onExpandToTab={() => handleOpenExpandedDashboard("meta-ads")}
           initialTab={initialTab}
         />
       </DetailPanel>
@@ -161,13 +280,13 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
   }
 
   // IG Organic: Wider sidebar with dedicated overview panel
-  if (channel.slug === 'ig-organic') {
+  if (channel.slug === "ig-organic") {
     return (
       <DetailPanel open={isOpen} onClose={onClose} size="lg">
         <IgOrganicOverviewPanel
           channel={channel}
           onClose={onClose}
-          onExpand={() => handleOpenExpandedDashboard('ig-organic')}
+          onExpand={() => handleOpenExpandedDashboard("ig-organic")}
           initialTab={initialTab}
         />
       </DetailPanel>
@@ -175,13 +294,13 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
   }
 
   // YouTube Organic: Wider sidebar with dedicated overview panel
-  if (channel.slug === 'yt-organic') {
+  if (channel.slug === "yt-organic") {
     return (
       <DetailPanel open={isOpen} onClose={onClose} size="lg">
         <YouTubeOverviewPanel
           channel={channel}
           onClose={onClose}
-          onExpand={() => handleOpenExpandedDashboard('yt-organic')}
+          onExpand={() => handleOpenExpandedDashboard("yt-organic")}
           initialTab={initialTab}
         />
       </DetailPanel>
@@ -189,13 +308,13 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
   }
 
   // Website: Wider sidebar with dedicated overview panel
-  if (channel.slug === 'website-total') {
+  if (channel.slug === "website-total") {
     return (
       <DetailPanel open={isOpen} onClose={onClose} size="lg">
         <WebsiteOverviewPanel
           channel={channel}
           onClose={onClose}
-          onExpand={() => handleOpenExpandedDashboard('website-total')}
+          onExpand={() => handleOpenExpandedDashboard("website-total")}
           initialTab={initialTab}
         />
       </DetailPanel>
@@ -204,13 +323,13 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
 
   // Email Marketing: Only email-nurture gets the full Email Intelligence Hub
   // Other email-* channels (email-capture, etc.) use the generic sidebar
-  if (channel.slug === 'email-nurture') {
+  if (channel.slug === "email-nurture") {
     return (
       <DetailPanel open={isOpen} onClose={onClose} size="lg">
         <MailOverviewPanel
           channel={channel}
           onClose={onClose}
-          onExpand={() => handleOpenExpandedDashboard('email-nurture')}
+          onExpand={() => handleOpenExpandedDashboard("email-nurture")}
           initialTab={initialTab}
         />
       </DetailPanel>
@@ -236,7 +355,7 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
             </DetailPanelTitle>
             <p className="text-xs text-muted-foreground">
               {channel.subSources && channel.subSources.length > 1
-                ? channel.subSources.map((s) => s.name).join(' + ')
+                ? channel.subSources.map((s) => s.name).join(" + ")
                 : channel.sourceDisplayName
                   ? `${channel.sourceLabel} · ${channel.sourceDisplayName}`
                   : channel.sourceLabel}
@@ -245,7 +364,10 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
         </div>
         <div className="flex items-center gap-2">
           {channel.connected && (
-            <Badge variant="outline" className="border-emerald-500/50 text-emerald-600 dark:text-emerald-400 text-[10px]">
+            <Badge
+              variant="outline"
+              className="border-emerald-500/50 text-emerald-600 dark:text-emerald-400 text-[10px]"
+            >
               <CheckCircle2 className="w-3 h-3 mr-1" />
               Conectado
             </Badge>
@@ -293,18 +415,25 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
                     </div>
                   )}
                   {/* Provider-specific details */}
-                  <DetailsEntries details={info.details} />
+                  {renderDetailEntries(info.details)}
                   {/* YouTube statistics */}
-                  {info.details.statistics && typeof info.details.statistics === 'object' && (
+                  {info.details.statistics != null &&
+                  typeof info.details.statistics === "object" ? (
                     <div className="mt-2 grid grid-cols-3 gap-2">
-                      {Object.entries(info.details.statistics as Record<string, string>).map(([k, v]) => (
-                        <div key={k} className="text-center p-2 rounded-md bg-muted/50">
-                          <p className="text-xs font-semibold tabular-nums">{Number(v).toLocaleString('es-ES')}</p>
-                          <p className="text-[10px] text-muted-foreground capitalize">{k.replace('Count', '')}</p>
-                        </div>
-                      ))}
+                      {Object.entries(info.details.statistics as Record<string, string>).map(
+                        ([k, v]) => (
+                          <div key={k} className="text-center p-2 rounded-md bg-muted/50">
+                            <p className="text-xs font-semibold tabular-nums">
+                              {Number(v).toLocaleString("es-ES")}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground capitalize">
+                              {k.replace("Count", "")}
+                            </p>
+                          </div>
+                        ),
+                      )}
                     </div>
-                  )}
+                  ) : null}
                   {!info.is_configured && (
                     <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mt-1">
                       <AlertCircle className="h-3.5 w-3.5" />
@@ -330,14 +459,16 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
                         className="flex items-center justify-between py-1.5 px-2 rounded-md bg-muted/30 text-sm"
                       >
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className={cn(
-                            'w-1.5 h-1.5 rounded-full shrink-0',
-                            child.is_active ? 'bg-emerald-400' : 'bg-gray-400',
-                          )} />
+                          <span
+                            className={cn(
+                              "w-1.5 h-1.5 rounded-full shrink-0",
+                              child.is_active ? "bg-emerald-400" : "bg-gray-400",
+                            )}
+                          />
                           <span className="truncate">{child.name || child.asset_id}</span>
                         </div>
                         <span className="text-[10px] text-muted-foreground uppercase shrink-0">
-                          {(child.channel_type as string).replace('_', ' ')}
+                          {child.channel_type.replace("_", " ")}
                         </span>
                       </div>
                     ))}
@@ -366,25 +497,28 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
                             <span className="font-medium">
                               {info.last_extraction.completed_at
                                 ? timeAgo(info.last_extraction.completed_at)
-                                : 'En progreso'}
+                                : "En progreso"}
                             </span>
-                            {info.last_extraction.status === 'success' && (
+                            {info.last_extraction.status === "success" && (
                               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                             )}
-                            {info.last_extraction.status === 'failed' && (
+                            {info.last_extraction.status === "failed" && (
                               <AlertCircle className="h-3.5 w-3.5 text-red-500" />
                             )}
                           </div>
                         </div>
-                        {info.last_extraction.metrics_count != null && info.last_extraction.metrics_count > 0 && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground flex items-center gap-1.5">
-                              <Database className="h-3.5 w-3.5" />
-                              Métricas cargadas
-                            </span>
-                            <span className="font-medium">{info.last_extraction.metrics_count}</span>
-                          </div>
-                        )}
+                        {info.last_extraction.metrics_count != null &&
+                          info.last_extraction.metrics_count > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground flex items-center gap-1.5">
+                                <Database className="h-3.5 w-3.5" />
+                                Métricas cargadas
+                              </span>
+                              <span className="font-medium">
+                                {info.last_extraction.metrics_count}
+                              </span>
+                            </div>
+                          )}
                         {info.last_extraction.error && (
                           <div className="text-xs text-red-500 bg-red-50 dark:bg-red-950/20 p-2 rounded-md">
                             {info.last_extraction.error}
@@ -399,9 +533,9 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
                           Rango de datos
                         </span>
                         <span className="font-medium text-xs">
-                          {formatTenantDate(info.data_range.min_date, timezone, 'd MMM')}
-                          {' — '}
-                          {formatTenantDate(info.data_range.max_date, timezone, 'd MMM yyyy')}
+                          {formatTenantDate(info.data_range.min_date, timezone, "d MMM")}
+                          {" — "}
+                          {formatTenantDate(info.data_range.max_date, timezone, "d MMM yyyy")}
                         </span>
                       </div>
                     )}
@@ -425,16 +559,20 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
                         className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/30 text-sm"
                       >
                         <div className="flex items-center gap-2">
-                          <span className={cn(
-                            'w-2 h-2 rounded-full shrink-0',
-                            idx === 0 ? 'bg-blue-400' : 'bg-violet-400',
-                          )} />
+                          <span
+                            className={cn(
+                              "w-2 h-2 rounded-full shrink-0",
+                              idx === 0 ? "bg-blue-400" : "bg-violet-400",
+                            )}
+                          />
                           <span className="font-medium">{src.name}</span>
                         </div>
                         <div className="flex items-center gap-3 text-xs">
                           <span className="tabular-nums">{formatNumber(src.leads)} leads</span>
                           {src.conversations > 0 && (
-                            <span className="text-muted-foreground tabular-nums">{formatNumber(src.conversations)} conv</span>
+                            <span className="text-muted-foreground tabular-nums">
+                              {formatNumber(src.conversations)} conv
+                            </span>
                           )}
                         </div>
                       </div>
@@ -450,18 +588,26 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
                 <Separator />
                 {(() => {
                   const sections = CHANNEL_METRIC_SECTIONS[channel.slug];
-                  const metricsByName = Object.fromEntries(channel.metrics.map((m: MetricValue) => [m.name, m]));
+                  const metricsByName = Object.fromEntries(
+                    channel.metrics.map((m: MetricValue) => [m.name, m]),
+                  );
 
                   const renderMetric = (m: MetricValue) => {
                     const label = METRIC_LABELS[m.name] ?? m.name;
 
                     // Demographics: render as key-value breakdown
-                    if (m.unit === 'json' && m.extra?.breakdowns) {
-                      const breakdowns = m.extra.breakdowns as Array<{ dimension_values: string[]; value: number }>;
+                    if (m.unit === "json" && m.extra?.breakdowns) {
+                      const breakdowns = m.extra.breakdowns as {
+                        dimension_values: string[];
+                        value: number;
+                      }[];
                       const sorted = Array.isArray(breakdowns)
-                        ? [...breakdowns].sort((a, b) => (b.value ?? 0) - (a.value ?? 0)).slice(0, 5)
+                        ? [...breakdowns]
+                            .sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
+                            .slice(0, 5)
                         : [];
-                      const maxVal = sorted.length > 0 ? Math.max(...sorted.map(b => b.value ?? 0), 1) : 1;
+                      const maxVal =
+                        sorted.length > 0 ? Math.max(...sorted.map((b) => b.value ?? 0), 1) : 1;
 
                       return (
                         <div key={m.name} className="space-y-1.5">
@@ -469,27 +615,40 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
                           {sorted.length > 0 ? (
                             <div className="space-y-1">
                               {sorted.map((b, i) => {
-                                const dimLabel = (b.dimension_values ?? []).join(', ') || `#${i + 1}`;
+                                const dimLabel =
+                                  (b.dimension_values ?? []).join(", ") || `#${i + 1}`;
                                 const pct = ((b.value ?? 0) / maxVal) * 100;
                                 return (
                                   <div key={dimLabel} className="flex items-center gap-2">
-                                    <span className="text-xs text-muted-foreground w-24 truncate" title={dimLabel}>{dimLabel}</span>
+                                    <span
+                                      className="text-xs text-muted-foreground w-24 truncate"
+                                      title={dimLabel}
+                                    >
+                                      {dimLabel}
+                                    </span>
                                     <div className="flex-1 h-2 bg-muted/50 rounded-full overflow-hidden">
-                                      <div className="h-full bg-primary/40 rounded-full" style={{ width: `${pct}%` }} />
+                                      <div
+                                        className="h-full bg-primary/40 rounded-full"
+                                        style={{ width: `${pct}%` }}
+                                      />
                                     </div>
-                                    <span className="text-xs font-medium tabular-nums w-8 text-right">{b.value ?? 0}</span>
+                                    <span className="text-xs font-medium tabular-nums w-8 text-right">
+                                      {b.value ?? 0}
+                                    </span>
                                   </div>
                                 );
                               })}
                             </div>
                           ) : (
-                            <span className="text-xs text-muted-foreground">Sin datos demográficos</span>
+                            <span className="text-xs text-muted-foreground">
+                              Sin datos demográficos
+                            </span>
                           )}
                         </div>
                       );
                     }
 
-                    const isCurrency = m.unit === 'currency';
+                    const isCurrency = m.unit === "currency";
                     const formatted = isCurrency
                       ? formatCurrency(m.value, m.currency, tenantCurrency)
                       : formatNumber(m.value);
@@ -502,11 +661,13 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
                         </div>
                         {m.breakdown && Object.keys(m.breakdown).length > 0 && (
                           <div className="flex gap-2 pl-2">
-                            {Object.entries(m.breakdown).filter(([, v]) => v > 0).map(([key, val]) => (
-                              <span key={key} className="text-[10px] text-muted-foreground">
-                                {key} {formatNumber(val)}
-                              </span>
-                            ))}
+                            {Object.entries(m.breakdown)
+                              .filter(([, v]) => v > 0)
+                              .map(([key, val]) => (
+                                <span key={key} className="text-[10px] text-muted-foreground">
+                                  {key} {formatNumber(val)}
+                                </span>
+                              ))}
                           </div>
                         )}
                       </div>
@@ -520,15 +681,13 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
                           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
                             Métricas Actuales
                           </h3>
-                          <div className="space-y-2">
-                            {channel.metrics.map(renderMetric)}
-                          </div>
+                          <div className="space-y-2">{channel.metrics.map(renderMetric)}</div>
                         </section>
                       );
                     }
                     return sections.map((section) => {
                       const sectionMetrics = section.metrics
-                        .map(name => metricsByName[name])
+                        .map((name) => metricsByName[name])
                         .filter((m): m is MetricValue => m !== undefined);
                       if (sectionMetrics.length === 0) return null;
                       return (
@@ -536,22 +695,26 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
                           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
                             {section.title}
                           </h3>
-                          <div className="space-y-2">
-                            {sectionMetrics.map(renderMetric)}
-                          </div>
+                          <div className="space-y-2">{sectionMetrics.map(renderMetric)}</div>
                         </section>
                       );
                     });
                   };
 
                   // YouTube: Tabbed layout with Métricas / Videos / Audiencia
-                  if (channel.slug === 'yt-organic') {
+                  if (channel.slug === "yt-organic") {
                     return (
-                      <Tabs defaultValue={initialTab ?? 'metricas'} className="mt-2">
+                      <Tabs defaultValue={initialTab ?? "metricas"} className="mt-2">
                         <TabsList className="w-full">
-                          <TabsTrigger value="metricas" className="flex-1 text-xs">Métricas</TabsTrigger>
-                          <TabsTrigger value="videos" className="flex-1 text-xs">Videos</TabsTrigger>
-                          <TabsTrigger value="audiencia" className="flex-1 text-xs">Audiencia</TabsTrigger>
+                          <TabsTrigger value="metricas" className="flex-1 text-xs">
+                            Métricas
+                          </TabsTrigger>
+                          <TabsTrigger value="videos" className="flex-1 text-xs">
+                            Videos
+                          </TabsTrigger>
+                          <TabsTrigger value="audiencia" className="flex-1 text-xs">
+                            Audiencia
+                          </TabsTrigger>
                         </TabsList>
                         <TabsContent value="metricas" className="mt-3">
                           {renderSections()}
@@ -609,18 +772,31 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
                 onClick={() => sync()}
                 disabled={isSyncing || cooldownMinutes > 0}
               >
-                <RefreshCw className={cn('h-3.5 w-3.5', isSyncing && 'animate-spin')} />
-                {isSyncing ? 'Sincronizando…' : cooldownMinutes > 0 ? `Disponible en ${Math.ceil(cooldownMinutes)} min` : 'Sincronizar ahora'}
+                <RefreshCw className={cn("h-3.5 w-3.5", isSyncing && "animate-spin")} />
+                {isSyncing
+                  ? "Sincronizando…"
+                  : cooldownMinutes > 0
+                    ? `Disponible en ${Math.ceil(cooldownMinutes)} min`
+                    : "Sincronizar ahora"}
               </Button>
               <Button variant="outline" size="sm" className="w-full justify-start gap-2" disabled>
                 <Settings className="h-3.5 w-3.5" />
                 Configurar
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-auto">Pronto</Badge>
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-auto">
+                  Pronto
+                </Badge>
               </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start gap-2 text-red-500 hover:text-red-600" disabled>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2 text-red-500 hover:text-red-600"
+                disabled
+              >
                 <Unplug className="h-3.5 w-3.5" />
                 Desconectar
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-auto">Pronto</Badge>
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-auto">
+                  Pronto
+                </Badge>
               </Button>
             </section>
           </div>

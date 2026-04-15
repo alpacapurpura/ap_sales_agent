@@ -1,15 +1,18 @@
 "use client";
 
 import { Zap } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   DetailPanel,
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
 } from "@/components/ui/detail-panel";
-import { Button } from "@/components/ui/button";
-import type { ChannelMetric } from "../../../types/metrics";
+
 import { getChannelIcon, getChannelColor } from "../../../lib/channelIcons";
+
+import type { ChannelMetric } from "../../../types/metrics";
 
 interface NoDataSidebarPanelProps {
   isOpen: boolean;

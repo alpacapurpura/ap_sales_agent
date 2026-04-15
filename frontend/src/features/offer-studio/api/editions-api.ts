@@ -1,6 +1,7 @@
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
-import { LaunchEdition, LaunchEditionCreate, LaunchEditionUpdate } from "../types";
+
+import type { LaunchEdition, LaunchEditionCreate, LaunchEditionUpdate } from "../types";
 
 const API_URL = config.api.baseUrl;
 

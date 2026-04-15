@@ -1,14 +1,17 @@
+import { Sparkles, Box, Tag, Edit2 } from "lucide-react";
 import React from "react";
-import { cn } from "@/lib/utils";
+import { useFormContext } from "react-hook-form";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { OfferFormValues } from "../../../../types/schema";
-import { useFormContext } from "react-hook-form";
-import { Sparkles, Box, Tag, Edit2 } from "lucide-react";
-import { ARCHETYPE_METADATA } from "../../../../config/archetype-metadata";
-import { OfferArchetype } from "../../../../types";
 import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { cn } from "@/lib/utils";
 import { getContrastColor } from "@/lib/utils/colors";
+
+import { ARCHETYPE_METADATA } from "../../../../config/archetype-metadata";
+
+import type { OfferArchetype } from "../../../../types";
+import type { OfferFormValues } from "../../../../types/schema";
 
 interface IdentityPreviewProps {
   data?: Partial<OfferFormValues>;

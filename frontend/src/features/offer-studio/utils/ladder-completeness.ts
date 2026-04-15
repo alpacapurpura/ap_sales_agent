@@ -1,4 +1,6 @@
-import { Offer, OfferValueLevel } from "../types";
+import { OfferValueLevel } from "../types";
+
+import type { Offer } from "../types";
 
 export interface LadderGap {
   group: OfferValueLevel;

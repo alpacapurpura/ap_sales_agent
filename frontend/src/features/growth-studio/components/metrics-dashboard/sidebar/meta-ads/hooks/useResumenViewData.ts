@@ -308,7 +308,7 @@ function buildAllCards(ctx: BuildContext): ResumenKpiCard[] {
 
   // Aggregate across offers for the "all" view. Unassigned + branding also
   // count towards spend/ctr by definition (they're real campaigns running).
-  const offers = metricsByOffer.offers;
+  const { offers } = metricsByOffer;
   const totalSpend =
     offers.reduce((acc, o) => acc + o.totalSpend, 0) +
     metricsByOffer.unassigned.totalSpend +
@@ -520,7 +520,7 @@ function buildOfferCards(offer: OfferMetrics, ctx: BuildContext): ResumenKpiCard
 }
 
 function buildBrandingCards(aggregate: BrandingAggregate, ctx: BuildContext): ResumenKpiCard[] {
-  const currency = ctx.currency;
+  const { currency } = ctx;
   return [
     buildCard({
       key: "spend",
@@ -579,7 +579,7 @@ function buildBrandingCards(aggregate: BrandingAggregate, ctx: BuildContext): Re
 }
 
 function buildUnassignedCards(aggregate: UnassignedAggregate, ctx: BuildContext): ResumenKpiCard[] {
-  const currency = ctx.currency;
+  const { currency } = ctx;
   return [
     buildCard({
       key: "spend",

@@ -1,10 +1,11 @@
-import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
+import React from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { OfferSegmenter } from "../OfferSegmenter";
-import type { OfferSegmenterSelection } from "../OfferSegmenter";
+
 import type { OfferMetrics } from "../../../../../types/offer-association";
+import type { OfferSegmenterSelection } from "../OfferSegmenter";
 
 function makeOffer(overrides: Partial<OfferMetrics>): OfferMetrics {
   return {

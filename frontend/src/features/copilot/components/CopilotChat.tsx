@@ -1,20 +1,22 @@
 "use client";
 
-import { memo, useEffect, useRef } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAuth } from "@clerk/nextjs";
-import { useCopilotStore } from "../store/copilot-store";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { memo, useEffect, useRef } from "react";
+
+import { reportCopilotEvent } from "../api/copilot-api";
 import { useCopilotChat } from "../hooks/useCopilotChat";
 import { useProactiveNudges } from "../hooks/useProactiveNudges";
-import { reportCopilotEvent } from "../api/copilot-api";
-import { UserMessage } from "./messages/UserMessage";
+import { useCopilotStore } from "../store/copilot-store";
+
+import { ContextChips } from "./ContextChips";
+import { CopilotInput } from "./copilot-input";
 import { AssistantMessage } from "./messages/AssistantMessage";
 import { TypingIndicator } from "./messages/TypingIndicator";
-import { SuggestedActions } from "./SuggestedActions";
-import { ContextChips } from "./ContextChips";
-import { ProcedureProgress } from "./ProcedureProgress";
+import { UserMessage } from "./messages/UserMessage";
 import { NudgeBanner } from "./NudgeBanner";
-import { CopilotInput } from "./copilot-input";
+import { ProcedureProgress } from "./ProcedureProgress";
+import { SuggestedActions } from "./SuggestedActions";
 
 export const CopilotChat = memo(function CopilotChat() {
   const messages = useCopilotStore((s) => s.messages);
@@ -62,7 +64,7 @@ export const CopilotChat = memo(function CopilotChat() {
     if (prevOpenRef.current && !isOpen && activeProcedure) {
       const allCompleted = activeProcedure.steps.every((s) => s.status === "completed");
       if (!allCompleted) {
-        getToken().then((token) => {
+        void getToken().then((token) => {
           if (token) {
             reportCopilotEvent(
               "procedure_abandoned",

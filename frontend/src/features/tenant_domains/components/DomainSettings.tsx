@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { Plus } from "lucide-react";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { PlatformSubdomain } from "./PlatformSubdomain";
-import { DomainList } from "./DomainList";
-import { CustomDomainWizard } from "./CustomDomainWizard";
+
 import { useDomains } from "../hooks/useDomains";
+
+import { CustomDomainWizard } from "./CustomDomainWizard";
+import { DomainList } from "./DomainList";
+import { PlatformSubdomain } from "./PlatformSubdomain";
 
 interface DomainSettingsProps {
   tenantSlug: string;

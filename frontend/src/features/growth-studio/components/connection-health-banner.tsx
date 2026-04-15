@@ -1,8 +1,8 @@
 "use client";
 
+import { AlertCircle, AlertTriangle, Info } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { AlertCircle, AlertTriangle, Info } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -56,7 +56,7 @@ export function ConnectionHealthBanner({
 
   if (status === "healthy") return null;
 
-  const cfg = STATUS_CONFIG[status as Exclude<HealthStatus, "healthy">];
+  const cfg = STATUS_CONFIG[status];
   // Defense-in-depth: if the backend returns an unknown status (or mocks
   // provide undefined), degrade gracefully instead of crashing.
   if (!cfg) return null;

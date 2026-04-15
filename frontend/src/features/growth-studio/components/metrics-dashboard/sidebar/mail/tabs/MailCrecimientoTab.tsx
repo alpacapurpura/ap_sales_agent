@@ -13,19 +13,21 @@ import {
   Tooltip as RechartsTooltip,
 } from "recharts";
 
-import { cn } from "@/lib/utils";
-import { ChartContainer } from "@/components/ui/chart";
 import { MetricInfoPopover } from "@/components/shared/MetricInfoPopover";
+import { ChartContainer } from "@/components/ui/chart";
+import { cn } from "@/lib/utils";
+
 import { useMailGrowth } from "../../../../../hooks/useMailDashboard";
 import { formatMetricValue } from "../../../../../utils/format-metric-value";
-import { ChartSection } from "../../shared/ChartSection";
 import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
-import type { MetaAdsPeriod, MetricKpiData } from "../../../../../types/metrics";
+import { ChartSection } from "../../shared/ChartSection";
+
 import type {
   EmailGrowthData,
   EmailSourcePerformance,
   EngagementDecay,
 } from "../../../../../types/mail-types";
+import type { MetaAdsPeriod, MetricKpiData } from "../../../../../types/metrics";
 
 interface MailCrecimientoTabProps {
   period: MetaAdsPeriod;

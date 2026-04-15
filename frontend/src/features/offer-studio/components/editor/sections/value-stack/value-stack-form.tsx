@@ -1,18 +1,24 @@
 "use client";
 
-import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
+import { Plus, Trash2, Layers, PackageOpen } from "lucide-react";
+import { useFieldArray } from "react-hook-form";
+
+import { Button } from "@/components/ui/button";
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { DeliverableFormat } from "../../../../types";
-import { Plus, Trash2, Layers, PackageOpen } from "lucide-react";
-import { OffersMultiSelect } from "../../ui/offers-multi-select";
-import { DELIVERABLE_FORMAT_METADATA, getEnumOptions } from "../../../../types/enum-metadata";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+
+import { DeliverableFormat } from "../../../../types";
+import { DELIVERABLE_FORMAT_METADATA, getEnumOptions } from "../../../../types/enum-metadata";
+import { OfferSchema } from "../../../../types/schema";
+import { OffersMultiSelect } from "../../ui/offers-multi-select";
+import { SectionFormWrapper } from "../common/section-form-wrapper";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { UseFormReturn } from "react-hook-form";
 
 const ValueStackSchema = OfferSchema.pick({
   deliverables: true,

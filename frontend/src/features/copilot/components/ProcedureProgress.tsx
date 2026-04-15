@@ -1,7 +1,8 @@
 "use client";
 
-import { useCopilotStore } from "../store/copilot-store";
 import { cn } from "@/lib/utils";
+
+import { useCopilotStore } from "../store/copilot-store";
 
 export function ProcedureProgress() {
   const activeProcedure = useCopilotStore((s) => s.activeProcedure);

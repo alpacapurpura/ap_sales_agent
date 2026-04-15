@@ -1,6 +1,7 @@
-import React from "react";
 import { Group } from "@visx/group";
-import { VisxNode } from "../utils/adapter";
+import React from "react";
+
+import type { VisxNode } from "../utils/adapter";
 
 // Props passed by Visx Sankey to the node component
 export interface NodeFactoryProps {

@@ -1,18 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import { useWhatsApp } from "../hooks/use-whatsapp";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Loader2,
   QrCode,
@@ -26,17 +13,8 @@ import {
   Server,
   LogOut,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetFooter,
-  SheetClose,
-} from "@/components/ui/sheet";
+import { useEffect } from "react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,6 +26,30 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+
+import { useWhatsApp } from "../hooks/use-whatsapp";
 
 export default function WhatsAppView() {
   const { loading, status, qrCode, isScanning, setIsScanning, generateQR, disconnect } =
@@ -139,7 +141,9 @@ export default function WhatsAppView() {
                     <div className="mt-auto pt-4 border-t border-green-100 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
-                          <AvatarImage src={status?.evolution.profile?.profile_pic_url} />
+                          <AvatarImage
+                            src={status?.evolution.profile?.profile_pic_url as string | undefined}
+                          />
                           <AvatarFallback className="text-[10px] bg-green-100 text-green-700">
                             {status?.evolution.profile?.first_name?.[0] || "W"}
                           </AvatarFallback>
@@ -237,7 +241,9 @@ export default function WhatsAppView() {
                   {/* Profile Section */}
                   <div className="flex flex-col items-center justify-center space-y-3 pb-6 border-b">
                     <Avatar className="h-20 w-20 border-4 border-green-50">
-                      <AvatarImage src={status?.evolution.profile?.profile_pic_url} />
+                      <AvatarImage
+                        src={status?.evolution.profile?.profile_pic_url as string | undefined}
+                      />
                       <AvatarFallback className="text-xl bg-green-100 text-green-700">
                         {status?.evolution.profile?.first_name?.[0] || "W"}
                       </AvatarFallback>
@@ -266,7 +272,7 @@ export default function WhatsAppView() {
                         <span className="text-sm font-medium">Plataforma</span>
                       </div>
                       <span className="text-sm text-muted-foreground capitalize">
-                        {status?.evolution.profile?.platform || "WhatsApp"}
+                        {(status?.evolution.profile?.platform as string) || "WhatsApp"}
                       </span>
                     </div>
 
@@ -284,7 +290,7 @@ export default function WhatsAppView() {
                         <span className="text-sm font-medium">Desde</span>
                       </div>
                       <span className="text-sm text-muted-foreground">
-                        {status?.evolution.profile?.connected_at || "Reciente"}
+                        {(status?.evolution.profile?.connected_at as string) || "Reciente"}
                       </span>
                     </div>
                   </div>

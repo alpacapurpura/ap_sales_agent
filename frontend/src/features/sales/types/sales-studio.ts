@@ -45,6 +45,6 @@ export interface Appointment {
 
 export interface SalesDashboardState {
   metrics: SalesMetrics;
-  recentActivity: any[]; // To be defined
+  recentActivity: unknown[]; // Shape to be defined when feature is implemented
   upcomingAppointments: Appointment[];
 }

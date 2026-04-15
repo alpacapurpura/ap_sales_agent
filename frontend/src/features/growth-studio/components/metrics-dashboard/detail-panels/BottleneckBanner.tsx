@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
+
 import type { BottleneckData } from "../../../types/metrics";
 
 interface BottleneckBannerProps {

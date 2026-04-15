@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
+import { useCallback, useEffect, useRef } from "react";
+
 import { useNavigation } from "@/components/shared/navigation";
+
 import { useCopilotStore, type UIAction } from "../store/copilot-store";
 
 export type { UIAction };
@@ -92,7 +94,7 @@ export function useCopilotNavigator() {
   const pendingUIActions = useCopilotStore((s) => s.pendingUIActions);
 
   // Track all in-flight poll cancellers so we can clean up on unmount.
-  const cancelersRef = useRef<Array<() => void>>([]);
+  const cancelersRef = useRef<(() => void)[]>([]);
 
   // Cancel all in-flight polls and highlights when the hook unmounts.
   useEffect(() => {
@@ -121,7 +123,7 @@ export function useCopilotNavigator() {
 
             cancelersRef.current.push(cancel);
 
-            promise.then((el) => {
+            void promise.then((el) => {
               // Remove this canceller from the active list.
               cancelersRef.current = cancelersRef.current.filter((c) => c !== cancel);
 

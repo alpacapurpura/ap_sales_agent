@@ -1,10 +1,12 @@
 "use client";
 
-import { AuthorityItem } from "@/features/brand/types";
+import { Award, ExternalLink, Edit2, Trash2 } from "lucide-react";
+import Image from "next/image";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
-import { Award, ExternalLink, Edit2, Trash2 } from "lucide-react";
+
+import type { AuthorityItem } from "@/features/brand/types";
 
 interface AuthorityListProps {
   items: AuthorityItem[];

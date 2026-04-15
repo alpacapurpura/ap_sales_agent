@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useBrandSettings } from "../../hooks/useBrandSettings";
-import { ConceptForm } from "./concept-form";
-import { AssetItemForm } from "./asset-item-form";
-import { CreativeConcept, FunnelAsset } from "@/features/brand/types";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+
+import { useBrandSettings } from "../../hooks/useBrandSettings";
+
+import { AssetItemForm } from "./asset-item-form";
+import { ConceptForm } from "./concept-form";
+
+import type { CreativeConcept, FunnelAsset } from "@/features/brand/types";
 
 export function AssetsManager() {
   const { settings, saving, updateCommunicationAssets } = useBrandSettings();

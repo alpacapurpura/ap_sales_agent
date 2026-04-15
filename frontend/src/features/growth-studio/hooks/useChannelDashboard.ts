@@ -1,9 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
 
 import { fetchChannelDashboard } from "../api/channel-dashboard-api";
+
 import type { ChannelDashboardData, MetaAdsPeriod } from "../types/metrics";
 
 export function useChannelDashboard(

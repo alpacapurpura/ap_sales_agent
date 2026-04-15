@@ -1,10 +1,13 @@
 "use client";
 
-import React from "react";
 import { AlertTriangle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import React from "react";
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+
 import { getChannelIcon, getChannelColor } from "../../../lib/channelIcons";
+
 import type { ChannelMetric } from "../../../types/metrics";
 
 export interface ChannelChipProps {

@@ -1,7 +1,9 @@
-import { Lead, LeadStatus } from "../../types";
-import { LeadCard } from "../molecules/LeadCard";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+
+import { LeadCard } from "../molecules/LeadCard";
+
+import type { Lead, LeadStatus } from "../../types";
 
 interface PipelineBoardProps {
   leads: Lead[];

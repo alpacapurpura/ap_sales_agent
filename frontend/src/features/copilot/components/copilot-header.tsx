@@ -1,8 +1,11 @@
 "use client";
 
 import { Maximize2, Minimize2, PanelRightClose, RotateCcw, Sparkles } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+
 import { useCopilotStore } from "../store/copilot-store";
+
 import type { SidebarState } from "../store/copilot-store";
 
 function getModeLabel(state: {

@@ -1,8 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { NavLink } from "@/components/shared/navigation";
-import { cn } from "@/lib/utils";
+import { UserButton, useUser } from "@clerk/nextjs";
 import {
   Settings,
   Menu,
@@ -28,16 +26,20 @@ import {
   Cable,
   type LucideIcon,
 } from "lucide-react";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { memo, useState, useEffect, useCallback, useMemo, useRef } from "react";
+
+import { TenantSwitcher } from "@/components/shared/layout/tenant-switcher";
+import { ModeToggle } from "@/components/shared/mode-toggle";
+import { NavLink } from "@/components/shared/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { useSidebar } from "./sidebar-context";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ModeToggle } from "@/components/shared/mode-toggle";
 import { useUserProfile } from "@/features/settings/hooks/use-profile";
-import { TenantSwitcher } from "@/components/shared/layout/tenant-switcher";
-import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
+
+import { useSidebar } from "./sidebar-context";
 
 // ---------------------------------------------------------------------------
 // Navigation Configuration

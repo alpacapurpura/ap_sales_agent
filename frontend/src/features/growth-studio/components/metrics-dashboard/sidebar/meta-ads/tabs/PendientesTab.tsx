@@ -1,6 +1,7 @@
 "use client";
 
 import { PendientesView } from "../pendientes/PendientesView";
+
 import type { MetaAdsPeriod } from "../../../../../types/metrics";
 
 interface PendientesTabProps {

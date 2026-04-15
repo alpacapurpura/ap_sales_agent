@@ -1,8 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
-import { settingsApi, Tenant } from "@/lib/api/settings";
+import { useQuery } from "@tanstack/react-query";
+
+import { settingsApi } from "@/lib/api/settings";
+
+import type { Tenant } from "@/lib/api/settings";
 
 export function useTenants() {
   const { getToken, isLoaded, isSignedIn } = useAuth();

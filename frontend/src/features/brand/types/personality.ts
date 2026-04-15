@@ -52,11 +52,11 @@ export interface PersonalityProfile {
 }
 
 export interface SimulationResponse {
-  responses: Array<{
+  responses: {
     context: string;
     prospect_message: string;
     agent_response: string;
-  }>;
+  }[];
 }
 
 export const DIMENSION_LABELS: Record<

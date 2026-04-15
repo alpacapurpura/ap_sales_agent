@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { config } from "@/lib/config";
-import { fetchClient } from "@/lib/http-client";
-import { VoiceForm } from "./voice-form";
-import type { VoiceAnalysisResult } from "./voice-form";
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { Save, Loader2 } from "lucide-react";
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Save, Loader2 } from "lucide-react";
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
+
+import { VoiceForm } from "./voice-form";
+
+import type { VoiceAnalysisResult } from "./voice-form";
 
 export function VoiceManager() {
   const { getToken } = useAuth();

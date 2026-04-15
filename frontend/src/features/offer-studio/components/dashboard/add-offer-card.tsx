@@ -1,6 +1,8 @@
 import { Plus } from "lucide-react";
+
 import { cn } from "@/lib/utils";
-import { OfferValueLevel } from "@/features/offer-studio/types";
+
+import type { OfferValueLevel } from "@/features/offer-studio/types";
 
 interface AddOfferCardProps {
   level: OfferValueLevel;

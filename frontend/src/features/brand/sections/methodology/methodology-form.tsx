@@ -1,14 +1,16 @@
 "use client";
 
+import { Plus, Trash2, Save, Loader2, Lightbulb } from "lucide-react";
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { BrandStrategy, BrandMethodologyPillar } from "@/features/brand/types";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Save, Loader2, Lightbulb } from "lucide-react";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
+
+import type { BrandStrategy, BrandMethodologyPillar } from "@/features/brand/types";
 
 interface MethodologyFormProps {
   initialData: BrandStrategy;
@@ -25,7 +27,7 @@ export function MethodologyForm({ initialData, onSave, isSaving = false }: Metho
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(strategy);
+    void onSave(strategy);
   };
 
   const addPillar = () => {

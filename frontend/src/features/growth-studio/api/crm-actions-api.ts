@@ -1,9 +1,12 @@
-import { fetchClient } from "@/lib/http-client";
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
 
 const API_URL = config.api.baseUrl;
 
-export async function promoteToEvangelist(token: string, customerId: string): Promise<Record<string, unknown>> {
+export async function promoteToEvangelist(
+  token: string,
+  customerId: string,
+): Promise<Record<string, unknown>> {
   const res = await fetchClient(`${API_URL}/api/v1/crm/referrals/promote`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },

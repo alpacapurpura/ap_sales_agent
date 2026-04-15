@@ -6,8 +6,8 @@
  * Uses date-fns-tz (already installed) for timezone conversion.
  */
 
-import { formatInTimeZone } from "date-fns-tz";
 import { es } from "date-fns/locale";
+import { formatInTimeZone } from "date-fns-tz";
 
 /**
  * Format a date string in the tenant's timezone.

@@ -27,7 +27,7 @@ export function parseBenchmarkText(text: string): ParsedBenchmark | null {
   const cleaned = text.replace(/^Referencia[^:]*:\s*/i, "");
 
   // Try range pattern first (e.g., "0.9-2.19%")
-  const rangeMatch = cleaned.match(RANGE_PATTERN);
+  const rangeMatch = RANGE_PATTERN.exec(cleaned);
   if (rangeMatch) {
     const low = parseFloat(rangeMatch[1]);
     const high = parseFloat(rangeMatch[2]);
@@ -43,7 +43,7 @@ export function parseBenchmarkText(text: string): ParsedBenchmark | null {
   }
 
   // Try single value (e.g., "promedio 5 paginas")
-  const singleMatch = cleaned.match(SINGLE_VALUE_PATTERN);
+  const singleMatch = SINGLE_VALUE_PATTERN.exec(cleaned);
   if (singleMatch) {
     const value = parseFloat(singleMatch[1]);
     const unitHint = singleMatch[2];

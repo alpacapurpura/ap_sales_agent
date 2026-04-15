@@ -3,7 +3,9 @@ import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { toast } from "sonner";
+
 import { landingApi } from "../api/landing-api";
+
 import type {
   LandingGenerateResponse,
   LandingPublishResponse,
@@ -56,7 +58,7 @@ export function useLandingStatus(offerId: string) {
   );
 
   const invalidate = () => {
-    queryClient.invalidateQueries({
+    void queryClient.invalidateQueries({
       queryKey: ["offer", offerId, "landing-status"],
     });
   };

@@ -1,14 +1,12 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Trash2, AlertTriangle } from "lucide-react";
 import { useState } from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -18,17 +16,19 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useLeadDetails } from "@/features/audit/hooks/useAudit";
-import { useTraceDetails } from "@/features/audit/hooks/useAudit";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { clearLeadHistory } from "@/features/audit/api";
-import { Loader2, Trash2, AlertTriangle } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/nextjs";
+import { useLeadDetails, useTraceDetails } from "@/features/audit/hooks/useAudit";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantDate } from "@/lib/format-date";
-import { toast } from "sonner";
 
 interface ContextPanelProps {
   leadId: string | null;
@@ -57,7 +57,7 @@ export function ContextPanel({
       return clearLeadHistory(token, leadId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["audit"] });
+      void queryClient.invalidateQueries({ queryKey: ["audit"] });
       setDeleteOpen(false);
       onOpenChange(false); // Close panel after delete
     },

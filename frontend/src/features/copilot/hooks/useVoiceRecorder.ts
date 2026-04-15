@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useCallback, useRef, useState } from "react";
+
 import { transcribeAudio } from "../api/voice-api";
 
 // ── Types ──────────────────────────────────────────────────────────────────

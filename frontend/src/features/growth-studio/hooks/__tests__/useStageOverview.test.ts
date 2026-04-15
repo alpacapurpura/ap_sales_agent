@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import React from "react";
-import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
+import React from "react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
 
@@ -60,8 +60,8 @@ vi.mock("../../api/stage-overview-api", () => ({
 
 // ── Import after mocks ────────────────────────────────────────────────────────
 
-import { useStageOverview } from "../useStageOverview";
 import { GrowthStudioProvider } from "../../components/metrics-dashboard/context/GrowthStudioContext";
+import { useStageOverview } from "../useStageOverview";
 
 // ── Tests ──────────────────────────────────────────────────────────────────────
 

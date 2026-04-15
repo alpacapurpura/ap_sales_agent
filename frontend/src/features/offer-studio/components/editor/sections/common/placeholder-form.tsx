@@ -1,7 +1,9 @@
 import React from "react";
-import { UseFormReturn } from "react-hook-form";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { OfferFormValues } from "../../../../types/schema";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { UseFormReturn } from "react-hook-form";
 
 export interface PlaceholderFormProps {
   sectionId?: string;

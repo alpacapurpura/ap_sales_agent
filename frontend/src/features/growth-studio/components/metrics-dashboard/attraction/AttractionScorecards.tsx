@@ -1,12 +1,15 @@
 "use client";
 
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { memo, useMemo } from "react";
 import { Area, AreaChart } from "recharts";
+
 import { ChartContainer } from "@/components/ui/chart";
-import { TrendingUp, TrendingDown } from "lucide-react";
-import type { StageTimeSeries } from "../../../types/metrics";
+
 import { formatMetricValue } from "../../../utils/format-metric-value";
 import { MetricInfoCard } from "../channel-widgets/KpiTooltip";
+
+import type { StageTimeSeries } from "../../../types/metrics";
 
 interface AttractionScorecardsProps {
   timeSeries: StageTimeSeries | undefined;

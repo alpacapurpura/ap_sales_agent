@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { Loader2, Key, AlertTriangle, CheckCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -18,10 +21,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { settingsApi, AISettings } from "@/lib/api/settings";
-import { toast } from "sonner";
+import { settingsApi } from "@/lib/api/settings";
+
+import type { AISettings } from "@/lib/api/settings";
 
 const formSchema = z.object({
   openai_api_key: z.string().optional(),
@@ -58,7 +60,7 @@ export function AIKeysForm() {
         toast.error("Error al cargar la configuración.");
       }
     };
-    loadSettings();
+    void loadSettings();
   }, [getToken, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {

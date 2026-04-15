@@ -1,7 +1,8 @@
 "use client";
 
+import { Save, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { AuthorityItem } from "@/features/brand/types";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,8 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Save, Loader2 } from "lucide-react";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
+
+import type { AuthorityItem } from "@/features/brand/types";
 
 interface AuthorityItemFormProps {
   initialData: AuthorityItem;

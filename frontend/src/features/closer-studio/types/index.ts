@@ -48,7 +48,7 @@ export interface ConversationDetail {
   paused_at: string | null;
   unread_count: number;
   qualification_answers: Record<string, unknown> | null;
-  buying_signals: Array<Record<string, unknown>>;
+  buying_signals: Record<string, unknown>[];
   lead_data: Record<string, unknown> | null;
   customer_profile_id: string | null;
   avatar_url: string | null;

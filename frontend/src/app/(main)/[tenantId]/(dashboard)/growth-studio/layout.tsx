@@ -1,19 +1,20 @@
 "use client";
 
 import { memo } from "react";
+
+import { ChannelConnectionModal } from "@/features/growth-studio/components/metrics-dashboard/channel-widgets/ChannelConnectionModal";
+import { NoDataSidebarPanel } from "@/features/growth-studio/components/metrics-dashboard/channel-widgets/NoDataSidebarPanel";
 import {
   GrowthStudioProvider,
   useGrowthStudioContext,
 } from "@/features/growth-studio/components/metrics-dashboard/context/GrowthStudioContext";
-import { StageSummaryRow } from "@/features/growth-studio/components/metrics-dashboard/stage-widgets/StageSummaryRow";
 import { useStageSummaries } from "@/features/growth-studio/components/metrics-dashboard/hooks/useStageSummaries";
-import MetricSidebar from "@/features/growth-studio/components/metrics-dashboard/sidebar/MetricSidebar";
 import ChannelDetailSidebar from "@/features/growth-studio/components/metrics-dashboard/sidebar/ChannelDetailSidebar";
+import MetricSidebar from "@/features/growth-studio/components/metrics-dashboard/sidebar/MetricSidebar";
 import { SidebarContent } from "@/features/growth-studio/components/metrics-dashboard/sidebar/SidebarContent";
-import { ChannelConnectionModal } from "@/features/growth-studio/components/metrics-dashboard/channel-widgets/ChannelConnectionModal";
-import { NoDataSidebarPanel } from "@/features/growth-studio/components/metrics-dashboard/channel-widgets/NoDataSidebarPanel";
-import { GrowthSyncProvider } from "@/features/growth-studio/context/growth-sync-context";
+import { StageSummaryRow } from "@/features/growth-studio/components/metrics-dashboard/stage-widgets/StageSummaryRow";
 import { SyncProgressDialog } from "@/features/growth-studio/components/sync-progress-dialog";
+import { GrowthSyncProvider } from "@/features/growth-studio/context/growth-sync-context";
 
 const GrowthStudioShell = memo(function GrowthStudioShell({
   children,

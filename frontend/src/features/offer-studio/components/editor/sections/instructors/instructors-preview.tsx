@@ -1,9 +1,11 @@
-import React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { OfferFormValues } from "../../../../types/schema";
-import { useFormContext } from "react-hook-form";
 import { User, UserX } from "lucide-react";
+import React from "react";
+import { useFormContext } from "react-hook-form";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
+import type { OfferFormValues } from "../../../../types/schema";
 
 interface InstructorsPreviewProps {
   data?: Partial<OfferFormValues>;

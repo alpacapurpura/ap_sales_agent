@@ -4,9 +4,11 @@ import { Loader2, ShoppingBag } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from "recharts";
 
 import { ChartContainer } from "@/components/ui/chart";
+
 import { MetaAdsMiniFunnel } from "../../meta-ads/MetaAdsMiniFunnel";
 import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
 import { ChartSection } from "../../shared/ChartSection";
+
 import type { WebsiteData } from "../types";
 
 interface WebsiteConversionsTabProps {

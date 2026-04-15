@@ -1,17 +1,20 @@
 "use client";
 
-import { memo, useState } from "react";
 import { MessageSquare, Eye } from "lucide-react";
-import { useCopilotStore } from "../store/copilot-store";
-import { useRouteTracker } from "../hooks/useRouteTracker";
-import { useCopilotNavigator } from "../hooks/useCopilotNavigator";
-import { CopilotChat } from "./CopilotChat";
-import { CopilotRail } from "./CopilotRail";
-import { CopilotHeader } from "./copilot-header";
-import { CopilotPreviewPane } from "./copilot-preview-pane";
-import { FocusBar } from "./focus-bar";
+import { memo, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+import { useCopilotNavigator } from "../hooks/useCopilotNavigator";
+import { useRouteTracker } from "../hooks/useRouteTracker";
+import { useCopilotStore } from "../store/copilot-store";
+
+import { CopilotHeader } from "./copilot-header";
+import { CopilotPreviewPane } from "./copilot-preview-pane";
+import { CopilotChat } from "./CopilotChat";
+import { CopilotRail } from "./CopilotRail";
+import { FocusBar } from "./focus-bar";
 
 // ── Width classes for md+ screens ────────────────────────────────────
 const SIDEBAR_WIDTHS = {

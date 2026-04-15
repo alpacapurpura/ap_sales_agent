@@ -10,13 +10,16 @@ import {
 } from "@/components/ui/detail-panel";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+
 import { diagnoseStep } from "../../../../../utils/automation-health";
 import {
   AUTOMATION_METRIC_INFO,
   type MetricInfo,
 } from "../../../../../utils/automation-metric-info";
-import type { AutomationStep } from "../../../../../types/mail-types";
+
 import { MetricInfoTooltip } from "./MetricInfoTooltip";
+
+import type { AutomationStep } from "../../../../../types/mail-types";
 
 interface AutomationStepSidebarProps {
   step: AutomationStep | null;

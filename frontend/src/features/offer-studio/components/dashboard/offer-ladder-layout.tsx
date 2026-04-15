@@ -1,8 +1,12 @@
-import { Offer, OfferValueLevel } from "@/features/offer-studio/types";
-import { OfferCard } from "./offer-card";
-import { AddOfferCard } from "./add-offer-card";
-import { Button } from "@/components/ui/button";
 import { Plus, Zap, Users, Trophy, Building2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { OfferValueLevel } from "@/features/offer-studio/types";
+
+import { AddOfferCard } from "./add-offer-card";
+import { OfferCard } from "./offer-card";
+
+import type { Offer } from "@/features/offer-studio/types";
 
 interface OfferLadderLayoutProps {
   groupedOffers: Record<string, Offer[]>;

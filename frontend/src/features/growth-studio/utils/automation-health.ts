@@ -92,8 +92,7 @@ export function diagnoseStep(step: AutomationStep, previousStep?: AutomationStep
   }
 
   if (
-    previousStep &&
-    previousStep.type === "email" &&
+    previousStep?.type === "email" &&
     previousStep.openRate > 0 &&
     step.openRate < previousStep.openRate * 0.6
   ) {

@@ -2,7 +2,9 @@
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
 import { knowledgeApi } from "../api/knowledge-api";
+
 import type {
   KnowledgeListQuery,
   KnowledgeListResponse,
@@ -29,8 +31,8 @@ export function useKnowledgeSources(offerId: string, query?: KnowledgeListQuery)
 }
 
 const invalidateKnowledge = (queryClient: ReturnType<typeof useQueryClient>, offerId: string) => {
-  queryClient.invalidateQueries({ queryKey: ["offer", offerId, "knowledge"] });
-  queryClient.invalidateQueries({ queryKey: ["offer", offerId, "counts"] });
+  void queryClient.invalidateQueries({ queryKey: ["offer", offerId, "knowledge"] });
+  void queryClient.invalidateQueries({ queryKey: ["offer", offerId, "counts"] });
 };
 
 export function useUploadKnowledge(offerId: string) {

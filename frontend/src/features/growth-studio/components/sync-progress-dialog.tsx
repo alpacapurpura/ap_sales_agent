@@ -1,6 +1,10 @@
 "use client";
 
+import { CheckCircle2, AlertCircle, Zap } from "lucide-react";
 import { useEffect } from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,9 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { CheckCircle2, AlertCircle, Zap } from "lucide-react";
+
 import { useGrowthSync } from "../context/growth-sync-context";
 
 export function SyncProgressDialog() {

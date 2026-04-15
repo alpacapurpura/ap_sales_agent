@@ -1,12 +1,7 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
   ExternalLink,
   Package,
@@ -17,14 +12,22 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import type { MetricClickData, StageId } from "../../../types/metrics";
-import { getChannelColor, getChannelIcon } from "../../../lib/channelIcons";
-import { METRIC_LABELS } from "../../../lib/metric-labels";
-import { formatMoney } from "@/lib/format-money";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantDate } from "@/lib/format-date";
+import { formatMoney } from "@/lib/format-money";
+
 import { getOfferProductsDetail } from "../../../api/product-mapping-api";
+import { getChannelColor, getChannelIcon } from "../../../lib/channelIcons";
+import { METRIC_LABELS } from "../../../lib/metric-labels";
+
 import type { OfferProductDetail } from "../../../api/product-mapping-api";
+import type { MetricClickData, StageId } from "../../../types/metrics";
+import type { CSSProperties } from "react";
 
 interface SidebarContentProps {
   /** The metric that was clicked; null if sidebar was opened without context */
@@ -904,7 +907,7 @@ function AdoptionMetricDetail({ metric }: { metric: MetricClickData }) {
 function ExpansionMetricDetail({ metric }: { metric: MetricClickData }) {
   let title = "Expansión — Ingreso recurrente, upsell y cancelaciones";
   let desc = "Esta métrica refleja el movimiento neto de MRR en el período actual.";
-  let analysisTitle = "Análisis de oportunidad";
+  const analysisTitle = "Análisis de oportunidad";
   let analysisDesc =
     "La inteligencia del sistema ha detectado que existe una gran oportunidad de optimización realizando acciones de retención o upsell.";
 
@@ -947,7 +950,7 @@ function ExpansionMetricDetail({ metric }: { metric: MetricClickData }) {
 function EvangelizationMetricDetail({ metric }: { metric: MetricClickData }) {
   let title = "Evangelización — K-Factor, referidos y NPS";
   let desc = "Esta métrica mide el impacto viral de tus clientes más satisfechos.";
-  let analysisTitle = "Análisis de oportunidad";
+  const analysisTitle = "Análisis de oportunidad";
   let analysisDesc = "Identifica a tus promotores para generar referidos y contenido UGC.";
 
   if (metric.metricName === "setup_nps") {

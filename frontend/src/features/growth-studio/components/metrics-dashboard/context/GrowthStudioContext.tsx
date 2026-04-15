@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   createContext,
   useContext,
@@ -10,16 +11,18 @@ import {
   useRef,
   type ReactNode,
 } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { providerToConnectionRoute } from "../../../lib/providerToConnectionRoute";
+
+import { useMetricClickHandler } from "./useMetricClickHandler";
+
+import type { PeriodType } from "../../../api/stage-detail-api";
 import type {
   StageId,
   MetricClickData,
   ChannelMetric,
   MetaAdsDashboardTab,
 } from "../../../types/metrics";
-import type { PeriodType } from "../../../api/stage-detail-api";
-import { useMetricClickHandler } from "./useMetricClickHandler";
-import { providerToConnectionRoute } from "../../../lib/providerToConnectionRoute";
 
 // ── Split contexts: stable actions vs reactive state ──────────────
 // Actions context never changes identity after mount, preventing
@@ -236,7 +239,6 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   // Reset sidebars when stage changes — legitimately syncs multiple pieces
   // of local UI state when the user navigates to a different funnel stage.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimately resets UI on stage nav
     setSidebarOpen(false);
 
     setSidebarMetric(null);

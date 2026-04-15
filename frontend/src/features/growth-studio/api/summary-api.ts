@@ -1,10 +1,12 @@
-import { fetchClient } from "@/lib/http-client";
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
 import { ENABLE_MOCKS } from "@/lib/mock-config";
+
 import type { BowtiesSummary, StageSummaryKpi } from "../types/summary";
 
 const API_URL = config.api.baseUrl;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
 function mapStageSummary(raw: any): StageSummaryKpi {
   return {
     stage: raw.stage,

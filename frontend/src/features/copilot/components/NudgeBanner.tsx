@@ -1,8 +1,9 @@
 "use client";
 
-import { memo } from "react";
-import { Lightbulb, X } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
+import { Lightbulb, X } from "lucide-react";
+import { memo } from "react";
+
 import { reportCopilotEvent } from "../api/copilot-api";
 
 interface NudgeItem {
@@ -29,7 +30,7 @@ export const NudgeBanner = memo(function NudgeBanner({
 
   const handleAction = () => {
     onAction(nudge.suggested_prompt);
-    getToken().then((token) => {
+    void getToken().then((token) => {
       if (token) {
         reportCopilotEvent(
           "nudge_clicked",
@@ -46,7 +47,7 @@ export const NudgeBanner = memo(function NudgeBanner({
 
   const handleDismiss = () => {
     onDismiss(nudge.id);
-    getToken().then((token) => {
+    void getToken().then((token) => {
       if (token) {
         reportCopilotEvent(
           "nudge_dismissed",

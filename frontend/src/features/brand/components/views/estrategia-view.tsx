@@ -1,18 +1,21 @@
 "use client";
 
 import { useMemo } from "react";
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
 import { useBrandStudio } from "@/features/brand/context/brand-studio-context";
-import { BrandSectionShell } from "../layout/brand-section-shell";
-import { SectionHeader } from "../layout/section-header";
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
 import { BRAND_SECTIONS, buildSectionNavItems } from "../../config/sections";
-import type { BrandStrategy } from "../../types";
 
 // Preview components
 import { DifferentiationPreview } from "../../sections/differentiation/differentiation-preview";
 import { MarketPreview } from "../../sections/market/market-preview";
-import { NarrativePreview } from "../../sections/narrative/narrative-preview";
 import { MethodologySection } from "../../sections/methodology/methodology-preview";
+import { NarrativePreview } from "../../sections/narrative/narrative-preview";
+import { BrandSectionShell } from "../layout/brand-section-shell";
+import { SectionHeader } from "../layout/section-header";
+
+import type { BrandStrategy } from "../../types";
 
 const SECTION = BRAND_SECTIONS.estrategia;
 

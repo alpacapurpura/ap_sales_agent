@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   BookOpen,
   type LucideIcon,
@@ -9,8 +7,12 @@ import {
   LayoutDashboard,
   Megaphone,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
 import type { OfferCountsResponse } from "../../types/counts";
 
 export interface OfferTabBarProps {

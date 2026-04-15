@@ -1,12 +1,16 @@
 "use client";
 
-import { memo, useCallback } from "react";
 import { usePathname } from "next/navigation";
+import { memo, useCallback } from "react";
+
 import { useNavigation } from "@/components/shared/navigation";
-import type { StageId, StageSummary } from "../../../types/metrics";
-import { StageCard } from "./StageCard";
-import { STAGE_TO_SLUG } from "../context/GrowthStudioContext";
 import { cn } from "@/lib/utils";
+
+import { STAGE_TO_SLUG } from "../context/GrowthStudioContext";
+
+import { StageCard } from "./StageCard";
+
+import type { StageId, StageSummary } from "../../../types/metrics";
 
 interface StageSummaryRowProps {
   stages: StageSummary[];
@@ -57,7 +61,7 @@ export const StageSummaryRow = memo(function StageSummaryRow({
       >
         {stages.map((stage, index) => {
           const isActive = activeStage === stage.id;
-          const isNextActive = stages[index + 1] && activeStage === stages[index + 1].id;
+          const isNextActive = activeStage === stages[index + 1]?.id;
           const isLast = index === stages.length - 1;
 
           return (

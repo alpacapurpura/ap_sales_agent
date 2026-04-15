@@ -1,19 +1,5 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { useStageTimeSeries } from "../../../hooks/useStageDetail";
-import { useStageOverview } from "../../../hooks/useStageOverview";
-import { useIntersectionObserver } from "../../../hooks/useIntersectionObserver";
-import { useGrowthSync } from "../../../context/growth-sync-context";
-import { ActionPanel } from "../action-widgets/ActionPanel";
-import DetailSkeleton from "../ui/DetailSkeleton";
-import DetailError from "../ui/DetailError";
-import type {
-  MetricClickData,
-  StageTimeSeries as TSType,
-  ChannelMetric,
-} from "../../../types/metrics";
-import { Button } from "@/components/ui/button";
 import {
   Settings,
   RefreshCw,
@@ -26,14 +12,28 @@ import {
   Globe,
   Bot,
 } from "lucide-react";
-import { DateRangePicker } from "../ui/DateRangePicker";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { useGrowthSync } from "../../../context/growth-sync-context";
+import { useIntersectionObserver } from "../../../hooks/useIntersectionObserver";
+import { useStageTimeSeries } from "../../../hooks/useStageDetail";
+import { useStageOverview } from "../../../hooks/useStageOverview";
+import { ActionPanel } from "../action-widgets/ActionPanel";
 import { AttractionScorecards } from "../attraction/AttractionScorecards";
 import { AttractionTrendChart } from "../attraction/AttractionTrendChart";
 import { CaptureBreakdownChart } from "../attraction/CaptureBreakdownChart";
 import { ConversionBridge } from "../attraction/ConversionBridge";
 import { LazyChannelGroup } from "../channel-widgets/LazyChannelGroup";
-
 import { useGrowthStudioContext } from "../context/GrowthStudioContext";
+import { DateRangePicker } from "../ui/DateRangePicker";
+import DetailError from "../ui/DetailError";
+import DetailSkeleton from "../ui/DetailSkeleton";
+
+import type {
+  MetricClickData,
+  StageTimeSeries as TSType,
+  ChannelMetric,
+} from "../../../types/metrics";
 
 // ─── Mobile Charts Expand ────────────────────────────────────────────────────
 

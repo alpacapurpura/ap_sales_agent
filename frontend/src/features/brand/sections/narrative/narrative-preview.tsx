@@ -1,7 +1,5 @@
 "use client";
 
-import { BrandNarrative } from "@/features/brand/types";
-import { cn } from "@/lib/utils";
 import {
   Pencil,
   BookOpen,
@@ -12,9 +10,13 @@ import {
   Megaphone,
   TrendingUp,
 } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+
+import type { BrandNarrative } from "@/features/brand/types";
 
 interface NarrativePreviewProps {
   narrative: BrandNarrative;

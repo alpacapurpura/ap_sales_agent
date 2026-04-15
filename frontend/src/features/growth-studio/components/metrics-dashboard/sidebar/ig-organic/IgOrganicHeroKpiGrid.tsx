@@ -1,6 +1,7 @@
 "use client";
 
 import { HeroKpiGrid } from "../shared/HeroKpiGrid";
+
 import type { MetricKpiData, MetricTimeSeries } from "../../../../types/metrics";
 
 const IG_HERO_METRICS = [

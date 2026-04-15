@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { ExternalLink, Loader2, Mail, RefreshCw, AlertTriangle } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -9,18 +9,20 @@ import {
   DetailPanelTitle,
   DetailPanelClose,
 } from "@/components/ui/detail-panel";
-import { cn } from "@/lib/utils";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantDateTime } from "@/lib/format-date";
+import { cn } from "@/lib/utils";
+
 import { useMailDashboard } from "../../../../hooks/useMailDashboard";
 import { useSyncChannel } from "../../../../hooks/useSyncChannel";
-import type { ChannelMetric, MetaAdsPeriod } from "../../../../types/metrics";
-import type { FunnelStep } from "../../../../types/metrics";
-import { PeriodSelector } from "../shared/PeriodSelector";
 import { HeroKpiGrid } from "../shared/HeroKpiGrid";
-import { MailHealthScore } from "./MailHealthScore";
+import { PeriodSelector } from "../shared/PeriodSelector";
+
 import { MailCampaignCards } from "./MailCampaignCards";
 import { MailDeliverabilityHealth } from "./MailDeliverabilityHealth";
+import { MailHealthScore } from "./MailHealthScore";
+
+import type { FunnelStep, ChannelMetric, MetaAdsPeriod } from "../../../../types/metrics";
 
 // ---------------------------------------------------------------------------
 // Constants

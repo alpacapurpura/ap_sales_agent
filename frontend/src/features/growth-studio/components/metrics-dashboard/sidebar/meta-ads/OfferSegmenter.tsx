@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useMemo, useRef } from "react";
-import type { KeyboardEvent, ReactNode } from "react";
 import { AlertTriangle, Check, Sparkles } from "lucide-react";
+import { useCallback, useMemo, useRef } from "react";
 
 import { cn } from "@/lib/utils";
+
 import { archetypeEmoji } from "../../../../types/offer-association";
+
 import type { OfferMetrics } from "../../../../types/offer-association";
+import type { KeyboardEvent, ReactNode } from "react";
 
 export type OfferSegmenterSelection = string | "all" | "unassigned" | "branding";
 
@@ -127,14 +129,14 @@ export function OfferSegmenter({
 }: OfferSegmenterProps) {
   // Build the ordered list of chips that will be rendered. This drives both the
   // render loop and the keyboard navigation order.
-  type ChipDescriptor = {
+  interface ChipDescriptor {
     key: string;
     kind: ChipKind;
     value: OfferSegmenterSelection;
     label: string;
     emoji?: string;
     ariaLabel?: string;
-  };
+  }
 
   const chips = useMemo<ChipDescriptor[]>(() => {
     const list: ChipDescriptor[] = [{ key: "all", kind: "all", value: "all", label: "Todas" }];
@@ -175,7 +177,7 @@ export function OfferSegmenter({
     chips.findIndex((c) => c.value === selectedOfferId),
   );
 
-  const chipRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const chipRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const focusChipAt = useCallback((index: number) => {
     const el = chipRefs.current[index];

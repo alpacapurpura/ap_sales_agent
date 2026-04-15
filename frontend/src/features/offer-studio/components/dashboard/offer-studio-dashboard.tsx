@@ -1,19 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useParams } from "next/navigation";
-import { useNavigation } from "@/components/shared/navigation";
-import { offerApi } from "@/features/offer-studio/api";
-import { useArchiveOffer } from "@/features/offer-studio/hooks/use-offer";
-import { Offer, OfferValueLevel } from "@/features/offer-studio/types";
-import { startInterview } from "@/features/copilot/api/interview-api";
-import { useCopilotStore } from "@/features/copilot/store/copilot-store";
-import { LeadMagnetStreamCard } from "./lead-magnet-stream-card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
 import {
   AlertCircle,
   Plus,
@@ -24,15 +12,33 @@ import {
   Building2,
   SearchX,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
-import { OfferLegend } from "./offer-legend";
-import { OfferLadderLayout } from "./offer-ladder-layout";
-import { CreateOfferWizard, WizardResult } from "../wizard/CreateOfferWizard";
+import { useNavigation } from "@/components/shared/navigation";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { startInterview } from "@/features/copilot/api/interview-api";
+import { useCopilotStore } from "@/features/copilot/store/copilot-store";
+import { offerApi } from "@/features/offer-studio/api";
+import { useArchiveOffer } from "@/features/offer-studio/hooks/use-offer";
+
+import { OfferValueLevel } from "@/features/offer-studio/types";
 import { computeLadderCompleteness } from "@/features/offer-studio/utils/ladder-completeness";
+import { cn } from "@/lib/utils";
 
-import { LucideIcon } from "lucide-react";
+import { CreateOfferWizard } from "../wizard/CreateOfferWizard";
+import { LeadMagnetStreamCard } from "./lead-magnet-stream-card";
+
+import { OfferLadderLayout } from "./offer-ladder-layout";
+import { OfferLegend } from "./offer-legend";
+
+import type { WizardResult } from "../wizard/CreateOfferWizard";
+import type { Offer } from "@/features/offer-studio/types";
+
+import type { LucideIcon } from "lucide-react";
 
 const LEVEL_RICH_INFO: Record<string, { title: string; description: string; icon: LucideIcon }> = {
   [OfferValueLevel.LEAD_MAGNET]: {

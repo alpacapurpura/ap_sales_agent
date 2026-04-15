@@ -1,11 +1,11 @@
 "use client";
 
+import { Save, Loader2, ArrowLeft } from "lucide-react";
 import { useState } from "react";
-import { FunnelAsset, CreativeConcept } from "@/features/brand/types";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -13,7 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Save, Loader2, ArrowLeft } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+
+import type { FunnelAsset, CreativeConcept } from "@/features/brand/types";
 
 interface AssetItemFormProps {
   asset: FunnelAsset;

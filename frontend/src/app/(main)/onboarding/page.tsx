@@ -1,8 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { LogOut, Rocket, User, Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,8 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 export default function OnboardingPage() {
   const { signOut } = useClerk();

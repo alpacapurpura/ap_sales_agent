@@ -1,27 +1,29 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { ArrowLeft, Mail, RefreshCw } from "lucide-react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
+import { useState, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { useHashScroll } from "../../../../hooks/useHashScroll";
+
 import { useConnectionHealth } from "../../../../hooks/useConnectionHealth";
+import { useHashScroll } from "../../../../hooks/useHashScroll";
 import { useSyncChannel } from "../../../../hooks/useSyncChannel";
-import type { MetaAdsPeriod, MailDashboardTab } from "../../../../types/metrics";
 import { ConnectionHealthBanner } from "../../../connection-health-banner";
 import { PeriodSelector } from "../shared/PeriodSelector";
-import { MailPanoramaTab } from "./tabs/MailPanoramaTab";
-import { MailCampanasTab } from "./tabs/MailCampanasTab";
-import { MailAutomatizacionesTab } from "./tabs/MailAutomatizacionesTab";
 
 import { MailAudienciaTab } from "./tabs/MailAudienciaTab";
-import { MailEntregabilidadV2Tab } from "./tabs/MailEntregabilidadV2Tab";
+import { MailAutomatizacionesTab } from "./tabs/MailAutomatizacionesTab";
+import { MailCampanasTab } from "./tabs/MailCampanasTab";
 import { MailCrecimientoTab } from "./tabs/MailCrecimientoTab";
+import { MailEntregabilidadV2Tab } from "./tabs/MailEntregabilidadV2Tab";
+import { MailPanoramaTab } from "./tabs/MailPanoramaTab";
+
+import type { MetaAdsPeriod, MailDashboardTab } from "../../../../types/metrics";
 
 interface MailDashboardProps {
   onClose?: () => void;

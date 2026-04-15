@@ -1,19 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Rocket, Plus, CalendarPlus } from "lucide-react";
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+
 import { useEditions } from "../../hooks/use-editions";
-import {
+
+import { EditionCard } from "./EditionCard";
+import { EditionFormDialog } from "./EditionFormDialog";
+
+import type {
   LaunchEdition,
   LaunchEditionCreate,
   LaunchEditionUpdate,
   PricingStructure,
 } from "../../types";
-import { EditionCard } from "./EditionCard";
-import { EditionFormDialog } from "./EditionFormDialog";
 
 interface EditionsSectionProps {
   offerId: string;

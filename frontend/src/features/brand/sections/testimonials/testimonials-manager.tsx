@@ -1,15 +1,18 @@
 "use client";
 
+import { Plus, MessageSquareQuote, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
-import { TestimonialsList } from "./testimonials-list";
-import { TestimonialItemForm } from "./testimonial-item-form";
-import { TestimonialItem } from "@/features/brand/types";
+import { v4 as uuidv4 } from "uuid";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, MessageSquareQuote, Loader2 } from "lucide-react";
-import { v4 as uuidv4 } from "uuid";
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
+import { TestimonialItemForm } from "./testimonial-item-form";
+import { TestimonialsList } from "./testimonials-list";
+
+import type { TestimonialItem } from "@/features/brand/types";
 
 export function TestimonialsManager() {
   const { settings, updateTestimonials, loading, saving } = useBrandSettings();
@@ -36,7 +39,7 @@ export function TestimonialsManager() {
   };
 
   const handleSave = async (item: TestimonialItem) => {
-    let newItems = [...items];
+    const newItems = [...items];
     const index = newItems.findIndex((m) => m.id === item.id);
 
     if (index >= 0) {

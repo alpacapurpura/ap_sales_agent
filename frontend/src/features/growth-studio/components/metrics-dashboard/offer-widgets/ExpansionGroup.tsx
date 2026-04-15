@@ -1,8 +1,10 @@
 "use client";
 
-import type { ExpansionGroupData } from "../../../types/metrics";
-import { ExpansionOfferRow } from "./ExpansionOfferRow";
 import { formatDualCurrency } from "@/lib/format-money";
+
+import { ExpansionOfferRow } from "./ExpansionOfferRow";
+
+import type { ExpansionGroupData } from "../../../types/metrics";
 
 interface ExpansionGroupProps {
   group: ExpansionGroupData;

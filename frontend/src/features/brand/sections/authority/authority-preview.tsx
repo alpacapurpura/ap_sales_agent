@@ -1,6 +1,7 @@
-import { BrandIdentity, AuthorityItem, BrandVisuals } from "@/features/brand/types";
 import { Award, ExternalLink, PlusCircle } from "lucide-react";
 import Image from "next/image";
+
+import type { BrandIdentity, AuthorityItem, BrandVisuals } from "@/features/brand/types";
 
 interface TrustSectionProps {
   identity: BrandIdentity;

@@ -1,8 +1,10 @@
-import React from "react";
-import { OfferFormValues } from "../../../../types/schema";
-import { useFormContext } from "react-hook-form";
 import { FileText, Link as LinkIcon, Headphones, Download } from "lucide-react";
+import React from "react";
+import { useFormContext } from "react-hook-form";
+
 import { AssetType } from "../../../../types";
+
+import type { OfferFormValues } from "../../../../types/schema";
 
 interface ResourcesPreviewProps {
   data?: Partial<OfferFormValues>;

@@ -1,13 +1,15 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
+
+import { SqueezeServerTpl } from "@/features/offer-studio/components/landing/templates/server/SqueezeServerTpl";
+import { LandingPageArchetype } from "@/features/offer-studio/components/landing/types/schema";
 import { config } from "@/lib/config";
+
 import type {
   LandingPageConfig,
   SqueezeContent,
 } from "@/features/offer-studio/components/landing/types/schema";
-import { LandingPageArchetype } from "@/features/offer-studio/components/landing/types/schema";
-import { SqueezeServerTpl } from "@/features/offer-studio/components/landing/templates/server/SqueezeServerTpl";
+import type { Metadata } from "next";
 
 async function getPublicLanding(slug: string, tenantId: string): Promise<LandingPageConfig | null> {
   try {

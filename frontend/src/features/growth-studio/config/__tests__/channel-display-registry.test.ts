@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { MetricValue } from "../../types/metrics";
+
 import {
   CHANNEL_DISPLAY_REGISTRY,
   getChannelConfig,
@@ -7,6 +7,8 @@ import {
   getPrimaryMetricSpec,
   getExpandedMetrics,
 } from "../channel-display-registry";
+
+import type { MetricValue } from "../../types/metrics";
 
 // ─── Test data ──────────────────────────────────────────────────────────────
 

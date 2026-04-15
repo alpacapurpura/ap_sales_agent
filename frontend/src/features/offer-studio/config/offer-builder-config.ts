@@ -1,6 +1,3 @@
-import { ComponentType } from "react";
-import { SectionProps } from "../types/section";
-import { OfferArchetype } from "../types";
 import {
   Target,
   Fingerprint,
@@ -18,30 +15,29 @@ import {
   DollarSign,
   CheckCircle,
   Rocket,
-  LucideIcon,
 } from "lucide-react";
 
 // Preview Imports
-import { PlaceholderPreview } from "../components/editor/sections/common/placeholder-preview";
-import { StrategyPreview } from "../components/editor/sections/strategy/strategy-preview";
+import { EditionsSection } from "../components/editions/EditionsSection";
+import { ClosingForm } from "../components/editor/sections/closing/closing-form";
+import { ClosingPreview } from "../components/editor/sections/closing/closing-preview";
+import { IdentityForm } from "../components/editor/sections/identity/identity-form";
 import { IdentityPreview } from "../components/editor/sections/identity/identity-preview";
+import { StrategyPreview } from "../components/editor/sections/strategy/strategy-preview";
 import { PricingPreview } from "../components/editor/sections/pricing/pricing-preview";
 import { InstructorsPreview } from "../components/editor/sections/instructors/instructors-preview";
+import { ValueStackForm } from "../components/editor/sections/value-stack/value-stack-form";
 import { ValueStackPreview } from "../components/editor/sections/value-stack/value-stack-preview";
 import { ResourcesPreview } from "../components/editor/sections/resources/resources-preview";
 import { GalleryPreview } from "../components/editor/sections/visuals/gallery-preview";
-import { ClosingPreview } from "../components/editor/sections/closing/closing-preview";
 
 // Form Imports
 import { StrategyForm } from "../components/editor/sections/strategy/strategy-form";
-import { IdentityForm } from "../components/editor/sections/identity/identity-form";
 import { PricingForm } from "../components/editor/sections/pricing/pricing-form";
 import { PsychologyForm } from "../components/editor/sections/psychology/psychology-form";
 import { PromiseForm } from "../components/editor/sections/promise/promise-form";
-import { ClosingForm } from "../components/editor/sections/closing/closing-form";
 import { InstructorsForm } from "../components/editor/sections/instructors/instructors-form";
 import { InstructorsManager } from "../components/editor/sections/instructors/instructors-manager";
-import { ValueStackForm } from "../components/editor/sections/value-stack/value-stack-form";
 import { ResourcesForm } from "../components/editor/sections/resources/resources-form";
 import { ResourcesManager } from "../components/editor/sections/resources/resources-manager";
 import { GalleryForm } from "../components/editor/sections/visuals/gallery-form";
@@ -51,17 +47,25 @@ import { ProductDetailsForm } from "../components/editor/sections/product-detail
 import { ServiceDetailsForm } from "../components/editor/sections/service-details/service-form";
 import { EventDetailsForm } from "../components/editor/sections/event-details/event-form";
 import { SubscriptionDetailsForm } from "../components/editor/sections/subscription-details/subscription-form";
-import { EditionsSection } from "../components/editions/EditionsSection";
 
 // Placeholder for missing forms/previews if any
 import { PlaceholderForm } from "../components/editor/sections/common/placeholder-form";
+import { PlaceholderPreview } from "../components/editor/sections/common/placeholder-preview";
+import { OfferArchetype } from "../types";
+
+import type { SectionProps } from "../types/section";
+import type { LucideIcon } from "lucide-react";
+import type { ComponentType } from "react";
 
 export interface OfferBuilderSectionConfig {
   id: string;
   title: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- plugin registry: prop types vary per section
   component: ComponentType<SectionProps | any>;
   icon: LucideIcon;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- plugin registry: prop types vary per section
   previewComponent: ComponentType<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- plugin registry: prop types vary per section
   formComponent: ComponentType<any>;
 }
 

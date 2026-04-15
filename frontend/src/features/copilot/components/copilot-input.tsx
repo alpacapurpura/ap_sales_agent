@@ -1,12 +1,15 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
 import { Send } from "lucide-react";
+import { useRef, useState, useCallback } from "react";
+
 import { cn } from "@/lib/utils";
+
 import { useVoiceRecorder } from "../hooks/useVoiceRecorder";
+
 import { AttachmentButton } from "./shared/attachment-button";
-import { VoiceButton, RecordingIndicator, TranscribingIndicator } from "./shared/voice-button";
 import { DocumentChip, type DocumentStatus } from "./shared/document-chip";
+import { VoiceButton, RecordingIndicator, TranscribingIndicator } from "./shared/voice-button";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

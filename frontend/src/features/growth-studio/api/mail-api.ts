@@ -3,9 +3,9 @@
  * Maps snake_case backend responses to camelCase frontend types.
  */
 
-import { fetchClient } from "@/lib/http-client";
 import { config } from "@/lib/config";
-import type { MetaAdsPeriod } from "../types/metrics";
+import { fetchClient } from "@/lib/http-client";
+
 import type {
   EmailDashboardData,
   EmailCampaignsData,
@@ -28,7 +28,7 @@ import type {
   ActivityHeatmapCell,
   BounceBreakdown,
 } from "../types/mail-types";
-import type { MetricKpiData, MetricTimeSeries, FunnelStep } from "../types/metrics";
+import type { MetaAdsPeriod, MetricKpiData, MetricTimeSeries, FunnelStep } from "../types/metrics";
 
 const API_URL = config.api.baseUrl;
 
@@ -52,7 +52,7 @@ function mapKpi(raw: Record<string, unknown>): MetricKpiData {
 }
 
 function mapTimeSeries(raw: Record<string, unknown>): MetricTimeSeries {
-  const dp = raw.data_points as Array<{ date: string; value: number }>;
+  const dp = raw.data_points as { date: string; value: number }[];
   return {
     metricName: raw.metric_name as string,
     displayName: raw.display_name as string,
@@ -80,7 +80,7 @@ function mapHealthSubScore(raw: Record<string, unknown>): EmailHealthSubScore {
 }
 
 function mapHealthScore(raw: Record<string, unknown>): EmailHealthScore {
-  const subs = raw.sub_scores as Array<Record<string, unknown>>;
+  const subs = raw.sub_scores as Record<string, unknown>[];
   return {
     total: raw.total as number,
     subScores: subs.map(mapHealthSubScore),
@@ -119,9 +119,9 @@ function mapCampaignsVsAutomations(raw: Record<string, unknown>): CampaignsVsAut
 // ---------------------------------------------------------------------------
 
 function mapEmailDashboardResponse(raw: Record<string, unknown>): EmailDashboardData {
-  const kpis = raw.kpis as Array<Record<string, unknown>>;
-  const ts = raw.time_series as Array<Record<string, unknown>>;
-  const funnel = raw.funnel as Array<Record<string, unknown>>;
+  const kpis = raw.kpis as Record<string, unknown>[];
+  const ts = raw.time_series as Record<string, unknown>[];
+  const funnel = raw.funnel as Record<string, unknown>[];
   const health = raw.health_score as Record<string, unknown>;
   const best = raw.best_campaign as Record<string, unknown> | null;
   const worst = raw.worst_campaign as Record<string, unknown> | null;
@@ -192,9 +192,9 @@ function mapTypePerformance(raw: Record<string, unknown>): EmailTypePerformance 
 }
 
 function mapEmailCampaignsResponse(raw: Record<string, unknown>): EmailCampaignsData {
-  const types = raw.type_performance as Array<Record<string, unknown>>;
-  const campaigns = raw.campaigns as Array<Record<string, unknown>>;
-  const subjects = raw.top_subjects as Array<Record<string, unknown>>;
+  const types = raw.type_performance as Record<string, unknown>[];
+  const campaigns = raw.campaigns as Record<string, unknown>[];
+  const subjects = raw.top_subjects as Record<string, unknown>[];
 
   return {
     period: raw.period as string,
@@ -243,7 +243,7 @@ function mapAutomationStep(raw: Record<string, unknown>): AutomationStep {
 }
 
 function mapEmailAutomation(raw: Record<string, unknown>): EmailAutomation {
-  const steps = (raw.steps as Array<Record<string, unknown>> | undefined) ?? [];
+  const steps = (raw.steps as Record<string, unknown>[] | undefined) ?? [];
   return {
     automationId: raw.automation_id as string,
     name: raw.name as string,
@@ -262,8 +262,8 @@ function mapEmailAutomation(raw: Record<string, unknown>): EmailAutomation {
 }
 
 function mapEmailAutomationsResponse(raw: Record<string, unknown>): EmailAutomationsData {
-  const kpis = raw.kpis as Array<Record<string, unknown>>;
-  const automations = raw.automations as Array<Record<string, unknown>>;
+  const kpis = raw.kpis as Record<string, unknown>[];
+  const automations = raw.automations as Record<string, unknown>[];
 
   return {
     period: raw.period as string,
@@ -339,11 +339,11 @@ function mapActivityHeatmapCell(raw: Record<string, unknown>): ActivityHeatmapCe
 }
 
 function mapEmailAudienceResponse(raw: Record<string, unknown>): EmailAudienceData {
-  const segments = raw.segments as Array<Record<string, unknown>>;
-  const matrix = raw.segment_type_matrix as Array<Record<string, unknown>>;
-  const sources = raw.sources as Array<Record<string, unknown>>;
-  const decay = raw.engagement_decay as Array<Record<string, unknown>>;
-  const heatmap = raw.activity_heatmap as Array<Record<string, unknown>>;
+  const segments = raw.segments as Record<string, unknown>[];
+  const matrix = raw.segment_type_matrix as Record<string, unknown>[];
+  const sources = raw.sources as Record<string, unknown>[];
+  const decay = raw.engagement_decay as Record<string, unknown>[];
+  const heatmap = raw.activity_heatmap as Record<string, unknown>[];
 
   return {
     period: raw.period as string,
@@ -384,9 +384,9 @@ function mapBounceBreakdown(raw: Record<string, unknown>): BounceBreakdown {
 
 function mapEmailHealthResponse(raw: Record<string, unknown>): EmailHealthData {
   const health = raw.health_score as Record<string, unknown>;
-  const kpis = raw.kpis as Array<Record<string, unknown>>;
+  const kpis = raw.kpis as Record<string, unknown>[];
   const bounce = raw.bounce_breakdown as Record<string, unknown>;
-  const ts = raw.time_series as Array<Record<string, unknown>>;
+  const ts = raw.time_series as Record<string, unknown>[];
   const alerts = raw.alerts as string[];
 
   return {
@@ -418,10 +418,10 @@ export async function fetchEmailHealth(
 // ---------------------------------------------------------------------------
 
 function mapEmailGrowthResponse(raw: Record<string, unknown>): EmailGrowthData {
-  const kpis = raw.kpis as Array<Record<string, unknown>>;
-  const ts = raw.time_series as Array<Record<string, unknown>>;
-  const sources = raw.sources as Array<Record<string, unknown>>;
-  const retention = raw.retention_curve as Array<Record<string, unknown>>;
+  const kpis = raw.kpis as Record<string, unknown>[];
+  const ts = raw.time_series as Record<string, unknown>[];
+  const sources = raw.sources as Record<string, unknown>[];
+  const retention = raw.retention_curve as Record<string, unknown>[];
 
   return {
     period: raw.period as string,

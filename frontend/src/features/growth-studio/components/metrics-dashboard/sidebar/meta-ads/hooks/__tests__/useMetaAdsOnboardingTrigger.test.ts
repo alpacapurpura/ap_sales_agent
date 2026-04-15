@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { computeMetaAdsOnboardingTrigger } from "../useMetaAdsOnboardingTrigger";
+
 import type { CampaignPerformanceData } from "../../../../../../types/metrics";
 import type { Association } from "../../../../../../types/offer-association";
 

@@ -1,15 +1,16 @@
 "use client";
 
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+
 import { Card } from "@/components/ui/card";
 
 interface MetricSummaryCardProps {
-  metrics: Array<{
+  metrics: {
     label: string;
     value: string;
     trend?: "up" | "down" | "flat";
     delta?: string;
-  }>;
+  }[];
 }
 
 export function MetricSummaryCard({ metrics }: MetricSummaryCardProps) {

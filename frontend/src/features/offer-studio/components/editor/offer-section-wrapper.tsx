@@ -1,4 +1,5 @@
 import React from "react";
+
 import { OfferSection } from "./offer-section/offer-section";
 
 interface OfferSectionWrapperProps {
@@ -7,7 +8,7 @@ interface OfferSectionWrapperProps {
   description?: string;
   quote?: string;
   actionLabel?: string;
-  icon: any;
+  icon: React.ElementType;
   isEmpty: boolean;
   onEdit: () => void;
   children: React.ReactNode;

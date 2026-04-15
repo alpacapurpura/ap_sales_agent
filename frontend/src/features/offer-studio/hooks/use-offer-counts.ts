@@ -1,7 +1,9 @@
 // useOfferCounts — GET /offers/{id}/counts
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
+
 import { countsApi } from "../api/counts-api";
+
 import type { OfferCountsResponse } from "../types/counts";
 
 export function useOfferCounts(offerId: string) {

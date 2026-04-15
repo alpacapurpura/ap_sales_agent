@@ -1,7 +1,10 @@
-import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { whatsappApi, WhatsAppDashboardStatus } from "@/lib/api/whatsapp";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
+
+import { whatsappApi } from "@/lib/api/whatsapp";
+
+import type { WhatsAppDashboardStatus } from "@/lib/api/whatsapp";
 
 export function useWhatsApp() {
   const { getToken } = useAuth();
@@ -13,7 +16,7 @@ export function useWhatsApp() {
 
   // Initial Check
   useEffect(() => {
-    checkStatus();
+    void checkStatus();
     return () => stopPolling();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

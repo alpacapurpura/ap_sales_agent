@@ -1,7 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, act } from "@testing-library/react";
 import { useState, memo } from "react";
+import { describe, it, expect, vi } from "vitest";
+
 import { HeroKpiGrid } from "../../components/metrics-dashboard/sidebar/shared/HeroKpiGrid";
+
 import type { MetricKpiData, MetricTimeSeries } from "../../types/metrics";
 
 // Mock recharts to avoid heavy rendering

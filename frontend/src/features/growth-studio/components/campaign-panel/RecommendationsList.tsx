@@ -1,9 +1,11 @@
 "use client";
 
+import { ExternalLink } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 import type { Recommendation } from "../../types/campaigns";
 
 const IMPORTANCE_STYLES: Record<string, string> = {

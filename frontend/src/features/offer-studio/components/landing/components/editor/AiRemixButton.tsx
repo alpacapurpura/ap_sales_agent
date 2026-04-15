@@ -1,6 +1,10 @@
+import { useAuth } from "@clerk/nextjs";
 import { usePuck } from "@puckeditor/core";
-import { Button } from "@/components/ui/button";
 import { Wand2, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,9 +15,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
-import { useAuth } from "@clerk/nextjs";
-import { toast } from "sonner";
 import { offerApi } from "@/features/offer-studio/api";
 
 interface AiRemixButtonProps {

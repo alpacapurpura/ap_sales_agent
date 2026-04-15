@@ -1,8 +1,10 @@
 import { useAuth } from "@clerk/nextjs";
-import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
 import { editionsApi } from "../api/editions-api";
-import { LaunchEditionCreate, LaunchEditionUpdate } from "../types";
+
+import type { LaunchEditionCreate, LaunchEditionUpdate } from "../types";
 
 export function useEditions(offerId: string) {
   const { getToken } = useAuth();
@@ -31,7 +33,7 @@ export function useEditions(offerId: string) {
       return editionsApi.create(offerId, data, token);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey });
+      void queryClient.invalidateQueries({ queryKey });
       toast.success("Edición creada");
     },
     onError: () => toast.error("Error al crear edición"),
@@ -44,7 +46,7 @@ export function useEditions(offerId: string) {
       return editionsApi.update(offerId, editionId, data, token);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey });
+      void queryClient.invalidateQueries({ queryKey });
       toast.success("Edición actualizada");
     },
     onError: () => toast.error("Error al actualizar edición"),
@@ -57,7 +59,7 @@ export function useEditions(offerId: string) {
       return editionsApi.delete(offerId, editionId, token);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey });
+      void queryClient.invalidateQueries({ queryKey });
       toast.success("Edición eliminada");
     },
     onError: () => toast.error("Error al eliminar edición"),
@@ -70,7 +72,7 @@ export function useEditions(offerId: string) {
       return editionsApi.duplicate(offerId, editionId, token);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey });
+      void queryClient.invalidateQueries({ queryKey });
       toast.success("Edición duplicada");
     },
     onError: () => toast.error("Error al duplicar edición"),
@@ -79,7 +81,7 @@ export function useEditions(offerId: string) {
   return {
     editions,
     loading: isLoading,
-    error: error ? (error as Error).message : null,
+    error: error ? error.message : null,
     createEdition: createMutation.mutateAsync,
     updateEdition: updateMutation.mutateAsync,
     deleteEdition: deleteMutation.mutateAsync,

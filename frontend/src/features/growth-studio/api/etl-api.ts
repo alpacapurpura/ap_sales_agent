@@ -1,12 +1,12 @@
-import { fetchClient } from "@/lib/http-client";
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
 
 const API_URL = config.api.baseUrl;
 
 export async function triggerInitialLoad(
   token: string,
   provider: string,
-  days: number = 30,
+  days = 30,
 ): Promise<{
   status: string;
   total_days: number;
@@ -67,7 +67,7 @@ export interface SyncAllResponse {
   details: SyncProviderResult[];
 }
 
-export async function triggerSyncAll(token: string, days: number = 30): Promise<SyncAllResponse> {
+export async function triggerSyncAll(token: string, days = 30): Promise<SyncAllResponse> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 120_000);
   try {

@@ -1,4 +1,4 @@
-import { OfferFormValues } from "../types/schema";
+import type { OfferFormValues } from "../types/schema";
 
 export const getSectionFields = (sectionId: string): (keyof OfferFormValues)[] => {
   switch (sectionId) {

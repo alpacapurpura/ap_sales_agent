@@ -1,5 +1,9 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
 import {
   Sheet,
   SheetContent,
@@ -7,35 +11,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  BrandSettings,
-  BrandIdentity,
-  KeyFigure,
-  AuthorityItem,
-  ContactData,
-  BrandVisuals,
-  BrandStrategy,
-  BrandStory,
-  TestimonialItem,
-} from "@/features/brand/types";
-import type { EditMode } from "../../types/edit-mode";
-import { EDIT_MODE_META } from "../../config/sections";
-import { useAuth } from "@clerk/nextjs";
-import { useQueryClient } from "@tanstack/react-query";
 import { avatarApi, type CreateAvatarDTO, type Avatar } from "@/lib/api/avatar";
 import { config } from "@/lib/config";
-import { toast } from "sonner";
+
+import { EDIT_MODE_META } from "../../config/sections";
 
 // New Managers
-import { IdentityManager } from "../../sections/identity/identity-manager";
-import { LegalManager } from "../legal/legal-manager";
-import { ContactManager } from "../../sections/contact/contact-manager";
-import { StoryManager } from "../../sections/story/story-manager";
 
-import { MethodologyManager } from "../../sections/methodology/methodology-manager";
-import { VoiceManager } from "../../sections/voice/voice-manager";
-import { VisualsManager } from "../../sections/visuals/visuals-manager";
-import { LogoKitManager } from "../../sections/logos/logo-kit-manager";
 import { PositioningManager } from "../../sections/positioning/positioning-manager";
 import { ValuesEssenceManager } from "../../sections/positioning/values-essence-manager";
 import { NarrativeManager } from "../../sections/narrative/narrative-manager";
@@ -48,7 +30,28 @@ import { TeamMemberForm } from "../../sections/team/team-member-form";
 import { AuthorityItemForm } from "../../sections/authority/authority-item-form";
 import { AuthorityManager } from "../../sections/authority/authority-manager";
 import { AvatarForm } from "../../sections/avatars/avatar-form";
+import { ContactManager } from "../../sections/contact/contact-manager";
+import { IdentityManager } from "../../sections/identity/identity-manager";
+import { LogoKitManager } from "../../sections/logos/logo-kit-manager";
+import { MethodologyManager } from "../../sections/methodology/methodology-manager";
+import { StoryManager } from "../../sections/story/story-manager";
 import { TestimonialsManager } from "../../sections/testimonials/testimonials-manager";
+import { VisualsManager } from "../../sections/visuals/visuals-manager";
+import { VoiceManager } from "../../sections/voice/voice-manager";
+import { LegalManager } from "../legal/legal-manager";
+
+import type { EditMode } from "../../types/edit-mode";
+import type {
+  BrandSettings,
+  BrandIdentity,
+  KeyFigure,
+  AuthorityItem,
+  ContactData,
+  BrandVisuals,
+  BrandStrategy,
+  BrandStory,
+  TestimonialItem,
+} from "@/features/brand/types";
 
 // Component registry for modes that need no special props
 const MODE_COMPONENT: Partial<Record<EditMode, React.ComponentType>> = {
@@ -130,7 +133,7 @@ export function EditSheetManager({
         await avatarApi.createAvatar(token, data);
         toast.success("Avatar creado");
       }
-      queryClient.invalidateQueries({ queryKey: ["avatars"] });
+      void queryClient.invalidateQueries({ queryKey: ["avatars"] });
       onClose();
     } catch (e) {
       console.error(e);
@@ -158,7 +161,7 @@ export function EditSheetManager({
 
   // Authority Item Handler
   const handleAuthorityItemSave = async (item: AuthorityItem) => {
-    let newVault = [...(settings.authority_vault ?? [])];
+    const newVault = [...(settings.authority_vault ?? [])];
     const index = newVault.findIndex((i) => i.id === item.id);
 
     if (index >= 0) {

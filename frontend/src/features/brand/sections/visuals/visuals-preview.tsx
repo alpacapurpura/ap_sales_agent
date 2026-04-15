@@ -1,6 +1,8 @@
-import { BrandVisuals } from "@/features/brand/types";
 import { Palette, Type, Sparkles } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+
+import type { BrandVisuals } from "@/features/brand/types";
 
 interface VisualsSectionProps {
   visuals: BrandVisuals;

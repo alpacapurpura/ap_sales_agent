@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
+
 import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
+
 import type { BrandSettings } from "@/features/brand/types";
 import type { PreviewSummaryProps } from "@/features/copilot/config/interview-preview-registry";
 
@@ -28,7 +30,7 @@ export function BrandPreviewSummary({ completenessScore }: PreviewSummaryProps) 
           typeof v === "object" && v !== null && !Array.isArray(v)
             ? {
                 ...((settings[k as keyof BrandSettings] as object) ?? {}),
-                ...(v as object),
+                ...v,
               }
             : v,
         ]),

@@ -1,13 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { computeLadderCompleteness } from "../utils/ladder-completeness";
+
 import {
-  Offer,
   OfferArchetype,
   OfferValueLevel,
   OfferDeliveryModel,
   OfferStatus,
   GuaranteeType,
 } from "../types";
+import { computeLadderCompleteness } from "../utils/ladder-completeness";
+
+import type { Offer } from "../types";
 
 const makeOffer = (level: OfferValueLevel): Offer => ({
   id: `test-${level}`,

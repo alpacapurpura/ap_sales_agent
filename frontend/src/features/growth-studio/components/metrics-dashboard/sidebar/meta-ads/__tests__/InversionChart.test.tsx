@@ -5,11 +5,9 @@
  * assert on narrative copy, tooltip behavior, reference lines, filtering,
  * and currency labels — without fighting recharts' canvas measurement.
  */
-import React from "react";
 import { render, screen } from "@testing-library/react";
+import React from "react";
 import { describe, expect, it, vi } from "vitest";
-
-import type { MetricTimeSeries } from "../../../../../types/metrics";
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -226,6 +224,8 @@ describe("InversionChart", () => {
 // ---------------------------------------------------------------------------
 
 import { InversionTooltip } from "../InversionChart";
+
+import type { MetricTimeSeries } from "../../../../../types/metrics";
 
 describe("InversionTooltip", () => {
   const tooltipPayload = [

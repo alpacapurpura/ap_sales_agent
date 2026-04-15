@@ -1,4 +1,4 @@
-import { Lead, LeadStatus, LeadTemperature } from "../types";
+import type { Lead, LeadStatus, LeadTemperature } from "../types";
 
 export const MOCK_LEADS: Lead[] = [
   // 1. Empty (new lead)

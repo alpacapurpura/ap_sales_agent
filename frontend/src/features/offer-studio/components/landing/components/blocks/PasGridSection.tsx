@@ -1,4 +1,5 @@
 import React from "react";
+
 import { useLandingTheme } from "@/features/offer-studio/components/landing/context/LandingThemeContext";
 import { getContrastColor } from "@/lib/utils/colors";
 

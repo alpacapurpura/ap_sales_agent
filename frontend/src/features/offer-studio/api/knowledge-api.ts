@@ -1,6 +1,7 @@
 // Offer knowledge sources API adapter — CONTRACT.md §5.4
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
+
 import type {
   KnowledgeListQuery,
   KnowledgeListResponse,

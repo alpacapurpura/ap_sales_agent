@@ -1,10 +1,12 @@
 "use client";
 
-import { BrandPositioning } from "@/features/brand/types";
+import { Trophy, Heart, ShieldCheck, Pencil, Info } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trophy, Heart, ShieldCheck, Pencil, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+import type { BrandPositioning } from "@/features/brand/types";
 
 interface DifferentiationPreviewProps {
   positioning: BrandPositioning;
@@ -49,7 +51,7 @@ const rtbTypeLabels: Record<string, string> = {
 };
 
 export function DifferentiationPreview({ positioning, onEdit }: DifferentiationPreviewProps) {
-  const benefits = positioning.benefits;
+  const { benefits } = positioning;
   const rtbs = positioning.reasons_to_believe ?? [];
 
   const hasUVP = !!positioning.unique_value_proposition;

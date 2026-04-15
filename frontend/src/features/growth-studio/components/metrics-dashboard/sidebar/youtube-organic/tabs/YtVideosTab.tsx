@@ -2,11 +2,12 @@
 
 import { Loader2 } from "lucide-react";
 
-import type { ChannelDashboardData } from "../../../../../types/metrics";
-import { YouTubeTopVideosList } from "../../youtube/YouTubeTopVideosList";
-import { YouTubeTrafficSourcesChart } from "../../youtube/YouTubeTrafficSourcesChart";
 import { ChartInfoTooltip } from "../../ig-organic/ChartInfoTooltip";
 import { ChartSection } from "../../shared/ChartSection";
+import { YouTubeTopVideosList } from "../../youtube/YouTubeTopVideosList";
+import { YouTubeTrafficSourcesChart } from "../../youtube/YouTubeTrafficSourcesChart";
+
+import type { ChannelDashboardData } from "../../../../../types/metrics";
 
 interface YtVideosTabProps {
   data: ChannelDashboardData | undefined;

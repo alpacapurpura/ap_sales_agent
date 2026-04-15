@@ -2,9 +2,10 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
-import { UseFormReturn } from "react-hook-form";
-import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
+
+import { Target, ShieldCheck } from "lucide-react";
+import type { UseFormReturn } from "react-hook-form";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   FormField,
@@ -15,12 +16,17 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { RichSelect } from "@/components/ui/rich-select";
-import { Target, ShieldCheck } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
+import { eventTypesApi } from "@/lib/api/event-types";
+
 import { OnboardingMechanism, GuaranteeType } from "../../../../types";
-import { eventTypesApi, EventType } from "@/lib/api/event-types";
+import { OfferSchema } from "../../../../types/schema";
+import { SectionFormWrapper } from "../common/section-form-wrapper";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { EventType } from "@/lib/api/event-types";
 
 const EMPTY_EVENT_TYPES: EventType[] = [];
 

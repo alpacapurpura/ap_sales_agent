@@ -1,9 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { Loader2, CheckCircle, ShoppingBag, Trash2, ExternalLink, Activity } from "lucide-react";
 import { useSearchParams, useRouter, useParams } from "next/navigation";
-import { connectionsApi, ShopifyStatusResponse } from "@/lib/api/connections";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,12 +16,6 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, CheckCircle, ShoppingBag, Trash2, ExternalLink, Activity } from "lucide-react";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +25,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { connectionsApi } from "@/lib/api/connections";
+
+import type { ShopifyStatusResponse } from "@/lib/api/connections";
 
 export function ShopifyView() {
   const { getToken } = useAuth();
@@ -42,6 +45,7 @@ export function ShopifyView() {
   const [connecting, setConnecting] = useState(false);
   const [testing, setTesting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: define per-provider API response type
   const [testResult, setTestResult] = useState<any>(null);
 
   const fetchStatus = async () => {
@@ -60,7 +64,7 @@ export function ShopifyView() {
   };
 
   useEffect(() => {
-    fetchStatus();
+    void fetchStatus();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -70,7 +74,7 @@ export function ShopifyView() {
     if (statusParam === "success" && channel === "shopify") {
       toast.success("Shopify conectado exitosamente");
       router.replace(tenantId ? `/${tenantId}/connections/shopify` : "/");
-      fetchStatus();
+      void fetchStatus();
     }
     if (statusParam === "error" && message) {
       toast.error(message);
@@ -100,8 +104,8 @@ export function ShopifyView() {
       // Use quick-connect (client credentials) — works for own stores
       const res = await connectionsApi.quickConnectShopify({ shop_url: cleanShopUrl }, token);
       toast.success("Shopify conectado exitosamente");
-      fetchStatus();
-    } catch (error: any) {
+      void fetchStatus();
+    } catch (error: unknown) {
       console.error(error);
       // Fallback: try OAuth redirect if quick-connect fails
       try {
@@ -115,10 +119,10 @@ export function ShopifyView() {
           window.location.href = authRes.auth_url;
           return;
         }
-      } catch (fallbackError: any) {
+      } catch (fallbackError: unknown) {
         console.error("OAuth fallback also failed:", fallbackError);
       }
-      toast.error(error.message || "Error al conectar con Shopify");
+      toast.error(error instanceof Error ? error.message : "Error al conectar con Shopify");
     } finally {
       setConnecting(false);
     }
@@ -134,10 +138,11 @@ export function ShopifyView() {
       const res = await connectionsApi.testShopify(token);
       setTestResult(res);
       toast.success("Prueba de conexión exitosa");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Error en la prueba";
       console.error(error);
-      toast.error(error.message || "Error en la prueba");
-      setTestResult({ status: "error", message: error.message });
+      toast.error(message);
+      setTestResult({ status: "error", message });
     } finally {
       setTesting(false);
     }
@@ -153,9 +158,9 @@ export function ShopifyView() {
       toast.success("Shopify desconectado");
       setStatus({ is_connected: false });
       setTestResult(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error al desconectar");
+      toast.error(error instanceof Error ? error.message : "Error al desconectar");
     } finally {
       setDisconnecting(false);
     }

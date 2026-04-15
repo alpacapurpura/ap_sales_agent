@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+
 import type { NextRequest } from "next/server";
 
 const isPublicSiteRequest = (request: NextRequest) =>
@@ -16,7 +17,7 @@ export default clerkMiddleware(async (auth, request) => {
   if (isPublicSiteRequest(request)) {
     const url = request.nextUrl.clone();
     if (!url.pathname.startsWith("/_public")) {
-      url.pathname = "/_public" + url.pathname;
+      url.pathname = `/_public${url.pathname}`;
     }
     const response = NextResponse.rewrite(url);
     const tenantId = request.headers.get("X-Tenant-ID") ?? "";

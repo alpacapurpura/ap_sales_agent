@@ -1,19 +1,28 @@
 "use client";
 
-import { Puck, Data } from "@puckeditor/core";
+import type { Data } from "@puckeditor/core";
+
+import { Puck } from "@puckeditor/core";
+
 import "@puckeditor/core/dist/index.css";
-import { config, RootProps, Props } from "../../utils/puck.config";
-import { LandingPageConfig } from "@/features/offer-studio/components/landing/types/schema";
-import { transformConfigToPuckData } from "../../utils/adapter";
+
 import { useAuth } from "@clerk/nextjs";
-import { offerApi } from "@/features/offer-studio/api";
-import { toast } from "sonner";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { offerApi } from "@/features/offer-studio/api";
+
+import { transformConfigToPuckData } from "../../utils/adapter";
+import { config } from "../../utils/puck.config";
+
 import { AiRemixButton } from "./AiRemixButton";
+
+import type { RootProps, Props } from "../../utils/puck.config";
+import type { LandingPageConfig } from "@/features/offer-studio/components/landing/types/schema";
 
 interface PuckEditorProps {
   initialConfig: LandingPageConfig;
@@ -29,7 +38,7 @@ export function PuckEditor({ initialConfig, offerId }: PuckEditorProps) {
   const [data] = useState<Data<Props, RootProps>>(() => {
     // Check if content is already Puck Data (has root and content array)
     const content = initialConfig.content as Record<string, unknown> | undefined;
-    if (content && content.root && Array.isArray(content.content)) {
+    if (content?.root && Array.isArray(content.content)) {
       return content as unknown as Data<Props, RootProps>;
     }
     // Otherwise transform from TransformerContent

@@ -1,8 +1,10 @@
 "use client";
 
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
-import { StoryForm } from "./story-form";
 import { Loader2 } from "lucide-react";
+
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
+import { StoryForm } from "./story-form";
 
 export function StoryManager() {
   const { settings, updateStory, loading, saving } = useBrandSettings();

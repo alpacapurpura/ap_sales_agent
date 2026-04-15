@@ -1,23 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Loader2,
   AlertTriangle,
@@ -31,9 +14,27 @@ import {
   X,
   Sparkles,
 } from "lucide-react";
-import { BrandSettings } from "@/features/brand/types";
-import { brandApi } from "@/features/brand/api";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { brandApi } from "@/features/brand/api";
+import { BrandSettings } from "@/features/brand/types";
 
 interface SmartFillDialogProps {
   open: boolean;
@@ -254,7 +255,7 @@ export function SmartFillDialog({
               !errorState && (
                 <Tabs
                   value={sourceType}
-                  onValueChange={(v) => setSourceType(v as any)}
+                  onValueChange={(v) => setSourceType(v as "web" | "manual")}
                   className="w-full"
                 >
                   <TabsList className="grid w-full grid-cols-2 mb-6">

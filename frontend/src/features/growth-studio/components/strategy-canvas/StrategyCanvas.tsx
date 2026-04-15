@@ -1,14 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
-import { Sankey, SankeyGraph } from "@visx/sankey";
 import { ParentSize } from "@visx/responsive";
+import { Sankey } from "@visx/sankey";
 import { sankeyJustify } from "d3-sankey";
-import { StrategyCanvasConfig, MarketingNode, MarketingActionLink } from "./config/types";
-import { adaptStrategyToVisx } from "./utils/adapter";
-import NodeFactory from "./nodes/NodeFactory";
-import BaseLink from "./links/BaseLink";
+import React, { useState } from "react";
+
 import ActionDetailsDrawer from "./drawer/ActionDetailsDrawer";
+import BaseLink from "./links/BaseLink";
+import NodeFactory from "./nodes/NodeFactory";
+import { adaptStrategyToVisx } from "./utils/adapter";
+
+import type { StrategyCanvasConfig, MarketingNode, MarketingActionLink } from "./config/types";
+import type { SankeyGraph } from "@visx/sankey";
 
 interface StrategyCanvasProps {
   config: StrategyCanvasConfig;
@@ -32,7 +35,7 @@ const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
                 );
               }
 
-              if (!data || !data.nodes || data.nodes.length === 0) {
+              if (!data?.nodes || data.nodes.length === 0) {
                 return (
                   <div className="flex items-center justify-center h-full">No data available</div>
                 );
@@ -67,15 +70,21 @@ const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
                           {links.map((link, i) => (
                             <BaseLink
                               key={`link-${i}`}
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ReactFlow internal link type
                               link={link as any}
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ReactFlow node ref
                               source={link.source as any}
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ReactFlow node ref
                               target={link.target as any}
                               width={link.width ?? 1}
                               pathData={createPath(link) ?? ""}
                               onClick={() => {
                                 setSelectedLink({
+                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ReactFlow extended link
                                   ...(link as any),
+                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- custom ReactFlow prop
                                   source: (link as any).originalSource,
+                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- custom ReactFlow prop
                                   target: (link as any).originalTarget,
                                 });
                               }}
@@ -86,6 +95,7 @@ const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
                           {nodes.map((node, i) => (
                             <NodeFactory
                               key={`node-${i}`}
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ReactFlow internal node type
                               node={node as any}
                               x={node.x0 ?? 0}
                               y={node.y0 ?? 0}

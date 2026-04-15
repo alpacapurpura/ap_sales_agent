@@ -1,8 +1,10 @@
-import React from "react";
-import { OfferFormValues } from "../../../../types/schema";
-import { useFormContext } from "react-hook-form";
 import { ShieldCheck } from "lucide-react";
+import React from "react";
+import { useFormContext } from "react-hook-form";
+
 import { GuaranteeType } from "../../../../types";
+
+import type { OfferFormValues } from "../../../../types/schema";
 
 interface ClosingPreviewProps {
   data?: Partial<OfferFormValues>;

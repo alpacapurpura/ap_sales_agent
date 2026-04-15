@@ -1,32 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useParams } from "next/navigation";
-import { connectionsApi } from "@/lib/api/connections";
-import type { MetaStatusResponse } from "@/lib/api/connections";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Loader2,
   CheckCircle,
@@ -45,11 +19,39 @@ import {
   Phone,
   Star,
 } from "lucide-react";
-import { toast } from "sonner";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { useParams } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { connectionsApi } from "@/lib/api/connections";
 import { config as appConfig } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
+import { cn } from "@/lib/utils";
+
+import type { MetaStatusResponse } from "@/lib/api/connections";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -243,8 +245,8 @@ export function MetaView() {
       await connectionsApi.setMetaPrimaryAsset(assetType, assetId, token);
       toast.success("Activo primario actualizado para analytics");
       await fetchStatus();
-    } catch (e: any) {
-      toast.error(e.message || "Error configurando activo primario");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Error configurando activo primario");
     } finally {
       setSettingPrimary(null);
     }
@@ -287,7 +289,7 @@ export function MetaView() {
   }, [fetchStatus, fetchAssets]);
 
   useEffect(() => {
-    loadAll();
+    void loadAll();
   }, [loadAll]);
 
   // ── Connect ──
@@ -332,8 +334,8 @@ export function MetaView() {
         data.ads_accounts.length +
         data.pixels.length;
       toast.success(`Activos sincronizados: ${total} encontrado${total !== 1 ? "s" : ""}`);
-    } catch (e: any) {
-      toast.error(e.message || "Error al sincronizar activos de Meta");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Error al sincronizar activos de Meta");
     } finally {
       setSyncing(false);
     }
@@ -375,8 +377,8 @@ export function MetaView() {
           whatsapp_accounts: update(prev.whatsapp_accounts, (wa) => wa.waba_id),
         };
       });
-    } catch (e: any) {
-      toast.error(e.message || "Error actualizando activo");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Error actualizando activo");
       await fetchAssets();
     } finally {
       setTogglingAsset(null);
@@ -393,8 +395,8 @@ export function MetaView() {
       toast.success("Meta desconectado");
       setStatus((prev) => ({ is_connected: false, is_configured: prev?.is_configured }));
       setAssets(null);
-    } catch (e: any) {
-      toast.error(e.message || "Error al desconectar");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Error al desconectar");
     } finally {
       setDisconnecting(false);
     }

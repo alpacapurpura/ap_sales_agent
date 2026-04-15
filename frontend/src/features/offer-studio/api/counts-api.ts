@@ -1,5 +1,6 @@
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
+
 import type { OfferCountsResponse } from "../types/counts";
 
 const API_URL = config.api.baseUrl;

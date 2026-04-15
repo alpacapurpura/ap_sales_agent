@@ -1,6 +1,7 @@
-import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
+
+import { cn } from "@/lib/utils";
 
 interface EditableAreaProps {
   value: string;

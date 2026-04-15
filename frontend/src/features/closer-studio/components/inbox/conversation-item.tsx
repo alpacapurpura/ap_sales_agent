@@ -1,10 +1,13 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Bot, User, AlertTriangle } from "lucide-react";
-import type { ConversationListItem } from "../../types";
-import { formatDistanceToNow } from "../../utils/format";
+
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { cn } from "@/lib/utils";
+
+import { formatDistanceToNow } from "../../utils/format";
+
+import type { ConversationListItem } from "../../types";
 
 interface ConversationItemProps {
   conversation: ConversationListItem;

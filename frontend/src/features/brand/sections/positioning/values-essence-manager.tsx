@@ -1,6 +1,7 @@
 "use client";
 
 import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
 import { ValuesEssenceForm } from "./values-essence-form";
 
 export function ValuesEssenceManager() {

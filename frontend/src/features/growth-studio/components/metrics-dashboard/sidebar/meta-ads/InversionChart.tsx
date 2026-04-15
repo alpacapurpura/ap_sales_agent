@@ -14,10 +14,12 @@ import {
 } from "recharts";
 
 import { ChartContainer } from "@/components/ui/chart";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatMoney } from "@/lib/format-money";
 import { cn } from "@/lib/utils";
-import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+
 import { ChartInfoTooltip } from "../shared/ChartInfoTooltip";
+
 import type { MetricTimeSeries } from "../../../../types/metrics";
 
 // ---------------------------------------------------------------------------
@@ -181,8 +183,7 @@ export function InversionTooltip({
   if (allZero) return null;
 
   const firstPayload = payload[0]?.payload;
-  const isoDate =
-    typeof firstPayload?.isoDate === "string" ? (firstPayload.isoDate as string) : undefined;
+  const isoDate = typeof firstPayload?.isoDate === "string" ? firstPayload.isoDate : undefined;
   const dateLabel = isoDate ? formatDateEsLong(isoDate) : "";
 
   const visible = payload.filter((entry) => entry.value !== 0 && entry.value != null);

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
-import { offerGalleryApi } from "@/lib/api/offer-gallery";
-import { getAssetUrl } from "@/lib/utils/assets";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Image as ImageIcon, Loader2, Trash2, Plus, Sparkles } from "lucide-react";
+import NextImage from "next/image";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -15,11 +16,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import NextImage from "next/image";
-import { Image as ImageIcon, Loader2, Trash2, Plus, Sparkles } from "lucide-react";
-import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import { offerGalleryApi } from "@/lib/api/offer-gallery";
+import { getAssetUrl } from "@/lib/utils/assets";
 
 interface OfferGallerySectionProps {
   offerId: string;
@@ -49,7 +50,7 @@ export function OfferGallerySection({ offerId }: OfferGallerySectionProps) {
       return offerGalleryApi.upload(token, offerId, file, description);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["offer-gallery", offerId] });
+      void queryClient.invalidateQueries({ queryKey: ["offer-gallery", offerId] });
       setIsUploadOpen(false);
       setFile(null);
       setDescription("");
@@ -65,7 +66,7 @@ export function OfferGallerySection({ offerId }: OfferGallerySectionProps) {
       return offerGalleryApi.delete(token, offerId, id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["offer-gallery", offerId] });
+      void queryClient.invalidateQueries({ queryKey: ["offer-gallery", offerId] });
       toast.success("Imagen eliminada");
     },
   });

@@ -1,5 +1,6 @@
-import { BrandStory, BrandVisuals } from "@/features/brand/types";
 import { History, Flag } from "lucide-react";
+
+import type { BrandStory, BrandVisuals } from "@/features/brand/types";
 
 interface StorySectionProps {
   story: BrandStory;

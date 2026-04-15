@@ -129,7 +129,7 @@ export type LandingPageContent =
   | TransformerContent
   | VelvetRopeContent
   | BrochureContent
-  | Record<string, any>; // Puck Data Support
+  | Record<string, unknown>; // Puck Data Support
 
 export interface LandingPageConfig {
   archetype: LandingPageArchetype;

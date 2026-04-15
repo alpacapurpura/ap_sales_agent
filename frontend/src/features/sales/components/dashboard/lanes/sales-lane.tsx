@@ -1,13 +1,16 @@
 "use client";
-import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { crmDashboardApi, TickerItem } from "@/lib/api/crm-dashboard-api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { format, parseISO } from "date-fns";
+import { TrendingUp, DollarSign, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { TrendingUp, DollarSign, Loader2 } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { crmDashboardApi } from "@/lib/api/crm-dashboard-api";
+
+import type { TickerItem } from "@/lib/api/crm-dashboard-api";
 
 export const SalesLane = () => {
   const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -33,7 +36,7 @@ export const SalesLane = () => {
         setLoading(false);
       }
     };
-    fetch();
+    void fetch();
   }, [getToken, isLoaded, isSignedIn, range]);
 
   const totalRevenue = sales.reduce((sum, sale) => sum + sale.amount, 0);

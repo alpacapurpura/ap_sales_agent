@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import { useSearchParams } from "next/navigation";
 import {
   format,
   addMonths,
@@ -17,13 +15,6 @@ import {
   addMinutes,
 } from "date-fns";
 import { es } from "date-fns/locale";
-import { publicApi, EventTypeResolveResponse, BookingLinkResolveResponse } from "@/lib/api/public";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Loader2,
   Calendar as CalendarIcon,
@@ -33,9 +24,22 @@ import {
   CheckCircle2,
   Globe,
 } from "lucide-react";
-import { toast } from "sonner";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useState, useEffect, use } from "react";
+
+import { publicApi } from "@/lib/api/public";
 import { cn } from "@/lib/utils";
+
+import type { EventTypeResolveResponse, BookingLinkResolveResponse } from "@/lib/api/public";
 
 export default function BookingPage({
   params,
@@ -129,14 +133,14 @@ export default function BookingPage({
         });
 
         // Convert back to Date objects for the Calendar modifier
-        const availableDates = Array.from(days).map((d) => new Date(d + "T12:00:00")); // Adding time to avoid timezone shifts on parsing
+        const availableDates = Array.from(days).map((d) => new Date(`${d}T12:00:00`)); // Adding time to avoid timezone shifts on parsing
         setAvailableDays(availableDates);
       } catch (error) {
         console.error("Failed to fetch availability", error);
       }
     };
 
-    fetchAvailability();
+    void fetchAvailability();
   }, [data, tenant_slug, event_slug]);
 
   // Auto-select the first available day when availability loads
@@ -193,8 +197,8 @@ export default function BookingPage({
         ...formData,
       });
       setStep("success");
-    } catch (err: any) {
-      toast.error(err.message || "Error al agendar");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Error al agendar");
     } finally {
       setBookingLoading(false);
     }

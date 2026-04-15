@@ -1,16 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { CheckCircle2, Loader2, Sparkles, Check } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import {
   Select,
   SelectContent,
@@ -18,15 +11,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+
 import {
   useApplySuggestions,
   useAutoDetectSuggestions,
   useCreateAssociation,
 } from "../../../../api/offer-association-api";
 import { archetypeEmoji } from "../../../../types/offer-association";
-import type { AssociationConfidence, TargetType } from "../../../../types/offer-association";
+
 import { BestPracticesBlock } from "./BestPracticesBlock";
+
+import type { AssociationConfidence, TargetType } from "../../../../types/offer-association";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -103,7 +106,7 @@ export function OfferAssignmentDrawer(props: OfferAssignmentDrawerProps) {
   );
 }
 
-interface DrawerBodyProps extends OfferAssignmentDrawerProps {}
+type DrawerBodyProps = OfferAssignmentDrawerProps;
 
 function DrawerBody({ onOpenChange, targets, offers }: DrawerBodyProps) {
   // Track which targets are currently being saved (for per-row spinners).
@@ -314,7 +317,7 @@ function DrawerBody({ onOpenChange, targets, offers }: DrawerBodyProps) {
                   <div className="flex items-center gap-2">
                     <Select
                       value={currentValue}
-                      onValueChange={(v) => void handleSelect(target, v as PendingChoice)}
+                      onValueChange={(v) => void handleSelect(target, v)}
                       disabled={rowIsSaving}
                     >
                       <SelectTrigger className="h-8 text-xs flex-1">

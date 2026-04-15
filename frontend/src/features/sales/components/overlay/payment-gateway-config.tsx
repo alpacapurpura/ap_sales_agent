@@ -1,28 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import {
   CreditCard,
   Key,
@@ -33,8 +10,33 @@ import {
   ShieldCheck,
   ShieldAlert,
 } from "lucide-react";
+import { useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { PaymentGatewayConfig as ConfigType } from "../../types/sales-studio";
+
+import type { PaymentGatewayConfig as ConfigType } from "../../types/sales-studio";
 
 interface PaymentGatewayConfigProps {
   open: boolean;
@@ -121,7 +123,7 @@ export function PaymentGatewayConfig({ open, onOpenChange }: PaymentGatewayConfi
         <Tabs
           defaultValue="culqi"
           value={activeProvider}
-          onValueChange={(v) => setActiveProvider(v as any)}
+          onValueChange={(v) => setActiveProvider(v as "culqi" | "mercadopago")}
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-2">

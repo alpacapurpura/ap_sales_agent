@@ -1,6 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 const tags = Array.from({ length: 50 }).map((_, i) => `v1.${i}.0`);
 

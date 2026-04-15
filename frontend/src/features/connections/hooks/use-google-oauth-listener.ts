@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+
 import { OAUTH_MESSAGE_TYPES } from "@/features/connections/lib/oauth-constants";
 
 interface UseGoogleOAuthListenerOptions {

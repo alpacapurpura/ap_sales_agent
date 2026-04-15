@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
 import { EditionStatus } from "../../types";
 
 const STATUS_CONFIG: Record<EditionStatus, { label: string; className: string }> = {

@@ -12,7 +12,9 @@ import {
   PlayCircle,
   RotateCcw,
   X,
+  Loader2,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,8 +24,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 import type { OfferLifecycleStatus } from "../../types/enums";
 
 type Tone = "success" | "warning" | "info" | "danger";
@@ -277,7 +279,7 @@ export function OfferStatusChangeModal({
 
         {consequences.length > 0 ? (
           <ul className="flex flex-col gap-3 py-2">
-            {consequences.map((c, i) => {
+            {consequences.map((c: Consequence, i: number) => {
               const Icon = c.icon;
               return (
                 <li key={i} className="flex items-start gap-2 text-sm">

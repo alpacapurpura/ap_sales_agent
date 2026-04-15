@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
-import { assetsApi, Asset } from "@/lib/api/assets";
-import { getAssetUrl } from "@/lib/utils/assets";
-import { BrandVisuals } from "@/features/brand/types";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Image as ImageIcon, Loader2, Trash2, Plus, Info, Sparkles } from "lucide-react";
+import NextImage from "next/image";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -16,12 +17,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { assetsApi } from "@/lib/api/assets";
+import type { Asset } from "@/lib/api/assets";
+import { getAssetUrl } from "@/lib/utils/assets";
+
+import type { BrandVisuals } from "@/features/brand/types";
+
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import NextImage from "next/image";
-import { Image as ImageIcon, Loader2, Trash2, Plus, Info, Sparkles } from "lucide-react";
-import { toast } from "sonner";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface GalleryManagerProps {
   visuals: BrandVisuals;
@@ -56,7 +60,7 @@ export function GalleryManager({ visuals }: GalleryManagerProps) {
       return assetsApi.upload(token, file, description);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["assets"] });
+      void queryClient.invalidateQueries({ queryKey: ["assets"] });
       setIsUploadOpen(false);
       setFile(null);
       setDescription("");
@@ -72,7 +76,7 @@ export function GalleryManager({ visuals }: GalleryManagerProps) {
       return assetsApi.delete(token, id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["assets"] });
+      void queryClient.invalidateQueries({ queryKey: ["assets"] });
       toast.success("Imagen eliminada");
     },
   });

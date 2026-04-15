@@ -1,6 +1,7 @@
-import { fetchClient } from "@/lib/http-client";
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
+
+import { fetchClient } from "@/lib/http-client";
 
 export function useOfferMetadata() {
   const { getToken } = useAuth();

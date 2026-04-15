@@ -1,11 +1,12 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/format-money";
+import { cn } from "@/lib/utils";
+
 import type { StageSummary } from "../../../types/metrics";
 
 interface StageCardProps {

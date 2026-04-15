@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { useCopilotStore } from "../store/copilot-store";
 import { FocusModeButton } from "../components/focus-mode-button";
+import { useCopilotStore } from "../store/copilot-store";
 
 describe("FocusModeButton", () => {
   beforeEach(() => {

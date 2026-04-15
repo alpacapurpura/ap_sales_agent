@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+import { useRouter as useTopLoaderRouter } from "nextjs-toploader/app";
 import {
   createContext,
   useCallback,
@@ -8,8 +10,6 @@ import {
   useTransition,
   type ReactNode,
 } from "react";
-import { useRouter as useTopLoaderRouter } from "nextjs-toploader/app";
-import { usePathname } from "next/navigation";
 
 interface NavigationContextType {
   isNavigating: boolean;

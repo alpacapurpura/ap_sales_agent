@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi } from "vitest";
+
 import { OnboardingWizard } from "../onboarding-wizard";
 
 // Mock Next.js navigation (required by useOnboardingWizard)

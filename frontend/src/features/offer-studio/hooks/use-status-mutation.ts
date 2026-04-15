@@ -2,7 +2,9 @@
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
 import { statusApi } from "../api/status-api";
+
 import type { ChangeOfferStatusPayload, OfferStatusResponse } from "../types/lifecycle";
 
 interface UseChangeOfferStatusOptions {
@@ -21,15 +23,15 @@ export function useChangeOfferStatus(offerId: string, options?: UseChangeOfferSt
       return statusApi.change(offerId, payload, token);
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["offer", offerId] });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({ queryKey: ["offer", offerId] });
+      void queryClient.invalidateQueries({
         queryKey: ["offer", offerId, "counts"],
       });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ["offer", offerId, "landing-status"],
       });
-      queryClient.invalidateQueries({ queryKey: ["offers"] });
-      queryClient.invalidateQueries({ queryKey: ["offers", "archived"] });
+      void queryClient.invalidateQueries({ queryKey: ["offers"] });
+      void queryClient.invalidateQueries({ queryKey: ["offers", "archived"] });
       toast.success("Estado de la oferta actualizado");
       options?.onSuccess?.(data);
     },

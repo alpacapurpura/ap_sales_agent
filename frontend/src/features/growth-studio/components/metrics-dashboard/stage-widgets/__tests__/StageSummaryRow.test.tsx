@@ -1,7 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi } from "vitest";
+
 import { StageSummaryRow } from "../StageSummaryRow";
+
 import type { StageSummary, StageId } from "@/features/growth-studio/types/metrics";
 
 // ── Mocks ────────────────────────────────────────────────────────────────────

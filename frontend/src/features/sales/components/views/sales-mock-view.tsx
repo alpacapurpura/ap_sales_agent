@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { Lead } from "@/features/sales/types";
-import { PipelineBoard } from "@/features/sales/components/organisms/PipelineBoard";
-import { LeadCommandCenter } from "@/features/sales/components/organisms/LeadCommandCenter";
-import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { LeadCommandCenter } from "@/features/sales/components/organisms/LeadCommandCenter";
+import { PipelineBoard } from "@/features/sales/components/organisms/PipelineBoard";
 import { MOCK_LEADS } from "@/features/sales/mocks/leads";
+
+import type { Lead } from "@/features/sales/types";
 
 export function SalesMockView() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);

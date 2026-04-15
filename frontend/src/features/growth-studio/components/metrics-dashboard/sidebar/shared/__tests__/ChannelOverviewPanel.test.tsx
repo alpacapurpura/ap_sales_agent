@@ -1,7 +1,10 @@
-import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Instagram, Youtube, Mail } from "lucide-react";
+import React from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { ChannelOverviewPanel } from "../ChannelOverviewPanel";
+
 import type { ChannelDashboardData, ChannelMetric } from "../../../../../types/metrics";
 
 // --- Mocks ---
@@ -110,8 +113,6 @@ vi.mock("../../../../../hooks/useMetricCatalog", () => ({
     getTooltipData: () => null,
   }),
 }));
-
-import { ChannelOverviewPanel } from "../ChannelOverviewPanel";
 
 const IG_CHANNEL: ChannelMetric = {
   slug: "ig-organic",

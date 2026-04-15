@@ -1,9 +1,11 @@
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { fetchClient } from "@/lib/http-client";
-import { config } from "@/lib/config";
 import { camelizeKeys, snakeifyKeys } from "@/lib/case-conversion";
+import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
+
+import type { MetaAdsPeriod } from "../types/metrics";
 import type {
   AdCampaignTemplate,
   Association,
@@ -14,7 +16,6 @@ import type {
   MetricsByOffer,
   OfferSummary,
 } from "../types/offer-association";
-import type { MetaAdsPeriod } from "../types/metrics";
 
 const API_URL = config.api.baseUrl;
 
@@ -170,10 +171,10 @@ export function useCreateAssociation() {
       return createAssociation(token, payload);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["advertising", "associations"] });
-      qc.invalidateQueries({ queryKey: ["advertising", "health-check"] });
-      qc.invalidateQueries({ queryKey: ["advertising", "metrics-by-offer"] });
-      qc.invalidateQueries({ queryKey: ["advertising", "campaigns-with-offers"] });
+      void qc.invalidateQueries({ queryKey: ["advertising", "associations"] });
+      void qc.invalidateQueries({ queryKey: ["advertising", "health-check"] });
+      void qc.invalidateQueries({ queryKey: ["advertising", "metrics-by-offer"] });
+      void qc.invalidateQueries({ queryKey: ["advertising", "campaigns-with-offers"] });
     },
   });
 }
@@ -188,9 +189,9 @@ export function useDeleteAssociation() {
       return deleteAssociation(token, associationId);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["advertising", "associations"] });
-      qc.invalidateQueries({ queryKey: ["advertising", "health-check"] });
-      qc.invalidateQueries({ queryKey: ["advertising", "metrics-by-offer"] });
+      void qc.invalidateQueries({ queryKey: ["advertising", "associations"] });
+      void qc.invalidateQueries({ queryKey: ["advertising", "health-check"] });
+      void qc.invalidateQueries({ queryKey: ["advertising", "metrics-by-offer"] });
     },
   });
 }
@@ -216,9 +217,9 @@ export function useApplySuggestions() {
       return applySuggestions(token, suggestions);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["advertising", "associations"] });
-      qc.invalidateQueries({ queryKey: ["advertising", "health-check"] });
-      qc.invalidateQueries({ queryKey: ["advertising", "metrics-by-offer"] });
+      void qc.invalidateQueries({ queryKey: ["advertising", "associations"] });
+      void qc.invalidateQueries({ queryKey: ["advertising", "health-check"] });
+      void qc.invalidateQueries({ queryKey: ["advertising", "metrics-by-offer"] });
     },
   });
 }

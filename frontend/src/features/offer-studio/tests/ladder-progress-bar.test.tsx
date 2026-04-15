@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen, act } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+
 import { LadderProgressBar } from "../components/dashboard/ladder-progress-bar";
 import { OfferValueLevel } from "../types";
 

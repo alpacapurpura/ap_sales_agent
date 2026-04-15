@@ -1,9 +1,11 @@
-import React from "react";
 import Image from "next/image";
-import { SqueezeContent, LandingPageTheme } from "../../types/schema";
+import React from "react";
+
 import { Button } from "@/components/ui/button"; // Assuming we have shadcn button
 import { Card } from "@/components/ui/card";
 import { getContrastColor } from "@/lib/utils/colors";
+
+import type { SqueezeContent, LandingPageTheme } from "../../types/schema";
 
 // SERVER COMPONENT - NO "use client"
 // This template is optimized for SEO and Speed.

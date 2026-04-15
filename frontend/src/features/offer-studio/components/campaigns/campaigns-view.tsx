@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
 import { ExternalLink, Megaphone, Plus } from "lucide-react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,11 +15,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
-import { formatMoney } from "@/lib/format-money";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatMoney } from "@/lib/format-money";
+import { cn } from "@/lib/utils";
+
 import { useOfferCampaigns } from "../../hooks/use-campaigns";
 import { useOfferShell } from "../container/offer-shell";
+
 import type {
   CampaignStatusFilter,
   OfferCampaignRow,
@@ -113,7 +116,7 @@ export function CampaignsView({ offerId }: { offerId: string }) {
         </Alert>
       )}
 
-      {!isLoading && !isError && data && data.campaigns.length === 0 && (
+      {!isLoading && !isError && data?.campaigns.length === 0 && (
         <CampaignsEmptyState tenantId={tenantId} offerId={offerId} />
       )}
 

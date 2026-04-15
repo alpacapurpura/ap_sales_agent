@@ -1,9 +1,11 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import type { ReactNode } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { createContext, useContext, useEffect, useState } from "react";
+
 import { settingsApi } from "@/lib/api/settings";
+
+import type { ReactNode } from "react";
 
 export interface TenantLocale {
   currency: string;
@@ -48,7 +50,7 @@ export function TenantLocaleProvider({ children, initialLocale }: TenantLocalePr
       }
     }
 
-    load();
+    void load();
     return () => {
       cancelled = true;
     };

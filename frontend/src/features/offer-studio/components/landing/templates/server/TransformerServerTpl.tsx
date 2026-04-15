@@ -1,13 +1,15 @@
-import React from "react";
+import { ArrowRight, Check, Star, Shield, Clock } from "lucide-react";
 import Image from "next/image";
-import {
+import React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { getContrastColor } from "@/lib/utils/colors";
+
+import type {
   TransformerContent,
   LandingPageTheme,
 } from "@/features/offer-studio/components/landing/types/schema";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Check, Star, Shield, Clock } from "lucide-react";
-import { getContrastColor } from "@/lib/utils/colors";
 
 interface TransformerServerTplProps {
   content: TransformerContent;

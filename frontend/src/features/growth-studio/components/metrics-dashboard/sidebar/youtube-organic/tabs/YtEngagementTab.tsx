@@ -4,10 +4,12 @@ import { Loader2 } from "lucide-react";
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from "recharts";
 
 import { ChartContainer } from "@/components/ui/chart";
+
 import { BenchmarkBadge } from "../../../channel-widgets/BenchmarkBadge";
 import { MetricInfoCard } from "../../../channel-widgets/KpiTooltip";
 import { ChartInfoTooltip } from "../../ig-organic/ChartInfoTooltip";
 import { ChartSection } from "../../shared/ChartSection";
+
 import type { ChannelDashboardData } from "../../../../../types/metrics";
 
 interface YtEngagementTabProps {

@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
 
 import { AutomationStepSidebar } from "../AutomationStepSidebar";
+
 import type { AutomationStep } from "../../../../../../types/mail-types";
 
 function buildStep(overrides: Partial<AutomationStep> = {}): AutomationStep {

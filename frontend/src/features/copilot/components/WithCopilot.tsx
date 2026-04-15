@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import { Plus, Check } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { useCopilotStore } from "../store/copilot-store";
 
 interface WithCopilotProps {

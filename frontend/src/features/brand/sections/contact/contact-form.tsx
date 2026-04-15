@@ -1,13 +1,13 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { useEffect } from "react";
-import type { UseFormSetValue } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+
+import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { ContactData } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -17,11 +17,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2 } from "lucide-react";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { useCopilotFieldSync } from "@/features/copilot/hooks/useCopilotFieldSync";
+
+import type { ContactData } from "@/features/brand/types";
+import type { UseFormSetValue } from "react-hook-form";
 
 const formSchema = z.object({
   support_email: z.string().email("Email inválido").optional().or(z.literal("")),
@@ -83,7 +85,7 @@ export function ContactForm({ initialData, onSave, isSaving }: ContactFormProps)
   useCopilotFieldSync(form.setValue as UseFormSetValue<Record<string, unknown>>);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    onSave(values);
+    void onSave(values);
   }
 
   return (

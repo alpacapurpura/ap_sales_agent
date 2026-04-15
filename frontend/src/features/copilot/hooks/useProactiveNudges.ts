@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useCopilotStore } from "../store/copilot-store";
-import { getCopilotHeaders } from "../api/copilot-api";
+import { useCallback, useEffect, useState } from "react";
+
 import { config } from "@/lib/config";
+
+import { getCopilotHeaders } from "../api/copilot-api";
+import { useCopilotStore } from "../store/copilot-store";
 
 const API_URL = config.api.baseUrl;
 const DISMISSED_KEY = "copilot:dismissed-nudges";
@@ -67,7 +69,7 @@ export function useProactiveNudges() {
       }
     }
 
-    fetchNudges();
+    void fetchNudges();
     return () => {
       cancelled = true;
     };

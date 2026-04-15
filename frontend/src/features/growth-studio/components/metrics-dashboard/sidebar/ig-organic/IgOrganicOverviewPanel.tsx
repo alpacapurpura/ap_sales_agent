@@ -1,9 +1,12 @@
 "use client";
 
 import { Instagram } from "lucide-react";
-import type { ChannelMetric } from "../../../../types/metrics";
+
 import { ChannelOverviewPanel } from "../shared/ChannelOverviewPanel";
+
 import { IgOrganicGrowthIndicator } from "./IgOrganicGrowthIndicator";
+
+import type { ChannelMetric } from "../../../../types/metrics";
 
 const HERO_METRICS = [
   "total_interactions",

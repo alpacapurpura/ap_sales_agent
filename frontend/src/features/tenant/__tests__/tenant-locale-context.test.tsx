@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
 import React from "react";
+import { describe, expect, it, vi } from "vitest";
 
 // Mock Clerk — must be before importing the module under test
 vi.mock("@clerk/nextjs", () => ({

@@ -1,13 +1,13 @@
 "use client";
 
-import { useFieldArray, Control } from "react-hook-form";
-import { OfferFormValues } from "../../../../types/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Plus, Trash2, Shield } from "lucide-react";
+import { useFieldArray } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -16,6 +16,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { Control } from "react-hook-form";
 
 const OBJECTION_TYPES = [
   { value: "price", label: "Precio" },
@@ -161,9 +164,7 @@ export function OfferObjectionsCard({ control }: OfferObjectionsCardProps) {
                   placeholder="es caro, no me alcanza, mucha plata (separar con comas)"
                   className="h-8 text-xs mt-1"
                   defaultValue={
-                    Array.isArray(field.trigger_phrases)
-                      ? field.trigger_phrases.join(", ")
-                      : ""
+                    Array.isArray(field.trigger_phrases) ? field.trigger_phrases.join(", ") : ""
                   }
                 />
               </div>

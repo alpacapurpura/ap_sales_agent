@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useCallback, type ReactNode } from "react";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { SectionNavRail, type SectionNavItem } from "../navigation/section-nav-rail";
 
 interface BrandSectionShellProps {

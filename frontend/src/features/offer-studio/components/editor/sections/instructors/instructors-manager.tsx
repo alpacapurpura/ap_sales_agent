@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { KeyFigure } from "@/features/brand/types";
-import { brandApi } from "@/features/brand/api";
-import { InstructorsForm } from "./instructors-form";
-import { UseFormReturn } from "react-hook-form";
-import { OfferFormValues } from "../../../../types/schema";
 import { Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+
+import { brandApi } from "@/features/brand/api";
+
+import { InstructorsForm } from "./instructors-form";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { KeyFigure } from "@/features/brand/types";
+import type { UseFormReturn } from "react-hook-form";
 
 interface InstructorsManagerProps {
   defaultValues: Partial<OfferFormValues>;
@@ -39,7 +42,7 @@ export function InstructorsManager(props: InstructorsManagerProps) {
   }, [getToken]);
 
   useEffect(() => {
-    fetchTeam();
+    void fetchTeam();
   }, [fetchTeam]);
 
   if (!initialized && loading) {

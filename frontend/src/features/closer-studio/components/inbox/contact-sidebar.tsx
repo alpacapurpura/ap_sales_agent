@@ -1,9 +1,11 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { ScoreRing } from "@/features/sales/components/atoms/ScoreRing";
 import { X, ExternalLink } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { ScoreRing } from "@/features/sales/components/atoms/ScoreRing";
+import { cn } from "@/lib/utils";
+
 import { useConversationDetail } from "../../hooks/use-conversation-detail";
 import { useCloserStore } from "../../store/closer-store";
 

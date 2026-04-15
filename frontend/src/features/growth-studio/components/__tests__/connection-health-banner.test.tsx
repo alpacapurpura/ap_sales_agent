@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- test file uses `as any` for invalid prop values */
+import { render, screen } from "@testing-library/react";
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
 
 // ── Mocks ────────────────────────────────────────────────────────────────
 vi.mock("next/link", () => ({

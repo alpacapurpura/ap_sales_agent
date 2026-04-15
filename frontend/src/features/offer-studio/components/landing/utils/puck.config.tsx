@@ -1,26 +1,40 @@
-import type { Config } from "@puckeditor/core";
-import { HeroSection, HeroSectionProps } from "../components/blocks/HeroSection";
-import { PasGridSection, PasGridSectionProps } from "../components/blocks/PasGridSection";
-import { SolutionSection, SolutionSectionProps } from "../components/blocks/SolutionSection";
-import { AuthoritySection, AuthoritySectionProps } from "../components/blocks/AuthoritySection";
-import { StackSection, StackSectionProps } from "../components/blocks/StackSection";
-import { OfferSection, OfferSectionProps } from "../components/blocks/OfferSection";
-import { LandingThemeProvider } from "../context/LandingThemeContext";
-import { LandingPageTheme, LandingPageFont } from "../types/schema";
+import { AuthoritySection } from "../components/blocks/AuthoritySection";
+import { HeroSection } from "../components/blocks/HeroSection";
+import { OfferSection } from "../components/blocks/OfferSection";
+import { PasGridSection } from "../components/blocks/PasGridSection";
+import { SolutionSection } from "../components/blocks/SolutionSection";
+import { StackSection } from "../components/blocks/StackSection";
 
-export type Props = {
+import { LandingThemeProvider } from "../context/LandingThemeContext";
+import type { AuthoritySectionProps } from "../components/blocks/AuthoritySection";
+import type { HeroSectionProps } from "../components/blocks/HeroSection";
+import type { PasGridSectionProps } from "../components/blocks/PasGridSection";
+
+import type { SolutionSectionProps } from "../components/blocks/SolutionSection";
+
+import type { StackSectionProps } from "../components/blocks/StackSection";
+
+import type { OfferSectionProps } from "../components/blocks/OfferSection";
+
+import type { LandingPageTheme } from "../types/schema";
+
+import { LandingPageFont } from "../types/schema";
+
+import type { Config } from "@puckeditor/core";
+
+export interface Props {
   HeroSection: HeroSectionProps;
   PasGridSection: PasGridSectionProps;
   SolutionSection: SolutionSectionProps;
   AuthoritySection: AuthoritySectionProps;
   StackSection: StackSectionProps;
   OfferSection: OfferSectionProps;
-};
+}
 
-export type RootProps = {
+export interface RootProps {
   children: React.ReactNode;
   theme: LandingPageTheme;
-};
+}
 
 export const config: Config<Props, RootProps> = {
   categories: {

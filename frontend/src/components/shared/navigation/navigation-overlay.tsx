@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { useNavigation } from "./navigation-context";
 
 const DEBOUNCE_MS = 150;

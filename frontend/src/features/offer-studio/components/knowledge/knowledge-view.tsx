@@ -1,6 +1,5 @@
 "use client";
 
-import { ChangeEvent, useMemo, useRef, useState } from "react";
 import {
   BookOpen,
   Download,
@@ -15,6 +14,9 @@ import {
   Upload,
   Video,
 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +27,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -39,6 +40,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+
 import {
   useAddKnowledgeUrl,
   useDeleteKnowledge,
@@ -47,8 +49,10 @@ import {
   useUploadKnowledge,
 } from "../../hooks/use-knowledge";
 import { useOfferShell } from "../container/offer-shell";
-import type { KnowledgeListQuery, KnowledgeSourceResponse } from "../../types/knowledge";
+
 import type { KnowledgeSourceType } from "../../types/enums";
+import type { KnowledgeListQuery, KnowledgeSourceResponse } from "../../types/knowledge";
+import type { ChangeEvent } from "react";
 
 type TypeFilter = "all" | "pdf" | "video" | "url";
 
@@ -59,12 +63,8 @@ const TYPE_FILTERS: { value: TypeFilter; label: string }[] = [
   { value: "url", label: "URLs" },
 ];
 
-const URL_TYPES: Set<KnowledgeSourceType> = new Set([
-  "url_youtube",
-  "url_article",
-  "url_google_doc",
-]);
-const PDF_TYPES: Set<KnowledgeSourceType> = new Set(["pdf", "docx", "txt", "markdown"]);
+const URL_TYPES = new Set<KnowledgeSourceType>(["url_youtube", "url_article", "url_google_doc"]);
+const PDF_TYPES = new Set<KnowledgeSourceType>(["pdf", "docx", "txt", "markdown"]);
 
 const STATUS_LABEL: Record<string, string> = {
   indexed: "Indexado",

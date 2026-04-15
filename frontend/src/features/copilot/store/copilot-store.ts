@@ -53,24 +53,24 @@ export interface UIAction {
   steps?: ProcedureStepStatus[];
   current_step_index?: number;
   // Generative UI fields (Phase 3)
-  metrics?: Array<{ label: string; value: string; trend?: "up" | "down" | "flat"; delta?: string }>;
+  metrics?: { label: string; value: string; trend?: "up" | "down" | "flat"; delta?: string }[];
   columns?: string[];
-  rows?: Array<Record<string, string>>;
+  rows?: Record<string, string>[];
   recommended?: string;
-  items?: Array<{ label: string; done: boolean; route?: string }>;
-  options?: Array<{ id: string; title: string; content: string }>;
+  items?: { label: string; done: boolean; route?: string }[];
+  options?: { id: string; title: string; content: string }[];
   // Interview card fields
   field_path?: string;
   question?: string;
-  alternatives?: Array<{
+  alternatives?: {
     id: string;
     title: string;
     description: string;
     recommended?: boolean;
     recommendation_reason?: string;
-  }>;
+  }[];
   allow_custom?: boolean;
-  clarify_items?: Array<{ field_path: string; issue: string; options: string[] }>;
+  clarify_items?: { field_path: string; issue: string; options: string[] }[];
   block_id?: string;
   block_label?: string;
   summary?: Record<string, string>;
@@ -93,11 +93,11 @@ export interface CopilotMessage {
   content: string;
   timestamp: number;
   /** Tool call metadata (for displaying tool execution feedback) */
-  toolCalls?: Array<{
+  toolCalls?: {
     tool: string;
     args?: Record<string, unknown>;
     result?: string;
-  }>;
+  }[];
   /** UI actions attached to this message (e.g. navigation cards) */
   uiActions?: UIAction[];
 }
@@ -239,7 +239,7 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
     set((s) => {
       const msgs = [...s.messages];
       const last = msgs[msgs.length - 1];
-      if (last && last.role === "assistant") {
+      if (last?.role === "assistant") {
         msgs[msgs.length - 1] = { ...last, content: last.content + chunk };
       }
       return { messages: msgs };
@@ -249,7 +249,7 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
     set((s) => {
       const msgs = [...s.messages];
       const last = msgs[msgs.length - 1];
-      if (last && last.role === "assistant") {
+      if (last?.role === "assistant") {
         const existing = last.uiActions ?? [];
         msgs[msgs.length - 1] = { ...last, uiActions: [...existing, action] };
       }
@@ -262,7 +262,7 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
       const msgIdx = msgs.findIndex((m) => m.id === messageId);
       if (msgIdx === -1) return s;
       const msg = msgs[msgIdx];
-      if (!msg.uiActions || !msg.uiActions[actionIndex]) return s;
+      if (!msg.uiActions?.[actionIndex]) return s;
       const actions = [...msg.uiActions];
       actions[actionIndex] = { ...actions[actionIndex], card_status: status };
       msgs[msgIdx] = { ...msg, uiActions: actions };

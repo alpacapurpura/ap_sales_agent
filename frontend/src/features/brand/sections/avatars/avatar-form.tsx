@@ -1,14 +1,16 @@
 "use client";
 
+import { Loader2, Save } from "lucide-react";
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CreateAvatarDTO } from "@/lib/api/avatar";
-import { Loader2, Save } from "lucide-react";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
+
+import type { CreateAvatarDTO } from "@/lib/api/avatar";
 
 interface AvatarFormProps {
   initialData?: Partial<CreateAvatarDTO>;
@@ -36,7 +38,7 @@ export function AvatarForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    void onSubmit(formData);
   };
 
   const FormFields = (

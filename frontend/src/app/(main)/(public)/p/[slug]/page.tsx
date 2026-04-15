@@ -1,12 +1,14 @@
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
+
 import { SqueezeServerTpl } from "@/features/offer-studio/components/landing/templates/server/SqueezeServerTpl";
+import { LandingPageArchetype } from "@/features/offer-studio/components/landing/types/schema";
+import { config } from "@/lib/config";
+
 import type {
   LandingPageConfig,
   SqueezeContent,
 } from "@/features/offer-studio/components/landing/types/schema";
-import { LandingPageArchetype } from "@/features/offer-studio/components/landing/types/schema";
-import { config } from "@/lib/config";
+import type { Metadata } from "next";
 
 // --- DATA FETCHING ---
 
@@ -65,7 +67,7 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
 
   const landing = await getLandingPage(slug, tenantId);
 
-  if (!landing || !landing.is_published) {
+  if (!landing?.is_published) {
     notFound();
   }
 

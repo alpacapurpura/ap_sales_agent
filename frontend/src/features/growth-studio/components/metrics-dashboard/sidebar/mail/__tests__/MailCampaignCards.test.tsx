@@ -1,9 +1,10 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
+import React from "react";
 import { describe, expect, it } from "vitest";
-import type { EmailCampaignSummary } from "../../../../../types/mail-types";
 
 import { MailCampaignCards } from "../MailCampaignCards";
+
+import type { EmailCampaignSummary } from "../../../../../types/mail-types";
 
 const BEST_CAMPAIGN: EmailCampaignSummary = {
   campaignName: "Lanzamiento Curso Avanzado",

@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+
 import type { CopilotMessage } from "../../store/copilot-store";
 
 interface UserMessageProps {

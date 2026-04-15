@@ -1,22 +1,27 @@
 "use client";
 
-import { UseFormReturn, useFieldArray } from "react-hook-form";
-import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Plus, Trash2, DollarSign, Star } from "lucide-react";
+import { useFieldArray } from "react-hook-form";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CurrencySelector } from "@/components/ui/currency-selector";
-import { CURRENCIES } from "@/lib/constants/currencies";
-import { PaymentPlanType, OfferArchetype } from "../../../../types";
-import { TierComparisonBuilder } from "./tier-comparison-builder";
-import { cn } from "@/lib/utils";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { CURRENCIES } from "@/lib/constants/currencies";
 import { formatMoney } from "@/lib/format-money";
+import { cn } from "@/lib/utils";
+
+import { PaymentPlanType, OfferArchetype } from "../../../../types";
+import { OfferSchema } from "../../../../types/schema";
+import { SectionFormWrapper } from "../common/section-form-wrapper";
+
+import { TierComparisonBuilder } from "./tier-comparison-builder";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { UseFormReturn } from "react-hook-form";
 
 const PricingSchema = OfferSchema.pick({
   pricing_options: true,

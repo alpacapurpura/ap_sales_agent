@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   AlertCircle,
   AlertTriangle,
@@ -9,8 +8,10 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
+
 import type { NoticeSeverity, NoticeTab, NoticesSummary } from "./types";
 
 export type MetaAdsDashboardTab = "resumen" | "campanas" | "creativos" | "audiencia" | "costos";
@@ -22,11 +23,11 @@ interface ResumenHealthOverviewProps {
   className?: string;
 }
 
-const TAB_META: Array<{
+const TAB_META: {
   key: NoticeTab;
   label: string;
   routeKey: MetaAdsDashboardTab;
-}> = [
+}[] = [
   { key: "campanas", label: "Campañas", routeKey: "campanas" },
   { key: "creativos", label: "Creativos", routeKey: "creativos" },
   { key: "audiencia", label: "Audiencia", routeKey: "audiencia" },

@@ -1,12 +1,15 @@
-import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+
+import { cn } from "@/lib/utils";
+
+import type React from "react";
 
 interface EditableTextProps {
   value: string;
   onChange: (value: string) => void;
   className?: string;
   placeholder?: string;
-  as?: any; // Allow polymorphic prop to pass through (ignored for now)
+  as?: React.ElementType; // Allow polymorphic prop to pass through (ignored for now)
 }
 
 export function EditableText({ value, onChange, className, placeholder, as }: EditableTextProps) {

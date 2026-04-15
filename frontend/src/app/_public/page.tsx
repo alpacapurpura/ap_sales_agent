@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
+
 import { config } from "@/lib/config";
 
 interface LandingItem {

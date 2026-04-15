@@ -1,17 +1,21 @@
 "use client";
 
-import { UseFormReturn } from "react-hook-form";
-import { SectionFormWrapper } from "../common/section-form-wrapper";
-import { OfferSchema, OfferFormValues } from "../../../../types/schema";
+import { Sparkles, Clock } from "lucide-react";
+
+import { Card, CardContent } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
 import { RichSelect } from "@/components/ui/rich-select";
-import { ACCESS_DURATION_METADATA } from "../../../../types/enum-metadata";
-import { AccessDuration } from "../../../../types";
-import { Sparkles, Clock } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
+
+import { AccessDuration } from "../../../../types";
+import { ACCESS_DURATION_METADATA } from "../../../../types/enum-metadata";
+import { OfferSchema } from "../../../../types/schema";
+import { SectionFormWrapper } from "../common/section-form-wrapper";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { UseFormReturn } from "react-hook-form";
 
 const PromiseSchema = OfferSchema.pick({
   headline_promise: true,

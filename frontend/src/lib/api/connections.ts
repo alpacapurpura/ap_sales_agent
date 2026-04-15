@@ -1,5 +1,6 @@
-import { config } from "../config";
 import { fetchClient } from "@/lib/http-client";
+
+import { config } from "../config";
 
 const API_URL = config.api.baseUrl;
 
@@ -118,13 +119,13 @@ export interface ChannelInfoResponse {
   display_name?: string;
   account_name?: string;
   details: Record<string, unknown>;
-  children: Array<{
+  children: {
     channel_type: string;
     asset_id?: string;
     name?: string;
     is_active: boolean;
     details: Record<string, unknown>;
-  }>;
+  }[];
   last_extraction?: {
     status: string;
     started_at?: string;
@@ -195,7 +196,11 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectMeta: async (code: string, token: string, redirectUri?: string): Promise<Record<string, unknown>> => {
+  connectMeta: async (
+    code: string,
+    token: string,
+    redirectUri?: string,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/meta/callback`, {
       method: "POST",
       headers: {
@@ -298,7 +303,10 @@ export const connectionsApi = {
     return res.json();
   },
 
-  selectGoogleAnalyticsProperty: async (propertyId: string, token: string): Promise<Record<string, unknown>> => {
+  selectGoogleAnalyticsProperty: async (
+    propertyId: string,
+    token: string,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(
       `${API_URL}/api/v1/connections/google-analytics/properties/select`,
       {
@@ -345,7 +353,10 @@ export const connectionsApi = {
     return res.json();
   },
 
-  quickConnectShopify: async (data: ShopifyAuthUrlRequest, token: string): Promise<Record<string, unknown>> => {
+  quickConnectShopify: async (
+    data: ShopifyAuthUrlRequest,
+    token: string,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/shopify/quick-connect`, {
       method: "POST",
       headers: {
@@ -361,7 +372,10 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectShopify: async (data: ShopifyConnectRequest, token: string): Promise<Record<string, unknown>> => {
+  connectShopify: async (
+    data: ShopifyConnectRequest,
+    token: string,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/shopify/connect`, {
       method: "POST",
       headers: {
@@ -411,7 +425,10 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectTelegram: async (data: TelegramConnectRequest, token: string): Promise<Record<string, unknown>> => {
+  connectTelegram: async (
+    data: TelegramConnectRequest,
+    token: string,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/telegram/connect`, {
       method: "POST",
       headers: {
@@ -475,7 +492,11 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectGoogle: async (code: string, token: string, redirectUri?: string): Promise<Record<string, unknown>> => {
+  connectGoogle: async (
+    code: string,
+    token: string,
+    redirectUri?: string,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/calendar/callback`, {
       method: "POST",
       headers: {
@@ -513,11 +534,7 @@ export const connectionsApi = {
     return res.json();
   },
 
-  listAppointments: async (
-    start: string,
-    end: string,
-    token: string,
-  ): Promise<unknown[]> => {
+  listAppointments: async (start: string, end: string, token: string): Promise<unknown[]> => {
     const res = await fetchClient(
       `${API_URL}/api/v1/connections/calendar/appointments?start_date=${start}&end_date=${end}`,
       {
@@ -561,7 +578,11 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectGmail: async (code: string, token: string, redirectUri?: string): Promise<Record<string, unknown>> => {
+  connectGmail: async (
+    code: string,
+    token: string,
+    redirectUri?: string,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/gmail/callback`, {
       method: "POST",
       headers: {
@@ -608,7 +629,10 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectMailerLite: async (data: MailerliteConnectRequest, token: string): Promise<Record<string, unknown>> => {
+  connectMailerLite: async (
+    data: MailerliteConnectRequest,
+    token: string,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/mailerlite/connect`, {
       method: "POST",
       headers: {
@@ -657,7 +681,10 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectManyChat: async (data: ManyChatConnectRequest, token: string): Promise<Record<string, unknown>> => {
+  connectManyChat: async (
+    data: ManyChatConnectRequest,
+    token: string,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/manychat/connect`, {
       method: "POST",
       headers: {
@@ -799,7 +826,11 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectYoutube: async (code: string, token: string, redirectUri?: string): Promise<Record<string, unknown>> => {
+  connectYoutube: async (
+    code: string,
+    token: string,
+    redirectUri?: string,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/youtube/callback`, {
       method: "POST",
       headers: {
@@ -837,7 +868,11 @@ export const connectionsApi = {
     return res.json();
   },
 
-  configureYoutube: async (token: string, clientId: string, clientSecret: string): Promise<Record<string, unknown>> => {
+  configureYoutube: async (
+    token: string,
+    clientId: string,
+    clientSecret: string,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/youtube/configure`, {
       method: "POST",
       headers: {
@@ -872,7 +907,11 @@ export const connectionsApi = {
   },
 
   // Meta Primary Asset Selection
-  setMetaPrimaryAsset: async (assetType: string, assetId: string, token: string): Promise<Record<string, unknown>> => {
+  setMetaPrimaryAsset: async (
+    assetType: string,
+    assetId: string,
+    token: string,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/meta/primary-asset`, {
       method: "PUT",
       headers: {

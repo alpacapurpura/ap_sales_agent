@@ -1,19 +1,11 @@
 "use client";
 
+import { ArrowLeft, ArrowRight, Loader2, SkipForward, Rocket, Sparkles } from "lucide-react";
 import { useState } from "react";
-import {
-  OfferArchetype,
-  OfferDeliveryModel,
-  OfferValueLevel,
-  OfferStatus,
-} from "@/features/offer-studio/types";
-import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
-import {
-  FORMAT_PRESETS,
-  DELIVERY_MODEL_LABELS,
-  VALUE_LEVEL_LABELS,
-  type FormatPreset,
-} from "@/features/offer-studio/config/format-presets";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -22,19 +14,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import { ArrowLeft, ArrowRight, Loader2, SkipForward, Rocket, Sparkles } from "lucide-react";
-import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
+import {
+  FORMAT_PRESETS,
+  DELIVERY_MODEL_LABELS,
+  VALUE_LEVEL_LABELS,
+  type FormatPreset,
+} from "@/features/offer-studio/config/format-presets";
+import { OfferArchetype, OfferStatus } from "@/features/offer-studio/types";
 import {
   archetypeSupportsEditions,
   getEditionsCopy,
 } from "@/features/offer-studio/utils/editions-copy";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { cn } from "@/lib/utils";
+
+import type { OfferDeliveryModel, OfferValueLevel } from "@/features/offer-studio/types";
 
 interface CreateOfferWizardProps {
   open: boolean;

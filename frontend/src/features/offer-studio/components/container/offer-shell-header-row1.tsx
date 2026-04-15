@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import { Archive, ChevronLeft, Copy, History, MoreVertical } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,12 +13,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import type { OfferLifecycleStatus } from "../../types/enums";
+
 import { useChangeOfferStatus } from "../../hooks/use-status-mutation";
+
 import { AutoSaveIndicator } from "./auto-save-indicator";
+import { useOfferAutoSave, useOfferShell } from "./offer-shell";
 import { OfferStatusChangeModal } from "./offer-status-change-modal";
 import { OfferStatusSwitcher } from "./offer-status-switcher";
-import { useOfferAutoSave, useOfferShell } from "./offer-shell";
+
+import type { OfferLifecycleStatus } from "../../types/enums";
 
 /**
  * Row 1 of the persistent shell: back button + title + format badge +

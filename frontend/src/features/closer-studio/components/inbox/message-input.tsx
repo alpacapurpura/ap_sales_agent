@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { cn } from "@/lib/utils";
 import { Send, Bot, MessageSquare } from "lucide-react";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+
 import { useConversationActions } from "../../hooks/use-conversation-actions";
+
 import type { HandlerMode, InputMode } from "../../types";
 
 interface MessageInputProps {

@@ -1,13 +1,15 @@
 "use client";
 
 import { useMemo } from "react";
+
 import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
+import { BRAND_SECTIONS, buildSectionNavItems } from "../../config/sections";
+import { AvatarsSection } from "../../sections/avatars/avatars-preview";
 import { BrandSectionShell } from "../layout/brand-section-shell";
 import { SectionHeader } from "../layout/section-header";
-import { BRAND_SECTIONS, buildSectionNavItems } from "../../config/sections";
 
 // Preview components
-import { AvatarsSection } from "../../sections/avatars/avatars-preview";
 
 const SECTION = BRAND_SECTIONS.publico;
 

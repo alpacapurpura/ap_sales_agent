@@ -1,4 +1,5 @@
 import { config } from "@/lib/config";
+
 import { useCopilotStore } from "../store/copilot-store";
 
 const API_URL = config.api.baseUrl;
@@ -8,7 +9,7 @@ export interface CopilotChatPayload {
   conversation_id?: string | null;
   context?: {
     current_route?: string | null;
-    selected_fields?: Array<Record<string, string>>;
+    selected_fields?: Record<string, string>[];
     form_data?: Record<string, unknown>;
     locale?: string;
     focus?: {

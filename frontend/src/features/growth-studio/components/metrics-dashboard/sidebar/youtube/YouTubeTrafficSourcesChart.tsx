@@ -2,7 +2,9 @@
 
 import { Loader2, Sparkles } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
+
 import { Badge } from "@/components/ui/badge";
+
 import { useYoutubeTrafficSources } from "../../../../hooks/useYoutubeAnalytics";
 
 const SOURCE_LABELS: Record<string, string> = {

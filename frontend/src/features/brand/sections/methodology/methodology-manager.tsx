@@ -1,8 +1,10 @@
 "use client";
 
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
-import { MethodologyForm } from "./methodology-form";
 import { Loader2 } from "lucide-react";
+
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+
+import { MethodologyForm } from "./methodology-form";
 
 export function MethodologyManager() {
   const { settings, updateStrategy, loading, saving } = useBrandSettings();

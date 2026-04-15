@@ -1,12 +1,18 @@
+import { aiActionsApi } from "@/lib/api/ai-actions";
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
-import { aiActionsApi, OfferPsychologyPayload } from "@/lib/api/ai-actions";
-import { Offer, AvatarDefinition, Objection } from "../types";
-import { LandingPageConfig, LandingPageArchetype, LandingPageFont } from "../components/landing/types/schema";
-import { backendToFrontend, frontendToBackend, BackendOffer } from "./adapter";
-import { OfferFormValues } from "../types/schema";
-import { MOCK_OFFERS } from "./mock-data";
 import { ENABLE_MOCKS as USE_MOCK_DATA } from "@/lib/mock-config";
+
+import { LandingPageArchetype, LandingPageFont } from "../components/landing/types/schema";
+
+import { backendToFrontend, frontendToBackend } from "./adapter";
+import { MOCK_OFFERS } from "./mock-data";
+
+import type { LandingPageConfig } from "../components/landing/types/schema";
+import type { Offer, AvatarDefinition, Objection } from "../types";
+import type { BackendOffer } from "./adapter";
+import type { OfferFormValues } from "../types/schema";
+import type { OfferPsychologyPayload } from "@/lib/api/ai-actions";
 
 const API_URL = config.api.baseUrl;
 
@@ -47,9 +53,9 @@ export const offerApi = {
 
         // Map backend response using adapter
         return data.map(backendToFrontend);
-      } catch (fetchError: any) {
+      } catch (fetchError: unknown) {
         clearTimeout(timeoutId);
-        if (fetchError.name === "AbortError") {
+        if (fetchError instanceof Error && fetchError.name === "AbortError") {
           throw new Error(`Request to ${url} timed out after 10 seconds`);
         }
         throw fetchError;
@@ -173,7 +179,12 @@ export const offerApi = {
     return res.json();
   },
 
-  saveSection: async (id: string, sectionId: string, data: any, token: string) => {
+  saveSection: async (
+    id: string,
+    sectionId: string,
+    data: Record<string, unknown>,
+    token: string,
+  ) => {
     if (USE_MOCK_DATA) {
       console.log(`🔸 Using Mock Data for saveSection: ${sectionId}`, data);
       await new Promise((resolve) => setTimeout(resolve, 600));
@@ -312,7 +323,12 @@ export const offerApi = {
         slug: `offer-${offerId}`,
         is_published: false,
         archetype: LandingPageArchetype.THE_SQUEEZE,
-        theme: { primary_color: "#000", secondary_color: "#fff", font_pair: LandingPageFont.SANS_SERIF, dark_mode: false },
+        theme: {
+          primary_color: "#000",
+          secondary_color: "#fff",
+          font_pair: LandingPageFont.SANS_SERIF,
+          dark_mode: false,
+        },
         content: { headline: "", subheadline: "", bullets: [], cta_text: "" },
       };
     }
@@ -335,7 +351,11 @@ export const offerApi = {
     return res.json();
   },
 
-  updateLandingPage: async (offerId: string, config: Partial<LandingPageConfig>, token: string): Promise<LandingPageConfig> => {
+  updateLandingPage: async (
+    offerId: string,
+    config: Partial<LandingPageConfig>,
+    token: string,
+  ): Promise<LandingPageConfig> => {
     if (USE_MOCK_DATA) {
       console.log("🔸 Using Mock Data for updateLandingPage");
       await new Promise((resolve) => setTimeout(resolve, 500));

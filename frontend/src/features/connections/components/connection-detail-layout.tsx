@@ -1,13 +1,13 @@
 "use client";
 
-import { Suspense } from "react";
-import { useParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useParams, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+
 import { NavLink } from "@/components/shared/navigation";
-import { getProvider } from "@/features/connections/config/provider-registry";
+import { Button } from "@/components/ui/button";
 import { OAuthCallbackHandler } from "@/features/connections/components/oauth-callback-handler";
-import { useSearchParams } from "next/navigation";
+import { getProvider } from "@/features/connections/config/provider-registry";
 
 function DetailContent() {
   const params = useParams();

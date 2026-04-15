@@ -1,8 +1,9 @@
-import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
+import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ResumenHealthOverview } from "../ResumenHealthOverview";
+
 import type { NoticesSummary } from "../types";
 
 function makeSummary(overrides: Partial<NoticesSummary> = {}): NoticesSummary {

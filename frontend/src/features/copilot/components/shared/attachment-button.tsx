@@ -1,7 +1,8 @@
 "use client";
 
-import { forwardRef, useRef } from "react";
 import { Paperclip } from "lucide-react";
+import { forwardRef, useRef } from "react";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+
 import { OAUTH_MESSAGE_TYPES, POPUP_CLOSE_DELAY } from "@/features/connections/lib/oauth-constants";
 
 interface OAuthCallbackHandlerProps {

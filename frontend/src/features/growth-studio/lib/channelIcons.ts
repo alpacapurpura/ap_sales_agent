@@ -9,7 +9,6 @@
  * professional brand recognition instead of emoji placeholders.
  */
 
-import type { ComponentType, SVGProps } from "react";
 import {
   Instagram,
   Facebook,
@@ -28,6 +27,8 @@ import {
   Globe,
   Bot,
 } from "lucide-react";
+
+import type { ComponentType, SVGProps } from "react";
 
 export type ChannelIconProps = SVGProps<SVGSVGElement> & {
   className?: string;

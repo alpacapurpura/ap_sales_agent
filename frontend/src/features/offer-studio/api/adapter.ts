@@ -1,18 +1,16 @@
 import {
-  Offer,
   OfferStatus,
   OfferArchetype,
   OfferValueLevel,
   LEGACY_VALUE_LEVEL_MAP,
   OfferDeliveryModel,
   GuaranteeType,
-  OnboardingMechanism,
-  AccessDuration,
   DeliverableFormat,
-  PricingStructure,
   AssetType,
 } from "../types";
-import { OfferFormValues } from "../types/schema";
+
+import type { Offer, OnboardingMechanism, AccessDuration, PricingStructure } from "../types";
+import type { OfferFormValues } from "../types/schema";
 
 // --- Backend DTO types (raw shapes from API) ---
 
@@ -89,7 +87,7 @@ export interface BackendOffer {
 
   deliverables?: BackendDeliverable[];
   target_avatar_match?: string[];
-  prerequisites?: Array<string | Record<string, unknown>>;
+  prerequisites?: (string | Record<string, unknown>)[];
   includes_offers?: string[];
   assets?: BackendAsset[];
 

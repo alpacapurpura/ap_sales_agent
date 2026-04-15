@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("../config/interview-preview-registry", () => ({
   getPreviewEntry: (domain: string) => {
@@ -24,8 +24,8 @@ vi.mock("../config/interview-preview-registry", () => ({
   },
 }));
 
-import { useCopilotStore } from "../store/copilot-store";
 import { CopilotPreviewPane } from "../components/copilot-preview-pane";
+import { useCopilotStore } from "../store/copilot-store";
 
 describe("CopilotPreviewPane", () => {
   beforeEach(() => {

@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { Copy, Check, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { useState } from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,13 +12,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+
 import { useCreateDomain, useGetDomainInstructions, useVerifyDomain } from "../hooks/useDomains";
 import { isDomainConflict } from "../types";
+
 import type { TenantDomain, DomainInstructions } from "../types";
 
 type WizardStep = "input" | "dns" | "verify";
@@ -180,7 +183,7 @@ export function CustomDomainWizard({ open, onOpenChange }: CustomDomainWizardPro
                 onChange={(e) => setHostname(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && hostname.trim()) {
-                    handleSubmitHostname(hostname.trim());
+                    void handleSubmitHostname(hostname.trim());
                   }
                 }}
                 disabled={isLoading}
@@ -289,7 +292,7 @@ export function CustomDomainWizard({ open, onOpenChange }: CustomDomainWizardPro
                   </Alert>
                 )}
 
-                {verifyDomain.data && verifyDomain.data.status === "verifying" && (
+                {verifyDomain.data?.status === "verifying" && (
                   <Alert>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <AlertDescription>

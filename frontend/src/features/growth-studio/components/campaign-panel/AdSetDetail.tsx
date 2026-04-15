@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
 import type { AdSet } from "../../types/campaigns";
 
 const LEARNING_COLORS: Record<string, string> = {
@@ -29,7 +30,7 @@ function formatTargeting(targeting: Record<string, unknown> | null): string {
   const geo = targeting.geo_locations as Record<string, unknown> | undefined;
   if (geo) {
     const countries = geo.countries as string[] | undefined;
-    const cities = geo.cities as Array<{ name?: string }> | undefined;
+    const cities = geo.cities as { name?: string }[] | undefined;
     if (countries?.length) parts.push(countries.join(", "));
     if (cities?.length) {
       parts.push(
@@ -42,7 +43,7 @@ function formatTargeting(targeting: Record<string, unknown> | null): string {
     }
   }
 
-  const interests = targeting.interests as Array<{ name?: string }> | undefined;
+  const interests = targeting.interests as { name?: string }[] | undefined;
   if (interests?.length) {
     parts.push(
       interests

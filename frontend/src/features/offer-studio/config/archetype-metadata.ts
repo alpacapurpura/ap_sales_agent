@@ -1,5 +1,8 @@
-import { LucideIcon, Package, Map, Wrench, RefreshCw, Tent } from "lucide-react";
+import { Package, Map, Wrench, RefreshCw, Tent } from "lucide-react";
+
 import { OfferArchetype } from "../types";
+
+import type { LucideIcon } from "lucide-react";
 
 export interface ArchetypeMetadata {
   label: string;

@@ -1,5 +1,6 @@
-import { config } from "../config";
 import { fetchClient } from "@/lib/http-client";
+
+import { config } from "../config";
 
 const API_URL = config.api.baseUrl;
 

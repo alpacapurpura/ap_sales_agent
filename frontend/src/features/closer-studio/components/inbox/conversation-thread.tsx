@@ -1,14 +1,17 @@
 "use client";
 
+import { Bot, Hand, Loader2, Play, User, Zap } from "lucide-react";
 import { useEffect, useRef } from "react";
+
+import { Button } from "@/components/ui/button";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantTime } from "@/lib/format-date";
 import { cn } from "@/lib/utils";
-import { Bot, Hand, Loader2, Play, User, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useCloserStore } from "../../store/closer-store";
-import { useConversationDetail } from "../../hooks/use-conversation-detail";
+
 import { useConversationActions } from "../../hooks/use-conversation-actions";
+import { useConversationDetail } from "../../hooks/use-conversation-detail";
+import { useCloserStore } from "../../store/closer-store";
+
 import { MessageBubble } from "./message-bubble";
 import { MessageInput } from "./message-input";
 

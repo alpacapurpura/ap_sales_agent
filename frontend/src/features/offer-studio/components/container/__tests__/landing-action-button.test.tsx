@@ -1,6 +1,7 @@
+import { render, screen } from "@testing-library/react";
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
@@ -20,6 +21,7 @@ vi.mock("../../../hooks/use-landing-status", async () => {
 // ── Imports after mocks ──────────────────────────────────────────────────────
 
 import { LandingActionButton } from "../landing-action-button";
+
 import type { LandingStatusResponse } from "../../../types/landing-status";
 
 function renderWithTooltip(ui: React.ReactElement) {

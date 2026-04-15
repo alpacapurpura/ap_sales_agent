@@ -1,10 +1,11 @@
 "use client";
 
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { PricingStructure } from "../../types";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { formatMoney } from "@/lib/format-money";
+
+import type { PricingStructure } from "../../types";
 
 interface EditionPricingOverrideProps {
   offerPricing: PricingStructure[];

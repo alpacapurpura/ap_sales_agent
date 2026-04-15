@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import {
   BRAND_SECTIONS,
   BRAND_SECTION_ORDER,
@@ -7,6 +8,7 @@ import {
   buildSectionNavItems,
   type BrandSectionId,
 } from "./sections";
+
 import type { BrandSettings } from "../types";
 
 describe("Brand Section Config", () => {

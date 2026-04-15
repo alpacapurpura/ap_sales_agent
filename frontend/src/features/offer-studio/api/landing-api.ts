@@ -1,6 +1,7 @@
 // Offer landing API adapter — CONTRACT.md §5.2
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
+
 import type {
   LandingGenerateResponse,
   LandingPublishResponse,
