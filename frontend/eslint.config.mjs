@@ -8,6 +8,8 @@ import importPlugin from "eslint-plugin-import";
 import boundaries from "eslint-plugin-boundaries";
 import reactPerf from "eslint-plugin-react-perf";
 import prettier from "eslint-plugin-prettier/recommended";
+import checkFile from "eslint-plugin-check-file";
+import jsdoc from "eslint-plugin-jsdoc";
 import globals from "globals";
 
 /** @type {import("eslint").Linter.Config[]} */
@@ -302,6 +304,62 @@ export default [
       "eqeqeq": ["warn", "always", { null: "ignore" }],
       // "no-undef" disabled — TypeScript handles this via tsconfig
       "no-unused-vars": "off", // delegated to @typescript-eslint/no-unused-vars
+    },
+  },
+
+  // ─── File naming conventions ───
+  {
+    plugins: { "check-file": checkFile },
+    rules: {
+      "check-file/filename-naming-convention": [
+        "warn",
+        {
+          // React components: PascalCase
+          "src/features/**/components/**/*.tsx": "PASCAL_CASE",
+          "src/components/shared/**/*.tsx": "PASCAL_CASE",
+          // Non-component files: kebab-case
+          "src/features/**/api/*.ts": "KEBAB_CASE",
+          "src/features/**/types/*.ts": "KEBAB_CASE",
+          "src/features/**/utils/*.ts": "KEBAB_CASE",
+          "src/features/**/config/*.ts": "KEBAB_CASE",
+          "src/lib/**/*.ts": "KEBAB_CASE",
+        },
+        { ignoreMiddleExtensions: true },
+      ],
+      "check-file/folder-naming-convention": [
+        "warn",
+        {
+          // All folders kebab-case (Next.js special dirs handled by ignoreMiddleExtensions)
+          "src/features/**/": "KEBAB_CASE",
+          "src/lib/**/": "KEBAB_CASE",
+          "src/components/shared/**/": "KEBAB_CASE",
+        },
+        { ignoreMiddleExtensions: true },
+      ],
+    },
+  },
+
+  // ─── JSDoc enforcement (exported functions discoverable) ───
+  {
+    plugins: { jsdoc },
+    rules: {
+      "jsdoc/require-jsdoc": [
+        "warn",
+        {
+          require: {
+            FunctionDeclaration: true,
+            MethodDefinition: false,
+            ClassDeclaration: true,
+          },
+          publicOnly: true,
+          checkConstructors: false,
+        },
+      ],
+      "jsdoc/require-description": "warn",
+      "jsdoc/check-tag-names": "warn",
+      "jsdoc/no-undefined-types": "off",
+      "jsdoc/require-param-type": "off",
+      "jsdoc/require-returns-type": "off",
     },
   },
 

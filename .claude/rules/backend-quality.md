@@ -35,6 +35,29 @@ Run: `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short`
 - Tests: `test_{function}_{condition}_{expected}`
 - Module structure: `domain/` → `infrastructure/` → `application/` → `api/`
 
+## Code quality tools
+
+| Tool | Command | What it checks |
+|------|---------|---------------|
+| jscpd | `npx jscpd backend/src/ --threshold 5` | Cross-file duplication (baseline: 3.63%) |
+| interrogate | `cd backend && .venv/bin/interrogate -vv src/modules/` | Docstring coverage |
+| pytest-randomly | automatic (in addopts) | Hidden test order dependencies |
+| pytest-timeout | automatic (30s in addopts) | Hanging async tests |
+
+## 10 Architecture Fitness Gates (backend/tests/architecture/)
+
+| Test file | Enforces |
+|-----------|----------|
+| `test_ddd_boundaries` | No cross-module imports (ratchet allowlist, ~95 known) |
+| `test_api_contracts` | All endpoints have `response_model=`. `redirect_slashes=False` in app |
+| `test_conventions` | No `session.delete()` (soft deletes). No `session.query()` (SA 2.0 only) |
+| `test_currency_consistency` | Currency from data source, valid ISO 4217, exchange rates exist |
+| `test_extraction_contract` | ETL contract synced with providers + catalog + generated docs |
+| `test_master_data` | No hardcoded "USD", no `utcnow()`, `DateTime(timezone=True)` |
+| `test_meta_provider_invariants` | Meta `time_increment=1`, no period aggregates in official_metrics |
+| `test_folder_naming` | All .py files snake_case, DDD layers exist, no stray files at module root |
+| `test_domain_purity` | Domain classes no SQLAlchemy Base inheritance, no Session usage |
+
 ## Commands (native only — NEVER docker exec)
 
 | Action | Command |

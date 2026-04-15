@@ -1,4 +1,7 @@
 # --- Global / Root ---
+# Quality reports
+.jscpd-report/
+
 # Environments (Secrets)
 .env
 .env.prod
@@ -71,6 +74,7 @@ frontend/build/
 frontend/dist/
 frontend/.turbo/
 frontend/*.tsbuildinfo
+frontend/.eslintcache
 
 # --- Infrastructure & Data ---
 # Docker Volumes & Persistence

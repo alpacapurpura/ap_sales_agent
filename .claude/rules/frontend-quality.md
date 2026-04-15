@@ -52,10 +52,20 @@ Actual: 25%/21%/22%/25% (stmts/branches/funcs/lines). Config: `frontend/vitest.c
 cd frontend && ./node_modules/.bin/eslint src/ --cache --cache-location .eslintcache
 ```
 
+## Code quality tools
+
+| Tool | Command | What it checks |
+|------|---------|---------------|
+| jscpd | `npx jscpd frontend/src/ --threshold 5` | Cross-file duplication (baseline: 4.52%) |
+| check-file | via ESLint (warn) | PascalCase components, kebab-case non-components |
+| jsdoc | via ESLint (warn) | JSDoc on exported functions/classes |
+| knip | `cd frontend && npx knip` | Dead code (config: `knip.config.ts`) |
+| madge | `npx madge --circular src/ --extensions ts,tsx` | Circular imports |
+
 ## Known issues
 - 2 circular deps: `offer-shell.tsx` ↔ `offer-shell-header-row*.tsx`. Fix: extract hooks to `offer-shell-context.ts`.
-- Knip: `npx knip` — many false positives (barrel spreads, Next.js routes, devDeps in config files).
-- Madge: `npx madge --circular src/ --extensions ts,tsx`
+- knip false positives: barrel spreads, Next.js routes, devDeps in config files. Mitigated by `knip.config.ts` entry points.
+- 323 check-file warnings + 616 jsdoc warnings (warn mode, fix progressively).
 
 ## FSD boundaries
 See `.claude/rules/frontend-fsd.md`.

@@ -1,0 +1,26 @@
+{
+  "threshold": 5,
+  "minLines": 5,
+  "minTokens": 50,
+  "reporters": ["json", "console"],
+  "ignore": [
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/.venv/**",
+    "**/venv/**",
+    "**/migrations/**",
+    "**/alembic/versions/**",
+    "**/__pycache__/**",
+    "**/coverage/**",
+    "**/test-results/**",
+    "**/storybook-static/**",
+    "frontend/src/components/ui/**",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/__tests__/**",
+    "**/__mocks__/**",
+    "**/*.stories.*",
+    "**/.jscpd-report/**"
+  ],
+  "absolute": true
+}
