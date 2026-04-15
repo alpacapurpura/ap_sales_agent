@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**Nicolify** — Multitenant SaaS (AaaS) automating marketing/sales for creators.
+**Nicolify** — Multitenant SaaS (AaaS) automating marketing/sales for creators, professionals and small businesses.
 **Stack:** FastAPI (Async/SQLAlchemy 2.0), Next.js 16 (App Router/FSD), Clerk (Auth), Qdrant (RAG).
 **Pattern:** Modular Monolith (DDD) + Docker-First.
 
@@ -94,6 +94,7 @@ Key: `fetchClient` (in `lib/`) auto-injects `X-Tenant-ID` from Clerk session —
 
 - **Backend:** pytest (asyncio_mode=auto). Tests in `backend/tests/modules/{module}/`. Fixtures in per-module `conftest.py`.
 - **Frontend:** Vitest (happy-dom). Tests as `*.test.ts` colocated with features or in `__tests__/` dirs.
+- **E2E:** always Playwright.
 
 ### CI/CD (`.github/workflows/deploy-prod.yml`)
 
@@ -167,7 +168,7 @@ docker run --rm ... ruff|pytest|tsc|vitest ...
 ## Critical Rules
 
 1. **Anti-Hallucination:** Read `docs/domains/INDEX.md` before coding. Never guess classes/fields.
-2. **Native-First Testing:** Lint, tests, type-checks run natively in WSL — never inside Docker. See `.claude/rules/docker-first.md`.
+2. **Native-First Testing:** Lint, tests, type-checks run natively in WSL — never inside Docker. Docker volume mounts point to main repo clone, not worktrees.
 3. **Tenant Isolation:** ALL queries filter by `X-Tenant-ID`. See `.claude/rules/tenant-isolation.md`.
 4. **Backend DDD:** Inside-Out layers, no cross-module imports (except copilot). See `.claude/rules/backend-ddd.md`.
 5. **Frontend FSD:** Server Components by default, no deep feature imports (except copilot). See `.claude/rules/frontend-fsd.md`.
@@ -181,9 +182,11 @@ docker run --rm ... ruff|pytest|tsc|vitest ...
 13. **TDD Obligatorio:** Tests PRIMERO, implementación DESPUÉS. Sin excepciones. Features: test por capa antes de implementar. Bugs: test de regresión antes del fix. Existente sin tests: cubrir primero, luego modificar. See `.claude/rules/tdd-mandatory.md`.
 14. **ETL Extraction Contract:** Antes de responder cualquier pregunta sobre el ETL/analytics, leer `docs/etl/extraction-contract.md` PRIMERO. Antes de modificar cualquier cosa en `backend/src/modules/analytics/`, leer la regla completa. Después de cualquier cambio que toque providers, pipeline, scheduler, workers o catálogo: actualizar `extraction_contract.py`, regenerar el markdown con `make extraction-contract`, correr `pytest tests/architecture/test_extraction_contract.py`. Sin excepciones. See `.claude/rules/etl-extraction-contract.md`.
 15. **Data Reliability:** After modifying any Growth Studio file (provider, service, DTO, frontend component), run the corresponding verification layer. See `.claude/rules/data-reliability.md`.
+16. **Frontend Quality:** 0 ESLint errors, 1063 tests, 20% coverage threshold. No new errors. Fast scan: `cd frontend && ./node_modules/.bin/eslint src/ --cache --cache-location .eslintcache`. See `.claude/rules/frontend-quality.md`.
+17. **Backend Quality:** Ruff 70+ rules, 0 errors, 7 arch fitness gates, 43% coverage. No new violations. See `.claude/rules/backend-quality.md`.
 
 ## Product Vision
 
-For product decisions: `docs/domains/vision/product-vision.md`.
+For functional decisions allways: `docs/domains/vision/product-vision.md`.
 
 @AGENTS.md

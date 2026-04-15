@@ -4,6 +4,7 @@ description: Feature-Sliced Design rules for frontend code
 ---
 
 # Frontend FSD Rules
+Last verified: 2026-04-15
 
 ## Architecture (FSD-Lite)
 ```
@@ -11,29 +12,41 @@ frontend/src/
   app/           # Next.js App Router pages (thin — delegate to features)
   components/
     ui/          # Shadcn UI primitives (auto-generated, don't edit)
-    shared/      # Cross-feature layout components (sidebar, header)
+    shared/      # Cross-feature layout (sidebar, header)
   features/
-    {domain}/    # Feature slices (brand/, offer/, copilot/, etc.)
-      api/       # React Query hooks, API adapters
-      components/
-      hooks/
-      config/    # Feature-specific configuration
-      context/   # React Context providers (if needed)
-      types/
-      utils/
+    {domain}/    # Feature slices: api/, components/, hooks/, config/, context/, types/, utils/
   lib/           # Utilities, API client, design system registry
+  hooks/         # Global hooks (use-debounce, etc.)
 ```
 
+## Boundary Matrix (enforced: `boundaries/dependencies: error`, 0 violations)
+
+| From \ To | feature | feature:own | shared | ui | lib | util | hooks | providers |
+|-----------|---------|-------------|--------|----|-----|------|-------|-----------|
+| **app** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ |
+| **feature** | — | own only | ✅ | — | ✅ | ✅ | — | — |
+| **feature:own** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | — |
+| **shared** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | — |
+| **lib** | — | — | — | — | — | ✅ | — | — |
+
+### Pragmatic exceptions (deliberate)
+- `feature:own` imports `feature` (any root) — sub-components need parent context.
+- `shared` imports `feature`/`feature:own` — sidebar/tenant-switcher need settings hooks.
+- `boundaries/no-unknown: "off"` — ESLint ignores prevent `ui/**` from registering as elements.
+
+### Element types
+`app` (src/app/*), `feature` (src/features/*), `feature:own` (src/features/*/**), `shared` (src/components/shared/*), `ui` (src/components/ui/*), `lib` (src/lib/*), `util` (src/lib/utils/*), `hooks` (src/hooks/*), `providers` (src/components/providers/*).
+
 ## Constraints
-- Server Components by default; add `"use client"` only when needed (hooks, event handlers)
-- React Query (`@tanstack/react-query`) for all data fetching
-- React Hook Form + Zod for form validation
-- No `any` type — use `unknown` + type guards
+- Server Components by default; `"use client"` only when needed
+- React Query for all data fetching
+- React Hook Form + Zod for forms
+- No `any` — use `unknown` + type guards
 - No default exports (except Next.js pages)
-- Tailwind CSS + `cn()` utility for styling
-- `fetchClient` auto-injects `X-Tenant-ID` — always use it for API calls
+- Tailwind CSS + `cn()` for styling
+- `fetchClient` auto-injects `X-Tenant-ID`
 
 ## Cross-Feature Imports
 - **Default: forbidden.** Features cannot import from other features.
-- **Allowed exceptions:** `copilot` exports (`WithCopilot`, `useCopilotFieldSync`) may be imported by any feature — it's an infra-like concern for AI form enhancement.
-- If you need shared types or components across features, move them to `components/shared/` or `lib/`.
+- **Allowed:** `copilot` exports may be imported by any feature (infra-like concern).
+- Shared types/components → `components/shared/` or `lib/`.

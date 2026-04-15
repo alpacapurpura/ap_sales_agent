@@ -1,6 +1,6 @@
 ---
 name: frontend-expert
-description: "Frontend specialist for Next.js 14 App Router + React 18 + Tailwind + Shadcn UI using Feature-Sliced Design Lite (domain-grouped features/, not traditional layers). Use when: creating responsive layouts, building interactive forms/dashboards, implementing dynamic routes, integrating Shadcn UI components, refactoring UI architecture, configuring Tailwind theming, wiring React Query hooks to backend APIs, or solving Server/Client Component boundaries. Triggers: 'nueva funcionalidad', 'modifica el front', 'crea un componente', 'refactoriza la UI', 'implementa layout', 'configura rutas', 'integra con la API', 'arregla el estilo'."
+description: "Frontend specialist for Next.js 16 App Router + React 19 + Tailwind + Shadcn UI using Feature-Sliced Design Lite (domain-grouped features/, not traditional layers). Use when: creating responsive layouts, building interactive forms/dashboards, implementing dynamic routes, integrating Shadcn UI components, refactoring UI architecture, configuring Tailwind theming, wiring React Query hooks to backend APIs, or solving Server/Client Component boundaries. Triggers: 'nueva funcionalidad', 'modifica el front', 'crea un componente', 'refactoriza la UI', 'implementa layout', 'configura rutas', 'integra con la API', 'arregla el estilo'."
 ---
 
 # SOP — Flujo de Trabajo

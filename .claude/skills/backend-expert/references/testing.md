@@ -117,7 +117,7 @@ class TestTenantIsolation:
 ## Coverage
 
 - Run: `cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -q`
-- Threshold: **60%** (CI will fail below this)
+- Threshold: **43%** (CI will fail below this; next target: 60%)
 - The skill `/test-backend` already includes coverage automatically
 - **Mandatory coverage:** application + domain layers must be tested
 - **Recommended coverage:** infrastructure layer (repositories, clients)

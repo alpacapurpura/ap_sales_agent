@@ -151,7 +151,7 @@ Object.defineProperty(globalThis, 'localStorage', {
 ## Coverage
 
 - Run: `cd frontend && npx vitest run --coverage`
-- Thresholds: **statements 20%, branches 15%, functions 15%, lines 20%**
+- Thresholds: **all 20%** (statements, branches, functions, lines)
 - CI will fail below these thresholds
 - The skill `/test-frontend` already includes coverage automatically
 

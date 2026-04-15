@@ -6,7 +6,7 @@ origin: Frontend Expert Skill
 
 # Patrones de Diseño Frontend (Guía Autorizada)
 
-Este documento define los patrones de arquitectura y diseño frontend obligatorios para el desarrollo en Visionarias Brain. Estos patrones están optimizados para **Next.js 14+ (App Router)**, **React 18/19** y **Feature-Sliced Design (FSD)**.
+Este documento define los patrones de arquitectura y diseño frontend obligatorios para el desarrollo en Visionarias Brain. Estos patrones están optimizados para **Next.js 16 (App Router)**, **React 19** y **Feature-Sliced Design (FSD)**.
 
 ## 1. Arquitectura de Componentes (App Router)
 

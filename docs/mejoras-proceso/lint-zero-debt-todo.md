@@ -1,3 +1,5 @@
+> **HISTORICAL** — Waves 1-3 complete. Backend ruff at 0 violations. See `pyproject.toml` for current rule config.
+
 # Lint Zero-Debt — To-Do para Wave 4+
 
 > Estado al 2026-04-13 después de Wave 3.

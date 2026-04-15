@@ -1,3 +1,8 @@
+---
+globs: "{backend/src/modules/analytics/**/*.py,frontend/src/features/growth-studio/**/*.{ts,tsx}}"
+description: Growth Studio metrics pipeline architecture — stage services, cache, progressive loading
+---
+
 # Analytics Metrics Architecture
 
 > **Before reading this file**, if your question is about *what the ETL extracts,

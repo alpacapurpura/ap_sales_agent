@@ -1,3 +1,5 @@
+> **HISTORICAL** — This was the original proposal before execution. See `frontend-quality-tracker.md` for current state. All phases 1A-1D, 3, 4, 5 are complete.
+
 # Propuesta de Mejora: Calidad de Código Frontend
 
 **Fecha:** 2026-04-13

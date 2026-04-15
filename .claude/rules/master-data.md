@@ -1,3 +1,8 @@
+---
+globs: "{backend/src/shared/domain/locale*,backend/src/shared/domain/currency*,frontend/src/features/tenant/**/*.{ts,tsx},frontend/src/lib/format-date*,frontend/src/lib/format-money*}"
+description: TenantLocale currency+timezone system — no hardcoded currencies or timezones
+---
+
 # Master Data: Currency & Timezone
 
 **Every module MUST use the tenant's locale preferences. No hardcoded currencies or timezones.**

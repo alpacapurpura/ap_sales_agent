@@ -1,3 +1,8 @@
+---
+globs: "{backend/src/modules/analytics/**/*.py,frontend/src/lib/format-money*}"
+description: Currency from data source — never hardcoded
+---
+
 # Currency Handling
 
 **Every monetary value displayed in the UI MUST use the currency from the data source, never hardcoded.**
