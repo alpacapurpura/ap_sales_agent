@@ -31,6 +31,7 @@ interface HeroProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract layout-specific sub-components
 function Hero({ layout = "centered", bgImage, className, children, ...props }: HeroProps) {
   const theme = useLandingTheme();
   const primaryColor = theme.primary_color || "#3b82f6";

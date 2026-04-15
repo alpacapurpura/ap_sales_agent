@@ -86,6 +86,7 @@ services:
       - "traefik.http.services.admin_dev.loadbalancer.server.port=8501"
     profiles:
       - admin
+      - extended
     deploy:
       resources:
         limits:
@@ -404,6 +405,7 @@ services:
       retries: 3
     profiles:
       - etl
+      - extended
     deploy:
       resources:
         limits:
@@ -435,6 +437,7 @@ services:
       retries: 3
     profiles:
       - etl
+      - extended
     deploy:
       resources:
         limits:

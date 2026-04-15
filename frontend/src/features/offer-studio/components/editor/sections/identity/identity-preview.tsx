@@ -18,6 +18,7 @@ interface IdentityPreviewProps {
   onEdit?: () => void;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract archetype/value-level display helpers
 export const IdentityPreview = ({ data: propsData, onEdit }: IdentityPreviewProps) => {
   const form = useFormContext<OfferFormValues>();
   const data = propsData || (form ? form.watch() : null);

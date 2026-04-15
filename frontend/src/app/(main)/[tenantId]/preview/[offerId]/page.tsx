@@ -13,6 +13,25 @@ import type {
 } from "@/features/offer-studio/components/landing/types/schema";
 
 // --- DATA FETCHING (Authenticated) ---
+
+/** Dev-only: fetch landing config without auth token (useful when SSR cookies not set). */
+async function fetchLandingDevBypass(
+  apiUrl: string,
+  offerId: string,
+  tenantId: string,
+): Promise<LandingPageConfig | null> {
+  try {
+    const res = await fetch(`${apiUrl}/api/v1/offers/${offerId}/landing`, {
+      headers: { "X-Tenant-ID": tenantId },
+      cache: "no-store",
+    });
+    if (res.ok) return (await res.json()) as LandingPageConfig;
+  } catch (e) {
+    console.error(`[Preview] Dev fetch exception:`, e);
+  }
+  return null;
+}
+
 async function getLandingPageConfig(
   offerId: string,
   tenantId: string,
@@ -20,28 +39,12 @@ async function getLandingPageConfig(
   try {
     const apiUrl = config.api.baseUrl;
     const cookieStore = await cookies();
-    // Use Clerk session token logic if available, or custom auth_token
-    // In Clerk, usually '__session' or verify token via auth() helper
-    // Assuming simple auth_token cookie for this custom implementation
     const token = cookieStore.get("__session")?.value || cookieStore.get("auth_token")?.value;
 
     if (!token) {
-      // --- DEV BYPASS ---
-      // If we are in dev mode, we might want to fetch without token for debugging or if cookies are not set properly in SSR
       if (process.env.NODE_ENV === "development") {
-        try {
-          const res = await fetch(`${apiUrl}/api/v1/offers/${offerId}/landing`, {
-            headers: {
-              "X-Tenant-ID": tenantId,
-            },
-            cache: "no-store",
-          });
-          if (res.ok) return await res.json();
-        } catch (e) {
-          console.error(`[Preview] Dev fetch exception:`, e);
-        }
+        return await fetchLandingDevBypass(apiUrl, offerId, tenantId);
       }
-
       return null;
     }
 

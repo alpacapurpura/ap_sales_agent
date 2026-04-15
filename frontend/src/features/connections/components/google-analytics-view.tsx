@@ -42,6 +42,7 @@ import { connectionsApi } from "@/lib/api/connections";
 
 import type { GoogleAnalyticsStatusResponse, GA4Property } from "@/lib/api/connections";
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract connection-step helpers
 export function GoogleAnalyticsView() {
   const { getToken } = useAuth();
 

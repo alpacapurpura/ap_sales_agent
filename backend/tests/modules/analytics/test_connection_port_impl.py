@@ -8,7 +8,6 @@ Tests cover:
 - list_active_connections for multiple/empty connections
 """
 
-import asyncio
 import uuid
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
@@ -45,7 +44,7 @@ def _make_connection_model(
 class TestConnectionPortImplGetCredentials:
     """Tests for get_credentials()."""
 
-    def test_returns_credentials_for_active_connection_with_valid_token(self):
+    async def test_returns_credentials_for_active_connection_with_valid_token(self):
         """Happy path: active connection exists with non-expired token."""
         from src.modules.connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
@@ -62,15 +61,13 @@ class TestConnectionPortImplGetCredentials:
         port.repo.get_active = MagicMock(return_value=conn)
 
         with patch("asyncio.to_thread", _sync_to_thread):
-            result = asyncio.get_event_loop().run_until_complete(
-                port.get_credentials(TENANT_ID, "meta"),
-            )
+            result = await port.get_credentials(TENANT_ID, "meta")
 
         assert isinstance(result, ConnectionCredentials)
         assert result.channel_type == "meta"
         assert result.credentials["access_token"] == "valid-token"
 
-    def test_raises_connection_revoked_when_no_active_connection(self):
+    async def test_raises_connection_revoked_when_no_active_connection(self):
         """No active connection -> ConnectionRevokedError."""
         from src.modules.connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
@@ -86,11 +83,9 @@ class TestConnectionPortImplGetCredentials:
             patch("asyncio.to_thread", _sync_to_thread),
             pytest.raises(ConnectionRevokedError),
         ):
-            asyncio.get_event_loop().run_until_complete(
-                port.get_credentials(TENANT_ID, "meta"),
-            )
+            await port.get_credentials(TENANT_ID, "meta")
 
-    def test_detects_expired_token_and_refreshes(self):
+    async def test_detects_expired_token_and_refreshes(self):
         """Expired token triggers _refresh_token, persists, returns refreshed credentials."""
         from src.modules.connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
@@ -126,15 +121,13 @@ class TestConnectionPortImplGetCredentials:
         port._refresh_token = mock_refresh
 
         with patch("asyncio.to_thread", _sync_to_thread):
-            result = asyncio.get_event_loop().run_until_complete(
-                port.get_credentials(TENANT_ID, "meta"),
-            )
+            result = await port.get_credentials(TENANT_ID, "meta")
 
         assert isinstance(result, ConnectionCredentials)
         # Verify update_credentials was called to persist
         port.repo.update_credentials.assert_called_once()
 
-    def test_raises_token_refresh_failed_on_refresh_error(self):
+    async def test_raises_token_refresh_failed_on_refresh_error(self):
         """When _refresh_token fails, raises TokenRefreshError."""
         from src.modules.connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
@@ -165,15 +158,13 @@ class TestConnectionPortImplGetCredentials:
             patch("asyncio.to_thread", _sync_to_thread),
             pytest.raises(TokenRefreshError),
         ):
-            asyncio.get_event_loop().run_until_complete(
-                port.get_credentials(TENANT_ID, "meta"),
-            )
+            await port.get_credentials(TENANT_ID, "meta")
 
 
 class TestConnectionPortImplListActive:
     """Tests for list_active_connections()."""
 
-    def test_returns_list_of_credentials_for_active_connections(self):
+    async def test_returns_list_of_credentials_for_active_connections(self):
         """Two active connections -> two ConnectionCredentials."""
         from src.modules.connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
@@ -188,16 +179,14 @@ class TestConnectionPortImplListActive:
         port.repo.get_all_by_tenant = MagicMock(return_value=[conn1, conn2])
 
         with patch("asyncio.to_thread", _sync_to_thread):
-            result = asyncio.get_event_loop().run_until_complete(
-                port.list_active_connections(TENANT_ID),
-            )
+            result = await port.list_active_connections(TENANT_ID)
 
         assert len(result) == 2
         assert all(isinstance(c, ConnectionCredentials) for c in result)
         channel_types = {c.channel_type for c in result}
         assert channel_types == {"meta", "google_analytics"}
 
-    def test_returns_empty_list_when_no_connections(self):
+    async def test_returns_empty_list_when_no_connections(self):
         """No connections -> empty list."""
         from src.modules.connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
@@ -210,13 +199,11 @@ class TestConnectionPortImplListActive:
         port.repo.get_all_by_tenant = MagicMock(return_value=[])
 
         with patch("asyncio.to_thread", _sync_to_thread):
-            result = asyncio.get_event_loop().run_until_complete(
-                port.list_active_connections(TENANT_ID),
-            )
+            result = await port.list_active_connections(TENANT_ID)
 
         assert result == []
 
-    def test_filters_inactive_connections(self):
+    async def test_filters_inactive_connections(self):
         """Only active connections are returned."""
         from src.modules.connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
@@ -234,9 +221,7 @@ class TestConnectionPortImplListActive:
         port.repo.get_all_by_tenant = MagicMock(return_value=[active, inactive])
 
         with patch("asyncio.to_thread", _sync_to_thread):
-            result = asyncio.get_event_loop().run_until_complete(
-                port.list_active_connections(TENANT_ID),
-            )
+            result = await port.list_active_connections(TENANT_ID)
 
         assert len(result) == 1
         assert result[0].channel_type == "meta"

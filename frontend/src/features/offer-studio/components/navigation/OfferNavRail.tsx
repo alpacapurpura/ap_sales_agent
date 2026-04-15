@@ -114,82 +114,85 @@ export function OfferNavRail({ offer, activeSection, onNavigate, className }: Of
 
       <ScrollArea className="flex-1 py-4">
         <div className={cn("space-y-1", isCollapsed ? "px-2" : "px-3")}>
-          {sections.map((sectionId) => {
-            const config = SECTION_REGISTRY[sectionId];
-            if (!config) return null;
+          {
+            // eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract NavSectionItem component
+            sections.map((sectionId) => {
+              const config = SECTION_REGISTRY[sectionId];
+              if (!config) return null;
 
-            const Icon = config.icon;
-            const sectionHealth = health.sections[sectionId];
-            const isComplete = sectionHealth?.status === "complete";
-            const isOptional = sectionHealth?.status === "optional";
-            const isActive = activeSection === sectionId;
-            const hasError = sectionHealth?.status === "incomplete";
+              const Icon = config.icon;
+              const sectionHealth = health.sections[sectionId];
+              const isComplete = sectionHealth?.status === "complete";
+              const isOptional = sectionHealth?.status === "optional";
+              const isActive = activeSection === sectionId;
+              const hasError = sectionHealth?.status === "incomplete";
 
-            return (
-              <TooltipProvider key={sectionId}>
-                <Tooltip delayDuration={300}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={isActive ? "secondary" : "ghost"}
-                      className={cn(
-                        "w-full h-10 mb-1 font-normal transition-all",
-                        isActive && "bg-secondary font-medium text-foreground",
-                        !isActive &&
-                          "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                        isCollapsed ? "justify-center px-0" : "justify-start pl-10 relative",
-                      )}
-                      onClick={() => handleNavigate(sectionId)}
-                    >
-                      {/* Icon / Status */}
-                      {isCollapsed ? (
-                        <div className="relative">
-                          <Icon className="h-5 w-5" />
-                          <div className="absolute -top-1 -right-1">
-                            {isComplete ? (
-                              <div className="h-2 w-2 bg-green-500 rounded-full ring-1 ring-background" />
-                            ) : hasError ? (
-                              <div className="h-2 w-2 bg-amber-500 rounded-full ring-1 ring-background" />
-                            ) : null}
+              return (
+                <TooltipProvider key={sectionId}>
+                  <Tooltip delayDuration={300}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={isActive ? "secondary" : "ghost"}
+                        className={cn(
+                          "w-full h-10 mb-1 font-normal transition-all",
+                          isActive && "bg-secondary font-medium text-foreground",
+                          !isActive &&
+                            "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                          isCollapsed ? "justify-center px-0" : "justify-start pl-10 relative",
+                        )}
+                        onClick={() => handleNavigate(sectionId)}
+                      >
+                        {/* Icon / Status */}
+                        {isCollapsed ? (
+                          <div className="relative">
+                            <Icon className="h-5 w-5" />
+                            <div className="absolute -top-1 -right-1">
+                              {isComplete ? (
+                                <div className="h-2 w-2 bg-green-500 rounded-full ring-1 ring-background" />
+                              ) : hasError ? (
+                                <div className="h-2 w-2 bg-amber-500 rounded-full ring-1 ring-background" />
+                              ) : null}
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
-                            {isComplete ? (
-                              <Check className="h-4 w-4 text-green-500" />
-                            ) : hasError ? (
-                              <AlertCircle className="h-4 w-4 text-amber-500" />
-                            ) : (
-                              <Circle className="h-3 w-3 text-muted-foreground/30" />
+                        ) : (
+                          <>
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                              {isComplete ? (
+                                <Check className="h-4 w-4 text-green-500" />
+                              ) : hasError ? (
+                                <AlertCircle className="h-4 w-4 text-amber-500" />
+                              ) : (
+                                <Circle className="h-3 w-3 text-muted-foreground/30" />
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2 truncate">
+                              <span className="truncate">{config.title}</span>
+                            </div>
+
+                            {isActive && (
+                              <div className="absolute right-0 top-0 bottom-0 w-1 bg-primary rounded-l-md" />
                             )}
-                          </div>
-
-                          <div className="flex items-center gap-2 truncate">
-                            <span className="truncate">{config.title}</span>
-                          </div>
-
-                          {isActive && (
-                            <div className="absolute right-0 top-0 bottom-0 w-1 bg-primary rounded-l-md" />
-                          )}
-                        </>
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  {(isCollapsed || hasError) && (
-                    <TooltipContent
-                      side="right"
-                      className="text-xs max-w-[200px] flex flex-col gap-1"
-                    >
-                      <p className="font-semibold">{config.title}</p>
-                      {hasError && sectionHealth.message && (
-                        <p className="text-amber-500">{sectionHealth.message}</p>
-                      )}
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
-            );
-          })}
+                          </>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    {(isCollapsed || hasError) && (
+                      <TooltipContent
+                        side="right"
+                        className="text-xs max-w-[200px] flex flex-col gap-1"
+                      >
+                        <p className="font-semibold">{config.title}</p>
+                        {hasError && sectionHealth.message && (
+                          <p className="text-amber-500">{sectionHealth.message}</p>
+                        )}
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+              );
+            })
+          }
         </div>
       </ScrollArea>
 

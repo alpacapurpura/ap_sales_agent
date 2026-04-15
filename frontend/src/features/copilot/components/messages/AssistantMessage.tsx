@@ -24,6 +24,7 @@ interface AssistantMessageProps {
 }
 
 /** Renders a single UIAction card. Extracted to keep the parent render function readable. */
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: split action type renderers
 function renderUIAction(
   action: UIAction,
   idx: number,

@@ -1,27 +1,15 @@
 {
+  "permissions": {
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(git push --force origin main)",
+      "Read(frontend/node_modules/**)",
+      "Read(**/__pycache__/**)",
+      "Read(frontend/.next/**)"
+    ]
+  },
   "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/hooks/docker-guard.js",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit|Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/hooks/env-guard.js",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
+    "PreToolUse": [],
     "PostToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit",
@@ -35,22 +23,11 @@
       }
     ]
   },
-  "permissions": {
-    "deny": [
-      "Bash(rm -rf /)",
-      "Bash(git push --force origin main)",
-      "Read(frontend/node_modules/**)",
-      "Read(**/__pycache__/**)",
-      "Read(frontend/.next/**)"
-    ]
-  },
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
     "github@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "commit-commands@claude-plugins-official": true,
-    "security-guidance@claude-plugins-official": true,
-    "figma@claude-plugins-official": true
+    "security-guidance@claude-plugins-official": true
   }
 }

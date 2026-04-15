@@ -5,6 +5,7 @@ tools: Read, Write, Edit, Bash, Grep, Glob
 maxTurns: 50
 skills: [backend-expert]
 color: green
+model: sonnet
 ---
 
 <role>

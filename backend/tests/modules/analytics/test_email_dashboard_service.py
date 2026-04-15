@@ -180,22 +180,14 @@ def _make_service_with_rows(rows):
 
 
 class TestGetAutomations:
-    def test_returns_automation_list(self):
+    async def test_returns_automation_list(self):
         service = _make_service_with_rows(_make_auto_rows())
-        import asyncio
-
-        result = asyncio.get_event_loop().run_until_complete(
-            service.get_automations(TENANT_ID, "30d"),
-        )
+        result = await service.get_automations(TENANT_ID, "30d")
         assert len(result.automations) == 2
 
-    def test_automation_fields_populated(self):
+    async def test_automation_fields_populated(self):
         service = _make_service_with_rows(_make_auto_rows())
-        import asyncio
-
-        result = asyncio.get_event_loop().run_until_complete(
-            service.get_automations(TENANT_ID, "30d"),
-        )
+        result = await service.get_automations(TENANT_ID, "30d")
         auto = next(a for a in result.automations if a.automation_id == "auto_001")
         assert auto.name == "BIENVENIDA: nuevas inscritas"
         assert auto.automation_type == "welcome"
@@ -207,13 +199,9 @@ class TestGetAutomations:
         # After bug fix: active_subscribers = completed + in_queue (was just in_queue)
         assert auto.active_subscribers == 11
 
-    def test_kpis_computed(self):
+    async def test_kpis_computed(self):
         service = _make_service_with_rows(_make_auto_rows())
-        import asyncio
-
-        result = asyncio.get_event_loop().run_until_complete(
-            service.get_automations(TENANT_ID, "30d"),
-        )
+        result = await service.get_automations(TENANT_ID, "30d")
         assert len(result.kpis) > 0
         sent_kpi = next(
             (k for k in result.kpis if k.metric_name == "automation_emails_sent"),
@@ -222,13 +210,9 @@ class TestGetAutomations:
         assert sent_kpi is not None
         assert sent_kpi.current_value == 27  # 11 + 16
 
-    def test_empty_when_no_automation_rows(self):
+    async def test_empty_when_no_automation_rows(self):
         service = _make_service_with_rows([])
-        import asyncio
-
-        result = asyncio.get_event_loop().run_until_complete(
-            service.get_automations(TENANT_ID, "30d"),
-        )
+        result = await service.get_automations(TENANT_ID, "30d")
         assert result.automations == []
 
 
@@ -274,55 +258,51 @@ def _make_rows_with_steps(
 class TestAutomationBugFixes:
     """Tests for the 3 data bugs fixed in the UX redesign + new fields."""
 
-    def _run(self, service):
-        import asyncio
+    async def _run(self, service):
+        return await service.get_automations(TENANT_ID, "30d")
 
-        return asyncio.get_event_loop().run_until_complete(
-            service.get_automations(TENANT_ID, "30d"),
-        )
-
-    def test_active_subscribers_equals_completed_plus_queue(self):
+    async def test_active_subscribers_equals_completed_plus_queue(self):
         """Bug fix: active_subscribers was 0 because it only read in_queue."""
         rows = _make_rows_with_steps(completed_subs=4, in_queue_subs=5)
         service = _make_service_with_rows(rows)
 
-        response = self._run(service)
+        response = await self._run(service)
 
         assert len(response.automations) == 1
         auto = response.automations[0]
         assert auto.active_subscribers == 9  # 4 completed + 5 in_queue
 
-    def test_completion_rate_is_actual_completion_not_ctor(self):
+    async def test_completion_rate_is_actual_completion_not_ctor(self):
         """Bug fix: completion_rate was mapping click_to_open_rate."""
         rows = _make_rows_with_steps(completed_subs=4, in_queue_subs=6, ctor=49.0)
         service = _make_service_with_rows(rows)
 
-        response = self._run(service)
+        response = await self._run(service)
 
         auto = response.automations[0]
         # 4 / (4+6) * 100 = 40.0, NOT 49.0 (which was the CTOR)
         assert auto.completion_rate == 40.0
         assert auto.click_to_open_rate == 49.0  # CTOR lives in its own field
 
-    def test_status_reads_from_extra_not_hardcoded(self):
+    async def test_status_reads_from_extra_not_hardcoded(self):
         """Bug fix: status was always 'active' regardless of extra."""
         rows = _make_rows_with_steps(status="paused")
         service = _make_service_with_rows(rows)
 
-        response = self._run(service)
+        response = await self._run(service)
 
         assert response.automations[0].status == "paused"
 
-    def test_unsubscribes_populated(self):
+    async def test_unsubscribes_populated(self):
         """New field: unsubscribes must come from the unsubscribes metric row."""
         rows = _make_rows_with_steps(unsubs=1.0)
         service = _make_service_with_rows(rows)
 
-        response = self._run(service)
+        response = await self._run(service)
 
         assert response.automations[0].unsubscribes == 1
 
-    def test_steps_populated_from_extra(self):
+    async def test_steps_populated_from_extra(self):
         """New field: steps must be parsed from extra.steps."""
         mock_steps = [
             {
@@ -365,7 +345,7 @@ class TestAutomationBugFixes:
         rows = _make_rows_with_steps(steps=mock_steps)
         service = _make_service_with_rows(rows)
 
-        response = self._run(service)
+        response = await self._run(service)
 
         auto = response.automations[0]
         assert len(auto.steps) == 2
@@ -377,7 +357,7 @@ class TestAutomationBugFixes:
         assert auto.steps[1].delay_value == 2
         assert auto.steps[1].delay_unit == "days"
 
-    def test_completion_rate_zero_when_no_ingresados(self):
+    async def test_completion_rate_zero_when_no_ingresados(self):
         """Edge case: completion_rate returns 0.0 when no subscribers ingresaron."""
         rows = _make_rows_with_steps(
             completed_subs=0,
@@ -390,7 +370,7 @@ class TestAutomationBugFixes:
         )
         service = _make_service_with_rows(rows)
 
-        response = self._run(service)
+        response = await self._run(service)
 
         auto = response.automations[0]
         assert auto.active_subscribers == 0

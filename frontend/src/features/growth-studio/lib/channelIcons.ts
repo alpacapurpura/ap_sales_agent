@@ -38,135 +38,91 @@ export type ChannelIconComponent = ComponentType<ChannelIconProps>;
 
 // ─── Icon Mapping ─────────────────────────────────────────────────────────────
 
+/** Exact slug → icon lookup. Populated per channel family. */
+const CHANNEL_ICON_MAP: Record<string, ChannelIconComponent> = {
+  // Instagram
+  instagram: Instagram as ChannelIconComponent,
+  "ig-organic": Instagram as ChannelIconComponent,
+  "ig-dm": Instagram as ChannelIconComponent,
+  // Facebook
+  facebook: Facebook as ChannelIconComponent,
+  "fb-organic": Facebook as ChannelIconComponent,
+  "fb-messenger": Facebook as ChannelIconComponent,
+  // YouTube
+  youtube: Youtube as ChannelIconComponent,
+  "yt-organic": Youtube as ChannelIconComponent,
+  "yt-ads": Youtube as ChannelIconComponent,
+  // TikTok (no official lucide icon — Radio as fallback)
+  tiktok: Radio as ChannelIconComponent,
+  "tiktok-organic": Radio as ChannelIconComponent,
+  "tiktok-ads": Radio as ChannelIconComponent,
+  "tiktok-dm": Radio as ChannelIconComponent,
+  "tiktok-retargeting": Radio as ChannelIconComponent,
+  // Meta Ads
+  "meta-ads": Zap as ChannelIconComponent,
+  meta: Zap as ChannelIconComponent,
+  "facebook-ads": Zap as ChannelIconComponent,
+  "meta-retargeting": Zap as ChannelIconComponent,
+  // Google
+  "google-ads": Search as ChannelIconComponent,
+  "google-search": Search as ChannelIconComponent,
+  "ga4-search": Search as ChannelIconComponent,
+  "google-organic": Search as ChannelIconComponent,
+  "google-retargeting": Search as ChannelIconComponent,
+  "search-console": Search as ChannelIconComponent,
+  // Shopify / checkout
+  shopify: ShoppingCart as ChannelIconComponent,
+  "shopify-checkout": ShoppingCart as ChannelIconComponent,
+  "checkout-init": ShoppingCart as ChannelIconComponent,
+  // MailerLite (email-* prefix handled separately)
+  mailerlite: Mail as ChannelIconComponent,
+  // WhatsApp
+  whatsapp: MessageCircle as ChannelIconComponent,
+  "whatsapp-inbound": MessageCircle as ChannelIconComponent,
+  "whatsapp-outbound": MessageCircle as ChannelIconComponent,
+  // Manychat
+  manychat: MessageSquare as ChannelIconComponent,
+  "manychat-messenger": MessageSquare as ChannelIconComponent,
+  "manychat-ig": MessageSquare as ChannelIconComponent,
+  "manychat-wa": MessageSquare as ChannelIconComponent,
+  "manychat-sequences": MessageSquare as ChannelIconComponent,
+  "manychat-bofu": MessageSquare as ChannelIconComponent,
+  "manychat-comments": MessageSquare as ChannelIconComponent,
+  // AI SDR / AI agent
+  "ai-sdr": Bot as ChannelIconComponent,
+  "ai-agent": Bot as ChannelIconComponent,
+  "ai-search-organic": Bot as ChannelIconComponent,
+  // Outbound / cold contact
+  "cold-contact": Phone as ChannelIconComponent,
+  outbound: Phone as ChannelIconComponent,
+  // Website / landing
+  "website-overview": Globe as ChannelIconComponent,
+  "website-total": Globe as ChannelIconComponent,
+  "meta-pixel": Globe as ChannelIconComponent,
+  "website-capture": Globe as ChannelIconComponent,
+  "landing-form": Globe as ChannelIconComponent,
+  landing: Globe as ChannelIconComponent,
+  linkedin: Globe as ChannelIconComponent,
+  "linkedin-organic": Globe as ChannelIconComponent,
+  // Direct traffic
+  direct: Link as ChannelIconComponent,
+  // BOFU links
+  "meeting-booked": Link as ChannelIconComponent,
+  "link-enviado": Link as ChannelIconComponent,
+  "checkout-lp": Link as ChannelIconComponent,
+  // Abandoned cart
+  "abandoned-cart": Target as ChannelIconComponent,
+};
+
 /**
  * Returns the appropriate lucide-react icon component for a given channel slug.
  * Falls back to BarChart3 for unknown slugs.
  */
 export function getChannelIcon(channelSlug: string): ChannelIconComponent {
   const slug = channelSlug.toLowerCase();
-
-  // Instagram (organic + DM)
-  if (slug === "instagram" || slug === "ig-organic" || slug === "ig-dm") {
-    return Instagram as ChannelIconComponent;
-  }
-
-  // Facebook (organic + messenger)
-  if (slug === "facebook" || slug === "fb-organic" || slug === "fb-messenger") {
-    return Facebook as ChannelIconComponent;
-  }
-
-  // YouTube (organic + ads)
-  if (slug === "youtube" || slug === "yt-organic" || slug === "yt-ads") {
-    return Youtube as ChannelIconComponent;
-  }
-
-  // TikTok (organic + ads + DM) — no official TikTok icon in lucide; use Radio as fallback
-  if (
-    slug === "tiktok" ||
-    slug === "tiktok-organic" ||
-    slug === "tiktok-ads" ||
-    slug === "tiktok-dm" ||
-    slug === "tiktok-retargeting"
-  ) {
-    return Radio as ChannelIconComponent;
-  }
-
-  // Meta Ads / Meta retargeting
-  if (
-    slug === "meta-ads" ||
-    slug === "meta" ||
-    slug === "facebook-ads" ||
-    slug === "meta-retargeting"
-  ) {
-    return Zap as ChannelIconComponent;
-  }
-
-  // Google (ads, search, GA4, retargeting, Search Console)
-  if (
-    slug === "google-ads" ||
-    slug === "google-search" ||
-    slug === "ga4-search" ||
-    slug === "google-organic" ||
-    slug === "google-retargeting" ||
-    slug === "search-console"
-  ) {
-    return Search as ChannelIconComponent;
-  }
-
-  // Shopify / checkout
-  if (slug === "shopify" || slug === "shopify-checkout" || slug === "checkout-init") {
-    return ShoppingCart as ChannelIconComponent;
-  }
-
-  // Email marketing (provider-agnostic email-* slugs + legacy mailerlite)
-  if (slug.startsWith("email-") || slug === "mailerlite") {
-    return Mail as ChannelIconComponent;
-  }
-
-  // WhatsApp
-  if (slug === "whatsapp" || slug === "whatsapp-inbound" || slug === "whatsapp-outbound") {
-    return MessageCircle as ChannelIconComponent;
-  }
-
-  // Manychat / Facebook Messenger bot + IG, WA, sequences, BOFU, comments
-  if (
-    slug === "manychat" ||
-    slug === "manychat-messenger" ||
-    slug === "manychat-ig" ||
-    slug === "manychat-wa" ||
-    slug === "manychat-sequences" ||
-    slug === "manychat-bofu" ||
-    slug === "manychat-comments"
-  ) {
-    return MessageSquare as ChannelIconComponent;
-  }
-
-  // AI SDR / AI agent channels
-  if (slug === "ai-sdr" || slug === "ai-agent" || slug === "ai-search-organic") {
-    return Bot as ChannelIconComponent;
-  }
-
-  // Cold contact / outbound
-  if (slug === "cold-contact" || slug === "outbound") {
-    return Phone as ChannelIconComponent;
-  }
-
-  // Website overview
-  if (
-    slug === "website-overview" ||
-    slug === "website-total" ||
-    slug === "meta-pixel" ||
-    slug === "website-capture"
-  ) {
-    return Globe as ChannelIconComponent;
-  }
-
-  // Landing form / web forms
-  if (slug === "landing-form" || slug === "landing") {
-    return Globe as ChannelIconComponent;
-  }
-
-  // Direct traffic
-  if (slug === "direct") {
-    return Link as ChannelIconComponent;
-  }
-
-  // Abandoned cart
-  if (slug === "abandoned-cart") {
-    return Target as ChannelIconComponent;
-  }
-
-  // Meeting / payment link
-  if (slug === "meeting-booked" || slug === "link-enviado" || slug === "checkout-lp") {
-    return Link as ChannelIconComponent;
-  }
-
-  // LinkedIn
-  if (slug === "linkedin" || slug === "linkedin-organic") {
-    return Globe as ChannelIconComponent;
-  }
-
-  // Default fallback
+  const icon = CHANNEL_ICON_MAP[slug];
+  if (icon) return icon;
+  if (slug.startsWith("email-")) return Mail as ChannelIconComponent;
   return BarChart3 as ChannelIconComponent;
 }
 

@@ -1,17 +1,17 @@
 """Add conversation security columns (expires_at, deleted_at).
 
-Revision ID: a1b2c3d4e5f6
+Revision ID: dd3271ee2de4
 Revises: f851363921c9
 Create Date: 2026-04-13 18:00:00.000000
 
-"""  # noqa: INP001
+"""
 
 from collections.abc import Sequence
 
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "a1b2c3d4e5f6"
+revision: str = "dd3271ee2de4"
 down_revision: str | None = "f851363921c9"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None

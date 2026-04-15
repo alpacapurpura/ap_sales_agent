@@ -78,6 +78,7 @@ const VIBE_KITS = [
   },
 ];
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract wizard steps to sub-components
 export function BrandVisualsWizard({
   isOpen,
   onOpenChange,

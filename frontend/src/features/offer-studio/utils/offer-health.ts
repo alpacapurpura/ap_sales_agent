@@ -16,6 +16,7 @@ export interface OfferHealth {
 /**
  * Valida una sección específica de la oferta.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity -- inherently complex switch; each case is a distinct validation rule
 const validateSection = (sectionId: string, offer: Offer): SectionHealth => {
   switch (sectionId) {
     case "identity":

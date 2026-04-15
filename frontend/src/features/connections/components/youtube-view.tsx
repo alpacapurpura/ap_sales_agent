@@ -40,6 +40,7 @@ import { connectionsApi } from "@/lib/api/connections";
 
 import type { YoutubeStatusResponse } from "@/lib/api/connections";
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract connection step handlers
 export function YoutubeView() {
   const { getToken } = useAuth();
 

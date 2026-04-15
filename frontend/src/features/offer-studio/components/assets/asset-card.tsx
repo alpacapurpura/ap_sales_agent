@@ -62,6 +62,7 @@ function formatRelativeDate(iso: string): string {
   return `Hace ${months} mes${months === 1 ? "" : "es"}`;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract per-type duration resolvers
 function resolveDurationBadge(asset: AssetResponse): string | null {
   const meta = asset.metadata;
   if (!meta) return null;

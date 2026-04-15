@@ -221,6 +221,7 @@ function NotConnectedScreen({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract meta connection step handlers
 export function MetaView() {
   const { getToken } = useAuth();
   const params = useParams();

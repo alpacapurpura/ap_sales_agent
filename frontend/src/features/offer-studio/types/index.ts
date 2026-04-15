@@ -310,15 +310,8 @@ export interface DeliverableItem {
   value_stack_price: number;
 }
 
-export interface AvatarDefinition {
-  icp_description?: string;
-  anti_avatar?: string;
-  voice_tone_config?: Record<string, unknown>;
-  pain_points?: string[];
-  desires?: string[];
-  awareness_level?: string;
-  sophistication_level?: string;
-}
+// Re-exported from lib/api/avatar — canonical definition lives there to avoid lib→feature dependency
+export type { AvatarDefinition } from "@/lib/api/avatar";
 
 export interface ObjectionItem {
   id?: string;

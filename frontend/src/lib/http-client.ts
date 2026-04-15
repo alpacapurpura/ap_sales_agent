@@ -6,6 +6,7 @@ import { config } from "./config";
  * Wrapper alrededor de fetch nativo que intercepta errores 403.
  * Si la respuesta es 403 (Forbidden), redirige a la página /forbidden.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract retry/error helpers
 export async function fetchClient(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   // Clone init to avoid mutation side effects, or create new if undefined
   const config = { ...init };

@@ -1,9 +1,18 @@
 import { config } from "../config";
 import { fetchClient } from "../http-client";
 
-import type { AvatarDefinition } from "@/features/offer-studio/types";
-
 const API_URL = config.api.baseUrl;
+
+// Buyer avatar persona definition — shared with offer-studio types
+export interface AvatarDefinition {
+  icp_description?: string;
+  anti_avatar?: string;
+  voice_tone_config?: Record<string, unknown>;
+  pain_points?: string[];
+  desires?: string[];
+  awareness_level?: string;
+  sophistication_level?: string;
+}
 
 export interface Avatar extends AvatarDefinition {
   id: string;

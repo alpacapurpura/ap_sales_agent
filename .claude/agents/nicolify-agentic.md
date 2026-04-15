@@ -4,6 +4,7 @@ description: Implements LangGraph workflows, AI agent state machines, RAG pipeli
 tools: Read, Write, Edit, Bash, Grep, Glob
 maxTurns: 40
 color: purple
+model: opus
 ---
 
 <role>

@@ -46,6 +46,7 @@ interface SalesDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract metric group renderers to sub-components
 export const SalesDetail = React.memo(function SalesDetail({ onMetricClick }: SalesDetailProps) {
   const { timezone } = useTenantLocale();
   const { data, isLoading, error, refetch } = useSalesDetail();

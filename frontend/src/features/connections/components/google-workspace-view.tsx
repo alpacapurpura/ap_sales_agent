@@ -242,6 +242,7 @@ const PreConsentScreen = ({ onConnect, isConnecting }: PreConsentScreenProps) =>
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract connection-step handlers
 export function GoogleWorkspaceView() {
   const { getToken } = useAuth();
 

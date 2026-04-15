@@ -389,6 +389,7 @@ export const offerApi = {
     return aiActionsApi.pollOfferExtractionStatus(jobId, token);
   },
 
+  // eslint-disable-next-line max-params -- public API signature; refactor requires updating all call sites
   regenerateBlock: async (
     offerId: string,
     blockType: string,

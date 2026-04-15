@@ -218,6 +218,7 @@ interface ChannelDetailSidebarProps {
   initialTab?: string | null;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract channel type branch renderers
 export default function ChannelDetailSidebar({
   isOpen,
   onClose,

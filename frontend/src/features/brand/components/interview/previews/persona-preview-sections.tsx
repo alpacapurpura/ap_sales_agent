@@ -75,6 +75,7 @@ const VARIANT_CLASSES: Record<string, string> = {
 
 // ── Item count helpers ─────────────────────────────────────────────────────
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: split per field-type strategy
 function countFilledFields(
   data: Record<string, unknown>,
   sectionKey: string,

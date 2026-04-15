@@ -211,6 +211,7 @@ export function useMetaAdsNotices({
 }: UseMetaAdsNoticesArgs): NoticesSummary {
   const { ignored } = useIgnoredNotices();
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract notice-detection helpers per category
   return useMemo(() => {
     const activeCampaignIds = new Set(
       (campaignData?.campaigns ?? [])

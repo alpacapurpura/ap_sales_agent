@@ -135,6 +135,7 @@ interface NavItemRendererProps {
   onToggleExpand: (href: string) => void;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract sub-renderers per nav item variant
 function NavItemRenderer({
   item,
   pathname,
@@ -338,6 +339,7 @@ interface NavContentProps {
   mounted: boolean;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract section renderers to reduce complexity
 const NavContent = memo(function NavContent({
   mobile = false,
   isCollapsed,

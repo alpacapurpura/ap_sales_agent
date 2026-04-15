@@ -4,6 +4,15 @@ import { useCopilotStore } from "../store/copilot-store";
 
 const API_URL = config.api.baseUrl;
 
+/** Parses a single SSE data payload. Returns null on malformed JSON (skip silently). */
+function tryParseSSEData(dataStr: string): Record<string, unknown> | null {
+  try {
+    return JSON.parse(dataStr) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 export interface CopilotChatPayload {
   message: string;
   conversation_id?: string | null;
@@ -186,11 +195,10 @@ async function attemptSSEStream(
           currentEvent = line.slice(7).trim();
         } else if (line.startsWith("data: ")) {
           const dataStr = line.slice(6);
-          try {
-            const data = JSON.parse(dataStr);
-            handleSSEEvent(currentEvent as SSEEventType, data, callbacks);
-          } catch {
-            // Skip malformed JSON
+          const parsed = tryParseSSEData(dataStr);
+          // eslint-disable-next-line max-depth -- SSE parsing is inherently 5 levels deep; extracting further would obscure intent
+          if (parsed !== null) {
+            handleSSEEvent(currentEvent as SSEEventType, parsed, callbacks);
           }
           currentEvent = "";
         }
@@ -212,6 +220,7 @@ async function attemptSSEStream(
  * because the request was received by the server. AbortSignal cancellations
  * are never retried.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract retry/streaming logic to separate helpers
 export async function streamCopilotChat(
   payload: CopilotChatPayload,
   callbacks: {

@@ -494,6 +494,7 @@ export const metricsApi = {
     return res.json();
   },
 
+  // eslint-disable-next-line max-params -- public API; grouping into options object would require updating all callers
   getTimeSeries: async (
     token: string,
     stage: string,

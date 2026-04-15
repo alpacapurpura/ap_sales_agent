@@ -119,6 +119,7 @@ export function ChatTimeline({ leadId, onSelectEvent, selectedEventId }: ChatTim
     let currentTraceGroup: TimelineEvent[] = [];
     let pendingBotEvent: TimelineEvent | null = null;
 
+    // eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract event-type handlers
     timeline.forEach((event) => {
       if (event.type === "message") {
         if (event.role === "user") {

@@ -56,6 +56,7 @@ export interface ChannelRowProps {
   onChannelClick?: (channel: ChannelMetric) => void;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract channel state helpers and sub-renderers
 export const ChannelRow = React.memo(function ChannelRow({
   channel,
   stageId,

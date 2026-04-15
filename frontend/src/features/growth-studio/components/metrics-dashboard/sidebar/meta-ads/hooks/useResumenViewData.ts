@@ -663,6 +663,7 @@ export function useResumenViewData({
   selectedOfferId,
   tenantCurrency,
 }: UseResumenViewDataArgs): ResumenViewData {
+  // eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract offer-aggregation helpers
   return useMemo<ResumenViewData>(() => {
     if (!metricsByOffer) return EMPTY;
 

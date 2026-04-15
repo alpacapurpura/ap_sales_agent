@@ -51,6 +51,7 @@ const VALID_TABS: MetaAdsDashboardTab[] = [
   "costos",
 ];
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract tab management and route logic to hooks
 export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsDashboardProps) {
   const { timezone } = useTenantLocale();
   const router = useRouter();

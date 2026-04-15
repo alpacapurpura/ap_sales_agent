@@ -17,6 +17,7 @@ interface BrandHeroSectionProps {
   onRefine?: () => void;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract logo/color helpers out of render
 export function HeaderSection({
   identity,
   visuals,

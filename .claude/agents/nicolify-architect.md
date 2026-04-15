@@ -5,6 +5,7 @@ tools: Read, Bash, Grep, Glob
 maxTurns: 30
 skills: [backend-expert]
 color: blue
+model: opus
 ---
 
 <role>

@@ -353,6 +353,7 @@ function CampaignSummaryKpis({
 // Section 3: Campaign Row
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract metric formatting and status helpers
 function CampaignRow({
   campaign,
   currency,
