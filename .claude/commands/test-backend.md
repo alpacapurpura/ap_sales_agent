@@ -1,71 +1,91 @@
-Run backend lint and tests with coverage natively in WSL.
+Run backend quality gates + functional tests + health checks natively in WSL.
+This is the DEFINITIVE backend verification command. All steps must pass before committing.
 
-**IMPORTANT:** All tools (pytest, ruff) are in `backend/.venv/bin/`.
-If `ruff` or `pytest` is not found, run: `cd backend && .venv/bin/pip install -r requirements-dev.txt`
+**CRITICAL:** All tools run from `backend/.venv/bin/`. NEVER use `docker exec` for lint/tests.
 
-## Steps
+## Execution: run ALL steps sequentially. Stop on first BLOCKER failure.
 
-Run these sequentially, reporting results after each step:
-
-### 1. Verify tools exist
+### Step 1: Verify tools
 ```bash
-cd backend && .venv/bin/ruff --version && .venv/bin/pytest --version
+cd /home/chris/AISALESHT/backend && .venv/bin/ruff --version && .venv/bin/pytest --version && .venv/bin/interrogate --version
 ```
-If either is missing, STOP and tell the user to install dev dependencies.
+If missing: `.venv/bin/pip install -r requirements-dev.txt`
 
-### 2. Lint (ruff check)
+---
+
+## QUALITY GATES (blockers — 0 errors required)
+
+### Step 2: Lint (ruff check)
 ```bash
-cd backend && .venv/bin/ruff check src/ tests/ --no-cache
+cd /home/chris/AISALESHT/backend && .venv/bin/ruff check src/ tests/ --no-cache
 ```
-Use `--no-cache` to avoid permission issues with `.ruff_cache/`.
-**IMPORTANT:** Always lint `tests/` too — the pre-commit hook checks all staged files including tests.
-If the user wants auto-fix: add `--fix` flag.
+Must be `All checks passed!`. If not: fix violations. Use `--fix` only if user approves.
 
-### 3. Format check (ruff format)
+### Step 3: Format check (ruff format)
 ```bash
-cd backend && .venv/bin/ruff format --check src/ tests/
+cd /home/chris/AISALESHT/backend && .venv/bin/ruff format --check src/ tests/
 ```
-Verifies code formatting without modifying files. If this fails, run `ruff format src/ tests/` to fix.
+Must show 0 files to reformat. If fails: `.venv/bin/ruff format src/ tests/`
 
-### 5. Architectural fitness tests
+### Step 4: Architecture fitness tests (10 gates)
 ```bash
-cd backend && .venv/bin/pytest tests/architecture/ -v
+cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/architecture/ -v --override-ini="addopts="
 ```
-These validate DDD boundaries (no cross-module imports), API contracts (response_model present),
-and coding conventions (no hard deletes, SA 2.0 syntax). Failures here mean a structural
-regression — fix before proceeding.
+Enforces: DDD boundaries, API contracts (response_model), no hard deletes, SA 2.0 syntax,
+currency from source, ETL contract sync, master data rules, Meta invariants,
+**snake_case file naming, DDD folder structure, domain purity (no SQLAlchemy in domain)**.
+ALL must pass. Failure = structural regression — fix before proceeding.
 
-### 6. Unit tests with coverage (pytest)
+---
+
+## FUNCTIONAL TESTS (blockers)
+
+### Step 5: Unit + integration tests with coverage
 ```bash
-cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short
+cd /home/chris/AISALESHT/backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short
 ```
-- `-x`: stop on first failure
-- `-q`: quiet output
-- `--tb=short`: compact tracebacks
-- `--cov-report=term-missing`: shows which lines are uncovered
+Coverage threshold: **43%** (enforced by pyproject.toml `fail_under`).
+Tests run with pytest-randomly (catches hidden order dependencies) and pytest-timeout (30s kill).
 
-To run a specific module's tests:
+---
+
+## HEALTH CHECKS (informational — report but don't block)
+
+### Step 6: Code duplication (jscpd)
 ```bash
-cd backend && .venv/bin/pytest tests/modules/{module}/ -v
+cd /home/chris/AISALESHT && npx jscpd backend/src/ --threshold 5 --reporters console
 ```
+Baseline: 3.63% (205 clones). If >5%: **flag as WARNING** — new duplication introduced.
+If >8%: **flag as CRITICAL** — significant copy-paste detected, must refactor.
 
-### 7. Security audit (pip-audit)
+### Step 7: Docstring coverage (interrogate)
 ```bash
-cd backend && .venv/bin/pip-audit --strict --desc
+cd /home/chris/AISALESHT/backend && .venv/bin/interrogate -vv src/modules/ src/shared/ --fail-under=0
 ```
-Checks all Python dependencies for known vulnerabilities. `--strict` fails on ANY finding.
-This mirrors CI exactly. If it finds issues, report them — do NOT skip.
+Report coverage %. Trend should go UP over time. If a module drops significantly: flag it.
 
-### 8. Report
-Summarize:
+### Step 8: Security audit (pip-audit)
+```bash
+cd /home/chris/AISALESHT/backend && .venv/bin/pip-audit --strict --desc
+```
+Checks Python dependencies for known CVEs. Report any findings with severity.
 
-| Step | Result | Coverage |
-|---|---|---|
-| Lint (ruff check) | pass/fail | — |
-| Format (ruff format) | pass/fail | — |
-| Arch fitness | pass/fail (5 tests) | — |
-| Tests | pass/fail count | XX% (min 60%) |
-| Security (pip-audit) | pass/fail (N vulns) | — |
+---
 
-- If coverage is below 60%, list the modules with lowest coverage
-- If pip-audit finds vulnerabilities, list them with severity
+## REPORT
+
+Summarize as table:
+
+| Gate | Step | Result | Details |
+|------|------|--------|---------|
+| QUALITY | Lint (ruff) | PASS/FAIL | 0 errors required |
+| QUALITY | Format (ruff) | PASS/FAIL | 0 files to reformat |
+| QUALITY | Arch fitness (10 tests) | PASS/FAIL | DDD + naming + purity |
+| FUNCTIONAL | Tests (N passed) | PASS/FAIL | coverage: XX% (min 43%) |
+| HEALTH | Duplication (jscpd) | X.XX% | baseline 3.63%, warn >5% |
+| HEALTH | Docstrings (interrogate) | XX% | trend should increase |
+| HEALTH | Security (pip-audit) | PASS/FAIL | N vulnerabilities |
+
+**If all QUALITY + FUNCTIONAL pass:** "Backend OK — safe to commit."
+**If any QUALITY or FUNCTIONAL fail:** list failures with file:line. Fix before committing.
+**If HEALTH checks degrade:** warn user, suggest fixes, but don't block.

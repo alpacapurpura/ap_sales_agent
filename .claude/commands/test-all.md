@@ -1,101 +1,137 @@
-Run full CI suite (backend + frontend + E2E smoke) natively. Mirrors the `quality-gates` job in `.github/workflows/deploy-prod.yml`.
+Run FULL quality suite (backend + frontend + E2E + migrations) natively.
+This is the DEFINITIVE pre-commit/pre-deploy verification. Mirrors CI quality-gates.
 
-**IMPORTANT:** Backend tools are in `backend/.venv/bin/`. Frontend tools are in `frontend/node_modules/.bin/`.
-If tools are missing, install dev dependencies first.
+**CRITICAL:** All tools run natively in WSL. NEVER `docker exec` for lint/tests.
+Docker ONLY for: migrations test (Step 11) and E2E containers.
 
-## Steps
+## Execution: run ALL steps sequentially. Stop on first BLOCKER failure.
 
-### 0. Pre-flight: verify tools
+### Step 0: Pre-flight
 ```bash
-cd backend && .venv/bin/ruff --version && .venv/bin/pytest --version && cd ../frontend && npx vitest --version
+cd /home/chris/AISALESHT/backend && .venv/bin/ruff --version && .venv/bin/pytest --version && cd /home/chris/AISALESHT/frontend && npx vitest --version
 ```
-If anything fails, STOP and report the fix needed.
+If anything fails: install dependencies first.
 
-### 1. Backend lint (ruff check)
-```bash
-cd backend && .venv/bin/ruff check src/ tests/ --no-cache
-```
+---
 
-### 2. Backend format check (ruff format)
-```bash
-cd backend && .venv/bin/ruff format --check src/ tests/
-```
-Verifies formatting without modifying files. If this fails, run `ruff format src/ tests/` to fix.
+## BACKEND QUALITY GATES (blockers)
 
-### 3. Backend architectural fitness tests
+### Step 1: Backend lint (ruff check)
 ```bash
-cd backend && .venv/bin/pytest tests/architecture/ -v
-```
-Validates DDD boundaries, API contracts, and coding conventions. If this fails,
-a structural rule was violated — fix before continuing with unit tests.
-
-### 4. Backend tests with coverage (pytest)
-```bash
-cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term -x -q --tb=short
-```
-Note the overall coverage % from the output. Threshold: **60%** (CI will fail below this).
-
-### 5. Backend security audit (pip-audit)
-```bash
-cd backend && .venv/bin/pip-audit --strict --desc
-```
-Checks Python dependencies for known CVEs. `--strict` fails on ANY vulnerability.
-
-### 6. Frontend types (tsc)
-```bash
-cd frontend && npx tsc --noEmit
+cd /home/chris/AISALESHT/backend && .venv/bin/ruff check src/ tests/ --no-cache
 ```
 
-### 7. Frontend lint (ESLint)
+### Step 2: Backend format (ruff format)
 ```bash
-cd frontend && npx eslint src/
+cd /home/chris/AISALESHT/backend && .venv/bin/ruff format --check src/ tests/
 ```
 
-### 8. Frontend tests with coverage (vitest)
+### Step 3: Architecture fitness tests (10 gates)
 ```bash
-cd frontend && npx vitest run --coverage
+cd /home/chris/AISALESHT/backend && .venv/bin/pytest tests/architecture/ -v --override-ini="addopts="
 ```
-Note the overall coverage % from the output. Thresholds: **statements 20%, branches 15%, functions 15%, lines 20%**.
+DDD boundaries + API contracts + conventions + currency + ETL contract + master data +
+Meta invariants + **snake_case naming + DDD folder structure + domain purity**.
 
-### 9. Frontend security audit (npm audit)
+### Step 4: Backend tests with coverage
 ```bash
-cd frontend && npm audit --audit-level=high
+cd /home/chris/AISALESHT/backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short
 ```
-Checks NPM dependencies for known vulnerabilities (HIGH and CRITICAL severity).
+Threshold: **43%**. pytest-randomly active (randomized order). pytest-timeout: 30s.
 
-### 10. E2E Smoke Tests (Playwright)
+---
+
+## FRONTEND QUALITY GATES (blockers)
+
+### Step 5: TypeScript strict
 ```bash
-make e2e-smoke
+cd /home/chris/AISALESHT/frontend && npx tsc --noEmit
 ```
-This runs `@smoke`-tagged Playwright tests against the running dev environment.
-If containers are not running, this step will FAIL — the dev must run `make dev` first.
 
-### 11. Migration verification (fresh DB)
-Creates a temporary database and runs ALL migrations from scratch to verify they're correct and idempotent.
+### Step 6: ESLint (60+ rules)
+```bash
+cd /home/chris/AISALESHT/frontend && ./node_modules/.bin/eslint src/ --cache --cache-location .eslintcache
+```
+0 errors required. Count warnings for report.
+
+### Step 7: Frontend tests with coverage
+```bash
+cd /home/chris/AISALESHT/frontend && npx vitest run --coverage
+```
+Thresholds: **all 20%** (statements, branches, functions, lines).
+
+---
+
+## HEALTH CHECKS (informational — report, don't block)
+
+### Step 8: Code duplication — BOTH stacks
+```bash
+cd /home/chris/AISALESHT && npx jscpd frontend/src/ --threshold 5 --reporters console
+cd /home/chris/AISALESHT && npx jscpd backend/src/ --threshold 5 --reporters console
+```
+Baselines: Frontend 4.52%, Backend 3.63%. Warn >5%, critical >8%.
+
+### Step 9: Dead code + circular imports (frontend)
+```bash
+cd /home/chris/AISALESHT/frontend && npx knip 2>&1 | head -40
+cd /home/chris/AISALESHT/frontend && npx madge --circular src/ --extensions ts,tsx
+```
+knip baseline: 63 unused (many false positives). madge baseline: 2 cycles.
+
+### Step 10: Docstring coverage + security
+```bash
+cd /home/chris/AISALESHT/backend && .venv/bin/interrogate -vv src/modules/ src/shared/ --fail-under=0
+cd /home/chris/AISALESHT/backend && .venv/bin/pip-audit --strict --desc
+cd /home/chris/AISALESHT/frontend && npm audit --audit-level=high
+```
+
+---
+
+## E2E + MIGRATIONS (optional — run when deploying)
+
+### Step 11: Migration verification (fresh DB)
 ```bash
 docker exec -t visionarias_postgres psql -U postgres -c "DROP DATABASE IF EXISTS migration_test;"
 docker exec -t visionarias_postgres psql -U postgres -c "CREATE DATABASE migration_test;"
 docker exec -t visionarias_brain_dev bash -c "cd /app && DATABASE_URL=postgresql://postgres:postgres@postgres:5432/migration_test alembic upgrade head"
 docker exec -t visionarias_postgres psql -U postgres -c "DROP DATABASE migration_test;"
 ```
-If `alembic upgrade head` fails on the fresh DB, there is a broken or non-idempotent migration. Fix it before deploying.
+If fails: broken or non-idempotent migration.
 
-### 12. Summary
-Report a table:
+### Step 12: E2E Smoke Tests (Playwright)
+**Requires Docker containers running** (`docker compose up -d`).
+```bash
+cd /home/chris/AISALESHT && bash scripts/e2e-preflight.sh
+cd /home/chris/AISALESHT/frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke
+```
+**NEVER use `make e2e-smoke`** (Docker-based, crashes laptop). Always native Playwright.
 
-| Step | Result | Coverage |
-|---|---|---|
-| Backend lint (ruff check) | PASS/FAIL | — |
-| Backend format (ruff format) | PASS/FAIL | — |
-| Arch fitness | PASS/FAIL (5 tests) | — |
-| Backend tests | X passed | XX% (min 60%) |
-| Backend security (pip-audit) | PASS/FAIL (N vulns) | — |
-| Frontend types (tsc) | PASS/FAIL | — |
-| Frontend lint (ESLint) | PASS/FAIL (N warnings) | — |
-| Frontend tests | X passed | XX% (min 20%) |
-| Frontend security (npm audit) | PASS/FAIL (N vulns) | — |
-| E2E Smoke | X passed | — |
-| Migrations (fresh DB) | PASS/FAIL | — |
+---
 
-If all pass: "CI suite PASS — safe to deploy."
-If any fail: list failures with file:line references.
+## FINAL REPORT
+
+| Gate | Step | Result | Details |
+|------|------|--------|---------|
+| **BACKEND** | | | |
+| QUALITY | Lint (ruff) | PASS/FAIL | 0 errors |
+| QUALITY | Format (ruff) | PASS/FAIL | 0 reformats |
+| QUALITY | Arch fitness (10) | PASS/FAIL | DDD + naming + purity |
+| FUNCTIONAL | Tests | PASS/FAIL (N) | coverage XX% (min 43%) |
+| HEALTH | Duplication | X.XX% | baseline 3.63% |
+| HEALTH | Docstrings | XX% | trend tracking |
+| HEALTH | Security (pip-audit) | PASS/FAIL | N vulns |
+| **FRONTEND** | | | |
+| QUALITY | TypeScript (tsc) | PASS/FAIL | strict mode |
+| QUALITY | ESLint (60+) | PASS/FAIL | 0 errors, N warnings |
+| FUNCTIONAL | Tests | PASS/FAIL (N) | coverage XX% (min 20%) |
+| HEALTH | Duplication | X.XX% | baseline 4.52% |
+| HEALTH | Dead code (knip) | N unused | focus on NEW |
+| HEALTH | Circulars (madge) | N cycles | baseline 2 |
+| HEALTH | Security (npm) | PASS/FAIL | N vulns |
+| **DEPLOY** | | | |
+| E2E | Smoke tests | PASS/FAIL/SKIP | if containers running |
+| MIGRATIONS | Fresh DB | PASS/FAIL/SKIP | if Docker available |
+
+**All QUALITY + FUNCTIONAL pass:** "Full suite PASS — safe to deploy."
+**Any fail:** list failures. Fix before deploying.
+**HEALTH degraded:** warn user, track trend, suggest fixes.

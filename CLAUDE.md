@@ -26,25 +26,18 @@ Unsure about a domain? Read `docs/domains/INDEX.md` first (15 domain docs).
 **Lint, tests, and type-checking run NATIVELY in WSL — never inside Docker.**
 **Docker is only for runtime services (FastAPI, DB, Redis, Qdrant) and migrations (Alembic).**
 
-| Action | Skill / Make | Native command |
+| Action | Command | What it runs |
 |---|---|---|
-| Start dev | `/dev-up` or `make dev` | `docker compose up -d` |
-| Start extended (admin, worker) | `make dev-extended` | `docker compose --profile extended up -d` |
-| Backend lint | `/test-backend` or `make ruff` | `cd backend && .venv/bin/ruff check src/ tests/ --no-cache` |
-| Backend tests | `/test-backend` or `make pytest` | `cd backend && .venv/bin/pytest -x -q --tb=short` |
-| Arch tests | `make arch-test` | `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` |
-| Single backend test | `make pytest args="-k test_name"` | `cd backend && .venv/bin/pytest tests/modules/brand/ -x -q` |
-| Frontend types | `/test-frontend` or `make tsc` | `cd frontend && npx tsc --noEmit` |
-| Frontend lint | `/test-frontend` | `cd frontend && npx eslint src/` |
-| Frontend tests | `/test-frontend` or `make vitest` | `cd frontend && npx vitest run` |
-| Full CI | `/test-all` | Backend lint+tests, then frontend types+lint+tests |
-| Run migration | `/migrate <msg>` | `docker exec -t visionarias_brain_dev bash -c "cd /app && alembic upgrade head"` |
-| Explore module | `/explore-module <name>` | — |
-| Review PR | `/review-pr` | — |
-| Install npm pkg | `make install-front p=pkg` | — |
-| Fix Docker perms | `make fix-permissions` | — |
-| E2E smoke (native) | — | `cd frontend && npx playwright test --project=smoke` |
-| E2E regression (native) | — | `cd frontend && npx playwright test --project=regression` |
+| **Backend full** | `/test-backend` | Lint + format + 10 arch tests + unit tests + jscpd + interrogate + pip-audit |
+| **Frontend full** | `/test-frontend` | TSC + ESLint (60+) + Vitest + jscpd + knip + madge + npm audit |
+| **Full CI** | `/test-all` | Backend + Frontend + E2E smoke + migration test |
+| Start dev | `/dev-up` | `docker compose up -d` |
+| Run migration | `/migrate <msg>` | Alembic inside Docker |
+| Explore module | `/explore-module <name>` | DDD structure inspection |
+| Review PR | `/review-pr` | Diff analysis vs main |
+| Single backend test | — | `cd backend && .venv/bin/pytest tests/modules/{module}/ -v` |
+| Single frontend test | — | `cd frontend && npx vitest run src/features/{domain}/` |
+| E2E smoke (native) | — | `cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke` |
 
 ### Docker Containers
 
