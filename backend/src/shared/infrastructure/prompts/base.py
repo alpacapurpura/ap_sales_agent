@@ -54,7 +54,7 @@ class PromptLoader:
             )
             config = result["config_json"] if result and result.get("config_json") else {}
             self._tenant_config_cache[tenant_id] = config
-        except Exception as exc:  # noqa: BLE001 — prompt loading resilience
+        except (KeyError, ValueError, AttributeError) as exc:
             logger.warning("Error loading tenant config: %s", exc)
             return {}
         else:
@@ -121,7 +121,7 @@ class PromptLoader:
             if global_prompt:
                 self._update_cache(key, tenant_id, global_prompt)
                 return global_prompt["content"]
-        except Exception as exc:  # noqa: BLE001 — prompt loading resilience
+        except (KeyError, ValueError) as exc:
             logger.warning("Error loading prompt '%s' from DB: %s", key, exc)
             return None
         else:

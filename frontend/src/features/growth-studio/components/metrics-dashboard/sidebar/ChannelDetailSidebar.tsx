@@ -218,7 +218,7 @@ interface ChannelDetailSidebarProps {
   initialTab?: string | null;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract channel type branch renderers
+// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: hooks (useEffect for channel info fetch, useSyncChannel) must run unconditionally before 5 early-return branches for dedicated panels (meta-ads, ig-organic, yt-organic, website-total, email-nurture). React rules-of-hooks prevent moving the early returns before the hooks.
 export default function ChannelDetailSidebar({
   isOpen,
   onClose,

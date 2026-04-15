@@ -51,7 +51,7 @@ const VALID_TABS: MetaAdsDashboardTab[] = [
   "costos",
 ];
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract tab management and route logic to hooks
+// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: dashboard coordinates 6 tabs, URL-sync for period/tab/notices/assign params, portal rendering, onboarding modal trigger, and unassigned-campaign count — all interdependent via shared URL state. Extracting to hooks would pass the same branch count into the hook.
 export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsDashboardProps) {
   const { timezone } = useTenantLocale();
   const router = useRouter();

@@ -30,14 +30,30 @@ def all_python_files() -> list[Path]:
     return sorted(MODULES_DIR.rglob("*.py"))
 
 
+def _type_checking_line_ranges(tree: ast.Module) -> list[tuple[int, int]]:
+    """Return (start, end) line ranges for `if TYPE_CHECKING:` blocks."""
+    ranges: list[tuple[int, int]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.If) and isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING":
+            start = node.lineno
+            end = max(getattr(n, "end_lineno", start) for n in ast.walk(node))
+            ranges.append((start, end))
+    return ranges
+
+
 def parse_imports(filepath: Path) -> list[str]:
-    """Extract all import module paths from a Python file."""
+    """Extract runtime import module paths (skips TYPE_CHECKING blocks)."""
     try:
         tree = ast.parse(filepath.read_text(encoding="utf-8"))
     except SyntaxError:
         return []
+    tc_ranges = _type_checking_line_ranges(tree)
     imports: list[str] = []
     for node in ast.walk(tree):
+        if not hasattr(node, "lineno"):
+            continue
+        if any(start <= node.lineno <= end for start, end in tc_ranges):
+            continue
         if isinstance(node, ast.ImportFrom) and node.module:
             imports.append(node.module)
         elif isinstance(node, ast.Import):

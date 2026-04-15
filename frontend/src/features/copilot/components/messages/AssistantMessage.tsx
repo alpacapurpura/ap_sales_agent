@@ -23,8 +23,44 @@ interface AssistantMessageProps {
   sendCardAction?: (messageId: string, actionIndex: number, text: string) => void;
 }
 
-/** Renders a single UIAction card. Extracted to keep the parent render function readable. */
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: split action type renderers
+/** Maps a UIAction.alternatives array to the AlternativesCard prop shape. */
+function mapAlternatives(
+  alternatives: NonNullable<UIAction["alternatives"]>,
+): React.ComponentProps<typeof AlternativesCard>["alternatives"] {
+  return alternatives.map((a) => ({
+    id: a.id,
+    title: a.title,
+    description: a.description,
+    recommended: a.recommended ?? false,
+    recommendationReason: a.recommendation_reason,
+  }));
+}
+
+/** Maps a UIAction.clarify_items array to the ClarifyCard prop shape. */
+function mapClarifyItems(
+  clarifyItems: NonNullable<UIAction["clarify_items"]>,
+): React.ComponentProps<typeof ClarifyCard>["items"] {
+  return clarifyItems.map((item) => ({
+    fieldPath: item.field_path,
+    issue: item.issue,
+    options: item.options,
+  }));
+}
+
+/** Normalises a checkpoint card_status to the three allowed literal values. */
+function checkpointStatus(
+  cardStatus: string | undefined,
+): "confirmed" | "revising" | "pending" {
+  if (cardStatus === "confirmed") return "confirmed";
+  if (cardStatus === "revising") return "revising";
+  return "pending";
+}
+
+/**
+ * Renders a single UIAction card.
+ * Each case maps to one card component — the switch is the simplest representation
+ * of a 10-way dispatch; further splitting would add indirection without clarity gain.
+ */
 function renderUIAction(
   action: UIAction,
   idx: number,
@@ -67,13 +103,7 @@ function renderUIAction(
           key={`alt-${idx}`}
           fieldPath={action.field_path ?? ""}
           question={action.question ?? ""}
-          alternatives={action.alternatives.map((a) => ({
-            id: a.id,
-            title: a.title,
-            description: a.description,
-            recommended: a.recommended ?? false,
-            recommendationReason: a.recommendation_reason,
-          }))}
+          alternatives={mapAlternatives(action.alternatives)}
           allowCustom={action.allow_custom ?? false}
           onSelect={(altId) => {
             const alt = action.alternatives?.find((a) => a.id === altId);
@@ -93,11 +123,7 @@ function renderUIAction(
       return action.clarify_items ? (
         <ClarifyCard
           key={`clarify-${idx}`}
-          items={action.clarify_items.map((item) => ({
-            fieldPath: item.field_path,
-            issue: item.issue,
-            options: item.options,
-          }))}
+          items={mapClarifyItems(action.clarify_items)}
           onResolve={(resolution) => {
             if (sendCardAction) {
               sendCardAction(messageId, idx, resolution);
@@ -125,13 +151,7 @@ function renderUIAction(
               sendCardAction(messageId, idx, "Quiero ajustar algo en este bloque");
             }
           }}
-          status={
-            action.card_status === "confirmed"
-              ? "confirmed"
-              : action.card_status === "revising"
-                ? "revising"
-                : "pending"
-          }
+          status={checkpointStatus(action.card_status)}
         />
       );
     case "interview_complete":

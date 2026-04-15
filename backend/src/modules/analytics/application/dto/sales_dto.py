@@ -187,7 +187,7 @@ class SalesHeaderKpisDTO(BaseModel):
     shopify_revenue: float = 0.0
     shopify_order_count: int = 0
     shopify_avg_order_value: float = 0.0
-    shopify_currency: str = "USD"
+    shopify_currency: str | None = None
 
 
 class SalesDetailDTO(BaseModel):

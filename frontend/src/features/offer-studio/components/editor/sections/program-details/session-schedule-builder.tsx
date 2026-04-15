@@ -22,7 +22,6 @@ import type { UseFormReturn } from "react-hook-form";
 const DAYS_OF_WEEK = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
 export function SessionScheduleBuilder({ form }: { form: UseFormReturn<OfferFormValues> }) {
-  // @ts-ignore - RHF path inference limitation with union types
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "specific_details.schedule",
@@ -57,7 +56,6 @@ export function SessionScheduleBuilder({ form }: { form: UseFormReturn<OfferForm
               {/* Row 1: Title (Full Width) */}
               <FormField
                 control={form.control}
-                // @ts-ignore
                 name={`specific_details.schedule.${index}.title`}
                 render={({ field }) => (
                   <FormItem className="w-full">
@@ -79,7 +77,6 @@ export function SessionScheduleBuilder({ form }: { form: UseFormReturn<OfferForm
                 <div className="col-span-2 md:col-span-5">
                   <FormField
                     control={form.control}
-                    // @ts-ignore
                     name={`specific_details.schedule.${index}.day_of_week`}
                     render={({ field }) => (
                       <FormItem>
@@ -107,7 +104,6 @@ export function SessionScheduleBuilder({ form }: { form: UseFormReturn<OfferForm
                 <div className="col-span-1 md:col-span-3">
                   <FormField
                     control={form.control}
-                    // @ts-ignore
                     name={`specific_details.schedule.${index}.time`}
                     render={({ field }) => (
                       <FormItem>
@@ -125,7 +121,6 @@ export function SessionScheduleBuilder({ form }: { form: UseFormReturn<OfferForm
                 <div className="col-span-1 md:col-span-3">
                   <FormField
                     control={form.control}
-                    // @ts-ignore
                     name={`specific_details.schedule.${index}.duration_minutes`}
                     render={({ field }) => (
                       <FormItem>

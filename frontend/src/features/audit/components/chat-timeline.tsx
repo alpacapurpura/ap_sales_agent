@@ -41,6 +41,49 @@ type TimelineGroup =
   | { type: "message"; event: TimelineEvent }
   | { type: "trace_group"; events: TimelineEvent[] };
 
+/** Groups consecutive trace events between messages for cleaner rendering. */
+function groupTimelineEvents(events: TimelineEvent[]): TimelineGroup[] {
+  const groups: TimelineGroup[] = [];
+  let currentTraceGroup: TimelineEvent[] = [];
+  let pendingBotEvent: TimelineEvent | null = null;
+
+  for (const event of events) {
+    if (event.type === "message") {
+      if (event.role === "user") {
+        if (currentTraceGroup.length > 0) {
+          groups.push({ type: "trace_group", events: [...currentTraceGroup] });
+          currentTraceGroup = [];
+        }
+        if (pendingBotEvent) {
+          groups.push({ type: "message", event: pendingBotEvent });
+          pendingBotEvent = null;
+        }
+        groups.push({ type: "message", event });
+      } else {
+        if (pendingBotEvent) {
+          if (currentTraceGroup.length > 0) {
+            groups.push({ type: "trace_group", events: [...currentTraceGroup] });
+            currentTraceGroup = [];
+          }
+          groups.push({ type: "message", event: pendingBotEvent });
+        }
+        pendingBotEvent = event;
+      }
+    } else {
+      currentTraceGroup.push(event);
+    }
+  }
+
+  if (currentTraceGroup.length > 0) {
+    groups.push({ type: "trace_group", events: [...currentTraceGroup] });
+  }
+  if (pendingBotEvent) {
+    groups.push({ type: "message", event: pendingBotEvent });
+  }
+
+  return groups;
+}
+
 function formatMessageDate(dateStr: string) {
   const date = new Date(dateStr);
 
@@ -112,58 +155,10 @@ export function ChatTimeline({ leadId, onSelectEvent, selectedEventId }: ChatTim
   };
 
   // Group consecutive trace events
-  const groupedTimeline = useMemo(() => {
-    if (!timeline) return [];
-
-    const groups: TimelineGroup[] = [];
-    let currentTraceGroup: TimelineEvent[] = [];
-    let pendingBotEvent: TimelineEvent | null = null;
-
-    // eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract event-type handlers
-    timeline.forEach((event) => {
-      if (event.type === "message") {
-        if (event.role === "user") {
-          // Flush any pending bot stuff
-          if (currentTraceGroup.length > 0) {
-            groups.push({ type: "trace_group", events: [...currentTraceGroup] });
-            currentTraceGroup = [];
-          }
-          if (pendingBotEvent) {
-            groups.push({ type: "message", event: pendingBotEvent });
-            pendingBotEvent = null;
-          }
-
-          // Push user message immediately
-          groups.push({ type: "message", event });
-        } else {
-          // It's a bot message
-          // If we already have a pending bot message, flush it and its traces
-          if (pendingBotEvent) {
-            if (currentTraceGroup.length > 0) {
-              groups.push({ type: "trace_group", events: [...currentTraceGroup] });
-              currentTraceGroup = [];
-            }
-            groups.push({ type: "message", event: pendingBotEvent });
-          }
-          // Set new pending bot
-          pendingBotEvent = event;
-        }
-      } else {
-        // Trace event
-        currentTraceGroup.push(event);
-      }
-    });
-
-    // Final flush
-    if (currentTraceGroup.length > 0) {
-      groups.push({ type: "trace_group", events: [...currentTraceGroup] });
-    }
-    if (pendingBotEvent) {
-      groups.push({ type: "message", event: pendingBotEvent });
-    }
-
-    return groups;
-  }, [timeline]);
+  const groupedTimeline = useMemo(
+    () => (timeline ? groupTimelineEvents(timeline) : []),
+    [timeline],
+  );
 
   useEffect(() => {
     // Auto scroll could be implemented here

@@ -4,6 +4,7 @@ import socket
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
+import httpx
 import structlog
 from sqlalchemy.orm import Session
 
@@ -56,7 +57,7 @@ class DomainService:
                     "type": "platform",
                 },
             )
-        except Exception as e:  # noqa: BLE001 — service resilience
+        except (httpx.HTTPError, OSError, ValueError, RuntimeError) as e:
             logger.warning("cf_kv_sync_failed", hostname=hostname, error=str(e))
         return saved
 
@@ -116,7 +117,7 @@ class DomainService:
                         "type": "custom",
                     },
                 )
-            except Exception as e:  # noqa: BLE001 — service resilience
+            except (httpx.HTTPError, OSError, ValueError, RuntimeError) as e:
                 logger.warning(
                     "cf_kv_sync_failed",
                     hostname=domain.hostname,
@@ -137,11 +138,11 @@ class DomainService:
         if domain.cloudflare_hostname_id:
             try:
                 self.cf.delete_custom_hostname(domain.cloudflare_hostname_id)
-            except Exception as e:  # noqa: BLE001 — service resilience
+            except (httpx.HTTPError, OSError, ValueError, RuntimeError) as e:
                 logger.warning("cf_delete_failed", error=str(e))
         try:
             self.cf.delete_kv(domain.hostname)
-        except Exception as e:  # noqa: BLE001 — service resilience
+        except (httpx.HTTPError, OSError, ValueError, RuntimeError) as e:
             logger.warning("cf_kv_delete_failed", error=str(e))
         self.repo.soft_delete(domain_id, tenant_id)
 

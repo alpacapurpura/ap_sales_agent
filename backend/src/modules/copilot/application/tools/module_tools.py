@@ -14,7 +14,7 @@ from langchain_core.tools import tool
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
-from src.modules.copilot.domain.module_registry import get_module_registry
+from src.modules.copilot.domain.module_registry import ModuleDescriptor, get_module_registry
 from src.modules.copilot.domain.schema_introspection import (
     get_model_sections,
 )
@@ -155,9 +155,9 @@ _LIST_FORMATTERS: dict[str, Callable[[list], str]] = {
 }
 
 
-def _format_model_result(data: object, descriptor: object, section: str | None) -> str:
+def _format_model_result(data: object, descriptor: ModuleDescriptor, section: str | None) -> str:
     """Format a Pydantic model or dict result from a module."""
-    raw = data.model_dump(mode="json") if hasattr(data, "model_dump") else data if isinstance(data, dict) else {}  # type: ignore[union-attr]
+    raw: dict = data.model_dump(mode="json") if hasattr(data, "model_dump") else data if isinstance(data, dict) else {}
 
     if section:
         section_data = raw.get(section)
@@ -166,14 +166,14 @@ def _format_model_result(data: object, descriptor: object, section: str | None) 
             return f"La sección '{section}' no tiene datos. Secciones disponibles: {available_sections}"
         return _format_section_data(section.replace("_", " ").title(), section_data)
 
-    if descriptor.model_class:  # type: ignore[union-attr]
-        sections = get_model_sections(descriptor.model_class)  # type: ignore[union-attr]
-        return _format_module_summary(descriptor.label, raw, sections)  # type: ignore[union-attr]
-    return _format_section_data(descriptor.label, raw)  # type: ignore[union-attr]
+    if descriptor.model_class:
+        sections = get_model_sections(descriptor.model_class)
+        return _format_module_summary(descriptor.label, raw, sections)
+    return _format_section_data(descriptor.label, raw)
 
 
 def _read_and_format_module(
-    descriptor: object,
+    descriptor: ModuleDescriptor,
     module: str,
     tenant_id: UUID,
     section: str | None,
@@ -181,18 +181,20 @@ def _read_and_format_module(
     """Read module data and format the result."""
     db = SessionLocal()
     try:
-        repo = descriptor.repo_factory(db)  # type: ignore[union-attr]
-        data = descriptor.read_fn(repo, tenant_id)  # type: ignore[union-attr]
+        repo = descriptor.repo_factory(db) if descriptor.repo_factory else None
+        if repo is None:
+            return f"No hay datos configurados para {descriptor.label}."
+        data = descriptor.read_fn(repo, tenant_id) if descriptor.read_fn else None
 
         if data is None:
-            return f"No hay datos configurados para {descriptor.label}."  # type: ignore[union-attr]
+            return f"No hay datos configurados para {descriptor.label}."
         if isinstance(data, list):
             formatter = _LIST_FORMATTERS.get(module)
-            return formatter(data) if formatter else f"## {descriptor.label}\n{len(data)} elemento(s) encontrado(s)"  # type: ignore[union-attr]
+            return formatter(data) if formatter else f"## {descriptor.label}\n{len(data)} elemento(s) encontrado(s)"
         return _format_model_result(data, descriptor, section)
     except Exception as e:
         logger.exception("module_tools_error", module=module, error=str(e))
-        return f"Error leyendo {descriptor.label}: {e!s}"  # type: ignore[union-attr]
+        return f"Error leyendo {descriptor.label}: {e!s}"
     finally:
         db.close()
 

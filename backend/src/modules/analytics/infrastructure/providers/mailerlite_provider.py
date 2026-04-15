@@ -302,6 +302,7 @@ async def _api_get(
 
     Raises on non-retryable HTTP errors.
     """
+    resp: httpx.Response | None = None
     for attempt in range(1, _MAX_RETRIES + 1):
         resp = await client.get(url, headers=headers, params=params)
         if resp.status_code == 429:
@@ -325,13 +326,15 @@ async def _api_get(
             resp.raise_for_status()
         return resp
 
-    # Exhausted retries
+    # Exhausted retries — resp is always set when _MAX_RETRIES >= 1
     logger.error("mailerlite_retries_exhausted", url=url)
     msg = "Rate limit retries exhausted"
+    if resp is None:
+        raise RuntimeError(msg)
     raise httpx.HTTPStatusError(
         msg,
-        request=resp.request,  # type: ignore[possibly-undefined]
-        response=resp,  # type: ignore[possibly-undefined]
+        request=resp.request,
+        response=resp,
     )
 
 

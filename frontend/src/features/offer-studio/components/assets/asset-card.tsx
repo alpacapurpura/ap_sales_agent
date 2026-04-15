@@ -62,31 +62,31 @@ function formatRelativeDate(iso: string): string {
   return `Hace ${months} mes${months === 1 ? "" : "es"}`;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract per-type duration resolvers
+function resolveVideoDuration(meta: NonNullable<AssetResponse["metadata"]>): string | null {
+  const duration = meta.duration_seconds;
+  if (typeof duration !== "number" || duration <= 0) return null;
+  const mins = Math.floor(duration / 60);
+  const secs = Math.floor(duration % 60);
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+function resolveCarouselBadge(meta: NonNullable<AssetResponse["metadata"]>): string | null {
+  const slides = meta.slide_count;
+  return typeof slides === "number" && slides > 0 ? `${slides} slides` : null;
+}
+
+function resolveDocumentBadge(meta: NonNullable<AssetResponse["metadata"]>): string | null {
+  const pages = meta.page_count;
+  if (typeof pages !== "number" || pages <= 0) return null;
+  return `${pages} pág${pages === 1 ? "" : "s"}`;
+}
+
 function resolveDurationBadge(asset: AssetResponse): string | null {
   const meta = asset.metadata;
   if (!meta) return null;
-  if (asset.type === "video") {
-    const duration = meta.duration_seconds;
-    if (typeof duration === "number" && duration > 0) {
-      const mins = Math.floor(duration / 60);
-      const secs = Math.floor(duration % 60);
-      return `${mins}:${secs.toString().padStart(2, "0")}`;
-    }
-    return null;
-  }
-  if (asset.type === "carousel") {
-    const slides = meta.slide_count;
-    if (typeof slides === "number" && slides > 0) return `${slides} slides`;
-    return null;
-  }
-  if (asset.type === "document") {
-    const pages = meta.page_count;
-    if (typeof pages === "number" && pages > 0) {
-      return `${pages} pág${pages === 1 ? "" : "s"}`;
-    }
-    return null;
-  }
+  if (asset.type === "video") return resolveVideoDuration(meta);
+  if (asset.type === "carousel") return resolveCarouselBadge(meta);
+  if (asset.type === "document") return resolveDocumentBadge(meta);
   return null;
 }
 

@@ -30,7 +30,7 @@ def _check_introspectable_module(db: Session, tenant_id: UUID, descriptor: Modul
     try:
         repo = descriptor.repo_factory(db)
         data = descriptor.read_fn(repo, tenant_id)
-    except Exception as e:  # noqa: BLE001 — tool execution resilience
+    except (ValueError, KeyError, RuntimeError) as e:
         logger.warning(
             "awareness_read_error",
             module=descriptor.module_id,

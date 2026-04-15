@@ -450,7 +450,7 @@ class OfferProductDetailOut(BaseModel):
     unique_customers: int = 0
     repeat_customer_count: int = 0
     repeat_rate: float = 0.0
-    currency: str = "USD"
+    currency: str | None = None
     source_breakdown: dict[str, int] = {}
     products: list[ProductMetricOut] = []
     first_sale: str | None = None

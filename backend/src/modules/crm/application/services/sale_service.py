@@ -9,6 +9,7 @@ from src.modules.crm.domain.enums import PaymentMethod, SaleStage, SaleStatus
 from src.modules.crm.domain.events import SaleCompletedEvent
 from src.modules.crm.domain.sale import Sale
 from src.modules.crm.infrastructure.repositories.sale_repository import SaleRepository
+from src.shared.domain.currency import FALLBACK_CURRENCY
 from src.shared.domain.events import EventBus
 
 
@@ -45,7 +46,7 @@ class SaleService:
             offer_id=offer_id,
             transaction_id=transaction_id,
             amount=amount,
-            currency="USD",
+            currency=FALLBACK_CURRENCY,
             status=status,
             stage=stage,
             source=source,

@@ -5,6 +5,8 @@ Single source of truth -- frontend mirrors these in currencies.ts.
 
 from dataclasses import dataclass
 
+FALLBACK_CURRENCY = "USD"
+
 SUPPORTED_CURRENCIES: frozenset[str] = frozenset(
     {
         "USD",

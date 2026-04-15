@@ -31,60 +31,59 @@ interface HeroProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract layout-specific sub-components
+const HERO_LAYOUT_STYLES: Record<HeroLayout, string> = {
+  centered: "relative py-24 px-6 text-center border-b border-slate-100 overflow-hidden bg-white",
+  split: "relative py-24 px-6 overflow-hidden bg-white border-b border-slate-100",
+  background:
+    "relative min-h-[600px] flex items-center justify-center text-center px-6 overflow-hidden",
+  vsl: "relative py-16 px-6 text-center bg-white border-b border-slate-100",
+  urgency: "flex flex-col",
+  quiz: "relative py-24 px-6 text-center bg-white",
+};
+
+const HERO_INNER_CONTAINER_CLASSES: Record<HeroLayout, string> = {
+  split: "max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center",
+  vsl: "max-w-4xl mx-auto space-y-8",
+  quiz: "max-w-2xl mx-auto space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-slate-100",
+  background: "relative z-20 max-w-4xl mx-auto space-y-8 text-white",
+  urgency: "",
+  centered: "max-w-4xl mx-auto space-y-8 relative z-10",
+};
+
+function HeroBackgroundOverlays({
+  layout,
+  bgImage,
+  primaryColor,
+}: {
+  layout: HeroLayout;
+  bgImage?: string;
+  primaryColor: string;
+}) {
+  if (layout === "background" && bgImage) {
+    return (
+      <>
+        <div
+          className="absolute inset-0 z-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${bgImage})` }}
+        />
+        <div className="absolute inset-0 bg-black/60 z-10" />
+      </>
+    );
+  }
+  if (layout === "centered") {
+    return (
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{ backgroundColor: primaryColor }}
+      />
+    );
+  }
+  return null;
+}
+
 function Hero({ layout = "centered", bgImage, className, children, ...props }: HeroProps) {
   const theme = useLandingTheme();
   const primaryColor = theme.primary_color || "#3b82f6";
-
-  // Base styles based on layout
-  const layoutStyles = {
-    centered: "relative py-24 px-6 text-center border-b border-slate-100 overflow-hidden bg-white",
-    split: "relative py-24 px-6 overflow-hidden bg-white border-b border-slate-100",
-    background:
-      "relative min-h-[600px] flex items-center justify-center text-center px-6 overflow-hidden",
-    vsl: "relative py-16 px-6 text-center bg-white border-b border-slate-100",
-    urgency: "flex flex-col",
-    quiz: "relative py-24 px-6 text-center bg-white",
-  };
-
-  const containerContent = (
-    <HeroContext.Provider value={{ layout, primaryColor }}>
-      {layout === "background" && bgImage && (
-        <>
-          <div
-            className="absolute inset-0 z-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${bgImage})` }}
-          />
-          <div className="absolute inset-0 bg-black/60 z-10" />
-        </>
-      )}
-
-      {layout === "centered" && (
-        <div
-          className="absolute inset-0 opacity-[0.03] pointer-events-none"
-          style={{ backgroundColor: primaryColor }}
-        />
-      )}
-
-      <div
-        className={cn(
-          layout === "split"
-            ? "max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
-            : layout === "vsl"
-              ? "max-w-4xl mx-auto space-y-8"
-              : layout === "quiz"
-                ? "max-w-2xl mx-auto space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-slate-100"
-                : layout === "background"
-                  ? "relative z-20 max-w-4xl mx-auto space-y-8 text-white"
-                  : layout === "urgency"
-                    ? "" // Urgency wrapper handles its own structure
-                    : "max-w-4xl mx-auto space-y-8 relative z-10", // Default centered
-        )}
-      >
-        {children}
-      </div>
-    </HeroContext.Provider>
-  );
 
   if (layout === "urgency") {
     return (
@@ -95,8 +94,11 @@ function Hero({ layout = "centered", bgImage, className, children, ...props }: H
   }
 
   return (
-    <section className={cn(layoutStyles[layout], className)} {...props}>
-      {containerContent}
+    <section className={cn(HERO_LAYOUT_STYLES[layout], className)} {...props}>
+      <HeroContext.Provider value={{ layout, primaryColor }}>
+        <HeroBackgroundOverlays layout={layout} bgImage={bgImage} primaryColor={primaryColor} />
+        <div className={HERO_INNER_CONTAINER_CLASSES[layout]}>{children}</div>
+      </HeroContext.Provider>
     </section>
   );
 }

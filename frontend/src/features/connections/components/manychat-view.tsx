@@ -28,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { connectionsApi } from "@/lib/api/connections";
 
-import type { ManyChatStatusResponse } from "@/lib/api/connections";
+import type { ManyChatStatusResponse, TestResponse } from "@/lib/api/connections";
 
 export function ManyChatView() {
   const { getToken } = useAuth();
@@ -38,8 +38,7 @@ export function ManyChatView() {
   const [connecting, setConnecting] = useState(false);
   const [testing, setTesting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: define per-provider API response type
-  const [testResult, setTestResult] = useState<any>(null);
+  const [testResult, setTestResult] = useState<TestResponse | null>(null);
 
   const fetchStatus = async () => {
     try {

@@ -126,14 +126,15 @@ export function EventTypeSidebar({
           .replace(/(^-|-$)/g, "");
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- API payload type mismatch with partial form data
-      const payload = { ...formData, slug: finalSlug } as any;
+      // Form state is Partial<EventType> but runtime ensures required fields are present before submit
+      const payload = { ...formData, slug: finalSlug } as EventTypeUpdate;
 
       if (initialData?.id) {
         await eventTypesApi.updateEventType(initialData.id, payload, token);
         toast.success("Actualizado correctamente");
       } else {
-        await eventTypesApi.createEventType(payload, token);
+        // createEventType requires Omit<EventType,"id">; runtime guarantees required fields are set
+        await eventTypesApi.createEventType(payload as Omit<EventType, "id">, token);
         toast.success("Creado correctamente");
       }
       onSave();

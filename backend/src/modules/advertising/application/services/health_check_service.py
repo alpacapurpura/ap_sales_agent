@@ -13,7 +13,7 @@ targets, and actionable recommendations.
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, Literal, cast
 
 from src.modules.advertising.application.dto.association_dto import AssociationDTO
 from src.modules.advertising.application.dto.health_check_dto import (
@@ -409,7 +409,7 @@ def _association_to_dto(
     return AssociationDTO(
         id=row.id,
         tenant_id=row.tenant_id,
-        target_type=row.target_type,  # type: ignore[arg-type]
+        target_type=cast("Literal['campaign', 'ad_set']", row.target_type),
         target_external_id=row.target_external_id,
         offer_id=row.offer_id,
         offer_name=offer.public_name if offer else None,

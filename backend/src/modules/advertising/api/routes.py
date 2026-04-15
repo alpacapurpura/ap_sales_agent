@@ -1,6 +1,6 @@
 """FastAPI router for the advertising module."""
 
-from typing import Annotated
+from typing import Annotated, Literal, cast
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -86,7 +86,7 @@ async def _association_to_dto(
     return AssociationDTO(
         id=row.id,
         tenant_id=row.tenant_id,
-        target_type=row.target_type,  # type: ignore[arg-type]
+        target_type=cast("Literal['campaign', 'ad_set']", row.target_type),
         target_external_id=row.target_external_id,
         offer_id=row.offer_id,
         offer_name=offer_name,

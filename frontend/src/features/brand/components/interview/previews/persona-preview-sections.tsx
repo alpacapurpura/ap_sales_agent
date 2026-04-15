@@ -75,7 +75,41 @@ const VARIANT_CLASSES: Record<string, string> = {
 
 // ── Item count helpers ─────────────────────────────────────────────────────
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: split per field-type strategy
+/** Returns the expected field count for a key-value section based on its label map. */
+function expectedFieldCount(sectionKey: string, fallback: number): number {
+  if (sectionKey === "demographics") return Object.keys(DEMOGRAPHICS_LABELS).length;
+  if (sectionKey === "psychographics") return Object.keys(PSYCHOGRAPHICS_LABELS).length;
+  if (sectionKey === "journey") return Object.keys(JOURNEY_LABELS).length;
+  return fallback;
+}
+
+/** Returns whether a single value is non-empty (for key-value filled-field counting). */
+function isValueFilled(v: unknown): boolean {
+  if (v === null || v === undefined || v === "") return false;
+  if (Array.isArray(v) && v.length === 0) return false;
+  return true;
+}
+
+/** Returns filled/total counts for array-typed sections (list-items or list-strings). */
+function countArraySection(sectionData: unknown): { filled: number; total: number } {
+  const items = Array.isArray(sectionData) ? sectionData : [];
+  return { filled: items.length, total: Math.max(items.length, 3) };
+}
+
+/** Returns filled/total counts for key-value typed sections. */
+function countKeyValueSection(
+  sectionData: unknown,
+  sectionKey: string,
+): { filled: number; total: number } {
+  if (typeof sectionData !== "object" || sectionData === null || Array.isArray(sectionData)) {
+    return { filled: 0, total: 3 };
+  }
+  const entries = Object.entries(sectionData as Record<string, unknown>);
+  const filled = entries.filter(([, v]) => isValueFilled(v)).length;
+  const total = Math.max(filled, expectedFieldCount(sectionKey, entries.length));
+  return { filled, total };
+}
+
 function countFilledFields(
   data: Record<string, unknown>,
   sectionKey: string,
@@ -83,36 +117,11 @@ function countFilledFields(
 ): { filled: number; total: number } {
   const sectionData = data[sectionKey];
 
-  if (type === "list-items") {
-    const items = Array.isArray(sectionData) ? sectionData : [];
-    return { filled: items.length, total: Math.max(items.length, 3) };
+  if (type === "list-items" || type === "list-strings") {
+    return countArraySection(sectionData);
   }
 
-  if (type === "list-strings") {
-    const items = Array.isArray(sectionData) ? sectionData : [];
-    return { filled: items.length, total: Math.max(items.length, 3) };
-  }
-
-  // key-value
-  if (typeof sectionData === "object" && sectionData !== null && !Array.isArray(sectionData)) {
-    const entries = Object.entries(sectionData as Record<string, unknown>);
-    const filled = entries.filter(([, v]) => {
-      if (v === null || v === undefined || v === "") return false;
-      if (Array.isArray(v) && v.length === 0) return false;
-      return true;
-    }).length;
-    const expectedFields =
-      sectionKey === "demographics"
-        ? Object.keys(DEMOGRAPHICS_LABELS).length
-        : sectionKey === "psychographics"
-          ? Object.keys(PSYCHOGRAPHICS_LABELS).length
-          : sectionKey === "journey"
-            ? Object.keys(JOURNEY_LABELS).length
-            : entries.length;
-    return { filled, total: Math.max(filled, expectedFields) };
-  }
-
-  return { filled: 0, total: 3 };
+  return countKeyValueSection(sectionData, sectionKey);
 }
 
 // ── Section renderers ──────────────────────────────────────────────────────

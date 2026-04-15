@@ -24,7 +24,7 @@ security = HTTPBearer()
 # Cachear las llaves públicas para no pedirlas en cada request
 try:
     jwks_client = jwt.PyJWKClient(JWKS_URL)
-except Exception as e:  # noqa: BLE001 — service resilience
+except (ValueError, RuntimeError, OSError) as e:
     logger.warning("Could not initialize JWKS client: %s", e)
     jwks_client = None
 

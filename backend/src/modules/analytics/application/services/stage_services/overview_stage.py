@@ -171,7 +171,7 @@ class StageOverviewService:
 
         tid = UUID(tenant_id)
         service = MetricsService(
-            self.db,  # type: ignore[arg-type]
+            self.db,  # type: ignore[arg-type]  # MetricsService uses legacy sync Session; this path is rarely hit (on-demand fallback only)
             cache=self.cache,
             connection_port=self.connection_port,
         )

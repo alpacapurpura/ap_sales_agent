@@ -663,7 +663,7 @@ export function useResumenViewData({
   selectedOfferId,
   tenantCurrency,
 }: UseResumenViewDataArgs): ResumenViewData {
-  // eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract offer-aggregation helpers
+  // eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: 4-way dispatch (unassigned / branding / specific offer / all) each building a distinct ResumenViewData shape. Each branch already calls a dedicated builder (buildUnassignedCards, buildBrandingCards, buildOfferCards, buildAllCards). The dispatch itself is the irreducible complexity.
   return useMemo<ResumenViewData>(() => {
     if (!metricsByOffer) return EMPTY;
 

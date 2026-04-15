@@ -6,8 +6,17 @@ import type { BowtiesSummary, StageSummaryKpi } from "../types/summary";
 
 const API_URL = config.api.baseUrl;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
-function mapStageSummary(raw: any): StageSummaryKpi {
+interface RawStageSummary {
+  stage: string;
+  main_kpi: number;
+  main_label: string;
+  main_unit?: string;
+  secondary_kpi: number;
+  secondary_label: string;
+  secondary_unit?: string;
+}
+
+function mapStageSummary(raw: RawStageSummary): StageSummaryKpi {
   return {
     stage: raw.stage,
     mainKpi: raw.main_kpi,

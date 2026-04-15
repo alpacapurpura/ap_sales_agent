@@ -16,7 +16,7 @@ class MetricValueDTO(BaseModel):
         MetricValueDTO(name="reach", value=5000.0)
         MetricValueDTO(name="engagement", value=1200.0,
                        breakdown={"likes": 800, "comments": 400})
-        MetricValueDTO(name="spend", value=123.45, unit="currency", currency="USD")
+        MetricValueDTO(name="spend", value=123.45, unit="currency", currency="PEN")
 
     """
 
@@ -65,7 +65,7 @@ class ChannelMetricDTO(BaseModel):
     # Sub-source breakdown (e.g., Meta Direct + ManyChat for unified IG DM card)
     sub_sources: list["SubSourceDTO"] | None = None
 
-    @computed_field  # type: ignore[misc]
+    @computed_field  # type: ignore[misc]  # Pydantic v2: computed_field + property decorator combination
     @property
     def value(self) -> float:
         """Backward-compat: return first metric value or 0.0."""

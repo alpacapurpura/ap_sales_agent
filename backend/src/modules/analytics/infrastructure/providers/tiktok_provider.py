@@ -18,6 +18,7 @@ from src.modules.analytics.infrastructure.providers.base import (
     ExtractedMetric,
 )
 from src.modules.connections.infrastructure.channels.tiktok import TikTokAdapter
+from src.shared.domain.currency import FALLBACK_CURRENCY
 
 logger = structlog.get_logger(__name__)
 
@@ -118,7 +119,7 @@ class TikTokProvider(BaseMetricsProvider):
         advertiser_id: str,
         start_date: date,
         end_date: date,
-        ads_currency: str = "USD",
+        ads_currency: str = FALLBACK_CURRENCY,
     ) -> list[ExtractedMetric]:
         """Extract TikTok Ads retargeting metrics (Custom Audience campaigns).
 
@@ -238,7 +239,7 @@ class TikTokProvider(BaseMetricsProvider):
         advertiser_id: str,
         start_date: date,
         end_date: date,
-        ads_currency: str = "USD",
+        ads_currency: str = FALLBACK_CURRENCY,
     ) -> list[ExtractedMetric]:
         """Extract TikTok Ads metrics."""
         data = await adapter.get_ads_report(

@@ -353,7 +353,7 @@ function CampaignSummaryKpis({
 // Section 3: Campaign Row
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract metric formatting and status helpers
+// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: formatting helpers are already extracted above (statusDotClasses, ctrIndicator, freqIndicator, healthColor, healthBadgeLabel, budgetBarColor). Remaining complexity is conditional column rendering per campaign status (active/learning/error/paused/completed) — each column has its own conditional style, which cannot be further reduced without splitting into per-column sub-components that would hide the row layout intent.
 function CampaignRow({
   campaign,
   currency,

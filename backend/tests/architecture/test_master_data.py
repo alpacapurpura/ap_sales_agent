@@ -19,21 +19,7 @@ ALLOWED_USD_DEFAULT_FILES: set[str] = {
     "src/shared/domain/locale.py",
 }
 
-KNOWN_USD_DEFAULT_VIOLATIONS: set[str] = {
-    "src/modules/analytics/application/dto/attraction_dto.py",
-    "src/modules/analytics/application/dto/sales_dto.py",
-    "src/modules/analytics/application/services/stage_services/capture_stage.py",
-    "src/modules/analytics/application/services/stage_services/opportunity_stage.py",
-    "src/modules/analytics/infrastructure/models/channel_cost_model.py",
-    "src/modules/analytics/infrastructure/providers/google_ads_provider.py",
-    "src/modules/analytics/infrastructure/providers/shopify_provider.py",
-    "src/modules/analytics/infrastructure/providers/tiktok_provider.py",
-    "src/modules/crm/application/services/sale_service.py",
-    "src/modules/crm/infrastructure/models/sale_model.py",
-    "src/modules/iam/infrastructure/models/tenant_model.py",
-    "src/modules/offer/api/product_mappings.py",
-    "src/modules/offer/infrastructure/models/product_model.py",
-}
+KNOWN_USD_DEFAULT_VIOLATIONS: set[str] = set()
 
 
 def _find_usd_field_defaults(root: Path) -> set[str]:
@@ -69,10 +55,7 @@ ALLOWED_UTCNOW_FILES: set[str] = {
     "src/shared/domain/datetime_utils.py",  # defines the canonical utc_now() replacement
 }
 
-KNOWN_UTCNOW_VIOLATIONS: set[str] = {
-    # agent_state_checkpoint_model.py — pending Task 7 (DateTime column + migration fix)
-    "src/modules/sales_agent/infrastructure/models/agent_state_checkpoint_model.py",
-}
+KNOWN_UTCNOW_VIOLATIONS: set[str] = set()
 
 
 def _find_utcnow_usage(root: Path) -> set[str]:

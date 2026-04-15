@@ -8,6 +8,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from src.shared.domain.base_entity import Base
+from src.shared.domain.currency import FALLBACK_CURRENCY
 
 
 class TenantModel(Base):
@@ -22,7 +23,7 @@ class TenantModel(Base):
     # Configuration for Prompts and Rules
     # e.g. { "company_name": "Visionarias" }
     config_json = Column(JSONB, default={})
-    default_currency = Column(String, server_default="USD")
+    default_currency = Column(String, server_default=FALLBACK_CURRENCY)
     timezone = Column(String, server_default="UTC")
 
     # ETL extraction priority: higher value = extracted first (premium tenants)

@@ -5,6 +5,16 @@ import { Loader2, Plus, Trash2, Copy, Globe, Clock, Check } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -227,6 +237,7 @@ function ScheduleEditor({
   const [schedule, setSchedule] = useState<AvailabilitySchedule>(initialSchedule);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const updateDay = (day: keyof WeeklySchedule, updates: Partial<DaySchedule>) => {
     setSchedule((prev) => ({
@@ -286,9 +297,7 @@ function ScheduleEditor({
     }
   };
 
-  const handleDelete = async () => {
-    // eslint-disable-next-line no-alert -- TODO: replace with AlertDialog component
-    if (!confirm("¿Estás seguro de borrar este horario?")) return;
+  const handleDeleteConfirmed = async () => {
     try {
       setDeleting(true);
       const token = await getToken();
@@ -407,7 +416,7 @@ function ScheduleEditor({
       </div>
 
       <div className="flex items-center justify-between pt-4 border-t">
-        <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+        <Button variant="destructive" onClick={() => setConfirmDeleteOpen(true)} disabled={deleting}>
           {deleting ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
@@ -420,6 +429,26 @@ function ScheduleEditor({
           Guardar Cambios
         </Button>
       </div>
+
+      <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar horario?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. El horario será eliminado permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => void handleDeleteConfirmed()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

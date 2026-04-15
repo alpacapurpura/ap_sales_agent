@@ -61,7 +61,7 @@ export const getSectionData = (
     // Skip special handling fields in the generic loop to avoid double assignment
     if (field === "specific_details" || field === "assets") return;
 
-    // @ts-ignore
+    // @ts-expect-error -- OfferFormValues union type makes key-indexed assignment unresolvable by TS
     data[field] = allValues[field];
   });
 

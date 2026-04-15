@@ -32,11 +32,12 @@ export function useSyncAllSources() {
   });
 
   // Auto-reset result/error after 10s so button returns to "Sincronizar"
+  const mutationReset = mutation.reset;
   useEffect(() => {
     if (!mutation.data && !mutation.error) return;
-    const timer = setTimeout(() => mutation.reset(), 10_000);
+    const timer = setTimeout(() => mutationReset(), 10_000);
     return () => clearTimeout(timer);
-  }, [mutation.data, mutation.error]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mutation.data, mutation.error, mutationReset]);
 
   return {
     trigger: mutation.mutate,

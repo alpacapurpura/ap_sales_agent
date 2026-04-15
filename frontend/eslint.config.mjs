@@ -94,6 +94,45 @@ export default [
       "import/no-cycle": ["warn", { maxDepth: 3 }],
       "import/no-named-as-default": "warn",
       "import/no-named-as-default-member": "warn",
+      // Coherence: no default exports (except Next.js pages — see override below)
+      "import/no-default-export": "warn",
+    },
+  },
+
+  // ─── Allow default exports ONLY in Next.js App Router files ───
+  {
+    files: [
+      "src/app/**/page.tsx",
+      "src/app/**/layout.tsx",
+      "src/app/**/loading.tsx",
+      "src/app/**/error.tsx",
+      "src/app/**/not-found.tsx",
+      "src/app/**/route.ts",
+      "src/middleware.ts",
+    ],
+    rules: {
+      "import/no-default-export": "off",
+    },
+  },
+
+  // ─── No direct fetch() in features — use fetchClient from api/ folders ───
+  {
+    files: ["src/features/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-globals": [
+        "warn",
+        {
+          name: "fetch",
+          message: "Use fetchClient from api/ folder instead of direct fetch(). fetchClient auto-injects X-Tenant-ID.",
+        },
+      ],
+    },
+  },
+  // Allow fetch in api/ subdirs (that's where fetchClient wraps it)
+  {
+    files: ["src/features/**/api/**/*.ts"],
+    rules: {
+      "no-restricted-globals": "off",
     },
   },
 

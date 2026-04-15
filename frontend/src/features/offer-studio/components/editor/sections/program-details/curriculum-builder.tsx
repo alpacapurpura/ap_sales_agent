@@ -40,7 +40,6 @@ import { ImportCurriculumDialog } from "./import-curriculum-dialog";
 import type { OfferFormValues } from "../../../../types/schema";
 
 export function CurriculumBuilder({ form }: { form: UseFormReturn<OfferFormValues> }) {
-  // @ts-ignore - RHF limitations with polymorphic paths
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "specific_details.curriculum",
@@ -166,7 +165,6 @@ function CurriculumModuleItem({
   form: UseFormReturn<OfferFormValues>;
   remove: (index: number) => void;
 }) {
-  // @ts-ignore
   const topics = form.watch(`specific_details.curriculum.${index}.topics`) || [];
 
   const addTopic = (e: React.MouseEvent) => {

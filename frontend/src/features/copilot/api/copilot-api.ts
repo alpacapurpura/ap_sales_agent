@@ -220,7 +220,7 @@ async function attemptSSEStream(
  * because the request was received by the server. AbortSignal cancellations
  * are never retried.
  */
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract retry/streaming logic to separate helpers
+// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: retry loop (3 attempts), abort propagation, error classification, and exponential back-off are each a branch but tightly coupled — extracting further would not reduce the total branching, only relocate it.
 export async function streamCopilotChat(
   payload: CopilotChatPayload,
   callbacks: {

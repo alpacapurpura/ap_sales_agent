@@ -42,31 +42,30 @@ export function CalendarWidget({ onAppointmentClick, onConfigClick }: CalendarWi
   const [loading, setLoading] = useState(false);
   const [month, setMonth] = useState<Date>(new Date());
 
-  const fetchAppointments = async (currentDate: Date) => {
-    try {
-      setLoading(true);
-      const token = await getToken();
-      if (!token) return;
-
-      const start = startOfMonth(currentDate);
-      const end = endOfMonth(currentDate);
-
-      const data = await connectionsApi.listAppointments(
-        format(start, "yyyy-MM-dd"),
-        format(end, "yyyy-MM-dd"),
-        token,
-      );
-      setAppointments(data as CalendarAppointment[]);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    void fetchAppointments(month);
-  }, [month]); // eslint-disable-line react-hooks/exhaustive-deps
+    const fetchAppointments = async () => {
+      try {
+        setLoading(true);
+        const token = await getToken();
+        if (!token) return;
+
+        const start = startOfMonth(month);
+        const end = endOfMonth(month);
+
+        const data = await connectionsApi.listAppointments(
+          format(start, "yyyy-MM-dd"),
+          format(end, "yyyy-MM-dd"),
+          token,
+        );
+        setAppointments(data as CalendarAppointment[]);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    void fetchAppointments();
+  }, [month, getToken]);
 
   const handleMonthChange = (newMonth: Date) => {
     setMonth(newMonth);

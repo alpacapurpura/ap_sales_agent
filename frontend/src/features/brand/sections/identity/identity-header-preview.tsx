@@ -1,3 +1,5 @@
+import type React from "react";
+
 import { Edit2, Globe, Building2, Palette, Sparkles } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +19,39 @@ interface BrandHeroSectionProps {
   onRefine?: () => void;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract logo/color helpers out of render
+function resolveFullUrl(path: string | undefined): string | undefined {
+  if (!path) return undefined;
+  if (path.startsWith("http")) return path;
+  return `${config.api.baseUrl}${path}`;
+}
+
+function resolveSmartLogo(
+  visuals: BrandVisuals | undefined,
+  textColor: string | undefined,
+): string | undefined {
+  const isDarkBg = textColor === "#ffffff";
+  const logos = visuals?.logos;
+  const legacyLogo = visuals?.logo_url;
+  if (isDarkBg) {
+    return logos?.dark_mode || logos?.secondary || logos?.primary || legacyLogo;
+  }
+  return logos?.light_mode || logos?.secondary || logos?.primary || legacyLogo;
+}
+
+function resolveContainerStyle(
+  isCustomBrand: boolean,
+  visuals: BrandVisuals | undefined,
+  bgColor: string,
+  textColor: string | undefined,
+): React.CSSProperties {
+  if (!isCustomBrand) return {};
+  return {
+    backgroundColor: bgColor,
+    color: textColor,
+    borderColor: visuals?.primary_color ? `${visuals.primary_color}40` : undefined,
+  };
+}
+
 export function HeaderSection({
   identity,
   visuals,
@@ -26,50 +60,12 @@ export function HeaderSection({
   onEditVisuals,
   onRefine,
 }: BrandHeroSectionProps) {
-  // Check if we have extracted brand colors (custom-web or custom-logo)
   const isCustomBrand = visuals?.style_preset?.startsWith("custom");
-
-  const getFullUrl = (path?: string) => {
-    if (!path) return undefined;
-    if (path.startsWith("http")) return path;
-    return `${config.api.baseUrl}${path}`;
-  };
-
-  // Smart Color Calculation (High Contrast Enforcement)
   const bgColor = visuals?.background_color || "#ffffff";
-  // If custom, we FORCE calculated contrast color. If not custom (card mode), we let system handle it (undefined)
   const textColor = isCustomBrand ? getContrastColor(bgColor) : undefined;
-
-  // Chameleon Styles
-  const containerStyle = isCustomBrand
-    ? {
-        backgroundColor: bgColor,
-        color: textColor,
-        borderColor: visuals?.primary_color ? `${visuals.primary_color}40` : undefined, // 25% opacity
-      }
-    : {};
-
-  // Determine the best logo to display based on background contrast
-  const getSmartLogo = () => {
-    // 1. Determine background luminance/contrast
-    // If isCustomBrand, we use the specific background color. If not, it's usually white/card.
-    // But let's assume standard behavior: if text is white, bg is dark.
-    const isDarkBg = textColor === "#ffffff";
-
-    // 2. Access logos safely
-    const logos = visuals?.logos;
-    const legacyLogo = visuals?.logo_url;
-
-    if (isDarkBg) {
-      // Background is Dark -> Need Light/White Logo
-      // Priority: DarkMode Logo (designed for dark bg) -> Secondary (Iso) -> Primary -> Legacy
-      return logos?.dark_mode || logos?.secondary || logos?.primary || legacyLogo;
-    } else {
-      // Background is Light -> Need Dark/Color Logo
-      // Priority: LightMode Logo (designed for light bg) -> Secondary (Iso) -> Primary -> Legacy
-      return logos?.light_mode || logos?.secondary || logos?.primary || legacyLogo;
-    }
-  };
+  const containerStyle = resolveContainerStyle(isCustomBrand ?? false, visuals, bgColor, textColor);
+  const displayLogo = resolveSmartLogo(visuals, textColor);
+  const getFullUrl = resolveFullUrl;
 
   const buttonStyle = isCustomBrand
     ? {
@@ -78,8 +74,6 @@ export function HeaderSection({
         borderColor: "transparent",
       }
     : {};
-
-  const displayLogo = getSmartLogo();
 
   return (
     <div

@@ -221,7 +221,7 @@ function NotConnectedScreen({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract meta connection step handlers
+// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: MetaView manages 5 asset categories (pages, IG, ads, pixels, WhatsApp), each with toggle/primary mutations, plus sync/disconnect flows. The handlers share getToken and the optimistic-update setAssets closure — splitting would require context or additional hooks.
 export function MetaView() {
   const { getToken } = useAuth();
   const params = useParams();

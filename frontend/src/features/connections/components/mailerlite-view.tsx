@@ -2,7 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { Loader2, CheckCircle, Mail, Trash2, ExternalLink, Activity } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -28,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { connectionsApi } from "@/lib/api/connections";
 
-import type { MailerliteStatusResponse } from "@/lib/api/connections";
+import type { MailerliteStatusResponse, TestResponse } from "@/lib/api/connections";
 
 export function MailerLiteView() {
   const { getToken } = useAuth();
@@ -38,10 +38,9 @@ export function MailerLiteView() {
   const [connecting, setConnecting] = useState(false);
   const [testing, setTesting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: define per-provider API response type
-  const [testResult, setTestResult] = useState<any>(null);
+  const [testResult, setTestResult] = useState<TestResponse | null>(null);
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       setLoading(true);
       const token = await getToken();
@@ -54,11 +53,11 @@ export function MailerLiteView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getToken]);
 
   useEffect(() => {
     void fetchStatus();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchStatus]);
 
   const handleConnect = async () => {
     if (!apiKey.trim()) {

@@ -910,7 +910,7 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         weight_metric="impressions",
         formula="clicks / impressions × 100",
         benchmarks="Referencia: Display 0.5%, Search 3.2% (WordStream). >3% = excelente.",
-        providers=("meta", "google_ads", "tiktok", "search_console"),
+        providers=("meta", "google_ads", "search_console"),
     ),
     MetricDefinition(
         name="cpm",
@@ -1142,7 +1142,7 @@ _DERIVED: list[MetricDefinition] = [
         formula_components=("total_interactions", "ig_views"),
         higher_is_better=True,
         benchmarks="Referencia: 0.50% mediana global (2025). >1.2% = top 25%.",
-        providers=("meta",),
+        providers=(),
     ),
     MetricDefinition(
         name="avg_order_value",
@@ -1204,7 +1204,7 @@ _DERIVED: list[MetricDefinition] = [
         formula="responses / contacts × 100",
         formula_components=("responses", "contacts"),
         benchmarks="Referencia outbound: 10-15% considerado bueno. <5% = mejorar mensaje/segmentación.",
-        providers=("crm_internal",),
+        providers=(),
     ),
     MetricDefinition(
         name="form_conversion_rate",
@@ -1227,10 +1227,10 @@ _DERIVED: list[MetricDefinition] = [
         unit=MetricUnit.PERCENTAGE,
         aggregation=AggregationType.DERIVED,
         formula="completed / triggered × 100",
-        # 'triggered' and 'completed' are not tracked as separate metrics
+        # 'triggered' and 'completed' are not tracked as separate metrics; computed at read time
         formula_components=(),
         benchmarks="Referencia: automatización email típica 30-60% completado.",
-        providers=("mailerlite",),
+        providers=(),
     ),
     # ── YouTube Organic Derived ──
     MetricDefinition(
@@ -1277,7 +1277,7 @@ _DERIVED: list[MetricDefinition] = [
         formula_components=("emails_sent", "hard_bounces", "soft_bounces"),
         higher_is_better=True,
         benchmarks="Referencia: 95% promedio global. >99% excelente. <90% = revisar reputación.",
-        providers=("mailerlite", "mailchimp", "activecampaign"),
+        providers=(),
     ),
     MetricDefinition(
         name="list_growth_rate",
@@ -1295,7 +1295,7 @@ _DERIVED: list[MetricDefinition] = [
         formula_components=("new_subscribers", "unsubscribes", "active_subscribers"),
         higher_is_better=True,
         benchmarks="Referencia: 1-3% mensual promedio. 3-8% saludable para creadores.",
-        providers=("mailerlite", "mailchimp", "activecampaign"),
+        providers=(),
     ),
     MetricDefinition(
         name="churn_rate",
@@ -1311,7 +1311,7 @@ _DERIVED: list[MetricDefinition] = [
         formula_components=("unsubscribes", "active_subscribers"),
         higher_is_better=False,
         benchmarks="Referencia: <0.5% mensual excelente. >2% = problema de retención.",
-        providers=("mailerlite", "mailchimp", "activecampaign"),
+        providers=(),
     ),
     MetricDefinition(
         name="forward_rate",
@@ -1327,7 +1327,7 @@ _DERIVED: list[MetricDefinition] = [
         formula_components=("forwards", "emails_sent"),
         higher_is_better=True,
         benchmarks="Referencia: 0.01-0.05% promedio. >0.15% = contenido viral.",
-        providers=("mailerlite", "mailchimp", "activecampaign"),
+        providers=(),
     ),
 ]
 

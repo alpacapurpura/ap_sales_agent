@@ -9,9 +9,9 @@ from sqlalchemy.orm import Session
 from src.core.database import get_db
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
+from src.modules.landing.api.schemas import RegenerateBlockRequest, RegenerateBlockResponse
 from src.modules.landing.application.landing_service import LandingService
 from src.modules.landing.domain.landing_page import LandingPage
-from src.modules.landing.schemas import RegenerateBlockRequest, RegenerateBlockResponse
 
 router = APIRouter()
 

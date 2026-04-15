@@ -42,6 +42,7 @@ from src.modules.analytics.infrastructure.repositories.capture_repository import
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
+from src.shared.domain.currency import FALLBACK_CURRENCY
 
 
 class CaptureStageService:
@@ -295,7 +296,7 @@ class CaptureStageService:
                 name="cost",
                 value=channel_cost,
                 unit="currency",
-                currency="USD",
+                currency=FALLBACK_CURRENCY,
             ),
             MetricValueDTO(
                 name="conversion_rate",

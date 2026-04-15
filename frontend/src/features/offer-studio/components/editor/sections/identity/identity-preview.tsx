@@ -18,7 +18,7 @@ interface IdentityPreviewProps {
   onEdit?: () => void;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract archetype/value-level display helpers
+// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: dynamic theming requires computing 6 colour-derived style objects (bg, icon, title, badges) plus conditional class merging for each brand visual field. Extracting helpers would not reduce the branch count — only relocate it.
 export const IdentityPreview = ({ data: propsData, onEdit }: IdentityPreviewProps) => {
   const form = useFormContext<OfferFormValues>();
   const data = propsData || (form ? form.watch() : null);

@@ -203,7 +203,7 @@ _DOMAIN_LABELS: dict[str, str] = {
 }
 
 
-def _build_focus_layer(ctx: dict, state: dict) -> str:  # type: ignore[type-arg]
+def _build_focus_layer(ctx: dict[str, object], state: dict[str, object]) -> str:
     """Render the focus context layer if conditions are met, else return empty string."""
     if not (ctx.get("focus") and state.get("focus_entity_data")):
         return ""
@@ -227,7 +227,7 @@ def _build_focus_layer(ctx: dict, state: dict) -> str:  # type: ignore[type-arg]
         return ""
 
 
-def _build_interview_layer(ctx: dict, state: dict) -> str:  # type: ignore[type-arg]
+def _build_interview_layer(ctx: dict[str, object], state: dict[str, object]) -> str:
     """Render the interview session layer if conditions are met, else return empty string."""
     if not (ctx.get("interview_session_id") and state.get("interview_session")):
         return ""

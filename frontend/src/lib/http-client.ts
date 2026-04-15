@@ -2,91 +2,89 @@ import * as Sentry from "@sentry/nextjs";
 
 import { config } from "./config";
 
+const GLOBAL_PATH_SEGMENTS = new Set([
+  "sign-in",
+  "sign-up",
+  "forbidden",
+  "visit",
+  "api",
+  "p",
+  "onboarding",
+  "settings",
+  "admin",
+  "dashboard",
+  "_next",
+  "connections",
+  "static",
+  "favicon.ico",
+]);
+
+/** Extracts tenantId from URL path, falling back to localStorage. */
+function resolveTenantId(): string | null {
+  let tenantId = localStorage.getItem("x-tenant-id");
+  try {
+    const pathSegments = window.location.pathname.split("/").filter(Boolean);
+    if (pathSegments.length > 0) {
+      const firstSegment = pathSegments[0];
+      if (!GLOBAL_PATH_SEGMENTS.has(firstSegment)) {
+        tenantId = firstSegment;
+      }
+    }
+  } catch {
+    // unable to parse tenantId from pathname — proceed without header
+  }
+  return tenantId;
+}
+
+/** Sanitizes a URL for Sentry: strips query params and UUIDs. */
+function sanitizeUrlForSentry(input: RequestInfo | URL): string {
+  const rawUrl =
+    input instanceof URL ? input.pathname : typeof input === "string" ? input : "request";
+  return rawUrl
+    .split("?")[0]
+    .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/[id]");
+}
+
+/** Handles redirect side-effects for error responses. */
+function handleErrorRedirects(status: number): void {
+  if (status === 403) {
+    window.location.href = "/forbidden";
+  }
+  if (status === 401 && !window.location.pathname.startsWith("/sign-in")) {
+    window.location.href = "/sign-in";
+  }
+}
+
 /**
- * Wrapper alrededor de fetch nativo que intercepta errores 403.
+ * Wrapper alrededor de fetch nativo que intercepta errores 403/401.
  * Si la respuesta es 403 (Forbidden), redirige a la página /forbidden.
+ * Si la respuesta es 401, redirige a /sign-in.
+ * Auto-inyecta X-Tenant-ID desde la URL o localStorage.
  */
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract retry/error helpers
 export async function fetchClient(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  // Clone init to avoid mutation side effects, or create new if undefined
   const config = { ...init };
   const headers = new Headers(config.headers || {});
 
-  // Inject Tenant ID from LocalStorage for strict multi-tenancy
   if (typeof window !== "undefined") {
-    let tenantId = localStorage.getItem("x-tenant-id");
-
-    // PRIORITIZE URL Source of Truth
-    try {
-      const pathSegments = window.location.pathname.split("/").filter(Boolean);
-      if (pathSegments.length > 0) {
-        const firstSegment = pathSegments[0];
-        const globals = [
-          "sign-in",
-          "sign-up",
-          "forbidden",
-          "visit",
-          "api",
-          "p",
-          "onboarding",
-          "settings",
-          "admin",
-          "dashboard",
-          "_next",
-          "connections",
-          "static",
-          "favicon.ico",
-        ];
-        if (!globals.includes(firstSegment)) {
-          tenantId = firstSegment;
-        }
-      }
-    } catch {
-      // unable to parse tenantId from pathname — proceed without header
-    }
-
+    const tenantId = resolveTenantId();
     if (tenantId) {
       headers.set("X-Tenant-ID", tenantId);
     }
   }
 
-  const finalConfig: RequestInit = {
-    ...config,
-    headers: headers,
-  };
-
-  // Ejecutar la petición original con headers inyectados
+  const finalConfig: RequestInit = { ...config, headers };
   const response = await fetch(input, finalConfig);
 
-  // Capturar errores 5xx en Sentry (sanitize URL: strip query params and UUIDs)
   if (response.status >= 500) {
-    const rawUrl =
-      input instanceof URL ? input.pathname : typeof input === "string" ? input : "request";
-    const sanitizedUrl = rawUrl
-      .split("?")[0]
-      .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/[id]");
+    const sanitizedUrl = sanitizeUrlForSentry(input);
     Sentry.captureMessage(`API ${response.status}: ${sanitizedUrl}`, {
       level: "error",
       extra: { status: response.status, method: finalConfig.method ?? "GET" },
     });
   }
 
-  // Interceptor de errores
-  if (response.status === 403) {
-    // Redirección del lado del cliente
-    if (typeof window !== "undefined") {
-      // Usamos window.location para asegurar una redirección completa
-      window.location.href = "/forbidden";
-    }
-  }
-
-  // Interceptor de sesión expirada (401)
-  // Only redirect if we're not already on /sign-in (prevents infinite loop
-  // when Clerk redirects back to / after sign-in and a 401 fires again).
-  if (response.status === 401) {
-    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/sign-in")) {
-      window.location.href = "/sign-in";
-    }
+  if (typeof window !== "undefined") {
+    handleErrorRedirects(response.status);
   }
 
   return response;

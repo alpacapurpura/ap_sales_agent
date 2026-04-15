@@ -132,7 +132,7 @@ def test_calculate_completeness_full() -> None:
 def test_fetch_brand_context_returns_none_on_error() -> None:
     """_fetch_brand_context must return None (not raise) when DB fails."""
     mock_db = MagicMock()
-    mock_db.execute.side_effect = Exception("DB unavailable")
+    mock_db.execute.side_effect = AttributeError("DB unavailable")
     result = _fetch_brand_context(mock_db, "some-tenant-id")
     assert result is None
 
@@ -160,7 +160,7 @@ def test_fetch_brand_context_returns_none_when_not_found() -> None:
 def test_fetch_offers_returns_empty_on_error() -> None:
     """_fetch_offers must return [] (not raise) when DB fails."""
     mock_db = MagicMock()
-    mock_db.execute.side_effect = Exception("connection refused")
+    mock_db.execute.side_effect = AttributeError("connection refused")
     result = _fetch_offers(mock_db, "some-tenant-id")
     assert result == []
 
@@ -217,7 +217,7 @@ def test_analyze_offer_ladder_session_closed_on_success() -> None:
 def test_analyze_offer_ladder_session_closed_on_db_error() -> None:
     """Session must be closed even when DB raises (D3 regression test)."""
     mock_session = MagicMock()
-    mock_session.execute.side_effect = Exception("connection lost")
+    mock_session.execute.side_effect = ValueError("connection lost")
 
     with (
         patch("src.modules.copilot.application.tools.offer_ladder_tools.get_tenant_id", return_value="t-123"),

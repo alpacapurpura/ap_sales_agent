@@ -211,7 +211,7 @@ export function useMetaAdsNotices({
 }: UseMetaAdsNoticesArgs): NoticesSummary {
   const { ignored } = useIgnoredNotices();
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract notice-detection helpers per category
+  // eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: notice pipeline has 6 sequential steps (filter active, build Meta notices, build structural notices, dedupe by severity, apply ignore filter, aggregate per-tab counts). Each step is already delegated to a helper (buildMetaNotice, buildStructuralNotice, severityRank, categoryToTab). The remaining complexity is the pipeline orchestration itself.
   return useMemo(() => {
     const activeCampaignIds = new Set(
       (campaignData?.campaigns ?? [])

@@ -26,7 +26,7 @@ class ChannelCostSettingModel(Base):
     )  # "mailerlite", "whatsapp-inbound", etc.
     cost_type = Column(String, nullable=False)  # "platform", "agency", "tool", "llm"
     monthly_amount = Column(Float, nullable=False)
-    currency = Column(String(3), default="USD")
+    currency = Column(String(3), nullable=True)
     proration_category = Column(
         String,
         nullable=True,

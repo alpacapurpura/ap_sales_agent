@@ -189,7 +189,7 @@ class OfferLifecycleService:
         )
         try:
             self._events.publish(event)
-        except Exception:  # noqa: BLE001 — service resilience
+        except (ValueError, KeyError, RuntimeError):
             logger.warning(
                 "offer_lifecycle_event_publish_failed",
                 offer_id=str(offer_id),

@@ -38,7 +38,9 @@ ROUTE_MODULE_MAP = {
 
 def _compute_model_completion(data: object, model_class: type) -> float:
     """Compute completion ratio for a Pydantic model-based module."""
-    raw = data.model_dump(mode="json")  # type: ignore[union-attr]
+    if not hasattr(data, "model_dump"):
+        return 0.0
+    raw = data.model_dump(mode="json")
     sections = get_model_sections(model_class)
     completion = check_section_completion(raw, sections)
     if not completion:

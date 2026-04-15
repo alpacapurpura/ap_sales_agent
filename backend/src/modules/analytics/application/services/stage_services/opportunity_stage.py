@@ -39,6 +39,7 @@ from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCach
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
+from src.shared.domain.currency import FALLBACK_CURRENCY
 
 
 class OpportunityStageService:
@@ -72,7 +73,7 @@ class OpportunityStageService:
                     name="value",
                     value=checkout_events["checkout_initiated"]["value"],
                     unit="currency",
-                    currency="USD",
+                    currency=FALLBACK_CURRENCY,
                 ),
             ],
             "link-enviado": [
@@ -81,7 +82,7 @@ class OpportunityStageService:
                     name="value",
                     value=payment_link_events["value"],
                     unit="currency",
-                    currency="USD",
+                    currency=FALLBACK_CURRENCY,
                 ),
             ],
             "checkout-lp": [
@@ -90,7 +91,7 @@ class OpportunityStageService:
                     name="value",
                     value=0.0,
                     unit="currency",
-                    currency="USD",
+                    currency=FALLBACK_CURRENCY,
                 ),
             ],
             "meeting-booked": [
@@ -116,7 +117,7 @@ class OpportunityStageService:
                     name="value",
                     value=checkout_events["cart_abandoned"]["value"],
                     unit="currency",
-                    currency="USD",
+                    currency=FALLBACK_CURRENCY,
                 ),
                 MetricValueDTO(
                     name="abandonment_rate",

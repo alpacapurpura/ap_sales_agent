@@ -13,85 +13,78 @@ export interface OfferHealth {
   missingFields: string[];
 }
 
+function validateIdentity(offer: Offer): SectionHealth {
+  if (!offer.name || !offer.archetype || !offer.value_level) {
+    return { status: "incomplete", message: "Faltan datos básicos" };
+  }
+  return { status: "complete" };
+}
+
+function validateStrategy(offer: Offer): SectionHealth {
+  const hasAvatar = offer.target_avatar_match && offer.target_avatar_match.length > 0;
+  const hasPainPoints = offer.marketing_pain_points && offer.marketing_pain_points.length > 0;
+  if (!hasAvatar && !hasPainPoints) {
+    return { status: "incomplete", message: "Definir estrategia o avatar" };
+  }
+  return { status: "complete" };
+}
+
+function validatePsychology(offer: Offer): SectionHealth {
+  const hasPain = offer.marketing_pain_points && offer.marketing_pain_points.length > 0;
+  const hasDesires = offer.marketing_desires && offer.marketing_desires.length > 0;
+  if (!hasPain || !hasDesires) {
+    return { status: "incomplete", message: "Faltan puntos de dolor/deseo" };
+  }
+  return { status: "complete" };
+}
+
+function validateSpecificDetails(offer: Offer): SectionHealth {
+  if (!offer.specific_details || Object.keys(offer.specific_details).length === 0) {
+    return { status: "incomplete", message: "Faltan detalles específicos" };
+  }
+  return { status: "complete" };
+}
+
 /**
  * Valida una sección específica de la oferta.
  */
-// eslint-disable-next-line sonarjs/cognitive-complexity -- inherently complex switch; each case is a distinct validation rule
 const validateSection = (sectionId: string, offer: Offer): SectionHealth => {
   switch (sectionId) {
     case "identity":
-      // Requerido: Nombre, Archetype, Nivel
-      if (!offer.name || !offer.archetype || !offer.value_level) {
-        return { status: "incomplete", message: "Faltan datos básicos" };
-      }
-      return { status: "complete" };
-
+      return validateIdentity(offer);
     case "strategy":
-      // Requerido: Avatar match o Pain points
-      if (
-        (!offer.target_avatar_match || offer.target_avatar_match.length === 0) &&
-        (!offer.marketing_pain_points || offer.marketing_pain_points.length === 0)
-      ) {
-        return { status: "incomplete", message: "Definir estrategia o avatar" };
-      }
-      return { status: "complete" };
-
+      return validateStrategy(offer);
     case "psychology":
-      // Requerido: Pain points y Desires
-      if (
-        !offer.marketing_pain_points ||
-        offer.marketing_pain_points.length === 0 ||
-        !offer.marketing_desires ||
-        offer.marketing_desires.length === 0
-      ) {
-        return { status: "incomplete", message: "Faltan puntos de dolor/deseo" };
-      }
-      return { status: "complete" };
-
+      return validatePsychology(offer);
     case "promise":
-      // Requerido: Promesa principal
       if (!offer.headline_promise) {
         return { status: "incomplete", message: "Falta la promesa principal" };
       }
       return { status: "complete" };
-
     case "pricing":
-      // Requerido: Al menos una opción de precio
       if (!offer.pricing || offer.pricing.length === 0) {
         return { status: "incomplete", message: "Sin precio definido" };
       }
       return { status: "complete" };
-
     case "closing":
-      // Requerido: Garantía
       if (!offer.guarantee_type) {
         return { status: "incomplete", message: "Definir garantía" };
       }
       return { status: "complete" };
-
     case "product_details":
     case "service_details":
     case "program_details":
     case "event_details":
     case "subscription_details":
-      // Requerido: Detalles específicos presentes
-      if (!offer.specific_details || Object.keys(offer.specific_details).length === 0) {
-        return { status: "incomplete", message: "Faltan detalles específicos" };
-      }
-      return { status: "complete" };
-
+      return validateSpecificDetails(offer);
     case "instructors":
-      if (offer.instructors && offer.instructors.length > 0) {
-        return { status: "complete" };
-      }
-      return { status: "optional" };
-
+      return offer.instructors && offer.instructors.length > 0
+        ? { status: "complete" }
+        : { status: "optional" };
     case "resources":
     case "gallery":
     case "value_stack":
-      // Opcionales por defecto o lógica simple
       return { status: "optional" };
-
     default:
       return { status: "optional" };
   }

@@ -319,5 +319,5 @@ class JourneyEventRepository:
                 ),
             )
             return result.scalar() or 0
-        except Exception:  # noqa: BLE001 — infrastructure resilience
+        except (ValueError, RuntimeError):
             return 0

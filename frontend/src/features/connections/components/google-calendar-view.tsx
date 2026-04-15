@@ -11,7 +11,7 @@ import {
   Link as LinkIcon,
   Activity,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -37,6 +37,8 @@ import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-
 import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
 import { connectionsApi } from "@/lib/api/connections";
 
+import type { TestResponse } from "@/lib/api/connections";
+
 export function GoogleCalendarView() {
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -49,10 +51,9 @@ export function GoogleCalendarView() {
   const [disconnecting, setDisconnecting] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [testing, setTesting] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: define per-provider API response type
-  const [testResult, setTestResult] = useState<any>(null);
+  const [testResult, setTestResult] = useState<TestResponse | null>(null);
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       setLoading(true);
       const token = await getToken();
@@ -65,11 +66,11 @@ export function GoogleCalendarView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getToken]);
 
   useEffect(() => {
     void fetchStatus();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchStatus]);
 
   // Handle OAuth Callback (Popup Listener)
   useGoogleOAuthListener({
@@ -296,10 +297,10 @@ export function GoogleCalendarView() {
                 {testResult.data && (
                   <div className="mt-2 text-xs bg-background/50 p-2 rounded overflow-x-auto text-foreground border border-border/50 grid gap-1">
                     <div>
-                      <strong>Email:</strong> {testResult.data.email}
+                      <strong>Email:</strong> {String(testResult.data.email ?? "")}
                     </div>
                     <div>
-                      <strong>Busy Slots (24h):</strong> {testResult.data.busy_slots}
+                      <strong>Busy Slots (24h):</strong> {String(testResult.data.busy_slots ?? "")}
                     </div>
                   </div>
                 )}

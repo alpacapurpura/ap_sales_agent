@@ -25,9 +25,7 @@ KNOWN_STRUCTURE_EXCEPTIONS: dict[str, set[str]] = {
 ALLOWED_ROOT_FILES = {"__init__.py"}
 
 # Known stray files (ratchet — shrink only, never grow)
-KNOWN_STRAY_FILES: set[str] = {
-    "landing: ['schemas.py']",  # Stray file — move to landing/api/ or landing/domain/
-}
+KNOWN_STRAY_FILES: set[str] = set()
 
 
 def test_all_python_files_snake_case():

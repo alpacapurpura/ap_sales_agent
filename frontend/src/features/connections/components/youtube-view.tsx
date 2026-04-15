@@ -10,7 +10,7 @@ import {
   Activity,
   Settings,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -38,9 +38,9 @@ import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-
 import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
 import { connectionsApi } from "@/lib/api/connections";
 
-import type { YoutubeStatusResponse } from "@/lib/api/connections";
+import type { YoutubeStatusResponse, TestResponse } from "@/lib/api/connections";
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract connection step handlers
+// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: component has 3 render paths (loading → config form → not connected → connected) each guarded by nested conditions. Handlers share OAuth state that would need prop drilling or context to split.
 export function YoutubeView() {
   const { getToken } = useAuth();
 
@@ -49,8 +49,7 @@ export function YoutubeView() {
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [testing, setTesting] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: define per-provider API response type
-  const [testResult, setTestResult] = useState<any>(null);
+  const [testResult, setTestResult] = useState<TestResponse | null>(null);
 
   // Configuration State
   const [clientId, setClientId] = useState("");
@@ -58,7 +57,7 @@ export function YoutubeView() {
   const [savingConfig, setSavingConfig] = useState(false);
   const [showConfigForm, setShowConfigForm] = useState(false);
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       setLoading(true);
       const token = await getToken();
@@ -75,7 +74,7 @@ export function YoutubeView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getToken]);
 
   const handleSaveConfig = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +101,7 @@ export function YoutubeView() {
 
   useEffect(() => {
     void fetchStatus();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchStatus]);
 
   // Handle OAuth Callback (Popup Listener)
   useGoogleOAuthListener({
@@ -385,19 +384,22 @@ export function YoutubeView() {
               </AlertTitle>
               <AlertDescription>
                 {testResult.message}
-                {testResult.data && (
-                  <div className="mt-2 text-xs bg-background/50 p-2 rounded overflow-x-auto text-foreground border border-border/50 grid gap-1">
-                    <div>
-                      <strong>Título:</strong> {testResult.data.title}
+                {testResult.data && (() => {
+                  const ch = testResult.data as { title?: string; statistics?: { viewCount?: string; subscriberCount?: string } };
+                  return (
+                    <div className="mt-2 text-xs bg-background/50 p-2 rounded overflow-x-auto text-foreground border border-border/50 grid gap-1">
+                      <div>
+                        <strong>Título:</strong> {ch.title}
+                      </div>
+                      <div>
+                        <strong>Vistas:</strong> {ch.statistics?.viewCount}
+                      </div>
+                      <div>
+                        <strong>Suscriptores:</strong> {ch.statistics?.subscriberCount}
+                      </div>
                     </div>
-                    <div>
-                      <strong>Vistas:</strong> {testResult.data.statistics?.viewCount}
-                    </div>
-                    <div>
-                      <strong>Suscriptores:</strong> {testResult.data.statistics?.subscriberCount}
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
               </AlertDescription>
             </Alert>
           )}

@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/nextjs";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
 
 import { whatsappApi } from "@/lib/api/whatsapp";
@@ -14,35 +14,14 @@ export function useWhatsApp() {
   const [isScanning, setIsScanning] = useState(false);
   const pollInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // Initial Check
-  useEffect(() => {
-    void checkStatus();
-    return () => stopPolling();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const checkStatus = async () => {
-    try {
-      const token = await getToken();
-      if (!token) return;
-
-      const data = await whatsappApi.getStatus(token);
-      setStatus(data);
-
-      // Stop polling if connected
-      if (data.evolution.status === "connected") {
-        setIsScanning(false);
-        stopPolling();
-      } else if (isScanning) {
-        if (!pollInterval.current) startPolling();
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+  const stopPolling = useCallback(() => {
+    if (pollInterval.current) {
+      clearInterval(pollInterval.current);
+      pollInterval.current = null;
     }
-  };
+  }, []);
 
-  const startPolling = () => {
+  const startPolling = useCallback(() => {
     if (pollInterval.current) return;
     pollInterval.current = setInterval(async () => {
       const token = await getToken();
@@ -55,14 +34,53 @@ export function useWhatsApp() {
         toast.success("¡WhatsApp Conectado!");
       }
     }, 3000);
-  };
+  }, [getToken, stopPolling]);
 
-  const stopPolling = () => {
-    if (pollInterval.current) {
-      clearInterval(pollInterval.current);
-      pollInterval.current = null;
+  // Initial Check
+  useEffect(() => {
+    const checkOnMount = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+
+        const data = await whatsappApi.getStatus(token);
+        setStatus(data);
+
+        if (data.evolution.status === "connected") {
+          setIsScanning(false);
+          stopPolling();
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    void checkOnMount();
+    return () => stopPolling();
+  }, [getToken, stopPolling]);
+
+  const checkStatus = useCallback(async () => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const data = await whatsappApi.getStatus(token);
+      setStatus(data);
+
+      // Stop polling if connected
+      if (data.evolution.status === "connected") {
+        setIsScanning(false);
+        stopPolling();
+      } else if (!pollInterval.current) {
+        startPolling();
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [getToken, stopPolling, startPolling]);
 
   const generateQR = async () => {
     setIsScanning(true);

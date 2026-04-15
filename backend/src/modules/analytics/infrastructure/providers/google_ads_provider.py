@@ -27,6 +27,7 @@ from src.modules.analytics.infrastructure.providers.base import (
 from src.modules.connections.infrastructure.channels.google_ads import (
     GoogleAdsAdapter,
 )
+from src.shared.domain.currency import FALLBACK_CURRENCY
 
 logger = structlog.get_logger(__name__)
 
@@ -171,7 +172,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str,
-        account_currency: str = "USD",
+        account_currency: str = FALLBACK_CURRENCY,
     ) -> list[ExtractedMetric]:
         """Run the main GAQL campaign query and aggregate by channel or retargeting."""
         rows = await adapter.run_gaql_query(
@@ -232,7 +233,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         self,
         rows: list[dict],
         metric_date: date,
-        account_currency: str = "USD",
+        account_currency: str = FALLBACK_CURRENCY,
     ) -> list[ExtractedMetric]:
         """Aggregate remarketing campaign rows into google-retargeting slug.
 
@@ -281,7 +282,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         self,
         rows: list[dict],
         metric_date: date,
-        account_currency: str = "USD",
+        account_currency: str = FALLBACK_CURRENCY,
     ) -> list[ExtractedMetric]:
         """Aggregate campaign rows into google-ads and yt-ads slugs."""
         channel_data: dict[str, dict[str, float]] = {
@@ -421,7 +422,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str,
-        account_currency: str = "USD",
+        account_currency: str = FALLBACK_CURRENCY,
     ) -> list[ExtractedMetric]:
         """Run the daily GAQL campaign query and aggregate per-day."""
         rows = await adapter.run_gaql_query(

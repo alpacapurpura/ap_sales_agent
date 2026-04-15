@@ -3,7 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, UserPlus, Users } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -64,7 +64,7 @@ export function TeamView() {
     },
   });
 
-  const loadTeam = async () => {
+  const loadTeam = useCallback(async () => {
     setIsLoading(true);
     try {
       const token = await getToken();
@@ -77,11 +77,11 @@ export function TeamView() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [getToken]);
 
   useEffect(() => {
     void loadTeam();
-  }, [getToken]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [loadTeam]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsCreating(true);

@@ -63,7 +63,7 @@ class PromptLoader:
             tenant = db.execute(select(Tenant).where(Tenant.id == tenant_id)).scalars().first()
             config = tenant.config_json if tenant and tenant.config_json else {}
             self._tenant_config_cache[tenant_id] = config
-        except Exception as e:  # noqa: BLE001 — agent resilience
+        except (KeyError, ValueError, AttributeError) as e:
             logger.warning("Error loading tenant config: %s", e)
             return {}
         else:
@@ -114,7 +114,7 @@ class PromptLoader:
                 self._update_cache(key, tenant_id, prompt)
                 return prompt.content
 
-        except Exception as e:  # noqa: BLE001 — agent resilience
+        except (KeyError, ValueError, AttributeError) as e:
             logger.warning("Error loading prompt '%s' from DB: %s", key, e)
             return None
         else:

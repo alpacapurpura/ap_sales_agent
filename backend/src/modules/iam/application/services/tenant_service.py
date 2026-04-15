@@ -52,7 +52,7 @@ class TenantService:
         except IntegrityError:
             self.db.rollback()
             return None, "Error: El Slug ya existe."
-        except Exception as e:  # noqa: BLE001 — service resilience
+        except (ValueError, KeyError, RuntimeError) as e:
             self.db.rollback()
             return None, str(e)
 
@@ -90,7 +90,7 @@ class TenantService:
         except IntegrityError:
             self.db.rollback()
             return None, "Error: El Slug ya existe."
-        except Exception as e:  # noqa: BLE001 — service resilience
+        except (ValueError, KeyError, RuntimeError) as e:
             self.db.rollback()
             return None, str(e)
         else:

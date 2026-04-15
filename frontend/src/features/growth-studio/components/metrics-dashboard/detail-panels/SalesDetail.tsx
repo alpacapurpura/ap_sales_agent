@@ -46,7 +46,25 @@ interface SalesDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract metric group renderers to sub-components
+/** Returns the Shopify sync button label based on current load/error/result state. */
+function shopifySyncLabel(
+  isLoading: boolean,
+  error: Error | null,
+  result: { loaded_days: number; skipped_days: number } | null | undefined,
+): string {
+  if (isLoading) return "Cargando...";
+  if (error) {
+    return error.message.includes("Disponible en") ? error.message : "Error — Reintentar";
+  }
+  if (result) {
+    if (result.loaded_days > 0) return `Shopify OK (${result.loaded_days} dias)`;
+    if (result.skipped_days > 0) return "Shopify (ya cargado)";
+    return "Shopify (sin datos)";
+  }
+  return "Datos Shopify";
+}
+
+// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: SalesDetail renders 4 metric groups (header funnel, Shopify breakdown, bottlenecks, OfferLadder) with nested conditional blocks per group (shopify data guard, revenue KPI formatting, refund detail). Splitting into sub-components is pending as a larger refactor tracked in project backlog.
 export const SalesDetail = React.memo(function SalesDetail({ onMetricClick }: SalesDetailProps) {
   const { timezone } = useTenantLocale();
   const { data, isLoading, error, refetch } = useSalesDetail();
@@ -183,19 +201,7 @@ export const SalesDetail = React.memo(function SalesDetail({ onMetricClick }: Sa
             ) : (
               <Download className="mr-2 h-4 w-4" />
             )}
-            {isLoadingShopify
-              ? "Cargando..."
-              : shopifyError
-                ? shopifyError.message.includes("Disponible en")
-                  ? shopifyError.message
-                  : "Error — Reintentar"
-                : shopifyResult
-                  ? shopifyResult.loaded_days > 0
-                    ? `Shopify OK (${shopifyResult.loaded_days} dias)`
-                    : shopifyResult.skipped_days > 0
-                      ? "Shopify (ya cargado)"
-                      : "Shopify (sin datos)"
-                  : "Datos Shopify"}
+            {shopifySyncLabel(isLoadingShopify, shopifyError, shopifyResult)}
           </Button>
           <Button variant="outline" onClick={() => setIsPanelOpen(true)}>
             <Calendar className="mr-2 h-4 w-4" /> Últimos 30 días

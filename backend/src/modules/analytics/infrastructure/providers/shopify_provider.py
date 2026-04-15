@@ -21,6 +21,7 @@ from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )
+from src.shared.domain.currency import FALLBACK_CURRENCY
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +146,7 @@ class ShopifyProvider(BaseMetricsProvider):
             return ExtractionResult()
 
         shop_domain = self._clean_domain(shop_domain)
-        shop_currency = credentials.get("shop_currency", "USD")
+        shop_currency = credentials.get("shop_currency", FALLBACK_CURRENCY)
 
         metrics: list = []
         failures = []
@@ -194,7 +195,7 @@ class ShopifyProvider(BaseMetricsProvider):
             return ExtractionResult()
 
         shop_domain = self._clean_domain(shop_domain)
-        shop_currency = credentials.get("shop_currency", "USD")
+        shop_currency = credentials.get("shop_currency", FALLBACK_CURRENCY)
 
         metrics: list = []
         failures = []
@@ -292,7 +293,7 @@ class ShopifyProvider(BaseMetricsProvider):
         access_token: str,
         start_date: date,
         end_date: date,
-        shop_currency: str = "USD",
+        shop_currency: str = FALLBACK_CURRENCY,
     ) -> list[ExtractedMetric]:
         """Extract checkout/abandoned cart metrics for opportunity stage."""
         # Get orders to calculate completed checkouts
@@ -450,7 +451,7 @@ class ShopifyProvider(BaseMetricsProvider):
                 "revenue": 0.0,
                 "order_count": 0,
                 "units_sold": 0,
-                "currency": "USD",
+                "currency": FALLBACK_CURRENCY,
                 "total_discounts": 0.0,
                 "total_tax": 0.0,
                 "refund_amount": 0.0,

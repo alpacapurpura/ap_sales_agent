@@ -1068,9 +1068,9 @@ class EmailDashboardService:
                 EmailCampaignDTO(
                     campaign_id=str(cdata.get("campaign_id", "")),
                     campaign_name=str(cdata.get("campaign_name", "")),
-                    campaign_subject=cdata.get("campaign_subject"),  # type: ignore[arg-type]
+                    campaign_subject=str(v) if (v := cdata.get("campaign_subject")) is not None else None,
                     campaign_type=str(cdata.get("campaign_type", "contenido")),
-                    sent_date=cdata.get("sent_date"),  # type: ignore[arg-type]
+                    sent_date=str(v) if (v := cdata.get("sent_date")) is not None else None,
                     emails_sent=int(m.get("emails_sent", 0)),
                     open_rate=round(float(m.get("open_rate", 0)), 1),
                     click_rate=round(float(m.get("click_rate", 0)), 1),
@@ -1079,8 +1079,8 @@ class EmailDashboardService:
                     unsubscribes=int(m.get("unsubscribes", 0)),
                     unique_opens=int(m.get("unique_opens", 0)),
                     unique_clicks=int(m.get("unique_clicks", 0)),
-                    screenshot_url=cdata.get("screenshot_url"),  # type: ignore[arg-type]
-                    preview_url=cdata.get("preview_url"),  # type: ignore[arg-type]
+                    screenshot_url=str(v) if (v := cdata.get("screenshot_url")) is not None else None,
+                    preview_url=str(v) if (v := cdata.get("preview_url")) is not None else None,
                 ),
             )
         return campaigns

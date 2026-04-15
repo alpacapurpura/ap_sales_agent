@@ -98,7 +98,7 @@ class AIActionService:
                     ),
                     model_type=resolved_policy.model.model_type,
                 )
-            except (json.JSONDecodeError, ValidationError, Exception) as error:  # noqa: BLE001 — service resilience
+            except (json.JSONDecodeError, ValidationError) as error:
                 last_error = error
                 raw_preview = llm_response[:300] if "llm_response" in locals() else "N/A"
                 self.logger.warning(

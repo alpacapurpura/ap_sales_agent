@@ -45,7 +45,7 @@ def _track_knowledge_search(
             db.commit()
         finally:
             db.close()
-    except Exception as e:  # noqa: BLE001 — tool execution resilience
+    except (ValueError, RuntimeError) as e:
         logger.debug("knowledge_search_tracking_error", error=str(e))
 
 

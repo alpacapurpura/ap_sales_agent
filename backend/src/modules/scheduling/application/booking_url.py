@@ -40,7 +40,7 @@ def get_booking_base_url(tenant_id: UUID | str, db: Session) -> str:
                 hostname=primary.hostname,
             )
             return f"https://{primary.hostname}"
-    except Exception:  # noqa: BLE001 — service resilience
+    except (ValueError, KeyError, AttributeError, RuntimeError):
         logger.warning(
             "booking_base_url_fallback",
             tenant_id=str(tenant_id),

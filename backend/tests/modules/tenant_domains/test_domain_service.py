@@ -54,7 +54,7 @@ class TestCreatePlatformDomain:
         """If KV sync fails, the domain is still persisted."""
         service = _make_service(db)
         service.cf.is_configured = True
-        service.cf.put_kv.side_effect = Exception("CF timeout")
+        service.cf.put_kv.side_effect = OSError("CF timeout")
 
         domain = service.create_platform_domain(tenant_id, slug="resilient")
         assert domain.id is not None  # domain was saved despite CF error
@@ -101,7 +101,7 @@ class TestCreateCustomDomain:
     def test_cf_failure_saves_domain_as_failed(self, db, tenant_id):
         """If CF call raises, domain is saved with FAILED status."""
         service = _make_service(db)
-        service.cf.create_custom_hostname.side_effect = Exception("CF down")
+        service.cf.create_custom_hostname.side_effect = OSError("CF down")
 
         domain = service.create_custom_domain(tenant_id, hostname="broken.example.com")
 
@@ -198,7 +198,7 @@ class TestDeleteDomain:
     def test_delete_cf_error_still_soft_deletes(self, db, tenant_id):
         """If CF cleanup fails, the domain record should still be soft-deleted."""
         service = _make_service(db)
-        service.cf.delete_kv.side_effect = Exception("CF unavailable")
+        service.cf.delete_kv.side_effect = OSError("CF unavailable")
         created = service.create_platform_domain(tenant_id, slug="cfbroken")
 
         service.delete_domain(created.id, tenant_id)

@@ -242,7 +242,29 @@ const PreConsentScreen = ({ onConnect, isConnecting }: PreConsentScreenProps) =>
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract connection-step handlers
+async function checkGaStatusAfterConnect(
+  getToken: () => Promise<string | null>,
+  callbacks: {
+    setGaStatus: (status: GoogleAnalyticsStatusResponse) => void;
+    setGa4Properties: (props: GA4Property[]) => void;
+    setShowGaPropertyPicker: (show: boolean) => void;
+  },
+): Promise<void> {
+  try {
+    const token = await getToken();
+    if (!token) return;
+    const gaData = await connectionsApi.getGoogleAnalyticsStatus(token);
+    callbacks.setGaStatus(gaData);
+    if (gaData.is_connected && !gaData.selected_property) {
+      const wsResult = await connectionsApi.getGoogleAnalyticsProperties(token);
+      callbacks.setGa4Properties(wsResult);
+      callbacks.setShowGaPropertyPicker(true);
+    }
+  } catch (e) {
+    console.error("Could not check GA status after workspace connect", e);
+  }
+}
+
 export function GoogleWorkspaceView() {
   const { getToken } = useAuth();
 
@@ -292,19 +314,11 @@ export function GoogleWorkspaceView() {
         toast.success("Google Workspace conectado. Todos los servicios están activos.");
 
         await fetchStatus();
-
-        // Check if GA needs property selection
-        try {
-          const gaData = await connectionsApi.getGoogleAnalyticsStatus(token);
-          setGaStatus(gaData);
-          if (gaData.is_connected && !gaData.selected_property) {
-            const wsResult = await connectionsApi.getGoogleAnalyticsProperties(token);
-            setGa4Properties(wsResult);
-            setShowGaPropertyPicker(true);
-          }
-        } catch (e) {
-          console.error("Could not check GA status after workspace connect", e);
-        }
+        await checkGaStatusAfterConnect(getToken, {
+          setGaStatus,
+          setGa4Properties,
+          setShowGaPropertyPicker,
+        });
       } catch (error: unknown) {
         console.error(error);
         toast.error(error instanceof Error ? error.message : "Error al conectar Google");

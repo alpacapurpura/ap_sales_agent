@@ -56,7 +56,7 @@ export interface ChannelRowProps {
   onChannelClick?: (channel: ChannelMetric) => void;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract channel state helpers and sub-renderers
+// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: rendering path already delegates to ChannelRowHeader, ChannelRowMetrics, ChannelRowActions sub-components. Remaining complexity is channel-specific bottleneck badge derivation (abandonment-cart, meeting-booked no-show rate) and the próximamente early-return — all inherently conditional on channel slug.
 export const ChannelRow = React.memo(function ChannelRow({
   channel,
   stageId,

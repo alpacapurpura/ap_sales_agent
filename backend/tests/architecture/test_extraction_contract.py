@@ -165,36 +165,15 @@ def test_catalog_metrics_appear_in_contract() -> None:
     # Each entry MUST have an audit reference. Shrink this list over time —
     # never grow it without justification.
     #
-    # All entries below are "phantom" metrics: declared in metric_catalog as
-    # part of the public catalog but no provider currently emits them. They
-    # are derived/aggregated metrics that the dashboard would compute at
-    # read-time, OR features that have never been implemented. Tracked in
-    # the ETL audit report 2026-04-11.
-    KNOWN_CATALOG_CONTRACT_GAPS: set[str] = {
-        # CRM internal: derived rate not emitted by provider
-        "crm_internal/response_rate (declared in catalog by 'crm_internal')",
-        # Mailerlite-family derived rates: computed in service/dashboard layer,
-        # not emitted by the provider
-        "mailerlite/churn_rate (declared in catalog by 'mailerlite')",
-        "mailerlite/churn_rate (declared in catalog by 'mailchimp')",
-        "mailerlite/churn_rate (declared in catalog by 'activecampaign')",
-        "mailerlite/completion_rate (declared in catalog by 'mailerlite')",
-        "mailerlite/deliverability_rate (declared in catalog by 'mailerlite')",
-        "mailerlite/deliverability_rate (declared in catalog by 'mailchimp')",
-        "mailerlite/deliverability_rate (declared in catalog by 'activecampaign')",
-        "mailerlite/forward_rate (declared in catalog by 'mailerlite')",
-        "mailerlite/forward_rate (declared in catalog by 'mailchimp')",
-        "mailerlite/forward_rate (declared in catalog by 'activecampaign')",
-        "mailerlite/list_growth_rate (declared in catalog by 'mailerlite')",
-        "mailerlite/list_growth_rate (declared in catalog by 'mailchimp')",
-        "mailerlite/list_growth_rate (declared in catalog by 'activecampaign')",
-        # Meta IG engagement_rate: derived metric, computed downstream
-        "meta/ig_engagement_rate (declared in catalog by 'meta')",
-        # TikTok ctr: catalog declares it but TikTokProvider only emits
-        # reach/clicks/conversions/spend. Catalog should drop it OR provider
-        # should compute it as `derived: clicks / impressions`.
-        "tiktok/ctr (declared in catalog by 'tiktok')",
-    }
+    # All previously known gaps were resolved on 2026-04-15:
+    # - Derived metrics (ig_engagement_rate, churn_rate, deliverability_rate,
+    #   forward_rate, list_growth_rate, completion_rate, response_rate) had
+    #   their providers= tuple set to () since they are computed at read time,
+    #   not extracted by the ETL.
+    # - tiktok/ctr was removed from metric_catalog.ctr.providers because
+    #   TikTokProvider does not extract impressions (only reach/clicks/
+    #   conversions/spend), making CTR uncomputable from extracted data.
+    KNOWN_CATALOG_CONTRACT_GAPS: set[str] = set()
 
     surprising = [m for m in missing if m not in KNOWN_CATALOG_CONTRACT_GAPS]
     assert not surprising, (

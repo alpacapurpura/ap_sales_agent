@@ -74,11 +74,12 @@ export function useSyncChannel(channelSlug: string) {
   });
 
   // Auto-reset result/error after 10s
+  const mutationReset = mutation.reset;
   useEffect(() => {
     if (!mutation.data && !mutation.error) return;
-    const timer = setTimeout(() => mutation.reset(), 10_000);
+    const timer = setTimeout(() => mutationReset(), 10_000);
     return () => clearTimeout(timer);
-  }, [mutation.data, mutation.error]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mutation.data, mutation.error, mutationReset]);
 
   const cooldownMinutes = mutation.error?.remaining_minutes ?? 0;
 

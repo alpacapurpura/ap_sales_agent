@@ -18,7 +18,7 @@ export interface TelegramConnectRequest {
 export interface TestResponse {
   status: string;
   message: string;
-  data?: unknown;
+  data?: Record<string, unknown>;
   details?: Record<string, unknown>;
 }
 

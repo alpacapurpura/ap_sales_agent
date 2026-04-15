@@ -135,120 +135,128 @@ interface NavItemRendererProps {
   onToggleExpand: (href: string) => void;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract sub-renderers per nav item variant
-function NavItemRenderer({
+/** Renders a simple (leaf) nav item with optional tooltip when sidebar is collapsed. */
+function SimpleNavItem({
   item,
   pathname,
   mobile,
   isCollapsed,
   mounted,
+  showExpanded,
   onMobileClose,
-  expandedHref,
-  onToggleExpand,
-}: NavItemRendererProps) {
-  const isParentActive =
-    pathname.startsWith(item.href) ||
-    (item.children?.some((child) => pathname.startsWith(child.href)) ?? false);
-  const hasChildren = item.children && item.children.length > 0;
-  const isExpanded = item.href === expandedHref;
-  const showExpanded = !isCollapsed || mobile;
-
-  // Simple item (no children)
-  if (!hasChildren) {
-    const isActive = pathname.startsWith(item.href);
-    const link = (
-      <NavLink
-        href={item.href}
-        onClick={() => mobile && onMobileClose()}
-        showLoadingIcon={showExpanded}
-        loadingClassName="opacity-70"
+}: Pick<NavItemRendererProps, "item" | "pathname" | "mobile" | "isCollapsed" | "mounted" | "onMobileClose"> & {
+  showExpanded: boolean;
+}) {
+  const isActive = pathname.startsWith(item.href);
+  const link = (
+    <NavLink
+      href={item.href}
+      onClick={() => mobile && onMobileClose()}
+      showLoadingIcon={showExpanded}
+      loadingClassName="opacity-70"
+      className={cn(
+        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-all w-full group",
+        isActive
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+        isCollapsed && !mobile && "justify-center px-2",
+      )}
+    >
+      <item.icon
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-all w-full group",
-          isActive
-            ? "bg-primary/10 text-primary"
-            : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
-          isCollapsed && !mobile && "justify-center px-2",
+          "h-5 w-5 shrink-0 transition-colors",
+          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
         )}
-      >
-        <item.icon
-          className={cn(
-            "h-5 w-5 shrink-0 transition-colors",
-            isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
-          )}
-        />
-        {showExpanded && mounted && <span>{item.title}</span>}
-      </NavLink>
-    );
+      />
+      {showExpanded && mounted && <span>{item.title}</span>}
+    </NavLink>
+  );
 
-    if (isCollapsed && !mobile) {
-      return (
-        <Tooltip>
-          <TooltipTrigger asChild>{link}</TooltipTrigger>
-          <TooltipContent side="right" className="font-medium">
-            {item.title}
-          </TooltipContent>
-        </Tooltip>
-      );
-    }
-    return link;
-  }
-
-  // Collapsible group (has children)
   if (isCollapsed && !mobile) {
-    // Collapsed: show parent icon with tooltip listing children
     return (
       <Tooltip>
-        <TooltipTrigger asChild>
-          <NavLink
-            href={item.children![0].href}
-            showLoadingIcon={false}
-            loadingClassName="opacity-70"
-            className={cn(
-              "flex items-center justify-center rounded-lg px-2 py-2.5 text-sm font-semibold transition-all w-full group",
-              isParentActive
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
-            )}
-          >
-            <item.icon
-              className={cn(
-                "h-5 w-5 shrink-0 transition-colors",
-                isParentActive
-                  ? "text-primary"
-                  : "text-muted-foreground group-hover:text-foreground",
-              )}
-            />
-          </NavLink>
-        </TooltipTrigger>
-        <TooltipContent side="right" className="p-0">
-          <div className="py-1 min-w-[160px]">
-            <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-              {item.title}
-            </div>
-            {item.children!.map((child) => {
-              const isChildActive = pathname.startsWith(child.href);
-              return (
-                <NavLink
-                  key={child.href}
-                  href={child.href}
-                  loadingClassName="opacity-70"
-                  className={cn(
-                    "flex items-center gap-2 px-2 py-1.5 text-sm transition-colors",
-                    isChildActive ? "text-primary font-medium" : "text-foreground hover:bg-muted",
-                  )}
-                >
-                  <child.icon className="h-4 w-4 shrink-0" />
-                  <span>{child.title}</span>
-                </NavLink>
-              );
-            })}
-          </div>
+        <TooltipTrigger asChild>{link}</TooltipTrigger>
+        <TooltipContent side="right" className="font-medium">
+          {item.title}
         </TooltipContent>
       </Tooltip>
     );
   }
+  return link;
+}
 
-  // Expanded sidebar: collapsible group
+/** Renders a collapsible group as a tooltip flyout (used when sidebar is collapsed). */
+function CollapsedGroupItem({
+  item,
+  pathname,
+  isParentActive,
+}: Pick<NavItemRendererProps, "item" | "pathname"> & { isParentActive: boolean }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <NavLink
+          href={item.children![0].href}
+          showLoadingIcon={false}
+          loadingClassName="opacity-70"
+          className={cn(
+            "flex items-center justify-center rounded-lg px-2 py-2.5 text-sm font-semibold transition-all w-full group",
+            isParentActive
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+          )}
+        >
+          <item.icon
+            className={cn(
+              "h-5 w-5 shrink-0 transition-colors",
+              isParentActive
+                ? "text-primary"
+                : "text-muted-foreground group-hover:text-foreground",
+            )}
+          />
+        </NavLink>
+      </TooltipTrigger>
+      <TooltipContent side="right" className="p-0">
+        <div className="py-1 min-w-[160px]">
+          <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+            {item.title}
+          </div>
+          {item.children!.map((child) => {
+            const isChildActive = pathname.startsWith(child.href);
+            return (
+              <NavLink
+                key={child.href}
+                href={child.href}
+                loadingClassName="opacity-70"
+                className={cn(
+                  "flex items-center gap-2 px-2 py-1.5 text-sm transition-colors",
+                  isChildActive ? "text-primary font-medium" : "text-foreground hover:bg-muted",
+                )}
+              >
+                <child.icon className="h-4 w-4 shrink-0" />
+                <span>{child.title}</span>
+              </NavLink>
+            );
+          })}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+/** Renders a collapsible group with accordion expand/collapse (used when sidebar is expanded). */
+function ExpandedGroupItem({
+  item,
+  pathname,
+  mobile,
+  mounted,
+  isParentActive,
+  isExpanded,
+  onMobileClose,
+  onToggleExpand,
+}: Pick<NavItemRendererProps, "item" | "pathname" | "mobile" | "mounted" | "onMobileClose" | "onToggleExpand"> & {
+  isParentActive: boolean;
+  isExpanded: boolean;
+}) {
   return (
     <div className="space-y-1">
       <button
@@ -326,6 +334,55 @@ function NavItemRenderer({
   );
 }
 
+function NavItemRenderer({
+  item,
+  pathname,
+  mobile,
+  isCollapsed,
+  mounted,
+  onMobileClose,
+  expandedHref,
+  onToggleExpand,
+}: NavItemRendererProps) {
+  const isParentActive =
+    pathname.startsWith(item.href) ||
+    (item.children?.some((child) => pathname.startsWith(child.href)) ?? false);
+  const hasChildren = item.children && item.children.length > 0;
+  const isExpanded = item.href === expandedHref;
+  const showExpanded = !isCollapsed || mobile;
+
+  if (!hasChildren) {
+    return (
+      <SimpleNavItem
+        item={item}
+        pathname={pathname}
+        mobile={mobile}
+        isCollapsed={isCollapsed}
+        mounted={mounted}
+        showExpanded={showExpanded}
+        onMobileClose={onMobileClose}
+      />
+    );
+  }
+
+  if (isCollapsed && !mobile) {
+    return <CollapsedGroupItem item={item} pathname={pathname} isParentActive={isParentActive} />;
+  }
+
+  return (
+    <ExpandedGroupItem
+      item={item}
+      pathname={pathname}
+      mobile={mobile}
+      mounted={mounted}
+      isParentActive={isParentActive}
+      isExpanded={isExpanded}
+      onMobileClose={onMobileClose}
+      onToggleExpand={onToggleExpand}
+    />
+  );
+}
+
 // ---------------------------------------------------------------------------
 // NavContent
 // ---------------------------------------------------------------------------
@@ -339,7 +396,7 @@ interface NavContentProps {
   mounted: boolean;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract section renderers to reduce complexity
+// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: interleaves logo/theme state, expanded-href sync via ref (avoids useEffect flush), tenant ID derivation from path, and accordion state — all tightly coupled to prevent hydration mismatch.
 const NavContent = memo(function NavContent({
   mobile = false,
   isCollapsed,

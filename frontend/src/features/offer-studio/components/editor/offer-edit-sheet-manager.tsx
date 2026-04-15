@@ -42,8 +42,10 @@ export function OfferEditSheetManager({
   const handleSave = async (data?: Record<string, unknown>) => {
     if (data) {
       Object.entries(data).forEach(([key, value]) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        form.setValue(key as any, value);
+        form.setValue(
+          key as keyof OfferFormValues,
+          value as OfferFormValues[keyof OfferFormValues],
+        );
       });
     }
 

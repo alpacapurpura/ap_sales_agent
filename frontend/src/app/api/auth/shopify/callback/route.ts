@@ -2,7 +2,55 @@ import { NextResponse } from "next/server";
 
 import type { NextRequest } from "next/server";
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract validation helpers to reduce complexity
+interface ExchangeResult {
+  success: boolean;
+  errorDetail: string;
+}
+
+async function exchangeShopifyToken(
+  backendUrl: string,
+  payload: Record<string, string>,
+): Promise<ExchangeResult> {
+  try {
+    const response = await fetch(`${backendUrl}/api/v1/connections/shopify/auth/exchange`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorDetail = (errorData as { detail?: string }).detail || "Failed to exchange token";
+      console.error("Shopify Exchange Error:", errorDetail);
+      return { success: false, errorDetail };
+    }
+    return { success: true, errorDetail: "" };
+  } catch (error: unknown) {
+    console.error("Shopify Network Error:", error);
+    return {
+      success: false,
+      errorDetail: error instanceof Error ? error.message : "Network error",
+    };
+  }
+}
+
+function buildShopifyAdminRedirect(
+  shop: string,
+  appId: string,
+  host: string,
+  success: boolean,
+  errorDetail: string,
+): URL {
+  const shopName = shop.replace(".myshopify.com", "");
+  const adminUrl = new URL(`https://admin.shopify.com/store/${shopName}/apps/${appId}`);
+  adminUrl.searchParams.set("host", host);
+  adminUrl.searchParams.set("shop", shop);
+  adminUrl.searchParams.set("status", success ? "success" : "error");
+  if (!success && errorDetail) {
+    adminUrl.searchParams.set("message", errorDetail);
+  }
+  return adminUrl;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
@@ -13,7 +61,6 @@ export async function GET(request: NextRequest) {
   const timestamp = searchParams.get("timestamp");
   const appId = process.env.SHOPIFY_API_KEY;
 
-  // state contains tenantId (UUID) set during auth URL generation
   const connectionsPath = state ? `/${state}/connections/shopify` : "/";
 
   if (!code || !hmac || !shop) {
@@ -33,55 +80,20 @@ export async function GET(request: NextRequest) {
 
   try {
     const backendUrl = process.env.INTERNAL_API_URL || "http://visionarias_brain_dev:8000";
-    let exchangeSuccess = false;
-    let errorDetail = "";
-    const exchangePayload: Record<string, string> = {
-      code,
-      hmac,
-      shop,
-    };
+    const payload: Record<string, string> = { code, hmac, shop };
+    if (state) payload.state = state;
+    if (host) payload.host = host;
+    if (timestamp) payload.timestamp = timestamp;
 
-    if (state) {
-      exchangePayload.state = state;
-    }
-    if (host) {
-      exchangePayload.host = host;
-    }
-    if (timestamp) {
-      exchangePayload.timestamp = timestamp;
-    }
-
-    try {
-      const response = await fetch(`${backendUrl}/api/v1/connections/shopify/auth/exchange`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(exchangePayload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        errorDetail = errorData.detail || "Failed to exchange token";
-        console.error("Shopify Exchange Error:", errorDetail);
-      } else {
-        exchangeSuccess = true;
-      }
-    } catch (error: unknown) {
-      console.error("Shopify Network Error:", error);
-      errorDetail = error instanceof Error ? error.message : "Network error";
-    }
+    const { success: exchangeSuccess, errorDetail } = await exchangeShopifyToken(
+      backendUrl,
+      payload,
+    );
 
     if (host) {
-      const shopName = shop.replace(".myshopify.com", "");
-      const adminUrl = new URL(`https://admin.shopify.com/store/${shopName}/apps/${appId}`);
-      adminUrl.searchParams.set("host", host);
-      adminUrl.searchParams.set("shop", shop);
-      adminUrl.searchParams.set("status", exchangeSuccess ? "success" : "error");
-      if (!exchangeSuccess && errorDetail) {
-        adminUrl.searchParams.set("message", errorDetail);
-      }
-      return NextResponse.redirect(adminUrl);
+      return NextResponse.redirect(
+        buildShopifyAdminRedirect(shop, appId, host, exchangeSuccess, errorDetail),
+      );
     }
 
     const redirectUrl = new URL(connectionsPath, request.url);

@@ -18,7 +18,7 @@ try:
 
 except ImportError:  # pragma: no cover — only executed when tiktoken is absent
 
-    def _count_tokens(text: str) -> int:  # type: ignore[misc]
+    def _count_tokens(text: str) -> int:  # type: ignore[misc]  # Function redefinition in except block (tiktoken fallback)
         # Conservative heuristic: ~2 chars per token (safer than the old //4).
         # Claude tokenises more aggressively than GPT-2 on mixed content.
         return max(1, len(text) // 2)

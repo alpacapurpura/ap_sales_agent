@@ -40,9 +40,9 @@ import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-
 import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
 import { connectionsApi } from "@/lib/api/connections";
 
-import type { GoogleAnalyticsStatusResponse, GA4Property } from "@/lib/api/connections";
+import type { GoogleAnalyticsStatusResponse, GA4Property, TestResponse } from "@/lib/api/connections";
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- TODO: extract connection-step helpers
+// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: component has 4 distinct render paths (loading → config mode → not connected → property picker → connected) each with their own conditional sub-trees. Splitting into sub-components would require lifting all useState to a parent, adding more boilerplate than complexity removed.
 export function GoogleAnalyticsView() {
   const { getToken } = useAuth();
 
@@ -51,8 +51,7 @@ export function GoogleAnalyticsView() {
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [testing, setTesting] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: define per-provider API response type
-  const [testResult, setTestResult] = useState<any>(null);
+  const [testResult, setTestResult] = useState<TestResponse | null>(null);
 
   // Configuration State
   const [configMode, setConfigMode] = useState(false);

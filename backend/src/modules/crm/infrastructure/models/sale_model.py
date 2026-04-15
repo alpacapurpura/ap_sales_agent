@@ -35,7 +35,7 @@ class SaleModel(Base):
     transaction_id = Column(String, nullable=True, index=True)
 
     amount = Column(Float, nullable=False)
-    currency = Column(String, default="USD")
+    currency = Column(String, nullable=True)
 
     status = Column(Enum(SaleStatus), default=SaleStatus.PENDING)
     stage = Column(Enum(SaleStage), nullable=False)

@@ -1,7 +1,38 @@
-import type { ChannelMetric, MetricValue } from "../../types/metrics";
+import type { ChannelMetric, MetricValue, TrafficGroup } from "../../types/metrics";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
-export function mapMetric(raw: any): MetricValue {
+/** Shape of a raw metric item from the API before field-name mapping. */
+export interface RawMetric {
+  name: string;
+  value: number;
+  unit?: string;
+  currency?: string;
+  breakdown?: Record<string, number>;
+}
+
+/** Shape of a raw channel item from the API before field-name mapping. */
+export interface RawChannel {
+  slug: string;
+  name: string;
+  channel_type: string;
+  metrics?: RawMetric[];
+  source_label: string;
+  connected: boolean;
+  provider_name?: string;
+  source_display_name?: string;
+  cost_type?: string;
+  last_updated?: string;
+  stale?: boolean;
+  error_message?: string;
+  value?: number;
+}
+
+/** Shape of a raw group item from the API before field-name mapping. */
+export interface RawGroup {
+  totals?: Record<string, number>;
+  channels?: RawChannel[];
+}
+
+export function mapMetric(raw: RawMetric): MetricValue {
   return {
     name: raw.name,
     value: raw.value,
@@ -11,8 +42,7 @@ export function mapMetric(raw: any): MetricValue {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
-export function mapChannel(raw: any): ChannelMetric {
+export function mapChannel(raw: RawChannel): ChannelMetric {
   return {
     slug: raw.slug,
     name: raw.name,
@@ -30,8 +60,7 @@ export function mapChannel(raw: any): ChannelMetric {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API response mapper
-export function mapGroup(raw: any) {
+export function mapGroup(raw: RawGroup): TrafficGroup {
   return {
     totals: raw.totals ?? {},
     channels: (raw.channels ?? []).map(mapChannel),

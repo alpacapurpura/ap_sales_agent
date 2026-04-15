@@ -39,24 +39,23 @@ export function WebhookView() {
   const [showSecret, setShowSecret] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const fetchSettings = async () => {
-    try {
-      setLoading(true);
-      const token = await getToken();
-      if (!token) return;
-      const data = await settingsApi.getWebhookSettings(token);
-      setSettings(data);
-    } catch (error) {
-      console.error(error);
-      toast.error("Error al cargar configuración de Webhook");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        setLoading(true);
+        const token = await getToken();
+        if (!token) return;
+        const data = await settingsApi.getWebhookSettings(token);
+        setSettings(data);
+      } catch (error) {
+        console.error(error);
+        toast.error("Error al cargar configuración de Webhook");
+      } finally {
+        setLoading(false);
+      }
+    };
     void fetchSettings();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [getToken]);
 
   const handleCopy = (text: string, label: string) => {
     void navigator.clipboard.writeText(text);
