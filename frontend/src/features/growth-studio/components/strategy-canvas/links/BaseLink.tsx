@@ -21,7 +21,7 @@ export interface BaseLinkProps {
   onClick?: () => void;
 }
 
-const BaseLink: React.FC<BaseLinkProps> = ({ link, source, target, width, pathData, onClick }) => {
+export const BaseLink: React.FC<BaseLinkProps> = ({ link, source, target, width, pathData, onClick }) => {
   const { channelType, status } = link;
 
   // Determine color
@@ -50,4 +50,3 @@ const BaseLink: React.FC<BaseLinkProps> = ({ link, source, target, width, pathDa
   );
 };
 
-export default BaseLink;

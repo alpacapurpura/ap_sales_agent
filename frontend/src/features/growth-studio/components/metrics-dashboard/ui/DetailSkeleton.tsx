@@ -21,7 +21,7 @@ interface DetailSkeletonProps {
  * Uses shadcn Skeleton component which applies the muted background + shimmer animation
  * from globals.css without any custom CSS needed.
  */
-export default function DetailSkeleton({ isLoading, children }: DetailSkeletonProps) {
+export function DetailSkeleton({ isLoading, children }: DetailSkeletonProps) {
   if (!isLoading) {
     return <>{children}</>;
   }

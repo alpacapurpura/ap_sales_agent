@@ -22,7 +22,7 @@ import { formatTenantDate } from "@/lib/format-date";
 import { formatMoney } from "@/lib/format-money";
 
 import { getOfferProductsDetail } from "../../../api/product-mapping-api";
-import { getChannelColor, getChannelIcon } from "../../../lib/channelIcons";
+import { getChannelColor, getChannelIcon } from "../../../lib/channel-icons";
 import { METRIC_LABELS } from "../../../lib/metric-labels";
 
 import type { OfferProductDetail } from "../../../api/product-mapping-api";

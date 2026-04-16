@@ -52,7 +52,7 @@ import { cn } from "@/lib/utils";
 
 import { useWhatsApp } from "../hooks/use-whatsapp";
 
-export default function WhatsAppView() {
+export function WhatsAppView() {
   const { loading, status, qrCode, isScanning, setIsScanning, generateQR, disconnect } =
     useWhatsApp();
 

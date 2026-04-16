@@ -12,9 +12,9 @@ import {
   type ReactNode,
 } from "react";
 
-import { providerToConnectionRoute } from "../../../lib/providerToConnectionRoute";
+import { providerToConnectionRoute } from "../../../lib/provider-to-connection-route";
 
-import { useMetricClickHandler } from "./useMetricClickHandler";
+import { useMetricClickHandler } from "@/features/growth-studio/hooks/use-metric-click-handler";
 
 import type { PeriodType } from "../../../api/stage-detail-api";
 import type {

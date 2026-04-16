@@ -28,7 +28,7 @@ const STAGE_CTA_MAP: Record<string, string> = {
  * Renders a centered icon + heading + contextual body copy based on the
  * stage name. Uses muted/secondary tones per the UI-SPEC color system.
  */
-export default function DetailEmpty({ stage }: DetailEmptyProps) {
+export function DetailEmpty({ stage }: DetailEmptyProps) {
   const ctaContext = STAGE_CTA_MAP[stage.id] ?? "configuración del embudo";
 
   return (

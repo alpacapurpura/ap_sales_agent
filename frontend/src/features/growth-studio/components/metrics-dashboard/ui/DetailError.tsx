@@ -21,7 +21,7 @@ interface DetailErrorProps {
  * - Displays a "Reintentar" button using the destructive variant
  * - If lastData is provided, shows "Ultimos datos en cache:" section below
  */
-export default function DetailError({ error, onRetry, lastData }: DetailErrorProps) {
+export function DetailError({ error, onRetry, lastData }: DetailErrorProps) {
   return (
     <div className="space-y-3">
       {/* Error banner */}

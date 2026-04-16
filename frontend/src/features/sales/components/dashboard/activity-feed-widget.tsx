@@ -10,9 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { dashboardService } from "../../services/dashboardService";
+import { dashboardService } from "../../api/dashboard-service";
 
-import type { ActivityItem } from "../../services/dashboardService";
+import type { ActivityItem } from "../../api/dashboard-service";
 
 export function ActivityFeedWidget() {
   const [activities, setActivities] = useState<ActivityItem[]>([]);

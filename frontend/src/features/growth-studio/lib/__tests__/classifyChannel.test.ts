@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { classifyChannel } from "../classifyChannel";
+import { classifyChannel } from "../classify-channel";
 
 describe("classifyChannel", () => {
   it('returns "disconnected" when channel is not connected', () => {

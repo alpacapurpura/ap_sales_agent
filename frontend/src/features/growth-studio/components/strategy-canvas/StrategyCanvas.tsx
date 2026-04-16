@@ -5,9 +5,9 @@ import { Sankey } from "@visx/sankey";
 import { sankeyJustify } from "d3-sankey";
 import React, { useState } from "react";
 
-import ActionDetailsDrawer from "./drawer/ActionDetailsDrawer";
-import BaseLink from "./links/BaseLink";
-import NodeFactory from "./nodes/NodeFactory";
+import { ActionDetailsDrawer } from "./drawer/ActionDetailsDrawer";
+import { BaseLink } from "./links/BaseLink";
+import { NodeFactory } from "./nodes/NodeFactory";
 import { adaptStrategyToVisx } from "./utils/adapter";
 
 import type { StrategyCanvasConfig, MarketingNode, MarketingActionLink } from "./config/types";
@@ -17,7 +17,7 @@ interface StrategyCanvasProps {
   config: StrategyCanvasConfig;
 }
 
-const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
+export const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
   const data = adaptStrategyToVisx(config);
   const [selectedLink, setSelectedLink] = useState<MarketingActionLink | null>(null);
 
@@ -122,4 +122,3 @@ const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
   );
 };
 
-export default StrategyCanvas;

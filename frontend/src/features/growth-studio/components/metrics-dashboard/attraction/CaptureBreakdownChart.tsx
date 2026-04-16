@@ -2,7 +2,7 @@
 
 import { memo, useMemo } from "react";
 
-import { getChannelColor } from "../../../lib/channelIcons";
+import { getChannelColor } from "../../../lib/channel-icons";
 
 import type { ChannelMetric } from "../../../types/metrics";
 

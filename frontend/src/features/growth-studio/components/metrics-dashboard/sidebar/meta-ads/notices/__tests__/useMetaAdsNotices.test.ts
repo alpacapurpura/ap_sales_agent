@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useMetaAdsNotices } from "../useMetaAdsNotices";
+import { useMetaAdsNotices } from "@/features/growth-studio/hooks/use-meta-ads-notices";
 
 import type {
   CampaignPerformanceData,

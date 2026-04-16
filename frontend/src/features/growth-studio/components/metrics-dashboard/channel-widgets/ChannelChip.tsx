@@ -6,7 +6,7 @@ import React from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-import { getChannelIcon, getChannelColor } from "../../../lib/channelIcons";
+import { getChannelIcon, getChannelColor } from "../../../lib/channel-icons";
 
 import type { ChannelMetric } from "../../../types/metrics";
 

@@ -31,7 +31,7 @@ import { formatMoney } from "@/lib/format-money";
 import { cn } from "@/lib/utils";
 
 import { useSyncChannel } from "../../../hooks/useSyncChannel";
-import { getChannelIcon, getChannelColor } from "../../../lib/channelIcons";
+import { getChannelIcon, getChannelColor } from "../../../lib/channel-icons";
 import { METRIC_LABELS } from "../../../lib/metric-labels";
 import { useGrowthStudioContext } from "../context/GrowthStudioContext";
 
@@ -219,7 +219,7 @@ interface ChannelDetailSidebarProps {
 }
 
 // eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: hooks (useEffect for channel info fetch, useSyncChannel) must run unconditionally before 5 early-return branches for dedicated panels (meta-ads, ig-organic, yt-organic, website-total, email-nurture). React rules-of-hooks prevent moving the early returns before the hooks.
-export default function ChannelDetailSidebar({
+export function ChannelDetailSidebar({
   isOpen,
   onClose,
   channel,

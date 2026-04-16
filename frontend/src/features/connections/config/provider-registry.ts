@@ -20,7 +20,7 @@ const ShopifyView = lazy(() =>
     default: m.ShopifyView,
   })),
 );
-const WhatsAppView = lazy(() => import("@/features/connections/components/whatsapp-view"));
+const WhatsAppView = lazy(() => import("@/features/connections/components/whatsapp-view").then((m) => ({ default: m.WhatsAppView })));
 const GoogleWorkspaceView = lazy(() =>
   import("@/features/connections/components/google-workspace-view").then((m) => ({
     default: m.GoogleWorkspaceView,

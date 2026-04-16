@@ -13,10 +13,8 @@ import * as path from "path";
 import { FEATURES_DIR, walkDirs, relPath, isKebabCase } from "./helpers";
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────
-// These 1 entry existed on 2026-04-15. Fix and remove.
-const KNOWN_BAD_FOLDERS = new Set([
-  "features/tenant_domains", // snake_case — rename to tenant-domains
-]);
+// Empty — tenant_domains was renamed to tenant-domains (2026-04-15).
+const KNOWN_BAD_FOLDERS = new Set<string>([]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 

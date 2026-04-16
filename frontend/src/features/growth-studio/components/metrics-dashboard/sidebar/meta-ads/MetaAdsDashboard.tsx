@@ -31,7 +31,7 @@ import type { MetaAdsPeriod, MetaAdsDashboardTab } from "../../../../types/metri
 import { CreativosTab } from "./tabs/CreativosTab";
 import { CostosTab } from "./tabs/CostosTab";
 import { PendientesTab } from "./tabs/PendientesTab";
-import { useMetaAdsNotices } from "./notices/useMetaAdsNotices";
+import { useMetaAdsNotices } from "@/features/growth-studio/hooks/use-meta-ads-notices";
 import { TabBadge } from "./notices/TabBadge";
 
 const ONBOARDING_DISMISSED_KEY = "meta-ads-onboarding-dismissed";

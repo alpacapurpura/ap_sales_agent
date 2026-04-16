@@ -9,7 +9,7 @@ import type { ChannelMetric } from "@/features/growth-studio/types/metrics";
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
-vi.mock("../../../../lib/channelIcons", () => ({
+vi.mock("../../../../lib/channel-icons", () => ({
   getChannelIcon: (_slug: string) => {
     const MockIcon = (props: React.SVGProps<SVGSVGElement>) => (
       <svg data-testid="chip-icon" {...props} />

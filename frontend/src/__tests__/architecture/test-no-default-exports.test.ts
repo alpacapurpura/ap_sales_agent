@@ -16,18 +16,8 @@ import { describe, it, expect } from "vitest";
 import { FEATURES_DIR, walkFiles, relPath, isTestFile, readFile } from "./helpers";
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────
-const KNOWN_DEFAULT_EXPORTS = new Set([
-  "features/connections/components/whatsapp-view.tsx",
-  "features/growth-studio/components/metrics-dashboard/sidebar/ChannelDetailSidebar.tsx",
-  "features/growth-studio/components/metrics-dashboard/sidebar/MetricSidebar.tsx",
-  "features/growth-studio/components/metrics-dashboard/ui/DetailEmpty.tsx",
-  "features/growth-studio/components/metrics-dashboard/ui/DetailError.tsx",
-  "features/growth-studio/components/metrics-dashboard/ui/DetailSkeleton.tsx",
-  "features/growth-studio/components/strategy-canvas/StrategyCanvas.tsx",
-  "features/growth-studio/components/strategy-canvas/drawer/ActionDetailsDrawer.tsx",
-  "features/growth-studio/components/strategy-canvas/links/BaseLink.tsx",
-  "features/growth-studio/components/strategy-canvas/nodes/NodeFactory.tsx",
-]);
+// Empty — all 10 default exports fixed on 2026-04-15.
+const KNOWN_DEFAULT_EXPORTS = new Set<string>([]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 

@@ -9,8 +9,8 @@ import {
   useGrowthStudioContext,
 } from "@/features/growth-studio/components/metrics-dashboard/context/GrowthStudioContext";
 import { useStageSummaries } from "@/features/growth-studio/components/metrics-dashboard/hooks/useStageSummaries";
-import ChannelDetailSidebar from "@/features/growth-studio/components/metrics-dashboard/sidebar/ChannelDetailSidebar";
-import MetricSidebar from "@/features/growth-studio/components/metrics-dashboard/sidebar/MetricSidebar";
+import { ChannelDetailSidebar } from "@/features/growth-studio/components/metrics-dashboard/sidebar/ChannelDetailSidebar";
+import { MetricSidebar } from "@/features/growth-studio/components/metrics-dashboard/sidebar/MetricSidebar";
 import { SidebarContent } from "@/features/growth-studio/components/metrics-dashboard/sidebar/SidebarContent";
 import { StageSummaryRow } from "@/features/growth-studio/components/metrics-dashboard/stage-widgets/StageSummaryRow";
 import { SyncProgressDialog } from "@/features/growth-studio/components/sync-progress-dialog";

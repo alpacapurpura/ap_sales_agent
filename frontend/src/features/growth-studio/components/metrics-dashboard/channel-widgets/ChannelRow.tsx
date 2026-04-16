@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { getSummaryMetrics } from "../../../config/channel-display-registry";
 import { useMetricCatalog } from "../../../hooks/useMetricCatalog";
 import { useSyncChannel } from "../../../hooks/useSyncChannel";
-import { getChannelIcon, getChannelColor } from "../../../lib/channelIcons";
+import { getChannelIcon, getChannelColor } from "../../../lib/channel-icons";
 
 import { CampaignDrillDown } from "./CampaignDrillDown";
 import { ChannelRowActions } from "./ChannelRowActions";

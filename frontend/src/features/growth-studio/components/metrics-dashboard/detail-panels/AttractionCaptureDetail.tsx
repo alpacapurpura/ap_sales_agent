@@ -26,8 +26,8 @@ import { ConversionBridge } from "../attraction/ConversionBridge";
 import { LazyChannelGroup } from "../channel-widgets/LazyChannelGroup";
 import { useGrowthStudioContext } from "../context/GrowthStudioContext";
 import { DateRangePicker } from "../ui/DateRangePicker";
-import DetailError from "../ui/DetailError";
-import DetailSkeleton from "../ui/DetailSkeleton";
+import { DetailError } from "../ui/DetailError";
+import { DetailSkeleton } from "../ui/DetailSkeleton";
 
 import type {
   MetricClickData,

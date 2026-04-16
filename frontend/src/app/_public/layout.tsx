@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import Script from "next/script";
 
 import "@/app/globals.css";
-import { getTrackingConfig } from "@/features/tenant_domains/utils/tracking";
+import { getTrackingConfig } from "@/features/tenant-domains/utils/tracking";
 
 export const metadata: Metadata = { title: "Nicolify" };
 

@@ -25,12 +25,12 @@ import { formatTenantTime } from "@/lib/format-date";
 import { formatMoney } from "@/lib/format-money";
 
 import { useNurtureDetail, useOpportunityDetail } from "../../../hooks/useStageDetail";
-import { classifyChannel } from "../../../lib/classifyChannel";
+import { classifyChannel } from "../../../lib/classify-channel";
 import { ActionPanel } from "../action-widgets/ActionPanel";
 import { ChannelChip } from "../channel-widgets/ChannelChip";
 import { ChannelRow } from "../channel-widgets/ChannelRow";
-import DetailError from "../ui/DetailError";
-import DetailSkeleton from "../ui/DetailSkeleton";
+import { DetailError } from "../ui/DetailError";
+import { DetailSkeleton } from "../ui/DetailSkeleton";
 import type { MetricClickData, ChannelMetric, MetricValue } from "../../../types/metrics";
 
 interface NurtureOpportunityDetailProps {

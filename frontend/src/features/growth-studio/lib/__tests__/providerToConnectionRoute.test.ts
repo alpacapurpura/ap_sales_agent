@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { providerToConnectionRoute } from "../providerToConnectionRoute";
+import { providerToConnectionRoute } from "../provider-to-connection-route";
 
 describe("providerToConnectionRoute", () => {
   it('maps "meta" to "meta"', () => {

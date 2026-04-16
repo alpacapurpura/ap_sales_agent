@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 import { useGroupDetail } from "../../../hooks/useGroupDetail";
 import { useIntersectionObserver } from "../../../hooks/useIntersectionObserver";
-import { classifyChannel } from "../../../lib/classifyChannel";
+import { classifyChannel } from "../../../lib/classify-channel";
 
 import { ChannelChip } from "./ChannelChip";
 import { ChannelRow } from "./ChannelRow";

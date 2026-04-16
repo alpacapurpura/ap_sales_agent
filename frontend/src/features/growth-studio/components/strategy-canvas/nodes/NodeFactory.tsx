@@ -12,7 +12,7 @@ export interface NodeFactoryProps {
   height: number;
 }
 
-const NodeFactory: React.FC<NodeFactoryProps> = ({ node, x, y, width, height }) => {
+export const NodeFactory: React.FC<NodeFactoryProps> = ({ node, x, y, width, height }) => {
   const isPositiveTrend = node.efficiencyMetric.trend === "up";
   const isNegativeTrend = node.efficiencyMetric.trend === "down";
 
@@ -48,4 +48,3 @@ const NodeFactory: React.FC<NodeFactoryProps> = ({ node, x, y, width, height }) 
   );
 };
 
-export default NodeFactory;

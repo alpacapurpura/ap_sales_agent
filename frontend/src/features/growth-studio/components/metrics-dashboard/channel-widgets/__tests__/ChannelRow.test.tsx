@@ -15,7 +15,7 @@ vi.mock("@sentry/nextjs", () => ({
 }));
 
 // Mock channelIcons — return simple span-based components
-vi.mock("../../../../lib/channelIcons", () => ({
+vi.mock("../../../../lib/channel-icons", () => ({
   getChannelIcon: (_slug: string) => {
     const MockIcon = (props: React.SVGProps<SVGSVGElement>) => (
       <svg data-testid="channel-icon" {...props} />

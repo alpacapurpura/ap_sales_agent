@@ -29,10 +29,10 @@ const KNOWN_CAMELCASE_FILES = new Set([
   "features/copilot/hooks/useProactiveNudges.ts",
   "features/copilot/hooks/useRouteTracker.ts",
   "features/copilot/hooks/useVoiceRecorder.ts",
-  // growth-studio context (3 — 2 PascalCase + 1 camelCase hook file)
+  // growth-studio context (1 PascalCase context file)
   "features/growth-studio/components/metrics-dashboard/context/GrowthStudioContext.tsx",
-  "features/growth-studio/components/metrics-dashboard/context/useMetricClickHandler.ts",
-  // growth-studio nested hooks (3)
+  // useMetricClickHandler moved to hooks/use-metric-click-handler.ts (fixed)
+  // growth-studio nested hooks (3) — in nested hooks/ dirs, still camelCase
   "features/growth-studio/components/metrics-dashboard/hooks/useStageSummaries.ts",
   "features/growth-studio/components/metrics-dashboard/sidebar/meta-ads/hooks/useMetaAdsOnboardingTrigger.ts",
   "features/growth-studio/components/metrics-dashboard/sidebar/meta-ads/hooks/useResumenViewData.ts",
@@ -52,18 +52,10 @@ const KNOWN_CAMELCASE_FILES = new Set([
   "features/growth-studio/hooks/useSyncAllSources.ts",
   "features/growth-studio/hooks/useSyncChannel.ts",
   "features/growth-studio/hooks/useYoutubeAnalytics.ts",
-  // growth-studio lib (4)
-  "features/growth-studio/lib/channelIcons.ts",
-  "features/growth-studio/lib/channelViewMap.ts",
-  "features/growth-studio/lib/classifyChannel.ts",
-  "features/growth-studio/lib/providerToConnectionRoute.ts",
   // offer-studio context (1 PascalCase context file)
   "features/offer-studio/components/landing/context/LandingThemeContext.tsx",
-  // sales services (2)
-  "features/sales/services/dashboardService.ts",
-  "features/sales/services/leadService.ts",
-  // tenant_domains hooks (1)
-  "features/tenant_domains/hooks/useDomains.ts",
+  // tenant-domains hooks (1)
+  "features/tenant-domains/hooks/useDomains.ts",
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────

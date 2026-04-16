@@ -7,7 +7,7 @@ import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context
 import { formatTenantDate } from "@/lib/format-date";
 import { cn } from "@/lib/utils";
 
-import { getChannelIcon } from "../../../lib/channelIcons";
+import { getChannelIcon } from "../../../lib/channel-icons";
 
 import type { ChannelMetric } from "../../../types/metrics";
 

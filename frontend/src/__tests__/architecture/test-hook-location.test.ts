@@ -17,11 +17,6 @@ import { FEATURES_DIR, walkFiles, relPath, isTestFile, readFile } from "./helper
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────
 const KNOWN_HOOKS_OUTSIDE_HOOKS = new Set([
-  // Hook file stranded in notices/ — should move to growth-studio/hooks/
-  "features/growth-studio/components/metrics-dashboard/sidebar/meta-ads/notices/useIgnoredNotices.ts",
-  "features/growth-studio/components/metrics-dashboard/sidebar/meta-ads/notices/useMetaAdsNotices.ts",
-  // Hook file in context/ but named like a hook, not *Context — should move to hooks/
-  "features/growth-studio/components/metrics-dashboard/context/useMetricClickHandler.ts",
   // Component that also exports a hook — hooks should be extracted to hooks/ dir
   "features/offer-studio/components/container/offer-shell.tsx",
 ]);

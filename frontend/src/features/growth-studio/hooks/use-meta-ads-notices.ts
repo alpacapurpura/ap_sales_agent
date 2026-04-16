@@ -12,11 +12,11 @@ import {
   type NoticeTab,
   type NoticesSummary,
   type SeverityBreakdown,
-} from "./types";
-import { useIgnoredNotices } from "./useIgnoredNotices";
+} from "@/features/growth-studio/components/metrics-dashboard/sidebar/meta-ads/notices/types";
+import { useIgnoredNotices } from "@/features/growth-studio/hooks/use-ignored-notices";
 
-import type { CampaignPerformanceData, CampaignRecommendation } from "../../../../../types/metrics";
-import type { MetaHealthCheck, Recommendation } from "../../../../../types/offer-association";
+import type { CampaignPerformanceData, CampaignRecommendation } from "@/features/growth-studio/types/metrics";
+import type { MetaHealthCheck, Recommendation } from "@/features/growth-studio/types/offer-association";
 
 // ---------------------------------------------------------------------------
 // Categorization

@@ -24,8 +24,8 @@ import React, { useState, useMemo, useCallback } from "react";
 import { formatMoney } from "@/lib/format-money";
 
 import { useExpansionDetail, useEvangelizationDetail } from "../../../hooks/useStageDetail";
-import DetailError from "../ui/DetailError";
-import DetailSkeleton from "../ui/DetailSkeleton";
+import { DetailError } from "../ui/DetailError";
+import { DetailSkeleton } from "../ui/DetailSkeleton";
 
 import type { MetricClickData } from "../../../types/metrics";
 

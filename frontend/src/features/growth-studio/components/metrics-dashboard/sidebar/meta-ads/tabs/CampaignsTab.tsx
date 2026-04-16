@@ -24,7 +24,7 @@ import { useAssociations } from "../../../../../api/offer-association-api";
 import { archetypeEmoji } from "../../../../../types/offer-association";
 import { ChartSection } from "../../shared/ChartSection";
 import { ImprovementNotesPanel } from "../notices/ImprovementNotesPanel";
-import { useIgnoredNotices } from "../notices/useIgnoredNotices";
+import { useIgnoredNotices } from "@/features/growth-studio/hooks/use-ignored-notices";
 import { OfferAssignmentDrawerConnected } from "../OfferAssignmentDrawerConnected";
 import { OfferReassignPopover } from "../OfferReassignPopover";
 

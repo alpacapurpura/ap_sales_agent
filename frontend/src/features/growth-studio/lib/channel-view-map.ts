@@ -7,7 +7,7 @@ const MetaView: LazyView = lazy(() =>
 );
 
 const WhatsAppView: LazyView = lazy(
-  () => import("@/features/connections/components/whatsapp-view"),
+  () => import("@/features/connections/components/whatsapp-view").then((m) => ({ default: m.WhatsAppView })),
 );
 
 const ShopifyView: LazyView = lazy(() =>

@@ -38,7 +38,7 @@ interface MetricSidebarProps {
  * Per-metric content adapters (SidebarContent) will be added in Plan 11-02.
  * Uses DetailPanel to coexist with the CopilotPanel without overlapping.
  */
-export default function MetricSidebar({ isOpen, onClose, metric, children }: MetricSidebarProps) {
+export function MetricSidebar({ isOpen, onClose, metric, children }: MetricSidebarProps) {
   const { timezone } = useTenantLocale();
   const hasMetric = metric != null;
 

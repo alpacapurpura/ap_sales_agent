@@ -11,9 +11,9 @@ import { ActionPanel } from "../action-widgets/ActionPanel";
 import { MiniFunnel } from "../channel-widgets/MiniFunnel";
 import { HealthBar } from "../offer-widgets/HealthBar";
 import { OfferHealthCard } from "../offer-widgets/OfferHealthCard";
-import DetailEmpty from "../ui/DetailEmpty";
-import DetailError from "../ui/DetailError";
-import DetailSkeleton from "../ui/DetailSkeleton";
+import { DetailEmpty } from "../ui/DetailEmpty";
+import { DetailError } from "../ui/DetailError";
+import { DetailSkeleton } from "../ui/DetailSkeleton";
 import { formatLastUpdated, formatDualCurrency } from "../utils/format";
 
 import { BottleneckBanner } from "./BottleneckBanner";

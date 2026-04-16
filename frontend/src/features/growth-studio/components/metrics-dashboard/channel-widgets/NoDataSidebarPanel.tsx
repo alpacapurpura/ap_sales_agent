@@ -10,7 +10,7 @@ import {
   DetailPanelClose,
 } from "@/components/ui/detail-panel";
 
-import { getChannelIcon, getChannelColor } from "../../../lib/channelIcons";
+import { getChannelIcon, getChannelColor } from "../../../lib/channel-icons";
 
 import type { ChannelMetric } from "../../../types/metrics";
 

@@ -1,7 +1,7 @@
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 
-import { useMetricClickHandler } from "../useMetricClickHandler";
+import { useMetricClickHandler } from "@/features/growth-studio/hooks/use-metric-click-handler";
 
 import type { MetricClickData } from "../../../../types/metrics";
 

@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useIgnoredNotices, __IGNORE_STORAGE_KEY, __IGNORE_TTL_MS } from "../useIgnoredNotices";
+import { useIgnoredNotices, __IGNORE_STORAGE_KEY, __IGNORE_TTL_MS } from "@/features/growth-studio/hooks/use-ignored-notices";
 
 describe("useIgnoredNotices", () => {
   beforeEach(() => {

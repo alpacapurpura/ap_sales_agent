@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { DialogOverlay } from "@/components/ui/dialog";
 
-import { getConnectionView } from "../../../lib/channelViewMap";
+import { getConnectionView } from "../../../lib/channel-view-map";
 
 /* eslint-disable react-hooks/static-components -- dynamic view from registry */
 function ConnectionViewRenderer({ channelSlug }: { channelSlug: string }) {
