@@ -1,7 +1,7 @@
 import { Loader2 } from "lucide-react";
 import { Suspense } from "react";
 
-import { OAuthCallbackHandler } from "@/features/connections/components/oauth-callback-handler";
+import { OAuthCallbackHandler } from "@/features/connections/components/OauthCallbackHandler";
 
 export default function ConnectionsCallbackPage() {
   return (

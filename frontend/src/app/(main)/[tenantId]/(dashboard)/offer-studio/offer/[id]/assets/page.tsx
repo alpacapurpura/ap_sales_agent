@@ -1,7 +1,7 @@
 "use client";
 
-import { AssetsView } from "@/features/offer-studio/components/assets/assets-view";
-import { useOfferShell } from "@/features/offer-studio/components/container/offer-shell";
+import { AssetsView } from "@/features/offer-studio/components/assets/AssetsView";
+import { useOfferShell } from "@/features/offer-studio/components/container/OfferShell";
 
 /**
  * Assets tab — rendered inside the persistent Offer Studio shell. Reads the

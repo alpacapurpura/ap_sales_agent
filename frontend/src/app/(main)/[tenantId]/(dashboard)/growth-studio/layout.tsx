@@ -13,7 +13,7 @@ import { ChannelDetailSidebar } from "@/features/growth-studio/components/metric
 import { MetricSidebar } from "@/features/growth-studio/components/metrics-dashboard/sidebar/MetricSidebar";
 import { SidebarContent } from "@/features/growth-studio/components/metrics-dashboard/sidebar/SidebarContent";
 import { StageSummaryRow } from "@/features/growth-studio/components/metrics-dashboard/stage-widgets/StageSummaryRow";
-import { SyncProgressDialog } from "@/features/growth-studio/components/sync-progress-dialog";
+import { SyncProgressDialog } from "@/features/growth-studio/components/SyncProgressDialog";
 import { GrowthSyncProvider } from "@/features/growth-studio/context/growth-sync-context";
 
 const GrowthStudioShell = memo(function GrowthStudioShell({

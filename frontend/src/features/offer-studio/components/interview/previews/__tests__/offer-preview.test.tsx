@@ -11,8 +11,8 @@ vi.mock("lucide-react", () => ({
   CheckCircle2: (props: Record<string, unknown>) => <svg data-testid="icon-check" {...props} />,
 }));
 
-import { OfferPreviewSections } from "../offer-preview-sections";
-import { OfferPreviewSummary } from "../offer-preview-summary";
+import { OfferPreviewSections } from "../OfferPreviewSections";
+import { OfferPreviewSummary } from "../OfferPreviewSummary";
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 

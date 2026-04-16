@@ -4,10 +4,10 @@ import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
-import { BrandEmptyState } from "@/features/brand/components/empty-state/brand-empty-state";
-import { EditSheetManager } from "@/features/brand/components/forms/edit-sheet-manager";
-import { SmartFillDialog } from "@/features/brand/components/smart-fill/smart-fill-dialog";
-import { BrandStudioTabs } from "@/features/brand/components/tabs/brand-studio-tabs";
+import { BrandEmptyState } from "@/features/brand/components/empty-state/BrandEmptyState";
+import { EditSheetManager } from "@/features/brand/components/forms/EditSheetManager";
+import { SmartFillDialog } from "@/features/brand/components/smart-fill/SmartFillDialog";
+import { BrandStudioTabs } from "@/features/brand/components/tabs/BrandStudioTabs";
 import { BRAND_SECTIONS, type BrandSectionId } from "@/features/brand/config/sections";
 import { BrandStudioProvider, useBrandStudio } from "@/features/brand/context/brand-studio-context";
 import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";

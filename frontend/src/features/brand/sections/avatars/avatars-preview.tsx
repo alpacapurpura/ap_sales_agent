@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { startInterview } from "@/features/copilot/api/interview-api";
-import { FocusModeButton } from "@/features/copilot/components/focus-mode-button";
+import { FocusModeButton } from "@/features/copilot/components/FocusModeButton";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 
 import { useBuyerPersonas } from "../../hooks/use-buyer-personas";

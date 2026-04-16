@@ -2,7 +2,7 @@
 
 import { use } from "react";
 
-import { PersonaDetailView } from "@/features/brand/components/views/persona-detail-view";
+import { PersonaDetailView } from "@/features/brand/components/views/PersonaDetailView";
 
 export default function PersonaDetailPage({
   params,

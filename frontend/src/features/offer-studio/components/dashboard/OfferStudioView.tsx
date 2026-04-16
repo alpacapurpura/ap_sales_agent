@@ -6,8 +6,8 @@ import { useState, useCallback, useDeferredValue } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { LadderProgressBar } from "@/features/offer-studio/components/dashboard/ladder-progress-bar";
-import { OfferStudioDashboard } from "@/features/offer-studio/components/dashboard/offer-studio-dashboard";
+import { LadderProgressBar } from "@/features/offer-studio/components/dashboard/LadderProgressBar";
+import { OfferStudioDashboard } from "@/features/offer-studio/components/dashboard/OfferStudioDashboard";
 
 import type { OfferValueLevel } from "@/features/offer-studio/types";
 

@@ -1,4 +1,4 @@
-import { ConnectionsHub } from "@/features/connections/components/connections-hub";
+import { ConnectionsHub } from "@/features/connections/components/ConnectionsHub";
 
 export default function ConnectionsPage() {
   return <ConnectionsHub />;

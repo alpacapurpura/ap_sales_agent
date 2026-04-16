@@ -20,7 +20,7 @@ vi.mock("../../../hooks/use-landing-status", async () => {
 
 // ── Imports after mocks ──────────────────────────────────────────────────────
 
-import { LandingActionButton } from "../landing-action-button";
+import { LandingActionButton } from "../LandingActionButton";
 
 import type { LandingStatusResponse } from "../../../types/landing-status";
 

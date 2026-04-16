@@ -13,51 +13,51 @@ export interface ProviderDefinition {
 
 // Lazy-load each connection view to keep the hub bundle small
 const MetaView = lazy(() =>
-  import("@/features/connections/components/meta-view").then((m) => ({ default: m.MetaView })),
+  import("@/features/connections/components/MetaView").then((m) => ({ default: m.MetaView })),
 );
 const ShopifyView = lazy(() =>
-  import("@/features/connections/components/shopify-view").then((m) => ({
+  import("@/features/connections/components/ShopifyView").then((m) => ({
     default: m.ShopifyView,
   })),
 );
-const WhatsAppView = lazy(() => import("@/features/connections/components/whatsapp-view").then((m) => ({ default: m.WhatsAppView })));
+const WhatsAppView = lazy(() => import("@/features/connections/components/WhatsappView").then((m) => ({ default: m.WhatsAppView })));
 const GoogleWorkspaceView = lazy(() =>
-  import("@/features/connections/components/google-workspace-view").then((m) => ({
+  import("@/features/connections/components/GoogleWorkspaceView").then((m) => ({
     default: m.GoogleWorkspaceView,
   })),
 );
 const GoogleAnalyticsView = lazy(() =>
-  import("@/features/connections/components/google-analytics-view").then((m) => ({
+  import("@/features/connections/components/GoogleAnalyticsView").then((m) => ({
     default: m.GoogleAnalyticsView,
   })),
 );
 const YouTubeView = lazy(() =>
-  import("@/features/connections/components/youtube-view").then((m) => ({
+  import("@/features/connections/components/YoutubeView").then((m) => ({
     default: m.YoutubeView,
   })),
 );
 const TelegramView = lazy(() =>
-  import("@/features/connections/components/telegram-view").then((m) => ({
+  import("@/features/connections/components/TelegramView").then((m) => ({
     default: m.TelegramView,
   })),
 );
 const ManyChatView = lazy(() =>
-  import("@/features/connections/components/manychat-view").then((m) => ({
+  import("@/features/connections/components/ManychatView").then((m) => ({
     default: m.ManyChatView,
   })),
 );
 const MailerLiteView = lazy(() =>
-  import("@/features/connections/components/mailerlite-view").then((m) => ({
+  import("@/features/connections/components/MailerliteView").then((m) => ({
     default: m.MailerLiteView,
   })),
 );
 const GmailView = lazy(() =>
-  import("@/features/connections/components/gmail-view").then((m) => ({
+  import("@/features/connections/components/GmailView").then((m) => ({
     default: m.GmailView,
   })),
 );
 const GoogleCalendarView = lazy(() =>
-  import("@/features/connections/components/google-calendar-view").then((m) => ({
+  import("@/features/connections/components/GoogleCalendarView").then((m) => ({
     default: m.GoogleCalendarView,
   })),
 );

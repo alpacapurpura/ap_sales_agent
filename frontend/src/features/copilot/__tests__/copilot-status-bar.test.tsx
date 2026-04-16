@@ -18,7 +18,7 @@ vi.mock("@clerk/nextjs", () => ({
   useAuth: () => ({ getToken: () => Promise.resolve("token") }),
 }));
 
-import { CopilotStatusBar } from "../components/copilot-status-bar";
+import { CopilotStatusBar } from "../components/CopilotStatusBar";
 import { useCopilotStore } from "../store/copilot-store";
 
 describe("CopilotStatusBar", () => {

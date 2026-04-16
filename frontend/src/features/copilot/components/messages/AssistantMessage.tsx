@@ -3,10 +3,10 @@
 import { Sparkles } from "lucide-react";
 import { memo, useCallback } from "react";
 
-import { AlternativesCard } from "../cards/alternatives-card";
-import { CheckpointCard } from "../cards/checkpoint-card";
-import { ClarifyCard } from "../cards/clarify-card";
-import { InterviewCompleteCard } from "../cards/interview-complete-card";
+import { AlternativesCard } from "../cards/AlternativesCard";
+import { CheckpointCard } from "../cards/CheckpointCard";
+import { ClarifyCard } from "../cards/ClarifyCard";
+import { InterviewCompleteCard } from "../cards/InterviewCompleteCard";
 
 import { ComparisonTable } from "./ComparisonTable";
 import { MetricSummaryCard } from "./MetricSummaryCard";

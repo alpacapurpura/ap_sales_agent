@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 
-import { PersonaPreviewSections } from "../persona-preview-sections";
-import { PersonaPreviewSummary } from "../persona-preview-summary";
+import { PersonaPreviewSections } from "../PersonaPreviewSections";
+import { PersonaPreviewSummary } from "../PersonaPreviewSummary";
 
 // ── PersonaPreviewSummary ──────────────────────────────────────────────────
 

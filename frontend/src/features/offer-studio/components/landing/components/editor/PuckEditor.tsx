@@ -17,11 +17,11 @@ import { Button } from "@/components/ui/button";
 import { offerApi } from "@/features/offer-studio/api";
 
 import { transformConfigToPuckData } from "../../utils/adapter";
-import { config } from "../../utils/puck.config";
+import { config } from "../../utils/Puck.config";
 
 import { AiRemixButton } from "./AiRemixButton";
 
-import type { RootProps, Props } from "../../utils/puck.config";
+import type { RootProps, Props } from "../../utils/Puck.config";
 import type { LandingPageConfig } from "@/features/offer-studio/components/landing/types/schema";
 
 interface PuckEditorProps {

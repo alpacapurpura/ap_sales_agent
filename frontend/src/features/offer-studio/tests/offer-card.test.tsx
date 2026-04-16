@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
-import { OfferCard } from "../components/dashboard/offer-card";
+import { OfferCard } from "../components/dashboard/OfferCard";
 
 import { MOCK_OFFER_NORMALIZED } from "./fixtures";
 

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
-import { CopilotInput } from "../components/copilot-input";
+import { CopilotInput } from "../components/CopilotInput";
 
 // Mock the voice recorder hook
 vi.mock("../hooks/use-voice-recorder", () => ({

@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from "vitest";
 import { Form } from "@/components/ui/form";
 
 import { ProgramStructure, OfferStatus, OfferArchetype } from "../../../../../types";
-import { ProgramDetailsForm } from "../program-form";
+import { ProgramDetailsForm } from "../ProgramForm";
 
 import type { OfferFormValues } from "../../../../../types/schema";
 

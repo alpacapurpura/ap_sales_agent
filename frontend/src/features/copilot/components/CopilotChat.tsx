@@ -10,7 +10,7 @@ import { useProactiveNudges } from "../hooks/use-proactive-nudges";
 import { useCopilotStore } from "../store/copilot-store";
 
 import { ContextChips } from "./ContextChips";
-import { CopilotInput } from "./copilot-input";
+import { CopilotInput } from "./CopilotInput";
 import { AssistantMessage } from "./messages/AssistantMessage";
 import { TypingIndicator } from "./messages/TypingIndicator";
 import { UserMessage } from "./messages/UserMessage";

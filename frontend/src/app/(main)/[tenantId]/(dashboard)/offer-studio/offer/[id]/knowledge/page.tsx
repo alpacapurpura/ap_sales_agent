@@ -1,7 +1,7 @@
 "use client";
 
-import { useOfferShell } from "@/features/offer-studio/components/container/offer-shell";
-import { KnowledgeView } from "@/features/offer-studio/components/knowledge/knowledge-view";
+import { useOfferShell } from "@/features/offer-studio/components/container/OfferShell";
+import { KnowledgeView } from "@/features/offer-studio/components/knowledge/KnowledgeView";
 
 /**
  * Knowledge tab — rendered inside the persistent Offer Studio shell. The old

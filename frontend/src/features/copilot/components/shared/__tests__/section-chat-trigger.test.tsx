@@ -15,7 +15,7 @@ vi.mock("@/features/copilot/store/copilot-store", () => ({
   ),
 }));
 
-import { SectionChatTrigger } from "../section-chat-trigger";
+import { SectionChatTrigger } from "../SectionChatTrigger";
 
 describe("SectionChatTrigger", () => {
   beforeEach(() => {

@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({
   useParams: () => ({ tenantId: "test-tenant" }),
 }));
 
-import { InterviewModeButton } from "../interview-mode-button";
+import { InterviewModeButton } from "../InterviewModeButton";
 
 describe("InterviewModeButton", () => {
   beforeEach(() => {

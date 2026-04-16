@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from "vitest";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-import { OfferStatusSwitcher } from "../offer-status-switcher";
+import { OfferStatusSwitcher } from "../OfferStatusSwitcher";
 
 function renderWithTooltip(ui: React.ReactElement) {
   return render(<TooltipProvider>{ui}</TooltipProvider>);

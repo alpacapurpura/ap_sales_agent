@@ -1,2 +1,2 @@
-export * from "./components/sales-dashboard";
+export * from "./components/SalesDashboard";
 export * from "./types";

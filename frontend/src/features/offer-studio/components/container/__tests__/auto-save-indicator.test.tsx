@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
 
-import { AutoSaveIndicator } from "../auto-save-indicator";
+import { AutoSaveIndicator } from "../AutoSaveIndicator";
 
 describe("AutoSaveIndicator", () => {
   it("renders nothing when state is 'idle'", () => {

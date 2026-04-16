@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-import { ChatTimeline } from "@/features/audit/components/chat-timeline";
-import { LeadList } from "@/features/audit/components/user-list";
+import { ChatTimeline } from "@/features/audit/components/ChatTimeline";
+import { LeadList } from "@/features/audit/components/UserList";
 import { cn } from "@/lib/utils";
 
 export function AuditDashboard() {

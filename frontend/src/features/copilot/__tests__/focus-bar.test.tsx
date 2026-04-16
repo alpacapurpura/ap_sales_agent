@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { FocusBar } from "../components/focus-bar";
+import { FocusBar } from "../components/FocusBar";
 import { useCopilotStore } from "../store/copilot-store";
 
 describe("FocusBar", () => {

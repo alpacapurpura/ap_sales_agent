@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
-import { AttachmentButton } from "../attachment-button";
+import { AttachmentButton } from "../AttachmentButton";
 
 describe("AttachmentButton", () => {
   it("renders with correct aria-label", () => {

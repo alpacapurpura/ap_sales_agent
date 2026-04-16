@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import DevelopmentTools from "@/components/shared/development-tools";
+import DevelopmentTools from "@/components/shared/DevelopmentTools";
 import { NavigationProvider, NavigationOverlay } from "@/components/shared/navigation";
 import { Toaster } from "@/components/ui/sonner";
 import { TenantLocaleProvider } from "@/features/tenant/context/tenant-locale-context";

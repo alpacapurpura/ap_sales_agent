@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
-import { VoiceButton, RecordingIndicator, TranscribingIndicator } from "../voice-button";
+import { VoiceButton, RecordingIndicator, TranscribingIndicator } from "../VoiceButton";
 
 describe("VoiceButton", () => {
   it("renders mic button with correct idle aria-label", () => {

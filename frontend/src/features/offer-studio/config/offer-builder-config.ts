@@ -19,38 +19,38 @@ import {
 
 // Preview Imports
 import { EditionsSection } from "../components/editions/EditionsSection";
-import { ClosingForm } from "../components/editor/sections/closing/closing-form";
-import { ClosingPreview } from "../components/editor/sections/closing/closing-preview";
-import { IdentityForm } from "../components/editor/sections/identity/identity-form";
-import { IdentityPreview } from "../components/editor/sections/identity/identity-preview";
-import { StrategyPreview } from "../components/editor/sections/strategy/strategy-preview";
-import { PricingPreview } from "../components/editor/sections/pricing/pricing-preview";
-import { InstructorsPreview } from "../components/editor/sections/instructors/instructors-preview";
-import { ValueStackForm } from "../components/editor/sections/value-stack/value-stack-form";
-import { ValueStackPreview } from "../components/editor/sections/value-stack/value-stack-preview";
-import { ResourcesPreview } from "../components/editor/sections/resources/resources-preview";
-import { GalleryPreview } from "../components/editor/sections/visuals/gallery-preview";
+import { ClosingForm } from "../components/editor/sections/closing/ClosingForm";
+import { ClosingPreview } from "../components/editor/sections/closing/ClosingPreview";
+import { IdentityForm } from "../components/editor/sections/identity/IdentityForm";
+import { IdentityPreview } from "../components/editor/sections/identity/IdentityPreview";
+import { StrategyPreview } from "../components/editor/sections/strategy/StrategyPreview";
+import { PricingPreview } from "../components/editor/sections/pricing/PricingPreview";
+import { InstructorsPreview } from "../components/editor/sections/instructors/InstructorsPreview";
+import { ValueStackForm } from "../components/editor/sections/value-stack/ValueStackForm";
+import { ValueStackPreview } from "../components/editor/sections/value-stack/ValueStackPreview";
+import { ResourcesPreview } from "../components/editor/sections/resources/ResourcesPreview";
+import { GalleryPreview } from "../components/editor/sections/visuals/GalleryPreview";
 
 // Form Imports
-import { StrategyForm } from "../components/editor/sections/strategy/strategy-form";
-import { PricingForm } from "../components/editor/sections/pricing/pricing-form";
-import { PsychologyForm } from "../components/editor/sections/psychology/psychology-form";
-import { PromiseForm } from "../components/editor/sections/promise/promise-form";
-import { InstructorsForm } from "../components/editor/sections/instructors/instructors-form";
-import { InstructorsManager } from "../components/editor/sections/instructors/instructors-manager";
-import { ResourcesForm } from "../components/editor/sections/resources/resources-form";
-import { ResourcesManager } from "../components/editor/sections/resources/resources-manager";
-import { GalleryForm } from "../components/editor/sections/visuals/gallery-form";
-import { GalleryManager } from "../components/editor/sections/visuals/gallery-manager";
-import { ProgramDetailsForm } from "../components/editor/sections/program-details/program-form";
-import { ProductDetailsForm } from "../components/editor/sections/product-details/product-form";
-import { ServiceDetailsForm } from "../components/editor/sections/service-details/service-form";
-import { EventDetailsForm } from "../components/editor/sections/event-details/event-form";
-import { SubscriptionDetailsForm } from "../components/editor/sections/subscription-details/subscription-form";
+import { StrategyForm } from "../components/editor/sections/strategy/StrategyForm";
+import { PricingForm } from "../components/editor/sections/pricing/PricingForm";
+import { PsychologyForm } from "../components/editor/sections/psychology/PsychologyForm";
+import { PromiseForm } from "../components/editor/sections/promise/PromiseForm";
+import { InstructorsForm } from "../components/editor/sections/instructors/InstructorsForm";
+import { InstructorsManager } from "../components/editor/sections/instructors/InstructorsManager";
+import { ResourcesForm } from "../components/editor/sections/resources/ResourcesForm";
+import { ResourcesManager } from "../components/editor/sections/resources/ResourcesManager";
+import { GalleryForm } from "../components/editor/sections/visuals/GalleryForm";
+import { GalleryManager } from "../components/editor/sections/visuals/GalleryManager";
+import { ProgramDetailsForm } from "../components/editor/sections/program-details/ProgramForm";
+import { ProductDetailsForm } from "../components/editor/sections/product-details/ProductForm";
+import { ServiceDetailsForm } from "../components/editor/sections/service-details/ServiceForm";
+import { EventDetailsForm } from "../components/editor/sections/event-details/EventForm";
+import { SubscriptionDetailsForm } from "../components/editor/sections/subscription-details/SubscriptionForm";
 
 // Placeholder for missing forms/previews if any
-import { PlaceholderForm } from "../components/editor/sections/common/placeholder-form";
-import { PlaceholderPreview } from "../components/editor/sections/common/placeholder-preview";
+import { PlaceholderForm } from "../components/editor/sections/common/PlaceholderForm";
+import { PlaceholderPreview } from "../components/editor/sections/common/PlaceholderPreview";
 import { OfferArchetype } from "../types";
 
 import type { SectionProps } from "../types/section";

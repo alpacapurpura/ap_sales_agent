@@ -24,7 +24,7 @@ vi.mock("../config/interview-preview-registry", () => ({
   },
 }));
 
-import { CopilotPreviewPane } from "../components/copilot-preview-pane";
+import { CopilotPreviewPane } from "../components/CopilotPreviewPane";
 import { useCopilotStore } from "../store/copilot-store";
 
 describe("CopilotPreviewPane", () => {

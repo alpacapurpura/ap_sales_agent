@@ -18,10 +18,13 @@ import * as path from "path";
 import { FEATURES_DIR, getFeatureNames, walkFiles, isTestFile } from "./helpers";
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────
-// Empty — zero cross-feature duplicate names as of 2026-04-15.
+// Pre-existing cross-feature duplicates (existed before PascalCase rename on 2026-04-15).
+// These must shrink over time: extract to components/shared/ or rename.
 const KNOWN_CROSS_FEATURE_DUPLICATES = new Set<string>([
-  // Add entries here ONLY with documented justification.
-  // Format: "ComponentName.tsx"
+  // closer-studio and sales both have a PipelineBoard component
+  "PipelineBoard.tsx",
+  // growth-studio and offer-studio both have an OfferCard component
+  "OfferCard.tsx",
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────

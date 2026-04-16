@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
-import { AlternativesCard } from "../alternatives-card";
+import { AlternativesCard } from "../AlternativesCard";
 
 const mockAlternatives = [
   {

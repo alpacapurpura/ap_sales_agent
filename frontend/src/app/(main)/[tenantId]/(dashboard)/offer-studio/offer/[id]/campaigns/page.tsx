@@ -1,7 +1,7 @@
 "use client";
 
-import { CampaignsView } from "@/features/offer-studio/components/campaigns/campaigns-view";
-import { useOfferShell } from "@/features/offer-studio/components/container/offer-shell";
+import { CampaignsView } from "@/features/offer-studio/components/campaigns/CampaignsView";
+import { useOfferShell } from "@/features/offer-studio/components/container/OfferShell";
 
 /**
  * Campaigns tab — rendered inside the persistent Offer Studio shell.

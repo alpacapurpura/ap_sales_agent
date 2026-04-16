@@ -17,7 +17,7 @@ import { useChannelDashboard } from "../../../../hooks/use-channel-dashboard";
 import { useConnectionHealth } from "../../../../hooks/use-connection-health";
 import { useHashScroll } from "../../../../hooks/use-hash-scroll";
 import { useSyncChannel } from "../../../../hooks/use-sync-channel";
-import { ConnectionHealthBanner } from "../../../connection-health-banner";
+import { ConnectionHealthBanner } from "../../../ConnectionHealthBanner";
 
 import { computeMetaAdsOnboardingTrigger } from "./hooks/use-meta-ads-onboarding-trigger";
 import { MetaAdsOnboardingModal } from "./MetaAdsOnboardingModal";

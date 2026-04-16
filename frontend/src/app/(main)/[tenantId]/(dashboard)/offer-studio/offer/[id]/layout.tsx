@@ -5,7 +5,7 @@ import Link from "next/link";
 import { use } from "react";
 
 import { Button } from "@/components/ui/button";
-import { OfferShell } from "@/features/offer-studio/components/container/offer-shell";
+import { OfferShell } from "@/features/offer-studio/components/container/OfferShell";
 import { useOffer } from "@/features/offer-studio/hooks/use-offer";
 import { useOfferCounts } from "@/features/offer-studio/hooks/use-offer-counts";
 

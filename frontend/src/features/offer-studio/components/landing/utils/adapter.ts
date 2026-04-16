@@ -1,6 +1,6 @@
 import { LandingPageArchetype } from "@/features/offer-studio/components/landing/types/schema";
 
-import type { RootProps, Props } from "./puck.config";
+import type { RootProps, Props } from "./Puck.config";
 import type {
   LandingPageConfig,
   TransformerContent,

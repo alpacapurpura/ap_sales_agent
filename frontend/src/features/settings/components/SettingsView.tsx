@@ -14,14 +14,14 @@ import { Suspense } from "react";
 
 import { useNavigation } from "@/components/shared/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { OAuthCallbackHandler } from "@/features/connections/components/oauth-callback-handler";
-import { AIKeysForm } from "@/features/settings/components/ai-keys-form";
-import { GeneralSettingsForm } from "@/features/settings/components/general-settings-form";
-import { PaymentSettingsView } from "@/features/settings/components/payment-settings-view";
-import { ProfileView } from "@/features/settings/components/profile-view";
-import { SchedulingSettingsView } from "@/features/settings/components/scheduling-settings-view";
-import { TeamView } from "@/features/settings/components/team-view";
-import { WebhookView } from "@/features/settings/components/webhook-view";
+import { OAuthCallbackHandler } from "@/features/connections/components/OauthCallbackHandler";
+import { AIKeysForm } from "@/features/settings/components/AiKeysForm";
+import { GeneralSettingsForm } from "@/features/settings/components/GeneralSettingsForm";
+import { PaymentSettingsView } from "@/features/settings/components/PaymentSettingsView";
+import { ProfileView } from "@/features/settings/components/ProfileView";
+import { SchedulingSettingsView } from "@/features/settings/components/SchedulingSettingsView";
+import { TeamView } from "@/features/settings/components/TeamView";
+import { WebhookView } from "@/features/settings/components/WebhookView";
 
 function SettingsContent() {
   const searchParams = useSearchParams();

@@ -36,7 +36,7 @@ vi.mock("../hooks/use-copilot-navigator", () => ({
   useCopilotNavigator: () => ({ executeAction: vi.fn() }),
 }));
 
-import { CopilotSidebar } from "../components/copilot-sidebar";
+import { CopilotSidebar } from "../components/CopilotSidebar";
 import { useCopilotStore } from "../store/copilot-store";
 
 describe("CopilotSidebar", () => {

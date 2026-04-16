@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
-import { LeadMagnetStreamCard } from "../components/dashboard/lead-magnet-stream-card";
+import { LeadMagnetStreamCard } from "../components/dashboard/LeadMagnetStreamCard";
 
 import { MOCK_OFFER_NORMALIZED } from "./fixtures";
 

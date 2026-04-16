@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 
-import { CloserLayout } from "@/features/closer-studio/components/closer-layout";
+import { CloserLayout } from "@/features/closer-studio/components/CloserLayout";
 
 export default function StudioLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();

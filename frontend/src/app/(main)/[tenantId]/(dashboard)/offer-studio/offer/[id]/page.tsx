@@ -2,8 +2,8 @@
 
 import { use } from "react";
 
-import ErrorBoundary from "@/components/shared/error-boundary";
-import { OfferEditorContent } from "@/features/offer-studio/components/editor/offer-editor-content";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import { OfferEditorContent } from "@/features/offer-studio/components/editor/OfferEditorContent";
 
 /**
  * Editor tab — rendered inside the persistent shell (see `layout.tsx`).

@@ -13,7 +13,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 // ── Import after mocks ──────────────────────────────────────────────────
-import { ConnectionHealthBanner } from "../connection-health-banner";
+import { ConnectionHealthBanner } from "../ConnectionHealthBanner";
 
 describe("ConnectionHealthBanner", () => {
   it('renders nothing when status is "healthy"', () => {

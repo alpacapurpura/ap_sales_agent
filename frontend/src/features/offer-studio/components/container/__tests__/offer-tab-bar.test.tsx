@@ -27,7 +27,7 @@ vi.mock("next/link", () => ({
 
 // ── Imports after mocks ──────────────────────────────────────────────────────
 
-import { OfferTabBar } from "../offer-tab-bar";
+import { OfferTabBar } from "../OfferTabBar";
 
 const baseProps = {
   tenantId: "acme",

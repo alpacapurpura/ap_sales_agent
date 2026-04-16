@@ -1,4 +1,4 @@
-import { LandingPageEditor } from "@/features/offer-studio/components/landing/components/editor/landing-editor";
+import { LandingPageEditor } from "@/features/offer-studio/components/landing/components/editor/LandingEditor";
 
 export default async function FullScreenEditorPage({
   params,

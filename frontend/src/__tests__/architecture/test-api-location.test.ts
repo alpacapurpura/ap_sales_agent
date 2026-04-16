@@ -21,7 +21,7 @@ import { FEATURES_DIR, walkFiles, relPath, isTestFile, readFile } from "./helper
 const KNOWN_FETCHCLIENT_OUTSIDE_API = new Set([
   "features/audit/hooks/use-audit.ts",
   "features/brand/sections/voice/voice-manager.tsx",
-  "features/connections/components/meta-view.tsx",
+  "features/connections/components/MetaView.tsx",
   "features/growth-studio/hooks/use-connection-health.ts",
   "features/growth-studio/hooks/use-mail-dashboard.ts",
   "features/growth-studio/hooks/use-sync-channel.ts",

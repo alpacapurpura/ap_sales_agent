@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
-import { BrandStudioTabs } from "../brand-studio-tabs";
+import { BrandStudioTabs } from "../BrandStudioTabs";
 
 import type { BrandSettings } from "../../../types";
 

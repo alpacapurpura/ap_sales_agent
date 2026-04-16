@@ -6,7 +6,7 @@ import { AssistantMessage } from "../components/messages/AssistantMessage";
 import type { CopilotMessage } from "../store/copilot-store";
 
 // Mock card components to verify they're rendered
-vi.mock("../components/cards/alternatives-card", () => ({
+vi.mock("../components/cards/AlternativesCard", () => ({
   AlternativesCard: (props: Record<string, unknown>) => (
     <div data-testid="alternatives-card" data-field-path={props.fieldPath}>
       Alternatives
@@ -14,11 +14,11 @@ vi.mock("../components/cards/alternatives-card", () => ({
   ),
 }));
 
-vi.mock("../components/cards/clarify-card", () => ({
+vi.mock("../components/cards/ClarifyCard", () => ({
   ClarifyCard: () => <div data-testid="clarify-card">Clarify</div>,
 }));
 
-vi.mock("../components/cards/checkpoint-card", () => ({
+vi.mock("../components/cards/CheckpointCard", () => ({
   CheckpointCard: (props: Record<string, unknown>) => (
     <div data-testid="checkpoint-card" data-block-id={props.blockId}>
       Checkpoint
@@ -26,7 +26,7 @@ vi.mock("../components/cards/checkpoint-card", () => ({
   ),
 }));
 
-vi.mock("../components/cards/interview-complete-card", () => ({
+vi.mock("../components/cards/InterviewCompleteCard", () => ({
   InterviewCompleteCard: () => <div data-testid="interview-complete-card">Complete</div>,
 }));
 

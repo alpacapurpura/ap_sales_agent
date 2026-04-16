@@ -5,7 +5,7 @@ import { describe, it, expect } from "vitest";
 import { Form } from "@/components/ui/form";
 
 import { ProgramStructure, OfferStatus, OfferArchetype } from "../../../../../types";
-import { SessionScheduleBuilder } from "../session-schedule-builder";
+import { SessionScheduleBuilder } from "../SessionScheduleBuilder";
 
 import type { OfferFormValues } from "../../../../../types/schema";
 

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { FocusModeButton } from "../components/focus-mode-button";
+import { FocusModeButton } from "../components/FocusModeButton";
 import { useCopilotStore } from "../store/copilot-store";
 
 describe("FocusModeButton", () => {

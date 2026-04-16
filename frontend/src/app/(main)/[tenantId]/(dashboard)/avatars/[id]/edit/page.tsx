@@ -2,7 +2,7 @@
 
 import { useParams, useSearchParams } from "next/navigation";
 
-import { AvatarEditView } from "@/features/brand/components/views/avatar-edit-view";
+import { AvatarEditView } from "@/features/brand/components/views/AvatarEditView";
 
 export default function EditAvatarPage() {
   const params = useParams();
