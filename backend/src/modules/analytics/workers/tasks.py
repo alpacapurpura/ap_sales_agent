@@ -13,10 +13,6 @@ from uuid import UUID
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
-    from src.modules.connections.infrastructure.models.channel_connection_model import (
-        ChannelConnectionModel,
-    )
-
 import sentry_sdk
 import structlog
 from arq import Retry
@@ -128,13 +124,11 @@ async def run_tenant_extraction(
         from src.modules.analytics.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
-        from src.modules.connections.application.services.connection_port_impl import (
-            ConnectionPortImpl,
-        )
+        from src.shared.links.ports.channel_adapter import create_connection_port
 
         redis = ctx.get("redis_cache")
         cache = MetricsCache(redis)
-        connection_port = ConnectionPortImpl(db)
+        connection_port = create_connection_port(db)
         etl_service = ETLService(db=db, connection_port=connection_port, cache=cache)
 
         if provider == "all":
@@ -226,12 +220,10 @@ async def run_initial_load(
         from src.modules.analytics.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
-        from src.modules.connections.application.services.connection_port_impl import (
-            ConnectionPortImpl,
-        )
+        from src.shared.links.ports.channel_adapter import create_connection_port
 
         cache = MetricsCache(redis)
-        connection_port = ConnectionPortImpl(db)
+        connection_port = create_connection_port(db)
         etl_service = ETLService(db=db, connection_port=connection_port, cache=cache)
 
         def on_progress(loaded: int, total: int, status: str) -> None:
@@ -338,13 +330,11 @@ async def run_period_extraction(
         from src.modules.analytics.infrastructure.cache.metrics_cache import (
             MetricsCache,
         )
-        from src.modules.connections.application.services.connection_port_impl import (
-            ConnectionPortImpl,
-        )
+        from src.shared.links.ports.channel_adapter import create_connection_port
 
         redis = ctx.get("redis_cache")
         cache = MetricsCache(redis)
-        connection_port = ConnectionPortImpl(db)
+        connection_port = create_connection_port(db)
         etl_service = ETLService(db=db, connection_port=connection_port, cache=cache)
 
         results = await etl_service.run_period_extraction(
@@ -420,11 +410,9 @@ async def run_campaign_sync(
         from src.modules.analytics.infrastructure.sync.campaign_sync_pipeline import (
             CampaignSyncPipeline,
         )
-        from src.modules.connections.application.services.connection_port_impl import (
-            ConnectionPortImpl,
-        )
+        from src.shared.links.ports.channel_adapter import create_connection_port
 
-        connection_port = ConnectionPortImpl(db)
+        connection_port = create_connection_port(db)
         credentials = await connection_port.get_credentials(
             UUID(tenant_id),
             provider,
@@ -558,26 +546,14 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
         db.close()
 
 
-def _get_active_mailerlite_connections(db: Session) -> list[ChannelConnectionModel]:
-    """Fetch all active Mailerlite connections."""
-    from sqlalchemy import and_, select
+def _get_active_mailerlite_connections(db: Session) -> list:
+    """Fetch all active Mailerlite connections via shared port."""
+    from src.shared.links.ports.channel_adapter import get_active_connections_by_type
 
-    from src.modules.connections.infrastructure.models.channel_connection_model import (
-        ChannelConnectionModel,
-    )
-
-    result = db.execute(
-        select(ChannelConnectionModel).where(
-            and_(
-                ChannelConnectionModel.channel_type == "mailerlite",
-                ChannelConnectionModel.is_active == True,
-            ),
-        ),
-    )
-    return result.scalars().all()
+    return get_active_connections_by_type(db, "mailerlite")
 
 
-async def _sync_mailerlite_tenants(db: Session, connections: list[ChannelConnectionModel]) -> int:
+async def _sync_mailerlite_tenants(db: Session, connections: list) -> int:
     """Sync campaign activities for each tenant with a Mailerlite connection."""
     synced_count = 0
     for conn in connections:
@@ -592,20 +568,16 @@ async def _sync_mailerlite_tenants(db: Session, connections: list[ChannelConnect
     return synced_count
 
 
-async def _sync_single_tenant(db: Session, conn: ChannelConnectionModel, tenant_id: UUID) -> int:
+async def _sync_single_tenant(db: Session, conn: object, tenant_id: UUID) -> int:
     """Sync a single tenant's Mailerlite activities. Returns events synced."""
-    from sqlalchemy import and_, select
-
-    from src.modules.connections.infrastructure.marketing_connectors.mailerlite import (
-        MailerLiteConnector,
-    )
+    from src.shared.links.ports.channel_adapter import create_mailerlite_connector
 
     api_key = conn.credentials.get("api_key") if conn.credentials else None
     if not api_key:
         logger.warning("No Mailerlite API key for tenant %s, skipping", tenant_id)
         return 0
 
-    connector = MailerLiteConnector(api_key=api_key)
+    connector = create_mailerlite_connector(api_key=api_key)
 
     if not hasattr(connector, "get_recent_campaign_activity"):
         logger.warning(
@@ -618,65 +590,9 @@ async def _sync_single_tenant(db: Session, conn: ChannelConnectionModel, tenant_
 
     activities = await connector.get_recent_campaign_activity(hours=7)
 
-    from src.modules.crm.application.services.lifecycle_service import (
-        LifecycleService,
-    )
-    from src.modules.crm.infrastructure.models.customer_model import (
-        CustomerProfileModel,
-        JourneyEventModel,
-    )
+    from src.shared.links.ports.crm_enrichment import sync_mailerlite_email_activities
 
-    lifecycle_svc = LifecycleService(db)
-    synced = 0
-
-    for activity in activities:
-        email = activity.get("email")
-        campaign_id = activity.get("campaign_id")
-        event_type = activity.get("event_type")
-
-        profile_result = db.execute(
-            select(CustomerProfileModel).where(
-                and_(
-                    CustomerProfileModel.tenant_id == tenant_id,
-                    CustomerProfileModel.primary_email == email,
-                    CustomerProfileModel.is_inactive == False,
-                ),
-            ),
-        )
-        profile = profile_result.scalar_one_or_none()
-        if not profile:
-            continue
-
-        event_name = "email_opened" if event_type == "open" else "email_clicked"
-
-        existing = db.execute(
-            select(JourneyEventModel.id).where(
-                and_(
-                    JourneyEventModel.profile_id == profile.id,
-                    JourneyEventModel.tenant_id == tenant_id,
-                    JourneyEventModel.event_name == event_name,
-                    JourneyEventModel.properties["campaign_id"].astext == str(campaign_id),
-                ),
-            ),
-        )
-        if existing.scalar_one_or_none():
-            continue
-
-        journey_event = JourneyEventModel(
-            profile_id=profile.id,
-            tenant_id=tenant_id,
-            event_name=event_name,
-            event_type="track",
-            properties={
-                "campaign_id": str(campaign_id),
-                "campaign_name": activity.get("campaign_name", ""),
-                "source": "mailerlite_etl_sync",
-            },
-        )
-        db.add(journey_event)
-        lifecycle_svc.recalculate_score(profile.id, tenant_id)
-        synced += 1
-
+    synced = sync_mailerlite_email_activities(db, tenant_id, activities)
     return synced
 
 
@@ -749,12 +665,11 @@ async def run_inactivity_detection(ctx: dict) -> dict:
     )
 
     try:
-        from src.modules.crm.application.services.inactivity_service import (
-            InactivityService,
+        from src.shared.links.ports.crm_enrichment import (
+            run_crm_inactivity_detection_batch,
         )
 
-        service = InactivityService(db)
-        result = service.run_batch()
+        result = run_crm_inactivity_detection_batch(db)
         db.commit()
 
         logger.info(

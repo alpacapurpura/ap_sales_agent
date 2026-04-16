@@ -5,14 +5,12 @@ for a given provider. Used by the ChannelDetailSidebar in the frontend.
 """
 
 from collections.abc import Callable
-from datetime import date
 from typing import Annotated
 from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
@@ -22,6 +20,10 @@ from src.modules.connections.infrastructure.repositories import (
 )
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
+from src.shared.links.ports.analytics import (
+    get_latest_extraction_run_info,
+    get_provider_data_range,
+)
 
 router = APIRouter(tags=["channel-info"])
 logger = structlog.get_logger()
@@ -199,49 +201,17 @@ async def get_channel_info(
     # Children (Meta only)
     children = _get_meta_children(repo, user.tenant_id) if provider == "meta" else []
 
-    # Cross-module read: latest extraction run
+    # Cross-module read: latest extraction run (via shared port)
     last_extraction = None
     try:
-        from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
-            ExtractionRunRepository,
-        )
-
-        run_repo = ExtractionRunRepository(db)
-        latest_run = run_repo.get_latest(user.tenant_id, provider)
-        if latest_run:
-            last_extraction = {
-                "status": latest_run.status,
-                "started_at": latest_run.started_at.isoformat() if latest_run.started_at else None,
-                "completed_at": latest_run.completed_at.isoformat() if latest_run.completed_at else None,
-                "metrics_count": latest_run.metrics_count,
-                "error": latest_run.error,
-                "duration_seconds": latest_run.duration_seconds,
-            }
+        last_extraction = get_latest_extraction_run_info(db, user.tenant_id, provider)
     except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning("channel_info_extraction_lookup_failed", error=str(e))
 
-    # Cross-module read: data range from official_metrics
+    # Cross-module read: data range from official_metrics (via shared port)
     data_range = None
     try:
-        from src.modules.analytics.infrastructure.models.official_metrics_model import (
-            OfficialMetricModel,
-        )
-
-        stmt = select(
-            func.min(OfficialMetricModel.metric_date),
-            func.max(OfficialMetricModel.metric_date),
-            func.count(OfficialMetricModel.id),
-        ).where(
-            OfficialMetricModel.tenant_id == user.tenant_id,
-            OfficialMetricModel.provider == provider,
-        )
-        row = db.execute(stmt).first()
-        if row and row[0]:
-            data_range = {
-                "min_date": row[0].isoformat() if isinstance(row[0], date) else str(row[0]),
-                "max_date": row[1].isoformat() if isinstance(row[1], date) else str(row[1]),
-                "total_records": row[2],
-            }
+        data_range = get_provider_data_range(db, user.tenant_id, provider)
     except Exception as e:  # noqa: BLE001 — API error boundary
         logger.warning("channel_info_data_range_lookup_failed", error=str(e))
 

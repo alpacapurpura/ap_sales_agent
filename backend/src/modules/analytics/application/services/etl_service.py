@@ -675,9 +675,7 @@ class ETLService:
         from src.modules.crm.application.services.customer_service import (
             CustomerService,
         )
-        from src.modules.offer.infrastructure.repositories.external_product_mapping_repository import (
-            ExternalProductMappingRepository,
-        )
+        from src.shared.links.ports.offer import get_product_mapping_repo
 
         orders = provider.get_last_extracted_orders()
         checkouts = provider.get_last_extracted_checkouts()
@@ -687,7 +685,7 @@ class ETLService:
             return {"orders_processed": 0, "checkouts_processed": 0, "sales_created": 0}
 
         customer_svc = CustomerService(self.db)
-        mapping_repo = ExternalProductMappingRepository(self.db)
+        mapping_repo = get_product_mapping_repo(self.db)
 
         # Build set of completed checkout tokens for abandoned-checkout filtering
         completed_tokens: set[str] = {str(token) for order in orders if (token := order.get("checkout_token"))}

@@ -50,14 +50,10 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     "analytics -> crm | analytics/infrastructure/repositories/nurture_repository.py",
     "analytics -> crm | analytics/infrastructure/repositories/opportunity_repository.py",
     "analytics -> crm | analytics/infrastructure/repositories/sales_metrics_repository.py",
-    # ── ETL PRODUCT MAPPING ───────────────────────────────────
-    "analytics -> offer | analytics/application/services/etl_service.py",
-    # ── WORKERS (multi-module batch) ──────────────────────────
-    # (eliminated: analytics → connections for workers via shared/links/ports/channel_adapter)
-    "analytics -> crm | analytics/workers/manychat_sync.py",
-    "analytics -> crm | analytics/workers/tasks.py",
     # ── WEBHOOK / EVENT INTEGRATION ───────────────────────────
-    "connections -> analytics | connections/api/channel_info.py",
+    # (eliminated: analytics → offer/etl_service via shared/links/ports/offer)
+    # (eliminated: analytics workers → crm via shared/links/ports/crm_enrichment)
+    # (eliminated: connections/channel_info → analytics via shared/links/ports/analytics)
     "connections -> analytics | connections/api/marketing_webhooks.py",
     "connections -> crm | connections/api/marketing_webhooks.py",
     "connections -> offer | connections/api/marketing_webhooks.py",
