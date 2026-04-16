@@ -96,11 +96,9 @@ async def _send_and_log_nudge(
     follow_ups_sent: int,
 ) -> bool:
     """Send the nudge via channel resolver and log in audit trail. Returns True if sent."""
-    from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
-        LeadRepository,
-    )
+    from src.shared.links.ports.crm_repos import get_lead_metrics_repository
 
-    lead_repo = LeadRepository(db)
+    lead_repo = get_lead_metrics_repository(db)
     lead = lead_repo.get_active_lead_by_id(cp.lead_id)
     if not lead:
         return False

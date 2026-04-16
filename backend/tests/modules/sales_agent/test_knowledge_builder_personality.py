@@ -87,18 +87,15 @@ MINIMAL_IDENTITY_CONTEXT: dict[str, Any] = {
 }
 
 
-def _make_profile_model(
-    *,
-    is_active: bool = True,
-    system_instruction: str | None = PERSONALITY_SYSTEM_INSTRUCTION,
-) -> MagicMock:
-    """Build a mock PersonalityProfileModel."""
-    model = MagicMock()
-    model.id = PROFILE_ID
-    model.tenant_id = TENANT_ID
-    model.is_active = is_active
-    model.system_instruction = system_instruction
-    return model
+def _make_brand_knowledge(brand_data: dict, personality_data: dict | None = None) -> MagicMock:
+    """Build a mock BrandKnowledgeDTO."""
+    from src.shared.links.ports.brand import BrandKnowledgeDTO
+
+    return BrandKnowledgeDTO(
+        brand_data=brand_data,
+        avatars=[],
+        personality_profile=personality_data,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -111,15 +108,8 @@ class TestKnowledgeBuilderPersonalityIntegration:
 
     def test_personality_profile_loaded_when_active(self) -> None:
         """When an active PersonalityProfile exists, build_identity uses system_instruction."""
-        active_profile = _make_profile_model(is_active=True)
-
-        mock_db = MagicMock()
-        mock_brand = MagicMock()
-        mock_brand.model_dump.return_value = {
-            "identity": {
-                "brand_name": "Acme",
-                "voice_tone": "old_voice_tone_should_not_appear",
-            },
+        brand_data = {
+            "identity": {"brand_name": "Acme", "voice_tone": "old_voice_tone_should_not_appear"},
             "strategy": {},
             "story": {},
             "team": [],
@@ -127,20 +117,23 @@ class TestKnowledgeBuilderPersonalityIntegration:
             "testimonials": [],
             "positioning": {},
         }
+        personality_data = {"system_instruction": PERSONALITY_SYSTEM_INSTRUCTION}
+        mock_brand_port = MagicMock()
+        mock_brand_port.get_brand_knowledge.return_value = _make_brand_knowledge(brand_data, personality_data)
+
+        mock_db = MagicMock()
 
         with (
-            patch("src.modules.sales_agent.application.services.knowledge_builder.BrandRepository") as MockBrandRepo,
-            patch("src.modules.sales_agent.application.services.knowledge_builder.AvatarRepository") as MockAvatarRepo,
-            patch("src.modules.sales_agent.application.services.knowledge_builder.OfferRepository") as MockOfferRepo,
             patch(
-                "src.modules.sales_agent.application.services.knowledge_builder.PersonalityProfileRepository"
-            ) as MockPersonalityRepo,
+                "src.modules.sales_agent.application.services.knowledge_builder.create_brand_data_port",
+                return_value=mock_brand_port,
+            ),
+            patch(
+                "src.modules.sales_agent.application.services.knowledge_builder.get_offer_repository"
+            ) as MockOfferRepo,
             patch("src.modules.sales_agent.application.services.knowledge_builder.SemanticRouter"),
         ):
-            MockBrandRepo.return_value.get_settings.return_value = mock_brand
-            MockAvatarRepo.return_value.get_by_tenant.return_value = []
             MockOfferRepo.return_value.get_all_by_tenant.return_value = []
-            MockPersonalityRepo.return_value.get_active.return_value = active_profile
 
             from src.modules.sales_agent.application.services.knowledge_builder import (
                 TenantKnowledgeBuilder,
@@ -149,19 +142,13 @@ class TestKnowledgeBuilderPersonalityIntegration:
             builder = TenantKnowledgeBuilder(mock_db)
             result = builder.build_identity(TENANT_ID)
 
-        # personality_instruction should appear, not the old voice_tone
         assert PERSONALITY_SYSTEM_INSTRUCTION in result
         assert "old_voice_tone_should_not_appear" not in result
 
     def test_fallback_to_voice_tone_when_no_profile(self) -> None:
         """When no PersonalityProfile exists, voice_tone from brand identity is used."""
-        mock_db = MagicMock()
-        mock_brand = MagicMock()
-        mock_brand.model_dump.return_value = {
-            "identity": {
-                "brand_name": "Acme",
-                "voice_tone": "Very warm and professional",
-            },
+        brand_data = {
+            "identity": {"brand_name": "Acme", "voice_tone": "Very warm and professional"},
             "strategy": {},
             "story": {},
             "team": [],
@@ -169,20 +156,22 @@ class TestKnowledgeBuilderPersonalityIntegration:
             "testimonials": [],
             "positioning": {},
         }
+        mock_brand_port = MagicMock()
+        mock_brand_port.get_brand_knowledge.return_value = _make_brand_knowledge(brand_data, None)
+
+        mock_db = MagicMock()
 
         with (
-            patch("src.modules.sales_agent.application.services.knowledge_builder.BrandRepository") as MockBrandRepo,
-            patch("src.modules.sales_agent.application.services.knowledge_builder.AvatarRepository") as MockAvatarRepo,
-            patch("src.modules.sales_agent.application.services.knowledge_builder.OfferRepository") as MockOfferRepo,
             patch(
-                "src.modules.sales_agent.application.services.knowledge_builder.PersonalityProfileRepository"
-            ) as MockPersonalityRepo,
+                "src.modules.sales_agent.application.services.knowledge_builder.create_brand_data_port",
+                return_value=mock_brand_port,
+            ),
+            patch(
+                "src.modules.sales_agent.application.services.knowledge_builder.get_offer_repository"
+            ) as MockOfferRepo,
             patch("src.modules.sales_agent.application.services.knowledge_builder.SemanticRouter"),
         ):
-            MockBrandRepo.return_value.get_settings.return_value = mock_brand
-            MockAvatarRepo.return_value.get_by_tenant.return_value = []
             MockOfferRepo.return_value.get_all_by_tenant.return_value = []
-            MockPersonalityRepo.return_value.get_active.return_value = None  # no profile
 
             from src.modules.sales_agent.application.services.knowledge_builder import (
                 TenantKnowledgeBuilder,
@@ -195,14 +184,8 @@ class TestKnowledgeBuilderPersonalityIntegration:
 
     def test_personality_instruction_none_falls_back_to_voice_tone(self) -> None:
         """Profile exists and is active but system_instruction is None → voice_tone used."""
-        profile_no_instruction = _make_profile_model(is_active=True, system_instruction=None)
-        mock_db = MagicMock()
-        mock_brand = MagicMock()
-        mock_brand.model_dump.return_value = {
-            "identity": {
-                "brand_name": "Acme",
-                "voice_tone": "Casual and fun",
-            },
+        brand_data = {
+            "identity": {"brand_name": "Acme", "voice_tone": "Casual and fun"},
             "strategy": {},
             "story": {},
             "team": [],
@@ -210,20 +193,23 @@ class TestKnowledgeBuilderPersonalityIntegration:
             "testimonials": [],
             "positioning": {},
         }
+        personality_data = {"system_instruction": None}
+        mock_brand_port = MagicMock()
+        mock_brand_port.get_brand_knowledge.return_value = _make_brand_knowledge(brand_data, personality_data)
+
+        mock_db = MagicMock()
 
         with (
-            patch("src.modules.sales_agent.application.services.knowledge_builder.BrandRepository") as MockBrandRepo,
-            patch("src.modules.sales_agent.application.services.knowledge_builder.AvatarRepository") as MockAvatarRepo,
-            patch("src.modules.sales_agent.application.services.knowledge_builder.OfferRepository") as MockOfferRepo,
             patch(
-                "src.modules.sales_agent.application.services.knowledge_builder.PersonalityProfileRepository"
-            ) as MockPersonalityRepo,
+                "src.modules.sales_agent.application.services.knowledge_builder.create_brand_data_port",
+                return_value=mock_brand_port,
+            ),
+            patch(
+                "src.modules.sales_agent.application.services.knowledge_builder.get_offer_repository"
+            ) as MockOfferRepo,
             patch("src.modules.sales_agent.application.services.knowledge_builder.SemanticRouter"),
         ):
-            MockBrandRepo.return_value.get_settings.return_value = mock_brand
-            MockAvatarRepo.return_value.get_by_tenant.return_value = []
             MockOfferRepo.return_value.get_all_by_tenant.return_value = []
-            MockPersonalityRepo.return_value.get_active.return_value = profile_no_instruction
 
             from src.modules.sales_agent.application.services.knowledge_builder import (
                 TenantKnowledgeBuilder,

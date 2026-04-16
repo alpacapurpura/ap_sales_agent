@@ -17,8 +17,10 @@ if TYPE_CHECKING:
     from fastapi import BackgroundTasks
     from sqlalchemy.orm import Session
 
+    from src.modules.crm.application.services.identity_service import IdentityService
     from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
     from src.modules.crm.infrastructure.models.lead_model import LeadModel
+    from src.modules.crm.infrastructure.repositories.lead_metrics_repository import LeadRepository
     from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
         AgentStateCheckpointModel,
     )
@@ -27,17 +29,6 @@ if TYPE_CHECKING:
 from src.core.context import set_tenant_id
 from src.core.database import SessionLocal
 from src.core.enums import ModelRole
-from src.modules.connections.infrastructure.channels.telegram import TelegramChannel
-from src.modules.connections.infrastructure.models.channel_connection_model import (
-    ChannelConnectionModel,
-)
-from src.modules.crm.application.services.identity_service import IdentityService
-from src.modules.crm.infrastructure.repositories.customer_repository import (
-    CustomerRepository,
-)
-from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
-    LeadRepository,
-)
 from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 from src.modules.sales_agent.application.orchestrator.graph import agent_app
 from src.modules.sales_agent.application.orchestrator.state import create_initial_state
@@ -71,6 +62,7 @@ from src.shared.domain.events import (
 )
 from src.shared.domain.messages import IncomingMessage, OutgoingMessage
 from src.shared.infrastructure.llm.factory import LLMFactory
+from src.shared.links.ports.crm_repos import get_identity_service, get_lead_metrics_repository
 
 logger = structlog.get_logger()
 
@@ -102,24 +94,15 @@ class ChatOrchestrator:
         db: Session = None,
     ) -> None:
         """Handle Telegram Webhook with Multi-Tenant support."""
+        from src.shared.links.ports.calendar import get_channel_credentials
+        from src.shared.links.ports.channel_adapter import create_telegram_adapter
+
         token = None
         if tenant_id and db:
             try:
-                # Resolve tenant connection
-                conn = (
-                    db.execute(
-                        select(ChannelConnectionModel).where(
-                            ChannelConnectionModel.tenant_id == UUID(tenant_id),
-                            ChannelConnectionModel.channel_type == ChannelType.TELEGRAM.value,
-                            ChannelConnectionModel.is_active.is_(True),
-                        ),
-                    )
-                    .scalars()
-                    .first()
-                )
-
-                if conn and conn.credentials:
-                    token = conn.credentials.get("token")
+                creds = get_channel_credentials(db, UUID(tenant_id), ChannelType.TELEGRAM.value)
+                if creds:
+                    token = creds.get("token")
             except Exception as e:
                 logger.exception(
                     "error_resolving_telegram_connection",
@@ -128,8 +111,8 @@ class ChatOrchestrator:
                 )
 
         # Instantiate adapter (with specific token or fallback to global env)
-        adapter = TelegramChannel(token=token)
-        await self._handle_incoming_webhook(
+        adapter = create_telegram_adapter(token=token)
+        await self.handle_incoming_webhook(
             adapter,
             payload,
             background_tasks,
@@ -145,13 +128,14 @@ class ChatOrchestrator:
         # WhatsApp logic is now handled via direct router-to-service calls or unified webhook handler.
         # This method is kept for backward compatibility but should be deprecated.
 
-    async def _handle_incoming_webhook(
+    async def handle_incoming_webhook(
         self,
         channel_adapter: BaseChannel,
         payload: dict,
         background_tasks: BackgroundTasks,
         tenant_id: str | None = None,
     ) -> None:
+        """Normalize incoming webhook payload and buffer for smart debounce."""
         incoming = channel_adapter.normalize_payload(payload)
         if not incoming:
             return
@@ -338,16 +322,12 @@ class ChatOrchestrator:
         if not (was_created or not (customer.traits or {}).get("instagram_username")):
             return
         try:
-            from src.modules.connections.application.services.connection_port_impl import (
-                ConnectionPortImpl,
-            )
-            from src.modules.crm.application.services.ig_profile_enricher import (
-                InstagramProfileEnricher,
-            )
+            from src.shared.links.ports.channel_adapter import create_connection_port
+            from src.shared.links.ports.crm_repos import get_ig_profile_enricher
 
-            connection_port = ConnectionPortImpl(db)
+            connection_port = create_connection_port(db)
             creds = await connection_port.get_credentials(tenant_uuid, "meta")
-            enricher = InstagramProfileEnricher(db)
+            enricher = get_ig_profile_enricher(db)
             await enricher.enrich(
                 tenant_id=tenant_uuid,
                 igsid=user_id_str,
@@ -368,11 +348,9 @@ class ChatOrchestrator:
     ) -> None:
         """Track message_received journey event for capture conversation metrics."""
         try:
-            from src.modules.crm.infrastructure.repositories.customer_repository import (
-                JourneyEventRepository,
-            )
+            from src.shared.links.ports.crm_repos import get_journey_event_repository
 
-            journey_repo = JourneyEventRepository(db)
+            journey_repo = get_journey_event_repository(db)
             event_props = {
                 "channel_slug": capture_slug,
                 "channel_type": channel_type,
@@ -410,9 +388,7 @@ class ChatOrchestrator:
         if not needs_update:
             return
 
-        from src.modules.crm.infrastructure.models.customer_model import (
-            CustomerProfileModel,
-        )
+        from src.shared.infrastructure.models.crm import CustomerProfileModel
 
         profile_model = (
             db.execute(
@@ -910,9 +886,8 @@ class ChatOrchestrator:
 
         Returns (lead_repo, identity_service, audit_repo, biz_repo).
         """
-        lead_repo = LeadRepository(db)
-        customer_repo = CustomerRepository(db)
-        identity_service = IdentityService(customer_repo)
+        lead_repo = get_lead_metrics_repository(db)
+        identity_service = get_identity_service(db)
         audit_repo = AuditRepository(db)
         biz_repo = BusinessRepository(db)
         return lead_repo, identity_service, audit_repo, biz_repo

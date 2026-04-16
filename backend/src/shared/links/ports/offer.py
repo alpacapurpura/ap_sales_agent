@@ -22,3 +22,19 @@ def get_product_mapping_repo(db: Session) -> object:
     )
 
     return ExternalProductMappingRepository(db)
+
+
+def get_offer_repository(db: Session) -> object:
+    """Return OfferRepository instance via lazy import."""
+    from src.modules.offer.infrastructure.repositories.offer_repository import (
+        OfferRepository,
+    )
+
+    return OfferRepository(db)
+
+
+def get_product_model_class() -> type:
+    """Return ProductModel class for use in SQLAlchemy queries."""
+    from src.modules.offer.infrastructure.models.product_model import ProductModel
+
+    return ProductModel

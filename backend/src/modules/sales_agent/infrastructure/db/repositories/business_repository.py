@@ -6,14 +6,14 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from src.modules.offer.infrastructure.models.product_model import (
-    ProductModel as Product,
-)
+from src.shared.links.ports.offer import get_product_model_class
 
 if TYPE_CHECKING:
     from uuid import UUID
 
     from sqlalchemy.orm import Session
+
+    from src.modules.offer.infrastructure.models.product_model import ProductModel as Product
 
 
 class BusinessRepository:
@@ -25,8 +25,8 @@ class BusinessRepository:
 
     def get_current_launch_product(self) -> tuple[Product | None, str | None]:
         """Retrieve current launch product."""
-        # Find active product and return it with its stage name
-        product = self.db.execute(select(Product).where(Product.status == "active")).scalars().first()
+        product_cls = get_product_model_class()
+        product = self.db.execute(select(product_cls).where(product_cls.status == "active")).scalars().first()
         if product:
             return product, "evergreen"
         return None, None

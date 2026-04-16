@@ -41,16 +41,9 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     "connections -> analytics | connections/api/marketing_webhooks.py",
     "connections -> crm | connections/api/marketing_webhooks.py",
     "connections -> offer | connections/api/marketing_webhooks.py",
-    # ── SALES AGENT ↔ CRM (runtime data access) ──────────────
-    # (eliminated S5-S6: closer_studio.py + closer_studio_service.py now use shared models/ports)
-    "sales_agent -> crm | sales_agent/application/orchestrator/chat.py",
-    "sales_agent -> crm | sales_agent/workers/follow_up_engine.py",
-    # ── SALES AGENT ↔ CONNECTIONS/OFFER ───────────────────────
-    # (eliminated: sales_agent → connections via shared/links/ports/channel_adapter + calendar)
-    "sales_agent -> offer | sales_agent/application/services/knowledge_builder.py",
-    "sales_agent -> offer | sales_agent/infrastructure/db/repositories/business_repository.py",
     # ── SCHEDULING CROSS-CUTS ─────────────────────────────────
-    # (eliminated: scheduling → connections + crm via shared/links/ports/calendar + lead_resolution)
+    # (eliminated S7: sales_agent → crm via crm_repos port, sales_agent → offer via offer port)
+    # (eliminated S1-S4: scheduling → connections + crm via shared/links/ports/calendar + lead_resolution)
 }
 
 

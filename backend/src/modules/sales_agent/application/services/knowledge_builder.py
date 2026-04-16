@@ -13,20 +13,10 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from src.modules.brand.infrastructure.repositories.avatar_repository import (
-    AvatarRepository,
-)
-from src.modules.brand.infrastructure.repositories.brand_repository import (
-    BrandRepository,
-)
-from src.modules.brand.infrastructure.repositories.personality_repository import (
-    PersonalityProfileRepository,
-)
-from src.modules.offer.infrastructure.repositories.offer_repository import (
-    OfferRepository,
-)
 from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
 from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
+from src.shared.links.ports.brand import BrandDataPort, create_brand_data_port
+from src.shared.links.ports.offer import get_offer_repository
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +27,10 @@ class TenantKnowledgeBuilder:
     Brand and Offer data from the database and rendering agent_identity.j2.
     """
 
-    def __init__(self, db: Session) -> None:
+    def __init__(self, db: Session, brand_port: BrandDataPort | None = None) -> None:
         """Initialize instance."""
-        self.brand_repo = BrandRepository(db)
-        self.avatar_repo = AvatarRepository(db)
-        self.offer_repo = OfferRepository(db)
-        self.personality_repo = PersonalityProfileRepository(db)
+        self.brand_port = brand_port or create_brand_data_port(db)
+        self.offer_repo = get_offer_repository(db)
 
     def build_identity(self, tenant_id: UUID) -> str:
         """Build the complete agent identity document for this tenant.
@@ -50,18 +38,13 @@ class TenantKnowledgeBuilder:
         Returns a rendered string ready to be prepended to any specialist prompt.
         """
         try:
-            # 1. Fetch all data sources (schema-resilient via model_dump)
-            brand = self.brand_repo.get_settings(tenant_id)
-            avatars = self.avatar_repo.get_by_tenant(tenant_id)
+            # 1. Fetch all data sources via ports
+            brand_knowledge = self.brand_port.get_brand_knowledge(tenant_id)
             offers = self.offer_repo.get_all_by_tenant(tenant_id)
 
-            # Load active personality profile for voice configuration (new)
-            personality_profile = self.personality_repo.get_active(tenant_id=tenant_id)
-
-            # 2. Prepare template context using full model dumps
-            # New fields added to these models will automatically flow into templates
-            brand_data = brand.model_dump(mode="json") if brand else {}
-            avatar_data = [a.model_dump(mode="json") for a in avatars] if avatars else []
+            brand_data = brand_knowledge.brand_data
+            avatar_data = brand_knowledge.avatars
+            personality_profile_data = brand_knowledge.personality_profile
 
             # Filter active offers only for the agent's knowledge
             active_offers = [o for o in offers if o.status.value in ("active", "draft")]
@@ -89,8 +72,8 @@ class TenantKnowledgeBuilder:
                 logger.warning("Could not register tenant semantic routes: %s", e)
 
             # 5. Resolve personality instruction (new system takes priority over voice_tone)
-            if personality_profile and personality_profile.system_instruction:
-                personality_instruction = personality_profile.system_instruction
+            if personality_profile_data and personality_profile_data.get("system_instruction"):
+                personality_instruction = personality_profile_data["system_instruction"]
             else:
                 personality_instruction = None
 
