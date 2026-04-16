@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronsUpDown, Check, Building2 } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -31,8 +30,6 @@ export function TenantSwitcher({
 }: TenantSwitcherProps) {
   const { data: tenants } = useTenants();
   const [open, setOpen] = React.useState(false);
-  const router = useRouter();
-  const pathname = usePathname() ?? "";
 
   // Use prop or fallback to local storage/profile
   const effectiveTenantId = activeTenantId || currentTenant?.id;

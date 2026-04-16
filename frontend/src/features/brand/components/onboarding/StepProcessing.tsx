@@ -31,12 +31,10 @@ export function StepProcessing({
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState("Preparando extracción...");
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const activeJobRef = useRef<string | null>(jobId);
 
   const startExtraction = useCallback(async () => {
-    setIsSubmitting(true);
     setError(null);
 
     try {
@@ -56,8 +54,6 @@ export function StepProcessing({
       onJobStarted(result.job_id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al iniciar extracción");
-    } finally {
-      setIsSubmitting(false);
     }
   }, [url, files, getToken, onJobStarted]);
 

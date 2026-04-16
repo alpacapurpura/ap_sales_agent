@@ -101,7 +101,7 @@ export function ShopifyView() {
       if (!token) return;
 
       // Use quick-connect (client credentials) — works for own stores
-      const res = await connectionsApi.quickConnectShopify({ shop_url: cleanShopUrl }, token);
+      await connectionsApi.quickConnectShopify({ shop_url: cleanShopUrl }, token);
       toast.success("Shopify conectado exitosamente");
       void fetchStatus();
     } catch (error: unknown) {

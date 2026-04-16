@@ -220,7 +220,7 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
     defaultMetricLabel: string;
     baseColor?: string;
   }) => {
-    let Icon: React.ReactNode = "🔹";
+    let Icon: React.ReactNode = "❖";
     let bgColor = "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300";
     let borderColor = "hover:border-slate-300 dark:hover:border-slate-600";
 
@@ -268,8 +268,6 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
       Icon = <BrandIcon name={channel.slug} className="w-5 h-5" />;
     } else if (channel.slug.includes("mail") || channel.slug.includes("email")) {
       Icon = <BrandIcon name={channel.slug} className="w-5 h-5" />;
-    } else {
-      Icon = "❖";
     }
 
     const mainVal =

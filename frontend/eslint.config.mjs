@@ -56,7 +56,7 @@ export default [
       "sonarjs/unused-import": "warn",
       "sonarjs/no-unused-collection": "warn",
       "sonarjs/no-redundant-assignments": "warn",
-      "sonarjs/no-dead-store": "warn",
+      "sonarjs/no-dead-store": "error",
       "sonarjs/no-gratuitous-expressions": "error",
       "sonarjs/no-identical-conditions": "error",
       "sonarjs/no-collapsible-if": "warn",
@@ -261,7 +261,7 @@ export default [
       "@typescript-eslint/require-await": "warn",
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/prefer-nullish-coalescing": "warn",
-      "@typescript-eslint/no-non-null-assertion": "warn",
+      "@typescript-eslint/no-non-null-assertion": "error",
       // Phase 1A: warn for unsafe any usage; Phase 1B: consider stricter rules
       "@typescript-eslint/no-unsafe-assignment": "warn",
       "@typescript-eslint/no-unsafe-return": "warn",
@@ -445,6 +445,8 @@ export default [
       "max-lines": "off",
       "max-lines-per-function": "off",
       "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-non-null-assertion": "warn",
+      "sonarjs/no-dead-store": "warn",
     },
   },
 

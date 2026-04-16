@@ -264,7 +264,7 @@ export default function BookingPage({
           {data.event_type.confirmation_button?.enabled &&
           data.event_type.confirmation_button.url ? (
             <Button
-              onClick={() => (window.location.href = data.event_type.confirmation_button!.url!)}
+              onClick={() => (window.location.href = data.event_type.confirmation_button?.url ?? "")}
               variant="outline"
               className="w-full border-neutral-700 hover:bg-neutral-800 text-white"
             >

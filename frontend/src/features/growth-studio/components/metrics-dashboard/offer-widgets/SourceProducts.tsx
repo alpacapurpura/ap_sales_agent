@@ -18,11 +18,6 @@ import type { Offer } from "@/features/offer-studio/types";
 const EMPTY_PRODUCTS: SourceProduct[] = [];
 const EMPTY_OFFERS: Offer[] = [];
 
-const SOURCE_LABELS: Record<string, string> = {
-  shopify: "Shopify",
-  woocommerce: "WooCommerce",
-  stripe: "Stripe",
-};
 
 interface SourceProductsProps {
   source?: string;
@@ -78,8 +73,6 @@ export function SourceProducts({ source = "shopify" }: SourceProductsProps) {
 
   if (loadingProducts) return null;
   if (unmappedProducts.length === 0) return null;
-
-  const sourceLabel = SOURCE_LABELS[source] || source;
 
   const formatCurrency = (value: number, currency: string | null) =>
     new Intl.NumberFormat("es-MX", {

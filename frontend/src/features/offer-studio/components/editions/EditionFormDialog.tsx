@@ -70,7 +70,7 @@ export function EditionFormDialog({
   const [endDate, setEndDate] = useState(toLocalInputValue(edition?.end_date));
   const [regStart, setRegStart] = useState(toLocalInputValue(edition?.registration_start));
   const [regEnd, setRegEnd] = useState(toLocalInputValue(edition?.registration_end));
-  const [tz, setTz] = useState(edition?.timezone ?? "America/Lima");
+  const [tz] = useState(edition?.timezone ?? "America/Lima");
   const [capacity, setCapacity] = useState<string>(edition?.capacity?.toString() ?? "");
   const [status, setStatus] = useState<EditionStatus>(edition?.status ?? EditionStatus.DRAFT);
   const [pricingOverride, setPricingOverride] = useState<PricingStructure[] | null>(
@@ -85,7 +85,7 @@ export function EditionFormDialog({
     try {
       const data: LaunchEditionCreate & LaunchEditionUpdate = {
         edition_name: name || undefined,
-        start_date: fromLocalInputValue(startDate)!,
+        start_date: fromLocalInputValue(startDate) ?? "",
         end_date: fromLocalInputValue(endDate),
         registration_start: fromLocalInputValue(regStart),
         registration_end: fromLocalInputValue(regEnd),

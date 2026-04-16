@@ -241,6 +241,7 @@ export function ChannelDetailSidebar({
       return;
     }
 
+    const resolvedProvider = providerName;
     let cancelled = false;
     async function fetchInfo() {
       setLoading(true);
@@ -248,7 +249,7 @@ export function ChannelDetailSidebar({
       try {
         const token = await getToken();
         if (!token || cancelled) return;
-        const data = await connectionsApi.getChannelInfo(providerName!, token);
+        const data = await connectionsApi.getChannelInfo(resolvedProvider, token);
         if (!cancelled) setInfo(data);
       } catch (e: unknown) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Error cargando info");

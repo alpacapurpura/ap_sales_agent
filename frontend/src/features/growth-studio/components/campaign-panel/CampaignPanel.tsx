@@ -64,7 +64,9 @@ export function CampaignPanel() {
     );
   }
 
-  const overview = data!;
+  if (!data) return null;
+
+  const overview = data;
 
   return (
     <div className="space-y-4">

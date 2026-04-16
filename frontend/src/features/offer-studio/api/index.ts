@@ -46,7 +46,6 @@ export const offerApi = {
         clearTimeout(timeoutId);
 
         if (!res.ok) {
-          const errorText = await res.text();
           throw new Error(`Failed to list offers: ${res.statusText}`);
         }
         const data: BackendOffer[] = await res.json();

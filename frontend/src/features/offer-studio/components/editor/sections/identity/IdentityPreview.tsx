@@ -50,7 +50,6 @@ export const IdentityPreview = ({ data: propsData, onEdit }: IdentityPreviewProp
 
   // Calculate text colors for accessibility using the utility
   const textPrimary = visuals?.text_primary_color || getContrastColor(bgColor);
-  const textOnPrimary = getContrastColor(primaryColor);
 
   // Dynamic Styles
   const containerStyle = {

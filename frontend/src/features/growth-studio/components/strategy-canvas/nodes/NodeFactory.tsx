@@ -13,15 +13,6 @@ export interface NodeFactoryProps {
 }
 
 export const NodeFactory: React.FC<NodeFactoryProps> = ({ node, x, y, width, height }) => {
-  const isPositiveTrend = node.efficiencyMetric.trend === "up";
-  const isNegativeTrend = node.efficiencyMetric.trend === "down";
-
-  const trendColor = isPositiveTrend
-    ? "text-emerald-600"
-    : isNegativeTrend
-      ? "text-red-600"
-      : "text-gray-500";
-
   return (
     <Group top={y} left={x}>
       {/* Node label rendered above the node */}

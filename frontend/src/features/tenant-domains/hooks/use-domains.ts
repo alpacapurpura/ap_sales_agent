@@ -85,7 +85,6 @@ export function useVerifyDomain() {
 
 export function useGetDomainInstructions() {
   const { getToken } = useAuth();
-  const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {

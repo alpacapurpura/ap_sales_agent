@@ -1,7 +1,7 @@
 "use client";
 
 import { Activity, Calendar, Clock, CornerDownLeft, Layers, Settings } from "lucide-react";
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
@@ -40,26 +40,6 @@ export const AdoptionDetail = React.memo(function AdoptionDetail({
   const { timezone } = useTenantLocale();
   const { data, isLoading, error, refetch } = useAdoptionDetail();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-
-  const healthColor = useMemo(
-    () =>
-      !data
-        ? ""
-        : data.headerKpis.healthPct >= 70
-          ? "text-emerald-600 dark:text-emerald-400"
-          : "text-amber-600 dark:text-amber-400",
-    [data],
-  );
-
-  const adoptionRate = useMemo(() => {
-    if (!data) return 0;
-    return (
-      data.miniFunnel?.conversionRate ||
-      (data.headerKpis.activeCustomers > 0 && data.miniFunnel.sourceValue > 0
-        ? (data.headerKpis.activeCustomers / data.miniFunnel.sourceValue) * 100
-        : 0)
-    );
-  }, [data]);
 
   if (isLoading) {
     return (

@@ -190,8 +190,8 @@ export function OfferLadder({ adquisicion, expansion, onMetricClick }: OfferLadd
     const combinedOffers = new Map<string, OfferSaleData>();
 
     [...adqOffers, ...expOffers].forEach((offer) => {
-      if (combinedOffers.has(offer.offerId)) {
-        const existing = combinedOffers.get(offer.offerId)!;
+      const existing = combinedOffers.get(offer.offerId);
+      if (existing !== undefined) {
         existing.totalRevenue += offer.totalRevenue;
         existing.salesCount += offer.salesCount;
         if (offer.usdRevenue) existing.usdRevenue = (existing.usdRevenue || 0) + offer.usdRevenue;

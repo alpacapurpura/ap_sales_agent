@@ -198,7 +198,7 @@ function CollapsedGroupItem({
     <Tooltip>
       <TooltipTrigger asChild>
         <NavLink
-          href={item.children![0].href}
+          href={item.children?.[0]?.href ?? "#"}
           showLoadingIcon={false}
           loadingClassName="opacity-70"
           className={cn(
@@ -221,7 +221,7 @@ function CollapsedGroupItem({
           <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground">
             {item.title}
           </div>
-          {item.children!.map((child) => {
+          {(item.children ?? []).map((child) => {
             const isChildActive = pathname.startsWith(child.href);
             return (
               <NavLink
@@ -300,7 +300,7 @@ function ExpandedGroupItem({
         )}
       >
         <div className="ml-5 pl-4 border-l-2 border-border/50 space-y-1 py-1">
-          {item.children!.map((child) => {
+          {(item.children ?? []).map((child) => {
             const isChildActive = pathname.startsWith(child.href);
             return (
               <NavLink

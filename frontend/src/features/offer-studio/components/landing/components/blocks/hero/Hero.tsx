@@ -183,16 +183,6 @@ interface CTAProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 function CTA({ className, children, icon = true, ...props }: CTAProps) {
   const { layout, primaryColor } = useHeroContext();
 
-  // Wrapper styles if needed (e.g. centering)
-  const wrapperStyles = {
-    centered: "pt-8 flex flex-col items-center justify-center gap-4",
-    split: "flex flex-col sm:flex-row gap-4 pt-4",
-    background: "pt-8",
-    vsl: "pt-6 max-w-xl mx-auto space-y-4",
-    urgency: "pt-6",
-    quiz: "grid gap-3 text-left mt-8",
-  };
-
   // Button specific styles
   const buttonStyles = {
     centered:
@@ -288,8 +278,6 @@ function Tag({
   className?: string;
   variant?: "default" | "secondary" | "destructive" | "outline";
 }) {
-  const { layout } = useHeroContext();
-
   // Default variants per layout if not specified could be handled here, but sticking to passed props + defaults
   return (
     <Badge variant={variant} className={cn("mb-4", className)}>

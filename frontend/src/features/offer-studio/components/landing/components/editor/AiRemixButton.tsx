@@ -31,9 +31,6 @@ export function AiRemixButton({ offerId }: AiRemixButtonProps) {
 
   // Get selected item
   const { itemSelector } = appState.ui;
-  const selectedItem = itemSelector
-    ? appState.data.content.find((item) => item.props.id === itemSelector.index)
-    : null;
 
   // If no item selected or multiple, don't show (or show disabled)
   // Note: itemSelector.index is actually the ID in Puck v0.14? Or the index?
@@ -63,7 +60,7 @@ export function AiRemixButton({ offerId }: AiRemixButtonProps) {
       dispatch({
         type: "replace",
         destinationIndex: itemSelector.index,
-        destinationZone: itemSelector.zone!,
+        destinationZone: itemSelector?.zone ?? "",
         data: {
           ...selectedBlock,
           props: {

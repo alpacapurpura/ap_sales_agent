@@ -52,8 +52,6 @@ export function EventTypeSidebar({
 }: EventTypeSidebarProps) {
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [connectedEmail, setConnectedEmail] = useState<string | null>(null);
-
   // Form State
   const [formData, setFormData] = useState<Partial<EventType>>({
     title: "",
@@ -149,14 +147,14 @@ export function EventTypeSidebar({
   const updateSchedulingLimit = (field: string, value: string | number | boolean | null) => {
     setFormData((prev) => ({
       ...prev,
-      scheduling_limits: { ...prev.scheduling_limits!, [field]: value },
+      scheduling_limits: { ...prev.scheduling_limits, [field]: value } as EventType["scheduling_limits"],
     }));
   };
 
   const updateBookingConfig = (field: string, value: string | number | boolean | null) => {
     setFormData((prev) => ({
       ...prev,
-      booking_config: { ...prev.booking_config!, [field]: value },
+      booking_config: { ...prev.booking_config, [field]: value } as EventType["booking_config"],
     }));
   };
 
@@ -164,7 +162,7 @@ export function EventTypeSidebar({
     setFormData((prev) => ({
       ...prev,
       confirmation_button: {
-        ...prev.confirmation_button!,
+        ...(prev.confirmation_button ?? {}),
         enabled: prev.confirmation_button?.enabled ?? false,
         [field]: value,
       },

@@ -60,28 +60,6 @@ export function useWhatsApp() {
     return () => stopPolling();
   }, [getToken, stopPolling]);
 
-  const checkStatus = useCallback(async () => {
-    try {
-      const token = await getToken();
-      if (!token) return;
-
-      const data = await whatsappApi.getStatus(token);
-      setStatus(data);
-
-      // Stop polling if connected
-      if (data.evolution.status === "connected") {
-        setIsScanning(false);
-        stopPolling();
-      } else if (!pollInterval.current) {
-        startPolling();
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }, [getToken, stopPolling, startPolling]);
-
   const generateQR = async () => {
     setIsScanning(true);
     setLoading(true);

@@ -16,18 +16,14 @@ import type { ActivityItem } from "../../api/dashboard-service";
 
 export function ActivityFeedWidget() {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadActivity = async () => {
       try {
-        setLoading(true);
         const data = await dashboardService.getActivity();
         setActivities(data);
       } catch (error) {
         console.error("Error loading activity feed:", error);
-      } finally {
-        setLoading(false);
       }
     };
     void loadActivity();

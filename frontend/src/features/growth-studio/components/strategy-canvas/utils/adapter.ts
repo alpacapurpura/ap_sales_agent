@@ -51,8 +51,8 @@ export const adaptStrategyToVisx = (config: StrategyCanvasConfig): VisxGraphData
       ...link,
       // d3-sankey expects numbers initially, but will replace them with objects.
       // We must provide fresh objects to avoid mutation issues.
-      source: nodeIndexMap.get(link.source)!,
-      target: nodeIndexMap.get(link.target)!,
+      source: nodeIndexMap.get(link.source) ?? 0,
+      target: nodeIndexMap.get(link.target) ?? 0,
       originalSource: link.source,
       originalTarget: link.target,
     }));

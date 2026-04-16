@@ -42,7 +42,6 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
     updateStory,
     updateStrategy,
     updateTestimonials,
-    updateAllSettings,
   } = useBrandSettings();
 
   const {

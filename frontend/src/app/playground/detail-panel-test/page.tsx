@@ -18,7 +18,7 @@ import { useCopilotStore } from "@/features/copilot/store/copilot-store";
  */
 export default function DetailPanelTestPage() {
   const [panelOpen, setPanelOpen] = useState(false);
-  const { isOpen: copilotOpen, togglePanel, openPanel, closePanel } = useCopilotStore();
+  const { isOpen: copilotOpen, togglePanel } = useCopilotStore();
 
   return (
     <div className="min-h-screen bg-slate-50 p-8" style={{ paddingRight: copilotOpen ? 380 : 60 }}>

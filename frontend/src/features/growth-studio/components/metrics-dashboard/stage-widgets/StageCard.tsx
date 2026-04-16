@@ -35,9 +35,6 @@ function formatKpiValue(value: number | string, unit?: string): string {
   return value.toLocaleString("es-MX");
 }
 
-function formatConversionRate(rate: number): string {
-  return `${rate.toFixed(1)}% Conversión`;
-}
 
 export function StageCard({
   stage,
@@ -46,13 +43,6 @@ export function StageCard({
   isLoading = false,
   isMock = false,
 }: StageCardProps) {
-  // Derive secondary KPI display: prefer conversion rate from stage data pattern
-  // StageSummary.secondaryKpi carries either conversionRate or another metric
-  const secondaryText =
-    stage.secondaryKpi.unit === "%"
-      ? formatConversionRate(stage.secondaryKpi.value as number)
-      : formatKpiValue(stage.secondaryKpi.value, stage.secondaryKpi.unit);
-
   return (
     <div
       onClick={onClick}

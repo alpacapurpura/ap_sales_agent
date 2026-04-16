@@ -2,7 +2,6 @@
 
 import { useClerk, useUser } from "@clerk/nextjs";
 import { LogOut, Rocket, User, Mail } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,6 @@ import {
 export default function OnboardingPage() {
   const { signOut } = useClerk();
   const { user } = useUser();
-  const router = useRouter();
 
   // Redirect if user suddenly gets a tenant (e.g., admin assigns them)
   useEffect(() => {

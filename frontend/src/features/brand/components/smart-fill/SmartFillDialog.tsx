@@ -308,8 +308,9 @@ export function SmartFillDialog({
                           accept=".pdf,.docx,.txt,.md"
                           className="absolute inset-0 opacity-0 cursor-pointer z-10"
                           onChange={(e) => {
-                            if (e.target.files)
-                              setFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+                            const { files } = e.target;
+                            if (files)
+                              setFiles((prev) => [...prev, ...Array.from(files)]);
                             e.target.value = "";
                           }}
                         />

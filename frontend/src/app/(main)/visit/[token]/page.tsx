@@ -132,6 +132,7 @@ export default function PublicVisitPage({ params }: { params: Promise<{ token: s
   }
 
   if (step === "success") {
+    if (!selectedSlot) return null;
     return (
       <div className="min-h-screen flex items-center justify-center bg-black/95 p-4">
         <Card className="w-full max-w-md text-center py-8 border-green-900/30 bg-green-950/10">
@@ -147,11 +148,11 @@ export default function PublicVisitPage({ params }: { params: Promise<{ token: s
           <CardContent>
             <div className="bg-black/40 p-4 rounded-lg mb-6 border border-green-900/30">
               <p className="font-medium text-green-400">
-                {format(new Date(selectedSlot!), "EEEE d 'de' MMMM", { locale: es })}
+                {format(new Date(selectedSlot), "EEEE d 'de' MMMM", { locale: es })}
               </p>
               <p className="text-green-500/80">
-                {format(new Date(selectedSlot!), "h:mm a", { locale: es })} -{" "}
-                {format(new Date(new Date(selectedSlot!).getTime() + 30 * 60000), "h:mm a")}
+                {format(new Date(selectedSlot), "h:mm a", { locale: es })} -{" "}
+                {format(new Date(new Date(selectedSlot).getTime() + 30 * 60000), "h:mm a")}
               </p>
             </div>
             <Button
@@ -356,9 +357,11 @@ export default function PublicVisitPage({ params }: { params: Promise<{ token: s
                   <h2 className="text-xl font-bold mb-1 text-white">Confirma tus datos</h2>
                   <p className="text-sm text-neutral-400 mb-8">
                     Para agendar el{" "}
-                    {format(new Date(selectedSlot!), "EEEE d 'de' MMMM 'a las' h:mm a", {
-                      locale: es,
-                    })}
+                    {selectedSlot
+                      ? format(new Date(selectedSlot), "EEEE d 'de' MMMM 'a las' h:mm a", {
+                          locale: es,
+                        })
+                      : ""}
                   </p>
 
                   <form onSubmit={handleBook} className="space-y-5">
