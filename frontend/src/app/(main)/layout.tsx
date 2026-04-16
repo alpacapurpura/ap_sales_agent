@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { TenantGuard } from "@/components/auth/tenant-guard";
 
-import Providers from "../providers";
+import { Providers } from "../providers";
 
 import type { Metadata } from "next";
 

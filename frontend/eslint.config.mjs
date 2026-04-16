@@ -95,7 +95,7 @@ export default [
       "import/no-named-as-default": "warn",
       "import/no-named-as-default-member": "warn",
       // Coherence: no default exports (except Next.js pages — see override below)
-      "import/no-default-export": "warn",
+      "import/no-default-export": "error",
     },
   },
 
@@ -108,7 +108,9 @@ export default [
       "src/app/**/error.tsx",
       "src/app/**/not-found.tsx",
       "src/app/**/route.ts",
+      "src/app/global-error.tsx", // Next.js global error boundary — requires default export
       "src/middleware.ts",
+      "src/proxy.ts", // Next.js middleware variant (clerkMiddleware — requires default export)
     ],
     rules: {
       "import/no-default-export": "off",
@@ -351,7 +353,7 @@ export default [
     plugins: { "check-file": checkFile },
     rules: {
       "check-file/filename-naming-convention": [
-        "warn",
+        "error",
         {
           // React components: PascalCase
           "src/features/**/components/**/*.tsx": "PASCAL_CASE",
@@ -361,12 +363,18 @@ export default [
           "src/features/**/types/*.ts": "KEBAB_CASE",
           "src/features/**/utils/*.ts": "KEBAB_CASE",
           "src/features/**/config/*.ts": "KEBAB_CASE",
+          "src/features/**/hooks/*.ts": "KEBAB_CASE",
+          "src/features/**/lib/*.ts": "KEBAB_CASE",
+          "src/features/**/context/*.ts": "KEBAB_CASE",
+          "src/features/**/store/*.ts": "KEBAB_CASE",
+          "src/features/**/services/*.ts": "KEBAB_CASE",
           "src/lib/**/*.ts": "KEBAB_CASE",
+          "src/hooks/*.ts": "KEBAB_CASE",
         },
         { ignoreMiddleExtensions: true },
       ],
       "check-file/folder-naming-convention": [
-        "warn",
+        "error",
         {
           // All folders kebab-case (Next.js special dirs handled by ignoreMiddleExtensions)
           "src/features/**/": "KEBAB_CASE",

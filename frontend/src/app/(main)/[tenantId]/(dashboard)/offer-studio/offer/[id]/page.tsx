@@ -2,7 +2,7 @@
 
 import { use } from "react";
 
-import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { OfferEditorContent } from "@/features/offer-studio/components/editor/OfferEditorContent";
 
 /**
