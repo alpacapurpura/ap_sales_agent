@@ -63,7 +63,7 @@ class TestCampaignSeparation:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.create_google_ads_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
@@ -116,7 +116,7 @@ class TestCampaignSeparation:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.create_google_ads_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
@@ -154,7 +154,7 @@ class TestCampaignSeparation:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.create_google_ads_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
@@ -206,7 +206,7 @@ class TestRetargetingExtraction:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.create_google_ads_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
@@ -266,7 +266,7 @@ class TestDailyExtraction:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.create_google_ads_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
@@ -312,7 +312,7 @@ class TestDailyExtraction:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.create_google_ads_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
@@ -348,7 +348,7 @@ class TestGoogleAdsErrorHandling:
     @pytest.mark.asyncio
     async def test_empty_results(self):
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.create_google_ads_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=[])

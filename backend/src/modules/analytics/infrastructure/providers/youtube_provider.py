@@ -7,9 +7,10 @@ Metrics: overview (views, engagement, watch_time, subs, comments, shares, avg_vi
 Uses existing YouTubeAnalyticsAdapter wrapped in asyncio.to_thread() (sync Google SDK).
 """
 
+from __future__ import annotations
+
 import asyncio
-from datetime import date
-from uuid import UUID
+from typing import TYPE_CHECKING
 
 import structlog
 from google.auth.exceptions import RefreshError, TransportError
@@ -20,9 +21,15 @@ from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )
-from src.modules.connections.infrastructure.channels.youtube_analytics import (
-    YouTubeAnalyticsAdapter,
-)
+from src.shared.links.ports.channel_adapter import create_youtube_adapter
+
+if TYPE_CHECKING:
+    from datetime import date
+    from uuid import UUID
+
+    from src.modules.connections.infrastructure.channels.youtube_analytics import (
+        YouTubeAnalyticsAdapter,
+    )
 
 logger = structlog.get_logger(__name__)
 
@@ -63,7 +70,7 @@ class YouTubeProvider(BaseMetricsProvider):
             logger.warning("youtube_provider_no_credentials tenant=%s", tenant_id)
             return ExtractionResult()
 
-        adapter = YouTubeAnalyticsAdapter(credentials_data=credentials)
+        adapter = create_youtube_adapter(credentials_data=credentials)
 
         # Sub-extractor 1: Overview (core metrics)
         try:

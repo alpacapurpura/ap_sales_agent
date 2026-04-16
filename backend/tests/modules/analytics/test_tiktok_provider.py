@@ -37,7 +37,7 @@ class TestTikTokOrganic:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.tiktok_provider.TikTokAdapter",
+            "src.modules.analytics.infrastructure.providers.tiktok_provider.create_tiktok_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.get_organic_insights = AsyncMock(return_value=mock_organic)
@@ -79,7 +79,7 @@ class TestTikTokAds:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.tiktok_provider.TikTokAdapter",
+            "src.modules.analytics.infrastructure.providers.tiktok_provider.create_tiktok_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.get_organic_insights = AsyncMock(return_value=[])
@@ -122,7 +122,7 @@ class TestTikTokProviderErrorHandling:
     @pytest.mark.asyncio
     async def test_adapter_exception(self):
         with patch(
-            "src.modules.analytics.infrastructure.providers.tiktok_provider.TikTokAdapter",
+            "src.modules.analytics.infrastructure.providers.tiktok_provider.create_tiktok_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.get_organic_insights = AsyncMock(

@@ -18,18 +18,24 @@ from tests.architecture.conftest import (
 # Expected format — "source_module -> target_module | file_relative_path"
 # ──────────────────────────────────────────────────────────────
 KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
-    # --- analytics ---
+    # ── DI WIRING (correct ports & adapters) ──────────────────
+    # API layer imports concrete adapter for shared port via Depends().
+    # Architecturally correct — composition root pattern.
+    "analytics -> brand | analytics/api/metrics.py",
     "analytics -> connections | analytics/api/metrics.py",
+    "analytics -> offer | analytics/api/metrics.py",
+    "connections -> sales_agent | connections/api/dependencies/__init__.py",
+    "offer -> advertising | offer/api/campaigns.py",
+    "offer -> advertising | offer/api/counts.py",
+    "offer -> copilot | offer/api/offer_ai.py",
+    # ── DI WIRING (lazy factory in service) ───────────────────
+    # Services create ConnectionPortImpl with isolated DB sessions
+    # for parallel extraction workers.
     "analytics -> connections | analytics/application/services/campaign_service.py",
     "analytics -> connections | analytics/application/services/etl_service.py",
-    "analytics -> connections | analytics/application/services/metrics_service.py",
-    "analytics -> connections | analytics/infrastructure/providers/google_ads_provider.py",
-    "analytics -> connections | analytics/infrastructure/providers/google_analytics_provider.py",
-    "analytics -> connections | analytics/infrastructure/providers/search_console_provider.py",
-    "analytics -> connections | analytics/infrastructure/providers/tiktok_provider.py",
-    "analytics -> connections | analytics/infrastructure/providers/youtube_provider.py",
-    "analytics -> connections | analytics/workers/manychat_sync.py",
-    "analytics -> connections | analytics/workers/tasks.py",
+    # ── CRM ORM QUERIES (analytics stage repos) ──────────────
+    # Stage repos JOIN CRM tables for dashboard metrics.
+    # Read-only aggregates. Port would need 50+ query methods.
     "analytics -> crm | analytics/application/services/etl_service.py",
     "analytics -> crm | analytics/application/services/ig_dm_sync_service.py",
     "analytics -> crm | analytics/application/services/metrics_service.py",
@@ -44,52 +50,32 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     "analytics -> crm | analytics/infrastructure/repositories/nurture_repository.py",
     "analytics -> crm | analytics/infrastructure/repositories/opportunity_repository.py",
     "analytics -> crm | analytics/infrastructure/repositories/sales_metrics_repository.py",
+    # ── ETL PRODUCT MAPPING ───────────────────────────────────
+    "analytics -> offer | analytics/application/services/etl_service.py",
+    # ── WORKERS (multi-module batch) ──────────────────────────
+    # (eliminated: analytics → connections for workers via shared/links/ports/channel_adapter)
     "analytics -> crm | analytics/workers/manychat_sync.py",
     "analytics -> crm | analytics/workers/tasks.py",
-    "analytics -> brand | analytics/api/metrics.py",  # BrandReadPort DI (same pattern as OfferReadPort)
-    "analytics -> offer | analytics/api/metrics.py",
-    "analytics -> offer | analytics/application/services/etl_service.py",
-    # --- connections ---
+    # ── WEBHOOK / EVENT INTEGRATION ───────────────────────────
     "connections -> analytics | connections/api/channel_info.py",
     "connections -> analytics | connections/api/marketing_webhooks.py",
-    "connections -> analytics | connections/application/services/connection_port_impl.py",
-    "connections -> crm | connections/api/calendar.py",
     "connections -> crm | connections/api/marketing_webhooks.py",
     "connections -> offer | connections/api/marketing_webhooks.py",
-    "connections -> sales_agent | connections/api/meta.py",
-    "connections -> sales_agent | connections/api/telegram.py",
-    "connections -> sales_agent | connections/api/webhook.py",
-    "connections -> sales_agent | connections/api/whatsapp.py",
-    "connections -> scheduling | connections/api/calendar.py",
-    # --- offer ---
-    "offer -> copilot | offer/api/offer_ai.py",
+    # ── OFFER ↔ CRM (product mapping backfill) ────────────────
     "offer -> crm | offer/api/product_mappings.py",
-    # AdvertisingReadPort DI at the FastAPI route (same pattern as BrandReadPort):
-    # offer declares the shared port, advertising ships the concrete adapter,
-    # and the router wires it via Depends() at request time. No runtime
-    # coupling — only the adapter import.
-    "offer -> advertising | offer/api/campaigns.py",
-    "offer -> advertising | offer/api/counts.py",
-    # --- sales_agent ---
-    "sales_agent -> brand | sales_agent/application/services/knowledge_builder.py",
-    "sales_agent -> connections | sales_agent/application/orchestrator/chat.py",
-    "sales_agent -> connections | sales_agent/application/services/channel_resolver.py",
-    "sales_agent -> connections | sales_agent/application/services/channel_service.py",
+    # ── SALES AGENT ↔ CRM (runtime data access) ──────────────
     "sales_agent -> crm | sales_agent/api/audit.py",
     "sales_agent -> crm | sales_agent/api/closer_studio.py",
     "sales_agent -> crm | sales_agent/application/orchestrator/chat.py",
     "sales_agent -> crm | sales_agent/application/services/closer_studio_service.py",
     "sales_agent -> crm | sales_agent/infrastructure/memory/audit_repository.py",
     "sales_agent -> crm | sales_agent/workers/follow_up_engine.py",
+    # ── SALES AGENT ↔ CONNECTIONS/OFFER ───────────────────────
+    # (eliminated: sales_agent → connections via shared/links/ports/channel_adapter + calendar)
     "sales_agent -> offer | sales_agent/application/services/knowledge_builder.py",
     "sales_agent -> offer | sales_agent/infrastructure/db/repositories/business_repository.py",
-    "sales_agent -> scheduling | sales_agent/api/dto/public_links.py",
-    "sales_agent -> scheduling | sales_agent/application/agents/sales/tools.py",
-    # --- scheduling ---
-    "scheduling -> connections | scheduling/application/services/availability_service.py",
-    "scheduling -> crm | scheduling/api/agenda.py",
-    "scheduling -> crm | scheduling/application/services/availability_service.py",
-    "scheduling -> tenant_domains | scheduling/application/booking_url.py",
+    # ── SCHEDULING CROSS-CUTS ─────────────────────────────────
+    # (eliminated: scheduling → connections + crm via shared/links/ports/calendar + lead_resolution)
 }
 
 

@@ -10,10 +10,12 @@ Uses GoogleAdsAdapter.run_gaql_query() wrapped in asyncio.to_thread()
 (sync Google Ads SDK).
 """
 
+from __future__ import annotations
+
 import os
 from collections import defaultdict
 from datetime import date
-from uuid import UUID
+from typing import TYPE_CHECKING
 
 import structlog
 from google.auth.exceptions import RefreshError, TransportError
@@ -24,10 +26,15 @@ from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )
-from src.modules.connections.infrastructure.channels.google_ads import (
-    GoogleAdsAdapter,
-)
 from src.shared.domain.currency import FALLBACK_CURRENCY
+from src.shared.links.ports.channel_adapter import create_google_ads_adapter
+
+if TYPE_CHECKING:
+    from uuid import UUID
+
+    from src.modules.connections.infrastructure.channels.google_ads import (
+        GoogleAdsAdapter,
+    )
 
 logger = structlog.get_logger(__name__)
 
@@ -105,7 +112,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
             )
             return ExtractionResult()
 
-        adapter = GoogleAdsAdapter()
+        adapter = create_google_ads_adapter()
         metrics: list[ExtractedMetric] = []
         failures = []
 
@@ -375,7 +382,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         if not customer_id or not developer_token:
             return ExtractionResult()
 
-        adapter = GoogleAdsAdapter()
+        adapter = create_google_ads_adapter()
 
         # Resolve account currency
         account_currency = await adapter.get_account_currency(

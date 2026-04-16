@@ -19,9 +19,7 @@ from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )
-from src.modules.connections.infrastructure.channels.search_console import (
-    SearchConsoleAdapter,
-)
+from src.shared.links.ports.channel_adapter import create_search_console_adapter
 
 logger = structlog.get_logger(__name__)
 
@@ -81,7 +79,7 @@ class SearchConsoleProvider(BaseMetricsProvider):
             # Warning is logged once in extract_metrics_daily — skip here
             return ExtractionResult()
 
-        adapter = SearchConsoleAdapter(credentials_data=credentials)
+        adapter = create_search_console_adapter(credentials_data=credentials)
         metrics: list[ExtractedMetric] = []
 
         try:

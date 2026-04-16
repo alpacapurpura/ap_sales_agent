@@ -12,8 +12,9 @@ Uses existing GoogleAnalyticsAdapter.run_report() wrapped in
 asyncio.to_thread() (sync Google SDK).
 """
 
-from datetime import date
-from uuid import UUID
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import structlog
 from google.auth.exceptions import RefreshError, TransportError
@@ -24,9 +25,15 @@ from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )
-from src.modules.connections.infrastructure.channels.google_analytics import (
-    GoogleAnalyticsAdapter,
-)
+from src.shared.links.ports.channel_adapter import create_google_analytics_adapter
+
+if TYPE_CHECKING:
+    from datetime import date
+    from uuid import UUID
+
+    from src.modules.connections.infrastructure.channels.google_analytics import (
+        GoogleAnalyticsAdapter,
+    )
 
 logger = structlog.get_logger(__name__)
 
@@ -152,7 +159,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             "client_id": credentials.get("client_id", ""),
             "client_secret": credentials.get("client_secret", ""),
         }
-        return GoogleAnalyticsAdapter(
+        return create_google_analytics_adapter(  # type: ignore[return-value]
             client_config=client_config,
             credentials_data=credentials,
         )

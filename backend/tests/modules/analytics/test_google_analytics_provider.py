@@ -74,7 +74,7 @@ class TestGA4Segmentation:
         }
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter",
+            "src.modules.analytics.infrastructure.providers.google_analytics_provider.create_google_analytics_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_report = AsyncMock(return_value=mock_report)
@@ -133,7 +133,7 @@ class TestGA4Segmentation:
         }
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter",
+            "src.modules.analytics.infrastructure.providers.google_analytics_provider.create_google_analytics_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_report = AsyncMock(return_value=mock_report)
@@ -189,7 +189,7 @@ class TestGA4Segmentation:
         }
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter",
+            "src.modules.analytics.infrastructure.providers.google_analytics_provider.create_google_analytics_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_report = AsyncMock(return_value=mock_report)
@@ -247,7 +247,7 @@ class TestGA4DailyExtraction:
         }
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter",
+            "src.modules.analytics.infrastructure.providers.google_analytics_provider.create_google_analytics_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_report = AsyncMock(return_value=mock_report)
@@ -307,7 +307,7 @@ class TestGAProviderErrorHandling:
         mock_report = {"row_count": 0, "rows": [], "metadata": {}}
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter",
+            "src.modules.analytics.infrastructure.providers.google_analytics_provider.create_google_analytics_adapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_report = AsyncMock(return_value=mock_report)

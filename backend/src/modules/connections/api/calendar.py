@@ -10,6 +10,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.connections.api.dto.calendar import (
+    BookMeetingRequest,
+    CalendarStatusResponse,
+    CreateBookingLinkRequest,
+)
 from src.modules.connections.api.dto.common import (
     AppointmentItem,
     BookingLinkResponse,
@@ -25,24 +30,17 @@ from src.modules.connections.infrastructure.channels.google_calendar import (
 from src.modules.connections.infrastructure.repositories import (
     ChannelConnectionRepository,
 )
-from src.modules.crm.domain.lead import Lead
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.scheduling.api.dto.calendar import (
-    BookMeetingRequest,
-    CalendarStatusResponse,
-    CreateBookingLinkRequest,
-)
-from src.modules.scheduling.application.booking_url import get_booking_base_url
-from src.modules.scheduling.application.services.availability_service import (
-    AvailabilityService,
-)
-from src.modules.scheduling.domain.availability_schema import (
-    AvailabilitySchedule,
-    ScheduleUpdate,
-)
-from src.modules.scheduling.infrastructure.models.booking_link import BookingLink
+from src.shared.domain.schemas.scheduling import AvailabilitySchedule, ScheduleUpdate
 from src.shared.links.models import ShareableLink
+from src.shared.links.ports.domain_lookup import create_domain_lookup
+from src.shared.links.ports.lead_resolution import verify_lead_exists
+from src.shared.links.ports.scheduling import (
+    create_personalized_booking_link,
+    get_availability_service,
+    get_booking_base_url,
+)
 from src.shared.links.service import LinkService
 
 router = APIRouter(tags=["calendar"])
@@ -120,7 +118,7 @@ async def get_status(
     )
     link = db.execute(stmt).scalars().first()
 
-    base_url = get_booking_base_url(user.tenant_id, db)
+    base_url = get_booking_base_url(user.tenant_id, create_domain_lookup(db))
     booking_link = f"{base_url}/visit/{link.token}" if link else None
 
     if not connection:
@@ -148,7 +146,7 @@ async def create_booking_link(
         target_type="booking",
         created_by=user.id,
     )
-    base_url = get_booking_base_url(user.tenant_id, db)
+    base_url = get_booking_base_url(user.tenant_id, create_domain_lookup(db))
     return {"token": link.token, "url": f"{base_url}/visit/{link.token}"}
 
 
@@ -159,17 +157,7 @@ async def create_personalized_link(
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str | datetime.datetime | None]:
     """Create personalized link."""
-    lead = (
-        db.execute(
-            select(Lead).where(
-                Lead.id == payload.lead_id,
-                Lead.tenant_id == user.tenant_id,
-            ),
-        )
-        .scalars()
-        .first()
-    )
-    if not lead:
+    if not verify_lead_exists(db, user.tenant_id, payload.lead_id):
         raise HTTPException(status_code=404, detail="Lead not found")
 
     token = secrets.token_urlsafe(16)
@@ -177,25 +165,22 @@ async def create_personalized_link(
         days=payload.expiration_days,
     )
 
-    link = BookingLink(
+    link_data = create_personalized_booking_link(
+        db,
         tenant_id=user.tenant_id,
         lead_id=payload.lead_id,
         event_slug=payload.event_slug,
         token=token,
         expires_at=expires_at,
-        status="ACTIVE",
     )
-    db.add(link)
-    db.commit()
-    db.refresh(link)
 
     tenant_slug = user.tenant.slug if user.tenant else "unknown"
-    base_url = get_booking_base_url(user.tenant_id, db)
+    base_url = get_booking_base_url(user.tenant_id, create_domain_lookup(db))
 
     return {
-        "token": link.token,
-        "url": f"{base_url}/book/{tenant_slug}/{payload.event_slug}?token={link.token}",
-        "expires_at": link.expires_at,
+        "token": link_data["token"],
+        "url": f"{base_url}/book/{tenant_slug}/{payload.event_slug}?token={link_data['token']}",
+        "expires_at": link_data["expires_at"],
     }
 
 
@@ -249,7 +234,7 @@ async def get_slots(
     duration: int = 30,
 ) -> SlotsResponse:
     """Retrieve slots."""
-    service = AvailabilityService(db, user.tenant_id)
+    service = get_availability_service(db, user.tenant_id)
     slots = service.get_available_slots(start_date, end_date, duration_minutes=duration)
     return {"slots": slots}
 
@@ -261,7 +246,7 @@ async def book_meeting(
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str | None]:
     """Book meeting."""
-    service = AvailabilityService(db, user.tenant_id)
+    service = get_availability_service(db, user.tenant_id)
     try:
         event = service.book_meeting(
             slot_time=payload.slot_time,
@@ -282,7 +267,7 @@ async def list_appointments(
     user: Annotated[User, Depends(get_current_user)],
 ) -> list[dict[str, str | list[str] | None]]:
     """List appointments."""
-    service = AvailabilityService(db, user.tenant_id)
+    service = get_availability_service(db, user.tenant_id)
     events = service.list_appointments(start_date, end_date)
 
     result = []
@@ -313,7 +298,7 @@ async def list_schedules(
     user: Annotated[User, Depends(get_current_user)],
 ) -> list[AvailabilitySchedule]:
     """List schedules."""
-    service = AvailabilityService(db, user.tenant_id)
+    service = get_availability_service(db, user.tenant_id)
     return service.list_schedules()
 
 
@@ -324,7 +309,7 @@ async def create_schedule(
     user: Annotated[User, Depends(get_current_user)],
 ) -> AvailabilitySchedule:
     """Create schedule."""
-    service = AvailabilityService(db, user.tenant_id)
+    service = get_availability_service(db, user.tenant_id)
     return service.create_schedule(schedule)
 
 
@@ -336,7 +321,7 @@ async def update_schedule(
     user: Annotated[User, Depends(get_current_user)],
 ) -> AvailabilitySchedule:
     """Update schedule."""
-    service = AvailabilityService(db, user.tenant_id)
+    service = get_availability_service(db, user.tenant_id)
     updated = service.update_schedule(schedule_id, update)
     if not updated:
         raise HTTPException(status_code=404, detail="Schedule not found")
@@ -350,7 +335,7 @@ async def delete_schedule(
     user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
     """Delete schedule."""
-    service = AvailabilityService(db, user.tenant_id)
+    service = get_availability_service(db, user.tenant_id)
     deleted = service.delete_schedule(schedule_id)
     if not deleted:
         raise HTTPException(

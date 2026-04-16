@@ -7,8 +7,9 @@ Channel slugs:
 Uses TikTokAdapter for API calls. Gracefully handles missing credentials.
 """
 
-from datetime import date
-from uuid import UUID
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import structlog
 
@@ -17,8 +18,14 @@ from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )
-from src.modules.connections.infrastructure.channels.tiktok import TikTokAdapter
 from src.shared.domain.currency import FALLBACK_CURRENCY
+from src.shared.links.ports.channel_adapter import create_tiktok_adapter
+
+if TYPE_CHECKING:
+    from datetime import date
+    from uuid import UUID
+
+    from src.modules.connections.infrastructure.channels.tiktok import TikTokAdapter
 
 logger = structlog.get_logger(__name__)
 
@@ -48,7 +55,7 @@ class TikTokProvider(BaseMetricsProvider):
             logger.warning("tiktok_provider_no_access_token tenant=%s", tenant_id)
             return ExtractionResult()
 
-        adapter = TikTokAdapter()
+        adapter = create_tiktok_adapter()
         metrics: list[ExtractedMetric] = []
         failures = []
 

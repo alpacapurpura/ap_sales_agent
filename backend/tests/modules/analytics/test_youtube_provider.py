@@ -48,7 +48,7 @@ def _patch_adapter_and_thread(overview=None, card_data=None):
     card_data = card_data if card_data is not None else MOCK_CARD_DATA
 
     adapter_patch = patch(
-        "src.modules.analytics.infrastructure.providers.youtube_provider.YouTubeAnalyticsAdapter",
+        "src.modules.analytics.infrastructure.providers.youtube_provider.create_youtube_adapter",
     )
     # asyncio.to_thread calls the function — we need to route by function
     call_results = {
@@ -270,7 +270,7 @@ class TestYouTubeCardMetrics:
     async def test_card_api_failure_partial_success(self):
         """Card API failure should not block overview metrics (partial success)."""
         adapter_patch = patch(
-            "src.modules.analytics.infrastructure.providers.youtube_provider.YouTubeAnalyticsAdapter",
+            "src.modules.analytics.infrastructure.providers.youtube_provider.create_youtube_adapter",
         )
 
         async def fake_to_thread(fn, *args, **kwargs):
@@ -334,9 +334,9 @@ class TestYouTubeProviderErrorHandling:
     async def test_api_exception(self):
         """API exceptions propagate to the pipeline, which handles them as FAILED runs."""
         with patch(
-            "src.modules.analytics.infrastructure.providers.youtube_provider.YouTubeAnalyticsAdapter",
-        ) as MockAdapter:
-            MockAdapter.side_effect = Exception("Auth failed")
+            "src.modules.analytics.infrastructure.providers.youtube_provider.create_youtube_adapter",
+        ) as mock_factory:
+            mock_factory.side_effect = Exception("Auth failed")
 
             provider = YouTubeProvider()
             with pytest.raises(Exception, match="Auth failed"):
