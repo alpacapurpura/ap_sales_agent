@@ -7,13 +7,13 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
 from src.modules.sales_agent.domain.memory.repository import EpisodicMemoryStore
 from src.modules.sales_agent.infrastructure.models.agent_trace_model import AgentTrace
 from src.modules.sales_agent.infrastructure.models.llm_log_model import LLMLog
 from src.modules.sales_agent.infrastructure.models.message_model import (
     MessageModel as Message,
 )
+from src.shared.infrastructure.models.crm import LeadModel
 
 if TYPE_CHECKING:
     from uuid import UUID

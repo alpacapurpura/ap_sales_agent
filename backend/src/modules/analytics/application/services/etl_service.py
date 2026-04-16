@@ -730,11 +730,8 @@ class ETLService:
         from sqlalchemy import func as sa_func
         from sqlalchemy import select as sa_select
 
-        from src.modules.crm.infrastructure.models.customer_model import (
-            JourneyEventModel,
-        )
-        from src.modules.crm.infrastructure.models.sale_model import SaleModel
         from src.shared.domain.enums import SaleStage, SaleStatus
+        from src.shared.infrastructure.models.crm import JourneyEventModel, SaleModel
 
         orders_processed = 0
         sales_created = 0
@@ -902,9 +899,7 @@ class ETLService:
         from sqlalchemy import func as sa_func
         from sqlalchemy import select as sa_select
 
-        from src.modules.crm.infrastructure.models.customer_model import (
-            JourneyEventModel,
-        )
+        from src.shared.infrastructure.models.crm import JourneyEventModel
 
         checkouts_processed = 0
 

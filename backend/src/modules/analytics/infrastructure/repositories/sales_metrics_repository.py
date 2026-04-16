@@ -11,8 +11,8 @@ from uuid import UUID
 from sqlalchemy import distinct, func, select
 from sqlalchemy.orm import Session
 
-from src.modules.crm.infrastructure.models.sale_model import SaleModel
 from src.shared.domain.enums import SaleStage, SaleStatus
+from src.shared.infrastructure.models.crm import SaleModel
 
 
 class SaleAggregation(NamedTuple):
@@ -93,10 +93,8 @@ class SalesMetricsRepository:
 
         Uses lifecycle_transitions to count profiles that entered SQL stage.
         """
-        from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
-            LifecycleTransitionModel,
-        )
         from src.shared.domain.enums import LifecycleStage
+        from src.shared.infrastructure.models.crm import LifecycleTransitionModel
 
         stmt = select(func.count(distinct(LifecycleTransitionModel.profile_id))).where(
             LifecycleTransitionModel.tenant_id == tenant_id,

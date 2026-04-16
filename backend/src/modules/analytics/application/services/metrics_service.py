@@ -22,9 +22,6 @@ from src.modules.analytics.application.dto.timeseries_dto import (
     StageTimeSeriesDTO,
     TimeSeriesPointDTO,
 )
-from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
-    ChannelConnectionRepository,
-)
 from src.modules.crm.infrastructure.repositories.customer_repository import (
     CustomerRepository,
     JourneyEventRepository,
@@ -32,7 +29,7 @@ from src.modules.crm.infrastructure.repositories.customer_repository import (
 from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
     LeadRepository,
 )
-from src.shared.domain.enums import ChannelType, LifecycleStage
+from src.shared.domain.enums import LifecycleStage
 
 if TYPE_CHECKING:
     from collections import OrderedDict
@@ -42,16 +39,6 @@ if TYPE_CHECKING:
 
     from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
     from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-
-# Maps our channel slugs to the ChannelType enum for connection lookups (sankey legacy)
-_CHANNEL_CONNECTION_MAP: dict[str, ChannelType] = {
-    "ig-organic": ChannelType.INSTAGRAM_ACCOUNT,
-    "yt-organic": ChannelType.YOUTUBE_ANALYTICS,
-    "fb-organic": ChannelType.FACEBOOK_PAGE,
-    "meta-ads": ChannelType.META_ADS_ACCOUNT,
-    "google-ads": ChannelType.GOOGLE_ANALYTICS,
-    "yt-ads": ChannelType.YOUTUBE,
-}
 
 
 def _compute_period_totals(date_map: dict) -> dict[str, float]:
@@ -87,7 +74,6 @@ class MetricsService:
         self.journey_repo = JourneyEventRepository(db)
         self.customer_repo = CustomerRepository(db)
         self.lead_repo = LeadRepository(db)
-        self.connection_repo = ChannelConnectionRepository(db)
 
     def get_marketing_sankey_metrics(self, tenant_id: UUID) -> dict[str, Any]:
         """Obtiene metricas para el diagrama de Sankey de marketing (7 nodos).
@@ -168,14 +154,6 @@ class MetricsService:
                 "evangelists": evangelists,
             },
         }
-
-    def _is_connected(self, tenant_id: UUID, slug: str) -> bool:
-        """Check if a channel has an active connection for this tenant."""
-        channel_type = _CHANNEL_CONNECTION_MAP.get(slug)
-        if not channel_type:
-            return False
-        conn = self.connection_repo.get_active(tenant_id, channel_type)
-        return conn is not None
 
     # ------------------------------------------------------------------
     # Bowtie Summary — lightweight endpoint for the funnel row

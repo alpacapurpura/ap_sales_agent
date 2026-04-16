@@ -33,23 +33,16 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     # for parallel extraction workers.
     "analytics -> connections | analytics/application/services/campaign_service.py",
     "analytics -> connections | analytics/application/services/etl_service.py",
-    # ── CRM ORM QUERIES (analytics stage repos) ──────────────
-    # Stage repos JOIN CRM tables for dashboard metrics.
-    # Read-only aggregates. Port would need 50+ query methods.
+    # ── CRM ORM QUERIES (analytics services/engines) ──────────────
+    # Still import from crm.application.services.* or crm.infrastructure.engines/*
+    # (not resolved by model move — need service ports or shared kernel decision).
     "analytics -> crm | analytics/application/services/etl_service.py",
     "analytics -> crm | analytics/application/services/ig_dm_sync_service.py",
     "analytics -> crm | analytics/application/services/metrics_service.py",
     "analytics -> crm | analytics/application/services/stage_services/summary_stage.py",
     "analytics -> crm | analytics/infrastructure/engines/rfm.py",
     "analytics -> crm | analytics/infrastructure/engines/scoring.py",
-    "analytics -> crm | analytics/infrastructure/providers/crm_internal_provider.py",
-    "analytics -> crm | analytics/infrastructure/repositories/adoption_repository.py",
-    "analytics -> crm | analytics/infrastructure/repositories/capture_repository.py",
-    "analytics -> crm | analytics/infrastructure/repositories/evangelization_repository.py",
-    "analytics -> crm | analytics/infrastructure/repositories/expansion_repository.py",
-    "analytics -> crm | analytics/infrastructure/repositories/nurture_repository.py",
-    "analytics -> crm | analytics/infrastructure/repositories/opportunity_repository.py",
-    "analytics -> crm | analytics/infrastructure/repositories/sales_metrics_repository.py",
+    # (eliminated S5: repos + providers now use src.shared.infrastructure.models.crm)
     # ── WEBHOOK / EVENT INTEGRATION ───────────────────────────
     # (eliminated: analytics → offer/etl_service via shared/links/ports/offer)
     # (eliminated: analytics workers → crm via shared/links/ports/crm_enrichment)
@@ -60,11 +53,10 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     # ── OFFER ↔ CRM (product mapping backfill) ────────────────
     "offer -> crm | offer/api/product_mappings.py",
     # ── SALES AGENT ↔ CRM (runtime data access) ──────────────
-    "sales_agent -> crm | sales_agent/api/audit.py",
+    # (eliminated S5: audit.py + audit_repository.py now use shared models)
     "sales_agent -> crm | sales_agent/api/closer_studio.py",
     "sales_agent -> crm | sales_agent/application/orchestrator/chat.py",
     "sales_agent -> crm | sales_agent/application/services/closer_studio_service.py",
-    "sales_agent -> crm | sales_agent/infrastructure/memory/audit_repository.py",
     "sales_agent -> crm | sales_agent/workers/follow_up_engine.py",
     # ── SALES AGENT ↔ CONNECTIONS/OFFER ───────────────────────
     # (eliminated: sales_agent → connections via shared/links/ports/channel_adapter + calendar)

@@ -23,15 +23,13 @@ from src.modules.crm.application.services.identity_service import IdentityServic
 from src.modules.crm.application.services.ig_profile_enricher import (
     InstagramProfileEnricher,
 )
-from src.modules.crm.infrastructure.models.customer_model import (
-    JourneyEventModel,
-)
 from src.modules.crm.infrastructure.repositories.customer_repository import (
     CustomerRepository,
     JourneyEventRepository,
 )
 from src.shared.domain.enums import IdentityType
 from src.shared.domain.events import CHANNEL_TYPE_TO_CAPTURE_SLUG
+from src.shared.infrastructure.models.crm import JourneyEventModel
 
 logger = structlog.get_logger()
 

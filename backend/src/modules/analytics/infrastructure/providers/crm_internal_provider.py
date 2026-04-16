@@ -19,7 +19,7 @@ from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
 )
-from src.modules.crm.infrastructure.models.customer_model import (
+from src.shared.infrastructure.models.crm import (
     JourneyEventModel,
 )
 
