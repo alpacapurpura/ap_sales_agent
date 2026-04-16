@@ -1,7 +1,7 @@
 "use client";
 import { useAuth } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -24,11 +24,7 @@ export function TenantsClient() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    void loadTenants();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadTenants = async () => {
+  const loadTenants = useCallback(async () => {
     try {
       const token = await getToken();
       if (!token) return;
@@ -39,7 +35,11 @@ export function TenantsClient() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [getToken]);
+
+  useEffect(() => {
+    void loadTenants();
+  }, [loadTenants]);
 
   const togglePermission = async (tenantId: string, currentValue: boolean) => {
     try {

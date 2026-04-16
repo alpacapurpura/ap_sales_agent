@@ -46,82 +46,12 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { fetchMetaAssets, syncMetaAssets, toggleMetaAsset } from "@/features/connections/api/meta-assets-api";
 import { connectionsApi } from "@/lib/api/connections";
-import { config as appConfig } from "@/lib/config";
-import { fetchClient } from "@/lib/http-client";
 import { cn } from "@/lib/utils";
 
 import type { MetaStatusResponse } from "@/lib/api/connections";
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface FacebookPageAsset {
-  page_id: string;
-  page_name: string;
-  category?: string;
-  picture_url?: string;
-  fan_count?: number;
-  instagram_account_id?: string;
-  instagram_username?: string;
-  is_active: boolean;
-  has_credentials: boolean;
-}
-
-interface InstagramAccountAsset {
-  ig_account_id: string;
-  ig_username: string;
-  profile_picture_url?: string;
-  follower_count?: number;
-  linked_page_id?: string;
-  linked_page_name?: string;
-  is_active: boolean;
-  has_credentials: boolean;
-}
-
-interface MetaAdsAccountAsset {
-  ad_account_id: string;
-  ad_account_name: string;
-  currency?: string;
-  account_status?: number;
-  is_active: boolean;
-  has_credentials: boolean;
-}
-
-interface MetaPixelAsset {
-  pixel_id: string;
-  pixel_name: string;
-  linked_ad_account_id?: string;
-  is_active: boolean;
-  has_credentials: boolean;
-}
-
-interface WhatsAppPhoneNumber {
-  phone_number_id: string;
-  display_phone_number?: string;
-  verified_name?: string;
-  quality_rating?: string;
-}
-
-interface WhatsAppBusinessAsset {
-  waba_id: string;
-  waba_name: string;
-  currency?: string;
-  timezone_id?: string;
-  business_id?: string;
-  business_name?: string;
-  phone_numbers: WhatsAppPhoneNumber[];
-  is_active: boolean;
-  has_credentials: boolean;
-}
-
-interface MetaAssetsResponse {
-  pages: FacebookPageAsset[];
-  instagram_accounts: InstagramAccountAsset[];
-  ads_accounts: MetaAdsAccountAsset[];
-  pixels: MetaPixelAsset[];
-  whatsapp_accounts: WhatsAppBusinessAsset[];
-  warnings?: string[];
-}
+import type { MetaAssetsResponse } from "@/features/connections/api/meta-assets-api";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -265,14 +195,9 @@ export function MetaView() {
     const token = await getToken();
     if (!token) return;
     try {
-      const res = await fetchClient(`${appConfig.api.baseUrl}/api/v1/connections/meta/assets`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data: MetaAssetsResponse = await res.json();
-        setAssets(data);
-      }
-    } catch (e) {
+      const data = await fetchMetaAssets(token);
+      setAssets(data);
+    } catch {
       // assets are optional — don't block the UI
     }
   }, [getToken]);
@@ -315,18 +240,7 @@ export function MetaView() {
       setSyncing(true);
       const token = await getToken();
       if (!token) return;
-      const res = await fetchClient(
-        `${appConfig.api.baseUrl}/api/v1/connections/meta/assets/sync`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || "Error sincronizando activos");
-      }
-      const data: MetaAssetsResponse = await res.json();
+      const data = await syncMetaAssets(token);
       setAssets(data);
       setSyncWarnings(data.warnings ?? []);
       const total =
@@ -349,18 +263,7 @@ export function MetaView() {
       setTogglingAsset(key);
       const token = await getToken();
       if (!token) return;
-      const res = await fetchClient(
-        `${appConfig.api.baseUrl}/api/v1/connections/meta/assets/${channelType}/${assetId}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ is_active: isActive }),
-        },
-      );
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || "Error actualizando activo");
-      }
+      await toggleMetaAsset(token, channelType, assetId, isActive);
       // Optimistic update
       setAssets((prev) => {
         if (!prev) return prev;

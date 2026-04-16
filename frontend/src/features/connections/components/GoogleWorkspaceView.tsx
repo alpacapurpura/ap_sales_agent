@@ -450,7 +450,7 @@ export function GoogleWorkspaceView() {
     if (status?.is_connected) {
       void fetchSupplementaryGaStatus(getToken, setGaStatus);
     }
-  }, [status?.is_connected]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [status?.is_connected, getToken]);
 
   const handleChangeGaProperty = async () => {
     try {

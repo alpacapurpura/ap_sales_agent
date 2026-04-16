@@ -202,9 +202,9 @@ export const REGISTRY_GROWTH: ComponentEntry[] = [
     description: "NPS score summary with promoter/passive/detractor bar.",
   },
   {
-    name: "OfferCard",
+    name: "OfferMetricsRow",
     atomicLevel: "molecule",
-    filePath: "features/growth-studio/components/metrics-dashboard/offer-widgets/OfferCard.tsx",
+    filePath: "features/growth-studio/components/metrics-dashboard/offer-widgets/OfferMetricsRow.tsx",
     source: "feature",
     featureSlice: "growth-studio",
     variants: [],
@@ -221,7 +221,7 @@ export const REGISTRY_GROWTH: ComponentEntry[] = [
     variants: [],
     props: ["offer", "health"],
     description: "Offer card with health indicators.",
-    issues: ["Overlaps with OfferCard — could be merged"],
+    issues: ["Overlaps with OfferMetricsRow — could be merged"],
   },
   {
     name: "OfferLadder",

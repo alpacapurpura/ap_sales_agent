@@ -4,7 +4,7 @@ import { RefreshCw } from "lucide-react";
 
 import type { OfferSaleData } from "../../../types/metrics";
 
-interface OfferCardProps {
+interface OfferMetricsRowProps {
   offer: OfferSaleData;
   tierKey: string;
   /** Callback when user clicks the revenue value to open drill-down sidebar */
@@ -52,7 +52,7 @@ function formatRevenue(amount: number, currency: string, usdAmount: number | nul
   return main;
 }
 
-export function OfferCard({ offer, tierKey, onRevenueClick }: OfferCardProps) {
+export function OfferMetricsRow({ offer, tierKey, onRevenueClick }: OfferMetricsRowProps) {
   const {
     publicName,
     salesCount,

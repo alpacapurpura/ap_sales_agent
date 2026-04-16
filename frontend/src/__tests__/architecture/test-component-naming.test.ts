@@ -21,7 +21,8 @@ import {
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────
 // All 187 kebab-case components fixed on 2026-04-15 (PascalCase renames).
-// Remaining: puck.config.tsx is a special config file (not a standard component).
+// PERMANENT: puck.config.tsx — the ".config" suffix is part of Puck editor's
+// semantic contract. Imports reference "./puck.config" by name. Do not rename.
 const KNOWN_KEBAB_COMPONENTS = new Set([
   "features/offer-studio/components/landing/utils/puck.config.tsx",
 ]);

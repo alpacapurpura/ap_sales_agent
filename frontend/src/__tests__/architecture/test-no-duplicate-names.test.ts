@@ -21,10 +21,7 @@ import { FEATURES_DIR, getFeatureNames, walkFiles, isTestFile } from "./helpers"
 // Pre-existing cross-feature duplicates (existed before PascalCase rename on 2026-04-15).
 // These must shrink over time: extract to components/shared/ or rename.
 const KNOWN_CROSS_FEATURE_DUPLICATES = new Set<string>([
-  // closer-studio and sales both have a PipelineBoard component
-  "PipelineBoard.tsx",
-  // growth-studio and offer-studio both have an OfferCard component
-  "OfferCard.tsx",
+  // All violations fixed — components renamed to reflect their domain
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -2,7 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { Loader2, CheckCircle, MessageCircle, Trash2, Activity } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -40,7 +40,7 @@ export function ManyChatView() {
   const [disconnecting, setDisconnecting] = useState(false);
   const [testResult, setTestResult] = useState<TestResponse | null>(null);
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       setLoading(true);
       const token = await getToken();
@@ -53,11 +53,11 @@ export function ManyChatView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getToken]);
 
   useEffect(() => {
     void fetchStatus();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchStatus]);
 
   const handleConnect = async () => {
     if (!apiKey.trim()) {

@@ -1,7 +1,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 
-import { fetchClient } from "@/lib/http-client";
+import { fetchOfferMetadata } from "../api/offer-metadata-api";
 
 export function useOfferMetadata() {
   const { getToken } = useAuth();
@@ -11,11 +11,7 @@ export function useOfferMetadata() {
     queryFn: async () => {
       const token = await getToken();
       if (!token) return {};
-      const res = await fetchClient("/products/metadata/hints", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch metadata");
-      return res.json();
+      return fetchOfferMetadata(token);
     },
     staleTime: 1000 * 60 * 60, // Cache for 1 hour
   });

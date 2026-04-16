@@ -83,9 +83,9 @@ export const REGISTRY_SALES: ComponentEntry[] = [
     description: "Full lead detail panel with tabs, timeline, actions.",
   },
   {
-    name: "PipelineBoard",
+    name: "LeadPipelineBoard",
     atomicLevel: "organism",
-    filePath: "features/sales/components/organisms/PipelineBoard.tsx",
+    filePath: "features/sales/components/organisms/LeadPipelineBoard.tsx",
     source: "feature",
     featureSlice: "sales",
     variants: [],

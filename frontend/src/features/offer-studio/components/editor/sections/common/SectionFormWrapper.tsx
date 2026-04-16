@@ -9,7 +9,7 @@ import { Form } from "@/components/ui/form";
 import type { UseFormReturn, FieldValues, DefaultValues, SubmitHandler } from "react-hook-form";
 
 interface SectionFormWrapperProps<T extends FieldValues> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- @hookform/resolvers/zod v4 resolver generics are incompatible with ZodType<T> due to internal type mismatch
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- @hookform/resolvers/zod v4 resolver generics are incompatible with ZodType<T>; zodResolver() internally accepts ZodTypeAny
   schema: any;
   defaultValues: DefaultValues<T>;
   onSubmit: SubmitHandler<T>;

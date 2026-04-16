@@ -3,7 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { Loader2, CheckCircle, ShoppingBag, Trash2, ExternalLink, Activity } from "lucide-react";
 import { useSearchParams, useRouter, useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -47,7 +47,7 @@ export function ShopifyView() {
   const [disconnecting, setDisconnecting] = useState(false);
   const [testResult, setTestResult] = useState<TestResponse | null>(null);
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       setLoading(true);
       const token = await getToken();
@@ -60,11 +60,11 @@ export function ShopifyView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getToken]);
 
   useEffect(() => {
     void fetchStatus();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchStatus]);
 
   useEffect(() => {
     const statusParam = searchParams?.get("status");
@@ -79,7 +79,7 @@ export function ShopifyView() {
       toast.error(message);
       router.replace(tenantId ? `/${tenantId}/connections/shopify` : "/");
     }
-  }, [searchParams, router]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchParams, router, tenantId, fetchStatus]);
 
   const handleConnect = async () => {
     if (!shopUrl.trim()) {

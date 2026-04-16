@@ -7,9 +7,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { analyzeVoiceStyle } from "@/features/brand/api/voice-api";
 import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
-import { config } from "@/lib/config";
-import { fetchClient } from "@/lib/http-client";
 
 import { VoiceForm } from "./voice-form";
 
@@ -39,20 +38,7 @@ export function VoiceManager() {
       if (text) formData.append("text_input", text);
       if (file) formData.append("file", file);
 
-      const res = await fetchClient(`${config.api.baseUrl}/api/v1/brand/style/analyze-style`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Analysis failed");
-      }
-
-      const data = await res.json();
+      const data = await analyzeVoiceStyle(token, formData);
       setResult(data);
       setStep("result");
 

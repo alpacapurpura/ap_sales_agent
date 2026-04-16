@@ -1,71 +1,26 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+
+import {
+  OfferShellContext,
+  OfferAutoSaveContext,
+  DEFAULT_SNAPSHOT,
+} from "../../context/OfferShellContext";
 
 import { OfferShellHeaderRow1 } from "./OfferShellHeaderRow1";
 import { OfferShellHeaderRow2 } from "./OfferShellHeaderRow2";
 import { OfferTabBar } from "./OfferTabBar";
 
-import type { AutoSaveState } from "../../hooks/use-auto-save";
+import type {
+  OfferShellContextValue,
+  OfferAutoSaveSnapshot,
+  OfferAutoSaveContextValue,
+} from "../../context/OfferShellContext";
 import type { OfferCountsResponse } from "../../types/counts";
 import type { Offer } from "@/features/offer-studio/types";
 
-/**
- * Shared context exposing the offer, counts and tenant id to every widget
- * inside the persistent shell. Tabs read from here instead of refetching.
- */
-interface OfferShellContextValue {
-  offer: Offer;
-  counts: OfferCountsResponse;
-  tenantId: string;
-}
-
-const OfferShellContext = createContext<OfferShellContextValue | null>(null);
-
-export function useOfferShell(): OfferShellContextValue {
-  const ctx = useContext(OfferShellContext);
-  if (!ctx) {
-    throw new Error("useOfferShell must be used within an <OfferShell> provider.");
-  }
-  return ctx;
-}
-
-/**
- * Autosave context — the editor (FE Chunk 3) pushes its mutation state here
- * so the header's <AutoSaveIndicator /> can render without prop drilling.
- *
- * For Chunk 2b this defaults to `idle` — wiring is done in the next chunk.
- */
-export interface OfferAutoSaveSnapshot {
-  state: AutoSaveState;
-  lastSavedAt: Date | null;
-  errorMessage?: string;
-  onRetry?: () => void;
-}
-
-interface OfferAutoSaveContextValue extends OfferAutoSaveSnapshot {
-  setSnapshot: (snapshot: OfferAutoSaveSnapshot) => void;
-}
-
-const DEFAULT_SNAPSHOT: OfferAutoSaveSnapshot = {
-  state: "idle",
-  lastSavedAt: null,
-};
-
-const OfferAutoSaveContext = createContext<OfferAutoSaveContextValue | null>(null);
-
-export function useOfferAutoSave(): OfferAutoSaveContextValue {
-  const ctx = useContext(OfferAutoSaveContext);
-  if (!ctx) {
-    // Safe fallback: if a consumer renders outside the provider, the indicator
-    // simply stays idle instead of throwing. Keeps the shell forgiving.
-    return {
-      ...DEFAULT_SNAPSHOT,
-      setSnapshot: () => {},
-    };
-  }
-  return ctx;
-}
+export type { OfferAutoSaveSnapshot };
 
 export interface OfferShellProps {
   offer: Offer;

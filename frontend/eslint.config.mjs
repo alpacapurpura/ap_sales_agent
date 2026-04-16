@@ -57,8 +57,8 @@ export default [
       "sonarjs/no-unused-collection": "warn",
       "sonarjs/no-redundant-assignments": "warn",
       "sonarjs/no-dead-store": "warn",
-      "sonarjs/no-gratuitous-expressions": "warn",
-      "sonarjs/no-identical-conditions": "warn",
+      "sonarjs/no-gratuitous-expressions": "error",
+      "sonarjs/no-identical-conditions": "error",
       "sonarjs/no-collapsible-if": "warn",
       "sonarjs/no-nested-switch": "warn",
       "sonarjs/no-nested-functions": "warn",
@@ -88,10 +88,10 @@ export default [
           alphabetize: { order: "asc", caseInsensitive: true },
         },
       ],
-      "import/no-duplicates": "warn", // Phase 1B: error after fixing
+      "import/no-duplicates": "error",
       "import/no-unresolved": "error",
       "import/no-self-import": "error",
-      "import/no-cycle": ["warn", { maxDepth: 3 }],
+      "import/no-cycle": ["error", { maxDepth: 3 }],
       "import/no-named-as-default": "warn",
       "import/no-named-as-default-member": "warn",
       // Coherence: no default exports (except Next.js pages — see override below)
@@ -278,7 +278,7 @@ export default [
       "@typescript-eslint/prefer-as-const": "warn",
       "@typescript-eslint/no-empty-interface": "warn",
       "@typescript-eslint/no-inferrable-types": "warn",
-      "@typescript-eslint/ban-ts-comment": "warn",
+      "@typescript-eslint/ban-ts-comment": "error",
       "@typescript-eslint/no-empty-function": "warn",
       // Phase 1A: warn for style rules; Phase 1B: consider stricter
       "@typescript-eslint/array-type": "warn",
@@ -339,7 +339,7 @@ export default [
 
       // React hooks (already in next/core-web-vitals but explicit here)
       "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/exhaustive-deps": "error",
 
       // General
       "eqeqeq": ["warn", "always", { null: "ignore" }],

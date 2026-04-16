@@ -48,7 +48,7 @@ import {
   useReindexKnowledge,
   useUploadKnowledge,
 } from "../../hooks/use-knowledge";
-import { useOfferShell } from "../container/OfferShell";
+import { useOfferShell } from "../../context/OfferShellContext";
 
 import type { KnowledgeSourceType } from "../../types/enums";
 import type { KnowledgeListQuery, KnowledgeSourceResponse } from "../../types/knowledge";

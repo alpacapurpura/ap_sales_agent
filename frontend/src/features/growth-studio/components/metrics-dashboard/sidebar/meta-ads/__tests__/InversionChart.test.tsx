@@ -51,7 +51,7 @@ vi.mock("@/components/ui/chart", () => ({
 }));
 
 // Must import AFTER mocks
-import { InversionChart } from "../InversionChart";
+import { InversionChart, InversionTooltip } from "../InversionChart";
 
 // ---------------------------------------------------------------------------
 // Fixture data
@@ -222,8 +222,6 @@ describe("InversionChart", () => {
 // ---------------------------------------------------------------------------
 // Tooltip unit test — rendered in isolation so we can inspect its DOM
 // ---------------------------------------------------------------------------
-
-import { InversionTooltip } from "../InversionChart";
 
 import type { MetricTimeSeries } from "../../../../../types/metrics";
 

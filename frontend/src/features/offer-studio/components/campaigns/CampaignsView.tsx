@@ -20,7 +20,7 @@ import { formatMoney } from "@/lib/format-money";
 import { cn } from "@/lib/utils";
 
 import { useOfferCampaigns } from "../../hooks/use-campaigns";
-import { useOfferShell } from "../container/OfferShell";
+import { useOfferShell } from "../../context/OfferShellContext";
 
 import type {
   CampaignStatusFilter,

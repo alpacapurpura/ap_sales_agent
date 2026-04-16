@@ -49,7 +49,7 @@ import { formatMoney } from "@/lib/format-money";
 
 import type { Offer } from "@/features/offer-studio/types";
 
-interface OfferCardProps {
+interface OfferCatalogCardProps {
   offer: Offer;
   searchQuery?: string;
   compact?: boolean;
@@ -100,13 +100,13 @@ const DELIVERY_BADGES = {
   },
 };
 
-export const OfferCard = memo(function OfferCard({
+export const OfferCatalogCard = memo(function OfferCatalogCard({
   offer,
   searchQuery = "",
   compact = false,
   className,
   onArchive,
-}: OfferCardProps) {
+}: OfferCatalogCardProps) {
   const { navigate, isNavigating } = useNavigation();
   const params = useParams();
   const tenantId = params?.tenantId as string;

@@ -5,7 +5,7 @@ import { LeadCard } from "../molecules/LeadCard";
 
 import type { Lead, LeadStatus } from "../../types";
 
-interface PipelineBoardProps {
+interface LeadPipelineBoardProps {
   leads: Lead[];
   onLeadClick?: (lead: Lead) => void;
   className?: string;
@@ -20,7 +20,7 @@ const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string }> = {
   lost: { label: "Perdido", color: "bg-gray-500/10 border-gray-500/20" },
 };
 
-export function PipelineBoard({ leads, onLeadClick, className }: PipelineBoardProps) {
+export function LeadPipelineBoard({ leads, onLeadClick, className }: LeadPipelineBoardProps) {
   const columns: LeadStatus[] = ["new", "contacted", "qualified", "proposal", "won", "lost"];
 
   const getLeadsByStatus = (status: LeadStatus) => {

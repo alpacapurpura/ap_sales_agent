@@ -10,7 +10,7 @@ import { getOfferHealth } from "../../utils/offer-health";
 
 import { LandingActionButton } from "./LandingActionButton";
 import { OfferProgressBar } from "./OfferProgressBar";
-import { useOfferShell } from "./OfferShell";
+import { useOfferShell } from "../../context/OfferShellContext";
 
 /**
  * Row 2 of the persistent shell — progress bar on the left, Landing action

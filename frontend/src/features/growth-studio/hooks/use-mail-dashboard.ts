@@ -24,7 +24,7 @@ import type { MetaAdsPeriod } from "../types/metrics";
 
 /**
  * Resolve tenant ID the same way useChannelDashboard does:
- * localStorage fallback (fetchClient also injects X-Tenant-ID automatically).
+ * localStorage fallback (the HTTP client also injects X-Tenant-ID automatically).
  */
 function getTenantId(): string | null {
   if (typeof window === "undefined") return null;

@@ -16,9 +16,8 @@ import * as path from "path";
 import { FEATURES_DIR, walkFiles, relPath, isTestFile, readFile } from "./helpers";
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────
-const KNOWN_HOOKS_OUTSIDE_HOOKS = new Set([
-  // Component that also exports a hook — hooks should be extracted to hooks/ dir
-  "features/offer-studio/components/container/OfferShell.tsx",
+const KNOWN_HOOKS_OUTSIDE_HOOKS = new Set<string>([
+  // All violations fixed — hooks extracted to context/ files
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────

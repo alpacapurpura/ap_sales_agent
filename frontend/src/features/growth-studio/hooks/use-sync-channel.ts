@@ -4,28 +4,10 @@ import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-import { config } from "@/lib/config";
-import { fetchClient } from "@/lib/http-client";
+import { syncChannel } from "../api/sync-channel-api";
 
-const API_URL = config.api.baseUrl;
+import type { SyncChannelResult, SyncChannelError } from "../api/sync-channel-api";
 
-interface SyncChannelResult {
-  status: string;
-  run_id: string;
-  provider: string;
-  channel_slug: string;
-}
-
-interface SyncChannelError {
-  detail: string;
-  remaining_minutes?: number;
-}
-
-/**
- * Hook to sync a single channel's metrics via the refresh endpoint.
- * Uses fetchClient (with X-Tenant-ID) + Bearer auth.
- * Invalidates relevant queries on success so the UI refreshes.
- */
 export function useSyncChannel(channelSlug: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
@@ -34,30 +16,7 @@ export function useSyncChannel(channelSlug: string) {
     mutationFn: async () => {
       const token = await getToken();
       if (!token) throw { detail: "No auth token" } as SyncChannelError;
-
-      const res = await fetchClient(
-        `${API_URL}/api/v1/analytics/metrics/attraction/refresh/${channelSlug}`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-
-      if (res.status === 429) {
-        const errData = await res.json().catch(() => ({}));
-        const err: SyncChannelError = {
-          detail: errData.detail ?? "Rate limited",
-          remaining_minutes: errData.remaining_minutes,
-        };
-        throw err;
-      }
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw { detail: errData.detail ?? `Sync failed (${res.status})` } as SyncChannelError;
-      }
-
-      return res.json();
+      return syncChannel(token, channelSlug);
     },
     onSuccess: () => {
       // Invalidate channel-specific dashboard queries

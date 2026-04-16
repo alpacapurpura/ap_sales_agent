@@ -1,6 +1,6 @@
 "use client";
 
-import { useOfferShell } from "@/features/offer-studio/components/container/OfferShell";
+import { useOfferShell } from "@/features/offer-studio/context/OfferShellContext";
 import { KnowledgeView } from "@/features/offer-studio/components/knowledge/KnowledgeView";
 
 /**

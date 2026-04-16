@@ -18,16 +18,8 @@ import * as path from "path";
 import { FEATURES_DIR, walkFiles, relPath, isTestFile, readFile } from "./helpers";
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────
-const KNOWN_FETCHCLIENT_OUTSIDE_API = new Set([
-  "features/audit/hooks/use-audit.ts",
-  "features/brand/sections/voice/voice-manager.tsx",
-  "features/connections/components/MetaView.tsx",
-  "features/growth-studio/hooks/use-connection-health.ts",
-  "features/growth-studio/hooks/use-mail-dashboard.ts",
-  "features/growth-studio/hooks/use-sync-channel.ts",
-  "features/offer-studio/hooks/use-offer-metadata.ts",
-  // sales/services/dashboardService.ts → moved to api/dashboard-service.ts (fixed)
-  // sales/services/leadService.ts → moved to api/lead-service.ts (fixed)
+const KNOWN_FETCHCLIENT_OUTSIDE_API = new Set<string>([
+  // All violations fixed — fetch calls moved to api/ directories
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────

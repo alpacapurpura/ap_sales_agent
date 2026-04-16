@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { OfferValueLevel } from "@/features/offer-studio/types";
 
 import { AddOfferCard } from "./AddOfferCard";
-import { OfferCard } from "./OfferCard";
+import { OfferCatalogCard } from "./OfferCatalogCard";
 
 import type { Offer } from "@/features/offer-studio/types";
 
@@ -27,7 +27,7 @@ export function OfferLadderLayout({
     return (
       <div className="space-y-3">
         {offers.map((offer) => (
-          <OfferCard
+          <OfferCatalogCard
             key={offer.id}
             offer={offer}
             searchQuery={searchQuery}
@@ -153,7 +153,7 @@ export function OfferLadderLayout({
           <div className="flex-1 w-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {groupedOffers[OfferValueLevel.CORPORATIVO]?.map((offer) => (
-                <OfferCard
+                <OfferCatalogCard
                   key={offer.id}
                   offer={offer}
                   searchQuery={searchQuery}

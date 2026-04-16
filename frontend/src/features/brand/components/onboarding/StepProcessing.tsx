@@ -2,7 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -96,13 +96,14 @@ export function StepProcessing({
     };
   }, [jobId, getToken, onComplete]);
 
-  // Auto-start extraction if no jobId yet
+  // Auto-start extraction once on mount if no jobId
+  const hasStartedRef = useRef(false);
   useEffect(() => {
-    if (!jobId && !isSubmitting) {
+    if (!jobId && !hasStartedRef.current) {
+      hasStartedRef.current = true;
       void startExtraction();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [jobId, startExtraction]);
 
   return (
     <div className="mx-auto max-w-md animate-in fade-in duration-300">

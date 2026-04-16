@@ -16,8 +16,9 @@ import { cn } from "@/lib/utils";
 
 import { useChangeOfferStatus } from "../../hooks/use-status-mutation";
 
+import { useOfferAutoSave, useOfferShell } from "../../context/OfferShellContext";
+
 import { AutoSaveIndicator } from "./AutoSaveIndicator";
-import { useOfferAutoSave, useOfferShell } from "./OfferShell";
 import { OfferStatusChangeModal } from "./OfferStatusChangeModal";
 import { OfferStatusSwitcher } from "./OfferStatusSwitcher";
 

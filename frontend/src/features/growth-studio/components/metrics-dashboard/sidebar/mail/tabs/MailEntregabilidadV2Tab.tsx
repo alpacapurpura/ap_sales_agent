@@ -340,10 +340,11 @@ function DeliverabilityTrend({ data }: { data: EmailHealthData }) {
   const unsubRateSeries = data.timeSeries.find((ts) => ts.metricName === "unsubscribe_rate");
 
   const trendMap = new Map<string, Record<string, string | number>>();
-  for (const ts of [bounceRateSeries, unsubRateSeries].filter(Boolean)) {
-    for (const dp of ts!.dataPoints) {
+  for (const ts of [bounceRateSeries, unsubRateSeries]) {
+    if (!ts) continue;
+    for (const dp of ts.dataPoints) {
       const entry = trendMap.get(dp.date) ?? ({ date: dp.date } as Record<string, string | number>);
-      entry[ts!.metricName] = dp.value;
+      entry[ts.metricName] = dp.value;
       trendMap.set(dp.date, entry);
     }
   }

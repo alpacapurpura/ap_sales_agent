@@ -11,7 +11,7 @@ import {
   Settings,
   Save,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -68,7 +68,7 @@ export function GoogleAnalyticsView() {
   const [showPropertyPicker, setShowPropertyPicker] = useState(false);
   const [loadingProperties, setLoadingProperties] = useState(false);
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       setLoading(true);
       const token = await getToken();
@@ -85,11 +85,11 @@ export function GoogleAnalyticsView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getToken]);
 
   useEffect(() => {
     void fetchStatus();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchStatus]);
 
   // Handle OAuth Callback
   useGoogleOAuthListener({

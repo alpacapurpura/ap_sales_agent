@@ -1,7 +1,7 @@
 "use client";
 
-import { PipelineBoard } from "@/features/closer-studio/components/pipeline/PipelineBoard";
+import { ConversationPipelineBoard } from "@/features/closer-studio/components/pipeline/ConversationPipelineBoard";
 
 export default function PipelinePage() {
-  return <PipelineBoard />;
+  return <ConversationPipelineBoard />;
 }

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
-import { OfferCard } from "../components/dashboard/OfferCard";
+import { OfferCatalogCard } from "../components/dashboard/OfferCatalogCard";
 
 import { MOCK_OFFER_NORMALIZED } from "./fixtures";
 
@@ -30,21 +30,21 @@ vi.mock("@/features/tenant/context/tenant-locale-context", () => ({
 
 describe("OfferCard Component", () => {
   it("renders the offer name correctly", () => {
-    render(<OfferCard offer={MOCK_OFFER_NORMALIZED} />);
+    render(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
 
     // The most critical check: Is the name visible?
     expect(screen.getByText("Guía: Liberar la Mente")).toBeInTheDocument();
   });
 
   it("renders the correct archetype label", () => {
-    render(<OfferCard offer={MOCK_OFFER_NORMALIZED} />);
+    render(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
 
     // Should map archetype "producto" -> "Producto" via ARCHETYPE_METADATA
     expect(screen.getByText("Producto")).toBeInTheDocument();
   });
 
   it("renders the correct delivery badge", () => {
-    render(<OfferCard offer={MOCK_OFFER_NORMALIZED} />);
+    render(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
     expect(screen.getByText("DIY")).toBeInTheDocument();
   });
 
@@ -63,7 +63,7 @@ describe("OfferCard Component", () => {
         },
       ],
     };
-    render(<OfferCard offer={offer} />);
+    render(<OfferCatalogCard offer={offer} />);
     // Intl.NumberFormat('en-US', { currency: 'PEN' }) → "PEN 1,500"
     const priceNode = screen.getByText(/PEN/);
     expect(priceNode).toBeInTheDocument();
@@ -85,7 +85,7 @@ describe("OfferCard Component", () => {
         },
       ],
     };
-    render(<OfferCard offer={offer} />);
+    render(<OfferCatalogCard offer={offer} />);
     const priceNode = screen.getByText(/PEN/);
     expect(priceNode).toBeInTheDocument();
     expect(priceNode.textContent).toContain("500");

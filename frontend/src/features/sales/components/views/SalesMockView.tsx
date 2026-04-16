@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { LeadCommandCenter } from "@/features/sales/components/organisms/LeadCommandCenter";
-import { PipelineBoard } from "@/features/sales/components/organisms/PipelineBoard";
+import { LeadPipelineBoard } from "@/features/sales/components/organisms/LeadPipelineBoard";
 import { MOCK_LEADS } from "@/features/sales/mocks/leads";
 
 import type { Lead } from "@/features/sales/types";
@@ -38,7 +38,7 @@ export function SalesMockView() {
       </div>
 
       <div className="flex-1 overflow-hidden p-6 bg-muted/10">
-        <PipelineBoard leads={MOCK_LEADS} onLeadClick={(lead) => setSelectedLead(lead)} />
+        <LeadPipelineBoard leads={MOCK_LEADS} onLeadClick={(lead) => setSelectedLead(lead)} />
       </div>
     </div>
   );

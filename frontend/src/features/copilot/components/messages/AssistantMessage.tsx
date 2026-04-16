@@ -218,7 +218,7 @@ export const AssistantMessage = memo(function AssistantMessage({
 
         {/* Render navigation/action cards, proposals, and generative UI */}
         {hasUIActions &&
-          message.uiActions!.map((action, idx) =>
+          message.uiActions?.map((action, idx) =>
             renderUIAction(action, idx, message.id, stableSendCardAction),
           )}
       </div>

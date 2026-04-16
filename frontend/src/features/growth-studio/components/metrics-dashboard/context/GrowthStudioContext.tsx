@@ -233,7 +233,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
       }
       resolvedSlugRef.current = pendingChannelSlug;
     },
-    [pendingChannelSlug],
+    [pendingChannelSlug, handleSidebarClose],
   );
 
   // Reset sidebars when stage changes — legitimately syncs multiple pieces
@@ -256,7 +256,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     setNoDataChannel(null);
 
     resolvedSlugRef.current = null;
-  }, [activeStage]);
+  }, [activeStage, setSidebarOpen, setSidebarMetric]);
 
   const handleChannelClick = useCallback(
     (channel: ChannelMetric) => {
@@ -270,7 +270,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
       params.set(CHANNEL_PARAM, channel.slug);
       router.replace(`${pathnameRef.current}?${params.toString()}`);
     },
-    [router],
+    [router, setSidebarOpen, setSidebarMetric],
   );
 
   const handleChannelSidebarClose = useCallback(() => {
