@@ -66,3 +66,10 @@ def get_ig_profile_enricher(db: Session) -> object:
     )
 
     return InstagramProfileEnricher(db)
+
+
+def get_lifecycle_service(db: Session) -> object:
+    """Return a LifecycleService instance for the given session."""
+    from src.modules.crm.application.services.lifecycle_service import LifecycleService
+
+    return LifecycleService(db)

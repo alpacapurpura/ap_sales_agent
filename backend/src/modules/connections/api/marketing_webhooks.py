@@ -124,8 +124,6 @@ def _resolve_manychat_profile(
     channel_slug: str,
 ) -> object | None:
     """Resolve or create a customer profile from ManyChat subscriber data."""
-    from src.modules.crm.application.services.customer_service import CustomerService
-
     ig_username = payload.get("ig_username")
     email = payload.get("email")
     phone = payload.get("phone")
@@ -139,14 +137,10 @@ def _resolve_manychat_profile(
     # This lookup prevents creating a duplicate profile.
     profile = None
     if ig_username:
-        from src.modules.crm.infrastructure.models.customer_model import (
-            CustomerProfileModel as _CustomerProfile,
-        )
-        from src.modules.crm.infrastructure.repositories.customer_repository import (
-            CustomerRepository,
-        )
+        from src.shared.infrastructure.models.crm import CustomerProfileModel as _CustomerProfile
+        from src.shared.links.ports.crm_repos import get_customer_repository
 
-        customer_repo = CustomerRepository(db)
+        customer_repo = get_customer_repository(db)
         existing = customer_repo.find_by_trait(
             tenant_id=tenant_id,
             trait_key="instagram_username",
@@ -157,7 +151,9 @@ def _resolve_manychat_profile(
             profile = db.execute(stmt).scalar_one_or_none()
 
     if not profile and (email or phone):
-        customer_svc = CustomerService(db)
+        from src.shared.links.ports.crm_repos import get_customer_service
+
+        customer_svc = get_customer_service(db)
         traits = {"name": f"{first_name} {last_name}".strip()}
         if email:
             traits["email"] = email
@@ -216,8 +212,8 @@ def _create_journey_events(
     subscriber_id: str,
 ) -> None:
     """Create journey_event(s) and recalculate lead score."""
-    from src.modules.crm.application.services.lifecycle_service import LifecycleService
-    from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
+    from src.shared.infrastructure.models.crm import JourneyEventModel
+    from src.shared.links.ports.crm_repos import get_lifecycle_service
 
     journey_event = JourneyEventModel(
         profile_id=profile.id,
@@ -245,7 +241,7 @@ def _create_journey_events(
         )
         db.add(msg_event)
 
-    lifecycle_svc = LifecycleService(db)
+    lifecycle_svc = get_lifecycle_service(db)
     lifecycle_svc.recalculate_score(profile.id, tenant_id)
 
 
@@ -258,10 +254,8 @@ def _promote_manychat_metric(
     subscriber_id: str,
 ) -> None:
     """Promote ManyChat event to official_metrics for Growth Studio."""
-    from src.modules.analytics.application.services.manychat_metrics_promoter import (
-        ManyChatMetricsPromoter,
-    )
     from src.shared.domain.datetime_utils import utc_today as date_cls_today
+    from src.shared.links.ports.analytics import get_manychat_metrics_promoter
 
     metric_name = _event_to_metric_name(event_type, payload)
     stage_slug = _event_to_stage(event_type, payload)
@@ -277,7 +271,7 @@ def _promote_manychat_metric(
     if stage_slug == "attraction":
         resolved_channel = "manychat-comments"
 
-    promoter = ManyChatMetricsPromoter(db)
+    promoter = get_manychat_metrics_promoter(db)
     promoter.promote_event(
         tenant_id=tenant_id,
         channel_slug=resolved_channel,
@@ -384,9 +378,8 @@ async def _resolve_tenant(db: Session, shop_domain: str) -> UUID | None:
 
 async def _handle_checkout_created(db: Session, tenant_id: UUID, payload: dict) -> None:
     """Process checkouts/create webhook: identity resolution + journey_event + scoring."""
-    from src.modules.crm.application.services.customer_service import CustomerService
-    from src.modules.crm.application.services.lifecycle_service import LifecycleService
-    from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
+    from src.shared.infrastructure.models.crm import JourneyEventModel
+    from src.shared.links.ports.crm_repos import get_customer_service, get_lifecycle_service
 
     email = payload.get("email")
     if not email:
@@ -414,7 +407,7 @@ async def _handle_checkout_created(db: Session, tenant_id: UUID, payload: dict) 
             return
 
     # Identity resolution
-    customer_svc = CustomerService(db)
+    customer_svc = get_customer_service(db)
     profile = customer_svc.identify(
         tenant_id=tenant_id,
         traits={
@@ -459,7 +452,7 @@ async def _handle_checkout_created(db: Session, tenant_id: UUID, payload: dict) 
     db.add(journey_event)
 
     # Recalculate score (checkout_started = +8.0 pts)
-    lifecycle_svc = LifecycleService(db)
+    lifecycle_svc = get_lifecycle_service(db)
     lifecycle_svc.recalculate_score(profile.id, tenant_id)
     db.commit()
 
@@ -473,8 +466,8 @@ async def _handle_checkout_created(db: Session, tenant_id: UUID, payload: dict) 
 
 async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> None:
     """Process orders/create webhook: journey_event + per-line-item SaleCompletedEvents."""
-    from src.modules.crm.application.services.customer_service import CustomerService
-    from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
+    from src.shared.infrastructure.models.crm import JourneyEventModel
+    from src.shared.links.ports.crm_repos import get_customer_service
 
     email = payload.get("email")
     if not email:
@@ -499,7 +492,7 @@ async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> 
             return
 
     # Identity resolution
-    customer_svc = CustomerService(db)
+    customer_svc = get_customer_service(db)
     profile = customer_svc.identify(
         tenant_id=tenant_id,
         traits={
@@ -525,11 +518,9 @@ async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> 
     ]
 
     # Bulk resolve product_id → offer_id mappings
-    from src.modules.offer.infrastructure.repositories.external_product_mapping_repository import (
-        ExternalProductMappingRepository,
-    )
+    from src.shared.links.ports.offer import get_product_mapping_repo
 
-    mapping_repo = ExternalProductMappingRepository(db)
+    mapping_repo = get_product_mapping_repo(db)
     product_ids = [li["product_id"] for li in line_items_data if li["product_id"]]
     resolved_mappings = mapping_repo.bulk_resolve(tenant_id, "shopify", product_ids)
 
@@ -674,9 +665,7 @@ async def handle_mailerlite_webhook(
         return {"status": "ignored", "reason": "no_email"}
 
     # 1. Find customer profile by email
-    from src.modules.crm.infrastructure.models.customer_model import (
-        CustomerProfileModel,
-    )
+    from src.shared.infrastructure.models.crm import CustomerProfileModel
 
     stmt = select(CustomerProfileModel).where(
         CustomerProfileModel.tenant_id == tenant_id,
@@ -698,9 +687,7 @@ async def handle_mailerlite_webhook(
         return {"status": "ignored", "reason": f"unsupported_event: {event_type}"}
 
     # 3. Create journey_event
-    from src.modules.crm.infrastructure.models.customer_model import (
-        JourneyEventModel,
-    )
+    from src.shared.infrastructure.models.crm import JourneyEventModel
 
     journey_event = JourneyEventModel(
         profile_id=profile.id,
@@ -716,9 +703,9 @@ async def handle_mailerlite_webhook(
     db.add(journey_event)
 
     # 4. Recalculate score (triggers MQL transition if threshold crossed)
-    from src.modules.crm.application.services.lifecycle_service import LifecycleService
+    from src.shared.links.ports.crm_repos import get_lifecycle_service
 
-    lifecycle_svc = LifecycleService(db)
+    lifecycle_svc = get_lifecycle_service(db)
     lifecycle_svc.recalculate_score(profile.id, tenant_id)
     db.commit()
 

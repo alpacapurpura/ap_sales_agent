@@ -17,6 +17,15 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
+def get_manychat_metrics_promoter(db: Session) -> object:
+    """Return a ManyChatMetricsPromoter instance for the given session."""
+    from src.modules.analytics.application.services.manychat_metrics_promoter import (
+        ManyChatMetricsPromoter,
+    )
+
+    return ManyChatMetricsPromoter(db)
+
+
 def get_latest_extraction_run_info(
     db: Session,
     tenant_id: UUID,
