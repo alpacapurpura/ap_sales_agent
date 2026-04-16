@@ -33,30 +33,17 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     # for parallel extraction workers.
     "analytics -> connections | analytics/application/services/campaign_service.py",
     "analytics -> connections | analytics/application/services/etl_service.py",
-    # ── CRM ORM QUERIES (analytics services/engines) ──────────────
-    # Still import from crm.application.services.* or crm.infrastructure.engines/*
-    # (not resolved by model move — need service ports or shared kernel decision).
-    "analytics -> crm | analytics/application/services/etl_service.py",
-    "analytics -> crm | analytics/application/services/ig_dm_sync_service.py",
-    "analytics -> crm | analytics/application/services/metrics_service.py",
-    "analytics -> crm | analytics/application/services/stage_services/summary_stage.py",
-    "analytics -> crm | analytics/infrastructure/engines/rfm.py",
-    "analytics -> crm | analytics/infrastructure/engines/scoring.py",
-    # (eliminated S5: repos + providers now use src.shared.infrastructure.models.crm)
     # ── WEBHOOK / EVENT INTEGRATION ───────────────────────────
-    # (eliminated: analytics → offer/etl_service via shared/links/ports/offer)
-    # (eliminated: analytics workers → crm via shared/links/ports/crm_enrichment)
-    # (eliminated: connections/channel_info → analytics via shared/links/ports/analytics)
+    # (eliminated S1-S6: analytics → crm via shared/links/ports/crm_repos + models)
+    # (eliminated S1-S4: analytics → offer/etl_service via shared/links/ports/offer)
+    # (eliminated S1-S4: analytics workers → crm via shared/links/ports/crm_enrichment)
+    # (eliminated S1-S4: connections/channel_info → analytics via shared/links/ports/analytics)
     "connections -> analytics | connections/api/marketing_webhooks.py",
     "connections -> crm | connections/api/marketing_webhooks.py",
     "connections -> offer | connections/api/marketing_webhooks.py",
-    # ── OFFER ↔ CRM (product mapping backfill) ────────────────
-    "offer -> crm | offer/api/product_mappings.py",
     # ── SALES AGENT ↔ CRM (runtime data access) ──────────────
-    # (eliminated S5: audit.py + audit_repository.py now use shared models)
-    "sales_agent -> crm | sales_agent/api/closer_studio.py",
+    # (eliminated S5-S6: closer_studio.py + closer_studio_service.py now use shared models/ports)
     "sales_agent -> crm | sales_agent/application/orchestrator/chat.py",
-    "sales_agent -> crm | sales_agent/application/services/closer_studio_service.py",
     "sales_agent -> crm | sales_agent/workers/follow_up_engine.py",
     # ── SALES AGENT ↔ CONNECTIONS/OFFER ───────────────────────
     # (eliminated: sales_agent → connections via shared/links/ports/channel_adapter + calendar)

@@ -165,8 +165,8 @@ async def list_source_products(
     source: Annotated[str, Query()] = "shopify",
 ) -> list[SourceProductOut]:
     """List ALL products from a source (mapped + unmapped) with metrics."""
-    from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
     from src.modules.offer.infrastructure.models.product_model import ProductModel
+    from src.shared.infrastructure.models.crm import JourneyEventModel
 
     # 1. Fetch all mappings for tenant+source
     mapping_stmt = select(
@@ -223,7 +223,7 @@ async def list_unmatched_products(
     source: Annotated[str, Query()] = "shopify",
 ) -> list[UnmatchedProductOut]:
     """List external products seen in journey_events that have no mapping."""
-    from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
+    from src.shared.infrastructure.models.crm import JourneyEventModel
 
     # Get all mapped external_ids for this source
     mapped_stmt = select(ExternalProductMappingModel.external_id).where(
@@ -280,9 +280,8 @@ async def create_product_mapping(
     user: Annotated[User, Depends(get_current_user)],
 ) -> CreateProductMappingOut:
     """Create a new external product → offer mapping with retroactive backfill."""
-    from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
-    from src.modules.crm.infrastructure.models.sale_model import SaleModel
     from src.shared.domain.enums import SaleStage, SaleStatus
+    from src.shared.infrastructure.models.crm import JourneyEventModel, SaleModel
 
     repo = ExternalProductMappingRepository(db)
 
@@ -467,9 +466,8 @@ async def get_offer_products_detail(
     user: Annotated[User, Depends(get_current_user)],
 ) -> OfferProductDetailOut:
     """Return aggregated product-level metrics for a single offer."""
-    from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
-    from src.modules.crm.infrastructure.models.sale_model import SaleModel
     from src.modules.offer.infrastructure.models.product_model import ProductModel
+    from src.shared.infrastructure.models.crm import JourneyEventModel, SaleModel
 
     tenant_id = user.tenant_id
 

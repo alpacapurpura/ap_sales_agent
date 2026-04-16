@@ -173,10 +173,10 @@ async def send_message(
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     if body.mode == "direct":
-        from src.modules.crm.infrastructure.models.lead_model import LeadModel
         from src.modules.sales_agent.application.services.channel_resolver import (
             ChannelResolver,
         )
+        from src.shared.infrastructure.models.crm import LeadModel
 
         lead = db.execute(select(LeadModel).where(LeadModel.id == lead_id)).scalars().first()
         if lead:

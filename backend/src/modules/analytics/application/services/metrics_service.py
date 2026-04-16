@@ -22,14 +22,12 @@ from src.modules.analytics.application.dto.timeseries_dto import (
     StageTimeSeriesDTO,
     TimeSeriesPointDTO,
 )
-from src.modules.crm.infrastructure.repositories.customer_repository import (
-    CustomerRepository,
-    JourneyEventRepository,
-)
-from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
-    LeadRepository,
-)
 from src.shared.domain.enums import LifecycleStage
+from src.shared.links.ports.crm_repos import (
+    get_customer_repository,
+    get_journey_event_repository,
+    get_lead_metrics_repository,
+)
 
 if TYPE_CHECKING:
     from collections import OrderedDict
@@ -71,9 +69,9 @@ class MetricsService:
         self.offer_port = offer_port
 
         # Legacy repos for sankey (unchanged)
-        self.journey_repo = JourneyEventRepository(db)
-        self.customer_repo = CustomerRepository(db)
-        self.lead_repo = LeadRepository(db)
+        self.journey_repo = get_journey_event_repository(db)
+        self.customer_repo = get_customer_repository(db)
+        self.lead_repo = get_lead_metrics_repository(db)
 
     def get_marketing_sankey_metrics(self, tenant_id: UUID) -> dict[str, Any]:
         """Obtiene metricas para el diagrama de Sankey de marketing (7 nodos).

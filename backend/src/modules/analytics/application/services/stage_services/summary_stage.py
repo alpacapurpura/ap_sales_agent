@@ -15,13 +15,8 @@ from src.modules.analytics.application.dto.summary_dto import (
 )
 from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-from src.modules.crm.infrastructure.repositories.customer_repository import (
-    CustomerRepository,
-)
-from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
-    LeadRepository,
-)
 from src.shared.domain.enums import LifecycleStage
+from src.shared.links.ports.crm_repos import get_customer_repository, get_lead_metrics_repository
 
 
 class SummaryStageService:
@@ -40,8 +35,8 @@ class SummaryStageService:
         self.connection_port = connection_port
         self.offer_port = offer_port
         # Legacy repos for fallback
-        self.customer_repo = CustomerRepository(db)
-        self.lead_repo = LeadRepository(db)
+        self.customer_repo = get_customer_repository(db)
+        self.lead_repo = get_lead_metrics_repository(db)
 
     def _build_attraction_kpi(
         self,

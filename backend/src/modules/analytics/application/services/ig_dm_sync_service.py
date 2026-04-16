@@ -19,17 +19,14 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from src.modules.analytics.domain.ports import ConnectionPort
-from src.modules.crm.application.services.identity_service import IdentityService
-from src.modules.crm.application.services.ig_profile_enricher import (
-    InstagramProfileEnricher,
-)
-from src.modules.crm.infrastructure.repositories.customer_repository import (
-    CustomerRepository,
-    JourneyEventRepository,
-)
 from src.shared.domain.enums import IdentityType
 from src.shared.domain.events import CHANNEL_TYPE_TO_CAPTURE_SLUG
 from src.shared.infrastructure.models.crm import JourneyEventModel
+from src.shared.links.ports.crm_repos import (
+    get_identity_service,
+    get_ig_profile_enricher,
+    get_journey_event_repository,
+)
 
 logger = structlog.get_logger()
 
@@ -81,10 +78,9 @@ class InstagramDMSyncService:
         skipped = 0
 
         capture_slug = CHANNEL_TYPE_TO_CAPTURE_SLUG.get("instagram", "ig-dm")
-        customer_repo = CustomerRepository(self.db)
-        identity_service = IdentityService(customer_repo)
-        journey_repo = JourneyEventRepository(self.db)
-        enricher = InstagramProfileEnricher(self.db)
+        identity_service = get_identity_service(self.db)
+        journey_repo = get_journey_event_repository(self.db)
+        enricher = get_ig_profile_enricher(self.db)
 
         for conv in conversations:
             conv_id = conv.get("id", "")

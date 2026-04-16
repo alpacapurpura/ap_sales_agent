@@ -12,12 +12,11 @@ if TYPE_CHECKING:
 from sqlalchemy import case, func, literal_column, select
 from sqlalchemy.orm import Session, joinedload
 
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
 from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
     AgentStateCheckpointModel,
 )
 from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
+from src.shared.infrastructure.models.crm import CustomerProfileModel, LeadModel
 
 logger = structlog.get_logger()
 

@@ -5,9 +5,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from src.modules.crm.infrastructure.repositories.customer_repository import (
-    JourneyEventRepository,
-)
+from src.shared.links.ports.crm_repos import get_journey_event_repository
 
 
 class RFMCalculationEngine:
@@ -15,7 +13,7 @@ class RFMCalculationEngine:
 
     def __init__(self, db: Session) -> None:
         """Initialize r f m calculation engine."""
-        self.repository = JourneyEventRepository(db)
+        self.repository = get_journey_event_repository(db)
 
     def calculate_rfm(self, profile_id: UUID) -> dict[str, float]:
         """Calculate RFM metrics (Recency, Frequency, Monetary) for a customer profile.

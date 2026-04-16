@@ -672,9 +672,7 @@ class ETLService:
         Replicates what webhooks produce so that UnmatchedProducts and
         OfferLadder widgets work after an ETL backfill.
         """
-        from src.modules.crm.application.services.customer_service import (
-            CustomerService,
-        )
+        from src.shared.links.ports.crm_repos import get_customer_service
         from src.shared.links.ports.offer import get_product_mapping_repo
 
         orders = provider.get_last_extracted_orders()
@@ -684,7 +682,7 @@ class ETLService:
             logger.info("shopify_etl_crm_no_data tenant=%s", tenant_id)
             return {"orders_processed": 0, "checkouts_processed": 0, "sales_created": 0}
 
-        customer_svc = CustomerService(self.db)
+        customer_svc = get_customer_service(self.db)
         mapping_repo = get_product_mapping_repo(self.db)
 
         # Build set of completed checkout tokens for abandoned-checkout filtering

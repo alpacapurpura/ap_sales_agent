@@ -4,9 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from src.modules.crm.infrastructure.repositories.customer_repository import (
-    JourneyEventRepository,
-)
+from src.shared.links.ports.crm_repos import get_journey_event_repository
 
 
 class LeadScoringEngine:
@@ -29,7 +27,7 @@ class LeadScoringEngine:
 
     def __init__(self, db: Session) -> None:
         """Initialize lead scoring engine."""
-        self.repository = JourneyEventRepository(db)
+        self.repository = get_journey_event_repository(db)
 
     def calculate_score(self, profile_id: UUID) -> int:
         """Calcula el puntaje de lead basado en el historial de eventos.
