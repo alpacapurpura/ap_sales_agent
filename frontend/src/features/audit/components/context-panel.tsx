@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { clearLeadHistory } from "@/features/audit/api";
-import { useLeadDetails, useTraceDetails } from "@/features/audit/hooks/useAudit";
+import { useLeadDetails, useTraceDetails } from "@/features/audit/hooks/use-audit";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantDate } from "@/lib/format-date";
 

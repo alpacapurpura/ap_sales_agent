@@ -8,7 +8,7 @@ import { EsenciaView } from "@/features/brand/components/views/esencia-view";
 import { EstrategiaView } from "@/features/brand/components/views/estrategia-view";
 import { IdentidadCreativaView } from "@/features/brand/components/views/identidad-creativa-view";
 import { PublicoView } from "@/features/brand/components/views/publico-view";
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 
 import type { BrandSectionId } from "@/features/brand/config/sections";

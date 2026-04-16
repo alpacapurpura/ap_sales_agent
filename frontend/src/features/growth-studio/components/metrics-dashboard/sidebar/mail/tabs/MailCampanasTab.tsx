@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { useMailCampaigns } from "../../../../../hooks/useMailDashboard";
+import { useMailCampaigns } from "../../../../../hooks/use-mail-dashboard";
 import {
   AUTOMATION_METRIC_INFO,
   type MetricInfo,

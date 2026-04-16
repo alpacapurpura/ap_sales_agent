@@ -13,8 +13,8 @@ import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context
 import { formatTenantDateTime } from "@/lib/format-date";
 import { cn } from "@/lib/utils";
 
-import { useMailDashboard } from "../../../../hooks/useMailDashboard";
-import { useSyncChannel } from "../../../../hooks/useSyncChannel";
+import { useMailDashboard } from "../../../../hooks/use-mail-dashboard";
+import { useSyncChannel } from "../../../../hooks/use-sync-channel";
 import { HeroKpiGrid } from "../shared/HeroKpiGrid";
 import { PeriodSelector } from "../shared/PeriodSelector";
 

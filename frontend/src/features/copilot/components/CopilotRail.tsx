@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import { reportCopilotEvent } from "../api/copilot-api";
-import { useProactiveNudges } from "../hooks/useProactiveNudges";
+import { useProactiveNudges } from "../hooks/use-proactive-nudges";
 import { useCopilotStore } from "../store/copilot-store";
 
 export function CopilotRail() {

@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { clearLeadHistory } from "@/features/audit/api";
-import { useLeadTimeline } from "@/features/audit/hooks/useAudit";
+import { useLeadTimeline } from "@/features/audit/hooks/use-audit";
 import { TimelineEvent } from "@/features/audit/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";

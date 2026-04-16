@@ -18,7 +18,7 @@ import { MetricInfoPopover } from "@/components/shared/MetricInfoPopover";
 import { ChartContainer } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
 
-import { useMailHealth } from "../../../../../hooks/useMailDashboard";
+import { useMailHealth } from "../../../../../hooks/use-mail-dashboard";
 import { formatMetricValue } from "../../../../../utils/format-metric-value";
 import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
 import { ChartSection } from "../../shared/ChartSection";

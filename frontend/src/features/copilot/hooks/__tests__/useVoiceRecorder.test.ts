@@ -99,7 +99,7 @@ afterEach(() => {
 describe("useVoiceRecorder", () => {
   // Dynamic import to ensure mocks are registered first
   async function importHook() {
-    const mod = await import("../useVoiceRecorder");
+    const mod = await import("../use-voice-recorder");
     return mod.useVoiceRecorder;
   }
 

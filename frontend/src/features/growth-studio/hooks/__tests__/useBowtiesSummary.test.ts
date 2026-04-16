@@ -3,7 +3,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { useBowtiesSummary } from "../useBowtiesSummary";
+import { useBowtiesSummary } from "../use-bowties-summary";
 
 import type { BowtiesSummary } from "@/features/growth-studio/types/summary";
 

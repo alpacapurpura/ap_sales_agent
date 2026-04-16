@@ -10,7 +10,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { ResumenKpiCard } from "../ResumenKpiCard";
 
-import type { ResumenKpiCard as ResumenKpiCardData } from "../../hooks/useResumenViewData";
+import type { ResumenKpiCard as ResumenKpiCardData } from "../../hooks/use-resumen-view-data";
 
 // ---------------------------------------------------------------------------
 // Helpers

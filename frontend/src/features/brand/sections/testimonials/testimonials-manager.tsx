@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
 
 import { TestimonialItemForm } from "./testimonial-item-form";
 import { TestimonialsList } from "./testimonials-list";

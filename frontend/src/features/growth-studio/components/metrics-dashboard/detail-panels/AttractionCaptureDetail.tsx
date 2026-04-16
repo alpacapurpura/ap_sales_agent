@@ -15,9 +15,9 @@ import {
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useGrowthSync } from "../../../context/growth-sync-context";
-import { useIntersectionObserver } from "../../../hooks/useIntersectionObserver";
-import { useStageTimeSeries } from "../../../hooks/useStageDetail";
-import { useStageOverview } from "../../../hooks/useStageOverview";
+import { useIntersectionObserver } from "../../../hooks/use-intersection-observer";
+import { useStageTimeSeries } from "../../../hooks/use-stage-detail";
+import { useStageOverview } from "../../../hooks/use-stage-overview";
 import { ActionPanel } from "../action-widgets/ActionPanel";
 import { AttractionScorecards } from "../attraction/AttractionScorecards";
 import { AttractionTrendChart } from "../attraction/AttractionTrendChart";

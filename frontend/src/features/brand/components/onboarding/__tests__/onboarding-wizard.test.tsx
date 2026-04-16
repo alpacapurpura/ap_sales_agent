@@ -12,7 +12,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 // Mock useBrandSettings
-vi.mock("../../../hooks/useBrandSettings", () => ({
+vi.mock("../../../hooks/use-brand-settings", () => ({
   useBrandSettings: () => ({
     settings: null,
     loading: false,

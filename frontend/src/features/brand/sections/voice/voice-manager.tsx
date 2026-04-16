@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
 

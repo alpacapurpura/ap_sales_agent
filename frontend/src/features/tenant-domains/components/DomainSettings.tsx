@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
-import { useDomains } from "../hooks/useDomains";
+import { useDomains } from "../hooks/use-domains";
 
 import { CustomDomainWizard } from "./CustomDomainWizard";
 import { DomainList } from "./DomainList";

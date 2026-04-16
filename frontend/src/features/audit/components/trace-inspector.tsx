@@ -19,7 +19,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useTraceDetails } from "@/features/audit/hooks/useAudit";
+import { useTraceDetails } from "@/features/audit/hooks/use-audit";
 
 import type { TimelineEvent } from "@/features/audit/types";
 

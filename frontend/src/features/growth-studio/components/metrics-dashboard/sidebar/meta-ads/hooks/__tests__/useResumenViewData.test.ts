@@ -1,7 +1,7 @@
 import { renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { useResumenViewData } from "../useResumenViewData";
+import { useResumenViewData } from "../use-resumen-view-data";
 
 import type { ChannelDashboardData } from "../../../../../../types/metrics";
 import type {

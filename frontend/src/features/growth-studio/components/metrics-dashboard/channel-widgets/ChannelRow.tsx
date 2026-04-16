@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 import { getSummaryMetrics } from "../../../config/channel-display-registry";
-import { useMetricCatalog } from "../../../hooks/useMetricCatalog";
-import { useSyncChannel } from "../../../hooks/useSyncChannel";
+import { useMetricCatalog } from "../../../hooks/use-metric-catalog";
+import { useSyncChannel } from "../../../hooks/use-sync-channel";
 import { getChannelIcon, getChannelColor } from "../../../lib/channel-icons";
 
 import { CampaignDrillDown } from "./CampaignDrillDown";

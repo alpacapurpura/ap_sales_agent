@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useCallback, type ReactNode } from "react";
 
-import { useSyncAllSources } from "../hooks/useSyncAllSources";
+import { useSyncAllSources } from "../hooks/use-sync-all-sources";
 
 import type { SyncAllResponse } from "../api/metrics-api";
 

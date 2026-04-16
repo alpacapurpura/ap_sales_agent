@@ -13,13 +13,13 @@ import { cn } from "@/lib/utils";
 
 import { useCampaignPerformance } from "../../../../api/campaigns-api";
 import { useAssociations, useMetaHealthCheck } from "../../../../api/offer-association-api";
-import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
-import { useConnectionHealth } from "../../../../hooks/useConnectionHealth";
-import { useHashScroll } from "../../../../hooks/useHashScroll";
-import { useSyncChannel } from "../../../../hooks/useSyncChannel";
+import { useChannelDashboard } from "../../../../hooks/use-channel-dashboard";
+import { useConnectionHealth } from "../../../../hooks/use-connection-health";
+import { useHashScroll } from "../../../../hooks/use-hash-scroll";
+import { useSyncChannel } from "../../../../hooks/use-sync-channel";
 import { ConnectionHealthBanner } from "../../../connection-health-banner";
 
-import { computeMetaAdsOnboardingTrigger } from "./hooks/useMetaAdsOnboardingTrigger";
+import { computeMetaAdsOnboardingTrigger } from "./hooks/use-meta-ads-onboarding-trigger";
 import { MetaAdsOnboardingModal } from "./MetaAdsOnboardingModal";
 import { MetaAdsPeriodSelector } from "./MetaAdsPeriodSelector";
 import { AudienciaTab } from "./tabs/AudienciaTab";

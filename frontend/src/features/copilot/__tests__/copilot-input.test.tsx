@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from "vitest";
 import { CopilotInput } from "../components/copilot-input";
 
 // Mock the voice recorder hook
-vi.mock("../hooks/useVoiceRecorder", () => ({
+vi.mock("../hooks/use-voice-recorder", () => ({
   useVoiceRecorder: () => ({
     isRecording: false,
     isTranscribing: false,

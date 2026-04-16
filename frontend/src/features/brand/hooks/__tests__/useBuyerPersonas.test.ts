@@ -18,7 +18,7 @@ vi.mock("@/lib/api/buyer-persona", () => ({
   },
 }));
 
-import { useBuyerPersonas } from "../useBuyerPersonas";
+import { useBuyerPersonas } from "../use-buyer-personas";
 
 function createWrapper() {
   const queryClient = new QueryClient({

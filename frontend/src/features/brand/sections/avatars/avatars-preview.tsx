@@ -13,7 +13,7 @@ import { startInterview } from "@/features/copilot/api/interview-api";
 import { FocusModeButton } from "@/features/copilot/components/focus-mode-button";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 
-import { useBuyerPersonas } from "../../hooks/useBuyerPersonas";
+import { useBuyerPersonas } from "../../hooks/use-buyer-personas";
 
 export interface AvatarsSectionProps {
   // Legacy props kept for compatibility with publico-view.tsx — unused in this implementation

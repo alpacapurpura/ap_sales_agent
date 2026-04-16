@@ -42,11 +42,11 @@ afterEach(() => {
 // ── Tests ──────────────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-let useIntersectionObserver: typeof import("../useIntersectionObserver").useIntersectionObserver;
+let useIntersectionObserver: typeof import("../use-intersection-observer").useIntersectionObserver;
 
 beforeEach(async () => {
   // Re-import to pick up mock
-  const mod = await import("../useIntersectionObserver");
+  const mod = await import("../use-intersection-observer");
   useIntersectionObserver = mod.useIntersectionObserver;
 });
 

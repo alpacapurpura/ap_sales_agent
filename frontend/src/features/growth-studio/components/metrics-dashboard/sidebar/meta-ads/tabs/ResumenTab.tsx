@@ -9,7 +9,7 @@ import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context
 import { useMetricsByOffer } from "../../../../../api/offer-association-api";
 import { ChartSection } from "../../shared/ChartSection";
 import { ResumenKpiCard } from "../components/ResumenKpiCard";
-import { useResumenViewData } from "../hooks/useResumenViewData";
+import { useResumenViewData } from "../hooks/use-resumen-view-data";
 import { InversionChart } from "../InversionChart";
 import { MetaAdsMiniFunnel } from "../MetaAdsMiniFunnel";
 import { ResumenHealthOverview } from "../notices/ResumenHealthOverview";

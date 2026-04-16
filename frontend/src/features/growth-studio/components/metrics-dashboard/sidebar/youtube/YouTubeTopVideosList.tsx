@@ -3,7 +3,7 @@
 import { Loader2, Youtube } from "lucide-react";
 import Image from "next/image";
 
-import { useYoutubeTopVideos } from "../../../../hooks/useYoutubeAnalytics";
+import { useYoutubeTopVideos } from "../../../../hooks/use-youtube-analytics";
 
 function formatDuration(iso: string): string {
   // Parse ISO 8601 duration like PT1H2M30S

@@ -13,54 +13,18 @@ import * as path from "path";
 import { FEATURES_DIR, walkFiles, relPath, isKebabCase, stemName, isTestFile } from "./helpers";
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────
-const KNOWN_CAMELCASE_FILES = new Set([
-  // audit hooks (1)
-  "features/audit/hooks/useAudit.ts",
-  // brand hooks (4)
-  "features/brand/hooks/useBrandSettings.ts",
-  "features/brand/hooks/useBuyerPersona.ts",
-  "features/brand/hooks/useBuyerPersonas.ts",
-  "features/brand/hooks/useOnboardingWizard.ts",
-  // copilot hooks (7)
-  "features/copilot/hooks/useCopilotChat.ts",
-  "features/copilot/hooks/useCopilotFieldSync.ts",
-  "features/copilot/hooks/useCopilotNavigator.ts",
-  "features/copilot/hooks/useCopilotUIAction.ts",
-  "features/copilot/hooks/useProactiveNudges.ts",
-  "features/copilot/hooks/useRouteTracker.ts",
-  "features/copilot/hooks/useVoiceRecorder.ts",
-  // growth-studio context (1 PascalCase context file)
-  "features/growth-studio/components/metrics-dashboard/context/GrowthStudioContext.tsx",
-  // useMetricClickHandler moved to hooks/use-metric-click-handler.ts (fixed)
-  // growth-studio nested hooks (3) — in nested hooks/ dirs, still camelCase
-  "features/growth-studio/components/metrics-dashboard/hooks/useStageSummaries.ts",
-  "features/growth-studio/components/metrics-dashboard/sidebar/meta-ads/hooks/useMetaAdsOnboardingTrigger.ts",
-  "features/growth-studio/components/metrics-dashboard/sidebar/meta-ads/hooks/useResumenViewData.ts",
-  // growth-studio hooks (15)
-  "features/growth-studio/hooks/useBowtiesSummary.ts",
-  "features/growth-studio/hooks/useChannelDashboard.ts",
-  "features/growth-studio/hooks/useConnectionHealth.ts",
-  "features/growth-studio/hooks/useGroupDetail.ts",
-  "features/growth-studio/hooks/useGrowthStudioUrl.ts",
-  "features/growth-studio/hooks/useHashScroll.ts",
-  "features/growth-studio/hooks/useInitialLoad.ts",
-  "features/growth-studio/hooks/useIntersectionObserver.ts",
-  "features/growth-studio/hooks/useMailDashboard.ts",
-  "features/growth-studio/hooks/useMetricCatalog.ts",
-  "features/growth-studio/hooks/useStageDetail.ts",
-  "features/growth-studio/hooks/useStageOverview.ts",
-  "features/growth-studio/hooks/useSyncAllSources.ts",
-  "features/growth-studio/hooks/useSyncChannel.ts",
-  "features/growth-studio/hooks/useYoutubeAnalytics.ts",
-  // offer-studio context (1 PascalCase context file)
-  "features/offer-studio/components/landing/context/LandingThemeContext.tsx",
-  // tenant-domains hooks (1)
-  "features/tenant-domains/hooks/useDomains.ts",
-]);
+// All hooks renamed to kebab-case on 2026-04-15.
+// Context PascalCase files are exempt by the test logic (parent dir = context + "context" in filename,
+// or filename matches *Context.tsx). GrowthStudioContext and LandingThemeContext pass the exemption.
+const KNOWN_CAMELCASE_FILES = new Set<string>([]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SCANNED_DIRS = new Set(["hooks", "api", "types", "utils", "config", "lib", "context", "store", "services"]);
+
+// PascalCase context files (e.g. GrowthStudioContext.tsx) are exempt:
+// they export a React Context object (PascalCase is the React convention for context exports).
+const CONTEXT_FILE_RE = /Context\.(ts|tsx)$/;
 
 describe("Architecture: File naming (non-components)", () => {
   it("every .ts(x) file in hooks/api/types/utils/config/lib/context/store/services/ must be kebab-case", () => {
@@ -75,6 +39,9 @@ describe("Architecture: File naming (non-components)", () => {
 
       const parentDir = path.basename(path.dirname(file));
       if (!SCANNED_DIRS.has(parentDir)) continue;
+
+      // Exempt: *Context.(ts|tsx) files — PascalCase is React Context convention
+      if (CONTEXT_FILE_RE.test(basename)) continue;
 
       const stem = stemName(basename);
       if (!isKebabCase(stem)) {

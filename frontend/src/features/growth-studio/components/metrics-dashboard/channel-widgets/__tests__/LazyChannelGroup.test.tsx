@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // ── Mocks ──────────────────────────────────────────────────────────────────────
 
 let mockIsVisible = false;
-vi.mock("../../../../hooks/useIntersectionObserver", () => ({
+vi.mock("../../../../hooks/use-intersection-observer", () => ({
   useIntersectionObserver: () => ({
     ref: vi.fn(),
     isVisible: mockIsVisible,
@@ -34,7 +34,7 @@ let mockGroupDetailReturn = {
   data: undefined as typeof mockGroupDetailData | undefined,
   isLoading: false,
 };
-vi.mock("../../../../hooks/useGroupDetail", () => ({
+vi.mock("../../../../hooks/use-group-detail", () => ({
   useGroupDetail: () => mockGroupDetailReturn,
 }));
 

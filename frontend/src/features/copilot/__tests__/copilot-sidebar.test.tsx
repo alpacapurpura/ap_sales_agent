@@ -11,7 +11,7 @@ vi.mock("@clerk/nextjs", () => ({
   useAuth: () => ({ getToken: () => Promise.resolve("token") }),
 }));
 
-vi.mock("../hooks/useVoiceRecorder", () => ({
+vi.mock("../hooks/use-voice-recorder", () => ({
   useVoiceRecorder: () => ({
     isRecording: false,
     isTranscribing: false,
@@ -23,7 +23,7 @@ vi.mock("../hooks/useVoiceRecorder", () => ({
   }),
 }));
 
-vi.mock("../hooks/useProactiveNudges", () => ({
+vi.mock("../hooks/use-proactive-nudges", () => ({
   useProactiveNudges: () => ({ nudges: [], dismissNudge: vi.fn() }),
 }));
 
@@ -32,7 +32,7 @@ vi.mock("../api/copilot-api", () => ({
   reportCopilotEvent: vi.fn(),
 }));
 
-vi.mock("../hooks/useCopilotNavigator", () => ({
+vi.mock("../hooks/use-copilot-navigator", () => ({
   useCopilotNavigator: () => ({ executeAction: vi.fn() }),
 }));
 

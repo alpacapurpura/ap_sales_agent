@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { MetricKpiData, MetricTimeSeries } from "../../../../../types/metrics";
 
 // Mock useMetricCatalog (used by MetricInfoCard)
-vi.mock("../../../../../hooks/useMetricCatalog", () => ({
+vi.mock("../../../../../hooks/use-metric-catalog", () => ({
   useMetricCatalog: () => ({
     getTooltipData: () => null,
   }),

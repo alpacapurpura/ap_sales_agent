@@ -1,7 +1,7 @@
 "use client";
 
 import { STAGE_SUMMARIES } from "../../../api/stage-summaries-fallback";
-import { useBowtiesSummary } from "../../../hooks/useBowtiesSummary";
+import { useBowtiesSummary } from "../../../hooks/use-bowties-summary";
 
 import type { StageId, StageSummary } from "../../../types/metrics";
 import type { StageSummaryKpi } from "../../../types/summary";

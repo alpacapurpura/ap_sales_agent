@@ -3,7 +3,7 @@ import { renderHook, waitFor, act } from "@testing-library/react";
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { useDomains, useCreateDomain, useDeleteDomain } from "../hooks/useDomains";
+import { useDomains, useCreateDomain, useDeleteDomain } from "../hooks/use-domains";
 
 import type { TenantDomain } from "../types";
 

@@ -11,7 +11,7 @@ vi.mock("@clerk/nextjs", () => ({
   useAuth: () => ({ getToken: vi.fn().mockResolvedValue("test-token") }),
 }));
 
-vi.mock("../../../../../hooks/useSyncChannel", () => ({
+vi.mock("../../../../../hooks/use-sync-channel", () => ({
   useSyncChannel: () => ({
     sync: vi.fn(),
     isSyncing: false,
@@ -115,11 +115,11 @@ const MOCK_WEBSITE_DATA: ChannelDashboardData = {
 let mockData: ChannelDashboardData | undefined = MOCK_WEBSITE_DATA;
 let mockIsLoading = false;
 
-vi.mock("../../../../../hooks/useChannelDashboard", () => ({
+vi.mock("../../../../../hooks/use-channel-dashboard", () => ({
   useChannelDashboard: () => ({ data: mockData, isLoading: mockIsLoading }),
 }));
 
-vi.mock("../../../../../hooks/useMetricCatalog", () => ({
+vi.mock("../../../../../hooks/use-metric-catalog", () => ({
   useMetricCatalog: () => ({
     getTooltipData: () => null,
   }),

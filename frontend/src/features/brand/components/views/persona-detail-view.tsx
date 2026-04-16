@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { cn } from "@/lib/utils";
 
-import { useBuyerPersona } from "../../hooks/useBuyerPersona";
+import { useBuyerPersona } from "../../hooks/use-buyer-persona";
 
 import type { BuyerPersona, BuyerPersonaSectionUpdateDTO } from "@/lib/api/buyer-persona";
 

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 import { RESUMEN_TOOLTIPS } from "../copy/tooltips";
 
-import type { ResumenKpiCard as ResumenKpiCardData } from "../hooks/useResumenViewData";
+import type { ResumenKpiCard as ResumenKpiCardData } from "../hooks/use-resumen-view-data";
 
 interface ResumenKpiCardProps {
   card: ResumenKpiCardData;

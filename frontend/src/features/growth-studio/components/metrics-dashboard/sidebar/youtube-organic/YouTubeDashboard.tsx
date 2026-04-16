@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
-import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
-import { useHashScroll } from "../../../../hooks/useHashScroll";
-import { useSyncChannel } from "../../../../hooks/useSyncChannel";
+import { useChannelDashboard } from "../../../../hooks/use-channel-dashboard";
+import { useHashScroll } from "../../../../hooks/use-hash-scroll";
+import { useSyncChannel } from "../../../../hooks/use-sync-channel";
 import { ChannelPeriodSelector } from "../ig-organic/ChannelPeriodSelector";
 
 import { YtAudienceTab } from "./tabs/YtAudienceTab";

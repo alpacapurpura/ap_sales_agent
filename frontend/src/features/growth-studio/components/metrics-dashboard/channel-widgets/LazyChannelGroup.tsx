@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 
-import { useGroupDetail } from "../../../hooks/useGroupDetail";
-import { useIntersectionObserver } from "../../../hooks/useIntersectionObserver";
+import { useGroupDetail } from "../../../hooks/use-group-detail";
+import { useIntersectionObserver } from "../../../hooks/use-intersection-observer";
 import { classifyChannel } from "../../../lib/classify-channel";
 
 import { ChannelChip } from "./ChannelChip";

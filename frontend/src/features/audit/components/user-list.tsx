@@ -11,7 +11,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useAuditLeads } from "@/features/audit/hooks/useAudit";
+import { useAuditLeads } from "@/features/audit/hooks/use-audit";
 import { cn } from "@/lib/utils";
 
 interface LeadListProps {

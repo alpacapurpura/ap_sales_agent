@@ -30,7 +30,7 @@ import { formatTenantDate } from "@/lib/format-date";
 import { formatMoney } from "@/lib/format-money";
 import { cn } from "@/lib/utils";
 
-import { useSyncChannel } from "../../../hooks/useSyncChannel";
+import { useSyncChannel } from "../../../hooks/use-sync-channel";
 import { getChannelIcon, getChannelColor } from "../../../lib/channel-icons";
 import { METRIC_LABELS } from "../../../lib/metric-labels";
 import { useGrowthStudioContext } from "../context/GrowthStudioContext";

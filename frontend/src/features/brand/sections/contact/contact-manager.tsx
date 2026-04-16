@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
 
 import { ContactForm } from "./contact-form";
 

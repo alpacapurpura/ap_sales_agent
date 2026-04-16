@@ -6,7 +6,7 @@ import React, { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { useMailAutomations } from "../../../../../hooks/useMailDashboard";
+import { useMailAutomations } from "../../../../../hooks/use-mail-dashboard";
 import { computeHealthScore } from "../../../../../utils/automation-health";
 import {
   AUTOMATION_METRIC_INFO,

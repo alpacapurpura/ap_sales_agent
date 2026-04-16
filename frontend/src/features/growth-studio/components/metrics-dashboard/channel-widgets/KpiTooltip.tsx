@@ -4,7 +4,7 @@ import { Info, TrendingUp, TrendingDown } from "lucide-react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-import { useMetricCatalog } from "../../../hooks/useMetricCatalog";
+import { useMetricCatalog } from "../../../hooks/use-metric-catalog";
 
 import type { ReactNode } from "react";
 

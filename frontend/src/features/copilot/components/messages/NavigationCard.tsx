@@ -6,7 +6,7 @@ import { ArrowRight, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { reportCopilotEvent } from "../../api/copilot-api";
-import { useCopilotNavigator } from "../../hooks/useCopilotNavigator";
+import { useCopilotNavigator } from "../../hooks/use-copilot-navigator";
 
 import type { UIAction } from "../../store/copilot-store";
 

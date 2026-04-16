@@ -3,7 +3,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { useAttractionDetail } from "../useStageDetail";
+import { useAttractionDetail } from "../use-stage-detail";
 
 import type { AttractionDetail } from "@/features/growth-studio/types/metrics";
 

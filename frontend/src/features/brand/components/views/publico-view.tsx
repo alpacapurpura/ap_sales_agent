@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
 
 import { BRAND_SECTIONS, buildSectionNavItems } from "../../config/sections";
 import { AvatarsSection } from "../../sections/avatars/avatars-preview";

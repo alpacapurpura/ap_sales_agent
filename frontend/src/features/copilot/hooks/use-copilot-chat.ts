@@ -6,7 +6,7 @@ import { useCallback, useRef } from "react";
 import { streamCopilotChat, reportCopilotEvent } from "../api/copilot-api";
 import { useCopilotStore, type UIAction } from "../store/copilot-store";
 
-import { handleUIAction } from "./useCopilotUIAction";
+import { handleUIAction } from "./use-copilot-ui-action";
 
 /**
  * Unified chat hook for all copilot modes (chat, focus, interview).

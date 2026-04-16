@@ -5,8 +5,8 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { memo, useEffect, useRef } from "react";
 
 import { reportCopilotEvent } from "../api/copilot-api";
-import { useCopilotChat } from "../hooks/useCopilotChat";
-import { useProactiveNudges } from "../hooks/useProactiveNudges";
+import { useCopilotChat } from "../hooks/use-copilot-chat";
+import { useProactiveNudges } from "../hooks/use-proactive-nudges";
 import { useCopilotStore } from "../store/copilot-store";
 
 import { ContextChips } from "./ContextChips";

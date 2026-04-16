@@ -24,7 +24,7 @@ import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context
 import { formatTenantTime } from "@/lib/format-date";
 import { formatMoney } from "@/lib/format-money";
 
-import { useNurtureDetail, useOpportunityDetail } from "../../../hooks/useStageDetail";
+import { useNurtureDetail, useOpportunityDetail } from "../../../hooks/use-stage-detail";
 import { classifyChannel } from "../../../lib/classify-channel";
 import { ActionPanel } from "../action-widgets/ActionPanel";
 import { ChannelChip } from "../channel-widgets/ChannelChip";

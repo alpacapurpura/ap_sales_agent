@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 
 import type { BrandSettings } from "@/features/brand/types";

@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-import { useCreateDomain, useGetDomainInstructions, useVerifyDomain } from "../hooks/useDomains";
+import { useCreateDomain, useGetDomainInstructions, useVerifyDomain } from "../hooks/use-domains";
 import { isDomainConflict } from "../types";
 
 import type { TenantDomain, DomainInstructions } from "../types";

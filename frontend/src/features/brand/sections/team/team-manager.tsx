@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-import { useBrandSettings } from "../../hooks/useBrandSettings";
+import { useBrandSettings } from "../../hooks/use-brand-settings";
 
 import { TeamList } from "./team-list";
 import { TeamMemberForm } from "./team-member-form";

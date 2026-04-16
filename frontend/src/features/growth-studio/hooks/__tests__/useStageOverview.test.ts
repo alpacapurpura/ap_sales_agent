@@ -61,7 +61,7 @@ vi.mock("../../api/stage-overview-api", () => ({
 // ── Import after mocks ────────────────────────────────────────────────────────
 
 import { GrowthStudioProvider } from "../../components/metrics-dashboard/context/GrowthStudioContext";
-import { useStageOverview } from "../useStageOverview";
+import { useStageOverview } from "../use-stage-overview";
 
 // ── Tests ──────────────────────────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useBrandSettings } from "../../hooks/useBrandSettings";
+import { useBrandSettings } from "../../hooks/use-brand-settings";
 
 import { NarrativeForm } from "./narrative-form";
 

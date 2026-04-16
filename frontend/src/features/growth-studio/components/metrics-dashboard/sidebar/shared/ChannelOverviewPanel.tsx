@@ -13,8 +13,8 @@ import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context
 import { formatTenantDateTime } from "@/lib/format-date";
 import { cn } from "@/lib/utils";
 
-import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
-import { useSyncChannel } from "../../../../hooks/useSyncChannel";
+import { useChannelDashboard } from "../../../../hooks/use-channel-dashboard";
+import { useSyncChannel } from "../../../../hooks/use-sync-channel";
 import { MetaAdsMiniFunnel } from "../meta-ads/MetaAdsMiniFunnel";
 
 import { HeroKpiGrid } from "./HeroKpiGrid";

@@ -3,7 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
-import { useBrandSettings } from "../../hooks/useBrandSettings";
+import { useBrandSettings } from "../../hooks/use-brand-settings";
 
 import { AssetItemForm } from "./asset-item-form";
 import { ConceptForm } from "./concept-form";

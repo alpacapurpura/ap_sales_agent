@@ -5,7 +5,7 @@ import { Globe, FileText, MessageCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import type { OnboardingSource } from "../../hooks/useOnboardingWizard";
+import type { OnboardingSource } from "../../hooks/use-onboarding-wizard";
 
 interface StepSourcePickerProps {
   selectedSources: OnboardingSource[];

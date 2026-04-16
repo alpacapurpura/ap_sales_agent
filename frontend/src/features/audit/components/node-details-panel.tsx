@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { useTraceDetails } from "@/features/audit/hooks/useAudit";
+import { useTraceDetails } from "@/features/audit/hooks/use-audit";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantTime } from "@/lib/format-date";
 import { cn } from "@/lib/utils";

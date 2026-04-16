@@ -14,7 +14,7 @@ import { formatMoney } from "@/lib/format-money";
 import { cn } from "@/lib/utils";
 
 import { useCampaignPerformance } from "../../../../api/campaigns-api";
-import { useChannelDashboard } from "../../../../hooks/useChannelDashboard";
+import { useChannelDashboard } from "../../../../hooks/use-channel-dashboard";
 
 import { MetaAdsHeroKpiGrid } from "./MetaAdsHeroKpiGrid";
 import { MetaAdsMiniFunnel } from "./MetaAdsMiniFunnel";

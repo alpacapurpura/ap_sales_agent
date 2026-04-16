@@ -17,8 +17,8 @@ import React, { useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
-import { useInitialLoad } from "../../../hooks/useInitialLoad";
-import { useSalesDetail } from "../../../hooks/useStageDetail";
+import { useInitialLoad } from "../../../hooks/use-initial-load";
+import { useSalesDetail } from "../../../hooks/use-stage-detail";
 import { ActionPanel } from "../action-widgets/ActionPanel";
 import { MiniFunnel } from "../channel-widgets/MiniFunnel";
 import { OfferLadder } from "../offer-widgets/OfferLadder";

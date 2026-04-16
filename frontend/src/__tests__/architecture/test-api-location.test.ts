@@ -19,15 +19,15 @@ import { FEATURES_DIR, walkFiles, relPath, isTestFile, readFile } from "./helper
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────
 const KNOWN_FETCHCLIENT_OUTSIDE_API = new Set([
-  "features/audit/hooks/useAudit.ts",
+  "features/audit/hooks/use-audit.ts",
   "features/brand/sections/voice/voice-manager.tsx",
   "features/connections/components/meta-view.tsx",
-  "features/growth-studio/hooks/useConnectionHealth.ts",
-  "features/growth-studio/hooks/useMailDashboard.ts",
-  "features/growth-studio/hooks/useSyncChannel.ts",
+  "features/growth-studio/hooks/use-connection-health.ts",
+  "features/growth-studio/hooks/use-mail-dashboard.ts",
+  "features/growth-studio/hooks/use-sync-channel.ts",
   "features/offer-studio/hooks/use-offer-metadata.ts",
-  "features/sales/services/dashboardService.ts",
-  "features/sales/services/leadService.ts",
+  // sales/services/dashboardService.ts → moved to api/dashboard-service.ts (fixed)
+  // sales/services/leadService.ts → moved to api/lead-service.ts (fixed)
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
-import { useOnboardingWizard } from "../useOnboardingWizard";
+import { useOnboardingWizard } from "../use-onboarding-wizard";
 
 // Mock Next.js navigation
 const mockPush = vi.fn();

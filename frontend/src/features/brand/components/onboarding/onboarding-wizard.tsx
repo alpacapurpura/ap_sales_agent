@@ -1,7 +1,7 @@
 "use client";
 
-import { useBrandSettings } from "../../hooks/useBrandSettings";
-import { useOnboardingWizard } from "../../hooks/useOnboardingWizard";
+import { useBrandSettings } from "../../hooks/use-brand-settings";
+import { useOnboardingWizard } from "../../hooks/use-onboarding-wizard";
 
 import { StepDocuments } from "./step-documents";
 import { StepGapReview } from "./step-gap-review";

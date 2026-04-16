@@ -6,7 +6,7 @@ import { Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { reportCopilotEvent } from "../api/copilot-api";
-import { useCopilotChat } from "../hooks/useCopilotChat";
+import { useCopilotChat } from "../hooks/use-copilot-chat";
 import { useCopilotStore } from "../store/copilot-store";
 
 /**

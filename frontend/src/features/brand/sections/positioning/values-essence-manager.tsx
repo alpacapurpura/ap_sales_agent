@@ -1,6 +1,6 @@
 "use client";
 
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
 
 import { ValuesEssenceForm } from "./values-essence-form";
 

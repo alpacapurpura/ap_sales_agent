@@ -1,7 +1,7 @@
 import { renderHook } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { useCopilotFieldSync } from "@/features/copilot/hooks/useCopilotFieldSync";
+import { useCopilotFieldSync } from "@/features/copilot/hooks/use-copilot-field-sync";
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 

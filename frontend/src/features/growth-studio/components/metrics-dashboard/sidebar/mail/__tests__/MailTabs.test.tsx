@@ -380,7 +380,7 @@ const mockUseMailAudience = vi.fn();
 const mockUseMailHealth = vi.fn();
 const mockUseMailGrowth = vi.fn();
 
-vi.mock("../../../../../hooks/useMailDashboard", () => ({
+vi.mock("../../../../../hooks/use-mail-dashboard", () => ({
   useMailDashboard: (...args: unknown[]) => mockUseMailDashboard(...args),
   useMailCampaigns: (...args: unknown[]) => mockUseMailCampaigns(...args),
   useMailAutomations: (...args: unknown[]) => mockUseMailAutomations(...args),

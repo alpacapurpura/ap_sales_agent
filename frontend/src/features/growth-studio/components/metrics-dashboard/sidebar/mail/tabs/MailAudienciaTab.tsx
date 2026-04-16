@@ -7,7 +7,7 @@ import { MetricInfoPopover } from "@/components/shared/MetricInfoPopover";
 import { ChartContainer } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
 
-import { useMailAudience } from "../../../../../hooks/useMailDashboard";
+import { useMailAudience } from "../../../../../hooks/use-mail-dashboard";
 import { ChartInfoTooltip } from "../../shared/ChartInfoTooltip";
 import { ChartSection } from "../../shared/ChartSection";
 

@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
-import { useConnectionHealth } from "../../../../hooks/useConnectionHealth";
-import { useHashScroll } from "../../../../hooks/useHashScroll";
-import { useSyncChannel } from "../../../../hooks/useSyncChannel";
+import { useConnectionHealth } from "../../../../hooks/use-connection-health";
+import { useHashScroll } from "../../../../hooks/use-hash-scroll";
+import { useSyncChannel } from "../../../../hooks/use-sync-channel";
 import { ConnectionHealthBanner } from "../../../connection-health-banner";
 import { PeriodSelector } from "../shared/PeriodSelector";
 

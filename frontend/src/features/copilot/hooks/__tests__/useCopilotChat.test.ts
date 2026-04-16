@@ -8,7 +8,7 @@
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { useCopilotChat } from "@/features/copilot/hooks/useCopilotChat";
+import { useCopilotChat } from "@/features/copilot/hooks/use-copilot-chat";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────

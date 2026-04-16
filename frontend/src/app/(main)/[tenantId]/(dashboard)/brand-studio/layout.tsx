@@ -10,7 +10,7 @@ import { SmartFillDialog } from "@/features/brand/components/smart-fill/smart-fi
 import { BrandStudioTabs } from "@/features/brand/components/tabs/brand-studio-tabs";
 import { BRAND_SECTIONS, type BrandSectionId } from "@/features/brand/config/sections";
 import { BrandStudioProvider, useBrandStudio } from "@/features/brand/context/brand-studio-context";
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
 import { BrandVisualsWizard } from "@/features/brand/sections/visuals/brand-visuals-wizard";
 import { ThemeInjector } from "@/features/brand/sections/visuals/theme-injector";
 

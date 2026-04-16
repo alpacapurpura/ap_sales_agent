@@ -27,7 +27,7 @@ vi.mock("../../../../lib/channel-icons", () => ({
 }));
 
 // Mock useMetricCatalog — return empty catalog
-vi.mock("../../../../hooks/useMetricCatalog", () => ({
+vi.mock("../../../../hooks/use-metric-catalog", () => ({
   useMetricCatalog: () => ({
     catalog: [],
     catalogByName: {},
@@ -38,7 +38,7 @@ vi.mock("../../../../hooks/useMetricCatalog", () => ({
 }));
 
 // Mock useSyncChannel
-vi.mock("../../../../hooks/useSyncChannel", () => ({
+vi.mock("../../../../hooks/use-sync-channel", () => ({
   useSyncChannel: () => ({
     sync: vi.fn(),
     isSyncing: false,

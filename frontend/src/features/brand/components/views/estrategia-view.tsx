@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 
 import { useBrandStudio } from "@/features/brand/context/brand-studio-context";
-import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
 
 import { BRAND_SECTIONS, buildSectionNavItems } from "../../config/sections";
 

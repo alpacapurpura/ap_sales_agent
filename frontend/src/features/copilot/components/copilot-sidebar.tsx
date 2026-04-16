@@ -6,8 +6,8 @@ import { memo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { useCopilotNavigator } from "../hooks/useCopilotNavigator";
-import { useRouteTracker } from "../hooks/useRouteTracker";
+import { useCopilotNavigator } from "../hooks/use-copilot-navigator";
+import { useRouteTracker } from "../hooks/use-route-tracker";
 import { useCopilotStore } from "../store/copilot-store";
 
 import { CopilotHeader } from "./copilot-header";

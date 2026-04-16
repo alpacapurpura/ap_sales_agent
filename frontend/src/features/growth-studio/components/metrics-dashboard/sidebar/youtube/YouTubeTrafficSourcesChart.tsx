@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from 
 
 import { Badge } from "@/components/ui/badge";
 
-import { useYoutubeTrafficSources } from "../../../../hooks/useYoutubeAnalytics";
+import { useYoutubeTrafficSources } from "../../../../hooks/use-youtube-analytics";
 
 const SOURCE_LABELS: Record<string, string> = {
   SUGGESTED: "Recomendaciones YT",

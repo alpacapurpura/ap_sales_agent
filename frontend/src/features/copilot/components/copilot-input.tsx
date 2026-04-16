@@ -5,7 +5,7 @@ import { useRef, useState, useCallback } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { useVoiceRecorder } from "../hooks/useVoiceRecorder";
+import { useVoiceRecorder } from "../hooks/use-voice-recorder";
 
 import { AttachmentButton } from "./shared/attachment-button";
 import { DocumentChip, type DocumentStatus } from "./shared/document-chip";

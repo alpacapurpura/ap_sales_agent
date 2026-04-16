@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
-import { useCopilotFieldSync } from "@/features/copilot/hooks/useCopilotFieldSync";
+import { useCopilotFieldSync } from "@/features/copilot/hooks/use-copilot-field-sync";
 
 import type { BrandIdentity } from "@/features/brand/types";
 import type { UseFormSetValue } from "react-hook-form";

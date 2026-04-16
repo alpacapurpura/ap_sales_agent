@@ -23,7 +23,7 @@ import React, { useState, useMemo, useCallback } from "react";
 
 import { formatMoney } from "@/lib/format-money";
 
-import { useExpansionDetail, useEvangelizationDetail } from "../../../hooks/useStageDetail";
+import { useExpansionDetail, useEvangelizationDetail } from "../../../hooks/use-stage-detail";
 import { DetailError } from "../ui/DetailError";
 import { DetailSkeleton } from "../ui/DetailSkeleton";
 
