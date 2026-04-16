@@ -59,7 +59,7 @@ async function getLandingPageConfig(
     });
 
     if (!res.ok) return null;
-    return await res.json();
+    return (await res.json()) as LandingPageConfig;
   } catch (error) {
     console.error("Failed to fetch landing page config:", error);
     return null;

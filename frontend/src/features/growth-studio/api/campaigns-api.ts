@@ -15,7 +15,7 @@ export async function fetchCampaignOverview(token: string): Promise<CampaignOver
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Campaigns API returned ${res.status}`);
-  return res.json();
+  return res.json() as Promise<CampaignOverview>;
 }
 
 export async function fetchCampaignAdSets(
@@ -27,7 +27,7 @@ export async function fetchCampaignAdSets(
     { headers: { Authorization: `Bearer ${token}` } },
   );
   if (!res.ok) throw new Error(`AdSets API returned ${res.status}`);
-  return res.json();
+  return res.json() as Promise<AdSet[]>;
 }
 
 export async function fetchAdSetAds(token: string, adSetExternalId: string): Promise<Ad[]> {
@@ -36,7 +36,7 @@ export async function fetchAdSetAds(token: string, adSetExternalId: string): Pro
     { headers: { Authorization: `Bearer ${token}` } },
   );
   if (!res.ok) throw new Error(`Ads API returned ${res.status}`);
-  return res.json();
+  return res.json() as Promise<Ad[]>;
 }
 
 export async function triggerCampaignSync(
@@ -47,7 +47,7 @@ export async function triggerCampaignSync(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Campaign sync trigger returned ${res.status}`);
-  return res.json();
+  return res.json() as Promise<{ status: string; job_id: string | null }>;
 }
 
 export async function fetchCampaignPerformance(
@@ -109,7 +109,7 @@ export async function fetchDemographics(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Failed to fetch demographics: ${res.status}`);
-  return res.json();
+  return res.json() as Promise<DemographicsData>;
 }
 
 export function useDemographics(

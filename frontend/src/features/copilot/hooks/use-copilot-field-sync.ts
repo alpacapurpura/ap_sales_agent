@@ -16,7 +16,8 @@ export function useCopilotFieldSync(
 ) {
   useEffect(() => {
     const handler = (e: Event) => {
-      const { fieldId, newValue } = (e as CustomEvent).detail;
+      const detail = (e as CustomEvent<{ fieldId: string; newValue: unknown }>).detail;
+      const { fieldId, newValue } = detail;
       const formField = fieldMap?.[fieldId] ?? fieldId;
       setValue(formField, newValue, {
         shouldDirty: true,

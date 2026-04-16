@@ -81,7 +81,7 @@ export function SessionScheduleBuilder({ form }: { form: UseFormReturn<OfferForm
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs">Día</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value as string}>
                           <FormControl>
                             <SelectTrigger className="bg-background">
                               <SelectValue placeholder="Día" />

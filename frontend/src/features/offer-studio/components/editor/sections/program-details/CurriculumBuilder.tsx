@@ -165,19 +165,19 @@ function CurriculumModuleItem({
   form: UseFormReturn<OfferFormValues>;
   remove: (index: number) => void;
 }) {
-  const topics = form.watch(`specific_details.curriculum.${index}.topics`) || [];
+  const topics = (form.watch(`specific_details.curriculum.${index}.topics`) as string[]) || [];
 
   const addTopic = (e: React.MouseEvent) => {
     e.preventDefault();
-    const current = form.getValues(`specific_details.curriculum.${index}.topics`) || [];
+    const current = (form.getValues(`specific_details.curriculum.${index}.topics`) as string[]) || [];
     form.setValue(`specific_details.curriculum.${index}.topics`, [...current, ""]);
   };
 
   const removeTopic = (tIndex: number) => {
-    const current = form.getValues(`specific_details.curriculum.${index}.topics`) || [];
+    const current = (form.getValues(`specific_details.curriculum.${index}.topics`) as string[]) || [];
     form.setValue(
       `specific_details.curriculum.${index}.topics`,
-      current.filter((_: unknown, i: number) => i !== tIndex),
+      current.filter((_: string, i: number) => i !== tIndex),
     );
   };
 
@@ -279,7 +279,7 @@ function CurriculumModuleItem({
             </div>
 
             <div className="space-y-1">
-              {topics.map((_: unknown, tIndex: number) => (
+              {topics.map((_: string, tIndex: number) => (
                 <div key={tIndex} className="group/topic flex items-center gap-2">
                   <div className="h-1 w-1 rounded-full bg-indigo-300" />
                   <FormField

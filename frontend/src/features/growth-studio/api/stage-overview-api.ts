@@ -125,7 +125,7 @@ export const stageOverviewApi = {
       },
     );
     if (!res.ok) throw new Error(`Stage overview API returned ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as Record<string, unknown>;
     return mapStageOverview(data);
   },
 
@@ -143,7 +143,7 @@ export const stageOverviewApi = {
       },
     );
     if (!res.ok) throw new Error(`Group detail API returned ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as Record<string, unknown>;
     return mapGroupDetailResponse(data);
   },
 };

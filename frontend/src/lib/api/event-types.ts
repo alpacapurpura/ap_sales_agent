@@ -41,7 +41,7 @@ export const eventTypesApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error fetching event types");
-    return res.json();
+    return res.json() as Promise<EventType[]>;
   },
 
   createEventType: async (eventType: Omit<EventType, "id">, token: string): Promise<EventType> => {
@@ -54,7 +54,7 @@ export const eventTypesApi = {
       body: JSON.stringify(eventType),
     });
     if (!res.ok) throw new Error("Error creating event type");
-    return res.json();
+    return res.json() as Promise<EventType>;
   },
 
   updateEventType: async (
@@ -71,7 +71,7 @@ export const eventTypesApi = {
       body: JSON.stringify(update),
     });
     if (!res.ok) throw new Error("Error updating event type");
-    return res.json();
+    return res.json() as Promise<EventType>;
   },
 
   deleteEventType: async (id: string, token: string): Promise<void> => {

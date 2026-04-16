@@ -38,7 +38,7 @@ export function VoiceManager() {
       if (text) formData.append("text_input", text);
       if (file) formData.append("file", file);
 
-      const data = await analyzeVoiceStyle(token, formData);
+      const data = (await analyzeVoiceStyle(token, formData)) as VoiceAnalysisResult;
       setResult(data);
       setStep("result");
 

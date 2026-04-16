@@ -103,6 +103,6 @@ export async function fetchChannelDashboard(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Channel Dashboard API returned ${res.status}`);
-  const json: ChannelDashboardResponse = await res.json();
+  const json = (await res.json()) as ChannelDashboardResponse;
   return mapResponse(json);
 }

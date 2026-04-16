@@ -5,5 +5,5 @@ export async function fetchOfferMetadata(token: string): Promise<Record<string, 
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Failed to fetch metadata");
-  return res.json();
+  return res.json() as Promise<Record<string, unknown>>;
 }

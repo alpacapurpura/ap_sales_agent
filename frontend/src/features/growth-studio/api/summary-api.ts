@@ -35,7 +35,7 @@ export async function fetchBowtiesSummary(token: string): Promise<BowtiesSummary
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Summary API returned ${res.status}`);
-  const raw = await res.json();
+  const raw = (await res.json()) as { stages?: RawStageSummary[]; period: string; last_updated?: string };
 
   return {
     stages: (raw.stages ?? []).map(mapStageSummary),

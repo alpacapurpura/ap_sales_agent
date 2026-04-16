@@ -22,7 +22,7 @@ const API_URL = config.api.baseUrl;
 async function throwWithDetail(res: Response, fallback: string): Promise<never> {
   let detail = fallback;
   try {
-    const body = await res.json();
+    const body = (await res.json()) as { detail?: unknown };
     if (body.detail)
       detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
   } catch {
@@ -57,7 +57,7 @@ export const assetsApi = {
     });
 
     if (!res.ok) await throwWithDetail(res, "Upload failed");
-    return res.json();
+    return res.json() as Promise<Asset>;
   },
 
   list: async (token: string, type?: string): Promise<Asset[]> => {
@@ -75,7 +75,7 @@ export const assetsApi = {
     });
 
     if (!res.ok) await throwWithDetail(res, "Failed to list assets");
-    return res.json();
+    return res.json() as Promise<Asset[]>;
   },
 
   delete: async (token: string, id: string): Promise<void> => {

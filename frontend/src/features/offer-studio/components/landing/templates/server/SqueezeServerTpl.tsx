@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"; // Assuming we have shadcn butt
 import { Card } from "@/components/ui/card";
 import { getContrastColor } from "@/lib/utils/colors";
 
+import { LandingPageFont } from "../../types/schema";
 import type { SqueezeContent, LandingPageTheme } from "../../types/schema";
 
 // SERVER COMPONENT - NO "use client"
@@ -29,7 +30,7 @@ export function SqueezeServerTpl({ content, theme }: SqueezeTemplateProps) {
     "--secondary": secondaryBg,
     backgroundColor: secondaryBg,
     color: secondaryText,
-    fontFamily: theme.font_pair === "SERIF" ? "serif" : "sans-serif",
+    fontFamily: theme.font_pair === LandingPageFont.SERIF ? "serif" : "sans-serif",
   } as React.CSSProperties;
 
   return (

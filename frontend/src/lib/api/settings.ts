@@ -86,7 +86,7 @@ export const settingsApi = {
       },
     });
     if (!res.ok) throw new Error("Failed to fetch tenants");
-    return res.json();
+    return res.json() as Promise<Tenant[]>;
   },
 
   getTeam: async (token: string): Promise<TeamMember[]> => {
@@ -96,7 +96,7 @@ export const settingsApi = {
       },
     });
     if (!res.ok) throw new Error("Failed to fetch team members");
-    return res.json();
+    return res.json() as Promise<TeamMember[]>;
   },
 
   createTeamMember: async (data: TeamMemberCreate, token: string): Promise<TeamMember> => {
@@ -109,10 +109,10 @@ export const settingsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Failed to create team member");
     }
-    return res.json();
+    return res.json() as Promise<TeamMember>;
   },
 
   getGeneralSettings: async (token: string): Promise<GeneralSettings> => {
@@ -122,7 +122,7 @@ export const settingsApi = {
       },
     });
     if (!res.ok) throw new Error("Failed to fetch general settings");
-    return res.json();
+    return res.json() as Promise<GeneralSettings>;
   },
 
   getProfile: async (token: string): Promise<SystemUserProfile> => {
@@ -134,7 +134,7 @@ export const settingsApi = {
       },
     });
     if (!res.ok) throw new Error("Failed to fetch user profile");
-    return res.json();
+    return res.json() as Promise<SystemUserProfile>;
   },
 
   getAISettings: async (token: string): Promise<AISettings> => {
@@ -144,7 +144,7 @@ export const settingsApi = {
       },
     });
     if (!res.ok) throw new Error("Failed to fetch AI settings");
-    return res.json();
+    return res.json() as Promise<AISettings>;
   },
 
   updateAISettings: async (data: Partial<AISettings>, token: string): Promise<AISettings> => {
@@ -157,7 +157,7 @@ export const settingsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error("Failed to update AI settings");
-    return res.json();
+    return res.json() as Promise<AISettings>;
   },
 
   getWebhookSettings: async (token: string): Promise<WebhookSettings> => {
@@ -167,7 +167,7 @@ export const settingsApi = {
       },
     });
     if (!res.ok) throw new Error("Failed to fetch webhook settings");
-    return res.json();
+    return res.json() as Promise<WebhookSettings>;
   },
 
   getBrandSettings: async (token: string): Promise<BrandSettings> => {
@@ -177,7 +177,7 @@ export const settingsApi = {
       },
     });
     if (!res.ok) throw new Error("Failed to fetch brand settings");
-    return res.json();
+    return res.json() as Promise<BrandSettings>;
   },
 
   regenerateWebhookSecret: async (token: string): Promise<WebhookSettings> => {
@@ -188,7 +188,7 @@ export const settingsApi = {
       },
     });
     if (!res.ok) throw new Error("Failed to regenerate webhook secret");
-    return res.json();
+    return res.json() as Promise<WebhookSettings>;
   },
 
   updateGeneralSettings: async (
@@ -204,6 +204,6 @@ export const settingsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error("Failed to update general settings");
-    return res.json();
+    return res.json() as Promise<GeneralSettings>;
   },
 };

@@ -149,7 +149,7 @@ export function AvailabilityView() {
   };
 
   const handleEdit = (schedule: AvailabilitySchedule) => {
-    setSelectedSchedule(JSON.parse(JSON.stringify(schedule))); // Deep copy
+    setSelectedSchedule(JSON.parse(JSON.stringify(schedule)) as AvailabilitySchedule); // Deep copy
     setIsSheetOpen(true);
   };
 

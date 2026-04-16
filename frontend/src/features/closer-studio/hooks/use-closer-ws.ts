@@ -78,7 +78,7 @@ export function useCloserWebSocket(tenantId: string | null) {
 
     ws.onmessage = (e) => {
       try {
-        const data: WSEvent = JSON.parse(e.data);
+        const data = JSON.parse(e.data as string) as WSEvent;
         if (data.type) handleEvent(data);
       } catch {
         // Ignore non-JSON (e.g., "pong")

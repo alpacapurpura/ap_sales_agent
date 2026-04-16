@@ -40,7 +40,7 @@ export const availabilityApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error fetching schedules");
-    return res.json();
+    return res.json() as Promise<AvailabilitySchedule[]>;
   },
 
   createSchedule: async (
@@ -56,7 +56,7 @@ export const availabilityApi = {
       body: JSON.stringify(schedule),
     });
     if (!res.ok) throw new Error("Error creating schedule");
-    return res.json();
+    return res.json() as Promise<AvailabilitySchedule>;
   },
 
   updateSchedule: async (
@@ -73,7 +73,7 @@ export const availabilityApi = {
       body: JSON.stringify(update),
     });
     if (!res.ok) throw new Error("Error updating schedule");
-    return res.json();
+    return res.json() as Promise<AvailabilitySchedule>;
   },
 
   deleteSchedule: async (id: string, token: string): Promise<void> => {

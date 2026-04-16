@@ -151,7 +151,7 @@ export async function fetchEmailDashboard(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Email dashboard fetch failed: ${res.status}`);
-  const json: Record<string, unknown> = await res.json();
+  const json = (await res.json()) as Record<string, unknown>;
   return mapEmailDashboardResponse(json);
 }
 
@@ -213,7 +213,7 @@ export async function fetchEmailCampaigns(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Email campaigns fetch failed: ${res.status}`);
-  const json: Record<string, unknown> = await res.json();
+  const json = (await res.json()) as Record<string, unknown>;
   return mapEmailCampaignsResponse(json);
 }
 
@@ -281,7 +281,7 @@ export async function fetchEmailAutomations(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Email automations fetch failed: ${res.status}`);
-  const json: Record<string, unknown> = await res.json();
+  const json = (await res.json()) as Record<string, unknown>;
   return mapEmailAutomationsResponse(json);
 }
 
@@ -364,7 +364,7 @@ export async function fetchEmailAudience(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Email audience fetch failed: ${res.status}`);
-  const json: Record<string, unknown> = await res.json();
+  const json = (await res.json()) as Record<string, unknown>;
   return mapEmailAudienceResponse(json);
 }
 
@@ -409,7 +409,7 @@ export async function fetchEmailHealth(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Email health fetch failed: ${res.status}`);
-  const json: Record<string, unknown> = await res.json();
+  const json = (await res.json()) as Record<string, unknown>;
   return mapEmailHealthResponse(json);
 }
 
@@ -441,6 +441,6 @@ export async function fetchEmailGrowth(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Email growth fetch failed: ${res.status}`);
-  const json: Record<string, unknown> = await res.json();
+  const json = (await res.json()) as Record<string, unknown>;
   return mapEmailGrowthResponse(json);
 }

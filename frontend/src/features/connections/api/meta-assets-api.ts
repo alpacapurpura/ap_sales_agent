@@ -76,7 +76,7 @@ export async function fetchMetaAssets(token: string): Promise<MetaAssetsResponse
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Failed to fetch Meta assets");
-  return res.json();
+  return res.json() as Promise<MetaAssetsResponse>;
 }
 
 export async function syncMetaAssets(token: string): Promise<MetaAssetsResponse> {
@@ -85,10 +85,10 @@ export async function syncMetaAssets(token: string): Promise<MetaAssetsResponse>
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = (await res.json().catch(() => ({}))) as { detail?: string };
     throw new Error(err.detail || "Error sincronizando activos");
   }
-  return res.json();
+  return res.json() as Promise<MetaAssetsResponse>;
 }
 
 export async function toggleMetaAsset(
@@ -106,7 +106,7 @@ export async function toggleMetaAsset(
     },
   );
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = (await res.json().catch(() => ({}))) as { detail?: string };
     throw new Error(err.detail || "Error actualizando activo");
   }
 }

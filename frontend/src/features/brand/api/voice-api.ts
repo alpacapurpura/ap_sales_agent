@@ -13,9 +13,9 @@ export async function analyzeVoiceStyle(token: string | null, formData: FormData
   });
 
   if (!res.ok) {
-    const err = await res.json();
+    const err = (await res.json()) as { detail?: string };
     throw new Error(err.detail || "Analysis failed");
   }
 
-  return res.json();
+  return res.json() as Promise<Record<string, unknown>>;
 }

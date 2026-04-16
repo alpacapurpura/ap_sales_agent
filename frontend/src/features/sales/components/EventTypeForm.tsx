@@ -70,7 +70,7 @@ export function EventTypeSidebar({
     if (open) {
       if (initialData) {
         // Ensure deep copy to avoid mutation issues and fill defaults if missing
-        const data = JSON.parse(JSON.stringify(initialData));
+        const data = JSON.parse(JSON.stringify(initialData)) as Partial<EventType>;
         if (!data.confirmation_button) {
           data.confirmation_button = { enabled: false, text: "Volver al inicio", url: "" };
         }

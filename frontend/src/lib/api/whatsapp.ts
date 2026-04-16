@@ -33,7 +33,7 @@ export const whatsappApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error checking status");
-    return res.json();
+    return res.json() as Promise<WhatsAppDashboardStatus>;
   },
 
   createSession: async (
@@ -56,7 +56,7 @@ export const whatsappApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error fetching QR");
-    return res.json();
+    return res.json() as Promise<WhatsAppQR>;
   },
 
   disconnect: async (

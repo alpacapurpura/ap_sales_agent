@@ -18,8 +18,8 @@ async function exchangeShopifyToken(
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorDetail = (errorData as { detail?: string }).detail || "Failed to exchange token";
+      const errorData = (await response.json().catch(() => ({}))) as { detail?: string };
+      const errorDetail = errorData.detail || "Failed to exchange token";
       console.error("Shopify Exchange Error:", errorDetail);
       return { success: false, errorDetail };
     }

@@ -83,7 +83,7 @@ const STRUCTURE_INTERACTION_RECOMMENDATIONS: Record<string, LiveInteractionType[
 };
 
 function ProgramDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
-  const timezone = form.watch("specific_details.timezone") || "UTC";
+  const timezone = (form.watch("specific_details.timezone") as string | undefined) ?? "UTC";
   const structureType = form.watch("specific_details.structure_type") as ProgramStructure;
   const isCohortOrChallenge =
     structureType === ProgramStructure.FIXED_COHORT || structureType === ProgramStructure.CHALLENGE;
@@ -186,7 +186,7 @@ function ProgramDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> 
                         <Switch
                           checked={field.value as boolean}
                           onCheckedChange={field.onChange}
-                          className={cn(field.value && "data-[state=checked]:bg-indigo-600")}
+                          className={cn((field.value as boolean) && "data-[state=checked]:bg-indigo-600")}
                         />
                       </FormControl>
                     </div>
@@ -395,8 +395,8 @@ function ProgramDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> 
                             onCheckedChange={(checked) => {
                               if (checked) {
                                 // Default to start date if available, or today
-                                const startDate = form.getValues("specific_details.start_date");
-                                field.onChange(startDate || new Date().toISOString());
+                                const startDate = form.getValues("specific_details.start_date") as string | undefined;
+                                field.onChange(startDate ?? new Date().toISOString());
                               } else {
                                 field.onChange(null);
                               }

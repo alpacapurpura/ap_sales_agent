@@ -48,7 +48,7 @@ export const offerApi = {
         if (!res.ok) {
           throw new Error(`Failed to list offers: ${res.statusText}`);
         }
-        const data: BackendOffer[] = await res.json();
+        const data = (await res.json()) as BackendOffer[];
 
         // Map backend response using adapter
         return data.map(backendToFrontend);
@@ -80,7 +80,7 @@ export const offerApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Failed to fetch offer");
-    const item: BackendOffer = await res.json();
+    const item = (await res.json()) as BackendOffer;
     return backendToFrontend(item);
   },
 
@@ -107,7 +107,7 @@ export const offerApi = {
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error("Failed to create offer");
-    return res.json();
+    return res.json() as Promise<BackendOffer>;
   },
 
   listArchivedOffers: async (token: string): Promise<Offer[]> => {
@@ -118,7 +118,7 @@ export const offerApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Failed to list archived offers");
-    const data: BackendOffer[] = await res.json();
+    const data = (await res.json()) as BackendOffer[];
     return data.map(backendToFrontend);
   },
 
@@ -129,7 +129,7 @@ export const offerApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as { detail?: string };
       throw new Error(err.detail || "Error al archivar la oferta");
     }
   },
@@ -141,7 +141,7 @@ export const offerApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as { detail?: string };
       throw new Error(err.detail || "Error al restaurar la oferta");
     }
   },
@@ -153,7 +153,7 @@ export const offerApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as { detail?: string };
       throw new Error(err.detail || "Error al eliminar la oferta");
     }
   },
@@ -175,7 +175,7 @@ export const offerApi = {
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error("Failed to save offer");
-    return res.json();
+    return res.json() as Promise<BackendOffer>;
   },
 
   saveSection: async (
@@ -258,7 +258,7 @@ export const offerApi = {
     if (!res.ok) {
       throw new Error(`Failed to save section ${sectionId}`);
     }
-    return res.json();
+    return res.json() as Promise<BackendOffer>;
   },
 
   getAvatar: async () => {
@@ -309,9 +309,9 @@ export const offerApi = {
     });
     if (res.status === 404) return null;
     if (!res.ok) throw new Error("Failed to fetch landing config");
-    const landingPage = await res.json();
+    const landingPage = (await res.json()) as { config?: LandingPageConfig };
     // Backend returns full LandingPage object; extract the config
-    return landingPage.config || landingPage;
+    return landingPage.config ?? null;
   },
 
   generateLandingPage: async (offerId: string, token: string): Promise<LandingPageConfig> => {
@@ -344,10 +344,10 @@ export const offerApi = {
       }),
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as { detail?: string };
       throw new Error(err.detail || "Error generating landing page");
     }
-    return res.json();
+    return res.json() as Promise<LandingPageConfig>;
   },
 
   updateLandingPage: async (
@@ -372,7 +372,7 @@ export const offerApi = {
     if (!res.ok) {
       throw new Error("Failed to update landing page");
     }
-    return res.json();
+    return res.json() as Promise<LandingPageConfig>;
   },
 
   extractFullOffer: async (
@@ -421,9 +421,9 @@ export const offerApi = {
       },
     );
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as { detail?: string };
       throw new Error(err.detail || "Error regenerating block");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 };

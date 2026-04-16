@@ -57,7 +57,7 @@ export async function getUnmatchedProducts(
     },
   );
   if (!res.ok) return [];
-  return res.json();
+  return res.json() as Promise<UnmatchedProduct[]>;
 }
 
 export async function getSourceProducts(
@@ -71,7 +71,7 @@ export async function getSourceProducts(
     },
   );
   if (!res.ok) return [];
-  return res.json();
+  return res.json() as Promise<SourceProduct[]>;
 }
 
 export async function getProductMappings(
@@ -82,7 +82,7 @@ export async function getProductMappings(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) return [];
-  return res.json();
+  return res.json() as Promise<ProductMapping[]>;
 }
 
 export async function createProductMapping(
@@ -95,10 +95,10 @@ export async function createProductMapping(
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = (await res.json().catch(() => ({}))) as { detail?: string };
     throw new Error(err.detail || "Failed to create mapping");
   }
-  return res.json();
+  return res.json() as Promise<CreateProductMappingResult>;
 }
 
 export async function deleteProductMapping(token: string, mappingId: string): Promise<void> {
@@ -151,8 +151,8 @@ export async function getOfferProductsDetail(
     },
   );
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = (await res.json().catch(() => ({}))) as { detail?: string };
     throw new Error(err.detail || "Failed to fetch offer product detail");
   }
-  return res.json();
+  return res.json() as Promise<OfferProductDetail>;
 }

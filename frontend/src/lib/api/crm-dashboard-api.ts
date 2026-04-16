@@ -42,7 +42,7 @@ export const crmDashboardApi = {
       },
     );
     if (!res.ok) throw new Error("Error fetching pipeline");
-    return res.json();
+    return res.json() as Promise<PipelineItem[]>;
   },
 
   getAgenda: async (token: string, range: "today" | "week" = "today"): Promise<AgendaItem[]> => {
@@ -54,7 +54,7 @@ export const crmDashboardApi = {
         console.warn("Agenda fetch failed (likely no data or 404), returning empty list.");
         return [];
       }
-      return res.json();
+      return res.json() as Promise<AgendaItem[]>;
     } catch (error) {
       console.error("Error fetching agenda, returning empty list:", error);
       return [];
@@ -73,7 +73,7 @@ export const crmDashboardApi = {
         console.warn("Ticker fetch failed, returning empty list.");
         return [];
       }
-      return res.json();
+      return res.json() as Promise<TickerItem[]>;
     } catch (error) {
       console.error("Error fetching ticker, returning empty list:", error);
       return [];

@@ -10,7 +10,7 @@ export async function listDomains(token: string): Promise<TenantDomain[]> {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Error obteniendo dominios");
-  return res.json();
+  return res.json() as Promise<TenantDomain[]>;
 }
 
 export async function createDomain(
@@ -30,7 +30,7 @@ export async function createDomain(
     const err: unknown = await res.json();
     throw err;
   }
-  return res.json();
+  return res.json() as Promise<TenantDomain>;
 }
 
 export async function deleteDomain(token: string, id: string): Promise<void> {
@@ -51,7 +51,7 @@ export async function setPrimary(token: string, id: string): Promise<TenantDomai
     body: JSON.stringify({ is_primary: true }),
   });
   if (!res.ok) throw new Error("Error estableciendo dominio principal");
-  return res.json();
+  return res.json() as Promise<TenantDomain>;
 }
 
 export async function verifyDomain(token: string, id: string): Promise<TenantDomain> {
@@ -60,7 +60,7 @@ export async function verifyDomain(token: string, id: string): Promise<TenantDom
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Error al verificar dominio");
-  return res.json();
+  return res.json() as Promise<TenantDomain>;
 }
 
 export async function getDomainInstructions(
@@ -71,5 +71,5 @@ export async function getDomainInstructions(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Error obteniendo instrucciones del dominio");
-  return res.json();
+  return res.json() as Promise<DomainInstructions>;
 }

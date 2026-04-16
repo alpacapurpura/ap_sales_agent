@@ -112,7 +112,7 @@ function ValueStackContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
         <CardContent className="space-y-4 pt-6">
           <div className="space-y-4">
             {fields.map((field, index) => {
-              const currentFormatValue = form.watch(`deliverables.${index}.format`);
+              const currentFormatValue = form.watch(`deliverables.${index}.format`) as DeliverableFormat;
               const selectedOption = formatOptions.find((opt) => opt.value === currentFormatValue);
 
               return (

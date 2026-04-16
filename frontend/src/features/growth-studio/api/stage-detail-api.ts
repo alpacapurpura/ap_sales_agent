@@ -743,7 +743,7 @@ export const metricsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error(`Metric catalog API returned ${res.status}`);
-    return res.json();
+    return res.json() as Promise<MetricCatalog>;
   },
 
   // eslint-disable-next-line max-params -- public API; grouping into options object would require updating all callers

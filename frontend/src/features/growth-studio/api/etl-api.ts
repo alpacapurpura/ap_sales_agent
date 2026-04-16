@@ -21,10 +21,15 @@ export async function triggerInitialLoad(
     },
   );
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
+    const errData = (await res.json().catch(() => ({}))) as { detail?: string };
     throw new Error(errData.detail || `Initial load failed (${res.status})`);
   }
-  return res.json();
+  return res.json() as Promise<{
+    status: string;
+    total_days: number;
+    loaded_days: number;
+    skipped_days: number;
+  }>;
 }
 
 export async function getInitialLoadStatus(
@@ -42,7 +47,11 @@ export async function getInitialLoadStatus(
     },
   );
   if (!res.ok) return { status: "idle" };
-  return res.json();
+  return res.json() as Promise<{
+    status: string;
+    total_days?: number;
+    completed_days?: number;
+  }>;
 }
 
 // ─── Sync All Sources ─────────────────────────────────────────────────────────
@@ -77,10 +86,10 @@ export async function triggerSyncAll(token: string, days = 30): Promise<SyncAllR
       signal: controller.signal,
     });
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
+      const errData = (await res.json().catch(() => ({}))) as { detail?: string };
       throw new Error(errData.detail || `Sync failed (${res.status})`);
     }
-    return res.json();
+    return res.json() as Promise<SyncAllResponse>;
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") {
       throw new Error("Sincronizacion agotada (>2 min). Intenta de nuevo.");

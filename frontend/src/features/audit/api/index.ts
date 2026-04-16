@@ -11,7 +11,7 @@ export async function clearLeadHistory(token: string, leadId: string) {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Failed to clear history");
-  return res.json();
+  return res.json() as Promise<Record<string, unknown>>;
 }
 
 export async function fetchAuditLeads(token: string): Promise<AuditLead[]> {
@@ -19,7 +19,7 @@ export async function fetchAuditLeads(token: string): Promise<AuditLead[]> {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Failed to fetch leads");
-  return res.json();
+  return res.json() as Promise<AuditLead[]>;
 }
 
 export async function fetchLeadDetails(token: string, leadId: string): Promise<LeadDetails> {
@@ -27,7 +27,7 @@ export async function fetchLeadDetails(token: string, leadId: string): Promise<L
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Failed to fetch lead details");
-  return res.json();
+  return res.json() as Promise<LeadDetails>;
 }
 
 export async function fetchLeadTimeline(token: string, leadId: string): Promise<TimelineEvent[]> {
@@ -35,7 +35,7 @@ export async function fetchLeadTimeline(token: string, leadId: string): Promise<
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Failed to fetch timeline");
-  return res.json();
+  return res.json() as Promise<TimelineEvent[]>;
 }
 
 export async function fetchTraceDetails(token: string, traceId: string): Promise<TraceDetail> {
@@ -43,5 +43,5 @@ export async function fetchTraceDetails(token: string, traceId: string): Promise
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Failed to fetch trace details");
-  return res.json();
+  return res.json() as Promise<TraceDetail>;
 }

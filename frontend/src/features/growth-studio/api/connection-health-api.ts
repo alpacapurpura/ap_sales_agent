@@ -35,6 +35,6 @@ export async function fetchConnectionHealth(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Connection health API returned ${res.status}`);
-  const json: ConnectionHealthResponse = await res.json();
+  const json = (await res.json()) as ConnectionHealthResponse;
   return mapResponse(json);
 }

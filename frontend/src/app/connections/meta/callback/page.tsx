@@ -101,8 +101,8 @@ function CallbackContent() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const detail = errorData.detail || `Error ${response.status}`;
+        const errorData = (await response.json().catch(() => ({}))) as { detail?: string };
+        const detail = errorData.detail ?? `Error ${response.status}`;
         console.error("[Meta OAuth] Backend returned error:", {
           status: response.status,
           detail,
@@ -110,7 +110,11 @@ function CallbackContent() {
         throw new Error(detail);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        status: string;
+        is_connected: boolean;
+        assets_synced: boolean;
+      };
       console.log("[Meta OAuth] Backend success:", {
         status: data.status,
         is_connected: data.is_connected,

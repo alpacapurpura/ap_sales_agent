@@ -201,7 +201,7 @@ export function OfferLadder({ adquisicion, expansion, onMetricClick }: OfferLadd
         });
       } else {
         // Deep copy to avoid mutating original props
-        combinedOffers.set(offer.offerId, JSON.parse(JSON.stringify(offer)));
+        combinedOffers.set(offer.offerId, JSON.parse(JSON.stringify(offer)) as OfferSaleData);
       }
     });
 

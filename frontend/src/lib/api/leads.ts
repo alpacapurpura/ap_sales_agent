@@ -17,6 +17,6 @@ export const leadsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error searching leads");
-    return res.json();
+    return res.json() as Promise<Lead[]>;
   },
 };

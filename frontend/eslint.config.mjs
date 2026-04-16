@@ -262,12 +262,12 @@ export default [
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/prefer-nullish-coalescing": "warn",
       "@typescript-eslint/no-non-null-assertion": "error",
-      // Phase 1A: warn for unsafe any usage; Phase 1B: consider stricter rules
-      "@typescript-eslint/no-unsafe-assignment": "warn",
-      "@typescript-eslint/no-unsafe-return": "warn",
-      "@typescript-eslint/no-unsafe-argument": "warn",
-      "@typescript-eslint/no-unsafe-member-access": "warn",
-      "@typescript-eslint/no-unsafe-call": "warn",
+      // Phase 5C: unsafe any usage promoted to error (visx override below)
+      "@typescript-eslint/no-unsafe-assignment": "error",
+      "@typescript-eslint/no-unsafe-return": "error",
+      "@typescript-eslint/no-unsafe-argument": "error",
+      "@typescript-eslint/no-unsafe-member-access": "error",
+      "@typescript-eslint/no-unsafe-call": "error",
       "@typescript-eslint/prefer-optional-chain": "warn",
       "@typescript-eslint/explicit-function-return-type": [
         "off", // Phase 1C: consider enabling as warn
@@ -407,6 +407,16 @@ export default [
       "jsdoc/no-undefined-types": "off",
       "jsdoc/require-param-type": "off",
       "jsdoc/require-returns-type": "off",
+    },
+  },
+
+  // ─── visx/sankey type incompatibility override (strategy-canvas only) ───
+  {
+    files: ["**/strategy-canvas/**"],
+    rules: {
+      "@typescript-eslint/no-unsafe-assignment": "warn",
+      "@typescript-eslint/no-unsafe-argument": "warn",
+      "@typescript-eslint/no-unsafe-member-access": "warn",
     },
   },
 

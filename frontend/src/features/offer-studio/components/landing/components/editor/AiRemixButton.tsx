@@ -51,7 +51,7 @@ export function AiRemixButton({ offerId }: AiRemixButtonProps) {
       const newProps = await offerApi.regenerateBlock(
         offerId,
         selectedBlock.type,
-        selectedBlock.props,
+        selectedBlock.props as Record<string, unknown>,
         instruction,
         token,
       );
@@ -65,7 +65,7 @@ export function AiRemixButton({ offerId }: AiRemixButtonProps) {
           ...selectedBlock,
           props: {
             ...selectedBlock.props, // Keep ID and other internal props
-            ...newProps, // Overwrite content
+            ...(newProps as Record<string, unknown>), // Overwrite content
           },
         },
       });

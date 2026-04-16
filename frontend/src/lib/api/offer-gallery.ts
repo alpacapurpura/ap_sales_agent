@@ -35,7 +35,7 @@ export const offerGalleryApi = {
     });
 
     if (!res.ok) throw new Error("Upload failed");
-    return res.json();
+    return res.json() as Promise<OfferGalleryImage>;
   },
 
   list: async (token: string, offerId: string): Promise<OfferGalleryImage[]> => {
@@ -46,7 +46,7 @@ export const offerGalleryApi = {
     });
 
     if (!res.ok) throw new Error("Failed to list images");
-    return res.json();
+    return res.json() as Promise<OfferGalleryImage[]>;
   },
 
   delete: async (token: string, offerId: string, imageId: string): Promise<void> => {

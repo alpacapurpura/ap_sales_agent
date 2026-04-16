@@ -24,6 +24,6 @@ export const bookingLinksApi = {
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error("Error creating booking link");
-    return res.json();
+    return res.json() as Promise<BookingLink>;
   },
 };

@@ -36,7 +36,7 @@ export const avatarApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Failed to list avatars");
-    return res.json();
+    return res.json() as Promise<Avatar[]>;
   },
 
   getAvatar: async (token: string, id: string): Promise<Avatar> => {
@@ -44,7 +44,7 @@ export const avatarApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Failed to get avatar");
-    return res.json();
+    return res.json() as Promise<Avatar>;
   },
 
   createAvatar: async (token: string, data: CreateAvatarDTO): Promise<Avatar> => {
@@ -57,7 +57,7 @@ export const avatarApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error("Failed to create avatar");
-    return res.json();
+    return res.json() as Promise<Avatar>;
   },
 
   updateAvatar: async (
@@ -74,7 +74,7 @@ export const avatarApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error("Failed to update avatar");
-    return res.json();
+    return res.json() as Promise<Avatar>;
   },
 
   deleteAvatar: async (token: string, id: string): Promise<void> => {
@@ -91,6 +91,6 @@ export const avatarApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Failed to set default avatar");
-    return res.json();
+    return res.json() as Promise<Avatar>;
   },
 };

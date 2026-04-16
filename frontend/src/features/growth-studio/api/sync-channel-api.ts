@@ -28,7 +28,7 @@ export async function syncChannel(
   );
 
   if (res.status === 429) {
-    const errData = await res.json().catch(() => ({}));
+    const errData = (await res.json().catch(() => ({}))) as { detail?: string; remaining_minutes?: number };
     const err: SyncChannelError = {
       detail: errData.detail ?? "Rate limited",
       remaining_minutes: errData.remaining_minutes,
@@ -37,9 +37,9 @@ export async function syncChannel(
   }
 
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
+    const errData = (await res.json().catch(() => ({}))) as { detail?: string };
     throw { detail: errData.detail ?? `Sync failed (${res.status})` } as SyncChannelError;
   }
 
-  return res.json();
+  return res.json() as Promise<SyncChannelResult>;
 }

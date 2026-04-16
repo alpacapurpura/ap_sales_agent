@@ -158,10 +158,10 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error configurando Google Analytics");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 
   getGoogleAnalyticsStatus: async (token: string): Promise<GoogleAnalyticsStatusResponse> => {
@@ -169,7 +169,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de Google Analytics");
-    return res.json();
+    return res.json() as Promise<GoogleAnalyticsStatusResponse>;
   },
 
   // Meta (Facebook/Instagram)
@@ -178,7 +178,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de Meta");
-    return res.json();
+    return res.json() as Promise<MetaStatusResponse>;
   },
 
   getMetaAuthUrl: async (
@@ -193,7 +193,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo URL de autorización");
-    return res.json();
+    return res.json() as Promise<{ url: string; state: string }>;
   },
 
   connectMeta: async (
@@ -210,10 +210,10 @@ export const connectionsApi = {
       body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error conectando Meta");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 
   disconnectMeta: async (token: string): Promise<void> => {
@@ -232,10 +232,10 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error probando conexión Meta");
     }
-    return res.json();
+    return res.json() as Promise<TestResponse>;
   },
 
   getGoogleAnalyticsAuthUrl: async (
@@ -250,7 +250,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo URL de autorización");
-    return res.json();
+    return res.json() as Promise<{ url: string; state: string }>;
   },
 
   connectGoogleAnalytics: async (
@@ -267,10 +267,10 @@ export const connectionsApi = {
       body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error conectando Google Analytics");
     }
-    return res.json();
+    return res.json() as Promise<GoogleAnalyticsCallbackResponse>;
   },
 
   disconnectGoogleAnalytics: async (token: string): Promise<void> => {
@@ -289,10 +289,10 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error probando conexión Google Analytics");
     }
-    return res.json();
+    return res.json() as Promise<TestResponse>;
   },
 
   getGoogleAnalyticsProperties: async (token: string): Promise<GA4Property[]> => {
@@ -300,7 +300,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo propiedades de GA4");
-    return res.json();
+    return res.json() as Promise<GA4Property[]>;
   },
 
   selectGoogleAnalyticsProperty: async (
@@ -319,10 +319,10 @@ export const connectionsApi = {
       },
     );
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error seleccionando propiedad");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 
   // Shopify
@@ -331,7 +331,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de Shopify");
-    return res.json();
+    return res.json() as Promise<ShopifyStatusResponse>;
   },
 
   generateShopifyAuthUrl: async (
@@ -347,10 +347,10 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error generando URL de autorización");
     }
-    return res.json();
+    return res.json() as Promise<{ auth_url: string }>;
   },
 
   quickConnectShopify: async (
@@ -366,10 +366,10 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error conectando Shopify");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 
   connectShopify: async (
@@ -385,10 +385,10 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error conectando Shopify");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 
   testShopify: async (token: string): Promise<TestResponse> => {
@@ -399,10 +399,10 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error probando conexión Shopify");
     }
-    return res.json();
+    return res.json() as Promise<TestResponse>;
   },
 
   disconnectShopify: async (token: string): Promise<void> => {
@@ -422,7 +422,7 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de Telegram");
-    return res.json();
+    return res.json() as Promise<ChannelStatusResponse>;
   },
 
   connectTelegram: async (
@@ -438,10 +438,10 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error conectando Telegram");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 
   testTelegram: async (token: string): Promise<TestResponse> => {
@@ -452,10 +452,10 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error probando conexión");
     }
-    return res.json();
+    return res.json() as Promise<TestResponse>;
   },
 
   disconnectTelegram: async (token: string): Promise<void> => {
@@ -474,7 +474,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de Calendario");
-    return res.json();
+    return res.json() as Promise<CalendarStatusResponse>;
   },
 
   getGoogleAuthUrl: async (
@@ -489,7 +489,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo URL de autorización");
-    return res.json();
+    return res.json() as Promise<{ url: string; state: string }>;
   },
 
   connectGoogle: async (
@@ -506,10 +506,10 @@ export const connectionsApi = {
       body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error conectando Google Calendar");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 
   disconnectCalendar: async (token: string): Promise<void> => {
@@ -528,10 +528,10 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error probando conexión");
     }
-    return res.json();
+    return res.json() as Promise<TestResponse>;
   },
 
   listAppointments: async (start: string, end: string, token: string): Promise<unknown[]> => {
@@ -542,7 +542,7 @@ export const connectionsApi = {
       },
     );
     if (!res.ok) throw new Error("Error obteniendo citas");
-    return res.json();
+    return res.json() as Promise<unknown[]>;
   },
 
   generateBookingLink: async (token: string): Promise<{ token: string; url: string }> => {
@@ -551,7 +551,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error generando enlace");
-    return res.json();
+    return res.json() as Promise<{ token: string; url: string }>;
   },
 
   // Gmail
@@ -560,7 +560,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de Gmail");
-    return res.json();
+    return res.json() as Promise<GmailStatusResponse>;
   },
 
   getGmailAuthUrl: async (
@@ -575,7 +575,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo URL de autorización");
-    return res.json();
+    return res.json() as Promise<{ url: string; state: string }>;
   },
 
   connectGmail: async (
@@ -592,10 +592,10 @@ export const connectionsApi = {
       body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error conectando Gmail");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 
   disconnectGmail: async (token: string): Promise<void> => {
@@ -614,10 +614,10 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error probando conexión");
     }
-    return res.json();
+    return res.json() as Promise<TestResponse>;
   },
 
   // MailerLite
@@ -626,7 +626,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de MailerLite");
-    return res.json();
+    return res.json() as Promise<MailerliteStatusResponse>;
   },
 
   connectMailerLite: async (
@@ -642,10 +642,10 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error conectando MailerLite");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 
   testMailerLite: async (token: string): Promise<TestResponse> => {
@@ -656,10 +656,10 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error probando conexión MailerLite");
     }
-    return res.json();
+    return res.json() as Promise<TestResponse>;
   },
 
   disconnectMailerLite: async (token: string): Promise<void> => {
@@ -678,7 +678,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de ManyChat");
-    return res.json();
+    return res.json() as Promise<ManyChatStatusResponse>;
   },
 
   connectManyChat: async (
@@ -694,10 +694,10 @@ export const connectionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error conectando ManyChat");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 
   testManyChat: async (token: string): Promise<TestResponse> => {
@@ -708,10 +708,10 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error probando conexión ManyChat");
     }
-    return res.json();
+    return res.json() as Promise<TestResponse>;
   },
 
   disconnectManyChat: async (token: string): Promise<void> => {
@@ -730,7 +730,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo URL de autorización de Google");
-    return res.json();
+    return res.json() as Promise<{ url: string; state: string }>;
   },
 
   connectGoogleWorkspace: async (
@@ -743,10 +743,10 @@ export const connectionsApi = {
       body: JSON.stringify({ code }),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error conectando Google Workspace");
     }
-    return res.json();
+    return res.json() as Promise<{ status: string; email: string }>;
   },
 
   getGoogleWorkspaceStatus: async (
@@ -760,7 +760,11 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de Google Workspace");
-    return res.json();
+    return res.json() as Promise<{
+      is_connected: boolean;
+      email?: string;
+      services: Record<string, { is_active: boolean; has_credentials: boolean }>;
+    }>;
   },
 
   toggleGoogleWorkspaceService: async (
@@ -777,7 +781,7 @@ export const connectionsApi = {
       },
     );
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error actualizando servicio");
     }
   },
@@ -796,10 +800,10 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error probando conexión de Google Workspace");
     }
-    return res.json();
+    return res.json() as Promise<TestResponse>;
   },
 
   // YouTube
@@ -808,7 +812,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de YouTube");
-    return res.json();
+    return res.json() as Promise<YoutubeStatusResponse>;
   },
 
   getYoutubeAuthUrl: async (
@@ -823,7 +827,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo URL de autorización");
-    return res.json();
+    return res.json() as Promise<{ url: string; state: string }>;
   },
 
   connectYoutube: async (
@@ -840,10 +844,10 @@ export const connectionsApi = {
       body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error conectando YouTube");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 
   disconnectYoutube: async (token: string): Promise<void> => {
@@ -862,10 +866,10 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error probando conexión YouTube");
     }
-    return res.json();
+    return res.json() as Promise<TestResponse>;
   },
 
   configureYoutube: async (
@@ -882,10 +886,10 @@ export const connectionsApi = {
       body: JSON.stringify({ client_id: clientId, client_secret: clientSecret }),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error configurando YouTube");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 
   // Batch status (Connections Hub)
@@ -894,7 +898,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de conexiones");
-    return res.json();
+    return res.json() as Promise<BatchConnectionStatusResponse>;
   },
 
   // Channel Info (Growth Studio source attribution)
@@ -903,7 +907,7 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo info del canal");
-    return res.json();
+    return res.json() as Promise<ChannelInfoResponse>;
   },
 
   // Meta Primary Asset Selection
@@ -921,9 +925,9 @@ export const connectionsApi = {
       body: JSON.stringify({ asset_type: assetType, asset_id: assetId }),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Error configurando activo primario");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 };

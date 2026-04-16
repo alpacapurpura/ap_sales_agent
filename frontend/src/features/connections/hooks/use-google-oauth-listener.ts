@@ -26,13 +26,13 @@ export function useGoogleOAuthListener({
   useEffect(() => {
     if (!enabled) return;
 
-    const handleMessage = async (event: MessageEvent) => {
+    const handleMessage = async (event: MessageEvent<{ type?: string; code?: string; error?: string }>) => {
       if (event.origin !== window.location.origin) return;
 
       if (event.data?.type === OAUTH_MESSAGE_TYPES.GOOGLE_SUCCESS && event.data?.code) {
         await onSuccessRef.current(event.data.code);
       } else if (event.data?.type === OAUTH_MESSAGE_TYPES.GOOGLE_ERROR) {
-        onErrorRef.current?.(event.data?.error || "Unknown error");
+        onErrorRef.current?.(event.data?.error ?? "Unknown error");
       }
     };
 

@@ -24,7 +24,7 @@ interface Nudge {
 function getDismissed(): Set<string> {
   try {
     const raw = localStorage.getItem(DISMISSED_KEY);
-    return raw ? new Set(JSON.parse(raw)) : new Set();
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set<string>();
   } catch {
     return new Set();
   }
@@ -60,9 +60,9 @@ export function useProactiveNudges() {
 
         if (!res.ok || cancelled) return;
 
-        const data = await res.json();
+        const data = (await res.json()) as { nudges?: Nudge[] };
         const dismissed = getDismissed();
-        const filtered = (data.nudges || []).filter((n: Nudge) => !dismissed.has(n.id));
+        const filtered = (data.nudges ?? []).filter((n: Nudge) => !dismissed.has(n.id));
         if (!cancelled) setNudges(filtered);
       } catch {
         // Nudges are best-effort

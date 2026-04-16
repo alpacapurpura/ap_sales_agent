@@ -13,7 +13,7 @@ export async function promoteToEvangelist(
     body: JSON.stringify({ customer_id: customerId }),
   });
   if (!res.ok) throw new Error("Failed to promote");
-  return res.json();
+  return res.json() as Promise<Record<string, unknown>>;
 }
 
 export async function createNpsSurvey(
@@ -26,5 +26,5 @@ export async function createNpsSurvey(
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error("Failed to create survey");
-  return res.json();
+  return res.json() as Promise<Record<string, unknown>>;
 }

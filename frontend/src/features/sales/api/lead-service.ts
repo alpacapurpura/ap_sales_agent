@@ -29,7 +29,7 @@ export const leadService = {
     if (!res.ok) {
       throw new Error("Failed to fetch leads");
     }
-    return res.json();
+    return res.json() as Promise<Lead[]>;
   },
 
   getLead: async (id: string): Promise<Lead> => {
@@ -37,6 +37,6 @@ export const leadService = {
     if (!res.ok) {
       throw new Error("Failed to fetch lead");
     }
-    return res.json();
+    return res.json() as Promise<Lead>;
   },
 };

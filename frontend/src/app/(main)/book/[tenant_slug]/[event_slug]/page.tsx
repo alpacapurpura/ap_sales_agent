@@ -101,7 +101,7 @@ export default function BookingPage({
           }));
         }
       })
-      .catch((err) => setError(err.message))
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
   }, [tenant_slug, event_slug, token]);
 

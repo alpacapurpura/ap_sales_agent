@@ -108,7 +108,10 @@ export function OfferObjectionsCard({ control }: OfferObjectionsCardProps) {
                 <Select
                   defaultValue={field.type || "custom"}
                   onValueChange={(val) => {
-                    control._formValues.objections[index].type = val;
+                    (control._formValues as Record<string, unknown[]>)["objections"][index] = {
+                      ...(control._formValues as Record<string, unknown[]>)["objections"][index] as Record<string, unknown>,
+                      type: val,
+                    };
                   }}
                 >
                   <SelectTrigger className="w-[140px] h-8 text-xs">

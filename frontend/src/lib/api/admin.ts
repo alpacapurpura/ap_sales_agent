@@ -16,10 +16,14 @@ export const adminApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Failed to fetch tenants");
-    return res.json();
+    return res.json() as Promise<Tenant[]>;
   },
 
-  updateTenantPermissions: async (token: string, tenantId: string, canUsePlatformKeys: boolean) => {
+  updateTenantPermissions: async (
+    token: string,
+    tenantId: string,
+    canUsePlatformKeys: boolean,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(
       `${config.api.baseUrl}/api/v1/iam/tenants/${tenantId}/permissions`,
       {
@@ -32,6 +36,6 @@ export const adminApi = {
       },
     );
     if (!res.ok) throw new Error("Failed to update permissions");
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 };

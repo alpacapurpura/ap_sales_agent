@@ -58,7 +58,7 @@ export default function PublicVisitPage({ params }: { params: Promise<{ token: s
     publicApi
       .resolveLink(token)
       .then(setData)
-      .catch((err) => setError(err.message))
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
   }, [token]);
 

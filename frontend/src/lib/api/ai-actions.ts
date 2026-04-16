@@ -70,7 +70,7 @@ export const aiActionsApi = {
     if (!response.ok) {
       throw new Error("Failed to extract brand visuals");
     }
-    return response.json();
+    return response.json() as Promise<unknown>;
   },
 
   async extractFullBrand(input: FullBrandExtractInput, token: string): Promise<{ job_id: string }> {
@@ -86,7 +86,7 @@ export const aiActionsApi = {
     if (!response.ok) {
       throw new Error(`Failed to start extraction: ${response.status} ${response.statusText}`);
     }
-    return response.json();
+    return response.json() as Promise<{ job_id: string }>;
   },
 
   async pollExtractionStatus(jobId: string, token: string): Promise<ExtractionStatus> {
@@ -97,7 +97,7 @@ export const aiActionsApi = {
       },
     );
     if (!response.ok) throw new Error(`Status check failed: ${response.status}`);
-    return response.json();
+    return response.json() as Promise<ExtractionStatus>;
   },
 
   async extractFullOffer(data: FormData, token: string): Promise<{ job_id: string }> {
@@ -113,7 +113,7 @@ export const aiActionsApi = {
         `Failed to start offer extraction: ${response.status} ${response.statusText}`,
       );
     }
-    return response.json();
+    return response.json() as Promise<{ job_id: string }>;
   },
 
   async pollOfferExtractionStatus(jobId: string, token: string): Promise<ExtractionStatus> {
@@ -124,7 +124,7 @@ export const aiActionsApi = {
       },
     );
     if (!response.ok) throw new Error(`Status check failed: ${response.status}`);
-    return response.json();
+    return response.json() as Promise<ExtractionStatus>;
   },
 
   async generateOfferPsychology(
@@ -140,9 +140,11 @@ export const aiActionsApi = {
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ detail: response.statusText }));
+      const error = (await response.json().catch(() => ({ detail: response.statusText }))) as {
+        detail?: string;
+      };
       throw new Error(error.detail || "Error generating psychology");
     }
-    return response.json();
+    return response.json() as Promise<OfferPsychologyResult>;
   },
 };

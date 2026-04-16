@@ -35,7 +35,7 @@ export interface EventDetailsFormProps {
 }
 
 function EventDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
-  const timezone = form.watch("specific_details.timezone") || "UTC";
+  const timezone = (form.watch("specific_details.timezone") as string | undefined) ?? "UTC";
 
   return (
     <Card>

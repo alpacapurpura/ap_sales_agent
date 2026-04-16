@@ -73,7 +73,7 @@ export const publicApi = {
       if (res.status === 404) throw new Error("Link not found");
       throw new Error("Failed to resolve link");
     }
-    return res.json();
+    return res.json() as Promise<LinkResolveResponse>;
   },
 
   resolveBookingLink: async (token: string): Promise<BookingLinkResolveResponse> => {
@@ -81,10 +81,10 @@ export const publicApi = {
       cache: "no-store",
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Link not found or expired");
     }
-    return res.json();
+    return res.json() as Promise<BookingLinkResolveResponse>;
   },
 
   getSlots: async (token: string, start: string, end: string): Promise<string[]> => {
@@ -93,11 +93,11 @@ export const publicApi = {
       cache: "no-store",
     });
     if (!res.ok) throw new Error("Failed to fetch slots");
-    const data = await res.json();
+    const data = (await res.json()) as { slots: string[] };
     return data.slots; // Expecting string[] of ISO datetimes
   },
 
-  bookMeeting: async (token: string, data: BookingRequest) => {
+  bookMeeting: async (token: string, data: BookingRequest): Promise<Record<string, unknown>> => {
     const res = await fetchClient(`${API_URL}/api/v1/scheduling/public/${token}/book`, {
       method: "POST",
       headers: {
@@ -107,10 +107,10 @@ export const publicApi = {
     });
 
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Failed to book meeting");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 
   // --- Event Type Public API ---
@@ -129,7 +129,7 @@ export const publicApi = {
       if (res.status === 404) throw new Error("Event type not found");
       throw new Error("Failed to resolve event type");
     }
-    return res.json();
+    return res.json() as Promise<EventTypeResolveResponse>;
   },
 
   getEventTypeSlots: async (
@@ -146,11 +146,15 @@ export const publicApi = {
       },
     );
     if (!res.ok) throw new Error("Failed to fetch slots");
-    const data = await res.json();
+    const data = (await res.json()) as { slots: string[] };
     return data.slots;
   },
 
-  bookEventType: async (tenantSlug: string, eventSlug: string, data: BookingRequest) => {
+  bookEventType: async (
+    tenantSlug: string,
+    eventSlug: string,
+    data: BookingRequest,
+  ): Promise<Record<string, unknown>> => {
     const res = await fetchClient(
       `${API_URL}/api/v1/scheduling/public/event-types/${tenantSlug}/${eventSlug}/book`,
       {
@@ -163,9 +167,9 @@ export const publicApi = {
     );
 
     if (!res.ok) {
-      const err = await res.json();
+      const err = (await res.json()) as { detail?: string };
       throw new Error(err.detail || "Failed to book meeting");
     }
-    return res.json();
+    return res.json() as Promise<Record<string, unknown>>;
   },
 };

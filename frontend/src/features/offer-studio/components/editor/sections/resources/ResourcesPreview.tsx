@@ -23,7 +23,7 @@ export const ResourcesPreview = ({ data: propsData }: ResourcesPreviewProps) => 
 
   if (!resources.length) return null;
 
-  const getIcon = (type: string) => {
+  const getIcon = (type: AssetType) => {
     switch (type) {
       case AssetType.PDF:
         return <FileText className="w-4 h-4 text-rose-500" />;
@@ -46,7 +46,7 @@ export const ResourcesPreview = ({ data: propsData }: ResourcesPreviewProps) => 
           className="flex items-center gap-3 p-3 rounded-lg border border-transparent hover:bg-muted/30 hover:border-border/40 transition-all group"
         >
           <div className="h-8 w-8 flex items-center justify-center bg-muted/50 rounded-md group-hover:bg-background transition-colors shadow-sm">
-            {getIcon(resource.type)}
+            {getIcon(resource.type as AssetType)}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate text-foreground/90">{resource.name}</p>

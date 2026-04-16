@@ -11,7 +11,7 @@ export const editionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Failed to list editions");
-    return res.json();
+    return res.json() as Promise<LaunchEdition[]>;
   },
 
   create: async (
@@ -28,7 +28,7 @@ export const editionsApi = {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error("Failed to create edition");
-    return res.json();
+    return res.json() as Promise<LaunchEdition>;
   },
 
   update: async (
@@ -49,7 +49,7 @@ export const editionsApi = {
       },
     );
     if (!res.ok) throw new Error("Failed to update edition");
-    return res.json();
+    return res.json() as Promise<LaunchEdition>;
   },
 
   delete: async (offerId: string, editionId: string, token: string): Promise<void> => {
@@ -72,6 +72,6 @@ export const editionsApi = {
       },
     );
     if (!res.ok) throw new Error("Failed to duplicate edition");
-    return res.json();
+    return res.json() as Promise<LaunchEdition>;
   },
 };
