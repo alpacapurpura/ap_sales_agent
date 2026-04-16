@@ -247,6 +247,9 @@ class ETLService:
         Each concurrent provider gets its own Session so they don't share
         SQLAlchemy state. The MetricsCache (Redis) is shared — it's thread-safe.
         """
+        # DDD exception (intentional): ETL must query active connections to know
+        # which providers to run. The connection record IS the provider credentials
+        # and config — this dependency is real, not accidental coupling.
         from src.core.database import SessionLocal
         from src.modules.connections.application.services.connection_port_impl import (
             ConnectionPortImpl,

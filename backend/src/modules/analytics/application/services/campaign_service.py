@@ -565,6 +565,10 @@ class CampaignService:
         from src.modules.analytics.infrastructure.sync.campaign_sync_pipeline import (
             CampaignSyncPipeline,
         )
+
+        # DDD exception (intentional): campaign sync genuinely needs to know which
+        # ad connections (Meta, Google Ads) are active — the connection IS the
+        # provider config. No factory abstraction makes sense here.
         from src.modules.connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
         )

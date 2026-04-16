@@ -46,6 +46,10 @@ from src.modules.analytics.application.services.stage_services.group_detail impo
     GroupDetailService,
 )
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+
+# DDD exception (intentional): api/ is the composition root — it wires concrete
+# implementations for ConnectionPortImpl and OfferReadPortImpl as FastAPI
+# dependencies. Cross-module import here is correct DI wiring, not coupling.
 from src.modules.connections.application.services.connection_port_impl import (
     ConnectionPortImpl,
 )
@@ -903,6 +907,9 @@ async def get_channel_dashboard(
     from src.modules.analytics.application.services.channel_dashboard_service import (
         ChannelDashboardService,
     )
+
+    # DDD exception (intentional): api/ composition root — BrandReadPortImpl injected
+    # lazily here because ChannelDashboardService needs brand data for display config.
     from src.modules.brand.application.services.brand_read_port_impl import (
         BrandReadPortImpl,
     )

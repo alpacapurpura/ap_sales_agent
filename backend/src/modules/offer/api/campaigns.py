@@ -14,6 +14,10 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+
+# DDD exception (intentional): api/ composition root — this endpoint surfaces
+# campaign performance data from the advertising module as part of the offer view.
+# Cross-module read at the API layer is correct orchestration.
 from src.modules.advertising.application.services.offer_campaigns_read_adapter import (
     OfferCampaignsReadAdapter,
 )
@@ -52,9 +56,13 @@ async def get_offer_campaigns(
 ) -> OfferCampaignsViewDTO:
     """Return aggregated campaigns for the given offer."""
     adapter = OfferCampaignsReadAdapter()
-    normalized_status: Literal["all", "active", "paused", "ended"] = (
-        status if status in _ALLOWED_STATUS else "all"  # type: ignore[assignment]
-    )
+    _status_map: dict[str, Literal["all", "active", "paused", "ended"]] = {
+        "all": "all",
+        "active": "active",
+        "paused": "paused",
+        "ended": "ended",
+    }
+    normalized_status: Literal["all", "active", "paused", "ended"] = _status_map.get(status, "all")
     period_start, period_end = _resolve_period(period)
     return adapter.get_campaigns_for_offer(
         tenant_id=user.tenant_id,
