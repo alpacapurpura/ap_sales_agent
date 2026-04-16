@@ -57,16 +57,19 @@ import type { SectionProps } from "../types/section";
 import type { LucideIcon } from "lucide-react";
 import type { ComponentType } from "react";
 
+// Plugin registry: each section has distinct prop types (StrategyFormProps, IdentityFormProps, etc.)
+// with no common base interface. TypeScript function parameter contravariance makes it impossible
+// to assign specific-props components to a generic type without `any`.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PluginComponent = ComponentType<any>;
+
 export interface OfferBuilderSectionConfig {
   id: string;
   title: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- plugin registry: prop types vary per section
-  component: ComponentType<SectionProps | any>;
+  component: PluginComponent;
   icon: LucideIcon;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- plugin registry: prop types vary per section
-  previewComponent: ComponentType<any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- plugin registry: prop types vary per section
-  formComponent: ComponentType<any>;
+  previewComponent: PluginComponent;
+  formComponent: PluginComponent;
 }
 
 export const SECTION_REGISTRY: Record<string, OfferBuilderSectionConfig> = {

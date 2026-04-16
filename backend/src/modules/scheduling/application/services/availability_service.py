@@ -12,11 +12,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
 from src.core.config import settings
-from src.modules.connections.infrastructure.channels.gmail import GmailAdapter
-from src.modules.connections.infrastructure.channels.google_calendar import (
-    GoogleCalendarAdapter,
-)
-from src.modules.crm.domain.lead import Lead
 from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 from src.modules.scheduling.domain.availability_schema import (
     AvailabilitySchedule,
@@ -28,6 +23,11 @@ from src.modules.scheduling.domain.availability_schema import (
 from src.modules.scheduling.domain.event_type_schema import EventType
 from src.modules.scheduling.infrastructure.models.appointment_model import (
     AppointmentModel as Appointment,
+)
+from src.shared.links.ports.calendar import (
+    create_calendar_adapter,
+    create_gmail_adapter,
+    get_channel_credentials,
 )
 
 logger = structlog.get_logger()
@@ -42,35 +42,17 @@ class AvailabilityService:
         self.tenant_id = tenant_id
         self.adapter = self._get_adapter()
 
-    def _get_adapter(self) -> GoogleCalendarAdapter | None:
-        from src.modules.connections.infrastructure.models import ChannelConnectionModel
-
-        stmt = select(ChannelConnectionModel).where(
-            ChannelConnectionModel.tenant_id == self.tenant_id,
-            ChannelConnectionModel.channel_type == "google_calendar",
-            ChannelConnectionModel.is_active.is_(True),
-        )
-        connection = self.db.execute(stmt).scalar_one_or_none()
-
-        if not connection or not connection.credentials:
+    def _get_adapter(self) -> object | None:
+        creds = get_channel_credentials(self.db, self.tenant_id, "google_calendar")
+        if not creds:
             return None
+        return create_calendar_adapter(creds)
 
-        return GoogleCalendarAdapter(credentials_data=connection.credentials)
-
-    def _get_gmail_adapter(self) -> GmailAdapter | None:
-        from src.modules.connections.infrastructure.models import ChannelConnectionModel
-
-        stmt = select(ChannelConnectionModel).where(
-            ChannelConnectionModel.tenant_id == self.tenant_id,
-            ChannelConnectionModel.channel_type == "gmail",
-            ChannelConnectionModel.is_active.is_(True),
-        )
-        connection = self.db.execute(stmt).scalar_one_or_none()
-
-        if not connection or not connection.credentials:
+    def _get_gmail_adapter(self) -> object | None:
+        creds = get_channel_credentials(self.db, self.tenant_id, "gmail")
+        if not creds:
             return None
-
-        return GmailAdapter(credentials_data=connection.credentials)
+        return create_gmail_adapter(creds)
 
     def is_connected(self) -> bool:
         """Check whether connected."""
@@ -428,25 +410,9 @@ class AvailabilityService:
 
             # Find or Create Lead if not provided
             if not lead_id and lead_data.get("email"):
-                lead_stmt = select(Lead).where(
-                    Lead.tenant_id == self.tenant_id,
-                    Lead.email == lead_data.get("email"),
-                )
-                existing_lead = self.db.execute(lead_stmt).scalars().first()
+                from src.shared.links.ports.lead_resolution import find_or_create_lead
 
-                if existing_lead:
-                    lead_id = existing_lead.id
-                else:
-                    # Create new lead
-                    new_lead = Lead(
-                        tenant_id=self.tenant_id,
-                        full_name=lead_data.get("name"),
-                        email=lead_data.get("email"),
-                        phone=lead_data.get("phone"),
-                    )
-                    self.db.add(new_lead)
-                    self.db.flush()  # Get ID
-                    lead_id = new_lead.id
+                lead_id = find_or_create_lead(self.db, self.tenant_id, lead_data)
 
             if lead_id:
                 appointment = Appointment(

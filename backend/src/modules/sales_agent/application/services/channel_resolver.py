@@ -5,13 +5,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import select
 
-from src.modules.connections.infrastructure.models.channel_connection_model import (
-    ChannelConnectionModel,
-)
 from src.shared.domain.enums import ChannelType
 from src.shared.domain.messages import OutgoingMessage
+from src.shared.links.ports.calendar import get_channel_connection_data
+from src.shared.links.ports.channel_adapter import (
+    create_instagram_adapter,
+    create_telegram_adapter,
+    create_whatsapp_adapter,
+)
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -81,22 +83,12 @@ class ChannelResolver:
         if not user_id:
             return None
 
-        # Get connection credentials
-        conn = (
-            self.db.execute(
-                select(ChannelConnectionModel).where(
-                    ChannelConnectionModel.tenant_id == tenant_id,
-                    ChannelConnectionModel.channel_type == enum_type.value,
-                    ChannelConnectionModel.is_active.is_(True),
-                ),
-            )
-            .scalars()
-            .first()
-        )
-        if not conn:
+        # Get connection data via shared port (credentials + config for instagram)
+        conn_data = get_channel_connection_data(self.db, tenant_id, enum_type.value)
+        if not conn_data:
             return None
 
-        adapter = self._create_adapter(ch_type, conn, tenant_id)
+        adapter = self._create_adapter(ch_type, conn_data, tenant_id)
         if adapter:
             return adapter, user_id
         return None
@@ -104,33 +96,22 @@ class ChannelResolver:
     def _create_adapter(
         self,
         ch_type: str,
-        conn: ChannelConnectionModel,
+        conn_data: tuple[dict, dict],
         tenant_id: UUID,
     ) -> BaseChannel | None:
+        credentials, config = conn_data
         try:
             if ch_type == "telegram":
-                from src.modules.connections.infrastructure.channels.telegram import (
-                    TelegramChannel,
-                )
-
-                token = conn.credentials.get("token") if conn.credentials else None
-                return TelegramChannel(token=token)
+                token = credentials.get("token")
+                return create_telegram_adapter(token=token)
 
             if ch_type == "whatsapp":
-                from src.modules.connections.infrastructure.channels.whatsapp import (
-                    WhatsAppChannel,
-                )
-
-                return WhatsAppChannel(tenant_id=str(tenant_id))
+                return create_whatsapp_adapter(tenant_id=str(tenant_id))
 
             if ch_type == "instagram":
-                from src.modules.connections.infrastructure.channels.instagram import (
-                    InstagramChannel,
-                )
-
-                return InstagramChannel(
-                    client_config=conn.config or {},
-                    credentials_data=conn.credentials or {},
+                return create_instagram_adapter(
+                    client_config=config,
+                    credentials_data=credentials,
                 )
         except Exception as e:
             logger.exception(

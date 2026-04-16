@@ -1,5 +1,6 @@
 "use client";
 
+import NextImage from "next/image";
 import { User } from "lucide-react";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -111,11 +112,12 @@ export function TestimonialItemForm({
       <div className="flex items-center gap-4">
         <div className="h-12 w-12 rounded-full overflow-hidden bg-muted border flex-shrink-0">
           {currentItem.author_avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <NextImage
               src={currentItem.author_avatar}
               alt="Preview"
-              className="h-full w-full object-cover"
+              fill
+              className="object-cover"
+              unoptimized
             />
           ) : (
             <div className="h-full w-full flex items-center justify-center text-muted-foreground">

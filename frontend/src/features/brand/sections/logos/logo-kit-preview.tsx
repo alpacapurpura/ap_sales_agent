@@ -1,5 +1,6 @@
 "use client";
 
+import NextImage from "next/image";
 import { Image as ImageIcon, Upload } from "lucide-react";
 
 import { getAssetUrl } from "@/lib/utils/assets";
@@ -80,11 +81,12 @@ export function LogoKitPreview({ visuals, onEdit }: LogoKitPreviewProps) {
                   <div
                     className={`relative h-20 px-4 py-2 border rounded-lg ${slot.bg} flex items-center justify-center ${slot.minW}`}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={getAssetUrl(url)}
+                    <NextImage
+                      src={getAssetUrl(url) || "/placeholder.svg"}
                       alt={slot.label}
-                      className="max-h-full max-w-full object-contain"
+                      fill
+                      className="object-contain"
+                      unoptimized
                     />
                   </div>
                   <p className="text-[10px] text-muted-foreground font-mono uppercase">

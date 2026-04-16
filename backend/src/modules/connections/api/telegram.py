@@ -7,33 +7,36 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.connections.api.dependencies import get_message_handler
 from src.modules.connections.api.dto.common import (
     ConnectionTestResponse,
     TelegramConnectResponse,
+)
+from src.modules.connections.api.dto.telegram import (
+    ChannelStatusResponse,
+    TelegramConnectRequest,
 )
 from src.modules.connections.infrastructure.channels.telegram_service import (
     TelegramService,
 )
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.sales_agent.api.dto.telegram import (
-    ChannelStatusResponse,
-    TelegramConnectRequest,
-)
-from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
 
 router = APIRouter(tags=["Telegram"])
 logger = structlog.get_logger()
-orchestrator = ChatOrchestrator()
 
 # --- Webhooks ---
 
 
 @router.post("/webhooks/telegram")
-async def telegram_webhook_legacy(request: Request, background_tasks: BackgroundTasks) -> dict[str, str]:
+async def telegram_webhook_legacy(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    handler: Annotated[object, Depends(get_message_handler)],
+) -> dict[str, str]:
     """Legacy Global Webhook. Uses settings.TELEGRAM_BOT_TOKEN."""
     payload = await request.json()
-    await orchestrator.handle_telegram_webhook(payload, background_tasks)
+    await handler.handle_telegram_webhook(payload, background_tasks)
     return {"status": "ok"}
 
 
@@ -43,10 +46,11 @@ async def telegram_webhook_tenant(
     request: Request,
     background_tasks: BackgroundTasks,
     db: Annotated[Session, Depends(get_db)],
+    handler: Annotated[object, Depends(get_message_handler)],
 ) -> dict[str, str]:
     """Multi-Tenant Webhook. Resolves bot token from Tenant configuration."""
     payload = await request.json()
-    await orchestrator.handle_telegram_webhook(
+    await handler.handle_telegram_webhook(
         payload,
         background_tasks,
         tenant_id=tenant_id,

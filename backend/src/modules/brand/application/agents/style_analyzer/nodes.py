@@ -342,7 +342,7 @@ async def node_embedder(state: OnboardingState) -> dict:
     (e.g. via state initialisation or dependency injection). In tests and the
     legacy flow where Qdrant is not configured, the node is a no-op.
     """
-    style_store = state.get("_style_store")  # type: ignore[misc]
+    style_store = state.get("_style_store")  # type: ignore[misc]  # _style_store is an injected infra dependency, intentionally absent from OnboardingState TypedDict
     profile_id_str = state.get("personality_profile_id")
     exchanges = state.get("personality_sample_exchanges", [])
     user_id = state.get("user_id", "")

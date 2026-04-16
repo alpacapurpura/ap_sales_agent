@@ -1,5 +1,6 @@
 "use client";
 
+import NextImage from "next/image";
 import { User, Edit2, Trash2 } from "lucide-react";
 import { memo } from "react";
 
@@ -53,8 +54,13 @@ export const TeamList = memo(function TeamList({ team, onEdit, onDelete }: TeamL
               <div className="flex items-center space-x-4 overflow-hidden">
                 <div className="h-12 w-12 rounded-full relative flex-shrink-0 bg-muted border overflow-hidden">
                   {imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={imageUrl} alt={member.name} className="h-full w-full object-cover" />
+                    <NextImage
+                      src={imageUrl}
+                      alt={member.name}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center bg-primary/10">
                       <User className="h-6 w-6 text-primary" />

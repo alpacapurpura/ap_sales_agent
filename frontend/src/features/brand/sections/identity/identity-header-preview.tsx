@@ -1,5 +1,6 @@
 import type React from "react";
 
+import NextImage from "next/image";
 import { Edit2, Globe, Building2, Palette, Sparkles } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -134,11 +135,12 @@ export function HeaderSection({
           }}
         >
           {displayLogo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={getFullUrl(displayLogo)}
-              alt={identity.brand_name}
-              className="h-full w-full object-contain p-2"
+            <NextImage
+              src={getFullUrl(displayLogo) || "/placeholder.svg"}
+              alt={identity.brand_name ?? "Logo"}
+              fill
+              className="object-contain p-2"
+              unoptimized
             />
           ) : (
             <span className="text-3xl font-bold">{identity.brand_name?.charAt(0) || "B"}</span>

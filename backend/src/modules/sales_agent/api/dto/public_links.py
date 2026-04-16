@@ -4,7 +4,7 @@ import datetime
 
 from pydantic import BaseModel, EmailStr
 
-from src.modules.scheduling.domain.event_type_schema import EventType
+from src.shared.domain.schemas.scheduling import EventType
 
 
 class BookingRequest(BaseModel):

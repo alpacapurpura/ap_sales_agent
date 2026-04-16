@@ -1,5 +1,6 @@
 "use client";
 
+import NextImage from "next/image";
 import { ExternalLink, Sparkles } from "lucide-react";
 
 import {
@@ -239,12 +240,16 @@ function PreviewSection({ campaign }: { campaign: EmailCampaign }) {
       </h4>
       <div className="rounded-lg border bg-card overflow-hidden">
         {campaign.screenshotUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={campaign.screenshotUrl}
-            alt={`Vista previa de ${campaign.campaignSubject ?? "email"}`}
-            className="w-full object-cover max-h-[320px]"
-          />
+          <div className="relative w-full max-h-[320px] overflow-hidden">
+            <NextImage
+              src={campaign.screenshotUrl}
+              alt={`Vista previa de ${campaign.campaignSubject ?? "email"}`}
+              width={600}
+              height={320}
+              className="w-full object-cover"
+              unoptimized
+            />
+          </div>
         ) : (
           <div className="flex h-32 items-center justify-center bg-muted/10 text-xs text-muted-foreground">
             Sin vista previa disponible

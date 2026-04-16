@@ -26,6 +26,8 @@ const imageRemotePatterns = [
   // Placeholder services (always allowed)
   { protocol: 'https', hostname: 'placehold.co' },
   { protocol: 'https', hostname: 'i.pravatar.cc' },
+  // Nicolify CDN (user-uploaded assets via Cloudflare R2)
+  { protocol: 'https', hostname: 'assets.nicolify.com' },
   // Internal Docker hostnames for dev/prod (derived from INTERNAL_API_URL)
   ...(internalApiUrl ? [{
     protocol: 'http',

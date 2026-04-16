@@ -1,5 +1,6 @@
 "use client";
 
+import NextImage from "next/image";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -173,8 +174,13 @@ export function ImageGalleryPicker({
               )}
               onClick={() => onPrimaryChange(url)}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={fullUrl} alt="Member photo" className="w-full h-full object-cover" />
+              <NextImage
+                src={fullUrl || "/placeholder.svg"}
+                alt="Member photo"
+                fill
+                className="object-cover"
+                unoptimized
+              />
 
               {/* Primary Indicator */}
               {isPrimary && (
@@ -281,8 +287,13 @@ export function ImageGalleryPicker({
                           )}
                           onClick={() => handleToggleSelect(img.public_url)}
                         >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={fullUrl} alt="Gallery" className="w-full h-full object-cover" />
+                          <NextImage
+                            src={fullUrl || "/placeholder.svg"}
+                            alt="Gallery"
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
 
                           {isSelected && (
                             <div className="absolute top-1 right-1 bg-primary text-primary-foreground p-0.5 rounded-full shadow-sm">
@@ -334,12 +345,13 @@ export function ImageGalleryPicker({
                 {uploadFile && (
                   <div className="space-y-4 bg-muted/30 p-4 rounded-lg border">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded bg-muted overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                      <div className="relative h-10 w-10 rounded bg-muted overflow-hidden">
+                        <NextImage
                           src={URL.createObjectURL(uploadFile)}
                           alt="Preview"
-                          className="h-full w-full object-cover"
+                          fill
+                          className="object-cover"
+                          unoptimized
                         />
                       </div>
                       <div className="flex-1 min-w-0">

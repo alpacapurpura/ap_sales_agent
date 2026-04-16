@@ -50,13 +50,11 @@ def tool_check_schedule(state: dict[str, Any], db: Any = None) -> dict[str, Any]
         }
 
     try:
-        from src.modules.scheduling.application.services.availability_service import (
-            AvailabilityService,
-        )
+        from src.shared.links.ports.scheduling import create_scheduling_port
 
         tid = UUID(str(tenant_id)) if not isinstance(tenant_id, UUID) else tenant_id
-        service = AvailabilityService(db=db, tenant_id=tid)
-        if not service.is_connected():
+        service = create_scheduling_port(db=db, tenant_id=tid)
+        if service is None or not service.is_connected():
             return {
                 "status": "error",
                 "message": "Google Calendar no está conectado para este tenant.",

@@ -16,6 +16,16 @@ import {
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +57,7 @@ export function EventTypeView() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [availabilities, setAvailabilities] = useState<AvailabilitySchedule[]>([]);
   const [tenantSlug, setTenantSlug] = useState<string>("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -87,9 +98,11 @@ export function EventTypeView() {
     setIsSidebarOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    // eslint-disable-next-line no-alert -- TODO: replace with AlertDialog component
-    if (!confirm("¿Estás seguro de eliminar este tipo de cita?")) return;
+  const handleDelete = (id: string) => {
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = async (id: string) => {
     try {
       const token = await getToken();
       if (!token) return;
@@ -98,6 +111,8 @@ export function EventTypeView() {
       void fetchData();
     } catch (error) {
       toast.error("Error al eliminar");
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -271,6 +286,24 @@ export function EventTypeView() {
           eventSlug={selectedEventForLink.slug}
         />
       )}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar tipo de cita?</AlertDialogTitle>
+            <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteTarget) void confirmDelete(deleteTarget);
+              }}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

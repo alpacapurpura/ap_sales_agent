@@ -1,5 +1,6 @@
 "use client";
 
+import NextImage from "next/image";
 import { User, Save, Loader2, X } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -93,15 +94,16 @@ export function TeamMemberForm({
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 rounded-full overflow-hidden bg-background border-2 border-primary/20 flex-shrink-0 shadow-sm relative">
               {currentMember.headshot_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <NextImage
                   src={
                     currentMember.headshot_url.startsWith("http")
                       ? currentMember.headshot_url
                       : `${apiUrl}${currentMember.headshot_url}`
                   }
                   alt="Active Profile"
-                  className="h-full w-full object-cover"
+                  fill
+                  className="object-cover"
+                  unoptimized
                 />
               ) : (
                 <div className="h-full w-full flex items-center justify-center bg-muted text-muted-foreground">

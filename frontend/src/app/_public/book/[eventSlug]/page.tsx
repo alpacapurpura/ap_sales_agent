@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -75,12 +76,15 @@ export default async function BookingPage({ params }: PageProps) {
         {/* Tenant identity */}
         <div className="flex items-center gap-3">
           {tenant_avatar && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={tenant_avatar}
-              alt={tenant_name}
-              className="h-10 w-10 rounded-full object-cover"
-            />
+            <div className="relative h-10 w-10 rounded-full overflow-hidden flex-shrink-0">
+              <Image
+                src={tenant_avatar}
+                alt={tenant_name}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
           )}
           <span className="text-sm font-medium text-gray-500">{tenant_name}</span>
         </div>

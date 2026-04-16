@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 
 from src.core.config import settings
 from src.core.database import get_db
+from src.modules.connections.api.dependencies import get_message_handler
 from src.modules.connections.api.dto.common import (
     WhatsAppQRResponse,
     WhatsAppSessionResponse,
@@ -30,11 +31,9 @@ from src.modules.connections.infrastructure.repositories import (
     ChannelConnectionRepository,
 )
 from src.modules.iam.api.dependencies import get_current_tenant_id
-from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
 
 router = APIRouter(tags=["WhatsApp"])
 logger = structlog.get_logger()
-orchestrator = ChatOrchestrator()
 
 
 def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
@@ -57,10 +56,14 @@ async def verify_whatsapp_webhook(
 
 
 @router.post("/webhooks/whatsapp")
-async def whatsapp_webhook(request: Request, background_tasks: BackgroundTasks) -> dict[str, str]:
+async def whatsapp_webhook(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    handler: Annotated[object, Depends(get_message_handler)],
+) -> dict[str, str]:
     """Whatsapp webhook."""
     payload = await request.json()
-    await orchestrator.handle_whatsapp_webhook(payload, background_tasks)
+    await handler.handle_whatsapp_webhook(payload, background_tasks)
     return {"status": "received"}
 
 
@@ -268,24 +271,22 @@ async def delete_whatsapp_session(
 async def handle_whatsapp_webhook(
     tenant_id: str,
     payload: Annotated[dict, Body()],
+    handler: Annotated[object, Depends(get_message_handler)],
     background_tasks: BackgroundTasks = None,
 ) -> dict[str, str]:
     """Handle whatsapp webhook."""
-    from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
-
-    orch = ChatOrchestrator()
     adapter = WhatsAppChannel(tenant_id=tenant_id)
 
     if background_tasks:
         background_tasks.add_task(
-            orch._handle_incoming_webhook,
+            handler.handle_incoming_webhook,
             adapter,
             payload,
             None,
             tenant_id,
         )
     else:
-        await orch._handle_incoming_webhook(
+        await handler.handle_incoming_webhook(
             adapter,
             payload,
             background_tasks,

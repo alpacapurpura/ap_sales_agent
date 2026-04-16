@@ -1,5 +1,6 @@
 "use client";
 
+import NextImage from "next/image";
 import {
   Loader2,
   QrCode,
@@ -175,12 +176,13 @@ export default function WhatsAppView() {
                     {isScanning ? (
                       <div className="flex flex-col items-center justify-center space-y-3">
                         {qrCode ? (
-                          <div className="relative group">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
+                          <div className="relative group w-32 h-32">
+                            <NextImage
                               src={qrCode}
                               alt="WhatsApp QR"
-                              className="w-32 h-32 border rounded-lg"
+                              fill
+                              className="border rounded-lg object-contain"
+                              unoptimized
                             />
                           </div>
                         ) : (

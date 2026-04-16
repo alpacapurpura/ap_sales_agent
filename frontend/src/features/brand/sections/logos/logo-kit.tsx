@@ -1,5 +1,6 @@
 "use client";
 
+import NextImage from "next/image";
 import { Plus, Image as ImageIcon } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -97,11 +98,12 @@ export function LogoKit({ logos, onChange }: LogoKitProps) {
                 >
                   {currentUrl ? (
                     <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={getFullUrl(currentUrl)}
+                      <NextImage
+                        src={getFullUrl(currentUrl) || "/placeholder.svg"}
                         alt={slot.label}
-                        className="w-full h-full object-contain p-4 transition-transform group-hover:scale-105"
+                        fill
+                        className="object-contain p-4 transition-transform group-hover:scale-105"
+                        unoptimized
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <span className="text-white font-medium text-xs flex items-center gap-2">

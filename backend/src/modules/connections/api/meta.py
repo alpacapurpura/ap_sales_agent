@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from src.core.config import settings
 from src.core.context import set_tenant_id
 from src.core.database import get_db
+from src.modules.connections.api.dependencies import get_message_handler
 from src.modules.connections.api.dependencies.webhook_security import (
     verify_meta_signature,
 )
@@ -41,11 +42,9 @@ from src.modules.connections.infrastructure.repositories import (
 )
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
 
 router = APIRouter(tags=["meta"])
 logger = structlog.get_logger()
-orchestrator = ChatOrchestrator()
 
 
 _ASSET_CHANNEL_TYPES = [
@@ -438,6 +437,7 @@ async def webhook_event(
     payload: Annotated[dict, Body()],
     verified: Annotated[bool, Depends(verify_meta_signature)],
     repo: Annotated[ChannelConnectionRepository, Depends(_get_repo)],
+    handler: Annotated[object, Depends(get_message_handler)],
 ) -> dict[str, str]:
     """Webhook event."""
     try:
@@ -480,7 +480,7 @@ async def webhook_event(
         return {"status": "ignored", "reason": "normalization_failed"}
 
     try:
-        await orchestrator.process_chat_flow(channel, incoming)
+        await handler.process_chat_flow(channel, incoming)
     except Exception as e:
         logger.exception("meta_webhook_process_error", error=str(e))
 

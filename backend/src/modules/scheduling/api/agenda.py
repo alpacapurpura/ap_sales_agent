@@ -7,10 +7,9 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from src.core.database import get_db
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 from src.modules.scheduling.infrastructure.models.appointment_model import (
@@ -54,21 +53,11 @@ async def get_agenda(
 
     appointments = repo.get_appointments_by_date_range(start, end, user.tenant_id)
 
-    # Enrich with Lead Names (NOTE: Cross-module dependency, consider moving to a service)
+    # Enrich with Lead Names via shared port (avoids cross-module CRM import)
+    from src.shared.links.ports.lead_resolution import get_lead_names
+
     lead_ids = [a.lead_id for a in appointments if a.lead_id]
-    lead_map = {}
-    if lead_ids:
-        # Use joinedload to fetch Customer Profile efficiently
-        leads_stmt = select(LeadModel).options(joinedload(LeadModel.customer)).where(LeadModel.id.in_(lead_ids))
-        leads = db.execute(leads_stmt).scalars().all()
-
-        for lead in leads:
-            # Try to get name from Customer (SSOT), then fallback to Lead profile_data
-            customer_name = lead.customer.full_name if lead.customer else None
-            profile = lead.profile_data or {}
-
-            name = customer_name or profile.get("full_name") or profile.get("name") or "Unknown Lead"
-            lead_map[lead.id] = name
+    lead_map = get_lead_names(db, lead_ids) if lead_ids else {}
 
     return [
         AgendaItem(

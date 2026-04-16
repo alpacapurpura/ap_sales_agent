@@ -1,5 +1,6 @@
 "use client";
 
+import NextImage from "next/image";
 import {
   Download,
   Eye,
@@ -112,12 +113,12 @@ export function AssetCard({ asset, onPreview, onDownload, onEdit }: AssetCardPro
         )}
       >
         {asset.thumbnail_url ? (
-          // eslint-disable-next-line @next/next/no-img-element -- server returns signed CDN URLs, next/image not configured for arbitrary hosts
-          <img
+          <NextImage
             src={asset.thumbnail_url}
             alt={asset.name}
-            className="h-full w-full object-cover"
-            loading="lazy"
+            fill
+            className="object-cover"
+            unoptimized
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">

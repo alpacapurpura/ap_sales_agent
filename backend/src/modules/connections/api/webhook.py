@@ -10,14 +10,13 @@ from sqlalchemy.orm import Session
 
 from src.core.context import set_tenant_id
 from src.core.database import get_db
+from src.modules.connections.api.dependencies import get_message_handler
 from src.modules.connections.infrastructure.channels.webhook import WebhookAdapter
 from src.modules.iam.domain.tenant import Tenant
-from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
 from src.shared.domain.messages import IncomingMessage
 
 router = APIRouter()
 logger = structlog.get_logger()
-orchestrator = ChatOrchestrator()
 
 
 def get_tenant_by_secret(
@@ -44,6 +43,7 @@ def get_tenant_by_secret(
 async def webhook_chat(
     payload: Annotated[dict, Body()],
     tenant: Annotated[Tenant, Depends(get_tenant_by_secret)],
+    handler: Annotated[object, Depends(get_message_handler)],
 ) -> dict[str, str | dict[str, str]]:
     """Handle generic webhook request for AI Agent.
 
@@ -87,7 +87,7 @@ async def webhook_chat(
         # But 'process_chat_flow' uses 'OutputManager' which has hardcoded delays.
         # Ideally, we should pass a flag to disable delays for API,
         # but for now we accept the "human-like" delay as a feature.
-        await orchestrator.process_chat_flow(adapter, incoming)
+        await handler.process_chat_flow(adapter, incoming)
 
         # Collect responses
         full_response = "\n\n".join(adapter.responses)

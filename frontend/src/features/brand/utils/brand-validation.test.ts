@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- test file uses `as any` for partial/invalid fixture objects */
 import { describe, it, expect } from "vitest";
 
 import {

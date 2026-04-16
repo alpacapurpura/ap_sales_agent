@@ -15,17 +15,18 @@ from uuid import UUID
 import httpx
 from sqlalchemy.orm import Session
 
-from src.modules.analytics.domain.exceptions import (
-    ConnectionRevokedError,
-    TokenRefreshError,
-)
-from src.modules.analytics.domain.ports import ConnectionCredentials, ConnectionPort
 from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.models.channel_connection_model import (
     ChannelConnectionModel,
 )
 from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
     ChannelConnectionRepository,
+)
+from src.shared.domain.ports import (
+    ConnectionCredentials,
+    ConnectionPort,
+    ConnectionRevokedError,
+    TokenRefreshError,
 )
 
 logger = logging.getLogger(__name__)

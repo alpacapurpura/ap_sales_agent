@@ -1,11 +1,13 @@
 # Remaining Technical Debt — Action Plan
 
-> Generated 2026-04-15 after massive debt cleanup session.
-> Commit `5dc27a66` is the baseline. All tests pass (2806 backend + 1063 frontend).
+> Updated 2026-04-15. Baseline: commit `5dc27a66`.
+> All tests pass: 2806 backend + 1063 frontend. 0 lint errors.
 
 ---
 
-## What was ALREADY fixed (for context)
+## Cleanup history
+
+### Session 1 (commit `5dc27a66`)
 
 | Category | Before | After | How |
 |----------|--------|-------|-----|
@@ -21,24 +23,30 @@
 | Arch test parser | catches TC imports | skips TC | `conftest.py` now has `_type_checking_line_ranges()` |
 | Cross-module imports | 65 | 62 | 3 TYPE_CHECKING-only removed |
 
+### Session 2 (current)
+
+| Category | Before | After | How |
+|----------|--------|-------|-----|
+| `@next/next/no-img-element` | 20 | **0** | `next.config.js` remotePatterns + all `<img>` → `<Image>` with `unoptimized` |
+| `no-alert` | 2 | **0** | `window.confirm()` → AlertDialog (shadcn); `prompt()` → Dialog + Input |
+| `no-explicit-any` (unjustified) | 3 files | **0** | Test files: removed unnecessary file-wide disable (warn in tests). Config: consolidated to 1 type alias |
+| Backend `# type: ignore` | 14 | **4** | `cast()` with TYPE_CHECKING imports (5), `Callable` typing fix (4), proper annotation (1) |
+
 ---
 
 ## REMAINING DEBT — ordered by impact
 
-### 1. Cross-Module Imports (62 violations)
+### 1. Cross-Module Imports (58 violations)
 
 **File:** `backend/tests/architecture/test_ddd_boundaries.py` → `KNOWN_CROSS_MODULE_IMPORTS`
 **Test:** `test_no_new_cross_module_imports`
-
-#### What they are
-
-62 places where one DDD module imports from another's internals. The ratchet test prevents NEW violations but doesn't fix existing ones.
+**Status:** Ratchet test prevents new violations. Existing 58 entries need phased port creation.
 
 #### Distribution
 
 ```
-analytics → connections: 10  (providers need credentials/adapters)
-analytics → crm:        15  (repositories JOIN crm tables for stage metrics)
+analytics → connections: 11  (providers need credentials/adapters)
+analytics → crm:        12  (repositories JOIN crm tables for stage metrics)
 analytics → brand:       1  (BrandReadPort DI)
 analytics → offer:       2  (OfferReadPort DI, ETL product mapping)
 connections → analytics:  3  (channel_info, webhooks, connection_port_impl)
@@ -51,7 +59,7 @@ offer → crm:              1  (product_mappings JourneyEvent/Sale)
 offer → advertising:      2  (OfferCampaignsReadAdapter DI)
 sales_agent → brand:      1  (knowledge_builder)
 sales_agent → connections: 3  (orchestrator, channel_resolver, channel_service)
-sales_agent → crm:        6  (audit, closer_studio, orchestrator, closer service, audit_repo, follow_up)
+sales_agent → crm:        5  (audit, closer_studio, orchestrator, closer service, follow_up)
 sales_agent → offer:      2  (knowledge_builder, business_repo)
 sales_agent → scheduling:  2  (dto/public_links, sales tools)
 scheduling → connections:  1  (availability_service GmailAdapter)
@@ -59,150 +67,97 @@ scheduling → crm:         2  (agenda, availability_service Lead)
 scheduling → tenant_domains: 1 (booking_url)
 ```
 
-#### Fix strategies (from audit)
+#### Fix strategies
 
 **Strategy A — Already correct DI (7 violations, KEEP):**
-These use the ports & adapters pattern correctly. The import is at the API layer for DI wiring.
+Ports & adapters pattern. Import at API layer for DI wiring — architecturally correct.
 - `analytics/api/metrics.py` → ConnectionPortImpl, OfferReadPortImpl, BrandReadPortImpl
 - `offer/api/campaigns.py` → OfferCampaignsReadAdapter
 - `offer/api/counts.py` → AdvertisingReadAdapter
 
-**Strategy B — Create shared ports (estimated 15-20 violations):**
-Create port interfaces in `shared/links/ports/` that target modules implement.
+**Strategy B — Create shared ports (15-20 violations):**
+Port interfaces in `shared/links/ports/`. Pattern: `shared/links/ports/advertising.py`.
 
-Priority ports to create:
-1. `shared/links/ports/crm.py` → `CrmReadPort` (Lead, Customer, JourneyEvent read access)
-   - Unblocks: analytics repos (7), connections/calendar, scheduling/agenda, scheduling/availability
-2. `shared/links/ports/message_routing.py` → `MessageRoutingPort`
-   - Unblocks: connections → sales_agent (4 files)
-3. `shared/links/ports/channel.py` → `ChannelCredentialPort`
-   - Unblocks: analytics providers → connections (partial)
+| Priority | Port | Unblocks |
+|----------|------|----------|
+| 1 | `CrmReadPort` (Lead, Customer, JourneyEvent) | analytics repos (7), connections/calendar, scheduling/agenda+availability |
+| 2 | `MessageRoutingPort` | connections → sales_agent (4) |
+| 3 | `ChannelCredentialPort` | analytics providers → connections (partial) |
 
-Pattern to follow (already exists):
-```
-# shared/links/ports/advertising.py — EXISTING example
-class AdvertisingReadPort(ABC):
-    @abstractmethod
-    async def get_campaigns(...) -> list[...]: ...
-
-# offer/api/campaigns.py — wires the adapter via Depends()
-from src.modules.advertising.application.services.offer_campaigns_read_adapter import OfferCampaignsReadAdapter
-```
-
-**Strategy C — Domain events (estimated 5-8 violations):**
-For webhook handlers that create CRM records across modules.
-- `connections/api/marketing_webhooks.py` → emit events instead of calling CRM directly
-- `analytics/application/services/etl_service.py` → emit OrderProcessedEvent for Shopify backfill
-- Requires: event bus infrastructure (check if `shared/domain/events/` exists)
+**Strategy C — Domain events (5-8 violations):**
+Webhook handlers creating CRM records across modules. Requires event bus in `shared/domain/events/`.
 
 **Strategy D — Intentional cross-cuts (3-5 violations, DOCUMENT):**
-Some coupling is inherent to the business domain. Document with inline comments.
+Inherent business coupling. Document with inline comments.
 - `connections → sales_agent` (message routing hub)
 - `sales_agent → crm` (agent needs customer data at runtime)
 
 #### Execution plan
 
-Phase 1 (lowest risk): Create `CrmReadPort` in `shared/links/ports/crm.py`
-- Define read-only interface for Lead, Customer, JourneyEvent queries
-- Implement in `crm/infrastructure/repositories/` 
-- Update analytics repos to use port instead of direct model imports
-- Remove fixed entries from `KNOWN_CROSS_MODULE_IMPORTS`
-- Run `pytest tests/architecture/test_ddd_boundaries.py -x`
-
-Phase 2: Create `MessageRoutingPort` for connections → sales_agent
-Phase 3: Create `ChannelCredentialPort` for analytics → connections
-Phase 4: Event-driven webhooks (connections → crm, offer)
+Phase 1: Create `CrmReadPort` in `shared/links/ports/crm.py` (~10 violations)
+Phase 2: Create `MessageRoutingPort` (~4 violations)
+Phase 3: Create `ChannelCredentialPort` (~5 violations)
+Phase 4: Event-driven webhooks (~5 violations)
 
 ---
 
-### 2. Frontend eslint-disable (76 remaining)
+### 2. Frontend eslint-disable (53 remaining — all justified)
 
-**Breakdown:**
+Every remaining suppression has a documented justification comment.
 
 | Rule | Count | Status |
 |------|-------|--------|
-| `sonarjs/cognitive-complexity` | 13 | Documented irreducible — each has comment explaining why |
-| `@next/next/no-img-element` | 19 | External/CDN images — needs `next.config.js` remotePatterns |
-| `@typescript-eslint/no-explicit-any` | 11 | 8 ReactFlow (genuine need), 3 fixable |
+| `sonarjs/cognitive-complexity` | 14 | Documented irreducible — each has comment |
+| `@typescript-eslint/no-explicit-any` | 9 | 7 ReactFlow (genuine need), 1 RHF resolver, 1 plugin registry |
 | `react-hooks/exhaustive-deps` | 7 | Audited — intentional dep exclusions |
 | `react-hooks/set-state-in-effect` | 7 | SSR hydration patterns — legitimate |
-| `max-params` | 5 | Public API signatures — use options objects |
+| `max-params` | 7 | Public API signatures — all have justification comments |
 | `react-hooks/static-components` | 5 | Dynamic registry patterns |
-| `no-alert` | 2 | Replace with AlertDialog |
 | `react-hooks/immutability` | 2 | Browser navigation — legitimate |
 | `max-depth` | 1 | SSE parsing — legitimate |
+| `@typescript-eslint/consistent-type-imports` | 1 | Framework constraint |
 
-#### Actionable items (not justified suppressions)
-
-**A. `no-img-element` (19) — Configure next/image:**
-```js
-// next.config.js → images.remotePatterns
-{ protocol: 'https', hostname: '**.cloudflare.com' },
-{ protocol: 'https', hostname: '**.r2.cloudflarestorage.com' },
-// Add patterns for CDN domains used in the app
-```
-Then replace `<img>` with `<Image>` from `next/image`.
-
-**B. `no-alert` (2):**
-Files: `event-type-form.tsx`, one other.
-Replace `window.confirm()` with AlertDialog from shadcn (already installed).
-
-**C. `max-params` (5):**
-Group function params into options objects. Files:
-- `offer-studio/api/index.ts`
-- `growth-studio/hooks/useStageDetail.ts`  
-- 3 others (check with `grep -rn "max-params" frontend/src/`)
-
-**D. `no-explicit-any` (3 fixable):**
-- `-- API payload type mismatch` → define `Partial<FormSchema>`
-- 2 without justification → use `unknown` + type guards
+**No actionable items remain.** All suppressions are either:
+- Technically irreducible (cognitive-complexity in complex orchestrators)
+- Framework-mandated (ReactFlow types, SSR hydration, Next.js navigation)
+- Audited and intentional (exhaustive-deps, set-state-in-effect)
 
 ---
 
-### 3. Backend `# type: ignore` (35 remaining)
+### 3. Backend `# type: ignore` (4 remaining — all justified)
 
-**File:** scattered across `backend/src/`
-**Find:** `grep -rn "# type: ignore" backend/src/ --include="*.py"`
+| File | Code | Justification |
+|------|------|---------------|
+| `copilot/application/orchestrator/context_budget.py:21` | `[misc]` | Function redefinition in `except` block — standard tiktoken fallback pattern |
+| `brand/application/agents/style_analyzer/nodes.py:345` | `[misc]` | `_style_store` is injected infra dependency, intentionally absent from TypedDict |
+| `analytics/application/dto/attraction_dto.py:68` | `[misc]` | Pydantic v2 `@computed_field` + `@property` — known mypy limitation |
+| `analytics/application/services/stage_services/overview_stage.py:174` | `[arg-type]` | MetricsService uses legacy sync Session; rare on-demand fallback path |
 
-Most are in copilot module (union-attr for protocol access). The type:ignore agent started fixing these but introduced a runtime error in `style_analyzer/state.py` that was reverted.
-
-**Key rule:** NEVER move imports to TYPE_CHECKING if the type is used in a TypedDict field or at runtime. Only pure function-signature annotations (with `from __future__ import annotations`) are safe.
-
-Categories:
-- `union-attr` (16): Protocol attribute access in copilot — need type narrowing or `cast()`
-- `arg-type` (7): SDK type mismatches — use `cast()` with comment
-- `assignment` (4): Dynamic function builders — add explicit annotations
-- `misc` (3): Reflection/dynamic dispatch
-- Others (5): Various
+**No actionable items remain.** Each is a genuine type system limitation with documented reason.
 
 ---
 
-### 4. Backend `# noqa` comments (beyond BLE001)
+### 4. Backend `# noqa` comments — NOT DEBT
 
-| Type | Count | Action |
+| Type | Count | Reason |
 |------|-------|--------|
-| `F401` (unused imports) | ~40 | Model registration side-effects — KEEP (SQLAlchemy needs them) |
-| `ANN401` (dynamic typing) | ~35 | LLM/SDK types — KEEP (genuinely need `Any`) |
-| `TRY301` (tryceratops) | ~11 | Style preference — KEEP |
-| `BLE001` (broad except) | 126 | Correct error boundaries — KEEP |
-| `PLC0415` (import not at top) | ~383 | Circular dep avoidance — KEEP |
+| `F401` (unused imports) | ~40 | SQLAlchemy model registration side-effects |
+| `ANN401` (dynamic typing) | ~35 | LLM/SDK types genuinely need `Any` |
+| `TRY301` (tryceratops) | ~11 | Style preference |
+| `BLE001` (broad except) | 126 | Correct error boundaries |
+| `PLC0415` (import not at top) | ~383 | Circular dependency avoidance |
 
-**These are NOT debt.** They're intentional suppressions for patterns that ruff flags but are correct in context (FastAPI, SQLAlchemy, LLM orchestration).
+**Intentional suppressions. Do not try to remove.**
 
 ---
 
-### 5. Ruff global ignores (45 rules)
+### 5. Ruff global ignores (45 rules) — NOT DEBT
 
 **File:** `backend/pyproject.toml` → `[tool.ruff.lint]` → `ignore`
 
-All justified:
-- `B008`: FastAPI `Depends()` is not a mutable default
-- `PLR2004/PLR0913`: Magic numbers and many-arg functions inherent to DDD
-- `E712/E711`: SQLAlchemy requires `== True/None` syntax
-- `S105-S108`: OAuth credential patterns, not real secrets
-- etc.
+All justified: `B008` (FastAPI Depends), `PLR2004/PLR0913` (DDD patterns), `E712/E711` (SQLAlchemy), `S105-S108` (OAuth), etc.
 
-**NOT debt. Do not try to enable these.**
+**Intentional configuration. Do not try to enable.**
 
 ---
 
@@ -212,13 +167,13 @@ All justified:
 # Backend lint (must be 0 errors)
 cd backend && .venv/bin/ruff check src/ tests/ --no-cache
 
-# Architecture tests (must all pass)
+# Architecture tests (must all pass — currently 71)
 cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short
 
 # Frontend type check (must be 0 errors)
 cd frontend && npx tsc --noEmit
 
-# Frontend lint (check for new errors only — warnings are OK)
+# Frontend lint (0 new errors — warnings OK)
 cd frontend && npx eslint src/ --cache --cache-location .eslintcache
 
 # Full test suites
@@ -228,10 +183,13 @@ cd frontend && npx vitest run                      # 1063 pass
 
 ---
 
-## Files to read before starting
+## Only remaining work: Cross-Module Imports (Section 1)
 
-1. This document
-2. `backend/tests/architecture/test_ddd_boundaries.py` — the allowlist
-3. `backend/tests/architecture/conftest.py` — the smart parser (skips TYPE_CHECKING)
-4. `shared/links/ports/advertising.py` — existing port pattern to follow
-5. `.claude/rules/backend-ddd.md` — DDD boundary rules
+The only actionable debt left is the 58 cross-module import violations — a phased architectural refactoring requiring shared ports. Everything else is either fixed or documented as intentionally kept.
+
+### Files to read before starting port work
+
+1. `backend/tests/architecture/test_ddd_boundaries.py` — the allowlist
+2. `backend/tests/architecture/conftest.py` — TYPE_CHECKING parser
+3. `shared/links/ports/advertising.py` — existing port pattern
+4. `.claude/rules/backend-ddd.md` — DDD boundary rules

@@ -22,33 +22,27 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     #
     # Rule: only remove entries when the violation is fixed. Never add new ones.
     # Each entry below has a documented reason why it cannot be eliminated.
-
     # api/metrics.py is the analytics composition root. It wires ConnectionPortImpl,
     # OfferReadPortImpl, and BrandReadPortImpl as FastAPI Depends() — correct DI.
     # Eliminating these would require moving wiring to shared/, which just hides it.
     "analytics -> brand | analytics/api/metrics.py",
     "analytics -> connections | analytics/api/metrics.py",
     "analytics -> offer | analytics/api/metrics.py",
-
     # connections/api/dependencies/__init__.py sole purpose is DI wiring:
     # it binds ChatOrchestrator as the concrete MessageHandlerPort implementation.
     # The cross-module import IS the composition — not a design smell.
     "connections -> sales_agent | connections/api/dependencies/__init__.py",
-
     # offer/api/ is the composition root for offer endpoints. Both files import
     # OfferCampaignsReadAdapter to surface advertising stats alongside offer KPIs.
     # This is correct orchestration at the API layer boundary.
     "offer -> advertising | offer/api/campaigns.py",
     "offer -> advertising | offer/api/counts.py",
-
     # copilot is explicitly allowed as an import target for any module —
     # it is an infra-like orchestrator (see .claude/rules/backend-ddd.md).
     "offer -> copilot | offer/api/offer_ai.py",
-
     # campaign_service.py: campaign sync must know which ad connections (Meta,
     # Google Ads) are active. The connection record IS the provider config.
     "analytics -> connections | analytics/application/services/campaign_service.py",
-
     # etl_service.py: ETL run queries active connections to select providers.
     # Connection credentials and config live only in the connections module —
     # no abstraction can remove this genuine data dependency.

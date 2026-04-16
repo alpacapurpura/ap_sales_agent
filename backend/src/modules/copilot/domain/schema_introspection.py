@@ -5,6 +5,7 @@ When you add/remove fields from any Pydantic model, the copilot detects
 the change automatically via model_fields introspection.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import get_args, get_origin
 
@@ -324,10 +325,10 @@ _DOMAIN_DICT_PARENTS: dict[str, set[str]] = {
     "buyer_persona": {"demographics", "psychographics", "buyer_journey"},
 }
 
-_DOMAIN_BUILDERS: dict[str, type] = {
-    "brand": _build_brand_paths,  # type: ignore[assignment]
-    "offer": _build_offer_paths,  # type: ignore[assignment]
-    "buyer_persona": _build_buyer_persona_paths,  # type: ignore[assignment]
+_DOMAIN_BUILDERS: dict[str, Callable[[], set[str]]] = {
+    "brand": _build_brand_paths,
+    "offer": _build_offer_paths,
+    "buyer_persona": _build_buyer_persona_paths,
 }
 
 
@@ -358,7 +359,7 @@ def validate_field_path(domain: str, field_path: str) -> bool:
 
     if domain not in _DOMAIN_FIELD_CACHE:
         builder = _DOMAIN_BUILDERS[domain]
-        _DOMAIN_FIELD_CACHE[domain] = builder()  # type: ignore[operator]
+        _DOMAIN_FIELD_CACHE[domain] = builder()
 
     valid_paths = _DOMAIN_FIELD_CACHE[domain]
 

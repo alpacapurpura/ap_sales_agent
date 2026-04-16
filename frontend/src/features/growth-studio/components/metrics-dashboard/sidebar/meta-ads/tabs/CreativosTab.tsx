@@ -1,5 +1,6 @@
 "use client";
 
+import NextImage from "next/image";
 import { Clock, ExternalLink, Film, Image, Loader2 } from "lucide-react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useState, useCallback } from "react";
@@ -150,12 +151,15 @@ function AdCard({
     >
       {/* Thumbnail */}
       {ad.thumbnailUrl ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={ad.thumbnailUrl}
-          alt={ad.adName}
-          className="h-32 w-full rounded-lg object-cover"
-        />
+        <div className="relative h-32 w-full rounded-lg overflow-hidden">
+          <NextImage
+            src={ad.thumbnailUrl}
+            alt={ad.adName}
+            fill
+            className="object-cover"
+            unoptimized
+          />
+        </div>
       ) : (
         <div className="h-32 rounded-lg bg-muted flex items-center justify-center text-xs text-muted-foreground">
           Sin preview
@@ -282,12 +286,16 @@ function AdDetailPanel({
       <div className="space-y-5 p-6">
         {/* Full preview image */}
         {ad.thumbnailUrl && (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={ad.thumbnailUrl}
-            alt={ad.adName}
-            className="w-full rounded-lg object-cover max-h-[300px]"
-          />
+          <div className="relative w-full max-h-[300px] overflow-hidden rounded-lg">
+            <NextImage
+              src={ad.thumbnailUrl}
+              alt={ad.adName}
+              width={600}
+              height={300}
+              className="w-full object-cover"
+              unoptimized
+            />
+          </div>
         )}
 
         {/* Format + Status + CTA */}

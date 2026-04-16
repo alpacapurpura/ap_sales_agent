@@ -1,5 +1,6 @@
 "use client";
 
+import NextImage from "next/image";
 import { useAuth } from "@clerk/nextjs";
 import ColorThief from "colorthief";
 import {
@@ -201,8 +202,15 @@ function WizardSelectSource({
               <CardContent className="space-y-4 mt-auto">
                 {logoUrl ? (
                   <div className="flex flex-col items-center gap-4">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={logoUrl} alt="Logo" className="h-16 object-contain" />
+                    <div className="relative h-16 w-full">
+                      <NextImage
+                        src={logoUrl}
+                        alt="Logo"
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
+                    </div>
                     <Button className="w-full" onClick={onAnalyzeLogo} disabled={analyzing}>
                       {analyzing ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -287,7 +295,10 @@ function WizardPreview({ visuals, onBack, onSave }: WizardPreviewProps) {
         <div className="w-1/3 space-y-6">
           <div
             className="aspect-square rounded-2xl shadow-xl flex flex-col items-center justify-center p-6 text-center border transition-all"
-            style={{ borderColor: visuals.primary_color, backgroundColor: visuals.background_color }}
+            style={{
+              borderColor: visuals.primary_color,
+              backgroundColor: visuals.background_color,
+            }}
           >
             <div
               className="w-24 h-24 rounded-full mb-4 shadow-lg"
@@ -322,7 +333,10 @@ function WizardPreview({ visuals, onBack, onSave }: WizardPreviewProps) {
                   {label}
                 </span>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg shadow-sm border" style={{ background: color }} />
+                  <div
+                    className="w-10 h-10 rounded-lg shadow-sm border"
+                    style={{ background: color }}
+                  />
                   <span className="font-mono text-sm font-medium">{color}</span>
                 </div>
               </div>
@@ -351,7 +365,11 @@ function WizardPreview({ visuals, onBack, onSave }: WizardPreviewProps) {
               <h4 className="text-xs uppercase tracking-wider opacity-60">Gradientes</h4>
               <div className="flex gap-2">
                 {visuals.gradient_definitions.map((grad, i) => (
-                  <div key={i} className="h-8 flex-1 rounded-md shadow-sm" style={{ background: grad }} />
+                  <div
+                    key={i}
+                    className="h-8 flex-1 rounded-md shadow-sm"
+                    style={{ background: grad }}
+                  />
                 ))}
               </div>
             </div>
@@ -384,7 +402,10 @@ function WizardPreview({ visuals, onBack, onSave }: WizardPreviewProps) {
                 {visuals.brand_mood.energy && (
                   <span
                     className="px-3 py-1 rounded-full text-xs font-medium"
-                    style={{ backgroundColor: visuals.primary_color, color: visuals.text_on_primary }}
+                    style={{
+                      backgroundColor: visuals.primary_color,
+                      color: visuals.text_on_primary,
+                    }}
                   >
                     Energia: {visuals.brand_mood.energy}
                   </span>

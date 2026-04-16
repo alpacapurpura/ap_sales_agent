@@ -10,12 +10,22 @@ from __future__ import annotations
 import functools
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from pydantic import BaseModel
 
 if TYPE_CHECKING:
     from uuid import UUID
+
+    from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
+    from src.modules.commercial_calendar.infrastructure.repositories.calendar_event_repository import (
+        CalendarEventRepository,
+    )
+    from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
+        ChannelConnectionRepository,
+    )
+    from src.modules.landing.infrastructure.repositories.landing_repository import LandingRepository
+    from src.modules.offer.infrastructure.repositories.offer_repository import OfferRepository
 
 
 @dataclass
@@ -180,7 +190,7 @@ def _brand_repo_factory(db: object) -> object:
 
 
 def _brand_read_fn(repo: object, tenant_id: UUID) -> object | None:
-    return repo.get_settings(tenant_id)  # type: ignore[union-attr]
+    return cast("BrandRepository", repo).get_settings(tenant_id)
 
 
 def _offer_repo_factory(db: object) -> object:
@@ -192,7 +202,7 @@ def _offer_repo_factory(db: object) -> object:
 
 
 def _offer_read_fn(repo: object, tenant_id: UUID) -> list:
-    return repo.get_all_by_tenant(tenant_id)  # type: ignore[union-attr]
+    return cast("OfferRepository", repo).get_all_by_tenant(tenant_id)
 
 
 def _connections_repo_factory(db: object) -> object:
@@ -204,7 +214,7 @@ def _connections_repo_factory(db: object) -> object:
 
 
 def _connections_read_fn(repo: object, tenant_id: UUID) -> list:
-    return repo.get_all_by_tenant(tenant_id)  # type: ignore[union-attr]
+    return cast("ChannelConnectionRepository", repo).get_all_by_tenant(tenant_id)
 
 
 def _calendar_repo_factory(db: object) -> object:
@@ -219,7 +229,7 @@ def _calendar_read_fn(repo: object, tenant_id: UUID) -> list:
     from src.shared.domain.datetime_utils import utc_today
 
     today = utc_today()
-    return repo.list_events(  # type: ignore[union-attr]
+    return cast("CalendarEventRepository", repo).list_events(
         country_code="PE",
         year=today.year,
         tenant_id=tenant_id,
@@ -235,7 +245,7 @@ def _landing_repo_factory(db: object) -> object:
 
 
 def _landing_read_fn(repo: object, tenant_id: UUID) -> list:
-    return repo.list_by_tenant(tenant_id)  # type: ignore[union-attr]
+    return cast("LandingRepository", repo).list_by_tenant(tenant_id)
 
 
 # ── Singleton ─────────────────────────────────────────────────────────
