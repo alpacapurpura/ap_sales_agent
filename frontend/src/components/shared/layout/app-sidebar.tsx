@@ -144,7 +144,10 @@ function SimpleNavItem({
   mounted,
   showExpanded,
   onMobileClose,
-}: Pick<NavItemRendererProps, "item" | "pathname" | "mobile" | "isCollapsed" | "mounted" | "onMobileClose"> & {
+}: Pick<
+  NavItemRendererProps,
+  "item" | "pathname" | "mobile" | "isCollapsed" | "mounted" | "onMobileClose"
+> & {
   showExpanded: boolean;
 }) {
   const isActive = pathname.startsWith(item.href);
@@ -208,9 +211,7 @@ function CollapsedGroupItem({
           <item.icon
             className={cn(
               "h-5 w-5 shrink-0 transition-colors",
-              isParentActive
-                ? "text-primary"
-                : "text-muted-foreground group-hover:text-foreground",
+              isParentActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
             )}
           />
         </NavLink>
@@ -253,7 +254,10 @@ function ExpandedGroupItem({
   isExpanded,
   onMobileClose,
   onToggleExpand,
-}: Pick<NavItemRendererProps, "item" | "pathname" | "mobile" | "mounted" | "onMobileClose" | "onToggleExpand"> & {
+}: Pick<
+  NavItemRendererProps,
+  "item" | "pathname" | "mobile" | "mounted" | "onMobileClose" | "onToggleExpand"
+> & {
   isParentActive: boolean;
   isExpanded: boolean;
 }) {

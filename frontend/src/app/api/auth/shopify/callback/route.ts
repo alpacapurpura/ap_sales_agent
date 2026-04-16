@@ -33,13 +33,21 @@ async function exchangeShopifyToken(
   }
 }
 
-function buildShopifyAdminRedirect(
-  shop: string,
-  appId: string,
-  host: string,
-  success: boolean,
-  errorDetail: string,
-): URL {
+interface ShopifyAdminRedirectParams {
+  shop: string;
+  appId: string;
+  host: string;
+  success: boolean;
+  errorDetail: string;
+}
+
+function buildShopifyAdminRedirect({
+  shop,
+  appId,
+  host,
+  success,
+  errorDetail,
+}: ShopifyAdminRedirectParams): URL {
   const shopName = shop.replace(".myshopify.com", "");
   const adminUrl = new URL(`https://admin.shopify.com/store/${shopName}/apps/${appId}`);
   adminUrl.searchParams.set("host", host);
@@ -92,7 +100,7 @@ export async function GET(request: NextRequest) {
 
     if (host) {
       return NextResponse.redirect(
-        buildShopifyAdminRedirect(shop, appId, host, exchangeSuccess, errorDetail),
+        buildShopifyAdminRedirect({ shop, appId, host, success: exchangeSuccess, errorDetail }),
       );
     }
 

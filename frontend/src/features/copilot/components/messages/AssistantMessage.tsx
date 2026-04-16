@@ -48,9 +48,7 @@ function mapClarifyItems(
 }
 
 /** Normalises a checkpoint card_status to the three allowed literal values. */
-function checkpointStatus(
-  cardStatus: string | undefined,
-): "confirmed" | "revising" | "pending" {
+function checkpointStatus(cardStatus: string | undefined): "confirmed" | "revising" | "pending" {
   if (cardStatus === "confirmed") return "confirmed";
   if (cardStatus === "revising") return "revising";
   return "pending";
@@ -61,6 +59,7 @@ function checkpointStatus(
  * Each case maps to one card component — the switch is the simplest representation
  * of a 10-way dispatch; further splitting would add indirection without clarity gain.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity -- 10-way type dispatch table; each case is a one-liner guard + component. Splitting into a lookup map would require boxing every conditional render, adding more complexity than it removes.
 function renderUIAction(
   action: UIAction,
   idx: number,

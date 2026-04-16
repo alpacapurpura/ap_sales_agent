@@ -52,6 +52,30 @@ import type {
   TestResponse,
 } from "@/lib/api/connections";
 
+async function fetchSupplementaryGaStatus(
+  getToken: () => Promise<string | null>,
+  setGaStatus: (s: GoogleAnalyticsStatusResponse) => void,
+): Promise<void> {
+  try {
+    const token = await getToken();
+    if (!token) return;
+    const gaData = await connectionsApi.getGoogleAnalyticsStatus(token);
+    setGaStatus(gaData);
+  } catch {
+    // Silently ignore — GA status is supplementary
+  }
+}
+
+function showTestResultToast(res: TestResponse): void {
+  if (res.status === "active") {
+    toast.success("Todos los servicios de Google funcionan correctamente");
+  } else if (res.status === "partial") {
+    toast.warning("Algunos servicios presentan errores");
+  } else {
+    toast.error(res.message);
+  }
+}
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type ServiceKey = "gmail" | "calendar" | "analytics" | "youtube" | "youtube_analytics";
@@ -265,6 +289,7 @@ async function checkGaStatusAfterConnect(
   }
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- View-controller for 6 independent Google services (test, connect, toggle×5, disconnect, GA property). Each handler has its own async/error flow. Decomposing into a custom hook is the right long-term fix (see coherence-refactoring-plan.md §4.2).
 export function GoogleWorkspaceView() {
   const { getToken } = useAuth();
 
@@ -341,13 +366,7 @@ export function GoogleWorkspaceView() {
 
       const res = await connectionsApi.testGoogleWorkspace(token);
       setTestResult(res);
-      if (res.status === "active") {
-        toast.success("Todos los servicios de Google funcionan correctamente");
-      } else if (res.status === "partial") {
-        toast.warning("Algunos servicios presentan errores");
-      } else {
-        toast.error(res.message);
-      }
+      showTestResultToast(res);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Error en la prueba";
       console.error(error);
@@ -429,17 +448,7 @@ export function GoogleWorkspaceView() {
   // Check GA property status when workspace is connected
   useEffect(() => {
     if (status?.is_connected) {
-      const checkGa = async () => {
-        try {
-          const token = await getToken();
-          if (!token) return;
-          const gaData = await connectionsApi.getGoogleAnalyticsStatus(token);
-          setGaStatus(gaData);
-        } catch (e) {
-          // Silently ignore — GA status is supplementary
-        }
-      };
-      void checkGa();
+      void fetchSupplementaryGaStatus(getToken, setGaStatus);
     }
   }, [status?.is_connected]); // eslint-disable-line react-hooks/exhaustive-deps
 

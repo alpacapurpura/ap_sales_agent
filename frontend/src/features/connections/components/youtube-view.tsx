@@ -384,22 +384,26 @@ export function YoutubeView() {
               </AlertTitle>
               <AlertDescription>
                 {testResult.message}
-                {testResult.data && (() => {
-                  const ch = testResult.data as { title?: string; statistics?: { viewCount?: string; subscriberCount?: string } };
-                  return (
-                    <div className="mt-2 text-xs bg-background/50 p-2 rounded overflow-x-auto text-foreground border border-border/50 grid gap-1">
-                      <div>
-                        <strong>Título:</strong> {ch.title}
+                {testResult.data &&
+                  (() => {
+                    const ch = testResult.data as {
+                      title?: string;
+                      statistics?: { viewCount?: string; subscriberCount?: string };
+                    };
+                    return (
+                      <div className="mt-2 text-xs bg-background/50 p-2 rounded overflow-x-auto text-foreground border border-border/50 grid gap-1">
+                        <div>
+                          <strong>Título:</strong> {ch.title}
+                        </div>
+                        <div>
+                          <strong>Vistas:</strong> {ch.statistics?.viewCount}
+                        </div>
+                        <div>
+                          <strong>Suscriptores:</strong> {ch.statistics?.subscriberCount}
+                        </div>
                       </div>
-                      <div>
-                        <strong>Vistas:</strong> {ch.statistics?.viewCount}
-                      </div>
-                      <div>
-                        <strong>Suscriptores:</strong> {ch.statistics?.subscriberCount}
-                      </div>
-                    </div>
-                  );
-                })()}
+                    );
+                  })()}
               </AlertDescription>
             </Alert>
           )}

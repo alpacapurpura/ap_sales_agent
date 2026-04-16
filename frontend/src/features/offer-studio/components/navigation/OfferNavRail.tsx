@@ -27,6 +27,19 @@ interface OfferNavRailProps {
   className?: string;
 }
 
+function StatusDot({ isComplete, hasError }: { isComplete: boolean; hasError: boolean }) {
+  if (isComplete)
+    return <div className="h-2 w-2 bg-green-500 rounded-full ring-1 ring-background" />;
+  if (hasError) return <div className="h-2 w-2 bg-amber-500 rounded-full ring-1 ring-background" />;
+  return null;
+}
+
+function StatusIcon({ isComplete, hasError }: { isComplete: boolean; hasError: boolean }) {
+  if (isComplete) return <Check className="h-4 w-4 text-green-500" />;
+  if (hasError) return <AlertCircle className="h-4 w-4 text-amber-500" />;
+  return <Circle className="h-3 w-3 text-muted-foreground/30" />;
+}
+
 interface NavSectionItemProps {
   sectionId: string;
   health: ReturnType<typeof getOfferHealth>;
@@ -69,23 +82,13 @@ function NavSectionItem({
               <div className="relative">
                 <Icon className="h-5 w-5" />
                 <div className="absolute -top-1 -right-1">
-                  {isComplete ? (
-                    <div className="h-2 w-2 bg-green-500 rounded-full ring-1 ring-background" />
-                  ) : hasError ? (
-                    <div className="h-2 w-2 bg-amber-500 rounded-full ring-1 ring-background" />
-                  ) : null}
+                  <StatusDot isComplete={isComplete} hasError={hasError} />
                 </div>
               </div>
             ) : (
               <>
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
-                  {isComplete ? (
-                    <Check className="h-4 w-4 text-green-500" />
-                  ) : hasError ? (
-                    <AlertCircle className="h-4 w-4 text-amber-500" />
-                  ) : (
-                    <Circle className="h-3 w-3 text-muted-foreground/30" />
-                  )}
+                  <StatusIcon isComplete={isComplete} hasError={hasError} />
                 </div>
                 <div className="flex items-center gap-2 truncate">
                   <span className="truncate">{config.title}</span>

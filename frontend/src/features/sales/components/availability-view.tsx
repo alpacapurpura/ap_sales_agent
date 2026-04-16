@@ -416,7 +416,11 @@ function ScheduleEditor({
       </div>
 
       <div className="flex items-center justify-between pt-4 border-t">
-        <Button variant="destructive" onClick={() => setConfirmDeleteOpen(true)} disabled={deleting}>
+        <Button
+          variant="destructive"
+          onClick={() => setConfirmDeleteOpen(true)}
+          disabled={deleting}
+        >
           {deleting ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (

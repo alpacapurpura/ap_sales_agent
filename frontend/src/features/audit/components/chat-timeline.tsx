@@ -41,45 +41,42 @@ type TimelineGroup =
   | { type: "message"; event: TimelineEvent }
   | { type: "trace_group"; events: TimelineEvent[] };
 
+function flushTraceBuffer(groups: TimelineGroup[], buffer: TimelineEvent[]): void {
+  if (buffer.length === 0) return;
+  groups.push({ type: "trace_group", events: [...buffer] });
+  buffer.length = 0;
+}
+
 /** Groups consecutive trace events between messages for cleaner rendering. */
 function groupTimelineEvents(events: TimelineEvent[]): TimelineGroup[] {
   const groups: TimelineGroup[] = [];
-  let currentTraceGroup: TimelineEvent[] = [];
-  let pendingBotEvent: TimelineEvent | null = null;
+  const traceBuffer: TimelineEvent[] = [];
+  let pendingBot: TimelineEvent | null = null;
 
   for (const event of events) {
-    if (event.type === "message") {
-      if (event.role === "user") {
-        if (currentTraceGroup.length > 0) {
-          groups.push({ type: "trace_group", events: [...currentTraceGroup] });
-          currentTraceGroup = [];
-        }
-        if (pendingBotEvent) {
-          groups.push({ type: "message", event: pendingBotEvent });
-          pendingBotEvent = null;
-        }
-        groups.push({ type: "message", event });
-      } else {
-        if (pendingBotEvent) {
-          if (currentTraceGroup.length > 0) {
-            groups.push({ type: "trace_group", events: [...currentTraceGroup] });
-            currentTraceGroup = [];
-          }
-          groups.push({ type: "message", event: pendingBotEvent });
-        }
-        pendingBotEvent = event;
+    if (event.type !== "message") {
+      traceBuffer.push(event);
+      continue;
+    }
+
+    if (event.role === "user") {
+      flushTraceBuffer(groups, traceBuffer);
+      if (pendingBot) {
+        groups.push({ type: "message", event: pendingBot });
+        pendingBot = null;
       }
+      groups.push({ type: "message", event });
     } else {
-      currentTraceGroup.push(event);
+      if (pendingBot) {
+        flushTraceBuffer(groups, traceBuffer);
+        groups.push({ type: "message", event: pendingBot });
+      }
+      pendingBot = event;
     }
   }
 
-  if (currentTraceGroup.length > 0) {
-    groups.push({ type: "trace_group", events: [...currentTraceGroup] });
-  }
-  if (pendingBotEvent) {
-    groups.push({ type: "message", event: pendingBotEvent });
-  }
+  flushTraceBuffer(groups, traceBuffer);
+  if (pendingBot) groups.push({ type: "message", event: pendingBot });
 
   return groups;
 }

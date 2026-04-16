@@ -40,7 +40,11 @@ import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-
 import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
 import { connectionsApi } from "@/lib/api/connections";
 
-import type { GoogleAnalyticsStatusResponse, GA4Property, TestResponse } from "@/lib/api/connections";
+import type {
+  GoogleAnalyticsStatusResponse,
+  GA4Property,
+  TestResponse,
+} from "@/lib/api/connections";
 
 // eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: component has 4 distinct render paths (loading → config mode → not connected → property picker → connected) each with their own conditional sub-trees. Splitting into sub-components would require lifting all useState to a parent, adding more boilerplate than complexity removed.
 export function GoogleAnalyticsView() {
