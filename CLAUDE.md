@@ -37,6 +37,7 @@ Unsure about a domain? Read `docs/domains/INDEX.md` first (15 domain docs).
 | Review PR | `/review-pr` | Diff analysis vs main |
 | Single backend test | — | `cd backend && .venv/bin/pytest tests/modules/{module}/ -v` |
 | Single frontend test | — | `cd frontend && npx vitest run src/features/{domain}/` |
+| **Frontend arch tests** | — | `cd frontend && npx vitest run src/__tests__/architecture/` |
 | E2E smoke (native) | — | `cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke` |
 
 ### Docker Containers
@@ -176,6 +177,7 @@ docker run --rm ... ruff|pytest|tsc|vitest ...
 14. **ETL Extraction Contract:** Antes de responder cualquier pregunta sobre el ETL/analytics, leer `docs/etl/extraction-contract.md` PRIMERO. Antes de modificar cualquier cosa en `backend/src/modules/analytics/`, leer la regla completa. Después de cualquier cambio que toque providers, pipeline, scheduler, workers o catálogo: actualizar `extraction_contract.py`, regenerar el markdown con `make extraction-contract`, correr `pytest tests/architecture/test_extraction_contract.py`. Sin excepciones. See `.claude/rules/etl-extraction-contract.md`.
 15. **Data Reliability:** After modifying any Growth Studio file (provider, service, DTO, frontend component), run the corresponding verification layer. See `.claude/rules/data-reliability.md`.
 16. **Frontend Quality:** 0 ESLint errors, 1063 tests, 20% coverage threshold. No new errors. Fast scan: `cd frontend && ./node_modules/.bin/eslint src/ --cache --cache-location .eslintcache`. See `.claude/rules/frontend-quality.md`.
+17. **Frontend Arch Tests:** 8 fitness tests in `src/__tests__/architecture/` — PascalCase components, kebab-case files, kebab-case folders, hooks in hooks/, no default exports, no cross-feature duplicates, canonical feature structure, fetchClient in api/. Ratchet pattern (allowlists MUST only shrink). Run: `cd frontend && npx vitest run src/__tests__/architecture/`.
 17. **Backend Quality:** Ruff 70+ rules, 0 errors, 7 arch fitness gates, 43% coverage. No new violations. See `.claude/rules/backend-quality.md`.
 
 ## Product Vision

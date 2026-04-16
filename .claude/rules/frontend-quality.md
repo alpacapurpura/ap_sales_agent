@@ -67,6 +67,24 @@ cd frontend && ./node_modules/.bin/eslint src/ --cache --cache-location .eslintc
 - knip false positives: barrel spreads, Next.js routes, devDeps in config files. Mitigated by `knip.config.ts` entry points.
 - 323 check-file warnings + 616 jsdoc warnings (warn mode, fix progressively).
 
+## Architecture Fitness Tests (8 gates)
+
+Run: `cd frontend && npx vitest run src/__tests__/architecture/`
+
+| Test file | Enforces |
+|-----------|----------|
+| `test-component-naming` | `.tsx` files in components/ dirs = PascalCase |
+| `test-file-naming` | `.ts(x)` files in hooks/api/types/utils/config/lib/context/store/services/ = kebab-case |
+| `test-folder-naming` | All dirs under features/ = kebab-case |
+| `test-hook-location` | `export function use[A-Z]` only in hooks/ or api/ or Context files or store/ |
+| `test-no-default-exports` | No `export default` in features/ |
+| `test-no-duplicate-names` | No same component basename across different features |
+| `test-feature-structure` | Top-level feature dirs use canonical names only |
+| `test-api-location` | `fetchClient` calls only in api/ directories |
+
+**Ratchet pattern:** `KNOWN_*` allowlists frozen at 2026-04-15. MUST only shrink — never add new entries.
+To fix a violation: rename/move the file, update all imports, run `npx tsc --noEmit`, remove from allowlist.
+
 ## FSD boundaries
 See `.claude/rules/frontend-fsd.md`.
 
