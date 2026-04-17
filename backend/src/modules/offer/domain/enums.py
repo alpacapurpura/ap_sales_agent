@@ -281,14 +281,6 @@ GUARANTEE_METADATA: dict[str, dict[str, Any]] = {
     },
 }
 
-ARCHETYPE_DEFAULT_DELIVERY: dict[OfferArchetype, OfferDeliveryModel] = {
-    OfferArchetype.PRODUCTO: OfferDeliveryModel.DIY,
-    OfferArchetype.PROGRAMA: OfferDeliveryModel.DWY,
-    OfferArchetype.SERVICIO: OfferDeliveryModel.DFY,
-    OfferArchetype.MEMBRESIA: OfferDeliveryModel.DIY,
-    OfferArchetype.EXPERIENCIA: OfferDeliveryModel.DWY,
-}
-
 
 def get_enum_options(
     enum_class: type[Enum],

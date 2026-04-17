@@ -95,6 +95,7 @@ from src.modules.iam.api.tracking import router as iam_tracking
 # 4. Landing
 from src.modules.landing.api import landing as landing_ai
 from src.modules.landing.api import public_landing as landing_public
+from src.modules.offer.api import archetypes as offer_archetypes
 from src.modules.offer.api import assets as offer_assets
 from src.modules.offer.api import campaigns as offer_campaigns
 from src.modules.offer.api import counts as offer_counts
@@ -434,6 +435,11 @@ app.include_router(
     offer_definitions.router,
     prefix="/api/v1/offer/definitions",
     tags=["Offer - Definitions"],
+)
+app.include_router(
+    offer_archetypes.router,
+    prefix="/api/v1/offer/archetypes",
+    tags=["Offer - Archetypes"],
 )
 app.include_router(
     offer_product_mappings.router,

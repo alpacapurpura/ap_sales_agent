@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { getEditionsCopy } from "@/features/offer-studio/utils/editions-copy";
+import { useArchetypeCapabilities } from "@/features/offer-studio/hooks/use-archetype-catalog";
 
 import type { OfferArchetype } from "@/features/offer-studio/types";
 import type { OfferFormValues } from "@/features/offer-studio/types/schema";
@@ -22,16 +22,20 @@ interface EditionsOptInProps {
  * bottom of each archetype-specific details section. Closed by default — the
  * 99% of users who never change their mind won't even see it.
  *
- * Only renders for archetypes that support editions (PROGRAMA, SERVICIO,
- * EXPERIENCIA). PRODUCTO and MEMBRESIA never get one — their domain
- * validator forces has_editions=false regardless.
+ * Only renders for archetypes that support editions. The backend archetype
+ * catalog is the single source of truth — see archetype_catalog.py.
  */
 export function EditionsOptIn({ archetype, currentValue, onSave }: EditionsOptInProps) {
-  const copy = getEditionsCopy(archetype);
+  const capabilities = useArchetypeCapabilities(archetype);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  if (!copy) return null;
+  // Catalog still loading or archetype does not support editions → hide.
+  if (!capabilities || !capabilities.supports_editions || !capabilities.editions_wizard_copy) {
+    return null;
+  }
+
+  const copy = capabilities.editions_wizard_copy;
 
   // Default to true when the offer pre-dates this feature.
   const enabled = currentValue ?? true;
@@ -71,7 +75,7 @@ export function EditionsOptIn({ archetype, currentValue, onSave }: EditionsOptIn
                 </p>
                 <p className="text-xs text-muted-foreground leading-snug">
                   {enabled
-                    ? `Hoy podés gestionar ${copy.yesLabel.toLowerCase()}. Si la desactivás, la sección "Ediciones" se ocultará del editor.`
+                    ? `Hoy podés gestionar ${copy.yes_label.toLowerCase()}. Si la desactivás, la sección "Ediciones" se ocultará del editor.`
                     : copy.description}
                 </p>
               </div>

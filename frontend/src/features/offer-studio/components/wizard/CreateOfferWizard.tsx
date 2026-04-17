@@ -25,10 +25,7 @@ import {
   type FormatPreset,
 } from "@/features/offer-studio/config/format-presets";
 import { OfferArchetype, OfferStatus } from "@/features/offer-studio/types";
-import {
-  archetypeSupportsEditions,
-  getEditionsCopy,
-} from "@/features/offer-studio/utils/editions-copy";
+import { useArchetypeCapabilities } from "@/features/offer-studio/hooks/use-archetype-catalog";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { cn } from "@/lib/utils";
 
@@ -113,9 +110,9 @@ export function CreateOfferWizard({
     setHasEditions(true);
   };
 
-  const showsEditionsStep =
-    selectedArchetype !== null && archetypeSupportsEditions(selectedArchetype);
-  const editionsCopy = selectedArchetype ? getEditionsCopy(selectedArchetype) : null;
+  const archetypeCapabilities = useArchetypeCapabilities(selectedArchetype ?? undefined);
+  const showsEditionsStep = archetypeCapabilities?.supports_editions === true;
+  const editionsCopy = archetypeCapabilities?.editions_wizard_copy ?? null;
   const totalSteps = showsEditionsStep ? 5 : 4;
   const finalStep = totalSteps;
 
@@ -481,7 +478,7 @@ export function CreateOfferWizard({
                   >
                     {hasEditions && <div className="h-2 w-2 rounded-full bg-primary" />}
                   </div>
-                  <p className="text-sm font-medium">{editionsCopy.yesLabel}</p>
+                  <p className="text-sm font-medium">{editionsCopy.yes_label}</p>
                 </button>
 
                 <button
@@ -502,11 +499,13 @@ export function CreateOfferWizard({
                   >
                     {!hasEditions && <div className="h-2 w-2 rounded-full bg-primary" />}
                   </div>
-                  <p className="text-sm font-medium">{editionsCopy.noLabel}</p>
+                  <p className="text-sm font-medium">{editionsCopy.no_label}</p>
                 </button>
               </div>
 
-              <p className="text-xs text-muted-foreground">{editionsCopy.helper}</p>
+              <p className="text-xs text-muted-foreground">
+                Podés cambiar esta decisión más tarde desde la configuración de la oferta.
+              </p>
             </div>
           )}
         </div>

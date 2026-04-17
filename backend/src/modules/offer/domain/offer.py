@@ -8,6 +8,7 @@ from uuid import UUID
 
 from pydantic import Field, computed_field, model_validator
 
+from src.modules.offer.domain.archetype_catalog import get_capabilities
 from src.modules.offer.domain.details import (
     EventDetails,
     ProductDetails,
@@ -16,7 +17,6 @@ from src.modules.offer.domain.details import (
     SubscriptionDetails,
 )
 from src.modules.offer.domain.enums import (
-    ARCHETYPE_DEFAULT_DELIVERY,
     AccessDuration,
     DeliverableFormat,
     GuaranteeType,
@@ -170,13 +170,16 @@ class Offer(BaseEntity):
     @model_validator(mode="after")
     def validate_consistency(self) -> Offer:
         """Validate consistency."""
-        if self.delivery_model is None:
-            self.delivery_model = ARCHETYPE_DEFAULT_DELIVERY.get(self.archetype)
+        capabilities = get_capabilities(self.archetype)
 
-        # Archetype-aware default + enforcement for has_editions.
-        # PRODUCTO and MEMBRESIA never have editions (evergreen / one-time digital).
-        # PROGRAMA/SERVICIO/EXPERIENCIA default to True if not explicitly set.
-        if self.archetype in (OfferArchetype.PRODUCTO, OfferArchetype.MEMBRESIA):
+        if self.delivery_model is None:
+            self.delivery_model = capabilities.default_delivery
+
+        # Archetype-aware enforcement for has_editions. PRODUCTO and MEMBRESIA
+        # never have editions (capabilities.supports_editions == False).
+        # Archetypes that do support editions default to True unless
+        # explicitly set by the wizard.
+        if not capabilities.supports_editions:
             self.has_editions = False
         elif self.has_editions is None:
             self.has_editions = True

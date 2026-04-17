@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { useForm } from "react-hook-form";
 import { describe, it, expect, vi } from "vitest";
@@ -53,7 +54,12 @@ function Wrapper() {
 
 describe("ProgramDetailsForm", () => {
   it("renders without crashing", () => {
-    render(<Wrapper />);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <Wrapper />
+      </QueryClientProvider>,
+    );
 
     // Check for the section headers we added/modified
     expect(screen.getByText("Diseño del Programa")).toBeDefined();
