@@ -231,6 +231,142 @@ Scope: Revisión/rediseño visual del Offer Studio para Phases 5-10 del FLOW-SPE
 
 ---
 
-## Resumen
+## Resumen (iteración 1)
 
 Fueron 14 decisiones en esta sesión. Todas documentadas, sin ambigüedad. El prototipo HTML en `prototype/` implementa visualmente cada una de estas decisiones y es la referencia normativa para la implementación.
+
+---
+
+# Iteración 2 — Correcciones Post-Implementación (2026-04-17, tarde)
+
+Contexto: Phase 9a part 1 + Phase 9b lite shipeadas. Al revisar el offer detail en dev-app con `has_editions=true`, se detectan problemas que invalidan parcialmente D2, D3 y D4. Chris pide reset de modelo mental sobre cómo el offer maneja ediciones visualmente.
+
+Prototipos `-v2.html` reemplazan a los originales como referencia normativa en adelante.
+
+## D15 — Rail full-height eliminado (reversión parcial de D3)
+
+**Decisión:** El rail permanente a la izquierda (`EditionsRail.tsx` + `EditionsRailCollapsed.tsx`) se **elimina**. En su lugar:
+
+1. **Header offer persistente** arriba de todo (título, archetype, autosave, kebab, status global) — existe sin contaminación por edición.
+2. **Tab bar** debajo del header — tabs = offer-level concept.
+3. **EditionSelectorBar** (componente nuevo) — aparece solo debajo del tab bar cuando el tab actual tiene contenido edition-scoped (Ventas, Assets, Campañas). Dropdown + badges + CTAs.
+4. **EditionsManagementSection** — management panorámico de ediciones vive como última sub-sección del tab Info (cards completas con KPIs, acciones, agrupadas por status). Reemplaza la gestión que antes hacía el rail y la actual "Ediciones" sección suelta.
+
+**Rationale:** la solución con rail duplicaba el concepto "edición" (rail + sección Editions en Info), ocupaba alto completo junto al header creando inconsistencia visual (título aparecía 2 veces), y forzaba estado colapsado/expandido que el usuario no usa. Edition selector por tab es más honesto: Info es offer-level, los otros tabs son edition-scoped y muestran el selector solo cuando hace falta.
+
+**Preserva de D3:**
+- Agrupación por estado (En curso / Próxima / Borradores / Pasadas).
+- Coloring semántico per-status (D14 sigue vigente).
+- Switch vía `?edition=` query param.
+- `has_editions=false` oculta el selector (archetypes PRODUCTO / MEMBRESIA).
+
+**Anula de D3:**
+- Rail permanente entre app sidebar y main.
+- Variante colapsada con badges circulares.
+- Footer "+ Nueva edición" en rail.
+
+**Invalida D4:** variante colapsada ya no aplica — no hay rail para colapsar.
+
+---
+
+## D16 — Management panorámico de ediciones = última sección del Info tab
+
+**Decisión:** La gestión CRUD de ediciones (listar, crear, editar, clonar, publicar, despublicar, cancelar) vive como última sección del Info tab cuando `offer.has_editions === true`. Solo renderiza si aplica — invisible para PRODUCTO / MEMBRESIA.
+
+**Visual:** Cards por edición agrupadas por status. Cada card muestra header (`#N · fecha · status · visibility`), KPIs (ocupación / revenue / días), acciones inline (Editar, Clonar, Publicar/Despublicar, Cancelar), y CTA prominente al final: `+ Nueva edición`. Sigue el color system de D14.
+
+**Empty state:** mensaje "Aún no creaste ediciones" + botón grande "Crear primera edición" que abre `EditionFormDialog`.
+
+**Reemplaza:**
+- `EditionsSection.tsx` actual (listado suelto sin context).
+- El rail como management entrypoint.
+
+**Conserva comportamiento del tab:** el Info tab en sí sigue siendo offer-level. Esta sub-sección es gestión de ediciones, no contenido de una edición — editar detalles de la edición N abre `EditionFormDialog` modal.
+
+---
+
+## D17 — Galería Visual se mueve de Info a Assets (revierte posición en builder-config)
+
+**Decisión:** La sección `gallery` sale del Info tab. Su contenido (`GalleryManager` + `GalleryPreview`) pasa a ser parte del Assets tab como zona "Galería de Oferta" (offer-level, compartida entre ediciones).
+
+**Rationale:** galería = fotos/assets visuales del offer. Conceptualmente encaja en Assets, no en Info. Info debe ser metadata (identidad, promesa, estrategia, precios, etc.), no assets.
+
+**Implicación código:**
+- Quitar `"gallery"` de todos los arrays en `ARCHETYPE_BUILDER_CONFIG` (`offer-builder-config.ts:207-274`).
+- Assets tab integra `GalleryManager` como primera sub-zona, seguida de "Assets por Edición" (gallery per-edition: flyers, reels, carruseles).
+
+**No afecta backend:** el modelo Gallery no cambia. Es sólo re-ubicación frontend.
+
+---
+
+## D18 — Conocimiento permanece como sección dentro de Info (confirma D2)
+
+**Decisión:** Conocimiento (RAG del agente) es la penúltima sección del Info tab (antes de la sub-sección Ediciones cuando aplica). Ya no hay tab "Conocimiento" separado.
+
+**Rationale:** D2 original pedía 4 tabs (Info · Ventas · Assets · Campañas). Phase 9b lite preservó temporalmente un 5to tab "Conocimiento" para evitar un estado intermedio destructivo. Esta iteración elimina esa temporal: Conocimiento migra a sección del Info (reutiliza el componente Knowledge actual).
+
+**Implicación código:**
+- Eliminar ruta `app/.../offer/[id]/knowledge/page.tsx` (del PLAN original).
+- Integrar `KnowledgeView` como section dentro de `OfferInfoTab`.
+- Tab bar pasa de 5 a **4 tabs**: Info · Ventas · Assets · Campañas.
+
+---
+
+## D19 — Botón "+ Nueva edición" conecta a `EditionFormDialog` existente (clone modal diferido)
+
+**Decisión:** En esta iteración el CTA "+ Nueva edición" (tanto en `EditionSelectorBar` como en `EditionsManagementSection`) abre `EditionFormDialog` (que ya existe en `components/editions/EditionFormDialog.tsx`). NO se implementa `EditionCloneModal` con strategy picker aún — se difiere a iteración futura.
+
+**Rationale:** `EditionFormDialog` cubre "crear nueva edición desde cero" (fechas, pricing override, capacity). `EditionCloneModal` con strategy `literal/date_replace/ai_regen` (D7 fase original) es superior UX pero requiere:
+- Extender endpoint `/editions/{source_id}/clone` con payload de strategy.
+- Implementar AI regen path.
+- Nuevo componente.
+
+Ship incremental: conectar el botón ahora (deshacer el `console.info` stub) usando lo existente, luego upgrade a clone modal en una fase posterior.
+
+**Implicación código:**
+- `OfferShell.tsx` → reemplazar `openCloneModal` no-op por state `<EditionFormDialog>` controlled.
+- `EditionsRail.tsx` + `EditionsRailCollapsed.tsx` → se **eliminan** (D15).
+- `EditionSelectorBar.tsx` (nuevo) → prop `onCreateNew` llama openFormDialog del shell.
+
+---
+
+## D20 — Título offer único en Row1, contexto edición en el selector bar
+
+**Decisión:** El título principal (`<h1>` en `OfferShellHeaderRow1`) muestra solo el nombre del offer + archetype + autosave. **No** incluye sufijo "· Edición #N · fecha" como pide el UI-SPEC v1.
+
+**Rationale:** mostrar la edición en el header global obliga a re-fetch/refresh del header con cada switch de edición, y confunde porque el header es persistente. El contexto de edición vive 100% dentro del `EditionSelectorBar`, donde sí es útil (dropdown muestra cuál activa, badges status+visibility).
+
+**Header resultante:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ ← MasterClass de Copywriting             [● Borrador]   │
+│   Programa · DWY · ● Guardado hace 2s    [⋮]            │
+└─────────────────────────────────────────────────────────┘
+```
+
+Status/visibility badges del header son **offer-level** (lifecycle estado del offer, no de la edición).
+
+**Progreso:** la barra `78% · 8/10 · siguiente: X` sigue en Row2. Pero ahora siempre muestra progreso offer-level (completitud del template del offer), no progreso por edición. Si usuario switchea edición, el % no cambia. Una edición tiene su propia completitud visible como badge en `EditionSelectorBar` (`Edición #3 · 85% · Próxima`), no como barra.
+
+**Reemplaza en D14/D3:** banner "viendo edición pasada · read-only" ya no vive en Row1 como sufijo — ahora es un banner explícito debajo del `EditionSelectorBar` cuando la edición actual es COMPLETED/CANCELLED.
+
+---
+
+## Matriz: tabs × scope × selector visibility
+
+| Tab | Scope | EditionSelectorBar visible | Notas |
+|---|---|---|---|
+| Info | **Offer-level + sub-sección management** | NO | Contenido es del offer. Sub-sección final gestiona todas las ediciones. |
+| Ventas | Edition-level | SÍ | KPIs + enrollments de edición activa. |
+| Assets | Mixto (zona oferta + zona edición) | SÍ | Selector filtra zona per-edition. Galería offer-level siempre visible. |
+| Campañas | Edition-level | SÍ | Campaign cards asociadas a edición activa. |
+
+Cuando `offer.has_editions === false`:
+- Info sigue igual pero sin sub-sección management.
+- Ventas/Assets/Campañas **no muestran** `EditionSelectorBar` — son directamente offer-level.
+
+---
+
+## Resumen iteración 2
+
+6 decisiones de corrección (D15-D20). Invalidan parcialmente D2-D4 pero preservan D5-D14. Prototipos `-v2.html` reemplazan a originales. Implementación = 1 fase nueva "Phase 9a.1 — Shell Correction" documentada en PLAN.

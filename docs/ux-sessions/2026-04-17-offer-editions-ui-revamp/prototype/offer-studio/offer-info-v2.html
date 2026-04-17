@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Offer Info v2 — Corrections | Flow Preview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="../styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* v2 additions */
+  .selector-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: hsl(var(--bg));
+    border: 1px solid hsl(var(--border));
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .selector-chip:hover { background: hsl(var(--muted)); }
+  .edition-card {
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    padding: 16px;
+    background: white;
+  }
+  .edition-card.upcoming { border-left: 4px solid hsl(var(--accent)); }
+  .edition-card.draft    { border-left: 4px dashed hsl(var(--warning)); }
+  .edition-card.completed{ border-left: 4px solid hsl(var(--muted-fg)); }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+<!-- Real route: /[tenantId]/offer-studio/offer/[id]?tab=info
+     v2: NO RAIL. Editions managed as final section of Info. Title sin sufijo edición. -->
+
+<div class="flex min-h-screen">
+  <!-- App sidebar -->
+  <aside class="w-60 bg-white border-r border-slate-200 flex-shrink-0">
+    <div class="p-4 border-b border-slate-200"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-slate-900 text-white font-bold flex items-center justify-center text-sm">N</div><span class="font-semibold">Nicolify</span></div></div>
+    <nav class="p-3 space-y-1 text-sm">
+      <div class="px-2 py-1.5 text-xs font-semibold text-slate-400 uppercase mt-2">Studios</div>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">🏢 Brand Studio</a>
+      <a href="offers-list.html" class="nav-active flex items-center gap-2 px-2 py-1.5 rounded">💼 Offer Studio</a>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">📢 Growth Studio</a>
+      <div class="mt-2">
+        <div class="flex items-center gap-2 px-2 py-1.5 text-slate-600">🎯 Closer Studio</div>
+        <div class="ml-6 space-y-0.5 text-xs">
+          <a href="../sales/enrollments.html" class="flex items-center justify-between px-2 py-1 rounded hover:bg-slate-100 text-slate-500">Inscripciones <span class="badge-new">NEW</span></a>
+        </div>
+      </div>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">⚙️ Configuración</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT — NO rail. -->
+  <main class="flex-1 overflow-auto pb-16 min-w-0">
+
+    <!-- Row 1: title único, offer-level, sin sufijo edición -->
+    <header class="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="offers-list.html" class="text-slate-500 hover:text-slate-800">←</a>
+        <div>
+          <h1 class="text-lg font-bold">MasterClass de Copywriting</h1>
+          <p class="text-xs text-slate-500">Programa · DWY · <span class="text-emerald-600 font-medium">● Guardado hace 2s</span></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="status-badge" style="background:hsl(var(--success-soft));color:hsl(var(--success))">● Activa</span>
+        <button class="p-2 rounded hover:bg-slate-100 text-slate-500">⋮</button>
+      </div>
+    </header>
+
+    <!-- Row 2: progress offer-level -->
+    <div class="bg-slate-50 border-b border-slate-200 px-8 py-2 flex items-center justify-between text-xs">
+      <div class="flex items-center gap-3 flex-1 max-w-xl">
+        <span class="font-bold text-blue-600 tabular-nums">78%</span>
+        <div class="flex-1 h-1.5 bg-slate-200 rounded-full"><div class="h-full bg-blue-500 rounded-full" style="width: 78%"></div></div>
+        <span class="text-slate-500">8/10 · siguiente: <strong class="text-slate-800">Testimonios</strong></span>
+      </div>
+      <button class="px-3 py-1.5 bg-purple-600 text-white rounded-lg">✨ Autocompletar IA</button>
+    </div>
+
+    <!-- Tab bar (4 tabs, sin Conocimiento — es sección de Info) + Landing split-button -->
+    <div class="bg-white border-b border-slate-200 px-8 flex items-center justify-between">
+      <nav class="flex gap-1 text-sm">
+        <a href="offer-info-v2.html" class="tab-active px-4 py-3">📋 Info</a>
+        <a href="offer-ventas-v2.html" class="tab-inactive px-4 py-3">💰 Ventas <span class="ml-1 text-xs text-slate-400">(12)</span></a>
+        <a href="offer-assets-v2.html" class="tab-inactive px-4 py-3">🎨 Assets <span class="ml-1 text-xs text-slate-400">(12)</span></a>
+        <a href="offer-campanas-v2.html" class="tab-inactive px-4 py-3">📢 Campañas <span class="ml-1 text-xs text-slate-400">(3)</span></a>
+      </nav>
+      <div class="flex items-center py-2">
+        <a href="offer-landing-editor.html" target="_blank" class="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-l-lg font-medium border-r border-emerald-700">🌐 Editar landing</a>
+        <button class="px-2 py-1.5 bg-emerald-600 text-white text-sm rounded-r-lg">▾</button>
+      </div>
+    </div>
+
+    <!-- NO EditionSelectorBar en Info tab (Info es offer-level). -->
+
+    <!-- Waitlist banner (opcional) -->
+    <div class="waitlist-banner mx-8 mt-4 rounded-xl p-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="w-10 h-10 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center">📋</span>
+        <div>
+          <p class="font-semibold text-sm">Tienes 3 leads en lista de espera para esta oferta</p>
+          <p class="text-xs text-slate-600">Notificalos cuando publiques Edición #4</p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button class="px-3 py-1.5 text-sm border border-slate-300 rounded-lg bg-white">Ver lista</button>
+        <button class="px-3 py-1.5 text-sm bg-purple-600 text-white rounded-lg">Notificar a todos</button>
+      </div>
+    </div>
+
+    <!-- Info sections (offer-level) -->
+    <section class="px-8 py-5 max-w-5xl space-y-4">
+
+      <!-- Section 1 -->
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3"><h3 class="font-semibold">1. Identidad de Oferta</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div><p class="text-xs text-slate-500 mb-1">Nombre</p><p class="font-medium">MasterClass de Copywriting</p></div>
+          <div><p class="text-xs text-slate-500 mb-1">Archetype</p><p class="font-medium">Programa · DWY</p></div>
+          <div class="col-span-2"><p class="text-xs text-slate-500 mb-1">Promesa</p><p class="font-medium">"Escribí copy que vende mientras dormís, en 6 semanas"</p></div>
+        </div>
+      </div>
+
+      <!-- Secciones 2-10 colapsadas para brevedad del proto -->
+      <div class="bg-white border border-slate-200 rounded-xl p-5 opacity-70">
+        <div class="flex items-center justify-between"><h3 class="font-semibold text-sm">2. Estrategia & Avatar</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-xl p-5 opacity-70">
+        <div class="flex items-center justify-between"><h3 class="font-semibold text-sm">3. Psicología & IA</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-xl p-5 opacity-70">
+        <div class="flex items-center justify-between"><h3 class="font-semibold text-sm">4. Promesa & Resultado</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-xl p-5 opacity-70">
+        <div class="flex items-center justify-between"><h3 class="font-semibold text-sm">5. Detalles del Programa</h3><span class="text-xs text-amber-600">⚠ Incompleta</span></div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-xl p-5 opacity-70">
+        <div class="flex items-center justify-between"><h3 class="font-semibold text-sm">6. Instructores</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-xl p-5 opacity-70">
+        <div class="flex items-center justify-between"><h3 class="font-semibold text-sm">7. Stack de Valor</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-xl p-5 opacity-70">
+        <div class="flex items-center justify-between"><h3 class="font-semibold text-sm">8. Recursos</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-xl p-5 opacity-70">
+        <div class="flex items-center justify-between"><h3 class="font-semibold text-sm">9. Precios (template)</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-xl p-5 opacity-70">
+        <div class="flex items-center justify-between"><h3 class="font-semibold text-sm">10. Cierre & Garantía</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+      </div>
+
+      <!-- Section 11: Conocimiento (ex tab, ahora sección) -->
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="font-semibold">11. Conocimiento <span class="text-xs font-normal text-slate-400">(RAG del agente)</span></h3>
+            <p class="text-xs text-slate-500">Documentos que el agente usa para responder preguntas sobre esta oferta</p>
+          </div>
+          <span class="text-xs text-emerald-600">✓ 5 indexados</span>
+        </div>
+        <div class="space-y-1.5 text-sm">
+          <div class="flex items-center justify-between p-2 border border-slate-200 rounded bg-slate-50">
+            <span>📄 programa-detallado.pdf <span class="text-xs text-slate-400">· 2.3 MB</span></span>
+            <span class="status-badge" style="background:hsl(var(--success-soft));color:hsl(var(--success))">● Indexado</span>
+          </div>
+          <div class="flex items-center justify-between p-2 border border-slate-200 rounded bg-slate-50">
+            <span>🔗 testimonios-landing.url</span>
+            <span class="status-badge" style="background:hsl(var(--success-soft));color:hsl(var(--success))">● Indexado</span>
+          </div>
+          <button class="w-full text-xs border border-dashed border-slate-300 rounded py-2 text-slate-500 hover:bg-slate-50">+ Subir archivo o URL</button>
+        </div>
+      </div>
+
+      <!-- Section 12: Ediciones (reemplaza el rail + la ex-sección Ediciones)
+           Solo se renderiza si offer.has_editions === true -->
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="font-semibold">12. Ediciones <span class="text-xs font-normal text-slate-400">(management panorámico)</span></h3>
+            <p class="text-xs text-slate-500">Una oferta, múltiples cohortes con fechas, pricing y disponibilidad independientes</p>
+          </div>
+          <button onclick="alert('Abre EditionFormDialog (componente existente, reemplaza el console.info stub)')" class="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg font-medium">+ Nueva edición</button>
+        </div>
+
+        <!-- Grupo: PRÓXIMA -->
+        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">⭐ Próxima</p>
+        <div class="edition-card upcoming mb-3">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-sm">Edición #3 · Julio 2026</span>
+              <span class="status-badge status-upcoming">● Próxima</span>
+              <span class="status-badge visibility-public">🌐 Pública</span>
+            </div>
+            <button class="text-slate-400 hover:text-slate-700 text-sm">⋮</button>
+          </div>
+          <p class="text-xs text-slate-600 mb-2">Inicia 15 jul · 6 semanas · 12/50 inscriptos (24%) · Revenue proyectado S/ 34,500</p>
+          <div class="flex gap-2">
+            <button class="px-3 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-50">Editar</button>
+            <button class="px-3 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-50">Clonar</button>
+            <button class="px-3 py-1 text-xs border border-amber-300 rounded bg-white hover:bg-amber-50 text-amber-700">Despublicar</button>
+          </div>
+        </div>
+
+        <!-- Grupo: BORRADORES -->
+        <p class="text-[10px] font-semibold text-amber-600 uppercase tracking-wider mb-2 mt-4">✏ Borradores</p>
+        <div class="edition-card draft mb-3">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-sm">Edición #4 · Sin fecha</span>
+              <span class="status-badge status-draft">● Borrador</span>
+              <span class="status-badge visibility-private">🔒 Privada</span>
+            </div>
+            <button class="text-slate-400 hover:text-slate-700 text-sm">⋮</button>
+          </div>
+          <p class="text-xs text-amber-700 mb-2">⚠ 3 en waitlist · Configurá fecha para publicar</p>
+          <div class="flex gap-2">
+            <button class="px-3 py-1 text-xs bg-amber-600 text-white rounded">Editar</button>
+            <button class="px-3 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-50">Publicar</button>
+            <button class="px-3 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-50 text-red-600">Eliminar</button>
+          </div>
+        </div>
+
+        <!-- Grupo: PASADAS -->
+        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-4">✓ Pasadas</p>
+        <div class="edition-card completed mb-2">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-sm text-slate-600">Edición #2 · Abril 2026</span>
+              <span class="status-badge status-completed">● Completada</span>
+            </div>
+            <button class="text-slate-400 hover:text-slate-700 text-sm">⋮</button>
+          </div>
+          <p class="text-xs text-slate-500 mb-2">25/25 · Revenue S/ 17,250 · NPS 68</p>
+          <div class="flex gap-2">
+            <a href="offer-ventas-v2.html" class="px-3 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-50">Ver detalle</a>
+            <button class="px-3 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-50">Clonar</button>
+          </div>
+        </div>
+        <div class="edition-card completed">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-sm text-slate-600">Edición #1 · Enero 2026</span>
+              <span class="status-badge status-completed">● Completada</span>
+            </div>
+            <button class="text-slate-400 hover:text-slate-700 text-sm">⋮</button>
+          </div>
+          <p class="text-xs text-slate-500 mb-2">18/30 · Revenue S/ 12,420</p>
+          <div class="flex gap-2">
+            <a href="offer-ventas-v2.html" class="px-3 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-50">Ver detalle</a>
+            <button class="px-3 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-50">Clonar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Journey bar -->
+<div class="fixed bottom-0 left-0 right-0 journey-bar px-4 py-2 text-xs flex items-center justify-between z-30">
+  <div><strong>v2 Info:</strong> Sin rail · Título único · Sección Ediciones integrada · Galería movida a Assets · Conocimiento como sección · Botón Nueva edición conectado</div>
+  <div class="flex gap-2">
+    <a href="offer-info.html" class="text-slate-500 hover:underline">← v1 (con rail)</a>
+    <a href="offer-ventas-v2.html" class="text-blue-700 font-semibold hover:underline">Siguiente: Ventas v2 →</a>
+  </div>
+</div>
+
+</body></html>
