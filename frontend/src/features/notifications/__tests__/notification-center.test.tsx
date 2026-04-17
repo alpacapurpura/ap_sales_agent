@@ -18,10 +18,12 @@ vi.mock("@clerk/nextjs", () => ({
   useAuth: () => ({ getToken: () => Promise.resolve("token") }),
 }));
 
-import { CopilotStatusBar } from "../components/CopilotStatusBar";
-import { useCopilotStore } from "../store/copilot-store";
+import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 
-describe("CopilotStatusBar", () => {
+import { NotificationCenter } from "../components/NotificationCenter";
+import { useDismissStore } from "../store/dismiss-store";
+
+describe("NotificationCenter", () => {
   beforeEach(() => {
     useCopilotStore.setState({
       interviewSessionId: null,
@@ -29,30 +31,40 @@ describe("CopilotStatusBar", () => {
       sidebarState: "collapsed",
       isOpen: false,
     });
+    useDismissStore.setState({ dismissedIds: {} });
   });
 
-  it("shows Continuar button when paused interview exists", () => {
-    render(<CopilotStatusBar />);
+  it("shows floating pill with count when paused interview exists", () => {
+    render(<NotificationCenter />);
+    expect(screen.getByLabelText(/Avisos \(1\)/)).toBeDefined();
+  });
+
+  it("opens panel with Continuar CTA on pill click", async () => {
+    const user = userEvent.setup();
+    render(<NotificationCenter />);
+    await user.click(screen.getByLabelText(/Avisos \(1\)/));
     expect(screen.getByText(/Continuar/)).toBeDefined();
   });
 
-  it("restores interview on continue click", async () => {
+  it("restores interview when Continuar is clicked", async () => {
     const user = userEvent.setup();
-    render(<CopilotStatusBar />);
+    render(<NotificationCenter />);
+    await user.click(screen.getByLabelText(/Avisos \(1\)/));
     await user.click(screen.getByText(/Continuar/));
     const state = useCopilotStore.getState();
     expect(state.interviewSessionId).toBe("session-123");
     expect(state.sidebarState).toBe("expanded");
   });
 
-  it("is NOT hardcoded to /brand-studio/interview", () => {
-    const { container } = render(<CopilotStatusBar />);
-    expect(container.innerHTML).not.toContain("/brand-studio/interview");
-  });
-
   it("hides when interview already active in sidebar", () => {
     useCopilotStore.setState({ interviewSessionId: "already-active" });
-    const { container } = render(<CopilotStatusBar />);
+    const { container } = render(<NotificationCenter />);
+    expect(container.innerHTML).toBe("");
+  });
+
+  it("hides pill after dismiss", () => {
+    useDismissStore.getState().dismiss("interview-session-123");
+    const { container } = render(<NotificationCenter />);
     expect(container.innerHTML).toBe("");
   });
 });

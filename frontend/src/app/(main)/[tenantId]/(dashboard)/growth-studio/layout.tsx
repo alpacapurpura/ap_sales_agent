@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 
+import { PageContainer } from "@/components/shared/layout/PageContainer";
 import { ChannelConnectionModal } from "@/features/growth-studio/components/metrics-dashboard/channel-widgets/ChannelConnectionModal";
 import { NoDataSidebarPanel } from "@/features/growth-studio/components/metrics-dashboard/channel-widgets/NoDataSidebarPanel";
 import {
@@ -39,7 +40,7 @@ const GrowthStudioShell = memo(function GrowthStudioShell({
   const { enrichedSummaries, loadingMap, mockMap } = useStageSummaries();
 
   return (
-    <>
+    <PageContainer>
       <div className="flex-1 space-y-4">
         <div className="flex items-center justify-between space-y-2">
           <div>
@@ -81,10 +82,13 @@ const GrowthStudioShell = memo(function GrowthStudioShell({
         onClose={handleCloseNoData}
         channel={noDataChannel}
       />
-    </>
+    </PageContainer>
   );
 });
 
+/**
+ *
+ */
 export default function GrowthStudioLayout({ children }: { children: React.ReactNode }) {
   return (
     <GrowthStudioProvider>
