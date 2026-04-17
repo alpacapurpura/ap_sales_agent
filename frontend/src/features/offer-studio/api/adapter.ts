@@ -68,6 +68,7 @@ export interface BackendOffer {
   value_level?: string;
   delivery_model?: string;
   status?: string;
+  has_editions?: boolean;
 
   headline_promise?: string;
   primary_outcome?: string;
@@ -256,6 +257,13 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     vsl_link: (metadata.vsl_link as string | undefined) || data.vsl_link,
 
     landing_page_config: data.landing_page_config as Offer["landing_page_config"],
+
+    // Edition-supporting flag — drives the Offer Studio rail visibility.
+    // Backend defaults to `true` for programa/servicio/experiencia and
+    // `false` for producto/membresia; we preserve `undefined` only when
+    // the backend truly didn't include the field (shouldn't happen post
+    // Phase 2, but the rail gracefully hides if so).
+    has_editions: data.has_editions,
 
     archived_at: data.archived_at ?? null,
   };
