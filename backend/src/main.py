@@ -111,6 +111,7 @@ from src.modules.offer.api import product_mappings as offer_product_mappings
 
 # 3. Offer
 from src.modules.offer.api import products as offer_products
+from src.modules.offer.api import value_levels as offer_value_levels
 
 # 5. Sales Agent
 from src.modules.sales_agent.api import audit as sales_audit
@@ -446,6 +447,11 @@ app.include_router(
     offer_archetypes.router,
     prefix="/api/v1/offer/archetypes",
     tags=["Offer - Archetypes"],
+)
+app.include_router(
+    offer_value_levels.router,
+    prefix="/api/v1/offer/value-levels",
+    tags=["Offer - Value Levels"],
 )
 app.include_router(
     offer_product_mappings.router,
