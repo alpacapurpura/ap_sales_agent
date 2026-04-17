@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   Headset,
   Users,
+  ClipboardList,
   Magnet,
   Sprout,
   ShoppingCart,
@@ -45,11 +46,30 @@ import { useSidebar } from "./SidebarContext";
 // Navigation Configuration
 // ---------------------------------------------------------------------------
 
+interface NavBadge {
+  label: string;
+  color: "accent" | "success" | "warning";
+  /** ISO date — badge hides after this moment to avoid staleness. */
+  expiresAt?: string;
+}
+
 interface NavChild {
   title: string;
   href: string;
   icon: LucideIcon;
+  badge?: NavBadge;
 }
+
+function isBadgeVisible(badge: NavBadge): boolean {
+  if (!badge.expiresAt) return true;
+  return new Date() < new Date(badge.expiresAt);
+}
+
+const BADGE_COLOR_CLASSES: Record<NavBadge["color"], string> = {
+  accent: "bg-primary text-primary-foreground",
+  success: "bg-emerald-100 text-emerald-700",
+  warning: "bg-amber-100 text-amber-700",
+};
 
 interface NavItem {
   title: string;
@@ -107,6 +127,12 @@ const getNavItems = (tenantId: string): NavItem[] => [
       { title: "Resumen", href: `/${tenantId}/sales/resumen`, icon: LayoutDashboard },
       { title: "Studio", href: `/${tenantId}/sales/studio/inbox`, icon: Headset },
       { title: "Contactos", href: `/${tenantId}/sales/contactos`, icon: Users },
+      {
+        title: "Inscripciones",
+        href: `/${tenantId}/sales/enrollments`,
+        icon: ClipboardList,
+        badge: { label: "NEW", color: "accent", expiresAt: "2026-10-17" },
+      },
     ],
   },
   {
@@ -235,6 +261,16 @@ function CollapsedGroupItem({
               >
                 <child.icon className="h-4 w-4 shrink-0" />
                 <span>{child.title}</span>
+                {child.badge && isBadgeVisible(child.badge) && (
+                  <span
+                    className={cn(
+                      "ml-auto rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase",
+                      BADGE_COLOR_CLASSES[child.badge.color],
+                    )}
+                  >
+                    {child.badge.label}
+                  </span>
+                )}
               </NavLink>
             );
           })}
@@ -329,6 +365,16 @@ function ExpandedGroupItem({
                   )}
                 />
                 {mounted && <span>{child.title}</span>}
+                {mounted && child.badge && isBadgeVisible(child.badge) && (
+                  <span
+                    className={cn(
+                      "ml-auto rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase",
+                      BADGE_COLOR_CLASSES[child.badge.color],
+                    )}
+                  >
+                    {child.badge.label}
+                  </span>
+                )}
               </NavLink>
             );
           })}
@@ -590,6 +636,9 @@ NavContent.displayName = "NavContent";
 // AppSidebar
 // ---------------------------------------------------------------------------
 
+/**
+ *
+ */
 export function AppSidebar() {
   const pathname = usePathname() ?? "";
   const [isMobileOpen, setIsMobileOpen] = useState(false);
