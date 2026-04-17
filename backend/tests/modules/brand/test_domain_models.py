@@ -94,6 +94,45 @@ class TestBrandIdentity:
     def test_full(self, sample_identity):
         assert sample_identity.industry == "Technology"
 
+    def test_business_types_default_empty_list(self):
+        """A fresh brand has no business types declared yet — onboarding fills them."""
+        i = BrandIdentity(brand_name="X")
+        assert i.business_types == []
+
+    def test_business_types_accepts_multi_select(self):
+        """Multi-select: a course creator who also coaches declares both."""
+        from src.shared.domain.expert_business_type import ExpertBusinessType
+
+        i = BrandIdentity(
+            brand_name="X",
+            business_types=[
+                ExpertBusinessType.EDUCADOR_INFOPRODUCTOR,
+                ExpertBusinessType.COACH_MENTOR,
+            ],
+        )
+        assert len(i.business_types) == 2
+        assert ExpertBusinessType.COACH_MENTOR in i.business_types
+
+    def test_business_types_roundtrip_json(self):
+        """JSON persistence (tenant.config_json blob) must preserve values."""
+        from src.shared.domain.expert_business_type import ExpertBusinessType
+
+        original = BrandIdentity(
+            brand_name="X",
+            business_types=[ExpertBusinessType.SAAS_FOUNDER],
+        )
+        dumped = original.model_dump(mode="json")
+        restored = BrandIdentity.model_validate(dumped)
+        assert restored.business_types == [ExpertBusinessType.SAAS_FOUNDER]
+
+    def test_business_types_rejects_unknown_value(self):
+        """Invalid values are rejected — the catalog is a closed set."""
+        import pytest
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            BrandIdentity(brand_name="X", business_types=["nonexistent_type"])
+
 
 class TestBrandVisuals:
     def test_defaults(self):

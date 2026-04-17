@@ -5,6 +5,7 @@ from typing import Any
 from pydantic import ConfigDict, Field
 
 from src.shared.domain.base_entity import BaseEntity
+from src.shared.domain.expert_business_type import ExpertBusinessType
 
 
 class BrandVisuals(BaseEntity):
@@ -74,7 +75,16 @@ class BrandIdentity(BaseEntity):
     brand_name: str | None = Field(None, description="The name of the brand.")
     industry: str | None = Field(
         None,
-        description="The industry or category of the brand.",
+        description="Free-text sub-niche (e.g. 'yoga', 'finanzas personales'). "
+        "Complements ``business_types`` — does not replace it.",
+    )
+    business_types: list[ExpertBusinessType] = Field(
+        default_factory=list,
+        description=(
+            "Multi-select: the kinds of expert business this tenant runs. "
+            "Captured in Brand Studio onboarding, editable in general settings. "
+            "Drives format suitability in the Offer Studio wizard."
+        ),
     )
     tagline: str | None = Field(None, description="Brand tagline or slogan.")
     description: str | None = Field(
