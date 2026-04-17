@@ -2,16 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
-import {
-  AlertCircle,
-  Plus,
-  Lightbulb,
-  Rocket,
-  TrendingUp,
-  Gem,
-  Building2,
-  SearchX,
-} from "lucide-react";
+import { AlertCircle, Plus, SearchX } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState, useEffect, useMemo, useCallback } from "react";
 
@@ -24,6 +15,8 @@ import { startInterview } from "@/features/copilot/api/interview-api";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 import { offerApi } from "@/features/offer-studio/api";
 import { useArchiveOffer } from "@/features/offer-studio/hooks/use-offer";
+import { useValueLevelMetadata } from "@/features/offer-studio/hooks/use-value-level-catalog";
+import { resolveIconByName } from "@/features/offer-studio/lib/icon-name-resolver";
 
 import { OfferValueLevel } from "@/features/offer-studio/types";
 import { computeLadderCompleteness } from "@/features/offer-studio/utils/ladder-completeness";
@@ -37,37 +30,6 @@ import { OfferLegend } from "./OfferLegend";
 
 import type { WizardResult } from "../wizard/CreateOfferWizard";
 import type { Offer } from "@/features/offer-studio/types";
-
-import type { LucideIcon } from "lucide-react";
-
-const LEVEL_RICH_INFO: Record<string, { title: string; description: string; icon: LucideIcon }> = {
-  [OfferValueLevel.LEAD_MAGNET]: {
-    title: "Lead Magnets",
-    description:
-      "Recursos gratuitos para convertir trafico frio en leads. Ej: Ebooks, Webinars, Plantillas.",
-    icon: Lightbulb,
-  },
-  [OfferValueLevel.ACTIVACION]: {
-    title: "Activacion",
-    description: "Primera compra, bajo riesgo. Ej: Tripwires, Cursos Auto-dirigidos, Mini-cursos.",
-    icon: Rocket,
-  },
-  [OfferValueLevel.TRANSFORMACION]: {
-    title: "Transformacion",
-    description: "Oferta principal — transformacion real. Ej: Mentorias, Cohortes, Bootcamps.",
-    icon: TrendingUp,
-  },
-  [OfferValueLevel.MAXIMIZACION]: {
-    title: "Maximizacion",
-    description: "Premium, alto contacto. Ej: VIP Days, Mentorias 1:1, Masterminds.",
-    icon: Gem,
-  },
-  [OfferValueLevel.CORPORATIVO]: {
-    title: "Corporativo",
-    description: "Ventas B2B a grandes empresas. Ej: Capacitaciones corporativas, Patrocinios.",
-    icon: Building2,
-  },
-};
 
 interface OfferStudioDashboardProps {
   searchQuery?: string;
@@ -333,77 +295,14 @@ export function OfferStudioDashboard({
       )}
 
       {/* --- LEVEL 0: LEAD MAGNET STREAM (Horizontal) --- */}
-      {(() => {
-        const level = OfferValueLevel.LEAD_MAGNET;
-        const levelOffers = groupedOffers[level] || [];
-        const count = levelOffers.length;
-        const info = LEVEL_RICH_INFO[level];
-        const Icon = info.icon;
+      <LeadMagnetStream
+        offers={groupedOffers[OfferValueLevel.LEAD_MAGNET] || []}
+        searchQuery={searchQuery}
+        onCreate={() => handleOpenCreate()}
+        onArchive={handleArchiveOffer}
+        onNavigate={(offerId) => navigate(`/${tenantId}/offer-studio/offer/${offerId}`)}
+      />
 
-        if (searchQuery && count === 0) return null;
-
-        return (
-          <section
-            className="space-y-4 py-6 px-4 -mx-4 border-y border-dashed border-border/60 rounded-lg"
-            style={{
-              background:
-                "linear-gradient(135deg, hsl(var(--muted) / 0.3), hsl(var(--primary) / 0.05))",
-            }}
-          >
-            <div className="flex items-start gap-4 pl-2 border-l-4 border-primary/70">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Icon className="h-6 w-6 text-primary" />
-              </div>
-              <div className="space-y-1 flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold tracking-tight text-foreground">
-                    {info.title}
-                  </h3>
-                  <Badge
-                    variant="secondary"
-                    className="bg-primary/10 text-primary hover:bg-primary/20"
-                  >
-                    {count} Magnets
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ml-auto h-6 text-xs text-muted-foreground hover:text-foreground"
-                    onClick={() => handleOpenCreate()}
-                  >
-                    <Plus className="mr-1 h-3 w-3" /> Nuevo Magnet
-                  </Button>
-                </div>
-                <p className="text-sm text-muted-foreground/90 max-w-3xl">{info.description}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 px-2 py-1">
-              {levelOffers.map((offer) => (
-                <LeadMagnetStreamCard
-                  key={offer.id}
-                  offer={offer}
-                  onClick={() => navigate(`/${tenantId}/offer-studio/offer/${offer.id}`)}
-                  onArchive={handleArchiveOffer}
-                />
-              ))}
-
-              {/* Add Button Slot in the Grid */}
-              <div
-                className="h-[80px] border-2 border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 hover:border-primary/40 transition-colors group"
-                onClick={() => handleOpenCreate()}
-              >
-                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                  <Plus className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
-                </div>
-                <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground">
-                  Crear Oferta
-                </span>
-              </div>
-            </div>
-          </section>
-        );
-      })()}
 
       {/* --- LADDER LAYOUT (L1 - L6) --- */}
       <OfferLadderLayout
@@ -422,5 +321,90 @@ export function OfferStudioDashboard({
         creating={creating}
       />
     </div>
+  );
+}
+
+interface LeadMagnetStreamProps {
+  readonly offers: readonly Offer[];
+  readonly searchQuery: string;
+  readonly onCreate: () => void;
+  readonly onArchive: (offerId: string) => void;
+  readonly onNavigate: (offerId: string) => void;
+}
+
+/** Horizontal "top of funnel" stream rendered above the 4-column ladder.
+ *  Title, description and icon come from the ValueLevel catalog so the
+ *  dashboard stays in lockstep with the domain SSoT. */
+function LeadMagnetStream({
+  offers,
+  searchQuery,
+  onCreate,
+  onArchive,
+  onNavigate,
+}: LeadMagnetStreamProps) {
+  const metadata = useValueLevelMetadata(OfferValueLevel.LEAD_MAGNET);
+  const count = offers.length;
+
+  if (searchQuery && count === 0) return null;
+
+  const title = metadata?.label_es ?? "Lead Magnets";
+  const description =
+    metadata?.description_es ??
+    "Recursos gratuitos para convertir tráfico frío en leads.";
+  const Icon = resolveIconByName(metadata?.icon_name);
+
+  return (
+    <section
+      className="space-y-4 py-6 px-4 -mx-4 border-y border-dashed border-border/60 rounded-lg"
+      style={{
+        background:
+          "linear-gradient(135deg, hsl(var(--muted) / 0.3), hsl(var(--primary) / 0.05))",
+      }}
+    >
+      <div className="flex items-start gap-4 pl-2 border-l-4 border-primary/70">
+        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <Icon className="h-6 w-6 text-primary" />
+        </div>
+        <div className="space-y-1 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold tracking-tight text-foreground">{title}</h3>
+            <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
+              {count} Magnets
+            </Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-auto h-6 text-xs text-muted-foreground hover:text-foreground"
+              onClick={onCreate}
+            >
+              <Plus className="mr-1 h-3 w-3" /> Nuevo Magnet
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground/90 max-w-3xl">{description}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 px-2 py-1">
+        {offers.map((offer) => (
+          <LeadMagnetStreamCard
+            key={offer.id}
+            offer={offer}
+            onClick={() => onNavigate(offer.id)}
+            onArchive={onArchive}
+          />
+        ))}
+        <div
+          className="h-[80px] border-2 border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 hover:border-primary/40 transition-colors group"
+          onClick={onCreate}
+        >
+          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+            <Plus className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+          </div>
+          <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground">
+            Crear Oferta
+          </span>
+        </div>
+      </div>
+    </section>
   );
 }

@@ -24,6 +24,22 @@ vi.mock("@/features/tenant/context/tenant-locale-context", () => ({
   useTenantLocale: () => ({ currency: "USD", timezone: "UTC" }),
 }));
 
+vi.mock("@/features/offer-studio/hooks/use-archetype-display", async () => {
+  const { Package } = await import("lucide-react");
+  return {
+    useArchetypeDisplay: (archetype?: string) => {
+      if (!archetype) return undefined;
+      return {
+        archetype,
+        label: "Producto",
+        subtitle: "",
+        icon: Package,
+        examples: [],
+      };
+    },
+  };
+});
+
 describe("LeadMagnetStreamCard", () => {
   it("renders the offer name", () => {
     render(<LeadMagnetStreamCard offer={MOCK_OFFER_NORMALIZED} />);

@@ -6,7 +6,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
-import { ARCHETYPE_METADATA } from "../../../../config/archetype-metadata";
+import { useArchetypeDisplay } from "../../../../hooks/use-archetype-display";
 import { OfferDeliveryModel as DeliveryModel } from "../../../../types";
 import { OfferSchema } from "../../../../types/schema";
 import { SectionFormWrapper } from "../common/SectionFormWrapper";
@@ -47,7 +47,7 @@ function IdentityContent({
   form: UseFormReturn<OfferFormValues>;
   archetype?: string;
 }) {
-  const archetypeMeta = archetype ? ARCHETYPE_METADATA[archetype as OfferArchetype] : null;
+  const archetypeDisplay = useArchetypeDisplay(archetype as OfferArchetype | undefined);
 
   return (
     <div className="space-y-6">
@@ -81,10 +81,10 @@ function IdentityContent({
           <CardContent>
             <div className="flex flex-col gap-2">
               <Badge variant="outline" className="w-fit">
-                {archetypeMeta?.label || archetype || "No definido"}
+                {archetypeDisplay?.label ?? archetype ?? "No definido"}
               </Badge>
               <p className="text-sm text-muted-foreground">
-                {archetypeMeta?.subtitle || "Descripción no disponible."}
+                {archetypeDisplay?.subtitle ?? "Descripción no disponible."}
               </p>
             </div>
           </CardContent>

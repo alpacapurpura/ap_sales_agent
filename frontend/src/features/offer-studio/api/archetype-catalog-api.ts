@@ -28,7 +28,9 @@ export interface ArchetypeCapabilities {
   readonly default_delivery: string;
   readonly default_fulfillment: string;
   readonly label_es: string;
+  readonly subtitle_es: string;
   readonly icon_name: string;
+  readonly examples_es: readonly string[];
   readonly editions_wizard_copy: EditionsWizardCopy | null;
 }
 

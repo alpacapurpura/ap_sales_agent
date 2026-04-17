@@ -3,21 +3,12 @@
 import { useMemo } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
+import { useArchetypeDisplay } from "@/features/offer-studio/hooks/use-archetype-display";
+import { useValueLevelMetadata } from "@/features/offer-studio/hooks/use-value-level-catalog";
 import { cn } from "@/lib/utils";
 
 import type { PreviewSummaryProps } from "@/features/copilot/config/interview-preview-registry";
-import type { OfferArchetype } from "@/features/offer-studio/types";
-
-// ── Value level display names ────────────────────────────────────────────────
-
-const VALUE_LEVEL_LABELS: Record<string, string> = {
-  lead_magnet: "Lead Magnet",
-  activacion: "Activaci\u00f3n",
-  transformacion: "Transformaci\u00f3n",
-  maximizacion: "Maximizaci\u00f3n",
-  corporativo: "Corporativo",
-};
+import type { OfferArchetype, OfferValueLevel } from "@/features/offer-studio/types";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -53,9 +44,12 @@ function parseSummaryData(data: Record<string, unknown>): ParsedSummary {
 export function OfferPreviewSummary({ data, completenessScore }: PreviewSummaryProps) {
   const summary = useMemo(() => parseSummaryData(data), [data]);
 
-  const archetypeMeta = summary.archetype ? ARCHETYPE_METADATA[summary.archetype] : null;
+  const archetypeDisplay = useArchetypeDisplay(summary.archetype ?? undefined);
+  const valueLevelMeta = useValueLevelMetadata(
+    (summary.valueLevel as OfferValueLevel | null) ?? undefined,
+  );
 
-  const ArchetypeIcon = archetypeMeta?.icon ?? null;
+  const ArchetypeIcon = archetypeDisplay?.icon ?? null;
 
   return (
     <div className="px-4 py-3 border-b border-white/5 bg-background/50">
@@ -81,12 +75,12 @@ export function OfferPreviewSummary({ data, completenessScore }: PreviewSummaryP
           </p>
 
           <div className="mt-1 flex flex-wrap gap-1.5">
-            {archetypeMeta && (
+            {archetypeDisplay && (
               <Badge
                 variant="secondary"
                 className="text-[10px] bg-orange-500/10 text-orange-400 border-orange-500/20"
               >
-                {archetypeMeta.label}
+                {archetypeDisplay.label}
               </Badge>
             )}
             {summary.valueLevel && (
@@ -94,7 +88,7 @@ export function OfferPreviewSummary({ data, completenessScore }: PreviewSummaryP
                 variant="secondary"
                 className="text-[10px] bg-amber-500/10 text-amber-400 border-amber-500/20"
               >
-                {VALUE_LEVEL_LABELS[summary.valueLevel] ?? summary.valueLevel}
+                {valueLevelMeta?.label_es ?? summary.valueLevel}
               </Badge>
             )}
           </div>

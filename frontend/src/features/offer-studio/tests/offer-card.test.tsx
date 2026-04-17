@@ -28,6 +28,31 @@ vi.mock("@/features/tenant/context/tenant-locale-context", () => ({
   useTenantLocale: () => ({ currency: "PEN", timezone: "America/Lima" }),
 }));
 
+// Mock the archetype-display hook so the test doesn't need to wire a
+// QueryClientProvider + MSW for the catalog endpoint.
+vi.mock("@/features/offer-studio/hooks/use-archetype-display", async () => {
+  const { Package } = await import("lucide-react");
+  return {
+    useArchetypeDisplay: (archetype?: string) => {
+      if (!archetype) return undefined;
+      const labels: Record<string, string> = {
+        producto: "Producto",
+        programa: "Programa",
+        servicio: "Servicio",
+        membresia: "Membresía",
+        experiencia: "Experiencia",
+      };
+      return {
+        archetype,
+        label: labels[archetype] ?? archetype,
+        subtitle: "",
+        icon: Package,
+        examples: [],
+      };
+    },
+  };
+});
+
 describe("OfferCard Component", () => {
   it("renders the offer name correctly", () => {
     render(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);

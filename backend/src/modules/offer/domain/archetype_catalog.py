@@ -18,7 +18,7 @@ Why a frozen ``dataclass`` constant and not a DB table:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 
 from src.modules.offer.domain.enums import (
@@ -66,7 +66,12 @@ class ArchetypeCapabilities:
 
     # User-facing labels (Spanish — matches UI language)
     label_es: str
+    subtitle_es: str
     icon_name: str  # lucide-react icon name for the frontend
+    # Canonical examples list surfaced in the Offer Studio wizard archetype
+    # picker + the dashboard cards. Frontend previously hardcoded these in
+    # ``archetype-metadata.ts`` — now the backend is the single source.
+    examples_es: tuple[str, ...] = field(default_factory=tuple)
 
     # Wizard copy for the "will this offer have editions?" question.
     # Present iff supports_editions is True — frontend renders the wizard step
@@ -92,7 +97,15 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         default_delivery=OfferDeliveryModel.DWY,
         default_fulfillment=FulfillmentType.MANUAL_PROVISIONING,
         label_es="Experiencia / Evento",
-        icon_name="Calendar",
+        subtitle_es="Un momento o evento único",
+        icon_name="Tent",
+        examples_es=(
+            "Webinar",
+            "Retiro",
+            "Taller",
+            "Conferencia",
+            "Capacitación presencial",
+        ),
         editions_wizard_title_es="¿Tendrá varias salidas en fechas distintas?",
         editions_wizard_description_es=(
             "Si vas a repetir esta experiencia en distintas fechas (ej: cada trimestre), elegí Sí."
@@ -113,8 +126,15 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         supports_waitlist=True,
         default_delivery=OfferDeliveryModel.DWY,
         default_fulfillment=FulfillmentType.LMS_ACCESS,
-        label_es="Programa / Cohorte",
-        icon_name="GraduationCap",
+        label_es="Programa",
+        subtitle_es="Un proceso con inicio, pasos y resultado",
+        icon_name="Map",
+        examples_es=(
+            "Mentoría grupal",
+            "Plan personalizado",
+            "Bootcamp",
+            "Cohorte",
+        ),
         editions_wizard_title_es="¿Se dictará en cohortes?",
         editions_wizard_description_es=(
             "Las cohortes son grupos de alumnos que empiezan y terminan juntos en fechas fijas."
@@ -136,7 +156,15 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         default_delivery=OfferDeliveryModel.DFY,
         default_fulfillment=FulfillmentType.MANUAL_PROVISIONING,
         label_es="Servicio",
-        icon_name="Briefcase",
+        subtitle_es="Trabajo que hago para o con alguien",
+        icon_name="Wrench",
+        examples_es=(
+            "Consultoría",
+            "Auditoría",
+            "Diseño web",
+            "VIP Day",
+            "Retainer",
+        ),
         editions_wizard_title_es="¿Se ofrecerá en convocatorias?",
         editions_wizard_description_es=(
             "Las convocatorias agrupan clientes que empiezan al mismo tiempo en fechas fijas."
@@ -157,8 +185,16 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         supports_waitlist=False,
         default_delivery=OfferDeliveryModel.DIY,
         default_fulfillment=FulfillmentType.DIGITAL_DOWNLOAD,
-        label_es="Producto Digital",
+        label_es="Producto",
+        subtitle_es="Algo que creas y empaquetas",
         icon_name="Package",
+        examples_es=(
+            "Ebook",
+            "Curso grabado",
+            "Template",
+            "Guía",
+            "Producto físico",
+        ),
     ),
     OfferArchetype.MEMBRESIA: ArchetypeCapabilities(
         archetype=OfferArchetype.MEMBRESIA,
@@ -173,8 +209,15 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         supports_waitlist=False,
         default_delivery=OfferDeliveryModel.DIY,
         default_fulfillment=FulfillmentType.LMS_ACCESS,
-        label_es="Membresía / Suscripción",
-        icon_name="Repeat",
+        label_es="Membresía",
+        subtitle_es="Acceso continuo por suscripción",
+        icon_name="RefreshCw",
+        examples_es=(
+            "Comunidad premium",
+            "Newsletter paga",
+            "Mastermind",
+            "Club",
+        ),
     ),
 }
 

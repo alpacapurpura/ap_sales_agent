@@ -1,14 +1,53 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
-// Mock lucide-react icons used by archetype-metadata
-vi.mock("lucide-react", () => ({
-  Package: (props: Record<string, unknown>) => <svg data-testid="icon-package" {...props} />,
-  Map: (props: Record<string, unknown>) => <svg data-testid="icon-map" {...props} />,
-  Wrench: (props: Record<string, unknown>) => <svg data-testid="icon-wrench" {...props} />,
-  RefreshCw: (props: Record<string, unknown>) => <svg data-testid="icon-refresh" {...props} />,
-  Tent: (props: Record<string, unknown>) => <svg data-testid="icon-tent" {...props} />,
-  CheckCircle2: (props: Record<string, unknown>) => <svg data-testid="icon-check" {...props} />,
+// Mock the catalog hooks so the previews don't need a QueryClientProvider
+// plus network mocks. The production code path is exercised by the
+// integration tests in tests/modules/offer/api/.
+vi.mock("@/features/offer-studio/hooks/use-archetype-display", () => ({
+  useArchetypeDisplay: (archetype?: string) => {
+    if (!archetype) return undefined;
+    const labels: Record<string, string> = {
+      producto: "Producto",
+      programa: "Programa",
+      servicio: "Servicio",
+      membresia: "Membresía",
+      experiencia: "Experiencia",
+    };
+    return {
+      archetype,
+      label: labels[archetype] ?? archetype,
+      subtitle: "",
+      icon: (props: Record<string, unknown>) => <svg data-testid="icon-archetype" {...props} />,
+      examples: [],
+    };
+  },
+}));
+
+vi.mock("@/features/offer-studio/hooks/use-value-level-catalog", () => ({
+  useValueLevelMetadata: (valueLevel?: string) => {
+    if (!valueLevel) return undefined;
+    const labels: Record<string, string> = {
+      lead_magnet: "Lead Magnet",
+      activacion: "Activación",
+      transformacion: "Transformación",
+      maximizacion: "Maximización",
+      corporativo: "Corporativo",
+    };
+    return {
+      value_level: valueLevel,
+      order: 0,
+      label_es: labels[valueLevel] ?? valueLevel,
+      description_es: "",
+      role_in_funnel_es: "",
+      icon_name: "Sparkles",
+      examples_es: [],
+      is_free: false,
+      typical_price_min_usd: null,
+      typical_price_max_usd: null,
+    };
+  },
+  useValueLevelCatalog: () => ({ data: undefined }),
 }));
 
 import { OfferPreviewSections } from "../OfferPreviewSections";

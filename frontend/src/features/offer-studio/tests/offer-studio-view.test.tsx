@@ -32,6 +32,37 @@ vi.mock("@/components/shared/navigation", () => ({
   }),
 }));
 
+// Catalog hooks — return synthetic metadata so the components render
+// without a QueryClientProvider wrapping the view.
+vi.mock("@/features/offer-studio/hooks/use-archetype-display", async () => {
+  const { Package } = await import("lucide-react");
+  return {
+    useArchetypeDisplay: (archetype?: string) =>
+      archetype
+        ? { archetype, label: "Producto", subtitle: "", icon: Package, examples: [] }
+        : undefined,
+  };
+});
+
+vi.mock("@/features/offer-studio/hooks/use-value-level-catalog", () => ({
+  useValueLevelMetadata: (valueLevel?: string) =>
+    valueLevel
+      ? {
+          value_level: valueLevel,
+          order: 0,
+          label_es: "Lead Magnet",
+          description_es: "Recursos gratuitos",
+          role_in_funnel_es: "",
+          icon_name: "Lightbulb",
+          examples_es: [],
+          is_free: true,
+          typical_price_min_usd: null,
+          typical_price_max_usd: null,
+        }
+      : undefined,
+  useValueLevelCatalog: () => ({ data: undefined }),
+}));
+
 const MOCK_OFFERS: Offer[] = [
   {
     id: "1",

@@ -18,7 +18,7 @@ import { RichSelect } from "@/components/ui/rich-select";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { avatarApi } from "@/lib/api/avatar";
 
-import { ARCHETYPE_METADATA } from "../../../../config/archetype-metadata";
+import { useArchetypeCatalog } from "../../../../hooks/use-archetype-catalog";
 import { OfferArchetype } from "../../../../types";
 import { OfferSchema } from "../../../../types/schema";
 import { SectionFormWrapper } from "../common/SectionFormWrapper";
@@ -56,12 +56,13 @@ function StrategyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: archetypeCatalog } = useArchetypeCatalog();
   const archetypeOptions = Object.values(OfferArchetype).map((arch) => {
-    const meta = ARCHETYPE_METADATA[arch];
+    const meta = archetypeCatalog?.archetypes.find((a) => a.archetype === arch);
     return {
       value: arch,
-      label: meta?.label || arch,
-      description: meta?.subtitle || "",
+      label: meta?.label_es ?? arch,
+      description: meta?.subtitle_es ?? "",
     };
   });
 

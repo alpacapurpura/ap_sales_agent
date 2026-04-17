@@ -8,7 +8,7 @@ import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
 import { cn } from "@/lib/utils";
 import { getContrastColor } from "@/lib/utils/colors";
 
-import { ARCHETYPE_METADATA } from "../../../../config/archetype-metadata";
+import { useArchetypeDisplay } from "../../../../hooks/use-archetype-display";
 
 import type { OfferArchetype } from "../../../../types";
 import type { OfferFormValues } from "../../../../types/schema";
@@ -38,9 +38,8 @@ export const IdentityPreview = ({ data: propsData, onEdit }: IdentityPreviewProp
 
   const hasName = Boolean(public_name);
 
-  // Get Metadata
-  const archetypeMeta = archetype ? ARCHETYPE_METADATA[archetype as OfferArchetype] : null;
-  const TypeIcon = archetypeMeta?.icon || Sparkles;
+  const archetypeDisplay = useArchetypeDisplay(archetype as OfferArchetype | undefined);
+  const TypeIcon = archetypeDisplay?.icon ?? Sparkles;
 
   // --- SAFE COLOR LOGIC ---
   const primaryColor = visuals?.primary_color || "#a855f7";
@@ -147,12 +146,12 @@ export const IdentityPreview = ({ data: propsData, onEdit }: IdentityPreviewProp
             {hasName ? public_name : "Nombre de tu Oferta"}
           </h1>
 
-          {archetypeMeta?.subtitle && (
+          {archetypeDisplay?.subtitle && (
             <p
               className="text-base max-w-lg mx-auto leading-relaxed opacity-80"
               style={{ color: textPrimary }}
             >
-              {archetypeMeta.subtitle}
+              {archetypeDisplay.subtitle}
             </p>
           )}
         </div>
@@ -169,7 +168,7 @@ export const IdentityPreview = ({ data: propsData, onEdit }: IdentityPreviewProp
             style={visuals ? badgeTypeStyle : undefined}
           >
             <Tag className="w-3.5 h-3.5 opacity-70" />
-            {archetypeMeta?.label ||
+            {archetypeDisplay?.label ??
               (archetype
                 ? archetype.charAt(0).toUpperCase() + archetype.slice(1)
                 : "Archetype no definido")}

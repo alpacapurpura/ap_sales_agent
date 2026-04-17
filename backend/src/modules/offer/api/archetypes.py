@@ -52,7 +52,9 @@ class ArchetypeCapabilitiesDTO(BaseModel):
     default_delivery: str
     default_fulfillment: str
     label_es: str
+    subtitle_es: str
     icon_name: str
+    examples_es: list[str]
     editions_wizard_copy: EditionsWizardCopyDTO | None = None
 
     @classmethod
@@ -80,7 +82,9 @@ class ArchetypeCapabilitiesDTO(BaseModel):
             default_delivery=caps.default_delivery.value,
             default_fulfillment=caps.default_fulfillment.value,
             label_es=caps.label_es,
+            subtitle_es=caps.subtitle_es,
             icon_name=caps.icon_name,
+            examples_es=list(caps.examples_es),
             editions_wizard_copy=wizard_copy,
         )
 
@@ -96,7 +100,7 @@ class ArchetypeCatalogResponse(BaseModel):
 
 # Bump this when ``archetype_catalog.py`` changes materially. Clients use it
 # as the cache key so old copies are evicted on deploy.
-_CATALOG_VERSION = "2026-04-16"
+_CATALOG_VERSION = "2026-04-17"
 
 
 @router.get(
