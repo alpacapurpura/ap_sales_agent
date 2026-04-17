@@ -1,65 +1,69 @@
 import { describe, expect, it } from "vitest";
 
-import { getSectionsForOffer } from "../config/offer-builder-config";
+import { getSectionsForOffer, SECTION_REGISTRY } from "../config/offer-builder-config";
 import { OfferArchetype } from "../types";
 
-describe("getSectionsForOffer — has_editions gating", () => {
-  it("keeps 'editions' for PROGRAMA when has_editions is true", () => {
-    const sections = getSectionsForOffer({
-      archetype: OfferArchetype.PROGRAMA,
-      has_editions: true,
-    });
-    expect(sections).toContain("editions");
+describe("getSectionsForOffer — v3 section ownership", () => {
+  // ── Editions are owned by the rail, not by an inline Info section ─────────
+
+  it("never includes 'editions' — the rail owns edition management", () => {
+    for (const archetype of Object.values(OfferArchetype)) {
+      const withEditions = getSectionsForOffer({ archetype, has_editions: true });
+      const withoutEditions = getSectionsForOffer({ archetype, has_editions: false });
+      expect(withEditions).not.toContain("editions");
+      expect(withoutEditions).not.toContain("editions");
+    }
   });
 
-  it("hides 'editions' for PROGRAMA when has_editions is false", () => {
-    const sections = getSectionsForOffer({
-      archetype: OfferArchetype.PROGRAMA,
-      has_editions: false,
-    });
-    expect(sections).not.toContain("editions");
-    // Non-editions sections stay
-    expect(sections).toContain("program_details");
-    expect(sections).toContain("pricing");
+  // ── Gallery moved from Info to Assets tab ─────────────────────────────────
+
+  it("never includes 'gallery' — lives in the Assets tab, not in Info", () => {
+    for (const archetype of Object.values(OfferArchetype)) {
+      const sections = getSectionsForOffer({ archetype, has_editions: true });
+      expect(sections).not.toContain("gallery");
+    }
   });
 
-  it("hides 'editions' for SERVICIO when has_editions is false", () => {
-    const sections = getSectionsForOffer({
-      archetype: OfferArchetype.SERVICIO,
-      has_editions: false,
-    });
-    expect(sections).not.toContain("editions");
+  // ── Knowledge migrated from dedicated tab to a section inside Info ─────────
+
+  it("always includes 'knowledge' as a section of Info (replaces the retired tab)", () => {
+    for (const archetype of Object.values(OfferArchetype)) {
+      const sections = getSectionsForOffer({ archetype, has_editions: true });
+      expect(sections).toContain("knowledge");
+    }
   });
 
-  it("hides 'editions' for EXPERIENCIA when has_editions is false", () => {
-    const sections = getSectionsForOffer({
-      archetype: OfferArchetype.EXPERIENCIA,
-      has_editions: false,
-    });
-    expect(sections).not.toContain("editions");
+  it("registers 'knowledge' in the SECTION_REGISTRY so it can be rendered", () => {
+    expect(SECTION_REGISTRY.knowledge).toBeDefined();
+    expect(SECTION_REGISTRY.knowledge.id).toBe("knowledge");
+    expect(typeof SECTION_REGISTRY.knowledge.title).toBe("string");
   });
 
-  it("defaults to showing 'editions' for supported archetypes when field is missing", () => {
-    // Back-compat: offers loaded before this feature have undefined has_editions
-    const sections = getSectionsForOffer({
-      archetype: OfferArchetype.PROGRAMA,
-    });
-    expect(sections).toContain("editions");
+  // ── Core archetype-scoped sections still render ───────────────────────────
+
+  it("keeps archetype-specific detail sections", () => {
+    expect(getSectionsForOffer({ archetype: OfferArchetype.PROGRAMA })).toContain(
+      "program_details",
+    );
+    expect(getSectionsForOffer({ archetype: OfferArchetype.SERVICIO })).toContain(
+      "service_details",
+    );
+    expect(getSectionsForOffer({ archetype: OfferArchetype.EXPERIENCIA })).toContain(
+      "event_details",
+    );
+    expect(getSectionsForOffer({ archetype: OfferArchetype.PRODUCTO })).toContain(
+      "product_details",
+    );
+    expect(getSectionsForOffer({ archetype: OfferArchetype.MEMBRESIA })).toContain(
+      "subscription_details",
+    );
   });
 
-  it("ignores has_editions for PRODUCTO (never had editions)", () => {
-    const sections = getSectionsForOffer({
-      archetype: OfferArchetype.PRODUCTO,
-      has_editions: true,
-    });
-    expect(sections).not.toContain("editions");
-  });
-
-  it("ignores has_editions for MEMBRESIA (never had editions)", () => {
-    const sections = getSectionsForOffer({
-      archetype: OfferArchetype.MEMBRESIA,
-      has_editions: true,
-    });
-    expect(sections).not.toContain("editions");
+  it("keeps pricing and closing in every archetype", () => {
+    for (const archetype of Object.values(OfferArchetype)) {
+      const sections = getSectionsForOffer({ archetype });
+      expect(sections).toContain("pricing");
+      expect(sections).toContain("closing");
+    }
   });
 });

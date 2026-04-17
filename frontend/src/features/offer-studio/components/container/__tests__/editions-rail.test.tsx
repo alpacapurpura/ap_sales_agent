@@ -66,7 +66,6 @@ const completed: LaunchEdition = {
 
 const baseProps = {
   offerId: "offer-1",
-  offerName: "MasterClass Copywriting",
   tenantId: "acme",
   editions: [upcoming, draft, completed],
   currentEditionId: "ed-3",
@@ -74,11 +73,21 @@ const baseProps = {
   onCreateNew: vi.fn(),
 };
 
-describe("EditionsRail (expanded)", () => {
+describe("EditionsRail (expanded, slim header v3)", () => {
   beforeEach(() => {
     mockReplace.mockReset();
     baseProps.onCollapse = vi.fn();
     baseProps.onCreateNew = vi.fn();
+  });
+
+  it("renders a generic 'Ediciones' label in the header (no offer name)", () => {
+    render(<EditionsRail {...baseProps} />);
+    expect(screen.getByText(/^Ediciones$/)).toBeInTheDocument();
+  });
+
+  it("does not render the offer name anywhere in the rail", () => {
+    render(<EditionsRail {...baseProps} />);
+    expect(screen.queryByText(/MasterClass/i)).toBeNull();
   });
 
   it("renders the three lifecycle groups", () => {

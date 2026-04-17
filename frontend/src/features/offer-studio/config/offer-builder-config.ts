@@ -14,11 +14,11 @@ import {
   Image,
   DollarSign,
   CheckCircle,
-  Rocket,
+  Database,
 } from "lucide-react";
 
 // Preview Imports
-import { EditionsSection } from "../components/editions/EditionsSection";
+import { KnowledgeView } from "../components/knowledge/KnowledgeView";
 import { ClosingForm } from "../components/editor/sections/closing/ClosingForm";
 import { ClosingPreview } from "../components/editor/sections/closing/ClosingPreview";
 import { IdentityForm } from "../components/editor/sections/identity/IdentityForm";
@@ -193,17 +193,22 @@ export const SECTION_REGISTRY: Record<string, OfferBuilderSectionConfig> = {
     previewComponent: ClosingPreview,
     formComponent: ClosingForm,
   },
-  editions: {
-    id: "editions",
-    title: "Ediciones",
-    component: EditionsSection,
-    icon: Rocket,
+  knowledge: {
+    id: "knowledge",
+    title: "Conocimiento",
+    component: KnowledgeView,
+    icon: Database,
     previewComponent: PlaceholderPreview,
-    formComponent: EditionsSection,
+    formComponent: KnowledgeView,
   },
 };
 
-// --- ARCHETYPE-BASED CONFIG (new, preferred) ---
+// --- ARCHETYPE-BASED CONFIG ---
+//
+// Layout v3 ownership:
+// - 'editions' is NOT listed here — the EditionsRail owns edition management.
+// - 'gallery' is NOT listed here — it lives inside the Assets tab.
+// - 'knowledge' is listed for every archetype as the last section (retired tab).
 export const ARCHETYPE_BUILDER_CONFIG: Record<OfferArchetype, string[]> = {
   [OfferArchetype.PRODUCTO]: [
     "identity",
@@ -213,9 +218,9 @@ export const ARCHETYPE_BUILDER_CONFIG: Record<OfferArchetype, string[]> = {
     "product_details",
     "value_stack",
     "resources",
-    "gallery",
     "pricing",
     "closing",
+    "knowledge",
   ],
   [OfferArchetype.PROGRAMA]: [
     "identity",
@@ -226,10 +231,9 @@ export const ARCHETYPE_BUILDER_CONFIG: Record<OfferArchetype, string[]> = {
     "instructors",
     "value_stack",
     "resources",
-    "gallery",
     "pricing",
-    "editions",
     "closing",
+    "knowledge",
   ],
   [OfferArchetype.SERVICIO]: [
     "identity",
@@ -240,10 +244,9 @@ export const ARCHETYPE_BUILDER_CONFIG: Record<OfferArchetype, string[]> = {
     "instructors",
     "value_stack",
     "resources",
-    "gallery",
     "pricing",
-    "editions",
     "closing",
+    "knowledge",
   ],
   [OfferArchetype.MEMBRESIA]: [
     "identity",
@@ -253,9 +256,9 @@ export const ARCHETYPE_BUILDER_CONFIG: Record<OfferArchetype, string[]> = {
     "subscription_details",
     "value_stack",
     "resources",
-    "gallery",
     "pricing",
     "closing",
+    "knowledge",
   ],
   [OfferArchetype.EXPERIENCIA]: [
     "identity",
@@ -266,21 +269,19 @@ export const ARCHETYPE_BUILDER_CONFIG: Record<OfferArchetype, string[]> = {
     "instructors",
     "value_stack",
     "resources",
-    "gallery",
     "pricing",
-    "editions",
     "closing",
+    "knowledge",
   ],
 };
 
 /**
- * Get sections for an offer based on archetype and wizard-driven flags.
+ * Resolve the section list for an offer's Info tab based on its archetype.
  *
- * Editions section visibility:
- * - PRODUCTO / MEMBRESIA: never shown (archetype doesn't support editions).
- * - PROGRAMA / SERVICIO / EXPERIENCIA: shown unless `has_editions === false`.
- *   When the field is undefined (legacy offers), we default to showing the
- *   section to preserve existing UX.
+ * The `has_editions` flag no longer gates any section — editions are managed
+ * via the rail, not as an inline Info section. The parameter is preserved on
+ * the signature for backward compatibility with call sites that still pass
+ * it, but it has no runtime effect.
  */
 export function getSectionsForOffer(offer: {
   archetype?: OfferArchetype | string;
@@ -290,10 +291,5 @@ export function getSectionsForOffer(offer: {
     offer.archetype && ARCHETYPE_BUILDER_CONFIG[offer.archetype as OfferArchetype]
       ? (offer.archetype as OfferArchetype)
       : OfferArchetype.PRODUCTO;
-  const sections = ARCHETYPE_BUILDER_CONFIG[archetype];
-
-  if (offer.has_editions === false) {
-    return sections.filter((id) => id !== "editions");
-  }
-  return sections;
+  return ARCHETYPE_BUILDER_CONFIG[archetype];
 }

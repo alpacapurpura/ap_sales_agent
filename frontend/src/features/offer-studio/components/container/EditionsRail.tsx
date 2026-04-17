@@ -12,7 +12,6 @@ import type { LaunchEdition } from "../../types";
 
 export interface EditionsRailProps {
   offerId: string;
-  offerName: string;
   tenantId: string;
   editions: LaunchEdition[];
   currentEditionId: string | null;
@@ -62,16 +61,20 @@ function formatMonthYear(iso: string | null | undefined): string {
 }
 
 /**
- * Secondary left-rail for the Offer Studio shell.
+ * Editions rail for the Offer Studio shell. Lives inside the offer main area
+ * (under Row1 + TabBar) — sibling of the tab content, not of the app sidebar.
  *
  * Renders a vertical list of editions grouped by status. The "próxima"
- * (next upcoming + public) entry is highlighted; drafts show dashed
- * amber borders; past editions sit minimal at the bottom. Clicking an
- * entry replaces the `?edition=` query param so the tab body re-scopes.
+ * (next upcoming + public) entry is highlighted; drafts show dashed amber
+ * borders; past editions sit minimal at the bottom. Clicking an entry
+ * replaces the `?edition=` query param so the tab body re-scopes.
+ *
+ * The header is intentionally slim — just a "Ediciones" label and a
+ * collapse button. The offer name is owned by OfferShellHeaderRow1 above;
+ * repeating it here would duplicate context.
  */
 export function EditionsRail({
   offerId,
-  offerName,
   tenantId,
   editions,
   currentEditionId,
@@ -90,11 +93,11 @@ export function EditionsRail({
   return (
     <aside
       aria-label="Ediciones de la oferta"
-      className="flex w-60 shrink-0 flex-col border-r bg-background"
+      className="flex w-56 shrink-0 flex-col border-r bg-background"
     >
-      <header className="flex items-center justify-between border-b px-3 py-3">
-        <span className="min-w-0 truncate text-sm font-semibold" title={offerName}>
-          {offerName}
+      <header className="flex items-center justify-between border-b px-3 py-2.5">
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Ediciones
         </span>
         <button
           type="button"
