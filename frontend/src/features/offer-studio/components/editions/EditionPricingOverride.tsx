@@ -8,7 +8,12 @@ import { formatMoney } from "@/lib/format-money";
 import type { PricingStructure } from "../../types";
 
 interface EditionPricingOverrideProps {
-  offerPricing: PricingStructure[];
+  /**
+   * Base pricing options from the parent offer. May be undefined or empty
+   * while the offer is still loading or was created without pricing yet —
+   * the component must render a graceful empty state instead of crashing.
+   */
+  offerPricing: PricingStructure[] | undefined;
   currency: string;
   value: PricingStructure[] | null;
   onChange: (pricing: PricingStructure[] | null) => void;
@@ -20,11 +25,14 @@ export function EditionPricingOverride({
   value,
   onChange,
 }: EditionPricingOverrideProps) {
+  const basePricing = offerPricing ?? [];
+  const hasBasePricing = basePricing.length > 0;
   const isOverride = value !== null;
+  const toggleDisabled = !hasBasePricing && !isOverride;
 
   const handleToggle = (checked: boolean) => {
     if (checked) {
-      onChange(offerPricing.map((p) => ({ ...p })));
+      onChange(basePricing.map((p) => ({ ...p })));
     } else {
       onChange(null);
     }
@@ -45,14 +53,21 @@ export function EditionPricingOverride({
           <span className="text-xs text-muted-foreground">
             {isOverride ? "Override activo" : "Usa precio base"}
           </span>
-          <Switch checked={isOverride} onCheckedChange={handleToggle} />
+          <Switch checked={isOverride} onCheckedChange={handleToggle} disabled={toggleDisabled} />
         </div>
       </div>
 
-      {!isOverride && (
+      {!isOverride && hasBasePricing && (
         <p className="text-xs text-muted-foreground">
           Precio heredado de la oferta:{" "}
-          {offerPricing.map((p) => formatMoney(p.total_amount, currency)).join(" / ")}
+          {basePricing.map((p) => formatMoney(p.total_amount, currency)).join(" / ")}
+        </p>
+      )}
+
+      {!isOverride && !hasBasePricing && (
+        <p className="text-xs text-amber-600">
+          La oferta aún no tiene precio base configurado. Actívalo en la oferta o define un precio
+          específico para esta edición.
         </p>
       )}
 
@@ -77,12 +92,12 @@ export function EditionPricingOverride({
                   className="pl-12"
                 />
               </div>
-              {offerPricing[idx] && plan.total_amount < offerPricing[idx].total_amount && (
+              {basePricing[idx] && plan.total_amount < basePricing[idx].total_amount && (
                 <span className="text-xs text-green-500 whitespace-nowrap">
                   -
                   {Math.round(
-                    ((offerPricing[idx].total_amount - plan.total_amount) /
-                      offerPricing[idx].total_amount) *
+                    ((basePricing[idx].total_amount - plan.total_amount) /
+                      basePricing[idx].total_amount) *
                       100,
                   )}
                   %

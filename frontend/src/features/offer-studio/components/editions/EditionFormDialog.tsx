@@ -37,7 +37,7 @@ interface EditionFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   edition?: LaunchEdition;
-  offerPricing: PricingStructure[];
+  offerPricing: PricingStructure[] | undefined;
   currency: string;
   onSave: (data: LaunchEditionCreate | LaunchEditionUpdate) => Promise<unknown>;
 }

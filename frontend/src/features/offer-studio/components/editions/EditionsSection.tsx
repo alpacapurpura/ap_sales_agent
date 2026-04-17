@@ -21,7 +21,7 @@ import type {
 
 interface EditionsSectionProps {
   offerId: string;
-  offerPricing: PricingStructure[];
+  offerPricing: PricingStructure[] | undefined;
   currency: string;
 }
 
