@@ -502,3 +502,40 @@ Siempre referenciar el phase #.
 - **Migration naming prefix**: last real migration was `047_pricing_tiers.py` — confirmed `048_create_enrollments.py` is the right number. Older files use hash-based names (e.g. `f851363921c9_...`) but the numbered-prefix convention is the active one.
 - **`db_engine` fixture in `backend/tests/conftest.py`**: new SA models must be imported in the try-block that calls `Base.metadata.create_all()`. Otherwise tests that use the in-memory SQLite engine can't create the table.
 - **Event bus**: sales_agent has an async EventBus but no service in offer/ uses it directly. Chose `ServiceResult(enrollment, events: list)` tuple pattern so the API layer decides when to dispatch. Matches 'returned events' style without async contamination.
+
+---
+
+## Learnings Phases 6–9b (2026-04-17)
+
+### Phase 6 — Sales Agent tools
+- Plan called for 7 tools. Delivered 7 in `enrollment_tools.py` + registry merge in `tools.py`. Prompt rules in `agent_identity.j2` tested only by template introspection; full E2E with LLM will require a mock LLM harness (future work).
+- DDD boundary needed a port: `shared/links/ports/offer.get_launch_edition_repository()` — sales_agent cannot import from offer. Matches the existing `get_product_model_class` pattern.
+- `generate_payment_link` is an honest stub: it sets `enrollment.payment_link_url = offer.checkout_page_url` and transitions to `PAYMENT_PENDING`. Real Stripe/MP/Culqi webhooks not wired (tracked as "deferred from Phase 6" in commit).
+
+### Phase 7 — Copilot interview
+- Existing `InterviewBlock` schema (`campos_objetivo`, `prompt_context`, `coverage_threshold`) does NOT have first-class fields for `quick_replies` or `condition`. Cleanest fit: add the block as a regular `InterviewBlock` with low `coverage_threshold=0.3` to make skip a valid completion; quick replies happen client-side from the block `id`.
+- Conditional append per archetype via a `_EDITION_SUPPORTING_ARCHETYPES` frozenset in `get_offer_interview_config()` — no big refactor of the block type needed.
+- Offer_creation Procedure handler that publishes the placeholder edition when `first_edition.start_date` is captured is NOT yet wired — the data model + tests are in place; wiring is a one-line addition once the copilot interview handler matures.
+
+### Phase 8 — Public URL routing
+- Offers do NOT yet have a slug column; the URL uses `offer_id` (UUID) as a placeholder. True `offer_slug` migration is a future task.
+- Tenants already have `slug` on the model — clean lookup.
+- Had to use string comparison (`getattr(e.status, "value", e.status) == "active"`) instead of `EditionStatus.ACTIVE` to avoid a `landing → offer` cross-module import.
+
+### Phase 9a — Shell + rail
+- Split into two commits: **part 1** (shipped) ships rail expanded/collapsed + `useOfferWithEdition` + `useRailCollapsed` + 3-col OfferShell. **Part 2** (deferred) = LandingSplitButton, WaitlistBanner, EditionCloneModal. Rationale: keep commits reviewable + pre-emptively protect context budget.
+- `use-rail-collapsed`: original plan used `useEffect` to read localStorage; React's `set-state-in-effect` rule flagged it. Fixed with lazy `useState` initializer + a passive `storage` event listener for cross-tab sync.
+- Tests use `vi.mock("next/navigation")` for `useRouter.replace` and access the reactive state through `aria-pressed` attributes. Grouped headers use emoji prefixes (`⭐ Próxima`, `✏ Borradores`, `✓ Pasadas`) so testers match against the group header string without colliding with per-entry status chips.
+
+### Phase 9c — Closer Studio
+- Sidebar's `NavChild` type gained a new `badge` field (`accent | success | warning` + optional `expiresAt`). Renders in both expanded sidebar and the collapsed flyout tooltip. Auto-hides after `expiresAt` date.
+- EnrollmentsPage grouping logic factored into `ensureBucket` helper to satisfy `no-non-null-assertion` rule cleanly without sprinkling `!` after `Map.get`.
+- `items` from React Query response wrapped in `useMemo(() => data?.items ?? [], [data])` to prevent `react-hooks/exhaustive-deps` churn.
+
+### Phases 9d + 9e — Interview date UI + landing editor stub
+- `InterviewDateBlock` is a self-contained component (no backend coupling). Integrates into the Copilot `BlockRenderer` via a single `case "first_edition_date"` once the Copilot procedure returns the block payload — tracked in Phase 7 learnings.
+- Landing editor stub at `/editions/[editionId]/landing` exists so the Offer Shell's "Editar landing" main click always has a valid target; real Puck editor integration is for a follow-up.
+
+### Phase 9b (lite) — Ventas tab + tab bar rewrite
+- Tab bar grew from 4 → **5 tabs** (not exactly the PLAN's "4 tabs"). Rationale: the PLAN proposed dropping Conocimiento as a tab and folding it into Info's section 7. The Info-tab 7-section refactor is out of scope for this session (requires coordinated DTO/counts work). Keeping Conocimiento as a tab until the Info refactor lands avoids a destructive intermediate state where Knowledge UI is missing entirely. Once the full Info refactor ships, Conocimiento tab can be dropped in a one-line tab-bar patch.
+- OfferVentasTab reuses the Phase 9c `useEnrollments` hook — zero duplication between the Closer Studio global page and the per-edition offer tab. Filters automatically re-scope when the user switches editions via the rail.
