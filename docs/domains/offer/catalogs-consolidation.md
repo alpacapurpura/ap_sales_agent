@@ -1,6 +1,6 @@
 # Offer Studio Catalogs — Consolidation Design
 
-> Status: In progress. Started 2026-04-17.
+> Status: **Complete** (all 8 phases shipped 2026-04-17).
 > Owner: Chris. Reviewer: audit-ready architecture.
 
 ## Why this document exists
@@ -50,15 +50,15 @@ Plus a fourth axis that filters formats by business fit:
 
 | Phase | Scope | Commit |
 |---|---|---|
-| 0 | ExpertBusinessType enum + BrandIdentity.business_types field + Alembic migration + DTO + tests | pending |
-| 1 | ValueLevel catalog (domain + API + arch test) | pending |
-| 2 | Format catalog (domain + API + arch test, with `suitable_for` scores) | pending |
-| 3 | Frontend hooks: useArchetypeCatalog, useValueLevelCatalog, useFormatCatalog | pending |
-| 4 | Migrate 10 consumers to hooks. Delete archetype-metadata.ts, format-presets.ts | pending |
-| 5 | Wizard redesign: archetype → value level → format (scored) → name+price → editions → promise | pending |
-| 6 | Editor polymorphic labels migrate to archetype catalog (label_es, edition_noun_es) | pending |
-| 7 | First-time full-screen onboarding wizard for business_types + settings editor | pending |
-| 8 | Anti-drift arch tests + domain docs | pending |
+| 0 | ExpertBusinessType enum + BrandIdentity.business_types field + DTO + tests (no Alembic — JSON blob) | c35b18e8 |
+| 1 | ValueLevel catalog (domain + API + arch test) | 73bf7294 |
+| 2 | Format catalog (domain + API + arch test, with `suitable_for` scores) | 1ada67ef |
+| 3 | Frontend hooks: useArchetypeCatalog (existed), useValueLevelCatalog, useFormatCatalog, useExpertBusinessTypesCatalog | 75fc63d5 |
+| 4 | Migrate 7 dashboard/editor consumers to hooks. Backend archetype catalog gains subtitle_es + examples_es | 2ab444cd |
+| 5 | Wizard redesign: archetype → value level → format (scored) → name+price → editions → promise. Configs deleted | 5e6b019f |
+| 6 | Editor polymorphic labels already flow through the catalog via EditionsOptIn + wizard copy | (incidental) |
+| 7 | First-time full-screen onboarding dialog for business_types + settings editor | 00655f65 |
+| 8 | Anti-drift arch test + docs | (this commit) |
 
 ## Key decisions (DX series, captured 2026-04-17)
 

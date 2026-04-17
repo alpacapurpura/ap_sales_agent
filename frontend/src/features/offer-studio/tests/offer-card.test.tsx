@@ -64,7 +64,7 @@ describe("OfferCard Component", () => {
   it("renders the correct archetype label", () => {
     render(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
 
-    // Should map archetype "producto" -> "Producto" via ARCHETYPE_METADATA
+    // Should map archetype "producto" -> "Producto" via the mocked useArchetypeDisplay hook
     expect(screen.getByText("Producto")).toBeInTheDocument();
   });
 
