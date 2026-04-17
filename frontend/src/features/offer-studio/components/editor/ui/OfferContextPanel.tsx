@@ -34,14 +34,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-
-import { cn } from "@/lib/utils";
-import { useArchetypeDisplay } from "../../../hooks/use-archetype-display";
-import { OfferArchetype } from "../../../types";
-import { OfferFormValues } from "../../../types/schema";
-import type { ArchetypeDisplay } from "../../../hooks/use-archetype-display";
-import type { Avatar } from "@/lib/api/avatar";
-
 import {
   Sheet,
   SheetContent,
@@ -51,11 +43,17 @@ import {
   SheetTrigger,
   SheetFooter,
 } from "@/components/ui/sheet";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatMoney } from "@/lib/format-money";
+import { cn } from "@/lib/utils";
 
+import { useArchetypeDisplay } from "../../../hooks/use-archetype-display";
+import { OfferArchetype } from "../../../types";
 import { InstructorsPreview } from "../sections/instructors/InstructorsPreview";
 
-import { formatMoney } from "@/lib/format-money";
-import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import type { ArchetypeDisplay } from "../../../hooks/use-archetype-display";
+import type { OfferFormValues } from "../../../types/schema";
+import type { Avatar } from "@/lib/api/avatar";
 
 export type OfferPhase = "context" | "solution" | "deal";
 
@@ -83,6 +81,9 @@ export interface ValidationResult {
   isValid: boolean;
 }
 
+/**
+ *
+ */
 export function getOfferValidationStatus(values: OfferFormValues): ValidationResult {
   const checks: ValidationItem[] = [
     // Phase 1: Context
@@ -234,6 +235,9 @@ function FlightCheckCard({ status }: { status: ValidationResult }) {
   );
 }
 
+/**
+ *
+ */
 export function OfferContextPanel({
   phase,
   formValues,
@@ -710,8 +714,8 @@ function SolutionPhaseContent({
           <AlertCircle className="w-4 h-4" /> Check de Coherencia
         </h4>
         <p className="text-xs text-muted-foreground">
-          ¿El <strong>Vehículo</strong> que elegiste ({archetypeDisplay?.label}) es capaz de entregar
-          la <strong>Promesa</strong> en el tiempo que indicaste?
+          ¿El <strong>Vehículo</strong> que elegiste ({archetypeDisplay?.label}) es capaz de
+          entregar la <strong>Promesa</strong> en el tiempo que indicaste?
         </p>
       </div>
     </div>

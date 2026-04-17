@@ -18,18 +18,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
 import { useArchetypeCatalog } from "@/features/offer-studio/hooks/use-archetype-catalog";
+import { useFormatCatalog } from "@/features/offer-studio/hooks/use-format-catalog";
 import {
   useValueLevelCatalog,
   useValueLevelMetadata,
 } from "@/features/offer-studio/hooks/use-value-level-catalog";
-import { useFormatCatalog } from "@/features/offer-studio/hooks/use-format-catalog";
 import { resolveIconByName } from "@/features/offer-studio/lib/icon-name-resolver";
-import { OfferArchetype, OfferStatus, OfferValueLevel } from "@/features/offer-studio/types";
+import { OfferStatus, OfferValueLevel } from "@/features/offer-studio/types";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { cn } from "@/lib/utils";
 
 import type { FormatMetadata } from "@/features/offer-studio/api/format-catalog-api";
-import type { OfferDeliveryModel } from "@/features/offer-studio/types";
+import type { OfferDeliveryModel, OfferArchetype } from "@/features/offer-studio/types";
 
 interface CreateOfferWizardProps {
   open: boolean;
@@ -58,6 +58,9 @@ type Step = 1 | 2 | 3 | 4 | 5 | 6;
 // each render and thrash the memoized children.
 const EMPTY_LIST: readonly never[] = [];
 
+/**
+ *
+ */
 export function CreateOfferWizard({
   open,
   onOpenChange,
@@ -157,7 +160,7 @@ export function CreateOfferWizard({
       has_editions: showsEditionsStep ? hasEditions : undefined,
       headline_promise: headlinePromise.trim() || undefined,
       status: OfferStatus.DRAFT,
-      delivery_model: selectedFormat?.delivery_model as OfferDeliveryModel | undefined,
+      delivery_model: selectedFormat?.delivery_model,
       value_level: valueLevel,
       specific_details: selectedFormat?.specific_details_defaults,
     };
@@ -267,7 +270,7 @@ export function CreateOfferWizard({
           {(step === 4 || step === 5) && (
             <Button
               className="sm:ml-auto"
-              onClick={() => setStep((s) => ((s + 1) as Step))}
+              onClick={() => setStep((s) => (s + 1) as Step)}
               disabled={creating || (step === 4 && !offerName.trim())}
             >
               Siguiente <ArrowRight className="ml-2 h-4 w-4" />
@@ -415,9 +418,7 @@ function ValueLevelStep({ onPick, valueLevels }: ValueLevelStepProps) {
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">{v.description_es}</p>
-                <p className="text-[11px] text-muted-foreground/80 italic">
-                  {v.role_in_funnel_es}
-                </p>
+                <p className="text-[11px] text-muted-foreground/80 italic">{v.role_in_funnel_es}</p>
               </div>
             </button>
           );
@@ -493,12 +494,7 @@ function FormatStep({
             onChange={(e) => onCustomChange(e.target.value)}
             placeholder="Ej: Sesión de estrategia de 2 horas"
           />
-          <Button
-            variant="outline"
-            onClick={onCustom}
-            disabled={!customValue.trim()}
-            size="sm"
-          >
+          <Button variant="outline" onClick={onCustom} disabled={!customValue.trim()} size="sm">
             Usar
           </Button>
         </div>
@@ -567,8 +563,8 @@ function NamePriceStep({
           />
           {priceMinUsd !== null && priceMaxUsd !== null && (
             <p className="text-xs text-muted-foreground">
-              Rango típico para {valueLevelLabel}: USD {priceMinUsd}–{priceMaxUsd}
-              . El precio final se ajusta al valor que vas a entregar.
+              Rango típico para {valueLevelLabel}: USD {priceMinUsd}–{priceMaxUsd}. El precio final
+              se ajusta al valor que vas a entregar.
             </p>
           )}
         </div>

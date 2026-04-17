@@ -24,6 +24,9 @@ export const IdentityPreview = ({ data: propsData, onEdit }: IdentityPreviewProp
   const data = propsData || (form ? form.watch() : null);
   const { settings } = useBrandSettings();
 
+  const archetype = (data?.archetype ?? undefined) as OfferArchetype | undefined;
+  const archetypeDisplay = useArchetypeDisplay(archetype);
+
   // Handle missing data gracefully
   if (!data) {
     return (
@@ -33,12 +36,11 @@ export const IdentityPreview = ({ data: propsData, onEdit }: IdentityPreviewProp
     );
   }
 
-  const { public_name, archetype, delivery_model } = data;
+  const { public_name, delivery_model } = data;
   const visuals = settings?.visuals;
 
   const hasName = Boolean(public_name);
 
-  const archetypeDisplay = useArchetypeDisplay(archetype as OfferArchetype | undefined);
   const TypeIcon = archetypeDisplay?.icon ?? Sparkles;
 
   // --- SAFE COLOR LOGIC ---

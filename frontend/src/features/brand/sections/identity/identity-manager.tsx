@@ -2,10 +2,14 @@
 
 import { Loader2 } from "lucide-react";
 
+import { BusinessTypesSection } from "@/features/brand/components/business-types/BusinessTypesSection";
 import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
 
 import { IdentityForm } from "./identity-form";
 
+/**
+ *
+ */
 export function IdentityManager() {
   const { settings, updateIdentity, loading, saving } = useBrandSettings();
 
@@ -20,6 +24,13 @@ export function IdentityManager() {
   if (!settings) return null;
 
   return (
-    <IdentityForm initialData={settings.identity ?? {}} onSave={updateIdentity} isSaving={saving} />
+    <div className="space-y-6">
+      <BusinessTypesSection />
+      <IdentityForm
+        initialData={settings.identity ?? {}}
+        onSave={updateIdentity}
+        isSaving={saving}
+      />
+    </div>
   );
 }

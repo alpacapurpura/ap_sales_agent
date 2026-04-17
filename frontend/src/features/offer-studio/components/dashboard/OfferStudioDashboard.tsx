@@ -17,14 +17,13 @@ import { offerApi } from "@/features/offer-studio/api";
 import { useArchiveOffer } from "@/features/offer-studio/hooks/use-offer";
 import { useValueLevelMetadata } from "@/features/offer-studio/hooks/use-value-level-catalog";
 import { resolveIconByName } from "@/features/offer-studio/lib/icon-name-resolver";
-
 import { OfferValueLevel } from "@/features/offer-studio/types";
 import { computeLadderCompleteness } from "@/features/offer-studio/utils/ladder-completeness";
 import { cn } from "@/lib/utils";
 
 import { CreateOfferWizard } from "../wizard/CreateOfferWizard";
-import { LeadMagnetStreamCard } from "./LeadMagnetStreamCard";
 
+import { LeadMagnetStreamCard } from "./LeadMagnetStreamCard";
 import { OfferLadderLayout } from "./OfferLadderLayout";
 import { OfferLegend } from "./OfferLegend";
 
@@ -42,6 +41,9 @@ interface OfferStudioDashboardProps {
   }) => void;
 }
 
+/**
+ *
+ */
 export function OfferStudioDashboard({
   searchQuery = "",
   externalCreateTrigger = false,
@@ -303,7 +305,6 @@ export function OfferStudioDashboard({
         onNavigate={(offerId) => navigate(`/${tenantId}/offer-studio/offer/${offerId}`)}
       />
 
-
       {/* --- LADDER LAYOUT (L1 - L6) --- */}
       <OfferLadderLayout
         groupedOffers={groupedOffers}
@@ -349,20 +350,19 @@ function LeadMagnetStream({
 
   const title = metadata?.label_es ?? "Lead Magnets";
   const description =
-    metadata?.description_es ??
-    "Recursos gratuitos para convertir tráfico frío en leads.";
+    metadata?.description_es ?? "Recursos gratuitos para convertir tráfico frío en leads.";
   const Icon = resolveIconByName(metadata?.icon_name);
 
   return (
     <section
       className="space-y-4 py-6 px-4 -mx-4 border-y border-dashed border-border/60 rounded-lg"
       style={{
-        background:
-          "linear-gradient(135deg, hsl(var(--muted) / 0.3), hsl(var(--primary) / 0.05))",
+        background: "linear-gradient(135deg, hsl(var(--muted) / 0.3), hsl(var(--primary) / 0.05))",
       }}
     >
       <div className="flex items-start gap-4 pl-2 border-l-4 border-primary/70">
         <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          {/* eslint-disable-next-line react-hooks/static-components -- Icon is a stable reference resolved from the ValueLevel catalog, not a component created during render. */}
           <Icon className="h-6 w-6 text-primary" />
         </div>
         <div className="space-y-1 flex-1">

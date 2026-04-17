@@ -50,6 +50,9 @@ const COLUMN_TOKENS: Record<OfferValueLevel, ColumnTokens> = {
   },
 };
 
+/**
+ *
+ */
 export function OfferLadderLayout({
   groupedOffers,
   searchQuery,
