@@ -17,6 +17,10 @@ SUPPORTED_CURRENCIES: frozenset[str] = frozenset(
         "BRL",
         "PEN",
         "CLP",
+        "BOB",  # Bolivia
+        "UYU",  # Uruguay
+        "PYG",  # Paraguay
+        "CRC",  # Costa Rica
         "GBP",
         "CAD",
         "AUD",
@@ -25,7 +29,9 @@ SUPPORTED_CURRENCIES: frozenset[str] = frozenset(
     },
 )
 
-# Approximate static rates TO USD (multiply amount * rate = USD value)
+# Approximate static rates TO USD (multiply amount * rate = USD value).
+# Coarse-grained — good enough for dashboard display, not for commercial
+# pricing. Refresh periodically from a reliable feed.
 EXCHANGE_RATES_TO_USD: dict[str, float] = {
     "USD": 1.0,
     "EUR": 1.08,
@@ -35,6 +41,10 @@ EXCHANGE_RATES_TO_USD: dict[str, float] = {
     "BRL": 0.19,
     "PEN": 0.27,
     "CLP": 0.0011,
+    "BOB": 0.14,
+    "UYU": 0.025,
+    "PYG": 0.00013,
+    "CRC": 0.0019,
     "GBP": 1.27,
     "CAD": 0.74,
     "AUD": 0.66,

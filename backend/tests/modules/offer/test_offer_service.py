@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from src.modules.offer.application.offer_service import OfferService
 from src.modules.offer.domain.enums import OfferArchetype, OfferValueLevel
+from src.modules.offer.domain.offer import PricingStructure
 from src.shared.domain.datetime_utils import utc_now
 from tests.modules.offer.conftest import create_product_model
 
@@ -268,3 +269,43 @@ class TestCreateOfferValueLevelInvariant:
         )
         assert offer.is_lead_magnet is True
         assert offer.value_level == OfferValueLevel.LEAD_MAGNET
+
+
+class TestCreateOfferPricing:
+    """Regression: the wizard seeds its price + currency as the offer's
+    first ``PricingStructure`` so the editor's pricing section opens with
+    a concrete starting point instead of an empty list."""
+
+    def test_pricing_options_persist_when_provided(self, db: Session, tenant_a):
+        service = OfferService(db)
+        seed = PricingStructure(
+            label="Standard",
+            plan_type="one_time",
+            total_amount=497.0,
+            currency="PEN",
+        )
+        offer = service.create_offer(
+            name="Programa de Ventas",
+            tenant_id=tenant_a,
+            archetype=OfferArchetype.PROGRAMA,
+            value_level=OfferValueLevel.TRANSFORMACION,
+            currency="PEN",
+            pricing_options=[seed],
+        )
+        assert len(offer.pricing_options) == 1
+        persisted = offer.pricing_options[0]
+        assert persisted.label == "Standard"
+        assert persisted.total_amount == 497.0
+        assert persisted.currency == "PEN"
+
+    def test_pricing_options_default_empty_when_omitted(self, db: Session, tenant_a):
+        """Lead magnets and legacy callers that don't send pricing keep the
+        existing behavior — empty list, editor starts from scratch."""
+        service = OfferService(db)
+        offer = service.create_offer(
+            name="Lead Magnet",
+            tenant_id=tenant_a,
+            archetype=OfferArchetype.PRODUCTO,
+            is_lead_magnet=True,
+        )
+        assert offer.pricing_options == []

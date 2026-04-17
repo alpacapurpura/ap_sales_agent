@@ -3,7 +3,7 @@
 import uuid
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.modules.offer.domain.enums import OfferArchetype, OfferStatus, OfferValueLevel
 
@@ -93,6 +93,12 @@ class ProductCreate(BaseModel):
     # Optional ISO 4217 code. If omitted, the API resolves it from
     # TenantLocale so the offer inherits the tenant's default currency.
     currency: str | None = None
+    # Seed pricing structures from the wizard — the first becomes the
+    # default ``Standard`` one-time plan. Lead magnets send [].
+    pricing_options: list[dict[str, Any]] | None = Field(default=None)
+    # Optional polymorphic defaults suggested by the format catalog.
+    specific_details: dict[str, Any] | None = None
+    delivery_model: str | None = None
 
     @field_validator("archetype", mode="before")
     @classmethod

@@ -3,6 +3,7 @@
 import { ArrowLeft, ArrowRight, Loader2, Rocket, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { CurrencySelect } from "@/components/shared/CurrencySelect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +30,11 @@ import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context
 import { cn } from "@/lib/utils";
 
 import type { FormatMetadata } from "@/features/offer-studio/api/format-catalog-api";
-import type { OfferDeliveryModel, OfferArchetype } from "@/features/offer-studio/types";
+import type {
+  OfferArchetype,
+  OfferDeliveryModel,
+  PricingStructure,
+} from "@/features/offer-studio/types";
 
 interface CreateOfferWizardProps {
   open: boolean;
@@ -50,6 +55,14 @@ export interface WizardResult {
   delivery_model?: OfferDeliveryModel;
   value_level: OfferValueLevel;
   specific_details?: Record<string, unknown>;
+  /** Resolved ISO 4217 code. Mirrors onto the offer + its first pricing entry. */
+  currency?: string;
+  /**
+   * Seed pricing entries. The wizard always emits one default "Standard"
+   * plan for paid offers; lead magnets leave this empty. The editor can
+   * add/replace plans afterwards.
+   */
+  pricing_options?: PricingStructure[];
 }
 
 type Step = 1 | 2 | 3 | 4 | 5 | 6;
@@ -81,6 +94,7 @@ export function CreateOfferWizard({
   const [customFormatHint, setCustomFormatHint] = useState("");
   const [offerName, setOfferName] = useState("");
   const [price, setPrice] = useState<string>("");
+  const [currencyCode, setCurrencyCode] = useState<string>(tenantCurrency);
   const [hasEditions, setHasEditions] = useState<boolean>(true);
   const [headlinePromise, setHeadlinePromise] = useState("");
 
@@ -109,6 +123,7 @@ export function CreateOfferWizard({
     setCustomFormatHint("");
     setOfferName("");
     setPrice("");
+    setCurrencyCode(tenantCurrency);
     setHasEditions(true);
     setHeadlinePromise("");
   };
@@ -152,6 +167,22 @@ export function CreateOfferWizard({
 
   const buildResult = (): WizardResult | null => {
     if (!archetype || !valueLevel || !offerName.trim()) return null;
+    // Lead magnets skip pricing entirely; paid offers seed one "Standard"
+    // one-time plan the editor can further expand into multi-plan pricing.
+    const priceNum = parseFloat(price);
+    const pricingOptions: PricingStructure[] = isLeadMagnet
+      ? []
+      : [
+          {
+            label: "Standard",
+            plan_type: "one_time",
+            total_amount: Number.isFinite(priceNum) && priceNum >= 0 ? priceNum : 0,
+            currency: currencyCode,
+            deposit_required: 0,
+            number_of_installments: 1,
+            installment_amount: 0,
+          },
+        ];
     return {
       archetype,
       format_hint: selectedFormat?.format_hint || customFormatHint.trim() || undefined,
@@ -163,6 +194,8 @@ export function CreateOfferWizard({
       delivery_model: selectedFormat?.delivery_model,
       value_level: valueLevel,
       specific_details: selectedFormat?.specific_details_defaults,
+      currency: currencyCode,
+      pricing_options: pricingOptions,
     };
   };
 
@@ -226,7 +259,8 @@ export function CreateOfferWizard({
               onNameChange={setOfferName}
               price={price}
               onPriceChange={setPrice}
-              tenantCurrency={tenantCurrency}
+              currencyCode={currencyCode}
+              onCurrencyChange={setCurrencyCode}
               valueLevelLabel={valueLevelMeta?.label_es ?? ""}
               priceMinUsd={valueLevelMeta?.typical_price_min_usd ?? null}
               priceMaxUsd={valueLevelMeta?.typical_price_max_usd ?? null}
@@ -511,7 +545,8 @@ interface NamePriceStepProps {
   onNameChange: (value: string) => void;
   price: string;
   onPriceChange: (value: string) => void;
-  tenantCurrency: string;
+  currencyCode: string;
+  onCurrencyChange: (code: string) => void;
   valueLevelLabel: string;
   priceMinUsd: number | null;
   priceMaxUsd: number | null;
@@ -523,7 +558,8 @@ function NamePriceStep({
   onNameChange,
   price,
   onPriceChange,
-  tenantCurrency,
+  currencyCode,
+  onCurrencyChange,
   valueLevelLabel,
   priceMinUsd,
   priceMaxUsd,
@@ -551,16 +587,32 @@ function NamePriceStep({
           Los lead magnets son gratuitos — no se pide precio en este paso.
         </div>
       ) : (
-        <div className="space-y-2">
-          <Label htmlFor="wizard-price">Precio ({tenantCurrency})</Label>
-          <Input
-            id="wizard-price"
-            type="number"
-            min="0"
-            value={price}
-            onChange={(e) => onPriceChange(e.target.value)}
-            placeholder="0"
-          />
+        <div className="space-y-3">
+          <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
+            <div className="space-y-2">
+              <Label htmlFor="wizard-price">Precio</Label>
+              <Input
+                id="wizard-price"
+                type="number"
+                min="0"
+                value={price}
+                onChange={(e) => onPriceChange(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-2 min-w-[220px]">
+              <Label htmlFor="wizard-currency">Moneda</Label>
+              <CurrencySelect
+                id="wizard-currency"
+                value={currencyCode}
+                onChange={onCurrencyChange}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Este precio siembra tu estrategia de pricing como plan inicial &quot;Standard&quot;.
+            Podés agregar más planes (3 cuotas, anual, tiers) desde el editor después.
+          </p>
           {priceMinUsd !== null && priceMaxUsd !== null && (
             <p className="text-xs text-muted-foreground">
               Rango típico para {valueLevelLabel}: USD {priceMinUsd}–{priceMaxUsd}. El precio final

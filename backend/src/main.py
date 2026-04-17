@@ -127,6 +127,9 @@ from src.modules.scheduling.api import public_links as sched_public
 # 15. Tenant Domains
 from src.modules.tenant_domains.api import domain_router as domains_router
 
+# 16. Shared catalogs (currencies, etc.)
+from src.shared.api import currencies as shared_currencies
+
 init_sentry("api")
 
 # --- App Initialization ---
@@ -458,6 +461,11 @@ app.include_router(
     offer_formats.router,
     prefix="/api/v1/offer/formats",
     tags=["Offer - Formats"],
+)
+app.include_router(
+    shared_currencies.router,
+    prefix="/api/v1/shared/currencies",
+    tags=["Shared - Currencies"],
 )
 app.include_router(
     offer_product_mappings.router,

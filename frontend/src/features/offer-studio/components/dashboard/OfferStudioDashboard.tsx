@@ -29,6 +29,7 @@ import { OfferLegend } from "./OfferLegend";
 
 import type { WizardResult } from "../wizard/CreateOfferWizard";
 import type { Offer } from "@/features/offer-studio/types";
+import type { OfferFormValues } from "@/features/offer-studio/types/schema";
 
 interface OfferStudioDashboardProps {
   searchQuery?: string;
@@ -168,6 +169,12 @@ export function OfferStudioDashboard({
           delivery_model: wizardData.delivery_model,
           offer_value_level: wizardData.value_level,
           specific_details: wizardData.specific_details,
+          currency: wizardData.currency,
+          // Wizard sends fully-populated PricingStructure records; the
+          // strict OfferFormValues shape expects the same — the cast just
+          // narrows the optional fields the loose public interface
+          // exposes on `pricing_options` to their Zod-resolved defaults.
+          pricing_options: wizardData.pricing_options as OfferFormValues["pricing_options"],
         },
         token,
       );
@@ -201,6 +208,12 @@ export function OfferStudioDashboard({
           delivery_model: wizardData.delivery_model,
           offer_value_level: wizardData.value_level,
           specific_details: wizardData.specific_details,
+          currency: wizardData.currency,
+          // Wizard sends fully-populated PricingStructure records; the
+          // strict OfferFormValues shape expects the same — the cast just
+          // narrows the optional fields the loose public interface
+          // exposes on `pricing_options` to their Zod-resolved defaults.
+          pricing_options: wizardData.pricing_options as OfferFormValues["pricing_options"],
         },
         token,
       );

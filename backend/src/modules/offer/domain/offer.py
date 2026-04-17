@@ -47,6 +47,11 @@ class PricingStructure(BaseEntity):
     label: str
     plan_type: PaymentPlanType | None = None
     total_amount: float
+    # Optional ISO 4217 override for this plan. When None the offer falls
+    # back to ``Offer.currency`` (which in turn falls back to the tenant
+    # locale). A plan may legitimately bill in a different currency than
+    # the offer's default (e.g. USD for corporate tier, PEN for local).
+    currency: str | None = None
     deposit_required: float = 0.0
     number_of_installments: int = 1
     installment_amount: float = 0.0

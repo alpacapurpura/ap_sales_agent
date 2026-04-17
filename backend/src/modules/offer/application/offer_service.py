@@ -13,7 +13,11 @@ from src.modules.offer.domain.enums import (
     OfferStatus,
     OfferValueLevel,
 )
-from src.modules.offer.domain.offer import ARCHETYPE_TO_DETAILS_MAPPING, Offer
+from src.modules.offer.domain.offer import (
+    ARCHETYPE_TO_DETAILS_MAPPING,
+    Offer,
+    PricingStructure,
+)
 from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
     LaunchEditionRepository,
 )
@@ -53,6 +57,7 @@ class OfferService:
         avatar_id: UUID | None = None,
         value_level: OfferValueLevel | None = None,
         currency: str | None = None,
+        pricing_options: list[PricingStructure] | None = None,
     ) -> Offer:
         """Create offer."""
         # Invariant: value_level == LEAD_MAGNET iff is_lead_magnet. The
@@ -80,7 +85,7 @@ class OfferService:
             target_avatar_match=[],
             requires_application=False,
             min_financial_capacity=FinancialCapacity.LOW_INCOME,
-            pricing_options=[],
+            pricing_options=list(pricing_options or []),
             # Resolved from TenantLocale at the API layer. Persisted as-is so
             # the offer always carries an explicit currency after creation.
             currency=currency,
