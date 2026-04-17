@@ -40,13 +40,23 @@ describe("OfferTabBar", () => {
     mockUsePathname.mockReset();
   });
 
-  it("renders all four tabs", () => {
+  it("renders all five tabs (Info, Ventas, Assets, Campañas, Conocimiento)", () => {
     mockUsePathname.mockReturnValue("/acme/offer-studio/offer/offer-1");
     render(<OfferTabBar {...baseProps} />);
-    expect(screen.getByRole("link", { name: /Editor/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Info/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Ventas/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Assets/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Campañas/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Conocimiento/i })).toBeInTheDocument();
+  });
+
+  it("marks the Ventas tab active on the ventas sub-route", () => {
+    mockUsePathname.mockReturnValue("/acme/offer-studio/offer/offer-1/ventas");
+    render(<OfferTabBar {...baseProps} />);
+    expect(screen.getByRole("link", { name: /Ventas/i })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 
   it("renders count badges for assets, campaigns and knowledge", () => {
@@ -57,10 +67,10 @@ describe("OfferTabBar", () => {
     expect(screen.getByText("7")).toBeInTheDocument();
   });
 
-  it("marks Editor as active on the base route", () => {
+  it("marks Info as active on the base route", () => {
     mockUsePathname.mockReturnValue("/acme/offer-studio/offer/offer-1");
     render(<OfferTabBar {...baseProps} />);
-    expect(screen.getByRole("link", { name: /Editor/i })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Info/i })).toHaveAttribute("aria-current", "page");
   });
 
   it("marks Assets as active on the assets sub-route", () => {

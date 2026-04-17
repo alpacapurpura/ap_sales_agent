@@ -2,6 +2,7 @@
 
 import {
   BookOpen,
+  DollarSign,
   type LucideIcon,
   Image as ImageIcon,
   LayoutDashboard,
@@ -22,16 +23,17 @@ export interface OfferTabBarProps {
 }
 
 interface TabConfig {
-  key: "editor" | "assets" | "campaigns" | "knowledge";
+  key: "editor" | "ventas" | "assets" | "campaigns" | "knowledge";
   label: string;
   icon: LucideIcon;
   /** Path suffix appended to `/{tenantId}/offer-studio/offer/{offerId}`. */
-  suffix: "" | "assets" | "campaigns" | "knowledge";
+  suffix: "" | "ventas" | "assets" | "campaigns" | "knowledge";
   badge?: (counts: OfferCountsResponse) => number;
 }
 
 const TABS: TabConfig[] = [
-  { key: "editor", label: "Editor", icon: LayoutDashboard, suffix: "" },
+  { key: "editor", label: "Info", icon: LayoutDashboard, suffix: "" },
+  { key: "ventas", label: "Ventas", icon: DollarSign, suffix: "ventas" },
   {
     key: "assets",
     label: "Assets",
