@@ -35,7 +35,9 @@ function formatKpiValue(value: number | string, unit?: string): string {
   return value.toLocaleString("es-MX");
 }
 
-
+/**
+ *
+ */
 export function StageCard({
   stage,
   isActive,

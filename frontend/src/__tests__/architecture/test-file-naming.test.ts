@@ -8,8 +8,10 @@
  * Ratchet pattern: KNOWN_CAMELCASE_FILES is frozen at 2026-04-15 violations.
  * This set MUST only shrink — never add new entries.
  */
-import { describe, it, expect } from "vitest";
 import * as path from "path";
+
+import { describe, it, expect } from "vitest";
+
 import { FEATURES_DIR, walkFiles, relPath, isKebabCase, stemName, isTestFile } from "./helpers";
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────
@@ -20,7 +22,17 @@ const KNOWN_CAMELCASE_FILES = new Set<string>([]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SCANNED_DIRS = new Set(["hooks", "api", "types", "utils", "config", "lib", "context", "store", "services"]);
+const SCANNED_DIRS = new Set([
+  "hooks",
+  "api",
+  "types",
+  "utils",
+  "config",
+  "lib",
+  "context",
+  "store",
+  "services",
+]);
 
 // PascalCase context files (e.g. GrowthStudioContext.tsx) are exempt:
 // they export a React Context object (PascalCase is the React convention for context exports).

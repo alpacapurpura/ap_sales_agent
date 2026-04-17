@@ -44,6 +44,9 @@ interface SmartFillDialogProps {
   currentUrl?: string;
 }
 
+/**
+ *
+ */
 export function SmartFillDialog({
   open,
   onOpenChange,
@@ -309,8 +312,7 @@ export function SmartFillDialog({
                           className="absolute inset-0 opacity-0 cursor-pointer z-10"
                           onChange={(e) => {
                             const { files } = e.target;
-                            if (files)
-                              setFiles((prev) => [...prev, ...Array.from(files)]);
+                            if (files) setFiles((prev) => [...prev, ...Array.from(files)]);
                             e.target.value = "";
                           }}
                         />

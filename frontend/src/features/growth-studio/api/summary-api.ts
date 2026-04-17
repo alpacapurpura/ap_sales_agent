@@ -28,6 +28,9 @@ function mapStageSummary(raw: RawStageSummary): StageSummaryKpi {
   };
 }
 
+/**
+ *
+ */
 export async function fetchBowtiesSummary(token: string): Promise<BowtiesSummary> {
   if (ENABLE_MOCKS) return MOCK_BOWTIES_SUMMARY;
 
@@ -35,7 +38,11 @@ export async function fetchBowtiesSummary(token: string): Promise<BowtiesSummary
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Summary API returned ${res.status}`);
-  const raw = (await res.json()) as { stages?: RawStageSummary[]; period: string; last_updated?: string };
+  const raw = (await res.json()) as {
+    stages?: RawStageSummary[];
+    period: string;
+    last_updated?: string;
+  };
 
   return {
     stages: (raw.stages ?? []).map(mapStageSummary),

@@ -4,7 +4,6 @@ import { Plus, Trash2, Layers, PackageOpen } from "lucide-react";
 import { useFieldArray } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -112,7 +111,9 @@ function ValueStackContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
         <CardContent className="space-y-4 pt-6">
           <div className="space-y-4">
             {fields.map((field, index) => {
-              const currentFormatValue = form.watch(`deliverables.${index}.format`) as DeliverableFormat;
+              const currentFormatValue = form.watch(
+                `deliverables.${index}.format`,
+              ) as DeliverableFormat;
               const selectedOption = formatOptions.find((opt) => opt.value === currentFormatValue);
 
               return (
@@ -291,6 +292,9 @@ function ValueStackContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   );
 }
 
+/**
+ *
+ */
 export function ValueStackForm({ defaultValues: propValues, onSave }: ValueStackFormProps) {
   const defaultValues: ValueStackFormValues = {
     deliverables: propValues?.deliverables || [],

@@ -46,12 +46,16 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { fetchMetaAssets, syncMetaAssets, toggleMetaAsset } from "@/features/connections/api/meta-assets-api";
+import {
+  fetchMetaAssets,
+  syncMetaAssets,
+  toggleMetaAsset,
+} from "@/features/connections/api/meta-assets-api";
 import { connectionsApi } from "@/lib/api/connections";
 import { cn } from "@/lib/utils";
 
-import type { MetaStatusResponse } from "@/lib/api/connections";
 import type { MetaAssetsResponse } from "@/features/connections/api/meta-assets-api";
+import type { MetaStatusResponse } from "@/lib/api/connections";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -151,7 +155,10 @@ function NotConnectedScreen({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: MetaView manages 5 asset categories (pages, IG, ads, pixels, WhatsApp), each with toggle/primary mutations, plus sync/disconnect flows. The handlers share getToken and the optimistic-update setAssets closure — splitting would require context or additional hooks.
+/**
+ *
+ */
+// eslint-disable-next-line sonarjs/cognitive-complexity -- multi-handler connection UI; extraction to hooks planned in connections refactor
 export function MetaView() {
   const { getToken } = useAuth();
   const params = useParams();

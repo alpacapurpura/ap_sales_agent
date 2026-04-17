@@ -28,10 +28,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { connectionsApi } from "@/lib/api/connections";
-import { eventTypesApi, EventTypeUpdate } from "@/lib/api/event-types";
+import { eventTypesApi } from "@/lib/api/event-types";
 
 import type { AvailabilitySchedule } from "@/lib/api/availability";
-import type { EventType } from "@/lib/api/event-types";
+import type { EventType, EventTypeUpdate } from "@/lib/api/event-types";
 
 interface EventTypeSidebarProps {
   open: boolean;
@@ -43,6 +43,9 @@ interface EventTypeSidebarProps {
 
 const DURATION_OPTIONS = [15, 30, 45, 60, 90, 120];
 
+/**
+ *
+ */
 export function EventTypeSidebar({
   open,
   onOpenChange,
@@ -147,7 +150,10 @@ export function EventTypeSidebar({
   const updateSchedulingLimit = (field: string, value: string | number | boolean | null) => {
     setFormData((prev) => ({
       ...prev,
-      scheduling_limits: { ...prev.scheduling_limits, [field]: value } as EventType["scheduling_limits"],
+      scheduling_limits: {
+        ...prev.scheduling_limits,
+        [field]: value,
+      } as EventType["scheduling_limits"],
     }));
   };
 

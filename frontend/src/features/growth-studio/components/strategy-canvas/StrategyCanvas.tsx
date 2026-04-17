@@ -121,4 +121,3 @@ export const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
     </div>
   );
 };
-

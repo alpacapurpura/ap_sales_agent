@@ -48,6 +48,9 @@ interface OfferObjectionsCardProps {
   control: Control<OfferFormValues>;
 }
 
+/**
+ *
+ */
 export function OfferObjectionsCard({ control }: OfferObjectionsCardProps) {
   const { fields, append, remove } = useFieldArray({
     control,
@@ -108,8 +111,10 @@ export function OfferObjectionsCard({ control }: OfferObjectionsCardProps) {
                 <Select
                   defaultValue={field.type || "custom"}
                   onValueChange={(val) => {
-                    (control._formValues as Record<string, unknown[]>)["objections"][index] = {
-                      ...(control._formValues as Record<string, unknown[]>)["objections"][index] as Record<string, unknown>,
+                    (control._formValues as Record<string, unknown[]>).objections[index] = {
+                      ...((control._formValues as Record<string, unknown[]>).objections[
+                        index
+                      ] as Record<string, unknown>),
                       type: val,
                     };
                   }}

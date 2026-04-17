@@ -18,7 +18,11 @@ interface ActionDetailsDrawerProps {
   link: MarketingActionLink | null;
 }
 
-export const ActionDetailsDrawer: React.FC<ActionDetailsDrawerProps> = ({ isOpen, onClose, link }) => {
+export const ActionDetailsDrawer: React.FC<ActionDetailsDrawerProps> = ({
+  isOpen,
+  onClose,
+  link,
+}) => {
   return (
     <DetailPanel open={isOpen} onClose={onClose}>
       <DetailPanelHeader className="flex flex-row items-start justify-between pr-6">
@@ -87,4 +91,3 @@ export const ActionDetailsDrawer: React.FC<ActionDetailsDrawerProps> = ({ isOpen
     </DetailPanel>
   );
 };
-

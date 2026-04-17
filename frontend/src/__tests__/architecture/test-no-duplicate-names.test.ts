@@ -13,8 +13,10 @@
  * This test currently passes with an empty allowlist. The allowlist is here
  * as a ratchet gate to catch future regressions.
  */
-import { describe, it, expect } from "vitest";
 import * as path from "path";
+
+import { describe, it, expect } from "vitest";
+
 import { FEATURES_DIR, getFeatureNames, walkFiles, isTestFile } from "./helpers";
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────
@@ -36,7 +38,8 @@ describe("Architecture: No duplicate component names", () => {
     for (const feature of featureNames) {
       const featureDir = path.join(FEATURES_DIR, feature);
       const files = walkFiles(featureDir).filter(
-        (f) => f.endsWith(".tsx") && f.includes(path.sep + "components" + path.sep) && !isTestFile(f),
+        (f) =>
+          f.endsWith(".tsx") && f.includes(`${path.sep}components${path.sep}`) && !isTestFile(f),
       );
 
       for (const file of files) {

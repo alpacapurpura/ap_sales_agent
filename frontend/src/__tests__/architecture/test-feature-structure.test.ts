@@ -14,6 +14,7 @@
  * feature will immediately fail CI unless justified and allowlisted.
  */
 import { describe, it, expect } from "vitest";
+
 import { getFeatureNames, getFeatureTopDirs } from "./helpers";
 
 // ── Canonical folder names ────────────────────────────────────────────────────
@@ -27,10 +28,10 @@ const CANONICAL_FOLDERS = new Set([
   "context",
   "store",
   "lib",
-  "sections",  // brand-style section grouping
-  "services",  // legacy — prefer api/ for new features
-  "mocks",     // manual mock data
-  "tests",     // alternative to __tests__
+  "sections", // brand-style section grouping
+  "services", // legacy — prefer api/ for new features
+  "mocks", // manual mock data
+  "tests", // alternative to __tests__
   "__tests__",
   "__mocks__",
 ]);

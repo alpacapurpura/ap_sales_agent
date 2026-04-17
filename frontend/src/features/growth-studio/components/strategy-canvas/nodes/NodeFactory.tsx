@@ -38,4 +38,3 @@ export const NodeFactory: React.FC<NodeFactoryProps> = ({ node, x, y, width, hei
     </Group>
   );
 };
-

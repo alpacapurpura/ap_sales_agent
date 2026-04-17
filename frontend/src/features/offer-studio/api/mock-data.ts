@@ -8,7 +8,6 @@ import {
 
 import type { Offer } from "../types";
 
-// eslint-disable-next-line max-params -- test helper; grouping into options object unnecessary for mock factory
 const createMockOffer = (
   id: string,
   name: string,

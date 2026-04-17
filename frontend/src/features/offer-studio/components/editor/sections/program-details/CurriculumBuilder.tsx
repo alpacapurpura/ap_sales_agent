@@ -39,6 +39,9 @@ import { ImportCurriculumDialog } from "./ImportCurriculumDialog";
 
 import type { OfferFormValues } from "../../../../types/schema";
 
+/**
+ *
+ */
 export function CurriculumBuilder({ form }: { form: UseFormReturn<OfferFormValues> }) {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -169,12 +172,14 @@ function CurriculumModuleItem({
 
   const addTopic = (e: React.MouseEvent) => {
     e.preventDefault();
-    const current = (form.getValues(`specific_details.curriculum.${index}.topics`) as string[]) || [];
+    const current =
+      (form.getValues(`specific_details.curriculum.${index}.topics`) as string[]) || [];
     form.setValue(`specific_details.curriculum.${index}.topics`, [...current, ""]);
   };
 
   const removeTopic = (tIndex: number) => {
-    const current = (form.getValues(`specific_details.curriculum.${index}.topics`) as string[]) || [];
+    const current =
+      (form.getValues(`specific_details.curriculum.${index}.topics`) as string[]) || [];
     form.setValue(
       `specific_details.curriculum.${index}.topics`,
       current.filter((_: string, i: number) => i !== tIndex),

@@ -53,13 +53,13 @@ const PREVIEW_REGISTRY: Record<string, PreviewRegistryEntry> = {
   },
   buyer_persona: {
     summaryComponent: () =>
-      import("@/features/brand/components/interview/previews/PersonaPreviewSummary").then(
-        (m) => ({ default: m.PersonaPreviewSummary }),
-      ),
+      import("@/features/brand/components/interview/previews/PersonaPreviewSummary").then((m) => ({
+        default: m.PersonaPreviewSummary,
+      })),
     sectionsComponent: () =>
-      import("@/features/brand/components/interview/previews/PersonaPreviewSections").then(
-        (m) => ({ default: m.PersonaPreviewSections }),
-      ),
+      import("@/features/brand/components/interview/previews/PersonaPreviewSections").then((m) => ({
+        default: m.PersonaPreviewSections,
+      })),
     emptyStateMessage: "Comienza la entrevista para construir tu buyer persona.",
   },
 };

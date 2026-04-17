@@ -129,7 +129,9 @@ export const offerApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
-      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as { detail?: string };
+      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as {
+        detail?: string;
+      };
       throw new Error(err.detail || "Error al archivar la oferta");
     }
   },
@@ -141,7 +143,9 @@ export const offerApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
-      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as { detail?: string };
+      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as {
+        detail?: string;
+      };
       throw new Error(err.detail || "Error al restaurar la oferta");
     }
   },
@@ -153,7 +157,9 @@ export const offerApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
-      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as { detail?: string };
+      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as {
+        detail?: string;
+      };
       throw new Error(err.detail || "Error al eliminar la oferta");
     }
   },
@@ -344,7 +350,9 @@ export const offerApi = {
       }),
     });
     if (!res.ok) {
-      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as { detail?: string };
+      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as {
+        detail?: string;
+      };
       throw new Error(err.detail || "Error generating landing page");
     }
     return res.json() as Promise<LandingPageConfig>;
@@ -421,7 +429,9 @@ export const offerApi = {
       },
     );
     if (!res.ok) {
-      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as { detail?: string };
+      const err = (await res.json().catch(() => ({ detail: res.statusText }))) as {
+        detail?: string;
+      };
       throw new Error(err.detail || "Error regenerating block");
     }
     return res.json() as Promise<Record<string, unknown>>;

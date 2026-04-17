@@ -204,7 +204,8 @@ export const REGISTRY_GROWTH: ComponentEntry[] = [
   {
     name: "OfferMetricsRow",
     atomicLevel: "molecule",
-    filePath: "features/growth-studio/components/metrics-dashboard/offer-widgets/OfferMetricsRow.tsx",
+    filePath:
+      "features/growth-studio/components/metrics-dashboard/offer-widgets/OfferMetricsRow.tsx",
     source: "feature",
     featureSlice: "growth-studio",
     variants: [],

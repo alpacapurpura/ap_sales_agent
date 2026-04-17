@@ -11,8 +11,10 @@
  * Ratchet pattern: KNOWN_HOOKS_OUTSIDE_HOOKS is frozen at 2026-04-15 violations.
  * This set MUST only shrink — never add new entries.
  */
-import { describe, it, expect } from "vitest";
 import * as path from "path";
+
+import { describe, it, expect } from "vitest";
+
 import { FEATURES_DIR, walkFiles, relPath, isTestFile, readFile } from "./helpers";
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────

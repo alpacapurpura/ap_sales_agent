@@ -15,10 +15,10 @@ export interface SyncChannelError {
   remaining_minutes?: number;
 }
 
-export async function syncChannel(
-  token: string,
-  channelSlug: string,
-): Promise<SyncChannelResult> {
+/**
+ *
+ */
+export async function syncChannel(token: string, channelSlug: string): Promise<SyncChannelResult> {
   const res = await fetchClient(
     `${API_URL}/api/v1/analytics/metrics/attraction/refresh/${channelSlug}`,
     {
@@ -28,7 +28,10 @@ export async function syncChannel(
   );
 
   if (res.status === 429) {
-    const errData = (await res.json().catch(() => ({}))) as { detail?: string; remaining_minutes?: number };
+    const errData = (await res.json().catch(() => ({}))) as {
+      detail?: string;
+      remaining_minutes?: number;
+    };
     const err: SyncChannelError = {
       detail: errData.detail ?? "Rate limited",
       remaining_minutes: errData.remaining_minutes,

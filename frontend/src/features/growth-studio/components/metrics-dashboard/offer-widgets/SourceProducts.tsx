@@ -18,11 +18,13 @@ import type { Offer } from "@/features/offer-studio/types";
 const EMPTY_PRODUCTS: SourceProduct[] = [];
 const EMPTY_OFFERS: Offer[] = [];
 
-
 interface SourceProductsProps {
   source?: string;
 }
 
+/**
+ *
+ */
 export function SourceProducts({ source = "shopify" }: SourceProductsProps) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

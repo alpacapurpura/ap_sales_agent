@@ -6,8 +6,10 @@ const MetaView: LazyView = lazy(() =>
   import("@/features/connections/components/MetaView").then((m) => ({ default: m.MetaView })),
 );
 
-const WhatsAppView: LazyView = lazy(
-  () => import("@/features/connections/components/WhatsappView").then((m) => ({ default: m.WhatsAppView })),
+const WhatsAppView: LazyView = lazy(() =>
+  import("@/features/connections/components/WhatsappView").then((m) => ({
+    default: m.WhatsAppView,
+  })),
 );
 
 const ShopifyView: LazyView = lazy(() =>
@@ -142,6 +144,9 @@ const SLUG_TO_VIEW: Record<string, LazyView> = {
   youtube: YoutubeView,
 };
 
+/**
+ *
+ */
 export function getConnectionView(slug: string): LazyView | null {
   return SLUG_TO_VIEW[slug] ?? null;
 }

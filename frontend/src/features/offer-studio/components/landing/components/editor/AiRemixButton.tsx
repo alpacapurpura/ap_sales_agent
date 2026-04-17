@@ -21,6 +21,9 @@ interface AiRemixButtonProps {
   offerId: string;
 }
 
+/**
+ *
+ */
 export function AiRemixButton({ offerId }: AiRemixButtonProps) {
   const { appState, dispatch } = usePuck();
   const { getToken } = useAuth();
@@ -63,9 +66,10 @@ export function AiRemixButton({ offerId }: AiRemixButtonProps) {
         destinationZone: itemSelector?.zone ?? "",
         data: {
           ...selectedBlock,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Puck block props typed as any by lib; newProps shape validated by backend
           props: {
-            ...selectedBlock.props, // Keep ID and other internal props
-            ...(newProps as Record<string, unknown>), // Overwrite content
+            ...selectedBlock.props,
+            ...newProps,
           },
         },
       });

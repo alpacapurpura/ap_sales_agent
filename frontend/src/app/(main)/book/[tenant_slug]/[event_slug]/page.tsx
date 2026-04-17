@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import { useState, useEffect, use } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -34,13 +35,14 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useState, useEffect, use } from "react";
-
 import { publicApi } from "@/lib/api/public";
 import { cn } from "@/lib/utils";
 
 import type { EventTypeResolveResponse, BookingLinkResolveResponse } from "@/lib/api/public";
 
+/**
+ *
+ */
 export default function BookingPage({
   params,
 }: {
@@ -264,7 +266,9 @@ export default function BookingPage({
           {data.event_type.confirmation_button?.enabled &&
           data.event_type.confirmation_button.url ? (
             <Button
-              onClick={() => (window.location.href = data.event_type.confirmation_button?.url ?? "")}
+              onClick={() =>
+                (window.location.href = data.event_type.confirmation_button?.url ?? "")
+              }
               variant="outline"
               className="w-full border-neutral-700 hover:bg-neutral-800 text-white"
             >

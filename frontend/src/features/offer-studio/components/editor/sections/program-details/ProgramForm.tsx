@@ -1,24 +1,12 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { RichSelect } from "@/components/ui/rich-select";
-import { SmartDateTimePicker } from "@/components/ui/smart-datetime-picker";
-import { TimezoneSelect } from "@/components/ui/timezone-select";
-import {
-  PROGRAM_STRUCTURE_METADATA,
-  LIVE_INTERACTION_METADATA,
-  COMMUNITY_PLATFORM_METADATA,
-  getEnumOptions,
-} from "../../../../types/enum-metadata";
-import { SessionScheduleBuilder } from "./SessionScheduleBuilder";
-import { CurriculumBuilder } from "./CurriculumBuilder";
-import { CalendarIcon, Clock, Sparkles, Shield, ShieldCheck } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { UseFormReturn } from "react-hook-form";
-import { cn } from "@/lib/utils";
+import { CalendarIcon, Clock, Sparkles, Shield, ShieldCheck } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   FormField,
   FormItem,
@@ -30,7 +18,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { RichSelect } from "@/components/ui/rich-select";
+import { SmartDateTimePicker } from "@/components/ui/smart-datetime-picker";
 import { Switch } from "@/components/ui/switch";
+import { TimezoneSelect } from "@/components/ui/timezone-select";
+import { cn } from "@/lib/utils";
 
 import {
   OfferArchetype,
@@ -38,11 +30,21 @@ import {
   LiveInteractionType,
   CommunityPlatform,
 } from "../../../../types";
+import {
+  PROGRAM_STRUCTURE_METADATA,
+  LIVE_INTERACTION_METADATA,
+  COMMUNITY_PLATFORM_METADATA,
+  getEnumOptions,
+} from "../../../../types/enum-metadata";
 import { OfferSchema } from "../../../../types/schema";
 import { EditionsOptIn } from "../common/EditionsOptIn";
 import { SectionFormWrapper } from "../common/SectionFormWrapper";
 
+import { CurriculumBuilder } from "./CurriculumBuilder";
+import { SessionScheduleBuilder } from "./SessionScheduleBuilder";
+
 import type { OfferFormValues } from "../../../../types/schema";
+import type { UseFormReturn } from "react-hook-form";
 
 const ProgramDetailsSchema = OfferSchema.pick({
   specific_details: true,
@@ -186,7 +188,9 @@ function ProgramDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> 
                         <Switch
                           checked={field.value as boolean}
                           onCheckedChange={field.onChange}
-                          className={cn((field.value as boolean) && "data-[state=checked]:bg-indigo-600")}
+                          className={cn(
+                            (field.value as boolean) && "data-[state=checked]:bg-indigo-600",
+                          )}
                         />
                       </FormControl>
                     </div>
@@ -395,7 +399,9 @@ function ProgramDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> 
                             onCheckedChange={(checked) => {
                               if (checked) {
                                 // Default to start date if available, or today
-                                const startDate = form.getValues("specific_details.start_date") as string | undefined;
+                                const startDate = form.getValues("specific_details.start_date") as
+                                  | string
+                                  | undefined;
                                 field.onChange(startDate ?? new Date().toISOString());
                               } else {
                                 field.onChange(null);
@@ -502,6 +508,9 @@ function ProgramDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> 
   );
 }
 
+/**
+ *
+ */
 export function ProgramDetailsForm({ defaultValues: propValues, onSave }: ProgramDetailsFormProps) {
   const defaultValues: ProgramDetailsFormValues = {
     specific_details: propValues?.specific_details || {},

@@ -111,6 +111,7 @@ export default [
       "src/app/global-error.tsx", // Next.js global error boundary — requires default export
       "src/middleware.ts",
       "src/proxy.ts", // Next.js middleware variant (clerkMiddleware — requires default export)
+      "**/*.d.ts", // type declaration files for modules that export default
     ],
     rules: {
       "import/no-default-export": "off",
@@ -355,8 +356,8 @@ export default [
       "check-file/filename-naming-convention": [
         "error",
         {
-          // React components: PascalCase
-          "src/features/**/components/**/*.tsx": "PASCAL_CASE",
+          // React components: PascalCase (config files like puck.config.tsx excluded by `ignoreMiddleExtensions`)
+          "src/features/**/components/**/!(*.config).tsx": "PASCAL_CASE",
           "src/components/shared/**/*.tsx": "PASCAL_CASE",
           // Non-component files: kebab-case
           "src/features/**/api/*.ts": "KEBAB_CASE",
@@ -457,6 +458,13 @@ export default [
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-non-null-assertion": "warn",
       "sonarjs/no-dead-store": "warn",
+      // Test files use __tests__ convention and PascalCase matches component name they test
+      "check-file/filename-naming-convention": "off",
+      "check-file/folder-naming-convention": "off",
+      // Storybook stories require default export for the meta object
+      "import/no-default-export": "off",
+      // Architecture tests enumerate patterns and naturally have higher branching
+      "sonarjs/cognitive-complexity": "warn",
     },
   },
 

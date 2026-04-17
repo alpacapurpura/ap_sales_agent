@@ -30,6 +30,46 @@ import { cn } from "@/lib/utils";
 
 import type { LinkResolveResponse } from "@/lib/api/public";
 
+function SuccessView({ selectedSlot, email }: { selectedSlot: string | null; email: string }) {
+  if (!selectedSlot) return null;
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-black/95 p-4">
+      <Card className="w-full max-w-md text-center py-8 border-green-900/30 bg-green-950/10">
+        <CardHeader>
+          <div className="mx-auto w-12 h-12 bg-green-900/20 rounded-full flex items-center justify-center mb-4">
+            <CheckCircle2 className="w-6 h-6 text-green-500" />
+          </div>
+          <CardTitle className="text-green-500">¡Reserva Confirmada!</CardTitle>
+          <CardDescription className="text-green-400/80">
+            Hemos enviado los detalles a tu correo electrónico ({email}).
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-black/40 p-4 rounded-lg mb-6 border border-green-900/30">
+            <p className="font-medium text-green-400">
+              {format(new Date(selectedSlot), "EEEE d 'de' MMMM", { locale: es })}
+            </p>
+            <p className="text-green-500/80">
+              {format(new Date(selectedSlot), "h:mm a", { locale: es })} -{" "}
+              {format(new Date(new Date(selectedSlot).getTime() + 30 * 60000), "h:mm a")}
+            </p>
+          </div>
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="w-full border-white/10 hover:bg-white/5 text-white hover:text-white"
+          >
+            Agendar otra reunión
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/**
+ *
+ */
 export default function PublicVisitPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
 
@@ -132,40 +172,7 @@ export default function PublicVisitPage({ params }: { params: Promise<{ token: s
   }
 
   if (step === "success") {
-    if (!selectedSlot) return null;
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black/95 p-4">
-        <Card className="w-full max-w-md text-center py-8 border-green-900/30 bg-green-950/10">
-          <CardHeader>
-            <div className="mx-auto w-12 h-12 bg-green-900/20 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle2 className="w-6 h-6 text-green-500" />
-            </div>
-            <CardTitle className="text-green-500">¡Reserva Confirmada!</CardTitle>
-            <CardDescription className="text-green-400/80">
-              Hemos enviado los detalles a tu correo electrónico ({formData.email}).
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-black/40 p-4 rounded-lg mb-6 border border-green-900/30">
-              <p className="font-medium text-green-400">
-                {format(new Date(selectedSlot), "EEEE d 'de' MMMM", { locale: es })}
-              </p>
-              <p className="text-green-500/80">
-                {format(new Date(selectedSlot), "h:mm a", { locale: es })} -{" "}
-                {format(new Date(new Date(selectedSlot).getTime() + 30 * 60000), "h:mm a")}
-              </p>
-            </div>
-            <Button
-              onClick={() => window.location.reload()}
-              variant="outline"
-              className="w-full border-white/10 hover:bg-white/5 text-white hover:text-white"
-            >
-              Agendar otra reunión
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <SuccessView selectedSlot={selectedSlot} email={formData.email} />;
   }
 
   return (

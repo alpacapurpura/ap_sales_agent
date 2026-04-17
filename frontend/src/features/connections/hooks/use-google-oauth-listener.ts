@@ -10,6 +10,9 @@ interface UseGoogleOAuthListenerOptions {
   enabled?: boolean;
 }
 
+/**
+ *
+ */
 export function useGoogleOAuthListener({
   onSuccess,
   onError,
@@ -26,7 +29,9 @@ export function useGoogleOAuthListener({
   useEffect(() => {
     if (!enabled) return;
 
-    const handleMessage = async (event: MessageEvent<{ type?: string; code?: string; error?: string }>) => {
+    const handleMessage = async (
+      event: MessageEvent<{ type?: string; code?: string; error?: string }>,
+    ) => {
       if (event.origin !== window.location.origin) return;
 
       if (event.data?.type === OAUTH_MESSAGE_TYPES.GOOGLE_SUCCESS && event.data?.code) {

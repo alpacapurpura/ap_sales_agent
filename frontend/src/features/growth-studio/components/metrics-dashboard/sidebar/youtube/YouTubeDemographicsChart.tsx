@@ -3,7 +3,10 @@
 import { Loader2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
-import { useYoutubeDemographics, useYoutubeCountries } from "../../../../hooks/use-youtube-analytics";
+import {
+  useYoutubeDemographics,
+  useYoutubeCountries,
+} from "../../../../hooks/use-youtube-analytics";
 
 function formatNumber(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -22,6 +25,9 @@ interface YouTubeDemographicsChartProps {
   enabled: boolean;
 }
 
+/**
+ *
+ */
 export function YouTubeDemographicsChart({ enabled }: YouTubeDemographicsChartProps) {
   const { data: demographics, isLoading: demoLoading } = useYoutubeDemographics(enabled);
   const { data: countries, isLoading: countryLoading } = useYoutubeCountries(enabled);

@@ -74,7 +74,6 @@ export const ExpansionEvangelizationDetail = React.memo(function ExpansionEvange
   );
 
   const handleMetricClick = useCallback(
-    // eslint-disable-next-line max-params -- callback mirrors onMetricClick prop signature; refactor requires updating parent types
     (
       stageId: "EXPANSION" | "EVANGELIZACION",
       channelSlug: string,
