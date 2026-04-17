@@ -22,6 +22,7 @@ class LandingRepository:
             id=model.id,
             tenant_id=model.tenant_id,
             offer_id=model.offer_id,
+            edition_id=model.edition_id,
             slug=model.slug,
             config=LandingPageConfig(**model.config),
             is_published=model.is_published,
@@ -34,6 +35,7 @@ class LandingRepository:
             id=entity.id,
             tenant_id=entity.tenant_id,
             offer_id=entity.offer_id,
+            edition_id=entity.edition_id,
             slug=entity.slug,
             config=entity.config.model_dump(mode="json"),
             is_published=entity.is_published,
@@ -71,12 +73,50 @@ class LandingRepository:
         return None
 
     def get_by_offer(self, tenant_id: UUID, offer_id: UUID) -> LandingPage | None:
-        """Retrieve by offer."""
+        """Retrieve any landing for an offer (legacy — edition-agnostic).
+
+        Pre-Phase-3 callers expect "the landing for this offer" without
+        knowing about editions; we preserve that contract by returning the
+        first live row, preferring the offer-level template so a freshly
+        generated landing isn't shadowed by a later edition-scoped one.
+        New code should use :meth:`get_by_offer_and_edition`.
+        """
+        stmt = (
+            select(LandingPageModel)
+            .where(
+                LandingPageModel.tenant_id == tenant_id,
+                LandingPageModel.offer_id == offer_id,
+                LandingPageModel.deleted_at.is_(None),
+            )
+            # NULL edition (offer-level template) first, then edition-scoped.
+            .order_by(LandingPageModel.edition_id.is_not(None), LandingPageModel.created_at)
+        )
+        model = self.db.execute(stmt).scalars().first()
+        if model:
+            return self._to_domain(model)
+        return None
+
+    def get_by_offer_and_edition(
+        self,
+        tenant_id: UUID,
+        offer_id: UUID,
+        edition_id: UUID | None,
+    ) -> LandingPage | None:
+        """Retrieve the landing for an ``(offer, edition)`` pair.
+
+        When ``edition_id`` is ``None``, matches rows where ``edition_id
+        IS NULL`` — i.e. the offer-level fallback template. When set,
+        matches exactly that edition. Always tenant-scoped.
+        """
         stmt = select(LandingPageModel).where(
             LandingPageModel.tenant_id == tenant_id,
             LandingPageModel.offer_id == offer_id,
             LandingPageModel.deleted_at.is_(None),
         )
+        if edition_id is None:
+            stmt = stmt.where(LandingPageModel.edition_id.is_(None))
+        else:
+            stmt = stmt.where(LandingPageModel.edition_id == edition_id)
         model = self.db.execute(stmt).scalars().first()
         if model:
             return self._to_domain(model)

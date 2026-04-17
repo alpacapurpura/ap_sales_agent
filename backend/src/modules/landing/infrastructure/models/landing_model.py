@@ -17,6 +17,12 @@ class LandingPageModel(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     offer_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=True)
+    # Added in migration 046. Nullable keeps the offer-level template
+    # landings (pre-Phase-3) working as a fallback when no edition-scoped
+    # row exists. FK lives in the DB schema; we don't declare the
+    # SQLAlchemy relationship here because the edition aggregate sits in
+    # another bounded context.
+    edition_id = Column(UUID(as_uuid=True), nullable=True)
 
     # slug is unique per-tenant (not globally). The DB-level constraint is a
     # partial unique index created in migration 024_fix_landing_pages_schema.

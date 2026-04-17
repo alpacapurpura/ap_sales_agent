@@ -4,7 +4,12 @@ import { toast } from "sonner";
 
 import { editionsApi } from "../api/editions-api";
 
-import type { LaunchEditionCreate, LaunchEditionUpdate } from "../types";
+import type {
+  EditionClonePayload,
+  EditionCloneResponse,
+  LaunchEditionCreate,
+  LaunchEditionUpdate,
+} from "../types";
 
 export function useEditions(offerId: string) {
   const { getToken } = useAuth();
@@ -78,6 +83,26 @@ export function useEditions(offerId: string) {
     onError: () => toast.error("Error al duplicar edición"),
   });
 
+  const cloneMutation = useMutation<
+    EditionCloneResponse,
+    Error,
+    { editionId: string; payload: EditionClonePayload }
+  >({
+    mutationFn: async ({ editionId, payload }) => {
+      const token = await getToken();
+      if (!token) throw new Error("No autenticado");
+      return editionsApi.clone(offerId, editionId, payload, token);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey });
+      // Assets for the new edition exist under a fresh cache key; invalidate
+      // the whole edition/assets tree so the gallery reflects the clone.
+      void queryClient.invalidateQueries({ queryKey: ["offer", offerId] });
+      toast.success("Edición clonada");
+    },
+    onError: (err) => toast.error(err.message || "Error al clonar edición"),
+  });
+
   return {
     editions,
     loading: isLoading,
@@ -86,10 +111,12 @@ export function useEditions(offerId: string) {
     updateEdition: updateMutation.mutateAsync,
     deleteEdition: deleteMutation.mutateAsync,
     duplicateEdition: duplicateMutation.mutateAsync,
+    cloneEdition: cloneMutation.mutateAsync,
     saving:
       createMutation.isPending ||
       updateMutation.isPending ||
       deleteMutation.isPending ||
-      duplicateMutation.isPending,
+      duplicateMutation.isPending ||
+      cloneMutation.isPending,
   };
 }

@@ -42,6 +42,18 @@ class OfferAssetModel(Base):
         nullable=False,
         index=True,
     )
+    # Nullable edition binding — see ``OfferAsset`` domain docstring for
+    # the three visibility buckets. Migration 046 adds the FK + indexes.
+    edition_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=True,
+    )
+    shared_across_editions: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+    )
 
     name: Mapped[str] = mapped_column(String, nullable=False)
     type: Mapped[str] = mapped_column(String, nullable=False)  # AssetType enum value

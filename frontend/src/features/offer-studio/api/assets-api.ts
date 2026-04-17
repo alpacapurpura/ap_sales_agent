@@ -18,6 +18,7 @@ const buildQueryString = (query?: AssetListQuery): string => {
   if (query.search) params.set("search", query.search);
   if (query.type) params.set("type", query.type);
   if (query.source) params.set("source", query.source);
+  if (query.edition_id) params.set("edition_id", query.edition_id);
   if (query.sort) params.set("sort", query.sort);
   if (typeof query.limit === "number") params.set("limit", String(query.limit));
   if (typeof query.offset === "number") params.set("offset", String(query.offset));
@@ -58,9 +59,25 @@ export const assetsApi = {
     return (await res.json()) as AssetResponse;
   },
 
-  upload: async (offerId: string, file: File, token: string): Promise<AssetResponse> => {
+  upload: async (
+    offerId: string,
+    file: File,
+    token: string,
+    options?: {
+      edition_id?: string;
+      shared_across_editions?: boolean;
+      name?: string;
+      type?: string;
+    },
+  ): Promise<AssetResponse> => {
     const formData = new FormData();
     formData.append("file", file);
+    if (options?.name) formData.append("name", options.name);
+    if (options?.type) formData.append("type", options.type);
+    if (options?.edition_id) formData.append("edition_id", options.edition_id);
+    if (typeof options?.shared_across_editions === "boolean") {
+      formData.append("shared_across_editions", String(options.shared_across_editions));
+    }
     const res = await fetchClient(`${API_URL}/api/v1/offer/products/${offerId}/assets/upload`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },

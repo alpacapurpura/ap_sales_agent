@@ -89,3 +89,43 @@ class TestGetAsset:
         )
 
         assert response.status_code == 404
+
+
+class TestEditionFilter:
+    def test_list_filters_by_edition_id_query_param(
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
+    ) -> None:
+        model = create_product_model(tenant_a, name="EditionFilter")
+        db.add(model)
+        db.flush()
+        client = _build_client(db, tenant_a)
+
+        edition_a = uuid.uuid4()
+        edition_b = uuid.uuid4()
+
+        # Upload one asset per edition scope.
+        for edition_id in (edition_a, edition_b):
+            client.post(
+                f"/api/v1/offer/products/{model.id}/assets/upload",
+                data={
+                    "name": f"for {edition_id}",
+                    "type": "flyer",
+                    "edition_id": str(edition_id),
+                },
+                files={"file": ("x.png", io.BytesIO(b"x"), "image/png")},
+            )
+
+        resp_a = client.get(
+            f"/api/v1/offer/products/{model.id}/assets",
+            params={"edition_id": str(edition_a)},
+        )
+        assert resp_a.status_code == 200
+        body_a = resp_a.json()
+        assert body_a["total"] == 1
+        assert body_a["items"][0]["edition_id"] == str(edition_a)
+
+        # Legacy call without edition filter sees both.
+        resp_all = client.get(f"/api/v1/offer/products/{model.id}/assets")
+        assert resp_all.json()["total"] == 2

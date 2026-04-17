@@ -66,17 +66,19 @@ class OfferAssetService:
         search: str | None = None,
         type_: AssetType | None = None,
         source: AssetSource | None = None,
+        edition_id: UUID | None = None,
         sort: str = "created_desc",
         limit: int = 24,
         offset: int = 0,
     ) -> tuple[list[OfferAsset], int]:
-        """List assets."""
+        """List assets. ``edition_id`` semantics inherited from the repo port."""
         return self._repo.list(
             tenant_id,
             offer_id,
             search=search,
             type_=type_,
             source=source,
+            edition_id=edition_id,
             sort=sort,
             limit=limit,
             offset=offset,
@@ -106,8 +108,10 @@ class OfferAssetService:
         filename: str,
         type_: AssetType,
         mime_type: str | None = None,
+        edition_id: UUID | None = None,
+        shared_across_editions: bool = False,
     ) -> OfferAsset:
-        """Upload asset."""
+        """Upload asset, optionally scoped to a launch edition."""
         mime = mime_type or _DEFAULT_MIME_BY_TYPE.get(type_, "application/octet-stream")
         stream: BytesIO = BytesIO(file_bytes)
         folder = f"offers/{offer_id}/assets"
@@ -121,6 +125,8 @@ class OfferAssetService:
         asset = OfferAsset(
             tenant_id=tenant_id,
             offer_id=offer_id,
+            edition_id=edition_id,
+            shared_across_editions=shared_across_editions,
             name=filename,
             type=type_,
             source=AssetSource.EXTERNAL,
@@ -150,14 +156,20 @@ class OfferAssetService:
         type_: AssetType,
         prompt_params: dict[str, Any] | None = None,
         name: str | None = None,
+        edition_id: UUID | None = None,
+        shared_across_editions: bool = False,
     ) -> OfferAsset:
         """Stub: enqueue an AI-generated asset row. Actual generation is.
 
         handled by a downstream worker — this service returns immediately.
+        Optional edition scoping lets the worker publish the result into
+        a specific edition's gallery when finished.
         """
         asset = OfferAsset(
             tenant_id=tenant_id,
             offer_id=offer_id,
+            edition_id=edition_id,
+            shared_across_editions=shared_across_editions,
             name=name or f"AI {type_.value}",
             type=type_,
             source=AssetSource.AI,
@@ -190,8 +202,16 @@ class OfferAssetService:
         if asset is None:
             raise AssetNotFoundError(asset_id)
         # Whitelist the mutable fields — status and provenance remain
-        # controlled by the service itself.
-        _mutable = {"name", "metadata", "thumbnail_url"}
+        # controlled by the service itself. Edition re-binding is
+        # allowed (move across editions, promote to shared); the domain
+        # model owns the bucket-invariant via ``is_edition_scoped``.
+        _mutable = {
+            "name",
+            "metadata",
+            "thumbnail_url",
+            "edition_id",
+            "shared_across_editions",
+        }
         patch = {k: v for k, v in fields.items() if k in _mutable}
         if not patch:
             return asset

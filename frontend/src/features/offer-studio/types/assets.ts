@@ -7,6 +7,8 @@ export interface AssetListQuery {
   search?: string;
   type?: OfferAssetType;
   source?: OfferAssetSource;
+  /** When set, filters to assets bound to this edition + shared-across-edition assets. */
+  edition_id?: string;
   sort?: AssetSortKey;
   limit?: number;
   offset?: number;
@@ -15,6 +17,10 @@ export interface AssetListQuery {
 export interface AssetResponse {
   id: string;
   offer_id: string;
+  /** Nullable: offer-level assets have no edition. */
+  edition_id: string | null;
+  /** When true, this asset is visible from every edition's gallery. */
+  shared_across_editions: boolean;
   name: string;
   type: OfferAssetType;
   source: OfferAssetSource;
@@ -41,9 +47,13 @@ export interface AssetGeneratePayload {
   type: OfferAssetType;
   name?: string;
   prompt_params?: Record<string, unknown>;
+  edition_id?: string;
+  shared_across_editions?: boolean;
 }
 
 export interface AssetUpdatePayload {
   name?: string;
   metadata?: Record<string, unknown>;
+  edition_id?: string | null;
+  shared_across_editions?: boolean;
 }

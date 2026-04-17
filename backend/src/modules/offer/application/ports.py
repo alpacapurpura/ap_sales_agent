@@ -9,6 +9,14 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, BinaryIO
 
+# Re-exported here so offer-internal code has a single import origin
+# while the actual contract lives in shared/links (DDD-clean). See
+# ``shared/links/ports/edition_landing_clone.py``.
+from src.shared.links.ports.edition_landing_clone import (
+    IEditionLandingClonePort,
+    LandingRef,
+)
+
 if TYPE_CHECKING:
     from uuid import UUID
 
@@ -66,11 +74,20 @@ class IOfferAssetRepository(ABC):
         search: str | None = None,
         type_: AssetType | None = None,
         source: AssetSource | None = None,
+        edition_id: UUID | None = None,
         sort: str = "created_desc",
         limit: int = 24,
         offset: int = 0,
     ) -> tuple[list[OfferAsset], int]:
-        """List."""
+        """List assets.
+
+        ``edition_id`` semantics:
+
+        - ``None`` → legacy/offer-wide listing, returns every live asset
+          regardless of edition scoping.
+        - set → edition-scoped listing: assets bound to that edition OR
+          flagged ``shared_across_editions = TRUE``.
+        """
         ...
 
     @abstractmethod
@@ -243,11 +260,13 @@ class IOfferCompletionService(ABC):
 
 
 __all__ = [
+    "IEditionLandingClonePort",
     "IFileStoragePort",
     "IKnowledgeSourceRepository",
     "ILandingGenerationRepository",
     "IOfferAssetRepository",
     "IOfferCompletionService",
     "IRAGIndexerPort",
+    "LandingRef",
     "PsychologyGeneratorPort",
 ]

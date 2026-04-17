@@ -26,6 +26,10 @@ class OfferAssetResponse(BaseModel):
 
     id: UUID
     offer_id: UUID
+    # Edition scoping surfaced to the frontend so the UI can render the
+    # right badge (edition chip, shared pin, or offer-level default).
+    edition_id: UUID | None = None
+    shared_across_editions: bool = False
     name: str
     type: AssetType
     source: AssetSource
@@ -56,6 +60,8 @@ class AssetGenerateRequest(BaseModel):
     type: AssetType
     name: str | None = None
     prompt_params: dict[str, Any] = Field(default_factory=dict)
+    edition_id: UUID | None = None
+    shared_across_editions: bool = False
 
 
 class AssetUpdateRequest(BaseModel):
@@ -64,6 +70,11 @@ class AssetUpdateRequest(BaseModel):
     name: str | None = None
     metadata: dict[str, Any] | None = None
     thumbnail_url: str | None = None
+    # Edition re-binding: move an asset between editions or promote to
+    # shared. ``None`` means "leave as-is" — the service uses an
+    # unset-aware dump so existing patch semantics are preserved.
+    edition_id: UUID | None = None
+    shared_across_editions: bool | None = None
 
 
 class AssetDownloadUrlResponse(BaseModel):

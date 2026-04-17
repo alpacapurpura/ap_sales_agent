@@ -386,3 +386,27 @@ export interface LaunchEditionUpdate {
   location_override?: Record<string, unknown>;
   notes?: string;
 }
+
+/** Strategy picker for cloning an edition's landing. Phase 3. */
+export type EditionCloneStrategy = "literal" | "date_replace" | "ai_regen";
+
+export interface EditionClonePayload {
+  strategy: EditionCloneStrategy;
+  new_edition_input: LaunchEditionCreate;
+  changes_brief?: string;
+  attachment_ids?: string[];
+}
+
+export interface EditionCloneResponse {
+  edition: LaunchEdition;
+  landing_id: string | null;
+  landing_slug: string | null;
+  asset_ids: string[];
+}
+
+/** Edition-scoped landing lookup response. */
+export interface EditionLandingResponse {
+  landing_id: string | null;
+  slug: string | null;
+  is_published: boolean;
+}

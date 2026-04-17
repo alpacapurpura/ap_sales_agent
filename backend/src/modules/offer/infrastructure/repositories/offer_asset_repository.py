@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import and_, func, or_, select
 
 from src.modules.offer.application.ports import IOfferAssetRepository
 from src.modules.offer.domain.assets import OfferAsset
@@ -42,6 +42,8 @@ class OfferAssetRepository(IOfferAssetRepository):
             id=model.id,
             tenant_id=model.tenant_id,
             offer_id=model.offer_id,
+            edition_id=model.edition_id,
+            shared_across_editions=bool(model.shared_across_editions),
             name=model.name,
             type=AssetType(model.type),
             source=AssetSource(model.source),
@@ -63,6 +65,8 @@ class OfferAssetRepository(IOfferAssetRepository):
     def _apply_domain_to_model(model: OfferAssetModel, asset: OfferAsset) -> None:
         model.tenant_id = asset.tenant_id
         model.offer_id = asset.offer_id
+        model.edition_id = asset.edition_id
+        model.shared_across_editions = asset.shared_across_editions
         model.name = asset.name
         model.type = asset.type.value
         model.source = asset.source.value
@@ -111,16 +115,26 @@ class OfferAssetRepository(IOfferAssetRepository):
         search: str | None = None,
         type_: AssetType | None = None,
         source: AssetSource | None = None,
+        edition_id: UUID | None = None,
         sort: str = "created_desc",
         limit: int = 24,
         offset: int = 0,
     ) -> tuple[list[OfferAsset], int]:
-        """List."""
+        """List assets. See port for ``edition_id`` semantics."""
         base_filters = [
             OfferAssetModel.tenant_id == tenant_id,
             OfferAssetModel.offer_id == offer_id,
             OfferAssetModel.deleted_at.is_(None),
         ]
+        if edition_id is not None:
+            # Edition-scoped listing: belongs to this edition, or is shared
+            # across editions (template reusable in every edition gallery).
+            base_filters.append(
+                or_(
+                    OfferAssetModel.edition_id == edition_id,
+                    and_(OfferAssetModel.shared_across_editions.is_(True)),
+                ),
+            )
         if search:
             like = f"%{search}%"
             base_filters.append(

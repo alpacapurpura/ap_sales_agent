@@ -5,16 +5,24 @@ from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
+from src.modules.offer.application.edition_clone_service import (
+    CloneStrategy,
+    EditionCloneService,
+)
 from src.modules.offer.application.launch_edition_service import (
     LaunchEditionService,
 )
-from src.modules.offer.domain.launch_edition import LaunchEdition
+from src.modules.offer.domain.launch_edition import LaunchEdition, LaunchEditionCreate
+from src.modules.offer.domain.offer import PricingStructure
+from src.shared.links.ports.edition_landing_clone import (
+    create_edition_landing_clone_port,
+)
 
 router = APIRouter()
 
@@ -332,10 +340,167 @@ async def duplicate_edition(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> LaunchEditionResponse:
-    """Duplicate edition."""
+    """Duplicate edition — light-weight copy of dates/pricing/capacity only.
+
+    Heavier clone flows (landing + assets + IA regen) live behind
+    :class:`EditionCloneService` and the ``/clone`` endpoint below.
+    """
     svc = LaunchEditionService(db)
     try:
         edition = svc.duplicate_edition(UUID(edition_id), user.tenant_id)
     except ValueError:
         raise HTTPException(status_code=404, detail="Edition not found") from None
     return _build_response(svc, edition, user.tenant_id)
+
+
+class EditionCloneInputDTO(BaseModel):
+    """New-edition values forwarded into :class:`LaunchEditionCreate`."""
+
+    edition_name: str | None = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    registration_start: datetime | None = None
+    registration_end: datetime | None = None
+    timezone: str = "UTC"
+    pricing_override: list[dict[str, Any]] | None = None
+    capacity: int | None = None
+    location_override: dict[str, Any] | None = None
+    notes: str | None = None
+
+
+class CloneEditionRequestDTO(BaseModel):
+    """Body for the ``/clone`` endpoint.
+
+    ``strategy`` is the canonical :class:`CloneStrategy` enum. The DTO
+    narrows the type to the three supported string values so the OpenAPI
+    schema is self-documenting.
+    """
+
+    strategy: CloneStrategy = Field(
+        default=CloneStrategy.LITERAL,
+        description="Controls how the source landing is transformed.",
+    )
+    new_edition_input: EditionCloneInputDTO
+    changes_brief: str | None = None
+    attachment_ids: list[UUID] | None = None
+
+
+class CloneEditionResponseDTO(BaseModel):
+    """Response for the ``/clone`` endpoint."""
+
+    edition: LaunchEditionResponse
+    landing_id: UUID | None = None
+    landing_slug: str | None = None
+    asset_ids: list[UUID] = Field(default_factory=list)
+
+
+@router.post(
+    "/{offer_id}/editions/{edition_id}/clone",
+    status_code=201,
+)
+async def clone_edition(
+    offer_id: str,
+    edition_id: str,
+    body: CloneEditionRequestDTO,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> CloneEditionResponseDTO:
+    """Clone an edition, its landing, and its edition-scoped assets.
+
+    Returns 404 when the source edition is missing or belongs to
+    another tenant; 422 when the new-edition input violates a domain
+    invariant (e.g. ``start_date``/``end_date`` inversion).
+    """
+    pricing = None
+    if body.new_edition_input.pricing_override is not None:
+        pricing = [PricingStructure(**p) for p in body.new_edition_input.pricing_override]
+
+    create_input = LaunchEditionCreate(
+        edition_name=body.new_edition_input.edition_name,
+        start_date=body.new_edition_input.start_date,
+        end_date=body.new_edition_input.end_date,
+        registration_start=body.new_edition_input.registration_start,
+        registration_end=body.new_edition_input.registration_end,
+        timezone=body.new_edition_input.timezone,
+        pricing_override=pricing,
+        capacity=body.new_edition_input.capacity,
+        location_override=body.new_edition_input.location_override,
+        notes=body.new_edition_input.notes,
+    )
+
+    clone_service = EditionCloneService(
+        db,
+        landing_clone=create_edition_landing_clone_port(db),
+    )
+
+    try:
+        result = clone_service.clone_edition(
+            source_edition_id=UUID(edition_id),
+            tenant_id=user.tenant_id,
+            strategy=body.strategy,
+            new_edition_input=create_input,
+            changes_brief=body.changes_brief,
+            attachment_ids=list(body.attachment_ids) if body.attachment_ids else None,
+        )
+    except ValueError as exc:
+        # ``not found`` vs invariant violation — distinguish by message.
+        if "not found" in str(exc):
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    edition_response = _build_response(
+        LaunchEditionService(db),
+        result.edition,
+        user.tenant_id,
+    )
+    return CloneEditionResponseDTO(
+        edition=edition_response,
+        landing_id=result.landing.id if result.landing else None,
+        landing_slug=result.landing.slug if result.landing else None,
+        asset_ids=list(result.asset_ids),
+    )
+
+
+class EditionLandingResponseDTO(BaseModel):
+    """Minimal edition-scoped landing lookup response."""
+
+    landing_id: UUID | None = None
+    slug: str | None = None
+    is_published: bool = False
+
+
+@router.get(
+    "/{offer_id}/editions/{edition_id}/landing",
+)
+async def get_edition_landing(
+    offer_id: str,
+    edition_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> EditionLandingResponseDTO:
+    """Return the landing bound to ``(offer, edition)`` if any.
+
+    Falls back to an empty response (``landing_id=None``) so the frontend
+    can render a "no landing yet — generate one?" CTA without a second
+    existence check. Goes through the cross-module port rather than
+    importing the landing repository directly.
+    """
+    # Validate edition ownership first so we don't expose other tenants' data.
+    svc = LaunchEditionService(db)
+    edition = svc.get_edition(UUID(edition_id), user.tenant_id)
+    if edition is None or str(edition.offer_id) != offer_id:
+        raise HTTPException(status_code=404, detail="Edition not found")
+
+    port = create_edition_landing_clone_port(db)
+    ref = port.get_for_edition(
+        tenant_id=user.tenant_id,
+        offer_id=UUID(offer_id),
+        edition_id=UUID(edition_id),
+    )
+    if ref is None:
+        return EditionLandingResponseDTO()
+    return EditionLandingResponseDTO(
+        landing_id=ref.id,
+        slug=ref.slug,
+        is_published=ref.is_published,
+    )

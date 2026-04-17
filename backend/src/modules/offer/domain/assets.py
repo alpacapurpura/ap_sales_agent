@@ -17,11 +17,33 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class OfferAsset(BaseEntity):
-    """Offer Asset."""
+    """Offer Asset.
+
+    Assets live in three visibility buckets, encoded by
+    ``(edition_id, shared_across_editions)``:
+
+    ===============================  =================  ====================
+    edition_id                       shared_across_...  Where it shows up
+    ===============================  =================  ====================
+    NULL                             any                Offer-level gallery
+    <set>                            False              Only that edition
+    <set>                            True               Every edition (shared)
+    ===============================  =================  ====================
+
+    The ``is_edition_scoped`` property encodes "this asset belongs to exactly
+    one edition" so that the clone flow, listing API, and future UI filters
+    never have to re-derive the rule.
+    """
 
     id: UUID = Field(default_factory=uuid4)
     tenant_id: UUID
     offer_id: UUID
+    # Nullable: offer-level asset. When set, binds the asset to one edition.
+    edition_id: UUID | None = None
+    # Promotes an edition-born asset to offer-wide visibility. Ignored
+    # when ``edition_id`` is None.
+    shared_across_editions: bool = False
+
     name: str
     type: AssetType
     source: AssetSource
@@ -44,6 +66,11 @@ class OfferAsset(BaseEntity):
     created_at: datetime | None = None
     updated_at: datetime | None = None
     deleted_at: datetime | None = None
+
+    @property
+    def is_edition_scoped(self) -> bool:
+        """True iff this asset is visible to exactly one edition."""
+        return self.edition_id is not None and not self.shared_across_editions
 
 
 __all__ = ["OfferAsset"]

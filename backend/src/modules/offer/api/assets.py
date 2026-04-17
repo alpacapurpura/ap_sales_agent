@@ -85,10 +85,19 @@ def _service(db: Session) -> OfferAssetService:
 
 
 def _to_response(asset: OfferAssetModel) -> OfferAssetResponse:
+    # Accept either the SA model (legacy) or the domain entity — the
+    # ``list_assets`` path now returns domain objects, the single-asset
+    # paths still walk through model-shaped dicts.
+    metadata = getattr(asset, "metadata_json", None)
+    if metadata is None:
+        metadata = getattr(asset, "metadata", None) or {}
+
     return OfferAssetResponse.model_validate(
         {
             "id": asset.id,
             "offer_id": asset.offer_id,
+            "edition_id": getattr(asset, "edition_id", None),
+            "shared_across_editions": bool(getattr(asset, "shared_across_editions", False)),
             "name": asset.name,
             "type": asset.type,
             "source": asset.source,
@@ -97,7 +106,7 @@ def _to_response(asset: OfferAssetModel) -> OfferAssetResponse:
             "thumbnail_url": asset.thumbnail_url,
             "mime_type": asset.mime_type,
             "size_bytes": asset.size_bytes,
-            "metadata": asset.metadata,
+            "metadata": metadata,
             "editable_in_puck": asset.editable_in_puck,
             "error_message": asset.error_message,
             "created_at": asset.created_at,
@@ -114,17 +123,25 @@ async def list_assets(
     search: Annotated[str | None, Query()] = None,
     type_: Annotated[AssetType | None, Query(alias="type")] = None,
     source: Annotated[AssetSource | None, Query()] = None,
+    edition_id: Annotated[UUID | None, Query()] = None,
     sort: Annotated[str, Query()] = "created_desc",
     limit: Annotated[int, Query(ge=1, le=200)] = 24,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AssetListResponse:
-    """List assets."""
+    """List assets.
+
+    ``edition_id`` filter:
+
+    - omitted → offer-wide listing (legacy, unchanged).
+    - set → edition-scoped (assets bound to this edition + shared assets).
+    """
     items, total = _service(db).list_assets(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
         search=search,
         type_=type_,
         source=source,
+        edition_id=edition_id,
         sort=sort,
         limit=limit,
         offset=offset,
@@ -148,8 +165,10 @@ async def upload_asset(
     type_: Annotated[AssetType, Form(alias="type")],
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
+    edition_id: Annotated[UUID | None, Form()] = None,
+    shared_across_editions: Annotated[bool, Form()] = False,
 ) -> OfferAssetResponse:
-    """Upload asset."""
+    """Upload asset, optionally bound to a launch edition."""
     content = await file.read()
     asset = _service(db).upload_asset(
         tenant_id=user.tenant_id,
@@ -157,6 +176,8 @@ async def upload_asset(
         file_bytes=content,
         filename=file.filename or name,
         type_=type_,
+        edition_id=edition_id,
+        shared_across_editions=shared_across_editions,
     )
     return _to_response(asset)
 
@@ -171,13 +192,15 @@ async def generate_asset(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ) -> OfferAssetResponse:
-    """Generate asset."""
+    """Generate asset, optionally bound to a launch edition."""
     asset = _service(db).generate_asset(
         tenant_id=user.tenant_id,
         offer_id=UUID(offer_id),
         type_=body.type,
         prompt_params=body.prompt_params,
         name=body.name,
+        edition_id=body.edition_id,
+        shared_across_editions=body.shared_across_editions,
     )
     return _to_response(asset)
 
