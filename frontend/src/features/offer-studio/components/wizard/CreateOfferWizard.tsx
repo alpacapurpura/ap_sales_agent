@@ -1,11 +1,10 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Loader2, SkipForward, Rocket, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, ArrowRight, Loader2, Rocket, Sparkles } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -17,19 +16,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
+import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
+import { useArchetypeCatalog } from "@/features/offer-studio/hooks/use-archetype-catalog";
 import {
-  FORMAT_PRESETS,
-  DELIVERY_MODEL_LABELS,
-  VALUE_LEVEL_LABELS,
-  type FormatPreset,
-} from "@/features/offer-studio/config/format-presets";
-import { OfferArchetype, OfferStatus } from "@/features/offer-studio/types";
-import { useArchetypeCapabilities } from "@/features/offer-studio/hooks/use-archetype-catalog";
+  useValueLevelCatalog,
+  useValueLevelMetadata,
+} from "@/features/offer-studio/hooks/use-value-level-catalog";
+import { useFormatCatalog } from "@/features/offer-studio/hooks/use-format-catalog";
+import { resolveIconByName } from "@/features/offer-studio/lib/icon-name-resolver";
+import { OfferArchetype, OfferStatus, OfferValueLevel } from "@/features/offer-studio/types";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { cn } from "@/lib/utils";
 
-import type { OfferDeliveryModel, OfferValueLevel } from "@/features/offer-studio/types";
+import type { FormatMetadata } from "@/features/offer-studio/api/format-catalog-api";
+import type { OfferDeliveryModel } from "@/features/offer-studio/types";
 
 interface CreateOfferWizardProps {
   open: boolean;
@@ -44,25 +44,19 @@ export interface WizardResult {
   format_hint?: string;
   name: string;
   is_lead_magnet: boolean;
-  /**
-   * Wizard answer to "will this offer run in editions/cohorts/batches?".
-   * `undefined` = let the backend apply the archetype-aware default.
-   */
   has_editions?: boolean;
   headline_promise?: string;
   status: OfferStatus;
   delivery_model?: OfferDeliveryModel;
-  value_level?: OfferValueLevel;
+  value_level: OfferValueLevel;
   specific_details?: Record<string, unknown>;
 }
 
-const ARCHETYPE_ORDER: OfferArchetype[] = [
-  OfferArchetype.PRODUCTO,
-  OfferArchetype.PROGRAMA,
-  OfferArchetype.SERVICIO,
-  OfferArchetype.MEMBRESIA,
-  OfferArchetype.EXPERIENCIA,
-];
+type Step = 1 | 2 | 3 | 4 | 5 | 6;
+
+// Stable reference so React Query loading state doesn't create a new array
+// each render and thrash the memoized children.
+const EMPTY_LIST: readonly never[] = [];
 
 export function CreateOfferWizard({
   open,
@@ -72,519 +66,591 @@ export function CreateOfferWizard({
   creating = false,
 }: CreateOfferWizardProps) {
   const { currency: tenantCurrency } = useTenantLocale();
-  const [step, setStep] = useState(1);
-  const [selectedArchetype, setSelectedArchetype] = useState<OfferArchetype | null>(null);
-  const [formatHint, setFormatHint] = useState<string>("");
-  const [customFormat, setCustomFormat] = useState("");
+  const { data: archetypeCatalog } = useArchetypeCatalog();
+  const { data: valueLevelCatalog } = useValueLevelCatalog();
+  const { settings } = useBrandSettings();
+  const brandBusinessTypes = settings?.identity?.business_types ?? [];
+
+  const [step, setStep] = useState<Step>(1);
+  const [archetype, setArchetype] = useState<OfferArchetype | null>(null);
+  const [valueLevel, setValueLevel] = useState<OfferValueLevel | null>(null);
+  const [selectedFormat, setSelectedFormat] = useState<FormatMetadata | null>(null);
+  const [customFormatHint, setCustomFormatHint] = useState("");
   const [offerName, setOfferName] = useState("");
   const [price, setPrice] = useState<string>("");
-  const [isLeadMagnet, setIsLeadMagnet] = useState(false);
-  const [headlinePromise, setHeadlinePromise] = useState("");
-  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
-  const [selectedDeliveryModel, setSelectedDeliveryModel] = useState<
-    OfferDeliveryModel | undefined
-  >(undefined);
-  const [selectedValueLevel, setSelectedValueLevel] = useState<OfferValueLevel | undefined>(
-    undefined,
-  );
-  const [selectedSpecificDetails, setSelectedSpecificDetails] = useState<
-    Record<string, unknown> | undefined
-  >(undefined);
-  // Wizard answer for "will this offer run in editions?". Defaults to true for
-  // archetypes that support editions; ignored otherwise.
   const [hasEditions, setHasEditions] = useState<boolean>(true);
+  const [headlinePromise, setHeadlinePromise] = useState("");
+
+  const valueLevelMeta = useValueLevelMetadata(valueLevel ?? undefined);
+  const archetypeCaps = archetypeCatalog?.archetypes?.find((a) => a.archetype === archetype);
+  const showsEditionsStep = archetypeCaps?.supports_editions === true;
+  const isLeadMagnet = valueLevel === OfferValueLevel.LEAD_MAGNET;
+
+  const totalSteps: Step = showsEditionsStep ? 6 : 5;
+  const progressPercent = (step / totalSteps) * 100;
+
+  // Format catalog filtered by archetype + tenant's business types. When
+  // the brand hasn't declared business types yet we fall back to the full
+  // archetype list.
+  const { data: formatCatalog } = useFormatCatalog({
+    archetype: archetype ?? undefined,
+    businessTypes: brandBusinessTypes.length > 0 ? brandBusinessTypes : undefined,
+  });
+  const formatOptions: readonly FormatMetadata[] = formatCatalog?.formats ?? [];
 
   const resetWizard = () => {
     setStep(1);
-    setSelectedArchetype(null);
-    setFormatHint("");
-    setCustomFormat("");
+    setArchetype(null);
+    setValueLevel(null);
+    setSelectedFormat(null);
+    setCustomFormatHint("");
     setOfferName("");
     setPrice("");
-    setIsLeadMagnet(false);
-    setHeadlinePromise("");
-    setSelectedPresetId(null);
-    setSelectedDeliveryModel(undefined);
-    setSelectedValueLevel(undefined);
-    setSelectedSpecificDetails(undefined);
     setHasEditions(true);
+    setHeadlinePromise("");
   };
 
-  const archetypeCapabilities = useArchetypeCapabilities(selectedArchetype ?? undefined);
-  const showsEditionsStep = archetypeCapabilities?.supports_editions === true;
-  const editionsCopy = archetypeCapabilities?.editions_wizard_copy ?? null;
-  const totalSteps = showsEditionsStep ? 5 : 4;
-  const finalStep = totalSteps;
-
-  const handleOpenChange = (open: boolean) => {
-    if (!open) resetWizard();
-    onOpenChange(open);
+  const handleOpenChange = (next: boolean) => {
+    if (!next) resetWizard();
+    onOpenChange(next);
   };
 
-  const effectiveLeadMagnet = isLeadMagnet;
-
-  const handleSelectArchetype = (archetype: OfferArchetype) => {
-    setSelectedArchetype(archetype);
+  const handlePickArchetype = (pick: OfferArchetype) => {
+    setArchetype(pick);
     setStep(2);
   };
 
-  const handleSelectPreset = (preset: FormatPreset) => {
-    const isCustom = preset.id.endsWith("_custom");
-    setSelectedPresetId(preset.id);
-    setSelectedDeliveryModel(preset.delivery_model);
-    setSelectedValueLevel(preset.suggested_value_level);
-    setSelectedSpecificDetails(preset.specific_details_defaults);
-
-    if (isCustom) {
-      // For custom preset, clear format hint and let user type
-      setFormatHint("");
-      setOfferName("");
-    } else {
-      setFormatHint(preset.format_hint);
-      setOfferName(`Mi ${preset.label}`);
-    }
+  const handlePickValueLevel = (pick: OfferValueLevel) => {
+    setValueLevel(pick);
+    // Paid offers pre-fill the price placeholder from the catalog; lead magnets
+    // force the price to "0" in the name+price step render below.
     setStep(3);
+  };
+
+  const handlePickFormat = (format: FormatMetadata) => {
+    setSelectedFormat(format);
+    setCustomFormatHint("");
+    // Pre-fill the offer name with the format label so the user sees a
+    // sensible default; they can still edit it freely in step 4.
+    if (!offerName) setOfferName(`Mi ${format.label_es}`);
+    setStep(4);
   };
 
   const handleSkipFormat = () => {
-    setFormatHint("");
-    setSelectedPresetId(null);
-    setSelectedDeliveryModel(undefined);
-    setSelectedValueLevel(undefined);
-    setSelectedSpecificDetails(undefined);
-    setStep(3);
+    setSelectedFormat(null);
+    setStep(4);
   };
 
-  const handleCustomFormat = () => {
-    if (customFormat.trim()) {
-      setFormatHint(customFormat.trim());
-      setOfferName(`Mi ${customFormat.trim()}`);
-      setStep(3);
-    }
+  const handleSubmitCustomFormat = () => {
+    if (!customFormatHint.trim()) return;
+    if (!offerName) setOfferName(`Mi ${customFormatHint.trim()}`);
+    setStep(4);
+  };
+
+  const buildResult = (): WizardResult | null => {
+    if (!archetype || !valueLevel || !offerName.trim()) return null;
+    return {
+      archetype,
+      format_hint: selectedFormat?.format_hint || customFormatHint.trim() || undefined,
+      name: offerName.trim(),
+      is_lead_magnet: isLeadMagnet,
+      has_editions: showsEditionsStep ? hasEditions : undefined,
+      headline_promise: headlinePromise.trim() || undefined,
+      status: OfferStatus.DRAFT,
+      delivery_model: selectedFormat?.delivery_model as OfferDeliveryModel | undefined,
+      value_level: valueLevel,
+      specific_details: selectedFormat?.specific_details_defaults,
+    };
   };
 
   const handleCreate = async () => {
-    if (!selectedArchetype || !offerName.trim()) return;
-    await onCreateOffer({
-      archetype: selectedArchetype,
-      format_hint: formatHint || undefined,
-      name: offerName.trim(),
-      is_lead_magnet: effectiveLeadMagnet,
-      // Only send the wizard answer when the user actually got to the question.
-      // Otherwise let the backend apply the archetype-aware default.
-      has_editions: showsEditionsStep ? hasEditions : undefined,
-      headline_promise: headlinePromise || undefined,
-      status: OfferStatus.DRAFT,
-      delivery_model: selectedDeliveryModel,
-      value_level: selectedValueLevel,
-      specific_details: selectedSpecificDetails,
-    });
+    const result = buildResult();
+    if (!result) return;
+    await onCreateOffer(result);
   };
 
   const handleCreateWithIA = async () => {
-    if (!selectedArchetype || !offerName.trim() || !onCreateWithIA) return;
-    await onCreateWithIA({
-      archetype: selectedArchetype,
-      format_hint: formatHint || undefined,
-      name: offerName.trim(),
-      is_lead_magnet: effectiveLeadMagnet,
-      has_editions: showsEditionsStep ? hasEditions : undefined,
-      headline_promise: headlinePromise || undefined,
-      status: OfferStatus.DRAFT,
-      delivery_model: selectedDeliveryModel,
-      value_level: selectedValueLevel,
-      specific_details: selectedSpecificDetails,
-    });
+    if (!onCreateWithIA) return;
+    const result = buildResult();
+    if (!result) return;
+    await onCreateWithIA(result);
   };
-
-  const meta = selectedArchetype ? ARCHETYPE_METADATA[selectedArchetype] : null;
-  const presets = selectedArchetype ? FORMAT_PRESETS[selectedArchetype] : [];
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {step === 1 && "Que tipo de oferta quieres crear?"}
-            {step === 2 && `${meta?.label}: Elige un formato`}
-            {step === 3 && "Datos basicos"}
-            {step === 4 && "Promesa de resultado"}
-            {step === 5 && editionsCopy?.title}
-          </DialogTitle>
+          <DialogTitle>Crear oferta nueva</DialogTitle>
           <DialogDescription>
-            {step === 1 && "Elige el arquetipo que mejor describe tu oferta."}
-            {step === 2 && "Selecciona un formato predefinido o crea uno personalizado."}
-            {step === 3 && "Dale un nombre y precio inicial."}
-            {step === 4 && "Opcional: define que resultado logra tu cliente."}
-            {step === 5 && editionsCopy?.description}
+            Paso {step} de {totalSteps}
           </DialogDescription>
+          <div className="h-1 w-full bg-muted rounded-full mt-2">
+            <div
+              className="h-full bg-primary rounded-full transition-all"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
         </DialogHeader>
 
-        {/* Step indicators */}
-        <div className="flex items-center gap-1 px-1">
-          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => (
-            <div
-              key={s}
-              className={cn(
-                "h-1.5 flex-1 rounded-full transition-colors",
-                s <= step ? "bg-primary" : "bg-muted",
-              )}
+        <div className="py-4">
+          {step === 1 && (
+            <ArchetypeStep
+              onPick={handlePickArchetype}
+              archetypes={archetypeCatalog?.archetypes ?? EMPTY_LIST}
             />
-          ))}
+          )}
+          {step === 2 && archetype && (
+            <ValueLevelStep
+              onPick={handlePickValueLevel}
+              valueLevels={valueLevelCatalog?.value_levels ?? EMPTY_LIST}
+            />
+          )}
+          {step === 3 && (
+            <FormatStep
+              formats={formatOptions}
+              onPick={handlePickFormat}
+              onSkip={handleSkipFormat}
+              onCustom={handleSubmitCustomFormat}
+              customValue={customFormatHint}
+              onCustomChange={setCustomFormatHint}
+              usingBrandFilter={brandBusinessTypes.length > 0}
+            />
+          )}
+          {step === 4 && (
+            <NamePriceStep
+              isLeadMagnet={isLeadMagnet}
+              name={offerName}
+              onNameChange={setOfferName}
+              price={price}
+              onPriceChange={setPrice}
+              tenantCurrency={tenantCurrency}
+              valueLevelLabel={valueLevelMeta?.label_es ?? ""}
+              priceMinUsd={valueLevelMeta?.typical_price_min_usd ?? null}
+              priceMaxUsd={valueLevelMeta?.typical_price_max_usd ?? null}
+            />
+          )}
+          {step === 5 && showsEditionsStep && (
+            <EditionsStep
+              title={archetypeCaps?.editions_wizard_copy?.title ?? ""}
+              description={archetypeCaps?.editions_wizard_copy?.description ?? ""}
+              yesLabel={archetypeCaps?.editions_wizard_copy?.yes_label ?? "Sí"}
+              noLabel={archetypeCaps?.editions_wizard_copy?.no_label ?? "No"}
+              value={hasEditions}
+              onChange={setHasEditions}
+            />
+          )}
+          {step === (showsEditionsStep ? 6 : 5) && (
+            <PromiseStep value={headlinePromise} onChange={setHeadlinePromise} />
+          )}
         </div>
 
-        <div className="py-2">
-          {/* STEP 1: Archetype Selection */}
-          {step === 1 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {ARCHETYPE_ORDER.map((archetype) => {
-                const m = ARCHETYPE_METADATA[archetype];
-                const Icon = m.icon;
-                return (
-                  <button
-                    key={archetype}
-                    onClick={() => handleSelectArchetype(archetype)}
-                    className={cn(
-                      "flex flex-col items-start gap-2 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-primary/50",
-                      "bg-background cursor-pointer",
-                    )}
-                  >
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm">{m.label}</p>
-                      <p className="text-xs text-muted-foreground leading-snug">{m.subtitle}</p>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground/70 line-clamp-2">
-                      {m.examples}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
+        <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+          {step > 1 && (
+            <Button
+              variant="ghost"
+              onClick={() => setStep((s) => (s > 1 ? ((s - 1) as Step) : s))}
+              disabled={creating}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" /> Atrás
+            </Button>
           )}
 
-          {/* STEP 2: Format Preset Selection */}
-          {step === 2 && meta && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                {presets.map((preset) => {
-                  const isCustom = preset.id.endsWith("_custom");
-                  return (
-                    <button
-                      key={preset.id}
-                      onClick={() => handleSelectPreset(preset)}
-                      className={cn(
-                        "flex flex-col items-start gap-2 p-4 rounded-xl text-left transition-all hover:shadow-md cursor-pointer",
-                        isCustom
-                          ? "border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 bg-background"
-                          : "border border-border hover:border-primary/50 bg-background",
-                        selectedPresetId === preset.id && "border-primary ring-1 ring-primary/20",
-                      )}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <p className="font-semibold text-sm">{preset.label}</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground leading-snug line-clamp-2">
-                        {preset.description}
-                      </p>
-                      {!isCustom && (
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                            {VALUE_LEVEL_LABELS[preset.suggested_value_level]}
-                          </Badge>
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                            {DELIVERY_MODEL_LABELS[preset.delivery_model]}
-                          </Badge>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground"
-                onClick={handleSkipFormat}
-              >
-                <SkipForward className="mr-1 h-3 w-3" />
+          {/* Middle steps have their own CTAs (pick-card, skip, submit custom) */}
+          {step === 3 && (
+            <div className="flex gap-2 sm:ml-auto">
+              <Button variant="ghost" onClick={handleSkipFormat} disabled={creating}>
                 Saltar este paso
               </Button>
             </div>
           )}
 
-          {/* STEP 3: Basics */}
-          {step === 3 && (
-            <div className="space-y-4">
-              {/* Show custom format input when "Personalizado" was selected */}
-              {selectedPresetId?.endsWith("_custom") && (
-                <div className="space-y-2">
-                  <Label htmlFor="wizard-custom-format">Formato personalizado</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="wizard-custom-format"
-                      placeholder="Escribe tu formato (ej: Workshop Online)"
-                      value={customFormat}
-                      onChange={(e) => setCustomFormat(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleCustomFormat();
-                        }
-                      }}
-                      className="flex-1"
-                      autoFocus
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (customFormat.trim()) {
-                          setFormatHint(customFormat.trim());
-                          setOfferName(`Mi ${customFormat.trim()}`);
-                        }
-                      }}
-                      disabled={!customFormat.trim()}
-                    >
-                      Aplicar
-                    </Button>
-                  </div>
-                </div>
+          {(step === 4 || step === 5) && (
+            <Button
+              className="sm:ml-auto"
+              onClick={() => setStep((s) => ((s + 1) as Step))}
+              disabled={creating || (step === 4 && !offerName.trim())}
+            >
+              Siguiente <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          )}
+
+          {step === totalSteps && (
+            <div className="flex gap-2 sm:ml-auto">
+              {onCreateWithIA && (
+                <Button
+                  variant="outline"
+                  onClick={handleCreateWithIA}
+                  disabled={creating || !offerName.trim() || !archetype || !valueLevel}
+                >
+                  {creating ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-2 h-4 w-4" />
+                  )}
+                  Crear con IA
+                </Button>
               )}
-
-              <div className="space-y-2">
-                <Label htmlFor="wizard-name">Nombre de la oferta</Label>
-                <Input
-                  id="wizard-name"
-                  value={offerName}
-                  onChange={(e) => setOfferName(e.target.value)}
-                  placeholder="Ej. Mi Curso de Marketing"
-                  className="h-11"
-                  autoFocus={!selectedPresetId?.endsWith("_custom")}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="wizard-price">Precio ({tenantCurrency})</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">
-                    {tenantCurrency}
-                  </span>
-                  <Input
-                    id="wizard-price"
-                    type="number"
-                    min="0"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="0"
-                    className="h-11 pl-12"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="wizard-lead-magnet"
-                  checked={isLeadMagnet}
-                  onCheckedChange={(checked) => setIsLeadMagnet(!!checked)}
-                />
-                <Label htmlFor="wizard-lead-magnet" className="text-sm cursor-pointer">
-                  Es un lead magnet (gratuito para captar prospectos)
-                </Label>
-              </div>
-
-              {meta && (
-                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                  <Badge variant="secondary" className="text-xs">
-                    {meta.label}
-                  </Badge>
-                  {formatHint && (
-                    <Badge variant="outline" className="text-xs">
-                      {formatHint}
-                    </Badge>
-                  )}
-                  {selectedDeliveryModel && (
-                    <Badge variant="outline" className="text-xs">
-                      {DELIVERY_MODEL_LABELS[selectedDeliveryModel]}
-                    </Badge>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STEP 4: Promise */}
-          {step === 4 && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="wizard-promise">
-                  En una frase, que resultado logra tu cliente?
-                </Label>
-                <Textarea
-                  id="wizard-promise"
-                  value={headlinePromise}
-                  onChange={(e) => setHeadlinePromise(e.target.value)}
-                  placeholder="Ej. Lanza tu primer funnel de ventas en 30 dias sin saber de tecnologia"
-                  rows={3}
-                  autoFocus
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Puedes completar esto despues desde el editor. No te preocupes si no lo tienes claro
-                aun.
-              </p>
-            </div>
-          )}
-
-          {/* STEP 5: Has editions? (only for PROGRAMA/SERVICIO/EXPERIENCIA) */}
-          {step === 5 && editionsCopy && (
-            <div className="space-y-4">
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <Rocket className="h-4 w-4 text-primary" />
-                </div>
-                <p className="text-sm text-muted-foreground leading-snug">
-                  {editionsCopy.description}
-                </p>
-              </div>
-
-              <div className="grid gap-2">
-                <button
-                  type="button"
-                  onClick={() => setHasEditions(true)}
-                  className={cn(
-                    "flex items-center gap-3 p-4 rounded-xl border text-left transition-all hover:border-primary/50 cursor-pointer",
-                    hasEditions
-                      ? "border-primary ring-1 ring-primary/20 bg-primary/5"
-                      : "border-border bg-background",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0",
-                      hasEditions ? "border-primary" : "border-muted-foreground/40",
-                    )}
-                  >
-                    {hasEditions && <div className="h-2 w-2 rounded-full bg-primary" />}
-                  </div>
-                  <p className="text-sm font-medium">{editionsCopy.yes_label}</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setHasEditions(false)}
-                  className={cn(
-                    "flex items-center gap-3 p-4 rounded-xl border text-left transition-all hover:border-primary/50 cursor-pointer",
-                    !hasEditions
-                      ? "border-primary ring-1 ring-primary/20 bg-primary/5"
-                      : "border-border bg-background",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0",
-                      !hasEditions ? "border-primary" : "border-muted-foreground/40",
-                    )}
-                  >
-                    {!hasEditions && <div className="h-2 w-2 rounded-full bg-primary" />}
-                  </div>
-                  <p className="text-sm font-medium">{editionsCopy.no_label}</p>
-                </button>
-              </div>
-
-              <p className="text-xs text-muted-foreground">
-                Podés cambiar esta decisión más tarde desde la configuración de la oferta.
-              </p>
-            </div>
-          )}
-        </div>
-
-        <DialogFooter className="flex items-center justify-between sm:justify-between gap-2">
-          <div>
-            {step > 1 && (
-              <Button variant="ghost" size="sm" onClick={() => setStep(step - 1)}>
-                <ArrowLeft className="mr-1 h-3 w-3" />
-                Atras
-              </Button>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {step === 3 && (
-              <Button onClick={() => setStep(4)} disabled={!offerName.trim()}>
-                Siguiente
-                <ArrowRight className="ml-1 h-3 w-3" />
-              </Button>
-            )}
-            {step === 4 && showsEditionsStep && (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={handleCreate}
-                  disabled={creating || !offerName.trim()}
-                >
-                  Completar despues
-                </Button>
-                <Button onClick={() => setStep(5)} disabled={!offerName.trim()}>
-                  Siguiente
-                  <ArrowRight className="ml-1 h-3 w-3" />
-                </Button>
-              </>
-            )}
-            {step === 4 && !showsEditionsStep && (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={handleCreate}
-                  disabled={creating || !offerName.trim()}
-                >
-                  Completar despues
-                </Button>
-                {onCreateWithIA && (
-                  <Button
-                    variant="secondary"
-                    onClick={handleCreateWithIA}
-                    disabled={creating || !offerName.trim()}
-                  >
-                    <Sparkles className="mr-1 h-3 w-3" />
-                    Crear con asistente IA
-                  </Button>
+              <Button
+                onClick={handleCreate}
+                disabled={creating || !offerName.trim() || !archetype || !valueLevel}
+              >
+                {creating ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Rocket className="mr-2 h-4 w-4" />
                 )}
-                <Button onClick={handleCreate} disabled={creating || !offerName.trim()}>
-                  {creating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Crear Oferta
-                </Button>
-              </>
-            )}
-            {step === finalStep && finalStep === 5 && (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={handleCreate}
-                  disabled={creating || !offerName.trim()}
-                >
-                  Completar despues
-                </Button>
-                {onCreateWithIA && (
-                  <Button
-                    variant="secondary"
-                    onClick={handleCreateWithIA}
-                    disabled={creating || !offerName.trim()}
-                  >
-                    <Sparkles className="mr-1 h-3 w-3" />
-                    Crear con asistente IA
-                  </Button>
-                )}
-                <Button onClick={handleCreate} disabled={creating || !offerName.trim()}>
-                  {creating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Crear Oferta
-                </Button>
-              </>
-            )}
-          </div>
+                Crear oferta
+              </Button>
+            </div>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ── STEP 1: ARCHETYPE ────────────────────────────────────────────────────────
+
+interface ArchetypeStepProps {
+  onPick: (archetype: OfferArchetype) => void;
+  archetypes: readonly {
+    archetype: string;
+    label_es: string;
+    subtitle_es: string;
+    icon_name: string;
+    examples_es: readonly string[];
+  }[];
+}
+
+function ArchetypeStep({ onPick, archetypes }: ArchetypeStepProps) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-lg font-semibold">¿Qué tipo de oferta vas a crear?</h3>
+        <p className="text-sm text-muted-foreground">
+          Esto define la estructura — cómo se entrega y qué detalles pediremos después.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {archetypes.map((a) => {
+          const Icon = resolveIconByName(a.icon_name);
+          return (
+            <button
+              key={a.archetype}
+              type="button"
+              onClick={() => onPick(a.archetype as OfferArchetype)}
+              className={cn(
+                "text-left rounded-lg border bg-card p-4 hover:border-primary hover:shadow-sm transition",
+                "flex items-start gap-3",
+              )}
+            >
+              <div className="shrink-0 h-10 w-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+                <Icon className="h-5 w-5" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <div className="font-semibold">{a.label_es}</div>
+                <p className="text-xs text-muted-foreground">{a.subtitle_es}</p>
+                {a.examples_es.length > 0 && (
+                  <p className="text-[11px] text-muted-foreground/80">
+                    Ej: {a.examples_es.slice(0, 3).join(", ")}
+                  </p>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── STEP 2: VALUE LEVEL ──────────────────────────────────────────────────────
+
+interface ValueLevelStepProps {
+  onPick: (valueLevel: OfferValueLevel) => void;
+  valueLevels: readonly {
+    value_level: string;
+    label_es: string;
+    description_es: string;
+    role_in_funnel_es: string;
+    icon_name: string;
+    is_free: boolean;
+    typical_price_min_usd: number | null;
+    typical_price_max_usd: number | null;
+  }[];
+}
+
+function ValueLevelStep({ onPick, valueLevels }: ValueLevelStepProps) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-lg font-semibold">¿Qué rol cumple esta oferta en tu escalera?</h3>
+        <p className="text-sm text-muted-foreground">
+          Decide cuánto cobrar, para qué parte del funnel sirve, y cómo se presenta.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {valueLevels.map((v) => {
+          const Icon = resolveIconByName(v.icon_name);
+          const priceHint = v.is_free
+            ? "Gratuito"
+            : v.typical_price_min_usd !== null && v.typical_price_max_usd !== null
+              ? `USD ${v.typical_price_min_usd}-${v.typical_price_max_usd}`
+              : "Precio a definir";
+          return (
+            <button
+              key={v.value_level}
+              type="button"
+              onClick={() => onPick(v.value_level as OfferValueLevel)}
+              className="text-left rounded-lg border bg-card p-4 hover:border-primary hover:shadow-sm transition flex items-start gap-3"
+            >
+              <div className="shrink-0 h-10 w-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+                <Icon className="h-5 w-5" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold">{v.label_es}</span>
+                  <Badge variant="secondary" className="text-[10px]">
+                    {priceHint}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">{v.description_es}</p>
+                <p className="text-[11px] text-muted-foreground/80 italic">
+                  {v.role_in_funnel_es}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── STEP 3: FORMAT ───────────────────────────────────────────────────────────
+
+interface FormatStepProps {
+  formats: readonly FormatMetadata[];
+  onPick: (format: FormatMetadata) => void;
+  onSkip: () => void;
+  onCustom: () => void;
+  customValue: string;
+  onCustomChange: (value: string) => void;
+  usingBrandFilter: boolean;
+}
+
+function FormatStep({
+  formats,
+  onPick,
+  onCustom,
+  customValue,
+  onCustomChange,
+  usingBrandFilter,
+}: FormatStepProps) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-lg font-semibold">¿Qué formato tiene?</h3>
+        <p className="text-sm text-muted-foreground">
+          {usingBrandFilter
+            ? "Filtrados según el perfil de tu negocio. Podés saltar este paso si ninguno encaja."
+            : "Seleccioná el formato que más se acerca. Podés saltar si no encaja."}
+        </p>
+      </div>
+
+      {formats.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[340px] overflow-y-auto pr-2">
+          {formats.map((f) => {
+            const Icon = resolveIconByName(f.icon_name);
+            return (
+              <button
+                key={f.format_id}
+                type="button"
+                onClick={() => onPick(f)}
+                className="text-left rounded-lg border bg-card p-3 hover:border-primary hover:shadow-sm transition flex items-start gap-3"
+              >
+                <div className="shrink-0 h-9 w-9 rounded-md bg-muted text-foreground/80 flex items-center justify-center">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="font-medium text-sm">{f.label_es}</div>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{f.description_es}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="rounded-lg border border-dashed p-3 space-y-2 bg-muted/30">
+        <Label htmlFor="wizard-custom-format" className="text-xs">
+          O describí tu propio formato
+        </Label>
+        <div className="flex gap-2">
+          <Input
+            id="wizard-custom-format"
+            value={customValue}
+            onChange={(e) => onCustomChange(e.target.value)}
+            placeholder="Ej: Sesión de estrategia de 2 horas"
+          />
+          <Button
+            variant="outline"
+            onClick={onCustom}
+            disabled={!customValue.trim()}
+            size="sm"
+          >
+            Usar
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── STEP 4: NAME + PRICE ─────────────────────────────────────────────────────
+
+interface NamePriceStepProps {
+  isLeadMagnet: boolean;
+  name: string;
+  onNameChange: (value: string) => void;
+  price: string;
+  onPriceChange: (value: string) => void;
+  tenantCurrency: string;
+  valueLevelLabel: string;
+  priceMinUsd: number | null;
+  priceMaxUsd: number | null;
+}
+
+function NamePriceStep({
+  isLeadMagnet,
+  name,
+  onNameChange,
+  price,
+  onPriceChange,
+  tenantCurrency,
+  valueLevelLabel,
+  priceMinUsd,
+  priceMaxUsd,
+}: NamePriceStepProps) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-lg font-semibold">Nombre y precio</h3>
+        <p className="text-sm text-muted-foreground">
+          Nivel seleccionado: <span className="font-medium">{valueLevelLabel}</span>
+        </p>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="wizard-name">Nombre de la oferta</Label>
+        <Input
+          id="wizard-name"
+          value={name}
+          onChange={(e) => onNameChange(e.target.value)}
+          placeholder="Programa Elite de Ventas"
+          autoFocus
+        />
+      </div>
+      {isLeadMagnet ? (
+        <div className="rounded-lg border border-dashed p-3 bg-muted/30 text-sm text-muted-foreground">
+          Los lead magnets son gratuitos — no se pide precio en este paso.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <Label htmlFor="wizard-price">Precio ({tenantCurrency})</Label>
+          <Input
+            id="wizard-price"
+            type="number"
+            min="0"
+            value={price}
+            onChange={(e) => onPriceChange(e.target.value)}
+            placeholder="0"
+          />
+          {priceMinUsd !== null && priceMaxUsd !== null && (
+            <p className="text-xs text-muted-foreground">
+              Rango típico para {valueLevelLabel}: USD {priceMinUsd}–{priceMaxUsd}
+              . El precio final se ajusta al valor que vas a entregar.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── STEP 5: EDITIONS (conditional) ───────────────────────────────────────────
+
+interface EditionsStepProps {
+  title: string;
+  description: string;
+  yesLabel: string;
+  noLabel: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+}
+
+function EditionsStep({
+  title,
+  description,
+  yesLabel,
+  noLabel,
+  value,
+  onChange,
+}: EditionsStepProps) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-lg font-semibold">{title}</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={() => onChange(true)}
+          className={cn(
+            "rounded-lg border p-4 text-left transition",
+            value ? "border-primary bg-primary/5" : "hover:border-primary/40",
+          )}
+        >
+          <span className="font-medium">{yesLabel}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange(false)}
+          className={cn(
+            "rounded-lg border p-4 text-left transition",
+            !value ? "border-primary bg-primary/5" : "hover:border-primary/40",
+          )}
+        >
+          <span className="font-medium">{noLabel}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── STEP 6: PROMISE ──────────────────────────────────────────────────────────
+
+interface PromiseStepProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+function PromiseStep({ value, onChange }: PromiseStepProps) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-lg font-semibold">¿Qué resultado logra tu cliente?</h3>
+        <p className="text-sm text-muted-foreground">
+          Podés completar esto después desde el editor. Sirve como punto de partida.
+        </p>
+      </div>
+      <Textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Ej: Lanza tu primer funnel de ventas en 30 días sin saber de tecnología"
+        rows={3}
+        autoFocus
+      />
+    </div>
   );
 }
