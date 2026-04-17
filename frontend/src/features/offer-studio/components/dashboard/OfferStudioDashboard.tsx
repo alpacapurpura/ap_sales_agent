@@ -150,8 +150,12 @@ export function OfferStudioDashboard({
 
       matches++; // Count matches (or all if no query)
 
-      let level = offer.value_level;
-      level = level || OfferValueLevel.LEAD_MAGNET;
+      // The adapter always resolves a concrete value_level, so this branch
+      // only triggers for pathological data. Fall back to is_lead_magnet
+      // rather than silently dumping unclassified offers into LEAD_MAGNET.
+      const level =
+        offer.value_level ||
+        (offer.is_lead_magnet ? OfferValueLevel.LEAD_MAGNET : OfferValueLevel.ACTIVACION);
       if (!grouped[level]) grouped[level] = [];
       grouped[level].push(offer);
     });

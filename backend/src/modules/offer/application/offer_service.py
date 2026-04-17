@@ -55,6 +55,16 @@ class OfferService:
         currency: str | None = None,
     ) -> Offer:
         """Create offer."""
+        # Invariant: value_level == LEAD_MAGNET iff is_lead_magnet. The
+        # wizard can pass either flag; we normalize here so the ladder
+        # grouping (frontend) never sees an inconsistent state. Default
+        # for paid offers is ACTIVACION (first paid rung), never NULL —
+        # a NULL value_level used to collapse into LEAD_MAGNET via a
+        # silent frontend fallback, which is the bug this guards against.
+        is_lead_magnet, value_level = self._normalize_ladder_position(
+            is_lead_magnet=is_lead_magnet,
+            value_level=value_level,
+        )
         new_offer = Offer(
             tenant_id=tenant_id,
             public_name=name,
@@ -81,6 +91,24 @@ class OfferService:
         created = self.repository.create(new_offer)
         self._ensure_placeholder_edition(created)
         return created
+
+    @staticmethod
+    def _normalize_ladder_position(
+        *,
+        is_lead_magnet: bool,
+        value_level: OfferValueLevel | None,
+    ) -> tuple[bool, OfferValueLevel]:
+        """Enforce the ``value_level == LEAD_MAGNET iff is_lead_magnet`` invariant.
+
+        Either flag can arrive as the source of truth (wizard sends
+        ``is_lead_magnet``; IA pipelines and legacy payloads may send
+        ``value_level``). Any inconsistency is resolved toward the
+        lead-magnet state when either signal says so, and paid offers
+        default to ``ACTIVACION`` instead of NULL.
+        """
+        if is_lead_magnet or value_level == OfferValueLevel.LEAD_MAGNET:
+            return True, OfferValueLevel.LEAD_MAGNET
+        return False, value_level or OfferValueLevel.ACTIVACION
 
     def _ensure_placeholder_edition(self, offer: Offer) -> None:
         """Create a DRAFT + PRIVATE placeholder edition #1 for edition-supporting offers.

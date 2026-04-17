@@ -121,7 +121,6 @@ export function CreateOfferWizard({
     onOpenChange(open);
   };
 
-  const priceNum = parseFloat(price) || 0;
   const effectiveLeadMagnet = isLeadMagnet;
 
   const handleSelectArchetype = (archetype: OfferArchetype) => {
@@ -378,19 +377,11 @@ export function CreateOfferWizard({
                     type="number"
                     min="0"
                     value={price}
-                    onChange={(e) => {
-                      setPrice(e.target.value);
-                      if (parseFloat(e.target.value) === 0) setIsLeadMagnet(true);
-                    }}
+                    onChange={(e) => setPrice(e.target.value)}
                     placeholder="0"
                     className="h-11 pl-12"
                   />
                 </div>
-                {priceNum === 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    Se marcara como Lead Magnet automaticamente.
-                  </p>
-                )}
               </div>
 
               <div className="flex items-center gap-2">

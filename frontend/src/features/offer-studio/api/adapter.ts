@@ -136,9 +136,20 @@ const normalizeEnum = <T extends string>(
   return defaultValue;
 };
 
-/** Normalize value_level with legacy fallback */
-const normalizeLegacyValueLevel = (value: string | null | undefined): OfferValueLevel => {
-  if (!value) return OfferValueLevel.LEAD_MAGNET;
+/** Normalize value_level with legacy fallback.
+ *
+ * Paid offers default to ACTIVACION (first paid rung). Only fall back to
+ * LEAD_MAGNET when the backend explicitly flags the offer as such — a
+ * NULL/missing value_level used to collapse every offer into the lead
+ * magnet bucket in Offer Studio, which is the bug this normalizer guards
+ * against. See `OfferService._normalize_ladder_position` (backend).
+ */
+const normalizeLegacyValueLevel = (
+  value: string | null | undefined,
+  isLeadMagnet: boolean,
+): OfferValueLevel => {
+  const fallback = isLeadMagnet ? OfferValueLevel.LEAD_MAGNET : OfferValueLevel.ACTIVACION;
+  if (!value) return fallback;
   // Direct match with new values
   if (Object.values(OfferValueLevel).includes(value as OfferValueLevel)) {
     return value as OfferValueLevel;
@@ -146,8 +157,8 @@ const normalizeLegacyValueLevel = (value: string | null | undefined): OfferValue
   // Legacy mapping
   const mapped = LEGACY_VALUE_LEVEL_MAP[value];
   if (mapped) return mapped;
-  console.warn(`[Adapter] Unknown value_level: ${value}. Defaulting to lead_magnet`);
-  return OfferValueLevel.LEAD_MAGNET;
+  console.warn(`[Adapter] Unknown value_level: ${value}. Defaulting to ${fallback}`);
+  return fallback;
 };
 
 /**
@@ -164,7 +175,10 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
 
     // Strict Enum Normalization
     archetype: normalizeEnum(data.archetype, OfferArchetype, OfferArchetype.PRODUCTO),
-    value_level: normalizeLegacyValueLevel(data.offer_value_level || data.value_level),
+    value_level: normalizeLegacyValueLevel(
+      data.offer_value_level || data.value_level,
+      data.is_lead_magnet || false,
+    ),
     delivery_model: normalizeEnum(data.delivery_model, OfferDeliveryModel, OfferDeliveryModel.DIY),
     status: normalizeEnum(data.status, OfferStatus, OfferStatus.DRAFT),
     format_hint: data.format_hint,
