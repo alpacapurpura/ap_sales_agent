@@ -2,13 +2,48 @@
 
 Encapsulates all tenant-specific period logic (week start day, fiscal year)
 so that ETL, aggregation, and API layers can compute consistent boundaries.
+
+DateRange — resolved date range carrying both dates and the period key.
+Used as the unified parameter for all stage service get_metrics() calls.
 """
 
 from __future__ import annotations
 
 import calendar
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta, timezone
+
+
+@dataclass(frozen=True)
+class DateRange:
+    """Resolved date range for a period — carries both dates and the period key.
+
+    Attributes:
+        start_date: First day of the range (inclusive).
+        end_date: Last day of the range (inclusive).
+        period_type: The period string used as cache key ("last_30_days", "weekly", etc.).
+
+    """
+
+    start_date: date
+    end_date: date
+    period_type: str
+
+    @property
+    def days(self) -> int:
+        """Number of days in the range (inclusive)."""
+        return (self.end_date - self.start_date).days + 1
+
+    def to_datetime_range(self) -> tuple[datetime, datetime]:
+        """Convert date boundaries to UTC datetimes (inclusive).
+
+        Returns start at 00:00:00 UTC and end at 23:59:59.999999 UTC,
+        suitable for CRM repos that filter on datetime columns.
+        """
+        return (
+            datetime.combine(self.start_date, time.min, tzinfo=timezone.utc),
+            datetime.combine(self.end_date, time.max, tzinfo=timezone.utc),
+        )
 
 
 @dataclass(frozen=True)
@@ -66,6 +101,37 @@ class TenantPeriodConfig:
         fy_start = self._fiscal_year_start_for(d)
         months_since = (d.year - fy_start.year) * 12 + (d.month - fy_start.month)
         return (months_since // 3) + 1
+
+    def resolve_period(self, period_type: str, today: date) -> DateRange:
+        """Convert a period string to a concrete DateRange.
+
+        Args:
+            period_type: One of "last_30_days", "weekly", "monthly", "quarterly".
+            today: Reference date. Callers pass ``utc_today()`` from
+                   ``shared.domain.datetime_utils`` — domain layer takes it as
+                   a parameter to stay framework-free.
+
+        Returns:
+            DateRange with resolved start/end dates and the period_type key.
+
+        Raises:
+            ValueError: If ``period_type`` is not recognized.
+
+        """
+        if period_type == "last_30_days":
+            return DateRange(today - timedelta(days=29), today, period_type)
+        if period_type == "weekly":
+            s, e = self.get_week_boundaries(today)
+            return DateRange(s, e, period_type)
+        if period_type == "monthly":
+            s, e = self.get_month_boundaries(today)
+            return DateRange(s, e, period_type)
+        if period_type == "quarterly":
+            s, e = self.get_quarter_boundaries(today)
+            return DateRange(s, e, period_type)
+
+        msg = f"Unknown period_type: {period_type!r}"
+        raise ValueError(msg)
 
     def is_period_boundary(self, d: date, period_type: str) -> bool:
         """Return True if ``d`` is the last day of the given period type."""

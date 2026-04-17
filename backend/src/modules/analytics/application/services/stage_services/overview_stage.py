@@ -33,7 +33,7 @@ from src.modules.analytics.application.services.stage_services.constants import 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
-    from src.modules.analytics.domain.ports import ConnectionPort
+    from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
     from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 
 logger = structlog.get_logger()
@@ -73,11 +73,13 @@ class StageOverviewService:
         cache: MetricsCache | None = None,
         db: Session | None = None,
         connection_port: ConnectionPort | None = None,
+        offer_port: OfferReadPort | None = None,
     ) -> None:
         """Initialize stage overview service."""
         self.cache = cache
         self.db = db
         self.connection_port = connection_port
+        self.offer_port = offer_port
 
     async def get_stage_overview(
         self,
@@ -145,40 +147,70 @@ class StageOverviewService:
     ) -> dict | None:
         """Compute full stage data on-demand when cache is empty.
 
-        Calls MetricsService which reads from DB and populates the stage cache.
-        Returns the model_dump() of the computed DTO.
-
-        Only supports stages that accept a `period` string parameter
-        (attraction, capture, nurture). Other stages use start_date/end_date
-        and are computed via their legacy endpoints or the scheduler.
+        Instantiates the correct stage service and calls ``get_metrics()``
+        with a resolved ``DateRange``. All 8 funnel stages are supported.
         """
         from uuid import UUID
 
-        from src.modules.analytics.application.services.metrics_service import (
-            MetricsService,
+        from src.modules.analytics.application.services.stage_services.adoption_stage import (
+            AdoptionStageService,
         )
+        from src.modules.analytics.application.services.stage_services.attraction_stage import (
+            AttractionStageService,
+        )
+        from src.modules.analytics.application.services.stage_services.capture_stage import (
+            CaptureStageService,
+        )
+        from src.modules.analytics.application.services.stage_services.evangelization_stage import (
+            EvangelizationStageService,
+        )
+        from src.modules.analytics.application.services.stage_services.expansion_stage import (
+            ExpansionStageService,
+        )
+        from src.modules.analytics.application.services.stage_services.nurture_stage import (
+            NurtureStageService,
+        )
+        from src.modules.analytics.application.services.stage_services.opportunity_stage import (
+            OpportunityStageService,
+        )
+        from src.modules.analytics.application.services.stage_services.sales_stage import (
+            SalesStageService,
+        )
+        from src.modules.analytics.domain.period_config import TenantPeriodConfig
+        from src.shared.domain.datetime_utils import utc_today
 
-        # Only period-based stages support on-demand fallback
-        _period_stage_methods: dict[str, str] = {
-            "attraction": "get_attraction_metrics",
-            "capture": "get_capture_metrics",
-            "nurture": "get_nurturing_metrics",
+        _stage_services: dict[str, type] = {
+            "attraction": AttractionStageService,
+            "capture": CaptureStageService,
+            "nurture": NurtureStageService,
+            "opportunity": OpportunityStageService,
+            "sales": SalesStageService,
+            "adoption": AdoptionStageService,
+            "expansion": ExpansionStageService,
+            "evangelization": EvangelizationStageService,
         }
+        _needs_offer_port = frozenset({"sales", "adoption", "expansion", "evangelization"})
 
-        method_name = _period_stage_methods.get(stage)
-        if method_name is None:
+        service_cls = _stage_services.get(stage)
+        if service_cls is None:
             return None
 
+        config = TenantPeriodConfig()
+        date_range = config.resolve_period(period, today=utc_today())
+
+        kwargs: dict = {
+            "db": self.db,
+            "cache": self.cache,
+            "connection_port": self.connection_port,
+        }
+        if stage in _needs_offer_port:
+            kwargs["offer_port"] = self.offer_port
+
+        service = service_cls(**kwargs)
         tid = UUID(tenant_id)
-        service = MetricsService(
-            self.db,  # type: ignore[arg-type]  # MetricsService uses legacy sync Session; this path is rarely hit (on-demand fallback only)
-            cache=self.cache,
-            connection_port=self.connection_port,
-        )
 
         try:
-            method = getattr(service, method_name)
-            result = await method(tid, period=period)
+            result = await service.get_metrics(tid, date_range)
             logger.info(
                 "stage_overview_computed_on_demand",
                 tenant_id=tenant_id,

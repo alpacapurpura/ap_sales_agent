@@ -4,7 +4,6 @@ Handles get_capture_metrics() logic: CRM lead counts, costs,
 grouping into web_infrastructure and ai_agent.
 """
 
-from datetime import UTC
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -34,6 +33,7 @@ from src.modules.analytics.application.services.stage_services.constants import 
 from src.modules.analytics.application.services.stage_services.constants import (
     DISPLAY_NAME_MAP as _DISPLAY_NAME_MAP,
 )
+from src.modules.analytics.domain.period_config import DateRange
 from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.infrastructure.repositories.capture_repository import (
@@ -348,12 +348,12 @@ class CaptureStageService:
     async def get_metrics(
         self,
         tenant_id: UUID,
-        period: str = "last_30_days",
+        date_range: DateRange,
     ) -> CaptureDetailDTO:
         """Return capture-stage (Stage 1) metrics."""
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(str(tenant_id), "capture", "last_30_days")
+            cached = await self.cache.get(str(tenant_id), "capture", date_range.period_type)
             if cached is not None:
                 return CaptureDetailDTO(**cached)
 
@@ -362,11 +362,9 @@ class CaptureStageService:
         channel_split = await registry.get_available_channels(tenant_id, "capture")
 
         # 3. Query CRM for lead counts by lead_source
-        from datetime import datetime, timedelta
-
-        now = datetime.now(UTC)
-        start_date = now - timedelta(days=30)
-        end_date = now
+        start_dt, end_dt = date_range.to_datetime_range()
+        start_date = start_dt
+        end_date = end_dt
 
         capture_repo = CaptureMetricsRepository(self.db)
         lead_counts = capture_repo.count_leads_by_source(
@@ -478,8 +476,8 @@ class CaptureStageService:
                 channels=groups["ai_agent"],
             ),
             available=available_dto,
-            period="last_30_days",
-            last_updated=now.isoformat(),
+            period=date_range.period_type,
+            last_updated=end_dt.isoformat(),
         )
 
         # 8. Set cache
@@ -487,7 +485,7 @@ class CaptureStageService:
             await self.cache.set(
                 str(tenant_id),
                 "capture",
-                "last_30_days",
+                date_range.period_type,
                 result.model_dump(),
             )
 

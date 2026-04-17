@@ -18,6 +18,7 @@ from src.modules.analytics.application.dto.evangelization_dto import (
     NpsSummaryDTO,
 )
 from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
+from src.modules.analytics.domain.period_config import DateRange
 from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 
@@ -41,8 +42,7 @@ class EvangelizationStageService:
     async def get_metrics(
         self,
         tenant_id: UUID,
-        start_date: "object",
-        end_date: "object",
+        date_range: DateRange,
     ) -> EvangelizationDetailDTO:
         """Return evangelization-stage (Stage 7) metrics.
 
@@ -59,19 +59,21 @@ class EvangelizationStageService:
             EvangelizationRepository,
         )
 
+        start_dt, end_dt = date_range.to_datetime_range()
+
         # 1. Check cache
         if self.cache is not None:
             cached = await self.cache.get(
                 str(tenant_id),
                 "evangelization",
-                "last_30_days",
+                date_range.period_type,
             )
             if cached is not None:
                 return EvangelizationDetailDTO(**cached)
 
         # 2. Query repository
         repo = EvangelizationRepository(self.db)
-        data = await repo.get_evangelization_data(tenant_id, start_date, end_date)
+        data = await repo.get_evangelization_data(tenant_id, start_dt, end_dt)
 
         # 3. Compute bottlenecks
         bottlenecks: list[BottleneckDTO] = []
@@ -151,7 +153,7 @@ class EvangelizationStageService:
             ugc_written=data.get("ugc_written", 0),
             ugc_audio=data.get("ugc_audio", 0),
             bottlenecks=bottlenecks,
-            period="last_30_days",
+            period=date_range.period_type,
             last_updated=now.isoformat(),
         )
 
@@ -160,7 +162,7 @@ class EvangelizationStageService:
             await self.cache.set(
                 str(tenant_id),
                 "evangelization",
-                "last_30_days",
+                date_range.period_type,
                 result.model_dump(),
             )
 

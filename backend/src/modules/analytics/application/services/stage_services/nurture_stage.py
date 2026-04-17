@@ -5,7 +5,6 @@ retargeting/automation grouping, mini funnel (Leads -> MQLs).
 """
 
 from collections import defaultdict
-from datetime import UTC
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -34,6 +33,7 @@ from src.modules.analytics.application.services.stage_services.constants import 
 from src.modules.analytics.application.services.stage_services.constants import (
     NURTURE_GROUP_MAP as _NURTURE_GROUP_MAP,
 )
+from src.modules.analytics.domain.period_config import DateRange
 from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.infrastructure.repositories.nurture_repository import (
@@ -167,12 +167,12 @@ class NurtureStageService:
     async def get_metrics(
         self,
         tenant_id: UUID,
-        period: str = "last_30_days",
+        date_range: DateRange,
     ) -> NurtureDetailDTO:
         """Return nurture-stage (Stage 2) metrics."""
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(str(tenant_id), "nurture", "last_30_days")
+            cached = await self.cache.get(str(tenant_id), "nurture", date_range.period_type)
             if cached is not None:
                 return NurtureDetailDTO(**cached)
 
@@ -182,33 +182,30 @@ class NurtureStageService:
 
         # 3. Get aggregated metrics from official tables
         repo = OfficialMetricsRepository(self.db)
-        aggregations = repo.get_channel_summary(tenant_id, "nurture", "last_30_days")
+        aggregations = repo.get_channel_summary(tenant_id, "nurture", date_range.period_type)
 
         agg_by_slug: dict[str, list] = defaultdict(list)
         for agg in aggregations:
             agg_by_slug[agg.channel_slug].append(agg)
 
         # 4. Query CRM for MQL counts
-        from datetime import datetime, timedelta
-
-        now = datetime.now(UTC)
-        start_date = now - timedelta(days=30)
+        start_dt, end_dt = date_range.to_datetime_range()
 
         nurture_repo = NurtureMetricsRepository(self.db)
-        total_mqls = nurture_repo.count_new_mqls(tenant_id, start_date, now)
-        total_leads = nurture_repo.count_leads_in_period(tenant_id, start_date, now)
+        total_mqls = nurture_repo.count_new_mqls(tenant_id, start_dt, end_dt)
+        total_leads = nurture_repo.count_leads_in_period(tenant_id, start_dt, end_dt)
 
         # 5. Load costs
         cost_per_mql, retargeting_cpm, automation_cpm = self._load_nurture_costs(
             tenant_id,
-            start_date,
-            now,
+            start_dt,
+            end_dt,
             total_mqls,
         )
 
         # 6. Query CRM for internal channel-specific data
-        email_events = nurture_repo.count_email_events(tenant_id, start_date, now)
-        followup_events = nurture_repo.count_followup_events(tenant_id, start_date, now)
+        email_events = nurture_repo.count_email_events(tenant_id, start_dt, end_dt)
+        followup_events = nurture_repo.count_followup_events(tenant_id, start_dt, end_dt)
 
         slug_metrics_dispatch: dict[str, list[MetricValueDTO]] = {
             "email-nurture": self._build_email_nurture_metrics(email_events),
@@ -236,8 +233,8 @@ class NurtureStageService:
                     metrics,
                     tenant_id,
                     slug,
-                    start_date,
-                    now,
+                    start_dt,
+                    end_dt,
                 )
 
             conn_config = ch.get("connection_config", {})
@@ -302,8 +299,8 @@ class NurtureStageService:
                 channels=groups["automation"],
             ),
             available=available_dto,
-            period="last_30_days",
-            last_updated=now.isoformat(),
+            period=date_range.period_type,
+            last_updated=end_dt.isoformat(),
         )
 
         # 9. Set cache
@@ -311,7 +308,7 @@ class NurtureStageService:
             await self.cache.set(
                 str(tenant_id),
                 "nurture",
-                "last_30_days",
+                date_range.period_type,
                 result.model_dump(),
             )
 

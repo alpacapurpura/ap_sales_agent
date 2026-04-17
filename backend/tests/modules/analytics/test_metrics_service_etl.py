@@ -10,7 +10,7 @@ Instead of the old hardcoded channel definitions + journey_events.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -18,8 +18,11 @@ import pytest
 from src.modules.analytics.application.dto.attraction_dto import (
     AttractionDetailDTO,
 )
+from src.modules.analytics.domain.period_config import DateRange
 
 _ATTRACTION_MODULE = "src.modules.analytics.application.services.stage_services.attraction_stage"
+
+_DEFAULT_RANGE = DateRange(date(2026, 3, 18), date(2026, 4, 16), "last_30_days")
 
 
 @pytest.fixture
@@ -147,7 +150,7 @@ async def test_get_attraction_uses_channel_registry(
             )
             MockReg.return_value = mock_reg_inst
 
-            result = await service.get_metrics(test_tenant_id)
+            result = await service.get_metrics(test_tenant_id, _DEFAULT_RANGE)
 
             # ChannelRegistry was used
             mock_reg_inst.get_available_channels.assert_called_once_with(
@@ -206,7 +209,7 @@ async def test_get_attraction_populates_values_from_repo(
             )
             MockReg.return_value = mock_reg_inst
 
-            result = await service.get_metrics(test_tenant_id)
+            result = await service.get_metrics(test_tenant_id, _DEFAULT_RANGE)
 
     # Find the ig-organic channel in organic group
     all_channels = result.organic_social.channels + result.paid.channels
@@ -253,7 +256,7 @@ async def test_get_attraction_returns_cached_on_hit(
         mock_repo_inst = MagicMock()
         MockRepo.return_value = mock_repo_inst
 
-        result = await service.get_metrics(test_tenant_id)
+        result = await service.get_metrics(test_tenant_id, _DEFAULT_RANGE)
 
         # Repository MUST NOT be called when cache hits
         mock_repo_inst.get_channel_summary.assert_not_called()
@@ -291,7 +294,7 @@ async def test_get_attraction_sets_cache_after_query(
             )
             MockReg.return_value = mock_reg_inst
 
-            await service.get_metrics(test_tenant_id)
+            await service.get_metrics(test_tenant_id, _DEFAULT_RANGE)
 
     # Cache set must have been called
     mock_cache.set.assert_called_once()
@@ -342,7 +345,7 @@ async def test_unconnected_channels_return_zero(
             )
             MockReg.return_value = mock_reg_inst
 
-            result = await service.get_metrics(test_tenant_id)
+            result = await service.get_metrics(test_tenant_id, _DEFAULT_RANGE)
 
     assert result.available is not None
     tiktok = next(
@@ -395,7 +398,7 @@ async def test_connected_channels_include_last_updated(
             )
             MockReg.return_value = mock_reg_inst
 
-            result = await service.get_metrics(test_tenant_id)
+            result = await service.get_metrics(test_tenant_id, _DEFAULT_RANGE)
 
     ig = next(
         (ch for ch in result.organic_social.channels if ch.slug == "ig-organic"),
@@ -426,6 +429,6 @@ async def test_works_without_cache(mock_db, mock_connection_port, test_tenant_id
             )
             MockReg.return_value = mock_reg_inst
 
-            result = await service.get_metrics(test_tenant_id)
+            result = await service.get_metrics(test_tenant_id, _DEFAULT_RANGE)
 
     assert isinstance(result, AttractionDetailDTO)

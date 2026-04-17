@@ -3,9 +3,11 @@
 Pure Python tests: no DB, no async, no mocking required.
 """
 
-from datetime import date
+from datetime import date, datetime, time, timezone
 
-from src.modules.analytics.domain.period_config import TenantPeriodConfig
+import pytest
+
+from src.modules.analytics.domain.period_config import DateRange, TenantPeriodConfig
 
 
 class TestWeekBoundariesDefaultMonday:
@@ -250,3 +252,112 @@ class TestBoundaryDetection:
         """Unknown period type should return False."""
         cfg = TenantPeriodConfig()
         assert cfg.is_period_boundary(date(2026, 3, 31), "yearly") is False
+
+
+class TestDateRange:
+    """DateRange frozen dataclass — carries resolved dates + period key."""
+
+    def test_days_property_30_day_range(self):
+        """30-day inclusive range has 30 days."""
+        dr = DateRange(date(2026, 3, 18), date(2026, 4, 16), "last_30_days")
+        assert dr.days == 30
+
+    def test_days_property_single_day(self):
+        """Same start and end = 1 day."""
+        dr = DateRange(date(2026, 4, 16), date(2026, 4, 16), "daily")
+        assert dr.days == 1
+
+    def test_frozen_immutable(self):
+        """DateRange is immutable — cannot assign attributes."""
+        dr = DateRange(date(2026, 3, 18), date(2026, 4, 16), "last_30_days")
+        with pytest.raises(AttributeError):
+            dr.start_date = date(2026, 1, 1)  # type: ignore[misc]
+
+    def test_to_datetime_range_utc(self):
+        """to_datetime_range returns UTC-aware datetimes, start at midnight, end at 23:59:59."""
+        dr = DateRange(date(2026, 4, 1), date(2026, 4, 30), "monthly")
+        start_dt, end_dt = dr.to_datetime_range()
+
+        assert start_dt == datetime.combine(date(2026, 4, 1), time.min, tzinfo=timezone.utc)
+        assert end_dt == datetime.combine(date(2026, 4, 30), time.max, tzinfo=timezone.utc)
+        assert start_dt.tzinfo == timezone.utc
+        assert end_dt.tzinfo == timezone.utc
+
+    def test_to_datetime_range_inclusive_end(self):
+        """End datetime includes the full last day (23:59:59.999999)."""
+        dr = DateRange(date(2026, 4, 16), date(2026, 4, 16), "daily")
+        _, end_dt = dr.to_datetime_range()
+        assert end_dt.hour == 23
+        assert end_dt.minute == 59
+        assert end_dt.second == 59
+
+    def test_period_type_preserved(self):
+        """period_type travels with the resolved range."""
+        dr = DateRange(date(2026, 4, 1), date(2026, 4, 30), "monthly")
+        assert dr.period_type == "monthly"
+
+
+class TestResolvePeriod:
+    """TenantPeriodConfig.resolve_period — centralizes period string → DateRange."""
+
+    def test_last_30_days(self):
+        """last_30_days = today - 29 through today (30 inclusive days)."""
+        cfg = TenantPeriodConfig()
+        dr = cfg.resolve_period("last_30_days", today=date(2026, 4, 16))
+        assert dr.start_date == date(2026, 3, 18)
+        assert dr.end_date == date(2026, 4, 16)
+        assert dr.period_type == "last_30_days"
+        assert dr.days == 30
+
+    def test_weekly_uses_tenant_week_start(self):
+        """weekly resolves to the week containing today, respecting weekly_start_day."""
+        cfg = TenantPeriodConfig(weekly_start_day=0)  # Monday start
+        dr = cfg.resolve_period("weekly", today=date(2026, 4, 16))  # Thursday
+        assert dr.start_date == date(2026, 4, 13)  # Monday
+        assert dr.end_date == date(2026, 4, 19)  # Sunday
+        assert dr.period_type == "weekly"
+        assert dr.days == 7
+
+    def test_weekly_sunday_start(self):
+        """weekly with Sunday start uses different boundaries."""
+        cfg = TenantPeriodConfig(weekly_start_day=6)  # Sunday start
+        dr = cfg.resolve_period("weekly", today=date(2026, 4, 16))  # Thursday
+        assert dr.start_date == date(2026, 4, 12)  # Sunday
+        assert dr.end_date == date(2026, 4, 18)  # Saturday
+        assert dr.days == 7
+
+    def test_monthly(self):
+        """monthly resolves to first and last day of current month."""
+        cfg = TenantPeriodConfig()
+        dr = cfg.resolve_period("monthly", today=date(2026, 4, 16))
+        assert dr.start_date == date(2026, 4, 1)
+        assert dr.end_date == date(2026, 4, 30)
+        assert dr.period_type == "monthly"
+
+    def test_quarterly_default_fiscal(self):
+        """quarterly resolves to fiscal quarter (default: calendar year)."""
+        cfg = TenantPeriodConfig()
+        dr = cfg.resolve_period("quarterly", today=date(2026, 4, 16))
+        assert dr.start_date == date(2026, 4, 1)  # Q2 start
+        assert dr.end_date == date(2026, 6, 30)  # Q2 end
+        assert dr.period_type == "quarterly"
+
+    def test_quarterly_fiscal_offset(self):
+        """quarterly respects fiscal_year_start_month."""
+        cfg = TenantPeriodConfig(fiscal_year_start_month=4)
+        dr = cfg.resolve_period("quarterly", today=date(2026, 5, 10))
+        # Fiscal Q1 starts April, so May is still in Q1
+        assert dr.start_date == date(2026, 4, 1)
+        assert dr.end_date == date(2026, 6, 30)
+
+    def test_unknown_period_raises_value_error(self):
+        """Unknown period type raises ValueError with descriptive message."""
+        cfg = TenantPeriodConfig()
+        with pytest.raises(ValueError, match="Unknown period_type"):
+            cfg.resolve_period("yearly", today=date(2026, 4, 16))
+
+    def test_today_is_required(self):
+        """today is a required parameter — no hidden dependency on system clock."""
+        cfg = TenantPeriodConfig()
+        with pytest.raises(TypeError):
+            cfg.resolve_period("last_30_days")  # type: ignore[call-arg]

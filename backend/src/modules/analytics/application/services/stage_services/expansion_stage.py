@@ -17,6 +17,7 @@ from src.modules.analytics.application.dto.expansion_dto import (
     ExpansionOfferDTO,
 )
 from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
+from src.modules.analytics.domain.period_config import DateRange
 from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.shared.domain.currency import convert_to_usd
@@ -95,8 +96,7 @@ class ExpansionStageService:
     async def get_metrics(
         self,
         tenant_id: UUID,
-        start_date: "object",
-        end_date: "object",
+        date_range: DateRange,
     ) -> ExpansionDetailDTO:
         """Return expansion-stage (Stage 6) metrics.
 
@@ -116,9 +116,11 @@ class ExpansionStageService:
             ExpansionMetricsRepository,
         )
 
+        start_dt, end_dt = date_range.to_datetime_range()
+
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(str(tenant_id), "expansion", "last_30_days")
+            cached = await self.cache.get(str(tenant_id), "expansion", date_range.period_type)
             if cached is not None:
                 return ExpansionDetailDTO(**cached)
 
@@ -126,25 +128,25 @@ class ExpansionStageService:
         exp_repo = ExpansionMetricsRepository(self.db)
         sales_grouped = exp_repo.get_expansion_sales_grouped(
             tenant_id,
-            start_date,
-            end_date,
+            start_dt,
+            end_dt,
         )
         churn_by_offer = exp_repo.get_churn_data_by_offer(
             tenant_id,
-            start_date,
-            end_date,
+            start_dt,
+            end_dt,
         )
         total_churn_count = exp_repo.get_total_churn_count(
             tenant_id,
-            start_date,
-            end_date,
+            start_dt,
+            end_dt,
         )
         active_customer_count = exp_repo.get_active_customer_count(tenant_id)
         avg_ltv, ltv_currency = exp_repo.get_avg_ltv(tenant_id)
         upsell_customer_count = exp_repo.get_expansion_customer_count(
             tenant_id,
-            start_date,
-            end_date,
+            start_dt,
+            end_dt,
         )
 
         # 3. Get offers for enrichment
@@ -273,7 +275,7 @@ class ExpansionStageService:
             crecimiento=crecimiento,
             cancelaciones=cancelaciones,
             bottlenecks=bottlenecks,
-            period="last_30_days",
+            period=date_range.period_type,
             last_updated=now.isoformat(),
         )
 
@@ -282,7 +284,7 @@ class ExpansionStageService:
             await self.cache.set(
                 str(tenant_id),
                 "expansion",
-                "last_30_days",
+                date_range.period_type,
                 result.model_dump(),
             )
 

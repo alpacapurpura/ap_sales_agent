@@ -34,6 +34,7 @@ from src.modules.analytics.application.services.stage_services.constants import 
 from src.modules.analytics.application.services.stage_services.constants import (
     OPPORTUNITY_GROUP_MAP as _OPPORTUNITY_GROUP_MAP,
 )
+from src.modules.analytics.domain.period_config import DateRange
 from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
@@ -177,8 +178,7 @@ class OpportunityStageService:
     async def get_metrics(
         self,
         tenant_id: UUID,
-        start_date: "object",
-        end_date: "object",
+        date_range: DateRange,
     ) -> OpportunityDetailDTO:
         """Return opportunity-stage (Stage 3) metrics."""
         from datetime import datetime as dt_cls
@@ -187,9 +187,11 @@ class OpportunityStageService:
             OpportunityMetricsRepository,
         )
 
+        start_dt, end_dt = date_range.to_datetime_range()
+
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(str(tenant_id), "opportunity", "last_30_days")
+            cached = await self.cache.get(str(tenant_id), "opportunity", date_range.period_type)
             if cached is not None:
                 return OpportunityDetailDTO(**cached)
 
@@ -199,14 +201,14 @@ class OpportunityStageService:
 
         # 3. Query CRM for SQL pipeline metrics
         repo = OpportunityMetricsRepository(self.db)
-        total_sqls = repo.count_new_sqls(tenant_id, start_date, end_date)
-        mql_count = repo.count_mqls_in_period(tenant_id, start_date, end_date)
-        checkout_events = repo.count_checkout_events(tenant_id, start_date, end_date)
-        meeting_events = repo.count_meeting_events(tenant_id, start_date, end_date)
+        total_sqls = repo.count_new_sqls(tenant_id, start_dt, end_dt)
+        mql_count = repo.count_mqls_in_period(tenant_id, start_dt, end_dt)
+        checkout_events = repo.count_checkout_events(tenant_id, start_dt, end_dt)
+        meeting_events = repo.count_meeting_events(tenant_id, start_dt, end_dt)
         payment_link_events = repo.count_payment_link_events(
             tenant_id,
-            start_date,
-            end_date,
+            start_dt,
+            end_dt,
         )
 
         # 4. Calculate header KPIs
@@ -240,8 +242,8 @@ class OpportunityStageService:
                     tenant_id,
                     "manychat",
                     slug,
-                    start_date.date() if hasattr(start_date, "date") else start_date,
-                    end_date.date() if hasattr(end_date, "date") else end_date,
+                    start_dt.date() if hasattr(start_dt, "date") else start_dt,
+                    end_dt.date() if hasattr(end_dt, "date") else end_dt,
                 )
                 existing_names = {m.name for m in metrics}
                 for m_name, m_value in mc_metrics_opp.items():
@@ -315,7 +317,7 @@ class OpportunityStageService:
             ),
             bottlenecks=bottlenecks,
             available=available_dto,
-            period="last_30_days",
+            period=date_range.period_type,
             last_updated=now.isoformat(),
         )
 
@@ -324,7 +326,7 @@ class OpportunityStageService:
             await self.cache.set(
                 str(tenant_id),
                 "opportunity",
-                "last_30_days",
+                date_range.period_type,
                 result.model_dump(),
             )
 

@@ -29,6 +29,7 @@ from src.modules.analytics.application.dto.sales_dto import (
 from src.modules.analytics.application.services.stage_cost_service import (
     StageCostService,
 )
+from src.modules.analytics.domain.period_config import DateRange
 from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
@@ -356,8 +357,7 @@ class SalesStageService:
     async def get_metrics(
         self,
         tenant_id: UUID,
-        start_date: "object",
-        end_date: "object",
+        date_range: DateRange,
     ) -> SalesDetailDTO:
         """Return sales-stage (Stage 4) metrics."""
         from datetime import datetime as dt_cls
@@ -366,15 +366,17 @@ class SalesStageService:
             SalesMetricsRepository,
         )
 
+        start_dt, end_dt = date_range.to_datetime_range()
+
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(str(tenant_id), "sales", "last_30_days")
+            cached = await self.cache.get(str(tenant_id), "sales", date_range.period_type)
             if cached is not None:
                 return SalesDetailDTO(**cached)
 
         # 2. Query raw sales aggregations
         sales_repo = SalesMetricsRepository(self.db)
-        raw_sales = sales_repo.get_sales_summary(tenant_id, start_date, end_date)
+        raw_sales = sales_repo.get_sales_summary(tenant_id, start_dt, end_dt)
 
         # 3. Get all offers for enrichment via OfferReadPort
         offer_map = {}
@@ -412,22 +414,22 @@ class SalesStageService:
         # 6. Header KPIs + Shopify enrichment
         new_customers = sales_repo.get_total_conversion_customers(
             tenant_id,
-            start_date,
-            end_date,
+            start_dt,
+            end_dt,
         )
         cost_svc = StageCostService(self.db)
         total_investment, cost_complete = cost_svc.get_total_funnel_investment(
             tenant_id,
-            start_date,
-            end_date,
+            start_dt,
+            end_dt,
         )
         cac = round(total_investment / new_customers, 2) if new_customers > 0 else None
         total_rev_usd = convert_to_usd(total_revenue_all, display_currency)
 
         header_kpis, new_customers, total_rev = self._enrich_with_shopify(
             tenant_id,
-            start_date,
-            end_date,
+            start_dt,
+            end_dt,
             display_currency,
             total_revenue_all,
             total_rev_usd,
@@ -438,7 +440,7 @@ class SalesStageService:
         header_kpis.cac_incomplete = not cost_complete
 
         # 7. Mini funnel: SQLs -> Customers
-        sql_count = sales_repo.get_total_sql_count(tenant_id, start_date, end_date)
+        sql_count = sales_repo.get_total_sql_count(tenant_id, start_dt, end_dt)
         conv_rate = round(new_customers / sql_count * 100, 2) if sql_count > 0 else 0.0
 
         mini_funnel = MiniFunnelDTO(
@@ -466,7 +468,7 @@ class SalesStageService:
             adquisicion=adquisicion,
             expansion=expansion,
             bottlenecks=bottlenecks,
-            period="last_30_days",
+            period=date_range.period_type,
             last_updated=now.isoformat(),
         )
 
@@ -475,7 +477,7 @@ class SalesStageService:
             await self.cache.set(
                 str(tenant_id),
                 "sales",
-                "last_30_days",
+                date_range.period_type,
                 result.model_dump(),
             )
 

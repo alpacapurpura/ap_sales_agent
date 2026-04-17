@@ -45,6 +45,7 @@ from src.modules.analytics.application.services.stage_services import (
 from src.modules.analytics.application.services.stage_services.group_detail import (
     GroupDetailService,
 )
+from src.modules.analytics.domain.period_config import DateRange, TenantPeriodConfig
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 
 # DDD exception (intentional): api/ is the composition root — it wires concrete
@@ -224,6 +225,25 @@ async def get_marketing_sankey(
 _VALID_PERIODS = {"last_30_days", "weekly", "monthly", "quarterly"}
 
 
+def _resolve_date_range(period: str, tenant_id: UUID, db: Session) -> DateRange:
+    """Resolve period string to DateRange using tenant's period config."""
+    from sqlalchemy import select as sa_select
+
+    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+    from src.shared.domain.datetime_utils import utc_today
+
+    tenant = db.execute(
+        sa_select(TenantModel).where(TenantModel.id == tenant_id),
+    ).scalar_one_or_none()
+
+    config = TenantPeriodConfig(
+        weekly_start_day=getattr(tenant, "weekly_start_day", 0) or 0,
+        fiscal_year_start_month=getattr(tenant, "fiscal_year_start_month", 1) or 1,
+        fiscal_year_start_day=getattr(tenant, "fiscal_year_start_day", 1) or 1,
+    )
+    return config.resolve_period(period, today=utc_today())
+
+
 # ─── Group Filter Helper ─────────────────────────────────────────────────────
 
 # Group field names per stage DTO (fields that hold TrafficGroupDTO or similar)
@@ -272,68 +292,6 @@ def _filter_groups(dto: T, requested_groups: list[str]) -> T:
 # ─── Stage Overview Endpoint ─────────────────────────────────────────────────
 
 
-async def _warm_stage_cache(
-    db: Session,
-    cache: MetricsCache,
-    tenant_id: UUID,
-    stage: str,
-    period: str,
-) -> None:
-    """Call the stage service to populate the Redis cache for a stage.
-
-    Called as a fallback when the overview endpoint finds an empty cache.
-    The stage service queries the DB and caches the result, so a
-    subsequent overview read will find data.
-    """
-    try:
-        connection_port = ConnectionPortImpl(db)
-        if stage == "attraction":
-            svc = AttractionStageService(
-                db,
-                cache=cache,
-                connection_port=connection_port,
-            )
-            await svc.get_metrics(tenant_id, period=period)
-        elif stage == "capture":
-            svc = CaptureStageService(db, cache=cache, connection_port=connection_port)
-            await svc.get_metrics(tenant_id, period=period)
-        elif stage == "nurture":
-            svc = NurtureStageService(db, cache=cache, connection_port=connection_port)
-            await svc.get_metrics(tenant_id, period=period)
-        elif stage == "opportunity":
-            svc = OpportunityStageService(
-                db,
-                cache=cache,
-                connection_port=connection_port,
-            )
-            now = datetime.now(UTC)
-            await svc.get_metrics(tenant_id, now - timedelta(days=30), now)
-        elif stage in ("sales", "adoption", "expansion", "evangelization"):
-            offer_port = OfferReadPortImpl(db)
-            stage_cls = {
-                "sales": SalesStageService,
-                "adoption": AdoptionStageService,
-                "expansion": ExpansionStageService,
-                "evangelization": EvangelizationStageService,
-            }[stage]
-            svc = stage_cls(
-                db,
-                cache=cache,
-                connection_port=connection_port,
-                offer_port=offer_port,
-            )
-            now = datetime.now(UTC)
-            await svc.get_metrics(tenant_id, now - timedelta(days=30), now)
-    except Exception:  # noqa: BLE001 — API error boundary
-        import structlog
-
-        structlog.get_logger().warning(
-            "stage_cache_warm_failed",
-            stage=stage,
-            tenant_id=str(tenant_id),
-        )
-
-
 class FunnelStage(StrEnum):
     """Valid funnel stages for the overview endpoint."""
 
@@ -368,7 +326,13 @@ async def get_stage_overview(
 
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
-    service = StageOverviewService(cache=cache, db=db, connection_port=connection_port)
+    offer_port = OfferReadPortImpl(db)
+    service = StageOverviewService(
+        cache=cache,
+        db=db,
+        connection_port=connection_port,
+        offer_port=offer_port,
+    )
     return await service.get_stage_overview(str(user.tenant_id), stage.value, period)
 
 
@@ -415,8 +379,9 @@ async def get_attraction_metrics(
         raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
+    date_range = _resolve_date_range(period, user.tenant_id, db)
     service = AttractionStageService(db, cache=cache, connection_port=connection_port)
-    result = await service.get_metrics(user.tenant_id, period=period)
+    result = await service.get_metrics(user.tenant_id, date_range)
     if groups:
         return _filter_groups(result, groups.split(","))
     return result
@@ -436,8 +401,9 @@ async def get_capture_metrics(
         raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
+    date_range = _resolve_date_range(period, user.tenant_id, db)
     service = CaptureStageService(db, cache=cache, connection_port=connection_port)
-    result = await service.get_metrics(user.tenant_id, period=period)
+    result = await service.get_metrics(user.tenant_id, date_range)
     if groups:
         return _filter_groups(result, groups.split(","))
     return result
@@ -457,8 +423,9 @@ async def get_nurturing_metrics(
         raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
+    date_range = _resolve_date_range(period, user.tenant_id, db)
     service = NurtureStageService(db, cache=cache, connection_port=connection_port)
-    result = await service.get_metrics(user.tenant_id, period=period)
+    result = await service.get_metrics(user.tenant_id, date_range)
     if groups:
         return _filter_groups(result, groups.split(","))
     return result
@@ -468,6 +435,7 @@ async def get_nurturing_metrics(
 async def get_opportunity_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
+    period: Annotated[str, Query()] = "last_30_days",
     groups: Annotated[
         str | None, Query(description="Comma-separated group keys to filter (e.g., checkout,payment_links)")
     ] = None,
@@ -478,12 +446,13 @@ async def get_opportunity_metrics(
     grouped into checkout, payment_links, and qualification groups,
     with bottleneck detection for abandoned cart and meeting no-show rates.
     """
+    if period not in _VALID_PERIODS:
+        raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
+    date_range = _resolve_date_range(period, user.tenant_id, db)
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     service = OpportunityStageService(db, cache=cache, connection_port=connection_port)
-    now = datetime.now(UTC)
-    start_date = now - timedelta(days=30)
-    result = await service.get_metrics(user.tenant_id, start_date, now)
+    result = await service.get_metrics(user.tenant_id, date_range)
     if groups:
         return _filter_groups(result, groups.split(","))
     return result
@@ -493,6 +462,7 @@ async def get_opportunity_metrics(
 async def get_sales_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
+    period: Annotated[str, Query()] = "last_30_days",
 ) -> SalesDetailDTO:
     """Get Sales (Stage 4) detail panel metrics.
 
@@ -500,6 +470,9 @@ async def get_sales_metrics(
     split, tier grouping, subscription new/renewal split, CAC calculation,
     and bottleneck detection.
     """
+    if period not in _VALID_PERIODS:
+        raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
+    date_range = _resolve_date_range(period, user.tenant_id, db)
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     offer_port = OfferReadPortImpl(db)
@@ -509,21 +482,23 @@ async def get_sales_metrics(
         connection_port=connection_port,
         offer_port=offer_port,
     )
-    now = datetime.now(UTC)
-    start_date = now - timedelta(days=30)
-    return await service.get_metrics(user.tenant_id, start_date, now)
+    return await service.get_metrics(user.tenant_id, date_range)
 
 
 @router.get("/adoption")
 async def get_adoption_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
+    period: Annotated[str, Query()] = "last_30_days",
 ) -> AdoptionDetailDTO:
     """Get Adoption (Stage 5) detail panel metrics.
 
     Returns customer health post-purchase: active vs inactive per offer,
     health percentage, Time-to-Value, refunds, and bottleneck alerts.
     """
+    if period not in _VALID_PERIODS:
+        raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
+    date_range = _resolve_date_range(period, user.tenant_id, db)
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     offer_port = OfferReadPortImpl(db)
@@ -533,15 +508,14 @@ async def get_adoption_metrics(
         connection_port=connection_port,
         offer_port=offer_port,
     )
-    now = datetime.now(UTC)
-    start_date = now - timedelta(days=30)
-    return await service.get_metrics(user.tenant_id, start_date, now)
+    return await service.get_metrics(user.tenant_id, date_range)
 
 
 @router.get("/expansion")
 async def get_expansion_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
+    period: Annotated[str, Query()] = "last_30_days",
 ) -> ExpansionDetailDTO:
     """Get Expansion (Stage 6) detail panel metrics.
 
@@ -549,6 +523,9 @@ async def get_expansion_metrics(
     revenue categories (Retencion, Crecimiento, Cancelaciones)
     with bottleneck detection for high churn rates.
     """
+    if period not in _VALID_PERIODS:
+        raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
+    date_range = _resolve_date_range(period, user.tenant_id, db)
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     offer_port = OfferReadPortImpl(db)
@@ -558,21 +535,23 @@ async def get_expansion_metrics(
         connection_port=connection_port,
         offer_port=offer_port,
     )
-    now = datetime.now(UTC)
-    start_date = now - timedelta(days=30)
-    return await service.get_metrics(user.tenant_id, start_date, now)
+    return await service.get_metrics(user.tenant_id, date_range)
 
 
 @router.get("/evangelization")
 async def get_evangelization_metrics(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
+    period: Annotated[str, Query()] = "last_30_days",
 ) -> EvangelizationDetailDTO:
     """Get Evangelization (Stage 7) detail panel metrics.
 
     Returns K-Factor, referral conversions, NPS score, evangelist profiles,
     evangelist candidates (NPS >= 9), UGC count, and bottleneck detection.
     """
+    if period not in _VALID_PERIODS:
+        raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
+    date_range = _resolve_date_range(period, user.tenant_id, db)
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     offer_port = OfferReadPortImpl(db)
@@ -582,9 +561,7 @@ async def get_evangelization_metrics(
         connection_port=connection_port,
         offer_port=offer_port,
     )
-    now = datetime.now(UTC)
-    start_date = now - timedelta(days=30)
-    return await service.get_metrics(user.tenant_id, start_date, now)
+    return await service.get_metrics(user.tenant_id, date_range)
 
 
 _VALID_STAGES = {

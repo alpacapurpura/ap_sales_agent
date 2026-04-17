@@ -16,6 +16,7 @@ from src.modules.analytics.application.dto.adoption_dto import (
 )
 from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
 from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
+from src.modules.analytics.domain.period_config import DateRange
 from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.shared.domain.currency import convert_to_usd
@@ -84,8 +85,7 @@ class AdoptionStageService:
     async def get_metrics(
         self,
         tenant_id: UUID,
-        start_date: "object",
-        end_date: "object",
+        date_range: DateRange,
     ) -> AdoptionDetailDTO:
         """Return adoption-stage (Stage 5) metrics.
 
@@ -105,25 +105,27 @@ class AdoptionStageService:
             AdoptionMetricsRepository,
         )
 
+        start_dt, end_dt = date_range.to_datetime_range()
+
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(str(tenant_id), "adoption", "last_30_days")
+            cached = await self.cache.get(str(tenant_id), "adoption", date_range.period_type)
             if cached is not None:
                 return AdoptionDetailDTO(**cached)
 
         # 2. Query repository
         repo = AdoptionMetricsRepository(self.db)
-        health_rows = repo.get_customer_health_by_offer(tenant_id, start_date, end_date)
-        ttv_map = repo.get_avg_ttv_by_offer(tenant_id, start_date, end_date)
+        health_rows = repo.get_customer_health_by_offer(tenant_id, start_dt, end_dt)
+        ttv_map = repo.get_avg_ttv_by_offer(tenant_id, start_dt, end_dt)
         total_customers, total_sales = repo.get_total_customers_and_sales(
             tenant_id,
-            start_date,
-            end_date,
+            start_dt,
+            end_dt,
         )
         refund_count, refund_amount, refund_currency = repo.get_refunds(
             tenant_id,
-            start_date,
-            end_date,
+            start_dt,
+            end_dt,
         )
 
         # 3. Get offer names via OfferReadPort
@@ -206,7 +208,7 @@ class AdoptionStageService:
             mini_funnel=mini_funnel,
             offers=offer_list,
             bottlenecks=bottlenecks,
-            period="last_30_days",
+            period=date_range.period_type,
             last_updated=now.isoformat(),
         )
 
@@ -215,7 +217,7 @@ class AdoptionStageService:
             await self.cache.set(
                 str(tenant_id),
                 "adoption",
-                "last_30_days",
+                date_range.period_type,
                 result.model_dump(),
             )
 

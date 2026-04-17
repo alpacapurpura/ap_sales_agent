@@ -5,7 +5,7 @@ ChannelRegistry, grouping into organic_social/ga4_search/paid/outbound.
 """
 
 from collections import defaultdict
-from datetime import UTC, datetime
+from datetime import date
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -30,6 +30,7 @@ from src.modules.analytics.application.services.stage_services.constants import 
 from src.modules.analytics.application.services.stage_services.constants import (
     ERROR_MESSAGES as _ERROR_MESSAGES,
 )
+from src.modules.analytics.domain.period_config import DateRange
 from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
@@ -43,6 +44,9 @@ def _enrich_with_derived_metrics(
     repo: OfficialMetricsRepository,
     tenant_id: UUID,
     provider_name: str,
+    *,
+    start_date: date | None = None,
+    end_date: date | None = None,
 ) -> list[MetricValueDTO]:
     """Compute DERIVED and NON_AGGREGABLE metrics missing from aggregations.
 
@@ -82,16 +86,13 @@ def _enrich_with_derived_metrics(
             )
 
     # ── NON_AGGREGABLE metrics: reach (last available value from official_metrics)
-    if "reach" not in existing and provider_name:
-        from datetime import timedelta
-
-        now = datetime.now(UTC)
+    if "reach" not in existing and provider_name and start_date and end_date:
         raw = repo.get_channel_metrics(
             tenant_id,
             provider_name,
             channel_slug,
-            (now - timedelta(days=30)).date(),
-            now.date(),
+            start_date,
+            end_date,
         )
         reach_val = raw.get("reach")
         if isinstance(reach_val, (int, float)) and reach_val > 0:
@@ -185,7 +186,7 @@ class AttractionStageService:
     async def get_metrics(
         self,
         tenant_id: UUID,
-        period: str = "last_30_days",
+        date_range: DateRange,
     ) -> AttractionDetailDTO:
         """Return attraction-stage metrics from ETL official tables.
 
@@ -198,7 +199,7 @@ class AttractionStageService:
         """
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(str(tenant_id), "attraction", "last_30_days")
+            cached = await self.cache.get(str(tenant_id), "attraction", date_range.period_type)
             if cached is not None:
                 return AttractionDetailDTO(**cached)
 
@@ -208,7 +209,7 @@ class AttractionStageService:
 
         # 3. Get aggregated metrics from official tables
         repo = OfficialMetricsRepository(self.db)
-        aggregations = repo.get_channel_summary(tenant_id, "attraction", "last_30_days")
+        aggregations = repo.get_channel_summary(tenant_id, "attraction", date_range.period_type)
 
         agg_by_slug: dict[str, list] = defaultdict(list)
         for agg in aggregations:
@@ -254,15 +255,12 @@ class AttractionStageService:
 
             # For ManyChat channels, read from official_metrics directly
             if provider_name == "manychat":
-                from datetime import timedelta
-
-                now_mc = datetime.now(UTC)
                 mc_metrics = OfficialMetricsRepository(self.db).get_channel_metrics(
                     tenant_id,
                     "manychat",
                     slug,
-                    (now_mc - timedelta(days=30)).date(),
-                    now_mc.date(),
+                    date_range.start_date,
+                    date_range.end_date,
                 )
                 existing_names = {m.name for m in metrics}
                 for m_name, m_value in mc_metrics.items():
@@ -278,6 +276,8 @@ class AttractionStageService:
                 repo,
                 tenant_id,
                 provider_name,
+                start_date=date_range.start_date,
+                end_date=date_range.end_date,
             )
 
             # Resolve display name from connection config
@@ -336,7 +336,7 @@ class AttractionStageService:
                 channels=groups["outbound"],
             ),
             available=available_dto,
-            period="last_30_days",
+            period=date_range.period_type,
             last_updated=latest_updated,
         )
 
@@ -345,7 +345,7 @@ class AttractionStageService:
             await self.cache.set(
                 str(tenant_id),
                 "attraction",
-                "last_30_days",
+                date_range.period_type,
                 result.model_dump(),
             )
 

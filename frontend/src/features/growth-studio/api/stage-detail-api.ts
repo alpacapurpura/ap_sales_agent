@@ -673,66 +673,84 @@ export const metricsApi = {
     return mapNurtureResponse(data);
   },
 
-  getOpportunityDetail: async (token: string): Promise<OpportunityDetail> => {
+  getOpportunityDetail: async (token: string, period?: PeriodType): Promise<OpportunityDetail> => {
     if (ENABLE_MOCKS) {
       const { MOCK_OPPORTUNITY_DETAIL } = await import("../__mocks__/metrics-mock-data");
       return MOCK_OPPORTUNITY_DETAIL;
     }
-    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/opportunity`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetchClient(
+      buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/opportunity`, period),
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     if (!res.ok) throw new Error(`Opportunity API returned ${res.status}`);
     const data = (await res.json()) as RawOpportunityResponse;
     return mapOpportunityResponse(data);
   },
 
-  getSalesDetail: async (token: string): Promise<SalesDetail> => {
+  getSalesDetail: async (token: string, period?: PeriodType): Promise<SalesDetail> => {
     if (ENABLE_MOCKS) {
       const { MOCK_SALES_DETAIL } = await import("../__mocks__/metrics-mock-data");
       return MOCK_SALES_DETAIL;
     }
-    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/sales`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetchClient(
+      buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/sales`, period),
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     if (!res.ok) throw new Error(`Sales API returned ${res.status}`);
     const data = (await res.json()) as RawSalesResponse;
     return mapSalesResponse(data);
   },
 
-  getAdoptionDetail: async (token: string): Promise<AdoptionDetail> => {
+  getAdoptionDetail: async (token: string, period?: PeriodType): Promise<AdoptionDetail> => {
     if (ENABLE_MOCKS) {
       const { MOCK_ADOPTION_DETAIL } = await import("../__mocks__/metrics-mock-data");
       return MOCK_ADOPTION_DETAIL;
     }
-    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/adoption`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetchClient(
+      buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/adoption`, period),
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     if (!res.ok) throw new Error(`Adoption API returned ${res.status}`);
     const data = (await res.json()) as RawAdoptionResponse;
     return mapAdoptionResponse(data);
   },
 
-  getExpansionDetail: async (token: string): Promise<ExpansionDetailData> => {
+  getExpansionDetail: async (token: string, period?: PeriodType): Promise<ExpansionDetailData> => {
     if (ENABLE_MOCKS) {
       const { MOCK_EXPANSION_DETAIL } = await import("../__mocks__/metrics-mock-data");
       return MOCK_EXPANSION_DETAIL;
     }
-    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/expansion`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetchClient(
+      buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/expansion`, period),
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     if (!res.ok) throw new Error(`Expansion API returned ${res.status}`);
     const data = (await res.json()) as RawExpansionResponse;
     return mapExpansionResponse(data);
   },
 
-  getEvangelizationDetail: async (token: string): Promise<EvangelizationDetail> => {
+  getEvangelizationDetail: async (
+    token: string,
+    period?: PeriodType,
+  ): Promise<EvangelizationDetail> => {
     if (ENABLE_MOCKS) {
       const { MOCK_EVANGELIZATION_DETAIL } = await import("../__mocks__/metrics-mock-data");
       return MOCK_EVANGELIZATION_DETAIL;
     }
-    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/evangelization`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetchClient(
+      buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/evangelization`, period),
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     if (!res.ok) throw new Error(`Evangelization API returned ${res.status}`);
     const data = (await res.json()) as RawEvangelizationResponse;
     return mapEvangelizationResponse(data);
