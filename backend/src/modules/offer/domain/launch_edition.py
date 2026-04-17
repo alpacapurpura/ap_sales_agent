@@ -107,6 +107,25 @@ class LaunchEdition(BaseEntity):
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
+    @property
+    def is_placeholder(self) -> bool:
+        """Return True iff this edition is the auto-created placeholder.
+
+        An edition is a placeholder iff it is DRAFT + PRIVATE with no
+        start_date, pricing override, or location override — i.e. the
+        default row spawned by ``OfferService`` for every edition-supporting
+        offer. Once the user fills any of these in, it is no longer a
+        placeholder. Computed from domain state so every consumer (API,
+        frontend, copilot) agrees on the definition.
+        """
+        return (
+            self.status == EditionStatus.DRAFT
+            and self.visibility == EditionVisibility.PRIVATE
+            and self.start_date is None
+            and self.pricing_override is None
+            and self.location_override is None
+        )
+
     @model_validator(mode="after")
     def validate_invariants(self) -> LaunchEdition:
         """Enforce the lifecycle + visibility invariants.
@@ -119,6 +138,12 @@ class LaunchEdition(BaseEntity):
           editions to leads).
         - UPCOMING / ACTIVE editions MUST have a ``start_date``.
         - DRAFT editions MUST be PRIVATE (can't publish a draft).
+
+        Archetype-specific publishing constraints (``requires_end_date``,
+        ``requires_location``) are enforced by
+        ``LaunchEditionService.publish_edition`` — which has access to the
+        archetype via the parent offer — not here, because the edition
+        entity doesn't know its own archetype.
 
         Raises :class:`ValueError` if any rule is violated — Pydantic wraps
         this into a ``ValidationError`` at the boundary.

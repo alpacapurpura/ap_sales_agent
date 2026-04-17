@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from src.modules.offer.domain.archetype_catalog import get_capabilities
 from src.modules.offer.domain.launch_edition import (
     EditionStatus,
     EditionVisibility,
@@ -114,10 +115,45 @@ class LaunchEditionService:
     def publish_edition(self, edition_id: UUID, tenant_id: UUID) -> LaunchEdition:
         """Promote an edition to UPCOMING + PUBLIC.
 
-        Domain validators enforce that start_date is set (otherwise the
-        transition is rejected). This is the single path through which a
-        placeholder becomes visible to the sales agent.
+        Enforces the full archetype-aware publishing contract, in the order
+        the user would expect to resolve it (cheapest fix first):
+
+        1. ``start_date`` must be set (all archetypes).
+        2. ``end_date`` must be set if the archetype requires it (COHORT).
+        3. ``location_override`` must be set if the archetype requires it
+           (EXPERIENCIA / in-person events).
+
+        This is the single path through which a placeholder becomes
+        visible to the sales agent. Consolidating all publish rules here
+        keeps the "ready to publish?" logic auditable in one place — the
+        ``LaunchEdition`` entity never validates against an archetype
+        because it doesn't know its own archetype.
         """
+        edition = self.repo.get_by_id(edition_id, tenant_id)
+        if edition is None:
+            msg = f"Edition {edition_id} not found"
+            raise ValueError(msg)
+
+        # Start-date check first — every archetype requires it to publish.
+        if edition.start_date is None:
+            msg = "upcoming edition requires start_date"
+            raise ValueError(msg)
+
+        offer = self.offer_repo.get_by_id(edition.offer_id, tenant_id)
+        if offer is None:
+            msg = f"Offer {edition.offer_id} not found"
+            raise ValueError(msg)
+
+        caps = get_capabilities(offer.archetype)
+
+        if caps.requires_end_date_on_publish and edition.end_date is None:
+            msg = f"{offer.archetype.value} edition requires end_date to publish"
+            raise ValueError(msg)
+
+        if caps.requires_location_on_publish and not edition.location_override:
+            msg = f"{offer.archetype.value} edition requires location to publish"
+            raise ValueError(msg)
+
         return self.update_edition(
             edition_id,
             tenant_id,

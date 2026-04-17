@@ -89,8 +89,14 @@ class TestOfferServiceAutoPlaceholder:
 
 
 class TestPublishUnpublish:
+    """Publish flow — uses SERVICIO archetype for the base case because
+    SERVICIO does not require end_date or location (only start_date).
+    Archetype-specific publish constraints (PROGRAMA → end_date,
+    EXPERIENCIA → location) are covered by test_edition_publish_archetype_rules.
+    """
+
     def _setup(self, db: Session, tenant_a: uuid.UUID):
-        offer = OfferService(db).create_offer(name="Programa", tenant_id=tenant_a, archetype=OfferArchetype.PROGRAMA)
+        offer = OfferService(db).create_offer(name="Servicio", tenant_id=tenant_a, archetype=OfferArchetype.SERVICIO)
         db.flush()
         edition = LaunchEditionService(db).list_editions(offer.id, tenant_a)[0]
         return edition
@@ -104,7 +110,7 @@ class TestPublishUnpublish:
     def test_publish_succeeds_when_start_date_set(self, db: Session, tenant_a: uuid.UUID) -> None:
         edition = self._setup(db, tenant_a)
         svc = LaunchEditionService(db)
-        # First set a start date.
+        # Set a start date — SERVICIO requires only this to publish.
         svc.update_edition(
             edition.id,
             tenant_a,
@@ -148,7 +154,7 @@ class TestListPublicEditions:
         assert public == []
 
     def test_includes_only_upcoming_or_active_public_editions(self, db: Session, tenant_a: uuid.UUID) -> None:
-        offer = OfferService(db).create_offer(name="Prog", tenant_id=tenant_a, archetype=OfferArchetype.PROGRAMA)
+        offer = OfferService(db).create_offer(name="Svc", tenant_id=tenant_a, archetype=OfferArchetype.SERVICIO)
         db.flush()
         svc = LaunchEditionService(db)
         editions = svc.list_editions(offer.id, tenant_a)
@@ -175,7 +181,7 @@ class TestListPublicEditions:
         assert public[0].id == placeholder.id
 
     def test_orders_ascending_by_start_date(self, db: Session, tenant_a: uuid.UUID) -> None:
-        offer = OfferService(db).create_offer(name="Prog", tenant_id=tenant_a, archetype=OfferArchetype.PROGRAMA)
+        offer = OfferService(db).create_offer(name="Svc", tenant_id=tenant_a, archetype=OfferArchetype.SERVICIO)
         db.flush()
         svc = LaunchEditionService(db)
         # Placeholder became PUBLIC on Aug

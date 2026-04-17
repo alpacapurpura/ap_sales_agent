@@ -14,10 +14,7 @@ from src.modules.iam.domain.user import User
 from src.modules.offer.application.launch_edition_service import (
     LaunchEditionService,
 )
-from src.modules.offer.domain.launch_edition import (
-    EditionVisibility,
-    LaunchEdition,
-)
+from src.modules.offer.domain.launch_edition import LaunchEdition
 
 router = APIRouter()
 
@@ -108,16 +105,6 @@ class LaunchEditionResponse(BaseModel):
         status_value = edition.status.value if hasattr(edition.status, "value") else edition.status
         visibility_value = edition.visibility.value if hasattr(edition.visibility, "value") else edition.visibility
 
-        # An edition is considered a placeholder when it has neither a
-        # start_date nor a pricing override nor notes — i.e. it's the
-        # default row auto-created by OfferService on offer birth.
-        is_placeholder = (
-            edition.start_date is None
-            and edition.pricing_override is None
-            and edition.visibility == EditionVisibility.PRIVATE
-            and edition.status.value == "draft"
-        )
-
         return cls(
             id=edition.id,
             offer_id=edition.offer_id,
@@ -135,7 +122,9 @@ class LaunchEditionResponse(BaseModel):
             enrollment_count=edition.enrollment_count,
             status=status_value,
             visibility=visibility_value,
-            is_placeholder=is_placeholder,
+            # Delegated to the domain entity so every consumer uses the
+            # same definition — no drift between API, frontend, copilot.
+            is_placeholder=edition.is_placeholder,
             location_override=edition.location_override,
             notes=edition.notes,
             cloned_from_edition_id=edition.cloned_from_edition_id,
