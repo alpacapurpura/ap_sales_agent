@@ -2,7 +2,7 @@
 pythonpath = ["."]
 testpaths = ["tests", "src/tests"]
 asyncio_mode = "auto"
-addopts = "-m 'not verify' --randomly-seed=last --timeout=30"
+addopts = "-m 'not verify'"
 markers = [
     "integration: live integration tests requiring external credentials",
     "verify: data reliability verification tests requiring real DB data",
