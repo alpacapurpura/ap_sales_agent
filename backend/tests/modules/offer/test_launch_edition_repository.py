@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import datetime, timezone
+from unittest.mock import patch
 
 from sqlalchemy.orm import Session
 
@@ -167,6 +168,58 @@ class TestSoftDelete:
         edition = repo.get_by_id(created.id, tenant_a)
         assert edition is not None
         assert edition.status == EditionStatus.CANCELLED
+
+
+class TestPersistence:
+    """Regression tests for the missing-commit bug.
+
+    FastAPI's ``get_db()`` dependency yields a session and closes it
+    without committing. If the repository only ``flush()``-es, the
+    endpoint returns 201 Created but SQLAlchemy rolls the transaction
+    back at session close — the row disappears. The repo MUST call
+    ``db.commit()`` after each mutation so writes survive the request
+    boundary.
+    """
+
+    def test_create_commits_the_session(self, db: Session, tenant_a):
+        offer_id = _make_offer(db, tenant_a)
+        repo = LaunchEditionRepository(db)
+        with patch.object(db, "commit", wraps=db.commit) as spy:
+            repo.create(
+                offer_id=offer_id,
+                tenant_id=tenant_a,
+                start_date=datetime(2026, 7, 15, tzinfo=timezone.utc),
+            )
+            assert spy.called, (
+                "create() must commit — otherwise the FastAPI request "
+                "returns 201 but data rolls back on session.close()."
+            )
+
+    def test_update_commits_the_session(self, db: Session, tenant_a):
+        offer_id = _make_offer(db, tenant_a)
+        repo = LaunchEditionRepository(db)
+        created = repo.create(
+            offer_id=offer_id,
+            tenant_id=tenant_a,
+            start_date=datetime(2026, 7, 15, tzinfo=timezone.utc),
+        )
+        with patch.object(db, "commit", wraps=db.commit) as spy:
+            repo.update(created.id, tenant_a, {"capacity": 30})
+            assert spy.called, (
+                "update() must commit — otherwise PATCH responses lie and the row reverts when the session closes."
+            )
+
+    def test_soft_delete_commits_the_session(self, db: Session, tenant_a):
+        offer_id = _make_offer(db, tenant_a)
+        repo = LaunchEditionRepository(db)
+        created = repo.create(
+            offer_id=offer_id,
+            tenant_id=tenant_a,
+            start_date=datetime(2026, 7, 15, tzinfo=timezone.utc),
+        )
+        with patch.object(db, "commit", wraps=db.commit) as spy:
+            repo.soft_delete(created.id, tenant_a)
+            assert spy.called, "soft_delete() must commit — DELETE requests should persist the CANCELLED transition."
 
 
 class TestGetNextEditionNumber:

@@ -136,6 +136,7 @@ class LaunchEditionRepository:
         self.db.add(model)
         self.db.flush()
         self.db.refresh(model)
+        self.db.commit()
         return self._to_domain(model)
 
     def get_by_id(self, edition_id: UUID, tenant_id: UUID) -> LaunchEdition | None:
@@ -214,6 +215,7 @@ class LaunchEditionRepository:
 
         self.db.flush()
         self.db.refresh(model)
+        self.db.commit()
         return self._to_domain(model)
 
     def soft_delete(self, edition_id: UUID, tenant_id: UUID) -> None:
