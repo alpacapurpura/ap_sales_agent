@@ -80,12 +80,13 @@ export function EditionFormDialog({
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async () => {
-    if (!startDate) return;
     setSaving(true);
     try {
+      // start_date is optional — placeholder editions may be saved with no
+      // date. Domain validators block publish transitions when missing.
       const data: LaunchEditionCreate & LaunchEditionUpdate = {
         edition_name: name || undefined,
-        start_date: fromLocalInputValue(startDate) ?? "",
+        start_date: fromLocalInputValue(startDate),
         end_date: fromLocalInputValue(endDate),
         registration_start: fromLocalInputValue(regStart),
         registration_end: fromLocalInputValue(regEnd),
@@ -125,12 +126,15 @@ export function EditionFormDialog({
           {/* Dates */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs">Fecha de Inicio *</Label>
+              <Label className="text-xs">Fecha de Inicio</Label>
               <Input
                 type="datetime-local"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
               />
+              <p className="text-[.65rem] text-muted-foreground">
+                Opcional — debes fijarla antes de publicar la edición.
+              </p>
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Fecha de Fin</Label>
@@ -214,7 +218,7 @@ export function EditionFormDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={saving || !startDate}>
+          <Button onClick={handleSubmit} disabled={saving}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isEdit ? "Guardar Cambios" : "Crear Edición"}
           </Button>

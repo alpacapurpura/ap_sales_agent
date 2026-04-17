@@ -21,7 +21,8 @@ const STATUS_BORDER: Record<EditionStatus, string> = {
   [EditionStatus.CANCELLED]: "opacity-40",
 };
 
-function formatDateRange(start: string, end: string | null): string {
+function formatDateRange(start: string | null, end: string | null): string {
+  if (!start) return "Sin fecha — rellena para publicar";
   const s = new Date(start);
   const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" };
   if (!end) return s.toLocaleDateString("es", opts);

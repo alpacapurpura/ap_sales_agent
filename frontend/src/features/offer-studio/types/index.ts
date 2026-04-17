@@ -50,6 +50,11 @@ export enum EditionStatus {
   CANCELLED = "cancelled",
 }
 
+export enum EditionVisibility {
+  PRIVATE = "private",
+  PUBLIC = "public",
+}
+
 export enum GuaranteeType {
   NONE = "none",
   CONDITIONAL_ACTION_BASED = "conditional_action_based",
@@ -329,7 +334,8 @@ export interface LaunchEdition {
   offer_id: string;
   edition_name: string;
   edition_number: number;
-  start_date: string;
+  /** Nullable for DRAFT placeholder editions that have not been filled yet. */
+  start_date: string | null;
   end_date: string | null;
   registration_start: string | null;
   registration_end: string | null;
@@ -340,15 +346,21 @@ export interface LaunchEdition {
   capacity: number | null;
   enrollment_count: number;
   status: EditionStatus;
+  visibility: EditionVisibility;
+  /** True when this edition is the auto-created placeholder (no date, no pricing override, DRAFT + PRIVATE). */
+  is_placeholder: boolean;
   location_override: Record<string, unknown> | null;
   notes: string | null;
+  /** Set when this edition was created by cloning another (Phase 3 provenance). */
+  cloned_from_edition_id: string | null;
   created_at: string | null;
   updated_at: string | null;
 }
 
 export interface LaunchEditionCreate {
   edition_name?: string;
-  start_date: string;
+  /** Optional: placeholder editions may be created without a date. */
+  start_date?: string;
   end_date?: string;
   registration_start?: string;
   registration_end?: string;
@@ -370,6 +382,7 @@ export interface LaunchEditionUpdate {
   capacity?: number;
   enrollment_count?: number;
   status?: EditionStatus;
+  visibility?: EditionVisibility;
   location_override?: Record<string, unknown>;
   notes?: string;
 }

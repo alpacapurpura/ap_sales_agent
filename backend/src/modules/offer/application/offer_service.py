@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from src.modules.offer.domain.archetype_catalog import get_capabilities
 from src.modules.offer.domain.enums import (
     GuaranteeType,
     OfferArchetype,
@@ -13,6 +14,9 @@ from src.modules.offer.domain.enums import (
     OfferValueLevel,
 )
 from src.modules.offer.domain.offer import ARCHETYPE_TO_DETAILS_MAPPING, Offer
+from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
+    LaunchEditionRepository,
+)
 from src.modules.offer.infrastructure.repositories.offer_repository import (
     OfferRepository,
 )
@@ -26,6 +30,7 @@ class OfferService:
         """Initialize service with dependencies."""
         self.db = db
         self.repository = OfferRepository(db)
+        self._edition_repo = LaunchEditionRepository(db)
 
     def get_offer(self, offer_id: UUID, tenant_id: UUID) -> Offer | None:
         """Retrieve offer."""
@@ -73,7 +78,32 @@ class OfferService:
             guarantee_terms="",
             status=OfferStatus.DRAFT,
         )
-        return self.repository.create(new_offer)
+        created = self.repository.create(new_offer)
+        self._ensure_placeholder_edition(created)
+        return created
+
+    def _ensure_placeholder_edition(self, offer: Offer) -> None:
+        """Create a DRAFT + PRIVATE placeholder edition #1 for edition-supporting offers.
+
+        Idempotent: if the offer already has an edition (e.g. seeded by
+        migration, or created via a different code path), this is a no-op.
+        Runs in the same session as the offer insert for atomicity — if the
+        edition write fails the offer insert is rolled back by the caller's
+        transaction.
+        """
+        if offer.id is None or offer.tenant_id is None:
+            return
+        if not get_capabilities(offer.archetype).supports_editions:
+            return
+        existing = self._edition_repo.list_by_offer(offer.id, offer.tenant_id)
+        if existing:
+            return
+        self._edition_repo.create(
+            offer_id=offer.id,
+            tenant_id=offer.tenant_id,
+            start_date=None,
+            edition_name="Edición #1",
+        )
 
     def update_offer(self, offer: Offer, tenant_id: UUID) -> Offer:
         """Update offer."""

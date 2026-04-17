@@ -8,6 +8,7 @@ from sqlalchemy import func, select
 
 from src.modules.offer.domain.launch_edition import (
     EditionStatus,
+    EditionVisibility,
     LaunchEdition,
 )
 from src.modules.offer.domain.offer import PricingStructure
@@ -49,14 +50,16 @@ class LaunchEditionRepository:
             capacity=model.capacity,
             enrollment_count=model.enrollment_count or 0,
             status=EditionStatus(model.status) if model.status else EditionStatus.DRAFT,
+            visibility=(EditionVisibility(model.visibility) if model.visibility else EditionVisibility.PRIVATE),
             location_override=model.location_override,
             notes=model.notes,
+            cloned_from_edition_id=model.cloned_from_edition_id,
             created_at=model.created_at,
             updated_at=model.updated_at,
         )
 
     def get_next_edition_number(self, offer_id: UUID) -> int:
-        """Retrieve next edition number."""
+        """Return the next sequential edition number for an offer."""
         stmt = select(
             func.coalesce(func.max(LaunchEditionModel.edition_number), 0),
         ).where(
@@ -69,8 +72,9 @@ class LaunchEditionRepository:
         self,
         offer_id: UUID,
         tenant_id: UUID,
-        start_date: datetime,
+        *,
         edition_name: str | None = None,
+        start_date: datetime | None = None,
         end_date: datetime | None = None,
         registration_start: datetime | None = None,
         registration_end: datetime | None = None,
@@ -79,8 +83,17 @@ class LaunchEditionRepository:
         capacity: int | None = None,
         location_override: dict | None = None,
         notes: str | None = None,
+        visibility: EditionVisibility = EditionVisibility.PRIVATE,
+        status: EditionStatus = EditionStatus.DRAFT,
+        cloned_from_edition_id: UUID | None = None,
     ) -> LaunchEdition:
-        """Create."""
+        """Create a new launch edition.
+
+        Domain invariants are validated by ``LaunchEdition`` — the repo here
+        trusts the caller has built a valid state. Callers should run the
+        domain validation (construct the entity) BEFORE invoking create when
+        the state is non-trivial (e.g. a UPCOMING + PUBLIC edition).
+        """
         edition_number = self.get_next_edition_number(offer_id)
         if not edition_name:
             edition_name = f"Edición #{edition_number}"
@@ -102,9 +115,11 @@ class LaunchEditionRepository:
             pricing_override=pricing_json,
             capacity=capacity,
             enrollment_count=0,
-            status=EditionStatus.DRAFT.value,
+            status=status.value,
+            visibility=visibility.value,
             location_override=location_override,
             notes=notes,
+            cloned_from_edition_id=cloned_from_edition_id,
         )
         self.db.add(model)
         self.db.flush()
@@ -112,7 +127,7 @@ class LaunchEditionRepository:
         return self._to_domain(model)
 
     def get_by_id(self, edition_id: UUID, tenant_id: UUID) -> LaunchEdition | None:
-        """Retrieve by id."""
+        """Retrieve by id, tenant-scoped."""
         stmt = select(LaunchEditionModel).where(
             LaunchEditionModel.id == edition_id,
             LaunchEditionModel.tenant_id == tenant_id,
@@ -121,7 +136,10 @@ class LaunchEditionRepository:
         return self._to_domain(model) if model else None
 
     def list_by_offer(self, offer_id: UUID, tenant_id: UUID) -> list[LaunchEdition]:
-        """List by offer."""
+        """List all non-cancelled editions for an offer, most-recent-first.
+
+        Editions with NULL ``start_date`` (placeholders) sort last.
+        """
         stmt = (
             select(LaunchEditionModel)
             .where(
@@ -129,13 +147,37 @@ class LaunchEditionRepository:
                 LaunchEditionModel.tenant_id == tenant_id,
                 LaunchEditionModel.status != EditionStatus.CANCELLED.value,
             )
-            .order_by(LaunchEditionModel.start_date.desc())
+            .order_by(LaunchEditionModel.start_date.desc().nulls_last())
+        )
+        models = self.db.execute(stmt).scalars().all()
+        return [self._to_domain(m) for m in models]
+
+    def list_public(self, offer_id: UUID, tenant_id: UUID) -> list[LaunchEdition]:
+        """List PUBLIC editions that the sales agent may offer to leads.
+
+        Excludes DRAFT, CANCELLED, and any PRIVATE editions regardless of
+        status. Ordered ascending by ``start_date`` so the soonest upcoming
+        edition comes first — the agent picks ``[0]`` to propose.
+        """
+        stmt = (
+            select(LaunchEditionModel)
+            .where(
+                LaunchEditionModel.offer_id == offer_id,
+                LaunchEditionModel.tenant_id == tenant_id,
+                LaunchEditionModel.visibility == EditionVisibility.PUBLIC.value,
+                LaunchEditionModel.status.in_([EditionStatus.UPCOMING.value, EditionStatus.ACTIVE.value]),
+            )
+            .order_by(LaunchEditionModel.start_date.asc())
         )
         models = self.db.execute(stmt).scalars().all()
         return [self._to_domain(m) for m in models]
 
     def update(self, edition_id: UUID, tenant_id: UUID, data: dict) -> LaunchEdition:
-        """Update."""
+        """Patch an edition with a dict of field values.
+
+        Unknown keys are ignored. PricingStructure lists may arrive as domain
+        objects (auto-serialized) or as pre-serialized dict lists.
+        """
         stmt = select(LaunchEditionModel).where(
             LaunchEditionModel.id == edition_id,
             LaunchEditionModel.tenant_id == tenant_id,
@@ -163,5 +205,5 @@ class LaunchEditionRepository:
         return self._to_domain(model)
 
     def soft_delete(self, edition_id: UUID, tenant_id: UUID) -> None:
-        """Soft delete."""
+        """Soft-delete by transitioning to CANCELLED."""
         self.update(edition_id, tenant_id, {"status": EditionStatus.CANCELLED.value})

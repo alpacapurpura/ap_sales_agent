@@ -16,6 +16,7 @@ from pydantic import Field
 from src.modules.offer.domain.enums import (
     AssetType,
     KnowledgeSourceStatus,
+    OfferArchetype,
 )
 from src.modules.offer.domain.lifecycle import OfferLifecycleStatus
 from src.shared.domain.base_entity import BaseEntity
@@ -110,8 +111,36 @@ class LandingUnpublished(DomainEvent):
     reason: str
 
 
+class OfferCreated(DomainEvent):
+    """Fires when an offer is first persisted.
+
+    Consumers can preload analytics, trigger onboarding copilot flows, or
+    hook into placeholder creation (currently handled atomically inline by
+    ``OfferService``).
+    """
+
+    offer_id: UUID
+    archetype: OfferArchetype
+    supports_editions: bool
+
+
+class EditionCreated(DomainEvent):
+    """Fires when a launch edition is persisted (placeholder or otherwise).
+
+    Subscribers can preload analytics dimensions, start cache warmup, or
+    notify copilot about a new edition to track.
+    """
+
+    offer_id: UUID
+    edition_id: UUID
+    edition_number: int
+    is_placeholder: bool
+    cloned_from_edition_id: UUID | None = None
+
+
 __all__ = [
     "DomainEvent",
+    "EditionCreated",
     "KnowledgeSourceCreated",
     "KnowledgeSourceDeleted",
     "KnowledgeSourceIndexed",
@@ -121,5 +150,6 @@ __all__ = [
     "LandingUnpublished",
     "OfferAssetCreated",
     "OfferAssetDeleted",
+    "OfferCreated",
     "OfferStatusChanged",
 ]
