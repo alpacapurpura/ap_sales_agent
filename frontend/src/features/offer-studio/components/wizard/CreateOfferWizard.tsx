@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, ArrowRight, Loader2, Rocket, Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { CurrencySelect } from "@/components/shared/CurrencySelect";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +42,14 @@ interface CreateOfferWizardProps {
   onCreateOffer: (data: WizardResult) => Promise<void>;
   onCreateWithIA?: (data: WizardResult) => Promise<void>;
   creating?: boolean;
+  /**
+   * Pre-selected ladder rung — set when the wizard is opened from a
+   * context-specific launcher (e.g. the "+" on the Activación column or
+   * the Lead Magnet stream header). When present, the value-level step
+   * is hidden because the user has already answered that question by
+   * where they clicked.
+   */
+  presetValueLevel?: OfferValueLevel;
 }
 
 export interface WizardResult {
@@ -71,6 +79,15 @@ type Step = 1 | 2 | 3 | 4 | 5 | 6;
 // each render and thrash the memoized children.
 const EMPTY_LIST: readonly never[] = [];
 
+/** Internal step index ↦ the 1-based number shown to the user.
+ *  When the ladder rung is preselected, step 2 is hidden so steps 3..6
+ *  shift down by one in the visible counter.
+ */
+function displayStepIndex(step: Step, hasPresetValueLevel: boolean): number {
+  if (!hasPresetValueLevel) return step;
+  return step === 1 ? 1 : step - 1;
+}
+
 /**
  *
  */
@@ -80,6 +97,7 @@ export function CreateOfferWizard({
   onCreateOffer,
   onCreateWithIA,
   creating = false,
+  presetValueLevel,
 }: CreateOfferWizardProps) {
   const { currency: tenantCurrency } = useTenantLocale();
   const { data: archetypeCatalog } = useArchetypeCatalog();
@@ -89,7 +107,7 @@ export function CreateOfferWizard({
 
   const [step, setStep] = useState<Step>(1);
   const [archetype, setArchetype] = useState<OfferArchetype | null>(null);
-  const [valueLevel, setValueLevel] = useState<OfferValueLevel | null>(null);
+  const [valueLevel, setValueLevel] = useState<OfferValueLevel | null>(presetValueLevel ?? null);
   const [selectedFormat, setSelectedFormat] = useState<FormatMetadata | null>(null);
   const [customFormatHint, setCustomFormatHint] = useState("");
   const [offerName, setOfferName] = useState("");
@@ -103,8 +121,27 @@ export function CreateOfferWizard({
   const showsEditionsStep = archetypeCaps?.supports_editions === true;
   const isLeadMagnet = valueLevel === OfferValueLevel.LEAD_MAGNET;
 
-  const totalSteps: Step = showsEditionsStep ? 6 : 5;
-  const progressPercent = (step / totalSteps) * 100;
+  // Skip the "pick ladder rung" step entirely when the wizard was
+  // launched from a context that already committed to one. The user
+  // gets from archetype straight to format → name+price.
+  const hasPresetValueLevel = Boolean(presetValueLevel);
+  const stepsWithLevel = showsEditionsStep ? 6 : 5;
+  const totalSteps = (stepsWithLevel - (hasPresetValueLevel ? 1 : 0)) as Step;
+
+  // When the wizard is reopened from a different rung (e.g. user closes
+  // on Activación, then clicks + on Maximización), sync the preselected
+  // rung without resetting other answers.
+  useEffect(() => {
+    if (!open) return;
+    if (presetValueLevel && presetValueLevel !== valueLevel) {
+      setValueLevel(presetValueLevel);
+    }
+    // Intentionally omit `valueLevel` from deps: updating it here would
+    // loop. We only want to react to dialog open + preset identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, presetValueLevel]);
+
+  const progressPercent = (displayStepIndex(step, hasPresetValueLevel) / totalSteps) * 100;
 
   // Format catalog filtered by archetype + tenant's business types. When
   // the brand hasn't declared business types yet we fall back to the full
@@ -118,7 +155,9 @@ export function CreateOfferWizard({
   const resetWizard = () => {
     setStep(1);
     setArchetype(null);
-    setValueLevel(null);
+    // Preserve the preselected rung across reset — closing and reopening
+    // the dialog from the same launcher should keep the user's context.
+    setValueLevel(presetValueLevel ?? null);
     setSelectedFormat(null);
     setCustomFormatHint("");
     setOfferName("");
@@ -135,13 +174,12 @@ export function CreateOfferWizard({
 
   const handlePickArchetype = (pick: OfferArchetype) => {
     setArchetype(pick);
-    setStep(2);
+    // Skip step 2 (value level) when a launcher already committed the rung.
+    setStep(hasPresetValueLevel ? 3 : 2);
   };
 
   const handlePickValueLevel = (pick: OfferValueLevel) => {
     setValueLevel(pick);
-    // Paid offers pre-fill the price placeholder from the catalog; lead magnets
-    // force the price to "0" in the name+price step render below.
     setStep(3);
   };
 
@@ -216,9 +254,16 @@ export function CreateOfferWizard({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Crear oferta nueva</DialogTitle>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <DialogTitle>Crear oferta nueva</DialogTitle>
+            {hasPresetValueLevel && valueLevelMeta && (
+              <Badge variant="secondary" className="text-xs">
+                Nivel:&nbsp;<strong className="font-semibold">{valueLevelMeta.label_es}</strong>
+              </Badge>
+            )}
+          </div>
           <DialogDescription>
-            Paso {step} de {totalSteps}
+            Paso {displayStepIndex(step, hasPresetValueLevel)} de {totalSteps}
           </DialogDescription>
           <div className="h-1 w-full bg-muted rounded-full mt-2">
             <div
@@ -285,7 +330,15 @@ export function CreateOfferWizard({
           {step > 1 && (
             <Button
               variant="ghost"
-              onClick={() => setStep((s) => (s > 1 ? ((s - 1) as Step) : s))}
+              onClick={() => {
+                // Skip the value-level step on the way back when it was
+                // hidden on the way forward.
+                if (step === 3 && hasPresetValueLevel) {
+                  setStep(1);
+                  return;
+                }
+                setStep((s) => (s > 1 ? ((s - 1) as Step) : s));
+              }}
               disabled={creating}
             >
               <ArrowLeft className="mr-2 h-4 w-4" /> Atrás

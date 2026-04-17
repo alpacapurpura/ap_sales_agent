@@ -77,10 +77,15 @@ export function OfferStudioDashboard({
   // Wizard State
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  // Rung preselected by the click context. Header "Nueva Oferta" passes
+  // undefined (full 6-step flow); each column's "+" passes its level so
+  // the wizard skips the pick-rung step.
+  const [presetValueLevel, setPresetValueLevel] = useState<OfferValueLevel | undefined>(undefined);
 
-  // Handle external trigger for creation
+  // Handle external trigger for creation (header "Nueva Oferta" button).
   useEffect(() => {
     if (externalCreateTrigger) {
+      setPresetValueLevel(undefined);
       setIsWizardOpen(true);
       if (onCreateTriggerHandled) {
         onCreateTriggerHandled();
@@ -147,9 +152,10 @@ export function OfferStudioDashboard({
     [archiveOfferMutation],
   );
 
-  const handleOpenCreate = (_level?: OfferValueLevel) => {
+  const handleOpenCreate = useCallback((level?: OfferValueLevel) => {
+    setPresetValueLevel(level);
     setIsWizardOpen(true);
-  };
+  }, []);
 
   const handleCreateOffer = async (wizardData: WizardResult) => {
     setCreating(true);
@@ -313,7 +319,7 @@ export function OfferStudioDashboard({
       <LeadMagnetStream
         offers={groupedOffers[OfferValueLevel.LEAD_MAGNET] || []}
         searchQuery={searchQuery}
-        onCreate={() => handleOpenCreate()}
+        onCreate={() => handleOpenCreate(OfferValueLevel.LEAD_MAGNET)}
         onArchive={handleArchiveOffer}
         onNavigate={(offerId) => navigate(`/${tenantId}/offer-studio/offer/${offerId}`)}
       />
@@ -333,6 +339,7 @@ export function OfferStudioDashboard({
         onCreateOffer={handleCreateOffer}
         onCreateWithIA={handleCreateOfferWithIA}
         creating={creating}
+        presetValueLevel={presetValueLevel}
       />
     </div>
   );
