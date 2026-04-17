@@ -95,6 +95,7 @@ from src.modules.iam.api.tracking import router as iam_tracking
 
 # 4. Landing
 from src.modules.landing.api import landing as landing_ai
+from src.modules.landing.api import public_edition as landing_public_edition
 from src.modules.landing.api import public_landing as landing_public
 from src.modules.offer.api import archetypes as offer_archetypes
 from src.modules.offer.api import assets as offer_assets
@@ -532,6 +533,11 @@ app.include_router(
 )
 app.include_router(
     landing_public.router,
+    prefix="/api/v1/public",
+    tags=["Public - Landing"],
+)
+app.include_router(
+    landing_public_edition.router,
     prefix="/api/v1/public",
     tags=["Public - Landing"],
 )
