@@ -31,6 +31,10 @@ class LaunchEditionModel(Base):
     timezone = Column(String, default="UTC")
 
     pricing_override = Column(JSONB, nullable=True)
+    # Phase 4: temporal pricing ladder (replaces pricing_override on new
+    # code paths). Populated via service serialization; migration 047
+    # backfilled existing override rows into a single "regular" tier.
+    pricing_tiers = Column(JSONB, nullable=True)
     capacity = Column(Integer, nullable=True)
     enrollment_count = Column(Integer, default=0)
 

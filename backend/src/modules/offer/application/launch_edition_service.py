@@ -9,6 +9,8 @@ from src.modules.offer.domain.launch_edition import (
     EditionStatus,
     EditionVisibility,
     LaunchEdition,
+    PricingTier,
+    resolve_active_tier,
 )
 from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
     LaunchEditionRepository,
@@ -16,6 +18,7 @@ from src.modules.offer.infrastructure.repositories.launch_edition_repository imp
 from src.modules.offer.infrastructure.repositories.offer_repository import (
     OfferRepository,
 )
+from src.shared.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -47,6 +50,7 @@ class LaunchEditionService:
         registration_end: datetime | None = None,
         timezone: str = "UTC",
         pricing_override: list[PricingStructure] | None = None,
+        pricing_tiers: list[PricingTier] | None = None,
         capacity: int | None = None,
         location_override: dict[str, Any] | None = None,
         notes: str | None = None,
@@ -72,6 +76,7 @@ class LaunchEditionService:
             registration_end=registration_end,
             timezone=timezone,
             pricing_override=pricing_override,
+            pricing_tiers=pricing_tiers,
             capacity=capacity,
             location_override=location_override,
             notes=notes,
@@ -212,21 +217,57 @@ class LaunchEditionService:
         edition: LaunchEdition,
         tenant_id: UUID,
     ) -> tuple[list[dict[str, Any]], str]:
-        """Return (pricing_list, currency). Uses override if set, else offer's pricing."""
+        """Return ``(pricing_list, currency)`` — legacy two-tuple shape.
+
+        Resolution precedence: active ``PricingTier`` → ``pricing_override``
+        → offer-level ``pricing_options``. The tuple shape is preserved for
+        existing callers; new code should use :meth:`resolve_effective_pricing_full`.
+        """
+        pricing_list, currency, _ = self.resolve_effective_pricing_full(edition, tenant_id)
+        return pricing_list, currency
+
+    def resolve_effective_pricing_full(
+        self,
+        edition: LaunchEdition,
+        tenant_id: UUID,
+        *,
+        now: datetime | None = None,
+    ) -> tuple[list[dict[str, Any]], str, PricingTier | None]:
+        """Return ``(pricing_list, currency, active_tier)``.
+
+        Precedence:
+
+        1. Temporal pricing tiers — if the edition has any tier active
+           at ``now`` (default ``utc_now()``), use that tier's pricing.
+        2. Legacy ``pricing_override`` — still read so editions written
+           before Phase 4 keep working until migration 048 drops the
+           column.
+        3. Offer-level ``pricing_options`` — baseline.
+        """
         offer = self.offer_repo.get_by_id(edition.offer_id, tenant_id)
         if not offer:
             msg = f"Offer {edition.offer_id} not found"
             raise ValueError(msg)
 
         currency = offer.currency or ""
+        active_tier = resolve_active_tier(edition.pricing_tiers, now or utc_now()) if edition.pricing_tiers else None
+
+        if active_tier is not None:
+            return (
+                [p.model_dump(mode="json") for p in active_tier.pricing],
+                currency,
+                active_tier,
+            )
 
         if edition.pricing_override is not None:
             return (
                 [p.model_dump(mode="json") for p in edition.pricing_override],
                 currency,
+                None,
             )
 
         return (
             [p.model_dump(mode="json") for p in offer.pricing_options],
             currency,
+            None,
         )

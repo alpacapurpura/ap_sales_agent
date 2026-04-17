@@ -10,6 +10,7 @@ from src.modules.offer.domain.launch_edition import (
     EditionStatus,
     EditionVisibility,
     LaunchEdition,
+    PricingTier,
 )
 from src.modules.offer.domain.offer import PricingStructure
 from src.modules.offer.infrastructure.models.launch_edition_model import (
@@ -35,6 +36,10 @@ class LaunchEditionRepository:
         if model.pricing_override is not None:
             pricing = [PricingStructure(**p) for p in model.pricing_override]
 
+        tiers: list[PricingTier] = []
+        if model.pricing_tiers:
+            tiers = [PricingTier.model_validate(t) for t in model.pricing_tiers]
+
         return LaunchEdition(
             id=model.id,
             offer_id=model.offer_id,
@@ -47,6 +52,7 @@ class LaunchEditionRepository:
             registration_end=model.registration_end,
             timezone=model.timezone or "UTC",
             pricing_override=pricing,
+            pricing_tiers=tiers,
             capacity=model.capacity,
             enrollment_count=model.enrollment_count or 0,
             status=EditionStatus(model.status) if model.status else EditionStatus.DRAFT,
@@ -80,6 +86,7 @@ class LaunchEditionRepository:
         registration_end: datetime | None = None,
         timezone: str = "UTC",
         pricing_override: list[PricingStructure] | None = None,
+        pricing_tiers: list[PricingTier] | None = None,
         capacity: int | None = None,
         location_override: dict | None = None,
         notes: str | None = None,
@@ -102,6 +109,10 @@ class LaunchEditionRepository:
         if pricing_override is not None:
             pricing_json = [p.model_dump(mode="json") for p in pricing_override]
 
+        tiers_json = None
+        if pricing_tiers is not None:
+            tiers_json = [tier.model_dump(mode="json") for tier in pricing_tiers]
+
         model = LaunchEditionModel(
             offer_id=offer_id,
             tenant_id=tenant_id,
@@ -113,6 +124,7 @@ class LaunchEditionRepository:
             registration_end=registration_end,
             timezone=timezone,
             pricing_override=pricing_json,
+            pricing_tiers=tiers_json,
             capacity=capacity,
             enrollment_count=0,
             status=status.value,
@@ -190,7 +202,7 @@ class LaunchEditionRepository:
         for key, raw_value in data.items():
             resolved = raw_value
             if (
-                key == "pricing_override"
+                key in ("pricing_override", "pricing_tiers")
                 and raw_value is not None
                 and isinstance(raw_value, list)
                 and raw_value

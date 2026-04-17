@@ -29,7 +29,7 @@ from enum import StrEnum
 from typing import Any
 from uuid import UUID
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 
 from src.modules.offer.domain.offer import PricingStructure
 from src.shared.domain.base_entity import BaseEntity
@@ -67,6 +67,76 @@ class EditionVisibility(StrEnum):
 _STATUSES_REQUIRING_START_DATE: frozenset[EditionStatus] = frozenset({EditionStatus.UPCOMING, EditionStatus.ACTIVE})
 
 
+class PricingTier(BaseEntity):
+    """One validity window inside an edition's pricing timeline.
+
+    Models the ``early bird → regular → last call`` pattern that almost
+    every launch uses. Each tier owns a slice of time and the pricing
+    structure that applies during that slice.
+
+    Windows are **half-open** (``[valid_from, valid_until)``): the
+    instant a tier ends is the instant the next one begins. That
+    eliminates the off-by-one ambiguity of closed intervals and the
+    both-active overlap of fully-closed ones.
+
+    ``valid_from`` / ``valid_until`` of ``None`` mean open-ended on
+    that side, so ``PricingTier(label='regular', pricing=[...])`` with
+    both bounds unset is "always active" — the default carried over
+    from Phase 3 ``pricing_override`` rows.
+    """
+
+    label: str
+    pricing: list[PricingStructure] = Field(..., min_length=1)
+    valid_from: datetime | None = None
+    valid_until: datetime | None = None
+    sort_order: int = 0
+
+    @model_validator(mode="after")
+    def validate_window(self) -> PricingTier:
+        """Reject inverted bounds — ``valid_until`` must be strictly after ``valid_from``."""
+        if self.valid_from is not None and self.valid_until is not None and self.valid_until <= self.valid_from:
+            msg = "valid_until must be strictly after valid_from"
+            raise ValueError(msg)
+        return self
+
+
+def resolve_active_tier(tiers: list[PricingTier], now: datetime) -> PricingTier | None:
+    """Return the tier whose window contains ``now`` with lowest ``sort_order``.
+
+    Half-open semantics: ``valid_from <= now < valid_until``. When two
+    tiers' windows overlap (should not happen because
+    :class:`LaunchEdition` rejects that at the boundary — but defensive
+    here), ``sort_order`` breaks the tie deterministically.
+    """
+    if not tiers:
+        return None
+    applicable = [
+        tier
+        for tier in sorted(tiers, key=lambda x: x.sort_order)
+        if (tier.valid_from is None or tier.valid_from <= now) and (tier.valid_until is None or now < tier.valid_until)
+    ]
+    return applicable[0] if applicable else None
+
+
+def _windows_overlap(a: PricingTier, b: PricingTier) -> bool:
+    """True iff ``a`` and ``b`` share ANY instant under half-open semantics.
+
+    Equivalent to: ``a.start < b.end AND b.start < a.end`` with
+    ``None`` bounds treated as ``-inf``/``+inf``.
+    """
+    a_start = a.valid_from
+    a_end = a.valid_until
+    b_start = b.valid_from
+    b_end = b.valid_until
+
+    # Treat unbounded sides as ±∞. Two open-ended tiers overlap by
+    # definition (both cover "always"), so the fast-path below catches
+    # it without special-casing None.
+    start_before_end = a_start is None or b_end is None or a_start < b_end
+    b_start_before_a_end = b_start is None or a_end is None or b_start < a_end
+    return start_before_end and b_start_before_a_end
+
+
 class LaunchEdition(BaseEntity):
     """One launch/edition of an offer (cohort, event date, workshop run).
 
@@ -89,6 +159,10 @@ class LaunchEdition(BaseEntity):
     timezone: str = "UTC"
 
     pricing_override: list[PricingStructure] | None = None
+    # Temporal pricing ladder. Replaces ``pricing_override`` on new
+    # code paths; read-path still inspects override for backward-compat
+    # until migration 048 drops the column. See :func:`resolve_active_tier`.
+    pricing_tiers: list[PricingTier] = Field(default_factory=list)
 
     capacity: int | None = None
     enrollment_count: int = 0
@@ -168,7 +242,23 @@ class LaunchEdition(BaseEntity):
             msg = "A draft edition cannot be public; promote to upcoming first"
             raise ValueError(msg)
 
+        self._enforce_non_overlapping_tiers()
         return self
+
+    def _enforce_non_overlapping_tiers(self) -> None:
+        """Reject ambiguous pricing timelines at construction time.
+
+        Two tiers whose windows share any instant would let the resolver
+        pick either one; the sales agent must never have to guess which
+        price is "live" right now. Half-open comparison means adjacent
+        windows that only touch at a boundary are allowed.
+        """
+        tiers = self.pricing_tiers
+        for i, tier_a in enumerate(tiers):
+            for tier_b in tiers[i + 1 :]:
+                if _windows_overlap(tier_a, tier_b):
+                    msg = f"pricing tiers {tier_a.label!r} and {tier_b.label!r} overlap in time"
+                    raise ValueError(msg)
 
 
 class LaunchEditionCreate(BaseEntity):

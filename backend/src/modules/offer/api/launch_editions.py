@@ -18,13 +18,32 @@ from src.modules.offer.application.edition_clone_service import (
 from src.modules.offer.application.launch_edition_service import (
     LaunchEditionService,
 )
-from src.modules.offer.domain.launch_edition import LaunchEdition, LaunchEditionCreate
+from src.modules.offer.domain.launch_edition import (
+    LaunchEdition,
+    LaunchEditionCreate,
+    PricingTier,
+)
 from src.modules.offer.domain.offer import PricingStructure
 from src.shared.links.ports.edition_landing_clone import (
     create_edition_landing_clone_port,
 )
 
 router = APIRouter()
+
+
+class PricingTierDTO(BaseModel):
+    """Temporal pricing tier (Phase 4).
+
+    Mirrors :class:`PricingTier`. Half-open ``[valid_from, valid_until)``
+    semantics — the resolver selects the first tier whose window
+    contains "now" ordered by ``sort_order``.
+    """
+
+    label: str
+    pricing: list[dict[str, Any]]
+    valid_from: datetime | None = None
+    valid_until: datetime | None = None
+    sort_order: int = 0
 
 
 class LaunchEditionCreateDTO(BaseModel):
@@ -34,6 +53,12 @@ class LaunchEditionCreateDTO(BaseModel):
     edition may be created without a date and filled in later. Domain
     validators block transitions to UPCOMING / ACTIVE / PUBLIC until
     ``start_date`` is set.
+
+    ``pricing_override`` is being phased out in favour of
+    ``pricing_tiers`` (Phase 4). The backend refuses to accept both in
+    the same request so callers migrate cleanly; each existing edition
+    stays readable through the column fallback until migration 048
+    drops it.
     """
 
     edition_name: str | None = None
@@ -43,6 +68,7 @@ class LaunchEditionCreateDTO(BaseModel):
     registration_end: datetime | None = None
     timezone: str = "UTC"
     pricing_override: list[dict[str, Any]] | None = None
+    pricing_tiers: list[PricingTierDTO] | None = None
     capacity: int | None = None
     location_override: dict[str, Any] | None = None
     notes: str | None = None
@@ -58,6 +84,7 @@ class LaunchEditionUpdateDTO(BaseModel):
     registration_end: datetime | None = None
     timezone: str | None = None
     pricing_override: list[dict[str, Any]] | None = None
+    pricing_tiers: list[PricingTierDTO] | None = None
     capacity: int | None = None
     enrollment_count: int | None = None
     status: str | None = None
@@ -71,6 +98,8 @@ class LaunchEditionResponse(BaseModel):
 
     ``start_date`` is optional so placeholder editions serialize cleanly.
     ``visibility`` exposes private/public to the frontend for status chips.
+    ``pricing_tiers`` + ``active_tier`` drive the Phase 4 temporal pricing
+    UI; ``pricing_override`` is kept for backward-compat readers.
     """
 
     model_config = ConfigDict(from_attributes=True)
@@ -85,6 +114,8 @@ class LaunchEditionResponse(BaseModel):
     registration_end: datetime | None = None
     timezone: str
     pricing_override: list[dict[str, Any]] | None = None
+    pricing_tiers: list[PricingTierDTO] = Field(default_factory=list)
+    active_tier: PricingTierDTO | None = None
     effective_pricing: list[dict[str, Any]]
     currency: str
     capacity: int | None = None
@@ -104,6 +135,7 @@ class LaunchEditionResponse(BaseModel):
         edition: LaunchEdition,
         effective_pricing: list[dict[str, Any]],
         currency: str,
+        active_tier: PricingTier | None = None,
     ) -> "LaunchEditionResponse":
         """Build response from a domain entity."""
         pricing_override = None
@@ -112,6 +144,9 @@ class LaunchEditionResponse(BaseModel):
 
         status_value = edition.status.value if hasattr(edition.status, "value") else edition.status
         visibility_value = edition.visibility.value if hasattr(edition.visibility, "value") else edition.visibility
+
+        tier_dtos = [_tier_to_dto(tier) for tier in edition.pricing_tiers]
+        active_dto = _tier_to_dto(active_tier) if active_tier is not None else None
 
         return cls(
             id=edition.id,
@@ -124,6 +159,8 @@ class LaunchEditionResponse(BaseModel):
             registration_end=edition.registration_end,
             timezone=edition.timezone,
             pricing_override=pricing_override,
+            pricing_tiers=tier_dtos,
+            active_tier=active_dto,
             effective_pricing=effective_pricing,
             currency=currency,
             capacity=edition.capacity,
@@ -141,13 +178,49 @@ class LaunchEditionResponse(BaseModel):
         )
 
 
+def _tier_to_dto(tier: PricingTier) -> PricingTierDTO:
+    """Serialize a domain tier to its API shape."""
+    return PricingTierDTO(
+        label=tier.label,
+        pricing=[p.model_dump(mode="json") for p in tier.pricing],
+        valid_from=tier.valid_from,
+        valid_until=tier.valid_until,
+        sort_order=tier.sort_order,
+    )
+
+
+def _build_tiers_from_input(raw: list[PricingTierDTO] | None) -> list[PricingTier] | None:
+    """Turn the input DTO into the domain VO, raising on malformed pricing."""
+    if raw is None:
+        return None
+    return [
+        PricingTier(
+            label=t.label,
+            pricing=[PricingStructure(**p) for p in t.pricing],
+            valid_from=t.valid_from,
+            valid_until=t.valid_until,
+            sort_order=t.sort_order,
+        )
+        for t in raw
+    ]
+
+
+def _reject_dual_pricing_input(override: list[dict[str, Any]] | None, tiers: list[PricingTierDTO] | None) -> None:
+    """Prevent accidental dual-write while ``pricing_override`` is phased out."""
+    if override is not None and tiers is not None:
+        raise HTTPException(
+            status_code=422,
+            detail="Provide either pricing_override (legacy) or pricing_tiers (Phase 4), not both.",
+        )
+
+
 def _build_response(
     svc: LaunchEditionService,
     edition: LaunchEdition,
     tenant_id: UUID,
 ) -> LaunchEditionResponse:
-    effective_pricing, currency = svc.resolve_effective_pricing(edition, tenant_id)
-    return LaunchEditionResponse.from_domain(edition, effective_pricing, currency)
+    effective_pricing, currency, active_tier = svc.resolve_effective_pricing_full(edition, tenant_id)
+    return LaunchEditionResponse.from_domain(edition, effective_pricing, currency, active_tier)
 
 
 @router.get(
@@ -175,14 +248,15 @@ async def create_edition(
     user: Annotated[User, Depends(get_current_user)],
 ) -> LaunchEditionResponse:
     """Create edition."""
+    _reject_dual_pricing_input(body.pricing_override, body.pricing_tiers)
     svc = LaunchEditionService(db)
-    from src.modules.offer.domain.offer import PricingStructure
 
     pricing = None
     if body.pricing_override is not None:
         pricing = [PricingStructure(**p) for p in body.pricing_override]
 
     try:
+        tiers = _build_tiers_from_input(body.pricing_tiers)
         edition = svc.create_edition(
             offer_id=UUID(offer_id),
             tenant_id=user.tenant_id,
@@ -193,12 +267,17 @@ async def create_edition(
             registration_end=body.registration_end,
             timezone=body.timezone,
             pricing_override=pricing,
+            pricing_tiers=tiers,
             capacity=body.capacity,
             location_override=body.location_override,
             notes=body.notes,
         )
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        # Archetype/offer-not-found vs pricing-tier validation — the
+        # former is a 404, the latter a 422.
+        if "not found" in str(e):
+            raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=422, detail=str(e)) from e
     return _build_response(svc, edition, user.tenant_id)
 
 
@@ -257,15 +336,23 @@ async def update_edition(
     the patched state violates a domain invariant (e.g. publishing an
     edition without ``start_date``).
     """
+    _reject_dual_pricing_input(body.pricing_override, body.pricing_tiers)
     svc = LaunchEditionService(db)
     # Distinguish not-found vs validation error by checking existence first.
     if svc.get_edition(UUID(edition_id), user.tenant_id) is None:
         raise HTTPException(status_code=404, detail="Edition not found")
+
+    patch = body.model_dump(exclude_unset=True)
+    # Replace the DTO list with domain VOs so repo-level serialization
+    # can `.model_dump()` each tier consistently with other writes.
+    if "pricing_tiers" in patch and body.pricing_tiers is not None:
+        patch["pricing_tiers"] = _build_tiers_from_input(body.pricing_tiers)
+
     try:
         edition = svc.update_edition(
             UUID(edition_id),
             user.tenant_id,
-            body.model_dump(exclude_unset=True),
+            patch,
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e

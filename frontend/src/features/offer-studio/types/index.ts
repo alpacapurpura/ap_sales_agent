@@ -329,6 +329,17 @@ export interface ObjectionItem {
 /** @deprecated Use ObjectionItem instead */
 export type Objection = ObjectionItem;
 
+/** Temporal pricing tier — Phase 4. Half-open window `[valid_from, valid_until)`. */
+export interface PricingTier {
+  label: string;
+  pricing: PricingStructure[];
+  /** ISO 8601 UTC string, or null for open-ended start. */
+  valid_from: string | null;
+  /** ISO 8601 UTC string, or null for open-ended end. */
+  valid_until: string | null;
+  sort_order: number;
+}
+
 export interface LaunchEdition {
   id: string;
   offer_id: string;
@@ -340,7 +351,11 @@ export interface LaunchEdition {
   registration_start: string | null;
   registration_end: string | null;
   timezone: string;
+  /** @deprecated Use `pricing_tiers` instead. Kept for read-path compat only. */
   pricing_override: PricingStructure[] | null;
+  pricing_tiers: PricingTier[];
+  /** Tier whose window contains "now" (computed server-side). */
+  active_tier: PricingTier | null;
   effective_pricing: PricingStructure[];
   currency: string;
   capacity: number | null;
@@ -366,6 +381,7 @@ export interface LaunchEditionCreate {
   registration_end?: string;
   timezone?: string;
   pricing_override?: PricingStructure[];
+  pricing_tiers?: PricingTier[];
   capacity?: number;
   location_override?: Record<string, unknown>;
   notes?: string;
@@ -379,6 +395,7 @@ export interface LaunchEditionUpdate {
   registration_end?: string;
   timezone?: string;
   pricing_override?: PricingStructure[] | null;
+  pricing_tiers?: PricingTier[] | null;
   capacity?: number;
   enrollment_count?: number;
   status?: EditionStatus;
