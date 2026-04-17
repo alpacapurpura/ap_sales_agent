@@ -491,3 +491,14 @@ Siempre referenciar el phase #.
 - ✅ Prototype HTML sigue en `docs/ux-sessions/2026-04-17-offer-editions-ui-revamp/prototype/` como referencia viva.
 - ✅ Cada phase documenta qué cambió en el commit message.
 - ✅ User hace sign-off visual comparando cada page implementada vs prototipo correspondiente.
+
+---
+
+## Learnings Phase 5 (2026-04-17)
+
+- **Pre-existing broken test**: `backend/tests/modules/sales_agent/test_conversation_context.py` (untracked) fails on import (`merge_history_with_current` not in chat orchestrator). Not created by this session — leave for owner. Confirmed by running enrollment tests in isolation.
+- **Sessions are sync in sales_agent**: despite CLAUDE.md saying new code must use AsyncSession, 100% of offer/ and sales_agent/ repos use sync `Session` from `sqlalchemy.orm`. Following existing pattern (sync) for Enrollment to avoid a one-off outlier. Migration to AsyncSession is module-wide decision for later.
+- **Arch test `test_all_endpoints_have_response_model` accepts typed return annotation** (`has_response_model OR has_return_type`). Ruff FAST001 complains if you pass `response_model=` AND have a return type, so for new code use only the return type. Keeps both gates green.
+- **Migration naming prefix**: last real migration was `047_pricing_tiers.py` — confirmed `048_create_enrollments.py` is the right number. Older files use hash-based names (e.g. `f851363921c9_...`) but the numbered-prefix convention is the active one.
+- **`db_engine` fixture in `backend/tests/conftest.py`**: new SA models must be imported in the try-block that calls `Base.metadata.create_all()`. Otherwise tests that use the in-memory SQLite engine can't create the table.
+- **Event bus**: sales_agent has an async EventBus but no service in offer/ uses it directly. Chose `ServiceResult(enrollment, events: list)` tuple pattern so the API layer decides when to dispatch. Matches 'returned events' style without async contamination.

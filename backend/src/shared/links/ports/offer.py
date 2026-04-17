@@ -38,3 +38,16 @@ def get_product_model_class() -> type:
     from src.modules.offer.infrastructure.models.product_model import ProductModel
 
     return ProductModel
+
+
+def get_launch_edition_repository(db: Session) -> object:
+    """Return LaunchEditionRepository instance via lazy import.
+
+    Used by sales_agent tools to list public editions without a direct
+    cross-module import.
+    """
+    from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
+        LaunchEditionRepository,
+    )
+
+    return LaunchEditionRepository(db)
