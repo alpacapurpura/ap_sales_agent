@@ -117,6 +117,7 @@ from src.modules.offer.api import value_levels as offer_value_levels
 # 5. Sales Agent
 from src.modules.sales_agent.api import audit as sales_audit
 from src.modules.sales_agent.api import closer_studio as sales_closer
+from src.modules.sales_agent.api import enrollments as sales_enrollments
 from src.modules.sales_agent.api import ws as sales_ws
 from src.modules.scheduling.api import agenda as sched_agenda
 
@@ -546,6 +547,12 @@ app.include_router(
     sales_closer.router,
     prefix="/api/v1/closer-studio",
     tags=["Closer Studio"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    sales_enrollments.router,
+    prefix="/api/v1/sales-agent",
+    tags=["Sales Agent - Enrollments"],
     dependencies=[Depends(get_tenant_context)],
 )
 app.include_router(sales_ws.router, tags=["Closer Studio - WebSocket"])

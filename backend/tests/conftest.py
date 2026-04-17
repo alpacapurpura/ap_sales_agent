@@ -158,6 +158,9 @@ def db_engine():
         from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
             AgentStateCheckpointModel,
         )
+        from src.modules.sales_agent.infrastructure.models.enrollment_model import (
+            EnrollmentModel,
+        )
         from src.modules.sales_agent.infrastructure.models.message_model import (
             MessageModel,
         )

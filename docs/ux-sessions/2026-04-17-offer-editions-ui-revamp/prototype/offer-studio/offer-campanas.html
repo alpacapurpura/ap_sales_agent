@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Offer · Campañas · Edición #3 | Flow Preview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="../styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+<div class="flex min-h-screen">
+  <aside class="w-60 bg-white border-r border-slate-200 flex-shrink-0">
+    <div class="p-4 border-b border-slate-200"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-slate-900 text-white font-bold flex items-center justify-center text-sm">N</div><span class="font-semibold">Nicolify</span></div></div>
+    <nav class="p-3 space-y-1 text-sm"><a href="offers-list.html" class="nav-active flex items-center gap-2 px-2 py-1.5 rounded">💼 Offer Studio</a><a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">📢 Growth Studio</a></nav>
+  </aside>
+
+  <aside class="w-60 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col">
+    <div class="p-3 border-b border-slate-200 flex items-center justify-between"><span class="text-sm font-semibold truncate">MasterClass Copy</span><button class="p-1 text-slate-400">‹‹</button></div>
+    <div class="flex-1 p-2 space-y-4 text-sm overflow-y-auto">
+      <div><p class="px-2 text-[10px] font-semibold text-slate-400 uppercase mb-1.5">⭐ Próxima</p><a href="offer-info.html" class="block p-3 rounded-lg bg-blue-50 border border-blue-200 ring-1 ring-blue-200/50"><div class="flex items-center justify-between mb-1"><span class="font-semibold text-sm text-blue-900">Edición #3</span><span class="status-badge status-upcoming" style="font-size:10px">Próxima</span></div><p class="text-xs text-blue-700">Lun 15 jul</p></a></div>
+      <div><p class="px-2 text-[10px] font-semibold text-amber-600 uppercase mb-1.5">✏ Borradores</p><a href="#" class="block p-3 rounded-lg border border-dashed border-amber-300"><span class="font-semibold text-sm text-amber-800">Edición #4</span></a></div>
+      <div><p class="px-2 text-[10px] font-semibold text-slate-400 uppercase mb-1.5">✓ Pasadas</p>
+        <a href="offer-info-edition2.html" class="block p-2 text-sm text-slate-600 hover:bg-slate-50 rounded">Edición #2</a>
+        <a href="offer-info-edition2.html" class="block p-2 text-sm text-slate-600 hover:bg-slate-50 rounded">Edición #1</a>
+      </div>
+    </div>
+    <div class="p-2 border-t border-slate-200"><button class="w-full px-3 py-2 text-sm bg-purple-600 text-white rounded-lg">+ Nueva edición</button></div>
+  </aside>
+
+  <main class="flex-1 overflow-auto pb-16">
+    <header class="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between">
+      <div><h1 class="text-lg font-bold">MasterClass de Copywriting <span class="text-slate-300">·</span> <span class="text-blue-700">Edición #3</span></h1><p class="text-xs text-slate-500">Programa</p></div>
+      <span class="status-badge status-upcoming">Próxima</span>
+    </header>
+
+    <div class="bg-white border-b border-slate-200 px-8 flex items-center justify-between">
+      <nav class="flex gap-1 text-sm">
+        <a href="offer-info.html" class="tab-inactive px-4 py-3">📋 Info</a>
+        <a href="offer-ventas.html" class="tab-inactive px-4 py-3">💰 Ventas</a>
+        <a href="offer-assets.html" class="tab-inactive px-4 py-3">🎨 Assets</a>
+        <a href="offer-campanas.html" class="tab-active px-4 py-3">📢 Campañas <span class="ml-1 text-xs">(3)</span></a>
+      </nav>
+      <div class="flex items-center py-2">
+        <a href="offer-landing-editor.html" target="_blank" class="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-l-lg font-medium border-r border-emerald-700">🌐 Editar landing</a>
+        <button class="px-2 py-1.5 bg-emerald-600 text-white text-sm rounded-r-lg">▾</button>
+      </div>
+    </div>
+
+    <section class="px-8 py-5 space-y-4">
+
+      <!-- Explanation banner -->
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">📊</span>
+          <div>
+            <p class="text-sm font-semibold text-blue-900">Acá ves solo las campañas asociadas a esta edición</p>
+            <p class="text-xs text-blue-700">La configuración avanzada y analítica vive en Growth Studio. Desde acá linkeás campañas existentes o creás nuevas.</p>
+          </div>
+        </div>
+        <a href="#" class="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg">Ir a Growth Studio →</a>
+      </div>
+
+      <!-- KPI strip -->
+      <div class="grid grid-cols-4 gap-3">
+        <div class="bg-white border border-slate-200 rounded-xl p-3"><p class="text-[10px] text-slate-500 uppercase">Campañas activas</p><p class="text-xl font-bold">3</p></div>
+        <div class="bg-white border border-slate-200 rounded-xl p-3"><p class="text-[10px] text-slate-500 uppercase">Inversión</p><p class="text-xl font-bold">S/ 1.240</p><p class="text-[10px] text-slate-500">últimos 30 días</p></div>
+        <div class="bg-white border border-slate-200 rounded-xl p-3"><p class="text-[10px] text-slate-500 uppercase">Leads generados</p><p class="text-xl font-bold">87</p></div>
+        <div class="bg-white border border-slate-200 rounded-xl p-3"><p class="text-[10px] text-slate-500 uppercase">ROAS estimado</p><p class="text-xl font-bold">5.9x</p></div>
+      </div>
+
+      <!-- Campaigns list -->
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-semibold">Campañas asociadas (3)</h3>
+        <button class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white hover:bg-slate-50">+ Asociar campaña existente</button>
+      </div>
+
+      <!-- Campaign cards -->
+      <div class="space-y-3">
+
+        <!-- Meta Ads -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 flex items-start gap-4">
+          <div class="w-12 h-12 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xl">Ⓜ</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <p class="font-semibold">MasterClass Jul — Tráfico + Conversiones</p>
+              <span class="px-2 py-0.5 text-xs rounded bg-blue-100 text-blue-700">Meta Ads</span>
+              <span class="px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700">● Activa</span>
+            </div>
+            <p class="text-xs text-slate-500 mb-3">Flight 1 may → 15 jul · 3 ad sets · 12 anuncios</p>
+            <div class="grid grid-cols-4 gap-3 text-xs">
+              <div><p class="text-slate-500">Inversión</p><p class="font-semibold">S/ 890</p></div>
+              <div><p class="text-slate-500">Leads</p><p class="font-semibold">52</p></div>
+              <div><p class="text-slate-500">CPA</p><p class="font-semibold">S/ 17</p></div>
+              <div><p class="text-slate-500">Inscripciones atribuidas</p><p class="font-semibold text-emerald-600">8</p></div>
+            </div>
+          </div>
+          <div class="flex flex-col items-end gap-1">
+            <a href="#" class="text-xs text-blue-600 hover:underline whitespace-nowrap">Ver en Growth →</a>
+            <button class="text-xs text-slate-400 hover:text-slate-800">⋮</button>
+          </div>
+        </div>
+
+        <!-- Google Ads -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 flex items-start gap-4">
+          <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl">G</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <p class="font-semibold">Copywriting search PE</p>
+              <span class="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-700">Google Ads</span>
+              <span class="px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-700">● Activa</span>
+            </div>
+            <p class="text-xs text-slate-500 mb-3">Flight 15 may → 10 jul · 1 campaña · 24 keywords</p>
+            <div class="grid grid-cols-4 gap-3 text-xs">
+              <div><p class="text-slate-500">Inversión</p><p class="font-semibold">S/ 280</p></div>
+              <div><p class="text-slate-500">Clicks</p><p class="font-semibold">412</p></div>
+              <div><p class="text-slate-500">CPC</p><p class="font-semibold">S/ 0.68</p></div>
+              <div><p class="text-slate-500">Inscripciones</p><p class="font-semibold text-emerald-600">2</p></div>
+            </div>
+          </div>
+          <a href="#" class="text-xs text-blue-600 hover:underline whitespace-nowrap">Ver en Growth →</a>
+        </div>
+
+        <!-- YouTube -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 flex items-start gap-4">
+          <div class="w-12 h-12 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xl">▶</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <p class="font-semibold">YouTube Ads — Testimonio</p>
+              <span class="px-2 py-0.5 text-xs rounded bg-red-100 text-red-700">YouTube</span>
+              <span class="px-2 py-0.5 text-xs rounded bg-slate-100 text-slate-700">⏸ Pausada</span>
+            </div>
+            <p class="text-xs text-slate-500 mb-3">Flight 20 may → 5 jul · Pausada por decisión de budget</p>
+            <div class="grid grid-cols-4 gap-3 text-xs">
+              <div><p class="text-slate-500">Inversión</p><p class="font-semibold">S/ 70</p></div>
+              <div><p class="text-slate-500">Vistas</p><p class="font-semibold">1.240</p></div>
+              <div><p class="text-slate-500">CPV</p><p class="font-semibold">S/ 0.06</p></div>
+              <div><p class="text-slate-500">Inscripciones</p><p class="font-semibold text-slate-500">0</p></div>
+            </div>
+          </div>
+          <a href="#" class="text-xs text-blue-600 hover:underline whitespace-nowrap">Ver en Growth →</a>
+        </div>
+
+      </div>
+
+      <!-- Orgánico / Email placeholder -->
+      <div class="bg-slate-100 border border-slate-200 rounded-xl p-4">
+        <p class="text-sm font-semibold mb-1">💡 ¿También usás email o IG orgánico para promocionar?</p>
+        <p class="text-xs text-slate-600 mb-3">Por ahora Campañas lista solo ads pagos (Meta / Google / YouTube / TikTok). Email sequences y posts orgánicos los verás pronto en una pestaña "Canales" — o configurálos desde Growth Studio.</p>
+        <div class="flex gap-2">
+          <button class="px-3 py-1.5 text-xs border border-slate-300 rounded-md bg-white hover:bg-slate-50">📧 Configurar email sequence</button>
+          <button class="px-3 py-1.5 text-xs border border-slate-300 rounded-md bg-white hover:bg-slate-50">📱 Configurar posts IG</button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<div class="fixed bottom-0 left-0 right-0 journey-bar px-4 py-2 text-xs flex items-center justify-between z-30">
+  <div><strong>Tab Campañas:</strong> Listado asociado desde Growth Studio · una campaña = un flight de una plataforma · analítica avanzada en Growth</div>
+  <a href="offer-info-edition2.html" class="text-blue-700 font-semibold hover:underline">Siguiente: Cambiar a Edición #2 (pasada) →</a>
+</div>
+</body></html>

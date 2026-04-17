@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Offer · Ventas · Edición #3 | Flow Preview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="../styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+<div class="flex min-h-screen">
+  <!-- App sidebar -->
+  <aside class="w-60 bg-white border-r border-slate-200 flex-shrink-0">
+    <div class="p-4 border-b border-slate-200"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-slate-900 text-white font-bold flex items-center justify-center text-sm">N</div><span class="font-semibold">Nicolify</span></div></div>
+    <nav class="p-3 space-y-1 text-sm">
+      <a href="offers-list.html" class="nav-active flex items-center gap-2 px-2 py-1.5 rounded">💼 Offer Studio</a>
+      <a href="../sales/enrollments.html" class="ml-6 flex items-center gap-2 px-2 py-1 text-xs rounded hover:bg-slate-100 text-slate-500">Closer · Inscripciones <span class="badge-new ml-auto">NEW</span></a>
+    </nav>
+  </aside>
+
+  <!-- Editions rail -->
+  <aside class="w-60 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col">
+    <div class="p-3 border-b border-slate-200 flex items-center justify-between"><span class="text-sm font-semibold truncate">MasterClass Copy</span><button class="p-1 text-slate-400">‹‹</button></div>
+    <div class="flex-1 p-2 space-y-4 text-sm overflow-y-auto">
+      <div><p class="px-2 text-[10px] font-semibold text-slate-400 uppercase mb-1.5">⭐ Próxima</p>
+        <a href="offer-info.html" class="block p-3 rounded-lg bg-blue-50 border border-blue-200 ring-1 ring-blue-200/50"><div class="flex items-center justify-between mb-1"><span class="font-semibold text-sm text-blue-900">Edición #3</span><span class="status-badge status-upcoming" style="font-size:10px">Próxima</span></div><p class="text-xs text-blue-700">Lun 15 jul · 12/50</p></a>
+      </div>
+      <div><p class="px-2 text-[10px] font-semibold text-amber-600 uppercase mb-1.5">✏ Borradores</p>
+        <a href="#" class="block p-3 rounded-lg border border-dashed border-amber-300"><div class="flex items-center justify-between mb-1"><span class="font-semibold text-sm text-amber-800">Edición #4</span><span class="status-badge status-draft" style="font-size:10px">Borrador</span></div><p class="text-xs text-amber-700">Sin fecha</p></a>
+      </div>
+      <div><p class="px-2 text-[10px] font-semibold text-slate-400 uppercase mb-1.5">✓ Pasadas</p>
+        <a href="offer-info-edition2.html" class="block p-2.5 rounded hover:bg-slate-50 text-slate-600"><div class="flex items-center justify-between text-sm"><span>Edición #2</span><span class="text-xs text-slate-400">abr '26</span></div></a>
+        <a href="offer-info-edition2.html" class="block p-2.5 rounded hover:bg-slate-50 text-slate-600"><div class="flex items-center justify-between text-sm"><span>Edición #1</span><span class="text-xs text-slate-400">ene '26</span></div></a>
+      </div>
+    </div>
+    <div class="p-2 border-t border-slate-200"><button class="w-full px-3 py-2 text-sm bg-purple-600 text-white rounded-lg">+ Nueva edición</button></div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 overflow-auto pb-16">
+    <!-- Header + tabs + landing (same shell) -->
+    <header class="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between">
+      <div>
+        <h1 class="text-lg font-bold">MasterClass de Copywriting <span class="text-slate-300">·</span> <span class="text-blue-700">Edición #3 · Julio 2026</span></h1>
+        <p class="text-xs text-slate-500">Programa · DWY</p>
+      </div>
+      <div class="flex items-center gap-2"><span class="status-badge status-upcoming">Próxima</span><span class="status-badge visibility-public">Pública</span></div>
+    </header>
+
+    <div class="bg-white border-b border-slate-200 px-8 flex items-center justify-between">
+      <nav class="flex gap-1 text-sm">
+        <a href="offer-info.html" class="tab-inactive px-4 py-3">📋 Info</a>
+        <a href="offer-ventas.html" class="tab-active px-4 py-3">💰 Ventas <span class="ml-1 text-xs">(12)</span></a>
+        <a href="offer-assets.html" class="tab-inactive px-4 py-3">🎨 Assets</a>
+        <a href="offer-campanas.html" class="tab-inactive px-4 py-3">📢 Campañas</a>
+      </nav>
+      <div class="flex items-center py-2">
+        <a href="offer-landing-editor.html" target="_blank" class="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-l-lg font-medium border-r border-emerald-700">🌐 Editar landing</a>
+        <button class="px-2 py-1.5 bg-emerald-600 text-white text-sm rounded-r-lg">▾</button>
+      </div>
+    </div>
+
+    <section class="px-8 py-5 space-y-4">
+      <!-- KPI strip -->
+      <div class="grid grid-cols-5 gap-3">
+        <div class="bg-white border border-slate-200 rounded-xl p-3"><p class="text-[10px] text-slate-500 uppercase">Inscriptos</p><p class="text-xl font-bold">12</p><p class="text-[10px] text-slate-500">de 50 · 24%</p></div>
+        <div class="bg-white border border-slate-200 rounded-xl p-3"><p class="text-[10px] text-slate-500 uppercase">Pagados</p><p class="text-xl font-bold text-emerald-600">10</p></div>
+        <div class="bg-white border border-slate-200 rounded-xl p-3"><p class="text-[10px] text-slate-500 uppercase">Pend. pago</p><p class="text-xl font-bold text-amber-600">2</p></div>
+        <div class="bg-white border border-slate-200 rounded-xl p-3"><p class="text-[10px] text-slate-500 uppercase">Revenue</p><p class="text-xl font-bold">S/ 7.350</p></div>
+        <div class="bg-white border border-slate-200 rounded-xl p-3"><p class="text-[10px] text-slate-500 uppercase">Waitlist</p><p class="text-xl font-bold text-purple-600">12</p></div>
+      </div>
+
+      <!-- Filters -->
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-slate-500">Estado:</span>
+        <button class="px-3 py-1 bg-slate-900 text-white rounded-full">Todas (12)</button>
+        <button class="px-3 py-1 rounded-full text-slate-600 hover:bg-slate-100">Pagadas (10)</button>
+        <button class="px-3 py-1 rounded-full text-slate-600 hover:bg-slate-100">Pendientes (2)</button>
+        <span class="ml-3 text-slate-300">·</span>
+        <button class="px-3 py-1 rounded-full text-slate-600 hover:bg-slate-100">Cierres por reunión</button>
+      </div>
+
+      <!-- Listado simple -->
+      <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500">
+            <tr><th class="text-left p-3 font-medium">Contacto</th><th class="text-left p-3 font-medium">Estado</th><th class="text-left p-3 font-medium">Tier</th><th class="text-left p-3 font-medium">Monto</th><th class="text-left p-3 font-medium">Pagado</th><th class="text-right p-3 font-medium"></th></tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50"><td class="p-3"><div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 font-semibold flex items-center justify-center text-xs">MG</div><div><div class="font-medium">Mariana García</div><div class="text-xs text-slate-500">mariana@gmail.com</div></div></div></td><td class="p-3"><span class="status-badge status-active">✓ Pagada</span></td><td class="p-3 text-xs">Early bird</td><td class="p-3 font-semibold">S/ 690</td><td class="p-3 text-xs text-slate-500">25 abr</td><td class="p-3 text-right"><a href="../sales/inbox.html" class="text-xs text-blue-600 hover:underline">Chat →</a></td></tr>
+            <tr class="hover:bg-slate-50 bg-amber-50/30"><td class="p-3"><div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 font-semibold flex items-center justify-center text-xs">JP</div><div><div class="font-medium">Juan Pérez</div><div class="text-xs text-amber-700">⚠ 3 días sin pagar</div></div></div></td><td class="p-3"><span class="status-badge status-draft">⏳ Pendiente</span></td><td class="p-3 text-xs">Early bird</td><td class="p-3 font-semibold">S/ 690</td><td class="p-3 text-xs text-slate-500">—</td><td class="p-3 text-right"><button class="text-xs text-amber-600">Reenviar link</button></td></tr>
+            <tr class="hover:bg-slate-50"><td class="p-3 text-slate-500 text-xs italic" colspan="6">+ 10 inscripciones más</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Deep-link hint to Closer Studio -->
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">🎯</span>
+          <div>
+            <p class="text-sm font-semibold text-blue-900">¿Necesitás más detalle por inscripción?</p>
+            <p class="text-xs text-blue-700">Ver conversaciones completas, timeline, payment attempts y gestión operativa en Closer Studio.</p>
+          </div>
+        </div>
+        <a href="../sales/enrollments.html" class="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg">Ir a Closer Studio →</a>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<div class="fixed bottom-0 left-0 right-0 journey-bar px-4 py-2 text-xs flex items-center justify-between z-30">
+  <div><strong>Tab Ventas:</strong> Listado simple · filters · deep-link a Closer Studio para gestión operativa</div>
+  <a href="offer-assets.html" class="text-blue-700 font-semibold hover:underline">Siguiente: Tab Assets →</a>
+</div>
+</body></html>

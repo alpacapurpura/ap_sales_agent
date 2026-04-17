@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Offer · Assets · Edición #3 | Flow Preview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="../styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+<div class="flex min-h-screen">
+  <aside class="w-60 bg-white border-r border-slate-200 flex-shrink-0">
+    <div class="p-4 border-b border-slate-200"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-slate-900 text-white font-bold flex items-center justify-center text-sm">N</div><span class="font-semibold">Nicolify</span></div></div>
+    <nav class="p-3 space-y-1 text-sm"><a href="offers-list.html" class="nav-active flex items-center gap-2 px-2 py-1.5 rounded">💼 Offer Studio</a></nav>
+  </aside>
+
+  <aside class="w-60 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col">
+    <div class="p-3 border-b border-slate-200 flex items-center justify-between"><span class="text-sm font-semibold truncate">MasterClass Copy</span><button class="p-1 text-slate-400">‹‹</button></div>
+    <div class="flex-1 p-2 space-y-4 text-sm overflow-y-auto">
+      <div><p class="px-2 text-[10px] font-semibold text-slate-400 uppercase mb-1.5">⭐ Próxima</p><a href="offer-info.html" class="block p-3 rounded-lg bg-blue-50 border border-blue-200 ring-1 ring-blue-200/50"><div class="flex items-center justify-between mb-1"><span class="font-semibold text-sm text-blue-900">Edición #3</span><span class="status-badge status-upcoming" style="font-size:10px">Próxima</span></div><p class="text-xs text-blue-700">Lun 15 jul</p></a></div>
+      <div><p class="px-2 text-[10px] font-semibold text-amber-600 uppercase mb-1.5">✏ Borradores</p><a href="#" class="block p-3 rounded-lg border border-dashed border-amber-300"><span class="font-semibold text-sm text-amber-800">Edición #4</span></a></div>
+      <div><p class="px-2 text-[10px] font-semibold text-slate-400 uppercase mb-1.5">✓ Pasadas</p>
+        <a href="offer-info-edition2.html" class="block p-2 text-sm text-slate-600 hover:bg-slate-50 rounded">Edición #2</a>
+        <a href="offer-info-edition2.html" class="block p-2 text-sm text-slate-600 hover:bg-slate-50 rounded">Edición #1</a>
+      </div>
+    </div>
+    <div class="p-2 border-t border-slate-200"><button class="w-full px-3 py-2 text-sm bg-purple-600 text-white rounded-lg">+ Nueva edición</button></div>
+  </aside>
+
+  <main class="flex-1 overflow-auto pb-16">
+    <header class="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between">
+      <div><h1 class="text-lg font-bold">MasterClass de Copywriting <span class="text-slate-300">·</span> <span class="text-blue-700">Edición #3</span></h1><p class="text-xs text-slate-500">Programa</p></div>
+      <span class="status-badge status-upcoming">Próxima</span>
+    </header>
+
+    <div class="bg-white border-b border-slate-200 px-8 flex items-center justify-between">
+      <nav class="flex gap-1 text-sm">
+        <a href="offer-info.html" class="tab-inactive px-4 py-3">📋 Info</a>
+        <a href="offer-ventas.html" class="tab-inactive px-4 py-3">💰 Ventas</a>
+        <a href="offer-assets.html" class="tab-active px-4 py-3">🎨 Assets <span class="ml-1 text-xs">(12)</span></a>
+        <a href="offer-campanas.html" class="tab-inactive px-4 py-3">📢 Campañas</a>
+      </nav>
+      <div class="flex items-center py-2">
+        <a href="offer-landing-editor.html" target="_blank" class="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-l-lg font-medium border-r border-emerald-700">🌐 Editar landing</a>
+        <button class="px-2 py-1.5 bg-emerald-600 text-white text-sm rounded-r-lg">▾</button>
+      </div>
+    </div>
+
+    <section class="px-8 py-5">
+
+      <!-- Placeholder banner -->
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-full bg-amber-200 text-amber-700 flex items-center justify-center">🚧</span>
+          <div>
+            <p class="text-sm font-semibold text-amber-900">Editor visual tipo Canva — Próximamente</p>
+            <p class="text-xs text-amber-700">Generación con IA + edición inline de flyers, reels, carruseles y anuncios. Por ahora ves los assets existentes y subís manualmente.</p>
+          </div>
+        </div>
+        <span class="text-xs text-amber-700 font-semibold">Fase 2</span>
+      </div>
+
+      <!-- Action bar -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2 text-xs">
+          <button class="px-3 py-1 bg-slate-900 text-white rounded-full">Todos (12)</button>
+          <button class="px-3 py-1 hover:bg-slate-100 rounded-full text-slate-600">Flyers (5)</button>
+          <button class="px-3 py-1 hover:bg-slate-100 rounded-full text-slate-600">Reels (3)</button>
+          <button class="px-3 py-1 hover:bg-slate-100 rounded-full text-slate-600">Carruseles (4)</button>
+        </div>
+        <div class="flex gap-2">
+          <button class="px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-white">📥 Jalar de Edición #2</button>
+          <button class="px-3 py-2 text-sm bg-purple-600 text-white rounded-lg">+ Generar con IA</button>
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div class="grid grid-cols-5 gap-3">
+        <button class="asset-tile hover:ring-2 hover:ring-blue-400 cursor-pointer" title="Click abre editor Canva-like en nueva pestaña"><span>📱 IG Story</span></button>
+        <button class="asset-tile hover:ring-2 hover:ring-blue-400"><span>📱 IG Post</span></button>
+        <button class="asset-tile hover:ring-2 hover:ring-blue-400"><span>🎬 Reel 15s</span></button>
+        <button class="asset-tile hover:ring-2 hover:ring-blue-400"><span>📄 Flyer</span></button>
+        <button class="asset-tile hover:ring-2 hover:ring-blue-400"><span>🖼 Carousel 1</span></button>
+        <button class="asset-tile hover:ring-2 hover:ring-blue-400"><span>🖼 Carousel 2</span></button>
+        <button class="asset-tile hover:ring-2 hover:ring-blue-400"><span>🖼 Carousel 3</span></button>
+        <button class="asset-tile hover:ring-2 hover:ring-blue-400"><span>🎬 Reel 30s</span></button>
+        <button class="asset-tile hover:ring-2 hover:ring-blue-400"><span>📱 IG Story 2</span></button>
+        <button class="asset-tile hover:ring-2 hover:ring-blue-400"><span>📄 PDF programa</span></button>
+        <button class="asset-tile hover:ring-2 hover:ring-blue-400"><span>📱 IG Story 3</span></button>
+        <button class="asset-tile hover:ring-2 hover:ring-blue-400"><span>📄 Flyer v2</span></button>
+      </div>
+
+      <p class="mt-4 text-xs text-slate-500 italic">💡 Hacer click en un asset abre el editor Canva-clone en una nueva pestaña. Los assets se generan automáticamente cuando se crea la edición (desde template o clonando la anterior), el usuario edita detalles menores.</p>
+
+    </section>
+  </main>
+</div>
+
+<div class="fixed bottom-0 left-0 right-0 journey-bar px-4 py-2 text-xs flex items-center justify-between z-30">
+  <div><strong>Tab Assets:</strong> Placeholder para Canva-clone · gallery edición-scoped · clone from prev · generate with IA</div>
+  <a href="offer-campanas.html" class="text-blue-700 font-semibold hover:underline">Siguiente: Tab Campañas →</a>
+</div>
+</body></html>

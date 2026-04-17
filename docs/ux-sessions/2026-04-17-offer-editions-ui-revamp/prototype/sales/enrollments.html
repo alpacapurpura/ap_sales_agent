@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Closer Studio · Inscripciones (global) | Flow Preview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="../styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+<!-- Real route: /[tenantId]/sales/enrollments (NEW sidebar entry) -->
+
+<div class="flex min-h-screen">
+  <aside class="w-64 bg-white border-r border-slate-200 flex-shrink-0">
+    <div class="p-4 border-b border-slate-200"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-slate-900 text-white font-bold flex items-center justify-center text-sm">N</div><span class="font-semibold">Nicolify</span></div></div>
+    <nav class="p-3 space-y-1 text-sm">
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">🏢 Brand Studio</a>
+      <a href="../offer-studio/offers-list.html" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">💼 Offer Studio</a>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">📢 Growth Studio</a>
+      <div class="mt-2">
+        <div class="flex items-center gap-2 px-2 py-1.5 text-slate-900 font-semibold">🎯 Closer Studio</div>
+        <div class="ml-6 space-y-0.5 text-xs">
+          <a href="#" class="block px-2 py-1 rounded hover:bg-slate-100 text-slate-500">Resumen</a>
+          <a href="inbox.html" class="block px-2 py-1 rounded hover:bg-slate-100 text-slate-500">Studio</a>
+          <a href="#" class="block px-2 py-1 rounded hover:bg-slate-100 text-slate-500">Contactos</a>
+          <a href="enrollments.html" class="flex items-center justify-between px-2 py-1 rounded nav-active font-semibold">Inscripciones <span class="badge-new">NEW</span></a>
+        </div>
+      </div>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">⚙️ Configuración</a>
+    </nav>
+  </aside>
+
+  <main class="flex-1 overflow-auto pb-16">
+    <header class="bg-white border-b border-slate-200 px-8 py-5">
+      <div class="flex items-start justify-between">
+        <div>
+          <h1 class="text-2xl font-bold">Inscripciones</h1>
+          <p class="text-sm text-slate-500 mt-0.5">Todos los leads que se inscribieron en cualquier oferta/cohorte. Operativo diario.</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">⬇ Exportar</button>
+          <button class="px-3 py-2 text-sm bg-slate-900 text-white rounded-lg">+ Crear manual</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="px-8 py-5">
+      <!-- Global KPIs -->
+      <div class="grid grid-cols-5 gap-3 mb-5">
+        <div class="bg-white border border-slate-200 rounded-xl p-4"><p class="text-xs text-slate-500">Total inscripciones</p><p class="text-2xl font-bold">47</p></div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4"><p class="text-xs text-slate-500">Pagadas este mes</p><p class="text-2xl font-bold text-emerald-600">10</p></div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4"><p class="text-xs text-slate-500">Pendientes de pago</p><p class="text-2xl font-bold text-amber-600">2</p><p class="text-[10px] text-amber-700">Requieren follow-up</p></div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4"><p class="text-xs text-slate-500">En lista de espera</p><p class="text-2xl font-bold text-purple-600">12</p></div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4"><p class="text-xs text-slate-500">Revenue total</p><p class="text-2xl font-bold">S/ 29.850</p></div>
+      </div>
+
+      <!-- Filters (rich) -->
+      <div class="bg-white border border-slate-200 rounded-xl p-3 mb-4 flex flex-wrap items-center gap-2 text-xs">
+        <div class="flex items-center gap-1">
+          <span class="text-slate-500">Oferta:</span>
+          <select class="px-2 py-1 border border-slate-200 rounded">
+            <option>Todas</option><option>MasterClass Copywriting</option><option>Retiro Cusco</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="text-slate-500">Cohorte:</span>
+          <select class="px-2 py-1 border border-slate-200 rounded">
+            <option>Todas</option><option>#3 Julio 2026</option><option>#2 Abril 2026</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="text-slate-500">Estado:</span>
+          <button class="px-2 py-1 bg-slate-900 text-white rounded-full">Todas</button>
+          <button class="px-2 py-1 hover:bg-slate-100 rounded-full">Pagadas</button>
+          <button class="px-2 py-1 hover:bg-slate-100 rounded-full">Pendientes</button>
+          <button class="px-2 py-1 hover:bg-slate-100 rounded-full">Waitlist</button>
+        </div>
+        <div class="ml-auto"><input type="search" placeholder="Buscar…" class="px-3 py-1 border border-slate-200 rounded w-48"></div>
+      </div>
+
+      <!-- Warning banner: pending follow-up -->
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 flex items-center justify-between">
+        <div class="flex items-center gap-2 text-sm">
+          <span class="text-amber-700">⚠️</span>
+          <span class="text-amber-900"><strong>2 inscripciones</strong> con pago pendiente > 48h · el agente envió recordatorio, sin respuesta</span>
+        </div>
+        <button class="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-md">Ver + Reasignar</button>
+      </div>
+
+      <!-- Grouped table -->
+      <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <!-- Group header: Cohorte #3 -->
+        <div class="bg-slate-50 border-b border-slate-200 px-4 py-2 flex items-center justify-between">
+          <span class="text-sm font-semibold">MasterClass Copywriting · Cohorte #3 · Julio 2026 <span class="text-slate-500 font-normal ml-1">(12 inscripciones)</span></span>
+          <a href="../offer-studio/offer-ventas.html" class="text-xs text-blue-600 hover:underline">Ver cohorte →</a>
+        </div>
+        <table class="w-full text-sm">
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50"><td class="p-3"><div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 font-semibold flex items-center justify-center text-xs">MG</div><div><div class="font-medium">Mariana García</div><div class="text-xs text-slate-500">mariana@gmail.com</div></div></div></td><td class="p-3"><span class="status-badge status-active">✓ Pagada</span></td><td class="p-3 text-xs">Early bird</td><td class="p-3 font-semibold">S/ 690</td><td class="p-3 text-xs text-slate-500">25 abr · IG DM</td><td class="p-3 text-right"><a href="inbox.html" class="text-blue-600 text-xs">Chat</a></td></tr>
+            <tr class="hover:bg-slate-50 bg-amber-50/30"><td class="p-3"><div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 font-semibold flex items-center justify-center text-xs">JP</div><div><div class="font-medium">Juan Pérez</div><div class="text-xs text-amber-700">⚠ 3 días sin pagar</div></div></div></td><td class="p-3"><span class="status-badge status-draft">⏳ Pendiente</span></td><td class="p-3 text-xs">Early bird</td><td class="p-3 font-semibold">S/ 690</td><td class="p-3 text-xs text-slate-500">20 abr · Landing</td><td class="p-3 text-right"><button class="text-amber-600 text-xs">Reenviar</button></td></tr>
+            <tr class="hover:bg-slate-50"><td class="p-3 text-slate-500 text-xs italic" colspan="6">+ 10 más en Cohorte #3</td></tr>
+          </tbody>
+        </table>
+
+        <!-- Group header: Cohorte #2 COMPLETED -->
+        <div class="bg-slate-50 border-t border-b border-slate-200 px-4 py-2 flex items-center justify-between">
+          <span class="text-sm font-semibold">MasterClass Copywriting · Cohorte #2 · Abril 2026 <span class="text-slate-500 font-normal ml-1">(25 inscripciones · completada)</span></span>
+          <span class="text-xs text-slate-500">Archivado</span>
+        </div>
+        <div class="px-4 py-3 text-xs text-slate-500 italic text-center">Mostrar 25 inscripciones de cohortes anteriores…</div>
+
+        <!-- Waitlist group -->
+        <div class="bg-purple-50 border-t border-b border-purple-200 px-4 py-2 flex items-center justify-between">
+          <span class="text-sm font-semibold text-purple-900">📋 En lista de espera <span class="text-purple-600 font-normal ml-1">(12 leads sin cohorte asignada)</span></span>
+          <button class="text-xs bg-purple-600 text-white px-3 py-1 rounded-md">Notificar a todos</button>
+        </div>
+        <table class="w-full text-sm">
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-purple-50"><td class="p-3"><div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-purple-100 text-purple-600 font-semibold flex items-center justify-center text-xs">LR</div><div><div class="font-medium">Luis Ramírez</div><div class="text-xs text-slate-500">luis@startup.pe · esperó 18 días</div></div></div></td><td class="p-3 text-xs text-slate-500">MasterClass Copywriting · cualquier cohorte</td><td class="p-3 text-xs text-slate-500">Pidió agosto</td><td class="p-3 text-right"><button class="text-xs text-purple-700 hover:underline">Asignar #3 →</button></td></tr>
+            <tr class="hover:bg-purple-50"><td class="p-3 text-slate-500 text-xs italic" colspan="4">+ 11 más en waitlist</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="fixed bottom-0 left-0 right-0 journey-bar px-4 py-2 text-xs flex items-center justify-between z-30">
+  <div><strong>Journey 3 + 4 — Vista global:</strong> Todo inscripciones across ofertas · waitlist block · follow-up pendiente</div>
+  <a href="inbox.html" class="text-blue-700 font-semibold hover:underline">Siguiente: Inbox con EnrollmentWidget →</a>
+</div>
+</body></html>
