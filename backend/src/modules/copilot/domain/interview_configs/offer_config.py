@@ -203,6 +203,37 @@ ARCHETYPE_BLOCKS: dict[str, InterviewBlock] = {
 # Universal final blocks -- value stack, pricing, closing (positions 4-6)
 # ---------------------------------------------------------------------------
 
+# Archetypes that launch by editions and therefore need a "first edition"
+# date captured before we close the interview. Matches the catalog flag
+# ``ArchetypeCapabilities.supports_editions``; duplicated here as a literal
+# set to avoid a runtime import loop (domain → domain).
+_EDITION_SUPPORTING_ARCHETYPES: frozenset[str] = frozenset({"programa", "servicio", "experiencia"})
+
+# Appended as the FINAL block for edition-supporting archetypes (Phase 7).
+# The field ``first_edition.start_date`` is optional at the interview layer;
+# the follow-up procedure either publishes the placeholder edition with the
+# captured date (→ UPCOMING + PUBLIC) or leaves it as a DRAFT placeholder.
+FIRST_EDITION_DATE_BLOCK = InterviewBlock(
+    id="first_edition_date",
+    label="Fecha de la primera edición",
+    campos_objetivo=[
+        "first_edition.start_date",
+        "first_edition.end_date",
+        "first_edition.location_override",
+    ],
+    prompt_context=(
+        "Antes de cerrar, pregunta por la FECHA DE LA PRIMERA {edition_noun_es}. "
+        "Si el usuario ya mencionó una fecha en bloques previos, usala como default. "
+        "Ofrecé tres opciones de respuesta: (1) la fecha sugerida por IA, "
+        "(2) un date picker, (3) saltar con warning 'La edición quedará privada "
+        "y los leads van a waitlist hasta que definas fecha'. "
+        "Esta información permite al Sales Agent ofrecer la edición a leads. "
+        "Si el usuario decide saltar, guardar null en first_edition.start_date."
+    ),
+    coverage_threshold=0.3,  # low — skipping is valid, just defaulting to placeholder DRAFT
+)
+
+
 _UNIVERSAL_FINAL: list[InterviewBlock] = [
     InterviewBlock(
         id="value_stack",
@@ -339,6 +370,11 @@ def get_offer_interview_config(archetype: str) -> InterviewConfig:
         archetype_block,
         *_UNIVERSAL_FINAL,
     ]
+    # Phase 7: edition-supporting archetypes get one extra final block so the
+    # interview ends with a concrete date the Sales Agent can promise (or an
+    # explicit "skip" that keeps the placeholder edition DRAFT + PRIVATE).
+    if archetype in _EDITION_SUPPORTING_ARCHETYPES:
+        dynamic_bloques.append(FIRST_EDITION_DATE_BLOCK)
 
     return InterviewConfig(
         domain=OFFER_INTERVIEW_CONFIG.domain,
