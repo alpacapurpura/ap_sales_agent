@@ -101,6 +101,7 @@ from src.modules.offer.api import assets as offer_assets
 from src.modules.offer.api import campaigns as offer_campaigns
 from src.modules.offer.api import counts as offer_counts
 from src.modules.offer.api import definitions as offer_definitions
+from src.modules.offer.api import formats as offer_formats
 from src.modules.offer.api import knowledge as offer_knowledge
 from src.modules.offer.api import landing as offer_landing
 from src.modules.offer.api import launch_editions as offer_launch_editions
@@ -452,6 +453,11 @@ app.include_router(
     offer_value_levels.router,
     prefix="/api/v1/offer/value-levels",
     tags=["Offer - Value Levels"],
+)
+app.include_router(
+    offer_formats.router,
+    prefix="/api/v1/offer/formats",
+    tags=["Offer - Formats"],
 )
 app.include_router(
     offer_product_mappings.router,
