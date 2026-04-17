@@ -84,6 +84,19 @@ postgresql.UUID = MockUUID
 # --- Fixtures ---
 
 
+@pytest.fixture(autouse=True)
+def _force_prompt_source_file(monkeypatch):
+    """Force PROMPT_SOURCE=file for every test.
+
+    Hermeticity: tests should not depend on DB availability for prompt resolution.
+    Local dev has Docker postgres; CI test image does not. Without this fixture,
+    tests that hit prompt_loader.render() fail in CI with connection errors.
+    """
+    from src.core.config import PromptSource, settings
+
+    monkeypatch.setattr(settings, "PROMPT_SOURCE", PromptSource.FILE)
+
+
 @pytest.fixture(scope="session")
 def db_engine():
     engine = create_engine(

@@ -75,7 +75,11 @@ class PromptLoader:
         }
 
     def _get_from_db(self, key: str, tenant_id: UUID | None) -> str | None:
-        db = SessionLocal()
+        try:
+            db = SessionLocal()
+        except Exception as exc:  # noqa: BLE001 — DB resilience: any failure falls back to file
+            logger.warning("Error opening DB session for prompt '%s': %s", key, exc)
+            return None
         try:
             if tenant_id:
                 tenant_prompt = (
@@ -121,7 +125,7 @@ class PromptLoader:
             if global_prompt:
                 self._update_cache(key, tenant_id, global_prompt)
                 return global_prompt["content"]
-        except (KeyError, ValueError) as exc:
+        except Exception as exc:  # noqa: BLE001 — DB resilience: any failure falls back to file
             logger.warning("Error loading prompt '%s' from DB: %s", key, exc)
             return None
         else:
