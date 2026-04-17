@@ -39,10 +39,10 @@ export interface OfferShellProps {
  *
  * Layout:
  *   ┌ Row1 (offer-level: title + status + kebab) ────────────────┐
- *   ├ TabBar (4 tabs + Landing action button) ───────────────────┤
  *   ├────────────┬──────────────────────────────────────────────┤
- *   │ Rail       │ Tab content (children)                       │
- *   │ (optional) │                                              │
+ *   │ Rail       │ TabBar (4 tabs + Landing action button)      │
+ *   │ (optional) ├──────────────────────────────────────────────┤
+ *   │            │ Tab content (children)                        │
  *   └────────────┴──────────────────────────────────────────────┘
  *
  * The rail only renders when `offer.has_editions === true`. The user can
@@ -50,6 +50,11 @@ export interface OfferShellProps {
  * localStorage via `useRailCollapsed`. Rail lives inside the offer main
  * area (not sibling of the app sidebar) so the offer header stays the only
  * persistent identifier.
+ *
+ * The TabBar lives INSIDE the right pane — it belongs to the currently
+ * selected edition, not to the whole offer — so it sits next to the rail
+ * rather than above it. When the offer has no editions, the right pane
+ * fills the width and the TabBar still renders directly under Row1.
  *
  * Row2 (progress bar + global "Autocompletar IA" button) was removed: progress
  * is per-edition (rendered inside the rail entry) and IA completion is a
@@ -94,7 +99,6 @@ export function OfferShell({ offer, counts, tenantId, children }: OfferShellProp
       <OfferAutoSaveContext.Provider value={autoSaveValue}>
         <div className="flex h-full flex-col bg-background">
           <OfferShellHeaderRow1 />
-          <OfferTabBar tenantId={tenantId} offerId={offer.id} counts={counts} />
 
           <div className="flex min-h-0 flex-1">
             {showsRail ? (
@@ -119,7 +123,10 @@ export function OfferShell({ offer, counts, tenantId, children }: OfferShellProp
               )
             ) : null}
 
-            <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <OfferTabBar tenantId={tenantId} offerId={offer.id} counts={counts} />
+              <main className="flex-1 overflow-y-auto">{children}</main>
+            </div>
           </div>
         </div>
 

@@ -174,4 +174,34 @@ describe("OfferShell — v3 layout", () => {
     expect(positionBits & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(container).toBeTruthy();
   });
+
+  it("renders the TabBar inside the right pane (after the rail), not full-width above", () => {
+    render(
+      <OfferShell offer={buildOffer({ has_editions: true })} counts={counts} tenantId={TENANT}>
+        <div data-testid="tab-content" />
+      </OfferShell>,
+    );
+    // The rail must appear BEFORE the tab bar in document order, because
+    // the tab bar belongs to the edition-scoped right pane. Prior layout
+    // put the tab bar full-width above the split which duplicated context.
+    const rail = screen.getByTestId("editions-rail");
+    const tabBar = screen.getByTestId("tab-bar");
+
+    const positionBits = rail.compareDocumentPosition(tabBar);
+    expect(positionBits & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("when the offer has no editions, TabBar still renders directly under Row1 (no rail in between)", () => {
+    render(
+      <OfferShell offer={buildOffer({ has_editions: false })} counts={counts} tenantId={TENANT}>
+        <div data-testid="tab-content" />
+      </OfferShell>,
+    );
+    const row1 = screen.getByTestId("row1");
+    const tabBar = screen.getByTestId("tab-bar");
+    // Without the rail, the tab bar still sits below Row1.
+    const positionBits = row1.compareDocumentPosition(tabBar);
+    expect(positionBits & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByTestId("editions-rail")).toBeNull();
+  });
 });
