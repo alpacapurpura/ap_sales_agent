@@ -431,6 +431,25 @@ a 15-minute audit.
 
 ---
 
+---
+
+## Post-session fixes
+
+### 2026-04-17 — `has_editions` not mapped by frontend adapter (fixed `e80c6300`)
+
+**Reported:** user opened an offer, rail didn't appear.
+**Root cause:** `frontend/src/features/offer-studio/api/adapter.ts`
+never declared `has_editions` on `BackendOffer` nor returned it from
+`backendToFrontend`. The backend DTO had it, the DB column had the
+right value, but the adapter silently dropped it — `offer.has_editions`
+arrived `undefined`, `showsRail = offer.has_editions === true` became
+`false`, rail hid.
+**Lesson:** when adding a new rail / conditional-render key, grep the
+adapter for the backend field name too — TypeScript `?` optional
+types let missing mappings compile.
+
+---
+
 ## Resolution workflow
 
 When a deferred item is completed:
