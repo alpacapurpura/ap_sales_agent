@@ -52,5 +52,7 @@ export const PLACEHOLDER_ACTIONS: readonly { key: string; label: string }[] = [
   { key: "offer-instructors-picker", label: "Selector de instructores" },
   { key: "offer-gallery-single-image", label: "Imagen única" },
   { key: "offer-gallery-multi-image", label: "Galería múltiple" },
-  { key: "offer-gallery-testimonials", label: "Testimonios con foto" },
+  // Latam rollout — Sprint 8+ (referenced from pricing.schema + location.schema)
+  { key: "payment-provider-picker", label: "Métodos de pago (desde Conexiones)" },
+  { key: "scheduling-event-type-picker", label: "Tipo de evento (desde Agenda)" },
 ];

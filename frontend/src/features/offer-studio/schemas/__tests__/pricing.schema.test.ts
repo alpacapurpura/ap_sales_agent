@@ -26,4 +26,17 @@ describe("offerPricingSchema", () => {
   it("carries the canonical namespaced key", () => {
     expect(offerPricingSchema.key).toBe("offer.pricing");
   });
+
+  it("references Connections module via payment-provider-picker action (no static payment list)", () => {
+    const field = offerPricingSchema.fields.find((f) => f.id === "accepted_payment_providers");
+    expect(field?.type).toBe("custom");
+    expect(field?.action).toBe("payment-provider-picker");
+  });
+
+  it("exposes Latam-critical fields (tax_included, installments, currency)", () => {
+    const ids = offerPricingSchema.fields.map((f) => f.id);
+    expect(ids).toContain("tax_included");
+    expect(ids).toContain("installments_available");
+    expect(ids).toContain("currency");
+  });
 });

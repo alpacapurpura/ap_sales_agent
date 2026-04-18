@@ -1,18 +1,23 @@
 import type { SectionSchema } from "@/lib/form-runtime/schema";
 
 /**
- * Location — ubicación física + canales de reserva. Agrupa los venues
- * donde se atiende (consultorio, gimnasio, salón, oficina) + cómo se
- * agenda/reserva.
+ * Location — ubicación física + link al flujo de reserva configurado
+ * en el módulo Scheduling. Para consultorios, gimnasios, salones, centros
+ * de estética y similares.
  *
- * Latam: barrio/colonia es más relevante que el código postal cuando el
- * cliente busca "cerca de". WhatsApp es el canal dominante de reserva —
- * teléfono + app propia + Calendly siguen. Para consultorios y negocios
- * locales, si no se entiende cómo agendar, no hay venta.
+ * **Integración con módulo Scheduling (no duplica):** la lógica de
+ * horarios, slots disponibles, sync con Google Calendar y generación de
+ * ``BookingLink`` ya vive en ``backend/src/modules/scheduling/``. Esta
+ * sección sólo **referencia** el ``event_type_id`` configurado en ese
+ * módulo via el custom action ``scheduling-event-type-picker``.
  *
- * Scope MIXED: venues + booking channels son offer-level (comunes a toda
- * la oferta); event_specific_venue es edition-level (cuando un evento
- * rota venues por edición).
+ * **Latam:** barrio/colonia > código postal para búsqueda "cerca de".
+ * WhatsApp es el canal de contacto dominante — siempre se expone aunque
+ * el booking use Scheduling.
+ *
+ * **Scope MIXED:** venues + scheduling link son offer-level;
+ * ``event_specific_venue`` es edition-level (retiros/eventos que rotan
+ * venue por edición).
  */
 export const offerLocationSchema: SectionSchema = {
   key: "offer.location",
@@ -20,13 +25,13 @@ export const offerLocationSchema: SectionSchema = {
   fields: [
     {
       id: "venues",
-      label: "Sedes y consultorios",
+      label: "Sedes donde atendés",
       type: "array",
       path: "venues",
       owner: "offer",
-      hint: "Una entrada por sede. Si atendés en un solo lugar, una sola entrada. El frontend los muestra en mapa.",
+      hint: "Una entrada por sede. Si atendés en un solo lugar, una sola entrada. El agente de ventas y la landing usan estos datos para mostrar cómo llegar. Si tu negocio no es presencial, dejá vacío.",
       itemSchema: {
-        description: "Un venue físico con sus datos operativos.",
+        description: "Una sede física (consultorio, gimnasio, salón, oficina).",
         fields: [
           {
             id: "name",
@@ -34,15 +39,16 @@ export const offerLocationSchema: SectionSchema = {
             type: "text",
             path: "name",
             required: true,
-            placeholder: "Sede Miraflores · Consultorio Centro · Estudio Palermo",
+            placeholder: "ej. Sede Miraflores · Consultorio Centro",
+            hint: "Cómo referís a esta sede. Si tenés una sola, usá el nombre del negocio.",
           },
           {
             id: "address_line",
-            label: "Calle y número",
+            label: "Dirección (calle y número)",
             type: "text",
             path: "address_line",
             required: true,
-            placeholder: "Av. Arequipa 3450, piso 4",
+            placeholder: "ej. Av. Arequipa 3450, piso 4",
           },
           {
             id: "district",
@@ -50,8 +56,8 @@ export const offerLocationSchema: SectionSchema = {
             type: "text",
             path: "district",
             required: true,
-            placeholder: "Miraflores, Polanco, El Poblado, Palermo",
-            hint: "Más importante que el código postal en Latam — los clientes buscan por zona.",
+            placeholder: "ej. Miraflores · Polanco · El Poblado · Palermo",
+            hint: "En Latam los clientes buscan por zona, no por código postal. Ponelo.",
           },
           {
             id: "city",
@@ -59,7 +65,7 @@ export const offerLocationSchema: SectionSchema = {
             type: "text",
             path: "city",
             required: true,
-            placeholder: "Lima, Ciudad de México, Bogotá, Buenos Aires",
+            placeholder: "ej. Lima · CDMX · Bogotá · Buenos Aires",
           },
           {
             id: "country",
@@ -67,30 +73,22 @@ export const offerLocationSchema: SectionSchema = {
             type: "text",
             path: "country",
             required: true,
-            placeholder: "Perú, México, Colombia, Argentina",
+            placeholder: "ej. Perú · México · Colombia",
           },
           {
             id: "google_maps_url",
             label: "Link de Google Maps",
             type: "url",
             path: "google_maps_url",
-            hint: "Link directo a la ubicación. Vale más que la dirección escrita.",
+            hint: "Link directo a la ubicación. Vale más que la dirección escrita — el cliente hace tap y abre Maps.",
           },
           {
-            id: "phone",
-            label: "Teléfono",
+            id: "whatsapp_contact",
+            label: "WhatsApp de esta sede",
             type: "text",
-            path: "phone",
-            placeholder: "+51 999 888 777",
-            hint: "Formato internacional con +código país.",
-          },
-          {
-            id: "whatsapp",
-            label: "WhatsApp",
-            type: "text",
-            path: "whatsapp",
-            placeholder: "+51 999 888 777",
-            hint: "En Latam el WhatsApp es el canal de contacto dominante — casi siempre es el mismo número que el teléfono.",
+            path: "whatsapp_contact",
+            placeholder: "ej. +51 999 888 777",
+            hint: "Formato internacional con +código país. En Latam el WhatsApp es el canal dominante de contacto — aunque la reserva use Scheduling, este número sigue siendo útil para consultas.",
           },
           {
             id: "hours_of_operation",
@@ -99,30 +97,23 @@ export const offerLocationSchema: SectionSchema = {
             path: "hours_of_operation",
             rows: 3,
             placeholder: "Lun-Vie: 9:00-19:00\nSáb: 10:00-14:00\nDom: cerrado",
-            hint: "Un día por línea. Aclará días festivos si cerrás.",
+            hint: "Un día por línea. Aclará feriados si cerrás. El agente usa esto para responder '¿a qué hora atienden?'.",
           },
           {
-            id: "parking_available",
-            label: "¿Estacionamiento disponible?",
-            type: "boolean",
-            path: "parking_available",
-            hint: "En grandes ciudades Latam es decisivo.",
-          },
-          {
-            id: "accessibility",
-            label: "Accesibilidad",
+            id: "facilities",
+            label: "Instalaciones destacadas",
             type: "text",
-            path: "accessibility",
-            placeholder: "Rampa, ascensor, baño accesible, amigable silla de ruedas",
-            hint: "Detalles para clientes con movilidad reducida.",
+            path: "facilities",
+            placeholder: "ej. Estacionamiento gratis · WiFi · Baño accesible · Piscina",
+            hint: "Lista separada por punto. Lo que diferencia la experiencia in situ (estacionamiento, accesibilidad, sala de espera, etc.).",
           },
           {
             id: "transport_nearby",
-            label: "Transporte cercano",
+            label: "Transporte público cerca",
             type: "text",
             path: "transport_nearby",
-            placeholder: "Estación Metro Central a 2 cuadras · Parada BRT en frente",
-            hint: "Especialmente útil en ciudades con transporte público fuerte (CDMX, BA, Bogotá).",
+            placeholder: "ej. Metro Central a 2 cuadras · Parada BRT en frente",
+            hint: "Opcional. En ciudades con transporte público fuerte (CDMX, BA, Bogotá, Santiago) suma mucho.",
           },
           {
             id: "photos_urls",
@@ -130,107 +121,39 @@ export const offerLocationSchema: SectionSchema = {
             type: "textarea",
             path: "photos_urls",
             rows: 3,
-            hint: "URLs de fotos del local (una por línea). Recepción, sala principal, detalles.",
+            placeholder: "https://...\nhttps://...",
+            hint: "Una URL por línea. Recepción, sala principal, detalles. Suman credibilidad en la landing.",
           },
         ],
       },
     },
     {
-      id: "booking_channels",
-      label: "Canales de reserva",
-      type: "array",
-      path: "booking_channels",
+      id: "scheduling_event_type_id",
+      label: "Tipo de evento de Scheduling para reservar",
+      type: "custom",
+      path: "scheduling_event_type_id",
       owner: "offer",
-      hint: "Cómo agendar: WhatsApp, teléfono, app propia, Calendly. El cliente elige el que le resulte cómodo.",
-      itemSchema: {
-        description: "Un canal por el que se puede reservar.",
-        fields: [
-          {
-            id: "channel_type",
-            label: "Tipo de canal",
-            type: "enum",
-            path: "channel_type",
-            required: true,
-            options: [
-              { value: "whatsapp", label: "WhatsApp" },
-              { value: "phone", label: "Teléfono" },
-              { value: "calendly", label: "Calendly / Calendario online" },
-              { value: "app", label: "App propia" },
-              { value: "web_form", label: "Formulario web" },
-              { value: "walk_in", label: "Sin reserva (walk-in)" },
-              { value: "email", label: "Email" },
-              { value: "instagram_dm", label: "Mensaje directo Instagram" },
-            ],
-          },
-          {
-            id: "value",
-            label: "Valor (número, link, etc.)",
-            type: "text",
-            path: "value",
-            placeholder: "+51999888777 · calendly.com/usuario · app://reservas",
-          },
-          {
-            id: "is_primary",
-            label: "¿Canal principal?",
-            type: "boolean",
-            path: "is_primary",
-            hint: "El canal que recomendás. Sólo uno debería ser primary.",
-          },
-        ],
-      },
+      action: "scheduling-event-type-picker",
+      hint: "Seleccioná el event type configurado en el módulo Scheduling. Con esto el agente genera BookingLinks temporales, sincroniza con Google Calendar y muestra la landing de disponibilidad. Si no configuraste Scheduling todavía, hacelo en Configuración → Agenda y volvé acá.",
     },
     {
-      id: "booking_lead_time_hours",
-      label: "Antelación mínima para reservar (horas)",
-      type: "number",
-      path: "booking_lead_time_hours",
+      id: "booking_fallback_whatsapp",
+      label: "WhatsApp alternativo para reservar",
+      type: "text",
+      path: "booking_fallback_whatsapp",
       owner: "offer",
-      placeholder: "24",
-      hint: "Cuánto antes debe agendar el cliente. 0 = mismo día disponible.",
-    },
-    {
-      id: "booking_instructions",
-      label: "Cómo reservar (pasos)",
-      type: "textarea",
-      path: "booking_instructions",
-      owner: "offer",
-      rows: 4,
-      placeholder: "1. Escribinos al WhatsApp\n2. Confirmá día y hora\n3. Pagá 50% para bloquear el turno\n4. Llegá 10 min antes",
-      hint: "Un paso por línea. Simplifica. Reduce ansiedad pre-compra.",
-    },
-    {
-      id: "confirmation_method",
-      label: "Cómo se confirma la reserva",
-      type: "enum",
-      path: "confirmation_method",
-      owner: "offer",
-      options: [
-        { value: "whatsapp", label: "WhatsApp" },
-        { value: "sms", label: "SMS" },
-        { value: "email", label: "Email" },
-        { value: "call", label: "Llamada" },
-      ],
-      hint: "WhatsApp es el estándar Latam.",
-    },
-    {
-      id: "no_show_policy",
-      label: "Política de no-show",
-      type: "textarea",
-      path: "no_show_policy",
-      owner: "offer",
-      rows: 2,
-      placeholder: "Si no avisás con 24h de antelación, se pierde el adelanto.",
-      hint: "Explicá qué pasa si el cliente no se presenta. Reduce no-shows.",
+      placeholder: "ej. +51 999 888 777",
+      hint: "Usalo si aún no tenés Scheduling configurado. El agente ofrece este WhatsApp como vía alternativa de reserva. Cuando el cliente prefiere humano sobre el calendario automático, este número lo resuelve.",
     },
     {
       id: "event_specific_venue",
-      label: "Venue específico de esta edición",
+      label: "Sede específica de esta edición",
       type: "textarea",
       path: "event_specific_venue",
       owner: "edition",
       rows: 3,
-      placeholder: "Cohorte Q2: Hotel Sheraton Lima, Salón Conquistadores (día único)",
-      hint: "Usar cuando una edición específica ocurre en venue distinto al habitual. Opcional.",
+      placeholder: "ej. Cohorte Q2: Hotel Sheraton Lima, Salón Conquistadores",
+      hint: "Usar SOLO cuando esta edición concreta ocurre en un venue distinto al habitual. Retiros, workshops itinerantes, eventos en hoteles. Para uso diario el sistema toma la sede principal de arriba.",
     },
   ],
 };

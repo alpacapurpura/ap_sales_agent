@@ -1,61 +1,91 @@
 import type { SectionSchema } from "@/lib/form-runtime/schema";
 
 /**
- * Pricing — offer-level baseline + per-edition time-window overrides.
+ * Pricing — precio base offer-level + ventanas temporales edition-level
+ * + métodos de pago aceptados (referenciados del módulo Connections).
  *
- * Mixed scope because the baseline ``pricing_options[]`` lives on the
- * ``Offer`` row while ``pricing_tiers[]`` (early-bird → regular → last-call
- * timelines) lives on each ``LaunchEdition``. Rendered under
- * ``/edition/evergreen/`` the schema hides edition-owned fields; under
- * ``/edition/<N>/`` it renders both so the user sees the baseline and
- * the launch override side by side.
+ * **Integración con módulo Connections (no duplica):** el catálogo de
+ * providers de pago (Stripe, MercadoPago, Culqi, PayPal, manual) se define
+ * en ``sales_agent/domain/enrollment.py::PaymentProvider`` y cada tenant
+ * configura cuáles están habilitados en Conexiones. El campo
+ * ``accepted_payment_providers`` de esta sección es un multi-select
+ * **dinámico** (via ``use-available-payment-providers`` hook) que sólo
+ * muestra los que el tenant tiene conectados.
  *
- * The ``offer-pricing-tiers-builder`` custom action renders a temporal
- * editor (valid_from / valid_until windows) instead of a generic array
- * input — windowed pricing has domain-specific UX (overlap detection,
- * half-open interval semantics) that the generic runtime cannot provide.
+ * **Scope MIXED:** precios base + providers + cuotas son offer-level;
+ * ventanas temporales (early-bird → regular → last-call) son edition-level.
+ *
+ * **Latam:**
+ * - Cuotas sin interés 3/6/12 son decisivas en decisión de compra PE/MX/CO/AR.
+ * - Moneda local + equivalente USD dual display es estándar.
+ * - IVA/IGV/ICMS incluido/no-incluido debe ser explícito — evita disputas.
+ * - Para 🩺 salud: obras sociales/EPS aceptadas (OSDE, IMSS, Sura, etc.)
+ *   se modelan como JSONB ``insurance_coverage`` cuando aplica.
  */
 export const offerPricingSchema: SectionSchema = {
   key: "offer.pricing",
-  // title + description resolved from the backend SectionCatalog.
   scope: "mixed",
   fields: [
     {
       id: "pricing_options",
-      label: "Opciones de precio base",
+      label: "Opciones de precio",
       type: "custom",
       path: "pricing_options",
       owner: "offer",
       action: "offer-pricing-options-builder",
-      hint: "El menú de precios que ve el cliente cuando compra (pago único, cuotas, suscripción).",
+      hint: "El menú que ve el cliente: pago único, suscripción, cuotas, planes. Cada opción tiene su monto, frecuencia y moneda. El agente de ventas presenta las opciones según el interés del lead.",
     },
     {
       id: "currency",
-      label: "Moneda",
+      label: "Moneda principal",
       type: "text",
       path: "currency",
       owner: "offer",
-      placeholder: "USD",
-      hint: "ISO 4217. Si lo dejas vacío se usa la moneda del tenant.",
+      placeholder: "PEN · MXN · COP · ARS · CLP · BRL · USD",
+      hint: "ISO 4217 (3 letras). Usá la moneda en la que cobrás habitualmente — el sistema calcula equivalentes USD para reportes cross-moneda. Si lo dejás vacío toma la moneda configurada en tu tenant.",
     },
     {
-      id: "price_pay_in_full",
-      label: "Precio pago único (USD equivalente)",
+      id: "price_pay_in_full_usd",
+      label: "Precio pago único (equivalente USD)",
       type: "number",
       path: "price_pay_in_full",
       owner: "offer",
-      hint: "Solo para reportes cross-moneda. El precio real al cliente viene de pricing_options.",
+      hint: "Sólo para reportes comparables entre monedas. El precio REAL que ve el cliente viene de ``pricing_options``. El sistema lo usa para benchmarks sector/geografía.",
+    },
+    {
+      id: "tax_included",
+      label: "¿El precio incluye IVA / IGV / ICMS?",
+      type: "boolean",
+      path: "tax_included",
+      owner: "offer",
+      hint: "CRÍTICO en Latam — evita disputas en checkout. Si dejás unclear, el cliente discute. Argentina IVA 21%, Perú IGV 18%, Chile IVA 19%, Colombia IVA 19%, México IVA 16%, Brasil ICMS variable.",
+    },
+    {
+      id: "accepted_payment_providers",
+      label: "Métodos de pago aceptados",
+      type: "custom",
+      path: "accepted_payment_providers",
+      owner: "offer",
+      action: "payment-provider-picker",
+      hint: "Seleccioná los métodos de pago que ofrecés para esta oferta. El selector muestra sólo los providers que tenés conectados en Configuración → Conexiones (MercadoPago, Culqi, Stripe, PayPal, manual). Si todavía no conectaste ninguno, hacelo primero en Conexiones.",
+    },
+    {
+      id: "installments_available",
+      label: "Cuotas sin interés disponibles",
+      type: "text",
+      path: "installments_available",
+      owner: "offer",
+      placeholder: "ej. 3, 6, 12",
+      hint: "Números separados por coma. Las cuotas sin interés son DECISIVAS en Latam para tickets >USD 100. El agente de ventas las menciona en el argumento de cierre. Consultá con tu provider qué planes acepta.",
     },
     {
       id: "pricing_tiers",
-      label: "Overrides por ventana de tiempo (esta edición)",
+      label: "Precio escalonado por ventana (esta edición)",
       type: "custom",
       path: "pricing_tiers",
       owner: "edition",
       action: "offer-pricing-tiers-builder",
-      hint:
-        "Early-bird → regular → last-call: cada tier define una ventana temporal y el precio " +
-        "vigente durante ella. Vacío = usa pricing_options base.",
+      hint: "Early-bird → regular → last-call: cada tier es una ventana temporal con su precio. Al salir una ventana entra la siguiente automáticamente. Vacío = usa ``pricing_options`` base sin variación temporal.",
     },
   ],
 };
