@@ -3,22 +3,68 @@
 **Non-negotiable:** the offer-studio classification data has exactly one
 source of truth per axis. The backend owns it; the frontend consumes via
 typed React Query hooks. Drift reopens the lead-magnet mis-classification
-bug fixed in commit `4083a60f` and breaks the format suitability filter
-introduced in Phase 2.
+bug fixed in commit `4083a60f`, breaks the format suitability filter
+introduced in Phase 2, and (as of Sprint 7) silently breaks variant-aware
+validation for non-temporal offers.
 
-## The four axes
+## The six axes
+
+The offer-studio classification system is a **DAG of 6 catalogs**: 4 pure
+base axes (no cross-catalog references), 1 intermediate axis that
+references base axes via typed FK, 1 composite axis that references two
+axes.
+
+### Base axes (pure)
 
 | Axis | Backend SSoT | API endpoint | Frontend hook |
 |---|---|---|---|
-| **OfferArchetype** | `backend/src/modules/offer/domain/archetype_catalog.py` | `GET /api/v1/offer/archetypes/catalog` | `useArchetypeCatalog` / `useArchetypeCapabilities` / `useArchetypeDisplay` |
-| **OfferValueLevel** | `backend/src/modules/offer/domain/value_level_catalog.py` | `GET /api/v1/offer/value-levels/catalog` | `useValueLevelCatalog` / `useValueLevelMetadata` |
-| **OfferFormat** | `backend/src/modules/offer/domain/format_catalog.py` | `GET /api/v1/offer/formats/catalog?archetype=&business_types=` | `useFormatCatalog` / `useFormatMetadata` |
 | **ExpertBusinessType** | `backend/src/shared/domain/expert_business_type.py` | `GET /api/v1/brand/expert-business-types/catalog` | `useExpertBusinessTypesCatalog` |
+| **OfferValueLevel** | `backend/src/modules/offer/domain/value_level_catalog.py` | `GET /api/v1/offer/value-levels/catalog` | `useValueLevelCatalog` / `useValueLevelMetadata` |
+| **SectionCatalog** | `backend/src/modules/offer/domain/section_catalog.py` | `GET /api/v1/offer/archetypes/catalog` (extended) | `useSectionCatalog` / `useSectionMetadata` |
+| **VariantStructure** | `backend/src/modules/offer/domain/variant_structure_catalog.py` | `GET /api/v1/offer/variant-structures/catalog` | `useVariantStructureCatalog` / `useVariantStructureMetadata` (Sprint 8) |
 
-`OfferFormat.suitable_for: dict[ExpertBusinessType, float]` (0.0..1.0) is
-what drives the wizard's per-tenant filtering. Scores > 0 include the
-format; 0.0/absent hides it. Every archetype ships a `*_custom` format
-with all business types at 1.0 so the escape hatch is always visible.
+### Intermediate axis
+
+| Axis | Backend SSoT | Depends on | API endpoint | Frontend hook |
+|---|---|---|---|---|
+| **OfferArchetype** | `backend/src/modules/offer/domain/archetype_catalog.py` | `SectionKey` (via `sections: tuple[SectionKey, ...]`); `VariantStructure` from Sprint 8 onward (via `supported_variant_structures`) | `GET /api/v1/offer/archetypes/catalog` | `useArchetypeCatalog` / `useArchetypeCapabilities` / `useArchetypeDisplay` |
+
+### Composite axis
+
+| Axis | Backend SSoT | Depends on | API endpoint | Frontend hook |
+|---|---|---|---|---|
+| **OfferFormat** | `backend/src/modules/offer/domain/format_catalog.py` | `OfferArchetype` (via `archetype`); `ExpertBusinessType` (via `suitable_for: dict[ExpertBusinessType, float]`) | `GET /api/v1/offer/formats/catalog?archetype=&business_types=` | `useFormatCatalog` / `useFormatMetadata` |
+
+### Dependency DAG
+
+```
+ExpertBusinessType  OfferValueLevel  SectionCatalog  VariantStructure   ← 4 pure base
+        │                                   │                 │
+        │                                   └─────────┬───────┘
+        │                                             ▼
+        │                                     OfferArchetype            ← 1 intermediate
+        │                                             │
+        │                                             ▼
+        └───────────────── OfferFormat ───────────────┘                  ← 1 composite
+```
+
+All FK are typed Python fields (enums or frozen metadata records) — never
+duplicated data. `OfferFormat.suitable_for` scores (0.0..1.0) drive the
+wizard's per-tenant filtering: > 0 includes, 0.0/absent hides. Every
+archetype ships a `*_custom` escape-hatch format (all business types at
+1.0) so the wizard always has an option.
+
+`OfferFormat.delivery_model` intentionally duplicates
+`OfferArchetype.default_delivery` semantically — format is the
+**refinement**, archetype the default propagated at offer creation.
+Required because `programa_evergreen` is `DIY` under an archetype whose
+default is `DWY`.
+
+`VariantStructure` is the bottom of the DAG: it has **zero outbound FK**.
+The coupling flows into it (`ArchetypeCapabilities.supported_variant_structures`
+from Sprint 8; `SectionMetadata` MIXED ownership rules from Sprint 9),
+never out. This keeps the catalog stable across the downstream rework of
+Experts / Sections / Formats.
 
 ## Mandatory workflow when adding a new record
 
@@ -42,19 +88,85 @@ with all business types at 1.0 so the escape hatch is always visible.
 
 ## Forbidden patterns
 
-- ❌ Hardcoding archetype, value-level, format, or business-type labels,
-  icons, descriptions or suitability maps in any frontend component.
-  Consume the hook instead.
+- ❌ Hardcoding archetype, value-level, format, variant-structure, or
+  business-type labels, icons, descriptions or suitability maps in any
+  frontend component. Consume the hook instead.
 - ❌ Adding a new `*_METADATA` map (e.g. `ARCHETYPE_METADATA`,
-  `LEVEL_RICH_INFO`, `VALUE_LEVEL_LABELS`, `FORMAT_PRESETS`). The arch
-  test `test-no-catalog-duplicates.test.ts` fails CI immediately.
+  `LEVEL_RICH_INFO`, `VALUE_LEVEL_LABELS`, `FORMAT_PRESETS`,
+  `VARIANT_STRUCTURE_LABELS`). The arch test
+  `test-no-catalog-duplicates.test.ts` fails CI immediately.
 - ❌ Bypassing the wizard's explicit value-level step. `is_lead_magnet`
   is derived from `value_level === LEAD_MAGNET`; never expose a lateral
   checkbox that could fall out of sync.
 - ❌ Skipping the backend arch test after a catalog edit. Enum changes
   without catalog updates (or vice versa) fail fast — don't `# noqa` it.
+- ❌ Importing another catalog from `variant_structure_catalog.py`. It is
+  a pure base axis; the arch test
+  `test_variant_structure_catalog_purity.py` AST-parses the module and
+  blocks any outbound reference.
 
-## Full design document
+## Extending the system
 
-`docs/domains/offer/catalogs-consolidation.md` — phase-by-phase history,
-commits, and per-decision rationale (D1–D11).
+### When to add a new axis
+
+Add a new catalog when a classification dimension is **orthogonal** to
+the existing six — i.e. cannot be derived by joining existing axes.
+Test: can you express a valid combination that doesn't fit today's axes?
+If yes, new axis justified. VariantStructure was added because the same
+archetype can host multiple structures and the same structure spans
+archetypes — a pure many-to-many that no existing axis expressed.
+
+Candidates evaluated and not (yet) added:
+
+- **PricingModel** (one-time / subscription / installments /
+  pay-what-you-want) — today implicit in archetype (MEMBRESIA ⇒
+  subscription) and in `VariantStructure.TIER` for tiered plans. Add
+  when pricing grows beyond single-price + subscription + tier.
+- **FulfillmentType** — exists as enum in `offer/domain/enums.py`,
+  consumed via `archetype.default_fulfillment`. Promote to catalog when
+  it needs rich metadata (integrations, provisioning hints).
+
+### Where to place a new axis
+
+- `shared/domain/` iff ≥2 bounded contexts consume it (forecast doesn't
+  count — wait for the real 2nd consumer).
+- `{module}/domain/` otherwise.
+
+`SectionCatalog` sits in `offer/domain/` today despite generic keys
+(`IDENTITY`, `STRATEGY`, `PROMISE`…) because its concrete consumer is
+only the offer-studio editor. When buyer-persona-studio or brand-studio
+adopt `form-runtime`, extract the runtime **mechanics** (section scopes,
+owner dispatch) to `shared/`, but each studio keeps its own
+`*_catalog.py` with its own keys. Don't preemptively share the catalog.
+
+`VariantStructure` sits in `offer/domain/` because offers are the only
+consumers. Any secondary studio that eventually needs a "variants of a
+thing" concept (hypothetical: playbook variants in brand-studio?) gets
+its own pure-base catalog, not a share.
+
+### Required artifacts per new axis
+
+1. Enum in the relevant `domain/enums.py` (or `shared/domain/`).
+2. Frozen `@dataclass(frozen=True, slots=True)` metadata record.
+3. `{AXIS}_CATALOG: dict[{Enum}, {Metadata}]` keyed by enum.
+4. Architecture test `test_{axis}_catalog_completeness.py` asserting
+   every enum value has an entry + no orphans + `meta.{key} is enum_value`.
+5. Versioned API endpoint emitting the catalog as JSON with
+   `_CATALOG_VERSION`.
+6. Typed React Query hook consuming the endpoint.
+7. Frontend icon-name resolver update if new Lucide icon used.
+8. **For pure base axes:** `test_{axis}_catalog_purity.py` asserting
+   zero outbound catalog imports (mirrors
+   `test_variant_structure_catalog_purity.py`).
+
+Meta-guard arch test ("every `*_catalog.py` has a matching
+`test_{name}_catalog_completeness.py`") is intentionally deferred:
+6 catalogs with the pattern uniformly applied don't justify the
+indirection. Add it when a 7th catalog is introduced without test.
+
+## Full design documents
+
+- `docs/domains/offer/catalogs-consolidation.md` — phase-by-phase history
+  of the first 5 axes, commits, decisions D1–D25.
+- `docs/domains/offer/variant-structure-catalog.md` — full design of the
+  6th axis (VariantStructure), decisions D26–D30, extension rules.

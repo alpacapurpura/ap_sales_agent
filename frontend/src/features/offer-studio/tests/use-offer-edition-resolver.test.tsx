@@ -25,7 +25,6 @@ const { EVERGREEN_CODE } = await import("../hooks/use-visible-sections");
 const EDITION_ONE: LaunchEdition = {
   id: "550e8400-e29b-41d4-a716-446655440001",
   offer_id: "offer-1",
-  tenant_id: "tenant-1",
   edition_name: "Cohorte #1",
   edition_number: 1,
   status: EditionStatus.UPCOMING,
@@ -36,12 +35,18 @@ const EDITION_ONE: LaunchEdition = {
   registration_end: null,
   pricing_override: null,
   pricing_tiers: [],
+  active_tier: null,
+  effective_pricing: [],
+  currency: "USD",
   capacity: null,
   enrollment_count: 0,
   timezone: "UTC",
+  is_placeholder: false,
   location_override: null,
   notes: null,
   cloned_from_edition_id: null,
+  created_at: null,
+  updated_at: null,
 };
 
 const EDITION_THREE: LaunchEdition = {

@@ -14,6 +14,44 @@ class OfferArchetype(StrEnum):
     EXPERIENCIA = "experiencia"  # EventDetails
 
 
+class VariantStructure(StrEnum):
+    """Sixth SSoT axis — how a single offer fragments into sellable instances.
+
+    Orthogonal to ``OfferArchetype``: the same archetype can support multiple
+    structures (PROGRAMA cohort vs PROGRAMA modality) and the same structure
+    can apply across archetypes (TIER for MEMBRESIA and for SERVICIO packages).
+    See ``variant_structure_catalog.py`` for full metadata and
+    ``docs/domains/offer/variant-structure-catalog.md`` for the DAG position
+    and extension rules.
+    """
+
+    # Temporal variants — launches anchored in time.
+    TEMPORAL_COHORT = "temporal_cohort"  # cohortes (PROGRAMA)
+    TEMPORAL_SINGLE_DATE = "temporal_single_date"  # salidas (EXPERIENCIA)
+    RECURRING_INTAKE = "recurring_intake"  # convocatorias (SERVICIO)
+
+    # Non-temporal variants — parallel sellable instances.
+    TIER = "tier"  # plans (MEMBRESIA gold/platinum, SERVICIO basic/pro)
+    SKU_VARIANT = "sku_variant"  # size/color/material (PRODUCTO)
+    REGIONAL = "regional"  # geo / currency / tax variations
+    MODALITY = "modality"  # presencial / online / híbrido
+    LANGUAGE = "language"  # locale-bound variants
+
+
+class FieldOwner(StrEnum):
+    """Which aggregate a single MIXED-scope field persists to.
+
+    Used by ``SectionMetadata`` per-field ownership rules introduced in
+    Sprint 9 (after the catalog metadata rework). Declared here so sprint-7
+    and sprint-8 arch tests can reference the enum without needing the
+    ownership registry yet.
+    """
+
+    OFFER = "offer"  # Persists on the Offer row.
+    EDITION = "edition"  # Persists on a LaunchEdition row.
+    NOT_APPLICABLE = "not_applicable"  # Field hidden for this structure.
+
+
 class OfferValueLevel(StrEnum):
     """Offer Value Level enumeration."""
 
