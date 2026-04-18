@@ -554,12 +554,22 @@ Declared done when all of the following are true:
 
 ---
 
-## 9. Open Questions for User Review
+## 9. Locked Decisions (as of 2026-04-17 end-of-session)
 
-Confirm the following before Sprint 1:
+All open questions from the initial draft were resolved by Claude acting in an
+architect-consultant role at user's explicit request. See `DECISIONS.md` for
+full rationale. Summary:
 
-1. **Folder location** — agree with `lib/form-runtime/` (non-React logic) + `components/form-runtime/` (React components)? Alternative: everything under `features/form-runtime/` as a "meta-feature" with underscore prefix to mark it as infra.
-2. **Save strategy default** — `"explicit"` save per card (current) vs `"autosave"` per field (Airtable) vs `"autosave-with-banner"` (pending-changes indicator)? Per-field variance allowed via schema, but the default matters.
-3. **Variant C confirmed** — list left + detail pane right, as in the prototype. Mobile behavior: detail pane becomes full-screen modal on <768px, back button returns to list.
-4. **Copilot bridge name** — `FormRuntimeBridge` vs `FormContext` vs `SessionBridge`. Minor but affects mental model.
-5. **Acciones ricas** — agree with the list in section 5.1 (8-10 components ported)? Anything missing? Anything on the "port" list that should actually die?
+| Topic | Decision | Source |
+|---|---|---|
+| Form-runtime location | `lib/form-runtime/` (logic) + `components/form-runtime/` (React) | D11 |
+| Default save mode | `autosave-with-banner`, 800ms debounce, per-field override via schema | D12 |
+| Mobile behavior (<768px) | Detail pane as full-screen view with back button | D13 |
+| Bridge naming | `FormRuntimeBridge` | D14 |
+| Port list | §5.1 stands + LegalManager and BrandEmptyState added; BusinessTypes explicitly out of scope | D15 |
+| Execution model | Scaffold-first: Sprint 1 delivers the complete new architecture in-tree (no route flip yet) | D16 |
+| Arch test strategy | Add `brand-studio` to allowlist in Sprint 1; shrink out `brand` in Sprint 5 | D17 |
+
+**The spec is locked for execution.** Downstream agents (including fresh
+Claude sessions) should treat the §1-8 contracts as authoritative and follow
+`PLAN.md` step-by-step.

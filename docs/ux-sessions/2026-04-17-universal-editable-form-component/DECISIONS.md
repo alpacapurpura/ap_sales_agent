@@ -3,6 +3,9 @@
 Running log of architectural decisions for the universal editable form component
 migration. Every decision has: what was decided, why, and when.
 
+**Status of this document as of 2026-04-17 end-of-session:** All blocking
+decisions locked. Ready for execution in a new conversation with clean context.
+
 ---
 
 ## 2026-04-17 · Session initiated
@@ -61,21 +64,82 @@ migration. Every decision has: what was decided, why, and when.
 
 ---
 
-## Open — Awaiting User Decision
+## 2026-04-17 · Architect-role decisions (locked for execution)
 
-These questions block Sprint 1 start. User should confirm in next message.
+User asked Claude to take an "architect consultant" role, use expert criteria to
+resolve all remaining open questions, and leave the spec ready for a fresh
+conversation to execute.
 
-### Q1 · `lib/form-runtime/` + `components/form-runtime/` vs `features/_form-runtime/`
-Default proposal: split (lib for logic, components for React). Alternative: a single meta-feature under `features/_form-runtime/` with underscore prefix. Minor operational difference; splitting makes FSD boundaries cleaner.
+### D11 · Form-runtime location (resolves Q1)
+**Decision:** Split across two folders.
+- `lib/form-runtime/` — non-React: `schema/`, `actions/`, `copilot/`.
+- `components/form-runtime/` — React: `UniversalEditableSection`, `EditableField`, `inputs/`, `SessionHeader`.
+**Why:** Respects FSD boundaries as-is. No new element types needed in the arch test. `lib/` already has mixed utilities and logic; `components/` is the natural home for JSX. Alternative (`features/_form-runtime/` meta-feature) would require an FSD exception comparable to copilot's, adding rule complexity for no real benefit.
 
-### Q2 · Default save mode
-Proposal: `"explicit"` (save button per field or section). Alternatives: autosave per field, autosave with pending-changes banner. Per-field override via schema remains possible regardless.
+### D12 · Default save mode (resolves Q2)
+**Decision:** `autosave-with-banner` as the runtime default. Per-field debounce 800ms. Banner at top of the detail pane shows three states: "Guardando…", "Guardado ✓" (fades after 2s), "Error al guardar — reintentar". Session-level undo available via the `SessionHeader` button (reverts all field changes in the current session).
+**Why:** Unifies user-driven and copilot-driven flows. Copilot (especially via WhatsApp in the future) has no human to click "Save" — autosave is mandatory for headless operation. Banner preserves the safety signal that explicit save provides. Session-level undo replaces the defensive preview pane.
+**Per-field override:** Individual fields may opt out with `saveMode: "explicit"` in the schema if the field is heavy (file upload, long text) and autosave would thrash the API.
+**API compatibility:** existing `updateIdentity(fullSectionObject)` hooks continue to work — the runtime composes the full patch internally before calling the consumer's `onSave`.
 
-### Q3 · Variant C mobile behavior
-Proposal: below 768px, detail pane becomes full-screen modal with a back button returning to the list. Alternative: below 768px, list transforms to accordion (variant A-like). Either works; need a call.
+### D13 · Mobile behavior (resolves Q3)
+**Decision:** Below 768px, the detail pane becomes a full-screen view with a back button in the top-left returning to the field list. List view occupies 100% width below 768px. The FieldList component collapses any parent navigation chrome.
+**Why:** Native-app feel. Works naturally for nested items (team member sub-schema, testimonial sub-schema) where detail content can be long. Accordion alternative breaks down with `ArrayInput` rendering.
 
-### Q4 · Naming of the copilot bridge
-Proposal: `FormRuntimeBridge`. Alternatives: `FormContext`, `SessionBridge`. No consequence beyond mental model.
+### D14 · Bridge naming (resolves Q4)
+**Decision:** `FormRuntimeBridge`.
+**Why:** Explicit and descriptive. `FormContext` conflicts with React's Context terminology (readers would assume it's just a Context object). `SessionBridge` is ambiguous (copilot session vs auth session).
 
-### Q5 · Actions to port — confirm the list
-Proposed list in FLOW-SPEC §5.1. User should confirm no additions / removals needed.
+### D15 · Port list (resolves Q5)
+**Decision:** Port list in FLOW-SPEC §5.1 stands as-is, with two additions and one explicit exclusion:
+
+**Added to port list:**
+- `LegalManager` + `LegalForm` → `features/brand-studio/actions/LegalAction.tsx` (port as action; schema-ify in a later iteration if fields turn out to be simple).
+- `components/empty-state/BrandEmptyState.tsx` → `features/brand-studio/components/BrandEmptyState.tsx` (runtime renders it when a section has no data yet).
+
+**Explicit exclusion (scope-locked):**
+- `features/brand/components/business-types/` (BusinessTypesSection, BusinessTypeOnboardingDialog, BusinessTypeSelector) stays as-is. It is a separate onboarding flow, not a form-runtime target. Out of scope §7.
+
+### D16 · Scaffold-first execution (new organizing principle)
+**Decision:** Sprint 1 builds the complete new architecture as a scaffold in-tree BEFORE any route is flipped. Concretely, Sprint 1 delivers:
+- `lib/form-runtime/` complete (with tests).
+- `components/form-runtime/` complete (with tests).
+- `features/brand-studio/` with: api/hooks/types ported, **all 15 schemas written** (plain fields only — custom-action slots reference actions not yet ported but registered as "placeholder"), page files in place, **all pages still unused by the App Router** (old brand/ keeps serving the app).
+- Arch tests updated to acknowledge `brand-studio` feature.
+
+Sprints 2-5 then:
+- Sprint 2 ports the 8-10 rich actions and wires them into their schema slots.
+- Sprint 3 flips App Router pages in one commit to use brand-studio pages.
+- Sprint 4 refactors copilot store + deletes copilot-pane dead components.
+- Sprint 5 deletes `features/brand/` entirely.
+
+**Why:** User's instinct — build the whole clean solution, then port atoms. Benefits over section-by-section:
+1. Architectural review is complete after one sprint (user sees the final shape in the tree, not working app yet).
+2. Schemas are quick to write (1-2 min each) and are the simple atoms. Getting all 15 done in Sprint 1 concentrates the easy work and exposes edge cases early.
+3. Rich actions are the real risk; they get dedicated sprint with individual per-action checkpoints.
+4. Route flip is one atomic commit — brand-studio either serves all pages or none.
+5. Old `features/brand/` is deleted only after everything is live on new, minimizing partial-migration states.
+
+### D17 · Arch test allowlist strategy
+**Decision:** Add `brand-studio` to the canonical feature name allowlist in `frontend/src/__tests__/architecture/` **in Sprint 1, same commit as the scaffold**. Temporarily both `brand` and `brand-studio` exist; the ratchet pattern (allowlist can only shrink) is satisfied because we add then shrink (remove `brand` in Sprint 5).
+**Why:** Avoids arch tests blocking the migration. Allowlist change is acknowledged in the commit message with a comment pointing to this decisions file.
+
+### D18 · Memory updates after session close
+**Decision:** After this session, update:
+- `project_brand_studio_refactor.md` — reflects locked status, Sprint 0 complete.
+- `MEMORY.md` entry already points to the refactor file.
+Next session's pre-flight reads memory + PLAN.md + FLOW-SPEC.md + DECISIONS.md and needs nothing from chat history to start Sprint 1.
+
+---
+
+## Status: LOCKED FOR EXECUTION
+
+All 18 decisions are final. Spec is self-contained. A new Claude conversation
+armed with:
+
+1. `docs/ux-sessions/2026-04-17-universal-editable-form-component/FLOW-SPEC.md`
+2. `docs/ux-sessions/2026-04-17-universal-editable-form-component/PLAN.md`
+3. `docs/ux-sessions/2026-04-17-universal-editable-form-component/DECISIONS.md`
+4. `docs/ux-sessions/2026-04-17-universal-editable-form-component/schemas/identity.schema.example.ts`
+
+…can execute Sprint 1 without referring to any chat history.
