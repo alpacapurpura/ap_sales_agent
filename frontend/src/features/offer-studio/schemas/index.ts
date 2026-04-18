@@ -1,3 +1,8 @@
+// Side-effect import: bootstraps the action registry before any schema
+// with ``custom`` fields mounts. Matches brand-studio's pattern so pages
+// only import schemas and never the registry directly.
+import "@/features/offer-studio/actions/registry";
+
 import { offerClosingSchema } from "./closing.schema";
 import { offerEventDetailsSchema } from "./event-details.schema";
 import { offerGallerySchema } from "./gallery.schema";
