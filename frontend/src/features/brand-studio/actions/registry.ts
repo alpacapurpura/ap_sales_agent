@@ -17,12 +17,12 @@ import {
   DimensionSlidersPlaceholder,
   ImageGalleryPickerPlaceholder,
   LegalActionPlaceholder,
-  LogoKitPlaceholder,
   OnboardingWizardPlaceholder,
   PersonalityClonePlaceholder,
   SmartFillDialogPlaceholder,
   VoiceClonePlaceholder,
 } from "./placeholders";
+import { LogoKitAction } from "./LogoKitAction";
 import { PresetCatalogAction } from "./PresetCatalogAction";
 import { SingleImagePickerAction } from "./SingleImagePickerAction";
 import { ThemeInjectorAction } from "./ThemeInjectorAction";
@@ -63,7 +63,7 @@ const REGISTRY_ENTRIES: Readonly<Record<BrandStudioActionKey, ActionComponent>> 
   "brand-visuals-wizard": BrandVisualsWizardPlaceholder,
   "single-image": SingleImagePickerAction as unknown as ActionComponent,
   "theme-injector": ThemeInjectorAction,
-  "logo-kit": LogoKitPlaceholder,
+  "logo-kit": LogoKitAction as unknown as ActionComponent,
   "image-gallery": ImageGalleryPickerPlaceholder,
   avatar: AvatarActionPlaceholder,
   "smart-fill": SmartFillDialogPlaceholder,
