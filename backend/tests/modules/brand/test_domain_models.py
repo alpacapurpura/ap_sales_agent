@@ -106,7 +106,7 @@ class TestBrandIdentity:
         i = BrandIdentity(
             brand_name="X",
             business_types=[
-                ExpertBusinessType.EDUCADOR_INFOPRODUCTOR,
+                ExpertBusinessType.ACADEMIA_INFOPRODUCTOR,
                 ExpertBusinessType.COACH_MENTOR,
             ],
         )
@@ -119,11 +119,11 @@ class TestBrandIdentity:
 
         original = BrandIdentity(
             brand_name="X",
-            business_types=[ExpertBusinessType.SAAS_FOUNDER],
+            business_types=[ExpertBusinessType.SOFTWARE_SAAS],
         )
         dumped = original.model_dump(mode="json")
         restored = BrandIdentity.model_validate(dumped)
-        assert restored.business_types == [ExpertBusinessType.SAAS_FOUNDER]
+        assert restored.business_types == [ExpertBusinessType.SOFTWARE_SAAS]
 
     def test_business_types_rejects_unknown_value(self):
         """Invalid values are rejected — the catalog is a closed set."""

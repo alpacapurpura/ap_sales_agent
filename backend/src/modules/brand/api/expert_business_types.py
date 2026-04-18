@@ -35,7 +35,8 @@ class ExpertBusinessTypeMetadataDTO(BaseModel):
     business_type: str
     label_es: str
     description_es: str
-    sells_es: str
+    value_proposition_es: str
+    revenue_model_es: str
     icon_name: str
     examples_es: list[str]
 
@@ -46,7 +47,8 @@ class ExpertBusinessTypeMetadataDTO(BaseModel):
             business_type=metadata.business_type.value,
             label_es=metadata.label_es,
             description_es=metadata.description_es,
-            sells_es=metadata.sells_es,
+            value_proposition_es=metadata.value_proposition_es,
+            revenue_model_es=metadata.revenue_model_es,
             icon_name=metadata.icon_name,
             examples_es=list(metadata.examples_es),
         )
@@ -63,7 +65,7 @@ class ExpertBusinessTypesCatalogResponse(BaseModel):
 
 # Bump this when ``expert_business_type.py`` changes materially (new type,
 # renamed label, description rewrite). Frontend caches by this version.
-_CATALOG_VERSION = "2026-04-17"
+_CATALOG_VERSION = "2026-04-18"
 
 
 @router.get(

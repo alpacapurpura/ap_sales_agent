@@ -106,14 +106,14 @@ class TestFormatHelpers:
         assert record.format_id == sample_id
 
     def test_get_formats_suitable_for_returns_only_positive_scores(self) -> None:
-        """When asking what fits a SAAS founder, results must all have score > 0
-        for SAAS_FOUNDER."""
+        """When asking what fits a SaaS founder, results must all have score > 0
+        for SOFTWARE_SAAS."""
         results = get_formats_suitable_for(
-            business_types=[ExpertBusinessType.SAAS_FOUNDER],
+            business_types=[ExpertBusinessType.SOFTWARE_SAAS],
         )
         assert results, "SaaS founder should see at least the _custom escape hatch"
         for meta in results:
-            best = max(meta.suitable_for.get(bt, 0.0) for bt in [ExpertBusinessType.SAAS_FOUNDER])
+            best = max(meta.suitable_for.get(bt, 0.0) for bt in [ExpertBusinessType.SOFTWARE_SAAS])
             assert best > 0
 
     def test_get_formats_suitable_for_ranks_by_best_score(self) -> None:
@@ -122,13 +122,13 @@ class TestFormatHelpers:
         results = get_formats_suitable_for(
             business_types=[
                 ExpertBusinessType.COACH_MENTOR,
-                ExpertBusinessType.EDUCADOR_INFOPRODUCTOR,
+                ExpertBusinessType.ACADEMIA_INFOPRODUCTOR,
             ],
         )
         scores = [
             max(
                 meta.suitable_for.get(ExpertBusinessType.COACH_MENTOR, 0.0),
-                meta.suitable_for.get(ExpertBusinessType.EDUCADOR_INFOPRODUCTOR, 0.0),
+                meta.suitable_for.get(ExpertBusinessType.ACADEMIA_INFOPRODUCTOR, 0.0),
             )
             for meta in results
         ]

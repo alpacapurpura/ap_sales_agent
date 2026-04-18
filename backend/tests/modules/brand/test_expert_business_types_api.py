@@ -41,7 +41,8 @@ class TestExpertBusinessTypesCatalogEndpoint:
             "business_type",
             "label_es",
             "description_es",
-            "sells_es",
+            "value_proposition_es",
+            "revenue_model_es",
             "icon_name",
             "examples_es",
         }
@@ -50,14 +51,24 @@ class TestExpertBusinessTypesCatalogEndpoint:
             assert not missing, f"entry {entry['business_type']} missing {missing}"
             assert entry["label_es"]
             assert entry["description_es"]
-            assert entry["sells_es"]
+            assert entry["value_proposition_es"]
+            assert entry["revenue_model_es"]
             assert entry["icon_name"]
             assert isinstance(entry["examples_es"], list)
             assert entry["examples_es"]
 
-    def test_saas_founder_entry(self) -> None:
+    def test_software_saas_entry(self) -> None:
         resp = _client().get("/api/v1/brand/expert-business-types/catalog")
         saas = next(
-            e for e in resp.json()["business_types"] if e["business_type"] == ExpertBusinessType.SAAS_FOUNDER.value
+            e for e in resp.json()["business_types"] if e["business_type"] == ExpertBusinessType.SOFTWARE_SAAS.value
         )
         assert "software" in saas["description_es"].lower() or "saas" in saas["label_es"].lower()
+
+    def test_profesional_salud_entry(self) -> None:
+        """Latam mass-market rollout requires an explicit slot for healthcare
+        professionals — verified by presence + recognizable label content."""
+        resp = _client().get("/api/v1/brand/expert-business-types/catalog")
+        salud = next(
+            e for e in resp.json()["business_types"] if e["business_type"] == ExpertBusinessType.PROFESIONAL_SALUD.value
+        )
+        assert "salud" in salud["label_es"].lower() or "consultorio" in salud["label_es"].lower()

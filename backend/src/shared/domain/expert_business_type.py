@@ -3,12 +3,18 @@
 This classification drives:
 
 - **Brand Studio** captures ``business_types: list[ExpertBusinessType]`` on
-  the tenant's ``BrandIdentity`` (multi-select — a course creator can also
-  be a coach).
+  the tenant's ``BrandIdentity`` (multi-select — a nutricionist with a
+  consultorio can also sell a course).
 - **Offer Studio Format Catalog** declares per-format suitability
   (``suitable_for: dict[ExpertBusinessType, float]``) so the offer wizard
   surfaces formats that fit the tenant's profile and hides the ones that
-  don't (a lawyer-consultant is unlikely to run a multi-day retreat).
+  don't.
+
+The 9 types are tuned for Latam mass-market: each one captures a distinct
+way of monetizing expertise via digital marketing — from the doctor with a
+consultorio to the founder of a micro-SaaS. Multi-select is the norm
+(e.g. a psychologist who also runs a course → marks ``PROFESIONAL_SALUD``
+and ``ACADEMIA_INFOPRODUCTOR``).
 
 Living in ``shared/domain`` avoids a DDD cross-module import: the enum is
 owned by the platform, not by any single bounded context, and is safe to
@@ -27,22 +33,22 @@ from enum import StrEnum
 
 
 class ExpertBusinessType(StrEnum):
-    """The nine canonical kinds of expert business Nicolify targets.
+    """The nine canonical kinds of expert business Nicolify targets in Latam.
 
     Multi-select by convention: most real businesses blend two or three
-    types (e.g. an educator who also coaches, or a community host who
-    produces experiences).
+    types (e.g. a dentist who also hosts a paid community, or an agency
+    owner who also teaches a bootcamp).
     """
 
-    CONSULTOR_ASESOR = "consultor_asesor"
+    PROFESIONAL_SALUD = "profesional_salud"
+    CONSULTOR_PROFESIONAL = "consultor_profesional"
     COACH_MENTOR = "coach_mentor"
-    EDUCADOR_INFOPRODUCTOR = "educador_infoproductor"
-    AGENCIA_DFY = "agencia_dfy"
-    HOST_COMUNIDAD = "host_comunidad"
-    HOST_EXPERIENCIA = "host_experiencia"
-    CREADOR_CONTENIDO = "creador_contenido"
-    PRODUCT_MAKER = "product_maker"
-    SAAS_FOUNDER = "saas_founder"
+    ACADEMIA_INFOPRODUCTOR = "academia_infoproductor"
+    ANFITRION_PRODUCTOR = "anfitrion_productor"
+    AGENCIA_FREELANCE = "agencia_freelance"
+    MARCA_ECOMMERCE = "marca_ecommerce"
+    NEGOCIO_LOCAL = "negocio_local"
+    SOFTWARE_SAAS = "software_saas"
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,153 +57,189 @@ class ExpertBusinessTypeMetadata:
 
     ``icon_name`` is a Lucide React component name (PascalCase) — the
     frontend resolves the string to an icon component via a typed map.
+
+    ``value_proposition_es`` is a 3-5 word chip used in badges and compact
+    cards; ``revenue_model_es`` is a single sentence describing how the
+    business typically charges — used in wizard copy and analytics hints.
     """
 
     business_type: ExpertBusinessType
     label_es: str
     description_es: str
-    sells_es: str  # "sells X" — one-liner capturing the value proposition
+    value_proposition_es: str  # 3-5 words for chip/badge UI
+    revenue_model_es: str  # one-liner describing typical billing model
     icon_name: str  # Lucide React PascalCase
     examples_es: tuple[str, ...] = field(default_factory=tuple)
 
 
 EXPERT_BUSINESS_TYPE_CATALOG: dict[ExpertBusinessType, ExpertBusinessTypeMetadata] = {
-    ExpertBusinessType.CONSULTOR_ASESOR: ExpertBusinessTypeMetadata(
-        business_type=ExpertBusinessType.CONSULTOR_ASESOR,
-        label_es="Consultor / Asesor",
-        description_es=("Vende expertise estratégica 1:1. Tickets altos, entregables por proyecto o retainer."),
-        sells_es="Sabiduría estratégica y criterio profesional",
-        icon_name="Briefcase",
+    ExpertBusinessType.PROFESIONAL_SALUD: ExpertBusinessTypeMetadata(
+        business_type=ExpertBusinessType.PROFESIONAL_SALUD,
+        label_es="Profesional / Consultorio Salud",
+        description_es=(
+            "Tu título profesional es tu marca y atendés por cita. Cada paciente agenda una consulta "
+            "y vuelve por tratamientos o controles."
+        ),
+        value_proposition_es="Salud con cita",
+        revenue_model_es="Consulta por sesión + paquetes de tratamiento recurrentes",
+        icon_name="Stethoscope",
         examples_es=(
-            "Consultor de estrategia de negocio",
+            "Odontólogo",
+            "Nutricionista online",
+            "Psicólogo con consulta virtual",
+            "Cirujano estético",
+            "Fisioterapeuta / kinesiólogo",
+            "Veterinario",
+        ),
+    ),
+    ExpertBusinessType.CONSULTOR_PROFESIONAL: ExpertBusinessTypeMetadata(
+        business_type=ExpertBusinessType.CONSULTOR_PROFESIONAL,
+        label_es="Consultorías Profesionales",
+        description_es=(
+            "Ejercés una profesión del conocimiento con clientes propios. Vendés tu criterio "
+            "por proyecto, retainer o asesoría puntual."
+        ),
+        value_proposition_es="Criterio aplicado a proyectos",
+        revenue_model_es="Proyecto por scope + retainer mensual o consultas puntuales",
+        icon_name="Scale",
+        examples_es=(
+            "Abogado especialista (laboral, migratorio, familia)",
+            "Contador para PYMES",
+            "Arquitecto / diseñador de interiores",
             "Asesor financiero",
-            "Asesor legal",
-            "Consultor de operaciones",
+            "Consultor de marketing digital",
+            "Consultor estratégico de negocios",
         ),
     ),
     ExpertBusinessType.COACH_MENTOR: ExpertBusinessTypeMetadata(
         business_type=ExpertBusinessType.COACH_MENTOR,
         label_es="Coach / Mentor",
         description_es=(
-            "Facilita transformación personal o profesional. Trabaja 1:1, en grupo, "
-            "o en masterminds de acompañamiento continuo."
+            "Acompañás a otros a crecer o transformarse. Vendés procesos de acompañamiento "
+            "con resultados medibles en tiempo definido."
         ),
-        sells_es="Transformación personal acompañada",
+        value_proposition_es="Acompañamiento transformador",
+        revenue_model_es="Paquetes de sesiones 1:1 o grupales de 3-6 meses",
         icon_name="Compass",
         examples_es=(
-            "Life coach",
-            "Executive coach",
-            "Coach ejecutivo de ventas",
-            "Mentor de carrera",
+            "Coach de negocios / mentor empresarial",
+            "Coach de finanzas personales",
+            "Coach de salud y pérdida de peso",
+            "Coach de pareja y relaciones",
+            "Mentor de ventas high-ticket",
+            "Coach fitness y transformación",
         ),
     ),
-    ExpertBusinessType.EDUCADOR_INFOPRODUCTOR: ExpertBusinessTypeMetadata(
-        business_type=ExpertBusinessType.EDUCADOR_INFOPRODUCTOR,
-        label_es="Educador / Infoproductor",
+    ExpertBusinessType.ACADEMIA_INFOPRODUCTOR: ExpertBusinessTypeMetadata(
+        business_type=ExpertBusinessType.ACADEMIA_INFOPRODUCTOR,
+        label_es="Academia / Infoproductor",
         description_es=(
-            "Empaqueta conocimiento en cursos, cohortes y certificaciones. "
-            "Vende la estructura y el método, no solo su tiempo."
+            "Enseñás tu método a muchos en formato empaquetado. Tu expertise vive en cursos, "
+            "cohortes o certificaciones con alumnos a escala."
         ),
-        sells_es="Conocimiento empaquetado y método reproducible",
-        icon_name="GraduationCap",
+        value_proposition_es="Método empaquetado escalable",
+        revenue_model_es="Cursos one-shot + cohortes con lanzamiento + membresía académica",
+        icon_name="BookMarked",
         examples_es=(
-            "Creador de cursos online",
-            "Autor de libros y guías",
-            "Formador certificado",
-            "Instructor especializado",
+            "Bootcamp de programación",
+            "Academia de inglés online",
+            "Curso de trading e inversiones",
+            "Cohorte de marketing digital",
+            "Certificación profesional (Scrum / PMP)",
+            "Academia de música o canto online",
         ),
     ),
-    ExpertBusinessType.AGENCIA_DFY: ExpertBusinessTypeMetadata(
-        business_type=ExpertBusinessType.AGENCIA_DFY,
-        label_es="Agencia / Done For You",
+    ExpertBusinessType.ANFITRION_PRODUCTOR: ExpertBusinessTypeMetadata(
+        business_type=ExpertBusinessType.ANFITRION_PRODUCTOR,
+        label_es="Anfitrión / Productor",
         description_es=(
-            "Ejecuta el trabajo por el cliente. Vende resultados entregables — "
-            "campañas, diseños, desarrollo, producciones."
+            "Reunís gente en vivo o construís pertenencia. Producís eventos, retiros o "
+            "comunidades donde el valor es estar adentro."
         ),
-        sells_es="Ejecución profesional end-to-end",
-        icon_name="Wrench",
+        value_proposition_es="Experiencias y pertenencia",
+        revenue_model_es="Entradas o ticket único + membresía de comunidad",
+        icon_name="Sparkles",
         examples_es=(
-            "Agencia de marketing",
-            "Estudio de diseño",
-            "Agencia de desarrollo web",
-            "Productora audiovisual",
+            "Organizador de retiros (yoga / wellness / espiritual)",
+            "Productor de masterminds high-ticket",
+            "Host de conferencias y summits",
+            "Fundador de comunidad paga",
+            "Productor de eventos corporativos",
+            "Organizador de festivales temáticos",
         ),
     ),
-    ExpertBusinessType.HOST_COMUNIDAD: ExpertBusinessTypeMetadata(
-        business_type=ExpertBusinessType.HOST_COMUNIDAD,
-        label_es="Host de Comunidad",
+    ExpertBusinessType.AGENCIA_FREELANCE: ExpertBusinessTypeMetadata(
+        business_type=ExpertBusinessType.AGENCIA_FREELANCE,
+        label_es="Agencia / Freelance",
         description_es=(
-            "Construye y monetiza una comunidad. Vende pertenencia, acceso y networking a miembros recurrentes."
+            "Tu equipo (o vos solo) ejecuta proyectos para clientes. Entregás el trabajo "
+            "terminado — el cliente aprueba, no hace."
         ),
-        sells_es="Pertenencia, acceso y networking",
-        icon_name="Users",
+        value_proposition_es="Ejecución hecha por vos",
+        revenue_model_es="Proyecto por scope + retainer mensual recurrente",
+        icon_name="Cog",
         examples_es=(
-            "Founder de membresía paga",
-            "Host de mastermind",
-            "Líder de círculo profesional",
-            "Operador de comunidad privada",
+            "Agencia de marketing digital / ads",
+            "Estudio de diseño y branding",
+            "Estudio de desarrollo web",
+            "Productora audiovisual y reels",
+            "Consultora SEO y contenido",
+            "Freelancer senior (copy / diseño / dev)",
         ),
     ),
-    ExpertBusinessType.HOST_EXPERIENCIA: ExpertBusinessTypeMetadata(
-        business_type=ExpertBusinessType.HOST_EXPERIENCIA,
-        label_es="Host de Experiencias",
+    ExpertBusinessType.MARCA_ECOMMERCE: ExpertBusinessTypeMetadata(
+        business_type=ExpertBusinessType.MARCA_ECOMMERCE,
+        label_es="Marca / Ecommerce",
         description_es=(
-            "Produce reuniones en vivo — retiros, eventos, workshops. Vende la "
-            "experiencia inmersiva en persona o streaming."
+            "Vendés productos propios o curados. Tu negocio vive en el catálogo, el carrito y la logística de entrega."
         ),
-        sells_es="Experiencias en vivo memorables",
-        icon_name="Tent",
+        value_proposition_es="Producto propio en escala",
+        revenue_model_es="Venta transaccional + suscripción de reposición opcional",
+        icon_name="ShoppingBag",
         examples_es=(
-            "Organizador de retiros",
-            "Productor de eventos",
-            "Host de summits",
-            "Facilitador de talleres presenciales",
+            "Marca de ropa o moda",
+            "Cosmética natural / suplementos",
+            "Productos saludables y fitness",
+            "Productos para mascotas",
+            "Artesanía o diseño propio",
+            "Dropshipping / tienda online",
         ),
     ),
-    ExpertBusinessType.CREADOR_CONTENIDO: ExpertBusinessTypeMetadata(
-        business_type=ExpertBusinessType.CREADOR_CONTENIDO,
-        label_es="Creador de Contenido",
+    ExpertBusinessType.NEGOCIO_LOCAL: ExpertBusinessTypeMetadata(
+        business_type=ExpertBusinessType.NEGOCIO_LOCAL,
+        label_es="Negocio Local",
         description_es=(
-            "Monetiza audiencia e influencia. Vende productos de marca, patrocinios y acceso privado con su comunidad."
+            "Tenés un local físico con clientes recurrentes y un equipo que atiende. "
+            "La marca es del negocio, no tuya personal."
         ),
-        sells_es="Influencia, contenido y acceso",
-        icon_name="Mic",
+        value_proposition_es="Local físico con recurrencia",
+        revenue_model_es="Membresía mensual o paquete de sesiones recurrentes",
+        icon_name="Store",
         examples_es=(
-            "Creador YouTube / TikTok",
-            "Podcaster",
-            "Influencer con tienda propia",
-            "Autor de newsletter paga",
+            "Gimnasio / box de CrossFit",
+            "Estudio de pilates o yoga",
+            "Salón de belleza / barbería",
+            "Clínica odontológica multi-doctor",
+            "Academia de baile o idiomas",
+            "Restaurante o cafetería",
         ),
     ),
-    ExpertBusinessType.PRODUCT_MAKER: ExpertBusinessTypeMetadata(
-        business_type=ExpertBusinessType.PRODUCT_MAKER,
-        label_es="Product Maker",
+    ExpertBusinessType.SOFTWARE_SAAS: ExpertBusinessTypeMetadata(
+        business_type=ExpertBusinessType.SOFTWARE_SAAS,
+        label_es="Software / SaaS",
         description_es=(
-            "Crea y vende productos — físicos o digitales — como core del negocio. "
-            "El artefacto es el producto, no el servicio."
+            "Tu producto es software que el cliente usa de forma continua. Cobrás por "
+            "suscripción y el valor se entrega solo al usarlo."
         ),
-        sells_es="Productos listos para usar",
-        icon_name="Package",
+        value_proposition_es="Software recurrente",
+        revenue_model_es="Suscripción mensual o anual con tiers",
+        icon_name="Terminal",
         examples_es=(
-            "Vendedor de productos físicos",
-            "Maker de productos digitales",
-            "Artesano con tienda online",
-            "Creador de plantillas y kits",
-        ),
-    ),
-    ExpertBusinessType.SAAS_FOUNDER: ExpertBusinessTypeMetadata(
-        business_type=ExpertBusinessType.SAAS_FOUNDER,
-        label_es="Fundador SaaS",
-        description_es=(
-            "Opera software como servicio. Vende suscripciones a una herramienta que el cliente usa recurrentemente."
-        ),
-        sells_es="Software recurrente que resuelve un dolor",
-        icon_name="Cloud",
-        examples_es=(
-            "SaaS B2B de productividad",
-            "Plataforma vertical para un nicho",
+            "SaaS B2B para PYMEs",
+            "Plataforma vertical (fintech / edtech / healthtech)",
             "Micro-SaaS indie",
-            "Software de automatización",
+            "App móvil vertical",
+            "Herramienta de automatización",
         ),
     ),
 }

@@ -72,7 +72,7 @@ class TestFormatCatalogEndpoint:
 
     def test_business_types_filter_ranks_by_score(self) -> None:
         coach = ExpertBusinessType.COACH_MENTOR.value
-        educator = ExpertBusinessType.EDUCADOR_INFOPRODUCTOR.value
+        educator = ExpertBusinessType.ACADEMIA_INFOPRODUCTOR.value
         resp = _client().get(
             "/api/v1/offer/formats/catalog",
             params={"business_types": f"{coach},{educator}"},
@@ -83,14 +83,14 @@ class TestFormatCatalogEndpoint:
             scores = entry["suitable_for"]
             assert (
                 scores.get(ExpertBusinessType.COACH_MENTOR.value, 0) > 0
-                or scores.get(ExpertBusinessType.EDUCADOR_INFOPRODUCTOR.value, 0) > 0
+                or scores.get(ExpertBusinessType.ACADEMIA_INFOPRODUCTOR.value, 0) > 0
             )
 
     def test_business_types_excludes_irrelevant_formats(self) -> None:
         """A SaaS founder should not see ``experiencia_retiro`` by default."""
         resp = _client().get(
             "/api/v1/offer/formats/catalog",
-            params={"business_types": ExpertBusinessType.SAAS_FOUNDER.value},
+            params={"business_types": ExpertBusinessType.SOFTWARE_SAAS.value},
         )
         format_ids = {entry["format_id"] for entry in resp.json()["formats"]}
         assert "experiencia_retiro" not in format_ids

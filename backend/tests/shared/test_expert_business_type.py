@@ -18,15 +18,15 @@ from src.shared.domain.expert_business_type import (
 class TestExpertBusinessTypeEnum:
     def test_enum_has_nine_canonical_types(self) -> None:
         expected = {
-            "consultor_asesor",
+            "profesional_salud",
+            "consultor_profesional",
             "coach_mentor",
-            "educador_infoproductor",
-            "agencia_dfy",
-            "host_comunidad",
-            "host_experiencia",
-            "creador_contenido",
-            "product_maker",
-            "saas_founder",
+            "academia_infoproductor",
+            "anfitrion_productor",
+            "agencia_freelance",
+            "marca_ecommerce",
+            "negocio_local",
+            "software_saas",
         }
         actual = {member.value for member in ExpertBusinessType}
         assert actual == expected
@@ -54,9 +54,10 @@ class TestExpertBusinessTypeCatalog:
             assert metadata.business_type is business_type
             assert metadata.label_es.strip(), f"label_es empty for {business_type}"
             assert metadata.description_es.strip(), f"description_es empty for {business_type}"
+            assert metadata.value_proposition_es.strip(), f"value_proposition_es empty for {business_type}"
+            assert metadata.revenue_model_es.strip(), f"revenue_model_es empty for {business_type}"
             assert metadata.icon_name.strip(), f"icon_name empty for {business_type}"
             assert metadata.examples_es, f"examples_es empty for {business_type}"
-            assert metadata.sells_es.strip(), f"sells_es empty for {business_type}"
 
     def test_get_metadata_returns_frozen_record(self) -> None:
         record = get_expert_business_type_metadata(ExpertBusinessType.COACH_MENTOR)
@@ -68,3 +69,12 @@ class TestExpertBusinessTypeCatalog:
         for metadata in EXPERT_BUSINESS_TYPE_CATALOG.values():
             first = metadata.icon_name[0]
             assert first.isupper(), f"icon_name {metadata.icon_name} must be PascalCase"
+
+    def test_value_proposition_is_chip_length(self) -> None:
+        """3-5 words for badge/chip UI — hard cap at 6 to leave slack."""
+        for metadata in EXPERT_BUSINESS_TYPE_CATALOG.values():
+            word_count = len(metadata.value_proposition_es.split())
+            assert 1 <= word_count <= 6, (
+                f"value_proposition_es for {metadata.business_type} has {word_count} "
+                f"words — should be 3-5 for chip UI: {metadata.value_proposition_es!r}"
+            )
