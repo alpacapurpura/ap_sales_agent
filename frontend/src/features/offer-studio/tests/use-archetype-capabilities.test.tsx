@@ -6,56 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { useArchetypeCapabilities } from "../hooks/use-archetype-catalog";
 import { OfferArchetype } from "../types";
 
-import type { ArchetypeCatalogResponse } from "../api/archetype-catalog-api";
-
-const MOCK_RESPONSE: ArchetypeCatalogResponse = {
-  version: "test-version",
-  archetypes: [
-    {
-      archetype: OfferArchetype.EXPERIENCIA,
-      supports_editions: true,
-      edition_structure: "single_date",
-      edition_noun_es: "salida",
-      edition_noun_plural_es: "salidas",
-      requires_start_date_on_publish: true,
-      requires_end_date_on_publish: false,
-      requires_location_on_publish: true,
-      supports_capacity: true,
-      supports_waitlist: true,
-      default_delivery: "dwy",
-      default_fulfillment: "manual_provisioning",
-      label_es: "Experiencia / Evento",
-      subtitle_es: "Un momento único",
-      icon_name: "Tent",
-      examples_es: ["Retiro", "Taller"],
-      editions_wizard_copy: {
-        title: "¿Tendrá varias salidas?",
-        description: "...",
-        yes_label: "Sí",
-        no_label: "No",
-      },
-    },
-    {
-      archetype: OfferArchetype.PRODUCTO,
-      supports_editions: false,
-      edition_structure: "none",
-      edition_noun_es: "",
-      edition_noun_plural_es: "",
-      requires_start_date_on_publish: false,
-      requires_end_date_on_publish: false,
-      requires_location_on_publish: false,
-      supports_capacity: false,
-      supports_waitlist: false,
-      default_delivery: "diy",
-      default_fulfillment: "digital_download",
-      label_es: "Producto",
-      subtitle_es: "Algo que creas",
-      icon_name: "Package",
-      examples_es: ["Ebook", "Curso"],
-      editions_wizard_copy: null,
-    },
-  ],
-};
+import { MOCK_ARCHETYPE_CATALOG_RESPONSE } from "./fixtures/archetype-catalog-fixture";
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const client = new QueryClient({
@@ -70,7 +21,7 @@ describe("useArchetypeCapabilities", () => {
   beforeEach(() => {
     global.fetch = vi.fn(
       async () =>
-        new Response(JSON.stringify(MOCK_RESPONSE), {
+        new Response(JSON.stringify(MOCK_ARCHETYPE_CATALOG_RESPONSE), {
           status: 200,
           headers: { "Content-Type": "application/json" },
         }),
