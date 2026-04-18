@@ -41,6 +41,16 @@ Compact notes per sprint, for future developers picking up the work. No verbosit
 
 ---
 
+## Sprint 3 (App Router flip + route tree restructure)
+
+- **Catch-all `[[...fieldId]]` over 11 per-section folders.** Next.js 16 App Router resolves `/brand-studio/[section]/[[...fieldId]]/page.tsx` for both `/brand-studio/identity` and `/brand-studio/identity/tagline`. One dispatcher + `SECTION_PAGE_MAP`; unknown slugs → `notFound()`. Per-section folders = 11 near-identical `page.tsx` files — not worth it.
+- **Layout is minimal.** Drop every state container, sheet manager, dialog, wizard, provider. The form-runtime scaffold inside each page owns autosave, copilot bridge, session state. Layout contributes only: nav rail + `children`. Bigger = state leaking into layout that belongs per-page.
+- **URL-driven navigation uses `<Link>`, not `router.push`.** `BrandStudioNavRail` renders `next/link` entries; browser back/forward works out of the box, SSR renders correct href in HTML, keyboard nav works.
+- **`as const satisfies Readonly<Record<string, () => React.JSX.Element>>`** preserves literal types (so `keyof typeof MAP` becomes a union of section slugs) while still type-checking shape. Global `JSX` namespace is gone in React 19 — use `React.JSX.Element`.
+- **Delete redirect pages when the destination route tree changes shape.** Old `tono-y-voz`/`creativos`/`assets` redirects pointed at URLs that no longer exist. Deleting them is cleaner than redirect chains that traverse dead nodes.
+- **Keep external-linked routes alive with stub content.** `/avatars/[id]/edit` is linked from offer-studio — deleting would 404 their flow. Swap the import to a brand-studio stub; fix the real UX in the next persona iteration. Zero-break migration.
+- **`next build` has a pre-existing standalone+Pages-Router-404 conflict.** Gate Sprint 3 on tsc + eslint + vitest + build-storybook; skip `next build` until that bug resolves (tracked in memory `project_nextjs_build_bug`).
+
 ## Patterns every future action port follows
 
 1. **One file per action**; one test file next to it; one story file under `stories/`.
