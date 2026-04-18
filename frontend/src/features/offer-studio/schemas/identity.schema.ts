@@ -1,17 +1,18 @@
 import type { SectionSchema } from "@/lib/form-runtime/schema";
 
 /**
- * Offer identity — name + SKU + headline that every edition inherits.
+ * Offer identity — nombre público + frase titular + tiempo hasta el
+ * resultado. Todos los campos persisten al ``Offer`` aggregate y son
+ * compartidos entre todas las ediciones (no se sobreescriben por edición).
  *
- * All fields persist to the ``Offer`` aggregate; the ``evergreen`` URL
- * renders this unchanged and every specific-edition URL shows the shared
- * offer-level values (non-overridable — users change them once and they
- * apply everywhere).
+ * SKU interno se auto-genera en el backend al crear la oferta — no lo
+ * expone el editor para evitar fricción al microempresario. Las otras
+ * secciones que tenían duplicados de ``headline_promise`` +
+ * ``primary_outcome`` fueron removidas — IDENTITY es la SSoT.
  */
 export const offerIdentitySchema: SectionSchema = {
   key: "offer.identity",
-  // title + description intentionally omitted — resolved from the backend
-  // SectionCatalog via useSectionMetadata("identity") in the consumer page.
+  // title + description resolved from the backend SectionCatalog.
   scope: "offer_level",
   fields: [
     {
@@ -20,25 +21,18 @@ export const offerIdentitySchema: SectionSchema = {
       type: "text",
       path: "public_name",
       required: true,
-      placeholder: "Ej: Mentoría Liderazgo Q2",
-      hint: "El nombre que ve tu audiencia en anuncios, landings y checkout.",
-    },
-    {
-      id: "internal_sku",
-      label: "SKU interno",
-      type: "text",
-      path: "internal_sku",
-      placeholder: "Ej: MENT-LIDER-Q2",
-      hint: "Identificador corto para reportes y referencias cruzadas. Solo para ti.",
+      placeholder: "ej. Mentoría Liderazgo Q2",
+      hint: "El nombre que ve tu audiencia en anuncios, landings y checkout. El agente lo usa al responder consultas.",
     },
     {
       id: "headline_promise",
-      label: "Promesa en titular",
+      label: "Frase titular",
       type: "textarea",
       path: "headline_promise",
       rows: 2,
-      placeholder: "Ej: Lidera sin agotarte en 12 semanas",
-      hint: "Una línea. La promesa que debe recordarse después de ver el anuncio.",
+      required: true,
+      placeholder: "ej. Lidera sin agotarte en 12 semanas",
+      hint: "Una línea memorable con el resultado que prometés. Es la promesa central que debe recordarse después del anuncio. Cargala concreta y en primera persona del beneficio.",
     },
     {
       id: "primary_outcome",
@@ -46,15 +40,16 @@ export const offerIdentitySchema: SectionSchema = {
       type: "textarea",
       path: "primary_outcome",
       rows: 2,
-      hint: "¿Qué obtiene el cliente al terminar la experiencia?",
+      placeholder: "ej. Duplicar capacidad de liderar equipos sin agotamiento",
+      hint: "Lo que el cliente obtiene al terminar. Más descriptivo que la frase titular — el agente lo cita en conversaciones de descubrimiento.",
     },
     {
       id: "time_to_value",
-      label: "Tiempo hasta el resultado",
+      label: "Tiempo hasta el primer resultado",
       type: "text",
       path: "time_to_value",
-      placeholder: "Ej: 30 días · 1 trimestre · Dentro de la primera semana",
-      hint: "Cuánto tarda el cliente en sentir el primer resultado útil.",
+      placeholder: "ej. 30 días · 1 trimestre · Primera semana",
+      hint: "Cuánto tarda el cliente en sentir el primer resultado útil. Reduce la ansiedad pre-compra y lo usa el agente para manejar la objeción 'cuánto tarda'.",
     },
   ],
 };

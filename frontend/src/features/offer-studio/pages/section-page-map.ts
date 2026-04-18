@@ -1,6 +1,5 @@
 import {
   ClosingPage,
-  CredentialsPage,
   EventDetailsPage,
   FaqPage,
   GalleryPage,
@@ -8,7 +7,6 @@ import {
   InstructorsPage,
   KnowledgePage,
   LocationPage,
-  MethodologyPage,
   PlatformDetailsPage,
   PortfolioPage,
   PricingPage,
@@ -61,8 +59,6 @@ export const OFFER_SECTION_PAGE_MAP = {
   faq: FaqPage,
   testimonials: TestimonialsPage,
   portfolio: PortfolioPage,
-  methodology: MethodologyPage,
-  credentials: CredentialsPage,
   location: LocationPage,
   platform_details: PlatformDetailsPage,
 } as const satisfies Readonly<

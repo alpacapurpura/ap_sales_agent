@@ -16,7 +16,6 @@ import { describe, it, expect } from "vitest";
 
 import {
   offerClosingSchema,
-  offerCredentialsSchema,
   offerEventDetailsSchema,
   offerFaqSchema,
   offerGallerySchema,
@@ -24,7 +23,6 @@ import {
   offerInstructorsSchema,
   offerKnowledgeSchema,
   offerLocationSchema,
-  offerMethodologySchema,
   offerPlatformDetailsSchema,
   offerPortfolioSchema,
   offerPricingSchema,
@@ -44,7 +42,6 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
 
 const OFFER_STUDIO_SCHEMAS: ReadonlyArray<readonly [string, SectionSchema]> = [
   ["offerClosingSchema", offerClosingSchema],
-  ["offerCredentialsSchema", offerCredentialsSchema],
   ["offerEventDetailsSchema", offerEventDetailsSchema],
   ["offerFaqSchema", offerFaqSchema],
   ["offerGallerySchema", offerGallerySchema],
@@ -52,7 +49,6 @@ const OFFER_STUDIO_SCHEMAS: ReadonlyArray<readonly [string, SectionSchema]> = [
   ["offerInstructorsSchema", offerInstructorsSchema],
   ["offerKnowledgeSchema", offerKnowledgeSchema],
   ["offerLocationSchema", offerLocationSchema],
-  ["offerMethodologySchema", offerMethodologySchema],
   ["offerPlatformDetailsSchema", offerPlatformDetailsSchema],
   ["offerPortfolioSchema", offerPortfolioSchema],
   ["offerPricingSchema", offerPricingSchema],

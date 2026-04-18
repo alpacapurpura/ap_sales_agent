@@ -70,8 +70,6 @@ class SectionKey(StrEnum):
     FAQ = "faq"
     TESTIMONIALS = "testimonials"
     PORTFOLIO = "portfolio"
-    METHODOLOGY = "methodology"
-    CREDENTIALS = "credentials"
     LOCATION = "location"
     PLATFORM_DETAILS = "platform_details"
 
@@ -415,39 +413,6 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
             "en vez de nombre. Los logos de clientes atendidos suman trust por asociación."
         ),
         icon_name="Trophy",
-        scope=SectionScope.OFFER_LEVEL,
-        completion_weight=0.7,
-        required_to_publish=False,
-    ),
-    SectionKey.METHODOLOGY: SectionMetadata(
-        key=SectionKey.METHODOLOGY,
-        label_es="Metodología",
-        subtitle_es="Tu proceso propio",
-        help_text_es=(
-            "El framework o método propio con el que entregás resultados. Poné un "
-            "nombre memorable ('Método SCAI', 'Framework 5 Etapas') y describí las fases "
-            "con sus entregables. Diferencia clave frente a competidores: el método "
-            "propio es defensible, no replicable fácilmente. Coaches, academias y "
-            "agencias venden mejor cuando tienen método propio que cuando venden 'horas'."
-        ),
-        icon_name="Workflow",
-        scope=SectionScope.OFFER_LEVEL,
-        completion_weight=0.6,
-        required_to_publish=False,
-    ),
-    SectionKey.CREDENTIALS: SectionMetadata(
-        key=SectionKey.CREDENTIALS,
-        label_es="Credenciales",
-        subtitle_es="Títulos, matrículas y certificaciones",
-        help_text_es=(
-            "Credenciales duras y verificables: título universitario, matrícula "
-            "profesional, colegiatura (CMP, CIP, CAL en Perú; cédula profesional en "
-            "México; matrículas en Argentina; registro sanitario en Colombia), "
-            "certificaciones internacionales, acreditaciones. Incluí número de registro "
-            "cuando sea público — para profesionales regulados (salud, legal), "
-            "verificabilidad pública es trust-defining en Latam."
-        ),
-        icon_name="Shield",
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.7,
         required_to_publish=False,

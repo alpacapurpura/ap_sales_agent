@@ -160,7 +160,7 @@ class ArchetypeCatalogResponse(BaseModel):
 # Bump this when ``archetype_catalog.py`` OR ``section_catalog.py`` changes
 # materially. Clients use it as the cache key so old copies are evicted on
 # deploy.
-_CATALOG_VERSION = "2026-04-18-sections-latam-v2"
+_CATALOG_VERSION = "2026-04-18-sections-latam-v3"
 
 
 @router.get(

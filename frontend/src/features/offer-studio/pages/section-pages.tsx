@@ -8,7 +8,6 @@ import { UniversalEditableSection } from "@/components/form-runtime";
 import { useSectionMetadata } from "@/features/offer-studio/hooks/use-section-catalog";
 import {
   offerClosingSchema,
-  offerCredentialsSchema,
   offerEventDetailsSchema,
   offerFaqSchema,
   offerGallerySchema,
@@ -16,7 +15,6 @@ import {
   offerInstructorsSchema,
   offerKnowledgeSchema,
   offerLocationSchema,
-  offerMethodologySchema,
   offerPlatformDetailsSchema,
   offerPortfolioSchema,
   offerPricingSchema,
@@ -200,8 +198,6 @@ export const LocationPage = createSectionPage(offerLocationSchema, "location", "
 export const FaqPage = createSectionPage(offerFaqSchema, "faq", "offer_level");
 export const TestimonialsPage = createSectionPage(offerTestimonialsSchema, "testimonials", "offer_level");
 export const PortfolioPage = createSectionPage(offerPortfolioSchema, "portfolio", "offer_level");
-export const MethodologyPage = createSectionPage(offerMethodologySchema, "methodology", "offer_level");
-export const CredentialsPage = createSectionPage(offerCredentialsSchema, "credentials", "offer_level");
 export const PlatformDetailsPage = createSectionPage(
   offerPlatformDetailsSchema,
   "platform_details",
@@ -229,8 +225,6 @@ export const OFFER_STUDIO_SECTION_KEYS: readonly SectionKey[] = [
   "faq",
   "testimonials",
   "portfolio",
-  "methodology",
-  "credentials",
   "location",
   "platform_details",
 ];

@@ -14,10 +14,20 @@ describe("offerGallerySchema", () => {
     expect(offerGallerySchema.key).toBe("offer.gallery");
   });
 
-  it("routes every visual through a registered custom action", () => {
+  it("routes every custom-uploader visual through a registered action", () => {
+    // After the Latam simplification pass, the schema mixes `custom` actions
+    // (hero / gallery / before-after) with a plain `url` field for the
+    // YouTube/Vimeo demo video — no uploader needed.
     for (const field of offerGallerySchema.fields) {
-      expect(field.type).toBe("custom");
-      expect(field.action).toBeTruthy();
+      if (field.type === "custom") {
+        expect(field.action).toBeTruthy();
+      }
     }
+  });
+
+  it("includes the before/after pairs array for transformational offers", () => {
+    const field = offerGallerySchema.fields.find((f) => f.id === "before_after_pairs");
+    expect(field?.type).toBe("array");
+    expect(field?.itemSchema).toBeTruthy();
   });
 });

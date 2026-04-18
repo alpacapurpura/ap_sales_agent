@@ -33,8 +33,6 @@ const EXPECTED_KEYS: readonly SectionKey[] = [
   "faq",
   "testimonials",
   "portfolio",
-  "methodology",
-  "credentials",
   "location",
   "platform_details",
 ];

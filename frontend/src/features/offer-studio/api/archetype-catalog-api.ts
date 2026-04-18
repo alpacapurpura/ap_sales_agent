@@ -50,8 +50,6 @@ export type SectionKey =
   | "faq"
   | "testimonials"
   | "portfolio"
-  | "methodology"
-  | "credentials"
   | "location"
   | "platform_details";
 

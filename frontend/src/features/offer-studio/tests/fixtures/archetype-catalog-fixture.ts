@@ -56,8 +56,6 @@ const RESOURCES = section("resources", "mixed", "Recursos", "Library");
 const FAQ = section("faq", "offer_level", "FAQ", "HelpCircle");
 const TESTIMONIALS = section("testimonials", "offer_level", "Testimonios", "Quote");
 const PORTFOLIO = section("portfolio", "offer_level", "Portfolio", "Trophy");
-const METHODOLOGY = section("methodology", "offer_level", "Metodología", "Workflow");
-const CREDENTIALS = section("credentials", "offer_level", "Credenciales", "Shield");
 const LOCATION = section("location", "mixed", "Ubicación", "MapPin");
 const PLATFORM_DETAILS = section("platform_details", "offer_level", "Plataforma", "Cpu");
 
@@ -81,8 +79,6 @@ export const MOCK_SECTION_CATALOG: readonly SectionMetadata[] = [
   FAQ,
   TESTIMONIALS,
   PORTFOLIO,
-  METHODOLOGY,
-  CREDENTIALS,
   LOCATION,
   PLATFORM_DETAILS,
 ];

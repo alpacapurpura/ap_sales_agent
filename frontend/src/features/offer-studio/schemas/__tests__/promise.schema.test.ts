@@ -13,9 +13,19 @@ describe("offerPromiseSchema", () => {
     expect(offerPromiseSchema.scope).toBe("offer_level");
   });
 
-  it("marks headline_promise as required", () => {
-    const field = offerPromiseSchema.fields.find((f) => f.id === "headline_promise");
-    expect(field?.required).toBe(true);
+  it("does not duplicate headline_promise or primary_outcome from IDENTITY", () => {
+    // Post-consolidation: IDENTITY owns headline_promise + primary_outcome.
+    // PROMISE unpacks the transformation arc (before/after/why-now/metrics).
+    const ids = offerPromiseSchema.fields.map((f) => f.id);
+    expect(ids).not.toContain("headline_promise");
+    expect(ids).not.toContain("primary_outcome");
+  });
+
+  it("marks before_state and after_state as required (core transformation arc)", () => {
+    const before = offerPromiseSchema.fields.find((f) => f.id === "before_state");
+    const after = offerPromiseSchema.fields.find((f) => f.id === "after_state");
+    expect(before?.required).toBe(true);
+    expect(after?.required).toBe(true);
   });
 
   it("has no duplicate field ids", () => {
