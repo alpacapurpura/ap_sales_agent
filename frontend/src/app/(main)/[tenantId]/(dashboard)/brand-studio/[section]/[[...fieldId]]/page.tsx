@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import {
   SECTION_PAGE_MAP,
   type BrandStudioSectionSlug,
-} from "@/features/brand-studio/pages/section-pages";
+} from "@/features/brand-studio/pages/section-page-map";
 
 interface PageProps {
   params: Promise<{
