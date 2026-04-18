@@ -176,3 +176,87 @@ describe("parseSectionSchema", () => {
     throw new Error("parser did not throw");
   });
 });
+
+describe("parseSectionSchema: offer/edition scope + owner (Sprint 6)", () => {
+  it("accepts a section without scope declared (legacy single-owner)", () => {
+    expect(() => parseSectionSchema(makeSchema())).not.toThrow();
+  });
+
+  it("accepts offer_level + fields without owner (owner is implicit)", () => {
+    const schema = makeSchema({
+      scope: "offer_level",
+      fields: [{ id: "name", label: "Name", type: "text", path: "name" }],
+    });
+    expect(() => parseSectionSchema(schema)).not.toThrow();
+  });
+
+  it("accepts edition_level + fields declaring owner='edition'", () => {
+    const schema = makeSchema({
+      scope: "edition_level",
+      fields: [
+        { id: "start", label: "Inicio", type: "text", path: "start_date", owner: "edition" },
+      ],
+    });
+    expect(() => parseSectionSchema(schema)).not.toThrow();
+  });
+
+  it("rejects offer_level fields declaring owner='edition'", () => {
+    const schema = makeSchema({
+      scope: "offer_level",
+      fields: [{ id: "x", label: "X", type: "text", path: "x", owner: "edition" }],
+    });
+    expect(() => parseSectionSchema(schema)).toThrow(
+      /section scope "offer_level" expects owner="offer"/,
+    );
+  });
+
+  it("rejects edition_level fields declaring owner='offer'", () => {
+    const schema = makeSchema({
+      scope: "edition_level",
+      fields: [{ id: "x", label: "X", type: "text", path: "x", owner: "offer" }],
+    });
+    expect(() => parseSectionSchema(schema)).toThrow(
+      /section scope "edition_level" expects owner="edition"/,
+    );
+  });
+
+  it("accepts mixed + every field declaring owner", () => {
+    const schema = makeSchema({
+      scope: "mixed",
+      fields: [
+        { id: "a", label: "A", type: "text", path: "a", owner: "offer" },
+        { id: "b", label: "B", type: "text", path: "b", owner: "edition" },
+      ],
+    });
+    expect(() => parseSectionSchema(schema)).not.toThrow();
+  });
+
+  it("rejects mixed when any field omits owner", () => {
+    const schema = makeSchema({
+      scope: "mixed",
+      fields: [
+        { id: "a", label: "A", type: "text", path: "a", owner: "offer" },
+        { id: "b", label: "B", type: "text", path: "b" },
+      ],
+    });
+    expect(() => parseSectionSchema(schema)).toThrow(/mixed scope requires every field.*owner/);
+  });
+
+  it("rejects invalid schema.scope values", () => {
+    const schema = makeSchema({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      scope: "bogus" as any,
+    });
+    expect(() => parseSectionSchema(schema)).toThrow(/invalid schema.scope/);
+  });
+
+  it("rejects invalid field.owner values", () => {
+    const schema = makeSchema({
+      fields: [
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { id: "x", label: "X", type: "text", path: "x", owner: "bogus" as any },
+      ],
+    });
+    expect(() => parseSectionSchema(schema)).toThrow(/invalid field.owner/);
+  });
+});

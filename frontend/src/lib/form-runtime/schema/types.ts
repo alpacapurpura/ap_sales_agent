@@ -23,6 +23,33 @@ export type FieldType =
 
 export type SaveMode = "explicit" | "autosave" | "autosave-with-banner";
 
+/**
+ * Persistence scope of a section relative to the offer / edition split
+ * introduced in Sprint 6 (see DECISIONS.md §D22).
+ *
+ * - ``offer_level``: every field persists to the top-level entity (e.g.
+ *   the ``Offer`` row). All fields render on both the virtual
+ *   ``/edition/evergreen/`` URL and specific-edition URLs.
+ * - ``edition_level``: every field persists to a nested entity (e.g. a
+ *   ``LaunchEdition`` row). Fields hide under the ``evergreen`` URL
+ *   because there is no edition to save against.
+ * - ``mixed``: fields declare their own ``owner`` (see
+ *   :pydata:`FieldOwner`). The runtime dispatcher uses the field's
+ *   owner to pick which save callback receives the patch.
+ *
+ * Unset on legacy consumers (brand-studio) — the runtime treats
+ * ``undefined`` as single-owner and calls the section's default save
+ * callback for every field.
+ */
+export type SectionScope = "offer_level" | "edition_level" | "mixed";
+
+/**
+ * Which aggregate a single field persists to, within a ``mixed`` section.
+ * Ignored on ``offer_level`` / ``edition_level`` sections (the section
+ * scope implies the owner uniformly).
+ */
+export type FieldOwner = "offer" | "edition";
+
 export interface EnumOption {
   value: string;
   label: string;
@@ -57,6 +84,12 @@ export interface FieldSchema {
   actionProps?: Record<string, unknown>;
   /** Override runtime default. Use "explicit" for heavy fields (upload, long text). */
   saveMode?: SaveMode;
+  /**
+   * Aggregate ownership — required on every field inside a ``mixed``
+   * section, forbidden (or must match) on single-owner sections. The
+   * runtime routes saves to the owner's configured mutation.
+   */
+  owner?: FieldOwner;
 }
 
 export interface SectionSchema {
@@ -64,4 +97,11 @@ export interface SectionSchema {
   title: string;
   description?: string;
   fields: FieldSchema[];
+  /**
+   * Persistence scope — set on sections participating in the offer /
+   * edition split. Undefined on legacy single-owner sections (the
+   * runtime treats them as if the whole section saved to a single
+   * callback).
+   */
+  scope?: SectionScope;
 }

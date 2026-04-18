@@ -4,7 +4,15 @@
  * human-readable message pointing at the offending field id.
  */
 
-import type { FieldSchema, FieldType, ItemSchema, SaveMode, SectionSchema } from "./types";
+import type {
+  FieldOwner,
+  FieldSchema,
+  FieldType,
+  ItemSchema,
+  SaveMode,
+  SectionScope,
+  SectionSchema,
+} from "./types";
 
 /** Raised when a schema fails structural validation. */
 export class SchemaParseError extends Error {
@@ -32,6 +40,14 @@ const VALID_SAVE_MODES: ReadonlySet<SaveMode> = new Set<SaveMode>([
   "autosave-with-banner",
 ]);
 
+const VALID_SECTION_SCOPES: ReadonlySet<SectionScope> = new Set<SectionScope>([
+  "offer_level",
+  "edition_level",
+  "mixed",
+]);
+
+const VALID_FIELD_OWNERS: ReadonlySet<FieldOwner> = new Set<FieldOwner>(["offer", "edition"]);
+
 function assertBaseFieldShape(field: FieldSchema, loc: string): void {
   if (!field.id || typeof field.id !== "string") {
     throw new SchemaParseError(`${loc}: field.id is required and must be a non-empty string`);
@@ -47,6 +63,43 @@ function assertBaseFieldShape(field: FieldSchema, loc: string): void {
   }
   if (field.saveMode !== undefined && !VALID_SAVE_MODES.has(field.saveMode)) {
     throw new SchemaParseError(`${loc}: invalid field.saveMode "${field.saveMode}"`);
+  }
+  if (field.owner !== undefined && !VALID_FIELD_OWNERS.has(field.owner)) {
+    throw new SchemaParseError(`${loc}: invalid field.owner "${field.owner}"`);
+  }
+}
+
+/**
+ * Enforces the offer/edition scope invariants — every field in a ``mixed``
+ * section must declare ``owner``; fields in single-owner sections must
+ * either omit ``owner`` or match the section scope. This guards at load
+ * time so a page cannot mount a schema where the runtime would not know
+ * where to dispatch a save.
+ */
+function validateScopeOwnership(schema: SectionSchema, context: string): void {
+  const { scope } = schema;
+  if (scope === undefined) return;
+
+  if (scope === "mixed") {
+    const unowned = schema.fields.filter((f) => f.owner === undefined);
+    if (unowned.length > 0) {
+      const ids = unowned.map((f) => `"${f.id}"`).join(", ");
+      throw new SchemaParseError(
+        `${context}: mixed scope requires every field to declare owner; missing on ${ids}`,
+      );
+    }
+    return;
+  }
+
+  const expectedOwner: FieldOwner = scope === "offer_level" ? "offer" : "edition";
+  const mismatched = schema.fields.filter(
+    (f) => f.owner !== undefined && f.owner !== expectedOwner,
+  );
+  if (mismatched.length > 0) {
+    const ids = mismatched.map((f) => `"${f.id}" (owner="${f.owner}")`).join(", ");
+    throw new SchemaParseError(
+      `${context}: section scope "${scope}" expects owner="${expectedOwner}"; mismatched fields ${ids}`,
+    );
   }
 }
 
@@ -123,12 +176,16 @@ export function parseSectionSchema(schema: SectionSchema): SectionSchema {
   if (!Array.isArray(schema.fields) || schema.fields.length === 0) {
     throw new SchemaParseError(`[${schema.key}]: schema must declare at least one field`);
   }
+  if (schema.scope !== undefined && !VALID_SECTION_SCOPES.has(schema.scope)) {
+    throw new SchemaParseError(`[${schema.key}]: invalid schema.scope "${schema.scope}"`);
+  }
 
   const context = `[${schema.key}]`;
   assertUniqueIds(schema.fields, context);
   for (const field of schema.fields) {
     validateField(field, context);
   }
+  validateScopeOwnership(schema, context);
 
   return schema;
 }
