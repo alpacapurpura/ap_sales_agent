@@ -333,17 +333,29 @@ Backend work lives under `backend/src/modules/copilot/application/tools/`; front
 
 ## 7. Status (UPDATE WITH EVERY COMMIT)
 
-Last updated: **2026-04-17 — Sprint 1 COMPLETE. Scaffold in-tree; App Router still serves old brand. Awaiting user architectural-review checkpoint before Sprint 2.**
+Last updated: **2026-04-18 — Sprint 5 COMPLETE. features/brand/ deleted; brand-studio is the only brand surface. Next: Sprint 2.D (backend + frontend data-model purge).**
 
 | Sprint | State | Last commit | Quality gates |
 |---|---|---|---|
 | Sprint 0 — Specs | ✅ Complete | `e06b7726` | n/a (no code) |
 | Sprint 1 — Full scaffold | ✅ Complete + debt-cleaned + pushed | `56b6cfbf` | tsc 0 errors · eslint 0 errors / 4587 warnings · vitest 1247 tests / 152 files all green · 10 arch tests green |
 | Sprint 2 — URL-driven runtime + 7 survivor ports + PersonaDetail | ✅ Complete + pushed | `bf4bcef8` | tsc 0 errors · eslint 0 errors · vitest 1283 tests (+36) · 10 arch tests green · build-storybook green |
-| Sprint 2.D — Data model purge (parallel track) | Planned (§5bis) | — | — |
+| Sprint 2.D — Data model purge (parallel track) | In progress (§5bis) | — | — |
 | Sprint 3 — App router flip + route-per-field tree | ✅ Complete + pushed | `3d45858b` | tsc 0 errors · eslint 0 errors · vitest 1287 tests (+4) · 10 arch tests green · build-storybook green |
 | Sprint 4 — Copilot refactor + 5 extraction tools | Planned (§5, expanded) | — | — |
-| Sprint 5 — Delete old brand | Not started | — | — |
+| Sprint 5 — Delete old brand + offer-studio import migration | ✅ Complete + pushed | `8a0729f5` | tsc 0 errors · eslint 0 errors / 3595 warnings · vitest 1221 tests / 156 files · 10 arch tests green · build-storybook green |
+| Sprint 6 — Offer-studio editor → form-runtime (route-per-field) | Planned (new — user directive 2026-04-18: aplicación unificada a nivel de UX URL+campo) | — | — |
+
+**Sprint 5 commits (7):**
+- `54d4ab74` feat(brand-studio): port business-types components (S5.1)
+- `668c37d2` feat(brand-studio): port legacy TeamManager adapter (S5.2)
+- `7c0861eb` refactor(offer-studio): migrate brand imports to brand-studio (S5.3)
+- `e9341681` chore(offer-studio): remove useAutoSave shim (S5.4)
+- `0fdec609` chore(copilot): remove brand + buyer_persona preview registry entries (S5.5)
+- `8848ab20` chore(brand): delete features/brand/ after brand-studio migration (S5.6)
+- `8a0729f5` chore(design-system): sync feature registry with brand removal (S5.7)
+
+Sprint 5 took 8 commits (one scope adjustment along the way). 116 files + 17,466 lines removed from frontend/src/features/brand/. Warning baseline dropped from ~4924 → 3595 (-1329). 66 tests retired with the deleted feature; brand-studio + offer-studio + copilot retained all their coverage.
 
 **Sprint 1 commits (11):**
 - `6a241f20` form-runtime schema types + parser (S1.1)

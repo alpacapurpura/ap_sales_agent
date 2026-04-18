@@ -51,6 +51,18 @@ Compact notes per sprint, for future developers picking up the work. No verbosit
 - **Keep external-linked routes alive with stub content.** `/avatars/[id]/edit` is linked from offer-studio — deleting would 404 their flow. Swap the import to a brand-studio stub; fix the real UX in the next persona iteration. Zero-break migration.
 - **`next build` has a pre-existing standalone+Pages-Router-404 conflict.** Gate Sprint 3 on tsc + eslint + vitest + build-storybook; skip `next build` until that bug resolves (tracked in memory `project_nextjs_build_bug`).
 
+## Sprint 5 (delete features/brand/ + offer-studio import migration)
+
+- **Dynamic imports don't block tsc until you reference the module.** `interview-preview-registry.ts` has `import("@/features/brand/...")` strings. Until they resolve at runtime, the TS checker doesn't fail — but the lazy loader does. Fix path: shrink the registry (drop brand + buyer_persona entries) BEFORE deleting brand/, so the static `PREVIEW_REGISTRY` map no longer references missing modules. Order matters: registry shrink first, then `rm -rf features/brand/`.
+- **Ported "legacy" components should use PascalCase filenames even when the source used kebab-case.** brand-studio's component layer enforces PascalCase for `.tsx` component files (check-file plugin). Ports must rename as they move — `team-manager.tsx` → `TeamManager.tsx`.
+- **Strip WithCopilot on port if the component will stop being a copilot focus surface.** Legacy TeamMemberForm lost its two WithCopilot wrappers because it's embedded in a dialog inside offer-studio (no section context to feed copilot). This also gets WithCopilot to zero consumers earlier, unblocking Sprint 4c.
+- **Deprecation comments in code > docs-only notes.** Every file in `brand-studio/components/legacy-team/` starts with a "delete when Sprint 6 refactors offer-studio" header comment. Future engineers see the expiration date without having to find a separate doc.
+- **Registry-as-metadata still needs to stay in sync.** `lib/design-system/registry-features.ts` catalogs components for the design-system tooling. Dead entries surface in audits and mislead future consumers — purge them in the same sprint as the file deletion, not later.
+- **The "expand delete" trap.** Sprint 5's stated scope was "delete brand/". The correct execution actually required: (1) porting 3 business-types components + 4 legacy-team components to brand-studio first; (2) rewiring 7 offer-studio imports; (3) removing the useAutoSave shim. Skipping (1-3) would have left tsc broken immediately after `rm -rf`. Plan for the ripple, not just the delete.
+- **`tsc --noEmit` is the fastest smoke test.** After the 17,466-line deletion it took 3 seconds to confirm the world still type-checked. Run it after every batch of changes, not just at the end.
+- **Keep `placeholders.tsx` in brand-studio/actions/ alive.** Per PLAN Sprint 2 exit it was supposed to die by now, but Sprint 4d-h (copilot tools) will substitute those 6 remaining placeholder actions. Deleting the file prematurely would force re-inventing the registry during Sprint 4.
+- **Tests for ported components: add a single smoke test rather than a full port.** The original brand/ business-types/ had zero tests. Adding the minimum smoke test on the brand-studio port (3 cases: loading / populated / onChange) is low-cost regression insurance without writing the tests the legacy never had.
+
 ## Patterns every future action port follows
 
 1. **One file per action**; one test file next to it; one story file under `stories/`.
