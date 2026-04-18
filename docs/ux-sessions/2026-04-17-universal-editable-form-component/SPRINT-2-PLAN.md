@@ -66,7 +66,7 @@ Action: <name>
 Source (old): features/brand/<path>/<file>.tsx
 Target (new): features/brand-studio/actions/<Name>Action.tsx
 Registry key: <kebab-key>
-Harness file: features/brand-studio/actions/<Name>Action.harness.tsx
+Story file: features/brand-studio/actions/stories/<Name>Action.stories.tsx
 
 Contract compliance
 - [ ] Signature matches ActionComponent<TValue>: { value, onChange, props? }
@@ -96,13 +96,15 @@ Tests
 - [ ] Debounce assertions use vi.useFakeTimers + flushMicrotasks helper
 - [ ] Action-specific edge cases covered (upload failure, empty input, invalid URL, etc.)
 
-Harness
-- [ ] Colocated harness file: actions/<Name>Action.harness.tsx
-- [ ] At least `default` and `populated` scenarios
-- [ ] If async/loading state exists: `loading` scenario
-- [ ] If failure state exists: `error` scenario
-- [ ] Harness registered in features/brand-studio/actions/harness.ts barrel
-- [ ] /dev/form-runtime/<key> renders without errors; ScenarioPicker switches all scenarios
+Storybook
+- [ ] Colocated story file: actions/stories/<Name>Action.stories.tsx
+- [ ] `title: "Form Runtime/Actions/<Name>"` (matches §2bis.1 convention)
+- [ ] Exports at minimum `Default` + `Populated`; add `Loading` and `Error` if the action has those states
+- [ ] Story `args` expose `value` + any `props` via Controls panel
+- [ ] `onChange` routed to Storybook Actions panel (args.onChange via `fn()` from `@storybook/test`)
+- [ ] `tags: ["autodocs"]` set (auto-generates component docs from TS props)
+- [ ] `npm run storybook` → story renders, no console errors, no a11y violations flagged
+- [ ] `npm run build-storybook` still succeeds (no story breaks prod build)
 - [ ] Screenshot attached to checkpoint commits (CP-2A..CP-2F only)
 
 Bootstrap
@@ -131,64 +133,42 @@ Debt log
 
 ---
 
-## 2bis. Sprint 2.0 — Harness infrastructure (FIRST commit of Sprint 2)
+## 2bis. Sprint 2.0 — Storybook baseline (FIRST commit block of Sprint 2)
 
-**Rationale:** user wants a sellable, architecturally prolija, self-documenting system. The form-runtime ships with a built-in component catalog that IS part of the architecture, not an external tool. Every action declares its scenarios in a colocated `.harness.tsx` file (same pattern as `.test.tsx`). A dev-only App Router route mounts the gallery. This:
+**Tooling already in place.** `@storybook/nextjs-vite` 10.3.4 with `addon-a11y` + `addon-themes` is installed and operative. Existing molecule stories (`src/stories/molecules/{Dialog,Sheet,AlertDialog,Calendar,DropdownMenu}.stories.tsx`) prove the config works with the `@/` alias. Storybook picks up `src/**/*.stories.@(ts|tsx)` automatically.
 
-- Provides deterministic visual verification for every checkpoint.
-- Scales 1:1 to offer-studio, buyer-persona-studio and future form-runtime consumers.
-- Adds zero new dependencies; uses existing Next.js routing and Tailwind.
-- Cannot leak to production (route returns `notFound()` when `NODE_ENV === "production"`).
-- Doubles as living documentation — a new engineer opens `/dev/form-runtime` and sees every action with its scenarios in one click.
+**Decision:** use Storybook as the single source of truth for visual verification and checkpoints. Stories are **colocated** with the source file (not segregated in `src/stories/`) — the same pattern `.test.tsx` already follows. Existing segregated stories in `src/stories/molecules/` remain as-is; new stories ship colocated.
 
-### 2bis.1 — `lib/form-runtime/harness/`
+### 2bis.1 — Story title convention + boot smoke
 
-- [ ] `types.ts` — `ActionScenario<TValue>`, `ActionHarness<TValue>`, `HarnessFixtureProps`
-- [ ] `registry.ts` — `registerHarness(harness)`, `getHarness(key)`, `listHarnesses()` (in-memory, TS-typed)
-- [ ] `index.ts` — public barrel
-- [ ] `__tests__/registry.test.ts` — TDD: register / retrieve / list / clear, 4 cases minimum
-- [ ] 0 ESLint errors, 0 TS errors, tests green
-- [ ] Commit: `feat(form-runtime): harness primitive (types + registry) (Sprint 2.0a)`
+- [ ] Verify `npm run storybook` boots without errors and the existing `Molecules/Dialog` story renders. No code change yet.
+- [ ] Agree the title hierarchy (written into `src/stories/README.md` as the SSOT):
+  - `Molecules/<Component>` — existing shadcn molecules (unchanged)
+  - `Form Runtime/Inputs/<Name>` — form-runtime input components (Sprint 3+ opportunity, not required in Sprint 2)
+  - `Form Runtime/Actions/<Name>` — brand-studio actions (this sprint's work)
+  - `Brand Studio/Pages/<Name>` — page-level stories (Sprint 3 opportunity)
+- [ ] Decide on a `play` convention for interaction testing: stories that exercise onChange/onClick include a `play` function using `@storybook/test` so the story doubles as a smoke test runnable via Vitest through `@storybook/addon-vitest` (if available) or `build-storybook` output.
+- [ ] Commit: `docs(storybook): adopt colocation + title hierarchy for form-runtime`
 
-### 2bis.2 — `components/form-runtime/harness/`
+### 2bis.2 — Baseline placeholder stories (13 files)
 
-- [ ] `HarnessGallery.tsx` — lists every registered harness with action key + scenario count; links to per-action page
-- [ ] `HarnessStage.tsx` — mounts one action with one scenario; renders `<component {...scenario.props} />` inside a controlled `FormRuntimeProvider`-compatible shell so scenarios can exercise context-dependent behaviour
-- [ ] `ScenarioPicker.tsx` — toggle between scenarios for the active action
-- [ ] `HarnessValueInspector.tsx` — live-displays the current `value` state as JSON (so the observer confirms onChange wiring is intact)
-- [ ] `index.ts` — barrel
-- [ ] `__tests__/HarnessGallery.test.tsx` + `__tests__/HarnessStage.test.tsx` — minimum 3 tests each
-- [ ] 0 ESLint errors, 0 TS errors
-- [ ] Commit: `feat(form-runtime): harness UI (Gallery, Stage, ScenarioPicker) (Sprint 2.0b)`
+Before touching any real action, add one `<Name>ActionPlaceholder.stories.tsx` per registered key, colocated in `features/brand-studio/actions/`. Each file declares **one** story (`Default`) that renders the current placeholder component. Purpose: the Storybook sidebar shows the full 13-slot catalog from day zero, and every subsequent action port replaces that file with the real version.
 
-### 2bis.3 — Dev-only App Router route
+- [ ] Create `features/brand-studio/actions/stories/` directory (keeps stories visible but not mixed with runtime code; test files still live in `__tests__/`)
+- [ ] One `.stories.tsx` per placeholder (13 files, ~15 lines each)
+- [ ] Each story passes `value` + `onChange` via Storybook `args` so the Controls panel is exercised (validates that action contracts are Storybook-friendly before Sprint 2.1)
+- [ ] `npm run build-storybook` must succeed (SSR and prod-build stability for Storybook)
+- [ ] Commit: `docs(storybook): baseline placeholder stories for 13 brand-studio actions`
 
-- [ ] `app/(dev)/layout.tsx` — guards: if `process.env.NODE_ENV === "production"` → `notFound()`. Mounts `FormRuntimeProvider` in a neutral schema so context-hungry actions don't crash
-- [ ] `app/(dev)/dev/form-runtime/page.tsx` — mounts `<HarnessGallery />`
-- [ ] `app/(dev)/dev/form-runtime/[actionKey]/page.tsx` — mounts `<HarnessStage actionKey={params.actionKey} />`
-- [ ] `app/(dev)/dev/form-runtime/layout.tsx` — sidebar with all action keys (static list from registry), main pane = children
-- [ ] Imports `features/brand-studio/actions/harness` for side-effect registration (mirrors how schemas/index.ts bootstraps actions/registry — one central module consolidates every `.harness.tsx`)
-- [ ] `features/brand-studio/actions/harness.ts` — barrel that imports every `<Name>Action.harness.tsx` file so its `registerHarness()` side-effect runs
-- [ ] Verify SSR: `npx next dev` → `/dev/form-runtime` renders without hydration errors
-- [ ] Verify prod guard: `NODE_ENV=production npx next build && npx next start` → `/dev/form-runtime` returns 404
-- [ ] 0 ESLint errors, 0 TS errors, 0 new warnings
-- [ ] Commit: `feat(form-runtime): dev-only harness route with prod guard (Sprint 2.0c)`
+### 2bis.3 — Exit criteria for Sprint 2.0
 
-### 2bis.4 — Baseline harness for placeholders
-
-- [ ] Before porting any real action, add `.harness.tsx` files for every current placeholder (13 files, each ~10 lines). Each harness declares a single "placeholder" scenario so the gallery shows the full catalog from day zero.
-- [ ] This guarantees the route and registry are exercised before the first real action lands.
-- [ ] Commit: `feat(brand-studio): baseline harness files for 13 placeholders (Sprint 2.0d)`
-
-### 2bis.5 — Exit criteria for Sprint 2.0
-
-- [ ] `tsc --noEmit` → 0 errors.
-- [ ] `eslint src/` → 0 errors; new warnings ≤ 0.
-- [ ] `vitest run` → baseline + ≥12 new tests green.
-- [ ] `npx next build` succeeds.
-- [ ] `/dev/form-runtime` loads in dev, returns 404 in prod.
-- [ ] Arch fitness → 10/10. If the new `app/(dev)` or `lib/form-runtime/harness` folders need allowlist entries, they're added in this sprint with an explicit comment.
-- [ ] Sprint 2.0 checkpoint: user opens `/dev/form-runtime` in dev and sees 13 placeholder cards — confirms the catalog works before Sprint 2.1 begins.
+- [ ] `npm run storybook` boots cleanly; `Form Runtime/Actions` tree has 13 entries.
+- [ ] `npm run build-storybook` succeeds; generated `storybook-static/` does not break on any new story.
+- [ ] `npx tsc --noEmit` → 0 errors.
+- [ ] `eslint src/features/brand-studio/actions/stories/` → 0 errors.
+- [ ] `vitest run` → 1247 baseline tests still green (stories don't run in vitest; they don't affect the test count yet).
+- [ ] Arch fitness → 10/10. No new allowlist entries required (colocated stories live under `features/brand-studio/actions/stories/`, still inside an allowlisted feature folder).
+- [ ] User checkpoint Sprint-2.0: user opens Storybook locally, navigates `Form Runtime/Actions`, confirms 13 placeholder stories render and the Controls panel is usable. This unblocks Sprint 2.1.
 
 ---
 
@@ -242,26 +222,27 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 
 ---
 
-## 5. Dev harness for checkpoints — DECIDED
+## 5. Storybook for checkpoints — DECIDED
 
-Visual validation runs against the **embedded form-runtime harness** built in Sprint 2.0. For every checkpoint CP-2A … CP-2F:
+Visual validation runs against **Storybook**, already installed and operative in the project (`@storybook/nextjs-vite@10.3.4` with addon-a11y + addon-themes). For every checkpoint CP-2A … CP-2F:
 
-1. User opens `/dev/form-runtime/<action-key>` in local dev.
-2. User cycles through every declared scenario via the ScenarioPicker.
-3. User confirms visual state + interaction via the live `HarnessValueInspector`.
-4. Action owner screenshots one scenario per checkpoint into the commit message body for future review.
+1. User runs `npm run storybook` locally.
+2. User opens `Form Runtime/Actions/<ActionName>` in the sidebar.
+3. User cycles every exported story (`Default`, `Populated`, `Loading`, `Error`) via the sidebar.
+4. User uses the Controls panel to mutate `args` and confirms `onChange` wiring via the Actions panel (Storybook's built-in event logger).
+5. Action owner screenshots one story per checkpoint into the commit message body.
 
-For the six checkpointed actions, every `<Name>Action.harness.tsx` MUST include at minimum:
-- `default` — empty/pristine state
-- `populated` — with a realistic fixture value
-- `loading` — during async work (if applicable)
-- `error` — with an error message surfaced (if applicable)
+For the six checkpointed actions, every `<Name>Action.stories.tsx` MUST export at minimum:
+- `Default` — empty/pristine state
+- `Populated` — with a realistic fixture value
+- `Loading` — during async work (if applicable)
+- `Error` — with an error message surfaced (if applicable)
 
-The batched (non-checkpointed) actions add at least `default` + `populated`.
+The batched (non-checkpointed) actions export at least `Default` + `Populated`.
 
-**Why not Storybook:** setup cost (2–3 hours) + brittleness on Next 16 + Tailwind CSS v4 outweigh the marginal benefit. If the project later needs an external-facing component docs site, harness files map 1:1 to Storybook stories — the port is mechanical.
+**Why Storybook over a custom harness:** Storybook is already configured, the existing `src/stories/molecules/` stories prove the setup is stable on the project's Next 16 + Vite + Tailwind v4 + shadcn stack, and building our own harness would duplicate an industry-standard tool for zero benefit. The `@storybook/addon-a11y` in the installed config surfaces accessibility regressions per story — a quality bar a custom harness would not deliver.
 
-**Why not dev-server navigation of production routes:** App Router still serves old brand/ until Sprint 3. Navigating real routes would not exercise the new action at all. The harness is the only deterministic option before Sprint 3.
+**Why not dev-server navigation of production routes:** App Router still serves old brand/ until Sprint 3. Navigating real routes would not exercise the new action at all. Storybook is the only deterministic option before Sprint 3.
 
 ---
 
@@ -269,21 +250,22 @@ The batched (non-checkpointed) actions add at least `default` + `populated`.
 
 All of the following must be true to close Sprint 2:
 
-- [ ] Sprint 2.0 (harness infrastructure) complete and user-approved.
+- [ ] Sprint 2.0 (Storybook baseline) complete and user-approved.
 - [ ] `features/brand-studio/actions/placeholders.tsx` deleted (no exports remain).
 - [ ] `features/brand-studio/actions/registry.ts#PLACEHOLDERS` map references real components for all 13 keys.
 - [ ] Every action has at least 3 Vitest tests: happy path, edge case, failure.
-- [ ] Every action has a `.harness.tsx` file registered in the dev catalog with its scenarios.
+- [ ] Every action has a colocated `<Name>Action.stories.tsx` with at least `Default` + `Populated` (and `Loading`/`Error` where applicable).
 - [ ] `tsc --noEmit` → 0 errors.
 - [ ] `eslint src/` → 0 errors; total warnings ≤ baseline from Sprint 1.
 - [ ] `vitest run` → baseline (1247) + ~50 new tests all green.
-- [ ] `npx next build` succeeds (SSR stability check).
+- [ ] `npx next build` succeeds (SSR stability check for pages that use schemas/actions).
+- [ ] `npm run build-storybook` succeeds (Storybook production bundle builds with all new stories).
 - [ ] Arch fitness → 10/10 green.
 - [ ] PLAN.md Status table updated.
 - [ ] All commits pushed to origin/development.
 - [ ] User checkpoints signed off: Sprint-2.0 + CP-2A, CP-2B, CP-2C, CP-2D, CP-2E, CP-2F.
 - [ ] No entries in §7 Scope Creep log.
-- [ ] `/dev/form-runtime` shows 13 real action cards (0 placeholders) and all scenarios render without errors.
+- [ ] Storybook `Form Runtime/Actions` tree shows 13 real action entries (0 placeholder labels), each with ≥2 stories rendering without console errors or a11y violations.
 
 ---
 
