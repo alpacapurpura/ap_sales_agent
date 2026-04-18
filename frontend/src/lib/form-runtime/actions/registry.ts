@@ -8,7 +8,7 @@
  * responsible for its own UI. The runtime does not introspect inside.
  */
 
-import type { ComponentType, ReactNode } from "react";
+import type { ComponentType } from "react";
 
 export interface ActionComponentProps<TValue = unknown, TProps = Record<string, unknown>> {
   value: TValue;
@@ -18,8 +18,7 @@ export interface ActionComponentProps<TValue = unknown, TProps = Record<string, 
 
 export type ActionComponent<TValue = unknown, TProps = Record<string, unknown>> = ComponentType<
   ActionComponentProps<TValue, TProps>
-> &
-  ((...args: never[]) => ReactNode);
+>;
 
 const registry = new Map<string, ActionComponent>();
 
