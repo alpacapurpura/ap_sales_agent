@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 import { reportCopilotEvent } from "../../api/copilot-api";
+import { useCopilotStore } from "../../store/copilot-store";
 
 interface MultiOptionSelectorProps {
   options: { id: string; title: string; content: string }[];
@@ -25,11 +26,12 @@ export function MultiOptionSelector({ options, fieldId }: MultiOptionSelectorPro
     const selected = options.find((o) => o.id === selectedId);
     if (!selected) return;
 
-    window.dispatchEvent(
-      new CustomEvent("copilot:field-update", {
-        detail: { fieldId, newValue: selected.content },
-      }),
-    );
+    const bridge = useCopilotStore.getState().activeBridge;
+    const snap = bridge?.getSnapshot();
+    const field = snap?.schema.fields.find((f) => f.id === fieldId);
+    if (bridge && field) {
+      void bridge.patchField(field.path, selected.content);
+    }
     setStatus("applied");
     void getToken().then((token) => {
       if (token) {

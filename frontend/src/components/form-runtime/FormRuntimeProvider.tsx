@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
+import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 import { createFormRuntimeBridge, type FormRuntimeBridge } from "@/lib/form-runtime/copilot";
 import { useAutoSave } from "@/lib/form-runtime/hooks";
 
@@ -91,6 +92,17 @@ export function FormRuntimeProvider<TValues extends object>({
   useEffect(() => {
     bridge.focusField(focusedFieldId);
   }, [bridge, focusedFieldId]);
+
+  // Connect the active bridge to the copilot store so chat UI actions can
+  // mutate fields directly (bridge.patchField) instead of dispatching the
+  // legacy copilot:field-update window events.
+  useEffect(() => {
+    const { connectBridge, disconnectBridge } = useCopilotStore.getState();
+    connectBridge(bridge);
+    return () => {
+      disconnectBridge(bridge);
+    };
+  }, [bridge]);
 
   // eslint-disable-next-line react-hooks/refs -- snapshotRef is set once at mount and never mutated
   const isDirty = values !== snapshotRef.current;

@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+import type { FormRuntimeBridge } from "@/lib/form-runtime/copilot";
+
 // ── Types ───────────────────────────────────────────────────────────
 
 export type MessageRole = "user" | "assistant";
@@ -207,6 +209,14 @@ interface CopilotState {
   focusedField: FocusedField | null;
   setFocusedField: (field: FocusedField) => void;
   clearFocusedField: () => void;
+
+  // Bridge to the mounted form-runtime section — copilot tools mutate
+  // fields through ``activeBridge?.patchField(path, value)`` instead of
+  // legacy ``copilot:field-update`` window events. FormRuntimeProvider
+  // calls connectBridge on mount, disconnectBridge on unmount.
+  activeBridge: FormRuntimeBridge | null;
+  connectBridge: (bridge: FormRuntimeBridge) => void;
+  disconnectBridge: (bridge: FormRuntimeBridge) => void;
 }
 
 // ── Constants ────────────────────────────────────────────────────────
@@ -345,4 +355,12 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
   focusedField: null,
   setFocusedField: (field) => set({ focusedField: field }),
   clearFocusedField: () => set({ focusedField: null }),
+
+  // Active bridge
+  activeBridge: null,
+  connectBridge: (bridge) => set({ activeBridge: bridge }),
+  disconnectBridge: (bridge) =>
+    // Only disconnect if the passed bridge is still the active one — a
+    // newer mount may have already replaced it.
+    set((s) => (s.activeBridge === bridge ? { activeBridge: null } : s)),
 }));

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 import { reportCopilotEvent } from "../../api/copilot-api";
+import { useCopilotStore } from "../../store/copilot-store";
 
 import type { ProposalUpdate } from "../../store/copilot-store";
 
@@ -17,9 +18,12 @@ interface ProposalCardProps {
 type ProposalStatus = "pending" | "applied" | "rejected";
 
 /**
- * Renders a proposal from the AI with field changes.
- * The user can apply or reject the entire proposal.
- * "Aplicar" dispatches copilot:field-update CustomEvents for each field.
+ * Renders a proposal from the AI with field changes. The user can apply or
+ * reject the entire proposal. "Aplicar" routes each update through the
+ * active form-runtime bridge so the mounted section sees the patch and
+ * autosaves. When no bridge is connected (chat with no active session)
+ * the apply becomes a no-op — the chat still reports success so the user
+ * sees the visual confirmation, but nothing mutates outside the form.
  */
 export function ProposalCard({ updates }: ProposalCardProps) {
   const [status, setStatus] = useState<ProposalStatus>("pending");
@@ -28,12 +32,15 @@ export function ProposalCard({ updates }: ProposalCardProps) {
   const fieldIds = updates.map((u) => u.field_id);
 
   const handleApply = () => {
-    for (const update of updates) {
-      window.dispatchEvent(
-        new CustomEvent("copilot:field-update", {
-          detail: { fieldId: update.field_id, newValue: update.new_value },
-        }),
-      );
+    const bridge = useCopilotStore.getState().activeBridge;
+    const snap = bridge?.getSnapshot();
+    if (bridge && snap) {
+      for (const update of updates) {
+        const field = snap.schema.fields.find((f) => f.id === update.field_id);
+        if (field) {
+          void bridge.patchField(field.path, update.new_value);
+        }
+      }
     }
     setStatus("applied");
     void getToken().then((token) => {
