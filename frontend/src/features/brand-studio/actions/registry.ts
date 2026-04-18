@@ -5,9 +5,9 @@
  * points each key at a placeholder; Sprint 2 replaces each entry with the
  * real ported component via `registerAction(key, Real, { override: true })`.
  *
- * Side-effect import: features/brand-studio/pages/* should import this module
- * once at the top so the registry is populated before any schema renders a
- * custom field.
+ * Side-effect import: features/brand-studio/schemas/index.ts imports this
+ * module once so every page that consumes a schema gets the registry
+ * populated transitively — no per-page side-effect imports required.
  */
 import { hasAction, registerAction, type ActionComponent } from "@/lib/form-runtime/actions";
 
@@ -20,11 +20,11 @@ import {
   LogoKitPlaceholder,
   OnboardingWizardPlaceholder,
   PersonalityClonePlaceholder,
-  SingleImagePickerPlaceholder,
   SmartFillDialogPlaceholder,
   VoiceClonePlaceholder,
 } from "./placeholders";
 import { PresetCatalogAction } from "./PresetCatalogAction";
+import { SingleImagePickerAction } from "./SingleImagePickerAction";
 import { ThemeInjectorAction } from "./ThemeInjectorAction";
 
 export const BRAND_STUDIO_ACTION_KEYS = [
@@ -45,13 +45,23 @@ export const BRAND_STUDIO_ACTION_KEYS = [
 
 export type BrandStudioActionKey = (typeof BRAND_STUDIO_ACTION_KEYS)[number];
 
-const PLACEHOLDERS: Readonly<Record<BrandStudioActionKey, ActionComponent>> = {
+/**
+ * Current component each key resolves to. Some are real ported actions,
+ * the rest are placeholders pending port (Sprint 2.x) or migration to
+ * copilot tools (Sprint 4).
+ *
+ * The `as unknown as ActionComponent` cast is required where the action
+ * has a narrower TValue than the registry's generic default — TypeScript
+ * treats `ActionComponent<string>` as non-assignable to
+ * `ActionComponent<unknown>` due to function-parameter variance.
+ */
+const REGISTRY_ENTRIES: Readonly<Record<BrandStudioActionKey, ActionComponent>> = {
   "voice-clone": VoiceClonePlaceholder,
   "personality-clone": PersonalityClonePlaceholder,
   "personality-dimensions": DimensionSlidersPlaceholder,
   "personality-presets": PresetCatalogAction as unknown as ActionComponent,
   "brand-visuals-wizard": BrandVisualsWizardPlaceholder,
-  "single-image": SingleImagePickerPlaceholder,
+  "single-image": SingleImagePickerAction as unknown as ActionComponent,
   "theme-injector": ThemeInjectorAction,
   "logo-kit": LogoKitPlaceholder,
   "image-gallery": ImageGalleryPickerPlaceholder,
@@ -69,7 +79,7 @@ const PLACEHOLDERS: Readonly<Record<BrandStudioActionKey, ActionComponent>> = {
 export function bootstrapBrandStudioActions(): void {
   for (const key of BRAND_STUDIO_ACTION_KEYS) {
     if (hasAction(key)) continue;
-    registerAction(key, PLACEHOLDERS[key]);
+    registerAction(key, REGISTRY_ENTRIES[key]);
   }
 }
 
