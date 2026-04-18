@@ -152,7 +152,7 @@ BEFORE:                              AFTER:
 ## Prototype Reference
 
 - **Preview URL:** `http://localhost:8888`
-- **Preview directory:** `/tmp/nicolify-flow-preview/`
+- **Preview directory:** `./prototype/` (inside this session folder — `docs/ux-sessions/{YYYY-MM-DD}-{slug}/prototype/`)
 - **Pages:**
 
 | File | Represents Route | Journey(s) |
@@ -188,11 +188,21 @@ Effort: Variable. UX polish layer.
 
 ## Delta UI-SPECs Generated
 
+All paths are relative to this session folder (`docs/ux-sessions/{YYYY-MM-DD}-{slug}/`).
+
 | File | Scope | Status |
 |------|-------|--------|
-| `docs/ui-specs/UI-SPEC-sidebar-restructure.md` | Sidebar navigation changes | Ready |
-| `docs/ui-specs/UI-SPEC-dashboard-home.md` | New dashboard home page | Requires `ux-disruptivo` design |
+| `UI-SPEC-sidebar-restructure.md` | Sidebar navigation changes | Ready |
+| `UI-SPEC-dashboard-home.md` | New dashboard home page | Requires `ux-disruptivo` design |
 | [path] | [scope] | [status] |
+
+## Companion Files (same session folder)
+
+| File | Purpose |
+|------|---------|
+| `PLAN.md` | Phased implementation order, files to touch, acceptance criteria |
+| `DECISIONS.md` | Accepted/rejected proposals, trade-offs, user dismissals |
+| `prototype/` | Clickable HTML prototype (served on `localhost:8888`) |
 ```
 
 ---
