@@ -65,7 +65,7 @@ Every new story file MUST:
 
 1. Import types from `@storybook/nextjs-vite`.
 2. Declare a `meta` object with `title`, `component`, and `tags: ["autodocs"]`.
-3. Route user-facing callbacks (`onChange`, `onClick`, `onSave`) through `fn()` from `@storybook/test` so they surface in the Actions panel.
+3. Route user-facing callbacks (`onChange`, `onClick`, `onSave`) through `fn()` from `storybook/test` so they surface in the Actions panel.
 4. Expose every meaningful prop in `argTypes` when the default Controls inference is wrong.
 5. Keep `args` fixtures realistic (not `"test"` or `"lorem"`).
 
@@ -81,7 +81,7 @@ Every new story file MUST:
 ### Reference template
 
 ```tsx
-import { fn } from "@storybook/test";
+import { fn } from "storybook/test";
 
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 

@@ -4,12 +4,12 @@ import { useAuth } from "@clerk/nextjs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 
-import { useAutoSave } from "@/lib/form-runtime/hooks";
 import {
   buyerPersonaApi,
   type BuyerPersona,
   type BuyerPersonaSectionUpdateDTO,
 } from "@/lib/api/buyer-persona";
+import { useAutoSave } from "@/lib/form-runtime/hooks";
 
 const PERSONA_AUTOSAVE_DELAY_MS = 1500;
 

@@ -1,6 +1,16 @@
-export { EsenciaPage } from "./EsenciaPage";
-export { EstrategiaPage } from "./EstrategiaPage";
-export { IdentidadCreativaPage } from "./IdentidadCreativaPage";
-export { PublicoPage } from "./PublicoPage";
+export { SectionPage, type SectionPageProps } from "./SectionPage";
+export {
+  IdentityPage,
+  VisualsPage,
+  TeamPage,
+  ContactPage,
+  MethodologyPage,
+  StoryPage,
+  TestimonialsPage,
+  PositioningPage,
+  NarrativePage,
+  CommunicationAssetsPage,
+  AuthorityPage,
+} from "./section-pages";
 export { PersonaDetailPage } from "./PersonaDetailPage";
 export { AvatarEditPage } from "./AvatarEditPage";

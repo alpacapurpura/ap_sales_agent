@@ -80,6 +80,9 @@ export const DIMENSION_LEVEL_NAMES: Record<string, string[]> = {
   verbosity: ["Telegráfico", "Conciso", "Moderado", "Detallado", "Elaborado"],
 };
 
+/**
+ *
+ */
 export function getDimensionLevelName(
   dimension: keyof PersonalityDimensions,
   value: number,

@@ -22,6 +22,9 @@ const PERSONALITY_KEYS = {
 
 // ── Presets ────────────────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export function usePersonalityPresets() {
   const { getToken } = useAuth();
   return useQuery({
@@ -40,6 +43,9 @@ export function usePersonalityPresets() {
 
 // ── Active Profile ─────────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export function useActivePersonality(tenantId: string) {
   const { getToken } = useAuth();
   return useQuery({
@@ -59,6 +65,9 @@ export function useActivePersonality(tenantId: string) {
 
 // ── Select Preset ──────────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export function useSelectPreset() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
@@ -84,6 +93,9 @@ export function useSelectPreset() {
 
 // ── Update Dimensions ──────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export function useUpdateDimensions() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
@@ -109,6 +121,9 @@ export function useUpdateDimensions() {
 
 // ── Simulate Personality ───────────────────────────────────────────────────
 
+/**
+ *
+ */
 export function useSimulatePersonality() {
   const { getToken } = useAuth();
   return useMutation({
@@ -127,6 +142,9 @@ export function useSimulatePersonality() {
 
 // ── Delete Personality ─────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export function useDeletePersonality() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

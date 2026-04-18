@@ -13,6 +13,9 @@ import {
 
 const NO_AUTH_TOKEN_ERROR = "No auth token";
 
+/**
+ *
+ */
 export function useBuyerPersonas() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

@@ -43,6 +43,9 @@ function withDefaults(data: BrandSettings): BrandSettings {
   } as BrandSettings;
 }
 
+/**
+ *
+ */
 export function useBrandSettings() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

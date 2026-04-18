@@ -3,6 +3,9 @@ import { fetchClient } from "@/lib/http-client";
 
 const API_URL = config.api.baseUrl;
 
+/**
+ *
+ */
 export async function analyzeVoiceStyle(token: string | null, formData: FormData) {
   const res = await fetchClient(`${API_URL}/api/v1/brand/style/analyze-style`, {
     method: "POST",

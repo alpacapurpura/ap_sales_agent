@@ -11,6 +11,9 @@ export type WizardStep =
   | "gap-review"
   | "interview-placeholder";
 
+/**
+ *
+ */
 export function useOnboardingWizard() {
   const router = useRouter();
   const params = useParams();
