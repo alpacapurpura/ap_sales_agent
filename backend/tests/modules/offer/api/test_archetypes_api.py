@@ -69,10 +69,23 @@ class TestSectionExposure:
         producto = next(
             item for item in resp.json()["archetypes"] if item["archetype"] == OfferArchetype.PRODUCTO.value
         )
+        required_fields = (
+            "key",
+            "label_es",
+            "subtitle_es",
+            "help_text_es",
+            "icon_name",
+            "scope",
+            "completion_weight",
+            "required_to_publish",
+        )
         for section in producto["sections"]:
-            for required in ("key", "label_es", "subtitle_es", "icon_name", "scope"):
+            for required in required_fields:
                 assert required in section, f"section missing {required}: {section}"
             assert section["scope"] in {"offer_level", "edition_level", "mixed"}
+            assert isinstance(section["completion_weight"], (int, float))
+            assert isinstance(section["required_to_publish"], bool)
+            assert section["help_text_es"]
 
     def test_experiencia_surfaces_event_details_as_edition_level(self) -> None:
         resp = _client().get("/api/v1/offer/archetypes/catalog")
@@ -94,8 +107,18 @@ class TestSectionExposure:
         assert "section_catalog" in data
         assert isinstance(data["section_catalog"], list)
         assert len(data["section_catalog"]) >= 10
+        required_fields = (
+            "key",
+            "label_es",
+            "subtitle_es",
+            "help_text_es",
+            "icon_name",
+            "scope",
+            "completion_weight",
+            "required_to_publish",
+        )
         for entry in data["section_catalog"]:
-            for required in ("key", "label_es", "subtitle_es", "icon_name", "scope"):
+            for required in required_fields:
                 assert required in entry, f"global catalog entry missing {required}: {entry}"
 
     def test_global_section_catalog_keys_are_unique(self) -> None:

@@ -53,8 +53,11 @@ class SectionMetadataDTO(BaseModel):
     key: str
     label_es: str
     subtitle_es: str
+    help_text_es: str
     icon_name: str
     scope: str  # OFFER_LEVEL | EDITION_LEVEL | MIXED — lowercase values per StrEnum.
+    completion_weight: float
+    required_to_publish: bool
 
     @classmethod
     def from_domain(cls, meta: SectionMetadata) -> SectionMetadataDTO:
@@ -63,8 +66,11 @@ class SectionMetadataDTO(BaseModel):
             key=meta.key.value,
             label_es=meta.label_es,
             subtitle_es=meta.subtitle_es,
+            help_text_es=meta.help_text_es,
             icon_name=meta.icon_name,
             scope=meta.scope.value,
+            completion_weight=meta.completion_weight,
+            required_to_publish=meta.required_to_publish,
         )
 
     @classmethod
@@ -154,7 +160,7 @@ class ArchetypeCatalogResponse(BaseModel):
 # Bump this when ``archetype_catalog.py`` OR ``section_catalog.py`` changes
 # materially. Clients use it as the cache key so old copies are evicted on
 # deploy.
-_CATALOG_VERSION = "2026-04-18"
+_CATALOG_VERSION = "2026-04-18-section-enriched"
 
 
 @router.get(
