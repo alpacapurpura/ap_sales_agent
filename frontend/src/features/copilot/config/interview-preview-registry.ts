@@ -27,19 +27,14 @@ export interface PreviewRegistryEntry {
 }
 
 // ── Static registry (lazy imports, no side-effects) ─────────────────────────
+//
+// Brand and buyer_persona entries were removed alongside the Sprint 5 deletion
+// of features/brand/: the sidebar-hosted preview pane is going away entirely
+// (see DECISIONS.md D5) so only the still-live offer flow remains listed.
+// Sprint 4c removes this registry together with CopilotPreviewPane and the
+// remaining offer preview renderers.
 
 const PREVIEW_REGISTRY: Record<string, PreviewRegistryEntry> = {
-  brand: {
-    summaryComponent: () =>
-      import("@/features/brand/components/interview/BrandPreviewSummary").then((m) => ({
-        default: m.BrandPreviewSummary,
-      })),
-    sectionsComponent: () =>
-      import("@/features/brand/components/interview/BrandPreviewSections").then((m) => ({
-        default: m.BrandPreviewSections,
-      })),
-    emptyStateMessage: "Responde las preguntas para construir tu perfil de marca.",
-  },
   offer: {
     summaryComponent: () =>
       import("@/features/offer-studio/components/interview/previews/OfferPreviewSummary").then(
@@ -50,17 +45,6 @@ const PREVIEW_REGISTRY: Record<string, PreviewRegistryEntry> = {
         (m) => ({ default: m.OfferPreviewSections }),
       ),
     emptyStateMessage: "Describe tu oferta para ver la vista previa en vivo.",
-  },
-  buyer_persona: {
-    summaryComponent: () =>
-      import("@/features/brand/components/interview/previews/PersonaPreviewSummary").then((m) => ({
-        default: m.PersonaPreviewSummary,
-      })),
-    sectionsComponent: () =>
-      import("@/features/brand/components/interview/previews/PersonaPreviewSections").then((m) => ({
-        default: m.PersonaPreviewSections,
-      })),
-    emptyStateMessage: "Comienza la entrevista para construir tu buyer persona.",
   },
 };
 
