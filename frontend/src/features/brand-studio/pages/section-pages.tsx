@@ -121,6 +121,28 @@ export const AuthorityPage = createPage<AuthorityItem[]>({
   save: (h) => h.updateVault,
 });
 
+/**
+ * Slug → page component. Consumed by the App Router catch-all at
+ * `/brand-studio/[section]/[[...fieldId]]/page.tsx` to render the matching
+ * section. Unlisted slugs → notFound(). Personality/voice/logos/avatars
+ * live outside this map (own route or custom page).
+ */
+export const SECTION_PAGE_MAP = {
+  identity: IdentityPage,
+  visuals: VisualsPage,
+  team: TeamPage,
+  contact: ContactPage,
+  methodology: MethodologyPage,
+  story: StoryPage,
+  testimonials: TestimonialsPage,
+  positioning: PositioningPage,
+  narrative: NarrativePage,
+  "communication-assets": CommunicationAssetsPage,
+  authority: AuthorityPage,
+} as const satisfies Readonly<Record<string, () => React.JSX.Element>>;
+
+export type BrandStudioSectionSlug = keyof typeof SECTION_PAGE_MAP;
+
 // ── factory ──────────────────────────────────────────────────────────────────
 
 type BrandSettingsHook = ReturnType<typeof useBrandSettings>;
