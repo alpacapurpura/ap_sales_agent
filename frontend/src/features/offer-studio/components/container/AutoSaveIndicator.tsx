@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import type { AutoSaveState } from "../../hooks/use-auto-save";
+import type { AutoSaveState } from "@/lib/form-runtime/hooks";
 
 export interface AutoSaveIndicatorProps {
   state: AutoSaveState;

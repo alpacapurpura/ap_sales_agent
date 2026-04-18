@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react";
 
-import type { AutoSaveState } from "../hooks/use-auto-save";
+import type { AutoSaveState } from "@/lib/form-runtime/hooks";
 import type { OfferCountsResponse } from "../types/counts";
 import type { Offer } from "@/features/offer-studio/types";
 
