@@ -46,7 +46,7 @@ NAVIGATION_MAP: list[AppPage] = [
     # ── Brand Studio ─────────────────────────────────────────────
     # ── Brand Studio — Esencia ────────────────────────────────────
     AppPage(
-        route_template="/{tenantId}/brand-studio/esencia",
+        route_template="/{tenantId}/brand-studio/identity",
         label="Esencia",
         module="brand",
         description="ADN de la marca: identidad, historia, personalidad, equipo, credibilidad, contacto",
@@ -91,7 +91,7 @@ NAVIGATION_MAP: list[AppPage] = [
     ),
     # ── Brand Studio — Estrategia ──────────────────────────────────
     AppPage(
-        route_template="/{tenantId}/brand-studio/estrategia",
+        route_template="/{tenantId}/brand-studio/positioning",
         label="Estrategia",
         module="brand",
         description="Plan de juego: posicionamiento, mercado, StoryBrand, metodología",
@@ -139,7 +139,7 @@ NAVIGATION_MAP: list[AppPage] = [
     ),
     # ── Brand Studio — Identidad Creativa ────────────────────────────
     AppPage(
-        route_template="/{tenantId}/brand-studio/identidad-creativa",
+        route_template="/{tenantId}/brand-studio/visuals",
         label="Identidad Creativa",
         module="brand",
         description=(

@@ -24,7 +24,7 @@ BRAND_SETUP = Procedure(
                 "Si tienes un sitio web, puedo extraer esta informacion automaticamente",
                 "Empieza por el nombre y eslogan — lo demas fluye desde ahi",
             ],
-            route_hint="brand-studio/esencia",
+            route_hint="brand-studio/identity",
         ),
         ProcedureStep(
             step_id="story",
@@ -36,7 +36,7 @@ BRAND_SETUP = Procedure(
                 "Una buena historia de marca conecta emocionalmente con tu audiencia",
                 "Piensa en que problema te motivo a crear tu negocio",
             ],
-            route_hint="brand-studio/esencia",
+            route_hint="brand-studio/story",
         ),
         ProcedureStep(
             step_id="positioning",
@@ -51,7 +51,7 @@ BRAND_SETUP = Procedure(
                 "El posicionamiento responde: por que alguien te elegiria sobre la competencia?",
                 "Puedo ayudarte a construir tu UVP basandome en tu identidad",
             ],
-            route_hint="brand-studio/estrategia",
+            route_hint="brand-studio/positioning",
         ),
         ProcedureStep(
             step_id="narrative",
@@ -63,7 +63,7 @@ BRAND_SETUP = Procedure(
                 "En StoryBrand, tu cliente es el heroe, tu eres el guia",
                 "El 'problema' tiene 3 niveles: externo, interno y filosofico",
             ],
-            route_hint="brand-studio/estrategia",
+            route_hint="brand-studio/narrative",
         ),
         ProcedureStep(
             step_id="visuals",
@@ -75,7 +75,7 @@ BRAND_SETUP = Procedure(
                 "Si tienes un sitio web, puedo extraer colores y tipografias automaticamente",
                 "Elige colores que transmitan la personalidad de tu marca",
             ],
-            route_hint="brand-studio/identidad-creativa",
+            route_hint="brand-studio/visuals",
         ),
         ProcedureStep(
             step_id="communication_assets",
@@ -87,7 +87,7 @@ BRAND_SETUP = Procedure(
                 "La voz de marca debe ser consistente en todos los canales",
                 "Define 3-5 pilares de contenido para guiar tu estrategia",
             ],
-            route_hint="brand-studio/identidad-creativa",
+            route_hint="brand-studio/communication-assets",
         ),
     ],
 )
