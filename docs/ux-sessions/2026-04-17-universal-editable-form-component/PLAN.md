@@ -339,7 +339,7 @@ Last updated: **2026-04-17 — Sprint 1 COMPLETE. Scaffold in-tree; App Router s
 |---|---|---|---|
 | Sprint 0 — Specs | ✅ Complete | `e06b7726` | n/a (no code) |
 | Sprint 1 — Full scaffold | ✅ Complete + debt-cleaned + pushed | `56b6cfbf` | tsc 0 errors · eslint 0 errors / 4587 warnings · vitest 1247 tests / 152 files all green · 10 arch tests green |
-| Sprint 2 — URL-driven runtime + 7 survivor ports + PersonaDetail | Planned (SPRINT-2-PLAN.md) | — | — |
+| Sprint 2 — URL-driven runtime + 7 survivor ports + PersonaDetail | ✅ Complete + pushed | `b41d7a02` | tsc 0 errors · eslint 0 errors · vitest 1283 tests (+36) · 10 arch tests green · build-storybook green |
 | Sprint 2.D — Data model purge (parallel track) | Planned (§5bis) | — | — |
 | Sprint 3 — App router flip | Not started | — | — |
 | Sprint 4 — Copilot refactor + 5 extraction tools | Planned (§5, expanded) | — | — |
