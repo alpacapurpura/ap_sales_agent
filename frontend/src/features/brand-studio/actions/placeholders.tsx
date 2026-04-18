@@ -3,9 +3,12 @@
 import type { ActionComponent } from "@/lib/form-runtime/actions";
 
 /**
- * Sprint 1 stubs for actions that port in Sprint 2. Each renders a visible
- * "pendiente" banner so schemas can reference them without crashing. The
- * stubs are replaced one-by-one in Sprint 2 via registerAction(..., { override: true }).
+ * Sprint 1 stubs for actions still pending port. Each renders a visible
+ * "pendiente" banner so schemas can reference them without crashing.
+ *
+ * Sprint 2 replaces placeholders one-by-one (ported actions register in
+ * registry.ts with { override: true }). The file shrinks as Sprint 2
+ * progresses; Sprint 5 deletes it entirely once every action is live.
  */
 function makePlaceholder(label: string): ActionComponent {
   function Placeholder() {
@@ -22,10 +25,8 @@ function makePlaceholder(label: string): ActionComponent {
 export const VoiceClonePlaceholder = makePlaceholder("Clonación de voz");
 export const PersonalityClonePlaceholder = makePlaceholder("Clonación de personalidad");
 export const DimensionSlidersPlaceholder = makePlaceholder("Sliders de dimensiones");
-export const PresetCatalogPlaceholder = makePlaceholder("Catálogo de presets");
 export const BrandVisualsWizardPlaceholder = makePlaceholder("Wizard de visuales de marca");
 export const SingleImagePickerPlaceholder = makePlaceholder("Selector de imagen");
-export const ThemeInjectorPlaceholder = makePlaceholder("Inyector de tema");
 export const LogoKitPlaceholder = makePlaceholder("Kit de logos");
 export const ImageGalleryPickerPlaceholder = makePlaceholder("Galería de imágenes");
 export const AvatarActionPlaceholder = makePlaceholder("Avatar");

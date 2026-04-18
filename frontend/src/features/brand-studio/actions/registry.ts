@@ -20,11 +20,11 @@ import {
   LogoKitPlaceholder,
   OnboardingWizardPlaceholder,
   PersonalityClonePlaceholder,
-  PresetCatalogPlaceholder,
   SingleImagePickerPlaceholder,
   SmartFillDialogPlaceholder,
   VoiceClonePlaceholder,
 } from "./placeholders";
+import { PresetCatalogAction } from "./PresetCatalogAction";
 import { ThemeInjectorAction } from "./ThemeInjectorAction";
 
 export const BRAND_STUDIO_ACTION_KEYS = [
@@ -49,7 +49,7 @@ const PLACEHOLDERS: Readonly<Record<BrandStudioActionKey, ActionComponent>> = {
   "voice-clone": VoiceClonePlaceholder,
   "personality-clone": PersonalityClonePlaceholder,
   "personality-dimensions": DimensionSlidersPlaceholder,
-  "personality-presets": PresetCatalogPlaceholder,
+  "personality-presets": PresetCatalogAction as unknown as ActionComponent,
   "brand-visuals-wizard": BrandVisualsWizardPlaceholder,
   "single-image": SingleImagePickerPlaceholder,
   "theme-injector": ThemeInjectorAction,
