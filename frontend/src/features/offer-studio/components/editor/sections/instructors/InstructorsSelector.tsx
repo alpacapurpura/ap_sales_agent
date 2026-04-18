@@ -28,6 +28,9 @@ interface InstructorsSelectorProps {
   onRefresh?: () => void;
 }
 
+/**
+ *
+ */
 export function InstructorsSelector({
   selectedInstructorIds,
   onUpdate,

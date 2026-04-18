@@ -26,8 +26,8 @@ import { useDismissStore } from "../store/dismiss-store";
 describe("NotificationCenter", () => {
   beforeEach(() => {
     useCopilotStore.setState({
-      interviewSessionId: null,
-      focusEntity: null,
+      session: null,
+      focusedField: null,
       sidebarState: "collapsed",
       isOpen: false,
     });
@@ -46,18 +46,29 @@ describe("NotificationCenter", () => {
     expect(screen.getByText(/Continuar/)).toBeDefined();
   });
 
-  it("restores interview when Continuar is clicked", async () => {
+  it("restores interview as a session when Continuar is clicked", async () => {
     const user = userEvent.setup();
     render(<NotificationCenter />);
     await user.click(screen.getByLabelText(/Avisos \(1\)/));
     await user.click(screen.getByText(/Continuar/));
     const state = useCopilotStore.getState();
-    expect(state.interviewSessionId).toBe("session-123");
-    expect(state.sidebarState).toBe("expanded");
+    expect(state.session?.sessionId).toBe("session-123");
+    expect(state.session?.procedure).toBe("interview");
+    expect(state.sidebarState).toBe("open");
   });
 
-  it("hides when interview already active in sidebar", () => {
-    useCopilotStore.setState({ interviewSessionId: "already-active" });
+  it("hides when a session is already active", () => {
+    useCopilotStore.setState({
+      session: {
+        sectionKey: "offer.root",
+        label: "Oferta",
+        entityId: null,
+        procedure: "interview",
+        sessionId: "already-active",
+        startedAt: new Date(),
+        snapshot: {},
+      },
+    });
     const { container } = render(<NotificationCenter />);
     expect(container.innerHTML).toBe("");
   });

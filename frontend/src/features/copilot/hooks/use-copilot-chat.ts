@@ -9,12 +9,12 @@ import { useCopilotStore, type UIAction } from "../store/copilot-store";
 import { handleUIAction } from "./use-copilot-ui-action";
 
 /**
- * Unified chat hook for all copilot modes (chat, focus, interview).
+ * Unified chat hook for copilot free-chat and interview flows.
  *
- * Mode is determined by the store state:
- * - interviewSessionId set → Interview mode
- * - focusEntity set → Focus mode
- * - Neither → Chat mode
+ * Mode is derived from the active session:
+ * - session.procedure === "interview" → interview mode (sessionId in payload)
+ * - session.procedure === "free"      → focus mode (section context only)
+ * - no session                        → plain chat
  *
  * All messages go through POST /copilot/chat with mode context in the payload.
  *
@@ -93,18 +93,16 @@ export function useCopilotChat() {
           return;
         }
 
-        // Collect fresh field values from mounted WithCopilot components
-        window.dispatchEvent(new CustomEvent("copilot:collect-values"));
         const freshState = useCopilotStore.getState();
         const freshFields = freshState.selectedFields;
         const currentMessages = freshState.messages;
 
-        // Determine mode from store state
-        const mode = freshState.interviewSessionId
-          ? "interview"
-          : freshState.focusEntity
-            ? "focus"
-            : "chat";
+        // Derive mode from the active session
+        const mode = freshState.session
+          ? freshState.session.procedure === "interview"
+            ? "interview"
+            : "focus"
+          : "chat";
 
         // Track message_sent event
         reportCopilotEvent(
@@ -137,13 +135,14 @@ export function useCopilotChat() {
                 field_value: f.fieldValue,
               })),
               locale: "es",
-              focus: freshState.focusEntity
+              focus: freshState.session
                 ? {
-                    domain: freshState.focusEntity.domain,
-                    entity_id: freshState.focusEntity.entityId ?? null,
+                    domain: freshState.session.sectionKey.split(".")[0] ?? "",
+                    entity_id: freshState.session.entityId ?? null,
                   }
                 : null,
-              interview_session_id: freshState.interviewSessionId ?? null,
+              interview_session_id:
+                freshState.session?.procedure === "interview" ? freshState.session.sessionId : null,
             },
           },
           {

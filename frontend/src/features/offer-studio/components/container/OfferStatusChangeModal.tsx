@@ -245,6 +245,9 @@ const TONE_CLASSES: Record<Tone, string> = {
   danger: "text-destructive",
 };
 
+/**
+ *
+ */
 export function OfferStatusChangeModal({
   open,
   fromStatus,

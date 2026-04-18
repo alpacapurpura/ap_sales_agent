@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
 import { useArchetypeDisplay } from "../../../../hooks/use-archetype-display";
 import { OfferDeliveryModel as DeliveryModel } from "../../../../types";
@@ -58,15 +57,9 @@ function IdentityContent({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Nombre Público</FormLabel>
-              <WithCopilot
-                fieldId="public_name"
-                fieldLabel="Nombre Público"
-                getValue={() => field.value || ""}
-              >
-                <FormControl>
-                  <Input placeholder="Agency Accelerator 3.0" {...field} />
-                </FormControl>
-              </WithCopilot>
+              <FormControl>
+                <Input placeholder="Agency Accelerator 3.0" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -113,6 +106,9 @@ function IdentityContent({
   );
 }
 
+/**
+ *
+ */
 export function IdentityForm({ defaultValues: propValues, onSave }: IdentityFormProps) {
   const defaultValues: IdentityFormValues = {
     public_name: propValues?.public_name || "",

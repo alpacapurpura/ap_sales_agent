@@ -42,11 +42,8 @@ describe("copilot-store", () => {
       pendingUIActions: [],
       activeProcedure: null,
       selectedFields: [],
-      focusEntity: null,
-      focusSnapshot: null,
-      interviewSessionId: null,
-      interviewProgress: null,
-      previewData: null,
+      session: null,
+      focusedField: null,
     });
   });
 
@@ -239,63 +236,93 @@ describe("copilot-store", () => {
   });
 });
 
-describe("Focus and Interview state", () => {
+describe("Session + focused field state", () => {
   beforeEach(() => {
     useCopilotStore.setState({
       sidebarState: "collapsed",
-      focusEntity: null,
-      focusSnapshot: null,
-      interviewSessionId: null,
-      interviewProgress: null,
-      previewData: null,
+      session: null,
+      focusedField: null,
     });
   });
 
-  it("should default to no focus entity", () => {
+  it("defaults to no active session", () => {
     const state = useCopilotStore.getState();
-    expect(state.focusEntity).toBeNull();
-    expect(state.focusSnapshot).toBeNull();
+    expect(state.session).toBeNull();
+    expect(state.focusedField).toBeNull();
   });
 
-  it("should set and clear focus entity", () => {
-    const { setFocusEntity, clearFocus } = useCopilotStore.getState();
-    setFocusEntity({ domain: "offer", entityId: "123", label: "Mi Oferta" });
-
-    expect(useCopilotStore.getState().focusEntity).toEqual({
-      domain: "offer",
-      entityId: "123",
-      label: "Mi Oferta",
+  it("setSession + clearSession round-trip", () => {
+    const { setSession, clearSession } = useCopilotStore.getState();
+    const startedAt = new Date();
+    setSession({
+      sectionKey: "brand.identity",
+      label: "Mi Marca",
+      entityId: null,
+      procedure: "free",
+      sessionId: null,
+      startedAt,
+      snapshot: {},
     });
 
-    clearFocus();
-    expect(useCopilotStore.getState().focusEntity).toBeNull();
-    expect(useCopilotStore.getState().focusSnapshot).toBeNull();
+    expect(useCopilotStore.getState().session?.sectionKey).toBe("brand.identity");
+    expect(useCopilotStore.getState().session?.procedure).toBe("free");
+
+    clearSession();
+    expect(useCopilotStore.getState().session).toBeNull();
+    expect(useCopilotStore.getState().focusedField).toBeNull();
   });
 
-  it("should set and clear interview session", () => {
-    const { setInterviewSession, clearInterview } = useCopilotStore.getState();
-    setInterviewSession("session-abc");
+  it("updateSession merges a partial patch into the active session", () => {
+    const { setSession, updateSession } = useCopilotStore.getState();
+    setSession({
+      sectionKey: "offer.pricing",
+      label: "Offer Premium",
+      entityId: "offer-1",
+      procedure: "free",
+      sessionId: null,
+      startedAt: new Date(),
+      snapshot: {},
+    });
 
-    expect(useCopilotStore.getState().interviewSessionId).toBe("session-abc");
-
-    clearInterview();
-    expect(useCopilotStore.getState().interviewSessionId).toBeNull();
-    expect(useCopilotStore.getState().interviewProgress).toBeNull();
-  });
-
-  it("should update and clear preview data", () => {
-    const { updatePreviewData, clearPreviewData } = useCopilotStore.getState();
-    updatePreviewData({ "strategy.name": "Test" });
-    updatePreviewData({ "pricing.amount": 100 });
+    updateSession({ procedure: "interview", sessionId: "session-abc" });
 
     const state = useCopilotStore.getState();
-    expect(state.previewData).toEqual({
-      "strategy.name": "Test",
-      "pricing.amount": 100,
+    expect(state.session?.procedure).toBe("interview");
+    expect(state.session?.sessionId).toBe("session-abc");
+    expect(state.session?.sectionKey).toBe("offer.pricing");
+  });
+
+  it("setFocusedField + clearFocusedField round-trip", () => {
+    const { setFocusedField, clearFocusedField } = useCopilotStore.getState();
+    setFocusedField({ id: "tagline", label: "Tagline", path: "tagline" });
+
+    expect(useCopilotStore.getState().focusedField).toEqual({
+      id: "tagline",
+      label: "Tagline",
+      path: "tagline",
     });
 
-    clearPreviewData();
-    expect(useCopilotStore.getState().previewData).toBeNull();
+    clearFocusedField();
+    expect(useCopilotStore.getState().focusedField).toBeNull();
+  });
+
+  it("clearSession also clears the focused field", () => {
+    const { setSession, setFocusedField, clearSession } = useCopilotStore.getState();
+    setSession({
+      sectionKey: "brand.identity",
+      label: "Mi Marca",
+      entityId: null,
+      procedure: "free",
+      sessionId: null,
+      startedAt: new Date(),
+      snapshot: {},
+    });
+    setFocusedField({ id: "brand_name", label: "Nombre", path: "brand_name" });
+
+    clearSession();
+
+    expect(useCopilotStore.getState().session).toBeNull();
+    expect(useCopilotStore.getState().focusedField).toBeNull();
   });
 });
 
@@ -308,13 +335,10 @@ describe("sidebarState", () => {
     expect(useCopilotStore.getState().sidebarState).toBe("collapsed");
   });
 
-  it("should transition between states", () => {
+  it("should transition between the two supported states", () => {
     const { setSidebarState } = useCopilotStore.getState();
     setSidebarState("open");
     expect(useCopilotStore.getState().sidebarState).toBe("open");
-
-    setSidebarState("expanded");
-    expect(useCopilotStore.getState().sidebarState).toBe("expanded");
 
     setSidebarState("collapsed");
     expect(useCopilotStore.getState().sidebarState).toBe("collapsed");
@@ -404,29 +428,21 @@ describe("Interview UIAction types", () => {
   });
 });
 
-describe("backward compatibility", () => {
+describe("sidebar isOpen + toggle helpers", () => {
   beforeEach(() => {
-    useCopilotStore.setState({
-      sidebarState: "collapsed",
-      interviewSessionId: null,
-      interviewProgress: null,
-      previewData: null,
-    });
+    useCopilotStore.setState({ sidebarState: "collapsed", session: null, focusedField: null });
   });
 
-  it("isOpen should reflect sidebarState", () => {
+  it("isOpen tracks sidebarState", () => {
     const { setSidebarState } = useCopilotStore.getState();
     setSidebarState("collapsed");
     expect(useCopilotStore.getState().isOpen).toBe(false);
 
     setSidebarState("open");
     expect(useCopilotStore.getState().isOpen).toBe(true);
-
-    setSidebarState("expanded");
-    expect(useCopilotStore.getState().isOpen).toBe(true);
   });
 
-  it("togglePanel should work with sidebarState", () => {
+  it("togglePanel alternates collapsed ⇄ open", () => {
     const { togglePanel, setSidebarState } = useCopilotStore.getState();
     setSidebarState("collapsed");
     togglePanel();
@@ -436,12 +452,12 @@ describe("backward compatibility", () => {
     expect(useCopilotStore.getState().sidebarState).toBe("collapsed");
   });
 
-  it("openPanel should set sidebarState to open", () => {
+  it("openPanel sets sidebarState to open", () => {
     useCopilotStore.getState().openPanel();
     expect(useCopilotStore.getState().sidebarState).toBe("open");
   });
 
-  it("closePanel should set sidebarState to collapsed", () => {
+  it("closePanel sets sidebarState to collapsed", () => {
     useCopilotStore.getState().setSidebarState("open");
     useCopilotStore.getState().closePanel();
     expect(useCopilotStore.getState().sidebarState).toBe("collapsed");

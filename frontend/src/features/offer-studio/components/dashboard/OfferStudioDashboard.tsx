@@ -227,16 +227,18 @@ export function OfferStudioDashboard({
       if (newOffer.id) {
         setIsWizardOpen(false);
 
-        // Activar entrevista en sidebar
+        // Launch the copilot interview session for the new offer.
         const store = useCopilotStore.getState();
-        store.setFocusEntity({
-          domain: "offer",
-          entityId: newOffer.id,
-          label: wizardData.name,
-        });
-
         const interview = await startInterview(token, "offer", newOffer.id);
-        store.setInterviewSession(interview.session_id);
+        store.setSession({
+          sectionKey: "offer.root",
+          label: wizardData.name,
+          entityId: newOffer.id,
+          procedure: "interview",
+          sessionId: interview.session_id,
+          startedAt: new Date(),
+          snapshot: {},
+        });
         store.setConversationId(interview.conversation_id);
         store.addMessage({
           id: crypto.randomUUID(),
@@ -244,7 +246,7 @@ export function OfferStudioDashboard({
           content: interview.initial_message,
           timestamp: Date.now(),
         });
-        store.setSidebarState("expanded");
+        store.setSidebarState("open");
 
         navigate(`/${tenantId}/offer-studio/offer/${newOffer.id}`);
       }
