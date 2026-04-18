@@ -55,8 +55,19 @@ describe("parseSectionSchema", () => {
     expect(() => parseSectionSchema(makeSchema({ key: "" }))).toThrow(SchemaParseError);
   });
 
-  it("rejects missing section title", () => {
-    expect(() => parseSectionSchema(makeSchema({ title: "" }))).toThrow(SchemaParseError);
+  it("accepts schemas without title (resolved from backend catalog)", () => {
+    // Offer-studio schemas omit title + description and resolve them from
+    // the backend SectionCatalog. Parser accepts optional title.
+    const schema = makeSchema({});
+    delete (schema as { title?: string }).title;
+    expect(() => parseSectionSchema(schema)).not.toThrow();
+  });
+
+  it("rejects non-string title when provided", () => {
+    // Legacy consumers that still declare title inline must pass a string.
+    expect(() =>
+      parseSectionSchema(makeSchema({ title: 42 as unknown as string })),
+    ).toThrow(SchemaParseError);
   });
 
   it("rejects empty fields array", () => {

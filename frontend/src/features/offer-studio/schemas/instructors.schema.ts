@@ -13,8 +13,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerInstructorsSchema: SectionSchema = {
   key: "offer.instructors",
-  title: "Instructores y autoridad",
-  description: "Personas que respaldan la oferta con su experiencia.",
+  // title + description resolved from the backend SectionCatalog.
   scope: "offer_level",
   fields: [
     {

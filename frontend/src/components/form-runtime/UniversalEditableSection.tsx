@@ -31,6 +31,14 @@ export interface UniversalEditableSectionProps<TValues extends object> {
   isLoading?: boolean;
   saveMode?: SaveMode;
   onStartInterview?: () => void;
+  /**
+   * Section title resolved from backend catalog. Preferred over
+   * ``schema.title`` so the copy stays in a single source of truth.
+   * Falls back to ``schema.title`` when omitted.
+   */
+  titleOverride?: string;
+  /** Section description resolved from backend catalog. Same contract as titleOverride. */
+  descriptionOverride?: string;
   className?: string;
 }
 
@@ -52,6 +60,8 @@ export function UniversalEditableSection<TValues extends object>({
   isLoading,
   saveMode,
   onStartInterview,
+  titleOverride,
+  descriptionOverride,
   className,
 }: UniversalEditableSectionProps<TValues>) {
   const [isMobile, setIsMobile] = useState(false);
@@ -85,7 +95,11 @@ export function UniversalEditableSection<TValues extends object>({
   return (
     <FormRuntimeProvider schema={schema} initialValues={values} onSave={onSave} saveMode={saveMode}>
       <div className={cn("flex flex-col", className)}>
-        <SessionHeader onStartInterview={onStartInterview} />
+        <SessionHeader
+          onStartInterview={onStartInterview}
+          titleOverride={titleOverride}
+          descriptionOverride={descriptionOverride}
+        />
         <div className="flex flex-1 flex-col md:flex-row">
           {showList && (
             <div className="w-full border-r md:w-80">

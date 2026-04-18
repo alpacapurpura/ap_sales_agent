@@ -11,8 +11,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerResourcesSchema: SectionSchema = {
   key: "offer.resources",
-  title: "Recursos",
-  description: "Material base de la oferta y recursos extra por edición.",
+  // title + description resolved from the backend SectionCatalog.
   scope: "mixed",
   fields: [
     {

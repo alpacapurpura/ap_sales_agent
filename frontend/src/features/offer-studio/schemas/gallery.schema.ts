@@ -9,8 +9,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerGallerySchema: SectionSchema = {
   key: "offer.gallery",
-  title: "Galería visual",
-  description: "Imágenes y recursos visuales para assets y landing.",
+  // title + description resolved from the backend SectionCatalog.
   scope: "offer_level",
   fields: [
     {

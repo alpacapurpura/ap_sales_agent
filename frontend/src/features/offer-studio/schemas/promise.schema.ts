@@ -9,8 +9,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerPromiseSchema: SectionSchema = {
   key: "offer.promise",
-  title: "Promesa y resultado",
-  description: "Transformación concreta que se compromete con el cliente.",
+  // title + description resolved from the backend SectionCatalog.
   scope: "offer_level",
   fields: [
     {

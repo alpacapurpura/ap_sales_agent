@@ -11,8 +11,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerValueStackSchema: SectionSchema = {
   key: "offer.value_stack",
-  title: "Stack de valor",
-  description: "Componentes entregables que justifican el precio.",
+  // title + description resolved from the backend SectionCatalog.
   scope: "offer_level",
   fields: [
     {

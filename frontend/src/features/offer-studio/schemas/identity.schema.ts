@@ -10,8 +10,8 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerIdentitySchema: SectionSchema = {
   key: "offer.identity",
-  title: "Identidad de oferta",
-  description: "Nombre público, claim y posicionamiento en el mercado.",
+  // title + description intentionally omitted — resolved from the backend
+  // SectionCatalog via useSectionMetadata("identity") in the consumer page.
   scope: "offer_level",
   fields: [
     {

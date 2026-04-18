@@ -170,8 +170,17 @@ export function parseSectionSchema(schema: SectionSchema): SectionSchema {
   if (!schema.key || typeof schema.key !== "string") {
     throw new SchemaParseError("schema.key is required and must be a non-empty string");
   }
-  if (!schema.title || typeof schema.title !== "string") {
-    throw new SchemaParseError(`[${schema.key}]: schema.title is required`);
+  // title + description are optional (resolved from the backend catalog
+  // for offer-studio schemas via titleOverride/descriptionOverride props
+  // on UniversalEditableSection). When present on legacy consumers
+  // they must still be strings.
+  if (schema.title !== undefined && typeof schema.title !== "string") {
+    throw new SchemaParseError(`[${schema.key}]: schema.title must be a string when provided`);
+  }
+  if (schema.description !== undefined && typeof schema.description !== "string") {
+    throw new SchemaParseError(
+      `[${schema.key}]: schema.description must be a string when provided`,
+    );
   }
   if (!Array.isArray(schema.fields) || schema.fields.length === 0) {
     throw new SchemaParseError(`[${schema.key}]: schema must declare at least one field`);

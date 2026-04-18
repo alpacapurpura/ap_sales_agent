@@ -11,8 +11,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerKnowledgeSchema: SectionSchema = {
   key: "offer.knowledge",
-  title: "Conocimiento",
-  description: "Documentos y materiales que alimentan al agente de ventas.",
+  // title + description resolved from the backend SectionCatalog.
   scope: "offer_level",
   fields: [
     {

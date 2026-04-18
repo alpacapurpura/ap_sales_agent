@@ -10,8 +10,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerSubscriptionDetailsSchema: SectionSchema = {
   key: "offer.subscription_details",
-  title: "Detalles de suscripción",
-  description: "Ciclo de facturación, duración de acceso y beneficios.",
+  // title + description resolved from the backend SectionCatalog.
   scope: "offer_level",
   fields: [
     {

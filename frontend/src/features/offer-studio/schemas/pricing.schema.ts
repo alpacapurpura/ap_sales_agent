@@ -17,8 +17,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerPricingSchema: SectionSchema = {
   key: "offer.pricing",
-  title: "Precios",
-  description: "Precio base de la oferta y overrides por edición.",
+  // title + description resolved from the backend SectionCatalog.
   scope: "mixed",
   fields: [
     {

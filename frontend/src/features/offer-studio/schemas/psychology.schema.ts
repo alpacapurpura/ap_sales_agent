@@ -9,8 +9,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerPsychologySchema: SectionSchema = {
   key: "offer.psychology",
-  title: "Psicología y motores de compra",
-  description: "Objeciones, creencias y disparadores de decisión del avatar.",
+  // title + description resolved from the backend SectionCatalog.
   scope: "offer_level",
   fields: [
     {

@@ -11,16 +11,36 @@ import { useFormRuntime } from "./FormRuntimeContext";
 export interface SessionHeaderProps {
   /** Optional CTA to start a guided interview (copilot). */
   onStartInterview?: () => void;
+  /**
+   * Override the section title resolved from schema. Offer-studio passes
+   * the title from the backend SectionCatalog so the copy stays in a
+   * single source of truth instead of being duplicated on each schema
+   * file.
+   */
+  titleOverride?: string;
+  /** Override the section description (same rationale as titleOverride). */
+  descriptionOverride?: string;
   className?: string;
 }
 
 /**
  * Top bar: section title, completeness chip, "Entrevista guiada" CTA,
  * session-undo button. Replaces the old FocusBar + progress chip.
+ *
+ * Title + description can be provided via props (preferred — resolved
+ * from the backend catalog) or fall back to the schema declarations
+ * (legacy consumers that still hardcode copy inline).
  */
-export function SessionHeader({ onStartInterview, className }: SessionHeaderProps) {
+export function SessionHeader({
+  onStartInterview,
+  titleOverride,
+  descriptionOverride,
+  className,
+}: SessionHeaderProps) {
   const { schema, values, isDirty, undoSession } = useFormRuntime();
   const { completed, total } = computeCompleteness(schema.fields, values);
+  const title = titleOverride ?? schema.title ?? "";
+  const description = descriptionOverride ?? schema.description ?? "";
 
   return (
     <header
@@ -30,9 +50,9 @@ export function SessionHeader({ onStartInterview, className }: SessionHeaderProp
       )}
     >
       <div className="min-w-0">
-        <h2 className="truncate text-lg font-semibold">{schema.title}</h2>
-        {schema.description && (
-          <p className="truncate text-xs text-muted-foreground">{schema.description}</p>
+        {title && <h2 className="truncate text-lg font-semibold">{title}</h2>}
+        {description && (
+          <p className="truncate text-xs text-muted-foreground">{description}</p>
         )}
       </div>
       <div className="flex items-center gap-2">

@@ -9,8 +9,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerClosingSchema: SectionSchema = {
   key: "offer.closing",
-  title: "Cierre y garantía",
-  description: "Política de devolución, urgencia y último empujón.",
+  // title + description resolved from the backend SectionCatalog.
   scope: "offer_level",
   fields: [
     {

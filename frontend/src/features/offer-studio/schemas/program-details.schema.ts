@@ -14,8 +14,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerProgramDetailsSchema: SectionSchema = {
   key: "offer.program_details",
-  title: "Detalles del programa",
-  description: "Estructura del programa y ajustes por cohorte.",
+  // title + description resolved from the backend SectionCatalog.
   scope: "mixed",
   fields: [
     {

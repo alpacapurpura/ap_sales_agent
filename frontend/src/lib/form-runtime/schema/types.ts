@@ -94,7 +94,20 @@ export interface FieldSchema {
 
 export interface SectionSchema {
   key: string;
-  title: string;
+  /**
+   * Section title. Optional: sections that resolve copy from a backend
+   * catalog (offer-studio, per the SSoT rule) leave this undefined and
+   * pass a ``titleOverride`` prop to ``UniversalEditableSection`` instead,
+   * so the copy stays in a single source of truth.
+   *
+   * Legacy consumers (brand-studio) still declare it inline — the runtime
+   * falls back to ``schema.title`` when no override is provided.
+   */
+  title?: string;
+  /**
+   * Section description. Same contract as ``title``: prefer an override
+   * resolved from the backend catalog over hardcoding a string here.
+   */
   description?: string;
   fields: FieldSchema[];
   /**

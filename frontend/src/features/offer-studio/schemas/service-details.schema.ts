@@ -12,8 +12,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerServiceDetailsSchema: SectionSchema = {
   key: "offer.service_details",
-  title: "Detalles del servicio",
-  description: "Modalidad de trabajo y fechas de convocatoria.",
+  // title + description resolved from the backend SectionCatalog.
   scope: "mixed",
   fields: [
     {

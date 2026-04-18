@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCallback } from "react";
 
 import { UniversalEditableSection } from "@/components/form-runtime";
+import { useSectionMetadata } from "@/features/offer-studio/hooks/use-section-catalog";
 import {
   offerClosingSchema,
   offerEventDetailsSchema,
@@ -49,6 +50,7 @@ const EMPTY_VALUES: Record<string, unknown> = Object.freeze({});
 
 function createSectionPage(
   schema: SectionSchema,
+  sectionKey: SectionKey,
   requiredScope?: SectionScope,
 ): (props: OfferSectionPageProps) => ReactElement {
   return function SectionPageComponent({ offerId, editionCode }: OfferSectionPageProps) {
@@ -61,15 +63,17 @@ function createSectionPage(
     const sectionBasePath = stripActiveFieldId(pathname);
     const getFieldHref = useStableFieldHref(sectionBasePath);
     const handleSave = useStableSaveHandler(schema.key, offerId, editionCode);
+    const metadata = useSectionMetadata(sectionKey);
 
     if (requiredScope === "edition_level" && editionCode === "evergreen") {
+      const label = metadata?.label_es?.toLowerCase() ?? "esta sección";
       return (
         <div className="mx-auto max-w-3xl rounded-md border border-dashed border-muted-foreground/30 bg-muted/20 p-8 text-center">
           <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-muted-foreground" aria-hidden />
           <h3 className="text-lg font-medium">Esta sección necesita una edición concreta</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Los campos de {schema.title.toLowerCase()} viven en la edición específica que estás
-            configurando. Seleccioná o creá una edición desde el rail lateral.
+            Los campos de {label} viven en la edición específica que estás configurando.
+            Seleccioná o creá una edición desde el rail lateral.
           </p>
         </div>
       );
@@ -84,6 +88,8 @@ function createSectionPage(
           getFieldHref={getFieldHref}
           onSave={handleSave}
           saveMode="autosave-with-banner"
+          titleOverride={metadata?.label_es}
+          descriptionOverride={metadata?.subtitle_es}
         />
       </div>
     );
@@ -146,31 +152,40 @@ export function SectionPageLoading(): ReactElement {
 
 // ── Offer-level sections ────────────────────────────────────────────────────
 
-export const IdentityPage = createSectionPage(offerIdentitySchema, "offer_level");
-export const StrategyPage = createSectionPage(offerStrategySchema, "offer_level");
-export const PsychologyPage = createSectionPage(offerPsychologySchema, "offer_level");
-export const PromisePage = createSectionPage(offerPromiseSchema, "offer_level");
-export const ValueStackPage = createSectionPage(offerValueStackSchema, "offer_level");
-export const InstructorsPage = createSectionPage(offerInstructorsSchema, "offer_level");
-export const KnowledgePage = createSectionPage(offerKnowledgeSchema, "offer_level");
-export const ClosingPage = createSectionPage(offerClosingSchema, "offer_level");
-export const ProductDetailsPage = createSectionPage(offerProductDetailsSchema, "offer_level");
-export const SubscriptionDetailsPage = createSectionPage(
-  offerSubscriptionDetailsSchema,
+export const IdentityPage = createSectionPage(offerIdentitySchema, "identity", "offer_level");
+export const StrategyPage = createSectionPage(offerStrategySchema, "strategy", "offer_level");
+export const PsychologyPage = createSectionPage(offerPsychologySchema, "psychology", "offer_level");
+export const PromisePage = createSectionPage(offerPromiseSchema, "promise", "offer_level");
+export const ValueStackPage = createSectionPage(offerValueStackSchema, "value_stack", "offer_level");
+export const InstructorsPage = createSectionPage(offerInstructorsSchema, "instructors", "offer_level");
+export const KnowledgePage = createSectionPage(offerKnowledgeSchema, "knowledge", "offer_level");
+export const ClosingPage = createSectionPage(offerClosingSchema, "closing", "offer_level");
+export const ProductDetailsPage = createSectionPage(
+  offerProductDetailsSchema,
+  "product_details",
   "offer_level",
 );
-export const GalleryPage = createSectionPage(offerGallerySchema, "offer_level");
+export const SubscriptionDetailsPage = createSectionPage(
+  offerSubscriptionDetailsSchema,
+  "subscription_details",
+  "offer_level",
+);
+export const GalleryPage = createSectionPage(offerGallerySchema, "gallery", "offer_level");
 
 // ── Edition-level sections ──────────────────────────────────────────────────
 
-export const EventDetailsPage = createSectionPage(offerEventDetailsSchema, "edition_level");
+export const EventDetailsPage = createSectionPage(
+  offerEventDetailsSchema,
+  "event_details",
+  "edition_level",
+);
 
 // ── Mixed-scope sections ────────────────────────────────────────────────────
 
-export const PricingPage = createSectionPage(offerPricingSchema, "mixed");
-export const ProgramDetailsPage = createSectionPage(offerProgramDetailsSchema, "mixed");
-export const ServiceDetailsPage = createSectionPage(offerServiceDetailsSchema, "mixed");
-export const ResourcesPage = createSectionPage(offerResourcesSchema, "mixed");
+export const PricingPage = createSectionPage(offerPricingSchema, "pricing", "mixed");
+export const ProgramDetailsPage = createSectionPage(offerProgramDetailsSchema, "program_details", "mixed");
+export const ServiceDetailsPage = createSectionPage(offerServiceDetailsSchema, "service_details", "mixed");
+export const ResourcesPage = createSectionPage(offerResourcesSchema, "resources", "mixed");
 
 /** Name the index in the same shape the server-safe map expects. */
 export const OFFER_STUDIO_SECTION_KEYS: readonly SectionKey[] = [

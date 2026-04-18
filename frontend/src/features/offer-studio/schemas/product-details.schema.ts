@@ -11,8 +11,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  */
 export const offerProductDetailsSchema: SectionSchema = {
   key: "offer.product_details",
-  title: "Detalles del producto",
-  description: "Formato, entrega y características del producto digital o físico.",
+  // title + description resolved from the backend SectionCatalog.
   scope: "offer_level",
   fields: [
     {
