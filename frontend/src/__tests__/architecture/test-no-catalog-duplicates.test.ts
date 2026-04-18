@@ -31,13 +31,25 @@ const ALLOWED_CATALOG_FILES: readonly string[] = [
   "features/offer-studio/hooks/use-archetype-catalog.ts",
   "features/offer-studio/hooks/use-archetype-display.ts",
   "features/offer-studio/hooks/use-format-catalog.ts",
+  "features/offer-studio/hooks/use-section-catalog.ts",
+  "features/offer-studio/hooks/use-sections-for-archetype.ts",
   "features/offer-studio/hooks/use-value-level-catalog.ts",
+  "features/offer-studio/hooks/use-visible-sections.ts",
   "features/offer-studio/lib/icon-name-resolver.ts",
   "features/offer-studio/lib/__tests__/icon-name-resolver.test.ts",
   "features/brand-studio/api/expert-business-types-api.ts",
   "features/brand-studio/hooks/use-expert-business-types-catalog.ts",
   // Test fixtures: the catalog hook test wires a mocked HTTP response.
+  "features/offer-studio/tests/fixtures/archetype-catalog-fixture.ts",
   "features/offer-studio/tests/use-archetype-capabilities.test.tsx",
+  "features/offer-studio/tests/use-section-catalog.test.tsx",
+  "features/offer-studio/tests/use-sections-for-archetype.test.tsx",
+  "features/offer-studio/tests/use-visible-sections.test.tsx",
+  // Legacy live-preview carries an inline ``SECTION_METADATA`` map of
+  // motivational copy. It retires in Sprint 6 Phase E alongside the
+  // SectionFormWrapper editor. Until then, allowlist the file and keep
+  // the forbidden-token gate honest for every future additon.
+  "features/offer-studio/components/editor/OfferLivePreview.tsx",
 ];
 
 // Forbidden tokens — the hardcoded maps that the consolidation removed.
@@ -45,9 +57,15 @@ const ALLOWED_CATALOG_FILES: readonly string[] = [
 // copy instead of consuming the catalog.
 const FORBIDDEN_TOKENS: readonly string[] = [
   "ARCHETYPE_METADATA",
+  "ARCHETYPE_BUILDER_CONFIG",
   "FORMAT_PRESETS",
   "LEVEL_RICH_INFO",
   "VALUE_LEVEL_LABELS",
+  // Section-catalog duplicates (Sprint 6 guarantee): section ordering +
+  // metadata live in backend/src/modules/offer/domain/section_catalog.py
+  // and archetype_catalog.py. Never in the frontend.
+  "getSectionsForOffer",
+  "SECTION_METADATA",
 ];
 
 describe("Architecture: Offer catalogs are SSoT", () => {
