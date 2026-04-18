@@ -12,12 +12,12 @@
 import { hasAction, registerAction, type ActionComponent } from "@/lib/form-runtime/actions";
 
 import { DimensionSlidersAction } from "./DimensionSlidersAction";
+import { ImageGalleryPickerAction } from "./ImageGalleryPickerAction";
 import { LegalAction } from "./LegalAction";
 import { LogoKitAction } from "./LogoKitAction";
 import {
   AvatarActionPlaceholder,
   BrandVisualsWizardPlaceholder,
-  ImageGalleryPickerPlaceholder,
   OnboardingWizardPlaceholder,
   PersonalityClonePlaceholder,
   SmartFillDialogPlaceholder,
@@ -64,7 +64,7 @@ const REGISTRY_ENTRIES: Readonly<Record<BrandStudioActionKey, ActionComponent>> 
   "single-image": SingleImagePickerAction as unknown as ActionComponent,
   "theme-injector": ThemeInjectorAction,
   "logo-kit": LogoKitAction as unknown as ActionComponent,
-  "image-gallery": ImageGalleryPickerPlaceholder,
+  "image-gallery": ImageGalleryPickerAction as unknown as ActionComponent,
   avatar: AvatarActionPlaceholder,
   "smart-fill": SmartFillDialogPlaceholder,
   "onboarding-wizard": OnboardingWizardPlaceholder,
