@@ -333,18 +333,62 @@ Backend work lives under `backend/src/modules/copilot/application/tools/`; front
 
 ## 7. Status (UPDATE WITH EVERY COMMIT)
 
-Last updated: **2026-04-18 — Sprint 5 COMPLETE. features/brand/ deleted; brand-studio is the only brand surface. Next: Sprint 2.D (backend + frontend data-model purge).**
+Last updated: **2026-04-18 — Sprints 5 + 2.D + 4a + 4b + 4c COMPLETE. Copilot store collapsed to session + focusedField; preview pane retired; FormRuntimeBridge wired. Next: Sprint 4d-h (5 extraction tools) + Sprint 6 (offer-studio editor → form-runtime).**
 
 | Sprint | State | Last commit | Quality gates |
 |---|---|---|---|
 | Sprint 0 — Specs | ✅ Complete | `e06b7726` | n/a (no code) |
-| Sprint 1 — Full scaffold | ✅ Complete + debt-cleaned + pushed | `56b6cfbf` | tsc 0 errors · eslint 0 errors / 4587 warnings · vitest 1247 tests / 152 files all green · 10 arch tests green |
-| Sprint 2 — URL-driven runtime + 7 survivor ports + PersonaDetail | ✅ Complete + pushed | `bf4bcef8` | tsc 0 errors · eslint 0 errors · vitest 1283 tests (+36) · 10 arch tests green · build-storybook green |
-| Sprint 2.D — Data model purge (parallel track) | In progress (§5bis) | — | — |
-| Sprint 3 — App router flip + route-per-field tree | ✅ Complete + pushed | `3d45858b` | tsc 0 errors · eslint 0 errors · vitest 1287 tests (+4) · 10 arch tests green · build-storybook green |
-| Sprint 4 — Copilot refactor + 5 extraction tools | Planned (§5, expanded) | — | — |
-| Sprint 5 — Delete old brand + offer-studio import migration | ✅ Complete + pushed | `8a0729f5` | tsc 0 errors · eslint 0 errors / 3595 warnings · vitest 1221 tests / 156 files · 10 arch tests green · build-storybook green |
+| Sprint 1 — Full scaffold | ✅ Complete + debt-cleaned + pushed | `56b6cfbf` | tsc 0 · eslint 0 / 4587 warn · vitest 1247 tests / 152 files · 10 arch |
+| Sprint 2 — URL-driven runtime + 7 survivor ports + PersonaDetail | ✅ Complete + pushed | `bf4bcef8` | tsc 0 · eslint 0 · vitest 1283 tests · 10 arch · build-storybook green |
+| Sprint 2.D — Data model purge (backend + frontend) | ✅ Complete + pushed | backend `3e602faa` · frontend `772d3ca9` | ruff 0 · pytest 314 brand tests · arch 86 · tsc 0 · vitest 91 brand-studio tests |
+| Sprint 3 — App router flip + route-per-field tree | ✅ Complete + pushed | `3d45858b` | tsc 0 · eslint 0 · vitest 1287 tests · 10 arch · build-storybook green |
+| Sprint 4a — Copilot store collapse | ✅ Complete + pushed | `49fa40c0` (combined with 4c) | see 4c |
+| Sprint 4b — Wire FormRuntimeBridge | ✅ Complete + pushed | `d5728ebe` + `551043bf` | tsc 0 · eslint 0 / 602 warn · vitest 1176 tests / 149 files · 10 arch |
+| Sprint 4c — Delete dead copilot UI | ✅ Complete + pushed | `49fa40c0` | tsc 0 · eslint 0 · vitest 1176 tests · 10 arch · build-storybook green |
+| Sprint 4d–h — Five extraction tools | Planned (§5.4) | — | — |
+| Sprint 5 — Delete old brand + offer-studio import migration | ✅ Complete + pushed | `8a0729f5` → `87aa7a36` | tsc 0 · eslint 0 / 3595 warn · vitest 1221 tests / 156 files · 10 arch · build-storybook green |
 | Sprint 6 — Offer-studio editor → form-runtime (route-per-field) | Planned (new — user directive 2026-04-18: aplicación unificada a nivel de UX URL+campo) | — | — |
+
+**Sprint 4a + 4b + 4c commits (3):**
+- `49fa40c0` refactor(copilot): collapse store + retire preview/focus UI (Sprint 4a + 4c). Merges what the PLAN originally split into 3 sub-sprints because the dying UI's consumers made any intermediate state non-compilable. Deletes WithCopilot, FocusBar, CopilotPreviewPane, FocusModeButton, InterviewModeButton, EditionPreviewCard, InterviewDateBlock, interview-preview-registry + all their tests. Collapses focusEntity/focusSnapshot/interviewSessionId/interviewProgress/previewData into `session` + `focusedField` on the store. Drops "expanded" sidebarState. Simplifies CopilotSidebar to chat-only. Strips WithCopilot from the four offer-studio form files that still referenced it.
+- `d5728ebe` refactor(copilot): wire FormRuntimeBridge to store, drop window events (Sprint 4b). Adds `activeBridge` + `connectBridge` + `disconnectBridge` to the copilot store. FormRuntimeProvider now registers its bridge on mount. MultiOptionSelector + ProposalCard route Apply through `bridge.patchField(path, value)` instead of dispatching `copilot:field-update` CustomEvents. `useCopilotFieldSync` hook + tests deleted — no remaining consumers.
+- `551043bf` chore(offer-studio): delete orphan OfferPreview* files (follow-up to 49fa40c0).
+
+## Sprint 4d–h — Remaining work (planned)
+
+Each tool bundles backend + frontend + tests + storybook. Order is independent; recommended: 4d → 4g → 4e → 4f → 4h (ship the URL-fed extractors first since they're the highest-traffic replacements).
+
+| Tool | Replaces | Backend | Frontend UI | Tests |
+|---|---|---|---|---|
+| 4d `extract_brand_from_url` | SmartFillDialog(initial) + OnboardingWizard.StepWebsite + BrandVisualsWizard | Wrap `brandApi.extractFullBrand`; register in `copilot/application/tools/registry.py`; return structured diff { field_path → new_value → confidence } | URL input card + per-field diff chips with Apply/Reject per chip → calls `bridge.patchField` | backend pytest integration + frontend vitest + Storybook "Copilot/Tools/ExtractBrandFromURL" |
+| 4e `extract_brand_from_docs` | SmartFillDialog(update) + OnboardingWizard.StepDocuments | Same wrapping over docs variant; signed-upload endpoint for file inputs | File dropzone + diff chips | same pattern as 4d |
+| 4f `analyze_voice_style` | VoiceCloneAction | Wrap `/api/v1/brand/style/analyze-style` | Text paste + upload + returns `{ voice_tone }` — user Applies → `bridge.patchField("voice_tone", value)` | integration + vitest + storybook |
+| 4g `extract_visuals_from_url` | BrandVisualsWizard (visuals-only subflow) | Backend port of ColorThief palette derivation so results are deterministic and auditable; chain with visuals-only extraction | URL input + palette preview + per-field diff chips (primary_color, accent_color, fonts, etc.) | integration + vitest + storybook |
+| 4h `clone_personality_from_chat` | PersonalityClone | Verify existing tool at `copilot/application/tools/` — extend if needed; takes a chat transcript and emits `PersonalityProfile` diff | Conversation paste + diff chips for each dimension/value | integration + vitest + storybook |
+
+Shared implementation conventions:
+1. Every tool registers in `copilot/application/tools/registry.py` with route-based selection so the tool only appears on brand-studio pages.
+2. Every chat-UI component reads `useCopilotStore.getState().activeBridge` to apply. Without a mounted bridge, the UI still renders but Apply is a no-op and shows "conectá una sección primero".
+3. Every diff-chip component uses `@storybook/test` `fn()` for handlers in stories. Title: `Copilot/Tools/<Name>`.
+4. Backend tool signatures: async functions taking a Pydantic input DTO and returning a structured diff DTO. Inputs passed from chat via copilot's `tool_call` SSE event.
+
+## Sprint 6 — Offer-studio editor → form-runtime (planned)
+
+User directive (2026-04-18): the offer-studio editor must adopt the same route-per-field form-runtime UX as brand-studio. Offer-ladder overview is out of scope (it stays as-is).
+
+Scope:
+- Refactor the 5 editor sections (strategy, identity, promise, closing, instructors) from `SectionFormWrapper` + `FormField` pattern to form-runtime schemas.
+- New schemas under `features/offer-studio/schemas/`: one per section, mirroring brand-studio schema shape.
+- New pages under `features/offer-studio/pages/` served via a catch-all at `/offer-studio/[offerId]/[section]/[[...fieldId]]/page.tsx`.
+- Offer data exposed through a new hook `useOfferSettings(offerId)` that mirrors `useBrandSettings` (React Query + per-section updater functions).
+- InstructorsSelector refactor: replace the embedded legacy TeamManager dialog with either a route link to `/brand-studio/team` or a wrapped SectionPage(teamSchema). Delete `brand-studio/components/legacy-team/` as the final step.
+- Five Storybook sections, per-action tests, and one integration walkthrough verifying each section deep-links by fieldId.
+
+Exit criteria:
+- `features/offer-studio/components/editor/` no longer contains `SectionFormWrapper` / `FormField` / the four hand-rolled `*Form.tsx` files.
+- `brand-studio/components/legacy-team/` deleted.
+- arch test `test-feature-structure` allowlist includes `offer-studio` + the new `schemas/`, `pages/` folders.
+- Sprint 4d-h tools also fire in offer-studio pages (update route-tool map to register `extract_offer_from_url` if added).
 
 **Sprint 5 commits (7):**
 - `54d4ab74` feat(brand-studio): port business-types components (S5.1)

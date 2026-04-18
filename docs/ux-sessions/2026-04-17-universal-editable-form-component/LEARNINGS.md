@@ -63,6 +63,27 @@ Compact notes per sprint, for future developers picking up the work. No verbosit
 - **Keep `placeholders.tsx` in brand-studio/actions/ alive.** Per PLAN Sprint 2 exit it was supposed to die by now, but Sprint 4d-h (copilot tools) will substitute those 6 remaining placeholder actions. Deleting the file prematurely would force re-inventing the registry during Sprint 4.
 - **Tests for ported components: add a single smoke test rather than a full port.** The original brand/ business-types/ had zero tests. Adding the minimum smoke test on the brand-studio port (3 cases: loading / populated / onChange) is low-cost regression insurance without writing the tests the legacy never had.
 
+## Sprint 2.D (data-model purge, backend + frontend)
+
+- **Verify the "duplicate" actually exists before writing the migration.** PLAN §5bis listed 9 visual fields on `BrandIdentity` as duplicates of `BrandVisuals`. Backend reality: those fields lived only in `BrandVisuals`; the frontend `BrandIdentity` interface had them as a loose legacy surface for the wizard extraction flow. No SQL migration was needed — the whole purge was Pydantic `extra="ignore"` + frontend type deletions.
+- **JSONB blobs don't need Alembic migrations for field removal.** `brand_settings` is stored as JSONB inside `TenantModel.config_json`. Dropping fields at the Pydantic layer with `extra="ignore"` silently drops old keys on read. No DDL, no prod-clone test needed.
+- **`positioning.values.*` → `BrandPersonality` is a value-object move, not a column rename.** In the frontend we introduced `BrandPersonality` (core_values, personality_traits, archetype) and exposed it on `BrandSettings.brand_personality`. The pattern: new VO at the same aggregate root, schema entry `path` uses the top-level VO name, legacy read-paths die with `extra="ignore"`.
+- **Schema fields for `string[]` via textarea is a pragmatic compromise.** The form-runtime's `array` type needs `itemSchema` (objects), which is wrong for string lists. Until the runtime grows a native string-list input, use `type: "textarea"` with a "Uno por línea" hint and split/join at the consumer page boundary.
+
+## Sprint 4a + 4c (store collapse + delete dead UI, combined)
+
+- **Intermediate stores break compilation.** PLAN split 4a (collapse state) from 4c (delete UI) as two sprints. Reality: every dying component (WithCopilot, FocusBar, CopilotPreviewPane, FocusModeButton, etc.) references dying state slices, and every live consumer (use-copilot-chat, CopilotHeader, InterviewCompleteCard, use-interview-notifications) references the same slices. Splitting the sprint forces either a half-working store with both old+new slices, or sequential commits where tsc is red between them. Combined commit = single cohesive refactor.
+- **`eslint --fix` after large refactors is dangerous.** The auto-fix rewrote 425 files — mostly adding empty JSDoc placeholders, some removing load-bearing casts. Use targeted `git restore -- <paths>` to keep only the files you intentionally touched. Leave `--fix` for one-file scope, not a whole refactor commit.
+- **Some casts that look redundant aren't.** `\`${fromStatus}_${toStatus}\` as TransitionKey` gives a precise literal type; eslint's prefer-nothing rule removed it and tsc then complained about indexing a `Partial<Record<...>>`. When a cast narrows a string to a literal union, keep it.
+- **Sidebar "expanded" state dies with the preview.** The copilot sidebar had three states — collapsed/open/expanded — where "expanded" existed solely to house the preview pane column. With preview gone, the state simplifies to `collapsed | open`. Don't keep zombie states "in case we want them back"; delete them and restore if a real UX need emerges.
+- **Zustand store owning a framework-neutral slot.** `activeBridge: FormRuntimeBridge | null` in the copilot store is fine because the type lives in `lib/form-runtime/copilot/` — FSD-neutral. The copilot store can consume it; the feature store can't reference the other feature store. If the bridge type ever needs to live inside copilot/, that'd be a real boundary violation.
+
+## Sprint 4b (bridge wiring)
+
+- **Identity-preserving disconnect.** `disconnectBridge(bridge)` only nulls the slot if the passed bridge is still active. Two mounts racing (a page navigation mid-transition) leave the newer mount's bridge intact rather than clobbering it. The symmetric check also prevents a legitimate late-unmount from blanking the store after a replacement.
+- **Fail-safe Apply on disconnected bridge.** `MultiOptionSelector` + `ProposalCard` mark themselves "Aplicado" even when no bridge is active. This is correct UX: the user sees feedback, and when no form is mounted there's nothing to patch. The alternative (grey out Apply when no session) leaks copilot-session concepts into chat UI that should stay agnostic.
+- **Field id → field path via schema lookup.** The backend emits `field_id: "tagline"` because it doesn't know the consumer's path structure. The bridge's `getSnapshot()` exposes the schema; chat UI resolves `field_id` to `path` at Apply time. Keeps the protocol flat and leaves routing concerns in the frontend.
+
 ## Patterns every future action port follows
 
 1. **One file per action**; one test file next to it; one story file under `stories/`.
