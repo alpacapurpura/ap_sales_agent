@@ -125,6 +125,9 @@ function LogoSlotCard({ slot, currentUrl, onChange }: LogoSlotCardProps) {
  */
 const EMPTY_LOGOS: BrandLogos = {};
 
+/**
+ *
+ */
 export function LogoKitAction({ value, onChange }: ActionComponentProps<BrandLogos | null>) {
   const logos = useMemo(() => value ?? EMPTY_LOGOS, [value]);
 
