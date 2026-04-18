@@ -44,24 +44,32 @@ vi.mock("@/features/offer-studio/hooks/use-archetype-display", async () => {
   };
 });
 
-vi.mock("@/features/offer-studio/hooks/use-value-level-catalog", () => ({
-  useValueLevelMetadata: (valueLevel?: string) =>
-    valueLevel
-      ? {
-          value_level: valueLevel,
-          order: 0,
-          label_es: "Lead Magnet",
-          description_es: "Recursos gratuitos",
-          role_in_funnel_es: "",
-          icon_name: "Lightbulb",
-          examples_es: [],
-          is_free: true,
-          typical_price_min_usd: null,
-          typical_price_max_usd: null,
-        }
-      : undefined,
-  useValueLevelCatalog: () => ({ data: undefined }),
-}));
+vi.mock("@/features/offer-studio/hooks/use-value-level-catalog", () => {
+  const makeEntry = (vl: string, order: number, label: string, icon: string, isFree = false) => ({
+    value_level: vl,
+    order,
+    label_es: label,
+    description_es: "",
+    role_in_funnel_es: "",
+    icon_name: icon,
+    examples_es: [],
+    is_free: isFree,
+    typical_price_min_usd: isFree ? null : 10,
+    typical_price_max_usd: isFree ? null : 100,
+  });
+  const entries = [
+    makeEntry("lead_magnet", 0, "Gancho Gratuito", "Lightbulb", true),
+    makeEntry("activacion", 1, "Primera Compra", "Rocket"),
+    makeEntry("transformacion", 2, "Oferta Principal", "TrendingUp"),
+    makeEntry("maximizacion", 3, "Oferta Premium", "Gem"),
+    makeEntry("corporativo", 4, "Venta Corporativa", "Building2"),
+  ];
+  return {
+    useValueLevelMetadata: (valueLevel?: string) =>
+      valueLevel ? entries.find((e) => e.value_level === valueLevel) : undefined,
+    useValueLevelCatalog: () => ({ data: { version: "test", value_levels: entries } }),
+  };
+});
 
 const MOCK_OFFERS: Offer[] = [
   {

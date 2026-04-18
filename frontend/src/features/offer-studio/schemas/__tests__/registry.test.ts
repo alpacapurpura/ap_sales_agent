@@ -29,6 +29,14 @@ const EXPECTED_KEYS: readonly SectionKey[] = [
   "program_details",
   "service_details",
   "resources",
+  // Nuevas (Latam mass-market rollout)
+  "faq",
+  "testimonials",
+  "portfolio",
+  "methodology",
+  "credentials",
+  "location",
+  "platform_details",
 ];
 
 describe("OFFER_SCHEMA_REGISTRY", () => {

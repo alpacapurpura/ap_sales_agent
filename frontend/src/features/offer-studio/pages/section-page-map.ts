@@ -1,10 +1,16 @@
 import {
   ClosingPage,
+  CredentialsPage,
   EventDetailsPage,
+  FaqPage,
   GalleryPage,
   IdentityPage,
   InstructorsPage,
   KnowledgePage,
+  LocationPage,
+  MethodologyPage,
+  PlatformDetailsPage,
+  PortfolioPage,
   PricingPage,
   ProductDetailsPage,
   ProgramDetailsPage,
@@ -14,6 +20,7 @@ import {
   ServiceDetailsPage,
   StrategyPage,
   SubscriptionDetailsPage,
+  TestimonialsPage,
   ValueStackPage,
 } from "./section-pages";
 
@@ -50,6 +57,14 @@ export const OFFER_SECTION_PAGE_MAP = {
   program_details: ProgramDetailsPage,
   service_details: ServiceDetailsPage,
   resources: ResourcesPage,
+  // Nuevas secciones (Latam mass-market rollout)
+  faq: FaqPage,
+  testimonials: TestimonialsPage,
+  portfolio: PortfolioPage,
+  methodology: MethodologyPage,
+  credentials: CredentialsPage,
+  location: LocationPage,
+  platform_details: PlatformDetailsPage,
 } as const satisfies Readonly<
   Record<SectionKey, (props: { offerId: string; editionCode: string }) => React.JSX.Element>
 >;

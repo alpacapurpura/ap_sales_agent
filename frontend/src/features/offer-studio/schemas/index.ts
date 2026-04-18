@@ -4,11 +4,17 @@
 import "@/features/offer-studio/actions/registry";
 
 import { offerClosingSchema } from "./closing.schema";
+import { offerCredentialsSchema } from "./credentials.schema";
 import { offerEventDetailsSchema } from "./event-details.schema";
+import { offerFaqSchema } from "./faq.schema";
 import { offerGallerySchema } from "./gallery.schema";
 import { offerIdentitySchema } from "./identity.schema";
 import { offerInstructorsSchema } from "./instructors.schema";
 import { offerKnowledgeSchema } from "./knowledge.schema";
+import { offerLocationSchema } from "./location.schema";
+import { offerMethodologySchema } from "./methodology.schema";
+import { offerPlatformDetailsSchema } from "./platform-details.schema";
+import { offerPortfolioSchema } from "./portfolio.schema";
 import { offerPricingSchema } from "./pricing.schema";
 import { offerProductDetailsSchema } from "./product-details.schema";
 import { offerProgramDetailsSchema } from "./program-details.schema";
@@ -18,6 +24,7 @@ import { offerResourcesSchema } from "./resources.schema";
 import { offerServiceDetailsSchema } from "./service-details.schema";
 import { offerStrategySchema } from "./strategy.schema";
 import { offerSubscriptionDetailsSchema } from "./subscription-details.schema";
+import { offerTestimonialsSchema } from "./testimonials.schema";
 import { offerValueStackSchema } from "./value-stack.schema";
 
 import type { SectionKey } from "../api/archetype-catalog-api";
@@ -25,11 +32,17 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
 
 export {
   offerClosingSchema,
+  offerCredentialsSchema,
   offerEventDetailsSchema,
+  offerFaqSchema,
   offerGallerySchema,
   offerIdentitySchema,
   offerInstructorsSchema,
   offerKnowledgeSchema,
+  offerLocationSchema,
+  offerMethodologySchema,
+  offerPlatformDetailsSchema,
+  offerPortfolioSchema,
   offerPricingSchema,
   offerProductDetailsSchema,
   offerProgramDetailsSchema,
@@ -39,6 +52,7 @@ export {
   offerServiceDetailsSchema,
   offerStrategySchema,
   offerSubscriptionDetailsSchema,
+  offerTestimonialsSchema,
   offerValueStackSchema,
 };
 
@@ -68,6 +82,14 @@ export const OFFER_SCHEMA_REGISTRY: Readonly<Record<SectionKey, SectionSchema>> 
   program_details: offerProgramDetailsSchema,
   service_details: offerServiceDetailsSchema,
   resources: offerResourcesSchema,
+  // Nuevas secciones (Latam mass-market rollout)
+  faq: offerFaqSchema,
+  testimonials: offerTestimonialsSchema,
+  portfolio: offerPortfolioSchema,
+  methodology: offerMethodologySchema,
+  credentials: offerCredentialsSchema,
+  location: offerLocationSchema,
+  platform_details: offerPlatformDetailsSchema,
 };
 
 /**

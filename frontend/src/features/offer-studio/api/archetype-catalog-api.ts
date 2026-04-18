@@ -45,7 +45,15 @@ export type SectionKey =
   | "pricing"
   | "program_details"
   | "service_details"
-  | "resources";
+  | "resources"
+  // Nuevas (Latam mass-market rollout)
+  | "faq"
+  | "testimonials"
+  | "portfolio"
+  | "methodology"
+  | "credentials"
+  | "location"
+  | "platform_details";
 
 /**
  * Persistence scope of a section — which aggregate its fields write to.
@@ -62,9 +70,16 @@ export interface SectionMetadata {
   readonly key: SectionKey;
   readonly label_es: string;
   readonly subtitle_es: string;
+  /** Rich copilot-friendly context (2-4 sentences). Backend-only invariant: at
+   *  least 1.5x longer than subtitle_es. */
+  readonly help_text_es: string;
   /** Lucide icon name in PascalCase. Resolved to a component on the frontend. */
   readonly icon_name: string;
   readonly scope: SectionScope;
+  /** Weight in per-offer completeness scoring, [0.1, 1.0]. */
+  readonly completion_weight: number;
+  /** Whether the section blocks offer publishing when empty. */
+  readonly required_to_publish: boolean;
 }
 
 export interface ArchetypeCapabilities {

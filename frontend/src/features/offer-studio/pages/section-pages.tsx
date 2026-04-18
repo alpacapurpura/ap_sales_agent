@@ -8,11 +8,17 @@ import { UniversalEditableSection } from "@/components/form-runtime";
 import { useSectionMetadata } from "@/features/offer-studio/hooks/use-section-catalog";
 import {
   offerClosingSchema,
+  offerCredentialsSchema,
   offerEventDetailsSchema,
+  offerFaqSchema,
   offerGallerySchema,
   offerIdentitySchema,
   offerInstructorsSchema,
   offerKnowledgeSchema,
+  offerLocationSchema,
+  offerMethodologySchema,
+  offerPlatformDetailsSchema,
+  offerPortfolioSchema,
   offerPricingSchema,
   offerProductDetailsSchema,
   offerProgramDetailsSchema,
@@ -22,6 +28,7 @@ import {
   offerServiceDetailsSchema,
   offerStrategySchema,
   offerSubscriptionDetailsSchema,
+  offerTestimonialsSchema,
   offerValueStackSchema,
 } from "@/features/offer-studio/schemas";
 
@@ -186,6 +193,20 @@ export const PricingPage = createSectionPage(offerPricingSchema, "pricing", "mix
 export const ProgramDetailsPage = createSectionPage(offerProgramDetailsSchema, "program_details", "mixed");
 export const ServiceDetailsPage = createSectionPage(offerServiceDetailsSchema, "service_details", "mixed");
 export const ResourcesPage = createSectionPage(offerResourcesSchema, "resources", "mixed");
+export const LocationPage = createSectionPage(offerLocationSchema, "location", "mixed");
+
+// ── Nuevas secciones (Latam mass-market rollout) ───────────────────────────
+
+export const FaqPage = createSectionPage(offerFaqSchema, "faq", "offer_level");
+export const TestimonialsPage = createSectionPage(offerTestimonialsSchema, "testimonials", "offer_level");
+export const PortfolioPage = createSectionPage(offerPortfolioSchema, "portfolio", "offer_level");
+export const MethodologyPage = createSectionPage(offerMethodologySchema, "methodology", "offer_level");
+export const CredentialsPage = createSectionPage(offerCredentialsSchema, "credentials", "offer_level");
+export const PlatformDetailsPage = createSectionPage(
+  offerPlatformDetailsSchema,
+  "platform_details",
+  "offer_level",
+);
 
 /** Name the index in the same shape the server-safe map expects. */
 export const OFFER_STUDIO_SECTION_KEYS: readonly SectionKey[] = [
@@ -205,4 +226,11 @@ export const OFFER_STUDIO_SECTION_KEYS: readonly SectionKey[] = [
   "program_details",
   "service_details",
   "resources",
+  "faq",
+  "testimonials",
+  "portfolio",
+  "methodology",
+  "credentials",
+  "location",
+  "platform_details",
 ];

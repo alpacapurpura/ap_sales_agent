@@ -25,8 +25,11 @@ const section = (
   key,
   label_es,
   subtitle_es: `${label_es} — descripción de prueba`,
+  help_text_es: `${label_es} — contexto ampliado de prueba para el copilot que describe qué, cómo y por qué.`,
   icon_name,
   scope,
+  completion_weight: 0.5,
+  required_to_publish: false,
 });
 
 const IDENTITY = section("identity", "offer_level", "Identidad de oferta", "Fingerprint");
@@ -50,6 +53,13 @@ const PRICING = section("pricing", "mixed", "Precios", "DollarSign");
 const PROGRAM_DETAILS = section("program_details", "mixed", "Programa", "BookOpen");
 const SERVICE_DETAILS = section("service_details", "mixed", "Servicio", "Briefcase");
 const RESOURCES = section("resources", "mixed", "Recursos", "Library");
+const FAQ = section("faq", "offer_level", "FAQ", "HelpCircle");
+const TESTIMONIALS = section("testimonials", "offer_level", "Testimonios", "Quote");
+const PORTFOLIO = section("portfolio", "offer_level", "Portfolio", "Trophy");
+const METHODOLOGY = section("methodology", "offer_level", "Metodología", "Workflow");
+const CREDENTIALS = section("credentials", "offer_level", "Credenciales", "Shield");
+const LOCATION = section("location", "mixed", "Ubicación", "MapPin");
+const PLATFORM_DETAILS = section("platform_details", "offer_level", "Plataforma", "Cpu");
 
 export const MOCK_SECTION_CATALOG: readonly SectionMetadata[] = [
   IDENTITY,
@@ -68,6 +78,13 @@ export const MOCK_SECTION_CATALOG: readonly SectionMetadata[] = [
   PROGRAM_DETAILS,
   SERVICE_DETAILS,
   RESOURCES,
+  FAQ,
+  TESTIMONIALS,
+  PORTFOLIO,
+  METHODOLOGY,
+  CREDENTIALS,
+  LOCATION,
+  PLATFORM_DETAILS,
 ];
 
 const BASE_CAPABILITIES_DEFAULTS = {
