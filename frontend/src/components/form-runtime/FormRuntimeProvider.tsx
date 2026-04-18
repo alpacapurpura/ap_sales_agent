@@ -12,7 +12,7 @@ import type { SaveMode, SectionSchema } from "@/lib/form-runtime/schema";
 
 const DEFAULT_SAVE_MODE: SaveMode = "autosave-with-banner";
 
-export interface FormRuntimeProviderProps<TValues extends Record<string, unknown>> {
+export interface FormRuntimeProviderProps<TValues extends object> {
   schema: SectionSchema;
   initialValues: TValues;
   /** Feature save function. Receives the full composed section object. */
@@ -27,7 +27,7 @@ export interface FormRuntimeProviderProps<TValues extends Record<string, unknown
  * consumer save functions (`updateIdentity(fullSectionObject)`) keep working
  * unchanged.
  */
-export function FormRuntimeProvider<TValues extends Record<string, unknown>>({
+export function FormRuntimeProvider<TValues extends object>({
   schema,
   initialValues,
   onSave,
@@ -78,7 +78,7 @@ export function FormRuntimeProvider<TValues extends Record<string, unknown>>({
     () =>
       createFormRuntimeBridge({
         schema,
-        getValues: () => valuesRef.current,
+        getValues: () => valuesRef.current as unknown as Record<string, unknown>,
         patchFn: (path, value) => {
           setFieldValue(path, value);
           return Promise.resolve();
@@ -102,7 +102,7 @@ export function FormRuntimeProvider<TValues extends Record<string, unknown>>({
   const ctxValue: FormRuntimeContextValue = useMemo(
     () => ({
       schema,
-      values,
+      values: values as unknown as Record<string, unknown>,
       focusedFieldId,
       saveMode,
       autosaveStatus,

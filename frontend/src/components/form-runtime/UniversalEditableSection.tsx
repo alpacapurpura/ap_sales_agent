@@ -13,7 +13,7 @@ import type { SaveMode, SectionSchema } from "@/lib/form-runtime/schema";
 
 const MOBILE_BREAKPOINT_PX = 768;
 
-export interface UniversalEditableSectionProps<TValues extends Record<string, unknown>> {
+export interface UniversalEditableSectionProps<TValues extends object> {
   schema: SectionSchema;
   values: TValues | null | undefined;
   onSave: (next: TValues) => Promise<void>;
@@ -28,7 +28,7 @@ export interface UniversalEditableSectionProps<TValues extends Record<string, un
  * (list + detail pane). Mobile collapses detail into a full-screen view.
  * This is the only component feature pages import.
  */
-export function UniversalEditableSection<TValues extends Record<string, unknown>>({
+export function UniversalEditableSection<TValues extends object>({
   schema,
   values,
   onSave,
