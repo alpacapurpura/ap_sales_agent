@@ -16,6 +16,11 @@ const SCHEMA: SectionSchema = {
   ],
 };
 
+// URL builder used in tests — mimics the real brand-studio route contract.
+function sectionHref(fieldId: string | null): string {
+  return fieldId === null ? "/t/section" : `/t/section/${fieldId}`;
+}
+
 async function flushMicrotasks(): Promise<void> {
   for (let i = 0; i < 3; i += 1) {
     await Promise.resolve();
@@ -37,6 +42,8 @@ describe("UniversalEditableSection", () => {
         schema={SCHEMA}
         values={{ name: "Visionarias", tagline: "", mission: "" }}
         onSave={vi.fn().mockResolvedValue(undefined)}
+        activeFieldId={null}
+        getFieldHref={sectionHref}
       />,
     );
     expect(screen.getByRole("heading", { name: "Identidad" })).toBeTruthy();
@@ -52,6 +59,8 @@ describe("UniversalEditableSection", () => {
         schema={SCHEMA}
         values={{ name: "Visionarias", tagline: "hola", mission: "" }}
         onSave={vi.fn().mockResolvedValue(undefined)}
+        activeFieldId={null}
+        getFieldHref={sectionHref}
       />,
     );
     expect(screen.getByLabelText(/2 de 3 campos completos/i)).toBeTruthy();
@@ -59,26 +68,67 @@ describe("UniversalEditableSection", () => {
 
   it("renders Cargando… when isLoading or values are missing", () => {
     const { rerender } = render(
-      <UniversalEditableSection schema={SCHEMA} values={undefined} onSave={vi.fn()} />,
+      <UniversalEditableSection
+        schema={SCHEMA}
+        values={undefined}
+        onSave={vi.fn()}
+        activeFieldId={null}
+        getFieldHref={sectionHref}
+      />,
     );
     expect(screen.getByText(/Cargando/i)).toBeTruthy();
 
-    rerender(<UniversalEditableSection schema={SCHEMA} values={{}} onSave={vi.fn()} isLoading />);
+    rerender(
+      <UniversalEditableSection
+        schema={SCHEMA}
+        values={{}}
+        onSave={vi.fn()}
+        isLoading
+        activeFieldId={null}
+        getFieldHref={sectionHref}
+      />,
+    );
     expect(screen.getByText(/Cargando/i)).toBeTruthy();
   });
 
-  it("switching the active field updates the detail pane", () => {
+  it("renders the field matching activeFieldId in the detail pane", () => {
     render(
       <UniversalEditableSection
         schema={SCHEMA}
         values={{ name: "a", tagline: "b", mission: "c" }}
         onSave={vi.fn().mockResolvedValue(undefined)}
+        activeFieldId="tagline"
+        getFieldHref={sectionHref}
       />,
     );
-    // First field is active by default
-    expect(screen.getByDisplayValue("a")).toBeTruthy();
-    fireEvent.click(screen.getByRole("option", { name: /Tagline/ }));
     expect(screen.getByDisplayValue("b")).toBeTruthy();
+  });
+
+  it("falls back to the first schema field when activeFieldId is null", () => {
+    render(
+      <UniversalEditableSection
+        schema={SCHEMA}
+        values={{ name: "a", tagline: "b", mission: "c" }}
+        onSave={vi.fn().mockResolvedValue(undefined)}
+        activeFieldId={null}
+        getFieldHref={sectionHref}
+      />,
+    );
+    expect(screen.getByDisplayValue("a")).toBeTruthy();
+  });
+
+  it("renders rows as Next.js Links pointing at the consumer-provided href", () => {
+    render(
+      <UniversalEditableSection
+        schema={SCHEMA}
+        values={{ name: "a", tagline: "b", mission: "c" }}
+        onSave={vi.fn().mockResolvedValue(undefined)}
+        activeFieldId={null}
+        getFieldHref={sectionHref}
+      />,
+    );
+    const taglineRow = screen.getByRole("option", { name: /Tagline/ });
+    expect(taglineRow.getAttribute("href")).toBe("/t/section/tagline");
   });
 
   it("autosave triggers after 800ms debounce", async () => {
@@ -88,6 +138,8 @@ describe("UniversalEditableSection", () => {
         schema={SCHEMA}
         values={{ name: "start", tagline: "t", mission: "m" }}
         onSave={onSave}
+        activeFieldId="name"
+        getFieldHref={sectionHref}
       />,
     );
 

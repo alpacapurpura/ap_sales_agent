@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 
@@ -9,16 +9,18 @@ import { useFormRuntime } from "./FormRuntimeContext";
 import type { FieldSchema } from "@/lib/form-runtime/schema";
 
 export interface FieldListProps {
-  onFieldSelect: (fieldId: string) => void;
   activeFieldId: string | null;
+  /** Consumer-provided URL builder: given a field id, return the route to navigate to. */
+  getFieldHref: (fieldId: string) => string;
   className?: string;
 }
 
 /**
- * Left pane — compact list of fields with truncated value preview. The active
- * row is highlighted. Clicking a row sets the detail pane focus.
+ * Left pane — compact list of fields with truncated value preview. Rows are
+ * Next.js Links so navigation lives in the URL (deep-linkable, back-button
+ * works). The active row is highlighted based on the `activeFieldId` prop.
  */
-export function FieldList({ onFieldSelect, activeFieldId, className }: FieldListProps) {
+export function FieldList({ activeFieldId, getFieldHref, className }: FieldListProps) {
   const { schema, values } = useFormRuntime();
 
   return (
@@ -29,7 +31,7 @@ export function FieldList({ onFieldSelect, activeFieldId, className }: FieldList
           field={field}
           value={values[field.path]}
           isActive={field.id === activeFieldId}
-          onFieldSelect={onFieldSelect}
+          href={getFieldHref(field.id)}
         />
       ))}
     </ul>
@@ -40,16 +42,14 @@ interface FieldRowProps {
   field: FieldSchema;
   value: unknown;
   isActive: boolean;
-  onFieldSelect: (id: string) => void;
+  href: string;
 }
 
-function FieldRow({ field, value, isActive, onFieldSelect }: FieldRowProps) {
-  const onClick = useCallback(() => onFieldSelect(field.id), [onFieldSelect, field.id]);
+function FieldRow({ field, value, isActive, href }: FieldRowProps) {
   return (
     <li>
-      <button
-        type="button"
-        onClick={onClick}
+      <Link
+        href={href}
         aria-selected={isActive}
         role="option"
         className={cn(
@@ -63,7 +63,7 @@ function FieldRow({ field, value, isActive, onFieldSelect }: FieldRowProps) {
             {preview(field, value)}
           </div>
         </div>
-      </button>
+      </Link>
     </li>
   );
 }

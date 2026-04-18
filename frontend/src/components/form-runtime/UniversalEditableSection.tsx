@@ -17,6 +17,17 @@ export interface UniversalEditableSectionProps<TValues extends object> {
   schema: SectionSchema;
   values: TValues | null | undefined;
   onSave: (next: TValues) => Promise<void>;
+  /**
+   * Currently-active field id. Driven by the URL — the consumer page reads
+   * it from route params and passes it down.
+   */
+  activeFieldId: string | null;
+  /**
+   * URL builder. Given a field id, returns the href to navigate to when the
+   * user selects that row. Passing `null` in the consumer (e.g. for the
+   * mobile "back" link) is expected to return the section-level URL.
+   */
+  getFieldHref: (fieldId: string | null) => string;
   isLoading?: boolean;
   saveMode?: SaveMode;
   onStartInterview?: () => void;
@@ -25,21 +36,25 @@ export interface UniversalEditableSectionProps<TValues extends object> {
 
 /**
  * Top-level consumer API. Wraps FormRuntimeProvider + variant-C layout
- * (list + detail pane). Mobile collapses detail into a full-screen view.
- * This is the only component feature pages import.
+ * (list + detail pane). Mobile collapses detail into a full-screen view
+ * when a field is active in the URL.
+ *
+ * URL contract: routing is the single source of truth for which field is
+ * active. This component owns no `activeFieldId` state; the page above
+ * extracts it from route params and passes it via props.
  */
 export function UniversalEditableSection<TValues extends object>({
   schema,
   values,
   onSave,
+  activeFieldId,
+  getFieldHref,
   isLoading,
   saveMode,
   onStartInterview,
   className,
 }: UniversalEditableSectionProps<TValues>) {
-  const [activeFieldId, setActiveFieldId] = useState<string | null>(schema.fields[0]?.id ?? null);
   const [isMobile, setIsMobile] = useState(false);
-  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
 
   useEffect(() => {
     function check() {
@@ -63,26 +78,26 @@ export function UniversalEditableSection<TValues extends object>({
     );
   }
 
+  // Mobile: show list view when no field is selected; full-screen detail when one is.
+  const showDetail = !isMobile || activeFieldId !== null;
+  const showList = !isMobile || activeFieldId === null;
+
   return (
     <FormRuntimeProvider schema={schema} initialValues={values} onSave={onSave} saveMode={saveMode}>
       <div className={cn("flex flex-col", className)}>
         <SessionHeader onStartInterview={onStartInterview} />
         <div className="flex flex-1 flex-col md:flex-row">
-          <div className="w-full border-r md:w-80">
-            <FieldList
-              activeFieldId={activeFieldId}
-              onFieldSelect={(id) => {
-                setActiveFieldId(id);
-                if (isMobile) setMobileDetailOpen(true);
-              }}
-            />
-          </div>
-          {(!isMobile || mobileDetailOpen) && (
+          {showList && (
+            <div className="w-full border-r md:w-80">
+              <FieldList activeFieldId={activeFieldId} getFieldHref={getFieldHref} />
+            </div>
+          )}
+          {showDetail && (
             <div className="flex-1">
               <FieldDetail
                 activeFieldId={activeFieldId}
                 fullScreen={isMobile}
-                onBack={() => setMobileDetailOpen(false)}
+                backHref={isMobile ? getFieldHref(null) : undefined}
               />
             </div>
           )}

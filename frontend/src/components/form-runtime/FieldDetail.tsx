@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -11,18 +12,19 @@ import { useFormRuntime } from "./FormRuntimeContext";
 
 export interface FieldDetailProps {
   activeFieldId: string | null;
-  onBack?: () => void;
+  /** Href to return to (used by the mobile back button). */
+  backHref?: string;
   /** When true, render as a full-screen overlay (mobile <768px). */
   fullScreen?: boolean;
   className?: string;
 }
 
 /**
- * Right pane — renders the active field's input, autosave banner, and
- * description. On mobile this becomes a full-screen view with back button
- * (D13).
+ * Right pane — renders the active field's input, autosave banner and label.
+ * On mobile (<768px) the pane becomes a full-screen overlay; the back
+ * affordance is a Next.js Link so navigation lives in the URL.
  */
-export function FieldDetail({ activeFieldId, onBack, fullScreen, className }: FieldDetailProps) {
+export function FieldDetail({ activeFieldId, backHref, fullScreen, className }: FieldDetailProps) {
   const { schema, autosaveStatus, autosaveError } = useFormRuntime();
   const field = activeFieldId
     ? schema.fields.find((f) => f.id === activeFieldId)
@@ -37,10 +39,12 @@ export function FieldDetail({ activeFieldId, onBack, fullScreen, className }: Fi
       )}
       aria-label={field?.label ?? "Detalle"}
     >
-      {fullScreen && onBack && (
-        <Button type="button" variant="ghost" size="sm" onClick={onBack} className="self-start">
-          <ChevronLeft className="mr-1 h-4 w-4" />
-          Atrás
+      {fullScreen && backHref && (
+        <Button type="button" variant="ghost" size="sm" asChild className="self-start">
+          <Link href={backHref}>
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            Atrás
+          </Link>
         </Button>
       )}
 
