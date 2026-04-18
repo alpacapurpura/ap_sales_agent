@@ -132,14 +132,145 @@ Next session's pre-flight reads memory + PLAN.md + FLOW-SPEC.md + DECISIONS.md a
 
 ---
 
+## 2026-04-18 · Sprint 6 architect decisions (LOCKED for execution)
+
+User directive (2026-04-18): "Toma todas las decisiones buscando excelencia
+técnica, lo que sea mejor a largo plazo, no escatimes en costos." Claude
+acts in architect-consultant role. The following 9 decisions extend the
+original 18 so Sprint 6 can execute without further discovery loops. See
+`SPRINT-6-PLAN.md` for execution detail.
+
+### D19 · URL with virtual `evergreen` code (no DB row)
+**Decision:** Editor URL shape is
+`/offer-studio/[offerId]/edition/[code]/[section]/[[...fieldId]]`.
+- `code = "evergreen"` is a reserved keyword — maps to `edition: null`,
+  schemas render offer-level fields only, `EDITION_LEVEL` sections are
+  hidden. No DB row backs it; the resolver is a pure function of URL + offer.
+- `code = "<N>"` (positive integer) resolves to `LaunchEdition.edition_number
+  == N` for the offer. 404 if missing.
+- Edition-less archetypes (PRODUCTO, MEMBRESIA) always resolve through
+  `evergreen`. Edition-supporting archetypes default to the first active
+  launch's `edition_number`, falling back to `evergreen` when none exist.
+**Why:** Unifies the URL shape across archetypes (every editor URL has
+`/edition/<code>/`). Avoids a new `EditionKind` enum + migration purely to
+carry the "offer-level content" case. Keeps `LaunchEdition` rows meaning
+exactly what they do today (dated launches). Adds no backend data model
+cost to a frontend-driven UX unification.
+**Alternatives rejected:**
+- Physical `EVERGREEN` edition kind + migration: introduces dead rows for
+  edition-supporting archetypes that already have content overlap, and
+  duplicates offer-level data.
+- Drop the `/edition/` segment when archetype is edition-less: URLs bifurcate
+  per archetype, NavRail + copilot + EditionsRail all grow archetype
+  branches.
+
+### D20 · Terminology alignment
+**Decision:** Keep backend "placeholder" terminology for the DRAFT+PRIVATE
+auto-row on edition-supporting archetypes (describes a state, not a kind).
+Frontend URL code `evergreen` names the virtual "no-launch" view. User-facing
+Spanish labels: "Oferta evergreen" when offer has no launches, archetype's
+`edition_noun_es` ("Cohortes", "Salidas", "Convocatorias") when it does.
+**Why:** Two orthogonal concepts deserve separate names. Placeholder = "we
+spawned a row so you can start filling". Evergreen = "this offer has no
+launches at all". Conflating them leaks semantics both ways.
+
+### D21 · Section visibility catalog lives in backend
+**Decision:** Sections are the 5th axis of the offer-studio catalog system
+(joining OfferArchetype, OfferValueLevel, OfferFormat, ExpertBusinessType —
+see `.claude/rules/offer-catalogs.md`). Canonical location:
+`backend/src/modules/offer/domain/section_catalog.py` (new). Archetypes
+declare which sections they surface via a new field on
+`ArchetypeCapabilities`.
+**Why:** Today `ARCHETYPE_BUILDER_CONFIG` lives in `offer-builder-config.ts`
+(frontend) — a direct violation of the SSoT rule that caused the
+lead-magnet regression in commit `4083a60f`. Moving it to the backend makes
+drift impossible (arch tests enforce alignment) and unlocks headless
+consumers (copilot, future CLI tools, WhatsApp integration) that can reason
+about sections without embedding a frontend duplicate.
+
+### D22 · Section scope: OFFER_LEVEL | EDITION_LEVEL | MIXED
+**Decision:** Every section declares a scope in the catalog.
+- `OFFER_LEVEL` — persists to `Offer` row. Visible on both `evergreen` and
+  specific-edition URLs (editing from a specific edition updates the shared
+  offer-level data).
+- `EDITION_LEVEL` — persists to `LaunchEdition`. Visible only when
+  `code != evergreen`.
+- `MIXED` — per-field `owner` drives the save path. Example: `pricing` has
+  offer-baseline fields (`pricing_options` on Offer) + per-edition
+  overrides (`pricing_tiers` on LaunchEdition).
+Arch test: archetypes with `supports_editions=False` cannot list
+`EDITION_LEVEL` sections. Archetypes with `supports_editions=True` must
+list at least one non-`OFFER_LEVEL` section.
+**Why:** Makes the offer-vs-edition data boundary a first-class concept
+instead of implicit convention. Without scope, the frontend has to invent
+visibility rules per section, with no compile-time safety.
+
+### D23 · Form-runtime `FieldSchema.owner` extension for MIXED sections
+**Decision:** Extend `FieldSchema` with optional `owner: "offer" | "edition"`.
+When unset, the field inherits the section's scope. MIXED sections declare
+per-field owner explicitly. The form-runtime dispatcher routes saves to
+the correct mutation (`updateOffer` or `updateEdition`) based on owner.
+**Why:** A single "pricing" schema covers both baseline and overrides without
+forking into two section keys. Save-path dispatch stays inside the runtime
+(consumer does not re-implement the split). Matches brand-studio's existing
+`save` prop pattern extended with a routing layer.
+
+### D24 · Catalog exposure + version bump
+**Decision:** Extend the existing `GET /api/v1/offer/archetypes/catalog`
+response with a new `sections` array per archetype (resolved, not just keys)
+plus a global `section_catalog` map. Bump `_CATALOG_VERSION` in
+`api/archetypes.py` to evict client-side cached responses.
+**Why:** One endpoint, one version. Clients already consume this endpoint.
+Adding a second `/sections/catalog` endpoint would split fetching and double
+cache invalidation complexity.
+
+### D25 · Arch fitness tests on both ends
+**Decision:** Add matched arch tests:
+- Backend `tests/architecture/test_section_catalog.py` — enum ↔ metadata
+  alignment, scope constraints per archetype.
+- Frontend `src/__tests__/architecture/test-no-section-catalog-duplicates.test.ts`
+  — no hardcoded section metadata (`*_METADATA` / `*_LABELS` / `ARCHETYPE_*_CONFIG`)
+  outside the catalog-api generated types file. Fails CI immediately.
+**Why:** The ratchet pattern that has kept brand-studio honest. Drift here
+would reopen the exact bug pattern `.claude/rules/offer-catalogs.md`
+documented from `4083a60f`.
+
+### D26 · Overlay model for MIXED sections (pricing as canonical example)
+**Decision:** Base fields live on the `Offer` row and always render. Overrides
+live on `LaunchEdition` and render only when a specific edition is active;
+they display as "override" affordances, visually distinct, with a "remove
+override" action that patches the edition back to using the offer baseline.
+**Why:** Makes the editing model legible. The user sees "here's the offer
+baseline; here's how edition #3 overrides it". The alternative ("merge and
+hide origin") leads to users editing a tier thinking they change the
+baseline when they're only overriding this one launch.
+
+### D27 · Backwards-compatible URL transition (two-phase removal)
+**Decision:**
+- **Phase 1 (immediate, with Phase D of Sprint 6):** `next.config.mjs`
+  redirects from legacy `/offer-studio/offer/:offerId/*` +
+  `/offer-studio/offer/:offerId/editions/:editionId/*` to the new shape.
+  When the legacy `editionId` UUID can't be translated at SSR (no tenant
+  context), the redirect lands on a client-side resolver page that does
+  the lookup and then 302s.
+- **Phase 2 (Sprint H, with a date in `docs/migrations/`):** delete the
+  redirect entries after one sprint of production coexistence.
+**Why:** User-shared bookmarks and backend-computed email/SMS links use the
+old shape. A hard cut breaks them silently. Two-phase removal gives a
+window for observed traffic to drop off.
+
+---
+
 ## Status: LOCKED FOR EXECUTION
 
-All 18 decisions are final. Spec is self-contained. A new Claude conversation
+All 27 decisions are final. Spec is self-contained. A new Claude conversation
 armed with:
 
 1. `docs/ux-sessions/2026-04-17-universal-editable-form-component/FLOW-SPEC.md`
 2. `docs/ux-sessions/2026-04-17-universal-editable-form-component/PLAN.md`
-3. `docs/ux-sessions/2026-04-17-universal-editable-form-component/DECISIONS.md`
-4. `docs/ux-sessions/2026-04-17-universal-editable-form-component/schemas/identity.schema.example.ts`
+3. `docs/ux-sessions/2026-04-17-universal-editable-form-component/SPRINT-6-PLAN.md`
+4. `docs/ux-sessions/2026-04-17-universal-editable-form-component/DECISIONS.md`
+5. `docs/ux-sessions/2026-04-17-universal-editable-form-component/schemas/identity.schema.example.ts`
 
-…can execute Sprint 1 without referring to any chat history.
+…can execute any remaining sprint (1, 4d–h, 6) without referring to chat
+history.

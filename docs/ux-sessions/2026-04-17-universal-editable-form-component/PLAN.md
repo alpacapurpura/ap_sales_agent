@@ -372,23 +372,29 @@ Shared implementation conventions:
 3. Every diff-chip component uses `@storybook/test` `fn()` for handlers in stories. Title: `Copilot/Tools/<Name>`.
 4. Backend tool signatures: async functions taking a Pydantic input DTO and returning a structured diff DTO. Inputs passed from chat via copilot's `tool_call` SSE event.
 
-## Sprint 6 — Offer-studio editor → form-runtime (planned)
+## Sprint 6 — Offer-studio editor → form-runtime (planned, now edition-aware)
 
-User directive (2026-04-18): the offer-studio editor must adopt the same route-per-field form-runtime UX as brand-studio. Offer-ladder overview is out of scope (it stays as-is).
+User directives (2026-04-18):
+1. The offer-studio editor must adopt the same route-per-field form-runtime UX as brand-studio.
+2. Editor URL must carry the edition (`/edition/[code]/`) as a required segment, with `code = "evergreen"` as a virtual code for offers without a launch context.
+3. Section visibility per archetype is canonical data — backend must be the SSoT (frontend `getSectionsForOffer` is retired).
+4. Fields that differ between offer-level and edition-level (pricing overrides, cohort-specific details) must route to the correct aggregate without duplicating schemas.
 
-Scope:
-- Refactor the 5 editor sections (strategy, identity, promise, closing, instructors) from `SectionFormWrapper` + `FormField` pattern to form-runtime schemas.
-- New schemas under `features/offer-studio/schemas/`: one per section, mirroring brand-studio schema shape.
-- New pages under `features/offer-studio/pages/` served via a catch-all at `/offer-studio/[offerId]/[section]/[[...fieldId]]/page.tsx`.
-- Offer data exposed through a new hook `useOfferSettings(offerId)` that mirrors `useBrandSettings` (React Query + per-section updater functions).
-- InstructorsSelector refactor: replace the embedded legacy TeamManager dialog with either a route link to `/brand-studio/team` or a wrapped SectionPage(teamSchema). Delete `brand-studio/components/legacy-team/` as the final step.
-- Five Storybook sections, per-action tests, and one integration walkthrough verifying each section deep-links by fieldId.
+**Full execution plan:** `SPRINT-6-PLAN.md` in this folder. This section is a
+pointer — the authoritative breakdown, phase gates, and checklist live there.
 
-Exit criteria:
-- `features/offer-studio/components/editor/` no longer contains `SectionFormWrapper` / `FormField` / the four hand-rolled `*Form.tsx` files.
-- `brand-studio/components/legacy-team/` deleted.
-- arch test `test-feature-structure` allowlist includes `offer-studio` + the new `schemas/`, `pages/` folders.
-- Sprint 4d-h tools also fire in offer-studio pages (update route-tool map to register `extract_offer_from_url` if added).
+Summary of scope:
+- Add `section_catalog.py` domain module + extend `archetype_catalog.py` with `sections: tuple[SectionKey, ...]`.
+- Extend `GET /api/v1/offer/archetypes/catalog` to expose per-archetype sections + global SECTION_CATALOG.
+- 16 form-runtime schemas under `features/offer-studio/schemas/` (one per SectionKey).
+- Server-safe `OFFER_SECTION_PAGE_MAP` + `OfferStudioSectionSlug` pattern (mandatory split per LEARNINGS).
+- Catch-all route `/offer-studio/[offerId]/edition/[code]/[section]/[[...fieldId]]/page.tsx` with Server Component importing the `.ts` map.
+- `FieldSchema.owner` extension routing saves to `updateOffer` vs `updateEdition` for MIXED scope sections.
+- Backwards-compat redirects from legacy `/offer-studio/offer/:offerId/*` shapes (two-phase removal).
+- InstructorsSelector refactor + delete `brand-studio/components/legacy-team/` at phase H.
+- Copilot route-tool map + `navigation_map.py` updates.
+
+Decisions locked: DECISIONS.md §D19–D27.
 
 **Sprint 5 commits (7):**
 - `54d4ab74` feat(brand-studio): port business-types components (S5.1)
