@@ -1,9 +1,9 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { SectionSchema } from "@/lib/form-runtime/schema";
-
 import { UniversalEditableSection } from "../UniversalEditableSection";
+
+import type { SectionSchema } from "@/lib/form-runtime/schema";
 
 const SCHEMA: SectionSchema = {
   key: "brand.identity",
@@ -63,9 +63,7 @@ describe("UniversalEditableSection", () => {
     );
     expect(screen.getByText(/Cargando/i)).toBeTruthy();
 
-    rerender(
-      <UniversalEditableSection schema={SCHEMA} values={{}} onSave={vi.fn()} isLoading />,
-    );
+    rerender(<UniversalEditableSection schema={SCHEMA} values={{}} onSave={vi.fn()} isLoading />);
     expect(screen.getByText(/Cargando/i)).toBeTruthy();
   });
 

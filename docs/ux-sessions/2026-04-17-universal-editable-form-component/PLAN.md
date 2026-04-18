@@ -281,16 +281,31 @@ For each action:
 
 ## 7. Status (UPDATE WITH EVERY COMMIT)
 
-Last updated: **2026-04-17 end of session — Sprint 0 COMPLETE, all decisions locked, ready for fresh-conversation Sprint 1.**
+Last updated: **2026-04-17 — Sprint 1 COMPLETE. Scaffold in-tree; App Router still serves old brand. Awaiting user architectural-review checkpoint before Sprint 2.**
 
 | Sprint | State | Last commit | Quality gates |
 |---|---|---|---|
-| Sprint 0 — Specs | ✅ Complete | `01eb07a2` (+ decisions lock commit pending push) | n/a (no code) |
-| Sprint 1 — Full scaffold | Not started | — | — |
+| Sprint 0 — Specs | ✅ Complete | `e06b7726` | n/a (no code) |
+| Sprint 1 — Full scaffold | ✅ Complete | `b841f062` | tsc 0 errors · eslint 0 errors / 4587 warnings · vitest 1247 tests / 152 files all green · 10 arch tests green |
 | Sprint 2 — Port rich actions | Not started | — | — |
 | Sprint 3 — App router flip | Not started | — | — |
 | Sprint 4 — Copilot refactor | Not started | — | — |
 | Sprint 5 — Delete old brand | Not started | — | — |
+
+**Sprint 1 commits (11):**
+- `6a241f20` form-runtime schema types + parser (S1.1)
+- `b9598061` form-runtime action registry (S1.2)
+- `fbda97b9` form-runtime copilot bridge (S1.3)
+- `fa426159` adopt useAutoSave as shared primitive (S1.4)
+- `7d031265` inputs + FieldRenderer (S1.5a)
+- `a332efd7` Provider + Context + EditableField + AutosaveBanner (S1.5b)
+- `2374a6cd` List/Detail/Header + UniversalEditableSection (S1.5c)
+- `55f3c66d` shadcn Slider (S1.6)
+- `59018b80` brand-studio api/hooks/types/utils port (S1.7)
+- `04796793` brand-studio action placeholders + registry (S1.8)
+- `04d8bcce` 15 section schemas + SCHEMA_REGISTRY (S1.9)
+- `c2979a0b` brand-studio page stubs wired to schemas (S1.10)
+- `b841f062` arch test allowlist for brand-studio (S1.11)
 
 ---
 
