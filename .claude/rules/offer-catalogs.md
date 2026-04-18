@@ -7,6 +7,27 @@ bug fixed in commit `4083a60f`, breaks the format suitability filter
 introduced in Phase 2, and (as of Sprint 7) silently breaks variant-aware
 validation for non-temporal offers.
 
+## Section catalog — 21 sections (post-consolidación pre-venta)
+
+Después de la consolidación pre-venta (commit `0f7d276e`), el offer-studio
+declara **21 sections** (bajó de 23). Las 2 eliminadas fueron
+``METHODOLOGY`` y ``CREDENTIALS`` — duplicaban metadata que ya vive en
+brand-studio (``methodology.schema.ts`` y ``team.schema.ts`` respectivamente).
+Credenciales de persona se mantienen como atributos de cada miembro del
+equipo de la marca; si una oferta emite una certificación propia, se modela
+como campo dentro de ``program_details``.
+
+Tres sections refieren explícitamente a módulos externos (no duplican):
+
+| Section | Referencia externa | Campo | Consumer |
+|---|---|---|---|
+| LOCATION | `scheduling/event-types` | `scheduling_event_type_id` | `scheduling-event-type-picker` custom action |
+| PRICING | `connections/status` + `PaymentProvider` enum | `accepted_payment_providers` | `payment-provider-picker` custom action |
+| INSTRUCTORS | `brand-studio/team` | `instructors[]` (IDs) | `offer-instructors-picker` |
+
+Estos picker actions viven en `actions/placeholders.tsx` hasta que el
+Sprint que los porte los reemplace con la implementación real.
+
 ## The seven catalogs
 
 The offer-studio classification system is a **DAG of 7 catalogs**: 4 pure

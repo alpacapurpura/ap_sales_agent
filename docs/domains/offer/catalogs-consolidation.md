@@ -252,3 +252,87 @@ Evaluated three options:
 - Adding a new business type: requires 5 new hints (one per rung). The
   arch test fails fast until they land — no silent missing copy in
   prod.
+
+## Phase 12 — Section catalog pre-sale consolidation (2026-04-18)
+
+Pre-venta del código: se consolida el SectionCatalog para eliminar
+duplicación con módulos backend existentes (Scheduling, Connections,
+Brand Studio) y redundancia interna entre sections.
+
+### Cambios
+
+**Sections eliminadas (2):**
+
+| Section | Razón | SSoT real |
+|---|---|---|
+| `METHODOLOGY` | Brand tiene UNA metodología core, ofertas raramente difieren | `brand-studio/schemas/methodology.schema.ts` |
+| `CREDENTIALS` | Credenciales son de PERSONAS, viven en team members | `brand-studio/schemas/team.schema.ts` (por miembro) + `brand-studio/schemas/authority.schema.ts` (marca) |
+
+Si una oferta específica necesita override de metodología → se agrega
+como campo simple en ``IDENTITY`` sin duplicar el schema completo.
+Si una oferta EMITE una certificación propia (ej. bootcamp entrega
+Scrum cert) → va como campo en ``PROGRAM_DETAILS.certification_issued``.
+
+**Fields redundantes eliminados:**
+
+| Field | Problema | Fix |
+|---|---|---|
+| `IDENTITY.internal_sku` | Auto-generable; fricción para microempresario | Backend auto-genera al crear offer |
+| `IDENTITY.headline_promise` + `PROMISE.headline_promise` | Mismo path, double-write risk | IDENTITY es SSoT |
+| `IDENTITY.primary_outcome` + `PROMISE.primary_outcome` | Idem | IDENTITY es SSoT |
+| `KNOWLEDGE.faq` array | Duplicado con la nueva FAQ pública | KNOWLEDGE queda con documents + reference_urls |
+| `GALLERY.testimonial_images` | Duplicado con `TESTIMONIALS.author_photo_url` | Eliminado |
+
+**Sections que ahora delegan a módulos externos:**
+
+| Section | Módulo externo | Campo de referencia |
+|---|---|---|
+| `LOCATION` | `scheduling/` | `scheduling_event_type_id` + `booking_fallback_whatsapp` fallback |
+| `PRICING` | `connections/` + `sales_agent.PaymentProvider` | `accepted_payment_providers` |
+
+**Sections enriquecidas en el mismo pass:**
+
+- `PROMISE`: before_state + after_state ahora required; +`measurable_outcomes`.
+- `GALLERY`: +`video_demo_url`, +`before_after_pairs[]` (transformational offers).
+- `PRICING`: +`tax_included`, +`installments_available` (decisivo Latam).
+
+### Nuevas garantías
+
+1. **Arch test FE↔BE alignment** — `test-section-key-backend-alignment.test.ts`
+   falla CI si backend agrega/elimina un SectionKey que frontend no refleja.
+2. **Tests unit para los 5 schemas nuevos** (FAQ, TESTIMONIALS, PORTFOLIO,
+   LOCATION, PLATFORM_DETAILS). Los 16 originales ya tenían tests.
+3. **Hooks con fetchClient respetan arch rule** — `fetchClient` only in
+   `api/` directories; los hooks importan de `api/payment-providers-api.ts`
+   y `api/scheduling-event-types-api.ts`.
+
+### Gap conocido — endpoint payment-providers
+
+El backend todavía no expone un endpoint dedicado
+`/api/v1/connections/payment-providers/enabled`. El hook
+`use-available-payment-providers.ts` resuelve combinando:
+
+1. Catálogo estático de 5 providers (mirror de `PaymentProvider` StrEnum).
+2. `GET /api/v1/connections/status` para flipear `is_connected` por cada uno.
+
+Cuando se implemente el endpoint dedicado, el hook hace swap sin tocar el
+schema ni los consumidores. Gap registrado.
+
+### VariantStructure alignment (Sprint 9)
+
+Los schemas edition-level de `PROGRAM_DETAILS`, `SERVICE_DETAILS` y
+`EVENT_DETAILS` asumen variant estructuras `TEMPORAL_*`. Si un PROGRAMA
+declara `variant_structure=TIER` (planes gold/platinum en lugar de
+cohortes), los campos `start_date` / `end_date` / `schedule` no aplican —
+Sprint 9 introducirá `FieldOwnerRule` por `(archetype, variant_structure)`
+para dispatchar campos edition-level según estructura. Por ahora los
+schemas asumen TEMPORAL.
+
+### Resultado neto
+
+- **Sections totales:** 21 (era 23).
+- **Fields duplicados:** 0 (era 5).
+- **Refs a módulos externos:** 3 correctas (Scheduling, Connections, Brand).
+- **Archivos schemas nuevos (pre-venta):** 5 con tests unit.
+- **Arch tests nuevos:** 1 (alignment FE↔BE).
+- **Deuda técnica:** 0 según el audit de `.claude/rules/offer-catalogs.md`.
