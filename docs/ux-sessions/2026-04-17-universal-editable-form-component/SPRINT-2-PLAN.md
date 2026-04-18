@@ -52,11 +52,13 @@ Eighteen lessons that prevented and surfaced debt during Sprint 1. They remain n
 
 Storybook 10 (`@storybook/nextjs-vite`) is already installed; existing `src/stories/molecules/` stories prove the setup is stable. No config changes required.
 
-- [ ] Document title hierarchy in `src/stories/README.md`:
-  - `Molecules/<Component>` — existing (unchanged)
-  - `Form Runtime/Inputs/<Name>` — opt-in, Sprint 3+
-  - `Form Runtime/Actions/<Name>` — this sprint
-  - `Brand Studio/Pages/<Name>` — Sprint 3+
+- [ ] Document title hierarchy in `src/stories/README.md` (SSoT for new stories):
+  - `Atoms|Molecules|Organisms|Tokens/<Name>` — generic UI, existing unchanged
+  - `Form Runtime/Inputs/<Name>` — opt-in Sprint 3+
+  - `Form Runtime/Components/<Name>` — opt-in Sprint 3+ (Provider, EditableField, SessionHeader, AutosaveBanner, FieldList, FieldDetail)
+  - `Brand Studio/Actions/<Name>` — **this sprint** (domain-specific, not generic)
+  - `Brand Studio/Pages/<Name>` — Sprint 2.0c and after
+  - `Offer Studio/...` / `Buyer Persona Studio/...` — future consumers of the same pattern
 - [ ] Declare colocation convention for new stories (`features/brand-studio/actions/stories/`), matching `.test.tsx` placement.
 - [ ] Verify `npm run storybook` + `npm run build-storybook` succeed.
 - [ ] Commit: `docs(storybook): colocation convention + title hierarchy`
@@ -168,7 +170,7 @@ Tests (Vitest)
 
 Storybook
 - [ ] Colocated: actions/stories/<Name>Action.stories.tsx
-- [ ] `title: "Form Runtime/Actions/<Name>"`
+- [ ] `title: "Brand Studio/Actions/<Name>"`
 - [ ] Default + Populated minimum; Loading + Error when applicable
 - [ ] `tags: ["autodocs"]`
 - [ ] `args.onChange = fn()` from @storybook/test — Actions panel wired
