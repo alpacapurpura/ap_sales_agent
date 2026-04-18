@@ -11,10 +11,11 @@
  */
 import { hasAction, registerAction, type ActionComponent } from "@/lib/form-runtime/actions";
 
+import { DimensionSlidersAction } from "./DimensionSlidersAction";
+import { LogoKitAction } from "./LogoKitAction";
 import {
   AvatarActionPlaceholder,
   BrandVisualsWizardPlaceholder,
-  DimensionSlidersPlaceholder,
   ImageGalleryPickerPlaceholder,
   LegalActionPlaceholder,
   OnboardingWizardPlaceholder,
@@ -22,7 +23,6 @@ import {
   SmartFillDialogPlaceholder,
   VoiceClonePlaceholder,
 } from "./placeholders";
-import { LogoKitAction } from "./LogoKitAction";
 import { PresetCatalogAction } from "./PresetCatalogAction";
 import { SingleImagePickerAction } from "./SingleImagePickerAction";
 import { ThemeInjectorAction } from "./ThemeInjectorAction";
@@ -58,7 +58,7 @@ export type BrandStudioActionKey = (typeof BRAND_STUDIO_ACTION_KEYS)[number];
 const REGISTRY_ENTRIES: Readonly<Record<BrandStudioActionKey, ActionComponent>> = {
   "voice-clone": VoiceClonePlaceholder,
   "personality-clone": PersonalityClonePlaceholder,
-  "personality-dimensions": DimensionSlidersPlaceholder,
+  "personality-dimensions": DimensionSlidersAction as unknown as ActionComponent,
   "personality-presets": PresetCatalogAction as unknown as ActionComponent,
   "brand-visuals-wizard": BrandVisualsWizardPlaceholder,
   "single-image": SingleImagePickerAction as unknown as ActionComponent,

@@ -2,15 +2,16 @@
 
 import { Image as ImageIcon, Plus } from "lucide-react";
 import NextImage from "next/image";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 
 import { Card } from "@/components/ui/card";
-import type { BrandLogos } from "@/features/brand-studio/types";
 import { config } from "@/lib/config";
-import type { ActionComponentProps } from "@/lib/form-runtime/actions";
 import { cn } from "@/lib/utils";
 
 import { SingleImagePicker } from "./SingleImagePickerAction";
+
+import type { BrandLogos } from "@/features/brand-studio/types";
+import type { ActionComponentProps } from "@/lib/form-runtime/actions";
 
 interface LogoSlot {
   key: keyof BrandLogos;
@@ -122,8 +123,10 @@ function LogoSlotCard({ slot, currentUrl, onChange }: LogoSlotCardProps) {
  * variants. Composes `SingleImagePicker` four times with per-slot background
  * previews so the user validates contrast immediately.
  */
+const EMPTY_LOGOS: BrandLogos = {};
+
 export function LogoKitAction({ value, onChange }: ActionComponentProps<BrandLogos | null>) {
-  const logos = value ?? ({} as BrandLogos);
+  const logos = useMemo(() => value ?? EMPTY_LOGOS, [value]);
 
   const updateSlot = useCallback(
     (key: keyof BrandLogos, url: string) => {
