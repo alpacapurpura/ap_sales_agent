@@ -347,7 +347,8 @@ Last updated: **2026-04-18 — Sprints 5 + 2.D + 4a + 4b + 4c COMPLETE. Copilot 
 | Sprint 4c — Delete dead copilot UI | ✅ Complete + pushed | `49fa40c0` | tsc 0 · eslint 0 · vitest 1176 tests · 10 arch · build-storybook green |
 | Sprint 4d–h — Five extraction tools | Planned (§5.4) | — | — |
 | Sprint 5 — Delete old brand + offer-studio import migration | ✅ Complete + pushed | `8a0729f5` → `87aa7a36` | tsc 0 · eslint 0 / 3595 warn · vitest 1221 tests / 156 files · 10 arch · build-storybook green |
-| Sprint 6 — Offer-studio editor → form-runtime (route-per-field) | Planned (new — user directive 2026-04-18: aplicación unificada a nivel de UX URL+campo) | — | — |
+| Sprint 6.A — Backend section catalog + API exposure | ✅ Complete + pushed | `0ede2913` → `05e7c487` → `030ddfc8` | ruff 0 · pytest 549 offer/arch · 8 new arch tests · 26 new unit tests · 8 new API integration tests |
+| Sprint 6.B-H — Frontend catalog consumption + URL migration + editor migration + copilot + cleanup | Planned (see SPRINT-6-PLAN.md phases B-H) | — | — |
 
 **Sprint 4a + 4b + 4c commits (3):**
 - `49fa40c0` refactor(copilot): collapse store + retire preview/focus UI (Sprint 4a + 4c). Merges what the PLAN originally split into 3 sub-sprints because the dying UI's consumers made any intermediate state non-compilable. Deletes WithCopilot, FocusBar, CopilotPreviewPane, FocusModeButton, InterviewModeButton, EditionPreviewCard, InterviewDateBlock, interview-preview-registry + all their tests. Collapses focusEntity/focusSnapshot/interviewSessionId/interviewProgress/previewData into `session` + `focusedField` on the store. Drops "expanded" sidebarState. Simplifies CopilotSidebar to chat-only. Strips WithCopilot from the four offer-studio form files that still referenced it.

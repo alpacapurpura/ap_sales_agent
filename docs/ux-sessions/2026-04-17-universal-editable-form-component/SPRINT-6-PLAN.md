@@ -119,13 +119,18 @@ Any ambiguity resolved when porting the corresponding schema in Phase C.
 
 ## 2 · Phase execution
 
-### Phase A — Backend section catalog + archetype extension (SSoT foundation)
+### Phase A — Backend section catalog + archetype extension (SSoT foundation) ✅ COMPLETE
 
 **Goal:** make "the backend knows which sections exist, which belong to each
 archetype, and which scope each has" a fact enforced by tests, not a
 convention.
 
-- [ ] **A.1** `backend/src/modules/offer/domain/section_catalog.py`:
+Completed 2026-04-18 in three commits (`0ede2913`, `05e7c487`, `030ddfc8`)
+pushed to `origin/development`. Backend now owns section metadata and the
+per-archetype section lists; HTTP catalog carries it all. Ready for Phase B
+frontend consumption without further backend work.
+
+- [x] **A.1** `backend/src/modules/offer/domain/section_catalog.py`:
   - `class SectionKey(StrEnum)` — keys matching the frontend `SECTION_REGISTRY`.
   - `class SectionScope(StrEnum)` — `OFFER_LEVEL | EDITION_LEVEL | MIXED`.
   - `@dataclass(frozen=True, slots=True) class SectionMetadata` —
@@ -134,17 +139,17 @@ convention.
   - `SECTION_CATALOG: dict[SectionKey, SectionMetadata]` populated from
     current frontend labels + icons + scope assignments (§1.2).
   - `get_section(key)` lookup with KeyError + arch test guard.
-- [ ] **A.2** `tests/architecture/test_section_catalog.py`:
+- [x] **A.2** `tests/architecture/test_section_catalog.py`:
   - Every `SectionKey` enum member has a `SECTION_CATALOG` entry.
   - Every `SectionMetadata` uses a valid `SectionScope`.
   - No duplicate icons across keys (allowed to duplicate, test documents intent).
-- [ ] **A.3** Extend `archetype_catalog.ArchetypeCapabilities`:
+- [x] **A.3** Extend `archetype_catalog.ArchetypeCapabilities`:
   - New field `sections: tuple[SectionKey, ...]` — ordered.
   - Populate each archetype's entry from the current
     `ARCHETYPE_BUILDER_CONFIG` in the frontend. Frozen dataclass → new
     field added with explicit defaults in each record.
   - Bump `_CATALOG_VERSION` in `api/archetypes.py`.
-- [ ] **A.4** `tests/architecture/test_archetype_catalog.py` — extend:
+- [x] **A.4** `tests/architecture/test_archetype_catalog.py` — extend:
   - Every archetype's `sections` references only valid `SectionKey`s.
   - Scope constraint: an archetype that `supports_editions = False` must
     not list any `EDITION_LEVEL` section (otherwise the UI would show a
@@ -152,16 +157,16 @@ convention.
   - An archetype with `supports_editions = True` must list at least one
     section whose scope ≠ `OFFER_LEVEL` (otherwise editions are dead
     weight in the UI).
-- [ ] **A.5** `api/archetypes.py` DTO extension:
+- [x] **A.5** `api/archetypes.py` DTO extension:
   - New `SectionMetadataDTO`.
   - `ArchetypeCapabilitiesDTO` adds `sections: list[SectionMetadataDTO]`
     — resolved server-side by expanding keys to full metadata.
   - Response envelope exposes global `SECTION_CATALOG` too (so clients
     can render label for an arbitrary key without per-archetype lookup).
   - Increment catalog version to force client cache eviction.
-- [ ] **A.6** Integration test `tests/modules/offer/test_archetypes_api.py`
+- [x] **A.6** Integration test `tests/modules/offer/test_archetypes_api.py`
   covers: response shape, sections-per-archetype count, scope values.
-- [ ] **A.7** Run `cd backend && .venv/bin/pytest tests/architecture/ -x -q`
+- [x] **A.7** Run `cd backend && .venv/bin/pytest tests/architecture/ -x -q`
   + `tests/modules/offer/` + `ruff check`. All green.
 
 **Commit discipline:** one commit per file group, `feat(offer): add section
