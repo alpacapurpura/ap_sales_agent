@@ -124,7 +124,12 @@ export function OfferShell({ offer, counts, tenantId, children }: OfferShellProp
             ) : null}
 
             <div className="flex min-w-0 flex-1 flex-col">
-              <OfferTabBar tenantId={tenantId} offerId={offer.id} counts={counts} />
+              <OfferTabBar
+                tenantId={tenantId}
+                offerId={offer.id}
+                counts={counts}
+                currentEditionId={currentEditionId}
+              />
               <main className="flex-1 overflow-y-auto">{children}</main>
             </div>
           </div>

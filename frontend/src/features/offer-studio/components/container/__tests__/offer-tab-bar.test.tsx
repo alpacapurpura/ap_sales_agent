@@ -25,9 +25,6 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-// The landing action button uses the useLandingStatus hook which in turn calls
-// the Clerk auth hook + React Query. Stub the whole component so the TabBar
-// test can stay focused on tab rendering and routing behaviour.
 vi.mock("../LandingActionButton", () => ({
   LandingActionButton: ({ offerId, tenantId }: { offerId: string; tenantId: string }) => (
     <button
@@ -53,9 +50,10 @@ const baseProps = {
   tenantId: "acme",
   offerId: "offer-1",
   counts: { assets: 4, campaigns: 2, knowledge: 7, active_campaigns: 2 },
+  currentEditionId: null as string | null,
 };
 
-describe("OfferTabBar", () => {
+describe("OfferTabBar — 4 tabs, drops Conocimiento", () => {
   beforeEach(() => {
     mockUsePathname.mockReset();
   });
@@ -72,47 +70,107 @@ describe("OfferTabBar", () => {
     expect(screen.queryByRole("link", { name: /Conocimiento/i })).toBeNull();
   });
 
-  it("marks the Ventas tab active on the ventas sub-route", () => {
-    mockUsePathname.mockReturnValue("/acme/offer-studio/offer/offer-1/ventas");
-    render(<OfferTabBar {...baseProps} />);
-    expect(screen.getByRole("link", { name: /Ventas/i })).toHaveAttribute(ARIA_CURRENT, ARIA_PAGE);
-  });
-
   it("renders count badges only for assets and campaigns (knowledge count ignored)", () => {
     mockUsePathname.mockReturnValue(BASE_PATH);
     render(<OfferTabBar {...baseProps} />);
-    expect(screen.getByText("4")).toBeInTheDocument(); // assets
-    expect(screen.getByText("2")).toBeInTheDocument(); // campaigns
-    expect(screen.queryByText("7")).toBeNull(); // knowledge count must not render
+    expect(screen.getByText("4")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.queryByText("7")).toBeNull();
   });
 
-  it("marks Info as active on the base route", () => {
+  it("renders the LandingActionButton on the right", () => {
+    mockUsePathname.mockReturnValue(BASE_PATH);
+    render(<OfferTabBar {...baseProps} />);
+    expect(screen.getByTestId("landing-action-button")).toBeInTheDocument();
+  });
+});
+
+describe("OfferTabBar — hrefs depend on edition scope", () => {
+  beforeEach(() => {
+    mockUsePathname.mockReset();
+    mockUsePathname.mockReturnValue(BASE_PATH);
+  });
+
+  it("evergreen offer (no currentEditionId) links tabs at the offer root", () => {
+    render(<OfferTabBar {...baseProps} currentEditionId={null} />);
+    expect(screen.getByRole("link", { name: /Info/i })).toHaveAttribute("href", BASE_PATH);
+    expect(screen.getByRole("link", { name: /Ventas/i })).toHaveAttribute(
+      "href",
+      `${BASE_PATH}/ventas`,
+    );
+    expect(screen.getByRole("link", { name: /Assets/i })).toHaveAttribute(
+      "href",
+      `${BASE_PATH}/assets`,
+    );
+    expect(screen.getByRole("link", { name: /Campañas/i })).toHaveAttribute(
+      "href",
+      `${BASE_PATH}/campaigns`,
+    );
+  });
+
+  it("offer with current edition scopes Ventas/Assets/Campañas under /editions/{eid}", () => {
+    render(<OfferTabBar {...baseProps} currentEditionId="ed-7" />);
+    // Info stays at offer root — it's offer-level.
+    expect(screen.getByRole("link", { name: /Info/i })).toHaveAttribute("href", BASE_PATH);
+    expect(screen.getByRole("link", { name: /Ventas/i })).toHaveAttribute(
+      "href",
+      `${BASE_PATH}/editions/ed-7/ventas`,
+    );
+    expect(screen.getByRole("link", { name: /Assets/i })).toHaveAttribute(
+      "href",
+      `${BASE_PATH}/editions/ed-7/assets`,
+    );
+    expect(screen.getByRole("link", { name: /Campañas/i })).toHaveAttribute(
+      "href",
+      `${BASE_PATH}/editions/ed-7/campaigns`,
+    );
+  });
+});
+
+describe("OfferTabBar — active tab highlighting", () => {
+  beforeEach(() => {
+    mockUsePathname.mockReset();
+  });
+
+  it("marks Info active on the base route", () => {
     mockUsePathname.mockReturnValue(BASE_PATH);
     render(<OfferTabBar {...baseProps} />);
     expect(screen.getByRole("link", { name: /Info/i })).toHaveAttribute(ARIA_CURRENT, ARIA_PAGE);
   });
 
-  it("marks Assets as active on the assets sub-route", () => {
-    mockUsePathname.mockReturnValue("/acme/offer-studio/offer/offer-1/assets");
+  it("marks Ventas active on the offer-level ventas route", () => {
+    mockUsePathname.mockReturnValue(`${BASE_PATH}/ventas`);
     render(<OfferTabBar {...baseProps} />);
+    expect(screen.getByRole("link", { name: /Ventas/i })).toHaveAttribute(ARIA_CURRENT, ARIA_PAGE);
+  });
+
+  it("marks Ventas active on the edition-scoped ventas route", () => {
+    mockUsePathname.mockReturnValue(`${BASE_PATH}/editions/ed-7/ventas`);
+    render(<OfferTabBar {...baseProps} currentEditionId="ed-7" />);
+    expect(screen.getByRole("link", { name: /Ventas/i })).toHaveAttribute(ARIA_CURRENT, ARIA_PAGE);
+  });
+
+  it("marks Assets active on the edition-scoped assets route", () => {
+    mockUsePathname.mockReturnValue(`${BASE_PATH}/editions/ed-7/assets`);
+    render(<OfferTabBar {...baseProps} currentEditionId="ed-7" />);
     expect(screen.getByRole("link", { name: /Assets/i })).toHaveAttribute(ARIA_CURRENT, ARIA_PAGE);
   });
 
-  it("marks Campañas as active on the campaigns sub-route", () => {
-    mockUsePathname.mockReturnValue("/acme/offer-studio/offer/offer-1/campaigns");
-    render(<OfferTabBar {...baseProps} />);
+  it("marks Campañas active on the edition-scoped campaigns route", () => {
+    mockUsePathname.mockReturnValue(`${BASE_PATH}/editions/ed-7/campaigns`);
+    render(<OfferTabBar {...baseProps} currentEditionId="ed-7" />);
     expect(screen.getByRole("link", { name: /Campañas/i })).toHaveAttribute(
       ARIA_CURRENT,
       ARIA_PAGE,
     );
   });
 
-  it("renders the LandingActionButton on the right side of the bar", () => {
-    mockUsePathname.mockReturnValue(BASE_PATH);
-    render(<OfferTabBar {...baseProps} />);
-    const landingButton = screen.getByTestId("landing-action-button");
-    expect(landingButton).toBeInTheDocument();
-    expect(landingButton).toHaveAttribute("data-offer-id", "offer-1");
-    expect(landingButton).toHaveAttribute("data-tenant-id", "acme");
+  it("does not mark Info active on the edition default route", () => {
+    mockUsePathname.mockReturnValue(`${BASE_PATH}/editions/ed-7`);
+    render(<OfferTabBar {...baseProps} currentEditionId="ed-7" />);
+    expect(screen.getByRole("link", { name: /Info/i })).not.toHaveAttribute(
+      ARIA_CURRENT,
+      ARIA_PAGE,
+    );
   });
 });

@@ -1,12 +1,14 @@
 "use client";
 
 import { ChevronLeft, Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useMemo } from "react";
 
 import { cn } from "@/lib/utils";
 
 import { EditionStatus, EditionVisibility } from "../../types";
+
+import { buildEditionSwitchHref } from "./edition-route";
 
 import type { LaunchEdition } from "../../types";
 
@@ -83,11 +85,12 @@ export function EditionsRail({
   onCreateNew,
 }: EditionsRailProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const groups = useMemo(() => groupEditions(editions), [editions]);
 
   const switchEdition = (editionId: string) => {
     const base = `/${tenantId}/offer-studio/offer/${offerId}`;
-    router.replace(`${base}?edition=${editionId}`);
+    router.push(buildEditionSwitchHref(pathname, base, editionId));
   };
 
   return (

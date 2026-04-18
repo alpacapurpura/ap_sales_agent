@@ -4,9 +4,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
+const mockPush = vi.fn();
 const mockReplace = vi.fn();
+const mockUsePathname = vi.fn();
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace: mockReplace }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
+  usePathname: () => mockUsePathname(),
 }));
 
 // ── Imports after mocks ──────────────────────────────────────────────────────
@@ -64,6 +68,7 @@ const completed: LaunchEdition = {
   capacity: 25,
 };
 
+const BASE = "/acme/offer-studio/offer/offer-1";
 const baseProps = {
   offerId: "offer-1",
   tenantId: "acme",
@@ -75,7 +80,10 @@ const baseProps = {
 
 describe("EditionsRail (expanded, slim header v3)", () => {
   beforeEach(() => {
+    mockPush.mockReset();
     mockReplace.mockReset();
+    mockUsePathname.mockReset();
+    mockUsePathname.mockReturnValue(BASE); // default: on Info
     baseProps.onCollapse = vi.fn();
     baseProps.onCreateNew = vi.fn();
   });
@@ -92,7 +100,6 @@ describe("EditionsRail (expanded, slim header v3)", () => {
 
   it("renders the three lifecycle groups", () => {
     render(<EditionsRail {...baseProps} />);
-    // Group headers use emoji + capitalized label.
     expect(screen.getByText(/⭐ Próxima/)).toBeInTheDocument();
     expect(screen.getByText(/✏ Borradores/)).toBeInTheDocument();
     expect(screen.getByText(/✓ Pasadas/)).toBeInTheDocument();
@@ -105,11 +112,37 @@ describe("EditionsRail (expanded, slim header v3)", () => {
     expect(screen.getByText("Edición #2")).toBeInTheDocument();
   });
 
-  it("clicking an entry replaces the URL with ?edition=", () => {
+  // ── Navigation: path-based, preserves current tab ──────────────────────────
+
+  it("from Info: clicking an entry pushes /editions/{eid} (no tab suffix)", () => {
+    mockUsePathname.mockReturnValue(BASE);
     render(<EditionsRail {...baseProps} />);
     fireEvent.click(screen.getByText("Edición #2"));
-    expect(mockReplace).toHaveBeenCalledWith("/acme/offer-studio/offer/offer-1?edition=ed-2");
+    expect(mockPush).toHaveBeenCalledWith(`${BASE}/editions/ed-2`);
   });
+
+  it("from a per-edition tab: clicking another edition preserves the tab suffix", () => {
+    mockUsePathname.mockReturnValue(`${BASE}/editions/ed-3/ventas`);
+    render(<EditionsRail {...baseProps} />);
+    fireEvent.click(screen.getByText("Edición #2"));
+    expect(mockPush).toHaveBeenCalledWith(`${BASE}/editions/ed-2/ventas`);
+  });
+
+  it("from an offer-level tab (evergreen): preserves that tab under the new edition", () => {
+    mockUsePathname.mockReturnValue(`${BASE}/ventas`);
+    render(<EditionsRail {...baseProps} />);
+    fireEvent.click(screen.getByText("Edición #2"));
+    expect(mockPush).toHaveBeenCalledWith(`${BASE}/editions/ed-2/ventas`);
+  });
+
+  it("from an unknown deep path: falls back to the edition default", () => {
+    mockUsePathname.mockReturnValue(`${BASE}/some/unknown/segment`);
+    render(<EditionsRail {...baseProps} />);
+    fireEvent.click(screen.getByText("Edición #2"));
+    expect(mockPush).toHaveBeenCalledWith(`${BASE}/editions/ed-2`);
+  });
+
+  // ── Other behaviour ────────────────────────────────────────────────────────
 
   it("collapse button fires onCollapse", () => {
     render(<EditionsRail {...baseProps} />);
@@ -131,7 +164,10 @@ describe("EditionsRail (expanded, slim header v3)", () => {
 
 describe("EditionsRailCollapsed", () => {
   beforeEach(() => {
+    mockPush.mockReset();
     mockReplace.mockReset();
+    mockUsePathname.mockReset();
+    mockUsePathname.mockReturnValue(BASE);
   });
 
   it("renders one badge per edition plus the + button", () => {
@@ -154,7 +190,8 @@ describe("EditionsRailCollapsed", () => {
     expect(screen.getByLabelText(/Crear nueva edición/i)).toBeInTheDocument();
   });
 
-  it("clicking a badge replaces the URL with ?edition=", () => {
+  it("clicking a badge pushes /editions/{eid} preserving the current tab", () => {
+    mockUsePathname.mockReturnValue(`${BASE}/editions/ed-4/assets`);
     render(
       <EditionsRailCollapsed
         offerId="offer-1"
@@ -166,6 +203,6 @@ describe("EditionsRailCollapsed", () => {
       />,
     );
     fireEvent.click(screen.getByText("3"));
-    expect(mockReplace).toHaveBeenCalledWith("/acme/offer-studio/offer/offer-1?edition=ed-3");
+    expect(mockPush).toHaveBeenCalledWith(`${BASE}/editions/ed-3/assets`);
   });
 });

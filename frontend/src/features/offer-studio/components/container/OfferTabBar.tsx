@@ -21,33 +21,50 @@ export interface OfferTabBarProps {
   tenantId: string;
   offerId: string;
   counts: OfferCountsResponse;
+  /**
+   * The edition whose tab content the bar should link to.
+   *
+   * - `null` → offer is evergreen (archetype without editions); tabs link at
+   *   the offer root (`/offer/{id}/{tab}`).
+   * - non-null → tabs link under `/offer/{id}/editions/{editionId}/{tab}`.
+   *
+   * Info always points to the offer root (it is offer-level).
+   */
+  currentEditionId: string | null;
 }
 
 interface TabConfig {
   key: "editor" | "ventas" | "assets" | "campaigns";
   label: string;
   icon: LucideIcon;
-  /** Path suffix appended to `/{tenantId}/offer-studio/offer/{offerId}`. */
-  suffix: "" | "ventas" | "assets" | "campaigns";
+  /** Route leaf appended to the offer or edition scope root. Empty for Info. */
+  segment: "" | "ventas" | "assets" | "campaigns";
   badge?: (counts: OfferCountsResponse) => number;
+  /**
+   * Whether this tab belongs to the edition scope (true) or only to the
+   * offer scope (false, Info). Drives href construction.
+   */
+  editionScoped: boolean;
 }
 
 const TABS: TabConfig[] = [
-  { key: "editor", label: "Info", icon: LayoutDashboard, suffix: "" },
-  { key: "ventas", label: "Ventas", icon: DollarSign, suffix: "ventas" },
+  { key: "editor", label: "Info", icon: LayoutDashboard, segment: "", editionScoped: false },
+  { key: "ventas", label: "Ventas", icon: DollarSign, segment: "ventas", editionScoped: true },
   {
     key: "assets",
     label: "Assets",
     icon: ImageIcon,
-    suffix: "assets",
+    segment: "assets",
     badge: (c) => c.assets,
+    editionScoped: true,
   },
   {
     key: "campaigns",
     label: "Campañas",
     icon: Megaphone,
-    suffix: "campaigns",
+    segment: "campaigns",
     badge: (c) => c.campaigns,
+    editionScoped: true,
   },
 ];
 
@@ -56,10 +73,20 @@ const TABS: TabConfig[] = [
  * Assets · Campañas) on the left, Landing action button on the right.
  *
  * Knowledge is not a tab — it lives as a section inside Info.
+ *
+ * Hrefs:
+ *   - Info             → /offer/{id}                                     (offer-level)
+ *   - Other tabs       → /offer/{id}/{tab}                                (evergreen)
+ *                      → /offer/{id}/editions/{editionId}/{tab}           (with-editions)
+ *
+ * Active highlighting uses the terminal segment of the pathname so both URL
+ * shapes map to the same tab.
  */
-export function OfferTabBar({ tenantId, offerId, counts }: OfferTabBarProps) {
+export function OfferTabBar({ tenantId, offerId, counts, currentEditionId }: OfferTabBarProps) {
   const pathname = usePathname();
-  const basePath = `/${tenantId}/offer-studio/offer/${offerId}`;
+  const base = `/${tenantId}/offer-studio/offer/${offerId}`;
+  const editionRoot = currentEditionId ? `${base}/editions/${currentEditionId}` : base;
+  const active = analyzePathname(pathname, base);
 
   return (
     <nav
@@ -68,10 +95,9 @@ export function OfferTabBar({ tenantId, offerId, counts }: OfferTabBarProps) {
     >
       <div className="flex items-stretch gap-1">
         {TABS.map((tab) => {
-          const href = tab.suffix ? `${basePath}/${tab.suffix}` : basePath;
-          const isActive = tab.suffix
-            ? (pathname?.startsWith(href) ?? false)
-            : pathname === basePath;
+          const root = tab.editionScoped ? editionRoot : base;
+          const href = tab.segment ? `${root}/${tab.segment}` : base;
+          const isActive = tab.segment ? active.tab === tab.segment : active.onInfo;
           const badgeValue = tab.badge?.(counts);
           const Icon = tab.icon;
 
@@ -105,4 +131,32 @@ export function OfferTabBar({ tenantId, offerId, counts }: OfferTabBarProps) {
       </div>
     </nav>
   );
+}
+
+interface PathnameAnalysis {
+  /** True only when the pathname exactly matches the offer base (Info). */
+  onInfo: boolean;
+  /** The terminal tab segment (ventas/assets/campaigns) or null. */
+  tab: string | null;
+}
+
+/**
+ * Analyse `pathname` relative to the offer `base` and return whether the
+ * user is on Info and, separately, which tab segment is active. Edition
+ * default routes (`.../editions/{eid}` without a tab leaf) return
+ * `{ onInfo: false, tab: null }` so no tab highlights spuriously.
+ */
+function analyzePathname(pathname: string | null, base: string): PathnameAnalysis {
+  if (!pathname) return { onInfo: false, tab: null };
+  if (pathname === base) return { onInfo: true, tab: null };
+  if (!pathname.startsWith(`${base}/`)) return { onInfo: false, tab: null };
+
+  const rest = pathname.slice(base.length);
+  const editionMatch = rest.match(/^\/editions\/[^/]+(\/([^/?#]+))?/);
+  if (editionMatch) {
+    return { onInfo: false, tab: editionMatch[2] ?? null };
+  }
+
+  const directMatch = rest.match(/^\/([^/?#]+)/);
+  return { onInfo: false, tab: directMatch ? directMatch[1] : null };
 }

@@ -1,11 +1,13 @@
 "use client";
 
 import { ChevronRight, Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
 import { EditionStatus } from "../../types";
+
+import { buildEditionSwitchHref } from "./edition-route";
 
 import type { LaunchEdition } from "../../types";
 
@@ -57,9 +59,10 @@ export function EditionsRailCollapsed({
   onCreateNew,
 }: EditionsRailCollapsedProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const switchEdition = (editionId: string) => {
     const base = `/${tenantId}/offer-studio/offer/${offerId}`;
-    router.replace(`${base}?edition=${editionId}`);
+    router.push(buildEditionSwitchHref(pathname, base, editionId));
   };
 
   // Order: active → upcoming → drafts → past.
