@@ -176,3 +176,79 @@ Catalog system is now a **DAG of 6 axes**:
 
 See `docs/domains/offer/variant-structure-catalog.md` for the full
 design.
+
+## Phase 11 — OfferLadderHints (Latam mass-market adaptation, 2026-04-18)
+
+Added the 7th catalog: `OfferLadderHints`, a composite keyed by
+`(ExpertBusinessType, OfferValueLevel)`.
+
+### Why
+
+The value ladder is universal (5 rungs from Lead Magnet to Venta
+Corporativa) but the **language** of each rung changes per business
+type. A dentist's "primera compra" is a promotional first
+consultation; a gym owner's is a day-pass; a SaaS founder's is a
+starter plan. Hardcoding a single set of `examples_es` in
+`VALUE_LEVEL_CATALOG` forced either: (a) marketer jargon that alienates
+Latam SMB owners, or (b) a single business-archetype-biased set that
+feels foreign to the other eight types.
+
+### What shipped (Sprint 8)
+
+1. `src/modules/offer/domain/offer_ladder_hints.py` —
+   `OFFER_LADDER_HINTS: dict[tuple[ExpertBusinessType, OfferValueLevel],
+   LadderHint]` with 45 frozen records (9 × 5). Each record declares
+   `examples_es`, `typical_offer_type_es`, and optional per-type price
+   overrides.
+2. `src/modules/offer/api/offer_ladder_hints.py` — public cacheable
+   endpoint at `GET /api/v1/offer/ladder-hints/catalog` with versioned
+   response.
+3. Arch test `test_offer_ladder_hints_completeness.py` — 7 gates
+   (completeness, no orphans, self-reference, non-empty copy, LM price
+   coherence, paired price declarations, ±10x sanity band).
+4. Domain unit tests — helpers + monotonic pricing across rungs +
+   coverage of every business type.
+5. Frontend: `use-offer-ladder-hints.ts` with `useOfferLadderHints`,
+   `useLadderHint(businessType, valueLevel)` and
+   `useLadderHintsForType(businessType)` memoised indexers.
+
+### Why a separate catalog (not added to `VALUE_LEVEL_CATALOG`)
+
+Evaluated three options:
+
+- **A. Extend `ValueLevelMetadata`** with
+  `examples_by_business_type: dict[ExpertBusinessType, ...]`. Breaks
+  VL's "pure base" designation and couples the ladder to EBT. Adding
+  any future adaptation axis (country, industry, personality) forces a
+  cartesian explosion of dicts.
+- **B. Separate catalog** keyed by `(EBT, VL)` — chosen. VL stays pure
+  base, Hints is a composite like Format. Next adaptation axis is
+  additive (new catalog or new column in Hints) rather than modifying
+  VL.
+- **C. String-keyed dicts** on VL to avoid the import. Loses type
+  safety, gains nothing.
+
+### Key decisions (D31-D34, Sprint 8)
+
+- **D31** — `OfferLadderHints` is a composite catalog (depends on two
+  axes) not a new axis. No new enum; keys are tuples of existing
+  enums.
+- **D32** — Per-type prices are **overrides**, not replacements. `None`
+  falls back to the universal `VALUE_LEVEL_CATALOG` range. Frontend
+  resolves via `hint.typical_price_min_usd ?? valueLevel.typical_price_min_usd`.
+- **D33** — Arch test enforces ±10x deviation band against the
+  universal VL range. Wider deviation almost always signals rung
+  misclassification, not a legitimate tenant-specific adjustment.
+- **D34** — Response returns 45 hints flat (not filtered by query
+  param). Cache simplicity + React Query deduplication > small bundle
+  savings. Frontend indexes via `useMemo` on first render.
+
+### Tradeoffs declared up-front
+
+- Maintenance cost: 45 entries to curate vs 5 in `VALUE_LEVEL_CATALOG`.
+  Offset: examples are short, the arch test catches typos, and per-
+  type curation is exactly the value the catalog delivers.
+- Bundle size: 45 hints × ~6 short strings = ~5KB payload. Trivial.
+- Adding a new business type: requires 5 new hints (one per rung). The
+  arch test fails fast until they land — no silent missing copy in
+  prod.

@@ -7,12 +7,12 @@ bug fixed in commit `4083a60f`, breaks the format suitability filter
 introduced in Phase 2, and (as of Sprint 7) silently breaks variant-aware
 validation for non-temporal offers.
 
-## The six axes
+## The seven catalogs
 
-The offer-studio classification system is a **DAG of 6 catalogs**: 4 pure
+The offer-studio classification system is a **DAG of 7 catalogs**: 4 pure
 base axes (no cross-catalog references), 1 intermediate axis that
-references base axes via typed FK, 1 composite axis that references two
-axes.
+references base axes via typed FK, and 2 composite catalogs that each
+depend on two axes.
 
 ### Base axes (pure)
 
@@ -29,23 +29,26 @@ axes.
 |---|---|---|---|---|
 | **OfferArchetype** | `backend/src/modules/offer/domain/archetype_catalog.py` | `SectionKey` (via `sections: tuple[SectionKey, ...]`); `VariantStructure` from Sprint 8 onward (via `supported_variant_structures`) | `GET /api/v1/offer/archetypes/catalog` | `useArchetypeCatalog` / `useArchetypeCapabilities` / `useArchetypeDisplay` |
 
-### Composite axis
+### Composite catalogs
 
-| Axis | Backend SSoT | Depends on | API endpoint | Frontend hook |
+| Catalog | Backend SSoT | Depends on | API endpoint | Frontend hook |
 |---|---|---|---|---|
 | **OfferFormat** | `backend/src/modules/offer/domain/format_catalog.py` | `OfferArchetype` (via `archetype`); `ExpertBusinessType` (via `suitable_for: dict[ExpertBusinessType, float]`) | `GET /api/v1/offer/formats/catalog?archetype=&business_types=` | `useFormatCatalog` / `useFormatMetadata` |
+| **OfferLadderHints** | `backend/src/modules/offer/domain/offer_ladder_hints.py` | `ExpertBusinessType` + `OfferValueLevel` (keyed by `tuple[ExpertBusinessType, OfferValueLevel]`) | `GET /api/v1/offer/ladder-hints/catalog` | `useOfferLadderHints` / `useLadderHint` / `useLadderHintsForType` |
 
 ### Dependency DAG
 
 ```
 ExpertBusinessType  OfferValueLevel  SectionCatalog  VariantStructure   ← 4 pure base
-        │                                   │                 │
-        │                                   └─────────┬───────┘
-        │                                             ▼
-        │                                     OfferArchetype            ← 1 intermediate
-        │                                             │
-        │                                             ▼
-        └───────────────── OfferFormat ───────────────┘                  ← 1 composite
+        │                  │                │                 │
+        │                  │                └─────────┬───────┘
+        │                  │                          ▼
+        │                  │                    OfferArchetype           ← 1 intermediate
+        │                  │                          │
+        │                  │                          ▼
+        ├──────────────────┼──────────── OfferFormat ─┘                  ← composite
+        │                  │
+        └── OfferLadderHints (EBT × VL) ──┘                              ← composite
 ```
 
 All FK are typed Python fields (enums or frozen metadata records) — never
@@ -104,6 +107,12 @@ Experts / Sections / Formats.
   a pure base axis; the arch test
   `test_variant_structure_catalog_purity.py` AST-parses the module and
   blocks any outbound reference.
+- ❌ Hardcoding per-business-type examples, prices or offer-type
+  placeholders in the Offer Studio wizard/dashboard. Consume
+  `useLadderHint(businessType, valueLevel)` and fall back to the
+  universal `useValueLevelMetadata(valueLevel)` when the tenant has not
+  declared `business_types`. The wizard's "¿qué tipo de X vas a crear?"
+  placeholder is driven by `typical_offer_type_es`.
 
 ## Extending the system
 
