@@ -6,8 +6,9 @@ import { parseSectionSchema } from "@/lib/form-runtime/schema";
 import { SCHEMA_REGISTRY } from "../index";
 
 describe("brand-studio schemas", () => {
-  it("registers exactly 15 sections", () => {
-    expect(Object.keys(SCHEMA_REGISTRY)).toHaveLength(15);
+  it("registers every advertised section", () => {
+    // 15 top-level brand-studio sections + buyer-persona (sub-entity, Sprint 2.8)
+    expect(Object.keys(SCHEMA_REGISTRY)).toHaveLength(16);
   });
 
   it("every schema parses successfully", () => {

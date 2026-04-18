@@ -6,6 +6,7 @@ import "@/features/brand-studio/actions/registry";
 
 import { authoritySchema } from "./authority.schema";
 import { avatarsSchema } from "./avatars.schema";
+import { buyerPersonaSchema } from "./buyer-persona.schema";
 import { communicationAssetsSchema } from "./communication-assets.schema";
 import { contactSchema } from "./contact.schema";
 import { identitySchema } from "./identity.schema";
@@ -25,6 +26,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
 export {
   authoritySchema,
   avatarsSchema,
+  buyerPersonaSchema,
   communicationAssetsSchema,
   contactSchema,
   identitySchema,
@@ -61,6 +63,7 @@ export const SCHEMA_REGISTRY: Readonly<Record<string, SectionSchema>> = {
   "brand.personality": personalitySchema,
   "brand.contact": contactSchema,
   "brand.avatars": avatarsSchema,
+  "brand.buyer-persona": buyerPersonaSchema,
 };
 
 export type BrandStudioSchemaKey = keyof typeof SCHEMA_REGISTRY;
