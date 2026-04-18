@@ -43,7 +43,7 @@ export function TenantSwitcher({
     // 2. Navigate to new URL: /[newTenantId]/dashboard
     // We redirect to dashboard to avoid 404s if the current subpage doesn't exist in the new tenant
     // or if the ID structure is different.
-    const newPath = `/${tenantId}/brand-studio/esencia`;
+    const newPath = `/${tenantId}/brand-studio/identity`;
     console.log("[TenantSwitcher] Navigating to:", newPath);
 
     // Force a hard reload to ensure all application state is cleared and

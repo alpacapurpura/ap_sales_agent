@@ -10,5 +10,5 @@ export default async function BrandSettingsPage({
   params: Promise<{ tenantId: string }>;
 }) {
   const { tenantId } = await params;
-  redirect(`/${tenantId}/brand-studio/esencia`);
+  redirect(`/${tenantId}/brand-studio/identity`);
 }

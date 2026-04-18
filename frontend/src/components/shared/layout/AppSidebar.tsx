@@ -11,9 +11,6 @@ import {
   CalendarCheck,
   Megaphone,
   ChevronDown,
-  Crosshair,
-  UserSearch,
-  Palette,
   LayoutDashboard,
   Headset,
   Users,
@@ -80,19 +77,13 @@ interface NavItem {
 
 const getNavItems = (tenantId: string): NavItem[] => [
   {
+    // Sub-sections are served by the in-page BrandStudioNavRail (inside the
+    // brand-studio layout). The global sidebar only shows the studio entry
+    // point — landing on /identity renders that rail which lists every
+    // section slug (identity, positioning, narrative, ... buyer personas).
     title: "Brand Studio",
-    href: `/${tenantId}/brand-studio`,
+    href: `/${tenantId}/brand-studio/identity`,
     icon: Building2,
-    children: [
-      { title: "Esencia", href: `/${tenantId}/brand-studio/esencia`, icon: Building2 },
-      { title: "Estrategia", href: `/${tenantId}/brand-studio/estrategia`, icon: Crosshair },
-      { title: "Publico", href: `/${tenantId}/brand-studio/publico`, icon: UserSearch },
-      {
-        title: "Identidad Creativa",
-        href: `/${tenantId}/brand-studio/identidad-creativa`,
-        icon: Palette,
-      },
-    ],
   },
   {
     title: "Offer Studio",
