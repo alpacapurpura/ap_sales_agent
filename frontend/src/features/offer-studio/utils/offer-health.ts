@@ -1,5 +1,3 @@
-import { getSectionsForOffer } from "../config/offer-builder-config";
-
 import type { Offer } from "../types";
 
 export interface SectionHealth {
@@ -45,58 +43,83 @@ function validateSpecificDetails(offer: Offer): SectionHealth {
   return { status: "complete" };
 }
 
+function validatePromise(offer: Offer): SectionHealth {
+  return offer.headline_promise
+    ? { status: "complete" }
+    : { status: "incomplete", message: "Falta la promesa principal" };
+}
+
+function validatePricing(offer: Offer): SectionHealth {
+  return offer.pricing && offer.pricing.length > 0
+    ? { status: "complete" }
+    : { status: "incomplete", message: "Sin precio definido" };
+}
+
+function validateClosing(offer: Offer): SectionHealth {
+  return offer.guarantee_type
+    ? { status: "complete" }
+    : { status: "incomplete", message: "Definir garantía" };
+}
+
+function validateInstructors(offer: Offer): SectionHealth {
+  return offer.instructors && offer.instructors.length > 0
+    ? { status: "complete" }
+    : { status: "optional" };
+}
+
+const OPTIONAL_HEALTH: SectionHealth = { status: "optional" };
+const alwaysOptional = (): SectionHealth => OPTIONAL_HEALTH;
+
 /**
- * Valida una sección específica de la oferta.
+ * Per-section health rules. Dispatch table instead of a giant switch so each
+ * rule reads as an isolated function and the complexity stays linear with the
+ * section count. Unlisted keys fall through to ``OPTIONAL_HEALTH`` via
+ * ``validateSection`` below.
  */
-const validateSection = (sectionId: string, offer: Offer): SectionHealth => {
-  switch (sectionId) {
-    case "identity":
-      return validateIdentity(offer);
-    case "strategy":
-      return validateStrategy(offer);
-    case "psychology":
-      return validatePsychology(offer);
-    case "promise":
-      if (!offer.headline_promise) {
-        return { status: "incomplete", message: "Falta la promesa principal" };
-      }
-      return { status: "complete" };
-    case "pricing":
-      if (!offer.pricing || offer.pricing.length === 0) {
-        return { status: "incomplete", message: "Sin precio definido" };
-      }
-      return { status: "complete" };
-    case "closing":
-      if (!offer.guarantee_type) {
-        return { status: "incomplete", message: "Definir garantía" };
-      }
-      return { status: "complete" };
-    case "product_details":
-    case "service_details":
-    case "program_details":
-    case "event_details":
-    case "subscription_details":
-      return validateSpecificDetails(offer);
-    case "instructors":
-      return offer.instructors && offer.instructors.length > 0
-        ? { status: "complete" }
-        : { status: "optional" };
-    case "resources":
-    case "gallery":
-    case "value_stack":
-      return { status: "optional" };
-    default:
-      return { status: "optional" };
-  }
+const SECTION_VALIDATORS: Record<string, (offer: Offer) => SectionHealth> = {
+  identity: validateIdentity,
+  strategy: validateStrategy,
+  psychology: validatePsychology,
+  promise: validatePromise,
+  pricing: validatePricing,
+  closing: validateClosing,
+  product_details: validateSpecificDetails,
+  service_details: validateSpecificDetails,
+  program_details: validateSpecificDetails,
+  event_details: validateSpecificDetails,
+  subscription_details: validateSpecificDetails,
+  instructors: validateInstructors,
+  resources: alwaysOptional,
+  gallery: alwaysOptional,
+  value_stack: alwaysOptional,
 };
 
 /**
- * Calcula la salud (completitud) de una oferta basada en su tipo y configuración.
+ * Validates the health of a single section against the offer's current data.
+ *
+ * Extracted so future consumers (schema runtime, copilot tools) can reuse
+ * the same rules without pulling the whole health aggregation helper.
+ * Unknown section keys resolve to ``optional`` so forward-compatible keys
+ * from the backend catalog never break the UI.
  */
-export function getOfferHealth(offer: Offer): OfferHealth {
-  const sections = getSectionsForOffer(offer);
+export function validateSection(sectionKey: string, offer: Offer): SectionHealth {
+  return SECTION_VALIDATORS[sectionKey]?.(offer) ?? OPTIONAL_HEALTH;
+}
 
-  if (sections.length === 0) {
+/**
+ * Aggregates section health into an overall completion percentage.
+ *
+ * The ``sectionKeys`` parameter is the ordered list of section identifiers
+ * the offer's archetype surfaces — consumers pass it in from
+ * ``useSectionsForArchetype(offer.archetype)`` so this helper stays pure
+ * and the section ordering stays SSoT-aligned with the backend catalog.
+ *
+ * When ``sectionKeys`` is empty (e.g. archetype catalog still loading)
+ * the result reports 0% with an explanatory missingFields entry so the
+ * caller can still render a meaningful loading state.
+ */
+export function getOfferHealth(offer: Offer, sectionKeys: readonly string[]): OfferHealth {
+  if (sectionKeys.length === 0) {
     return {
       completionPercentage: 0,
       sections: {},
@@ -109,22 +132,22 @@ export function getOfferHealth(offer: Offer): OfferHealth {
   let totalRequired = 0;
   const missingFields: string[] = [];
 
-  sections.forEach((sectionId) => {
-    const health = validateSection(sectionId, offer);
-    sectionHealths[sectionId] = health;
+  for (const sectionKey of sectionKeys) {
+    const health = validateSection(sectionKey, offer);
+    sectionHealths[sectionKey] = health;
 
     if (health.status !== "optional") {
       totalRequired++;
       if (health.status === "complete") {
         completedCount++;
       } else if (health.message) {
-        missingFields.push(`${sectionId}: ${health.message}`);
+        missingFields.push(`${sectionKey}: ${health.message}`);
       }
     }
-  });
+  }
 
   const completionPercentage =
-    totalRequired > 0 ? Math.round((completedCount / totalRequired) * 100) : 100; // Si no hay requeridos, está "completo" o es trivial
+    totalRequired > 0 ? Math.round((completedCount / totalRequired) * 100) : 100;
 
   return {
     completionPercentage,
