@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback } from "react";
+
 import { cn } from "@/lib/utils";
 
 import { useFormRuntime } from "./FormRuntimeContext";
@@ -27,7 +29,7 @@ export function FieldList({ onFieldSelect, activeFieldId, className }: FieldList
           field={field}
           value={values[field.path]}
           isActive={field.id === activeFieldId}
-          onClick={() => onFieldSelect(field.id)}
+          onFieldSelect={onFieldSelect}
         />
       ))}
     </ul>
@@ -38,10 +40,11 @@ interface FieldRowProps {
   field: FieldSchema;
   value: unknown;
   isActive: boolean;
-  onClick: () => void;
+  onFieldSelect: (id: string) => void;
 }
 
-function FieldRow({ field, value, isActive, onClick }: FieldRowProps) {
+function FieldRow({ field, value, isActive, onFieldSelect }: FieldRowProps) {
+  const onClick = useCallback(() => onFieldSelect(field.id), [onFieldSelect, field.id]);
   return (
     <li>
       <button

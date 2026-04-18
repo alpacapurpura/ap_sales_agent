@@ -2,8 +2,6 @@
 
 import { useParams } from "next/navigation";
 
-import "@/features/brand-studio/actions/registry";
-
 import { useBuyerPersona } from "@/features/brand-studio/hooks/use-buyer-persona";
 
 /**

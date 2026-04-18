@@ -2,14 +2,23 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo } from "react";
 
+import { useAutoSave } from "@/lib/form-runtime/hooks";
 import {
   buyerPersonaApi,
   type BuyerPersona,
   type BuyerPersonaSectionUpdateDTO,
 } from "@/lib/api/buyer-persona";
 
+const PERSONA_AUTOSAVE_DELAY_MS = 1500;
+
+/**
+ * Single buyer-persona detail hook. Autosave now delegates to the shared
+ * useAutoSave primitive (lib/form-runtime/hooks) — same state machine the
+ * form-runtime AutosaveBanner consumes, so "saving / saved / error" surfaces
+ * uniformly across the product.
+ */
 export function useBuyerPersona(tenantId: string, personaId: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
@@ -28,51 +37,38 @@ export function useBuyerPersona(tenantId: string, personaId: string) {
     enabled: Boolean(personaId),
   });
 
-  const [isSaving, setIsSaving] = useState(false);
-  const [savedAt, setSavedAt] = useState<Date | null>(null);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    };
-  }, []);
-
-  const save = useCallback(
+  const saveFn = useCallback(
     async (updates: BuyerPersonaSectionUpdateDTO) => {
       const token = await getToken();
-      if (!token) return;
-      setIsSaving(true);
-      try {
-        const updated = await buyerPersonaApi.patch(token, personaId, updates);
-        queryClient.setQueryData(queryKey, updated);
-        setSavedAt(new Date());
-      } catch (err) {
-        console.warn("Failed to save persona:", err);
-      } finally {
-        setIsSaving(false);
-      }
+      if (!token) throw new Error("No auth token");
+      const updated = await buyerPersonaApi.patch(token, personaId, updates);
+      queryClient.setQueryData(queryKey, updated);
     },
     [getToken, personaId, queryClient, queryKey],
   );
 
-  const debouncedSave = useCallback(
-    (updates: BuyerPersonaSectionUpdateDTO, delayMs = 1500) => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = setTimeout(() => {
-        void save(updates);
-      }, delayMs);
-    },
-    [save],
-  );
+  const autosave = useAutoSave<BuyerPersonaSectionUpdateDTO>({
+    saveFn,
+    delay: PERSONA_AUTOSAVE_DELAY_MS,
+  });
 
   return {
     persona: data ?? null,
     isLoading,
     error,
-    isSaving,
-    savedAt,
-    save,
-    debouncedSave,
+    /** State machine: "idle" | "saving" | "saved" | "error". */
+    saveState: autosave.state,
+    /** True while a save is in flight. */
+    isSaving: autosave.state === "saving",
+    /** Timestamp of the last successful save, or null. */
+    savedAt: autosave.lastSavedAt,
+    /** Imperative save — bypasses debounce. */
+    save: saveFn,
+    /** Debounced save (1500 ms). Subsequent calls within the window reset the timer. */
+    debouncedSave: autosave.trigger,
+    /** Retry the last attempted payload after an error. */
+    retry: autosave.retry,
+    /** Cancel any pending debounced save. */
+    cancel: autosave.cancel,
   };
 }

@@ -1,9 +1,6 @@
 "use client";
 
 import { UniversalEditableSection } from "@/components/form-runtime";
-
-import "@/features/brand-studio/actions/registry";
-
 import { useBrandSettings } from "@/features/brand-studio/hooks/use-brand-settings";
 import { identitySchema } from "@/features/brand-studio/schemas";
 

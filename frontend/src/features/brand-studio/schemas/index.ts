@@ -1,3 +1,9 @@
+// Side-effect import: every schema in this barrel references action keys
+// registered by features/brand-studio/actions/registry. Importing here
+// guarantees the registry is bootstrapped before any consumer page renders
+// a custom field — pages only need to import schemas, never the registry.
+import "@/features/brand-studio/actions/registry";
+
 import { authoritySchema } from "./authority.schema";
 import { avatarsSchema } from "./avatars.schema";
 import { communicationAssetsSchema } from "./communication-assets.schema";

@@ -1,9 +1,6 @@
 "use client";
 
 import { UniversalEditableSection } from "@/components/form-runtime";
-
-import "@/features/brand-studio/actions/registry";
-
 import { avatarsSchema } from "@/features/brand-studio/schemas";
 
 /**

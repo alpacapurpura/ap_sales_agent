@@ -2,14 +2,12 @@
 
 import { useParams } from "next/navigation";
 
-import "@/features/brand-studio/actions/registry";
-
 /**
  * Avatar edit route. Sprint 1 stub — Sprint 2 replaces with the ported
  * avatar-form rich action (creates sub-entity via the avatar API).
  */
 export function AvatarEditPage() {
-  const params = useParams<{ id: string; tenantId: string }>();
+  const params = useParams<{ id: string }>();
   const id = params?.id ?? "";
 
   return (
