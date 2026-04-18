@@ -152,41 +152,29 @@ One page per App Router route under `/brand-studio/`. Each page file is 5–15 l
 
 ---
 
-## 3. Sprint 2 — Port Rich Actions (Claude: 3–6 hrs · User: validate each action in isolation)
+## 3. Sprint 2 — Form-runtime URL-driven + port 7 survivor actions + PersonaDetailView refactor
 
-**Goal:** Replace the Sprint-1 placeholder actions with real ported components. Schemas already reference them by key.
+**Scope pivoted 2026-04-17 afternoon after usage audit.** See `SPRINT-2-PLAN.md` for the complete plan; this section is the top-level summary and delegates detail to that file.
 
-Process per action (repeat ~10 times). Each action gets its own commit.
+**Key changes vs the earlier draft of this section (git history preserves the diff):**
 
-**Action checklist (port from `features/brand/` to `features/brand-studio/actions/`):**
+- Five extraction/wizard actions (SmartFillDialog, OnboardingWizard, VoiceCloneAction, PersonalityClone, BrandVisualsWizard) are NOT ported. They move to Sprint 4 as copilot tools (see §5).
+- OnboardingWizard deferred: rebuild later with an industry-standard pattern in its own sprint.
+- AvatarAction (sub-entity) is purged; its replacement is the existing `PersonaDetailView` refactor (see Sprint 2.8).
+- LegalAction confirmed alive via `FooterSection.onEditLegal` — port it.
+- Data-model purge (`BrandTeam`, `team_metadata`, duplicated BrandIdentity visual fields, `positioning.values` → personality) moves to its own Sprint 2.D (full-stack backend + frontend).
+- **Route-per-field** is the new form-runtime contract (Sprint 2.0b). UniversalEditableSection becomes URL-driven; FieldList renders `<Link>`s.
 
-- [ ] `VoiceCloneAction.tsx` (from `brand/sections/voice/voice-form.tsx`)
-- [ ] `PersonalityClone.tsx` (from `brand/sections/personality/clone-upload.tsx`)
-- [ ] `DimensionSliders.tsx` (from `brand/sections/personality/dimension-sliders.tsx`)
-- [ ] `PresetCatalog.tsx` (from `brand/sections/personality/preset-catalog.tsx`)
-- [ ] `BrandVisualsWizard.tsx` (from `brand/sections/visuals/brand-visuals-wizard.tsx`)
-- [ ] `SingleImagePicker.tsx` (from `brand/sections/visuals/single-image-picker.tsx`)
-- [ ] `ThemeInjector.tsx` (from `brand/sections/visuals/theme-injector.tsx`)
-- [ ] `LogoKitAction.tsx` (from `brand/sections/logos/logo-kit.tsx`)
-- [ ] `ImageGalleryPicker.tsx` (from `brand/sections/team/image-gallery-picker.tsx`)
-- [ ] `AvatarAction.tsx` (from `brand/sections/avatars/avatar-form.tsx` — note: creates a sub-entity via separate API, not a field)
-- [ ] `SmartFillDialog.tsx` (from `brand/components/smart-fill/SmartFillDialog.tsx`)
-- [ ] `OnboardingWizard.tsx` (from `brand/components/onboarding/OnboardingWizard.tsx` and related step files)
-- [ ] `LegalAction.tsx` (from `brand/components/legal/LegalManager.tsx` + `LegalForm.tsx`) — D15
+**Sprint 2 deliverables (summary):**
 
-For each action:
-- [ ] Copy file(s) to `features/brand-studio/actions/`.
-- [ ] Rewire imports to use brand-studio's api/hooks/types (not brand/).
-- [ ] Adapt props signature to `(value, onChange, props)` contract expected by the action registry.
-- [ ] Port associated tests (rename imports).
-- [ ] Replace the placeholder entry in `features/brand-studio/actions/registry.ts` with the real component.
-- [ ] Quality gates green.
-- [ ] Commit: `feat(brand-studio): port {actionName} as action`
-- [ ] After VoiceCloneAction, BrandVisualsWizard, PersonalityClone, LogoKitAction, AvatarAction and OnboardingWizard (the complex ones): **USER CHECKPOINT** per action, rendered in a dev harness page if needed.
+1. Sprint 2.0 foundations — Storybook baseline + route-per-field refactor + generic `SectionPage` + 7 placeholder stories.
+2. Sprint 2.1–2.7 — port 7 survivor actions (ImageGalleryPicker, SingleImagePicker, ThemeInjector, DimensionSliders, PresetCatalog, LogoKitAction, LegalAction) with Storybook stories + Vitest tests + URL awareness.
+3. Sprint 2.8 — port `PersonaDetailView` refactored into form-runtime.
+4. Delete redirect pages (`/tono-y-voz`, `/creativos`, `/assets`).
 
-**Sprint 2 exit criteria:** all 13 actions live, no `actions/placeholders.tsx` entries remain, all their tests green.
+**Sprint 2.D (parallel track, NOT blocking Sprint 2):** Alembic migration + Pydantic DTO update + frontend type purge for the dead model fields. Runs full-stack with backend + frontend agent coordination. Can land before or after Sprint 3 flip; logged as a separate sprint so Sprint 2 keeps frontend-only scope.
 
-**Rollback for Sprint 2:** per-action commits independent. `git revert` a single action commit restores the placeholder for that one action only.
+**Rollback for Sprint 2:** per-commit independent. `git revert <hash>` isolates any single port, foundation commit, or PersonaDetailView refactor.
 
 ---
 
@@ -206,9 +194,26 @@ For each action:
 
 ---
 
-## 5. Sprint 4 — Copilot Refactor (Claude: 2–4 hrs · User: validate copilot flows)
+## 5. Sprint 4 — Copilot Refactor + absorb 5 extraction tools (Claude: 6–10 hrs · User: validate copilot flows)
 
-**Goal:** Collapse focus/interview/preview into `copilotSession`. Remove dead copilot UI. Wire copilot store to `FormRuntimeBridge`.
+**Goal:** Collapse focus/interview/preview into `copilotSession`. Remove dead copilot UI. Wire copilot store to `FormRuntimeBridge`. **AND** deliver the five copilot tools that absorb the purged extraction flows from Sprint 2's scope pivot:
+
+| Tool | Replaces (purged in Sprint 2) | Inputs | Output |
+|---|---|---|---|
+| `extract_brand_from_url` | SmartFillDialog(initial) + Onboarding.StepWebsite + BrandVisualsWizard | url | BrandSettings diff |
+| `extract_brand_from_docs` | SmartFillDialog(update) + Onboarding.StepDocuments | files[] | BrandSettings diff |
+| `analyze_voice_style` | VoiceCloneAction | text | { voice_tone } |
+| `extract_visuals_from_url` | BrandVisualsWizard (visuals-only subflow) | url | BrandVisuals diff |
+| `clone_personality_from_chat` | PersonalityClone (clone-upload) | conversation | PersonalityProfile diff |
+
+**Interaction pattern for every tool:**
+1. User invokes via natural chat ("extrae desde mi web") or a button in SessionHeader.
+2. Copilot requests missing inputs (URL, files, conversation) via structured chat messages.
+3. Tool runs on backend; returns a structured diff.
+4. Copilot previews the diff in chat as "suggested change" chips, one per field.
+5. User approves per chip; copilot calls `bridge.patchField(path, value)` for each approved change.
+
+Backend work lives under `backend/src/modules/copilot/application/tools/`; frontend chat-UI work under `features/copilot/components/`.
 
 ### 5.1 Copilot store reshape
 
@@ -247,7 +252,54 @@ For each action:
 - [ ] **USER CHECKPOINT 3 — copilot walkthrough.** User: open brand-studio, click copilot icon, run a free chat, then "Entrevista guiada", verify focus-bar chip in SessionHeader, verify undo-session.
 - [ ] Commit: `chore(copilot): delete dead preview/focus components`
 
+### 5.4 Tool backends (NEW — absorbs Sprint 2 purges)
+
+- [ ] `extract_brand_from_url` — backend tool under `backend/src/modules/copilot/application/tools/`. Wraps the existing `brandApi.extractFullBrand` job flow but returns a structured diff (field → new value → confidence).
+- [ ] `extract_brand_from_docs` — backend tool. Same wrapping around the docs variant; file upload handled via signed-upload endpoint.
+- [ ] `analyze_voice_style` — backend tool wrapping the existing `/api/v1/brand/style/analyze-style` endpoint.
+- [ ] `extract_visuals_from_url` — backend tool wrapping the visuals-only extraction + ColorThief palette derivation (port the intent of `BrandVisualsWizard`'s client-side palette generator to the backend so the result is deterministic and auditable).
+- [ ] `clone_personality_from_chat` — backend tool (may already exist in `copilot/application/tools/`; verify and extend).
+- [ ] All tools register in `copilot/application/tools/registry.py` so the route-based tool selector can expose them on the right pages.
+- [ ] Chat-UI components: file dropzone, URL input card, diff preview chips, "apply change" button wired to `bridge.patchField`.
+- [ ] Storybook stories for each chat-UI component (`Copilot/Tools/*`).
+- [ ] Integration tests (backend pytest + frontend Vitest).
+- [ ] Commit: one per tool, `feat(copilot): add <tool> tool (Sprint 4.N)`
+
+### 5.5 Sprint 4 exit gate
+
+- All 5 tools registered and invocable from a chat.
+- Chat-UI components tested, Storybook stories exist.
+- Copilot store collapsed to `session` + `focusedField`; `WithCopilot`, `FocusBar`, `CopilotPreviewPane`, `interview-preview-registry` deleted.
+- User checkpoint: open brand-studio, type "extrae mi marca desde https://...", confirm every field arrives as a diff-chip and applies correctly.
+
 **Rollback for Sprint 4:** per-commit reverts independent. Brand-studio reads via `FormRuntimeBridge`, not directly from copilot store internals, so brand-studio keeps working even if copilot refactor is reverted.
+
+---
+
+## 5bis. Sprint 2.D — Data model purge (parallel track, full-stack)
+
+**Not a sequential sprint.** Can run before or after Sprint 3 flip; logically belongs once the new types are consumed (Sprint 2 porting uses the old shape, Sprint 3 flips, then Sprint 2.D cleans the shape).
+
+**Purges (backend + frontend coordinated):**
+
+| Field / type | Decision | Reason |
+|---|---|---|
+| `BrandTeam` (legacy interface) | DELETE | Superseded by `KeyFigure[]` |
+| `BrandSettings.team_metadata` | DELETE | Last writer unknown; no reader in new code |
+| `BrandIdentity.primary_color` / `accent_color` / `font_heading` / `font_body` / `background_color` / `text_primary_color` / `text_on_primary` / `design_style` / `usage_guidelines` | DELETE | Duplicate of BrandVisuals; BrandVisuals is the SSoT. Salvage any tenant value via one-time data migration. |
+| `BrandPositioning.values.core_values` / `.personality_traits` / `.archetype` | MOVE to `Personality` | Personality section absorbs these per Sprint 2 decision |
+
+**Work items:**
+- [ ] Backend: Alembic idempotent migration — copy salvaged values to BrandVisuals / Personality, then drop the old columns.
+- [ ] Backend: Pydantic DTOs + services updated.
+- [ ] Backend: pytest regressions + architecture tests.
+- [ ] Frontend: types updated in `features/brand-studio/types/` + any consuming component.
+- [ ] Frontend: schemas updated (identity.schema removes visuals fields; personality.schema adds values block; positioning.schema removes the values block).
+- [ ] Frontend: Storybook stories reflect new shape.
+- [ ] Data migration verified on a prod clone before merging.
+- [ ] Commit: one commit per concern — `refactor(brand-model): migrate X`.
+
+**Agent split:** backend-expert skill handles migration + DTOs; frontend-expert skill handles types + schemas; auditor skill reviews.
 
 ---
 
@@ -286,10 +338,11 @@ Last updated: **2026-04-17 — Sprint 1 COMPLETE. Scaffold in-tree; App Router s
 | Sprint | State | Last commit | Quality gates |
 |---|---|---|---|
 | Sprint 0 — Specs | ✅ Complete | `e06b7726` | n/a (no code) |
-| Sprint 1 — Full scaffold | ✅ Complete | `b841f062` | tsc 0 errors · eslint 0 errors / 4587 warnings · vitest 1247 tests / 152 files all green · 10 arch tests green |
-| Sprint 2 — Port rich actions | Not started | — | — |
+| Sprint 1 — Full scaffold | ✅ Complete + debt-cleaned + pushed | `56b6cfbf` | tsc 0 errors · eslint 0 errors / 4587 warnings · vitest 1247 tests / 152 files all green · 10 arch tests green |
+| Sprint 2 — URL-driven runtime + 7 survivor ports + PersonaDetail | Planned (SPRINT-2-PLAN.md) | — | — |
+| Sprint 2.D — Data model purge (parallel track) | Planned (§5bis) | — | — |
 | Sprint 3 — App router flip | Not started | — | — |
-| Sprint 4 — Copilot refactor | Not started | — | — |
+| Sprint 4 — Copilot refactor + 5 extraction tools | Planned (§5, expanded) | — | — |
 | Sprint 5 — Delete old brand | Not started | — | — |
 
 **Sprint 1 commits (11):**
