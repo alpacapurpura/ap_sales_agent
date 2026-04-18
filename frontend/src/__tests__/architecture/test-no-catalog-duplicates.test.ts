@@ -34,8 +34,8 @@ const ALLOWED_CATALOG_FILES: readonly string[] = [
   "features/offer-studio/hooks/use-value-level-catalog.ts",
   "features/offer-studio/lib/icon-name-resolver.ts",
   "features/offer-studio/lib/__tests__/icon-name-resolver.test.ts",
-  "features/brand/api/expert-business-types-api.ts",
-  "features/brand/hooks/use-expert-business-types-catalog.ts",
+  "features/brand-studio/api/expert-business-types-api.ts",
+  "features/brand-studio/hooks/use-expert-business-types-catalog.ts",
   // Test fixtures: the catalog hook test wires a mocked HTTP response.
   "features/offer-studio/tests/use-archetype-capabilities.test.tsx",
 ];
