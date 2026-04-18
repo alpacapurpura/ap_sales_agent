@@ -22,7 +22,7 @@ const CATALOG_FIXTURE = {
     {
       value_level: OfferValueLevel.LEAD_MAGNET,
       order: 0,
-      label_es: "Gancho Gratuito",
+      label_es: "Gancho",
       description_es: "",
       role_in_funnel_es: "",
       icon_name: "Lightbulb",
@@ -58,7 +58,7 @@ const CATALOG_FIXTURE = {
     {
       value_level: OfferValueLevel.MAXIMIZACION,
       order: 3,
-      label_es: "Oferta Premium",
+      label_es: "Premium",
       description_es: "",
       role_in_funnel_es: "",
       icon_name: "Gem",
@@ -70,7 +70,7 @@ const CATALOG_FIXTURE = {
     {
       value_level: OfferValueLevel.CORPORATIVO,
       order: 4,
-      label_es: "Venta Corporativa",
+      label_es: "Venta B2B",
       description_es: "",
       role_in_funnel_es: "",
       icon_name: "Building2",

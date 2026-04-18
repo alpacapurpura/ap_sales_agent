@@ -64,7 +64,7 @@ VALUE_LEVEL_CATALOG: dict[OfferValueLevel, ValueLevelMetadata] = {
     OfferValueLevel.LEAD_MAGNET: ValueLevelMetadata(
         value_level=OfferValueLevel.LEAD_MAGNET,
         order=0,
-        label_es="Gancho Gratuito",
+        label_es="Gancho",
         description_es=(
             "Recurso o experiencia gratuita que entregás a cambio del contacto. "
             "Su trabajo es captar leads calificados y abrir la conversación — "
@@ -128,7 +128,7 @@ VALUE_LEVEL_CATALOG: dict[OfferValueLevel, ValueLevelMetadata] = {
     OfferValueLevel.MAXIMIZACION: ValueLevelMetadata(
         value_level=OfferValueLevel.MAXIMIZACION,
         order=3,
-        label_es="Oferta Premium",
+        label_es="Premium",
         description_es=(
             "Oferta premium de alto contacto. Para los clientes más comprometidos "
             "que pagan por el nivel máximo de acceso, personalización o "
@@ -150,7 +150,7 @@ VALUE_LEVEL_CATALOG: dict[OfferValueLevel, ValueLevelMetadata] = {
     OfferValueLevel.CORPORATIVO: ValueLevelMetadata(
         value_level=OfferValueLevel.CORPORATIVO,
         order=4,
-        label_es="Venta Corporativa",
+        label_es="Venta B2B",
         description_es=(
             "Venta B2B a empresas, aseguradoras o equipos. Ticket alto, proceso "
             "consultivo y contrato formal — ciclo de venta largo pero revenue "

@@ -61,7 +61,7 @@ class ValueLevelsCatalogResponse(BaseModel):
 
 
 # Bump this when ``value_level_catalog.py`` changes materially.
-_CATALOG_VERSION = "2026-04-18"
+_CATALOG_VERSION = "2026-04-18.1"
 
 
 @router.get(

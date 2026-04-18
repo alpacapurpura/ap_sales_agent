@@ -173,7 +173,7 @@ interface CorporateRowProps {
  *  description still come from the catalog. */
 function CorporateRow({ offers, searchQuery, onCreate, onArchive }: CorporateRowProps) {
   const metadata = useValueLevelMetadata(OfferValueLevel.CORPORATIVO);
-  const label = metadata?.label_es ?? "Venta Corporativa";
+  const label = metadata?.label_es ?? "Venta B2B";
   const description = metadata?.description_es ?? "Soluciones B2B para empresas.";
 
   return (
