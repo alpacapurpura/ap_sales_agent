@@ -16,10 +16,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { TeamManager } from "@/features/brand/sections/team/team-manager";
+import { TeamManager } from "@/features/brand-studio/components/legacy-team";
 import { cn } from "@/lib/utils";
 
-import type { KeyFigure } from "@/features/brand/types";
+import type { KeyFigure } from "@/features/brand-studio/types";
 
 interface InstructorsSelectorProps {
   selectedInstructorIds: string[];

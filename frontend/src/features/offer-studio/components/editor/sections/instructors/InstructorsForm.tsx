@@ -6,7 +6,7 @@ import { SectionFormWrapper } from "../common/SectionFormWrapper";
 import { InstructorsSelector } from "./InstructorsSelector";
 
 import type { OfferFormValues } from "../../../../types/schema";
-import type { KeyFigure } from "@/features/brand/types";
+import type { KeyFigure } from "@/features/brand-studio/types";
 import type { UseFormReturn } from "react-hook-form";
 
 const InstructorsSchema = OfferSchema.pick({

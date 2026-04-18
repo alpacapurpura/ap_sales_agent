@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
+import { useBrandSettings } from "@/features/brand-studio/hooks/use-brand-settings";
 import { useArchetypeCatalog } from "@/features/offer-studio/hooks/use-archetype-catalog";
 import { useFormatCatalog } from "@/features/offer-studio/hooks/use-format-catalog";
 import {

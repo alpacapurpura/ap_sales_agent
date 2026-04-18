@@ -4,7 +4,7 @@ import { useFormContext } from "react-hook-form";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
+import { useBrandSettings } from "@/features/brand-studio/hooks/use-brand-settings";
 import { cn } from "@/lib/utils";
 import { getContrastColor } from "@/lib/utils/colors";
 

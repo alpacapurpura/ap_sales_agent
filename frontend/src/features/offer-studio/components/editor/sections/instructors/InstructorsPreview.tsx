@@ -3,7 +3,7 @@ import React from "react";
 import { useFormContext } from "react-hook-form";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useBrandSettings } from "@/features/brand/hooks/use-brand-settings";
+import { useBrandSettings } from "@/features/brand-studio/hooks/use-brand-settings";
 
 import type { OfferFormValues } from "../../../../types/schema";
 
