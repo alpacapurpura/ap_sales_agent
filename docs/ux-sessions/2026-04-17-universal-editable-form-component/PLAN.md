@@ -348,7 +348,14 @@ Last updated: **2026-04-18 — Sprints 5 + 2.D + 4a + 4b + 4c COMPLETE. Copilot 
 | Sprint 4d–h — Five extraction tools | Planned (§5.4) | — | — |
 | Sprint 5 — Delete old brand + offer-studio import migration | ✅ Complete + pushed | `8a0729f5` → `87aa7a36` | tsc 0 · eslint 0 / 3595 warn · vitest 1221 tests / 156 files · 10 arch · build-storybook green |
 | Sprint 6.A — Backend section catalog + API exposure | ✅ Complete + pushed | `0ede2913` → `05e7c487` → `030ddfc8` | ruff 0 · pytest 549 offer/arch · 8 new arch tests · 26 new unit tests · 8 new API integration tests |
-| Sprint 6.B-H — Frontend catalog consumption + URL migration + editor migration + copilot + cleanup | Planned (see SPRINT-6-PLAN.md phases B-H) | — | — |
+| Sprint 6.B — Frontend catalog consumption (hooks + fixture + legacy cleanup) | ✅ Complete + pushed | `2d80923d` → `ec0eb3e1` → `253943ec` | tsc 0 · eslint 0 · vitest 260 offer-studio · 10 arch · 19 new hook tests |
+| Sprint 6.C.1 — Form-runtime SectionScope + FieldOwner extension | ✅ Complete + pushed | `1335b0f9` | tsc 0 · eslint 0 · parser 26 tests (9 new scope/owner) |
+| Sprint 6.C.2-C.7 — 16 offer-studio schemas + registry + arch tests | ✅ Complete + pushed | `e1d72e53` → `748b9fe8` → `74ea1ea4` → `2c017b61` → `79048a68` | 17 schema test files · 61 schema tests · every schema parses + locked scope assignments |
+| Sprint 6.D.1 — Edition code resolver hook | ✅ Complete + pushed | `8fe08ba6` | 8 new tests · evergreen + numeric + error paths |
+| Sprint 6.D.2-D.4 — Section pages + server-safe page-map + catch-all route | ✅ Complete + pushed | `280e43aa` | tsc 0 · eslint 0 · 7 placeholder actions registered · 16 section pages mounted via factory · server-safe split per LEARNINGS §Sprint 3 |
+| Sprint 6.D.5-D.11 — Nav rail rewrites, EditionsRail update, backwards-compat redirects, copilot navigation_map | Planned (see SPRINT-6-PLAN.md Phase D) | — | — |
+| Sprint 6.E — Per-section editor migration (replace *Form.tsx with form-runtime, 16 commits) | Planned (SPRINT-6-PLAN.md Phase E) | — | — |
+| Sprint 6.F-H + 4d-h — Copilot integration, 5 extraction tools, final cleanup | Planned | — | — |
 
 **Sprint 4a + 4b + 4c commits (3):**
 - `49fa40c0` refactor(copilot): collapse store + retire preview/focus UI (Sprint 4a + 4c). Merges what the PLAN originally split into 3 sub-sprints because the dying UI's consumers made any intermediate state non-compilable. Deletes WithCopilot, FocusBar, CopilotPreviewPane, FocusModeButton, InterviewModeButton, EditionPreviewCard, InterviewDateBlock, interview-preview-registry + all their tests. Collapses focusEntity/focusSnapshot/interviewSessionId/interviewProgress/previewData into `session` + `focusedField` on the store. Drops "expanded" sidebarState. Simplifies CopilotSidebar to chat-only. Strips WithCopilot from the four offer-studio form files that still referenced it.
