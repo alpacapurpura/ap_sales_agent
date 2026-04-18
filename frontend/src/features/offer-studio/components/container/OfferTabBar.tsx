@@ -37,26 +37,20 @@ interface TabConfig {
   key: "editor" | "ventas" | "assets" | "campaigns";
   label: string;
   icon: LucideIcon;
-  /** Route leaf appended to the offer or edition scope root. Empty for Info. */
+  /** Route leaf appended to the scope root. Empty for Info. */
   segment: "" | "ventas" | "assets" | "campaigns";
   badge?: (counts: OfferCountsResponse) => number;
-  /**
-   * Whether this tab belongs to the edition scope (true) or only to the
-   * offer scope (false, Info). Drives href construction.
-   */
-  editionScoped: boolean;
 }
 
 const TABS: TabConfig[] = [
-  { key: "editor", label: "Info", icon: LayoutDashboard, segment: "", editionScoped: false },
-  { key: "ventas", label: "Ventas", icon: DollarSign, segment: "ventas", editionScoped: true },
+  { key: "editor", label: "Info", icon: LayoutDashboard, segment: "" },
+  { key: "ventas", label: "Ventas", icon: DollarSign, segment: "ventas" },
   {
     key: "assets",
     label: "Assets",
     icon: ImageIcon,
     segment: "assets",
     badge: (c) => c.assets,
-    editionScoped: true,
   },
   {
     key: "campaigns",
@@ -64,7 +58,6 @@ const TABS: TabConfig[] = [
     icon: Megaphone,
     segment: "campaigns",
     badge: (c) => c.campaigns,
-    editionScoped: true,
   },
 ];
 
@@ -74,18 +67,21 @@ const TABS: TabConfig[] = [
  *
  * Knowledge is not a tab — it lives as a section inside Info.
  *
- * Hrefs:
- *   - Info             → /offer/{id}                                     (offer-level)
- *   - Other tabs       → /offer/{id}/{tab}                                (evergreen)
- *                      → /offer/{id}/editions/{editionId}/{tab}           (with-editions)
+ * Every tab (including Info) links under the current scope root:
+ *   - Evergreen (no editions):   /offer/{id}[/tab]
+ *   - With current edition:      /offer/{id}/editions/{editionId}[/tab]
  *
- * Active highlighting uses the terminal segment of the pathname so both URL
- * shapes map to the same tab.
+ * Info content is offer-level, but we keep the selected edition in the URL
+ * so the rail highlight survives a tab switch. The edition-root page
+ * (`/editions/{eid}`) renders the same Info content.
+ *
+ * Active highlighting parses the pathname shape so both URL forms map to
+ * the same tab.
  */
 export function OfferTabBar({ tenantId, offerId, counts, currentEditionId }: OfferTabBarProps) {
   const pathname = usePathname();
   const base = `/${tenantId}/offer-studio/offer/${offerId}`;
-  const editionRoot = currentEditionId ? `${base}/editions/${currentEditionId}` : base;
+  const scopeRoot = currentEditionId ? `${base}/editions/${currentEditionId}` : base;
   const active = analyzePathname(pathname, base);
 
   return (
@@ -95,8 +91,7 @@ export function OfferTabBar({ tenantId, offerId, counts, currentEditionId }: Off
     >
       <div className="flex items-stretch gap-1">
         {TABS.map((tab) => {
-          const root = tab.editionScoped ? editionRoot : base;
-          const href = tab.segment ? `${root}/${tab.segment}` : base;
+          const href = tab.segment ? `${scopeRoot}/${tab.segment}` : scopeRoot;
           const isActive = tab.segment ? active.tab === tab.segment : active.onInfo;
           const badgeValue = tab.badge?.(counts);
           const Icon = tab.icon;
@@ -142,9 +137,11 @@ interface PathnameAnalysis {
 
 /**
  * Analyse `pathname` relative to the offer `base` and return whether the
- * user is on Info and, separately, which tab segment is active. Edition
- * default routes (`.../editions/{eid}` without a tab leaf) return
- * `{ onInfo: false, tab: null }` so no tab highlights spuriously.
+ * user is on Info and which tab segment (if any) is active.
+ *
+ * Info is the scope root with no tab leaf — matches both:
+ *   - `${base}`                            (evergreen Info)
+ *   - `${base}/editions/{editionId}`       (Info with edition selected)
  */
 function analyzePathname(pathname: string | null, base: string): PathnameAnalysis {
   if (!pathname) return { onInfo: false, tab: null };
@@ -154,7 +151,8 @@ function analyzePathname(pathname: string | null, base: string): PathnameAnalysi
   const rest = pathname.slice(base.length);
   const editionMatch = rest.match(/^\/editions\/[^/]+(\/([^/?#]+))?/);
   if (editionMatch) {
-    return { onInfo: false, tab: editionMatch[2] ?? null };
+    const tabLeaf = editionMatch[2];
+    return { onInfo: !tabLeaf, tab: tabLeaf ?? null };
   }
 
   const directMatch = rest.match(/^\/([^/?#]+)/);

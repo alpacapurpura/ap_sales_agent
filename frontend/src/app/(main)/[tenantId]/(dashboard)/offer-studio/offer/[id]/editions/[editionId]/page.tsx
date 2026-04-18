@@ -1,15 +1,24 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { use } from "react";
+
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import { OfferEditorContent } from "@/features/offer-studio/components/editor/OfferEditorContent";
 
 /**
- * Edition root — there is no "edition home" screen; the tab bar owns the
- * default view. We redirect to the ventas tab, which is the primary
- * per-edition dashboard (enrollments + KPIs).
+ * Edition's Info view. Content is offer-level (identity, strategy,
+ * deliverables, pricing, knowledge…) — we keep the edition in the URL so
+ * the rail highlight persists when the user navigates to or from a tab.
  */
-export default async function EditionIndexPage({
+export default function EditionInfoPage({
   params,
 }: {
-  params: Promise<{ tenantId: string; id: string; editionId: string }>;
+  params: Promise<{ id: string; editionId: string }>;
 }) {
-  const { tenantId, id, editionId } = await params;
-  redirect(`/${tenantId}/offer-studio/offer/${id}/editions/${editionId}/ventas`);
+  const { id } = use(params);
+  return (
+    <ErrorBoundary>
+      <OfferEditorContent offerId={id} />
+    </ErrorBoundary>
+  );
 }

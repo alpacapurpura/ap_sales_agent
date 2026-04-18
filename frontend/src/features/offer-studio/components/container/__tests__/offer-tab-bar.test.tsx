@@ -108,10 +108,14 @@ describe("OfferTabBar — hrefs depend on edition scope", () => {
     );
   });
 
-  it("offer with current edition scopes Ventas/Assets/Campañas under /editions/{eid}", () => {
+  it("offer with current edition scopes EVERY tab (including Info) under /editions/{eid}", () => {
     render(<OfferTabBar {...baseProps} currentEditionId="ed-7" />);
-    // Info stays at offer root — it's offer-level.
-    expect(screen.getByRole("link", { name: /Info/i })).toHaveAttribute("href", BASE_PATH);
+    // Info keeps the selected edition in the URL so the rail highlight
+    // survives the tab switch. The edition root page renders Info content.
+    expect(screen.getByRole("link", { name: /Info/i })).toHaveAttribute(
+      "href",
+      `${BASE_PATH}/editions/ed-7`,
+    );
     expect(screen.getByRole("link", { name: /Ventas/i })).toHaveAttribute(
       "href",
       `${BASE_PATH}/editions/ed-7/ventas`,
@@ -165,12 +169,9 @@ describe("OfferTabBar — active tab highlighting", () => {
     );
   });
 
-  it("does not mark Info active on the edition default route", () => {
+  it("marks Info active on the edition default route (edition's Info view)", () => {
     mockUsePathname.mockReturnValue(`${BASE_PATH}/editions/ed-7`);
     render(<OfferTabBar {...baseProps} currentEditionId="ed-7" />);
-    expect(screen.getByRole("link", { name: /Info/i })).not.toHaveAttribute(
-      ARIA_CURRENT,
-      ARIA_PAGE,
-    );
+    expect(screen.getByRole("link", { name: /Info/i })).toHaveAttribute(ARIA_CURRENT, ARIA_PAGE);
   });
 });
