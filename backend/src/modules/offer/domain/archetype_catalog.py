@@ -26,6 +26,7 @@ from src.modules.offer.domain.enums import (
     OfferArchetype,
     OfferDeliveryModel,
 )
+from src.modules.offer.domain.section_catalog import SectionKey
 
 
 class EditionStructure(StrEnum):
@@ -73,6 +74,16 @@ class ArchetypeCapabilities:
     # ``archetype-metadata.ts`` — now the backend is the single source.
     examples_es: tuple[str, ...] = field(default_factory=tuple)
 
+    # Ordered tuple of editor sections this archetype surfaces. Frontend
+    # renders the section rail in this order. Backend SSoT — frontend
+    # duplicates are rejected by ``test-no-section-catalog-duplicates``.
+    # Scope invariants enforced by ``test_archetype_sections_alignment``:
+    # edition-less archetypes must not list EDITION_LEVEL sections, and
+    # edition-supporting archetypes must list at least one non-OFFER_LEVEL
+    # section. Defaults to empty tuple so older records (if any) still
+    # construct; per-archetype records declare this explicitly.
+    sections: tuple[SectionKey, ...] = field(default_factory=tuple)
+
     # Wizard copy for the "will this offer have editions?" question.
     # Present iff supports_editions is True — frontend renders the wizard step
     # only when all four fields are set.
@@ -112,6 +123,19 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         ),
         editions_wizard_yes_label_es="Sí, con múltiples salidas programadas",
         editions_wizard_no_label_es="No, es una corrida única",
+        sections=(
+            SectionKey.IDENTITY,
+            SectionKey.STRATEGY,
+            SectionKey.PSYCHOLOGY,
+            SectionKey.PROMISE,
+            SectionKey.EVENT_DETAILS,
+            SectionKey.INSTRUCTORS,
+            SectionKey.VALUE_STACK,
+            SectionKey.RESOURCES,
+            SectionKey.PRICING,
+            SectionKey.CLOSING,
+            SectionKey.KNOWLEDGE,
+        ),
     ),
     OfferArchetype.PROGRAMA: ArchetypeCapabilities(
         archetype=OfferArchetype.PROGRAMA,
@@ -141,6 +165,19 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         ),
         editions_wizard_yes_label_es="Sí, en cohortes con fechas fijas",
         editions_wizard_no_label_es="No, es evergreen (cada alumno entra cuando quiere)",
+        sections=(
+            SectionKey.IDENTITY,
+            SectionKey.STRATEGY,
+            SectionKey.PSYCHOLOGY,
+            SectionKey.PROMISE,
+            SectionKey.PROGRAM_DETAILS,
+            SectionKey.INSTRUCTORS,
+            SectionKey.VALUE_STACK,
+            SectionKey.RESOURCES,
+            SectionKey.PRICING,
+            SectionKey.CLOSING,
+            SectionKey.KNOWLEDGE,
+        ),
     ),
     OfferArchetype.SERVICIO: ArchetypeCapabilities(
         archetype=OfferArchetype.SERVICIO,
@@ -171,6 +208,19 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         ),
         editions_wizard_yes_label_es="Sí, con convocatorias agrupadas",
         editions_wizard_no_label_es="No, cada cliente agenda su propia fecha",
+        sections=(
+            SectionKey.IDENTITY,
+            SectionKey.STRATEGY,
+            SectionKey.PSYCHOLOGY,
+            SectionKey.PROMISE,
+            SectionKey.SERVICE_DETAILS,
+            SectionKey.INSTRUCTORS,
+            SectionKey.VALUE_STACK,
+            SectionKey.RESOURCES,
+            SectionKey.PRICING,
+            SectionKey.CLOSING,
+            SectionKey.KNOWLEDGE,
+        ),
     ),
     OfferArchetype.PRODUCTO: ArchetypeCapabilities(
         archetype=OfferArchetype.PRODUCTO,
@@ -195,6 +245,18 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
             "Guía",
             "Producto físico",
         ),
+        sections=(
+            SectionKey.IDENTITY,
+            SectionKey.STRATEGY,
+            SectionKey.PSYCHOLOGY,
+            SectionKey.PROMISE,
+            SectionKey.PRODUCT_DETAILS,
+            SectionKey.VALUE_STACK,
+            SectionKey.RESOURCES,
+            SectionKey.PRICING,
+            SectionKey.CLOSING,
+            SectionKey.KNOWLEDGE,
+        ),
     ),
     OfferArchetype.MEMBRESIA: ArchetypeCapabilities(
         archetype=OfferArchetype.MEMBRESIA,
@@ -217,6 +279,18 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
             "Newsletter paga",
             "Mastermind",
             "Club",
+        ),
+        sections=(
+            SectionKey.IDENTITY,
+            SectionKey.STRATEGY,
+            SectionKey.PSYCHOLOGY,
+            SectionKey.PROMISE,
+            SectionKey.SUBSCRIPTION_DETAILS,
+            SectionKey.VALUE_STACK,
+            SectionKey.RESOURCES,
+            SectionKey.PRICING,
+            SectionKey.CLOSING,
+            SectionKey.KNOWLEDGE,
         ),
     ),
 }
