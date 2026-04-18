@@ -37,9 +37,11 @@ const CANONICAL_FOLDERS = new Set([
 ]);
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────
-// Empty — all existing features use canonical folders as of 2026-04-15.
+// brand-studio introduces schemas/, actions/, pages/ during the form-runtime
+// migration (Sprint 1, see docs/ux-sessions/2026-04-17-universal-editable-form-component/
+// DECISIONS.md D17). The entry shrinks as Sprint 5 deletes old brand/.
 const KNOWN_NONSTANDARD: Record<string, string[]> = {
-  // Example: "my-feature": ["custom-dir"],
+  "brand-studio": ["schemas", "actions", "pages"],
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
