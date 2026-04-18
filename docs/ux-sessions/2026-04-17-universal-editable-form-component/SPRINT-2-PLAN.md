@@ -66,6 +66,7 @@ Action: <name>
 Source (old): features/brand/<path>/<file>.tsx
 Target (new): features/brand-studio/actions/<Name>Action.tsx
 Registry key: <kebab-key>
+Harness file: features/brand-studio/actions/<Name>Action.harness.tsx
 
 Contract compliance
 - [ ] Signature matches ActionComponent<TValue>: { value, onChange, props? }
@@ -95,10 +96,20 @@ Tests
 - [ ] Debounce assertions use vi.useFakeTimers + flushMicrotasks helper
 - [ ] Action-specific edge cases covered (upload failure, empty input, invalid URL, etc.)
 
+Harness
+- [ ] Colocated harness file: actions/<Name>Action.harness.tsx
+- [ ] At least `default` and `populated` scenarios
+- [ ] If async/loading state exists: `loading` scenario
+- [ ] If failure state exists: `error` scenario
+- [ ] Harness registered in features/brand-studio/actions/harness.ts barrel
+- [ ] /dev/form-runtime/<key> renders without errors; ScenarioPicker switches all scenarios
+- [ ] Screenshot attached to checkpoint commits (CP-2A..CP-2F only)
+
 Bootstrap
 - [ ] placeholders.tsx: entry REMOVED (not just deprecated)
 - [ ] registry.ts: PLACEHOLDERS map entry points at real component
 - [ ] BRAND_STUDIO_ACTION_KEYS unchanged (key string constant)
+- [ ] Old features/brand/<path>/<file>.tsx still present (Sprint 5 deletes it) — this commit does not delete old code
 
 Quality gates
 - [ ] cd frontend && npx tsc --noEmit  → 0 errors
@@ -117,6 +128,67 @@ Debt log
 - [ ] If anything non-obvious had to be disabled or worked around, it lives in this commit's message OR an inline `// eslint-disable` with a justification. NEVER silently absorbed.
 - [ ] Scope creep → SPRINT-2-PLAN.md §7 log ONLY, never the diff.
 ```
+
+---
+
+## 2bis. Sprint 2.0 — Harness infrastructure (FIRST commit of Sprint 2)
+
+**Rationale:** user wants a sellable, architecturally prolija, self-documenting system. The form-runtime ships with a built-in component catalog that IS part of the architecture, not an external tool. Every action declares its scenarios in a colocated `.harness.tsx` file (same pattern as `.test.tsx`). A dev-only App Router route mounts the gallery. This:
+
+- Provides deterministic visual verification for every checkpoint.
+- Scales 1:1 to offer-studio, buyer-persona-studio and future form-runtime consumers.
+- Adds zero new dependencies; uses existing Next.js routing and Tailwind.
+- Cannot leak to production (route returns `notFound()` when `NODE_ENV === "production"`).
+- Doubles as living documentation — a new engineer opens `/dev/form-runtime` and sees every action with its scenarios in one click.
+
+### 2bis.1 — `lib/form-runtime/harness/`
+
+- [ ] `types.ts` — `ActionScenario<TValue>`, `ActionHarness<TValue>`, `HarnessFixtureProps`
+- [ ] `registry.ts` — `registerHarness(harness)`, `getHarness(key)`, `listHarnesses()` (in-memory, TS-typed)
+- [ ] `index.ts` — public barrel
+- [ ] `__tests__/registry.test.ts` — TDD: register / retrieve / list / clear, 4 cases minimum
+- [ ] 0 ESLint errors, 0 TS errors, tests green
+- [ ] Commit: `feat(form-runtime): harness primitive (types + registry) (Sprint 2.0a)`
+
+### 2bis.2 — `components/form-runtime/harness/`
+
+- [ ] `HarnessGallery.tsx` — lists every registered harness with action key + scenario count; links to per-action page
+- [ ] `HarnessStage.tsx` — mounts one action with one scenario; renders `<component {...scenario.props} />` inside a controlled `FormRuntimeProvider`-compatible shell so scenarios can exercise context-dependent behaviour
+- [ ] `ScenarioPicker.tsx` — toggle between scenarios for the active action
+- [ ] `HarnessValueInspector.tsx` — live-displays the current `value` state as JSON (so the observer confirms onChange wiring is intact)
+- [ ] `index.ts` — barrel
+- [ ] `__tests__/HarnessGallery.test.tsx` + `__tests__/HarnessStage.test.tsx` — minimum 3 tests each
+- [ ] 0 ESLint errors, 0 TS errors
+- [ ] Commit: `feat(form-runtime): harness UI (Gallery, Stage, ScenarioPicker) (Sprint 2.0b)`
+
+### 2bis.3 — Dev-only App Router route
+
+- [ ] `app/(dev)/layout.tsx` — guards: if `process.env.NODE_ENV === "production"` → `notFound()`. Mounts `FormRuntimeProvider` in a neutral schema so context-hungry actions don't crash
+- [ ] `app/(dev)/dev/form-runtime/page.tsx` — mounts `<HarnessGallery />`
+- [ ] `app/(dev)/dev/form-runtime/[actionKey]/page.tsx` — mounts `<HarnessStage actionKey={params.actionKey} />`
+- [ ] `app/(dev)/dev/form-runtime/layout.tsx` — sidebar with all action keys (static list from registry), main pane = children
+- [ ] Imports `features/brand-studio/actions/harness` for side-effect registration (mirrors how schemas/index.ts bootstraps actions/registry — one central module consolidates every `.harness.tsx`)
+- [ ] `features/brand-studio/actions/harness.ts` — barrel that imports every `<Name>Action.harness.tsx` file so its `registerHarness()` side-effect runs
+- [ ] Verify SSR: `npx next dev` → `/dev/form-runtime` renders without hydration errors
+- [ ] Verify prod guard: `NODE_ENV=production npx next build && npx next start` → `/dev/form-runtime` returns 404
+- [ ] 0 ESLint errors, 0 TS errors, 0 new warnings
+- [ ] Commit: `feat(form-runtime): dev-only harness route with prod guard (Sprint 2.0c)`
+
+### 2bis.4 — Baseline harness for placeholders
+
+- [ ] Before porting any real action, add `.harness.tsx` files for every current placeholder (13 files, each ~10 lines). Each harness declares a single "placeholder" scenario so the gallery shows the full catalog from day zero.
+- [ ] This guarantees the route and registry are exercised before the first real action lands.
+- [ ] Commit: `feat(brand-studio): baseline harness files for 13 placeholders (Sprint 2.0d)`
+
+### 2bis.5 — Exit criteria for Sprint 2.0
+
+- [ ] `tsc --noEmit` → 0 errors.
+- [ ] `eslint src/` → 0 errors; new warnings ≤ 0.
+- [ ] `vitest run` → baseline + ≥12 new tests green.
+- [ ] `npx next build` succeeds.
+- [ ] `/dev/form-runtime` loads in dev, returns 404 in prod.
+- [ ] Arch fitness → 10/10. If the new `app/(dev)` or `lib/form-runtime/harness` folders need allowlist entries, they're added in this sprint with an explicit comment.
+- [ ] Sprint 2.0 checkpoint: user opens `/dev/form-runtime` in dev and sees 13 placeholder cards — confirms the catalog works before Sprint 2.1 begins.
 
 ---
 
@@ -170,14 +242,26 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 
 ---
 
-## 5. Dev harness for checkpoints
+## 5. Dev harness for checkpoints — DECIDED
 
-Because App Router still serves old brand/ until Sprint 3, validating a new action visually requires a temporary harness. Decision:
+Visual validation runs against the **embedded form-runtime harness** built in Sprint 2.0. For every checkpoint CP-2A … CP-2F:
 
-- Add `features/brand-studio/actions/__tests__/harness.tsx` (not a page — a test-only fixture).
-- **OR** for the six checkpointed actions, Claude runs the dev server and navigates to a schema whose rendered field embeds the new action — confirming the UI works via screenshot / description. No new route is added.
+1. User opens `/dev/form-runtime/<action-key>` in local dev.
+2. User cycles through every declared scenario via the ScenarioPicker.
+3. User confirms visual state + interaction via the live `HarnessValueInspector`.
+4. Action owner screenshots one scenario per checkpoint into the commit message body for future review.
 
-**Pick one before CP-2A fires.** Default: harness file, because it is deterministic and cheap.
+For the six checkpointed actions, every `<Name>Action.harness.tsx` MUST include at minimum:
+- `default` — empty/pristine state
+- `populated` — with a realistic fixture value
+- `loading` — during async work (if applicable)
+- `error` — with an error message surfaced (if applicable)
+
+The batched (non-checkpointed) actions add at least `default` + `populated`.
+
+**Why not Storybook:** setup cost (2–3 hours) + brittleness on Next 16 + Tailwind CSS v4 outweigh the marginal benefit. If the project later needs an external-facing component docs site, harness files map 1:1 to Storybook stories — the port is mechanical.
+
+**Why not dev-server navigation of production routes:** App Router still serves old brand/ until Sprint 3. Navigating real routes would not exercise the new action at all. The harness is the only deterministic option before Sprint 3.
 
 ---
 
@@ -185,17 +269,21 @@ Because App Router still serves old brand/ until Sprint 3, validating a new acti
 
 All of the following must be true to close Sprint 2:
 
-- [ ] `features/brand-studio/actions/placeholders.tsx` has zero exports remaining (file deleted or reduced to an empty module with a deletion TODO logged to Sprint 5).
+- [ ] Sprint 2.0 (harness infrastructure) complete and user-approved.
+- [ ] `features/brand-studio/actions/placeholders.tsx` deleted (no exports remain).
 - [ ] `features/brand-studio/actions/registry.ts#PLACEHOLDERS` map references real components for all 13 keys.
-- [ ] Every action has at least 3 tests covering: happy path, edge case, failure.
+- [ ] Every action has at least 3 Vitest tests: happy path, edge case, failure.
+- [ ] Every action has a `.harness.tsx` file registered in the dev catalog with its scenarios.
 - [ ] `tsc --noEmit` → 0 errors.
-- [ ] `eslint src/` → 0 errors (warnings ≤ baseline from Sprint 1).
-- [ ] `vitest run` → baseline + ~40 new tests all green.
+- [ ] `eslint src/` → 0 errors; total warnings ≤ baseline from Sprint 1.
+- [ ] `vitest run` → baseline (1247) + ~50 new tests all green.
+- [ ] `npx next build` succeeds (SSR stability check).
 - [ ] Arch fitness → 10/10 green.
 - [ ] PLAN.md Status table updated.
 - [ ] All commits pushed to origin/development.
-- [ ] User checkpoints signed off: CP-2A, CP-2B, CP-2C, CP-2D, CP-2E, CP-2F.
+- [ ] User checkpoints signed off: Sprint-2.0 + CP-2A, CP-2B, CP-2C, CP-2D, CP-2E, CP-2F.
 - [ ] No entries in §7 Scope Creep log.
+- [ ] `/dev/form-runtime` shows 13 real action cards (0 placeholders) and all scenarios render without errors.
 
 ---
 
