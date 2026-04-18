@@ -120,3 +120,5 @@ Hallazgos detectados por Claude Code durante ejecución. Revisar y resolver.
 - `connections/api/marketing_webhooks.py`: la detección de carritos abandonados (checkouts >1h sin order) no está implementada.
 - [ ] Implementar background task para detectar abandoned carts (checkouts >1h sin matching order)
 [] BuyerPersonaPersister._create_new: pasar user_id real cuando el Interview Engine lo propague (actualmente usa tenant_id como fallback)
+[] sales_agent/test_conversation_context.py: ImportError preexistente — `merge_history_with_current` eliminada de `chat.py` sin actualizar el test (Sprint 2.D no lo tocó)
+[] copilot/test_dynamic_interview_config.py + test_interview_service_dynamic.py: 10 tests fallan por regresión preexistente en bloques del Interview Engine (archetypes programa/servicio/experiencia producen config incorrecta)

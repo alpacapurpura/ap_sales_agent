@@ -153,17 +153,3 @@ class BrandAuthorityItem(BaseEntity):
             if not data.get("proof_url") and data.get("url"):
                 data["proof_url"] = data["url"]
         return data
-
-
-class BrandTeam(BaseEntity):
-    """Hold legacy information about the people behind the brand.
-
-    Kept for backward compatibility or metadata.
-    """
-
-    key_leadership: list[str] = Field(default_factory=list)
-    team_structure: str | None = Field(None)
-    culture_vibe: str | None = Field(None)
-    locations: list[str] = Field(default_factory=list)
-
-    model_config = ConfigDict(extra="allow")

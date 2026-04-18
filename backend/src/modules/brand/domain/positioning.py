@@ -52,17 +52,36 @@ class BrandBenefits(BaseEntity):
 
 
 class BrandValues(BaseEntity):
-    """Brand Love Key: Core values and personality."""
+    """Brand Love Key: Functional/emotional value proposition.
+
+    The three personality fields (core_values, personality_traits, archetype)
+    that previously lived here have been moved to BrandPersonality (Sprint 2.D).
+    BrandValues now holds only benefit-oriented value statements.
+    Legacy JSON blobs that include the old keys are silently dropped via
+    extra="ignore".
+    """
+
+    model_config = ConfigDict(extra="ignore")
+
+
+class BrandPersonality(BaseEntity):
+    """Brand personality profile — moved from BrandPositioning.values in Sprint 2.D.
+
+    Houses the three fields that were previously nested under BrandValues:
+    core_values, personality_traits, archetype.  Now a first-class field on
+    BrandSettings so it can be served independently by the Personality section
+    of the Brand Studio.
+    """
 
     core_values: list[str] = Field(
         default_factory=list,
-        description="Valores fundamentales",
+        description="Valores fundamentales de la marca",
     )
     personality_traits: list[str] = Field(
         default_factory=list,
-        description="Rasgos de personalidad",
+        description="Rasgos de personalidad de la marca",
     )
-    archetype: str | None = Field(None, description="Arquetipo de marca")
+    archetype: str | None = Field(None, description="Arquetipo de marca (Jung)")
     model_config = ConfigDict(extra="ignore")
 
 

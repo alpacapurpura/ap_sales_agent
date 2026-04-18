@@ -23,7 +23,6 @@ from src.modules.brand.domain import (
     BrandSettings,
     BrandStory,
     BrandStrategy,
-    BrandTeam,
     BrandTestimonial,
     BrandVisuals,
     CommunicationAssets,
@@ -158,24 +157,17 @@ def _parse_locations(raw_locations: str | list[str] | object) -> list[str]:
 
 def _merge_people(
     current_team: list | None,
-    current_team_metadata: BrandTeam | None,
     people_contact: BrandPeopleContactExtraction,
-) -> tuple[list | None, BrandTeam | None]:
-    """Merge team + team_metadata from people_contact extraction."""
-    updated_team = current_team
+) -> list | None:
+    """Merge team members from people_contact extraction.
+
+    team_metadata (BrandTeam) was removed in Sprint 2.D — culture_vibe and
+    locations from extraction are now silently dropped since there is no
+    longer a destination field for them in BrandSettings.
+    """
     if people_contact.key_leadership:
-        updated_team = people_contact.key_leadership
-
-    updated_metadata = current_team_metadata
-    if people_contact.culture_vibe or people_contact.locations:
-        existing_meta = updated_metadata.model_dump() if updated_metadata else {}
-        if people_contact.culture_vibe:
-            existing_meta["culture_vibe"] = people_contact.culture_vibe
-        if people_contact.locations:
-            existing_meta["locations"] = _parse_locations(people_contact.locations)
-        updated_metadata = BrandTeam(**existing_meta)
-
-    return updated_team, updated_metadata
+        return people_contact.key_leadership
+    return current_team
 
 
 def _merge_contact(
@@ -777,9 +769,8 @@ class ExtractionOrchestrator:
         updated_identity = _merge_simple_model(current_settings.identity, new_identity)
         updated_story = _merge_story(current_settings.story, new_story)
         updated_strategy = _merge_strategy(current_settings.strategy, new_strategy)
-        updated_team, updated_team_metadata = _merge_people(
+        updated_team = _merge_people(
             current_settings.team,
-            current_settings.team_metadata,
             new_people_contact,
         )
         updated_contact = _merge_contact(
@@ -805,7 +796,6 @@ class ExtractionOrchestrator:
                 "story": BrandStory(**updated_story),
                 "strategy": BrandStrategy(**updated_strategy),
                 "team": updated_team,
-                "team_metadata": updated_team_metadata,
                 "contact": updated_contact,
                 "testimonials": updated_testimonials,
                 "authority_vault": updated_authority,
