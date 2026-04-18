@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Variante C · Row + Detail Pane</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .row { cursor: pointer; transition: background 0.1s; border-left: 3px solid transparent; }
+  .row:hover { background: #fafafa; }
+  .row.active { background: #faf5ff; border-left-color: #a855f7; }
+  .det-input {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font: inherit;
+    transition: all 0.15s;
+  }
+  .det-input:focus { border-color: #a855f7; outline: none; box-shadow: 0 0 0 3px rgba(168,85,247,0.15); }
+</style>
+</head>
+<body>
+<script src="_shell.js"></script>
+<script>
+const center = `
+<div class="h-full flex">
+
+  <!-- Left: scrollable list of sections + fields -->
+  <div class="w-80 border-r bg-white overflow-y-auto shrink-0">
+    <div class="p-4 border-b">
+      <h2 class="font-bold text-slate-900">Identidad</h2>
+      <p class="text-xs text-slate-500">5/8 campos completos</p>
+      <div class="h-1.5 rounded-full bg-slate-200 overflow-hidden mt-2">
+        <div class="h-full bg-purple-500" style="width: 62%"></div>
+      </div>
+    </div>
+    <div>
+      <div data-field-id="name" data-field-label="Nombre" class="row px-4 py-3 border-b border-slate-100">
+        <div class="text-xs font-medium text-slate-500 uppercase tracking-wide">Nombre</div>
+        <div class="text-sm text-slate-800 truncate">Visionarias</div>
+      </div>
+      <div data-field-id="tagline" data-field-label="Tagline" class="row px-4 py-3 border-b border-slate-100">
+        <div class="text-xs font-medium text-slate-500 uppercase tracking-wide">Tagline</div>
+        <div class="text-sm text-slate-800 truncate">Creadoras que viven de lo que aman</div>
+      </div>
+      <div data-field-id="mission" data-field-label="Misión" class="row active px-4 py-3 border-b border-slate-100">
+        <div class="text-xs font-medium text-purple-600 uppercase tracking-wide">Misión · editando</div>
+        <div class="text-sm text-slate-800 truncate">Ayudar a creadoras digitales…</div>
+      </div>
+      <div data-field-id="voice_tone" data-field-label="Tono de voz" class="row px-4 py-3 border-b border-slate-100">
+        <div class="text-xs font-medium text-slate-500 uppercase tracking-wide">Tono de voz</div>
+        <div class="text-sm text-slate-800 truncate">Conversacional, aspiracional…</div>
+      </div>
+      <div data-field-id="values" data-field-label="Valores" class="row px-4 py-3 border-b border-slate-100">
+        <div class="text-xs font-medium text-slate-500 uppercase tracking-wide">Valores</div>
+        <div class="text-sm text-slate-400 truncate italic">Vacío — agregar</div>
+      </div>
+    </div>
+
+    <div class="p-4 border-b border-t bg-slate-50">
+      <h2 class="font-bold text-slate-900 flex items-center justify-between">
+        Equipo
+        <button class="text-xs text-purple-600 font-medium">+ Miembro</button>
+      </h2>
+      <p class="text-xs text-slate-500">3 miembros</p>
+    </div>
+    <div>
+      <div data-field-id="team-maria" data-field-label="María · Fundadora" data-field-domain="Equipo" class="row px-4 py-3 border-b border-slate-100 flex items-center gap-3">
+        <div class="h-7 w-7 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 font-bold text-xs">M</div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-slate-800">María Pérez</div>
+          <div class="text-xs text-slate-500">Fundadora</div>
+        </div>
+      </div>
+      <div data-field-id="team-carla" data-field-label="Carla · Head of Content" data-field-domain="Equipo" class="row px-4 py-3 border-b border-slate-100 flex items-center gap-3">
+        <div class="h-7 w-7 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 font-bold text-xs">C</div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-slate-800">Carla Ríos</div>
+          <div class="text-xs text-slate-500">Head of Content</div>
+        </div>
+      </div>
+      <div data-field-id="team-diego" data-field-label="Diego · Performance" data-field-domain="Equipo" class="row px-4 py-3 border-b border-slate-100 flex items-center gap-3">
+        <div class="h-7 w-7 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 font-bold text-xs">D</div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-slate-800">Diego Morán</div>
+          <div class="text-xs text-slate-500">Performance & Ads</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: detail pane -->
+  <div class="flex-1 overflow-y-auto bg-slate-50">
+    <div class="max-w-2xl mx-auto p-8">
+      <div class="bg-white border border-slate-200 rounded-xl p-6">
+        <div class="flex items-center justify-between mb-1">
+          <div class="text-xs font-medium text-purple-600 uppercase tracking-wide">Brand › Identidad</div>
+          <div class="text-xs text-amber-600 font-medium">● Cambios sin guardar</div>
+        </div>
+        <h3 class="text-2xl font-bold text-slate-900 mb-1">Misión</h3>
+        <p class="text-sm text-slate-500 mb-6">El "por qué" detrás de tu marca. El sales agent usará esto como ancla narrativa.</p>
+
+        <label class="text-xs font-medium text-slate-500 uppercase block mb-2">Texto</label>
+        <textarea rows="6" class="det-input text-base leading-relaxed">Ayudar a creadoras digitales a transformar su audiencia en clientes recurrentes sin vender su alma al algoritmo.</textarea>
+
+        <div class="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg text-xs text-purple-900">
+          💡 <b>Copilot activo en este campo.</b> Decile al chat: <i>"hacelo más corto"</i> o <i>"dame 3 variantes"</i> y modifica acá directo.
+        </div>
+
+        <div class="flex justify-between items-center mt-6">
+          <button class="text-xs text-slate-500 hover:text-slate-700">← Anterior (Tagline)</button>
+          <div class="flex gap-2">
+            <button class="text-xs text-slate-500 px-3 py-2">Descartar</button>
+            <button class="text-xs bg-purple-600 text-white rounded px-4 py-2 font-medium">Guardar</button>
+          </div>
+          <button class="text-xs text-slate-500 hover:text-slate-700">Siguiente (Tono) →</button>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-400 text-center mt-6">
+        Variante C · row+detail. Escala a docenas de campos sin scroll infinito.
+      </div>
+    </div>
+  </div>
+</div>
+`;
+renderShell({ variantName: 'C · Row + Detail Pane', centerHtml: center });
+</script>
+</body>
+</html>

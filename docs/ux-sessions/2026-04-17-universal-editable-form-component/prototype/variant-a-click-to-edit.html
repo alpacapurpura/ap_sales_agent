@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Variante A · Click-to-edit</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  [data-field-id] { cursor: pointer; transition: background 0.15s, box-shadow 0.15s; border-radius: 6px; }
+  [data-field-id]:hover { background: #fafafa; }
+  [data-field-id] .edit-hint { opacity: 0; transition: opacity 0.15s; }
+  [data-field-id]:hover .edit-hint { opacity: 1; }
+  .editable-active { background: #faf5ff !important; outline: 2px solid #a855f7; }
+</style>
+</head>
+<body>
+<script src="_shell.js"></script>
+<script>
+const center = `
+<div class="max-w-3xl mx-auto p-8 space-y-8">
+
+  <!-- IDENTITY SECTION -->
+  <section class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="px-6 py-4 border-b bg-slate-50 flex items-center justify-between">
+      <div>
+        <h2 class="font-bold text-slate-900">Identidad</h2>
+        <p class="text-xs text-slate-500">Los cimientos de tu marca. Click en cualquier campo para editar.</p>
+      </div>
+      <div class="text-xs text-green-600 font-medium">● Sin cambios pendientes</div>
+    </div>
+
+    <div class="divide-y divide-slate-100">
+      <div data-field-id="name" data-field-label="Nombre" class="group relative p-5 hover:bg-slate-50">
+        <div class="flex items-baseline justify-between mb-1">
+          <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Nombre</label>
+          <span class="edit-hint text-xs text-purple-600">✎ click para editar</span>
+        </div>
+        <div class="text-lg font-semibold text-slate-900">Visionarias</div>
+      </div>
+
+      <div data-field-id="tagline" data-field-label="Tagline" class="group relative p-5 hover:bg-slate-50">
+        <div class="flex items-baseline justify-between mb-1">
+          <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Tagline</label>
+          <span class="edit-hint text-xs text-purple-600">✎ click para editar</span>
+        </div>
+        <div class="text-base text-slate-700">Creadoras que viven de lo que aman</div>
+      </div>
+
+      <div data-field-id="mission" data-field-label="Misión" class="group relative p-5 hover:bg-slate-50">
+        <div class="flex items-baseline justify-between mb-1">
+          <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Misión</label>
+          <span class="edit-hint text-xs text-purple-600">✎ click para editar</span>
+        </div>
+        <div class="text-base text-slate-700 leading-relaxed">
+          Ayudar a creadoras digitales a transformar su audiencia en clientes recurrentes sin vender su alma al algoritmo.
+        </div>
+      </div>
+
+      <div data-field-id="voice_tone" data-field-label="Tono de voz" class="group relative p-5 hover:bg-slate-50">
+        <div class="flex items-baseline justify-between mb-1">
+          <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Tono de voz</label>
+          <span class="edit-hint text-xs text-purple-600">✎ click para editar</span>
+        </div>
+        <div class="text-base text-slate-700">Conversacional, aspiracional, directo con toques de humor.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEAM SECTION (items compuestos: card expandible) -->
+  <section class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="px-6 py-4 border-b bg-slate-50 flex items-center justify-between">
+      <div>
+        <h2 class="font-bold text-slate-900">Equipo</h2>
+        <p class="text-xs text-slate-500">Click en una tarjeta para expandir y editar in-place.</p>
+      </div>
+      <button class="text-xs bg-purple-600 text-white rounded px-3 py-1.5 font-medium">+ Miembro</button>
+    </div>
+
+    <div class="p-5 space-y-3">
+      <!-- Colapsado -->
+      <div data-field-id="team-maria" data-field-label="María · Fundadora" data-field-domain="Equipo" class="border border-slate-200 rounded-lg p-4 flex items-center gap-4 hover:border-purple-300">
+        <div class="h-10 w-10 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 font-bold">M</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-slate-900">María Pérez</div>
+          <div class="text-xs text-slate-500">Fundadora · Voz principal</div>
+        </div>
+        <span class="edit-hint text-xs text-purple-600">✎ expandir</span>
+      </div>
+
+      <!-- Expandido inline (simulado abierto) -->
+      <div data-field-id="team-carla" data-field-label="Carla · Head of Content" data-field-domain="Equipo" class="border-2 border-purple-400 bg-purple-50/30 rounded-lg p-4">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="h-10 w-10 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 font-bold">C</div>
+          <div class="flex-1">
+            <div class="font-semibold text-slate-900">Carla Ríos</div>
+            <div class="text-xs text-slate-500">Head of Content</div>
+          </div>
+          <button class="text-xs text-slate-500">Cerrar ▲</button>
+        </div>
+        <div class="grid grid-cols-2 gap-3 pl-14">
+          <div>
+            <label class="text-xs font-medium text-slate-500 uppercase">Rol</label>
+            <input value="Head of Content" class="w-full mt-1 rounded border border-slate-300 px-2 py-1.5 text-sm" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-slate-500 uppercase">Bio corta</label>
+            <input value="Escribe desde los 17" class="w-full mt-1 rounded border border-slate-300 px-2 py-1.5 text-sm" />
+          </div>
+          <div class="col-span-2">
+            <label class="text-xs font-medium text-slate-500 uppercase">LinkedIn</label>
+            <input value="linkedin.com/in/carlarios" class="w-full mt-1 rounded border border-slate-300 px-2 py-1.5 text-sm" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-3">
+          <button class="text-xs text-slate-500 px-3 py-1.5">Cancelar</button>
+          <button class="text-xs bg-purple-600 text-white rounded px-3 py-1.5 font-medium">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="text-xs text-slate-400 text-center py-4">
+    Variante A · click-to-edit. Visual limpio, 1 click extra para editar un campo plano.
+  </div>
+</div>
+`;
+renderShell({ variantName: 'A · Click-to-edit', centerHtml: center });
+</script>
+</body>
+</html>
