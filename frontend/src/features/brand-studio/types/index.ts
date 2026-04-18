@@ -26,19 +26,6 @@ export interface BrandIdentity {
   legal_representative?: string;
   terms_url?: string;
   privacy_url?: string;
-
-  // NOTE: Visual fields (colors, fonts, styles) have been moved to BrandVisuals
-  // to align with Backend Domain Models. Use BrandVisuals for all aesthetic properties.
-  // These are kept here for legacy/backward compatibility with wizard extraction flow.
-  primary_color?: string;
-  accent_color?: string;
-  font_heading?: string;
-  font_body?: string;
-  background_color?: string;
-  text_primary_color?: string;
-  text_on_primary?: string;
-  design_style?: string;
-  usage_guidelines?: string[];
 }
 
 export interface BrandMethodologyPillar {
@@ -71,15 +58,6 @@ export interface BrandStory {
   mission?: string;
   vision?: string;
   milestones?: BrandStoryMilestone[];
-}
-
-export interface BrandTeam {
-  // Legacy structure kept for backward compatibility if needed,
-  // but preferred usage is via KeyFigure[] in BrandSettings.team
-  key_leadership: string[];
-  team_structure: string;
-  culture_vibe: string;
-  locations: string[];
 }
 
 export interface KeyFigure {
@@ -228,9 +206,16 @@ export interface BrandBenefits {
   emotional_benefits: string[];
 }
 
-export interface BrandValues {
-  core_values: string[];
-  personality_traits: string[];
+/**
+ * Personality data shared by Sales Agent + Brand Studio. Fields moved out
+ * of the old ``BrandPositioning.values`` block in Sprint 2.D so the
+ * Personality section owns them end-to-end (see backend ``BrandPersonality``
+ * VO).
+ */
+export interface BrandPersonality {
+  core_values?: string[];
+  personality_traits?: string[];
+  /** Jungian archetype — one of the 12-option enum used in the schema. */
   archetype?: string;
 }
 
@@ -246,7 +231,6 @@ export interface BrandPositioning {
   competitive_environment?: CompetitiveEnvironment;
   insight?: ConsumerInsight;
   benefits?: BrandBenefits;
-  values?: BrandValues;
   reasons_to_believe: ReasonToBelieve[];
   discriminator?: string;
   brand_essence?: string;
@@ -346,8 +330,9 @@ export interface BrandSettings {
   narrative?: BrandNarrative;
   communication_assets?: CommunicationAssets;
 
-  // Legacy field support (optional)
-  team_metadata?: BrandTeam;
+  // Personality (Sales Agent + Brand Studio) — absorbs the old
+  // positioning.values block from Sprint 2.D.
+  brand_personality?: BrandPersonality;
 }
 
 // Helper types for API requests if needed

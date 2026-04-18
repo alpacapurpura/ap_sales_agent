@@ -61,28 +61,6 @@ export const positioningSchema: SectionSchema = {
       rows: 2,
     },
 
-    // Values + archetype
-    {
-      id: "archetype",
-      label: "Arquetipo",
-      type: "enum",
-      path: "values.archetype",
-      options: [
-        { value: "sage", label: "Sabio" },
-        { value: "hero", label: "Héroe" },
-        { value: "rebel", label: "Rebelde" },
-        { value: "explorer", label: "Explorador" },
-        { value: "creator", label: "Creador" },
-        { value: "caregiver", label: "Cuidador" },
-        { value: "ruler", label: "Gobernante" },
-        { value: "magician", label: "Mago" },
-        { value: "innocent", label: "Inocente" },
-        { value: "jester", label: "Bufón" },
-        { value: "lover", label: "Amante" },
-        { value: "everyman", label: "Persona común" },
-      ],
-    },
-
     // Reasons to believe (array)
     {
       id: "reasons_to_believe",
