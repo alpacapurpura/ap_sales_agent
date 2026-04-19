@@ -32,6 +32,13 @@ class ProductModel(Base):
     is_lead_magnet = Column(Boolean, default=False, server_default="false")
     has_editions = Column(Boolean, nullable=False, default=True, server_default="true")
 
+    # OfferTypePreset (Sprint 12 — 7th SSoT axis). Optional link to a preset
+    # in ``offer_type_preset_catalog.py``. Nullable for legacy rows and for
+    # offers created before the wizard rehauled the picker flow. Indexed on
+    # (tenant_id, preset_id) to support analytics segmentation + agent
+    # grounding queries.
+    preset_id = Column(String, nullable=True, index=True)
+
     # Polymorphic Content Fields
     pricing = Column(JSONB, default=list)  # List of PricingStructure
     # Nullable: resolved to TenantLocale.currency by the application layer.
