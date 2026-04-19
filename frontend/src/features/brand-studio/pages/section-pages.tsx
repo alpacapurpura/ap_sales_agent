@@ -1,5 +1,6 @@
 "use client";
 
+import { BusinessTypesSection } from "@/features/brand-studio/components/business-types/BusinessTypesSection";
 import { useBrandSettings } from "@/features/brand-studio/hooks/use-brand-settings";
 import {
   authoritySchema,
@@ -44,12 +45,29 @@ import type {
  *   - logos        → nested under visuals.logos; renders under visuals page.
  *   - avatars      → sub-entity, covered by PersonaDetailPage (Sprint 2.8).
  */
-export const IdentityPage = createPage<BrandIdentity>({
+const IdentityCorePage = createPage<BrandIdentity>({
   slug: "identity",
   schema: identitySchema,
   select: (s) => s.identity,
   save: (h) => h.updateIdentity,
 });
+
+/**
+ * Brand Studio → Identity page. Composes the factory-generated form with
+ * a read-only ``BusinessTypesSection`` at the foot so the user can always
+ * see which business types drive the Offer Studio preset filter — without
+ * cluttering the form schema itself (business_types remain managed
+ * through the onboarding dialog, which is the single edit surface).
+ */
+export function IdentityPage() {
+  return (
+    <div className="space-y-6">
+      <IdentityCorePage />
+      <BusinessTypesSection />
+    </div>
+  );
+}
+IdentityPage.displayName = "BrandIdentityPage";
 
 export const VisualsPage = createPage<BrandVisuals>({
   slug: "visuals",

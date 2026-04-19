@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { BusinessTypeOnboardingDialog } from "@/features/brand-studio/components/business-types/BusinessTypeOnboardingDialog";
+import { BusinessTypesChipBar } from "@/features/brand-studio/components/business-types/BusinessTypesChipBar";
 import { useBrandSettings } from "@/features/brand-studio/hooks/use-brand-settings";
 import { LadderProgressBar } from "@/features/offer-studio/components/dashboard/LadderProgressBar";
 import { OfferStudioDashboard } from "@/features/offer-studio/components/dashboard/OfferStudioDashboard";
@@ -86,7 +87,14 @@ export function OfferStudioView() {
         </div>
       </div>
 
-      {/* Row 2: Ladder Progress — full width, contextual */}
+      {/* Row 2: Business-types chip bar — contextualises which preset
+          family the wizard will surface for this tenant. Read-only here;
+          editing lives in Brand Studio → Identity. Critical for
+          new-tenant UX: confirms the system is adapting to the expertise
+          declared during onboarding. */}
+      <BusinessTypesChipBar className="flex-none" />
+
+      {/* Row 3: Ladder Progress — full width, contextual */}
       {ladderData && !deferredQuery && (
         <LadderProgressBar
           filledGroups={ladderData.filledGroups}

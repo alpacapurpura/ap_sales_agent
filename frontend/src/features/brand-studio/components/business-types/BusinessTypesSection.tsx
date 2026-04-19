@@ -12,13 +12,25 @@ import { resolveIconByName } from "@/features/offer-studio/lib/icon-name-resolve
 
 import { BusinessTypeOnboardingDialog } from "./BusinessTypeOnboardingDialog";
 
+interface BusinessTypesSectionProps {
+  /** When true the "Editar" action is hidden. Use in surfaces that should
+   *  act as reference-only (identity page footer, landing previews).
+   *  Editing still happens in the dedicated onboarding dialog surface. */
+  readOnly?: boolean;
+}
+
 /**
- * Settings-page section that shows the tenant's declared business types
- * with an edit button. Meant to plug into the Brand Studio identity
- * surface so the user can revisit the decision captured during
- * onboarding.
+ * Settings-page section that shows the tenant's declared business types.
+ *
+ * Default mode offers an edit affordance that reopens the onboarding
+ * dialog — the same UI the user saw during first login, so the mental
+ * model stays consistent.
+ *
+ * When ``readOnly`` is true, the edit button is hidden (reference
+ * placement in surfaces the user is just consulting, not configuring).
+ * Editing is always reachable from the Brand Studio identity page.
  */
-export function BusinessTypesSection() {
+export function BusinessTypesSection({ readOnly = false }: BusinessTypesSectionProps = {}) {
   const [editing, setEditing] = useState(false);
   const { settings } = useBrandSettings();
   const { data: catalog } = useExpertBusinessTypesCatalog();
@@ -35,13 +47,17 @@ export function BusinessTypesSection() {
           <div className="space-y-1">
             <CardTitle>Tipo de negocio</CardTitle>
             <CardDescription>
-              Drive las ofertas que te mostramos en el wizard. Actualiza si tu mix cambia.
+              {readOnly
+                ? "Esto determina qué tipos de oferta te sugerimos en el wizard."
+                : "Define qué ofertas te sugerimos. Actualiza si tu mix cambia."}
             </CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
-            <Pencil className="mr-2 h-3 w-3" />
-            Editar
-          </Button>
+          {!readOnly && (
+            <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+              <Pencil className="mr-2 h-3 w-3" />
+              Editar
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           {declared.length === 0 ? (
