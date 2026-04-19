@@ -8,7 +8,7 @@ actually sells. Mirrors the versioning/caching patterns of
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, ConfigDict
@@ -21,8 +21,14 @@ from src.modules.offer.domain.offer_type_preset_catalog import (
     get_presets_for_business_types,
 )
 
-if TYPE_CHECKING:
-    from src.shared.domain.expert_business_type import ExpertBusinessType
+# ExpertBusinessType MUST be imported at runtime — FastAPI resolves the
+# ``Annotated[list[ExpertBusinessType] | None, Query(...)]`` forward
+# reference when it builds the dependency graph. Hiding this behind
+# ``TYPE_CHECKING`` triggers ``PydanticUserError: TypeAdapter ... is not
+# fully defined`` on the first request. The ``# noqa: TC001`` silences
+# the legitimate ruff hint because the import genuinely is not
+# typing-only for this consumer.
+from src.shared.domain.expert_business_type import ExpertBusinessType  # noqa: TC001
 
 router = APIRouter()
 
