@@ -62,6 +62,7 @@ export interface BackendOffer {
   internal_sku?: string;
   archetype: string;
   format_hint?: string;
+  preset_id?: string | null;
   is_lead_magnet?: boolean;
   shows_as_lead_magnet?: boolean;
   offer_value_level?: string;
@@ -183,6 +184,7 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     delivery_model: normalizeEnum(data.delivery_model, OfferDeliveryModel, OfferDeliveryModel.DIY),
     status: normalizeEnum(data.status, OfferStatus, OfferStatus.DRAFT),
     format_hint: data.format_hint,
+    preset_id: data.preset_id ?? null,
     is_lead_magnet: data.is_lead_magnet || false,
     shows_as_lead_magnet: data.shows_as_lead_magnet || false,
 

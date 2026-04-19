@@ -91,6 +91,12 @@ class Offer(BaseEntity):
     public_name: str
     archetype: OfferArchetype
     format_hint: str | None = None
+    # 7th SSoT axis link (Sprint 12 + 14). Optional string key into
+    # ``OFFER_TYPE_PRESET_CATALOG``. Nullable because legacy offers and
+    # offers created before the wizard rehaul (Sprint 13) will lack it.
+    # Drives sales-agent grounding, analytics segmentation and landing
+    # generator templates without touching the archetype tag.
+    preset_id: str | None = None
     is_lead_magnet: bool = False
     # Wizard-driven: does this offer run in editions/cohorts/batches?
     # Default resolves in validate_consistency based on archetype

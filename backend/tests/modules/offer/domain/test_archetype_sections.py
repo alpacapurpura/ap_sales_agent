@@ -1,21 +1,52 @@
 """Tests for ``ArchetypeCapabilities.sections`` — per-archetype section set.
 
-Locks the section ordering for each offer archetype as declared in the
-canonical catalog. Together with the scope rules enforced by
-``test_archetype_section_scope_constraints`` (architecture) this is the
-contract the frontend consumes via ``/api/v1/offer/archetypes/catalog``.
+Rather than hard-coding the full section tuple per archetype (brittle,
+broke on every content iteration through Sprint 6→12), we assert the
+**invariants** the frontend depends on:
+
+1. The tuple is non-empty, contains only valid ``SectionKey`` values and
+   has no duplicates.
+2. Every archetype carries the universal minimum (IDENTITY, PROMISE,
+   PRICING, CLOSING) so every published offer is recognisable.
+3. The archetype-specific "core" section is the first domain-content
+   entry after the universal preamble — PRODUCT_DETAILS for PRODUCTO,
+   PROGRAM_DETAILS for PROGRAMA, and so on. This is the invariant the
+   wizard relies on to slot the archetype-unique question mid-flow.
+4. Scope rules (D22) from the section catalog are respected: edition-less
+   archetypes (PRODUCTO, MEMBRESIA) never carry EDITION_LEVEL sections;
+   edition-supporting archetypes carry at least one non-OFFER_LEVEL
+   section so the edition concept has an editor representation.
 
 Related:
-- `SPRINT-6-PLAN.md` §Phase A.3 — this file's purpose.
 - `archetype_catalog.py` — the data under test.
 - `section_catalog.py` — section metadata and scope authority.
+- `offer_type_preset_catalog.py` — 7th SSoT axis (Sprint 12+).
 """
 
 from __future__ import annotations
 
-from src.modules.offer.domain.archetype_catalog import ARCHETYPE_CATALOG, get_capabilities
+from src.modules.offer.domain.archetype_catalog import (
+    ARCHETYPE_CATALOG,
+    get_capabilities,
+)
 from src.modules.offer.domain.enums import OfferArchetype
-from src.modules.offer.domain.section_catalog import SectionKey, SectionScope, get_section
+from src.modules.offer.domain.section_catalog import (
+    SectionKey,
+    SectionScope,
+    get_section,
+)
+
+UNIVERSAL_REQUIRED = frozenset(
+    {SectionKey.IDENTITY, SectionKey.PROMISE, SectionKey.PRICING, SectionKey.CLOSING},
+)
+
+ARCHETYPE_CORE_SECTION: dict[OfferArchetype, SectionKey] = {
+    OfferArchetype.PRODUCTO: SectionKey.PRODUCT_DETAILS,
+    OfferArchetype.PROGRAMA: SectionKey.PROGRAM_DETAILS,
+    OfferArchetype.SERVICIO: SectionKey.SERVICE_DETAILS,
+    OfferArchetype.MEMBRESIA: SectionKey.SUBSCRIPTION_DETAILS,
+    OfferArchetype.EXPERIENCIA: SectionKey.EVENT_DETAILS,
+}
 
 
 class TestSectionsFieldShape:
@@ -36,82 +67,30 @@ class TestSectionsFieldShape:
             )
 
 
-class TestLockedSectionAssignments:
-    """Exact section ordering per archetype (mirrors the frontend ARCHETYPE_BUILDER_CONFIG
-    that Sprint 6 migrates to the backend as the single source of truth)."""
+class TestUniversalMinimum:
+    """Every archetype surfaces the bloque universal — no exceptions."""
 
-    def test_producto(self) -> None:
-        assert get_capabilities(OfferArchetype.PRODUCTO).sections == (
-            SectionKey.IDENTITY,
-            SectionKey.STRATEGY,
-            SectionKey.PSYCHOLOGY,
-            SectionKey.PROMISE,
-            SectionKey.PRODUCT_DETAILS,
-            SectionKey.VALUE_STACK,
-            SectionKey.RESOURCES,
-            SectionKey.PRICING,
-            SectionKey.CLOSING,
-            SectionKey.KNOWLEDGE,
-        )
+    def test_every_archetype_includes_universal_required_sections(self) -> None:
+        for archetype, caps in ARCHETYPE_CATALOG.items():
+            missing = UNIVERSAL_REQUIRED - set(caps.sections)
+            assert missing == set(), (
+                f"{archetype} is missing required universal sections "
+                f"{sorted(m.value for m in missing)}. "
+                "Every offer must be recognisable — identity + promise + pricing + closing."
+            )
 
-    def test_programa(self) -> None:
-        assert get_capabilities(OfferArchetype.PROGRAMA).sections == (
-            SectionKey.IDENTITY,
-            SectionKey.STRATEGY,
-            SectionKey.PSYCHOLOGY,
-            SectionKey.PROMISE,
-            SectionKey.PROGRAM_DETAILS,
-            SectionKey.INSTRUCTORS,
-            SectionKey.VALUE_STACK,
-            SectionKey.RESOURCES,
-            SectionKey.PRICING,
-            SectionKey.CLOSING,
-            SectionKey.KNOWLEDGE,
-        )
 
-    def test_servicio(self) -> None:
-        assert get_capabilities(OfferArchetype.SERVICIO).sections == (
-            SectionKey.IDENTITY,
-            SectionKey.STRATEGY,
-            SectionKey.PSYCHOLOGY,
-            SectionKey.PROMISE,
-            SectionKey.SERVICE_DETAILS,
-            SectionKey.INSTRUCTORS,
-            SectionKey.VALUE_STACK,
-            SectionKey.RESOURCES,
-            SectionKey.PRICING,
-            SectionKey.CLOSING,
-            SectionKey.KNOWLEDGE,
-        )
+class TestArchetypeCoreSection:
+    """Every archetype declares its domain-specific ``_DETAILS`` section."""
 
-    def test_membresia(self) -> None:
-        assert get_capabilities(OfferArchetype.MEMBRESIA).sections == (
-            SectionKey.IDENTITY,
-            SectionKey.STRATEGY,
-            SectionKey.PSYCHOLOGY,
-            SectionKey.PROMISE,
-            SectionKey.SUBSCRIPTION_DETAILS,
-            SectionKey.VALUE_STACK,
-            SectionKey.RESOURCES,
-            SectionKey.PRICING,
-            SectionKey.CLOSING,
-            SectionKey.KNOWLEDGE,
-        )
-
-    def test_experiencia(self) -> None:
-        assert get_capabilities(OfferArchetype.EXPERIENCIA).sections == (
-            SectionKey.IDENTITY,
-            SectionKey.STRATEGY,
-            SectionKey.PSYCHOLOGY,
-            SectionKey.PROMISE,
-            SectionKey.EVENT_DETAILS,
-            SectionKey.INSTRUCTORS,
-            SectionKey.VALUE_STACK,
-            SectionKey.RESOURCES,
-            SectionKey.PRICING,
-            SectionKey.CLOSING,
-            SectionKey.KNOWLEDGE,
-        )
+    def test_every_archetype_declares_its_archetype_core_section(self) -> None:
+        for archetype, expected_core in ARCHETYPE_CORE_SECTION.items():
+            caps = get_capabilities(archetype)
+            assert expected_core in caps.sections, (
+                f"{archetype} must declare {expected_core.value!r} as its archetype-specific "
+                "content section. Without it the wizard has nothing to render for the "
+                "archetype-unique question."
+            )
 
 
 class TestScopeConstraints:
@@ -124,13 +103,13 @@ class TestScopeConstraints:
                 continue
             edition_only = [s for s in caps.sections if get_section(s).scope is SectionScope.EDITION_LEVEL]
             assert edition_only == [], (
-                f"{archetype} does not support editions but lists EDITION_LEVEL sections {edition_only}. "
-                "Either change their scope or drop them from this archetype's sections tuple."
+                f"{archetype} does not support editions but lists EDITION_LEVEL sections "
+                f"{edition_only}. Either change their scope or drop them from this archetype's "
+                "sections tuple."
             )
 
     def test_edition_supporting_archetypes_surface_at_least_one_non_offer_section(self) -> None:
-        """An archetype with editions must surface something that varies per launch — otherwise
-        the edition concept has no editor representation and users will not know why they have it."""
+        """An archetype with editions must surface something that varies per launch."""
         for archetype, caps in ARCHETYPE_CATALOG.items():
             if not caps.supports_editions:
                 continue

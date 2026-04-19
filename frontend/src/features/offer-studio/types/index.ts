@@ -244,6 +244,9 @@ export interface Offer {
   // Archetype system
   archetype: OfferArchetype;
   format_hint?: string;
+  /** 7th SSoT axis link (Sprint 12+). Null for legacy offers and for
+   *  offers created before the wizard rehaul (Sprint 13). */
+  preset_id?: string | null;
   is_lead_magnet?: boolean;
   shows_as_lead_magnet?: boolean;
   // Wizard-driven: will this offer run in editions/cohorts/batches?

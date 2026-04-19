@@ -21,6 +21,11 @@ class ProductResponse(BaseModel):
     is_lead_magnet: bool | None = False
     shows_as_lead_magnet: bool | None = False
 
+    # OfferTypePreset (Sprint 12 — 7th SSoT axis). Null for legacy offers
+    # pre-backfill or offers created before wizard rehaul (Sprint 13).
+    # Frontend renders it as a badge + the agent reads it for grounding.
+    preset_id: str | None = None
+
     # Polymorphic fields
     delivery_model: str | None = None
     offer_value_level: str | None = None
@@ -85,6 +90,11 @@ class ProductCreate(BaseModel):
     # None = let the domain apply the archetype-aware default.
     has_editions: bool | None = None
     status: OfferStatus = OfferStatus.DRAFT
+    # Wizard Sprint-13+ sends preset_id as primary selector; archetype is
+    # then derived from ``OfferTypePreset.archetype``. Accepted as optional
+    # to keep backwards compat with older clients that still pick archetype
+    # directly.
+    preset_id: str | None = None
 
     # Optional fields the wizard can set
     value_level: OfferValueLevel | None = None
@@ -131,6 +141,8 @@ class ProductUpdate(BaseModel):
     offer_value_level: str | None = None
     delivery_model: str | None = None
     status: str | None = None
+    # Allow re-assigning the preset (e.g. user corrects the wizard suggestion).
+    preset_id: str | None = None
 
     headline_promise: str | None = None
     primary_outcome: str | None = None

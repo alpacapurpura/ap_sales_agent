@@ -288,6 +288,9 @@ export const OfferSchema = z.object({
   public_name: z.string().min(1, "Name is required"),
   archetype: z.nativeEnum(OfferArchetype),
   format_hint: z.string().optional().nullable(),
+  /** OfferTypePreset link — 7th SSoT axis. See
+   *  ``offer_type_preset_catalog.py`` / ``offer-type-preset-catalog-api.ts``. */
+  preset_id: z.string().optional().nullable(),
   is_lead_magnet: z.boolean().default(false),
   // Wizard-driven: will this offer run in editions/cohorts/batches?
   // Backend applies archetype-aware default when omitted.

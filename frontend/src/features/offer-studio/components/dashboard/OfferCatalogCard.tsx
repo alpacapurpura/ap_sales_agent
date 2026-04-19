@@ -37,6 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { HighlightedText } from "@/components/ui/highlighted-text";
+import { PresetBadge } from "@/features/offer-studio/components/dashboard/PresetBadge";
 import { useArchetypeDisplay } from "@/features/offer-studio/hooks/use-archetype-display";
 import {
   OfferArchetype,
@@ -233,6 +234,7 @@ export const OfferCatalogCard = memo(function OfferCatalogCard({
             >
               <HighlightedText text={typeLabel} query={searchQuery} />
             </Badge>
+            <PresetBadge presetId={offer.preset_id} compact />
           </div>
           <h3 className="font-semibold text-sm line-clamp-2 leading-tight" title={offer.name}>
             <HighlightedText text={offer.name} query={searchQuery} />
