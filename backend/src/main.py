@@ -110,6 +110,7 @@ from src.modules.offer.api import lifecycle as offer_lifecycle
 from src.modules.offer.api import offer_ai
 from src.modules.offer.api import offer_extraction as offer_tools
 from src.modules.offer.api import offer_ladder_hints as offer_ladder_hints_api
+from src.modules.offer.api import offer_type_presets as offer_type_presets_api
 from src.modules.offer.api import product_mappings as offer_product_mappings
 
 # 3. Offer
@@ -475,6 +476,11 @@ app.include_router(
     offer_ladder_hints_api.router,
     prefix="/api/v1/offer/ladder-hints",
     tags=["Offer - Ladder Hints"],
+)
+app.include_router(
+    offer_type_presets_api.router,
+    prefix="/api/v1/offer/type-presets",
+    tags=["Offer - Type Presets"],
 )
 app.include_router(
     shared_currencies.router,
