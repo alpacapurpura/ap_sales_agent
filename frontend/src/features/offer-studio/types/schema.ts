@@ -286,11 +286,17 @@ export const OfferSchema = z.object({
   id: z.string().uuid().optional(),
   internal_sku: z.string().optional().nullable(),
   public_name: z.string().min(1, "Name is required"),
-  archetype: z.nativeEnum(OfferArchetype),
+  // Archetype becomes optional at the form layer since Sprint 13 — the
+  // backend derives it from preset_id when omitted. Keeping it here for
+  // legacy clients still sending archetype-first payloads.
+  archetype: z.nativeEnum(OfferArchetype).optional(),
   format_hint: z.string().optional().nullable(),
   /** OfferTypePreset link — 7th SSoT axis. See
    *  ``offer_type_preset_catalog.py`` / ``offer-type-preset-catalog-api.ts``. */
   preset_id: z.string().optional().nullable(),
+  /** Wizard Sprint-13+ conditional-refinement answers. Transient —
+   *  backend consumes them to derive flags at create time; not persisted. */
+  conditional_answers: z.record(z.string(), z.boolean()).optional(),
   is_lead_magnet: z.boolean().default(false),
   // Wizard-driven: will this offer run in editions/cohorts/batches?
   // Backend applies archetype-aware default when omitted.

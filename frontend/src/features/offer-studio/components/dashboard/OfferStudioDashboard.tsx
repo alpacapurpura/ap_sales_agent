@@ -167,6 +167,8 @@ export function OfferStudioDashboard({
         {
           public_name: wizardData.name,
           archetype: wizardData.archetype,
+          preset_id: wizardData.preset_id,
+          conditional_answers: wizardData.conditional_answers,
           format_hint: wizardData.format_hint,
           is_lead_magnet: wizardData.is_lead_magnet,
           has_editions: wizardData.has_editions,
@@ -206,6 +208,8 @@ export function OfferStudioDashboard({
         {
           public_name: wizardData.name,
           archetype: wizardData.archetype,
+          preset_id: wizardData.preset_id,
+          conditional_answers: wizardData.conditional_answers,
           format_hint: wizardData.format_hint,
           is_lead_magnet: wizardData.is_lead_magnet,
           has_editions: wizardData.has_editions,
