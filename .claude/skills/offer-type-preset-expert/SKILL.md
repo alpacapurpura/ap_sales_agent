@@ -19,7 +19,9 @@ microempresarios don't have to classify their own offers.
 | `frontend/src/features/offer-studio/api/offer-type-preset-catalog-api.ts` | Mirror types + `resolvePresetSections` / `resolvePresetFlags` pure functions. |
 | `frontend/src/features/offer-studio/hooks/use-offer-type-preset-catalog.ts` | React Query hooks. |
 | `docs/domains/offer/offer-type-preset-catalog.md` | Full design doc with decisions D26–D35. |
+| `docs/domains/offer/schemas-latam-refinement.md` | Task B (2026-04-19) — refinement de 15 schemas con lente Latam. Ratchet tests nuevos. |
 | `.claude/rules/offer-catalogs.md` | DAG rules (eight catalogs). |
+| `frontend/src/features/offer-studio/schemas/__tests__/quality.test.ts` | 7 ratchet tests que enforzan hint coverage, no jargon, uniqueness, enum sanity, scope/owner coherence. |
 
 ## Mental model — the layered flow
 
