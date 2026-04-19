@@ -1,13 +1,30 @@
 import type { SectionSchema } from "@/lib/form-runtime/schema";
 
 /**
- * Platform Details — específico de ofertas SaaS / software: features,
- * integraciones, seguridad, uptime, soporte, residencia de datos.
+ * Platform Details — específico de ofertas SaaS / software. Cubre features,
+ * integraciones, seguridad, residencia de datos, uptime, soporte y
+ * transparencia de IA.
  *
- * Latam: destacar LGPD (Brasil) y Habeas Data (Colombia, Perú, Argentina)
- * suma trust B2B en mercados con normativa de datos madurando. Mercado
- * Pago + WhatsApp Business API son las integraciones más demandadas en
- * la región para SaaS PYME.
+ * Scope OFFER_LEVEL: la plataforma es la misma para todos los planes de
+ * la misma oferta. Si tu SaaS tiene 3 planes (Starter/Pro/Enterprise)
+ * cada uno es una oferta distinta con su propio platform_features donde
+ * marcás las features por plan.
+ *
+ * **Latam — decisiones de diseño:**
+ * - Los frameworks legales Latam relevantes son LGPD (BR), Habeas Data
+ *   (CO/PE), LOPD/PDPL (AR/UY/CL). Copiar "GDPR compliant" de landings
+ *   gringas no suma trust en Latam: los compradores B2B buscan su
+ *   normativa nacional específica.
+ * - Integraciones Latam core: Mercado Pago, WhatsApp Business API (con
+ *   BSP autorizado), MODO, Culqi, Yape, Pix. Son diferenciadores reales
+ *   vs SaaS con solo Stripe.
+ * - ``ai_features_disclosure`` captura la creciente exigencia Latam
+ *   (AR, BR, MX) sobre transparencia de uso de IA — qué datos se
+ *   procesan, qué modelos, si hay decisiones automatizadas que afecten
+ *   al usuario.
+ * - ``data_export_capability`` cumple con el "derecho de portabilidad"
+ *   que todos los frameworks Latam reconocen. Sin este campo el
+ *   comprador B2B asume lock-in.
  */
 export const offerPlatformDetailsSchema: SectionSchema = {
   key: "offer.platform_details",
@@ -111,9 +128,10 @@ export const offerPlatformDetailsSchema: SectionSchema = {
       label: "Seguridad y compliance",
       type: "textarea",
       path: "security_compliance",
-      rows: 4,
-      placeholder: "SOC 2 Type II (2025)\nISO 27001 certificado\nLGPD (Brasil) compliant\nHabeas Data (Colombia, Perú)\nEncriptación AES-256 en reposo y TLS 1.3 en tránsito",
-      hint: "Certificaciones + frameworks. LGPD/Habeas Data suman trust B2B Latam. Una por línea.",
+      rows: 5,
+      placeholder:
+        "• SOC 2 Type II (2025) — auditado por Prescient Assurance\n• ISO 27001 certificado\n• LGPD (Brasil) compliant — DPO designado\n• Habeas Data (Colombia, Perú) — registrado ante SIC y DPS\n• PDPL (Ley 25.326 Argentina) compliant\n• Encriptación AES-256 en reposo · TLS 1.3 en tránsito\n• Pen-test anual por terceros",
+      hint: "Certificaciones + frameworks legales con detalle. Listar específicamente por país Latam (no solo 'LATAM compliant' vago). Un B2B mexicano busca LFPDPPP, uno colombiano busca Habeas Data. Sé explícito.",
     },
     {
       id: "data_residency",
@@ -159,6 +177,8 @@ export const offerPlatformDetailsSchema: SectionSchema = {
       label: "URL de documentación de API",
       type: "url",
       path: "api_docs_url",
+      placeholder: "https://docs.tuempresa.com/api / https://developers.tuempresa.com",
+      hint: "Link público a los docs de API. ReadMe, Mintlify y GitBook son los hosts más comunes. Sin docs públicos claros, clientes técnicos asumen que la API es inmadura.",
     },
     {
       id: "migration_tools",
@@ -182,6 +202,26 @@ export const offerPlatformDetailsSchema: SectionSchema = {
       type: "url",
       path: "changelog_url",
       hint: "Página pública de releases recientes. Muestra velocidad de producto.",
+    },
+    {
+      id: "ai_features_disclosure",
+      label: "Transparencia de uso de IA",
+      type: "textarea",
+      path: "ai_features_disclosure",
+      rows: 4,
+      placeholder:
+        "• Generación de copy asistida por GPT-4o — los datos del cliente NO se usan para entrenar modelos\n• Análisis predictivo de churn con modelos propios (random forest)\n• Resumen automático de conversaciones de soporte (datos anonimizados)\n• NO tomamos decisiones automatizadas que afecten al cliente sin supervisión humana",
+      hint: "Creciente exigencia regulatoria Latam (AR Res. 161/2023, BR autorregulación LGPD, MX INE normativa). Explicitá: qué features usan IA, qué datos se procesan, si hay decisiones automatizadas. Sin esta transparencia, auditores B2B Latam marcan red flag.",
+    },
+    {
+      id: "data_export_capability",
+      label: "Capacidad de exportación de datos",
+      type: "textarea",
+      path: "data_export_capability",
+      rows: 3,
+      placeholder:
+        "• Exportación completa en CSV/JSON desde el panel (self-service, any plan)\n• Backup mensual automático enviado al admin por email\n• API de extracción disponible en plan Business+\n• Deleción de cuenta + purge de datos en 30 días post-solicitud",
+      hint: "Derecho de portabilidad (reconocido en GDPR, LGPD, Habeas Data, PDPL AR). Sin declarar cómo exportar y borrar, comprador B2B asume lock-in. Crítico para cerrar cuentas enterprise.",
     },
   ],
 };
