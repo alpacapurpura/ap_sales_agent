@@ -2,10 +2,27 @@
 
 from typing import Any
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, field_validator
 
 from src.shared.domain.base_entity import BaseEntity
 from src.shared.domain.expert_business_type import ExpertBusinessType
+
+# Legacy → canonical business_types remapping. The enum evolved during
+# Sprint 11 (pre-Latam) and Sprint 12 (post-expansion). Tenants whose
+# config_json was saved under the legacy vocabulary must still load
+# without raising — the validator maps old values, drops unknowns.
+#
+# When this table converges to empty + a data migration clears the DB,
+# remove the entire normalization block. Keeping it longer than one
+# release cycle is acceptable as a defence-in-depth against unseen
+# snapshots.
+_LEGACY_BUSINESS_TYPE_ALIASES: dict[str, str] = {
+    "consultor_asesor": ExpertBusinessType.CONSULTOR_PROFESIONAL.value,
+    "educador_infoproductor": ExpertBusinessType.ACADEMIA_INFOPRODUCTOR.value,
+    "creador_contenido": ExpertBusinessType.ACADEMIA_INFOPRODUCTOR.value,
+    # Add future renames here. Unknown values fall through to the `None`
+    # branch in the validator and are dropped silently.
+}
 
 
 class BrandVisuals(BaseEntity):
@@ -86,6 +103,39 @@ class BrandIdentity(BaseEntity):
             "Drives format suitability in the Offer Studio wizard."
         ),
     )
+
+    @field_validator("business_types", mode="before")
+    @classmethod
+    def _normalise_business_types(cls, value: object) -> list[str] | object:
+        """Remap legacy strings and drop unknowns on read.
+
+        Tenants whose ``config_json`` was saved with the pre-Sprint-11
+        vocabulary (``consultor_asesor``, ``educador_infoproductor``,
+        ``creador_contenido``) would otherwise fail enum validation and
+        break every brand-settings read. We translate known legacy values
+        to their current canonical form and silently drop anything else
+        so the onboarding dialog can still load + let the tenant re-save
+        a clean list.
+
+        Values that are already canonical pass through untouched.
+        """
+        if not isinstance(value, list):
+            return value
+        valid = {member.value for member in ExpertBusinessType}
+        cleaned: list[str] = []
+        for raw in value:
+            if not isinstance(raw, str):
+                continue
+            if raw in valid:
+                cleaned.append(raw)
+                continue
+            aliased = _LEGACY_BUSINESS_TYPE_ALIASES.get(raw)
+            if aliased is not None and aliased not in cleaned:
+                cleaned.append(aliased)
+            # Silent drop for unknowns — we prefer a partial load to a
+            # crashed onboarding flow.
+        return cleaned
+
     tagline: str | None = Field(None, description="Brand tagline or slogan.")
     description: str | None = Field(
         None,

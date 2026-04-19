@@ -125,13 +125,35 @@ class TestBrandIdentity:
         restored = BrandIdentity.model_validate(dumped)
         assert restored.business_types == [ExpertBusinessType.SOFTWARE_SAAS]
 
-    def test_business_types_rejects_unknown_value(self):
-        """Invalid values are rejected — the catalog is a closed set."""
-        import pytest
-        from pydantic import ValidationError
+    def test_business_types_drops_unknown_values_silently(self):
+        """Unknown values are dropped (not raised) to prevent crashing
+        brand-settings reads on config_json saved with stale vocabulary.
 
-        with pytest.raises(ValidationError):
-            BrandIdentity(brand_name="X", business_types=["nonexistent_type"])
+        Sprint 14: the validator now silently drops unknown keys. See
+        ``_normalise_business_types`` — the rationale is that failing
+        to load blocks onboarding entirely; dropping lets the dialog
+        render and the user re-saves a clean list.
+        """
+        from src.shared.domain.expert_business_type import ExpertBusinessType
+
+        identity = BrandIdentity(
+            brand_name="X",
+            business_types=["coach_mentor", "nonexistent_type"],
+        )
+        assert identity.business_types == [ExpertBusinessType.COACH_MENTOR]
+
+    def test_business_types_remaps_legacy_aliases(self):
+        """Legacy enum values map to their canonical replacement."""
+        from src.shared.domain.expert_business_type import ExpertBusinessType
+
+        identity = BrandIdentity(
+            brand_name="X",
+            business_types=["consultor_asesor", "educador_infoproductor", "creador_contenido"],
+        )
+        assert identity.business_types == [
+            ExpertBusinessType.CONSULTOR_PROFESIONAL,
+            ExpertBusinessType.ACADEMIA_INFOPRODUCTOR,
+        ]
 
 
 class TestBrandVisuals:
