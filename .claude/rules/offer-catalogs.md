@@ -28,12 +28,12 @@ Tres sections refieren explícitamente a módulos externos (no duplican):
 Estos picker actions viven en `actions/placeholders.tsx` hasta que el
 Sprint que los porte los reemplace con la implementación real.
 
-## The seven catalogs
+## The eight catalogs
 
-The offer-studio classification system is a **DAG of 7 catalogs**: 4 pure
+The offer-studio classification system is a **DAG of 8 catalogs**: 4 pure
 base axes (no cross-catalog references), 1 intermediate axis that
-references base axes via typed FK, and 2 composite catalogs that each
-depend on two axes.
+references base axes via typed FK, and 3 composite catalogs that each
+depend on two or three axes.
 
 ### Base axes (pure)
 
@@ -56,20 +56,24 @@ depend on two axes.
 |---|---|---|---|---|
 | **OfferFormat** | `backend/src/modules/offer/domain/format_catalog.py` | `OfferArchetype` (via `archetype`); `ExpertBusinessType` (via `suitable_for: dict[ExpertBusinessType, float]`) | `GET /api/v1/offer/formats/catalog?archetype=&business_types=` | `useFormatCatalog` / `useFormatMetadata` |
 | **OfferLadderHints** | `backend/src/modules/offer/domain/offer_ladder_hints.py` | `ExpertBusinessType` + `OfferValueLevel` (keyed by `tuple[ExpertBusinessType, OfferValueLevel]`) | `GET /api/v1/offer/ladder-hints/catalog` | `useOfferLadderHints` / `useLadderHint` / `useLadderHintsForType` |
+| **OfferTypePreset** | `backend/src/modules/offer/domain/offer_type_preset_catalog.py` | `ExpertBusinessType` + `OfferArchetype` + `SectionCatalog` (via `base_sections`) | `GET /api/v1/offer/type-presets/catalog?business_types=` | `useOfferTypePresetCatalog` / `useOfferTypePreset` / `usePresetsByArchetype` |
 
 ### Dependency DAG
 
 ```
 ExpertBusinessType  OfferValueLevel  SectionCatalog  VariantStructure   ← 4 pure base
         │                  │                │                 │
-        │                  │                └─────────┬───────┘
-        │                  │                          ▼
-        │                  │                    OfferArchetype           ← 1 intermediate
-        │                  │                          │
-        │                  │                          ▼
-        ├──────────────────┼──────────── OfferFormat ─┘                  ← composite
-        │                  │
-        └── OfferLadderHints (EBT × VL) ──┘                              ← composite
+        │                  │                └────────┬────────┘
+        │                  │                         ▼
+        │                  │                   OfferArchetype            ← 1 intermediate
+        │                  │                         │
+        │                  │        ┌────────────────┤
+        │                  │        │                │
+        │                  ▼        ▼                ▼
+        ├───── OfferLadderHints ────┤         OfferFormat               ← composites
+        │                           │
+        └───── OfferTypePreset ─────┘                                   ← 7th composite
+               (EBT × Arch × Sec)
 ```
 
 All FK are typed Python fields (enums or frozen metadata records) — never
@@ -194,9 +198,32 @@ Meta-guard arch test ("every `*_catalog.py` has a matching
 6 catalogs with the pattern uniformly applied don't justify the
 indirection. Add it when a 7th catalog is introduced without test.
 
+## Forbidden patterns (preset catalog additions)
+
+- ❌ Hardcoding preset metadata, labels, descriptions or examples in any
+  frontend component or wizard step. Consume `useOfferTypePresetCatalog`.
+- ❌ Showing `OfferArchetype` labels ("Servicio", "Programa") in wizard
+  UX after the preset layer lands. The archetype is an internal tag —
+  tenants choose presets by name, not archetype.
+- ❌ Duplicating the `ConditionalQuestion` registry in the frontend.
+  Questions arrive as part of the catalog response; never redeclare them
+  client-side.
+- ❌ Adding a preset that already exists semantically under a different
+  `preset_id`. Before adding, review the existing 76 entries per
+  `business_type` — if the new idea collapses into an existing preset
+  via a conditional question, prefer that over a new preset.
+- ❌ Bifurcating presets to "fix" archetype bleed. If the new preset
+  would map to a different archetype than an existing near-identical
+  preset, document the bifurcation decision in
+  `docs/domains/offer/offer-type-preset-catalog.md` under D26+ so future
+  Claude understands the intent.
+
 ## Full design documents
 
 - `docs/domains/offer/catalogs-consolidation.md` — phase-by-phase history
   of the first 5 axes, commits, decisions D1–D25.
 - `docs/domains/offer/variant-structure-catalog.md` — full design of the
   6th axis (VariantStructure), decisions D26–D30, extension rules.
+- `docs/domains/offer/offer-type-preset-catalog.md` — full design of the
+  7th axis (OfferTypePreset), decisions D26–D35, composition rules,
+  skill reference.
