@@ -210,7 +210,10 @@ class TestGenerateLandingForOffer:
         assert landing is not None
         assert landing.offer_id == offer_id
         assert landing.tenant_id == tenant_id
-        assert landing.config.archetype == LandingPageArchetype.THE_SQUEEZE
+        # Sprint 14: offers without a preset_id default to THE_BROCHURE
+        # (general-purpose template) — the legacy default of THE_SQUEEZE
+        # misrepresented non-lead-magnet offers as opt-in focused.
+        assert landing.config.archetype == LandingPageArchetype.THE_BROCHURE
         assert "my-course" in landing.slug
 
     def test_generate_for_offer_returns_existing_when_already_exists(

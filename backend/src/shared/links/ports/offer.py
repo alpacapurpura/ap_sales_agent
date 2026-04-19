@@ -51,3 +51,34 @@ def get_launch_edition_repository(db: Session) -> object:
     )
 
     return LaunchEditionRepository(db)
+
+
+def get_offer_type_preset(preset_id: str | None) -> object | None:
+    """Return the ``OfferTypePreset`` record for ``preset_id``, or ``None``.
+
+    Lazy import keeps the DDD boundary intact — ``sales_agent`` and
+    ``landing`` call this port instead of importing the 7th SSoT axis
+    module directly. Returns ``None`` for unknown ids so callers can
+    handle the miss with a default.
+    """
+    if preset_id is None:
+        return None
+    from src.modules.offer.domain.offer_type_preset_catalog import (
+        OFFER_TYPE_PRESET_CATALOG,
+    )
+
+    return OFFER_TYPE_PRESET_CATALOG.get(preset_id)
+
+
+def get_preset_flag_values() -> type:
+    """Return the ``PresetFlag`` StrEnum class via lazy import.
+
+    Callers (landing generator, landing templates, analytics) need the
+    enum values to branch on preset flags. Lazy-exposing the enum keeps
+    the boundary rules happy while preserving type safety at the
+    consumer end (cast via ``cast(PresetFlag, ...)`` if strict typing
+    is required).
+    """
+    from src.modules.offer.domain.offer_type_preset_catalog import PresetFlag
+
+    return PresetFlag

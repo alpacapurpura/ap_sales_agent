@@ -94,6 +94,48 @@ class LandingService:
         landing.is_published = True
         return self.repository.update(landing)
 
+    @staticmethod
+    def _select_landing_archetype_from_preset(preset_id: str | None) -> LandingPageArchetype:
+        """Pick a landing archetype from the offer's ``OfferTypePreset`` flags.
+
+        The selector uses the preset's ``default_flags`` to branch among the
+        six existing landing archetypes — *not* the offer's ``archetype`` tag
+        directly. This aligns the landing with the business intent the
+        tenant captured in the wizard (lead capture, high-ticket, recurring,
+        event) rather than the fulfilment model alone.
+
+        Catalog access goes through ``shared/links/ports/offer.py`` so the
+        DDD boundary is preserved (no direct cross-module import from
+        ``landing`` into ``offer``).
+
+        Resolution order (first match wins):
+
+        1. ``IS_LEAD_MAGNET`` → ``THE_SQUEEZE`` (opt-in focused)
+        2. ``REQUIRES_START_DATE`` → ``THE_EVENT`` (date-anchored)
+        3. ``HIGH_TICKET`` → ``THE_TRANSFORMER`` (long-form with proof)
+        4. ``RECURRING_BILLING`` → ``THE_VELVET_ROPE`` (membership feel)
+        5. Unknown / no preset → ``THE_BROCHURE`` (safe general default)
+        """
+        from src.shared.links.ports.offer import (
+            get_offer_type_preset,
+            get_preset_flag_values,
+        )
+
+        preset = get_offer_type_preset(preset_id)
+        if preset is None:
+            return LandingPageArchetype.THE_BROCHURE
+        preset_flag = get_preset_flag_values()
+        flags = set(preset.default_flags)  # type: ignore[attr-defined]
+        if preset_flag.IS_LEAD_MAGNET in flags:
+            return LandingPageArchetype.THE_SQUEEZE
+        if preset_flag.REQUIRES_START_DATE in flags:
+            return LandingPageArchetype.THE_EVENT
+        if preset_flag.HIGH_TICKET in flags:
+            return LandingPageArchetype.THE_TRANSFORMER
+        if preset_flag.RECURRING_BILLING in flags:
+            return LandingPageArchetype.THE_VELVET_ROPE
+        return LandingPageArchetype.THE_BROCHURE
+
     def generate_landing_for_offer(
         self,
         tenant_id: UUID,
@@ -108,7 +150,8 @@ class LandingService:
         row = (
             self.db.execute(
                 sa_text(
-                    "SELECT name, headline_promise, primary_outcome, marketing_pain_points"
+                    "SELECT name, headline_promise, primary_outcome, marketing_pain_points,"
+                    " preset_id"
                     " FROM products WHERE id = :oid AND tenant_id = :tid",
                 ),
                 {"oid": str(offer_id), "tid": str(tenant_id)},
@@ -127,11 +170,19 @@ class LandingService:
         outcome = row["primary_outcome"] or "Transform your life today"
         raw_pains = row["marketing_pain_points"] or []
         pains = _json.loads(raw_pains) if isinstance(raw_pains, str) else (raw_pains or [])
+        preset_id = row["preset_id"]
 
         # Create a simple slug based on offer name
         slug = f"{public_name.lower().replace(' ', '-')}-{str(offer_id)[:8]}"
 
-        # Create default content based on offer
+        # Resolve landing archetype from preset flags. Lead magnets stay on
+        # THE_SQUEEZE regardless (explicit opt-in focus). Other archetypes
+        # pick a more fitting template when possible, fallback to SQUEEZE.
+        landing_archetype = self._select_landing_archetype_from_preset(preset_id)
+        # For non-SQUEEZE archetypes we'd build specialised content. To keep
+        # this refactor scoped, the MVP still renders SqueezeContent for
+        # every template (it's a structural superset of the others' fields).
+        # Proper per-archetype content builders land in Sprint 15.
         content = SqueezeContent(
             headline=headline,
             subheadline=outcome,
@@ -141,7 +192,7 @@ class LandingService:
         )
 
         config = LandingPageConfig(
-            archetype=LandingPageArchetype.THE_SQUEEZE,
+            archetype=landing_archetype,
             slug=slug,
             content=content,
             seo_title=public_name,

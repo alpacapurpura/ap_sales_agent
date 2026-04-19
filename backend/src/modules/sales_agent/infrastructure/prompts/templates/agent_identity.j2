@@ -73,7 +73,13 @@ Eres un asistente de ventas profesional y empático.
 ## Catálogo de Ofertas
 {% for offer in offers %}
 ### {{ offer.public_name }}
-- **Tipo:** {% if offer.archetype %}{{ offer.archetype | title }}{% if offer.format_hint %} ({{ offer.format_hint }}){% endif %}{% else %}{{ offer.type }}{% endif %}
+- **Tipo:** {% if offer.preset_label %}{{ offer.preset_label }}{% elif offer.archetype %}{{ offer.archetype | title }}{% if offer.format_hint %} ({{ offer.format_hint }}){% endif %}{% else %}{{ offer.type }}{% endif %}
+{%- if offer.preset_description %}
+- **Qué es:** {{ offer.preset_description }}
+{%- endif %}
+{%- if offer.preset_flags %}
+- **Señales clave:** {{ offer.preset_flags | join(", ") }}
+{%- endif %}
 {{ "- **Promesa:** " ~ offer.headline_promise if offer.headline_promise else "" }}
 {{ "- **Resultado Principal:** " ~ offer.primary_outcome if offer.primary_outcome else "" }}
 {{ "- **Tiempo al Resultado:** " ~ offer.time_to_value if offer.time_to_value else "" }}

@@ -9,6 +9,7 @@ so new fields are automatically available without changing this builder.
 """
 
 import logging
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -16,7 +17,7 @@ from sqlalchemy.orm import Session
 from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
 from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 from src.shared.links.ports.brand import BrandDataPort, create_brand_data_port
-from src.shared.links.ports.offer import get_offer_repository
+from src.shared.links.ports.offer import get_offer_repository, get_offer_type_preset
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,29 @@ class TenantKnowledgeBuilder:
         """Initialize instance."""
         self.brand_port = brand_port or create_brand_data_port(db)
         self.offer_repo = get_offer_repository(db)
+
+    @staticmethod
+    def _enrich_with_preset_metadata(offers_data: list[dict[str, Any]]) -> None:
+        """Inject preset-derived context onto each offer dict in-place.
+
+        Adds three keys per offer when ``preset_id`` matches the catalog:
+
+        - ``preset_label``: user-facing label (``OfferTypePreset.label_es``)
+        - ``preset_description``: 1-3 sentence card subtitle
+        - ``preset_flags``: list[str] of the preset's default flags
+          (``IS_LEAD_MAGNET``, ``HIGH_TICKET``, ``RECURRING_BILLING``, ...)
+
+        When ``preset_id`` is missing or unknown the keys stay absent so
+        the Jinja template can render defensively via ``if offer.preset_label``.
+        """
+        for offer in offers_data:
+            preset_id = offer.get("preset_id")
+            preset = get_offer_type_preset(preset_id)
+            if preset is None:
+                continue
+            offer["preset_label"] = preset.label_es  # type: ignore[attr-defined]
+            offer["preset_description"] = preset.description_es  # type: ignore[attr-defined]
+            offer["preset_flags"] = [flag.value for flag in preset.default_flags]  # type: ignore[attr-defined]
 
     def build_identity(self, tenant_id: UUID) -> str:
         """Build the complete agent identity document for this tenant.
@@ -49,6 +73,13 @@ class TenantKnowledgeBuilder:
             # Filter active offers only for the agent's knowledge
             active_offers = [o for o in offers if o.status.value in ("active", "draft")]
             offers_data = [o.model_dump(mode="json") for o in active_offers] if active_offers else []
+            # Enrich each offer dict with OfferTypePreset metadata so the
+            # agent grounding template can refer to the offer by the
+            # tenant's vocabulary ("Consulta única") instead of the raw
+            # archetype tag. Flags (IS_LEAD_MAGNET, HIGH_TICKET,
+            # RECURRING_BILLING) are also surfaced so the specialist
+            # prompts can branch on them.
+            self._enrich_with_preset_metadata(offers_data)
 
             # 3. Extract convenience variables for the template
             identity = brand_data.get("identity", {}) or {}
