@@ -40,8 +40,13 @@ const CANONICAL_FOLDERS = new Set([
 // brand-studio introduces schemas/, actions/, pages/ during the form-runtime
 // migration (Sprint 1, see docs/ux-sessions/2026-04-17-universal-editable-form-component/
 // DECISIONS.md D17). The entry shrinks as Sprint 5 deletes old brand/.
+// offer-studio mirrors the same form-runtime structure (Sprint 6+, Phase 12
+// pre-sale consolidation): schemas/ hosts field-by-field validators,
+// actions/ hosts copilot-aware custom actions, pages/ hosts Next.js-level
+// route shells that compose feature slices.
 const KNOWN_NONSTANDARD: Record<string, string[]> = {
   "brand-studio": ["schemas", "actions", "pages"],
+  "offer-studio": ["schemas", "actions", "pages"],
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
