@@ -80,10 +80,20 @@ class ProductResponse(BaseModel):
 
 
 class ProductCreate(BaseModel):
-    """Product Create DTO."""
+    """Product Create DTO.
+
+    Sprint 13 flow: the wizard sends ``preset_id`` + optional
+    ``conditional_answers`` and the service derives ``archetype`` +
+    ``is_lead_magnet`` from the catalog. ``archetype`` stays accepted
+    (Optional) to preserve backwards compat with older clients + the
+    archetype-first IA pipelines.
+    """
 
     name: str
-    archetype: OfferArchetype
+    # Optional since Sprint 13: when ``preset_id`` is set the service
+    # derives it. For clients on the legacy path this remains the
+    # primary selector.
+    archetype: OfferArchetype | None = None
     format_hint: str | None = None
     is_lead_magnet: bool = False
     # Wizard answer: will this offer run in editions/cohorts/batches?
@@ -91,10 +101,13 @@ class ProductCreate(BaseModel):
     has_editions: bool | None = None
     status: OfferStatus = OfferStatus.DRAFT
     # Wizard Sprint-13+ sends preset_id as primary selector; archetype is
-    # then derived from ``OfferTypePreset.archetype``. Accepted as optional
-    # to keep backwards compat with older clients that still pick archetype
-    # directly.
+    # then derived from ``OfferTypePreset.archetype``.
     preset_id: str | None = None
+    # Wizard Sprint-13+ conditional refinement step. Maps ``question_id``
+    # → yes/no answer. The service feeds this into
+    # ``resolve_preset_flags`` to promote flags like ``IS_LEAD_MAGNET``
+    # or ``SUPPORTS_CAPACITY`` without the client having to know them.
+    conditional_answers: dict[str, bool] | None = None
 
     # Optional fields the wizard can set
     value_level: OfferValueLevel | None = None

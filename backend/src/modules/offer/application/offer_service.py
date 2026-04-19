@@ -18,6 +18,11 @@ from src.modules.offer.domain.offer import (
     Offer,
     PricingStructure,
 )
+from src.modules.offer.domain.offer_type_preset_catalog import (
+    OFFER_TYPE_PRESET_CATALOG,
+    PresetFlag,
+    resolve_preset_flags,
+)
 from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
     LaunchEditionRepository,
 )
@@ -48,9 +53,10 @@ class OfferService:
         self,
         name: str,
         tenant_id: UUID,
-        archetype: OfferArchetype,
+        archetype: OfferArchetype | None = None,
         format_hint: str | None = None,
         preset_id: str | None = None,
+        conditional_answers: dict[str, bool] | None = None,
         is_lead_magnet: bool = False,
         has_editions: bool | None = None,
         internal_sku: str = "",
@@ -60,7 +66,49 @@ class OfferService:
         currency: str | None = None,
         pricing_options: list[PricingStructure] | None = None,
     ) -> Offer:
-        """Create offer."""
+        """Create an offer, preferring the preset as the primary axis.
+
+        Sprint 13 inverts the control flow: the wizard now hands us
+        ``preset_id`` + optional ``conditional_answers`` and we derive
+        ``archetype`` + ``is_lead_magnet`` from the catalog. The legacy
+        ``archetype``-first path (pre-wizard-rehaul IA pipelines, API
+        clients) remains supported for backwards compatibility.
+
+        Resolution rules:
+
+        1. If ``preset_id`` is given, look up the preset and:
+           - Validate the preset exists; unknown presets raise 400.
+           - Derive ``archetype`` from it (overrides any caller-supplied
+             value; if the caller sent both and they mismatch, we take
+             the preset as source of truth — the wizard is the happy
+             path and we prefer catalog-consistent data).
+           - Resolve ``default_flags`` + answer-contributed flags via
+             ``resolve_preset_flags`` — ``IS_LEAD_MAGNET`` promotes
+             ``is_lead_magnet=True`` and coerces ``value_level`` to
+             ``LEAD_MAGNET`` regardless of the caller's input.
+        2. If no ``preset_id`` but ``archetype`` is given, fall through
+           to the legacy behaviour (backwards compat).
+        3. If neither is given, raise — an offer needs at least one.
+        """
+        preset = OFFER_TYPE_PRESET_CATALOG.get(preset_id) if preset_id else None
+        if preset_id is not None and preset is None:
+            msg = f"Unknown preset_id: {preset_id!r}"
+            raise HTTPException(status_code=400, detail=msg)
+
+        if preset is not None:
+            archetype = preset.archetype
+            resolved_flags = resolve_preset_flags(
+                preset.preset_id,
+                answers=conditional_answers or {},
+            )
+            if PresetFlag.IS_LEAD_MAGNET in resolved_flags:
+                is_lead_magnet = True
+                value_level = OfferValueLevel.LEAD_MAGNET
+
+        if archetype is None:
+            msg = "create_offer requires either preset_id or archetype."
+            raise HTTPException(status_code=400, detail=msg)
+
         # Invariant: value_level == LEAD_MAGNET iff is_lead_magnet. The
         # wizard can pass either flag; we normalize here so the ladder
         # grouping (frontend) never sees an inconsistent state. Default

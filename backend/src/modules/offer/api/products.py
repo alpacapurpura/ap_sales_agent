@@ -75,6 +75,7 @@ async def create_product(
         archetype=product.archetype,
         format_hint=product.format_hint,
         preset_id=product.preset_id,
+        conditional_answers=product.conditional_answers,
         is_lead_magnet=product.is_lead_magnet,
         has_editions=product.has_editions,
         headline_promise=product.headline_promise or "",
