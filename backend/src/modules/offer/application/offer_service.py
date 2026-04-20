@@ -208,12 +208,19 @@ class OfferService:
         existing = self._edition_repo.list_by_offer(offer.id, offer.tenant_id)
         if existing:
             return
+        # Noun-dynamic placeholder name. MEMBRESIA → "Plan #1", PRODUCTO →
+        # "Variante #1", PROGRAMA → "Cohorte #1", EXPERIENCIA → "Salida #1",
+        # SERVICIO → "Convocatoria #1". Falls back to "Edición #1" if the
+        # archetype has an empty ``edition_noun_es`` (defensive — post
+        # Sprint 15.1 every edition-supporting archetype declares it).
+        noun = capabilities.edition_noun_es or "edición"
+        edition_name = f"{noun.capitalize()} #1"
         self._edition_repo.create(
             offer_id=offer.id,
             tenant_id=offer.tenant_id,
             variant_structure=capabilities.default_variant_structure,
             start_date=None,
-            edition_name="Edición #1",
+            edition_name=edition_name,
         )
 
     def update_offer(self, offer: Offer, tenant_id: UUID) -> Offer:

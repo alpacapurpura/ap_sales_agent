@@ -132,8 +132,8 @@ class TestCreateProductHasEditions:
         assert response.status_code == 200, response.text
         assert response.json()["has_editions"] is True
 
-    def test_producto_is_always_false(self, db: Session, tenant_a):
-        """Even if wizard sends True for a PRODUCTO, domain forces False."""
+    def test_producto_default_true(self, db: Session, tenant_a):
+        """Sprint 15.1: PRODUCTO supports editions (SKU variants) by default."""
         response = self._client(db, tenant_a).post(
             "/api/v1/offer/products",
             json={
@@ -143,14 +143,41 @@ class TestCreateProductHasEditions:
             },
         )
         assert response.status_code == 200, response.text
+        assert response.json()["has_editions"] is True
+
+    def test_producto_can_opt_out_of_editions(self, db: Session, tenant_a):
+        """A single-SKU product opt-outs explicitly to keep the editor simple."""
+        response = self._client(db, tenant_a).post(
+            "/api/v1/offer/products",
+            json={
+                "name": "Single Ebook",
+                "archetype": "producto",
+                "has_editions": False,
+            },
+        )
+        assert response.status_code == 200, response.text
         assert response.json()["has_editions"] is False
 
-    def test_membresia_is_always_false(self, db: Session, tenant_a):
+    def test_membresia_default_true(self, db: Session, tenant_a):
+        """Sprint 15.1: MEMBRESIA supports editions (TIER plans) by default."""
         response = self._client(db, tenant_a).post(
             "/api/v1/offer/products",
             json={
                 "name": "Club VIP",
                 "archetype": "membresia",
+            },
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["has_editions"] is True
+
+    def test_membresia_can_opt_out_of_editions(self, db: Session, tenant_a):
+        """A single-plan membership opt-outs explicitly."""
+        response = self._client(db, tenant_a).post(
+            "/api/v1/offer/products",
+            json={
+                "name": "Simple Membership",
+                "archetype": "membresia",
+                "has_editions": False,
             },
         )
         assert response.status_code == 200, response.text

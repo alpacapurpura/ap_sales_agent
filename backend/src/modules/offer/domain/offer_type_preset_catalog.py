@@ -65,7 +65,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import StrEnum
 
-from src.modules.offer.domain.enums import OfferArchetype, OfferValueLevel
+from src.modules.offer.domain.enums import OfferArchetype, OfferValueLevel, VariantStructure
 from src.modules.offer.domain.section_catalog import SectionKey
 from src.shared.domain.expert_business_type import ExpertBusinessType
 
@@ -199,6 +199,19 @@ class OfferTypePreset:
     default_flags: tuple[PresetFlag, ...] = ()
     suitability_note_es: str = ""
     examples_es: tuple[str, ...] = field(default_factory=tuple)
+    # Sprint 15.1 — optional override of the archetype's
+    # ``default_variant_structure``. Presets that model a specific variant
+    # shape (e.g. ``consultor_retainer`` forcing ``TIER`` even though
+    # SERVICIO defaults to ``RECURRING_INTAKE``) set this field; every other
+    # preset leaves it ``None`` to inherit the archetype default.
+    #
+    # Invariants (enforced by
+    # ``test_preset_default_variant_structure_valid``):
+    #   - if non-None, the value MUST appear in the parent archetype's
+    #     ``supported_variant_structures`` tuple.
+    #   - if the archetype does NOT ``supports_editions``, this MUST stay
+    #     None.
+    default_variant_structure: VariantStructure | None = None
 
 
 # ── Section tuple helpers (readable shorthands) ─────────────────────────────

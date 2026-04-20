@@ -307,8 +307,14 @@ class TestHasEditionsRoundtrip:
         result = repo.get_by_id(model.id, tenant_a)
         assert result.has_editions is False
 
-    def test_producto_is_forced_false_even_if_column_true(self, db: Session, tenant_a):
-        """If legacy data has True for a PRODUCTO, domain validator normalizes to False."""
+    def test_producto_with_editions_true_roundtrips(self, db: Session, tenant_a):
+        """Sprint 15.1: PRODUCTO now supports editions (SKU_VARIANT default).
+
+        Previous semantics (pre-15.1): PRODUCTO was force-normalized to
+        ``has_editions=False``. After the SKU variant promotion, an
+        ecommerce tenant with multiple SKUs legitimately has
+        ``has_editions=True`` — the domain no longer strips it.
+        """
         repo = OfferRepository(db)
         model = create_product_model(
             tenant_a,
@@ -318,7 +324,20 @@ class TestHasEditionsRoundtrip:
         db.add(model)
         db.flush()
         result = repo.get_by_id(model.id, tenant_a)
-        assert result.has_editions is False
+        assert result.has_editions is True
+
+    def test_membresia_with_editions_true_roundtrips(self, db: Session, tenant_a):
+        """Sprint 15.1: MEMBRESIA supports editions via TIER plans."""
+        repo = OfferRepository(db)
+        model = create_product_model(
+            tenant_a,
+            archetype="membresia",
+            has_editions=True,
+        )
+        db.add(model)
+        db.flush()
+        result = repo.get_by_id(model.id, tenant_a)
+        assert result.has_editions is True
 
     def test_save_persists_has_editions_false(self, db: Session, tenant_a):
         """Offer.save path — when the wizard creates with has_editions=False."""

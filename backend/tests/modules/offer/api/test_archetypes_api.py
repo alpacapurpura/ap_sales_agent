@@ -44,12 +44,27 @@ class TestArchetypeCatalogEndpoint:
         assert "salidas" in exp["editions_wizard_copy"]["title"].lower()
         assert exp["edition_noun_es"] == "salida"
 
-    def test_producto_has_no_wizard_copy(self) -> None:
+    def test_producto_exposes_sku_variant_structure(self) -> None:
+        """Sprint 15.1: PRODUCTO now surfaces variant support (SKU_VARIANT)."""
         resp = _client().get("/api/v1/offer/archetypes/catalog")
         prod = next(item for item in resp.json()["archetypes"] if item["archetype"] == OfferArchetype.PRODUCTO.value)
-        assert prod["supports_editions"] is False
-        assert prod["editions_wizard_copy"] is None
-        assert prod["edition_structure"] == "none"
+        assert prod["supports_editions"] is True
+        assert prod["default_variant_structure"] == "sku_variant"
+        assert "sku_variant" in prod["supported_variant_structures"]
+        assert prod["allow_single_variant"] is True
+        assert prod["edition_noun_es"] == "variante"
+        assert prod["editions_wizard_copy"] is not None
+
+    def test_membresia_exposes_tier_variant_structure(self) -> None:
+        """Sprint 15.1: MEMBRESIA now surfaces TIER plans (Gold / Platinum)."""
+        resp = _client().get("/api/v1/offer/archetypes/catalog")
+        mem = next(item for item in resp.json()["archetypes"] if item["archetype"] == OfferArchetype.MEMBRESIA.value)
+        assert mem["supports_editions"] is True
+        assert mem["default_variant_structure"] == "tier"
+        assert "tier" in mem["supported_variant_structures"]
+        assert mem["allow_single_variant"] is True
+        assert mem["edition_noun_es"] == "plan"
+        assert mem["editions_wizard_copy"] is not None
 
 
 class TestSectionExposure:

@@ -39,7 +39,8 @@ class TestOfferServiceAutoPlaceholder:
         assert len(editions) == 1
         ed = editions[0]
         assert ed.edition_number == 1
-        assert ed.edition_name == "Edición #1"
+        # Sprint 15.1: placeholder name is noun-dynamic. PROGRAMA → "Cohorte #1".
+        assert ed.edition_name == "Cohorte #1"
         assert ed.start_date is None
         assert ed.status is EditionStatus.DRAFT
         assert ed.visibility is EditionVisibility.PRIVATE
@@ -66,8 +67,14 @@ class TestOfferServiceAutoPlaceholder:
         assert len(editions) == 1
         assert editions[0].variant_structure is VariantStructure.TEMPORAL_SINGLE_DATE
 
-    def test_producto_archetype_does_not_spawn_placeholder(self, db: Session, tenant_a: uuid.UUID) -> None:
-        """Rule: PRODUCTO and MEMBRESIA don't support editions — no placeholder."""
+    def test_producto_archetype_spawns_sku_variant_placeholder(self, db: Session, tenant_a: uuid.UUID) -> None:
+        """Sprint 15.1: PRODUCTO now spawns a SKU_VARIANT placeholder.
+
+        ``allow_single_variant=True`` lets the UX collapse the 1-SKU case
+        into a direct editor, but at the data layer every offer owns a
+        placeholder variant so override fields (pricing, inventory,
+        attributes) always have a target row.
+        """
         svc = OfferService(db)
         offer = svc.create_offer(
             name="Mi ebook",
@@ -77,7 +84,24 @@ class TestOfferServiceAutoPlaceholder:
         db.flush()
 
         editions = LaunchEditionService(db).list_editions(offer.id, tenant_a)
-        assert editions == []
+        assert len(editions) == 1
+        assert editions[0].variant_structure is VariantStructure.SKU_VARIANT
+        assert editions[0].edition_name.startswith("Variante")
+
+    def test_membresia_archetype_spawns_tier_placeholder(self, db: Session, tenant_a: uuid.UUID) -> None:
+        """Sprint 15.1: MEMBRESIA now spawns a TIER placeholder (plan Gold / Platinum)."""
+        svc = OfferService(db)
+        offer = svc.create_offer(
+            name="Mi membresía",
+            tenant_id=tenant_a,
+            archetype=OfferArchetype.MEMBRESIA,
+        )
+        db.flush()
+
+        editions = LaunchEditionService(db).list_editions(offer.id, tenant_a)
+        assert len(editions) == 1
+        assert editions[0].variant_structure is VariantStructure.TIER
+        assert editions[0].edition_name.startswith("Plan")
 
     def test_experiencia_archetype_spawns_placeholder(self, db: Session, tenant_a: uuid.UUID) -> None:
         svc = OfferService(db)

@@ -11,13 +11,13 @@ import pytest
 from src.modules.offer.domain.archetype_catalog import (
     ARCHETYPE_CATALOG,
     ArchetypeCapabilities,
-    EditionStructure,
     get_capabilities,
 )
 from src.modules.offer.domain.enums import (
     FulfillmentType,
     OfferArchetype,
     OfferDeliveryModel,
+    VariantStructure,
 )
 
 
@@ -38,7 +38,12 @@ class TestCatalogCompleteness:
 
 
 class TestSupportsEditions:
-    """Rule: PRODUCTO and MEMBRESIA never support editions (evergreen)."""
+    """Sprint 15.1: every archetype supports editions via ``VariantStructure``.
+
+    PRODUCTO uses SKU_VARIANT (talla/color/material), MEMBRESIA uses TIER
+    (plan Gold/Platinum/Enterprise). The ``allow_single_variant`` flag
+    lets the UX collapse one-variant offers into a direct editor.
+    """
 
     @pytest.mark.parametrize(
         ("archetype", "expected"),
@@ -46,8 +51,8 @@ class TestSupportsEditions:
             (OfferArchetype.EXPERIENCIA, True),
             (OfferArchetype.PROGRAMA, True),
             (OfferArchetype.SERVICIO, True),
-            (OfferArchetype.PRODUCTO, False),
-            (OfferArchetype.MEMBRESIA, False),
+            (OfferArchetype.PRODUCTO, True),
+            (OfferArchetype.MEMBRESIA, True),
         ],
     )
     def test_supports_editions_matches_product_rules(
@@ -57,12 +62,39 @@ class TestSupportsEditions:
     ) -> None:
         assert get_capabilities(archetype).supports_editions is expected
 
-    def test_archetypes_without_editions_have_none_structure(self) -> None:
-        for caps in ARCHETYPE_CATALOG.values():
-            if not caps.supports_editions:
-                assert caps.edition_structure is EditionStructure.NONE
-                assert caps.edition_noun_es == ""
-                assert caps.edition_noun_plural_es == ""
+    @pytest.mark.parametrize(
+        ("archetype", "expected_default"),
+        [
+            (OfferArchetype.EXPERIENCIA, VariantStructure.TEMPORAL_SINGLE_DATE),
+            (OfferArchetype.PROGRAMA, VariantStructure.TEMPORAL_COHORT),
+            (OfferArchetype.SERVICIO, VariantStructure.RECURRING_INTAKE),
+            (OfferArchetype.PRODUCTO, VariantStructure.SKU_VARIANT),
+            (OfferArchetype.MEMBRESIA, VariantStructure.TIER),
+        ],
+    )
+    def test_default_variant_structure_matches_archetype(
+        self,
+        archetype: OfferArchetype,
+        expected_default: VariantStructure,
+    ) -> None:
+        assert get_capabilities(archetype).default_variant_structure is expected_default
+
+    @pytest.mark.parametrize(
+        ("archetype", "expected_single"),
+        [
+            (OfferArchetype.EXPERIENCIA, True),
+            (OfferArchetype.PROGRAMA, False),  # cohorts are intrinsically plural
+            (OfferArchetype.SERVICIO, True),
+            (OfferArchetype.PRODUCTO, True),
+            (OfferArchetype.MEMBRESIA, True),
+        ],
+    )
+    def test_allow_single_variant_matches_archetype(
+        self,
+        archetype: OfferArchetype,
+        expected_single: bool,
+    ) -> None:
+        assert get_capabilities(archetype).allow_single_variant is expected_single
 
 
 class TestEditionsWizardCopy:
@@ -75,14 +107,6 @@ class TestEditionsWizardCopy:
                 assert caps.editions_wizard_description_es, caps.archetype
                 assert caps.editions_wizard_yes_label_es, caps.archetype
                 assert caps.editions_wizard_no_label_es, caps.archetype
-
-    def test_no_wizard_copy_for_non_edition_archetypes(self) -> None:
-        for caps in ARCHETYPE_CATALOG.values():
-            if not caps.supports_editions:
-                assert caps.editions_wizard_title_es is None, caps.archetype
-                assert caps.editions_wizard_description_es is None, caps.archetype
-                assert caps.editions_wizard_yes_label_es is None, caps.archetype
-                assert caps.editions_wizard_no_label_es is None, caps.archetype
 
     def test_spanish_copy_uses_correct_accents(self) -> None:
         programa = get_capabilities(OfferArchetype.PROGRAMA)
@@ -128,9 +152,10 @@ class TestPublishingConstraints:
         caps = get_capabilities(OfferArchetype.EXPERIENCIA)
         assert caps.requires_location_on_publish is True
 
-    def test_non_edition_archetypes_require_nothing_on_publish(self) -> None:
-        for caps in ARCHETYPE_CATALOG.values():
-            if not caps.supports_editions:
-                assert caps.requires_start_date_on_publish is False
-                assert caps.requires_end_date_on_publish is False
-                assert caps.requires_location_on_publish is False
+    def test_tier_and_sku_archetypes_require_nothing_on_publish(self) -> None:
+        """PRODUCTO (SKU) and MEMBRESIA (TIER) have no temporal publish gate."""
+        for archetype in (OfferArchetype.PRODUCTO, OfferArchetype.MEMBRESIA):
+            caps = get_capabilities(archetype)
+            assert caps.requires_start_date_on_publish is False
+            assert caps.requires_end_date_on_publish is False
+            assert caps.requires_location_on_publish is False

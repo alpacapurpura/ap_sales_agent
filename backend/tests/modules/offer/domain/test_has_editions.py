@@ -1,4 +1,11 @@
-"""Tests for Offer.has_editions field — wizard-driven edition visibility."""
+"""Tests for Offer.has_editions field — wizard-driven variant visibility.
+
+Sprint 15.1: ``has_editions`` is now True by default for every archetype
+(PROGRAMA cohorts, SERVICIO convocatorias, EXPERIENCIA salidas, PRODUCTO
+SKUs, MEMBRESIA planes). The flag is still user-overridable to False so a
+tenant can run an evergreen / single-variant offer without the collection
+ceremony.
+"""
 
 import uuid
 
@@ -31,58 +38,50 @@ def _make_offer(archetype: OfferArchetype, **overrides) -> Offer:
 
 
 class TestHasEditionsDefault:
-    """Archetype-aware default for has_editions.
+    """Every archetype defaults ``has_editions=True`` post Sprint 15.1.
 
-    Mirrors current UX expectations:
-    - PROGRAMA/SERVICIO/EXPERIENCIA default to True (editions section visible)
-    - PRODUCTO/MEMBRESIA default to False (editions section hidden, N/A)
+    The UX still decides whether to *surface* the collection view — e.g.
+    MEMBRESIA with ``allow_single_variant=True`` + a single TIER plan
+    collapses to the direct editor. But at the domain level the flag is
+    uniformly True so ``_ensure_placeholder_edition`` can spawn the first
+    variant for any archetype.
     """
 
-    def test_default_true_for_programa(self):
-        offer = _make_offer(OfferArchetype.PROGRAMA)
-        assert offer.has_editions is True
+    def test_default_true_for_programa(self) -> None:
+        assert _make_offer(OfferArchetype.PROGRAMA).has_editions is True
 
-    def test_default_true_for_servicio(self):
-        offer = _make_offer(OfferArchetype.SERVICIO)
-        assert offer.has_editions is True
+    def test_default_true_for_servicio(self) -> None:
+        assert _make_offer(OfferArchetype.SERVICIO).has_editions is True
 
-    def test_default_true_for_experiencia(self):
-        offer = _make_offer(OfferArchetype.EXPERIENCIA)
-        assert offer.has_editions is True
+    def test_default_true_for_experiencia(self) -> None:
+        assert _make_offer(OfferArchetype.EXPERIENCIA).has_editions is True
 
-    def test_default_false_for_producto(self):
-        offer = _make_offer(OfferArchetype.PRODUCTO)
-        assert offer.has_editions is False
+    def test_default_true_for_producto(self) -> None:
+        """PRODUCTO admits SKU_VARIANT (talla/color) — editions are now legitimate."""
+        assert _make_offer(OfferArchetype.PRODUCTO).has_editions is True
 
-    def test_default_false_for_membresia(self):
-        offer = _make_offer(OfferArchetype.MEMBRESIA)
-        assert offer.has_editions is False
+    def test_default_true_for_membresia(self) -> None:
+        """MEMBRESIA admits TIER (plan Gold/Platinum) — editions are now legitimate."""
+        assert _make_offer(OfferArchetype.MEMBRESIA).has_editions is True
 
 
 class TestHasEditionsExplicit:
     """When the wizard passes the field explicitly, domain must honor it."""
 
-    def test_programa_can_be_set_to_false(self):
+    def test_programa_can_be_set_to_false(self) -> None:
         """User said 'no cohortes' in the wizard for an evergreen program."""
-        offer = _make_offer(OfferArchetype.PROGRAMA, has_editions=False)
-        assert offer.has_editions is False
+        assert _make_offer(OfferArchetype.PROGRAMA, has_editions=False).has_editions is False
 
-    def test_servicio_can_be_set_to_false(self):
-        """User said 'no convocatorias' for an on-demand service."""
-        offer = _make_offer(OfferArchetype.SERVICIO, has_editions=False)
-        assert offer.has_editions is False
+    def test_servicio_can_be_set_to_false(self) -> None:
+        assert _make_offer(OfferArchetype.SERVICIO, has_editions=False).has_editions is False
 
-    def test_experiencia_can_be_set_to_false(self):
-        """User said 'una sola salida' for a one-time event."""
-        offer = _make_offer(OfferArchetype.EXPERIENCIA, has_editions=False)
-        assert offer.has_editions is False
+    def test_experiencia_can_be_set_to_false(self) -> None:
+        assert _make_offer(OfferArchetype.EXPERIENCIA, has_editions=False).has_editions is False
 
-    def test_producto_cannot_opt_in(self):
-        """Archetypes that don't support editions ignore has_editions=True."""
-        offer = _make_offer(OfferArchetype.PRODUCTO, has_editions=True)
-        assert offer.has_editions is False
+    def test_producto_can_be_set_to_false(self) -> None:
+        """Producto sin variantes (1 ebook, 1 SKU) opt-outs via has_editions=False."""
+        assert _make_offer(OfferArchetype.PRODUCTO, has_editions=False).has_editions is False
 
-    def test_membresia_cannot_opt_in(self):
-        """Membresía is evergreen by definition — no editions ever."""
-        offer = _make_offer(OfferArchetype.MEMBRESIA, has_editions=True)
-        assert offer.has_editions is False
+    def test_membresia_can_be_set_to_false(self) -> None:
+        """Membresía con 1 plan único opt-outs via has_editions=False."""
+        assert _make_offer(OfferArchetype.MEMBRESIA, has_editions=False).has_editions is False

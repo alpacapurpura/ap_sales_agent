@@ -91,7 +91,6 @@ class ArchetypeCapabilitiesDTO(BaseModel):
 
     archetype: str
     supports_editions: bool
-    edition_structure: str
     edition_noun_es: str
     edition_noun_plural_es: str
     requires_start_date_on_publish: bool
@@ -101,6 +100,10 @@ class ArchetypeCapabilitiesDTO(BaseModel):
     supports_waitlist: bool
     default_delivery: str
     default_fulfillment: str
+    # Sprint 15.1 — variant structure metadata surfaced to clients.
+    default_variant_structure: str | None = None
+    supported_variant_structures: list[str]
+    allow_single_variant: bool
     label_es: str
     subtitle_es: str
     icon_name: str
@@ -125,7 +128,6 @@ class ArchetypeCapabilitiesDTO(BaseModel):
         return cls(
             archetype=caps.archetype.value,
             supports_editions=caps.supports_editions,
-            edition_structure=caps.edition_structure.value,
             edition_noun_es=caps.edition_noun_es,
             edition_noun_plural_es=caps.edition_noun_plural_es,
             requires_start_date_on_publish=caps.requires_start_date_on_publish,
@@ -135,6 +137,11 @@ class ArchetypeCapabilitiesDTO(BaseModel):
             supports_waitlist=caps.supports_waitlist,
             default_delivery=caps.default_delivery.value,
             default_fulfillment=caps.default_fulfillment.value,
+            default_variant_structure=(
+                caps.default_variant_structure.value if caps.default_variant_structure else None
+            ),
+            supported_variant_structures=[s.value for s in caps.supported_variant_structures],
+            allow_single_variant=caps.allow_single_variant,
             label_es=caps.label_es,
             subtitle_es=caps.subtitle_es,
             icon_name=caps.icon_name,
@@ -160,7 +167,7 @@ class ArchetypeCatalogResponse(BaseModel):
 # Bump this when ``archetype_catalog.py`` OR ``section_catalog.py`` changes
 # materially. Clients use it as the cache key so old copies are evicted on
 # deploy.
-_CATALOG_VERSION = "2026-04-18-sections-latam-v3"
+_CATALOG_VERSION = "2026-04-20-variant-structures-v4"
 
 
 @router.get(

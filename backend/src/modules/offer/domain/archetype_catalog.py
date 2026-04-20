@@ -19,7 +19,6 @@ Why a frozen ``dataclass`` constant and not a DB table:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import StrEnum
 
 from src.modules.offer.domain.enums import (
     FulfillmentType,
@@ -28,15 +27,6 @@ from src.modules.offer.domain.enums import (
     VariantStructure,
 )
 from src.modules.offer.domain.section_catalog import SectionKey
-
-
-class EditionStructure(StrEnum):
-    """How editions are modeled temporally for a given archetype."""
-
-    NONE = "none"  # no editions (evergreen product / subscription)
-    SINGLE_DATE = "single_date"  # one-off event at a date (workshop, masterclass)
-    COHORT = "cohort"  # start → end window (bootcamp, group mentorship)
-    RECURRING = "recurring"  # rolling batches (monthly service intake)
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,9 +39,14 @@ class ArchetypeCapabilities:
 
     archetype: OfferArchetype
 
-    # Edition capability
+    # Variant / edition capability.
+    # ``supports_editions`` is the canonical predicate: True iff the archetype
+    # admits a ``LaunchEdition`` (variant instance). The noun labels drive UX
+    # copy via ``VariantStructureMetadata.noun_es`` — kept here as overrides
+    # when the archetype's canonical noun differs from the default variant
+    # structure's noun (e.g. COACH_MEMBRESIA still says "plan" regardless of
+    # which structure is chosen for a specific tenant).
     supports_editions: bool
-    edition_structure: EditionStructure
     edition_noun_es: str
     edition_noun_plural_es: str
 
@@ -101,12 +96,26 @@ class ArchetypeCapabilities:
     # any drift between ``supports_editions`` and this field.
     default_variant_structure: VariantStructure | None = None
 
+    # Ordered tuple of ``VariantStructure`` values the archetype accepts. The
+    # wizard renders a "¿Cómo varía tu oferta?" step ONLY when this tuple
+    # holds more than one entry — presets can fix the structure up front via
+    # ``OfferTypePreset.default_variant_structure`` to skip the step. The
+    # default MUST be a member of this tuple (enforced by
+    # ``test_archetype_default_in_supported_variant_structures``).
+    supported_variant_structures: tuple[VariantStructure, ...] = field(default_factory=tuple)
+
+    # True when the UX may collapse a single-variant offer into a direct
+    # editor without rendering the collection landing page (TIER membership
+    # with one plan, PRODUCTO with one SKU). Archetypes whose variant is
+    # intrinsically plural (PROGRAMA cohortes) should keep this False — the
+    # rail is part of the mental model even when only one cohort exists yet.
+    allow_single_variant: bool = False
+
 
 ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
     OfferArchetype.EXPERIENCIA: ArchetypeCapabilities(
         archetype=OfferArchetype.EXPERIENCIA,
         supports_editions=True,
-        edition_structure=EditionStructure.SINGLE_DATE,
         edition_noun_es="salida",
         edition_noun_plural_es="salidas",
         requires_start_date_on_publish=True,
@@ -117,6 +126,13 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         default_delivery=OfferDeliveryModel.DWY,
         default_fulfillment=FulfillmentType.MANUAL_PROVISIONING,
         default_variant_structure=VariantStructure.TEMPORAL_SINGLE_DATE,
+        supported_variant_structures=(
+            VariantStructure.TEMPORAL_SINGLE_DATE,
+            VariantStructure.MODALITY,
+            VariantStructure.LANGUAGE,
+            VariantStructure.REGIONAL,
+        ),
+        allow_single_variant=True,
         label_es="Experiencia / Evento",
         subtitle_es="Un momento o evento único",
         icon_name="Tent",
@@ -155,7 +171,6 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
     OfferArchetype.PROGRAMA: ArchetypeCapabilities(
         archetype=OfferArchetype.PROGRAMA,
         supports_editions=True,
-        edition_structure=EditionStructure.COHORT,
         edition_noun_es="cohorte",
         edition_noun_plural_es="cohortes",
         requires_start_date_on_publish=True,
@@ -166,6 +181,13 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         default_delivery=OfferDeliveryModel.DWY,
         default_fulfillment=FulfillmentType.LMS_ACCESS,
         default_variant_structure=VariantStructure.TEMPORAL_COHORT,
+        supported_variant_structures=(
+            VariantStructure.TEMPORAL_COHORT,
+            VariantStructure.MODALITY,
+            VariantStructure.LANGUAGE,
+            VariantStructure.REGIONAL,
+        ),
+        allow_single_variant=False,
         label_es="Programa",
         subtitle_es="Un proceso con inicio, pasos y resultado",
         icon_name="Map",
@@ -202,7 +224,6 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
     OfferArchetype.SERVICIO: ArchetypeCapabilities(
         archetype=OfferArchetype.SERVICIO,
         supports_editions=True,
-        edition_structure=EditionStructure.RECURRING,
         edition_noun_es="convocatoria",
         edition_noun_plural_es="convocatorias",
         requires_start_date_on_publish=False,
@@ -213,6 +234,14 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         default_delivery=OfferDeliveryModel.DFY,
         default_fulfillment=FulfillmentType.MANUAL_PROVISIONING,
         default_variant_structure=VariantStructure.RECURRING_INTAKE,
+        supported_variant_structures=(
+            VariantStructure.RECURRING_INTAKE,
+            VariantStructure.TIER,
+            VariantStructure.MODALITY,
+            VariantStructure.LANGUAGE,
+            VariantStructure.REGIONAL,
+        ),
+        allow_single_variant=True,
         label_es="Servicio",
         subtitle_es="Trabajo que hago para o con alguien",
         icon_name="Wrench",
@@ -250,17 +279,27 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
     ),
     OfferArchetype.PRODUCTO: ArchetypeCapabilities(
         archetype=OfferArchetype.PRODUCTO,
-        supports_editions=False,
-        edition_structure=EditionStructure.NONE,
-        edition_noun_es="",
-        edition_noun_plural_es="",
+        # Sprint 15.1: PRODUCTO is promoted to supports_editions=True so
+        # ecommerce tenants can model SKU variants (talla / color / material).
+        # Offers without variants remain legitimate — ``allow_single_variant``
+        # lets the UX collapse the 1-SKU case to the direct editor.
+        supports_editions=True,
+        edition_noun_es="variante",
+        edition_noun_plural_es="variantes",
         requires_start_date_on_publish=False,
         requires_end_date_on_publish=False,
         requires_location_on_publish=False,
-        supports_capacity=False,
+        supports_capacity=True,  # SKU inventory
         supports_waitlist=False,
         default_delivery=OfferDeliveryModel.DIY,
         default_fulfillment=FulfillmentType.DIGITAL_DOWNLOAD,
+        default_variant_structure=VariantStructure.SKU_VARIANT,
+        supported_variant_structures=(
+            VariantStructure.SKU_VARIANT,
+            VariantStructure.REGIONAL,
+            VariantStructure.LANGUAGE,
+        ),
+        allow_single_variant=True,
         label_es="Producto",
         subtitle_es="Algo que creas y empaquetas",
         icon_name="Package",
@@ -271,6 +310,13 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
             "Guía",
             "Producto físico",
         ),
+        editions_wizard_title_es="¿Tiene variantes (talla, color, material, formato)?",
+        editions_wizard_description_es=(
+            "Las variantes son versiones del mismo producto que se diferencian por atributos. "
+            "Cada variante tiene su propio SKU e inventario."
+        ),
+        editions_wizard_yes_label_es="Sí, tengo variantes",
+        editions_wizard_no_label_es="No, es un producto único",
         sections=(
             SectionKey.IDENTITY,
             SectionKey.STRATEGY,
@@ -289,17 +335,28 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
     ),
     OfferArchetype.MEMBRESIA: ArchetypeCapabilities(
         archetype=OfferArchetype.MEMBRESIA,
-        supports_editions=False,
-        edition_structure=EditionStructure.NONE,
-        edition_noun_es="",
-        edition_noun_plural_es="",
+        # Sprint 15.1: MEMBRESIA is promoted to supports_editions=True so
+        # membership tenants can model tier plans (Gold / Platinum / Enterprise).
+        # ``allow_single_variant`` keeps the "one plan" case ceremony-free
+        # when a tenant runs a flat-priced membership.
+        supports_editions=True,
+        edition_noun_es="plan",
+        edition_noun_plural_es="planes",
         requires_start_date_on_publish=False,
         requires_end_date_on_publish=False,
         requires_location_on_publish=False,
-        supports_capacity=False,
+        supports_capacity=True,  # per-plan seat caps (mastermind, enterprise)
         supports_waitlist=False,
         default_delivery=OfferDeliveryModel.DIY,
         default_fulfillment=FulfillmentType.LMS_ACCESS,
+        default_variant_structure=VariantStructure.TIER,
+        supported_variant_structures=(
+            VariantStructure.TIER,
+            VariantStructure.MODALITY,
+            VariantStructure.LANGUAGE,
+            VariantStructure.REGIONAL,
+        ),
+        allow_single_variant=True,
         label_es="Membresía",
         subtitle_es="Acceso continuo por suscripción",
         icon_name="RefreshCw",
@@ -309,6 +366,13 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
             "Mastermind",
             "Club",
         ),
+        editions_wizard_title_es="¿Tiene distintos planes o niveles?",
+        editions_wizard_description_es=(
+            "Los planes son niveles paralelos de la misma membresía con precio y beneficios "
+            "distintos (Básico, Premium, Enterprise)."
+        ),
+        editions_wizard_yes_label_es="Sí, tengo varios planes",
+        editions_wizard_no_label_es="No, es un plan único",
         sections=(
             SectionKey.IDENTITY,
             SectionKey.STRATEGY,
