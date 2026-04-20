@@ -48,13 +48,15 @@ describe("useArchetypeCapabilities", () => {
     expect(result.current?.editions_wizard_copy).not.toBeNull();
   });
 
-  it("returns capabilities with null wizard copy for non-edition archetype", async () => {
+  it("returns sku-variant capabilities for PRODUCTO (Sprint 15.1)", async () => {
     const { result } = renderHook(() => useArchetypeCapabilities(OfferArchetype.PRODUCTO), {
       wrapper,
     });
     await waitFor(() => expect(result.current).toBeDefined());
-    expect(result.current?.supports_editions).toBe(false);
-    expect(result.current?.editions_wizard_copy).toBeNull();
+    expect(result.current?.supports_editions).toBe(true);
+    expect(result.current?.default_variant_structure).toBe("sku_variant");
+    expect(result.current?.allow_single_variant).toBe(true);
+    expect(result.current?.edition_noun_es).toBe("variante");
   });
 
   it("returns undefined for undefined archetype", () => {

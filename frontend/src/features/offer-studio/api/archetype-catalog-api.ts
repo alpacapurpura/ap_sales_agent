@@ -16,7 +16,25 @@ export interface EditionsWizardCopy {
   readonly no_label: string;
 }
 
-export type EditionStructure = "none" | "single_date" | "cohort" | "recurring";
+/**
+ * Sprint 15.1 — canonical variant taxonomy. Mirrors the backend
+ * ``VariantStructure`` enum verbatim. Covers every way an offer can
+ * fragment into sellable instances, regardless of whether those instances
+ * are temporal (cohortes, salidas) or non-temporal (planes, SKUs,
+ * modalidades, idiomas, regiones).
+ *
+ * Changes here require a coordinated backend change —
+ * ``variant_structure_catalog.py`` is the single source of truth.
+ */
+export type VariantStructure =
+  | "temporal_cohort"
+  | "temporal_single_date"
+  | "recurring_intake"
+  | "tier"
+  | "sku_variant"
+  | "regional"
+  | "modality"
+  | "language";
 
 /**
  * Stable identifier for an Offer Studio editor section.
@@ -83,7 +101,6 @@ export interface SectionMetadata {
 export interface ArchetypeCapabilities {
   readonly archetype: OfferArchetype;
   readonly supports_editions: boolean;
-  readonly edition_structure: EditionStructure;
   readonly edition_noun_es: string;
   readonly edition_noun_plural_es: string;
   readonly requires_start_date_on_publish: boolean;
@@ -93,6 +110,18 @@ export interface ArchetypeCapabilities {
   readonly supports_waitlist: boolean;
   readonly default_delivery: string;
   readonly default_fulfillment: string;
+  /** Sprint 15.1 — default variant structure assigned to the placeholder
+   *  edition spawned at offer creation. ``null`` iff the archetype does not
+   *  support editions (defensive — post-15.1 every archetype supports
+   *  variants). */
+  readonly default_variant_structure: VariantStructure | null;
+  /** Sprint 15.1 — tuple of accepted structures. Drives the wizard's
+   *  "¿cómo varía tu oferta?" step when length > 1 and preset doesn't
+   *  force a specific structure. */
+  readonly supported_variant_structures: readonly VariantStructure[];
+  /** Sprint 15.1 — when true, UX may collapse a 1-variant offer into a
+   *  direct editor without rendering the collection landing. */
+  readonly allow_single_variant: boolean;
   readonly label_es: string;
   readonly subtitle_es: string;
   readonly icon_name: string;

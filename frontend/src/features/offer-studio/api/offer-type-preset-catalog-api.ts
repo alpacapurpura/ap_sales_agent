@@ -1,7 +1,7 @@
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
 
-import type { SectionKey } from "./archetype-catalog-api";
+import type { SectionKey, VariantStructure } from "./archetype-catalog-api";
 import type { OfferArchetype, OfferValueLevel } from "../types";
 
 const API_URL = config.api.baseUrl;
@@ -71,6 +71,11 @@ export interface OfferTypePreset {
   /** Latam-specific hint shown below the preset card in admin/help surfaces. */
   readonly suitability_note_es: string;
   readonly examples_es: readonly string[];
+  /** Sprint 15.1 — optional preset-level override of the archetype's
+   *  default variant structure. When set, the wizard skips the "¿cómo
+   *  varía?" step and applies this structure directly (e.g.
+   *  ``consultor_retainer`` forcing ``tier`` over ``recurring_intake``). */
+  readonly default_variant_structure: VariantStructure | null;
 }
 
 export interface OfferTypePresetCatalogResponse {
