@@ -89,7 +89,7 @@ class VariantStructuresCatalogResponse(BaseModel):
 
 # Bump this when ``variant_structure_catalog.py`` changes materially.
 # Clients use it as the cache key so old copies are evicted on deploy.
-_CATALOG_VERSION = "2026-04-18"
+_CATALOG_VERSION = "2026-04-20-variant-structures-v4"
 
 
 @router.get(

@@ -76,6 +76,11 @@ class OfferTypePresetDTO(BaseModel):
     default_flags: list[str]
     suitability_note_es: str
     examples_es: list[str]
+    # Sprint 15.1 — optional preset-level override of the archetype's
+    # default variant structure. ``None`` means "inherit archetype default".
+    # When set, the wizard skips the "¿cómo varía?" step and applies this
+    # structure directly (e.g. consultor_retainer forcing TIER).
+    default_variant_structure: str | None = None
 
     @classmethod
     def from_domain(cls, preset: OfferTypePreset) -> OfferTypePresetDTO:
@@ -93,6 +98,9 @@ class OfferTypePresetDTO(BaseModel):
             default_flags=[f.value for f in preset.default_flags],
             suitability_note_es=preset.suitability_note_es,
             examples_es=list(preset.examples_es),
+            default_variant_structure=(
+                preset.default_variant_structure.value if preset.default_variant_structure else None
+            ),
         )
 
 
@@ -109,7 +117,7 @@ class OfferTypePresetCatalogResponse(BaseModel):
 # Bump this when ``offer_type_preset_catalog.py`` changes materially (adding,
 # removing or renaming a preset, question or flag). Clients key their cache
 # off this string.
-_CATALOG_VERSION = "2026-04-20.2"
+_CATALOG_VERSION = "2026-04-20-variant-structures-v4"
 
 
 @router.get(
