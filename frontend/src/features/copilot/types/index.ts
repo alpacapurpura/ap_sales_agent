@@ -1,20 +1,18 @@
 /**
- * Copilot types — unified exports from store and domain
+ * Copilot types — unified exports from store and domain.
  *
- * This module re-exports copilot types following FSD convention.
- * Domain types (FocusEntity, InterviewProgress) are sourced from the store,
- * which is the canonical location for Zustand state interface definitions.
+ * Domain types are sourced from the store, which is the canonical location
+ * for Zustand state interface definitions.
  */
 
-// ── Store domain types ──
 export type {
+  ActiveProcedure,
   CopilotMessage,
+  CopilotSession,
   CopilotStatus,
-  FocusEntity,
-  InterviewProgress,
+  FocusedField,
   MessageRole,
   ProcedureStepStatus,
-  ActiveProcedure,
   ProposalUpdate,
   SelectedField,
   SidebarState,

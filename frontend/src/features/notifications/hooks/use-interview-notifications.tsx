@@ -11,15 +11,16 @@ import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 import type { Notification } from "../types";
 
 /**
- *
+ * Surfaces a "paused interview" notification when the backend reports an
+ * unfinished interview for the tenant. Hidden while the user already has
+ * an active copilot session; "Continuar" restores the paused interview
+ * by installing it as the current session and opening the sidebar.
  */
 export function useInterviewNotifications(): Notification[] {
   const { getToken } = useAuth();
-  const setInterviewSession = useCopilotStore((s) => s.setInterviewSession);
-  const setFocusEntity = useCopilotStore((s) => s.setFocusEntity);
+  const setSession = useCopilotStore((s) => s.setSession);
   const setSidebarState = useCopilotStore((s) => s.setSidebarState);
-  const setInterviewProgress = useCopilotStore((s) => s.setInterviewProgress);
-  const interviewSessionId = useCopilotStore((s) => s.interviewSessionId);
+  const session = useCopilotStore((s) => s.session);
 
   const { data: active } = useQuery({
     queryKey: ["interview", "active"],
@@ -32,7 +33,8 @@ export function useInterviewNotifications(): Notification[] {
   });
 
   return useMemo(() => {
-    if (interviewSessionId) return [];
+    // Hide the paused-interview notification while a session is running.
+    if (session) return [];
     if (!active?.bloques_completados) return [];
 
     const notification: Notification = {
@@ -46,27 +48,23 @@ export function useInterviewNotifications(): Notification[] {
       cta: {
         label: "Continuar",
         onClick: () => {
-          setInterviewSession(active.session_id);
-          setFocusEntity({
-            domain: active.domain as "brand" | "offer" | "buyer_persona",
+          setSession({
+            sectionKey: `${active.domain}.root`,
             label: active.domain_label,
+            entityId: null,
+            procedure: "interview",
+            sessionId: active.session_id,
+            progress: {
+              totalBlocks: active.total_bloques,
+              blocksCompleted: active.bloques_completados,
+            },
+            startedAt: new Date(),
+            snapshot: {},
           });
-          setInterviewProgress({
-            currentBlock: "",
-            blocksCompleted: active.bloques_completados,
-            totalBlocks: active.total_bloques,
-          });
-          setSidebarState("expanded");
+          setSidebarState("open");
         },
       },
     };
     return [notification];
-  }, [
-    active,
-    interviewSessionId,
-    setInterviewSession,
-    setFocusEntity,
-    setInterviewProgress,
-    setSidebarState,
-  ]);
+  }, [active, session, setSession, setSidebarState]);
 }

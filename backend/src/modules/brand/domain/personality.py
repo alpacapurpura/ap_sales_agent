@@ -73,7 +73,7 @@ class DimensionContract:
                 name="alta",
                 instruction=(
                     "Exclamaciones frecuentes. Ritmo ágil. Palabras de acción: "
-                    "'¡vamos!', '¡dale!', '¡hazlo!'. Contagia entusiasmo genuino."
+                    "'¡vamos!', '¡hazlo!', '¡adelante!'. Contagia entusiasmo genuino."
                 ),
             ),
             DimensionLevel(

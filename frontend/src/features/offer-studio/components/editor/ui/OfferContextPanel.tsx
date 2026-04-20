@@ -34,15 +34,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-
-import { cn } from "@/lib/utils";
-import { ARCHETYPE_METADATA } from "../../../config/archetype-metadata";
-import { OfferArchetype } from "../../../types";
-import { OfferFormValues } from "../../../types/schema";
-import type { Avatar } from "@/lib/api/avatar";
-
-import type { ArchetypeMetadata } from "../../../config/archetype-metadata";
-
 import {
   Sheet,
   SheetContent,
@@ -52,11 +43,17 @@ import {
   SheetTrigger,
   SheetFooter,
 } from "@/components/ui/sheet";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatMoney } from "@/lib/format-money";
+import { cn } from "@/lib/utils";
 
+import { useArchetypeDisplay } from "../../../hooks/use-archetype-display";
+import { OfferArchetype } from "../../../types";
 import { InstructorsPreview } from "../sections/instructors/InstructorsPreview";
 
-import { formatMoney } from "@/lib/format-money";
-import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import type { ArchetypeDisplay } from "../../../hooks/use-archetype-display";
+import type { OfferFormValues } from "../../../types/schema";
+import type { Avatar } from "@/lib/api/avatar";
 
 export type OfferPhase = "context" | "solution" | "deal";
 
@@ -84,6 +81,9 @@ export interface ValidationResult {
   isValid: boolean;
 }
 
+/**
+ *
+ */
 export function getOfferValidationStatus(values: OfferFormValues): ValidationResult {
   const checks: ValidationItem[] = [
     // Phase 1: Context
@@ -235,6 +235,9 @@ function FlightCheckCard({ status }: { status: ValidationResult }) {
   );
 }
 
+/**
+ *
+ */
 export function OfferContextPanel({
   phase,
   formValues,
@@ -244,9 +247,7 @@ export function OfferContextPanel({
   onFieldChange,
 }: OfferContextPanelProps) {
   const selectedAvatar = avatars.find((a) => a.id === formValues.avatar_id);
-  const archetypeMeta = formValues.archetype
-    ? ARCHETYPE_METADATA[formValues.archetype as OfferArchetype]
-    : null;
+  const archetypeDisplay = useArchetypeDisplay(formValues.archetype as OfferArchetype | undefined);
   const validationStatus = getOfferValidationStatus(formValues);
 
   return (
@@ -264,14 +265,14 @@ export function OfferContextPanel({
               <ContextPhaseContent
                 values={formValues}
                 avatar={selectedAvatar}
-                archetypeMeta={archetypeMeta}
+                archetypeDisplay={archetypeDisplay}
                 isDirty={isDirty}
                 onSave={onSave}
                 onFieldChange={onFieldChange}
               />
             )}
             {phase === "solution" && (
-              <SolutionPhaseContent values={formValues} archetypeMeta={archetypeMeta} />
+              <SolutionPhaseContent values={formValues} archetypeDisplay={archetypeDisplay} />
             )}
             {phase === "deal" && <DealPhaseContent values={formValues} />}
           </div>
@@ -285,14 +286,14 @@ export function OfferContextPanel({
 function ContextPhaseContent({
   values,
   avatar,
-  archetypeMeta,
+  archetypeDisplay,
   isDirty,
   onSave,
   onFieldChange,
 }: {
   values: OfferFormValues;
   avatar?: Avatar;
-  archetypeMeta: ArchetypeMetadata | null;
+  archetypeDisplay: ArchetypeDisplay | undefined;
   isDirty?: boolean;
   onSave?: () => Promise<void>;
   onFieldChange?: (field: string, value: unknown) => void;
@@ -525,10 +526,10 @@ function ContextPhaseContent({
 // PHASE 2: SOLUTION CONTENT
 function SolutionPhaseContent({
   values,
-  archetypeMeta,
+  archetypeDisplay,
 }: {
   values: OfferFormValues;
-  archetypeMeta: ArchetypeMetadata | null;
+  archetypeDisplay: ArchetypeDisplay | undefined;
 }) {
   const { currency: tenantCurrency } = useTenantLocale();
   const displayCurrency = values.currency ?? tenantCurrency;
@@ -640,7 +641,7 @@ function SolutionPhaseContent({
                 "Tip: Sube un PDF técnico y el agente podrá responder '¿Cómo funciona X?' sin alucinar."}
               {salesAssets.length > 0 &&
                 knowledgeDocs.length === 0 &&
-                "Bien con la evidencia. Ahora dale un manual técnico para que no invente respuestas."}
+                "Bien con la evidencia. Ahora súmale un manual técnico para que no invente respuestas."}
               {knowledgeDocs.length > 0 &&
                 salesAssets.length === 0 &&
                 "Sabe mucho, pero es aburrido. Sube un video o imagen para cerrar ventas."}
@@ -653,7 +654,7 @@ function SolutionPhaseContent({
       {/* Offer Construct Preview */}
       <Card className="bg-background shadow-md border-l-4 border-l-primary">
         <CardHeader>
-          <Badge className="w-fit mb-2">{archetypeMeta?.label || "Oferta Genérica"}</Badge>
+          <Badge className="w-fit mb-2">{archetypeDisplay?.label ?? "Oferta Genérica"}</Badge>
           <CardTitle
             className={cn("text-lg leading-tight", !hasPromise && "text-muted-foreground italic")}
           >
@@ -675,7 +676,7 @@ function SolutionPhaseContent({
               El Vehículo (Delivery)
             </div>
             <div className="text-xs">
-              {archetypeMeta?.label} diseñado para entregar resultados en{" "}
+              {archetypeDisplay?.label} diseñado para entregar resultados en{" "}
               <span className="font-bold">{values.time_to_value || "X tiempo"}</span>.
             </div>
           </div>
@@ -713,8 +714,8 @@ function SolutionPhaseContent({
           <AlertCircle className="w-4 h-4" /> Check de Coherencia
         </h4>
         <p className="text-xs text-muted-foreground">
-          ¿El <strong>Vehículo</strong> que elegiste ({archetypeMeta?.label}) es capaz de entregar
-          la <strong>Promesa</strong> en el tiempo que indicaste?
+          ¿El <strong>Vehículo</strong> que elegiste ({archetypeDisplay?.label}) es capaz de
+          entregar la <strong>Promesa</strong> en el tiempo que indicaste?
         </p>
       </div>
     </div>

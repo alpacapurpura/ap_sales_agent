@@ -1,20 +1,11 @@
-import {
-  Check,
-  AlertCircle,
-  Circle,
-  PanelLeftClose,
-  PanelLeftOpen,
-  ChevronRight,
-} from "lucide-react";
-import React, { useState } from "react";
+import { Check, AlertCircle, Circle, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import React, { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import {
-  SECTION_REGISTRY,
-  getSectionsForOffer,
-} from "@/features/offer-studio/config/offer-builder-config";
+import { SECTION_REGISTRY } from "@/features/offer-studio/config/offer-builder-config";
+import { useSectionsForArchetype } from "@/features/offer-studio/hooks/use-sections-for-archetype";
 import { getOfferHealth } from "@/features/offer-studio/utils/offer-health";
 import { cn } from "@/lib/utils";
 
@@ -115,8 +106,9 @@ function NavSectionItem({
 
 export function OfferNavRail({ offer, activeSection, onNavigate, className }: OfferNavRailProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const sections = getSectionsForOffer(offer);
-  const health = getOfferHealth(offer);
+  const sectionsMeta = useSectionsForArchetype(offer.archetype);
+  const sections = useMemo(() => sectionsMeta?.map((s) => s.key) ?? [], [sectionsMeta]);
+  const health = useMemo(() => getOfferHealth(offer, sections), [offer, sections]);
 
   const handleNavigate = (sectionId: string) => {
     onNavigate(sectionId);

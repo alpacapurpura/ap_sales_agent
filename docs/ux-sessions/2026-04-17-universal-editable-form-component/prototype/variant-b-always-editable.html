@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Variante B · Always-editable</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .always-input {
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font: inherit;
+    transition: all 0.15s;
+  }
+  .always-input:hover { border-color: #e2e8f0; background: #fafafa; }
+  .always-input:focus { border-color: #a855f7; background: white; outline: none; box-shadow: 0 0 0 3px rgba(168,85,247,0.15); }
+  [data-field-id] { border-radius: 8px; padding: 0.25rem; }
+</style>
+</head>
+<body>
+<script src="_shell.js"></script>
+<script>
+const center = `
+<div class="max-w-3xl mx-auto p-8 space-y-8">
+
+  <!-- IDENTITY SECTION -->
+  <section class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="px-6 py-4 border-b bg-slate-50 flex items-center justify-between">
+      <div>
+        <h2 class="font-bold text-slate-900">Identidad</h2>
+        <p class="text-xs text-slate-500">Todos los campos están siempre editables. Autosave.</p>
+      </div>
+      <div class="text-xs text-amber-600 font-medium">⚠️ 2 cambios sin guardar · <button class="underline">Revertir</button></div>
+    </div>
+
+    <div class="p-5 space-y-3">
+      <div data-field-id="name" data-field-label="Nombre">
+        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-1 px-2">Nombre</label>
+        <input class="always-input text-lg font-semibold" value="Visionarias" />
+      </div>
+      <div data-field-id="tagline" data-field-label="Tagline">
+        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-1 px-2">Tagline</label>
+        <input class="always-input" value="Creadoras que viven de lo que aman" />
+      </div>
+      <div data-field-id="mission" data-field-label="Misión">
+        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-1 px-2">Misión</label>
+        <textarea rows="3" class="always-input resize-none">Ayudar a creadoras digitales a transformar su audiencia en clientes recurrentes sin vender su alma al algoritmo.</textarea>
+      </div>
+      <div data-field-id="voice_tone" data-field-label="Tono de voz">
+        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-1 px-2">Tono de voz</label>
+        <input class="always-input" value="Conversacional, aspiracional, directo con toques de humor." />
+      </div>
+    </div>
+  </section>
+
+  <!-- TEAM SECTION (items compuestos: drawer lateral) -->
+  <section class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="px-6 py-4 border-b bg-slate-50 flex items-center justify-between">
+      <div>
+        <h2 class="font-bold text-slate-900">Equipo</h2>
+        <p class="text-xs text-slate-500">Lista compacta. Click en un miembro → drawer lateral con sus campos editables.</p>
+      </div>
+      <button class="text-xs bg-purple-600 text-white rounded px-3 py-1.5 font-medium">+ Miembro</button>
+    </div>
+
+    <div class="divide-y divide-slate-100">
+      <div data-field-id="team-maria" data-field-label="María · Fundadora" data-field-domain="Equipo" class="flex items-center gap-4 p-4 hover:bg-slate-50 cursor-pointer">
+        <div class="h-8 w-8 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 font-bold text-xs">M</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-slate-900 text-sm">María Pérez</div>
+          <div class="text-xs text-slate-500">Fundadora · Voz principal</div>
+        </div>
+        <span class="text-xs text-slate-400">→</span>
+      </div>
+      <div data-field-id="team-carla" data-field-label="Carla · Head of Content" data-field-domain="Equipo" class="flex items-center gap-4 p-4 hover:bg-slate-50 cursor-pointer bg-purple-50/50">
+        <div class="h-8 w-8 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 font-bold text-xs">C</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-slate-900 text-sm">Carla Ríos</div>
+          <div class="text-xs text-slate-500">Head of Content</div>
+        </div>
+        <span class="text-xs text-purple-600 font-medium">en drawer →</span>
+      </div>
+      <div data-field-id="team-diego" data-field-label="Diego · Performance" data-field-domain="Equipo" class="flex items-center gap-4 p-4 hover:bg-slate-50 cursor-pointer">
+        <div class="h-8 w-8 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 font-bold text-xs">D</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-slate-900 text-sm">Diego Morán</div>
+          <div class="text-xs text-slate-500">Performance & Ads</div>
+        </div>
+        <span class="text-xs text-slate-400">→</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Drawer simulado (aparece flotante sobre los items) -->
+  <div class="fixed right-80 top-14 bottom-0 w-96 bg-white border-l-2 border-purple-400 shadow-2xl p-6 overflow-y-auto">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 font-bold">C</div>
+        <div>
+          <div class="font-bold text-slate-900">Carla Ríos</div>
+          <div class="text-xs text-slate-500">Editando miembro</div>
+        </div>
+      </div>
+      <button class="text-slate-400 hover:text-slate-600">✕</button>
+    </div>
+    <div class="space-y-3">
+      <div data-field-id="team-carla-name" data-field-label="Nombre (Carla)" data-field-domain="Equipo · Carla">
+        <label class="text-xs font-medium text-slate-500 uppercase block mb-1 px-2">Nombre</label>
+        <input class="always-input" value="Carla Ríos" />
+      </div>
+      <div data-field-id="team-carla-role" data-field-label="Rol (Carla)" data-field-domain="Equipo · Carla">
+        <label class="text-xs font-medium text-slate-500 uppercase block mb-1 px-2">Rol</label>
+        <input class="always-input" value="Head of Content" />
+      </div>
+      <div data-field-id="team-carla-bio" data-field-label="Bio (Carla)" data-field-domain="Equipo · Carla">
+        <label class="text-xs font-medium text-slate-500 uppercase block mb-1 px-2">Bio corta</label>
+        <textarea rows="3" class="always-input resize-none">Escribe desde los 17. Ha publicado en Malpensante, Etiqueta Negra y El País.</textarea>
+      </div>
+      <div data-field-id="team-carla-linkedin" data-field-label="LinkedIn (Carla)" data-field-domain="Equipo · Carla">
+        <label class="text-xs font-medium text-slate-500 uppercase block mb-1 px-2">LinkedIn</label>
+        <input class="always-input" value="linkedin.com/in/carlarios" />
+      </div>
+    </div>
+    <div class="mt-6 text-xs text-slate-500 italic">
+      💡 Todos los campos del drawer también tienen <code>data-field-id</code>. Click → FocusBar del copilot muestra "Equipo · Carla › Rol".
+    </div>
+  </div>
+
+  <div class="text-xs text-slate-400 text-center py-4">
+    Variante B · always-editable + drawer. Edición sin fricción; densidad visual alta.
+  </div>
+</div>
+`;
+renderShell({ variantName: 'B · Always-editable', centerHtml: center });
+</script>
+</body>
+</html>

@@ -19,7 +19,7 @@ FIRST_SETUP = Procedure(
             tips=[
                 "Si tienes un sitio web, puedo extraer tu información automáticamente",
             ],
-            route_hint="brand-studio/esencia",
+            route_hint="brand-studio/identity",
         ),
         ProcedureStep(
             step_id="brand_positioning",
@@ -30,7 +30,7 @@ FIRST_SETUP = Procedure(
             tips=[
                 "Piensa en que te hace diferente de las alternativas del mercado",
             ],
-            route_hint="brand-studio/estrategia",
+            route_hint="brand-studio/positioning",
         ),
         ProcedureStep(
             step_id="first_offer",

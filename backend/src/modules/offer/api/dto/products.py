@@ -3,7 +3,7 @@
 import uuid
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.modules.offer.domain.enums import OfferArchetype, OfferStatus, OfferValueLevel
 
@@ -20,6 +20,11 @@ class ProductResponse(BaseModel):
     format_hint: str | None = None
     is_lead_magnet: bool | None = False
     shows_as_lead_magnet: bool | None = False
+
+    # OfferTypePreset (Sprint 12 — 7th SSoT axis). Null for legacy offers
+    # pre-backfill or offers created before wizard rehaul (Sprint 13).
+    # Frontend renders it as a badge + the agent reads it for grounding.
+    preset_id: str | None = None
 
     # Polymorphic fields
     delivery_model: str | None = None
@@ -75,16 +80,34 @@ class ProductResponse(BaseModel):
 
 
 class ProductCreate(BaseModel):
-    """Product Create DTO."""
+    """Product Create DTO.
+
+    Sprint 13 flow: the wizard sends ``preset_id`` + optional
+    ``conditional_answers`` and the service derives ``archetype`` +
+    ``is_lead_magnet`` from the catalog. ``archetype`` stays accepted
+    (Optional) to preserve backwards compat with older clients + the
+    archetype-first IA pipelines.
+    """
 
     name: str
-    archetype: OfferArchetype
+    # Optional since Sprint 13: when ``preset_id`` is set the service
+    # derives it. For clients on the legacy path this remains the
+    # primary selector.
+    archetype: OfferArchetype | None = None
     format_hint: str | None = None
     is_lead_magnet: bool = False
     # Wizard answer: will this offer run in editions/cohorts/batches?
     # None = let the domain apply the archetype-aware default.
     has_editions: bool | None = None
     status: OfferStatus = OfferStatus.DRAFT
+    # Wizard Sprint-13+ sends preset_id as primary selector; archetype is
+    # then derived from ``OfferTypePreset.archetype``.
+    preset_id: str | None = None
+    # Wizard Sprint-13+ conditional refinement step. Maps ``question_id``
+    # → yes/no answer. The service feeds this into
+    # ``resolve_preset_flags`` to promote flags like ``IS_LEAD_MAGNET``
+    # or ``SUPPORTS_CAPACITY`` without the client having to know them.
+    conditional_answers: dict[str, bool] | None = None
 
     # Optional fields the wizard can set
     value_level: OfferValueLevel | None = None
@@ -93,6 +116,12 @@ class ProductCreate(BaseModel):
     # Optional ISO 4217 code. If omitted, the API resolves it from
     # TenantLocale so the offer inherits the tenant's default currency.
     currency: str | None = None
+    # Seed pricing structures from the wizard — the first becomes the
+    # default ``Standard`` one-time plan. Lead magnets send [].
+    pricing_options: list[dict[str, Any]] | None = Field(default=None)
+    # Optional polymorphic defaults suggested by the format catalog.
+    specific_details: dict[str, Any] | None = None
+    delivery_model: str | None = None
 
     @field_validator("archetype", mode="before")
     @classmethod
@@ -125,6 +154,8 @@ class ProductUpdate(BaseModel):
     offer_value_level: str | None = None
     delivery_model: str | None = None
     status: str | None = None
+    # Allow re-assigning the preset (e.g. user corrects the wizard suggestion).
+    preset_id: str | None = None
 
     headline_promise: str | None = None
     primary_outcome: str | None = None

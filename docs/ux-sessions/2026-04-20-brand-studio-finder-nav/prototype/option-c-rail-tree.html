@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>Opción C · Icon Rail + Tree</title>
+<link rel="stylesheet" href="_shared.css"/>
+<style>
+  .rail { width: 64px; flex-shrink: 0; background: hsl(222.2 47.4% 9%); border-right: 1px solid hsl(var(--border)); padding: 12px 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .rail-item { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 20px; color: hsl(var(--muted-foreground)); position: relative; cursor: pointer; }
+  .rail-item:hover { background: hsl(var(--muted) / 0.4); color: hsl(var(--foreground)); }
+  .rail-item.active { background: hsl(var(--muted) / 0.6); color: hsl(var(--foreground)); }
+  .rail-item.active::before { content: ""; position: absolute; left: -12px; top: 8px; bottom: 8px; width: 3px; background: hsl(var(--brand)); border-radius: 0 2px 2px 0; }
+  .rail-item .tooltip { position: absolute; left: 58px; top: 50%; transform: translateY(-50%); background: hsl(222.2 47.4% 5%); color: hsl(var(--foreground)); padding: 5px 10px; border-radius: 6px; font-size: 12px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.12s; border: 1px solid hsl(var(--border)); z-index: 10; }
+  .rail-item:hover .tooltip { opacity: 1; }
+  .rail .sep { width: 28px; height: 1px; background: hsl(var(--border)); margin: 8px 0; }
+
+  .col-tree { width: 300px; flex-shrink: 0; }
+  .col-editor { flex: 1; min-width: 0; }
+  .tree-row { display: flex; align-items: center; gap: 8px; padding: 7px 14px; font-size: 13px; cursor: pointer; border-bottom: 1px solid hsl(var(--border) / 0.3); }
+  .tree-row:hover { background: hsl(var(--muted) / 0.3); }
+  .tree-row.active { background: hsl(var(--muted) / 0.6); position: relative; }
+  .tree-row.active::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: hsl(var(--brand)); }
+  .tree-row .twirl { width: 12px; font-size: 10px; color: hsl(var(--muted-foreground)); transition: transform 0.15s; display: inline-block; }
+  .tree-row .twirl.open { transform: rotate(90deg); }
+  .tree-row .title { flex: 1; }
+  .tree-row .dot-filled, .tree-row .dot-empty { width: 6px; height: 6px; border-radius: 50%; }
+  .tree-row .dot-filled { background: hsl(142 71% 45%); }
+  .tree-row .dot-empty { background: hsl(var(--destructive) / 0.6); }
+  .tree-row.section { font-weight: 500; color: hsl(var(--foreground)); }
+  .tree-row.section .icon { width: 16px; font-size: 14px; color: hsl(var(--muted-foreground)); }
+  .tree-row.section.active { color: hsl(var(--foreground)); }
+  .tree-child { padding-left: 38px; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Icon rail en vez de sidebar full -->
+  <aside class="rail">
+    <div class="rail-item"><span>✦</span><span class="tooltip">Dashboard</span></div>
+    <div class="sep"></div>
+    <div class="rail-item active"><span>📐</span><span class="tooltip">Brand Studio</span></div>
+    <div class="rail-item"><span>📦</span><span class="tooltip">Offer Studio</span></div>
+    <div class="rail-item"><span>📈</span><span class="tooltip">Growth Studio</span></div>
+    <div class="rail-item"><span>💬</span><span class="tooltip">Closer Studio</span></div>
+    <div class="sep"></div>
+    <div class="rail-item"><span>⚙️</span><span class="tooltip">Conexiones</span></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumb">
+        <span class="crumb">Brand Studio</span>
+        <span class="sep">›</span>
+        <span class="crumb">Posicionamiento</span>
+        <span class="sep">›</span>
+        <span class="crumb active">Propuesta de valor única</span>
+      </div>
+      <div class="spacer"></div>
+      <button class="chip">🔍 Buscar (Cmd+K)</button>
+      <button class="chip">✨ Entrevista</button>
+    </div>
+
+    <div class="columns">
+      <!-- Tree explorable -->
+      <div class="fcol col-tree col-2">
+        <div class="fcol-header"><h3>Brand Studio</h3><span class="count">12 secciones</span></div>
+        <div class="fcol-body">
+          <div class="tree-row section"><span class="twirl">›</span><span class="icon">✨</span><span class="title">Buyer personas</span><span class="count muted">2</span></div>
+          <div class="tree-row section"><span class="twirl">›</span><span class="icon">🔒</span><span class="title">Identidad</span><span class="count muted">6/8</span></div>
+          <div class="tree-row section active" style="font-weight: 600;"><span class="twirl open">›</span><span class="icon">🎯</span><span class="title">Posicionamiento</span><span class="count muted">3/9</span></div>
+          <div class="tree-child">
+            <div class="tree-row active"><span class="dot-filled"></span><span class="title">Propuesta de valor única</span></div>
+            <div class="tree-row"><span class="dot-filled"></span><span class="title">Discriminador</span></div>
+            <div class="tree-row"><span class="dot-filled"></span><span class="title">Esencia de marca</span></div>
+            <div class="tree-row"><span class="dot-empty"></span><span class="title">Enemigo técnico</span></div>
+            <div class="tree-row"><span class="dot-empty"></span><span class="title">Enemigo filosófico</span></div>
+            <div class="tree-row"><span class="dot-empty"></span><span class="title">Insight: tensión</span></div>
+            <div class="tree-row"><span class="dot-empty"></span><span class="title">Insight: observación</span></div>
+            <div class="tree-row"><span class="dot-empty"></span><span class="title">Insight: implicación</span></div>
+            <div class="tree-row section" style="padding-left: 8px;"><span class="twirl">›</span><span class="title">Reasons to believe</span><span class="count muted">3</span></div>
+          </div>
+          <div class="tree-row section"><span class="twirl">›</span><span class="icon">📜</span><span class="title">Narrativa</span><span class="count muted">0/7</span></div>
+          <div class="tree-row section"><span class="twirl">›</span><span class="icon">🚩</span><span class="title">Metodología</span><span class="count muted">0/5</span></div>
+          <div class="tree-row section"><span class="twirl">›</span><span class="icon">📄</span><span class="title">Historia</span><span class="count muted">1/4</span></div>
+          <div class="tree-row section"><span class="twirl">›</span><span class="icon">👥</span><span class="title">Equipo</span><span class="count muted">2</span></div>
+          <div class="tree-row section"><span class="twirl">›</span><span class="icon">🏛️</span><span class="title">Autoridad</span><span class="count muted">0/6</span></div>
+          <div class="tree-row section"><span class="twirl">›</span><span class="icon">🎧</span><span class="title">Testimonios</span><span class="count muted">0</span></div>
+          <div class="tree-row section"><span class="twirl">›</span><span class="icon">🎨</span><span class="title">Visuales</span><span class="count muted">5/10</span></div>
+          <div class="tree-row section"><span class="twirl">›</span><span class="icon">📚</span><span class="title">Assets</span><span class="count muted">12</span></div>
+          <div class="tree-row section"><span class="twirl">›</span><span class="icon">📣</span><span class="title">Contacto</span><span class="count muted">3/4</span></div>
+        </div>
+      </div>
+
+      <!-- Editor grande -->
+      <div class="fcol col-editor col-3">
+        <div class="fcol-header"><h3>Propuesta de valor única</h3><span class="count">autoguardado</span></div>
+        <div class="detail">
+          <h1>Propuesta de valor única</h1>
+          <div class="section-meta">
+            <span><b>Sección:</b> Posicionamiento</span>
+            <span><b>Tipo:</b> texto largo</span>
+            <span><b>Estado:</b> completo</span>
+          </div>
+          <p class="desc">Promesa en una oración que diferencia tu oferta de cualquier competidor. Debe ser tangible, específica y difícil de copiar.</p>
+          <label for="uvp-c">Tu propuesta</label>
+          <textarea id="uvp-c" rows="5">Solo nosotros transformamos buenos negocios en líderes de categoría con estrategia que vende — sin depender de tendencias que mueren en 6 meses.</textarea>
+          <p class="help">Pista: "Solo nosotros…" + resultado medible.</p>
+
+          <div style="margin-top: 28px;">
+            <label>Ejemplos de referencia</label>
+            <div style="background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 12px 14px; font-size: 13px; color: hsl(var(--muted-foreground)); line-height: 1.6;">
+              <div>→ <i>Apple:</i> "Somos la única marca que combina diseño artesanal y precisión industrial."</div>
+              <div>→ <i>Notion:</i> "Un solo espacio para cada equipo, cada proyecto, cada idea."</div>
+            </div>
+          </div>
+
+          <div class="autosave">● Guardado · hace 2s</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="optbar">
+      <span class="label">Propuestas:</span>
+      <a href="index.html">← Índice</a>
+      <a href="option-a-classic.html">A · Clásico</a>
+      <a href="option-b-preview.html">B · Preview Pane</a>
+      <a href="option-c-rail-tree.html" class="current">C · Rail + Tree</a>
+      <a href="option-d-palette.html">D · Palette</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

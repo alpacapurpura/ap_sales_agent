@@ -9,13 +9,12 @@ from src.shared.domain.base_entity import BaseEntity
 from .communication_assets import CommunicationAssets
 from .identity import BrandIdentity, BrandVisuals
 from .narrative import BrandNarrative
-from .positioning import BrandPositioning
+from .positioning import BrandPersonality, BrandPositioning
 from .story import BrandStory
 from .strategy import BrandStrategy
 from .team import (
     BrandAuthorityItem,
     BrandContact,
-    BrandTeam,
     BrandTestimonial,
     KeyFigure,
 )
@@ -120,5 +119,8 @@ class BrandSettings(BaseEntity):
         description="Dynamic funnel-stage communication assets",
     )
 
-    # Legacy field support
-    team_metadata: BrandTeam | None = Field(None, description="Legacy team metadata")
+    # Brand personality (Sprint 2.D: moved from BrandPositioning.values)
+    brand_personality: BrandPersonality | None = Field(
+        None,
+        description="Brand personality profile: core values, traits, archetype",
+    )

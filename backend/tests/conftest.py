@@ -158,14 +158,26 @@ def db_engine():
         from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
             AgentStateCheckpointModel,
         )
+        from src.modules.sales_agent.infrastructure.models.enrollment_model import (
+            EnrollmentModel,
+        )
         from src.modules.sales_agent.infrastructure.models.message_model import (
             MessageModel,
         )
         from src.modules.scheduling.infrastructure.models.appointment_model import (
             AppointmentModel,
         )
+        from src.modules.social_proof.infrastructure.models import (
+            AuthorityItemModel,
+            PlacementModel,
+            TeamMemberModel,
+            TestimonialModel,
+        )
         from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import (
             TenantDomainModel,
+        )
+        from src.modules.tenant_profile.infrastructure.models.tenant_profile_model import (
+            TenantProfileModel,
         )
     except ImportError as e:
         print(f"Warning: Could not import some models: {e}")

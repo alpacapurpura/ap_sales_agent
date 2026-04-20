@@ -9,6 +9,7 @@ so new fields are automatically available without changing this builder.
 """
 
 import logging
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -16,7 +17,8 @@ from sqlalchemy.orm import Session
 from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
 from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 from src.shared.links.ports.brand import BrandDataPort, create_brand_data_port
-from src.shared.links.ports.offer import get_offer_repository
+from src.shared.links.ports.offer import get_offer_repository, get_offer_type_preset
+from src.shared.links.ports.social_proof import resolve_sales_agent_context
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +31,32 @@ class TenantKnowledgeBuilder:
 
     def __init__(self, db: Session, brand_port: BrandDataPort | None = None) -> None:
         """Initialize instance."""
+        self.db = db
         self.brand_port = brand_port or create_brand_data_port(db)
         self.offer_repo = get_offer_repository(db)
+
+    @staticmethod
+    def _enrich_with_preset_metadata(offers_data: list[dict[str, Any]]) -> None:
+        """Inject preset-derived context onto each offer dict in-place.
+
+        Adds three keys per offer when ``preset_id`` matches the catalog:
+
+        - ``preset_label``: user-facing label (``OfferTypePreset.label_es``)
+        - ``preset_description``: 1-3 sentence card subtitle
+        - ``preset_flags``: list[str] of the preset's default flags
+          (``IS_LEAD_MAGNET``, ``HIGH_TICKET``, ``RECURRING_BILLING``, ...)
+
+        When ``preset_id`` is missing or unknown the keys stay absent so
+        the Jinja template can render defensively via ``if offer.preset_label``.
+        """
+        for offer in offers_data:
+            preset_id = offer.get("preset_id")
+            preset = get_offer_type_preset(preset_id)
+            if preset is None:
+                continue
+            offer["preset_label"] = preset.label_es  # type: ignore[attr-defined]
+            offer["preset_description"] = preset.description_es  # type: ignore[attr-defined]
+            offer["preset_flags"] = [flag.value for flag in preset.default_flags]  # type: ignore[attr-defined]
 
     def build_identity(self, tenant_id: UUID) -> str:
         """Build the complete agent identity document for this tenant.
@@ -49,15 +75,28 @@ class TenantKnowledgeBuilder:
             # Filter active offers only for the agent's knowledge
             active_offers = [o for o in offers if o.status.value in ("active", "draft")]
             offers_data = [o.model_dump(mode="json") for o in active_offers] if active_offers else []
+            # Enrich each offer dict with OfferTypePreset metadata so the
+            # agent grounding template can refer to the offer by the
+            # tenant's vocabulary ("Consulta única") instead of the raw
+            # archetype tag. Flags (IS_LEAD_MAGNET, HIGH_TICKET,
+            # RECURRING_BILLING) are also surfaced so the specialist
+            # prompts can branch on them.
+            self._enrich_with_preset_metadata(offers_data)
 
             # 3. Extract convenience variables for the template
             identity = brand_data.get("identity", {}) or {}
             strategy = brand_data.get("strategy", {}) or {}
             story = brand_data.get("story", {}) or {}
-            team = brand_data.get("team", []) or []
             contact = brand_data.get("contact", {}) or {}
-            testimonials = brand_data.get("testimonials", []) or []
             positioning = brand_data.get("positioning", {}) or {}
+
+            # Social proof (testimonials, team, authority) now lives in the
+            # social_proof bounded context. The port returns pre-serialized
+            # dicts so the Jinja template keeps the same shape.
+            social_proof_ctx = resolve_sales_agent_context(self.db, tenant_id)
+            testimonials = social_proof_ctx["testimonials"]
+            team = social_proof_ctx["team_members"]
+            authority_items = social_proof_ctx["authority_items"]
 
             # Default avatar (the primary ICP)
             default_avatar = next(
@@ -91,6 +130,7 @@ class TenantKnowledgeBuilder:
                 team=team,
                 contact=contact,
                 testimonials=testimonials,
+                authority_items=authority_items,
                 positioning=positioning,
                 default_avatar=default_avatar,
                 # Counts for conditional rendering
@@ -98,6 +138,7 @@ class TenantKnowledgeBuilder:
                 has_offers=len(offers_data) > 0,
                 has_avatars=len(avatar_data) > 0,
                 has_testimonials=len(testimonials) > 0,
+                has_authority=len(authority_items) > 0,
                 has_team=len(team) > 0,
                 # Personality voice configuration (new)
                 personality_instruction=personality_instruction,

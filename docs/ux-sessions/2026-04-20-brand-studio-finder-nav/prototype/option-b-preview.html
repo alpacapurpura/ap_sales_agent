@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>Opción B · Finder + Preview Pane</title>
+<link rel="stylesheet" href="_shared.css"/>
+<style>
+  .col-sections { width: 220px; flex-shrink: 0; }
+  .col-items { width: 280px; flex-shrink: 0; }
+  .col-preview { width: 380px; flex-shrink: 0; }
+  .col-editor { flex: 1; min-width: 0; }
+  .preview-card { padding: 20px 24px; border-bottom: 1px solid hsl(var(--border)); }
+  .preview-card .label { font-size: 11px; color: hsl(var(--muted-foreground)); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .preview-card h2 { font-size: 18px; margin-bottom: 12px; letter-spacing: -0.01em; }
+  .preview-card .value { font-size: 14px; color: hsl(var(--foreground)); line-height: 1.5; }
+  .preview-card .meta { display: flex; gap: 12px; font-size: 12px; color: hsl(var(--muted-foreground)); margin-top: 16px; }
+  .preview-card .meta b { color: hsl(var(--foreground)); }
+  .edit-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: hsl(var(--brand)); color: white; border-radius: 6px; font-size: 12px; margin-top: 16px; font-weight: 500; }
+  .empty-editor { display: flex; align-items: center; justify-content: center; color: hsl(var(--muted-foreground)); font-size: 13px; text-align: center; padding: 48px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar-main">
+    <div class="logo">✦ Nicolify</div>
+    <div class="group-label">Studios</div>
+    <a href="#" class="active">📐 Brand Studio</a>
+    <a href="#">📦 Offer Studio</a>
+    <a href="#">📈 Growth Studio</a>
+    <a href="#">💬 Closer Studio</a>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumb">
+        <span class="crumb">Brand Studio</span>
+        <span class="sep">›</span>
+        <span class="crumb">Posicionamiento</span>
+        <span class="sep">›</span>
+        <span class="crumb active">Propuesta de valor única</span>
+      </div>
+      <div class="spacer"></div>
+      <button class="chip">✨ Entrevista guiada</button>
+    </div>
+
+    <div class="columns">
+      <!-- 1 Secciones -->
+      <div class="fcol col-sections col-1">
+        <div class="fcol-header"><h3>Secciones</h3><span class="count">12</span></div>
+        <div class="fcol-body">
+          <div class="row"><span class="icon">✨</span><span class="title">Buyer personas</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">🔒</span><span class="title">Identidad</span><span class="chev">›</span></div>
+          <div class="row active"><span class="icon">🎯</span><span class="title">Posicionamiento</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">📜</span><span class="title">Narrativa</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">🚩</span><span class="title">Metodología</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">📄</span><span class="title">Historia</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">👥</span><span class="title">Equipo</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">🏛️</span><span class="title">Autoridad</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">🎧</span><span class="title">Testimonios</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">🎨</span><span class="title">Visuales</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">📚</span><span class="title">Assets</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">📣</span><span class="title">Contacto</span><span class="chev">›</span></div>
+        </div>
+      </div>
+
+      <!-- 2 Items -->
+      <div class="fcol col-items col-2">
+        <div class="fcol-header"><h3>Posicionamiento</h3><span class="count">9</span></div>
+        <div class="fcol-body">
+          <div class="row active"><span class="dot-filled"></span><span class="title">Propuesta de valor única</span><span class="chev">›</span></div>
+          <div class="row"><span class="dot-filled"></span><span class="title">Discriminador</span><span class="chev">›</span></div>
+          <div class="row"><span class="dot-filled"></span><span class="title">Esencia de marca</span><span class="chev">›</span></div>
+          <div class="row"><span class="dot-empty"></span><span class="title">Enemigo técnico</span><span class="chev">›</span></div>
+          <div class="row"><span class="dot-empty"></span><span class="title">Enemigo filosófico</span><span class="chev">›</span></div>
+          <div class="row"><span class="dot-empty"></span><span class="title">Insight: tensión</span><span class="chev">›</span></div>
+          <div class="row"><span class="dot-empty"></span><span class="title">Insight: observación</span><span class="chev">›</span></div>
+          <div class="row"><span class="dot-empty"></span><span class="title">Insight: implicación</span><span class="chev">›</span></div>
+          <div class="row"><span class="dot-filled"></span><span class="title">Reasons to believe</span><span class="preview">3</span><span class="chev">›</span></div>
+        </div>
+      </div>
+
+      <!-- 3 Preview READ-ONLY -->
+      <div class="fcol col-preview col-3">
+        <div class="fcol-header"><h3>Vista rápida</h3><span class="count">read-only</span></div>
+        <div class="fcol-body">
+          <div class="preview-card">
+            <div class="label">Propuesta de valor única</div>
+            <h2>UVP actual</h2>
+            <div class="value">"Solo nosotros transformamos buenos negocios en líderes de categoría con estrategia que vende — sin depender de tendencias que mueren en 6 meses."</div>
+            <div class="meta">
+              <span><b>78</b> caracteres</span>
+              <span><b>Editado:</b> hace 3 días</span>
+            </div>
+            <button class="edit-btn">✎ Editar</button>
+          </div>
+          <div class="preview-card">
+            <div class="label">Fragmento en landing</div>
+            <div class="value muted" style="font-size: 13px;">Se muestra como hero H1 de la landing actual. Cambios acá actualizan la landing al guardar.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Editor -->
+      <div class="fcol col-editor col-4">
+        <div class="fcol-header"><h3>Editor</h3><span class="count">activo</span></div>
+        <div class="detail">
+          <h1>Editar UVP</h1>
+          <p class="desc">Cambios se guardan automáticamente.</p>
+          <label for="uvp-b">Propuesta</label>
+          <textarea id="uvp-b" rows="6">Solo nosotros transformamos buenos negocios en líderes de categoría con estrategia que vende — sin depender de tendencias que mueren en 6 meses.</textarea>
+          <p class="help">Pista: "Solo nosotros…" + resultado medible.</p>
+          <div class="autosave">● Guardado · hace 2s</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="optbar">
+      <span class="label">Propuestas:</span>
+      <a href="index.html">← Índice</a>
+      <a href="option-a-classic.html">A · Clásico</a>
+      <a href="option-b-preview.html" class="current">B · Preview Pane</a>
+      <a href="option-c-rail-tree.html">C · Rail + Tree</a>
+      <a href="option-d-palette.html">D · Palette</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

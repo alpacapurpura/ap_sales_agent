@@ -6,8 +6,10 @@ Technical reference for generating clickable multi-page prototypes in Phase 5.
 
 ## Directory Structure
 
+All HTML files live inside the current session folder, alongside the specs and plan:
+
 ```
-/tmp/nicolify-flow-preview/
+docs/ux-sessions/{YYYY-MM-DD}-{slug}/prototype/
 ├── index.html                        (meta refresh → dashboard.html or first studio)
 ├── dashboard.html                    (proposed dashboard home — if applicable)
 ├── brand-studio/
@@ -333,8 +335,8 @@ After generating all files:
 # Kill any existing preview server
 pkill -f "http.server 8888" 2>/dev/null || true
 
-# Serve the prototype
-python3 -m http.server 8888 -d /tmp/nicolify-flow-preview/ &
+# Serve the prototype (SESSION = $(date +%Y-%m-%d)-{slug})
+python3 -m http.server 8888 -d "docs/ux-sessions/$SESSION/prototype/" &
 
 echo ""
 echo "=========================================="

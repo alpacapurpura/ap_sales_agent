@@ -24,6 +24,7 @@ from src.modules.offer.domain.offer import (
     OfferStrategyUpdate,
     OfferValueStackUpdate,
     OfferVisualsUpdate,
+    PricingStructure,
 )
 from src.shared.domain.locale import TenantLocale
 
@@ -64,20 +65,44 @@ async def create_product(
 ) -> Offer:
     """Create product."""
     service = OfferService(db)
+    # Resolved currency: explicit > tenant default. Used as the default
+    # on both the offer AND each pricing plan that didn't specify its own.
+    resolved_currency = product.currency or locale.currency
+    pricing_options = _build_pricing_options(product.pricing_options, resolved_currency)
     return service.create_offer(
         name=product.name,
         tenant_id=user.tenant_id,
         archetype=product.archetype,
         format_hint=product.format_hint,
+        preset_id=product.preset_id,
+        conditional_answers=product.conditional_answers,
         is_lead_magnet=product.is_lead_magnet,
         has_editions=product.has_editions,
         headline_promise=product.headline_promise or "",
         avatar_id=product.avatar_id,
         value_level=product.value_level,
-        # Fall back to tenant default so new offers inherit the tenant's
-        # configured currency (e.g. PEN) instead of a hardcoded USD.
-        currency=product.currency or locale.currency,
+        currency=resolved_currency,
+        pricing_options=pricing_options,
     )
+
+
+def _build_pricing_options(
+    raw: list[dict[str, Any]] | None,
+    default_currency: str,
+) -> list[PricingStructure]:
+    """Convert the DTO pricing payload into domain ``PricingStructure`` records.
+
+    Each plan inherits ``default_currency`` when it doesn't specify one
+    — so tenants on PEN don't see their plans silently land on USD.
+    """
+    if not raw:
+        return []
+    result: list[PricingStructure] = []
+    for plan in raw:
+        payload = dict(plan)
+        payload.setdefault("currency", default_currency)
+        result.append(PricingStructure.model_validate(payload))
+    return result
 
 
 # NOTE: /archived must be registered BEFORE /{product_id} so FastAPI does

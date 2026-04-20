@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+import type { FormRuntimeBridge } from "@/lib/form-runtime/copilot";
+
 // ── Types ───────────────────────────────────────────────────────────
 
 export type MessageRole = "user" | "assistant";
@@ -104,18 +106,47 @@ export interface CopilotMessage {
 
 export type CopilotStatus = "idle" | "thinking" | "streaming" | "done";
 
-export type SidebarState = "collapsed" | "open" | "expanded";
+/**
+ * Sidebar can either be hidden (``collapsed``) or open for chat (``open``).
+ * The legacy ``expanded`` variant, which hosted the dead preview pane, was
+ * removed in Sprint 4a alongside the preview-related slices below.
+ */
+export type SidebarState = "collapsed" | "open";
 
-export interface FocusEntity {
-  domain: "brand" | "offer" | "buyer_persona";
-  entityId?: string;
+/**
+ * Active editing run. Replaces the pre-Sprint-4a
+ * ``focusEntity``/``focusSnapshot``/``interviewSessionId``/
+ * ``interviewProgress``/``previewData`` slices with a single concept.
+ *
+ * - ``free``: the user edits the section directly; copilot is ambient.
+ * - ``interview``: copilot drives a guided Q&A; ``sessionId`` is the backend
+ *   conversation identifier and ``progress`` tracks completed blocks.
+ */
+export interface CopilotSession {
+  /** Form-runtime section key, e.g. ``"brand.identity"`` or ``"offer.pricing"``. */
+  sectionKey: string;
+  /** Human label shown in the header (e.g. the brand or offer name). */
   label: string;
+  /** Entity being edited (brand/offer/persona). Null = implicit tenant-level. */
+  entityId: string | null;
+  procedure: "free" | "interview";
+  /** Backend conversation id for interview procedures; null for ``free``. */
+  sessionId: string | null;
+  progress?: {
+    totalBlocks: number;
+    blocksCompleted: string[];
+    currentBlock?: string;
+  };
+  startedAt: Date;
+  /** Field snapshot at session start — used for session-level undo. */
+  snapshot: Record<string, unknown>;
 }
 
-export interface InterviewProgress {
-  currentBlock: string;
-  blocksCompleted: string[];
-  totalBlocks: number;
+export interface FocusedField {
+  id: string;
+  label: string;
+  /** Dot-path into the section's value object (e.g. ``"identity.tagline"``). */
+  path: string;
 }
 
 interface CopilotState {
@@ -123,7 +154,7 @@ interface CopilotState {
   sidebarState: SidebarState;
   setSidebarState: (state: SidebarState) => void;
 
-  // Backward-compat: isOpen derived from sidebarState (true when open or expanded)
+  // Backward-compat: isOpen derived from sidebarState (true when open)
   isOpen: boolean;
   togglePanel: () => void;
   openPanel: () => void;
@@ -161,31 +192,31 @@ interface CopilotState {
   setActiveProcedure: (proc: ActiveProcedure) => void;
   clearActiveProcedure: () => void;
 
-  // Selected fields context (for WithCopilot wrapper)
+  // Selected fields context (chat "add to context" affordance)
   selectedFields: SelectedField[];
   addSelectedField: (field: SelectedField) => void;
   removeSelectedField: (fieldId: string) => void;
   updateFieldValue: (fieldId: string, value: string) => void;
   clearSelectedFields: () => void;
 
-  // Focus mode
-  focusEntity: FocusEntity | null;
-  focusSnapshot: Record<string, unknown> | null;
-  setFocusEntity: (entity: FocusEntity) => void;
-  setFocusSnapshot: (snapshot: Record<string, unknown>) => void;
-  clearFocus: () => void;
+  // Unified active session (free edit or guided interview)
+  session: CopilotSession | null;
+  setSession: (session: CopilotSession) => void;
+  updateSession: (patch: Partial<CopilotSession>) => void;
+  clearSession: () => void;
 
-  // Interview mode — interviewSessionId is source of truth
-  interviewSessionId: string | null;
-  interviewProgress: InterviewProgress | null;
-  setInterviewSession: (id: string) => void;
-  setInterviewProgress: (p: InterviewProgress) => void;
-  clearInterview: () => void;
+  // Currently focused field inside the active section
+  focusedField: FocusedField | null;
+  setFocusedField: (field: FocusedField) => void;
+  clearFocusedField: () => void;
 
-  // Preview data — previewData is source of truth
-  previewData: Record<string, unknown> | null;
-  updatePreviewData: (delta: Record<string, unknown>) => void;
-  clearPreviewData: () => void;
+  // Bridge to the mounted form-runtime section — copilot tools mutate
+  // fields through ``activeBridge?.patchField(path, value)`` instead of
+  // legacy ``copilot:field-update`` window events. FormRuntimeProvider
+  // calls connectBridge on mount, disconnectBridge on unmount.
+  activeBridge: FormRuntimeBridge | null;
+  connectBridge: (bridge: FormRuntimeBridge) => void;
+  disconnectBridge: (bridge: FormRuntimeBridge) => void;
 }
 
 // ── Constants ────────────────────────────────────────────────────────
@@ -297,7 +328,6 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
   selectedFields: [],
   addSelectedField: (field) =>
     set((s) => {
-      // Avoid duplicates
       if (s.selectedFields.some((f) => f.fieldId === field.fieldId)) {
         return s;
       }
@@ -315,36 +345,22 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
     })),
   clearSelectedFields: () => set({ selectedFields: [] }),
 
-  // Focus mode
-  focusEntity: null,
-  focusSnapshot: null,
-  setFocusEntity: (entity) => set({ focusEntity: entity }),
-  setFocusSnapshot: (snapshot) => set({ focusSnapshot: snapshot }),
-  clearFocus: () => set({ focusEntity: null, focusSnapshot: null }),
+  // Active session
+  session: null,
+  setSession: (session) => set({ session }),
+  updateSession: (patch) => set((s) => (s.session ? { session: { ...s.session, ...patch } } : s)),
+  clearSession: () => set({ session: null, focusedField: null }),
 
-  // Interview mode — interviewSessionId as source of truth
-  interviewSessionId: null,
-  interviewProgress: null,
+  // Focused field
+  focusedField: null,
+  setFocusedField: (field) => set({ focusedField: field }),
+  clearFocusedField: () => set({ focusedField: null }),
 
-  setInterviewSession: (id) => set({ interviewSessionId: id }),
-
-  setInterviewProgress: (p) => set({ interviewProgress: p }),
-
-  clearInterview: () =>
-    set({
-      interviewSessionId: null,
-      interviewProgress: null,
-      previewData: null,
-    }),
-
-  // Preview data — previewData is source of truth
-  previewData: null,
-
-  updatePreviewData: (delta) =>
-    set((state) => {
-      const merged = { ...(state.previewData ?? {}), ...delta };
-      return { previewData: merged };
-    }),
-
-  clearPreviewData: () => set({ previewData: null }),
+  // Active bridge
+  activeBridge: null,
+  connectBridge: (bridge) => set({ activeBridge: bridge }),
+  disconnectBridge: (bridge) =>
+    // Only disconnect if the passed bridge is still the active one — a
+    // newer mount may have already replaced it.
+    set((s) => (s.activeBridge === bridge ? { activeBridge: null } : s)),
 }));

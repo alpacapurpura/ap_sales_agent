@@ -26,6 +26,15 @@ if TYPE_CHECKING:
     )
     from src.modules.landing.infrastructure.repositories.landing_repository import LandingRepository
     from src.modules.offer.infrastructure.repositories.offer_repository import OfferRepository
+    from src.modules.social_proof.infrastructure.repositories.authority_item_repository import (
+        AuthorityItemRepository,
+    )
+    from src.modules.social_proof.infrastructure.repositories.team_member_repository import (
+        TeamMemberRepository,
+    )
+    from src.modules.social_proof.infrastructure.repositories.testimonial_repository import (
+        TestimonialRepository,
+    )
 
 
 @dataclass
@@ -168,6 +177,32 @@ def _build_registry() -> dict[str, ModuleDescriptor]:
             read_fn=_landing_read_fn,
             keywords=["landing", "página", "aterrizaje"],
         ),
+        "social_proof": ModuleDescriptor(
+            module_id="social_proof",
+            label="Social Proof Studio",
+            description=(
+                "Prueba social tenant-scoped: testimonios de clientes, autoridades"
+                " / certificaciones / premios, equipo (voz de marca). Se reutiliza"
+                " cross-surface (brand, offer, landing, email, sales agent) via"
+                " placements M:N — editar un testimonio se propaga automáticamente."
+            ),
+            route_prefix="social-proof",
+            model_class=None,  # 3 roots — consumers iterate via read_fn per collection
+            repo_factory=_social_proof_repo_factory,
+            read_fn=_social_proof_read_fn,
+            keywords=[
+                "testimonios",
+                "testimonio",
+                "autoridad",
+                "authority",
+                "certificaciones",
+                "equipo",
+                "team",
+                "prueba social",
+                "confianza",
+                "credibilidad",
+            ],
+        ),
     }
 
 
@@ -246,6 +281,38 @@ def _landing_repo_factory(db: object) -> object:
 
 def _landing_read_fn(repo: object, tenant_id: UUID) -> list:
     return cast("LandingRepository", repo).list_by_tenant(tenant_id)
+
+
+def _social_proof_repo_factory(db: object) -> object:
+    """Return a bundle of repos — ``read_fn`` iterates all 3 collections."""
+    from src.modules.social_proof.infrastructure.repositories.authority_item_repository import (
+        AuthorityItemRepository,
+    )
+    from src.modules.social_proof.infrastructure.repositories.team_member_repository import (
+        TeamMemberRepository,
+    )
+    from src.modules.social_proof.infrastructure.repositories.testimonial_repository import (
+        TestimonialRepository,
+    )
+
+    return {
+        "testimonials": TestimonialRepository(db),
+        "authority_items": AuthorityItemRepository(db),
+        "team_members": TeamMemberRepository(db),
+    }
+
+
+def _social_proof_read_fn(repo: object, tenant_id: UUID) -> dict:
+    """Return the 3 collections keyed by source table — Copilot fans out."""
+    bundle = cast("dict", repo)
+    testimonials_repo = cast("TestimonialRepository", bundle["testimonials"])
+    authority_repo = cast("AuthorityItemRepository", bundle["authority_items"])
+    team_repo = cast("TeamMemberRepository", bundle["team_members"])
+    return {
+        "testimonials": testimonials_repo.list_by_tenant(tenant_id),
+        "authority_items": authority_repo.list_by_tenant(tenant_id),
+        "team_members": team_repo.list_by_tenant(tenant_id),
+    }
 
 
 # ── Singleton ─────────────────────────────────────────────────────────

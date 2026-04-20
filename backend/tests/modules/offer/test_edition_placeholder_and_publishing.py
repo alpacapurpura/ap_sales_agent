@@ -10,7 +10,7 @@ from sqlalchemy import text
 
 from src.modules.offer.application.launch_edition_service import LaunchEditionService
 from src.modules.offer.application.offer_service import OfferService
-from src.modules.offer.domain.enums import OfferArchetype
+from src.modules.offer.domain.enums import OfferArchetype, VariantStructure
 from src.modules.offer.domain.launch_edition import EditionStatus, EditionVisibility
 
 if TYPE_CHECKING:
@@ -43,6 +43,28 @@ class TestOfferServiceAutoPlaceholder:
         assert ed.start_date is None
         assert ed.status is EditionStatus.DRAFT
         assert ed.visibility is EditionVisibility.PRIVATE
+        assert ed.variant_structure is VariantStructure.TEMPORAL_COHORT
+
+    def test_servicio_placeholder_uses_recurring_intake_structure(self, db: Session, tenant_a: uuid.UUID) -> None:
+        """Regression: SERVICIO placeholder must carry RECURRING_INTAKE,
+        not the column-default ``temporal_cohort`` lottery. Hard-coded
+        archetype→structure mappings live exclusively in
+        ``ARCHETYPE_CATALOG.default_variant_structure``.
+        """
+        offer = OfferService(db).create_offer(name="Consultoría", tenant_id=tenant_a, archetype=OfferArchetype.SERVICIO)
+        db.flush()
+        editions = LaunchEditionService(db).list_editions(offer.id, tenant_a)
+        assert len(editions) == 1
+        assert editions[0].variant_structure is VariantStructure.RECURRING_INTAKE
+
+    def test_experiencia_placeholder_uses_temporal_single_date_structure(
+        self, db: Session, tenant_a: uuid.UUID
+    ) -> None:
+        offer = OfferService(db).create_offer(name="Webinar", tenant_id=tenant_a, archetype=OfferArchetype.EXPERIENCIA)
+        db.flush()
+        editions = LaunchEditionService(db).list_editions(offer.id, tenant_a)
+        assert len(editions) == 1
+        assert editions[0].variant_structure is VariantStructure.TEMPORAL_SINGLE_DATE
 
     def test_producto_archetype_does_not_spawn_placeholder(self, db: Session, tenant_a: uuid.UUID) -> None:
         """Rule: PRODUCTO and MEMBRESIA don't support editions — no placeholder."""

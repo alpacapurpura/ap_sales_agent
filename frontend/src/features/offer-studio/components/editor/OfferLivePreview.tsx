@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { SECTION_REGISTRY, getSectionsForOffer } from "../../config/offer-builder-config";
+import { SECTION_REGISTRY } from "../../config/offer-builder-config";
+import { useSectionsForArchetype } from "../../hooks/use-sections-for-archetype";
 import { GuaranteeType } from "../../types";
 
 import { OfferSectionWrapper } from "./OfferSectionWrapper";
@@ -141,9 +142,8 @@ export function OfferLivePreview({ form, onEdit }: OfferLivePreviewProps) {
     [formValues],
   );
 
-  const sections = useMemo(() => {
-    return getSectionsForOffer({ archetype: currentArchetype });
-  }, [currentArchetype]);
+  const sectionsMeta = useSectionsForArchetype(currentArchetype);
+  const sections = useMemo(() => sectionsMeta?.map((s) => s.key) ?? [], [sectionsMeta]);
 
   // Filter out identity to render it separately as a header
   const sectionsWithoutIdentity = useMemo(

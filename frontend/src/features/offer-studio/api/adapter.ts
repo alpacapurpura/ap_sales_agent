@@ -62,12 +62,14 @@ export interface BackendOffer {
   internal_sku?: string;
   archetype: string;
   format_hint?: string;
+  preset_id?: string | null;
   is_lead_magnet?: boolean;
   shows_as_lead_magnet?: boolean;
   offer_value_level?: string;
   value_level?: string;
   delivery_model?: string;
   status?: string;
+  has_editions?: boolean;
 
   headline_promise?: string;
   primary_outcome?: string;
@@ -136,9 +138,20 @@ const normalizeEnum = <T extends string>(
   return defaultValue;
 };
 
-/** Normalize value_level with legacy fallback */
-const normalizeLegacyValueLevel = (value: string | null | undefined): OfferValueLevel => {
-  if (!value) return OfferValueLevel.LEAD_MAGNET;
+/** Normalize value_level with legacy fallback.
+ *
+ * Paid offers default to ACTIVACION (first paid rung). Only fall back to
+ * LEAD_MAGNET when the backend explicitly flags the offer as such — a
+ * NULL/missing value_level used to collapse every offer into the lead
+ * magnet bucket in Offer Studio, which is the bug this normalizer guards
+ * against. See `OfferService._normalize_ladder_position` (backend).
+ */
+const normalizeLegacyValueLevel = (
+  value: string | null | undefined,
+  isLeadMagnet: boolean,
+): OfferValueLevel => {
+  const fallback = isLeadMagnet ? OfferValueLevel.LEAD_MAGNET : OfferValueLevel.ACTIVACION;
+  if (!value) return fallback;
   // Direct match with new values
   if (Object.values(OfferValueLevel).includes(value as OfferValueLevel)) {
     return value as OfferValueLevel;
@@ -146,8 +159,8 @@ const normalizeLegacyValueLevel = (value: string | null | undefined): OfferValue
   // Legacy mapping
   const mapped = LEGACY_VALUE_LEVEL_MAP[value];
   if (mapped) return mapped;
-  console.warn(`[Adapter] Unknown value_level: ${value}. Defaulting to lead_magnet`);
-  return OfferValueLevel.LEAD_MAGNET;
+  console.warn(`[Adapter] Unknown value_level: ${value}. Defaulting to ${fallback}`);
+  return fallback;
 };
 
 /**
@@ -164,10 +177,14 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
 
     // Strict Enum Normalization
     archetype: normalizeEnum(data.archetype, OfferArchetype, OfferArchetype.PRODUCTO),
-    value_level: normalizeLegacyValueLevel(data.offer_value_level || data.value_level),
+    value_level: normalizeLegacyValueLevel(
+      data.offer_value_level || data.value_level,
+      data.is_lead_magnet || false,
+    ),
     delivery_model: normalizeEnum(data.delivery_model, OfferDeliveryModel, OfferDeliveryModel.DIY),
     status: normalizeEnum(data.status, OfferStatus, OfferStatus.DRAFT),
     format_hint: data.format_hint,
+    preset_id: data.preset_id ?? null,
     is_lead_magnet: data.is_lead_magnet || false,
     shows_as_lead_magnet: data.shows_as_lead_magnet || false,
 
@@ -242,6 +259,13 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     vsl_link: (metadata.vsl_link as string | undefined) || data.vsl_link,
 
     landing_page_config: data.landing_page_config as Offer["landing_page_config"],
+
+    // Edition-supporting flag — drives the Offer Studio rail visibility.
+    // Backend defaults to `true` for programa/servicio/experiencia and
+    // `false` for producto/membresia; we preserve `undefined` only when
+    // the backend truly didn't include the field (shouldn't happen post
+    // Phase 2, but the rail gracefully hides if so).
+    has_editions: data.has_editions,
 
     archived_at: data.archived_at ?? null,
   };

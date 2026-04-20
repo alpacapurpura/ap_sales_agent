@@ -1,16 +1,10 @@
-"use client";
+import { AvatarEditPage } from "@/features/brand-studio/pages/AvatarEditPage";
 
-import { useParams, useSearchParams } from "next/navigation";
-
-import { AvatarEditView } from "@/features/brand/components/views/AvatarEditView";
-
+/**
+ * Avatar edit route — kept live so external links (offer-studio's
+ * OfferContextPanel) continue to resolve. Delegates to the brand-studio
+ * stub until the real avatar edit UX lands (next persona iteration).
+ */
 export default function EditAvatarPage() {
-  const params = useParams();
-  const searchParams = useSearchParams();
-  return (
-    <AvatarEditView
-      avatarId={params?.id as string}
-      callbackUrl={searchParams?.get("callbackUrl") ?? null}
-    />
-  );
+  return <AvatarEditPage />;
 }

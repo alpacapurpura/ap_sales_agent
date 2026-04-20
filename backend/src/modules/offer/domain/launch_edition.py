@@ -31,6 +31,7 @@ from uuid import UUID
 
 from pydantic import Field, model_validator
 
+from src.modules.offer.domain.enums import VariantStructure
 from src.modules.offer.domain.offer import PricingStructure
 from src.shared.domain.base_entity import BaseEntity
 
@@ -149,6 +150,18 @@ class LaunchEdition(BaseEntity):
 
     edition_name: str
     edition_number: int
+
+    # Sixth SSoT axis (Sprint 7) — what kind of variant this row represents.
+    # Source of truth at creation time is the parent offer's archetype, via
+    # ``ARCHETYPE_CATALOG[archetype].default_variant_structure``. Defaults to
+    # ``TEMPORAL_COHORT`` here only as a Pydantic-construction safety net for
+    # historical fixtures and clone paths; the placeholder service derives the
+    # real value from the archetype catalog and the architecture test
+    # ``test_archetype_default_variant_structure_alignment`` guarantees every
+    # edition-supporting archetype declares one.
+    variant_structure: VariantStructure = VariantStructure.TEMPORAL_COHORT
+    structure_data: dict[str, Any] = Field(default_factory=dict)
+    sort_rank: int | None = None
 
     # Nullable: placeholder editions have no date yet. Transitions to
     # UPCOMING / ACTIVE / PUBLIC require a concrete value (enforced below).

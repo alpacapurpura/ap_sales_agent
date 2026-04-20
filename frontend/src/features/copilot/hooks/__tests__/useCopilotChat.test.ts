@@ -49,11 +49,8 @@ function resetStore() {
     pendingUIActions: [],
     activeProcedure: null,
     selectedFields: [],
-    focusEntity: null,
-    focusSnapshot: null,
-    interviewSessionId: null,
-    interviewProgress: null,
-    previewData: null,
+    session: null,
+    focusedField: null,
   });
 }
 

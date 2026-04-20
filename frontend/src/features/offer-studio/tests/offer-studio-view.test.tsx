@@ -32,6 +32,45 @@ vi.mock("@/components/shared/navigation", () => ({
   }),
 }));
 
+// Catalog hooks — return synthetic metadata so the components render
+// without a QueryClientProvider wrapping the view.
+vi.mock("@/features/offer-studio/hooks/use-archetype-display", async () => {
+  const { Package } = await import("lucide-react");
+  return {
+    useArchetypeDisplay: (archetype?: string) =>
+      archetype
+        ? { archetype, label: "Producto", subtitle: "", icon: Package, examples: [] }
+        : undefined,
+  };
+});
+
+vi.mock("@/features/offer-studio/hooks/use-value-level-catalog", () => {
+  const makeEntry = (vl: string, order: number, label: string, icon: string, isFree = false) => ({
+    value_level: vl,
+    order,
+    label_es: label,
+    description_es: "",
+    role_in_funnel_es: "",
+    icon_name: icon,
+    examples_es: [],
+    is_free: isFree,
+    typical_price_min_usd: isFree ? null : 10,
+    typical_price_max_usd: isFree ? null : 100,
+  });
+  const entries = [
+    makeEntry("lead_magnet", 0, "Gancho Gratuito", "Lightbulb", true),
+    makeEntry("activacion", 1, "Primera Compra", "Rocket"),
+    makeEntry("transformacion", 2, "Oferta Principal", "TrendingUp"),
+    makeEntry("maximizacion", 3, "Oferta Premium", "Gem"),
+    makeEntry("corporativo", 4, "Venta Corporativa", "Building2"),
+  ];
+  return {
+    useValueLevelMetadata: (valueLevel?: string) =>
+      valueLevel ? entries.find((e) => e.value_level === valueLevel) : undefined,
+    useValueLevelCatalog: () => ({ data: { version: "test", value_levels: entries } }),
+  };
+});
+
 const MOCK_OFFERS: Offer[] = [
   {
     id: "1",

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Offer Info — Producto (sin ediciones) | Flow Preview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="../styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+<!-- Real route: /[tenantId]/offer-studio/offer/[id] — archetype PRODUCTO, no rail -->
+
+<div class="flex min-h-screen">
+  <aside class="w-60 bg-white border-r border-slate-200 flex-shrink-0">
+    <div class="p-4 border-b border-slate-200"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-slate-900 text-white font-bold flex items-center justify-center text-sm">N</div><span class="font-semibold">Nicolify</span></div></div>
+    <nav class="p-3 space-y-1 text-sm">
+      <a href="offers-list.html" class="nav-active flex items-center gap-2 px-2 py-1.5 rounded">💼 Offer Studio</a>
+      <a href="../sales/enrollments.html" class="ml-6 flex items-center gap-2 px-2 py-1 text-xs rounded hover:bg-slate-100 text-slate-500">Closer · Inscripciones <span class="badge-new ml-auto">NEW</span></a>
+    </nav>
+  </aside>
+
+  <!-- NO RAIL — archetype PRODUCTO doesn't support editions -->
+
+  <main class="flex-1 overflow-auto pb-16">
+    <header class="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="offers-list.html" class="text-slate-500 hover:text-slate-800">←</a>
+        <div>
+          <h1 class="text-lg font-bold">Mini Curso: Hooks que venden</h1>
+          <p class="text-xs text-slate-500">Producto digital · evergreen · <span class="text-emerald-600 font-medium">● Guardado hace 1s</span></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="status-badge status-active">● Activa</span>
+        <span class="status-badge visibility-public">🌐 Publicada</span>
+        <button class="p-2 rounded hover:bg-slate-100 text-slate-500">⋮</button>
+      </div>
+    </header>
+
+    <div class="bg-white border-b border-slate-200 px-8 flex items-center justify-between">
+      <nav class="flex gap-1 text-sm">
+        <a href="#" class="tab-active px-4 py-3">📋 Info</a>
+        <a href="#" class="tab-inactive px-4 py-3">💰 Ventas <span class="ml-1 text-xs text-slate-400">(47)</span></a>
+        <a href="#" class="tab-inactive px-4 py-3">🎨 Assets <span class="ml-1 text-xs text-slate-400">(8)</span></a>
+        <a href="#" class="tab-inactive px-4 py-3">📢 Campañas <span class="ml-1 text-xs text-slate-400">(2)</span></a>
+      </nav>
+      <div class="flex items-center py-2">
+        <a href="offer-landing-editor.html" target="_blank" class="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-l-lg font-medium border-r border-emerald-700">🌐 Editar landing</a>
+        <button class="px-2 py-1.5 bg-emerald-600 text-white text-sm rounded-r-lg">▾</button>
+      </div>
+    </div>
+
+    <div class="bg-slate-50 border-b border-slate-200 px-8 py-2 flex items-center justify-between text-xs">
+      <div class="flex items-center gap-3 flex-1 max-w-xl">
+        <span class="font-bold text-blue-600 tabular-nums">92%</span>
+        <div class="flex-1 h-1.5 bg-slate-200 rounded-full"><div class="h-full bg-blue-500 rounded-full" style="width: 92%"></div></div>
+        <span class="text-slate-500">8/8 secciones base + 2 optativas</span>
+      </div>
+      <button class="px-3 py-1.5 bg-purple-600 text-white rounded-lg">✨ Autocompletar IA</button>
+    </div>
+
+    <section class="px-8 py-5 max-w-5xl space-y-5">
+
+      <!-- Observational banner: no rail -->
+      <div class="bg-slate-100 border border-slate-200 rounded-xl p-3 text-xs text-slate-600 flex items-center gap-2">
+        <span>💡</span>
+        <span>Este producto es <strong>evergreen</strong> — no hay ediciones/cohortes. El rail lateral de ediciones está oculto automáticamente para archetypes <code>PRODUCTO</code> y <code>MEMBRESIA</code>.</span>
+      </div>
+
+      <!-- Info sections, exactly como PROGRAMA pero sin "fechas de edición" ni "pricing tiers timeline" -->
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3"><h3 class="font-semibold">1. Identidad</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div><p class="text-xs text-slate-500 mb-1">Nombre</p><p class="font-medium">Mini Curso: Hooks que venden</p></div>
+          <div><p class="text-xs text-slate-500 mb-1">Archetype</p><p class="font-medium">Producto · DIY (digital)</p></div>
+          <div class="col-span-2"><p class="text-xs text-slate-500 mb-1">Promesa</p><p class="font-medium">"Escribí hooks para tus posts que frenan el scroll en 20 min"</p></div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3"><h3 class="font-semibold">2. Acceso y Entrega</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div><p class="text-xs text-slate-500 mb-1">Formato</p><p class="font-medium">12 videos + PDF workbook</p></div>
+          <div><p class="text-xs text-slate-500 mb-1">Duración acceso</p><p class="font-medium">Lifetime</p></div>
+          <div><p class="text-xs text-slate-500 mb-1">Fulfillment</p><p class="font-medium">Acceso inmediato post-pago</p></div>
+          <div><p class="text-xs text-slate-500 mb-1">Onboarding</p><p class="font-medium">Email con credenciales</p></div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3"><h3 class="font-semibold">3. Precio</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+        <div class="text-sm">
+          <p class="text-xs text-slate-500 mb-1">Único (no hay tiers temporales en productos)</p>
+          <p class="text-2xl font-bold">S/ 49</p>
+          <p class="text-xs text-slate-500 mt-1">47 ventas totales · S/ 2.303 revenue lifetime</p>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3"><h3 class="font-semibold">4. Conocimiento (RAG del agente)</h3><span class="text-xs text-slate-500">3 archivos</span></div>
+        <div class="space-y-1.5 text-sm">
+          <div class="flex items-center justify-between p-2 border border-slate-200 rounded bg-slate-50"><span>📄 temario-completo.pdf</span><span class="text-xs text-emerald-600">● Indexado</span></div>
+          <div class="flex items-center justify-between p-2 border border-slate-200 rounded bg-slate-50"><span>📄 preguntas-frecuentes.md</span><span class="text-xs text-emerald-600">● Indexado</span></div>
+          <button class="w-full mt-2 px-3 py-2 border border-dashed border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50">+ Adjuntar archivo</button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<div class="fixed bottom-0 left-0 right-0 journey-bar px-4 py-2 text-xs flex items-center justify-between z-30">
+  <div><strong>Variante sin rail:</strong> archetype PRODUCTO · evergreen · main ocupa todo el ancho · tabs idénticos pero Info sin "fechas de edición"</div>
+  <a href="offer-info.html" class="text-blue-700 font-semibold hover:underline">← Volver a oferta con ediciones</a>
+</div>
+</body></html>

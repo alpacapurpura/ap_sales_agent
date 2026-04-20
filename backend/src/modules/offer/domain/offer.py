@@ -47,6 +47,11 @@ class PricingStructure(BaseEntity):
     label: str
     plan_type: PaymentPlanType | None = None
     total_amount: float
+    # Optional ISO 4217 override for this plan. When None the offer falls
+    # back to ``Offer.currency`` (which in turn falls back to the tenant
+    # locale). A plan may legitimately bill in a different currency than
+    # the offer's default (e.g. USD for corporate tier, PEN for local).
+    currency: str | None = None
     deposit_required: float = 0.0
     number_of_installments: int = 1
     installment_amount: float = 0.0
@@ -86,6 +91,12 @@ class Offer(BaseEntity):
     public_name: str
     archetype: OfferArchetype
     format_hint: str | None = None
+    # 7th SSoT axis link (Sprint 12 + 14). Optional string key into
+    # ``OFFER_TYPE_PRESET_CATALOG``. Nullable because legacy offers and
+    # offers created before the wizard rehaul (Sprint 13) will lack it.
+    # Drives sales-agent grounding, analytics segmentation and landing
+    # generator templates without touching the archetype tag.
+    preset_id: str | None = None
     is_lead_magnet: bool = False
     # Wizard-driven: does this offer run in editions/cohorts/batches?
     # Default resolves in validate_consistency based on archetype

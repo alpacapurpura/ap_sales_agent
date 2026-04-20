@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Closer Studio · Inbox (con EnrollmentWidget) | Flow Preview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="../styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+<!-- Real route: /[tenantId]/sales/studio/inbox (existing) · NEW widget on side panel -->
+
+<div class="flex min-h-screen">
+  <aside class="w-64 bg-white border-r border-slate-200 flex-shrink-0">
+    <div class="p-4 border-b border-slate-200"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-slate-900 text-white font-bold flex items-center justify-center text-sm">N</div><span class="font-semibold">Nicolify</span></div></div>
+    <nav class="p-3 space-y-1 text-sm">
+      <a href="../offer-studio/offers-list.html" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">💼 Offer Studio</a>
+      <div class="mt-2">
+        <div class="flex items-center gap-2 px-2 py-1.5 text-slate-900 font-semibold">🎯 Closer Studio</div>
+        <div class="ml-6 space-y-0.5 text-xs">
+          <a href="#" class="block px-2 py-1 rounded hover:bg-slate-100 text-slate-500">Resumen</a>
+          <a href="inbox.html" class="block px-2 py-1 rounded nav-active">Studio (Inbox)</a>
+          <a href="#" class="block px-2 py-1 rounded hover:bg-slate-100 text-slate-500">Contactos</a>
+          <a href="enrollments.html" class="flex items-center justify-between px-2 py-1 rounded hover:bg-slate-100 text-slate-500">Inscripciones <span class="badge-new">NEW</span></a>
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="flex-1 overflow-auto pb-16">
+    <div class="grid grid-cols-12 h-full">
+      <!-- Conversations list -->
+      <aside class="col-span-3 bg-white border-r border-slate-200">
+        <div class="p-3 border-b border-slate-200"><input type="search" placeholder="Buscar…" class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm"></div>
+        <div class="divide-y divide-slate-100">
+          <div class="p-3 bg-blue-50/50 border-l-2 border-blue-500 cursor-pointer"><div class="flex items-center justify-between"><span class="font-semibold text-sm">Mariana García</span><span class="text-[10px] text-slate-500">14:23</span></div><p class="text-xs text-slate-500 mt-0.5 truncate">Recibí el link de pago. Hago el depósito hoy…</p><span class="inline-block mt-1 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded">Cohorte #3</span></div>
+          <div class="p-3 cursor-pointer hover:bg-slate-50"><div class="flex items-center justify-between"><span class="text-sm">Juan Pérez</span><span class="text-[10px] text-amber-600">3d</span></div><p class="text-xs text-slate-500 mt-0.5 truncate">⚠ Sin respuesta al recordatorio</p></div>
+          <div class="p-3 cursor-pointer hover:bg-slate-50"><div class="flex items-center justify-between"><span class="text-sm">Carolina Núñez</span><span class="text-[10px] text-slate-500">ayer</span></div><p class="text-xs text-slate-500 mt-0.5 truncate">¿Cuándo abren cupo para agosto?</p><span class="inline-block mt-1 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded">Waitlist</span></div>
+        </div>
+      </aside>
+
+      <!-- Chat center -->
+      <section class="col-span-6 bg-white flex flex-col">
+        <header class="px-5 py-3 border-b border-slate-200 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-semibold flex items-center justify-center">MG</div>
+            <div>
+              <p class="font-semibold">Mariana García</p>
+              <p class="text-xs text-slate-500">mariana@gmail.com · IG: @maregs</p>
+            </div>
+          </div>
+          <div class="flex gap-1 text-xs"><button class="px-2 py-1 border border-slate-200 rounded">Pausar agente</button></div>
+        </header>
+
+        <div class="flex-1 p-5 space-y-3 overflow-y-auto">
+          <div class="flex gap-2"><div class="max-w-md bg-slate-100 rounded-xl rounded-tl-none p-3 text-sm">Hola! vi tu reel de copywriting, quiero saber del curso</div></div>
+          <div class="flex gap-2 justify-end"><div class="max-w-md bg-blue-500 text-white rounded-xl rounded-tr-none p-3 text-sm">¡Hola Mariana! Tenemos la Cohorte #3 que arranca el 15 de julio. Es 6 semanas · Zoom + comunidad. Early bird S/ 690 hasta el 1 de julio ¿te mando más info?</div></div>
+          <div class="flex gap-2"><div class="max-w-md bg-slate-100 rounded-xl rounded-tl-none p-3 text-sm">sí! cómo hago para entrar?</div></div>
+          <div class="flex gap-2 justify-end"><div class="max-w-md bg-blue-500 text-white rounded-xl rounded-tr-none p-3 text-sm">Te mando el link de pago. Tier early bird: S/ 690 · Stripe<br><a class="underline text-blue-100">app.nicolify.com/pay/enr_abc123</a></div></div>
+          <div class="flex gap-2"><div class="max-w-md bg-slate-100 rounded-xl rounded-tl-none p-3 text-sm">Recibí el link de pago. Hago el depósito hoy y te paso el comprobante.</div></div>
+        </div>
+
+        <footer class="border-t border-slate-200 p-3">
+          <div class="flex items-center gap-2"><input class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Escribe un mensaje o tomar control…"><button class="px-3 py-2 bg-slate-900 text-white rounded-lg text-sm">Enviar</button></div>
+        </footer>
+      </section>
+
+      <!-- Right panel: context + EnrollmentWidget -->
+      <aside class="col-span-3 bg-slate-50 border-l border-slate-200 overflow-y-auto p-4 space-y-4">
+
+        <!-- Contact card -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4">
+          <p class="text-xs font-semibold text-slate-500 uppercase mb-2">Contacto</p>
+          <p class="font-semibold text-sm">Mariana García</p>
+          <p class="text-xs text-slate-500">Lima, Perú · Diseñadora UX</p>
+          <div class="mt-2 flex gap-1 flex-wrap"><span class="px-2 py-0.5 bg-slate-100 text-xs rounded">Lead calificado</span><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded">Compró antes</span></div>
+        </div>
+
+        <!-- ENROLLMENT WIDGET (NEW) -->
+        <div class="bg-white border-2 border-blue-200 rounded-xl overflow-hidden ring-1 ring-blue-100">
+          <div class="bg-blue-50 border-b border-blue-100 px-3 py-2 flex items-center justify-between">
+            <span class="text-xs font-semibold text-blue-700 uppercase">📝 Inscripción activa</span>
+            <span class="badge-new">NEW</span>
+          </div>
+          <div class="p-3 space-y-3 text-sm">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded bg-blue-100 text-blue-600 flex items-center justify-center">🗺️</div>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold truncate">MasterClass Copywriting</p>
+                <p class="text-xs text-slate-500">Cohorte #3 · 15 jul 2026</p>
+              </div>
+            </div>
+            <div class="bg-slate-50 rounded-lg p-2.5 space-y-1.5 text-xs">
+              <div class="flex justify-between"><span class="text-slate-500">Estado</span><span class="status-badge status-draft">⏳ Pendiente pago</span></div>
+              <div class="flex justify-between"><span class="text-slate-500">Tier</span><span class="font-semibold">Early bird · S/ 690</span></div>
+              <div class="flex justify-between"><span class="text-slate-500">Link enviado</span><span>hace 12 min</span></div>
+            </div>
+            <div class="flex gap-1.5">
+              <button class="flex-1 px-2 py-1.5 text-xs border border-slate-200 rounded hover:bg-slate-50">🔗 Reenviar link</button>
+              <button class="flex-1 px-2 py-1.5 text-xs border border-slate-200 rounded hover:bg-slate-50">✓ Marcar pagada</button>
+            </div>
+            <a href="../offer-studio/offer-ventas.html" class="block text-center text-xs text-blue-600 font-medium hover:underline">Ver en la cohorte →</a>
+          </div>
+        </div>
+
+        <!-- Sales agent context -->
+        <div class="bg-white border border-slate-200 rounded-xl p-3">
+          <p class="text-xs font-semibold text-slate-500 uppercase mb-2">Herramientas sugeridas</p>
+          <ul class="text-xs space-y-1 text-slate-700">
+            <li>🔧 <code class="text-[10px]">list_public_editions</code></li>
+            <li>🔧 <code class="text-[10px]">create_enrollment</code></li>
+            <li>🔧 <code class="text-[10px]">generate_payment_link</code></li>
+            <li>🔧 <code class="text-[10px]">mark_paid_manual</code></li>
+          </ul>
+        </div>
+
+      </aside>
+    </div>
+  </main>
+</div>
+
+<div class="fixed bottom-0 left-0 right-0 journey-bar px-4 py-2 text-xs flex items-center justify-between z-30">
+  <div><strong>Journey 3 — Sales enroll:</strong> Chat con lead · EnrollmentWidget muestra estado + acciones inline</div>
+  <a href="../offer-studio/edition-info.html" class="text-blue-700 font-semibold hover:underline">Volver a cohorte →</a>
+</div>
+</body></html>

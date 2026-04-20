@@ -1,69 +1,35 @@
 "use client";
 
-import { MessageSquare, Eye } from "lucide-react";
-import { memo, useState } from "react";
+import { memo } from "react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { useCopilotNavigator } from "../hooks/use-copilot-navigator";
 import { useRouteTracker } from "../hooks/use-route-tracker";
 import { useCopilotStore } from "../store/copilot-store";
 
-import { CopilotHeader } from "./CopilotHeader";
-import { CopilotPreviewPane } from "./CopilotPreviewPane";
 import { CopilotChat } from "./CopilotChat";
+import { CopilotHeader } from "./CopilotHeader";
 import { CopilotRail } from "./CopilotRail";
-import { FocusBar } from "./FocusBar";
 
 // ── Width classes for md+ screens ────────────────────────────────────
 const SIDEBAR_WIDTHS = {
   collapsed: "md:w-[60px]",
   open: "md:w-[380px]",
-  expanded: "md:w-[780px]",
 } as const;
 
-// ── Mobile toggle button (chat ↔ preview) ─────────────────────────────
-type MobileView = "chat" | "preview";
-
-interface MobileViewToggleProps {
-  view: MobileView;
-  onToggle: () => void;
-}
-
-function MobileViewToggle({ view, onToggle }: MobileViewToggleProps) {
-  return (
-    <div className="flex shrink-0 items-center gap-1 border-b border-slate-200 px-4 py-2 dark:border-slate-700 md:hidden">
-      <Button
-        size="sm"
-        variant={view === "chat" ? "secondary" : "ghost"}
-        onClick={() => view !== "chat" && onToggle()}
-        className="h-7 gap-1.5 text-xs"
-      >
-        <MessageSquare className="h-3.5 w-3.5" />
-        Chat
-      </Button>
-      <Button
-        size="sm"
-        variant={view === "preview" ? "secondary" : "ghost"}
-        onClick={() => view !== "preview" && onToggle()}
-        className="h-7 gap-1.5 text-xs"
-      >
-        <Eye className="h-3.5 w-3.5" />
-        Vista previa
-      </Button>
-    </div>
-  );
-}
-
+/**
+ * Sidebar container for the copilot. Sprint 4a simplifies the layout:
+ * the legacy dual-column preview + chat split died with the preview pane
+ * (see DECISIONS.md D5). Sidebar is now chat-only and toggles between the
+ * collapsed rail (desktop) and a full-height chat column.
+ */
 export const CopilotSidebar = memo(function CopilotSidebar() {
   useRouteTracker();
   useCopilotNavigator();
   const sidebarState = useCopilotStore((s) => s.sidebarState);
-  const [mobileView, setMobileView] = useState<MobileView>("chat");
 
   const isOpen = sidebarState !== "collapsed";
-  const isExpanded = sidebarState === "expanded";
 
   return (
     <>
@@ -98,57 +64,10 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
             <CopilotRail />
           </div>
         ) : (
-          <div className="flex h-full flex-col md:flex-row">
-            {/* ── Mobile toggle bar (only in expanded state) ───────── */}
-            {isExpanded && (
-              <MobileViewToggle
-                view={mobileView}
-                onToggle={() => setMobileView((v) => (v === "chat" ? "preview" : "chat"))}
-              />
-            )}
-
-            {/* ── Inner content row ─────────────────────────────── */}
-            <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-              {/* Preview pane — desktop: always visible when expanded
-                             — mobile:  visible only when mobileView === "preview" */}
-              {isExpanded && (
-                <div
-                  className={cn(
-                    "shrink-0 overflow-hidden border-slate-200 dark:border-slate-700",
-                    // Desktop: fixed width + right border
-                    "md:w-[400px] md:border-r",
-                    // Mobile: full width, animated fade+slide
-                    "w-full transition-all duration-200 ease-in-out",
-                    mobileView === "preview"
-                      ? "max-md:flex max-md:opacity-100 max-md:translate-x-0"
-                      : "max-md:hidden max-md:opacity-0 max-md:translate-x-4",
-                    // Desktop: always visible
-                    "md:flex md:opacity-100 md:translate-x-0",
-                  )}
-                >
-                  <CopilotPreviewPane />
-                </div>
-              )}
-
-              {/* Chat column — desktop: fixed 380px
-                            — mobile: full width, animated fade+slide */}
-              <div
-                className={cn(
-                  "flex flex-col",
-                  // Desktop: fixed width
-                  "md:w-[380px] md:shrink-0",
-                  // Mobile: full width, animated
-                  "w-full transition-all duration-200 ease-in-out",
-                  isExpanded && mobileView === "preview"
-                    ? "max-md:hidden max-md:opacity-0 max-md:-translate-x-4"
-                    : "max-md:flex max-md:opacity-100 max-md:translate-x-0",
-                )}
-              >
-                <CopilotHeader />
-                <FocusBar />
-                <CopilotChat />
-              </div>
-            </div>
+          /* ── Chat column ─────────────────────────────────────── */
+          <div className="flex h-full flex-col">
+            <CopilotHeader />
+            <CopilotChat />
           </div>
         )}
       </aside>

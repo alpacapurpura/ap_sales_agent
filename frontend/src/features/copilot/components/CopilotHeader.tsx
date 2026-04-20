@@ -1,42 +1,35 @@
 "use client";
 
-import { Maximize2, Minimize2, PanelRightClose, RotateCcw, Sparkles } from "lucide-react";
+import { PanelRightClose, RotateCcw, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
 import { useCopilotStore } from "../store/copilot-store";
 
-import type { SidebarState } from "../store/copilot-store";
+import type { CopilotSession } from "../store/copilot-store";
 
-function getModeLabel(state: {
-  interviewSessionId: string | null;
-  focusEntity: { domain: string; label: string } | null;
-}): string {
-  if (state.interviewSessionId) {
-    return `Entrevista: ${state.focusEntity?.label ?? ""}`;
+/**
+ * Header label derived from the current session. ``free`` sessions surface
+ * the entity label; ``interview`` sessions prefix with "Entrevista:". No
+ * active session falls back to the generic "Chat" label.
+ */
+function getModeLabel(session: CopilotSession | null): string {
+  if (!session) return "Chat";
+  if (session.procedure === "interview") {
+    return `Entrevista: ${session.label}`;
   }
-  if (state.focusEntity) {
-    return `Focus: ${state.focusEntity.label}`;
-  }
-  return "Chat";
+  return session.label;
 }
 
+/**
+ *
+ */
 export function CopilotHeader() {
-  const sidebarState = useCopilotStore((s) => s.sidebarState);
-  const interviewSessionId = useCopilotStore((s) => s.interviewSessionId);
-  const focusEntity = useCopilotStore((s) => s.focusEntity);
-  const setSidebarState = useCopilotStore((s) => s.setSidebarState);
+  const session = useCopilotStore((s) => s.session);
   const closePanel = useCopilotStore((s) => s.closePanel);
   const clearMessages = useCopilotStore((s) => s.clearMessages);
 
-  const modeLabel = getModeLabel({ interviewSessionId, focusEntity });
-  const canExpand = sidebarState === "open" && focusEntity;
-  const canCollapse = sidebarState === "expanded";
-
-  const handleToggleExpand = () => {
-    const next: SidebarState = sidebarState === "expanded" ? "open" : "expanded";
-    setSidebarState(next);
-  };
+  const modeLabel = getModeLabel(session);
 
   return (
     <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
@@ -47,21 +40,6 @@ export function CopilotHeader() {
         </span>
       </div>
       <div className="flex items-center gap-1">
-        {(canExpand || canCollapse) && (
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={handleToggleExpand}
-            className="h-7 w-7 text-slate-400 hover:text-slate-600"
-            title={canExpand ? "Expandir" : "Contraer"}
-          >
-            {canExpand ? (
-              <Maximize2 className="h-3.5 w-3.5" />
-            ) : (
-              <Minimize2 className="h-3.5 w-3.5" />
-            )}
-          </Button>
-        )}
         <Button
           size="icon"
           variant="ghost"

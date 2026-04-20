@@ -3,7 +3,6 @@
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { Target } from "lucide-react";
-import type { UseFormReturn } from "react-hook-form";
 
 import {
   FormField,
@@ -15,16 +14,16 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RichSelect } from "@/components/ui/rich-select";
-import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { avatarApi } from "@/lib/api/avatar";
 
-import { ARCHETYPE_METADATA } from "../../../../config/archetype-metadata";
+import { useArchetypeCatalog } from "../../../../hooks/use-archetype-catalog";
 import { OfferArchetype } from "../../../../types";
 import { OfferSchema } from "../../../../types/schema";
 import { SectionFormWrapper } from "../common/SectionFormWrapper";
 
 import type { OfferFormValues } from "../../../../types/schema";
 import type { Avatar } from "@/lib/api/avatar";
+import type { UseFormReturn } from "react-hook-form";
 
 const EMPTY_AVATARS: Avatar[] = [];
 
@@ -56,12 +55,13 @@ function StrategyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: archetypeCatalog } = useArchetypeCatalog();
   const archetypeOptions = Object.values(OfferArchetype).map((arch) => {
-    const meta = ARCHETYPE_METADATA[arch];
+    const meta = archetypeCatalog?.archetypes.find((a) => a.archetype === arch);
     return {
       value: arch,
-      label: meta?.label || arch,
-      description: meta?.subtitle || "",
+      label: meta?.label_es ?? arch,
+      description: meta?.subtitle_es ?? "",
     };
   });
 
@@ -74,15 +74,9 @@ function StrategyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Nombre Público</FormLabel>
-              <WithCopilot
-                fieldId="offer_public_name"
-                fieldLabel="Nombre de la Oferta"
-                getValue={() => field.value || ""}
-              >
-                <FormControl>
-                  <Input {...field} value={field.value || ""} className="bg-background" />
-                </FormControl>
-              </WithCopilot>
+              <FormControl>
+                <Input {...field} value={field.value || ""} className="bg-background" />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -137,6 +131,9 @@ function StrategyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   );
 }
 
+/**
+ *
+ */
 export function StrategyForm({ defaultValues: propValues, onSave }: StrategyFormProps) {
   const defaultValues: StrategyFormValues = {
     public_name: propValues?.public_name || "",

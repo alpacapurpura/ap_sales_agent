@@ -67,6 +67,30 @@ from src.shared.links.ports.crm_repos import get_identity_service, get_lead_metr
 logger = structlog.get_logger()
 
 
+def merge_history_with_current(
+    history: list[dict],
+    sanitized_text: str,
+    raw_text: str,
+) -> list[dict]:
+    """Combine persisted chat history with the current user turn.
+
+    If the last history entry is a user message whose content matches either
+    ``sanitized_text`` or ``raw_text``, it gets deduped (prevents double-logging
+    when the current message was already persisted before this code runs).
+
+    The input ``history`` list is never mutated.
+    """
+    merged = list(history)  # defensive copy — never mutate caller's list
+
+    if merged and merged[-1].get("role") == "user":
+        last_content = merged[-1].get("content", "")
+        if last_content in (sanitized_text, raw_text):
+            merged = merged[:-1]
+
+    merged.append({"role": "user", "content": sanitized_text})
+    return merged
+
+
 class ChatOrchestrator:
     """Chat Orchestrator."""
 

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Offer Studio — Lista | Flow Preview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="../styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+<!-- Real route: /[tenantId]/offer-studio — no change vs current app -->
+<div class="flex min-h-screen">
+  <aside class="w-64 bg-white border-r border-slate-200 flex-shrink-0">
+    <div class="p-4 border-b border-slate-200"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-slate-900 text-white font-bold flex items-center justify-center text-sm">N</div><span class="font-semibold">Nicolify</span></div></div>
+    <nav class="p-3 space-y-1 text-sm">
+      <div class="px-2 py-1.5 text-xs font-semibold text-slate-400 uppercase mt-2">Studios</div>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">🏢 Brand Studio</a>
+      <a href="offers-list.html" class="nav-active flex items-center gap-2 px-2 py-1.5 rounded">💼 Offer Studio</a>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">📢 Growth Studio</a>
+      <div class="mt-2">
+        <div class="flex items-center gap-2 px-2 py-1.5 text-slate-600">🎯 Closer Studio</div>
+        <div class="ml-6 space-y-0.5 text-xs">
+          <a href="#" class="block px-2 py-1 rounded hover:bg-slate-100 text-slate-500">Resumen</a>
+          <a href="../sales/inbox.html" class="block px-2 py-1 rounded hover:bg-slate-100 text-slate-500">Studio</a>
+          <a href="#" class="block px-2 py-1 rounded hover:bg-slate-100 text-slate-500">Contactos</a>
+          <a href="../sales/enrollments.html" class="flex items-center justify-between px-2 py-1 rounded hover:bg-slate-100 text-slate-500">Inscripciones <span class="badge-new">NEW</span></a>
+        </div>
+      </div>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">⚙️ Configuración</a>
+    </nav>
+  </aside>
+
+  <main class="flex-1 overflow-auto pb-16">
+    <header class="bg-white border-b border-slate-200 px-8 py-5">
+      <div class="flex items-start justify-between">
+        <div>
+          <h1 class="text-2xl font-bold">Offer Studio</h1>
+          <p class="text-sm text-slate-500 mt-0.5">Ofertas, lead magnets y escalera de valor</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">Importar</button>
+          <button class="px-3 py-2 text-sm bg-slate-900 text-white rounded-lg flex items-center gap-2">✨ Crear con IA</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="px-8 py-6">
+      <div class="bg-white border border-slate-200 rounded-xl p-4 mb-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">💡</div>
+          <div>
+            <p class="font-semibold text-sm">Crear oferta guiado por IA</p>
+            <p class="text-xs text-slate-500">El copiloto extrae datos de tu web o documentos y arma la oferta completa en ~5 min</p>
+          </div>
+        </div>
+        <a href="../copilot/interview-date.html" class="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg">Empezar →</a>
+      </div>
+
+      <h2 class="text-sm font-semibold text-slate-600 mb-3">Tus ofertas (3)</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
+        <a href="offer-info.html" class="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition block">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">🗺️</div>
+            <span class="status-badge status-active">Activa</span>
+          </div>
+          <h3 class="font-bold">MasterClass de Copywriting</h3>
+          <p class="text-xs text-slate-500 mt-1">Programa · 3 cohortes</p>
+          <div class="mt-4 flex items-center justify-between text-xs">
+            <span class="text-slate-500">Próxima cohorte: <strong class="text-slate-800">15 jul 2026</strong></span>
+            <span class="text-blue-600 font-medium">Ver →</span>
+          </div>
+        </a>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-5">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">⛺</div>
+            <span class="status-badge status-upcoming">Próxima</span>
+          </div>
+          <h3 class="font-bold">Retiro Creativo Cusco</h3>
+          <p class="text-xs text-slate-500 mt-1">Experiencia · 2 salidas</p>
+          <div class="mt-4 text-xs text-slate-500">Próxima salida: <strong class="text-slate-800">3 sep 2026</strong></div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-5">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">📦</div>
+            <span class="status-badge status-draft">Borrador</span>
+          </div>
+          <h3 class="font-bold">Mini Curso: Hooks que venden</h3>
+          <p class="text-xs text-slate-500 mt-1">Producto · sin ediciones</p>
+          <div class="mt-4 text-xs text-slate-500">Sin publicar todavía</div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="fixed bottom-0 left-0 right-0 journey-bar px-4 py-2 text-xs flex items-center justify-between z-30">
+  <div><strong>Journey 1 — Crear oferta + primera cohorte:</strong> Paso 1/5 · Elegir entrada (Crear con IA)</div>
+  <a href="../copilot/interview-date.html" class="text-blue-700 font-semibold hover:underline">Siguiente: Interview IA →</a>
+</div>
+</body></html>

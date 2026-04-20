@@ -43,121 +43,145 @@ class AppPage:
 # ── Navigation Map ───────────────────────────────────────────────────
 
 NAVIGATION_MAP: list[AppPage] = [
-    # ── Brand Studio ─────────────────────────────────────────────
-    # ── Brand Studio — Esencia ────────────────────────────────────
+    # ── Brand Studio ──────────────────────────────────────────────
+    # One AppPage per real route. Sprint 3 flipped the brand-studio URL
+    # structure from Spanish grouping tabs (esencia/estrategia/...) to
+    # per-section English slugs served by a catch-all at
+    # /brand-studio/[section]/[[...fieldId]]/. Keeping a single AppPage
+    # per section so copilot navigate_to_page("brand", section_id="...")
+    # routes to the exact URL the user needs.
     AppPage(
-        route_template="/{tenantId}/brand-studio/esencia",
-        label="Esencia",
+        route_template="/{tenantId}/brand-studio/identity",
+        label="Identidad",
         module="brand",
-        description="ADN de la marca: identidad, historia, personalidad, equipo, credibilidad, contacto",
+        description="Nombre, tagline, descripción, industria, tono de voz, datos legales",
         keywords=[
-            "marca",
-            "brand",
             "identidad",
-            "esencia",
-            "historia",
-            "equipo",
-            "contacto",
+            "identity",
+            "nombre",
+            "tagline",
+            "voz",
+            "legal",
+            "industria",
+            "marca",
         ],
-        sections=[
-            AppSection(
-                "identity",
-                "Identidad",
-                "Nombre de marca, industria, tagline, descripción, datos legales",
-            ),
-            AppSection(
-                "story",
-                "Historia",
-                "Historia de origen, misión, visión, hitos importantes",
-            ),
-            AppSection(
-                "values-essence",
-                "Personalidad",
-                "Valores, personalidad, arquetipo, esencia de marca, RTBs",
-            ),
-            AppSection("team", "Equipo", "Personas clave y liderazgo"),
-            AppSection(
-                "authority",
-                "Autoridad",
-                "Prensa, certificaciones, premios, partnerships",
-            ),
-            AppSection("testimonials", "Testimonios", "Prueba social y casos de éxito"),
-            AppSection(
-                "contact",
-                "Contacto",
-                "Información pública de contacto y redes sociales",
-            ),
-        ],
+        sections=[],
     ),
-    # ── Brand Studio — Estrategia ──────────────────────────────────
     AppPage(
-        route_template="/{tenantId}/brand-studio/estrategia",
-        label="Estrategia",
+        route_template="/{tenantId}/brand-studio/positioning",
+        label="Posicionamiento",
         module="brand",
-        description="Plan de juego: posicionamiento, mercado, StoryBrand, metodología",
+        description="Brand Love Key: UVP, insight, beneficios, RTBs, esencia de marca, arquetipo",
         keywords=[
-            "estrategia",
             "posicionamiento",
-            "mercado",
-            "storybrand",
-            "metodología",
+            "positioning",
             "UVP",
+            "insight",
+            "RTB",
+            "brand love key",
+            "esencia",
         ],
-        sections=[
-            AppSection(
-                "positioning",
-                "Posicionamiento (Brand Love Key)",
-                "Entorno competitivo, insight, beneficios, discriminador, UVP",
-            ),
-            AppSection(
-                "market",
-                "Mercado",
-                "Competidores directos/indirectos, consumer insights",
-            ),
-            AppSection(
-                "storybrand",
-                "Narrativa (StoryBrand)",
-                "Héroe, problema, guía, plan, CTAs, resultado, one-liner",
-            ),
-            AppSection(
-                "methodology",
-                "Metodología",
-                "Framework o método propio de la marca",
-            ),
-        ],
+        sections=[],
     ),
-    # ── Brand Studio — Público ─────────────────────────────────────
     AppPage(
-        route_template="/{tenantId}/brand-studio/publico",
-        label="Público",
+        route_template="/{tenantId}/brand-studio/narrative",
+        label="Narrativa",
         module="brand",
-        description="Clientes ideales: buyer personas y perfiles de avatar",
-        keywords=["público", "avatar", "buyer persona", "cliente ideal", "audiencia"],
-        sections=[
-            AppSection("avatars", "Avatares", "Perfiles de cliente ideal"),
+        description="StoryBrand: héroe, problema, guía, plan, CTAs, resultado, one-liner",
+        keywords=[
+            "narrativa",
+            "narrative",
+            "storybrand",
+            "héroe",
+            "hero",
+            "problema",
+            "plan",
+            "CTA",
+            "one-liner",
         ],
+        sections=[],
     ),
-    # ── Brand Studio — Identidad Creativa ────────────────────────────
     AppPage(
-        route_template="/{tenantId}/brand-studio/identidad-creativa",
-        label="Identidad Creativa",
+        route_template="/{tenantId}/brand-studio/methodology",
+        label="Metodología",
+        module="brand",
+        description="Framework o método propio de la marca y sus pilares",
+        keywords=[
+            "metodología",
+            "methodology",
+            "framework",
+            "método",
+            "pilares",
+        ],
+        sections=[],
+    ),
+    AppPage(
+        route_template="/{tenantId}/brand-studio/story",
+        label="Historia",
+        module="brand",
+        description="Historia de origen, misión, visión, hitos importantes",
+        keywords=[
+            "historia",
+            "story",
+            "origen",
+            "misión",
+            "visión",
+            "hitos",
+        ],
+        sections=[],
+    ),
+    AppPage(
+        route_template="/{tenantId}/brand-studio/team",
+        label="Equipo",
+        module="brand",
+        description="Personas clave, voceros y liderazgo de la marca",
+        keywords=["equipo", "team", "personas clave", "key figures", "liderazgo", "voceros"],
+        sections=[],
+    ),
+    AppPage(
+        route_template="/{tenantId}/brand-studio/authority",
+        label="Autoridad",
+        module="brand",
+        description="Prensa, certificaciones, premios, partnerships",
+        keywords=["autoridad", "authority", "prensa", "premios", "certificaciones", "partnerships"],
+        sections=[],
+    ),
+    AppPage(
+        route_template="/{tenantId}/brand-studio/testimonials",
+        label="Testimonios",
+        module="brand",
+        description="Prueba social y casos de éxito de clientes reales",
+        keywords=["testimonios", "testimonials", "prueba social", "casos de éxito", "social proof"],
+        sections=[],
+    ),
+    AppPage(
+        route_template="/{tenantId}/brand-studio/visuals",
+        label="Visuales",
         module="brand",
         description=(
-            "Imagen, voz y mensajes: galería, colores, tipografía, logos, tono, conceptos creativos, assets por funnel"
+            "Sistema de diseño: colores, tipografía, logos, estilo fotográfico, estilo de iconos, guidelines visuales"
         ),
         keywords=[
-            "assets",
-            "visual",
-            "logo",
+            "visuales",
+            "visuals",
+            "diseño",
             "colores",
             "tipografía",
-            "diseño",
-            "galería",
-            "voz",
-            "tono",
+            "logos",
+            "fotografía",
+            "iconos",
+            "paleta",
+        ],
+        sections=[],
+    ),
+    AppPage(
+        route_template="/{tenantId}/brand-studio/communication-assets",
+        label="Assets de Comunicación",
+        module="brand",
+        description="Conceptos creativos y assets por etapa del funnel (TOFU/MOFU/BOFU/retención)",
+        keywords=[
+            "assets",
             "comunicación",
-            "idioma",
-            "voice",
             "creativos",
             "conceptos",
             "funnel",
@@ -166,30 +190,31 @@ NAVIGATION_MAP: list[AppPage] = [
             "BOFU",
             "messaging",
         ],
-        sections=[
-            AppSection("gallery", "Galería de Marca", "Media assets de la marca"),
-            AppSection(
-                "visuals",
-                "Sistema de Diseño",
-                "Colores, tipografía, personalidad visual",
-            ),
-            AppSection("logos", "Logo Kit", "Variantes de logo"),
-            AppSection(
-                "voice",
-                "Voz AI",
-                "Estilo de comunicación y configuración de voz",
-            ),
-            AppSection(
-                "creative-concepts",
-                "Conceptos Creativos",
-                "Plantillas de messaging reutilizables",
-            ),
-            AppSection(
-                "funnel-assets",
-                "Assets por Funnel",
-                "Piezas por etapa (TOFU/MOFU/BOFU/Retención)",
-            ),
+        sections=[],
+    ),
+    AppPage(
+        route_template="/{tenantId}/brand-studio/contact",
+        label="Contacto",
+        module="brand",
+        description="Información pública de contacto y redes sociales",
+        keywords=["contacto", "contact", "email", "teléfono", "redes sociales", "social"],
+        sections=[],
+    ),
+    AppPage(
+        route_template="/{tenantId}/brand-studio/publico",
+        label="Buyer Personas",
+        module="brand",
+        description="Clientes ideales: perfiles demográficos, psicográficos, dolores y deseos",
+        keywords=[
+            "público",
+            "publico",
+            "audiencia",
+            "avatar",
+            "buyer persona",
+            "cliente ideal",
+            "ICP",
         ],
+        sections=[],
     ),
     # ── Offer Studio ─────────────────────────────────────────────
     AppPage(

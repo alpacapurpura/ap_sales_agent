@@ -30,6 +30,12 @@
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
 
+  --color-brand: hsl(var(--brand));
+  --color-brand-foreground: hsl(var(--brand-foreground));
+
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
+
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
@@ -68,6 +74,28 @@
   --chart-3: 30 80% 55%;
   --chart-4: 280 65% 60%;
   --chart-5: 340 75% 55%;
+
+  /* Brand accent — copilot/recomendaciones. Matches copilotPulse animation. */
+  --brand: 270 70% 55%;
+  --brand-foreground: 210 40% 98%;
+
+  /* Status colors used in persona completion bars + reco success state */
+  --success: 142 71% 45%;
+  --warning: 40 90% 55%;
+
+  /* ─── Brand Studio Finder layout tokens (UI-SPEC-locked-dimensions) ─── */
+  --brand-sidebar-main: 220px;
+  --brand-col-sections: 260px;
+  --brand-col-instances: 280px;
+  --brand-col-fields: 320px;
+  --brand-topbar-h: 48px;
+  --brand-col-header-h: 44px;
+  --brand-row-h: 36px;
+  --brand-persona-row-h: 62px;
+  --brand-reco-header-h: 44px;
+  --brand-reco-max-h: 45%;
+  --brand-field-grid-gap-row: 24px;
+  --brand-field-grid-gap-col: 28px;
 }
 
 /* Increased specificity (html.dark) to ensure Dark Mode wins over Puck's :root styles if needed */
@@ -113,6 +141,12 @@ html.dark {
   --chart-3: 30 80% 55%;
   --chart-4: 280 65% 60%;
   --chart-5: 340 75% 55%;
+
+  /* Brand + status — slightly brighter in dark for readability */
+  --brand: 270 70% 65%;
+  --brand-foreground: 222.2 47.4% 11.2%;
+  --success: 142 71% 55%;
+  --warning: 40 90% 60%;
 }
 
 @layer base {

@@ -75,6 +75,7 @@ frontend/dist/
 frontend/.turbo/
 frontend/*.tsbuildinfo
 frontend/.eslintcache
+frontend/storybook-static/
 
 # --- Infrastructure & Data ---
 # Docker Volumes & Persistence

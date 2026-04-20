@@ -23,6 +23,10 @@ EXPECTED_CURRENCIES = {
     "BRL",
     "PEN",
     "CLP",
+    "BOB",
+    "UYU",
+    "PYG",
+    "CRC",
     "GBP",
     "CAD",
     "AUD",
@@ -32,10 +36,10 @@ EXPECTED_CURRENCIES = {
 
 
 class TestSupportedCurrencies:
-    """Verify the 13 supported currencies exist."""
+    """Verify the 17 supported currencies exist."""
 
     def test_supported_currencies_count(self) -> None:
-        assert len(SUPPORTED_CURRENCIES) == 13
+        assert len(SUPPORTED_CURRENCIES) == 17
 
     def test_supported_currencies_match_expected(self) -> None:
         assert SUPPORTED_CURRENCIES == EXPECTED_CURRENCIES

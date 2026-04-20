@@ -23,6 +23,26 @@ class LaunchEditionModel(Base):
     edition_name = Column(String, nullable=False)
     edition_number = Column(Integer, nullable=False)
 
+    # Sprint 7: sixth SSoT axis — what kind of variant this row represents.
+    # Stored as TEXT (matches the ``VariantStructure`` StrEnum values); the
+    # domain enum is the authoritative typing. Backfilled from the parent
+    # offer's archetype by migration 049 and thereafter populated by the
+    # service layer at creation time.
+    variant_structure = Column(
+        String,
+        nullable=False,
+        server_default="temporal_cohort",
+    )
+    # Structure-specific payload (TIER features, SKU attributes, REGIONAL
+    # country codes, etc.). Schema validated at the domain layer against
+    # ``VariantStructureMetadata.required_structure_data_fields``. Defaults
+    # to ``{}`` so new rows are valid for structures with no required keys.
+    structure_data = Column(JSONB, nullable=False, server_default="{}")
+    # Explicit ordering within a (offer, variant_structure) group for
+    # orderable structures (TIER, SKU_VARIANT, REGIONAL, MODALITY, LANGUAGE).
+    # NULL for TEMPORAL_* structures where chronological order is implicit.
+    sort_rank = Column(Integer, nullable=True)
+
     # Nullable — placeholder editions have no date yet.
     start_date = Column(DateTime(timezone=True), nullable=True)
     end_date = Column(DateTime(timezone=True), nullable=True)

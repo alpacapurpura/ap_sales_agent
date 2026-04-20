@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
@@ -6,6 +7,11 @@ import { OfferCatalogCard } from "../components/dashboard/OfferCatalogCard";
 import { MOCK_OFFER_NORMALIZED } from "./fixtures";
 
 import type { Offer } from "../types";
+
+function renderWithClient(ui: React.ReactElement) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+}
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
@@ -28,23 +34,48 @@ vi.mock("@/features/tenant/context/tenant-locale-context", () => ({
   useTenantLocale: () => ({ currency: "PEN", timezone: "America/Lima" }),
 }));
 
+// Mock the archetype-display hook so the test doesn't need to wire a
+// QueryClientProvider + MSW for the catalog endpoint.
+vi.mock("@/features/offer-studio/hooks/use-archetype-display", async () => {
+  const { Package } = await import("lucide-react");
+  return {
+    useArchetypeDisplay: (archetype?: string) => {
+      if (!archetype) return undefined;
+      const labels: Record<string, string> = {
+        producto: "Producto",
+        programa: "Programa",
+        servicio: "Servicio",
+        membresia: "Membresía",
+        experiencia: "Experiencia",
+      };
+      return {
+        archetype,
+        label: labels[archetype] ?? archetype,
+        subtitle: "",
+        icon: Package,
+        examples: [],
+      };
+    },
+  };
+});
+
 describe("OfferCard Component", () => {
   it("renders the offer name correctly", () => {
-    render(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
+    renderWithClient(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
 
     // The most critical check: Is the name visible?
     expect(screen.getByText("Guía: Liberar la Mente")).toBeInTheDocument();
   });
 
   it("renders the correct archetype label", () => {
-    render(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
+    renderWithClient(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
 
-    // Should map archetype "producto" -> "Producto" via ARCHETYPE_METADATA
+    // Should map archetype "producto" -> "Producto" via the mocked useArchetypeDisplay hook
     expect(screen.getByText("Producto")).toBeInTheDocument();
   });
 
   it("renders the correct delivery badge", () => {
-    render(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
+    renderWithClient(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
     expect(screen.getByText("DIY")).toBeInTheDocument();
   });
 
@@ -63,7 +94,7 @@ describe("OfferCard Component", () => {
         },
       ],
     };
-    render(<OfferCatalogCard offer={offer} />);
+    renderWithClient(<OfferCatalogCard offer={offer} />);
     // Intl.NumberFormat('en-US', { currency: 'PEN' }) → "PEN 1,500"
     const priceNode = screen.getByText(/PEN/);
     expect(priceNode).toBeInTheDocument();
@@ -85,7 +116,7 @@ describe("OfferCard Component", () => {
         },
       ],
     };
-    render(<OfferCatalogCard offer={offer} />);
+    renderWithClient(<OfferCatalogCard offer={offer} />);
     const priceNode = screen.getByText(/PEN/);
     expect(priceNode).toBeInTheDocument();
     expect(priceNode.textContent).toContain("500");

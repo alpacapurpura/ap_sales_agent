@@ -3,11 +3,12 @@ import { OfferValueLevel } from "../types";
 import type { Offer } from "../types";
 
 export interface LadderGap {
+  /** Ladder rung with no offer yet. Callers resolve label/description
+   *  via ``useValueLevelCatalog()`` — keeps this module catalog-agnostic
+   *  and eliminates drift with backend copy. */
   group: OfferValueLevel;
-  label: string;
-  description: string;
-  suggestedPresetIds: string[];
   priority: "critico" | "recomendado" | "opcional";
+  suggestedPresetIds: string[];
 }
 
 export interface LadderCompleteness {
@@ -18,42 +19,39 @@ export interface LadderCompleteness {
   score: "vacia" | "iniciando" | "creciendo" | "completa" | "avanzada";
 }
 
+/** Priority + suggested starter formats per rung.
+ *
+ *  Priority is strategic logic (a ladder without LEAD_MAGNET is critical;
+ *  without CORPORATIVO is optional) and stays local.
+ *  ``suggestedPresetIds`` references format ids from ``FORMAT_CATALOG`` —
+ *  the wizard uses them to propose first-click formats when filling a gap.
+ *  If the suggested format is later removed from ``FORMAT_CATALOG``,
+ *  the frontend renders the entries it can resolve and silently drops
+ *  the rest. */
 const GROUP_CONFIG: Record<
   OfferValueLevel,
   {
-    label: string;
-    description: string;
     priority: LadderGap["priority"];
     suggestedPresetIds: string[];
   }
 > = {
   [OfferValueLevel.LEAD_MAGNET]: {
-    label: "Lead Magnet",
-    description: "Necesitas un recurso gratuito para atraer prospectos.",
     priority: "critico",
     suggestedPresetIds: ["producto_ebook", "experiencia_summit"],
   },
   [OfferValueLevel.ACTIVACION]: {
-    label: "Activacion",
-    description: "Convierte leads en clientes con una primera compra de bajo riesgo.",
     priority: "recomendado",
     suggestedPresetIds: ["producto_curso", "programa_masterclass", "membresia_comunidad"],
   },
   [OfferValueLevel.TRANSFORMACION]: {
-    label: "Transformacion",
-    description: "Tu oferta principal — la que genera la mayor parte de tus ingresos.",
     priority: "critico",
     suggestedPresetIds: ["programa_bootcamp", "programa_certificacion", "servicio_vip_day"],
   },
   [OfferValueLevel.MAXIMIZACION]: {
-    label: "Maximizacion",
-    description: "Ofertas premium para maximizar el valor de vida del cliente.",
     priority: "opcional",
     suggestedPresetIds: ["servicio_mentoria", "membresia_mastermind", "experiencia_retiro"],
   },
   [OfferValueLevel.CORPORATIVO]: {
-    label: "Corporativo",
-    description: "Servicios B2B para empresas y organizaciones.",
     priority: "opcional",
     suggestedPresetIds: ["servicio_dfy"],
   },
@@ -84,15 +82,12 @@ export function computeLadderCompleteness(offers: Offer[]): LadderCompleteness {
       const config = GROUP_CONFIG[group];
       gaps.push({
         group,
-        label: config.label,
-        description: config.description,
-        suggestedPresetIds: config.suggestedPresetIds,
         priority: config.priority,
+        suggestedPresetIds: config.suggestedPresetIds,
       });
     }
   }
 
-  // Sort gaps: critico first, then recomendado, then opcional
   const priorityOrder = { critico: 0, recomendado: 1, opcional: 2 };
   gaps.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 

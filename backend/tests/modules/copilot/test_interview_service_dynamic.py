@@ -58,13 +58,16 @@ class TestDynamicConfigSelection:
             # _load_offer_archetype must have been called with correct args
             mock_load.assert_called_once_with(db, tenant_id, entity_id)
 
-            # Dynamic config has 7 blocks (3 universal_first + 1 archetype + 3 universal_final)
+            # Dynamic config for edition-supporting archetype "programa":
+            # 3 universal_first + 1 archetype + 3 universal_final + 1 first_edition_date = 8
             config = result["config"]
             block_ids = [b["id"] for b in config["bloques"]]
-            assert len(block_ids) == 7
+            assert len(block_ids) == 8
 
             # The archetype-specific block for "programa" must be present at position 3
             assert block_ids[3] == "program_details"
+            # Extra edition-date block appended at the end.
+            assert block_ids[-1] == "first_edition_date"
 
     def test_offer_domain_without_entity_id_uses_static_config(self, db) -> None:
         """When domain='offer' with no entity_id, static config is used (fallback)."""
@@ -192,8 +195,14 @@ class TestDynamicConfigSelection:
             assert len(config["bloques"]) == 6
 
     @pytest.mark.parametrize("archetype", list(ARCHETYPE_BLOCKS.keys()))
-    def test_all_known_archetypes_produce_7_block_config(self, db, archetype: str) -> None:
-        """Every known archetype produces a 7-block dynamic config."""
+    def test_all_known_archetypes_produce_dynamic_block_config(
+        self,
+        db,
+        archetype: str,
+    ) -> None:
+        """Every known archetype produces a dynamic config: 7 blocks, or 8 for
+        edition-supporting archetypes (``programa``, ``servicio``, ``experiencia``).
+        """
         tenant_id = uuid4()
         user_id = uuid4()
         entity_id = uuid4()
@@ -221,8 +230,9 @@ class TestDynamicConfigSelection:
                 )
 
             config = result["config"]
-            assert len(config["bloques"]) == 7, (
-                f"Expected 7 blocks for archetype '{archetype}', got {len(config['bloques'])}"
+            expected = 8 if archetype in {"programa", "servicio", "experiencia"} else 7
+            assert len(config["bloques"]) == expected, (
+                f"Expected {expected} blocks for archetype '{archetype}', got {len(config['bloques'])}"
             )
 
 

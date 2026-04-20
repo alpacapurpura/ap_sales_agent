@@ -94,6 +94,11 @@ class TestBrandIdentity:
     def test_full(self, sample_identity):
         assert sample_identity.industry == "Technology"
 
+    # business_types moved to tenant_profile BC on 2026-04-20 — see
+    # backend/tests/modules/tenant_profile/test_tenant_profile_aggregate.py
+    # and backend/src/modules/tenant_profile/domain/tenant_profile.py for the
+    # equivalent invariants (min/max, duplicates, legacy alias remapping).
+
 
 class TestBrandVisuals:
     def test_defaults(self):

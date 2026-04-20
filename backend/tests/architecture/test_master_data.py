@@ -14,6 +14,7 @@ BACKEND_SRC = Path(__file__).resolve().parents[2] / "src"
 # Files that legitimately define or document USD (currency domain itself)
 ALLOWED_USD_DEFAULT_FILES: set[str] = {
     "src/shared/domain/currency.py",
+    "src/shared/domain/currency_catalog.py",
     "src/modules/iam/domain/tenant.py",
     "src/modules/iam/api/settings.py",
     "src/shared/domain/locale.py",

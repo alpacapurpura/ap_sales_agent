@@ -27,7 +27,7 @@ const PILLS: PillConfig[] = [
   {
     status: "draft",
     label: "Borrador",
-    tooltip: "La oferta no es visible para el Sales Agent. Podés editarla libremente.",
+    tooltip: "La oferta no es visible para el Sales Agent. Puedes editarla libremente.",
     activeClass: "bg-warning/20 text-warning border-warning/40",
   },
   {
@@ -104,7 +104,7 @@ export function OfferStatusSwitcher({
               <TooltipContent side="bottom">
                 <p className="max-w-xs text-xs">
                   {isArchived
-                    ? "Oferta archivada. Usá 'Restaurar' en el panel de archivadas."
+                    ? "Oferta archivada. Usa 'Restaurar' en el panel de archivadas."
                     : pill.tooltip}
                 </p>
               </TooltipContent>

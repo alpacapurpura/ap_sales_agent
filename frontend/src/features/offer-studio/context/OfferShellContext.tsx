@@ -2,9 +2,9 @@
 
 import { createContext, useContext } from "react";
 
-import type { AutoSaveState } from "../hooks/use-auto-save";
 import type { OfferCountsResponse } from "../types/counts";
 import type { Offer } from "@/features/offer-studio/types";
+import type { AutoSaveState } from "@/lib/form-runtime/hooks";
 
 // ── Offer Shell Context ──────────────────────────────────────────────────────
 
@@ -16,6 +16,9 @@ export interface OfferShellContextValue {
 
 export const OfferShellContext = createContext<OfferShellContextValue | null>(null);
 
+/**
+ *
+ */
 export function useOfferShell(): OfferShellContextValue {
   const ctx = useContext(OfferShellContext);
   if (!ctx) {
@@ -44,6 +47,9 @@ export const DEFAULT_SNAPSHOT: OfferAutoSaveSnapshot = {
 
 export const OfferAutoSaveContext = createContext<OfferAutoSaveContextValue | null>(null);
 
+/**
+ *
+ */
 export function useOfferAutoSave(): OfferAutoSaveContextValue {
   const ctx = useContext(OfferAutoSaveContext);
   if (!ctx) {

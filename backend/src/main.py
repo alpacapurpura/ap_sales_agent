@@ -9,7 +9,7 @@ from arq.connections import RedisSettings, create_pool
 from fastapi import Depends, FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
@@ -94,26 +94,33 @@ from src.modules.iam.api.tracking import router as iam_tracking
 
 # 4. Landing
 from src.modules.landing.api import landing as landing_ai
+from src.modules.landing.api import public_edition as landing_public_edition
 from src.modules.landing.api import public_landing as landing_public
 from src.modules.offer.api import archetypes as offer_archetypes
 from src.modules.offer.api import assets as offer_assets
 from src.modules.offer.api import campaigns as offer_campaigns
 from src.modules.offer.api import counts as offer_counts
 from src.modules.offer.api import definitions as offer_definitions
+from src.modules.offer.api import formats as offer_formats
 from src.modules.offer.api import knowledge as offer_knowledge
 from src.modules.offer.api import landing as offer_landing
 from src.modules.offer.api import launch_editions as offer_launch_editions
 from src.modules.offer.api import lifecycle as offer_lifecycle
 from src.modules.offer.api import offer_ai
 from src.modules.offer.api import offer_extraction as offer_tools
+from src.modules.offer.api import offer_ladder_hints as offer_ladder_hints_api
+from src.modules.offer.api import offer_type_presets as offer_type_presets_api
 from src.modules.offer.api import product_mappings as offer_product_mappings
 
 # 3. Offer
 from src.modules.offer.api import products as offer_products
+from src.modules.offer.api import value_levels as offer_value_levels
+from src.modules.offer.api import variant_structures as offer_variant_structures
 
 # 5. Sales Agent
 from src.modules.sales_agent.api import audit as sales_audit
 from src.modules.sales_agent.api import closer_studio as sales_closer
+from src.modules.sales_agent.api import enrollments as sales_enrollments
 from src.modules.sales_agent.api import ws as sales_ws
 from src.modules.scheduling.api import agenda as sched_agenda
 
@@ -121,8 +128,21 @@ from src.modules.scheduling.api import agenda as sched_agenda
 from src.modules.scheduling.api import event_types as sched_types
 from src.modules.scheduling.api import public_links as sched_public
 
+# 18. Social Proof
+from src.modules.social_proof.api import authority as social_proof_authority
+from src.modules.social_proof.api import placements as social_proof_placements
+from src.modules.social_proof.api import team_members as social_proof_team
+from src.modules.social_proof.api import testimonials as social_proof_testimonials
+
 # 15. Tenant Domains
 from src.modules.tenant_domains.api import domain_router as domains_router
+from src.modules.tenant_profile.api import business_types_catalog as business_types_catalog_router
+
+# 17. Tenant Profile (new bounded context — SSoT for business_types)
+from src.modules.tenant_profile.api import router as tenant_profile_router
+
+# 16. Shared catalogs (currencies, etc.)
+from src.shared.api import currencies as shared_currencies
 
 init_sentry("api")
 
@@ -418,6 +438,33 @@ app.include_router(
     dependencies=[Depends(get_tenant_context)],
 )
 
+# 18. Social Proof — SSoT for testimonials / authority / team, reused by
+# offer / landing / sales_agent via shared/links/ports.
+app.include_router(
+    social_proof_testimonials.router,
+    prefix="/api/v1/social-proof/testimonials",
+    tags=["Social Proof - Testimonials"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    social_proof_authority.router,
+    prefix="/api/v1/social-proof/authority",
+    tags=["Social Proof - Authority"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    social_proof_team.router,
+    prefix="/api/v1/social-proof/team",
+    tags=["Social Proof - Team"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    social_proof_placements.router,
+    prefix="/api/v1/social-proof/placements",
+    tags=["Social Proof - Placements"],
+    dependencies=[Depends(get_tenant_context)],
+)
+
 # 3. Offer
 app.include_router(
     offer_products.router,
@@ -440,6 +487,36 @@ app.include_router(
     offer_archetypes.router,
     prefix="/api/v1/offer/archetypes",
     tags=["Offer - Archetypes"],
+)
+app.include_router(
+    offer_value_levels.router,
+    prefix="/api/v1/offer/value-levels",
+    tags=["Offer - Value Levels"],
+)
+app.include_router(
+    offer_variant_structures.router,
+    prefix="/api/v1/offer/variant-structures",
+    tags=["Offer - Variant Structures"],
+)
+app.include_router(
+    offer_formats.router,
+    prefix="/api/v1/offer/formats",
+    tags=["Offer - Formats"],
+)
+app.include_router(
+    offer_ladder_hints_api.router,
+    prefix="/api/v1/offer/ladder-hints",
+    tags=["Offer - Ladder Hints"],
+)
+app.include_router(
+    offer_type_presets_api.router,
+    prefix="/api/v1/offer/type-presets",
+    tags=["Offer - Type Presets"],
+)
+app.include_router(
+    shared_currencies.router,
+    prefix="/api/v1/shared/currencies",
+    tags=["Shared - Currencies"],
 )
 app.include_router(
     offer_product_mappings.router,
@@ -508,6 +585,11 @@ app.include_router(
     prefix="/api/v1/public",
     tags=["Public - Landing"],
 )
+app.include_router(
+    landing_public_edition.router,
+    prefix="/api/v1/public",
+    tags=["Public - Landing"],
+)
 
 # 5. Sales Agent - Audit
 app.include_router(
@@ -520,6 +602,12 @@ app.include_router(
     sales_closer.router,
     prefix="/api/v1/closer-studio",
     tags=["Closer Studio"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    sales_enrollments.router,
+    prefix="/api/v1/sales-agent",
+    tags=["Sales Agent - Enrollments"],
     dependencies=[Depends(get_tenant_context)],
 )
 app.include_router(sales_ws.router, tags=["Closer Studio - WebSocket"])
@@ -796,6 +884,38 @@ app.include_router(
     tags=["Domains"],
     dependencies=[Depends(get_tenant_context)],
 )
+
+# 17. Tenant Profile — SSoT for business_types (Sprint 2026-04-20)
+app.include_router(
+    tenant_profile_router.router,
+    prefix="/api/v1/tenant/profile",
+    tags=["Tenant Profile"],
+)
+app.include_router(
+    business_types_catalog_router.router,
+    prefix="/api/v1/catalogs/business-types",
+    tags=["Catalogs - Business Types"],
+)
+
+
+# ── Deprecated alias for the legacy catalog URL ────────────────────────────
+# CONTRACT §3.4: the endpoint moved from /brand/expert-business-types/catalog
+# to /catalogs/business-types on 2026-04-20. This 301 preserves any external
+# cache or SDK that hard-coded the old path. Scheduled for removal after the
+# two-week deprecation window (2026-05-04).
+@app.get(
+    "/api/v1/brand/expert-business-types/catalog",
+    include_in_schema=False,
+    status_code=301,
+    tags=["Deprecated"],
+)
+async def _legacy_expert_business_types_catalog_redirect() -> RedirectResponse:
+    """Redirect (301) legacy catalog URL to the canonical tenant-profile home."""
+    return RedirectResponse(
+        url="/api/v1/catalogs/business-types",
+        status_code=301,
+    )
+
 
 if __name__ == "__main__":
     import uvicorn

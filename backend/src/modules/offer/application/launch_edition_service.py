@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
     from sqlalchemy.orm import Session
 
+    from src.modules.offer.domain.enums import VariantStructure
     from src.modules.offer.domain.offer import PricingStructure
 
 
@@ -45,6 +46,9 @@ class LaunchEditionService:
         *,
         start_date: datetime | None = None,
         edition_name: str | None = None,
+        variant_structure: VariantStructure | None = None,
+        structure_data: dict[str, Any] | None = None,
+        sort_rank: int | None = None,
         end_date: datetime | None = None,
         registration_start: datetime | None = None,
         registration_end: datetime | None = None,
@@ -60,15 +64,33 @@ class LaunchEditionService:
 
         Defaults to DRAFT + PRIVATE. The user publishes explicitly via
         ``publish_edition`` once fields are filled in.
+
+        ``variant_structure`` defaults to the parent offer's archetype
+        default (``ARCHETYPE_CATALOG[archetype].default_variant_structure``)
+        — the catalog is the single source of truth. Pass a value
+        explicitly only when creating a non-default variant (e.g. a TIER
+        edition under a PROGRAMA whose default is TEMPORAL_COHORT).
         """
         offer = self.offer_repo.get_by_id(offer_id, tenant_id)
         if not offer:
             msg = f"Offer {offer_id} not found"
             raise ValueError(msg)
 
+        resolved_structure = variant_structure or get_capabilities(offer.archetype).default_variant_structure
+        if resolved_structure is None:
+            msg = (
+                f"Cannot create an edition for archetype {offer.archetype.value}: "
+                "the catalog declares no default_variant_structure (archetype likely "
+                "does not support editions)."
+            )
+            raise ValueError(msg)
+
         return self.repo.create(
             offer_id=offer_id,
             tenant_id=tenant_id,
+            variant_structure=resolved_structure,
+            structure_data=structure_data,
+            sort_rank=sort_rank,
             edition_name=edition_name,
             start_date=start_date,
             end_date=end_date,
@@ -195,6 +217,9 @@ class LaunchEditionService:
         return self.repo.create(
             offer_id=original.offer_id,
             tenant_id=tenant_id,
+            variant_structure=original.variant_structure,
+            structure_data=dict(original.structure_data),
+            sort_rank=original.sort_rank,
             edition_name=None,  # auto-generates "Edición #N"
             start_date=original.start_date,
             end_date=original.end_date,

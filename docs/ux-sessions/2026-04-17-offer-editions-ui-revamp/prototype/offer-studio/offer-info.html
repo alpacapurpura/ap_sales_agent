@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Offer Info — Edición #3 | Flow Preview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="../styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+<!-- Real route: /[tenantId]/offer-studio/offer/[id]?edition={editionId} -->
+
+<div class="flex min-h-screen">
+  <!-- App sidebar -->
+  <aside class="w-60 bg-white border-r border-slate-200 flex-shrink-0">
+    <div class="p-4 border-b border-slate-200"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-slate-900 text-white font-bold flex items-center justify-center text-sm">N</div><span class="font-semibold">Nicolify</span></div></div>
+    <nav class="p-3 space-y-1 text-sm">
+      <div class="px-2 py-1.5 text-xs font-semibold text-slate-400 uppercase mt-2">Studios</div>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">🏢 Brand Studio</a>
+      <a href="offers-list.html" class="nav-active flex items-center gap-2 px-2 py-1.5 rounded">💼 Offer Studio</a>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">📢 Growth Studio</a>
+      <div class="mt-2">
+        <div class="flex items-center gap-2 px-2 py-1.5 text-slate-600">🎯 Closer Studio</div>
+        <div class="ml-6 space-y-0.5 text-xs">
+          <a href="../sales/enrollments.html" class="flex items-center justify-between px-2 py-1 rounded hover:bg-slate-100 text-slate-500">Inscripciones <span class="badge-new">NEW</span></a>
+        </div>
+      </div>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">⚙️ Configuración</a>
+    </nav>
+  </aside>
+
+  <!-- EDITIONS RAIL -->
+  <aside class="w-60 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col" id="rail">
+    <div class="p-3 border-b border-slate-200 flex items-center justify-between">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="w-7 h-7 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 text-xs">🗺️</span>
+        <span class="text-sm font-semibold truncate">MasterClass Copy</span>
+      </div>
+      <button title="Contraer" onclick="document.getElementById('rail').classList.add('hidden'); document.getElementById('rail-collapsed').classList.remove('hidden');" class="p-1 rounded hover:bg-slate-100 text-slate-400">‹‹</button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-2 space-y-4 text-sm">
+      <div>
+        <p class="px-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">⭐ Próxima</p>
+        <a href="offer-info.html" class="block p-3 rounded-lg bg-blue-50 border border-blue-200 hover:bg-blue-100 ring-1 ring-blue-200/50">
+          <div class="flex items-center justify-between mb-1"><span class="font-semibold text-sm text-blue-900">Edición #3</span><span class="status-badge status-upcoming" style="font-size:10px">Próxima</span></div>
+          <p class="text-xs text-blue-700">Lun 15 jul · 6 sem</p>
+          <p class="text-xs text-blue-700 mt-1">🌐 Pública · 12/50</p>
+        </a>
+      </div>
+
+      <div>
+        <p class="px-2 text-[10px] font-semibold text-amber-600 uppercase tracking-wider mb-1.5">✏ Borradores</p>
+        <a href="offer-info.html" class="block p-3 rounded-lg border border-dashed border-amber-300 hover:bg-amber-50">
+          <div class="flex items-center justify-between mb-1"><span class="font-semibold text-sm text-amber-800">Edición #4</span><span class="status-badge status-draft" style="font-size:10px">Borrador</span></div>
+          <p class="text-xs text-amber-700">Sin fecha</p>
+          <p class="text-xs text-purple-700 mt-1">⚠ 3 en waitlist</p>
+        </a>
+      </div>
+
+      <div>
+        <p class="px-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">✓ Pasadas</p>
+        <div class="space-y-1">
+          <a href="offer-info-edition2.html" class="block p-2.5 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200">
+            <div class="flex items-center justify-between"><span class="text-sm text-slate-600">Edición #2</span><span class="text-xs text-slate-400">abr '26</span></div>
+            <p class="text-xs text-slate-400">25/25 · Completada</p>
+          </a>
+          <a href="offer-info-edition2.html" class="block p-2.5 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200">
+            <div class="flex items-center justify-between"><span class="text-sm text-slate-600">Edición #1</span><span class="text-xs text-slate-400">ene '26</span></div>
+            <p class="text-xs text-slate-400">18/30 · Completada</p>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-2 border-t border-slate-200">
+      <button class="w-full px-3 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">+ Nueva edición</button>
+      <p class="text-[10px] text-slate-400 text-center mt-1.5">Clonar recomendado</p>
+    </div>
+  </aside>
+
+  <!-- Collapsed rail -->
+  <aside class="w-14 bg-white border-r border-slate-200 flex-shrink-0 hidden flex-col items-center py-3 space-y-2" id="rail-collapsed">
+    <button title="Expandir" onclick="document.getElementById('rail-collapsed').classList.add('hidden'); document.getElementById('rail').classList.remove('hidden');" class="p-1 rounded hover:bg-slate-100 text-slate-400 mb-2">››</button>
+    <a href="#" class="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center ring-2 ring-blue-200" title="Edición #3 · Próxima">3</a>
+    <a href="#" class="w-10 h-10 rounded-full bg-amber-50 text-amber-700 border-2 border-dashed border-amber-400 font-semibold flex items-center justify-center" title="Edición #4 · Borrador">4</a>
+    <div class="w-10 border-t border-slate-200 my-1"></div>
+    <a href="#" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 font-semibold flex items-center justify-center" title="Edición #2 · Completada">2</a>
+    <a href="#" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 font-semibold flex items-center justify-center" title="Edición #1 · Completada">1</a>
+    <button class="w-10 h-10 rounded-full border-2 border-dashed border-purple-300 text-purple-600 hover:bg-purple-50" title="Nueva edición">+</button>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 overflow-auto pb-16">
+    <header class="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="offers-list.html" class="text-slate-500 hover:text-slate-800">←</a>
+        <div>
+          <h1 class="text-lg font-bold flex items-center gap-2 flex-wrap">
+            <span>MasterClass de Copywriting</span>
+            <span class="text-slate-300 font-normal">·</span>
+            <span class="text-blue-700">Edición #3 · Julio 2026</span>
+          </h1>
+          <p class="text-xs text-slate-500">Programa · DWY · <span class="text-emerald-600 font-medium">● Guardado hace 2s</span></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="status-badge status-upcoming">● Próxima</span>
+        <span class="status-badge visibility-public">🌐 Pública</span>
+        <button class="p-2 rounded hover:bg-slate-100 text-slate-500">⋮</button>
+      </div>
+    </header>
+
+    <!-- TabBar row with Landing split-button on the right -->
+    <div class="bg-white border-b border-slate-200 px-8 flex items-center justify-between">
+      <nav class="flex gap-1 text-sm">
+        <a href="offer-info.html" class="tab-active px-4 py-3">📋 Info</a>
+        <a href="offer-ventas.html" class="tab-inactive px-4 py-3">💰 Ventas <span class="ml-1 text-xs text-slate-400">(12)</span></a>
+        <a href="offer-assets.html" class="tab-inactive px-4 py-3">🎨 Assets <span class="ml-1 text-xs text-slate-400">(12)</span></a>
+        <a href="offer-campanas.html" class="tab-inactive px-4 py-3">📢 Campañas <span class="ml-1 text-xs text-slate-400">(3)</span></a>
+      </nav>
+
+      <!-- Landing split-button (Webflow style) -->
+      <div class="flex items-center py-2 relative">
+        <a href="offer-landing-editor.html" target="_blank" class="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-l-lg hover:bg-emerald-700 border-r border-emerald-700 font-medium">
+          <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+          <span>🌐 Editar landing</span>
+        </a>
+        <button onclick="document.getElementById('landing-menu').classList.toggle('hidden')" class="px-2 py-1.5 bg-emerald-600 text-white text-sm rounded-r-lg hover:bg-emerald-700">▾</button>
+        <div id="landing-menu" class="hidden absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg w-64 py-1 z-30">
+          <div class="px-3 py-1.5 text-[10px] text-slate-400 uppercase font-semibold">Edición #3 · publicada</div>
+          <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50">👁 <span>Abrir URL pública</span></a>
+          <button class="w-full text-left flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50">📋 <span>Copiar URL</span></button>
+          <button class="w-full text-left flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50">🔄 <span>Regenerar con IA</span></button>
+          <button class="w-full text-left flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50">📥 <span>Clonar de Edición #2</span></button>
+          <div class="border-t border-slate-100 my-1"></div>
+          <button class="w-full text-left flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-amber-700">⏸ <span>Despublicar</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress strip -->
+    <div class="bg-slate-50 border-b border-slate-200 px-8 py-2 flex items-center justify-between text-xs">
+      <div class="flex items-center gap-3 flex-1 max-w-xl">
+        <span class="font-bold text-blue-600 tabular-nums">78%</span>
+        <div class="flex-1 h-1.5 bg-slate-200 rounded-full"><div class="h-full bg-blue-500 rounded-full" style="width: 78%"></div></div>
+        <span class="text-slate-500">8/10 · siguiente: <strong class="text-slate-800">Testimonios</strong></span>
+      </div>
+      <button class="px-3 py-1.5 bg-purple-600 text-white rounded-lg">✨ Autocompletar IA</button>
+    </div>
+
+    <!-- Waitlist banner -->
+    <div class="waitlist-banner mx-8 mt-4 rounded-xl p-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="w-10 h-10 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center">📋</span>
+        <div>
+          <p class="font-semibold text-sm">12 leads en lista de espera para esta oferta</p>
+          <p class="text-xs text-slate-600">Podés notificarles que la Edición #3 ya está abierta</p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button class="px-3 py-1.5 text-xs border border-purple-300 text-purple-700 rounded-md hover:bg-white">Ver lista</button>
+        <button class="px-3 py-1.5 text-xs bg-purple-600 text-white rounded-md">Notificar a todos</button>
+      </div>
+    </div>
+
+    <section class="px-8 py-5 max-w-5xl space-y-5">
+      <!-- Info content -->
+
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3"><h3 class="font-semibold">1. Identidad</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div><p class="text-xs text-slate-500 mb-1">Nombre</p><p class="font-medium">MasterClass de Copywriting — Jul 2026</p></div>
+          <div><p class="text-xs text-slate-500 mb-1">Archetype</p><p class="font-medium">Programa · DWY</p></div>
+          <div class="col-span-2"><p class="text-xs text-slate-500 mb-1">Promesa</p><p class="font-medium">"Aprendé copywriting que convierte en 6 semanas con feedback 1:1"</p></div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3"><div><h3 class="font-semibold">2. Fechas y Logística</h3><p class="text-xs text-slate-500">Específico de Edición #3</p></div><span class="text-xs text-emerald-600">✓ Completa</span></div>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div><p class="text-xs text-slate-500 mb-1">Inicio</p><p class="font-medium">Lun 15 jul · 19:00 PET</p></div>
+          <div><p class="text-xs text-slate-500 mb-1">Fin</p><p class="font-medium">Sáb 30 ago 2026</p></div>
+          <div><p class="text-xs text-slate-500 mb-1">Inscripciones</p><p class="font-medium">1 may → 10 jul</p></div>
+          <div><p class="text-xs text-slate-500 mb-1">Capacidad</p><p class="font-medium">50 · <span class="text-emerald-600">12 inscriptos (24%)</span></p></div>
+          <div><p class="text-xs text-slate-500 mb-1">Formato</p><p class="font-medium">Virtual · Zoom + Discord</p></div>
+          <div><p class="text-xs text-slate-500 mb-1">Idioma</p><p class="font-medium">Español</p></div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3"><div><h3 class="font-semibold">3. Precios y Escalera</h3><p class="text-xs text-slate-500">Early bird → Regular → Last call</p></div><span class="text-xs text-emerald-600">✓ Completa</span></div>
+        <div class="mb-2 text-[10px] text-slate-500 flex justify-between"><span>1 may</span><span>1 jul</span><span>10 jul</span><span>Inicio 15 jul</span></div>
+        <div class="tier-timeline mb-4">
+          <div class="tier-segment tier-early" style="left:0;width:45%">Early · S/690</div>
+          <div class="tier-segment tier-regular" style="left:45%;width:45%">Regular · S/890</div>
+          <div class="tier-segment tier-last" style="left:90%;width:10%">S/990</div>
+        </div>
+        <div class="space-y-1.5 text-sm">
+          <div class="flex items-center gap-3 p-2.5 border border-emerald-200 bg-emerald-50/40 rounded">
+            <div class="w-3 h-3 rounded-full tier-early"></div><span class="font-semibold">Early bird</span><span class="text-slate-500 flex-1 text-xs">1 may → 1 jul</span><span class="font-bold">S/ 690</span><span class="text-xs text-emerald-700 font-semibold">● Activo</span>
+          </div>
+          <div class="flex items-center gap-3 p-2.5 border border-slate-200 rounded text-slate-600">
+            <div class="w-3 h-3 rounded-full tier-regular"></div><span>Regular</span><span class="text-slate-400 flex-1 text-xs">1 jul → 10 jul</span><span class="font-semibold">S/ 890</span>
+          </div>
+          <div class="flex items-center gap-3 p-2.5 border border-slate-200 rounded text-slate-600">
+            <div class="w-3 h-3 rounded-full tier-last"></div><span>Last call</span><span class="text-slate-400 flex-1 text-xs">10 jul → 15 jul</span><span class="font-semibold">S/ 990</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white border border-slate-200 rounded-xl p-4">
+          <p class="text-xs font-semibold text-slate-500 uppercase mb-2">4. Entregables</p>
+          <ul class="text-sm space-y-1"><li>✓ 6 sesiones live (90 min)</li><li>✓ Feedback 1:1 semanal</li><li>✓ Comunidad Discord</li><li>✓ Certificado digital</li></ul>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4">
+          <p class="text-xs font-semibold text-slate-500 uppercase mb-2">5. Público</p>
+          <div class="flex flex-wrap gap-1 mb-2"><span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">Freelancer</span><span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">Emprendedor</span></div>
+          <p class="text-xs text-slate-500">Capacidad financiera: media · Nivel inicial escritor</p>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3"><h3 class="font-semibold">6. Garantía y Onboarding</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div><p class="text-xs text-slate-500 mb-1">Garantía</p><p class="font-medium">30 días incondicional</p></div>
+          <div><p class="text-xs text-slate-500 mb-1">Onboarding</p><p class="font-medium">Email con acceso instantáneo</p></div>
+        </div>
+      </div>
+
+      <!-- Knowledge (antes era tab separado) -->
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3"><div><h3 class="font-semibold">7. Conocimiento (RAG del agente)</h3><p class="text-xs text-slate-500">Archivos que el agente consulta para responder</p></div><span class="text-xs text-slate-500">5 archivos</span></div>
+        <div class="space-y-1.5 text-sm">
+          <div class="flex items-center justify-between p-2 border border-slate-200 rounded bg-slate-50"><span class="flex items-center gap-2">📄 programa-detallado.pdf <span class="text-xs text-slate-400">· 1.2 MB</span></span><span class="text-xs text-emerald-600">● Indexado</span></div>
+          <div class="flex items-center justify-between p-2 border border-slate-200 rounded bg-slate-50"><span class="flex items-center gap-2">🎬 testimonios-ed2.mp4 <span class="text-xs text-slate-400">· 45 MB</span></span><span class="text-xs text-emerald-600">● Transcripto</span></div>
+          <div class="flex items-center justify-between p-2 border border-slate-200 rounded bg-slate-50"><span class="flex items-center gap-2">📑 faq-objeciones.md <span class="text-xs text-slate-400">· 8 KB</span></span><span class="text-xs text-emerald-600">● Indexado</span></div>
+          <button class="w-full mt-2 px-3 py-2 border border-dashed border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50">+ Adjuntar archivo / URL</button>
+        </div>
+      </div>
+
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
+        <span class="w-8 h-8 rounded-full bg-amber-200 text-amber-700 flex items-center justify-center text-sm">⚠</span>
+        <div class="flex-1">
+          <p class="text-sm font-semibold text-amber-900">2 secciones pendientes</p>
+          <p class="text-xs text-amber-700">Testimonios · Objeciones esperadas — el agente los usará</p>
+        </div>
+        <button class="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-md">Autocompletar con IA</button>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<div class="fixed bottom-0 left-0 right-0 journey-bar px-4 py-2 text-xs flex items-center justify-between z-30">
+  <div><strong>Layout nuevo:</strong> Rail de ediciones permanente · tabs Info/Ventas/Assets/Campañas · Landing split-button a la derecha</div>
+  <div class="flex gap-3">
+    <a href="offer-info-edition2.html" class="text-blue-700 hover:underline">→ Cambiar a Edición #2</a>
+    <a href="offer-ventas.html" class="text-blue-700 font-semibold hover:underline">Tab Ventas →</a>
+  </div>
+</div>
+</body></html>

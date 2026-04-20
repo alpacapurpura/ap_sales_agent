@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Landing Editor · Edición #3 | Flow Preview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="../styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen">
+<!-- Simulates "ventana separada" — no app sidebar, no rail. Full screen editor. -->
+
+<div class="flex flex-col h-screen">
+  <!-- Top bar -->
+  <header class="bg-slate-900 text-white px-6 py-2.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <a href="offer-info.html" class="text-slate-400 hover:text-white text-xs">← Cerrar y volver a oferta</a>
+      <span class="text-slate-500">|</span>
+      <div>
+        <p class="text-sm font-semibold">Landing de MasterClass Copywriting — Edición #3 · Julio 2026</p>
+        <p class="text-[10px] text-slate-400">Editor visual · autosave activo</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-xs text-emerald-400">● Guardando...</span>
+      <button class="px-3 py-1.5 text-xs border border-slate-700 rounded-lg text-white hover:bg-slate-800">👁 Preview</button>
+      <button class="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Publicar cambios</button>
+    </div>
+  </header>
+
+  <!-- Editor area -->
+  <div class="flex-1 grid grid-cols-6 overflow-hidden">
+
+    <!-- Blocks library -->
+    <aside class="col-span-1 bg-white border-r border-slate-200 p-3 overflow-y-auto">
+      <p class="text-[10px] font-semibold text-slate-400 uppercase mb-2">Bloques</p>
+      <div class="space-y-1 text-sm">
+        <button class="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-50 text-left">📝 <span>Hero</span></button>
+        <button class="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-50 text-left">⭐ <span>Beneficios</span></button>
+        <button class="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-50 text-left">📅 <span>Fechas · Countdown</span></button>
+        <button class="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-50 text-left">💬 <span>Testimonios</span></button>
+        <button class="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-50 text-left">💰 <span>Pricing</span></button>
+        <button class="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-50 text-left">❓ <span>FAQ</span></button>
+        <button class="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-50 text-left">🎯 <span>CTA</span></button>
+        <button class="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-50 text-left">📊 <span>Comparativa</span></button>
+      </div>
+
+      <div class="mt-6">
+        <p class="text-[10px] font-semibold text-slate-400 uppercase mb-2">Datos vinculados</p>
+        <div class="bg-amber-50 border border-amber-200 rounded-md p-2 text-[11px] text-amber-800 space-y-1">
+          <div><code>{start_date}</code> → 15 jul 2026</div>
+          <div><code>{end_date}</code> → 30 ago 2026</div>
+          <div><code>{tier_active.price}</code> → S/ 690</div>
+          <div><code>{tier_active.label}</code> → Early bird</div>
+          <div><code>{capacity}</code> → 50</div>
+          <div><code>{enrolled}</code> → 12</div>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-1.5">Si cambiás estas en Info, se actualizan acá automático.</p>
+      </div>
+    </aside>
+
+    <!-- Canvas -->
+    <section class="col-span-4 overflow-y-auto bg-slate-100 p-6">
+      <div class="max-w-3xl mx-auto bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+
+        <!-- Hero block (selected) -->
+        <div class="relative p-10 text-center bg-gradient-to-br from-blue-50 to-purple-50 border-b border-slate-100 ring-2 ring-blue-400">
+          <div class="absolute top-2 left-2 text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded font-semibold">HERO · editando</div>
+          <h2 class="text-3xl font-bold mb-2">Aprendé copywriting que convierte</h2>
+          <p class="text-slate-600 mb-1">6 semanas · empezando el <span class="bg-amber-100 px-1 rounded">15 jul 2026</span></p>
+          <p class="text-sm text-amber-700 font-medium mb-4">🔥 <span class="bg-amber-100 px-1 rounded">Early bird S/ 690</span> solo hasta 1 de julio</p>
+          <button class="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold">Inscribirme ahora →</button>
+          <p class="text-xs text-slate-500 mt-2"><span class="bg-amber-100 px-1 rounded">12</span> de <span class="bg-amber-100 px-1 rounded">50</span> cupos ocupados</p>
+        </div>
+
+        <div class="p-8 border-b border-slate-100">
+          <p class="text-[10px] bg-slate-100 px-2 py-0.5 rounded font-semibold inline-block mb-3">BENEFICIOS</p>
+          <div class="grid grid-cols-3 gap-3 text-sm"><div class="p-3 bg-slate-50 rounded">✓ Clases live</div><div class="p-3 bg-slate-50 rounded">✓ Feedback 1:1</div><div class="p-3 bg-slate-50 rounded">✓ Comunidad</div></div>
+        </div>
+
+        <div class="p-8 text-center text-slate-400 text-xs italic">+ 4 bloques más (testimonios, pricing, FAQ, CTA final)</div>
+      </div>
+    </section>
+
+    <!-- Inspector -->
+    <aside class="col-span-1 bg-white border-l border-slate-200 p-3 overflow-y-auto">
+      <p class="text-[10px] font-semibold text-slate-400 uppercase mb-2">Propiedades · HERO</p>
+      <div class="space-y-3 text-xs">
+        <div><label class="text-slate-500 block mb-1">Título</label><input class="w-full px-2 py-1.5 border border-slate-200 rounded" value="Aprendé copywriting que convierte"></div>
+        <div><label class="text-slate-500 block mb-1">Subtítulo</label><textarea class="w-full px-2 py-1.5 border border-slate-200 rounded">6 semanas · empezando el {start_date}</textarea></div>
+        <div><label class="text-slate-500 block mb-1">Urgency text</label><input class="w-full px-2 py-1.5 border border-slate-200 rounded" value="🔥 Early bird {tier_active.price} solo hasta 1 de julio"></div>
+        <div><label class="text-slate-500 block mb-1">CTA texto</label><input class="w-full px-2 py-1.5 border border-slate-200 rounded" value="Inscribirme ahora →"></div>
+        <div><label class="text-slate-500 block mb-1">CTA link</label><select class="w-full px-2 py-1.5 border border-slate-200 rounded"><option>Checkout tier activo</option><option>Sección pricing</option><option>URL manual…</option></select></div>
+      </div>
+
+      <div class="mt-5 pt-3 border-t border-slate-200">
+        <p class="text-[10px] font-semibold text-slate-400 uppercase mb-2">Visibilidad bloque</p>
+        <label class="flex items-center gap-2 text-xs"><input type="checkbox" checked> Desktop</label>
+        <label class="flex items-center gap-2 text-xs"><input type="checkbox" checked> Mobile</label>
+      </div>
+    </aside>
+  </div>
+</div>
+
+</body></html>

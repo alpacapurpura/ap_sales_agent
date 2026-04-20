@@ -2,9 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
-
 import { Target, ShieldCheck } from "lucide-react";
-import type { UseFormReturn } from "react-hook-form";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -18,7 +16,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { RichSelect } from "@/components/ui/rich-select";
 import { Textarea } from "@/components/ui/textarea";
-import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { eventTypesApi } from "@/lib/api/event-types";
 
 import { OnboardingMechanism, GuaranteeType } from "../../../../types";
@@ -27,6 +24,7 @@ import { SectionFormWrapper } from "../common/SectionFormWrapper";
 
 import type { OfferFormValues } from "../../../../types/schema";
 import type { EventType } from "@/lib/api/event-types";
+import type { UseFormReturn } from "react-hook-form";
 
 const EMPTY_EVENT_TYPES: EventType[] = [];
 
@@ -285,6 +283,9 @@ function ClosingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   );
 }
 
+/**
+ *
+ */
 export function ClosingForm({ defaultValues: propValues, onSave }: ClosingFormProps) {
   const defaultValues: ClosingFormValues = {
     onboarding_action: propValues?.onboarding_action || OnboardingMechanism.INSTANT_ACCESS_EMAIL,

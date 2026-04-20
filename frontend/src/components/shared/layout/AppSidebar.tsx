@@ -11,12 +11,10 @@ import {
   CalendarCheck,
   Megaphone,
   ChevronDown,
-  Crosshair,
-  UserSearch,
-  Palette,
   LayoutDashboard,
   Headset,
   Users,
+  ClipboardList,
   Magnet,
   Sprout,
   ShoppingCart,
@@ -45,11 +43,30 @@ import { useSidebar } from "./SidebarContext";
 // Navigation Configuration
 // ---------------------------------------------------------------------------
 
+interface NavBadge {
+  label: string;
+  color: "accent" | "success" | "warning";
+  /** ISO date — badge hides after this moment to avoid staleness. */
+  expiresAt?: string;
+}
+
 interface NavChild {
   title: string;
   href: string;
   icon: LucideIcon;
+  badge?: NavBadge;
 }
+
+function isBadgeVisible(badge: NavBadge): boolean {
+  if (!badge.expiresAt) return true;
+  return new Date() < new Date(badge.expiresAt);
+}
+
+const BADGE_COLOR_CLASSES: Record<NavBadge["color"], string> = {
+  accent: "bg-primary text-primary-foreground",
+  success: "bg-emerald-100 text-emerald-700",
+  warning: "bg-amber-100 text-amber-700",
+};
 
 interface NavItem {
   title: string;
@@ -60,19 +77,13 @@ interface NavItem {
 
 const getNavItems = (tenantId: string): NavItem[] => [
   {
+    // Sub-sections are served by the in-page BrandStudioNavRail (inside the
+    // brand-studio layout). The global sidebar only shows the studio entry
+    // point — landing on /identity renders that rail which lists every
+    // section slug (identity, positioning, narrative, ... buyer personas).
     title: "Brand Studio",
-    href: `/${tenantId}/brand-studio`,
+    href: `/${tenantId}/brand-studio/identity`,
     icon: Building2,
-    children: [
-      { title: "Esencia", href: `/${tenantId}/brand-studio/esencia`, icon: Building2 },
-      { title: "Estrategia", href: `/${tenantId}/brand-studio/estrategia`, icon: Crosshair },
-      { title: "Publico", href: `/${tenantId}/brand-studio/publico`, icon: UserSearch },
-      {
-        title: "Identidad Creativa",
-        href: `/${tenantId}/brand-studio/identidad-creativa`,
-        icon: Palette,
-      },
-    ],
   },
   {
     title: "Offer Studio",
@@ -107,6 +118,12 @@ const getNavItems = (tenantId: string): NavItem[] => [
       { title: "Resumen", href: `/${tenantId}/sales/resumen`, icon: LayoutDashboard },
       { title: "Studio", href: `/${tenantId}/sales/studio/inbox`, icon: Headset },
       { title: "Contactos", href: `/${tenantId}/sales/contactos`, icon: Users },
+      {
+        title: "Inscripciones",
+        href: `/${tenantId}/sales/enrollments`,
+        icon: ClipboardList,
+        badge: { label: "NEW", color: "accent", expiresAt: "2026-10-17" },
+      },
     ],
   },
   {
@@ -235,6 +252,16 @@ function CollapsedGroupItem({
               >
                 <child.icon className="h-4 w-4 shrink-0" />
                 <span>{child.title}</span>
+                {child.badge && isBadgeVisible(child.badge) && (
+                  <span
+                    className={cn(
+                      "ml-auto rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase",
+                      BADGE_COLOR_CLASSES[child.badge.color],
+                    )}
+                  >
+                    {child.badge.label}
+                  </span>
+                )}
               </NavLink>
             );
           })}
@@ -329,6 +356,16 @@ function ExpandedGroupItem({
                   )}
                 />
                 {mounted && <span>{child.title}</span>}
+                {mounted && child.badge && isBadgeVisible(child.badge) && (
+                  <span
+                    className={cn(
+                      "ml-auto rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase",
+                      BADGE_COLOR_CLASSES[child.badge.color],
+                    )}
+                  >
+                    {child.badge.label}
+                  </span>
+                )}
               </NavLink>
             );
           })}
@@ -590,6 +627,9 @@ NavContent.displayName = "NavContent";
 // AppSidebar
 // ---------------------------------------------------------------------------
 
+/**
+ *
+ */
 export function AppSidebar() {
   const pathname = usePathname() ?? "";
   const [isMobileOpen, setIsMobileOpen] = useState(false);

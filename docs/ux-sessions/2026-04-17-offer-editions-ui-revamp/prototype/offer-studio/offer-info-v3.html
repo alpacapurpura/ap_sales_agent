@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Offer Info v3 — Rail interno (tabs por edición) | Flow Preview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="../styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  .rail-slim-header {
+    padding: 10px 12px;
+    border-bottom: 1px solid hsl(var(--border));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .rail-card {
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 10px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .rail-card:hover { background: hsl(var(--muted) / 0.5); }
+  .rail-card.selected.upcoming {
+    background: hsl(var(--accent-soft));
+    border-color: hsl(var(--accent) / 0.4);
+    box-shadow: 0 0 0 2px hsl(var(--accent) / 0.15);
+  }
+  .rail-card.draft {
+    border-style: dashed;
+    border-color: hsl(var(--warning) / 0.5);
+  }
+  .rail-card.completed {
+    background: hsl(var(--muted) / 0.4);
+    border-color: transparent;
+    padding: 8px 10px;
+  }
+  .mini-progress {
+    height: 3px;
+    background: hsl(var(--muted));
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 4px 0 4px;
+  }
+  .mini-progress > div {
+    height: 100%;
+    background: hsl(var(--accent));
+    border-radius: 999px;
+  }
+  .mini-progress.draft > div { background: hsl(var(--warning)); }
+  .focus-cta {
+    background: linear-gradient(90deg, hsl(var(--purple-soft)), hsl(var(--accent-soft)));
+    border: 1px solid hsl(var(--purple) / 0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+<!-- Real route: /[tenantId]/offer-studio/offer/[id]?tab=info&edition={#3}
+     v3 final: rail sube (debajo de Row1), tabs van dentro del pane derecho (scoped por edición) -->
+
+<div class="flex h-screen overflow-hidden">
+  <!-- App sidebar -->
+  <aside class="w-60 bg-white border-r border-slate-200 shrink-0 flex flex-col">
+    <div class="p-4 border-b border-slate-200">
+      <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-slate-900 text-white font-bold flex items-center justify-center text-sm">N</div><span class="font-semibold">Nicolify</span></div>
+    </div>
+    <nav class="p-3 space-y-1 text-sm flex-1 overflow-y-auto">
+      <div class="px-2 py-1.5 text-xs font-semibold text-slate-400 uppercase mt-2">Studios</div>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">🏢 Brand Studio</a>
+      <a href="offers-list.html" class="nav-active flex items-center gap-2 px-2 py-1.5 rounded">💼 Offer Studio</a>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100">📢 Growth Studio</a>
+      <div class="mt-2">
+        <div class="flex items-center gap-2 px-2 py-1.5 text-slate-600">🎯 Closer Studio</div>
+        <div class="ml-6 space-y-0.5 text-xs">
+          <a href="../sales/enrollments.html" class="flex items-center justify-between px-2 py-1 rounded hover:bg-slate-100 text-slate-500">Inscripciones <span class="badge-new">NEW</span></a>
+        </div>
+      </div>
+      <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-100 mt-2">⚙️ Configuración</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 flex flex-col min-w-0">
+
+    <!-- Row1: ÚNICO header offer-level, full-width -->
+    <header class="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3 min-w-0">
+        <a href="offers-list.html" class="text-slate-500 hover:text-slate-800 shrink-0">←</a>
+        <div class="min-w-0">
+          <h1 class="text-lg font-bold truncate">MasterClass de Copywriting</h1>
+          <p class="text-xs text-slate-500">Programa · DWY · <span class="text-emerald-600 font-medium">● Guardado hace 2s</span></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="status-badge" style="background:hsl(var(--success-soft));color:hsl(var(--success))">● Activa</span>
+        <button class="p-2 rounded hover:bg-slate-100 text-slate-500" title="Más opciones">⋮</button>
+      </div>
+    </header>
+
+    <!-- SPLIT: rail sube + pane derecho (tabs + content) -->
+    <div class="flex flex-1 min-h-0 overflow-hidden">
+
+      <!-- Rail interno (sube, empieza justo debajo de Row1) -->
+      <aside class="w-56 bg-white border-r border-slate-200 shrink-0 flex flex-col">
+        <div class="rail-slim-header">
+          <span class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Ediciones</span>
+          <button title="Colapsar rail" onclick="alert('Colapsa a w-14 con badges circulares #3 #4 #2 #1 +')" class="text-slate-400 hover:text-slate-700 text-sm">‹‹</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-2 space-y-3">
+          <div>
+            <p class="px-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">⭐ Próxima</p>
+            <div class="rail-card selected upcoming">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-semibold text-blue-900">#3 · Jul 2026</span>
+                <button class="text-slate-400 hover:text-slate-700 text-xs">⋮</button>
+              </div>
+              <div class="mini-progress"><div style="width: 78%"></div></div>
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-blue-700 font-medium">78% completa</span>
+                <span class="text-blue-700">12/50</span>
+              </div>
+              <p class="text-[11px] text-blue-600 mt-0.5">🌐 Pública · inicia 15 jul</p>
+            </div>
+          </div>
+
+          <div>
+            <p class="px-1 text-[10px] font-semibold text-amber-600 uppercase tracking-wider mb-1.5">✏ Borradores</p>
+            <div class="rail-card draft">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-semibold text-amber-800">#4 · Sin fecha</span>
+                <button class="text-slate-400 hover:text-slate-700 text-xs">⋮</button>
+              </div>
+              <div class="mini-progress draft"><div style="width: 30%"></div></div>
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-amber-700 font-medium">30% completa</span>
+                <span class="text-purple-600">⚠ 3 waitlist</span>
+              </div>
+              <p class="text-[11px] text-amber-700 mt-0.5">🔒 Privada</p>
+            </div>
+          </div>
+
+          <div>
+            <p class="px-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">✓ Pasadas</p>
+            <div class="space-y-1">
+              <div class="rail-card completed">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-medium text-slate-600">#2 · abr '26</span>
+                  <button class="text-slate-400 hover:text-slate-700 text-xs">⋮</button>
+                </div>
+                <p class="text-[11px] text-slate-500">25/25 · S/ 17,250</p>
+              </div>
+              <div class="rail-card completed">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-medium text-slate-600">#1 · ene '26</span>
+                  <button class="text-slate-400 hover:text-slate-700 text-xs">⋮</button>
+                </div>
+                <p class="text-[11px] text-slate-500">18/30 · S/ 12,420</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-2 border-t border-slate-200 shrink-0">
+          <button onclick="alert('Abre EditionFormDialog (componente existente, deshace el console.info stub)')" class="w-full px-3 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium flex items-center justify-center gap-1.5">
+            <span>+</span> Nueva edición
+          </button>
+          <p class="text-[10px] text-slate-400 text-center mt-1">Clonar recomendado</p>
+        </div>
+      </aside>
+
+      <!-- Pane derecho: tabs (scoped edición) + content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        <!-- Tab bar per-edición (vive dentro del pane, NO arriba del rail) + Landing -->
+        <div class="bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0">
+          <nav class="flex gap-1 text-sm">
+            <a href="offer-info-v3.html" class="tab-active px-4 py-3">📋 Info</a>
+            <a href="offer-ventas-v2.html" class="tab-inactive px-4 py-3">💰 Ventas <span class="ml-1 text-xs text-slate-400">(12)</span></a>
+            <a href="offer-assets-v2.html" class="tab-inactive px-4 py-3">🎨 Assets <span class="ml-1 text-xs text-slate-400">(12)</span></a>
+            <a href="offer-campanas-v2.html" class="tab-inactive px-4 py-3">📢 Campañas <span class="ml-1 text-xs text-slate-400">(3)</span></a>
+          </nav>
+          <div class="flex items-center py-2 relative">
+            <a href="offer-landing-editor.html" target="_blank" class="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-l-lg hover:bg-emerald-700 border-r border-emerald-700 font-medium">
+              <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+              <span>🌐 Editar landing · #3</span>
+            </a>
+            <button class="px-2 py-1.5 bg-emerald-600 text-white text-sm rounded-r-lg hover:bg-emerald-700">▾</button>
+          </div>
+        </div>
+
+        <!-- Content pane scroll -->
+        <div class="flex-1 overflow-y-auto">
+
+          <!-- Waitlist banner -->
+          <div class="waitlist-banner mx-6 mt-4 rounded-xl p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center">📋</span>
+              <div>
+                <p class="font-semibold text-sm">Tienes 3 leads en lista de espera</p>
+                <p class="text-xs text-slate-600">Notificalos cuando publiques Edición #4</p>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button class="px-3 py-1.5 text-sm border border-slate-300 rounded-lg bg-white">Ver lista</button>
+              <button class="px-3 py-1.5 text-sm bg-purple-600 text-white rounded-lg">Notificar a todos</button>
+            </div>
+          </div>
+
+          <!-- Focus CTA (Autocompletar con IA via Focus Mode) -->
+          <div class="mx-6 mt-4 focus-cta">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-base">✨</span>
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Completá Edición #3 con IA</p>
+                <p class="text-xs text-slate-600">Copiloto te preguntará los campos que faltan · 4 pendientes · ~2 min</p>
+              </div>
+            </div>
+            <button onclick="alert('Dispara FocusModeButton:\ndomain=\'offer_edition\'\nentityId=\'{edition_id_#3}\'\nlabel=\'Edición #3 · Julio 2026\'\n\n→ Expande sidebar copilot (lateral derecho)\n→ FocusBar arriba con breadcrumb + dots progreso\n→ Copilot pregunta campos vacíos de la edición')" class="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium shrink-0 flex items-center gap-1.5">
+              <span>✨</span> Autocompletar
+            </button>
+          </div>
+
+          <!-- Info sections -->
+          <section class="px-6 py-5 max-w-5xl space-y-3">
+
+            <div class="bg-white border border-slate-200 rounded-xl p-5">
+              <div class="flex items-center justify-between mb-3"><h3 class="font-semibold">1. Identidad de Oferta</h3><span class="text-xs text-emerald-600">✓ Completa</span></div>
+              <div class="grid grid-cols-2 gap-4 text-sm">
+                <div><p class="text-xs text-slate-500 mb-1">Nombre</p><p class="font-medium">MasterClass de Copywriting</p></div>
+                <div><p class="text-xs text-slate-500 mb-1">Archetype</p><p class="font-medium">Programa · DWY</p></div>
+                <div class="col-span-2"><p class="text-xs text-slate-500 mb-1">Promesa</p><p class="font-medium">"Escribí copy que vende mientras dormís, en 6 semanas"</p></div>
+              </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl p-4 opacity-70"><div class="flex items-center justify-between"><h3 class="font-semibold text-sm">2. Estrategia & Avatar</h3><span class="text-xs text-emerald-600">✓ Completa</span></div></div>
+            <div class="bg-white border border-slate-200 rounded-xl p-4 opacity-70"><div class="flex items-center justify-between"><h3 class="font-semibold text-sm">3. Psicología & IA</h3><span class="text-xs text-emerald-600">✓ Completa</span></div></div>
+            <div class="bg-white border border-slate-200 rounded-xl p-4 opacity-70"><div class="flex items-center justify-between"><h3 class="font-semibold text-sm">4. Promesa & Resultado</h3><span class="text-xs text-emerald-600">✓ Completa</span></div></div>
+            <div class="bg-white border border-amber-300 rounded-xl p-4 opacity-90 border-dashed"><div class="flex items-center justify-between"><h3 class="font-semibold text-sm text-amber-800">5. Detalles del Programa</h3><span class="text-xs text-amber-600">⚠ Pendiente · 3 campos</span></div></div>
+            <div class="bg-white border border-slate-200 rounded-xl p-4 opacity-70"><div class="flex items-center justify-between"><h3 class="font-semibold text-sm">6. Instructores</h3><span class="text-xs text-emerald-600">✓ Completa</span></div></div>
+            <div class="bg-white border border-slate-200 rounded-xl p-4 opacity-70"><div class="flex items-center justify-between"><h3 class="font-semibold text-sm">7. Stack de Valor</h3><span class="text-xs text-emerald-600">✓ Completa</span></div></div>
+            <div class="bg-white border border-slate-200 rounded-xl p-4 opacity-70"><div class="flex items-center justify-between"><h3 class="font-semibold text-sm">8. Recursos</h3><span class="text-xs text-emerald-600">✓ Completa</span></div></div>
+            <div class="bg-white border border-slate-200 rounded-xl p-4 opacity-70"><div class="flex items-center justify-between"><h3 class="font-semibold text-sm">9. Precios (template base)</h3><span class="text-xs text-emerald-600">✓ Completa</span></div></div>
+            <div class="bg-white border border-slate-200 rounded-xl p-4 opacity-70"><div class="flex items-center justify-between"><h3 class="font-semibold text-sm">10. Cierre & Garantía</h3><span class="text-xs text-emerald-600">✓ Completa</span></div></div>
+
+            <div class="bg-white border border-slate-200 rounded-xl p-5">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <h3 class="font-semibold">11. Conocimiento <span class="text-xs font-normal text-slate-400">(RAG del agente)</span></h3>
+                  <p class="text-xs text-slate-500">Documentos que el agente usa para responder preguntas sobre esta oferta</p>
+                </div>
+                <span class="text-xs text-emerald-600">✓ 5 indexados</span>
+              </div>
+              <div class="space-y-1.5 text-sm">
+                <div class="flex items-center justify-between p-2 border border-slate-200 rounded bg-slate-50">
+                  <span>📄 programa-detallado.pdf <span class="text-xs text-slate-400">· 2.3 MB</span></span>
+                  <span class="status-badge" style="background:hsl(var(--success-soft));color:hsl(var(--success))">● Indexado</span>
+                </div>
+                <div class="flex items-center justify-between p-2 border border-slate-200 rounded bg-slate-50">
+                  <span>🔗 testimonios-landing.url</span>
+                  <span class="status-badge" style="background:hsl(var(--success-soft));color:hsl(var(--success))">● Indexado</span>
+                </div>
+                <button class="w-full text-xs border border-dashed border-slate-300 rounded py-2 text-slate-500 hover:bg-slate-50">+ Subir archivo o URL</button>
+              </div>
+            </div>
+
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="fixed bottom-0 left-0 right-0 journey-bar px-4 py-2 text-xs flex items-center justify-between z-30">
+  <div>
+    <strong>v3 final:</strong>
+    Rail sube (debajo Row1) · Tabs al costado del rail (pertenecen a edición) · Sin Row2 · Progreso chip · Focus CTA · Rail CRUD · Colapsable
+  </div>
+  <div class="flex gap-2">
+    <a href="offer-info.html" class="text-slate-500 hover:underline">v1</a>
+    <span class="text-slate-300">·</span>
+    <a href="offer-info-v2.html" class="text-slate-500 hover:underline">v2</a>
+    <span class="text-slate-300">·</span>
+    <a href="offer-ventas-v3.html" class="text-blue-700 font-semibold hover:underline">Siguiente: Ventas v3 →</a>
+  </div>
+</div>
+
+</body></html>

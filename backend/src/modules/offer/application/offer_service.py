@@ -13,7 +13,16 @@ from src.modules.offer.domain.enums import (
     OfferStatus,
     OfferValueLevel,
 )
-from src.modules.offer.domain.offer import ARCHETYPE_TO_DETAILS_MAPPING, Offer
+from src.modules.offer.domain.offer import (
+    ARCHETYPE_TO_DETAILS_MAPPING,
+    Offer,
+    PricingStructure,
+)
+from src.modules.offer.domain.offer_type_preset_catalog import (
+    OFFER_TYPE_PRESET_CATALOG,
+    PresetFlag,
+    resolve_preset_flags,
+)
 from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
     LaunchEditionRepository,
 )
@@ -44,8 +53,10 @@ class OfferService:
         self,
         name: str,
         tenant_id: UUID,
-        archetype: OfferArchetype,
+        archetype: OfferArchetype | None = None,
         format_hint: str | None = None,
+        preset_id: str | None = None,
+        conditional_answers: dict[str, bool] | None = None,
         is_lead_magnet: bool = False,
         has_editions: bool | None = None,
         internal_sku: str = "",
@@ -53,14 +64,78 @@ class OfferService:
         avatar_id: UUID | None = None,
         value_level: OfferValueLevel | None = None,
         currency: str | None = None,
+        pricing_options: list[PricingStructure] | None = None,
     ) -> Offer:
-        """Create offer."""
+        """Create an offer, preferring the preset as the primary axis.
+
+        Sprint 13 inverts the control flow: the wizard now hands us
+        ``preset_id`` + optional ``conditional_answers`` and we derive
+        ``archetype`` + ``is_lead_magnet`` from the catalog. The legacy
+        ``archetype``-first path (pre-wizard-rehaul IA pipelines, API
+        clients) remains supported for backwards compatibility.
+
+        Resolution rules:
+
+        1. If ``preset_id`` is given, look up the preset and:
+           - Validate the preset exists; unknown presets raise 400.
+           - Derive ``archetype`` from it (overrides any caller-supplied
+             value; if the caller sent both and they mismatch, we take
+             the preset as source of truth — the wizard is the happy
+             path and we prefer catalog-consistent data).
+           - Resolve ``default_flags`` + answer-contributed flags via
+             ``resolve_preset_flags`` — ``IS_LEAD_MAGNET`` promotes
+             ``is_lead_magnet=True`` and coerces ``value_level`` to
+             ``LEAD_MAGNET`` regardless of the caller's input.
+        2. If no ``preset_id`` but ``archetype`` is given, fall through
+           to the legacy behaviour (backwards compat).
+        3. If neither is given, raise — an offer needs at least one.
+        """
+        preset = OFFER_TYPE_PRESET_CATALOG.get(preset_id) if preset_id else None
+        if preset_id is not None and preset is None:
+            msg = f"Unknown preset_id: {preset_id!r}"
+            raise HTTPException(status_code=400, detail=msg)
+
+        if preset is not None:
+            archetype = preset.archetype
+            resolved_flags = resolve_preset_flags(
+                preset.preset_id,
+                answers=conditional_answers or {},
+            )
+            if PresetFlag.IS_LEAD_MAGNET in resolved_flags:
+                is_lead_magnet = True
+                value_level = OfferValueLevel.LEAD_MAGNET
+            elif value_level is None:
+                # Sprint 15: preset declares where on the ladder it sits.
+                # When the caller omits ``value_level`` (the wizard post-rehaul
+                # never sends it — the step was eliminated), derive from the
+                # catalog so the dashboard ladder grouping lands on the right
+                # rung. Arch test
+                # ``test_lead_magnet_presets_carry_lead_magnet_value_level``
+                # guarantees this never collapses a paid preset into
+                # LEAD_MAGNET via an inconsistent catalog.
+                value_level = preset.typical_value_level
+
+        if archetype is None:
+            msg = "create_offer requires either preset_id or archetype."
+            raise HTTPException(status_code=400, detail=msg)
+
+        # Invariant: value_level == LEAD_MAGNET iff is_lead_magnet. The
+        # wizard can pass either flag; we normalize here so the ladder
+        # grouping (frontend) never sees an inconsistent state. Default
+        # for paid offers is ACTIVACION (first paid rung), never NULL —
+        # a NULL value_level used to collapse into LEAD_MAGNET via a
+        # silent frontend fallback, which is the bug this guards against.
+        is_lead_magnet, value_level = self._normalize_ladder_position(
+            is_lead_magnet=is_lead_magnet,
+            value_level=value_level,
+        )
         new_offer = Offer(
             tenant_id=tenant_id,
             public_name=name,
             internal_sku=internal_sku,
             archetype=archetype,
             format_hint=format_hint,
+            preset_id=preset_id,
             is_lead_magnet=is_lead_magnet,
             has_editions=has_editions,
             value_level=value_level,
@@ -70,7 +145,7 @@ class OfferService:
             target_avatar_match=[],
             requires_application=False,
             min_financial_capacity=FinancialCapacity.LOW_INCOME,
-            pricing_options=[],
+            pricing_options=list(pricing_options or []),
             # Resolved from TenantLocale at the API layer. Persisted as-is so
             # the offer always carries an explicit currency after creation.
             currency=currency,
@@ -82,8 +157,31 @@ class OfferService:
         self._ensure_placeholder_edition(created)
         return created
 
+    @staticmethod
+    def _normalize_ladder_position(
+        *,
+        is_lead_magnet: bool,
+        value_level: OfferValueLevel | None,
+    ) -> tuple[bool, OfferValueLevel]:
+        """Enforce the ``value_level == LEAD_MAGNET iff is_lead_magnet`` invariant.
+
+        Either flag can arrive as the source of truth (wizard sends
+        ``is_lead_magnet``; IA pipelines and legacy payloads may send
+        ``value_level``). Any inconsistency is resolved toward the
+        lead-magnet state when either signal says so, and paid offers
+        default to ``ACTIVACION`` instead of NULL.
+        """
+        if is_lead_magnet or value_level == OfferValueLevel.LEAD_MAGNET:
+            return True, OfferValueLevel.LEAD_MAGNET
+        return False, value_level or OfferValueLevel.ACTIVACION
+
     def _ensure_placeholder_edition(self, offer: Offer) -> None:
         """Create a DRAFT + PRIVATE placeholder edition #1 for edition-supporting offers.
+
+        The variant_structure is derived from the archetype catalog
+        (``ARCHETYPE_CATALOG[archetype].default_variant_structure``) — the
+        single source of truth for the archetype-↔-structure mapping.
+        Migration 049's hard-coded SQL backfill mirrors this catalog.
 
         Idempotent: if the offer already has an edition (e.g. seeded by
         migration, or created via a different code path), this is a no-op.
@@ -93,14 +191,27 @@ class OfferService:
         """
         if offer.id is None or offer.tenant_id is None:
             return
-        if not get_capabilities(offer.archetype).supports_editions:
+        capabilities = get_capabilities(offer.archetype)
+        if not capabilities.supports_editions:
             return
+        if capabilities.default_variant_structure is None:
+            # Defensive: an edition-supporting archetype without a default
+            # structure is a catalog bug — block here loudly rather than
+            # silently inserting an inconsistent row. The arch test
+            # ``test_archetype_default_variant_structure_alignment`` is the
+            # primary guard; this raise is the runtime fallback.
+            msg = (
+                f"Archetype {offer.archetype.value} supports editions but has no "
+                "default_variant_structure declared in ARCHETYPE_CATALOG."
+            )
+            raise RuntimeError(msg)
         existing = self._edition_repo.list_by_offer(offer.id, offer.tenant_id)
         if existing:
             return
         self._edition_repo.create(
             offer_id=offer.id,
             tenant_id=offer.tenant_id,
+            variant_structure=capabilities.default_variant_structure,
             start_date=None,
             edition_name="Edición #1",
         )

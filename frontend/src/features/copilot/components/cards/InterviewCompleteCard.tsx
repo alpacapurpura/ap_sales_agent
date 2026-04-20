@@ -23,12 +23,12 @@ export const InterviewCompleteCard = memo(function InterviewCompleteCard({
   const params = useParams();
   const tenantId = params.tenantId as string;
   const setSidebarState = useCopilotStore((s) => s.setSidebarState);
-  const clearInterview = useCopilotStore((s) => s.clearInterview);
+  const clearSession = useCopilotStore((s) => s.clearSession);
 
   const label = DOMAIN_LABELS[redirect] ?? "el editor";
 
   const handleClick = () => {
-    clearInterview();
+    clearSession();
     setSidebarState("open");
     router.push(`/${tenantId}${redirect}`);
   };

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import func, select
 
+from src.modules.offer.domain.enums import VariantStructure
 from src.modules.offer.domain.launch_edition import (
     EditionStatus,
     EditionVisibility,
@@ -46,6 +47,9 @@ class LaunchEditionRepository:
             tenant_id=model.tenant_id,
             edition_name=model.edition_name,
             edition_number=model.edition_number,
+            variant_structure=VariantStructure(model.variant_structure),
+            structure_data=dict(model.structure_data or {}),
+            sort_rank=model.sort_rank,
             start_date=model.start_date,
             end_date=model.end_date,
             registration_start=model.registration_start,
@@ -79,7 +83,10 @@ class LaunchEditionRepository:
         offer_id: UUID,
         tenant_id: UUID,
         *,
+        variant_structure: VariantStructure,
         edition_name: str | None = None,
+        structure_data: dict | None = None,
+        sort_rank: int | None = None,
         start_date: datetime | None = None,
         end_date: datetime | None = None,
         registration_start: datetime | None = None,
@@ -118,6 +125,9 @@ class LaunchEditionRepository:
             tenant_id=tenant_id,
             edition_name=edition_name,
             edition_number=edition_number,
+            variant_structure=variant_structure.value,
+            structure_data=structure_data or {},
+            sort_rank=sort_rank,
             start_date=start_date,
             end_date=end_date,
             registration_start=registration_start,
@@ -136,6 +146,7 @@ class LaunchEditionRepository:
         self.db.add(model)
         self.db.flush()
         self.db.refresh(model)
+        self.db.commit()
         return self._to_domain(model)
 
     def get_by_id(self, edition_id: UUID, tenant_id: UUID) -> LaunchEdition | None:
@@ -214,6 +225,7 @@ class LaunchEditionRepository:
 
         self.db.flush()
         self.db.refresh(model)
+        self.db.commit()
         return self._to_domain(model)
 
     def soft_delete(self, edition_id: UUID, tenant_id: UUID) -> None:

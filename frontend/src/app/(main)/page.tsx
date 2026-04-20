@@ -15,7 +15,7 @@ export default function RootPage() {
     if (user) {
       const lastTenantId = user.publicMetadata?.tenant_id as string;
       if (lastTenantId) {
-        router.replace(`/${lastTenantId}/brand-studio/esencia`);
+        router.replace(`/${lastTenantId}/brand-studio/identity`);
       } else {
         router.replace("/onboarding");
       }

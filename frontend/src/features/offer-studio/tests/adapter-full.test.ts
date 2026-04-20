@@ -105,6 +105,29 @@ describe("backendToFrontend", () => {
     expect(result.value_level).toBe(OfferValueLevel.MAXIMIZACION);
   });
 
+  it("defaults missing value_level to ACTIVACION when not a lead magnet", () => {
+    // Regression: a NULL/missing value_level used to collapse into
+    // LEAD_MAGNET, dumping every newly-created paid offer into the
+    // wrong ladder bucket in Offer Studio.
+    const data: BackendOffer = {
+      id: "1",
+      archetype: "producto",
+      is_lead_magnet: false,
+    };
+    const result = backendToFrontend(data);
+    expect(result.value_level).toBe(OfferValueLevel.ACTIVACION);
+  });
+
+  it("defaults missing value_level to LEAD_MAGNET when flagged as lead magnet", () => {
+    const data: BackendOffer = {
+      id: "1",
+      archetype: "producto",
+      is_lead_magnet: true,
+    };
+    const result = backendToFrontend(data);
+    expect(result.value_level).toBe(OfferValueLevel.LEAD_MAGNET);
+  });
+
   it("normalizes deliverables with default format and quantity", () => {
     const data: BackendOffer = {
       id: "1",

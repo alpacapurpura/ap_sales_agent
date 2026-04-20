@@ -279,7 +279,7 @@ function CampaignsEmptyState({ tenantId, offerId }: { tenantId: string; offerId:
       <div className="space-y-1">
         <h3 className="font-semibold">Sin campañas para esta oferta</h3>
         <p className="max-w-sm text-xs text-muted-foreground">
-          Creá una campaña en Advertising Studio para empezar a promocionar esta oferta. Vas a ver
+          Crea una campaña en Advertising Studio para empezar a promocionar esta oferta. Vas a ver
           acá sus métricas e inversión en tiempo real.
         </p>
       </div>

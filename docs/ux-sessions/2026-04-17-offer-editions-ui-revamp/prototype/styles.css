@@ -1,0 +1,116 @@
+/* Nicolify Flow Preview — shared design tokens + utilities.
+ * Lives alongside each HTML file served from docs/ux-sessions/<session>/prototype/
+ * Mirrors tokens from frontend/src/app/globals.css (light mode subset).
+ */
+:root {
+  --bg: 0 0% 100%;
+  --fg: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --muted: 210 40% 96.1%;
+  --muted-fg: 215.4 16.3% 46.9%;
+  --border: 214.3 31.8% 91.4%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-fg: 210 40% 98%;
+  --accent: 221 83% 53%;
+  --accent-soft: 221 83% 96%;
+  --success: 142 76% 36%;
+  --success-soft: 142 76% 94%;
+  --warning: 38 92% 50%;
+  --warning-soft: 48 96% 94%;
+  --danger: 0 84% 60%;
+  --danger-soft: 0 84% 96%;
+  --purple: 262 83% 58%;
+  --purple-soft: 262 83% 96%;
+}
+
+body { font-family: 'Inter', system-ui, sans-serif; }
+
+.nav-active {
+  background: hsl(var(--accent) / 0.1);
+  color: hsl(var(--accent));
+  font-weight: 600;
+}
+.nav-active svg { color: hsl(var(--accent)); }
+
+.badge-new {
+  background: hsl(var(--accent));
+  color: white;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.status-badge { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.status-draft    { background: hsl(var(--warning-soft)); color: hsl(var(--warning)); }
+.status-upcoming { background: hsl(var(--accent-soft));  color: hsl(var(--accent)); }
+.status-active   { background: hsl(var(--success-soft)); color: hsl(var(--success)); }
+.status-completed{ background: hsl(var(--muted));        color: hsl(var(--muted-fg)); }
+.status-cancelled{ background: hsl(var(--danger-soft));  color: hsl(var(--danger)); }
+
+.visibility-private { background: hsl(var(--muted)); color: hsl(var(--muted-fg)); }
+.visibility-public  { background: hsl(var(--purple-soft)); color: hsl(var(--purple)); }
+
+.tab-active { border-bottom: 2px solid hsl(var(--accent)); color: hsl(var(--accent)); font-weight: 600; }
+.tab-inactive { border-bottom: 2px solid transparent; color: hsl(var(--muted-fg)); }
+.tab-inactive:hover { color: hsl(var(--fg)); }
+
+.kpi-delta-up   { color: hsl(var(--success)); }
+.kpi-delta-down { color: hsl(var(--danger)); }
+
+.journey-bar { background: hsl(var(--accent-soft)); border-top: 1px solid hsl(var(--accent) / 0.3); }
+.journey-bar strong { color: hsl(var(--accent)); }
+
+/* Timeline for pricing tiers */
+.tier-timeline {
+  position: relative;
+  height: 48px;
+  background: hsl(var(--muted));
+  border-radius: 8px;
+  overflow: hidden;
+}
+.tier-segment {
+  position: absolute;
+  top: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+}
+.tier-early   { background: hsl(var(--success)); }
+.tier-regular { background: hsl(var(--accent)); }
+.tier-last    { background: hsl(var(--warning)); }
+
+/* Waitlist banner */
+.waitlist-banner {
+  background: linear-gradient(90deg, hsl(var(--purple-soft)), hsl(var(--accent-soft)));
+  border: 1px solid hsl(var(--purple) / 0.3);
+}
+
+/* Assets grid */
+.asset-tile {
+  aspect-ratio: 4/3;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--muted-fg));
+  font-size: 12px;
+  position: relative;
+}
+.asset-tile .badge-scope {
+  position: absolute;
+  top: 6px; left: 6px;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: hsl(var(--bg));
+  border: 1px solid hsl(var(--border));
+  font-weight: 600;
+}

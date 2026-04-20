@@ -15,6 +15,7 @@ from .narrative import (
 )
 from .positioning import (
     BrandBenefits,
+    BrandPersonality,
     BrandPositioning,
     BrandValues,
     CompetitiveEnvironment,
@@ -26,7 +27,6 @@ from .strategy import BrandCompetitor, BrandMethodologyPillar, BrandStrategy
 from .team import (
     BrandAuthorityItem,
     BrandContact,
-    BrandTeam,
     BrandTeamWrapper,
     BrandTestimonial,
     KeyFigure,
@@ -41,12 +41,12 @@ __all__ = [
     "BrandIdentity",
     "BrandMethodologyPillar",
     "BrandNarrative",
+    "BrandPersonality",
     "BrandPositioning",
     "BrandSettings",
     "BrandStory",
     "BrandStoryMilestone",
     "BrandStrategy",
-    "BrandTeam",
     "BrandTeamWrapper",
     "BrandTestimonial",
     "BrandValues",

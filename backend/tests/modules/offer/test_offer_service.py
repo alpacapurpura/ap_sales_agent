@@ -7,7 +7,8 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from src.modules.offer.application.offer_service import OfferService
-from src.modules.offer.domain.enums import OfferArchetype
+from src.modules.offer.domain.enums import OfferArchetype, OfferValueLevel
+from src.modules.offer.domain.offer import PricingStructure
 from src.shared.domain.datetime_utils import utc_now
 from tests.modules.offer.conftest import create_product_model
 
@@ -194,3 +195,117 @@ class TestCreateOfferCurrency:
             archetype=OfferArchetype.PRODUCTO,
         )
         assert offer.currency is None
+
+
+class TestCreateOfferValueLevelInvariant:
+    """Regression: newly-created offers must NOT default to LEAD_MAGNET when
+    the wizard omits ``value_level`` and ``is_lead_magnet`` is False. The
+    service enforces the invariant ``value_level == LEAD_MAGNET`` iff
+    ``is_lead_magnet``. See `.claude/rules/` + Offer Studio ladder grouping.
+    """
+
+    def test_non_lead_magnet_without_value_level_defaults_to_activacion(self, db: Session, tenant_a):
+        service = OfferService(db)
+        offer = service.create_offer(
+            name="Paid Offer",
+            tenant_id=tenant_a,
+            archetype=OfferArchetype.PRODUCTO,
+            is_lead_magnet=False,
+            value_level=None,
+        )
+        assert offer.is_lead_magnet is False
+        assert offer.value_level == OfferValueLevel.ACTIVACION
+
+    def test_is_lead_magnet_forces_value_level_lead_magnet(self, db: Session, tenant_a):
+        service = OfferService(db)
+        offer = service.create_offer(
+            name="Free Ebook",
+            tenant_id=tenant_a,
+            archetype=OfferArchetype.PRODUCTO,
+            is_lead_magnet=True,
+            value_level=None,
+        )
+        assert offer.is_lead_magnet is True
+        assert offer.value_level == OfferValueLevel.LEAD_MAGNET
+
+    def test_explicit_value_level_is_preserved_when_consistent(self, db: Session, tenant_a):
+        service = OfferService(db)
+        offer = service.create_offer(
+            name="Core Program",
+            tenant_id=tenant_a,
+            archetype=OfferArchetype.PROGRAMA,
+            is_lead_magnet=False,
+            value_level=OfferValueLevel.TRANSFORMACION,
+        )
+        assert offer.is_lead_magnet is False
+        assert offer.value_level == OfferValueLevel.TRANSFORMACION
+
+    def test_value_level_lead_magnet_forces_is_lead_magnet_true(self, db: Session, tenant_a):
+        """If caller passes value_level=LEAD_MAGNET with is_lead_magnet=False
+        (legacy frontend), normalize to the consistent state instead of
+        silently dropping the ladder position."""
+        service = OfferService(db)
+        offer = service.create_offer(
+            name="Inconsistent Input",
+            tenant_id=tenant_a,
+            archetype=OfferArchetype.PRODUCTO,
+            is_lead_magnet=False,
+            value_level=OfferValueLevel.LEAD_MAGNET,
+        )
+        assert offer.is_lead_magnet is True
+        assert offer.value_level == OfferValueLevel.LEAD_MAGNET
+
+    def test_is_lead_magnet_true_with_non_lead_magnet_value_level_is_normalized(self, db: Session, tenant_a):
+        """is_lead_magnet is the user-facing intent and wins: a caller that
+        says "this IS a lead magnet" with value_level=ACTIVACION gets
+        value_level overridden to LEAD_MAGNET to keep the ladder coherent."""
+        service = OfferService(db)
+        offer = service.create_offer(
+            name="Conflicting Input",
+            tenant_id=tenant_a,
+            archetype=OfferArchetype.PRODUCTO,
+            is_lead_magnet=True,
+            value_level=OfferValueLevel.ACTIVACION,
+        )
+        assert offer.is_lead_magnet is True
+        assert offer.value_level == OfferValueLevel.LEAD_MAGNET
+
+
+class TestCreateOfferPricing:
+    """Regression: the wizard seeds its price + currency as the offer's
+    first ``PricingStructure`` so the editor's pricing section opens with
+    a concrete starting point instead of an empty list."""
+
+    def test_pricing_options_persist_when_provided(self, db: Session, tenant_a):
+        service = OfferService(db)
+        seed = PricingStructure(
+            label="Standard",
+            plan_type="one_time",
+            total_amount=497.0,
+            currency="PEN",
+        )
+        offer = service.create_offer(
+            name="Programa de Ventas",
+            tenant_id=tenant_a,
+            archetype=OfferArchetype.PROGRAMA,
+            value_level=OfferValueLevel.TRANSFORMACION,
+            currency="PEN",
+            pricing_options=[seed],
+        )
+        assert len(offer.pricing_options) == 1
+        persisted = offer.pricing_options[0]
+        assert persisted.label == "Standard"
+        assert persisted.total_amount == 497.0
+        assert persisted.currency == "PEN"
+
+    def test_pricing_options_default_empty_when_omitted(self, db: Session, tenant_a):
+        """Lead magnets and legacy callers that don't send pricing keep the
+        existing behavior — empty list, editor starts from scratch."""
+        service = OfferService(db)
+        offer = service.create_offer(
+            name="Lead Magnet",
+            tenant_id=tenant_a,
+            archetype=OfferArchetype.PRODUCTO,
+            is_lead_magnet=True,
+        )
+        assert offer.pricing_options == []

@@ -71,11 +71,11 @@ export function EditionsOptIn({ archetype, currentValue, onSave }: EditionsOptIn
                 <p className="text-sm font-medium">
                   {enabled
                     ? "Esta oferta tiene ediciones activas"
-                    : "¿Querés activar ediciones para esta oferta?"}
+                    : "¿Quieres activar ediciones para esta oferta?"}
                 </p>
                 <p className="text-xs text-muted-foreground leading-snug">
                   {enabled
-                    ? `Hoy podés gestionar ${copy.yes_label.toLowerCase()}. Si la desactivás, la sección "Ediciones" se ocultará del editor.`
+                    ? `Hoy puedes gestionar ${copy.yes_label.toLowerCase()}. Si la desactivas, la sección "Ediciones" se ocultará del editor.`
                     : copy.description}
                 </p>
               </div>

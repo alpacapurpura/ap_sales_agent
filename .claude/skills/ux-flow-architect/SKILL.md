@@ -27,6 +27,44 @@ Your job: Audit the app's navigation structure, map user journeys across studios
 
 ***
 
+## Session Folder — Single Source of Truth for All Artifacts
+
+Every invocation creates ONE folder holding **every** artifact produced: specs, plan, HTML prototype, decisions log. No files escape to `/tmp`, `docs/flow-specs/`, or `docs/ui-specs/`.
+
+**Path pattern:**
+```
+docs/ux-sessions/{YYYY-MM-DD}-{kebab-slug}/
+├── FLOW-SPEC.md                 ← global navigation document
+├── PLAN.md                      ← phased implementation order + deliverables
+├── UI-SPEC-{change-name}.md     ← one per screen/change (0..N)
+├── DECISIONS.md                 ← log of accepted/rejected proposals
+└── prototype/                   ← HTML files served on localhost:8888
+    ├── index.html
+    ├── {studio}/{page}.html
+    └── ...
+```
+
+**Slug rules:**
+- `{YYYY-MM-DD}` = today (use `date +%Y-%m-%d` if unsure).
+- `{kebab-slug}` = 2–4 words describing scope. Examples: `sidebar-restructure`, `brand-offer-onboarding`, `growth-to-sales-bridge`, `offer-editions-ui`.
+- Full audit without a clear scope → `full-nav-audit`.
+
+**Initialize the folder at the start of Phase 1** (after mode detection):
+
+```bash
+SESSION="$(date +%Y-%m-%d)-{slug}"
+mkdir -p "docs/ux-sessions/$SESSION/prototype"
+```
+
+Announce the path to the user so they know where to look:
+
+> **Sesión iniciada:** `docs/ux-sessions/{YYYY-MM-DD}-{slug}/`
+> Todos los entregables (specs, plan, HTML) viven acá.
+
+All subsequent phases MUST write into this folder. Never write to `/tmp`, `docs/flow-specs/`, or `docs/ui-specs/` — those paths are deprecated for this skill.
+
+***
+
 ## Mode Detection
 
 Before starting any phase, detect the user's intent — or ASK directly if unclear:
@@ -295,7 +333,11 @@ Extract `:root` CSS variables for the Tailwind CDN config.
 
 ### Step 2: Generate HTML files
 
-Create `/tmp/nicolify-flow-preview/` directory structure.
+Write into the session's `prototype/` subfolder — created at session init:
+
+```
+docs/ux-sessions/{SESSION_SLUG}/prototype/
+```
 
 For each page in the approved proposal:
 - Generate HTML using the base template from `references/html-prototype-system.md`
@@ -321,7 +363,7 @@ Always include the sidebar regardless of scope — it provides navigation contex
 
 ```bash
 pkill -f "http.server 8888" 2>/dev/null || true
-python3 -m http.server 8888 -d /tmp/nicolify-flow-preview/ &
+python3 -m http.server 8888 -d "docs/ux-sessions/$SESSION/prototype/" &
 ```
 
 Tell the user:
@@ -347,16 +389,15 @@ If the user requests changes:
 
 Load `references/flow-spec-template.md` and `references/ui-spec-template.md` (from ux-disruptivo) with `Read`.
 
+All outputs land in the session folder created during init (never in legacy `docs/flow-specs/` or `docs/ui-specs/`).
+
 ### Output A: FLOW-SPEC.md
 
 Write the global navigation document following the template.
 
-**Location:**
-- Full audit: `docs/flow-specs/FLOW-SPEC.md`
-- Studio-scoped: `docs/flow-specs/FLOW-SPEC-{studio-name}.md`
-- Journey-focused: `docs/flow-specs/FLOW-SPEC-{journey-name}.md`
+**Location:** `docs/ux-sessions/{SESSION_SLUG}/FLOW-SPEC.md` — always, regardless of mode. Scope (full / studio / journey) is stated inside the doc, not in the filename.
 
-Include all sections from the template:
+Include sections 1–8 from the template:
 1. Audit Summary (quantitative)
 2. Current Navigation Map
 3. Journey Maps (per journey, with step tables)
@@ -364,10 +405,21 @@ Include all sections from the template:
 5. Proposed Changes (sidebar restructure + per-change table)
 6. New Components (if any)
 7. File Changes Required (exact paths)
-8. Prototype Reference (localhost URL + page list)
-9. Implementation Order (phased by dependency)
+8. Prototype Reference (localhost URL + `prototype/` file list)
 
-### Output B: Delta UI-SPECs
+### Output B: PLAN.md
+
+Split implementation guidance out of FLOW-SPEC into its own file so downstream agents (`nicolify-feature`, `nicolify-frontend`) consume it standalone.
+
+**Location:** `docs/ux-sessions/{SESSION_SLUG}/PLAN.md`
+
+Sections:
+1. Execution phases (ordered by dependency)
+2. Per-phase: files to touch, acceptance criteria, verification commands
+3. Which UI-SPEC feeds each phase
+4. Risk/rollback notes
+
+### Output C: Delta UI-SPECs
 
 For each screen that needs modification:
 
@@ -375,26 +427,29 @@ For each screen that needs modification:
 - **New CTA/link on existing page:** Write a delta UI-SPEC focusing only on the navigation addition (not the full page redesign).
 - **New page required:** Write a stub UI-SPEC marked `status: requires-design` — the user should invoke `ux-disruptivo` for the full design.
 
-**Location:** `docs/ui-specs/UI-SPEC-{change-name}.md`
+**Location:** `docs/ux-sessions/{SESSION_SLUG}/UI-SPEC-{change-name}.md`
+
+### Output D: DECISIONS.md
+
+Log accepted/rejected proposals, user dismissals ("es intencional"), and trade-offs chosen during the session.
+
+**Location:** `docs/ux-sessions/{SESSION_SLUG}/DECISIONS.md`
 
 ### Output summary
 
 Present to user:
 
 ```
-## Entregables generados
+## Entregables generados — docs/ux-sessions/{YYYY-MM-DD}-{slug}/
 
-### FLOW-SPEC (visión global)
-- docs/flow-specs/FLOW-SPEC.md — N changes, M journeys mapped
-
-### UI-SPECs (por cambio)
-- docs/ui-specs/UI-SPEC-sidebar-restructure.md — Ready for nicolify-frontend
-- docs/ui-specs/UI-SPEC-dashboard-home.md — Requires ux-disruptivo design
-- docs/ui-specs/UI-SPEC-brand-next-step-cta.md — Ready for nicolify-frontend
-- ...
+├── FLOW-SPEC.md          — N changes, M journeys mapped
+├── PLAN.md               — X phases, Y files to touch
+├── UI-SPEC-*.md          — one per change
+├── DECISIONS.md          — session log
+└── prototype/            — served on http://localhost:8888
 
 ### Siguiente paso
-Para implementar, usa `nicolify-feature` con cada UI-SPEC como input,
+Para implementar, usa `nicolify-feature` apuntando a la carpeta de sesión,
 o ejecuta `nicolify-frontend` directamente para cambios simples (sidebar, CTAs).
 Para pantallas nuevas, primero invoca `ux-disruptivo` para diseñar el contenido.
 ```

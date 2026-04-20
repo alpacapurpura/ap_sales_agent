@@ -30,6 +30,8 @@ describe("Architecture: No default exports", () => {
     for (const file of walkFiles(FEATURES_DIR)) {
       if (isTestFile(file)) continue;
       if (!file.endsWith(".ts") && !file.endsWith(".tsx")) continue;
+      // Storybook stories require `export default meta` per Storybook's CSF contract.
+      if (file.endsWith(".stories.ts") || file.endsWith(".stories.tsx")) continue;
 
       const content = readFile(file);
       if (DEFAULT_EXPORT_RE.test(content)) {

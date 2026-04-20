@@ -1,61 +1,9 @@
 import type { ComponentEntry } from "./types";
 
-// FEATURE slices: brand, connections, offer-studio, audit, admin, settings
+// FEATURE slices: brand-studio, connections, offer-studio, audit, admin, settings
+// (The legacy "brand" slice was removed in Sprint 5; brand-studio is now the
+// canonical home for brand-facing components — see docs/ux-sessions/2026-04-17-universal-editable-form-component/.)
 export const REGISTRY_OTHER_FEATURES: ComponentEntry[] = [
-  // ==========================================================================
-  // FEATURE: brand (features/brand/components/)
-  // ==========================================================================
-  {
-    name: "BrandEmptyState",
-    atomicLevel: "atom",
-    filePath: "features/brand/components/empty-state/brand-empty-state.tsx",
-    source: "feature",
-    featureSlice: "brand",
-    variants: [],
-    props: [],
-    description: "Empty state for Brand Studio when no brand exists.",
-  },
-  {
-    name: "EditSheetManager",
-    atomicLevel: "organism",
-    filePath: "features/brand/components/forms/edit-sheet-manager.tsx",
-    source: "feature",
-    featureSlice: "brand",
-    variants: [],
-    props: [],
-    description: "Sheet manager for editing brand sections.",
-  },
-  {
-    name: "SmartFillDialog",
-    atomicLevel: "molecule",
-    filePath: "features/brand/components/smart-fill/smart-fill-dialog.tsx",
-    source: "feature",
-    featureSlice: "brand",
-    variants: [],
-    props: ["open", "onClose"],
-    description: "AI-powered auto-fill dialog for brand data.",
-  },
-  {
-    name: "LegalManager",
-    atomicLevel: "organism",
-    filePath: "features/brand/components/legal/legal-manager.tsx",
-    source: "feature",
-    featureSlice: "brand",
-    variants: [],
-    props: [],
-    description: "Manager for legal documents (terms, privacy).",
-  },
-  {
-    name: "LegalForm",
-    atomicLevel: "molecule",
-    filePath: "features/brand/components/legal/legal-form.tsx",
-    source: "feature",
-    featureSlice: "brand",
-    variants: [],
-    props: ["type", "onSubmit"],
-    description: "Form for editing legal documents.",
-  },
-
   // ==========================================================================
   // FEATURE: connections (features/connections/components/)
   // ==========================================================================
@@ -212,7 +160,9 @@ export const REGISTRY_OTHER_FEATURES: ComponentEntry[] = [
     variants: [],
     props: [],
     description: "Sheet manager for offer editing overlays.",
-    issues: ["Similar pattern to brand EditSheetManager — potential shared abstraction"],
+    issues: [
+      "Sprint 6 migration target: replace with route-per-field form-runtime (brand-studio pattern)",
+    ],
   },
   {
     name: "OfferLivePreview",

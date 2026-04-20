@@ -14,46 +14,38 @@ import {
   Image,
   DollarSign,
   CheckCircle,
-  Rocket,
+  Database,
 } from "lucide-react";
 
-// Preview Imports
-import { EditionsSection } from "../components/editions/EditionsSection";
 import { ClosingForm } from "../components/editor/sections/closing/ClosingForm";
 import { ClosingPreview } from "../components/editor/sections/closing/ClosingPreview";
+import { PlaceholderPreview } from "../components/editor/sections/common/PlaceholderPreview";
+import { EventDetailsForm } from "../components/editor/sections/event-details/EventForm";
 import { IdentityForm } from "../components/editor/sections/identity/IdentityForm";
 import { IdentityPreview } from "../components/editor/sections/identity/IdentityPreview";
-import { StrategyPreview } from "../components/editor/sections/strategy/StrategyPreview";
-import { PricingPreview } from "../components/editor/sections/pricing/PricingPreview";
-import { InstructorsPreview } from "../components/editor/sections/instructors/InstructorsPreview";
-import { ValueStackForm } from "../components/editor/sections/value-stack/ValueStackForm";
-import { ValueStackPreview } from "../components/editor/sections/value-stack/ValueStackPreview";
-import { ResourcesPreview } from "../components/editor/sections/resources/ResourcesPreview";
-import { GalleryPreview } from "../components/editor/sections/visuals/GalleryPreview";
-
-// Form Imports
-import { StrategyForm } from "../components/editor/sections/strategy/StrategyForm";
-import { PricingForm } from "../components/editor/sections/pricing/PricingForm";
-import { PsychologyForm } from "../components/editor/sections/psychology/PsychologyForm";
-import { PromiseForm } from "../components/editor/sections/promise/PromiseForm";
 import { InstructorsForm } from "../components/editor/sections/instructors/InstructorsForm";
 import { InstructorsManager } from "../components/editor/sections/instructors/InstructorsManager";
+import { InstructorsPreview } from "../components/editor/sections/instructors/InstructorsPreview";
+import { PricingForm } from "../components/editor/sections/pricing/PricingForm";
+import { PricingPreview } from "../components/editor/sections/pricing/PricingPreview";
+import { ProductDetailsForm } from "../components/editor/sections/product-details/ProductForm";
+import { ProgramDetailsForm } from "../components/editor/sections/program-details/ProgramForm";
+import { PromiseForm } from "../components/editor/sections/promise/PromiseForm";
+import { PsychologyForm } from "../components/editor/sections/psychology/PsychologyForm";
 import { ResourcesForm } from "../components/editor/sections/resources/ResourcesForm";
 import { ResourcesManager } from "../components/editor/sections/resources/ResourcesManager";
+import { ResourcesPreview } from "../components/editor/sections/resources/ResourcesPreview";
+import { ServiceDetailsForm } from "../components/editor/sections/service-details/ServiceForm";
+import { StrategyForm } from "../components/editor/sections/strategy/StrategyForm";
+import { StrategyPreview } from "../components/editor/sections/strategy/StrategyPreview";
+import { SubscriptionDetailsForm } from "../components/editor/sections/subscription-details/SubscriptionForm";
+import { ValueStackForm } from "../components/editor/sections/value-stack/ValueStackForm";
+import { ValueStackPreview } from "../components/editor/sections/value-stack/ValueStackPreview";
 import { GalleryForm } from "../components/editor/sections/visuals/GalleryForm";
 import { GalleryManager } from "../components/editor/sections/visuals/GalleryManager";
-import { ProgramDetailsForm } from "../components/editor/sections/program-details/ProgramForm";
-import { ProductDetailsForm } from "../components/editor/sections/product-details/ProductForm";
-import { ServiceDetailsForm } from "../components/editor/sections/service-details/ServiceForm";
-import { EventDetailsForm } from "../components/editor/sections/event-details/EventForm";
-import { SubscriptionDetailsForm } from "../components/editor/sections/subscription-details/SubscriptionForm";
+import { GalleryPreview } from "../components/editor/sections/visuals/GalleryPreview";
+import { KnowledgeView } from "../components/knowledge/KnowledgeView";
 
-// Placeholder for missing forms/previews if any
-import { PlaceholderForm } from "../components/editor/sections/common/PlaceholderForm";
-import { PlaceholderPreview } from "../components/editor/sections/common/PlaceholderPreview";
-import { OfferArchetype } from "../types";
-
-import type { SectionProps } from "../types/section";
 import type { LucideIcon } from "lucide-react";
 import type { ComponentType } from "react";
 
@@ -193,107 +185,26 @@ export const SECTION_REGISTRY: Record<string, OfferBuilderSectionConfig> = {
     previewComponent: ClosingPreview,
     formComponent: ClosingForm,
   },
-  editions: {
-    id: "editions",
-    title: "Ediciones",
-    component: EditionsSection,
-    icon: Rocket,
+  knowledge: {
+    id: "knowledge",
+    title: "Conocimiento",
+    component: KnowledgeView,
+    icon: Database,
     previewComponent: PlaceholderPreview,
-    formComponent: EditionsSection,
+    formComponent: KnowledgeView,
   },
 };
 
-// --- ARCHETYPE-BASED CONFIG (new, preferred) ---
-export const ARCHETYPE_BUILDER_CONFIG: Record<OfferArchetype, string[]> = {
-  [OfferArchetype.PRODUCTO]: [
-    "identity",
-    "strategy",
-    "psychology",
-    "promise",
-    "product_details",
-    "value_stack",
-    "resources",
-    "gallery",
-    "pricing",
-    "closing",
-  ],
-  [OfferArchetype.PROGRAMA]: [
-    "identity",
-    "strategy",
-    "psychology",
-    "promise",
-    "program_details",
-    "instructors",
-    "value_stack",
-    "resources",
-    "gallery",
-    "pricing",
-    "editions",
-    "closing",
-  ],
-  [OfferArchetype.SERVICIO]: [
-    "identity",
-    "strategy",
-    "psychology",
-    "promise",
-    "service_details",
-    "instructors",
-    "value_stack",
-    "resources",
-    "gallery",
-    "pricing",
-    "editions",
-    "closing",
-  ],
-  [OfferArchetype.MEMBRESIA]: [
-    "identity",
-    "strategy",
-    "psychology",
-    "promise",
-    "subscription_details",
-    "value_stack",
-    "resources",
-    "gallery",
-    "pricing",
-    "closing",
-  ],
-  [OfferArchetype.EXPERIENCIA]: [
-    "identity",
-    "strategy",
-    "psychology",
-    "promise",
-    "event_details",
-    "instructors",
-    "value_stack",
-    "resources",
-    "gallery",
-    "pricing",
-    "editions",
-    "closing",
-  ],
-};
-
-/**
- * Get sections for an offer based on archetype and wizard-driven flags.
- *
- * Editions section visibility:
- * - PRODUCTO / MEMBRESIA: never shown (archetype doesn't support editions).
- * - PROGRAMA / SERVICIO / EXPERIENCIA: shown unless `has_editions === false`.
- *   When the field is undefined (legacy offers), we default to showing the
- *   section to preserve existing UX.
- */
-export function getSectionsForOffer(offer: {
-  archetype?: OfferArchetype | string;
-  has_editions?: boolean | null;
-}): string[] {
-  const archetype =
-    offer.archetype && ARCHETYPE_BUILDER_CONFIG[offer.archetype as OfferArchetype]
-      ? (offer.archetype as OfferArchetype)
-      : OfferArchetype.PRODUCTO;
-  const sections = ARCHETYPE_BUILDER_CONFIG[archetype];
-
-  if (offer.has_editions === false) {
-    return sections.filter((id) => id !== "editions");
-  }
-  return sections;
-}
+// --- Section ordering note ---
+//
+// Per-archetype section ordering lives in the BACKEND section catalog as
+// the single source of truth (see ``backend/src/modules/offer/domain/
+// section_catalog.py`` + ``archetype_catalog.py``). Frontend consumers
+// read it via the React Query hooks in
+// ``hooks/use-sections-for-archetype.ts`` and
+// ``hooks/use-visible-sections.ts``.
+//
+// The frontend arch test ``test-no-catalog-duplicates`` rejects any attempt
+// to reintroduce a per-archetype section-ordering map or legacy resolver
+// here — duplicating the catalog breaks the guarantee that a backend
+// deploy with a catalog version bump suffices to change section sets.

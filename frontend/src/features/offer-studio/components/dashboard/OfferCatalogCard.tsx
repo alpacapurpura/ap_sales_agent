@@ -37,7 +37,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { HighlightedText } from "@/components/ui/highlighted-text";
-import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
+import { PresetBadge } from "@/features/offer-studio/components/dashboard/PresetBadge";
+import { useArchetypeDisplay } from "@/features/offer-studio/hooks/use-archetype-display";
 import {
   OfferArchetype,
   OfferDeliveryModel,
@@ -119,11 +120,11 @@ export const OfferCatalogCard = memo(function OfferCatalogCard({
   const statusConfig = STATUS_CONFIG[offer.status] || STATUS_CONFIG[OfferStatus.DRAFT];
   const Icon = LEVEL_ICONS[offer.value_level] || Package;
 
-  const archetypeMeta = offer.archetype ? ARCHETYPE_METADATA[offer.archetype] : null;
-  const typeLabel = archetypeMeta
+  const archetypeDisplay = useArchetypeDisplay(offer.archetype);
+  const typeLabel = archetypeDisplay
     ? offer.format_hint
-      ? `${archetypeMeta.label} - ${offer.format_hint}`
-      : archetypeMeta.label
+      ? `${archetypeDisplay.label} - ${offer.format_hint}`
+      : archetypeDisplay.label
     : "Oferta";
 
   // Calculate Price Display — resolves currency via fallback chain:
@@ -233,6 +234,7 @@ export const OfferCatalogCard = memo(function OfferCatalogCard({
             >
               <HighlightedText text={typeLabel} query={searchQuery} />
             </Badge>
+            <PresetBadge presetId={offer.preset_id} compact />
           </div>
           <h3 className="font-semibold text-sm line-clamp-2 leading-tight" title={offer.name}>
             <HighlightedText text={offer.name} query={searchQuery} />

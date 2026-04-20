@@ -24,7 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
+import { useArchetypeDisplay } from "@/features/offer-studio/hooks/use-archetype-display";
 import { OfferArchetype, OfferStatus } from "@/features/offer-studio/types";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { cn } from "@/lib/utils";
@@ -59,10 +59,10 @@ export function LeadMagnetStreamCard({ offer, onClick, onArchive }: LeadMagnetSt
   const { currency: tenantCurrency } = useTenantLocale();
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
 
-  const archetypeMeta = offer.archetype ? ARCHETYPE_METADATA[offer.archetype] : null;
-  const Icon = archetypeMeta?.icon || Magnet;
+  const archetypeDisplay = useArchetypeDisplay(offer.archetype);
+  const Icon = archetypeDisplay?.icon ?? Magnet;
   const colorClass = ARCHETYPE_COLORS[offer.archetype] || ARCHETYPE_COLORS.default;
-  const typeLabel = archetypeMeta?.label || "Recurso";
+  const typeLabel = archetypeDisplay?.label ?? "Recurso";
 
   const handleClick = (e: React.MouseEvent) => {
     if (

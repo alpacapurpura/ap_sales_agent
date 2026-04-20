@@ -1,4 +1,13 @@
-"""Brand identity value objects."""
+"""Brand identity value objects.
+
+``business_types`` was removed from this model in Sprint 2026-04-20 and
+migrated to the ``tenant_profile`` bounded context (``TenantProfile`` aggregate,
+``tenant_profiles`` table). Consumers that previously read
+``BrandIdentity.business_types`` must switch to the port at
+``shared/links/ports/tenant_profile.py``.
+
+Migration 052 backfills the data; migration 053 strips the stale JSONB key.
+"""
 
 from typing import Any
 
@@ -68,13 +77,20 @@ class BrandIdentity(BaseEntity):
     """Represent the core identity of the brand.
 
     Visual aspects are delegated to BrandVisuals.
+
+    Note: ``business_types`` is NOT part of this model (removed Sprint 2026-04-20).
+    It lives in ``TenantProfile`` (``tenant_profiles`` table). Read it via
+    ``shared/links/ports/tenant_profile.get_tenant_business_types()``.
     """
 
     # --- Identity ---
     brand_name: str | None = Field(None, description="The name of the brand.")
     industry: str | None = Field(
         None,
-        description="The industry or category of the brand.",
+        description=(
+            "Free-text sub-niche (e.g. 'yoga', 'finanzas personales'). "
+            "Describes the niche; operational classification lives in TenantProfile."
+        ),
     )
     tagline: str | None = Field(None, description="Brand tagline or slogan.")
     description: str | None = Field(

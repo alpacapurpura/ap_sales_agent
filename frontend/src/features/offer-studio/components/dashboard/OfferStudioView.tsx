@@ -6,6 +6,7 @@ import { useState, useCallback, useDeferredValue } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { BusinessTypesChipBar } from "@/features/tenant-profile/components/BusinessTypesChipBar";
 import { LadderProgressBar } from "@/features/offer-studio/components/dashboard/LadderProgressBar";
 import { OfferStudioDashboard } from "@/features/offer-studio/components/dashboard/OfferStudioDashboard";
 
@@ -17,6 +18,13 @@ interface LadderData {
   percentage: number;
 }
 
+/**
+ * Offer Studio view — dashboard header + chip bar + ladder content.
+ *
+ * Business-types chip bar now reads from tenant-profile feature.
+ * Onboarding gating is handled by the layout server component:
+ * tenants without a complete profile are redirected before reaching here.
+ */
 export function OfferStudioView() {
   const [searchQuery, setSearchQuery] = useState("");
   const deferredQuery = useDeferredValue(searchQuery);
@@ -67,7 +75,11 @@ export function OfferStudioView() {
         </div>
       </div>
 
-      {/* Row 2: Ladder Progress — full width, contextual */}
+      {/* Row 2: Business-types chip bar — reads from tenant-profile.
+          Gating is now layout-level so this always renders with a declared profile. */}
+      <BusinessTypesChipBar className="flex-none" />
+
+      {/* Row 3: Ladder Progress — full width, contextual */}
       {ladderData && !deferredQuery && (
         <LadderProgressBar
           filledGroups={ladderData.filledGroups}

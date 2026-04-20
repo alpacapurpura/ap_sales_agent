@@ -7,25 +7,23 @@ import { useCopilotStore, type UIAction } from "../store/copilot-store";
  * operation. Extracted from useCopilotChat to keep that hook focused on
  * the send/stream lifecycle.
  *
- * Interview-specific actions get special handling (clear session, update
- * procedure stepper, etc.). All other types are attached as cards to the
- * last assistant message.
+ * Session-aware actions (``interview_complete``) clear the active session
+ * after surfacing the completion card. All other types attach as cards to
+ * the last assistant message. The legacy ``preview_update`` action is
+ * ignored — live preview died with the sidebar preview pane in Sprint 4a.
  */
 export function handleUIAction(action: UIAction): void {
   const store = useCopilotStore.getState();
 
   switch (action.type) {
-    // Silent: update preview data, don't show as card
+    // Legacy preview pane removed (Sprint 4a) — preview deltas ignored.
     case "preview_update":
-      if (action.delta) {
-        store.updatePreviewData(action.delta);
-      }
       return;
 
-    // Interview complete: attach card + clear interview state
+    // Interview complete: attach card + clear active session
     case "interview_complete":
       store.addUIActionToLastAssistant(action);
-      store.clearInterview();
+      store.clearSession();
       return;
 
     // Navigation: attach card + enqueue for router

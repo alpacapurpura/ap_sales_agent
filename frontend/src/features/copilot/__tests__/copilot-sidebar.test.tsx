@@ -47,11 +47,8 @@ describe("CopilotSidebar", () => {
       messages: [],
       status: "idle",
       conversationId: null,
-      focusEntity: null,
-      focusSnapshot: null,
-      interviewSessionId: null,
-      interviewProgress: null,
-      previewData: null,
+      session: null,
+      focusedField: null,
       currentRoute: null,
       pendingUIActions: [],
       selectedFields: [],
@@ -72,28 +69,25 @@ describe("CopilotSidebar", () => {
     expect(aside?.className).toContain("w-[380px]");
   });
 
-  it("renders expanded width when expanded", () => {
-    useCopilotStore.setState({
-      sidebarState: "expanded",
-      isOpen: true,
-      focusEntity: { domain: "offer", entityId: "123", label: "Oferta Premium" },
-    });
-    render(<CopilotSidebar />);
-    const aside = document.querySelector("aside");
-    expect(aside?.className).toContain("w-[780px]");
-  });
-
-  it("shows mode indicator in header — Focus", () => {
+  it("header surfaces session label when a session is active", () => {
     useCopilotStore.setState({
       sidebarState: "open",
       isOpen: true,
-      focusEntity: { domain: "offer", entityId: "123", label: "Oferta Premium" },
+      session: {
+        sectionKey: "offer.pricing",
+        label: "Oferta Premium",
+        entityId: "123",
+        procedure: "free",
+        sessionId: null,
+        startedAt: new Date(),
+        snapshot: {},
+      },
     });
     render(<CopilotSidebar />);
-    expect(screen.getByText(/Focus: Oferta Premium/)).toBeDefined();
+    expect(screen.getByText(/Oferta Premium/)).toBeDefined();
   });
 
-  it("shows Chat label when no focus", () => {
+  it("header shows generic Chat label when no session is active", () => {
     useCopilotStore.setState({ sidebarState: "open", isOpen: true });
     render(<CopilotSidebar />);
     expect(screen.getByText("Chat")).toBeDefined();

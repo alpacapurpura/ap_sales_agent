@@ -5,12 +5,12 @@ import { Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
-import { brandApi } from "@/features/brand/api";
+import { brandApi } from "@/features/brand-studio/api";
 
 import { InstructorsForm } from "./InstructorsForm";
 
 import type { OfferFormValues } from "../../../../types/schema";
-import type { KeyFigure } from "@/features/brand/types";
+import type { KeyFigure } from "@/features/brand-studio/types";
 import type { UseFormReturn } from "react-hook-form";
 
 interface InstructorsManagerProps {

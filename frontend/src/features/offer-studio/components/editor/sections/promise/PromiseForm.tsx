@@ -7,7 +7,6 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { RichSelect } from "@/components/ui/rich-select";
 import { Textarea } from "@/components/ui/textarea";
-import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
 import { AccessDuration } from "../../../../types";
 import { ACCESS_DURATION_METADATA } from "../../../../types/enum-metadata";
@@ -53,20 +52,14 @@ function PromiseContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                 <FormLabel className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
                   <Sparkles className="w-4 h-4" /> La Gran Promesa (Headline)
                 </FormLabel>
-                <WithCopilot
-                  fieldId="headline_promise"
-                  fieldLabel="La Gran Promesa"
-                  getValue={() => field.value || ""}
-                >
-                  <FormControl>
-                    <Textarea
-                      className="text-lg font-medium resize-none bg-background min-h-[100px]"
-                      placeholder="Te ayudo a lograr [Resultado] en [Tiempo] sin [Dolor]..."
-                      {...field}
-                      value={field.value || ""}
-                    />
-                  </FormControl>
-                </WithCopilot>
+                <FormControl>
+                  <Textarea
+                    className="text-lg font-medium resize-none bg-background min-h-[100px]"
+                    placeholder="Te ayudo a lograr [Resultado] en [Tiempo] sin [Dolor]..."
+                    {...field}
+                    value={field.value || ""}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -78,15 +71,9 @@ function PromiseContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Resultado Tangible</FormLabel>
-                  <WithCopilot
-                    fieldId="primary_outcome"
-                    fieldLabel="Resultado Tangible"
-                    getValue={() => field.value || ""}
-                  >
-                    <FormControl>
-                      <Input placeholder="Ej. $10k/mes" {...field} className="bg-background" />
-                    </FormControl>
-                  </WithCopilot>
+                  <FormControl>
+                    <Input placeholder="Ej. $10k/mes" {...field} className="bg-background" />
+                  </FormControl>
                 </FormItem>
               )}
             />
@@ -157,6 +144,9 @@ function PromiseContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   );
 }
 
+/**
+ *
+ */
 export function PromiseForm({ defaultValues: propValues, onSave }: PromiseFormProps) {
   const defaultValues: PromiseFormValues = {
     headline_promise: propValues?.headline_promise || "",

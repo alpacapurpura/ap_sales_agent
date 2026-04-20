@@ -1,5 +1,11 @@
-import { PublicoView } from "@/features/brand/components/views/PublicoView";
+import { BuyerPersonasLandingPage } from "@/features/brand-studio/pages/BuyerPersonasLandingPage";
 
-export default function PublicoPage() {
-  return <PublicoView />;
+/**
+ * Buyer personas landing — shows the BuyerPersonaInstancePicker (col 2) plus
+ * a welcome pane. Selecting or creating a persona routes to
+ * /{tenantId}/brand-studio/publico/persona/{id}, where the 4-column Finder
+ * layout activates (PersonaDetailPage).
+ */
+export default function BrandStudioPublicoPage() {
+  return <BuyerPersonasLandingPage />;
 }
