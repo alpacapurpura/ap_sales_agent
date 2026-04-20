@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
@@ -6,6 +7,11 @@ import { OfferCatalogCard } from "../components/dashboard/OfferCatalogCard";
 import { MOCK_OFFER_NORMALIZED } from "./fixtures";
 
 import type { Offer } from "../types";
+
+function renderWithClient(ui: React.ReactElement) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+}
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
@@ -55,21 +61,21 @@ vi.mock("@/features/offer-studio/hooks/use-archetype-display", async () => {
 
 describe("OfferCard Component", () => {
   it("renders the offer name correctly", () => {
-    render(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
+    renderWithClient(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
 
     // The most critical check: Is the name visible?
     expect(screen.getByText("Guía: Liberar la Mente")).toBeInTheDocument();
   });
 
   it("renders the correct archetype label", () => {
-    render(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
+    renderWithClient(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
 
     // Should map archetype "producto" -> "Producto" via the mocked useArchetypeDisplay hook
     expect(screen.getByText("Producto")).toBeInTheDocument();
   });
 
   it("renders the correct delivery badge", () => {
-    render(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
+    renderWithClient(<OfferCatalogCard offer={MOCK_OFFER_NORMALIZED} />);
     expect(screen.getByText("DIY")).toBeInTheDocument();
   });
 
@@ -88,7 +94,7 @@ describe("OfferCard Component", () => {
         },
       ],
     };
-    render(<OfferCatalogCard offer={offer} />);
+    renderWithClient(<OfferCatalogCard offer={offer} />);
     // Intl.NumberFormat('en-US', { currency: 'PEN' }) → "PEN 1,500"
     const priceNode = screen.getByText(/PEN/);
     expect(priceNode).toBeInTheDocument();
@@ -110,7 +116,7 @@ describe("OfferCard Component", () => {
         },
       ],
     };
-    render(<OfferCatalogCard offer={offer} />);
+    renderWithClient(<OfferCatalogCard offer={offer} />);
     const priceNode = screen.getByText(/PEN/);
     expect(priceNode).toBeInTheDocument();
     expect(priceNode.textContent).toContain("500");
