@@ -23,7 +23,7 @@ import { OFFER_SCHEMA_REGISTRY } from "../index";
  * 3. **Paths únicos intra-schema** — no hay dos fields en el mismo
  *    schema escribiendo al mismo path (evita silent overwrites).
  * 4. **Enums con al menos 2 opciones** — un enum de 1 opción es un
- *    constant, usá ``boolean`` o ``text`` readonly.
+ *    constant, usa ``boolean`` o ``text`` readonly.
  * 5. **Scope coherente** — si un schema declara ``scope: "mixed"``,
  *    todos sus fields deben declarar ``owner``. Si declara
  *    ``offer_level`` o ``edition_level``, los fields no deben declarar

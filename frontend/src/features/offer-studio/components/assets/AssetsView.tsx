@@ -174,8 +174,8 @@ function AssetsEmptyState({
       <div className="space-y-1">
         <h3 className="font-semibold">Todavía no hay assets para esta oferta</h3>
         <p className="max-w-sm text-xs text-muted-foreground">
-          Generá tu primer flyer, video o carrusel con IA usando la información de tu oferta.
-          También podés subir assets ya creados.
+          Genera tu primer flyer, video o carrusel con IA usando la información de tu oferta.
+          También puedes subir assets ya creados.
         </p>
       </div>
       <div className="flex flex-wrap justify-center gap-2">

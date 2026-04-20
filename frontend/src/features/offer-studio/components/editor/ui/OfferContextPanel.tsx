@@ -641,7 +641,7 @@ function SolutionPhaseContent({
                 "Tip: Sube un PDF técnico y el agente podrá responder '¿Cómo funciona X?' sin alucinar."}
               {salesAssets.length > 0 &&
                 knowledgeDocs.length === 0 &&
-                "Bien con la evidencia. Ahora dale un manual técnico para que no invente respuestas."}
+                "Bien con la evidencia. Ahora súmale un manual técnico para que no invente respuestas."}
               {knowledgeDocs.length > 0 &&
                 salesAssets.length === 0 &&
                 "Sabe mucho, pero es aburrido. Sube un video o imagen para cerrar ventas."}

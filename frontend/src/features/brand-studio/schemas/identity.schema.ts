@@ -51,7 +51,7 @@ export const identitySchema: SectionSchema = {
       type: "custom",
       path: "voice_tone",
       action: "voice-clone",
-      hint: "Pegá texto tuyo o subí un archivo. La IA detecta tu tono y lo guarda arriba.",
+      hint: "Pega texto tuyo o sube un archivo. La IA detecta tu tono y lo guarda arriba.",
     },
     {
       id: "website",

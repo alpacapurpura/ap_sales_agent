@@ -39,7 +39,7 @@ describe("BusinessTypeSelector", () => {
           {
             business_type: "course_creator",
             label_es: "Creador de cursos",
-            description_es: "Vendés cursos en línea",
+            description_es: "Vendes cursos en línea",
             icon_name: "book",
             examples_es: ["Ejemplo A"],
           },

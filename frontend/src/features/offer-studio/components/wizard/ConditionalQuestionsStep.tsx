@@ -42,10 +42,10 @@ export function ConditionalQuestionsStep({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-semibold">Refiná tu {presetLabel.toLowerCase()}</h3>
+        <h3 className="text-lg font-semibold">Refina tu {presetLabel.toLowerCase()}</h3>
         <p className="text-sm text-muted-foreground">
-          Respondé esto para que la oferta quede configurada con los detalles correctos desde el
-          principio. Podés cambiarlo después.
+          Responde esto para que la oferta quede configurada con los detalles correctos desde el
+          principio. Puedes cambiarlo después.
         </p>
       </div>
 

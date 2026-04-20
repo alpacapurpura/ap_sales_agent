@@ -32,7 +32,7 @@ export const offerIdentitySchema: SectionSchema = {
       rows: 2,
       required: true,
       placeholder: "ej. Lidera sin agotarte en 12 semanas",
-      hint: "Una línea memorable con el resultado que prometés. Es la promesa central que debe recordarse después del anuncio. Cargala concreta y en primera persona del beneficio.",
+      hint: "Una línea memorable con el resultado que prometes. Es la promesa central que debe recordarse después del anuncio. Cárgala concreta y en primera persona del beneficio.",
     },
     {
       id: "primary_outcome",

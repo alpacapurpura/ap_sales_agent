@@ -175,7 +175,12 @@ export function OfferStudioDashboard({
           headline_promise: wizardData.headline_promise,
           status: wizardData.status,
           delivery_model: wizardData.delivery_model,
-          offer_value_level: wizardData.value_level,
+          // ProductCreate DTO expects ``value_level``; ``offer_value_level``
+          // exists only on response/update DTOs. Sending the wrong key meant
+          // FastAPI discarded the field and ``_normalize_ladder_position``
+          // fell back to ACTIVACION → every paid offer landed in "Primera
+          // Compra". See backend/src/modules/offer/api/dto/products.py:113.
+          value_level: wizardData.value_level,
           specific_details: wizardData.specific_details,
           currency: wizardData.currency,
           // Wizard sends fully-populated PricingStructure records; the
@@ -216,7 +221,12 @@ export function OfferStudioDashboard({
           headline_promise: wizardData.headline_promise,
           status: wizardData.status,
           delivery_model: wizardData.delivery_model,
-          offer_value_level: wizardData.value_level,
+          // ProductCreate DTO expects ``value_level``; ``offer_value_level``
+          // exists only on response/update DTOs. Sending the wrong key meant
+          // FastAPI discarded the field and ``_normalize_ladder_position``
+          // fell back to ACTIVACION → every paid offer landed in "Primera
+          // Compra". See backend/src/modules/offer/api/dto/products.py:113.
+          value_level: wizardData.value_level,
           specific_details: wizardData.specific_details,
           currency: wizardData.currency,
           // Wizard sends fully-populated PricingStructure records; the

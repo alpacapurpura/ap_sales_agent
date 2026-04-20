@@ -45,7 +45,7 @@ export function GenerateLandingConfirmDialog({
           <AlertDialogTitle>Generar landing con IA</AlertDialogTitle>
           <AlertDialogDescription>
             Voy a generar la landing page de esta oferta usando la información del editor. El
-            proceso tarda alrededor de 30 segundos y podés seguir editando mientras termina.
+            proceso tarda alrededor de 30 segundos y puedes seguir editando mientras termina.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

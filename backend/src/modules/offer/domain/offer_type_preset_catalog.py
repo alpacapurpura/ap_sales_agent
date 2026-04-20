@@ -65,7 +65,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import StrEnum
 
-from src.modules.offer.domain.enums import OfferArchetype
+from src.modules.offer.domain.enums import OfferArchetype, OfferValueLevel
 from src.modules.offer.domain.section_catalog import SectionKey
 from src.shared.domain.expert_business_type import ExpertBusinessType
 
@@ -107,7 +107,7 @@ QUESTION_REGISTRY: dict[str, ConditionalQuestion] = {
         question_id="requires_physical_location",
         question_es="¿Requiere que el cliente esté físicamente en un lugar?",
         help_es=(
-            "Si atendés en un consultorio, estudio, tienda, gimnasio o salón. "
+            "Si atiendes en un consultorio, estudio, tienda, gimnasio o salón. "
             "Las ofertas 100% online no necesitan esta sección."
         ),
         on_yes_sections=(SectionKey.LOCATION,),
@@ -160,7 +160,7 @@ QUESTION_REGISTRY: dict[str, ConditionalQuestion] = {
     ),
     "has_portfolio_cases": ConditionalQuestion(
         question_id="has_portfolio_cases",
-        question_es="¿Podés mostrar casos de éxito o proyectos previos?",
+        question_es="¿Puedes mostrar casos de éxito o proyectos previos?",
         help_es=(
             "Agencias y consultores venden con portfolio. Coaches con métricas "
             "de transformación de clientes. Salud con antes/después."
@@ -188,6 +188,13 @@ class OfferTypePreset:
     description_es: str
     icon_name: str
     base_sections: tuple[SectionKey, ...]
+    # Sprint 15 — typical ladder rung this preset occupies. Promoted from
+    # the wizard's 2nd step into the catalog so the wizard can derive the
+    # value level from the preset choice (microempresario picks "qué
+    # vendo", not "en qué rung"). Invariants: if ``IS_LEAD_MAGNET`` is in
+    # ``default_flags`` this MUST be ``LEAD_MAGNET``; otherwise MUST NOT.
+    # Enforced by ``test_preset_typical_value_level_alignment``.
+    typical_value_level: OfferValueLevel = OfferValueLevel.ACTIVACION
     conditional_question_ids: tuple[str, ...] = ()
     default_flags: tuple[PresetFlag, ...] = ()
     suitability_note_es: str = ""
@@ -307,12 +314,13 @@ _A = OfferArchetype
 
 OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
     # ────────────────────────────────────────────────────────────────────────
-    # 1. PROFESIONAL_SALUD (7 presets)
+    # 1. PROFESIONAL_SALUD (8 presets)
     # ────────────────────────────────────────────────────────────────────────
     "salud_consulta_unica": OfferTypePreset(
         preset_id="salud_consulta_unica",
         business_type=_EBT.PROFESIONAL_SALUD,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Consulta única",
         description_es=(
             "Atención profesional puntual — primera visita, evaluación o "
@@ -337,6 +345,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="salud_paquete_tratamiento",
         business_type=_EBT.PROFESIONAL_SALUD,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Paquete de tratamiento",
         description_es=(
             "Conjunto de sesiones con un objetivo clínico común — "
@@ -362,6 +371,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="salud_plan_seguimiento",
         business_type=_EBT.PROFESIONAL_SALUD,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Plan de seguimiento continuo",
         description_es=(
             "Suscripción mensual o anual que incluye consultas periódicas, "
@@ -391,6 +401,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="salud_cirugia_procedimiento",
         business_type=_EBT.PROFESIONAL_SALUD,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.MAXIMIZACION,
         label_es="Cirugía / procedimiento mayor",
         description_es=(
             "Intervención única de alto ticket con pre-consulta, ejecución y "
@@ -418,6 +429,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="salud_curso_colegas",
         business_type=_EBT.PROFESIONAL_SALUD,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Curso para otros profesionales",
         description_es=(
             "Capacitación B2B dirigida a colegas del rubro — técnicas, "
@@ -447,6 +459,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="salud_retiro_taller",
         business_type=_EBT.PROFESIONAL_SALUD,
         archetype=_A.EXPERIENCIA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Retiro o taller de salud",
         description_es=(
             "Experiencia grupal inmersiva con fecha específica — yoga "
@@ -458,7 +471,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         conditional_question_ids=("has_limited_capacity", "has_team_or_speakers"),
         suitability_note_es=(
             "Alojamiento incluido vs no es la diferencia decisiva en Latam. "
-            "Si son múltiples salidas, usá Variant TEMPORAL_SINGLE_DATE."
+            "Si son múltiples salidas, usa Variant TEMPORAL_SINGLE_DATE."
         ),
         examples_es=(
             "Retiro de yoga terapéutico 3 días",
@@ -471,6 +484,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="salud_guia_digital",
         business_type=_EBT.PROFESIONAL_SALUD,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Guía o plan digital",
         description_es=(
             "Material descargable de bajo ticket — meal plan, rutina de "
@@ -491,13 +505,44 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
             "Calendario de vacunación veterinario",
         ),
     ),
+    "salud_corporativo_wellness": OfferTypePreset(
+        preset_id="salud_corporativo_wellness",
+        business_type=_EBT.PROFESIONAL_SALUD,
+        archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.CORPORATIVO,
+        label_es="Convenio de bienestar empresarial",
+        description_es=(
+            "Plan de salud o bienestar contratado por una empresa para sus "
+            "empleados — chequeos, consultas grupales, talleres en sitio. "
+            "Cobro mensual o anual a la organización."
+        ),
+        icon_name="Building2",
+        base_sections=(*_base_membresia(), SK.LOCATION, SK.PORTFOLIO),
+        conditional_question_ids=(
+            "requires_physical_location",
+            "has_team_or_speakers",
+        ),
+        default_flags=(PresetFlag.RECURRING_BILLING,),
+        suitability_note_es=(
+            "Decisor es RR.HH. o área de beneficios. Cotización formal a "
+            "razón social + reporte trimestral de uso sostienen el contrato. "
+            "Mínimo N empleados activos justifica el precio."
+        ),
+        examples_es=(
+            "Plan chequeos anuales empresa 100+ empleados",
+            "Convenio salud mental corporativo",
+            "Programa wellness in-company trimestral",
+            "Atención médica ocupacional",
+        ),
+    ),
     # ────────────────────────────────────────────────────────────────────────
-    # 2. CONSULTOR_PROFESIONAL (8 presets)
+    # 2. CONSULTOR_PROFESIONAL (9 presets)
     # ────────────────────────────────────────────────────────────────────────
     "consultor_consulta_puntual": OfferTypePreset(
         preset_id="consultor_consulta_puntual",
         business_type=_EBT.CONSULTOR_PROFESIONAL,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Consulta puntual",
         description_es=(
             "Asesoría de una hora sobre un tema específico — revisión de "
@@ -523,6 +568,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="consultor_proyecto_scope",
         business_type=_EBT.CONSULTOR_PROFESIONAL,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Proyecto por scope",
         description_es=(
             "Trabajo con inicio, entregables claros y fin — caso laboral "
@@ -553,6 +599,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="consultor_retainer",
         business_type=_EBT.CONSULTOR_PROFESIONAL,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Retainer mensual",
         description_es=(
             "Honorarios mensuales por disponibilidad continua — contador "
@@ -579,6 +626,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="consultor_programa_transformacion",
         business_type=_EBT.CONSULTOR_PROFESIONAL,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.MAXIMIZACION,
         label_es="Programa largo de transformación",
         description_es=(
             "Proceso de 6-12 meses con hitos — plan financiero personal, "
@@ -602,6 +650,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="consultor_bolsa_horas",
         business_type=_EBT.CONSULTOR_PROFESIONAL,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Bolsa de horas prepagadas",
         description_es=(
             "Pack de horas que el cliente consume cuando necesita — típico "
@@ -625,6 +674,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="consultor_dictamen",
         business_type=_EBT.CONSULTOR_PROFESIONAL,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Dictamen o informe escrito",
         description_es=(
             "Entregable intelectual tangible — dictamen legal, informe "
@@ -648,6 +698,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="consultor_curso_b2b",
         business_type=_EBT.CONSULTOR_PROFESIONAL,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.MAXIMIZACION,
         label_es="Curso o capacitación B2B",
         description_es=(
             "Capacitación a equipos de empresa cliente — in-company o en "
@@ -676,6 +727,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="consultor_club_actualizaciones",
         business_type=_EBT.CONSULTOR_PROFESIONAL,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Club de actualizaciones",
         description_es=(
             "Suscripción para recibir actualizaciones periódicas del área — "
@@ -698,13 +750,41 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
             "Membresía actualización normativa salud",
         ),
     ),
+    "consultor_enterprise_retainer": OfferTypePreset(
+        preset_id="consultor_enterprise_retainer",
+        business_type=_EBT.CONSULTOR_PROFESIONAL,
+        archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.CORPORATIVO,
+        label_es="Retainer corporativo multi-área",
+        description_es=(
+            "Honorarios mensuales/anuales para empresa con scope multi-disciplinario "
+            "— legal + fiscal + compliance, o cualquier combinación. SLA, comité de "
+            "cuenta y equipo dedicado. Vs el retainer PYME, opera a escala enterprise."
+        ),
+        icon_name="Briefcase",
+        base_sections=(*_base_membresia(), SK.PORTFOLIO),
+        conditional_question_ids=("has_team_or_speakers",),
+        default_flags=(PresetFlag.RECURRING_BILLING, PresetFlag.HIGH_TICKET),
+        suitability_note_es=(
+            "Contrato formal con SLA, NDA y comité de cuenta. Facturación B2B "
+            "mensual con orden de compra. Renovación anual condicionada a "
+            "reporte de impacto. WhatsApp + email + reuniones quincenales."
+        ),
+        examples_es=(
+            "Retainer legal corporativo anual",
+            "Asesoría fiscal + compliance enterprise",
+            "Counsel general fraccional",
+            "Retainer estratégico C-level",
+        ),
+    ),
     # ────────────────────────────────────────────────────────────────────────
-    # 3. COACH_MENTOR (10 presets)
+    # 3. COACH_MENTOR (11 presets)
     # ────────────────────────────────────────────────────────────────────────
     "coach_sesion_unica": OfferTypePreset(
         preset_id="coach_sesion_unica",
         business_type=_EBT.COACH_MENTOR,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Sesión 1:1 suelta",
         description_es=(
             "Una sesión individual sin compromiso de continuidad. Para "
@@ -729,6 +809,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="coach_paquete_sesiones",
         business_type=_EBT.COACH_MENTOR,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Paquete de sesiones",
         description_es=(
             "Conjunto de 3-10 sesiones 1:1 con objetivo común. Continuidad "
@@ -751,6 +832,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="coach_programa_transformacion",
         business_type=_EBT.COACH_MENTOR,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.MAXIMIZACION,
         label_es="Programa de transformación",
         description_es=(
             "Proceso estructurado de 3-6 meses con metodología propia, "
@@ -776,6 +858,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="coach_mastermind",
         business_type=_EBT.COACH_MENTOR,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.MAXIMIZACION,
         label_es="Mastermind grupal",
         description_es=(
             "Comunidad mensual de alto nivel con encuentros regulares, "
@@ -801,6 +884,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="coach_bootcamp",
         business_type=_EBT.COACH_MENTOR,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Bootcamp intensivo",
         description_es=(
             "Cohorte intensiva de 1-4 semanas con entrada por lanzamiento. Compresión de tiempo genera urgencia y foco."
@@ -828,6 +912,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="coach_curso_grabado",
         business_type=_EBT.COACH_MENTOR,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Curso grabado (método empaquetado)",
         description_es=(
             "Método empaquetado en video on-demand. El cliente avanza a "
@@ -852,6 +937,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="coach_retreat",
         business_type=_EBT.COACH_MENTOR,
         archetype=_A.EXPERIENCIA,
+        typical_value_level=OfferValueLevel.MAXIMIZACION,
         label_es="Retiro presencial",
         description_es=(
             "Inmersión de 3-7 días en un venue especial — fusión de "
@@ -876,6 +962,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="coach_vip_day",
         business_type=_EBT.COACH_MENTOR,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.MAXIMIZACION,
         label_es="VIP Day",
         description_es=(
             "Un día completo 1:1 intenso — plan estratégico, roadmap, "
@@ -901,6 +988,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="coach_challenge_gratis",
         business_type=_EBT.COACH_MENTOR,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.LEAD_MAGNET,
         label_es="Challenge gratuito (lead magnet)",
         description_es=(
             "Reto de 3-7 días gratuito con sesiones vivas diarias. Genera "
@@ -936,6 +1024,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="coach_ebook_workbook",
         business_type=_EBT.COACH_MENTOR,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Ebook o workbook",
         description_es=(
             "Material escrito descargable — ebook, workbook con ejercicios, "
@@ -954,13 +1043,46 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
             "Guía 30 días productividad",
         ),
     ),
+    "coach_corporate_program": OfferTypePreset(
+        preset_id="coach_corporate_program",
+        business_type=_EBT.COACH_MENTOR,
+        archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.CORPORATIVO,
+        label_es="Programa de coaching corporativo",
+        description_es=(
+            "Programa estructurado contratado por una empresa para su equipo "
+            "ejecutivo o de líderes. Sesiones grupales + 1:1 + materiales. "
+            "Vendido a la organización (no al individuo). Cohorte cerrada por "
+            "compañía."
+        ),
+        icon_name="Building",
+        base_sections=(*_base_programa(), SK.LOCATION, SK.PORTFOLIO),
+        conditional_question_ids=(
+            "requires_physical_location",
+            "has_specific_dates",
+            "has_team_or_speakers",
+        ),
+        default_flags=(PresetFlag.REQUIRES_START_DATE, PresetFlag.HIGH_TICKET),
+        suitability_note_es=(
+            "Decisor es Director RR.HH., L&D o el CEO directamente. Cotización "
+            "formal con resultados esperados + KPIs medibles. Pre-assessment "
+            "del equipo y reporte ejecutivo final son entregables clave."
+        ),
+        examples_es=(
+            "Programa liderazgo C-suite 6 meses",
+            "Coaching ejecutivo team-wide trimestral",
+            "Desarrollo de líderes high-potential",
+            "Programa transformación cultural dirección",
+        ),
+    ),
     # ────────────────────────────────────────────────────────────────────────
-    # 4. ACADEMIA_INFOPRODUCTOR (10 presets)
+    # 4. ACADEMIA_INFOPRODUCTOR (11 presets)
     # ────────────────────────────────────────────────────────────────────────
     "academia_curso_grabado": OfferTypePreset(
         preset_id="academia_curso_grabado",
         business_type=_EBT.ACADEMIA_INFOPRODUCTOR,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Curso grabado (self-paced)",
         description_es=(
             "Infoproducto clásico: video on-demand estructurado en módulos. "
@@ -985,6 +1107,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="academia_cohorte_vivo",
         business_type=_EBT.ACADEMIA_INFOPRODUCTOR,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Cohorte en vivo",
         description_es=(
             "Bootcamp o cohorte con fechas fijas y sesiones vivas. Grupo "
@@ -1015,6 +1138,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="academia_cohorte_hibrida",
         business_type=_EBT.ACADEMIA_INFOPRODUCTOR,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Cohorte híbrida (material + lives)",
         description_es=(
             "Material grabado + encuentros vivos semanales. Alumno tiene "
@@ -1040,6 +1164,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="academia_membresia_academia",
         business_type=_EBT.ACADEMIA_INFOPRODUCTOR,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Membresía academia (todo incluido)",
         description_es=(
             "Acceso continuo a toda la biblioteca de cursos, comunidad y "
@@ -1064,6 +1189,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="academia_masterclass_vivo",
         business_type=_EBT.ACADEMIA_INFOPRODUCTOR,
         archetype=_A.EXPERIENCIA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Masterclass en vivo",
         description_es=(
             "Clase única intensiva de 2-4 horas — alto valor comprimido. "
@@ -1092,6 +1218,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="academia_certificacion_cohort",
         business_type=_EBT.ACADEMIA_INFOPRODUCTOR,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Certificación con cohorte",
         description_es=(
             "Programa estructurado que culmina con examen y certificado "
@@ -1116,6 +1243,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="academia_certificacion_self",
         business_type=_EBT.ACADEMIA_INFOPRODUCTOR,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Certificación self-paced",
         description_es=(
             "Curso grabado + examen automatizado con certificado. Escalable, "
@@ -1139,6 +1267,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="academia_ebook_guia",
         business_type=_EBT.ACADEMIA_INFOPRODUCTOR,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Ebook o guía premium",
         description_es=("Material escrito comprehensivo — tripwire (USD 7-47) o mini-curso en formato PDF/EPUB."),
         icon_name="BookMarked",
@@ -1158,6 +1287,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="academia_curso_gratis",
         business_type=_EBT.ACADEMIA_INFOPRODUCTOR,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.LEAD_MAGNET,
         label_es="Mini-curso gratuito (lead magnet)",
         description_es=(
             "3-5 lecciones gratis que preceden al lanzamiento de un curso pago. Genera email list calificada."
@@ -1190,6 +1320,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="academia_challenge_edu",
         business_type=_EBT.ACADEMIA_INFOPRODUCTOR,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.LEAD_MAGNET,
         label_es="Challenge educativo (lead magnet)",
         description_es=(
             "Reto de 5-7 días con ejercicios diarios y comunidad. Maximiza engagement previo al open cart."
@@ -1218,13 +1349,41 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
             "Challenge productividad 5 días",
         ),
     ),
+    "academia_b2b_license": OfferTypePreset(
+        preset_id="academia_b2b_license",
+        business_type=_EBT.ACADEMIA_INFOPRODUCTOR,
+        archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.CORPORATIVO,
+        label_es="Licencia B2B para empresas",
+        description_es=(
+            "Acceso enterprise a tu academia o curso para N empleados de una "
+            "empresa. Licencia anual con seats predefinidos, reporte de uso y "
+            "soporte dedicado. Vs el plan individual, opera por contrato corporativo."
+        ),
+        icon_name="Network",
+        base_sections=(*_base_membresia(), SK.PLATFORM_DETAILS, SK.PORTFOLIO),
+        conditional_question_ids=("delivers_downloadable_materials",),
+        default_flags=(PresetFlag.RECURRING_BILLING, PresetFlag.HIGH_TICKET),
+        suitability_note_es=(
+            "Decisor: L&D, RR.HH. o director de área. SSO, reporte de progreso "
+            "por empleado y certificados verificables son must-have. Pricing por "
+            "seats con descuento de volumen. Cotización + OC + factura anual."
+        ),
+        examples_es=(
+            "Licencia academia trading 50 seats",
+            "Plan corporativo academia inglés",
+            "Acceso enterprise biblioteca cursos",
+            "Bundle formación + certificación equipo",
+        ),
+    ),
     # ────────────────────────────────────────────────────────────────────────
-    # 5. ANFITRION_PRODUCTOR (8 presets)
+    # 5. ANFITRION_PRODUCTOR (9 presets)
     # ────────────────────────────────────────────────────────────────────────
     "anfitrion_retiro": OfferTypePreset(
         preset_id="anfitrion_retiro",
         business_type=_EBT.ANFITRION_PRODUCTOR,
         archetype=_A.EXPERIENCIA,
+        typical_value_level=OfferValueLevel.MAXIMIZACION,
         label_es="Retiro / inmersión",
         description_es=(
             "Experiencia presencial de 3-7 días en un venue especial. "
@@ -1254,6 +1413,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="anfitrion_evento_1dia",
         business_type=_EBT.ANFITRION_PRODUCTOR,
         archetype=_A.EXPERIENCIA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Evento 1 día",
         description_es=(
             "Conferencia, summit o taller presencial de un día. Sin "
@@ -1278,6 +1438,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="anfitrion_summit_virtual",
         business_type=_EBT.ANFITRION_PRODUCTOR,
         archetype=_A.EXPERIENCIA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Summit virtual",
         description_es=(
             "Cumbre online multi-speaker durante 1-5 días. Modelo freemium: "
@@ -1317,6 +1478,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="anfitrion_mastermind",
         business_type=_EBT.ANFITRION_PRODUCTOR,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.MAXIMIZACION,
         label_es="Mastermind high-ticket",
         description_es=(
             "Círculo privado con encuentros regulares — mensuales online + "
@@ -1341,6 +1503,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="anfitrion_comunidad_paga",
         business_type=_EBT.ANFITRION_PRODUCTOR,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Comunidad paga continua",
         description_es=(
             "Acceso continuo a un espacio privado (Circle, Discord, WhatsApp) "
@@ -1365,6 +1528,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="anfitrion_taller_grupal",
         business_type=_EBT.ANFITRION_PRODUCTOR,
         archetype=_A.EXPERIENCIA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Taller grupal",
         description_es=(
             "Sesión grupal de 2-4 horas con práctica y facilitación. Presencial o virtual. Ticket bajo-medio."
@@ -1378,7 +1542,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         ),
         default_flags=(PresetFlag.REQUIRES_START_DATE,),
         suitability_note_es=(
-            "Taller puede repetirse — usá Variant TEMPORAL_SINGLE_DATE para "
+            "Taller puede repetirse — usa Variant TEMPORAL_SINGLE_DATE para "
             "gestionar múltiples ediciones con misma ficha."
         ),
         examples_es=(
@@ -1392,6 +1556,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="anfitrion_tour_experiencia",
         business_type=_EBT.ANFITRION_PRODUCTOR,
         archetype=_A.EXPERIENCIA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Tour / experiencia cultural",
         description_es=(
             "Recorrido guiado de pocas horas — city tour, experiencia "
@@ -1415,6 +1580,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="anfitrion_festival",
         business_type=_EBT.ANFITRION_PRODUCTOR,
         archetype=_A.EXPERIENCIA,
+        typical_value_level=OfferValueLevel.MAXIMIZACION,
         label_es="Festival multi-actividad",
         description_es=(
             "Evento de 2-5 días con múltiples actividades, venues, shows. "
@@ -1440,13 +1606,46 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
             "Festival de marketing y creatividad",
         ),
     ),
+    "anfitrion_evento_corporativo": OfferTypePreset(
+        preset_id="anfitrion_evento_corporativo",
+        business_type=_EBT.ANFITRION_PRODUCTOR,
+        archetype=_A.EXPERIENCIA,
+        typical_value_level=OfferValueLevel.CORPORATIVO,
+        label_es="Evento corporativo a medida",
+        description_es=(
+            "Evento privado producido para una empresa cliente — offsite, "
+            "kickoff anual, summit interno, team-building. Fee único por la "
+            "producción completa: contenido, venue, catering, facilitación."
+        ),
+        icon_name="Briefcase",
+        base_sections=(*_base_experiencia(), SK.PORTFOLIO, SK.RESOURCES),
+        conditional_question_ids=(
+            "has_limited_capacity",
+            "has_team_or_speakers",
+            "requires_physical_location",
+        ),
+        default_flags=(PresetFlag.REQUIRES_START_DATE, PresetFlag.HIGH_TICKET),
+        suitability_note_es=(
+            "Vendido a área de Marketing, RR.HH. o C-level. Propuesta visual "
+            "(deck) + cotización detallada + cronograma + responsables. 30-50% "
+            "de anticipo es estándar. Cláusula de cancelación clara protege contra "
+            "cambios de último momento."
+        ),
+        examples_es=(
+            "Offsite anual líderes empresa",
+            "Kickoff comercial regional Latam",
+            "Summit interno transformación digital",
+            "Team-building experiencial 2 días",
+        ),
+    ),
     # ────────────────────────────────────────────────────────────────────────
-    # 6. AGENCIA_FREELANCE (8 presets)
+    # 6. AGENCIA_FREELANCE (9 presets)
     # ────────────────────────────────────────────────────────────────────────
     "agencia_proyecto_unico": OfferTypePreset(
         preset_id="agencia_proyecto_unico",
         business_type=_EBT.AGENCIA_FREELANCE,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Proyecto llave en mano",
         description_es=(
             "Entregable único de alcance definido — sitio web, branding, "
@@ -1470,6 +1669,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="agencia_retainer",
         business_type=_EBT.AGENCIA_FREELANCE,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Retainer mensual",
         description_es=(
             "Gestión continua — ads, redes sociales, SEO, contenido. Fee "
@@ -1494,6 +1694,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="agencia_vip_day",
         business_type=_EBT.AGENCIA_FREELANCE,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.MAXIMIZACION,
         label_es="VIP Day",
         description_es=(
             "Un día de trabajo concentrado entregable — auditoría + plan, "
@@ -1517,6 +1718,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="agencia_productized_service",
         business_type=_EBT.AGENCIA_FREELANCE,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Servicio empaquetado (productized)",
         description_es=(
             "Servicio estandarizado con precio fijo y alcance cerrado — "
@@ -1539,6 +1741,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="agencia_template_digital",
         business_type=_EBT.AGENCIA_FREELANCE,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Template o asset digital",
         description_es=(
             "Recurso digital reutilizable — template Framer, brand guidelines, "
@@ -1562,6 +1765,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="agencia_workshop_b2b",
         business_type=_EBT.AGENCIA_FREELANCE,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.MAXIMIZACION,
         label_es="Workshop B2B in-company",
         description_es=(
             "Capacitación al equipo del cliente — ads, SEO, contenido, "
@@ -1585,6 +1789,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="agencia_consultoria_estrategica",
         business_type=_EBT.AGENCIA_FREELANCE,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.MAXIMIZACION,
         label_es="Consultoría estratégica (sin ejecución)",
         description_es=(
             "Diagnóstico + plan estratégico sin ejecución incluida. El cliente implementa con su equipo. Alto margen."
@@ -1606,6 +1811,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="agencia_diagnostico_gratis",
         business_type=_EBT.AGENCIA_FREELANCE,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.LEAD_MAGNET,
         label_es="Diagnóstico gratuito (lead magnet)",
         description_es=(
             "Auditoría corta gratis que entrega valor real y posiciona la "
@@ -1636,13 +1842,41 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
             "Análisis competencia 30min gratis",
         ),
     ),
+    "agencia_enterprise_msa": OfferTypePreset(
+        preset_id="agencia_enterprise_msa",
+        business_type=_EBT.AGENCIA_FREELANCE,
+        archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.CORPORATIVO,
+        label_es="MSA enterprise / contrato anual",
+        description_es=(
+            "Master Service Agreement con scope multi-proyecto, equipo "
+            "dedicado y SLA. Vs el retainer PYME, opera con statement of work "
+            "por iniciativa, comité de gobierno y facturación enterprise."
+        ),
+        icon_name="ScrollText",
+        base_sections=(*_base_membresia(), SK.PORTFOLIO),
+        conditional_question_ids=("has_team_or_speakers",),
+        default_flags=(PresetFlag.RECURRING_BILLING, PresetFlag.HIGH_TICKET),
+        suitability_note_es=(
+            "Decisor: CMO, CTO o área de Procurement. Contrato MSA + SOW por "
+            "proyecto + NDA + SLA con créditos por incumplimiento. Reporte "
+            "mensual de horas/entregables. Renovación anual con review de QBR."
+        ),
+        examples_es=(
+            "MSA anual marketing digital enterprise",
+            "Contrato desarrollo software dedicated team",
+            "MSA branding multi-marca corporativo",
+            "Acuerdo anual gestión campañas regional",
+        ),
+    ),
     # ────────────────────────────────────────────────────────────────────────
-    # 7. MARCA_ECOMMERCE (7 presets)
+    # 7. MARCA_ECOMMERCE (8 presets)
     # ────────────────────────────────────────────────────────────────────────
     "ecom_producto_fisico": OfferTypePreset(
         preset_id="ecom_producto_fisico",
         business_type=_EBT.MARCA_ECOMMERCE,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Producto físico",
         description_es=(
             "Ítem individual del catálogo — ropa, cosmética, suplemento, "
@@ -1666,6 +1900,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="ecom_kit_combo",
         business_type=_EBT.MARCA_ECOMMERCE,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Kit o combo",
         description_es=(
             "Bundle de 2-5 productos con precio combinado inferior al "
@@ -1688,6 +1923,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="ecom_suscripcion_reposicion",
         business_type=_EBT.MARCA_ECOMMERCE,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Suscripción de reposición",
         description_es=(
             "Envío recurrente automático — cosmética mensual, suplemento "
@@ -1711,6 +1947,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="ecom_membresia_vip",
         business_type=_EBT.MARCA_ECOMMERCE,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Membresía VIP / club",
         description_es=(
             "Acceso exclusivo a preventa, descuentos permanentes, ediciones "
@@ -1733,6 +1970,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="ecom_producto_digital",
         business_type=_EBT.MARCA_ECOMMERCE,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Producto digital asociado",
         description_es=(
             "Ebook, meal plan, guía de uso, rutina descargable. Upsell "
@@ -1756,6 +1994,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="ecom_popup_evento",
         business_type=_EBT.MARCA_ECOMMERCE,
         archetype=_A.EXPERIENCIA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Pop-up / evento de marca",
         description_es=(
             "Experiencia presencial temporal — tienda pop-up, fitting day, "
@@ -1779,6 +2018,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="ecom_asesoria_uso",
         business_type=_EBT.MARCA_ECOMMERCE,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Asesoría de uso de producto",
         description_es=(
             "Consulta 1:1 para personalizar el uso del producto — rutina "
@@ -1788,13 +2028,41 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         icon_name="HeadphonesIcon",
         base_sections=_base_servicio(),
         suitability_note_es=(
-            "Edge case ecommerce — usá solo si aporta margen diferencial. Brand loyalty efecto secundario potente."
+            "Edge case ecommerce — usa solo si aporta margen diferencial. Brand loyalty efecto secundario potente."
         ),
         examples_es=(
             "Asesoría skincare personalizada",
             "Estilismo con prendas de la marca",
             "Plan nutrición con suplementos propios",
             "Asesoría cuidado mascota + productos",
+        ),
+    ),
+    "ecom_corporate_bulk": OfferTypePreset(
+        preset_id="ecom_corporate_bulk",
+        business_type=_EBT.MARCA_ECOMMERCE,
+        archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.CORPORATIVO,
+        label_es="Pedido corporativo bulk",
+        description_es=(
+            "Compra al por mayor de productos para uso empresarial — regalos "
+            "corporativos, merchandising, gift-pack para clientes/empleados, "
+            "pedido para reventa. Ticket único alto, customización opcional."
+        ),
+        icon_name="PackageCheck",
+        base_sections=(*_base_producto(), SK.PORTFOLIO),
+        conditional_question_ids=("delivers_downloadable_materials",),
+        default_flags=(PresetFlag.HIGH_TICKET,),
+        suitability_note_es=(
+            "Cotización formal + factura B2B + plazo de producción claro. "
+            "Customización (logo, packaging) suma margen. Estacionalidad fuerte "
+            "Latam: día de la madre, navidad, fin de año fiscal. Mínimo de "
+            "unidades + descuento por volumen escalonado."
+        ),
+        examples_es=(
+            "Gift-pack navidad para clientes (500 uds)",
+            "Welcome kit empleados nuevos",
+            "Merchandising aniversario corporativo",
+            "Pedido mayorista para reventa B2B",
         ),
     ),
     # ────────────────────────────────────────────────────────────────────────
@@ -1804,6 +2072,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="local_sesion_suelta",
         business_type=_EBT.NEGOCIO_LOCAL,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Sesión / entrada suelta",
         description_es=(
             "Uso puntual del local — pase de día gym, corte suelto "
@@ -1826,6 +2095,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="local_bono_sesiones",
         business_type=_EBT.NEGOCIO_LOCAL,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Bono de sesiones",
         description_es=(
             "Pack de 10-30 sesiones prepagadas con descuento vs suelta. "
@@ -1847,6 +2117,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="local_plan_mensual",
         business_type=_EBT.NEGOCIO_LOCAL,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Plan mensual",
         description_es=(
             "Acceso ilimitado al local por un mes con cargo recurrente. Producto estrella de gym, estudio, spa."
@@ -1869,6 +2140,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="local_plan_anual",
         business_type=_EBT.NEGOCIO_LOCAL,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Plan anual con descuento",
         description_es=(
             "Cargo único anual con descuento de 2-3 meses vs mensual. Locks in long-term member y mejora cashflow."
@@ -1890,6 +2162,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="local_servicio_premium",
         business_type=_EBT.NEGOCIO_LOCAL,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Servicio premium",
         description_es=(
             "Servicio específico de alto valor — corte + color, tratamiento facial, masaje terapéutico. Cita reservada."
@@ -1911,6 +2184,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="local_clase_especial",
         business_type=_EBT.NEGOCIO_LOCAL,
         archetype=_A.EXPERIENCIA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Clase especial / masterclass",
         description_es=(
             "Evento único dentro del local — masterclass yoga con invitado, "
@@ -1932,6 +2206,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="local_retail",
         business_type=_EBT.NEGOCIO_LOCAL,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Retail en el local",
         description_es=(
             "Productos físicos vendidos en el local — shakes proteicos "
@@ -1953,6 +2228,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="local_gift_card",
         business_type=_EBT.NEGOCIO_LOCAL,
         archetype=_A.PRODUCTO,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Gift card",
         description_es=(
             "Voucher de valor pre-cargado para usar en el local. Canjeable por servicios o productos. Regalo ideal."
@@ -1982,6 +2258,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="local_challenge_transformacion",
         business_type=_EBT.NEGOCIO_LOCAL,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Challenge de transformación",
         description_es=(
             "Reto de 4-8 semanas con resultado visible — fitness 6 semanas "
@@ -2007,6 +2284,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="local_evento_local",
         business_type=_EBT.NEGOCIO_LOCAL,
         archetype=_A.EXPERIENCIA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Grand opening / evento local",
         description_es=(
             "Evento del local para la comunidad — inauguración, aniversario, "
@@ -2031,6 +2309,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="local_convenio_empresarial",
         business_type=_EBT.NEGOCIO_LOCAL,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.CORPORATIVO,
         label_es="Convenio empresarial B2B",
         description_es=(
             "Plan para empresas con descuento al equipo — gym corporativo, "
@@ -2052,12 +2331,13 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         ),
     ),
     # ────────────────────────────────────────────────────────────────────────
-    # 9. SOFTWARE_SAAS (7 presets)
+    # 9. SOFTWARE_SAAS (8 presets)
     # ────────────────────────────────────────────────────────────────────────
     "saas_plan_tier": OfferTypePreset(
         preset_id="saas_plan_tier",
         business_type=_EBT.SOFTWARE_SAAS,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Plan Starter / Pro / Enterprise",
         description_es=(
             "Tiered subscription típica SaaS — plan por funcionalidades "
@@ -2083,6 +2363,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="saas_trial_gratis",
         business_type=_EBT.SOFTWARE_SAAS,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.LEAD_MAGNET,
         label_es="Trial gratuito",
         description_es=(
             "Free tier o trial de 14-30 días con todas las features. "
@@ -2116,6 +2397,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="saas_onboarding",
         business_type=_EBT.SOFTWARE_SAAS,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Onboarding / setup inicial",
         description_es=(
             "Servicio one-time de configuración, importación de datos, "
@@ -2138,6 +2420,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="saas_integracion_custom",
         business_type=_EBT.SOFTWARE_SAAS,
         archetype=_A.SERVICIO,
+        typical_value_level=OfferValueLevel.CORPORATIVO,
         label_es="Integración custom enterprise",
         description_es=(
             "Desarrollo específico para un cliente enterprise — conector, "
@@ -2163,6 +2446,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="saas_training_certificacion",
         business_type=_EBT.SOFTWARE_SAAS,
         archetype=_A.PROGRAMA,
+        typical_value_level=OfferValueLevel.TRANSFORMACION,
         label_es="Training / certificación",
         description_es=(
             "Programa educativo sobre uso avanzado de la plataforma. "
@@ -2186,6 +2470,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="saas_comunidad_usuarios",
         business_type=_EBT.SOFTWARE_SAAS,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Comunidad de usuarios",
         description_es=(
             "Espacio privado para clientes — Circle, Slack privado, Discord. "
@@ -2209,6 +2494,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         preset_id="saas_addon",
         business_type=_EBT.SOFTWARE_SAAS,
         archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.ACTIVACION,
         label_es="Addon / feature adicional",
         description_es=(
             "Extensión cobrada aparte del plan base — SMS pack, storage extra, AI credits. Expansion revenue puro."
@@ -2218,7 +2504,7 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
         default_flags=(PresetFlag.RECURRING_BILLING,),
         suitability_note_es=(
             "Edge case: puede modelarse como Variant del plan base o "
-            "oferta independiente. Usá oferta independiente si tiene "
+            "oferta independiente. Usa oferta independiente si tiene "
             "landing propia o se vende cross-sell."
         ),
         examples_es=(
@@ -2226,6 +2512,34 @@ OFFER_TYPE_PRESET_CATALOG: dict[str, OfferTypePreset] = {
             "Storage extra 100GB",
             "SMS pack 1000/mes",
             "Módulo analytics avanzado",
+        ),
+    ),
+    "saas_enterprise_license": OfferTypePreset(
+        preset_id="saas_enterprise_license",
+        business_type=_EBT.SOFTWARE_SAAS,
+        archetype=_A.MEMBRESIA,
+        typical_value_level=OfferValueLevel.CORPORATIVO,
+        label_es="Plan Enterprise (SLA + dedicated)",
+        description_es=(
+            "Plan corporativo del SaaS con SLA garantizado, customer success "
+            "dedicado, SSO, audit logs y features enterprise. Vs los planes "
+            "tier (Starter/Pro), opera con contrato anual y procurement formal."
+        ),
+        icon_name="ShieldCheck",
+        base_sections=(*_base_membresia(), SK.PLATFORM_DETAILS, SK.PORTFOLIO),
+        conditional_question_ids=("has_team_or_speakers",),
+        default_flags=(PresetFlag.RECURRING_BILLING, PresetFlag.HIGH_TICKET),
+        suitability_note_es=(
+            "Sales cycle 3-9 meses. Decisor: CTO/CIO + Procurement + Legal. "
+            "MSA + DPA + cuestionario de seguridad son entregables previos al "
+            "contrato. SOC 2, GDPR/LGPD compliance son table stakes. Pricing "
+            "negociado por seats + features + commitment anual."
+        ),
+        examples_es=(
+            "Plan Enterprise CRM con SSO + audit",
+            "Licencia anual plataforma comunicación",
+            "SaaS B2B Enterprise tier custom",
+            "Plan dedicated con CSM asignado",
         ),
     ),
 }

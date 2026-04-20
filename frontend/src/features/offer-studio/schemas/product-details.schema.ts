@@ -6,8 +6,8 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  * PRODUCTO archetype details — entrega digital o producto físico.
  *
  * Scope OFFER_LEVEL: el producto es la oferta. No hay variaciones
- * por edition/cohorte — si necesitás SKUs variantes (tallas, colores),
- * usá ``VariantStructure.SKU_VARIANT`` a nivel oferta.
+ * por edition/cohorte — si necesitas SKUs variantes (tallas, colores),
+ * usa ``VariantStructure.SKU_VARIANT`` a nivel oferta.
  *
  * **Latam — decisiones de diseño:**
  * - ``shipping_carriers_accepted`` enumera los carriers Latam realmente
@@ -40,7 +40,7 @@ export const offerProductDetailsSchema: SectionSchema = {
       options: [
         { value: FulfillmentType.DIGITAL_DOWNLOAD, label: "Descarga digital (PDF, zip, video)" },
         { value: FulfillmentType.LMS_ACCESS, label: "Acceso a plataforma (Hotmart, Kajabi, propia)" },
-        { value: FulfillmentType.MANUAL_PROVISIONING, label: "Provisión manual (vos enviás credenciales)" },
+        { value: FulfillmentType.MANUAL_PROVISIONING, label: "Provisión manual (tú envías las credenciales)" },
         { value: FulfillmentType.PHYSICAL_SHIPPING, label: "Envío físico a domicilio" },
       ],
       hint: "Define toda la experiencia post-checkout. Descarga digital = instantáneo. LMS = login recurrente, retención más alta. Manual = personal pero no escala. Físico = logística real.",
@@ -58,7 +58,7 @@ export const offerProductDetailsSchema: SectionSchema = {
         { value: DigitalFormat.SOFTWARE_SAAS, label: "Software / acceso SaaS" },
         { value: DigitalFormat.PHYSICAL_ITEM, label: "Producto físico" },
       ],
-      hint: "El formato afecta el packaging marketing: un 'ebook' se percibe de menor valor que una 'guía completa' con el mismo contenido. Revisá el naming.",
+      hint: "El formato afecta el packaging marketing: un 'ebook' se percibe de menor valor que una 'guía completa' con el mismo contenido. Revisa el naming.",
     },
     {
       id: "is_downloadable",
@@ -92,8 +92,8 @@ export const offerProductDetailsSchema: SectionSchema = {
       path: "specific_details.access_instructions",
       rows: 4,
       placeholder:
-        "1. Recibirás un email de Kiwify con tu link de acceso en los próximos 5 minutos.\n2. Usá el mismo email con el que compraste para iniciar sesión.\n3. Si no llega en 15 minutos, revisá spam o escribinos a soporte@tudominio.com.\n4. La plataforma funciona en desktop y app móvil iOS/Android.",
-      hint: "Reduce tickets de soporte 'no puedo acceder'. Paso-a-paso. Incluí qué revisar si no llega el email y link al soporte. Se usa en el email de bienvenida.",
+        "1. Recibirás un email de Kiwify con tu link de acceso en los próximos 5 minutos.\n2. Usa el mismo email con el que compraste para iniciar sesión.\n3. Si no llega en 15 minutos, revisa spam o escríbenos a soporte@tudominio.com.\n4. La plataforma funciona en desktop y app móvil iOS/Android.",
+      hint: "Reduce tickets de soporte 'no puedo acceder'. Paso-a-paso. Incluye qué revisar si no llega el email y link al soporte. Se usa en el email de bienvenida.",
     },
     {
       id: "access_duration",
@@ -105,7 +105,7 @@ export const offerProductDetailsSchema: SectionSchema = {
         { value: AccessDuration.LIMITED_TIME, label: "Tiempo limitado (1 año, 6 meses)" },
         { value: AccessDuration.SUBSCRIPTION_ACTIVE, label: "Mientras mantenga suscripción" },
       ],
-      hint: "'De por vida' sube conversión pero te ata — si el curso se desactualiza, heredás todos los compradores. Limitado + actualizaciones por $ extra es más sostenible.",
+      hint: "'De por vida' sube conversión pero te ata — si el curso se desactualiza, heredas todos los compradores. Limitado + actualizaciones por $ extra es más sostenible.",
     },
     {
       id: "sample_preview_url",
@@ -122,7 +122,7 @@ export const offerProductDetailsSchema: SectionSchema = {
       label: "¿Requiere envío físico?",
       type: "boolean",
       path: "specific_details.requires_shipping",
-      hint: "Activá si es producto físico. Desactivado = digital puro. Desbloquea los campos de envío abajo.",
+      hint: "Actívalo si es producto físico. Desactivado = digital puro. Desbloquea los campos de envío abajo.",
     },
     {
       id: "sku_inventory_code",
@@ -146,7 +146,7 @@ export const offerProductDetailsSchema: SectionSchema = {
       type: "number",
       path: "specific_details.shipping_weight_grams",
       placeholder: "350",
-      hint: "Necesario para calcular costo de envío en carriers que cobran por peso. En cosmética considerá el peso del packaging. Mercado Envíos usa esto para su cotización automática.",
+      hint: "Necesario para calcular costo de envío en carriers que cobran por peso. En cosmética considera el peso del packaging. Mercado Envíos usa esto para su cotización automática.",
     },
     {
       id: "shipping_carriers_accepted",
@@ -166,7 +166,7 @@ export const offerProductDetailsSchema: SectionSchema = {
       rows: 4,
       placeholder:
         "• Capital / CABA: 2-3 días hábiles\n• Interior del país: 5-7 días hábiles\n• Países limítrofes (UY, PY, CL): 10-15 días hábiles\n• Resto de Latam: 15-21 días hábiles",
-      hint: "Expectativa realista reduce 60% de tickets '¿cuándo me llega?'. Separá Capital / Interior / Internacional. Agregá un buffer de 1-2 días sobre el tiempo del carrier.",
+      hint: "Expectativa realista reduce 60% de tickets '¿cuándo me llega?'. Separa Capital / Interior / Internacional. Agrega un buffer de 1-2 días sobre el tiempo del carrier.",
     },
     {
       id: "packaging_description",
@@ -176,7 +176,7 @@ export const offerProductDetailsSchema: SectionSchema = {
       rows: 3,
       placeholder:
         "Tu pedido llega en una caja kraft reciclada con sello de cera, papel seda interior y una tarjeta escrita a mano. Envolvemos cada producto individualmente para regalo sin costo extra.",
-      hint: "En cosmética, regalo o artesanía el unboxing es parte del producto y justifica el ticket. Compartible en Instagram = publicidad gratuita. Si no aplica (suplemento, consumo masivo), dejá vacío.",
+      hint: "En cosmética, regalo o artesanía el unboxing es parte del producto y justifica el ticket. Compartible en Instagram = publicidad gratuita. Si no aplica (suplemento, consumo masivo), deja vacío.",
     },
     {
       id: "return_policy_days",

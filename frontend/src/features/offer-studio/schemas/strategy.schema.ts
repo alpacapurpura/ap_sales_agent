@@ -12,7 +12,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  *   abstractos). Un microempresario Latam se reconoce en "nutricionista
  *   con 2 años de carrera privada" más que en "wellness entrepreneur".
  * - ``anti_avatar_keywords`` es lo que el sales-agent usa para descartar
- *   leads mal calificados. Específico y concreto; si dejás vago, el
+ *   leads mal calificados. Específico y concreto; si dejas vago, el
  *   agente acepta cualquiera y tu CAC se dispara.
  * - Los pain points deben ser específicos y medibles. El agent los usa
  *   para abrir conversación con empathy framing.
@@ -28,7 +28,7 @@ export const offerStrategySchema: SectionSchema = {
       type: "text",
       path: "avatar_id",
       placeholder: "Ej: Nutri Ale — 32 años, nutricionista con consultorio propio hace 2 años",
-      hint: "Seleccioná un buyer persona previamente definido en Brand Studio. El ID se resuelve en un picker en runtime. Vacío = aplica a cualquier audiencia (no recomendado: sin ICP el sales-agent no puede calificar).",
+      hint: "Selecciona un buyer persona previamente definido en Brand Studio. El ID se resuelve en un picker en runtime. Vacío = aplica a cualquier audiencia (no recomendado: sin ICP el sales-agent no puede calificar).",
     },
     {
       id: "target_avatar_match",

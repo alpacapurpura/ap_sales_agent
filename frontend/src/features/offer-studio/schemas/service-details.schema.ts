@@ -45,18 +45,18 @@ export const offerServiceDetailsSchema: SectionSchema = {
       options: [
         {
           value: ServiceCategory.ADVISORY,
-          label: "Consultoría / asesoría (vos orientás, el cliente ejecuta)",
+          label: "Consultoría / asesoría (tú orientas, el cliente ejecuta)",
         },
         {
           value: ServiceCategory.AGENCY,
-          label: "Agencia / DFY (vos o tu equipo ejecutan por el cliente)",
+          label: "Agencia / DFY (tú o tu equipo ejecutan por el cliente)",
         },
         {
           value: ServiceCategory.AUTHORITY,
           label: "Autoridad (coaching, speaking, mentoría, consulta médica)",
         },
       ],
-      hint: "Cambia la expectativa del cliente y cómo lo cobrás. Consultoría = alto margen sin ejecución. Agencia = scope fijo con entregable. Autoridad = tu tiempo 1:1.",
+      hint: "Cambia la expectativa del cliente y cómo lo cobras. Consultoría = alto margen sin ejecución. Agencia = scope fijo con entregable. Autoridad = tu tiempo 1:1.",
     },
     {
       id: "interaction_mode",
@@ -94,7 +94,7 @@ export const offerServiceDetailsSchema: SectionSchema = {
       rows: 5,
       placeholder:
         "• Auditoría completa de tu cuenta de Meta Ads\n• Estrategia mensual con 3 campañas nuevas\n• Reporte semanal por WhatsApp\n• Optimización diaria de pujas",
-      hint: "Uno por línea. Sé específico y medible. Evitá 'soporte personalizado' o 'asesoría continua' vagos — el cliente mide con lo que acá digas.",
+      hint: "Uno por línea. Sé específico y medible. Evita 'soporte personalizado' o 'asesoría continua' vagos — el cliente mide con lo que acá digas.",
     },
     {
       id: "scope_excluded",
@@ -105,7 +105,7 @@ export const offerServiceDetailsSchema: SectionSchema = {
       rows: 4,
       placeholder:
         "• Creación de video o producción audiovisual\n• Traducción de copy a otros idiomas\n• Soporte técnico de tu tienda online\n• Cambios fuera del alcance inicial",
-      hint: "Uno por línea. Tan importante como lo que incluís. El 80% de las disputas post-venta en agencias y consultorías Latam vienen de scope-out no declarado. Si no lo escribís, el cliente va a asumir que sí está incluido.",
+      hint: "Uno por línea. Tan importante como lo que incluyes. El 80% de las disputas post-venta en agencias y consultorías Latam vienen de scope-out no declarado. Si no lo escribes, el cliente va a asumir que sí está incluido.",
     },
     {
       id: "revision_rounds",
@@ -114,7 +114,7 @@ export const offerServiceDetailsSchema: SectionSchema = {
       path: "specific_details.revision_rounds",
       owner: "offer",
       placeholder: "2",
-      hint: "Cuántas veces el cliente puede pedir cambios sobre un entregable sin costo extra. Típico en agencia/diseño: 2-3 rondas. Más rondas = trabajo infinito → poné un número.",
+      hint: "Cuántas veces el cliente puede pedir cambios sobre un entregable sin costo extra. Típico en agencia/diseño: 2-3 rondas. Más rondas = trabajo infinito → pon un número.",
     },
 
     // ─── Logística (cuánto dura, cuándo responde) ─────────────────────────
@@ -134,7 +134,7 @@ export const offerServiceDetailsSchema: SectionSchema = {
       path: "specific_details.total_sessions_count",
       owner: "offer",
       placeholder: "8",
-      hint: "Cuántas sesiones incluye el paquete. Dejá vacío si es retainer o proyecto sin sesiones fijas.",
+      hint: "Cuántas sesiones incluye el paquete. Deja vacío si es retainer o proyecto sin sesiones fijas.",
     },
     {
       id: "turnaround_time_days",
@@ -171,7 +171,7 @@ export const offerServiceDetailsSchema: SectionSchema = {
       path: "specific_details.min_contract_months",
       owner: "offer",
       placeholder: "3",
-      hint: "Solo para retainer. Justifica curva de aprendizaje + setup inicial. Típico Latam: 3-6 meses. Con permanencia alta, bajás el precio mensual para compensar.",
+      hint: "Solo para retainer. Justifica curva de aprendizaje + setup inicial. Típico Latam: 3-6 meses. Con permanencia alta, bajas el precio mensual para compensar.",
     },
     {
       id: "primary_communication_channel",
@@ -186,7 +186,7 @@ export const offerServiceDetailsSchema: SectionSchema = {
         { value: "telegram", label: "Telegram" },
         { value: "platform_internal", label: "Plataforma propia / portal del cliente" },
       ],
-      hint: "WhatsApp es lo dominante Latam para retainers y servicios recurrentes. El agente de ventas lo menciona al cerrar. Si el cliente espera otro canal, definilo explícito.",
+      hint: "WhatsApp es lo dominante Latam para retainers y servicios recurrentes. El agente de ventas lo menciona al cerrar. Si el cliente espera otro canal, defínelo explícito.",
     },
 
     // ─── Reserva y onboarding (cómo arranca el cliente) ───────────────────
@@ -197,7 +197,7 @@ export const offerServiceDetailsSchema: SectionSchema = {
       path: "specific_details.booking_url",
       owner: "offer",
       placeholder: "https://cal.com/tu-usuario/consulta",
-      hint: "Si integrás scheduling nativo, dejá vacío — el sistema lo genera automáticamente. Cal.com es más económico que Calendly para Latam.",
+      hint: "Si integras scheduling nativo, deja vacío — el sistema lo genera automáticamente. Cal.com es más económico que Calendly para Latam.",
     },
     {
       id: "onboarding_brief_url",
@@ -226,7 +226,7 @@ export const offerServiceDetailsSchema: SectionSchema = {
       path: "capacity",
       owner: "edition",
       placeholder: "10",
-      hint: "Cuántos clientes aceptás en esta convocatoria. Vacío = sin límite. Escasez real (cupos limitados) convierte mejor que urgencia fake.",
+      hint: "Cuántos clientes aceptas en esta convocatoria. Vacío = sin límite. Escasez real (cupos limitados) convierte mejor que urgencia fake.",
     },
   ],
 };

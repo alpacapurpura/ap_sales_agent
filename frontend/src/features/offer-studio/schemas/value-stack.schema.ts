@@ -15,7 +15,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  *   Sin este anclaje explícito el stack pierde 40-60% de su poder.
  * - Cada ``deliverable`` tiene ``item_type`` core/bonus para que el agente
  *   y la landing puedan diferenciar lo esencial del regalo. Bonus-only
- *   items se muestran en landing como "Además te llevás estos regalos".
+ *   items se muestran en landing como "Además te llevas estos regalos".
  * - ``perceived_value`` es en USD (no moneda local) porque es el anclaje
  *   cross-Latam. Si el tenant cobra en moneda local, el dual display
  *   se resuelve en render (se multiplica por tipo de cambio).
@@ -30,7 +30,7 @@ export const offerValueStackSchema: SectionSchema = {
       label: "Entregables y bonus",
       type: "array",
       path: "deliverables",
-      hint: "Cada componente concreto del stack con su valor percibido. Ordená desde lo más valioso hacia los bonus complementarios. 4-8 items es el sweet spot — menos de 4 se ve pobre, más de 10 se vuelve ruido.",
+      hint: "Cada componente concreto del stack con su valor percibido. Ordena desde lo más valioso hacia los bonus complementarios. 4-8 items es el sweet spot — menos de 4 se ve pobre, más de 10 se vuelve ruido.",
       itemSchema: {
         description: "Un componente del stack — concreto, enumerable y defendible con valor USD.",
         fields: [
@@ -57,7 +57,7 @@ export const offerValueStackSchema: SectionSchema = {
             type: "number",
             path: "perceived_value",
             placeholder: "897",
-            hint: "El precio que tendría si se vendiera suelto en el mercado. Debe ser defendible — no inflado. Sumá todos los items: el total debe ser 2-4x el precio de venta para anclaje efectivo.",
+            hint: "El precio que tendría si se vendiera suelto en el mercado. Debe ser defendible — no inflado. Suma todos los items: el total debe ser 2-4x el precio de venta para anclaje efectivo.",
           },
           {
             id: "item_type",
@@ -77,7 +77,7 @@ export const offerValueStackSchema: SectionSchema = {
             type: "text",
             path: "fulfillment_note",
             placeholder: "Acceso inmediato post-checkout / Semana 1 de la cohorte / Entregado en mano en el evento",
-            hint: "Claridad sobre la entrega reduce tickets de soporte post-venta. Si es acceso inmediato, decilo explícito.",
+            hint: "Claridad sobre la entrega reduce tickets de soporte post-venta. Si es acceso inmediato, dilo explícito.",
           },
         ],
       },
@@ -97,7 +97,7 @@ export const offerValueStackSchema: SectionSchema = {
       path: "stack_positioning_statement",
       rows: 3,
       placeholder:
-        "Por el precio de dos consultas presenciales te llevás el método completo que hoy cobraría USD 4.344 si lo armara cliente por cliente. Todo accesible desde tu celular, a tu ritmo, con mi acompañamiento directo.",
+        "Por el precio de dos consultas presenciales te llevas el método completo que hoy cobraría USD 4.344 si lo armara cliente por cliente. Todo accesible desde tu celular, a tu ritmo, con mi acompañamiento directo.",
       hint: "Una frase de 2-3 líneas que resume el trade-off 'valor vs precio'. El agente de ventas la usa en el cierre. Landing la muestra debajo del stack.",
     },
   ],

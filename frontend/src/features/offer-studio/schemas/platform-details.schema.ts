@@ -35,7 +35,7 @@ export const offerPlatformDetailsSchema: SectionSchema = {
       label: "Funcionalidades core",
       type: "array",
       path: "platform_features",
-      hint: "Features que el usuario recibe. Para feature matrix por plan, marcá en qué planes está disponible cada una.",
+      hint: "Features que el usuario recibe. Para feature matrix por plan, marca en qué planes está disponible cada una.",
       itemSchema: {
         description: "Una funcionalidad del software con su disponibilidad por plan.",
         fields: [
@@ -131,7 +131,7 @@ export const offerPlatformDetailsSchema: SectionSchema = {
       rows: 5,
       placeholder:
         "• SOC 2 Type II (2025) — auditado por Prescient Assurance\n• ISO 27001 certificado\n• LGPD (Brasil) compliant — DPO designado\n• Habeas Data (Colombia, Perú) — registrado ante SIC y DPS\n• PDPL (Ley 25.326 Argentina) compliant\n• Encriptación AES-256 en reposo · TLS 1.3 en tránsito\n• Pen-test anual por terceros",
-      hint: "Certificaciones + frameworks legales con detalle. Listar específicamente por país Latam (no solo 'LATAM compliant' vago). Un B2B mexicano busca LFPDPPP, uno colombiano busca Habeas Data. Sé explícito.",
+      hint: "Certificaciones + frameworks legales con detalle. Lista específicamente por país Latam (no solo 'LATAM compliant' vago). Un B2B mexicano busca LFPDPPP, uno colombiano busca Habeas Data. Sé explícito.",
     },
     {
       id: "data_residency",
@@ -147,7 +147,7 @@ export const offerPlatformDetailsSchema: SectionSchema = {
       type: "text",
       path: "uptime_guarantee",
       placeholder: "99.9% mensual — penalty por incumplimiento escalonado",
-      hint: "Si tenés SLA publicado, ponelo. Linkealo desde la landing al status page.",
+      hint: "Si tienes SLA publicado, ponlo. Enlázalo desde la landing al status page.",
     },
     {
       id: "status_page_url",
@@ -170,7 +170,7 @@ export const offerPlatformDetailsSchema: SectionSchema = {
       label: "¿API pública disponible?",
       type: "boolean",
       path: "api_available",
-      hint: "Clientes técnicos valoran mucho tener API. Si es sólo en planes altos, aclaralo.",
+      hint: "Clientes técnicos valoran mucho tener API. Si es sólo en planes altos, aclárelo.",
     },
     {
       id: "api_docs_url",
@@ -194,7 +194,7 @@ export const offerPlatformDetailsSchema: SectionSchema = {
       label: "URL del roadmap público",
       type: "url",
       path: "public_roadmap_url",
-      hint: "Si tenés roadmap público (Trello, Productboard, Canny), linkealo. Transparencia = trust.",
+      hint: "Si tienes roadmap público (Trello, Productboard, Canny), enlázalo. Transparencia = trust.",
     },
     {
       id: "changelog_url",
@@ -211,7 +211,7 @@ export const offerPlatformDetailsSchema: SectionSchema = {
       rows: 4,
       placeholder:
         "• Generación de copy asistida por GPT-4o — los datos del cliente NO se usan para entrenar modelos\n• Análisis predictivo de churn con modelos propios (random forest)\n• Resumen automático de conversaciones de soporte (datos anonimizados)\n• NO tomamos decisiones automatizadas que afecten al cliente sin supervisión humana",
-      hint: "Creciente exigencia regulatoria Latam (AR Res. 161/2023, BR autorregulación LGPD, MX INE normativa). Explicitá: qué features usan IA, qué datos se procesan, si hay decisiones automatizadas. Sin esta transparencia, auditores B2B Latam marcan red flag.",
+      hint: "Creciente exigencia regulatoria Latam (AR Res. 161/2023, BR autorregulación LGPD, MX INE normativa). Explicita: qué features usan IA, qué datos se procesan, si hay decisiones automatizadas. Sin esta transparencia, auditores B2B Latam marcan red flag.",
     },
     {
       id: "data_export_capability",

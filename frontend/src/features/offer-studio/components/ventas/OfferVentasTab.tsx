@@ -113,7 +113,7 @@ export function OfferVentasTab({ offerId, currentEditionId, tenantId }: OfferVen
           </span>
           <div>
             <p className="text-sm font-semibold text-blue-900">
-              ¿Necesitás más detalle por inscripción?
+              ¿Necesitas más detalle por inscripción?
             </p>
             <p className="text-xs text-blue-700">
               Ver conversaciones, timeline y follow-ups en Closer Studio.

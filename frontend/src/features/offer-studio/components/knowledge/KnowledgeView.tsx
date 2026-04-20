@@ -432,7 +432,7 @@ function KnowledgeEmptyState({
             : "Todavía no hay fuentes de conocimiento"}
         </h3>
         <p className="max-w-sm text-xs text-muted-foreground">
-          Subí PDFs, webinars o pegá URLs para que el Sales Agent pueda responder preguntas
+          Sube PDFs, webinars o pega URLs para que el Sales Agent pueda responder preguntas
           específicas sobre esta oferta.
         </p>
       </div>

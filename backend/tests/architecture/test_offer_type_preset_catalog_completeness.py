@@ -29,7 +29,7 @@ import re
 import pytest
 
 from src.modules.offer.domain.archetype_catalog import ARCHETYPE_CATALOG
-from src.modules.offer.domain.enums import OfferArchetype
+from src.modules.offer.domain.enums import OfferArchetype, OfferValueLevel
 from src.modules.offer.domain.offer_type_preset_catalog import (
     OFFER_TYPE_PRESET_CATALOG,
     QUESTION_REGISTRY,
@@ -180,6 +180,61 @@ def test_question_registry_self_references_and_points_to_real_sections() -> None
             if section not in SECTION_CATALOG
         )
     assert violations == [], "QUESTION_REGISTRY integrity:\n" + "\n".join(violations)
+
+
+def test_lead_magnet_presets_carry_lead_magnet_value_level() -> None:
+    """Sprint 15 invariant: preset and flag MUST agree on lead-magnet status.
+
+    If the preset declares ``IS_LEAD_MAGNET`` in ``default_flags`` then its
+    ``typical_value_level`` MUST be ``LEAD_MAGNET``. Otherwise the wizard
+    derives a paid ladder rung from a free preset (or vice versa) and the
+    dashboard ladder grouping silently lies.
+    """
+    violations: list[str] = []
+    for preset_id, preset in OFFER_TYPE_PRESET_CATALOG.items():
+        is_flagged = PresetFlag.IS_LEAD_MAGNET in preset.default_flags
+        is_leveled = preset.typical_value_level is OfferValueLevel.LEAD_MAGNET
+        if is_flagged and not is_leveled:
+            violations.append(
+                f"{preset_id!r} has IS_LEAD_MAGNET flag but typical_value_level={preset.typical_value_level.value!r}"
+            )
+        if is_leveled and not is_flagged:
+            violations.append(
+                f"{preset_id!r} declares typical_value_level=LEAD_MAGNET but lacks the IS_LEAD_MAGNET flag"
+            )
+    assert violations == [], "Preset lead-magnet flag ↔ value_level alignment:\n" + "\n".join(violations)
+
+
+def test_paid_presets_carry_non_lead_magnet_value_level() -> None:
+    """Paid presets must sit on a paid rung (ACTIVACION / TRANSFORMACION /
+    MAXIMIZACION / CORPORATIVO). Never LEAD_MAGNET.
+    """
+    paid_rungs = {
+        OfferValueLevel.ACTIVACION,
+        OfferValueLevel.TRANSFORMACION,
+        OfferValueLevel.MAXIMIZACION,
+        OfferValueLevel.CORPORATIVO,
+    }
+    violations = [
+        f"{preset_id!r} on rung {preset.typical_value_level.value!r}"
+        for preset_id, preset in OFFER_TYPE_PRESET_CATALOG.items()
+        if PresetFlag.IS_LEAD_MAGNET not in preset.default_flags and preset.typical_value_level not in paid_rungs
+    ]
+    assert violations == [], "Paid presets must sit on a paid ladder rung:\n" + "\n".join(violations)
+
+
+def test_high_ticket_presets_are_max_or_corporate_rung() -> None:
+    """Sprint 15 sanity: ``HIGH_TICKET`` flag implies MAXIMIZACION or
+    CORPORATIVO. Everything cheaper is a modelling error — HIGH_TICKET
+    means a signature / premium offer, not a first-purchase entry.
+    """
+    premium_rungs = {OfferValueLevel.MAXIMIZACION, OfferValueLevel.CORPORATIVO}
+    violations = [
+        f"{preset_id!r} is HIGH_TICKET but rung={preset.typical_value_level.value!r}"
+        for preset_id, preset in OFFER_TYPE_PRESET_CATALOG.items()
+        if PresetFlag.HIGH_TICKET in preset.default_flags and preset.typical_value_level not in premium_rungs
+    ]
+    assert violations == [], "HIGH_TICKET presets must sit on MAXIMIZACION or CORPORATIVO:\n" + "\n".join(violations)
 
 
 def test_every_archetype_has_at_least_one_preset() -> None:

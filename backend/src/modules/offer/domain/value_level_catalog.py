@@ -110,7 +110,7 @@ VALUE_LEVEL_CATALOG: dict[OfferValueLevel, ValueLevelMetadata] = {
         label_es="Oferta Principal",
         description_es=(
             "Tu oferta principal. Entrega la transformación completa que "
-            "prometés y concentra el grueso de tu revenue mensual."
+            "prometes y concentra el grueso de tu revenue mensual."
         ),
         role_in_funnel_es="Entrega la transformación central",
         icon_name="TrendingUp",

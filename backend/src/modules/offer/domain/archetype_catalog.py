@@ -25,6 +25,7 @@ from src.modules.offer.domain.enums import (
     FulfillmentType,
     OfferArchetype,
     OfferDeliveryModel,
+    VariantStructure,
 )
 from src.modules.offer.domain.section_catalog import SectionKey
 
@@ -92,6 +93,14 @@ class ArchetypeCapabilities:
     editions_wizard_yes_label_es: str | None = None
     editions_wizard_no_label_es: str | None = None
 
+    # Default ``VariantStructure`` assigned to the placeholder edition spawned
+    # at offer creation. ``None`` iff the archetype does not support editions.
+    # Promoted from migration 049's hard-coded SQL mapping into the catalog so
+    # the archetype-↔-structure relation has a single source of truth. The
+    # arch test ``test_archetype_default_variant_structure_alignment`` blocks
+    # any drift between ``supports_editions`` and this field.
+    default_variant_structure: VariantStructure | None = None
+
 
 ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
     OfferArchetype.EXPERIENCIA: ArchetypeCapabilities(
@@ -107,6 +116,7 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         supports_waitlist=True,
         default_delivery=OfferDeliveryModel.DWY,
         default_fulfillment=FulfillmentType.MANUAL_PROVISIONING,
+        default_variant_structure=VariantStructure.TEMPORAL_SINGLE_DATE,
         label_es="Experiencia / Evento",
         subtitle_es="Un momento o evento único",
         icon_name="Tent",
@@ -119,7 +129,7 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         ),
         editions_wizard_title_es="¿Tendrá varias salidas en fechas distintas?",
         editions_wizard_description_es=(
-            "Si vas a repetir esta experiencia en distintas fechas (ej: cada trimestre), elegí Sí."
+            "Si vas a repetir esta experiencia en distintas fechas (ej: cada trimestre), elige Sí."
         ),
         editions_wizard_yes_label_es="Sí, con múltiples salidas programadas",
         editions_wizard_no_label_es="No, es una corrida única",
@@ -155,6 +165,7 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         supports_waitlist=True,
         default_delivery=OfferDeliveryModel.DWY,
         default_fulfillment=FulfillmentType.LMS_ACCESS,
+        default_variant_structure=VariantStructure.TEMPORAL_COHORT,
         label_es="Programa",
         subtitle_es="Un proceso con inicio, pasos y resultado",
         icon_name="Map",
@@ -201,6 +212,7 @@ ARCHETYPE_CATALOG: dict[OfferArchetype, ArchetypeCapabilities] = {
         supports_waitlist=False,
         default_delivery=OfferDeliveryModel.DFY,
         default_fulfillment=FulfillmentType.MANUAL_PROVISIONING,
+        default_variant_structure=VariantStructure.RECURRING_INTAKE,
         label_es="Servicio",
         subtitle_es="Trabajo que hago para o con alguien",
         icon_name="Wrench",

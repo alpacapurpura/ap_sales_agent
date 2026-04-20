@@ -46,7 +46,7 @@ export const offerEventDetailsSchema: SectionSchema = {
       type: "text",
       path: "end_date",
       placeholder: "2026-05-10T18:00:00-05:00",
-      hint: "Obligatorio si es multi-día (retiros). Para eventos de 1 día podés dejar vacío y usar solo start_date.",
+      hint: "Obligatorio si es multi-día (retiros). Para eventos de 1 día puedes dejar vacío y usar solo start_date.",
     },
     {
       id: "timezone",
@@ -54,7 +54,7 @@ export const offerEventDetailsSchema: SectionSchema = {
       type: "text",
       path: "timezone",
       placeholder: "America/Lima",
-      hint: "IANA timezone ID. Ej: America/Bogota, America/Mexico_City, America/Argentina/Buenos_Aires. Si la salida es presencial, usá el timezone del venue; si es virtual, el timezone principal de tu audiencia.",
+      hint: "IANA timezone ID. Ej: America/Bogota, America/Mexico_City, America/Argentina/Buenos_Aires. Si la salida es presencial, usa el timezone del venue; si es virtual, el timezone principal de tu audiencia.",
     },
     {
       id: "checkin_start_time",
@@ -70,7 +70,7 @@ export const offerEventDetailsSchema: SectionSchema = {
       type: "text",
       path: "specific_details.rsvp_deadline",
       placeholder: "2026-05-05T23:59:00-05:00",
-      hint: "Hasta cuándo aceptás compradores. Para retiros con alojamiento conviene cerrar 2-4 semanas antes (logística). Para eventos 1 día, hasta 24h antes está bien.",
+      hint: "Hasta cuándo aceptas compradores. Para retiros con alojamiento conviene cerrar 2-4 semanas antes (logística). Para eventos 1 día, hasta 24h antes está bien.",
     },
 
     // ─── Tipo de ubicación ────────────────────────────────────────────────
@@ -82,7 +82,7 @@ export const offerEventDetailsSchema: SectionSchema = {
       options: [
         { value: EventLocationType.VIRTUAL, label: "Virtual (online, sin venue físico)" },
         { value: EventLocationType.PHYSICAL_LOCAL, label: "Presencial local (en tu ciudad habitual)" },
-        { value: EventLocationType.DESTINATION_RETREAT, label: "Retiro destino (viajás vos y los atendees)" },
+        { value: EventLocationType.DESTINATION_RETREAT, label: "Retiro destino (viajan tú y los atendees)" },
       ],
       hint: "Virtual escala al infinito. Presencial local retiene mejor a la audiencia local. Destination retreat es el mayor valor percibido pero la logística más compleja.",
     },
@@ -92,7 +92,7 @@ export const offerEventDetailsSchema: SectionSchema = {
       type: "url",
       path: "specific_details.virtual_meeting_url",
       placeholder: "https://us06web.zoom.us/j/...",
-      hint: "Solo si es virtual o híbrido. Se envía post-checkout + recordatorio 1h antes. Zoom recurrente es lo más adoptado Latam. Validá que el link soporta tu capacidad.",
+      hint: "Solo si es virtual o híbrido. Se envía post-checkout + recordatorio 1h antes. Zoom recurrente es lo más adoptado Latam. Valida que el link soporta tu capacidad.",
     },
     {
       id: "venue_name",
@@ -100,7 +100,7 @@ export const offerEventDetailsSchema: SectionSchema = {
       type: "text",
       path: "specific_details.venue_name",
       placeholder: "Hotel Country Club / Casa Nova Cartagena",
-      hint: "Solo si es presencial. Nombre que reconoce la audiencia. Si es venue desconocido, usá 'Quinta El Laurel (zona Chacarilla, Lima)' para referencia geográfica.",
+      hint: "Solo si es presencial. Nombre que reconoce la audiencia. Si es venue desconocido, usa 'Quinta El Laurel (zona Chacarilla, Lima)' para referencia geográfica.",
     },
     {
       id: "venue_address",
@@ -140,7 +140,7 @@ export const offerEventDetailsSchema: SectionSchema = {
         { value: AccommodationType.PRIVATE_ROOM, label: "Cuarto privado estándar" },
         { value: AccommodationType.LUXURY_SUITE, label: "Suite de lujo" },
       ],
-      hint: "Decisivo en retiros. Incluir alojamiento sube el ticket pero elimina fricción (el atendee no reserva). Si no incluye, recomendá al menos 2-3 hoteles cercanos.",
+      hint: "Decisivo en retiros. Incluir alojamiento sube el ticket pero elimina fricción (el atendee no reserva). Si no incluye, recomienda al menos 2-3 hoteles cercanos.",
     },
     {
       id: "meals_included",
@@ -154,7 +154,7 @@ export const offerEventDetailsSchema: SectionSchema = {
         { value: "full_pension", label: "Pensión completa (3 comidas)" },
         { value: "all_inclusive", label: "All inclusive (comidas + bebidas)" },
       ],
-      hint: "En retiros Latam pensión completa es el estándar y justifica ticket alto. Si no incluye, ofrecé lista de restaurantes cerca o app de delivery.",
+      hint: "En retiros Latam pensión completa es el estándar y justifica ticket alto. Si no incluye, ofrece lista de restaurantes cerca o app de delivery.",
     },
     {
       id: "dietary_restrictions_form_url",
@@ -177,7 +177,7 @@ export const offerEventDetailsSchema: SectionSchema = {
       label: "¿Transfer desde aeropuerto incluido?",
       type: "boolean",
       path: "specific_details.is_transfer_included",
-      hint: "Transfer de ida y vuelta eleva valor percibido y evita líos de taxi/Uber. Si incluís, coordinás horarios de arribo con los atendees.",
+      hint: "Transfer de ida y vuelta eleva valor percibido y evita líos de taxi/Uber. Si lo incluyes, coordinas horarios de arribo con los atendees.",
     },
 
     // ─── Agenda + preparación ─────────────────────────────────────────────
@@ -189,7 +189,7 @@ export const offerEventDetailsSchema: SectionSchema = {
       rows: 5,
       placeholder:
         "09:00 — Apertura y bienvenida\n09:30 — Keynote: Estado del mercado digital Latam 2026\n11:00 — Panel: Casos de éxito SaaS Latam\n13:00 — Almuerzo y networking\n15:00 — Workshop práctico",
-      hint: "Uno por línea. El nivel de detalle depende del evento: un retiro de 5 días podés listar actividades por día; un evento de 1 día listá hora + actividad. Se renderiza en landing y email de recordatorio.",
+      hint: "Uno por línea. El nivel de detalle depende del evento: un retiro de 5 días puedes listar actividades por día; un evento de 1 día lista hora + actividad. Se renderiza en landing y email de recordatorio.",
     },
     {
       id: "what_to_bring",
@@ -199,7 +199,7 @@ export const offerEventDetailsSchema: SectionSchema = {
       rows: 4,
       placeholder:
         "• Laptop con cargador\n• Cuaderno + bolígrafo para ejercicios offline\n• Ropa cómoda para actividades outdoor\n• Protector solar y repelente\n• DNI o pasaporte para el check-in del hotel",
-      hint: "Uno por línea. Crítico en retiros presenciales — evita que el atendee llegue sin lo necesario. Incluí ropa (formal/casual/deportiva), documentación requerida y tecnología.",
+      hint: "Uno por línea. Crítico en retiros presenciales — evita que el atendee llegue sin lo necesario. Incluye ropa (formal/casual/deportiva), documentación requerida y tecnología.",
     },
     {
       id: "dress_code",
@@ -222,7 +222,7 @@ export const offerEventDetailsSchema: SectionSchema = {
         { value: "pt", label: "Portugués (Brasil)" },
         { value: "bilingual", label: "Bilingüe (speakers en ambos idiomas)" },
       ],
-      hint: "Claridad sobre idioma evita compradores frustrados. Si tu evento es en español pero tenés speakers internacionales, declarámelo como 'Español con traducción' para atraer audiencia que no habla inglés.",
+      hint: "Claridad sobre idioma evita compradores frustrados. Si tu evento es en español pero tienes speakers internacionales, declaralo como 'Español con traducción' para atraer audiencia que no habla inglés.",
     },
 
     // ─── Accesibilidad + inclusión ────────────────────────────────────────
@@ -248,8 +248,8 @@ export const offerEventDetailsSchema: SectionSchema = {
       path: "specific_details.accessibility_notes",
       rows: 3,
       placeholder:
-        "• Venue con acceso para sillas de ruedas en todas las áreas principales\n• Baños adaptados en planta baja\n• No hay intérprete de lengua de señas (contactanos si necesitás)\n• Materiales impresos disponibles en letra grande bajo pedido",
-      hint: "Argentina (Ley 26.378) y Chile (Ley 20.422) exigen declarar accesibilidad. Además es buena práctica. Si hay limitaciones, declarelas — los atendees con necesidades especiales lo agradecen.",
+        "• Venue con acceso para sillas de ruedas en todas las áreas principales\n• Baños adaptados en planta baja\n• No hay intérprete de lengua de señas (contáctanos si lo necesitas)\n• Materiales impresos disponibles en letra grande bajo pedido",
+      hint: "Argentina (Ley 26.378) y Chile (Ley 20.422) exigen declarar accesibilidad. Además es buena práctica. Si hay limitaciones, declárelas — los atendees con necesidades especiales lo agradecen.",
     },
 
     // ─── Grabación + streaming ────────────────────────────────────────────
@@ -266,7 +266,7 @@ export const offerEventDetailsSchema: SectionSchema = {
       type: "url",
       path: "specific_details.live_streamed_secondary_url",
       placeholder: "https://youtube.com/live/...",
-      hint: "Solo si hacés evento presencial con streaming pago para audiencia remota. Variant separado como 'Pase streaming' funciona mejor.",
+      hint: "Solo si haces evento presencial con streaming pago para audiencia remota. Variant separado como 'Pase streaming' funciona mejor.",
     },
 
     // ─── Política de cancelación ──────────────────────────────────────────

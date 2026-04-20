@@ -37,14 +37,14 @@ export const offerPortfolioSchema: SectionSchema = {
             type: "text",
             path: "client_name",
             placeholder: "Agencia Alfa — o 'Consultora financiera en México' si hay NDA",
-            hint: "Si tenés NDA, usá sector + país sin nombre propio.",
+            hint: "Si tienes NDA, usa sector + país sin nombre propio.",
           },
           {
             id: "client_logo_url",
             label: "Logo del cliente",
             type: "url",
             path: "client_logo_url",
-            hint: "Logo simplifica credibilidad. Solo si tenés autorización.",
+            hint: "Logo simplifica credibilidad. Solo si tienes autorización.",
           },
           {
             id: "industry",
@@ -79,7 +79,7 @@ export const offerPortfolioSchema: SectionSchema = {
             rows: 3,
             required: true,
             placeholder: "Rediseño de oferta + funnel de captación + playbook de ventas.",
-            hint: "El 'qué' concreto. No jerga. Diferenciá tu método de otros.",
+            hint: "El 'qué' concreto. No jerga. Diferencia tu método de otros.",
           },
           {
             id: "results_summary",
@@ -128,7 +128,7 @@ export const offerPortfolioSchema: SectionSchema = {
             label: "URL de prueba pública",
             type: "url",
             path: "proof_url",
-            hint: "Link al case study público, nota de prensa, video testimonial del cliente o reporte verificable. Con esto el caso deja de ser 'dicho por vos' y pasa a ser verificable.",
+            hint: "Link al case study público, nota de prensa, video testimonial del cliente o reporte verificable. Con esto el caso deja de ser 'dicho por ti' y pasa a ser verificable.",
           },
           {
             id: "case_period_start",
@@ -163,10 +163,10 @@ export const offerPortfolioSchema: SectionSchema = {
           },
           {
             id: "permission_to_publish",
-            label: "¿Tenés permiso documentado del cliente?",
+            label: "¿Tienes permiso documentado del cliente?",
             type: "boolean",
             path: "permission_to_publish",
-            hint: "Legal Latam — LGPD/Habeas Data/LOPD. Especialmente relevante si mostrás logo, nombre y métricas del cliente. WhatsApp o email con OK explícito basta; guardá el comprobante.",
+            hint: "Legal Latam — LGPD/Habeas Data/LOPD. Especialmente relevante si muestras logo, nombre y métricas del cliente. WhatsApp o email con OK explícito basta; guarda el comprobante.",
           },
         ],
       },

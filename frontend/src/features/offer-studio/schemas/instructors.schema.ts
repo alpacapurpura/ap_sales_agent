@@ -9,7 +9,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  * Brand Studio, la oferta refleja el cambio automáticamente.
  *
  * Scope OFFER_LEVEL: el lineup de instructores no cambia por cohorte.
- * Para eventos con speakers rotativos por edición, usá el campo
+ * Para eventos con speakers rotativos por edición, usa el campo
  * ``agenda_highlights`` de EventDetails con los nombres del día.
  *
  * **Latam — decisiones de diseño:**
@@ -33,7 +33,7 @@ export const offerInstructorsSchema: SectionSchema = {
       type: "custom",
       path: "instructors",
       action: "offer-instructors-picker",
-      hint: "Seleccioná miembros de tu equipo de marca. La biografía, foto y credenciales vienen del perfil en Brand Studio > Equipo — si cambian allá, se actualiza acá automáticamente. Para agregar a alguien nuevo, primero creá su ficha en Brand Studio.",
+      hint: "Selecciona miembros de tu equipo de marca. La biografía, foto y credenciales vienen del perfil en Brand Studio > Equipo — si cambian allá, se actualiza acá automáticamente. Para agregar a alguien nuevo, primero crea su ficha en Brand Studio.",
     },
     {
       id: "authority_positioning_for_sales",

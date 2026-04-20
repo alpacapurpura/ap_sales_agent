@@ -40,7 +40,7 @@ export const offerFaqSchema: SectionSchema = {
             path: "question",
             required: true,
             placeholder: "¿Puedo pagar en cuotas sin interés con mi tarjeta de Lima?",
-            hint: "Formulala como la escribiría tu cliente, no como la responderías vos. Si escuchás variaciones de la misma pregunta, usá la más común (la que incluye geografía o método específico Latam).",
+            hint: "Formúlala como la escribiría tu cliente, no como la responderías tú. Si escuchas variaciones de la misma pregunta, usa la más común (la que incluye geografía o método específico Latam).",
           },
           {
             id: "answer",
@@ -50,8 +50,8 @@ export const offerFaqSchema: SectionSchema = {
             required: true,
             rows: 4,
             placeholder:
-              "Sí. Aceptamos hasta 12 cuotas sin interés con Mercado Pago (Visa, MasterCard, American Express de bancos peruanos). También podés pagar en 3 cuotas con Culqi o transferencia directa a cuenta BCP/BBVA. El acceso se habilita automáticamente al confirmar el pago.",
-            hint: "Respuesta específica con números, métodos y condiciones. Evitá 'depende, consultanos' — eso desperdicia la FAQ. Si hay excepciones, listalas explícitas.",
+              "Sí. Aceptamos hasta 12 cuotas sin interés con Mercado Pago (Visa, MasterCard, American Express de bancos peruanos). También puedes pagar en 3 cuotas con Culqi o transferencia directa a cuenta BCP/BBVA. El acceso se habilita automáticamente al confirmar el pago.",
+            hint: "Respuesta específica con números, métodos y condiciones. Evita 'depende, consúltanos' — eso desperdicia la FAQ. Si hay excepciones, lístalas explícitas.",
           },
           {
             id: "category",
@@ -75,7 +75,7 @@ export const offerFaqSchema: SectionSchema = {
             label: "¿El sales-agent DEBE responder con exactitud?",
             type: "boolean",
             path: "is_answered_by_agent",
-            hint: "Marcar SÍ para preguntas donde el agent no puede improvisar: pagos, devoluciones, facturación legal. Si está en NO, el agent puede parafrasear. Para FAQs solo-landing (detalles estéticos, curiosidades), dejá NO.",
+            hint: "Marcar SÍ para preguntas donde el agent no puede improvisar: pagos, devoluciones, facturación legal. Si está en NO, el agent puede parafrasear. Para FAQs solo-landing (detalles estéticos, curiosidades), deja NO.",
           },
           {
             id: "is_featured",

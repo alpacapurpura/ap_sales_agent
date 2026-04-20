@@ -18,7 +18,7 @@ export const personalitySchema: SectionSchema = {
       type: "custom",
       path: "preset_key",
       action: "personality-presets",
-      hint: "6 personalidades tipificadas. Elegí la más parecida y afiná después.",
+      hint: "6 personalidades tipificadas. Elige la más parecida y afina después.",
     },
     {
       id: "dimensions",
@@ -34,7 +34,7 @@ export const personalitySchema: SectionSchema = {
       type: "custom",
       path: "clone_source",
       action: "personality-clone",
-      hint: "Pegá una conversación real y la IA reconstruye tu personalidad.",
+      hint: "Pega una conversación real y la IA reconstruye tu personalidad.",
     },
     {
       id: "archetype",

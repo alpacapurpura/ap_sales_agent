@@ -2,7 +2,7 @@ import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
 
 import type { SectionKey } from "./archetype-catalog-api";
-import type { OfferArchetype } from "../types";
+import type { OfferArchetype, OfferValueLevel } from "../types";
 
 const API_URL = config.api.baseUrl;
 
@@ -56,6 +56,10 @@ export interface OfferTypePreset {
   /** Internal archetype tag — never shown to the user. Drives sales-agent
    *  grounding, analytics segmentation and fulfillment defaults. */
   readonly archetype: OfferArchetype;
+  /** Sprint 15 — ladder rung this preset typically occupies. The wizard
+   *  derives ``Offer.value_level`` from this after a preset pick, so the
+   *  user never has to answer "¿en qué escalón del ladder?" directly. */
+  readonly typical_value_level: OfferValueLevel;
   readonly label_es: string;
   readonly description_es: string;
   readonly icon_name: string;

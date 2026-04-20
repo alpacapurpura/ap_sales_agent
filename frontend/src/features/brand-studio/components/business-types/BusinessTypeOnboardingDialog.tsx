@@ -66,8 +66,8 @@ export function BusinessTypeOnboardingDialog({
               <DialogTitle className="text-2xl">¿Qué tipo de negocio manejas?</DialogTitle>
             </div>
             <DialogDescription className="text-base">
-              Elegí uno o varios. Con esto podemos filtrar las ofertas que más encajan con tu
-              negocio y ahorrarte ruido innecesario. Siempre podés cambiar esto después desde la
+              Elige uno o varios. Con esto podemos filtrar las ofertas que más encajan con tu
+              negocio y ahorrarte ruido innecesario. Siempre puedes cambiar esto después desde la
               configuración de tu marca.
             </DialogDescription>
           </div>
@@ -77,7 +77,7 @@ export function BusinessTypeOnboardingDialog({
           <div className="flex items-center justify-between pt-4 border-t">
             <p className="text-xs text-muted-foreground">
               {selected.length === 0
-                ? "Seleccioná al menos una categoría. Si no encaja ninguna, podés dejarlo vacío y explorar todas."
+                ? "Selecciona al menos una categoría. Si no encaja ninguna, puedes dejarlo vacío y explorar todas."
                 : `${selected.length} seleccionad${selected.length === 1 ? "a" : "as"}.`}
             </p>
             <div className="flex gap-2">

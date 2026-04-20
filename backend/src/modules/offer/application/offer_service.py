@@ -104,6 +104,16 @@ class OfferService:
             if PresetFlag.IS_LEAD_MAGNET in resolved_flags:
                 is_lead_magnet = True
                 value_level = OfferValueLevel.LEAD_MAGNET
+            elif value_level is None:
+                # Sprint 15: preset declares where on the ladder it sits.
+                # When the caller omits ``value_level`` (the wizard post-rehaul
+                # never sends it — the step was eliminated), derive from the
+                # catalog so the dashboard ladder grouping lands on the right
+                # rung. Arch test
+                # ``test_lead_magnet_presets_carry_lead_magnet_value_level``
+                # guarantees this never collapses a paid preset into
+                # LEAD_MAGNET via an inconsistent catalog.
+                value_level = preset.typical_value_level
 
         if archetype is None:
             msg = "create_offer requires either preset_id or archetype."
@@ -168,6 +178,11 @@ class OfferService:
     def _ensure_placeholder_edition(self, offer: Offer) -> None:
         """Create a DRAFT + PRIVATE placeholder edition #1 for edition-supporting offers.
 
+        The variant_structure is derived from the archetype catalog
+        (``ARCHETYPE_CATALOG[archetype].default_variant_structure``) — the
+        single source of truth for the archetype-↔-structure mapping.
+        Migration 049's hard-coded SQL backfill mirrors this catalog.
+
         Idempotent: if the offer already has an edition (e.g. seeded by
         migration, or created via a different code path), this is a no-op.
         Runs in the same session as the offer insert for atomicity — if the
@@ -176,14 +191,27 @@ class OfferService:
         """
         if offer.id is None or offer.tenant_id is None:
             return
-        if not get_capabilities(offer.archetype).supports_editions:
+        capabilities = get_capabilities(offer.archetype)
+        if not capabilities.supports_editions:
             return
+        if capabilities.default_variant_structure is None:
+            # Defensive: an edition-supporting archetype without a default
+            # structure is a catalog bug — block here loudly rather than
+            # silently inserting an inconsistent row. The arch test
+            # ``test_archetype_default_variant_structure_alignment`` is the
+            # primary guard; this raise is the runtime fallback.
+            msg = (
+                f"Archetype {offer.archetype.value} supports editions but has no "
+                "default_variant_structure declared in ARCHETYPE_CATALOG."
+            )
+            raise RuntimeError(msg)
         existing = self._edition_repo.list_by_offer(offer.id, offer.tenant_id)
         if existing:
             return
         self._edition_repo.create(
             offer_id=offer.id,
             tenant_id=offer.tenant_id,
+            variant_structure=capabilities.default_variant_structure,
             start_date=None,
             edition_name="Edición #1",
         )

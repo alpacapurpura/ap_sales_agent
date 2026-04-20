@@ -7,8 +7,8 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  * política de cancelación y permanencia.
  *
  * Edition-less por archetype: todos los miembros comparten la misma
- * membresía. No hay variaciones por "cohorte" — si necesitás variantes
- * (Gold/Platinum/Enterprise) usá ``VariantStructure.TIER``.
+ * membresía. No hay variaciones por "cohorte" — si necesitas variantes
+ * (Gold/Platinum/Enterprise) usa ``VariantStructure.TIER``.
  *
  * **Latam — decisiones de diseño:**
  * - ``auto_renewal_with_notice_days`` es obligatorio para cumplir con
@@ -22,8 +22,8 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  *   cobros internacionales. Un buen grace period (3-7 días) con reintento
  *   automático recupera el 30-50% de churn involuntario.
  * - ``cancellation_anticipation_days`` comunica expectativa de permanencia
- *   sin imponer penalidad legal. Ej: "cancelá con 7 días de aviso antes
- *   del próximo ciclo" es aceptable; "pagá 3 meses de penalidad" no lo es.
+ *   sin imponer penalidad legal. Ej: "cancela con 7 días de aviso antes
+ *   del próximo ciclo" es aceptable; "paga 3 meses de penalidad" no lo es.
  */
 export const offerSubscriptionDetailsSchema: SectionSchema = {
   key: "offer.subscription_details",
@@ -41,7 +41,7 @@ export const offerSubscriptionDetailsSchema: SectionSchema = {
         { value: BillingFrequency.QUARTERLY, label: "Trimestral (balance entre cashflow y retención)" },
         { value: BillingFrequency.ANNUAL, label: "Anual con descuento (reduce churn, mejora LTV)" },
       ],
-      hint: "Mensual convierte más, anual retiene más. Ofrecer ambos con 15-20% off en anual captura a los dos perfiles. Evaluá también la estacionalidad de tu oferta.",
+      hint: "Mensual convierte más, anual retiene más. Ofrecer ambos con 15-20% off en anual captura a los dos perfiles. Evalúa también la estacionalidad de tu oferta.",
     },
     {
       id: "tier_name",
@@ -49,7 +49,7 @@ export const offerSubscriptionDetailsSchema: SectionSchema = {
       type: "text",
       path: "specific_details.tier_name",
       placeholder: "Pro / Premium / Club VIP / Gold",
-      hint: "Si tu membresía tiene 3 planes (Starter / Pro / Enterprise), cada plan es una oferta con el mismo archetype. Usá este campo para diferenciar. Solo un plan, dejá vacío.",
+      hint: "Si tu membresía tiene 3 planes (Starter / Pro / Enterprise), cada plan es una oferta con el mismo archetype. Usa este campo para diferenciar. Solo un plan, deja vacío.",
     },
     {
       id: "trial_period_days",
@@ -57,7 +57,7 @@ export const offerSubscriptionDetailsSchema: SectionSchema = {
       type: "number",
       path: "specific_details.trial_period_days",
       placeholder: "14",
-      hint: "0 = sin trial. Trial de 7-14 días sube conversión a pago en SaaS y comunidades. ¿Pedís tarjeta para activar el trial? Menos conversión inicial pero más miembros pagos al finalizar.",
+      hint: "0 = sin trial. Trial de 7-14 días sube conversión a pago en SaaS y comunidades. ¿Pides tarjeta para activar el trial? Menos conversión inicial pero más miembros pagos al finalizar.",
     },
 
     // ─── Valor entregado ──────────────────────────────────────────────────
@@ -69,11 +69,11 @@ export const offerSubscriptionDetailsSchema: SectionSchema = {
       rows: 6,
       placeholder:
         "• Acceso completo a biblioteca con 40+ masterclasses\n• Q&A en vivo mensual con el fundador\n• Comunidad privada en WhatsApp\n• Descuento del 20% en todos nuestros productos\n• Asignación de buddy al ingresar",
-      hint: "Uno por línea. Sé ultra específico — el miembro decide seguir pagando cada mes en función de estos beneficios. Incluí frecuencia (mensual / semanal) cuando aplique.",
+      hint: "Uno por línea. Sé ultra específico — el miembro decide seguir pagando cada mes en función de estos beneficios. Incluye frecuencia (mensual / semanal) cuando aplique.",
     },
     {
       id: "content_update_frequency",
-      label: "Con qué frecuencia agregás contenido nuevo",
+      label: "Con qué frecuencia agregas contenido nuevo",
       type: "enum",
       path: "specific_details.content_update_frequency",
       options: [
@@ -103,7 +103,7 @@ export const offerSubscriptionDetailsSchema: SectionSchema = {
         { value: CommunityPlatform.SLACK, label: "Slack (B2B formal)" },
         { value: CommunityPlatform.FACEBOOK_GROUP, label: "Grupo de Facebook (legacy, audiencia 35+)" },
       ],
-      hint: "La plataforma define el feeling y el techo. WhatsApp íntimo pero se satura. Circle/Skool profesional pero curva de aprendizaje. Evaluá dónde pasa tiempo tu avatar.",
+      hint: "La plataforma define el feeling y el techo. WhatsApp íntimo pero se satura. Circle/Skool profesional pero curva de aprendizaje. Evalúa dónde pasa tiempo tu avatar.",
     },
 
     // ─── Política de cancelación + renovación (Latam legal) ───────────────
@@ -114,7 +114,7 @@ export const offerSubscriptionDetailsSchema: SectionSchema = {
       path: "specific_details.cancellation_policy",
       rows: 4,
       placeholder:
-        "Podés cancelar tu membresía en cualquier momento desde tu panel. Mantendrás acceso hasta el final del período facturado. No hay cargos por cancelar y no guardamos tus datos más allá de lo requerido por ley.",
+        "Puedes cancelar tu membresía en cualquier momento desde tu panel. Mantendrás acceso hasta el final del período facturado. No hay cargos por cancelar y no guardamos tus datos más allá de lo requerido por ley.",
       hint: "Ley del Consumidor Latam (MX, AR, PE, CO) exige cancelación simple. Procesos engorrosos (llamadas obligatorias, formularios) activan disputas en pasarela → chargebacks. Simpleza == menos fricción post-venta.",
     },
     {
@@ -139,7 +139,7 @@ export const offerSubscriptionDetailsSchema: SectionSchema = {
       type: "number",
       path: "specific_details.grace_period_days_on_failed_payment",
       placeholder: "5",
-      hint: "Cuando la tarjeta rebota, ¿por cuántos días mantenés el acceso y reintentás el cobro? 3-7 días recuperan 30-50% de churn involuntario (tarjetas vencidas, límite temporal). 0 días = perdés el miembro inmediatamente.",
+      hint: "Cuando la tarjeta rebota, ¿por cuántos días mantienes el acceso y reintentas el cobro? 3-7 días recuperan 30-50% de churn involuntario (tarjetas vencidas, límite temporal). 0 días = pierdes el miembro inmediatamente.",
     },
 
     // ─── Onboarding del nuevo miembro ─────────────────────────────────────
@@ -151,7 +151,7 @@ export const offerSubscriptionDetailsSchema: SectionSchema = {
       rows: 4,
       placeholder:
         "• Email de bienvenida con acceso a la plataforma\n• Invitación automática al grupo de WhatsApp\n• Video de onboarding de 3 min explicando dónde está todo\n• Agenda opcional kickoff call de 20 min con tu buddy",
-      hint: "El onboarding decide los primeros 3 meses. Miembros que NO usan el producto en la primera semana tienen 4x más probabilidad de cancelar. Automatizá todo lo posible y personalizá el primer contacto humano.",
+      hint: "El onboarding decide los primeros 3 meses. Miembros que NO usan el producto en la primera semana tienen 4x más probabilidad de cancelar. Automatiza todo lo posible y personaliza el primer contacto humano.",
     },
   ],
 };

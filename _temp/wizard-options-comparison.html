@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wizard Offer Studio — Comparativa Opción A vs B</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            border: "hsl(214.3 31.8% 91.4%)",
+            input: "hsl(214.3 31.8% 91.4%)",
+            background: "hsl(0 0% 100%)",
+            foreground: "hsl(222.2 47.4% 11.2%)",
+            primary: { DEFAULT: "hsl(222.2 47.4% 11.2%)", foreground: "hsl(210 40% 98%)" },
+            secondary: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(222.2 47.4% 11.2%)" },
+            muted: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(215.4 16.3% 46.9%)" },
+            accent: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(222.2 47.4% 11.2%)" },
+            card: { DEFAULT: "hsl(0 0% 100%)", foreground: "hsl(222.2 47.4% 11.2%)" },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .icon { width: 1.25rem; height: 1.25rem; stroke-width: 1.75; }
+    .icon-lg { width: 1.5rem; height: 1.5rem; stroke-width: 1.75; }
+    .icon-sm { width: 1rem; height: 1rem; stroke-width: 1.75; }
+    .step-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .ring-shadow { box-shadow: 0 0 0 2px hsl(222.2 47.4% 11.2%); }
+    [data-tab-content] { display: none; }
+    [data-tab-content].active { display: block; }
+  </style>
+</head>
+<body class="bg-zinc-100 min-h-screen">
+  <div class="max-w-7xl mx-auto p-6 lg:p-10">
+    <!-- Header -->
+    <header class="mb-8 space-y-3">
+      <h1 class="text-3xl font-bold tracking-tight">Wizard Offer Studio — Comparativa</h1>
+      <p class="text-muted-foreground max-w-3xl">
+        Dos propuestas para el flujo de creación de oferta. Pop-up ensanchado a <code class="bg-zinc-200 px-1 rounded text-sm">max-w-5xl</code>
+        (1024 px) y altura mayor para que respire. Probá las dos y decidí.
+      </p>
+    </header>
+
+    <!-- Tabs -->
+    <div class="bg-white rounded-lg border border-border p-1.5 inline-flex gap-1 mb-8 shadow-sm">
+      <button data-tab="a" class="tab-btn px-5 py-2.5 rounded-md text-sm font-medium bg-primary text-primary-foreground transition">
+        Opción A · Step ladder upfront (4 steps)
+      </button>
+      <button data-tab="b" class="tab-btn px-5 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:bg-zinc-50 transition">
+        Opción B · Presets agrupados (3 steps)
+      </button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- OPCIÓN A — Step ladder primero -->
+    <!-- ========================================== -->
+    <div data-tab-content="a" class="active space-y-10">
+
+      <!-- Resumen -->
+      <section class="bg-white rounded-xl border border-border p-6 shadow-sm">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div>
+            <h2 class="font-semibold text-lg mb-2">Flujo</h2>
+            <ol class="text-sm text-muted-foreground space-y-1.5">
+              <li><span class="font-mono text-xs bg-zinc-100 px-1.5 py-0.5 rounded">1</span> Papel en el negocio (rung)</li>
+              <li><span class="font-mono text-xs bg-zinc-100 px-1.5 py-0.5 rounded">2</span> Tipo de oferta (preset filtrado)</li>
+              <li><span class="font-mono text-xs bg-zinc-100 px-1.5 py-0.5 rounded">3</span> Refinamientos (si el preset los tiene)</li>
+              <li><span class="font-mono text-xs bg-zinc-100 px-1.5 py-0.5 rounded">4</span> Nombre + precio</li>
+            </ol>
+          </div>
+          <div>
+            <h2 class="font-semibold text-lg mb-2">Ventajas</h2>
+            <ul class="text-sm text-muted-foreground space-y-1.5 list-disc list-inside">
+              <li>Mental model claro: primero "para qué", después "qué formato"</li>
+              <li>Preset grid quirúrgico (de 10 cards a 2-4 por rung)</li>
+              <li>El user aprende el ladder navegando, no leyendo</li>
+            </ul>
+          </div>
+          <div>
+            <h2 class="font-semibold text-lg mb-2">Costos</h2>
+            <ul class="text-sm text-muted-foreground space-y-1.5 list-disc list-inside">
+              <li>+1 step (3 → 4)</li>
+              <li>Casos border (consultoría premium vs entry) requieren juicio del user</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mock dialog STEP 1: ladder rung picker -->
+      <section>
+        <h3 class="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-3">Step 1 — Papel de la oferta</h3>
+        <div class="bg-white rounded-xl border border-border shadow-2xl overflow-hidden mx-auto" style="max-width: 1024px;">
+          <!-- Dialog header -->
+          <div class="px-8 pt-7 pb-5 border-b border-border">
+            <div class="flex items-center justify-between mb-2">
+              <h2 class="text-xl font-semibold">Crear oferta nueva</h2>
+              <button class="text-muted-foreground hover:text-foreground">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <p class="text-sm text-muted-foreground">Paso 1 de 4</p>
+            <div class="h-1 w-full bg-muted rounded-full mt-3 overflow-hidden">
+              <div class="h-full bg-primary rounded-full" style="width: 25%"></div>
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="px-8 py-8">
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold mb-1">¿Qué papel cumple esta oferta en tu negocio?</h3>
+              <p class="text-sm text-muted-foreground">Pensá en cómo encaja en el camino que recorre tu cliente. No te preocupes si dudás — podés cambiarlo después.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <!-- Lead magnet -->
+              <button class="text-left rounded-lg border border-border bg-card p-5 hover:border-primary hover:shadow-md transition flex items-start gap-4">
+                <div class="shrink-0 h-12 w-12 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                </div>
+                <div class="flex-1 space-y-1.5">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-semibold">Algo gratis para captar gente</span>
+                    <span class="text-xs px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium">Gratis</span>
+                  </div>
+                  <p class="text-xs text-muted-foreground leading-relaxed">Para que te conozcan y dejen su contacto. Sin pagos ni compromiso.</p>
+                  <p class="text-[11px] text-muted-foreground/70 italic">Ej: challenge 5 días, ebook gratis, mini-curso intro</p>
+                </div>
+              </button>
+
+              <!-- Activación / Primera compra -->
+              <button class="text-left rounded-lg border-2 border-primary bg-card p-5 shadow-md transition flex items-start gap-4 ring-2 ring-primary/20">
+                <div class="shrink-0 h-12 w-12 rounded-md bg-blue-50 text-blue-700 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg>
+                </div>
+                <div class="flex-1 space-y-1.5">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-semibold">Primera compra: bajo precio, sin riesgo</span>
+                    <span class="text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-medium">USD 10–200</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-primary text-primary-foreground font-semibold uppercase tracking-wider">Más usado</span>
+                  </div>
+                  <p class="text-xs text-muted-foreground leading-relaxed">El primer paso pago. Para que prueben qué hacés sin gastar mucho.</p>
+                  <p class="text-[11px] text-muted-foreground/70 italic">Ej: consulta única, sesión suelta, ebook tripwire, kit ecommerce</p>
+                </div>
+              </button>
+
+              <!-- Transformación -->
+              <button class="text-left rounded-lg border border-border bg-card p-5 hover:border-primary hover:shadow-md transition flex items-start gap-4">
+                <div class="shrink-0 h-12 w-12 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </div>
+                <div class="flex-1 space-y-1.5">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-semibold">Mi oferta principal: lo que más vendo</span>
+                    <span class="text-xs px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-medium">USD 200–2.000</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-primary text-primary-foreground font-semibold uppercase tracking-wider">Más usado</span>
+                  </div>
+                  <p class="text-xs text-muted-foreground leading-relaxed">Tu producto estrella. El grueso de tu facturación.</p>
+                  <p class="text-[11px] text-muted-foreground/70 italic">Ej: programa 12 sesiones, bootcamp, curso completo, retainer mensual</p>
+                </div>
+              </button>
+
+              <!-- Maximización -->
+              <button class="text-left rounded-lg border border-border bg-card p-5 hover:border-primary hover:shadow-md transition flex items-start gap-4">
+                <div class="shrink-0 h-12 w-12 rounded-md bg-purple-50 text-purple-700 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12l4 6-10 13L2 9z"/></svg>
+                </div>
+                <div class="flex-1 space-y-1.5">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-semibold">Premium / alto ticket</span>
+                    <span class="text-xs px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 font-medium">USD 2.000–10.000+</span>
+                  </div>
+                  <p class="text-xs text-muted-foreground leading-relaxed">Para clientes que ya te conocen y quieren más. Programa exclusivo, mastermind, VIP day.</p>
+                  <p class="text-[11px] text-muted-foreground/70 italic">Ej: mastermind anual, retiro presencial, programa transformación 6 meses</p>
+                </div>
+              </button>
+
+              <!-- Corporativo -->
+              <button class="text-left rounded-lg border border-border bg-card p-5 hover:border-primary hover:shadow-md transition flex items-start gap-4 md:col-span-2">
+                <div class="shrink-0 h-12 w-12 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 9h2M9 13h2M9 17h2M13 9h2M13 13h2M13 17h2"/></svg>
+                </div>
+                <div class="flex-1 space-y-1.5">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-semibold">Para empresas (B2B)</span>
+                    <span class="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">USD 10.000+</span>
+                  </div>
+                  <p class="text-xs text-muted-foreground leading-relaxed">Cuando vendés a empresas, no a personas individuales. Convenios, capacitación in-company, integraciones custom.</p>
+                  <p class="text-[11px] text-muted-foreground/70 italic">Ej: gym corporativo, capacitación equipo cliente, integración SaaS enterprise</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="px-8 py-5 border-t border-border bg-zinc-50/50 flex justify-between items-center">
+            <button class="text-sm text-muted-foreground hover:text-foreground transition">Cancelar</button>
+            <p class="text-xs text-muted-foreground">Hacé clic en una opción para continuar</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mock dialog STEP 2: preset filtrado -->
+      <section>
+        <h3 class="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-3">Step 2 — Preset filtrado por rung</h3>
+        <p class="text-sm text-muted-foreground mb-3">Tras elegir <strong>"Mi oferta principal"</strong>, el preset picker muestra solo los 3 presets de TRANSFORMACION (en lugar de los 10 totales para coach_mentor).</p>
+        <div class="bg-white rounded-xl border border-border shadow-2xl overflow-hidden mx-auto" style="max-width: 1024px;">
+          <!-- Dialog header -->
+          <div class="px-8 pt-7 pb-5 border-b border-border">
+            <div class="flex items-center justify-between mb-2">
+              <h2 class="text-xl font-semibold">Crear oferta nueva</h2>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="inline-flex items-center gap-1.5 text-xs bg-amber-50 text-amber-800 px-2.5 py-1 rounded-md border border-amber-200 font-medium">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  Oferta principal
+                </span>
+              </div>
+            </div>
+            <p class="text-sm text-muted-foreground">Paso 2 de 4</p>
+            <div class="h-1 w-full bg-muted rounded-full mt-3 overflow-hidden">
+              <div class="h-full bg-primary rounded-full" style="width: 50%"></div>
+            </div>
+          </div>
+
+          <div class="px-8 py-8">
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold mb-1">¿Cuál es el formato de tu oferta principal?</h3>
+              <p class="text-sm text-muted-foreground">Elegí el que más se parezca a lo que vendés. Después afinamos detalles.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Preset 1 -->
+              <button class="text-left rounded-lg border border-border bg-card p-5 hover:border-primary hover:shadow-md transition">
+                <div class="h-10 w-10 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3l9 4.5v9L12 21l-9-4.5v-9L12 3z M3 7.5l9 4.5 9-4.5 M12 12v9"/></svg>
+                </div>
+                <h4 class="font-semibold mb-1">Paquete de sesiones</h4>
+                <p class="text-xs text-muted-foreground mb-3 leading-relaxed">3-10 sesiones 1:1 con objetivo común. Costo unitario más bajo que la sesión suelta.</p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="text-[10px] bg-zinc-100 text-zinc-600 px-1.5 py-0.5 rounded">10 sesiones coaching</span>
+                  <span class="text-[10px] bg-zinc-100 text-zinc-600 px-1.5 py-0.5 rounded">5 sesiones pareja</span>
+                </div>
+              </button>
+
+              <!-- Preset 2 -->
+              <button class="text-left rounded-lg border border-border bg-card p-5 hover:border-primary hover:shadow-md transition">
+                <div class="h-10 w-10 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <h4 class="font-semibold mb-1">Bootcamp intensivo</h4>
+                <p class="text-xs text-muted-foreground mb-3 leading-relaxed">Cohorte intensiva de 1-4 semanas con entrada por lanzamiento. Compresión y urgencia.</p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="text-[10px] bg-zinc-100 text-zinc-600 px-1.5 py-0.5 rounded">Bootcamp ventas 14 días</span>
+                  <span class="text-[10px] bg-zinc-100 text-zinc-600 px-1.5 py-0.5 rounded">Sprint foco 7 días</span>
+                </div>
+              </button>
+
+              <!-- Preset 3 -->
+              <button class="text-left rounded-lg border border-border bg-card p-5 hover:border-primary hover:shadow-md transition">
+                <div class="h-10 w-10 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-linecap="round" stroke-linejoin="round"/><polygon points="10,8 16,12 10,16" fill="currentColor"/></svg>
+                </div>
+                <h4 class="font-semibold mb-1">Curso grabado</h4>
+                <p class="text-xs text-muted-foreground mb-3 leading-relaxed">Método empaquetado en video on-demand. Escalable sin consumir tu tiempo.</p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="text-[10px] bg-zinc-100 text-zinc-600 px-1.5 py-0.5 rounded">Método finanzas</span>
+                  <span class="text-[10px] bg-zinc-100 text-zinc-600 px-1.5 py-0.5 rounded">Sistema ventas WhatsApp</span>
+                </div>
+              </button>
+            </div>
+
+            <div class="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-md flex items-start gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm text-blue-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="8"/></svg>
+              <p class="text-xs text-blue-900">¿No encontrás el formato? <button class="underline font-medium">Volvé al paso anterior</button> para cambiar el papel de la oferta.</p>
+            </div>
+          </div>
+
+          <div class="px-8 py-5 border-t border-border bg-zinc-50/50 flex justify-between items-center">
+            <button class="text-sm text-muted-foreground hover:text-foreground transition flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Atrás
+            </button>
+            <p class="text-xs text-muted-foreground">Hacé clic en una opción para continuar</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- OPCIÓN B — Presets agrupados visualmente -->
+    <!-- ========================================== -->
+    <div data-tab-content="b" class="space-y-10">
+
+      <!-- Resumen -->
+      <section class="bg-white rounded-xl border border-border p-6 shadow-sm">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div>
+            <h2 class="font-semibold text-lg mb-2">Flujo</h2>
+            <ol class="text-sm text-muted-foreground space-y-1.5">
+              <li><span class="font-mono text-xs bg-zinc-100 px-1.5 py-0.5 rounded">1</span> Tipo de oferta agrupado por rung</li>
+              <li><span class="font-mono text-xs bg-zinc-100 px-1.5 py-0.5 rounded">2</span> Refinamientos (si el preset los tiene)</li>
+              <li><span class="font-mono text-xs bg-zinc-100 px-1.5 py-0.5 rounded">3</span> Nombre + precio</li>
+            </ol>
+          </div>
+          <div>
+            <h2 class="font-semibold text-lg mb-2">Ventajas</h2>
+            <ul class="text-sm text-muted-foreground space-y-1.5 list-disc list-inside">
+              <li>Mismo número de steps que el actual (3)</li>
+              <li>User ve todo el catálogo de un vistazo</li>
+              <li>Puede comparar entre rungs sin volver atrás</li>
+            </ul>
+          </div>
+          <div>
+            <h2 class="font-semibold text-lg mb-2">Costos</h2>
+            <ul class="text-sm text-muted-foreground space-y-1.5 list-disc list-inside">
+              <li>Scroll largo (10 cards visibles)</li>
+              <li>Etiqueta "Primera compra / Premium / etc." sigue siendo jerga indirecta</li>
+              <li>No fuerza la decisión "para qué"</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mock dialog STEP 1: preset agrupado -->
+      <section>
+        <h3 class="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-3">Step 1 — Preset picker con headers de rung</h3>
+        <div class="bg-white rounded-xl border border-border shadow-2xl overflow-hidden mx-auto" style="max-width: 1024px;">
+          <div class="px-8 pt-7 pb-5 border-b border-border">
+            <div class="flex items-center justify-between mb-2">
+              <h2 class="text-xl font-semibold">Crear oferta nueva</h2>
+              <button class="text-muted-foreground hover:text-foreground">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <p class="text-sm text-muted-foreground">Paso 1 de 3</p>
+            <div class="h-1 w-full bg-muted rounded-full mt-3 overflow-hidden">
+              <div class="h-full bg-primary rounded-full" style="width: 33%"></div>
+            </div>
+          </div>
+
+          <div class="px-8 py-8" style="max-height: 70vh; overflow-y: auto;">
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold mb-1">¿Qué tipo de oferta vas a crear?</h3>
+              <p class="text-sm text-muted-foreground">Las ofertas están agrupadas por el papel que cumplen en tu negocio.</p>
+            </div>
+
+            <!-- GRUPO 1: Lead magnet -->
+            <div class="mb-7">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="h-7 w-7 rounded bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-sm">Algo gratis para captar gente</h4>
+                  <p class="text-xs text-muted-foreground">Sin pagos. Para que te conozcan.</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pl-10">
+                <button class="text-left rounded-lg border border-border bg-card p-4 hover:border-primary hover:shadow-md transition">
+                  <h5 class="font-semibold text-sm mb-1">Challenge gratuito</h5>
+                  <p class="text-xs text-muted-foreground">Reto 3-7 días con sesiones vivas</p>
+                </button>
+              </div>
+            </div>
+
+            <!-- GRUPO 2: Activación -->
+            <div class="mb-7">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="h-7 w-7 rounded bg-blue-50 text-blue-700 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-sm">Primera compra: bajo precio</h4>
+                  <p class="text-xs text-muted-foreground">Entry point. USD 10–200.</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pl-10">
+                <button class="text-left rounded-lg border border-border bg-card p-4 hover:border-primary hover:shadow-md transition">
+                  <h5 class="font-semibold text-sm mb-1">Sesión 1:1 suelta</h5>
+                  <p class="text-xs text-muted-foreground">Una sesión sin compromiso</p>
+                </button>
+                <button class="text-left rounded-lg border border-border bg-card p-4 hover:border-primary hover:shadow-md transition">
+                  <h5 class="font-semibold text-sm mb-1">Ebook o workbook</h5>
+                  <p class="text-xs text-muted-foreground">Material descargable USD 7-47</p>
+                </button>
+              </div>
+            </div>
+
+            <!-- GRUPO 3: Transformación -->
+            <div class="mb-7">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="h-7 w-7 rounded bg-amber-50 text-amber-700 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-sm">Mi oferta principal</h4>
+                  <p class="text-xs text-muted-foreground">Lo que más vendo. USD 200–2.000.</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pl-10">
+                <button class="text-left rounded-lg border border-border bg-card p-4 hover:border-primary hover:shadow-md transition">
+                  <h5 class="font-semibold text-sm mb-1">Paquete de sesiones</h5>
+                  <p class="text-xs text-muted-foreground">3-10 sesiones 1:1</p>
+                </button>
+                <button class="text-left rounded-lg border border-border bg-card p-4 hover:border-primary hover:shadow-md transition">
+                  <h5 class="font-semibold text-sm mb-1">Bootcamp intensivo</h5>
+                  <p class="text-xs text-muted-foreground">1-4 semanas, lanzamiento</p>
+                </button>
+                <button class="text-left rounded-lg border border-border bg-card p-4 hover:border-primary hover:shadow-md transition">
+                  <h5 class="font-semibold text-sm mb-1">Curso grabado</h5>
+                  <p class="text-xs text-muted-foreground">Método empaquetado on-demand</p>
+                </button>
+              </div>
+            </div>
+
+            <!-- GRUPO 4: Maximización -->
+            <div class="mb-3">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="h-7 w-7 rounded bg-purple-50 text-purple-700 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12l4 6-10 13L2 9z"/></svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-sm">Premium / alto ticket</h4>
+                  <p class="text-xs text-muted-foreground">USD 2.000+ . Para clientes que ya compraron antes.</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pl-10">
+                <button class="text-left rounded-lg border border-border bg-card p-4 hover:border-primary hover:shadow-md transition">
+                  <h5 class="font-semibold text-sm mb-1">Programa de transformación</h5>
+                  <p class="text-xs text-muted-foreground">3-6 meses con metodología</p>
+                </button>
+                <button class="text-left rounded-lg border border-border bg-card p-4 hover:border-primary hover:shadow-md transition">
+                  <h5 class="font-semibold text-sm mb-1">Mastermind grupal</h5>
+                  <p class="text-xs text-muted-foreground">Comunidad mensual exclusiva</p>
+                </button>
+                <button class="text-left rounded-lg border border-border bg-card p-4 hover:border-primary hover:shadow-md transition">
+                  <h5 class="font-semibold text-sm mb-1">Retiro presencial</h5>
+                  <p class="text-xs text-muted-foreground">3-7 días en venue</p>
+                </button>
+                <button class="text-left rounded-lg border border-border bg-card p-4 hover:border-primary hover:shadow-md transition">
+                  <h5 class="font-semibold text-sm mb-1">VIP Day</h5>
+                  <p class="text-xs text-muted-foreground">Día completo 1:1 intenso</p>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-8 py-5 border-t border-border bg-zinc-50/50 flex justify-between items-center">
+            <button class="text-sm text-muted-foreground hover:text-foreground transition">Cancelar</button>
+            <p class="text-xs text-muted-foreground">10 ofertas disponibles para coach_mentor — hacé clic en una</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Side-by-side comparison row -->
+    <section class="mt-12 bg-white rounded-xl border border-border p-6 shadow-sm">
+      <h2 class="font-semibold text-lg mb-4">Comparativa rápida</h2>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border">
+            <th class="text-left py-2 pr-4 font-medium">Criterio</th>
+            <th class="text-left py-2 pr-4 font-medium">Opción A · Step ladder</th>
+            <th class="text-left py-2 font-medium">Opción B · Agrupado</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          <tr><td class="py-2.5 pr-4 text-muted-foreground">Steps totales</td><td class="py-2.5 pr-4">4</td><td class="py-2.5">3</td></tr>
+          <tr><td class="py-2.5 pr-4 text-muted-foreground">Cards visibles en step preset</td><td class="py-2.5 pr-4">2-4</td><td class="py-2.5">10 (con scroll)</td></tr>
+          <tr><td class="py-2.5 pr-4 text-muted-foreground">Mental model "primero papel"</td><td class="py-2.5 pr-4">Forzado</td><td class="py-2.5">Sugerido</td></tr>
+          <tr><td class="py-2.5 pr-4 text-muted-foreground">Volver atrás para cambiar rung</td><td class="py-2.5 pr-4">Click "Atrás"</td><td class="py-2.5">Mismo step</td></tr>
+          <tr><td class="py-2.5 pr-4 text-muted-foreground">Discoverability presets</td><td class="py-2.5 pr-4">Una vista, foco</td><td class="py-2.5">Vista panorámica</td></tr>
+          <tr><td class="py-2.5 pr-4 text-muted-foreground">Ideal para</td><td class="py-2.5 pr-4">User indeciso o nuevo</td><td class="py-2.5">User experto que sabe lo que busca</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <script>
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.tab;
+        document.querySelectorAll(".tab-btn").forEach((b) => {
+          const isActive = b.dataset.tab === target;
+          b.classList.toggle("bg-primary", isActive);
+          b.classList.toggle("text-primary-foreground", isActive);
+          b.classList.toggle("text-muted-foreground", !isActive);
+        });
+        document.querySelectorAll("[data-tab-content]").forEach((c) => {
+          c.classList.toggle("active", c.dataset.tabContent === target);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

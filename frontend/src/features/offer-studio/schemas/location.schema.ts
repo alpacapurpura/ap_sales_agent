@@ -25,11 +25,11 @@ export const offerLocationSchema: SectionSchema = {
   fields: [
     {
       id: "venues",
-      label: "Sedes donde atendés",
+      label: "Sedes donde atiendes",
       type: "array",
       path: "venues",
       owner: "offer",
-      hint: "Una entrada por sede. Si atendés en un solo lugar, una sola entrada. El agente de ventas y la landing usan estos datos para mostrar cómo llegar. Si tu negocio no es presencial, dejá vacío.",
+      hint: "Una entrada por sede. Si atiendes en un solo lugar, una sola entrada. El agente de ventas y la landing usan estos datos para mostrar cómo llegar. Si tu negocio no es presencial, deja vacío.",
       itemSchema: {
         description: "Una sede física (consultorio, gimnasio, salón, oficina).",
         fields: [
@@ -40,7 +40,7 @@ export const offerLocationSchema: SectionSchema = {
             path: "name",
             required: true,
             placeholder: "ej. Sede Miraflores · Consultorio Centro",
-            hint: "Cómo referís a esta sede. Si tenés una sola, usá el nombre del negocio.",
+            hint: "Cómo llamas a esta sede. Si tienes una sola, usa el nombre del negocio.",
           },
           {
             id: "address_line",
@@ -57,7 +57,7 @@ export const offerLocationSchema: SectionSchema = {
             path: "district",
             required: true,
             placeholder: "ej. Miraflores · Polanco · El Poblado · Palermo",
-            hint: "En Latam los clientes buscan por zona, no por código postal. Ponelo.",
+            hint: "En Latam los clientes buscan por zona, no por código postal. Ponlo.",
           },
           {
             id: "city",
@@ -97,7 +97,7 @@ export const offerLocationSchema: SectionSchema = {
             path: "hours_of_operation",
             rows: 3,
             placeholder: "Lun-Vie: 9:00-19:00\nSáb: 10:00-14:00\nDom: cerrado",
-            hint: "Un día por línea. Aclará feriados si cerrás. El agente usa esto para responder '¿a qué hora atienden?'.",
+            hint: "Un día por línea. Aclara feriados si cierras. El agente usa esto para responder '¿a qué hora atienden?'.",
           },
           {
             id: "facilities",
@@ -134,7 +134,7 @@ export const offerLocationSchema: SectionSchema = {
       path: "scheduling_event_type_id",
       owner: "offer",
       action: "scheduling-event-type-picker",
-      hint: "Seleccioná el event type configurado en el módulo Scheduling. Con esto el agente genera BookingLinks temporales, sincroniza con Google Calendar y muestra la landing de disponibilidad. Si no configuraste Scheduling todavía, hacelo en Configuración → Agenda y volvé acá.",
+      hint: "Selecciona el event type configurado en el módulo Scheduling. Con esto el agente genera BookingLinks temporales, sincroniza con Google Calendar y muestra la landing de disponibilidad. Si no configuraste Scheduling todavía, hazlo en Configuración → Agenda y vuelve acá.",
     },
     {
       id: "booking_fallback_whatsapp",
@@ -143,7 +143,7 @@ export const offerLocationSchema: SectionSchema = {
       path: "booking_fallback_whatsapp",
       owner: "offer",
       placeholder: "ej. +51 999 888 777",
-      hint: "Usalo si aún no tenés Scheduling configurado. El agente ofrece este WhatsApp como vía alternativa de reserva. Cuando el cliente prefiere humano sobre el calendario automático, este número lo resuelve.",
+      hint: "Úsalo si aún no tienes Scheduling configurado. El agente ofrece este WhatsApp como vía alternativa de reserva. Cuando el cliente prefiere humano sobre el calendario automático, este número lo resuelve.",
     },
     {
       id: "event_specific_venue",

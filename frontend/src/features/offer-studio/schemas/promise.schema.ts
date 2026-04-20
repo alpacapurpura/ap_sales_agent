@@ -39,7 +39,7 @@ export const offerPromiseSchema: SectionSchema = {
       type: "textarea",
       path: "why_now",
       rows: 3,
-      placeholder: "ej. El mercado laboral premia líderes con equipos autónomos. Cada mes que postergás son oportunidades que el equipo ejecuta sin vos.",
+      placeholder: "ej. El mercado laboral premia líderes con equipos autónomos. Cada mes que postergas son oportunidades que el equipo ejecuta sin ti.",
       hint: "La razón por la que postergar tiene costo concreto. Evita caer en escasez falsa — conecta con el costo real de inacción.",
     },
     {

@@ -11,7 +11,7 @@ export const logosSchema: SectionSchema = {
       type: "custom",
       path: "primary",
       action: "logo-kit",
-      hint: "Subí y posicioná cada variante (primaria, oscuro, claro, favicon).",
+      hint: "Sube y posiciona cada variante (primaria, oscuro, claro, favicon).",
     },
     { id: "primary", label: "Logo primario (URL)", type: "url", path: "primary" },
     { id: "secondary", label: "Icono (URL)", type: "url", path: "secondary" },

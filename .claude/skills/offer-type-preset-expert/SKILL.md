@@ -11,17 +11,52 @@ The preset catalog is the **7th SSoT axis** of the offer-studio system.
 It hides `OfferArchetype` behind user-vocabulary presets so Latam
 microempresarios don't have to classify their own offers.
 
+**Current state (2026-04-19):** 84 presets · 7 questions · 6 flags · 187 arch tests.
+Distribución archetype: servicio=16 · programa=18 · membresia=22 · experiencia=13 · producto=15.
+Questions: `requires_physical_location`, `has_specific_dates`, `delivers_downloadable_materials`, `has_team_or_speakers`, `is_hybrid_modality`, `has_limited_capacity`, `has_portfolio_cases`.
+Flags: `SUPPORTS_CAPACITY`, `REQUIRES_START_DATE`, `DELIVERY_HYBRID`, `IS_LEAD_MAGNET`, `RECURRING_BILLING`, `HIGH_TICKET`.
+
+### Catalog + API + tests
 | File | Role |
 |---|---|
-| `backend/src/modules/offer/domain/offer_type_preset_catalog.py` | Canonical catalog — 76 presets, 7 questions, 6 flags. **Single source of truth.** |
+| `backend/src/modules/offer/domain/offer_type_preset_catalog.py` | Canonical catalog — 84 presets, 7 questions, 6 flags. **Single source of truth.** |
 | `backend/src/modules/offer/api/offer_type_presets.py` | API `/api/v1/offer/type-presets/catalog` + `/catalog/all`. Contains `_CATALOG_VERSION`. |
-| `backend/tests/architecture/test_offer_type_preset_catalog_completeness.py` | 168 arch test cases — enforces all invariants. |
+| `backend/tests/architecture/test_offer_type_preset_catalog_completeness.py` | 187 arch test cases — enforces all invariants. |
+
+### Persistence + DDD bridge (Sprint 14)
+| File | Role |
+|---|---|
+| `backend/src/modules/offer/domain/offer.py` | `Offer.preset_id: str \| None` — persistence anchor. |
+| `backend/alembic/versions/050_add_offer_preset_id.py` | Migration adding `offers.preset_id` column + index. |
+| `backend/src/shared/links/ports/offer.py` | `get_offer_type_preset(id)` + `get_preset_flag_values()` — cross-module access without DDD boundary break. |
+| `backend/src/modules/offer/application/offer_service.py` | `create_offer(preset_id=..., conditional_answers=...)` — derives archetype from catalog (preset-primary). |
+
+### Downstream consumers (MUST review when editing presets/flags)
+| File | Reads |
+|---|---|
+| `backend/src/modules/sales_agent/application/services/knowledge_builder.py` | `preset.label_es`, `description_es`, `default_flags` → feeds `agent_identity.j2` |
+| `backend/src/modules/sales_agent/infrastructure/prompts/templates/agent_identity.j2` | Renders `preset_label`, `preset_description`, `preset_flags` defensively |
+| `backend/src/modules/landing/application/landing_service.py::_select_landing_archetype_from_preset` | Branches template by flag: `IS_LEAD_MAGNET` / `REQUIRES_START_DATE` / `HIGH_TICKET` / `RECURRING_BILLING` |
+| `frontend/src/features/offer-studio/components/dashboard/PresetBadge.tsx` | Renders user-facing label on `OfferCatalogCard` |
+
+### Frontend (wizard preset-first, Sprint 13)
+| File | Role |
+|---|---|
 | `frontend/src/features/offer-studio/api/offer-type-preset-catalog-api.ts` | Mirror types + `resolvePresetSections` / `resolvePresetFlags` pure functions. |
 | `frontend/src/features/offer-studio/hooks/use-offer-type-preset-catalog.ts` | React Query hooks. |
-| `docs/domains/offer/offer-type-preset-catalog.md` | Full design doc with decisions D26–D35. |
-| `docs/domains/offer/schemas-latam-refinement.md` | Task B (2026-04-19) — refinement de 15 schemas con lente Latam. Ratchet tests nuevos. |
+| `frontend/src/features/offer-studio/components/wizard/PresetPickerStep.tsx` | Step 1 — preset grid filtered by `business_types`. |
+| `frontend/src/features/offer-studio/components/wizard/ConditionalQuestionsStep.tsx` | Step 2 — renders 0-3 conditional questions; answers feed `resolvePresetSections`. |
+| `frontend/src/features/offer-studio/components/wizard/CreateOfferWizard.tsx` | Orchestrates preset-first flow; passes `preset_id` + `conditional_answers` to `create_offer`. Archetype NO surfaced. |
+
+### Docs + rules
+| File | Role |
+|---|---|
+| `docs/domains/offer/offer-type-preset-catalog.md` | Design doc decisions D26–D35. |
+| `docs/domains/offer/sprint-14-preset-backfill-and-downstream.md` | Sprint 14 — preset_id column + backfill + downstream wiring. |
+| `docs/domains/offer/sprint-13-wizard-preset-first.md` | Sprint 13 — wizard rehaul. |
+| `docs/domains/offer/schemas-latam-refinement.md` | Task B (2026-04-19) — 15 schemas Latam + ratchet tests. |
 | `.claude/rules/offer-catalogs.md` | DAG rules (eight catalogs). |
-| `frontend/src/features/offer-studio/schemas/__tests__/quality.test.ts` | 7 ratchet tests que enforzan hint coverage, no jargon, uniqueness, enum sanity, scope/owner coherence. |
+| `frontend/src/features/offer-studio/schemas/__tests__/quality.test.ts` | 7 ratchet tests — hint coverage, no jargon, uniqueness, enum sanity, scope/owner coherence. |
 
 ## Mental model — the layered flow
 
@@ -44,14 +79,26 @@ Step 5.  resolvePresetSections(preset, questions, answers)
          → final ordered section tuple for the editor rail
               │
               ▼
-Step 6.  Persist: Offer.preset_id + Offer.archetype
-         (archetype derived from preset, internal tag only)
+Step 6.  create_offer(preset_id, conditional_answers, ...)
+         → derives archetype from OFFER_TYPE_PRESET_CATALOG[preset_id]
+         → resolves default_flags + conditional flags via resolve_preset_flags
+         → persists Offer.preset_id + Offer.archetype
+              │
+              ▼
+Step 7.  Downstream reads preset (NEVER persists archetype alone):
+         - sales_agent.knowledge_builder → preset_label/description/flags
+         - landing.landing_service → template selected by PresetFlag
+         - dashboard PresetBadge → user-facing label
 ```
 
-The archetype layer still exists — it drives validators, sales-agent
-grounding, analytics segmentation, landing-generator templates, and the
-format catalog. **Never remove it.** The preset layer only hides it from
-the UX.
+The archetype layer still exists — it drives validators, analytics
+segmentation, and the format catalog. **Never remove it.** The preset
+layer hides it from UX; Sprint 14 made preset the primary input to
+`create_offer` (archetype derived, not user-chosen).
+
+**Cross-module reads MUST go via `shared/links/ports/offer.py`** — never
+`from src.modules.offer.domain.offer_type_preset_catalog import …`
+outside the offer module. The DDD arch test ratchet will fail.
 
 ## SOP: Adding a new preset
 
@@ -113,7 +160,7 @@ cd /home/chris/AISALESHT/backend && .venv/bin/pytest \
   tests/architecture/test_offer_type_preset_catalog_completeness.py -x -q
 ```
 
-All 168 (or more, now 169 with the new preset) must pass. Common
+All 187 (or more, now 188 with the new preset) must pass. Common
 failures and fixes:
 
 | Failure | Cause | Fix |
@@ -131,7 +178,21 @@ Open `docs/domains/offer/offer-type-preset-catalog.md`. Add a row to the
 distribution table. If the preset introduces a novel decision (new
 bifurcation rule, new archetype coupling), append a new D-number entry.
 
-### 6. Commit
+### 6. Review downstream consumers (Sprint 14)
+
+Changes to `default_flags` or `label_es` / `description_es` propagate to:
+
+- **sales-agent prompt** — `agent_identity.j2` renders preset context.
+  Confirm flag changes don't break agent narrative (run a conversation).
+- **landing template selection** — `_select_landing_archetype_from_preset`
+  branches on `IS_LEAD_MAGNET` → `REQUIRES_START_DATE` → `HIGH_TICKET` →
+  `RECURRING_BILLING`. A new flag combination may shift template.
+- **dashboard PresetBadge** — label change is visible immediately.
+
+If you added a new `PresetFlag`, wire a consumer (landing branch or
+sales-agent render). Otherwise the flag is dead weight.
+
+### 7. Commit
 
 Single commit touching:
 - `offer_type_preset_catalog.py`
@@ -261,6 +322,14 @@ Checklist (in order):
 - ❌ Creating a preset whose archetype isn't in `ARCHETYPE_CATALOG`.
 - ❌ Letting `_CATALOG_VERSION` drift behind an entry change — clients
   won't invalidate cached responses.
+- ❌ Importing `OFFER_TYPE_PRESET_CATALOG` or `PresetFlag` directly from
+  another module (sales_agent, landing, analytics). Use the port
+  `src/shared/links/ports/offer.py` (`get_offer_type_preset`,
+  `get_preset_flag_values`) — DDD arch test fails otherwise.
+- ❌ Adding new `PresetFlag` without at least one consumer branching on
+  it. Dead flag = catalog rot.
+- ❌ Surfacing archetype in wizard UX (ArchetypePickerStep is legacy —
+  the preset-first wizard uses `PresetPickerStep` + `ConditionalQuestionsStep`).
 
 ## Catalog navigation cheatsheet
 

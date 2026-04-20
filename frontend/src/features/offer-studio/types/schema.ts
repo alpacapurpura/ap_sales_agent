@@ -164,7 +164,7 @@ export const SubscriptionDetailsSchema = z.object({
   platform_name: z.string().optional().nullable(),
   member_benefits: z.string().optional().nullable(),
   content_update_frequency: z.enum(ContentUpdateFrequency).optional().nullable(),
-  /** @deprecated Usá ``content_update_frequency``. */
+  /** @deprecated Usa ``content_update_frequency``. */
   content_update_freq: z.string().optional().nullable(),
   cancellation_policy: z.string().optional().nullable(),
   /** Días de anticipación que el miembro debe avisar para no renovar. */
@@ -302,6 +302,12 @@ export const OfferSchema = z.object({
   // Backend applies archetype-aware default when omitted.
   has_editions: z.boolean().optional(),
   offer_value_level: z.nativeEnum(OfferValueLevel).optional().nullable(),
+  // CREATE-path alias for ``offer_value_level`` — the backend ProductCreate
+  // DTO accepts ``value_level`` (UPDATE/Response use ``offer_value_level``).
+  // Both kept here so the wizard's CREATE payload type-checks without forcing
+  // the editor's UPDATE flow to migrate at the same time. Sprint 15 unifies
+  // the field across both DTOs and removes the duplicate.
+  value_level: z.nativeEnum(OfferValueLevel).optional().nullable(),
   delivery_model: z.nativeEnum(OfferDeliveryModel).optional().nullable(),
 
   headline_promise: z.string().optional(),

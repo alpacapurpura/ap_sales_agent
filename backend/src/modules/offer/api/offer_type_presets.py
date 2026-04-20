@@ -64,6 +64,10 @@ class OfferTypePresetDTO(BaseModel):
     preset_id: str
     business_type: str
     archetype: str
+    # Sprint 15 — the ladder rung this preset typically occupies. The wizard
+    # reads this to derive ``Offer.value_level`` after a preset pick, so the
+    # microempresario never has to answer "¿en qué rung del ladder?" directly.
+    typical_value_level: str
     label_es: str
     description_es: str
     icon_name: str
@@ -80,6 +84,7 @@ class OfferTypePresetDTO(BaseModel):
             preset_id=preset.preset_id,
             business_type=preset.business_type.value,
             archetype=preset.archetype.value,
+            typical_value_level=preset.typical_value_level.value,
             label_es=preset.label_es,
             description_es=preset.description_es,
             icon_name=preset.icon_name,
@@ -104,7 +109,7 @@ class OfferTypePresetCatalogResponse(BaseModel):
 # Bump this when ``offer_type_preset_catalog.py`` changes materially (adding,
 # removing or renaming a preset, question or flag). Clients key their cache
 # off this string.
-_CATALOG_VERSION = "2026-04-19.1"
+_CATALOG_VERSION = "2026-04-20.2"
 
 
 @router.get(

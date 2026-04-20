@@ -11,7 +11,7 @@ export const visualsSchema: SectionSchema = {
       type: "custom",
       path: "primary_color",
       action: "brand-visuals-wizard",
-      hint: "Flujo guiado: subí una URL, extraé colores, tipografías y estilo.",
+      hint: "Flujo guiado: sube una URL, extrae colores, tipografías y estilo.",
     },
     {
       id: "theme_injector",

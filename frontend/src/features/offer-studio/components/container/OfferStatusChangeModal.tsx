@@ -78,7 +78,7 @@ const TRANSITION_META: Partial<
       {
         icon: Info,
         tone: "info",
-        text: "Podés pausarla o archivarla cuando quieras.",
+        text: "Puedes pausarla o archivarla cuando quieras.",
       },
     ],
   },
@@ -95,12 +95,12 @@ const TRANSITION_META: Partial<
       {
         icon: Link2,
         tone: "info",
-        text: "La landing pública sigue viva. Despublicala manualmente si querés bajarla.",
+        text: "La landing pública sigue viva. Despublícala manualmente si quieres bajarla.",
       },
       {
         icon: RotateCcw,
         tone: "success",
-        text: "Podés reactivarla en cualquier momento sin perder nada.",
+        text: "Puedes reactivarla en cualquier momento sin perder nada.",
       },
     ],
   },
@@ -122,7 +122,7 @@ const TRANSITION_META: Partial<
       {
         icon: RotateCcw,
         tone: "success",
-        text: "Podés volver a activarla después sin perder ningún dato.",
+        text: "Puedes volver a activarla después sin perder ningún dato.",
       },
     ],
   },
@@ -144,7 +144,7 @@ const TRANSITION_META: Partial<
       {
         icon: RotateCcw,
         tone: "info",
-        text: "Es reversible: podés restaurarla desde el panel de archivadas.",
+        text: "Es reversible: puedes restaurarla desde el panel de archivadas.",
       },
     ],
   },
@@ -188,7 +188,7 @@ const TRANSITION_META: Partial<
       {
         icon: RotateCcw,
         tone: "success",
-        text: "Podés reactivarla cuando quieras.",
+        text: "Puedes reactivarla cuando quieras.",
       },
     ],
   },
@@ -210,7 +210,7 @@ const TRANSITION_META: Partial<
       {
         icon: RotateCcw,
         tone: "info",
-        text: "Es reversible: podés restaurarla desde el panel de archivadas.",
+        text: "Es reversible: puedes restaurarla desde el panel de archivadas.",
       },
     ],
   },
@@ -232,7 +232,7 @@ const TRANSITION_META: Partial<
       {
         icon: RotateCcw,
         tone: "success",
-        text: "Es reversible: podés restaurarla desde el panel de archivadas.",
+        text: "Es reversible: puedes restaurarla desde el panel de archivadas.",
       },
     ],
   },
@@ -297,7 +297,7 @@ export function OfferStatusChangeModal({
           </ul>
         ) : (
           <p className="py-2 text-sm text-muted-foreground">
-            ¿Querés cambiar el estado de esta oferta?
+            ¿Quieres cambiar el estado de esta oferta?
           </p>
         )}
 

@@ -14,7 +14,7 @@ const QUERY_KEY = ["scheduling", "event-types"] as const;
  * ``scheduling-event-type-picker`` custom action in ``location.schema.ts``.
  *
  * Empty array during loading or when the tenant has not configured the
- * Scheduling module — the picker shows a CTA ("Configurá Agenda →") in
+ * Scheduling module — the picker shows a CTA ("Configura Agenda →") in
  * that case.
  */
 export function useSchedulingEventTypes() {

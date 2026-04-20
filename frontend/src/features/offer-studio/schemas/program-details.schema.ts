@@ -15,7 +15,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  *   hace antes de comprar: "¿cuántas horas por semana?". Sin este número
  *   el agente de ventas improvisa y el alumno abandona a la semana 3.
  * - ``prerequisites_text`` reemplaza el enum legacy. En Latam los
- *   prerrequisitos son narrativos ("necesitás haber tomado el módulo X"
+ *   prerrequisitos son narrativos ("necesitas haber tomado el módulo X"
  *   o "recomendamos nivel intermedio de inglés") más que categóricos.
  * - ``is_application_required`` existía en el zod pero estaba oculto.
  *   Bootcamps y programas premium lo usan para filtrar leads y elevar
@@ -101,7 +101,7 @@ export const offerProgramDetailsSchema: SectionSchema = {
             path: "description",
             rows: 2,
             placeholder:
-              "Aprendé a leer la subasta, elegir el objetivo correcto y evitar la trampa de la optimización de conversiones temprana.",
+              "Aprende a leer la subasta, elegir el objetivo correcto y evitar la trampa de la optimización de conversiones temprana.",
           },
           {
             id: "topics",
@@ -139,7 +139,7 @@ export const offerProgramDetailsSchema: SectionSchema = {
       path: "specific_details.live_schedule_description",
       owner: "offer",
       placeholder: "Martes 19:00 (GMT-5) — Q&A grupal de 90 min",
-      hint: "Descripción legible del horario. Si se repite semanalmente, indicalo. Esencial para que el alumno evalúe si encaja en su semana antes de comprar.",
+      hint: "Descripción legible del horario. Si se repite semanalmente, indícalo. Esencial para que el alumno evalúe si encaja en su semana antes de comprar.",
     },
 
     // ─── Compromiso del alumno ────────────────────────────────────────────
@@ -151,7 +151,7 @@ export const offerProgramDetailsSchema: SectionSchema = {
       owner: "offer",
       rows: 3,
       placeholder:
-        "Ideal si ya tenés:\n• Experiencia básica con Meta Ads (al menos 1 campaña lanzada)\n• Cuenta de negocio verificada\n• Presupuesto mínimo de USD 300/mes para ejercicios prácticos",
+        "Ideal si ya tienes:\n• Experiencia básica con Meta Ads (al menos 1 campaña lanzada)\n• Cuenta de negocio verificada\n• Presupuesto mínimo de USD 300/mes para ejercicios prácticos",
       hint: "Con qué debe llegar el alumno para aprovechar el programa. Vacío = sin prerrequisitos. Filtra expectativas: 'para principiantes absolutos' vs 'para emprendedores con facturación ≥ USD 5k/mes' son dos posicionamientos distintos.",
     },
     {
@@ -168,7 +168,7 @@ export const offerProgramDetailsSchema: SectionSchema = {
       type: "boolean",
       path: "specific_details.homework_submission_required",
       owner: "offer",
-      hint: "Si los alumnos deben entregar tareas revisadas por vos o el equipo. Aumenta transformación real (hacen lo que aprenden) pero también workload tuyo. Considerá delegación a TAs si la cohorte supera 30 personas.",
+      hint: "Si los alumnos deben entregar tareas revisadas por ti o el equipo. Aumenta transformación real (hacen lo que aprenden) pero también workload tuyo. Considera delegación a TAs si la cohorte supera 30 personas.",
     },
 
     // ─── Certificación ────────────────────────────────────────────────────
@@ -219,7 +219,7 @@ export const offerProgramDetailsSchema: SectionSchema = {
       path: "specific_details.community_invite_link",
       owner: "offer",
       placeholder: "https://chat.whatsapp.com/... / https://t.me/+... / https://discord.gg/...",
-      hint: "Se envía post-checkout al nuevo alumno. Dejá vacío si invitás manualmente uno-a-uno. Validá que el link no caducó antes de la cohorte.",
+      hint: "Se envía post-checkout al nuevo alumno. Deja vacío si invitas manualmente uno-a-uno. Valida que el link no caducó antes de la cohorte.",
     },
     {
       id: "lms_url",
@@ -228,7 +228,7 @@ export const offerProgramDetailsSchema: SectionSchema = {
       path: "specific_details.lms_url",
       owner: "offer",
       placeholder: "https://tu-academia.hotmart.com / https://tu.kajabi.com",
-      hint: "Dónde está hosteado el curso. Hotmart/Eduzz/Kiwify dominan Brasil. Teachable/Kajabi/Podia en hispano. Plataforma propia si tenés tech. Se envía post-checkout junto con las credenciales de acceso.",
+      hint: "Dónde está alojado el curso. Hotmart/Eduzz/Kiwify dominan Brasil. Teachable/Kajabi/Podia en hispano. Plataforma propia si tienes tech. Se envía post-checkout junto con las credenciales de acceso.",
     },
 
     // ─── Cohorte específica (edition-level) ───────────────────────────────
@@ -265,7 +265,7 @@ export const offerProgramDetailsSchema: SectionSchema = {
       type: "array",
       path: "schedule",
       owner: "edition",
-      hint: "Cohortes distintas pueden meetear en días distintos con el mismo currículo. Cargá las sesiones recurrentes (día + hora + duración).",
+      hint: "Cohortes distintas pueden meetear en días distintos con el mismo currículo. Carga las sesiones recurrentes (día + hora + duración).",
       itemSchema: {
         description: "Una sesión recurrente en la cohorte.",
         fields: [

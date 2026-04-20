@@ -122,8 +122,8 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
             "El nombre público de la oferta, una frase titular memorable y el tiempo "
             "hasta el primer resultado. Es lo que verá tu cliente en anuncios, landings "
             "y checkout. Un nombre claro + una promesa breve facilitan que entiendan qué "
-            "vendés en 3 segundos. Si tu oferta se llama 'Programa Libertad Financiera', "
-            "la frase titular podría ser 'Aprendé a invertir tus primeros USD 500 sin miedo'."
+            "vendes en 3 segundos. Si tu oferta se llama 'Programa Libertad Financiera', "
+            "la frase titular podría ser 'Aprende a invertir tus primeros USD 500 sin miedo'."
         ),
         icon_name="Fingerprint",
         scope=SectionScope.OFFER_LEVEL,
@@ -219,7 +219,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         help_text_es=(
             "Documentos, PDFs, guiones y URLs que el agente de ventas consulta para "
             "responder preguntas técnicas sobre tu oferta en tiempo real. A mayor "
-            "cobertura documental menos escalamientos humanos necesitás. Este material "
+            "cobertura documental menos escalamientos humanos necesitas. Este material "
             "es INTERNO del agente — no se muestra público. Las preguntas frecuentes "
             "públicas tienen su propia sección."
         ),
@@ -391,11 +391,11 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         label_es="Testimonios y reseñas",
         subtitle_es="Clientes que ya compraron",
         help_text_es=(
-            "Testimonios en texto, video o audio de clientes reales. Sumá país de cada "
+            "Testimonios en texto, video o audio de clientes reales. Suma el país de cada "
             "testimonio — mezclar PE/MX/CO/AR da credibilidad regional. Para ofertas de "
             "transformación (fitness, salud estética, coaching), los pares antes/después "
-            "convierten más que el texto. Si tenés Google My Business o Trustpilot, "
-            "linkeá el perfil público para mostrar calificación agregada verificable."
+            "convierten más que el texto. Si tienes Google My Business o Trustpilot, "
+            "enlaza el perfil público para mostrar calificación agregada verificable."
         ),
         icon_name="Quote",
         scope=SectionScope.OFFER_LEVEL,
@@ -409,7 +409,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         help_text_es=(
             "Casos concretos trabajados: quién era el cliente, qué problema tenía, qué "
             "hiciste, qué resultado obtuvo. Los números duros mueven la aguja: 'Aumentamos "
-            "ventas de X marca 320% en 6 meses'. Si tenés NDAs, usá 'Cliente en industria Y' "
+            "ventas de X marca 320% en 6 meses'. Si tienes NDAs, usa 'Cliente en industria Y' "
             "en vez de nombre. Los logos de clientes atendidos suman trust por asociación."
         ),
         icon_name="Trophy",
@@ -420,7 +420,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
     SectionKey.LOCATION: SectionMetadata(
         key=SectionKey.LOCATION,
         label_es="Ubicación y reserva",
-        subtitle_es="Dónde atendés y cómo agendar",
+        subtitle_es="Dónde atiendes y cómo agendar",
         help_text_es=(
             "Dirección(es) física(s), barrio/colonia (más importante que el código postal "
             "en Latam), horarios de atención, cómo llegar, estacionamiento, "

@@ -2,11 +2,13 @@
 
 import uuid
 from datetime import datetime, timezone
+from typing import Any
 from unittest.mock import patch
 
 from sqlalchemy.orm import Session
 
-from src.modules.offer.domain.launch_edition import EditionStatus
+from src.modules.offer.domain.enums import VariantStructure
+from src.modules.offer.domain.launch_edition import EditionStatus, LaunchEdition
 from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
     LaunchEditionRepository,
 )
@@ -21,12 +23,26 @@ def _make_offer(db: Session, tenant_id: uuid.UUID) -> uuid.UUID:
     return model.id
 
 
+def _create_edition(repo: LaunchEditionRepository, **kwargs: Any) -> LaunchEdition:
+    """Wrap ``repo.create`` defaulting variant_structure to TEMPORAL_COHORT.
+
+    The repo enforces variant_structure as a required arg because the
+    catalog-aware mapping lives in the service layer (``LaunchEditionService``)
+    — repos stay structure-agnostic. These low-level repo tests use PROGRAMA
+    fixtures (``_make_offer`` archetype="programa"), so TEMPORAL_COHORT is the
+    catalog-consistent default to inject.
+    """
+    kwargs.setdefault("variant_structure", VariantStructure.TEMPORAL_COHORT)
+    return repo.create(**kwargs)
+
+
 class TestCreate:
     def test_create_and_auto_number(self, db: Session, tenant_a):
         offer_id = _make_offer(db, tenant_a)
         repo = LaunchEditionRepository(db)
 
-        edition = repo.create(
+        edition = _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             edition_name="Cohorte #1",
@@ -41,12 +57,14 @@ class TestCreate:
         offer_id = _make_offer(db, tenant_a)
         repo = LaunchEditionRepository(db)
 
-        e1 = repo.create(
+        e1 = _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             start_date=datetime(2026, 7, 15, tzinfo=timezone.utc),
         )
-        e2 = repo.create(
+        e2 = _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             start_date=datetime(2026, 10, 7, tzinfo=timezone.utc),
@@ -58,7 +76,8 @@ class TestCreate:
         offer_id = _make_offer(db, tenant_a)
         repo = LaunchEditionRepository(db)
 
-        edition = repo.create(
+        edition = _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             start_date=datetime(2026, 7, 15, tzinfo=timezone.utc),
@@ -70,7 +89,8 @@ class TestGetById:
     def test_found(self, db: Session, tenant_a):
         offer_id = _make_offer(db, tenant_a)
         repo = LaunchEditionRepository(db)
-        created = repo.create(
+        created = _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             edition_name="Test",
@@ -83,7 +103,8 @@ class TestGetById:
     def test_wrong_tenant_returns_none(self, db: Session, tenant_a, tenant_b):
         offer_id = _make_offer(db, tenant_a)
         repo = LaunchEditionRepository(db)
-        created = repo.create(
+        created = _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             edition_name="Test",
@@ -96,13 +117,15 @@ class TestListByOffer:
     def test_ordered_by_start_date_desc(self, db: Session, tenant_a):
         offer_id = _make_offer(db, tenant_a)
         repo = LaunchEditionRepository(db)
-        repo.create(
+        _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             edition_name="Jan",
             start_date=datetime(2026, 1, 15, tzinfo=timezone.utc),
         )
-        repo.create(
+        _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             edition_name="Jul",
@@ -115,12 +138,14 @@ class TestListByOffer:
     def test_excludes_cancelled(self, db: Session, tenant_a):
         offer_id = _make_offer(db, tenant_a)
         repo = LaunchEditionRepository(db)
-        e1 = repo.create(
+        e1 = _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             start_date=datetime(2026, 1, 15, tzinfo=timezone.utc),
         )
-        repo.create(
+        _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             start_date=datetime(2026, 7, 15, tzinfo=timezone.utc),
@@ -135,7 +160,8 @@ class TestUpdate:
     def test_patch_fields(self, db: Session, tenant_a):
         offer_id = _make_offer(db, tenant_a)
         repo = LaunchEditionRepository(db)
-        created = repo.create(
+        created = _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             edition_name="Old Name",
@@ -159,7 +185,8 @@ class TestSoftDelete:
     def test_delete_sets_cancelled(self, db: Session, tenant_a):
         offer_id = _make_offer(db, tenant_a)
         repo = LaunchEditionRepository(db)
-        created = repo.create(
+        created = _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             start_date=datetime(2026, 7, 15, tzinfo=timezone.utc),
@@ -185,7 +212,8 @@ class TestPersistence:
         offer_id = _make_offer(db, tenant_a)
         repo = LaunchEditionRepository(db)
         with patch.object(db, "commit", wraps=db.commit) as spy:
-            repo.create(
+            _create_edition(
+                repo,
                 offer_id=offer_id,
                 tenant_id=tenant_a,
                 start_date=datetime(2026, 7, 15, tzinfo=timezone.utc),
@@ -198,7 +226,8 @@ class TestPersistence:
     def test_update_commits_the_session(self, db: Session, tenant_a):
         offer_id = _make_offer(db, tenant_a)
         repo = LaunchEditionRepository(db)
-        created = repo.create(
+        created = _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             start_date=datetime(2026, 7, 15, tzinfo=timezone.utc),
@@ -212,7 +241,8 @@ class TestPersistence:
     def test_soft_delete_commits_the_session(self, db: Session, tenant_a):
         offer_id = _make_offer(db, tenant_a)
         repo = LaunchEditionRepository(db)
-        created = repo.create(
+        created = _create_edition(
+            repo,
             offer_id=offer_id,
             tenant_id=tenant_a,
             start_date=datetime(2026, 7, 15, tzinfo=timezone.utc),
@@ -232,7 +262,8 @@ class TestGetNextEditionNumber:
         offer_id = _make_offer(db, tenant_a)
         repo = LaunchEditionRepository(db)
         for _ in range(3):
-            repo.create(
+            _create_edition(
+                repo,
                 offer_id=offer_id,
                 tenant_id=tenant_a,
                 start_date=datetime(2026, 7, 15, tzinfo=timezone.utc),

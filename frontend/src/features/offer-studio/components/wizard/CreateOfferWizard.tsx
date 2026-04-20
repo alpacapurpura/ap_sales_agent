@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Loader2, Rocket, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Plus, Rocket, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { CurrencySelect } from "@/components/shared/CurrencySelect";
@@ -19,15 +19,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useBrandSettings } from "@/features/brand-studio/hooks/use-brand-settings";
 import { useOfferTypePresetCatalog } from "@/features/offer-studio/hooks/use-offer-type-preset-catalog";
-import {
-  useValueLevelCatalog,
-  useValueLevelMetadata,
-} from "@/features/offer-studio/hooks/use-value-level-catalog";
-import { resolveIconByName } from "@/features/offer-studio/lib/icon-name-resolver";
+import { useValueLevelMetadata } from "@/features/offer-studio/hooks/use-value-level-catalog";
 import { OfferStatus, OfferValueLevel } from "@/features/offer-studio/types";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
-import { cn } from "@/lib/utils";
 
+import { ArchetypePickerStep } from "./ArchetypePickerStep";
 import { ConditionalQuestionsStep } from "./ConditionalQuestionsStep";
 import { PresetPickerStep } from "./PresetPickerStep";
 
@@ -37,9 +33,9 @@ import type {
   OfferTypePreset,
 } from "@/features/offer-studio/api/offer-type-preset-catalog-api";
 import type {
-  OfferArchetype,
   OfferDeliveryModel,
   PricingStructure,
+  OfferArchetype,
 } from "@/features/offer-studio/types";
 
 interface CreateOfferWizardProps {
@@ -51,21 +47,24 @@ interface CreateOfferWizardProps {
   /**
    * Pre-selected ladder rung — set when the wizard is opened from a
    * context-specific launcher (e.g. the "+" on the Activación column or
-   * the Lead Magnet stream header). When present, the value-level step
-   * is hidden because the user has already answered that question by
-   * where they clicked.
+   * the Lead Magnet stream header). When present, it overrides the
+   * preset's ``typical_value_level`` so the user's explicit click wins.
+   * Sprint 15: the value-level step was removed — the rung is always
+   * derived from (presetValueLevel ?? customRung ?? preset.typical_value_level).
    */
   presetValueLevel?: OfferValueLevel;
 }
 
 export interface WizardResult {
-  /** Primary axis (Sprint 13+). Always emitted when a preset was picked. */
+  /** Primary axis (Sprint 13+). Set when a preset was picked. Undefined
+   *  in the "Otra / A medida" flow — backend's legacy archetype-only path
+   *  handles the no-preset case. */
   preset_id?: string;
-  /** Derived from the preset. Kept on the payload for backwards compat
-   *  with the OfferCreate DTO and for legacy downstream consumers. */
+  /** Set in both flows: from preset.archetype OR from the custom archetype
+   *  picker sub-step. */
   archetype: OfferArchetype;
   /** Wizard-captured yes/no refinements. Backend promotes these into
-   *  runtime flags via ``resolve_preset_flags``. */
+   *  runtime flags via ``resolve_preset_flags``. Empty in the custom flow. */
   conditional_answers?: Record<string, boolean>;
   format_hint?: string;
   name: string;
@@ -81,8 +80,10 @@ export interface WizardResult {
 }
 
 /** Internal step identifiers. Not all run on every session — the
- *  dynamic step plan below picks the active subset per preset. */
-type StepKey = "preset" | "value_level" | "questions" | "name" | "pricing";
+ *  dynamic step plan below picks the active subset per preset / custom flow.
+ *  Sprint 15.2: ``archetype`` step appears only in the custom ("Otra / A
+ *  medida") flow, between preset picker and name. */
+type StepKey = "preset" | "archetype" | "questions" | "name" | "pricing";
 
 interface StepPlan {
   steps: readonly StepKey[];
@@ -101,7 +102,6 @@ export function CreateOfferWizard({
   presetValueLevel,
 }: CreateOfferWizardProps) {
   const { currency: tenantCurrency } = useTenantLocale();
-  const { data: valueLevelCatalog } = useValueLevelCatalog();
   const { settings } = useBrandSettings();
   const brandBusinessTypes = (settings?.identity?.business_types ?? []) as ExpertBusinessType[];
 
@@ -113,53 +113,65 @@ export function CreateOfferWizard({
     return map;
   }, [presetCatalog?.questions]);
 
+  // ── State ────────────────────────────────────────────────────────────────
   const [selectedPreset, setSelectedPreset] = useState<OfferTypePreset | null>(null);
-  const [valueLevel, setValueLevel] = useState<OfferValueLevel | null>(presetValueLevel ?? null);
+  // Custom flow state — populated only when the user picks "Otra / A medida"
+  // inside a rung group.
+  const [customRung, setCustomRung] = useState<OfferValueLevel | null>(null);
+  const [customArchetype, setCustomArchetype] = useState<OfferArchetype | null>(null);
+
   const [conditionalAnswers, setConditionalAnswers] = useState<Record<string, boolean>>({});
   const [offerName, setOfferName] = useState("");
   const [price, setPrice] = useState<string>("");
   const [currencyCode, setCurrencyCode] = useState<string>(tenantCurrency);
   const [headlinePromise, setHeadlinePromise] = useState("");
 
-  const valueLevelMeta = useValueLevelMetadata(valueLevel ?? undefined);
+  // ── Derived values ───────────────────────────────────────────────────────
+  const isCustomFlow = customRung !== null;
 
-  // Keep state in sync with a reopen from a different launcher. Same
-  // rationale as the legacy wizard — preserve user work; only sync the
-  // preselected rung if it changed.
+  // Value level resolution chain. Explicit launcher wins over custom rung
+  // wins over preset typical, with ACTIVACION as last fallback.
+  const valueLevel: OfferValueLevel =
+    presetValueLevel ??
+    customRung ??
+    selectedPreset?.typical_value_level ??
+    OfferValueLevel.ACTIVACION;
+
+  const archetype: OfferArchetype | null = customArchetype ?? selectedPreset?.archetype ?? null;
+
+  const valueLevelMeta = useValueLevelMetadata(valueLevel);
+  const isLeadMagnet = valueLevel === OfferValueLevel.LEAD_MAGNET;
+
+  // No reopen-sync needed — derived from props + state each render. Kept
+  // the ``open`` dependency hook as a no-op seam for analytics / focus.
   useEffect(() => {
-    if (!open) return;
-    if (presetValueLevel && presetValueLevel !== valueLevel) {
-      setValueLevel(presetValueLevel);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, presetValueLevel]);
+    // Intentionally empty.
+  }, [open]);
 
-  const hasPresetValueLevel = Boolean(presetValueLevel);
-  const isLeadMagnetFromPreset = Boolean(selectedPreset?.default_flags.includes("is_lead_magnet"));
-  const isLeadMagnetFromRung = valueLevel === OfferValueLevel.LEAD_MAGNET;
-  const isLeadMagnet = isLeadMagnetFromPreset || isLeadMagnetFromRung;
-
-  /** Compute which steps apply given the current preset + preselections.
-   *  Recomputed per render so state changes (preset pick) collapse the
-   *  plan immediately (e.g. a lead-magnet preset skips pricing). */
+  // ── Step plan ────────────────────────────────────────────────────────────
   const plan: StepPlan = useMemo(() => {
     const steps: StepKey[] = ["preset"];
-    if (!hasPresetValueLevel && !isLeadMagnetFromPreset) steps.push("value_level");
-    if (selectedPreset && selectedPreset.conditional_question_ids.length > 0) {
+    if (isCustomFlow) {
+      // Custom flow: ask for archetype before going to name+price. Skip
+      // conditional questions entirely (presets carry those, not custom).
+      steps.push("archetype");
+    } else if (selectedPreset && selectedPreset.conditional_question_ids.length > 0) {
       steps.push("questions");
     }
     steps.push("name");
     if (!isLeadMagnet) steps.push("pricing");
     return { steps, totalVisible: steps.length };
-  }, [hasPresetValueLevel, isLeadMagnetFromPreset, isLeadMagnet, selectedPreset]);
+  }, [isCustomFlow, isLeadMagnet, selectedPreset]);
 
   const [stepIndex, setStepIndex] = useState(0);
   const currentStep: StepKey = plan.steps[stepIndex] ?? "preset";
   const progressPercent = ((stepIndex + 1) / plan.totalVisible) * 100;
 
+  // ── Handlers ─────────────────────────────────────────────────────────────
   const resetWizard = () => {
     setSelectedPreset(null);
-    setValueLevel(presetValueLevel ?? null);
+    setCustomRung(null);
+    setCustomArchetype(null);
     setConditionalAnswers({});
     setOfferName("");
     setPrice("");
@@ -182,13 +194,22 @@ export function CreateOfferWizard({
 
   const handlePickPreset = (preset: OfferTypePreset) => {
     setSelectedPreset(preset);
+    setCustomRung(null);
+    setCustomArchetype(null);
     if (!offerName) setOfferName(`Mi ${preset.label_es.toLowerCase()}`);
-    // Advance one step; the `plan` will redefine how many remain.
     setStepIndex(1);
   };
 
-  const handlePickValueLevel = (pick: OfferValueLevel) => {
-    setValueLevel(pick);
+  const handlePickCustom = (rung: OfferValueLevel) => {
+    setSelectedPreset(null);
+    setCustomRung(rung);
+    setCustomArchetype(null);
+    if (!offerName) setOfferName("Mi oferta a medida");
+    setStepIndex(1);
+  };
+
+  const handlePickArchetype = (picked: OfferArchetype) => {
+    setCustomArchetype(picked);
     setStepIndex((i) => i + 1);
   };
 
@@ -201,7 +222,7 @@ export function CreateOfferWizard({
   };
 
   const buildResult = (): WizardResult | null => {
-    if (!selectedPreset || !valueLevel || !offerName.trim()) return null;
+    if (!archetype || !offerName.trim()) return null;
     const priceNum = parseFloat(price);
     const pricingOptions: PricingStructure[] = isLeadMagnet
       ? []
@@ -216,11 +237,13 @@ export function CreateOfferWizard({
             installment_amount: 0,
           },
         ];
-    const requiresStartDate = selectedPreset.default_flags.includes("requires_start_date");
+    const requiresStartDate =
+      selectedPreset?.default_flags.includes("requires_start_date") ?? false;
     return {
-      preset_id: selectedPreset.preset_id,
-      archetype: selectedPreset.archetype,
-      conditional_answers: Object.keys(conditionalAnswers).length ? conditionalAnswers : undefined,
+      preset_id: selectedPreset?.preset_id,
+      archetype,
+      conditional_answers:
+        Object.keys(conditionalAnswers).length > 0 ? conditionalAnswers : undefined,
       format_hint: undefined,
       name: offerName.trim(),
       is_lead_magnet: isLeadMagnet,
@@ -248,52 +271,68 @@ export function CreateOfferWizard({
     await onCreateWithIA(result);
   };
 
-  const canSubmit = Boolean(selectedPreset && valueLevel && offerName.trim() && !creating);
+  const canSubmit = Boolean(archetype && offerName.trim() && !creating);
 
+  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <DialogTitle>Crear oferta nueva</DialogTitle>
-            <div className="flex items-center gap-2 flex-wrap">
-              {selectedPreset && (
-                <Badge variant="secondary" className="text-xs gap-1">
-                  <Sparkles className="h-3 w-3" aria-hidden />
-                  {selectedPreset.label_es}
-                </Badge>
-              )}
-              {hasPresetValueLevel && valueLevelMeta && (
-                <Badge variant="secondary" className="text-xs">
-                  Nivel:&nbsp;<strong className="font-semibold">{valueLevelMeta.label_es}</strong>
-                </Badge>
-              )}
+      <DialogContent className="max-h-[90vh] overflow-y-auto p-0 sm:max-w-[1100px]">
+        <div className="px-10 pt-7 pb-5 border-b">
+          <DialogHeader className="space-y-2">
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <DialogTitle className="text-2xl tracking-tight">Crear oferta nueva</DialogTitle>
+                <DialogDescription className="mt-1">
+                  Elige el tipo de oferta que más se parezca a lo que vendes.
+                </DialogDescription>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {selectedPreset && (
+                  <Badge variant="secondary" className="text-xs gap-1">
+                    <Sparkles className="h-3 w-3" aria-hidden />
+                    {selectedPreset.label_es}
+                  </Badge>
+                )}
+                {isCustomFlow && (
+                  <Badge variant="secondary" className="text-xs gap-1 border-dashed">
+                    <Plus className="h-3 w-3" aria-hidden />A medida
+                  </Badge>
+                )}
+                {archetype && valueLevelMeta && (
+                  <Badge variant="secondary" className="text-xs">
+                    Nivel:&nbsp;<strong className="font-semibold">{valueLevelMeta.label_es}</strong>
+                  </Badge>
+                )}
+              </div>
             </div>
-          </div>
-          <DialogDescription>
-            Paso {stepIndex + 1} de {plan.totalVisible}
-          </DialogDescription>
-          <div className="h-1 w-full bg-muted rounded-full mt-2">
-            <div
-              className="h-full bg-primary rounded-full transition-all"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </DialogHeader>
+            <div className="flex items-center gap-3 pt-2">
+              <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                Paso {stepIndex + 1} de {plan.totalVisible}
+              </span>
+              <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+          </DialogHeader>
+        </div>
 
-        <div className="py-4">
+        <div className="px-10 py-6">
           {currentStep === "preset" && (
             <PresetPickerStep
               presets={presetsForTenant}
               onPick={handlePickPreset}
+              onPickCustom={handlePickCustom}
               businessTypesDeclared={brandBusinessTypes.length > 0}
               businessTypesDeclaredList={brandBusinessTypes}
             />
           )}
-          {currentStep === "value_level" && (
-            <ValueLevelStep
-              onPick={handlePickValueLevel}
-              valueLevels={valueLevelCatalog?.value_levels ?? EMPTY_LIST}
+          {currentStep === "archetype" && (
+            <ArchetypePickerStep
+              onPick={handlePickArchetype}
+              rungLabel={valueLevelMeta?.label_es}
             />
           )}
           {currentStep === "questions" && selectedPreset && (
@@ -310,7 +349,7 @@ export function CreateOfferWizard({
               onNameChange={setOfferName}
               headline={headlinePromise}
               onHeadlineChange={setHeadlinePromise}
-              presetLabel={selectedPreset?.label_es ?? ""}
+              presetLabel={selectedPreset?.label_es ?? "oferta a medida"}
             />
           )}
           {currentStep === "pricing" && (
@@ -326,7 +365,7 @@ export function CreateOfferWizard({
           )}
         </div>
 
-        <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+        <DialogFooter className="px-10 py-5 border-t bg-zinc-50/50 flex-col-reverse sm:flex-row gap-2">
           {stepIndex > 0 && (
             <Button variant="ghost" onClick={handleBack} disabled={creating}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Atrás
@@ -334,7 +373,7 @@ export function CreateOfferWizard({
           )}
 
           {currentStep !== "preset" &&
-            currentStep !== "value_level" &&
+            currentStep !== "archetype" &&
             stepIndex < plan.totalVisible - 1 && (
               <Button
                 className="sm:ml-auto"
@@ -347,7 +386,7 @@ export function CreateOfferWizard({
 
           {stepIndex === plan.totalVisible - 1 &&
             currentStep !== "preset" &&
-            currentStep !== "value_level" && (
+            currentStep !== "archetype" && (
               <div className="flex gap-2 sm:ml-auto">
                 {onCreateWithIA && (
                   <Button variant="outline" onClick={handleCreateWithIA} disabled={!canSubmit}>
@@ -375,73 +414,6 @@ export function CreateOfferWizard({
   );
 }
 
-// Stable reference so React Query loading state doesn't create a new array
-// each render and thrash the memoized children.
-const EMPTY_LIST: readonly never[] = [];
-
-// ── STEP: VALUE LEVEL (legacy, unchanged semantics) ──────────────────────────
-
-interface ValueLevelStepProps {
-  onPick: (valueLevel: OfferValueLevel) => void;
-  valueLevels: readonly {
-    value_level: string;
-    label_es: string;
-    description_es: string;
-    role_in_funnel_es: string;
-    icon_name: string;
-    is_free: boolean;
-    typical_price_min_usd: number | null;
-    typical_price_max_usd: number | null;
-  }[];
-}
-
-function ValueLevelStep({ onPick, valueLevels }: ValueLevelStepProps) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold">¿Qué rol cumple esta oferta en tu escalera?</h3>
-        <p className="text-sm text-muted-foreground">
-          Decide cuánto cobrar, para qué parte del funnel sirve, y cómo se presenta.
-        </p>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {valueLevels.map((v) => {
-          const Icon = resolveIconByName(v.icon_name);
-          const priceHint = v.is_free
-            ? "Gratis"
-            : v.typical_price_min_usd != null && v.typical_price_max_usd != null
-              ? `USD ${v.typical_price_min_usd}–${v.typical_price_max_usd}`
-              : null;
-          return (
-            <button
-              key={v.value_level}
-              type="button"
-              onClick={() => onPick(v.value_level as OfferValueLevel)}
-              className={cn(
-                "text-left rounded-lg border bg-card p-4 hover:border-primary hover:shadow-sm transition",
-                "flex items-start gap-3",
-              )}
-            >
-              <div className="shrink-0 h-10 w-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
-                <Icon className="h-5 w-5" />
-              </div>
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold">{v.label_es}</span>
-                  {priceHint && (
-                    <span className="text-[11px] text-muted-foreground">{priceHint}</span>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">{v.role_in_funnel_es}</p>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 // ── STEP: NAME + PROMISE ─────────────────────────────────────────────────────
 
 interface NamePromiseStepProps {
@@ -462,11 +434,11 @@ function NamePromiseStep({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-semibold">Dale una identidad</h3>
+        <h3 className="text-lg font-semibold">Define su identidad</h3>
         <p className="text-sm text-muted-foreground">
           {presetLabel
             ? `Este "${presetLabel.toLowerCase()}" necesita un nombre público y, opcionalmente, una frase titular.`
-            : "Dale un nombre público y, opcionalmente, una frase titular."}
+            : "Ponle un nombre público y, opcionalmente, una frase titular."}
         </p>
       </div>
       <div className="space-y-4">
@@ -479,14 +451,14 @@ function NamePromiseStep({
             onChange={(e) => onNameChange(e.target.value)}
           />
           <p className="text-xs text-muted-foreground mt-1">
-            Es lo que tu cliente ve en anuncios, landings y checkout. Podés cambiarlo después.
+            Es lo que tu cliente ve en anuncios, landings y checkout. Puedes cambiarlo después.
           </p>
         </div>
         <div>
           <Label htmlFor="wizard-offer-headline">Frase titular (opcional)</Label>
           <Textarea
             id="wizard-offer-headline"
-            placeholder="Aprendé a invertir tus primeros USD 500 sin miedo en 8 semanas"
+            placeholder="Aprende a invertir tus primeros USD 500 sin miedo en 8 semanas"
             value={headline}
             onChange={(e) => onHeadlineChange(e.target.value)}
             rows={3}
@@ -528,9 +500,9 @@ function PricingStep({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-semibold">¿Cuánto cobrás?</h3>
+        <h3 className="text-lg font-semibold">¿Cuánto cobras?</h3>
         <p className="text-sm text-muted-foreground">
-          Arrancá con un precio base en la moneda que más cobrás. Podés agregar cuotas, descuentos y
+          Empieza con un precio base en la moneda que más cobras. Puedes agregar cuotas, descuentos y
           planes después en el editor.
         </p>
       </div>

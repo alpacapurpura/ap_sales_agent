@@ -178,6 +178,9 @@ class EditionCloneService:
         return self.edition_repo.create(
             offer_id=source.offer_id,
             tenant_id=tenant_id,
+            variant_structure=source.variant_structure,
+            structure_data=dict(source.structure_data),
+            sort_rank=source.sort_rank,
             edition_name=new_input.edition_name,
             start_date=new_input.start_date,
             end_date=new_input.end_date,

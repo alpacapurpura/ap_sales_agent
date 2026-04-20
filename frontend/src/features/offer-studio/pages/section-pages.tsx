@@ -78,7 +78,7 @@ function createSectionPage(
           <h3 className="text-lg font-medium">Esta sección necesita una edición concreta</h3>
           <p className="mt-2 text-sm text-muted-foreground">
             Los campos de {label} viven en la edición específica que estás configurando.
-            Seleccioná o creá una edición desde el rail lateral.
+            Selecciona o crea una edición desde el rail lateral.
           </p>
         </div>
       );

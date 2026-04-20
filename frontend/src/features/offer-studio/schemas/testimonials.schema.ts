@@ -47,7 +47,7 @@ export const offerTestimonialsSchema: SectionSchema = {
             rows: 4,
             required: true,
             placeholder: "En 3 meses pasé de cero clientes a 14 reservas activas...",
-            hint: "Usá las palabras exactas del cliente. Testimonios editados/limpiados se sienten falsos.",
+            hint: "Usa las palabras exactas del cliente. Testimonios editados/limpiados se sienten falsos.",
           },
           {
             id: "video_url",
@@ -104,14 +104,14 @@ export const offerTestimonialsSchema: SectionSchema = {
             label: "Foto del autor",
             type: "url",
             path: "author_photo_url",
-            hint: "Foto real, rostro visible. Evitá iconos genéricos.",
+            hint: "Foto real, rostro visible. Evita iconos genéricos.",
           },
           {
             id: "rating",
             label: "Calificación (1-5)",
             type: "number",
             path: "rating",
-            hint: "Opcional. Si mostrás rating agregado, todos los testimonios deberían tenerlo.",
+            hint: "Opcional. Si muestras rating agregado, todos los testimonios deberían tenerlo.",
           },
           {
             id: "result_achieved",
@@ -130,10 +130,10 @@ export const offerTestimonialsSchema: SectionSchema = {
           },
           {
             id: "permission_to_publish",
-            label: "¿Tenés permiso documentado para publicarlo?",
+            label: "¿Tienes permiso documentado para publicarlo?",
             type: "boolean",
             path: "permission_to_publish",
-            hint: "Legal Latam — LGPD Brasil, Habeas Data Colombia, LOPD Perú exigen consentimiento informado para publicar datos personales (foto + nombre + testimonio). WhatsApp o email con el OK del cliente basta; guardá el comprobante.",
+            hint: "Legal Latam — LGPD Brasil, Habeas Data Colombia, LOPD Perú exigen consentimiento informado para publicar datos personales (foto + nombre + testimonio). WhatsApp o email con el OK del cliente basta; guarda el comprobante.",
           },
           {
             id: "consent_date",
@@ -141,7 +141,7 @@ export const offerTestimonialsSchema: SectionSchema = {
             type: "text",
             path: "consent_date",
             placeholder: "2026-03-15",
-            hint: "Opcional pero recomendado. ISO 8601 (YYYY-MM-DD). Rastro legal en caso de disputa. Si el cliente retira consentimiento, remové el testimonio dentro de 30 días.",
+            hint: "Opcional pero recomendado. ISO 8601 (YYYY-MM-DD). Rastro legal en caso de disputa. Si el cliente retira consentimiento, remueve el testimonio dentro de 30 días.",
           },
         ],
       },
@@ -151,7 +151,7 @@ export const offerTestimonialsSchema: SectionSchema = {
       label: "Calificación promedio pública",
       type: "number",
       path: "aggregate_rating",
-      hint: "Opcional. Si querés mostrar '4.8 ⭐ sobre 120 reseñas' en la landing.",
+      hint: "Opcional. Si quieres mostrar '4.8 ⭐ sobre 120 reseñas' en la landing.",
     },
     {
       id: "total_reviews_count",

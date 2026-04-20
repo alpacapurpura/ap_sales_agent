@@ -105,7 +105,7 @@ export function PresetCatalogAction({ value, onChange }: ActionComponentProps<st
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Elegí la personalidad base de tu agente. Podés ajustar las dimensiones después.
+        Elige la personalidad base de tu agente. Puedes ajustar las dimensiones después.
       </p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {presets.map((preset) => (

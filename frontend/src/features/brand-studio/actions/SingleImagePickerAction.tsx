@@ -149,7 +149,7 @@ export function SingleImagePickerDialog({
                   <GallerySkeleton count={10} />
                 ) : !galleryImages || galleryImages.length === 0 ? (
                   <div className="col-span-full py-10 text-center text-muted-foreground">
-                    No hay imágenes en la galería. Subí una primero.
+                    No hay imágenes en la galería. Sube una primero.
                   </div>
                 ) : (
                   galleryImages.map((img) => {

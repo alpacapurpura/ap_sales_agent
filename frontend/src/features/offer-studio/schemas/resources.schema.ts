@@ -51,7 +51,7 @@ export const offerResourcesSchema: SectionSchema = {
             type: "text",
             path: "type",
             placeholder: "PDF descargable / Video en Loom / Template Notion / Carpeta Drive",
-            hint: "Indicá el formato o la plataforma. El cliente evalúa si tiene la app o si lo puede usar offline.",
+            hint: "Indica el formato o la plataforma. El cliente evalúa si tiene la app o si lo puede usar offline.",
           },
           {
             id: "url",
@@ -59,7 +59,7 @@ export const offerResourcesSchema: SectionSchema = {
             type: "url",
             path: "url",
             placeholder: "https://drive.google.com/file/d/... / https://tally.so/r/... / https://www.notion.so/...",
-            hint: "Link al recurso. Validá que no caduca (Google Drive enlaces públicos con permisos correctos, Notion páginas publicadas).",
+            hint: "Link al recurso. Valida que no caduca (Google Drive enlaces públicos con permisos correctos, Notion páginas publicadas).",
           },
           {
             id: "description",
@@ -77,7 +77,7 @@ export const offerResourcesSchema: SectionSchema = {
             type: "text",
             path: "availability_window_description",
             placeholder: "Inmediato post-checkout / Semana 1 de la cohorte / Al completar el Módulo 3",
-            hint: "Cuándo el cliente tiene acceso. Recurso que 'llega después' sin aviso genera tickets 'no lo encuentro'. Si es gated, explicitalo.",
+            hint: "Cuándo el cliente tiene acceso. Recurso que 'llega después' sin aviso genera tickets 'no lo encuentro'. Si es gated, explicítalo.",
           },
         ],
       },

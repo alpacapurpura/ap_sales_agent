@@ -6,7 +6,7 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  *
  * Scope OFFER_LEVEL: psicología consistente entre ediciones. Para
  * objeciones edition-específicas (ej: fecha incómoda de una cohorte),
- * usá el campo ``notes`` de la ``LaunchEdition``.
+ * usa el campo ``notes`` de la ``LaunchEdition``.
  *
  * **Latam — decisiones de diseño:**
  * - ``cultural_trust_barriers`` captura barreras Latam específicas:
@@ -34,7 +34,7 @@ export const offerPsychologySchema: SectionSchema = {
       rows: 8,
       placeholder:
         "• No tengo tiempo ahora\n• Es muy caro\n• Ya probé algo parecido y no funcionó\n• Tengo que consultarlo con mi pareja\n• Prefiero esperar al próximo mes / al aguinaldo\n• ¿Cómo sé que no es estafa?\n• No me siento listo todavía\n• Tengo dudas si es para mi nivel",
-      hint: "Uno por línea. Las frases REALES que escuchás de prospectos que no cierran. Evitá objeciones teóricas de libro de marketing — usá las palabras exactas de tus clientes. El agente de ventas las detecta en el chat y responde con el argumento correspondiente.",
+      hint: "Uno por línea. Las frases REALES que escuchas de prospectos que no cierran. Evita objeciones teóricas de libro de marketing — usa las palabras exactas de tus clientes. El agente de ventas las detecta en el chat y responde con el argumento correspondiente.",
     },
     {
       id: "cultural_trust_barriers",

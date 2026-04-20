@@ -42,7 +42,7 @@ export const offerPricingSchema: SectionSchema = {
       path: "currency",
       owner: "offer",
       placeholder: "PEN · MXN · COP · ARS · CLP · BRL · USD",
-      hint: "ISO 4217 (3 letras). Usá la moneda en la que cobrás habitualmente — el sistema calcula equivalentes USD para reportes cross-moneda. Si lo dejás vacío toma la moneda configurada en tu tenant.",
+      hint: "ISO 4217 (3 letras). Usa la moneda en la que cobras habitualmente — el sistema calcula equivalentes USD para reportes cross-moneda. Si lo dejas vacío toma la moneda configurada en tu tenant.",
     },
     {
       id: "price_pay_in_full_usd",
@@ -58,7 +58,7 @@ export const offerPricingSchema: SectionSchema = {
       type: "boolean",
       path: "tax_included",
       owner: "offer",
-      hint: "CRÍTICO en Latam — evita disputas en checkout. Si dejás unclear, el cliente discute. Argentina IVA 21%, Perú IGV 18%, Chile IVA 19%, Colombia IVA 19%, México IVA 16%, Brasil ICMS variable.",
+      hint: "CRÍTICO en Latam — evita disputas en checkout. Si dejas unclear, el cliente discute. Argentina IVA 21%, Perú IGV 18%, Chile IVA 19%, Colombia IVA 19%, México IVA 16%, Brasil ICMS variable.",
     },
     {
       id: "accepted_payment_providers",
@@ -67,7 +67,7 @@ export const offerPricingSchema: SectionSchema = {
       path: "accepted_payment_providers",
       owner: "offer",
       action: "payment-provider-picker",
-      hint: "Seleccioná los métodos de pago que ofrecés para esta oferta. El selector muestra sólo los providers que tenés conectados en Configuración → Conexiones (MercadoPago, Culqi, Stripe, PayPal, manual). Si todavía no conectaste ninguno, hacelo primero en Conexiones.",
+      hint: "Selecciona los métodos de pago que ofreces para esta oferta. El selector muestra sólo los providers que tienes conectados en Configuración → Conexiones (MercadoPago, Culqi, Stripe, PayPal, manual). Si todavía no conectaste ninguno, hazlo primero en Conexiones.",
     },
     {
       id: "installments_available",
@@ -76,7 +76,7 @@ export const offerPricingSchema: SectionSchema = {
       path: "installments_available",
       owner: "offer",
       placeholder: "ej. 3, 6, 12",
-      hint: "Números separados por coma. Las cuotas sin interés son DECISIVAS en Latam para tickets >USD 100. El agente de ventas las menciona en el argumento de cierre. Consultá con tu provider qué planes acepta.",
+      hint: "Números separados por coma. Las cuotas sin interés son DECISIVAS en Latam para tickets >USD 100. El agente de ventas las menciona en el argumento de cierre. Consulta con tu provider qué planes acepta.",
     },
     {
       id: "pricing_tiers",
