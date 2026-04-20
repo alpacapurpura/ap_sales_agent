@@ -9,7 +9,7 @@ from arq.connections import RedisSettings, create_pool
 from fastapi import Depends, FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
@@ -862,6 +862,26 @@ app.include_router(
     prefix="/api/v1/catalogs/business-types",
     tags=["Catalogs - Business Types"],
 )
+
+
+# ── Deprecated alias for the legacy catalog URL ────────────────────────────
+# CONTRACT §3.4: the endpoint moved from /brand/expert-business-types/catalog
+# to /catalogs/business-types on 2026-04-20. This 301 preserves any external
+# cache or SDK that hard-coded the old path. Scheduled for removal after the
+# two-week deprecation window (2026-05-04).
+@app.get(
+    "/api/v1/brand/expert-business-types/catalog",
+    include_in_schema=False,
+    status_code=301,
+    tags=["Deprecated"],
+)
+async def _legacy_expert_business_types_catalog_redirect() -> RedirectResponse:
+    """Redirect (301) legacy catalog URL to the canonical tenant-profile home."""
+    return RedirectResponse(
+        url="/api/v1/catalogs/business-types",
+        status_code=301,
+    )
+
 
 if __name__ == "__main__":
     import uvicorn
