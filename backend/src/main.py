@@ -35,7 +35,6 @@ from src.modules.assets.api import offer_gallery as assets_offers
 from src.modules.assets.api import router as assets_gallery
 from src.modules.brand.api import avatars as brand_avatars
 from src.modules.brand.api import buyer_personas as brand_buyer_personas
-from src.modules.brand.api import expert_business_types as brand_expert_business_types
 from src.modules.brand.api import extraction as brand_tools
 from src.modules.brand.api import personality as brand_personality
 from src.modules.brand.api import router as brand_settings
@@ -131,6 +130,10 @@ from src.modules.scheduling.api import public_links as sched_public
 
 # 15. Tenant Domains
 from src.modules.tenant_domains.api import domain_router as domains_router
+from src.modules.tenant_profile.api import business_types_catalog as business_types_catalog_router
+
+# 17. Tenant Profile (new bounded context — SSoT for business_types)
+from src.modules.tenant_profile.api import router as tenant_profile_router
 
 # 16. Shared catalogs (currencies, etc.)
 from src.shared.api import currencies as shared_currencies
@@ -428,12 +431,6 @@ app.include_router(
     tags=["Brand - Buyer Personas"],
     dependencies=[Depends(get_tenant_context)],
 )
-app.include_router(
-    brand_expert_business_types.router,
-    prefix="/api/v1/brand/expert-business-types",
-    tags=["Brand - Expert Business Types"],
-)
-
 # 3. Offer
 app.include_router(
     offer_products.router,
@@ -852,6 +849,18 @@ app.include_router(
     prefix="/api/v1/domains",
     tags=["Domains"],
     dependencies=[Depends(get_tenant_context)],
+)
+
+# 17. Tenant Profile — SSoT for business_types (Sprint 2026-04-20)
+app.include_router(
+    tenant_profile_router.router,
+    prefix="/api/v1/tenant/profile",
+    tags=["Tenant Profile"],
+)
+app.include_router(
+    business_types_catalog_router.router,
+    prefix="/api/v1/catalogs/business-types",
+    tags=["Catalogs - Business Types"],
 )
 
 if __name__ == "__main__":

@@ -170,6 +170,9 @@ def db_engine():
         from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import (
             TenantDomainModel,
         )
+        from src.modules.tenant_profile.infrastructure.models.tenant_profile_model import (
+            TenantProfileModel,
+        )
     except ImportError as e:
         print(f"Warning: Could not import some models: {e}")
 

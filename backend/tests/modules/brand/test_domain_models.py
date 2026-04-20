@@ -94,66 +94,10 @@ class TestBrandIdentity:
     def test_full(self, sample_identity):
         assert sample_identity.industry == "Technology"
 
-    def test_business_types_default_empty_list(self):
-        """A fresh brand has no business types declared yet — onboarding fills them."""
-        i = BrandIdentity(brand_name="X")
-        assert i.business_types == []
-
-    def test_business_types_accepts_multi_select(self):
-        """Multi-select: a course creator who also coaches declares both."""
-        from src.shared.domain.expert_business_type import ExpertBusinessType
-
-        i = BrandIdentity(
-            brand_name="X",
-            business_types=[
-                ExpertBusinessType.ACADEMIA_INFOPRODUCTOR,
-                ExpertBusinessType.COACH_MENTOR,
-            ],
-        )
-        assert len(i.business_types) == 2
-        assert ExpertBusinessType.COACH_MENTOR in i.business_types
-
-    def test_business_types_roundtrip_json(self):
-        """JSON persistence (tenant.config_json blob) must preserve values."""
-        from src.shared.domain.expert_business_type import ExpertBusinessType
-
-        original = BrandIdentity(
-            brand_name="X",
-            business_types=[ExpertBusinessType.SOFTWARE_SAAS],
-        )
-        dumped = original.model_dump(mode="json")
-        restored = BrandIdentity.model_validate(dumped)
-        assert restored.business_types == [ExpertBusinessType.SOFTWARE_SAAS]
-
-    def test_business_types_drops_unknown_values_silently(self):
-        """Unknown values are dropped (not raised) to prevent crashing
-        brand-settings reads on config_json saved with stale vocabulary.
-
-        Sprint 14: the validator now silently drops unknown keys. See
-        ``_normalise_business_types`` — the rationale is that failing
-        to load blocks onboarding entirely; dropping lets the dialog
-        render and the user re-saves a clean list.
-        """
-        from src.shared.domain.expert_business_type import ExpertBusinessType
-
-        identity = BrandIdentity(
-            brand_name="X",
-            business_types=["coach_mentor", "nonexistent_type"],
-        )
-        assert identity.business_types == [ExpertBusinessType.COACH_MENTOR]
-
-    def test_business_types_remaps_legacy_aliases(self):
-        """Legacy enum values map to their canonical replacement."""
-        from src.shared.domain.expert_business_type import ExpertBusinessType
-
-        identity = BrandIdentity(
-            brand_name="X",
-            business_types=["consultor_asesor", "educador_infoproductor", "creador_contenido"],
-        )
-        assert identity.business_types == [
-            ExpertBusinessType.CONSULTOR_PROFESIONAL,
-            ExpertBusinessType.ACADEMIA_INFOPRODUCTOR,
-        ]
+    # business_types moved to tenant_profile BC on 2026-04-20 — see
+    # backend/tests/modules/tenant_profile/test_tenant_profile_aggregate.py
+    # and backend/src/modules/tenant_profile/domain/tenant_profile.py for the
+    # equivalent invariants (min/max, duplicates, legacy alias remapping).
 
 
 class TestBrandVisuals:

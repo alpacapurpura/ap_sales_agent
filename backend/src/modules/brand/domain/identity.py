@@ -1,28 +1,19 @@
-"""Brand identity value objects."""
+"""Brand identity value objects.
+
+``business_types`` was removed from this model in Sprint 2026-04-20 and
+migrated to the ``tenant_profile`` bounded context (``TenantProfile`` aggregate,
+``tenant_profiles`` table). Consumers that previously read
+``BrandIdentity.business_types`` must switch to the port at
+``shared/links/ports/tenant_profile.py``.
+
+Migration 052 backfills the data; migration 053 strips the stale JSONB key.
+"""
 
 from typing import Any
 
-from pydantic import ConfigDict, Field, field_validator
+from pydantic import ConfigDict, Field
 
 from src.shared.domain.base_entity import BaseEntity
-from src.shared.domain.expert_business_type import ExpertBusinessType
-
-# Legacy → canonical business_types remapping. The enum evolved during
-# Sprint 11 (pre-Latam) and Sprint 12 (post-expansion). Tenants whose
-# config_json was saved under the legacy vocabulary must still load
-# without raising — the validator maps old values, drops unknowns.
-#
-# When this table converges to empty + a data migration clears the DB,
-# remove the entire normalization block. Keeping it longer than one
-# release cycle is acceptable as a defence-in-depth against unseen
-# snapshots.
-_LEGACY_BUSINESS_TYPE_ALIASES: dict[str, str] = {
-    "consultor_asesor": ExpertBusinessType.CONSULTOR_PROFESIONAL.value,
-    "educador_infoproductor": ExpertBusinessType.ACADEMIA_INFOPRODUCTOR.value,
-    "creador_contenido": ExpertBusinessType.ACADEMIA_INFOPRODUCTOR.value,
-    # Add future renames here. Unknown values fall through to the `None`
-    # branch in the validator and are dropped silently.
-}
 
 
 class BrandVisuals(BaseEntity):
@@ -86,56 +77,21 @@ class BrandIdentity(BaseEntity):
     """Represent the core identity of the brand.
 
     Visual aspects are delegated to BrandVisuals.
+
+    Note: ``business_types`` is NOT part of this model (removed Sprint 2026-04-20).
+    It lives in ``TenantProfile`` (``tenant_profiles`` table). Read it via
+    ``shared/links/ports/tenant_profile.get_tenant_business_types()``.
     """
 
     # --- Identity ---
     brand_name: str | None = Field(None, description="The name of the brand.")
     industry: str | None = Field(
         None,
-        description="Free-text sub-niche (e.g. 'yoga', 'finanzas personales'). "
-        "Complements ``business_types`` — does not replace it.",
-    )
-    business_types: list[ExpertBusinessType] = Field(
-        default_factory=list,
         description=(
-            "Multi-select: the kinds of expert business this tenant runs. "
-            "Captured in Brand Studio onboarding, editable in general settings. "
-            "Drives format suitability in the Offer Studio wizard."
+            "Free-text sub-niche (e.g. 'yoga', 'finanzas personales'). "
+            "Describes the niche; operational classification lives in TenantProfile."
         ),
     )
-
-    @field_validator("business_types", mode="before")
-    @classmethod
-    def _normalise_business_types(cls, value: object) -> list[str] | object:
-        """Remap legacy strings and drop unknowns on read.
-
-        Tenants whose ``config_json`` was saved with the pre-Sprint-11
-        vocabulary (``consultor_asesor``, ``educador_infoproductor``,
-        ``creador_contenido``) would otherwise fail enum validation and
-        break every brand-settings read. We translate known legacy values
-        to their current canonical form and silently drop anything else
-        so the onboarding dialog can still load + let the tenant re-save
-        a clean list.
-
-        Values that are already canonical pass through untouched.
-        """
-        if not isinstance(value, list):
-            return value
-        valid = {member.value for member in ExpertBusinessType}
-        cleaned: list[str] = []
-        for raw in value:
-            if not isinstance(raw, str):
-                continue
-            if raw in valid:
-                cleaned.append(raw)
-                continue
-            aliased = _LEGACY_BUSINESS_TYPE_ALIASES.get(raw)
-            if aliased is not None and aliased not in cleaned:
-                cleaned.append(aliased)
-            # Silent drop for unknowns — we prefer a partial load to a
-            # crashed onboarding flow.
-        return cleaned
-
     tagline: str | None = Field(None, description="Brand tagline or slogan.")
     description: str | None = Field(
         None,

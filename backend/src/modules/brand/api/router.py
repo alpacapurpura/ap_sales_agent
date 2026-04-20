@@ -1,10 +1,20 @@
-"""Brand API router."""
+"""Brand API router.
 
-from typing import Annotated
+Note on ``business_types``:
+  The field was removed from ``BrandIdentity`` in Sprint 2026-04-20 and moved
+  to the ``tenant_profile`` bounded context. PATCH /api/v1/brand/settings now
+  actively rejects payloads containing ``identity.business_types`` with 400 to
+  surface the migration to frontend callers early (§3.4 of tenant-profile
+  CONTRACT.md). Read/write business_types via PATCH /api/v1/tenant/profile.
+"""
+
+from __future__ import annotations
+
+from typing import Annotated, Any
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.orm import Session  # noqa: TC002 — FastAPI needs runtime type for Annotated Depends
 
 from src.core.database import get_db
 from src.modules.brand.domain import BrandSettings
@@ -12,19 +22,44 @@ from src.modules.brand.infrastructure.repositories.brand_repository import (
     BrandRepository,
 )
 from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
+from src.modules.iam.domain.user import User  # noqa: TC001 — FastAPI needs runtime type for Annotated Depends
 
 logger = structlog.get_logger()
 
 router = APIRouter()
 
 
-@router.get("")
+def _reject_business_types_in_payload(raw: dict[str, Any]) -> None:
+    """Raise 400 if the raw payload contains ``identity.business_types``.
+
+    Called before Pydantic validation because Pydantic's ``extra="allow"``
+    would silently accept and then discard the key — the caller would not
+    receive feedback that they are using a deprecated code path.
+    """
+    identity = raw.get("identity")
+    if isinstance(identity, dict) and "business_types" in identity:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "field_moved",
+                "message": (
+                    "business_types must be updated via "
+                    "PATCH /api/v1/tenant/profile — it is no longer part of brand settings."
+                ),
+            },
+        )
+
+
+@router.get("", response_model=BrandSettings)
 async def get_brand_settings(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> BrandSettings:
-    """Get Global Brand Settings for the user's tenant."""
+    """Get Global Brand Settings for the user's tenant.
+
+    Note: ``identity.business_types`` is NOT returned — it was moved to
+    ``GET /api/v1/tenant/profile``.
+    """
     if not current_user.tenant_id:
         logger.error(
             "get_brand_settings_error",
@@ -58,18 +93,28 @@ async def get_brand_settings(
     return settings
 
 
-@router.patch("")
+@router.patch("", response_model=BrandSettings)
 async def update_brand_settings(
-    settings: BrandSettings,
+    request: Request,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> BrandSettings:
-    """Update Global Brand Settings for the user's tenant."""
+    """Update Global Brand Settings for the user's tenant.
+
+    Rejects payloads that include ``identity.business_types`` with a 400 error
+    and a hint pointing to the new endpoint.
+    """
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=400,
             detail="User is not associated with a tenant",
         )
+
+    raw: dict[str, Any] = await request.json()
+    _reject_business_types_in_payload(raw)
+
+    # Re-parse into BrandSettings after rejection check.
+    settings = BrandSettings.model_validate(raw)
 
     repo = BrandRepository(db)
 
