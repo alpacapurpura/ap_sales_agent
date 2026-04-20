@@ -3,8 +3,8 @@ import { Sparkles } from "lucide-react";
 import { BusinessTypesOnboardingClient } from "./BusinessTypesOnboardingClient";
 
 interface OnboardingPerfilNegocioPageProps {
-  params: { tenantId: string };
-  searchParams: { returnTo?: string };
+  params: Promise<{ tenantId: string }>;
+  searchParams: Promise<{ returnTo?: string }>;
 }
 
 /**
@@ -18,11 +18,13 @@ interface OnboardingPerfilNegocioPageProps {
  *
  * CONTRACT §6.3 — onboarding/perfil-negocio/page.tsx
  */
-export default function OnboardingPerfilNegocioPage({
+export default async function OnboardingPerfilNegocioPage({
   params,
   searchParams,
 }: OnboardingPerfilNegocioPageProps) {
-  const returnTo = searchParams.returnTo ?? `/${params.tenantId}/overview`;
+  const { tenantId } = await params;
+  const { returnTo: returnToParam } = await searchParams;
+  const returnTo = returnToParam ?? `/${tenantId}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 flex items-center justify-center p-6">
@@ -45,7 +47,7 @@ export default function OnboardingPerfilNegocioPage({
         </div>
 
         {/* Interactive selector + CTA (client component) */}
-        <BusinessTypesOnboardingClient tenantId={params.tenantId} returnTo={returnTo} />
+        <BusinessTypesOnboardingClient tenantId={tenantId} returnTo={returnTo} />
       </div>
     </div>
   );

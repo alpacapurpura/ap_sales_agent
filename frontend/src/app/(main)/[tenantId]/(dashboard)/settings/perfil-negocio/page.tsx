@@ -3,7 +3,7 @@ import { fetchTenantProfileServer } from "@/features/tenant-profile/api/tenant-p
 import { PerfilNegocioSettingsClient } from "./PerfilNegocioSettingsClient";
 
 interface PerfilNegocioPageProps {
-  params: { tenantId: string };
+  params: Promise<{ tenantId: string }>;
 }
 
 /**
@@ -15,7 +15,8 @@ interface PerfilNegocioPageProps {
  * CONTRACT §6.3 — settings/perfil-negocio/page.tsx
  */
 export default async function PerfilNegocioPage({ params }: PerfilNegocioPageProps) {
-  const profile = await fetchTenantProfileServer(params.tenantId);
+  const { tenantId } = await params;
+  const profile = await fetchTenantProfileServer(tenantId);
 
   return (
     <div className="space-y-6 p-6 max-w-3xl">
