@@ -39,7 +39,12 @@ depend on two or three axes.
 
 | Axis | Backend SSoT | API endpoint | Frontend hook |
 |---|---|---|---|
-| **ExpertBusinessType** | `backend/src/shared/domain/expert_business_type.py` | `GET /api/v1/brand/expert-business-types/catalog` | `useExpertBusinessTypesCatalog` |
+| **ExpertBusinessType** | `backend/src/shared/domain/expert_business_type.py` | `GET /api/v1/catalogs/business-types` | `useBusinessTypesCatalog` (in `features/tenant-profile`) |
+
+> **Tenant-declared value:** the per-tenant `business_types` list no longer
+> lives on `BrandIdentity`. Since 2026-04-20 it belongs to the `tenant_profile`
+> bounded context. Read it via the port `src.shared.links.ports.tenant_profile`
+> or the frontend hook `useTenantProfile`. See `docs/domains/tenant-profile/`.
 | **OfferValueLevel** | `backend/src/modules/offer/domain/value_level_catalog.py` | `GET /api/v1/offer/value-levels/catalog` | `useValueLevelCatalog` / `useValueLevelMetadata` |
 | **SectionCatalog** | `backend/src/modules/offer/domain/section_catalog.py` | `GET /api/v1/offer/archetypes/catalog` (extended) | `useSectionCatalog` / `useSectionMetadata` |
 | **VariantStructure** | `backend/src/modules/offer/domain/variant_structure_catalog.py` | `GET /api/v1/offer/variant-structures/catalog` | `useVariantStructureCatalog` / `useVariantStructureMetadata` (Sprint 8) |
