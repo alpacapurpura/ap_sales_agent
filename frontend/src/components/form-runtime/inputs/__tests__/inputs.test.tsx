@@ -40,16 +40,19 @@ describe("TextInput", () => {
 });
 
 describe("TextareaInput", () => {
-  it("renders with the rows from schema", () => {
+  it("renders the value and emits onChange (auto-resize via react-textarea-autosize)", () => {
+    const onChange = vi.fn();
     render(
       <TextareaInput
         field={textField({ type: "textarea", rows: 5 })}
         value="body"
-        onChange={vi.fn()}
+        onChange={onChange}
       />,
     );
     const ta = screen.getByDisplayValue("body");
-    expect(ta.getAttribute("rows")).toBe("5");
+    expect(ta.tagName).toBe("TEXTAREA");
+    expect(ta.className).toContain("resize-none");
+    expect(ta.className).toContain("overflow-hidden");
   });
 });
 

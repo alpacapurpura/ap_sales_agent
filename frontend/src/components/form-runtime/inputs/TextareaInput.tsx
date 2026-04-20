@@ -1,11 +1,14 @@
 "use client";
 
-import { Textarea } from "@/components/ui/textarea";
+import { InlineEditableTextarea } from "@/components/ui/inline-editable";
 
 import type { BaseInputProps } from "./types";
 
 /**
- *
+ * Multi-line text field rendered as an InlineEditable textarea with
+ * auto-resize (`react-textarea-autosize`). The textarea grows with the
+ * content so long fields (historia, origen, dolor) read entirely without
+ * internal scrollbars.
  */
 export function TextareaInput({
   field,
@@ -16,13 +19,13 @@ export function TextareaInput({
   onBlur,
 }: BaseInputProps<string>) {
   return (
-    <Textarea
+    <InlineEditableTextarea
       id={field.id}
       value={value ?? ""}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={onChange}
       onBlur={onBlur}
       placeholder={field.placeholder}
-      rows={field.rows ?? 3}
+      minRows={field.rows ?? 2}
       disabled={disabled}
       autoFocus={autoFocus}
       aria-required={field.required}

@@ -25,7 +25,7 @@ describe("FieldRenderer", () => {
       />,
     );
     const ta = screen.getByDisplayValue("body");
-    expect(ta.getAttribute("rows")).toBe("2");
+    expect(ta.tagName).toBe("TEXTAREA");
   });
 
   it("dispatches to NumberInput for type=number", () => {

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>Brand Studio — Finder Navigation — Propuestas</title>
+<link rel="stylesheet" href="_shared.css"/>
+<style>
+  body { padding: 48px; max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: -0.02em; }
+  h1 .muted { font-weight: 300; }
+  .intro { color: hsl(var(--muted-foreground)); margin-bottom: 36px; max-width: 720px; line-height: 1.6; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .card { border: 1px solid hsl(var(--border)); border-radius: 10px; padding: 24px; background: hsl(var(--card)); transition: transform 0.15s, border-color 0.15s; display: block; }
+  .card:hover { transform: translateY(-2px); border-color: hsl(var(--brand) / 0.6); }
+  .card .tag { font-size: 11px; color: hsl(var(--brand)); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+  .card h2 { font-size: 18px; margin: 6px 0 8px; letter-spacing: -0.01em; }
+  .card p { color: hsl(var(--muted-foreground)); font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
+  .card ul { list-style: none; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .card ul li { padding: 3px 0; }
+  .card ul li::before { content: "→ "; color: hsl(var(--brand)); }
+  .issues { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 10px; padding: 20px 24px; margin-bottom: 36px; }
+  .issues h3 { font-size: 13px; color: hsl(var(--muted-foreground)); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .issues ol { padding-left: 20px; font-size: 13px; color: hsl(var(--muted-foreground)); line-height: 1.7; }
+  .issues ol li b { color: hsl(var(--foreground)); }
+</style>
+</head>
+<body>
+
+<h1>Brand Studio <span class="muted">· Navegación estilo Finder</span></h1>
+<p class="intro">Screenshot actual muestra 3 columnas con jerarquía pero sin cohesión visual: anchos dispares, col2 parece tarjeta flotante, sin breadcrumb, sin chevrones, sin gradiente de profundidad. 4 propuestas exploran cómo traer el modelo Finder de macOS —cada columna es un nivel jerárquico claro— sin romper deep-linking ni URLs actuales.</p>
+
+<div class="issues">
+  <h3>Diagnóstico del estado actual</h3>
+  <ol>
+    <li><b>Anchos dispares:</b> col1=240px, col2=320px, col3=flex — las 3 no se sienten parte del mismo sistema.</li>
+    <li><b>Col2 envuelta en <code>rounded-md border</code></b> — parece card flotante dentro de una columna, no una columna más.</li>
+    <li><b>Header separa del split</b> — "Posicionamiento · Brand Love Key…" corta la jerarquía en vez de reforzarla.</li>
+    <li><b>Preview multi-línea compite con título</b> — Finder usa 1 línea, label dominante.</li>
+    <li><b>Sin chevrones</b> que indiquen "este ítem tiene sub-nivel".</li>
+    <li><b>Sin gradiente de profundidad</b> — Finder diferencia columnas con tonos sutiles de fondo.</li>
+    <li><b>Sin breadcrumb</b> — el usuario pierde el rastro cuando col3 aparece.</li>
+  </ol>
+</div>
+
+<div class="grid">
+  <a href="option-a-enhanced.html" class="card" style="border-color: hsl(var(--brand) / 0.6); background: color-mix(in hsl, hsl(var(--card)) 90%, hsl(var(--brand)) 10%);">
+    <span class="tag">Opción A+ · ★ Singletons (identidad, posicionamiento, narrativa…)</span>
+    <h2>Finder 3-col · inline editor · reco abajo colapsable · grid multi-campo</h2>
+    <p>Para secciones con un conjunto fijo de campos. Editor full-width left-aligned, grid responsive (1/2/3 col según ancho). Recomendaciones colapsables abajo.</p>
+    <ul>
+      <li>Editor full-width sin max-width, grid se adapta al viewport</li>
+      <li>Campos cortos (text/url/enum) pueden ir lado a lado automáticamente</li>
+      <li>Textareas auto-grow, historia se lee sin scroll interno</li>
+      <li>Demo "Identidad" muestra grid multi-campo en acción</li>
+    </ul>
+  </a>
+
+  <a href="option-a-personas.html" class="card" style="border-color: hsl(var(--brand) / 0.6); background: color-mix(in hsl, hsl(var(--card)) 90%, hsl(var(--brand)) 10%);">
+    <span class="tag">Opción A+ · ★ Colecciones (buyer personas, equipo, testimonios…)</span>
+    <h2>Finder 4-col · extra columna de instancias · mismo editor + reco</h2>
+    <p>Extensión del patrón para secciones tipo colección. Inserta columna extra entre Secciones y Campos para elegir qué instancia (persona, miembro, testimonio) estás editando. Jerarquía se mantiene.</p>
+    <ul>
+      <li>Copilot recibe contexto completo de la instancia (sugerencias más finas)</li>
+      <li>CTA "Crear nueva persona" siempre visible en top de la columna</li>
+      <li>Status bar por instancia muestra completitud</li>
+      <li>Route uniforme: /brand-studio/{section}/instance/{id}/{field}</li>
+    </ul>
+  </a>
+
+  <a href="option-a-classic.html" class="card">
+    <span class="tag">Opción A · Base</span>
+    <h2>Finder Clásico · 3 columnas homogéneas</h2>
+    <p>3 columnas iguales (260 / 340 / flex) con gradiente de profundidad, chevrones ">", breadcrumb en topbar, dots de estado. Solo el layout — sin refactor del editor.</p>
+    <ul>
+      <li>Respeta URLs actuales /brand-studio/{section}/{fieldId}</li>
+      <li>Cambio más liviano — solo layout + tokens</li>
+      <li>Breadcrumb reemplaza SessionHeader</li>
+    </ul>
+  </a>
+
+  <a href="option-b-preview.html" class="card">
+    <span class="tag">Opción B · Pro</span>
+    <h2>Finder + Preview Pane · 4 columnas</h2>
+    <p>Finder puro de Mac: col1=secciones, col2=ítems, col3=preview read-only rápido, col4=editor cuando haces click en "Editar". Scaneás sin abrir el teclado.</p>
+    <ul>
+      <li>Scan > edit — útil cuando tenés 40 ítems por sección</li>
+      <li>Edit mode es un paso explícito</li>
+      <li>Más ancho — ideal para pantallas ≥ 1440px</li>
+    </ul>
+  </a>
+
+  <a href="option-c-rail-tree.html" class="card">
+    <span class="tag">Opción C · Compacto</span>
+    <h2>Icon Rail + Tree expandible</h2>
+    <p>Col1 colapsa a rail de 64px (solo iconos), col2 tree explorable N-level (secciones abren sub-items inline con chevrón que rota), col3 editor. Escala cuando agregás buyer-personas nested.</p>
+    <ul>
+      <li>Maximiza ancho del editor</li>
+      <li>Permite nesting profundo (persona → dolores → subdolor)</li>
+      <li>Icon-rail con tooltip hover</li>
+    </ul>
+  </a>
+
+  <a href="option-d-palette.html" class="card">
+    <span class="tag">Opción D · Power user</span>
+    <h2>Command Palette + Editor focused</h2>
+    <p>Col1 permanece, col2 se convierte en palette buscable (Cmd+K), col3 es editor. Power users saltan en 2 keystrokes. La jerarquía se comunica por filtros/breadcrumb arriba del editor.</p>
+    <ul>
+      <li>Búsqueda global > navegación manual</li>
+      <li>2 columnas efectivas — editor respira</li>
+      <li>Requiere usuario familiarizado</li>
+    </ul>
+  </a>
+</div>
+
+<p style="margin-top: 48px; color: hsl(var(--muted-foreground)); font-size: 12px;">Abrí cada opción, navegá entre ítems (Posicionamiento > Propuesta de valor única), y volvé con el switcher abajo.<br>En <b>A+</b> probá las tabs <b>UVP (corto) / Historia (largo) / Campo vacío</b> — verás cómo el textbox crece y se convierte en preview al perder focus.</p>
+
+</body>
+</html>

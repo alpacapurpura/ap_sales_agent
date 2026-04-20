@@ -1,11 +1,11 @@
-import { BuyerPersonasDashboard } from "@/features/brand-studio/components/dashboard/BuyerPersonasDashboard";
+import { BuyerPersonasLandingPage } from "@/features/brand-studio/pages/BuyerPersonasLandingPage";
 
 /**
- * Buyer personas studio. Server Component that delegates to the dashboard
- * client component (list + create flow + start-interview wiring).
- *
- * Route: /{tenantId}/brand-studio/publico
+ * Buyer personas landing — shows the BuyerPersonaInstancePicker (col 2) plus
+ * a welcome pane. Selecting or creating a persona routes to
+ * /{tenantId}/brand-studio/publico/persona/{id}, where the 4-column Finder
+ * layout activates (PersonaDetailPage).
  */
 export default function BrandStudioPublicoPage() {
-  return <BuyerPersonasDashboard />;
+  return <BuyerPersonasLandingPage />;
 }

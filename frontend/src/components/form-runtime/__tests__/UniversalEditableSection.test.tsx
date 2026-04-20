@@ -16,7 +16,6 @@ const SCHEMA: SectionSchema = {
   ],
 };
 
-// URL builder used in tests — mimics the real brand-studio route contract.
 function sectionHref(fieldId: string | null): string {
   return fieldId === null ? "/t/section" : `/t/section/${fieldId}`;
 }
@@ -36,7 +35,7 @@ describe("UniversalEditableSection", () => {
     vi.useRealTimers();
   });
 
-  it("renders section title, description and all field labels in the list", () => {
+  it("renders the section title as FinderColumn heading", () => {
     render(
       <UniversalEditableSection
         schema={SCHEMA}
@@ -46,24 +45,22 @@ describe("UniversalEditableSection", () => {
         getFieldHref={sectionHref}
       />,
     );
-    expect(screen.getByRole("heading", { name: "Identidad" })).toBeTruthy();
-    expect(screen.getByText(/cimientos/i)).toBeTruthy();
-    expect(screen.getByRole("option", { name: /Nombre/ })).toBeTruthy();
-    expect(screen.getByRole("option", { name: /Tagline/ })).toBeTruthy();
-    expect(screen.getByRole("option", { name: /Misión/ })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /Identidad/i })).toBeTruthy();
   });
 
-  it("shows completeness chip (filled / total)", () => {
+  it("lists every field in the FieldList column", () => {
     render(
       <UniversalEditableSection
         schema={SCHEMA}
-        values={{ name: "Visionarias", tagline: "hola", mission: "" }}
+        values={{ name: "Visionarias", tagline: "", mission: "" }}
         onSave={vi.fn().mockResolvedValue(undefined)}
         activeFieldId={null}
         getFieldHref={sectionHref}
       />,
     );
-    expect(screen.getByLabelText(/2 de 3 campos completos/i)).toBeTruthy();
+    expect(screen.getByRole("option", { name: /Nombre/ })).toBeTruthy();
+    expect(screen.getByRole("option", { name: /Tagline/ })).toBeTruthy();
+    expect(screen.getByRole("option", { name: /Misión/ })).toBeTruthy();
   });
 
   it("renders Cargando… when isLoading or values are missing", () => {
@@ -91,7 +88,7 @@ describe("UniversalEditableSection", () => {
     expect(screen.getByText(/Cargando/i)).toBeTruthy();
   });
 
-  it("renders the field matching activeFieldId in the detail pane", () => {
+  it("renders ALL fields inside the editor grid (not just the active one)", () => {
     render(
       <UniversalEditableSection
         schema={SCHEMA}
@@ -101,23 +98,12 @@ describe("UniversalEditableSection", () => {
         getFieldHref={sectionHref}
       />,
     );
-    expect(screen.getByDisplayValue("b")).toBeTruthy();
-  });
-
-  it("falls back to the first schema field when activeFieldId is null", () => {
-    render(
-      <UniversalEditableSection
-        schema={SCHEMA}
-        values={{ name: "a", tagline: "b", mission: "c" }}
-        onSave={vi.fn().mockResolvedValue(undefined)}
-        activeFieldId={null}
-        getFieldHref={sectionHref}
-      />,
-    );
     expect(screen.getByDisplayValue("a")).toBeTruthy();
+    expect(screen.getByDisplayValue("b")).toBeTruthy();
+    expect(screen.getByDisplayValue("c")).toBeTruthy();
   });
 
-  it("renders rows as Next.js Links pointing at the consumer-provided href", () => {
+  it("renders field rows as Next.js Links pointing at the consumer-provided href", () => {
     render(
       <UniversalEditableSection
         schema={SCHEMA}
@@ -154,5 +140,44 @@ describe("UniversalEditableSection", () => {
     });
 
     expect(onSave).toHaveBeenCalledWith({ name: "new", tagline: "t", mission: "m" });
+  });
+
+  it("shows the Recomendaciones collapsible panel", () => {
+    render(
+      <UniversalEditableSection
+        schema={SCHEMA}
+        values={{ name: "a", tagline: "b", mission: "c" }}
+        onSave={vi.fn().mockResolvedValue(undefined)}
+        activeFieldId="name"
+        getFieldHref={sectionHref}
+      />,
+    );
+    expect(screen.getByText(/Recomendaciones/i)).toBeTruthy();
+  });
+
+  it("shows the Siguiente vacío CTA when a field is empty", () => {
+    render(
+      <UniversalEditableSection
+        schema={SCHEMA}
+        values={{ name: "a", tagline: "b", mission: "" }}
+        onSave={vi.fn().mockResolvedValue(undefined)}
+        activeFieldId="name"
+        getFieldHref={sectionHref}
+      />,
+    );
+    expect(screen.getByText(/Siguiente vacío/i)).toBeTruthy();
+  });
+
+  it("shows Sección completa when every field is filled", () => {
+    render(
+      <UniversalEditableSection
+        schema={SCHEMA}
+        values={{ name: "a", tagline: "b", mission: "c" }}
+        onSave={vi.fn().mockResolvedValue(undefined)}
+        activeFieldId="name"
+        getFieldHref={sectionHref}
+      />,
+    );
+    expect(screen.getByText(/Sección completa/i)).toBeTruthy();
   });
 });

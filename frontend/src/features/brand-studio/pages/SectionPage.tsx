@@ -16,8 +16,6 @@ export interface SectionPageProps<TSlice extends object> {
   onSave: (next: TSlice) => Promise<void>;
   /** Forwarded to the runtime's loading state. */
   isLoading?: boolean;
-  /** Optional CTA to invoke a guided copilot interview. */
-  onStartInterview?: () => void;
   className?: string;
 }
 
@@ -37,7 +35,6 @@ export function SectionPage<TSlice extends object>({
   values,
   onSave,
   isLoading,
-  onStartInterview,
   className,
 }: SectionPageProps<TSlice>) {
   const { activeFieldId, getFieldHref } = useBrandStudioFieldRouting(sectionSlug);
@@ -50,7 +47,6 @@ export function SectionPage<TSlice extends object>({
       isLoading={isLoading}
       activeFieldId={activeFieldId}
       getFieldHref={getFieldHref}
-      onStartInterview={onStartInterview}
       className={className}
     />
   );

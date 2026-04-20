@@ -5,11 +5,13 @@
  */
 
 import type {
+  FieldLayout,
   FieldOwner,
   FieldSchema,
   FieldType,
   ItemSchema,
   SaveMode,
+  SectionKind,
   SectionScope,
   SectionSchema,
 } from "./types";
@@ -48,6 +50,17 @@ const VALID_SECTION_SCOPES: ReadonlySet<SectionScope> = new Set<SectionScope>([
 
 const VALID_FIELD_OWNERS: ReadonlySet<FieldOwner> = new Set<FieldOwner>(["offer", "edition"]);
 
+const VALID_FIELD_LAYOUTS: ReadonlySet<FieldLayout> = new Set<FieldLayout>([
+  "full",
+  "half",
+  "two-thirds",
+]);
+
+const VALID_SECTION_KINDS: ReadonlySet<SectionKind> = new Set<SectionKind>([
+  "singleton",
+  "collection",
+]);
+
 function assertBaseFieldShape(field: FieldSchema, loc: string): void {
   if (!field.id || typeof field.id !== "string") {
     throw new SchemaParseError(`${loc}: field.id is required and must be a non-empty string`);
@@ -66,6 +79,9 @@ function assertBaseFieldShape(field: FieldSchema, loc: string): void {
   }
   if (field.owner !== undefined && !VALID_FIELD_OWNERS.has(field.owner)) {
     throw new SchemaParseError(`${loc}: invalid field.owner "${field.owner}"`);
+  }
+  if (field.layout !== undefined && !VALID_FIELD_LAYOUTS.has(field.layout)) {
+    throw new SchemaParseError(`${loc}: invalid field.layout "${field.layout}"`);
   }
 }
 
@@ -159,21 +175,13 @@ function assertUniqueIds(fields: FieldSchema[], context: string): void {
   }
 }
 
-/**
- * Validates a SectionSchema is well-formed. Returns the input unchanged on
- * success. Throws SchemaParseError on the first violation.
- */
-export function parseSectionSchema(schema: SectionSchema): SectionSchema {
+function validateSectionRootShape(schema: SectionSchema): void {
   if (!schema || typeof schema !== "object") {
     throw new SchemaParseError("schema must be an object");
   }
   if (!schema.key || typeof schema.key !== "string") {
     throw new SchemaParseError("schema.key is required and must be a non-empty string");
   }
-  // title + description are optional (resolved from the backend catalog
-  // for offer-studio schemas via titleOverride/descriptionOverride props
-  // on UniversalEditableSection). When present on legacy consumers
-  // they must still be strings.
   if (schema.title !== undefined && typeof schema.title !== "string") {
     throw new SchemaParseError(`[${schema.key}]: schema.title must be a string when provided`);
   }
@@ -185,9 +193,30 @@ export function parseSectionSchema(schema: SectionSchema): SectionSchema {
   if (!Array.isArray(schema.fields) || schema.fields.length === 0) {
     throw new SchemaParseError(`[${schema.key}]: schema must declare at least one field`);
   }
+}
+
+function validateSectionKind(schema: SectionSchema): void {
   if (schema.scope !== undefined && !VALID_SECTION_SCOPES.has(schema.scope)) {
     throw new SchemaParseError(`[${schema.key}]: invalid schema.scope "${schema.scope}"`);
   }
+  if (schema.kind !== undefined && !VALID_SECTION_KINDS.has(schema.kind)) {
+    throw new SchemaParseError(`[${schema.key}]: invalid schema.kind "${schema.kind}"`);
+  }
+  if (schema.kind === "collection" && !schema.instanceDisplay) {
+    throw new SchemaParseError(`[${schema.key}]: collection schemas must declare instanceDisplay`);
+  }
+  if (schema.instanceDisplay && !schema.instanceDisplay.primary) {
+    throw new SchemaParseError(`[${schema.key}]: instanceDisplay.primary is required`);
+  }
+}
+
+/**
+ * Validates a SectionSchema is well-formed. Returns the input unchanged on
+ * success. Throws SchemaParseError on the first violation.
+ */
+export function parseSectionSchema(schema: SectionSchema): SectionSchema {
+  validateSectionRootShape(schema);
+  validateSectionKind(schema);
 
   const context = `[${schema.key}]`;
   assertUniqueIds(schema.fields, context);

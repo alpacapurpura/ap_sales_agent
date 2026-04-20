@@ -1,11 +1,12 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
+import { InlineEditableInput } from "@/components/ui/inline-editable";
 
 import type { BaseInputProps } from "./types";
 
 /**
- *
+ * Single-line text field rendered as an InlineEditable input — seamless
+ * chrome by default, full chrome on focus.
  */
 export function TextInput({
   field,
@@ -16,11 +17,10 @@ export function TextInput({
   onBlur,
 }: BaseInputProps<string>) {
   return (
-    <Input
+    <InlineEditableInput
       id={field.id}
-      type="text"
       value={value ?? ""}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={onChange}
       onBlur={onBlur}
       placeholder={field.placeholder}
       disabled={disabled}

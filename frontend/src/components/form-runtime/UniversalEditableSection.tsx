@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { FieldContextPanel } from "./FieldContextPanel";
 import { FieldDetail } from "./FieldDetail";
 import { FieldList } from "./FieldList";
+import { FinderColumn } from "./FinderColumn";
 import { FormRuntimeProvider } from "./FormRuntimeProvider";
-import { SessionHeader } from "./SessionHeader";
+import { NextEmptyFieldCta } from "./NextEmptyFieldCta";
 
 import type { SaveMode, SectionSchema } from "@/lib/form-runtime/schema";
 
@@ -19,7 +21,8 @@ export interface UniversalEditableSectionProps<TValues extends object> {
   onSave: (next: TValues) => Promise<void>;
   /**
    * Currently-active field id. Driven by the URL — the consumer page reads
-   * it from route params and passes it down.
+   * it from route params and passes it down. Used for scroll-into-view +
+   * focus. When null, the editor falls back to the first field.
    */
   activeFieldId: string | null;
   /**
@@ -30,26 +33,28 @@ export interface UniversalEditableSectionProps<TValues extends object> {
   getFieldHref: (fieldId: string | null) => string;
   isLoading?: boolean;
   saveMode?: SaveMode;
-  onStartInterview?: () => void;
   /**
    * Section title resolved from backend catalog. Preferred over
    * ``schema.title`` so the copy stays in a single source of truth.
    * Falls back to ``schema.title`` when omitted.
    */
   titleOverride?: string;
-  /** Section description resolved from backend catalog. Same contract as titleOverride. */
+  /** Section description resolved from backend catalog. Same contract. */
   descriptionOverride?: string;
+  /**
+   * Optional leading node rendered between the sections rail and the fields
+   * column — used by collection sections (buyer personas, team, …) to slot
+   * in the 280px instance picker.
+   */
+  instanceColumn?: React.ReactNode;
   className?: string;
 }
 
 /**
- * Top-level consumer API. Wraps FormRuntimeProvider + variant-C layout
- * (list + detail pane). Mobile collapses detail into a full-screen view
- * when a field is active in the URL.
- *
- * URL contract: routing is the single source of truth for which field is
- * active. This component owns no `activeFieldId` state; the page above
- * extracts it from route params and passes it via props.
+ * Finder-style section editor: fields column + editor grid + collapsible
+ * recommendations panel. Mobile (<768px) collapses to list-or-editor view
+ * based on ``activeFieldId``. Dimensions locked by
+ * docs/ux-sessions/2026-04-20-brand-studio-finder-nav/UI-SPEC-locked-dimensions.md.
  */
 export function UniversalEditableSection<TValues extends object>({
   schema,
@@ -59,9 +64,9 @@ export function UniversalEditableSection<TValues extends object>({
   getFieldHref,
   isLoading,
   saveMode,
-  onStartInterview,
   titleOverride,
   descriptionOverride,
+  instanceColumn,
   className,
 }: UniversalEditableSectionProps<TValues>) {
   const [isMobile, setIsMobile] = useState(false);
@@ -78,6 +83,8 @@ export function UniversalEditableSection<TValues extends object>({
   if (isLoading || !values) {
     return (
       <div
+        aria-busy
+        aria-label={titleOverride ?? schema.title ?? "Cargando"}
         className={cn(
           "flex items-center justify-center p-8 text-sm text-muted-foreground",
           className,
@@ -88,34 +95,44 @@ export function UniversalEditableSection<TValues extends object>({
     );
   }
 
-  // Mobile: show list view when no field is selected; full-screen detail when one is.
+  const fieldsTitle = titleOverride ?? schema.title ?? "Campos";
   const showDetail = !isMobile || activeFieldId !== null;
   const showList = !isMobile || activeFieldId === null;
+  const firstField = schema.fields[0];
+  const resolvedActiveId = activeFieldId ?? firstField?.id ?? null;
+  const effectiveDescription = descriptionOverride ?? schema.description;
+  void effectiveDescription; // surfaced via FieldContextPanel metadata later
 
   return (
     <FormRuntimeProvider schema={schema} initialValues={values} onSave={onSave} saveMode={saveMode}>
-      <div className={cn("flex flex-col", className)}>
-        <SessionHeader
-          onStartInterview={onStartInterview}
-          titleOverride={titleOverride}
-          descriptionOverride={descriptionOverride}
-        />
-        <div className="flex flex-1 flex-col md:flex-row">
-          {showList && (
-            <div className="w-full border-r md:w-80">
-              <FieldList activeFieldId={activeFieldId} getFieldHref={getFieldHref} />
-            </div>
-          )}
-          {showDetail && (
-            <div className="flex-1">
+      <div className={cn("flex min-h-0 min-w-0 flex-1", className)}>
+        {instanceColumn}
+
+        {showList && (
+          <FinderColumn
+            title={fieldsTitle}
+            count={schema.fields.length}
+            widthClass="w-[var(--brand-col-fields)]"
+            bgClass="bg-muted/10"
+            ariaLabel={`Campos de ${fieldsTitle}`}
+          >
+            <FieldList activeFieldId={resolvedActiveId} getFieldHref={getFieldHref} />
+          </FinderColumn>
+        )}
+
+        {showDetail && (
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="flex min-h-0 flex-1 flex-col bg-card">
               <FieldDetail
-                activeFieldId={activeFieldId}
+                activeFieldId={resolvedActiveId}
                 fullScreen={isMobile}
                 backHref={isMobile ? getFieldHref(null) : undefined}
               />
+              <NextEmptyFieldCta getFieldHref={getFieldHref} />
             </div>
-          )}
-        </div>
+            <FieldContextPanel activeFieldId={resolvedActiveId} />
+          </div>
+        )}
       </div>
     </FormRuntimeProvider>
   );

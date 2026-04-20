@@ -1,9 +1,11 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 
+import { CompletionDot, type CompletionState } from "./CompletionDot";
 import { useFormRuntime } from "./FormRuntimeContext";
 
 import type { FieldSchema } from "@/lib/form-runtime/schema";
@@ -16,15 +18,15 @@ export interface FieldListProps {
 }
 
 /**
- * Left pane — compact list of fields with truncated value preview. Rows are
- * Next.js Links so navigation lives in the URL (deep-linkable, back-button
- * works). The active row is highlighted based on the `activeFieldId` prop.
+ * Flat Finder-style field list: one row per field, completion dot + label +
+ * chevron. Rows are Next.js Links so the active field lives in the URL and
+ * browser back works. Rendered inside a FinderColumn by consumers.
  */
 export function FieldList({ activeFieldId, getFieldHref, className }: FieldListProps) {
   const { schema, values } = useFormRuntime();
 
   return (
-    <ul className={cn("divide-y divide-border rounded-md border", className)} role="listbox">
+    <ul className={cn("flex flex-col", className)} role="listbox">
       {schema.fields.map((field) => (
         <FieldRow
           key={field.id}
@@ -46,6 +48,7 @@ interface FieldRowProps {
 }
 
 function FieldRow({ field, value, isActive, href }: FieldRowProps) {
+  const state: CompletionState = hasValue(value) ? "filled" : "empty";
   return (
     <li>
       <Link
@@ -53,36 +56,24 @@ function FieldRow({ field, value, isActive, href }: FieldRowProps) {
         aria-selected={isActive}
         role="option"
         className={cn(
-          "flex w-full items-start justify-between gap-3 px-4 py-3 text-left text-sm transition-colors",
-          isActive ? "bg-muted" : "hover:bg-muted/50",
+          "relative flex items-center gap-3 border-b border-border/50",
+          "px-[14px] py-[9px] text-[13px] transition-colors",
+          isActive ? "bg-muted/60" : "hover:bg-muted/30",
+          isActive &&
+            "before:absolute before:inset-y-0 before:left-0 before:w-[2px] before:bg-brand",
         )}
       >
-        <div className="min-w-0 flex-1">
-          <div className="font-medium">{field.label}</div>
-          <div className="mt-0.5 truncate text-xs text-muted-foreground">
-            {preview(field, value)}
-          </div>
-        </div>
+        <CompletionDot state={state} />
+        <span className="min-w-0 flex-1 truncate text-foreground">{field.label}</span>
+        <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />
       </Link>
     </li>
   );
 }
 
-function isEmpty(value: unknown): boolean {
-  return value === null || value === undefined || value === "";
-}
-
-function previewArrayCount(value: unknown): string {
-  const count = Array.isArray(value) ? value.length : 0;
-  if (count === 0) return "—";
-  return `${count} ítem${count === 1 ? "" : "s"}`;
-}
-
-function preview(field: FieldSchema, value: unknown): string {
-  if (isEmpty(value)) return field.placeholder ? "" : "—";
-  if (field.type === "boolean") return value ? "Sí" : "No";
-  if (field.type === "array") return previewArrayCount(value);
-  if (typeof value === "string") return value.slice(0, 80);
-  if (typeof value === "number") return String(value);
-  return "";
+function hasValue(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "string") return value.trim() !== "";
+  if (Array.isArray(value)) return value.length > 0;
+  return true;
 }

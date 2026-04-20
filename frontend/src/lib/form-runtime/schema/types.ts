@@ -64,6 +64,47 @@ export interface ItemSchema {
   fields: FieldSchema[];
 }
 
+/**
+ * Grid-column width hint inside the multi-field editor grid. Inferred from
+ * ``type`` when absent (textarea/array/custom → full, rest → half).
+ */
+export type FieldLayout = "full" | "half" | "two-thirds";
+
+/**
+ * One of the optional context blocks shown in the Recommendations panel
+ * below the editor. Every key is optional; the runtime renders only the
+ * blocks that carry data. All additions are backwards-compatible.
+ */
+export interface FieldFormulaHint {
+  /** Rich markup with ``<slot>`` tags wrapped in `.reco-slot` spans. */
+  template: string;
+}
+
+export interface FieldSwipeExample {
+  brand: string;
+  text: string;
+}
+
+export interface FieldDownstreamUse {
+  icon?: string;
+  label: string;
+  href?: string;
+}
+
+export interface FieldRelated {
+  id: string;
+  label: string;
+  state?: CompletionState;
+}
+
+export type CompletionState = "filled" | "partial" | "empty";
+
+export interface FieldLengthHint {
+  min?: number;
+  max?: number;
+  ideal?: [number, number];
+}
+
 export interface FieldSchema {
   id: string;
   label: string;
@@ -90,6 +131,43 @@ export interface FieldSchema {
    * runtime routes saves to the owner's configured mutation.
    */
   owner?: FieldOwner;
+
+  /**
+   * Grid-column hint for the multi-field editor grid. Absent → inferred
+   * from ``type`` (textarea/array/custom → full, rest → half). See
+   * docs/ux-sessions/2026-04-20-brand-studio-finder-nav/UI-SPEC-locked-dimensions.md
+   * §4.
+   */
+  layout?: FieldLayout;
+  /** Optional grouping label used by collection detail pages. */
+  group?: string;
+
+  /** Optional context blocks shown in the Recommendations panel (Capa 3). */
+  formula?: FieldFormulaHint;
+  examples?: FieldSwipeExample[];
+  downstreamUses?: FieldDownstreamUse[];
+  relatedFields?: FieldRelated[];
+  lengthHint?: FieldLengthHint;
+}
+
+/**
+ * Whether the section edits a single document (identity, positioning…) or a
+ * collection of instances (buyer personas, team, testimonials). Collection
+ * sections insert a 280px instance-picker column into the Finder layout.
+ * Defaults to ``singleton`` when unset.
+ */
+export type SectionKind = "singleton" | "collection";
+
+/**
+ * Visual mapping used by the instance-picker column to render each row. All
+ * paths are resolved against the instance object.
+ */
+export interface InstanceDisplay {
+  primary: string;
+  secondary?: string;
+  statusField?: string;
+  avatarHint?: "initial" | "image";
+  createLabel?: string;
 }
 
 export interface SectionSchema {
@@ -117,4 +195,9 @@ export interface SectionSchema {
    * callback).
    */
   scope?: SectionScope;
+
+  /** singleton | collection. Absent ⇒ singleton. */
+  kind?: SectionKind;
+  /** Display config for collection sections (ignored when kind=singleton). */
+  instanceDisplay?: InstanceDisplay;
 }

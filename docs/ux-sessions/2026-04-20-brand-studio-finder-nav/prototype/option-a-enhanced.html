@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>Opción A+ · Finder Clásico + Inline Editor + Recomendaciones colapsables</title>
+<link rel="stylesheet" href="_shared.css"/>
+<style>
+  .col-sections { width: 260px; flex-shrink: 0; }
+  .col-items { width: 320px; flex-shrink: 0; }
+  .col-editor { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  /* Editor area is now VERTICAL: main on top, context below */
+  .editor-wrap { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .editor-main { flex: 1; min-height: 0; overflow-y: auto; padding: 28px 40px 40px; }
+  .editor-main-inner { width: 100%; } /* left-aligned, no max-width */
+
+  /* Multi-field grid: 1 col default, 2 cols ≥900px, 3 cols ≥1500px for `third` fields */
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px 28px;
+  }
+  @media (min-width: 900px) {
+    .field-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1500px) {
+    .field-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  /* width hints per field — overrides grid col span */
+  .field-inline.w-full { grid-column: 1 / -1; }     /* always full row */
+  .field-inline.w-half { grid-column: span 1; }      /* half on 2-col, third on 3-col */
+  @media (min-width: 1500px) {
+    .field-inline.w-half { grid-column: span 1; }    /* no change */
+    .field-inline.w-two-thirds { grid-column: span 2; }
+  }
+
+  /* Inline-editable field */
+  .field-inline { position: relative; margin-bottom: 0; }
+  .field-inline .field-label {
+    display: flex; align-items: baseline; gap: 10px;
+    font-size: 11px; color: hsl(var(--muted-foreground));
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 10px; font-weight: 600;
+  }
+  .field-inline .field-label .required { color: hsl(var(--destructive) / 0.8); }
+  .field-inline .field-label .meta { margin-left: auto; text-transform: none; letter-spacing: normal; font-weight: 400; font-size: 11px; }
+
+  .inline-editable {
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 12px 14px;
+    color: hsl(var(--foreground));
+    font: inherit;
+    font-size: 16px;
+    line-height: 1.65;
+    resize: none;
+    overflow: hidden;
+    transition: background-color 0.12s, border-color 0.12s, box-shadow 0.12s;
+    display: block;
+  }
+  .inline-editable::placeholder {
+    color: hsl(var(--muted-foreground) / 0.7);
+    font-style: italic;
+  }
+  .inline-editable:hover:not(:focus) {
+    background: hsl(var(--muted) / 0.25);
+    border-color: hsl(var(--border));
+    cursor: text;
+  }
+  .inline-editable:focus {
+    background: hsl(var(--background));
+    border-color: hsl(var(--ring) / 0.5);
+    outline: 0;
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.12);
+  }
+  .inline-editable.text-xl { font-size: 22px; line-height: 1.4; font-weight: 500; letter-spacing: -0.01em; }
+  .inline-editable.text-lg { font-size: 18px; line-height: 1.55; }
+
+  .field-hint { font-size: 13px; color: hsl(var(--muted-foreground)); margin: -4px 0 10px 2px; line-height: 1.5; }
+
+  /* ─── RECOMMENDATIONS PANEL (bottom, collapsible) ─────────────────────── */
+  .reco-panel {
+    flex-shrink: 0;
+    border-top: 1px solid hsl(var(--border));
+    background: color-mix(in hsl, hsl(var(--card)) 85%, hsl(var(--background)));
+    display: flex; flex-direction: column;
+    max-height: 45%;
+    transition: max-height 0.22s ease;
+  }
+  .reco-panel.collapsed { max-height: 44px; }
+
+  .reco-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 24px;
+    height: 44px;
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+  }
+  .reco-header:hover { background: hsl(var(--muted) / 0.2); }
+  .reco-header .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px;
+    background: hsl(var(--brand) / 0.18);
+    color: hsl(var(--brand));
+    border: 1px solid hsl(var(--brand) / 0.35);
+    border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .reco-header .badge .sparkle { font-size: 11px; }
+  .reco-header .note {
+    font-size: 12px; color: hsl(var(--muted-foreground));
+    font-style: italic;
+  }
+  .reco-header .chip-count {
+    font-size: 11px; color: hsl(var(--muted-foreground));
+    padding: 2px 8px; border: 1px solid hsl(var(--border)); border-radius: 999px;
+  }
+  .reco-header .spacer { flex: 1; }
+  .reco-header .toggle {
+    font-size: 12px; color: hsl(var(--muted-foreground));
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 6px;
+    transition: color 0.1s;
+  }
+  .reco-header:hover .toggle { color: hsl(var(--foreground)); }
+  .reco-header .toggle .chevron {
+    display: inline-block;
+    transition: transform 0.2s ease;
+  }
+  .reco-panel:not(.collapsed) .chevron { transform: rotate(180deg); }
+
+  .reco-body {
+    flex: 1; min-height: 0; overflow-y: auto;
+    padding: 4px 24px 24px;
+  }
+  .reco-panel.collapsed .reco-body { display: none; }
+
+  /* Grid 2-col inside panel */
+  .reco-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 1100px) {
+    .reco-grid { grid-template-columns: 1fr; }
+  }
+
+  .reco-block {
+    background: hsl(var(--background));
+    border: 1px solid hsl(var(--border));
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .reco-block h4 {
+    font-size: 11px; color: hsl(var(--muted-foreground));
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 12px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .reco-block h4 .icon { font-size: 14px; }
+  .reco-block h4 .hint-tag {
+    margin-left: auto;
+    font-size: 9px; font-weight: 500;
+    color: hsl(var(--muted-foreground));
+    padding: 2px 6px; border: 1px solid hsl(var(--border)); border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+
+  /* Blocks styling */
+  .formula { font-size: 13px; line-height: 1.7; color: hsl(var(--muted-foreground)); }
+  .formula b { color: hsl(var(--foreground)); }
+  .formula .slot { background: hsl(var(--brand) / 0.2); color: hsl(var(--brand)); padding: 1px 6px; border-radius: 4px; font-weight: 500; font-size: 12px; }
+
+  .swipe-item { padding: 9px 0; border-bottom: 1px dashed hsl(var(--border)); font-size: 13px; line-height: 1.5; color: hsl(var(--muted-foreground)); }
+  .swipe-item:first-child { padding-top: 0; }
+  .swipe-item:last-child { border-bottom: 0; padding-bottom: 0; }
+  .swipe-item .brand { font-size: 10px; color: hsl(var(--brand)); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+
+  .ai-hint { font-size: 13px; line-height: 1.55; color: hsl(var(--foreground)); }
+  .ai-hint .sugg-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 10px;
+    padding: 6px 12px;
+    background: hsl(var(--brand));
+    color: white;
+    border-radius: 6px;
+    font-size: 12px; font-weight: 500;
+  }
+  .ai-hint .sugg-btn:hover { opacity: 0.9; }
+
+  .trace-list { display: flex; flex-direction: column; gap: 4px; }
+  .trace-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border-radius: 6px;
+    font-size: 12px; color: hsl(var(--muted-foreground));
+    transition: background-color 0.1s; cursor: pointer;
+  }
+  .trace-row:hover { background: hsl(var(--muted) / 0.3); color: hsl(var(--foreground)); }
+  .trace-row .icon { font-size: 13px; }
+  .trace-row .arrow { margin-left: auto; color: hsl(var(--muted-foreground)); font-size: 10px; }
+
+  .metadata-kv { font-size: 12px; color: hsl(var(--muted-foreground)); line-height: 1.8; }
+  .metadata-kv b { color: hsl(var(--foreground)); font-weight: 500; }
+  .metadata-kv a { color: hsl(var(--brand)); text-decoration: underline; }
+
+  /* Next empty */
+  .next-empty {
+    margin-top: 24px;
+    padding: 12px 16px;
+    background: hsl(var(--brand) / 0.08);
+    border-radius: 8px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; cursor: pointer;
+    border: 1px solid hsl(var(--brand) / 0.25);
+    max-width: 360px;
+  }
+  .next-empty:hover { background: hsl(var(--brand) / 0.14); }
+  .next-empty .icon { font-size: 16px; }
+  .next-empty .label { font-size: 10px; color: hsl(var(--muted-foreground)); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  .next-empty .field-name { font-weight: 500; }
+  .next-empty .arrow { margin-left: auto; color: hsl(var(--brand)); }
+
+  .autosave-inline { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: hsl(142 71% 55%); }
+
+  /* Demo tabs */
+  .demo-switcher { padding: 10px 16px 0; border-bottom: 1px solid hsl(var(--border)); display: flex; gap: 4px; background: hsl(var(--background)); flex-shrink: 0; }
+  .demo-switcher button { padding: 8px 14px; font-size: 12px; color: hsl(var(--muted-foreground)); border-bottom: 2px solid transparent; margin-bottom: -1px; background: transparent; }
+  .demo-switcher button:hover { color: hsl(var(--foreground)); }
+  .demo-switcher button.active { color: hsl(var(--foreground)); border-bottom-color: hsl(var(--brand)); font-weight: 500; }
+  .demo-switcher .note { margin-left: auto; font-size: 11px; color: hsl(var(--muted-foreground)); align-self: center; padding: 8px 4px; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <aside class="sidebar-main">
+    <div class="logo">✦ Nicolify</div>
+    <div class="group-label">Studios</div>
+    <a href="#" class="active">📐 Brand Studio</a>
+    <a href="#">📦 Offer Studio</a>
+    <a href="#">📈 Growth Studio</a>
+    <a href="#">💬 Closer Studio</a>
+    <div class="sep"></div>
+    <div class="group-label">Config</div>
+    <a href="#">⚙️ Conexiones</a>
+  </aside>
+
+  <div class="main">
+
+    <div class="topbar">
+      <div class="breadcrumb">
+        <span class="crumb">Brand Studio</span>
+        <span class="sep">›</span>
+        <span class="crumb" id="bc-section">Posicionamiento</span>
+        <span class="sep">›</span>
+        <span class="crumb active" id="bc-field">Propuesta de valor única</span>
+      </div>
+      <div class="spacer"></div>
+      <button class="chip">✨ Entrevista guiada</button>
+      <button class="chip">⚙️</button>
+    </div>
+
+    <div class="demo-switcher">
+      <button class="active" onclick="showDemo('uvp', this)">UVP (1 campo)</button>
+      <button onclick="showDemo('historia', this)">Historia (largo) ← auto-grow</button>
+      <button onclick="showDemo('identidad', this)">Identidad (multi-campo) ← grid</button>
+      <button onclick="showDemo('empty', this)">Campo vacío</button>
+      <span class="note">Editor full-width · grid responsive al ancho</span>
+    </div>
+
+    <div class="columns">
+
+      <!-- COL 1 -->
+      <div class="fcol col-sections col-1">
+        <div class="fcol-header"><h3>Secciones</h3><span class="count">12</span></div>
+        <div class="fcol-body">
+          <div class="row"><span class="icon">✨</span><span class="title">Buyer personas</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">🔒</span><span class="title">Identidad</span><span class="preview">6/8</span><span class="chev">›</span></div>
+          <div class="row active"><span class="icon">🎯</span><span class="title">Posicionamiento</span><span class="preview">3/9</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">📜</span><span class="title">Narrativa</span><span class="preview">0/7</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">🚩</span><span class="title">Metodología</span><span class="preview">0/5</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">📄</span><span class="title">Historia</span><span class="preview">1/4</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">👥</span><span class="title">Equipo</span><span class="preview">2</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">🏛️</span><span class="title">Autoridad</span><span class="preview">0/6</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">🎧</span><span class="title">Testimonios</span><span class="preview">0</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">🎨</span><span class="title">Visuales</span><span class="preview">5/10</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">📚</span><span class="title">Assets</span><span class="preview">12</span><span class="chev">›</span></div>
+          <div class="row"><span class="icon">📣</span><span class="title">Contacto</span><span class="preview">3/4</span><span class="chev">›</span></div>
+        </div>
+      </div>
+
+      <!-- COL 2 -->
+      <div class="fcol col-items col-2">
+        <div class="fcol-header"><h3 id="col2-title">Posicionamiento</h3><span class="count" id="col2-count">9</span></div>
+        <div class="fcol-body" id="col2-body"></div>
+      </div>
+
+      <!-- COL 3: editor full, context below collapsible -->
+      <div class="fcol col-editor col-3">
+        <div class="fcol-header">
+          <h3 id="editor-title">Propuesta de valor única</h3>
+          <div class="autosave-inline">● Guardado · hace 2s</div>
+        </div>
+
+        <div class="editor-wrap">
+
+          <!-- MAIN editor (full width) -->
+          <div class="editor-main">
+            <div class="editor-main-inner" id="editor-main"></div>
+          </div>
+
+          <!-- RECOMMENDATIONS panel (bottom, collapsible) -->
+          <section class="reco-panel collapsed" id="reco-panel">
+            <div class="reco-header" onclick="toggleReco()">
+              <span class="badge"><span class="sparkle">✨</span> Recomendaciones</span>
+              <span class="note" id="reco-note">6 ayudas disponibles para este campo · no obligatorias</span>
+              <span class="chip-count" id="reco-count">6</span>
+              <span class="spacer"></span>
+              <span class="toggle">
+                <span id="toggle-label">Mostrar</span>
+                <span class="chevron">▾</span>
+              </span>
+            </div>
+
+            <div class="reco-body">
+              <div class="reco-grid" id="reco-grid"></div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+    </div>
+
+    <div class="optbar">
+      <span class="label">Propuestas:</span>
+      <a href="index.html">← Índice</a>
+      <a href="option-a-classic.html">A · Clásico</a>
+      <a href="option-a-enhanced.html" class="current">A+ · Inline + Reco (esta)</a>
+      <a href="option-b-preview.html">B · Preview</a>
+      <a href="option-c-rail-tree.html">C · Rail + Tree</a>
+      <a href="option-d-palette.html">D · Palette</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function autoResize(el) {
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+document.addEventListener('input', (e) => {
+  if (e.target.matches('.inline-editable')) autoResize(e.target);
+});
+
+function toggleReco() {
+  const p = document.getElementById('reco-panel');
+  const label = document.getElementById('toggle-label');
+  p.classList.toggle('collapsed');
+  label.textContent = p.classList.contains('collapsed') ? 'Mostrar' : 'Ocultar';
+}
+
+const BLOCKS = {
+  formula: (c) => `
+    <div class="reco-block">
+      <h4><span class="icon">🧪</span>Fórmula<span class="hint-tag">Guía</span></h4>
+      <div class="formula">${c}</div>
+    </div>`,
+  ai: (c) => `
+    <div class="reco-block" style="border-color: hsl(var(--brand) / 0.35); background: hsl(var(--brand) / 0.06);">
+      <h4><span class="icon">✨</span>Sugerencia del copilot<span class="hint-tag">IA</span></h4>
+      <div class="ai-hint">${c}</div>
+    </div>`,
+  swipe: (c) => `
+    <div class="reco-block">
+      <h4><span class="icon">📚</span>Ejemplos de referencia<span class="hint-tag">Swipe file</span></h4>
+      ${c}
+    </div>`,
+  trace: (c) => `
+    <div class="reco-block">
+      <h4><span class="icon">🔗</span>Dónde se usa este campo<span class="hint-tag">Trazabilidad</span></h4>
+      <div class="trace-list">${c}</div>
+    </div>`,
+  related: (c) => `
+    <div class="reco-block">
+      <h4><span class="icon">🧩</span>Campos relacionados<span class="hint-tag">Contexto</span></h4>
+      <div class="trace-list">${c}</div>
+    </div>`,
+  meta: (c) => `
+    <div class="reco-block">
+      <h4><span class="icon">📎</span>Metadata<span class="hint-tag">Histórico</span></h4>
+      <div class="metadata-kv">${c}</div>
+    </div>`,
+};
+
+const DEMOS = {
+  uvp: {
+    section: 'Posicionamiento', count: 9, field: 'Propuesta de valor única',
+    col2Active: 'uvp',
+    items: [
+      {id:'uvp', dot:'filled', title:'Propuesta de valor única'},
+      {id:'discrim', dot:'filled', title:'Discriminador'},
+      {id:'esencia', dot:'filled', title:'Esencia de marca'},
+      {id:'enemigo-tec', dot:'empty', title:'Enemigo técnico'},
+      {id:'enemigo-fil', dot:'empty', title:'Enemigo filosófico'},
+      {id:'insight-t', dot:'empty', title:'Insight: tensión'},
+      {id:'insight-o', dot:'empty', title:'Insight: observación'},
+      {id:'insight-i', dot:'empty', title:'Insight: implicación'},
+      {id:'rtb', dot:'filled', title:'Reasons to believe', preview:'3'},
+    ],
+    recoCount: 6,
+    recoNote: '6 ayudas disponibles · colapsadas por defecto',
+    editor: `
+      <div class="field-grid">
+        <div class="field-inline w-full">
+          <div class="field-label">
+            <span>Propuesta <span class="required">*</span></span>
+            <span class="meta">78 caracteres · texto largo</span>
+          </div>
+          <p class="field-hint">Promesa en una oración que diferencia tu oferta. Debe ser tangible, específica y difícil de copiar.</p>
+          <textarea class="inline-editable text-xl" rows="2">Solo nosotros transformamos buenos negocios en líderes de categoría con estrategia que vende — sin depender de tendencias que mueren en 6 meses.</textarea>
+        </div>
+      </div>
+      <div class="next-empty">
+        <span class="icon">→</span>
+        <div>
+          <div class="label">Siguiente vacío</div>
+          <div class="field-name">Enemigo técnico</div>
+        </div>
+        <span class="arrow">›</span>
+      </div>
+    `,
+    blocks: [
+      ['formula', `<b>Solo nosotros</b> + <span class="slot">{propuesta única}</span> + <span class="slot">{resultado medible}</span> — sin <span class="slot">{enemigo técnico}</span>.`],
+      ['ai', `Tu UVP es fuerte pero "líderes de categoría" es genérico. ¿Podés reemplazarlo por un número concreto (ej: "3× más conversiones")? Eso lo hace verificable y memorable.<br><button class="sugg-btn">✨ Redactar con IA</button>`],
+      ['swipe', `
+        <div class="swipe-item"><div class="brand">Apple · iPhone</div>"La única marca que combina diseño artesanal y precisión industrial."</div>
+        <div class="swipe-item"><div class="brand">Notion</div>"Un solo espacio para cada equipo, cada proyecto, cada idea."</div>
+        <div class="swipe-item"><div class="brand">Superhuman</div>"Email tan rápido que te quedás en inbox zero sin esfuerzo."</div>
+      `],
+      ['trace', `
+        <div class="trace-row"><span class="icon">🌐</span><span>Landing · Hero headline</span><span class="arrow">↗</span></div>
+        <div class="trace-row"><span class="icon">✉️</span><span>Email capture · Subject</span><span class="arrow">↗</span></div>
+        <div class="trace-row"><span class="icon">📣</span><span>Meta Ad · Primary text</span><span class="arrow">↗</span></div>
+        <div class="trace-row"><span class="icon">🤖</span><span>Sales Agent · Pitch</span><span class="arrow">↗</span></div>
+      `],
+      ['related', `
+        <div class="trace-row"><span class="icon">🎯</span><span>Discriminador</span><span class="arrow">↗</span></div>
+        <div class="trace-row"><span class="icon">🎯</span><span>Esencia de marca</span><span class="arrow">↗</span></div>
+        <div class="trace-row"><span class="icon">🎯</span><span>Enemigo técnico <span class="muted">(vacío)</span></span><span class="arrow">↗</span></div>
+      `],
+      ['meta', `Editado · hace 3 días por Chris<br>Versión 4 · <a href="#">ver historial</a><br>Longitud · 78 chars (ideal 60–140)<br>Tono detectado · <b>Directo, desafiante</b>`],
+    ],
+  },
+
+  historia: {
+    section: 'Historia', count: 4, field: 'Origen de la marca',
+    col2Active: 'origen',
+    items: [
+      {id:'origen', dot:'filled', title:'Origen de la marca'},
+      {id:'punto-quiebre', dot:'empty', title:'Punto de quiebre'},
+      {id:'proposito', dot:'empty', title:'Propósito fundacional'},
+      {id:'arco-narrativo', dot:'empty', title:'Arco narrativo'},
+    ],
+    recoCount: 4,
+    recoNote: '4 ayudas · campo largo, texto se lee entero sin scroll interno',
+    editor: `
+      <div class="field-grid">
+      <div class="field-inline w-full">
+        <div class="field-label">
+          <span>Origen <span class="required">*</span></span>
+          <span class="meta">1.247 caracteres · ~4 min lectura</span>
+        </div>
+        <p class="field-hint">Contá cómo nació la marca y qué dolor personal te empujó a crearla. Clave para narrativa en redes y sales agent.</p>
+        <textarea class="inline-editable" rows="20">Alpaca Púrpura nació en 2019, en un café de Miraflores, cuando ya estaba harto de ver cómo agencias vendían "estrategia" y entregaban plantillas de Canva. Llevaba 8 años trabajando freelance con más de 40 negocios — desde panaderías de barrio hasta e-commerce con millones en revenue — y veía el mismo patrón: todos pagaban por marketing, nadie entendía realmente a su cliente.
+
+La gota fue un cliente que nos contrató para "aumentar conversiones" y, tras dos meses de análisis, descubrimos que su problema no era el funnel sino que su producto hablaba a un segmento equivocado. Cambiamos el copy, reordenamos la promesa, y las ventas se multiplicaron por 3 sin tocar un anuncio.
+
+Ahí entendí que el marketing sin estrategia de marca es tirar plata. Y que la mayoría de consultoras venden lo segundo pero cobran por lo primero.
+
+Alpaca Púrpura arranca con una promesa simple: no vendemos ejecución sin estrategia. Primero entendemos quién sos, a quién le hablás y por qué te elegirían — después construimos el sistema de venta. Si no hacemos lo primero bien, lo segundo no funciona. Y si eso significa decirte que no te podemos ayudar hasta que definas tu marca, te lo decimos.
+
+Hoy trabajamos con expertos y negocios que quieren salir del ciclo de "probar cosas" y construir un activo de marca que venda solo.</textarea>
+      </div>
+      </div>
+      <div class="next-empty">
+        <span class="icon">→</span>
+        <div>
+          <div class="label">Siguiente vacío</div>
+          <div class="field-name">Punto de quiebre</div>
+        </div>
+        <span class="arrow">›</span>
+      </div>
+    `,
+    blocks: [
+      ['formula', `<b>Arco:</b> <span class="slot">contexto</span> → <span class="slot">dolor personal</span> → <span class="slot">chispa</span> → <span class="slot">misión</span>`],
+      ['ai', `Tu origen tiene los 4 beats narrativos bien definidos. Oportunidad: el párrafo 2 puede ser hook de 1 reel "por qué dejé mi trabajo corporate" — beat universal. ¿Lo extraigo como script?<br><button class="sugg-btn">✨ Generar reel script</button>`],
+      ['trace', `
+        <div class="trace-row"><span class="icon">🌐</span><span>Landing · About section</span><span class="arrow">↗</span></div>
+        <div class="trace-row"><span class="icon">📱</span><span>Bio Instagram (extracto)</span><span class="arrow">↗</span></div>
+        <div class="trace-row"><span class="icon">🎥</span><span>Reel script · "Mi historia"</span><span class="arrow">↗</span></div>
+        <div class="trace-row"><span class="icon">🤖</span><span>Sales Agent · Objection "no te conozco"</span><span class="arrow">↗</span></div>
+      `],
+      ['meta', `Editado · hace 12 días por Chris<br>Versión 7 · <a href="#">ver historial</a><br>Longitud · 1247 chars (ideal 400–1500)<br>Tono detectado · <b>Directo, personal</b>`],
+    ],
+  },
+
+  empty: {
+    section: 'Posicionamiento', count: 9, field: 'Enemigo técnico',
+    col2Active: 'enemigo-tec',
+    items: [
+      {id:'uvp', dot:'filled', title:'Propuesta de valor única'},
+      {id:'discrim', dot:'filled', title:'Discriminador'},
+      {id:'esencia', dot:'filled', title:'Esencia de marca'},
+      {id:'enemigo-tec', dot:'empty', title:'Enemigo técnico'},
+      {id:'enemigo-fil', dot:'empty', title:'Enemigo filosófico'},
+      {id:'insight-t', dot:'empty', title:'Insight: tensión'},
+      {id:'insight-o', dot:'empty', title:'Insight: observación'},
+      {id:'insight-i', dot:'empty', title:'Insight: implicación'},
+      {id:'rtb', dot:'filled', title:'Reasons to believe', preview:'3'},
+    ],
+    recoCount: 4,
+    recoNote: '4 ayudas · campo vacío, el copilot puede redactarlo con tu contexto',
+    editor: `
+      <div class="field-grid">
+        <div class="field-inline w-full">
+          <div class="field-label">
+            <span>Enemigo técnico <span class="required">*</span></span>
+            <span class="meta">sin contenido</span>
+          </div>
+          <p class="field-hint">El "mal hacer" concreto contra el que peleás. No es un competidor — es una práctica, método, o forma de trabajar que considerás rota. Útil para generar contraste en copy.</p>
+          <textarea class="inline-editable text-lg" rows="4" placeholder="Ej: Plantillas de Canva vendidas como 'estrategia de marca'. Mood boards sin research. Funnels diseñados antes de entender al cliente."></textarea>
+        </div>
+      </div>
+    `,
+    blocks: [
+      ['formula', `El enemigo <b>no es una persona</b> — es una <span class="slot">{práctica}</span> o <span class="slot">{método}</span> que <span class="slot">{perjudica al cliente}</span>.`],
+      ['ai', `Basado en tu UVP ("sin depender de tendencias que mueren en 6 meses") tu enemigo natural es <b>el marketing de tendencias pasajeras</b>. ¿Lo redacto con ese ángulo?<br><button class="sugg-btn">✨ Redactar con IA</button>`],
+      ['swipe', `
+        <div class="swipe-item"><div class="brand">Basecamp</div>"Nuestro enemigo: software que asume que cada equipo tiene 50 personas."</div>
+        <div class="swipe-item"><div class="brand">Patagonia</div>"El fast-fashion: ropa barata que dura una temporada y contamina 20 años."</div>
+      `],
+      ['related', `
+        <div class="trace-row"><span class="icon">🎯</span><span>UVP · mismo insight</span><span class="arrow">↗</span></div>
+        <div class="trace-row"><span class="icon">🎯</span><span>Enemigo filosófico (siguiente paso natural)</span><span class="arrow">↗</span></div>
+      `],
+    ],
+  },
+
+  // Multi-field demo: Identidad section has several short fields
+  identidad: {
+    section: 'Identidad', count: 8, field: 'Datos de marca',
+    col2Active: 'datos-marca',
+    items: [
+      {id:'datos-marca', dot:'filled', title:'Datos de marca'},
+      {id:'tono-voz', dot:'filled', title:'Tono y voz'},
+      {id:'personalidad', dot:'filled', title:'Personalidad'},
+      {id:'valores', dot:'filled', title:'Valores'},
+      {id:'mision', dot:'filled', title:'Misión'},
+      {id:'vision', dot:'filled', title:'Visión'},
+      {id:'manifesto', dot:'empty', title:'Manifesto'},
+      {id:'tagline', dot:'empty', title:'Tagline'},
+    ],
+    recoCount: 3,
+    recoNote: '3 ayudas · sección con varios campos, grid se ajusta al ancho disponible',
+    editor: `
+      <div class="field-grid">
+        <div class="field-inline w-half">
+          <div class="field-label"><span>Nombre comercial <span class="required">*</span></span></div>
+          <input class="inline-input" type="text" value="Alpaca Púrpura"/>
+          <p class="field-hint">Cómo se llama tu marca en el mercado.</p>
+        </div>
+
+        <div class="field-inline w-half">
+          <div class="field-label"><span>Tagline</span><span class="meta">42 chars</span></div>
+          <input class="inline-input" type="text" value="Marca primero. Ventas después."/>
+          <p class="field-hint">Oración corta que acompaña al logo.</p>
+        </div>
+
+        <div class="field-inline w-half">
+          <div class="field-label"><span>Sitio web</span></div>
+          <input class="inline-input" type="url" value="https://alpacapurpura.lat"/>
+        </div>
+
+        <div class="field-inline w-half">
+          <div class="field-label"><span>Categoría</span></div>
+          <input class="inline-input" type="text" value="Consultoría de marca y estrategia"/>
+        </div>
+
+        <div class="field-inline w-half">
+          <div class="field-label"><span>Año fundación</span></div>
+          <input class="inline-input" type="text" value="2019"/>
+        </div>
+
+        <div class="field-inline w-half">
+          <div class="field-label"><span>País base</span></div>
+          <input class="inline-input" type="text" value="Perú · Latinoamérica"/>
+        </div>
+
+        <div class="field-inline w-full">
+          <div class="field-label"><span>Descripción corta <span class="required">*</span></span><span class="meta">160 chars ideal para SEO meta</span></div>
+          <textarea class="inline-editable" rows="3">Consultoría estratégica para expertos y negocios que quieren construir un activo de marca que venda solo, sin depender de tendencias pasajeras.</textarea>
+          <p class="field-hint">Descripción de 1-2 oraciones — se usa en meta tags, bio IG, pitch inicial.</p>
+        </div>
+
+        <div class="field-inline w-full">
+          <div class="field-label"><span>Descripción larga</span><span class="meta">para About page</span></div>
+          <textarea class="inline-editable" rows="5" placeholder="Versión extendida para landing y About page…"></textarea>
+        </div>
+      </div>
+    `,
+    blocks: [
+      ['ai', `Tenés 6/8 campos completos. Faltan <b>Manifesto</b> y <b>Tagline</b> (opcional). El Manifesto es el más alto-impacto — se usa en landing + Sales Agent.<br><button class="sugg-btn">✨ Generar manifesto con IA</button>`],
+      ['trace', `
+        <div class="trace-row"><span class="icon">🌐</span><span>Landing · Meta tags (desc. corta)</span><span class="arrow">↗</span></div>
+        <div class="trace-row"><span class="icon">📱</span><span>Bio Instagram (tagline + desc.)</span><span class="arrow">↗</span></div>
+        <div class="trace-row"><span class="icon">✉️</span><span>Firma email</span><span class="arrow">↗</span></div>
+      `],
+      ['meta', `Completitud · <b>6/8 campos</b><br>Última edición · hace 5 días<br>Creada · 2019 (7 años)`],
+    ],
+  },
+};
+
+function showDemo(key, btn) {
+  const d = DEMOS[key];
+
+  document.getElementById('bc-section').textContent = d.section;
+  document.getElementById('bc-field').textContent = d.field;
+
+  document.querySelectorAll('.demo-switcher button').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  document.getElementById('col2-title').textContent = d.section;
+  document.getElementById('col2-count').textContent = d.count;
+
+  const col2 = document.getElementById('col2-body');
+  col2.innerHTML = d.items.map(it => `
+    <div class="row ${it.id === d.col2Active ? 'active' : ''}">
+      <span class="${it.dot === 'filled' ? 'dot-filled' : 'dot-empty'}"></span>
+      <span class="title">${it.title}</span>
+      ${it.preview ? `<span class="preview">${it.preview}</span>` : ''}
+      <span class="chev">›</span>
+    </div>
+  `).join('');
+
+  document.getElementById('editor-title').textContent = d.field;
+  document.getElementById('editor-main').innerHTML = d.editor;
+
+  document.getElementById('reco-note').textContent = d.recoNote;
+  document.getElementById('reco-count').textContent = d.recoCount;
+  document.getElementById('reco-grid').innerHTML = d.blocks.map(([type, content]) => BLOCKS[type](content)).join('');
+
+  document.querySelectorAll('.inline-editable').forEach(autoResize);
+}
+
+showDemo('uvp', document.querySelector('.demo-switcher button'));
+</script>
+
+</body>
+</html>

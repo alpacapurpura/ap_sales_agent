@@ -51,9 +51,7 @@ export function SessionHeader({
     >
       <div className="min-w-0">
         {title && <h2 className="truncate text-lg font-semibold">{title}</h2>}
-        {description && (
-          <p className="truncate text-xs text-muted-foreground">{description}</p>
-        )}
+        {description && <p className="truncate text-xs text-muted-foreground">{description}</p>}
       </div>
       <div className="flex items-center gap-2">
         <Badge variant="secondary" aria-label={`${completed} de ${total} campos completos`}>

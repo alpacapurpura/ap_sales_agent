@@ -65,9 +65,9 @@ describe("parseSectionSchema", () => {
 
   it("rejects non-string title when provided", () => {
     // Legacy consumers that still declare title inline must pass a string.
-    expect(() =>
-      parseSectionSchema(makeSchema({ title: 42 as unknown as string })),
-    ).toThrow(SchemaParseError);
+    expect(() => parseSectionSchema(makeSchema({ title: 42 as unknown as string }))).toThrow(
+      SchemaParseError,
+    );
   });
 
   it("rejects empty fields array", () => {

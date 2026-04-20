@@ -1,61 +1,21 @@
 "use client";
 
-import {
-  FileText,
-  Fingerprint,
-  Flag,
-  Headphones,
-  Landmark,
-  Layers,
-  Megaphone,
-  Palette,
-  ScrollText,
-  Sparkles,
-  Target,
-  Users,
-} from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 
+import { FinderColumn } from "@/components/form-runtime/FinderColumn";
 import { cn } from "@/lib/utils";
 
-interface SectionNav {
-  slug: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
+import { BRAND_SECTIONS, type BrandSectionMeta } from "../lib/section-catalog";
 
 /**
- * Fixed list of brand-studio sections. Order matches the SDR-facing
- * narrative: identity → positioning → voice/personality → story → audience
- * → assets. Keep in sync with SECTION_PAGE_MAP (factory-generated pages)
- * plus the few special routes (buyer personas).
- */
-const SECTIONS: readonly SectionNav[] = [
-  { slug: "identity", label: "Identidad", icon: Fingerprint },
-  { slug: "positioning", label: "Posicionamiento", icon: Target },
-  { slug: "narrative", label: "Narrativa", icon: ScrollText },
-  { slug: "methodology", label: "Metodología", icon: Flag },
-  { slug: "story", label: "Historia", icon: FileText },
-  { slug: "team", label: "Equipo", icon: Users },
-  { slug: "authority", label: "Autoridad", icon: Landmark },
-  { slug: "testimonials", label: "Testimonios", icon: Headphones },
-  { slug: "visuals", label: "Visuales", icon: Palette },
-  { slug: "communication-assets", label: "Assets", icon: Layers },
-  { slug: "contact", label: "Contacto", icon: Megaphone },
-] as const;
-
-const PERSONAS_SECTION: SectionNav = {
-  slug: "publico",
-  label: "Buyer personas",
-  icon: Sparkles,
-};
-
-/**
- * Left-hand navigation rail listing every brand-studio section. The active
- * segment is derived from the URL — the first path segment after
- * `/brand-studio/` wins. Uses next/link for SPA navigation; no client-side
- * routing state required.
+ * Column 1 of the Finder layout — the fixed list of Brand Studio sections.
+ * Dimensions locked by UI-SPEC-locked-dimensions.md:
+ *  - width 260px (--brand-col-sections)
+ *  - row height ~36px, padding 9px 14px
+ *  - chevron on the right of every row
+ *  - optional completion preview ("3/9", "2 ítems") rendered mid-row
  */
 export function BrandStudioNavRail() {
   const params = useParams<{ tenantId?: string }>();
@@ -64,45 +24,58 @@ export function BrandStudioNavRail() {
   const activeSlug = pathname.split("/brand-studio/")[1]?.split("/")[0] ?? null;
 
   return (
-    <nav
-      aria-label="Secciones de Brand Studio"
-      className="flex w-60 shrink-0 flex-col gap-0.5 border-r bg-muted/10 p-3"
+    <FinderColumn
+      title="Secciones"
+      count={BRAND_SECTIONS.length}
+      widthClass="w-[var(--brand-col-sections)]"
+      ariaLabel="Secciones de Brand Studio"
     >
-      <SectionLink tenantId={tenantId} section={PERSONAS_SECTION} activeSlug={activeSlug} />
-      <div className="my-2 h-px bg-border" aria-hidden />
-      {SECTIONS.map((section) => (
-        <SectionLink
-          key={section.slug}
-          tenantId={tenantId}
-          section={section}
-          activeSlug={activeSlug}
-        />
-      ))}
-    </nav>
+      <ul className="flex flex-col">
+        {BRAND_SECTIONS.map((section) => (
+          <SectionRow
+            key={section.slug}
+            tenantId={tenantId}
+            section={section}
+            isActive={section.slug === activeSlug}
+          />
+        ))}
+      </ul>
+    </FinderColumn>
   );
 }
 
-interface SectionLinkProps {
+interface SectionRowProps {
   tenantId: string;
-  section: SectionNav;
-  activeSlug: string | null;
+  section: BrandSectionMeta;
+  isActive: boolean;
 }
 
-function SectionLink({ tenantId, section, activeSlug }: SectionLinkProps) {
+function SectionRow({ tenantId, section, isActive }: SectionRowProps) {
   const Icon = section.icon;
-  const isActive = section.slug === activeSlug;
-
   return (
-    <Link
-      href={`/${tenantId}/brand-studio/${section.slug}`}
-      aria-current={isActive ? "page" : undefined}
-      className={cn(
-        "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
-        isActive ? "bg-primary/10 font-medium text-primary" : "hover:bg-muted/50",
-      )}
-    >
-      <Icon className="h-4 w-4" aria-hidden />
-      {section.label}
-    </Link>
+    <li>
+      <Link
+        href={`/${tenantId}/brand-studio/${section.slug}`}
+        aria-current={isActive ? "page" : undefined}
+        className={cn(
+          "relative flex items-center gap-2 border-b border-border/50",
+          "px-[14px] py-[9px] text-[13px] transition-colors",
+          isActive ? "bg-muted/60" : "hover:bg-muted/30",
+          isActive &&
+            "before:absolute before:inset-y-0 before:left-0 before:w-[2px] before:bg-brand",
+        )}
+      >
+        <Icon
+          className={cn("h-4 w-4 shrink-0", isActive ? "text-foreground" : "text-muted-foreground")}
+          aria-hidden="true"
+        />
+        <span
+          className={cn("flex-1 truncate", isActive ? "text-foreground" : "text-foreground/90")}
+        >
+          {section.label}
+        </span>
+        <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />
+      </Link>
+    </li>
   );
 }

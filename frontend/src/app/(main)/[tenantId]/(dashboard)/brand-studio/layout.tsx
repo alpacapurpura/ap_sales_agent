@@ -1,24 +1,31 @@
+import { BrandStudioBreadcrumb } from "@/features/brand-studio/components/BrandStudioBreadcrumb";
 import { BrandStudioNavRail } from "@/features/brand-studio/components/BrandStudioNavRail";
 
 import type { ReactNode } from "react";
 
 /**
- * Brand Studio layout.
+ * Brand Studio layout — Finder-style navigation shell.
  *
- * Minimal by design. Each section page (`/brand-studio/{section}` …)
- * renders its own form-runtime scaffold, which owns autosave, copilot
- * bridge and session state. The layout contributes only the left navigation
- * rail; everything else is delegated.
+ * Renders a 48px sticky topbar with the dynamic breadcrumb, the 260px nav
+ * rail (column 1) and the child page, which contributes its own FinderColumn
+ * columns (fields / editor / optional instance picker).
  *
- * Overlay layer (EditSheetManager, BrandVisualsWizard, SmartFillDialog)
- * from the legacy brand/ module is gone — their behaviour now lives inside
- * the form-runtime actions + Sprint 4's copilot extraction tools.
+ * Dimensions locked in
+ * docs/ux-sessions/2026-04-20-brand-studio-finder-nav/UI-SPEC-locked-dimensions.md.
  */
 export default function BrandStudioLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-full min-h-[calc(100vh-4rem)]">
-      <BrandStudioNavRail />
-      <div className="flex-1 overflow-auto">{children}</div>
+    <div className="flex h-full min-h-[calc(100vh-4rem)] flex-col">
+      <header
+        className="flex h-[var(--brand-topbar-h)] shrink-0 items-center gap-3 border-b border-border bg-background px-5"
+        aria-label="Ruta de Brand Studio"
+      >
+        <BrandStudioBreadcrumb />
+      </header>
+      <div className="flex min-h-0 flex-1">
+        <BrandStudioNavRail />
+        <div className="flex min-w-0 flex-1">{children}</div>
+      </div>
     </div>
   );
 }
