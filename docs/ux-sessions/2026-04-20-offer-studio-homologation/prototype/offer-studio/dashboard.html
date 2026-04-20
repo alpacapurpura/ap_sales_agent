@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"/><title>Offer Studio — Dashboard</title>
+<link rel="stylesheet" href="../_shared.css"/>
+</head><body>
+<div class="app">
+  <aside class="app-sidebar">
+    <div class="logo">Nicolify</div>
+    <a class="nav-item" href="#">◎ Dashboard</a>
+    <a class="nav-item" href="#">✦ Brand Studio</a>
+    <a class="nav-item active" href="dashboard.html">☰ Offer Studio</a>
+    <a class="nav-item" href="#">↗ Growth Studio</a>
+    <a class="nav-item" href="#">◉ Sales Studio</a>
+    <div class="section-label">Sistema</div>
+    <a class="nav-item" href="#">⚙ Settings</a>
+    <a class="nav-item" href="#">🔌 Conexiones</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumb"><span>Offer Studio</span><span class="sep">›</span><span class="current">Ofertas</span></div>
+      <div class="topbar-actions">
+        <button class="btn">Importar</button>
+        <a class="btn brand" href="wizard-step1.html">+ Nueva oferta</a>
+      </div>
+    </div>
+    <div class="dashboard">
+      <h1>Tus ofertas</h1>
+      <p class="subtitle">Organiza tu Offer Ladder por nivel de valor. Cada oferta se edita section-by-section con el copiloto.</p>
+
+      <div class="ladder-row">
+        <div class="ladder-label">
+          <div class="level-tag">Lead magnet</div>
+          Gratis
+        </div>
+        <div class="ladder-cards">
+          <div class="offer-card" onclick="location='offer-editor.html'">
+            <span class="badge brand preset-badge">Ebook descargable</span>
+            <h3>Guía de 7 hábitos</h3>
+            <div class="preset-meta">Lead magnet · PDF</div>
+            <div class="progress"><div class="progress-fill" style="width:85%"></div></div>
+            <div class="progress-label">85% · 6/7 sections</div>
+            <div class="status-row"><span class="badge active">Publicada</span><span style="font-size:11px;color:var(--muted-foreground)">Editions: 1</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ladder-row">
+        <div class="ladder-label"><div class="level-tag">Tripwire</div>Bajo ticket</div>
+        <div class="ladder-cards">
+          <div class="offer-card" onclick="location='offer-editor.html'">
+            <span class="badge brand preset-badge">Mini-curso grabado</span>
+            <h3>7 días para empezar</h3>
+            <div class="preset-meta">Curso · $27 USD</div>
+            <div class="progress"><div class="progress-fill" style="width:60%"></div></div>
+            <div class="progress-label">60% · 5/9 sections</div>
+            <div class="status-row"><span class="badge draft">Borrador</span><span style="font-size:11px;color:var(--muted-foreground)">Editions: 2</span></div>
+          </div>
+          <a class="add-card" href="wizard-step1.html">+ Agregar oferta<br/><span style="font-size:11px;font-weight:400;opacity:0.7">en este nivel</span></a>
+        </div>
+      </div>
+
+      <div class="ladder-row">
+        <div class="ladder-label"><div class="level-tag">Core offer</div>High ticket</div>
+        <div class="ladder-cards">
+          <div class="offer-card" onclick="location='offer-editor.html'">
+            <span class="badge brand preset-badge">Programa coaching 1:1</span>
+            <h3>Mentoría 12 semanas</h3>
+            <div class="preset-meta">Cohort · $1,497 USD</div>
+            <div class="progress"><div class="progress-fill" style="width:100%"></div></div>
+            <div class="progress-label">100% · 11/11 sections</div>
+            <div class="status-row"><span class="badge active">Publicada</span><span style="font-size:11px;color:var(--muted-foreground)">Editions: 3</span></div>
+          </div>
+          <div class="offer-card" onclick="location='offer-editor.html'">
+            <span class="badge brand preset-badge">Membresía mensual</span>
+            <h3>Club Premium</h3>
+            <div class="preset-meta">Membresía · $39/mes</div>
+            <div class="progress"><div class="progress-fill" style="width:40%"></div></div>
+            <div class="progress-label">40% · 4/10 sections</div>
+            <div class="status-row"><span class="badge draft">Borrador</span><span style="font-size:11px;color:var(--muted-foreground)">Editions: 1</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="journey-tracker">
+  <span class="jlabel">Journey A · Crear oferta</span>
+  <span class="jstep current">1. Dashboard</span>
+  <span class="jstep">2. Preset</span>
+  <span class="jstep">3. Preguntas</span>
+  <span class="jstep">4. Editor</span>
+  <div class="nav-links"><a href="../index.html">← Hub</a><a href="wizard-step1.html">Siguiente →</a></div>
+</div>
+</body></html>

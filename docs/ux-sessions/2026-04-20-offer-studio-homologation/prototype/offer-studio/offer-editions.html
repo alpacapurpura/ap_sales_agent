@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"/><title>Editions</title>
+<link rel="stylesheet" href="../_shared.css"/>
+</head><body>
+<div class="app">
+  <aside class="app-sidebar">
+    <div class="logo">Nicolify</div>
+    <a class="nav-item" href="#">◎ Dashboard</a>
+    <a class="nav-item" href="#">✦ Brand Studio</a>
+    <a class="nav-item active" href="dashboard.html">☰ Offer Studio</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumb"><a href="dashboard.html">Offer Studio</a><span class="sep">›</span><a href="offer-editor.html">Mentoría 12 semanas</a><span class="sep">›</span><span class="current">Editions</span></div>
+      <div class="topbar-actions"><button class="btn brand">+ Nueva edition</button></div>
+    </div>
+
+    <div class="tabs-row">
+      <a class="tab" href="offer-editor.html">Editor</a>
+      <div class="tab active">Editions <span class="badge" style="background:var(--brand);color:white;font-size:9px">3</span></div>
+      <div class="tab">Assets</div>
+      <div class="tab">Knowledge</div>
+      <div class="tab">Campaigns</div>
+      <div class="tab">Ventas</div>
+    </div>
+
+    <div class="dashboard">
+      <h1 style="font-size:22px;font-weight:600;margin-bottom:4px">Editions de esta oferta</h1>
+      <p class="subtitle" style="margin-bottom:24px">Una edition es una variante publicable (fechas, pricing override, audiencia distinta). La oferta base no cambia — las editions hacen overrides puntuales.</p>
+
+      <div style="display:grid;gap:14px">
+        <div style="border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center">
+          <div>
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px">
+              <span class="badge active">Activa</span>
+              <h3 style="font-size:16px;font-weight:600">Default</h3>
+              <span style="font-size:11px;color:var(--muted-foreground)">código: <code>default</code></span>
+            </div>
+            <p style="font-size:13px;color:var(--muted-foreground);margin-bottom:8px">Edition base. Siempre existe. Se publica cuando no hay edition específica activa.</p>
+            <div style="display:flex;gap:16px;font-size:12px;color:var(--muted-foreground)">
+              <span>Pricing: $1,497 USD</span>
+              <span>Fechas: Evergreen</span>
+              <span>Landing: <a href="#" style="color:var(--brand)">mentoria-12-semanas.nicolify.app</a></span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm">Editar</button>
+            <button class="btn sm">Duplicar</button>
+          </div>
+        </div>
+
+        <div style="border:1px solid hsl(40 60% 80%);border-radius:var(--radius);padding:18px 20px;background:hsl(40 50% 98%);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center">
+          <div>
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px">
+              <span class="badge draft">Borrador</span>
+              <h3 style="font-size:16px;font-weight:600">Q2-2026 Launch</h3>
+              <span style="font-size:11px;color:var(--muted-foreground)">código: <code>q2-2026</code></span>
+            </div>
+            <p style="font-size:13px;color:var(--muted-foreground);margin-bottom:8px">Lanzamiento mayo 2026 con early-bird. Override de pricing + ventana de inscripción.</p>
+            <div style="display:flex;gap:16px;font-size:12px;color:var(--muted-foreground)">
+              <span>Pricing override: <strong style="color:var(--foreground)">$1,197</strong> (20% off)</span>
+              <span>Fechas: 2026-05-06 → 2026-05-20</span>
+              <span>Cupos: 15 / 40</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm">Editar</button>
+            <button class="btn sm primary">Publicar</button>
+          </div>
+        </div>
+
+        <div style="border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center">
+          <div>
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px">
+              <span class="badge draft">Borrador</span>
+              <h3 style="font-size:16px;font-weight:600">VIP Testers</h3>
+              <span style="font-size:11px;color:var(--muted-foreground)">código: <code>vip-testers</code></span>
+            </div>
+            <p style="font-size:13px;color:var(--muted-foreground);margin-bottom:8px">Grupo cerrado — pruebas de módulos nuevos. Solo accesible por link directo.</p>
+            <div style="display:flex;gap:16px;font-size:12px;color:var(--muted-foreground)">
+              <span>Pricing override: Gratis (invite-only)</span>
+              <span>Fechas: 2026-04-22 → open</span>
+              <span>Cupos: 5 / 10</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm">Editar</button>
+            <button class="btn sm">Archivar</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:32px;padding:16px;background:hsl(270 30% 97%);border-left:3px solid var(--brand);border-radius:6px;font-size:13px">
+        <strong style="color:var(--brand)">📌 Cómo funcionan editions:</strong>
+        <ul style="margin-top:8px;margin-left:18px;color:var(--muted-foreground);line-height:1.8">
+          <li>Solo <strong>Default</strong> existe si no creas más.</li>
+          <li>Editar section sin edition activa = modifica todas.</li>
+          <li>Editar section con edition activa = crea un <strong>override</strong> sólo para esa edition.</li>
+          <li>La landing de cada edition vive en URL distinta. El sales-agent carga la edition correcta según query param.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="journey-tracker">
+  <span class="jlabel">Journey C · Gestionar editions</span>
+  <span class="jstep done">Abrir tab</span>
+  <span class="jstep current">Ver editions</span>
+  <span class="jstep">Duplicar / Override</span>
+  <span class="jstep">Publicar</span>
+  <div class="nav-links"><a href="offer-editor.html">← Editor</a></div>
+</div>
+</body></html>

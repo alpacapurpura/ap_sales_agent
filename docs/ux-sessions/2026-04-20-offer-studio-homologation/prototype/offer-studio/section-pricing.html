@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"/><title>Section — Pricing</title>
+<link rel="stylesheet" href="../_shared.css"/>
+</head><body>
+<div class="app">
+  <aside class="app-sidebar">
+    <div class="logo">Nicolify</div>
+    <a class="nav-item" href="#">◎ Dashboard</a>
+    <a class="nav-item" href="#">✦ Brand Studio</a>
+    <a class="nav-item active" href="dashboard.html">☰ Offer Studio</a>
+    <a class="nav-item" href="#">↗ Growth Studio</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumb"><a href="dashboard.html">Offer Studio</a><span class="sep">›</span><a href="offer-editor.html">Mentoría 12 semanas</a><span class="sep">›</span><a href="offer-editor.html">Editor</a><span class="sep">›</span><span class="current">Pricing</span></div>
+      <div class="topbar-actions"><span class="badge draft">Borrador</span><button class="btn primary">Publicar</button></div>
+    </div>
+
+    <div class="tabs-row">
+      <div class="tab active">Editor</div>
+      <div class="tab">Editions</div>
+      <div class="tab">Assets</div>
+      <div class="tab">Knowledge</div>
+      <div class="tab">Campaigns</div>
+      <div class="tab">Ventas</div>
+    </div>
+
+    <div class="editions-rail">
+      <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted-foreground);font-weight:600;margin-right:8px">Edition:</span>
+      <div class="edition-chip active"><span class="dot-state active"></span>Default</div>
+      <div class="edition-chip"><span class="dot-state draft"></span>Q2-2026 Launch <span style="font-size:10px;opacity:0.7">(pricing override)</span></div>
+    </div>
+
+    <div class="offer-shell">
+      <aside class="finder-col">
+        <div class="col-header"><span>Secciones</span></div>
+        <div class="col-body">
+          <a class="row" href="offer-editor.html"><span class="icon">◉</span>Identidad<span class="chev">›</span></a>
+          <a class="row" href="section-promise.html"><span class="icon">★</span>Promesa<span class="chev">›</span></a>
+          <a class="row" href="#"><span class="icon">♛</span>Público objetivo<span class="chev">›</span></a>
+          <a class="row" href="#"><span class="icon">⚙</span>Metodología<span class="chev">›</span></a>
+          <a class="row active" href="section-pricing.html"><span class="icon">$</span>Pricing<span class="chev">›</span></a>
+          <a class="row" href="#"><span class="icon">📅</span>Calendario<span class="chev">›</span></a>
+          <a class="row" href="collection-testimonials.html"><span class="icon">♫</span>Testimonios<span class="chev">›</span></a>
+        </div>
+      </aside>
+
+      <section class="form-area">
+        <div class="section-head"><h1>Pricing</h1><span class="tag">Singleton · HIGH_TICKET</span></div>
+        <p class="section-desc">Estructura de precios para esta oferta. El copiloto detectó flag <strong>HIGH_TICKET</strong> en tu preset y sugiere tiering por anclaje de valor.</p>
+
+        <div class="field-card">
+          <div class="field-label">Modelo de cobro</div>
+          <div class="field-hint">Cómo se cobra (pago único, en cuotas, suscripción, etc.)</div>
+          <div style="display:flex;gap:8px">
+            <div class="question-option selected" style="flex:none">Pago único</div>
+            <div class="question-option" style="flex:none">Cuotas</div>
+            <div class="question-option" style="flex:none">Suscripción</div>
+          </div>
+        </div>
+
+        <div class="field-card">
+          <div class="field-label">Tiers (3 recomendados por copilot)</div>
+          <div class="field-hint">HIGH_TICKET presets funcionan mejor con anclaje — precio medio se vende más si hay anclaje alto.</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px">
+            <div style="border:1px solid var(--border);padding:14px;border-radius:6px">
+              <div style="font-size:11px;text-transform:uppercase;color:var(--muted-foreground);font-weight:600">Essentials</div>
+              <div style="font-size:20px;font-weight:700;margin:4px 0">$997</div>
+              <div style="font-size:11px;color:var(--muted-foreground)">Protocolo base + 6 sesiones</div>
+            </div>
+            <div style="border:2px solid var(--brand);padding:14px;border-radius:6px;background:hsl(270 30% 98%);position:relative">
+              <div style="position:absolute;top:-8px;right:8px;background:var(--brand);color:white;font-size:9px;padding:2px 6px;border-radius:4px;text-transform:uppercase;font-weight:700">Sugerido</div>
+              <div style="font-size:11px;text-transform:uppercase;color:var(--brand);font-weight:600">Pro</div>
+              <div style="font-size:20px;font-weight:700;margin:4px 0">$1,497</div>
+              <div style="font-size:11px;color:var(--muted-foreground)">12 sesiones + WhatsApp directo</div>
+            </div>
+            <div style="border:1px solid var(--border);padding:14px;border-radius:6px">
+              <div style="font-size:11px;text-transform:uppercase;color:var(--muted-foreground);font-weight:600">VIP</div>
+              <div style="font-size:20px;font-weight:700;margin:4px 0">$2,997</div>
+              <div style="font-size:11px;color:var(--muted-foreground)">Pro + labs + familia incluida</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-card">
+          <div class="field-label">Proveedores de pago aceptados</div>
+          <div class="field-hint">Conecta proveedores en Settings → Conexiones</div>
+          <div class="field-value">Mercado Pago ✓ · Stripe ✓ · Culqi (no conectado)</div>
+        </div>
+      </section>
+
+      <aside class="copilot-col">
+        <div class="col-header"><span class="dot"></span><span class="title">Copiloto · Pricing</span><span class="collapse">◀</span></div>
+        <div class="col-body">
+          <div class="suggestion-card" style="border-color:var(--brand)">
+            <div class="tool-tag">🚀 HIGH_TICKET tiering</div>
+            <div class="suggestion-title">3 tiers con anclaje</div>
+            <div class="suggestion-body">Tu preset tiene flag HIGH_TICKET. Para este rango de valor, estudios muestran que 3-tier con tier alto (ancla) incrementa conversión del medio un 34%.</div>
+            <div class="actions"><button class="btn brand sm">Aplicar plantilla</button></div>
+          </div>
+          <div class="suggestion-card">
+            <div class="tool-tag">🔗 Edition overrides</div>
+            <div class="suggestion-title">Q2 Launch tiene override</div>
+            <div class="suggestion-body">La edition "Q2-2026 Launch" tiene early-bird $1,197 (20% off). ¿Revisar en tab Editions?</div>
+          </div>
+          <div class="suggestion-card">
+            <div class="tool-tag">💳 Moneda tenant</div>
+            <div class="suggestion-title">USD + equiv PEN</div>
+            <div class="suggestion-body">Tu tenant_profile es PEN. Landing mostrará USD + S/ al lado. Sales-agent citará en PEN.</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+<div class="journey-tracker">
+  <span class="jlabel">Journey D · Copilot-assisted fill (HIGH_TICKET)</span>
+  <span class="jstep done">Abrir Pricing</span>
+  <span class="jstep current">Copilot detecta flag</span>
+  <span class="jstep">Aplicar plantilla</span>
+  <span class="jstep">Ajustar + Save</span>
+  <div class="nav-links"><a href="offer-editor.html">← Editor</a></div>
+</div>
+</body></html>

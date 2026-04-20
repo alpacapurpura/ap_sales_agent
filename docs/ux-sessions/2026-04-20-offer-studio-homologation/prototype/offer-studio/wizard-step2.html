@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"/><title>Offer Studio — Wizard Preguntas</title>
+<link rel="stylesheet" href="../_shared.css"/>
+</head><body>
+<div class="app">
+  <aside class="app-sidebar">
+    <div class="logo">Nicolify</div>
+    <a class="nav-item" href="#">◎ Dashboard</a>
+    <a class="nav-item" href="#">✦ Brand Studio</a>
+    <a class="nav-item active" href="dashboard.html">☰ Offer Studio</a>
+    <a class="nav-item" href="#">↗ Growth Studio</a>
+    <a class="nav-item" href="#">◉ Sales Studio</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumb"><a href="dashboard.html">Offer Studio</a><span class="sep">›</span><a href="wizard-step1.html">Nueva oferta</a><span class="sep">›</span><span class="current">Preguntas</span></div>
+      <div class="topbar-actions"><a class="btn" href="dashboard.html">Cancelar</a></div>
+    </div>
+    <div class="wizard-shell">
+      <div class="wizard-steps">
+        <div class="wizard-step done"><div class="num">✓</div>Tipo</div>
+        <div class="sep"></div>
+        <div class="wizard-step active"><div class="num">2</div>Preguntas</div>
+        <div class="sep"></div>
+        <div class="wizard-step"><div class="num">3</div>Confirmar</div>
+      </div>
+
+      <h2 style="font-size:22px;font-weight:600;margin-bottom:6px;letter-spacing:-0.01em">Ajustes del paquete de tratamiento</h2>
+      <p style="color:var(--muted-foreground);margin-bottom:28px">2 preguntas para afinar las secciones que vas a completar. Según tus respuestas, se activan o desactivan sections en el editor.</p>
+
+      <div class="question-card">
+        <h3>¿Tiene fechas específicas?</h3>
+        <p>Si el tratamiento tiene inicio y fin definidos (ej: "5 sesiones en mayo"), activaremos la sección <strong>Calendario</strong>.</p>
+        <div class="question-options">
+          <div class="question-option selected">Sí, tiene fechas</div>
+          <div class="question-option">No, es flexible</div>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <h3>¿Requiere ubicación física?</h3>
+        <p>Si es presencial, activaremos <strong>Ubicación</strong> y conectaremos con tu integración de Scheduling.</p>
+        <div class="question-options">
+          <div class="question-option selected">Presencial</div>
+          <div class="question-option">Online</div>
+          <div class="question-option">Híbrido</div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;padding:14px 16px;background:hsl(270 30% 96%);border-radius:8px;border:1px solid hsl(270 30% 85%);font-size:13px">
+        <strong style="color:var(--brand)">→ Sections que vas a completar:</strong>
+        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
+          <span class="badge brand">Identidad</span>
+          <span class="badge brand">Promesa</span>
+          <span class="badge brand">Público objetivo</span>
+          <span class="badge brand">Metodología</span>
+          <span class="badge brand">Pricing</span>
+          <span class="badge brand">Calendario</span>
+          <span class="badge brand">Ubicación</span>
+          <span class="badge brand">Testimonios</span>
+          <span class="badge brand">FAQ</span>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;margin-top:32px">
+        <a class="btn" href="wizard-step1.html">← Atrás</a>
+        <a class="btn brand" href="offer-editor.html">Crear oferta →</a>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="journey-tracker">
+  <span class="jlabel">Journey A · Crear oferta</span>
+  <span class="jstep done">1. Dashboard</span>
+  <span class="jstep done">2. Preset</span>
+  <span class="jstep current">3. Preguntas</span>
+  <span class="jstep">4. Editor</span>
+  <div class="nav-links"><a href="wizard-step1.html">← Atrás</a><a href="offer-editor.html">Crear →</a></div>
+</div>
+</body></html>

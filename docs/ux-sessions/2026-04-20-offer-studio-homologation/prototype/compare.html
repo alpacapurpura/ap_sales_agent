@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"/><title>Brand vs Offer Studio — Homologación</title>
+<link rel="stylesheet" href="_shared.css"/>
+<style>
+  body { padding: 32px; background: hsl(210 30% 97%); }
+  .hdr { max-width: 1400px; margin: 0 auto 24px; }
+  .hdr h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .hdr p { color: var(--muted-foreground); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; }
+  .col { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .col h2 { padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 600; background: var(--muted); display: flex; gap: 8px; align-items: center; }
+  .col h2 .tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  .col h2 .tag.canon { background: var(--success); color: white; }
+  .col h2 .tag.target { background: var(--brand); color: white; }
+  .mock { padding: 0; }
+  .mini-shell { display: grid; grid-template-columns: 180px 1fr 180px; height: 380px; font-size: 11px; }
+  .mini-shell .nr { background: hsl(210 40% 98%); border-right: 1px solid var(--border); padding: 8px 0; }
+  .mini-shell .nr .r { padding: 5px 10px; display: flex; gap: 6px; align-items: center; cursor: default; }
+  .mini-shell .nr .r.a { border-left: 2px solid var(--brand); background: hsl(270 30% 95%); font-weight: 500; }
+  .mini-shell .nr .r .i { width: 10px; height: 10px; color: var(--muted-foreground); }
+  .mini-shell .form { padding: 14px; overflow: hidden; }
+  .mini-shell .form h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .mini-shell .form .d { font-size: 10px; color: var(--muted-foreground); margin-bottom: 10px; }
+  .mini-shell .form .fc { border: 1px solid var(--border); border-radius: 4px; padding: 8px 10px; margin-bottom: 6px; }
+  .mini-shell .form .fc .fl { font-size: 10px; font-weight: 600; margin-bottom: 2px; }
+  .mini-shell .form .fc .fv { font-size: 10px; color: var(--muted-foreground); background: var(--muted); padding: 4px 6px; border-radius: 3px; }
+  .mini-shell .cp { background: hsl(270 30% 98%); border-left: 1px solid var(--border); padding: 8px; }
+  .mini-shell .cp .h { display: flex; gap: 4px; align-items: center; font-size: 10px; font-weight: 600; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .mini-shell .cp .h .d { width: 5px; height: 5px; background: var(--brand); border-radius: 999px; }
+  .mini-shell .cp .s { background: white; border: 1px solid hsl(270 30% 85%); border-radius: 4px; padding: 6px; font-size: 10px; margin-bottom: 6px; }
+  .mini-shell .cp .s .t { font-size: 8px; color: var(--brand); text-transform: uppercase; font-weight: 600; }
+
+  .delta { max-width: 1400px; margin: 24px auto 0; background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .delta h2 { font-size: 18px; font-weight: 600; margin-bottom: 14px; }
+  .delta table { width: 100%; font-size: 13px; border-collapse: collapse; }
+  .delta th, .delta td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  .delta th { font-size: 11px; text-transform: uppercase; color: var(--muted-foreground); font-weight: 600; letter-spacing: 0.06em; }
+  .delta code { background: var(--muted); padding: 1px 5px; border-radius: 3px; font-size: 11.5px; }
+  .delta .ok { color: var(--success); font-weight: 600; }
+  .delta .diff { color: var(--brand); font-weight: 600; }
+  .back { position: fixed; top: 12px; left: 12px; }
+</style>
+</head><body>
+<a class="btn back" href="index.html">← Hub</a>
+<div class="hdr">
+  <h1>Brand Studio (canónico) vs Offer Studio refactorizado</h1>
+  <p>Mismo layout, mismos primitives, mismas convenciones. Diferencias intencionales marcadas abajo.</p>
+</div>
+
+<div class="grid">
+  <div class="col">
+    <h2>Brand Studio <span class="tag canon">Canónico</span></h2>
+    <div class="mini-shell">
+      <div class="nr">
+        <div class="r"><span class="i">●</span>Buyer personas</div>
+        <div class="r a"><span class="i">●</span>Identidad</div>
+        <div class="r"><span class="i">●</span>Posicionamiento</div>
+        <div class="r"><span class="i">●</span>Narrativa</div>
+        <div class="r"><span class="i">●</span>Metodología</div>
+        <div class="r"><span class="i">●</span>Equipo</div>
+        <div class="r"><span class="i">●</span>Testimonios</div>
+        <div class="r"><span class="i">●</span>Visuales</div>
+      </div>
+      <div class="form">
+        <h3>Identidad</h3>
+        <div class="d">Esencia de la marca — qué representas</div>
+        <div class="fc"><div class="fl">Nombre comercial</div><div class="fv">Clinica Integra</div></div>
+        <div class="fc"><div class="fl">Tagline</div><div class="fv">Medicina funcional con enfoque humano</div></div>
+        <div class="fc"><div class="fl">Misión</div><div class="fv">Acompañar...</div></div>
+      </div>
+      <div class="cp">
+        <div class="h"><span class="d"></span>Copiloto</div>
+        <div class="s"><div class="t">Entrevista</div>Completa con guia</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <h2>Offer Studio refactorizado <span class="tag target">Target</span></h2>
+    <div class="mini-shell">
+      <div class="nr">
+        <div class="r"><span class="i">●</span>Identidad</div>
+        <div class="r a"><span class="i">●</span>Promesa</div>
+        <div class="r"><span class="i">●</span>Público objetivo</div>
+        <div class="r"><span class="i">●</span>Metodología</div>
+        <div class="r"><span class="i">●</span>Pricing</div>
+        <div class="r"><span class="i">●</span>Calendario</div>
+        <div class="r"><span class="i">●</span>Testimonios</div>
+        <div class="r"><span class="i">●</span>FAQ</div>
+      </div>
+      <div class="form">
+        <h3>Promesa</h3>
+        <div class="d">Transformación concreta al completar el programa</div>
+        <div class="fc"><div class="fl">Promesa central</div><div class="fv">Recupera energía en 12 semanas...</div></div>
+        <div class="fc"><div class="fl">Antes / después</div><div class="fv">Fatiga → claridad</div></div>
+        <div class="fc"><div class="fl">Resultados medibles</div><div class="fv">3-5 outcomes</div></div>
+      </div>
+      <div class="cp">
+        <div class="h"><span class="d"></span>Copiloto · Promesa</div>
+        <div class="s"><div class="t">Desde Brand</div>Adaptar narrativa</div>
+        <div class="s"><div class="t">HIGH_TICKET</div>Tiering sugerido</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="delta">
+  <h2>Matriz de homologación</h2>
+  <table>
+    <thead><tr><th style="width:22%">Dimensión</th><th style="width:34%">Brand Studio</th><th style="width:34%">Offer Studio refactor</th><th style="width:10%">Estado</th></tr></thead>
+    <tbody>
+      <tr><td>Layout shell</td><td>2-col: NavRail + SectionPage</td><td>3-col: NavRail + SectionPage + <strong>CopilotSidebar</strong></td><td class="diff">Extensión</td></tr>
+      <tr><td>Nav primitive</td><td><code>FinderColumn</code> + <code>BRAND_SECTIONS</code> (lib/section-catalog.ts)</td><td><code>FinderColumn</code> + <code>OFFER_SECTIONS</code> (lib/section-catalog.ts)</td><td class="ok">Idéntico</td></tr>
+      <tr><td>Page wrapper</td><td><code>SectionPage&lt;TSlice&gt;</code> + <code>section-pages.tsx</code> factory</td><td><code>SectionPage&lt;TSlice&gt;</code> + <code>section-pages.tsx</code> factory</td><td class="ok">Idéntico</td></tr>
+      <tr><td>Field routing</td><td><code>useBrandStudioFieldRouting</code></td><td><code>useOfferStudioFieldRouting</code></td><td class="ok">Homologo</td></tr>
+      <tr><td>URL deep-link</td><td><code>/brand-studio/{section}/{fieldId}</code></td><td><code>/offer-studio/offer/{id}/edition/{code}/{section}/{fieldId}</code></td><td class="diff">+ editions</td></tr>
+      <tr><td>Form renderer</td><td><code>UniversalEditableSection</code> (form-runtime)</td><td><code>UniversalEditableSection</code> + prop <code>copilotSlot?</code></td><td class="diff">Extensión no-breaking</td></tr>
+      <tr><td>Actions registry</td><td><code>bootstrapBrandStudioActions()</code> en <code>actions/registry.ts</code></td><td><code>bootstrapOfferStudioActions()</code> en <code>actions/registry.ts</code></td><td class="ok">Idéntico</td></tr>
+      <tr><td>Collections</td><td>Landing (list) + Detail (edit). Ej: <code>/authority/instance/{id}</code></td><td>Landing + Detail. Ej: <code>/testimonials/{testimonialId}</code></td><td class="ok">Idéntico</td></tr>
+      <tr><td>Copilot integration</td><td>Solo en creación (BuyerPersonasDashboard)</td><td>Persistente por section + tools específicos (Brand Vault, HIGH_TICKET, coherencia)</td><td class="diff">Extensión</td></tr>
+      <tr><td>Sections emitidas</td><td>Fijas (12 sections)</td><td>Dinámicas: <code>resolvePresetSections(preset, questions, answers)</code></td><td class="diff">Backend-driven</td></tr>
+      <tr><td>Editions</td><td>N/A</td><td>Sub-tab dentro del offer shell</td><td class="diff">Exclusivo</td></tr>
+    </tbody>
+  </table>
+</div>
+</body></html>

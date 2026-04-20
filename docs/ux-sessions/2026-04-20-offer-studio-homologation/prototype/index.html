@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Offer Studio Homologation — Prototipo</title>
+<link rel="stylesheet" href="_shared.css"/>
+<style>
+  body { background: hsl(220 30% 12%); color: #fff; min-height: 100vh; padding: 60px 24px; }
+  .hub { max-width: 960px; margin: 0 auto; }
+  .hub h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .hub .sub { color: hsl(210 20% 70%); margin-bottom: 40px; }
+  .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: hsl(270 60% 75%); font-weight: 600; margin: 32px 0 12px; }
+  .link-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .link-card { display: block; padding: 14px 18px; background: hsl(220 25% 18%); border: 1px solid hsl(220 25% 24%); border-radius: 8px; color: #fff; transition: all 0.15s; }
+  .link-card:hover { border-color: var(--brand); background: hsl(220 25% 22%); }
+  .link-card strong { display: block; font-size: 14px; margin-bottom: 2px; }
+  .link-card span { font-size: 12px; color: hsl(210 15% 65%); }
+  .link-card .route { font-family: ui-monospace, monospace; font-size: 11px; color: hsl(270 60% 75%); margin-top: 6px; display: block; }
+</style>
+</head>
+<body>
+<div class="hub">
+  <h1>Offer Studio — Homologación Brand Studio</h1>
+  <p class="sub">Prototipo navegable. Sidebar global Nicolify + shell 3-col + copilot persistente. Todas las pantallas siguen patrón brand-studio salvo Editions (dim. exclusiva de offer).</p>
+
+  <div class="section-title">Journey A — Crear oferta nueva</div>
+  <div class="link-grid">
+    <a class="link-card" href="offer-studio/dashboard.html"><strong>1. Dashboard / Ladder</strong><span>Vista cards por preset. CTA "+ Nueva oferta"</span><span class="route">/{tenantId}/offer-studio</span></a>
+    <a class="link-card" href="offer-studio/wizard-step1.html"><strong>2. Wizard — Preset picker</strong><span>Grid filtrado por business_types del tenant</span><span class="route">/{tenantId}/offer-studio/new</span></a>
+    <a class="link-card" href="offer-studio/wizard-step2.html"><strong>3. Wizard — Preguntas condicionales</strong><span>1-3 preguntas que ajustan sections emitidas</span><span class="route">/{tenantId}/offer-studio/new?step=questions</span></a>
+    <a class="link-card" href="offer-studio/offer-editor.html"><strong>4. Editor (recién creada)</strong><span>Oferta con copilot sugiriendo primera sección</span><span class="route">/{tenantId}/offer-studio/offer/:id</span></a>
+  </div>
+
+  <div class="section-title">Journey B — Editar oferta existente (singleton)</div>
+  <div class="link-grid">
+    <a class="link-card" href="offer-studio/section-promise.html"><strong>Section: Promesa</strong><span>Singleton. List de fields con values actuales</span><span class="route">/:id/editor/promise</span></a>
+    <a class="link-card" href="offer-studio/section-promise-field.html"><strong>Field detail: Promesa central</strong><span>Form-runtime UniversalEditableSection con action</span><span class="route">/:id/editor/promise/central_promise</span></a>
+    <a class="link-card" href="offer-studio/section-pricing.html"><strong>Section: Pricing (copilot HIGH_TICKET)</strong><span>Copilot sugiere estructura basada en preset flag</span><span class="route">/:id/editor/pricing</span></a>
+  </div>
+
+  <div class="section-title">Journey B' — Colecciones</div>
+  <div class="link-grid">
+    <a class="link-card" href="offer-studio/collection-testimonials.html"><strong>Collection landing: Testimonios</strong><span>Lista de cards + import desde brand vault</span><span class="route">/:id/editor/testimonials</span></a>
+    <a class="link-card" href="offer-studio/collection-testimonial-detail.html"><strong>Collection detail: Testimonio</strong><span>Edit individual con form-runtime</span><span class="route">/:id/editor/testimonials/:testimonialId</span></a>
+  </div>
+
+  <div class="section-title">Journey C — Editions (dim. exclusiva de offer)</div>
+  <div class="link-grid">
+    <a class="link-card" href="offer-studio/offer-editions.html"><strong>Tab Editions</strong><span>Rail con drafts + active. Duplicar / publicar.</span><span class="route">/:id/editions</span></a>
+  </div>
+
+  <div class="section-title">Comparativa lado a lado</div>
+  <div class="link-grid">
+    <a class="link-card" href="compare.html" style="grid-column: 1 / -1;"><strong>Brand Studio vs Offer Studio refactorizado</strong><span>Demo visual de homologación</span></a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"/><title>Testimonio — Detail</title>
+<link rel="stylesheet" href="../_shared.css"/>
+</head><body>
+<div class="app">
+  <aside class="app-sidebar">
+    <div class="logo">Nicolify</div>
+    <a class="nav-item" href="#">◎ Dashboard</a>
+    <a class="nav-item" href="#">✦ Brand Studio</a>
+    <a class="nav-item active" href="dashboard.html">☰ Offer Studio</a>
+    <a class="nav-item" href="#">↗ Growth Studio</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumb">
+        <a href="dashboard.html">Offer Studio</a><span class="sep">›</span>
+        <a href="offer-editor.html">Mentoría 12 semanas</a><span class="sep">›</span>
+        <a href="offer-editor.html">Editor</a><span class="sep">›</span>
+        <a href="collection-testimonials.html">Testimonios</a><span class="sep">›</span>
+        <span class="current">María Fernández</span>
+      </div>
+      <div class="topbar-actions"><button class="btn">Descartar</button><button class="btn primary">Guardar</button></div>
+    </div>
+
+    <div class="tabs-row">
+      <div class="tab active">Editor</div>
+      <div class="tab">Editions</div>
+      <div class="tab">Assets</div>
+      <div class="tab">Knowledge</div>
+      <div class="tab">Campaigns</div>
+      <div class="tab">Ventas</div>
+    </div>
+
+    <div class="offer-shell">
+      <aside class="finder-col">
+        <div class="col-header"><span>Secciones</span></div>
+        <div class="col-body">
+          <a class="row" href="offer-editor.html"><span class="icon">◉</span>Identidad<span class="chev">›</span></a>
+          <a class="row" href="section-promise.html"><span class="icon">★</span>Promesa<span class="chev">›</span></a>
+          <a class="row" href="section-pricing.html"><span class="icon">$</span>Pricing<span class="chev">›</span></a>
+          <a class="row active" href="collection-testimonials.html"><span class="icon">♫</span>Testimonios<span class="chev">›</span></a>
+        </div>
+      </aside>
+
+      <section class="form-area">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted-foreground);margin-bottom:4px"><a href="collection-testimonials.html">← Volver a Testimonios</a></div>
+        <div class="section-head"><h1>María Fernández</h1><span class="tag">Instance</span></div>
+
+        <div class="field-card">
+          <div class="field-label">Nombre completo</div>
+          <input style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit" value="María Fernández"/>
+        </div>
+        <div class="field-card">
+          <div class="field-label">Rol / descripción</div>
+          <input style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit" value="Paciente · Programa completado 2025-11"/>
+        </div>
+        <div class="field-card">
+          <div class="field-label">Cita textual</div>
+          <textarea style="width:100%;min-height:90px;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit">Al mes 3 ya dormía 7h seguidas. Recuperé mi energía para jugar con mis hijos sin sentirme agotada al final del día. Lo recomiendo sin dudarlo.</textarea>
+        </div>
+        <div class="field-card">
+          <div class="field-label">Formato</div>
+          <div style="display:flex;gap:8px">
+            <div class="question-option selected" style="flex:none">Video</div>
+            <div class="question-option" style="flex:none">Texto</div>
+            <div class="question-option" style="flex:none">Audio</div>
+          </div>
+        </div>
+        <div class="field-card">
+          <div class="field-label">Archivo / URL del video</div>
+          <div class="field-value">testimonials/maria-fernandez-2025-11.mp4</div>
+        </div>
+        <div class="field-card">
+          <div class="field-label">Objeción que resuelve</div>
+          <div class="field-hint">Tag para que el sales-agent lo use en la objeción correcta.</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="badge brand">Eficacia</span>
+            <span class="badge brand">Tiempo al resultado</span>
+            <button class="btn sm">+ Agregar tag</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="copilot-col">
+        <div class="col-header"><span class="dot"></span><span class="title">Copiloto · Testimonio</span><span class="collapse">◀</span></div>
+        <div class="col-body">
+          <div class="suggestion-card">
+            <div class="tool-tag">✂ Extracción automática</div>
+            <div class="suggestion-title">Ya transcribí el video</div>
+            <div class="suggestion-body">Detecté 3 frases candidatas para "cita textual". La actual es la más concisa.</div>
+            <div class="actions"><button class="btn sm">Ver otras 2</button></div>
+          </div>
+          <div class="suggestion-card">
+            <div class="tool-tag">🏷 Tagging automático</div>
+            <div class="suggestion-title">Sugerí 2 tags más</div>
+            <div class="suggestion-body">"Impacto familiar" y "Recuperación funcional" aparecen en la cita.</div>
+            <div class="actions"><button class="btn sm">Aplicar</button></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+<div class="journey-tracker">
+  <span class="jlabel">Journey B' · Editar collection item</span>
+  <span class="jstep done">Collection landing</span>
+  <span class="jstep current">Detail edit</span>
+  <span class="jstep">Save</span>
+  <div class="nav-links"><a href="collection-testimonials.html">← Testimonios</a></div>
+</div>
+</body></html>
