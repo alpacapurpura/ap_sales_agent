@@ -1,11 +1,15 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
-import { UniversalEditableSection } from "@/components/form-runtime";
 import { useBuyerPersona } from "@/features/brand-studio/hooks/use-buyer-persona";
 import { buyerPersonaSchema } from "@/features/brand-studio/schemas/buyer-persona.schema";
+import { startInterview } from "@/features/copilot/api/interview-api";
+import { useCopilotStore } from "@/features/copilot/store/copilot-store";
+
+import { SectionPage } from "./SectionPage";
 
 import "@/features/brand-studio/schemas";
 import type { BuyerPersona, BuyerPersonaSectionUpdateDTO } from "@/lib/api/buyer-persona";
@@ -35,39 +39,52 @@ function toEditable(persona: BuyerPersona | null): BuyerPersonaSectionUpdateDTO 
 }
 
 /**
- * Buyer persona detail page. Reads the persona via useBuyerPersona (which
- * uses the shared useAutoSave primitive) and wires it into the form-runtime
- * via UniversalEditableSection + the buyer-persona schema. URL-driven per
- * field — active field is taken from the route's [fieldId] segment.
+ * Buyer persona detail page. Delegates rendering to SectionPage (the shared
+ * brand-studio wrapper) so field routing + the "Modo entrevista" CTA stay
+ * consistent with every other section. The only divergence from the factory
+ * pattern is that this page resolves a single persona by id instead of a
+ * BrandSettings slice — buyer personas are multi-instance entities.
  *
  * Route: /{tenantId}/brand-studio/publico/persona/{personaId}/{fieldId?}
  */
 export function PersonaDetailPage() {
-  const params = useParams<{
-    tenantId?: string;
-    personaId?: string;
-    fieldId?: string | string[];
-  }>();
+  const { getToken } = useAuth();
+  const params = useParams<{ tenantId?: string; personaId?: string }>();
   const tenantId = params?.tenantId ?? "";
   const personaId = params?.personaId ?? "";
-
-  const activeFieldId = useMemo(() => {
-    const raw = params?.fieldId;
-    if (!raw) return null;
-    return Array.isArray(raw) ? (raw[0] ?? null) : raw;
-  }, [params]);
-
-  const getFieldHref = useCallback(
-    (fieldId: string | null) => {
-      const base = `/${tenantId}/brand-studio/publico/persona/${personaId}`;
-      return fieldId === null ? base : `${base}/${fieldId}`;
-    },
-    [tenantId, personaId],
-  );
 
   const { persona, isLoading, save } = useBuyerPersona(tenantId, personaId);
 
   const values = useMemo(() => toEditable(persona ?? null), [persona]);
+
+  const handleStartInterview = useCallback(async () => {
+    if (!personaId) return;
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const interview = await startInterview(token, "buyer_persona", personaId);
+      const store = useCopilotStore.getState();
+      store.setSession({
+        sectionKey: "brand.buyer-persona",
+        label: persona?.name ?? "Buyer persona",
+        entityId: personaId,
+        procedure: "interview",
+        sessionId: interview.session_id,
+        startedAt: new Date(),
+        snapshot: {},
+      });
+      store.setConversationId(interview.conversation_id);
+      store.addMessage({
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: interview.initial_message,
+        timestamp: Date.now(),
+      });
+      store.setSidebarState("open");
+    } catch (err) {
+      console.error("Failed to start buyer persona interview", err);
+    }
+  }, [getToken, persona, personaId]);
 
   if (!personaId) {
     return (
@@ -82,13 +99,13 @@ export function PersonaDetailPage() {
   }
 
   return (
-    <UniversalEditableSection<BuyerPersonaSectionUpdateDTO>
+    <SectionPage<BuyerPersonaSectionUpdateDTO>
+      sectionSlug={`publico/persona/${personaId}`}
       schema={buyerPersonaSchema}
       values={values}
       isLoading={isLoading}
       onSave={save}
-      activeFieldId={activeFieldId}
-      getFieldHref={getFieldHref}
+      onStartInterview={handleStartInterview}
     />
   );
 }
