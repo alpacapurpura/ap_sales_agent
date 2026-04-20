@@ -13,6 +13,9 @@ function sanitizeTrackingId(value: string): string {
   return value.replace(/[^a-zA-Z0-9\-_.:/]/g, "");
 }
 
+/**
+ *
+ */
 export default async function PublicSiteLayout({ children }: { children: React.ReactNode }) {
   const headersList = await headers();
   const tenantId = headersList.get("X-Tenant-ID") ?? "";

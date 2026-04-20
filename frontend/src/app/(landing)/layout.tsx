@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   description: "Visionarias Landing Page Editor",
 };
 
+/**
+ *
+ */
 export default function EditorLayout({
   children,
 }: Readonly<{

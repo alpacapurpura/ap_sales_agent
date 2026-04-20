@@ -29,6 +29,9 @@ function formatRetentionValue(kpi: MetricKpiData): string {
   return kpi.currentValue.toLocaleString("en-US");
 }
 
+/**
+ *
+ */
 export function YtRetentionTab({ data, isLoading }: YtRetentionTabProps) {
   if (isLoading) {
     return (

@@ -39,6 +39,9 @@ const ENGAGEMENT_LABELS: Record<string, string> = {
   ig_saves: "Guardados",
 };
 
+/**
+ *
+ */
 export function IgContentTab({ data, isLoading }: IgContentTabProps) {
   if (isLoading)
     return (

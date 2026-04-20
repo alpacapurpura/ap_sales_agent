@@ -21,6 +21,9 @@ function getScoreColor(score: number): { text: string; bg: string } {
   return { text: "text-red-500", bg: "bg-red-500" };
 }
 
+/**
+ *
+ */
 export function MailHealthScore({ healthScore }: MailHealthScoreProps) {
   const { text: totalColor } = getScoreColor(healthScore.total);
 

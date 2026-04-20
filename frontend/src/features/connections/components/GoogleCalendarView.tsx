@@ -39,6 +39,9 @@ import { connectionsApi } from "@/lib/api/connections";
 
 import type { TestResponse } from "@/lib/api/connections";
 
+/**
+ *
+ */
 export function GoogleCalendarView() {
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);

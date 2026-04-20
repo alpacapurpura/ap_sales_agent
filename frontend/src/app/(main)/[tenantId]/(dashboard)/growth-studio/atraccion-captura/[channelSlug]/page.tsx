@@ -5,6 +5,9 @@ interface ChannelDashboardPageProps {
   searchParams: Promise<{ tab?: string }>;
 }
 
+/**
+ *
+ */
 export default async function AtraccionCapturaChannelPage({
   params,
   searchParams,

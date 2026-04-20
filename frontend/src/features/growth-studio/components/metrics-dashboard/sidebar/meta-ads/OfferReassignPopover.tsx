@@ -34,6 +34,9 @@ interface OfferReassignPopoverProps {
   children: React.ReactNode;
 }
 
+/**
+ *
+ */
 export function OfferReassignPopover({
   campaign,
   association,

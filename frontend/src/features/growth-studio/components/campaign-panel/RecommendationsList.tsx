@@ -26,6 +26,9 @@ interface RecommendationsListProps {
   recommendations: Recommendation[];
 }
 
+/**
+ *
+ */
 export function RecommendationsList({ recommendations }: RecommendationsListProps) {
   if (recommendations.length === 0) {
     return (

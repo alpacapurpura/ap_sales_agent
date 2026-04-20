@@ -12,6 +12,9 @@ interface PipelineColumnProps {
   children: React.ReactNode;
 }
 
+/**
+ *
+ */
 export function PipelineColumn({ id, label, color, count, children }: PipelineColumnProps) {
   const { isOver, setNodeRef } = useDroppable({ id });
 

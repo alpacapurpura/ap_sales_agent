@@ -13,6 +13,9 @@ interface AIAssistButtonProps {
   className?: string;
 }
 
+/**
+ *
+ */
 export function AIAssistButton({
   onGenerate,
   isDisabled = false,

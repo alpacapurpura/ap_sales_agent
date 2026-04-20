@@ -7,6 +7,9 @@ import { fetchChannelDashboard } from "../api/channel-dashboard-api";
 
 import type { ChannelDashboardData, MetaAdsPeriod } from "../types/metrics";
 
+/**
+ *
+ */
 export function useChannelDashboard(
   channelSlug: string,
   period: MetaAdsPeriod = "30d",

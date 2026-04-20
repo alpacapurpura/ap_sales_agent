@@ -6,6 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchConversations } from "../api";
 import { useCloserStore } from "../store/closer-store";
 
+/**
+ *
+ */
 export function useConversations() {
   const { getToken } = useAuth();
   const filters = useCloserStore((s) => s.filters);

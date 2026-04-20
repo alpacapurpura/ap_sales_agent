@@ -15,6 +15,9 @@ import type {
 const knowledgeKey = (offerId: string, query?: KnowledgeListQuery) =>
   ["offer", offerId, "knowledge", query ?? {}] as const;
 
+/**
+ *
+ */
 export function useKnowledgeSources(offerId: string, query?: KnowledgeListQuery) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 
@@ -35,6 +38,9 @@ const invalidateKnowledge = (queryClient: ReturnType<typeof useQueryClient>, off
   void queryClient.invalidateQueries({ queryKey: ["offer", offerId, "counts"] });
 };
 
+/**
+ *
+ */
 export function useUploadKnowledge(offerId: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
@@ -55,6 +61,9 @@ export function useUploadKnowledge(offerId: string) {
   });
 }
 
+/**
+ *
+ */
 export function useAddKnowledgeUrl(offerId: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
@@ -75,6 +84,9 @@ export function useAddKnowledgeUrl(offerId: string) {
   });
 }
 
+/**
+ *
+ */
 export function useDeleteKnowledge(offerId: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
@@ -95,6 +107,9 @@ export function useDeleteKnowledge(offerId: string) {
   });
 }
 
+/**
+ *
+ */
 export function useReindexKnowledge(offerId: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

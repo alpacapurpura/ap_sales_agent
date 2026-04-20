@@ -1,3 +1,6 @@
+/**
+ *
+ */
 export default function SalesContactosPage() {
   return (
     <div className="space-y-6 p-10 pb-16">

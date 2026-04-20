@@ -17,6 +17,9 @@ interface MultiOptionSelectorProps {
 
 type SelectorStatus = "pending" | "applied";
 
+/**
+ *
+ */
 export function MultiOptionSelector({ options, fieldId }: MultiOptionSelectorProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [status, setStatus] = useState<SelectorStatus>("pending");

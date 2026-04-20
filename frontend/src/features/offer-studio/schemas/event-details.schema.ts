@@ -81,8 +81,14 @@ export const offerEventDetailsSchema: SectionSchema = {
       path: "specific_details.location_type",
       options: [
         { value: EventLocationType.VIRTUAL, label: "Virtual (online, sin venue físico)" },
-        { value: EventLocationType.PHYSICAL_LOCAL, label: "Presencial local (en tu ciudad habitual)" },
-        { value: EventLocationType.DESTINATION_RETREAT, label: "Retiro destino (viajan tú y los atendees)" },
+        {
+          value: EventLocationType.PHYSICAL_LOCAL,
+          label: "Presencial local (en tu ciudad habitual)",
+        },
+        {
+          value: EventLocationType.DESTINATION_RETREAT,
+          label: "Retiro destino (viajan tú y los atendees)",
+        },
       ],
       hint: "Virtual escala al infinito. Presencial local retiene mejor a la audiencia local. Destination retreat es el mayor valor percibido pero la logística más compleja.",
     },
@@ -135,7 +141,10 @@ export const offerEventDetailsSchema: SectionSchema = {
       type: "enum",
       path: "specific_details.accommodation_type",
       options: [
-        { value: AccommodationType.NOT_INCLUDED, label: "No incluido (el atendee gestiona su hotel)" },
+        {
+          value: AccommodationType.NOT_INCLUDED,
+          label: "No incluido (el atendee gestiona su hotel)",
+        },
         { value: AccommodationType.SHARED_ROOM, label: "Cuarto compartido (doble/triple)" },
         { value: AccommodationType.PRIVATE_ROOM, label: "Cuarto privado estándar" },
         { value: AccommodationType.LUXURY_SUITE, label: "Suite de lujo" },

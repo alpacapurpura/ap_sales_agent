@@ -24,6 +24,9 @@ interface TenantLocaleProviderProps {
   initialLocale?: TenantLocale;
 }
 
+/**
+ *
+ */
 export function TenantLocaleProvider({ children, initialLocale }: TenantLocaleProviderProps) {
   const [locale, setLocale] = useState<TenantLocale>(initialLocale ?? DEFAULT_LOCALE);
   const { getToken } = useAuth();
@@ -59,6 +62,9 @@ export function TenantLocaleProvider({ children, initialLocale }: TenantLocalePr
   return <TenantLocaleContext.Provider value={locale}>{children}</TenantLocaleContext.Provider>;
 }
 
+/**
+ *
+ */
 export function useTenantLocale(): TenantLocale {
   return useContext(TenantLocaleContext);
 }

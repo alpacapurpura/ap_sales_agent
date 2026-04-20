@@ -7,6 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvailabilityView } from "@/features/sales/components/AvailabilityView";
 import { EventTypeView } from "@/features/sales/components/EventTypeView";
 
+/**
+ *
+ */
 export function SchedulingSettingsView() {
   return (
     <Card>

@@ -8,6 +8,9 @@ import { stopAI, resumeAI, sendMessage, nudge, reactivate, diagnose } from "../a
 
 import type { ConversationDetail, InputMode } from "../types";
 
+/**
+ *
+ */
 export function useConversationActions(leadId: string | null) {
   const { getToken } = useAuth();
   const qc = useQueryClient();

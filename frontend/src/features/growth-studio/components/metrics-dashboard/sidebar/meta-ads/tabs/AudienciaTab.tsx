@@ -61,6 +61,9 @@ function InfoTooltip({ text }: { text: string }) {
   );
 }
 
+/**
+ *
+ */
 export function AudienciaTab({ data, isLoading, period }: AudienciaTabProps) {
   const { data: demographics } = useDemographics("meta-ads", period ?? "30d");
 

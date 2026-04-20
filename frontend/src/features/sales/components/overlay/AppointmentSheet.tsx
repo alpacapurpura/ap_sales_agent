@@ -29,6 +29,9 @@ interface AppointmentSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ *
+ */
 export function AppointmentSheet({ appointment, open, onOpenChange }: AppointmentSheetProps) {
   if (!appointment) return null;
 

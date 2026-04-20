@@ -22,6 +22,9 @@ interface WebsiteOverviewPanelProps {
   initialTab?: string | null;
 }
 
+/**
+ *
+ */
 export function WebsiteOverviewPanel({ channel, onClose, onExpand }: WebsiteOverviewPanelProps) {
   return (
     <ChannelOverviewPanel

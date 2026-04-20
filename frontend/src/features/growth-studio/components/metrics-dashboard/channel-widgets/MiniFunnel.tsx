@@ -8,6 +8,9 @@ interface MiniFunnelProps {
   data: MiniFunnelData;
 }
 
+/**
+ *
+ */
 export function MiniFunnel({ data }: MiniFunnelProps) {
   return (
     <div className="flex items-center gap-3 px-3 py-3 bg-muted/30 rounded-lg">

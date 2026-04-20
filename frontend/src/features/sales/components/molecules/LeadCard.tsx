@@ -16,6 +16,9 @@ interface LeadCardProps {
   onClick?: () => void;
 }
 
+/**
+ *
+ */
 export function LeadCard({ lead, className, onClick }: LeadCardProps) {
   const { customer } = lead;
   const fullName = customer?.full_name ?? lead.name ?? "Cliente";

@@ -77,8 +77,8 @@ function createSectionPage(
           <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-muted-foreground" aria-hidden />
           <h3 className="text-lg font-medium">Esta sección necesita una edición concreta</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Los campos de {label} viven en la edición específica que estás configurando.
-            Selecciona o crea una edición desde el rail lateral.
+            Los campos de {label} viven en la edición específica que estás configurando. Selecciona
+            o crea una edición desde el rail lateral.
           </p>
         </div>
       );
@@ -161,8 +161,16 @@ export const IdentityPage = createSectionPage(offerIdentitySchema, "identity", "
 export const StrategyPage = createSectionPage(offerStrategySchema, "strategy", "offer_level");
 export const PsychologyPage = createSectionPage(offerPsychologySchema, "psychology", "offer_level");
 export const PromisePage = createSectionPage(offerPromiseSchema, "promise", "offer_level");
-export const ValueStackPage = createSectionPage(offerValueStackSchema, "value_stack", "offer_level");
-export const InstructorsPage = createSectionPage(offerInstructorsSchema, "instructors", "offer_level");
+export const ValueStackPage = createSectionPage(
+  offerValueStackSchema,
+  "value_stack",
+  "offer_level",
+);
+export const InstructorsPage = createSectionPage(
+  offerInstructorsSchema,
+  "instructors",
+  "offer_level",
+);
 export const KnowledgePage = createSectionPage(offerKnowledgeSchema, "knowledge", "offer_level");
 export const ClosingPage = createSectionPage(offerClosingSchema, "closing", "offer_level");
 export const ProductDetailsPage = createSectionPage(
@@ -188,15 +196,27 @@ export const EventDetailsPage = createSectionPage(
 // ── Mixed-scope sections ────────────────────────────────────────────────────
 
 export const PricingPage = createSectionPage(offerPricingSchema, "pricing", "mixed");
-export const ProgramDetailsPage = createSectionPage(offerProgramDetailsSchema, "program_details", "mixed");
-export const ServiceDetailsPage = createSectionPage(offerServiceDetailsSchema, "service_details", "mixed");
+export const ProgramDetailsPage = createSectionPage(
+  offerProgramDetailsSchema,
+  "program_details",
+  "mixed",
+);
+export const ServiceDetailsPage = createSectionPage(
+  offerServiceDetailsSchema,
+  "service_details",
+  "mixed",
+);
 export const ResourcesPage = createSectionPage(offerResourcesSchema, "resources", "mixed");
 export const LocationPage = createSectionPage(offerLocationSchema, "location", "mixed");
 
 // ── Nuevas secciones (Latam mass-market rollout) ───────────────────────────
 
 export const FaqPage = createSectionPage(offerFaqSchema, "faq", "offer_level");
-export const TestimonialsPage = createSectionPage(offerTestimonialsSchema, "testimonials", "offer_level");
+export const TestimonialsPage = createSectionPage(
+  offerTestimonialsSchema,
+  "testimonials",
+  "offer_level",
+);
 export const PortfolioPage = createSectionPage(offerPortfolioSchema, "portfolio", "offer_level");
 export const PlatformDetailsPage = createSectionPage(
   offerPlatformDetailsSchema,

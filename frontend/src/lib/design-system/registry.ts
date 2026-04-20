@@ -15,12 +15,12 @@
  * - registry-features.ts    → Brand, Connections, Offer, Audit, Admin
  */
 
-import type { ComponentEntry, DesignToken } from "./types";
-
-import { REGISTRY_GROWTH } from "./registry-growth";
 import { REGISTRY_OTHER_FEATURES } from "./registry-features";
+import { REGISTRY_GROWTH } from "./registry-growth";
 import { REGISTRY_PRIMITIVES } from "./registry-primitives";
 import { REGISTRY_SALES } from "./registry-sales";
+
+import type { ComponentEntry, DesignToken } from "./types";
 
 // ---------------------------------------------------------------------------
 // COMPONENT REGISTRY (assembled from partial registries)

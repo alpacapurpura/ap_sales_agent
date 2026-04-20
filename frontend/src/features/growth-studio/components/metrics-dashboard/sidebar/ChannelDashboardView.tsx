@@ -39,6 +39,9 @@ interface ChannelDashboardViewProps {
   initialTab?: string;
 }
 
+/**
+ *
+ */
 export function ChannelDashboardView({ channelSlug, initialTab }: ChannelDashboardViewProps) {
   if (channelSlug === "ig-organic") {
     return <IgOrganicDashboard initialTab={initialTab} isRouteBased />;

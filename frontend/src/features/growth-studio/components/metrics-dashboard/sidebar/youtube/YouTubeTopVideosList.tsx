@@ -25,6 +25,9 @@ interface YouTubeTopVideosListProps {
   enabled: boolean;
 }
 
+/**
+ *
+ */
 export function YouTubeTopVideosList({ enabled }: YouTubeTopVideosListProps) {
   const { data, isLoading, error } = useYoutubeTopVideos(enabled);
 

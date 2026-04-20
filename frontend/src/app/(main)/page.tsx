@@ -5,6 +5,9 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+/**
+ *
+ */
 export default function RootPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();

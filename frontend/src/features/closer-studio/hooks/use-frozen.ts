@@ -5,6 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 
 import { fetchFrozen } from "../api";
 
+/**
+ *
+ */
 export function useFrozen() {
   const { getToken } = useAuth();
 

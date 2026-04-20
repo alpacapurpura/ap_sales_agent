@@ -5,6 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 
 import { fetchKPIs } from "../api";
 
+/**
+ *
+ */
 export function useKPIs() {
   const { getToken } = useAuth();
 

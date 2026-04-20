@@ -15,6 +15,9 @@ import type {
 const assetsKey = (offerId: string, query?: AssetListQuery) =>
   ["offer", offerId, "assets", query ?? {}] as const;
 
+/**
+ *
+ */
 export function useAssets(offerId: string, query?: AssetListQuery) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 
@@ -35,6 +38,9 @@ const invalidateAssets = (queryClient: ReturnType<typeof useQueryClient>, offerI
   void queryClient.invalidateQueries({ queryKey: ["offer", offerId, "counts"] });
 };
 
+/**
+ *
+ */
 export function useUploadAsset(offerId: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
@@ -55,6 +61,9 @@ export function useUploadAsset(offerId: string) {
   });
 }
 
+/**
+ *
+ */
 export function useCreateAsset(offerId: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
@@ -75,6 +84,9 @@ export function useCreateAsset(offerId: string) {
   });
 }
 
+/**
+ *
+ */
 export function useDeleteAsset(offerId: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

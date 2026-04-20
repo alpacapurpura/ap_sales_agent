@@ -32,6 +32,9 @@ export interface RawGroup {
   channels?: RawChannel[];
 }
 
+/**
+ *
+ */
 export function mapMetric(raw: RawMetric): MetricValue {
   return {
     name: raw.name,
@@ -42,6 +45,9 @@ export function mapMetric(raw: RawMetric): MetricValue {
   };
 }
 
+/**
+ *
+ */
 export function mapChannel(raw: RawChannel): ChannelMetric {
   return {
     slug: raw.slug,
@@ -60,6 +66,9 @@ export function mapChannel(raw: RawChannel): ChannelMetric {
   };
 }
 
+/**
+ *
+ */
 export function mapGroup(raw: RawGroup): TrafficGroup {
   return {
     totals: raw.totals ?? {},

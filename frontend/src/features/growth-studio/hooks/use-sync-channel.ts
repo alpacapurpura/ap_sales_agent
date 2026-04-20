@@ -8,6 +8,9 @@ import { syncChannel } from "../api/sync-channel-api";
 
 import type { SyncChannelResult, SyncChannelError } from "../api/sync-channel-api";
 
+/**
+ *
+ */
 export function useSyncChannel(channelSlug: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

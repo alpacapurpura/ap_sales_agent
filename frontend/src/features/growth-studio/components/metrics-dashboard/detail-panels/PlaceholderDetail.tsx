@@ -24,6 +24,9 @@ function formatKpiValue(value: number | string, unit?: string): string {
   return value.toLocaleString();
 }
 
+/**
+ *
+ */
 export function PlaceholderDetail({ stage }: PlaceholderDetailProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">

@@ -10,6 +10,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 
+/**
+ *
+ */
 export function ProfileView() {
   const { user, isLoaded } = useUser();
   const { openUserProfile, signOut } = useClerk();

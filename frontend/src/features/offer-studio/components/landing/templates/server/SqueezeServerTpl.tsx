@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { getContrastColor } from "@/lib/utils/colors";
 
 import { LandingPageFont } from "../../types/schema";
+
 import type { SqueezeContent, LandingPageTheme } from "../../types/schema";
 
 // SERVER COMPONENT - NO "use client"
@@ -17,6 +18,9 @@ interface SqueezeTemplateProps {
   theme: LandingPageTheme;
 }
 
+/**
+ *
+ */
 export function SqueezeServerTpl({ content, theme }: SqueezeTemplateProps) {
   // Theme injection via inline styles for zero-runtime CSS-in-JS overhead
   // In a real prod app, we might use Tailwind dynamic classes or CSS variables

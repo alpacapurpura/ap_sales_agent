@@ -3,6 +3,9 @@ import { Suspense } from "react";
 
 import { OAuthCallbackHandler } from "@/features/connections/components/OauthCallbackHandler";
 
+/**
+ *
+ */
 export default function GoogleCallbackPage() {
   return (
     <Suspense

@@ -41,6 +41,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
+import { useOfferShell } from "../../context/OfferShellContext";
 import {
   useAddKnowledgeUrl,
   useDeleteKnowledge,
@@ -48,7 +49,6 @@ import {
   useReindexKnowledge,
   useUploadKnowledge,
 } from "../../hooks/use-knowledge";
-import { useOfferShell } from "../../context/OfferShellContext";
 
 import type { KnowledgeSourceType } from "../../types/enums";
 import type { KnowledgeListQuery, KnowledgeSourceResponse } from "../../types/knowledge";
@@ -126,6 +126,9 @@ function formatBytes(bytes: number | null): string | null {
   return `${mb.toFixed(1)} MB`;
 }
 
+/**
+ *
+ */
 export function KnowledgeView({ offerId }: { offerId: string }) {
   const { offer } = useOfferShell();
   const [search, setSearch] = useState("");

@@ -16,6 +16,9 @@ interface TransformerServerTplProps {
   theme: LandingPageTheme;
 }
 
+/**
+ *
+ */
 export function TransformerServerTpl({ content, theme }: TransformerServerTplProps) {
   const primaryColor = theme.primary_color;
   const primaryTextColor = getContrastColor(primaryColor);

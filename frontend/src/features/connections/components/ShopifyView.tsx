@@ -31,6 +31,9 @@ import { connectionsApi } from "@/lib/api/connections";
 
 import type { ShopifyStatusResponse, TestResponse } from "@/lib/api/connections";
 
+/**
+ *
+ */
 export function ShopifyView() {
   const { getToken } = useAuth();
   const searchParams = useSearchParams();

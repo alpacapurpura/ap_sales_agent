@@ -11,6 +11,9 @@ import type {
   LaunchEditionUpdate,
 } from "../types";
 
+/**
+ *
+ */
 export function useEditions(offerId: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

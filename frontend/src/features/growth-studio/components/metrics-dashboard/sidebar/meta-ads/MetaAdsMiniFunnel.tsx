@@ -115,6 +115,9 @@ function EmptyFunnel({ filter }: { filter: MetaAdsMiniFunnelFilter }) {
 // Main component
 // ---------------------------------------------------------------------------
 
+/**
+ *
+ */
 export function MetaAdsMiniFunnel({ steps, filter = "all" }: MetaAdsMiniFunnelProps) {
   if (steps.length === 0) return null;
 

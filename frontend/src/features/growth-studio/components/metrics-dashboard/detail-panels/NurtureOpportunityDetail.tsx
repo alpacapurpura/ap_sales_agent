@@ -31,6 +31,7 @@ import { ChannelChip } from "../channel-widgets/ChannelChip";
 import { ChannelRow } from "../channel-widgets/ChannelRow";
 import { DetailError } from "../ui/DetailError";
 import { DetailSkeleton } from "../ui/DetailSkeleton";
+
 import type { MetricClickData, ChannelMetric, MetricValue } from "../../../types/metrics";
 
 interface NurtureOpportunityDetailProps {

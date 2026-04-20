@@ -30,6 +30,9 @@ import { connectionsApi } from "@/lib/api/connections";
 
 import type { MailerliteStatusResponse, TestResponse } from "@/lib/api/connections";
 
+/**
+ *
+ */
 export function MailerLiteView() {
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);

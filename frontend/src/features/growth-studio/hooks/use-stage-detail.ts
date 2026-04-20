@@ -77,7 +77,12 @@ export const useEvangelizationDetail = createStageDetailHook<EvangelizationDetai
   metricsApi.getEvangelizationDetail,
 );
 
-// eslint-disable-next-line max-params -- hook mirrors API signature; options object would complicate React Query key
+/**
+ * Timeseries query for a metric within a stage — 5 positional params
+ * (stage, metric, rangeDays, granularity, options) match the analytics
+ * API contract. Tech debt: consider migrating to a single config object.
+ */
+// eslint-disable-next-line max-params
 export function useStageTimeSeries(
   stage: string,
   metric: string,

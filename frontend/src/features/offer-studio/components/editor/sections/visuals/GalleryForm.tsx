@@ -40,6 +40,9 @@ function GalleryContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   );
 }
 
+/**
+ *
+ */
 export function GalleryForm({ defaultValues: propValues, onSave }: GalleryFormProps) {
   const defaultValues: GalleryFormValues = {
     assets: propValues?.assets || [],

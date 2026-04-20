@@ -10,6 +10,9 @@ interface ProgressChecklistProps {
   items: { label: string; done: boolean; route?: string }[];
 }
 
+/**
+ *
+ */
 export function ProgressChecklist({ items }: ProgressChecklistProps) {
   const enqueuUIAction = useCopilotStore((s) => s.enqueuUIAction);
   const { getToken } = useAuth();

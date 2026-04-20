@@ -34,9 +34,7 @@ export default async function OnboardingPerfilNegocioPage({
           <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-primary/10 mb-2">
             <Sparkles className="h-7 w-7 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            ¿Qué tipo de negocio manejás?
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">¿Qué tipo de negocio manejás?</h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
             Esto personaliza tus plantillas de ofertas, landings y el agente de ventas para que se
             adapten exactamente a lo que vendés.

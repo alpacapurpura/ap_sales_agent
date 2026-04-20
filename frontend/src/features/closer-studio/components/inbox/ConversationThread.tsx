@@ -19,6 +19,9 @@ interface ConversationThreadProps {
   leadId: string;
 }
 
+/**
+ *
+ */
 export function ConversationThread({ leadId }: ConversationThreadProps) {
   const { timezone } = useTenantLocale();
   const { data: detail, isLoading } = useConversationDetail(leadId);

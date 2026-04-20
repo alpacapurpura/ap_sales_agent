@@ -96,6 +96,9 @@ function objectiveLabelEs(objective: string | null): string {
 // Component
 // ---------------------------------------------------------------------------
 
+/**
+ *
+ */
 export function OfferAssignmentDrawer(props: OfferAssignmentDrawerProps) {
   // Inner body is mounted only when the drawer is open, so its state
   // (pending changes, auto-suggestions) is automatically fresh each time.

@@ -33,18 +33,18 @@ export function currentOfferTabSegment(
   pathname: string | null | undefined,
   base: string,
 ): OfferTabSegment | null {
-  if (!pathname || !pathname.startsWith(base)) return null;
+  if (!pathname?.startsWith(base)) return null;
   const rest = pathname.slice(base.length);
   if (!rest) return null;
 
   // Either `/editions/{eid}/{maybe tab}` or `/{maybe tab}`.
-  const editionMatch = rest.match(/^\/editions\/[^/]+(\/([^/?#]+))?/);
+  const editionMatch = /^\/editions\/[^/]+(\/([^/?#]+))?/.exec(rest);
   if (editionMatch) {
     const tab = editionMatch[2];
     return isTabSegment(tab) ? tab : null;
   }
 
-  const directMatch = rest.match(/^\/([^/?#]+)/);
+  const directMatch = /^\/([^/?#]+)/.exec(rest);
   if (directMatch) {
     const tab = directMatch[1];
     return isTabSegment(tab) ? tab : null;

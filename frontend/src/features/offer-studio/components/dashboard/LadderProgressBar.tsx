@@ -62,7 +62,14 @@ const RUNG_THEME: Record<OfferValueLevel, RungTheme> = {
   },
 };
 
-export function LadderProgressBar({ filledGroups, score: _score, percentage }: LadderProgressBarProps) {
+/**
+ *
+ */
+export function LadderProgressBar({
+  filledGroups,
+  score: _score,
+  percentage,
+}: LadderProgressBarProps) {
   const { data } = useValueLevelCatalog();
   const steps = data?.value_levels ?? [];
   const filledCount = steps.filter((s) => filledGroups.has(s.value_level)).length;
@@ -137,7 +144,15 @@ export function LadderProgressBar({ filledGroups, score: _score, percentage }: L
           </div>
           <div className="relative h-9 w-9">
             <svg viewBox="0 0 36 36" className="h-9 w-9 -rotate-90">
-              <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-muted/60" />
+              <circle
+                cx="18"
+                cy="18"
+                r="15"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                className="text-muted/60"
+              />
               <circle
                 cx="18"
                 cy="18"
@@ -148,7 +163,11 @@ export function LadderProgressBar({ filledGroups, score: _score, percentage }: L
                 strokeDasharray={`${percentage * 0.9425} 94.25`}
                 className={cn(
                   "transition-all duration-700",
-                  percentage >= 80 ? "text-emerald-500" : percentage >= 40 ? "text-blue-500" : "text-amber-500",
+                  percentage >= 80
+                    ? "text-emerald-500"
+                    : percentage >= 40
+                      ? "text-blue-500"
+                      : "text-amber-500",
                 )}
               />
             </svg>

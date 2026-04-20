@@ -5,6 +5,9 @@ import ForbiddenPage from "@/app/(main)/forbidden/page";
 
 import type { ReactNode } from "react";
 
+/**
+ *
+ */
 export async function TenantGuard({ children }: { children: ReactNode }) {
   let user;
   try {

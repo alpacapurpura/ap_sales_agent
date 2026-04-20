@@ -26,6 +26,9 @@ interface OfferGallerySectionProps {
   offerId: string;
 }
 
+/**
+ *
+ */
 export function OfferGallerySection({ offerId }: OfferGallerySectionProps) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

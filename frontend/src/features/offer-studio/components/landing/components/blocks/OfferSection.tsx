@@ -18,6 +18,9 @@ export interface OfferSectionProps {
   bonuses?: BonusItem[];
 }
 
+/**
+ *
+ */
 export function OfferSection({
   offer_headline,
   price_anchor,

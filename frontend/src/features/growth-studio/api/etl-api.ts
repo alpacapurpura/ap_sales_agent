@@ -3,6 +3,9 @@ import { fetchClient } from "@/lib/http-client";
 
 const API_URL = config.api.baseUrl;
 
+/**
+ *
+ */
 export async function triggerInitialLoad(
   token: string,
   provider: string,
@@ -32,6 +35,9 @@ export async function triggerInitialLoad(
   }>;
 }
 
+/**
+ *
+ */
 export async function getInitialLoadStatus(
   token: string,
   provider: string,
@@ -76,6 +82,9 @@ export interface SyncAllResponse {
   details: SyncProviderResult[];
 }
 
+/**
+ *
+ */
 export async function triggerSyncAll(token: string, days = 30): Promise<SyncAllResponse> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 120_000);

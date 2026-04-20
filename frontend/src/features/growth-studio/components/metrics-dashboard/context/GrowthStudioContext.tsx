@@ -12,9 +12,9 @@ import {
   type ReactNode,
 } from "react";
 
-import { providerToConnectionRoute } from "../../../lib/provider-to-connection-route";
-
 import { useMetricClickHandler } from "@/features/growth-studio/hooks/use-metric-click-handler";
+
+import { providerToConnectionRoute } from "../../../lib/provider-to-connection-route";
 
 import type { PeriodType } from "../../../api/stage-detail-api";
 import type {
@@ -48,6 +48,9 @@ interface GrowthStudioActionsValue {
 
 const GrowthStudioActionsContext = createContext<GrowthStudioActionsValue | null>(null);
 
+/**
+ *
+ */
 export function useGrowthStudioActions() {
   const ctx = useContext(GrowthStudioActionsContext);
   if (!ctx) throw new Error("useGrowthStudioActions must be used inside GrowthStudioProvider");
@@ -128,6 +131,9 @@ const GrowthStudioContext = createContext<GrowthStudioContextValue | null>(null)
 
 // ── Hook ───────────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export function useGrowthStudioContext() {
   const ctx = useContext(GrowthStudioContext);
   if (!ctx) throw new Error("useGrowthStudioContext must be used inside GrowthStudioProvider");
@@ -136,6 +142,9 @@ export function useGrowthStudioContext() {
 
 // ── Provider ───────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();

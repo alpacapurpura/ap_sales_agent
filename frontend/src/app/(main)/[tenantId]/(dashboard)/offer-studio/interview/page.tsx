@@ -5,6 +5,9 @@ interface PageProps {
   searchParams: Promise<{ offerId?: string; session?: string }>;
 }
 
+/**
+ *
+ */
 export default async function OfferInterviewPage({ params, searchParams }: PageProps) {
   const { tenantId } = await params;
   const { session, offerId } = await searchParams;

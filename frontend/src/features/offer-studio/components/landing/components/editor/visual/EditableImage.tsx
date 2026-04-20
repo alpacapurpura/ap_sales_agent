@@ -1,7 +1,7 @@
 "use client";
 
-import NextImage from "next/image";
 import { ImagePlus } from "lucide-react";
+import NextImage from "next/image";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,9 @@ interface EditableImageProps {
   aspectRatio?: "video" | "square" | "portrait";
 }
 
+/**
+ *
+ */
 export function EditableImage({
   src,
   alt,

@@ -26,6 +26,9 @@ async function json<T>(res: Response): Promise<T> {
 
 // ── List ────────────────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export async function fetchConversations(
   token: string,
   filters: ConversationFilters,
@@ -48,6 +51,9 @@ export async function fetchConversations(
 
 // ── Detail ──────────────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export async function fetchConversationDetail(
   token: string,
   leadId: string,
@@ -65,6 +71,9 @@ export async function fetchConversationDetail(
 
 // ── Actions ─────────────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export async function stopAI(token: string, leadId: string): Promise<StopResponse> {
   const res = await fetchClient(`${BASE}/conversations/${leadId}/stop`, {
     method: "POST",
@@ -74,6 +83,9 @@ export async function stopAI(token: string, leadId: string): Promise<StopRespons
   return json(res);
 }
 
+/**
+ *
+ */
 export async function resumeAI(
   token: string,
   leadId: string,
@@ -87,6 +99,9 @@ export async function resumeAI(
   return json(res);
 }
 
+/**
+ *
+ */
 export async function sendMessage(
   token: string,
   leadId: string,
@@ -101,6 +116,9 @@ export async function sendMessage(
   return json(res);
 }
 
+/**
+ *
+ */
 export async function nudge(
   token: string,
   leadId: string,
@@ -114,6 +132,9 @@ export async function nudge(
   return json(res);
 }
 
+/**
+ *
+ */
 export async function reactivate(
   token: string,
   leadId: string,
@@ -127,6 +148,9 @@ export async function reactivate(
   return json(res);
 }
 
+/**
+ *
+ */
 export async function diagnose(token: string, leadId: string): Promise<DiagnoseResponse> {
   const res = await fetchClient(`${BASE}/conversations/${leadId}/diagnose`, {
     method: "POST",
@@ -137,6 +161,9 @@ export async function diagnose(token: string, leadId: string): Promise<DiagnoseR
 
 // ── Frozen ──────────────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export async function fetchFrozen(token: string): Promise<FrozenConversation[]> {
   const res = await fetchClient(`${BASE}/frozen`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -146,6 +173,9 @@ export async function fetchFrozen(token: string): Promise<FrozenConversation[]> 
 
 // ── KPIs ────────────────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export async function fetchKPIs(token: string): Promise<CloserKPIs> {
   const res = await fetchClient(`${BASE}/kpis`, {
     headers: { Authorization: `Bearer ${token}` },

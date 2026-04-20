@@ -20,6 +20,9 @@ const labels: Record<LeadTemperature, string> = {
   hot: "Caliente",
 };
 
+/**
+ *
+ */
 export function TemperatureBadge({ temperature, className }: TemperatureBadgeProps) {
   return (
     <Badge

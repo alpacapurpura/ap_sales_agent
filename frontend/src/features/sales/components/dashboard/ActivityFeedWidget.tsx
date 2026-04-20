@@ -14,6 +14,9 @@ import { dashboardService } from "../../api/dashboard-service";
 
 import type { ActivityItem } from "../../api/dashboard-service";
 
+/**
+ *
+ */
 export function ActivityFeedWidget() {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
 

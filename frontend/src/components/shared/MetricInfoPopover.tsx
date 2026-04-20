@@ -17,6 +17,9 @@ interface MetricInfoPopoverProps {
   className?: string;
 }
 
+/**
+ *
+ */
 export function MetricInfoPopover({
   displayName,
   description,

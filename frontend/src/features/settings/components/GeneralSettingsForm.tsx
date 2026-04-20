@@ -27,6 +27,9 @@ const formSchema = z.object({
   default_currency: z.string().min(3, "Select a currency"),
 });
 
+/**
+ *
+ */
 export function GeneralSettingsForm() {
   const { getToken } = useAuth();
   const [isLoading, setIsLoading] = useState(false);

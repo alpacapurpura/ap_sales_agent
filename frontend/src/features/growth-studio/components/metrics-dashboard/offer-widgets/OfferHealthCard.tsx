@@ -8,6 +8,9 @@ interface OfferHealthCardProps {
   offer: OfferHealthData;
 }
 
+/**
+ *
+ */
 export function OfferHealthCard({ offer }: OfferHealthCardProps) {
   const isHealthy = offer.healthPct >= 60;
 

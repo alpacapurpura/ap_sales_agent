@@ -7,8 +7,8 @@ import { Puck } from "@puckeditor/core";
 import "@puckeditor/core/dist/index.css";
 
 import { useAuth } from "@clerk/nextjs";
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -29,6 +29,9 @@ interface PuckEditorProps {
   offerId: string;
 }
 
+/**
+ *
+ */
 export function PuckEditor({ initialConfig, offerId }: PuckEditorProps) {
   const { getToken } = useAuth();
   const params = useParams();

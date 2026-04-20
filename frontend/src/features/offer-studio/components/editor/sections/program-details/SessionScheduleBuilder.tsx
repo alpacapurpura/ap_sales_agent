@@ -21,6 +21,9 @@ import type { UseFormReturn } from "react-hook-form";
 
 const DAYS_OF_WEEK = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
+/**
+ *
+ */
 export function SessionScheduleBuilder({ form }: { form: UseFormReturn<OfferFormValues> }) {
   const { fields, append, remove } = useFieldArray({
     control: form.control,

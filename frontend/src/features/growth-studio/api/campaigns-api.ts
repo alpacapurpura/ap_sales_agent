@@ -10,6 +10,9 @@ import type { CampaignPerformanceData, MetaAdsPeriod } from "../types/metrics";
 
 const API_URL = config.api.baseUrl;
 
+/**
+ *
+ */
 export async function fetchCampaignOverview(token: string): Promise<CampaignOverview> {
   const res = await fetchClient(`${API_URL}/api/v1/analytics/campaigns`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -18,6 +21,9 @@ export async function fetchCampaignOverview(token: string): Promise<CampaignOver
   return res.json() as Promise<CampaignOverview>;
 }
 
+/**
+ *
+ */
 export async function fetchCampaignAdSets(
   token: string,
   campaignExternalId: string,
@@ -30,6 +36,9 @@ export async function fetchCampaignAdSets(
   return res.json() as Promise<AdSet[]>;
 }
 
+/**
+ *
+ */
 export async function fetchAdSetAds(token: string, adSetExternalId: string): Promise<Ad[]> {
   const res = await fetchClient(
     `${API_URL}/api/v1/analytics/campaigns/adsets/${adSetExternalId}/ads`,
@@ -39,6 +48,9 @@ export async function fetchAdSetAds(token: string, adSetExternalId: string): Pro
   return res.json() as Promise<Ad[]>;
 }
 
+/**
+ *
+ */
 export async function triggerCampaignSync(
   token: string,
 ): Promise<{ status: string; job_id: string | null }> {
@@ -50,6 +62,9 @@ export async function triggerCampaignSync(
   return res.json() as Promise<{ status: string; job_id: string | null }>;
 }
 
+/**
+ *
+ */
 export async function fetchCampaignPerformance(
   token: string,
   period: MetaAdsPeriod = "30d",
@@ -70,6 +85,9 @@ export async function fetchCampaignPerformance(
   return camelizeKeys<CampaignPerformanceData>(json);
 }
 
+/**
+ *
+ */
 export function useCampaignPerformance(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
 
@@ -99,6 +117,9 @@ export interface DemographicsData {
   placement: DemographicSegment[];
 }
 
+/**
+ *
+ */
 export async function fetchDemographics(
   token: string,
   channelSlug: string,
@@ -112,6 +133,9 @@ export async function fetchDemographics(
   return res.json() as Promise<DemographicsData>;
 }
 
+/**
+ *
+ */
 export function useDemographics(
   channelSlug: string,
   period: MetaAdsPeriod = "30d",
@@ -162,6 +186,9 @@ export interface CreativesOverviewData {
   totalAds: number;
 }
 
+/**
+ *
+ */
 export async function fetchCreativesOverview(
   token: string,
   period: MetaAdsPeriod = "30d",
@@ -175,6 +202,9 @@ export async function fetchCreativesOverview(
   return camelizeKeys<CreativesOverviewData>(json);
 }
 
+/**
+ *
+ */
 export function useCreativesOverview(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
 
@@ -240,6 +270,9 @@ export interface FormatComparisonData {
   currency: string | null;
 }
 
+/**
+ *
+ */
 export async function fetchAdPerformance(
   token: string,
   period: MetaAdsPeriod = "30d",
@@ -254,6 +287,9 @@ export async function fetchAdPerformance(
   return camelizeKeys<AdPerformanceData>(json);
 }
 
+/**
+ *
+ */
 export async function fetchFormatComparison(
   token: string,
   period: MetaAdsPeriod = "30d",
@@ -267,6 +303,9 @@ export async function fetchFormatComparison(
   return camelizeKeys<FormatComparisonData>(json);
 }
 
+/**
+ *
+ */
 export function useAdPerformance(period: MetaAdsPeriod = "30d", limit = 10, enabled = true) {
   const { getToken } = useAuth();
 
@@ -282,6 +321,9 @@ export function useAdPerformance(period: MetaAdsPeriod = "30d", limit = 10, enab
   });
 }
 
+/**
+ *
+ */
 export function useFormatComparison(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
 

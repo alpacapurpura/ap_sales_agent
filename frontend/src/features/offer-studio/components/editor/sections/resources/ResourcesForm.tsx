@@ -15,15 +15,14 @@ import { useFieldArray } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+
 import { AssetType } from "../../../../types";
 import { OfferSchema } from "../../../../types/schema";
 import { SectionFormWrapper } from "../common/SectionFormWrapper";
-
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 
 import type { OfferFormValues } from "../../../../types/schema";
 import type { ChangeEvent } from "react";
@@ -246,6 +245,9 @@ function ResourcesContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   );
 }
 
+/**
+ *
+ */
 export function ResourcesForm({ defaultValues: propValues, onSave }: ResourcesFormProps) {
   const defaultValues: ResourcesFormValues = {
     assets: propValues?.assets || [],

@@ -43,6 +43,9 @@ interface PaymentGatewayConfigProps {
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ *
+ */
 export function PaymentGatewayConfig({ open, onOpenChange }: PaymentGatewayConfigProps) {
   const [activeProvider, setActiveProvider] = useState<"culqi" | "mercadopago">("culqi");
   const [mode, setMode] = useState<"sandbox" | "production">("sandbox");

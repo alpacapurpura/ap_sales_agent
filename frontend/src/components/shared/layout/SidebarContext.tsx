@@ -9,6 +9,9 @@ interface SidebarContextType {
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
+/**
+ *
+ */
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   // Always start expanded (matches SSR) — sync from localStorage after hydration
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -53,6 +56,9 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ *
+ */
 export function useSidebar() {
   const context = useContext(SidebarContext);
   if (context === undefined) {

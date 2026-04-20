@@ -50,6 +50,9 @@ interface WebsiteTrafficTabProps {
   isLoading: boolean;
 }
 
+/**
+ *
+ */
 export function WebsiteTrafficTab({ data, isLoading }: WebsiteTrafficTabProps) {
   if (isLoading) {
     return (

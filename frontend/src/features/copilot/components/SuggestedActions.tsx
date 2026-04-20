@@ -90,6 +90,9 @@ function getSuggestionsForRoute(route: string | null): SuggestedAction[] {
   return ROUTE_SUGGESTIONS.default;
 }
 
+/**
+ *
+ */
 export function SuggestedActions() {
   const currentRoute = useCopilotStore((s) => s.currentRoute);
   const messages = useCopilotStore((s) => s.messages);

@@ -12,10 +12,9 @@ import {
   Sparkles,
   ExternalLink,
 } from "lucide-react";
-
-import { cn } from "@/lib/utils";
 import { useParams } from "next/navigation";
 import { type ComponentType, memo, useState } from "react";
+
 import { useNavigation } from "@/components/shared/navigation";
 import {
   AlertDialog,
@@ -47,6 +46,7 @@ import {
 } from "@/features/offer-studio/types";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatMoney } from "@/lib/format-money";
+import { cn } from "@/lib/utils";
 
 import type { Offer } from "@/features/offer-studio/types";
 

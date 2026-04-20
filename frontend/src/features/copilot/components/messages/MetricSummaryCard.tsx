@@ -13,6 +13,9 @@ interface MetricSummaryCardProps {
   }[];
 }
 
+/**
+ *
+ */
 export function MetricSummaryCard({ metrics }: MetricSummaryCardProps) {
   return (
     <div className="my-1 grid grid-cols-2 gap-2">

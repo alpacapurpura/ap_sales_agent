@@ -20,6 +20,9 @@ interface NavigationContextType {
 
 const NavigationContext = createContext<NavigationContextType | null>(null);
 
+/**
+ *
+ */
 export function NavigationProvider({ children }: { children: ReactNode }) {
   const router = useTopLoaderRouter();
   const pathname = usePathname();
@@ -64,6 +67,9 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ *
+ */
 export function useNavigation() {
   const ctx = useContext(NavigationContext);
   if (!ctx) {

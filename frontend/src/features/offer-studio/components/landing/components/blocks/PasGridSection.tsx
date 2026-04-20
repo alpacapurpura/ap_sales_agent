@@ -9,6 +9,9 @@ export interface PasGridSectionProps {
   solution_text: string;
 }
 
+/**
+ *
+ */
 export function PasGridSection({
   problem_text,
   agitation_text,

@@ -26,7 +26,10 @@ export interface OfferSocialProofPickerProps {
  * visible on this offer. Exposes a CTA that opens ``AddFromBrandVaultModal``
  * so the user can link (or clone) items from the brand vault.
  */
-export function OfferSocialProofPicker({ offerId, includeBrand = false }: OfferSocialProofPickerProps) {
+export function OfferSocialProofPicker({
+  offerId,
+  includeBrand = false,
+}: OfferSocialProofPickerProps) {
   const { data, isLoading } = useSocialProofForSurface({
     surfaceType: "offer",
     surfaceRefId: offerId,

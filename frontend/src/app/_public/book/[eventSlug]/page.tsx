@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { headers } from "next/headers";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { config } from "@/lib/config";
@@ -44,6 +44,9 @@ interface PageProps {
   params: Promise<{ eventSlug: string }>;
 }
 
+/**
+ *
+ */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { eventSlug } = await params;
   const headersList = await headers();
@@ -58,6 +61,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+/**
+ *
+ */
 export default async function BookingPage({ params }: PageProps) {
   const { eventSlug } = await params;
   const headersList = await headers();

@@ -14,6 +14,9 @@ interface WebsiteContentTabProps {
   isLoading: boolean;
 }
 
+/**
+ *
+ */
 export function WebsiteContentTab({ data, isLoading }: WebsiteContentTabProps) {
   if (isLoading) {
     return (

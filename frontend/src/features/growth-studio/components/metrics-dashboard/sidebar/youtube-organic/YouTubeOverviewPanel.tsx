@@ -17,6 +17,9 @@ interface YouTubeOverviewPanelProps {
   initialTab?: string | null;
 }
 
+/**
+ *
+ */
 export function YouTubeOverviewPanel({ channel, onClose, onExpand }: YouTubeOverviewPanelProps) {
   return (
     <ChannelOverviewPanel

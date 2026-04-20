@@ -10,6 +10,9 @@ interface EditableAreaProps {
   placeholder?: string;
 }
 
+/**
+ *
+ */
 export function EditableArea({ value, onChange, className, placeholder }: EditableAreaProps) {
   const [localValue, setLocalValue] = useState(value || "");
 

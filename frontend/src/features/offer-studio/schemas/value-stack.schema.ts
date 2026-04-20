@@ -76,7 +76,8 @@ export const offerValueStackSchema: SectionSchema = {
             label: "Cuándo se entrega",
             type: "text",
             path: "fulfillment_note",
-            placeholder: "Acceso inmediato post-checkout / Semana 1 de la cohorte / Entregado en mano en el evento",
+            placeholder:
+              "Acceso inmediato post-checkout / Semana 1 de la cohorte / Entregado en mano en el evento",
             hint: "Claridad sobre la entrega reduce tickets de soporte post-venta. Si es acceso inmediato, dilo explícito.",
           },
         ],

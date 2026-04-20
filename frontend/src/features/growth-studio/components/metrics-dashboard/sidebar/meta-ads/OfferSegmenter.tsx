@@ -119,6 +119,9 @@ function Chip({
   );
 }
 
+/**
+ *
+ */
 export function OfferSegmenter({
   offers,
   selectedOfferId,

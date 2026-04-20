@@ -12,6 +12,9 @@ import { NavigationProvider, NavigationOverlay } from "@/components/shared/navig
 import { Toaster } from "@/components/ui/sonner";
 import { TenantLocaleProvider } from "@/features/tenant/context/tenant-locale-context";
 
+/**
+ *
+ */
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>

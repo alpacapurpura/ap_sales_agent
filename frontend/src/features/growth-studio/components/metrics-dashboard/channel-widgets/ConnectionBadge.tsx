@@ -12,6 +12,9 @@ interface ConnectionBadgeProps {
   comingSoon?: boolean;
 }
 
+/**
+ *
+ */
 export function ConnectionBadge({ connected, onConfigure, comingSoon }: ConnectionBadgeProps) {
   const params = useParams();
   const tenantId = params?.tenantId as string;

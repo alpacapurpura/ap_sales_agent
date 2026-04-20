@@ -9,6 +9,9 @@ import { ContactSidebar } from "./ContactSidebar";
 import { ConversationList } from "./ConversationList";
 import { ConversationThread } from "./ConversationThread";
 
+/**
+ *
+ */
 export function InboxView() {
   const searchParams = useSearchParams();
   const router = useRouter();

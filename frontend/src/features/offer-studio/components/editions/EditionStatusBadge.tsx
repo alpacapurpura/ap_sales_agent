@@ -28,6 +28,9 @@ const STATUS_CONFIG: Record<EditionStatus, { label: string; className: string }>
   },
 };
 
+/**
+ *
+ */
 export function EditionStatusBadge({ status }: { status: EditionStatus }) {
   const config = STATUS_CONFIG[status] ?? STATUS_CONFIG[EditionStatus.DRAFT];
   return (

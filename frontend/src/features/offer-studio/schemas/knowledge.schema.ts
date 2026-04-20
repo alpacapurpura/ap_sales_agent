@@ -29,7 +29,8 @@ export const offerKnowledgeSchema: SectionSchema = {
       type: "textarea",
       path: "knowledge_reference_urls",
       rows: 4,
-      placeholder: "https://tusitio.com/caso-exito-maria\nhttps://youtube.com/watch?v=... (charla sobre el método)",
+      placeholder:
+        "https://tusitio.com/caso-exito-maria\nhttps://youtube.com/watch?v=... (charla sobre el método)",
       hint: "Una URL por línea. Landings propias, posts, videos propios, notas de prensa. El agente puede citarlas durante la conversación de venta.",
     },
   ],

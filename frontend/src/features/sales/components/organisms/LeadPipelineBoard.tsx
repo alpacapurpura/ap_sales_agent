@@ -20,6 +20,9 @@ const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string }> = {
   lost: { label: "Perdido", color: "bg-gray-500/10 border-gray-500/20" },
 };
 
+/**
+ *
+ */
 export function LeadPipelineBoard({ leads, onLeadClick, className }: LeadPipelineBoardProps) {
   const columns: LeadStatus[] = ["new", "contacted", "qualified", "proposal", "won", "lost"];
 

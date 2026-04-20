@@ -4,6 +4,9 @@ export const metadata = {
   title: "Expansión & Evangelización | Growth Studio",
 };
 
+/**
+ *
+ */
 export default function ExpansionEvangelizacionPage() {
   return <ExpansionEvangelizacionStage />;
 }

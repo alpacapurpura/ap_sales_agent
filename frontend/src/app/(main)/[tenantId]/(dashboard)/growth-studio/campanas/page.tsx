@@ -4,6 +4,9 @@ export const metadata = {
   title: "Campañas | Growth Studio",
 };
 
+/**
+ *
+ */
 export default function CampanasPage() {
   return <CampaignPanel />;
 }

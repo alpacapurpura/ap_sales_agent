@@ -30,6 +30,9 @@ const COLUMNS = [
   { id: "lost", label: "Perdido", color: "bg-red-500" },
 ];
 
+/**
+ *
+ */
 export function ConversationPipelineBoard() {
   const { data } = useConversations();
   const setSelectedLeadId = useCloserStore((s) => s.setSelectedLeadId);

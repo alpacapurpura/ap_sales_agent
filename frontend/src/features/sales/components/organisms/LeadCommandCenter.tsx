@@ -27,6 +27,9 @@ interface LeadCommandCenterProps {
   onBack?: () => void;
 }
 
+/**
+ *
+ */
 export function LeadCommandCenter({ lead, onBack }: LeadCommandCenterProps) {
   return (
     <div className="flex flex-col h-full bg-background">

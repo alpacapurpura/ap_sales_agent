@@ -523,6 +523,9 @@ function DetailPanel({ stageId, data }: { stageId: StageId; data: StageDetailDat
 
 // --- MAIN PAGE COMPONENT ---
 
+/**
+ *
+ */
 export default function GrowthDesignPlayground() {
   const [activeStageId, setActiveStageId] = useState<StageId>("ATRACCION");
 

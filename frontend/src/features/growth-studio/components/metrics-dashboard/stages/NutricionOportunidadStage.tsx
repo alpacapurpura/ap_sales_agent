@@ -3,6 +3,9 @@
 import { useGrowthStudioContext } from "../context/GrowthStudioContext";
 import { NurtureOpportunityDetail } from "../detail-panels/NurtureOpportunityDetail";
 
+/**
+ *
+ */
 export function NutricionOportunidadStage() {
   const {
     handleMetricClick,

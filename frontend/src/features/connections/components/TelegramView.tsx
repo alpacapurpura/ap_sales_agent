@@ -38,6 +38,9 @@ import { connectionsApi } from "@/lib/api/connections";
 
 import type { ChannelStatusResponse, TestResponse } from "@/lib/api/connections";
 
+/**
+ *
+ */
 export function TelegramView() {
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);

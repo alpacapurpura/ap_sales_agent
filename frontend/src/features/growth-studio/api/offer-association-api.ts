@@ -32,6 +32,9 @@ function authHeaders(token: string): Record<string, string> {
 // Plain fetch functions (exported for testing)
 // ---------------------------------------------------------------------------
 
+/**
+ *
+ */
 export async function fetchAssociations(
   token: string,
   filters?: AssociationsFilters,
@@ -47,6 +50,9 @@ export async function fetchAssociations(
   return camelizeKeys<Association[]>(json);
 }
 
+/**
+ *
+ */
 export async function createAssociation(
   token: string,
   payload: AssociationCreatePayload,
@@ -62,6 +68,9 @@ export async function createAssociation(
   return camelizeKeys<Association>(json);
 }
 
+/**
+ *
+ */
 export async function deleteAssociation(token: string, associationId: string): Promise<void> {
   const url = `${API_URL}/api/v1/advertising/associations/${associationId}`;
   const res = await fetchClient(url, {
@@ -71,6 +80,9 @@ export async function deleteAssociation(token: string, associationId: string): P
   if (!res.ok) throw new Error(`deleteAssociation failed: ${res.status}`);
 }
 
+/**
+ *
+ */
 export async function autoDetectSuggestions(token: string): Promise<AssociationSuggestion[]> {
   const url = `${API_URL}/api/v1/advertising/associations/auto-detect`;
   const res = await fetchClient(url, {
@@ -83,6 +95,9 @@ export async function autoDetectSuggestions(token: string): Promise<AssociationS
   return camelizeKeys<AssociationSuggestion[]>(json);
 }
 
+/**
+ *
+ */
 export async function applySuggestions(
   token: string,
   suggestions: AssociationSuggestion[],
@@ -105,6 +120,9 @@ export async function applySuggestions(
   return camelizeKeys<Association[]>(json);
 }
 
+/**
+ *
+ */
 export async function fetchMetaHealthCheck(token: string): Promise<MetaHealthCheck> {
   const url = `${API_URL}/api/v1/advertising/health-check?provider=meta`;
   const res = await fetchClient(url, { headers: authHeaders(token) });
@@ -113,6 +131,9 @@ export async function fetchMetaHealthCheck(token: string): Promise<MetaHealthChe
   return camelizeKeys<MetaHealthCheck>(json);
 }
 
+/**
+ *
+ */
 export async function fetchMetricsByOffer(
   token: string,
   period: MetaAdsPeriod = "30d",
@@ -124,6 +145,9 @@ export async function fetchMetricsByOffer(
   return camelizeKeys<MetricsByOffer>(json);
 }
 
+/**
+ *
+ */
 export async function fetchOffersForAssignment(token: string): Promise<OfferSummary[]> {
   const url = `${API_URL}/api/v1/advertising/offers`;
   const res = await fetchClient(url, { headers: authHeaders(token) });
@@ -132,6 +156,9 @@ export async function fetchOffersForAssignment(token: string): Promise<OfferSumm
   return camelizeKeys<OfferSummary[]>(json);
 }
 
+/**
+ *
+ */
 export async function fetchCampaignTemplateForOffer(
   token: string,
   offerId: string,
@@ -148,6 +175,9 @@ export async function fetchCampaignTemplateForOffer(
 // React Query hooks
 // ---------------------------------------------------------------------------
 
+/**
+ *
+ */
 export function useAssociations(filters?: AssociationsFilters) {
   const { getToken } = useAuth();
   return useQuery({
@@ -161,6 +191,9 @@ export function useAssociations(filters?: AssociationsFilters) {
   });
 }
 
+/**
+ *
+ */
 export function useCreateAssociation() {
   const { getToken } = useAuth();
   const qc = useQueryClient();
@@ -179,6 +212,9 @@ export function useCreateAssociation() {
   });
 }
 
+/**
+ *
+ */
 export function useDeleteAssociation() {
   const { getToken } = useAuth();
   const qc = useQueryClient();
@@ -196,6 +232,9 @@ export function useDeleteAssociation() {
   });
 }
 
+/**
+ *
+ */
 export function useAutoDetectSuggestions() {
   const { getToken } = useAuth();
   return useMutation({
@@ -207,6 +246,9 @@ export function useAutoDetectSuggestions() {
   });
 }
 
+/**
+ *
+ */
 export function useApplySuggestions() {
   const { getToken } = useAuth();
   const qc = useQueryClient();
@@ -224,6 +266,9 @@ export function useApplySuggestions() {
   });
 }
 
+/**
+ *
+ */
 export function useMetaHealthCheck(enabled = true) {
   const { getToken } = useAuth();
   return useQuery({
@@ -238,6 +283,9 @@ export function useMetaHealthCheck(enabled = true) {
   });
 }
 
+/**
+ *
+ */
 export function useMetricsByOffer(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   return useQuery({
@@ -252,6 +300,9 @@ export function useMetricsByOffer(period: MetaAdsPeriod = "30d", enabled = true)
   });
 }
 
+/**
+ *
+ */
 export function useOffersForAssignment(enabled = true) {
   const { getToken } = useAuth();
   return useQuery({
@@ -266,6 +317,9 @@ export function useOffersForAssignment(enabled = true) {
   });
 }
 
+/**
+ *
+ */
 export function useCampaignTemplateForOffer(offerId: string | null | undefined) {
   const { getToken } = useAuth();
   return useQuery({

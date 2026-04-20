@@ -1,7 +1,7 @@
 "use client";
 
-import NextImage from "next/image";
 import { ExternalLink, Sparkles } from "lucide-react";
+import NextImage from "next/image";
 
 import {
   DetailPanel,

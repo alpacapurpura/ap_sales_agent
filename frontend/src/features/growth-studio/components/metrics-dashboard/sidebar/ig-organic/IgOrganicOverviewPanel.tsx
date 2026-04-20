@@ -22,6 +22,9 @@ interface IgOrganicOverviewPanelProps {
   initialTab?: string | null;
 }
 
+/**
+ *
+ */
 export function IgOrganicOverviewPanel({
   channel,
   onClose,

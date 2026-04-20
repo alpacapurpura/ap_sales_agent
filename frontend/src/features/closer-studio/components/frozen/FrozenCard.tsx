@@ -17,6 +17,9 @@ interface FrozenCardProps {
   conversation: FrozenConversation;
 }
 
+/**
+ *
+ */
 export function FrozenCard({ conversation: c }: FrozenCardProps) {
   const { timezone } = useTenantLocale();
   const [expanded, setExpanded] = useState(false);

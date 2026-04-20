@@ -6,10 +6,16 @@
  * module so other features can reuse it and stay consistent.
  */
 
+/**
+ *
+ */
 export function snakeToCamel(s: string): string {
   return s.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
 }
 
+/**
+ *
+ */
 export function camelToSnake(s: string): string {
   return s.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }

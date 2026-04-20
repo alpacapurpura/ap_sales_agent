@@ -77,6 +77,9 @@ function DetailContent() {
   );
 }
 
+/**
+ *
+ */
 export function ConnectionDetailLayout() {
   return (
     <Suspense fallback={<div className="p-10 text-muted-foreground">Cargando...</div>}>

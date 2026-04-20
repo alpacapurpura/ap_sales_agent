@@ -14,6 +14,9 @@ interface YtVideosTabProps {
   isLoading: boolean;
 }
 
+/**
+ *
+ */
 export function YtVideosTab({ data, isLoading }: YtVideosTabProps) {
   if (isLoading) {
     return (

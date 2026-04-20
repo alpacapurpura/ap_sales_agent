@@ -38,6 +38,9 @@ interface ChannelConnectionModalProps {
   onClose: () => void;
 }
 
+/**
+ *
+ */
 export function ChannelConnectionModal({
   channelSlug,
   channelName,

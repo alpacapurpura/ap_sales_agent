@@ -19,6 +19,9 @@ import { adminApi } from "@/lib/api/admin";
 
 import type { Tenant } from "@/lib/api/admin";
 
+/**
+ *
+ */
 export function TenantsClient() {
   const { getToken } = useAuth();
   const [tenants, setTenants] = useState<Tenant[]>([]);

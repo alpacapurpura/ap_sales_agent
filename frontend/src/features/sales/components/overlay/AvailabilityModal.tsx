@@ -18,6 +18,9 @@ interface AvailabilityModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ *
+ */
 export function AvailabilityModal({ open, onOpenChange }: AvailabilityModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

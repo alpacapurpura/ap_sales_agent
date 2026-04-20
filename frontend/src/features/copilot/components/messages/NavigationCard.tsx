@@ -14,6 +14,9 @@ interface NavigationCardProps {
   action: UIAction;
 }
 
+/**
+ *
+ */
 export function NavigationCard({ action }: NavigationCardProps) {
   const { executeAction } = useCopilotNavigator();
   const { getToken } = useAuth();

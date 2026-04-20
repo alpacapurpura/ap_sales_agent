@@ -7,6 +7,9 @@ export interface TrackingConfig {
   ga_measurement_id: string | null;
 }
 
+/**
+ *
+ */
 export async function getTrackingConfig(tenantId: string): Promise<TrackingConfig | null> {
   try {
     const res = await fetch(

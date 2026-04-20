@@ -23,6 +23,9 @@ interface OfferEditSheetManagerProps {
   isSaving?: boolean;
 }
 
+/**
+ *
+ */
 export function OfferEditSheetManager({
   sectionId,
   isOpen,

@@ -52,6 +52,9 @@ function formatRevenue(amount: number, currency: string, usdAmount: number | nul
   return main;
 }
 
+/**
+ *
+ */
 export function OfferMetricsRow({ offer, tierKey, onRevenueClick }: OfferMetricsRowProps) {
   const {
     publicName,

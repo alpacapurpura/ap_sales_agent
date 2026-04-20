@@ -9,6 +9,9 @@ import type { ConnectionHealthData } from "../api/connection-health-api";
 
 export type { ConnectionHealthData };
 
+/**
+ *
+ */
 export function useConnectionHealth(channelSlug: string, enabled = true) {
   const { getToken } = useAuth();
   const tenantId = typeof window !== "undefined" ? localStorage.getItem("x-tenant-id") : null;

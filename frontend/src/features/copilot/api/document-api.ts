@@ -11,6 +11,9 @@ export interface DocumentProcessingResponse {
   fields_skipped: string[];
 }
 
+/**
+ *
+ */
 export async function processInterviewDocuments(
   sessionId: string,
   files: File[],

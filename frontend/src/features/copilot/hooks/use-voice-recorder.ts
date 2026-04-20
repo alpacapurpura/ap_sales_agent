@@ -32,6 +32,9 @@ const DURATION_INTERVAL_MS = 1000;
 
 // ── Hook ───────────────────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export function useVoiceRecorder(): UseVoiceRecorderReturn {
   const [state, setState] = useState<RecorderState>("idle");
   const [error, setError] = useState<string | null>(null);

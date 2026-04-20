@@ -15,6 +15,9 @@ interface ContactSidebarProps {
 
 const LIFECYCLE_STAGES = ["SUBSCRIBER", "LEAD", "MQL", "SQL", "OPPORTUNITY", "CUSTOMER"];
 
+/**
+ *
+ */
 export function ContactSidebar({ leadId }: ContactSidebarProps) {
   const { data: detail } = useConversationDetail(leadId);
   const setSidebarOpen = useCloserStore((s) => s.setSidebarOpen);

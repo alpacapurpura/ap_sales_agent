@@ -4,6 +4,9 @@ import { useFrozen } from "../../hooks/use-frozen";
 
 import { FrozenCard } from "./FrozenCard";
 
+/**
+ *
+ */
 export function FrozenList() {
   const { data: frozen, isLoading } = useFrozen();
 

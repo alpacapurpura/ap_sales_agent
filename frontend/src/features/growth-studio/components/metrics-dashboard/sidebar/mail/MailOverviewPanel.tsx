@@ -94,6 +94,9 @@ interface MailOverviewPanelProps {
   initialTab?: string | null;
 }
 
+/**
+ *
+ */
 export function MailOverviewPanel({ channel, onClose, onExpand }: MailOverviewPanelProps) {
   const { timezone } = useTenantLocale();
   const [period, setPeriod] = useState<MetaAdsPeriod>("30d");

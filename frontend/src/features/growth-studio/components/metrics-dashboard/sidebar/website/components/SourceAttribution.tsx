@@ -35,6 +35,9 @@ function getSourceLabel(source: string): string {
   return SOURCE_LABELS[source] ?? source;
 }
 
+/**
+ *
+ */
 export function SourceAttribution({ primarySource, alternatives }: SourceAttributionProps) {
   if (!primarySource) return null;
 

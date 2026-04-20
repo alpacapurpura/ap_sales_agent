@@ -37,6 +37,9 @@ interface EditionCardProps {
   onDelete: () => void;
 }
 
+/**
+ *
+ */
 export function EditionCard({ edition, onEdit, onDuplicate, onDelete }: EditionCardProps) {
   const isCompleted = edition.status === EditionStatus.COMPLETED;
   const hasOverride = edition.pricing_override !== null;

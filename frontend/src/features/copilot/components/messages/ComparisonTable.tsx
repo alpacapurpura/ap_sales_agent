@@ -16,6 +16,9 @@ interface ComparisonTableProps {
   recommended?: string;
 }
 
+/**
+ *
+ */
 export function ComparisonTable({ columns, rows, recommended }: ComparisonTableProps) {
   return (
     <div className="my-1 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">

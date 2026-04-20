@@ -4,11 +4,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 
-import {
-  placementApi,
-  type ResolvedSocialProof,
-  type SurfaceType,
-} from "@/lib/api/placement";
+import { placementApi, type ResolvedSocialProof, type SurfaceType } from "@/lib/api/placement";
 
 /**
  * Resolve every visible social-proof item for a surface (offer, landing,

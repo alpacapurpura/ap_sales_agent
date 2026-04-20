@@ -46,7 +46,12 @@ import type {
   TestResponse,
 } from "@/lib/api/connections";
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: component has 4 distinct render paths (loading → config mode → not connected → property picker → connected) each with their own conditional sub-trees. Splitting into sub-components would require lifting all useState to a parent, adding more boilerplate than complexity removed.
+/**
+ * Complex connection-flow UI with branching state (OAuth, property picker,
+ * error screens) — pre-existing complexity exceeds the 15-point budget.
+ * Tracked as tech debt; refactor to sub-components in a dedicated sprint.
+ */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function GoogleAnalyticsView() {
   const { getToken } = useAuth();
 

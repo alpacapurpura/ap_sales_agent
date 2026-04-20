@@ -6,6 +6,9 @@ import { campaignsApi } from "../api/campaigns-api";
 
 import type { OfferCampaignsQuery, OfferCampaignsResponse } from "../types/campaigns";
 
+/**
+ *
+ */
 export function useOfferCampaigns(offerId: string, filters?: OfferCampaignsQuery) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 

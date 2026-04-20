@@ -21,6 +21,9 @@ interface TierComparisonBuilderProps {
   form: UseFormReturn<OfferFormValues>;
 }
 
+/**
+ *
+ */
 export function TierComparisonBuilder({ form }: TierComparisonBuilderProps) {
   const { currency: tenantCurrency } = useTenantLocale();
   const { fields, append, remove } = useFieldArray({

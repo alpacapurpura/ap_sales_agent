@@ -16,8 +16,10 @@
  * <PageContainer> or a feature-local padding value, then remove the path
  * from the allowlist.
  */
-import { describe, it, expect } from "vitest";
 import * as path from "path";
+
+import { describe, it, expect } from "vitest";
+
 import { SRC_DIR, walkFiles, relPath, isTestFile, readFile } from "./helpers";
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────

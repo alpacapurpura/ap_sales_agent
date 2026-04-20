@@ -15,6 +15,9 @@ interface IdentityHeaderProps {
   onBack?: () => void;
 }
 
+/**
+ *
+ */
 export function IdentityHeader({ lead, onBack }: IdentityHeaderProps) {
   const { customer } = lead;
   const fullName = customer?.full_name ?? lead.name ?? "Cliente";

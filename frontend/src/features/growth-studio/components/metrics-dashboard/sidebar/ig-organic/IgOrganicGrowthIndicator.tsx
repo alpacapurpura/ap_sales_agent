@@ -15,6 +15,9 @@ function formatSigned(value: number): string {
   return value.toLocaleString("en-US");
 }
 
+/**
+ *
+ */
 export function IgOrganicGrowthIndicator({ kpis }: IgOrganicGrowthIndicatorProps) {
   const netKpi = kpis.find((k) => k.metricName === "ig_follows_and_unfollows");
   const gainedKpi = kpis.find((k) => k.metricName === "ig_follows_gained");

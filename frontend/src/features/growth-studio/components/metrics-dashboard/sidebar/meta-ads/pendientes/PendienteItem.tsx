@@ -32,6 +32,9 @@ function statusDotColor(status: string | null): string {
   return "bg-zinc-500";
 }
 
+/**
+ *
+ */
 export function PendienteItem({
   campaign,
   reason,

@@ -30,6 +30,9 @@ import { connectionsApi } from "@/lib/api/connections";
 
 import type { ManyChatStatusResponse, TestResponse } from "@/lib/api/connections";
 
+/**
+ *
+ */
 export function ManyChatView() {
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);

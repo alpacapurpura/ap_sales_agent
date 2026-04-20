@@ -6,6 +6,9 @@ import type { MetricKpiData, MetricTimeSeries } from "../../../../types/metrics"
 
 const META_HERO_METRICS = ["spend", "ROAS", "CPL", "CTR"] as const;
 
+/**
+ *
+ */
 export function MetaAdsHeroKpiGrid({
   kpis,
   timeSeries,

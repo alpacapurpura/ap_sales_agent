@@ -29,6 +29,9 @@ interface RecordingIndicatorProps {
   onStop: () => Promise<void>;
 }
 
+/**
+ *
+ */
 export function RecordingIndicator({ duration, onCancel, onStop }: RecordingIndicatorProps) {
   return (
     <div className="flex flex-1 items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2">
@@ -59,6 +62,9 @@ export function RecordingIndicator({ duration, onCancel, onStop }: RecordingIndi
 
 // ── Transcribing indicator ─────────────────────────────────────────────────
 
+/**
+ *
+ */
 export function TranscribingIndicator() {
   return (
     <div className="flex flex-1 items-center gap-2 rounded-lg border border-purple-500/30 bg-purple-500/10 px-3 py-2">
@@ -70,6 +76,9 @@ export function TranscribingIndicator() {
 
 // ── Mic button ─────────────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export function VoiceButton({
   isRecording,
   isTranscribing,

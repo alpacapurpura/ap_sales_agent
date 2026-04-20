@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 import {
   offerLadderHintsApi,
@@ -10,8 +9,8 @@ import {
   type OfferLadderHintsCatalogResponse,
 } from "../api/offer-ladder-hints-api";
 
-import type { ExpertBusinessType } from "@/features/tenant-profile/types/tenant-profile";
 import type { OfferValueLevel } from "../types";
+import type { ExpertBusinessType } from "@/features/tenant-profile/types/tenant-profile";
 
 const QUERY_KEY = ["offer", "ladder-hints", "catalog"] as const;
 
@@ -42,9 +41,7 @@ export function useLadderHint(
   const { data } = useOfferLadderHints();
   return useMemo(() => {
     if (!data || !businessType || !valueLevel) return undefined;
-    return data.hints.find(
-      (h) => h.business_type === businessType && h.value_level === valueLevel,
-    );
+    return data.hints.find((h) => h.business_type === businessType && h.value_level === valueLevel);
   }, [data, businessType, valueLevel]);
 }
 

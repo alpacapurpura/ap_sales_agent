@@ -1,6 +1,5 @@
 "use client";
 
-import NextImage from "next/image";
 import {
   Download,
   Eye,
@@ -11,6 +10,7 @@ import {
   Pencil,
   Sparkles,
 } from "lucide-react";
+import NextImage from "next/image";
 import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -98,6 +98,9 @@ export interface AssetCardProps {
   onEdit?: (asset: AssetResponse) => void;
 }
 
+/**
+ *
+ */
 export function AssetCard({ asset, onPreview, onDownload, onEdit }: AssetCardProps) {
   const gradient = TYPE_GRADIENT[asset.type] ?? TYPE_GRADIENT.flyer;
   const corner = useMemo(() => resolveDurationBadge(asset), [asset]);

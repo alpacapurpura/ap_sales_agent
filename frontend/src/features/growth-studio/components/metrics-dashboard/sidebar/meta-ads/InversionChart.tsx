@@ -168,6 +168,9 @@ function computeStatus(
   return roas >= 1 ? "profitable" : "below_break_even";
 }
 
+/**
+ *
+ */
 export function InversionTooltip({
   active,
   payload,
@@ -370,6 +373,9 @@ interface CompositePoint {
   roas: number | null;
 }
 
+/**
+ *
+ */
 export function InversionChart({ timeSeries, filter = "all", offerName }: InversionChartProps) {
   const { currency: tenantCurrency } = useTenantLocale();
 

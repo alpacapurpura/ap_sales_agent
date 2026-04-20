@@ -4,6 +4,9 @@ export const metadata = {
   title: "Nutrición & Oportunidad | Growth Studio",
 };
 
+/**
+ *
+ */
 export default function NutricionOportunidadPage() {
   return <NutricionOportunidadStage />;
 }

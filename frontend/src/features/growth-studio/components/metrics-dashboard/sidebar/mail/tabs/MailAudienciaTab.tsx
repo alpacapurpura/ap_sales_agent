@@ -72,6 +72,9 @@ const HOUR_LABELS = ["6-9", "9-12", "12-15", "15-18", "18-21", "21-24"];
 const DECAY_COLORS = ["text-emerald-500", "text-blue-500", "text-amber-500", "text-red-500"];
 const DECAY_BAR_COLORS = ["bg-emerald-500", "bg-blue-500", "bg-amber-500", "bg-red-500"];
 
+/**
+ *
+ */
 export function MailAudienciaTab({ period }: MailAudienciaTabProps) {
   const { data, isLoading } = useMailAudience(period);
 

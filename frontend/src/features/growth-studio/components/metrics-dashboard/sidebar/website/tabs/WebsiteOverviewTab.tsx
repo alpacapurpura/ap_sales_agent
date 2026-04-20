@@ -19,6 +19,9 @@ interface WebsiteOverviewTabProps {
   isLoading: boolean;
 }
 
+/**
+ *
+ */
 export function WebsiteOverviewTab({ data, isLoading }: WebsiteOverviewTabProps) {
   if (isLoading) {
     return (

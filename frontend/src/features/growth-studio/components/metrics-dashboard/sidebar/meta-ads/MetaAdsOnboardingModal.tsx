@@ -56,6 +56,9 @@ function persistDismiss() {
   }
 }
 
+/**
+ *
+ */
 export function MetaAdsOnboardingModal(props: MetaAdsOnboardingModalProps) {
   // Inner body is keyed on `open` so the step state resets automatically
   // whenever the modal re-opens — no useEffect needed.

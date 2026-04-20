@@ -61,6 +61,9 @@ interface AdSetDetailProps {
   adSet: AdSet;
 }
 
+/**
+ *
+ */
 export function AdSetDetail({ adSet }: AdSetDetailProps) {
   const learningClass = LEARNING_COLORS[adSet.learning_stage ?? ""] ?? "";
 

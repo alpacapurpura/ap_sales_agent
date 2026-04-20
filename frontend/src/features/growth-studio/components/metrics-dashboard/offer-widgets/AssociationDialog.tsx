@@ -29,6 +29,9 @@ interface AssociationDialogProps {
   onSuccess: (salesCreated: number) => void;
 }
 
+/**
+ *
+ */
 export function AssociationDialog({
   product,
   offers,

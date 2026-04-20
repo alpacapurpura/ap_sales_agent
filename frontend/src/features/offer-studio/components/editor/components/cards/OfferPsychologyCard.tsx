@@ -32,6 +32,9 @@ interface OfferPsychologyCardProps {
   isGenerating?: boolean; // Added this prop to handle loading state from parent if needed, though AIAssistButton handles it internally mostly
 }
 
+/**
+ *
+ */
 export function OfferPsychologyCard({
   control,
   onGenerate,

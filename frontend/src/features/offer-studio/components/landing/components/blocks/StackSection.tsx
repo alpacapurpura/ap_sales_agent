@@ -9,6 +9,9 @@ export interface StackSectionProps {
   modules: ModuleItem[];
 }
 
+/**
+ *
+ */
 export function StackSection({ modules = [] }: StackSectionProps) {
   const items = modules || [];
 

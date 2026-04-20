@@ -93,6 +93,9 @@ function mapResponse(raw: ChannelDashboardResponse): ChannelDashboardData {
   };
 }
 
+/**
+ *
+ */
 export async function fetchChannelDashboard(
   token: string,
   channelSlug: string,

@@ -28,6 +28,9 @@ export interface InterviewStateResponse {
   messages_count: number;
 }
 
+/**
+ *
+ */
 export async function startInterview(
   token: string,
   domain = "brand",
@@ -43,6 +46,9 @@ export async function startInterview(
   return res.json() as Promise<StartInterviewResponse>;
 }
 
+/**
+ *
+ */
 export async function getActiveInterview(token: string): Promise<ActiveInterviewResponse | null> {
   const res = await fetchClient(`${API_URL}/api/v1/copilot/interview/active`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -52,6 +58,9 @@ export async function getActiveInterview(token: string): Promise<ActiveInterview
   return res.json() as Promise<ActiveInterviewResponse>;
 }
 
+/**
+ *
+ */
 export async function getInterviewState(
   token: string,
   sessionId: string,
@@ -62,6 +71,9 @@ export async function getInterviewState(
   return res.json() as Promise<InterviewStateResponse>;
 }
 
+/**
+ *
+ */
 export async function pauseInterview(token: string, sessionId: string): Promise<void> {
   await fetchClient(`${API_URL}/api/v1/copilot/interview/${sessionId}/pause`, {
     method: "POST",
@@ -69,6 +81,9 @@ export async function pauseInterview(token: string, sessionId: string): Promise<
   });
 }
 
+/**
+ *
+ */
 export async function abandonInterview(token: string, sessionId: string): Promise<void> {
   await fetchClient(`${API_URL}/api/v1/copilot/interview/${sessionId}/abandon`, {
     method: "POST",

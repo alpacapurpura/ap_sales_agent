@@ -30,6 +30,9 @@ import { connectionsApi } from "@/lib/api/connections";
 
 import type { TestResponse } from "@/lib/api/connections";
 
+/**
+ *
+ */
 export function GmailView() {
   const { getToken } = useAuth();
 

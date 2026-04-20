@@ -40,7 +40,12 @@ import { connectionsApi } from "@/lib/api/connections";
 
 import type { YoutubeStatusResponse, TestResponse } from "@/lib/api/connections";
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: component has 3 render paths (loading → config form → not connected → connected) each guarded by nested conditions. Handlers share OAuth state that would need prop drilling or context to split.
+/**
+ * YouTube connection flow (OAuth + channel picker + analytics toggle) with
+ * pre-existing complexity beyond the 15-point budget. Tech debt: split the
+ * channel-picker dialog into its own component.
+ */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function YoutubeView() {
   const { getToken } = useAuth();
 

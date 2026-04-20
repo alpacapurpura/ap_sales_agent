@@ -9,6 +9,9 @@ interface ChartInfoTooltipProps {
   description: string;
 }
 
+/**
+ *
+ */
 export function ChartInfoTooltip({ title, description }: ChartInfoTooltipProps) {
   return (
     <Popover>

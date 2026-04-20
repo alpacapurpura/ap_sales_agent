@@ -29,6 +29,9 @@ interface PropertyPickerProps {
   isChangeMode?: boolean;
 }
 
+/**
+ *
+ */
 export function PropertyPicker({
   properties,
   onSelected,

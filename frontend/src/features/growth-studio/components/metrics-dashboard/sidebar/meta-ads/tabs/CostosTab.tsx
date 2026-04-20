@@ -43,6 +43,9 @@ const COST_TOOLTIPS: Record<string, string> = {
   CPA: "CPA = Cuánto pagas por cada resultado (venta o acción). Menor es mejor.",
 };
 
+/**
+ *
+ */
 export function CostosTab({ data, campaignData, isLoading }: CostosTabProps) {
   const { currency: tenantCurrency } = useTenantLocale();
 

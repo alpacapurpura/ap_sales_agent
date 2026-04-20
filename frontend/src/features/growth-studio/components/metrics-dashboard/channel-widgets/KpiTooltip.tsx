@@ -13,6 +13,9 @@ interface MetricInfoCardProps {
   children: ReactNode;
 }
 
+/**
+ *
+ */
 export function MetricInfoCard({ metricName, children }: MetricInfoCardProps) {
   const { getTooltipData } = useMetricCatalog();
   const data = getTooltipData(metricName);

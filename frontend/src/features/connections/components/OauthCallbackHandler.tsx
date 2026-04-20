@@ -10,6 +10,9 @@ interface OAuthCallbackHandlerProps {
   provider?: "google" | "meta" | "auto";
 }
 
+/**
+ *
+ */
 export function OAuthCallbackHandler({ provider = "auto" }: OAuthCallbackHandlerProps) {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"processing" | "success" | "error">("processing");

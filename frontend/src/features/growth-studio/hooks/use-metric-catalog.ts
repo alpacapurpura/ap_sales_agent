@@ -6,6 +6,9 @@ import { metricsApi } from "../api/metrics-api";
 
 import type { MetricCatalogEntry, MetricCatalog } from "../types/metrics";
 
+/**
+ *
+ */
 export function useMetricCatalog() {
   const { getToken } = useAuth();
 

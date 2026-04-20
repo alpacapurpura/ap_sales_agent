@@ -11,6 +11,9 @@ interface ExpansionGroupProps {
   variant?: "default" | "churn";
 }
 
+/**
+ *
+ */
 export function ExpansionGroup({ group, variant = "default" }: ExpansionGroupProps) {
   const isChurn = variant === "churn";
   const borderClass = isChurn ? "border-l-2 border-red-200 dark:border-red-800 pl-2" : "";

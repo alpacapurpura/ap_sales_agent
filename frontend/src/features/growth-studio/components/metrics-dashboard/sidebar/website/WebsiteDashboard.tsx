@@ -30,6 +30,9 @@ interface WebsiteDashboardProps {
 
 const VALID_TABS: WebsiteDashboardTab[] = ["overview", "trafico", "contenido", "conversiones"];
 
+/**
+ *
+ */
 export function WebsiteDashboard({ onClose, initialTab, isRouteBased }: WebsiteDashboardProps) {
   const router = useRouter();
   const params = useParams();

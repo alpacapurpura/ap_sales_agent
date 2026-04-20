@@ -18,6 +18,9 @@ interface SectionFormWrapperProps<T extends FieldValues> {
   submitLabel?: string;
 }
 
+/**
+ *
+ */
 export function SectionFormWrapper<T extends FieldValues>({
   schema,
   defaultValues,

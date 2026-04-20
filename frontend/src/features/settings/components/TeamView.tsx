@@ -47,6 +47,9 @@ const formSchema = z.object({
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
 });
 
+/**
+ *
+ */
 export function TeamView() {
   const { timezone } = useTenantLocale();
   const { getToken } = useAuth();

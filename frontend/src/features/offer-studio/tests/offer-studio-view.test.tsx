@@ -45,6 +45,7 @@ vi.mock("@/features/offer-studio/hooks/use-archetype-display", async () => {
 });
 
 vi.mock("@/features/offer-studio/hooks/use-value-level-catalog", () => {
+  // eslint-disable-next-line max-params -- test helper mirrors the catalog entry shape
   const makeEntry = (vl: string, order: number, label: string, icon: string, isFree = false) => ({
     value_level: vl,
     order,

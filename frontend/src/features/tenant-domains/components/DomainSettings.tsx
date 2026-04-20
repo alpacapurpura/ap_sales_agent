@@ -16,6 +16,9 @@ interface DomainSettingsProps {
   tenantSlug: string;
 }
 
+/**
+ *
+ */
 export function DomainSettings({ tenantSlug }: DomainSettingsProps) {
   const [wizardOpen, setWizardOpen] = useState(false);
   const { data: domains, isLoading } = useDomains();

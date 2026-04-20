@@ -5,6 +5,9 @@ export interface SolutionSectionProps {
   method_description: string;
 }
 
+/**
+ *
+ */
 export function SolutionSection({ method_name, method_description }: SolutionSectionProps) {
   return (
     <section className="py-20 px-6 text-center">

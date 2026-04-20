@@ -39,8 +39,14 @@ export const offerProductDetailsSchema: SectionSchema = {
       path: "specific_details.fulfillment_type",
       options: [
         { value: FulfillmentType.DIGITAL_DOWNLOAD, label: "Descarga digital (PDF, zip, video)" },
-        { value: FulfillmentType.LMS_ACCESS, label: "Acceso a plataforma (Hotmart, Kajabi, propia)" },
-        { value: FulfillmentType.MANUAL_PROVISIONING, label: "Provisión manual (tú envías las credenciales)" },
+        {
+          value: FulfillmentType.LMS_ACCESS,
+          label: "Acceso a plataforma (Hotmart, Kajabi, propia)",
+        },
+        {
+          value: FulfillmentType.MANUAL_PROVISIONING,
+          label: "Provisión manual (tú envías las credenciales)",
+        },
         { value: FulfillmentType.PHYSICAL_SHIPPING, label: "Envío físico a domicilio" },
       ],
       hint: "Define toda la experiencia post-checkout. Descarga digital = instantáneo. LMS = login recurrente, retención más alta. Manual = personal pero no escala. Físico = logística real.",
@@ -112,7 +118,8 @@ export const offerProductDetailsSchema: SectionSchema = {
       label: "URL de preview / sample gratuito",
       type: "url",
       path: "specific_details.sample_preview_url",
-      placeholder: "https://drive.google.com/.../sample.pdf / https://youtu.be/... (primera lección)",
+      placeholder:
+        "https://drive.google.com/.../sample.pdf / https://youtu.be/... (primera lección)",
       hint: "Ebook: primeras 10-20 páginas en PDF. Curso: la primera lección abierta. Template: screenshot o preview interactivo. Producto físico: video unboxing. Productos con sample convierten 30-50% más.",
     },
 

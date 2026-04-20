@@ -7,6 +7,9 @@ import * as api from "../api";
 
 const QUERY_KEY = ["domains"] as const;
 
+/**
+ *
+ */
 export function useDomains() {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 
@@ -21,6 +24,9 @@ export function useDomains() {
   });
 }
 
+/**
+ *
+ */
 export function useCreateDomain() {
   const { getToken } = useAuth();
   const qc = useQueryClient();
@@ -41,6 +47,9 @@ export function useCreateDomain() {
   });
 }
 
+/**
+ *
+ */
 export function useDeleteDomain() {
   const { getToken } = useAuth();
   const qc = useQueryClient();
@@ -55,6 +64,9 @@ export function useDeleteDomain() {
   });
 }
 
+/**
+ *
+ */
 export function useSetPrimary() {
   const { getToken } = useAuth();
   const qc = useQueryClient();
@@ -69,6 +81,9 @@ export function useSetPrimary() {
   });
 }
 
+/**
+ *
+ */
 export function useVerifyDomain() {
   const { getToken } = useAuth();
   const qc = useQueryClient();
@@ -83,6 +98,9 @@ export function useVerifyDomain() {
   });
 }
 
+/**
+ *
+ */
 export function useGetDomainInstructions() {
   const { getToken } = useAuth();
 
