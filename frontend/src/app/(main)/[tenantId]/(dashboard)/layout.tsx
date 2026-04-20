@@ -1,49 +1,33 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { memo } from "react";
+import { fetchTenantProfileServer } from "@/features/tenant-profile/api/tenant-profile-server";
 
-import { AppSidebar } from "@/components/shared/layout/AppSidebar";
-import { SidebarProvider, useSidebar } from "@/components/shared/layout/SidebarContext";
-import { CopilotSidebar } from "@/features/copilot/components/CopilotSidebar";
-import { NotificationCenter } from "@/features/notifications/components/NotificationCenter";
-import { cn } from "@/lib/utils";
+import { DashboardLayoutClient } from "./DashboardLayoutClient";
 
-const MemoizedChildren = memo(function MemoizedChildren({
-  children,
-}: {
+interface DashboardLayoutProps {
   children: React.ReactNode;
-}) {
-  return <div className="h-full">{children}</div>;
-});
-
-function DashboardContent({ children }: { children: React.ReactNode }) {
-  const { isCollapsed } = useSidebar();
-
-  return (
-    <div className="flex h-screen overflow-hidden">
-      <AppSidebar />
-      <main
-        className={cn(
-          "relative flex-1 min-w-0 overflow-y-auto",
-          "pt-16 md:pt-0 transition-[margin] duration-300 ease-in-out",
-          isCollapsed ? "md:ml-20" : "md:ml-64",
-        )}
-      >
-        <MemoizedChildren>{children}</MemoizedChildren>
-        <NotificationCenter />
-      </main>
-      <CopilotSidebar />
-    </div>
-  );
+  params: Promise<{ tenantId: string }>;
 }
 
 /**
+ * Server wrapper for all authenticated dashboard routes.
  *
+ * Gating: if the tenant profile is not complete, redirect to onboarding.
+ * The onboarding route sits outside the ``(dashboard)`` group and is therefore
+ * not affected by this layout — no redirect loop possible by construction.
+ *
+ * CONTRACT §6.4
  */
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <SidebarProvider>
-      <DashboardContent>{children}</DashboardContent>
-    </SidebarProvider>
-  );
+export default async function DashboardLayout({ children, params }: DashboardLayoutProps) {
+  const { tenantId } = await params;
+  const profile = await fetchTenantProfileServer(tenantId);
+
+  // Fail open: when we can't verify (network blip, auth mid-flight), let the
+  // downstream auth middleware decide. A false positive redirect loop is worse
+  // than briefly showing the shell.
+  if (profile !== null && !profile.is_complete) {
+    redirect(`/${tenantId}/onboarding/perfil-negocio?returnTo=/${tenantId}`);
+  }
+
+  return <DashboardLayoutClient>{children}</DashboardLayoutClient>;
 }

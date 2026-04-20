@@ -4,19 +4,17 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { ChangeBusinessTypesConfirmDialog } from "@/features/tenant-profile/components/ChangeBusinessTypesConfirmDialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BusinessTypesSelector } from "@/features/tenant-profile/components/BusinessTypesSelector";
+import { ChangeBusinessTypesConfirmDialog } from "@/features/tenant-profile/components/ChangeBusinessTypesConfirmDialog";
 import { useTenantProfile } from "@/features/tenant-profile/hooks/use-tenant-profile";
 import { useUpdateTenantProfile } from "@/features/tenant-profile/hooks/use-update-tenant-profile";
 import { formatNextAllowed } from "@/features/tenant-profile/utils/rate-limit";
 
-import type { ExpertBusinessTypeSlug, TenantProfileResponse } from "@/features/tenant-profile/types/tenant-profile";
+import type {
+  ExpertBusinessTypeSlug,
+  TenantProfileResponse,
+} from "@/features/tenant-profile/types/tenant-profile";
 
 interface PerfilNegocioSettingsClientProps {
   /** Server-fetched initial profile (may be null on first load). */
@@ -38,9 +36,7 @@ export function PerfilNegocioSettingsClient({ initialProfile }: PerfilNegocioSet
   const { data: liveProfile } = useTenantProfile();
   const profile = liveProfile ?? initialProfile;
 
-  const [selected, setSelected] = useState<ExpertBusinessTypeSlug[]>(
-    profile?.business_types ?? [],
-  );
+  const [selected, setSelected] = useState<ExpertBusinessTypeSlug[]>(profile?.business_types ?? []);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const mutation = useUpdateTenantProfile();

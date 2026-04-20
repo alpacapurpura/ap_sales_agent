@@ -51,12 +51,7 @@ export function BusinessTypesOnboardingClient({
       <BusinessTypesSelector value={selected} onChange={setSelected} min={1} max={2} />
 
       <div className="flex justify-center pt-4">
-        <Button
-          size="lg"
-          onClick={handleSubmit}
-          disabled={!canSubmit}
-          className="min-w-[200px]"
-        >
+        <Button size="lg" onClick={handleSubmit} disabled={!canSubmit} className="min-w-[200px]">
           {mutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
