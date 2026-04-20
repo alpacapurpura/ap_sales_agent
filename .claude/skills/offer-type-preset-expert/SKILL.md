@@ -11,7 +11,11 @@ The preset catalog is the **7th SSoT axis** of the offer-studio system.
 It hides `OfferArchetype` behind user-vocabulary presets so Latam
 microempresarios don't have to classify their own offers.
 
-**Current state (2026-04-19):** 84 presets · 7 questions · 6 flags · 187 arch tests.
+**Current state (2026-04-20):** 84 presets · 7 questions · 6 flags · 187 arch tests.
+**Important (2026-04-20):** tenant `business_types` no longer lives on
+`BrandIdentity`. Read via `shared/links/ports/tenant_profile.py`
+(`get_tenant_business_types(db, tenant_id)`) in backend or
+`useTenantProfile()` in frontend. See `docs/domains/tenant-profile/`.
 Distribución archetype: servicio=16 · programa=18 · membresia=22 · experiencia=13 · producto=15.
 Questions: `requires_physical_location`, `has_specific_dates`, `delivers_downloadable_materials`, `has_team_or_speakers`, `is_hybrid_modality`, `has_limited_capacity`, `has_portfolio_cases`.
 Flags: `SUPPORTS_CAPACITY`, `REQUIRES_START_DATE`, `DELIVERY_HYBRID`, `IS_LEAD_MAGNET`, `RECURRING_BILLING`, `HIGH_TICKET`.
@@ -44,9 +48,17 @@ Flags: `SUPPORTS_CAPACITY`, `REQUIRES_START_DATE`, `DELIVERY_HYBRID`, `IS_LEAD_M
 |---|---|
 | `frontend/src/features/offer-studio/api/offer-type-preset-catalog-api.ts` | Mirror types + `resolvePresetSections` / `resolvePresetFlags` pure functions. |
 | `frontend/src/features/offer-studio/hooks/use-offer-type-preset-catalog.ts` | React Query hooks. |
-| `frontend/src/features/offer-studio/components/wizard/PresetPickerStep.tsx` | Step 1 — preset grid filtered by `business_types`. |
+| `frontend/src/features/offer-studio/components/wizard/PresetPickerStep.tsx` | Step 1 — preset grid filtered by `business_types` (from `useTenantProfile`). |
 | `frontend/src/features/offer-studio/components/wizard/ConditionalQuestionsStep.tsx` | Step 2 — renders 0-3 conditional questions; answers feed `resolvePresetSections`. |
-| `frontend/src/features/offer-studio/components/wizard/CreateOfferWizard.tsx` | Orchestrates preset-first flow; passes `preset_id` + `conditional_answers` to `create_offer`. Archetype NO surfaced. |
+| `frontend/src/features/offer-studio/components/wizard/CreateOfferWizard.tsx` | Orchestrates preset-first flow. Reads `business_types` via `useTenantProfile()` — gating middleware guarantees non-empty. Passes `preset_id` + `conditional_answers` to `create_offer`. Archetype NO surfaced. |
+
+### Tenant input — business_types (new 2026-04-20)
+| File | Role |
+|---|---|
+| `backend/src/shared/links/ports/tenant_profile.py` | `get_tenant_business_types(db, tenant_id)` — ONLY cross-module read. Never import `tenant_profile` directly. |
+| `backend/src/modules/tenant_profile/api/business_types_catalog.py` | `GET /api/v1/catalogs/business-types` (legacy `/api/v1/brand/expert-business-types/catalog` still 301s until 2026-05-04). |
+| `frontend/src/features/tenant-profile/hooks/use-tenant-profile.ts` | `useTenantProfile()` — returns `{business_types, is_complete, can_change_now, ...}`. |
+| `frontend/src/features/tenant-profile/hooks/use-business-types-catalog.ts` | `useBusinessTypesCatalog()` — replaces the retired `useExpertBusinessTypesCatalog`. |
 
 ### Docs + rules
 | File | Role |
@@ -61,11 +73,14 @@ Flags: `SUPPORTS_CAPACITY`, `REQUIRES_START_DATE`, `DELIVERY_HYBRID`, `IS_LEAD_M
 ## Mental model — the layered flow
 
 ```
-Step 1.  Tenant declares business_types in Brand Studio
-         (e.g. PROFESIONAL_SALUD + NEGOCIO_LOCAL)
+Step 1.  Tenant declares business_types in the tenant_profile BC
+         (at /onboarding/perfil-negocio or /settings/perfil-negocio,
+         e.g. PROFESIONAL_SALUD + NEGOCIO_LOCAL).
+         Backend reads via `shared/links/ports/tenant_profile.py`.
+         Frontend reads via `useTenantProfile()`.
               │
               ▼
-Step 2.  Wizard: useOfferTypePresetCatalog(business_types)
+Step 2.  Wizard: useOfferTypePresetCatalog(useTenantProfile().business_types)
          → 4-11 presets filtered, shown in user's language
               │
               ▼
@@ -279,13 +294,15 @@ Specific to preset catalog:
    requirement). Typically aim for 5-8.
 4. Update the distribution table in `offer-type-preset-catalog.md`.
 5. Regenerate the backend catalog version.
+6. **Update the tenant-profile frontend mirror.** `frontend/src/features/tenant-profile/types/tenant-profile.ts` declares `ExpertBusinessTypeSlug` as a string-literal union and `EXPERT_BUSINESS_TYPE_SLUGS` as the frozen array — both must mirror the backend enum verbatim. Miss this and the onboarding selector will hide the new type.
 
 ## Debugging: "the tenant sees wrong presets"
 
 Checklist (in order):
 
-1. **Tenant's `business_types` correct?** → Query Brand Studio identity,
-   or check `GET /api/v1/brand/identity`.
+1. **Tenant's `business_types` correct?** → `GET /api/v1/tenant/profile`
+   (since 2026-04-20 — no longer on `BrandIdentity`). Or via port
+   `shared/links/ports/tenant_profile.get_tenant_business_types(db, tenant_id)`.
 2. **Catalog version fresh?** → Compare `response.version` vs
    `_CATALOG_VERSION`. Force-refresh if different.
 3. **Preset in catalog?** → Search
@@ -330,6 +347,11 @@ Checklist (in order):
   it. Dead flag = catalog rot.
 - ❌ Surfacing archetype in wizard UX (ArchetypePickerStep is legacy —
   the preset-first wizard uses `PresetPickerStep` + `ConditionalQuestionsStep`).
+- ❌ Reading `business_types` from `BrandIdentity`, `settings.identity.business_types`,
+  or `config_json['brand_settings']['identity']['business_types']`. The field
+  moved to the `tenant_profile` BC on 2026-04-20. Backend: `shared/links/ports/tenant_profile.get_tenant_business_types`.
+  Frontend: `useTenantProfile()`. The arch test `test_business_types_ssot.py`
+  fails the build if any module outside `tenant_profile` declares the field.
 
 ## Catalog navigation cheatsheet
 
