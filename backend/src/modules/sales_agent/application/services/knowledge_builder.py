@@ -18,6 +18,7 @@ from src.modules.sales_agent.application.services.semantic_router import Semanti
 from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 from src.shared.links.ports.brand import BrandDataPort, create_brand_data_port
 from src.shared.links.ports.offer import get_offer_repository, get_offer_type_preset
+from src.shared.links.ports.social_proof import resolve_sales_agent_context
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ class TenantKnowledgeBuilder:
 
     def __init__(self, db: Session, brand_port: BrandDataPort | None = None) -> None:
         """Initialize instance."""
+        self.db = db
         self.brand_port = brand_port or create_brand_data_port(db)
         self.offer_repo = get_offer_repository(db)
 
@@ -85,10 +87,16 @@ class TenantKnowledgeBuilder:
             identity = brand_data.get("identity", {}) or {}
             strategy = brand_data.get("strategy", {}) or {}
             story = brand_data.get("story", {}) or {}
-            team = brand_data.get("team", []) or []
             contact = brand_data.get("contact", {}) or {}
-            testimonials = brand_data.get("testimonials", []) or []
             positioning = brand_data.get("positioning", {}) or {}
+
+            # Social proof (testimonials, team, authority) now lives in the
+            # social_proof bounded context. The port returns pre-serialized
+            # dicts so the Jinja template keeps the same shape.
+            social_proof_ctx = resolve_sales_agent_context(self.db, tenant_id)
+            testimonials = social_proof_ctx["testimonials"]
+            team = social_proof_ctx["team_members"]
+            authority_items = social_proof_ctx["authority_items"]
 
             # Default avatar (the primary ICP)
             default_avatar = next(
@@ -122,6 +130,7 @@ class TenantKnowledgeBuilder:
                 team=team,
                 contact=contact,
                 testimonials=testimonials,
+                authority_items=authority_items,
                 positioning=positioning,
                 default_avatar=default_avatar,
                 # Counts for conditional rendering
@@ -129,6 +138,7 @@ class TenantKnowledgeBuilder:
                 has_offers=len(offers_data) > 0,
                 has_avatars=len(avatar_data) > 0,
                 has_testimonials=len(testimonials) > 0,
+                has_authority=len(authority_items) > 0,
                 has_team=len(team) > 0,
                 # Personality voice configuration (new)
                 personality_instruction=personality_instruction,

@@ -25,7 +25,7 @@ Consumers:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -112,3 +112,96 @@ def list_tenant_team_members(
     )
 
     return TeamMemberRepository(db).list_by_tenant(tenant_id)
+
+
+# ──────────────────────────────────────────────────────────────
+# Pre-serialized convenience helpers for cross-module consumers
+# ──────────────────────────────────────────────────────────────
+#
+# ``resolve_sales_agent_context`` and ``resolve_landing_page_context`` return
+# plain ``dict`` bundles already shaped for Jinja templates so the consumer
+# module never has to import ``SurfaceType`` or the resolver classes. This
+# preserves the DDD boundary — social_proof's domain types stay private.
+
+
+def resolve_sales_agent_context(db: Session, tenant_id: UUID) -> dict[str, Any]:
+    """Return social proof shaped for the Sales Agent identity prompt.
+
+    The agent KB surface is tenant-wide (``surface_ref_id`` is None), but we
+    also merge brand-homepage placements via ``include_brand=True`` so the
+    agent has everything the public brand page shows plus anything pinned
+    explicitly to the SALES_AGENT_KB surface.
+
+    Returns:
+        ``{"testimonials": list[dict], "authority_items": list[dict], "team_members": list[dict]}``
+        — every entity pre-serialized via ``model_dump(mode="json")``, safe
+        to drop into ``prompt_loader.render``.
+    """
+    from src.modules.social_proof.application.services.social_proof_resolver import (
+        SocialProofResolver,
+    )
+    from src.modules.social_proof.domain.enums import SurfaceType as _Surface
+
+    resolved = SocialProofResolver(db).for_surface(
+        tenant_id=tenant_id,
+        surface_type=_Surface.SALES_AGENT_KB,
+        surface_ref_id=None,
+        include_brand=True,
+    )
+    return {
+        "testimonials": [p.testimonial.model_dump(mode="json") for p in resolved.testimonials],
+        "authority_items": [p.authority_item.model_dump(mode="json") for p in resolved.authority_items],
+        "team_members": [p.team_member.model_dump(mode="json") for p in resolved.team_members],
+    }
+
+
+def resolve_offer_context(
+    db: Session,
+    tenant_id: UUID,
+    offer_id: UUID,
+    *,
+    include_brand: bool = True,
+) -> dict[str, Any]:
+    """Return social proof for an offer page, pre-serialized for templates."""
+    from src.modules.social_proof.application.services.social_proof_resolver import (
+        SocialProofResolver,
+    )
+    from src.modules.social_proof.domain.enums import SurfaceType as _Surface
+
+    resolved = SocialProofResolver(db).for_surface(
+        tenant_id=tenant_id,
+        surface_type=_Surface.OFFER,
+        surface_ref_id=offer_id,
+        include_brand=include_brand,
+    )
+    return {
+        "testimonials": [p.testimonial.model_dump(mode="json") for p in resolved.testimonials],
+        "authority_items": [p.authority_item.model_dump(mode="json") for p in resolved.authority_items],
+        "team_members": [p.team_member.model_dump(mode="json") for p in resolved.team_members],
+    }
+
+
+def resolve_landing_page_context(
+    db: Session,
+    tenant_id: UUID,
+    landing_page_id: UUID,
+    *,
+    include_brand: bool = True,
+) -> dict[str, Any]:
+    """Return social proof for a landing page, pre-serialized for templates."""
+    from src.modules.social_proof.application.services.social_proof_resolver import (
+        SocialProofResolver,
+    )
+    from src.modules.social_proof.domain.enums import SurfaceType as _Surface
+
+    resolved = SocialProofResolver(db).for_surface(
+        tenant_id=tenant_id,
+        surface_type=_Surface.LANDING_PAGE,
+        surface_ref_id=landing_page_id,
+        include_brand=include_brand,
+    )
+    return {
+        "testimonials": [p.testimonial.model_dump(mode="json") for p in resolved.testimonials],
+        "authority_items": [p.authority_item.model_dump(mode="json") for p in resolved.authority_items],
+        "team_members": [p.team_member.model_dump(mode="json") for p in resolved.team_members],
+    }
