@@ -167,6 +167,12 @@ def db_engine():
         from src.modules.scheduling.infrastructure.models.appointment_model import (
             AppointmentModel,
         )
+        from src.modules.social_proof.infrastructure.models import (
+            AuthorityItemModel,
+            PlacementModel,
+            TeamMemberModel,
+            TestimonialModel,
+        )
         from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import (
             TenantDomainModel,
         )

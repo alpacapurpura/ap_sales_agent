@@ -128,6 +128,12 @@ from src.modules.scheduling.api import agenda as sched_agenda
 from src.modules.scheduling.api import event_types as sched_types
 from src.modules.scheduling.api import public_links as sched_public
 
+# 18. Social Proof
+from src.modules.social_proof.api import authority as social_proof_authority
+from src.modules.social_proof.api import placements as social_proof_placements
+from src.modules.social_proof.api import team_members as social_proof_team
+from src.modules.social_proof.api import testimonials as social_proof_testimonials
+
 # 15. Tenant Domains
 from src.modules.tenant_domains.api import domain_router as domains_router
 from src.modules.tenant_profile.api import business_types_catalog as business_types_catalog_router
@@ -431,6 +437,34 @@ app.include_router(
     tags=["Brand - Buyer Personas"],
     dependencies=[Depends(get_tenant_context)],
 )
+
+# 18. Social Proof — SSoT for testimonials / authority / team, reused by
+# offer / landing / sales_agent via shared/links/ports.
+app.include_router(
+    social_proof_testimonials.router,
+    prefix="/api/v1/social-proof/testimonials",
+    tags=["Social Proof - Testimonials"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    social_proof_authority.router,
+    prefix="/api/v1/social-proof/authority",
+    tags=["Social Proof - Authority"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    social_proof_team.router,
+    prefix="/api/v1/social-proof/team",
+    tags=["Social Proof - Team"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    social_proof_placements.router,
+    prefix="/api/v1/social-proof/placements",
+    tags=["Social Proof - Placements"],
+    dependencies=[Depends(get_tenant_context)],
+)
+
 # 3. Offer
 app.include_router(
     offer_products.router,
