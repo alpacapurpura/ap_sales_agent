@@ -1,10 +1,13 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
+import { Loader2, Sparkles } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
-import { forwardRef, useCallback } from "react";
+import { forwardRef, useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { startInterview } from "@/features/copilot/api/interview-api";
+import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 import { cn } from "@/lib/utils";
 
 interface InterviewModeButtonProps extends Omit<
@@ -19,59 +22,116 @@ interface InterviewModeButtonProps extends Omit<
   label?: string;
 }
 
+const SECTION_KEY_BY_DOMAIN: Record<string, string> = {
+  brand: "brand.root",
+  buyer_persona: "brand.buyer-persona",
+  offer: "offer.root",
+};
+
+function routeFor(domain: string, tenantId: string, entityId?: string): string {
+  switch (domain) {
+    case "brand":
+      return `/${tenantId}/brand-studio`;
+    case "buyer_persona":
+      return entityId
+        ? `/${tenantId}/brand-studio/publico/persona/${entityId}`
+        : `/${tenantId}/brand-studio/publico`;
+    case "offer":
+      return entityId ? `/${tenantId}/offer-studio/offer/${entityId}` : `/${tenantId}/offer-studio`;
+    default:
+      return `/${tenantId}/${domain.replace("_", "-")}-studio`;
+  }
+}
+
 /**
- * Navigates to the correct interview route for a given domain.
+ * Starts a copilot interview for the given domain and navigates to the
+ * corresponding studio page. The sidebar activates inline from the copilot
+ * store — no dedicated /interview route is rendered (those were deleted in
+ * Sprint 3 in favour of the sidebar-absorbed flow).
  *
- * Routes:
- *   brand          -> /brand-studio/interview
- *   buyer_persona  -> /brand-studio/interview/buyer-persona?personaId={entityId}
- *   offer          -> /offer-studio/interview?offerId={entityId}
+ * For `buyer_persona` + `offer`, entityId is required to bind the interview
+ * to a concrete entity; for `brand` the interview is tenant-global.
  */
 export const InterviewModeButton = forwardRef<HTMLButtonElement, InterviewModeButtonProps>(
-  ({ domain, entityId, label = "Modo Entrevista", className, ...props }, ref) => {
+  function InterviewModeButtonImpl(
+    { domain, entityId, label = "Modo Entrevista", className, disabled, ...props },
+    ref,
+  ) {
     const router = useRouter();
     const params = useParams();
     const tenantId = params.tenantId as string;
+    const { getToken } = useAuth();
 
-    const handleClick = useCallback(() => {
-      let path: string;
+    const [submitting, setSubmitting] = useState(false);
 
-      switch (domain) {
-        case "brand":
-          path = `/${tenantId}/brand-studio/interview`;
-          break;
-        case "buyer_persona": {
-          const personaQuery = entityId ? `?personaId=${entityId}` : "";
-          path = `/${tenantId}/brand-studio/interview/buyer-persona${personaQuery}`;
-          break;
-        }
-        case "offer": {
-          const offerQuery = entityId ? `?offerId=${entityId}` : "";
-          path = `/${tenantId}/offer-studio/interview${offerQuery}`;
-          break;
-        }
-        default:
-          path = `/${tenantId}/${domain.replace("_", "-")}-studio/interview`;
+    const handleClick = useCallback(async () => {
+      const target = routeFor(domain, tenantId, entityId);
+
+      // buyer_persona + offer require an entity to start an interview.
+      // Without entityId just navigate to the listing page.
+      const canStartInterview =
+        domain === "brand" ||
+        ((domain === "buyer_persona" || domain === "offer") && Boolean(entityId));
+
+      if (!canStartInterview) {
+        router.push(target);
+        return;
       }
 
-      router.push(path);
-    }, [domain, entityId, tenantId, router]);
+      setSubmitting(true);
+      try {
+        const token = await getToken();
+        if (!token) {
+          router.push(target);
+          return;
+        }
+        const interview = await startInterview(token, domain, entityId);
+        const store = useCopilotStore.getState();
+        store.setSession({
+          sectionKey: SECTION_KEY_BY_DOMAIN[domain] ?? `${domain}.root`,
+          label,
+          entityId: entityId ?? "",
+          procedure: "interview",
+          sessionId: interview.session_id,
+          startedAt: new Date(),
+          snapshot: {},
+        });
+        store.setConversationId(interview.conversation_id);
+        store.addMessage({
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: interview.initial_message,
+          timestamp: Date.now(),
+        });
+        store.setSidebarState("open");
+      } catch (err) {
+        // Navigate anyway; the copilot can retry from the destination page.
+        console.error("Failed to start interview", err);
+      } finally {
+        setSubmitting(false);
+        router.push(target);
+      }
+    }, [domain, entityId, getToken, label, router, tenantId]);
 
     return (
       <Button
         ref={ref}
         variant="outline"
         onClick={handleClick}
+        disabled={Boolean(disabled) || submitting}
         className={cn(
           "gap-2 border-purple-500/30 text-purple-300 hover:bg-purple-500/10 hover:text-purple-200",
           className,
         )}
         {...props}
       >
-        <Sparkles className="h-4 w-4" />
+        {submitting ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Sparkles className="h-4 w-4" />
+        )}
         {label}
       </Button>
     );
   },
 );
-InterviewModeButton.displayName = "InterviewModeButton";
