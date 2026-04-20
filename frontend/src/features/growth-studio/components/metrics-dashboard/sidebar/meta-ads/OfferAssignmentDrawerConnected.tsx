@@ -26,6 +26,9 @@ interface OfferAssignmentDrawerConnectedProps {
   period?: MetaAdsPeriod;
 }
 
+/**
+ *
+ */
 export function OfferAssignmentDrawerConnected({
   open,
   onOpenChange,

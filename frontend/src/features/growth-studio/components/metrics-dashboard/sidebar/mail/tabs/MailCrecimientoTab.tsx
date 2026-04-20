@@ -54,6 +54,9 @@ const GROWTH_KPIS = [
   },
 ];
 
+/**
+ *
+ */
 export function MailCrecimientoTab({ period }: MailCrecimientoTabProps) {
   const { data, isLoading } = useMailGrowth(period);
 

@@ -3,6 +3,9 @@ import { fetchClient } from "@/lib/http-client";
 
 const API_URL = config.api.baseUrl;
 
+/**
+ *
+ */
 export async function promoteToEvangelist(
   token: string,
   customerId: string,
@@ -16,6 +19,9 @@ export async function promoteToEvangelist(
   return res.json() as Promise<Record<string, unknown>>;
 }
 
+/**
+ *
+ */
 export async function createNpsSurvey(
   token: string,
   payload: { customer_id?: string; offer_id?: string; delivery_channel?: string },

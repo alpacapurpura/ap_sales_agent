@@ -1,3 +1,6 @@
+/**
+ *
+ */
 export function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result
@@ -9,6 +12,9 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } | nul
     : null;
 }
 
+/**
+ *
+ */
 export function getLuminance(r: number, g: number, b: number): number {
   const a = [r, g, b].map((v) => {
     v /= 255;
@@ -17,6 +23,9 @@ export function getLuminance(r: number, g: number, b: number): number {
   return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
 }
 
+/**
+ *
+ */
 export function getContrastColor(hex: string): string {
   const rgb = hexToRgb(hex);
   if (!rgb) return "#000000";
@@ -25,6 +34,9 @@ export function getContrastColor(hex: string): string {
   return luminance > 0.5 ? "#000000" : "#ffffff";
 }
 
+/**
+ *
+ */
 export function adjustBrightness(hex: string, percent: number): string {
   const rgb = hexToRgb(hex);
   if (!rgb) return hex;
@@ -47,6 +59,9 @@ export function adjustBrightness(hex: string, percent: number): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
+/**
+ *
+ */
 export function hexToHsl(hex: string): string {
   let r = 0,
     g = 0,

@@ -36,6 +36,9 @@ function addDismissed(id: string) {
   localStorage.setItem(DISMISSED_KEY, JSON.stringify([...dismissed]));
 }
 
+/**
+ *
+ */
 export function useProactiveNudges() {
   const currentRoute = useCopilotStore((s) => s.currentRoute);
   const { getToken } = useAuth();

@@ -40,7 +40,7 @@ import {
 
 import type { SectionSchema } from "@/lib/form-runtime/schema";
 
-const OFFER_STUDIO_SCHEMAS: ReadonlyArray<readonly [string, SectionSchema]> = [
+const OFFER_STUDIO_SCHEMAS: readonly (readonly [string, SectionSchema])[] = [
   ["offerClosingSchema", offerClosingSchema],
   ["offerEventDetailsSchema", offerEventDetailsSchema],
   ["offerFaqSchema", offerFaqSchema],
@@ -66,9 +66,9 @@ const OFFER_STUDIO_SCHEMAS: ReadonlyArray<readonly [string, SectionSchema]> = [
 
 describe("Architecture: offer-studio schemas don't duplicate SectionCatalog copy", () => {
   it("all offer-studio schemas omit ``title`` (catalog-driven)", () => {
-    const violations = OFFER_STUDIO_SCHEMAS.filter(
-      ([, schema]) => schema.title !== undefined,
-    ).map(([name, schema]) => `${name} declares title="${schema.title!}"`);
+    const violations = OFFER_STUDIO_SCHEMAS.filter(([, schema]) => schema.title !== undefined).map(
+      ([name, schema]) => `${name} declares title="${schema.title!}"`,
+    );
     expect(violations).toEqual([]);
   });
 

@@ -9,6 +9,9 @@ interface Props {
   evangelist: EvangelistData;
 }
 
+/**
+ *
+ */
 export function EvangelistCard({ evangelist }: Props) {
   const initial = evangelist.fullName.charAt(0).toUpperCase();
 

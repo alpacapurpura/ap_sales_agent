@@ -13,6 +13,9 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
+/**
+ *
+ */
 export default function ForbiddenPage() {
   const { signOut } = useClerk();
 

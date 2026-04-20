@@ -17,11 +17,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useTenantProfile } from "@/features/tenant-profile/hooks/use-tenant-profile";
 import { useOfferTypePresetCatalog } from "@/features/offer-studio/hooks/use-offer-type-preset-catalog";
 import { useValueLevelMetadata } from "@/features/offer-studio/hooks/use-value-level-catalog";
 import { OfferStatus, OfferValueLevel } from "@/features/offer-studio/types";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { useTenantProfile } from "@/features/tenant-profile/hooks/use-tenant-profile";
 
 import { ArchetypePickerStep } from "./ArchetypePickerStep";
 import { ConditionalQuestionsStep } from "./ConditionalQuestionsStep";
@@ -502,8 +502,8 @@ function PricingStep({
       <div>
         <h3 className="text-lg font-semibold">¿Cuánto cobras?</h3>
         <p className="text-sm text-muted-foreground">
-          Empieza con un precio base en la moneda que más cobras. Puedes agregar cuotas, descuentos y
-          planes después en el editor.
+          Empieza con un precio base en la moneda que más cobras. Puedes agregar cuotas, descuentos
+          y planes después en el editor.
         </p>
       </div>
       <div className="grid grid-cols-[1fr_140px] gap-3">

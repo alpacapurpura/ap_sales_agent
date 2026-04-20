@@ -23,6 +23,9 @@ async function getFirstPublishedLanding(tenantId: string): Promise<string | null
   }
 }
 
+/**
+ *
+ */
 export default async function TenantHomepage() {
   const headersList = await headers();
   const tenantId = headersList.get("X-Tenant-ID") ?? "";

@@ -71,6 +71,9 @@ export interface WhatsAppBusinessAsset {
   has_credentials: boolean;
 }
 
+/**
+ *
+ */
 export async function fetchMetaAssets(token: string): Promise<MetaAssetsResponse> {
   const res = await fetchClient(`${API_URL}/api/v1/connections/meta/assets`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -79,6 +82,9 @@ export async function fetchMetaAssets(token: string): Promise<MetaAssetsResponse
   return res.json() as Promise<MetaAssetsResponse>;
 }
 
+/**
+ *
+ */
 export async function syncMetaAssets(token: string): Promise<MetaAssetsResponse> {
   const res = await fetchClient(`${API_URL}/api/v1/connections/meta/assets/sync`, {
     method: "POST",
@@ -91,6 +97,9 @@ export async function syncMetaAssets(token: string): Promise<MetaAssetsResponse>
   return res.json() as Promise<MetaAssetsResponse>;
 }
 
+/**
+ *
+ */
 export async function toggleMetaAsset(
   token: string,
   channelType: string,

@@ -15,6 +15,9 @@ import { RecommendationsList } from "./RecommendationsList";
 
 import type { CampaignOverview } from "../../types/campaigns";
 
+/**
+ *
+ */
 export function CampaignPanel() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

@@ -9,6 +9,9 @@ interface ExpansionOfferRowProps {
   isChurn?: boolean;
 }
 
+/**
+ *
+ */
 export function ExpansionOfferRow({ offer, isChurn = false }: ExpansionOfferRowProps) {
   const revenueText = formatDualCurrency(offer.revenue, offer.currency, offer.usdRevenue);
 

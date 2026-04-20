@@ -3,6 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 
 import { fetchOfferMetadata } from "../api/offer-metadata-api";
 
+/**
+ *
+ */
 export function useOfferMetadata() {
   const { getToken } = useAuth();
 

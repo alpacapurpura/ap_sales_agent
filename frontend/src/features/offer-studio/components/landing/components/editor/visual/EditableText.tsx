@@ -12,6 +12,9 @@ interface EditableTextProps {
   as?: React.ElementType; // Allow polymorphic prop to pass through (ignored for now)
 }
 
+/**
+ *
+ */
 export function EditableText({ value, onChange, className, placeholder, as }: EditableTextProps) {
   const [localValue, setLocalValue] = useState(value || "");
 

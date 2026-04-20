@@ -19,6 +19,9 @@ interface WSEvent {
 const MAX_RETRIES = 10;
 const BASE_DELAY = 1000; // 1s
 
+/**
+ *
+ */
 export function useCloserWebSocket(tenantId: string | null) {
   const wsRef = useRef<WebSocket | null>(null);
   const retriesRef = useRef(0);

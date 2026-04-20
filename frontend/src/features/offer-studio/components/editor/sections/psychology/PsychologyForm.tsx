@@ -94,6 +94,9 @@ function PsychologyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   );
 }
 
+/**
+ *
+ */
 export function PsychologyForm({ defaultValues: propValues, onSave }: PsychologyFormProps) {
   const defaultValues: PsychologyFormValues = {
     marketing_pain_points: propValues?.marketing_pain_points || [],

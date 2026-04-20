@@ -17,6 +17,9 @@ import {
   LogOut,
 } from "lucide-react";
 
+/**
+ *
+ */
 export function getNodeIcon(nodeName: string | undefined, hasLLM = false) {
   if (hasLLM) return Brain;
   if (!nodeName) return BrainCircuit;
@@ -40,6 +43,9 @@ export function getNodeIcon(nodeName: string | undefined, hasLLM = false) {
   return Activity;
 }
 
+/**
+ *
+ */
 export function getNodeColor(nodeName: string | undefined) {
   if (!nodeName) return "text-slate-500";
 

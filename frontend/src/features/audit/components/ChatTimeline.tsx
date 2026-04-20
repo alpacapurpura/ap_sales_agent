@@ -6,14 +6,9 @@ import { format, isToday, isYesterday } from "date-fns";
 import { es } from "date-fns/locale";
 import { Bot, User as UserIcon, ArrowRight, Activity, Trash2, AlertTriangle } from "lucide-react";
 import { useEffect, useRef, useMemo, useState } from "react";
-
 import { toast } from "sonner";
+
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { clearLeadHistory } from "@/features/audit/api";
-import { useLeadTimeline } from "@/features/audit/hooks/use-audit";
-import { TimelineEvent } from "@/features/audit/types";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,12 +19,17 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { clearLeadHistory } from "@/features/audit/api";
+import { useLeadTimeline } from "@/features/audit/hooks/use-audit";
+import { cn } from "@/lib/utils";
 
 import { ContextPanel } from "./ContextPanel";
 import { NodeDetailsPanel } from "./NodeDetailsPanel";
 import { getNodeIcon, getNodeColor } from "./NodeIcons";
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { TimelineEvent } from "@/features/audit/types";
 
 interface ChatTimelineProps {
   leadId: string | null;
@@ -100,6 +100,9 @@ function formatMessageDate(dateStr: string) {
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
+/**
+ *
+ */
 export function ChatTimeline({ leadId, onSelectEvent, selectedEventId }: ChatTimelineProps) {
   const { data: timeline, isLoading } = useLeadTimeline(leadId);
   const scrollRef = useRef<HTMLDivElement>(null);

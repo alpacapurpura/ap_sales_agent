@@ -30,6 +30,9 @@ interface FollowsDailyPoint {
   net: number;
 }
 
+/**
+ *
+ */
 export function IgAudienceTab({ data, isLoading }: IgAudienceTabProps) {
   if (isLoading)
     return (

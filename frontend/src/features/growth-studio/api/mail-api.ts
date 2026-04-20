@@ -142,6 +142,9 @@ function mapEmailDashboardResponse(raw: Record<string, unknown>): EmailDashboard
   };
 }
 
+/**
+ *
+ */
 export async function fetchEmailDashboard(
   token: string,
   period: MetaAdsPeriod = "30d",
@@ -204,6 +207,9 @@ function mapEmailCampaignsResponse(raw: Record<string, unknown>): EmailCampaigns
   };
 }
 
+/**
+ *
+ */
 export async function fetchEmailCampaigns(
   token: string,
   period: MetaAdsPeriod = "30d",
@@ -272,6 +278,9 @@ function mapEmailAutomationsResponse(raw: Record<string, unknown>): EmailAutomat
   };
 }
 
+/**
+ *
+ */
 export async function fetchEmailAutomations(
   token: string,
   period: MetaAdsPeriod = "30d",
@@ -355,6 +364,9 @@ function mapEmailAudienceResponse(raw: Record<string, unknown>): EmailAudienceDa
   };
 }
 
+/**
+ *
+ */
 export async function fetchEmailAudience(
   token: string,
   period: MetaAdsPeriod = "30d",
@@ -400,6 +412,9 @@ function mapEmailHealthResponse(raw: Record<string, unknown>): EmailHealthData {
   };
 }
 
+/**
+ *
+ */
 export async function fetchEmailHealth(
   token: string,
   period: MetaAdsPeriod = "30d",
@@ -432,6 +447,9 @@ function mapEmailGrowthResponse(raw: Record<string, unknown>): EmailGrowthData {
   };
 }
 
+/**
+ *
+ */
 export async function fetchEmailGrowth(
   token: string,
   period: MetaAdsPeriod = "30d",

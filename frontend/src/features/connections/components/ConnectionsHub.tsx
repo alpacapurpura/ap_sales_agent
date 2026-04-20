@@ -15,6 +15,9 @@ import { ConnectionCard } from "./ConnectionCard";
 
 const ALL_TAGS = getAllTags();
 
+/**
+ *
+ */
 export function ConnectionsHub() {
   const params = useParams();
   const tenantId = params?.tenantId as string;

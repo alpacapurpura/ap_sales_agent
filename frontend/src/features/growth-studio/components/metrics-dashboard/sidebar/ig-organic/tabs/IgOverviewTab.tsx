@@ -26,6 +26,9 @@ interface IgOverviewTabProps {
   isLoading: boolean;
 }
 
+/**
+ *
+ */
 export function IgOverviewTab({ data, isLoading }: IgOverviewTabProps) {
   if (isLoading) {
     return (

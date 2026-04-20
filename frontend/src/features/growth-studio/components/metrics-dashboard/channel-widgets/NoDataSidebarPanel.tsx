@@ -20,6 +20,9 @@ interface NoDataSidebarPanelProps {
   channel: ChannelMetric | null;
 }
 
+/**
+ *
+ */
 export function NoDataSidebarPanel({ isOpen, onClose, channel }: NoDataSidebarPanelProps) {
   if (!channel) return null;
 

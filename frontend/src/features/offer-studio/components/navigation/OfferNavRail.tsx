@@ -104,6 +104,9 @@ function NavSectionItem({
   );
 }
 
+/**
+ *
+ */
 export function OfferNavRail({ offer, activeSection, onNavigate, className }: OfferNavRailProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const sectionsMeta = useSectionsForArchetype(offer.archetype);

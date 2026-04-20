@@ -1,14 +1,15 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Plus, Trash2, DollarSign, Star } from "lucide-react";
 import { useFieldArray } from "react-hook-form";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CurrencySelector } from "@/components/ui/currency-selector";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { CURRENCIES } from "@/lib/constants/currencies";
 import { formatMoney } from "@/lib/format-money";
@@ -407,6 +408,9 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   );
 }
 
+/**
+ *
+ */
 export function PricingForm({ defaultValues: propValues, onSave, archetype }: PricingFormProps) {
   const { currency: tenantCurrency } = useTenantLocale();
   const defaultValues: PricingFormValues = {

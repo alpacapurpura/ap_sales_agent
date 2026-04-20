@@ -32,6 +32,9 @@ interface GenerateLinkModalProps {
   eventSlug: string;
 }
 
+/**
+ *
+ */
 export function GenerateLinkModal({ open, onOpenChange, eventSlug }: GenerateLinkModalProps) {
   const { getToken } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");

@@ -28,6 +28,9 @@ interface TraceInspectorProps {
   onClose: () => void;
 }
 
+/**
+ *
+ */
 export function TraceInspector({ event, onClose }: TraceInspectorProps) {
   const isOpen = !!event;
 

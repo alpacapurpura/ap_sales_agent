@@ -126,9 +126,18 @@ export const offerProgramDetailsSchema: SectionSchema = {
       options: [
         { value: LiveInteractionType.NONE, label: "Sin encuentros en vivo (100% grabado)" },
         { value: LiveInteractionType.GROUP_Q_AND_A, label: "Q&A grupal en vivo (dudas semanales)" },
-        { value: LiveInteractionType.ONE_ON_ONE_CHECKINS, label: "Check-ins 1:1 con el instructor" },
-        { value: LiveInteractionType.HOT_SEATS, label: "Hot seats grupales (casos de alumnos en vivo)" },
-        { value: LiveInteractionType.WORKSHOPS, label: "Workshops prácticos (se hace durante la sesión)" },
+        {
+          value: LiveInteractionType.ONE_ON_ONE_CHECKINS,
+          label: "Check-ins 1:1 con el instructor",
+        },
+        {
+          value: LiveInteractionType.HOT_SEATS,
+          label: "Hot seats grupales (casos de alumnos en vivo)",
+        },
+        {
+          value: LiveInteractionType.WORKSHOPS,
+          label: "Workshops prácticos (se hace durante la sesión)",
+        },
       ],
       hint: "100% grabado = máxima escala, mínimo compromiso del coach. 1:1 y workshops = alta transformación, requiere tu tiempo. Híbrido (grabado + Q&A semanal) es el sweet spot para ticket medio-alto.",
     },

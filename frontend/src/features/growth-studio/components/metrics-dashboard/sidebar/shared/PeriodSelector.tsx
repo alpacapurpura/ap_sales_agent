@@ -15,6 +15,9 @@ interface PeriodSelectorProps {
   onChange: (period: MetaAdsPeriod) => void;
 }
 
+/**
+ *
+ */
 export function PeriodSelector({ value, onChange }: PeriodSelectorProps) {
   return (
     <div className="inline-flex items-center gap-1 rounded-lg bg-muted p-0.5">

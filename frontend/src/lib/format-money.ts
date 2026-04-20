@@ -4,6 +4,9 @@
  * Single source of truth -- replaces ~12 broken implementations across the codebase.
  */
 
+/**
+ *
+ */
 export function formatMoney(
   amount: number,
   currency: string,
@@ -31,6 +34,9 @@ export function formatMoney(
   return new Intl.NumberFormat(locale, formatOptions).format(amount);
 }
 
+/**
+ *
+ */
 export function formatDualCurrency(
   amount: number,
   currency: string,

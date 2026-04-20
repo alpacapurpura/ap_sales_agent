@@ -9,6 +9,9 @@ interface Props {
   ugcAudio: number;
 }
 
+/**
+ *
+ */
 export function NpsSummaryCard({ nps, ugcCount, ugcWritten, ugcAudio }: Props) {
   if (nps.totalResponses === 0) {
     return (

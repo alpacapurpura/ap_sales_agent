@@ -11,6 +11,9 @@ import { PuckEditor } from "./PuckEditor";
 
 import type { LandingPageConfig } from "@/features/offer-studio/components/landing/types/schema";
 
+/**
+ *
+ */
 export function LandingPageEditor({
   initialConfig,
   offerId,

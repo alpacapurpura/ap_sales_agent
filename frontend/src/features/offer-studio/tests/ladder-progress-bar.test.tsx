@@ -89,7 +89,9 @@ describe("LadderProgressBar", () => {
   });
 
   it("renders all 5 level segments", () => {
-    render(<LadderProgressBar filledGroups={new Set<OfferValueLevel>()} score="vacia" percentage={0} />);
+    render(
+      <LadderProgressBar filledGroups={new Set<OfferValueLevel>()} score="vacia" percentage={0} />,
+    );
     expect(screen.getByText("Ladder")).toBeInTheDocument();
     expect(screen.getByText("0/5")).toBeInTheDocument();
   });
@@ -116,7 +118,9 @@ describe("LadderProgressBar", () => {
 
   it("renders empty shell while catalog is loading", () => {
     mockCatalog.mockReturnValue({ data: undefined, isLoading: true });
-    render(<LadderProgressBar filledGroups={new Set<OfferValueLevel>()} score="vacia" percentage={0} />);
+    render(
+      <LadderProgressBar filledGroups={new Set<OfferValueLevel>()} score="vacia" percentage={0} />,
+    );
     expect(screen.getByText("0/0")).toBeInTheDocument();
   });
 });

@@ -41,6 +41,9 @@ function FrequencyGauge({ value }: { value: number }) {
   );
 }
 
+/**
+ *
+ */
 export function ReachFrequencySection({ kpis, frequencyAlert }: ReachFrequencySectionProps) {
   const reach = kpis.find((k) => k.metricName === "reach");
   const frequency = kpis.find((k) => k.metricName === "frequency");

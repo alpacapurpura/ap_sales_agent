@@ -58,7 +58,8 @@ export const offerResourcesSchema: SectionSchema = {
             label: "URL de acceso",
             type: "url",
             path: "url",
-            placeholder: "https://drive.google.com/file/d/... / https://tally.so/r/... / https://www.notion.so/...",
+            placeholder:
+              "https://drive.google.com/file/d/... / https://tally.so/r/... / https://www.notion.so/...",
             hint: "Link al recurso. Valida que no caduca (Google Drive enlaces públicos con permisos correctos, Notion páginas publicadas).",
           },
           {
@@ -76,7 +77,8 @@ export const offerResourcesSchema: SectionSchema = {
             label: "Cuándo se desbloquea / entrega",
             type: "text",
             path: "availability_window_description",
-            placeholder: "Inmediato post-checkout / Semana 1 de la cohorte / Al completar el Módulo 3",
+            placeholder:
+              "Inmediato post-checkout / Semana 1 de la cohorte / Al completar el Módulo 3",
             hint: "Cuándo el cliente tiene acceso. Recurso que 'llega después' sin aviso genera tickets 'no lo encuentro'. Si es gated, explicítalo.",
           },
         ],

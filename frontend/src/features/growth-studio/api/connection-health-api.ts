@@ -26,6 +26,9 @@ function mapResponse(raw: ConnectionHealthResponse): ConnectionHealthData {
   };
 }
 
+/**
+ *
+ */
 export async function fetchConnectionHealth(
   token: string,
   channelSlug: string,

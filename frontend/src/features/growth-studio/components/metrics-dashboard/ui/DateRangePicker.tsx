@@ -13,6 +13,9 @@ const RANGES = [
   { value: 90, label: "90d" },
 ] as const;
 
+/**
+ *
+ */
 export function DateRangePicker({ rangeDays, onRangeChange }: DateRangePickerProps) {
   return (
     <Tabs value={String(rangeDays)} onValueChange={(v) => onRangeChange(Number(v))}>

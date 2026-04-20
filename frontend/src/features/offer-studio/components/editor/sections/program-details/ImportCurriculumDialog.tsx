@@ -28,6 +28,9 @@ interface ImportCurriculumDialogProps {
   onImport: (modules: CurriculumModule[]) => void;
 }
 
+/**
+ *
+ */
 export function ImportCurriculumDialog({
   open,
   onOpenChange,

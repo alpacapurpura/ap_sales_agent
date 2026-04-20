@@ -8,6 +8,9 @@ export interface AuthoritySectionProps {
   story_hook?: string;
 }
 
+/**
+ *
+ */
 export function AuthoritySection({
   authority_image_url,
   authority_name,

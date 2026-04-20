@@ -9,6 +9,9 @@ interface InitialLoadParams {
   days?: number;
 }
 
+/**
+ *
+ */
 export function useInitialLoad() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

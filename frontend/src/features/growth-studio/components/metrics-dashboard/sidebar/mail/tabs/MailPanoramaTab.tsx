@@ -77,6 +77,9 @@ const FUNNEL_COLORS = [
   "bg-red-500",
 ];
 
+/**
+ *
+ */
 export function MailPanoramaTab({ period }: MailPanoramaTabProps) {
   const { data, isLoading } = useMailDashboard(period);
 

@@ -62,6 +62,9 @@ const EMPTY_NOTICES_SUMMARY: NoticesSummary = {
 // Main component
 // ---------------------------------------------------------------------------
 
+/**
+ *
+ */
 export function ResumenTab({
   data,
   isLoading,

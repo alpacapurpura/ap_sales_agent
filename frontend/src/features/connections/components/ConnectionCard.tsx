@@ -45,6 +45,9 @@ function ProviderIcon({ name, className }: { name: string; className?: string })
   return <Cable className={className} />;
 }
 
+/**
+ *
+ */
 export function ConnectionCard({ provider, status, tenantId }: ConnectionCardProps) {
   const isConnected = status?.isConnected ?? false;
   const isComingSoon = provider.status === "coming_soon";

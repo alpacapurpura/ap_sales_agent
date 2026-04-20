@@ -5,6 +5,9 @@ interface HealthBarProps {
   inactiveCount: number;
 }
 
+/**
+ *
+ */
 export function HealthBar({ activeCount, inactiveCount }: HealthBarProps) {
   const total = activeCount + inactiveCount;
   const activePct = total > 0 ? (activeCount / total) * 100 : 0;

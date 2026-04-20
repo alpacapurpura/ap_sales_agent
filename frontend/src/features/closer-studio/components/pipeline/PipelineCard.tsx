@@ -21,6 +21,9 @@ const TEMP_BORDER: Record<string, string> = {
   cold: "border-l-blue-400",
 };
 
+/**
+ *
+ */
 export function PipelineCard({ conversation: c, onClick }: PipelineCardProps) {
   const { timezone } = useTenantLocale();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({

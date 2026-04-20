@@ -7,6 +7,9 @@ import { settingsApi } from "@/lib/api/settings";
 
 import type { SystemUserProfile } from "@/lib/api/settings";
 
+/**
+ *
+ */
 export function useUserProfile() {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 

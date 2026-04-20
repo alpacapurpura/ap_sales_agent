@@ -65,6 +65,9 @@ function computeScore(filledCount: number, total: number): LadderCompleteness["s
   return "avanzada";
 }
 
+/**
+ *
+ */
 export function computeLadderCompleteness(offers: Offer[]): LadderCompleteness {
   const allGroups = Object.values(OfferValueLevel);
   const totalGroups = allGroups.length;

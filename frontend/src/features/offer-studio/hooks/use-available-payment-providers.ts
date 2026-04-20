@@ -1,13 +1,9 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import { useQuery } from "@tanstack/react-query";
-
-import {
-  paymentProvidersApi,
-  type ConnectionsStatusResponse,
-} from "../api/payment-providers-api";
+import { paymentProvidersApi, type ConnectionsStatusResponse } from "../api/payment-providers-api";
 
 /**
  * Payment provider known to the system. Mirror of the ``PaymentProvider``

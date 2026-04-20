@@ -16,12 +16,18 @@ interface GrowthSyncContextValue {
 
 const GrowthSyncContext = createContext<GrowthSyncContextValue | null>(null);
 
+/**
+ *
+ */
 export function useGrowthSync() {
   const ctx = useContext(GrowthSyncContext);
   if (!ctx) throw new Error("useGrowthSync must be used inside GrowthSyncProvider");
   return ctx;
 }
 
+/**
+ *
+ */
 export function GrowthSyncProvider({ children }: { children: ReactNode }) {
   const { trigger, isLoading, result, error, reset } = useSyncAllSources();
 

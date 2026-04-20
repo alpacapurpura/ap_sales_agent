@@ -13,6 +13,7 @@
  * then update `import X from '...'` → `import { X } from '...'`.
  */
 import { describe, it, expect } from "vitest";
+
 import { FEATURES_DIR, walkFiles, relPath, isTestFile, readFile } from "./helpers";
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────

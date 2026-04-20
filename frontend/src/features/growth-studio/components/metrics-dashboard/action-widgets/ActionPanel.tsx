@@ -22,6 +22,9 @@ interface ActionPanelProps {
   sectionTitle?: string;
 }
 
+/**
+ *
+ */
 export function ActionPanel({ isOpen, onClose, sectionTitle }: ActionPanelProps) {
   const [isLoading, setIsLoading] = useState(false);
 

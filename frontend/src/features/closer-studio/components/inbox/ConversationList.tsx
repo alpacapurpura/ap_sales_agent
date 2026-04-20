@@ -28,6 +28,9 @@ const FILTER_CHIPS: {
   { label: "Manual", key: "handler_mode", value: "human", icon: <User className="h-3 w-3" /> },
 ];
 
+/**
+ *
+ */
 export function ConversationList() {
   const router = useRouter();
   const pathname = usePathname() ?? "";

@@ -15,6 +15,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useIgnoredNotices } from "@/features/growth-studio/hooks/use-ignored-notices";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantDate, formatTenantDateTime } from "@/lib/format-date";
 import { formatMoney } from "@/lib/format-money";
@@ -24,7 +25,6 @@ import { useAssociations } from "../../../../../api/offer-association-api";
 import { archetypeEmoji } from "../../../../../types/offer-association";
 import { ChartSection } from "../../shared/ChartSection";
 import { ImprovementNotesPanel } from "../notices/ImprovementNotesPanel";
-import { useIgnoredNotices } from "@/features/growth-studio/hooks/use-ignored-notices";
 import { OfferAssignmentDrawerConnected } from "../OfferAssignmentDrawerConnected";
 import { OfferReassignPopover } from "../OfferReassignPopover";
 
@@ -800,6 +800,9 @@ function IndicatorGuide() {
 
 const EMPTY_SEVERITY: SeverityBreakdown = { critical: 0, warning: 0, info: 0 };
 
+/**
+ *
+ */
 export function CampaignsTab({
   data,
   isLoading,

@@ -35,6 +35,9 @@ function getTenantId(): string | null {
 // Panorama / Sidebar (main dashboard)
 // ---------------------------------------------------------------------------
 
+/**
+ *
+ */
 export function useMailDashboard(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   const tenantId = getTenantId();
@@ -56,6 +59,9 @@ export function useMailDashboard(period: MetaAdsPeriod = "30d", enabled = true) 
 // Campaigns Tab
 // ---------------------------------------------------------------------------
 
+/**
+ *
+ */
 export function useMailCampaigns(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   const tenantId = getTenantId();
@@ -77,6 +83,9 @@ export function useMailCampaigns(period: MetaAdsPeriod = "30d", enabled = true) 
 // Automations Tab
 // ---------------------------------------------------------------------------
 
+/**
+ *
+ */
 export function useMailAutomations(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   const tenantId = getTenantId();
@@ -98,6 +107,9 @@ export function useMailAutomations(period: MetaAdsPeriod = "30d", enabled = true
 // Audience Tab
 // ---------------------------------------------------------------------------
 
+/**
+ *
+ */
 export function useMailAudience(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   const tenantId = getTenantId();
@@ -119,6 +131,9 @@ export function useMailAudience(period: MetaAdsPeriod = "30d", enabled = true) {
 // Health Tab (Entregabilidad)
 // ---------------------------------------------------------------------------
 
+/**
+ *
+ */
 export function useMailHealth(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   const tenantId = getTenantId();
@@ -140,6 +155,9 @@ export function useMailHealth(period: MetaAdsPeriod = "30d", enabled = true) {
 // Growth Tab (Crecimiento)
 // ---------------------------------------------------------------------------
 
+/**
+ *
+ */
 export function useMailGrowth(period: MetaAdsPeriod = "30d", enabled = true) {
   const { getToken } = useAuth();
   const tenantId = getTenantId();

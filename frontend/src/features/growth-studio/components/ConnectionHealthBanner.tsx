@@ -44,6 +44,9 @@ const STATUS_CONFIG: Record<
   },
 };
 
+/**
+ *
+ */
 export function ConnectionHealthBanner({
   status,
   channelSlug,

@@ -24,6 +24,9 @@ const COMPLETION_THRESHOLD = 90;
  */
 export type LandingUiState = "disabled" | "ready-to-generate" | "in-sync" | "outdated";
 
+/**
+ *
+ */
 export function deriveLandingUiState(status: LandingStatusResponse): LandingUiState {
   if (!status.is_generated) {
     if (status.completion_percentage < COMPLETION_THRESHOLD) {
@@ -37,6 +40,9 @@ export function deriveLandingUiState(status: LandingStatusResponse): LandingUiSt
   return "in-sync";
 }
 
+/**
+ *
+ */
 export function useLandingStatus(offerId: string) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const queryClient = useQueryClient();

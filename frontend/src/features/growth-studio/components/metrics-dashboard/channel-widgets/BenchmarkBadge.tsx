@@ -10,6 +10,9 @@ interface BenchmarkBadgeProps {
   higherIsBetter: boolean;
 }
 
+/**
+ *
+ */
 export function BenchmarkBadge({ value, benchmark, higherIsBetter }: BenchmarkBadgeProps) {
   const { status, label } = getBenchmarkStatus(value, benchmark, higherIsBetter);
 

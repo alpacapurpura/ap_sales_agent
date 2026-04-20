@@ -77,6 +77,9 @@ const HEALTH_CONFIG: Record<
   },
 };
 
+/**
+ *
+ */
 export function MailDeliverabilityHealth({ kpis }: MailDeliverabilityHealthProps) {
   const { level, score, details } = computeHealthLevel(kpis);
   const config = HEALTH_CONFIG[level];

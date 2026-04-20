@@ -169,7 +169,7 @@ export interface ContactData {
  * The alias below keeps legacy snapshots compiling; new code must not
  * reference ``TestimonialSnapshot``.
  */
-export type TestimonialSnapshot = {
+export interface TestimonialSnapshot {
   id: string;
   type: "text" | "video";
   content: string;
@@ -177,7 +177,7 @@ export type TestimonialSnapshot = {
   author_role: string;
   rating: number;
   author_avatar?: string;
-};
+}
 
 export interface AuthorityItem {
   id: string;

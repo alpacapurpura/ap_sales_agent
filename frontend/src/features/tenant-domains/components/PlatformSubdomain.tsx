@@ -12,6 +12,9 @@ interface PlatformSubdomainProps {
   className?: string;
 }
 
+/**
+ *
+ */
 export function PlatformSubdomain({ tenantSlug, className }: PlatformSubdomainProps) {
   const [copied, setCopied] = useState(false);
   const hostname = `${tenantSlug}.nicolify.com`;

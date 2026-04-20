@@ -29,6 +29,9 @@ interface PendientesViewProps {
   onBackToCampaigns?: () => void;
 }
 
+/**
+ *
+ */
 export function PendientesView({
   period = "30d",
   onPeriodChange,

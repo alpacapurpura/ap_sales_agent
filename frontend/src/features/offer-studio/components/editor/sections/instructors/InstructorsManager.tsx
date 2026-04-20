@@ -19,6 +19,9 @@ interface InstructorsManagerProps {
   form?: UseFormReturn<OfferFormValues>;
 }
 
+/**
+ *
+ */
 export function InstructorsManager(props: InstructorsManagerProps) {
   const { getToken } = useAuth();
   const [team, setTeam] = useState<KeyFigure[]>([]);

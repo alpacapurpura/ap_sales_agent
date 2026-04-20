@@ -7,6 +7,9 @@ interface ScoreRingProps {
   className?: string;
 }
 
+/**
+ *
+ */
 export function ScoreRing({ score, size = 40, strokeWidth = 3, className }: ScoreRingProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;

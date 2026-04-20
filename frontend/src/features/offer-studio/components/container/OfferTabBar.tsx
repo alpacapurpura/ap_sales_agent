@@ -149,12 +149,12 @@ function analyzePathname(pathname: string | null, base: string): PathnameAnalysi
   if (!pathname.startsWith(`${base}/`)) return { onInfo: false, tab: null };
 
   const rest = pathname.slice(base.length);
-  const editionMatch = rest.match(/^\/editions\/[^/]+(\/([^/?#]+))?/);
+  const editionMatch = /^\/editions\/[^/]+(\/([^/?#]+))?/.exec(rest);
   if (editionMatch) {
     const tabLeaf = editionMatch[2];
     return { onInfo: !tabLeaf, tab: tabLeaf ?? null };
   }
 
-  const directMatch = rest.match(/^\/([^/?#]+)/);
+  const directMatch = /^\/([^/?#]+)/.exec(rest);
   return { onInfo: false, tab: directMatch ? directMatch[1] : null };
 }

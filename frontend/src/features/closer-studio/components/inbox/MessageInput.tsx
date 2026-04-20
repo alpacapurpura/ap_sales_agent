@@ -16,6 +16,9 @@ interface MessageInputProps {
   handlerMode: HandlerMode;
 }
 
+/**
+ *
+ */
 export function MessageInput({ leadId, handlerMode }: MessageInputProps) {
   const [text, setText] = useState("");
   const actions = useConversationActions(leadId);

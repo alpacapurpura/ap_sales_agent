@@ -95,6 +95,9 @@ function NodeIcon({ nodeName, className }: { nodeName?: string; className?: stri
 }
 /* eslint-enable react-hooks/static-components */
 
+/**
+ *
+ */
 export function NodeDetailsPanel({ traceId, isOpen, onOpenChange }: NodeDetailsPanelProps) {
   const { timezone } = useTenantLocale();
   const { data: trace, isLoading } = useTraceDetails(traceId);

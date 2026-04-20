@@ -25,6 +25,9 @@ interface EditionsSectionProps {
   currency: string;
 }
 
+/**
+ *
+ */
 export function EditionsSection({ offerId, offerPricing, currency }: EditionsSectionProps) {
   const { editions, loading, createEdition, updateEdition, deleteEdition, duplicateEdition } =
     useEditions(offerId);

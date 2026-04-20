@@ -29,6 +29,9 @@ interface IgOrganicDashboardProps {
 
 const VALID_TABS: IgOrganicDashboardTab[] = ["overview", "contenido", "audiencia", "alcance"];
 
+/**
+ *
+ */
 export function IgOrganicDashboard({ onClose, initialTab, isRouteBased }: IgOrganicDashboardProps) {
   const router = useRouter();
   const params = useParams();

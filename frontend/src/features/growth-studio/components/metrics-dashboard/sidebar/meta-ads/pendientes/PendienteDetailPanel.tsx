@@ -50,6 +50,9 @@ function healthColor(health: "good" | "warning" | "critical"): string {
   }
 }
 
+/**
+ *
+ */
 export function PendienteDetailPanel({
   campaign,
   currency,

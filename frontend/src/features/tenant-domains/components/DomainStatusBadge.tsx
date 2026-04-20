@@ -28,6 +28,9 @@ interface DomainStatusBadgeProps {
   className?: string;
 }
 
+/**
+ *
+ */
 export function DomainStatusBadge({ status, className }: DomainStatusBadgeProps) {
   const cfg = STATUS_CONFIG[status];
   return (

@@ -66,7 +66,10 @@ export const offerServiceDetailsSchema: SectionSchema = {
       owner: "offer",
       options: [
         { value: InteractionMode.SYNC, label: "En vivo (videollamadas, llamadas, reuniones)" },
-        { value: InteractionMode.ASYNC, label: "A tu ritmo (mensajes, videos grabados, documentos)" },
+        {
+          value: InteractionMode.ASYNC,
+          label: "A tu ritmo (mensajes, videos grabados, documentos)",
+        },
         { value: InteractionMode.HYBRID, label: "Híbrido (llamadas + mensajes entre llamadas)" },
       ],
       hint: "Clientes que valoran speed eligen asíncrono. Clientes que valoran conexión eligen en vivo. Híbrido es lo más común en consultoría Latam: 1 call quincenal + WhatsApp de seguimiento.",

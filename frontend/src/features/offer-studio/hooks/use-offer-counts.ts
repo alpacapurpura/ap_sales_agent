@@ -6,6 +6,9 @@ import { countsApi } from "../api/counts-api";
 
 import type { OfferCountsResponse } from "../types/counts";
 
+/**
+ *
+ */
 export function useOfferCounts(offerId: string) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 

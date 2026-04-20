@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { FieldSchema, SectionSchema } from "@/lib/form-runtime/schema";
-
 import { OFFER_SCHEMA_REGISTRY } from "../index";
+
+import type { FieldSchema, SectionSchema } from "@/lib/form-runtime/schema";
 
 /**
  * Quality ratchet — invariantes cross-schema que elevan el estándar de
@@ -49,8 +49,9 @@ describe("Schema quality ratchet — hint coverage", () => {
     }
     expect(
       violations,
-      "Every non-custom field must have a hint or placeholder — microempresarios Latam need guidance to fill them:\n" +
-        violations.join("\n"),
+      `Every non-custom field must have a hint or placeholder — microempresarios Latam need guidance to fill them:\n${violations.join(
+        "\n",
+      )}`,
     ).toEqual([]);
   });
 });
@@ -63,13 +64,18 @@ describe("Schema quality ratchet — no technical jargon in labels", () => {
       for (const field of collectFields(schema)) {
         for (const pattern of jargonPatterns) {
           if (pattern.test(field.label)) {
-            violations.push(`${key}.${field.id} — label contains technical jargon: "${field.label}"`);
+            violations.push(
+              `${key}.${field.id} — label contains technical jargon: "${field.label}"`,
+            );
             break;
           }
         }
       }
     }
-    expect(violations, "Field labels must be in user-facing language:\n" + violations.join("\n")).toEqual([]);
+    expect(
+      violations,
+      `Field labels must be in user-facing language:\n${violations.join("\n")}`,
+    ).toEqual([]);
   });
 });
 
@@ -93,7 +99,7 @@ describe("Schema quality ratchet — unique paths within a schema", () => {
     }
     expect(
       violations,
-      "Duplicate paths silently overwrite each other at save time:\n" + violations.join("\n"),
+      `Duplicate paths silently overwrite each other at save time:\n${violations.join("\n")}`,
     ).toEqual([]);
   });
 });
@@ -112,7 +118,7 @@ describe("Schema quality ratchet — enum sanity", () => {
     }
     expect(
       violations,
-      "Enums with < 2 options should be booleans or read-only text:\n" + violations.join("\n"),
+      `Enums with < 2 options should be booleans or read-only text:\n${violations.join("\n")}`,
     ).toEqual([]);
   });
 
@@ -128,7 +134,7 @@ describe("Schema quality ratchet — enum sanity", () => {
         }
       }
     }
-    expect(violations, "Enum options must render something:\n" + violations.join("\n")).toEqual([]);
+    expect(violations, `Enum options must render something:\n${violations.join("\n")}`).toEqual([]);
   });
 });
 
@@ -145,8 +151,9 @@ describe("Schema quality ratchet — scope/owner coherence", () => {
     }
     expect(
       violations,
-      "Every field in a mixed-scope schema must declare owner: 'offer' | 'edition':\n" +
-        violations.join("\n"),
+      `Every field in a mixed-scope schema must declare owner: 'offer' | 'edition':\n${violations.join(
+        "\n",
+      )}`,
     ).toEqual([]);
   });
 
@@ -164,8 +171,9 @@ describe("Schema quality ratchet — scope/owner coherence", () => {
     }
     expect(
       violations,
-      "offer_level / edition_level schemas imply owner — do not declare it per field:\n" +
-        violations.join("\n"),
+      `offer_level / edition_level schemas imply owner — do not declare it per field:\n${violations.join(
+        "\n",
+      )}`,
     ).toEqual([]);
   });
 });

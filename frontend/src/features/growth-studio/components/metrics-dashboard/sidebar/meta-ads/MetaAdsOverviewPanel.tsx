@@ -31,6 +31,9 @@ interface MetaAdsOverviewPanelProps {
   initialTab?: string | null;
 }
 
+/**
+ *
+ */
 export function MetaAdsOverviewPanel({
   channel,
   onClose,

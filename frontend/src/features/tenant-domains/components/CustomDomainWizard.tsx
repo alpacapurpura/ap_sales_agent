@@ -74,6 +74,9 @@ function DnsRow({ label, value }: DnsRowProps) {
   );
 }
 
+/**
+ *
+ */
 export function CustomDomainWizard({ open, onOpenChange }: CustomDomainWizardProps) {
   const [step, setStep] = useState<WizardStep>("input");
   const [hostname, setHostname] = useState("");

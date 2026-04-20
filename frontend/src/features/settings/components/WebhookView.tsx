@@ -31,6 +31,9 @@ import { settingsApi } from "@/lib/api/settings";
 
 import type { WebhookSettings } from "@/lib/api/settings";
 
+/**
+ *
+ */
 export function WebhookView() {
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);

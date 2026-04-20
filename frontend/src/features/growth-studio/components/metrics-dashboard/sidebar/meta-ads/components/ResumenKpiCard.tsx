@@ -48,7 +48,12 @@ function ariaValueFor(card: ResumenKpiCardData): string {
 // Component
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: 3 card variants (cta / unavailable / value) + delta-colour logic (higherIsBetter tri-state) + aria-label assembly. The cta variant returns early; further extraction would add component overhead for marginal clarity gain.
+/**
+ * KPI card with four variants (CTA, normal KPI, table, sparkline) — pre-
+ * existing complexity one point above the 15-point budget. Tech debt:
+ * dispatch to dedicated sub-components per ``card.kind``.
+ */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function ResumenKpiCard({ card, onCtaClick }: ResumenKpiCardProps) {
   // ── CTA variant ─────────────────────────────────────────────────────────
   if (card.kind === "cta") {

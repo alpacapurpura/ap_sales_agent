@@ -7,18 +7,16 @@ import { RichSelect } from "@/components/ui/rich-select";
 import { Switch } from "@/components/ui/switch";
 
 import { FulfillmentType } from "../../../../types";
-import { OfferSchema } from "../../../../types/schema";
-import type { OfferFormValues } from "../../../../types/schema";
-
-import { SectionFormWrapper } from "../common/SectionFormWrapper";
-
-import type { UseFormReturn } from "react-hook-form";
-
 import {
   FULFILLMENT_TYPE_METADATA,
   DIGITAL_FORMAT_METADATA,
   getEnumOptions,
 } from "../../../../types/enum-metadata";
+import { OfferSchema } from "../../../../types/schema";
+import { SectionFormWrapper } from "../common/SectionFormWrapper";
+
+import type { OfferFormValues } from "../../../../types/schema";
+import type { UseFormReturn } from "react-hook-form";
 
 const ProductDetailsSchema = OfferSchema.pick({
   specific_details: true,
@@ -175,6 +173,9 @@ function ProductDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> 
   );
 }
 
+/**
+ *
+ */
 export function ProductDetailsForm({ defaultValues: propValues, onSave }: ProductDetailsFormProps) {
   const defaultValues: ProductDetailsFormValues = {
     specific_details: propValues?.specific_details || {},

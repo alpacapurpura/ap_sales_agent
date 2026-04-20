@@ -10,6 +10,9 @@ interface YouTubeSubscriberGrowthProps {
   kpis: MetricKpiData[];
 }
 
+/**
+ *
+ */
 export function YouTubeSubscriberGrowth({ kpis }: YouTubeSubscriberGrowthProps) {
   const gainedKpi = kpis.find((k) => k.metricName === "subscribers_gained");
   const lostKpi = kpis.find((k) => k.metricName === "subscribers_lost");

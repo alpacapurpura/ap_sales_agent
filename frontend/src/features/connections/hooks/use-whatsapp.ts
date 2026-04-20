@@ -6,6 +6,9 @@ import { whatsappApi } from "@/lib/api/whatsapp";
 
 import type { WhatsAppDashboardStatus } from "@/lib/api/whatsapp";
 
+/**
+ *
+ */
 export function useWhatsApp() {
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);

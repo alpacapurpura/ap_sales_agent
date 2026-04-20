@@ -31,6 +31,9 @@ export interface MetaAdsOnboardingTriggerResult {
   campaigns: OnboardingCampaign[];
 }
 
+/**
+ *
+ */
 export function computeMetaAdsOnboardingTrigger(
   input: MetaAdsOnboardingTriggerInput,
 ): MetaAdsOnboardingTriggerResult {

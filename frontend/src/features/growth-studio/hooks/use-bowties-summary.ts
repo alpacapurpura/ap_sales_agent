@@ -5,6 +5,9 @@ import { fetchBowtiesSummary } from "../api/summary-api";
 
 import type { BowtiesSummary } from "../types/summary";
 
+/**
+ *
+ */
 export function useBowtiesSummary() {
   const { getToken } = useAuth();
   const tenantId = typeof window !== "undefined" ? localStorage.getItem("x-tenant-id") : null;

@@ -33,6 +33,9 @@ interface PageProps {
 }
 
 // 1. GENERATE METADATA (SEO)
+/**
+ *
+ */
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const query = await searchParams;
@@ -59,6 +62,9 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
 }
 
 // 2. PAGE COMPONENT (SERVER SIDE)
+/**
+ *
+ */
 export default async function LandingPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const query = await searchParams;

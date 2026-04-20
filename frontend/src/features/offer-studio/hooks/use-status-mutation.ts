@@ -12,6 +12,9 @@ interface UseChangeOfferStatusOptions {
   onError?: (error: Error) => void;
 }
 
+/**
+ *
+ */
 export function useChangeOfferStatus(offerId: string, options?: UseChangeOfferStatusOptions) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

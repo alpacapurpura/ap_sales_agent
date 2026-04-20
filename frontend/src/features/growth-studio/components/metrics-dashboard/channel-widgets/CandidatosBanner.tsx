@@ -21,6 +21,9 @@ interface Props {
   isPromoting: boolean;
 }
 
+/**
+ *
+ */
 export function CandidatosBanner({ candidatos, onPromote, isPromoting }: Props) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
 

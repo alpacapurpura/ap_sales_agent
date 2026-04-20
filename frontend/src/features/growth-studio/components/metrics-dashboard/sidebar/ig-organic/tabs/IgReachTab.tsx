@@ -24,6 +24,9 @@ interface IgReachTabProps {
   isLoading: boolean;
 }
 
+/**
+ *
+ */
 export function IgReachTab({ data, isLoading }: IgReachTabProps) {
   if (isLoading)
     return (

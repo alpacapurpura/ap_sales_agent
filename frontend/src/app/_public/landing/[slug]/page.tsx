@@ -30,6 +30,9 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+/**
+ *
+ */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const headersList = await headers();
@@ -45,6 +48,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+/**
+ *
+ */
 export default async function PublicLandingPage({ params }: PageProps) {
   const { slug } = await params;
   const headersList = await headers();

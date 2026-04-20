@@ -4,7 +4,7 @@
  * This file centralizes the mock data toggle for the entire application.
  * It allows switching between Real API and Mock Data for development purposes.
  *
- * @const ENABLE_MOCKS
+ * @constant ENABLE_MOCKS
  * - true: Use Mock Data (local fixtures)
  * - false: Use Real API (backend connection)
  *

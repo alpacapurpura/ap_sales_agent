@@ -81,6 +81,9 @@ function HeroBackgroundOverlays({
   return null;
 }
 
+/**
+ *
+ */
 function Hero({ layout = "centered", bgImage, className, children, ...props }: HeroProps) {
   const theme = useLandingTheme();
   const primaryColor = theme.primary_color || "#3b82f6";

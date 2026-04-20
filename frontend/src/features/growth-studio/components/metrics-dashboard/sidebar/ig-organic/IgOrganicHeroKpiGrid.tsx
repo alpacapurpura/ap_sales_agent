@@ -11,6 +11,9 @@ const IG_HERO_METRICS = [
   "ig_engagement_rate",
 ] as const;
 
+/**
+ *
+ */
 export function IgOrganicHeroKpiGrid({
   kpis,
   timeSeries,

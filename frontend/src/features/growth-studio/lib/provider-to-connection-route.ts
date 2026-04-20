@@ -16,6 +16,9 @@ const PROVIDER_ROUTE_MAP: Record<string, string> = {
   tiktok: "tiktok",
 };
 
+/**
+ *
+ */
 export function providerToConnectionRoute(providerName: string | undefined | null): string | null {
   if (!providerName) return null;
   return PROVIDER_ROUTE_MAP[providerName] ?? null;

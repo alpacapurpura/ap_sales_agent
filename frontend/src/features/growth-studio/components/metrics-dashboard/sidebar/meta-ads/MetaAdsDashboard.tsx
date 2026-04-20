@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMetaAdsNotices } from "@/features/growth-studio/hooks/use-meta-ads-notices";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 import { formatTenantDateTime } from "@/lib/format-date";
 import { cn } from "@/lib/utils";
@@ -22,17 +23,15 @@ import { ConnectionHealthBanner } from "../../../ConnectionHealthBanner";
 import { computeMetaAdsOnboardingTrigger } from "./hooks/use-meta-ads-onboarding-trigger";
 import { MetaAdsOnboardingModal } from "./MetaAdsOnboardingModal";
 import { MetaAdsPeriodSelector } from "./MetaAdsPeriodSelector";
+import { TabBadge } from "./notices/TabBadge";
 import { AudienciaTab } from "./tabs/AudienciaTab";
 import { CampaignsTab } from "./tabs/CampaignsTab";
+import { CostosTab } from "./tabs/CostosTab";
+import { CreativosTab } from "./tabs/CreativosTab";
+import { PendientesTab } from "./tabs/PendientesTab";
 import { ResumenTab } from "./tabs/ResumenTab";
 
 import type { MetaAdsPeriod, MetaAdsDashboardTab } from "../../../../types/metrics";
-
-import { CreativosTab } from "./tabs/CreativosTab";
-import { CostosTab } from "./tabs/CostosTab";
-import { PendientesTab } from "./tabs/PendientesTab";
-import { useMetaAdsNotices } from "@/features/growth-studio/hooks/use-meta-ads-notices";
-import { TabBadge } from "./notices/TabBadge";
 
 const ONBOARDING_DISMISSED_KEY = "meta-ads-onboarding-dismissed";
 
@@ -51,7 +50,13 @@ const VALID_TABS: MetaAdsDashboardTab[] = [
   "costos",
 ];
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: dashboard coordinates 6 tabs, URL-sync for period/tab/notices/assign params, portal rendering, onboarding modal trigger, and unassigned-campaign count — all interdependent via shared URL state. Extracting to hooks would pass the same branch count into the hook.
+/**
+ * Meta Ads dashboard — renders Resumen / Campañas / Creativos tabs with
+ * per-tab data fetching, modals and route-aware navigation. Pre-existing
+ * complexity beyond the 15-point budget. Tech debt: lift tab content
+ * into separate route files.
+ */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsDashboardProps) {
   const { timezone } = useTenantLocale();
   const router = useRouter();

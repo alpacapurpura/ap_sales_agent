@@ -10,6 +10,9 @@ import { MOCK_LEADS } from "@/features/sales/mocks/leads";
 
 import type { Lead } from "@/features/sales/types";
 
+/**
+ *
+ */
 export function SalesMockView() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 

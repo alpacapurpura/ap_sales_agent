@@ -170,6 +170,9 @@ function EmptyTierCta({ tenantId }: { tenantId: string }) {
   );
 }
 
+/**
+ *
+ */
 export function OfferLadder({ adquisicion, expansion, onMetricClick }: OfferLadderProps) {
   const params = useParams();
   const tenantId = (params?.tenantId as string) || "";

@@ -15,6 +15,9 @@ import type {
   YouTubeCountry,
 } from "../types/metrics";
 
+/**
+ *
+ */
 export function useYoutubeTopVideos(enabled = false) {
   const { getToken } = useAuth();
   const tenantId = typeof window !== "undefined" ? localStorage.getItem("x-tenant-id") : null;
@@ -31,6 +34,9 @@ export function useYoutubeTopVideos(enabled = false) {
   });
 }
 
+/**
+ *
+ */
 export function useYoutubeTrafficSources(enabled = false) {
   const { getToken } = useAuth();
   const tenantId = typeof window !== "undefined" ? localStorage.getItem("x-tenant-id") : null;
@@ -47,6 +53,9 @@ export function useYoutubeTrafficSources(enabled = false) {
   });
 }
 
+/**
+ *
+ */
 export function useYoutubeDemographics(enabled = false) {
   const { getToken } = useAuth();
   const tenantId = typeof window !== "undefined" ? localStorage.getItem("x-tenant-id") : null;
@@ -63,6 +72,9 @@ export function useYoutubeDemographics(enabled = false) {
   });
 }
 
+/**
+ *
+ */
 export function useYoutubeCountries(enabled = false) {
   const { getToken } = useAuth();
   const tenantId = typeof window !== "undefined" ? localStorage.getItem("x-tenant-id") : null;

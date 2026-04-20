@@ -4,6 +4,9 @@ interface CostLinkProps {
   href?: string;
 }
 
+/**
+ *
+ */
 export function CostLink({ href = "/growth/settings/costs" }: CostLinkProps) {
   return (
     <div className="flex flex-col">

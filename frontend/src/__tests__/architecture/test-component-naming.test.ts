@@ -8,8 +8,10 @@
  * This set MUST only shrink — never add new entries.
  * To fix: git mv old.tsx New.tsx, update all imports, run tsc --noEmit.
  */
-import { describe, it, expect } from "vitest";
 import * as path from "path";
+
+import { describe, it, expect } from "vitest";
+
 import {
   FEATURES_DIR,
   SHARED_COMPONENTS_DIR,
@@ -29,7 +31,7 @@ const KNOWN_KEBAB_COMPONENTS = new Set([
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const COMPONENTS_SEGMENT = path.sep + "components" + path.sep;
+const COMPONENTS_SEGMENT = `${path.sep}components${path.sep}`;
 
 describe("Architecture: Component naming", () => {
   it("every .tsx file under components/ must be PascalCase", () => {

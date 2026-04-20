@@ -38,6 +38,9 @@ function fmtCurrency(n: number, currency: string): string {
   return formatMoney(n, currency, { fractionDigits: 2 });
 }
 
+/**
+ *
+ */
 export function buildSummary(
   groupType: GroupType,
   totals: Record<string, number>,
@@ -109,6 +112,9 @@ function extractCurrency(channels: ChannelMetric[]): string {
   return "USD";
 }
 
+/**
+ *
+ */
 export function ChannelGroup({
   title,
   totals,

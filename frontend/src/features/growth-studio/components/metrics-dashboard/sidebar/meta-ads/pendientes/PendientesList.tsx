@@ -30,6 +30,9 @@ interface PendientesListProps {
   onBackToCampaigns: () => void;
 }
 
+/**
+ *
+ */
 export function PendientesList({
   items,
   currency,

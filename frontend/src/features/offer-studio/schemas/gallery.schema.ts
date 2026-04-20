@@ -47,9 +47,27 @@ export const offerGallerySchema: SectionSchema = {
       itemSchema: {
         description: "Un par de imágenes antes/después con contexto del cliente.",
         fields: [
-          { id: "before_url", label: "URL imagen antes", type: "url", path: "before_url", required: true },
-          { id: "after_url", label: "URL imagen después", type: "url", path: "after_url", required: true },
-          { id: "caption", label: "Epígrafe (opcional)", type: "text", path: "caption", placeholder: "María — 8 kg en 12 semanas" },
+          {
+            id: "before_url",
+            label: "URL imagen antes",
+            type: "url",
+            path: "before_url",
+            required: true,
+          },
+          {
+            id: "after_url",
+            label: "URL imagen después",
+            type: "url",
+            path: "after_url",
+            required: true,
+          },
+          {
+            id: "caption",
+            label: "Epígrafe (opcional)",
+            type: "text",
+            path: "caption",
+            placeholder: "María — 8 kg en 12 semanas",
+          },
         ],
       },
     },

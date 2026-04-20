@@ -23,6 +23,9 @@ function readPersistedValue(): boolean {
   }
 }
 
+/**
+ *
+ */
 export function useRailCollapsed(): [boolean, () => void] {
   const [collapsed, setCollapsed] = useState<boolean>(readPersistedValue);
 

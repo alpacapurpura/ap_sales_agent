@@ -13,6 +13,9 @@ interface MessageBubbleProps {
   message: MessageItem;
 }
 
+/**
+ *
+ */
 export function MessageBubble({ message: m }: MessageBubbleProps) {
   const { timezone } = useTenantLocale();
   // System events

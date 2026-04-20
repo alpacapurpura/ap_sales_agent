@@ -5,6 +5,9 @@ import type { TenantDomain, DomainInstructions } from "../types";
 
 const BASE = `${config.api.baseUrl}/api/v1/domains`;
 
+/**
+ *
+ */
 export async function listDomains(token: string): Promise<TenantDomain[]> {
   const res = await fetchClient(BASE, {
     headers: { Authorization: `Bearer ${token}` },
@@ -13,6 +16,9 @@ export async function listDomains(token: string): Promise<TenantDomain[]> {
   return res.json() as Promise<TenantDomain[]>;
 }
 
+/**
+ *
+ */
 export async function createDomain(
   token: string,
   hostname: string,
@@ -33,6 +39,9 @@ export async function createDomain(
   return res.json() as Promise<TenantDomain>;
 }
 
+/**
+ *
+ */
 export async function deleteDomain(token: string, id: string): Promise<void> {
   const res = await fetchClient(`${BASE}/${id}`, {
     method: "DELETE",
@@ -41,6 +50,9 @@ export async function deleteDomain(token: string, id: string): Promise<void> {
   if (!res.ok) throw new Error("Error eliminando dominio");
 }
 
+/**
+ *
+ */
 export async function setPrimary(token: string, id: string): Promise<TenantDomain> {
   const res = await fetchClient(`${BASE}/${id}`, {
     method: "PATCH",
@@ -54,6 +66,9 @@ export async function setPrimary(token: string, id: string): Promise<TenantDomai
   return res.json() as Promise<TenantDomain>;
 }
 
+/**
+ *
+ */
 export async function verifyDomain(token: string, id: string): Promise<TenantDomain> {
   const res = await fetchClient(`${BASE}/${id}/verify`, {
     method: "POST",
@@ -63,6 +78,9 @@ export async function verifyDomain(token: string, id: string): Promise<TenantDom
   return res.json() as Promise<TenantDomain>;
 }
 
+/**
+ *
+ */
 export async function getDomainInstructions(
   token: string,
   id: string,

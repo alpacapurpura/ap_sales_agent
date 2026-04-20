@@ -1,7 +1,7 @@
 "use client";
 
-import NextImage from "next/image";
 import { Clock, ExternalLink, Film, Image, Loader2 } from "lucide-react";
+import NextImage from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useState, useCallback } from "react";
 
@@ -427,6 +427,9 @@ function FormatRow({ format, currency }: { format: FormatComparisonItem; currenc
 
 // ── Main Component ──────────────────────────────────────────────────
 
+/**
+ *
+ */
 export function CreativosTab({ data, isLoading, period }: CreativosTabProps) {
   const activePeriod = period ?? "30d";
   const { data: creatives } = useCreativesOverview(activePeriod);

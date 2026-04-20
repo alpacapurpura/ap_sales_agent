@@ -38,6 +38,9 @@ interface ContextPanelProps {
   defaultTab?: "profile" | "state";
 }
 
+/**
+ *
+ */
 export function ContextPanel({
   leadId,
   lastTraceId,

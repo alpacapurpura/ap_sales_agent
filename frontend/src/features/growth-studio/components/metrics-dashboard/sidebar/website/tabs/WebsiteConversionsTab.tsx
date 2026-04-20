@@ -16,6 +16,9 @@ interface WebsiteConversionsTabProps {
   isLoading: boolean;
 }
 
+/**
+ *
+ */
 export function WebsiteConversionsTab({ data, isLoading }: WebsiteConversionsTabProps) {
   if (isLoading) {
     return (

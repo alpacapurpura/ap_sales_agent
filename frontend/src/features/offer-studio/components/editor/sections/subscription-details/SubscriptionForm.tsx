@@ -7,10 +7,9 @@ import { RichSelect } from "@/components/ui/rich-select";
 
 import { BILLING_FREQUENCY_METADATA, getEnumOptions } from "../../../../types/enum-metadata";
 import { OfferSchema } from "../../../../types/schema";
-
 import { SectionFormWrapper } from "../common/SectionFormWrapper";
-import type { OfferFormValues } from "../../../../types/schema";
 
+import type { OfferFormValues } from "../../../../types/schema";
 import type { UseFormReturn } from "react-hook-form";
 
 const SubscriptionDetailsSchema = OfferSchema.pick({
@@ -110,6 +109,9 @@ function SubscriptionDetailsContent({ form }: { form: UseFormReturn<OfferFormVal
   );
 }
 
+/**
+ *
+ */
 export function SubscriptionDetailsForm({
   defaultValues: propValues,
   onSave,

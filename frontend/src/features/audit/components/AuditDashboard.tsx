@@ -6,6 +6,9 @@ import { ChatTimeline } from "@/features/audit/components/ChatTimeline";
 import { LeadList } from "@/features/audit/components/UserList";
 import { cn } from "@/lib/utils";
 
+/**
+ *
+ */
 export function AuditDashboard() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);

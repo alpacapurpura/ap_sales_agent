@@ -4,6 +4,9 @@ import { cn } from "@/lib/utils";
 
 import { useCopilotStore } from "../store/copilot-store";
 
+/**
+ *
+ */
 export function ProcedureProgress() {
   const activeProcedure = useCopilotStore((s) => s.activeProcedure);
   const clearActiveProcedure = useCopilotStore((s) => s.clearActiveProcedure);

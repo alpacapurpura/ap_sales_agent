@@ -12,8 +12,8 @@ import { GuaranteeType } from "../../types";
 
 import { OfferSectionWrapper } from "./OfferSectionWrapper";
 import { IdentityPreview } from "./sections/identity/IdentityPreview";
-import type { OfferFormValues } from "../../types/schema";
 
+import type { OfferFormValues } from "../../types/schema";
 import type { UseFormReturn } from "react-hook-form";
 
 interface OfferLivePreviewProps {
@@ -85,6 +85,9 @@ const DEFAULT_METADATA = {
   action: "Detallar Entregable",
 };
 
+/**
+ *
+ */
 export function OfferLivePreview({ form, onEdit }: OfferLivePreviewProps) {
   // Use useWatch for specific fields to avoid re-rendering the entire component on every keystroke
   // However, since this is a "Live Preview", we might want updates.

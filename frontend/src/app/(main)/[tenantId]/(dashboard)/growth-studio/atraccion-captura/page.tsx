@@ -4,6 +4,9 @@ export const metadata = {
   title: "Atracción & Captura | Growth Studio",
 };
 
+/**
+ *
+ */
 export default function AtraccionCapturaPage() {
   return <AtraccionCapturaStage />;
 }

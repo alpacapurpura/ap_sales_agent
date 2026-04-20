@@ -16,6 +16,9 @@ import { Progress } from "@/components/ui/progress";
 
 import { useGrowthSync } from "../context/growth-sync-context";
 
+/**
+ *
+ */
 export function SyncProgressDialog() {
   const { isSyncing, syncResult, syncError, resetSync, startSync } = useGrowthSync();
 

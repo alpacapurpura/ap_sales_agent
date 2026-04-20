@@ -21,6 +21,9 @@ interface LeadListProps {
   onToggle?: () => void;
 }
 
+/**
+ *
+ */
 export function LeadList({
   selectedLeadId,
   onSelectLead,

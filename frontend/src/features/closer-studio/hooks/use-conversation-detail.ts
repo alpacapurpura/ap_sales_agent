@@ -5,6 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 
 import { fetchConversationDetail } from "../api";
 
+/**
+ *
+ */
 export function useConversationDetail(leadId: string | null) {
   const { getToken } = useAuth();
 

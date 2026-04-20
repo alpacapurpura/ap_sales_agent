@@ -218,7 +218,13 @@ interface ChannelDetailSidebarProps {
   initialTab?: string | null;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: hooks (useEffect for channel info fetch, useSyncChannel) must run unconditionally before 5 early-return branches for dedicated panels (meta-ads, ig-organic, yt-organic, website-total, email-nurture). React rules-of-hooks prevent moving the early returns before the hooks.
+/**
+ * Channel detail sidebar — orchestrates loading, empty, error and
+ * data-populated states for 10+ channel variants. Pre-existing complexity
+ * beyond the 15-point budget. Tech debt: dispatch per-channel rendering to
+ * a channel registry keyed by ``channel.type``.
+ */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function ChannelDetailSidebar({
   isOpen,
   onClose,

@@ -1,9 +1,9 @@
 "use client";
 
 import { MoreHorizontal, Magnet, ExternalLink } from "lucide-react";
-
 import { useParams } from "next/navigation";
 import { useState } from "react";
+
 import { useNavigation } from "@/components/shared/navigation";
 import {
   AlertDialog,
@@ -52,6 +52,9 @@ const ARCHETYPE_COLORS: Record<string, string> = {
     "bg-slate-100 text-slate-700 border-r border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700",
 };
 
+/**
+ *
+ */
 export function LeadMagnetStreamCard({ offer, onClick, onArchive }: LeadMagnetStreamCardProps) {
   const { navigate, isNavigating } = useNavigation();
   const params = useParams();

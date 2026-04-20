@@ -62,8 +62,8 @@ export function PresetPickerStep({
         <div className="flex items-start gap-3 rounded-md border border-dashed bg-muted/30 p-4 text-sm text-muted-foreground">
           <Info className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
           <p>
-            Mientras tanto, puedes ver todos los tipos de oferta disponibles — pero la experiencia se
-            potencia muchísimo cuando declaras tu negocio primero.
+            Mientras tanto, puedes ver todos los tipos de oferta disponibles — pero la experiencia
+            se potencia muchísimo cuando declaras tu negocio primero.
           </p>
         </div>
         <PresetGroupedGrid presets={presets} onPick={onPick} onPickCustom={onPickCustom} />

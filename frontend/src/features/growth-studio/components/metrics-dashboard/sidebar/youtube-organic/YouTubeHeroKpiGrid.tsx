@@ -11,6 +11,9 @@ const YT_HERO_METRICS = [
   "avg_view_percentage",
 ] as const;
 
+/**
+ *
+ */
 export function YouTubeHeroKpiGrid({
   kpis,
   timeSeries,

@@ -23,6 +23,9 @@ interface TenantSwitcherProps {
   activeTenantId?: string;
 }
 
+/**
+ *
+ */
 export function TenantSwitcher({
   currentTenant,
   isCollapsed,

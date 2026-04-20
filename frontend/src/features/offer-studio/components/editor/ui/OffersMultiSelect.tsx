@@ -27,6 +27,9 @@ interface OffersMultiSelectProps {
   currentOfferId?: string;
 }
 
+/**
+ *
+ */
 export function OffersMultiSelect({
   value = [],
   onChange,

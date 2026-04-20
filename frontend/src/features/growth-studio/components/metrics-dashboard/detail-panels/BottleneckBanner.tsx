@@ -8,6 +8,9 @@ interface BottleneckBannerProps {
   bottleneck: BottleneckData;
 }
 
+/**
+ *
+ */
 export function BottleneckBanner({ bottleneck }: BottleneckBannerProps) {
   const { metricLabel, currentRate, severity, threshold, tip } = bottleneck;
 

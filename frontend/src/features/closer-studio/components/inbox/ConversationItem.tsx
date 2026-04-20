@@ -28,6 +28,9 @@ const STAGE_LABEL: Record<string, string> = {
   closing: "Cerrando",
 };
 
+/**
+ *
+ */
 export function ConversationItem({ conversation: c, isSelected, onSelect }: ConversationItemProps) {
   const { timezone } = useTenantLocale();
   const initials = c.display_name

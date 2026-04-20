@@ -36,6 +36,9 @@ const VALID_TABS: YouTubeDashboardTab[] = [
   "retencion",
 ];
 
+/**
+ *
+ */
 export function YouTubeDashboard({ onClose, initialTab, isRouteBased }: YouTubeDashboardProps) {
   const router = useRouter();
   const params = useParams();

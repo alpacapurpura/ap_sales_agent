@@ -19,6 +19,9 @@ function buildUrl(path: string, params: Record<string, string | number | undefin
   return `${API_URL}/api/v1/connections/youtube-analytics/${path}${query ? `?${query}` : ""}`;
 }
 
+/**
+ *
+ */
 export async function getYoutubeTopVideosEnriched(
   token: string,
   startDate?: string,
@@ -49,6 +52,9 @@ export async function getYoutubeTopVideosEnriched(
   }));
 }
 
+/**
+ *
+ */
 export async function getYoutubeTrafficSources(
   token: string,
   startDate?: string,
@@ -67,6 +73,9 @@ export async function getYoutubeTrafficSources(
   }));
 }
 
+/**
+ *
+ */
 export async function getYoutubeDemographics(
   token: string,
   startDate?: string,
@@ -85,6 +94,9 @@ export async function getYoutubeDemographics(
   }));
 }
 
+/**
+ *
+ */
 export async function getYoutubeCountries(
   token: string,
   startDate?: string,

@@ -1,6 +1,5 @@
 "use client";
 
-import NextImage from "next/image";
 import {
   Loader2,
   QrCode,
@@ -14,6 +13,7 @@ import {
   Server,
   LogOut,
 } from "lucide-react";
+import NextImage from "next/image";
 import { useEffect } from "react";
 
 import {
@@ -52,6 +52,9 @@ import { cn } from "@/lib/utils";
 
 import { useWhatsApp } from "../hooks/use-whatsapp";
 
+/**
+ *
+ */
 export function WhatsAppView() {
   const { loading, status, qrCode, isScanning, setIsScanning, generateQR, disconnect } =
     useWhatsApp();

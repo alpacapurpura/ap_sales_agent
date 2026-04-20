@@ -5,6 +5,9 @@ interface OpenOAuthPopupOptions {
   height?: number;
 }
 
+/**
+ *
+ */
 export function openOAuthPopup({
   url,
   name = "oauth-popup",

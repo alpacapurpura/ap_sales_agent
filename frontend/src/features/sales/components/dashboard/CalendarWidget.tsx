@@ -35,6 +35,9 @@ interface CalendarWidgetProps {
   onConfigClick: () => void;
 }
 
+/**
+ *
+ */
 export function CalendarWidget({ onAppointmentClick, onConfigClick }: CalendarWidgetProps) {
   const { getToken } = useAuth();
   const [date, setDate] = useState<Date | undefined>(new Date());

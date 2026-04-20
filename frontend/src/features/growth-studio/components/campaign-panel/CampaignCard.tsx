@@ -38,6 +38,9 @@ interface CampaignCardProps {
   campaign: Campaign;
 }
 
+/**
+ *
+ */
 export function CampaignCard({ campaign }: CampaignCardProps) {
   const [expanded, setExpanded] = useState(false);
   const { getToken } = useAuth();

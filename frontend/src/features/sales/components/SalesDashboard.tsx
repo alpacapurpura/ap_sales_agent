@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { ConversionCommandCenter } from "./dashboard/ConversionCommandCenter";
 import { SalesInboxSheet } from "./overlay/SalesInboxSheet";
 
+/**
+ *
+ */
 export function SalesDashboard() {
   const [isInboxOpen, setIsInboxOpen] = useState(false);
 

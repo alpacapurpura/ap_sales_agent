@@ -59,6 +59,9 @@ const SORT_LABELS: Record<AssetSortKey, string> = {
   name_desc: "Nombre Z-A",
 };
 
+/**
+ *
+ */
 export function AssetToolbar({
   search,
   onSearchChange,

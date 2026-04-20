@@ -107,6 +107,9 @@ type SortDirection = "asc" | "desc";
 const OPEN_RATE_BENCHMARK = 21.5;
 const CTOR_BENCHMARK = 10.5;
 
+/**
+ *
+ */
 export function MailCampanasTab({ period }: MailCampanasTabProps) {
   const { data, isLoading } = useMailCampaigns(period);
   const [sortColumn, setSortColumn] = useState<SortColumn>("openRate");

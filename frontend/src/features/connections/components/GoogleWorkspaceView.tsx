@@ -289,7 +289,12 @@ async function checkGaStatusAfterConnect(
   }
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- View-controller for 6 independent Google services (test, connect, toggle×5, disconnect, GA property). Each handler has its own async/error flow. Decomposing into a custom hook is the right long-term fix (see coherence-refactoring-plan.md §4.2).
+/**
+ * Workspace connection view with OAuth branching + service toggles — pre-
+ * existing complexity beyond the 15-point budget. Tech debt: extract the
+ * scopes panel and token-refresh logic to dedicated sub-components.
+ */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function GoogleWorkspaceView() {
   const { getToken } = useAuth();
 

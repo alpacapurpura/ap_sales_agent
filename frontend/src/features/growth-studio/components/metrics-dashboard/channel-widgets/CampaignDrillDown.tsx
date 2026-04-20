@@ -29,6 +29,9 @@ interface CampaignDrillDownProps {
   children: React.ReactNode; // The ChannelRow content to wrap
 }
 
+/**
+ *
+ */
 export function CampaignDrillDown({ campaigns, children }: CampaignDrillDownProps) {
   const [open, setOpen] = useState(false);
   const { currency: tenantCurrency } = useTenantLocale();

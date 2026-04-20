@@ -156,6 +156,9 @@ function transformFlashOfferArchetype(content: FlashOfferContent, data: Data<Pro
   });
 }
 
+/**
+ *
+ */
 export function transformConfigToPuckData(config: LandingPageConfig): Data<Props, RootProps> {
   // Base structure
   const data: Data<Props, RootProps> = {

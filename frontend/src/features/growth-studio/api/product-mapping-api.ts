@@ -46,6 +46,9 @@ export interface CreateProductMappingResult {
   sales_created: number;
 }
 
+/**
+ *
+ */
 export async function getUnmatchedProducts(
   token: string,
   source = "shopify",
@@ -60,6 +63,9 @@ export async function getUnmatchedProducts(
   return res.json() as Promise<UnmatchedProduct[]>;
 }
 
+/**
+ *
+ */
 export async function getSourceProducts(
   token: string,
   source = "shopify",
@@ -74,6 +80,9 @@ export async function getSourceProducts(
   return res.json() as Promise<SourceProduct[]>;
 }
 
+/**
+ *
+ */
 export async function getProductMappings(
   token: string,
   source = "shopify",
@@ -85,6 +94,9 @@ export async function getProductMappings(
   return res.json() as Promise<ProductMapping[]>;
 }
 
+/**
+ *
+ */
 export async function createProductMapping(
   token: string,
   payload: { offer_id: string; source: string; external_id: string; external_name?: string },
@@ -101,6 +113,9 @@ export async function createProductMapping(
   return res.json() as Promise<CreateProductMappingResult>;
 }
 
+/**
+ *
+ */
 export async function deleteProductMapping(token: string, mappingId: string): Promise<void> {
   const res = await fetchClient(`${API_URL}/api/v1/offer/product-mappings/${mappingId}`, {
     method: "DELETE",
@@ -140,6 +155,9 @@ export interface OfferProductDetail {
   weekly_revenue: { week: string; revenue: number }[];
 }
 
+/**
+ *
+ */
 export async function getOfferProductsDetail(
   token: string,
   offerId: string,

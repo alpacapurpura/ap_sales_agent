@@ -8,6 +8,9 @@ import { useNavigation } from "./NavigationContext";
 
 const DEBOUNCE_MS = 150;
 
+/**
+ *
+ */
 export function NavigationOverlay() {
   const { isNavigating } = useNavigation();
   const [showOverlay, setShowOverlay] = useState(false);

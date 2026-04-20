@@ -11,6 +11,9 @@ interface AddOfferCardProps {
   compact?: boolean;
 }
 
+/**
+ *
+ */
 export function AddOfferCard({ level, onClick, className, compact = false }: AddOfferCardProps) {
   return (
     <div

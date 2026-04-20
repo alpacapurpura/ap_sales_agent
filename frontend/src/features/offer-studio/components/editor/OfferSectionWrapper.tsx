@@ -14,6 +14,9 @@ interface OfferSectionWrapperProps {
   children: React.ReactNode;
 }
 
+/**
+ *
+ */
 export function OfferSectionWrapper({
   id,
   title,

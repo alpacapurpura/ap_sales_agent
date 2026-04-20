@@ -4,6 +4,9 @@ import type { LandingPageTheme } from "@/features/offer-studio/components/landin
 
 const LandingThemeContext = createContext<LandingPageTheme | null>(null);
 
+/**
+ *
+ */
 export function LandingThemeProvider({
   children,
   theme,
@@ -14,6 +17,9 @@ export function LandingThemeProvider({
   return <LandingThemeContext.Provider value={theme}>{children}</LandingThemeContext.Provider>;
 }
 
+/**
+ *
+ */
 export function useLandingTheme() {
   const context = useContext(LandingThemeContext);
   if (!context) {

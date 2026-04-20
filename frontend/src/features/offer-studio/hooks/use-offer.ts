@@ -82,6 +82,9 @@ export function useDeleteOffer() {
   });
 }
 
+/**
+ *
+ */
 export function useOffer(offerId: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

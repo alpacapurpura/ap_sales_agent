@@ -177,6 +177,9 @@ function SettingsViewInner() {
   );
 }
 
+/**
+ *
+ */
 export function SettingsView() {
   return (
     <Suspense fallback={<div>Cargando configuración...</div>}>

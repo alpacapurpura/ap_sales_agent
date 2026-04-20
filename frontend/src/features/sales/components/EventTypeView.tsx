@@ -48,6 +48,9 @@ import { GenerateLinkModal } from "./GenerateLinkModal";
 import type { AvailabilitySchedule } from "@/lib/api/availability";
 import type { EventType } from "@/lib/api/event-types";
 
+/**
+ *
+ */
 export function EventTypeView() {
   const { getToken } = useAuth();
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);

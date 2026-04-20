@@ -40,6 +40,9 @@ const VALID_TABS: MailDashboardTab[] = [
   "crecimiento",
 ];
 
+/**
+ *
+ */
 export function MailDashboard({ onClose, initialTab, isRouteBased }: MailDashboardProps) {
   const router = useRouter();
   const params = useParams();

@@ -25,6 +25,9 @@ function LoadingScreen() {
   );
 }
 
+/**
+ *
+ */
 export default function MainLayout({
   children,
 }: Readonly<{

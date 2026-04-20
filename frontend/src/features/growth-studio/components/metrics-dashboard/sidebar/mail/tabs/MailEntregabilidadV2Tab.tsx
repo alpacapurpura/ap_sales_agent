@@ -99,6 +99,9 @@ function getSeverityBorder(
 // Donut chart colors
 const DONUT_COLORS = ["hsl(0, 84%, 60%)", "hsl(38, 92%, 50%)", "hsl(142, 71%, 45%)"];
 
+/**
+ *
+ */
 export function MailEntregabilidadV2Tab({ period }: MailEntregabilidadV2TabProps) {
   const { data, isLoading } = useMailHealth(period);
 

@@ -107,6 +107,9 @@ function DomainRow({ domain }: DomainRowProps) {
   );
 }
 
+/**
+ *
+ */
 export function DomainList({ domains, isLoading }: DomainListProps) {
   if (isLoading) {
     return (

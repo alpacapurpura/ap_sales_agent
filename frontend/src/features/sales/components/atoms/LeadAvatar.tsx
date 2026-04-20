@@ -8,6 +8,9 @@ interface LeadAvatarProps {
   className?: string;
 }
 
+/**
+ *
+ */
 export function LeadAvatar({ src, initials, alt, className }: LeadAvatarProps) {
   return (
     <Avatar className={cn("h-10 w-10 border border-border", className)}>

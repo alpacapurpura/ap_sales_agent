@@ -41,6 +41,9 @@ export interface DomainConflict {
   message: string;
 }
 
+/**
+ *
+ */
 export function isDomainConflict(err: unknown): err is DomainConflict {
   return (
     typeof err === "object" && err !== null && (err as DomainConflict).code === "DOMAIN_CONFLICT"

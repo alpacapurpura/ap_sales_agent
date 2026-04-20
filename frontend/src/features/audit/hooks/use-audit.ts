@@ -5,6 +5,9 @@ import { fetchAuditLeads, fetchLeadDetails, fetchLeadTimeline, fetchTraceDetails
 
 import type { AuditLead, LeadDetails, TimelineEvent, TraceDetail } from "../types";
 
+/**
+ *
+ */
 export function useAuditLeads() {
   const { getToken } = useAuth();
   return useQuery<AuditLead[]>({
@@ -17,6 +20,9 @@ export function useAuditLeads() {
   });
 }
 
+/**
+ *
+ */
 export function useLeadDetails(leadId: string | null) {
   const { getToken } = useAuth();
   return useQuery<LeadDetails | null>({
@@ -31,6 +37,9 @@ export function useLeadDetails(leadId: string | null) {
   });
 }
 
+/**
+ *
+ */
 export function useLeadTimeline(leadId: string | null) {
   const { getToken } = useAuth();
   return useQuery<TimelineEvent[]>({
@@ -45,6 +54,9 @@ export function useLeadTimeline(leadId: string | null) {
   });
 }
 
+/**
+ *
+ */
 export function useTraceDetails(traceId: string | null) {
   const { getToken } = useAuth();
   return useQuery<TraceDetail | null>({

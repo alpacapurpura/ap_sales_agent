@@ -13,7 +13,9 @@ import {
   Bot,
 } from "lucide-react";
 import React, { useState, useMemo, useCallback, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
+
 import { useGrowthSync } from "../../../context/growth-sync-context";
 import { useIntersectionObserver } from "../../../hooks/use-intersection-observer";
 import { useStageTimeSeries } from "../../../hooks/use-stage-detail";

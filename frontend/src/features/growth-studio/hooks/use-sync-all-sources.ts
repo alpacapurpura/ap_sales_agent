@@ -6,6 +6,9 @@ import { metricsApi } from "../api/metrics-api";
 
 import type { SyncAllResponse } from "../api/metrics-api";
 
+/**
+ *
+ */
 export function useSyncAllSources() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

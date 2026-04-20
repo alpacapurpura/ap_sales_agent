@@ -54,6 +54,9 @@ const MessageBubble = ({
   </div>
 );
 
+/**
+ *
+ */
 export function SalesInboxSheet({ open, onOpenChange }: SalesInboxSheetProps) {
   const [selectedConversation, setSelectedConversation] = useState<SalesConversation | null>(null);
   const [replyText, setReplyText] = useState("");

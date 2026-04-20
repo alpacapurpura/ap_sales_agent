@@ -14,6 +14,9 @@ interface ActionIconProps {
   disabled?: boolean;
 }
 
+/**
+ *
+ */
 export function ActionIcon({
   icon: Icon,
   label,

@@ -53,7 +53,8 @@ export const offerPlatformDetailsSchema: SectionSchema = {
             type: "textarea",
             path: "description",
             rows: 2,
-            placeholder: "Envía secuencias de 3-7 emails automáticos cuando un lead completa el formulario.",
+            placeholder:
+              "Envía secuencias de 3-7 emails automáticos cuando un lead completa el formulario.",
           },
           {
             id: "plans_available",
@@ -162,7 +163,8 @@ export const offerPlatformDetailsSchema: SectionSchema = {
       type: "textarea",
       path: "support_channels",
       rows: 4,
-      placeholder: "Chat in-app: Lun-Vie 9-19 COT · Respuesta <4h\nEmail 24/7 · Respuesta <24h\nWhatsApp Business (plan Pro+): Lun-Vie 9-19\nSlack Connect (Enterprise)",
+      placeholder:
+        "Chat in-app: Lun-Vie 9-19 COT · Respuesta <4h\nEmail 24/7 · Respuesta <24h\nWhatsApp Business (plan Pro+): Lun-Vie 9-19\nSlack Connect (Enterprise)",
       hint: "Canales, horarios, SLA de respuesta. WhatsApp Business es diferenciador Latam PYME.",
     },
     {
@@ -186,7 +188,8 @@ export const offerPlatformDetailsSchema: SectionSchema = {
       type: "textarea",
       path: "migration_tools",
       rows: 3,
-      placeholder: "Importer desde Mailchimp, ActiveCampaign, Hubspot — 1-click.\nServicio de migración asistida en plan Business+.",
+      placeholder:
+        "Importer desde Mailchimp, ActiveCampaign, Hubspot — 1-click.\nServicio de migración asistida en plan Business+.",
       hint: "Cómo migra un cliente que viene de competidor. Reduce fricción de switch.",
     },
     {

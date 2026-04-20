@@ -4,6 +4,9 @@ export const metadata = {
   title: "Ventas | Growth Studio",
 };
 
+/**
+ *
+ */
 export default function VentasPage() {
   return <VentasStage />;
 }

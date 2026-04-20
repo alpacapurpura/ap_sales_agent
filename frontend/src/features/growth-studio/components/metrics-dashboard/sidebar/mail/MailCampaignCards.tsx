@@ -65,6 +65,9 @@ function CampaignCard({ title, campaign, borderColor }: CampaignCardProps) {
   );
 }
 
+/**
+ *
+ */
 export function MailCampaignCards({ bestCampaign, worstCampaign }: MailCampaignCardsProps) {
   if (!bestCampaign && !worstCampaign) return null;
 

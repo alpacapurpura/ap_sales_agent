@@ -30,6 +30,9 @@ import { cn } from "@/lib/utils";
 
 import type { PaymentGatewayConfig as ConfigType } from "@/features/sales/types/sales-studio";
 
+/**
+ *
+ */
 export function PaymentSettingsView() {
   const [activeProvider, setActiveProvider] = useState<"culqi" | "mercadopago">("culqi");
   const [mode, setMode] = useState<"sandbox" | "production">("sandbox");

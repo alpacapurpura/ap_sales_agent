@@ -26,6 +26,9 @@ interface YtOverviewTabProps {
   isLoading: boolean;
 }
 
+/**
+ *
+ */
 export function YtOverviewTab({ data, isLoading }: YtOverviewTabProps) {
   if (isLoading) {
     return (

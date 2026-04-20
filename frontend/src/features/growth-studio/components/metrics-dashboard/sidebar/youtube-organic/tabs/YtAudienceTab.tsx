@@ -4,6 +4,9 @@ import { ChartInfoTooltip } from "../../ig-organic/ChartInfoTooltip";
 import { ChartSection } from "../../shared/ChartSection";
 import { YouTubeDemographicsChart } from "../../youtube/YouTubeDemographicsChart";
 
+/**
+ *
+ */
 export function YtAudienceTab() {
   return (
     <div className="space-y-8">

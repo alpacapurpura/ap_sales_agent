@@ -27,6 +27,9 @@ export interface CopilotInputProps {
 
 // ── Component ──────────────────────────────────────────────────────────────
 
+/**
+ *
+ */
 export function CopilotInput({
   onSend,
   onFilesAttached,

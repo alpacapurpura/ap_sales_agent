@@ -39,11 +39,7 @@ interface VaultRow {
  * surface in one batch. Each successful placement POST emits a
  * ``PlacementAdded`` domain event on the backend.
  */
-export function AddFromBrandVaultModal({
-  open,
-  onClose,
-  offerId,
-}: AddFromBrandVaultModalProps) {
+export function AddFromBrandVaultModal({ open, onClose, offerId }: AddFromBrandVaultModalProps) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
 
@@ -128,7 +124,8 @@ export function AddFromBrandVaultModal({
         <DialogHeader>
           <DialogTitle>Agregar desde la marca</DialogTitle>
           <DialogDescription>
-            Selecciona testimonios, autoridad o miembros del equipo del catálogo de la marca para vincularlos a esta oferta. Los cambios se reflejan en landings y en el Sales Agent.
+            Selecciona testimonios, autoridad o miembros del equipo del catálogo de la marca para
+            vincularlos a esta oferta. Los cambios se reflejan en landings y en el Sales Agent.
           </DialogDescription>
         </DialogHeader>
 
@@ -173,9 +170,7 @@ export function AddFromBrandVaultModal({
             onClick={() => linkMutation.mutate()}
             disabled={selected.size === 0 || linkMutation.isPending}
           >
-            {linkMutation.isPending
-              ? "Vinculando…"
-              : `Vincular ${selected.size || ""}`.trim()}
+            {linkMutation.isPending ? "Vinculando…" : `Vincular ${selected.size || ""}`.trim()}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -5,6 +5,9 @@ export const metadata = {
   description: "Manage your customer lifecycle, connections, and growth metrics.",
 };
 
+/**
+ *
+ */
 export default async function GrowthStudioPage({
   params,
 }: {

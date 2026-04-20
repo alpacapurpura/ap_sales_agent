@@ -134,6 +134,9 @@ function getMetricChips(groupType: GroupType, totals: Record<string, number>, cu
 
 /* ── component ────────────────────────────────────────────────────────── */
 
+/**
+ *
+ */
 export function ChannelGroupCard({
   title,
   totals,

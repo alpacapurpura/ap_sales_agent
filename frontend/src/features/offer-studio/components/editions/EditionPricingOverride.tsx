@@ -19,6 +19,9 @@ interface EditionPricingOverrideProps {
   onChange: (pricing: PricingStructure[] | null) => void;
 }
 
+/**
+ *
+ */
 export function EditionPricingOverride({
   offerPricing,
   currency,

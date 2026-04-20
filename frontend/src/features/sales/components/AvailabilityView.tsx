@@ -94,6 +94,9 @@ function TimeSelect({ value, onChange }: { value: string; onChange: (val: string
   );
 }
 
+/**
+ *
+ */
 export function AvailabilityView() {
   const { getToken } = useAuth();
   const [schedules, setSchedules] = useState<AvailabilitySchedule[]>([]);

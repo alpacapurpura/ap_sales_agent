@@ -2,9 +2,9 @@
  * Architecture test helpers — filesystem scanning utilities.
  * Pattern from backend/tests/architecture/conftest.py
  */
-import { fileURLToPath } from "url";
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "url";
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = path.dirname(_filename);

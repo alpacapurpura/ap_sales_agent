@@ -52,6 +52,9 @@ const FILTER_OPTIONS: { value: string; label: string }[] = [
   { value: "workflow", label: "Workflow" },
 ];
 
+/**
+ *
+ */
 export function MailAutomatizacionesTab({ period }: MailAutomatizacionesTabProps) {
   const { data, isLoading } = useMailAutomations(period);
   const [expandedId, setExpandedId] = useState<string | null>(null);

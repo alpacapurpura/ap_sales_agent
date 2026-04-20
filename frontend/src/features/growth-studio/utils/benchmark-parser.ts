@@ -21,6 +21,9 @@ const SINGLE_VALUE_PATTERN =
   /(?:promedio|average|t\u00edpico|mean)\s*[:\s]?\s*\$?([\d.]+)\s*(%|x)?/i;
 const PERCENTAGE_PATTERN = /([\d.]+)\s*%/g;
 
+/**
+ *
+ */
 export function parseBenchmarkText(text: string): ParsedBenchmark | null {
   if (!text) return null;
 

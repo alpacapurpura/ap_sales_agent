@@ -38,7 +38,10 @@ export const offerSubscriptionDetailsSchema: SectionSchema = {
       path: "specific_details.billing_frequency",
       options: [
         { value: BillingFrequency.MONTHLY, label: "Mensual (típico, churn más alto)" },
-        { value: BillingFrequency.QUARTERLY, label: "Trimestral (balance entre cashflow y retención)" },
+        {
+          value: BillingFrequency.QUARTERLY,
+          label: "Trimestral (balance entre cashflow y retención)",
+        },
         { value: BillingFrequency.ANNUAL, label: "Anual con descuento (reduce churn, mejora LTV)" },
       ],
       hint: "Mensual convierte más, anual retiene más. Ofrecer ambos con 15-20% off en anual captura a los dos perfiles. Evalúa también la estacionalidad de tu oferta.",
@@ -95,13 +98,19 @@ export const offerSubscriptionDetailsSchema: SectionSchema = {
       path: "specific_details.community_platform",
       options: [
         { value: CommunityPlatform.NONE, label: "Sin comunidad" },
-        { value: CommunityPlatform.WHATSAPP, label: "WhatsApp (alta adopción Latam, limita a 256)" },
+        {
+          value: CommunityPlatform.WHATSAPP,
+          label: "WhatsApp (alta adopción Latam, limita a 256)",
+        },
         { value: CommunityPlatform.TELEGRAM, label: "Telegram (grupos grandes, broadcasts)" },
         { value: CommunityPlatform.DISCORD, label: "Discord (audiencia tech/creator/gaming)" },
         { value: CommunityPlatform.CIRCLE, label: "Circle (más profesional, cursos integrados)" },
         { value: CommunityPlatform.SKOOL, label: "Skool (gamificada, trending)" },
         { value: CommunityPlatform.SLACK, label: "Slack (B2B formal)" },
-        { value: CommunityPlatform.FACEBOOK_GROUP, label: "Grupo de Facebook (legacy, audiencia 35+)" },
+        {
+          value: CommunityPlatform.FACEBOOK_GROUP,
+          label: "Grupo de Facebook (legacy, audiencia 35+)",
+        },
       ],
       hint: "La plataforma define el feeling y el techo. WhatsApp íntimo pero se satura. Circle/Skool profesional pero curva de aprendizaje. Evalúa dónde pasa tiempo tu avatar.",
     },

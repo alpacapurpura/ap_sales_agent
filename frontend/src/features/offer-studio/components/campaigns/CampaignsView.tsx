@@ -19,8 +19,8 @@ import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context
 import { formatMoney } from "@/lib/format-money";
 import { cn } from "@/lib/utils";
 
-import { useOfferCampaigns } from "../../hooks/use-campaigns";
 import { useOfferShell } from "../../context/OfferShellContext";
+import { useOfferCampaigns } from "../../hooks/use-campaigns";
 
 import type {
   CampaignStatusFilter,
@@ -60,6 +60,9 @@ const STATUS_CLASSES: Record<string, string> = {
   finished: "bg-muted/40 text-muted-foreground border-border",
 };
 
+/**
+ *
+ */
 export function CampaignsView({ offerId }: { offerId: string }) {
   const { tenantId } = useOfferShell();
   const [statusFilter, setStatusFilter] = useState<CampaignStatusFilter>("all");

@@ -657,6 +657,9 @@ const EMPTY: ResumenViewData = {
   emptyState: true,
 };
 
+/**
+ *
+ */
 export function useResumenViewData({
   metricsByOffer,
   channelData,

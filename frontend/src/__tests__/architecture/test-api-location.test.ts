@@ -13,8 +13,10 @@
  * This set MUST only shrink — never add new entries.
  * To fix: extract the fetch call to api/<name>.ts and import from there.
  */
-import { describe, it, expect } from "vitest";
 import * as path from "path";
+
+import { describe, it, expect } from "vitest";
+
 import { FEATURES_DIR, walkFiles, relPath, isTestFile, readFile } from "./helpers";
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────

@@ -10,6 +10,9 @@ import { reportCopilotEvent } from "../api/copilot-api";
 import { useProactiveNudges } from "../hooks/use-proactive-nudges";
 import { useCopilotStore } from "../store/copilot-store";
 
+/**
+ *
+ */
 export function CopilotRail() {
   const openPanel = useCopilotStore((s) => s.openPanel);
   const hasMessages = useCopilotStore((s) => s.messages.length > 0);

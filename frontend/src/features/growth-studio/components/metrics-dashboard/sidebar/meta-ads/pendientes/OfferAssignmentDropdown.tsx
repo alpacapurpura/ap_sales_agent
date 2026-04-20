@@ -24,6 +24,9 @@ interface OfferAssignmentDropdownProps {
   onAssigned: () => void;
 }
 
+/**
+ *
+ */
 export function OfferAssignmentDropdown({
   campaignExternalId,
   offers,

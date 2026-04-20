@@ -14,8 +14,8 @@ import {
 } from "../../../../types/enum-metadata";
 import { OfferSchema } from "../../../../types/schema";
 import { EditionsOptIn } from "../common/EditionsOptIn";
-
 import { SectionFormWrapper } from "../common/SectionFormWrapper";
+
 import type { OfferFormValues } from "../../../../types/schema";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -190,6 +190,9 @@ function ServiceDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> 
   );
 }
 
+/**
+ *
+ */
 export function ServiceDetailsForm({ defaultValues: propValues, onSave }: ServiceDetailsFormProps) {
   const defaultValues: ServiceDetailsFormValues = {
     specific_details: propValues?.specific_details || {},

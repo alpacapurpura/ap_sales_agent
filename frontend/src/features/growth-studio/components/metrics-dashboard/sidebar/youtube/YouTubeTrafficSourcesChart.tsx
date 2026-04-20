@@ -33,6 +33,9 @@ interface YouTubeTrafficSourcesChartProps {
   enabled: boolean;
 }
 
+/**
+ *
+ */
 export function YouTubeTrafficSourcesChart({ enabled }: YouTubeTrafficSourcesChartProps) {
   const { data, isLoading, error } = useYoutubeTrafficSources(enabled);
 

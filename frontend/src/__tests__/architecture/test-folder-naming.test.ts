@@ -8,8 +8,10 @@
  * This set MUST only shrink — never add new entries.
  * To fix: git mv old-dir new-dir, update all imports, run tsc --noEmit.
  */
-import { describe, it, expect } from "vitest";
 import * as path from "path";
+
+import { describe, it, expect } from "vitest";
+
 import { FEATURES_DIR, walkDirs, relPath, isKebabCase } from "./helpers";
 
 // ── Ratchet allowlist ─────────────────────────────────────────────────────────

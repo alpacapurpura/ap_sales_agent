@@ -21,6 +21,9 @@ const tabs = [
   { label: "Congeladas", href: "frozen", icon: Snowflake },
 ];
 
+/**
+ *
+ */
 export function CloserLayout({ tenantId, children }: CloserLayoutProps) {
   const pathname = usePathname() ?? "";
   const { data: kpis } = useKPIs();

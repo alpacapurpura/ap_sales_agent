@@ -12,6 +12,9 @@ export interface HeroSectionProps {
   video_url?: string;
 }
 
+/**
+ *
+ */
 export function HeroSection({
   headline,
   subheadline,
