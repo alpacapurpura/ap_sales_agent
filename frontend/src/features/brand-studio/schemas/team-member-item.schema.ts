@@ -163,7 +163,7 @@ export const teamMemberItemSchema: SectionSchema = {
             id: "value",
             label: "URL",
             type: "url",
-            path: "",
+            path: "value",
             required: true,
           },
         ],

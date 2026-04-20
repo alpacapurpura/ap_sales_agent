@@ -7,7 +7,10 @@ import { SCHEMA_REGISTRY } from "../index";
 
 describe("brand-studio schemas", () => {
   it("registers every advertised section", () => {
-    // 15 top-level brand-studio sections + buyer-persona (sub-entity, Sprint 2.8)
+    // 13 brand-studio sections + buyer-persona + 3 social_proof per-instance
+    // schemas (testimonial, authority-item, team-member). The legacy
+    // brand.{testimonials,team,authority} array wrappers were removed when
+    // social_proof became the SSoT (see Phase 4 cleanup).
     expect(Object.keys(SCHEMA_REGISTRY)).toHaveLength(16);
   });
 
@@ -41,9 +44,6 @@ describe("brand-studio schemas", () => {
     const expected = [
       "brand.identity",
       "brand.voice",
-      "brand.team",
-      "brand.authority",
-      "brand.testimonials",
       "brand.visuals",
       "brand.logos",
       "brand.methodology",
@@ -54,6 +54,11 @@ describe("brand-studio schemas", () => {
       "brand.personality",
       "brand.contact",
       "brand.avatars",
+      "brand.buyer-persona",
+      // social_proof SSoT (per-instance schemas)
+      "social-proof.testimonial",
+      "social-proof.authority-item",
+      "social-proof.team-member",
     ];
     for (const key of expected) {
       expect(SCHEMA_REGISTRY[key], `missing schema: ${key}`).toBeDefined();

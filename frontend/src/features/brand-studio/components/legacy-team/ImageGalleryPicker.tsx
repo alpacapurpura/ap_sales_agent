@@ -8,9 +8,9 @@
  * team-member-form keeps primary-photo selection inline — the action's
  * array-only contract is not enough for that flow.
  *
- * Delete this file when Sprint 6 migrates offer-studio InstructorsSelector
- * to the form-runtime pattern and the team editor is served by
- * ``SectionPage(teamSchema)`` instead of the embedded dialog.
+ * Delete this file when offer-studio InstructorsSelector migrates to the
+ * social_proof team_members API — the TeamManager dialog becomes a link
+ * to /brand-studio/team at that point.
  */
 
 import { useAuth } from "@clerk/nextjs";

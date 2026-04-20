@@ -1,5 +1,4 @@
 import {
-  AuthorityPage,
   CommunicationAssetsPage,
   ContactPage,
   IdentityPage,
@@ -7,8 +6,6 @@ import {
   NarrativePage,
   PositioningPage,
   StoryPage,
-  TeamPage,
-  TestimonialsPage,
   VisualsPage,
 } from "./section-pages";
 
@@ -34,15 +31,16 @@ import {
 export const SECTION_PAGE_MAP = {
   identity: IdentityPage,
   visuals: VisualsPage,
-  team: TeamPage,
   contact: ContactPage,
   methodology: MethodologyPage,
   story: StoryPage,
-  testimonials: TestimonialsPage,
   positioning: PositioningPage,
   narrative: NarrativePage,
   "communication-assets": CommunicationAssetsPage,
-  authority: AuthorityPage,
+  // team / testimonials / authority live under their own static routes
+  // (/{tenantId}/brand-studio/{slug}) served by the social_proof Finder flow
+  // — they must NOT be registered here, otherwise the [section] catch-all
+  // would render the legacy array-wrapper SectionPage for those slugs.
 } as const satisfies Readonly<Record<string, () => React.JSX.Element>>;
 
 export type BrandStudioSectionSlug = keyof typeof SECTION_PAGE_MAP;

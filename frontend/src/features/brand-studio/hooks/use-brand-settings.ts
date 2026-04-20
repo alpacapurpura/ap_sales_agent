@@ -10,13 +10,12 @@ import {
   BrandVisuals,
   BrandStrategy,
   BrandStory,
-  TestimonialItem,
   BrandPositioning,
   BrandNarrative,
   CommunicationAssets,
 } from "@/features/brand-studio/types";
 
-import type { BrandSettings, AuthorityItem } from "@/features/brand-studio/types";
+import type { BrandSettings } from "@/features/brand-studio/types";
 
 function withDefaults(data: BrandSettings): BrandSettings {
   return {
@@ -96,28 +95,19 @@ export function useBrandSettings() {
 
   const updateIdentity = createUpdater("identity", "Identidad corporativa actualizada.");
   const updateVisuals = createUpdater("visuals", "Identidad visual actualizada.");
+  // Deprecated: writes to brand_settings.team JSONB. Kept for the legacy
+  // InstructorsManager in offer-studio until it migrates to the
+  // social_proof team_members API (src/lib/api/team-member.ts).
   const updateTeam = createUpdater("team", "Equipo actualizado.");
   const updateContact = createUpdater("contact", "Datos de contacto actualizados.");
   const updateStrategy = createUpdater("strategy", "Estrategia actualizada.");
   const updateStory = createUpdater("story", "Historia actualizada.");
-  const updateTestimonials = createUpdater("testimonials", "Testimonios actualizados.");
   const updatePositioning = createUpdater("positioning", "Posicionamiento actualizado.");
   const updateNarrative = createUpdater("narrative", "Narrativa actualizada.");
   const updateCommunicationAssets = createUpdater(
     "communication_assets",
     "Activos de comunicacion actualizados.",
   );
-
-  // Special case: authority_vault key doesn't match param name
-  const updateVault = async (vault: AuthorityItem[]) => {
-    if (!settings) return;
-    try {
-      await updateMutation.mutateAsync({ ...settings, authority_vault: vault });
-      toast.success("Respaldo institucional actualizado.");
-    } catch {
-      // mutation error state handles UI feedback
-    }
-  };
 
   const updateAllSettings = async (partialSettings: Partial<BrandSettings>) => {
     if (!settings) return;
@@ -133,9 +123,6 @@ export function useBrandSettings() {
       story: { ...settings.story, ...partialSettings.story },
       strategy: { methodology_pillars: [], ...settings.strategy, ...partialSettings.strategy },
       contact: { ...settings.contact, ...partialSettings.contact },
-      team: partialSettings.team || settings.team,
-      testimonials: partialSettings.testimonials || settings.testimonials,
-      authority_vault: partialSettings.authority_vault || settings.authority_vault,
     };
 
     try {
@@ -153,12 +140,10 @@ export function useBrandSettings() {
     saving: updateMutation.isPending,
     updateIdentity,
     updateTeam,
-    updateVault,
     updateContact,
     updateVisuals,
     updateStrategy,
     updateStory,
-    updateTestimonials,
     updatePositioning,
     updateNarrative,
     updateCommunicationAssets,

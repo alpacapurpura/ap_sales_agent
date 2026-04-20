@@ -2,7 +2,6 @@
 
 import { useBrandSettings } from "@/features/brand-studio/hooks/use-brand-settings";
 import {
-  authoritySchema,
   communicationAssetsSchema,
   contactSchema,
   identitySchema,
@@ -10,15 +9,12 @@ import {
   narrativeSchema,
   positioningSchema,
   storySchema,
-  teamSchema,
-  testimonialsSchema,
   visualsSchema,
 } from "@/features/brand-studio/schemas";
 
 import { SectionPage } from "./SectionPage";
 
 import type {
-  AuthorityItem,
   BrandIdentity,
   BrandNarrative,
   BrandPositioning,
@@ -28,8 +24,6 @@ import type {
   BrandVisuals,
   CommunicationAssets,
   ContactData,
-  KeyFigure,
-  TestimonialItem,
 } from "@/features/brand-studio/types";
 
 /**
@@ -60,13 +54,6 @@ export const VisualsPage = createPage<BrandVisuals>({
   save: (h) => h.updateVisuals,
 });
 
-export const TeamPage = createPage<KeyFigure[]>({
-  slug: "team",
-  schema: teamSchema,
-  select: (s) => s.team,
-  save: (h) => h.updateTeam,
-});
-
 export const ContactPage = createPage<ContactData>({
   slug: "contact",
   schema: contactSchema,
@@ -88,13 +75,6 @@ export const StoryPage = createPage<BrandStory>({
   save: (h) => h.updateStory,
 });
 
-export const TestimonialsPage = createPage<TestimonialItem[]>({
-  slug: "testimonials",
-  schema: testimonialsSchema,
-  select: (s) => s.testimonials,
-  save: (h) => h.updateTestimonials,
-});
-
 export const PositioningPage = createPage<BrandPositioning>({
   slug: "positioning",
   schema: positioningSchema,
@@ -114,13 +94,6 @@ export const CommunicationAssetsPage = createPage<CommunicationAssets>({
   schema: communicationAssetsSchema,
   select: (s) => s.communication_assets,
   save: (h) => h.updateCommunicationAssets,
-});
-
-export const AuthorityPage = createPage<AuthorityItem[]>({
-  slug: "authority",
-  schema: authoritySchema,
-  select: (s) => s.authority_vault,
-  save: (h) => h.updateVault,
 });
 
 // SECTION_PAGE_MAP + BrandStudioSectionSlug live in ./section-page-map.ts

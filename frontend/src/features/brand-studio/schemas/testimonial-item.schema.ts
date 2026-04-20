@@ -138,7 +138,7 @@ export const testimonialItemSchema: SectionSchema = {
             id: "value",
             label: "Etiqueta",
             type: "text",
-            path: "",
+            path: "value",
             required: true,
           },
         ],

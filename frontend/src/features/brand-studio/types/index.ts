@@ -163,7 +163,13 @@ export interface ContactData {
   testimonials_url?: string;
 }
 
-export interface TestimonialItem {
+/**
+ * @deprecated Removed from the frontend as part of the social_proof SSoT
+ * migration. Use the ``Testimonial`` type from ``@/lib/api/testimonial``.
+ * The alias below keeps legacy snapshots compiling; new code must not
+ * reference ``TestimonialSnapshot``.
+ */
+export type TestimonialSnapshot = {
   id: string;
   type: "text" | "video";
   content: string;
@@ -171,7 +177,7 @@ export interface TestimonialItem {
   author_role: string;
   rating: number;
   author_avatar?: string;
-}
+};
 
 export interface AuthorityItem {
   id: string;
@@ -318,7 +324,10 @@ export interface BrandSettings {
   // Extended fields
   visuals?: BrandVisuals;
   contact?: ContactData;
-  testimonials?: TestimonialItem[];
+  // Legacy JSONB arrays — read-only from this layer. The SSoT for these
+  // three collections is now the social_proof module (see
+  // /api/v1/social-proof/). New code MUST use the social_proof API.
+  testimonials?: TestimonialSnapshot[];
   authority_vault?: AuthorityItem[];
 
   // Strategic frameworks

@@ -4,7 +4,7 @@
 // a custom field — pages only need to import schemas, never the registry.
 import "@/features/brand-studio/actions/registry";
 
-import { authoritySchema } from "./authority.schema";
+import { authorityItemSchema } from "./authority-item.schema";
 import { avatarsSchema } from "./avatars.schema";
 import { buyerPersonaSchema } from "./buyer-persona.schema";
 import { communicationAssetsSchema } from "./communication-assets.schema";
@@ -16,15 +16,15 @@ import { narrativeSchema } from "./narrative.schema";
 import { personalitySchema } from "./personality.schema";
 import { positioningSchema } from "./positioning.schema";
 import { storySchema } from "./story.schema";
-import { teamSchema } from "./team.schema";
-import { testimonialsSchema } from "./testimonials.schema";
+import { teamMemberItemSchema } from "./team-member-item.schema";
+import { testimonialItemSchema } from "./testimonial-item.schema";
 import { visualsSchema } from "./visuals.schema";
 import { voiceSchema } from "./voice.schema";
 
 import type { SectionSchema } from "@/lib/form-runtime/schema";
 
 export {
-  authoritySchema,
+  authorityItemSchema,
   avatarsSchema,
   buyerPersonaSchema,
   communicationAssetsSchema,
@@ -36,8 +36,8 @@ export {
   personalitySchema,
   positioningSchema,
   storySchema,
-  teamSchema,
-  testimonialsSchema,
+  teamMemberItemSchema,
+  testimonialItemSchema,
   visualsSchema,
   voiceSchema,
 };
@@ -50,9 +50,6 @@ export {
 export const SCHEMA_REGISTRY: Readonly<Record<string, SectionSchema>> = {
   "brand.identity": identitySchema,
   "brand.voice": voiceSchema,
-  "brand.team": teamSchema,
-  "brand.authority": authoritySchema,
-  "brand.testimonials": testimonialsSchema,
   "brand.visuals": visualsSchema,
   "brand.logos": logosSchema,
   "brand.methodology": methodologySchema,
@@ -64,6 +61,10 @@ export const SCHEMA_REGISTRY: Readonly<Record<string, SectionSchema>> = {
   "brand.contact": contactSchema,
   "brand.avatars": avatarsSchema,
   "brand.buyer-persona": buyerPersonaSchema,
+  // Per-instance schemas introduced by the social_proof SSoT.
+  "social-proof.testimonial": testimonialItemSchema,
+  "social-proof.authority-item": authorityItemSchema,
+  "social-proof.team-member": teamMemberItemSchema,
 };
 
 export type BrandStudioSchemaKey = keyof typeof SCHEMA_REGISTRY;
