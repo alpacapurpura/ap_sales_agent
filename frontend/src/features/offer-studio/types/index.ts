@@ -348,6 +348,22 @@ export interface LaunchEdition {
   offer_id: string;
   edition_name: string;
   edition_number: number;
+  /**
+   * Sprint 7 6th SSoT axis — what kind of variant this row represents.
+   * Always present post Sprint 15.1 (every archetype supports variants).
+   */
+  variant_structure: import("../api/archetype-catalog-api").VariantStructure;
+  /**
+   * Sprint 7 — structure-specific payload. Keys vary by ``variant_structure``:
+   * TIER → ``features[]`` + ``price_amount`` + ``price_currency``.
+   * SKU_VARIANT → ``attributes{}`` + ``sku_code``.
+   * REGIONAL → ``country_codes[]`` + ``currency``.
+   * MODALITY → ``mode``.
+   * LANGUAGE → ``locale``.
+   * Temporal structures usually leave it empty.
+   */
+  structure_data: Record<string, unknown>;
+  sort_rank: number | null;
   /** Nullable for DRAFT placeholder editions that have not been filled yet. */
   start_date: string | null;
   end_date: string | null;
