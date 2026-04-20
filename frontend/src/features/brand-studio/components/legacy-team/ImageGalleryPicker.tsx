@@ -48,6 +48,9 @@ interface ImageGalleryPickerProps {
   maxImages?: number;
 }
 
+/**
+ *
+ */
 export function ImageGalleryPicker({
   images = [],
   primaryImage,

@@ -10,8 +10,8 @@
  * offer-studio to route-per-field form-runtime.
  */
 
-import NextImage from "next/image";
 import { User, Save, Loader2, X } from "lucide-react";
+import NextImage from "next/image";
 import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,9 @@ interface TeamMemberFormProps {
   embedded?: boolean;
 }
 
+/**
+ *
+ */
 export function TeamMemberForm({
   initialData,
   onSave,

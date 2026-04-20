@@ -6,8 +6,8 @@
  * once Sprint 6 refactors offer-studio InstructorsSelector.
  */
 
-import NextImage from "next/image";
 import { User, Edit2, Trash2 } from "lucide-react";
+import NextImage from "next/image";
 import { memo } from "react";
 
 import { Badge } from "@/components/ui/badge";

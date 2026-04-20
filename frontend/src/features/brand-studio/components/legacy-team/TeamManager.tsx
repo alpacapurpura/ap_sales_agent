@@ -27,6 +27,9 @@ import { TeamMemberForm } from "./TeamMemberForm";
 
 import type { KeyFigure } from "@/features/brand-studio/types";
 
+/**
+ *
+ */
 export function TeamManager() {
   const { settings, updateTeam, saving } = useBrandSettings();
   const team = settings?.team || [];
