@@ -204,12 +204,22 @@ class TestEscalateToHuman:
 
 
 class TestToolRegistry:
-    def test_has_all_four_tools(self):
+    def test_has_all_canonical_tools(self):
+        """TOOL_REGISTRY merges the base 4 sales tools + the 7 enrollment tools."""
         expected = {
+            # Base sales tools
             "send_payment_link",
             "check_schedule",
             "recommend_product",
             "escalate_to_human",
+            # Enrollment tools (merged via ENROLLMENT_TOOL_REGISTRY)
+            "list_public_editions",
+            "create_enrollment",
+            "generate_payment_link",
+            "mark_enrollment_paid_manual",
+            "list_waitlist",
+            "promote_waitlist_to_edition",
+            "check_payment_status",
         }
         assert set(TOOL_REGISTRY.keys()) == expected
 

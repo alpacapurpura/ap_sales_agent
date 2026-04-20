@@ -18,6 +18,10 @@ _ARCHETYPE_BLOCK_IDS = {
     "membresia": "subscription_details",
     "experiencia": "event_details",
 }
+# Archetypes that get an extra FIRST_EDITION_DATE_BLOCK appended after the
+# universal final blocks (Phase 7). Kept in sync with
+# ``src/modules/copilot/domain/interview_configs/offer_config.py``.
+_EDITION_SUPPORTING_ARCHETYPES = frozenset({"programa", "servicio", "experiencia"})
 
 
 # ---------------------------------------------------------------------------
@@ -38,11 +42,14 @@ def test_factory_returns_interview_config(archetype: str) -> None:
 
 
 @pytest.mark.parametrize("archetype", list(_ARCHETYPE_BLOCK_IDS.keys()))
-def test_dynamic_config_has_7_blocks(archetype: str) -> None:
-    """Dynamic config always has 7 blocks: 3 first + 1 archetype + 3 final."""
+def test_dynamic_config_block_count(archetype: str) -> None:
+    """Dynamic config has 7 blocks (3 first + 1 archetype + 3 final); edition-
+    supporting archetypes get one extra ``first_edition_date`` block (8 total)."""
     config = get_offer_interview_config(archetype)
-    assert len(config.bloques) == 7, (
-        f"Expected 7 blocks for archetype '{archetype}', got {len(config.bloques)}: {[b.id for b in config.bloques]}"
+    expected = 8 if archetype in _EDITION_SUPPORTING_ARCHETYPES else 7
+    assert len(config.bloques) == expected, (
+        f"Expected {expected} blocks for archetype '{archetype}', got "
+        f"{len(config.bloques)}: {[b.id for b in config.bloques]}"
     )
 
 
@@ -84,12 +91,15 @@ def test_archetype_block_at_position_3(archetype: str) -> None:
 
 @pytest.mark.parametrize("archetype", list(_ARCHETYPE_BLOCK_IDS.keys()))
 def test_universal_final_blocks_positions(archetype: str) -> None:
-    """Universal final blocks always occupy positions 4, 5, 6."""
+    """Universal final blocks always occupy positions 4, 5, 6. Edition-supporting
+    archetypes may append ``first_edition_date`` as position 7."""
     config = get_offer_interview_config(archetype)
-    final_ids = [b.id for b in config.bloques[4:]]
+    final_ids = [b.id for b in config.bloques[4:7]]
     assert final_ids == _UNIVERSAL_FINAL_IDS, (
         f"Archetype '{archetype}': expected {_UNIVERSAL_FINAL_IDS}, got {final_ids}"
     )
+    if archetype in _EDITION_SUPPORTING_ARCHETYPES:
+        assert config.bloques[7].id == "first_edition_date"
 
 
 # ---------------------------------------------------------------------------

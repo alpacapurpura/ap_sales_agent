@@ -18,6 +18,7 @@ from src.modules.landing.domain.landing_page import LandingPage
 from src.modules.landing.infrastructure.repositories.landing_repository import (
     LandingRepository,
 )
+from src.modules.offer.domain.enums import VariantStructure
 from src.modules.offer.domain.launch_edition import EditionStatus, EditionVisibility
 from src.modules.offer.infrastructure.repositories.launch_edition_repository import (
     LaunchEditionRepository,
@@ -61,6 +62,7 @@ def offer_with_edition(db: Session, tenant_row: TenantModel) -> tuple[uuid.UUID,
     edition = LaunchEditionRepository(db).create(
         offer_id=offer.id,
         tenant_id=_TENANT_ID,
+        variant_structure=VariantStructure.TEMPORAL_COHORT,
         start_date=datetime(2026, 7, 15, tzinfo=timezone.utc),
         status=EditionStatus.UPCOMING,
         visibility=EditionVisibility.PUBLIC,

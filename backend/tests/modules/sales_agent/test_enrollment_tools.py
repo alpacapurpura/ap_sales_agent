@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from src.modules.offer.domain.enums import VariantStructure
 from src.modules.offer.domain.launch_edition import (
     EditionStatus,
     EditionVisibility,
@@ -47,6 +48,7 @@ def public_edition(db: Session, offer_id: uuid.UUID) -> uuid.UUID:
     edition = repo.create(
         offer_id=offer_id,
         tenant_id=_TENANT,
+        variant_structure=VariantStructure.TEMPORAL_COHORT,
         start_date=datetime(2026, 7, 15, tzinfo=timezone.utc),
         status=EditionStatus.UPCOMING,
         visibility=EditionVisibility.PUBLIC,
@@ -88,6 +90,7 @@ class TestListPublicEditions:
         LaunchEditionRepository(db).create(
             offer_id=offer_id,
             tenant_id=_TENANT,
+            variant_structure=VariantStructure.TEMPORAL_COHORT,
             start_date=datetime(2026, 10, 7, tzinfo=timezone.utc),
             status=EditionStatus.DRAFT,
             visibility=EditionVisibility.PRIVATE,
