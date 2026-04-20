@@ -47,6 +47,17 @@ export interface UniversalEditableSectionProps<TValues extends object> {
    * in the 280px instance picker.
    */
   instanceColumn?: React.ReactNode;
+  /**
+   * Optional trailing slot rendered to the right of the form. When
+   * provided, the editor layout flexes to a 3-column split
+   * (instance / fields / detail / copilot). Non-breaking addition — every
+   * existing caller omits this prop and keeps its 2-column layout.
+   *
+   * Used by offer-studio to render ``OfferSectionCopilot`` with
+   * section-scoped suggestions; brand-studio may adopt the same slot
+   * later without any contract change here.
+   */
+  copilotSlot?: React.ReactNode;
   className?: string;
 }
 
@@ -67,6 +78,7 @@ export function UniversalEditableSection<TValues extends object>({
   titleOverride,
   descriptionOverride,
   instanceColumn,
+  copilotSlot,
   className,
 }: UniversalEditableSectionProps<TValues>) {
   const [isMobile, setIsMobile] = useState(false);
@@ -132,6 +144,15 @@ export function UniversalEditableSection<TValues extends object>({
             </div>
             <FieldContextPanel activeFieldId={resolvedActiveId} />
           </div>
+        )}
+
+        {copilotSlot && !isMobile && (
+          <aside
+            aria-label="Copiloto"
+            className="flex w-[340px] shrink-0 flex-col border-l bg-accent/20"
+          >
+            {copilotSlot}
+          </aside>
         )}
       </div>
     </FormRuntimeProvider>
