@@ -5,42 +5,44 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
-import { useBrandSettings } from "@/features/brand-studio/hooks/use-brand-settings";
-import { useExpertBusinessTypesCatalog } from "@/features/brand-studio/hooks/use-expert-business-types-catalog";
 import { resolveIconByName } from "@/features/offer-studio/lib/icon-name-resolver";
+import { cn } from "@/lib/utils";
+
+import { useBusinessTypesCatalog } from "../hooks/use-business-types-catalog";
+import { useTenantProfile } from "../hooks/use-tenant-profile";
+
+interface BusinessTypesChipBarProps {
+  className?: string;
+}
 
 /**
  * Compact horizontal row showing the tenant's declared business_types.
  *
- * Designed for page headers (Offer Studio dashboard, wizard) where space
- * is tight but context matters. Not clickable-in-place — edits live in
- * Brand Studio; a small gear icon links there for discoverability.
+ * Reads from the tenant-profile feature (not brand-studio).
+ * Clicking the settings icon routes to /settings/perfil-negocio.
  *
- * New-tenant UX: if ``business_types`` is empty the component renders a
- * prompt that invites the user to declare it. This is intentional — it
- * primes the conversation about the user's expertise without forcing the
- * onboarding dialog to appear (which has its own trigger conditions in
- * the dashboard-level wiring).
+ * CONTRACT §6.1 — components/BusinessTypesChipBar.tsx
+ * CONTRACT §6.2 — global shell integration
  */
-export function BusinessTypesChipBar({ className }: { className?: string }) {
+export function BusinessTypesChipBar({ className }: BusinessTypesChipBarProps) {
   const params = useParams();
   const tenantId = (params?.tenantId as string) ?? "";
-  const { settings, loading } = useBrandSettings();
-  const { data: catalog } = useExpertBusinessTypesCatalog();
+  const { data: profile, isLoading: profileLoading } = useTenantProfile();
+  const { data: catalog } = useBusinessTypesCatalog();
 
-  if (loading) return null;
+  if (profileLoading) return null;
 
-  const declared = settings?.identity?.business_types ?? [];
+  const declared = profile?.business_types ?? [];
   const selectedMetadata = declared
-    .map((type) => catalog?.business_types.find((t) => t.business_type === type))
+    .map((slug) => catalog?.business_types.find((t) => t.slug === slug))
     .filter((meta): meta is NonNullable<typeof meta> => Boolean(meta));
 
-  const editHref = tenantId ? `/${tenantId}/brand-studio/identity` : undefined;
+  const editHref = tenantId ? `/${tenantId}/settings/perfil-negocio` : undefined;
 
   if (declared.length === 0) {
     return (
       <div
-        className={`flex flex-wrap items-center gap-2 text-xs text-muted-foreground ${className ?? ""}`}
+        className={cn("flex flex-wrap items-center gap-2 text-xs text-muted-foreground", className)}
       >
         <span>Aún no declaraste tu tipo de negocio.</span>
         {editHref ? (
@@ -56,13 +58,13 @@ export function BusinessTypesChipBar({ className }: { className?: string }) {
   }
 
   return (
-    <div className={`flex flex-wrap items-center gap-2 ${className ?? ""}`}>
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
       <span className="text-xs font-medium text-muted-foreground">Mostrando ofertas para:</span>
       {selectedMetadata.map((meta) => {
         const Icon = resolveIconByName(meta.icon_name);
         return (
           <Badge
-            key={meta.business_type}
+            key={meta.slug}
             variant="outline"
             className="gap-1.5 text-xs border-transparent bg-primary/8 text-primary"
             title={meta.description_es}
@@ -77,7 +79,7 @@ export function BusinessTypesChipBar({ className }: { className?: string }) {
           href={editHref}
           className="inline-flex h-5 w-5 items-center justify-center rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition"
           aria-label="Administrar tipos de negocio"
-          title="Administrar en Brand Studio"
+          title="Editar en Perfil de Negocio"
         >
           <Settings className="h-3 w-3" />
         </Link>

@@ -37,8 +37,9 @@ const ALLOWED_CATALOG_FILES: readonly string[] = [
   "features/offer-studio/hooks/use-visible-sections.ts",
   "features/offer-studio/lib/icon-name-resolver.ts",
   "features/offer-studio/lib/__tests__/icon-name-resolver.test.ts",
-  "features/brand-studio/api/expert-business-types-api.ts",
-  "features/brand-studio/hooks/use-expert-business-types-catalog.ts",
+  "features/tenant-profile/api/tenant-profile-api.ts",
+  "features/tenant-profile/hooks/use-business-types-catalog.ts",
+  "features/tenant-profile/types/tenant-profile.ts",
   // Test fixtures: the catalog hook test wires a mocked HTTP response.
   "features/offer-studio/tests/fixtures/archetype-catalog-fixture.ts",
   "features/offer-studio/tests/use-archetype-capabilities.test.tsx",

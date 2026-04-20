@@ -10,7 +10,7 @@ import {
   type OfferLadderHintsCatalogResponse,
 } from "../api/offer-ladder-hints-api";
 
-import type { ExpertBusinessType } from "@/features/brand-studio/api/expert-business-types-api";
+import type { ExpertBusinessType } from "@/features/tenant-profile/types/tenant-profile";
 import type { OfferValueLevel } from "../types";
 
 const QUERY_KEY = ["offer", "ladder-hints", "catalog"] as const;

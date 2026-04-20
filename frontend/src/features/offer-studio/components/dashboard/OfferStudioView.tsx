@@ -6,9 +6,7 @@ import { useState, useCallback, useDeferredValue } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { BusinessTypeOnboardingDialog } from "@/features/brand-studio/components/business-types/BusinessTypeOnboardingDialog";
-import { BusinessTypesChipBar } from "@/features/brand-studio/components/business-types/BusinessTypesChipBar";
-import { useBrandSettings } from "@/features/brand-studio/hooks/use-brand-settings";
+import { BusinessTypesChipBar } from "@/features/tenant-profile/components/BusinessTypesChipBar";
 import { LadderProgressBar } from "@/features/offer-studio/components/dashboard/LadderProgressBar";
 import { OfferStudioDashboard } from "@/features/offer-studio/components/dashboard/OfferStudioDashboard";
 
@@ -21,27 +19,17 @@ interface LadderData {
 }
 
 /**
+ * Offer Studio view — dashboard header + chip bar + ladder content.
  *
+ * Business-types chip bar now reads from tenant-profile feature.
+ * Onboarding gating is handled by the layout server component:
+ * tenants without a complete profile are redirected before reaching here.
  */
 export function OfferStudioView() {
   const [searchQuery, setSearchQuery] = useState("");
   const deferredQuery = useDeferredValue(searchQuery);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [ladderData, setLadderData] = useState<LadderData | null>(null);
-
-  // First-time onboarding trigger: if the brand has not declared its
-  // ``business_types`` yet, open the full-screen selector so the Offer
-  // Studio wizard can filter formats. The dialog saves to
-  // ``BrandIdentity.business_types`` (tenant.config_json); subsequent
-  // visits skip the trigger because the array is non-empty.
-  const { settings, loading: brandLoading } = useBrandSettings();
-  // Onboarding dialog opens iff the brand has not declared its business
-  // types yet. Tracking "dismissed-by-user" in state so the dialog can
-  // be closed with the "Más tarde" button without snapping back open.
-  const [dismissedBusinessTypesOnboarding, setDismissedBusinessTypesOnboarding] = useState(false);
-  const declaredBusinessTypesCount = settings?.identity?.business_types?.length ?? 0;
-  const showBusinessTypesOnboarding =
-    !brandLoading && declaredBusinessTypesCount === 0 && !dismissedBusinessTypesOnboarding;
 
   const handleLadderComputed = useCallback((data: LadderData) => {
     setLadderData((prev) => {
@@ -87,11 +75,8 @@ export function OfferStudioView() {
         </div>
       </div>
 
-      {/* Row 2: Business-types chip bar — contextualises which preset
-          family the wizard will surface for this tenant. Read-only here;
-          editing lives in Brand Studio → Identity. Critical for
-          new-tenant UX: confirms the system is adapting to the expertise
-          declared during onboarding. */}
+      {/* Row 2: Business-types chip bar — reads from tenant-profile.
+          Gating is now layout-level so this always renders with a declared profile. */}
       <BusinessTypesChipBar className="flex-none" />
 
       {/* Row 3: Ladder Progress — full width, contextual */}
@@ -114,11 +99,6 @@ export function OfferStudioView() {
           onLadderComputed={handleLadderComputed}
         />
       </div>
-
-      <BusinessTypeOnboardingDialog
-        open={showBusinessTypesOnboarding}
-        onOpenChange={(open) => setDismissedBusinessTypesOnboarding(!open)}
-      />
     </div>
   );
 }

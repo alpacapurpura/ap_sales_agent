@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useBrandSettings } from "@/features/brand-studio/hooks/use-brand-settings";
+import { useTenantProfile } from "@/features/tenant-profile/hooks/use-tenant-profile";
 import { useOfferTypePresetCatalog } from "@/features/offer-studio/hooks/use-offer-type-preset-catalog";
 import { useValueLevelMetadata } from "@/features/offer-studio/hooks/use-value-level-catalog";
 import { OfferStatus, OfferValueLevel } from "@/features/offer-studio/types";
@@ -102,8 +102,8 @@ export function CreateOfferWizard({
   presetValueLevel,
 }: CreateOfferWizardProps) {
   const { currency: tenantCurrency } = useTenantLocale();
-  const { settings } = useBrandSettings();
-  const brandBusinessTypes = (settings?.identity?.business_types ?? []) as ExpertBusinessType[];
+  const { data: tenantProfile } = useTenantProfile();
+  const brandBusinessTypes = (tenantProfile?.business_types ?? []) as ExpertBusinessType[];
 
   const { data: presetCatalog } = useOfferTypePresetCatalog(brandBusinessTypes);
   const presetsForTenant = presetCatalog?.presets ?? [];

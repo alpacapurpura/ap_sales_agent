@@ -1,7 +1,7 @@
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
 
-import type { ExpertBusinessType } from "@/features/brand-studio/api/expert-business-types-api";
+import type { ExpertBusinessType } from "@/features/tenant-profile/types/tenant-profile";
 import type { OfferValueLevel } from "../types";
 
 const API_URL = config.api.baseUrl;

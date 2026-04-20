@@ -1,13 +1,9 @@
-import type { ExpertBusinessType } from "../api/expert-business-types-api";
-
 export interface BrandIdentity {
   // Core Identity
   brand_name?: string;
   industry?: string;
-  // Multi-select: the kinds of expert business this tenant runs. Captured
-  // in Brand Studio onboarding, editable in general settings. Drives
-  // format suitability in the Offer Studio wizard.
-  business_types?: ExpertBusinessType[];
+  // business_types moved to tenant-profile on 2026-04-20 — see
+  // features/tenant-profile/types/tenant-profile.ts
 
   // Extended Identity (Matching Form & Validation)
   website?: string;
