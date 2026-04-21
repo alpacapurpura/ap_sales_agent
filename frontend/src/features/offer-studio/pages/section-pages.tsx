@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 import { UniversalEditableSection } from "@/components/form-runtime";
+import { OfferSectionCopilot } from "@/features/offer-studio/components/OfferSectionCopilot";
 import { useSectionMetadata } from "@/features/offer-studio/hooks/use-section-catalog";
 import {
   offerClosingSchema,
@@ -116,6 +117,18 @@ function createSectionPage(
           titleOverride={metadata?.label_es}
           descriptionOverride={metadata?.subtitle_es}
           isLoading={hook.loading}
+          copilotSlot={
+            <OfferSectionCopilot
+              offerId={offerId}
+              sectionSlug={sectionKey}
+              editionCode={editionCode}
+              // onApplyDraft is a no-op here: fields are patched directly via
+              // FormRuntimeContext.setFieldValue inside OfferSectionCopilot.
+              // The callback is kept for callers that need to react (e.g. show
+              // a save indicator), but the form patch happens regardless.
+              onApplyDraft={() => undefined}
+            />
+          }
         />
       </div>
     );

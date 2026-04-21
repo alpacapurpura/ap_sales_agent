@@ -72,6 +72,7 @@ from src.modules.copilot.api import events as copilot_events
 from src.modules.copilot.api import interview as copilot_interview
 from src.modules.copilot.api import knowledge as copilot_knowledge
 from src.modules.copilot.api import nudge as copilot_nudge
+from src.modules.copilot.api import section_tools as copilot_section_tools
 from src.modules.copilot.api import voice as copilot_voice
 from src.modules.crm.api import cdp as crm_cdp
 
@@ -653,6 +654,12 @@ app.include_router(
     copilot_voice.router,
     prefix="/api/v1/copilot/voice",
     tags=["Copilot - Voice"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    copilot_section_tools.router,
+    prefix="/api/v1/copilot/offer-section-tools",
+    tags=["Copilot - Offer Section Tools"],
     dependencies=[Depends(get_tenant_context)],
 )
 
