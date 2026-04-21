@@ -51,7 +51,7 @@ export function OfferFaqLandingPage({ offerId }: OfferFaqLandingPageProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3 p-6">
+    <div className="flex h-full flex-col gap-3 overflow-y-auto p-6">
       {items.map((q) => (
         <details
           key={q.id}

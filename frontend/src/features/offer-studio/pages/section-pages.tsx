@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 import { UniversalEditableSection } from "@/components/form-runtime";
-import { OfferSectionCopilot } from "@/features/offer-studio/components/OfferSectionCopilot";
 import { useSectionMetadata } from "@/features/offer-studio/hooks/use-section-catalog";
 import {
   offerClosingSchema,
@@ -106,31 +105,17 @@ function createSectionPage(
     const values = hook.settings ?? EMPTY_VALUES;
 
     return (
-      <div className="mx-auto max-w-5xl p-6">
-        <UniversalEditableSection<Record<string, unknown>>
-          schema={schema}
-          values={values}
-          activeFieldId={activeFieldId}
-          getFieldHref={getFieldHref}
-          onSave={handleSave}
-          saveMode="autosave-with-banner"
-          titleOverride={metadata?.label_es}
-          descriptionOverride={metadata?.subtitle_es}
-          isLoading={hook.loading}
-          copilotSlot={
-            <OfferSectionCopilot
-              offerId={offerId}
-              sectionSlug={sectionKey}
-              editionCode={editionCode}
-              // onApplyDraft is a no-op here: fields are patched directly via
-              // FormRuntimeContext.setFieldValue inside OfferSectionCopilot.
-              // The callback is kept for callers that need to react (e.g. show
-              // a save indicator), but the form patch happens regardless.
-              onApplyDraft={() => undefined}
-            />
-          }
-        />
-      </div>
+      <UniversalEditableSection<Record<string, unknown>>
+        schema={schema}
+        values={values}
+        activeFieldId={activeFieldId}
+        getFieldHref={getFieldHref}
+        onSave={handleSave}
+        saveMode="autosave-with-banner"
+        titleOverride={metadata?.label_es}
+        descriptionOverride={metadata?.subtitle_es}
+        isLoading={hook.loading}
+      />
     );
   }
   OfferSectionPage.displayName = `OfferSectionPage(${sectionKey})`;

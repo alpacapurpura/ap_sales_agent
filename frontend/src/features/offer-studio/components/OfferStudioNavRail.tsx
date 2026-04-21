@@ -8,53 +8,43 @@ import { useMemo } from "react";
 import { FinderColumn } from "@/components/form-runtime";
 import { cn } from "@/lib/utils";
 
+import { useOffer } from "../hooks/use-offer";
 import { useSectionsForArchetype } from "../hooks/use-sections-for-archetype";
 import { OFFER_SECTIONS, type OfferSectionMeta } from "../lib/section-catalog";
 
-import type { Offer } from "../types";
-
 /**
  * Column 1 of the offer-studio editor Finder layout — the list of sections
- * resolved by ``resolvePresetSections`` + the archetype catalog. Dimensions
- * mirror the brand-studio ``BrandStudioNavRail``:
+ * resolved by ``resolvePresetSections`` + the archetype catalog. Mirrors
+ * ``features/brand-studio/components/BrandStudioNavRail.tsx`` so both
+ * studios share the same primitive:
  *
  *   - width 260px (--brand-col-sections)
  *   - row height ~36px, padding 9px 14px
  *   - chevron on the right of every row
  *   - active row gets a 2px brand-coloured rail on the left edge
  *
- * Data is purely URL-driven — active slug extracted from ``usePathname`` —
- * so no parent callback is required. The legacy scroll-based
- * ``components/navigation/OfferNavRail.tsx`` (in-page anchor scrolling) is
- * kept until F4 retires the legacy editor shell; new app routes mount THIS
- * rail instead.
+ * Self-contained: reads ``tenantId`` + ``id`` from URL params and fetches
+ * the offer via ``useOffer`` (React Query de-dupes with the parent shell
+ * query). No prop drilling — callers just mount ``<OfferStudioNavRail />``.
  *
  * Sections shown per offer depend on the offer's archetype (via
  * ``useSectionsForArchetype``) intersected with ``OFFER_SECTIONS``. The
  * catalog order is preserved so UX stays stable across archetype switches.
+ * While the offer is loading the full catalog renders so the rail is never
+ * blank during the first paint.
  */
-export interface OfferStudioNavRailProps {
-  offer: Offer;
-  /**
-   * Base path under which section slugs are appended to build hrefs —
-   * defaults to ``/{tenantId}/offer-studio/offer/{offer.id}/editor``.
-   * Consumers that mount the rail inside a non-editor tab can override.
-   */
-  baseHref?: string;
-}
-
-/**
- *
- */
-export function OfferStudioNavRail({ offer, baseHref }: OfferStudioNavRailProps) {
-  const params = useParams<{ tenantId?: string }>();
+export function OfferStudioNavRail() {
+  const params = useParams<{ tenantId?: string; id?: string }>();
   const tenantId = params?.tenantId ?? "";
+  const offerId = params?.id ?? "";
   const pathname = usePathname();
 
-  const resolvedBase =
-    baseHref ?? (tenantId ? `/${tenantId}/offer-studio/offer/${offer.id}/editor` : "");
+  const { offer } = useOffer(offerId);
 
-  const sectionsMeta = useSectionsForArchetype(offer.archetype);
+  const resolvedBase =
+    tenantId && offerId ? `/${tenantId}/offer-studio/offer/${offerId}/editor` : "";
+
+  const sectionsMeta = useSectionsForArchetype(offer?.archetype);
   const resolvedKeys = useMemo(
     () => new Set(sectionsMeta?.map((s) => s.key) ?? []),
     [sectionsMeta],
@@ -65,8 +55,8 @@ export function OfferStudioNavRail({ offer, baseHref }: OfferStudioNavRailProps)
   );
 
   const activeSlug = useMemo(
-    () => extractActiveSectionSlug(pathname ?? "", offer.id),
-    [pathname, offer.id],
+    () => (offerId ? extractActiveSectionSlug(pathname ?? "", offerId) : null),
+    [pathname, offerId],
   );
 
   return (

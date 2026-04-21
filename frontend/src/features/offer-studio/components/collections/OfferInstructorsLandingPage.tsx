@@ -51,7 +51,7 @@ export function OfferInstructorsLandingPage({ offerId }: OfferInstructorsLanding
   }
 
   return (
-    <div className="grid grid-cols-1 gap-3 p-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid h-full grid-cols-1 gap-3 overflow-y-auto p-6 sm:grid-cols-2 lg:grid-cols-3">
       {instructors.map((i) => (
         <div
           key={i.id}

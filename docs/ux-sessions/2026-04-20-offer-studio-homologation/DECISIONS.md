@@ -2,6 +2,8 @@
 
 **Session:** `2026-04-20-offer-studio-homologation`
 
+> ⚠️ **D4 / D5 REVERTED (2026-04-20).** The per-section `copilotSlot` + `OfferSectionCopilot` sidebar + REST endpoint `POST /copilot/offer-section-tools/{tool_key}` were rolled back: broke visual/architecture parity with brand-studio (3-column vs. 2-column) and duplicated the real copilot module with hardcoded tool cards. The 17 tools in `offer_section_tools.py` remain — they are invoked from the global copilot orchestrator (`tools/registry.py` group `offer_studio`), not an embedded panel. Treat any mention of `copilotSlot` / `OfferSectionCopilot` / `useOfferCopilot` / `/offer-section-tools/` in PLAN / FLOW-SPEC / UI-SPEC files below as historical.
+
 ---
 
 ## Accepted

@@ -74,7 +74,11 @@ export function AssetsView({ offerId }: { offerId: string }) {
   };
 
   return (
-    <div className="space-y-5 p-6" role="region" aria-label="Biblioteca de assets">
+    <div
+      className="h-full space-y-5 overflow-y-auto p-6"
+      role="region"
+      aria-label="Biblioteca de assets"
+    >
       <AssetToolbar
         search={search}
         onSearchChange={setSearch}

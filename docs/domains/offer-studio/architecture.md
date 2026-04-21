@@ -20,7 +20,6 @@ features/offer-studio/
 │   ├── adapter.ts                         # backend ⇄ frontend DTO bridge
 │   ├── archetype-catalog-api.ts
 │   ├── format-catalog-api.ts
-│   ├── section-tools-api.ts               # F7.2 — copilot tool REST client
 │   ├── value-level-catalog-api.ts
 │   └── ...
 ├── components/                            # FLAT (no subdirs for studio-level shell)
@@ -31,7 +30,6 @@ features/offer-studio/
 │   ├── OfferStudioBreadcrumb.tsx
 │   ├── OfferStudioTabBar.tsx              # Editor / Editions / Assets / Ventas / Campaigns
 │   ├── OfferAutoSaveIndicator.tsx
-│   ├── OfferSectionCopilot.tsx            # F7.2 — per-section suggestion cards
 │   ├── VariantRail.tsx (in variant-rail/) # polymorphic variant entries
 │   ├── EditionsManagementClient.tsx
 │   ├── GenerateLandingConfirmDialog.tsx
@@ -56,7 +54,6 @@ features/offer-studio/
 │   ├── __tests__/
 │   ├── use-offer.ts
 │   ├── use-offer-settings.ts              # aggregator — updatePromise, updatePricing, ...
-│   ├── use-offer-copilot.ts               # F7.2 — invokeTool + lastResult state
 │   ├── use-editions.ts
 │   ├── use-offer-with-edition.ts
 │   ├── use-should-show-variant-rail.ts    # + buildNoVariantRedirect helper
@@ -93,6 +90,7 @@ app/(main)/[tenantId]/(dashboard)/offer-studio/
     ├── layout.tsx                         # OfferShellLayout (client, mounts once)
     ├── page.tsx                           # 307 → /editor
     ├── editor/
+    │   ├── layout.tsx                     # NavRail + children (brand-studio parity)
     │   ├── page.tsx                       # onboarding landing
     │   └── [section]/
     │       └── [[...fieldId]]/page.tsx    # generic singleton section + field detail
@@ -137,7 +135,7 @@ Edition context lives in **UI state + `?edition={code}` query param**, never as 
 | Action kinds (text, picker, builder, ...) | `actions/registry.ts` | `bootstrapOfferStudioActions()`, form-runtime |
 | Section → schema | `schemas/index.ts` → `OFFER_SCHEMA_REGISTRY` | `section-pages.tsx` factory |
 | Archetype / format / value-level / preset / variant-structure catalogs | Backend (see `.claude/rules/offer-catalogs.md`) | Typed React Query hooks |
-| Copilot section tools (17 tools) | Backend `offer_section_tools.py` | `POST /api/v1/copilot/offer-section-tools/{tool_key}` (F7.2) |
+| Copilot section tools (17 tools) | Backend `offer_section_tools.py` | Global copilot orchestrator (`tools/registry.py` group `offer_studio`) |
 
 ## Shell composition
 
@@ -148,21 +146,28 @@ Edition context lives in **UI state + `?edition={code}` query param**, never as 
   <div>
     {showVariantRail ? <VariantRail /> : null}
     <div>
-      <OfferStudioTabBar />                # Editor / Editions / Assets / Ventas / Campaigns
+      <OfferStudioTabBar />                # Info / Ventas / Assets / Campañas
       <main>{children}</main>              # route-level page
     </div>
   </div>
   <EditionFormDialog />
 </OfferShellLayout>
+
+<OfferEditorLayout>                        # app/.../offer/[id]/editor/layout.tsx — scoped to Info tab
+  <OfferStudioNavRail />                   # section column (260px) — brand-studio parity
+  <div>{children}</div>                    # SectionPage contributes FinderColumn + FieldDetail
+</OfferEditorLayout>
 ```
+
+The `editor/layout.tsx` sub-layout gives the editor the canonical **3-column Finder** of brand-studio (sections rail → field list → field detail) while Ventas / Assets / Campañas tabs render directly under the shell without the rail. `OfferStudioNavRail` is self-contained — reads `tenantId` + `id` from URL params, fetches the offer via `useOffer` (React Query de-duped with the shell query).
 
 No React Context providers — children consume `useOffer`, `useOfferCounts`, `useEditions`, `useShouldShowVariantRail`, `useOfferWithEdition`, etc. directly from React Query (`.claude/rules/frontend-fsd.md` — per-route state in URL + React Query).
 
-## Copilot integration (F7.2)
+## Copilot integration
 
-Each `SectionPage` receives `copilotSlot={<OfferSectionCopilot offerId sectionSlug editionCode onApplyDraft />}`. The sidebar renders suggestion cards from the section→tools map (see FLOW-SPEC §10). User clicks "Aplicar sugerencia" → `invokeTool(toolKey)` via `useOfferCopilot` → backend returns `{section_slug, draft_fields, suggestions, confidence, citations}` → preview renders → "Aplicar al formulario" calls `onApplyDraft(draftFields)` which `setValue`s on react-hook-form with `shouldDirty: true`.
+The 17 section tools in `backend/src/modules/copilot/application/tools/offer_section_tools.py` are registered under `tools/registry.py` group `offer_studio` and reached from the **global copilot orchestrator** (chat/sidebar owned by the `copilot` module), not an embedded per-section panel. The offer-studio SectionPage is a pure 2-column form editor, identical to brand-studio.
 
-**No write-through** (rejected R3). Draft fields are pending patches; user saves through the normal flow.
+An earlier experiment (F7.2) wired a per-section `OfferSectionCopilot` sidebar + REST endpoint `POST /copilot/offer-section-tools/{tool_key}`. It was reverted — it broke visual parity with brand-studio and duplicated the copilot module with hardcoded tool cards.
 
 ## Variant structures (polymorphic)
 
@@ -191,8 +196,7 @@ Single-variant lead-magnets (`archetype.allow_single_variant=true` + `variants.l
 | `components/editions/__tests__/` | edition-pricing-override, form dialog |
 | `components/variant/__tests__/` | polymorphic cards |
 | `components/variant-rail/__tests__/` | rail entries |
-| `components/__tests__/OfferSectionCopilot.test.tsx` | F7.2 copilot sidebar |
-| `hooks/__tests__/` | `use-offer-copilot`, `use-offer-settings`, archetype / preset / section catalog, `use-should-show-variant-rail`, ... |
+| `hooks/__tests__/` | `use-offer-settings`, archetype / preset / section catalog, `use-should-show-variant-rail`, ... |
 | `utils/__tests__/` | ladder-completeness, section-helpers |
 | `lib/__tests__/` | section-catalog, icon-name-resolver |
 | `pages/__tests__/` | SectionPage, section-pages factory, field-routing |
@@ -203,7 +207,6 @@ E2E (Playwright) — `frontend/e2e/`:
 
 - `specs/smoke/offer-studio-homologation.smoke.spec.ts` — Journey A (crear), Journey E (lead-magnet no variant), Journey F (TEMPORAL_COHORT variant switch).
 - `specs/regression/offer-variants-polymorphic.regression.spec.ts` — one test per `variant_structure`.
-- `specs/regression/offer-copilot-per-section.regression.spec.ts` — F7.2 sidebar flow + error handling.
 - `fixtures/offer-studio.fixture.ts` — per-structure mock factories.
 - `pages/offer-studio.page.ts` — POM.
 
@@ -230,7 +233,6 @@ All allowlists are ratchet — they may only shrink.
 
 - **Editions dimension** — offer-studio has `VariantRail` + `Editions` tab; brand-studio has no per-brand variants (D1).
 - **Preset-driven sections** — backend resolver (`resolve_preset_sections`) returns the effective section list per offer based on `preset_id` + `conditional_answers`. Brand-studio has a fixed section set (D2).
-- **Copilot sidebar** — new pattern introduced in F7.2; brand-studio may adopt later via shared `UniversalEditableSection.copilotSlot` prop (D4).
 
 ## History
 

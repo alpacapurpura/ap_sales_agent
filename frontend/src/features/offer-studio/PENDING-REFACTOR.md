@@ -80,13 +80,17 @@ in `docs/domains/offer-studio/architecture.md`.
 - ✅ **F7.1** (commit `5c4a6e44`) — backend
   `offer_section_tools.py` with 17 `@tool` functions grouped by section.
   No cross-module imports (lazy via `shared/links/ports/`). 51 tests +
-  `test_copilot_registry.py` arch gate.
-- ✅ **F7.2** (commit `ab5724a7`) — REST endpoint
-  `POST /api/v1/copilot/offer-section-tools/{tool_key}` +
-  frontend `useOfferCopilot` hook + `OfferSectionCopilot` sidebar
-  component wired as `copilotSlot` in `section-pages.tsx` factory.
-  `onApplyDraft` handler sets form values with `shouldDirty: true` —
-  NO write-through (R3). 18 new frontend tests + 9 new backend tests.
+  `test_copilot_registry.py` arch gate. **Tools remain exposed to the
+  global copilot orchestrator via `tools/registry.py` (group
+  `offer_studio`)** — invoked from the main copilot chat/sidebar when
+  the user is on an offer-studio route.
+- ❌ **F7.2** — REVERTED. The per-section sidebar column
+  (`OfferSectionCopilot` + `copilotSlot` in `UniversalEditableSection`
+  + REST endpoint `POST /copilot/offer-section-tools/{tool_key}`) was
+  rolled back: it broke visual/architecture parity with brand-studio
+  (3-column vs. 2-column) and duplicated the real copilot module with
+  hardcoded tool cards. Tools from F7.1 stay; they are reached from
+  the global copilot, not an embedded panel.
 
 ### F8 — E2E Playwright suite (commit `e4f10568`)
 

@@ -76,7 +76,11 @@ export function CampaignsView({ offerId, tenantId }: { offerId: string; tenantId
   const { data, isLoading, isError, error, refetch } = useOfferCampaigns(offerId, query);
 
   return (
-    <div className="space-y-5 p-6" role="region" aria-label="Campañas de la oferta">
+    <div
+      className="h-full space-y-5 overflow-y-auto p-6"
+      role="region"
+      aria-label="Campañas de la oferta"
+    >
       <CampaignsKpiRow kpis={data?.kpis} isLoading={isLoading} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">

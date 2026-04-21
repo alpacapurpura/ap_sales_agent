@@ -180,7 +180,7 @@ export function OfferShellLayout({ offerId, tenantId, children }: OfferShellLayo
             counts={safeCounts}
             currentEditionId={null}
           />
-          <main className="flex-1 overflow-y-auto">{children}</main>
+          <main className="flex min-h-0 min-w-0 flex-1 flex-col">{children}</main>
         </div>
       </div>
 

@@ -468,27 +468,6 @@ export function buildLeadMagnetOffer() {
 }
 
 // ---------------------------------------------------------------------------
-// Mocked tool response factory
-// ---------------------------------------------------------------------------
-
-export function buildMockToolResponse(toolKey: string) {
-  return {
-    section_slug: 'promise',
-    draft_fields: {
-      headline_promise: `Borrador generado por ${toolKey}: Transforma tu negocio en 90 días`,
-      primary_outcome: 'Clientes constantes y previsibles',
-    },
-    suggestions: [
-      'Usa verbos de acción que conecten con el dolor del cliente.',
-      'Incluye el tiempo de transformación (90 días, 6 semanas).',
-      'Menciona el mecanismo único que te diferencia.',
-    ],
-    confidence: 0.82,
-    citations: ['brand_identity', 'offer_preset'],
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Route mock setup
 // ---------------------------------------------------------------------------
 
@@ -545,21 +524,6 @@ export async function setupOfferStudioMocks(
     });
   });
 
-  // Copilot tool invocation (F7.2) — default success mock
-  await page.route('**/api/v1/copilot/offer-section-tools/**', async (route) => {
-    if (route.request().method() === 'POST') {
-      const url = route.request().url();
-      const toolKeyMatch = url.match(/offer-section-tools\/([^/?#]+)/);
-      const toolKey = toolKeyMatch?.[1] ?? 'unknown';
-      await route.fulfill({
-        json: buildMockToolResponse(toolKey),
-        status: 200,
-      });
-    } else {
-      await route.continue();
-    }
-  });
-
   // Counts endpoint
   await page.route(`**/api/v1/offer/products/${offer.id}/counts**`, async (route) => {
     await route.fulfill({
@@ -571,20 +535,6 @@ export async function setupOfferStudioMocks(
   // Copilot nudge (suppress noise)
   await page.route('**/api/v1/copilot/nudge-context**', async (route) => {
     await route.fulfill({ json: { nudges: [] }, status: 200 });
-  });
-}
-
-/** Set up mocks that return a 500 error for copilot tool calls. */
-export async function setupCopilotErrorMock(page: Page): Promise<void> {
-  await page.route('**/api/v1/copilot/offer-section-tools/**', async (route) => {
-    if (route.request().method() === 'POST') {
-      await route.fulfill({
-        json: { detail: 'Error interno del servidor al procesar la herramienta.' },
-        status: 500,
-      });
-    } else {
-      await route.continue();
-    }
   });
 }
 

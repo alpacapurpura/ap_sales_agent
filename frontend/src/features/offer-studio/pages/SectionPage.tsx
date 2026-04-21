@@ -4,7 +4,6 @@ import { UniversalEditableSection } from "@/components/form-runtime";
 import { useOfferStudioFieldRouting } from "@/features/offer-studio/hooks/use-field-routing";
 
 import type { SectionSchema } from "@/lib/form-runtime/schema";
-import type { ReactNode } from "react";
 
 export interface SectionPageProps<TSlice extends object> {
   /** URL slug identifying the section (e.g. "promise", "pricing"). */
@@ -17,16 +16,6 @@ export interface SectionPageProps<TSlice extends object> {
   onSave: (next: TSlice) => Promise<void>;
   /** Forwarded to the runtime's loading state. */
   isLoading?: boolean;
-  /**
-   * Optional right-rail slot. When provided, UniversalEditableSection
-   * renders a 3-column split (NavRail / form / copilot). Omit to keep the
-   * standard 2-column layout (same rendering brand-studio uses today).
-   *
-   * The copilot slot is the canonical extension point for per-section
-   * assistance — see ``docs/ux-sessions/2026-04-20-offer-studio-homologation/
-   * UI-SPEC-copilot-sidebar.md``.
-   */
-  copilotSlot?: ReactNode;
   className?: string;
 }
 
@@ -54,7 +43,6 @@ export function SectionPage<TSlice extends object>({
   values,
   onSave,
   isLoading,
-  copilotSlot,
   className,
 }: SectionPageProps<TSlice>) {
   const { activeFieldId, getFieldHref } = useOfferStudioFieldRouting(sectionSlug);
@@ -67,7 +55,6 @@ export function SectionPage<TSlice extends object>({
       isLoading={isLoading}
       activeFieldId={activeFieldId}
       getFieldHref={getFieldHref}
-      copilotSlot={copilotSlot}
       className={className}
     />
   );

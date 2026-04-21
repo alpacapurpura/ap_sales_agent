@@ -65,7 +65,7 @@ export function VariantCollectionLandingPage({
   const isEmpty = variants.length === 0;
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex h-full flex-col gap-6 overflow-y-auto p-6">
       <header className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">{offerName}</p>

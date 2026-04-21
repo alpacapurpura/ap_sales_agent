@@ -72,7 +72,7 @@ export function OfferVentasTab({ offerId, currentEditionId, tenantId }: OfferVen
     : `/${tenantId}/sales/enrollments?offer_id=${offerId}`;
 
   return (
-    <div className="space-y-5 px-8 py-5">
+    <div className="h-full space-y-5 overflow-y-auto px-8 py-5">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         <Kpi label="Inscriptos" value={items.length} />
         <Kpi label="Pagadas" value={paid.length} color="emerald" />
