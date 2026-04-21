@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import {
   SECTION_PAGE_MAP,
@@ -10,6 +10,7 @@ interface PageProps {
     tenantId: string;
     section: string;
   }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }
 
 function isKnownSection(slug: string): slug is BrandStudioSectionSlug {
@@ -24,9 +25,20 @@ function isKnownSection(slug: string): slug is BrandStudioSectionSlug {
  *
  * Field selection lives in the ``?field=`` query param and is handled
  * client-side via ``useActiveField``. Unknown section slugs return 404.
+ *
+ * Legacy redirect: ?field=voice_tone or ?field=voice_tone_clone on the
+ * identity section redirects to /estilo so old emails and bookmarks don't
+ * dead-end after removing those fields from identity.schema.ts.
  */
-export default async function BrandStudioSectionPage({ params }: PageProps) {
-  const { section } = await params;
+export default async function BrandStudioSectionPage({ params, searchParams }: PageProps) {
+  const { tenantId, section } = await params;
+  const sp: Record<string, string | string[] | undefined> = searchParams ? await searchParams : {};
+  const field = Array.isArray(sp.field) ? sp.field[0] : sp.field;
+
+  if (section === "identity" && (field === "voice_tone" || field === "voice_tone_clone")) {
+    redirect(`/${tenantId}/brand-studio/estilo`);
+  }
+
   if (!isKnownSection(section)) notFound();
   const Page = SECTION_PAGE_MAP[section];
   return <Page />;

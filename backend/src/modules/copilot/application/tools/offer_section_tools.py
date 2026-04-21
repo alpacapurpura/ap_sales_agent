@@ -44,6 +44,20 @@ def _brand_settings(db: object, tenant_id: object) -> object | None:
     return settings if (settings and settings.identity is not None) else None
 
 
+def _active_personality(db: object, tenant_id: object) -> object | None:
+    """Return the active PersonalityProfileModel for *tenant_id* or None.
+
+    Used to prefer personality.system_instruction over legacy voice_tone string.
+    Cross-module access is via lazy import (no direct domain import at module level).
+    """
+    from src.modules.brand.infrastructure.repositories.personality_repository import (
+        PersonalityProfileRepository,
+    )
+
+    repo = PersonalityProfileRepository(db)  # type: ignore[arg-type]
+    return repo.get_active(tenant_id=tenant_id)  # type: ignore[arg-type]
+
+
 def _social_proof_bundle(db: object, tenant_id: object) -> dict:
     """Return {testimonials, authority_items, team_members} for *tenant_id*."""
     from src.modules.social_proof.infrastructure.repositories.authority_item_repository import (
@@ -186,8 +200,17 @@ def adapt_from_brand_identity() -> str:
         suggestions = []
         if tagline:
             suggestions.append(f"Tagline de marca disponible para usar en el titulo: '{tagline}'")
-        if voice_tone:
+
+        # Prefer active personality profile's system_instruction over legacy voice_tone (soft migration)
+        active_personality = _active_personality(db, tenant_id)
+        if active_personality and active_personality.system_instruction:
+            suggestions.append(
+                "Perfil de personalidad activo: úsalo como referencia del estilo comunicacional "
+                "para nombrar y posicionar tu oferta."
+            )
+        elif voice_tone:
             suggestions.append(f"Tono de voz de marca: {voice_tone}. Úsalo para nombrar tu oferta.")
+
         if not suggestions:
             suggestions.append("Adapta el nombre de marca como base para tu oferta.")
 

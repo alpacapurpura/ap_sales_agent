@@ -118,9 +118,18 @@ export const narrativeSchema: SectionSchema = {
             rows: 2,
             hint: "Qué pasa en este paso. Concreto y sin jerga. Lo que el cliente espera al llegar aquí.",
             examples: [
-              { brand: "Coach ejecutiva (CDMX)", text: "Hacemos una sesión de diagnóstico de 60 min para mapear tus prioridades y cuellos de botella actuales." },
-              { brand: "Agencia de marketing (Bogotá, CO)", text: "Auditamos tus campañas actuales e identificamos las 3 palancas que más impacto tendrán en los próximos 30 días." },
-              { brand: "Consultor financiero (Lima, PE)", text: "Revisamos tus estados de cuenta y categorizamos ingresos, gastos fijos y gastos variables." },
+              {
+                brand: "Coach ejecutiva (CDMX)",
+                text: "Hacemos una sesión de diagnóstico de 60 min para mapear tus prioridades y cuellos de botella actuales.",
+              },
+              {
+                brand: "Agencia de marketing (Bogotá, CO)",
+                text: "Auditamos tus campañas actuales e identificamos las 3 palancas que más impacto tendrán en los próximos 30 días.",
+              },
+              {
+                brand: "Consultor financiero (Lima, PE)",
+                text: "Revisamos tus estados de cuenta y categorizamos ingresos, gastos fijos y gastos variables.",
+              },
             ],
           },
         ],

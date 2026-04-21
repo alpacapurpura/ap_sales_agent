@@ -1,8 +1,8 @@
 """Brand Personality Engine API endpoints.
 
-7 REST endpoints for personality profile management.
+10 REST endpoints for personality profile management.
 All endpoints filter by X-Tenant-ID via get_current_user dependency.
-All endpoints use return type annotations as response models (PII compliance).
+All endpoints declare response_model= (PII compliance via Tessl/Maria rule).
 """
 
 from datetime import datetime
@@ -79,6 +79,35 @@ class SimulationDTO(BaseModel):
     """Response for POST /personality/{profile_id}/simulate."""
 
     responses: list[dict]  # [{context, prospect_message, agent_response}]
+
+
+class CloneRequest(BaseModel):
+    """Body for POST /personality/clone — either text_input OR file (multipart), not both."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    text_input: str | None = None  # min 10 messages (validated server-side)
+    user_name: str | None = None  # label for the resulting profile
+
+
+class ActivateRequest(BaseModel):
+    """Body for POST /personality/{id}/activate — empty body, path param only."""
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class FromVoiceToneResponse(BaseModel):
+    """Response for POST /personality/from-voice-tone.
+
+    On success: the newly created migrated profile plus audit context.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    profile: PersonalityProfileDTO
+    source_voice_tone: str  # the original text that was migrated, for audit
+    matched_preset_key: str | None  # nearest preset matched (may be null)
+    match_confidence: float  # 0.0..1.0
 
 
 # ---------------------------------------------------------------------------
@@ -176,27 +205,161 @@ async def select_preset(
     return _model_to_dto(model)
 
 
-@router.post("/clone", status_code=501)
+@router.post("/clone")
 async def clone_from_chat(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
+    text_input: Annotated[str | None, Form()] = None,
     file: Annotated[UploadFile | None, File()] = None,
     user_name: Annotated[str | None, Form()] = None,
 ) -> PersonalityProfileDTO:
-    """Upload a chat file → run the personality pipeline → create a cloned profile.
+    """Upload a chat file or paste text → run the Personality Engine pipeline → create a cloned profile.
 
-    This endpoint requires LLM pipeline integration (Janitor → Psychologist →
-    Architect → Compiler). Full implementation is pending.
+    Accepts ``text_input`` (Form field) OR ``file`` (UploadFile), not both.
+    The resulting profile is created with ``is_active=False``. The user must
+    explicitly call ``POST /{profile_id}/activate`` to activate it.
+
+    Validations:
+    - At least one of text_input or file must be provided.
+    - text_input and file are mutually exclusive.
+    - text_input (or file content) must contain at least 10 non-empty messages.
     """
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail="User has no tenant")
+
     logger.info(
-        "personality.clone_from_chat.not_implemented",
-        tenant_id=str(current_user.tenant_id) if current_user.tenant_id else None,
+        "personality.clone_from_chat",
+        tenant_id=str(current_user.tenant_id),
         user_name=user_name,
         has_file=file is not None,
+        has_text=text_input is not None,
     )
-    raise HTTPException(
-        status_code=501,
-        detail="Clone-from-chat requires LLM pipeline integration — not yet implemented.",
+
+    file_bytes: bytes | None = None
+    file_name: str | None = None
+
+    if file is not None:
+        # Validate file type
+        allowed_types = {"text/plain", "text/csv"}
+        content_type = file.content_type or ""
+        original_name = file.filename or ""
+        if content_type not in allowed_types and not any(original_name.endswith(ext) for ext in (".txt", ".csv")):
+            raise HTTPException(
+                status_code=400,
+                detail="El formato del archivo no es válido. Acepta .txt o export de chat.",
+            )
+        file_bytes = await file.read()
+        file_name = original_name
+
+    service = _build_service(db)
+    try:
+        model = await service.clone_from_material(
+            tenant_id=current_user.tenant_id,
+            text_input=text_input,
+            file_bytes=file_bytes,
+            file_name=file_name,
+            user_name=user_name,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    return _model_to_dto(model)
+
+
+@router.post("/{profile_id}/activate")
+async def activate_profile(
+    profile_id: UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> PersonalityProfileDTO:
+    """Activate an existing personality profile for the tenant.
+
+    Idempotent: if the profile is already active, returns it unchanged.
+    Deactivates any other currently active global profile for the tenant.
+
+    Returns 404 if the profile does not exist or belongs to a different tenant.
+    """
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail="User has no tenant")
+
+    logger.info(
+        "personality.activate",
+        tenant_id=str(current_user.tenant_id),
+        profile_id=str(profile_id),
+    )
+
+    service = _build_service(db)
+    model = service.activate(profile_id=profile_id, tenant_id=current_user.tenant_id)
+
+    if model is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Perfil no encontrado o no pertenece a este tenant.",
+        )
+
+    return _model_to_dto(model)
+
+
+@router.post("/from-voice-tone")
+async def migrate_from_voice_tone(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> FromVoiceToneResponse:
+    """Migrate legacy BrandIdentity.voice_tone to a full PersonalityProfile.
+
+    Reads the tenant's ``BrandIdentity.voice_tone`` text, maps it to the
+    nearest personality preset via LLM similarity, creates a profile with
+    ``profile_type="migrated_from_voice_tone"``, and auto-activates it.
+
+    Returns:
+    - 404 if no legacy voice_tone text is found.
+    - 409 if a migrated profile already exists and is active for this tenant.
+    - 200 with FromVoiceToneResponse on success.
+    """
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail="User has no tenant")
+
+    logger.info("personality.from_voice_tone", tenant_id=str(current_user.tenant_id))
+
+    # Read brand identity to get voice_tone
+    from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
+
+    brand_repo = BrandRepository(db)
+    brand_settings = brand_repo.get_settings(current_user.tenant_id)
+
+    if not brand_settings or not brand_settings.identity or not brand_settings.identity.voice_tone:
+        raise HTTPException(
+            status_code=404,
+            detail="No hay tono de voz legado que migrar.",
+        )
+
+    voice_tone_text = brand_settings.identity.voice_tone
+
+    # Check if migration already done (any active profile of type migrated_from_voice_tone)
+    repo = PersonalityProfileRepository(db)
+    active_profile = repo.get_active(tenant_id=current_user.tenant_id)
+    if active_profile is not None and active_profile.profile_type == "migrated_from_voice_tone":
+        raise HTTPException(
+            status_code=409,
+            detail="Este tenant ya tiene un perfil migrado activo.",
+        )
+
+    service = _build_service(db)
+    try:
+        profile_model, matched_preset_key, confidence = await service.migrate_from_voice_tone(
+            tenant_id=current_user.tenant_id,
+            voice_tone_text=voice_tone_text,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return FromVoiceToneResponse(
+        profile=_model_to_dto(profile_model),
+        source_voice_tone=voice_tone_text,
+        matched_preset_key=matched_preset_key,
+        match_confidence=confidence,
     )
 
 

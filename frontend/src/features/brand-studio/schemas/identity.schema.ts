@@ -39,36 +39,6 @@ export const identitySchema: SectionSchema = {
       hint: "El sector en el que opera tu negocio. Ayuda al agente a contextualizar tu mercado.",
     },
     {
-      id: "voice_tone",
-      label: "Tono de voz",
-      type: "textarea",
-      path: "voice_tone",
-      rows: 2,
-      hint: "Cómo habla tu marca. El SDR usará este tono en todas sus conversaciones.",
-      placeholder: "Ej: Conversacional, aspiracional, directo con toques de humor",
-      examples: [
-        { brand: "Coach ejecutiva (CDMX)", text: "Directo, cálido, con metáforas de liderazgo. Sin tecnicismos. CTA claro al final de cada mensaje." },
-        { brand: "Consultor de marketing (Medellín, CO)", text: "Conversacional, data-driven, ocasionalmente irreverente. Siempre con una cifra o ejemplo concreto." },
-        { brand: "Nutricionista online (Lima, PE)", text: "Suave, educativo, sin culpa ni juicio. Evita imperativos bruscos. Abunda en preguntas de reflexión." },
-      ],
-      formula: {
-        template: "<slot>3 adjetivos que describen la personalidad</slot> · No suena a <slot>qué estilo evitas</slot>",
-      },
-      downstreamUses: [
-        { label: "Prompts del agente de ventas" },
-        { label: "Copy auto-generado de landings" },
-        { label: "Captions de assets sociales" },
-      ],
-    },
-    {
-      id: "voice_tone_clone",
-      label: "Clonación de estilo (IA)",
-      type: "custom",
-      path: "voice_tone",
-      action: "voice-clone",
-      hint: "Pega texto tuyo o sube un archivo. La IA detecta tu tono y lo guarda arriba.",
-    },
-    {
       id: "website",
       label: "Sitio web",
       type: "url",

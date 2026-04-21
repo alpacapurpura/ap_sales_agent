@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clonar · Paso 1 — Brand Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { colors: {
+      background: 'hsl(0 0% 100%)', foreground: 'hsl(222.2 84% 4.9%)',
+      card: 'hsl(0 0% 100%)', primary: { DEFAULT: 'hsl(222.2 47.4% 11.2%)', foreground: 'hsl(210 40% 98%)' },
+      muted: { DEFAULT: 'hsl(210 40% 96.1%)', foreground: 'hsl(215.4 16.3% 46.9%)' },
+      border: 'hsl(214.3 31.8% 91.4%)',
+      brand: { DEFAULT: 'hsl(270 70% 55%)', foreground: 'hsl(210 40% 98%)' },
+      success: 'hsl(142 71% 45%)', warning: 'hsl(40 90% 55%)',
+    }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; }
+    body { font-family: 'Inter', system-ui, sans-serif; font-size: 13px; background: hsl(0 0% 100%); color: hsl(222.2 84% 4.9%); }
+    .section-row { position: relative; height: 36px; }
+    .section-row:hover:not(.active) { background-color: hsl(210 40% 96.1% / 0.3); }
+    .section-row.active { background-color: hsl(210 40% 96.1% / 0.6); }
+    .section-row.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background-color: hsl(270 70% 55%); }
+    .section-row.active .row-label { color: hsl(222.2 84% 4.9%); font-weight: 500; }
+    .finder-header { height: 44px; }
+    [data-lucide] { width: 14px; height: 14px; stroke-width: 1.8; }
+    .step-dot { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid hsl(214.3 31.8% 91.4%); background: white; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: hsl(215.4 16.3% 46.9%); }
+    .step-dot.active { border-color: hsl(270 70% 55%); background: hsl(270 70% 55%); color: white; }
+    .step-dot.done { border-color: hsl(270 70% 55%); background: hsl(270 70% 55%); color: white; }
+    .step-line { flex: 1; height: 1px; background: hsl(214.3 31.8% 91.4%); margin: 0 8px; }
+    .step-line.done { background: hsl(270 70% 55%); }
+  </style>
+</head>
+<body>
+  <div class="flex h-screen overflow-hidden">
+    <aside class="w-[220px] flex-shrink-0 border-r border-border bg-card flex flex-col">
+      <div class="h-12 border-b border-border flex items-center px-3 gap-2 flex-shrink-0">
+        <div class="w-7 h-7 rounded-md bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">N</div>
+        <span class="font-semibold text-sm">Nicolify</span>
+      </div>
+      <nav class="flex-1 overflow-y-auto p-2 space-y-4">
+        <div>
+          <p class="px-2 mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Studios</p>
+          <ul class="space-y-0.5">
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] bg-muted/60 font-medium"><i data-lucide="palette"></i><span>Brand Studio</span></a></li>
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] text-muted-foreground hover:bg-muted/30"><i data-lucide="shopping-bag"></i><span>Offer Studio</span></a></li>
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] text-muted-foreground hover:bg-muted/30"><i data-lucide="trending-up"></i><span>Growth Studio</span></a></li>
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] text-muted-foreground hover:bg-muted/30"><i data-lucide="handshake"></i><span>Sales Studio</span></a></li>
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] text-muted-foreground hover:bg-muted/30"><i data-lucide="plug"></i><span>Conexiones</span></a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="px-2 mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Tenant</p>
+          <div class="px-2 py-1.5 rounded text-[12px] bg-muted/40 flex items-center gap-2">
+            <div class="w-5 h-5 rounded-full bg-brand/20 flex items-center justify-center text-[10px] font-bold text-brand">V</div>
+            <span class="truncate">Visionarias</span>
+          </div>
+        </div>
+      </nav>
+      <div class="border-t border-border p-2 text-[10px] text-muted-foreground text-center flex-shrink-0">Flow Preview</div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="h-12 border-b border-border flex items-center px-4 gap-2 flex-shrink-0 bg-background">
+        <nav class="flex items-center gap-1.5 text-[13px]">
+          <a href="#" class="text-muted-foreground hover:text-foreground">Brand Studio</a>
+          <i data-lucide="chevron-right" style="width:12px;height:12px" class="text-muted-foreground"></i>
+          <a href="estilo-empty.html" class="text-muted-foreground hover:text-foreground">Estilo Comunicacional</a>
+          <i data-lucide="chevron-right" style="width:12px;height:12px" class="text-muted-foreground"></i>
+          <span class="font-medium text-foreground">Clonar · Material</span>
+        </nav>
+      </header>
+
+      <div class="flex-1 flex min-h-0">
+        <aside class="w-[260px] flex-shrink-0 border-r border-border flex flex-col bg-background">
+          <div class="finder-header flex items-center justify-between px-[14px] border-b border-border/50 flex-shrink-0">
+            <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Secciones</span>
+            <span class="text-[10px] text-muted-foreground tabular-nums">14</span>
+          </div>
+          <ul class="flex-1 overflow-y-auto">
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="sparkles" class="text-muted-foreground"></i><span class="row-label flex-1">Buyer personas</span></a></li>
+            <li><a href="identity.html" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="fingerprint" class="text-muted-foreground"></i><span class="row-label flex-1">Identidad</span></a></li>
+            <li><a href="estilo-empty.html" class="section-row active flex items-center gap-2.5 px-[14px] text-foreground"><i data-lucide="message-circle" class="text-brand"></i><span class="row-label flex-1">Estilo Comunicacional</span><span class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-brand text-brand-foreground">NEW</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="target" class="text-muted-foreground"></i><span class="row-label flex-1">Posicionamiento</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="scroll-text" class="text-muted-foreground"></i><span class="row-label flex-1">Narrativa</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="flag" class="text-muted-foreground"></i><span class="row-label flex-1">Metodología</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="file-text" class="text-muted-foreground"></i><span class="row-label flex-1">Historia</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="users" class="text-muted-foreground"></i><span class="row-label flex-1">Equipo</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="landmark" class="text-muted-foreground"></i><span class="row-label flex-1">Autoridad</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="headphones" class="text-muted-foreground"></i><span class="row-label flex-1">Testimonios</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="image" class="text-muted-foreground"></i><span class="row-label flex-1">Visuales</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="layers" class="text-muted-foreground"></i><span class="row-label flex-1">Assets</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="megaphone" class="text-muted-foreground"></i><span class="row-label flex-1">Contacto</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="scale" class="text-muted-foreground"></i><span class="row-label flex-1">Legal</span></a></li>
+          </ul>
+        </aside>
+
+        <section class="flex-1 overflow-y-auto bg-background">
+          <div class="px-10 pt-7 pb-10 max-w-3xl">
+            <div class="mb-6">
+              <a href="estilo-empty.html" class="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground mb-2"><i data-lucide="arrow-left" style="width:12px;height:12px"></i>Volver</a>
+              <h1 class="text-xl font-semibold tracking-tight mb-1">Clonar tu estilo</h1>
+              <p class="text-[13px] text-muted-foreground">La IA analiza tus mensajes reales y genera un estilo único adaptado a cómo escribes.</p>
+            </div>
+
+            <!-- Stepper -->
+            <div class="flex items-center mb-8 max-w-md">
+              <div class="flex items-center gap-2"><div class="step-dot active">1</div><span class="text-[12.5px] font-medium">Material</span></div>
+              <div class="step-line"></div>
+              <div class="flex items-center gap-2"><div class="step-dot">2</div><span class="text-[12.5px] text-muted-foreground">Análisis</span></div>
+              <div class="step-line"></div>
+              <div class="flex items-center gap-2"><div class="step-dot">3</div><span class="text-[12.5px] text-muted-foreground">Previa</span></div>
+            </div>
+
+            <!-- Material type -->
+            <div class="mb-4">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-2">Tipo de material</p>
+              <div class="flex gap-2 text-[13px]">
+                <label class="flex items-center gap-2 px-3 h-9 rounded border border-brand bg-brand/5 cursor-pointer">
+                  <input type="radio" name="material" checked class="accent-brand">
+                  <i data-lucide="clipboard" style="width:13px;height:13px"></i>
+                  <span class="font-medium">Pegar texto</span>
+                </label>
+                <label class="flex items-center gap-2 px-3 h-9 rounded border border-border cursor-pointer hover:bg-muted/40">
+                  <input type="radio" name="material" class="accent-brand">
+                  <i data-lucide="upload" style="width:13px;height:13px"></i>
+                  <span class="text-muted-foreground">Subir archivo</span>
+                </label>
+              </div>
+              <p class="text-[11.5px] text-muted-foreground mt-1.5">Acepta .txt · .csv · export de WhatsApp/Telegram.</p>
+            </div>
+
+            <!-- Textarea -->
+            <div class="mb-2">
+              <textarea rows="12" class="w-full border border-border rounded-md p-3 text-[12.5px] font-mono resize-y bg-muted/10 focus:outline-none focus:ring-1 focus:ring-ring leading-relaxed">Yo: Hola Marce! me encantó tu último post 💛
+Yo: Mira te cuento, el programa tiene 3 opciones para que elijas la que mejor te quede
+Yo: Te entiendo perfecto, la verdad es que yo también pasé por eso cuando empecé
+Yo: Ay genial que me escribas, cuéntame más!
+Yo: Imagínate esto: te despiertas un lunes y no tienes que correr para nada
+Yo: En serio, no te preocupes por el precio ahora mismo
+Yo: Me encanta cuando me cuentan este tipo de cosas
+Yo: Dale, te paso el link y cualquier duda me avisas 😊
+Yo: Oye, me quedé pensando en lo que me contaste el otro día
+Yo: La verdad es que no hay una respuesta única — depende de ti</textarea>
+              <div class="flex items-center justify-between mt-1.5 text-[11px] text-muted-foreground">
+                <div class="flex items-center gap-3">
+                  <span class="inline-flex items-center gap-1 text-success"><i data-lucide="check-circle" style="width:12px;height:12px"></i><strong class="text-foreground">127 mensajes</strong></span>
+                  <span>formato: chat plano</span>
+                </div>
+                <button class="hover:text-foreground">Limpiar</button>
+              </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="mt-6 border-l-2 border-brand/40 pl-3 py-1 text-[12px]">
+              <p class="font-medium mb-1">Qué funciona mejor</p>
+              <ul class="space-y-0.5 text-muted-foreground list-disc list-inside">
+                <li>Variedad importa más que cantidad: saludos, objeciones, cierres, follow-ups.</li>
+                <li>Mínimo 10 mensajes. Óptimo 50+. Techo 500.</li>
+                <li>Mensajes tuyos puros. Si pegas conversaciones, la IA detecta tu lado.</li>
+                <li>Tu estilo actual sigue activo hasta que confirmes el nuevo en el Paso 3.</li>
+              </ul>
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-8 flex items-center justify-between pt-4 border-t border-border">
+              <a href="estilo-empty.html" class="text-[12.5px] text-muted-foreground hover:text-foreground">Cancelar</a>
+              <a href="estilo-clone-step2.html" class="inline-flex items-center gap-2 px-4 h-9 bg-brand text-brand-foreground text-[13px] rounded-md hover:opacity-90 font-medium">
+                <i data-lucide="sparkles" style="width:14px;height:14px"></i>
+                Analizar mi estilo
+              </a>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

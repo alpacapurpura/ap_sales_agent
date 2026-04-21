@@ -49,9 +49,18 @@ export const methodologySchema: SectionSchema = {
             rows: 3,
             hint: "Qué abarca este pilar y por qué es fundamental en tu método. 1-2 oraciones.",
             examples: [
-              { brand: "Coach de liderazgo (CDMX)", text: "Definimos el estilo de liderazgo que mejor se adapta a tu contexto antes de cambiar cualquier comportamiento." },
-              { brand: "Consultora financiera (Lima, PE)", text: "Separamos ingresos, costos fijos y variables para que el dinero fluya de forma predecible cada mes." },
-              { brand: "Mentora de negocios (Medellín, CO)", text: "Diseñamos una oferta irresistible basada en el problema que tu cliente quiere resolver hoy, no en tus credenciales." },
+              {
+                brand: "Coach de liderazgo (CDMX)",
+                text: "Definimos el estilo de liderazgo que mejor se adapta a tu contexto antes de cambiar cualquier comportamiento.",
+              },
+              {
+                brand: "Consultora financiera (Lima, PE)",
+                text: "Separamos ingresos, costos fijos y variables para que el dinero fluya de forma predecible cada mes.",
+              },
+              {
+                brand: "Mentora de negocios (Medellín, CO)",
+                text: "Diseñamos una oferta irresistible basada en el problema que tu cliente quiere resolver hoy, no en tus credenciales.",
+              },
             ],
           },
         ],

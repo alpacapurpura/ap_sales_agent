@@ -251,6 +251,48 @@ class TestAdaptFromBrandIdentity:
             args = mock_bs.call_args[0]
             assert args[1] == TENANT_ID
 
+    def test_prefers_personality_system_instruction_over_voice_tone(self) -> None:
+        """When active personality profile exists, suggestion uses system_instruction, not voice_tone."""
+        identity = _make_brand_identity("Nicolify", "Crece sin límites", "entusiasta")
+        settings = _make_brand_settings(identity=identity)
+
+        personality_profile = MagicMock()
+        personality_profile.system_instruction = "BLOQUE 1 — REGLAS DE PERSONALIDAD\nCalma y precisión."
+
+        with (
+            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
+            patch(
+                "src.modules.copilot.application.tools.offer_section_tools._active_personality",
+                return_value=personality_profile,
+            ),
+        ):
+            result = json.loads(adapt_from_brand_identity.invoke({}))
+
+        suggestions_text = " ".join(result["suggestions"])
+        # Should reference personality instruction, not the raw voice_tone string
+        assert "personalidad" in suggestions_text.lower() or "estilo" in suggestions_text.lower()
+
+    def test_falls_back_to_voice_tone_when_no_personality(self) -> None:
+        """When no active personality profile, falls back to identity.voice_tone."""
+        identity = _make_brand_identity("Nicolify", "Crece sin límites", "entusiasta y cálida")
+        settings = _make_brand_settings(identity=identity)
+
+        with (
+            patch("src.modules.copilot.application.tools.offer_section_tools.get_tenant_id", return_value=TENANT_ID),
+            patch("src.modules.copilot.application.tools.offer_section_tools.SessionLocal"),
+            patch("src.modules.copilot.application.tools.offer_section_tools._brand_settings", return_value=settings),
+            patch(
+                "src.modules.copilot.application.tools.offer_section_tools._active_personality",
+                return_value=None,
+            ),
+        ):
+            result = json.loads(adapt_from_brand_identity.invoke({}))
+
+        suggestions_text = " ".join(result["suggestions"])
+        assert "entusiasta y cálida" in suggestions_text
+
 
 # ---------------------------------------------------------------------------
 # Tool 2 — adapt_from_brand_narrative

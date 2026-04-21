@@ -15,6 +15,7 @@ import {
   Landmark,
   Layers,
   Megaphone,
+  MessageCircle,
   Palette,
   Scale,
   ScrollText,
@@ -34,6 +35,7 @@ export interface BrandSectionMeta {
 export const BRAND_SECTIONS: readonly BrandSectionMeta[] = [
   { slug: "publico", label: "Buyer personas", icon: Sparkles, kind: "collection" },
   { slug: "identity", label: "Identidad", icon: Fingerprint, kind: "singleton" },
+  { slug: "estilo", label: "Estilo Comunicacional", icon: MessageCircle, kind: "singleton" },
   { slug: "positioning", label: "Posicionamiento", icon: Target, kind: "singleton" },
   { slug: "narrative", label: "Narrativa", icon: ScrollText, kind: "singleton" },
   { slug: "methodology", label: "Metodología", icon: Flag, kind: "singleton" },

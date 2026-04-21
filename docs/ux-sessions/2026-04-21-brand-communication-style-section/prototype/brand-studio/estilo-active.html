@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estilo Comunicacional · activo — Brand Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { colors: {
+      background: 'hsl(0 0% 100%)', foreground: 'hsl(222.2 84% 4.9%)',
+      card: 'hsl(0 0% 100%)', primary: { DEFAULT: 'hsl(222.2 47.4% 11.2%)', foreground: 'hsl(210 40% 98%)' },
+      secondary: { DEFAULT: 'hsl(210 40% 96.1%)', foreground: 'hsl(222.2 47.4% 11.2%)' },
+      muted: { DEFAULT: 'hsl(210 40% 96.1%)', foreground: 'hsl(215.4 16.3% 46.9%)' },
+      border: 'hsl(214.3 31.8% 91.4%)',
+      brand: { DEFAULT: 'hsl(270 70% 55%)', foreground: 'hsl(210 40% 98%)' },
+      success: 'hsl(142 71% 45%)', warning: 'hsl(40 90% 55%)',
+    }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; }
+    body { font-family: 'Inter', system-ui, sans-serif; font-size: 13px; color: hsl(222.2 84% 4.9%); background: hsl(0 0% 100%); }
+    .section-row { position: relative; height: 36px; }
+    .section-row:hover:not(.active) { background-color: hsl(210 40% 96.1% / 0.3); }
+    .section-row.active { background-color: hsl(210 40% 96.1% / 0.6); }
+    .section-row.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background-color: hsl(270 70% 55%); }
+    .section-row.active .row-label { color: hsl(222.2 84% 4.9%); font-weight: 500; }
+    .finder-header { height: 44px; }
+    [data-lucide] { width: 14px; height: 14px; stroke-width: 1.8; }
+    .slider-track { height: 4px; background: hsl(210 40% 92%); border-radius: 999px; position: relative; }
+    .slider-fill { position: absolute; top: 0; height: 100%; background: hsl(270 70% 55%); border-radius: 999px; }
+    .slider-thumb { position: absolute; top: 50%; width: 12px; height: 12px; background: white; border: 2px solid hsl(270 70% 55%); border-radius: 50%; transform: translate(-50%, -50%); }
+  </style>
+</head>
+<body>
+  <div class="flex h-screen overflow-hidden">
+    <aside class="w-[220px] flex-shrink-0 border-r border-border bg-card flex flex-col">
+      <div class="h-12 border-b border-border flex items-center px-3 gap-2 flex-shrink-0">
+        <div class="w-7 h-7 rounded-md bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">N</div>
+        <span class="font-semibold text-sm">Nicolify</span>
+      </div>
+      <nav class="flex-1 overflow-y-auto p-2 space-y-4">
+        <div>
+          <p class="px-2 mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Studios</p>
+          <ul class="space-y-0.5">
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] bg-muted/60 font-medium"><i data-lucide="palette"></i><span>Brand Studio</span></a></li>
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] text-muted-foreground hover:bg-muted/30"><i data-lucide="shopping-bag"></i><span>Offer Studio</span></a></li>
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] text-muted-foreground hover:bg-muted/30"><i data-lucide="trending-up"></i><span>Growth Studio</span></a></li>
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] text-muted-foreground hover:bg-muted/30"><i data-lucide="handshake"></i><span>Sales Studio</span></a></li>
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] text-muted-foreground hover:bg-muted/30"><i data-lucide="plug"></i><span>Conexiones</span></a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="px-2 mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Tenant</p>
+          <div class="px-2 py-1.5 rounded text-[12px] bg-muted/40 flex items-center gap-2">
+            <div class="w-5 h-5 rounded-full bg-brand/20 flex items-center justify-center text-[10px] font-bold text-brand">V</div>
+            <span class="truncate">Visionarias</span>
+          </div>
+        </div>
+      </nav>
+      <div class="border-t border-border p-2 text-[10px] text-muted-foreground text-center flex-shrink-0">Flow Preview</div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="h-12 border-b border-border flex items-center px-4 gap-2 flex-shrink-0 bg-background">
+        <nav class="flex items-center gap-1.5 text-[13px]">
+          <a href="#" class="text-muted-foreground hover:text-foreground">Brand Studio</a>
+          <i data-lucide="chevron-right" style="width:12px;height:12px" class="text-muted-foreground"></i>
+          <span class="font-medium text-foreground">Estilo Comunicacional</span>
+        </nav>
+        <div class="ml-auto flex items-center gap-2 text-[12px] text-muted-foreground">
+          <span>Guardado · hace 2 días</span>
+          <i data-lucide="check" class="text-success"></i>
+        </div>
+      </header>
+
+      <div class="flex-1 flex min-h-0">
+        <aside class="w-[260px] flex-shrink-0 border-r border-border flex flex-col bg-background">
+          <div class="finder-header flex items-center justify-between px-[14px] border-b border-border/50 flex-shrink-0">
+            <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Secciones</span>
+            <span class="text-[10px] text-muted-foreground tabular-nums">14</span>
+          </div>
+          <ul class="flex-1 overflow-y-auto">
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="sparkles" class="text-muted-foreground"></i><span class="row-label flex-1">Buyer personas</span></a></li>
+            <li><a href="identity.html" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="fingerprint" class="text-muted-foreground"></i><span class="row-label flex-1">Identidad</span></a></li>
+            <li><a href="estilo-active.html" class="section-row active flex items-center gap-2.5 px-[14px] text-foreground"><i data-lucide="message-circle" class="text-brand"></i><span class="row-label flex-1">Estilo Comunicacional</span><span class="w-1.5 h-1.5 rounded-full bg-success"></span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="target" class="text-muted-foreground"></i><span class="row-label flex-1">Posicionamiento</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="scroll-text" class="text-muted-foreground"></i><span class="row-label flex-1">Narrativa</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="flag" class="text-muted-foreground"></i><span class="row-label flex-1">Metodología</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="file-text" class="text-muted-foreground"></i><span class="row-label flex-1">Historia</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="users" class="text-muted-foreground"></i><span class="row-label flex-1">Equipo</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="landmark" class="text-muted-foreground"></i><span class="row-label flex-1">Autoridad</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="headphones" class="text-muted-foreground"></i><span class="row-label flex-1">Testimonios</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="image" class="text-muted-foreground"></i><span class="row-label flex-1">Visuales</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="layers" class="text-muted-foreground"></i><span class="row-label flex-1">Assets</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="megaphone" class="text-muted-foreground"></i><span class="row-label flex-1">Contacto</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="scale" class="text-muted-foreground"></i><span class="row-label flex-1">Legal</span></a></li>
+          </ul>
+        </aside>
+
+        <section class="flex-1 overflow-y-auto bg-background">
+          <div class="px-10 pt-7 pb-10 max-w-3xl">
+            <!-- Header -->
+            <div class="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <h1 class="text-xl font-semibold tracking-tight mb-1">Estilo Comunicacional</h1>
+                <p class="text-[13px] text-muted-foreground">Cómo habla tu marca en cada conversación.</p>
+              </div>
+              <div class="relative group">
+                <button class="inline-flex items-center gap-1.5 text-[12.5px] px-3 h-8 border border-border rounded-md hover:bg-muted/40">
+                  Cambiar estilo <i data-lucide="chevron-down" style="width:12px;height:12px"></i>
+                </button>
+                <div class="absolute right-0 top-full mt-1 w-56 bg-card border border-border rounded-md shadow-sm hidden group-hover:block z-20 text-[12.5px]">
+                  <a href="estilo-preset-picker.html" class="flex items-center gap-2 px-3 h-8 hover:bg-muted/40"><i data-lucide="grid-2x2" class="text-muted-foreground"></i>Elegir otro preset</a>
+                  <a href="estilo-clone-step1.html" class="flex items-center gap-2 px-3 h-8 hover:bg-muted/40"><i data-lucide="dna" class="text-muted-foreground"></i>Clonar un estilo nuevo</a>
+                  <button class="flex items-center gap-2 px-3 h-8 text-muted-foreground w-full text-left" disabled><i data-lucide="sliders" class="text-muted-foreground"></i>Perfil desde cero <span class="ml-auto text-[9px]">próx.</span></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Active profile strip -->
+            <div class="flex items-center gap-3 mb-8 pb-4 border-b border-border">
+              <div class="w-10 h-10 rounded-md bg-amber-50 flex items-center justify-center text-lg flex-shrink-0">☀️</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <p class="font-medium text-[14px]">Cálida y Cercana</p>
+                  <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-muted text-muted-foreground font-medium">preset</span>
+                  <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-success/10 text-success font-medium">activo</span>
+                </div>
+                <p class="text-[12px] text-muted-foreground">Cercana como una amiga. Valida emociones, humor ligero, calidez real.</p>
+              </div>
+            </div>
+
+            <!-- Dimensions -->
+            <section class="mb-8">
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="text-[14px] font-medium">Dimensiones</h2>
+                <button class="text-[12px] text-muted-foreground hover:text-foreground flex items-center gap-1"><i data-lucide="pencil" style="width:12px;height:12px"></i>Editar</button>
+              </div>
+              <div class="space-y-3">
+                <div class="flex items-center gap-3 text-[12.5px]">
+                  <span class="w-24 text-muted-foreground flex-shrink-0">Energía</span>
+                  <span class="text-[11px] text-muted-foreground w-16 text-right">Calma</span>
+                  <div class="flex-1 slider-track"><div class="slider-fill" style="width:65%"></div><div class="slider-thumb" style="left:65%"></div></div>
+                  <span class="text-[11px] text-muted-foreground w-16">Eléctrica</span>
+                  <span class="tabular-nums w-10 text-right font-medium">0.65</span>
+                </div>
+                <div class="flex items-center gap-3 text-[12.5px]">
+                  <span class="w-24 text-muted-foreground flex-shrink-0">Calidez</span>
+                  <span class="text-[11px] text-muted-foreground w-16 text-right">Distante</span>
+                  <div class="flex-1 slider-track"><div class="slider-fill" style="width:85%"></div><div class="slider-thumb" style="left:85%"></div></div>
+                  <span class="text-[11px] text-muted-foreground w-16">Íntima</span>
+                  <span class="tabular-nums w-10 text-right font-medium">0.85</span>
+                </div>
+                <div class="flex items-center gap-3 text-[12.5px]">
+                  <span class="w-24 text-muted-foreground flex-shrink-0">Humor</span>
+                  <span class="text-[11px] text-muted-foreground w-16 text-right">Serio</span>
+                  <div class="flex-1 slider-track"><div class="slider-fill" style="width:60%"></div><div class="slider-thumb" style="left:60%"></div></div>
+                  <span class="text-[11px] text-muted-foreground w-16">Cómico</span>
+                  <span class="tabular-nums w-10 text-right font-medium">0.60</span>
+                </div>
+                <div class="flex items-center gap-3 text-[12.5px]">
+                  <span class="w-24 text-muted-foreground flex-shrink-0">Expresividad</span>
+                  <span class="text-[11px] text-muted-foreground w-16 text-right">Minimal</span>
+                  <div class="flex-1 slider-track"><div class="slider-fill" style="width:70%"></div><div class="slider-thumb" style="left:70%"></div></div>
+                  <span class="text-[11px] text-muted-foreground w-16">Maximal</span>
+                  <span class="tabular-nums w-10 text-right font-medium">0.70</span>
+                </div>
+                <div class="flex items-center gap-3 text-[12.5px]">
+                  <span class="w-24 text-muted-foreground flex-shrink-0">Narrativa</span>
+                  <span class="text-[11px] text-muted-foreground w-16 text-right">Factual</span>
+                  <div class="flex-1 slider-track"><div class="slider-fill" style="width:50%"></div><div class="slider-thumb" style="left:50%"></div></div>
+                  <span class="text-[11px] text-muted-foreground w-16">Cine</span>
+                  <span class="tabular-nums w-10 text-right font-medium">0.50</span>
+                </div>
+                <div class="flex items-center gap-3 text-[12.5px]">
+                  <span class="w-24 text-muted-foreground flex-shrink-0">Verbosidad</span>
+                  <span class="text-[11px] text-muted-foreground w-16 text-right">Tele</span>
+                  <div class="flex-1 slider-track"><div class="slider-fill" style="width:40%"></div><div class="slider-thumb" style="left:40%"></div></div>
+                  <span class="text-[11px] text-muted-foreground w-16">Elaborado</span>
+                  <span class="tabular-nums w-10 text-right font-medium">0.40</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Linguistic fingerprint -->
+            <section class="mb-8">
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="text-[14px] font-medium">Huella lingüística</h2>
+                <button class="text-[12px] text-muted-foreground hover:text-foreground flex items-center gap-1"><i data-lucide="pencil" style="width:12px;height:12px"></i>Editar</button>
+              </div>
+              <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-[12.5px]">
+                <div class="flex gap-2"><dt class="text-muted-foreground w-20 flex-shrink-0">Saludo</dt><dd>"¡Hola! ¿Cómo estás?"</dd></div>
+                <div class="flex gap-2"><dt class="text-muted-foreground w-20 flex-shrink-0">Despedida</dt><dd>"¡Un abrazo!"</dd></div>
+                <div class="flex gap-2"><dt class="text-muted-foreground w-20 flex-shrink-0">Emojis</dt><dd>😊 🔥 💪 💛 🤗</dd></div>
+                <div class="flex gap-2"><dt class="text-muted-foreground w-20 flex-shrink-0">Puntuación</dt><dd>Expresiva</dd></div>
+                <div class="flex gap-2 col-span-2"><dt class="text-muted-foreground w-20 flex-shrink-0">Muletillas</dt><dd>"mira" · "te cuento" · "la verdad es que"</dd></div>
+                <div class="flex gap-2 col-span-2"><dt class="text-muted-foreground w-20 flex-shrink-0">Vocabulario</dt><dd>"genial" · "increíble" · "me encanta"</dd></div>
+              </dl>
+            </section>
+
+            <!-- Sample exchanges -->
+            <section class="mb-8">
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="text-[14px] font-medium">Ejemplos de conversación</h2>
+                <button class="text-[12px] text-muted-foreground hover:text-foreground flex items-center gap-1"><i data-lucide="refresh-cw" style="width:12px;height:12px"></i>Regenerar</button>
+              </div>
+              <div class="space-y-2">
+                <div class="border border-border rounded-lg p-3.5">
+                  <p class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-2">Saludo</p>
+                  <div class="text-[12.5px] space-y-1 leading-relaxed">
+                    <p><span class="text-muted-foreground inline-block w-8">Lead</span>Hola, buenas tardes</p>
+                    <p><span class="text-muted-foreground inline-block w-8">Tú</span>¡Hola! ¿Cómo estás? 😊 Qué bueno que me escribes. Cuéntame, ¿en qué te puedo ayudar?</p>
+                  </div>
+                </div>
+                <div class="border border-border rounded-lg p-3.5">
+                  <p class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-2">Objeción de precio</p>
+                  <div class="text-[12.5px] space-y-1 leading-relaxed">
+                    <p><span class="text-muted-foreground inline-block w-8">Lead</span>Es muy caro, no creo que pueda pagarlo</p>
+                    <p><span class="text-muted-foreground inline-block w-8">Tú</span>Te entiendo perfecto, la verdad es que yo también pensé lo mismo cuando empecé 😊 ¿Te cuento lo que le pasó a Laura que estaba en tu misma situación? 💛</p>
+                  </div>
+                </div>
+                <div class="border border-border rounded-lg p-3.5">
+                  <p class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-2">Cierre</p>
+                  <div class="text-[12.5px] space-y-1 leading-relaxed">
+                    <p><span class="text-muted-foreground inline-block w-8">Lead</span>Ok, creo que sí me interesa. ¿Cómo me inscribo?</p>
+                    <p><span class="text-muted-foreground inline-block w-8">Tú</span>¡Me encanta! 🔥 Mira, te mando el link y si tienes cualquier duda me escribes, estoy aquí para ti 😊💪</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Actions -->
+            <section class="flex flex-wrap gap-2 mb-8">
+              <a href="estilo-simulate.html" class="inline-flex items-center gap-2 px-3 h-8 text-[12.5px] bg-primary text-primary-foreground rounded-md hover:opacity-90">
+                <i data-lucide="play" style="width:12px;height:12px"></i>Probar en conversación
+              </a>
+              <button class="inline-flex items-center gap-2 px-3 h-8 text-[12.5px] border border-border rounded-md hover:bg-muted/40">
+                <i data-lucide="code-2" style="width:12px;height:12px"></i>Ver instrucción compilada
+              </button>
+            </section>
+
+            <!-- Downstream -->
+            <div class="border-t border-border pt-5">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-3">Este estilo se usa en</p>
+              <div class="grid grid-cols-3 gap-3 text-[12.5px]">
+                <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-success"></span><i data-lucide="bot" class="text-muted-foreground"></i>Sales agent</div>
+                <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-success"></span><i data-lucide="layout" class="text-muted-foreground"></i>Copy de landings</div>
+                <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-success"></span><i data-lucide="image" class="text-muted-foreground"></i>Captions de assets</div>
+              </div>
+            </div>
+
+            <!-- States -->
+            <div class="mt-12 border-t border-border pt-4">
+              <p class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-2">Estados · preview</p>
+              <div class="flex flex-wrap gap-1 text-[11px]">
+                <a href="estilo-empty.html" class="px-2.5 py-1 rounded border border-border text-muted-foreground hover:bg-muted/40">Empty</a>
+                <a href="estilo-empty-with-migration.html" class="px-2.5 py-1 rounded border border-border text-muted-foreground hover:bg-muted/40">Migración</a>
+                <a href="estilo-active.html" class="px-2.5 py-1 rounded bg-muted text-foreground">● Activo</a>
+                <a href="estilo-preset-picker.html" class="px-2.5 py-1 rounded border border-border text-muted-foreground hover:bg-muted/40">Preset picker</a>
+                <a href="estilo-clone-step1.html" class="px-2.5 py-1 rounded border border-border text-muted-foreground hover:bg-muted/40">Clone · 1</a>
+                <a href="estilo-clone-step2.html" class="px-2.5 py-1 rounded border border-border text-muted-foreground hover:bg-muted/40">Clone · 2</a>
+                <a href="estilo-clone-step3.html" class="px-2.5 py-1 rounded border border-border text-muted-foreground hover:bg-muted/40">Clone · 3</a>
+                <a href="estilo-simulate.html" class="px-2.5 py-1 rounded border border-border text-muted-foreground hover:bg-muted/40">Simular</a>
+                <a href="identity.html" class="px-2.5 py-1 rounded border border-border text-muted-foreground hover:bg-muted/40">Identidad</a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

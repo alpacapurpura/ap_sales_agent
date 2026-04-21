@@ -11,26 +11,18 @@
  */
 import { hasAction, registerAction, type ActionComponent } from "@/lib/form-runtime/actions";
 
-import { DimensionSlidersAction } from "./DimensionSlidersAction";
 import { ImageGalleryPickerAction } from "./ImageGalleryPickerAction";
 import { LogoKitAction } from "./LogoKitAction";
 import {
   AvatarActionPlaceholder,
   BrandVisualsWizardPlaceholder,
   OnboardingWizardPlaceholder,
-  PersonalityClonePlaceholder,
   SmartFillDialogPlaceholder,
-  VoiceClonePlaceholder,
 } from "./placeholders";
-import { PresetCatalogAction } from "./PresetCatalogAction";
 import { SingleImagePickerAction } from "./SingleImagePickerAction";
 import { ThemeInjectorAction } from "./ThemeInjectorAction";
 
 export const BRAND_STUDIO_ACTION_KEYS = [
-  "voice-clone",
-  "personality-clone",
-  "personality-dimensions",
-  "personality-presets",
   "brand-visuals-wizard",
   "single-image",
   "theme-injector",
@@ -52,12 +44,12 @@ export type BrandStudioActionKey = (typeof BRAND_STUDIO_ACTION_KEYS)[number];
  * has a narrower TValue than the registry's generic default — TypeScript
  * treats `ActionComponent<string>` as non-assignable to
  * `ActionComponent<unknown>` due to function-parameter variance.
+ *
+ * Removed: voice-clone, personality-clone, personality-dimensions,
+ * personality-presets — the rich personality controls now live in the
+ * top-level "Estilo Comunicacional" section (slug: "estilo").
  */
 const REGISTRY_ENTRIES: Readonly<Record<BrandStudioActionKey, ActionComponent>> = {
-  "voice-clone": VoiceClonePlaceholder,
-  "personality-clone": PersonalityClonePlaceholder,
-  "personality-dimensions": DimensionSlidersAction as unknown as ActionComponent,
-  "personality-presets": PresetCatalogAction as unknown as ActionComponent,
   "brand-visuals-wizard": BrandVisualsWizardPlaceholder,
   "single-image": SingleImagePickerAction as unknown as ActionComponent,
   "theme-injector": ThemeInjectorAction,

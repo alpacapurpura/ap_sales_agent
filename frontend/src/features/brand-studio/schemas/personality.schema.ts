@@ -1,41 +1,17 @@
 import type { SectionSchema } from "@/lib/form-runtime/schema";
 
 /**
- * Personality section. Rich controls (preset catalog, dimension sliders,
- * clone-from-chat) are custom actions — the three simple fields below
- * (archetype, core_values, personality_traits) were moved out of the
- * legacy ``BrandPositioning.values`` block in Sprint 2.D and live here
- * end-to-end alongside the Personality Engine the Sales Agent consumes.
+ * Personality section. The three brand-archetype fields below (archetype,
+ * core_values, personality_traits) persist to BrandIdentity and are consumed
+ * by the Sales Agent. The rich controls for communication style (preset
+ * catalog, dimension sliders, clone wizard) live in the top-level "Estilo
+ * Comunicacional" section (slug: "estilo") backed by personality_profiles.
  */
 export const personalitySchema: SectionSchema = {
   key: "brand.personality",
   title: "Personalidad",
-  description: "Cómo siente tu marca. 6 presets o dimensiones finas.",
+  description: "Arquetipo y rasgos de marca que guían la identidad narrativa.",
   fields: [
-    {
-      id: "preset_catalog",
-      label: "Elegir un preset",
-      type: "custom",
-      path: "preset_key",
-      action: "personality-presets",
-      hint: "6 personalidades tipificadas. Elige la más parecida y afina después.",
-    },
-    {
-      id: "dimensions",
-      label: "Afinar dimensiones",
-      type: "custom",
-      path: "dimensions",
-      action: "personality-dimensions",
-      hint: "Sliders para energía, formalidad, directness, humor, emoción.",
-    },
-    {
-      id: "clone_from_chat",
-      label: "Clonar desde chat",
-      type: "custom",
-      path: "clone_source",
-      action: "personality-clone",
-      hint: "Pega una conversación real y la IA reconstruye tu personalidad.",
-    },
     {
       id: "archetype",
       label: "Arquetipo",

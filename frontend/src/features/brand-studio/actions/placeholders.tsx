@@ -22,8 +22,6 @@ function makePlaceholder(label: string): ActionComponent {
   return Placeholder;
 }
 
-export const VoiceClonePlaceholder = makePlaceholder("Clonación de voz");
-export const PersonalityClonePlaceholder = makePlaceholder("Clonación de personalidad");
 export const DimensionSlidersPlaceholder = makePlaceholder("Sliders de dimensiones");
 export const BrandVisualsWizardPlaceholder = makePlaceholder("Wizard de visuales de marca");
 export const LogoKitPlaceholder = makePlaceholder("Kit de logos");

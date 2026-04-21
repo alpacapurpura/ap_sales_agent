@@ -2,22 +2,19 @@
 
 import { Check, Loader2 } from "lucide-react";
 import { useCallback } from "react";
-import { toast } from "sonner";
 
-import { usePersonalityPresets, useSelectPreset } from "@/features/brand-studio/api/personality";
 import { cn } from "@/lib/utils";
 
 import type { PresetSummary } from "@/features/brand-studio/types/personality";
-import type { ActionComponentProps } from "@/lib/form-runtime/actions";
 
-interface PresetCardProps {
+interface PresetCardItemProps {
   preset: PresetSummary;
   isSelected: boolean;
   isPending: boolean;
   onSelect: (key: string) => void;
 }
 
-function PresetCard({ preset, isSelected, isPending, onSelect }: PresetCardProps) {
+function PresetCardItem({ preset, isSelected, isPending, onSelect }: PresetCardItemProps) {
   const handleClick = useCallback(() => onSelect(preset.key), [onSelect, preset.key]);
 
   return (
@@ -26,6 +23,8 @@ function PresetCard({ preset, isSelected, isPending, onSelect }: PresetCardProps
       onClick={handleClick}
       disabled={isPending}
       aria-pressed={isSelected}
+      role="button"
+      tabIndex={0}
       className={cn(
         "relative w-full rounded-xl border p-4 text-left transition-all duration-200",
         "hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
@@ -54,34 +53,33 @@ function PresetCard({ preset, isSelected, isPending, onSelect }: PresetCardProps
   );
 }
 
+export interface PresetGridProps {
+  presets: PresetSummary[];
+  /** Currently selected preset key, or null if none. */
+  selectedKey: string | null;
+  /** Called when the user clicks a preset card. */
+  onSelect: (key: string) => void;
+  /** Whether a selection mutation is in flight. Disables all cards. */
+  isPending?: boolean;
+  isLoading?: boolean;
+  error?: Error | null;
+}
+
 /**
- * PresetCatalog action — grid of personality presets fetched from the
- * backend. Selecting a preset triggers `useSelectPreset` on the backend
- * (owns the cache invalidation of the active personality query) and
- * bubbles the preset key via `onChange` so the form-runtime can update
- * its section state.
+ * Grid of personality preset cards. Renders a 2-column responsive grid of
+ * `PresetCardItem` components. Shows loading/error states inline.
  *
- * The `value` prop is the preset key currently selected (schema-driven
- * or persisted); this drives the highlighted card. If no value is given,
- * nothing is highlighted until the user picks.
+ * Extracted from `PresetCatalogAction` to be reused by both the action
+ * wrapper and the new `PresetPickerView` in the Estilo section.
  */
-export function PresetCatalogAction({ value, onChange }: ActionComponentProps<string | null>) {
-  const { data: presets, isLoading, error } = usePersonalityPresets();
-  const selectPreset = useSelectPreset();
-
-  const handleSelect = useCallback(
-    async (presetKey: string) => {
-      try {
-        await selectPreset.mutateAsync(presetKey);
-        toast.success("Personalidad configurada correctamente.");
-        onChange(presetKey);
-      } catch {
-        toast.error("No se pudo seleccionar el preset. Inténtalo de nuevo.");
-      }
-    },
-    [selectPreset, onChange],
-  );
-
+export function PresetGrid({
+  presets,
+  selectedKey,
+  onSelect,
+  isPending = false,
+  isLoading = false,
+  error = null,
+}: PresetGridProps) {
   if (isLoading) {
     return (
       <div
@@ -94,7 +92,7 @@ export function PresetCatalogAction({ value, onChange }: ActionComponentProps<st
     );
   }
 
-  if (error || !presets) {
+  if (error ?? presets.length === 0) {
     return (
       <div role="alert" className="py-8 text-center text-sm text-muted-foreground">
         No se pudieron cargar los presets. Recarga la página.
@@ -103,21 +101,16 @@ export function PresetCatalogAction({ value, onChange }: ActionComponentProps<st
   }
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Elige la personalidad base de tu agente. Puedes ajustar las dimensiones después.
-      </p>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {presets.map((preset) => (
-          <PresetCard
-            key={preset.key}
-            preset={preset}
-            isSelected={value === preset.key}
-            isPending={selectPreset.isPending && value !== preset.key}
-            onSelect={handleSelect}
-          />
-        ))}
-      </div>
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {presets.map((preset) => (
+        <PresetCardItem
+          key={preset.key}
+          preset={preset}
+          isSelected={selectedKey === preset.key}
+          isPending={isPending && selectedKey !== preset.key}
+          onSelect={onSelect}
+        />
+      ))}
     </div>
   );
 }

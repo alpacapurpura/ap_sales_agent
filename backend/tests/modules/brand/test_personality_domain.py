@@ -1,4 +1,4 @@
-"""Tests for PersonalityProfile domain models — DimensionContract, Compiler, Presets."""
+"""Tests for PersonalityProfile domain models — DimensionContract, Compiler, Presets, find_nearest_preset."""
 
 import pytest
 
@@ -10,6 +10,7 @@ from src.modules.brand.domain.personality import (
     PersonalityCompiler,
     PersonalityDimensions,
     SampleExchange,
+    find_nearest_preset,
 )
 
 
@@ -197,3 +198,64 @@ class TestPresets:
         )
         assert len(result) > 200  # Non-trivial output
         assert "ESTA ES TU VOZ" in result
+
+
+class TestFindNearestPreset:
+    """find_nearest_preset maps a free-text description to the most fitting preset key."""
+
+    def test_returns_none_and_zero_when_text_empty(self):
+        """Empty text → (None, 0.0) without calling LLM."""
+        key, conf = find_nearest_preset("")
+        assert key is None
+        assert conf == 0.0
+
+    def test_returns_none_when_no_llm_caller(self):
+        """No llm_caller provided and text non-empty → (None, 0.0)."""
+        key, conf = find_nearest_preset("Soy muy energética y divertida", llm_caller=None)
+        assert key is None
+        assert conf == 0.0
+
+    def test_mock_llm_returns_valid_preset_key(self):
+        """When LLM returns a valid preset key, the function returns it with high confidence."""
+
+        def mock_llm(prompt: str) -> str:
+            return "warm_close"
+
+        key, conf = find_nearest_preset("Soy cercana y cálida con mis clientes", llm_caller=mock_llm)
+        assert key == "warm_close"
+        assert 0.0 <= conf <= 1.0
+
+    def test_mock_llm_unknown_key_falls_back_to_none(self):
+        """When LLM returns an unknown preset key, falls back to (None, 0.0)."""
+
+        def mock_llm(prompt: str) -> str:
+            return "nonexistent_preset_xyz"
+
+        key, conf = find_nearest_preset("texto cualquiera", llm_caller=mock_llm)
+        assert key is None
+        assert conf == 0.0
+
+    def test_mock_llm_receives_all_preset_keys_in_prompt(self):
+        """LLM prompt includes all 6 preset keys so the model can pick correctly."""
+        received_prompts: list[str] = []
+
+        def capturing_llm(prompt: str) -> str:
+            received_prompts.append(prompt)
+            return "electric"
+
+        find_nearest_preset("energético y explosivo", llm_caller=capturing_llm)
+
+        assert received_prompts, "LLM should have been called"
+        prompt = received_prompts[0]
+        for preset_key in PERSONALITY_PRESETS:
+            assert preset_key in prompt, f"Preset key '{preset_key}' missing from prompt"
+
+    def test_deterministic_with_same_llm_response(self):
+        """Same LLM response → same result (no randomness in domain function)."""
+
+        def fixed_llm(prompt: str) -> str:
+            return "serene"
+
+        r1 = find_nearest_preset("calma y autoridad", llm_caller=fixed_llm)
+        r2 = find_nearest_preset("calma y autoridad", llm_caller=fixed_llm)
+        assert r1 == r2

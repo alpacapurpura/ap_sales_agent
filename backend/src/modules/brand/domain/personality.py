@@ -2,15 +2,23 @@
 
 PersonalityProfile entity, DimensionContract (30 behavioral levels),
 PersonalityCompiler (5-block system_instruction), LinguisticPatterns,
-SampleExchange, PresetDefinition, and PERSONALITY_PRESETS dict.
+SampleExchange, PresetDefinition, PERSONALITY_PRESETS dict,
+and find_nearest_preset helper.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 from uuid import UUID
 
+import structlog
 from pydantic import BaseModel, ConfigDict, Field
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+logger = structlog.get_logger()
 
 # ---------------------------------------------------------------------------
 # Value objects — frozen dataclasses (pure Python, no framework deps)
@@ -1044,3 +1052,82 @@ class PersonalityProfile(BaseModel):
     # LLM wiring (optional override)
     llm_provider: str | None = None
     llm_model: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Domain helper — find_nearest_preset
+# ---------------------------------------------------------------------------
+
+_PRESET_MATCHING_PROMPT_TEMPLATE = """\
+Eres un experto en análisis de personalidad comunicacional.
+Se te proporciona una descripción de tono de voz o estilo comunicacional.
+Debes elegir el preset de personalidad más parecido de la siguiente lista:
+
+{presets_list}
+
+Descripción a analizar:
+\"\"\"{text}\"\"\"
+
+Responde ÚNICAMENTE con la clave exacta del preset elegido (por ejemplo: warm_close).
+No incluyas explicaciones, solo la clave.
+"""
+
+
+def find_nearest_preset(
+    text: str,
+    llm_caller: Callable[[str], str] | None = None,
+) -> tuple[str | None, float]:
+    """Pure function: ranks PERSONALITY_PRESETS by similarity to text via LLM scoring.
+
+    Returns (preset_key, confidence in [0.0, 1.0]). Returns (None, 0.0) if
+    LLM unavailable, text is empty, or returned key is not a recognized preset.
+
+    Parameters
+    ----------
+    text:
+        Free-form description of communication style (e.g. BrandIdentity.voice_tone).
+    llm_caller:
+        Optional callable that takes a prompt string and returns a string response.
+        If None or if text is empty, returns (None, 0.0) immediately.
+    """
+    if not text or not text.strip():
+        return None, 0.0
+
+    if llm_caller is None:
+        return None, 0.0
+
+    preset_keys = list(PERSONALITY_PRESETS.keys())
+    presets_list = "\n".join(
+        f"- {key}: {preset.name} — {preset.description[:80]}" for key, preset in PERSONALITY_PRESETS.items()
+    )
+
+    prompt = _PRESET_MATCHING_PROMPT_TEMPLATE.format(
+        presets_list=presets_list,
+        text=text.strip(),
+    )
+
+    try:
+        raw_response = llm_caller(prompt)
+        matched_key = raw_response.strip().lower().replace('"', "").replace("'", "")
+
+        if matched_key not in preset_keys:
+            logger.warning(
+                "find_nearest_preset.unknown_key",
+                raw_response=raw_response,
+                matched_key=matched_key,
+                valid_keys=preset_keys,
+            )
+            return None, 0.0
+
+        # Confidence is fixed at 0.8 for now; can be improved with scoring in the future.
+        confidence = 0.8
+        logger.info(
+            "find_nearest_preset.matched",
+            matched_key=matched_key,
+            confidence=confidence,
+        )
+        return matched_key, confidence
+
+    except Exception:
+        logger.exception("find_nearest_preset.llm_error")
+        return None, 0.0

@@ -1,5 +1,8 @@
 "use client";
 
+import { useParams } from "next/navigation";
+
+import { CommunicationStyleView } from "@/features/brand-studio/components/communication-style/CommunicationStyleView";
 import { useBrandSettings } from "@/features/brand-studio/hooks/use-brand-settings";
 import {
   communicationAssetsSchema,
@@ -34,10 +37,10 @@ import type {
  * differences live in the factory config.
  *
  * Special sections NOT generated here (separate hooks or nested shapes):
- *   - personality  → own API via usePersonalityHooks (see Sprint 2 deferred).
- *   - voice        → subset of identity (voice_tone); renders under identity page.
+ *   - estilo       → top-level "Estilo Comunicacional" section backed by
+ *                    personality_profiles table via CommunicationStyleView.
  *   - logos        → nested under visuals.logos; renders under visuals page.
- *   - avatars      → sub-entity, covered by PersonaDetailPage (Sprint 2.8).
+ *   - avatars      → sub-entity, covered by PersonaDetailPage.
  */
 const IdentityCorePage = createPage<BrandIdentity>({
   slug: "identity",
@@ -109,6 +112,30 @@ export const CommunicationAssetsPage = createPage<CommunicationAssets>({
   select: (s) => s.communication_assets,
   save: (h) => h.updateCommunicationAssets,
 });
+
+// ── Estilo Comunicacional ─────────────────────────────────────────────────────
+
+/**
+ * Estilo Comunicacional page. Backed by `personality_profiles` table, not
+ * `BrandSettings` JSONB — so it does NOT use the `createPage` factory.
+ * Reads the legacy `voice_tone` field from `BrandSettings.identity` to
+ * offer the one-time migration card to tenants with existing text.
+ */
+export function CommunicationStylePage() {
+  const params = useParams<{ tenantId: string }>();
+  const { tenantId } = params;
+  const hook = useBrandSettings();
+  const voiceToneLegacy = hook.settings?.identity?.voice_tone ?? null;
+  // Dismissed flag is persisted in localStorage inside MigrationCard itself.
+  // We pass false here; MigrationCard reads localStorage on mount.
+  return (
+    <CommunicationStyleView
+      tenantId={tenantId}
+      voiceToneLegacy={voiceToneLegacy}
+      voiceToneMigrationDismissed={false}
+    />
+  );
+}
 
 // SECTION_PAGE_MAP + BrandStudioSectionSlug live in ./section-page-map.ts
 // so Server Components can index the map. See that module's header comment

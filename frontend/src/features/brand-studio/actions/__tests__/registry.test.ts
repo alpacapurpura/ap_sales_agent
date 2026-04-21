@@ -16,7 +16,7 @@ describe("brand-studio action registry bootstrap", () => {
     }
   });
 
-  it("exposes exactly 13 brand-studio actions", () => {
+  it("exposes exactly 8 brand-studio actions (personality/voice actions removed)", () => {
     bootstrapBrandStudioActions();
     expect(listActions().length).toBeGreaterThanOrEqual(BRAND_STUDIO_ACTION_KEYS.length);
   });

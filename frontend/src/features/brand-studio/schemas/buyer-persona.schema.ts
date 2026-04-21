@@ -108,12 +108,22 @@ export const buyerPersonaSchema: SectionSchema = {
             required: true,
             hint: "El dolor concreto y su consecuencia. Usa lenguaje del cliente, no del vendedor.",
             examples: [
-              { brand: "Nutricionista (Lima, PE)", text: "Sigo a dieta toda la semana y el fin de semana lo arruino todo, después me siento un fracaso." },
-              { brand: "Coach de negocios (Bogotá, CO)", text: "Trabajo 12 horas al día pero no sé cuánto dinero entra ni cuánto sale de mi empresa." },
-              { brand: "Consultora de marketing (CDMX)", text: "Mis clientes siempre piden 'un descuentito' y terminan pagando menos de lo que vale mi trabajo." },
+              {
+                brand: "Nutricionista (Lima, PE)",
+                text: "Sigo a dieta toda la semana y el fin de semana lo arruino todo, después me siento un fracaso.",
+              },
+              {
+                brand: "Coach de negocios (Bogotá, CO)",
+                text: "Trabajo 12 horas al día pero no sé cuánto dinero entra ni cuánto sale de mi empresa.",
+              },
+              {
+                brand: "Consultora de marketing (CDMX)",
+                text: "Mis clientes siempre piden 'un descuentito' y terminan pagando menos de lo que vale mi trabajo.",
+              },
             ],
             formula: {
-              template: "<slot>Situación concreta del cliente</slot> que resulta en <slot>costo emocional o práctico</slot>.",
+              template:
+                "<slot>Situación concreta del cliente</slot> que resulta en <slot>costo emocional o práctico</slot>.",
             },
           },
           {
@@ -143,9 +153,18 @@ export const buyerPersonaSchema: SectionSchema = {
             required: true,
             hint: "El deseo específico con resultado concreto. Incluye números si es posible.",
             examples: [
-              { brand: "Coach de negocios (Bogotá, CO)", text: "Quiero facturar USD 5.000 al mes trabajando solo 4 horas por día desde cualquier lugar." },
-              { brand: "Nutricionista (Lima, PE)", text: "Quiero tener una relación normal con la comida y dejar de pensar en calorías todo el día." },
-              { brand: "Diseñadora (Santiago, CL)", text: "Quiero tener 3 clientes retainer que me paguen bien y dejar de hacer proyectos puntuales estresantes." },
+              {
+                brand: "Coach de negocios (Bogotá, CO)",
+                text: "Quiero facturar USD 5.000 al mes trabajando solo 4 horas por día desde cualquier lugar.",
+              },
+              {
+                brand: "Nutricionista (Lima, PE)",
+                text: "Quiero tener una relación normal con la comida y dejar de pensar en calorías todo el día.",
+              },
+              {
+                brand: "Diseñadora (Santiago, CL)",
+                text: "Quiero tener 3 clientes retainer que me paguen bien y dejar de hacer proyectos puntuales estresantes.",
+              },
             ],
           },
           {
@@ -175,9 +194,18 @@ export const buyerPersonaSchema: SectionSchema = {
             required: true,
             hint: "La frase textual que usaría este avatar para evitar avanzar. Sé específico, no genérico.",
             examples: [
-              { brand: "Avatar: profesional 35+ (Lima, PE)", text: "Ya lo intenté antes y no me funcionó. No creo que esto sea para mí." },
-              { brand: "Avatar: emprendedora 28-35 (CDMX)", text: "Ahora no tengo tiempo, quizás en tres meses cuando esté más organizada." },
-              { brand: "Avatar: consultor (Bogotá, CO)", text: "Tengo que hablarlo con mi pareja antes de comprometer ese dinero." },
+              {
+                brand: "Avatar: profesional 35+ (Lima, PE)",
+                text: "Ya lo intenté antes y no me funcionó. No creo que esto sea para mí.",
+              },
+              {
+                brand: "Avatar: emprendedora 28-35 (CDMX)",
+                text: "Ahora no tengo tiempo, quizás en tres meses cuando esté más organizada.",
+              },
+              {
+                brand: "Avatar: consultor (Bogotá, CO)",
+                text: "Tengo que hablarlo con mi pareja antes de comprometer ese dinero.",
+              },
             ],
           },
           {

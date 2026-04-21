@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clonar · Paso 3 — Brand Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { colors: {
+      background: 'hsl(0 0% 100%)', foreground: 'hsl(222.2 84% 4.9%)',
+      card: 'hsl(0 0% 100%)', primary: { DEFAULT: 'hsl(222.2 47.4% 11.2%)', foreground: 'hsl(210 40% 98%)' },
+      muted: { DEFAULT: 'hsl(210 40% 96.1%)', foreground: 'hsl(215.4 16.3% 46.9%)' },
+      border: 'hsl(214.3 31.8% 91.4%)',
+      brand: { DEFAULT: 'hsl(270 70% 55%)', foreground: 'hsl(210 40% 98%)' },
+      success: 'hsl(142 71% 45%)',
+    }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; }
+    body { font-family: 'Inter', system-ui, sans-serif; font-size: 13px; background: hsl(0 0% 100%); color: hsl(222.2 84% 4.9%); }
+    .section-row { position: relative; height: 36px; }
+    .section-row:hover:not(.active) { background-color: hsl(210 40% 96.1% / 0.3); }
+    .section-row.active { background-color: hsl(210 40% 96.1% / 0.6); }
+    .section-row.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background-color: hsl(270 70% 55%); }
+    .section-row.active .row-label { color: hsl(222.2 84% 4.9%); font-weight: 500; }
+    .finder-header { height: 44px; }
+    [data-lucide] { width: 14px; height: 14px; stroke-width: 1.8; }
+    .step-dot { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid hsl(214.3 31.8% 91.4%); background: white; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: hsl(215.4 16.3% 46.9%); }
+    .step-dot.done, .step-dot.active { border-color: hsl(270 70% 55%); background: hsl(270 70% 55%); color: white; }
+    .step-line { flex: 1; height: 1px; background: hsl(214.3 31.8% 91.4%); margin: 0 8px; }
+    .step-line.done { background: hsl(270 70% 55%); }
+    .slider-track { height: 4px; background: hsl(210 40% 92%); border-radius: 999px; position: relative; }
+    .slider-fill { position: absolute; top: 0; height: 100%; background: hsl(270 70% 55%); border-radius: 999px; }
+    .slider-thumb { position: absolute; top: 50%; width: 10px; height: 10px; background: white; border: 2px solid hsl(270 70% 55%); border-radius: 50%; transform: translate(-50%, -50%); }
+  </style>
+</head>
+<body>
+  <div class="flex h-screen overflow-hidden">
+    <aside class="w-[220px] flex-shrink-0 border-r border-border bg-card flex flex-col">
+      <div class="h-12 border-b border-border flex items-center px-3 gap-2 flex-shrink-0">
+        <div class="w-7 h-7 rounded-md bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">N</div>
+        <span class="font-semibold text-sm">Nicolify</span>
+      </div>
+      <nav class="flex-1 overflow-y-auto p-2 space-y-4">
+        <div>
+          <p class="px-2 mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Studios</p>
+          <ul class="space-y-0.5">
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] bg-muted/60 font-medium"><i data-lucide="palette"></i><span>Brand Studio</span></a></li>
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] text-muted-foreground hover:bg-muted/30"><i data-lucide="shopping-bag"></i><span>Offer Studio</span></a></li>
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] text-muted-foreground hover:bg-muted/30"><i data-lucide="trending-up"></i><span>Growth Studio</span></a></li>
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] text-muted-foreground hover:bg-muted/30"><i data-lucide="handshake"></i><span>Sales Studio</span></a></li>
+            <li><a href="#" class="flex items-center gap-2 px-2 h-8 rounded text-[13px] text-muted-foreground hover:bg-muted/30"><i data-lucide="plug"></i><span>Conexiones</span></a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="px-2 mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Tenant</p>
+          <div class="px-2 py-1.5 rounded text-[12px] bg-muted/40 flex items-center gap-2">
+            <div class="w-5 h-5 rounded-full bg-brand/20 flex items-center justify-center text-[10px] font-bold text-brand">V</div>
+            <span class="truncate">Visionarias</span>
+          </div>
+        </div>
+      </nav>
+      <div class="border-t border-border p-2 text-[10px] text-muted-foreground text-center flex-shrink-0">Flow Preview</div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="h-12 border-b border-border flex items-center px-4 gap-2 flex-shrink-0 bg-background">
+        <nav class="flex items-center gap-1.5 text-[13px]">
+          <a href="#" class="text-muted-foreground hover:text-foreground">Brand Studio</a>
+          <i data-lucide="chevron-right" style="width:12px;height:12px" class="text-muted-foreground"></i>
+          <a href="estilo-empty.html" class="text-muted-foreground hover:text-foreground">Estilo Comunicacional</a>
+          <i data-lucide="chevron-right" style="width:12px;height:12px" class="text-muted-foreground"></i>
+          <span class="font-medium text-foreground">Clonar · Previa</span>
+        </nav>
+        <div class="ml-auto flex items-center gap-2 text-[12px] text-success">
+          <i data-lucide="check-circle-2"></i>
+          <span>Análisis completo</span>
+        </div>
+      </header>
+
+      <div class="flex-1 flex min-h-0">
+        <aside class="w-[260px] flex-shrink-0 border-r border-border flex flex-col bg-background">
+          <div class="finder-header flex items-center justify-between px-[14px] border-b border-border/50 flex-shrink-0">
+            <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Secciones</span>
+            <span class="text-[10px] text-muted-foreground tabular-nums">14</span>
+          </div>
+          <ul class="flex-1 overflow-y-auto">
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="sparkles" class="text-muted-foreground"></i><span class="row-label flex-1">Buyer personas</span></a></li>
+            <li><a href="identity.html" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="fingerprint" class="text-muted-foreground"></i><span class="row-label flex-1">Identidad</span></a></li>
+            <li><a href="estilo-empty.html" class="section-row active flex items-center gap-2.5 px-[14px] text-foreground"><i data-lucide="message-circle" class="text-brand"></i><span class="row-label flex-1">Estilo Comunicacional</span><span class="w-1.5 h-1.5 rounded-full bg-brand"></span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="target" class="text-muted-foreground"></i><span class="row-label flex-1">Posicionamiento</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="scroll-text" class="text-muted-foreground"></i><span class="row-label flex-1">Narrativa</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="flag" class="text-muted-foreground"></i><span class="row-label flex-1">Metodología</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="file-text" class="text-muted-foreground"></i><span class="row-label flex-1">Historia</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="users" class="text-muted-foreground"></i><span class="row-label flex-1">Equipo</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="landmark" class="text-muted-foreground"></i><span class="row-label flex-1">Autoridad</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="headphones" class="text-muted-foreground"></i><span class="row-label flex-1">Testimonios</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="image" class="text-muted-foreground"></i><span class="row-label flex-1">Visuales</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="layers" class="text-muted-foreground"></i><span class="row-label flex-1">Assets</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="megaphone" class="text-muted-foreground"></i><span class="row-label flex-1">Contacto</span></a></li>
+            <li><a href="#" class="section-row flex items-center gap-2.5 px-[14px] text-foreground/90"><i data-lucide="scale" class="text-muted-foreground"></i><span class="row-label flex-1">Legal</span></a></li>
+          </ul>
+        </aside>
+
+        <section class="flex-1 overflow-y-auto bg-background">
+          <div class="px-10 pt-7 pb-10 max-w-3xl">
+            <div class="mb-2">
+              <h1 class="text-xl font-semibold tracking-tight mb-1">Así habla tu estilo clonado</h1>
+              <p class="text-[13px] text-muted-foreground">Revisa el resultado. Puedes ajustar dimensiones y regenerar ejemplos antes de activar.</p>
+            </div>
+
+            <div class="flex items-center mb-8 mt-6 max-w-md">
+              <div class="flex items-center gap-2"><div class="step-dot done">✓</div><span class="text-[12.5px] text-muted-foreground">Material</span></div>
+              <div class="step-line done"></div>
+              <div class="flex items-center gap-2"><div class="step-dot done">✓</div><span class="text-[12.5px] text-muted-foreground">Análisis</span></div>
+              <div class="step-line done"></div>
+              <div class="flex items-center gap-2"><div class="step-dot active">3</div><span class="text-[12.5px] font-medium">Previa</span></div>
+            </div>
+
+            <!-- Success strip -->
+            <div class="flex items-center gap-3 border border-success/30 bg-success/5 rounded-md px-4 py-2.5 mb-6">
+              <i data-lucide="sparkles" class="text-success" style="width:16px;height:16px"></i>
+              <div class="flex-1 text-[12.5px]">
+                <span class="font-medium">98 mensajes procesados</span>
+                <span class="text-muted-foreground"> · 98 anchors guardados en Qdrant · similarity score 0.87</span>
+              </div>
+            </div>
+
+            <!-- Dimensions -->
+            <section class="mb-8">
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="text-[14px] font-medium">Dimensiones detectadas</h2>
+                <button class="text-[12px] text-muted-foreground hover:text-foreground flex items-center gap-1"><i data-lucide="sliders" style="width:12px;height:12px"></i>Ajustar</button>
+              </div>
+              <div class="grid grid-cols-2 gap-x-6 gap-y-2.5 text-[12.5px]">
+                <div class="flex items-center gap-2"><span class="w-20 text-muted-foreground flex-shrink-0">Energía</span><div class="flex-1 slider-track"><div class="slider-fill" style="width:72%"></div><div class="slider-thumb" style="left:72%"></div></div><span class="tabular-nums w-8 text-right">0.72</span></div>
+                <div class="flex items-center gap-2"><span class="w-20 text-muted-foreground flex-shrink-0">Calidez</span><div class="flex-1 slider-track"><div class="slider-fill" style="width:84%"></div><div class="slider-thumb" style="left:84%"></div></div><span class="tabular-nums w-8 text-right">0.84</span></div>
+                <div class="flex items-center gap-2"><span class="w-20 text-muted-foreground flex-shrink-0">Humor</span><div class="flex-1 slider-track"><div class="slider-fill" style="width:45%"></div><div class="slider-thumb" style="left:45%"></div></div><span class="tabular-nums w-8 text-right">0.45</span></div>
+                <div class="flex items-center gap-2"><span class="w-20 text-muted-foreground flex-shrink-0">Expresividad</span><div class="flex-1 slider-track"><div class="slider-fill" style="width:68%"></div><div class="slider-thumb" style="left:68%"></div></div><span class="tabular-nums w-8 text-right">0.68</span></div>
+                <div class="flex items-center gap-2"><span class="w-20 text-muted-foreground flex-shrink-0">Narrativa</span><div class="flex-1 slider-track"><div class="slider-fill" style="width:60%"></div><div class="slider-thumb" style="left:60%"></div></div><span class="tabular-nums w-8 text-right">0.60</span></div>
+                <div class="flex items-center gap-2"><span class="w-20 text-muted-foreground flex-shrink-0">Verbosidad</span><div class="flex-1 slider-track"><div class="slider-fill" style="width:40%"></div><div class="slider-thumb" style="left:40%"></div></div><span class="tabular-nums w-8 text-right">0.40</span></div>
+              </div>
+              <p class="text-[11.5px] text-muted-foreground mt-3">Preset más cercano: <strong class="text-foreground">☀️ Cálida y Cercana</strong> (similitud 0.82)</p>
+            </section>
+
+            <!-- Fingerprint -->
+            <section class="mb-8">
+              <h2 class="text-[14px] font-medium mb-3">Huella lingüística detectada</h2>
+              <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-[12.5px]">
+                <div class="flex gap-2"><dt class="text-muted-foreground w-24 flex-shrink-0">Saludo</dt><dd>"Hola preciosa!"</dd></div>
+                <div class="flex gap-2"><dt class="text-muted-foreground w-24 flex-shrink-0">Despedida</dt><dd>"abrazos"</dd></div>
+                <div class="flex gap-2"><dt class="text-muted-foreground w-24 flex-shrink-0">Emojis</dt><dd>💛 🌿 ✨ 😊 🤗</dd></div>
+                <div class="flex gap-2"><dt class="text-muted-foreground w-24 flex-shrink-0">Longitud</dt><dd>Mediana</dd></div>
+                <div class="flex gap-2 col-span-2"><dt class="text-muted-foreground w-24 flex-shrink-0">Muletillas</dt><dd>"la verdad" · "mira" · "te cuento" · "imagínate"</dd></div>
+                <div class="flex gap-2 col-span-2"><dt class="text-muted-foreground w-24 flex-shrink-0">Vocabulario</dt><dd>"preciosa" · "súper" · "brutal" · "hermoso"</dd></div>
+              </dl>
+            </section>
+
+            <!-- Examples -->
+            <section class="mb-8">
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="text-[14px] font-medium">Ejemplos generados con tu estilo</h2>
+                <button class="text-[12px] text-muted-foreground hover:text-foreground flex items-center gap-1"><i data-lucide="refresh-cw" style="width:12px;height:12px"></i>Regenerar</button>
+              </div>
+              <div class="space-y-2">
+                <div class="border border-border rounded-lg p-3.5">
+                  <p class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-2">Saludo</p>
+                  <div class="text-[12.5px] space-y-1 leading-relaxed">
+                    <p><span class="text-muted-foreground inline-block w-8">Lead</span>Hola, tengo una pregunta sobre tu programa</p>
+                    <p><span class="text-muted-foreground inline-block w-8">Tú</span>Hola preciosa! 💛 Qué bueno que me escribes. Cuéntame, ¿qué quieres saber?</p>
+                  </div>
+                </div>
+                <div class="border border-border rounded-lg p-3.5">
+                  <p class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-2">Objeción de precio</p>
+                  <div class="text-[12.5px] space-y-1 leading-relaxed">
+                    <p><span class="text-muted-foreground inline-block w-8">Lead</span>Está caro para mí</p>
+                    <p><span class="text-muted-foreground inline-block w-8">Tú</span>Mira, te entiendo 💛 la verdad es que yo también pasé por eso. ¿Te cuento cómo lo hizo Lu que estaba en tu misma situación?</p>
+                  </div>
+                </div>
+                <div class="border border-border rounded-lg p-3.5">
+                  <p class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-2">Cierre</p>
+                  <div class="text-[12.5px] space-y-1 leading-relaxed">
+                    <p><span class="text-muted-foreground inline-block w-8">Lead</span>Ok, me decido. ¿Cómo pago?</p>
+                    <p><span class="text-muted-foreground inline-block w-8">Tú</span>Ay hermoso! ✨ Te paso el link y cualquier duda me avisas 💛</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-between gap-2 pt-5 border-t border-border">
+              <a href="estilo-clone-step1.html" class="text-[12.5px] text-muted-foreground hover:text-foreground flex items-center gap-1"><i data-lucide="x" style="width:13px;height:13px"></i>Descartar</a>
+              <div class="flex gap-2">
+                <button class="inline-flex items-center gap-1.5 px-3 h-8 text-[12.5px] border border-border rounded-md hover:bg-muted/40"><i data-lucide="save" style="width:12px;height:12px"></i>Guardar borrador</button>
+                <a href="estilo-active.html" class="inline-flex items-center gap-2 px-4 h-8 text-[12.5px] bg-brand text-brand-foreground rounded-md hover:opacity-90 font-medium">
+                  <i data-lucide="sparkles" style="width:13px;height:13px"></i>Activar este estilo
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

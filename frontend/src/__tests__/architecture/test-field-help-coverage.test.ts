@@ -12,39 +12,37 @@
 
 import { describe, expect, it } from "vitest";
 
+import { authorityItemSchema } from "@/features/brand-studio/schemas/authority-item.schema";
+import { avatarsSchema } from "@/features/brand-studio/schemas/avatars.schema";
+import { buyerPersonaSchema } from "@/features/brand-studio/schemas/buyer-persona.schema";
+import { communicationAssetsSchema } from "@/features/brand-studio/schemas/communication-assets.schema";
+import { contactSchema } from "@/features/brand-studio/schemas/contact.schema";
 import { identitySchema } from "@/features/brand-studio/schemas/identity.schema";
 import { legalSchema } from "@/features/brand-studio/schemas/legal.schema";
-import { positioningSchema } from "@/features/brand-studio/schemas/positioning.schema";
-import { buyerPersonaSchema } from "@/features/brand-studio/schemas/buyer-persona.schema";
-import { narrativeSchema } from "@/features/brand-studio/schemas/narrative.schema";
-import { methodologySchema } from "@/features/brand-studio/schemas/methodology.schema";
-import { storySchema } from "@/features/brand-studio/schemas/story.schema";
-import { voiceSchema } from "@/features/brand-studio/schemas/voice.schema";
-import { personalitySchema } from "@/features/brand-studio/schemas/personality.schema";
-import { contactSchema } from "@/features/brand-studio/schemas/contact.schema";
 import { logosSchema } from "@/features/brand-studio/schemas/logos.schema";
-import { visualsSchema } from "@/features/brand-studio/schemas/visuals.schema";
-import { avatarsSchema } from "@/features/brand-studio/schemas/avatars.schema";
-import { communicationAssetsSchema } from "@/features/brand-studio/schemas/communication-assets.schema";
-import { authorityItemSchema } from "@/features/brand-studio/schemas/authority-item.schema";
-import { testimonialItemSchema } from "@/features/brand-studio/schemas/testimonial-item.schema";
+import { methodologySchema } from "@/features/brand-studio/schemas/methodology.schema";
+import { narrativeSchema } from "@/features/brand-studio/schemas/narrative.schema";
+import { personalitySchema } from "@/features/brand-studio/schemas/personality.schema";
+import { positioningSchema } from "@/features/brand-studio/schemas/positioning.schema";
+import { storySchema } from "@/features/brand-studio/schemas/story.schema";
 import { teamMemberItemSchema } from "@/features/brand-studio/schemas/team-member-item.schema";
-
-import { offerIdentitySchema } from "@/features/offer-studio/schemas/identity.schema";
-import { offerPromiseSchema } from "@/features/offer-studio/schemas/promise.schema";
-import { offerValueStackSchema } from "@/features/offer-studio/schemas/value-stack.schema";
-import { offerStrategySchema } from "@/features/offer-studio/schemas/strategy.schema";
-import { offerPsychologySchema } from "@/features/offer-studio/schemas/psychology.schema";
+import { testimonialItemSchema } from "@/features/brand-studio/schemas/testimonial-item.schema";
+import { visualsSchema } from "@/features/brand-studio/schemas/visuals.schema";
 import { offerClosingSchema } from "@/features/offer-studio/schemas/closing.schema";
-import { offerPricingSchema } from "@/features/offer-studio/schemas/pricing.schema";
-import { offerProgramDetailsSchema } from "@/features/offer-studio/schemas/program-details.schema";
-import { offerServiceDetailsSchema } from "@/features/offer-studio/schemas/service-details.schema";
 import { offerEventDetailsSchema } from "@/features/offer-studio/schemas/event-details.schema";
-import { offerTestimonialsSchema } from "@/features/offer-studio/schemas/testimonials.schema";
-import { offerPortfolioSchema } from "@/features/offer-studio/schemas/portfolio.schema";
 import { offerFaqSchema } from "@/features/offer-studio/schemas/faq.schema";
 import { offerGallerySchema } from "@/features/offer-studio/schemas/gallery.schema";
+import { offerIdentitySchema } from "@/features/offer-studio/schemas/identity.schema";
 import { offerKnowledgeSchema } from "@/features/offer-studio/schemas/knowledge.schema";
+import { offerPortfolioSchema } from "@/features/offer-studio/schemas/portfolio.schema";
+import { offerPricingSchema } from "@/features/offer-studio/schemas/pricing.schema";
+import { offerProgramDetailsSchema } from "@/features/offer-studio/schemas/program-details.schema";
+import { offerPromiseSchema } from "@/features/offer-studio/schemas/promise.schema";
+import { offerPsychologySchema } from "@/features/offer-studio/schemas/psychology.schema";
+import { offerStrategySchema } from "@/features/offer-studio/schemas/strategy.schema";
+import { offerValueStackSchema } from "@/features/offer-studio/schemas/value-stack.schema";
+import { offerServiceDetailsSchema } from "@/features/offer-studio/schemas/service-details.schema";
+import { offerTestimonialsSchema } from "@/features/offer-studio/schemas/testimonials.schema";
 import { offerResourcesSchema } from "@/features/offer-studio/schemas/resources.schema";
 
 import type { FieldSchema, SectionSchema } from "@/lib/form-runtime/schema";
@@ -170,7 +168,6 @@ const ALL_SCHEMAS: [string, SectionSchema][] = [
   ["narrative", narrativeSchema],
   ["methodology", methodologySchema],
   ["story", storySchema],
-  ["voice", voiceSchema],
   ["personality", personalitySchema],
   ["contact", contactSchema],
   ["logos", logosSchema],

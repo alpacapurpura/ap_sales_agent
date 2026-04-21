@@ -15,8 +15,6 @@ import {
 } from "@/features/brand-studio/types/personality";
 import { cn } from "@/lib/utils";
 
-import type { ActionComponentProps } from "@/lib/form-runtime/actions";
-
 const DIMENSION_ORDER: (keyof PersonalityDimensions)[] = [
   "energy",
   "warmth",
@@ -31,7 +29,7 @@ const DIMENSION_MIN = 0;
 const DIMENSION_MAX = 1;
 const DIMENSION_STEP = 0.25;
 
-const DEFAULT_DIMENSIONS: PersonalityDimensions = {
+export const DEFAULT_DIMENSIONS: PersonalityDimensions = {
   energy: 0.5,
   warmth: 0.5,
   humor: 0.5,
@@ -40,13 +38,14 @@ const DEFAULT_DIMENSIONS: PersonalityDimensions = {
   verbosity: 0.5,
 };
 
-interface DimensionSliderProps {
+interface DimensionSliderRowProps {
   dimension: keyof PersonalityDimensions;
   value: number;
   onChange: (val: number) => void;
+  disabled?: boolean;
 }
 
-function DimensionSlider({ dimension, value, onChange }: DimensionSliderProps) {
+function DimensionSliderRow({ dimension, value, onChange, disabled }: DimensionSliderRowProps) {
   const { label, low, high } = DIMENSION_LABELS[dimension];
   const levelName = getDimensionLevelName(dimension, value);
   const levels = DIMENSION_LEVEL_NAMES[dimension];
@@ -73,7 +72,12 @@ function DimensionSlider({ dimension, value, onChange }: DimensionSliderProps) {
         step={DIMENSION_STEP}
         value={[value]}
         onValueChange={handleValueChange}
+        disabled={disabled}
         aria-label={label}
+        aria-valuemin={DIMENSION_MIN}
+        aria-valuemax={DIMENSION_MAX}
+        aria-valuenow={value}
+        aria-valuetext={levelName}
       />
 
       <div className="flex items-center justify-between text-[10px] text-muted-foreground">
@@ -96,24 +100,37 @@ function DimensionSlider({ dimension, value, onChange }: DimensionSliderProps) {
   );
 }
 
+export interface DimensionsFormProps {
+  /** Profile ID is required to call PUT /{profileId}/dimensions. */
+  profileId: string;
+  /** Initial dimensions — defaults to 0.5 on every axis if omitted. */
+  initial?: PersonalityDimensions;
+  /** Called after a successful save with the persisted dimensions. */
+  onSave?: (dimensions: PersonalityDimensions) => void;
+  /** Whether the mutation is currently in flight (external control). */
+  isPending?: boolean;
+}
+
 /**
- * DimensionSliders action — fine-tunes the personality profile's 6
- * dimensions (energy, warmth, humor, expressiveness, narrative, verbosity).
- * Each slider is a shadcn Slider snapped to 5 discrete steps (0, 0.25, …, 1).
+ * Standalone dimensions editor for a `PersonalityProfile`. Renders 6
+ * labeled sliders (energy, warmth, humor, expressiveness, narrative,
+ * verbosity) snapped to 5 discrete steps (0, 0.25, …, 1). Shows an
+ * explicit "Guardar dimensiones" button only when values have changed.
  *
- * Local state tracks edits; `Guardar dimensiones` fires the backend mutation
- * and, on success, bubbles the new dimensions via `onChange` so the form-runtime
- * mirrors the persisted value. Explicit save (not autosave) because the
- * backend mutation is authoritative and cache invalidation happens there.
+ * Extracted from `DimensionSlidersAction` so it can be used both by the
+ * action wrapper and by the new `DimensionsPanel` in the Estilo section.
  */
-export function DimensionSlidersAction({
-  value,
-  onChange,
-}: ActionComponentProps<PersonalityDimensions | null>) {
-  const initial = value ?? DEFAULT_DIMENSIONS;
-  const [dims, setDims] = useState<PersonalityDimensions>(initial);
+export function DimensionsForm({
+  profileId,
+  initial,
+  onSave,
+  isPending: externalPending,
+}: DimensionsFormProps) {
+  const [dims, setDims] = useState<PersonalityDimensions>(initial ?? DEFAULT_DIMENSIONS);
   const [isDirty, setIsDirty] = useState(false);
   const updateDimensions = useUpdateDimensions();
+
+  const isPending = externalPending ?? updateDimensions.isPending;
 
   const handleChange = useCallback(
     (dim: keyof PersonalityDimensions) => (next: number) => {
@@ -125,24 +142,25 @@ export function DimensionSlidersAction({
 
   const handleSave = useCallback(async () => {
     try {
-      await updateDimensions.mutateAsync(dims);
+      await updateDimensions.mutateAsync({ profileId, dimensions: dims });
       toast.success("Dimensiones guardadas.");
       setIsDirty(false);
-      onChange(dims);
+      onSave?.(dims);
     } catch {
       toast.error("No se pudo guardar. Inténtalo de nuevo.");
     }
-  }, [updateDimensions, dims, onChange]);
+  }, [updateDimensions, profileId, dims, onSave]);
 
   return (
     <div className="space-y-6">
       <div className="space-y-5">
         {DIMENSION_ORDER.map((dim) => (
-          <DimensionSlider
+          <DimensionSliderRow
             key={dim}
             dimension={dim}
             value={dims[dim]}
             onChange={handleChange(dim)}
+            disabled={isPending}
           />
         ))}
       </div>
@@ -151,10 +169,11 @@ export function DimensionSlidersAction({
         <Button
           size="sm"
           onClick={handleSave}
-          disabled={updateDimensions.isPending}
+          disabled={isPending}
           className="w-full sm:w-auto"
+          aria-label="Guardar dimensiones"
         >
-          {updateDimensions.isPending ? (
+          {isPending ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
           ) : (
             <Save className="mr-2 h-4 w-4" aria-hidden />

@@ -14,13 +14,11 @@ import { legalSchema } from "./legal.schema";
 import { logosSchema } from "./logos.schema";
 import { methodologySchema } from "./methodology.schema";
 import { narrativeSchema } from "./narrative.schema";
-import { personalitySchema } from "./personality.schema";
 import { positioningSchema } from "./positioning.schema";
 import { storySchema } from "./story.schema";
 import { teamMemberItemSchema } from "./team-member-item.schema";
 import { testimonialItemSchema } from "./testimonial-item.schema";
 import { visualsSchema } from "./visuals.schema";
-import { voiceSchema } from "./voice.schema";
 
 import type { SectionSchema } from "@/lib/form-runtime/schema";
 
@@ -35,13 +33,11 @@ export {
   logosSchema,
   methodologySchema,
   narrativeSchema,
-  personalitySchema,
   positioningSchema,
   storySchema,
   teamMemberItemSchema,
   testimonialItemSchema,
   visualsSchema,
-  voiceSchema,
 };
 
 /**
@@ -52,7 +48,6 @@ export {
 export const SCHEMA_REGISTRY: Readonly<Record<string, SectionSchema>> = {
   "brand.identity": identitySchema,
   "brand.legal": legalSchema,
-  "brand.voice": voiceSchema,
   "brand.visuals": visualsSchema,
   "brand.logos": logosSchema,
   "brand.methodology": methodologySchema,
@@ -60,7 +55,6 @@ export const SCHEMA_REGISTRY: Readonly<Record<string, SectionSchema>> = {
   "brand.narrative": narrativeSchema,
   "brand.positioning": positioningSchema,
   "brand.communication-assets": communicationAssetsSchema,
-  "brand.personality": personalitySchema,
   "brand.contact": contactSchema,
   "brand.avatars": avatarsSchema,
   "brand.buyer-persona": buyerPersonaSchema,

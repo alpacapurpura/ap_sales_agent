@@ -13,12 +13,22 @@ export const positioningSchema: SectionSchema = {
       rows: 3,
       hint: "El beneficio específico que solo tú das y que tu cliente ideal más valora.",
       examples: [
-        { brand: "Coach ejecutiva (CDMX)", text: "Líderas equipos remotos sin perder tu bienestar ni tu vida personal en 12 semanas." },
-        { brand: "Agencia de marketing (Bogotá, CO)", text: "Triplicamos tu ROI en Meta Ads en 90 días o devolvemos el mes de retainer." },
-        { brand: "Nutricionista (Santiago, CL)", text: "Normalización de tu relación con la comida sin dietas restrictivas ni conteos de calorías." },
+        {
+          brand: "Coach ejecutiva (CDMX)",
+          text: "Líderas equipos remotos sin perder tu bienestar ni tu vida personal en 12 semanas.",
+        },
+        {
+          brand: "Agencia de marketing (Bogotá, CO)",
+          text: "Triplicamos tu ROI en Meta Ads en 90 días o devolvemos el mes de retainer.",
+        },
+        {
+          brand: "Nutricionista (Santiago, CL)",
+          text: "Normalización de tu relación con la comida sin dietas restrictivas ni conteos de calorías.",
+        },
       ],
       formula: {
-        template: "Para <slot>quién</slot> que <slot>tiene este problema</slot>, <slot>tu marca</slot> es <slot>categoría</slot> que <slot>beneficio único</slot>.",
+        template:
+          "Para <slot>quién</slot> que <slot>tiene este problema</slot>, <slot>tu marca</slot> es <slot>categoría</slot> que <slot>beneficio único</slot>.",
       },
       downstreamUses: [
         { label: "Hero de landings" },
@@ -110,9 +120,18 @@ export const positioningSchema: SectionSchema = {
             required: true,
             hint: "La afirmación concreta que prueba tu propuesta. Con números siempre que sea posible.",
             examples: [
-              { brand: "Coach ejecutiva (CDMX)", text: "+200 líderes graduados con un 87% que reportó aumento de productividad." },
-              { brand: "Agencia digital (Lima, PE)", text: "ROI promedio de 3.4x en 60 días para e-commerce de salud y bienestar." },
-              { brand: "Consultor financiero (Buenos Aires, AR)", text: "Certificado CFP con 12 años de experiencia gestionando carteras +USD 5M." },
+              {
+                brand: "Coach ejecutiva (CDMX)",
+                text: "+200 líderes graduados con un 87% que reportó aumento de productividad.",
+              },
+              {
+                brand: "Agencia digital (Lima, PE)",
+                text: "ROI promedio de 3.4x en 60 días para e-commerce de salud y bienestar.",
+              },
+              {
+                brand: "Consultor financiero (Buenos Aires, AR)",
+                text: "Certificado CFP con 12 años de experiencia gestionando carteras +USD 5M.",
+              },
             ],
           },
           {

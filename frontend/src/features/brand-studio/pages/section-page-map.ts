@@ -1,5 +1,6 @@
 import {
   CommunicationAssetsPage,
+  CommunicationStylePage,
   ContactPage,
   IdentityPage,
   LegalPage,
@@ -24,13 +25,14 @@ import {
  * the normal client boundary.
  *
  * Special sections NOT listed here (separate hooks or nested shapes):
- *   - personality  → own API via usePersonalityHooks (Sprint 2 deferred).
- *   - voice        → subset of identity (voice_tone); renders under identity page.
+ *   - estilo       → top-level "Estilo Comunicacional" section registered here,
+ *                    backed by personality_profiles table (not BrandSettings JSONB).
  *   - logos        → nested under visuals.logos; renders under visuals page.
  *   - avatars      → sub-entity, covered by PersonaDetailPage.
  */
 export const SECTION_PAGE_MAP = {
   identity: IdentityPage,
+  estilo: CommunicationStylePage,
   legal: LegalPage,
   visuals: VisualsPage,
   contact: ContactPage,

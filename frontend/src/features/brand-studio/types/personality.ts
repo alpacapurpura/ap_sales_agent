@@ -37,7 +37,7 @@ export interface PresetSummary {
 export interface PersonalityProfile {
   id: string;
   name: string;
-  profile_type: "preset" | "cloned" | "interview" | "manual";
+  profile_type: "preset" | "cloned" | "interview" | "manual" | "migrated_from_voice_tone";
   preset_key: string | null;
   is_active: boolean;
   dimensions: PersonalityDimensions;
@@ -58,6 +58,18 @@ export interface SimulationResponse {
     agent_response: string;
   }[];
 }
+
+export interface FromVoiceToneResponse {
+  profile: PersonalityProfile;
+  source_voice_tone: string;
+  matched_preset_key: string | null;
+  match_confidence: number;
+}
+
+/** profile_type values including migrated option from legacy voice_tone. */
+export type PersonalityProfileType =
+  | PersonalityProfile["profile_type"]
+  | "migrated_from_voice_tone";
 
 export const DIMENSION_LABELS: Record<
   keyof PersonalityDimensions,
