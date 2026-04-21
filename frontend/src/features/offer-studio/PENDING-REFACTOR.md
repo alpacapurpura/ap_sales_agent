@@ -1,153 +1,144 @@
 # Offer Studio — Refactor Status (2026-04-20)
 
-## COMPLETED — F1 → F3 + F7.1 (brand-parity architecture)
+## COMPLETED — F1 → F9 (full brand-parity)
 
-Offer Studio now mirrors the brand-studio architectural pattern at the
-foundation, UX, routing, and backend copilot layers. The legacy shell
-still co-exists under `components/container/` + `components/navigation/`
-+ `components/editor/` + `context/` + `config/` — deletion tracked below
-as follow-up work.
+Offer Studio homologation with brand-studio architecture, UX, routing and
+backend copilot layers. 7 phases landed in `development`; snapshot lives
+in `docs/domains/offer-studio/architecture.md`.
 
 ### F1 — Foundation alignment (3 commits)
 
-- ✅ **F1.1** — Actions registry homologated with brand pattern
-  (`OFFER_STUDIO_ACTION_KEYS` tuple + typed `REGISTRY_ENTRIES` record +
-  idempotent `bootstrapOfferStudioActions()` + auto-bootstrap on module
-  load). 4 tests.
-- ✅ **F1.2** — `useOfferSettings(offerId)` aggregator hook + 14 typed
-  per-section updaters + wired `section-pages.tsx` factory so the
-  scaffold now saves real data via `saveSection`. 8 tests.
+- ✅ **F1.1** — Actions registry homologated (`OFFER_STUDIO_ACTION_KEYS`
+  tuple + `REGISTRY_ENTRIES` + idempotent `bootstrapOfferStudioActions()`
+  + auto-bootstrap). 4 tests.
+- ✅ **F1.2** — `useOfferSettings(offerId)` aggregator + 14 typed
+  per-section updaters + wired `section-pages.tsx` factory. 8 tests.
 - ✅ **F1.3** — `OfferStudioNavRail` + `OfferStudioBreadcrumb` flat
-  components driven purely by `usePathname`, consuming
-  `lib/section-catalog.ts` (not the legacy `config/`). 17 tests.
+  components driven by `usePathname` + `lib/section-catalog.ts`. 17 tests.
 
 ### F2 — Polymorphic VariantRail (2 commits)
 
-- ✅ **F2.1** — `components/variant-rail/` — polymorphic rail that
-  dispatches per `variant_structure` (Temporal / Tier / Sku / Regional /
-  Modality / Language / + fallback). 72 tests across 8 test files.
-- ✅ **F2.2** — `useShouldShowVariantRail` hook + `buildNoVariantRedirect`
-  helper for the no-variant single-edition UX (lead-magnet / ebook).
-  9 tests.
+- ✅ **F2.1** — `components/variant-rail/` polymorphic dispatch per
+  `variant_structure` (Temporal / Tier / Sku / Regional / Modality /
+  Language / fallback). 72 tests across 8 files.
+- ✅ **F2.2** — `useShouldShowVariantRail` + `buildNoVariantRedirect`
+  for no-variant single-edition UX (lead-magnet / ebook). 9 tests.
 
 ### F3 — App route migration (1 commit)
 
 - ✅ URL contract moved to brand pattern (`/offer/{id}/editor/{section}`
-  replaces `/offer/{id}/edition/{code}/{section}`). 30-day redirect shim
-  preserves bookmarks. 11 tests covering matcher + builder.
+  replaces `/offer/{id}/edition/{code}/{section}`). 30-day redirect shim.
 - ✅ `OfferShellLayout` client shell with conditional VariantRail mount.
-- ✅ Collection routes (`testimonials`, `instructors`, `faq`) landing +
-  detail pages using brand's InstancePicker pattern. Wired to stub hooks
-  until F7 supplies backend APIs.
+- ✅ Collection routes (testimonials, instructors, faq) using brand's
+  InstancePicker pattern.
 - ✅ `EditionsManagementClient` + server route renders
   `VariantCollectionLandingPage` with polymorphic card dispatch.
-- ✅ `/offer-studio/interview/` route deleted (copilot is sidebar, not
-  page — D5).
+- ✅ `/offer-studio/interview/` deleted (copilot is sidebar — D5).
 
-### F7.1 — Backend copilot section tools (1 commit)
+### F4 — Retire legacy shell (commit `0018493b`)
 
-- ✅ `backend/src/modules/copilot/application/tools/offer_section_tools.py`
-  — 17 tools decorated with LangChain `@tool`, grouped by section:
-  - **Identity/Promise/Strategy** (6): `adapt_from_brand_identity`,
-    `adapt_from_brand_narrative`, `rewrite_tones`,
-    `validate_preset_coherence`, `reuse_brand_buyer_personas`,
-    `inherit_brand_methodology`.
-  - **Pricing** (3): `high_ticket_tiering_template`,
-    `recurring_billing_setup`, `detect_currency_mismatch`.
-  - **Schedule / Location** (2): `import_scheduling_event_type`,
-    `detect_hybrid_split`.
-  - **Testimonials / Value stack** (4): `import_from_brand_vault`,
-    `suggest_missing_objections`, `assemble_from_brand_authority`,
-    `reuse_brand_team`.
-  - **FAQ** (2): `generate_from_preset_flags`,
-    `pull_sales_agent_common_questions`.
-- ✅ No cross-module imports — all cross-reads via lazy-imported port
-  shims. Pure application layer, no SQLAlchemy/FastAPI at module level.
-- ✅ Tenant isolation via `get_tenant_id()` context var on every tool.
-- ✅ 51 tests (happy-path + missing-data edge cases + tenant isolation)
-  + arch test in `tests/architecture/test_copilot_registry.py`.
-- ✅ Per-file ruff exceptions documented in `pyproject.toml`.
+- ✅ Deleted `OfferShell`, `OfferShellHeaderRow1`, `OfferShellContext` +
+  `OfferAutoSaveContext` (no consumers need global shell state — FSD
+  per-route state via URL + React Query).
+- ✅ Deleted `editor/OfferEditSheetManager`, `OfferEditorContent`,
+  `OfferSectionWrapper`, `OfferLivePreview`, `offer-section/OfferSection`.
+- ✅ New flat `components/OfferShellHeader.tsx` (prop-based, no context).
+- ✅ `layout.tsx` switched `OfferShell` → `OfferShellLayout`.
+- ✅ Consumers in `/assets`, `/ventas`, `/campaigns`, `/editions/*`
+  migrated to direct React Query + `use(params)` — no context dependency.
+- ✅ `/editions/[editionId]/page.tsx` replaced with 307 redirect to
+  `/editor`.
 
-**Quality snapshot post-F3+F7.1:**
+### F5 — Folder flatten + codemod (commit `3da7cd85`)
 
-- Backend: 431 tests pass (380 arch + 51 copilot), ruff + format clean.
-- Frontend: 1515 tests pass (+72 F2.1 + 20 F1-F3 tests), tsc clean.
-- Zero new arch allowlist entries.
+- ✅ Flatten `components/container/` → flat `components/` + symbol renames
+  (`AutoSaveIndicator` → `OfferAutoSaveIndicator`, `OfferTabBar` →
+  `OfferStudioTabBar`).
+- ✅ Deleted `components/navigation/OfferNavRail.tsx` (replaced by F1.3),
+  `components/container/EditionsRail.tsx` +
+  `components/container/EditionsRailCollapsed.tsx` (replaced by F2,
+  no live consumers).
+- ✅ Renamed `components/wizard/` → `components/legacy-wizard/` (D8 —
+  matches brand's `legacy-team/`).
+- ✅ Redistributed `tests/` top-level to colocated `__tests__/` per
+  domain (api, utils, hooks, components/dashboard, components/editions)
+  + fixtures moved to `__tests__/fixtures/` feature root.
+- ✅ Arch test allowlist shrunk (removed stale `OfferLivePreview` entry
+  + re-pointed `tests/` paths to `__tests__/`).
+
+### F6 — Delete config + dead editor subtree (commit `207adb32`)
+
+- ✅ Deleted `config/offer-builder-config.ts` + `config/` dir (D9
+  anti-pattern — replaced by `lib/section-catalog.ts` +
+  `actions/registry.ts`).
+- ✅ Deleted entire `components/editor/` tree (`sections/`, `ui/`,
+  `components/` — all dead after config removal). 40+ files, ~7000 LOC.
+- ✅ Cleaned stale entries in `design-system/registry-features.ts`.
+
+### F7 — Copilot section tools
+
+- ✅ **F7.1** (commit `5c4a6e44`) — backend
+  `offer_section_tools.py` with 17 `@tool` functions grouped by section.
+  No cross-module imports (lazy via `shared/links/ports/`). 51 tests +
+  `test_copilot_registry.py` arch gate.
+- ✅ **F7.2** (commit `ab5724a7`) — REST endpoint
+  `POST /api/v1/copilot/offer-section-tools/{tool_key}` +
+  frontend `useOfferCopilot` hook + `OfferSectionCopilot` sidebar
+  component wired as `copilotSlot` in `section-pages.tsx` factory.
+  `onApplyDraft` handler sets form values with `shouldDirty: true` —
+  NO write-through (R3). 18 new frontend tests + 9 new backend tests.
+
+### F8 — E2E Playwright suite (commit `e4f10568`)
+
+- ✅ `fixtures/offer-studio.fixture.ts` — per-`variant_structure` mock
+  factories (TIER, SKU, REGIONAL, MODALITY, LANGUAGE, TEMPORAL_COHORT,
+  lead-magnet no-variant) + mocked copilot endpoint.
+- ✅ `pages/offer-studio.page.ts` — POM extended (getVariantRail,
+  getEditionsTab, getCopilotCards, applyCopilotSuggestion, ...).
+- ✅ `specs/smoke/offer-studio-homologation.smoke.spec.ts` — Journeys
+  A / E / F (7 tests).
+- ✅ `specs/regression/offer-variants-polymorphic.regression.spec.ts` —
+  one test per variant_structure (6 tests).
+- ✅ `specs/regression/offer-copilot-per-section.regression.spec.ts` —
+  suggestion cards, empty state, apply flow, error toast (7 tests).
+
+### F9 — Final validation + docs (this commit)
+
+- ✅ Full suite green: backend ruff + format + 948 tests (arch + copilot);
+  frontend TSC + 1512 tests + 17 arch gates.
+- ✅ `docs/domains/offer-studio/architecture.md` snapshot written —
+  canonical post-refactor reference for folder layout, URL contract,
+  SSoT catalog, shell composition, copilot integration, variant
+  dispatch, test layout, arch fitness.
+- ✅ PENDING-REFACTOR.md updated (this file).
 
 ---
 
-## PENDING — Follow-up work (next sprint)
+## Quality snapshot post-F9
 
-These items are non-blocking for the brand-parity architecture goal.
-Each is a well-scoped independent commit.
+- **Backend:** 948 tests (arch + full copilot module) pass. Ruff + format
+  clean. Zero new arch allowlist entries across all 7 phases.
+- **Frontend:** 1512 vitest tests + 20 Playwright tests (pending
+  container-based execution in CI). TSC clean. Zero new eslint errors
+  introduced by F4-F9 (pre-existing errors in VariantCard / variant-
+  structure-catalog / SectionCardLayout untouched).
+- **Lines:** F4+F5+F6 removed ~9500 lines net; F7.2+F8 added ~1500 lines.
 
-### F4 — Retire legacy shell / editor
+## Legacy scheduled for removal
 
-| File | Action | Blocked by |
-|---|---|---|
-| `components/container/OfferShell.tsx` | Delete | All consumers migrated to `OfferShellLayout` |
-| `components/container/OfferShellHeaderRow1.tsx` | Delete | Same |
-| `context/OfferShellContext.tsx` + `context/` dir | Delete | Consumers read React Query direct |
-| `components/editor/OfferEditSheetManager.tsx` | Delete | F3 section catch-all replaces it |
-| `components/editor/OfferEditorContent.tsx` | Delete | Same |
-| `components/editor/OfferSectionWrapper.tsx` | Delete | `UniversalEditableSection` layout handles it |
-| `app/.../offer/[id]/edition/[code]/.../page.tsx` | Delete after 2026-05-20 | 30-day redirect shim window |
+- `app/.../offer/[id]/edition/{code}/[section]/[[...fieldId]]/page.tsx`
+  — 30-day 301 redirect shim. Retires **2026-05-20**.
 
-Migrate consumers at `/assets`, `/ventas`, `/campaigns` to read React Query
-directly (no context dependency).
+## Known follow-ups (non-blocking)
 
-### F5 — Folder flatten (cosmetic, wide imports)
-
-Match brand-studio's flat shape via codemod:
-
-- `components/navigation/OfferNavRail.tsx` → DELETE (replaced by
-  `OfferStudioNavRail` in F1.3).
-- `components/container/OfferTabBar.tsx` → `components/OfferStudioTabBar.tsx`
-- `components/container/EditionsRail.tsx` → DELETE (replaced by
-  `variant-rail/VariantRail.tsx` in F2).
-- `components/container/EditionsRailCollapsed.tsx` → `components/VariantRailCollapsed.tsx`
-- `components/container/AutoSaveIndicator.tsx` → `components/OfferAutoSaveIndicator.tsx`
-- `components/wizard/` → `components/legacy-wizard/`
-- `components/editor/OfferLivePreview.tsx` → `components/OfferLivePreview.tsx`
-- `tests/` top-level → redistribute to `__tests__/` colocated per feature.
-
-Single PR with grep-sed codemod on imports.
-
-### F6 — Delete `config/offer-builder-config.ts`
-
-- Delete file + `config/` dir.
-- Last consumers already removed (NavRail reads `lib/section-catalog.ts`
-  + `actions/registry.ts` since F1).
-- Arch test `test-feature-structure` (ratchet) should pass without
-  allowlist change.
-
-### F7.2 — Frontend copilot sidebar
-
-- `components/OfferSectionCopilot.tsx` — suggestion cards + action
-  buttons + draft-preview UX per prototype `variant-tier.html` /
-  `section-pricing.html` copilot column.
-- `hooks/use-offer-copilot.ts` — invokes `POST /copilot/tools/{tool_key}`
-  + applies `draft_fields` as pending form patch.
-- Wire `copilotSlot={<OfferSectionCopilot …/>}` from each section page
-  (already supported by `SectionPage.copilotSlot` in Sprint 15.1).
-
-### F8 — E2E Playwright coverage
-
-- `frontend/e2e/specs/smoke/offer-studio-homologation.smoke.spec.ts`:
-  - Journey A (create offer → wizard → editor → save).
-  - Journey E (no-variant: verify NO VariantRail, NO Editions tab).
-  - Journey F (variant switch via rail → editor auto-filters).
-- `frontend/e2e/specs/regression/offer-variants-polymorphic.regression.spec.ts`
-  per variant_structure (TIER / SKU / REGIONAL / MODALITY / LANGUAGE /
-  TEMPORAL_COHORT).
-- `frontend/e2e/specs/regression/offer-copilot-per-section.regression.spec.ts`
-  after F7.2 lands.
-
-### F9 — Full-suite `/test-all` + docs snapshot
-
-- Run `/test-all` natively — ratchet arch allowlists green.
-- Create `docs/domains/offer-studio/architecture.md` snapshot mirroring
-  `docs/domains/brand-studio/`.
+- Legacy wizard (`components/legacy-wizard/`) may evolve when
+  Sprint 13 wizard gets retired.
+- `/editions/[editionId]/*` subtree currently redirects to `/editor` —
+  per-edition tab views (`/assets`, `/campaigns`, `/ventas`) are
+  scheduled for deletion when EditionsManagementClient links swap to
+  `?edition={code}` query params (FLOW-SPEC §4).
+- Deep collection routes (`testimonials/`, `instructors/`, `faq/`)
+  currently wire against stub APIs; real backend list endpoints pending.
 
 ---
 
@@ -157,24 +148,19 @@ Single PR with grep-sed codemod on imports.
 # Backend
 cd backend && .venv/bin/ruff check src/ tests/ --no-cache
 cd backend && .venv/bin/ruff format --check src/ tests/
-cd backend && .venv/bin/pytest tests/architecture/ -x -q
-cd backend && .venv/bin/pytest tests/modules/copilot/ -x -q
+cd backend && .venv/bin/pytest tests/architecture/ tests/modules/copilot/ -x -q
 
 # Frontend
 cd frontend && npx tsc --noEmit
 cd frontend && npx vitest run
 cd frontend && npx vitest run src/__tests__/architecture/
-cd frontend && npx eslint src/ --cache
+cd frontend && ./node_modules/.bin/eslint src/ --cache --cache-location .eslintcache
+
+# E2E (requires dev containers up: docker compose up -d)
+cd /home/chris/AISALESHT && bash scripts/e2e-preflight.sh
+cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke --grep @smoke
+cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=regression --grep @regression
 ```
 
-All must pass. Arch allowlists may only SHRINK, never GROW.
-
-## Parallel-safety notes
-
-- Legacy shell (F4 work) still active — `OfferShell` + `OfferShellContext`
-  still wired in the current `layout.tsx` until F4 swaps it for
-  `OfferShellLayout`.
-- Both `EditionsRail` (legacy temporal-only) and `VariantRail`
-  (polymorphic, new) exist side-by-side. Consumers migrate in F4/F5.
-- `section-pages.tsx` factory still takes `(offerId, editionCode)` props
-  — F4 will harmonise the signature once the legacy catch-all is removed.
+Architecture snapshot: `docs/domains/offer-studio/architecture.md`.
+Session spec + decisions: `docs/ux-sessions/2026-04-20-offer-studio-homologation/`.
