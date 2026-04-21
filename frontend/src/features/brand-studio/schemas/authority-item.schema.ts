@@ -27,6 +27,7 @@ export const authorityItemSchema: SectionSchema = {
       path: "entity_name",
       required: true,
       placeholder: "Ej: Forbes, Harvard, Google, etc.",
+      hint: "Nombre del organismo, medio o empresa que te avala. El SDR lo cita como prueba social al presentarte.",
       group: "Identidad",
       lengthHint: { ideal: [2, 60] },
     },
@@ -36,6 +37,7 @@ export const authorityItemSchema: SectionSchema = {
       type: "enum",
       path: "authority_type",
       required: true,
+      hint: "Categoría del respaldo: certificación, premio, mención en medios o publicación. El agente lo usa como prueba social al cerrar.",
       options: [
         { value: "certification", label: "Certificación" },
         { value: "award", label: "Premio" },

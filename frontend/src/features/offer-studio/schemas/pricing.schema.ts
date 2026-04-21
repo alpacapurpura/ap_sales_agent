@@ -67,7 +67,7 @@ export const offerPricingSchema: SectionSchema = {
       path: "accepted_payment_providers",
       owner: "offer",
       action: "payment-provider-picker",
-      hint: "Selecciona los métodos de pago que ofreces para esta oferta. El selector muestra sólo los providers que tienes conectados en Configuración → Conexiones (MercadoPago, Culqi, Stripe, PayPal, manual). Si todavía no conectaste ninguno, hazlo primero en Conexiones.",
+      hint: "Métodos de pago habilitados para esta oferta. Solo muestra los providers conectados en Configuración → Conexiones. Si no conectaste ninguno, hazlo primero.",
     },
     {
       id: "installments_available",

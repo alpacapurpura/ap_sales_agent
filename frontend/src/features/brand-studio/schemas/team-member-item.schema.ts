@@ -27,6 +27,7 @@ export const teamMemberItemSchema: SectionSchema = {
       path: "name",
       required: true,
       placeholder: "Ej: María García",
+      hint: "Nombre completo de la persona. Aparecerá en landings y testimonios donde se cite al equipo.",
       group: "Identidad",
       lengthHint: { ideal: [3, 60] },
     },
@@ -36,6 +37,7 @@ export const teamMemberItemSchema: SectionSchema = {
       type: "text",
       path: "role",
       placeholder: "Ej: Fundadora, Instructor, Asesor legal",
+      hint: "Cargo o especialidad dentro del equipo (ej. 'Coach de liderazgo', 'Diseñadora'). El agente lo cita al presentar al equipo.",
       group: "Identidad",
     },
     {
@@ -52,6 +54,7 @@ export const teamMemberItemSchema: SectionSchema = {
       type: "url",
       path: "headshot_url",
       placeholder: "https://…",
+      hint: "URL pública de la foto profesional. Se usa en la sección de equipo de la landing y en el perfil del Sales Agent.",
       group: "Identidad",
     },
 
@@ -81,6 +84,7 @@ export const teamMemberItemSchema: SectionSchema = {
       type: "text",
       path: "communication_style",
       placeholder: "Ej: cálido, directo, académico",
+      hint: "Cómo escribe y habla esta persona cuando representa a la marca. Útil para entrenar al agente cuando cita a cada integrante.",
       group: "Bio",
     },
 
@@ -153,6 +157,7 @@ export const teamMemberItemSchema: SectionSchema = {
             type: "url",
             path: "value",
             required: true,
+            hint: "URL de una foto adicional de la persona. Opcional, para mostrar su faceta más cercana o en acción.",
           },
         ],
       },

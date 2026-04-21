@@ -38,6 +38,7 @@ export const offerTestimonialsSchema: SectionSchema = {
               { value: "screenshot", label: "Captura de pantalla" },
             ],
             required: true,
+            hint: "Formato del testimonio. Video y antes/después convierten mejor que texto; combina formatos para más variedad.",
           },
           {
             id: "content",
@@ -63,6 +64,7 @@ export const offerTestimonialsSchema: SectionSchema = {
             path: "author_name",
             required: true,
             placeholder: "María Paula Ríos",
+            hint: "Nombre real del cliente. Junto con la foto y el país, es lo que convierte un testimonio genérico en uno creíble.",
           },
           {
             id: "author_role",

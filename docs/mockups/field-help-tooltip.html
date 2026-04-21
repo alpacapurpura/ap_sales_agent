@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Field Help Tooltip — Prototipo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              canvas: { light: "#ffffff", dark: "#0b1426" },
+              surface: { light: "#f8fafc", dark: "#141f33" },
+              surface2: { light: "#f1f5f9", dark: "#1b2741" },
+              border: { light: "#e2e8f0", dark: "#3a4766" },
+              ink: { light: "#0f172a", dark: "#e7ecf7" },
+              inkDim: { light: "#64748b", dark: "#9ca9c2" },
+              inkMuted: { light: "#94a3b8", dark: "#6d7a95" },
+              primary: { DEFAULT: "#a97bff", soft: "#472a7a" },
+              success: "#10b981",
+              warn: "#f59e0b",
+              danger: "#ef4444",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+      .dark body, body.dark-theme { background:#0b1426; color:#e7ecf7; }
+      .field-input {
+        border:1px solid; border-radius:10px; padding:10px 12px; width:100%;
+        font-size:14px; transition: border-color .15s, box-shadow .15s;
+      }
+      .field-input:focus { outline:none; box-shadow:0 0 0 3px rgba(169,123,255,.2); }
+      .light .field-input { background:#fff; border-color:#e2e8f0; color:#0f172a; }
+      .dark .field-input { background:#0b1426; border-color:#3a4766; color:#e7ecf7; }
+      .light .field-input:focus { border-color:#a97bff; }
+      .dark .field-input:focus { border-color:#a97bff; }
+      .pop { animation: pop .18s ease-out; }
+      @keyframes pop {
+        from { opacity: 0; transform: translateY(-4px) scale(.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="border-b">
+      <div class="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
+        <div>
+          <div class="text-xs uppercase tracking-wider opacity-60">Form Runtime / shared</div>
+          <h1 class="text-lg font-semibold mt-1">Field help tooltip — prototipo</h1>
+        </div>
+        <div class="flex gap-2 text-xs">
+          <button data-theme="light" class="px-3 py-1.5 rounded-md border tab-active">Light</button>
+          <button data-theme="dark" class="px-3 py-1.5 rounded-md border opacity-60">Dark</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-6 py-8 space-y-12">
+      <!-- ============== ANTES ============== -->
+      <section>
+        <h2 class="text-sm font-semibold mb-3 opacity-70 uppercase tracking-wider">
+          Antes — hint inline (actual)
+        </h2>
+        <div class="rounded-xl border p-6 themed-surface">
+          <div class="space-y-1.5">
+            <label class="block text-sm font-medium">Tono de voz <span class="text-rose-500">*</span></label>
+            <textarea class="field-input" rows="2">Cálido y directo, con toques de humor</textarea>
+            <p class="text-xs opacity-60">Cómo habla tu marca. El SDR usará este tono en todas sus conversaciones.</p>
+          </div>
+        </div>
+        <p class="mt-2 text-xs opacity-60">
+          Hint ocupa espacio permanente. No caben ejemplos/formulas. 244 de 363 campos lo usan
+          (67%); 119 campos sin ayuda.
+        </p>
+      </section>
+
+      <!-- ============== DESPUÉS ============== -->
+      <section>
+        <h2 class="text-sm font-semibold mb-3 opacity-70 uppercase tracking-wider">
+          Después — ícono ⓘ con tooltip rico
+        </h2>
+
+        <!-- Estado 1: reposo -->
+        <div class="rounded-xl border p-6 themed-surface">
+          <p class="text-[11px] opacity-50 mb-2 font-mono">Estado · reposo</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-1.5">
+              <label class="text-sm font-medium">Tono de voz <span class="text-rose-500">*</span></label>
+              <button
+                class="inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold opacity-40 hover:opacity-100 hover:bg-primary/10 hover:text-primary transition"
+                aria-label="Ver ayuda de este campo"
+                title="Ver ayuda"
+              >ⓘ</button>
+            </div>
+            <textarea class="field-input" rows="2">Cálido y directo, con toques de humor</textarea>
+          </div>
+        </div>
+
+        <!-- Estado 2: tooltip abierto -->
+        <div class="rounded-xl border p-6 themed-surface mt-4 relative">
+          <p class="text-[11px] opacity-50 mb-2 font-mono">Estado · tooltip abierto (click en ⓘ)</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-1.5 relative">
+              <label class="text-sm font-medium">Tono de voz <span class="text-rose-500">*</span></label>
+              <button
+                class="inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold text-white bg-primary"
+                aria-label="Cerrar ayuda"
+              >ⓘ</button>
+
+              <!-- Tooltip card -->
+              <div class="absolute left-0 top-7 w-[420px] pop rounded-xl border shadow-2xl overflow-hidden z-10 themed-tooltip">
+                <header class="px-4 py-3 border-b bg-primary/10 flex items-center justify-between">
+                  <div class="text-xs font-bold uppercase tracking-wider text-primary">Ayuda · Tono de voz</div>
+                  <button class="text-xs opacity-60 hover:opacity-100">✕</button>
+                </header>
+                <div class="p-4 space-y-4">
+                  <!-- Descripción -->
+                  <div>
+                    <div class="text-[10px] uppercase tracking-wider opacity-50 mb-1">Qué es</div>
+                    <p class="text-sm leading-relaxed">
+                      Cómo habla tu marca. El <span class="text-primary font-medium">SDR</span> usará este
+                      tono en todas sus conversaciones, en emails y en el copy de tus landings.
+                    </p>
+                  </div>
+
+                  <!-- Ejemplos -->
+                  <div>
+                    <div class="text-[10px] uppercase tracking-wider opacity-50 mb-2">Ejemplos</div>
+                    <div class="space-y-1.5">
+                      <div class="text-xs p-2.5 rounded-md border bg-surface2">
+                        <div class="opacity-50 text-[10px] mb-0.5">Coach ejecutiva</div>
+                        "Directo, cálido, con metáforas de liderazgo. Sin jerga corporativa."
+                      </div>
+                      <div class="text-xs p-2.5 rounded-md border bg-surface2">
+                        <div class="opacity-50 text-[10px] mb-0.5">Agencia de marketing</div>
+                        "Conversacional, irreverente, data-driven. Siempre con CTA claro."
+                      </div>
+                      <div class="text-xs p-2.5 rounded-md border bg-surface2">
+                        <div class="opacity-50 text-[10px] mb-0.5">Terapeuta</div>
+                        "Suave, empático, con pausas. Evita imperativos."
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Fórmula / plantilla -->
+                  <div>
+                    <div class="text-[10px] uppercase tracking-wider opacity-50 mb-1">Fórmula sugerida</div>
+                    <code class="block text-xs p-2 rounded-md bg-surface2 border font-mono">
+                      [3 adjetivos] · [restricción: qué NO suena]
+                    </code>
+                  </div>
+
+                  <!-- Dónde se usa -->
+                  <div>
+                    <div class="text-[10px] uppercase tracking-wider opacity-50 mb-2">Dónde se usa</div>
+                    <ul class="text-xs space-y-1">
+                      <li class="flex items-start gap-1.5"><span class="opacity-40">→</span> Prompts del sales agent (responder DMs, emails)</li>
+                      <li class="flex items-start gap-1.5"><span class="opacity-40">→</span> Copy auto-generado de landing pages</li>
+                      <li class="flex items-start gap-1.5"><span class="opacity-40">→</span> Captions de assets creativos (Brand Studio)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <textarea class="field-input" rows="2">Cálido y directo, con toques de humor</textarea>
+          </div>
+          <div class="h-64"></div>
+        </div>
+
+        <!-- Estado 3: tooltip mínimo (solo hint, campo simple) -->
+        <div class="rounded-xl border p-6 themed-surface mt-4 relative">
+          <p class="text-[11px] opacity-50 mb-2 font-mono">Estado · tooltip mínimo (campo simple, solo "Qué es")</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-1.5 relative">
+              <label class="text-sm font-medium">Nombre público <span class="text-rose-500">*</span></label>
+              <button
+                class="inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold text-white bg-primary"
+              >ⓘ</button>
+              <div class="absolute left-0 top-7 w-[320px] pop rounded-xl border shadow-2xl overflow-hidden z-10 themed-tooltip">
+                <div class="p-3">
+                  <p class="text-sm leading-relaxed">
+                    El nombre que ve tu audiencia en anuncios, landings y checkout.
+                    El agente lo usa al responder consultas.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <input class="field-input" value="Web Corporativo" />
+          </div>
+          <div class="h-28"></div>
+        </div>
+      </section>
+
+      <!-- ============== INTERACCIÓN ============== -->
+      <section>
+        <h2 class="text-sm font-semibold mb-3 opacity-70 uppercase tracking-wider">
+          Interacción
+        </h2>
+        <div class="rounded-xl border p-6 themed-surface text-sm space-y-2">
+          <ul class="list-disc pl-5 space-y-1">
+            <li><strong>Click</strong> en ⓘ → abre (no hover — hover es frágil en mobile y se dispara sin querer)</li>
+            <li><strong>Esc</strong> o click fuera → cierra</li>
+            <li><strong>Una sola ayuda abierta</strong> a la vez (otras se cierran)</li>
+            <li><strong>Posicionamiento</strong> inteligente (radix popover): evita viewport edges, flip top/bottom</li>
+            <li><strong>Teclado</strong>: <code class="text-xs bg-surface2 px-1.5 py-0.5 rounded">Tab</code> al ⓘ, <code class="text-xs bg-surface2 px-1.5 py-0.5 rounded">Enter/Space</code> abre, <code class="text-xs bg-surface2 px-1.5 py-0.5 rounded">Esc</code> cierra</li>
+            <li><strong>aria-describedby</strong> conecta input con tooltip para lectores de pantalla</li>
+            <li><strong>No reemplaza</strong> <code class="text-xs bg-surface2 px-1.5 py-0.5 rounded">placeholder</code> del input — complementario</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============== HOMOLOGACIÓN ============== -->
+      <section>
+        <h2 class="text-sm font-semibold mb-3 opacity-70 uppercase tracking-wider">
+          Homologación · 3 tiers obligatorios
+        </h2>
+
+        <div class="rounded-xl border p-6 themed-surface space-y-4">
+          <p class="text-sm">
+            <strong>Regla:</strong> todo campo debe tener al menos tier 1. Tier 2 y 3 progresivos
+            según complejidad.
+          </p>
+
+          <div class="overflow-hidden rounded-lg border">
+            <table class="w-full text-sm">
+              <thead class="bg-surface2">
+                <tr>
+                  <th class="px-3 py-2 text-left">Tier</th>
+                  <th class="px-3 py-2 text-left">Obligatorio</th>
+                  <th class="px-3 py-2 text-left">Qué incluye</th>
+                  <th class="px-3 py-2 text-left">Para qué campos</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y">
+                <tr>
+                  <td class="px-3 py-2.5 font-mono text-primary">T1</td>
+                  <td class="px-3 py-2.5">✓ Siempre</td>
+                  <td class="px-3 py-2.5"><code class="text-xs bg-surface2 px-1 rounded">label</code> + <code class="text-xs bg-surface2 px-1 rounded">hint</code> (1 oración)</td>
+                  <td class="px-3 py-2.5">Todos los campos de todos los schemas</td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2.5 font-mono text-primary">T2</td>
+                  <td class="px-3 py-2.5">✓ si complejo</td>
+                  <td class="px-3 py-2.5">T1 + <code class="text-xs bg-surface2 px-1 rounded">placeholder</code> + <code class="text-xs bg-surface2 px-1 rounded">examples</code> (2–3)</td>
+                  <td class="px-3 py-2.5">Campos libres / textareas / promesas / ofertas / pilares</td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2.5 font-mono text-primary">T3</td>
+                  <td class="px-3 py-2.5">✓ si estratégico</td>
+                  <td class="px-3 py-2.5">T2 + <code class="text-xs bg-surface2 px-1 rounded">formula</code> + <code class="text-xs bg-surface2 px-1 rounded">downstreamUses</code></td>
+                  <td class="px-3 py-2.5">Campos que el agente cita o la landing auto-genera (voice_tone, promise, value_prop, RTBs)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="text-xs opacity-70 space-y-1 mt-3">
+            <p><strong>Cobertura actual:</strong> 363 campos total · 244 T1+ (67%) · 0 T2 · 0 T3 · 119 sin ayuda.</p>
+            <p><strong>Gap:</strong> 119 campos a cubrir T1, todos los T2/T3 por definir.</p>
+          </div>
+        </div>
+
+        <div class="mt-4 rounded-xl border p-6 themed-surface space-y-3">
+          <h3 class="font-semibold">Enforcement (arch test propuesto)</h3>
+          <p class="text-sm">
+            Nuevo test <code class="text-xs bg-surface2 px-1 rounded">test-field-help-coverage</code> ratchet-pattern en
+            <code class="text-xs bg-surface2 px-1 rounded">src/__tests__/architecture/</code>:
+          </p>
+          <ul class="text-sm list-disc pl-5 space-y-1">
+            <li>Cuenta campos sin <code class="text-xs bg-surface2 px-1 rounded">hint</code> → falla si crece (allowlist 119 → 0).</li>
+            <li>Valida <code class="text-xs bg-surface2 px-1 rounded">hint.length &gt; 15 && &lt; 240</code> caracteres.</li>
+            <li>Lista de campos T2/T3 obligatorios en test con assert de <code class="text-xs bg-surface2 px-1 rounded">examples</code> presente.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============== IMPLEMENTACIÓN ============== -->
+      <section>
+        <h2 class="text-sm font-semibold mb-3 opacity-70 uppercase tracking-wider">
+          Implementación propuesta
+        </h2>
+        <div class="rounded-xl border p-6 themed-surface space-y-3 text-sm">
+          <ol class="list-decimal pl-5 space-y-1.5">
+            <li>Componente shared <code class="text-xs bg-surface2 px-1 rounded">FieldLabelWithHelp</code> en
+              <code class="text-xs bg-surface2 px-1 rounded">components/form-runtime/FieldLabelWithHelp.tsx</code>.</li>
+            <li>Usa Shadcn <code class="text-xs bg-surface2 px-1 rounded">Popover</code> (ya instalado) + <code class="text-xs bg-surface2 px-1 rounded">HelpCircle</code> de lucide.</li>
+            <li>Reemplaza <code class="text-xs bg-surface2 px-1 rounded">EditableField.tsx:58-68</code> (label + hint inline) con <code class="text-xs bg-surface2 px-1 rounded">&lt;FieldLabelWithHelp field={field}/&gt;</code>.</li>
+            <li>Auto-detecta tier desde <code class="text-xs bg-surface2 px-1 rounded">field.examples</code> / <code class="text-xs bg-surface2 px-1 rounded">field.formula</code> — si existen se muestran, si no, solo hint.</li>
+            <li>Aplica automáticamente a los 363 campos en un solo PR. Sin tocar schemas.</li>
+            <li>PRs siguientes: rellenar los 119 sin hint (T1) + designar T2/T3.</li>
+          </ol>
+
+          <p class="pt-2 opacity-70">
+            <strong>Cero cambios de BD.</strong> Meta sigue en TS schemas. Autosave intacto.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <style>
+      body.light { background:#ffffff; color:#0f172a; }
+      body.dark { background:#0b1426; color:#e7ecf7; }
+      .light .themed-surface { background:#ffffff; border-color:#e2e8f0; }
+      .dark .themed-surface { background:#141f33; border-color:#3a4766; }
+      .light .themed-tooltip { background:#ffffff; border-color:#e2e8f0; color:#0f172a; }
+      .dark .themed-tooltip { background:#1b2741; border-color:#3a4766; color:#e7ecf7; }
+      .light .bg-surface2 { background:#f1f5f9; }
+      .dark .bg-surface2 { background:#1b2741; }
+      .light header { border-color:#e2e8f0; }
+      .dark header { border-color:#3a4766; }
+      .tab-active { background:#a97bff; color:#fff; border-color:#a97bff; }
+      .light .opacity-60 { color:#64748b; }
+      .dark .opacity-60 { color:#9ca9c2; }
+      .bg-primary\/10 { background: rgba(169,123,255,.1); }
+      .text-primary { color:#a97bff; }
+      .bg-primary { background:#a97bff; }
+      .border { border-width: 1px; border-style: solid; }
+      .light .border, .light code, .light td, .light th { border-color:#e2e8f0; }
+      .dark .border, .dark code, .dark td, .dark th { border-color:#3a4766; }
+    </style>
+    <script>
+      document.body.classList.add("light");
+      document.querySelectorAll("[data-theme]").forEach((b) => {
+        b.addEventListener("click", () => {
+          const t = b.dataset.theme;
+          document.body.classList.toggle("dark", t === "dark");
+          document.body.classList.toggle("light", t === "light");
+          document.documentElement.classList.toggle("dark", t === "dark");
+          document.querySelectorAll("[data-theme]").forEach((x) => {
+            x.classList.toggle("tab-active", x === b);
+            x.classList.toggle("opacity-60", x !== b);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -93,6 +93,7 @@ export const offerProgramDetailsSchema: SectionSchema = {
             path: "title",
             required: true,
             placeholder: "Módulo 3 — Fundamentos de pujas en Meta Ads",
+            hint: "Nombre del módulo o clase. Se muestra en el temario de la landing y en el correo de bienvenida.",
           },
           {
             id: "description",

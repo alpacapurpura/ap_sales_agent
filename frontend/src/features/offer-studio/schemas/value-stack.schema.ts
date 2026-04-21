@@ -41,6 +41,7 @@ export const offerValueStackSchema: SectionSchema = {
             path: "title",
             required: true,
             placeholder: "Curso grabado completo (8 módulos, 32 lecciones)",
+            hint: "Nombre corto y concreto del entregable. Lo ve el comprador en la lista de 'qué incluye' de la landing.",
           },
           {
             id: "description",
@@ -48,6 +49,7 @@ export const offerValueStackSchema: SectionSchema = {
             type: "textarea",
             path: "description",
             rows: 3,
+            hint: "Detalle de qué contiene y qué logra el cliente con este entregable. Cuanto más específico, más defiende el precio.",
             placeholder:
               "Sistema paso-a-paso para implementar el método en 8 semanas. Incluye ejercicios prácticos al final de cada módulo y acceso al LMS de por vida.",
           },

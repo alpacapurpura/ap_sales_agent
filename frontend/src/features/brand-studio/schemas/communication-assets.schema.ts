@@ -10,6 +10,7 @@ export const communicationAssetsSchema: SectionSchema = {
       label: "Conceptos creativos",
       type: "array",
       path: "creative_concepts",
+      hint: "Ideas grandes que guían cómo luce y suena tu marca al comunicar. Cada concepto tiene nombre, descripción y tono asociado.",
       itemSchema: {
         fields: [
           { id: "name", label: "Nombre", type: "text", path: "name", required: true },
@@ -29,6 +30,7 @@ export const communicationAssetsSchema: SectionSchema = {
       label: "Assets de funnel",
       type: "array",
       path: "assets",
+      hint: "Piezas concretas de contenido listas para publicar o programar (reels, correos, carruseles). Organiza por etapa del funnel.",
       itemSchema: {
         fields: [
           { id: "title", label: "Título", type: "text", path: "title", required: true },

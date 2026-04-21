@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
+import { FieldLabelWithHelp } from "../../FieldLabelWithHelp";
 import { ArrayAddButton } from "./array-add-button";
 import { ArrayDragHandle } from "./array-drag-handle";
 import { ArrayFieldHeader } from "./array-field-header";
@@ -197,19 +198,17 @@ export function ArraySplitEditor({
                         : "",
                     )}
                   >
-                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                      {subField.label}
-                      {subField.required && <span className="ml-0.5 text-destructive">*</span>}
-                    </label>
+                    <FieldLabelWithHelp
+                      field={subField}
+                      htmlFor={subField.id}
+                      className="mb-1.5 text-xs text-muted-foreground"
+                    />
                     {renderField({
                       field: subField,
                       value: selectedItem[subField.path],
                       onChange: (next) => updateItem(selectedIndex, { [subField.path]: next }),
                       disabled,
                     })}
-                    {subField.hint && (
-                      <p className="mt-1 text-[11px] text-muted-foreground">{subField.hint}</p>
-                    )}
                   </div>
                 ))}
               </div>

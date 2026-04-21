@@ -44,6 +44,7 @@ export const offerResourcesSchema: SectionSchema = {
             path: "name",
             required: true,
             placeholder: "Workbook del Módulo 1 — Diagnóstico de consultorio",
+            hint: "Nombre claro del recurso tal como aparecerá en el área de miembros y en el correo de entrega al cliente.",
           },
           {
             id: "type",

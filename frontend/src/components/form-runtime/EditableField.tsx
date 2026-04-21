@@ -1,9 +1,9 @@
 "use client";
 
-import { Label } from "@/components/ui/label";
 import { useActiveField } from "@/lib/form-runtime/hooks";
 import { cn } from "@/lib/utils";
 
+import { FieldLabelWithHelp } from "./FieldLabelWithHelp";
 import { FieldRenderer } from "./FieldRenderer";
 import { useFormRuntime } from "./FormRuntimeContext";
 
@@ -55,17 +55,13 @@ export function EditableField({ field, className, autoFocus }: EditableFieldProp
         if (activeFieldId !== field.id) setActiveField(field.id);
       }}
     >
-      <Label htmlFor={field.id} className="text-sm">
-        {field.label}
-        {field.required && <span className="ml-1 text-destructive">*</span>}
-      </Label>
+      <FieldLabelWithHelp field={field} htmlFor={field.id} />
       <FieldRenderer
         field={field}
         value={value}
         onChange={(next) => setFieldValue(field.path, next)}
         autoFocus={autoFocus}
       />
-      {field.hint && <p className="text-xs text-muted-foreground">{field.hint}</p>}
     </div>
   );
 }

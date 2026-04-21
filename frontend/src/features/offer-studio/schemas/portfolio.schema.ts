@@ -52,6 +52,7 @@ export const offerPortfolioSchema: SectionSchema = {
             type: "text",
             path: "industry",
             placeholder: "Retail, SaaS B2B, Salud, Educación",
+            hint: "Sector del cliente. Permite al prospecto identificarse con un caso de su misma industria.",
           },
           {
             id: "country",
@@ -186,6 +187,7 @@ export const offerPortfolioSchema: SectionSchema = {
             type: "text",
             path: "name",
             required: true,
+            hint: "Nombre del cliente cuyo logo se muestra. Se usa como alt text accesible y al pasar el cursor sobre el logo.",
           },
           {
             id: "logo_url",
@@ -193,6 +195,7 @@ export const offerPortfolioSchema: SectionSchema = {
             type: "url",
             path: "logo_url",
             required: true,
+            hint: "URL del logo del cliente en PNG o SVG con fondo transparente. Aparece en la galería de clientes de la landing.",
           },
         ],
       },

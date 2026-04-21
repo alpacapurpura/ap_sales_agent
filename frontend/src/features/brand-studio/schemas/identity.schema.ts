@@ -12,6 +12,7 @@ export const identitySchema: SectionSchema = {
       path: "brand_name",
       required: true,
       placeholder: "Ej: Visionarias",
+      hint: "El nombre público con el que tus clientes te buscan y te recomiendan.",
     },
     {
       id: "tagline",
@@ -35,6 +36,7 @@ export const identitySchema: SectionSchema = {
       type: "text",
       path: "industry",
       placeholder: "Ej: Educación online, E-commerce, Coaching",
+      hint: "El sector en el que opera tu negocio. Ayuda al agente a contextualizar tu mercado.",
     },
     {
       id: "voice_tone",
@@ -44,6 +46,19 @@ export const identitySchema: SectionSchema = {
       rows: 2,
       hint: "Cómo habla tu marca. El SDR usará este tono en todas sus conversaciones.",
       placeholder: "Ej: Conversacional, aspiracional, directo con toques de humor",
+      examples: [
+        { brand: "Coach ejecutiva (CDMX)", text: "Directo, cálido, con metáforas de liderazgo. Sin tecnicismos. CTA claro al final de cada mensaje." },
+        { brand: "Consultor de marketing (Medellín, CO)", text: "Conversacional, data-driven, ocasionalmente irreverente. Siempre con una cifra o ejemplo concreto." },
+        { brand: "Nutricionista online (Lima, PE)", text: "Suave, educativo, sin culpa ni juicio. Evita imperativos bruscos. Abunda en preguntas de reflexión." },
+      ],
+      formula: {
+        template: "<slot>3 adjetivos que describen la personalidad</slot> · No suena a <slot>qué estilo evitas</slot>",
+      },
+      downstreamUses: [
+        { label: "Prompts del agente de ventas" },
+        { label: "Copy auto-generado de landings" },
+        { label: "Captions de assets sociales" },
+      ],
     },
     {
       id: "voice_tone_clone",
@@ -59,6 +74,7 @@ export const identitySchema: SectionSchema = {
       type: "url",
       path: "website",
       placeholder: "https://...",
+      hint: "URL principal de tu marca. Se usa para auto-completar información y como referencia en conversaciones.",
     },
     {
       id: "founding_year",
@@ -66,6 +82,7 @@ export const identitySchema: SectionSchema = {
       type: "text",
       path: "founding_year",
       placeholder: "2023",
+      hint: "Año en que arrancó el negocio. Da contexto de trayectoria al agente.",
     },
     {
       id: "language",
@@ -73,6 +90,7 @@ export const identitySchema: SectionSchema = {
       type: "text",
       path: "language",
       placeholder: "es",
+      hint: "ISO 639-1 (2 letras). Idioma en que el agente se comunica por defecto con tus leads.",
     },
     {
       id: "timezone",
@@ -80,6 +98,7 @@ export const identitySchema: SectionSchema = {
       type: "text",
       path: "timezone",
       placeholder: "America/Lima",
+      hint: "IANA timezone ID. El agente usa esto para proponer horarios de llamada y respetar tu disponibilidad.",
     },
     {
       id: "smart_fill",

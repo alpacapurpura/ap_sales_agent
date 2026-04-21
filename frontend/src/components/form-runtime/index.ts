@@ -1,3 +1,5 @@
+export { FieldLabelWithHelp } from "./FieldLabelWithHelp";
+export type { FieldLabelWithHelpProps } from "./FieldLabelWithHelp";
 export { UniversalEditableSection } from "./UniversalEditableSection";
 export type { UniversalEditableSectionProps } from "./UniversalEditableSection";
 export { FormRuntimeProvider } from "./FormRuntimeProvider";
