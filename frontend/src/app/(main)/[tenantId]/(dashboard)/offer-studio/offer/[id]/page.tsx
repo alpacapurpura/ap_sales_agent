@@ -1,22 +1,19 @@
-"use client";
-
-import { use } from "react";
-
-import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
-import { OfferEditorContent } from "@/features/offer-studio/components/editor/OfferEditorContent";
+import { redirect } from "next/navigation";
 
 /**
- * Editor tab — rendered inside the persistent shell (see `layout.tsx`).
+ * Offer Studio — offer root redirect.
  *
- * The shell owns the header rows, tab bar and lifecycle widgets. This page
- * renders ONLY the inner section list + live preview. The legacy
- * `<OfferStudioLayout>` wrapper has been retired.
+ * Sends the user to `/editor` which is the canonical entry point for the
+ * offer editor. The shell (layout.tsx) renders the header + rail + tab bar
+ * regardless of which sub-route is active.
+ *
+ * URL contract: `/offer/{id}` → 307 → `/offer/{id}/editor`
  */
-export default function OfferEditorPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  return (
-    <ErrorBoundary>
-      <OfferEditorContent offerId={id} />
-    </ErrorBoundary>
-  );
+export default async function OfferRootPage({
+  params,
+}: {
+  params: Promise<{ tenantId: string; id: string }>;
+}) {
+  const { tenantId, id } = await params;
+  redirect(`/${tenantId}/offer-studio/offer/${id}/editor`);
 }

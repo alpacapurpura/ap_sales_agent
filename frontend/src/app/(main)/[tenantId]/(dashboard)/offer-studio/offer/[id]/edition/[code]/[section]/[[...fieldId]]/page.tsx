@@ -1,23 +1,19 @@
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 
-import {
-  isOfferStudioSection,
-  OFFER_SECTION_PAGE_MAP,
-} from "@/features/offer-studio/pages/section-page-map";
+import { buildLegacyEditionRedirectUrl } from "@/features/offer-studio/components/OfferShellLayout";
 
 /**
- * Offer-studio editor — catch-all section page.
+ * Legacy edition catch-all — 30-day redirect shim.
  *
- * Route shape: ``/{tenantId}/offer-studio/offer/{offerId}/edition/{code}/{section}/{fieldId?}``
+ * Old URL: /{t}/offer-studio/offer/{id}/edition/{code}/{section}/{fieldId?}
+ * New URL: /{t}/offer-studio/offer/{id}/editor/{section}/{fieldId?}?edition={code}
  *
- * - ``code = "evergreen"`` → offer-level context. Edition-level sections
- *   render the "needs a specific edition" card.
- * - ``code = "<N>"`` → resolves to ``LaunchEdition.edition_number === N`` via
- *   ``useOfferEditionResolver`` inside the mounted client page. 404 on miss.
+ * This shim keeps bookmarks and external links working for 30 days post-F3.
+ * Remove after 2026-05-20 (delete the entire `edition/` directory under
+ * `offer/[id]/`).
  *
- * The Server Component here indexes ``OFFER_SECTION_PAGE_MAP`` to pick
- * the matching client page. Unknown section slugs trigger ``notFound()``
- * instead of surfacing a cryptic client-side error.
+ * Breaking change: URL /offer/{id}/edition/{code}/{section} →
+ *                       /offer/{id}/editor/{section}?edition={code}
  */
 interface PageParams {
   tenantId: string;
@@ -27,18 +23,20 @@ interface PageParams {
   fieldId?: string[];
 }
 
-/** Server Component dispatcher — picks the client page by section slug. */
-export default async function OfferSectionCatchAllPage({
+export default async function LegacyEditionSectionShim({
   params,
 }: {
   params: Promise<PageParams>;
 }) {
-  const { id: offerId, code, section } = await params;
+  const { tenantId, id: offerId, code, section, fieldId } = await params;
 
-  if (!isOfferStudioSection(section)) {
-    notFound();
-  }
+  const newUrl = buildLegacyEditionRedirectUrl({
+    tenantId,
+    offerId,
+    code,
+    section,
+    fieldId: fieldId?.[0],
+  });
 
-  const Component = OFFER_SECTION_PAGE_MAP[section];
-  return <Component offerId={offerId} editionCode={code} />;
+  redirect(newUrl);
 }
