@@ -4,14 +4,13 @@
  * Placeholder action components.
  *
  * Each ``custom`` field in an offer-studio schema references an action key
- * (see ``hint`` attrs in ``schemas/*.schema.ts``). Phase C declares the
- * contract without delivering the action UI — Phase E ports each legacy
- * ``*Form.tsx`` / ``*Manager.tsx`` as the real implementation, one at a
- * time, replacing the placeholder entry in ``registry.ts``.
+ * (see ``hint`` attrs in ``schemas/*.schema.ts``). The registry points each
+ * key at a placeholder or a real ported action — Sprint 15+ progressively
+ * replaces placeholders with real implementations.
  *
- * Until then, the placeholder renders a muted "pendiente" card so the
+ * Until then, each placeholder renders a muted "pendiente" card so the
  * editor is inspectable end-to-end without crashing when a schema mounts
- * a not-yet-ported action. Matches the pattern from brand-studio Sprint 1.
+ * a not-yet-ported action. Matches the pattern from brand-studio.
  */
 
 import type { ReactElement } from "react";
@@ -27,32 +26,77 @@ function ActionPlaceholder({ label, actionKey }: PlaceholderProps): ReactElement
       <p className="font-medium text-foreground">{label}</p>
       <p className="mt-1">
         Acción <code className="rounded bg-muted px-1 py-0.5 text-xs">{actionKey}</code> pendiente
-        de portar (Sprint 6 Fase E).
+        de portar.
       </p>
     </div>
   );
 }
 
 /** Create a bound placeholder so consumers mount a ready-to-render component. */
-export function createPlaceholderAction(actionKey: string, label: string) {
+function createPlaceholderAction(actionKey: string, label: string) {
   return function Placeholder(): ReactElement {
     return <ActionPlaceholder label={label} actionKey={actionKey} />;
   };
 }
 
-/**
- * List of action keys referenced by the offer-studio schemas. Registered
- * at module load so every schema parses and renders. Phase E replaces
- * individual entries with real implementations.
- */
-export const PLACEHOLDER_ACTIONS: readonly { key: string; label: string }[] = [
-  { key: "offer-pricing-options-builder", label: "Opciones de precio (base)" },
-  { key: "offer-pricing-tiers-builder", label: "Tiers de precio por edición" },
-  { key: "offer-knowledge-uploader", label: "Subida de documentos de conocimiento" },
-  { key: "offer-instructors-picker", label: "Selector de instructores" },
-  { key: "offer-gallery-single-image", label: "Imagen única" },
-  { key: "offer-gallery-multi-image", label: "Galería múltiple" },
-  // Latam rollout — Sprint 8+ (referenced from pricing.schema + location.schema)
-  { key: "payment-provider-picker", label: "Métodos de pago (desde Conexiones)" },
-  { key: "scheduling-event-type-picker", label: "Tipo de evento (desde Agenda)" },
-];
+// ─── Named placeholders (exported individually so registry imports stay explicit) ──
+
+export const PricingOptionsBuilderPlaceholder = createPlaceholderAction(
+  "offer-pricing-options-builder",
+  "Opciones de precio (base)",
+);
+
+export const PricingTiersBuilderPlaceholder = createPlaceholderAction(
+  "offer-pricing-tiers-builder",
+  "Tiers de precio por edición",
+);
+
+export const KnowledgeUploaderPlaceholder = createPlaceholderAction(
+  "offer-knowledge-uploader",
+  "Subida de documentos de conocimiento",
+);
+
+export const InstructorsPickerPlaceholder = createPlaceholderAction(
+  "offer-instructors-picker",
+  "Selector de instructores",
+);
+
+export const GallerySingleImagePlaceholder = createPlaceholderAction(
+  "offer-gallery-single-image",
+  "Imagen única",
+);
+
+export const GalleryMultiImagePlaceholder = createPlaceholderAction(
+  "offer-gallery-multi-image",
+  "Galería múltiple",
+);
+
+export const PaymentProviderPickerPlaceholder = createPlaceholderAction(
+  "payment-provider-picker",
+  "Métodos de pago (desde Conexiones)",
+);
+
+export const SchedulingEventTypePickerPlaceholder = createPlaceholderAction(
+  "scheduling-event-type-picker",
+  "Tipo de evento (desde Agenda)",
+);
+
+export const SocialProofPickerPlaceholder = createPlaceholderAction(
+  "offer-social-proof-picker",
+  "Testimonios (desde Brand Vault)",
+);
+
+export const ValueStackBuilderPlaceholder = createPlaceholderAction(
+  "offer-value-stack-builder",
+  "Value stack builder",
+);
+
+export const FAQBuilderPlaceholder = createPlaceholderAction(
+  "offer-faq-builder",
+  "Constructor de FAQ",
+);
+
+export const EditionPricingOverridePlaceholder = createPlaceholderAction(
+  "offer-edition-pricing-override",
+  "Override de precio por edición",
+);
