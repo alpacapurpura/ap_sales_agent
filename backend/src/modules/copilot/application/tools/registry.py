@@ -16,6 +16,7 @@ from src.modules.copilot.application.tools.module_tools import MODULE_TOOLS
 from src.modules.copilot.application.tools.mutations import MUTATION_TOOLS
 from src.modules.copilot.application.tools.navigation import NAVIGATION_TOOLS
 from src.modules.copilot.application.tools.offer_ladder_tools import OFFER_LADDER_TOOLS
+from src.modules.copilot.application.tools.offer_section_tools import OFFER_SECTION_TOOLS
 from src.modules.copilot.application.tools.procedure_tools import PROCEDURE_TOOLS
 from src.modules.copilot.application.tools.sales_agent_tools import SALES_AGENT_TOOLS
 
@@ -33,6 +34,7 @@ TOOL_GROUPS: dict[str, list] = {
     "procedure": PROCEDURE_TOOLS,
     "knowledge": KNOWLEDGE_TOOLS,
     "offer_ladder": OFFER_LADDER_TOOLS,
+    "offer_section": OFFER_SECTION_TOOLS,
     "interview": INTERVIEW_TOOLS,
     "focus": FOCUS_TOOLS,
 }
@@ -60,6 +62,7 @@ ROUTE_TOOL_MAP: dict[str, list[str]] = {
         "procedure",
         "knowledge",
         "offer_ladder",
+        "offer_section",
     ],
     "growth-studio": [
         "navigation",
