@@ -19,7 +19,6 @@ import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context
 import { formatMoney } from "@/lib/format-money";
 import { cn } from "@/lib/utils";
 
-import { useOfferShell } from "../../context/OfferShellContext";
 import { useOfferCampaigns } from "../../hooks/use-campaigns";
 
 import type {
@@ -63,8 +62,7 @@ const STATUS_CLASSES: Record<string, string> = {
 /**
  *
  */
-export function CampaignsView({ offerId }: { offerId: string }) {
-  const { tenantId } = useOfferShell();
+export function CampaignsView({ offerId, tenantId }: { offerId: string; tenantId: string }) {
   const [statusFilter, setStatusFilter] = useState<CampaignStatusFilter>("all");
   const [channelFilter, setChannelFilter] = useState<"all" | "meta" | "google" | "tiktok">("all");
 

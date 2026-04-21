@@ -15,10 +15,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import {
-  buildLegacyEditionRedirectUrl,
-  matchLegacyEditionPath,
-} from "../OfferShellLayout";
+import { buildLegacyEditionRedirectUrl, matchLegacyEditionPath } from "../OfferShellLayout";
 
 // ── Legacy redirect helper tests (F3.2 shim) ─────────────────────────────────
 
@@ -45,9 +42,7 @@ describe("OfferShellLayout · legacy edition redirect helpers", () => {
     });
 
     it("returns null for the new /editor/{section} URL shape", () => {
-      expect(
-        matchLegacyEditionPath("/t-1/offer-studio/offer/o-1/editor/promise"),
-      ).toBeNull();
+      expect(matchLegacyEditionPath("/t-1/offer-studio/offer/o-1/editor/promise")).toBeNull();
     });
 
     it("returns null for non offer-studio paths", () => {
@@ -55,9 +50,7 @@ describe("OfferShellLayout · legacy edition redirect helpers", () => {
     });
 
     it("returns null when section is missing", () => {
-      expect(
-        matchLegacyEditionPath("/t-1/offer-studio/offer/o-1/edition/evergreen"),
-      ).toBeNull();
+      expect(matchLegacyEditionPath("/t-1/offer-studio/offer/o-1/edition/evergreen")).toBeNull();
     });
   });
 
@@ -70,9 +63,7 @@ describe("OfferShellLayout · legacy edition redirect helpers", () => {
         section: "promise",
         fieldId: undefined,
       });
-      expect(url).toBe(
-        "/t-1/offer-studio/offer/o-1/editor/promise?edition=evergreen",
-      );
+      expect(url).toBe("/t-1/offer-studio/offer/o-1/editor/promise?edition=evergreen");
     });
 
     it("preserves the fieldId segment when present", () => {
@@ -83,9 +74,7 @@ describe("OfferShellLayout · legacy edition redirect helpers", () => {
         section: "pricing",
         fieldId: "currency",
       });
-      expect(url).toBe(
-        "/t-1/offer-studio/offer/o-1/editor/pricing/currency?edition=2",
-      );
+      expect(url).toBe("/t-1/offer-studio/offer/o-1/editor/pricing/currency?edition=2");
     });
   });
 });
@@ -109,27 +98,22 @@ describe("isOfferStudioSection (section route guard)", () => {
   });
 
   it("returns true for known section keys", async () => {
-    const { isOfferStudioSection } = await import(
-      "../../pages/section-page-map"
-    );
+    const { isOfferStudioSection } = await import("../../pages/section-page-map");
     expect(isOfferStudioSection("promise")).toBe(true);
     expect(isOfferStudioSection("pricing")).toBe(true);
     expect(isOfferStudioSection("identity")).toBe(true);
   });
 
   it("returns false for unknown slugs", async () => {
-    const { isOfferStudioSection } = await import(
-      "../../pages/section-page-map"
-    );
+    const { isOfferStudioSection } = await import("../../pages/section-page-map");
     expect(isOfferStudioSection("unknown-section")).toBe(false);
     expect(isOfferStudioSection("")).toBe(false);
     expect(isOfferStudioSection("edition")).toBe(false);
   });
 
   it("covers all 21 section keys from the catalog", async () => {
-    const { OFFER_SECTION_PAGE_MAP, isOfferStudioSection } = await import(
-      "../../pages/section-page-map"
-    );
+    const { OFFER_SECTION_PAGE_MAP, isOfferStudioSection } =
+      await import("../../pages/section-page-map");
     const keys = Object.keys(OFFER_SECTION_PAGE_MAP);
     expect(keys.length).toBe(21);
     for (const key of keys) {

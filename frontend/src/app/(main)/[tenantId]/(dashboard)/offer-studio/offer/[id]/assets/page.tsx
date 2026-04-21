@@ -1,13 +1,18 @@
 "use client";
 
+import { use } from "react";
+
 import { AssetsView } from "@/features/offer-studio/components/assets/AssetsView";
-import { useOfferShell } from "@/features/offer-studio/context/OfferShellContext";
 
 /**
- * Assets tab — rendered inside the persistent Offer Studio shell. Reads the
- * offer id from `useOfferShell()` so the shell doesn't refetch.
+ * Assets tab — rendered inside the persistent Offer Studio shell.
+ * Reads offer id from route params directly (no shell context).
  */
-export default function AssetsPage() {
-  const { offer } = useOfferShell();
-  return <AssetsView offerId={offer.id} />;
+export default function AssetsPage({
+  params,
+}: {
+  params: Promise<{ tenantId: string; id: string }>;
+}) {
+  const { id: offerId } = use(params);
+  return <AssetsView offerId={offerId} />;
 }

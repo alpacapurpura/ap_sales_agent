@@ -1,24 +1,16 @@
-"use client";
-
-import { use } from "react";
-
-import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
-import { OfferEditorContent } from "@/features/offer-studio/components/editor/OfferEditorContent";
+import { redirect } from "next/navigation";
 
 /**
- * Edition's Info view. Content is offer-level (identity, strategy,
- * deliverables, pricing, knowledge…) — we keep the edition in the URL so
- * the rail highlight persists when the user navigates to or from a tab.
+ * Legacy `/editions/[editionId]` root — after F3 routed offer-section editing
+ * under `/editor/[section]`, this entry point is obsolete. Redirects to the
+ * editor tab so users landing here (via old bookmarks or EditionsManagementClient
+ * links awaiting follow-up) land on a live surface.
  */
-export default function EditionInfoPage({
+export default async function EditionRootRedirect({
   params,
 }: {
-  params: Promise<{ id: string; editionId: string }>;
+  params: Promise<{ tenantId: string; id: string; editionId: string }>;
 }) {
-  const { id } = use(params);
-  return (
-    <ErrorBoundary>
-      <OfferEditorContent offerId={id} />
-    </ErrorBoundary>
-  );
+  const { tenantId, id } = await params;
+  redirect(`/${tenantId}/offer-studio/offer/${id}/editor`);
 }

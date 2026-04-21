@@ -41,7 +41,6 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-import { useOfferShell } from "../../context/OfferShellContext";
 import {
   useAddKnowledgeUrl,
   useDeleteKnowledge,
@@ -129,8 +128,7 @@ function formatBytes(bytes: number | null): string | null {
 /**
  *
  */
-export function KnowledgeView({ offerId }: { offerId: string }) {
-  const { offer } = useOfferShell();
+export function KnowledgeView({ offerId, offerName }: { offerId: string; offerName: string }) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [urlDialogOpen, setUrlDialogOpen] = useState(false);
@@ -165,7 +163,7 @@ export function KnowledgeView({ offerId }: { offerId: string }) {
         <AlertTitle className="text-sm font-semibold">Para qué sirve esta base</AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground">
           El Sales Agent lee estas fuentes para responder preguntas específicas sobre{" "}
-          <strong className="text-foreground">{offer.name}</strong>. Cuando un cliente pregunte{" "}
+          <strong className="text-foreground">{offerName}</strong>. Cuando un cliente pregunte{" "}
           <em className="text-foreground">&ldquo;¿cuántos módulos son?&rdquo;</em>, el agente busca
           acá primero antes de responder. Sin fuentes, solo puede usar lo que está en el editor.
         </AlertDescription>

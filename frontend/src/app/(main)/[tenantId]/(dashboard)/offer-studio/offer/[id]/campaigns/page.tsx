@@ -1,12 +1,18 @@
 "use client";
 
+import { use } from "react";
+
 import { CampaignsView } from "@/features/offer-studio/components/campaigns/CampaignsView";
-import { useOfferShell } from "@/features/offer-studio/context/OfferShellContext";
 
 /**
  * Campaigns tab — rendered inside the persistent Offer Studio shell.
+ * Reads tenantId + offerId from route params directly.
  */
-export default function CampaignsPage() {
-  const { offer } = useOfferShell();
-  return <CampaignsView offerId={offer.id} />;
+export default function CampaignsPage({
+  params,
+}: {
+  params: Promise<{ tenantId: string; id: string }>;
+}) {
+  const { tenantId, id: offerId } = use(params);
+  return <CampaignsView offerId={offerId} tenantId={tenantId} />;
 }

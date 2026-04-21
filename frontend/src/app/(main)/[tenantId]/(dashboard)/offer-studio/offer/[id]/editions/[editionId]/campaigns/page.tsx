@@ -1,14 +1,19 @@
 "use client";
 
+import { use } from "react";
+
 import { CampaignsView } from "@/features/offer-studio/components/campaigns/CampaignsView";
-import { useOfferShell } from "@/features/offer-studio/context/OfferShellContext";
 
 /**
  * Campaigns scoped to a specific edition. `CampaignsView` today renders
  * offer-wide campaigns; per-edition filtering is tracked as a follow-up
  * (needs backend association between Growth Studio campaigns and editions).
  */
-export default function EditionCampaignsPage() {
-  const { offer } = useOfferShell();
-  return <CampaignsView offerId={offer.id} />;
+export default function EditionCampaignsPage({
+  params,
+}: {
+  params: Promise<{ tenantId: string; id: string; editionId: string }>;
+}) {
+  const { tenantId, id: offerId } = use(params);
+  return <CampaignsView offerId={offerId} tenantId={tenantId} />;
 }

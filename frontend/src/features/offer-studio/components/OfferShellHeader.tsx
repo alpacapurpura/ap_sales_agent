@@ -14,43 +14,38 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
-import { useOfferAutoSave, useOfferShell } from "../../context/OfferShellContext";
-import { useChangeOfferStatus } from "../../hooks/use-status-mutation";
+import { useChangeOfferStatus } from "../hooks/use-status-mutation";
 
-import { AutoSaveIndicator } from "./AutoSaveIndicator";
-import { OfferStatusChangeModal } from "./OfferStatusChangeModal";
-import { OfferStatusSwitcher } from "./OfferStatusSwitcher";
+import { AutoSaveIndicator } from "./container/AutoSaveIndicator";
+import { OfferStatusChangeModal } from "./container/OfferStatusChangeModal";
+import { OfferStatusSwitcher } from "./container/OfferStatusSwitcher";
 
-import type { OfferLifecycleStatus } from "../../types/enums";
+import type { Offer } from "../types";
+import type { OfferLifecycleStatus } from "../types/enums";
+
+export interface OfferShellHeaderProps {
+  offer: Offer;
+  tenantId: string;
+}
 
 /**
- * Row 1 of the persistent shell: back button + title + format badge +
- * autosave indicator (left) and status switcher + kebab menu (right).
  *
- * TODO(FE-Chunk3): wire autosave context from editor so the indicator
- * reflects real debounced save state instead of defaulting to idle.
  */
-export function OfferShellHeaderRow1() {
-  const { offer, tenantId } = useOfferShell();
-  const autoSave = useOfferAutoSave();
-
+export function OfferShellHeader({ offer, tenantId }: OfferShellHeaderProps) {
   const [pendingStatus, setPendingStatus] = useState<OfferLifecycleStatus | null>(null);
 
   const statusMutation = useChangeOfferStatus(offer.id, {
     onSuccess: () => setPendingStatus(null),
   });
 
-  const handleArchive = () => {
-    setPendingStatus("archived");
-  };
+  const currentStatus = offer.status as OfferLifecycleStatus;
+  const formatLabel = buildFormatLabel(offer);
 
+  const handleArchive = () => setPendingStatus("archived");
   const handleConfirm = () => {
     if (!pendingStatus) return;
     statusMutation.mutate({ status: pendingStatus });
   };
-
-  const currentStatus = offer.status as OfferLifecycleStatus;
-  const formatLabel = buildFormatLabel(offer);
 
   return (
     <>
@@ -87,12 +82,7 @@ export function OfferShellHeaderRow1() {
                 </Badge>
               ) : null}
             </div>
-            <AutoSaveIndicator
-              state={autoSave.state}
-              lastSavedAt={autoSave.lastSavedAt}
-              errorMessage={autoSave.errorMessage}
-              onRetry={autoSave.onRetry}
-            />
+            <AutoSaveIndicator state="idle" lastSavedAt={null} />
           </div>
         </div>
 
