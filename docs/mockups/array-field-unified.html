@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Array Field — Alternativas UX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              canvas: "#0b1426",
+              surface: "#141f33",
+              "surface-2": "#1b2741",
+              border: "#263352",
+              "border-strong": "#334267",
+              ink: "#e7ecf7",
+              "ink-dim": "#9ca9c2",
+              "ink-muted": "#6d7a95",
+              primary: "#a97bff",
+              "primary-soft": "#472a7a",
+              danger: "#ff6b6b",
+              warn: "#f5a524",
+              success: "#42d39b",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+      [data-variant] { display: none; }
+      [data-variant].active { display: block; }
+      .tab-active { background:#1b2741; color:#e7ecf7; border-color:#334267; }
+      .field-input {
+        background:#0b1426; border:1px solid #263352; color:#e7ecf7;
+        border-radius:10px; padding:10px 12px; width:100%; font-size:14px;
+        transition: border-color .15s, box-shadow .15s;
+      }
+      .field-input:focus { outline:none; border-color:#a97bff; box-shadow:0 0 0 3px rgba(169,123,255,.18); }
+      .field-textarea { min-height: 80px; resize: vertical; }
+      .drag-handle { cursor: grab; }
+      .drag-handle:active { cursor: grabbing; }
+      .chev { transition: transform .2s; }
+      .open .chev { transform: rotate(90deg); }
+      details summary { list-style: none; }
+      details summary::-webkit-details-marker { display: none; }
+    </style>
+  </head>
+  <body class="bg-canvas text-ink min-h-screen">
+    <header class="border-b border-border">
+      <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+        <div>
+          <div class="text-xs uppercase tracking-wider text-ink-muted">Form Runtime / shared</div>
+          <h1 class="text-lg font-semibold mt-1">Array field — alternativas de diseño</h1>
+        </div>
+        <div class="flex gap-2 text-xs">
+          <button data-tab="A" class="tab-active px-3 py-1.5 rounded-md border border-border">A · Enhanced Cards</button>
+          <button data-tab="B" class="px-3 py-1.5 rounded-md border border-border text-ink-dim hover:text-ink">B · Accordion Denso</button>
+          <button data-tab="C" class="px-3 py-1.5 rounded-md border border-border text-ink-dim hover:text-ink">C · Split Master-Detail</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-8 space-y-10">
+      <!-- =========================================================
+           REFERENCE: PROBLEMA ACTUAL
+           ========================================================= -->
+      <section>
+        <div class="flex items-center gap-3 mb-3">
+          <span class="text-[10px] font-bold tracking-wider text-danger bg-danger/10 border border-danger/30 px-2 py-0.5 rounded">ACTUAL</span>
+          <h2 class="text-sm font-semibold text-ink-dim">Lo que el usuario ve hoy (Pilares / methodology_pillars)</h2>
+        </div>
+        <div class="rounded-xl border border-border bg-surface p-5">
+          <div class="font-semibold mb-4">Pilares</div>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between text-sm">
+              <span>Este es un título</span>
+              <span class="text-ink-muted">🗑</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span>este es otro título</span>
+              <span class="text-ink-muted">🗑</span>
+            </div>
+            <div class="text-ink-muted text-sm">Ítem 3</div>
+            <div class="text-xs text-ink-muted">Título *</div>
+            <div class="h-px"></div>
+            <div class="text-xs text-ink-muted">Descripción</div>
+            <div class="h-16"></div>
+          </div>
+          <button class="mt-4 text-sm border border-border rounded-md px-3 py-1.5">+ Agregar</button>
+        </div>
+        <ul class="mt-3 text-xs text-ink-muted list-disc pl-4 space-y-1">
+          <li>Items sin contenedor — filas fantasma.</li>
+          <li>Inputs sin borde → "Título" y "Descripción" parecen labels huérfanos.</li>
+          <li>Inconsistencia: items 1-2 texto visible, item 3 solo placeholder "Ítem 3".</li>
+          <li>Sin reorder, duplicar, contador, confirm delete, estado de validación.</li>
+        </ul>
+      </section>
+
+      <!-- =========================================================
+           VARIANTE A — ENHANCED CARDS
+           ========================================================= -->
+      <section data-variant="A" class="active">
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <div class="flex items-center gap-3">
+              <span class="text-[10px] font-bold tracking-wider text-primary bg-primary-soft/40 border border-primary/40 px-2 py-0.5 rounded">VARIANTE A</span>
+              <h2 class="text-base font-semibold">Enhanced Cards</h2>
+            </div>
+            <p class="text-sm text-ink-dim mt-1 max-w-2xl">
+              Mejora drop-in del componente actual. Cards bordeadas, drag handle, chevron explícito,
+              contador, duplicar, badge de validación, confirm delete inline.
+              <strong class="text-ink">Ideal para:</strong> arrays de 2–10 items con 2–5 sub-campos
+              (pilares, curriculum, plan StoryBrand, objections, value_stack, deliverables).
+            </p>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-border bg-surface">
+          <!-- Header -->
+          <div class="flex items-center justify-between px-5 py-3.5 border-b border-border">
+            <div class="flex items-center gap-3">
+              <h3 class="font-semibold text-sm">Pilares</h3>
+              <span class="text-xs text-ink-dim bg-surface-2 px-2 py-0.5 rounded-full">3 de 6 recomendados</span>
+            </div>
+            <div class="flex items-center gap-1 text-xs text-ink-dim">
+              <button class="px-2 py-1 hover:text-ink">Colapsar todo</button>
+              <span class="text-ink-muted">·</span>
+              <button class="px-2 py-1 hover:text-ink">Expandir todo</button>
+            </div>
+          </div>
+
+          <!-- Items -->
+          <div class="p-4 space-y-2.5">
+            <!-- Item 1 collapsed with data -->
+            <div class="rounded-lg border border-border bg-surface-2 hover:border-border-strong transition-colors">
+              <div class="flex items-center gap-2 px-3 py-2.5">
+                <button class="drag-handle text-ink-muted hover:text-ink-dim" aria-label="Reordenar">⋮⋮</button>
+                <button class="chev text-ink-muted w-5 h-5 flex items-center justify-center" aria-label="Expandir">›</button>
+                <span class="text-[11px] font-mono text-ink-muted w-6">01</span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm truncate">Este es un título</div>
+                </div>
+                <span class="text-[10px] text-success/90 bg-success/10 border border-success/30 px-1.5 py-0.5 rounded">COMPLETO</span>
+                <div class="flex items-center gap-0.5 ml-1">
+                  <button class="p-1.5 rounded text-ink-muted hover:text-ink hover:bg-surface" aria-label="Duplicar">⧉</button>
+                  <button class="p-1.5 rounded text-ink-muted hover:text-danger hover:bg-danger/10" aria-label="Eliminar">🗑</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Item 2 collapsed with partial data -->
+            <div class="rounded-lg border border-border bg-surface-2">
+              <div class="flex items-center gap-2 px-3 py-2.5">
+                <button class="drag-handle text-ink-muted">⋮⋮</button>
+                <button class="chev text-ink-muted w-5 h-5 flex items-center justify-center">›</button>
+                <span class="text-[11px] font-mono text-ink-muted w-6">02</span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm truncate">este es otro título</div>
+                </div>
+                <span class="text-[10px] text-warn/90 bg-warn/10 border border-warn/30 px-1.5 py-0.5 rounded">FALTA DESCRIPCIÓN</span>
+                <div class="flex items-center gap-0.5 ml-1">
+                  <button class="p-1.5 rounded text-ink-muted hover:text-ink hover:bg-surface">⧉</button>
+                  <button class="p-1.5 rounded text-ink-muted hover:text-danger hover:bg-danger/10">🗑</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Item 3 expanded -->
+            <div class="open rounded-lg border border-primary/50 bg-surface-2 ring-1 ring-primary/20">
+              <div class="flex items-center gap-2 px-3 py-2.5 border-b border-border">
+                <button class="drag-handle text-ink-muted">⋮⋮</button>
+                <button class="chev text-primary w-5 h-5 flex items-center justify-center">›</button>
+                <span class="text-[11px] font-mono text-primary w-6">03</span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm text-ink-dim italic">Nuevo pilar — agrega título</div>
+                </div>
+                <span class="text-[10px] text-danger/90 bg-danger/10 border border-danger/30 px-1.5 py-0.5 rounded">REQUIERE TÍTULO</span>
+                <div class="flex items-center gap-0.5 ml-1">
+                  <button class="p-1.5 rounded text-ink-muted hover:text-ink hover:bg-surface">⧉</button>
+                  <button class="p-1.5 rounded text-ink-muted hover:text-danger hover:bg-danger/10">🗑</button>
+                </div>
+              </div>
+              <div class="px-4 py-4 space-y-4">
+                <div>
+                  <label class="block text-xs font-medium text-ink-dim mb-1.5">
+                    Título <span class="text-danger">*</span>
+                  </label>
+                  <input class="field-input" placeholder="ej. Autoconocimiento emocional" autofocus />
+                  <div class="mt-1 text-[11px] text-ink-muted">Nombre corto del pilar. El agente lo cita en conversaciones.</div>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-ink-dim mb-1.5">Descripción</label>
+                  <textarea class="field-input field-textarea" placeholder="ej. Identificar patrones emocionales que sabotean el liderazgo, con ejercicios semanales."></textarea>
+                  <div class="mt-1 text-[11px] text-ink-muted">1–2 oraciones sobre qué cubre este pilar.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer add -->
+          <div class="px-4 py-3 border-t border-border flex items-center justify-between">
+            <button class="text-sm font-medium text-primary hover:text-primary/80 flex items-center gap-1.5">
+              <span class="text-base leading-none">+</span> Agregar pilar
+            </button>
+            <span class="text-[11px] text-ink-muted">Máx. 8 · recomendado 3–5</span>
+          </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-2 gap-3 text-xs">
+          <div class="rounded-md border border-success/30 bg-success/5 p-3">
+            <div class="font-semibold text-success mb-1">Pros</div>
+            <ul class="text-ink-dim space-y-0.5 list-disc pl-4">
+              <li>Drop-in — reemplaza ArrayInput sin cambiar schemas</li>
+              <li>Affordances claras: drag, chevron, duplicar, contador</li>
+              <li>Validación visual por item (completo / falta X / requiere Y)</li>
+              <li>Un item expandido a la vez (mantiene foco)</li>
+            </ul>
+          </div>
+          <div class="rounded-md border border-warn/30 bg-warn/5 p-3">
+            <div class="font-semibold text-warn mb-1">Contras</div>
+            <ul class="text-ink-dim space-y-0.5 list-disc pl-4">
+              <li>Vertical-heavy: con 20+ items requiere scroll largo</li>
+              <li>Para items con 10+ campos el expand domina el viewport</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           VARIANTE B — ACCORDION DENSO
+           ========================================================= -->
+      <section data-variant="B">
+        <div class="mb-4">
+          <div class="flex items-center gap-3">
+            <span class="text-[10px] font-bold tracking-wider text-primary bg-primary-soft/40 border border-primary/40 px-2 py-0.5 rounded">VARIANTE B</span>
+            <h2 class="text-base font-semibold">Accordion Denso</h2>
+          </div>
+          <p class="text-sm text-ink-dim mt-1 max-w-2xl">
+            Filas compactas tipo accordion con resumen inline (título + metadata + badges).
+            Mínimo chrome, máxima densidad. Soporta multi-expand opcional.
+            <strong class="text-ink">Ideal para:</strong> arrays de 10–50+ items con 2–4 sub-campos
+            (FAQs, testimonios, resources, client_logos, integrations, preferred_channels, tags).
+          </p>
+        </div>
+
+        <div class="rounded-xl border border-border bg-surface">
+          <div class="flex items-center justify-between px-5 py-3.5 border-b border-border">
+            <div class="flex items-center gap-3">
+              <h3 class="font-semibold text-sm">Preguntas frecuentes</h3>
+              <span class="text-xs text-ink-dim bg-surface-2 px-2 py-0.5 rounded-full">12 preguntas</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input class="field-input !py-1.5 !text-xs w-48" placeholder="Buscar en 12 ítems…" />
+              <button class="text-xs px-2.5 py-1.5 rounded-md border border-border text-ink-dim hover:text-ink">Filtrar ▾</button>
+            </div>
+          </div>
+
+          <div class="divide-y divide-border">
+            <!-- Row 1 collapsed -->
+            <details class="group">
+              <summary class="flex items-center gap-3 px-4 py-3 hover:bg-surface-2 cursor-pointer">
+                <span class="drag-handle text-ink-muted text-sm">⋮⋮</span>
+                <span class="chev text-ink-muted text-sm">›</span>
+                <span class="text-[11px] font-mono text-ink-muted w-6">01</span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm truncate">¿Cuánto tarda en llegar el primer resultado?</div>
+                  <div class="text-[11px] text-ink-muted mt-0.5">Tiempos · Respondida por agente · Destacada</div>
+                </div>
+                <span class="text-[10px] text-success/90 bg-success/10 border border-success/30 px-1.5 py-0.5 rounded">OK</span>
+                <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 ml-1 transition">
+                  <button class="p-1 text-ink-muted hover:text-ink">⧉</button>
+                  <button class="p-1 text-ink-muted hover:text-danger">🗑</button>
+                </div>
+              </summary>
+              <div class="px-14 pb-4 pt-1 space-y-3">
+                <div>
+                  <label class="block text-xs font-medium text-ink-dim mb-1.5">Pregunta *</label>
+                  <input class="field-input" value="¿Cuánto tarda en llegar el primer resultado?" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-ink-dim mb-1.5">Respuesta *</label>
+                  <textarea class="field-input field-textarea">En promedio los clientes notan cambios en 3–4 semanas…</textarea>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                  <div>
+                    <label class="block text-xs font-medium text-ink-dim mb-1.5">Categoría</label>
+                    <select class="field-input"><option>Tiempos</option></select>
+                  </div>
+                  <label class="flex items-center gap-2 text-sm pt-6">
+                    <input type="checkbox" checked /> Respondida por agente
+                  </label>
+                  <label class="flex items-center gap-2 text-sm pt-6">
+                    <input type="checkbox" checked /> Destacada
+                  </label>
+                </div>
+              </div>
+            </details>
+
+            <!-- Row 2 collapsed with warn -->
+            <details>
+              <summary class="flex items-center gap-3 px-4 py-3 hover:bg-surface-2 cursor-pointer">
+                <span class="drag-handle text-ink-muted text-sm">⋮⋮</span>
+                <span class="chev text-ink-muted text-sm">›</span>
+                <span class="text-[11px] font-mono text-ink-muted w-6">02</span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm truncate">¿Puedo pagar en cuotas?</div>
+                  <div class="text-[11px] text-ink-muted mt-0.5">Pricing · Sin respuesta del agente</div>
+                </div>
+                <span class="text-[10px] text-warn/90 bg-warn/10 border border-warn/30 px-1.5 py-0.5 rounded">RESPUESTA VACÍA</span>
+              </summary>
+            </details>
+
+            <!-- Row 3 -->
+            <details>
+              <summary class="flex items-center gap-3 px-4 py-3 hover:bg-surface-2 cursor-pointer">
+                <span class="drag-handle text-ink-muted text-sm">⋮⋮</span>
+                <span class="chev text-ink-muted text-sm">›</span>
+                <span class="text-[11px] font-mono text-ink-muted w-6">03</span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm truncate">¿Qué incluye la devolución?</div>
+                  <div class="text-[11px] text-ink-muted mt-0.5">Garantía · Respondida por agente</div>
+                </div>
+                <span class="text-[10px] text-success/90 bg-success/10 border border-success/30 px-1.5 py-0.5 rounded">OK</span>
+              </summary>
+            </details>
+
+            <!-- Row 4 -->
+            <details>
+              <summary class="flex items-center gap-3 px-4 py-3 hover:bg-surface-2 cursor-pointer">
+                <span class="drag-handle text-ink-muted text-sm">⋮⋮</span>
+                <span class="chev text-ink-muted text-sm">›</span>
+                <span class="text-[11px] font-mono text-ink-muted w-6">04</span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm truncate">¿Las sesiones son en vivo o grabadas?</div>
+                  <div class="text-[11px] text-ink-muted mt-0.5">Formato · Destacada</div>
+                </div>
+                <span class="text-[10px] text-success/90 bg-success/10 border border-success/30 px-1.5 py-0.5 rounded">OK</span>
+              </summary>
+            </details>
+          </div>
+
+          <div class="px-4 py-3 border-t border-border flex items-center justify-between">
+            <button class="text-sm font-medium text-primary flex items-center gap-1.5">
+              <span class="text-base leading-none">+</span> Agregar pregunta
+            </button>
+            <div class="flex items-center gap-3 text-[11px] text-ink-muted">
+              <span>12 ítems</span>
+              <span>·</span>
+              <button class="hover:text-ink-dim">Importar CSV</button>
+              <span>·</span>
+              <button class="hover:text-ink-dim">Exportar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-2 gap-3 text-xs">
+          <div class="rounded-md border border-success/30 bg-success/5 p-3">
+            <div class="font-semibold text-success mb-1">Pros</div>
+            <ul class="text-ink-dim space-y-0.5 list-disc pl-4">
+              <li>Densidad alta — 15+ items sin scroll</li>
+              <li>Nativo HTML &lt;details&gt; — accesible por defecto</li>
+              <li>Soporta búsqueda/filtro/import por volumen</li>
+              <li>Resumen inline con metadata (categoría, flags)</li>
+            </ul>
+          </div>
+          <div class="rounded-md border border-warn/30 bg-warn/5 p-3">
+            <div class="font-semibold text-warn mb-1">Contras</div>
+            <ul class="text-ink-dim space-y-0.5 list-disc pl-4">
+              <li>Menos afforable para &lt; 5 items (excesivo chrome)</li>
+              <li>Expand inline empuja ítems inferiores — desorienta</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           VARIANTE C — SPLIT MASTER-DETAIL
+           ========================================================= -->
+      <section data-variant="C">
+        <div class="mb-4">
+          <div class="flex items-center gap-3">
+            <span class="text-[10px] font-bold tracking-wider text-primary bg-primary-soft/40 border border-primary/40 px-2 py-0.5 rounded">VARIANTE C</span>
+            <h2 class="text-base font-semibold">Split Master-Detail</h2>
+          </div>
+          <p class="text-sm text-ink-dim mt-1 max-w-2xl">
+            Lista a la izquierda (selector), editor completo a la derecha. Elimina empuje vertical
+            y deja los formularios largos respirar.
+            <strong class="text-ink">Ideal para:</strong> arrays con items complejos de 8+ campos
+            (portfolio.cases, testimonials, venues, assets, team members).
+          </p>
+        </div>
+
+        <div class="rounded-xl border border-border bg-surface overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-3.5 border-b border-border">
+            <div class="flex items-center gap-3">
+              <h3 class="font-semibold text-sm">Casos de éxito</h3>
+              <span class="text-xs text-ink-dim bg-surface-2 px-2 py-0.5 rounded-full">4 casos</span>
+            </div>
+            <button class="text-xs px-2.5 py-1.5 rounded-md border border-border text-ink-dim hover:text-ink">Vista compacta ▾</button>
+          </div>
+
+          <div class="grid grid-cols-[280px_1fr] min-h-[480px]">
+            <!-- LIST -->
+            <aside class="border-r border-border bg-surface-2/50">
+              <div class="p-2 border-b border-border">
+                <input class="field-input !py-1.5 !text-xs" placeholder="Buscar casos…" />
+              </div>
+              <ul class="py-1">
+                <!-- selected -->
+                <li>
+                  <button class="w-full text-left px-3 py-2.5 border-l-2 border-primary bg-primary-soft/15 flex items-start gap-2">
+                    <span class="drag-handle text-ink-muted text-xs pt-1">⋮⋮</span>
+                    <span class="text-[11px] font-mono text-primary pt-0.5">01</span>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm truncate">Lanzamiento Acme a 8 países</div>
+                      <div class="text-[11px] text-ink-muted truncate">Acme Co · Retail · 2025</div>
+                    </div>
+                    <span class="text-[10px] text-success/90 bg-success/10 border border-success/30 px-1 py-0.5 rounded mt-0.5">OK</span>
+                  </button>
+                </li>
+                <li>
+                  <button class="w-full text-left px-3 py-2.5 border-l-2 border-transparent hover:bg-surface-2 flex items-start gap-2">
+                    <span class="drag-handle text-ink-muted text-xs pt-1">⋮⋮</span>
+                    <span class="text-[11px] font-mono text-ink-muted pt-0.5">02</span>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm truncate">Reducción de CAC Globex</div>
+                      <div class="text-[11px] text-ink-muted truncate">Globex · SaaS · 2024</div>
+                    </div>
+                    <span class="text-[10px] text-warn/90 bg-warn/10 border border-warn/30 px-1 py-0.5 rounded mt-0.5">2/15</span>
+                  </button>
+                </li>
+                <li>
+                  <button class="w-full text-left px-3 py-2.5 border-l-2 border-transparent hover:bg-surface-2 flex items-start gap-2">
+                    <span class="drag-handle text-ink-muted text-xs pt-1">⋮⋮</span>
+                    <span class="text-[11px] font-mono text-ink-muted pt-0.5">03</span>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm truncate">Onboarding Initech</div>
+                      <div class="text-[11px] text-ink-muted truncate">Initech · Fintech · 2025</div>
+                    </div>
+                    <span class="text-[10px] text-success/90 bg-success/10 border border-success/30 px-1 py-0.5 rounded mt-0.5">OK</span>
+                  </button>
+                </li>
+                <li>
+                  <button class="w-full text-left px-3 py-2.5 border-l-2 border-transparent hover:bg-surface-2 flex items-start gap-2 opacity-60">
+                    <span class="drag-handle text-ink-muted text-xs pt-1">⋮⋮</span>
+                    <span class="text-[11px] font-mono text-ink-muted pt-0.5">04</span>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm truncate italic text-ink-muted">Sin título</div>
+                      <div class="text-[11px] text-ink-muted truncate">Borrador</div>
+                    </div>
+                    <span class="text-[10px] text-danger/90 bg-danger/10 border border-danger/30 px-1 py-0.5 rounded mt-0.5">0/15</span>
+                  </button>
+                </li>
+              </ul>
+              <div class="p-2 border-t border-border">
+                <button class="w-full text-left text-sm text-primary px-2 py-1.5 hover:bg-primary-soft/15 rounded flex items-center gap-1.5">
+                  <span class="text-base leading-none">+</span> Agregar caso
+                </button>
+              </div>
+            </aside>
+
+            <!-- EDITOR -->
+            <div class="p-6 overflow-y-auto">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <div class="text-[11px] uppercase tracking-wider text-ink-muted">Caso 01 de 4</div>
+                  <h4 class="text-base font-semibold mt-0.5">Lanzamiento Acme a 8 países</h4>
+                </div>
+                <div class="flex items-center gap-1">
+                  <button class="text-xs px-2 py-1 rounded-md border border-border text-ink-dim hover:text-ink">⧉ Duplicar</button>
+                  <button class="text-xs px-2 py-1 rounded-md border border-border text-ink-dim hover:text-danger">🗑 Eliminar</button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                  <label class="block text-xs font-medium text-ink-dim mb-1.5">Título del caso *</label>
+                  <input class="field-input" value="Lanzamiento Acme a 8 países" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-ink-dim mb-1.5">Cliente *</label>
+                  <input class="field-input" value="Acme Co" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-ink-dim mb-1.5">Industria</label>
+                  <input class="field-input" value="Retail" />
+                </div>
+                <div class="col-span-2">
+                  <label class="block text-xs font-medium text-ink-dim mb-1.5">Desafío</label>
+                  <textarea class="field-input field-textarea">Expandir de 2 a 8 países en un trimestre sin duplicar headcount.</textarea>
+                </div>
+                <div class="col-span-2">
+                  <label class="block text-xs font-medium text-ink-dim mb-1.5">Solución</label>
+                  <textarea class="field-input field-textarea">Automatización del pipeline de leads + sales agent por país.</textarea>
+                </div>
+
+                <!-- Nested array -->
+                <div class="col-span-2 rounded-lg border border-border bg-surface-2/50 p-3">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="text-xs font-semibold text-ink-dim">Métricas de resultados</div>
+                    <span class="text-[11px] text-ink-muted">3 métricas</span>
+                  </div>
+                  <div class="space-y-1.5">
+                    <div class="grid grid-cols-[1fr_1fr_100px_auto] gap-2 items-center">
+                      <input class="field-input !py-1.5 !text-xs" value="CAC" />
+                      <input class="field-input !py-1.5 !text-xs" value="-38%" />
+                      <input class="field-input !py-1.5 !text-xs" value="90 días" />
+                      <button class="text-ink-muted hover:text-danger px-1">🗑</button>
+                    </div>
+                    <div class="grid grid-cols-[1fr_1fr_100px_auto] gap-2 items-center">
+                      <input class="field-input !py-1.5 !text-xs" value="LTV" />
+                      <input class="field-input !py-1.5 !text-xs" value="+22%" />
+                      <input class="field-input !py-1.5 !text-xs" value="180 días" />
+                      <button class="text-ink-muted hover:text-danger px-1">🗑</button>
+                    </div>
+                    <div class="grid grid-cols-[1fr_1fr_100px_auto] gap-2 items-center">
+                      <input class="field-input !py-1.5 !text-xs" value="Conversión" />
+                      <input class="field-input !py-1.5 !text-xs" value="x3" />
+                      <input class="field-input !py-1.5 !text-xs" value="trimestre" />
+                      <button class="text-ink-muted hover:text-danger px-1">🗑</button>
+                    </div>
+                  </div>
+                  <button class="mt-2 text-xs text-primary flex items-center gap-1">+ Agregar métrica</button>
+                </div>
+
+                <label class="col-span-2 flex items-center gap-2 text-sm pt-2">
+                  <input type="checkbox" checked /> Destacar este caso en la landing
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-2 gap-3 text-xs">
+          <div class="rounded-md border border-success/30 bg-success/5 p-3">
+            <div class="font-semibold text-success mb-1">Pros</div>
+            <ul class="text-ink-dim space-y-0.5 list-disc pl-4">
+              <li>Items complejos con 10+ campos respiran</li>
+              <li>Soporta arrays anidados (results_metrics dentro de case)</li>
+              <li>Navegación rápida entre items sin perder contexto</li>
+              <li>Buen fit en tablets/desktop &gt;= 1280px</li>
+            </ul>
+          </div>
+          <div class="rounded-md border border-warn/30 bg-warn/5 p-3">
+            <div class="font-semibold text-warn mb-1">Contras</div>
+            <ul class="text-ink-dim space-y-0.5 list-disc pl-4">
+              <li>Mobile requiere fallback (stack vertical o drawer)</li>
+              <li>Overkill para arrays de 2–5 items simples</li>
+              <li>Mayor superficie de implementación (2 vistas + state)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           MAPEO FIELDS → VARIANT
+           ========================================================= -->
+      <section class="pt-6 border-t border-border">
+        <h2 class="text-base font-semibold mb-4">Recomendación por campo</h2>
+        <div class="rounded-xl border border-border bg-surface overflow-hidden">
+          <table class="w-full text-xs">
+            <thead class="bg-surface-2 text-ink-dim">
+              <tr>
+                <th class="px-4 py-2.5 text-left font-medium">Feature</th>
+                <th class="px-4 py-2.5 text-left font-medium">Array</th>
+                <th class="px-4 py-2.5 text-left font-medium"># campos</th>
+                <th class="px-4 py-2.5 text-left font-medium"># items típ.</th>
+                <th class="px-4 py-2.5 text-left font-medium">Variante</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+              <tr><td class="px-4 py-2">brand-studio</td><td class="px-4 py-2">methodology_pillars</td><td class="px-4 py-2">2</td><td class="px-4 py-2">3–5</td><td class="px-4 py-2"><span class="text-primary font-medium">A</span></td></tr>
+              <tr><td class="px-4 py-2">brand-studio</td><td class="px-4 py-2">plan (StoryBrand)</td><td class="px-4 py-2">3</td><td class="px-4 py-2">3–5</td><td class="px-4 py-2"><span class="text-primary font-medium">A</span></td></tr>
+              <tr><td class="px-4 py-2">brand-studio</td><td class="px-4 py-2">reasons_to_believe</td><td class="px-4 py-2">3</td><td class="px-4 py-2">3–6</td><td class="px-4 py-2"><span class="text-primary font-medium">A</span></td></tr>
+              <tr><td class="px-4 py-2">brand-studio</td><td class="px-4 py-2">pain_points / desires</td><td class="px-4 py-2">2</td><td class="px-4 py-2">5–10</td><td class="px-4 py-2"><span class="text-primary font-medium">A</span></td></tr>
+              <tr><td class="px-4 py-2">brand-studio</td><td class="px-4 py-2">objections</td><td class="px-4 py-2">2</td><td class="px-4 py-2">5–10</td><td class="px-4 py-2"><span class="text-primary font-medium">A / B</span></td></tr>
+              <tr><td class="px-4 py-2">brand-studio</td><td class="px-4 py-2">preferred_channels</td><td class="px-4 py-2">2</td><td class="px-4 py-2">3–6</td><td class="px-4 py-2"><span class="text-primary font-medium">A</span></td></tr>
+              <tr><td class="px-4 py-2">brand-studio</td><td class="px-4 py-2">creative_concepts</td><td class="px-4 py-2">3</td><td class="px-4 py-2">3–5</td><td class="px-4 py-2"><span class="text-primary font-medium">A</span></td></tr>
+              <tr><td class="px-4 py-2">brand-studio</td><td class="px-4 py-2">communication-assets.assets</td><td class="px-4 py-2">8</td><td class="px-4 py-2">10–30</td><td class="px-4 py-2"><span class="text-primary font-medium">C</span></td></tr>
+              <tr><td class="px-4 py-2">offer-studio</td><td class="px-4 py-2">value_stack.deliverables</td><td class="px-4 py-2">5</td><td class="px-4 py-2">4–8</td><td class="px-4 py-2"><span class="text-primary font-medium">A</span></td></tr>
+              <tr><td class="px-4 py-2">offer-studio</td><td class="px-4 py-2">program.curriculum</td><td class="px-4 py-2">3</td><td class="px-4 py-2">5–12</td><td class="px-4 py-2"><span class="text-primary font-medium">A</span></td></tr>
+              <tr><td class="px-4 py-2">offer-studio</td><td class="px-4 py-2">program.schedule</td><td class="px-4 py-2">4</td><td class="px-4 py-2">3–7</td><td class="px-4 py-2"><span class="text-primary font-medium">A</span></td></tr>
+              <tr><td class="px-4 py-2">offer-studio</td><td class="px-4 py-2">faq.questions</td><td class="px-4 py-2">5</td><td class="px-4 py-2">8–30</td><td class="px-4 py-2"><span class="text-primary font-medium">B</span></td></tr>
+              <tr><td class="px-4 py-2">offer-studio</td><td class="px-4 py-2">resources (base + edition)</td><td class="px-4 py-2">4–5</td><td class="px-4 py-2">5–20</td><td class="px-4 py-2"><span class="text-primary font-medium">B</span></td></tr>
+              <tr><td class="px-4 py-2">offer-studio</td><td class="px-4 py-2">platform.integrations</td><td class="px-4 py-2">4</td><td class="px-4 py-2">5–20</td><td class="px-4 py-2"><span class="text-primary font-medium">B</span></td></tr>
+              <tr><td class="px-4 py-2">offer-studio</td><td class="px-4 py-2">platform.core_features</td><td class="px-4 py-2">4</td><td class="px-4 py-2">5–15</td><td class="px-4 py-2"><span class="text-primary font-medium">B</span></td></tr>
+              <tr><td class="px-4 py-2">offer-studio</td><td class="px-4 py-2">portfolio.client_logos</td><td class="px-4 py-2">2</td><td class="px-4 py-2">6–12</td><td class="px-4 py-2"><span class="text-primary font-medium">B</span></td></tr>
+              <tr><td class="px-4 py-2">offer-studio</td><td class="px-4 py-2">testimonials</td><td class="px-4 py-2">12</td><td class="px-4 py-2">6–20</td><td class="px-4 py-2"><span class="text-primary font-medium">C</span></td></tr>
+              <tr><td class="px-4 py-2">offer-studio</td><td class="px-4 py-2">portfolio.cases (+nested)</td><td class="px-4 py-2">15+3</td><td class="px-4 py-2">3–10</td><td class="px-4 py-2"><span class="text-primary font-medium">C</span></td></tr>
+              <tr><td class="px-4 py-2">offer-studio</td><td class="px-4 py-2">location.venues</td><td class="px-4 py-2">11</td><td class="px-4 py-2">1–5</td><td class="px-4 py-2"><span class="text-primary font-medium">C</span></td></tr>
+              <tr><td class="px-4 py-2">offer-studio</td><td class="px-4 py-2">gallery.before_after_pairs</td><td class="px-4 py-2">3</td><td class="px-4 py-2">3–8</td><td class="px-4 py-2"><span class="text-primary font-medium">A</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-xs text-ink-muted">
+          La variante se elige vía <code class="bg-surface-2 px-1.5 py-0.5 rounded text-ink-dim">renderAs: "cards" | "accordion" | "split"</code>
+          en el schema. Default = <code class="bg-surface-2 px-1.5 py-0.5 rounded text-ink-dim">cards</code>.
+          Auto-upgrade a <code>accordion</code> si items &gt; 10; a <code>split</code> si fields &gt; 8.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      document.querySelectorAll("[data-tab]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const tab = btn.dataset.tab;
+          document.querySelectorAll("[data-tab]").forEach((b) => {
+            b.classList.remove("tab-active");
+            b.classList.add("text-ink-dim");
+          });
+          btn.classList.add("tab-active");
+          btn.classList.remove("text-ink-dim");
+          document.querySelectorAll("[data-variant]").forEach((s) => {
+            s.classList.toggle("active", s.dataset.variant === tab);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -8,8 +8,8 @@ import { cn } from "@/lib/utils";
 import { CompletionDot, type CompletionState } from "./CompletionDot";
 import { useFormRuntime } from "./FormRuntimeContext";
 
-import type { MouseEvent } from "react";
 import type { FieldSchema } from "@/lib/form-runtime/schema";
+import type { MouseEvent } from "react";
 
 export interface FieldListProps {
   activeFieldId: string | null;

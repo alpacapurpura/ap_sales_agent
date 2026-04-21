@@ -132,9 +132,9 @@ html.dark {
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 210 40% 98%;
 
-  /* Borders: Visible but subtle */
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
+  /* Borders: Visible but subtle — must contrast vs --card (17.5%) in dark. */
+  --border: 217.2 32.6% 28%;
+  --input: 217.2 32.6% 28%;
   --ring: 212.7 26.8% 83.9%;
   --chart-1: 220 70% 50%;
   --chart-2: 160 60% 45%;

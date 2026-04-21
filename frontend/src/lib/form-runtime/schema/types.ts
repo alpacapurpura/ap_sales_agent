@@ -62,6 +62,14 @@ export interface EnumOption {
 export interface ItemSchema {
   description?: string;
   fields: FieldSchema[];
+  /**
+   * Override for the auto-derived singular noun used in add-button copy
+   * ("Agregar {itemNoun}") and empty-item placeholders ("Nuevo {itemNoun}…").
+   * When omitted the noun is derived from the field label via
+   * `singulariseES()`. Declare explicitly when the auto-derivation loses
+   * accents or picks the wrong root (e.g. "integraciones" → "integración").
+   */
+  itemNoun?: string;
 }
 
 /**
@@ -119,6 +127,15 @@ export interface FieldSchema {
   rows?: number;
   /** For array. Required when type === "array". */
   itemSchema?: ItemSchema;
+  /**
+   * For array fields. Optional render mode override.
+   * Default: "cards" when itemSchema.fields.length <= 3, "split" when >= 4.
+   * See .claude/rules/form-runtime-array.md
+   *
+   * Only override with documented justification:
+   * - "accordion": dense lists ≥15 items (FAQ, resources). Justify in PR.
+   */
+  renderAs?: "cards" | "split" | "accordion";
   /** For custom. Action key registered in the action registry. */
   action?: string;
   /** Props forwarded to the custom action component. Immutable. */

@@ -170,6 +170,7 @@ docker run --rm ... ruff|pytest|tsc|vitest
 16. **FE Quality:** 0 ESLint errors, 1063 tests, 20% coverage. No nuevos errores. `.claude/rules/frontend-quality.md`.
 17. **FE Arch Tests:** 8 fitness tests `src/__tests__/architecture/` — PascalCase components, kebab-case files/folders, hooks in hooks/, no default exports, no cross-feature dupes, canonical structure, fetchClient in api/. Ratchet (allowlists shrink only).
 18. **BE Quality:** Ruff 70+ rules, 0 errors, 7 arch gates, 43% coverage. No nuevos. `.claude/rules/backend-quality.md`.
+19. **Form-runtime Array:** Campos array ≤3 sub-fields → modo `cards`, ≥4 → modo `split`. Default automático por `itemSchema.fields.length`. Autosave on-change preservado. `.claude/rules/form-runtime-array.md`.
 
 ## Vision
 
