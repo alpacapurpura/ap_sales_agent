@@ -2,7 +2,7 @@ import { test, expect } from '../../fixtures/auth.fixture';
 
 test.describe('Navigation @smoke', () => {
   test('authenticated user lands on Brand Studio', async ({ page, tenantId }) => {
-    await page.goto(`/${tenantId}/brand-studio/esencia`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/${tenantId}/brand-studio/identity`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('main')).toBeVisible({ timeout: 45_000 });
   });
 
