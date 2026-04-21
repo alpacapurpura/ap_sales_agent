@@ -103,7 +103,7 @@ describe("UniversalEditableSection", () => {
     expect(screen.getByDisplayValue("c")).toBeTruthy();
   });
 
-  it("renders field rows as Next.js Links pointing at the consumer-provided href", () => {
+  it("renders field rows as anchors pointing at the consumer-provided href", () => {
     render(
       <UniversalEditableSection
         schema={SCHEMA}

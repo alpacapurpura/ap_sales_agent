@@ -1,12 +1,11 @@
 "use client";
 
 import { AlertTriangle, Loader2 } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
 import { UniversalEditableSection } from "@/components/form-runtime";
+import { useOfferStudioFieldRouting } from "@/features/offer-studio/hooks/use-field-routing";
 import { useSectionMetadata } from "@/features/offer-studio/hooks/use-section-catalog";
-import { resolveOfferEditorRoute } from "@/features/offer-studio/pages/resolve-offer-editor-route";
 import {
   offerClosingSchema,
   offerEventDetailsSchema,
@@ -78,21 +77,10 @@ function createSectionPage(
   save?: SaveSelector,
 ): (props: OfferSectionPageProps) => ReactElement {
   function OfferSectionPage({ offerId, editionCode }: OfferSectionPageProps): ReactElement {
-    const params = useParams<{
-      tenantId?: string;
-      section?: string;
-      fieldId?: string | string[];
-    }>();
     const hook = useOfferSettings(offerId);
     const metadata = useSectionMetadata(sectionKey);
 
-    const { activeFieldId, sectionBasePath } = resolveOfferEditorRoute({
-      tenantId: params?.tenantId ?? "",
-      offerId,
-      section: params?.section ?? "",
-      fieldId: params?.fieldId,
-    });
-    const getFieldHref = useStableFieldHref(sectionBasePath);
+    const { activeFieldId, getFieldHref } = useOfferStudioFieldRouting();
 
     const updater = save ? save(hook) : undefined;
     const handleSave = useSectionSaveHandler(sectionKey, offerId, editionCode, updater);
@@ -129,15 +117,6 @@ function createSectionPage(
   }
   OfferSectionPage.displayName = `OfferSectionPage(${sectionKey})`;
   return OfferSectionPage;
-}
-
-/** Memoise the href builder so React Perf sees a stable function across renders. */
-function useStableFieldHref(sectionBasePath: string) {
-  return useCallback(
-    (fieldId: string | null): string =>
-      fieldId ? `${sectionBasePath}/${fieldId}` : sectionBasePath,
-    [sectionBasePath],
-  );
 }
 
 /**

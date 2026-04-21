@@ -5,12 +5,14 @@ import { SectionPage } from "../SectionPage";
 
 import type { SectionSchema } from "@/lib/form-runtime/schema";
 
-// Mocked under happy-dom — no real Next.js router
 vi.mock("next/navigation", () => ({
   useParams: vi.fn(),
+  usePathname: vi.fn(() => "/t-1/brand-studio/identity"),
+  useSearchParams: vi.fn(() => new URLSearchParams()),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
 }));
 
-const { useParams } = await import("next/navigation");
+const { useParams, usePathname, useSearchParams } = await import("next/navigation");
 
 const IDENTITY_SCHEMA: SectionSchema = {
   key: "brand.identity",
@@ -21,8 +23,20 @@ const IDENTITY_SCHEMA: SectionSchema = {
   ],
 };
 
-function mockParams(params: { tenantId?: string; fieldId?: string | string[] }) {
-  vi.mocked(useParams).mockReturnValue(params as never);
+function mockRoute({
+  tenantId,
+  field,
+  pathname = "/t-1/brand-studio/identity",
+}: {
+  tenantId?: string;
+  field?: string;
+  pathname?: string;
+}) {
+  vi.mocked(useParams).mockReturnValue({ tenantId } as never);
+  vi.mocked(usePathname).mockReturnValue(pathname);
+  vi.mocked(useSearchParams).mockReturnValue(
+    (field ? new URLSearchParams({ field }) : new URLSearchParams()) as never,
+  );
 }
 
 describe("SectionPage", () => {
@@ -30,8 +44,8 @@ describe("SectionPage", () => {
     vi.clearAllMocks();
   });
 
-  it("delegates activeFieldId to URL params", () => {
-    mockParams({ tenantId: "t-1", fieldId: "tagline" });
+  it("delegates activeFieldId to the ?field= query parameter", () => {
+    mockRoute({ tenantId: "t-1", field: "tagline" });
     render(
       <SectionPage
         sectionSlug="identity"
@@ -43,8 +57,8 @@ describe("SectionPage", () => {
     expect(screen.getByDisplayValue("Creadoras que viven de lo que aman")).toBeTruthy();
   });
 
-  it("builds section-level hrefs when no fieldId is active", () => {
-    mockParams({ tenantId: "t-1" });
+  it("builds section-level hrefs with the field id as a query param", () => {
+    mockRoute({ tenantId: "t-1" });
     render(
       <SectionPage
         sectionSlug="identity"
@@ -54,11 +68,11 @@ describe("SectionPage", () => {
       />,
     );
     const taglineRow = screen.getByRole("option", { name: /Tagline/ });
-    expect(taglineRow.getAttribute("href")).toBe("/t-1/brand-studio/identity/tagline");
+    expect(taglineRow.getAttribute("href")).toBe("/t-1/brand-studio/identity?field=tagline");
   });
 
   it("renders loading when values are missing", () => {
-    mockParams({ tenantId: "t-1" });
+    mockRoute({ tenantId: "t-1" });
     render(
       <SectionPage
         sectionSlug="identity"

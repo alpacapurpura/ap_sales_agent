@@ -9,7 +9,6 @@ interface PageProps {
   params: Promise<{
     tenantId: string;
     section: string;
-    fieldId?: string[];
   }>;
 }
 
@@ -18,15 +17,13 @@ function isKnownSection(slug: string): slug is BrandStudioSectionSlug {
 }
 
 /**
- * Catch-all dispatcher for brand-studio sections.
+ * Dispatcher for brand-studio sections.
  *
- *   /{tenantId}/brand-studio/{section}              → section list view
- *   /{tenantId}/brand-studio/{section}/{fieldId}    → field detail view
+ *   /{tenantId}/brand-studio/{section}                   → list view
+ *   /{tenantId}/brand-studio/{section}?field={fieldId}   → detail view
  *
- * Section slug is validated against `SECTION_PAGE_MAP`; unknown slugs return
- * the Next.js not-found page. Field id (when present) is read from the URL
- * by `useBrandStudioFieldRouting` inside the factory page itself — this
- * route file stays thin.
+ * Field selection lives in the ``?field=`` query param and is handled
+ * client-side via ``useActiveField``. Unknown section slugs return 404.
  */
 export default async function BrandStudioSectionPage({ params }: PageProps) {
   const { section } = await params;

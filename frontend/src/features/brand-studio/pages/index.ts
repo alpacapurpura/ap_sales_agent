@@ -1,9 +1,8 @@
 /**
  * Public surface of brand-studio's pages module.
  *
- * The App Router catch-all at
- * `/brand-studio/[section]/[[...fieldId]]/page.tsx` consumes
- * ``SECTION_PAGE_MAP`` + ``BrandStudioSectionSlug`` from
+ * The App Router dispatcher at ``/brand-studio/[section]/page.tsx``
+ * consumes ``SECTION_PAGE_MAP`` + ``BrandStudioSectionSlug`` from
  * ``section-page-map.ts`` (the server-safe module — see its header for why
  * it is separate from the ``"use client"`` page components in
  * ``section-pages.tsx``). Per-section page components (IdentityPage,

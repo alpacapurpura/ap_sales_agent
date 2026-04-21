@@ -118,10 +118,10 @@ function SectionRow({ baseHref, section, isActive }: SectionRowProps) {
 
 /**
  * Extract the active section slug from an offer-studio pathname. Accepts
- * both the legacy URL
- * ``/.../offer/{id}/edition/{code}/{section}/{fieldId?}`` and the target
- * URL ``/.../offer/{id}/editor/{section}/{fieldId?}`` so the rail works
- * across the F3 migration without a rewrite.
+ * both the legacy URL ``/.../offer/{id}/edition/{code}/{section}`` and
+ * the target URL ``/.../offer/{id}/editor/{section}`` so the rail works
+ * across the F3 migration without a rewrite. Field selection lives in
+ * ``?field=`` (query string) and is irrelevant for rail highlighting.
  */
 export function extractActiveSectionSlug(pathname: string, offerId: string): string | null {
   const marker = `/offer/${offerId}/`;

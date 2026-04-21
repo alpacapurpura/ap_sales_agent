@@ -1,6 +1,7 @@
 "use client";
 
 import { Label } from "@/components/ui/label";
+import { useActiveField } from "@/lib/form-runtime/hooks";
 import { cn } from "@/lib/utils";
 
 import { FieldRenderer } from "./FieldRenderer";
@@ -16,14 +17,20 @@ export interface EditableFieldProps {
 }
 
 /**
- * Single-field wrapper. Reads/writes through FormRuntimeContext, manages
- * focus dispatching, renders via FieldRenderer. Replaces WithCopilot — the
- * copilot sees this field through the bridge, not a per-element attribute.
+ * Single-field wrapper. Reads/writes through FormRuntimeContext, keeps
+ * the URL's ``?field=`` in sync with the currently-focused input, and
+ * renders the input itself via FieldRenderer.
+ *
+ * The URL is the single source of truth for "which field is active":
+ * focusing an input updates the URL (via useActiveField), which in turn
+ * re-renders FieldList + FieldDetail + FieldContextPanel consistently.
+ * No internal focus state lives in the FormRuntimeContext anymore.
  */
 export function EditableField({ field, className, autoFocus }: EditableFieldProps) {
-  const { values, setFieldValue, focusField, focusedFieldId } = useFormRuntime();
+  const { values, setFieldValue } = useFormRuntime();
+  const { activeFieldId, setActiveField } = useActiveField();
   const value = values[field.path];
-  const isFocused = focusedFieldId === field.id;
+  const isFocused = activeFieldId === field.id;
 
   return (
     <div
@@ -32,10 +39,12 @@ export function EditableField({ field, className, autoFocus }: EditableFieldProp
         isFocused && "rounded-md ring-2 ring-ring ring-offset-2",
         className,
       )}
-      onFocusCapture={() => focusField(field.id)}
+      onFocusCapture={() => {
+        if (activeFieldId !== field.id) setActiveField(field.id);
+      }}
       onBlurCapture={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-          focusField(null);
+          setActiveField(null);
         }
       }}
     >

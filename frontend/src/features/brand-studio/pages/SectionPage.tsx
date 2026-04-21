@@ -26,8 +26,8 @@ export interface SectionPageProps<TSlice extends object> {
  * specific schema + slice selector + onSave their feature exposes.
  *
  * Route contract (owned by the consumer page file in `app/.../`):
- *   /{tenantId}/brand-studio/{sectionSlug}              → list view
- *   /{tenantId}/brand-studio/{sectionSlug}/{fieldId}    → detail view
+ *   /{tenantId}/brand-studio/{sectionSlug}                   → list view
+ *   /{tenantId}/brand-studio/{sectionSlug}?field={fieldId}   → detail view
  */
 export function SectionPage<TSlice extends object>({
   sectionSlug,

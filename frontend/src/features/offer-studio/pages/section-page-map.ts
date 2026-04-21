@@ -26,8 +26,8 @@ import type { SectionKey } from "../api/archetype-catalog-api";
 
 /**
  * Server-safe registry of offer-studio section pages. **No ``"use client"``
- * directive on purpose**: the App Router catch-all at
- * ``app/(main)/[tenantId]/(dashboard)/offer-studio/offer/[id]/edition/[code]/[section]/[[...fieldId]]/page.tsx``
+ * directive on purpose**: the App Router route at
+ * ``app/(main)/[tenantId]/(dashboard)/offer-studio/offer/[id]/editor/[section]/page.tsx``
  * is a Server Component and must index this map (``section in
  * OFFER_SECTION_PAGE_MAP``) before deciding whether to 404. If the map
  * lived in a client module its exports would be replaced with opaque

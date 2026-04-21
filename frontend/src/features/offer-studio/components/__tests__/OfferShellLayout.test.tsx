@@ -66,7 +66,7 @@ describe("OfferShellLayout · legacy edition redirect helpers", () => {
       expect(url).toBe("/t-1/offer-studio/offer/o-1/editor/promise?edition=evergreen");
     });
 
-    it("preserves the fieldId segment when present", () => {
+    it("preserves the fieldId as a query param when present", () => {
       const url = buildLegacyEditionRedirectUrl({
         tenantId: "t-1",
         offerId: "o-1",
@@ -74,7 +74,7 @@ describe("OfferShellLayout · legacy edition redirect helpers", () => {
         section: "pricing",
         fieldId: "currency",
       });
-      expect(url).toBe("/t-1/offer-studio/offer/o-1/editor/pricing/currency?edition=2");
+      expect(url).toBe("/t-1/offer-studio/offer/o-1/editor/pricing?edition=2&field=currency");
     });
   });
 });

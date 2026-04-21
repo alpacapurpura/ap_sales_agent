@@ -76,8 +76,9 @@ export function matchLegacyEditionPath(pathname: string): LegacyEditionMatch | n
 export function buildLegacyEditionRedirectUrl(match: LegacyEditionMatch): string {
   const { tenantId, offerId, code, section, fieldId } = match;
   const base = `/${tenantId}/offer-studio/offer/${offerId}/editor/${section}`;
-  const path = fieldId ? `${base}/${fieldId}` : base;
-  return `${path}?edition=${code}`;
+  const params = new URLSearchParams({ edition: code });
+  if (fieldId) params.set("field", fieldId);
+  return `${base}?${params.toString()}`;
 }
 
 // ── OfferShellLayout component ────────────────────────────────────────────────

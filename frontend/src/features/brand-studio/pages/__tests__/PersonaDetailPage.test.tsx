@@ -6,6 +6,7 @@ vi.mock("next/navigation", () => ({
   useParams: vi.fn(),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
   usePathname: () => "/t/brand-studio/publico/persona/p",
+  useSearchParams: vi.fn(() => new URLSearchParams()),
 }));
 
 const useBuyerPersonasMock = vi.fn(() => ({
@@ -22,7 +23,7 @@ vi.mock("@/features/brand-studio/hooks/use-buyer-personas", () => ({
   useBuyerPersonas: () => useBuyerPersonasMock(),
 }));
 
-const { useParams } = await import("next/navigation");
+const { useParams, useSearchParams } = await import("next/navigation");
 
 const useBuyerPersonaMock = vi.fn();
 vi.mock("@/features/brand-studio/hooks/use-buyer-persona", () => ({
@@ -100,12 +101,12 @@ describe("PersonaDetailPage", () => {
     expect(screen.getByDisplayValue("María")).toBeTruthy();
   });
 
-  it("derives the active field from the URL fieldId segment", () => {
+  it("derives the active field from the ?field= query parameter", () => {
     vi.mocked(useParams).mockReturnValue({
       tenantId: "t",
       personaId: "p",
-      fieldId: "tagline",
     } as never);
+    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams({ field: "tagline" }) as never);
     useBuyerPersonaMock.mockReturnValue({
       persona: { ...FULL_PERSONA, is_primary: false, completeness_score: 0 },
       isLoading: false,

@@ -80,7 +80,13 @@ function buildSectionSelector(sectionId: string): string {
 }
 
 function buildFieldSelector(fieldId: string): string {
-  return `#${CSS.escape(fieldId)}, ` + `[data-field-id="${fieldId}"], ` + `[name="${fieldId}"]`;
+  const escaped = CSS.escape(fieldId);
+  return (
+    `#${escaped}, ` +
+    `[data-field-id="${fieldId}"], ` +
+    `[data-field-anchor="${fieldId}"], ` +
+    `[name="${fieldId}"]`
+  );
 }
 
 /**

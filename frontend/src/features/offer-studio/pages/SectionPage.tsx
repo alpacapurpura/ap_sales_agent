@@ -32,9 +32,9 @@ export interface SectionPageProps<TSlice extends object> {
  *
  * Route contract (owned by the consumer page file in ``app/.../``):
  *
- *   /{tenantId}/offer-studio/offer/{offerId}/edition/{editionCode}/{sectionSlug}
+ *   /{tenantId}/offer-studio/offer/{offerId}/editor/{sectionSlug}
  *     → list view
- *   /{tenantId}/offer-studio/offer/{offerId}/edition/{editionCode}/{sectionSlug}/{fieldId}
+ *   /{tenantId}/offer-studio/offer/{offerId}/editor/{sectionSlug}?field={fieldId}
  *     → detail view
  */
 export function SectionPage<TSlice extends object>({

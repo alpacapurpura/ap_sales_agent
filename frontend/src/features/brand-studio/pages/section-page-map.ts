@@ -11,9 +11,9 @@ import {
 
 /**
  * Server-safe registry of brand-studio section pages. **This module has no
- * ``"use client"`` directive on purpose**: the catch-all Server Component
+ * ``"use client"`` directive on purpose**: the Server Component
  * dispatcher at
- * ``app/(main)/[tenantId]/(dashboard)/brand-studio/[section]/[[...fieldId]]/page.tsx``
+ * ``app/(main)/[tenantId]/(dashboard)/brand-studio/[section]/page.tsx``
  * needs to index the map (``section in SECTION_PAGE_MAP``) and pick a
  * component. When the map lives in a ``"use client"`` module its exports
  * are replaced with opaque client references on the server and the index

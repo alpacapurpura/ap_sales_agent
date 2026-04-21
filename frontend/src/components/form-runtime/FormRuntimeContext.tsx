@@ -9,14 +9,12 @@ import type { SaveMode, SectionSchema } from "@/lib/form-runtime/schema";
 export interface FormRuntimeContextValue {
   schema: SectionSchema;
   values: Record<string, unknown>;
-  focusedFieldId: string | null;
   /** Runtime default. Per-field schema saveMode overrides this. */
   saveMode: SaveMode;
   /** Autosave state machine — null when saveMode is "explicit". */
   autosaveStatus: AutosaveStatus | null;
   autosaveError: Error | null;
   setFieldValue: (path: string, next: unknown) => void;
-  focusField: (id: string | null) => void;
   /** Revert all in-session changes. */
   undoSession: () => void;
   /** Has anything changed since session start? */

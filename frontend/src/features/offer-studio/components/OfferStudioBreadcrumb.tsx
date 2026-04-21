@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
 import { cn } from "@/lib/utils";
@@ -30,9 +30,8 @@ interface Crumb {
  *   /{t}/offer-studio/offer/{id}                                       → + offer
  *   /{t}/offer-studio/offer/{id}/editor                                → + "Editor"
  *   /{t}/offer-studio/offer/{id}/editor/{section}                      → + section
- *   /{t}/offer-studio/offer/{id}/editor/{section}/{fieldId}            → + field
+ *   /{t}/offer-studio/offer/{id}/editor/{section}?field={fieldId}      → + field
  *   /{t}/offer-studio/offer/{id}/edition/{code}/{section}              → legacy section
- *   /{t}/offer-studio/offer/{id}/edition/{code}/{section}/{fieldId}    → legacy field
  *   /{t}/offer-studio/offer/{id}/editions                              → + "Editions"
  *   /{t}/offer-studio/offer/{id}/editions/{editionId}                  → + edition name
  *   /{t}/offer-studio/offer/{id}/assets                                → + tab name
@@ -53,10 +52,12 @@ export function OfferStudioBreadcrumb({ offerName }: OfferStudioBreadcrumbProps 
   const params = useParams<{ tenantId?: string }>();
   const tenantId = params?.tenantId ?? "";
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeFieldId = searchParams.get("field");
 
   const crumbs = useMemo<Crumb[]>(
-    () => buildCrumbs(pathname ?? "", tenantId, offerName),
-    [pathname, tenantId, offerName],
+    () => buildCrumbs(pathname ?? "", tenantId, offerName, activeFieldId ?? undefined),
+    [pathname, tenantId, offerName, activeFieldId],
   );
 
   return (
@@ -104,7 +105,12 @@ function shortenId(id: string): string {
 }
 
 /** Build breadcrumb list from a pathname + tenant id. Exported for tests. */
-export function buildCrumbs(pathname: string, tenantId: string, offerName?: string): Crumb[] {
+export function buildCrumbs(
+  pathname: string,
+  tenantId: string,
+  offerName?: string,
+  activeFieldId?: string,
+): Crumb[] {
   const root: Crumb = {
     label: "Offer Studio",
     href: tenantId ? `/${tenantId}/offer-studio` : undefined,
@@ -126,12 +132,12 @@ export function buildCrumbs(pathname: string, tenantId: string, offerName?: stri
   if (!tabSegment) return crumbs;
 
   if (tabSegment === "edition") {
-    appendLegacyEditionCrumbs(crumbs, offerHref, rest);
+    appendLegacyEditionCrumbs(crumbs, offerHref, rest, activeFieldId);
     return crumbs;
   }
 
   appendTabCrumb(crumbs, tabSegment, offerHref);
-  appendTabBodyCrumbs(crumbs, tabSegment, rest.slice(3));
+  appendTabBodyCrumbs(crumbs, tabSegment, rest.slice(3), activeFieldId);
   return crumbs;
 }
 
@@ -145,17 +151,22 @@ function extractOfferStudioRest(pathname: string): string[] | null {
 }
 
 /**
- * Legacy URL flatten: ``/offer/{id}/edition/{code}/{section?}/{fieldId?}``
- * always collapses to Editor + section + field — editions never got their
- * own tab breadcrumb under the old routing.
+ * Legacy URL flatten: ``/offer/{id}/edition/{code}/{section?}`` always
+ * collapses to Editor + section + (optional) field — editions never got
+ * their own tab breadcrumb under the old routing. The field crumb is
+ * populated from the ``?field=`` query parameter when present.
  */
-function appendLegacyEditionCrumbs(crumbs: Crumb[], offerHref: string, rest: string[]): void {
+function appendLegacyEditionCrumbs(
+  crumbs: Crumb[],
+  offerHref: string,
+  rest: string[],
+  activeFieldId?: string,
+): void {
   crumbs.push({ label: "Editor", href: `${offerHref}/editor` });
   const section = rest[4];
-  const fieldId = rest[5];
   if (!section) return;
   crumbs.push({ label: getOfferSectionLabel(section), href: undefined });
-  if (fieldId) crumbs.push({ label: fieldId });
+  if (activeFieldId) crumbs.push({ label: activeFieldId });
 }
 
 /** Push the top-level tab crumb, falling back to the raw segment for unknowns. */
@@ -165,11 +176,16 @@ function appendTabCrumb(crumbs: Crumb[], tabSegment: string, offerHref: string):
 }
 
 /** Append tab-specific sub-crumbs (section + field for editor, edition id for editions). */
-function appendTabBodyCrumbs(crumbs: Crumb[], tabSegment: string, tail: string[]): void {
+function appendTabBodyCrumbs(
+  crumbs: Crumb[],
+  tabSegment: string,
+  tail: string[],
+  activeFieldId?: string,
+): void {
   if (tabSegment === "editor") {
-    const [section, fieldId] = tail;
+    const [section] = tail;
     if (section) crumbs.push({ label: getOfferSectionLabel(section), href: undefined });
-    if (fieldId) crumbs.push({ label: fieldId });
+    if (activeFieldId) crumbs.push({ label: activeFieldId });
     return;
   }
   if (tabSegment === "editions" && tail[0]) {

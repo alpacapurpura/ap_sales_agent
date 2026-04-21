@@ -28,10 +28,12 @@ describe("OfferStudioBreadcrumb · buildCrumbs", () => {
     expect(crumbs.map((c) => c.label)).toEqual(["Offer Studio", "Oferta o-1", "Editor", "Promesa"]);
   });
 
-  it("appends the field id as the trailing crumb on field detail routes", () => {
+  it("appends the field id as the trailing crumb when passed explicitly", () => {
     const crumbs = buildCrumbs(
-      "/t-1/offer-studio/offer/o-1/editor/promise/central_promise",
+      "/t-1/offer-studio/offer/o-1/editor/promise",
       tenant,
+      undefined,
+      "central_promise",
     );
     expect(crumbs.at(-1)).toEqual({ label: "central_promise" });
   });

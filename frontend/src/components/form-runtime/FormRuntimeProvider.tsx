@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 import { createFormRuntimeBridge, type FormRuntimeBridge } from "@/lib/form-runtime/copilot";
-import { useAutoSave } from "@/lib/form-runtime/hooks";
+import { useActiveField, useAutoSave } from "@/lib/form-runtime/hooks";
 
 import { FormRuntimeContext, type FormRuntimeContextValue } from "./FormRuntimeContext";
 
@@ -23,10 +23,11 @@ export interface FormRuntimeProviderProps<TValues extends object> {
 }
 
 /**
- * Owns section state, runs autosave, exposes a stable FormRuntimeBridge via
- * Context. Composes the full values object each time a field changes so
- * consumer save functions (`updateIdentity(fullSectionObject)`) keep working
- * unchanged.
+ * Owns section values, runs autosave, exposes the FormRuntimeBridge via
+ * Context. Focus state is NOT owned here anymore — it lives in the URL
+ * query param via ``useActiveField``. The bridge is kept in sync by a
+ * single effect that mirrors the active field id into the bridge's
+ * ``focusField`` imperative API (so copilot subscribers see the change).
  */
 export function FormRuntimeProvider<TValues extends object>({
   schema,
@@ -36,9 +37,9 @@ export function FormRuntimeProvider<TValues extends object>({
   children,
 }: FormRuntimeProviderProps<TValues>) {
   const [values, setValues] = useState<TValues>(initialValues);
-  const [focusedFieldId, setFocusedFieldId] = useState<string | null>(null);
   const snapshotRef = useRef<TValues>(initialValues);
   const valuesRef = useRef<TValues>(initialValues);
+  const { activeFieldId } = useActiveField();
 
   useEffect(() => {
     valuesRef.current = values;
@@ -63,10 +64,6 @@ export function FormRuntimeProvider<TValues extends object>({
     [autosave, isAutosave],
   );
 
-  const focusField = useCallback((id: string | null) => {
-    setFocusedFieldId(id);
-  }, []);
-
   const undoSession = useCallback(() => {
     setValues(snapshotRef.current);
     if (isAutosave) {
@@ -89,9 +86,12 @@ export function FormRuntimeProvider<TValues extends object>({
   );
   /* eslint-enable react-hooks/refs */
 
+  // Mirror URL-driven focus into the bridge so copilot subscribers see
+  // the same "focusedField" the user sees. This is the single writer to
+  // ``bridge.focusField`` — the URL is the source of truth.
   useEffect(() => {
-    bridge.focusField(focusedFieldId);
-  }, [bridge, focusedFieldId]);
+    bridge.focusField(activeFieldId);
+  }, [bridge, activeFieldId]);
 
   // Connect the active bridge to the copilot store so chat UI actions can
   // mutate fields directly (bridge.patchField) instead of dispatching the
@@ -115,12 +115,10 @@ export function FormRuntimeProvider<TValues extends object>({
     () => ({
       schema,
       values: values as unknown as Record<string, unknown>,
-      focusedFieldId,
       saveMode,
       autosaveStatus,
       autosaveError: autosave.error,
       setFieldValue,
-      focusField,
       undoSession,
       isDirty,
       bridge,
@@ -128,12 +126,10 @@ export function FormRuntimeProvider<TValues extends object>({
     [
       schema,
       values,
-      focusedFieldId,
       saveMode,
       autosaveStatus,
       autosave.error,
       setFieldValue,
-      focusField,
       undoSession,
       isDirty,
       bridge,

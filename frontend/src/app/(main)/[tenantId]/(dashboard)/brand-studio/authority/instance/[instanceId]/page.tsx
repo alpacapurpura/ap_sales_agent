@@ -4,7 +4,7 @@ import { AuthorityItemDetailPage } from "@/features/brand-studio/pages/Authority
  * AuthorityItem detail route.
  *
  *   /{tenantId}/brand-studio/authority/instance/{id}
- *   /{tenantId}/brand-studio/authority/instance/{id}/{fieldId}
+ *   /{tenantId}/brand-studio/authority/instance/{id}?field={fieldId}
  */
 export default function BrandStudioAuthorityInstancePage() {
   return <AuthorityItemDetailPage />;

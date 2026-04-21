@@ -6,7 +6,7 @@ import { OfferFaqDetailPage } from "@/features/offer-studio/components/collectio
 export default async function OfferEditorFaqDetailPage({
   params,
 }: {
-  params: Promise<{ tenantId: string; id: string; faqId: string; fieldId?: string[] }>;
+  params: Promise<{ tenantId: string; id: string; faqId: string }>;
 }) {
   const { id: offerId, faqId } = await params;
   return <OfferFaqDetailPage offerId={offerId} faqId={faqId} />;
