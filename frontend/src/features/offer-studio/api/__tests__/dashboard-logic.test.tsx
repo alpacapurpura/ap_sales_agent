@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 
-import { backendToFrontend } from "../api/adapter";
-import { OfferArchetype, OfferStatus } from "../types";
+import { backendToFrontend } from "../adapter";
+import { OfferArchetype, OfferStatus } from "../../types";
 
-import { MOCK_BACKEND_RESPONSE } from "./fixtures";
+import { MOCK_BACKEND_RESPONSE } from "../../__tests__/fixtures";
 
-import type { BackendOffer } from "../api/adapter";
+import type { BackendOffer } from "../adapter";
 
 describe("Dashboard Logic & Adapter", () => {
   it('Adapter normalizes "public_name" to "name"', () => {

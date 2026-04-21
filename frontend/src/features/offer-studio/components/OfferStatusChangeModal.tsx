@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-import type { OfferLifecycleStatus } from "../../types/enums";
+import type { OfferLifecycleStatus } from "../types/enums";
 
 type Tone = "success" | "warning" | "info" | "danger";
 

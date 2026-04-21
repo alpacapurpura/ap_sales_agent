@@ -34,7 +34,7 @@ import { useOfferCounts } from "../hooks/use-offer-counts";
 import { useRailCollapsed } from "../hooks/use-rail-collapsed";
 import { useShouldShowVariantRail } from "../hooks/use-should-show-variant-rail";
 
-import { OfferTabBar } from "./container/OfferTabBar";
+import { OfferStudioTabBar } from "./OfferStudioTabBar";
 import { EditionFormDialog } from "./editions/EditionFormDialog";
 import { OfferShellHeader } from "./OfferShellHeader";
 import { OfferStudioBreadcrumb } from "./OfferStudioBreadcrumb";
@@ -174,7 +174,7 @@ export function OfferShellLayout({ offerId, tenantId, children }: OfferShellLayo
         ) : null}
 
         <div className="flex min-w-0 min-h-0 flex-1 flex-col">
-          <OfferTabBar
+          <OfferStudioTabBar
             tenantId={tenantId}
             offerId={offerId}
             counts={safeCounts}

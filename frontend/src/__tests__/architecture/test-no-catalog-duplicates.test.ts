@@ -41,16 +41,11 @@ const ALLOWED_CATALOG_FILES: readonly string[] = [
   "features/tenant-profile/hooks/use-business-types-catalog.ts",
   "features/tenant-profile/types/tenant-profile.ts",
   // Test fixtures: the catalog hook test wires a mocked HTTP response.
-  "features/offer-studio/tests/fixtures/archetype-catalog-fixture.ts",
-  "features/offer-studio/tests/use-archetype-capabilities.test.tsx",
-  "features/offer-studio/tests/use-section-catalog.test.tsx",
-  "features/offer-studio/tests/use-sections-for-archetype.test.tsx",
-  "features/offer-studio/tests/use-visible-sections.test.tsx",
-  // Legacy live-preview carries an inline ``SECTION_METADATA`` map of
-  // motivational copy. It retires in Sprint 6 Phase E alongside the
-  // SectionFormWrapper editor. Until then, allowlist the file and keep
-  // the forbidden-token gate honest for every future additon.
-  "features/offer-studio/components/editor/OfferLivePreview.tsx",
+  "features/offer-studio/__tests__/fixtures/archetype-catalog-fixture.ts",
+  "features/offer-studio/hooks/__tests__/use-archetype-capabilities.test.tsx",
+  "features/offer-studio/hooks/__tests__/use-section-catalog.test.tsx",
+  "features/offer-studio/hooks/__tests__/use-sections-for-archetype.test.tsx",
+  "features/offer-studio/hooks/__tests__/use-visible-sections.test.tsx",
 ];
 
 // Forbidden tokens — the hardcoded maps that the consolidation removed.

@@ -8,9 +8,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 const mockUseLandingStatus = vi.fn();
 
-vi.mock("../../../hooks/use-landing-status", async () => {
-  const actual = await vi.importActual<typeof import("../../../hooks/use-landing-status")>(
-    "../../../hooks/use-landing-status",
+vi.mock("../../hooks/use-landing-status", async () => {
+  const actual = await vi.importActual<typeof import("../../hooks/use-landing-status")>(
+    "../../hooks/use-landing-status",
   );
   return {
     ...actual,
@@ -22,7 +22,7 @@ vi.mock("../../../hooks/use-landing-status", async () => {
 
 import { LandingActionButton } from "../LandingActionButton";
 
-import type { LandingStatusResponse } from "../../../types/landing-status";
+import type { LandingStatusResponse } from "../../types/landing-status";
 
 function renderWithTooltip(ui: React.ReactElement) {
   return render(<TooltipProvider>{ui}</TooltipProvider>);

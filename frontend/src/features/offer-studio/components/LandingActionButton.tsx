@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-import { useLandingStatus } from "../../hooks/use-landing-status";
+import { useLandingStatus } from "../hooks/use-landing-status";
 
 import { GenerateLandingConfirmDialog } from "./GenerateLandingConfirmDialog";
 import { LandingKebabMenu } from "./LandingKebabMenu";

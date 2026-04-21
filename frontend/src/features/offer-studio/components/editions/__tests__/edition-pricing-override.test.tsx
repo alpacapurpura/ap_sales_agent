@@ -1,9 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
-import { EditionPricingOverride } from "../components/editions/EditionPricingOverride";
+import { EditionPricingOverride } from "../EditionPricingOverride";
 
-import type { PricingStructure } from "../types";
+import type { PricingStructure } from "../../../types";
 
 const samplePricing: PricingStructure[] = [
   {

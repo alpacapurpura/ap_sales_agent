@@ -2,11 +2,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
-import { OfferCatalogCard } from "../components/dashboard/OfferCatalogCard";
+import { OfferCatalogCard } from "../OfferCatalogCard";
 
-import { MOCK_OFFER_NORMALIZED } from "./fixtures";
+import { MOCK_OFFER_NORMALIZED } from "../../../__tests__/fixtures";
 
-import type { Offer } from "../types";
+import type { Offer } from "../../../types";
 
 function renderWithClient(ui: React.ReactElement) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });

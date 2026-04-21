@@ -1,26 +1,26 @@
 import { renderHook } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { EditionStatus, EditionVisibility } from "../types";
+import { EditionStatus, EditionVisibility } from "../../types";
 
-import type { LaunchEdition } from "../types";
+import type { LaunchEdition } from "../../types";
 
 const mockUseEditions = vi.fn();
 
-vi.mock("../hooks/use-editions", () => ({
+vi.mock("../use-editions", () => ({
   useEditions: (...args: unknown[]) => mockUseEditions(...args),
 }));
 
 // Mock the catalog hook out of the transitive graph so tests don't need
 // a live ``@/lib/config`` resolution. The resolver itself never calls
 // the catalog — it only imports ``EVERGREEN_CODE`` from this module.
-vi.mock("../hooks/use-archetype-catalog", () => ({
+vi.mock("../use-archetype-catalog", () => ({
   useArchetypeCatalog: () => ({ data: undefined }),
   useArchetypeCapabilities: () => undefined,
 }));
 
-const { useOfferEditionResolver } = await import("../hooks/use-offer-edition-resolver");
-const { EVERGREEN_CODE } = await import("../hooks/use-visible-sections");
+const { useOfferEditionResolver } = await import("../use-offer-edition-resolver");
+const { EVERGREEN_CODE } = await import("../use-visible-sections");
 
 const EDITION_ONE: LaunchEdition = {
   id: "550e8400-e29b-41d4-a716-446655440001",

@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 import { LandingActionButton } from "./LandingActionButton";
 
-import type { OfferCountsResponse } from "../../types/counts";
+import type { OfferCountsResponse } from "../types/counts";
 
 export interface OfferTabBarProps {
   tenantId: string;
@@ -78,7 +78,12 @@ const TABS: TabConfig[] = [
  * Active highlighting parses the pathname shape so both URL forms map to
  * the same tab.
  */
-export function OfferTabBar({ tenantId, offerId, counts, currentEditionId }: OfferTabBarProps) {
+export function OfferStudioTabBar({
+  tenantId,
+  offerId,
+  counts,
+  currentEditionId,
+}: OfferTabBarProps) {
   const pathname = usePathname();
   const base = `/${tenantId}/offer-studio/offer/${offerId}`;
   const scopeRoot = currentEditionId ? `${base}/editions/${currentEditionId}` : base;

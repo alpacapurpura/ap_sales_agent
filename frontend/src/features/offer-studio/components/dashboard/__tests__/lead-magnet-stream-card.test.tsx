@@ -2,9 +2,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
-import { LeadMagnetStreamCard } from "../components/dashboard/LeadMagnetStreamCard";
+import { LeadMagnetStreamCard } from "../LeadMagnetStreamCard";
 
-import { MOCK_OFFER_NORMALIZED } from "./fixtures";
+import { MOCK_OFFER_NORMALIZED } from "../../../__tests__/fixtures";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),

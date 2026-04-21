@@ -18,18 +18,18 @@ vi.mock("../../hooks/use-status-mutation", () => ({
   useChangeOfferStatus: () => mockUseChangeOfferStatus(),
 }));
 
-vi.mock("../container/OfferStatusSwitcher", () => ({
+vi.mock("../OfferStatusSwitcher", () => ({
   OfferStatusSwitcher: ({ currentStatus }: { currentStatus: string }) => (
     <div data-testid="status-switcher">{currentStatus}</div>
   ),
 }));
 
-vi.mock("../container/OfferStatusChangeModal", () => ({
+vi.mock("../OfferStatusChangeModal", () => ({
   OfferStatusChangeModal: () => <div data-testid="status-modal" />,
 }));
 
-vi.mock("../container/AutoSaveIndicator", () => ({
-  AutoSaveIndicator: ({ state }: { state: string }) => (
+vi.mock("../OfferAutoSaveIndicator", () => ({
+  OfferAutoSaveIndicator: ({ state }: { state: string }) => (
     <div data-testid="autosave-indicator" data-state={state} />
   ),
 }));
@@ -69,7 +69,7 @@ describe("OfferShellHeader", () => {
     expect(screen.getByTestId("status-switcher")).toHaveTextContent("active");
   });
 
-  it("renders AutoSaveIndicator in idle state (non-invasive)", () => {
+  it("renders OfferAutoSaveIndicator in idle state (non-invasive)", () => {
     render(<OfferShellHeader offer={buildOffer()} tenantId="t-1" />);
     expect(screen.getByTestId("autosave-indicator")).toHaveAttribute("data-state", "idle");
   });

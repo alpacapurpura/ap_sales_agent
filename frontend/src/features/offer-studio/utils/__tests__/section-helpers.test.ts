@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 
-import { OfferArchetype, GuaranteeType } from "../types";
-import { getSectionFields, getSectionData } from "../utils/section-helpers";
+import { OfferArchetype, GuaranteeType } from "../../types";
+import { getSectionFields, getSectionData } from "../section-helpers";
 
-import type { OfferFormValues } from "../types/schema";
+import type { OfferFormValues } from "../../types/schema";
 
 // ─── getSectionFields ───
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { backendToFrontend, offerToFormValues, frontendToBackend } from "../api/adapter";
+import { backendToFrontend, offerToFormValues, frontendToBackend } from "../adapter";
 import {
   OfferArchetype,
   OfferValueLevel,
@@ -8,11 +8,11 @@ import {
   OfferStatus,
   GuaranteeType,
   DeliverableFormat,
-} from "../types";
+} from "../../types";
 
-import { MOCK_BACKEND_RESPONSE, MOCK_OFFER_NORMALIZED } from "./fixtures";
+import { MOCK_BACKEND_RESPONSE, MOCK_OFFER_NORMALIZED } from "../../__tests__/fixtures";
 
-import type { BackendOffer } from "../api/adapter";
+import type { BackendOffer } from "../adapter";
 
 // ─── backendToFrontend ───
 

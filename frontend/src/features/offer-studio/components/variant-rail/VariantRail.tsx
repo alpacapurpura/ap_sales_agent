@@ -28,7 +28,7 @@ import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 
 import { getVariantNoun, getVariantNounPlural } from "../../lib/variant-structure-catalog";
-import { buildEditionSwitchHref } from "../container/edition-route";
+import { buildEditionSwitchHref } from "../edition-route";
 
 import { VariantEntryDispatch } from "./entries/VariantEntryDispatch";
 import { groupVariantsByStructure } from "./grouping";

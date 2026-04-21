@@ -21,13 +21,13 @@ import { OfferValueLevel } from "@/features/offer-studio/types";
 import { computeLadderCompleteness } from "@/features/offer-studio/utils/ladder-completeness";
 import { cn } from "@/lib/utils";
 
-import { CreateOfferWizard } from "../wizard/CreateOfferWizard";
+import { CreateOfferWizard } from "../legacy-wizard/CreateOfferWizard";
 
 import { LeadMagnetStreamCard } from "./LeadMagnetStreamCard";
 import { OfferLadderLayout } from "./OfferLadderLayout";
 import { OfferLegend } from "./OfferLegend";
 
-import type { WizardResult } from "../wizard/CreateOfferWizard";
+import type { WizardResult } from "../legacy-wizard/CreateOfferWizard";
 import type { Offer } from "@/features/offer-studio/types";
 import type { OfferFormValues } from "@/features/offer-studio/types/schema";
 

@@ -23,7 +23,7 @@ export interface AutoSaveIndicatorProps {
  *   saved   → check + "Guardado hace Ns"
  *   error   → alert icon + "Error al guardar" + retry button
  */
-export function AutoSaveIndicator({
+export function OfferAutoSaveIndicator({
   state,
   lastSavedAt,
   errorMessage,

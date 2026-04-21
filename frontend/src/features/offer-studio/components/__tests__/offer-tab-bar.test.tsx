@@ -40,7 +40,7 @@ vi.mock("../LandingActionButton", () => ({
 
 // ── Imports after mocks ──────────────────────────────────────────────────────
 
-import { OfferTabBar } from "../OfferTabBar";
+import { OfferStudioTabBar } from "../OfferStudioTabBar";
 
 const BASE_PATH = "/acme/offer-studio/offer/offer-1";
 const ARIA_CURRENT = "aria-current";
@@ -53,14 +53,14 @@ const baseProps = {
   currentEditionId: null as string | null,
 };
 
-describe("OfferTabBar — 4 tabs, drops Conocimiento", () => {
+describe("OfferStudioTabBar — 4 tabs, drops Conocimiento", () => {
   beforeEach(() => {
     mockUsePathname.mockReset();
   });
 
   it("renders exactly four tabs (Info, Ventas, Assets, Campañas) — no Conocimiento tab", () => {
     mockUsePathname.mockReturnValue(BASE_PATH);
-    render(<OfferTabBar {...baseProps} />);
+    render(<OfferStudioTabBar {...baseProps} />);
     const tabs = screen.getAllByRole("link");
     expect(tabs).toHaveLength(4);
     expect(screen.getByRole("link", { name: /Info/i })).toBeInTheDocument();
@@ -72,7 +72,7 @@ describe("OfferTabBar — 4 tabs, drops Conocimiento", () => {
 
   it("renders count badges only for assets and campaigns (knowledge count ignored)", () => {
     mockUsePathname.mockReturnValue(BASE_PATH);
-    render(<OfferTabBar {...baseProps} />);
+    render(<OfferStudioTabBar {...baseProps} />);
     expect(screen.getByText("4")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
     expect(screen.queryByText("7")).toBeNull();
@@ -80,19 +80,19 @@ describe("OfferTabBar — 4 tabs, drops Conocimiento", () => {
 
   it("renders the LandingActionButton on the right", () => {
     mockUsePathname.mockReturnValue(BASE_PATH);
-    render(<OfferTabBar {...baseProps} />);
+    render(<OfferStudioTabBar {...baseProps} />);
     expect(screen.getByTestId("landing-action-button")).toBeInTheDocument();
   });
 });
 
-describe("OfferTabBar — hrefs depend on edition scope", () => {
+describe("OfferStudioTabBar — hrefs depend on edition scope", () => {
   beforeEach(() => {
     mockUsePathname.mockReset();
     mockUsePathname.mockReturnValue(BASE_PATH);
   });
 
   it("evergreen offer (no currentEditionId) links tabs at the offer root", () => {
-    render(<OfferTabBar {...baseProps} currentEditionId={null} />);
+    render(<OfferStudioTabBar {...baseProps} currentEditionId={null} />);
     expect(screen.getByRole("link", { name: /Info/i })).toHaveAttribute("href", BASE_PATH);
     expect(screen.getByRole("link", { name: /Ventas/i })).toHaveAttribute(
       "href",
@@ -109,7 +109,7 @@ describe("OfferTabBar — hrefs depend on edition scope", () => {
   });
 
   it("offer with current edition scopes EVERY tab (including Info) under /editions/{eid}", () => {
-    render(<OfferTabBar {...baseProps} currentEditionId="ed-7" />);
+    render(<OfferStudioTabBar {...baseProps} currentEditionId="ed-7" />);
     // Info keeps the selected edition in the URL so the rail highlight
     // survives the tab switch. The edition root page renders Info content.
     expect(screen.getByRole("link", { name: /Info/i })).toHaveAttribute(
@@ -131,38 +131,38 @@ describe("OfferTabBar — hrefs depend on edition scope", () => {
   });
 });
 
-describe("OfferTabBar — active tab highlighting", () => {
+describe("OfferStudioTabBar — active tab highlighting", () => {
   beforeEach(() => {
     mockUsePathname.mockReset();
   });
 
   it("marks Info active on the base route", () => {
     mockUsePathname.mockReturnValue(BASE_PATH);
-    render(<OfferTabBar {...baseProps} />);
+    render(<OfferStudioTabBar {...baseProps} />);
     expect(screen.getByRole("link", { name: /Info/i })).toHaveAttribute(ARIA_CURRENT, ARIA_PAGE);
   });
 
   it("marks Ventas active on the offer-level ventas route", () => {
     mockUsePathname.mockReturnValue(`${BASE_PATH}/ventas`);
-    render(<OfferTabBar {...baseProps} />);
+    render(<OfferStudioTabBar {...baseProps} />);
     expect(screen.getByRole("link", { name: /Ventas/i })).toHaveAttribute(ARIA_CURRENT, ARIA_PAGE);
   });
 
   it("marks Ventas active on the edition-scoped ventas route", () => {
     mockUsePathname.mockReturnValue(`${BASE_PATH}/editions/ed-7/ventas`);
-    render(<OfferTabBar {...baseProps} currentEditionId="ed-7" />);
+    render(<OfferStudioTabBar {...baseProps} currentEditionId="ed-7" />);
     expect(screen.getByRole("link", { name: /Ventas/i })).toHaveAttribute(ARIA_CURRENT, ARIA_PAGE);
   });
 
   it("marks Assets active on the edition-scoped assets route", () => {
     mockUsePathname.mockReturnValue(`${BASE_PATH}/editions/ed-7/assets`);
-    render(<OfferTabBar {...baseProps} currentEditionId="ed-7" />);
+    render(<OfferStudioTabBar {...baseProps} currentEditionId="ed-7" />);
     expect(screen.getByRole("link", { name: /Assets/i })).toHaveAttribute(ARIA_CURRENT, ARIA_PAGE);
   });
 
   it("marks Campañas active on the edition-scoped campaigns route", () => {
     mockUsePathname.mockReturnValue(`${BASE_PATH}/editions/ed-7/campaigns`);
-    render(<OfferTabBar {...baseProps} currentEditionId="ed-7" />);
+    render(<OfferStudioTabBar {...baseProps} currentEditionId="ed-7" />);
     expect(screen.getByRole("link", { name: /Campañas/i })).toHaveAttribute(
       ARIA_CURRENT,
       ARIA_PAGE,
@@ -171,7 +171,7 @@ describe("OfferTabBar — active tab highlighting", () => {
 
   it("marks Info active on the edition default route (edition's Info view)", () => {
     mockUsePathname.mockReturnValue(`${BASE_PATH}/editions/ed-7`);
-    render(<OfferTabBar {...baseProps} currentEditionId="ed-7" />);
+    render(<OfferStudioTabBar {...baseProps} currentEditionId="ed-7" />);
     expect(screen.getByRole("link", { name: /Info/i })).toHaveAttribute(ARIA_CURRENT, ARIA_PAGE);
   });
 });

@@ -16,9 +16,9 @@ import { cn } from "@/lib/utils";
 
 import { useChangeOfferStatus } from "../hooks/use-status-mutation";
 
-import { AutoSaveIndicator } from "./container/AutoSaveIndicator";
-import { OfferStatusChangeModal } from "./container/OfferStatusChangeModal";
-import { OfferStatusSwitcher } from "./container/OfferStatusSwitcher";
+import { OfferAutoSaveIndicator } from "./OfferAutoSaveIndicator";
+import { OfferStatusChangeModal } from "./OfferStatusChangeModal";
+import { OfferStatusSwitcher } from "./OfferStatusSwitcher";
 
 import type { Offer } from "../types";
 import type { OfferLifecycleStatus } from "../types/enums";
@@ -82,7 +82,7 @@ export function OfferShellHeader({ offer, tenantId }: OfferShellHeaderProps) {
                 </Badge>
               ) : null}
             </div>
-            <AutoSaveIndicator state="idle" lastSavedAt={null} />
+            <OfferAutoSaveIndicator state="idle" lastSavedAt={null} />
           </div>
         </div>
 

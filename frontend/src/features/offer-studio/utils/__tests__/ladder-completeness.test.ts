@@ -6,10 +6,10 @@ import {
   OfferDeliveryModel,
   OfferStatus,
   GuaranteeType,
-} from "../types";
-import { computeLadderCompleteness } from "../utils/ladder-completeness";
+} from "../../types";
+import { computeLadderCompleteness } from "../ladder-completeness";
 
-import type { Offer } from "../types";
+import type { Offer } from "../../types";
 
 const makeOffer = (level: OfferValueLevel): Offer => ({
   id: `test-${level}`,
