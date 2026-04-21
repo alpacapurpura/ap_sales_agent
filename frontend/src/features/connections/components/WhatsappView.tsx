@@ -14,7 +14,6 @@ import {
   LogOut,
 } from "lucide-react";
 import NextImage from "next/image";
-import { useEffect } from "react";
 
 import {
   AlertDialog,
@@ -58,10 +57,6 @@ import { useWhatsApp } from "../hooks/use-whatsapp";
 export function WhatsAppView() {
   const { loading, status, qrCode, isScanning, setIsScanning, generateQR, disconnect } =
     useWhatsApp();
-
-  useEffect(() => {
-    console.log("WhatsAppView: Component mounted (Tenant ID changed or initial load)");
-  }, []);
 
   if (loading && !status) {
     return (

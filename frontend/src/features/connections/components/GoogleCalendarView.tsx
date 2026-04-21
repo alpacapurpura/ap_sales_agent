@@ -143,7 +143,7 @@ export function GoogleCalendarView() {
       toast.success("Enlace generado correctamente");
       // Update status with new link
       setStatus((prev) => (prev ? { ...prev, booking_link: res.url } : null));
-    } catch (error: unknown) {
+    } catch {
       toast.error("Error generando enlace");
     } finally {
       setGeneratingLink(false);

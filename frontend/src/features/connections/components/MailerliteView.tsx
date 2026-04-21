@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { Loader2, CheckCircle, Mail, Trash2, ExternalLink, Activity } from "lucide-react";
+import { Loader2, CheckCircle, Mail, Trash2, Activity } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 

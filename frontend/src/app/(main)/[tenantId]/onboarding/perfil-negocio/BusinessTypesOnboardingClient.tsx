@@ -23,7 +23,7 @@ interface BusinessTypesOnboardingClientProps {
  * CONTRACT §6.3
  */
 export function BusinessTypesOnboardingClient({
-  tenantId,
+  tenantId: _tenantId,
   returnTo,
 }: BusinessTypesOnboardingClientProps) {
   const router = useRouter();

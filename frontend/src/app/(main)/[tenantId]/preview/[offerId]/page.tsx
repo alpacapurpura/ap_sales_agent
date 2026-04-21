@@ -1,5 +1,4 @@
 import { cookies } from "next/headers";
-import { notFound } from "next/navigation";
 
 import { SqueezeServerTpl } from "@/features/offer-studio/components/landing/templates/server/SqueezeServerTpl";
 import { TransformerServerTpl } from "@/features/offer-studio/components/landing/templates/server/TransformerServerTpl";

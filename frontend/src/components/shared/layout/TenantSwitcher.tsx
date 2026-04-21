@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronsUpDown, Check, Building2 } from "lucide-react";
+import { ChevronsUpDown, Check } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTenants } from "@/features/settings/hooks/use-tenants";
@@ -38,8 +37,6 @@ export function TenantSwitcher({
   const effectiveTenantId = activeTenantId || currentTenant?.id;
 
   const handleTenantChange = (tenantId: string) => {
-    console.log("[TenantSwitcher] Switching to tenant:", tenantId);
-
     // 1. Update localStorage for API client fallback
     localStorage.setItem("x-tenant-id", tenantId);
 
@@ -47,7 +44,6 @@ export function TenantSwitcher({
     // We redirect to dashboard to avoid 404s if the current subpage doesn't exist in the new tenant
     // or if the ID structure is different.
     const newPath = `/${tenantId}/brand-studio/identity`;
-    console.log("[TenantSwitcher] Navigating to:", newPath);
 
     // Force a hard reload to ensure all application state is cleared and
     // the new tenant context is loaded fresh. This prevents data leakage

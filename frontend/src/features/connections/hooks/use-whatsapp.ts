@@ -131,7 +131,7 @@ export function useWhatsApp() {
         stopPolling();
       }
       toast.success("Desconectado correctamente");
-    } catch (error) {
+    } catch {
       toast.error("Error desconectando");
     }
   };

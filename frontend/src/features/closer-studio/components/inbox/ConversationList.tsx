@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Bot, User, AlertTriangle } from "lucide-react";
+import { Search, Bot, User } from "lucide-react";
 import { useRouter, usePathname, useParams } from "next/navigation";
 import { useCallback, useState } from "react";
 

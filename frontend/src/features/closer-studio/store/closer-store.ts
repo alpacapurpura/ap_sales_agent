@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 
-import type { ConversationFilters, HandlerMode, InputMode } from "../types";
+import type { ConversationFilters, InputMode } from "../types";
 
 interface CloserStudioState {
   // Selection

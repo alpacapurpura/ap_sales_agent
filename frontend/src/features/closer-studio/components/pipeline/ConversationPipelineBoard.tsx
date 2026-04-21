@@ -1,6 +1,5 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
 import {
   DndContext,
   closestCenter,
@@ -9,9 +8,7 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { useMemo, useState, useCallback } from "react";
-
-import { cn } from "@/lib/utils";
+import { useMemo, useCallback } from "react";
 
 import { useConversations } from "../../hooks/use-conversations";
 import { useCloserStore } from "../../store/closer-store";
@@ -56,16 +53,9 @@ export function ConversationPipelineBoard() {
   }, [data]);
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
-    const { active, over } = event;
+    const { over } = event;
     if (!over) return;
-
-    const leadId = active.id as string;
-    const newStage = over.id as string;
-
-    // Stage override via CRM pipeline endpoint
-    // This would call PUT /api/v1/crm/pipeline/{profile_id}/stage
-    // For now, we just invalidate
-    console.log("Move", leadId, "to", newStage);
+    // TODO: implement stage move mutation — PUT /api/v1/crm/pipeline/{profile_id}/stage
   }, []);
 
   return (
