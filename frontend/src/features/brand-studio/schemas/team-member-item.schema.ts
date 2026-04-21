@@ -28,7 +28,6 @@ export const teamMemberItemSchema: SectionSchema = {
       required: true,
       placeholder: "Ej: María García",
       group: "Identidad",
-      layout: "half",
       lengthHint: { ideal: [3, 60] },
     },
     {
@@ -38,7 +37,6 @@ export const teamMemberItemSchema: SectionSchema = {
       path: "role",
       placeholder: "Ej: Fundadora, Instructor, Asesor legal",
       group: "Identidad",
-      layout: "half",
     },
     {
       id: "is_primary_voice",
@@ -47,7 +45,6 @@ export const teamMemberItemSchema: SectionSchema = {
       path: "is_primary_voice",
       hint: "Solo un miembro por tenant puede ser la voz principal (la voz que el Sales Agent imita).",
       group: "Identidad",
-      layout: "half",
     },
     {
       id: "headshot_url",
@@ -56,7 +53,6 @@ export const teamMemberItemSchema: SectionSchema = {
       path: "headshot_url",
       placeholder: "https://…",
       group: "Identidad",
-      layout: "half",
     },
 
     // ── Bio ──────────────────────────────────────────────────────
@@ -78,7 +74,6 @@ export const teamMemberItemSchema: SectionSchema = {
       placeholder: "Ej: femenino, masculino, no binario",
       hint: "Lo usa el SDR para concordancia gramatical al referirse a la persona.",
       group: "Bio",
-      layout: "half",
     },
     {
       id: "communication_style",
@@ -87,7 +82,6 @@ export const teamMemberItemSchema: SectionSchema = {
       path: "communication_style",
       placeholder: "Ej: cálido, directo, académico",
       group: "Bio",
-      layout: "half",
     },
 
     // ── Contacto ─────────────────────────────────────────────────
@@ -99,7 +93,6 @@ export const teamMemberItemSchema: SectionSchema = {
       placeholder: "+51 999 999 999",
       hint: "Se muestra en páginas públicas solo si se vincula a la oferta via placements.",
       group: "Contacto",
-      layout: "half",
     },
 
     // ── Redes personales ─────────────────────────────────────────
@@ -110,7 +103,6 @@ export const teamMemberItemSchema: SectionSchema = {
       path: "personal_website",
       placeholder: "https://…",
       group: "Redes personales",
-      layout: "full",
     },
     {
       id: "personal_linkedin",
@@ -119,7 +111,6 @@ export const teamMemberItemSchema: SectionSchema = {
       path: "personal_linkedin",
       placeholder: "https://linkedin.com/in/…",
       group: "Redes personales",
-      layout: "half",
     },
     {
       id: "personal_instagram",
@@ -128,7 +119,6 @@ export const teamMemberItemSchema: SectionSchema = {
       path: "personal_instagram",
       placeholder: "https://instagram.com/…",
       group: "Redes personales",
-      layout: "half",
     },
     {
       id: "personal_tiktok",
@@ -137,7 +127,6 @@ export const teamMemberItemSchema: SectionSchema = {
       path: "personal_tiktok",
       placeholder: "https://tiktok.com/@…",
       group: "Redes personales",
-      layout: "half",
     },
     {
       id: "personal_facebook",
@@ -146,7 +135,6 @@ export const teamMemberItemSchema: SectionSchema = {
       path: "personal_facebook",
       placeholder: "https://facebook.com/…",
       group: "Redes personales",
-      layout: "half",
     },
 
     // ── Multimedia ───────────────────────────────────────────────
@@ -176,7 +164,6 @@ export const teamMemberItemSchema: SectionSchema = {
       path: "sort_order",
       hint: "Valor bajo = aparece antes en listados públicos.",
       group: "Multimedia",
-      layout: "half",
     },
   ],
 };

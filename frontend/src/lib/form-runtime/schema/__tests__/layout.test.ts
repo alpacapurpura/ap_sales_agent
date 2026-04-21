@@ -15,15 +15,18 @@ describe("inferFieldLayout", () => {
     expect(inferFieldLayout(makeField("enum", "two-thirds"))).toBe("two-thirds");
   });
 
-  it("defaults text/url/email/number/boolean/enum to half", () => {
-    const types = ["text", "url", "email", "number", "boolean", "enum"] as const;
-    for (const t of types) {
-      expect(inferFieldLayout(makeField(t))).toBe("half");
-    }
-  });
-
-  it("defaults textarea/array/custom to full", () => {
-    const types = ["textarea", "array", "custom"] as const;
+  it("defaults every field type to full", () => {
+    const types = [
+      "text",
+      "url",
+      "email",
+      "number",
+      "boolean",
+      "enum",
+      "textarea",
+      "array",
+      "custom",
+    ] as const;
     for (const t of types) {
       expect(inferFieldLayout(makeField(t))).toBe("full");
     }

@@ -28,7 +28,6 @@ export const authorityItemSchema: SectionSchema = {
       required: true,
       placeholder: "Ej: Forbes, Harvard, Google, etc.",
       group: "Identidad",
-      layout: "half",
       lengthHint: { ideal: [2, 60] },
     },
     {
@@ -50,7 +49,6 @@ export const authorityItemSchema: SectionSchema = {
         { value: "other", label: "Otro" },
       ],
       group: "Identidad",
-      layout: "half",
     },
 
     // ── Contexto ─────────────────────────────────────────────────
@@ -75,7 +73,6 @@ export const authorityItemSchema: SectionSchema = {
       placeholder: "https://…",
       hint: "URL al artículo, certificado, premio o publicación original.",
       group: "Pruebas",
-      layout: "full",
     },
     {
       id: "logo_url",
@@ -85,7 +82,6 @@ export const authorityItemSchema: SectionSchema = {
       placeholder: "https://…",
       hint: "Logo de la entidad para mostrar en landings.",
       group: "Pruebas",
-      layout: "full",
     },
 
     // ── Fechas ───────────────────────────────────────────────────
@@ -96,7 +92,6 @@ export const authorityItemSchema: SectionSchema = {
       path: "obtained_at",
       placeholder: "YYYY-MM-DD",
       group: "Fechas",
-      layout: "half",
     },
     {
       id: "expires_at",
@@ -106,7 +101,6 @@ export const authorityItemSchema: SectionSchema = {
       placeholder: "YYYY-MM-DD",
       hint: "Solo aplica a certificaciones con vigencia.",
       group: "Fechas",
-      layout: "half",
     },
   ],
 };

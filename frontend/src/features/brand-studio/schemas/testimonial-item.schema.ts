@@ -28,7 +28,6 @@ export const testimonialItemSchema: SectionSchema = {
       required: true,
       placeholder: "Ej: Juana Pérez",
       group: "Autor",
-      layout: "half",
       lengthHint: { ideal: [2, 60] },
     },
     {
@@ -39,7 +38,6 @@ export const testimonialItemSchema: SectionSchema = {
       placeholder: "Ej: CEO de Alpaca Coffee",
       hint: "Cuanto más específico el rol, más confianza transmite el testimonio.",
       group: "Autor",
-      layout: "half",
     },
     {
       id: "author_avatar_url",
@@ -48,7 +46,6 @@ export const testimonialItemSchema: SectionSchema = {
       path: "author_avatar_url",
       placeholder: "https://…",
       group: "Autor",
-      layout: "full",
     },
 
     // ── Contenido ─────────────────────────────────────────────────
@@ -74,7 +71,6 @@ export const testimonialItemSchema: SectionSchema = {
         { value: "image", label: "Imagen" },
       ],
       group: "Contenido",
-      layout: "half",
     },
     {
       id: "media_url",
@@ -84,7 +80,6 @@ export const testimonialItemSchema: SectionSchema = {
       placeholder: "https://…",
       hint: "Para testimonios en video/audio/imagen.",
       group: "Contenido",
-      layout: "half",
     },
     {
       id: "rating",
@@ -92,7 +87,6 @@ export const testimonialItemSchema: SectionSchema = {
       type: "number",
       path: "rating",
       group: "Contenido",
-      layout: "half",
     },
 
     // ── Metadata ──────────────────────────────────────────────────
@@ -104,7 +98,6 @@ export const testimonialItemSchema: SectionSchema = {
       placeholder: "https://twitter.com/…",
       hint: "Link al post, review o mensaje original. Útil para validar autenticidad.",
       group: "Metadata",
-      layout: "full",
     },
     {
       id: "captured_at",
@@ -113,7 +106,6 @@ export const testimonialItemSchema: SectionSchema = {
       path: "captured_at",
       placeholder: "YYYY-MM-DD",
       group: "Metadata",
-      layout: "half",
     },
     {
       id: "language",
@@ -123,7 +115,6 @@ export const testimonialItemSchema: SectionSchema = {
       placeholder: "es",
       hint: "ISO 639-1 (es, en, pt).",
       group: "Metadata",
-      layout: "half",
     },
     {
       id: "tags",

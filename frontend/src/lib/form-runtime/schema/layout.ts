@@ -1,19 +1,19 @@
 /**
  * Grid-column layout inference for multi-field editor grids.
- * Explicit ``field.layout`` always wins; otherwise we fall back on the field
- * type: wide fields (textarea/array/custom) occupy the full row, everything
- * else fits in one grid column.
+ * Explicit ``field.layout`` always wins; otherwise every field defaults to
+ * full-row. ``half`` is reserved for explicit side-by-side pairs (e.g.
+ * min/max numeric ranges) declared by the schema author.
  */
 
 import type { FieldLayout, FieldSchema, FieldType } from "./types";
 
 const DEFAULT_LAYOUT_BY_TYPE: Record<FieldType, FieldLayout> = {
-  text: "half",
-  url: "half",
-  email: "half",
-  number: "half",
-  boolean: "half",
-  enum: "half",
+  text: "full",
+  url: "full",
+  email: "full",
+  number: "full",
+  boolean: "full",
+  enum: "full",
   textarea: "full",
   array: "full",
   custom: "full",
