@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { LadderProgressBar } from "@/features/offer-studio/components/dashboard/LadderProgressBar";
 import { OfferStudioDashboard } from "@/features/offer-studio/components/dashboard/OfferStudioDashboard";
-import { BusinessTypesChipBar } from "@/features/tenant-profile/components/BusinessTypesChipBar";
 
 import type { OfferValueLevel } from "@/features/offer-studio/types";
 
@@ -75,11 +74,7 @@ export function OfferStudioView() {
         </div>
       </div>
 
-      {/* Row 2: Business-types chip bar — reads from tenant-profile.
-          Gating is now layout-level so this always renders with a declared profile. */}
-      <BusinessTypesChipBar className="flex-none" />
-
-      {/* Row 3: Ladder Progress — full width, contextual */}
+      {/* Ladder Progress — full width, contextual */}
       {ladderData && !deferredQuery && (
         <LadderProgressBar
           filledGroups={ladderData.filledGroups}

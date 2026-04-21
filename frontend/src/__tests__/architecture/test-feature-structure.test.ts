@@ -44,9 +44,14 @@ const CANONICAL_FOLDERS = new Set([
 // pre-sale consolidation): schemas/ hosts field-by-field validators,
 // actions/ hosts copilot-aware custom actions, pages/ hosts Next.js-level
 // route shells that compose feature slices.
+// settings adopts the same pages/ pattern on 2026-04-20 to homologate with
+// brand-studio + offer-studio Finder-style navigation (see
+// docs/ux-sessions/2026-04-20-settings-finder-nav/UI-SPEC.md). pages/ hosts
+// the SETTINGS_SECTION_MAP + factory wrappers indexed by the server dispatcher.
 const KNOWN_NONSTANDARD: Record<string, string[]> = {
   "brand-studio": ["schemas", "actions", "pages"],
   "offer-studio": ["schemas", "actions", "pages"],
+  settings: ["pages"],
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

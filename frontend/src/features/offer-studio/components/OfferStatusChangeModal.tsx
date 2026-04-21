@@ -257,7 +257,7 @@ export function OfferStatusChangeModal({
   onConfirm,
   onCancel,
 }: OfferStatusChangeModalProps) {
-  const key = `${fromStatus}_${toStatus}` as TransitionKey;
+  const key: TransitionKey = `${fromStatus}_${toStatus}`;
   const meta = TRANSITION_META[key];
 
   const title = meta?.title ?? "Cambiar estado de la oferta";

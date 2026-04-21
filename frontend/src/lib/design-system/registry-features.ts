@@ -139,7 +139,8 @@ export const REGISTRY_OTHER_FEATURES: ComponentEntry[] = [
     featureSlice: "offer-studio",
     variants: [],
     props: ["offerId", "tenantId"],
-    description: "Shell layout (breadcrumb + header + variant rail + tab bar) mounted once per offer.",
+    description:
+      "Shell layout (breadcrumb + header + variant rail + tab bar) mounted once per offer.",
   },
   {
     name: "OfferShellHeader",
@@ -244,14 +245,35 @@ export const REGISTRY_OTHER_FEATURES: ComponentEntry[] = [
   // FEATURE: settings (features/settings/components/)
   // ==========================================================================
   {
-    name: "SettingsView",
+    name: "SettingsNavRail",
     atomicLevel: "organism",
-    filePath: "features/settings/components/SettingsView.tsx",
+    filePath: "features/settings/components/SettingsNavRail.tsx",
     source: "feature",
     featureSlice: "settings",
     variants: [],
     props: [],
-    description: "Main settings page layout with tabs.",
+    description:
+      "Settings Finder-style nav rail (260px) grouped by Principal/Ventas/Desarrolladores.",
+  },
+  {
+    name: "SettingsBreadcrumb",
+    atomicLevel: "molecule",
+    filePath: "features/settings/components/SettingsBreadcrumb.tsx",
+    source: "feature",
+    featureSlice: "settings",
+    variants: [],
+    props: [],
+    description: "Settings topbar breadcrumb driven by URL.",
+  },
+  {
+    name: "SectionShell",
+    atomicLevel: "molecule",
+    filePath: "features/settings/components/SectionShell.tsx",
+    source: "feature",
+    featureSlice: "settings",
+    variants: [],
+    props: [],
+    description: "Title + description shell used by every settings section page.",
   },
   {
     name: "TeamView",

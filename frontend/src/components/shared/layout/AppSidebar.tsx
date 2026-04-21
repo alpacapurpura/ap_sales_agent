@@ -601,7 +601,7 @@ const NavContent = memo(function NavContent({
             {(!isCollapsed || mobile) && mounted && (
               <div className="px-2 flex flex-col overflow-hidden text-left min-w-0 flex-1">
                 <NavLink
-                  href={`/${currentTenantId}/settings?tab=profile`}
+                  href={`/${currentTenantId}/settings/perfil`}
                   className="hover:text-primary transition-colors"
                   loadingClassName="opacity-70"
                   onClick={() => mobile && setIsMobileOpen(false)}
