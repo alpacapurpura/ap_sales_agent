@@ -21,10 +21,22 @@ export interface EditableFieldProps {
  * the URL's ``?field=`` in sync with the currently-focused input, and
  * renders the input itself via FieldRenderer.
  *
- * The URL is the single source of truth for "which field is active":
- * focusing an input updates the URL (via useActiveField), which in turn
- * re-renders FieldList + FieldDetail + FieldContextPanel consistently.
- * No internal focus state lives in the FormRuntimeContext anymore.
+ * URL-ownership invariant:
+ *
+ *   ``?field=`` is a pull target — UI reads it to render the active
+ *   field. Only explicit user selection gestures may push to it:
+ *     1. Clicking a row in FieldList (``onSelect``).
+ *     2. Focusing the input itself (``onFocusCapture`` below).
+ *     3. Section navigation (path change, handled by Next.js router).
+ *
+ *   Blur is NOT a selection gesture — a blur can fire for any reason
+ *   (click on background, click on sidebar, tab to browser chrome, a
+ *   sibling widget stealing focus). Treating blur as "deselect" lets
+ *   incidental DOM events silently rewrite semantic user state, and
+ *   combined with ``UniversalEditableSection``'s
+ *   ``activeFieldId ?? firstField.id`` visual fallback it manifests as
+ *   the editor "snapping back to the first field" on every stray
+ *   click. The wrapper therefore only handles focus, never blur.
  */
 export function EditableField({ field, className, autoFocus }: EditableFieldProps) {
   const { values, setFieldValue } = useFormRuntime();
@@ -41,11 +53,6 @@ export function EditableField({ field, className, autoFocus }: EditableFieldProp
       )}
       onFocusCapture={() => {
         if (activeFieldId !== field.id) setActiveField(field.id);
-      }}
-      onBlurCapture={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-          setActiveField(null);
-        }
       }}
     >
       <Label htmlFor={field.id} className="text-sm">

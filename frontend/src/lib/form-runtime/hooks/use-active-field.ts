@@ -12,6 +12,18 @@ import { useCallback, useSyncExternalStore } from "react";
  * parameter so focus changes do not trigger a full server-side route
  * transition — path navigation is reserved for section changes.
  *
+ * **Write discipline (enforced by callers, not the hook):**
+ *
+ *   ``setActiveField`` must only be invoked in response to an explicit
+ *   user selection gesture — a click on a field row, a focus on the
+ *   input itself, a keyboard shortcut that resolves to "select field X".
+ *   Blur events, ``useEffect`` fallbacks, and "normalise to first field"
+ *   shims must never call it. The URL is a pull target; rendering
+ *   defaults (e.g. "no query → highlight first") live purely in the
+ *   consumer's render path. Violating this invariant causes stray
+ *   clicks to silently wipe the user's selection (see
+ *   ``EditableField``'s doc comment for the historical regression).
+ *
  * Why query-param over path segment:
  *
  *  - Changing a query param via ``history.replaceState`` is a pure
