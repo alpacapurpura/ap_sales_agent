@@ -119,26 +119,79 @@ Nicolify
 [Save → React Query mutation → backend persist → cache invalidate] ✅
 ```
 
-### Journey C — Gestionar editions
+### Journey C — Gestionar cohortes temporales (TEMPORAL_COHORT)
 
 ```
 [Offer detail] → click tab "Editions" ✅
     ▼
-[EditionsTabPage — lista 3 editions (Default active, Q2-2026 draft, VIP draft)]
-    │  cada edition con: nombre, código, pricing override, fechas, cupos
+[VariantCollectionLandingPage — noun dinámico "Cohortes" (3: Default, Q2-2026, VIP)]
+    │  cada cohorte con: nombre, código, pricing override, fechas, cupos
     ▼
 [Click "Duplicar" en Default]
     ▼
 [Nuevo draft creado — chip aparece en EditionsRail]
     ▼
 [Click chip en rail → switch activo]
-    │  URL sigue siendo /editor/promise pero EditionsRail marca edition activa
-    │  editar field = CREA override para esa edition (no toca Default)
+    │  URL sigue siendo /editor/promise pero EditionsRail marca cohorte activa
+    │  editar field = CREA override para esa cohorte (no toca Default)
     ▼
 [Tab Editions → click "Publicar"]
     ▼
-[Landing de esa edition deploya + sales-agent lee edition por query param]
+[Landing de esa cohorte deploya + sales-agent lee cohorte por query param]
 ```
+
+### Journey E — Offer sin variant (single edition implícita)
+
+Aplica cuando `archetype.allow_single_variant=true` y la oferta tiene count=1
+(ej: lead-magnet, ebook gratuito, herramienta one-off).
+
+```
+[Dashboard] → click offer card "Ebook antiedad"
+    ▼
+[Offer detail — tab Editor activo por default]
+    │  NO hay tab "Editions" (has_editions=false o single_variant_only)
+    │  NO hay editions-rail
+    │  NavRail muestra sections del preset lead_magnet_ebook (5 sections)
+    ▼
+[Click section en NavRail — ej "Promesa"]
+    │  SectionPage + promiseSchema + useOfferSettings().updatePromise
+    │  Save → muta directamente la única edition implícita
+    ▼
+[Publicar] ✅
+```
+
+Frontend detection: `if (archetype.allow_single_variant && variants.length === 1)`
+oculta tab Editions + redirect `/offer/:id/editions` → `/offer/:id/editor`.
+
+### Journey F — Gestionar variants non-temporal (polymorphic)
+
+Aplica cuando `variant_structure` ∈ {TIER, SKU_VARIANT, REGIONAL, MODALITY, LANGUAGE,
+TEMPORAL_SINGLE_DATE, RECURRING_INTAKE}.
+
+```
+[Offer detail] → click tab "Editions"
+    ▼
+[VariantCollectionLandingPage — noun dinámico según variant_structure]
+    │  - TIER             → "Planes"        (TierVariantCard: price anchor + features)
+    │  - SKU_VARIANT      → "Variantes"     (SkuVariantCard: SKU + atributos + stock)
+    │  - REGIONAL         → "Regiones"      (RegionalVariantCard: flag + currency + tax)
+    │  - MODALITY         → "Modalidades"   (ModalityVariantCard: mode + logística)
+    │  - LANGUAGE         → "Idiomas"       (LanguageVariantCard: locale + copy preview)
+    │  - TEMPORAL_SINGLE_DATE → "Salidas"   (EditionCard temporal: fecha + cupos)
+    │  - RECURRING_INTAKE → "Convocatorias" (EditionCard temporal: ventana + inicio)
+    │
+    │  CTA "+ Nueva {nounSingular}" dinámico por estructura
+    ▼
+[Click card → editor shell con variant activa]
+    │  Editar = crea override para esa variant (mismo flujo que Journey C)
+    ▼
+[Publicar variant] ✅
+```
+
+Card template ruteo implementado en `components/variant/VariantCard.tsx`
+dispatch por `meta.cardTemplate`. Mezclar estructuras en la misma oferta
+está prohibido a nivel backend (`_ensure_placeholder_edition` hereda
+`variant_structure` del archetype).
 
 ### Journey D — Copilot-assisted section fill
 
@@ -511,7 +564,15 @@ Served on `http://localhost:8888/` from `prototype/`.
 - `offer-studio/section-pricing.html` — Journey D (HIGH_TICKET tiering)
 - `offer-studio/collection-testimonials.html` — Journey B' (collection landing)
 - `offer-studio/collection-testimonial-detail.html` — Journey B' (collection detail)
-- `offer-studio/offer-editions.html` — Journey C (editions management)
+- `offer-studio/offer-no-variant.html` — Journey E (offer sin variant, editor directo)
+- `offer-studio/offer-editions.html` — Journey C (cohortes TEMPORAL_COHORT)
+- `offer-studio/variant-temporal-single-date.html` — Journey F (salidas únicas, EXPERIENCIA)
+- `offer-studio/variant-recurring-intake.html` — Journey F (convocatorias, SERVICIO)
+- `offer-studio/variant-tier.html` — Journey F (planes TIER, MEMBRESIA)
+- `offer-studio/variant-sku.html` — Journey F (SKU variantes, PRODUCTO)
+- `offer-studio/variant-regional.html` — Journey F (regiones, pricing local)
+- `offer-studio/variant-modality.html` — Journey F (online/presencial/híbrido)
+- `offer-studio/variant-language.html` — Journey F (idiomas ES/EN/PT)
 
 ---
 

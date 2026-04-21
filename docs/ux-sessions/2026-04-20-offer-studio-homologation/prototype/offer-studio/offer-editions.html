@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head>
-<meta charset="utf-8"/><title>Editions</title>
+<meta charset="utf-8"/><title>Variant — Cohortes (temporal_cohort)</title>
 <link rel="stylesheet" href="../_shared.css"/>
 </head><body>
 <div class="app">
@@ -9,106 +9,181 @@
     <a class="nav-item" href="#">◎ Dashboard</a>
     <a class="nav-item" href="#">✦ Brand Studio</a>
     <a class="nav-item active" href="dashboard.html">☰ Offer Studio</a>
+    <a class="nav-item" href="#">↗ Growth Studio</a>
+    <a class="nav-item" href="#">◉ Sales Studio</a>
   </aside>
+
   <div class="main">
     <div class="topbar">
-      <div class="breadcrumb"><a href="dashboard.html">Offer Studio</a><span class="sep">›</span><a href="offer-editor.html">Mentoría 12 semanas</a><span class="sep">›</span><span class="current">Editions</span></div>
-      <div class="topbar-actions"><button class="btn brand">+ Nueva edition</button></div>
-    </div>
-
-    <div class="tabs-row">
-      <a class="tab" href="offer-editor.html">Editor</a>
-      <div class="tab active">Editions <span class="badge" style="background:var(--brand);color:white;font-size:9px">3</span></div>
-      <div class="tab">Assets</div>
-      <div class="tab">Knowledge</div>
-      <div class="tab">Campaigns</div>
-      <div class="tab">Ventas</div>
-    </div>
-
-    <div class="dashboard">
-      <h1 style="font-size:22px;font-weight:600;margin-bottom:4px">Editions de esta oferta</h1>
-      <p class="subtitle" style="margin-bottom:24px">Una edition es una variante publicable (fechas, pricing override, audiencia distinta). La oferta base no cambia — las editions hacen overrides puntuales.</p>
-
-      <div style="display:grid;gap:14px">
-        <div style="border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center">
-          <div>
-            <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px">
-              <span class="badge active">Activa</span>
-              <h3 style="font-size:16px;font-weight:600">Default</h3>
-              <span style="font-size:11px;color:var(--muted-foreground)">código: <code>default</code></span>
-            </div>
-            <p style="font-size:13px;color:var(--muted-foreground);margin-bottom:8px">Edition base. Siempre existe. Se publica cuando no hay edition específica activa.</p>
-            <div style="display:flex;gap:16px;font-size:12px;color:var(--muted-foreground)">
-              <span>Pricing: $1,497 USD</span>
-              <span>Fechas: Evergreen</span>
-              <span>Landing: <a href="#" style="color:var(--brand)">mentoria-12-semanas.nicolify.app</a></span>
-            </div>
-          </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn sm">Editar</button>
-            <button class="btn sm">Duplicar</button>
-          </div>
-        </div>
-
-        <div style="border:1px solid hsl(40 60% 80%);border-radius:var(--radius);padding:18px 20px;background:hsl(40 50% 98%);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center">
-          <div>
-            <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px">
-              <span class="badge draft">Borrador</span>
-              <h3 style="font-size:16px;font-weight:600">Q2-2026 Launch</h3>
-              <span style="font-size:11px;color:var(--muted-foreground)">código: <code>q2-2026</code></span>
-            </div>
-            <p style="font-size:13px;color:var(--muted-foreground);margin-bottom:8px">Lanzamiento mayo 2026 con early-bird. Override de pricing + ventana de inscripción.</p>
-            <div style="display:flex;gap:16px;font-size:12px;color:var(--muted-foreground)">
-              <span>Pricing override: <strong style="color:var(--foreground)">$1,197</strong> (20% off)</span>
-              <span>Fechas: 2026-05-06 → 2026-05-20</span>
-              <span>Cupos: 15 / 40</span>
-            </div>
-          </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn sm">Editar</button>
-            <button class="btn sm primary">Publicar</button>
-          </div>
-        </div>
-
-        <div style="border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center">
-          <div>
-            <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px">
-              <span class="badge draft">Borrador</span>
-              <h3 style="font-size:16px;font-weight:600">VIP Testers</h3>
-              <span style="font-size:11px;color:var(--muted-foreground)">código: <code>vip-testers</code></span>
-            </div>
-            <p style="font-size:13px;color:var(--muted-foreground);margin-bottom:8px">Grupo cerrado — pruebas de módulos nuevos. Solo accesible por link directo.</p>
-            <div style="display:flex;gap:16px;font-size:12px;color:var(--muted-foreground)">
-              <span>Pricing override: Gratis (invite-only)</span>
-              <span>Fechas: 2026-04-22 → open</span>
-              <span>Cupos: 5 / 10</span>
-            </div>
-          </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn sm">Editar</button>
-            <button class="btn sm">Archivar</button>
-          </div>
-        </div>
+      <div class="breadcrumb">
+        <a href="dashboard.html">Offer Studio</a>
+        <span class="sep">›</span>
+        <span class="current">Mentoría 12 semanas</span>
       </div>
+      <div class="topbar-actions">
+        <button class="btn">Vista previa</button>
+        <button class="btn primary">Publicar</button>
+      </div>
+    </div>
 
-      <div style="margin-top:32px;padding:16px;background:hsl(270 30% 97%);border-left:3px solid var(--brand);border-radius:6px;font-size:13px">
-        <strong style="color:var(--brand)">📌 Cómo funcionan editions:</strong>
-        <ul style="margin-top:8px;margin-left:18px;color:var(--muted-foreground);line-height:1.8">
-          <li>Solo <strong>Default</strong> existe si no creas más.</li>
-          <li>Editar section sin edition activa = modifica todas.</li>
-          <li>Editar section con edition activa = crea un <strong>override</strong> sólo para esa edition.</li>
-          <li>La landing de cada edition vive en URL distinta. El sales-agent carga la edition correcta según query param.</li>
-        </ul>
+    <div class="offer-row1">
+      <div class="title-group">
+        <h2>Mentoría 12 semanas</h2>
+        <span class="status-pill">Publicada</span>
+        <span style="font-size:11px;color:var(--muted-foreground)">PROGRAMA · temporal_cohort · 3 cohortes</span>
+      </div>
+      <div class="row1-actions">
+        <button class="btn sm">⋯</button>
+      </div>
+    </div>
+
+    <div class="offer-body-row">
+      <aside class="variant-rail">
+        <div class="rail-head">
+          <span class="rail-title">Cohortes (3)</span>
+          <span class="rail-collapse">◀</span>
+        </div>
+        <div class="rail-body">
+
+          <div class="variant-group">
+            <div class="variant-group-label">🔴 En curso</div>
+
+            <button class="variant-entry selected active">
+              <div class="entry-head"><h4>Default (Feb 2026)</h4><span class="entry-status">Activo</span></div>
+              <div class="entry-meta"><strong>$1,497 USD</strong></div>
+              <div class="entry-meta">Evergreen · 🌐 Pública</div>
+            </button>
+          </div>
+
+          <div class="variant-group">
+            <div class="variant-group-label">⭐ Próxima</div>
+
+            <button class="variant-entry selected next">
+              <div class="entry-head"><h4>Q2-2026 Launch</h4><span class="entry-status">Próxima</span></div>
+              <div class="entry-meta"><strong>$1,197</strong> (20% off)</div>
+              <div class="entry-meta">6 may → 20 may · 15/40</div>
+              <div class="entry-capacity"><div class="fill" style="width:37%"></div></div>
+            </button>
+          </div>
+
+          <div class="variant-group">
+            <div class="variant-group-label draft">✏ Borrador</div>
+
+            <button class="variant-entry draft">
+              <div class="entry-head"><h4>VIP Testers</h4><span class="entry-status">Borrador</span></div>
+              <div class="entry-meta">Gratis · invite-only</div>
+              <div class="entry-meta">22 abr → open · 5/10</div>
+              <div class="entry-capacity"><div class="fill" style="width:50%"></div></div>
+            </button>
+          </div>
+
+        </div>
+        <div class="rail-footer">
+          <button class="cta"><span>+</span> Nueva cohorte</button>
+          <p class="hint">Clonar Default</p>
+        </div>
+      </aside>
+
+      <div class="right-pane">
+        <div class="tabs-row">
+          <div class="tab active">Editor</div>
+          <div class="tab">Assets <span style="font-size:10.5px;color:var(--muted-foreground);margin-left:4px">(8)</span></div>
+          <div class="tab">Knowledge</div>
+          <div class="tab">Campaigns</div>
+          <div class="tab">Ventas</div>
+        </div>
+
+        <div class="offer-shell">
+          <aside class="finder-col">
+            <div class="col-header"><span>Secciones · Default</span><span style="color:var(--success);font-weight:500">11/11</span></div>
+            <div class="col-body">
+              <a class="row" href="#"><span class="icon">◉</span>Identidad<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">★</span>Promesa<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">♛</span>Público objetivo<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">⚙</span>Metodología<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">$</span>Pricing<span class="chev">›</span></a>
+              <a class="row active" href="#"><span class="icon">📅</span>Calendario<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">📍</span>Ubicación<span class="chev">›</span></a>
+              <a class="row" href="collection-testimonials.html"><span class="icon">♫</span>Testimonios<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">❓</span>FAQ<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">🎁</span>Value stack<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">👥</span>Instructores<span class="chev">›</span></a>
+            </div>
+          </aside>
+
+          <section class="form-area">
+            <div class="section-head">
+              <h1>Calendario — Default</h1>
+              <span class="tag">Cohorte</span>
+            </div>
+            <p class="section-desc">Editando la cohorte <strong>Default</strong> (evergreen). Las fechas de esta cohorte son perpetuas; las cohortes con fecha específica (ej: Q2-2026) override esta configuración.</p>
+
+            <div class="field-card active">
+              <div class="field-label">Modo temporal <span style="color:var(--destructive)">*</span></div>
+              <div class="field-hint">Evergreen = siempre disponible. Cohort = fechas fijas de inicio.</div>
+              <div class="field-value">Evergreen · inicia cuando el usuario compra</div>
+            </div>
+
+            <div class="field-card">
+              <div class="field-label">Duración del programa</div>
+              <div class="field-hint">Semanas o meses desde inicio individual.</div>
+              <div class="field-value">12 semanas · 1 sesión grupal / semana + accesos 1:1</div>
+            </div>
+
+            <div class="field-card">
+              <div class="field-label">Horarios de sesiones grupales</div>
+              <div class="field-hint">Días y horas del encuentro grupal en vivo (se repite semanalmente).</div>
+              <div class="field-value">Martes 7pm (GMT-5) · Sábado 10am (alternativo)</div>
+            </div>
+
+            <div class="field-card">
+              <div class="field-label">Access window 1:1</div>
+              <div class="field-hint">Ventana horaria en la que el mentor responde asincrónicamente.</div>
+              <div class="field-value">Lun–Vie · 9am–6pm GMT-5 · SLA 24h</div>
+            </div>
+          </section>
+
+          <aside class="copilot-col">
+            <div class="col-header">
+              <span class="dot"></span>
+              <span class="title">Copiloto · Calendario</span>
+              <span class="collapse">◀</span>
+            </div>
+            <div class="col-body">
+              <div class="suggestion-card">
+                <div class="tool-tag">📅 Evergreen</div>
+                <div class="suggestion-title">Default bien configurado</div>
+                <div class="suggestion-body">Cohorte evergreen activa. Q2-2026 Launch tiene fechas fijas que override este calendario cuando esa cohorte está seleccionada.</div>
+              </div>
+
+              <div class="suggestion-card">
+                <div class="tool-tag">⚠ Q2-2026</div>
+                <div class="suggestion-title">Revisar fechas Q2</div>
+                <div class="suggestion-body">Q2-2026 Launch cierra inscripción el 20 may pero las sesiones grupales martes se superponen con feriado 1 may. Sugerencia: mover sesión 1 al 3 may.</div>
+                <div class="actions">
+                  <button class="btn sm">Ir a Q2-2026</button>
+                </div>
+              </div>
+
+              <div class="suggestion-card">
+                <div class="tool-tag">🎯 Segmentación</div>
+                <div class="suggestion-title">Sales Agent inteligente</div>
+                <div class="suggestion-body">Cuando un lead entra, Sales Agent ofrece Default (empezás ya) o Q2-2026 (mejor precio, esperás 2 meses) según urgencia detectada en conversación.</div>
+              </div>
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
 <div class="journey-tracker">
-  <span class="jlabel">Journey C · Gestionar editions</span>
-  <span class="jstep done">Abrir tab</span>
-  <span class="jstep current">Ver editions</span>
-  <span class="jstep">Duplicar / Override</span>
-  <span class="jstep">Publicar</span>
-  <div class="nav-links"><a href="offer-editor.html">← Editor</a></div>
+  <span class="jlabel">Variant · TEMPORAL_COHORT</span>
+  <span class="jstep done">Editor</span>
+  <span class="jstep current">Default seleccionado</span>
+  <span class="jstep">Calendario</span>
+  <span class="jstep">Publicar cohorte</span>
+  <div class="nav-links"><a href="../index.html">← Hub</a><a href="variant-tier.html">Tier →</a></div>
 </div>
 </body></html>

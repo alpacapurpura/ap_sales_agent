@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"/><title>Variant — Tier (MEMBRESIA)</title>
+<link rel="stylesheet" href="../_shared.css"/>
+</head><body>
+<div class="app">
+  <aside class="app-sidebar">
+    <div class="logo">Nicolify</div>
+    <a class="nav-item" href="#">◎ Dashboard</a>
+    <a class="nav-item" href="#">✦ Brand Studio</a>
+    <a class="nav-item active" href="dashboard.html">☰ Offer Studio</a>
+    <a class="nav-item" href="#">↗ Growth Studio</a>
+    <a class="nav-item" href="#">◉ Sales Studio</a>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumb">
+        <a href="dashboard.html">Offer Studio</a>
+        <span class="sep">›</span>
+        <span class="current">Membresía Círculo Creador</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn">Vista previa</button>
+        <button class="btn primary">Publicar</button>
+      </div>
+    </div>
+
+    <!-- Offer Row1 (offer-level: title + status + kebab) -->
+    <div class="offer-row1">
+      <div class="title-group">
+        <h2>Membresía Círculo Creador</h2>
+        <span class="status-pill">Publicada</span>
+        <span style="font-size:11px;color:var(--muted-foreground)">MEMBRESIA · tier</span>
+      </div>
+      <div class="row1-actions">
+        <button class="btn sm">Duplicar oferta</button>
+        <button class="btn sm">⋯</button>
+      </div>
+    </div>
+
+    <!-- 4-col body: variant-rail | right-pane (tabs + 3-col editor) -->
+    <div class="offer-body-row">
+
+      <!-- VARIANT RAIL — polymorphic, agrupa por status -->
+      <aside class="variant-rail">
+        <div class="rail-head">
+          <span class="rail-title">Planes (3)</span>
+          <span class="rail-collapse" title="Contraer">◀</span>
+        </div>
+        <div class="rail-body">
+
+          <div class="variant-group">
+            <div class="variant-group-label">🟢 Publicados</div>
+
+            <button class="variant-entry selected active">
+              <div class="entry-head"><h4>Premium</h4><span class="entry-status">Activo</span></div>
+              <div class="entry-meta"><strong>$79 USD</strong> · mensual</div>
+              <div>
+                <span class="entry-chip">★ Recomendado</span>
+              </div>
+            </button>
+
+            <button class="variant-entry">
+              <div class="entry-head"><h4>Básico</h4><span class="entry-status">Activo</span></div>
+              <div class="entry-meta"><strong>$29 USD</strong> · mensual</div>
+            </button>
+          </div>
+
+          <div class="variant-group">
+            <div class="variant-group-label draft">✏ Borradores</div>
+
+            <button class="variant-entry draft">
+              <div class="entry-head"><h4>Enterprise</h4><span class="entry-status">Borrador</span></div>
+              <div class="entry-meta"><strong>$249 USD</strong> · mensual</div>
+              <div>
+                <span class="entry-chip">Sin publicar</span>
+              </div>
+            </button>
+          </div>
+
+        </div>
+        <div class="rail-footer">
+          <button class="cta"><span>+</span> Nuevo plan</button>
+          <p class="hint">Clonar Premium recomendado</p>
+        </div>
+      </aside>
+
+      <!-- RIGHT PANE: TabBar + editor 3-col -->
+      <div class="right-pane">
+        <div class="tabs-row">
+          <div class="tab active">Editor</div>
+          <div class="tab">Assets <span style="font-size:10.5px;color:var(--muted-foreground);margin-left:4px">(6)</span></div>
+          <div class="tab">Knowledge</div>
+          <div class="tab">Campaigns</div>
+          <div class="tab">Ventas</div>
+        </div>
+
+        <!-- Editor shell 3-col: NavRail sections | Form | Copilot -->
+        <div class="offer-shell">
+          <aside class="finder-col">
+            <div class="col-header"><span>Secciones · Premium</span><span style="color:var(--success);font-weight:500">7/9</span></div>
+            <div class="col-body">
+              <a class="row" href="#"><span class="icon">◉</span>Identidad<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">★</span>Promesa<span class="chev">›</span></a>
+              <a class="row active" href="#"><span class="icon">$</span>Pricing<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">🎁</span>Beneficios<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">📆</span>Ciclo de facturación<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">♫</span>Testimonios<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">❓</span>FAQ<span class="chev">›</span></a>
+            </div>
+          </aside>
+
+          <section class="form-area">
+            <div class="section-head">
+              <h1>Pricing — Premium</h1>
+              <span class="tag">Override del plan</span>
+            </div>
+            <p class="section-desc">Estás editando <strong>Premium</strong>. Los cambios aquí sólo aplican a este plan. Para editar el precio base de todos los planes, desmarca el plan activo en el rail.</p>
+
+            <div class="field-card active">
+              <div class="field-label">Precio mensual <span style="color:var(--destructive)">*</span></div>
+              <div class="field-hint">Precio recurrente en USD. Se carga cada 30 días hasta cancelación.</div>
+              <div class="field-value"><strong>$79.00</strong> USD · cada 30 días</div>
+            </div>
+
+            <div class="field-card">
+              <div class="field-label">Precio anual (descuento)</div>
+              <div class="field-hint">Opcional. Descuento típico 15-20% vs. 12 × mensual.</div>
+              <div class="field-value"><strong>$790.00</strong> USD · anual (ahorro $158)</div>
+            </div>
+
+            <div class="field-card">
+              <div class="field-label">Prueba gratis</div>
+              <div class="field-hint">Días sin cargo antes del primer cobro.</div>
+              <div class="field-value">7 días</div>
+            </div>
+
+            <div class="field-card">
+              <div class="field-label">Anclaje visual en landing</div>
+              <div class="field-hint">Cuál de los 3 planes se destaca en el comparador de landing.</div>
+              <div class="field-value">✓ Este plan (Premium) — anclaje recomendado</div>
+            </div>
+          </section>
+
+          <aside class="copilot-col">
+            <div class="col-header">
+              <span class="dot"></span>
+              <span class="title">Copiloto · Pricing</span>
+              <span class="collapse">◀</span>
+            </div>
+            <div class="col-body">
+              <div class="suggestion-card">
+                <div class="tool-tag">💰 Anchor pricing</div>
+                <div class="suggestion-title">Premium bien posicionado</div>
+                <div class="suggestion-body">Tu tier medio ($79) está 2.7× sobre Básico ($29) y 3.2× bajo Enterprise ($249). Ratio ideal para maximizar conversión al tier medio.</div>
+              </div>
+
+              <div class="suggestion-card">
+                <div class="tool-tag">⚠ Coherencia</div>
+                <div class="suggestion-title">Falta precio anual en Básico</div>
+                <div class="suggestion-body">Premium y Enterprise tienen precio anual. Básico solo mensual — podría leerse como inconsistencia en landing.</div>
+                <div class="actions">
+                  <button class="btn sm">Ir a Básico</button>
+                </div>
+              </div>
+
+              <div class="suggestion-card">
+                <div class="tool-tag">🚀 Testing</div>
+                <div class="suggestion-title">A/B sugerido</div>
+                <div class="suggestion-body">Probar $79 vs $89. Precio psicológico redondeado suele convertir 6% más en SaaS creativos.</div>
+                <div class="actions">
+                  <button class="btn sm">Generar variant test</button>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="journey-tracker">
+  <span class="jlabel">Variant · TIER (MEMBRESIA)</span>
+  <span class="jstep done">Editor</span>
+  <span class="jstep current">Premium seleccionado</span>
+  <span class="jstep">Pricing override</span>
+  <span class="jstep">Publicar plan</span>
+  <div class="nav-links"><a href="../index.html">← Hub</a><a href="variant-sku.html">SKU →</a></div>
+</div>
+</body></html>

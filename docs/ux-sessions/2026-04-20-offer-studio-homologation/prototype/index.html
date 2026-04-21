@@ -45,9 +45,21 @@
     <a class="link-card" href="offer-studio/collection-testimonial-detail.html"><strong>Collection detail: Testimonio</strong><span>Edit individual con form-runtime</span><span class="route">/:id/editor/testimonials/:testimonialId</span></a>
   </div>
 
-  <div class="section-title">Journey C — Editions (dim. exclusiva de offer)</div>
+  <div class="section-title">Journey C — Offer sin variant (single edition implícita)</div>
   <div class="link-grid">
-    <a class="link-card" href="offer-studio/offer-editions.html"><strong>Tab Editions</strong><span>Rail con drafts + active. Duplicar / publicar.</span><span class="route">/:id/editions</span></a>
+    <a class="link-card" href="offer-studio/offer-no-variant.html"><strong>Offer sin variant</strong><span>Lead-magnet / ebook. SIN tab Editions. Editor directo con 1 edition implícita.</span><span class="route">allow_single_variant=true</span></a>
+  </div>
+
+  <div class="section-title">Journey D — Variants por estructura (polymorphic)</div>
+  <div class="link-grid">
+    <a class="link-card" href="offer-studio/offer-editions.html"><strong>Cohortes (TEMPORAL_COHORT)</strong><span>PROGRAMA · grupos con fecha fija. 3 cohortes Default/Q2/VIP.</span><span class="route">variant_structure=temporal_cohort</span></a>
+    <a class="link-card" href="offer-studio/variant-temporal-single-date.html"><strong>Salidas (TEMPORAL_SINGLE_DATE)</strong><span>EXPERIENCIA · retiro con fecha única.</span><span class="route">variant_structure=temporal_single_date</span></a>
+    <a class="link-card" href="offer-studio/variant-recurring-intake.html"><strong>Convocatorias (RECURRING_INTAKE)</strong><span>SERVICIO · inscripciones en batches periódicos.</span><span class="route">variant_structure=recurring_intake</span></a>
+    <a class="link-card" href="offer-studio/variant-tier.html"><strong>Planes (TIER)</strong><span>MEMBRESIA · Básico/Premium/Enterprise.</span><span class="route">variant_structure=tier</span></a>
+    <a class="link-card" href="offer-studio/variant-sku.html"><strong>Variantes (SKU_VARIANT)</strong><span>PRODUCTO · tallas/colores con inventario.</span><span class="route">variant_structure=sku_variant</span></a>
+    <a class="link-card" href="offer-studio/variant-regional.html"><strong>Regiones (REGIONAL)</strong><span>Por país · precio, moneda, impuestos locales.</span><span class="route">variant_structure=regional</span></a>
+    <a class="link-card" href="offer-studio/variant-modality.html"><strong>Modalidades (MODALITY)</strong><span>Online / presencial / híbrido con logística.</span><span class="route">variant_structure=modality</span></a>
+    <a class="link-card" href="offer-studio/variant-language.html"><strong>Idiomas (LANGUAGE)</strong><span>ES / EN / PT con copy traducido.</span><span class="route">variant_structure=language</span></a>
   </div>
 
   <div class="section-title">Comparativa lado a lado</div>

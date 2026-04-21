@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"/><title>Variant — Regional</title>
+<link rel="stylesheet" href="../_shared.css"/>
+</head><body>
+<div class="app">
+  <aside class="app-sidebar">
+    <div class="logo">Nicolify</div>
+    <a class="nav-item" href="#">◎ Dashboard</a>
+    <a class="nav-item" href="#">✦ Brand Studio</a>
+    <a class="nav-item active" href="dashboard.html">☰ Offer Studio</a>
+    <a class="nav-item" href="#">↗ Growth Studio</a>
+    <a class="nav-item" href="#">◉ Sales Studio</a>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumb">
+        <a href="dashboard.html">Offer Studio</a>
+        <span class="sep">›</span>
+        <span class="current">Programa de Asesoría Legal</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn">Vista previa</button>
+        <button class="btn primary">Publicar</button>
+      </div>
+    </div>
+
+    <div class="offer-row1">
+      <div class="title-group">
+        <h2>Programa de Asesoría Legal</h2>
+        <span class="status-pill">Publicada</span>
+        <span style="font-size:11px;color:var(--muted-foreground)">PROGRAMA · regional · ruteo por IP</span>
+      </div>
+      <div class="row1-actions">
+        <button class="btn sm">Ver ruteo GeoIP</button>
+        <button class="btn sm">⋯</button>
+      </div>
+    </div>
+
+    <div class="offer-body-row">
+      <aside class="variant-rail">
+        <div class="rail-head">
+          <span class="rail-title">Regiones (4)</span>
+          <span class="rail-collapse">◀</span>
+        </div>
+        <div class="rail-body">
+
+          <div class="variant-group">
+            <div class="variant-group-label">🌎 Publicadas</div>
+
+            <button class="variant-entry selected active">
+              <div class="entry-head"><h4>🇲🇽 México</h4><span class="entry-status">Activo</span></div>
+              <div class="entry-meta"><strong>$4,900 MXN</strong> · IVA 16%</div>
+              <div><span class="entry-chip">ES-MX</span></div>
+            </button>
+
+            <button class="variant-entry">
+              <div class="entry-head"><h4>🇨🇴 Colombia</h4><span class="entry-status">Activo</span></div>
+              <div class="entry-meta"><strong>$980,000 COP</strong> · IVA 19%</div>
+              <div><span class="entry-chip">ES-CO</span></div>
+            </button>
+
+            <button class="variant-entry">
+              <div class="entry-head"><h4>🇵🇪 Perú</h4><span class="entry-status">Activo</span></div>
+              <div class="entry-meta"><strong>S/ 980 PEN</strong> · IGV 18%</div>
+              <div><span class="entry-chip">ES-PE</span></div>
+            </button>
+          </div>
+
+          <div class="variant-group">
+            <div class="variant-group-label draft">✏ Borradores</div>
+
+            <button class="variant-entry draft">
+              <div class="entry-head"><h4>🇺🇸 USA</h4><span class="entry-status">Borrador</span></div>
+              <div class="entry-meta"><strong>$299 USD</strong> · Sales tax auto</div>
+              <div><span class="entry-chip">ES-US</span></div>
+            </button>
+          </div>
+
+        </div>
+        <div class="rail-footer">
+          <button class="cta"><span>+</span> Nueva región</button>
+          <p class="hint">Clonar + ajustar moneda</p>
+        </div>
+      </aside>
+
+      <div class="right-pane">
+        <div class="tabs-row">
+          <div class="tab active">Editor</div>
+          <div class="tab">Assets</div>
+          <div class="tab">Knowledge</div>
+          <div class="tab">Campaigns</div>
+          <div class="tab">Ventas</div>
+        </div>
+
+        <div class="offer-shell">
+          <aside class="finder-col">
+            <div class="col-header"><span>Secciones · México</span><span style="color:var(--success);font-weight:500">9/9</span></div>
+            <div class="col-body">
+              <a class="row" href="#"><span class="icon">◉</span>Identidad<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">★</span>Promesa<span class="chev">›</span></a>
+              <a class="row active" href="#"><span class="icon">$</span>Pricing local<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">💳</span>Payment provider<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">🌐</span>Idioma landing<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">📜</span>Legal (LFPC)<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">♫</span>Testimonios<span class="chev">›</span></a>
+              <a class="row" href="#"><span class="icon">❓</span>FAQ<span class="chev">›</span></a>
+            </div>
+          </aside>
+
+          <section class="form-area">
+            <div class="section-head">
+              <h1>Pricing local — México</h1>
+              <span class="tag">Override regional</span>
+            </div>
+            <p class="section-desc">Editando la región <strong>México</strong>. Precio, moneda e impuestos específicos. El contenido de promesa y metodología se heredan de la oferta base.</p>
+
+            <div class="field-card active">
+              <div class="field-label">Moneda <span style="color:var(--destructive)">*</span></div>
+              <div class="field-hint">Moneda ISO 4217 en la que se muestra y cobra.</div>
+              <div class="field-value">MXN — Peso mexicano</div>
+            </div>
+
+            <div class="field-card">
+              <div class="field-label">Precio local <span style="color:var(--destructive)">*</span></div>
+              <div class="field-hint">Se muestra en landing. Incluye o excluye impuestos según regla local.</div>
+              <div class="field-value"><strong>$4,900 MXN</strong> · equivalente ≈ $249 USD</div>
+            </div>
+
+            <div class="field-card">
+              <div class="field-label">Impuesto aplicable</div>
+              <div class="field-hint">IVA / IGV / sales tax según país. Se integra con el payment provider.</div>
+              <div class="field-value">IVA 16% (incluido en precio mostrado)</div>
+            </div>
+
+            <div class="field-card">
+              <div class="field-label">Payment provider</div>
+              <div class="field-hint">Procesador local. Debe soportar MXN.</div>
+              <div class="field-value">Mercado Pago MX · Conexión activa</div>
+            </div>
+
+            <div class="field-card">
+              <div class="field-label">URL landing regional</div>
+              <div class="field-hint">Path automático según código país.</div>
+              <div class="field-value" style="font-family:ui-monospace, monospace;font-size:12px">nicolify.app/mx/asesoria-legal</div>
+            </div>
+          </section>
+
+          <aside class="copilot-col">
+            <div class="col-header">
+              <span class="dot"></span>
+              <span class="title">Copiloto · Regional</span>
+              <span class="collapse">◀</span>
+            </div>
+            <div class="col-body">
+              <div class="suggestion-card">
+                <div class="tool-tag">🌐 GeoIP routing</div>
+                <div class="suggestion-title">México activo</div>
+                <div class="suggestion-body">Usuarios desde IP mexicana → landing <code>/mx</code>. Override manual vía selector en header. Sales Agent detecta país por WhatsApp (+52) y carga esta región automáticamente.</div>
+              </div>
+
+              <div class="suggestion-card">
+                <div class="tool-tag">💱 FX check</div>
+                <div class="suggestion-title">Paridad coherente</div>
+                <div class="suggestion-body">$4,900 MXN ≈ $249 USD al tipo actual. Perú ($280 USD equiv) y Colombia ($245 USD equiv) están alineados. Sin arbitraje.</div>
+              </div>
+
+              <div class="suggestion-card">
+                <div class="tool-tag">📜 Legal</div>
+                <div class="suggestion-title">Falta "derecho de retracto"</div>
+                <div class="suggestion-body">LFPC artículo 56 exige 5 días de retracto. Tu sección Legal MX no lo menciona — riesgo de compliance.</div>
+                <div class="actions">
+                  <button class="btn sm">Revisar Legal MX</button>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="journey-tracker">
+  <span class="jlabel">Variant · REGIONAL</span>
+  <span class="jstep done">Editor</span>
+  <span class="jstep current">México seleccionado</span>
+  <span class="jstep">Pricing local</span>
+  <span class="jstep">Publicar</span>
+  <div class="nav-links"><a href="variant-sku.html">← SKU</a><a href="variant-modality.html">Modality →</a></div>
+</div>
+</body></html>
