@@ -7,6 +7,9 @@
  */
 import { OfferInstructorsLandingPage } from "@/features/offer-studio/components/collections/OfferInstructorsLandingPage";
 
+/**
+ *
+ */
 export default async function OfferEditorInstructorsPage({
   params,
 }: {

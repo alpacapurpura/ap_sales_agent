@@ -58,7 +58,12 @@ export const OFFER_SECTIONS: readonly OfferSectionMeta[] = [
   { slug: "service_details", label: "Detalles del servicio", icon: Wrench, kind: "singleton" },
   { slug: "event_details", label: "Detalles del evento", icon: Calendar, kind: "singleton" },
   { slug: "product_details", label: "Detalles del producto", icon: Package, kind: "singleton" },
-  { slug: "subscription_details", label: "Detalles de la suscripción", icon: Layers, kind: "singleton" },
+  {
+    slug: "subscription_details",
+    label: "Detalles de la suscripción",
+    icon: Layers,
+    kind: "singleton",
+  },
   { slug: "platform_details", label: "Plataforma", icon: Monitor, kind: "singleton" },
   { slug: "location", label: "Ubicación", icon: MapPin, kind: "singleton" },
   { slug: "instructors", label: "Instructores", icon: Users, kind: "collection" },

@@ -4,8 +4,9 @@ import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import { VariantCard } from "./VariantCard";
 import { getVariantLabel, getVariantStructureMeta } from "../../lib/variant-structure-catalog";
+
+import { VariantCard } from "./VariantCard";
 
 import type { LaunchEdition } from "../../types";
 
@@ -102,13 +103,7 @@ export function VariantCollectionLandingPage({
   );
 }
 
-function EmptyState({
-  nounSingular,
-  onCreate,
-}: {
-  nounSingular: string;
-  onCreate: () => void;
-}) {
+function EmptyState({ nounSingular, onCreate }: { nounSingular: string; onCreate: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed bg-muted/20 p-12 text-center">
       <h3 className="text-lg font-semibold">Aún no tienes ninguna {nounSingular}</h3>

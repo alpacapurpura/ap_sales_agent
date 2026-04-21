@@ -25,11 +25,10 @@ interface PageParams {
   fieldId?: string[];
 }
 
-export default async function OfferEditorSectionPage({
-  params,
-}: {
-  params: Promise<PageParams>;
-}) {
+/**
+ *
+ */
+export default async function OfferEditorSectionPage({ params }: { params: Promise<PageParams> }) {
   const { id: offerId, section } = await params;
 
   if (!isOfferStudioSection(section)) {

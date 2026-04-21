@@ -3,9 +3,8 @@ import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-import { useSectionCatalog, useSectionMetadata } from "../use-section-catalog";
-
 import { MOCK_ARCHETYPE_CATALOG_RESPONSE } from "../../__tests__/fixtures/archetype-catalog-fixture";
+import { useSectionCatalog, useSectionMetadata } from "../use-section-catalog";
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });

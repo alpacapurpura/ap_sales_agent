@@ -9,6 +9,9 @@
  */
 import { OfferTestimonialDetailPage } from "@/features/offer-studio/components/collections/OfferTestimonialDetailPage";
 
+/**
+ *
+ */
 export default async function OfferEditorTestimonialDetailPage({
   params,
 }: {

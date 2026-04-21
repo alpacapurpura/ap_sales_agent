@@ -8,9 +8,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatMoney } from "@/lib/format-money";
 import { cn } from "@/lib/utils";
 
+import { getVariantStructureMeta } from "../../lib/variant-structure-catalog";
 import { EditionCard } from "../editions/EditionCard";
 import { EditionStatusBadge } from "../editions/EditionStatusBadge";
-import { getVariantStructureMeta } from "../../lib/variant-structure-catalog";
 
 import type { LaunchEdition } from "../../types";
 
@@ -198,9 +198,7 @@ function RegionalVariantCard({ variant, ...actions }: VariantCardProps) {
               </span>
             ))
           ) : (
-            <span className="text-xs italic text-muted-foreground">
-              Sin países asignados
-            </span>
+            <span className="text-xs italic text-muted-foreground">Sin países asignados</span>
           )}
           {currency && (
             <span className="ml-auto text-xs text-muted-foreground">
@@ -229,9 +227,7 @@ function ModalityVariantCard({ variant, ...actions }: VariantCardProps) {
           {mode}
         </span>
         {variant.location_override && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Logística específica configurada
-          </p>
+          <p className="mt-2 text-xs text-muted-foreground">Logística específica configurada</p>
         )}
         <ActionRow {...actions} />
       </CardContent>

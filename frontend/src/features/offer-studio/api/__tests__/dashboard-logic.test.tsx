@@ -1,9 +1,8 @@
 import { describe, it, expect } from "vitest";
 
-import { backendToFrontend } from "../adapter";
-import { OfferArchetype, OfferStatus } from "../../types";
-
 import { MOCK_BACKEND_RESPONSE } from "../../__tests__/fixtures";
+import { OfferArchetype, OfferStatus } from "../../types";
+import { backendToFrontend } from "../adapter";
 
 import type { BackendOffer } from "../adapter";
 

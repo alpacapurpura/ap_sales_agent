@@ -52,9 +52,7 @@ describe("VariantCard polymorphic dispatch", () => {
         price_currency: "USD",
       },
     });
-    render(
-      <VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />,
-    );
+    render(<VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />);
     expect(screen.getByText("Plan Platinum")).toBeInTheDocument();
     expect(screen.getByText("10 sesiones")).toBeInTheDocument();
     expect(screen.getByText("WhatsApp directo")).toBeInTheDocument();
@@ -72,9 +70,7 @@ describe("VariantCard polymorphic dispatch", () => {
       },
       capacity: 42,
     });
-    render(
-      <VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />,
-    );
+    render(<VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />);
     expect(screen.getByText(/TSHIRT-M-BLACK/)).toBeInTheDocument();
     expect(screen.getByText(/talla: M/)).toBeInTheDocument();
     expect(screen.getByText(/color: negro/)).toBeInTheDocument();
@@ -87,9 +83,7 @@ describe("VariantCard polymorphic dispatch", () => {
       variant_structure: "regional",
       structure_data: { country_codes: ["pe", "co", "ec"], currency: "USD" },
     });
-    render(
-      <VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />,
-    );
+    render(<VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />);
     expect(screen.getByText("PE")).toBeInTheDocument();
     expect(screen.getByText("CO")).toBeInTheDocument();
     expect(screen.getByText("EC")).toBeInTheDocument();
@@ -102,9 +96,7 @@ describe("VariantCard polymorphic dispatch", () => {
       variant_structure: "modality",
       structure_data: { mode: "presencial" },
     });
-    render(
-      <VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />,
-    );
+    render(<VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />);
     expect(screen.getByText("presencial")).toBeInTheDocument();
   });
 
@@ -114,9 +106,7 @@ describe("VariantCard polymorphic dispatch", () => {
       variant_structure: "language",
       structure_data: { locale: "es-419" },
     });
-    render(
-      <VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />,
-    );
+    render(<VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />);
     expect(screen.getByText(/ES-419/i)).toBeInTheDocument();
   });
 
@@ -127,9 +117,7 @@ describe("VariantCard polymorphic dispatch", () => {
       start_date: "2026-05-06T00:00:00Z",
       capacity: 40,
     });
-    render(
-      <VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />,
-    );
+    render(<VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />);
     expect(screen.getByText("Cohorte Q2-2026")).toBeInTheDocument();
   });
 
@@ -141,9 +129,7 @@ describe("VariantCard polymorphic dispatch", () => {
       structure_data: {}, // no price_amount / features
       pricing_override: [override],
     });
-    render(
-      <VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />,
-    );
+    render(<VariantCard variant={variant} onEdit={noop} onDuplicate={noop} onDelete={noop} />);
     expect(screen.getByText("Plan Gold")).toBeInTheDocument();
     expect(screen.getByText(/997/)).toBeInTheDocument();
   });

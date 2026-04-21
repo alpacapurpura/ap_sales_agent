@@ -16,7 +16,16 @@
  * fails CI if the backend catalog emits a key not listed here.
  */
 
-import { Calendar, CalendarClock, Globe, Languages, Layers, MonitorSmartphone, Package, Users } from "lucide-react";
+import {
+  Calendar,
+  CalendarClock,
+  Globe,
+  Languages,
+  Layers,
+  MonitorSmartphone,
+  Package,
+  Users,
+} from "lucide-react";
 
 import type { VariantStructure } from "../api/archetype-catalog-api";
 

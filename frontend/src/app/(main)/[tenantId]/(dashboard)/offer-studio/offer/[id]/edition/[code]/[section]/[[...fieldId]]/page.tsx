@@ -23,6 +23,9 @@ interface PageParams {
   fieldId?: string[];
 }
 
+/**
+ *
+ */
 export default async function LegacyEditionSectionShim({
   params,
 }: {

@@ -1,5 +1,8 @@
 import { OfferFaqDetailPage } from "@/features/offer-studio/components/collections/OfferFaqDetailPage";
 
+/**
+ *
+ */
 export default async function OfferEditorFaqDetailPage({
   params,
 }: {

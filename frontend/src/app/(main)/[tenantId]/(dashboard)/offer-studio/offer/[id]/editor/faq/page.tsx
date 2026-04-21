@@ -5,6 +5,9 @@
  */
 import { OfferFaqLandingPage } from "@/features/offer-studio/components/collections/OfferFaqLandingPage";
 
+/**
+ *
+ */
 export default async function OfferEditorFaqPage({
   params,
 }: {

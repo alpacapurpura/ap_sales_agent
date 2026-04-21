@@ -3,10 +3,9 @@ import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-import { useVisibleSections, EVERGREEN_CODE } from "../use-visible-sections";
-import { OfferArchetype } from "../../types";
-
 import { MOCK_ARCHETYPE_CATALOG_RESPONSE } from "../../__tests__/fixtures/archetype-catalog-fixture";
+import { OfferArchetype } from "../../types";
+import { useVisibleSections, EVERGREEN_CODE } from "../use-visible-sections";
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });

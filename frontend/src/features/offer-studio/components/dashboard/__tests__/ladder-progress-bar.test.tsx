@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { LadderProgressBar } from "../LadderProgressBar";
 import { OfferValueLevel } from "../../../types";
+import { LadderProgressBar } from "../LadderProgressBar";
 
 vi.mock("@/features/offer-studio/hooks/use-value-level-catalog", () => ({
   useValueLevelCatalog: vi.fn(),

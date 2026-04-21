@@ -112,7 +112,7 @@ export function buildCrumbs(pathname: string, tenantId: string, offerName?: stri
   if (!pathname || !tenantId) return [root];
 
   const rest = extractOfferStudioRest(pathname);
-  if (!rest || rest[0] !== "offer" || !rest[1]) return [root];
+  if (rest?.[0] !== "offer" || !rest[1]) return [root];
 
   const offerId = rest[1];
   const offerHref = `/${tenantId}/offer-studio/offer/${offerId}`;

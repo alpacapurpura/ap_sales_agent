@@ -2,9 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
-import { OfferCatalogCard } from "../OfferCatalogCard";
-
 import { MOCK_OFFER_NORMALIZED } from "../../../__tests__/fixtures";
+import { OfferCatalogCard } from "../OfferCatalogCard";
 
 import type { Offer } from "../../../types";
 

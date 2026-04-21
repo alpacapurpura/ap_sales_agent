@@ -34,10 +34,10 @@ import { useOfferCounts } from "../hooks/use-offer-counts";
 import { useRailCollapsed } from "../hooks/use-rail-collapsed";
 import { useShouldShowVariantRail } from "../hooks/use-should-show-variant-rail";
 
-import { OfferStudioTabBar } from "./OfferStudioTabBar";
 import { EditionFormDialog } from "./editions/EditionFormDialog";
 import { OfferShellHeader } from "./OfferShellHeader";
 import { OfferStudioBreadcrumb } from "./OfferStudioBreadcrumb";
+import { OfferStudioTabBar } from "./OfferStudioTabBar";
 import { VariantRail } from "./variant-rail/VariantRail";
 
 import type { LaunchEdition, LaunchEditionCreate, LaunchEditionUpdate } from "../types";
