@@ -13,6 +13,7 @@
 import { describe, expect, it } from "vitest";
 
 import { identitySchema } from "@/features/brand-studio/schemas/identity.schema";
+import { legalSchema } from "@/features/brand-studio/schemas/legal.schema";
 import { positioningSchema } from "@/features/brand-studio/schemas/positioning.schema";
 import { buyerPersonaSchema } from "@/features/brand-studio/schemas/buyer-persona.schema";
 import { narrativeSchema } from "@/features/brand-studio/schemas/narrative.schema";
@@ -163,6 +164,7 @@ function collectAllFields(schema: SectionSchema, prefix: string): CollectedField
 const ALL_SCHEMAS: [string, SectionSchema][] = [
   // brand-studio
   ["identity", identitySchema],
+  ["legal", legalSchema],
   ["positioning", positioningSchema],
   ["buyer-persona", buyerPersonaSchema],
   ["narrative", narrativeSchema],

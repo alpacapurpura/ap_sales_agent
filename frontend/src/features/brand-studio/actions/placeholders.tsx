@@ -31,4 +31,3 @@ export const ImageGalleryPickerPlaceholder = makePlaceholder("Galería de imáge
 export const AvatarActionPlaceholder = makePlaceholder("Avatar");
 export const SmartFillDialogPlaceholder = makePlaceholder("Auto-completar");
 export const OnboardingWizardPlaceholder = makePlaceholder("Wizard de onboarding");
-export const LegalActionPlaceholder = makePlaceholder("Datos legales");

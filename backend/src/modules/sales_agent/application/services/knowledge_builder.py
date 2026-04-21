@@ -116,7 +116,45 @@ class TenantKnowledgeBuilder:
             else:
                 personality_instruction = None
 
-            # 6. Render the agent_identity template
+            # 6. Derive legal / compliance flags from BrandIdentity.
+            #    These surface three conditional blocks in ``agent_identity.j2``:
+            #      - Guardrails         → disclaimer + out-of-scope + escalation
+            #      - Credenciales       → regulated profession (license, authorization)
+            #      - Documentos legales → terms / privacy / refund / cookies / use
+            #
+            #    Flags are derived here (not in the template) to keep Jinja
+            #    readable and to match the existing convenience-flag pattern
+            #    (``has_offers``, ``has_team`` …). The underlying values stay
+            #    on ``identity.*`` so new fields flow through automatically.
+            has_legal_guardrails = any(
+                identity.get(key)
+                for key in (
+                    "sales_agent_disclaimer",
+                    "sales_agent_out_of_scope",
+                )
+            )
+            has_regulated_profession = any(
+                identity.get(key)
+                for key in (
+                    "regulated_profession_body",
+                    "professional_license_number",
+                    "professional_license_holder",
+                    "operating_authorization",
+                    "liability_insurance_carrier",
+                )
+            )
+            has_legal_documents = any(
+                identity.get(key)
+                for key in (
+                    "terms_url",
+                    "privacy_url",
+                    "cookies_url",
+                    "refund_policy_url",
+                    "acceptable_use_url",
+                )
+            )
+
+            # 7. Render the agent_identity template
             rendered = prompt_loader.render(
                 "agent_identity",
                 # Full dumps (schema-resilient)
@@ -142,6 +180,10 @@ class TenantKnowledgeBuilder:
                 has_team=len(team) > 0,
                 # Personality voice configuration (new)
                 personality_instruction=personality_instruction,
+                # Legal / compliance (new — brand.legal section)
+                has_legal_guardrails=has_legal_guardrails,
+                has_regulated_profession=has_regulated_profession,
+                has_legal_documents=has_legal_documents,
             )
 
         except Exception:

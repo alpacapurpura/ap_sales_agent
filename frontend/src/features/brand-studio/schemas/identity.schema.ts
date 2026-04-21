@@ -116,13 +116,5 @@ export const identitySchema: SectionSchema = {
       action: "onboarding-wizard",
       hint: "Flujo guiado para cargar tu marca desde cero.",
     },
-    {
-      id: "legal",
-      label: "Datos legales",
-      type: "custom",
-      path: "legal_name",
-      action: "legal",
-      hint: "Razón social, CIF/RUC, términos y privacidad.",
-    },
   ],
 };

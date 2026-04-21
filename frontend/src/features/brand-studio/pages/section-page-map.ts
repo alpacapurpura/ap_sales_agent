@@ -2,6 +2,7 @@ import {
   CommunicationAssetsPage,
   ContactPage,
   IdentityPage,
+  LegalPage,
   MethodologyPage,
   NarrativePage,
   PositioningPage,
@@ -30,6 +31,7 @@ import {
  */
 export const SECTION_PAGE_MAP = {
   identity: IdentityPage,
+  legal: LegalPage,
   visuals: VisualsPage,
   contact: ContactPage,
   methodology: MethodologyPage,

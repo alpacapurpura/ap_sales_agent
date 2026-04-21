@@ -5,6 +5,7 @@ import {
   communicationAssetsSchema,
   contactSchema,
   identitySchema,
+  legalSchema,
   methodologySchema,
   narrativeSchema,
   positioningSchema,
@@ -46,6 +47,19 @@ const IdentityCorePage = createPage<BrandIdentity>({
 });
 
 export const IdentityPage = IdentityCorePage;
+
+/**
+ * Legal y cumplimiento page. Shares the BrandIdentity slice with IdentityPage
+ * so the 23 legal fields persist alongside the core identity — the schema
+ * picks only the legal-relevant paths and autosave merges them into the
+ * existing identity blob through ``updateIdentity``.
+ */
+export const LegalPage = createPage<BrandIdentity>({
+  slug: "legal",
+  schema: legalSchema,
+  select: (s) => s.identity,
+  save: (h) => h.updateIdentity,
+});
 
 export const VisualsPage = createPage<BrandVisuals>({
   slug: "visuals",

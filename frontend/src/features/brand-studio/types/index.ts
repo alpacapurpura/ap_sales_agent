@@ -15,13 +15,38 @@ export interface BrandIdentity {
   language?: string;
   voice_tone?: string;
 
-  // Legal Fields
+  // Legal — fiscal core
   legal_name?: string;
+  legal_entity_type?: string;
   tax_id?: string;
+  tax_regime?: string;
+  country_of_registration?: string;
+  commercial_registry_number?: string;
   fiscal_address?: string;
   legal_representative?: string;
+
+  // Legal — contact
+  legal_email?: string;
+  dpo_email?: string;
+
+  // Legal — URLs
   terms_url?: string;
   privacy_url?: string;
+  cookies_url?: string;
+  refund_policy_url?: string;
+  acceptable_use_url?: string;
+
+  // Legal — regulated profession (optional)
+  regulated_profession_body?: string;
+  professional_license_number?: string;
+  professional_license_holder?: string;
+  operating_authorization?: string;
+  liability_insurance_carrier?: string;
+
+  // Legal — sales-agent guardrails (internal)
+  sales_agent_disclaimer?: string;
+  sales_agent_out_of_scope?: string;
+  escalation_contact?: string;
 }
 
 export interface BrandMethodologyPillar {

@@ -7,11 +7,13 @@ import { SCHEMA_REGISTRY } from "../index";
 
 describe("brand-studio schemas", () => {
   it("registers every advertised section", () => {
-    // 13 brand-studio sections + buyer-persona + 3 social_proof per-instance
+    // 14 brand-studio sections + buyer-persona + 3 social_proof per-instance
     // schemas (testimonial, authority-item, team-member). The legacy
     // brand.{testimonials,team,authority} array wrappers were removed when
-    // social_proof became the SSoT (see Phase 4 cleanup).
-    expect(Object.keys(SCHEMA_REGISTRY)).toHaveLength(16);
+    // social_proof became the SSoT (see Phase 4 cleanup). "brand.legal"
+    // was split out of "brand.identity" to give compliance data its own
+    // per-field autosaved section instead of the monolithic LegalAction modal.
+    expect(Object.keys(SCHEMA_REGISTRY)).toHaveLength(17);
   });
 
   it("every schema parses successfully", () => {
@@ -43,6 +45,7 @@ describe("brand-studio schemas", () => {
   it("covers all expected domain keys", () => {
     const expected = [
       "brand.identity",
+      "brand.legal",
       "brand.voice",
       "brand.visuals",
       "brand.logos",

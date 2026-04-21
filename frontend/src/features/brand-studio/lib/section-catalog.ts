@@ -16,6 +16,7 @@ import {
   Layers,
   Megaphone,
   Palette,
+  Scale,
   ScrollText,
   Sparkles,
   Target,
@@ -43,6 +44,7 @@ export const BRAND_SECTIONS: readonly BrandSectionMeta[] = [
   { slug: "visuals", label: "Visuales", icon: Palette, kind: "singleton" },
   { slug: "communication-assets", label: "Assets", icon: Layers, kind: "singleton" },
   { slug: "contact", label: "Contacto", icon: Megaphone, kind: "singleton" },
+  { slug: "legal", label: "Legal", icon: Scale, kind: "singleton" },
 ] as const;
 
 const BY_SLUG: Record<string, BrandSectionMeta> = Object.fromEntries(

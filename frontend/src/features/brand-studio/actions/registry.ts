@@ -13,7 +13,6 @@ import { hasAction, registerAction, type ActionComponent } from "@/lib/form-runt
 
 import { DimensionSlidersAction } from "./DimensionSlidersAction";
 import { ImageGalleryPickerAction } from "./ImageGalleryPickerAction";
-import { LegalAction } from "./LegalAction";
 import { LogoKitAction } from "./LogoKitAction";
 import {
   AvatarActionPlaceholder,
@@ -40,7 +39,6 @@ export const BRAND_STUDIO_ACTION_KEYS = [
   "avatar",
   "smart-fill",
   "onboarding-wizard",
-  "legal",
 ] as const;
 
 export type BrandStudioActionKey = (typeof BRAND_STUDIO_ACTION_KEYS)[number];
@@ -68,7 +66,6 @@ const REGISTRY_ENTRIES: Readonly<Record<BrandStudioActionKey, ActionComponent>> 
   avatar: AvatarActionPlaceholder,
   "smart-fill": SmartFillDialogPlaceholder,
   "onboarding-wizard": OnboardingWizardPlaceholder,
-  legal: LegalAction as unknown as ActionComponent,
 };
 
 /**
