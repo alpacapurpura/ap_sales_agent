@@ -5,7 +5,7 @@ description: Idempotent Alembic migration rules
 
 # Migration Rules
 
-**CRITICAL: All migrations MUST be idempotent.** Use raw SQL with `IF NOT EXISTS`.
+**All migrations MUST be idempotent.** Raw SQL con `IF NOT EXISTS`.
 
 ## Required Patterns
 ```python
@@ -19,14 +19,14 @@ op.execute("ALTER TABLE x ADD COLUMN IF NOT EXISTS ...")
 op.execute("CREATE INDEX IF NOT EXISTS ...")
 
 # Enums
-# Reference existing types in raw SQL. NEVER use sa.Enum() or postgresql.ENUM() inside op.create_table()
+# Reference existing types en raw SQL. NEVER `sa.Enum()` / `postgresql.ENUM()` dentro `op.create_table()`
 ```
 
-## Forbidden Patterns
-- `op.create_table()` — not idempotent
-- `op.add_column()` — not idempotent
-- `op.create_index()` — not idempotent
-- `sa.Enum(..., create_type=True)` — broken in SA 2.0.27
+## Forbidden
+- `op.create_table()` — no idempotent
+- `op.add_column()` — no idempotent
+- `op.create_index()` — no idempotent
+- `sa.Enum(..., create_type=True)` — broken SA 2.0.27
 
 ## Test Before Prod
 ```bash

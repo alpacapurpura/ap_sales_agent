@@ -1,49 +1,42 @@
 # TDD Obligatorio
 
-**Regla no negociable:** Tests PRIMERO, implementación DESPUÉS. Sin excepciones.
+Tests PRIMERO, implementación DESPUÉS. Sin excepciones.
 
-## Cuándo aplica
-
-- Feature nuevo → tests por capa antes de implementar
-- Modificación de feature existente → actualizar/crear tests antes de modificar
-- Bug fix → test de regresión que reproduce el bug ANTES del fix
+## Aplica
+- Feature nuevo → tests por capa antes
+- Modificación feature existente → actualizar/crear tests antes
+- Bug fix → test regresión reproduciendo bug ANTES fix
 - Refactor → tests pasan antes y después
 
-## Cuándo NO aplica
-
-- Configuración pura (Docker, CI, env vars)
-- Documentación
+## NO aplica
+- Config pura (Docker, CI, env)
+- Docs
 - Styling sin lógica
 
-## Flujo RED → GREEN → REFACTOR
+## RED → GREEN → REFACTOR
 
-### Backend (pytest, por capa DDD)
-
-1. `test_domain_models.py` → Escribir test (RED) → implementar domain/
-2. `test_{name}_repository.py` → Escribir test (RED) → implementar infrastructure/
-3. `test_{name}_service.py` → Escribir test (RED) → implementar application/
-4. API: cubierta por arch fitness + E2E
+### Backend (pytest, DDD)
+1. `test_domain_models.py` → RED → implement domain/
+2. `test_{name}_repository.py` → RED → implement infrastructure/
+3. `test_{name}_service.py` → RED → implement application/
+4. API: arch fitness + E2E
 
 ### Frontend (Vitest)
-
-1. `hook-name.test.ts` → Escribir test (RED) → implementar hook
-2. `component-name.test.tsx` → Escribir test (RED) → implementar componente
+1. `hook-name.test.ts` → RED → implement hook
+2. `component-name.test.tsx` → RED → implement component
 3. Stores: `store-name.test.ts` si aplica
 
 ### E2E (Playwright)
-
-- Ruta nueva → smoke test en `e2e/specs/smoke/` ANTES de implementar la página
-- Flujo crítico modificado → regression test en `e2e/specs/regression/`
+- Ruta nueva → smoke en `e2e/specs/smoke/` ANTES página
+- Flow crítico modificado → regression en `e2e/specs/regression/`
 
 ## Feature existente sin tests
-
-1. Escribir tests del comportamiento ACTUAL (baseline)
-2. Escribir test del cambio esperado (RED)
-3. Implementar el cambio (GREEN)
+1. Escribir tests comportamiento ACTUAL (baseline)
+2. Escribir test cambio esperado (RED)
+3. Implement cambio (GREEN)
 
 ## Prohibido
-
-- Implementar código sin test correspondiente
-- Commitear sin que los tests pasen
+- Código sin test correspondiente
+- Commit sin tests passing
 - `skip`/`xfail` para "pasar" CI
 - Reducir coverage con código nuevo sin tests

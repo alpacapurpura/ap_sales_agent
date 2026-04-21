@@ -8,26 +8,25 @@ description: DDD architecture rules for backend Python code
 ## Layer Order (Inside-Out)
 `domain` → `infrastructure` → `application` → `api`
 
-- **domain/**: Models, value objects, repository interfaces, domain events. No framework imports.
-- **infrastructure/**: SQLAlchemy repos, external API clients. Implements domain interfaces.
-- **application/**: Services, use cases, orchestration. Calls domain + infrastructure.
-- **api/**: FastAPI routes, DTOs (Pydantic). Thin layer — delegates to application.
+- **domain/**: Models, VOs, repo interfaces, events. No framework imports.
+- **infrastructure/**: SQLA repos, external clients. Implements domain interfaces.
+- **application/**: Services, use cases. Calls domain+infrastructure.
+- **api/**: FastAPI routes, Pydantic DTOs. Thin — delegates application.
 
 ## Constraints
-- Every query MUST filter by `tenant_id` (from `X-Tenant-ID` header) — including `get_by_id()` methods
-- Soft deletes only: use `deleted_at` column, never hard delete
-- SQLAlchemy 2.0 syntax: `select(Model).where(...)`, not `session.query(Model)`
-- New code MUST use `AsyncSession`. Legacy sync `Session` exists — migrate incrementally when touching those files
-- Use `structlog` for logging, not `print()` or `import logging`
-- Pydantic v2 for all DTOs — use `model_config = ConfigDict(...)`, not inner `class Config`
+- Every query MUST filter `tenant_id` (from `X-Tenant-ID`) — incluye `get_by_id()`
+- Soft deletes only: `deleted_at` column, never hard delete
+- SQLA 2.0 syntax: `select(Model).where(...)`, not `session.query(Model)`
+- New code MUST use `AsyncSession`. Legacy sync `Session` existe — migrate incrementally
+- `structlog` para logging, not `print()` / `import logging`
+- Pydantic v2 DTOs — `model_config = ConfigDict(...)`, not inner `class Config`
 
 ## FastAPI App Configuration
-- `FastAPI(redirect_slashes=False)` is **mandatory** in `main.py`. The default (`True`) emits 307 on POST
-  without trailing slash; Next.js proxy strips the slash and drops the request body silently.
-  The arch test `test_fastapi_app_has_redirect_slashes_disabled` enforces this.
-- Never set `redirect_slashes=False` on individual `APIRouter` instances — the app-level setting covers all routes.
+- `FastAPI(redirect_slashes=False)` **mandatory** en `main.py`. Default (`True`) emite 307 en POST sin trailing slash; Next.js proxy strips slash, drops body silently.
+- Arch test `test_fastapi_app_has_redirect_slashes_disabled` enforces.
+- Never set `redirect_slashes=False` en individual `APIRouter` — app-level covers all routes.
 
 ## Cross-Module Imports
-- **Default: forbidden.** Module A cannot import from module B's domain/infrastructure/application.
-- **Allowed exceptions:** `copilot` may import from other modules (it's an infra-like orchestrator). Use `shared/links/` for all other inter-module communication.
-- If you need data from another module, add a port/interface in `shared/` or emit a domain event.
+- **Default: forbidden.** Module A no importa de B's domain/infrastructure/application.
+- **Allowed exceptions:** `copilot` puede importar (infra-like orchestrator). Use `shared/links/` para otras inter-module.
+- Necesitas data de otro module → port/interface en `shared/` o domain event.

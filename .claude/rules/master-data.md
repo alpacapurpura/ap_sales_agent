@@ -5,7 +5,7 @@ description: TenantLocale currency+timezone system — no hardcoded currencies o
 
 # Master Data: Currency & Timezone
 
-**Every module MUST use the tenant's locale preferences. No hardcoded currencies or timezones.**
+Every module MUST use tenant locale prefs. No hardcoded.
 
 ## Architecture
 
@@ -14,56 +14,50 @@ TenantModel (DB)
   ├── default_currency: str   (ISO 4217)
   └── timezone: str            (IANA)
 
-Backend: TenantLocale value object (shared/domain/locale.py)
-  ├── Injected via get_tenant_locale() FastAPI dependency
-  └── Workers load directly from TenantModel
+Backend: TenantLocale VO (shared/domain/locale.py)
+  ├── Injected via get_tenant_locale() FastAPI dep
+  └── Workers load from TenantModel
 
-Frontend: useTenantLocale() React hook (features/tenant/context/)
+Frontend: useTenantLocale() hook (features/tenant/context/)
   ├── Returns { currency, timezone }
-  └── Loaded from GET /api/v1/iam/settings/general
+  └── From GET /api/v1/iam/settings/general
 ```
 
 ## Currency Rules
 
-1. **Store source truth:** ETL data keeps its original currency (official_metrics.currency).
-   Never convert on write.
-2. **No hardcoded "USD" defaults** in DTOs or domain models.
-   Only allowed in: `shared/domain/currency.py`, `iam/domain/tenant.py`, `shared/domain/locale.py`.
-3. **Display rules:**
-   - Single-source metric: source currency + tenant currency equivalent (if different)
+1. **Source truth:** ETL data keeps original currency (official_metrics.currency). No convert on write.
+2. **No hardcoded "USD"** en DTOs/domain. Only allowed: `shared/domain/currency.py`, `iam/domain/tenant.py`, `shared/domain/locale.py`.
+3. **Display:**
+   - Single-source metric: source currency + tenant equivalent (si different)
    - Aggregated multi-source: tenant currency + USD equivalent
-   - Use `build_money_display()` or `build_aggregated_display()` (backend)
-   - Use `formatMoneyDual()` or `formatAggregatedMoney()` (frontend)
-4. **Frontend fallback chain:** `data.currency ?? useTenantLocale().currency`
-   Never `currency || 'USD'`.
-5. **Bidirectional conversion:** Use `convert_currency()` from `shared/domain/currency.py`.
-   Old `convert_to_usd()` still available but prefer `convert_currency()` for any new code.
+   - BE: `build_money_display()` / `build_aggregated_display()`
+   - FE: `formatMoneyDual()` / `formatAggregatedMoney()`
+4. **FE fallback:** `data.currency ?? useTenantLocale().currency`. Never `currency || 'USD'`.
+5. **Bidirectional convert:** `convert_currency()` de `shared/domain/currency.py`. Old `convert_to_usd()` existe, prefer `convert_currency()`.
 
 ## Timezone Rules
 
-1. **Backend stores UTC always.** Use `utc_now()` from `shared/domain/datetime_utils.py`.
-   Never `datetime.utcnow()` (deprecated).
-2. **All DateTime columns** must use `DateTime(timezone=True)`.
-3. **Frontend converts for display** using `formatTenantDate()` / `formatTenantDateTime()` /
-   `formatTenantTime()` from `lib/format-date.ts`. Never `toLocaleDateString()`.
-4. **Timezone source:** `useTenantLocale().timezone` (frontend), `TenantLocale.timezone` (backend).
+1. **BE stores UTC always.** `utc_now()` de `shared/domain/datetime_utils.py`. Never `datetime.utcnow()`.
+2. **All DateTime columns** `DateTime(timezone=True)`.
+3. **FE convert display:** `formatTenantDate()` / `formatTenantDateTime()` / `formatTenantTime()` de `lib/format-date.ts`. Never `toLocaleDateString()`.
+4. **Timezone source:** `useTenantLocale().timezone` (FE), `TenantLocale.timezone` (BE).
 
-## When Adding New Monetary Fields
+## Agregando monetary field
 
-1. DTO must include a `currency: str` field alongside the amount
-2. Service must resolve currency from data source or `TenantLocale`
-3. Frontend must use `formatMoneyDual()` or `formatAggregatedMoney()`
+1. DTO incluir `currency: str` alongside amount
+2. Service resuelve currency de data source o `TenantLocale`
+3. FE usa `formatMoneyDual()` / `formatAggregatedMoney()`
 
-## When Adding New Date Displays
+## Agregando date display
 
-1. Backend returns ISO 8601 UTC strings
-2. Frontend uses `formatTenantDate(isoString, timezone)` with `useTenantLocale().timezone`
+1. BE returns ISO 8601 UTC strings
+2. FE `formatTenantDate(iso, tz)` con `useTenantLocale().timezone`
 
-## Prohibited
+## Prohibido
 
-- `datetime.utcnow()` anywhere
-- `DateTime()` without `timezone=True` in models
-- `= "USD"` as Pydantic field default (outside allowed files)
-- `toLocaleDateString()` or `toLocaleTimeString()` for data display
-- `currency || 'USD'` in frontend components
-- `"America/Bogota"` or any hardcoded timezone in services
+- `datetime.utcnow()`
+- `DateTime()` sin `timezone=True`
+- `= "USD"` Pydantic default (fuera allowed files)
+- `toLocaleDateString()` / `toLocaleTimeString()` para data display
+- `currency || 'USD'` en FE
+- Hardcoded `"America/Bogota"` / timezone en services

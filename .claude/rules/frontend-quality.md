@@ -11,7 +11,7 @@ Config: `frontend/eslint.config.mjs`. 60+ rules. Plugins: sonarjs, boundaries, r
 ### Error rules (block build)
 
 | Rule | Value |
-|------|-------|
+|---|---|
 | `sonarjs/cognitive-complexity` | 15 |
 | `max-depth` | 4 |
 | `max-params` | 4 |
@@ -24,23 +24,23 @@ Config: `frontend/eslint.config.mjs`. 60+ rules. Plugins: sonarjs, boundaries, r
 | `react-hooks/rules-of-hooks` | error |
 | `boundaries/dependencies` | error (0 violations) |
 
-*JSX exception: `checksVoidReturn: { attributes: false, arguments: false }` — prevents 148 false errors on React event handlers (onClick, onSubmit). Without this, every async handler flags.
+*JSX exception: `checksVoidReturn: { attributes: false, arguments: false }` → prevents 148 false errors en React handlers (onClick, onSubmit). Sin esto, every async handler flags.
 
-### Warn rules (visible, not blocking)
+### Warn rules (visible, no block)
 
 | Rule | Value |
-|------|-------|
-| `max-lines` | 350 (skipBlankLines/Comments) |
+|---|---|
+| `max-lines` | 350 (skipBlank/Comments) |
 | `max-lines-per-function` | 100 |
 | `max-nested-callbacks` | 4 |
 | `complexity` | 20 |
 | `no-console` | warn (allow: warn, error) |
-| `@typescript-eslint/no-unsafe-*` (5 rules) | warn |
-| `react-perf/jsx-no-new-*` (4 rules) | warn |
-| `sonarjs/*` (15 rules) | warn |
+| `@typescript-eslint/no-unsafe-*` (5) | warn |
+| `react-perf/jsx-no-new-*` (4) | warn |
+| `sonarjs/*` (15) | warn |
 | `import/order`, `import/no-cycle` | warn |
 
-Test/mock files: type-checking disabled, max-lines off, no-explicit-any → warn.
+Test/mock files: type-check off, max-lines off, no-explicit-any → warn.
 
 ## TypeScript: strict mode, 0 errors
 
@@ -54,42 +54,41 @@ cd frontend && ./node_modules/.bin/eslint src/ --cache --cache-location .eslintc
 
 ## Code quality tools
 
-| Tool | Command | What it checks |
-|------|---------|---------------|
-| jscpd | `npx jscpd frontend/src/ --threshold 5` | Cross-file duplication (baseline: 4.52%) |
+| Tool | Command | Checks |
+|---|---|---|
+| jscpd | `npx jscpd frontend/src/ --threshold 5` | Dup (baseline 4.52%) |
 | check-file | via ESLint (warn) | PascalCase components, kebab-case non-components |
-| jsdoc | via ESLint (warn) | JSDoc on exported functions/classes |
-| knip | `cd frontend && npx knip` | Dead code (config: `knip.config.ts`) |
+| jsdoc | via ESLint (warn) | JSDoc on exported fns/classes |
+| knip | `cd frontend && npx knip` | Dead code (`knip.config.ts`) |
 | madge | `npx madge --circular src/ --extensions ts,tsx` | Circular imports |
 
 ## Known issues
-- 2 circular deps: `offer-shell.tsx` ↔ `offer-shell-header-row*.tsx`. Fix: extract hooks to `offer-shell-context.ts`.
-- knip false positives: barrel spreads, Next.js routes, devDeps in config files. Mitigated by `knip.config.ts` entry points.
-- 323 check-file warnings + 616 jsdoc warnings (warn mode, fix progressively).
+- 2 circular deps: `offer-shell.tsx` ↔ `offer-shell-header-row*.tsx`. Fix: extract hooks → `offer-shell-context.ts`.
+- knip false positives: barrel spreads, Next.js routes, devDeps en config files. Mitigated `knip.config.ts` entry points.
+- 323 check-file warnings + 616 jsdoc warnings (warn mode, fix progressive).
 
-## Architecture Fitness Tests (8 gates)
+## 8 Architecture Fitness Tests
 
 Run: `cd frontend && npx vitest run src/__tests__/architecture/`
 
-| Test file | Enforces |
-|-----------|----------|
-| `test-component-naming` | `.tsx` files in components/ dirs = PascalCase |
-| `test-file-naming` | `.ts(x)` files in hooks/api/types/utils/config/lib/context/store/services/ = kebab-case |
-| `test-folder-naming` | All dirs under features/ = kebab-case |
-| `test-hook-location` | `export function use[A-Z]` only in hooks/ or api/ or Context files or store/ |
-| `test-no-default-exports` | No `export default` in features/ |
-| `test-no-duplicate-names` | No same component basename across different features |
-| `test-feature-structure` | Top-level feature dirs use canonical names only |
-| `test-api-location` | `fetchClient` calls only in api/ directories |
+| Test | Enforces |
+|---|---|
+| `test-component-naming` | `.tsx` en components/ = PascalCase |
+| `test-file-naming` | `.ts(x)` en hooks/api/types/utils/config/lib/context/store/services/ = kebab-case |
+| `test-folder-naming` | Dirs under features/ = kebab-case |
+| `test-hook-location` | `export function use[A-Z]` only hooks/ api/ Context store/ |
+| `test-no-default-exports` | No `export default` en features/ |
+| `test-no-duplicate-names` | No same component basename cross features |
+| `test-feature-structure` | Top-level feature dirs = canonical names |
+| `test-api-location` | `fetchClient` only en api/ |
 
-**Ratchet pattern:** `KNOWN_*` allowlists frozen at 2026-04-15. MUST only shrink — never add new entries.
-To fix a violation: rename/move the file, update all imports, run `npx tsc --noEmit`, remove from allowlist.
+**Ratchet:** `KNOWN_*` allowlists frozen 2026-04-15. Solo shrink. Fix: rename/move, update imports, `npx tsc --noEmit`, remove from allowlist.
 
 ## FSD boundaries
-See `.claude/rules/frontend-fsd.md`.
+`.claude/rules/frontend-fsd.md`.
 
-## Notas para Agentes
-- NO disable ESLint rules without justification comment
-- `// eslint-disable-next-line` only with explanation
-- Many violations in file → refactor, not disable
-- Imports ordered: external → internal → relative → types
+## Notas
+- NO disable ESLint rules sin justificación comment
+- `// eslint-disable-next-line` solo con explanation
+- Many violations → refactor, not disable
+- Imports order: external → internal → relative → types

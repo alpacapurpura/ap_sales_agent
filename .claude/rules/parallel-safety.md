@@ -1,81 +1,80 @@
-# Protocolo de Seguridad Paralela (OBLIGATORIO)
+# Protocolo Seguridad Paralela (OBLIGATORIO)
 
-Chris trabaja con múltiples instancias de Claude Code en una sola máquina (WSL).
-Este protocolo es BLOQUEANTE — debe ejecutarse antes de cualquier otra acción.
+Chris multi-instancias Claude Code en WSL. BLOQUEANTE — ejecutar antes cualquier acción.
 
-## Modelo de Ramas (Simplificado)
+## Modelo Ramas
 
 ```
-main (producción — push = deploy automático)
-  └── development (ÚNICA rama de trabajo — todos los agentes commitean aquí)
+main (prod — push = deploy auto)
+  └── development (ÚNICA rama trabajo — todos commitean aquí)
 ```
 
-- **`development`** = rama de trabajo. TODO el desarrollo va aquí. Sin excepciones.
-- **`main`** = producción. Solo recibe merges de `development` durante pase a producción.
-- **NUNCA crear feature branches, worktrees, ni ramas adicionales** salvo que Chris lo pida explícitamente.
+- `development` = rama trabajo. TODO desarrollo. Sin excepciones.
+- `main` = prod. Solo merges desde development en pase.
+- **NUNCA feature branches/worktrees/ramas extra** salvo instrucción explícita.
 
-## Al INICIAR cualquier conversación
+## Al INICIAR conversación
 
-ANTES de leer código, hacer planes, o ejecutar cualquier herramienta, ejecutar:
+ANTES leer código/planear/ejecutar tools:
 
     git status --short && git stash list && git branch --show-current && git log --oneline -3
 
-### Árbol de decisión:
+### Decisión:
 
-1. **En `development` + working tree limpio** → Proceder directamente.
-2. **En `main` + working tree limpio** → `git checkout development` (crearla si no existe: `git checkout -b development`).
-3. **En otra rama** → `git checkout development`. Si hay commits útiles en la otra rama, preguntar a Chris si mergearlos a development.
-4. **Working tree SUCIO (cambios sin commitear)** → PARAR. Ejecutar protocolo de rescate:
-   - Informar: "Encontré N archivos modificados sin commitear: [lista]"
-   - Ofrecer: A) Commitear en `development`, B) Stash, C) Descartar (solo si Chris lo pide explícitamente)
-   - NUNCA empezar trabajo nuevo hasta que el working tree esté limpio
+1. `development` + tree limpio → proceder.
+2. `main` + limpio → `git checkout development` (crear si no existe).
+3. Otra rama → `git checkout development`. Si commits útiles en otra, preguntar merge.
+4. Tree SUCIO → PARAR:
+   - Informar: "N archivos sin commit: [lista]"
+   - Ofrecer: A) Commit en development, B) Stash, C) Descartar (solo si Chris pide)
+   - NUNCA start nuevo hasta limpio
 
-## Sincronización main → development
+## Sync main → development
 
-Si `main` tiene commits que `development` no tiene (ej: otro agente mergeó directo):
+Si main tiene commits que development no:
 
 ```bash
 git checkout development
 git merge main
 ```
 
-NUNCA al revés (development → main) excepto durante pase a producción.
+NUNCA reverse (dev→main) excepto pase prod.
 
-## Multi-agente (múltiples instancias de Claude Code)
+## Multi-agente
 
-- Chris coordina qué módulo trabaja cada agente
-- Cada agente commitea en `development` directamente
-- **NO usar `isolation: "worktree"`** — causa más problemas que los que resuelve
-- **NO crear branches** — un solo branch para todos
-- Si dos agentes tocan el mismo archivo → responsabilidad de Chris coordinar
-- Agentes de solo lectura (Explore, Plan) no necesitan precauciones especiales
+- Chris coordina módulo per agente
+- Cada agente commitea en development
+- **NO `isolation: "worktree"`** — más problemas que soluciones
+- **NO branches** — un branch para todos
+- 2 agentes mismo archivo → Chris coordina
+- Read-only agents (Explore, Plan): sin precauciones
 
-### Scope de commits (CRÍTICO en paralelo)
+### Scope commits (CRÍTICO paralelo)
 
-Commitear **ÚNICAMENTE los archivos que esta sesión modificó**. Otras sesiones pueden tener WIP sin commitear en el mismo working tree.
+Commit **ÚNICAMENTE archivos esta sesión modificó**. Otras sesiones pueden tener WIP.
 
-- **Stagear por nombre:** `git add path/to/file1 path/to/file2`
+- Stage por nombre: `git add path/file1 path/file2`
 - **PROHIBIDO:** `git add .`, `git add -A`, `git add -u`
-- Si `git status` muestra archivos que no tocaste → **dejarlos intactos** y reportarlos al final
-- Excepción única: Chris dice explícitamente "commitea todo"
+- Si status muestra archivos no tocados → dejar intactos, reportar al final
+- Excepción única: Chris dice "commitea todo"
 
-## Al CERRAR cualquier conversación
+## Al CERRAR conversación
 
-Cuando Chris dice "eso es todo", "gracias", "ya", "cierra", o indica que terminó:
+Chris dice "eso es todo", "gracias", "ya", "cierra":
 
 1. `git status --short`
-2. Si hay cambios propios → stagear por nombre (ver "Scope de commits") y commitear con mensaje convencional, reportar hash
-3. Si hay archivos ajenos en el working tree → dejarlos intactos y reportarlos
-4. Si hay stashes creados en esta sesión → reportar
-5. Mensaje final obligatorio: "Archivos propios commiteados en `development`. Seguro cerrar."
+2. Cambios propios → stage por nombre, commit convencional, reportar hash
+3. Archivos ajenos → dejar intactos, reportar
+4. Stashes creados esta sesión → reportar
+5. Mensaje final: "Archivos propios commiteados en `development`. Seguro cerrar."
 
-Si hay trabajo WIP que no compila: crear stash con mensaje descriptivo (`git stash push -m "WIP: descripción"`)
+WIP que no compila: `git stash push -m "WIP: descripción"`
 
 ## PROHIBIDO
 
-- Crear feature branches (salvo instrucción explícita de Chris)
-- Crear worktrees (salvo instrucción explícita de Chris)
-- Hacer `git checkout` a ramas que no sean `development` o `main`
-- Empezar a escribir código con working tree sucio de otra sesión
-- Cerrar conversación sin commitear o reportar estado limpio
-- Push a `origin main` sin aprobación explícita (= deploy a producción)
+- Crear feature branches (salvo instrucción Chris)
+- Crear worktrees (salvo instrucción Chris)
+- `git checkout` a ramas != development/main
+- Empezar con tree sucio otra sesión
+- Cerrar sin commit/reportar limpio
+- Push `origin main` sin aprobación = deploy prod
