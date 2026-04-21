@@ -1,11 +1,12 @@
 "use client";
 
 import { AlertTriangle, Loader2 } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 import { UniversalEditableSection } from "@/components/form-runtime";
 import { useSectionMetadata } from "@/features/offer-studio/hooks/use-section-catalog";
+import { resolveOfferEditorRoute } from "@/features/offer-studio/pages/resolve-offer-editor-route";
 import {
   offerClosingSchema,
   offerEventDetailsSchema,
@@ -77,12 +78,20 @@ function createSectionPage(
   save?: SaveSelector,
 ): (props: OfferSectionPageProps) => ReactElement {
   function OfferSectionPage({ offerId, editionCode }: OfferSectionPageProps): ReactElement {
-    const pathname = usePathname() ?? "";
+    const params = useParams<{
+      tenantId?: string;
+      section?: string;
+      fieldId?: string | string[];
+    }>();
     const hook = useOfferSettings(offerId);
     const metadata = useSectionMetadata(sectionKey);
 
-    const activeFieldId = extractActiveFieldId(pathname);
-    const sectionBasePath = stripActiveFieldId(pathname);
+    const { activeFieldId, sectionBasePath } = resolveOfferEditorRoute({
+      tenantId: params?.tenantId ?? "",
+      offerId,
+      section: params?.section ?? "",
+      fieldId: params?.fieldId,
+    });
     const getFieldHref = useStableFieldHref(sectionBasePath);
 
     const updater = save ? save(hook) : undefined;
@@ -159,28 +168,6 @@ function useSectionSaveHandler(
       },
     [sectionKey, offerId, editionCode, updater],
   );
-}
-
-/**
- * Extract the fieldId segment from a catch-all pathname of the shape
- * ``/.../edition/{code}/{section}/{fieldId?}``. Returns ``null`` when
- * the pathname ends at the section slug (detail pane collapsed).
- */
-const FIELD_ID_PATTERN = /\/edition\/[^/]+\/[^/]+(?:\/([^/?#]+))?$/;
-
-function extractActiveFieldId(pathname: string): string | null {
-  // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec -- match() is correct here; the first capture group is what we want, exec() would require a result variable with less readable semantics.
-  const match = pathname.match(FIELD_ID_PATTERN);
-  return match?.[1] ?? null;
-}
-
-/**
- * Return the pathname with any trailing fieldId segment stripped. Used
- * to build ``getFieldHref`` so the URL always lands on the section root
- * plus an optional selected field.
- */
-function stripActiveFieldId(pathname: string): string {
-  return pathname.replace(/(\/edition\/[^/]+\/[^/]+)(\/[^/?#]+)?$/, "$1");
 }
 
 /** Generic fallback while catalog / editions resolve. */
