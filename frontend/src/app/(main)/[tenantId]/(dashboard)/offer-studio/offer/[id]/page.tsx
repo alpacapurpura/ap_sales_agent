@@ -1,13 +1,9 @@
 import { redirect } from "next/navigation";
 
 /**
- * Offer Studio — offer root redirect.
- *
- * Sends the user to `/editor` which is the canonical entry point for the
- * offer editor. The shell (layout.tsx) renders the header + rail + tab bar
- * regardless of which sub-route is active.
- *
- * URL contract: `/offer/{id}` → 307 → `/offer/{id}/editor`
+ * Offer Studio — offer root redirect. Jumps straight to the editor's
+ * first section to avoid a two-hop redirect chain that triggers a
+ * Turbopack `performance.measure` negative-timestamp warning.
  */
 export default async function OfferRootPage({
   params,
@@ -15,5 +11,5 @@ export default async function OfferRootPage({
   params: Promise<{ tenantId: string; id: string }>;
 }) {
   const { tenantId, id } = await params;
-  redirect(`/${tenantId}/offer-studio/offer/${id}/editor`);
+  redirect(`/${tenantId}/offer-studio/offer/${id}/editor/identity`);
 }

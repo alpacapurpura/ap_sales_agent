@@ -12,5 +12,5 @@ export default async function EditionRootRedirect({
   params: Promise<{ tenantId: string; id: string; editionId: string }>;
 }) {
   const { tenantId, id } = await params;
-  redirect(`/${tenantId}/offer-studio/offer/${id}/editor`);
+  redirect(`/${tenantId}/offer-studio/offer/${id}/editor/identity`);
 }
