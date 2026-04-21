@@ -1,6 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+import { matchLegacyFormRuntimeRedirect } from "@/lib/edge/legacy-redirects";
+
 import type { NextRequest } from "next/server";
 
 const isPublicSiteRequest = (request: NextRequest) =>
@@ -13,7 +15,22 @@ const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/api/
 const isDashboardRoute = createRouteMatcher(["/(main)(.*)", "/[tenantId](.*)", "/onboarding(.*)"]);
 
 export default clerkMiddleware(async (auth, request) => {
-  // Public site traffic (forwarded by Cloudflare Worker)
+  // 1. Form-runtime Phase 2 legacy URL redirects — cheap 308 before any
+  //    auth work so external bookmarks resolve to the canonical shape.
+  const legacy = matchLegacyFormRuntimeRedirect(request.nextUrl.pathname);
+  if (legacy) {
+    const url = request.nextUrl.clone();
+    url.pathname = legacy.pathname;
+    if (legacy.extraParams) {
+      for (const [k, v] of Object.entries(legacy.extraParams)) {
+        url.searchParams.set(k, v);
+      }
+    }
+    url.searchParams.set("field", legacy.field);
+    return NextResponse.redirect(url, 308);
+  }
+
+  // 2. Public site traffic (forwarded by Cloudflare Worker).
   if (isPublicSiteRequest(request)) {
     const url = request.nextUrl.clone();
     if (!url.pathname.startsWith("/_public")) {
@@ -27,12 +44,12 @@ export default clerkMiddleware(async (auth, request) => {
     return response;
   }
 
-  // Never protect sign-in/sign-up (would cause redirect loop)
+  // 3. Never protect sign-in/sign-up (would cause redirect loop).
   if (isPublicRoute(request)) {
     return NextResponse.next();
   }
 
-  // Dashboard routes — protect with Clerk
+  // 4. Dashboard routes — protect with Clerk.
   if (isDashboardRoute(request)) {
     await auth.protect();
   }
