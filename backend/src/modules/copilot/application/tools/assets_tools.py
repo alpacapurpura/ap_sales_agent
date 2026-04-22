@@ -99,6 +99,10 @@ def _search_assets_query(
     stmt = select(AssetModel).where(
         AssetModel.tenant_id == tenant_id,
         AssetModel.deleted_at.is_(None),
+        # Anti-pollution: ``ephemeral`` assets are chat-scoped context and
+        # must NOT show up as reusable library items. Only library and
+        # deliverable assets are discoverable.
+        AssetModel.scope.in_(("library", "deliverable")),
     )
 
     if asset_type:

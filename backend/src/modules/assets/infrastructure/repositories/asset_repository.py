@@ -34,6 +34,14 @@ class AssetRepository:
             ai_colors=model.ai_colors or [],
             status=model.status,
             error_message=model.error_message,
+            scope=model.scope or "ephemeral",
+            purpose=model.purpose or "context_extract",
+            extracted_text=model.extracted_text,
+            extracted_summary=model.extracted_summary,
+            extracted_at=model.extracted_at,
+            extraction_status=model.extraction_status or "pending",
+            extraction_error=model.extraction_error,
+            expires_at=model.expires_at,
             created_at=model.created_at,
             updated_at=model.updated_at,
         )
@@ -55,6 +63,14 @@ class AssetRepository:
             ai_colors=entity.ai_colors,
             status=entity.status,
             error_message=entity.error_message,
+            scope=entity.scope,
+            purpose=entity.purpose,
+            extracted_text=entity.extracted_text,
+            extracted_summary=entity.extracted_summary,
+            extracted_at=entity.extracted_at,
+            extraction_status=entity.extraction_status,
+            extraction_error=entity.extraction_error,
+            expires_at=entity.expires_at,
         )
 
     def create(self, entity: Asset) -> Asset:
@@ -114,3 +130,42 @@ class AssetRepository:
             self.db.commit()
             return True
         return False
+
+    def update_partial(self, asset_id: UUID, tenant_id: UUID, **fields: object) -> Asset | None:
+        """Apply a partial update on an asset owned by ``tenant_id``.
+
+        Only whitelisted fields are updated — the whitelist mirrors columns
+        whose mutation makes sense outside a full lifecycle event
+        (extraction pipeline, scope promotion, description edit).
+        """
+        allowed = {
+            "scope",
+            "purpose",
+            "extracted_text",
+            "extracted_summary",
+            "extracted_at",
+            "extraction_status",
+            "extraction_error",
+            "expires_at",
+            "status",
+            "ai_description",
+            "ai_metadata",
+            "user_description",
+            "error_message",
+        }
+        updates = {k: v for k, v in fields.items() if k in allowed}
+        if not updates:
+            return self.get_by_id(asset_id, tenant_id)
+
+        stmt = select(AssetModel).where(
+            AssetModel.id == asset_id,
+            AssetModel.tenant_id == tenant_id,
+            AssetModel.deleted_at.is_(None),
+        )
+        model = self.db.execute(stmt).scalars().first()
+        if not model:
+            return None
+        for key, value in updates.items():
+            setattr(model, key, value)
+        self.db.flush()
+        return self._to_domain(model)

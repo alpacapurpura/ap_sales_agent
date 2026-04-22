@@ -67,3 +67,25 @@ class TestRouteToolMapping:
         for t in tools:
             assert hasattr(t, "name"), f"Tool {t!r} is missing .name"
             assert t.name, f"Tool {t!r} has empty .name"
+
+
+class TestDocumentToolAlwaysPresent:
+    """read_document must be available on every route — uploads happen anywhere."""
+
+    def test_read_document_in_brand_studio(self) -> None:
+        from src.modules.copilot.application.tools.registry import get_tool_names_for_route
+
+        names = get_tool_names_for_route("/tenant/brand-studio")
+        assert "read_document" in names
+
+    def test_read_document_in_growth_studio(self) -> None:
+        from src.modules.copilot.application.tools.registry import get_tool_names_for_route
+
+        names = get_tool_names_for_route("/tenant/growth-studio/metrics")
+        assert "read_document" in names
+
+    def test_read_document_on_fallback_route(self) -> None:
+        from src.modules.copilot.application.tools.registry import get_tool_names_for_route
+
+        names = get_tool_names_for_route(None)
+        assert "read_document" in names

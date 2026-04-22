@@ -18,7 +18,14 @@ from sqlalchemy.orm import Session
 
 from src.core.database import get_db
 from src.modules.assets.application.assets_service import AssetsService
-from src.modules.assets.domain.schemas import AssetDto
+from src.modules.assets.domain.enums import DEFAULT_SCOPE_FOR_PURPOSE
+from src.modules.assets.domain.schemas import AssetDto, PromoteAssetRequest
+from src.modules.assets.infrastructure.repositories.asset_link_repository import (
+    AssetLinkRepository,
+)
+from src.modules.assets.infrastructure.repositories.asset_repository import (
+    AssetRepository,
+)
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 
@@ -64,6 +71,61 @@ def list_assets(
     """List assets."""
     service = AssetsService(db)
     return service.list_assets(tenant_id=user.tenant_id, asset_type=type_)
+
+
+@router.post("/{asset_id}/promote")
+def promote_asset(
+    asset_id: UUID,
+    body: PromoteAssetRequest,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> AssetDto:
+    """Promote an asset from ``ephemeral`` to ``library`` / ``deliverable``.
+
+    Idempotent: promoting the same asset with the same payload re-uses
+    the active link row. The DTO validator already rejects deliverable
+    purposes without a link target, so the endpoint itself stays thin.
+    """
+    if not user.tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant ID requerido")
+
+    repo = AssetRepository(db)
+    asset = repo.get_by_id(asset_id, tenant_id=user.tenant_id)
+    if asset is None:
+        raise HTTPException(status_code=404, detail="Asset no encontrado")
+
+    target_scope = DEFAULT_SCOPE_FOR_PURPOSE[body.purpose]
+
+    updated = repo.update_partial(
+        asset_id,
+        tenant_id=user.tenant_id,
+        scope=target_scope.value,
+        purpose=body.purpose.value,
+        expires_at=None,  # promoted assets never auto-expire
+    )
+    if updated is None:
+        raise HTTPException(status_code=404, detail="Asset no encontrado")
+
+    # Deliverable purposes always carry a link target (enforced by the DTO).
+    if body.entity_type and body.entity_id and body.role:
+        link_repo = AssetLinkRepository(db)
+        link_repo.create(
+            tenant_id=user.tenant_id,
+            asset_id=asset_id,
+            entity_type=body.entity_type,
+            entity_id=body.entity_id,
+            role=body.role,
+        )
+
+    db.commit()
+    logger.info(
+        "asset_promoted",
+        asset_id=str(asset_id),
+        scope=target_scope.value,
+        purpose=body.purpose.value,
+        tenant_id=str(user.tenant_id),
+    )
+    return updated
 
 
 @router.delete("/{asset_id}")

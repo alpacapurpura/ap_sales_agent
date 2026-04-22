@@ -9,6 +9,7 @@ from src.modules.copilot.application.tools.assets_tools import ASSETS_TOOLS  # [
 from src.modules.copilot.application.tools.awareness import AWARENESS_TOOLS
 from src.modules.copilot.application.tools.connections_tools import CONNECTIONS_TOOLS
 from src.modules.copilot.application.tools.crm_tools import CRM_TOOLS
+from src.modules.copilot.application.tools.document_tools import DOCUMENT_TOOLS  # [COPILOT-READ-DOCUMENT]
 from src.modules.copilot.application.tools.interview import INTERVIEW_TOOLS
 from src.modules.copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
 from src.modules.copilot.application.tools.landing_tools import LANDING_TOOLS
@@ -37,8 +38,11 @@ TOOL_GROUPS: dict[str, list] = {
     "offer_section": OFFER_SECTION_TOOLS,
     "interview": INTERVIEW_TOOLS,
     # Outbound asset tools — allow assistant to reference existing tenant assets.
-    # Added by CONTRACT-MULTIMODAL §8.5.
     "assets": ASSETS_TOOLS,
+    # Document reading — lazy access to text extracted from uploaded docs/audios.
+    # Globally available: if the user attached a file in any route, the LLM can
+    # fetch its content on demand.
+    "document": DOCUMENT_TOOLS,
 }
 
 # Route prefix -> which tool groups are available.
@@ -133,6 +137,12 @@ ROUTE_TOOL_MAP: dict[str, list[str]] = {
 }
 
 
+# Tool groups that must be available in every route regardless of the
+# ROUTE_TOOL_MAP entry. Uploads (document/audio) can happen from any screen,
+# so read_document must always be bindable.
+ALWAYS_AVAILABLE_GROUPS: tuple[str, ...] = ("document",)
+
+
 def get_tools_for_route(route: str | None) -> list:
     """Return the flat list of tool functions for a given route.
 
@@ -143,7 +153,10 @@ def get_tools_for_route(route: str | None) -> list:
         List of LangChain tool functions.
 
     """
-    matched_groups = _match_route(route)
+    matched_groups = list(_match_route(route))
+    for always in ALWAYS_AVAILABLE_GROUPS:
+        if always not in matched_groups:
+            matched_groups.append(always)
     tools = []
     seen = set()
     for group_name in matched_groups:

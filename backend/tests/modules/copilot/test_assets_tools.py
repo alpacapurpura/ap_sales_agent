@@ -136,6 +136,55 @@ def test_search_assets_empty_results_returns_empty_list(
     assert data == []
 
 
+# ── scope filter ──────────────────────────────────────────────────────
+
+
+def test_search_assets_query_excludes_ephemeral(db, seed_tenant, tenant_id) -> None:
+    """Ephemeral assets must NOT appear in search_assets results.
+
+    This is the anti-pollution guard: temporary uploads from the copilot
+    chat stay out of the library catalog, so the sales_agent / landing
+    builders only surface canonical assets.
+    """
+    import uuid as _uuid
+
+    from src.modules.assets.domain.enums import (
+        AssetScope,
+        AssetStatus,
+        AssetType,
+        StorageProvider,
+    )
+    from src.modules.assets.infrastructure.models.asset_model import AssetModel
+    from src.modules.copilot.application.tools.assets_tools import _search_assets_query
+
+    def _make(scope: str, filename: str) -> None:
+        db.add(
+            AssetModel(
+                id=_uuid.uuid4(),
+                tenant_id=tenant_id,
+                type=AssetType.IMAGE.value,
+                filename=filename,
+                mime_type="image/png",
+                storage_provider=StorageProvider.LOCAL.value,
+                storage_path=f"/tmp/{filename}",
+                public_url=f"/static/{filename}",
+                status=AssetStatus.COMPLETED.value,
+                scope=scope,
+            ),
+        )
+
+    _make(AssetScope.EPHEMERAL.value, "temp-context.png")
+    _make(AssetScope.LIBRARY.value, "logo.png")
+    _make(AssetScope.DELIVERABLE.value, "flyer.png")
+    db.commit()
+
+    results = _search_assets_query(db, tenant_id=tenant_id, query="png")
+    names = {r.filename for r in results}
+
+    assert "temp-context.png" not in names
+    assert {"logo.png", "flyer.png"}.issubset(names)
+
+
 # ── get_asset ─────────────────────────────────────────────────────────
 
 

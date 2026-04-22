@@ -2,6 +2,7 @@
 
 import mimetypes
 import uuid
+from datetime import timedelta
 from typing import BinaryIO
 from uuid import UUID
 
@@ -10,13 +11,25 @@ from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 
 from src.core.config import settings
+from src.modules.assets.application.asset_extraction_service import (
+    AssetExtractionService,
+)
 from src.modules.assets.application.asset_processor import AssetProcessor
 from src.modules.assets.domain.entity import Asset
-from src.modules.assets.domain.enums import AssetStatus, AssetType, StorageProvider
+from src.modules.assets.domain.enums import (
+    DEFAULT_SCOPE_FOR_PURPOSE,
+    AssetPurpose,
+    AssetScope,
+    AssetStatus,
+    AssetType,
+    ExtractionStatus,
+    StorageProvider,
+)
 from src.modules.assets.infrastructure.repositories.asset_repository import (
     AssetRepository,
 )
 from src.modules.assets.infrastructure.storage import get_storage_strategy
+from src.shared.domain.datetime_utils import utc_now
 
 logger = structlog.get_logger()
 
@@ -45,6 +58,10 @@ class AssetsService:
             return StorageProvider.R2
         return StorageProvider.LOCAL
 
+    # Default TTL for ephemeral assets — 90 days aligns with conversation
+    # retention (``CONVERSATION_RETENTION_DAYS`` in the copilot module).
+    EPHEMERAL_TTL_DAYS = 90
+
     def upload_asset(
         self,
         tenant_id: UUID,
@@ -54,8 +71,17 @@ class AssetsService:
         description: str | None = None,
         offer_id: UUID | None = None,
         background_tasks: BackgroundTasks | None = None,
+        *,
+        scope: AssetScope | str | None = None,
+        purpose: AssetPurpose | str | None = None,
     ) -> Asset:
-        """Upload asset."""
+        """Upload an asset and trigger the AI + text extraction pipelines.
+
+        ``scope`` and ``purpose`` default to ``ephemeral`` + ``context_extract``
+        (the copilot chat upload case). Module-specific endpoints can pass
+        ``scope=library`` / ``purpose=brand_asset`` etc. to skip the ephemeral
+        lifecycle for canonical uploads.
+        """
         # 1. Detect MIME Type
         if not mime_type:
             mime_type, _ = mimetypes.guess_type(filename)
@@ -68,7 +94,14 @@ class AssetsService:
         path_prefix = f"{tenant_id!s}/{asset_type.lower()}"
         storage_path, public_url = self.storage.save(file_obj, filename, path_prefix)
 
-        # 3. Create Entity
+        # 3. Resolve scope + purpose + expiry
+        resolved_purpose = AssetPurpose(str(purpose)) if purpose else AssetPurpose.CONTEXT_EXTRACT
+        resolved_scope = AssetScope(str(scope)) if scope else DEFAULT_SCOPE_FOR_PURPOSE[resolved_purpose]
+        expires_at = None
+        if resolved_scope == AssetScope.EPHEMERAL:
+            expires_at = utc_now() + timedelta(days=self.EPHEMERAL_TTL_DAYS)
+
+        # 4. Create Entity
         asset_id = uuid.uuid4()
         asset = Asset(
             id=asset_id,
@@ -82,18 +115,38 @@ class AssetsService:
             public_url=public_url,
             user_description=description,
             status=AssetStatus.PROCESSING,
+            scope=resolved_scope.value,
+            purpose=resolved_purpose.value,
+            extraction_status=ExtractionStatus.PENDING.value,
+            expires_at=expires_at,
         )
 
         created_asset = self.repository.create(asset)
 
-        # 4. Trigger AI Processing
-        if background_tasks:
+        # 5. Trigger AI image pipeline (legacy) — only for image assets.
+        if background_tasks and asset_type == AssetType.IMAGE:
             background_tasks.add_task(
                 self._process_asset_task,
                 created_asset.id,
-                tenant_id,  # Added tenant_id
+                tenant_id,
                 storage_path,
             )
+
+        # 6. Trigger text extraction pipeline (document / audio transcript).
+        # Sync by design — upload endpoints await short extraction so the very
+        # next chat turn has text available. For very large docs this becomes
+        # a bottleneck (future work: move to async worker with status polling).
+        if asset_type in (AssetType.DOCUMENT, AssetType.AUDIO):
+            try:
+                AssetExtractionService(self.db).ensure_extracted(
+                    created_asset.id,
+                    tenant_id=tenant_id,
+                )
+            except Exception:
+                logger.exception(
+                    "asset_extraction_sync_failed",
+                    asset_id=str(created_asset.id),
+                )
 
         return created_asset
 

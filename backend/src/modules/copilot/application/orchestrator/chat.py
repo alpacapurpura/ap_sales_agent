@@ -30,6 +30,12 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
 from src.core.database import redis_client
 from src.core.enums import ModelRole
+from src.modules.assets.application.asset_extraction_service import (
+    AssetExtractionService,
+)
+from src.modules.assets.infrastructure.repositories.asset_repository import (
+    AssetRepository,
+)
 from src.modules.copilot.api.dto import ClientContextDTO, SSEEvent
 from src.modules.copilot.application.orchestrator.graph import copilot_graph
 from src.modules.copilot.application.orchestrator.state import (
@@ -57,6 +63,132 @@ logger = structlog.get_logger()
 # Redis key prefix for active conversation context (TTL 1h)
 REDIS_CONV_PREFIX = "copilot:conv:"
 REDIS_CONV_TTL = 3600
+
+# [COPILOT-DOC-HINT-LAYER] → docs/domains/copilot/asset-lifecycle.md
+#
+# Small docs are inlined; large docs emit a hint and rely on the
+# ``read_document`` tool. This avoids blowing context for adjuntos that
+# the user attached "for reference" but doesn't actually need reasoned over.
+INLINE_DOCUMENT_THRESHOLD = 1800
+
+
+def _doc_hint(
+    *,
+    asset_id: UUID,
+    filename: str,
+    summary: str | None,
+    total_chars: int,
+) -> str:
+    """Emit a compact hint so the LLM knows an asset exists without spending tokens on it."""
+    summary_line = (summary or "Sin resumen disponible todavía.").strip()
+    return (
+        f"[Documento adjunto: {filename}]\n"
+        f"asset_id: {asset_id}\n"
+        f"resumen: {summary_line}\n"
+        f"tamaño: {total_chars} caracteres\n"
+        "Si necesitas su contenido, llama a la herramienta `read_document` "
+        "con ese asset_id (opcionalmente con una query para buscar dentro).\n"
+        "[/Documento adjunto]"
+    )
+
+
+def _doc_inline(*, filename: str, asset_id: UUID, text: str) -> str:
+    """Verbatim inline for small docs — includes asset_id for re-reference."""
+    return f"[Documento adjunto: {filename} (asset_id: {asset_id})]\n{text}\n[/Documento adjunto]"
+
+
+def _render_document_block(
+    block: dict,
+    *,
+    repo: AssetRepository,
+    db: Session,
+    tenant_id: UUID,
+) -> str | None:
+    """Return the context chunk for a ``document`` block.
+
+    Small docs inlined verbatim; large docs hinted (summary + asset_id).
+    Extraction is triggered on demand if the asset hasn't been processed
+    yet — this makes the flow robust against uploads where the background
+    extractor hasn't finished.
+    """
+    asset_id_raw = block.get("asset_id")
+    filename = block.get("filename") or "documento"
+    try:
+        asset_uuid = UUID(str(asset_id_raw))
+    except (ValueError, TypeError):
+        logger.warning("copilot_chat_attachment_bad_asset_id", asset_id=asset_id_raw)
+        return None
+
+    asset = repo.get_by_id(asset_uuid, tenant_id=tenant_id)
+    if not asset:
+        logger.warning("copilot_chat_attachment_asset_missing", asset_id=str(asset_uuid))
+        return None
+
+    # Trigger extraction if pending — idempotent.
+    if asset.extraction_status not in ("extracted", "skipped", "failed"):
+        try:
+            refreshed = AssetExtractionService(db).ensure_extracted(
+                asset_uuid,
+                tenant_id=tenant_id,
+            )
+            if refreshed is not None:
+                asset = refreshed
+        except Exception:
+            logger.exception(
+                "copilot_chat_attachment_extract_failed",
+                asset_id=str(asset_uuid),
+            )
+
+    extracted = (asset.extracted_text or "").strip()
+    total_chars = len(extracted)
+
+    if extracted and total_chars <= INLINE_DOCUMENT_THRESHOLD:
+        return _doc_inline(filename=filename, asset_id=asset.id, text=extracted)
+
+    # No extracted text yet, or too large — emit a hint pointing at read_document.
+    return _doc_hint(
+        asset_id=asset.id,
+        filename=filename,
+        summary=asset.extracted_summary,
+        total_chars=total_chars,
+    )
+
+
+def _render_attachment_context(
+    blocks: list[dict] | None,
+    *,
+    tenant_id: UUID,
+    db: Session,
+) -> str:
+    """Materialize user-supplied attachment blocks into plain text the LLM can reason over."""
+    if not blocks:
+        return ""
+
+    repo = AssetRepository(db)
+
+    sections: list[str] = []
+    for block in blocks:
+        btype = block.get("type")
+        if btype == "document":
+            rendered = _render_document_block(block, repo=repo, db=db, tenant_id=tenant_id)
+            if rendered:
+                sections.append(rendered)
+        elif btype == "audio":
+            transcript = str(block.get("transcript") or "").strip()
+            sections.append(
+                f"[Audio adjunto — transcripción]\n{transcript}\n[/Audio adjunto]"
+                if transcript
+                else "[Audio adjunto sin transcripción disponible.]"
+            )
+        elif btype == "image":
+            alt = block.get("alt") or block.get("filename") or block.get("url") or "imagen"
+            sections.append(f"[Imagen adjunta: {alt}]")
+        elif btype == "video":
+            ref = block.get("filename") or block.get("url") or "video"
+            sections.append(f"[Video adjunto: {ref}]")
+
+    return "\n\n".join(sections)
+
 
 # ── Tool → Block adapters ──────────────────────────────────────────────────────
 # [COPILOT-CITATION-BLOCK] → docs/domains/copilot/message-blocks.md §citation
@@ -300,6 +432,7 @@ class CopilotOrchestrator:
         message: str,
         conversation_id: str | None,
         context: ClientContextDTO | None,
+        blocks: list[dict] | None = None,
     ) -> tuple[str, UUID, CopilotConversationModel, dict]:
         """Resolve/create conversation and build LangGraph state. Returns (conv_id, conv_uuid, existing_conv, state)."""
         conv_id = conversation_id or str(uuid.uuid4())
@@ -338,7 +471,11 @@ class CopilotOrchestrator:
                 )
 
         history_messages = self._load_history(conv_id, tenant_id, existing_conv)
-        state["messages"] = [*history_messages, HumanMessage(content=message)]
+        attachment_context = _render_attachment_context(blocks, tenant_id=tenant_id, db=self.db)
+        user_content = message
+        if attachment_context:
+            user_content = f"{message.strip()}\n\n{attachment_context}" if message.strip() else attachment_context
+        state["messages"] = [*history_messages, HumanMessage(content=user_content)]
         return conv_id, conv_uuid, existing_conv, state
 
     async def stream_chat(
@@ -349,6 +486,7 @@ class CopilotOrchestrator:
         message: str,
         conversation_id: str | None = None,
         context: ClientContextDTO | None = None,
+        blocks: list[dict] | None = None,
     ) -> AsyncGenerator[str, None]:
         """Process a user message and yield SSE events.
 
@@ -362,6 +500,7 @@ class CopilotOrchestrator:
             message=message,
             conversation_id=conversation_id,
             context=context,
+            blocks=blocks,
         )
 
         yield SSEEvent(event="status", data={"state": "thinking"}).to_sse()

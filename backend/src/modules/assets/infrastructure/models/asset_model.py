@@ -55,6 +55,18 @@ class AssetModel(Base):
     status = Column(String, default=AssetStatus.PROCESSING.value)
     error_message = Column(Text, nullable=True)
 
+    # ── Scope / Purpose / Extraction (migration 057) ──────────────────────
+    # Columns are NOT NULL in DB; declared nullable here so legacy constructors
+    # that don't pass them keep working (defaults back-fill at commit time).
+    scope = Column(String, nullable=True, default="ephemeral", index=True)
+    purpose = Column(String, nullable=True, default="context_extract")
+    extracted_text = Column(Text, nullable=True)
+    extracted_summary = Column(String, nullable=True)
+    extracted_at = Column(DateTime(timezone=True), nullable=True)
+    extraction_status = Column(String, nullable=True, default="pending")
+    extraction_error = Column(Text, nullable=True)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
