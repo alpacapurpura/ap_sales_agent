@@ -183,9 +183,9 @@ describe("copilot-store", () => {
     expect(useCopilotStore.getState().messages[0].content).toBe("Question?");
   });
 
-  // ── clearMessages ──────────────────────────────────────────────────────────
+  // ── clearMessages / resetConversation / setMessages ────────────────────────
 
-  it("clearMessages resets messages, conversationId, and status", () => {
+  it("clearMessages empties the array but preserves conversationId and status", () => {
     useCopilotStore.setState({
       messages: [makeMessage()],
       conversationId: "conv-123",
@@ -194,8 +194,45 @@ describe("copilot-store", () => {
     useCopilotStore.getState().clearMessages();
     const state = useCopilotStore.getState();
     expect(state.messages).toHaveLength(0);
+    expect(state.conversationId).toBe("conv-123");
+    expect(state.status).toBe("streaming");
+  });
+
+  it("resetConversation drops messages, conversationId, and status", () => {
+    useCopilotStore.setState({
+      messages: [makeMessage()],
+      conversationId: "conv-123",
+      status: "streaming",
+    });
+    useCopilotStore.getState().resetConversation();
+    const state = useCopilotStore.getState();
+    expect(state.messages).toHaveLength(0);
     expect(state.conversationId).toBeNull();
     expect(state.status).toBe("idle");
+  });
+
+  it("setMessages replaces the array (used when hydrating history)", () => {
+    useCopilotStore.setState({ messages: [makeMessage({ id: "old", content: "viejo" })] });
+    const next = [
+      makeMessage({ id: "n1", content: "hola" }),
+      makeMessage({ id: "n2", role: "assistant", content: "respuesta" }),
+    ];
+    useCopilotStore.getState().setMessages(next);
+    const state = useCopilotStore.getState();
+    expect(state.messages).toHaveLength(2);
+    expect(state.messages[0].id).toBe("n1");
+    expect(state.messages[1].id).toBe("n2");
+  });
+
+  it("setMessages caps to MAX_MESSAGES (oldest trimmed)", () => {
+    const overflow = Array.from({ length: MAX_MESSAGES + 5 }, (_, i) =>
+      makeMessage({ id: `m${i}`, content: `c${i}` }),
+    );
+    useCopilotStore.getState().setMessages(overflow);
+    const state = useCopilotStore.getState();
+    expect(state.messages).toHaveLength(MAX_MESSAGES);
+    // Oldest 5 trimmed — first kept is m5
+    expect(state.messages[0].id).toBe("m5");
   });
 
   // ── selectedFields ─────────────────────────────────────────────────────────

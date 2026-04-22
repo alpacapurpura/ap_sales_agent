@@ -2,12 +2,14 @@ import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
 
 import {
+  mapConversationDetail,
   mapConversationListResponse,
   mapConversationSummary,
   mapRevertResponse,
 } from "../types/conversations";
 
 import type {
+  ConversationDetail,
   ConversationListResponse,
   ConversationSummary,
   PatchConversationRequest,
@@ -48,6 +50,24 @@ export async function listConversations(
 
   const data = (await response.json()) as Record<string, unknown>;
   return mapConversationListResponse(data);
+}
+
+/**
+ * Fetch a single conversation with its decoded message history.
+ * Used to hydrate the chat panel when the user selects a historical
+ * conversation from the sidebar.
+ */
+export async function getConversation(token: string, id: string): Promise<ConversationDetail> {
+  const response = await fetchClient(`${BASE}/conversations/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(`getConversation failed: ${response.status}`);
+  }
+
+  const data = (await response.json()) as Record<string, unknown>;
+  return mapConversationDetail(data);
 }
 
 /**

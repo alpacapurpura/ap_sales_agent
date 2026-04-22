@@ -188,6 +188,8 @@ interface CopilotState {
   // Actions
   setConversationId: (id: string) => void;
   addMessage: (msg: CopilotMessage) => void;
+  /** Replace the whole messages array (used when hydrating a historical conversation). */
+  setMessages: (messages: CopilotMessage[]) => void;
   appendToLastAssistant: (chunk: string) => void;
   addUIActionToLastAssistant: (action: UIAction) => void;
   // [COPILOT-STREAMING-BLOCKS] — new block-streaming actions
@@ -200,7 +202,10 @@ interface CopilotState {
     status: NonNullable<UIAction["card_status"]>,
   ) => void;
   setStatus: (status: CopilotStatus) => void;
+  /** Drop the messages array only. Conversation id and status are preserved. */
   clearMessages: () => void;
+  /** Reset to a pristine state: no conversation, no messages, idle. */
+  resetConversation: () => void;
 
   // Route awareness
   currentRoute: string | null;
@@ -351,6 +356,12 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
 
   addMessage: (msg) => set((s) => ({ messages: appendWithLimit(s.messages, msg) })),
 
+  setMessages: (messages) =>
+    set({
+      messages:
+        messages.length > MAX_MESSAGES ? messages.slice(messages.length - MAX_MESSAGES) : messages,
+    }),
+
   appendToLastAssistant: (chunk) =>
     set((s) => {
       const msgs = [...s.messages];
@@ -433,7 +444,9 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
 
   setStatus: (status) => set({ status }),
 
-  clearMessages: () => set({ messages: [], conversationId: null, status: "idle" }),
+  clearMessages: () => set({ messages: [] }),
+
+  resetConversation: () => set({ messages: [], conversationId: null, status: "idle" }),
 
   // Route
   currentRoute: null,

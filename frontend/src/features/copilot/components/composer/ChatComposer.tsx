@@ -109,8 +109,15 @@ function ChatComposerRoot({
 
   const { uploadMedia, cancelUpload } = useMediaUpload();
 
-  const { isRecording, isTranscribing, startRecording, stopRecording, cancelRecording, duration } =
-    useVoiceRecorder();
+  const {
+    isRecording,
+    isTranscribing,
+    startRecording,
+    stopRecording,
+    cancelRecording,
+    duration,
+    audioLevel,
+  } = useVoiceRecorder();
 
   // Use external replyTo if provided, otherwise internal state
   const activeReplyTo = externalReplyTo !== undefined ? externalReplyTo : state.replyTo;
@@ -139,11 +146,10 @@ function ChatComposerRoot({
         // Start upload
         dispatch({ type: "UPDATE_ATTACHMENT", payload: { id, status: "uploading" } });
         try {
-          const uploadedId = await uploadMedia(file);
-          // uploadMedia manages progress internally; mark as uploaded
+          const result = await uploadMedia(file);
           dispatch({
             type: "UPDATE_ATTACHMENT",
-            payload: { id: uploadedId, status: "uploaded", progress: 100 },
+            payload: { id, status: "uploaded", progress: 100, result },
           });
         } catch {
           dispatch({
@@ -278,11 +284,13 @@ function ChatComposerRoot({
   }, [onClearReply]);
 
   const showVoiceOverlay = isRecording || isTranscribing;
+  // Toggle to re-enable suggestions after their redesign.
+  const showSuggestedChips = false;
 
   return (
     <div className={cn("flex flex-col border-t border-border bg-background", className)} {...props}>
-      {/* [COPILOT-SUGGESTIONS-ENGINE] */}
-      <ChatComposerRoot.SuggestedChips onChipClick={handleChipClick} />
+      {/* [COPILOT-SUGGESTIONS-ENGINE] Hidden pending redesign — keep mount point + handler. */}
+      {showSuggestedChips && <ChatComposerRoot.SuggestedChips onChipClick={handleChipClick} />}
 
       {/* Reply preview strip */}
       {activeReplyTo && (
@@ -304,6 +312,7 @@ function ChatComposerRoot({
         <ChatComposerRoot.VoiceOverlay
           duration={duration}
           isTranscribing={isTranscribing}
+          audioLevel={audioLevel}
           onCancel={cancelRecording}
           onStop={handleVoiceStop}
         />

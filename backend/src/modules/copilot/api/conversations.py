@@ -15,7 +15,9 @@ from sqlalchemy.orm import Session
 
 from src.core.database import get_db
 from src.modules.copilot.api.conversation_dto import (
+    ConversationDetail,
     ConversationListResponse,
+    ConversationMessageDTO,
     ConversationSummary,
     PatchConversationRequest,
     RevertFailure,
@@ -25,6 +27,7 @@ from src.modules.copilot.api.conversation_dto import (
 from src.modules.copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
 )
+from src.modules.copilot.infrastructure.repositories.message_codec import decode_message
 from src.modules.copilot.infrastructure.repositories.mutation_journal_repository import (
     MutationJournalRepository,
 )
@@ -95,6 +98,73 @@ async def list_conversations(
     )
     items = [_build_summary(c) for c in page["items"]]
     return ConversationListResponse(items=items, next_cursor=page["next_cursor"])
+
+
+@router.get(
+    "/conversations/{conversation_id}",
+    response_model=ConversationDetail,
+    summary="Obtener conversación con mensajes decoded",
+)
+async def get_conversation(
+    conversation_id: UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    db: Annotated[Session, Depends(get_db)],
+) -> ConversationDetail:
+    """Return a conversation's summary + decoded message history.
+
+    Used by the history panel to hydrate the chat when the user selects
+    a past conversation. Ownership is enforced by passing user_id to the
+    repository — a conversation belonging to another user in the same
+    tenant returns 404 (not 403) to avoid leaking existence.
+    """
+    if not tenant_id or not current_user.tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant ID requerido")
+
+    repo = ConversationRepository(db)
+    conv = repo.get_by_id(conversation_id, tenant_id, current_user.id)
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversación no encontrada")
+
+    raw_messages = list(conv.messages or [])
+    decoded: list[ConversationMessageDTO] = []
+    for raw in raw_messages:
+        if not isinstance(raw, dict):
+            continue
+        msg = decode_message(raw, conversation_id=conversation_id)
+
+        # Tool-role messages are part of the LLM transcript (for tool-use
+        # replay) but have no UI affordance. Dropping them here avoids a
+        # stray bubble in the rendered history.
+        if msg.role not in ("user", "assistant"):
+            continue
+
+        blocks_out = [b.model_dump(mode="json", exclude_none=True) for b in msg.blocks] if msg.blocks else None
+        # Defensive filter: skip placeholder assistant rows that never got
+        # content and carry no renderable block. These are residues from
+        # aborted/failed streams — rendering them would draw an empty "…"
+        # bubble when the user re-opens the conversation.
+        if not msg.content.strip() and not blocks_out:
+            continue
+
+        decoded.append(
+            ConversationMessageDTO(
+                id=msg.id,
+                role=msg.role,
+                content=msg.content,
+                blocks=blocks_out,
+                status=msg.status,
+                created_at=msg.created_at,
+                tokens_used=msg.tokens_used,
+                metadata=msg.metadata,
+            ),
+        )
+
+    summary = _build_summary(conv)
+    return ConversationDetail(
+        **summary.model_dump(),
+        messages=decoded,
+    )
 
 
 @router.post(

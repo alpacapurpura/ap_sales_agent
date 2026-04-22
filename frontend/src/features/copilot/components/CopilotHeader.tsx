@@ -27,7 +27,7 @@ function getModeLabel(session: CopilotSession | null): string {
 export function CopilotHeader() {
   const session = useCopilotStore((s) => s.session);
   const closePanel = useCopilotStore((s) => s.closePanel);
-  const clearMessages = useCopilotStore((s) => s.clearMessages);
+  const resetConversation = useCopilotStore((s) => s.resetConversation);
 
   const modeLabel = getModeLabel(session);
 
@@ -43,7 +43,7 @@ export function CopilotHeader() {
         <Button
           size="icon"
           variant="ghost"
-          onClick={clearMessages}
+          onClick={resetConversation}
           className="h-7 w-7 text-slate-400 hover:text-slate-600"
           title="Nueva conversación"
         >

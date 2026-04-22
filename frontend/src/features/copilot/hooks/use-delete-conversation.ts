@@ -15,7 +15,7 @@ export function useDeleteConversation() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const conversationId = useCopilotStore((s) => s.conversationId);
-  const clearMessages = useCopilotStore((s) => s.clearMessages);
+  const resetConversation = useCopilotStore((s) => s.resetConversation);
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -24,9 +24,9 @@ export function useDeleteConversation() {
       return deleteConversation(token, id);
     },
     onSuccess: (_, deletedId) => {
-      // If the deleted conversation is currently active, clear it
+      // If the deleted conversation is currently active, drop both id and messages
       if (conversationId === deletedId) {
-        clearMessages();
+        resetConversation();
       }
     },
     onSettled: () => {

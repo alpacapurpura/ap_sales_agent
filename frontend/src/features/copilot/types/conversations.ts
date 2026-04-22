@@ -23,6 +23,24 @@ export interface ConversationListResponse {
   nextCursor: string | null;
 }
 
+export type ConversationMessageRole = "user" | "assistant" | "tool";
+export type ConversationMessageStatus = "sending" | "streaming" | "sent" | "error";
+
+export interface ConversationMessage {
+  id: string;
+  role: ConversationMessageRole;
+  content: string;
+  blocks: Record<string, unknown>[] | null;
+  status: ConversationMessageStatus;
+  createdAt: string; // ISO 8601 UTC
+  tokensUsed: number | null;
+  metadata: Record<string, unknown> | null;
+}
+
+export interface ConversationDetail extends ConversationSummary {
+  messages: ConversationMessage[];
+}
+
 export interface PatchConversationRequest {
   title?: string;
   archived?: boolean;
@@ -111,6 +129,30 @@ export function mapConversationListResponse(
   return {
     items: items.map(mapConversationSummary),
     nextCursor: (wire.next_cursor as string | null) ?? null,
+  };
+}
+
+/** Maps a snake_case wire ConversationMessageDTO to camelCase domain type. */
+export function mapConversationMessage(wire: Record<string, unknown>): ConversationMessage {
+  return {
+    id: wire.id as string,
+    role: wire.role as ConversationMessageRole,
+    content: (wire.content as string) ?? "",
+    blocks: (wire.blocks as Record<string, unknown>[] | null) ?? null,
+    status: (wire.status as ConversationMessageStatus) ?? "sent",
+    createdAt: wire.created_at as string,
+    tokensUsed: (wire.tokens_used as number | null) ?? null,
+    metadata: (wire.metadata as Record<string, unknown> | null) ?? null,
+  };
+}
+
+/** Maps a snake_case wire ConversationDetail to camelCase domain type. */
+export function mapConversationDetail(wire: Record<string, unknown>): ConversationDetail {
+  const summary = mapConversationSummary(wire);
+  const messagesRaw = (wire.messages as Record<string, unknown>[]) ?? [];
+  return {
+    ...summary,
+    messages: messagesRaw.map(mapConversationMessage),
   };
 }
 

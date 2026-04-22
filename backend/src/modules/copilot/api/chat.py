@@ -35,6 +35,8 @@ async def copilot_chat(
         raise HTTPException(status_code=401, detail="Tenant ID required")
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User not associated with a tenant")
+    if not request.message.strip() and not request.blocks:
+        raise HTTPException(status_code=422, detail="Message or attachments required")
 
     # Rate limit: 30 messages per minute per user
     check_rate_limit(user_id=str(current_user.id), scope="copilot-chat")
@@ -50,6 +52,7 @@ async def copilot_chat(
             message=request.message,
             conversation_id=request.conversation_id,
             context=request.context,
+            blocks=request.blocks,
         ),
         media_type="text/event-stream",
         headers={

@@ -36,8 +36,8 @@ export interface UploadItem {
 }
 
 export interface UseMediaUploadReturn {
-  /** Upload a file. Returns the upload item ID. */
-  uploadMedia: (file: File, kindOverride?: MediaKind) => Promise<string>;
+  /** Upload a file. Resolves with the upload response on success; throws on failure. */
+  uploadMedia: (file: File, kindOverride?: MediaKind) => Promise<MediaUploadResponse>;
   /** Cancel an in-flight upload by ID */
   cancelUpload: (id: string) => void;
   /** All tracked uploads */
@@ -107,7 +107,7 @@ export function useMediaUpload(): UseMediaUploadReturn {
   }, []);
 
   const uploadMedia = useCallback(
-    async (file: File, kindOverride?: MediaKind): Promise<string> => {
+    async (file: File, kindOverride?: MediaKind): Promise<MediaUploadResponse> => {
       const id = generateId();
       const kind = kindOverride ?? inferMediaKind(file.type);
 
@@ -139,6 +139,7 @@ export function useMediaUpload(): UseMediaUploadReturn {
         setUploads((prev) =>
           prev.map((u) => (u.id === id ? { ...u, status: "success", progress: 100, result } : u)),
         );
+        return result;
       } catch (err) {
         const isAbort = err instanceof DOMException && err.name === "AbortError";
         if (!isAbort) {
@@ -147,11 +148,10 @@ export function useMediaUpload(): UseMediaUploadReturn {
             prev.map((u) => (u.id === id ? { ...u, status: "error", error: errorMsg } : u)),
           );
         }
+        throw err;
       } finally {
         controllersRef.current.delete(id);
       }
-
-      return id;
     },
     [getToken, mutateAsync],
   );

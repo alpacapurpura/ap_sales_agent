@@ -17,6 +17,8 @@ export interface UseVoiceRecorderReturn {
   cancelRecording: () => void;
   error: string | null;
   duration: number;
+  /** Normalized 0..1 audio level, updated ~60Hz while recording. Drops to 0 when idle/transcribing. */
+  audioLevel: number;
 }
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -39,6 +41,7 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
   const [state, setState] = useState<RecorderState>("idle");
   const [error, setError] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
+  const [audioLevel, setAudioLevel] = useState(0);
 
   const { getToken } = useAuth();
 
@@ -48,12 +51,30 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Used by cancelRecording to prevent transcription after stop
   const cancelledRef = useRef(false);
+  // Audio level analysis
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   /** Stop all media tracks and clear the interval timer. */
   const cleanup = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
+    }
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    if (analyserRef.current) {
+      analyserRef.current.disconnect();
+      analyserRef.current = null;
+    }
+    if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+      audioContextRef.current.close().catch(() => {
+        /* ignore */
+      });
+      audioContextRef.current = null;
     }
     if (streamRef.current) {
       for (const track of streamRef.current.getTracks()) {
@@ -63,6 +84,7 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
     }
     mediaRecorderRef.current = null;
     chunksRef.current = [];
+    setAudioLevel(0);
   }, []);
 
   /** Pick the first supported MIME type, falling back to browser default. */
@@ -108,6 +130,40 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
       recorder.start();
       setState("recording");
 
+      // Audio level analyser — feeds VoiceWaveform visualization
+      try {
+        const AudioCtx =
+          window.AudioContext ??
+          (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          audioContextRef.current = ctx;
+          const source = ctx.createMediaStreamSource(stream);
+          const analyser = ctx.createAnalyser();
+          analyser.fftSize = 1024;
+          analyser.smoothingTimeConstant = 0.6;
+          source.connect(analyser);
+          analyserRef.current = analyser;
+
+          const buffer = new Uint8Array(analyser.frequencyBinCount);
+          const tick = () => {
+            if (!analyserRef.current) return;
+            analyserRef.current.getByteTimeDomainData(buffer);
+            // Peak deviation from 128 (silence midpoint) → normalized 0..1
+            let peak = 0;
+            for (const sample of buffer) {
+              const v = Math.abs(sample - 128);
+              if (v > peak) peak = v;
+            }
+            setAudioLevel(Math.min(1, peak / 128));
+            rafRef.current = requestAnimationFrame(tick);
+          };
+          rafRef.current = requestAnimationFrame(tick);
+        }
+      } catch {
+        // Analyser is decorative — recording still works without it
+      }
+
       // Duration counter
       timerRef.current = setInterval(() => {
         setDuration((prev) => prev + 1);
@@ -129,11 +185,26 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
     // Stop the recorder — this fires ondataavailable + onstop
     return new Promise<string>((resolve) => {
       recorder.onstop = async () => {
-        // Clear timer and tracks
+        // Clear timer, analyser, and tracks
         if (timerRef.current) {
           clearInterval(timerRef.current);
           timerRef.current = null;
         }
+        if (rafRef.current !== null) {
+          cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
+        if (analyserRef.current) {
+          analyserRef.current.disconnect();
+          analyserRef.current = null;
+        }
+        if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+          audioContextRef.current.close().catch(() => {
+            /* ignore */
+          });
+          audioContextRef.current = null;
+        }
+        setAudioLevel(0);
         if (streamRef.current) {
           for (const track of streamRef.current.getTracks()) {
             track.stop();
@@ -204,5 +275,6 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
     cancelRecording,
     error,
     duration,
+    audioLevel,
   };
 }

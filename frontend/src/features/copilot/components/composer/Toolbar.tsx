@@ -1,10 +1,10 @@
 "use client";
 
 import { Send } from "lucide-react";
-import { forwardRef, useRef } from "react";
+import { forwardRef, useEffect, useRef } from "react";
+import TextareaAutosize from "react-textarea-autosize";
 
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 import { AttachmentButton } from "../shared/AttachmentButton";
@@ -50,6 +50,16 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
   ) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+    // Re-measure TextareaAutosize once the sidebar grid finishes its 220ms open
+    // animation. Without this the textarea is measured at a narrow width and the
+    // placeholder wraps into 5 rows until the user interacts.
+    useEffect(() => {
+      const id = window.setTimeout(() => {
+        window.dispatchEvent(new Event("resize"));
+      }, 260);
+      return () => window.clearTimeout(id);
+    }, []);
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
@@ -79,21 +89,23 @@ export const Toolbar = forwardRef<HTMLDivElement, ToolbarProps>(
           onMicClick={onMicClick}
         />
 
-        {/* Textarea */}
-        <Textarea
+        {/* Textarea — auto-grows 1→5 rows then scrolls */}
+        <TextareaAutosize
           ref={textareaRef}
           id="copilot-input"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Escribe un mensaje..."
-          rows={1}
+          minRows={1}
+          maxRows={5}
           disabled={disabled || isRecording || isTranscribing}
           aria-label="Mensaje"
           className={cn(
-            "flex-1 resize-none rounded-md text-sm",
-            "min-h-[36px] max-h-[120px]",
-            "overflow-y-auto",
+            "flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm",
+            "ring-offset-background placeholder:text-muted-foreground",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "disabled:cursor-not-allowed disabled:opacity-50",
           )}
         />
 

@@ -16,6 +16,8 @@ function tryParseSSEData(dataStr: string): Record<string, unknown> | null {
 export interface CopilotChatPayload {
   message: string;
   conversation_id?: string | null;
+  /** Structured blocks attached to the user message (images, audio, video, documents). */
+  blocks?: Record<string, unknown>[];
   context?: {
     current_route?: string | null;
     selected_fields?: Record<string, string>[];

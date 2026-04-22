@@ -24,8 +24,12 @@ class ClientContextDTO(BaseModel):
 class CopilotChatRequest(BaseModel):
     """Request schema for copilot chat."""
 
-    message: str = Field(..., min_length=1, max_length=4000)
+    # `message` can be empty when the user sends only attachments (documents, audio, etc.).
+    # The orchestrator enriches HumanMessage content with block-derived text, so an empty
+    # `message` combined with non-empty `blocks` is a valid submission.
+    message: str = Field("", max_length=4000)
     conversation_id: str | None = None
+    blocks: list[dict[str, Any]] | None = None
     context: ClientContextDTO = Field(default_factory=ClientContextDTO)
 
 

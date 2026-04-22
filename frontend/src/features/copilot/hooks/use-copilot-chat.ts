@@ -1,12 +1,15 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef } from "react";
 
 import { streamCopilotChat, reportCopilotEvent } from "../api/copilot-api";
 import { useCopilotStore, type UIAction } from "../store/copilot-store";
 
 import { handleUIAction } from "./use-copilot-ui-action";
+
+import type { MessageBlock } from "../types/message-blocks";
 
 /**
  * Unified chat hook for copilot free-chat and interview flows.
@@ -29,6 +32,7 @@ export function useCopilotChat() {
   const currentRoute = useCopilotStore((s) => s.currentRoute);
 
   const { getToken } = useAuth();
+  const queryClient = useQueryClient();
 
   /** AbortController for the currently in-flight SSE request. */
   const abortRef = useRef<AbortController | null>(null);
@@ -40,8 +44,11 @@ export function useCopilotChat() {
   const activeAssistantIdRef = useRef<string | null>(null);
 
   const sendMessage = useCallback(
-    async (text: string) => {
-      if (!text.trim()) return;
+    // eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: single-flight guard, auth, streaming callbacks, and attachment-blocks payload each contribute branches tightly coupled to ordering requirements.
+    async (text: string, blocks?: MessageBlock[]) => {
+      const trimmed = text.trim();
+      const attachmentBlocks = blocks && blocks.length > 0 ? blocks : undefined;
+      if (!trimmed && !attachmentBlocks) return;
 
       // ── Single-flight guard ──────────────────────────────────────────────
       // Abort BEFORE touching the store so stale callbacks fire on the OLD
@@ -55,12 +62,13 @@ export function useCopilotChat() {
       // Open panel if not already
       store.openPanel();
 
-      // Add user message
+      // Add user message — include blocks when present so UserMessageV2 renders attachments.
       const userMsg = {
         id: crypto.randomUUID(),
         role: "user" as const,
-        content: text.trim(),
+        content: trimmed,
         timestamp: Date.now(),
+        blocks: attachmentBlocks,
       };
       store.addMessage(userMsg);
 
@@ -125,8 +133,9 @@ export function useCopilotChat() {
 
         await streamCopilotChat(
           {
-            message: text.trim(),
+            message: trimmed,
             conversation_id: conversationId,
+            blocks: attachmentBlocks as unknown as Record<string, unknown>[] | undefined,
             context: {
               current_route: currentRoute,
               selected_fields: freshFields.map((f) => ({
@@ -160,6 +169,14 @@ export function useCopilotChat() {
               if (!isActive()) return;
               useCopilotStore.getState().setConversationId(convId);
               useCopilotStore.getState().setStatus("idle");
+              // Keep the detail cache in sync so that selecting this
+              // conversation from history later replays the fresh transcript.
+              void queryClient.invalidateQueries({
+                queryKey: ["copilot", "conversation", convId],
+              });
+              void queryClient.invalidateQueries({
+                queryKey: ["copilot", "conversations"],
+              });
             },
             onError: (message) => {
               if (!isActive()) return;
@@ -193,7 +210,7 @@ export function useCopilotChat() {
         }
       }
     },
-    [conversationId, currentRoute, getToken],
+    [conversationId, currentRoute, getToken, queryClient],
   );
 
   const sendCardAction = useCallback(

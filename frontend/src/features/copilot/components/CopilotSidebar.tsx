@@ -129,6 +129,10 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
         style={{
           display: "grid",
           gridTemplateColumns: `${chatW} ${railOrHistoryW}`,
+          // `minmax(0, 1fr)` clamps the grid row to the aside's h-full. Without it,
+          // long conversations grow the row to content height, pushing the composer
+          // below the viewport where it cannot be reached.
+          gridTemplateRows: "minmax(0, 1fr)",
           transition: "grid-template-columns 220ms cubic-bezier(.2,.8,.2,1)",
         }}
       >

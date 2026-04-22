@@ -5,7 +5,9 @@
  * response finishes streaming, the first stream's callbacks must NOT
  * write to the second assistant-message placeholder.
  */
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, act } from "@testing-library/react";
+import { createElement, type ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { useCopilotChat } from "@/features/copilot/hooks/use-copilot-chat";
@@ -54,6 +56,21 @@ function resetStore() {
   });
 }
 
+/**
+ * Wrap hook under test with a QueryClientProvider. Required because
+ * useCopilotChat invalidates the conversation-detail query on stream done.
+ */
+function makeWrapper() {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  function Wrapper({ children }: { children: ReactNode }) {
+    return createElement(QueryClientProvider, { client }, children);
+  }
+  Wrapper.displayName = "TestQueryClientWrapper";
+  return Wrapper;
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("useCopilotChat — single-flight guarantee", () => {
@@ -72,7 +89,7 @@ describe("useCopilotChat — single-flight guarantee", () => {
   });
 
   it("second sendMessage aborts first request before adding new messages", async () => {
-    const { result } = renderHook(() => useCopilotChat());
+    const { result } = renderHook(() => useCopilotChat(), { wrapper: makeWrapper() });
 
     // Send message 1 — stream 0 starts
     await act(async () => {
@@ -123,7 +140,7 @@ describe("useCopilotChat — single-flight guarantee", () => {
   });
 
   it("stopStreaming aborts in-flight request and sets status to idle", async () => {
-    const { result } = renderHook(() => useCopilotChat());
+    const { result } = renderHook(() => useCopilotChat(), { wrapper: makeWrapper() });
 
     await act(async () => {
       void result.current.sendMessage("Pregunta larga");
@@ -139,7 +156,7 @@ describe("useCopilotChat — single-flight guarantee", () => {
   });
 
   it("does not add duplicate messages when second send is called immediately", async () => {
-    const { result } = renderHook(() => useCopilotChat());
+    const { result } = renderHook(() => useCopilotChat(), { wrapper: makeWrapper() });
 
     // Both sends happen synchronously (before awaiting)
     await act(async () => {

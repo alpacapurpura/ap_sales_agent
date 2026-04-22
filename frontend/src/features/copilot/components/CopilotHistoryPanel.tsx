@@ -204,6 +204,7 @@ export const CopilotHistoryPanel = forwardRef<HTMLDivElement, CopilotHistoryPane
     const conversationId = useCopilotStore((s) => s.conversationId);
     const setConversationId = useCopilotStore((s) => s.setConversationId);
     const clearMessages = useCopilotStore((s) => s.clearMessages);
+    const setStatus = useCopilotStore((s) => s.setStatus);
     const setSidebarState = useCopilotStore((s) => s.setSidebarState);
 
     const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
@@ -216,9 +217,13 @@ export const CopilotHistoryPanel = forwardRef<HTMLDivElement, CopilotHistoryPane
     const groups = useConversationGroups(allItems);
 
     const handleSelect = (id: string) => {
+      if (id === conversationId) return;
       setConversationId(id);
       clearMessages();
-      // TODO: load conversation messages when endpoint is available
+      setStatus("idle");
+      // Actual message hydration happens in CopilotChatPanel via
+      // useConversationDetail, so the chat re-fills regardless of whether
+      // the user selects from the history panel, the rail avatars, etc.
       setTimeout(() => document.getElementById("copilot-input")?.focus(), 50);
     };
 

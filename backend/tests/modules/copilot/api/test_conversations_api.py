@@ -270,6 +270,281 @@ class TestRevertConversation:
         assert resp.status_code == 404
 
 
+class TestGetConversationDetail:
+    """GET /api/v1/copilot/conversations/{id} → 200 ConversationDetail con mensajes."""
+
+    def test_returns_detail_with_messages(self) -> None:
+        """GET detail returns summary + decoded messages list."""
+        tenant_id = uuid4()
+        client, _uid, _mock_db = _build_client(tenant_id)
+        conv_id = uuid4()
+        msg_id_1 = uuid4()
+        msg_id_2 = uuid4()
+
+        with patch("src.modules.copilot.api.conversations.ConversationRepository") as mock_repo_cls:
+            mock_repo = MagicMock()
+            mock_conv = MagicMock()
+            mock_conv.id = conv_id
+            mock_conv.title = "Histórica"
+            mock_conv.title_auto_generated = False
+            mock_conv.updated_at = "2026-04-21T00:00:00Z"
+            mock_conv.message_count = 2
+            mock_conv.total_tokens = 400
+            mock_conv.last_tier_used = "nano"
+            mock_conv.procedure_state = None
+            mock_conv.archived_at = None
+            mock_conv.messages = [
+                {
+                    "id": str(msg_id_1),
+                    "role": "user",
+                    "content": "Hola",
+                    "status": "sent",
+                    "created_at": "2026-04-21T00:00:00+00:00",
+                },
+                {
+                    "id": str(msg_id_2),
+                    "role": "assistant",
+                    "content": "¿En qué te ayudo?",
+                    "status": "sent",
+                    "created_at": "2026-04-21T00:00:05+00:00",
+                },
+            ]
+            mock_repo.get_by_id.return_value = mock_conv
+            mock_repo_cls.return_value = mock_repo
+
+            resp = client.get(
+                f"/api/v1/copilot/conversations/{conv_id}",
+                headers={"X-Tenant-ID": str(tenant_id)},
+            )
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["id"] == str(conv_id)
+        assert data["title"] == "Histórica"
+        assert len(data["messages"]) == 2
+        assert data["messages"][0]["role"] == "user"
+        assert data["messages"][0]["content"] == "Hola"
+        assert data["messages"][1]["role"] == "assistant"
+
+    def test_v1_messages_synthesize_text_block(self) -> None:
+        """Legacy v1 messages (role+content only) decode with a text block."""
+        tenant_id = uuid4()
+        client, _uid, _mock_db = _build_client(tenant_id)
+        conv_id = uuid4()
+
+        with patch("src.modules.copilot.api.conversations.ConversationRepository") as mock_repo_cls:
+            mock_repo = MagicMock()
+            mock_conv = MagicMock()
+            mock_conv.id = conv_id
+            mock_conv.title = None
+            mock_conv.title_auto_generated = False
+            mock_conv.updated_at = "2026-04-21T00:00:00Z"
+            mock_conv.message_count = 1
+            mock_conv.total_tokens = 0
+            mock_conv.last_tier_used = None
+            mock_conv.procedure_state = None
+            mock_conv.archived_at = None
+            mock_conv.messages = [
+                {"role": "user", "content": "Legacy mensaje"},
+            ]
+            mock_repo.get_by_id.return_value = mock_conv
+            mock_repo_cls.return_value = mock_repo
+
+            resp = client.get(
+                f"/api/v1/copilot/conversations/{conv_id}",
+                headers={"X-Tenant-ID": str(tenant_id)},
+            )
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert len(data["messages"]) == 1
+        msg = data["messages"][0]
+        assert msg["content"] == "Legacy mensaje"
+        assert msg["blocks"] is not None
+        assert msg["blocks"][0]["type"] == "text"
+
+    def test_empty_conversation_returns_empty_messages(self) -> None:
+        """New conversation with no messages returns items []."""
+        tenant_id = uuid4()
+        client, _uid, _mock_db = _build_client(tenant_id)
+        conv_id = uuid4()
+
+        with patch("src.modules.copilot.api.conversations.ConversationRepository") as mock_repo_cls:
+            mock_repo = MagicMock()
+            mock_conv = MagicMock()
+            mock_conv.id = conv_id
+            mock_conv.title = None
+            mock_conv.title_auto_generated = False
+            mock_conv.updated_at = "2026-04-21T00:00:00Z"
+            mock_conv.message_count = 0
+            mock_conv.total_tokens = 0
+            mock_conv.last_tier_used = None
+            mock_conv.procedure_state = None
+            mock_conv.archived_at = None
+            mock_conv.messages = []
+            mock_repo.get_by_id.return_value = mock_conv
+            mock_repo_cls.return_value = mock_repo
+
+            resp = client.get(
+                f"/api/v1/copilot/conversations/{conv_id}",
+                headers={"X-Tenant-ID": str(tenant_id)},
+            )
+
+        assert resp.status_code == 200
+        assert resp.json()["messages"] == []
+
+    def test_nonexistent_returns_404(self) -> None:
+        """GET detail nonexistent conversation → 404."""
+        tenant_id = uuid4()
+        client, _uid, _mock_db = _build_client(tenant_id)
+
+        with patch("src.modules.copilot.api.conversations.ConversationRepository") as mock_repo_cls:
+            mock_repo = MagicMock()
+            mock_repo.get_by_id.return_value = None
+            mock_repo_cls.return_value = mock_repo
+
+            resp = client.get(
+                f"/api/v1/copilot/conversations/{uuid4()}",
+                headers={"X-Tenant-ID": str(tenant_id)},
+            )
+
+        assert resp.status_code == 404
+
+    def test_empty_placeholder_messages_filtered(self) -> None:
+        """Assistant placeholders with no content and no renderable blocks are dropped.
+
+        These are residues from aborted/failed streams that persisted a stub
+        row before any text was produced. Returning them would render a stray
+        "…" bubble in the chat panel when the user re-opens the conversation.
+        """
+        tenant_id = uuid4()
+        client, _uid, _mock_db = _build_client(tenant_id)
+        conv_id = uuid4()
+
+        with patch("src.modules.copilot.api.conversations.ConversationRepository") as mock_repo_cls:
+            mock_repo = MagicMock()
+            mock_conv = MagicMock()
+            mock_conv.id = conv_id
+            mock_conv.title = None
+            mock_conv.title_auto_generated = False
+            mock_conv.updated_at = "2026-04-21T00:00:00Z"
+            mock_conv.message_count = 3
+            mock_conv.total_tokens = 10
+            mock_conv.last_tier_used = None
+            mock_conv.procedure_state = None
+            mock_conv.archived_at = None
+            mock_conv.messages = [
+                {
+                    "id": str(uuid4()),
+                    "role": "user",
+                    "content": "Hola",
+                    "status": "sent",
+                    "created_at": "2026-04-21T00:00:00+00:00",
+                },
+                # Empty assistant placeholder — content="" AND blocks=None.
+                {
+                    "id": str(uuid4()),
+                    "role": "assistant",
+                    "content": "",
+                    "status": "sent",
+                    "created_at": "2026-04-21T00:00:02+00:00",
+                },
+                {
+                    "id": str(uuid4()),
+                    "role": "assistant",
+                    "content": "Respuesta real",
+                    "status": "sent",
+                    "created_at": "2026-04-21T00:00:05+00:00",
+                },
+            ]
+            mock_repo.get_by_id.return_value = mock_conv
+            mock_repo_cls.return_value = mock_repo
+
+            resp = client.get(
+                f"/api/v1/copilot/conversations/{conv_id}",
+                headers={"X-Tenant-ID": str(tenant_id)},
+            )
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert len(data["messages"]) == 2
+        assert data["messages"][0]["role"] == "user"
+        assert data["messages"][1]["content"] == "Respuesta real"
+
+    def test_tool_role_messages_filtered(self) -> None:
+        """Tool-role messages are LLM-internal and must not be rendered."""
+        tenant_id = uuid4()
+        client, _uid, _mock_db = _build_client(tenant_id)
+        conv_id = uuid4()
+
+        with patch("src.modules.copilot.api.conversations.ConversationRepository") as mock_repo_cls:
+            mock_repo = MagicMock()
+            mock_conv = MagicMock()
+            mock_conv.id = conv_id
+            mock_conv.title = None
+            mock_conv.title_auto_generated = False
+            mock_conv.updated_at = "2026-04-21T00:00:00Z"
+            mock_conv.message_count = 2
+            mock_conv.total_tokens = 0
+            mock_conv.last_tier_used = None
+            mock_conv.procedure_state = None
+            mock_conv.archived_at = None
+            mock_conv.messages = [
+                {
+                    "id": str(uuid4()),
+                    "role": "user",
+                    "content": "Hola",
+                    "status": "sent",
+                    "created_at": "2026-04-21T00:00:00+00:00",
+                },
+                {
+                    "id": str(uuid4()),
+                    "role": "tool",
+                    "content": "tool output",
+                    "tool_call_id": "call-1",
+                    "name": "read_document",
+                    "status": "sent",
+                    "created_at": "2026-04-21T00:00:01+00:00",
+                },
+            ]
+            mock_repo.get_by_id.return_value = mock_conv
+            mock_repo_cls.return_value = mock_repo
+
+            resp = client.get(
+                f"/api/v1/copilot/conversations/{conv_id}",
+                headers={"X-Tenant-ID": str(tenant_id)},
+            )
+
+        assert resp.status_code == 200
+        assert len(resp.json()["messages"]) == 1
+        assert resp.json()["messages"][0]["role"] == "user"
+
+    def test_cross_user_forbidden(self) -> None:
+        """Conversation owned by another user in same tenant → 404."""
+        tenant_id = uuid4()
+        client, uid, _mock_db = _build_client(tenant_id)
+
+        captured: dict[str, object] = {}
+
+        def fake_get_by_id(conversation_id, tenant_id_arg, user_id=None):
+            # repo retorna None si user_id no coincide; aquí lo capturamos
+            # para verificar ownership enforcement.
+            captured["user_id"] = user_id
+
+        with patch("src.modules.copilot.api.conversations.ConversationRepository") as mock_repo_cls:
+            mock_repo = MagicMock()
+            mock_repo.get_by_id.side_effect = fake_get_by_id
+            mock_repo_cls.return_value = mock_repo
+
+            resp = client.get(
+                f"/api/v1/copilot/conversations/{uuid4()}",
+                headers={"X-Tenant-ID": str(tenant_id)},
+            )
+
+        assert resp.status_code == 404
+        assert captured["user_id"] == uid  # ownership enforced
+
+
 class TestTenantIsolation:
     """Tenant isolation: endpoints cannot be called across tenants."""
 

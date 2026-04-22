@@ -37,6 +37,36 @@ class ConversationListResponse(BaseModel):
     next_cursor: str | None = None
 
 
+class ConversationMessageDTO(BaseModel):
+    """Single decoded message in a conversation detail response.
+
+    Mirrors the canonical v2 envelope (CONTRACT-MULTIMODAL §3) while
+    keeping `blocks` as an untyped list — block validation happens via
+    `decode_message`, and every client renderer is block-schema aware.
+    """
+
+    model_config = ConfigDict(extra="ignore")
+
+    id: UUID
+    role: Literal["user", "assistant", "tool"]
+    content: str
+    blocks: list[dict] | None = None
+    status: Literal["sending", "streaming", "sent", "error"] = "sent"
+    created_at: datetime
+    tokens_used: int | None = None
+    metadata: dict | None = None
+
+
+class ConversationDetail(ConversationSummary):
+    """Full conversation: summary + decoded messages list.
+
+    Used when the client opens a historical conversation and needs to
+    hydrate the chat panel in one round-trip.
+    """
+
+    messages: list[ConversationMessageDTO]
+
+
 class PatchConversationRequest(BaseModel):
     """Request body for PATCH /conversations/{id}."""
 
