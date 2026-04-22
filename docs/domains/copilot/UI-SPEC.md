@@ -1,770 +1,1420 @@
-# UI Spec: Copilot Sidebar Refactor
+# UI Spec: Copilot Chat Redesign — Rich Multimodal Surface
 
-## 1. Overview
-
-The Copilot sidebar is a persistent AI assistant panel anchored to the right
-edge of every authenticated page. It has three visible states — collapsed
-(60 px rail only), rail (chat 380 px + rail 60 px), and full (history 280 px +
-chat 400 px + rail 60 px) — driven by a Zustand store slice and persisted to
-`localStorage`. The rail is always visible; layout is a CSS grid that expands
-the history and chat columns without reflowing page content.
+**Version:** 2.0
+**Date:** 2026-04-21
+**Status:** Ready for implementation
+**Replaces:** `docs/domains/copilot/UI-SPEC.md` v1 (sidebar-v2 rail/history layout)
 
 ---
 
-## 2. Component Tree
+## Overview
 
-```
-CopilotSidebar  (Client — features/copilot/components/copilot-sidebar.tsx)
-├── CopilotHistoryPanel  (Client — features/copilot/components/copilot-history-panel.tsx)
-│   │  [visible only when sidebarState === "full"]
-│   ├── Button "Nueva conversación"  (Shadcn Button)
-│   ├── ScrollArea  (Shadcn — conversation list)
-│   │   ├── ConversationGroup "Hoy"
-│   │   │   └── ConversationItem × N
-│   │   │       ├── title (truncate, inline-rename on dblclick)
-│   │   │       ├── meta row: tiempo relativo · TierChip · msg count
-│   │   │       └── DropdownMenu kebab: Renombrar / Archivar  (Shadcn DropdownMenu)
-│   │   ├── ConversationGroup "Ayer"
-│   │   ├── ConversationGroup "Últimos 7 días"
-│   │   └── ConversationGroup "Anterior"
-│   └── Button "Cargar 6 más"  (Shadcn Button variant="ghost")
-│
-├── CopilotChatPanel  (Client — features/copilot/components/copilot-chat-panel.tsx)
-│   │  [visible when sidebarState === "rail" | "full"]
-│   ├── ChatPanelHeader
-│   │   ├── title (click-to-edit inline)
-│   │   ├── meta: tier chips history
-│   │   ├── ProcedureProgress badge (if procedure_state active)
-│   │   └── MutationUndoButton  (features/copilot/components/mutation-undo-button.tsx)
-│   ├── ScrollArea  (Shadcn — message list)
-│   │   ├── CopilotMessage × N
-│   │   │   ├── TierChip  (features/copilot/components/tier-chip.tsx)
-│   │   │   ├── message text (streaming)
-│   │   │   ├── PlanCard  (features/copilot/components/plan-card.tsx)
-│   │   │   └── existing UIAction cards (proposal, interview, etc.)
-│   │   └── StreamingIndicator (typing dots)
-│   ├── ContextRotBanner  (features/copilot/components/context-rot-banner.tsx)
-│   │   [visible when total_tokens >= 8000 and not dismissed]
-│   └── ChatInputArea
-│       ├── Textarea  (Shadcn)
-│       ├── SlashCommandAutocomplete  (features/copilot/components/slash-command-autocomplete.tsx)
-│       └── Button "Enviar"  (Shadcn Button)
-│
-└── CopilotRail  (Client — features/copilot/components/copilot-rail.tsx)
-    │  [always 60 px, right edge]
-    ├── Button toggle chevron  (Shadcn Button variant="ghost")
-    ├── Separator  (Shadcn)
-    ├── Button "+" nueva conversación  (Shadcn Button variant="ghost")
-    ├── ConversationAvatars × ≤6  [collapsed only]
-    │   └── Avatar 40×40 (initials, active = purple halo)
-    └── Button "más" text  [collapsed only] → opens "full"
-```
+El chat del Copilot Nicolify pasa de un input de texto plano a una superficie de comunicación rica y multimodal. El usuario puede enviar texto con Markdown, adjuntar archivos (imagen, audio, video, documento), grabar voz que se convierte en audio+transcripción reproducible, citar mensajes previos, y recibir respuestas del asistente compuestas de bloques heterogéneos (texto Markdown, tablas, código, imágenes, audios, citas RAG, cards interactivas).
+
+El sidebar mantiene los 3 estados existentes (`collapsed / rail / full`) pero los controles pasan de un botón de ciclo a botones explícitos por estado. La columna `[rail-or-history]` es una sola columna CSS que cambia de 60px a 280px.
 
 ---
 
-## 3. Store — New Slices (Zustand)
+## §1 Sidebar Layout + States
 
-**File:** `frontend/src/features/copilot/store/copilot-store.ts`
+### Grid CSS
 
-### 3.1 Replace existing `SidebarState`
-
-Current: `"collapsed" | "open"` (2 states).
-New: `"collapsed" | "rail" | "full"` (3 states).
-
-```typescript
-// NEW type — replaces existing SidebarState
-type SidebarState = "collapsed" | "rail" | "full";
+```
+CopilotSidebar → display: grid; gridTemplateColumns: <history> <chat> 60px
 ```
 
-Backward-compat: `isOpen` is derived as `sidebarState !== "collapsed"`.
-`openPanel()` sets `"rail"`. `closePanel()` sets `"collapsed"`.
+| Estado | `<history>` | `<chat>` | Rail |
+|--------|-------------|----------|------|
+| `collapsed` | 0px | 0px | 60px visible |
+| `rail` | 0px | 380px | 60px visible |
+| `full` | 280px | 400px | 60px visible |
 
-### 3.2 New slices to add
+Transición: `grid-template-columns 220ms cubic-bezier(.2,.8,.2,1)` (ya implementada — preservar).
 
-```typescript
-// Sidebar 3-state
-sidebarState: "collapsed" | "rail" | "full";
-setSidebarState: (s: SidebarState) => void;
-cycleSidebarState: () => void;  // collapsed → rail → full → collapsed
+### Mockup: Estado COLLAPSED
 
-// Slash command overlay
-slashCommandOpen: boolean;
-setSlashCommandOpen: (open: boolean) => void;
+```
+┌──────────────────────────────────────────────────────────────────┬──────────┐
+│                    PAGE CONTENT                                  │   RAIL   │
+│                                                                  │  [→]     │
+│                                                                  │  ──────  │
+│                                                                  │  [+]     │
+│                                                                  │          │
+│                                                                  │  (AB)    │
+│                                                                  │  (CD)    │
+│                                                                  │  (EF)    │
+│                                                                  │  ···     │
+│                                                                  │  más     │
+└──────────────────────────────────────────────────────────────────┴──────────┘
 
-// Context-rot dismissed banners (per-conversation)
-dismissedRotBanners: Set<string>;   // keyed by conversationId
-dismissRotBanner: (convId: string) => void;
-
-// Last tier per message (updated by SSE tier_decision)
-setLastMessageTier: (msgId: string, tier: ModelTier) => void;
-lastMessageTiers: Record<string, ModelTier>;
+Rail 60px: [→ Abrir chat] | [+ Nueva] | avatares recientes | "más"
 ```
 
-### 3.3 Slices to remove
+### Mockup: Estado RAIL
 
-- `focusEntity` — eliminated with Focus mode
-- `focusSnapshot` — eliminated with Focus mode
-- `interviewSessionId` — merged into `session.sessionId`
-- `previewData` — eliminated (no preview pane)
+```
+┌──────────────────────────────────┬──────────────────────┬──────────┐
+│           PAGE CONTENT           │      CHAT PANEL      │   RAIL   │
+│                                  │  ┌────────────────┐  │  [←]     │
+│                                  │  │ Chat · o4-mini │  │  ──────  │
+│                                  │  ├────────────────┤  │  [≫]     │
+│                                  │  │  mensajes...   │  │  ──────  │
+│                                  │  │                │  │  [+]     │
+│                                  │  ├────────────────┤  │          │
+│                                  │  │  [composer]    │  │          │
+│                                  │  └────────────────┘  │          │
+└──────────────────────────────────┴──────────────────────┴──────────┘
 
-### 3.4 Persistence
+Rail 60px: [← Cerrar chat] | [≫ Ver historial] | [+ Nueva]
+```
+
+### Mockup: Estado FULL
+
+```
+┌──────────┬──────────────────────┬──────────────────────┬──────────┐
+│  PAGE    │     HISTORY 280px    │    CHAT PANEL 400px  │   RAIL   │
+│          │  ┌──────────────────┐│  ┌────────────────┐  │  [←]     │
+│          │  │ Conversaciones   ││  │ Chat · o4-mini │  │  ──────  │
+│          │  │ [+ Nueva]        ││  ├────────────────┤  │  [«]     │
+│          │  ├──────────────────┤│  │  mensajes...   │  │  ──────  │
+│          │  │ Hoy              ││  │                │  │  [+]     │
+│          │  │  • Mi brand [●]  ││  │                │  │          │
+│          │  │  • Oferta XYZ    ││  ├────────────────┤  │          │
+│          │  │ Ayer             ││  │  [composer]    │  │          │
+│          │  │  • Growth Q1     ││  └────────────────┘  │          │
+│          │  └──────────────────┘│                      │          │
+└──────────┴──────────────────────┴──────────────────────┴──────────┘
+
+Rail 60px: [← Cerrar chat] | [« Ocultar historial] | [+ Nueva]
+```
+
+### Mobile Behavior (< 768px)
+
+- El sidebar no usa CSS grid de escritorio.
+- En `collapsed`: solo el rail flota como FAB en esquina inferior derecha (botón circular 44px, `position: fixed; bottom: 1rem; right: 1rem`).
+- En `rail` o `full`: un `Sheet` (Shadcn) ocupa pantalla completa desde la derecha con backdrop.
+- El `Sheet` muestra el chat panel. Si `full`, muestra un switcher "Historial" / "Chat" con `Tabs` en el header del Sheet.
+- Teclado virtual (keyboard) → el composer sube (`padding-bottom: env(keyboard-inset-height)`).
+
+### Keyboard Shortcuts (sin cambios respecto a v1)
+
+| Shortcut | Acción |
+|----------|--------|
+| `Ctrl+K` | Focus input copilot |
+| `C` (fuera de input) | `setSidebarState("collapsed")` |
+| `R` (fuera de input) | `setSidebarState("rail")` |
+| `F` (fuera de input) | `setSidebarState("full")` |
+| `N` (fuera de input) | Nueva conversación |
+| `Escape` (en chat, sin slash open) | `setSidebarState("rail")` si en full; `setSidebarState("collapsed")` si en rail |
+
+### Accesibilidad
+
+- `<aside aria-label="Panel copilot" aria-expanded={isExpanded}>` — ya implementado, preservar.
+- `<span role="status" aria-live="polite">` para anunciar cambios de estado — ya implementado.
+- Rail: todos los botones con `aria-label` explícito (ver §2).
+- Focus trap: cuando el Sheet mobile está abierto, el foco debe quedar dentro del Sheet.
+
+---
+
+## §2 Sidebar Rail & History Controls — Botones Explícitos
+
+**Problema actual:** Un solo botón cicla `collapsed→rail→full→collapsed`. En rail, click va a `full`, pero si el usuario quiere cerrar el chat, hace click y expande el historial en vez de cerrar. El BUG que señala el prompt.
+
+**Solución:** Cada estado tiene sus propios botones con intención inequívoca.
+
+### Tabla de botones por estado
+
+| Estado | Botón 1 | Botón 2 | Botón 3 | Botón 4 |
+|--------|---------|---------|---------|---------|
+| `collapsed` | `ChevronLeft` → rail ("Abrir chat") | — | — | — |
+| `rail` | `ChevronLeft` → collapsed ("Cerrar chat") | `PanelRightOpen` → full ("Ver historial") | `Plus` ("Nueva conversación") | — |
+| `full` | `ChevronLeft` → collapsed ("Cerrar chat") | `PanelRightClose` → rail ("Ocultar historial") | `Plus` ("Nueva conversación") | — |
+
+**Notas:**
+- En `collapsed`: el botón de abrir es el único CTA principal del rail. Icono `ChevronLeft` (la flecha apunta hacia el panel, indicando "abrir hacia aquí").
+- En `rail` y `full`: los dos primeros botones cubren las dos intenciones (cerrar vs historial). El `Plus` para nueva conversación queda en tercer lugar.
+- Todos los botones son `variant="ghost" size="icon"` con `Tooltip` side="left".
+
+### ARIA labels
+
+| Botón | aria-label |
+|-------|-----------|
+| ChevronLeft → rail | "Abrir chat" |
+| ChevronLeft → collapsed | "Cerrar chat" |
+| PanelRightOpen → full | "Ver historial" |
+| PanelRightClose → rail | "Ocultar historial" |
+| Plus | "Nueva conversación" |
+
+### Avatares en collapsed
+
+- Mostrar hasta 6 avatares de conversaciones recientes (ya implementado en `CopilotRail`).
+- Click en avatar → `setConversationId(id)` + `setSidebarState("rail")`.
+- "más" link → `setSidebarState("full")`.
+- Preservar el tooltip con título de conversación.
+
+### Historia en full: botón "Nueva conversación"
+
+En `full`, el botón `Plus` en el rail duplica al que existe en `CopilotHistoryPanel`. Se puede mantener en ambos lugares — no hay conflicto. El del rail es más accesible (siempre visible).
+
+---
+
+## §3 ChatComposer — Compound Component
+
+`ChatComposer` es el reemplazo de `CopilotChatPanel`'s input area + `CopilotInput.tsx`. Es un compound component con sub-componentes estáticos que se ensamblan en el panel.
+
+### Jerarquía
+
+```
+ChatComposer ("use client" — features/copilot/components/composer/ChatComposer.tsx)
+├── ChatComposer.SuggestedChips    (chips horizontales scroll — §9)
+├── ChatComposer.ReplyPreview      (preview de mensaje citado — §8)
+├── ChatComposer.ContextChips      (campos seleccionados — §10)
+├── ChatComposer.AttachmentTray    (chips de archivos adjuntos — §5)
+├── ChatComposer.Toolbar           (barra principal)
+│   ├── ChatComposer.AttachmentButton  (paperclip)
+│   ├── ChatComposer.VoiceButton       (micrófono)
+│   ├── ChatComposer.TextArea          (textarea auto-grow)
+│   └── ChatComposer.SendButton        (enviar / stop)
+├── ChatComposer.VoiceOverlay      (grabación en progreso, reemplaza Toolbar)
+└── ChatComposer.SlashAutocomplete (overlay arriba del Toolbar)
+```
+
+### Props del ChatComposer raíz
 
 ```typescript
-// On sidebarState change:
-localStorage.setItem("copilot.sidebarState", newState);
-
-// On mount (init):
-const saved = localStorage.getItem("copilot.sidebarState");
-if (saved === "rail" || saved === "full") {
-  store.setSidebarState(saved);
+interface ChatComposerProps {
+  onSend: (payload: ComposerPayload) => void;
+  onStop?: () => void;           // abortar streaming en curso
+  disabled?: boolean;
+  isStreaming?: boolean;
+  placeholder?: string;
 }
-// Mobile guard applied after init (see §7)
+
+interface ComposerPayload {
+  text: string;
+  attachments: UploadedAttachment[];  // solo refs a uploads completados
+  replyToMessageId: string | null;
+  replyToPreview: string | null;      // texto truncado del mensaje citado
+}
+```
+
+### Estado interno del ChatComposer
+
+El ChatComposer gestiona su propio estado local. NO usa el store Zustand para estado de composición (excepto `selectedFields` que viene del store como read-only).
+
+```typescript
+// Estado local del ChatComposer
+const [draft, setDraft] = useState("");
+const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
+const [replyTo, setReplyTo] = useState<ReplyRef | null>(null);
+const [voiceState, setVoiceState] = useState<VoiceState>("idle");
+```
+
+Ver §13 para extensiones del store global.
+
+### Mockup: ChatComposer idle
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  💡 ¿Qué me falta?  📊 Mis métricas  ✍️ Mejora mi UVP          │  ← SuggestedChips (scroll-x)
+├─────────────────────────────────────────────────────────────────┤
+│  📎 doc.pdf [×]  🖼 foto.jpg [×]                               │  ← AttachmentTray (si hay archivos)
+├─────────────────────────────────────────────────────────────────┤
+│  Contexto: [Tagline ×] [UVP ×]                                 │  ← ContextChips (si hay campos)
+├─────────────────────────────────────────────────────────────────┤
+│  [📎] [🎙]  Escribe un mensaje...                    [→]       │  ← Toolbar
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Mockup: ChatComposer con reply preview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  💬 Respondiendo a: "El funnel de captación tiene..."  [×]      │  ← ReplyPreview
+├─────────────────────────────────────────────────────────────────┤
+│  [📎] [🎙]  Escribe tu respuesta...                   [→]       │  ← Toolbar
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Mockup: ChatComposer grabando voz
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  [●] 00:14  Grabando...          ▐▌▐▐▌▐▌▐▌   [□ Cancelar] [■] │  ← VoiceOverlay
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Mockup: ChatComposer slash open
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ┌────────────────────────────────────────────────────────┐     │
+│  │ / Buscar comando...                                    │     │
+│  │ ─────────────────────────────────────────────────────  │     │  ← SlashAutocomplete overlay
+│  │  /brand    Analiza tu Brand Studio                     │     │
+│  │  /oferta   Revisa tus ofertas                          │     │
+│  │  /funnel   Explica tu funnel                           │     │
+│  └────────────────────────────────────────────────────────┘     │
+│  [📎] [🎙]  /bra_                                     [→]       │  ← Toolbar (con texto parcial)
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Sub-componente: ChatComposer.TextArea
+
+- `Textarea` (Shadcn) con `resize: none`, `rows={1}`, auto-grow hasta `max-h-[140px]`.
+- `id="copilot-input"` — para el shortcut `Ctrl+K`.
+- `Enter` → enviar (si no hay slash open y no es recording).
+- `Shift+Enter` → newline.
+- `Escape` → si slash open: cerrar slash. Si reply preview: cancelar reply. Si ninguno: colapsar sidebar a estado anterior.
+- `disabled` cuando `isStreaming` o `voiceState !== "idle"`.
+
+### Sub-componente: ChatComposer.SendButton
+
+- Icono `Send` (Lucide) cuando `!isStreaming`.
+- Icono `Square` (Lucide, rojo) cuando `isStreaming` → click llama `onStop()`.
+- `disabled` cuando `!canSend && !isStreaming`.
+- `canSend = draft.trim().length > 0 || attachments.some(a => a.status === "uploaded")`.
+- aria-label: "Enviar" / "Detener respuesta".
+
+### Sub-componente: ChatComposer.AttachmentButton
+
+Reutiliza `AttachmentButton` existente con `accept` expandido:
+
+```typescript
+accept="image/*,audio/*,video/*,.pdf,.docx,.txt,.md,.pptx,.csv,.xlsx"
+```
+
+Drag-and-drop en el área del composer: el textarea acepta drop de archivos (evento `onDrop`). Paste de imagen desde clipboard (`onPaste` → detectar `items[i].type.startsWith("image/")`).
+
+### Sub-componente: ChatComposer.VoiceButton
+
+Reutiliza `VoiceButton` existente. Al hacer click cuando `idle`:
+1. Llama `startRecording()`.
+2. El `ChatComposer` reemplaza visualmente el `Toolbar` con `VoiceOverlay`.
+
+Al click cuando `recording` (o desde VoiceOverlay):
+- "Stop" → `stopRecording()` → obtiene transcript + blob.
+- Genera un `UploadedAttachment` de tipo `audio` (upload en paralelo al obtener transcript).
+- El transcript se inyecta en el draft del textarea.
+- El audio chip aparece en `AttachmentTray`.
+
+### Disabled states
+
+| Condición | Componentes deshabilitados |
+|-----------|---------------------------|
+| `isStreaming` | Textarea, SendButton (cambia a Stop), AttachmentButton, VoiceButton |
+| `voiceState === "recording"` | TextArea, AttachmentButton, SendButton |
+| `voiceState === "transcribing"` | TextArea, AttachmentButton, VoiceButton, SendButton |
+| Uploads pendientes al enviar | SendButton muestra spinner, texto "Esperando uploads..." |
+
+---
+
+## §4 Voice Recording UX
+
+### Estados del VoiceButton
+
+```
+idle  →  [click]  →  requesting-permission  →  recording  →  [stop]  →  transcribing  →  done
+                              ↓                     ↓
+                        denied (error)        [cancel]
+                                                    ↓
+                                                  idle
+```
+
+### Estados visuales del VoiceButton
+
+| Estado | Visual del botón | Componente de overlay |
+|--------|------------------|-----------------------|
+| `idle` | `Mic` icon, ghost border | ninguno |
+| `recording` | `Mic` icon rojo, pulsante, `border-red-500/50 bg-red-500/20` | `VoiceOverlay` reemplaza Toolbar |
+| `transcribing` | `Loader2` spin, `border-purple-500/30` | `VoiceOverlay` con "Transcribiendo..." |
+| `done` | vuelve a idle | ninguno |
+
+### VoiceOverlay
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  [●] 00:14  ▐▌▐▌▐▐▌▐▌▐▌ (waveform bars animados css)  [X] [■]  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+- `[●]` dot rojo pulsante.
+- Timer en `font-mono` (formato `mm:ss`).
+- Waveform: 8-12 barras `<div>` con alturas aleatorias animadas via CSS `@keyframes`. No requiere Web Audio API — es decorativo.
+- `[X]` Cancelar → `cancelRecording()` → descarta audio y transcript.
+- `[■]` Detener → `stopRecording()` → sigue al transcribing state.
+
+### Flujo post-stop
+
+```
+stopRecording() → Promise<string>  (transcript)
+     ↓ en paralelo
+uploadAudio(blob) → POST /copilot/media/upload → { asset_id, public_url, mime, size_bytes }
+     ↓ ambos resueltos
+setDraft(transcript)                    // prefill textarea con texto
+appendAttachment({                      // chip en AttachmentTray
+  kind: "audio",
+  file: audioBlob as File,
+  status: "uploaded",
+  assetId: asset_id,
+  publicUrl: public_url,
+  mimeType: mime,
+  transcript: transcript
+})
+```
+
+### Error handling
+
+| Error | UI feedback |
+|-------|-------------|
+| Permiso denegado (`NotAllowedError`) | `Alert` inline debajo del composer: "No se pudo acceder al micrófono. Verifica los permisos del navegador." |
+| Error de red al transcribir | `Alert` inline: "Error al transcribir. Intenta de nuevo." Botón "Reintentar" llama `stopRecording()` otra vez con el mismo blob (guardado en ref). |
+| Error de red al subir audio | Chip en estado `error` con botón "Reintentar upload". El mensaje puede enviarse solo con transcript (sin audio). |
+
+---
+
+## §5 Attachment Flow
+
+### Tipos aceptados y MIME validation
+
+| kind | MIMEs aceptados | Icono Lucide |
+|------|----------------|--------------|
+| `image` | `image/jpeg, image/png, image/gif, image/webp, image/svg+xml` | `Image` |
+| `audio` | `audio/webm, audio/mp4, audio/ogg, audio/mpeg, audio/wav` | `Mic` |
+| `video` | `video/mp4, video/webm, video/ogg` | `Video` |
+| `document` | `application/pdf, application/vnd.openxmlformats-officedocument.*,  text/plain, text/markdown, text/csv, application/vnd.ms-excel` | `FileText` |
+
+Validación en el cliente: si el MIME no encaja, mostrar `toast` error "Tipo de archivo no soportado: {name}". No añadir al tray.
+
+### Tamaño máximo
+
+- Imagen: 10MB. Audio: 25MB. Video: 100MB. Documento: 20MB.
+- Si excede: toast "El archivo {name} supera el límite de {N}MB."
+
+### Chip de attachment (AttachmentChip)
+
+Reemplaza `DocumentChip` con soporte multi-tipo:
+
+```typescript
+type AttachmentStatus = "pending" | "uploading" | "uploaded" | "error";
+
+interface AttachmentItem {
+  id: string;                   // uuid local
+  kind: "image" | "audio" | "video" | "document";
+  file: File;
+  status: AttachmentStatus;
+  progress: number;             // 0-100 durante uploading
+  assetId?: string;             // del server tras upload
+  publicUrl?: string;
+  mimeType?: string;
+  transcript?: string;          // solo para audio
+  error?: string;
+}
+```
+
+### Visual del chip por estado
+
+| Status | Visual |
+|--------|--------|
+| `pending` | Icono gris, nombre truncado, `[×]` para cancelar |
+| `uploading` | Progress bar debajo del nombre (usa `Progress` Shadcn), porcentaje |
+| `uploaded` | `CheckCircle2` verde, nombre, `[×]` para quitar |
+| `error` | `XCircle` rojo, "Error" label, botón "Reintentar" |
+
+Para imágenes en `uploaded`: thumbnail 32×32px con `object-fit: cover` antes del nombre.
+
+### Tray layout
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  🖼 foto.jpg ████████░░ 80%    📄 brief.pdf ✓  [×]             │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+- `flex-wrap gap-1.5` dentro de `AttachmentTray`.
+- Visible solo cuando `attachments.length > 0`.
+
+### Upload API
+
+```typescript
+// POST /copilot/media/upload (multipart/form-data)
+// Retorna: { asset_id: string, public_url: string, mime: string, size_bytes: number, kind: string }
+
+// La mutación React Query usa onUploadProgress para actualizar progress:
+const uploadMutation = useMutation({
+  mutationFn: (file: File) => uploadCopilotMedia(file, {
+    onProgress: (pct) => updateAttachmentProgress(id, pct)
+  }),
+  onSuccess: (data, _, id) => markAttachmentUploaded(id, data),
+  onError: (_, __, id) => markAttachmentError(id),
+});
+```
+
+### Envío con attachments pendientes
+
+Si hay uploads en `uploading` al click de Enviar:
+- El botón de Send muestra `Loader2` + "Esperando..." y está deshabilitado.
+- Cuando todos los uploads resuelven (success o error), el send se habilita.
+- Si alguno quedó en `error`, el usuario puede quitar el chip o reintentar antes de enviar.
+
+---
+
+## §6 Message Rendering — BlockDispatcher
+
+### Tipo canónico de bloque
+
+```typescript
+type BlockKind =
+  | "text" | "image" | "audio" | "video" | "document"
+  | "table" | "code" | "citation" | "card" | "tool_result" | "quote_reply";
+
+interface MessageBlock {
+  id: string;
+  kind: BlockKind;
+  // text
+  markdown?: string;
+  // image
+  url?: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+  // audio
+  audioUrl?: string;
+  audioMime?: string;
+  duration?: number;
+  transcript?: string;
+  // video
+  videoUrl?: string;
+  poster?: string;
+  // document
+  docUrl?: string;
+  filename?: string;
+  sizeBytes?: number;
+  // table
+  columns?: string[];
+  rows?: Record<string, string>[];
+  caption?: string;
+  recommended?: string;
+  // code
+  code?: string;
+  language?: string;
+  // citation
+  source?: string;
+  snippet?: string;
+  citationUrl?: string;
+  citationIndex?: number;
+  // card
+  cardType?: string;         // mapea al UIAction.type existente
+  cardData?: UIAction;
+  // tool_result
+  toolName?: string;
+  toolResult?: string;
+  isError?: boolean;
+  // quote_reply
+  quotedMessageId?: string;
+  quotedText?: string;       // preview truncado
+  quotedRole?: "user" | "assistant";
+  quotedTimestamp?: number;
+}
+```
+
+### BlockDispatcher
+
+```
+BlockDispatcher ("use client" — features/copilot/components/blocks/BlockDispatcher.tsx)
+  Recibe: block: MessageBlock
+  Despacha a:
+
+  "text"        → TextBlock
+  "image"       → ImageBlock
+  "audio"       → AudioBlock
+  "video"       → VideoBlock
+  "document"    → DocumentBlock
+  "table"       → TableBlock
+  "code"        → CodeBlock
+  "citation"    → CitationBlock
+  "card"        → CardBlock  →  dispatch por cardType al componente existente
+  "tool_result" → ToolResultBlock
+  "quote_reply" → QuoteReplyBlock
+```
+
+### TextBlock
+
+- **Librería:** `react-markdown` + `remark-gfm` + `rehype-sanitize`.
+- Soporte: tablas GFM, task lists, strikethrough, autolinks, code fences.
+- Code fences inline: `CodeBlock` anidado con Shiki (language highlight + copy button).
+- Streaming: `markdown` se concatena via `appendToLastAssistant` (ya implementado). El TextBlock re-renderiza con el string completo actualizado. El cursor pulsante `animate-pulse` se muestra mientras `isStreaming`.
+- Estilos via `prose prose-sm dark:prose-invert` de Tailwind Typography (o clases semánticas equivalentes si Tailwind Typography no está instalado — verificar en `globals.css`).
+- `rehype-sanitize` desactiva scripts, iframes, onclick. Preserva: links (con `rel="noopener noreferrer" target="_blank"`), imágenes (remoto permitido), tables, code.
+
+```
+TextBlock ARIA:
+  <div role="region" aria-label="Mensaje del asistente">
+    <div aria-live="polite" aria-atomic="false">
+      {markdown rendered}
+    </div>
+  </div>
+```
+
+### ImageBlock
+
+```
+┌────────────────────────────────────────┐
+│  [thumbnail 200px max-width, rounded]  │
+│  Alt text debajo en text-xs            │
+└────────────────────────────────────────┘
+```
+
+- Thumbnail clicable → lightbox (Dialog Shadcn, imagen a pantalla completa).
+- Loading: `Skeleton` mientras la imagen carga (usa `onLoad` + `useState(false)`).
+- Error fallback: placeholder gris con `ImageOff` (Lucide) icon.
+- `<img alt={alt ?? "Imagen adjunta"} loading="lazy">`.
+
+### AudioBlock
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  🎙 Audio (00:14)                                                │
+│  ▶  [────────●────────────────────────]  0:14 / 0:45            │
+│  ↓ Ver transcripción                                             │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ "El funnel de captación tiene tres etapas principales..."  │  │  ← collapsed por defecto
+│  └────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+- HTML5 `<audio>` con controles custom (play/pause, scrubber `<input type="range">`).
+- No se usa `<audio controls>` nativo — los controles nativos tienen estilos inconsistentes.
+- Velocidad: botón `1x / 1.5x / 2x` (cicla).
+- Transcripción: `Collapsible` (Shadcn), cerrado por defecto. Click "Ver transcripción" / "Ocultar".
+- ARIA: `role="region" aria-label="Reproductor de audio"`, `aria-label="Reproducir"` / `"Pausar"` en el botón.
+
+### VideoBlock
+
+- Thumbnail clickable (usa `poster` URL si disponible, o frame extraído del server).
+- Click → reproduce inline usando `<video>` con controles nativos.
+- No se usa un player custom para video (complejidad alta, controles nativos suficientes).
+- Loading skeleton mientras el video buffer.
+
+### DocumentBlock
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  📄  brief-proyecto.pdf          256 KB                         │
+│      [Abrir ↗]  [Descargar ↓]                                   │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+- Icono varía por extensión: `FileText` (PDF/TXT/MD), `Table2` (CSV/XLSX), `FileSpreadsheet` (XLSX), `Presentation` (PPTX), `File` (fallback).
+- `sizeBytes` formateado: `formatFileSize(bytes)` → "256 KB", "1.2 MB".
+- "Abrir" → `window.open(docUrl, "_blank", "noopener")`.
+- "Descargar" → `<a href={docUrl} download={filename}>`.
+
+### TableBlock
+
+- Usa `Table, TableHeader, TableBody, TableRow, TableHead, TableCell` de Shadcn.
+- `overflow-x-auto` en contenedor para scroll horizontal.
+- Caption opcional arriba de la tabla.
+- Mobile: las tablas largas (>4 columnas) colapsan a vista de cards (cada fila = card vertical). Implementado con CSS `@media (max-width: 640px)` en el componente.
+- Fila `recommended` highlight como en `ComparisonTable` existente (preservar comportamiento).
+
+### CodeBlock
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ python                                           [Copiar ✓]     │
+│ ─────────────────────────────────────────────────────────────── │
+│  def calcular_cac(spend, nuevos_clientes):                       │
+│      return spend / nuevos_clientes                              │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+- Shiki para syntax highlighting. Tema: `github-dark` en dark mode, `github-light` en light mode.
+- Si Shiki no está instalado aún: usar `<pre><code>` con clases de Tailwind (`bg-muted`, `font-mono text-xs`).
+- Botón "Copiar": `navigator.clipboard.writeText(code)` → estado "Copiado ✓" por 2s.
+- Label de lenguaje en `text-xs text-muted-foreground`.
+
+### CitationBlock
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  [1] Brand Studio — Identidad de marca                          │
+│      "Los pilares de metodología definen cómo..."  ▼ Ver más    │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+- Aparece debajo del `TextBlock` del mensaje assistant cuando el backend emite citas RAG.
+- `citationIndex` muestra el número `[1]`, `[2]`, etc.
+- `source` es el nombre del documento/sección.
+- `snippet` truncado a ~120 chars. `Collapsible` para ver completo.
+- `citationUrl` si disponible → link externo.
+- ARIA: `<aside aria-label="Fuente [N]">`.
+
+### CardBlock
+
+El `CardBlock` es el adaptador entre el nuevo modelo de bloques y los componentes de cards existentes. Usa el mismo dispatch que `AssistantMessage.renderUIAction`:
+
+```typescript
+// features/copilot/components/blocks/CardBlock.tsx
+function CardBlock({ block }: { block: MessageBlock }) {
+  if (!block.cardData) return null;
+  return renderUIAction(block.cardData, 0, block.id, sendCardAction);
+}
+```
+
+Todos los componentes existentes (`ProposalCard`, `AlternativesCard`, `CheckpointCard`, `ClarifyCard`, `InterviewCompleteCard`, `MetricSummaryCard`, `ComparisonTable`, `ProgressChecklist`, `MultiOptionSelector`, `NavigationCard`) se preservan sin cambios. Solo cambia el mecanismo de invocación.
+
+### ToolResultBlock
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  🔧 brand_health_check  ▼                                        │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  { "health_score": 72, "missing": ["methodology"] }       │  │  ← Collapsible, cerrado
+│  └────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+- `Collapsible` cerrado por defecto.
+- Si `isError`: borde rojo, icono `AlertCircle`.
+- El result se renderiza como JSON formateado en `<pre>` si es parseable, texto plano si no.
+
+### QuoteReplyBlock
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  ┊  Tú · hace 5 min                                              │
+│  ┊  "¿Cómo está mi funnel de captación?"                        │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+- Borde izquierdo `border-l-2 border-muted-foreground/40`.
+- `quotedRole`: "Tú" si `user`, nombre del asistente si `assistant`.
+- `quotedText` truncado a 100 chars + "..." si más largo.
+- Click → scroll al mensaje original (usa `document.getElementById(quotedMessageId)?.scrollIntoView`).
+- ARIA: `aria-label="Mensaje citado de {role}"`.
+
+### Message wrapper por rol
+
+```
+AssistantMessageV2 ("use client"):
+  <div class="flex gap-2.5 animate-in slide-in-from-bottom-2">
+    <SparklesAvatar />   ← avatar circular 28px, purple-100/purple-900
+    <div class="max-w-[85%] space-y-2">
+      {blocks.map(block => <BlockDispatcher key={block.id} block={block} />)}
+    </div>
+  </div>
+
+UserMessageV2 ("use client"):
+  <div class="flex justify-end animate-in slide-in-from-bottom-2">
+    <div class="max-w-[85%] space-y-1.5">
+      {blocks.map(block => <BlockDispatcher key={block.id} block={block} />)}
+    </div>
+  </div>
+```
+
+User messages: el bloque de texto tiene `bg-purple-600 text-white rounded-2xl rounded-br-sm`. Los attachments del usuario se muestran como `DocumentBlock`/`ImageBlock`/`AudioBlock` con estilo invertido (sobre fondo morado).
+
+### Adapter: CopilotMessage legacy → MessageBlock[]
+
+Para compatibilidad con el store actual (donde `content: string` y `uiActions: UIAction[]`):
+
+```typescript
+// features/copilot/utils/message-adapter.ts
+function adaptLegacyMessage(msg: CopilotMessage): MessageBlock[] {
+  const blocks: MessageBlock[] = [];
+  if (msg.content) {
+    blocks.push({ id: `${msg.id}-text`, kind: "text", markdown: msg.content });
+  }
+  msg.uiActions?.forEach((action, idx) => {
+    blocks.push({
+      id: `${msg.id}-card-${idx}`,
+      kind: "card",
+      cardType: action.type,
+      cardData: action,
+    });
+  });
+  return blocks;
+}
+```
+
+Esta función se usa en `AssistantMessageV2` y `UserMessageV2`. El store puede opcionalmente migrar a `blocks[]` en una fase posterior.
+
+---
+
+## §7 Streaming UX
+
+### Estados del mensaje en streaming
+
+```
+status: "thinking" + NO placeholder en messages → mostrar TypingIndicator
+status: "streaming" + placeholder en messages  → mostrar TextBlock con cursor
+status: "done"                                  → TextBlock finalizado, quitar cursor
+```
+
+El cursor pulsante es `<span class="inline-block h-4 w-0.5 animate-pulse bg-purple-500">` (ya implementado, preservar).
+
+### Block streaming
+
+El backend puede emitir eventos:
+- `block_append`: nuevo bloque añadido al mensaje en curso → `store.addBlock(msgId, block)`
+- `block_update`: actualización del último bloque (text concat) → `store.updateLastBlock(msgId, chunk)`
+- `text_chunk` (legacy): concatenar al último `TextBlock` (compatibilidad hacia atrás)
+
+El `TextBlock` re-renderiza de forma eficiente. Dado que `react-markdown` re-parsea en cada render, para mensajes largos en streaming se puede mostrar texto plano (sin MD) durante el streaming y cambiar a MD al finalizar. Decisión: implementar ambos y elegir en `ChatPanelV2` según `isStreaming`.
+
+### Stop button
+
+Cuando `status === "streaming"` o `status === "thinking"`, el `ChatComposer.SendButton` muestra `Square` rojo con aria-label "Detener respuesta". Click → `onStop()` → el hook `useCopilotChat` llama al `AbortController.abort()`.
+
+Tras el abort: el mensaje queda con los bloques ya recibidos. El store pone `status: "done"`. No se muestra error — es una acción voluntaria del usuario.
+
+### scroll-to-bottom inteligente
+
+El scroll auto-sticks al fondo mientras el usuario no haya hecho scroll manual hacia arriba. Si el usuario scrolleó up durante streaming (para releer), NO se fuerza scroll al fondo con cada chunk. Se muestra un botón flotante "↓ Ir al final" que re-activa el stick.
+
+El virtualizer `@tanstack/react-virtual` se mantiene. Para bloques con altura variable (imágenes, audio), `estimateSize` se ajusta:
+- `text`: 60px base + ~20px por línea estimada.
+- `image`: 240px.
+- `audio`: 120px.
+- `video`: 200px.
+- `card`: 180px.
+- `document`: 72px.
+- `code`: 100px.
+- Default: 80px.
+
+`measureElement` corrige las estimaciones una vez el DOM renderiza.
+
+---
+
+## §8 Reply-Quote Interaction
+
+### Trigger
+
+- **Desktop hover:** hover sobre un mensaje → menú contextual aparece a la derecha del bubble con botón `Reply` (icono `CornerUpLeft` Lucide).
+- **Mobile long-press:** `onContextMenu` o `onTouchStart` con timer 500ms → bottom sheet con opciones.
+- **Solo opción por ahora:** "Responder". (Copiar y "Compartir" son futuras.)
+
+### Flujo
+
+```
+1. Usuario hover/long-press sobre mensaje M
+2. Click "Responder"
+3. ChatComposer.ReplyPreview aparece con:
+   - role label ("Tú" / asistente)
+   - quotedText primeros 100 chars
+   - botón [×] para cancelar
+4. setReplyTo({ messageId: M.id, preview: M.text.slice(0, 100), role: M.role })
+5. Focus al textarea automáticamente
+6. Usuario escribe y envía
+7. ComposerPayload incluye replyToMessageId + replyToPreview
+8. Backend recibe reply context
+9. Mensaje user generado incluye QuoteReplyBlock como primer bloque
+10. setReplyTo(null) tras envío
+```
+
+### ReplyPreview visual
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  ┊  Respondiendo a:  Tú · hace 3 min                            │
+│  ┊  "¿Cuándo debo lanzar mi oferta premium?"                    │
+│                                              [× Cancelar reply] │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+- `border-l-2 border-accent` + `bg-accent/5` + `rounded-r-md`.
+- Botón `[×]` con `aria-label="Cancelar respuesta"`.
+
+---
+
+## §9 Suggested Chips (Smart)
+
+### Componente: SuggestedChips
+
+```
+// [COPILOT-SUGGESTIONS-ENGINE]
+// Anchor para el motor de sugerencias dinámicas.
+// Hoy: array estático por ruta (ver SuggestedActions.tsx existente).
+// Futuro: POST /copilot/suggestions → { chips: { label, prompt }[] }
+//         con contexto de ruta + historial reciente + campos incompletos.
+// El contrato de datos del hook useSuggestions() debe mantenerse estable.
+```
+
+```typescript
+// hooks/use-suggestions.ts
+interface SuggestionChip {
+  id: string;
+  label: string;
+  prompt: string;
+  icon?: string;    // nombre de icono Lucide, futuro
+}
+
+function useSuggestions(): { chips: SuggestionChip[]; isLoading: boolean } {
+  // [COPILOT-SUGGESTIONS-ENGINE] stub: return from ROUTE_SUGGESTIONS map
+  const currentRoute = useCopilotStore(s => s.currentRoute);
+  return { chips: getSuggestionsForRoute(currentRoute), isLoading: false };
+}
+```
+
+### Layout
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ ←fade  [💡 ¿Qué me falta?] [📊 Mis métricas] [✍️ UVP] [...]  fade→ │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+- `flex overflow-x-auto gap-2 px-1 py-1` sin scrollbar visible (`scrollbar-hide` class).
+- Fade edges: `mask-image: linear-gradient(to right, transparent, black 8px, black calc(100% - 8px), transparent)`.
+- Cada chip: `Button variant="outline" size="sm"` con `rounded-full`, `text-xs`, `whitespace-nowrap`.
+- Click en chip → `setDraft(chip.prompt)` + foco en textarea (el usuario puede editar antes de enviar).
+- `SuggestedChips` se oculta cuando `messages.length > 0` (hay conversación activa). Solo visible al inicio.
+
+---
+
+## §10 Context Chips
+
+Integración del `ContextChips.tsx` existente en el `ChatComposer`:
+
+- Se posiciona entre `AttachmentTray` y la `Toolbar` (o entre ReplyPreview y Toolbar si hay reply).
+- Misma lógica existente: lee `selectedFields` del store, permite remover por campo.
+- **Cambio:** límite visual de 3 chips visibles + "+N más" expandible (evitar que el composer crezca mucho con contexto largo).
+  - Si `selectedFields.length <= 3`: mostrar todos.
+  - Si `selectedFields.length > 3`: mostrar 3 + badge `+N más` clicable → expande a lista completa inline.
+- Botón "Limpiar todo" solo visible cuando `selectedFields.length > 1`.
+- Se mantiene el `Badge variant="secondary"` purple existente.
+
+---
+
+## §11 Interaction Matrix
+
+| Acción del usuario | Componente | Resultado | Edge cases |
+|--------------------|-----------|-----------|-----------|
+| Typing en textarea | `ChatComposer.TextArea` | `setDraft(value)`, auto-grow hasta 140px | `/` al inicio → abrir SlashAutocomplete |
+| `Enter` (sin Shift) | `ChatComposer.TextArea` | `handleSend()` si `canSend` | Ignorado si slash open; ignorado si `isStreaming` |
+| `Shift+Enter` | `ChatComposer.TextArea` | Newline en textarea | — |
+| `Escape` | `ChatComposer.TextArea` | 1) Cerrar slash si open; 2) Cancelar reply si reply; 3) Colapsar sidebar | Prioridad en orden |
+| Click `/` chip del slash | `SlashAutocomplete` | `setDraft("/${cmd.name} ")` + foco textarea | — |
+| Click paperclip | `ChatComposer.AttachmentButton` | Abrir file picker (multi, todos los tipos) | Si `isStreaming` → deshabilitado |
+| Drag-drop archivo en textarea | `ChatComposer.TextArea` | `onDrop` → añadir al AttachmentTray | Solo archivos (no texto) |
+| Paste imagen del clipboard | `ChatComposer.TextArea` | `onPaste` → detectar imagen → añadir attachment | Solo si items[i].type es imagen |
+| Click micrófono (idle) | `ChatComposer.VoiceButton` | `startRecording()` → VoiceOverlay | Si permiso denegado → Alert error |
+| Click Stop (VoiceOverlay) | `VoiceOverlay` | `stopRecording()` → transcript en draft + audio chip | Si red falla → Alert retry |
+| Click Cancelar (VoiceOverlay) | `VoiceOverlay` | `cancelRecording()` → descarta todo | — |
+| Click Enviar (canSend) | `ChatComposer.SendButton` | `onSend(payload)` → clear composer | Si uploads pendientes → spinner |
+| Click Stop (isStreaming) | `ChatComposer.SendButton` | `onStop()` → AbortController.abort() | Mensaje queda con bloques parciales |
+| Hover mensaje | `AssistantMessageV2 / UserMessageV2` | Mostrar menú contextual con "Responder" | Solo si no en streaming |
+| Click "Responder" | Menú contextual | `setReplyTo(...)` + foco textarea | — |
+| Click `[×]` en ReplyPreview | `ChatComposer.ReplyPreview` | `setReplyTo(null)` | — |
+| Click chip sugerencia | `SuggestedChips` | `setDraft(chip.prompt)` + foco | — |
+| Click `[×]` en ContextChip | `ChatComposer.ContextChips` | `removeSelectedField(fieldId)` | — |
+| Click `[×]` en AttachmentChip | `AttachmentTray` | Remover de attachments | Si `uploading` → cancelar upload |
+| "Reintentar" upload error | `AttachmentChip` | Re-lanzar `uploadMutation.mutate(file)` | — |
+| Click thumbnail imagen | `ImageBlock` | Abrir lightbox `Dialog` | Escape cierra lightbox |
+| Click "Ver transcripción" | `AudioBlock` | `Collapsible` se abre | — |
+| Click cita | `QuoteReplyBlock` | scroll al mensaje original | Si no está en DOM (virtualizer) → scroll to index |
+| Long-press mobile (500ms) | Mensaje | Bottom Sheet con "Responder" | cancelar si touch move > 10px |
+| Draft preservado al cerrar chat | `ChatComposer` | `localStorage.setItem("copilot.draft", draft)` + restaurar en mount | Solo si draft no vacío |
+| Nueva conversación | `CopilotRail` `Plus` | `createConversation()` + `clearDraft()` | — |
+| Abrir conversación del historial | `ConversationItem` | `clearDraft()` + load messages | — |
+
+---
+
+## §12 Data Flow
+
+### Flujo completo de envío
+
+```
+User types → ChatComposer local state (draft)
+     ↓
+Click Enviar
+     ↓
+ChatComposer.handleSend()
+  → await pending uploads
+  → build ComposerPayload { text, attachments, replyToMessageId }
+  → onSend(payload)
+     ↓
+CopilotChatPanel.handleSend(payload)
+  → addMessage({ role: "user", blocks: buildUserBlocks(payload) })  // store
+  → addMessage({ role: "assistant", blocks: [], status: "thinking" }) // placeholder
+  → setStatus("thinking")
+  → useCopilotChat.sendMessage(payload)
+     ↓
+streamCopilotChat(chatPayload, callbacks, token)
+  → POST /api/v1/copilot/chat (SSE stream)
+     ↓
+SSE eventos:
+  "text_chunk" → store.appendToLastTextBlock(chunk)
+  "block_append" → store.addBlockToLastAssistant(block)
+  "tool_result" → store.addBlockToLastAssistant(toolResultBlock)
+  "ui_action"  → store.addBlockToLastAssistant(cardBlock)  [adapter]
+  "status"     → store.setStatus(state)
+  "done"       → store.setStatus("done"), setConversationId(id)
+  "error"      → store.setStatus("done"), addErrorBlock
+     ↓
+BlockDispatcher renders blocks in AssistantMessageV2
+```
+
+### Dónde vive cada estado
+
+| Estado | Ubicación |
+|--------|-----------|
+| `draft` (texto en composición) | `ChatComposer` local state + `localStorage` |
+| `attachments[]` | `ChatComposer` local state |
+| `replyTo` | `ChatComposer` local state |
+| `voiceState` | `ChatComposer` local state |
+| `messages[]` | `copilot-store` (Zustand) |
+| `status` | `copilot-store` |
+| `sidebarState` | `copilot-store` + `localStorage` |
+| `selectedFields[]` | `copilot-store` |
+| `conversationId` | `copilot-store` |
+| `uploadProgress` por archivo | `ChatComposer` local state (via attachments[].progress) |
+| `suggestions[]` | `useSuggestions` hook (stub → React Query futuro) |
+
+---
+
+## §13 Store Extensions Required
+
+El `copilot-store.ts` actual requiere las siguientes extensiones:
+
+### 1. Migrar CopilotMessage a soporte de blocks
+
+```typescript
+// Extensión backward-compatible — preservar `content` y `uiActions` para compatibilidad
+interface CopilotMessage {
+  id: string;
+  role: MessageRole;
+  content: string;         // PRESERVAR — usado por legacy adapter
+  timestamp: number;
+  toolCalls?: { ... };     // PRESERVAR
+  uiActions?: UIAction[];  // PRESERVAR
+  blocks?: MessageBlock[]; // NUEVO — si presente, BlockDispatcher lo usa; si null, adapter corre
+  status?: "thinking" | "streaming" | "done" | "error"; // NUEVO — por mensaje
+}
+```
+
+### 2. Nuevas acciones del store
+
+```typescript
+// Agregar al CopilotState:
+addBlockToLastAssistant: (block: MessageBlock) => void;
+updateLastTextBlock: (chunk: string) => void;  // reemplaza appendToLastAssistant internamente
+setMessageStatus: (msgId: string, status: CopilotMessage["status"]) => void;
+```
+
+### 3. NO agregar al store Zustand
+
+- `draft` — local de ChatComposer.
+- `attachments` — local de ChatComposer.
+- `uploadProgress` — local de ChatComposer.
+- `replyTo` — local de ChatComposer.
+- `voiceState` — local de ChatComposer (derivado de `useVoiceRecorder`).
+
+### 4. Suggestions placeholder
+
+```typescript
+// En el store: no agregar nada.
+// El stub vive en hooks/use-suggestions.ts como hook independiente.
+// Cuando el motor real esté listo, el hook cambia internamente sin tocar el store.
 ```
 
 ---
 
-## 4. React Query Hooks
+## §14 Accessibility
 
-**Location:** `frontend/src/features/copilot/hooks/`
+### ARIA completo por componente
 
-| Hook | File | API Endpoint | Trigger | Notes |
-|------|------|--------------|---------|-------|
-| `useConversationList` | `use-conversation-list.ts` | `GET /api/v1/copilot/conversations?limit=6&cursor=` | Mount + "Cargar más" | Infinite query via `useInfiniteQuery`; staleTime 30s |
-| `useCreateConversation` | `use-create-conversation.ts` | `POST /api/v1/copilot/conversations` | Click "+" / "N" shortcut | Optimistic: prepend to list; on success setConversationId |
-| `usePatchConversation` | `use-patch-conversation.ts` | `PATCH /api/v1/copilot/conversations/{id}` | Inline rename / archive | Optimistic update item in list; rollback on error |
-| `useDeleteConversation` | `use-delete-conversation.ts` | `DELETE /api/v1/copilot/conversations/{id}` | Kebab "Archivar" | Optimistic remove; invalidate list on settle |
-| `useRevertMutations` | `use-revert-mutations.ts` | `POST /api/v1/copilot/conversations/{id}/revert` | MutationUndoButton confirm | Toast with `reverted_count` on success |
-| `useSlashCommands` | `use-slash-commands.ts` | `GET /api/v1/copilot/commands` | Slash "/" keypress | staleTime 5min; cached aggressively |
-| `useMutationJournal` | `use-mutation-journal.ts` | `GET /api/v1/copilot/conversations/{id}/mutations` (TBD) | Chat header mount | Determine if undo button visible |
+| Componente | ARIA |
+|-----------|------|
+| `ChatComposer` | `role="form" aria-label="Compositor de mensaje"` |
+| `ChatComposer.TextArea` | `id="copilot-input"`, `aria-label="Mensaje"`, `aria-multiline="true"` |
+| `ChatComposer.SendButton` | `aria-label="Enviar"` / `"Detener respuesta"` |
+| `ChatComposer.AttachmentButton` | `aria-label="Adjuntar archivo"` |
+| `ChatComposer.VoiceButton` | `aria-label="Grabar audio"` / `"Detener grabación"` |
+| `ChatComposer.ReplyPreview` | `aria-label="Respondiendo a {role}"` |
+| `ChatComposer.SlashAutocomplete` | `role="listbox"`, items `role="option"` |
+| `VoiceOverlay` | `role="status" aria-live="assertive"` con duración |
+| `AssistantMessageV2` | `role="region" aria-label="Respuesta del asistente"` |
+| `UserMessageV2` | `role="region" aria-label="Tu mensaje"` |
+| `ImageBlock lightbox` | `Dialog` Shadcn → focus trap automático |
+| `AudioBlock player` | `role="group" aria-label="Reproductor de audio"` |
+| `ToolResultBlock` | `aria-label="Resultado de herramienta: {toolName}"` |
+| `QuoteReplyBlock` | `aria-label="Mensaje citado"` |
+| Streaming indicator | `aria-live="polite" aria-atomic="false"` en el contenedor del TextBlock |
+| Upload progress | `aria-label="{filename}: {pct}% subido"`, `role="progressbar" aria-valuenow={pct}` |
 
-**fetchClient** must be used in all `api/` functions (injects `X-Tenant-ID`).
+### Keyboard navigation
 
----
+- Tab navega: rail buttons → composer buttons → textarea → send.
+- En SlashAutocomplete: Arrow Up/Down navega items, Enter selecciona, Escape cierra.
+- En Lightbox: Escape cierra, Arrow Left/Right para galería (futuro).
+- AudioBlock: Space = play/pause, Arrow Left/Right ±5s.
+- `ChatComposer.ContextChips`: cada chip tiene `tabIndex={0}`, Enter/Space remueve.
 
-## 5. Components
+### Screen reader streaming
 
-### 5.1 CopilotSidebar
+```html
+<!-- Región de mensajes con aria-live -->
+<div role="log" aria-live="polite" aria-label="Conversación">
+  {messages.map(msg => <MessageWrapper key={msg.id} ... />)}
+</div>
+```
 
-**Path:** `frontend/src/features/copilot/components/CopilotSidebar.tsx`
-**Type:** Client Component (`"use client"`)
-**Props:** none — reads `useCopilotStore`
+El `role="log"` es el correcto para conversaciones (anuncia adiciones automáticamente). `aria-live="polite"` no interrumpe al usuario.
 
-**Layout (CSS grid, right-anchored):**
+### Reduced motion
 
 ```css
-.copilot-root {
-  display: grid;
-  grid-template-columns:
-    var(--history-w, 0px)   /* 0 | 280px */
-    var(--chat-w, 0px)      /* 0 | 380px | 400px */
-    60px;                   /* rail — always */
-  transition: grid-template-columns 220ms cubic-bezier(.2,.8,.2,1);
+@media (prefers-reduced-motion: reduce) {
+  /* Quitar animaciones de entrada de mensajes */
+  .animate-in { animation: none; }
+  /* Quitar cursor pulsante */
+  .animate-pulse { animation: none; }
+  /* Mantener waveform como barras estáticas */
+  [data-waveform] > div { animation: none; height: 4px; }
 }
 ```
 
-State → CSS variable values:
+---
 
-| State | `--history-w` | `--chat-w` |
-|-------|--------------|-----------|
-| `collapsed` | 0px | 0px |
-| `rail` | 0px | 380px |
-| `full` | 280px | 400px |
+## §15 Performance
 
-**Keyboard shortcut handler** (document-level `keydown`, skip if focus in input/textarea):
+### Virtualizer con block heights variables
 
-| Key | Action |
-|-----|--------|
-| `C` | `setSidebarState("collapsed")` |
-| `R` | `setSidebarState("rail")` |
-| `F` | `setSidebarState("full")` |
-| `N` | `useCreateConversation().mutate()` |
-| `Ctrl+K` / `Cmd+K` | Focus `#copilot-input` |
-| `Esc` (in textarea) | `setSidebarState("rail")` |
+El virtualizer `@tanstack/react-virtual` se mantiene con `measureElement` para corrección de altura post-render.
 
-**A11y:** `aria-expanded={sidebarState !== "collapsed"}` on root. `aria-live="polite"` region announces state changes.
+`estimateSize` por tipo de bloque:
+
+```typescript
+function estimateBlockHeight(block: MessageBlock): number {
+  switch (block.kind) {
+    case "text":     return 72 + Math.ceil((block.markdown?.length ?? 0) / 80) * 20;
+    case "image":    return 260;
+    case "audio":    return 128;
+    case "video":    return 220;
+    case "document": return 72;
+    case "table":    return 160 + (block.rows?.length ?? 0) * 36;
+    case "code":     return 96 + (block.code?.split("\n").length ?? 0) * 18;
+    case "card":     return 200;
+    case "citation": return 80;
+    case "tool_result": return 100;
+    case "quote_reply": return 72;
+    default:         return 80;
+  }
+}
+
+// Un mensaje puede tener múltiples bloques — el estimateSize del mensaje es la suma:
+function estimateMsgHeight(msg: CopilotMessage): number {
+  const blocks = msg.blocks ?? adaptLegacyMessage(msg);
+  return blocks.reduce((acc, b) => acc + estimateBlockHeight(b), 24); // 24px padding
+}
+```
+
+### Lazy loading
+
+- Imágenes: `loading="lazy"` nativo.
+- Audio/Video: `preload="none"` — el browser no pre-descarga media no visible.
+- `IntersectionObserver` en `AudioBlock` para pausar si sale del viewport.
+
+### Scroll anchor
+
+```typescript
+// En CopilotChatPanel:
+const [isUserScrolled, setIsUserScrolled] = useState(false);
+
+const handleScroll = () => {
+  const el = scrollRef.current;
+  if (!el) return;
+  const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+  setIsUserScrolled(!isAtBottom);
+};
+
+useEffect(() => {
+  if (!isUserScrolled) {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
+  }
+}, [messages, isUserScrolled]);
+```
+
+El botón "↓ Ir al final" aparece como badge flotante sobre el composer cuando `isUserScrolled && isStreaming`.
 
 ---
 
-### 5.2 CopilotRail
+## §16 Mobile Adaptations
 
-**Path:** `frontend/src/features/copilot/components/CopilotRail.tsx`
-**Type:** Client Component
-**Props:** none
-
-**Contents by state:**
-
-`collapsed`:
-1. Toggle button — icon `ChevronLeft` → sets `"rail"` — `aria-label="Abrir copilot"`
-2. Button `+` — icon `Plus` → `useCreateConversation` — `aria-label="Nueva conversación"`
-3. `Separator` (Shadcn)
-4. Up to 6 conversation avatars (40×40 px, 2-letter initials from title)
-   - Active avatar: `box-shadow: 0 0 0 2px white, 0 0 0 3.5px var(--color-accent)`
-   - Hover: `Tooltip` (Shadcn, side="left") shows title
-5. Text "más" → `setSidebarState("full")` — `aria-label="Ver todas las conversaciones"`
-
-`rail`:
-1. Toggle button — icon `ChevronRight` → sets `"full"` — `aria-label="Expandir historial"`
-2. Button `+` — icon `Plus`
-3. `Separator`
-
-`full`:
-1. Toggle button — icon `ChevronLeft` (double) → sets `"collapsed"` — `aria-label="Cerrar copilot"`
-2. Button `+`
-3. `Separator`
-
-**Tailwind classes (rail column):**
-```
-flex flex-col items-center gap-2 w-[60px] border-l border-border bg-background px-2 py-3
-```
-
-**Shadcn:** `Button variant="ghost" size="icon"`, `Tooltip`, `Separator`
-
----
-
-### 5.3 CopilotHistoryPanel
-
-**Path:** `frontend/src/features/copilot/components/CopilotHistoryPanel.tsx`
-**Type:** Client Component
-**Props:** none — reads store + `useConversationList`
-
-**Layout:**
-
-```
-┌─────────────────────────┐
-│ Conversaciones      [X] │  ← h2 title + close hint
-├─────────────────────────┤
-│ [+ Nueva conversación ] │  ← Button full-width accent
-├─────────────────────────┤
-│ Hoy                     │  ← section label (text-xs uppercase text-muted)
-│  ■ Mi estrategia de...  │  ← active item (bg-accent/10 border-l-2 border-accent)
-│    hace 5 min · mini ·3 │
-│  ○ Buyer persona...     │
-│    hace 2 h · nano ·7   │
-├─────────────────────────┤
-│ Ayer                    │
-│  ○ Oferta webinar...    │
-├─────────────────────────┤
-│ [  Cargar 6 más  ]      │  ← ghost button, centered
-└─────────────────────────┘
-```
-
-**Conversation item states:**
-- Default: `hover:bg-muted/60 cursor-pointer rounded-md px-2 py-1.5`
-- Active: `bg-accent/10 border-l-2 border-accent rounded-r-md pl-[6px]`
-- Procedure active: prepend `target` icon (Lucide `Target`, 12px) + `{coverage}%` badge
-
-**Inline rename:**
-- Double-click title → replace `<span>` with `<Input>` (Shadcn Input)
-- `Enter` → `usePatchConversation(id).mutate({ title })` → revert to span
-- `Esc` → cancel, revert to original
-- Input: `max-length="120"`, `autoFocus`
-
-**Kebab menu (DropdownMenu):** appears on item hover (icon `MoreHorizontal`):
-- "Renombrar" → triggers inline rename
-- "Archivar" → `useDeleteConversation(id).mutate()`
-
-**Sections grouping logic** (computed in hook `use-conversation-groups.ts`):
-
-| Section label | Condition |
-|---------------|-----------|
-| Hoy | `updatedAt` = today |
-| Ayer | `updatedAt` = yesterday |
-| Últimos 7 días | `updatedAt` within last 7 days |
-| Anterior | older |
-
-Only non-empty sections render. Empty history → empty state (see §8).
-
-**Shadcn:** `ScrollArea`, `DropdownMenu`, `Button`, `Input`, `Tooltip`
-
----
-
-### 5.4 CopilotChatPanel
-
-**Path:** `frontend/src/features/copilot/components/CopilotChatPanel.tsx`
-**Type:** Client Component
-**Props:** none — reads store
-
-**Sub-sections:**
-
-#### Header
-```
-┌─────────────────────────────────┐
-│ [Mi estrategia de marca]  [↩ 3] │
-│ mini · hace 5 min               │
-│ [Buyer persona · bloque 3 de 5] │  ← ProcedureProgress (if active)
-└─────────────────────────────────┘
-```
-
-- Title: click to edit inline (same pattern as history panel rename)
-- `[↩ 3]`: `MutationUndoButton` — shows count of reversible mutations; hidden if 0
-- Meta line: last tier chip + relative timestamp
-- `ProcedureProgress` (existing component) shows when `session.procedure === "interview"`
-
-#### Message list
-
-- `ScrollArea` wrapping message stack
-- Each assistant message:
-  - `TierChip` top-right corner of bubble (appears after `tier_decision` SSE)
-  - Text rendered with markdown (existing pattern)
-  - UI action cards below text (existing)
-  - `PlanCard` when SSE `plan_proposed` received (new)
-- Streaming: typing indicator (3-dot animation, `aria-label="El copilot está escribiendo"`)
-- Auto-scroll to bottom on new message
-
-#### ContextRotBanner
-
-Rendered between message list and input (see §5.8).
-
-#### Input area
+### Layout mobile (<768px)
 
 ```
 ┌──────────────────────────────────┐
-│ Escribe un mensaje...            │
-│                             [→]  │
+│         PAGE CONTENT             │
+│                                  │
+│                          [●]     │  ← FAB circular 44px, bottom-right, collapsed
+└──────────────────────────────────┘
+
+Al expandir → Sheet (Shadcn) fullscreen desde derecha:
+
+┌──────────────────────────────────┐
+│  ╔══════════════════════════════╗ │
+│  ║  [← Cerrar]    Chat · o4   ║ │  ← Sheet header
+│  ╠══════════════════════════════╣ │
+│  ║  mensajes...                ║ │
+│  ║                             ║ │
+│  ╠══════════════════════════════╣ │
+│  ║  [composer]                 ║ │  ← sticky bottom
+│  ╚══════════════════════════════╝ │
 └──────────────────────────────────┘
 ```
 
-- `Textarea` (Shadcn, `id="copilot-input"`, `rows={1}`, auto-grow to max 5 rows)
-- `/` at start of input triggers `SlashCommandAutocomplete`
-- Send button: `aria-label="Enviar"`, disabled while `status === "thinking" | "streaming"`
-- `Enter` sends (without modifier); `Shift+Enter` newline
-- `Esc` collapses sidebar to `"rail"`
+- FAB: `position: fixed; bottom: 1rem; right: 1rem; z-index: 50`. Icono `Sparkles` (Lucide). Muestra badge rojo con cuenta de mensajes no leídos si hay.
+- `Sheet side="right"` fullscreen: `w-screen h-screen` en mobile.
+- En `full` mobile: `Tabs` "Chat" / "Historial" en el header del Sheet.
+- Composer en mobile: `position: sticky; bottom: 0`. `padding-bottom: env(safe-area-inset-bottom)`. Cuando el teclado virtual aparece, el CSS `height: 100dvh` garantiza que el composer sube.
 
-**Shadcn:** `ScrollArea`, `Textarea`, `Button`
-
----
-
-### 5.5 SlashCommandAutocomplete
-
-**Path:** `frontend/src/features/copilot/components/SlashCommandAutocomplete.tsx`
-**Type:** Client Component
-**Props:** `{ query: string; onSelect: (command: SlashCommand) => void; onDismiss: () => void }`
-
-- Triggered when input value starts with `/`
-- Fetches commands via `useSlashCommands()` (staleTime 5min)
-- Filters by `query` (the text after `/`)
-- Renders as `Popover` anchored above the input (side="top")
-- Inner content: `Command` (Shadcn) with `CommandList` + `CommandItem` per command
-
-```
-┌────────────────────────┐
-│ /llena                 │  ← CommandInput (mirrors textarea value)
-├────────────────────────┤
-│ /llena-identidad       │
-│  Completa identidad de marca
-│ /llena-oferta          │
-│  Completa sección de oferta
-└────────────────────────┘
-```
-
-- Arrow keys navigate, `Enter` selects, `Esc` calls `onDismiss`
-- On select: replaces `/...` with command text in textarea
-- Loading: `Skeleton` rows while fetching
-- Empty: "No hay comandos para '{query}'"
-
-**Shadcn:** `Popover`, `Command`, `CommandInput`, `CommandList`, `CommandItem`, `Skeleton`
-
----
-
-### 5.6 PlanCard
-
-**Path:** `frontend/src/features/copilot/components/PlanCard.tsx`
-**Type:** Client Component
-**Props:**
-```typescript
-interface PlanCardProps {
-  msgId: string;
-  steps: PlanStep[];
-  estimatedCostUsd: number;
-  status: "pending" | "approved" | "rejected";
-  onApprove: () => void;
-  onReject: () => void;
-}
-
-interface PlanStep {
-  order: number;
-  label: string;
-  toolName: string;
-  estimatedTokens: number;
-}
-```
-
-**Layout:**
-
-```
-┌─────────────────────────────────┐
-│ Plan propuesto          [heavy] │
-├─────────────────────────────────┤
-│  1. Analizar identidad de marca │
-│  2. Revisar métricas de funnel  │
-│  3. Proponer estrategia         │
-├─────────────────────────────────┤
-│ Costo estimado: ~$0.02          │
-│                                 │
-│ [Rechazar]        [Aplicar]     │
-└─────────────────────────────────┘
-```
-
-- Appears when SSE event `plan_proposed` arrives
-- Status `approved`: buttons hidden, green checkmark + "Aplicado"
-- Status `rejected`: buttons hidden, muted "Rechazado"
-- "Aplicar" → `POST /api/v1/copilot/plan/{msgId}/approve` (stub endpoint, deferred)
-- "Rechazar" → `POST /api/v1/copilot/plan/{msgId}/reject` (stub, deferred)
-
-**Shadcn:** `Card`, `CardHeader`, `CardContent`, `CardFooter`, `Button`
-
----
-
-### 5.7 MutationUndoButton
-
-**Path:** `frontend/src/features/copilot/components/MutationUndoButton.tsx`
-**Type:** Client Component
-**Props:** `{ conversationId: string; mutationCount: number }`
-
-- Renders only when `mutationCount > 0`
-- Icon `RotateCcw` + count badge
-- Click → opens `AlertDialog` (Shadcn)
-- Dialog copy:
-  - Title: "¿Seguro que quieres deshacer los cambios?"
-  - Body: "Se revertirán {N} cambios aplicados en esta conversación. Esta acción no se puede deshacer."
-  - Buttons: "Cancelar" (ghost) / "Deshacer todo" (destructive)
-- Confirm → `useRevertMutations(conversationId).mutate()`
-- On success → `toast.success("Se revirtieron {reverted_count} cambios.")` via `sonner`
-- On error → `toast.error("No se pudieron deshacer los cambios. Intenta de nuevo.")`
-- Loading: button shows `Loader2` spinner, disabled
-
-**Shadcn:** `AlertDialog`, `AlertDialogContent`, `AlertDialogHeader`, `AlertDialogFooter`, `Button`
-
----
-
-### 5.8 ContextRotBanner
-
-**Path:** `frontend/src/features/copilot/components/ContextRotBanner.tsx`
-**Type:** Client Component
-**Props:** `{ conversationId: string; totalTokens: number; messageCount: number }`
-
-**Trigger logic:**
-- Yellow: `totalTokens >= 8000` OR `messageCount >= 12`
-- Red: `totalTokens >= 16000`
-- Hidden: dismissed via `store.dismissRotBanner(conversationId)`
-
-**Yellow banner:**
-
-```
-┌──────────────────────────────────────────── [×] ┐
-│ Esta conversación ya está larga. Para que el    │
-│ copilot te entienda mejor, empieza una nueva.   │
-└─────────────────────────────────────────────────┘
-```
-
-**Tailwind:**
-- Yellow: `bg-yellow-50 border border-yellow-300 text-yellow-900 text-sm px-3 py-2 rounded-md`
-- Red: `bg-red-50 border border-red-300 text-red-900 text-sm px-3 py-2 rounded-md`
-
-- "empieza una nueva" → inline `<button>` styled as link → `useCreateConversation().mutate()`
-- Dismiss `[×]` → `store.dismissRotBanner(conversationId)` (in-memory, not persisted)
-
-**A11y:** `role="alert"` on banner div. Dismiss button `aria-label="Cerrar aviso"`.
-
----
-
-### 5.9 TierChip
-
-**Path:** `frontend/src/features/copilot/components/TierChip.tsx`
-**Type:** Server-compatible (no hooks, pure display)
-**Props:** `{ tier: ModelTier; size?: "sm" | "xs" }`
-
-| Tier | Color tokens | Label |
-|------|-------------|-------|
-| `nano` | `bg-green-100 text-green-800` | nano |
-| `mini` | `bg-blue-100 text-blue-800` | mini |
-| `reasoning` | `bg-amber-100 text-amber-800` | o4 |
-| `heavy` | `bg-red-100 text-red-800` | o3 |
-
-**Tailwind (xs size, default):**
-```
-font-mono text-[10px] px-1.5 py-0.5 rounded-full font-medium tracking-tight
-```
-
-No Shadcn primitive needed — pure Tailwind badge.
-
----
-
-## 6. TypeScript Types
-
-**File:** `frontend/src/features/copilot/types/conversations.ts`
-
-Direct mirror of CONTRACT.md §5:
+### Attachment picker mobile
 
 ```typescript
-export type ModelTier = "nano" | "mini" | "reasoning" | "heavy";
-
-export interface ConversationSummary {
-  id: string;
-  title: string | null;
-  titleAutoGenerated: boolean;
-  updatedAt: string;              // ISO 8601
-  messageCount: number;
-  totalTokens: number;
-  lastTierUsed: ModelTier | null;
-  hasProcedure: boolean;
-  procedureProgress: number | null;
-  archivedAt: string | null;
-}
-
-export interface ConversationListResponse {
-  items: ConversationSummary[];
-  nextCursor: string | null;
-}
-
-export interface PatchConversationRequest {
-  title?: string;
-  archived?: boolean;
-}
-
-export interface RevertResponse {
-  revertedCount: number;
-  failed: Array<{ id: string; error: string }>;
-}
-
-export interface SlashCommand {
-  name: string;         // e.g. "llena-identidad"
-  description: string;
-  skillId: string;
-}
+// En mobile, el input acepta capture="camera" como fallback:
+<input
+  type="file"
+  accept="image/*"
+  capture="camera"  // solo en mobile si el mime es imagen
+  multiple
+/>
 ```
 
----
+Detectar mobile con `navigator.maxTouchPoints > 0` o CSS `@media (pointer: coarse)`.
 
-## 7. API Integration
+### Touch gestures
 
-| Component | Hook | API Call | Trigger |
-|-----------|------|----------|---------|
-| CopilotHistoryPanel | `useConversationList` | `GET /conversations?limit=6` | Mount + "Cargar 6 más" |
-| CopilotRail | `useConversationList` | same | Mount (rail avatars) |
-| CopilotRail (new conv) | `useCreateConversation` | `POST /conversations` | Click `+` or `N` key |
-| CopilotHistoryPanel (new conv) | `useCreateConversation` | `POST /conversations` | Click "Nueva conversación" |
-| ConversationItem rename | `usePatchConversation` | `PATCH /conversations/{id}` | Enter after inline edit |
-| ConversationItem archive | `useDeleteConversation` | `DELETE /conversations/{id}` | Kebab "Archivar" |
-| MutationUndoButton | `useRevertMutations` | `POST /conversations/{id}/revert` | AlertDialog confirm |
-| SlashCommandAutocomplete | `useSlashCommands` | `GET /commands` | `/` keypress |
-| TierChip (per message) | store SSE handler | SSE `tier_decision` event | Auto on stream start |
+- Long-press (500ms) en mensaje → mostrar bottom `Sheet` con opción "Responder".
+- Swipe en attachment chip → animar salida + eliminar.
+- Pull-to-refresh en la lista de mensajes: NO implementar (el scroll del virtualizer lo haría complejo).
 
 ---
 
-## 8. Loading, Error & Empty States
+## §17 Error / Empty / Loading States
 
-| Component | Loading | Error | Empty |
+### Por componente
+
+| Componente | Loading | Empty | Error |
 |-----------|---------|-------|-------|
-| CopilotHistoryPanel | 5 `Skeleton` rows (`h-10 rounded-md`) | `Alert` with "No se pudo cargar el historial." + Retry button | Illustration + "Aún no hay conversaciones. Empieza una nueva." |
-| SlashCommandAutocomplete | 3 `Skeleton` items | (silently hide — non-blocking) | "No hay comandos para '{query}'" text inside `Command` |
-| CopilotChatPanel (messages) | N/A (new conv starts empty) | `Alert` inline if SSE errors | Empty state: "Escribe tu primera pregunta." |
-| MutationUndoButton | `Loader2` spinner in button, disabled | Toast error | Button hidden (count === 0) |
-| ConversationItem (rename) | Optimistic instant update | Rollback + `toast.error` | N/A |
+| `CopilotHistoryPanel` | 5 `Skeleton` de h-10 | "Aún no hay conversaciones. Empieza una nueva." + Button "Nueva conversación" | `Alert` + "No se pudo cargar el historial." + link "Reintentar" |
+| `MessageList` | `TypingIndicator` (dots animados) mientras `status === "thinking"` | Empty state con `SuggestedChips` + "Escribe tu primera pregunta." | Inline message de error con `AlertCircle` icon |
+| `SlashAutocomplete` | 3 `Skeleton` h-8 en CommandList | `CommandEmpty`: 'No hay comandos para "{query}"' | — |
+| `ImageBlock` | `Skeleton` con mismo aspect ratio | — | Placeholder gris + `ImageOff` icon |
+| `AudioBlock` | `Skeleton` h-16 | — | "No se pudo cargar el audio." |
+| `VideoBlock` | `Skeleton` con aspect 16:9 | — | "No se pudo cargar el video." |
+| `AttachmentChip` (uploading) | Progress bar animada | — | Estado `error` con "Reintentar" |
+| `SuggestedChips` | No loading state (stub síncrono) | Oculto si vacío | — |
+| Streaming text | Cursor pulsante | — | Toast "Error de conexión. Reintentando..." |
+| `ToolResultBlock` | — | — | Borde rojo + `AlertCircle` + texto de error |
+
+### Error de streaming
+
+Si el SSE falla (tras 3 reintentos), el mensaje placeholder del asistente se convierte en mensaje de error:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  ✦  ⚠️ No se pudo obtener respuesta. Verifica tu conexión.      │
+│     [Reintentar]                                                 │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+"Reintentar" re-envía el mismo `ComposerPayload` usando el `useRetryLastMessage()` hook (lee el último payload de user del store).
 
 ---
 
-## 9. Responsive Behavior
+## §18 Component Inventory
 
-| Breakpoint | Behavior |
-|------------|----------|
-| `< 640px` (mobile) | Sidebar forces `"collapsed"`. Rail/full states render as overlay (`position: fixed, inset-y-0 right-0`) with translucent backdrop. Tap outside → collapse. `cycleSidebarState` skips `"full"` on mobile. |
-| `640px – 1023px` (tablet) | Normal rail/full. History panel overlaps page content if needed (not inline). |
-| `>= 1024px` (desktop) | Full inline grid. History + chat columns push page content left. `--history-w` and `--chat-w` are inline-grid, not overlay. |
+### Componentes nuevos a crear
 
-**Mobile overlay implementation note:** Wrap rail/chat/history in `Sheet` (Shadcn) on `< 640px` rather than grid layout.
+| Componente | Path | Shadcn primitives |
+|-----------|------|------------------|
+| `ChatComposer` | `features/copilot/components/composer/ChatComposer.tsx` | `Textarea`, `Button`, `Tooltip`, `TooltipProvider` |
+| `ChatComposer.SuggestedChips` | `features/copilot/components/composer/SuggestedChips.tsx` | `Button` |
+| `ChatComposer.ReplyPreview` | `features/copilot/components/composer/ReplyPreview.tsx` | `Button` |
+| `ChatComposer.ContextChips` | Migrar de `ContextChips.tsx` → `composer/ContextChips.tsx` | `Badge`, `Button` |
+| `ChatComposer.AttachmentTray` | `features/copilot/components/composer/AttachmentTray.tsx` | `Progress`, `Button` |
+| `ChatComposer.VoiceOverlay` | `features/copilot/components/composer/VoiceOverlay.tsx` | `Button` |
+| `AttachmentChip` | `features/copilot/components/composer/AttachmentChip.tsx` | `Progress`, `Button` |
+| `BlockDispatcher` | `features/copilot/components/blocks/BlockDispatcher.tsx` | — |
+| `TextBlock` | `features/copilot/components/blocks/TextBlock.tsx` | — |
+| `ImageBlock` | `features/copilot/components/blocks/ImageBlock.tsx` | `Dialog`, `DialogContent`, `Skeleton` |
+| `AudioBlock` | `features/copilot/components/blocks/AudioBlock.tsx` | `Collapsible`, `CollapsibleContent`, `CollapsibleTrigger`, `Slider` |
+| `VideoBlock` | `features/copilot/components/blocks/VideoBlock.tsx` | `Skeleton` |
+| `DocumentBlock` | `features/copilot/components/blocks/DocumentBlock.tsx` | `Button` |
+| `TableBlock` | `features/copilot/components/blocks/TableBlock.tsx` | `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell` |
+| `CodeBlock` | `features/copilot/components/blocks/CodeBlock.tsx` | `Button` |
+| `CitationBlock` | `features/copilot/components/blocks/CitationBlock.tsx` | `Collapsible`, `CollapsibleContent`, `CollapsibleTrigger` |
+| `CardBlock` | `features/copilot/components/blocks/CardBlock.tsx` | — (delega a cards existentes) |
+| `ToolResultBlock` | `features/copilot/components/blocks/ToolResultBlock.tsx` | `Collapsible`, `CollapsibleContent`, `CollapsibleTrigger` |
+| `QuoteReplyBlock` | `features/copilot/components/blocks/QuoteReplyBlock.tsx` | — |
+| `AssistantMessageV2` | `features/copilot/components/messages/AssistantMessageV2.tsx` | — |
+| `UserMessageV2` | `features/copilot/components/messages/UserMessageV2.tsx` | — |
+| `MessageContextMenu` | `features/copilot/components/messages/MessageContextMenu.tsx` | `DropdownMenu`, `DropdownMenuContent`, `DropdownMenuItem` |
+| `useSuggestions` | `features/copilot/hooks/use-suggestions.ts` | — |
+| `useMediaUpload` | `features/copilot/hooks/use-media-upload.ts` | — |
+| `message-adapter` | `features/copilot/utils/message-adapter.ts` | — |
+| `media-api` | `features/copilot/api/media-api.ts` | — |
 
----
+### Componentes existentes a modificar
 
-## 10. Data Flow
+| Componente | Cambios |
+|-----------|---------|
+| `CopilotRail.tsx` | Reemplazar botón de ciclo por 3 botones explícitos por estado (§2). Quitar `handleToggle`. |
+| `CopilotSidebar.tsx` | Sin cambios estructurales. Keyboard shortcuts preservados. |
+| `CopilotChatPanel.tsx` | Reemplazar sección input por `<ChatComposer>`. Reemplazar `AssistantMessage`/`UserMessage` por `AssistantMessageV2`/`UserMessageV2`. Agregar scroll-anchor inteligente. Agregar Stop button logic. |
+| `copilot-store.ts` | Agregar `blocks?: MessageBlock[]` a `CopilotMessage`. Agregar `addBlockToLastAssistant`, `updateLastTextBlock`, `setMessageStatus`. |
+| `AttachmentButton.tsx` | Extender `accept` para incluir imagen, audio, video. |
+| `DocumentChip.tsx` | Deprecar — reemplazado por `AttachmentChip` multi-tipo. |
 
-### New Conversation
+### Componentes existentes a deprecar
 
-```
-User clicks "+" in rail or history
-  → useCreateConversation.mutate()
-  → Optimistic: prepend ConversationSummary to list (title=null, 0 msgs)
-  → POST /api/v1/copilot/conversations → 201 { id }
-  → store.setConversationId(id)
-  → store.clearMessages()
-  → setSidebarState("rail")   [if collapsed]
-  → focus #copilot-input
-  → Invalidate conversation list on settle
-```
-
-### Switch Conversation
-
-```
-User clicks item in CopilotHistoryPanel
-  → store.setConversationId(id)
-  → store.clearMessages()
-  → fetch messages for id (existing GET /messages endpoint)
-  → store.addMessage(…) for each
-  → focus #copilot-input
-  → active item style applied
-```
-
-### Tier Chip Update
-
-```
-POST /chat SSE stream starts
-  → First non-status event: "tier_decision" { tier, reason, classifier_used }
-  → store.setLastMessageTier(incomingMsgId, tier)
-  → TierChip re-renders with correct color
-  → Subsequent text_chunk events fill message content
-```
-
-### Mutation Undo
-
-```
-User clicks MutationUndoButton → AlertDialog opens
-  → Confirm → useRevertMutations(convId).mutate()
-  → POST /conversations/{id}/revert
-  → 200 { reverted_count, failed }
-  → toast.success("Se revirtieron N cambios.")
-  → store.clearMessages() + refetch messages (form fields reverted server-side)
-  → activeBridge?.refreshAll()   [if bridge mounted]
-```
+| Componente | Reemplazo | Cuándo |
+|-----------|-----------|--------|
+| `CopilotInput.tsx` | `ChatComposer` | Tras implementar ChatComposer |
+| `CopilotChat.tsx` | Funcionalidad integrada en `CopilotChatPanel` | Tras consolidar |
+| `DocumentChip.tsx` | `AttachmentChip` | Tras implementar AttachmentChip |
+| `ContextChips.tsx` (raíz) | `ChatComposer.ContextChips` (sub-componente) | Mover, no eliminar |
+| `SuggestedActions.tsx` | `SuggestedChips` | Refactor con misma lógica de `ROUTE_SUGGESTIONS` |
+| `AssistantMessage.tsx` | `AssistantMessageV2` | Después de migrar y validar el adapter |
+| `UserMessage.tsx` | `UserMessageV2` | Ídem |
 
 ---
 
-## 11. FSD File Structure
+## §19 Anchor Comments
+
+| Anchor | Componente | Propósito |
+|--------|-----------|-----------|
+| `[COPILOT-SUGGESTIONS-ENGINE]` | `hooks/use-suggestions.ts` | Marcar el punto de integración con el futuro motor de sugerencias dinámicas |
+| `[COPILOT-BLOCK-REGISTRY]` | `blocks/BlockDispatcher.tsx` | Punto de extensión para registrar nuevos tipos de bloque sin tocar el dispatcher |
+| `[COPILOT-VOICE-UPLOAD]` | `hooks/use-media-upload.ts` | Lógica de upload paralelo audio+transcript — crítico para el flujo de voz |
+| `[COPILOT-SCROLL-ANCHOR]` | `CopilotChatPanel.tsx` | Lógica de scroll-to-bottom inteligente — no regresionar en PR |
+| `[COPILOT-STREAMING-BLOCKS]` | `copilot-store.ts` | Acciones del store para streaming de bloques heterogéneos |
+| `[COPILOT-LEGACY-ADAPTER]` | `utils/message-adapter.ts` | Conversión de mensajes legacy (content+uiActions) a blocks[] |
+| `[COPILOT-MOBILE-FAB]` | `CopilotSidebar.tsx` | FAB mobile — requiere `position: fixed` fuera del sidebar grid |
+| `[COPILOT-CONTEXT-MENU]` | `MessageContextMenu.tsx` | Hover/long-press para reply — diferente UX en desktop vs mobile |
+
+---
+
+## §20 Open Questions
+
+1. **Shiki disponible?** Verificar si `shiki` está en `package.json`. Si no, el `CodeBlock` arranca con `<pre>` plain y se migra en un PR separado.
+
+2. **`react-markdown` + `remark-gfm` + `rehype-sanitize` disponibles?** Verificar en `package.json`. Si no, el `TextBlock` usa `whitespace-pre-wrap` temporalmente (como hoy) y se agrega en el mismo PR que el bloque de texto.
+
+3. **Tailwind Typography (`@tailwindcss/typography`)?** Verificar si está instalado. Si no, los estilos del markdown se implementan manualmente con clases semánticas en el `TextBlock`.
+
+4. **`collapsible` en `components/ui/`?** No aparece en el `ls` de componentes ui. Si no está, instalar via `npx shadcn-ui@latest add collapsible` o usar implementación con `useState + max-height` CSS.
+
+5. **`avatar.tsx` en `components/ui/`?** Sí está en el `ls`. Considerar usarlo para el avatar del asistente en lugar del `div` circular actual.
+
+6. **SSE de blocks:** El backend actual emite `text_chunk` (texto plano, no blocks). La migración a `block_append / block_update` requiere coordinación con el backend team. El `message-adapter.ts` mantiene compatibilidad mientras se hace la transición.
+
+7. **Video lightbox vs inline:** Los videos inline pueden consumir ancho en el sidebar angosto (380px). En `rail` state, los videos deberían abrir en un Dialog (como imágenes) en vez de reproducir inline. Confirmar.
+
+8. **Limite de archivos simultáneos:** No hay límite especificado. Propuesta: máximo 5 attachments por mensaje. Confirmar con producto.
+
+9. **Draft persistence en `localStorage`:** El draft del composer se persiste para "reabrir el chat con el borrador guardado". ¿Persiste por conversación (key por `conversationId`) o global? Propuesta: por `conversationId` (`copilot.draft.${conversationId}`).
+
+10. **Audio playback múltiple:** Si hay múltiples `AudioBlock` en la misma conversación, ¿se pausa el anterior al reproducir otro? Propuesta: sí, usando un contexto o store local de `playingAudioId`.
+
+---
+
+## FSD File Structure
 
 ```
 frontend/src/features/copilot/
-├── components/
-│   ├── CopilotSidebar.tsx           (Client — root grid + keyboard shortcuts)
-│   ├── CopilotRail.tsx              (Client — always-visible 60px strip)
-│   ├── CopilotHistoryPanel.tsx      (Client — history list, groups, pagination)
-│   ├── CopilotChatPanel.tsx         (Client — messages + input)
-│   ├── SlashCommandAutocomplete.tsx (Client — Command popover)
-│   ├── PlanCard.tsx                 (Client — plan_proposed SSE card)
-│   ├── MutationUndoButton.tsx       (Client — AlertDialog + revert)
-│   ├── ContextRotBanner.tsx         (Client — token rot nudge)
-│   ├── TierChip.tsx                 (displayonly — no hooks)
-│   ├── cards/                       (existing cards unchanged)
-│   ├── messages/                    (existing message components unchanged)
-│   └── shared/                      (existing shared components unchanged)
-├── hooks/
-│   ├── use-conversation-list.ts     (useInfiniteQuery)
-│   ├── use-create-conversation.ts   (useMutation)
-│   ├── use-patch-conversation.ts    (useMutation)
-│   ├── use-delete-conversation.ts   (useMutation)
-│   ├── use-revert-mutations.ts      (useMutation)
-│   ├── use-slash-commands.ts        (useQuery, staleTime 5min)
-│   ├── use-mutation-journal.ts      (useQuery)
-│   └── use-conversation-groups.ts   (pure util hook — groups by date)
 ├── api/
-│   ├── conversations.ts             (fetchClient calls)
-│   └── slash-commands.ts            (fetchClient calls)
+│   ├── copilot-api.ts          (existente — preservar)
+│   ├── document-api.ts         (existente — preservar)
+│   ├── media-api.ts            (NUEVO — upload de media)
+│   └── voice-api.ts            (existente — preservar)
+├── components/
+│   ├── blocks/                 (NUEVO directorio)
+│   │   ├── BlockDispatcher.tsx
+│   │   ├── TextBlock.tsx
+│   │   ├── ImageBlock.tsx
+│   │   ├── AudioBlock.tsx
+│   │   ├── VideoBlock.tsx
+│   │   ├── DocumentBlock.tsx
+│   │   ├── TableBlock.tsx
+│   │   ├── CodeBlock.tsx
+│   │   ├── CitationBlock.tsx
+│   │   ├── CardBlock.tsx
+│   │   ├── ToolResultBlock.tsx
+│   │   └── QuoteReplyBlock.tsx
+│   ├── cards/                  (existente — sin cambios)
+│   │   ├── AlternativesCard.tsx
+│   │   ├── CheckpointCard.tsx
+│   │   ├── ClarifyCard.tsx
+│   │   └── InterviewCompleteCard.tsx
+│   ├── composer/               (NUEVO directorio)
+│   │   ├── ChatComposer.tsx    (componente raíz + sub-componentes estáticos)
+│   │   ├── SuggestedChips.tsx
+│   │   ├── ReplyPreview.tsx
+│   │   ├── ContextChips.tsx    (migrado desde raíz)
+│   │   ├── AttachmentTray.tsx
+│   │   ├── AttachmentChip.tsx  (reemplaza DocumentChip para multi-tipo)
+│   │   └── VoiceOverlay.tsx
+│   ├── messages/               (existente — agregar V2)
+│   │   ├── AssistantMessage.tsx     (existente — mantener para compat)
+│   │   ├── AssistantMessageV2.tsx   (NUEVO)
+│   │   ├── UserMessage.tsx          (existente — mantener para compat)
+│   │   ├── UserMessageV2.tsx        (NUEVO)
+│   │   ├── MessageContextMenu.tsx   (NUEVO)
+│   │   ├── ComparisonTable.tsx      (existente — sin cambios)
+│   │   ├── MetricSummaryCard.tsx    (existente — sin cambios)
+│   │   ├── MultiOptionSelector.tsx  (existente — sin cambios)
+│   │   ├── NavigationCard.tsx       (existente — sin cambios)
+│   │   ├── ProposalCard.tsx         (existente — sin cambios)
+│   │   ├── ProgressChecklist.tsx    (existente — sin cambios)
+│   │   └── TypingIndicator.tsx      (existente — sin cambios)
+│   ├── shared/                 (existente)
+│   │   ├── AttachmentButton.tsx     (existente — ampliar accept)
+│   │   ├── DocumentChip.tsx         (existente — deprecar gradual)
+│   │   └── VoiceButton.tsx          (existente — preservar)
+│   ├── ContextChips.tsx        (existente — mantener re-export hasta migración)
+│   ├── ContextRotBanner.tsx    (existente — sin cambios)
+│   ├── CopilotChatHeader.tsx   (existente — sin cambios)
+│   ├── CopilotChatPanel.tsx    (existente — modificar para usar ChatComposer + V2)
+│   ├── CopilotHistoryPanel.tsx (existente — sin cambios)
+│   ├── CopilotRail.tsx         (existente — modificar botones explícitos)
+│   ├── CopilotSidebar.tsx      (existente — sin cambios estructurales)
+│   ├── MutationUndoButton.tsx  (existente — sin cambios)
+│   ├── SlashCommandAutocomplete.tsx (existente — integrar en ChatComposer)
+│   ├── SuggestedActions.tsx    (existente — deprecar, lógica migra a SuggestedChips)
+│   └── TierChip.tsx            (existente — sin cambios)
+├── hooks/
+│   ├── use-conversation-groups.ts   (existente)
+│   ├── use-conversation-list.ts     (existente)
+│   ├── use-copilot-chat.ts          (existente)
+│   ├── use-copilot-navigator.ts     (existente)
+│   ├── use-create-conversation.ts   (existente)
+│   ├── use-delete-conversation.ts   (existente)
+│   ├── use-media-upload.ts          (NUEVO)
+│   ├── use-mutation-journal.ts      (existente)
+│   ├── use-patch-conversation.ts    (existente)
+│   ├── use-route-tracker.ts         (existente)
+│   ├── use-slash-commands.ts        (existente)
+│   ├── use-suggestions.ts           (NUEVO)
+│   └── use-voice-recorder.ts        (existente — sin cambios)
 ├── store/
-│   └── copilot-store.ts             (update SidebarState + new slices)
+│   └── copilot-store.ts        (existente — extensiones §13)
 ├── types/
-│   ├── conversations.ts             (TS mirror of CONTRACT §5)
-│   └── index.ts                     (re-export)
-└── index.ts                         (public barrel)
+│   └── conversations.ts        (existente — agregar MessageBlock)
+└── utils/
+    └── message-adapter.ts      (NUEVO)
 ```
 
 ---
 
-## 12. Copy (Español Neutro LatAm)
+## Responsive Behavior Summary
 
-All user-facing strings. No voseo. Verified against `.claude/rules/spanish-text.md`.
+| Breakpoint | Layout |
+|------------|--------|
+| Desktop (≥1024px) | CSS grid 3 columnas, todos los estados del sidebar |
+| Tablet (768-1023px) | CSS grid 3 columnas, `rail` como estado por defecto (280px chat 0px history) |
+| Mobile (<768px) | FAB circular + Sheet fullscreen. Chat ocupa pantalla completa. Tabs para historial. |
 
-| Element | String |
-|---------|--------|
-| History panel title | "Conversaciones" |
-| New conv button | "Nueva conversación" |
-| Load more button | "Cargar 6 más" |
-| Kebab rename | "Renombrar" |
-| Kebab archive | "Archivar" |
-| Section: today | "Hoy" |
-| Section: yesterday | "Ayer" |
-| Section: last 7 days | "Últimos 7 días" |
-| Section: older | "Anterior" |
-| Rot banner yellow | "Esta conversación ya está larga. Para que el copilot te entienda mejor, [empieza una nueva]." |
-| Rot banner CTA | "empieza una nueva" |
-| Undo button label | "Deshacer cambios ({N})" |
-| Undo dialog title | "¿Seguro que quieres deshacer los cambios?" |
-| Undo dialog body | "Se revertirán {N} cambios aplicados en esta conversación. Esta acción no se puede deshacer." |
-| Undo confirm button | "Deshacer todo" |
-| Cancel button | "Cancelar" |
-| Plan card title | "Plan propuesto" |
-| Plan apply button | "Aplicar" |
-| Plan applied state | "Aplicado" |
-| Plan reject button | "Rechazar" |
-| Plan rejected state | "Rechazado" |
-| Estimated cost label | "Costo estimado:" |
-| Send button aria | "Enviar" |
-| Rail open aria | "Abrir copilot" |
-| Rail expand aria | "Expandir historial" |
-| Rail close aria | "Cerrar copilot" |
-| New conv rail aria | "Nueva conversación" |
-| Slash empty state | "No hay comandos para '{query}'" |
-| History empty state | "Aún no hay conversaciones. Empieza una nueva." |
-| Chat empty state | "Escribe tu primera pregunta." |
-| Streaming aria | "El copilot está escribiendo" |
-
----
-
-## 13. Shadcn Components Used
-
-| Component | Import path | Usage |
-|-----------|------------|-------|
-| `Button` | `@/components/ui/button` | All action buttons |
-| `Textarea` | `@/components/ui/textarea` (needs install check) | Chat input |
-| `Input` | `@/components/ui/input` | Inline rename |
-| `ScrollArea` | `@/components/ui/scroll-area` | Message list, history list |
-| `Separator` | `@/components/ui/separator` | Rail divider |
-| `Tooltip` | `@/components/ui/tooltip` (via existing popover) | Avatar hover titles |
-| `DropdownMenu` | `@/components/ui/dropdown-menu` | Conversation kebab |
-| `AlertDialog` | `@/components/ui/alert-dialog` | Undo confirm |
-| `Dialog` | `@/components/ui/dialog` | (not needed — AlertDialog covers undo) |
-| `Popover` | `@/components/ui/popover` | Slash command anchor |
-| `Command` | `@/components/ui/command` | Slash command list |
-| `Skeleton` | `@/components/ui/skeleton` | Loading states |
-| `Card` | `@/components/ui/card` | PlanCard |
-| `Badge` | Not in ui/ — use TierChip (custom Tailwind) | Tier labels |
-| `Sonner` | `@/components/ui/sonner` | Toast notifications |
-
----
-
-## 14. A11y Checklist
-
-- Every `Button` has `aria-label` or visible text.
-- Root sidebar has `aria-expanded={sidebarState !== "collapsed"}` and `aria-label="Panel copilot"`.
-- Sidebar state transitions announced via `role="status" aria-live="polite"` hidden span.
-- `AlertDialog` traps focus; `Esc` closes.
-- Slash autocomplete uses `role="listbox"` + `aria-activedescendant` (via Shadcn `Command`).
-- TierChip has `title` attribute for screen readers (e.g., `title="Modelo: mini"`).
-- Context rot banner uses `role="alert"` for immediate announcement.
-- Keyboard shortcut `Ctrl+K` targets `document.getElementById("copilot-input")?.focus()`.
-- Tab order: rail toggle → rail `+` → history items (if full) → chat input → send button.
-- High-contrast: all color decisions use semantic tokens (`border-border`, `bg-accent`, etc.), not raw hex.
-
----
-
-## 15. Deferred (This Sprint: Spec Only, No Implementation)
-
-| Item | Reason deferred |
-|------|----------------|
-| `POST /plan/{msgId}/approve|reject` endpoints | Stub only — plan execution is S5 scope |
-| `GET /conversations/{id}/mutations` endpoint | TBD backend endpoint path |
-| Slash command icons per skill | UX polish, post-S4 |
-| Mobile overlay slide animation | Complex gesture handling, post-S4 |
-| Plan step cost breakdown tooltip | Nice-to-have |
-| Procedure coverage % in history items | Needs `procedure_progress` from list endpoint — field exists in DTO |
-
----
-
-## 16. Architecture Fitness Tests Applicable
-
-| Test | Constraint enforced |
-|------|---------------------|
-| `test-component-naming` | All `.tsx` in `components/` must be PascalCase |
-| `test-file-naming` | All `.ts` in `hooks/` and `api/` must be kebab-case |
-| `test-folder-naming` | `copilot/` subdirs must be kebab-case |
-| `test-hook-location` | `export function use*` only in `hooks/` or `api/` |
-| `test-no-default-exports` | No `export default` in `features/copilot/` |
-| `test-no-duplicate-names` | Component names must not duplicate existing features |
-| `test-api-location` | `fetchClient` calls only in `api/` |
