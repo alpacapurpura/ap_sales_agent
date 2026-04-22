@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Copilot Sidebar — 3 estados (collapsed / rail / full)</title>
+<style>
+  :root {
+    --bg-app: #f7f7f8;
+    --surface: #ffffff;
+    --surface-2: #fafafa;
+    --surface-3: #f3f4f6;
+    --border: #e5e5ea;
+    --border-strong: #d1d1d6;
+    --text: #111114;
+    --text-muted: #6b6b73;
+    --text-soft: #9a9aa3;
+    --accent: #6d28d9;
+    --accent-soft: #ede9fe;
+    --accent-border: #ddd6fe;
+    --ok: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --shadow: 0 1px 2px rgba(17,17,20,.04), 0 8px 24px rgba(17,17,20,.06);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+    --t: 220ms cubic-bezier(.2,.8,.2,1);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: var(--sans);
+    background: var(--bg-app);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .page {
+    padding: 24px 32px 80px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .page h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    letter-spacing: -.01em;
+  }
+  .page .subtitle {
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .controls .hint {
+    color: var(--text-soft);
+    font-size: 12px;
+    margin-left: auto;
+  }
+  .controls .hint code {
+    background: var(--surface-3);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .btn-state {
+    appearance: none;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--t);
+  }
+  .btn-state:hover { background: var(--surface-2); }
+  .btn-state.active {
+    background: var(--text);
+    color: #fff;
+    border-color: var(--text);
+  }
+
+  /* ==== App shell ==== */
+  .shell {
+    position: relative;
+    height: 720px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: grid;
+    /* 4 columnas: app | history | chat | rail(siempre)  */
+    grid-template-columns: 1fr var(--history-w, 0px) var(--chat-w, 0px) 60px;
+    transition: grid-template-columns var(--t);
+  }
+
+  /* ==== App (stand-in) ==== */
+  .app {
+    padding: 20px 28px;
+    overflow: auto;
+    background: linear-gradient(180deg, #fff, #fafafa);
+    min-width: 0;
+  }
+  .app .topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+  }
+  .app .topbar .crumb {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .app .topbar .crumb strong { color: var(--text); }
+
+  .form-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 18px 20px;
+    max-width: 640px;
+  }
+  .form-card h2 { margin: 0 0 4px; font-size: 15px; }
+  .form-card .desc { color: var(--text-muted); margin: 0 0 14px; font-size: 13px; }
+  .field { margin-bottom: 12px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .field input, .field textarea {
+    width: 100%;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-family: var(--sans);
+    font-size: 13px;
+    background: #fff;
+  }
+  .field textarea { min-height: 72px; resize: vertical; }
+
+  /* ==== HISTORY (columna 2) — solo en full ==== */
+  .history {
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .history-header {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .history-header .h-title {
+    font-size: 13px;
+    font-weight: 600;
+    flex: 1;
+  }
+  .new-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    margin: 10px;
+    border-radius: var(--radius-sm);
+    background: var(--text);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 0;
+    justify-content: center;
+  }
+  .new-btn:hover { background: #000; }
+  .history-section {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--text-soft);
+    padding: 10px 14px 4px;
+  }
+  .history-list {
+    flex: 1;
+    overflow: auto;
+    padding: 0 8px 8px;
+  }
+  .history-item {
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: 1px solid transparent;
+    margin-bottom: 2px;
+    transition: background var(--t);
+  }
+  .history-item:hover { background: var(--surface-2); }
+  .history-item.active {
+    background: var(--accent-soft);
+    border-color: var(--accent-border);
+  }
+  .history-item .hi-title {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .history-item .hi-meta {
+    font-size: 11px;
+    color: var(--text-soft);
+    margin-top: 2px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .history-footer {
+    padding: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .btn-more {
+    appearance: none;
+    border: 1px dashed var(--border-strong);
+    background: transparent;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 100%;
+  }
+  .btn-more:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ==== CHAT (columna 3) — solo en rail o full ==== */
+  .chat {
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .chat-header {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .chat-header .title {
+    font-size: 13px;
+    font-weight: 600;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chat-header .meta {
+    font-size: 11px;
+    color: var(--text-soft);
+    font-family: var(--mono);
+  }
+  .chat-body {
+    flex: 1;
+    overflow: auto;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--surface-2);
+  }
+  .msg {
+    max-width: 92%;
+    padding: 9px 11px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    line-height: 1.5;
+    border: 1px solid var(--border);
+    background: #fff;
+    white-space: pre-wrap;
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: var(--accent-soft);
+    border-color: var(--accent-border);
+    color: #3b1e7a;
+  }
+  .msg.assistant { align-self: flex-start; }
+  .msg .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text-soft);
+    margin-bottom: 2px;
+  }
+  .tier-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-family: var(--mono);
+    padding: 1px 6px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text-muted);
+  }
+  .tier-chip.nano  { border-color: #bbf7d0; color: #065f46; background: #ecfdf5; }
+  .tier-chip.mid   { border-color: #bfdbfe; color: #1e3a8a; background: #eff6ff; }
+  .tier-chip.heavy { border-color: #fecaca; color: #7f1d1d; background: #fef2f2; }
+
+  .proposal-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fff;
+    padding: 10px 12px;
+    font-size: 12.5px;
+    margin-top: 6px;
+  }
+  .proposal-card h4 { margin: 0 0 4px; font-size: 12px; }
+  .proposal-card .row {
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px dashed var(--border); padding-top: 6px; margin-top: 6px;
+  }
+  .proposal-card button {
+    appearance: none;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .rot-banner {
+    margin: 10px 14px 0;
+    padding: 9px 11px;
+    border: 1px solid #fcd34d;
+    background: #fffbeb;
+    color: #78350f;
+    border-radius: var(--radius);
+    font-size: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .rot-banner a {
+    color: #78350f;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .chat-input {
+    border-top: 1px solid var(--border);
+    padding: 10px 12px;
+    background: #fff;
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .chat-input textarea {
+    flex: 1;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-family: var(--sans);
+    font-size: 13px;
+    resize: none;
+    min-height: 36px;
+    max-height: 120px;
+  }
+  .chat-input .send {
+    appearance: none;
+    width: 34px; height: 34px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  /* ==== RAIL (columna 4) — SIEMPRE visible ==== */
+  .rail {
+    width: 60px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    gap: 4px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .rail-divider {
+    width: 28px; height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  .icon-btn {
+    appearance: none;
+    width: 40px; height: 40px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--text);
+    transition: all var(--t);
+    position: relative;
+  }
+  .icon-btn:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .icon-btn.outlined {
+    border-color: var(--border);
+    background: var(--surface);
+  }
+  .icon-btn.outlined:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .icon-btn svg { width: 18px; height: 18px; stroke: currentColor; }
+
+  /* Avatar-style chat history entry in rail */
+  .rail-conv {
+    width: 40px; height: 40px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+    transition: all var(--t);
+    position: relative;
+  }
+  .rail-conv.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--accent);
+  }
+  .rail-conv:hover:not(.active) {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: #fff;
+  }
+
+  /* Tooltip right-side */
+  .tt {
+    position: absolute;
+    right: 52px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--text);
+    color: #fff;
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--t);
+    z-index: 10;
+  }
+  .icon-btn:hover .tt,
+  .rail-conv:hover .tt { opacity: 1; }
+
+  .rail-more {
+    font-size: 10px;
+    color: var(--text-soft);
+    margin-top: 4px;
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: var(--mono);
+  }
+  .rail-more:hover { color: var(--accent); }
+
+  /* ==== State variants ==== */
+  .shell[data-copilot="collapsed"] { --history-w: 0px; --chat-w: 0px; }
+  .shell[data-copilot="rail"]      { --history-w: 0px; --chat-w: 380px; }
+  .shell[data-copilot="full"]      { --history-w: 280px; --chat-w: 400px; }
+
+  .shell[data-copilot="collapsed"] .chat,
+  .shell[data-copilot="collapsed"] .history { display: none; }
+  .shell[data-copilot="rail"] .history { display: none; }
+
+  /* When chat is visible, hide "rail convs" list (moves to chat header or history panel) */
+  .shell[data-copilot="rail"] .rail-conv-section,
+  .shell[data-copilot="full"] .rail-conv-section { display: none; }
+
+  /* Expand icon changes direction per state */
+  .shell[data-copilot="collapsed"] .expand-btn svg { transform: rotate(180deg); }
+
+  /* ==== Legend ==== */
+  .legend {
+    margin-top: 26px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .legend-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 14px 16px;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+  .legend-card h3 { margin: 0 0 6px; font-size: 13px; }
+  .legend-card code {
+    background: var(--surface-3);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+  }
+  .legend-card ul { margin: 0; padding-left: 16px; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <h1>Copilot Sidebar — estados colapsado / rail / full</h1>
+  <div class="subtitle">
+    Rail siempre visible a la derecha (60 px). Chat y panel de historial crecen hacia la izquierda.
+    Una conversación activa por ventana. Paginación 6 por batch.
+  </div>
+
+  <div class="controls" role="tablist">
+    <button class="btn-state active" data-target="collapsed">Colapsado</button>
+    <button class="btn-state" data-target="rail">Expandido 1 — chat + rail</button>
+    <button class="btn-state" data-target="full">Expandido 2 — chat + historial</button>
+    <span class="hint">Atajos: <code>C</code> colapsar · <code>R</code> rail · <code>F</code> full · <code>N</code> nueva</span>
+  </div>
+
+  <div class="shell" id="shell" data-copilot="collapsed">
+
+    <!-- ==== APP (col 1) ==== -->
+    <div class="app">
+      <div class="topbar">
+        <div class="crumb"><strong>Brand Studio</strong> &nbsp;›&nbsp; Identidad</div>
+      </div>
+      <div class="form-card">
+        <h2>Propuesta de valor (UVP)</h2>
+        <p class="desc">Una frase que explique por qué un cliente debería elegirte a ti y no a otro.</p>
+        <div class="field">
+          <label>Para quién</label>
+          <input value="Microempresarios latinos que venden servicios expertos" />
+        </div>
+        <div class="field">
+          <label>Promesa central</label>
+          <textarea>Te ayudamos a vender más sin contratar equipo, reemplazando al SDR con un agente IA.</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== HISTORY (col 2) — visible solo en full ==== -->
+    <aside class="history" aria-label="Historial conversaciones">
+      <div class="history-header">
+        <div class="h-title">Conversaciones</div>
+      </div>
+      <button class="new-btn" onclick="newConv()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="14" height="14"><path d="M12 5v14M5 12h14"/></svg>
+        Nueva conversación
+      </button>
+      <div class="history-section">Hoy</div>
+      <div class="history-list">
+        <div class="history-item active">
+          <div class="hi-title">mejora UVP landing</div>
+          <div class="hi-meta"><span>hace 2 min</span> · <span class="tier-chip mid">mid</span> · 8 msgs</div>
+        </div>
+        <div class="history-item">
+          <div class="hi-title">audita mi funnel abril</div>
+          <div class="hi-meta"><span>hace 1 h</span> · <span class="tier-chip heavy">heavy</span> · 4 msgs</div>
+        </div>
+        <div class="history-item">
+          <div class="hi-title">ideas de contenido IG</div>
+          <div class="hi-meta"><span>hace 3 h</span> · <span class="tier-chip nano">nano</span> · 12 msgs</div>
+        </div>
+
+        <div class="history-section">Ayer</div>
+        <div class="history-item">
+          <div class="hi-title">extraer marca de web</div>
+          <div class="hi-meta"><span>ayer</span> · <span class="tier-chip mid">mid</span> · 6 msgs</div>
+        </div>
+        <div class="history-item">
+          <div class="hi-title">objeciones frecuentes</div>
+          <div class="hi-meta"><span>ayer</span> · <span class="tier-chip mid">mid</span> · 9 msgs</div>
+        </div>
+        <div class="history-item">
+          <div class="hi-title">copy email nurture</div>
+          <div class="hi-meta"><span>ayer</span> · <span class="tier-chip nano">nano</span> · 5 msgs</div>
+        </div>
+      </div>
+      <div class="history-footer">
+        <button class="btn-more">Cargar 6 más</button>
+      </div>
+    </aside>
+
+    <!-- ==== CHAT (col 3) — visible en rail y full ==== -->
+    <section class="chat" aria-label="Conversación activa">
+      <header class="chat-header">
+        <div class="title">mejora UVP landing</div>
+        <span class="meta">8 msgs · nano→mid</span>
+      </header>
+
+      <div class="chat-body">
+        <div class="msg assistant">
+          <span class="tag">asistente · <span class="tier-chip nano">nano</span></span>
+          Hola. Veo que estás en <strong>Brand Studio › Identidad</strong>. ¿En qué te ayudo?
+        </div>
+        <div class="msg user">¿Puedes mejorar mi UVP? Suena muy genérica.</div>
+        <div class="msg assistant">
+          <span class="tag">asistente · <span class="tier-chip mid">mid</span></span>
+          Propongo esta versión, más específica:
+          <div class="proposal-card">
+            <h4>Actualizar: Promesa central</h4>
+            <div style="color:var(--text-muted)">
+              “Convertimos tu web en máquina de ventas con un SDR IA que califica, agenda y cierra — sin contratar equipo.”
+            </div>
+            <div class="row">
+              <span style="color:var(--text-soft); font-size:11px;">Razón: añade verbo + outcome</span>
+              <button>Aplicar</button>
+            </div>
+          </div>
+        </div>
+        <div class="msg user">Ok, acorta a 12 palabras.</div>
+        <div class="msg assistant">
+          <span class="tag">asistente · <span class="tier-chip mid">mid</span></span>
+          “Tu SDR IA: califica, agenda y cierra sin contratar equipo.” (10 palabras)
+        </div>
+      </div>
+
+      <div class="rot-banner" id="rotBanner" style="display:none">
+        <span>💡</span>
+        <div><strong>Tip:</strong> esta conversación ya está larga. Para que el copilot te entienda mejor, <a onclick="newConv()">empieza una nueva</a>.</div>
+      </div>
+
+      <div class="chat-input">
+        <textarea placeholder="Escribe un mensaje…"></textarea>
+        <button class="send" title="Enviar">↑</button>
+      </div>
+    </section>
+
+    <!-- ==== RAIL (col 4) — SIEMPRE visible ==== -->
+    <aside class="rail" aria-label="Rail copilot">
+      <!-- Expand/collapse toggle -->
+      <button class="icon-btn outlined expand-btn" onclick="cycleState()" title="Cambiar tamaño">
+        <!-- Chevron left -->
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        <span class="tt">Expandir / Colapsar</span>
+      </button>
+
+      <!-- New conversation -->
+      <button class="icon-btn outlined" onclick="newConv()" title="Nueva conversación">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        <span class="tt">Nueva conversación</span>
+      </button>
+
+      <div class="rail-divider"></div>
+
+      <!-- Conversation avatars (visible solo en collapsed) -->
+      <div class="rail-conv-section" style="display: contents;">
+        <div class="rail-conv active" title="mejora UVP landing">
+          UV
+          <span class="tt">mejora UVP landing · 8 msgs</span>
+        </div>
+        <div class="rail-conv" title="audita mi funnel abril">
+          AF
+          <span class="tt">audita mi funnel abril · 4 msgs</span>
+        </div>
+        <div class="rail-conv" title="ideas de contenido IG">
+          IG
+          <span class="tt">ideas de contenido IG · 12 msgs</span>
+        </div>
+        <div class="rail-conv" title="extraer marca de web">
+          EM
+          <span class="tt">extraer marca de web · 6 msgs</span>
+        </div>
+        <div class="rail-conv" title="objeciones frecuentes">
+          OF
+          <span class="tt">objeciones frecuentes · 9 msgs</span>
+        </div>
+        <div class="rail-conv" title="copy email nurture">
+          CE
+          <span class="tt">copy email nurture · 5 msgs</span>
+        </div>
+        <span class="rail-more" onclick="setState('full')">más</span>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-card">
+      <h3>3 estados sidebar</h3>
+      <ul>
+        <li><strong>Colapsado:</strong> rail 60 px con íconos (expandir, nueva, avatars de conversaciones).</li>
+        <li><strong>Expandido 1:</strong> chat + rail. Rail oculta avatares, solo muestra toggles.</li>
+        <li><strong>Expandido 2 (Full):</strong> historial 280 px + chat + rail. Lista paginada con “cargar 6 más”.</li>
+      </ul>
+    </div>
+    <div class="legend-card">
+      <h3>Router modelos (chip en msg)</h3>
+      <ul>
+        <li><span class="tier-chip nano">nano</span> <code>gpt-4.1-nano</code> — clasificar, field-fill, resumen rolling.</li>
+        <li><span class="tier-chip mid">mid</span> <code>gpt-4.1</code> — chat default, propuestas, tool use.</li>
+        <li><span class="tier-chip heavy">heavy</span> <code>o3</code> — auditorías, razonamiento multi-paso (raro).</li>
+      </ul>
+    </div>
+    <div class="legend-card">
+      <h3>Context window</h3>
+      <ul>
+        <li>Últimos <code>WINDOW_SIZE=6</code> mensajes raw (enum).</li>
+        <li>Resto comprimido en resumen rolling caveman ≤ <code>400</code> chars.</li>
+        <li>Re-summary solo en displacement (async, nano).</li>
+        <li>Nudge nueva conversación tras <code>NUDGE_AFTER_MESSAGES=12</code>.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  const shell = document.getElementById('shell');
+  const btns = document.querySelectorAll('.btn-state');
+  const rotBanner = document.getElementById('rotBanner');
+
+  function setState(s) {
+    shell.setAttribute('data-copilot', s);
+    btns.forEach(b => b.classList.toggle('active', b.dataset.target === s));
+  }
+  function cycleState() {
+    const cur = shell.getAttribute('data-copilot');
+    setState(cur === 'collapsed' ? 'rail' : cur === 'rail' ? 'full' : 'collapsed');
+  }
+  function newConv() {
+    rotBanner.style.display = 'none';
+    // demo
+    if (shell.getAttribute('data-copilot') === 'collapsed') setState('rail');
+    flashToast('Nueva conversación empezada — contexto limpio');
+  }
+  function flashToast(txt) {
+    const t = document.createElement('div');
+    t.textContent = txt;
+    Object.assign(t.style, {
+      position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+      background: '#111114', color: '#fff', padding: '10px 16px', borderRadius: '8px',
+      fontSize: '13px', zIndex: 1000, boxShadow: '0 8px 24px rgba(0,0,0,.2)'
+    });
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 1800);
+  }
+
+  btns.forEach(b => b.addEventListener('click', () => setState(b.dataset.target)));
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+    const k = e.key.toLowerCase();
+    if (k === 'c') setState('collapsed');
+    if (k === 'r') setState('rail');
+    if (k === 'f') setState('full');
+    if (k === 'n') newConv();
+  });
+</script>
+</body>
+</html>

@@ -43,6 +43,8 @@ SSEEventType = Literal[
     "proposal",
     "confirmation_required",
     "status",
+    "tier_decision",  # CONTRACT §4.3 — emitted once, before first text_chunk
+    "mutation_applied",  # CONTRACT §4.3 — emitted when a mutation is journaled
     "done",
     "error",
 ]

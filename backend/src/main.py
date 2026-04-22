@@ -68,10 +68,12 @@ from src.modules.connections.api import youtube_analytics as conn_youtube_analyt
 # 6. Copilot
 from src.modules.copilot.api import actions as copilot_actions
 from src.modules.copilot.api import chat as copilot_chat
+from src.modules.copilot.api import conversations as copilot_conversations
 from src.modules.copilot.api import events as copilot_events
 from src.modules.copilot.api import interview as copilot_interview
 from src.modules.copilot.api import knowledge as copilot_knowledge
 from src.modules.copilot.api import nudge as copilot_nudge
+from src.modules.copilot.api import plan as copilot_plan
 from src.modules.copilot.api import voice as copilot_voice
 from src.modules.crm.api import cdp as crm_cdp
 
@@ -653,6 +655,18 @@ app.include_router(
     copilot_voice.router,
     prefix="/api/v1/copilot/voice",
     tags=["Copilot - Voice"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    copilot_conversations.router,
+    prefix="/api/v1/copilot",
+    tags=["Copilot - Conversations"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    copilot_plan.router,
+    prefix="/api/v1/copilot",
+    tags=["Copilot - Plan"],
     dependencies=[Depends(get_tenant_context)],
 )
 

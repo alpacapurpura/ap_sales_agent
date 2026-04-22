@@ -3,7 +3,7 @@
 import uuid
 from datetime import timedelta
 
-from sqlalchemy import Column, DateTime, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
 
@@ -43,6 +43,18 @@ class CopilotConversationModel(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+    # ── v2 columns (CONTRACT §1.1) ────────────────────────────────────────
+    summary_updated_at = Column(DateTime(timezone=True), nullable=True)
+    summary_dirty_at = Column(DateTime(timezone=True), nullable=True)
+    message_count = Column(Integer, nullable=False, default=0, server_default="0")
+    total_tokens = Column(Integer, nullable=False, default=0, server_default="0")
+    last_tier_used = Column(String, nullable=True)
+    title_auto_generated = Column(Boolean, nullable=False, default=False, server_default="false")
+    archived_at = Column(DateTime(timezone=True), nullable=True)
+    procedure_id = Column(UUID(as_uuid=True), nullable=True)
+    procedure_state = Column(JSONB, nullable=True)
+    plan_state = Column(JSONB, nullable=True)
 
     def __repr__(self) -> str:
         """Return string representation."""

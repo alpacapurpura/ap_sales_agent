@@ -128,6 +128,12 @@ def db_engine():
         from src.modules.copilot.infrastructure.models.interview_session_model import (
             InterviewSessionModel,
         )
+        from src.modules.copilot.infrastructure.models.mutation_journal_model import (
+            MutationJournalModel,
+        )
+        from src.modules.copilot.infrastructure.models.routing_log_model import (
+            RoutingLogModel,
+        )
         from src.modules.crm.infrastructure.models.lead_model import (
             LeadModel,
         )

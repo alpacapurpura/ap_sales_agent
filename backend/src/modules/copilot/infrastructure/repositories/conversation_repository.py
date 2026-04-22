@@ -1,16 +1,24 @@
 """Copilot conversation repository."""
 
+from __future__ import annotations
+
+import base64
+import json
 from datetime import UTC
-from uuid import UUID
+from typing import TYPE_CHECKING
 
 import structlog
 from sqlalchemy import select, update
-from sqlalchemy.orm import Session
 
 from src.modules.copilot.infrastructure.models.conversation_model import (
     CopilotConversationModel,
 )
 from src.shared.domain.datetime_utils import utc_now
+
+if TYPE_CHECKING:
+    from uuid import UUID
+
+    from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 
@@ -181,6 +189,221 @@ class ConversationRepository:
         if tenant_id:
             stmt = stmt.where(CopilotConversationModel.tenant_id == tenant_id)
         return list(self.db.execute(stmt).scalars().all())
+
+    # ── v2 methods (CONTRACT §3, §4) ─────────────────────────────────────────
+
+    def list_paginated(
+        self,
+        *,
+        tenant_id: UUID,
+        user_id: UUID,
+        limit: int = 6,
+        cursor: str | None = None,
+        include_archived: bool = False,
+    ) -> dict:
+        """Cursor-paginated conversation list for a tenant+user.
+
+        Returns a dict with keys:
+        - ``items``: list of CopilotConversationModel
+        - ``next_cursor``: opaque base64 string or None
+        """
+        conditions = [
+            CopilotConversationModel.tenant_id == tenant_id,
+            CopilotConversationModel.user_id == user_id,
+            CopilotConversationModel.deleted_at.is_(None),
+        ]
+        if not include_archived:
+            conditions.append(CopilotConversationModel.archived_at.is_(None))
+
+        # Decode cursor: encodes {"updated_at": iso, "id": uuid_str}
+        if cursor:
+            try:
+                payload = json.loads(base64.b64decode(cursor).decode())
+                cursor_updated_at = payload["updated_at"]
+                cursor_id = payload["id"]
+                from sqlalchemy import String as SAString
+                from sqlalchemy import and_, cast, or_
+
+                conditions.append(
+                    or_(
+                        CopilotConversationModel.updated_at < cursor_updated_at,
+                        and_(
+                            CopilotConversationModel.updated_at == cursor_updated_at,
+                            cast(CopilotConversationModel.id, SAString) < cursor_id,
+                        ),
+                    )
+                )
+            except Exception:  # noqa: BLE001 — malformed cursor → ignore, start from top
+                pass
+
+        stmt = (
+            select(CopilotConversationModel)
+            .where(*conditions)
+            .order_by(
+                CopilotConversationModel.updated_at.desc(),
+                CopilotConversationModel.id.desc(),
+            )
+            .limit(limit + 1)  # fetch one extra to know if more exist
+        )
+        rows = list(self.db.execute(stmt).scalars().all())
+
+        has_more = len(rows) > limit
+        items = rows[:limit]
+
+        next_cursor: str | None = None
+        if has_more and items:
+            last = items[-1]
+            payload = {
+                "updated_at": last.updated_at.isoformat() if last.updated_at else "",
+                "id": str(last.id),
+            }
+            next_cursor = base64.b64encode(json.dumps(payload).encode()).decode()
+
+        return {"items": items, "next_cursor": next_cursor}
+
+    def archive(
+        self,
+        *,
+        conversation_id: UUID,
+        tenant_id: UUID,
+        user_id: UUID,
+    ) -> CopilotConversationModel | None:
+        """Set archived_at on a conversation (soft archive).
+
+        Returns the updated model or None if not found / wrong tenant.
+        """
+        conv = self.get_by_id(conversation_id, tenant_id, user_id)
+        if not conv:
+            return None
+        conv.archived_at = utc_now()
+        self.db.flush()
+        logger.info(
+            "conversation_archived",
+            conversation_id=str(conversation_id),
+            tenant_id=str(tenant_id),
+        )
+        return conv
+
+    def update_summary(
+        self,
+        *,
+        conversation_id: UUID,
+        tenant_id: UUID,
+        summary: str,
+        total_tokens: int,
+    ) -> None:
+        """Persist rolling summary + token count; clear dirty flag."""
+        now = utc_now()
+        stmt = (
+            update(CopilotConversationModel)
+            .where(
+                CopilotConversationModel.id == conversation_id,
+                CopilotConversationModel.tenant_id == tenant_id,
+                CopilotConversationModel.deleted_at.is_(None),
+            )
+            .values(
+                summary=summary,
+                total_tokens=total_tokens,
+                summary_updated_at=now,
+                summary_dirty_at=None,
+            )
+        )
+        self.db.execute(stmt)
+
+    def increment_message_count(
+        self,
+        *,
+        conversation_id: UUID,
+        tenant_id: UUID,
+        delta: int = 1,
+    ) -> None:
+        """Increment message_count by delta for a conversation."""
+        stmt = (
+            update(CopilotConversationModel)
+            .where(
+                CopilotConversationModel.id == conversation_id,
+                CopilotConversationModel.tenant_id == tenant_id,
+                CopilotConversationModel.deleted_at.is_(None),
+            )
+            .values(message_count=CopilotConversationModel.message_count + delta)
+        )
+        self.db.execute(stmt)
+
+    def update_metadata(
+        self,
+        *,
+        conversation_id: UUID,
+        tenant_id: UUID,
+        **kwargs: object,
+    ) -> CopilotConversationModel | None:
+        """Update arbitrary metadata fields on a conversation.
+
+        Only the fields present in CopilotConversationModel are allowed.
+        Returns the updated model or None if not found.
+        """
+        allowed = {
+            "title",
+            "last_tier_used",
+            "title_auto_generated",
+            "summary_dirty_at",
+            "plan_state",
+            "procedure_state",
+            "procedure_id",
+        }
+        updates = {k: v for k, v in kwargs.items() if k in allowed}
+        if not updates:
+            return self.get_by_id(conversation_id, tenant_id)
+
+        stmt = (
+            update(CopilotConversationModel)
+            .where(
+                CopilotConversationModel.id == conversation_id,
+                CopilotConversationModel.tenant_id == tenant_id,
+                CopilotConversationModel.deleted_at.is_(None),
+            )
+            .values(**updates)
+            .returning(CopilotConversationModel)
+        )
+        result = self.db.execute(stmt).scalars().first()
+        return result
+
+    def set_plan_state(
+        self,
+        *,
+        conversation_id: UUID,
+        tenant_id: UUID,
+        plan_state: dict | None,
+    ) -> None:
+        """Write plan_state JSONB column."""
+        stmt = (
+            update(CopilotConversationModel)
+            .where(
+                CopilotConversationModel.id == conversation_id,
+                CopilotConversationModel.tenant_id == tenant_id,
+                CopilotConversationModel.deleted_at.is_(None),
+            )
+            .values(plan_state=plan_state)
+        )
+        self.db.execute(stmt)
+
+    def update_procedure_state(
+        self,
+        *,
+        conversation_id: UUID,
+        tenant_id: UUID,
+        procedure_state: dict | None,
+    ) -> None:
+        """Write procedure_state JSONB column."""
+        stmt = (
+            update(CopilotConversationModel)
+            .where(
+                CopilotConversationModel.id == conversation_id,
+                CopilotConversationModel.tenant_id == tenant_id,
+                CopilotConversationModel.deleted_at.is_(None),
+            )
+            .values(procedure_state=procedure_state)
+        )
+        self.db.execute(stmt)
 
     def count_all(self, tenant_id: UUID | None = None) -> int:
         """Count conversations, optionally filtered by tenant."""
