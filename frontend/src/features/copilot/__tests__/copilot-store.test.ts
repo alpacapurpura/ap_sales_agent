@@ -56,7 +56,7 @@ describe("copilot-store", () => {
   });
 
   it("togglePanel flips isOpen from true to false", () => {
-    useCopilotStore.setState({ sidebarState: "open" });
+    useCopilotStore.setState({ sidebarState: "rail" });
     const { togglePanel } = useCopilotStore.getState();
     togglePanel();
     expect(useCopilotStore.getState().isOpen).toBe(false);
@@ -69,7 +69,7 @@ describe("copilot-store", () => {
   });
 
   it("closePanel sets isOpen to false", () => {
-    useCopilotStore.setState({ sidebarState: "open" });
+    useCopilotStore.setState({ sidebarState: "rail" });
     const { closePanel } = useCopilotStore.getState();
     closePanel();
     expect(useCopilotStore.getState().isOpen).toBe(false);
@@ -337,8 +337,8 @@ describe("sidebarState", () => {
 
   it("should transition between the two supported states", () => {
     const { setSidebarState } = useCopilotStore.getState();
-    setSidebarState("open");
-    expect(useCopilotStore.getState().sidebarState).toBe("open");
+    setSidebarState("rail");
+    expect(useCopilotStore.getState().sidebarState).toBe("rail");
 
     setSidebarState("collapsed");
     expect(useCopilotStore.getState().sidebarState).toBe("collapsed");
@@ -438,7 +438,7 @@ describe("sidebar isOpen + toggle helpers", () => {
     setSidebarState("collapsed");
     expect(useCopilotStore.getState().isOpen).toBe(false);
 
-    setSidebarState("open");
+    setSidebarState("rail");
     expect(useCopilotStore.getState().isOpen).toBe(true);
   });
 
@@ -446,7 +446,7 @@ describe("sidebar isOpen + toggle helpers", () => {
     const { togglePanel, setSidebarState } = useCopilotStore.getState();
     setSidebarState("collapsed");
     togglePanel();
-    expect(useCopilotStore.getState().sidebarState).toBe("open");
+    expect(useCopilotStore.getState().sidebarState).toBe("rail");
 
     togglePanel();
     expect(useCopilotStore.getState().sidebarState).toBe("collapsed");
@@ -454,11 +454,11 @@ describe("sidebar isOpen + toggle helpers", () => {
 
   it("openPanel sets sidebarState to open", () => {
     useCopilotStore.getState().openPanel();
-    expect(useCopilotStore.getState().sidebarState).toBe("open");
+    expect(useCopilotStore.getState().sidebarState).toBe("rail");
   });
 
   it("closePanel sets sidebarState to collapsed", () => {
-    useCopilotStore.getState().setSidebarState("open");
+    useCopilotStore.getState().setSidebarState("rail");
     useCopilotStore.getState().closePanel();
     expect(useCopilotStore.getState().sidebarState).toBe("collapsed");
   });

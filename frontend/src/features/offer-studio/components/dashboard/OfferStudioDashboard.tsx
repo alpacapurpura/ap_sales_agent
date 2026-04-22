@@ -260,7 +260,7 @@ export function OfferStudioDashboard({
           content: interview.initial_message,
           timestamp: Date.now(),
         });
-        store.setSidebarState("open");
+        store.setSidebarState("rail");
 
         navigate(`/${tenantId}/offer-studio/offer/${newOffer.id}`);
       }

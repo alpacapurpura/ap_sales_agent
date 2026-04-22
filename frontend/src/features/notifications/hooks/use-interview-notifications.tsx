@@ -61,7 +61,7 @@ export function useInterviewNotifications(): Notification[] {
             startedAt: new Date(),
             snapshot: {},
           });
-          setSidebarState("open");
+          setSidebarState("rail");
         },
       },
     };

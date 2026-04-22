@@ -1,71 +1,165 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
-import { MessageCircle, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, Plus } from "lucide-react";
+import { forwardRef } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
-import { reportCopilotEvent } from "../api/copilot-api";
-import { useProactiveNudges } from "../hooks/use-proactive-nudges";
+import { useConversationList } from "../hooks/use-conversation-list";
+import { useCreateConversation } from "../hooks/use-create-conversation";
 import { useCopilotStore } from "../store/copilot-store";
 
-/**
- *
- */
-export function CopilotRail() {
-  const openPanel = useCopilotStore((s) => s.openPanel);
-  const hasMessages = useCopilotStore((s) => s.messages.length > 0);
-  const { nudges } = useProactiveNudges();
-  const { getToken } = useAuth();
-  const hasNudges = nudges.length > 0;
+// ── Types ────────────────────────────────────────────────────────────
 
-  const handleOpen = () => {
-    openPanel();
-    void getToken().then((token) => {
-      if (token) {
-        reportCopilotEvent("copilot_opened", {}, token);
-      }
-    });
-  };
+type CopilotRailProps = React.HTMLAttributes<HTMLDivElement>;
 
-  return (
-    <div className="flex h-full w-[60px] flex-col items-center border-l border-slate-200 bg-white py-4 dark:border-slate-700 dark:bg-slate-900">
-      <TooltipProvider delayDuration={200}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={handleOpen}
-              className="relative h-10 w-10 rounded-xl text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/30"
-            >
-              <Sparkles className="h-5 w-5" />
-              {hasMessages && (
-                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-purple-500" />
-              )}
-              {!hasMessages && hasNudges && (
-                <span className="absolute right-1.5 top-1.5 h-2 w-2 animate-pulse rounded-full bg-amber-500" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="left">Copilot</TooltipContent>
-        </Tooltip>
+// ── Helpers ──────────────────────────────────────────────────────────
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={handleOpen}
-              className="mt-2 h-10 w-10 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
-            >
-              <MessageCircle className="h-5 w-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="left">Chat</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-  );
+function getInitials(title: string | null): string {
+  if (!title) return "?";
+  const words = title.trim().split(/\s+/);
+  if (words.length === 1) return title.slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
 }
+
+// ── Component ────────────────────────────────────────────────────────
+
+/**
+ * Always-visible 60px right-edge rail.
+ * Contains: toggle button, separator, new conversation button,
+ * and (when collapsed) up to 6 conversation avatars + "más" link.
+ */
+export const CopilotRail = forwardRef<HTMLDivElement, CopilotRailProps>(
+  ({ className, ...props }, ref) => {
+    const sidebarState = useCopilotStore((s) => s.sidebarState);
+    const setSidebarState = useCopilotStore((s) => s.setSidebarState);
+    const conversationId = useCopilotStore((s) => s.conversationId);
+
+    const { mutate: createConversation } = useCreateConversation();
+    const { data } = useConversationList({ limit: 6 });
+    const topConversations = data?.pages[0]?.items.slice(0, 6) ?? [];
+
+    const handleToggle = () => {
+      if (sidebarState === "collapsed") {
+        setSidebarState("rail");
+      } else if (sidebarState === "rail") {
+        setSidebarState("full");
+      } else {
+        setSidebarState("collapsed");
+      }
+    };
+
+    const toggleLabel =
+      sidebarState === "collapsed"
+        ? "Abrir copilot"
+        : sidebarState === "rail"
+          ? "Expandir historial"
+          : "Cerrar copilot";
+
+    const ToggleIcon =
+      sidebarState === "collapsed"
+        ? ChevronLeft
+        : sidebarState === "rail"
+          ? ChevronRight
+          : ChevronsLeft;
+
+    return (
+      <TooltipProvider delayDuration={200}>
+        <div
+          ref={ref}
+          className={cn(
+            "flex flex-col items-center gap-2 w-[60px] border-l border-border bg-background px-2 py-3",
+            className,
+          )}
+          {...props}
+        >
+          {/* Toggle button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleToggle}
+                aria-label={toggleLabel}
+                className="h-9 w-9"
+              >
+                <ToggleIcon className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">{toggleLabel}</TooltipContent>
+          </Tooltip>
+
+          <Separator />
+
+          {/* New conversation button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => createConversation()}
+                aria-label="Nueva conversación"
+                className="h-9 w-9"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">Nueva conversación</TooltipContent>
+          </Tooltip>
+
+          {/* Avatars — only in collapsed state */}
+          {sidebarState === "collapsed" && topConversations.length > 0 && (
+            <div className="flex flex-col items-center gap-1.5 mt-1">
+              {topConversations.map((conv) => {
+                const isActive = conv.id === conversationId;
+                return (
+                  <Tooltip key={conv.id}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          useCopilotStore.getState().setConversationId(conv.id);
+                          setSidebarState("rail");
+                        }}
+                        aria-label={conv.title ?? "Conversación"}
+                        className={cn(
+                          "h-10 w-10 rounded-full flex items-center justify-center text-xs font-semibold",
+                          "bg-muted text-muted-foreground transition-shadow",
+                          isActive && "ring-2 ring-white ring-offset-1 ring-offset-accent",
+                        )}
+                        style={
+                          isActive
+                            ? { boxShadow: "0 0 0 2px white, 0 0 0 3.5px var(--color-accent)" }
+                            : undefined
+                        }
+                      >
+                        {getInitials(conv.title)}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left">
+                      {conv.title ?? "Nueva conversación"}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+
+              {/* "más" link */}
+              <button
+                type="button"
+                onClick={() => setSidebarState("full")}
+                aria-label="Ver todas las conversaciones"
+                className="text-[10px] text-muted-foreground hover:text-foreground mt-0.5"
+              >
+                más
+              </button>
+            </div>
+          )}
+        </div>
+      </TooltipProvider>
+    );
+  },
+);
+CopilotRail.displayName = "CopilotRail";

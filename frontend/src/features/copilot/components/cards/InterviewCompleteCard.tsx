@@ -29,7 +29,7 @@ export const InterviewCompleteCard = memo(function InterviewCompleteCard({
 
   const handleClick = () => {
     clearSession();
-    setSidebarState("open");
+    setSidebarState("rail");
     router.push(`/${tenantId}${redirect}`);
   };
 

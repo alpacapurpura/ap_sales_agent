@@ -103,7 +103,7 @@ export const InterviewModeButton = forwardRef<HTMLButtonElement, InterviewModeBu
           content: interview.initial_message,
           timestamp: Date.now(),
         });
-        store.setSidebarState("open");
+        store.setSidebarState("rail");
       } catch (err) {
         // Navigate anyway; the copilot can retry from the destination page.
         console.error("Failed to start interview", err);

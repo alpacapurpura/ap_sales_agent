@@ -54,7 +54,7 @@ describe("NotificationCenter", () => {
     const state = useCopilotStore.getState();
     expect(state.session?.sessionId).toBe("session-123");
     expect(state.session?.procedure).toBe("interview");
-    expect(state.sidebarState).toBe("open");
+    expect(state.sidebarState).toBe("rail");
   });
 
   it("hides when a session is already active", () => {

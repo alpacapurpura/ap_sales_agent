@@ -18,3 +18,27 @@ export type {
   SidebarState,
   UIAction,
 } from "../store/copilot-store";
+
+export type {
+  ConversationListResponse,
+  ConversationSummary,
+  MutationAppliedEvent,
+  ModelTier,
+  PatchConversationRequest,
+  PlanApproveResponse,
+  PlanRejectResponse,
+  PlanState,
+  PlanStep,
+  RevertFailure,
+  RevertRequest,
+  RevertResponse,
+  SlashCommand,
+  TierDecisionEvent,
+} from "./conversations";
+
+export {
+  mapConversationListResponse,
+  mapConversationSummary,
+  mapRevertResponse,
+  mapSlashCommand,
+} from "./conversations";

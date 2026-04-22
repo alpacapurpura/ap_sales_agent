@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+import type { ModelTier } from "../types/conversations";
 import type { FormRuntimeBridge } from "@/lib/form-runtime/copilot";
 
 // ── Types ───────────────────────────────────────────────────────────
@@ -107,20 +108,17 @@ export interface CopilotMessage {
 export type CopilotStatus = "idle" | "thinking" | "streaming" | "done";
 
 /**
- * Sidebar can either be hidden (``collapsed``) or open for chat (``open``).
- * The legacy ``expanded`` variant, which hosted the dead preview pane, was
- * removed in Sprint 4a alongside the preview-related slices below.
+ * Sidebar has three visible states:
+ * - ``collapsed``: only the 60px rail is visible
+ * - ``rail``: chat panel (380px) + rail (60px)
+ * - ``full``: history panel (280px) + chat panel (400px) + rail (60px)
+ *
+ * Persisted to localStorage as ``copilot.sidebarState``.
  */
-export type SidebarState = "collapsed" | "open";
+export type SidebarState = "collapsed" | "rail" | "full";
 
 /**
- * Active editing run. Replaces the pre-Sprint-4a
- * ``focusEntity``/``focusSnapshot``/``interviewSessionId``/
- * ``interviewProgress``/``previewData`` slices with a single concept.
- *
- * - ``free``: the user edits the section directly; copilot is ambient.
- * - ``interview``: copilot drives a guided Q&A; ``sessionId`` is the backend
- *   conversation identifier and ``progress`` tracks completed blocks.
+ * Active editing run. ``free`` = ambient copilot; ``interview`` = guided Q&A.
  */
 export interface CopilotSession {
   /** Form-runtime section key, e.g. ``"brand.identity"`` or ``"offer.pricing"``. */
@@ -150,15 +148,29 @@ export interface FocusedField {
 }
 
 interface CopilotState {
-  // Panel UI — sidebarState is the source of truth
+  // Panel — sidebarState is the source of truth (3 states)
   sidebarState: SidebarState;
   setSidebarState: (state: SidebarState) => void;
+  /** Cycles through: collapsed → rail → full → collapsed */
+  cycleSidebarState: () => void;
 
-  // Backward-compat: isOpen derived from sidebarState (true when open)
+  // Backward-compat: isOpen derived from sidebarState (true when not collapsed)
   isOpen: boolean;
   togglePanel: () => void;
   openPanel: () => void;
   closePanel: () => void;
+
+  // Slash command overlay
+  slashCommandOpen: boolean;
+  setSlashCommandOpen: (open: boolean) => void;
+
+  // Context-rot dismissed banners (per-conversation, in-memory only)
+  dismissedRotBanners: Set<string>;
+  dismissRotBanner: (convId: string) => void;
+
+  // Last tier per message (updated by SSE tier_decision events)
+  lastMessageTiers: Record<string, ModelTier>;
+  setLastMessageTier: (msgId: string, tier: ModelTier) => void;
 
   // Conversation
   conversationId: string | null;
@@ -210,10 +222,7 @@ interface CopilotState {
   setFocusedField: (field: FocusedField) => void;
   clearFocusedField: () => void;
 
-  // Bridge to the mounted form-runtime section — copilot tools mutate
-  // fields through ``activeBridge?.patchField(path, value)`` instead of
-  // legacy ``copilot:field-update`` window events. FormRuntimeProvider
-  // calls connectBridge on mount, disconnectBridge on unmount.
+  // Bridge to the mounted form-runtime section
   activeBridge: FormRuntimeBridge | null;
   connectBridge: (bridge: FormRuntimeBridge) => void;
   disconnectBridge: (bridge: FormRuntimeBridge) => void;
@@ -224,11 +233,36 @@ interface CopilotState {
 /** Maximum number of messages kept in memory. Oldest are trimmed when exceeded. */
 export const MAX_MESSAGES = 100;
 
+/** localStorage key for persisting sidebar state */
+const SIDEBAR_STATE_KEY = "copilot.sidebarState";
+
 // ── Helpers ──────────────────────────────────────────────────────────
 
 /** Compute isOpen from sidebarState */
 function deriveIsOpen(sidebarState: SidebarState): boolean {
   return sidebarState !== "collapsed";
+}
+
+/** Cycle order: collapsed → rail → full → collapsed */
+function cycleState(current: SidebarState): SidebarState {
+  if (current === "collapsed") return "rail";
+  if (current === "rail") return "full";
+  return "collapsed";
+}
+
+/** Persist sidebar state to localStorage (client-side only) */
+function persistSidebarState(state: SidebarState): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(SIDEBAR_STATE_KEY, state);
+  }
+}
+
+/** Load persisted sidebar state from localStorage */
+function loadPersistedSidebarState(): SidebarState {
+  if (typeof window === "undefined") return "rail";
+  const saved = localStorage.getItem(SIDEBAR_STATE_KEY);
+  if (saved === "rail" || saved === "full") return saved;
+  return "rail";
 }
 
 /**
@@ -244,18 +278,57 @@ function appendWithLimit(messages: CopilotMessage[], msg: CopilotMessage): Copil
 
 export const useCopilotStore = create<CopilotState>((set, get) => ({
   // Panel — sidebarState as source of truth; isOpen kept in sync
+  // Default to "rail" on client (will be overwritten from localStorage in CopilotSidebar mount)
   sidebarState: "collapsed",
   isOpen: false,
 
-  setSidebarState: (state) => set({ sidebarState: state, isOpen: deriveIsOpen(state) }),
+  setSidebarState: (state) => {
+    persistSidebarState(state);
+    set({ sidebarState: state, isOpen: deriveIsOpen(state) });
+  },
+
+  cycleSidebarState: () =>
+    set((s) => {
+      const next = cycleState(s.sidebarState);
+      persistSidebarState(next);
+      return { sidebarState: next, isOpen: deriveIsOpen(next) };
+    }),
 
   togglePanel: () =>
     set((s) => {
-      const next: SidebarState = s.sidebarState === "collapsed" ? "open" : "collapsed";
+      // Backward-compat: toggle between collapsed and rail
+      const next: SidebarState = s.sidebarState === "collapsed" ? "rail" : "collapsed";
+      persistSidebarState(next);
       return { sidebarState: next, isOpen: deriveIsOpen(next) };
     }),
-  openPanel: () => set({ sidebarState: "open", isOpen: true }),
-  closePanel: () => set({ sidebarState: "collapsed", isOpen: false }),
+  openPanel: () => {
+    persistSidebarState("rail");
+    set({ sidebarState: "rail", isOpen: true });
+  },
+  closePanel: () => {
+    persistSidebarState("collapsed");
+    set({ sidebarState: "collapsed", isOpen: false });
+  },
+
+  // Slash command overlay
+  slashCommandOpen: false,
+  setSlashCommandOpen: (open) => set({ slashCommandOpen: open }),
+
+  // Context-rot dismissed banners
+  dismissedRotBanners: new Set<string>(),
+  dismissRotBanner: (convId) =>
+    set((s) => {
+      const next = new Set(s.dismissedRotBanners);
+      next.add(convId);
+      return { dismissedRotBanners: next };
+    }),
+
+  // Last tier per message
+  lastMessageTiers: {},
+  setLastMessageTier: (msgId, tier) =>
+    set((s) => ({
+      lastMessageTiers: { ...s.lastMessageTiers, [msgId]: tier },
+    })),
 
   // Conversation
   conversationId: null,
@@ -360,7 +433,8 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
   activeBridge: null,
   connectBridge: (bridge) => set({ activeBridge: bridge }),
   disconnectBridge: (bridge) =>
-    // Only disconnect if the passed bridge is still the active one — a
-    // newer mount may have already replaced it.
     set((s) => (s.activeBridge === bridge ? { activeBridge: null } : s)),
 }));
+
+// Export helper for mounting to restore persisted state
+export { loadPersistedSidebarState };

@@ -1,75 +1,147 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useEffect } from "react";
 
 import { cn } from "@/lib/utils";
 
 import { useCopilotNavigator } from "../hooks/use-copilot-navigator";
+import { useCreateConversation } from "../hooks/use-create-conversation";
 import { useRouteTracker } from "../hooks/use-route-tracker";
-import { useCopilotStore } from "../store/copilot-store";
+import { loadPersistedSidebarState, useCopilotStore } from "../store/copilot-store";
 
-import { CopilotChat } from "./CopilotChat";
-import { CopilotHeader } from "./CopilotHeader";
+import { CopilotChatPanel } from "./CopilotChatPanel";
+import { CopilotHistoryPanel } from "./CopilotHistoryPanel";
 import { CopilotRail } from "./CopilotRail";
 
-// ── Width classes for md+ screens ────────────────────────────────────
-const SIDEBAR_WIDTHS = {
-  collapsed: "md:w-[60px]",
-  open: "md:w-[380px]",
-} as const;
+// ── Component ────────────────────────────────────────────────────────
 
 /**
- * Sidebar container for the copilot. Sprint 4a simplifies the layout:
- * the legacy dual-column preview + chat split died with the preview pane
- * (see DECISIONS.md D5). Sidebar is now chat-only and toggles between the
- * collapsed rail (desktop) and a full-height chat column.
+ * Root copilot sidebar container.
+ * Uses a CSS grid with 3 columns: history | chat | rail.
+ * State-driven column widths, animated via CSS transitions.
+ * Persists sidebarState to localStorage.
  */
 export const CopilotSidebar = memo(function CopilotSidebar() {
   useRouteTracker();
   useCopilotNavigator();
-  const sidebarState = useCopilotStore((s) => s.sidebarState);
 
-  const isOpen = sidebarState !== "collapsed";
+  const sidebarState = useCopilotStore((s) => s.sidebarState);
+  const setSidebarState = useCopilotStore((s) => s.setSidebarState);
+  const cycleSidebarState = useCopilotStore((s) => s.cycleSidebarState);
+
+  const { mutate: createConversation } = useCreateConversation();
+
+  // Restore persisted state on mount
+  useEffect(() => {
+    const persisted = loadPersistedSidebarState();
+    setSidebarState(persisted);
+  }, [setSidebarState]);
+
+  // Keyboard shortcuts (document-level, skip if focus in input/textarea)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const inInput =
+        target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
+
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === "k") {
+          e.preventDefault();
+          document.getElementById("copilot-input")?.focus();
+        }
+        return;
+      }
+
+      if (inInput) return;
+
+      switch (e.key) {
+        case "C":
+          setSidebarState("collapsed");
+          break;
+        case "R":
+          setSidebarState("rail");
+          break;
+        case "F":
+          setSidebarState("full");
+          break;
+        case "N":
+          createConversation();
+          break;
+        default:
+          break;
+      }
+
+      void cycleSidebarState; // available for future use
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [setSidebarState, cycleSidebarState, createConversation]);
+
+  // CSS variable values per state
+  const historyW = sidebarState === "full" ? "280px" : "0px";
+  const chatW = sidebarState === "full" ? "400px" : sidebarState === "rail" ? "380px" : "0px";
+
+  const isExpanded = sidebarState !== "collapsed";
 
   return (
     <>
-      {/* ── Mobile backdrop overlay ────────────────────────────────── */}
-      {isOpen && (
+      {/* Live region for a11y announcements */}
+      <span
+        role="status"
+        aria-live="polite"
+        className="sr-only"
+        aria-label={
+          sidebarState === "collapsed"
+            ? "Copilot cerrado"
+            : sidebarState === "rail"
+              ? "Copilot abierto"
+              : "Copilot con historial"
+        }
+      />
+
+      {/* Mobile backdrop */}
+      {isExpanded && (
         <div
           className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
           aria-hidden="true"
+          onClick={() => setSidebarState("collapsed")}
         />
       )}
 
-      {/* ── Sidebar container ─────────────────────────────────────── */}
+      {/* Sidebar root — CSS grid */}
       <aside
         data-testid="copilot-sidebar"
+        aria-expanded={isExpanded}
+        aria-label="Panel copilot"
         className={cn(
-          // Base layout
-          "flex-shrink-0 h-full overflow-hidden border-l border-slate-200 bg-white",
-          "dark:border-slate-700 dark:bg-slate-900",
-          // Smooth width transition on md+
-          "transition-[width] duration-300 ease-in-out",
-          // Mobile: fixed full-screen overlay when open, hidden when collapsed
-          "max-md:fixed max-md:inset-y-0 max-md:right-0 max-md:z-50 max-md:w-full max-md:border-l-0 max-md:shadow-2xl",
-          isOpen ? "max-md:translate-x-0" : "max-md:translate-x-full",
-          "max-md:transition-transform max-md:duration-300 max-md:ease-in-out",
-          // Desktop widths
-          SIDEBAR_WIDTHS[sidebarState],
+          "flex-shrink-0 h-full overflow-hidden",
+          "transition-[grid-template-columns] duration-[220ms]",
+          // Mobile: fixed overlay when open
+          "max-md:fixed max-md:inset-y-0 max-md:right-0 max-md:z-50",
+          isExpanded ? "max-md:translate-x-0" : "max-md:translate-x-full",
+          "max-md:transition-transform max-md:duration-300",
         )}
+        style={{
+          display: "grid",
+          gridTemplateColumns: `${historyW} ${chatW} 60px`,
+          transition: "grid-template-columns 220ms cubic-bezier(.2,.8,.2,1)",
+        }}
       >
-        {sidebarState === "collapsed" ? (
-          /* ── Rail (collapsed desktop) — hidden on mobile ──────── */
-          <div className="hidden md:flex md:h-full">
-            <CopilotRail />
-          </div>
-        ) : (
-          /* ── Chat column ─────────────────────────────────────── */
-          <div className="flex h-full flex-col">
-            <CopilotHeader />
-            <CopilotChat />
-          </div>
+        {/* History panel */}
+        {sidebarState === "full" && <CopilotHistoryPanel />}
+        {sidebarState !== "full" && (
+          <div style={{ width: historyW, overflow: "hidden" }} aria-hidden="true" />
         )}
+
+        {/* Chat panel */}
+        {sidebarState !== "collapsed" && <CopilotChatPanel />}
+        {sidebarState === "collapsed" && (
+          <div style={{ width: chatW, overflow: "hidden" }} aria-hidden="true" />
+        )}
+
+        {/* Rail — always visible */}
+        <CopilotRail />
       </aside>
     </>
   );

@@ -44,7 +44,7 @@ async function activateInterview(token: string, personaId: string, personaName: 
       content: interview.initial_message,
       timestamp: Date.now(),
     });
-    store.setSidebarState("open");
+    store.setSidebarState("rail");
   } catch (err) {
     console.error("Failed to start buyer persona interview", err);
   }

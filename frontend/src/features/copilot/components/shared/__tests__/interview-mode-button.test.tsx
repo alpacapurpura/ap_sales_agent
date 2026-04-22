@@ -78,7 +78,7 @@ describe("InterviewModeButton", () => {
     );
     expect(mockSetSession).toHaveBeenCalled();
     expect(mockSetConversationId).toHaveBeenCalledWith("conv-1");
-    expect(mockSetSidebarState).toHaveBeenCalledWith("open");
+    expect(mockSetSidebarState).toHaveBeenCalledWith("rail");
     expect(pushMock).toHaveBeenCalledWith("/test-tenant/brand-studio");
   });
 
