@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Annotated
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, ConfigDict
 
-from src.modules.offer.domain.enums import OfferArchetype  # noqa: TC001  — FastAPI runtime use
+from src.modules.offer.domain.enums import OfferArchetype
 from src.modules.offer.domain.format_catalog import get_formats_suitable_for
 from src.shared.domain.expert_business_type import ExpertBusinessType
 

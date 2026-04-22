@@ -72,6 +72,7 @@ from src.modules.copilot.api import conversations as copilot_conversations
 from src.modules.copilot.api import events as copilot_events
 from src.modules.copilot.api import interview as copilot_interview
 from src.modules.copilot.api import knowledge as copilot_knowledge
+from src.modules.copilot.api import media as copilot_media
 from src.modules.copilot.api import nudge as copilot_nudge
 from src.modules.copilot.api import plan as copilot_plan
 from src.modules.copilot.api import voice as copilot_voice
@@ -655,6 +656,12 @@ app.include_router(
     copilot_voice.router,
     prefix="/api/v1/copilot/voice",
     tags=["Copilot - Voice"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    copilot_media.router,
+    prefix="/api/v1/copilot",
+    tags=["Copilot - Media"],
     dependencies=[Depends(get_tenant_context)],
 )
 app.include_router(

@@ -1,15 +1,32 @@
 """CopilotOrchestrator — Manages conversation state and streams responses via SSE."""
 
+# [COPILOT-SSE-V2] -> docs/domains/copilot/sse-protocol.md
+# [COPILOT-CITATION-BLOCK] -> docs/domains/copilot/message-blocks.md
+#
+# SSE v2 dual-emit strategy (CONTRACT-MULTIMODAL §6.3):
+#   - COPILOT_EMIT_LEGACY_SSE=true (default): emit both legacy (text_chunk,
+#     tool_result, ui_action) AND new v2 (block_start, block_delta, block_end,
+#     message_start, message_end) events side by side.
+#   - COPILOT_EMIT_LEGACY_SSE=false: emit ONLY v2 events. Set this once all
+#     FE clients have been migrated to the v2 block renderer (Phase P7).
+#
+# Migration phases (see CONTRACT §13):
+#   P4 (current): dual-emit active. Old FE ignores block_* events. New FE
+#                 prefers block_* and ignores text_chunk.
+#   P7 (future):  flip COPILOT_EMIT_LEGACY_SSE=false, remove text_chunk branch.
+
+from __future__ import annotations
+
 import asyncio
 import json
 import os
 import uuid
-from collections.abc import AsyncGenerator
-from uuid import UUID
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+from uuid import UUID, uuid4
 
 import structlog
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-from sqlalchemy.orm import Session
 
 from src.core.database import redis_client
 from src.core.enums import ModelRole
@@ -19,9 +36,6 @@ from src.modules.copilot.application.orchestrator.state import (
     create_initial_copilot_state,
 )
 from src.modules.copilot.application.orchestrator.usage_tracking import UsageAccumulator
-from src.modules.copilot.infrastructure.models.conversation_model import (
-    CopilotConversationModel,
-)
 from src.modules.copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
 )
@@ -29,11 +43,190 @@ from src.modules.copilot.infrastructure.repositories.interview_session_repositor
     InterviewSessionRepository,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
+    from sqlalchemy.orm import Session
+
+    from src.modules.copilot.infrastructure.models.conversation_model import (
+        CopilotConversationModel,
+    )
+
 logger = structlog.get_logger()
 
 # Redis key prefix for active conversation context (TTL 1h)
 REDIS_CONV_PREFIX = "copilot:conv:"
 REDIS_CONV_TTL = 3600
+
+# ── Tool → Block adapters ──────────────────────────────────────────────────────
+# [COPILOT-CITATION-BLOCK] → docs/domains/copilot/message-blocks.md §citation
+# [COPILOT-OUTBOUND-ASSETS] → docs/domains/copilot/outbound-assets.md
+
+
+def _kb_to_citations(parsed: object) -> list[dict] | None:
+    """Convert search_knowledge_base result to CitationBlock list."""
+    if not isinstance(parsed, list):
+        return None
+    blocks: list[dict] = []
+    for item in parsed:
+        if not isinstance(item, dict):
+            continue
+        blocks.append(
+            {
+                "id": str(uuid4()),
+                "type": "citation",
+                "source": str(item.get("source") or item.get("metadata", {}).get("title") or ""),
+                "snippet": str(item.get("snippet") or item.get("content") or "")[:500],
+                "score": item.get("score"),
+                "url": item.get("url") or item.get("metadata", {}).get("url"),
+            }
+        )
+    return blocks
+
+
+def _asset_item_to_block(item: dict) -> dict | None:
+    """Convert a single asset dict to a typed block dict. Returns None for unknown kinds."""
+    kind = str(item.get("kind", "")).lower()
+    asset_id = str(item.get("asset_id", ""))
+    public_url = str(item.get("public_url", ""))
+    mime = str(item.get("mime", "application/octet-stream"))
+    filename = str(item.get("filename", ""))
+
+    if kind == "image":
+        return {
+            "id": str(uuid4()),
+            "type": "image",
+            "asset_id": asset_id,
+            "url": public_url,
+            "mime": mime,
+            "alt": item.get("description") or filename or None,
+        }
+    if kind == "audio":
+        return {
+            "id": str(uuid4()),
+            "type": "audio",
+            "asset_id": asset_id,
+            "url": public_url,
+            "mime": mime,
+            "transcript": "",  # assets don't carry transcript; caller may enrich
+        }
+    if kind == "video":
+        return {
+            "id": str(uuid4()),
+            "type": "video",
+            "asset_id": asset_id,
+            "url": public_url,
+            "mime": mime,
+        }
+    if kind == "document":
+        return {
+            "id": str(uuid4()),
+            "type": "document",
+            "asset_id": asset_id,
+            "url": public_url,
+            "mime": mime,
+            "filename": filename,
+            "size_bytes": int(item.get("size_bytes", 0)),
+        }
+    # Unknown kind → skip
+    return None
+
+
+def _assets_to_media_blocks(parsed: object) -> list[dict] | None:
+    """Convert search_assets / get_asset result to asset block list."""
+    if isinstance(parsed, dict):
+        if "error" in parsed:
+            return None
+        items = [parsed]
+    elif isinstance(parsed, list):
+        items = [i for i in parsed if isinstance(i, dict) and "error" not in i]
+    else:
+        return None
+
+    result_blocks: list[dict] = []
+    for item in items:
+        block = _asset_item_to_block(item)
+        if block is not None:
+            result_blocks.append(block)
+    return result_blocks
+
+
+# Dispatch table: tool_name → handler(parsed) -> list[dict] | None
+_TOOL_BLOCK_HANDLERS: dict[str, object] = {
+    "search_knowledge_base": _kb_to_citations,
+    "search_assets": _assets_to_media_blocks,
+    "get_asset": _assets_to_media_blocks,
+}
+
+
+def _tool_result_to_block(tool_name: str, result: object) -> list[dict] | None:
+    """Convert a tool result to a list of MessageBlock dicts for SSE v2 block_append.
+
+    Returns None if the tool output is not mapped to a block type (caller emits
+    only the legacy tool_result event in that case).
+    Returns an empty list if the tool output is a valid empty collection.
+
+    Mapped tools:
+    - search_knowledge_base  → list[CitationBlock]
+    - search_assets          → list[ImageBlock | AudioBlock | VideoBlock | DocumentBlock]
+    - get_asset              → [ImageBlock | AudioBlock | VideoBlock | DocumentBlock]
+
+    All other tools → None.
+
+    CONTRACT reference: CONTRACT-MULTIMODAL §6, §8, §10.
+    """
+    handler = _TOOL_BLOCK_HANDLERS.get(tool_name)
+    if handler is None:
+        return None
+
+    result_str: str = result if isinstance(result, str) else json.dumps(result)
+    try:
+        parsed = json.loads(result_str)
+    except (json.JSONDecodeError, ValueError):
+        logger.debug("tool_result_to_block_invalid_json", tool_name=tool_name)
+        return None
+
+    return handler(parsed)  # type: ignore[operator]
+
+
+_TYPE_TO_CARD_KIND: dict[str, str] = {
+    "proposal": "proposal",
+    "alternatives_card": "alternatives",
+    "alternatives": "alternatives",
+    "clarify": "clarify",
+    "clarify_card": "clarify",
+    "checkpoint": "checkpoint",
+    "interview_complete": "interview_complete",
+    "metric_summary": "metric_summary",
+    "comparison": "comparison",
+    "checklist": "checklist",
+    "multi_option": "multi_option",
+    "navigation": "navigation",
+}
+"""Map from UIAction.type → CardBlock.card_kind (CONTRACT-MULTIMODAL §6)."""
+
+
+def _ui_action_to_card_block(action: dict) -> dict | None:
+    """Wrap a UIAction dict as a CardBlock dict for SSE v2.
+
+    Only wraps action types that map to known card_kind values.
+    Unknown types → None (emit only legacy ui_action, no block).
+
+    CONTRACT reference: CONTRACT-MULTIMODAL §6 (ui_action → CardBlock).
+    """
+    action_type = str(action.get("type", ""))
+    card_kind = _TYPE_TO_CARD_KIND.get(action_type)
+    if not card_kind:
+        return None
+
+    return {
+        "id": str(uuid4()),
+        "type": "card",
+        "card_kind": card_kind,
+        "payload": action,
+        "status": "pending",
+    }
+
 
 # LLM streaming timeout (seconds). If the LLM hangs, the SSE stream will
 # emit an error event after this duration instead of blocking indefinitely.
@@ -41,6 +234,29 @@ REDIS_CONV_TTL = 3600
 COPILOT_STREAM_TIMEOUT_SECONDS: int = int(
     os.environ.get("COPILOT_STREAM_TIMEOUT_SECONDS", "60"),
 )
+
+# SSE v2 migration flag (CONTRACT-MULTIMODAL §6.3).
+# true  -> dual-emit: legacy events + v2 block events (P4-P6).
+# false -> v2 only (P7 onwards).
+_EMIT_LEGACY_SSE: bool = os.environ.get("COPILOT_EMIT_LEGACY_SSE", "true").lower() not in {
+    "false",
+    "0",
+    "no",
+}
+
+
+@dataclass
+class _StreamAccumulator:
+    """Mutable accumulator shared between stream_chat and _run_graph_stream."""
+
+    full_response: str = ""
+    messages: list = field(default_factory=list)
+    last_tool_call_ids: dict[str, str] = field(default_factory=dict)
+    emitted_blocks: list[dict] = field(default_factory=list)
+    # v2 text block tracking
+    text_block_id: str | None = None
+    text_block_markdown: str = ""
+    block_index: int = 0
 
 
 class CopilotOrchestrator:
@@ -76,21 +292,19 @@ class CopilotOrchestrator:
             ctx["interview_session_id"] = context.interview_session_id
         return ctx
 
-    async def stream_chat(
+    def _prepare_conversation(
         self,
         *,
         user_id: UUID,
         tenant_id: UUID,
         message: str,
-        conversation_id: str | None = None,
-        context: ClientContextDTO | None = None,
-    ) -> AsyncGenerator[str, None]:
-        """Process a user message and yield SSE events."""
-        # 1. Resolve or create conversation
+        conversation_id: str | None,
+        context: ClientContextDTO | None,
+    ) -> tuple[str, UUID, CopilotConversationModel, dict]:
+        """Resolve/create conversation and build LangGraph state. Returns (conv_id, conv_uuid, existing_conv, state)."""
         conv_id = conversation_id or str(uuid.uuid4())
         conv_uuid = UUID(conv_id)
 
-        # Try to load existing conversation from DB (user_id = ownership check)
         existing_conv = self.conv_repo.get_by_id(conv_uuid, tenant_id, user_id)
         if not existing_conv:
             existing_conv = self.conv_repo.create(
@@ -100,9 +314,7 @@ class CopilotOrchestrator:
             )
             self.db.commit()
 
-        # 2. Build state
         client_ctx = self._build_client_context(context)
-
         state = create_initial_copilot_state(
             user_id=user_id,
             tenant_id=tenant_id,
@@ -110,7 +322,6 @@ class CopilotOrchestrator:
             client_context=client_ctx,
         )
 
-        # 2b. Load interview session if interview_session_id is present
         if client_ctx.get("interview_session_id"):
             try:
                 session_repo = InterviewSessionRepository(self.db)
@@ -126,82 +337,203 @@ class CopilotOrchestrator:
                     session_id=client_ctx["interview_session_id"],
                 )
 
-        # 3. Load conversation history from Redis (fast) or DB (fallback)
         history_messages = self._load_history(conv_id, tenant_id, existing_conv)
         state["messages"] = [*history_messages, HumanMessage(content=message)]
+        return conv_id, conv_uuid, existing_conv, state
 
-        # 4. Emit status: thinking
+    async def stream_chat(
+        self,
+        *,
+        user_id: UUID,
+        tenant_id: UUID,
+        message: str,
+        conversation_id: str | None = None,
+        context: ClientContextDTO | None = None,
+    ) -> AsyncGenerator[str, None]:
+        """Process a user message and yield SSE events.
+
+        Emits both legacy v1 events and v2 block events during the migration
+        window (COPILOT_EMIT_LEGACY_SSE=true). See module-level comment for
+        the dual-emit strategy.
+        """
+        conv_id, conv_uuid, existing_conv, state = self._prepare_conversation(
+            user_id=user_id,
+            tenant_id=tenant_id,
+            message=message,
+            conversation_id=conversation_id,
+            context=context,
+        )
+
         yield SSEEvent(event="status", data={"state": "thinking"}).to_sse()
 
-        # 5. Stream the graph execution
-        full_response = ""
-        accumulated_messages: list = []  # Collect LangChain messages for persistence
-        last_tool_call_ids: dict[str, str] = {}  # tool_name -> tool_call_id
         from src.core.config import settings as _settings
 
         usage = UsageAccumulator(model=_settings.get_model(ModelRole.AGENT))
-        try:
-            yield SSEEvent(event="status", data={"state": "streaming"}).to_sse()
+        acc = _StreamAccumulator()
 
-            async with asyncio.timeout(COPILOT_STREAM_TIMEOUT_SECONDS):
-                async for event in copilot_graph.astream_events(state, version="v2"):
-                    usage.update_from_event(event)
-                    sse_event, text_chunk = self._process_stream_event(
-                        event,
-                        accumulated_messages,
-                        last_tool_call_ids,
-                    )
-                    if text_chunk:
-                        full_response += text_chunk
-                    if sse_event:
-                        yield sse_event
+        async for sse_str in self._run_graph_stream(state=state, usage=usage, acc=acc):
+            yield sse_str
 
-        except TimeoutError:
-            logger.warning(
-                "copilot_stream_timeout",
-                conversation_id=conv_id,
-                timeout_seconds=COPILOT_STREAM_TIMEOUT_SECONDS,
-                partial_response_length=len(full_response),
-            )
-            yield SSEEvent(
-                event="error",
-                data={
-                    "message": (
-                        "La respuesta del asistente excedió el tiempo límite. "
-                        "Tu mensaje parcial se ha conservado. Intenta de nuevo."
-                    ),
-                },
-            ).to_sse()
-            # Partial response and accumulated_messages are preserved for persistence
-
-        except Exception as e:
-            logger.exception("copilot_stream_error", error=str(e), conversation_id=conv_id)
-            yield SSEEvent(
-                event="error",
-                data={
-                    "message": "Ocurrió un error procesando tu mensaje. Intenta de nuevo.",
-                },
-            ).to_sse()
-            full_response = ""
-            accumulated_messages = []
-
-        # 5b. Log token usage and cost for this turn
         usage.log(conversation_id=conv_id, tenant_id=str(tenant_id))
 
-        # 6. Persist messages (full chain including tool_calls)
         self._persist_messages(
             conv_uuid,
             tenant_id,
             conv_id,
             message,
-            full_response,
-            accumulated_messages,
+            acc.full_response,
+            acc.messages,
             existing_conv,
         )
 
-        # 7. Emit done
         yield SSEEvent(event="status", data={"state": "done"}).to_sse()
         yield SSEEvent(event="done", data={"conversation_id": conv_id}).to_sse()
+
+    async def _run_graph_stream(
+        self,
+        *,
+        state: dict,
+        usage: UsageAccumulator,
+        acc: _StreamAccumulator,
+    ) -> AsyncGenerator[str, None]:
+        """Run the LangGraph stream and emit SSE events (v1 legacy + v2 blocks).
+
+        Accumulates full_response, messages, and emitted_blocks into *acc*
+        so that stream_chat can persist them after the generator exhausts.
+        """
+        from src.shared.domain.datetime_utils import utc_now as _utc_now
+
+        msg_id = str(uuid4())
+        streaming_started_at = _utc_now()
+
+        try:
+            yield SSEEvent(event="status", data={"state": "streaming"}).to_sse()
+            yield SSEEvent(
+                event="message_start",
+                data={
+                    "message_id": msg_id,
+                    "role": "assistant",
+                    "created_at": streaming_started_at.isoformat(),
+                },
+            ).to_sse()
+
+            async with asyncio.timeout(COPILOT_STREAM_TIMEOUT_SECONDS):
+                async for event in copilot_graph.astream_events(state, version="v2"):
+                    usage.update_from_event(event)
+
+                    # on_tool_end: route to v2-aware handler that also emits block_append
+                    if event.get("event") == "on_tool_end":
+                        tool_sse = self._handle_tool_end_v2(
+                            event,
+                            acc.messages,
+                            acc.last_tool_call_ids,
+                            acc,
+                            msg_id,
+                        )
+                        if tool_sse:
+                            yield tool_sse
+                        continue
+
+                    legacy_sse, text_chunk = self._process_stream_event(
+                        event,
+                        acc.messages,
+                        acc.last_tool_call_ids,
+                    )
+                    if text_chunk:
+                        acc.full_response += text_chunk
+                        async for block_sse in self._emit_text_chunk_v2(acc, msg_id, text_chunk):
+                            yield block_sse
+                    if legacy_sse:
+                        yield legacy_sse
+
+        except TimeoutError:
+            logger.warning(
+                "copilot_stream_timeout",
+                timeout_seconds=COPILOT_STREAM_TIMEOUT_SECONDS,
+                partial_response_length=len(acc.full_response),
+            )
+            yield SSEEvent(
+                event="error",
+                data={
+                    "message": (
+                        "La respuesta del asistente excedió el tiempo limite. "
+                        "Tu mensaje parcial se ha conservado. Intenta de nuevo."
+                    ),
+                },
+            ).to_sse()
+
+        except Exception as e:
+            logger.exception("copilot_stream_error", error=str(e))
+            yield SSEEvent(
+                event="error",
+                data={"message": "Ocurrio un error procesando tu mensaje. Intenta de nuevo."},
+            ).to_sse()
+            acc.full_response = ""
+            acc.messages = []
+            return
+
+        # Finalize v2 text block
+        if acc.text_block_id is not None:
+            final_text_block: dict = {
+                "id": acc.text_block_id,
+                "type": "text",
+                "markdown": acc.text_block_markdown,
+            }
+            yield SSEEvent(
+                event="block_end",
+                data={
+                    "message_id": msg_id,
+                    "block_id": acc.text_block_id,
+                    "final": final_text_block,
+                },
+            ).to_sse()
+            acc.emitted_blocks.append(final_text_block)
+
+        tokens_used = getattr(usage, "total_tokens", None)
+        yield SSEEvent(
+            event="message_end",
+            data={
+                "message_id": msg_id,
+                "status": "sent",
+                "tokens_used": tokens_used,
+                "blocks": acc.emitted_blocks,
+            },
+        ).to_sse()
+
+    @staticmethod
+    async def _emit_text_chunk_v2(
+        acc: _StreamAccumulator,
+        msg_id: str,
+        text_chunk: str,
+    ) -> AsyncGenerator[str, None]:
+        """Emit block_start (first chunk) + block_delta for a text chunk (v2)."""
+        if acc.text_block_id is None:
+            acc.text_block_id = str(uuid4())
+            acc.text_block_markdown = ""
+            yield SSEEvent(
+                event="block_start",
+                data={
+                    "message_id": msg_id,
+                    "block_id": acc.text_block_id,
+                    "type": "text",
+                    "index": acc.block_index,
+                    "partial": {
+                        "id": acc.text_block_id,
+                        "type": "text",
+                        "markdown": "",
+                    },
+                },
+            ).to_sse()
+
+        acc.text_block_markdown += text_chunk
+        yield SSEEvent(
+            event="block_delta",
+            data={
+                "message_id": msg_id,
+                "block_id": acc.text_block_id,
+                "delta": {"markdown": text_chunk},
+            },
+        ).to_sse()
 
     def _process_stream_event(
         self,
@@ -212,19 +544,32 @@ class CopilotOrchestrator:
         """Process a single LangGraph stream event.
 
         Returns (sse_string | None, text_chunk | None).
+
+        sse_string: zero or more SSE event strings concatenated. The caller
+            yields this directly. For text chunks this is the legacy
+            ``text_chunk`` event (only emitted when _EMIT_LEGACY_SSE=True);
+            for tool events it is tool_start/tool_result/ui_action.
+
+        text_chunk: raw text content when the LLM emitted a streaming token.
+            The caller uses this to build the v2 ``block_delta`` events
+            independently of the legacy flag.
         """
         kind = event.get("event")
 
         if kind == "on_chat_model_stream":
             chunk = event.get("data", {}).get("chunk")
             if chunk and hasattr(chunk, "content") and chunk.content:
-                return (
+                # Legacy text_chunk event -- only emit when flag is on (P4-P6).
+                # v2 block_delta is built by the caller from the returned text_chunk.
+                legacy_sse = (
                     SSEEvent(
                         event="text_chunk",
                         data={"content": chunk.content},
-                    ).to_sse(),
-                    chunk.content,
+                    ).to_sse()
+                    if _EMIT_LEGACY_SSE
+                    else None
                 )
+                return legacy_sse, chunk.content
             return None, None
 
         if kind == "on_chat_model_end":
@@ -293,6 +638,70 @@ class CopilotOrchestrator:
 
         if isinstance(parsed, dict) and "ui_action" in parsed:
             result_sse += SSEEvent(event="ui_action", data=parsed["ui_action"]).to_sse()
+
+        return result_sse
+
+    def _handle_tool_end_v2(
+        self,
+        event: dict,
+        accumulated_messages: list,
+        last_tool_call_ids: dict[str, str],
+        acc: _StreamAccumulator,
+        msg_id: str,
+    ) -> str:
+        """Handle on_tool_end: legacy events + v2 block_append events.
+
+        Extends _handle_tool_end with SSE v2 block_append emission for tools
+        that map to canonical MessageBlock types (CONTRACT-MULTIMODAL §6, §8, §10).
+
+        # [COPILOT-SSE-V2] → docs/domains/copilot/sse-protocol.md
+        # [COPILOT-CITATION-BLOCK] → docs/domains/copilot/message-blocks.md §citation
+        # [COPILOT-OUTBOUND-ASSETS] → docs/domains/copilot/outbound-assets.md
+
+        Dual-emit strategy (same as text streaming):
+        - Legacy: tool_result + ui_action events always emitted (when _EMIT_LEGACY_SSE).
+        - v2: block_append event emitted for mapped tools, containing the typed block.
+
+        Non-text blocks (image/audio/citation/card) are atomic — no streaming deltas.
+        They use block_append (not block_start/end) because they appear as tool results,
+        not as the primary streaming content. FE appends them to the message blocks list.
+        """
+        tool_name = event.get("name", "unknown")
+        tool_output = event.get("data", {}).get("output", "")
+
+        # Step 1 — emit legacy events via the existing handler
+        result_sse = self._handle_tool_end(event, accumulated_messages, last_tool_call_ids)
+
+        # Step 2 — attempt v2 block_append for mapped tools
+        blocks = _tool_result_to_block(tool_name, tool_output)
+        if blocks is not None:
+            for block in blocks:
+                result_sse += SSEEvent(
+                    event="block_append",
+                    data={"message_id": msg_id, "block": block},
+                ).to_sse()
+                acc.emitted_blocks.append(block)
+
+        # Step 3 — ui_action → CardBlock (v2 wrap, in addition to legacy ui_action)
+        # Check if tool output has ui_action that wasn't already wrapped
+        parsed_output: dict | None = None
+        if isinstance(tool_output, dict):
+            parsed_output = tool_output
+        elif isinstance(tool_output, str):
+            try:
+                parsed_output = json.loads(tool_output)
+            except (json.JSONDecodeError, ValueError):
+                parsed_output = None
+
+        if isinstance(parsed_output, dict) and "ui_action" in parsed_output:
+            action = parsed_output["ui_action"]
+            card_block = _ui_action_to_card_block(action)
+            if card_block:
+                result_sse += SSEEvent(
+                    event="block_append",
+                    data={"message_id": msg_id, "block": card_block},
+                ).to_sse()
+                acc.emitted_blocks.append(card_block)
 
         return result_sse
 

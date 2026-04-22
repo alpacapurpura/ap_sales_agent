@@ -30,8 +30,19 @@ class CopilotChatRequest(BaseModel):
 
 
 # ── SSE Event Types ──────────────────────────────────────────────────
+# [COPILOT-SSE-V2] → docs/domains/copilot/sse-protocol.md
+#
+# v1 legacy events (emitted during P4-P7 migration window,
+# controlled by COPILOT_EMIT_LEGACY_SSE env var):
+#   text_chunk, ui_action, proposal, confirmation_required
+#
+# v2 new events (emitted alongside v1 during migration, then exclusively):
+#   message_start, block_start, block_delta, block_end, message_end
+#
+# Both v1 and v2 FEs ignore unknown event types gracefully.
 
 SSEEventType = Literal[
+    # ── v1 (legacy — kept during migration window) ────────────────────
     "text_chunk",
     "tool_start",
     "tool_result",
@@ -43,6 +54,13 @@ SSEEventType = Literal[
     "mutation_applied",  # CONTRACT §4.3 — emitted when a mutation is journaled
     "done",
     "error",
+    # ── v2 (new block-streaming events) ───────────────────────────────
+    "message_start",  # marks start of new assistant message
+    "block_start",  # new block begins (partial payload for text, full for others)
+    "block_delta",  # streaming update for text blocks only
+    "block_end",  # block finalized (full validated MessageBlock)
+    "block_append",  # non-streaming block appended (tool results, citations, cards)
+    "message_end",  # assistant message complete (final blocks list + tokens_used)
 ]
 
 

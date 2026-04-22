@@ -19,7 +19,7 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, Header, HTTPException, status
-from sqlalchemy.orm import Session  # noqa: TC002 — FastAPI needs runtime type for Annotated Depends
+from sqlalchemy.orm import Session
 
 from src.core.database import get_db
 from src.modules.tenant_profile.api.dtos import (

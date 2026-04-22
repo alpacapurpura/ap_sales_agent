@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 # Runtime imports (needed by FastAPI's dependency resolver for Annotated[..., Depends(...)] —
 # cannot be moved to TYPE_CHECKING or FastAPI treats the param as a query arg).
-from sqlalchemy.orm import Session  # noqa: TC002
+from sqlalchemy.orm import Session
 
 from src.core.database import get_db
 from src.modules.copilot.api.conversation_dto import (
@@ -29,7 +29,7 @@ from src.modules.copilot.infrastructure.repositories.mutation_journal_repository
     MutationJournalRepository,
 )
 from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
-from src.modules.iam.domain.user import User  # noqa: TC001
+from src.modules.iam.domain.user import User
 
 logger = structlog.get_logger()
 

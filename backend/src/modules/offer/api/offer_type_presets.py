@@ -28,7 +28,7 @@ from src.modules.offer.domain.offer_type_preset_catalog import (
 # fully defined`` on the first request. The ``# noqa: TC001`` silences
 # the legitimate ruff hint because the import genuinely is not
 # typing-only for this consumer.
-from src.shared.domain.expert_business_type import ExpertBusinessType  # noqa: TC001
+from src.shared.domain.expert_business_type import ExpertBusinessType
 
 router = APIRouter()
 

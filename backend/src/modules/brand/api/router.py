@@ -14,7 +14,7 @@ from typing import Annotated, Any
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.orm import Session  # noqa: TC002 — FastAPI needs runtime type for Annotated Depends
+from sqlalchemy.orm import Session
 
 from src.core.database import get_db
 from src.modules.brand.domain import BrandSettings
@@ -22,7 +22,7 @@ from src.modules.brand.infrastructure.repositories.brand_repository import (
     BrandRepository,
 )
 from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User  # noqa: TC001 — FastAPI needs runtime type for Annotated Depends
+from src.modules.iam.domain.user import User
 
 logger = structlog.get_logger()
 

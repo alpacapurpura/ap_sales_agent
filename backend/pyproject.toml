@@ -247,6 +247,11 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "D103",    # upgrade()/downgrade() don't need docstrings in migrations
     "D415",    # migration file docstrings follow alembic template (no trailing punctuation)
 ]
+"src/modules/*/api/**/*.py" = [
+    "TC001",   # FastAPI DI needs runtime types (Annotated[X, Depends(...)]); TYPE_CHECKING breaks get_type_hints
+    "TC002",   # same — third-party types used at runtime by FastAPI
+    "TC003",   # same — stdlib types (UUID, datetime) used at runtime by FastAPI
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

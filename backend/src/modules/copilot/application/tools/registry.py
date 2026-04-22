@@ -5,6 +5,7 @@ This keeps the tool set focused and reduces noise for the LLM.
 """
 
 from src.modules.copilot.application.tools.analytics_tools import ANALYTICS_TOOLS
+from src.modules.copilot.application.tools.assets_tools import ASSETS_TOOLS  # [COPILOT-OUTBOUND-ASSETS]
 from src.modules.copilot.application.tools.awareness import AWARENESS_TOOLS
 from src.modules.copilot.application.tools.connections_tools import CONNECTIONS_TOOLS
 from src.modules.copilot.application.tools.crm_tools import CRM_TOOLS
@@ -35,6 +36,9 @@ TOOL_GROUPS: dict[str, list] = {
     "offer_ladder": OFFER_LADDER_TOOLS,
     "offer_section": OFFER_SECTION_TOOLS,
     "interview": INTERVIEW_TOOLS,
+    # Outbound asset tools — allow assistant to reference existing tenant assets.
+    # Added by CONTRACT-MULTIMODAL §8.5.
+    "assets": ASSETS_TOOLS,
 }
 
 # Route prefix -> which tool groups are available.
@@ -50,6 +54,7 @@ ROUTE_TOOL_MAP: dict[str, list[str]] = {
         "module_data",
         "procedure",
         "knowledge",
+        "assets",  # brand studio can reference assets (logos, photos, etc.)
     ],
     "offer-studio/interview": ["interview", "knowledge"],
     "offer-studio": [
@@ -61,6 +66,7 @@ ROUTE_TOOL_MAP: dict[str, list[str]] = {
         "knowledge",
         "offer_ladder",
         "offer_section",
+        "assets",  # offer studio can reference flyers, images, etc.
     ],
     "growth-studio": [
         "navigation",
@@ -104,6 +110,15 @@ ROUTE_TOOL_MAP: dict[str, list[str]] = {
         "landing",
         "procedure",
         "knowledge",
+        "assets",  # landing studio can reference uploaded images/docs.
+    ],
+    "assets": [
+        "navigation",
+        "awareness",
+        "module_data",
+        "procedure",
+        "knowledge",
+        "assets",  # assets studio: full access to asset tools.
     ],
     "settings": ["navigation", "awareness", "module_data", "procedure", "knowledge"],
     "*": [
@@ -113,6 +128,7 @@ ROUTE_TOOL_MAP: dict[str, list[str]] = {
         "module_data",
         "procedure",
         "knowledge",
+        "assets",  # globally available — assistant can reference assets anywhere.
     ],
 }
 
