@@ -26,7 +26,6 @@ from src.modules.copilot.application.tools.registry import (
 from src.modules.copilot.domain.module_registry import get_module_registry
 from src.modules.copilot.infrastructure.prompts.base import prompt_loader
 from src.modules.copilot.infrastructure.prompts.sanitizer import (
-    sanitize_entity_snapshot,
     sanitize_mapa_global,
     sanitize_selected_fields,
 )
@@ -196,37 +195,6 @@ def _get_behavior_summary(tenant_id: UUID, user_id: UUID) -> str:
         db.close()
 
 
-_DOMAIN_LABELS: dict[str, str] = {
-    "offer": "oferta",
-    "brand": "marca",
-    "buyer_persona": "buyer persona",
-}
-
-
-def _build_focus_layer(ctx: dict[str, object], state: dict[str, object]) -> str:
-    """Render the focus context layer if conditions are met, else return empty string."""
-    if not (ctx.get("focus") and state.get("focus_entity_data")):
-        return ""
-    focus_ctx = ctx["focus"]
-    entity_data = state["focus_entity_data"]
-    domain = focus_ctx.get("domain", "")
-    # Sanitize entity snapshot before template insertion to prevent prompt injection
-    safe_entity_data = sanitize_entity_snapshot(entity_data) if isinstance(entity_data, dict) else entity_data
-    empty_fields = [k for k, v in entity_data.items() if not v] if isinstance(entity_data, dict) else []
-    try:
-        return prompt_loader.render(
-            "copilot_focus",
-            domain=domain,
-            entity_id=focus_ctx.get("entity_id", ""),
-            entity_snapshot=safe_entity_data,
-            empty_fields=empty_fields,
-            domain_label=_DOMAIN_LABELS.get(domain, domain),
-        )
-    except Exception:
-        logger.exception("Error rendering focus prompt layer")
-        return ""
-
-
 def _build_interview_layer(ctx: dict[str, object], state: dict[str, object]) -> str:
     """Render the interview session layer if conditions are met, else return empty string."""
     if not (ctx.get("interview_session_id") and state.get("interview_session")):
@@ -330,8 +298,8 @@ def build_system_prompt(state: CopilotState) -> str:
             "Habla siempre en español, de forma profesional pero cercana."
         )
 
-    # Compose all layers
-    return base_prompt + _build_focus_layer(ctx, state) + _build_interview_layer(ctx, state)
+    # Compose all layers (focus mode retired 2026-04-21 — only interview layer remains)
+    return base_prompt + _build_interview_layer(ctx, state)
 
 
 def agent_node(state: CopilotState) -> dict:

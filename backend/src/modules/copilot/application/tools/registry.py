@@ -8,7 +8,6 @@ from src.modules.copilot.application.tools.analytics_tools import ANALYTICS_TOOL
 from src.modules.copilot.application.tools.awareness import AWARENESS_TOOLS
 from src.modules.copilot.application.tools.connections_tools import CONNECTIONS_TOOLS
 from src.modules.copilot.application.tools.crm_tools import CRM_TOOLS
-from src.modules.copilot.application.tools.focus import FOCUS_TOOLS
 from src.modules.copilot.application.tools.interview import INTERVIEW_TOOLS
 from src.modules.copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
 from src.modules.copilot.application.tools.landing_tools import LANDING_TOOLS
@@ -36,7 +35,6 @@ TOOL_GROUPS: dict[str, list] = {
     "offer_ladder": OFFER_LADDER_TOOLS,
     "offer_section": OFFER_SECTION_TOOLS,
     "interview": INTERVIEW_TOOLS,
-    "focus": FOCUS_TOOLS,
 }
 
 # Route prefix -> which tool groups are available.
@@ -170,28 +168,16 @@ def _collect_groups(group_names: tuple[str, ...]) -> list:
     return tools
 
 
-def _get_tools_for_focus(route: str | None) -> list:
-    """Build the focus-mode tool list: focus + shared groups + route tools (no mutation)."""
-    tools = _collect_groups(("focus", "knowledge", "awareness", "module_data"))
-    seen: set[str] = {t.name for t in tools}
-    excluded = {"mutation"}
-    for group_name in _match_route(route):
-        if group_name in excluded:
-            continue
-        for t in TOOL_GROUPS.get(group_name, []):
-            if t.name not in seen:
-                tools.append(t)
-                seen.add(t.name)
-    return tools
-
-
 def get_tools_for_context(context: dict | None) -> list:
-    """Return tools based on mode (interview > focus > chat).
+    """Return tools based on mode (interview > chat).
 
     Mode is determined by context fields:
-    - interview_session_id present -> Interview mode (interview + knowledge tools)
-    - focus present -> Focus mode (route-based + knowledge, no mutation)
-    - Neither -> Chat mode (route-based, current behavior)
+    - ``interview_session_id`` present → Interview mode (interview + knowledge).
+    - Otherwise → Chat mode (route-based selection).
+
+    Focus mode was retired on 2026-04-21: per-entity scoped edits now rely on
+    ``selected_fields`` + the per-conversation mutation journal. See
+    CONTRACT §5 and ``.claude/rules/copilot-resilience.md``.
     """
     if not context:
         return get_tools_for_route(None)
@@ -199,10 +185,6 @@ def get_tools_for_context(context: dict | None) -> list:
     # Interview mode: interview + knowledge tools only
     if context.get("interview_session_id"):
         return _collect_groups(("interview", "knowledge"))
-
-    # Focus mode: focus + knowledge + awareness + module_data + route domain tools, no mutation
-    if context.get("focus"):
-        return _get_tools_for_focus(context.get("current_route"))
 
     # Chat mode: route-based selection
     return get_tools_for_route(context.get("current_route"))

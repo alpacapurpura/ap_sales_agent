@@ -19,7 +19,6 @@ from src.modules.copilot.application.orchestrator.state import (
     create_initial_copilot_state,
 )
 from src.modules.copilot.application.orchestrator.usage_tracking import UsageAccumulator
-from src.modules.copilot.infrastructure.context.focus_context_loader import FocusContextLoader
 from src.modules.copilot.infrastructure.models.conversation_model import (
     CopilotConversationModel,
 )
@@ -70,23 +69,12 @@ class CopilotOrchestrator:
             "form_data": context.form_data,
             "locale": context.locale,
         }
-        if context.focus:
-            ctx["focus"] = context.focus.model_dump()
+        # Focus mode retired on 2026-04-21: scoped edits are now handled by
+        # ``selected_fields`` chips + the per-conversation mutation journal.
+        # See CONTRACT §5 and .claude/rules/copilot-resilience.md.
         if context.interview_session_id:
             ctx["interview_session_id"] = context.interview_session_id
         return ctx
-
-    def _load_focus_entity_data(self, client_ctx: dict, tenant_id: UUID) -> dict | None:
-        """Load entity snapshot if focus context is present."""
-        focus = client_ctx.get("focus")
-        if not focus:
-            return None
-        try:
-            loader = FocusContextLoader(self.db)
-            return loader.load(tenant_id, focus.get("domain", ""), focus.get("entity_id"))
-        except Exception:
-            logger.exception("focus_entity_data_load_error")
-            return None
 
     async def stream_chat(
         self,
@@ -121,11 +109,6 @@ class CopilotOrchestrator:
             conversation_id=conv_id,
             client_context=client_ctx,
         )
-
-        # 2c. Load focus entity data if focus context is present
-        focus_data = self._load_focus_entity_data(client_ctx, tenant_id)
-        if focus_data:
-            state["focus_entity_data"] = focus_data
 
         # 2b. Load interview session if interview_session_id is present
         if client_ctx.get("interview_session_id"):

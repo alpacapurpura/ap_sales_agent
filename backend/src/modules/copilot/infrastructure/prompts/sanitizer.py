@@ -15,7 +15,6 @@ Defence strategy:
 Usage (in graph.py before prompt_loader.render()):
     from src.modules.copilot.infrastructure.prompts.sanitizer import (
         sanitize_selected_fields,
-        sanitize_entity_snapshot,
         sanitize_mapa_global,
     )
 """
@@ -80,26 +79,6 @@ def sanitize_selected_fields(
         if "field_label" in sanitized:
             sanitized["field_label"] = sanitize_user_value(sanitized["field_label"])
         result.append(sanitized)
-    return result
-
-
-def sanitize_entity_snapshot(
-    snapshot: dict[str, Any],
-) -> dict[str, Any]:
-    """Return a sanitized copy of an entity snapshot dict (focus mode).
-
-    Only string values are wrapped; lists, dicts, booleans, and numbers
-    are left as-is so that JSON serialisation (``| tojson``) still works.
-    None values are converted to ``""`` (no tag).
-    """
-    result: dict[str, Any] = {}
-    for key, value in snapshot.items():
-        if value is None:
-            result[key] = ""
-        elif isinstance(value, str):
-            result[key] = sanitize_user_value(value)
-        else:
-            result[key] = value
     return result
 
 

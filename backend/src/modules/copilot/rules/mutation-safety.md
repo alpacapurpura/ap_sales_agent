@@ -13,7 +13,7 @@ Toda mutación a datos del tenant (brand, offer, landing, CRM, etc.) debe pasar 
 
 ## Reglas duras
 
-- **Nunca** llames a una tool de escritura (`entity_write`, `patch_*`) en ausencia de intención explícita del usuario.
+- **Nunca** llames a una tool de escritura (`patch_entity`, `patch_*`) en ausencia de intención explícita del usuario.
 - **Siempre** propón primero con `propose_field_updates` y espera que el usuario apruebe.
 - Si el usuario dice "actualiza X a Y", igual pasa por propuesta — da chance de revertir.
 
@@ -28,7 +28,7 @@ Cada mutación aplicada (tras aprobación) persiste una fila en `copilot_mutatio
 
 ## Anti-patrones
 
-- ❌ Autocompletar un campo con `entity_write` solo porque "es obvio".
+- ❌ Autocompletar un campo con `patch_entity` solo porque "es obvio".
 - ❌ Guardar un UVP generado sin mostrar preview + botón Aplicar.
 - ❌ Mutación silenciosa dentro de un tool "read".
 - ❌ Múltiples mutaciones agrupadas en 1 ProposalCard sin listar cada una.

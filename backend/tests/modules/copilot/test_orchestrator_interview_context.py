@@ -1,9 +1,14 @@
-"""Tests for interview context loading in CopilotOrchestrator."""
+"""Tests for interview context loading in CopilotOrchestrator.
+
+Focus mode was retired on 2026-04-21. This file used to validate that
+``FocusContextDTO`` propagated into orchestrator state; now it only covers
+interview mode + base context fallback.
+"""
 
 from unittest.mock import MagicMock
 from uuid import uuid4
 
-from src.modules.copilot.api.dto import ClientContextDTO, FocusContextDTO
+from src.modules.copilot.api.dto import ClientContextDTO
 from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
 
 
@@ -14,15 +19,6 @@ def _make_mock_db() -> MagicMock:
 
 
 class TestOrchestratorContextBuilding:
-    def test_focus_context_passed_to_state(self) -> None:
-        orch = CopilotOrchestrator(_make_mock_db())
-        context = ClientContextDTO(
-            current_route="/offer-studio/offer/123",
-            focus=FocusContextDTO(domain="offer", entity_id="123"),
-        )
-        client_ctx = orch._build_client_context(context)
-        assert client_ctx["focus"] == {"domain": "offer", "entity_id": "123"}
-
     def test_interview_session_id_passed_to_state(self) -> None:
         orch = CopilotOrchestrator(_make_mock_db())
         sid = str(uuid4())
@@ -33,11 +29,10 @@ class TestOrchestratorContextBuilding:
         client_ctx = orch._build_client_context(context)
         assert client_ctx["interview_session_id"] == sid
 
-    def test_backward_compatible_no_focus_no_interview(self) -> None:
+    def test_no_interview_key_when_absent(self) -> None:
         orch = CopilotOrchestrator(_make_mock_db())
         context = ClientContextDTO(current_route="/brand-studio")
         client_ctx = orch._build_client_context(context)
-        assert client_ctx.get("focus") is None
         assert client_ctx.get("interview_session_id") is None
 
     def test_none_context_returns_defaults(self) -> None:

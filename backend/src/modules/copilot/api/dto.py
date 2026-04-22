@@ -7,21 +7,17 @@ from pydantic import BaseModel, Field
 # ── Request ──────────────────────────────────────────────────────────
 
 
-class FocusContextDTO(BaseModel):
-    """Focus context for Focus and Interview modes."""
-
-    domain: str  # "offer", "brand", "buyer_persona"
-    entity_id: str | None = None
-
-
 class ClientContextDTO(BaseModel):
-    """Data transfer object for client context."""
+    """Data transfer object for client context.
+
+    Focus mode was retired on 2026-04-21. Scoped edits are now conveyed via
+    ``selected_fields`` + the per-conversation mutation journal.
+    """
 
     current_route: str | None = None
     selected_fields: list[dict[str, str]] = Field(default_factory=list)
     form_data: dict[str, Any] = Field(default_factory=dict)
     locale: str = "es"
-    focus: FocusContextDTO | None = None
     interview_session_id: str | None = None
 
 
