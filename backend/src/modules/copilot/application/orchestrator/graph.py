@@ -255,6 +255,20 @@ def build_system_prompt(state: CopilotState) -> str:
     # Active tool names
     active_tools = state.get("active_tool_names", [])
 
+    # Editable-fields catalog — the compact SSoT view the LLM uses to decide
+    # which field_ids are valid for propose_field_updates. Separated from
+    # the completion snapshot: snapshot = "is it configured?"; catalog =
+    # "what CAN I edit?". The LLM needs both.
+    try:
+        from src.modules.copilot.domain.schema_introspection import (
+            format_all_editable_catalogs_markdown,
+        )
+
+        editable_catalog = format_all_editable_catalogs_markdown()
+    except Exception as e:  # noqa: BLE001 — orchestrator resilience
+        logger.warning("editable_catalog_error", error=str(e))
+        editable_catalog = ""
+
     # Build active procedure context for system prompt
     active_procedure_ctx = None
     active_proc = state.get("active_procedure")
@@ -290,6 +304,7 @@ def build_system_prompt(state: CopilotState) -> str:
             modules=modules,
             available_tools=active_tools,
             active_procedure=active_procedure_ctx,
+            editable_catalog=editable_catalog,
         )
     except Exception as e:  # noqa: BLE001 — orchestrator resilience
         logger.warning("copilot_system_prompt_fallback", error=str(e))

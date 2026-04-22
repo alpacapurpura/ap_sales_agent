@@ -1,8 +1,14 @@
 """Schema Introspection Utility — Discover sections and fields dynamically from Pydantic models.
 
-This replaces all hardcoded field name lists in copilot tools.
-When you add/remove fields from any Pydantic model, the copilot detects
-the change automatically via model_fields introspection.
+Complementary to the editable-fields SSoT exposed via
+``src.shared.links.ports.editable_fields``:
+
+* ``get_model_sections`` and ``validate_field_path`` introspect the live
+  Pydantic models for READ-side features (awareness, nudges, module_data).
+* The editable-fields port defines the CANONICAL WRITE surface — what the
+  copilot may propose via ``propose_field_updates``. The two are aligned
+  by convention (legacy fields removed from the port but still present in
+  the model for back-compat).
 """
 
 from collections.abc import Callable
@@ -10,6 +16,12 @@ from dataclasses import dataclass, field
 from typing import get_args, get_origin
 
 from pydantic import BaseModel
+
+from src.shared.links.ports.editable_fields import (
+    FieldSpec,
+    get_catalog,
+    get_registered_domains,
+)
 
 
 @dataclass
@@ -376,3 +388,61 @@ def validate_field_path(domain: str, field_path: str) -> bool:
         return parent in dict_parents
 
     return False
+
+
+# ── Editable-fields SSoT helpers ─────────────────────────────────────────
+# These helpers consume the editable-fields port
+# (``src.shared.links.ports.editable_fields``) so the copilot stays
+# decoupled from the owner modules. They power the system prompt catalog
+# and the ``propose_field_updates`` validator.
+
+
+def is_editable_path(domain: str, field_path: str) -> bool:
+    """Return True iff ``field_path`` is in the editable-fields catalog of ``domain``.
+
+    Distinct from :func:`validate_field_path`: the latter accepts *any*
+    schema path (including legacy fields still living in the model),
+    whereas this one honors the curated editable surface.
+    """
+    if not field_path or not domain:
+        return False
+    paths = {f.path for f in get_catalog(domain)}
+    return field_path in paths
+
+
+def _group_by_section(fields: tuple[FieldSpec, ...]) -> dict[str, list[FieldSpec]]:
+    groups: dict[str, list[FieldSpec]] = {}
+    for f in fields:
+        groups.setdefault(f.section, []).append(f)
+    return groups
+
+
+def format_editable_field_catalog_markdown(domain: str) -> str:
+    """Render the editable-field catalog of ``domain`` as compact markdown.
+
+    Injected into the copilot's system prompt so the LLM can only propose
+    ``field_id``s that actually exist in the UI. Empty string when the
+    domain has no catalog registered — callers should treat that as
+    "no editable surface to advertise".
+    """
+    catalog = get_catalog(domain)
+    if not catalog:
+        return ""
+    grouped = _group_by_section(catalog)
+    lines = [f"### {domain}"]
+    for section_name in sorted(grouped.keys()):
+        lines.append(f"- **{section_name}**")
+        for spec in grouped[section_name]:
+            suffix = f" — {spec.description}" if spec.description else ""
+            lines.append(f"  - `{spec.path}` · {spec.label}{suffix}")
+    return "\n".join(lines)
+
+
+def format_all_editable_catalogs_markdown() -> str:
+    """Render every registered domain's catalog as one markdown block.
+
+    Used by the system-prompt builder so the LLM sees the whole editable
+    surface in one place. Blocks are separated by a blank line.
+    """
+    blocks = [format_editable_field_catalog_markdown(d) for d in get_registered_domains()]
+    return "\n\n".join(b for b in blocks if b)

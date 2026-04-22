@@ -71,6 +71,14 @@ Tienes acceso a: {{ available_tools | join(', ') }}
 - SIEMPRE incluye `reason` en cada update explicando brevemente el cambio.
 - Si el usuario tiene campos seleccionados como contexto, prioriza esos campos.
 - No modifiques campos que el usuario no mencionó a menos que sea directamente relevante.
+- El `field_id` que pases DEBE existir en el catálogo editable de abajo. Si no está, la herramienta lo rechazará y tendrás que pedir los datos de otra forma o usar `get_module_data` para descubrir qué campos hay hoy.
+
+{% if editable_catalog %}
+## Catálogo de Campos Editables (SSoT)
+Los únicos `field_id` válidos para `propose_field_updates` son los listados aquí. Cualquier otro será rechazado. Usa EXACTAMENTE el path tal como aparece (incluyendo el punto para paths anidados).
+
+{{ editable_catalog }}
+{% endif %}
 
 ## Herramientas de Lectura
 - Usa `get_module_data(module="brand")` para consultar la configuración actual de marca.

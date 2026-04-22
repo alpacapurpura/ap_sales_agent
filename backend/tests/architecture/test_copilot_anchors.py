@@ -25,6 +25,10 @@ ANCHOR_REGISTRY: dict[str, str] = {
     "COPILOT-VOICE-DUAL-MODE": "docs/domains/copilot/CONTRACT-MULTIMODAL.md",
     "COPILOT-SUGGESTIONS-ENGINE": "docs/domains/copilot/suggestions-engine.md",
     "COPILOT-BLOCK-REGISTRY": "docs/domains/copilot/message-blocks.md",
+    "COPILOT-READ-DOCUMENT": "docs/domains/copilot/asset-lifecycle.md",
+    "COPILOT-DOC-HINT-LAYER": "docs/domains/copilot/asset-lifecycle.md",
+    "COPILOT-EDITABLE-FIELDS-SSOT": "docs/domains/copilot/editable-fields.md",
+    "COPILOT-MUTATION-VALIDATION": "docs/domains/copilot/editable-fields.md",
 }
 
 # Only scan backend Python sources (not tests — anchors in tests are for
