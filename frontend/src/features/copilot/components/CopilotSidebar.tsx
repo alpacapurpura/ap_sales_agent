@@ -78,9 +78,13 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [setSidebarState, cycleSidebarState, createConversation]);
 
-  // CSS variable values per state
-  const historyW = sidebarState === "full" ? "280px" : "0px";
-  const chatW = sidebarState === "full" ? "400px" : sidebarState === "rail" ? "380px" : "0px";
+  // CSS variable values per state — 2-column grid: [chat][rail]
+  // "full" state: history panel is rendered inside the chat column (overlay-like) or
+  // the grid expands: history (280px) + chat (400px) without a 3rd rail column when full.
+  // Spec §1: collapsed=[0, 60px], rail=[400px, 60px], full=[400px, 280px]
+  // In "full" state the rail is hidden (controls migrate to history panel header).
+  const chatW = sidebarState === "collapsed" ? "0px" : "400px";
+  const railOrHistoryW = sidebarState === "full" ? "280px" : "60px";
 
   const isExpanded = sidebarState !== "collapsed";
 
@@ -124,24 +128,19 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
         )}
         style={{
           display: "grid",
-          gridTemplateColumns: `${historyW} ${chatW} 60px`,
+          gridTemplateColumns: `${chatW} ${railOrHistoryW}`,
           transition: "grid-template-columns 220ms cubic-bezier(.2,.8,.2,1)",
         }}
       >
-        {/* History panel */}
-        {sidebarState === "full" && <CopilotHistoryPanel />}
-        {sidebarState !== "full" && (
-          <div style={{ width: historyW, overflow: "hidden" }} aria-hidden="true" />
-        )}
-
-        {/* Chat panel */}
-        {sidebarState !== "collapsed" && <CopilotChatPanel />}
-        {sidebarState === "collapsed" && (
+        {/* Chat panel — visible in rail and full states */}
+        {sidebarState !== "collapsed" ? (
+          <CopilotChatPanel />
+        ) : (
           <div style={{ width: chatW, overflow: "hidden" }} aria-hidden="true" />
         )}
 
-        {/* Rail — always visible */}
-        <CopilotRail />
+        {/* Second column: Rail (collapsed/rail) or History panel (full) */}
+        {sidebarState === "full" ? <CopilotHistoryPanel /> : <CopilotRail />}
       </aside>
     </>
   );

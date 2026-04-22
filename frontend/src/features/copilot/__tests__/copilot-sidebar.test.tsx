@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render as rtlRender, screen } from "@testing-library/react";
-import type { ReactElement } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 /** Wrap render() with a fresh QueryClientProvider so React Query hooks resolve. */
@@ -46,6 +45,8 @@ vi.mock("../hooks/use-copilot-navigator", () => ({
 
 import { CopilotSidebar } from "../components/CopilotSidebar";
 import { useCopilotStore } from "../store/copilot-store";
+
+import type { ReactElement } from "react";
 
 describe("CopilotSidebar", () => {
   beforeEach(() => {

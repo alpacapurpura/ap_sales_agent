@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Target } from "lucide-react";
+import { ChevronRight, ChevronsRight, MoreHorizontal, Plus, Target } from "lucide-react";
 import { forwardRef, useRef, useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 import { useConversationGroups } from "../hooks/use-conversation-groups";
@@ -203,6 +204,7 @@ export const CopilotHistoryPanel = forwardRef<HTMLDivElement, CopilotHistoryPane
     const conversationId = useCopilotStore((s) => s.conversationId);
     const setConversationId = useCopilotStore((s) => s.setConversationId);
     const clearMessages = useCopilotStore((s) => s.clearMessages);
+    const setSidebarState = useCopilotStore((s) => s.setSidebarState);
 
     const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
       useConversationList({ limit: 6 });
@@ -229,21 +231,60 @@ export const CopilotHistoryPanel = forwardRef<HTMLDivElement, CopilotHistoryPane
         )}
         {...props}
       >
-        {/* Panel title */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <h2 className="text-sm font-semibold">Conversaciones</h2>
-        </div>
+        {/* Panel header with navigation controls */}
+        <TooltipProvider delayDuration={200}>
+          <div className="flex items-center justify-between px-3 py-2 border-b border-border gap-1">
+            <h2 className="text-sm font-semibold flex-1">Conversaciones</h2>
 
-        {/* New conversation button */}
-        <div className="px-3 py-2 border-b border-border">
-          <Button
-            className="w-full justify-start gap-2 text-sm"
-            size="sm"
-            onClick={() => createConversation()}
-          >
-            + Nueva conversación
-          </Button>
-        </div>
+            {/* Nueva conversación */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => createConversation()}
+                  aria-label="Nueva conversación"
+                  className="h-7 w-7"
+                >
+                  <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Nueva conversación</TooltipContent>
+            </Tooltip>
+
+            {/* Ocultar historial → rail */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSidebarState("rail")}
+                  aria-label="Ocultar historial"
+                  className="h-7 w-7"
+                >
+                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Ocultar historial</TooltipContent>
+            </Tooltip>
+
+            {/* Cerrar chat → collapsed */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSidebarState("collapsed")}
+                  aria-label="Cerrar chat"
+                  className="h-7 w-7"
+                >
+                  <ChevronsRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Cerrar chat</TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
 
         {/* Conversation list */}
         <ScrollArea className="flex-1 px-2">

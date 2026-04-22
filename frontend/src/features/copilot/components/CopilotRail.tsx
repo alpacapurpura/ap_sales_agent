@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, ChevronsLeft, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsRight, Plus } from "lucide-react";
 import { forwardRef } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -42,29 +42,8 @@ export const CopilotRail = forwardRef<HTMLDivElement, CopilotRailProps>(
     const { data } = useConversationList({ limit: 6 });
     const topConversations = data?.pages[0]?.items.slice(0, 6) ?? [];
 
-    const handleToggle = () => {
-      if (sidebarState === "collapsed") {
-        setSidebarState("rail");
-      } else if (sidebarState === "rail") {
-        setSidebarState("full");
-      } else {
-        setSidebarState("collapsed");
-      }
-    };
-
-    const toggleLabel =
-      sidebarState === "collapsed"
-        ? "Abrir copilot"
-        : sidebarState === "rail"
-          ? "Expandir historial"
-          : "Cerrar copilot";
-
-    const ToggleIcon =
-      sidebarState === "collapsed"
-        ? ChevronLeft
-        : sidebarState === "rail"
-          ? ChevronRight
-          : ChevronsLeft;
+    // Rail is hidden in "full" state — controls migrate to CopilotHistoryPanel header.
+    // Only show rail in "collapsed" and "rail" states.
 
     return (
       <TooltipProvider delayDuration={200}>
@@ -76,25 +55,61 @@ export const CopilotRail = forwardRef<HTMLDivElement, CopilotRailProps>(
           )}
           {...props}
         >
-          {/* Toggle button */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleToggle}
-                aria-label={toggleLabel}
-                className="h-9 w-9"
-              >
-                <ToggleIcon className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">{toggleLabel}</TooltipContent>
-          </Tooltip>
+          {/* State-specific toggle buttons */}
+          {sidebarState === "collapsed" && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSidebarState("rail")}
+                  aria-label="Abrir chat"
+                  className="h-9 w-9"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">Abrir chat</TooltipContent>
+            </Tooltip>
+          )}
+
+          {sidebarState === "rail" && (
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSidebarState("full")}
+                    aria-label="Ver historial"
+                    className="h-9 w-9"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left">Ver historial</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSidebarState("collapsed")}
+                    aria-label="Cerrar chat"
+                    className="h-9 w-9"
+                  >
+                    <ChevronsRight className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left">Cerrar chat</TooltipContent>
+              </Tooltip>
+            </>
+          )}
 
           <Separator />
 
-          {/* New conversation button */}
+          {/* New conversation button — visible in collapsed and rail states */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

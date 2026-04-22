@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import type { ModelTier } from "../types/conversations";
+import type { MessageBlock, MessageStatus } from "../types/message-blocks";
 import type { FormRuntimeBridge } from "@/lib/form-runtime/copilot";
 
 // ── Types ───────────────────────────────────────────────────────────
@@ -103,6 +104,13 @@ export interface CopilotMessage {
   }[];
   /** UI actions attached to this message (e.g. navigation cards) */
   uiActions?: UIAction[];
+  // [COPILOT-STREAMING-BLOCKS] → docs/domains/copilot/message-blocks.md
+  // NEW — canonical block array. When present, V2 renderer uses blocks[].
+  // When absent, legacy adapter synthesizes blocks from content+uiActions.
+  // Backward-compatible: existing code reading content/uiActions still works.
+  blocks?: MessageBlock[];
+  /** Per-message streaming status (assistant messages only) */
+  msgStatus?: MessageStatus;
 }
 
 export type CopilotStatus = "idle" | "thinking" | "streaming" | "done";
@@ -182,6 +190,10 @@ interface CopilotState {
   addMessage: (msg: CopilotMessage) => void;
   appendToLastAssistant: (chunk: string) => void;
   addUIActionToLastAssistant: (action: UIAction) => void;
+  // [COPILOT-STREAMING-BLOCKS] — new block-streaming actions
+  addBlockToLastAssistant: (block: MessageBlock) => void;
+  updateLastTextBlock: (chunk: string) => void;
+  setMessageStatus: (msgId: string, status: MessageStatus) => void;
   updateUIActionStatus: (
     messageId: string,
     actionIndex: number,
@@ -370,6 +382,52 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
       const actions = [...msg.uiActions];
       actions[actionIndex] = { ...actions[actionIndex], card_status: status };
       msgs[msgIdx] = { ...msg, uiActions: actions };
+      return { messages: msgs };
+    }),
+
+  // [COPILOT-STREAMING-BLOCKS] — block-streaming actions
+  addBlockToLastAssistant: (block) =>
+    set((s) => {
+      const msgs = [...s.messages];
+      const last = msgs[msgs.length - 1];
+      if (last?.role === "assistant") {
+        const existing = last.blocks ?? [];
+        msgs[msgs.length - 1] = { ...last, blocks: [...existing, block] };
+      }
+      return { messages: msgs };
+    }),
+
+  updateLastTextBlock: (chunk) =>
+    set((s) => {
+      const msgs = [...s.messages];
+      const last = msgs[msgs.length - 1];
+      if (last?.role === "assistant") {
+        const blocks = last.blocks ? [...last.blocks] : [];
+        // Find last text block and append chunk
+        let textIdx = -1;
+        for (let i = blocks.length - 1; i >= 0; i--) {
+          if (blocks[i].type === "text") {
+            textIdx = i;
+            break;
+          }
+        }
+        if (textIdx >= 0) {
+          const tb = blocks[textIdx];
+          if (tb.type === "text") {
+            blocks[textIdx] = { ...tb, markdown: tb.markdown + chunk };
+          }
+        } else {
+          // No text block yet — create one
+          blocks.push({ id: `${last.id}-text-${Date.now()}`, type: "text", markdown: chunk });
+        }
+        msgs[msgs.length - 1] = { ...last, blocks, content: last.content + chunk };
+      }
+      return { messages: msgs };
+    }),
+
+  setMessageStatus: (msgId, status) =>
+    set((s) => {
+      const msgs = s.messages.map((m) => (m.id === msgId ? { ...m, msgStatus: status } : m));
       return { messages: msgs };
     }),
 
