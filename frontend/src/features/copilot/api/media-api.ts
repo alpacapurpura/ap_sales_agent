@@ -32,6 +32,9 @@ export interface UploadCopilotMediaOptions {
   signal?: AbortSignal;
 }
 
+/**
+ *
+ */
 export function uploadCopilotMedia({
   file,
   kind,

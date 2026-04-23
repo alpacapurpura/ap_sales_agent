@@ -171,6 +171,7 @@ docker run --rm ... ruff|pytest|tsc|vitest
 17. **FE Arch Tests:** 8 fitness tests `src/__tests__/architecture/` — PascalCase components, kebab-case files/folders, hooks in hooks/, no default exports, no cross-feature dupes, canonical structure, fetchClient in api/. Ratchet (allowlists shrink only).
 18. **BE Quality:** Ruff 70+ rules, 0 errors, 7 arch gates, 43% coverage. No nuevos. `.claude/rules/backend-quality.md`.
 19. **Form-runtime Array:** Campos array ≤3 sub-fields → modo `cards`, ≥4 → modo `split`. Default automático por `itemSchema.fields.length`. Autosave on-change preservado. `.claude/rules/form-runtime-array.md`.
+20. **Admin Panel:** Registry-based `st.navigation` (`PAGE_SPECS` en `src/admin/app.py`). Nueva opción = 1 PageSpec + 1 `pages/{slug}.py` wrapper + 1 `modules/{name}.py::render_*`. Lógica SOLO en modules/. Smoke tests corren headless en `/test-backend`. `.claude/rules/admin-panel.md`.
 
 ## Vision
 

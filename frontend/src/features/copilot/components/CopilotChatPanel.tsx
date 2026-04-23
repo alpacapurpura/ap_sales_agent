@@ -82,7 +82,7 @@ export const CopilotChatPanel = memo(function CopilotChatPanel() {
       return;
     }
     if (hydratedIdRef.current === conversationId) return;
-    if (!detail || detail.id !== conversationId) return;
+    if (detail?.id !== conversationId) return;
     const currentCount = useCopilotStore.getState().messages.length;
     // Guard against a race where the user sends a message before the detail
     // request lands: if the store already holds more messages than the

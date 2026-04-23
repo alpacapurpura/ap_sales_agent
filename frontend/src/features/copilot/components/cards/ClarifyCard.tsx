@@ -14,6 +14,9 @@ interface ClarifyCardProps {
   status: "pending" | "resolved";
 }
 
+/** Must mirror MAX_CLARIFY_ITEMS in backend shared_tools/clarify.py. */
+const MAX_CLARIFY_ITEMS = 4;
+
 export const ClarifyCard = memo(function ClarifyCard({
   items,
   onResolve,
@@ -36,7 +39,7 @@ export const ClarifyCard = memo(function ClarifyCard({
         <span>Algo no cuadra</span>
       </div>
 
-      {items.slice(0, 2).map((item, idx) => (
+      {items.slice(0, MAX_CLARIFY_ITEMS).map((item, idx) => (
         <div key={idx} className="mb-2 rounded-lg bg-black/30 p-2.5">
           <div className="text-xs text-gray-200">{item.issue}</div>
           <div className="mt-2 flex flex-wrap gap-1.5">

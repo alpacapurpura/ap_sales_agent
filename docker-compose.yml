@@ -90,10 +90,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.50'
-          memory: 128M
+          cpus: '1.0'
+          memory: 1024M
         reservations:
-          memory: 64M
+          memory: 256M
 
   # --- Client Dashboard (Next.js - Development) ---
   client_dashboard_dev:
