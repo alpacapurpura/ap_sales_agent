@@ -109,6 +109,7 @@ async def extract_full_offer(
         text=combined_text or None,
         mode=mode,
         update_instructions=update_instructions,
+        user_id=str(current_user.id),
     )
 
     return ExtractFullOfferResponse(job_id=job_id, status="queued")

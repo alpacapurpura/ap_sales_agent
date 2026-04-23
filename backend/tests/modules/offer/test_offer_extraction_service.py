@@ -110,6 +110,14 @@ class TestOfferExtractionServicePromptRendering:
         assert "Return a valid JSON" in result
 
 
+@pytest.mark.skip(
+    reason=(
+        "Orchestration moved to OfferExtractionOrchestrator (2026-04-23). "
+        "Delegation verified in test_offer_extraction_service_delegates.py. "
+        "Per-wave save invariant verified in test_extraction_orchestrator_per_wave_save.py. "
+        "These tests patched service-internal WebCrawler/_run_section which no longer live here."
+    ),
+)
 class TestOfferExtractionServiceExtractAll:
     """Test the full extraction orchestration."""
 

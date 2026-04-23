@@ -263,9 +263,14 @@ class TestProcessStreamEvent:
         parsed_second = _parse_sse(frames[1])
         assert parsed_second["event"] == "ui_action"
 
-    def test_tool_result_truncated_at_500_chars(self, orch: CopilotOrchestrator) -> None:
-        """Tool results longer than 500 chars are truncated in the SSE event."""
-        long_output = "x" * 1000
+    def test_tool_result_truncated_at_4000_chars(self, orch: CopilotOrchestrator) -> None:
+        """Tool results longer than 4000 chars are truncated in the SSE event.
+
+        Cap raised from 500 → 4000 to fit full AsyncToolJob dispatch payloads
+        (job_id, poll_endpoint, target_label_es, etc.) which the frontend must
+        parse to register polling. Matches trace recorder MAX_PAYLOAD_CHARS.
+        """
+        long_output = "x" * 5000
         event = {
             "event": "on_tool_end",
             "name": "some_tool",
@@ -276,7 +281,7 @@ class TestProcessStreamEvent:
 
         parsed = _parse_sse(sse.split("\n\n")[0] + "\n\n")
         result_value = parsed["data"]["result"]
-        assert len(result_value) <= 500
+        assert len(result_value) <= 4000
 
 
 # ── Integration: stream_chat event sequence ───────────────────────────

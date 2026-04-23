@@ -265,7 +265,13 @@ def get_tools_for_context(context: dict | None) -> list:
         return get_tools_for_route(None)
 
     if context.get("guided_mode"):
-        return _collect_groups(("guided", "knowledge", "shared_tools", "document"))
+        # Guided keeps its narrow toolset but must include ``extraction`` so the
+        # LLM can dispatch URL/doc analysis when the user pastes a link mid-flow.
+        # Without this, the model falls back to extract_structured loops because
+        # extract_from_url/doc are not bound (observed traza 376850f5).
+        return _collect_groups(
+            ("guided", "extraction", "knowledge", "shared_tools", "document"),
+        )
 
     return get_tools_for_route(context.get("current_route"))
 

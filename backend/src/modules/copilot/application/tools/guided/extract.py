@@ -76,9 +76,19 @@ def extract_structured(domain: str, extractions: list[dict]) -> str:
         if confidence < 0.8:
             confidence_map[field_path] = confidence
 
+    text_msg = ""
+    if skipped and not delta:
+        skipped_list = ", ".join(f"`{p}`" for p in skipped)
+        text_msg = (
+            f"Ninguno de los field_paths propuestos es válido en el dominio '{domain}': "
+            f"{skipped_list}. Revisa el catálogo editable y reintenta con paths existentes. "
+            "Si el campo ya está lleno, NO repitas el mismo extract_structured — "
+            "continúa con otro campo pendiente del bloque actual."
+        )
+
     return json.dumps(
         {
-            "text": "",
+            "text": text_msg,
             "ui_action": {
                 "type": "preview_update",
                 "domain": domain,

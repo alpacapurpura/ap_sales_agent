@@ -39,7 +39,8 @@ from src.modules.assets.infrastructure.repositories.asset_repository import (
     AssetRepository,
 )
 from src.modules.copilot.api.dto import ClientContextDTO, SSEEvent
-from src.modules.copilot.application.guided.persistence import read_state as read_guided_state
+from src.modules.copilot.application.extraction.active_job_state import load_active_job
+from src.modules.copilot.application.guided.state import load_guided_state
 from src.modules.copilot.application.observability import trace_recorder
 from src.modules.copilot.application.orchestrator.graph import copilot_graph
 from src.modules.copilot.application.orchestrator.state import (
@@ -350,6 +351,32 @@ class CopilotOrchestrator:
             "locale": context.locale,
         }
 
+    def _read_procedure_state(self, conv_id: str | None) -> dict | None:
+        """Single DB read of ``copilot_conversations.procedure_state`` JSONB.
+
+        Callers parse the result with ``load_guided_state`` / ``load_active_job``
+        to avoid hitting the connection pool twice per request.
+        """
+        if not conv_id:
+            return None
+        from sqlalchemy import text
+
+        try:
+            row = self.db.execute(
+                text(
+                    "SELECT procedure_state FROM copilot_conversations WHERE id = :id",
+                ),
+                {"id": conv_id},
+            ).scalar()
+        except Exception as exc:  # noqa: BLE001 — orchestrator resilience
+            logger.warning(
+                "procedure_state_read_failed",
+                conv_id=conv_id,
+                error=str(exc),
+            )
+            return None
+        return row if isinstance(row, dict) else None
+
     def _prepare_conversation(
         self,
         *,
@@ -375,11 +402,18 @@ class CopilotOrchestrator:
 
         client_ctx = self._build_client_context(context)
 
-        # Hydrate the guided-setup state for this conversation (if any). The
-        # tools and prompt layer both read from ``state["guided_state"]`` so
-        # we only hit the DB once per turn.
-        guided = read_guided_state(conv_id)
+        # Hydrate guided + active-extraction state for this conversation with
+        # a SINGLE DB read. Both flags live as sibling keys in the same JSONB
+        # column (``procedure_state``) — one conversation can hold both
+        # (guided paused while a URL scrape runs), only guided, only active
+        # job, or neither (pure free-form chat). Two reads hit the connection
+        # pool twice and doubled request latency for no reason.
+        procedure_state = self._read_procedure_state(conv_id)
+        guided = load_guided_state(procedure_state)
+        active_job = load_active_job(procedure_state)
         client_ctx["guided_mode"] = guided is not None
+        active_job_json = active_job.to_json() if active_job is not None else None
+        client_ctx["active_extraction_job"] = active_job_json
 
         state = create_initial_copilot_state(
             user_id=user_id,
@@ -388,6 +422,7 @@ class CopilotOrchestrator:
             client_context=client_ctx,
         )
         state["guided_state"] = guided.to_json() if guided is not None else None
+        state["active_extraction_job"] = active_job_json
 
         # Publish the conversation id so tools invoked by the LLM can persist
         # conversation-scoped state (e.g. guided progress) without receiving

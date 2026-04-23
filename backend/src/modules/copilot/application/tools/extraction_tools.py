@@ -98,9 +98,69 @@ from langchain_core.tools import tool
 from src.core.arq_pool import get_arq_pool
 from src.core.context import get_conversation_id, get_tenant_id, get_user_id
 from src.core.database import redis_client
+from src.modules.copilot.application.extraction.active_job_persistence import (
+    write_active_job,
+)
+from src.modules.copilot.application.extraction.active_job_state import (
+    ActiveExtractionJob,
+)
+from src.modules.copilot.application.guided.persistence import (
+    read_state as read_guided_state,
+)
 from src.shared.domain.extraction_jobs import ExtractionJob
 
 logger = structlog.get_logger()
+
+
+def _record_active_extraction_job(
+    *,
+    conversation_id: str | None,
+    job_id: str,
+    module: str,
+    entity_id: str | None,
+    source_kind: str,
+    source_ref: str,
+    scope: str,
+    mode: str,
+    started_at: str,
+) -> None:
+    """Persist the in-flight extraction in ``procedure_state.active_extraction_job``.
+
+    Called after a successful ARQ dispatch so the next copilot turn sees the
+    job as active. ``paused_at_block`` is copied from the guided state when
+    present — the prompt layer uses it to resume guided questions on the
+    same block once the worker finishes.
+
+    Best-effort: write failures log and return without raising — a persistence
+    glitch must never revert a successful dispatch.
+    """
+    if not conversation_id:
+        return
+    try:
+        guided = read_guided_state(conversation_id)
+    except Exception:  # noqa: BLE001 — best-effort persistence
+        guided = None
+    paused_at_block = guided.current_block_id if guided is not None else None
+    job_state = ActiveExtractionJob(
+        job_id=job_id,
+        module=module,
+        entity_id=entity_id,
+        source_kind=source_kind,
+        source_ref=source_ref,
+        scope=scope,
+        mode=mode,
+        paused_at_block=paused_at_block,
+        started_at=started_at,
+    )
+    try:
+        write_active_job(conversation_id, job_state)
+    except Exception:  # noqa: BLE001 — best-effort persistence
+        logger.warning(
+            "active_extraction_job_write_failed",
+            job_id=job_id,
+            module=module,
+            conversation_id=conversation_id,
+        )
 
 
 _URL_RE = re.compile(r"^https?://[^\s]+$", re.IGNORECASE)
@@ -272,7 +332,7 @@ async def _extract_from_url_impl(
 
     if module == "brand":
         progress_key = f"brand_extract:{tenant_str}:{job_id}"
-        poll_endpoint = f"/api/v1/brand/extract-full-brand/status/{job_id}"
+        poll_endpoint = f"/api/v1/brand/tools/extract-full-brand/status/{job_id}"
         include_visuals = scope == "visuals"
 
         redis_client.setex(
@@ -309,6 +369,17 @@ async def _extract_from_url_impl(
             conversation_id=conversation_id_val,
             user_id=str(user_id_val) if user_id_val else None,
         )
+        _record_active_extraction_job(
+            conversation_id=conversation_id_val,
+            job_id=job_id,
+            module="brand",
+            entity_id=None,
+            source_kind="url",
+            source_ref=url,
+            scope=scope,
+            mode=mode,
+            started_at=started_at,
+        )
         logger.info(
             "copilot_extract_from_url_dispatched",
             module="brand",
@@ -322,7 +393,7 @@ async def _extract_from_url_impl(
         )
     elif module == "offer":
         progress_key = f"offer_extract:{tenant_str}:{job_id}"
-        poll_endpoint = f"/api/v1/offer/extract-full-offer/status/{job_id}"
+        poll_endpoint = f"/api/v1/offer/tools/extract-full-offer/status/{job_id}"
 
         redis_client.setex(
             progress_key,
@@ -353,6 +424,17 @@ async def _extract_from_url_impl(
             mode=mode,
             update_instructions=update_instructions,
             conversation_id=conversation_id_val,
+        )
+        _record_active_extraction_job(
+            conversation_id=conversation_id_val,
+            job_id=job_id,
+            module="offer",
+            entity_id=entity_id,
+            source_kind="url",
+            source_ref=url,
+            scope=scope,
+            mode=mode,
+            started_at=started_at,
         )
         logger.info(
             "copilot_extract_from_url_dispatched",

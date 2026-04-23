@@ -51,12 +51,14 @@ async def run_offer_extraction(
     mode: str,
     update_instructions: str | None = None,
     conversation_id: str | None = None,
+    user_id: str | None = None,
     **_extra_kwargs: object,
 ) -> dict:
     """Run offer extraction.
 
     Enriched Redis progress payload (FLOW-SPEC §3.3) included.
     Card emission on completion if conversation_id is provided (FLOW-SPEC §3.4).
+    user_id is forwarded to the service for future social-proof sync and tracing.
     """
     redis = ctx.get("redis_cache")
     progress_key = f"offer_extract:{tenant_id}:{job_id}"
@@ -150,6 +152,9 @@ async def run_offer_extraction(
         from src.modules.offer.application.offer_extraction_service import (
             OfferExtractionService,
         )
+        from src.modules.offer.application.offer_extraction_trace import (
+            OfferExtractionTraceCollector,
+        )
         from src.modules.offer.infrastructure.repositories.offer_repository import (
             OfferRepository,
         )
@@ -157,13 +162,25 @@ async def run_offer_extraction(
 
         on_progress(5, "Iniciando análisis de oferta...")
 
-        service = OfferExtractionService(db, UUID(tenant_id), UUID(offer_id))
+        tenant_uuid = UUID(tenant_id)
+        offer_uuid = UUID(offer_id)
+        user_uuid = UUID(user_id) if user_id else None
+
+        trace = OfferExtractionTraceCollector(
+            db,
+            tenant_uuid,
+            job_id,
+            mode=mode,
+            url=url,
+        )
+
+        service = OfferExtractionService(db, tenant_uuid, offer_uuid)
 
         # Snapshot pre-extraction state to diff what the worker actually wrote
         # — the offer service doesn't emit per-field progress, so the delta is
         # how we reconstruct the summary without coupling to its internal waves.
         offer_repo = OfferRepository(db)
-        before_offer = offer_repo.get_by_id(UUID(tenant_id), UUID(offer_id))
+        before_offer = offer_repo.get_by_id(tenant_uuid, offer_uuid)
         before_dump = before_offer.model_dump(mode="json") if before_offer is not None else {}
 
         await service.extract_all(
@@ -172,6 +189,8 @@ async def run_offer_extraction(
             mode=mode,
             update_instructions=update_instructions,
             progress_callback=on_progress,
+            user_id=user_uuid,
+            trace=trace,
         )
 
         finished_at = datetime.now(UTC).isoformat()

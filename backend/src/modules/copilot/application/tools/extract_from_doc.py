@@ -196,6 +196,24 @@ async def extract_from_doc(
     started_at = datetime.now(UTC).isoformat()
     target_label_es = _compose_target_label(module, scope, section)
 
+    # Persist the in-flight job so the guided layer pauses questions for this
+    # domain until the worker finishes. Mirrors extract_from_url dispatch.
+    from src.modules.copilot.application.tools.extraction_tools import (
+        _record_active_extraction_job,
+    )
+
+    _record_active_extraction_job(
+        conversation_id=get_conversation_id(),
+        job_id=job_id,
+        module=module,
+        entity_id=entity_id,
+        source_kind="doc",
+        source_ref=asset_id,
+        scope=scope,
+        mode=mode,
+        started_at=started_at,
+    )
+
     # Set up Redis progress key
     progress_key = f"extract:{tenant_str}:{module}:{job_id}"
     redis_client.setex(

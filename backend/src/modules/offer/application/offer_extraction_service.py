@@ -23,7 +23,6 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 from src.core.enums import ModelRole
-from src.modules.offer.application.offer_service import OfferService
 from src.modules.offer.domain.offer import (
     OfferClosingUpdate,
     OfferDetailsUpdate,
@@ -38,7 +37,7 @@ from src.shared.application.ai_action_service import (
     AIModelPolicy,
 )
 from src.shared.infrastructure.prompts.base import prompt_loader
-from src.shared.infrastructure.web.crawler import WebCrawler, truncate_at_page_boundary
+from src.shared.infrastructure.web.crawler import truncate_at_page_boundary
 
 logger = structlog.get_logger()
 
@@ -346,112 +345,27 @@ class OfferExtractionService:
         text: str | None = None,
         mode: Literal["initial", "update"] = "initial",
         update_instructions: str | None = None,
-        progress_callback: Callable[[int, str], None] | None = None,
+        progress_callback: Callable[..., None] | None = None,
+        user_id: UUID | None = None,
+        trace: object | None = None,
     ) -> None:
-        """Orchestrate full offer extraction in two concurrent waves.
+        """Orchestrate full offer extraction via OfferExtractionOrchestrator.
 
-        Wave 1: promise, strategy, psychology (concurrent)
-        Wave 2: value_stack, closing, details (concurrent)
+        Delegates to the orchestrator which handles wave management, per-wave
+        persistence, trace collection, and progress emission. Signature is
+        maintained for backward compatibility with existing callers.
         """
-
-        def _progress(pct: int, stage: str) -> None:
-            if progress_callback:
-                progress_callback(pct, stage)
-
-        # --- Step 1: Gather content ---
-        _progress(10, "Recopilando contenido...")
-        content = ""
-
-        if url:
-            crawler = WebCrawler()
-            crawled = await crawler.crawl_content(url)
-            content = crawled or ""
-
-        if text:
-            content = content + "\n\n--- Texto adicional ---\n" + text if content else text
-
-        if not content.strip():
-            logger.warning("offer_extraction_no_content", offer_id=str(self.offer_id))
-            return
-
-        # --- Step 2: Load current offer data ---
-        _progress(15, "Cargando datos actuales de la oferta...")
-        offer_service = OfferService(self.db)
-        offer = offer_service.get_offer(self.offer_id, self.tenant_id)
-        archetype = None
-        current_data_str = "None"
-
-        if offer:
-            archetype = offer.archetype.value if offer.archetype else None
-            current_data_str = json.dumps(
-                offer.model_dump(mode="json", exclude_none=True),
-                ensure_ascii=False,
-                default=str,
-            )
-
-        instructions = update_instructions if mode == "update" else None
-
-        # --- Wave 1: promise, strategy, psychology (concurrent) ---
-        _progress(20, "Analizando promesa, estrategia y psicología...")
-
-        wave1_results = await asyncio.gather(
-            self._extract_promise(content, current_data_str, instructions, archetype),
-            self._extract_strategy(content, current_data_str, instructions, archetype),
-            self._extract_psychology(
-                content,
-                current_data_str,
-                instructions,
-                archetype,
-            ),
-            return_exceptions=True,
+        from src.modules.offer.application.offer_extraction_orchestrator import (
+            OfferExtractionOrchestrator,
         )
 
-        # Persist wave 1
-        _progress(50, "Guardando resultados de primera fase...")
-        wave1_data = {}
-        for result in wave1_results:
-            if isinstance(result, BaseException):
-                logger.error("wave1_section_exception", error=str(result))
-                continue
-            wave1_data.update(result.model_dump(exclude_unset=True, exclude_none=True))
-
-        if wave1_data:
-            offer_service.patch_offer(self.offer_id, self.tenant_id, wave1_data)
-            logger.info("wave1_persisted", fields=list(wave1_data.keys()))
-
-        # --- Wave 2: value_stack, closing, details (concurrent) ---
-        _progress(60, "Analizando stack de valor, cierre y detalles...")
-
-        wave2_results = await asyncio.gather(
-            self._extract_value_stack(
-                content,
-                current_data_str,
-                instructions,
-                archetype,
-            ),
-            self._extract_closing(content, current_data_str, instructions, archetype),
-            self._extract_details(content, current_data_str, instructions, archetype),
-            return_exceptions=True,
-        )
-
-        # Persist wave 2
-        _progress(85, "Guardando resultados de segunda fase...")
-        wave2_data = {}
-        for result in wave2_results:
-            if isinstance(result, BaseException):
-                logger.error("wave2_section_exception", error=str(result))
-                continue
-            wave2_data.update(result.model_dump(exclude_unset=True, exclude_none=True))
-
-        if wave2_data:
-            offer_service.patch_offer(self.offer_id, self.tenant_id, wave2_data)
-            logger.info("wave2_persisted", fields=list(wave2_data.keys()))
-
-        _progress(95, "Finalizando análisis de oferta...")
-        logger.info(
-            "offer_extraction_complete",
-            offer_id=str(self.offer_id),
-            tenant_id=str(self.tenant_id),
-            wave1_fields=len(wave1_data),
-            wave2_fields=len(wave2_data),
+        orchestrator = OfferExtractionOrchestrator(self)
+        await orchestrator.run(
+            url=url,
+            text=text,
+            mode=mode,
+            update_instructions=update_instructions,
+            progress_callback=progress_callback,
+            user_id=user_id,
+            trace=trace,  # type: ignore[arg-type]
         )

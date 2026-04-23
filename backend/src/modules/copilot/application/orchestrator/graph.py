@@ -194,46 +194,126 @@ def _get_behavior_summary(tenant_id: UUID, user_id: UUID) -> str:
         db.close()
 
 
-def _build_guided_layer(state: dict[str, object]) -> str:
-    """Render the guided-setup prompt layer, or "" when guided mode is off.
+def _compute_pending_field_paths(
+    domain: str,
+    entity_id: str | None,
+    field_paths: tuple[str, ...] | list[str],
+    tenant_id: UUID | None,
+) -> list[str]:
+    """Return the subset of ``field_paths`` whose value is empty for the entity.
 
-    Reads the ``guided_state`` dict already hydrated by the chat orchestrator
-    (read once per request from ``procedure_state["guided"]``). Blocks are
-    regenerated from the catalog so labels/descriptions stay in sync with
-    any schema change.
+    Best-effort: if the repository lookup fails, returns the full list so the
+    LLM gets a conservative (over-ask) rather than incorrect (skip-filled)
+    signal. Uses the module registry to stay domain-agnostic.
+    """
+    if not field_paths or not tenant_id:
+        return list(field_paths)
+    try:
+        registry = get_module_registry()
+        desc = registry.get(domain)
+        if desc is None or not desc.repo_factory or not desc.read_fn:
+            return list(field_paths)
+
+        from src.core.database import SessionLocal
+
+        db = SessionLocal()
+        try:
+            repo = desc.repo_factory(db)
+            # Pass entity_id when the read_fn signature accepts it (offers,
+            # personas); brand's read_fn takes only tenant_id.
+            try:
+                data = desc.read_fn(repo, tenant_id, entity_id) if entity_id else desc.read_fn(repo, tenant_id)
+            except TypeError:
+                data = desc.read_fn(repo, tenant_id)
+            if data is None:
+                return list(field_paths)
+            payload = data.model_dump(mode="json") if hasattr(data, "model_dump") else dict(data)
+        finally:
+            db.close()
+    except Exception:  # noqa: BLE001 — orchestrator resilience
+        return list(field_paths)
+
+    pending: list[str] = []
+    for path in field_paths:
+        value: object = payload
+        for key in path.split("."):
+            if isinstance(value, dict):
+                value = value.get(key)
+            else:
+                value = None
+                break
+        if value is None or (isinstance(value, (str, list, dict)) and not value):
+            pending.append(path)
+    return pending
+
+
+def _build_guided_layer(state: dict[str, object]) -> str:
+    """Render the guided-setup prompt layer + active-extraction banner.
+
+    Two conditional blocks share the same helper:
+
+    - ``active_extraction_job`` — rendered when the conversation has a URL/doc
+      extraction in flight. Tells the LLM to pause ``extract_structured`` for
+      the active module and conversational-stall the user for 1-2 min.
+    - ``guided_state`` — rendered when the user is in a guided setup run.
+      Lists current block, completed blocks, and the subset of fields still
+      pending (computed from live entity data so the LLM never asks for
+      fields that already have a value).
+
+    Either, both, or neither can be active. Blocks are regenerated from the
+    catalog so labels/descriptions stay in sync with any schema change.
     """
     guided_raw = state.get("guided_state")
-    if not guided_raw or not isinstance(guided_raw, dict):
+    active_job_raw = state.get("active_extraction_job")
+    tenant_id = state.get("tenant_id")
+
+    has_guided = bool(guided_raw and isinstance(guided_raw, dict))
+    has_active_job = bool(active_job_raw and isinstance(active_job_raw, dict))
+    if not has_guided and not has_active_job:
         return ""
 
-    from src.modules.copilot.application.guided.block_generator import (
-        block_by_id,
-        build_blocks,
-    )
+    template_ctx: dict[str, object] = {
+        "guided_active": False,
+        "active_extraction_job": active_job_raw if has_active_job else None,
+    }
 
-    domain = str(guided_raw.get("domain", ""))
-    current_id = str(guided_raw.get("current_block_id", ""))
-    completed = list(guided_raw.get("completed_blocks", []))
-    entity_id = guided_raw.get("entity_id")
-    if not domain or not current_id:
-        return ""
+    if has_guided:
+        from src.modules.copilot.application.guided.block_generator import (
+            block_by_id,
+            build_blocks,
+        )
 
-    blocks = build_blocks(domain)  # type: ignore[arg-type]
-    current_block = block_by_id(domain, current_id)  # type: ignore[arg-type]
-    if current_block is None:
-        return ""
+        assert isinstance(guided_raw, dict)  # noqa: S101 — narrowing for type checker
+        domain = str(guided_raw.get("domain", ""))
+        current_id = str(guided_raw.get("current_block_id", ""))
+        completed = list(guided_raw.get("completed_blocks", []))
+        entity_id = guided_raw.get("entity_id")
+        if domain and current_id:
+            blocks = build_blocks(domain)  # type: ignore[arg-type]
+            current_block = block_by_id(domain, current_id)  # type: ignore[arg-type]
+            if current_block is not None:
+                pending = _compute_pending_field_paths(
+                    domain=domain,
+                    entity_id=str(entity_id) if entity_id else None,
+                    field_paths=current_block.field_paths,
+                    tenant_id=tenant_id if isinstance(tenant_id, UUID) else None,
+                )
+                template_ctx.update(
+                    {
+                        "guided_active": True,
+                        "domain": domain,
+                        "entity_id": entity_id,
+                        "current_block_id": current_block.id,
+                        "current_block_label": current_block.label,
+                        "current_block_field_paths": list(current_block.field_paths),
+                        "pending_field_paths": pending,
+                        "blocks_completed_count": len(completed),
+                        "total_blocks": len(blocks),
+                    },
+                )
 
     try:
-        return prompt_loader.render(
-            "copilot_guided",
-            domain=domain,
-            entity_id=entity_id,
-            current_block_id=current_block.id,
-            current_block_label=current_block.label,
-            current_block_field_paths=list(current_block.field_paths),
-            blocks_completed_count=len(completed),
-            total_blocks=len(blocks),
-        )
+        return prompt_loader.render("copilot_guided", **template_ctx)
     except Exception:
         logger.exception("Error rendering guided prompt layer")
         return ""
