@@ -40,7 +40,15 @@ export const UserMessageV2 = memo(function UserMessageV2({ message, onReply }: U
 
       {/* Content */}
       <div className="max-w-[85%]">
-        <div className="rounded-2xl rounded-br-sm bg-purple-600 px-4 py-2.5 text-sm text-white">
+        <div
+          className={cn(
+            "rounded-2xl rounded-br-sm bg-purple-600 px-4 py-2.5 text-sm text-white",
+            // Scope link styles so URLs stay readable on the purple bubble in both themes.
+            "[&_a]:font-medium [&_a]:text-white [&_a]:underline [&_a]:underline-offset-2",
+            "[&_a]:decoration-white/60 [&_a]:transition-colors",
+            "hover:[&_a]:decoration-white focus-visible:[&_a]:outline-2 focus-visible:[&_a]:outline-white/80",
+          )}
+        >
           {message.blocks && message.blocks.length > 0 ? (
             <div className="space-y-2">
               {message.blocks.map((block, idx) => (

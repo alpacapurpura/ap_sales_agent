@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nicolify — Brand Studio (Copilot Extraction Feedback)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Tokens mirror frontend/src/app/globals.css :root
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              border: "hsl(214.3 31.8% 91.4%)",
+              "border-50": "hsl(214.3 31.8% 91.4% / 0.5)",
+              input: "hsl(214.3 31.8% 91.4%)",
+              ring: "hsl(222.2 84% 4.9%)",
+              background: "hsl(0 0% 100%)",
+              foreground: "hsl(222.2 84% 4.9%)",
+              muted: "hsl(210 40% 96.1%)",
+              "muted-foreground": "hsl(215.4 16.3% 46.9%)",
+              card: "hsl(0 0% 100%)",
+              "card-foreground": "hsl(222.2 84% 4.9%)",
+              brand: "hsl(270 70% 55%)",
+              "brand-foreground": "hsl(210 40% 98%)",
+              success: "hsl(142 71% 45%)",
+              warning: "hsl(40 90% 55%)",
+              destructive: "hsl(0 84.2% 60.2%)",
+              "slate-100": "hsl(210 40% 96.1%)",
+              "slate-200": "hsl(214.3 31.8% 91.4%)",
+              "slate-400": "hsl(215 20.2% 65.1%)",
+              "slate-500": "hsl(215.4 16.3% 46.9%)",
+              "slate-700": "hsl(215.3 25% 26.7%)",
+              "slate-800": "hsl(217.2 32.6% 17.5%)",
+              "purple-50": "hsl(270 100% 98%)",
+              "purple-100": "hsl(270 100% 95%)",
+              "purple-500": "hsl(270 70% 60%)",
+              "purple-600": "hsl(270 70% 55%)",
+              "green-500": "hsl(142 71% 45%)",
+            },
+            borderRadius: { lg: "0.5rem", md: "calc(0.5rem - 2px)", sm: "calc(0.5rem - 4px)" },
+          },
+        },
+      };
+    </script>
+    <style>
+      /* Reused from globals.css */
+      @keyframes copilotPulse {
+        0% {
+          box-shadow: 0 0 0 0 hsl(270 70% 60% / 0.4);
+        }
+        50% {
+          box-shadow: 0 0 0 6px hsl(270 70% 60% / 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 hsl(270 70% 60% / 0);
+        }
+      }
+      .copilot-highlight {
+        animation: copilotPulse 1s ease-in-out 3;
+        outline: 2px solid hsl(270 70% 60% / 0.6);
+        outline-offset: 2px;
+        border-radius: 6px;
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: -1000px 0;
+        }
+        100% {
+          background-position: 1000px 0;
+        }
+      }
+      .skeleton-loading {
+        background: linear-gradient(
+          to right,
+          hsl(210 40% 96.1%) 0%,
+          hsl(210 40% 90%) 50%,
+          hsl(210 40% 96.1%) 100%
+        );
+        background-size: 1000px 100%;
+        animation: shimmer 1.5s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .animate-spin {
+        animation: spin 1s linear infinite;
+      }
+      @keyframes slideInFromBottom {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-slide-in {
+        animation: slideInFromBottom 300ms ease-out forwards;
+      }
+      @keyframes titleFlash {
+        0%,
+        50% {
+          background-color: hsl(0 84% 60%);
+          color: white;
+        }
+        51%,
+        100% {
+          background-color: transparent;
+          color: inherit;
+        }
+      }
+      .title-flashing {
+        animation: titleFlash 1.2s ease-in-out infinite;
+      }
+      .progress-bar {
+        transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .field-empty .field-value {
+        display: none;
+      }
+      .field-filled .field-placeholder {
+        display: none;
+      }
+      body {
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: hsl(210 40% 96.1% / 0.3);
+      }
+      /* FinderColumn header + row — match UI-SPEC-locked-dimensions */
+      .finder-header {
+        height: 44px;
+      }
+      .section-row {
+        padding: 9px 14px;
+        min-height: 36px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ─── Top bar ─────────────────────────────────────────────────── -->
+    <header class="bg-white border-b border-border">
+      <div class="px-4 py-2 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-foreground">Prototipo v2 — Generic Extraction Feedback</span>
+          <span class="text-muted-foreground">|</span>
+          <span id="simState" class="text-muted-foreground">idle</span>
+          <span class="text-muted-foreground">|</span>
+          <span class="text-muted-foreground">Route: /brand-studio/identity</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            id="btnStart"
+            class="rounded-md bg-brand text-brand-foreground px-3 py-1 text-xs font-medium hover:opacity-90"
+          >
+            ▶ Usuario dice "analiza visionarias.pe"
+          </button>
+          <button
+            id="btnReset"
+            class="rounded-md border border-border bg-white px-3 py-1 text-xs text-muted-foreground hover:text-foreground"
+          >
+            ⟲ Reset
+          </button>
+          <button
+            id="btnBlur"
+            class="rounded-md border border-border bg-white px-3 py-1 text-xs text-muted-foreground hover:text-foreground"
+          >
+            👁‍🗨 Simular tab-blur
+          </button>
+        </div>
+      </div>
+      <div
+        id="titleFlashBar"
+        class="hidden border-t border-border bg-muted/30 px-4 py-1 text-[11px] text-destructive font-medium text-center"
+      >
+        <span class="title-flashing inline-block px-2 rounded">(1) Nicolify — Extracción lista</span>
+        <span class="text-muted-foreground ml-2">(tab flash — solo visible cuando user no está aquí)</span>
+      </div>
+    </header>
+
+    <!-- ─── Main 4-col layout ────────────────────────────────────────────
+         [NavRail 260px | Form (flex) | Chat 420px | Rail 60px]
+    -->
+    <div
+      class="grid"
+      style="grid-template-columns: 260px 1fr 420px 60px; height: calc(100vh - 42px)"
+    >
+      <!-- ═══════════════ COL 1 — NAV RAIL (sections with live badges) ═══ -->
+      <aside class="border-r border-border bg-white overflow-y-auto">
+        <!-- FinderColumn header -->
+        <div class="finder-header border-b border-border px-[14px] flex items-center justify-between">
+          <span class="text-[13px] font-semibold text-foreground">Secciones</span>
+          <span class="text-[11px] text-muted-foreground tabular-nums" id="sectionsCount">14</span>
+        </div>
+        <ul id="sectionList" class="flex flex-col">
+          <!-- populated by JS from BRAND_SECTIONS mirror -->
+        </ul>
+      </aside>
+
+      <!-- ═══════════════ COL 2 — FORM (Identidad) ═══════════════ -->
+      <main class="overflow-y-auto bg-background">
+        <div class="sticky top-0 z-10 border-b border-border bg-white px-6 py-3">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Brand Studio</span>
+                <span>›</span>
+                <span class="text-foreground font-medium">Identidad</span>
+              </div>
+              <h1 class="mt-0.5 text-sm font-semibold text-foreground">Identidad</h1>
+            </div>
+            <!-- Global counter (Proposal 7 preview — P2 in plan) -->
+            <div
+              id="formCounter"
+              class="hidden rounded-lg border border-brand/30 bg-brand/5 px-3 py-1.5"
+              title="Progreso global del job de extracción"
+            >
+              <div class="flex items-center gap-2 text-[11px] font-medium">
+                <span class="h-2 w-2 rounded-full bg-brand animate-pulse"></span>
+                <span class="text-foreground">
+                  <span id="filledCount">0</span>/<span id="totalCount">28</span> campos
+                </span>
+                <span class="text-muted-foreground">·</span>
+                <span id="counterPercent" class="text-brand font-semibold">0%</span>
+              </div>
+              <div class="mt-1 h-1 w-48 rounded-full bg-muted overflow-hidden">
+                <div id="counterBar" class="h-full bg-brand progress-bar" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 space-y-5 max-w-2xl">
+          <section class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="field-empty" data-field="brand_name" data-section="identity">
+                <label class="text-xs font-medium text-foreground">Nombre</label>
+                <div class="mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[38px] flex items-center field-input">
+                  <span class="field-value text-foreground">Visionarias</span>
+                  <span class="field-placeholder text-muted-foreground text-xs">¿Cómo se llama tu marca?</span>
+                </div>
+              </div>
+              <div class="field-empty" data-field="tagline" data-section="identity">
+                <label class="text-xs font-medium text-foreground">Tagline</label>
+                <div class="mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[38px] flex items-center field-input">
+                  <span class="field-value text-foreground">Convertimos ideas en marcas digitales</span>
+                  <span class="field-placeholder text-muted-foreground text-xs">Frase corta</span>
+                </div>
+              </div>
+              <div class="field-empty" data-field="industria" data-section="identity">
+                <label class="text-xs font-medium text-foreground">Industria</label>
+                <div class="mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[38px] flex items-center field-input">
+                  <span class="field-value text-foreground">Educación online · Consultoría</span>
+                  <span class="field-placeholder text-muted-foreground text-xs">Educación, E-commerce…</span>
+                </div>
+              </div>
+              <div class="field-empty" data-field="sitio_web" data-section="identity">
+                <label class="text-xs font-medium text-foreground">Sitio web</label>
+                <div class="mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[38px] flex items-center field-input">
+                  <span class="field-value text-foreground">https://visionarias.pe</span>
+                  <span class="field-placeholder text-muted-foreground text-xs">https://...</span>
+                </div>
+              </div>
+              <div class="field-empty" data-field="anio_fundacion" data-section="identity">
+                <label class="text-xs font-medium text-foreground">Año de fundación</label>
+                <div class="mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[38px] flex items-center field-input">
+                  <span class="field-value text-foreground">2021</span>
+                  <span class="field-placeholder text-muted-foreground text-xs">YYYY</span>
+                </div>
+              </div>
+              <div class="field-empty" data-field="idioma_principal" data-section="identity">
+                <label class="text-xs font-medium text-foreground">Idioma principal</label>
+                <div class="mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[38px] flex items-center field-input">
+                  <span class="field-value text-foreground">Español (LatAm)</span>
+                  <span class="field-placeholder text-muted-foreground text-xs">Selecciona…</span>
+                </div>
+              </div>
+              <div class="field-empty col-span-2" data-field="descripcion" data-section="identity">
+                <label class="text-xs font-medium text-foreground">Descripción</label>
+                <div class="mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[72px] field-input">
+                  <span class="field-value text-foreground"
+                    >Visionarias es una plataforma que ayuda a creadores y profesionales
+                    independientes a construir su marca personal y ofertas digitales con asesoría,
+                    herramientas y comunidad.</span
+                  >
+                  <span class="field-placeholder text-muted-foreground text-xs">2–3 líneas…</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Tip about off-section extraction -->
+          <section class="pt-4 border-t border-dashed border-border">
+            <div class="rounded-lg bg-brand/5 border border-brand/20 p-3 text-[11px] text-foreground">
+              <strong>Notá:</strong> estás mirando <em>Identidad</em>, pero la extracción también
+              completa <em>Posicionamiento</em>, <em>Narrativa</em> y <em>Metodología</em>. Cuando
+              cada sección termine, vas a ver:
+              <ol class="list-decimal list-inside mt-1 space-y-0.5">
+                <li>Badge con ✓ y contador en el sidebar izquierdo.</li>
+                <li>Pill inline en el chat con link "Revisar →".</li>
+                <li>Contador global arriba a la derecha sumando campos.</li>
+              </ol>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <!-- ═══════════════ COL 3 — CHAT PANEL ═══════════════ -->
+      <aside class="flex flex-col border-l border-border bg-background">
+        <!-- Header -->
+        <div class="h-11 border-b border-border px-3 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-2">
+            <div class="h-6 w-6 rounded-full bg-brand/15 flex items-center justify-center">
+              <span class="text-[11px]">✨</span>
+            </div>
+            <span class="text-xs font-medium text-foreground">Copilot</span>
+          </div>
+          <button class="text-muted-foreground text-xs hover:text-foreground">▾</button>
+        </div>
+
+        <div id="chatScroll" class="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+          <!-- Messages injected here by JS -->
+        </div>
+
+        <!-- Composer -->
+        <div class="border-t border-border p-3 shrink-0">
+          <div class="flex items-center gap-2 rounded-xl border border-input bg-background px-3 py-2">
+            <input
+              type="text"
+              placeholder="Escribe tu mensaje..."
+              class="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+            <button class="rounded-md bg-brand text-brand-foreground px-2 py-1 text-[11px] hover:opacity-90">
+              Enviar
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ═══════════════ COL 4 — 60px rail ═══════════════ -->
+      <aside
+        class="flex flex-col items-center gap-2 border-l border-border bg-background px-2 py-3"
+      >
+        <button
+          class="h-9 w-9 rounded-xl bg-brand text-brand-foreground shadow-md flex items-center justify-center text-sm"
+          title="Abrir chat"
+        >
+          ✨
+        </button>
+        <button
+          class="h-9 w-9 rounded-xl text-muted-foreground hover:bg-muted flex items-center justify-center text-xs"
+          title="Historial"
+        >
+          💬
+        </button>
+        <div class="h-px w-6 bg-border my-1"></div>
+        <button
+          class="h-9 w-9 rounded-xl text-muted-foreground hover:bg-muted flex items-center justify-center"
+          title="Nueva"
+        >
+          +
+        </button>
+        <div class="mt-1 flex flex-col items-center gap-1.5">
+          <button
+            class="h-9 w-9 rounded-full border-2 border-brand bg-brand/15 text-brand text-[10px] font-semibold"
+          >
+            VS
+          </button>
+          <button
+            class="h-9 w-9 rounded-full border border-border bg-muted/40 text-muted-foreground text-[10px] font-semibold"
+          >
+            OF
+          </button>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ─── Toast ─────────────────────────────────────────────────── -->
+    <div
+      id="toast"
+      class="hidden fixed bottom-4 right-4 z-50 animate-slide-in max-w-sm rounded-lg border border-border bg-slate-800 text-white shadow-xl px-4 py-3"
+    >
+      <div class="flex items-start gap-3">
+        <div
+          class="mt-0.5 h-6 w-6 rounded-full bg-success/20 flex items-center justify-center shrink-0 text-success text-sm"
+        >
+          ✓
+        </div>
+        <div class="flex-1">
+          <div class="text-sm font-semibold">Extracción lista</div>
+          <div class="text-xs text-slate-400 mt-0.5">
+            Analicé visionarias.pe · <span id="toastFields">0</span> campos sugeridos en
+            <span id="toastSections">0</span> secciones
+          </div>
+          <div class="mt-2 flex gap-2">
+            <button class="text-xs font-medium text-brand hover:underline">Ver resumen</button>
+            <button id="toastDismiss" class="text-xs text-slate-400 hover:text-white">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ─── Mirror BRAND_SECTIONS from brand-studio/lib/section-catalog.ts ────
+      const BRAND_SECTIONS = [
+        { slug: "publico", label: "Buyer personas", icon: "✦", total: 0 },
+        { slug: "identity", label: "Identidad", icon: "❖", total: 7 },
+        { slug: "estilo", label: "Estilo Comunicacional", icon: "◈", total: 4 },
+        { slug: "positioning", label: "Posicionamiento", icon: "◎", total: 5 },
+        { slug: "narrative", label: "Narrativa", icon: "§", total: 4 },
+        { slug: "methodology", label: "Metodología", icon: "⚑", total: 4 },
+        { slug: "story", label: "Historia", icon: "📄", total: 4 },
+        { slug: "team", label: "Equipo", icon: "⚉", total: 0 },
+        { slug: "authority", label: "Autoridad", icon: "🏛", total: 0 },
+        { slug: "testimonials", label: "Testimonios", icon: "🎧", total: 0 },
+        { slug: "visuals", label: "Visuales", icon: "◐", total: 0 },
+        { slug: "communication-assets", label: "Assets", icon: "❐", total: 0 },
+        { slug: "contact", label: "Contacto", icon: "📣", total: 0 },
+        { slug: "legal", label: "Legal", icon: "⚖", total: 0 },
+      ];
+      const ACTIVE_SLUG = "identity";
+
+      // ─── Render NavRail ────
+      function renderNavRail() {
+        const ul = document.getElementById("sectionList");
+        ul.innerHTML = BRAND_SECTIONS.map((s) => {
+          const isActive = s.slug === ACTIVE_SLUG;
+          return `
+            <li>
+              <div data-section-slug="${s.slug}"
+                class="section-row relative flex items-center gap-2 border-b border-border/50 text-[13px] transition-colors cursor-pointer ${
+                  isActive ? "bg-muted/60 before:absolute before:inset-y-0 before:left-0 before:w-[2px] before:bg-brand" : "hover:bg-muted/30"
+                }">
+                <span class="${isActive ? "text-foreground" : "text-muted-foreground"} text-[13px] w-4 text-center" aria-hidden="true">${s.icon}</span>
+                <span class="flex-1 truncate ${isActive ? "text-foreground font-medium" : "text-foreground/90"}">${s.label}</span>
+                <span class="section-badge hidden"></span>
+                <span class="text-muted-foreground text-[10px]">›</span>
+              </div>
+            </li>`;
+        }).join("");
+      }
+
+      // ─── Section badge rendering (Proposal 4 — Live NavRail badges) ────
+      function setSectionBadge(slug, state, count) {
+        const row = document.querySelector(`[data-section-slug="${slug}"]`);
+        if (!row) return;
+        const badge = row.querySelector(".section-badge");
+        if (!badge) return;
+        if (state === "idle") {
+          badge.className = "section-badge hidden";
+          badge.innerHTML = "";
+          return;
+        }
+        badge.classList.remove("hidden");
+        if (state === "queued") {
+          badge.className =
+            "section-badge inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground";
+          badge.innerHTML = `· <span>queued</span>`;
+        } else if (state === "running") {
+          badge.className =
+            "section-badge inline-flex items-center gap-1 rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-medium text-brand";
+          badge.innerHTML = `<span class="inline-block h-2 w-2 rounded-full border-2 border-brand border-t-transparent animate-spin"></span><span>${count} entrando</span>`;
+        } else if (state === "completed") {
+          badge.className =
+            "section-badge inline-flex items-center gap-1 rounded-full bg-success/10 px-1.5 py-0.5 text-[10px] font-medium text-success";
+          badge.innerHTML = `✓ <span>${count} sugeridos</span>`;
+        }
+      }
+
+      // ─── Chat helpers ────
+      const chat = () => document.getElementById("chatScroll");
+      function scrollChat() {
+        const c = chat();
+        c.scrollTop = c.scrollHeight;
+      }
+      function appendUserMessage(text) {
+        const el = document.createElement("div");
+        el.className = "flex justify-end animate-slide-in";
+        el.innerHTML = `<div class="max-w-[85%] rounded-2xl rounded-br-sm bg-brand text-brand-foreground px-4 py-2.5 text-sm">${text}</div>`;
+        chat().appendChild(el);
+        scrollChat();
+      }
+      function appendAssistantBubble(innerHtml, extraClass = "") {
+        const el = document.createElement("div");
+        el.className = `flex gap-2.5 animate-slide-in ${extraClass}`;
+        el.innerHTML = `
+          <div class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-purple-100">
+            <span class="text-[12px]">✨</span>
+          </div>
+          <div class="max-w-[85%] flex-1 space-y-2">${innerHtml}</div>`;
+        chat().appendChild(el);
+        scrollChat();
+        return el;
+      }
+
+      // ─── Proposal 0: Scope picker via ClarifyCard ────
+      function showScopePicker() {
+        const html = `
+          <div role="group" aria-label="Pregunta del asistente"
+               class="animate-slide-in rounded-xl border border-border bg-card p-3.5 shadow-sm ring-1 ring-brand/10">
+            <div class="mb-2.5 flex items-center gap-2 text-xs font-semibold text-foreground">
+              <span class="flex h-5 w-5 items-center justify-center rounded-full bg-brand/15 text-brand">?</span>
+              <span>Necesito confirmar algo</span>
+            </div>
+            <div class="mb-2 rounded-lg border border-border/60 bg-muted/40 p-2.5">
+              <div class="text-xs leading-relaxed text-foreground">¿Qué querés que extraiga de visionarias.pe?</div>
+              <div class="mt-2 flex flex-wrap gap-1.5">
+                <button class="scope-opt rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:border-brand/60 hover:bg-brand/10 hover:text-brand" data-k="section">Solo Identidad (esta página)</button>
+                <button class="scope-opt rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:border-brand/60 hover:bg-brand/10 hover:text-brand" data-k="full" data-selected="true" style="border-color:hsl(270 70% 55% / 0.6);background:hsl(270 70% 60% / 0.1);color:hsl(270 70% 55%)">Todo Brand Studio</button>
+                <button class="scope-opt rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground" data-k="other">Otra sección…</button>
+              </div>
+            </div>
+            <div class="mb-0 rounded-lg border border-border/60 bg-muted/40 p-2.5">
+              <div class="text-xs leading-relaxed text-foreground">¿Cómo escribo los campos?</div>
+              <div class="mt-2 flex flex-wrap gap-1.5">
+                <button class="mode-opt rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:border-brand/60 hover:bg-brand/10 hover:text-brand" data-k="update" data-selected="true" style="border-color:hsl(270 70% 55% / 0.6);background:hsl(270 70% 60% / 0.1);color:hsl(270 70% 55%)">Solo llenar vacíos</button>
+                <button class="mode-opt rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:border-brand/60 hover:bg-brand/10 hover:text-brand" data-k="initial">Reemplazar todo</button>
+                <button class="mode-opt rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:border-brand/60 hover:bg-brand/10 hover:text-brand" data-k="suggest">Sugerir (no escribir)</button>
+              </div>
+            </div>
+            <div class="mt-2.5 text-right">
+              <button id="scopeConfirm" class="rounded-md bg-brand text-brand-foreground px-3 py-1 text-[11px] font-medium">Confirmar</button>
+            </div>
+          </div>`;
+        const bubble = appendAssistantBubble(html, "scopeBubble");
+        bubble.querySelectorAll(".scope-opt,.mode-opt").forEach((b) =>
+          b.addEventListener("click", (ev) => {
+            const group = b.classList.contains("scope-opt") ? ".scope-opt" : ".mode-opt";
+            bubble.querySelectorAll(group).forEach((sib) => {
+              sib.style.cssText = "";
+              sib.classList.remove("text-brand");
+              sib.dataset.selected = "false";
+            });
+            b.style.cssText =
+              "border-color:hsl(270 70% 55% / 0.6);background:hsl(270 70% 60% / 0.1);color:hsl(270 70% 55%)";
+            b.dataset.selected = "true";
+          }),
+        );
+        bubble.querySelector("#scopeConfirm").addEventListener("click", () => {
+          // Collapse into resolved pill
+          const scope = bubble.querySelector(".scope-opt[data-selected='true']")?.textContent ?? "Todo Brand Studio";
+          const mode = bubble.querySelector(".mode-opt[data-selected='true']")?.textContent ?? "Solo llenar vacíos";
+          bubble.querySelector("[role='group']").outerHTML = `
+            <div role="status" class="animate-slide-in inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-medium text-success">
+              ✓ <span>${scope} · ${mode}</span>
+            </div>`;
+          startExtraction();
+        });
+      }
+
+      // ─── Proposal 2: ToolCallChip (live) ────
+      function createToolChip() {
+        const html = `
+          <div class="flex flex-wrap gap-1.5">
+            <div id="toolChip" role="status" aria-live="polite"
+                 class="inline-flex flex-col gap-1 rounded-xl border border-border bg-background/60 px-3 py-2 text-[11px] font-medium text-muted-foreground shadow-sm w-full max-w-[360px]">
+              <div class="flex items-center gap-1.5">
+                <span id="toolIcon" class="inline-block h-3 w-3 rounded-full border-2 border-brand border-t-transparent animate-spin"></span>
+                <span class="opacity-60 text-[10px]">🔧</span>
+                <span class="font-mono text-[10.5px] tracking-tight" id="toolLabel">Analizando página web</span>
+                <span class="ml-auto font-semibold text-brand" id="toolPct">0%</span>
+              </div>
+              <div class="h-1 w-full rounded-full bg-muted overflow-hidden">
+                <div id="toolBar" class="h-full bg-brand progress-bar" style="width: 0%"></div>
+              </div>
+              <div class="text-[10px] text-muted-foreground leading-tight" id="toolStage">Iniciando análisis…</div>
+              <div class="text-[10px] text-muted-foreground leading-tight" id="toolCounter">
+                <span id="tcFields">0</span> campos · <span id="tcSections">0</span> secciones
+              </div>
+            </div>
+          </div>
+          <div class="rounded-2xl rounded-bl-sm bg-slate-100 px-4 py-2.5 text-sm text-slate-700">
+            Listo, arranco. Verás los campos llenarse en vivo y te aviso por sección a medida que terminen.
+          </div>`;
+        appendAssistantBubble(html);
+      }
+
+      // ─── Proposal 5: Inline navigation pill (section complete) ────
+      function appendSectionCompletePill(sectionSlug, sectionLabel, fieldsCount) {
+        const html = `
+          <button
+            onclick="alert('→ /brand-studio/${sectionSlug}')"
+            class="my-1 flex w-full items-center justify-between gap-2 rounded-xl border border-purple-200 bg-purple-50 px-3 py-2.5 text-left text-sm hover:bg-purple-100">
+            <div class="flex items-center gap-2">
+              <span class="text-purple-500">📍</span>
+              <div>
+                <span class="font-medium text-slate-700">✓ ${sectionLabel} lista · ${fieldsCount} campos</span>
+                <span class="ml-1 text-xs text-slate-400">&gt; ${sectionSlug}</span>
+              </div>
+            </div>
+            <span class="text-purple-400">→</span>
+          </button>`;
+        appendAssistantBubble(html);
+      }
+
+      // ─── Proposal 3: Final ExtractionSummaryCard ────
+      function appendSummaryCard(data) {
+        const coverageHtml = data.coverage
+          .map((c) => {
+            const pct = Math.round((c.filled / c.total) * 100);
+            const cls = pct >= 70 ? "bg-success" : pct >= 40 ? "bg-warning" : "bg-destructive";
+            return `<div class="flex items-center gap-2 text-[11px]">
+              <span class="w-28 text-foreground truncate">${c.label}</span>
+              <div class="flex-1 h-1.5 rounded-full bg-muted overflow-hidden"><div class="h-full ${cls}" style="width:${pct}%"></div></div>
+              <span class="text-muted-foreground tabular-nums">${c.filled}/${c.total}</span>
+            </div>`;
+          })
+          .join("");
+        const html = `
+          <div role="group" aria-label="Resumen de extracción"
+               class="animate-slide-in rounded-xl border border-border bg-card p-3.5 text-card-foreground shadow-sm ring-1 ring-brand/10">
+            <div class="mb-2.5 flex items-center gap-2 text-xs font-semibold text-foreground">
+              <span class="flex h-5 w-5 items-center justify-center rounded-full bg-success/15 text-success">✓</span>
+              <span>Listo — analicé ${data.source}</span>
+              <span class="ml-auto text-[10px] font-normal text-muted-foreground">${data.duration}s</span>
+            </div>
+            <div class="mb-3 grid grid-cols-2 gap-2 text-[11px]">
+              <div class="rounded-md bg-muted/40 border border-border/60 p-2">
+                <div class="text-muted-foreground">Campos sugeridos</div>
+                <div class="text-lg font-semibold text-foreground">${data.totalFields}</div>
+              </div>
+              <div class="rounded-md bg-muted/40 border border-border/60 p-2">
+                <div class="text-muted-foreground">Secciones tocadas</div>
+                <div class="text-lg font-semibold text-foreground">${data.totalSections}</div>
+              </div>
+            </div>
+            <div class="space-y-1.5 mb-3">
+              <div class="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Cobertura por sección</div>
+              <div class="space-y-1">${coverageHtml}</div>
+            </div>
+            <div class="text-[10px] text-muted-foreground mb-3">
+              Supuestos fuertes: <strong class="text-foreground">${data.assumptions}</strong> · Preguntas pendientes: <strong class="text-foreground">${data.questions}</strong>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button class="rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:border-brand/60 hover:bg-brand/10 hover:text-brand">Revisar Identidad →</button>
+              <button class="rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:border-brand/60 hover:bg-brand/10 hover:text-brand">Ver preguntas (${data.questions})</button>
+              <button class="rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground">Ver supuestos</button>
+            </div>
+          </div>`;
+        appendAssistantBubble(html);
+      }
+
+      // ─── Simulation timeline (whole-brand extract from /brand-studio/identity) ─
+      let timers = [];
+      let sectionsTouched = new Set();
+      let sectionsCompleted = new Set();
+      let filledFields = 0;
+
+      function setFieldFilled(fieldName) {
+        const el = document.querySelector(`[data-field="${fieldName}"]`);
+        if (!el) return; // not in current view (off-section field)
+        el.classList.remove("field-empty");
+        el.classList.add("field-filled");
+        const input = el.querySelector(".field-input");
+        if (input) {
+          input.classList.add("copilot-highlight");
+          setTimeout(() => input.classList.remove("copilot-highlight"), 3100);
+        }
+      }
+
+      function bumpCounter(total, totalTarget = 28) {
+        filledFields = total;
+        const pct = Math.round((total / totalTarget) * 100);
+        document.getElementById("filledCount").textContent = total;
+        document.getElementById("totalCount").textContent = totalTarget;
+        document.getElementById("counterBar").style.width = pct + "%";
+        document.getElementById("counterPercent").textContent = pct + "%";
+        document.getElementById("tcFields").textContent = total;
+        document.getElementById("tcSections").textContent = sectionsTouched.size;
+      }
+
+      function updateChipProgress(pct, stage) {
+        document.getElementById("toolBar").style.width = pct + "%";
+        document.getElementById("toolPct").textContent = pct + "%";
+        document.getElementById("toolStage").textContent = stage;
+      }
+
+      function markSectionQueued(slug) {
+        sectionsTouched.add(slug);
+        setSectionBadge(slug, "queued", 0);
+      }
+      function markSectionRunning(slug, count) {
+        setSectionBadge(slug, "running", count);
+      }
+      function markSectionComplete(slug, label, count) {
+        sectionsCompleted.add(slug);
+        setSectionBadge(slug, "completed", count);
+        appendSectionCompletePill(slug, label, count);
+      }
+
+      // Compressed timeline (~25s)
+      const TIMELINE = [
+        { at: 0, fn: () => appendUserMessage("Analiza mi sitio https://visionarias.pe y completa el Brand Studio") },
+        { at: 1000, fn: () => showScopePicker() },
+        // startExtraction is called by scope picker's confirm button
+      ];
+
+      function startExtraction() {
+        document.getElementById("formCounter").classList.remove("hidden");
+        createToolChip();
+        document.getElementById("simState").textContent = "running";
+
+        const seq = [
+          { at: 500, fn: () => { updateChipProgress(5, "Visitando home page"); markSectionQueued("identity"); bumpCounter(0); } },
+          { at: 2200, fn: () => { updateChipProgress(14, "Analizando identidad visual"); markSectionRunning("identity", 2); setFieldFilled("brand_name"); setFieldFilled("sitio_web"); bumpCounter(2); } },
+          { at: 3800, fn: () => { updateChipProgress(25, "Leyendo meta tags"); markSectionRunning("identity", 4); setFieldFilled("tagline"); setFieldFilled("anio_fundacion"); bumpCounter(4); } },
+          { at: 5300, fn: () => { updateChipProgress(35, "Detectando idioma + industria"); setFieldFilled("idioma_principal"); setFieldFilled("industria"); setFieldFilled("descripcion"); bumpCounter(7); markSectionComplete("identity", "Identidad", 7); markSectionQueued("positioning"); } },
+          { at: 8000, fn: () => { updateChipProgress(50, "Inferiendo posicionamiento"); markSectionRunning("positioning", 3); bumpCounter(10); } },
+          { at: 10000, fn: () => { updateChipProgress(62, "Extrayendo propuesta de valor"); markSectionRunning("positioning", 5); bumpCounter(12); markSectionComplete("positioning", "Posicionamiento", 5); markSectionQueued("narrative"); } },
+          { at: 13000, fn: () => { updateChipProgress(75, "Leyendo sección 'Nosotros'"); markSectionRunning("narrative", 2); bumpCounter(14); } },
+          { at: 15500, fn: () => { updateChipProgress(84, "Construyendo narrativa"); markSectionRunning("narrative", 4); bumpCounter(17); markSectionComplete("narrative", "Narrativa", 4); markSectionQueued("methodology"); } },
+          { at: 18000, fn: () => { updateChipProgress(93, "Inferiendo metodología"); markSectionRunning("methodology", 2); bumpCounter(19); } },
+          { at: 20000, fn: () => { updateChipProgress(100, "Completado"); markSectionComplete("methodology", "Metodología", 4); bumpCounter(20); onDone(); } },
+        ];
+
+        seq.forEach((step) => {
+          const t = setTimeout(step.fn, step.at);
+          timers.push(t);
+        });
+      }
+
+      function onDone() {
+        document.getElementById("simState").textContent = "completed";
+        // Flip chip to done
+        const chip = document.getElementById("toolChip");
+        if (chip) {
+          document.getElementById("toolIcon").outerHTML = `<span id="toolIcon" class="text-success">✓</span>`;
+          document.getElementById("toolLabel").textContent = "Analizando página web · 20s";
+          document.getElementById("toolBar").classList.remove("bg-brand");
+          document.getElementById("toolBar").classList.add("bg-success");
+          document.getElementById("toolStage").textContent = "Completado · 20 campos sugeridos · 4 secciones";
+          document.getElementById("toolCounter").classList.add("hidden");
+        }
+        // Summary card
+        appendSummaryCard({
+          source: "visionarias.pe",
+          duration: 20,
+          totalFields: 20,
+          totalSections: 4,
+          assumptions: 3,
+          questions: 5,
+          coverage: [
+            { label: "Identidad", filled: 7, total: 7 },
+            { label: "Posicionamiento", filled: 5, total: 5 },
+            { label: "Narrativa", filled: 4, total: 4 },
+            { label: "Metodología", filled: 4, total: 4 },
+          ],
+        });
+        // If tab blur forced
+        if (
+          document.visibilityState === "hidden" ||
+          document.getElementById("titleFlashBar").dataset.forced === "true"
+        ) {
+          document.getElementById("toastFields").textContent = "20";
+          document.getElementById("toastSections").textContent = "4";
+          document.getElementById("toast").classList.remove("hidden");
+          document.getElementById("titleFlashBar").classList.remove("hidden");
+          document.title = "(1) Nicolify — Extracción lista";
+        }
+      }
+
+      function reset() {
+        timers.forEach(clearTimeout);
+        timers = [];
+        sectionsTouched = new Set();
+        sectionsCompleted = new Set();
+        filledFields = 0;
+        document.getElementById("simState").textContent = "idle";
+        document.getElementById("formCounter").classList.add("hidden");
+        document.getElementById("counterBar").style.width = "0%";
+        document.getElementById("counterPercent").textContent = "0%";
+        document.getElementById("filledCount").textContent = "0";
+        chat().innerHTML = "";
+        document.querySelectorAll("[data-field]").forEach((el) => {
+          el.classList.remove("field-filled");
+          el.classList.add("field-empty");
+        });
+        BRAND_SECTIONS.forEach((s) => setSectionBadge(s.slug, "idle"));
+        document.getElementById("toast").classList.add("hidden");
+        document.getElementById("titleFlashBar").classList.add("hidden");
+        document.getElementById("titleFlashBar").dataset.forced = "false";
+        document.title = "Nicolify — Brand Studio";
+      }
+
+      function start() {
+        reset();
+        TIMELINE.forEach((step) => {
+          timers.push(setTimeout(step.fn, step.at));
+        });
+      }
+
+      // Wire up
+      document.getElementById("btnStart").addEventListener("click", start);
+      document.getElementById("btnReset").addEventListener("click", reset);
+      document.getElementById("btnBlur").addEventListener("click", () => {
+        document.getElementById("titleFlashBar").dataset.forced = "true";
+        start();
+      });
+      document.getElementById("toastDismiss").addEventListener("click", () => {
+        document.getElementById("toast").classList.add("hidden");
+        document.getElementById("titleFlashBar").classList.add("hidden");
+        document.title = "Nicolify — Brand Studio";
+      });
+
+      // Init
+      renderNavRail();
+    </script>
+  </body>
+</html>

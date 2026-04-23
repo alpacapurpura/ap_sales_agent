@@ -192,135 +192,12 @@ def _render_attachment_context(
 
 
 # ── Tool → Block adapters ──────────────────────────────────────────────────────
-# [COPILOT-CITATION-BLOCK] → docs/domains/copilot/message-blocks.md §citation
-# [COPILOT-OUTBOUND-ASSETS] → docs/domains/copilot/outbound-assets.md
+# Registration + handlers live in block_adapters.py (SSoT). Adding a new
+# block-emitting tool does NOT require editing this file.
 
-
-def _kb_to_citations(parsed: object) -> list[dict] | None:
-    """Convert search_knowledge_base result to CitationBlock list."""
-    if not isinstance(parsed, list):
-        return None
-    blocks: list[dict] = []
-    for item in parsed:
-        if not isinstance(item, dict):
-            continue
-        blocks.append(
-            {
-                "id": str(uuid4()),
-                "type": "citation",
-                "source": str(item.get("source") or item.get("metadata", {}).get("title") or ""),
-                "snippet": str(item.get("snippet") or item.get("content") or "")[:500],
-                "score": item.get("score"),
-                "url": item.get("url") or item.get("metadata", {}).get("url"),
-            }
-        )
-    return blocks
-
-
-def _asset_item_to_block(item: dict) -> dict | None:
-    """Convert a single asset dict to a typed block dict. Returns None for unknown kinds."""
-    kind = str(item.get("kind", "")).lower()
-    asset_id = str(item.get("asset_id", ""))
-    public_url = str(item.get("public_url", ""))
-    mime = str(item.get("mime", "application/octet-stream"))
-    filename = str(item.get("filename", ""))
-
-    if kind == "image":
-        return {
-            "id": str(uuid4()),
-            "type": "image",
-            "asset_id": asset_id,
-            "url": public_url,
-            "mime": mime,
-            "alt": item.get("description") or filename or None,
-        }
-    if kind == "audio":
-        return {
-            "id": str(uuid4()),
-            "type": "audio",
-            "asset_id": asset_id,
-            "url": public_url,
-            "mime": mime,
-            "transcript": "",  # assets don't carry transcript; caller may enrich
-        }
-    if kind == "video":
-        return {
-            "id": str(uuid4()),
-            "type": "video",
-            "asset_id": asset_id,
-            "url": public_url,
-            "mime": mime,
-        }
-    if kind == "document":
-        return {
-            "id": str(uuid4()),
-            "type": "document",
-            "asset_id": asset_id,
-            "url": public_url,
-            "mime": mime,
-            "filename": filename,
-            "size_bytes": int(item.get("size_bytes", 0)),
-        }
-    # Unknown kind → skip
-    return None
-
-
-def _assets_to_media_blocks(parsed: object) -> list[dict] | None:
-    """Convert search_assets / get_asset result to asset block list."""
-    if isinstance(parsed, dict):
-        if "error" in parsed:
-            return None
-        items = [parsed]
-    elif isinstance(parsed, list):
-        items = [i for i in parsed if isinstance(i, dict) and "error" not in i]
-    else:
-        return None
-
-    result_blocks: list[dict] = []
-    for item in items:
-        block = _asset_item_to_block(item)
-        if block is not None:
-            result_blocks.append(block)
-    return result_blocks
-
-
-# Dispatch table: tool_name → handler(parsed) -> list[dict] | None
-_TOOL_BLOCK_HANDLERS: dict[str, object] = {
-    "search_knowledge_base": _kb_to_citations,
-    "search_assets": _assets_to_media_blocks,
-    "get_asset": _assets_to_media_blocks,
-}
-
-
-def _tool_result_to_block(tool_name: str, result: object) -> list[dict] | None:
-    """Convert a tool result to a list of MessageBlock dicts for SSE v2 block_append.
-
-    Returns None if the tool output is not mapped to a block type (caller emits
-    only the legacy tool_result event in that case).
-    Returns an empty list if the tool output is a valid empty collection.
-
-    Mapped tools:
-    - search_knowledge_base  → list[CitationBlock]
-    - search_assets          → list[ImageBlock | AudioBlock | VideoBlock | DocumentBlock]
-    - get_asset              → [ImageBlock | AudioBlock | VideoBlock | DocumentBlock]
-
-    All other tools → None.
-
-    CONTRACT reference: CONTRACT-MULTIMODAL §6, §8, §10.
-    """
-    handler = _TOOL_BLOCK_HANDLERS.get(tool_name)
-    if handler is None:
-        return None
-
-    result_str: str = result if isinstance(result, str) else json.dumps(result)
-    try:
-        parsed = json.loads(result_str)
-    except (json.JSONDecodeError, ValueError):
-        logger.debug("tool_result_to_block_invalid_json", tool_name=tool_name)
-        return None
-
-    return handler(parsed)  # type: ignore[operator]
-
+from src.modules.copilot.application.orchestrator.block_adapters import (
+    tool_result_to_blocks as _tool_result_to_block,
+)
 
 _TYPE_TO_CARD_KIND: dict[str, str] = {
     "proposal": "proposal",
@@ -856,9 +733,14 @@ class CopilotOrchestrator:
                 ),
             )
 
+        # Cap at 4 KB (matches trace recorder MAX_PAYLOAD_CHARS). Enough to
+        # carry the full AsyncToolJob dispatch JSON — job_id, poll_endpoint,
+        # module, scope, mode, target_label_es, etc. — which the frontend must
+        # parse to register polling for extraction tools. The previous 500-char
+        # cap truncated that payload and broke the chip/badge/summary pipeline.
         result_sse = SSEEvent(
             event="tool_result",
-            data={"tool": tool_name, "result": str(tool_output)[:500]},
+            data={"tool": tool_name, "result": str(tool_output)[:4000]},
         ).to_sse()
 
         # If tool result contains a ui_action, emit it
@@ -994,9 +876,24 @@ class CopilotOrchestrator:
         )
         # Fallback: if no accumulated messages, persist simple format
         if not accumulated_messages:
+            from src.shared.domain.datetime_utils import utc_now as _utc_now
+
+            now_iso = _utc_now().isoformat()
             new_messages = [
-                {"role": "user", "content": message},
-                {"role": "assistant", "content": full_response},
+                {
+                    "id": str(uuid.uuid4()),
+                    "role": "user",
+                    "content": message,
+                    "status": "sent",
+                    "created_at": now_iso,
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "role": "assistant",
+                    "content": full_response,
+                    "status": "sent",
+                    "created_at": now_iso,
+                },
             ]
 
         if emitted_blocks:
@@ -1078,15 +975,27 @@ class CopilotOrchestrator:
     def _serialize_messages(messages: list) -> list[dict]:
         """Convert LangChain message objects to persistable dicts.
 
-        Preserves tool_calls on AIMessages and ToolMessages for full
-        conversation replay.
+        Every persisted message carries ``id``, ``status`` and ``created_at`` so
+        the frontend merge-by-id logic can deduplicate reliably. Without these
+        fields, a mid-job conversation refetch (triggered when per-wave
+        extraction pills land) re-renders the whole transcript and the user
+        sees duplicates + missing "sent" indicators.
+
+        Preserves ``tool_calls`` on AIMessages and ToolMessages for replay.
         """
+        from src.shared.domain.datetime_utils import utc_now as _utc_now
+
         result = []
         for msg in messages:
+            base: dict = {
+                "id": str(uuid.uuid4()),
+                "status": "sent",
+                "created_at": _utc_now().isoformat(),
+            }
             if isinstance(msg, HumanMessage):
-                result.append({"role": "user", "content": msg.content})
+                result.append({**base, "role": "user", "content": msg.content})
             elif isinstance(msg, AIMessage):
-                d: dict = {"role": "assistant", "content": msg.content}
+                d: dict = {**base, "role": "assistant", "content": msg.content}
                 if msg.tool_calls:
                     d["tool_calls"] = [
                         {"id": tc["id"], "name": tc["name"], "args": tc["args"]} for tc in msg.tool_calls
@@ -1095,6 +1004,7 @@ class CopilotOrchestrator:
             elif isinstance(msg, ToolMessage):
                 result.append(
                     {
+                        **base,
                         "role": "tool",
                         "content": msg.content,
                         "tool_call_id": msg.tool_call_id,

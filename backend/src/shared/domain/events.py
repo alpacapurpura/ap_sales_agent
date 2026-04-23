@@ -198,6 +198,97 @@ class LeadCapturedEvent(DomainEvent):
 
 
 @dataclass
+class ExtractionSectionCompletedEvent(DomainEvent):
+    """Emitted per section transition running→completed by extraction workers.
+
+    Consumed by copilot to insert a navigation pill into the conversation.
+
+    Payload keys:
+        job_id: str (ARQ job id, used as idempotency key)
+        conversation_id: str | None
+        module: "brand" | "offer"
+        section_slug: str
+        section_label: str   (Spanish label resolved by the publisher)
+        fields_count: int
+    """
+
+    @classmethod
+    def create(
+        cls,
+        tenant_id: UUID,
+        job_id: str,
+        conversation_id: str | None,
+        module: str,
+        section_slug: str,
+        section_label: str,
+        fields_count: int,
+    ) -> "ExtractionSectionCompletedEvent":
+        """Create an extraction_section_completed event."""
+        return cls(
+            event_name="extraction_section_completed",
+            tenant_id=tenant_id,
+            payload={
+                "job_id": job_id,
+                "conversation_id": conversation_id,
+                "module": module,
+                "section_slug": section_slug,
+                "section_label": section_label,
+                "fields_count": fields_count,
+            },
+        )
+
+
+@dataclass
+class ExtractionJobCompletedEvent(DomainEvent):
+    """Emitted once per successful extraction job.
+
+    Consumed by copilot to insert an extraction_summary card into the conversation.
+
+    Payload keys:
+        job_id: str
+        conversation_id: str | None
+        module: "brand" | "offer" | "asset" | "persona"
+        source_ref: str (url or asset_id)
+        duration_seconds: int
+        filled_fields: list[str]
+        filled_fields_by_section: dict[str, list[str]]
+        sections_completed: list[str]
+        primary_cta_route: str | None
+    """
+
+    @classmethod
+    def create(
+        cls,
+        tenant_id: UUID,
+        job_id: str,
+        conversation_id: str | None,
+        module: str,
+        source_ref: str,
+        duration_seconds: int,
+        filled_fields: list[str],
+        filled_fields_by_section: dict[str, list[str]],
+        sections_completed: list[str],
+        primary_cta_route: str | None = None,
+    ) -> "ExtractionJobCompletedEvent":
+        """Create an extraction_job_completed event."""
+        return cls(
+            event_name="extraction_job_completed",
+            tenant_id=tenant_id,
+            payload={
+                "job_id": job_id,
+                "conversation_id": conversation_id,
+                "module": module,
+                "source_ref": source_ref,
+                "duration_seconds": duration_seconds,
+                "filled_fields": filled_fields,
+                "filled_fields_by_section": filled_fields_by_section,
+                "sections_completed": sections_completed,
+                "primary_cta_route": primary_cta_route,
+            },
+        )
+
+
+@dataclass
 class AppointmentEvent(DomainEvent):
     """Emitted by scheduling module when appointment status changes.
 

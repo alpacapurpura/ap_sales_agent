@@ -16,6 +16,7 @@ from src.modules.offer.api.dto.extraction import (
     ExtractFullOfferResponse,
     OfferExtractionStatusResponse,
 )
+from src.shared.domain.extraction_jobs import ExtractionJob
 from src.shared.infrastructure.files.file_parsing_service import FileParsingService
 
 logger = structlog.get_logger()
@@ -100,7 +101,7 @@ async def extract_full_offer(
         raise HTTPException(status_code=503, detail="Background job queue unavailable")
 
     await arq_pool.enqueue_job(
-        "run_offer_extraction",
+        ExtractionJob.OFFER.value,
         job_id=job_id,
         tenant_id=tenant_id,
         offer_id=offer_id,

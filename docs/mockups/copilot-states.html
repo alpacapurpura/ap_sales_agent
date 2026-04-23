@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="es" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Copilot — estados (collapsed / rail+chat / full)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              border: "hsl(var(--border))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+              muted: {
+                DEFAULT: "hsl(var(--muted))",
+                foreground: "hsl(var(--muted-foreground))",
+              },
+              card: {
+                DEFAULT: "hsl(var(--card))",
+                foreground: "hsl(var(--card-foreground))",
+              },
+              brand: {
+                DEFAULT: "hsl(var(--brand))",
+                foreground: "hsl(var(--brand-foreground))",
+              },
+              success: "hsl(var(--success))",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      :root {
+        --background: 0 0% 100%;
+        --foreground: 222.2 84% 4.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 222.2 84% 4.9%;
+        --muted: 210 40% 96.1%;
+        --muted-foreground: 215.4 16.3% 46.9%;
+        --border: 214.3 31.8% 91.4%;
+        --brand: 270 70% 55%;
+        --brand-foreground: 210 40% 98%;
+        --success: 142 71% 45%;
+      }
+      html.dark {
+        --background: 222.2 47.4% 11.2%;
+        --foreground: 210 40% 98%;
+        --card: 217.2 32.6% 17.5%;
+        --card-foreground: 210 40% 98%;
+        --muted: 217.2 32.6% 25%;
+        --muted-foreground: 215 20.2% 65.1%;
+        --border: 217.2 32.6% 28%;
+        --brand: 270 70% 65%;
+        --brand-foreground: 222.2 47.4% 11.2%;
+        --success: 142 71% 55%;
+      }
+      body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+      .scrollbar::-webkit-scrollbar { width: 6px; }
+      .scrollbar::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
+      .panel-shadow { box-shadow: inset 1px 0 0 hsl(var(--border)); }
+      .sticky-group { position: sticky; top: 0; background: hsl(var(--background)); }
+      @keyframes pulse-ring {
+        0%, 100% { box-shadow: 0 0 0 0 hsl(var(--brand) / 0.4); }
+        50% { box-shadow: 0 0 0 4px hsl(var(--brand) / 0); }
+      }
+      .pulse-ring { animation: pulse-ring 2s ease-out infinite; }
+      .icon-xs { width: 12px; height: 12px; stroke-width: 2; }
+      .icon-sm { width: 14px; height: 14px; stroke-width: 2; }
+      .icon-md { width: 16px; height: 16px; stroke-width: 2; }
+
+      .callout {
+        position: absolute;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        background: hsl(var(--brand));
+        color: hsl(var(--brand-foreground));
+        font-size: 11px;
+        font-weight: 600;
+        box-shadow: 0 4px 16px hsl(var(--brand) / 0.25);
+        white-space: nowrap;
+      }
+      .callout .arrow { position: absolute; width: 0; height: 0; }
+      .callout.left-of .arrow {
+        right: -6px; top: 50%; transform: translateY(-50%);
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+        border-left: 6px solid hsl(var(--brand));
+      }
+      .callout.above .arrow {
+        bottom: -6px; left: 50%; transform: translateX(-50%);
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid hsl(var(--brand));
+      }
+    </style>
+  </head>
+  <body class="bg-muted/30 text-foreground antialiased">
+
+    <header class="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background/95 px-5 py-3 backdrop-blur">
+      <div>
+        <h1 class="text-base font-semibold">Copilot — 3 estados</h1>
+        <p class="text-xs text-muted-foreground">
+          Layout fijo: <code class="rounded bg-muted px-1">[chat][rail-o-historial]</code> — el historial
+          (o el rail) siempre va a la <strong>derecha</strong>, igual que prod.
+          Callouts brand marcan qué botón transiciona.
+        </p>
+      </div>
+      <button id="theme-toggle" class="rounded-full border border-border bg-card px-3 py-1 text-xs hover:bg-muted">
+        Toggle light/dark
+      </button>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- STATE 1 · COLLAPSED                                              -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <section class="px-5 py-6">
+      <div class="mb-3 flex items-center gap-2">
+        <span class="rounded-full bg-brand/15 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-brand">Estado 1 · collapsed</span>
+        <h2 class="text-sm font-semibold">Copilot cerrado — solo rail (60px) al borde derecho</h2>
+      </div>
+
+      <div class="relative mx-auto h-[460px] w-full max-w-6xl overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+        <div class="flex h-full">
+          <!-- App sidebar -->
+          <aside class="flex w-14 flex-col items-center gap-3 border-r border-border py-3">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-brand-foreground text-xs font-bold">N</div>
+            <button class="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"><i data-lucide="sparkles" class="icon-sm"></i></button>
+            <button class="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-foreground"><i data-lucide="package" class="icon-sm"></i></button>
+            <button class="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"><i data-lucide="image" class="icon-sm"></i></button>
+            <button class="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"><i data-lucide="trending-up" class="icon-sm"></i></button>
+          </aside>
+          <!-- Studio nav -->
+          <aside class="flex w-48 flex-col border-r border-border">
+            <div class="flex h-12 items-center border-b border-border px-4"><span class="text-sm font-semibold">Brand Studio</span></div>
+            <div class="flex-1 p-2 text-sm text-muted-foreground">
+              <ul class="space-y-0.5">
+                <li class="rounded-md bg-muted/60 px-2.5 py-1.5 text-foreground">Historia de origen</li>
+                <li class="rounded-md px-2.5 py-1.5">Identidad narrativa</li>
+                <li class="rounded-md px-2.5 py-1.5">Posicionamiento</li>
+                <li class="rounded-md px-2.5 py-1.5">Metodología</li>
+              </ul>
+            </div>
+          </aside>
+          <!-- Main content -->
+          <main class="flex min-w-0 flex-1 flex-col">
+            <div class="flex h-12 items-center border-b border-border px-5">
+              <span class="text-sm font-semibold">Historia de origen</span>
+            </div>
+            <div class="flex-1 px-10 py-8 text-sm text-muted-foreground">
+              <h3 class="mb-2 text-base font-semibold text-foreground">Misión</h3>
+              <p>Asistencia para empoderar a mujeres emprendedoras mediante un enfoque integral de reconexión, estrategia y estilo.</p>
+            </div>
+          </main>
+
+          <!-- ═ Copilot rail (60px) — RIGHT EDGE ═ -->
+          <aside class="relative flex w-[60px] shrink-0 flex-col items-center gap-2 py-3 panel-shadow">
+            <button class="relative flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-brand-foreground shadow-lg pulse-ring" title="Abrir chat">
+              <i data-lucide="sparkles" class="icon-md"></i>
+              <span class="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-background px-1 text-[9px] font-bold text-brand ring-2 ring-brand">4</span>
+            </button>
+            <span class="my-1 h-px w-6 bg-border"></span>
+            <button class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-brand/40 bg-muted/60 text-[10px] font-semibold" title="Extracción brand web">EB</button>
+            <button class="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/40 text-[10px] text-muted-foreground" title="Revisar historia">RH</button>
+            <button class="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/40 text-[10px] text-muted-foreground" title="Afinar voz">AV</button>
+            <div class="flex-1"></div>
+            <button class="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" title="Abrir con historial">
+              <i data-lucide="message-square-text" class="icon-md"></i>
+            </button>
+            <button class="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" title="Ayuda">
+              <i data-lucide="help-circle" class="icon-md"></i>
+            </button>
+          </aside>
+        </div>
+
+        <div class="callout above" style="top: 44px; right: 28px;">
+          Sparkles → abre chat (estado 2)
+          <span class="arrow"></span>
+        </div>
+        <div class="callout above" style="bottom: 72px; right: 28px;">
+          message-square-text → abre chat + historial (estado 3)
+          <span class="arrow"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- STATE 2 · RAIL + CHAT                                             -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <section class="px-5 py-6">
+      <div class="mb-3 flex items-center gap-2">
+        <span class="rounded-full bg-brand/15 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-brand">Estado 2 · rail + chat</span>
+        <h2 class="text-sm font-semibold">Chat abierto, rail sigue al borde derecho. Historial colapsado.</h2>
+      </div>
+
+      <div class="relative mx-auto h-[580px] w-full max-w-6xl overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+        <div class="flex h-full">
+          <aside class="flex w-14 flex-col items-center gap-3 border-r border-border py-3">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-brand-foreground text-xs font-bold">N</div>
+            <button class="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground"><i data-lucide="sparkles" class="icon-sm"></i></button>
+            <button class="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-foreground"><i data-lucide="package" class="icon-sm"></i></button>
+            <button class="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground"><i data-lucide="image" class="icon-sm"></i></button>
+          </aside>
+          <aside class="flex w-48 flex-col border-r border-border">
+            <div class="flex h-12 items-center border-b border-border px-4"><span class="text-sm font-semibold">Brand Studio</span></div>
+            <div class="flex-1 p-2 text-sm text-muted-foreground">
+              <ul class="space-y-0.5">
+                <li class="rounded-md bg-muted/60 px-2.5 py-1.5 text-foreground">Historia de origen</li>
+                <li class="rounded-md px-2.5 py-1.5">Identidad narrativa</li>
+                <li class="rounded-md px-2.5 py-1.5">Posicionamiento</li>
+              </ul>
+            </div>
+          </aside>
+          <main class="flex min-w-0 flex-1 flex-col">
+            <div class="flex h-12 items-center border-b border-border px-5"><span class="text-sm font-semibold">Historia de origen</span></div>
+            <div class="flex-1 px-8 py-6 text-sm text-muted-foreground">
+              <h3 class="mb-2 text-base font-semibold text-foreground">Misión</h3>
+              <p>Asistencia para empoderar a mujeres emprendedoras.</p>
+            </div>
+          </main>
+
+          <!-- ═ Copilot: [chat 400px][rail 60px] ═ -->
+          <section class="flex w-[400px] shrink-0 flex-col panel-shadow">
+            <!-- Chat header -->
+            <header class="flex h-12 items-center gap-2 border-b border-border px-3">
+              <div class="flex h-7 w-7 items-center justify-center rounded-full bg-brand/15">
+                <i data-lucide="sparkles" class="icon-sm text-brand"></i>
+              </div>
+              <button class="flex min-w-0 flex-1 items-center gap-1.5 rounded-md px-1.5 py-1 text-left hover:bg-muted/50">
+                <span class="truncate text-sm font-semibold">Extracción brand desde visionarias.lat</span>
+              </button>
+              <span class="mx-1 h-5 w-px bg-border"></span>
+              <!-- Open history (historial aparece a la derecha) -->
+              <button class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" title="Mostrar historial">
+                <i data-lucide="panel-right-open" class="icon-sm"></i>
+              </button>
+              <button class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" title="Cerrar copilot">
+                <i data-lucide="x" class="icon-sm"></i>
+              </button>
+            </header>
+
+            <!-- Messages -->
+            <div class="flex-1 overflow-auto scrollbar px-4 py-4 space-y-3">
+              <div class="flex justify-end">
+                <div class="max-w-[85%] rounded-2xl rounded-br-sm bg-brand px-4 py-2.5 text-sm text-white">
+                  quisiera extraer datos desde
+                  <a href="#" class="font-medium text-white underline underline-offset-2 decoration-white/60">https://visionarias.lat/</a>
+                </div>
+              </div>
+              <div class="flex gap-2.5">
+                <div class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand/15">
+                  <i data-lucide="sparkles" class="icon-sm text-brand"></i>
+                </div>
+                <div class="min-w-0 flex-1 space-y-2">
+                  <div class="flex flex-wrap gap-1.5">
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-2.5 py-1 text-[11px] text-muted-foreground">
+                      <i data-lucide="loader-2" class="icon-xs text-brand animate-spin"></i>
+                      <span class="font-mono text-[10.5px]">Analizando página web</span>
+                    </span>
+                  </div>
+                  <div class="rounded-2xl rounded-bl-sm bg-muted/50 px-4 py-2.5 text-sm">
+                    Estoy revisando la web. Te aviso cuando tenga los datos.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Composer -->
+            <div class="border-t border-border p-3">
+              <div class="flex items-end gap-2 rounded-xl border border-border bg-card p-2">
+                <button class="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground"><i data-lucide="paperclip" class="icon-sm"></i></button>
+                <input placeholder="Escribe a Copilot…" class="flex-1 bg-transparent px-1 py-1.5 text-sm focus:outline-none" />
+                <button class="flex h-8 w-8 items-center justify-center rounded-md bg-brand text-brand-foreground"><i data-lucide="arrow-up" class="icon-sm"></i></button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Rail queda a la DERECHA del chat, como prod -->
+          <aside class="flex w-[60px] shrink-0 flex-col items-center gap-2 border-l border-border py-3">
+            <button class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-brand-foreground shadow-md" title="Nueva conversación (⌘K)">
+              <i data-lucide="plus" class="icon-md"></i>
+            </button>
+            <span class="my-1 h-px w-6 bg-border"></span>
+            <button class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-brand bg-brand/15 text-[10px] font-semibold text-brand" title="Actual: Extracción brand web">EB</button>
+            <button class="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/40 text-[10px] text-muted-foreground" title="Revisar historia">RH</button>
+            <button class="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/40 text-[10px] text-muted-foreground" title="Afinar voz">AV</button>
+            <div class="flex-1"></div>
+            <button class="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" title="Abrir historial">
+              <i data-lucide="message-square-text" class="icon-md"></i>
+            </button>
+          </aside>
+        </div>
+
+        <div class="callout above" style="top: 44px; right: 110px;">
+          panel-right-open → estado 3 (historial)
+          <span class="arrow"></span>
+        </div>
+        <div class="callout above" style="top: 44px; right: 78px;">
+          x → estado 1
+          <span class="arrow"></span>
+        </div>
+        <div class="callout left-of" style="bottom: 60px; right: 64px;">
+          Rail también abre historial
+          <span class="arrow"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- STATE 3 · FULL                                                    -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <section class="px-5 py-6">
+      <div class="mb-3 flex items-center gap-2">
+        <span class="rounded-full bg-brand/15 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-brand">Estado 3 · full</span>
+        <h2 class="text-sm font-semibold">Chat + historial (historial a la <strong>derecha</strong>, rail oculto)</h2>
+      </div>
+
+      <div class="relative mx-auto h-[640px] w-full max-w-6xl overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+        <div class="flex h-full">
+          <aside class="flex w-14 flex-col items-center gap-3 border-r border-border py-3">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-brand-foreground text-xs font-bold">N</div>
+            <button class="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground"><i data-lucide="sparkles" class="icon-sm"></i></button>
+            <button class="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-foreground"><i data-lucide="package" class="icon-sm"></i></button>
+          </aside>
+          <aside class="flex w-44 flex-col border-r border-border">
+            <div class="flex h-12 items-center border-b border-border px-4"><span class="text-sm font-semibold">Brand Studio</span></div>
+            <div class="flex-1 p-2 text-sm text-muted-foreground">
+              <ul class="space-y-0.5">
+                <li class="rounded-md bg-muted/60 px-2.5 py-1.5 text-foreground">Historia de origen</li>
+                <li class="rounded-md px-2.5 py-1.5">Posicionamiento</li>
+              </ul>
+            </div>
+          </aside>
+          <main class="flex min-w-0 flex-1 flex-col">
+            <div class="flex h-12 items-center border-b border-border px-5"><span class="text-sm font-semibold">Historia de origen</span></div>
+            <div class="flex-1 px-8 py-6 text-sm text-muted-foreground">
+              <h3 class="mb-2 text-base font-semibold text-foreground">Misión</h3>
+              <p>Asistencia para empoderar a mujeres emprendedoras.</p>
+            </div>
+          </main>
+
+          <!-- ═ Copilot: [chat 400px][historial 280px] — rail HIDDEN en full ═ -->
+          <section class="flex w-[400px] shrink-0 flex-col panel-shadow">
+            <header class="flex h-12 items-center gap-2 border-b border-border px-3">
+              <div class="flex h-7 w-7 items-center justify-center rounded-full bg-brand/15">
+                <i data-lucide="sparkles" class="icon-sm text-brand"></i>
+              </div>
+              <span class="min-w-0 flex-1 truncate text-sm font-semibold">Extracción brand desde visionarias.lat</span>
+              <span class="mx-1 h-5 w-px bg-border"></span>
+              <button class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted" title="Ocultar historial (→ estado 2)">
+                <i data-lucide="panel-right-close" class="icon-sm"></i>
+              </button>
+              <button class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted" title="Cerrar copilot (→ estado 1)">
+                <i data-lucide="x" class="icon-sm"></i>
+              </button>
+            </header>
+
+            <div class="flex-1 overflow-auto scrollbar px-4 py-4 space-y-3">
+              <div class="flex justify-end">
+                <div class="max-w-[85%] rounded-2xl rounded-br-sm bg-brand px-4 py-2.5 text-sm text-white">
+                  Completar faltantes
+                </div>
+              </div>
+              <div class="flex gap-2.5">
+                <div class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand/15">
+                  <i data-lucide="sparkles" class="icon-sm text-brand"></i>
+                </div>
+                <div class="min-w-0 flex-1 space-y-2">
+                  <div class="flex flex-wrap gap-1.5">
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-2.5 py-1 text-[11px] text-muted-foreground">
+                      <i data-lucide="check" class="icon-xs text-success"></i>
+                      <span class="font-mono text-[10.5px]">Analizando página web</span>
+                    </span>
+                  </div>
+                  <div class="rounded-2xl rounded-bl-sm bg-muted/50 px-4 py-2.5 text-sm">
+                    Listo. Actualicé 12 campos en tu Brand Studio.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t border-border p-3">
+              <div class="flex items-end gap-2 rounded-xl border border-border bg-card p-2">
+                <button class="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground"><i data-lucide="paperclip" class="icon-sm"></i></button>
+                <input placeholder="Escribe a Copilot…" class="flex-1 bg-transparent px-1 py-1.5 text-sm focus:outline-none" />
+                <button class="flex h-8 w-8 items-center justify-center rounded-md bg-brand text-brand-foreground"><i data-lucide="arrow-up" class="icon-sm"></i></button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Historial a la DERECHA (280px) -->
+          <aside class="flex w-[280px] shrink-0 flex-col border-l border-border">
+            <div class="flex h-12 items-center border-b border-border px-3">
+              <h3 class="flex-1 text-sm font-semibold">Historial</h3>
+              <button class="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted" title="Ocultar historial (→ estado 2)">
+                <i data-lucide="panel-right-close" class="icon-sm"></i>
+              </button>
+            </div>
+
+            <!-- Nueva conversación + búsqueda (consistentes en todos los estados con historial visible) -->
+            <div class="p-2">
+              <button class="flex w-full items-center justify-between rounded-lg border border-brand/30 bg-brand/10 px-3 py-2 text-sm font-medium text-brand hover:bg-brand/15">
+                <span class="inline-flex items-center gap-2"><i data-lucide="plus" class="icon-sm"></i> Nueva conversación</span>
+                <span class="rounded border border-brand/30 bg-background/50 px-1.5 py-0.5 font-mono text-[10px]">⌘K</span>
+              </button>
+            </div>
+            <div class="px-2 pb-2">
+              <div class="relative">
+                <i data-lucide="search" class="icon-xs absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
+                <input placeholder="Buscar en historial…" class="w-full rounded-md border border-border bg-background/50 pl-7 pr-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand/30" />
+              </div>
+            </div>
+
+            <div class="flex-1 overflow-auto scrollbar">
+              <div class="sticky-group z-10 px-3 pt-3 pb-1">
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Hoy</span>
+              </div>
+              <ul class="px-2 pb-1 space-y-0.5">
+                <li class="group rounded-md bg-brand/10 px-2.5 py-2 ring-1 ring-inset ring-brand/30">
+                  <div class="flex items-center gap-1.5">
+                    <i data-lucide="target" class="icon-xs text-brand"></i>
+                    <span class="truncate text-[13px] font-semibold">Extracción brand web</span>
+                  </div>
+                  <div class="mt-0.5 flex items-center gap-1.5 text-[10.5px] text-muted-foreground">
+                    <span>hace un momento</span>
+                    <span class="rounded bg-brand/20 px-1 font-medium text-brand">40%</span>
+                  </div>
+                </li>
+                <li class="rounded-md px-2.5 py-2 hover:bg-muted/50">
+                  <div class="truncate text-[13px]">Revisar historia de origen</div>
+                  <div class="mt-0.5 text-[10.5px] text-muted-foreground">hace 18 min</div>
+                </li>
+                <li class="rounded-md px-2.5 py-2 hover:bg-muted/50">
+                  <div class="truncate text-[13px]">Afinar voz de marca</div>
+                  <div class="mt-0.5 text-[10.5px] text-muted-foreground">hace 2 h</div>
+                </li>
+              </ul>
+
+              <div class="sticky-group z-10 px-3 pt-3 pb-1">
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Ayer</span>
+              </div>
+              <ul class="px-2 pb-1 space-y-0.5">
+                <li class="rounded-md px-2.5 py-2 hover:bg-muted/50">
+                  <div class="truncate text-[13px]">Propuesta de testimonios</div>
+                  <div class="mt-0.5 text-[10.5px] text-muted-foreground">hace 1 d</div>
+                </li>
+                <li class="rounded-md px-2.5 py-2 hover:bg-muted/50">
+                  <div class="truncate text-[13px]">Credenciales del equipo</div>
+                  <div class="mt-0.5 text-[10.5px] text-muted-foreground">hace 1 d</div>
+                </li>
+              </ul>
+
+              <div class="sticky-group z-10 px-3 pt-3 pb-1">
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Semana pasada</span>
+              </div>
+              <ul class="px-2 pb-1 space-y-0.5">
+                <li class="rounded-md px-2.5 py-2 hover:bg-muted/50">
+                  <div class="truncate text-[13px]">Misión y visión v2</div>
+                  <div class="mt-0.5 text-[10.5px] text-muted-foreground">hace 4 d</div>
+                </li>
+                <li class="rounded-md px-2.5 py-2 hover:bg-muted/50">
+                  <div class="truncate text-[13px]">Ajustes de tono</div>
+                  <div class="mt-0.5 text-[10.5px] text-muted-foreground">hace 6 d</div>
+                </li>
+              </ul>
+
+              <div class="flex items-center justify-center py-3 text-[10px] text-muted-foreground">
+                <span class="inline-flex items-center gap-1.5">
+                  <i data-lucide="loader-2" class="icon-xs animate-spin"></i> Cargando más…
+                </span>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="callout above" style="top: 44px; right: 310px;">
+          panel-right-close → estado 2
+          <span class="arrow"></span>
+        </div>
+        <div class="callout above" style="top: 44px; right: 278px;">
+          x → estado 1
+          <span class="arrow"></span>
+        </div>
+        <div class="callout left-of" style="top: 56px; right: 56px;">
+          Línea izquierda continua (no cuts en sticky headers)
+          <span class="arrow"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Legend / transition map -->
+    <section class="px-5 pb-10">
+      <div class="mx-auto max-w-6xl rounded-xl border border-border bg-card/60 p-4 text-xs text-muted-foreground">
+        <h3 class="mb-2 text-sm font-semibold text-foreground">Reglas de layout (iguales a prod)</h3>
+        <ul class="mb-3 list-disc space-y-0.5 pl-5">
+          <li>Grid copilot = <code class="rounded bg-muted px-1">[chat][rail-o-historial]</code>. El segundo slot va siempre a la derecha.</li>
+          <li>Estado 1 (collapsed): grid = <code class="rounded bg-muted px-1">[0][60px rail]</code>.</li>
+          <li>Estado 2 (rail): grid = <code class="rounded bg-muted px-1">[400px chat][60px rail]</code>.</li>
+          <li>Estado 3 (full): grid = <code class="rounded bg-muted px-1">[400px chat][280px historial]</code>. Rail oculto en full (los controles migran al header del historial).</li>
+        </ul>
+        <h3 class="mb-2 text-sm font-semibold text-foreground">Contenido consistente del historial</h3>
+        <ul class="mb-3 list-disc space-y-0.5 pl-5">
+          <li>Siempre: header con título + toggle <code class="rounded bg-muted px-1">panel-right-close</code>, botón "Nueva conversación" full-width, buscador, lista agrupada por fechas.</li>
+          <li>Activo = fill brand + ring + semibold. Idle = plain + hover muted.</li>
+          <li>Sin "Cargar más": infinite-scroll sentinel al fondo.</li>
+        </ul>
+        <h3 class="mb-2 text-sm font-semibold text-foreground">Mapa de transiciones</h3>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="rounded-lg border border-border bg-background p-3">
+            <div class="mb-1 font-semibold text-foreground">Estado 1 · collapsed</div>
+            <ul class="list-disc space-y-0.5 pl-4">
+              <li><strong>Sparkles</strong> → estado 2 (chat)</li>
+              <li><strong>message-square-text</strong> → estado 3 (chat + historial)</li>
+              <li>Avatares circulares → estado 2 con esa conv seleccionada</li>
+            </ul>
+          </div>
+          <div class="rounded-lg border border-border bg-background p-3">
+            <div class="mb-1 font-semibold text-foreground">Estado 2 · rail + chat</div>
+            <ul class="list-disc space-y-0.5 pl-4">
+              <li><strong>panel-right-open</strong> en header chat → estado 3</li>
+              <li>(o <strong>message-square-text</strong> en rail) → estado 3</li>
+              <li><strong>x</strong> en header → estado 1</li>
+              <li><strong>+ del rail</strong> → nueva conv (mantiene estado)</li>
+            </ul>
+          </div>
+          <div class="rounded-lg border border-border bg-background p-3">
+            <div class="mb-1 font-semibold text-foreground">Estado 3 · full</div>
+            <ul class="list-disc space-y-0.5 pl-4">
+              <li><strong>panel-right-close</strong> (header chat o historial) → estado 2</li>
+              <li><strong>x</strong> en header chat → estado 1</li>
+              <li><strong>⌘K / Nueva conv</strong> en historial → nueva conv</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      lucide.createIcons();
+      const btn = document.getElementById("theme-toggle");
+      btn.addEventListener("click", () => document.documentElement.classList.toggle("dark"));
+    </script>
+  </body>
+</html>

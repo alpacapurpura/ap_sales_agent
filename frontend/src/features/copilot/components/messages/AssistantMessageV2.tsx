@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { BlockDispatcher } from "../blocks/BlockDispatcher";
 
 import { MessageContextMenu } from "./MessageContextMenu";
+import { ToolCallChip } from "./ToolCallChip";
 import { TypingIndicator } from "./TypingIndicator";
 
 import type { CopilotMessage } from "../../store/copilot-store";
@@ -51,6 +52,18 @@ export const AssistantMessageV2 = memo(function AssistantMessageV2({
 
       {/* Content */}
       <div className="max-w-[85%] space-y-2 flex-1">
+        {message.toolCalls && message.toolCalls.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {message.toolCalls.map((tc, idx) => (
+              <ToolCallChip
+                key={`${tc.tool}-${idx}`}
+                tool={tc.tool}
+                status={tc.status}
+                jobId={tc.jobId}
+              />
+            ))}
+          </div>
+        )}
         <div className="rounded-2xl rounded-bl-sm bg-slate-100 px-4 py-2.5 text-sm text-slate-800 dark:bg-slate-800 dark:text-slate-200">
           {isEmpty && isStreaming ? (
             <TypingIndicator />

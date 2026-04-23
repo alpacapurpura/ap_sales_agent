@@ -253,6 +253,13 @@ def on_startup() -> None:
 
     register_event_handlers()
 
+    # Register copilot extraction event handlers (brand/offer workers → copilot cards)
+    from src.modules.copilot.application.extraction_card_flow import (
+        register_extraction_event_handlers,
+    )
+
+    register_extraction_event_handlers()
+
 
 @app.on_event("startup")
 async def startup_arq_pool() -> None:

@@ -3,6 +3,7 @@
 import { AlternativesCard } from "../cards/AlternativesCard";
 import { CheckpointCard } from "../cards/CheckpointCard";
 import { ClarifyCard } from "../cards/ClarifyCard";
+import { ExtractionSummaryCard } from "../cards/ExtractionSummaryCard";
 import { InterviewCompleteCard } from "../cards/InterviewCompleteCard";
 import { ComparisonTable } from "../messages/ComparisonTable";
 import { MetricSummaryCard } from "../messages/MetricSummaryCard";
@@ -12,7 +13,7 @@ import { ProgressChecklist } from "../messages/ProgressChecklist";
 import { ProposalCard } from "../messages/ProposalCard";
 
 import type { UIAction } from "../../store/copilot-store";
-import type { CardBlock as CardBlockType } from "../../types/message-blocks";
+import type { CardBlock as CardBlockType, ExtractionSummaryData } from "../../types/message-blocks";
 
 interface CardBlockProps {
   block: CardBlockType;
@@ -127,6 +128,11 @@ function renderCard(
           healthScore={action.health_score ?? 0}
           redirect={action.redirect ?? "/"}
         />
+      );
+
+    case "extraction_summary":
+      return (
+        <ExtractionSummaryCard data={block.payload as unknown as ExtractionSummaryData} />
       );
 
     case "navigation":

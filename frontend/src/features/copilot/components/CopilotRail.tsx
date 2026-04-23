@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, ChevronsRight, Plus } from "lucide-react";
+import { MessageSquareText, Plus, Sparkles, X } from "lucide-react";
 import { forwardRef } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -12,11 +12,7 @@ import { useConversationList } from "../hooks/use-conversation-list";
 import { useCreateConversation } from "../hooks/use-create-conversation";
 import { useCopilotStore } from "../store/copilot-store";
 
-// ── Types ────────────────────────────────────────────────────────────
-
 type CopilotRailProps = React.HTMLAttributes<HTMLDivElement>;
-
-// ── Helpers ──────────────────────────────────────────────────────────
 
 function getInitials(title: string | null): string {
   if (!title) return "?";
@@ -25,12 +21,13 @@ function getInitials(title: string | null): string {
   return (words[0][0] + words[1][0]).toUpperCase();
 }
 
-// ── Component ────────────────────────────────────────────────────────
-
 /**
  * Always-visible 60px right-edge rail.
- * Contains: toggle button, separator, new conversation button,
- * and (when collapsed) up to 6 conversation avatars + "más" link.
+ * Contains: state toggle(s), new conversation button, and (when collapsed)
+ * up to 6 conversation avatars + "más" link.
+ *
+ * Rail is HIDDEN in "full" state — its controls migrate to the history
+ * panel header. Sidebar renders rail only in collapsed and rail states.
  */
 export const CopilotRail = forwardRef<HTMLDivElement, CopilotRailProps>(
   ({ className, ...props }, ref) => {
@@ -42,20 +39,17 @@ export const CopilotRail = forwardRef<HTMLDivElement, CopilotRailProps>(
     const { data } = useConversationList({ limit: 6 });
     const topConversations = data?.pages[0]?.items.slice(0, 6) ?? [];
 
-    // Rail is hidden in "full" state — controls migrate to CopilotHistoryPanel header.
-    // Only show rail in "collapsed" and "rail" states.
-
     return (
       <TooltipProvider delayDuration={200}>
         <div
           ref={ref}
           className={cn(
-            "flex flex-col items-center gap-2 w-[60px] border-l border-border bg-background px-2 py-3",
+            "flex h-full w-[60px] flex-col items-center gap-2 border-l border-border bg-background px-2 py-3",
             className,
           )}
           {...props}
         >
-          {/* State-specific toggle buttons */}
+          {/* Collapsed → open chat (primary brand action) */}
           {sidebarState === "collapsed" && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -64,15 +58,16 @@ export const CopilotRail = forwardRef<HTMLDivElement, CopilotRailProps>(
                   size="icon"
                   onClick={() => setSidebarState("rail")}
                   aria-label="Abrir chat"
-                  className="h-9 w-9"
+                  className="h-10 w-10 rounded-xl bg-brand text-brand-foreground shadow-md hover:bg-brand/90 hover:text-brand-foreground"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <Sparkles className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="left">Abrir chat</TooltipContent>
             </Tooltip>
           )}
 
+          {/* Rail state → show history + close */}
           {sidebarState === "rail" && (
             <>
               <Tooltip>
@@ -84,7 +79,7 @@ export const CopilotRail = forwardRef<HTMLDivElement, CopilotRailProps>(
                     aria-label="Ver historial"
                     className="h-9 w-9"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <MessageSquareText className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="left">Ver historial</TooltipContent>
@@ -99,7 +94,7 @@ export const CopilotRail = forwardRef<HTMLDivElement, CopilotRailProps>(
                     aria-label="Cerrar chat"
                     className="h-9 w-9"
                   >
-                    <ChevronsRight className="h-4 w-4" />
+                    <X className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="left">Cerrar chat</TooltipContent>
@@ -109,7 +104,7 @@ export const CopilotRail = forwardRef<HTMLDivElement, CopilotRailProps>(
 
           <Separator />
 
-          {/* New conversation button — visible in collapsed and rail states */}
+          {/* New conversation — visible in both states */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -125,9 +120,9 @@ export const CopilotRail = forwardRef<HTMLDivElement, CopilotRailProps>(
             <TooltipContent side="left">Nueva conversación</TooltipContent>
           </Tooltip>
 
-          {/* Avatars — only in collapsed state */}
+          {/* Recent conversation avatars — collapsed state only */}
           {sidebarState === "collapsed" && topConversations.length > 0 && (
-            <div className="flex flex-col items-center gap-1.5 mt-1">
+            <div className="mt-1 flex flex-col items-center gap-1.5">
               {topConversations.map((conv) => {
                 const isActive = conv.id === conversationId;
                 return (
@@ -141,15 +136,11 @@ export const CopilotRail = forwardRef<HTMLDivElement, CopilotRailProps>(
                         }}
                         aria-label={conv.title ?? "Conversación"}
                         className={cn(
-                          "h-10 w-10 rounded-full flex items-center justify-center text-xs font-semibold",
-                          "bg-muted text-muted-foreground transition-shadow",
-                          isActive && "ring-2 ring-white ring-offset-1 ring-offset-accent",
-                        )}
-                        style={
+                          "flex h-9 w-9 items-center justify-center rounded-full text-[10px] font-semibold transition-shadow",
                           isActive
-                            ? { boxShadow: "0 0 0 2px white, 0 0 0 3.5px var(--color-accent)" }
-                            : undefined
-                        }
+                            ? "border-2 border-brand bg-brand/15 text-brand"
+                            : "border border-border bg-muted/40 text-muted-foreground hover:bg-muted",
+                        )}
                       >
                         {getInitials(conv.title)}
                       </button>
@@ -161,12 +152,11 @@ export const CopilotRail = forwardRef<HTMLDivElement, CopilotRailProps>(
                 );
               })}
 
-              {/* "más" link */}
               <button
                 type="button"
                 onClick={() => setSidebarState("full")}
                 aria-label="Ver todas las conversaciones"
-                className="text-[10px] text-muted-foreground hover:text-foreground mt-0.5"
+                className="mt-0.5 text-[10px] text-muted-foreground hover:text-foreground"
               >
                 más
               </button>

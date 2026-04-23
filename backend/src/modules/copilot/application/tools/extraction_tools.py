@@ -1,26 +1,84 @@
-"""Conversational extraction tool — ingest a URL into Brand or Offer Studio.
+"""Conversational extraction tools — ingest a URL or document into Brand/Offer/Asset/Persona Studio.
 
 Replaces the former "extract" button inside the Brand/Offer wizards by
-exposing a single LangChain tool the Copilot can call when the user says
-things like:
+exposing LangChain tools the Copilot can call when the user says things like:
 
     "extrae todo de https://visionarias.lat hacia mi brand studio"
     "completa los campos vacíos del brand desde ese link"
     "analiza esta URL y actualiza mi oferta actual"
+    "extrae del documento que subí"
 
-No new extraction infrastructure is introduced. The tool is a thin adapter
+No new extraction infrastructure is introduced. The tools are thin adapters
 that:
 
-1. Validates inputs (module, url, scope, mode).
-2. Dispatches the appropriate ARQ worker (``run_brand_extraction`` or
+1. Validate inputs (module, url/asset_id, scope, mode).
+2. Dispatch the appropriate ARQ worker (``run_brand_extraction`` or
    ``run_offer_extraction``) reusing the pipelines the REST endpoints drive.
-3. Returns a structured JSON payload with the ``job_id`` and the Redis poll
+3. Return a structured JSON payload with the ``job_id`` and the Redis poll
    endpoint the frontend already knows how to query.
 
-The tool does NOT decide scope. When the user intent is ambiguous - "extrae
+The tools do NOT decide scope. When the user intent is ambiguous — "extrae
 de esta web" could mean "new brand from scratch", "complete missing fields",
-or "just this section" - the LLM MUST call ``clarify`` first with 2-3 quick
+or "just this section" — the LLM MUST call ``clarify`` first with 2-3 quick
 options, then call this tool with the resolved ``scope`` and ``mode``.
+
+### Scope clarification protocol (Phase 0 — LLM instruction)
+
+Before calling ``extract_from_url`` or ``extract_from_doc``:
+
+1. Si el usuario NO especificó el alcance, emite una card ``clarify`` con
+   dos ejes:
+     - fieldPath: "__scope__"
+       issue: "¿Qué quieres extraer?"
+       options:
+         - "Solo {current_section_label} (esta página)"  ← si ruta = /brand-studio/{section}
+         - "Todo Brand Studio"                           ← módulo completo
+         - "Solo una sección específica…"                ← permite elegir
+
+     - fieldPath: "__mode__"
+       issue: "¿Cómo escribo los campos?"
+       options:
+         - "Solo llenar vacíos"        → mode="update"
+         - "Reemplazar todo"           → mode="initial"
+         - "Sugerir (no escribir)"     → mode="suggest"
+
+2. Usa ``ClientContext.current_route`` para inferir ``{current_section_label}``:
+   - ``/brand-studio/identity`` → "Identidad"
+   - ``/brand-studio/strategy`` → "Estrategia"
+   - ``/brand-studio/positioning`` → "Posicionamiento"
+   - ``/brand-studio/narrative`` → "Narrativa"
+   - ``/brand-studio/audience`` → "Audiencia"
+   - ``/brand-studio/visuals`` → "Visuales"
+   - ``/brand-studio/communication-assets`` → "Activos de Comunicación"
+   - ``/brand-studio/authority`` → "Autoridad"
+   - ``/brand-studio/story`` → "Historia"
+   - ``/brand-studio/people-contact`` → "Equipo y Contacto"
+   - ``/offer-studio/.../{section}`` → misma lógica para offer sections
+
+3. Tras la respuesta del usuario:
+   - "Solo [sección actual]" → scope="section", section=<slug de la ruta>
+   - "Todo [módulo]" → scope="full"
+   - "Solo llenar vacíos" → mode="update"
+   - "Reemplazar todo" → mode="initial"
+   - "Sugerir (no escribir)" → mode="suggest"
+
+### Few-shot example
+
+Usuario en ``/brand-studio/identity``: "analiza visionarias.pe"
+
+LLM → llama a ``clarify`` con:
+  clarify_items: [
+    { field_path: "__scope__", issue: "¿Qué quieres extraer?",
+      options: ["Solo Identidad (esta página)", "Todo Brand Studio", "Solo una sección específica…"] },
+    { field_path: "__mode__", issue: "¿Cómo escribo los campos?",
+      options: ["Solo llenar vacíos", "Reemplazar todo", "Sugerir (no escribir)"] }
+  ]
+
+Usuario elige "Solo Identidad (esta página)" + "Solo llenar vacíos"
+
+LLM → llama a ``extract_from_url`` con:
+  module="brand", url="https://visionarias.pe",
+  scope="section", section="identity", mode="update"
 
 Tenant isolation: tenant_id is read from ``get_tenant_id()`` (request-scoped
 ContextVar), never taken as a tool argument.
@@ -38,13 +96,80 @@ import structlog
 from langchain_core.tools import tool
 
 from src.core.arq_pool import get_arq_pool
-from src.core.context import get_tenant_id
+from src.core.context import get_conversation_id, get_tenant_id, get_user_id
 from src.core.database import redis_client
+from src.shared.domain.extraction_jobs import ExtractionJob
 
 logger = structlog.get_logger()
 
 
 _URL_RE = re.compile(r"^https?://[^\s]+$", re.IGNORECASE)
+
+# Human-readable module labels (Spanish LatAm neutro)
+_MODULE_LABELS: dict[str, str] = {
+    "brand": "Brand Studio",
+    "offer": "Offer Studio",
+    "asset": "Assets",
+    "persona": "Buyer Persona",
+}
+
+# Human-readable section labels for brand sections
+_BRAND_SECTION_LABELS: dict[str, str] = {
+    "identity": "Identidad",
+    "strategy": "Estrategia",
+    "positioning": "Posicionamiento",
+    "narrative": "Narrativa",
+    "audience": "Audiencia",
+    "visuals": "Visuales",
+    "communication-assets": "Activos de Comunicación",
+    "communication_assets": "Activos de Comunicación",
+    "authority": "Autoridad",
+    "story": "Historia",
+    "people-contact": "Equipo y Contacto",
+    "people_contact": "Equipo y Contacto",
+}
+
+# Human-readable section labels for offer sections
+_OFFER_SECTION_LABELS: dict[str, str] = {
+    "promise": "Promesa",
+    "details": "Detalles",
+    "strategy": "Estrategia",
+    "psychology": "Psicología",
+    "value-stack": "Stack de Valor",
+    "value_stack": "Stack de Valor",
+    "closing": "Cierre",
+}
+
+
+def _compose_target_label(
+    module: str,
+    scope: str,
+    section: str | None,
+) -> str:
+    """Build a user-facing label for the extraction target (Spanish LatAm neutro).
+
+    Examples:
+    - module="brand", scope="full" → "Brand Studio"
+    - module="brand", scope="section", section="identity" → "Brand Studio · Identidad"
+    - module="offer", scope="full" → "Offer Studio"
+    """
+    module_label = _MODULE_LABELS.get(module, module.replace("_", " ").title())
+    if scope == "section" and section:
+        # Try brand labels first, then offer labels
+        section_label = (
+            _BRAND_SECTION_LABELS.get(section)
+            or _OFFER_SECTION_LABELS.get(section)
+            or section.replace("-", " ").replace("_", " ").title()
+        )
+        return f"{module_label} · {section_label}"
+    if scope == "field" and section:
+        section_label = (
+            _BRAND_SECTION_LABELS.get(section)
+            or _OFFER_SECTION_LABELS.get(section)
+            or section.replace("-", " ").replace("_", " ").title()
+        )
+        return f"{module_label} · {section_label}"
+    return module_label
 
 
 def _err(message: str, **extra: object) -> str:
@@ -60,7 +185,9 @@ def _validate_extract_args(  # noqa: PLR0911 — independent guard clauses read 
     module: str,
     url: str,
     scope: str,
-    offer_id: str | None,
+    section: str | None,
+    field: str | None,
+    entity_id: str | None,
 ) -> str | None:
     """Return a JSON error payload if any guard fails, else ``None``."""
     if get_tenant_id() is None:
@@ -72,20 +199,30 @@ def _validate_extract_args(  # noqa: PLR0911 — independent guard clauses read 
             "La URL debe empezar con http:// o https:// y ser accesible públicamente.",
             url=url,
         )
-    if module == "offer" and scope == "visuals":
+    if scope == "visuals" and module != "brand":
         return _err(
             "El scope 'visuals' solo aplica a Brand Studio. Para Offer Studio usa scope='full'.",
         )
+    if scope == "section" and not section:
+        return _err(
+            "El scope 'section' requiere el parámetro 'section' con el slug de la sección "
+            "(ej. 'identity', 'strategy'). Usa clarify para preguntar al usuario qué sección quiere.",
+        )
+    if scope == "field" and not field:
+        return _err(
+            "El scope 'field' requiere el parámetro 'field' con el path del campo "
+            "(ej. 'identity.brand_name'). Usa clarify para preguntar al usuario qué campo quiere.",
+        )
     if module == "offer":
-        if not offer_id:
+        if not entity_id:
             return _err(
-                "Falta offer_id. Usa get_module_data para identificar la oferta "
+                "Falta entity_id (o offer_id). Usa get_module_data para identificar la oferta "
                 "a actualizar antes de llamar a extract_from_url.",
             )
         try:
-            UUID(offer_id)
+            UUID(entity_id)
         except ValueError:
-            return _err(f"offer_id '{offer_id}' no es un UUID válido.")
+            return _err(f"entity_id '{entity_id}' no es un UUID válido.")
     if get_arq_pool() is None:
         return _err(
             "El servicio de análisis en segundo plano no está disponible en este "
@@ -99,19 +236,24 @@ def _validate_extract_args(  # noqa: PLR0911 — independent guard clauses read 
 
 
 async def _extract_from_url_impl(
-    module: Literal["brand", "offer"],
+    module: Literal["brand", "offer", "asset", "persona"],
     url: str,
-    scope: Literal["full", "visuals"] = "full",
-    mode: Literal["initial", "update"] = "initial",
+    scope: Literal["full", "visuals", "section", "field"] = "full",
+    mode: Literal["initial", "update", "suggest"] = "initial",
+    section: str | None = None,
+    field: str | None = None,
     update_instructions: str | None = None,
-    offer_id: str | None = None,
+    entity_id: str | None = None,
 ) -> str:
     """Core implementation for ``extract_from_url``.
 
     Kept separate from the LangChain-decorated entry point so unit tests can
     import both sides cleanly if needed.
+
+    ``entity_id`` is the canonical identifier. The caller is responsible for
+    aliasing ``offer_id`` → ``entity_id`` before calling this function.
     """
-    guard_error = _validate_extract_args(module, url, scope, offer_id)
+    guard_error = _validate_extract_args(module, url, scope, section, field, entity_id)
     if guard_error is not None:
         return guard_error
 
@@ -126,6 +268,7 @@ async def _extract_from_url_impl(
     job_id = str(uuid4())
     tenant_str = str(tenant_id)
     started_at = datetime.now(UTC).isoformat()
+    target_label_es = _compose_target_label(module, scope, section)
 
     if module == "brand":
         progress_key = f"brand_extract:{tenant_str}:{job_id}"
@@ -141,12 +284,19 @@ async def _extract_from_url_impl(
                     "progress": 0,
                     "stage": "Iniciando análisis...",
                     "started_at": started_at,
+                    "filled_fields": [],
+                    "filled_fields_by_section": {},
+                    "sections_touched": [],
+                    "sections_completed": [],
+                    "newly_completed_section": None,
                 },
             ),
         )
 
+        conversation_id_val = get_conversation_id()
+        user_id_val = get_user_id()
         await arq_pool.enqueue_job(
-            "run_brand_extraction",
+            ExtractionJob.BRAND.value,
             job_id=job_id,
             tenant_id=tenant_str,
             url=url,
@@ -156,6 +306,8 @@ async def _extract_from_url_impl(
             include_visuals=include_visuals,
             include_assets=False,
             dry_run=False,
+            conversation_id=conversation_id_val,
+            user_id=str(user_id_val) if user_id_val else None,
         )
         logger.info(
             "copilot_extract_from_url_dispatched",
@@ -163,10 +315,12 @@ async def _extract_from_url_impl(
             tenant_id=tenant_str,
             job_id=job_id,
             scope=scope,
+            section=section,
             mode=mode,
             has_instructions=bool(update_instructions),
+            conversation_id=conversation_id_val,
         )
-    else:  # offer
+    elif module == "offer":
         progress_key = f"offer_extract:{tenant_str}:{job_id}"
         poll_endpoint = f"/api/v1/offer/extract-full-offer/status/{job_id}"
 
@@ -179,27 +333,41 @@ async def _extract_from_url_impl(
                     "progress": 0,
                     "stage": "Iniciando análisis de oferta...",
                     "started_at": started_at,
+                    "filled_fields": [],
+                    "filled_fields_by_section": {},
+                    "sections_touched": [],
+                    "sections_completed": [],
+                    "newly_completed_section": None,
                 },
             ),
         )
 
+        conversation_id_val = get_conversation_id()
         await arq_pool.enqueue_job(
-            "run_offer_extraction",
+            ExtractionJob.OFFER.value,
             job_id=job_id,
             tenant_id=tenant_str,
-            offer_id=offer_id,
+            offer_id=entity_id,
             url=url,
             text=None,
             mode=mode,
             update_instructions=update_instructions,
+            conversation_id=conversation_id_val,
         )
         logger.info(
             "copilot_extract_from_url_dispatched",
             module="offer",
             tenant_id=tenant_str,
-            offer_id=offer_id,
+            offer_id=entity_id,
             job_id=job_id,
+            scope=scope,
             mode=mode,
+        )
+    else:
+        # asset / persona: not yet fully implemented — return error with clear message
+        return _err(
+            f"El módulo '{module}' aún no soporta extracción desde URL en esta versión. Disponible próximamente.",
+            module=module,
         )
 
     friendly = (
@@ -212,8 +380,14 @@ async def _extract_from_url_impl(
             "module": module,
             "scope": scope,
             "mode": mode,
+            "section": section,
+            "field": field,
             "job_id": job_id,
             "poll_endpoint": poll_endpoint,
+            "target_label_es": target_label_es,
+            "source_kind": "url",
+            "source_ref": url,
+            "eta_seconds": 90,
             "message": friendly,
         },
     )
@@ -221,47 +395,83 @@ async def _extract_from_url_impl(
 
 @tool
 async def extract_from_url(
-    module: Literal["brand", "offer"],
+    module: Literal["brand", "offer", "asset", "persona"],
     url: str,
-    scope: Literal["full", "visuals"] = "full",
-    mode: Literal["initial", "update"] = "initial",
+    scope: Literal["full", "visuals", "section", "field"] = "full",
+    mode: Literal["initial", "update", "suggest"] = "initial",
+    section: str | None = None,
+    field: str | None = None,
     update_instructions: str | None = None,
+    entity_id: str | None = None,
     offer_id: str | None = None,
 ) -> str:
-    """Extrae datos de una URL pública hacia Brand Studio u Offer Studio.
+    """Extrae datos de una URL pública hacia Brand Studio, Offer Studio, Assets o Persona.
 
-    Antes de llamar esta tool: si el usuario no especificó el alcance, llama
-    primero a ``clarify`` con opciones como
-    ``["Empezar desde cero (reemplaza lo existente)",
-       "Solo completar faltantes (update)",
-       "Solo la sección actual"]`` para dejar claro el `scope`+`mode`.
+    IMPORTANTE — Antes de llamar esta tool:
+
+    Si el usuario no especificó el alcance, llama primero a ``clarify`` con dos ejes:
+      1. Alcance (fieldPath="__scope__"):
+         options: ["Solo {sección actual} (esta página)", "Todo {módulo}", "Solo una sección…"]
+      2. Modo (fieldPath="__mode__"):
+         options: ["Solo llenar vacíos", "Reemplazar todo", "Sugerir (no escribir)"]
+
+    Usa ``ClientContext.current_route`` para inferir la sección actual:
+    - /brand-studio/identity → section="identity", label="Identidad"
+    - /brand-studio/strategy → section="strategy", label="Estrategia"
+    - /offer-studio/…/promise → section="promise", label="Promesa"
+
+    Mapeo de respuesta de clarify al parámetro:
+    - "Solo llenar vacíos" → mode="update"
+    - "Reemplazar todo" → mode="initial"
+    - "Sugerir (no escribir)" → mode="suggest"
+    - "Solo [sección]" → scope="section", section=<slug>
+    - "Todo [módulo]" → scope="full"
 
     Args:
-        module: "brand" para Brand Studio, "offer" para Offer Studio.
+        module: Studio destino. "brand" = Brand Studio, "offer" = Offer Studio,
+            "asset" = Assets, "persona" = Buyer Persona.
         url: URL pública (http/https) a analizar.
-        scope: "full" extracción completa; "visuals" (solo brand) identidad
-            visual rápida.
-        mode: "initial" sobrescribe, "update" respeta datos existentes y
-            completa faltantes.
-        update_instructions: Texto libre en español dando pistas al
-            extractor cuando mode="update" (ej. "solo la sección de marca").
-        offer_id: UUID de la oferta a actualizar. Obligatorio si module="offer".
+        scope: "full" extracción completa del módulo; "visuals" (solo brand)
+            identidad visual rápida; "section" extrae solo una sección (requiere
+            `section`); "field" extrae solo un campo (requiere `field`).
+        mode: "initial" sobrescribe todo; "update" respeta datos existentes y
+            completa faltantes; "suggest" genera propuestas sin escribir.
+        section: Slug de la sección (ej. "identity", "strategy"). Requerido
+            si scope="section".
+        field: Path del campo (ej. "identity.brand_name"). Requerido si
+            scope="field".
+        update_instructions: Texto libre dando pistas al extractor cuando
+            mode="update" o mode="suggest".
+        entity_id: UUID de la entidad a actualizar. Obligatorio si
+            module="offer". Reemplaza al parámetro deprecado offer_id.
+        offer_id: [DEPRECADO] UUID de la oferta. Usar entity_id en su lugar.
+            Mantenido para compatibilidad con llamadas anteriores.
 
     Returns:
-        JSON con ``status`` ("dispatched" o "error"), ``job_id``, y
-        ``poll_endpoint`` para que el frontend consulte el progreso.
+        JSON con ``status`` ("dispatched" o "error"), ``job_id``,
+        ``poll_endpoint``, ``target_label_es``, ``source_kind="url"``,
+        ``source_ref``, ``eta_seconds`` y ``message``.
 
     """
+    # Backwards-compat alias: offer_id → entity_id
+    resolved_entity_id = entity_id or offer_id
+
     return await _extract_from_url_impl(
         module=module,
         url=url,
         scope=scope,
         mode=mode,
+        section=section,
+        field=field,
         update_instructions=update_instructions,
-        offer_id=offer_id,
+        entity_id=resolved_entity_id,
     )
 
 
-EXTRACTION_TOOLS = [extract_from_url]
+from src.modules.copilot.application.tools.extract_from_doc import (
+    extract_from_doc,
+)
 
-__all__ = ["EXTRACTION_TOOLS", "extract_from_url"]
+EXTRACTION_TOOLS = [extract_from_url, extract_from_doc]
+
+__all__ = ["EXTRACTION_TOOLS", "extract_from_doc", "extract_from_url"]

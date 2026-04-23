@@ -1,9 +1,10 @@
 "use client";
 
-import { Pencil } from "lucide-react";
+import { PanelRightClose, Pencil, PanelRightOpen, Sparkles, X } from "lucide-react";
 import { forwardRef, useRef, useState } from "react";
 
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 import { useMutationJournal } from "../hooks/use-mutation-journal";
@@ -15,33 +16,16 @@ import { TierChip } from "./TierChip";
 
 import type { ModelTier } from "../types/conversations";
 
-// ── Types ────────────────────────────────────────────────────────────
-
 type CopilotChatHeaderProps = React.HTMLAttributes<HTMLDivElement>;
 
-// ── Helpers ──────────────────────────────────────────────────────────
-
-function getRelativeTime(isoString: string): string {
-  const diff = Date.now() - new Date(isoString).getTime();
-  const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return "hace un momento";
-  if (minutes < 60) return `hace ${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `hace ${hours} h`;
-  const days = Math.floor(hours / 24);
-  return `hace ${days} d`;
-}
-
-// ── Component ────────────────────────────────────────────────────────
-
-/**
- * Chat panel header with editable title, tier meta, and mutation undo button.
- */
 export const CopilotChatHeader = forwardRef<HTMLDivElement, CopilotChatHeaderProps>(
   ({ className, ...props }, ref) => {
     const conversationId = useCopilotStore((s) => s.conversationId);
     const messages = useCopilotStore((s) => s.messages);
     const lastMessageTiers = useCopilotStore((s) => s.lastMessageTiers);
+    const sidebarState = useCopilotStore((s) => s.sidebarState);
+    const setSidebarState = useCopilotStore((s) => s.setSidebarState);
+    const session = useCopilotStore((s) => s.session);
 
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState("");
@@ -50,15 +34,13 @@ export const CopilotChatHeader = forwardRef<HTMLDivElement, CopilotChatHeaderPro
     const { mutate: patchConversation } = usePatchConversation();
     const { data: journal } = useMutationJournal(conversationId);
 
-    // Derive last tier from last assistant message
     const lastAssistantMsg = [...messages].reverse().find((m) => m.role === "assistant");
     const lastTier = lastAssistantMsg
       ? (lastMessageTiers[lastAssistantMsg.id] as ModelTier | undefined)
       : undefined;
 
-    // Derive title from session or generic fallback
-    const session = useCopilotStore((s) => s.session);
     const title = session?.label ?? "Chat";
+    const isFull = sidebarState === "full";
 
     const handleTitleClick = () => {
       setEditValue(title);
@@ -83,13 +65,21 @@ export const CopilotChatHeader = forwardRef<HTMLDivElement, CopilotChatHeaderPro
       }
     };
 
+    const toggleHistory = () => setSidebarState(isFull ? "rail" : "full");
+    const closeCopilot = () => setSidebarState("collapsed");
+
     return (
-      <div
-        ref={ref}
-        className={cn("flex flex-col gap-0.5 border-b border-border px-4 py-2.5", className)}
-        {...props}
-      >
-        <div className="flex items-center justify-between gap-2">
+      <TooltipProvider delayDuration={200}>
+        <div
+          ref={ref}
+          className={cn("flex h-12 items-center gap-2 border-b border-border px-3", className)}
+          {...props}
+        >
+          {/* Sparkles avatar */}
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand/15">
+            <Sparkles className="h-3.5 w-3.5 text-brand" aria-hidden="true" />
+          </div>
+
           {/* Title (editable) */}
           {isEditing ? (
             <Input
@@ -100,18 +90,30 @@ export const CopilotChatHeader = forwardRef<HTMLDivElement, CopilotChatHeaderPro
               onKeyDown={handleRenameKeyDown}
               maxLength={120}
               autoFocus
-              className="h-7 text-sm font-semibold flex-1 px-1 py-0"
+              className="h-7 min-w-0 flex-1 px-1.5 py-0 text-sm font-semibold"
             />
           ) : (
             <button
               type="button"
               onClick={handleTitleClick}
-              className="group flex items-center gap-1 text-sm font-semibold truncate min-w-0 text-left hover:text-foreground/80"
+              className="group flex min-w-0 flex-1 items-center gap-1.5 truncate rounded-md px-1.5 py-1 text-left text-sm font-semibold hover:bg-muted/50"
               title="Haz clic para renombrar"
             >
               <span className="truncate">{title}</span>
-              <Pencil className="h-3 w-3 shrink-0 opacity-0 group-hover:opacity-40" />
+              <Pencil className="h-3 w-3 shrink-0 opacity-0 transition group-hover:opacity-40" />
             </button>
+          )}
+
+          {/* Tier + count chip */}
+          {(lastTier ?? messages.length > 0) && (
+            <div className="hidden items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-flex">
+              {lastTier && <TierChip tier={lastTier} size="xs" />}
+              {messages.length > 0 && (
+                <span>
+                  {messages.length} {messages.length === 1 ? "msg" : "msgs"}
+                </span>
+              )}
+            </div>
           )}
 
           {/* Mutation undo button */}
@@ -121,22 +123,47 @@ export const CopilotChatHeader = forwardRef<HTMLDivElement, CopilotChatHeaderPro
               mutationCount={journal?.activeCount ?? 0}
             />
           )}
-        </div>
 
-        {/* Meta line: last tier + message count */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          {lastTier && <TierChip tier={lastTier} size="xs" />}
-          {messages.length > 0 && (
-            <span>
-              {messages.length} {messages.length === 1 ? "mensaje" : "mensajes"}
-            </span>
-          )}
+          <span className="mx-1 h-5 w-px bg-border" />
+
+          {/* Toggle historial */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={toggleHistory}
+                aria-label={isFull ? "Ocultar historial" : "Mostrar historial"}
+                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              >
+                {isFull ? (
+                  <PanelRightClose className="h-3.5 w-3.5" aria-hidden="true" />
+                ) : (
+                  <PanelRightOpen className="h-3.5 w-3.5" aria-hidden="true" />
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {isFull ? "Ocultar historial" : "Mostrar historial"}
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Close copilot */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={closeCopilot}
+                aria-label="Cerrar copilot"
+                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Cerrar copilot</TooltipContent>
+          </Tooltip>
         </div>
-      </div>
+      </TooltipProvider>
     );
   },
 );
 CopilotChatHeader.displayName = "CopilotChatHeader";
-
-// Suppress unused import warning — getRelativeTime is available for future use
-void getRelativeTime;

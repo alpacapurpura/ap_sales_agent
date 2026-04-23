@@ -286,6 +286,7 @@ class BrandExtractionService:
         include_assets: bool = False,
         progress_callback: Callable[[int, str], None] | None = None,
         trace: ExtractionTraceCollector | None = None,
+        user_id: UUID | None = None,
     ) -> BrandSettings:
         """Orchestrate the full brand extraction process. Delegates to ExtractionOrchestrator."""
         return await self.orchestrator.run(
@@ -298,6 +299,7 @@ class BrandExtractionService:
             include_assets=include_assets,
             progress_callback=progress_callback,
             trace=trace,
+            user_id=user_id,
         )
 
     async def extract_visuals_only(self, url: str) -> BrandVisuals:

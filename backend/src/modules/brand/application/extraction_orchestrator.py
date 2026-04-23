@@ -28,9 +28,15 @@ from src.modules.brand.domain import (
     CommunicationAssets,
     KeyFigure,
 )
+from src.shared.application.progress_emitter import (
+    emit_progress,
+    fields_from_model,
+    supports_rich_progress,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from uuid import UUID
 
     from src.modules.brand.application.extraction_service import BrandExtractionService
     from src.modules.brand.application.extraction_trace import ExtractionTraceCollector
@@ -329,8 +335,7 @@ class ExtractionOrchestrator:
                 content_len=len(crawled_content),
                 visual_len=len(enriched_visual_content),
             )
-        if progress_callback:
-            progress_callback(10, "Escaneando sitio web...")
+        emit_progress(progress_callback, 10, "Escaneando sitio web...")
 
         return crawled_content, enriched_visual_content
 
@@ -378,6 +383,7 @@ class ExtractionOrchestrator:
         include_assets: bool = False,
         progress_callback: Callable[[int, str], None] | None = None,
         trace: ExtractionTraceCollector | None = None,
+        user_id: UUID | None = None,
     ) -> BrandSettings:
         """Orchestrate the full brand extraction process."""
         svc = self.service
@@ -475,13 +481,135 @@ class ExtractionOrchestrator:
         )
         if trace:
             trace.merge_end(time.time() - merge_t0)
+
+        # 5. Social-proof sync — mirror testimonials / authority / team into
+        # the social_proof bounded context, which is what the Brand Studio UI
+        # reads from. Legacy BrandSettings.{testimonials,authority_vault,team}
+        # remain populated by step 4 for backwards compatibility.
+        if not dry_run and user_id is not None:
+            self._sync_social_proof(
+                tenant_id=svc.tenant_id,
+                user_id=user_id,
+                mode=mode,
+                testimonials=self._last_testimonials.testimonials,
+                authority_items=self._last_authority.authority_vault,
+                team_members=self._last_people_contact.key_leadership,
+            )
+        elif not dry_run:
+            logger.warning(
+                "social_proof_sync_skipped_no_user_id",
+                tenant_id=str(svc.tenant_id),
+                hint="dispatch extraction with user_id so Brand Studio UI picks up the new items",
+            )
+
+        if trace:
             trace.finish(status="completed", sections_succeeded=succeeded)
 
         return result
 
+    def _sync_social_proof(
+        self,
+        *,
+        tenant_id: UUID,
+        user_id: UUID,
+        mode: str,
+        testimonials: list[BrandTestimonial],
+        authority_items: list[BrandAuthorityItem],
+        team_members: list[KeyFigure],
+    ) -> None:
+        """Mirror extracted items into the social_proof bounded context.
+
+        Uses the ``shared.links.ports.social_proof`` port to stay compliant
+        with DDD boundaries (brand MUST NOT import social_proof directly).
+        Swallows failures so a social_proof write issue doesn't abort the
+        extraction — the legacy BrandSettings snapshot is the authoritative
+        fallback until the legacy fields are removed.
+        """
+        from src.shared.links.ports.social_proof import (
+            sync_authority_items_from_extraction,
+            sync_team_members_from_extraction,
+            sync_testimonials_from_extraction,
+        )
+
+        svc = self.service
+        db = svc.db
+        try:
+            t_count = sync_testimonials_from_extraction(
+                db,
+                tenant_id=tenant_id,
+                user_id=user_id,
+                mode=mode,
+                items=[t.model_dump(mode="json") for t in testimonials],
+            )
+            a_count = sync_authority_items_from_extraction(
+                db,
+                tenant_id=tenant_id,
+                user_id=user_id,
+                mode=mode,
+                items=[a.model_dump(mode="json") for a in authority_items],
+            )
+            m_count = sync_team_members_from_extraction(
+                db,
+                tenant_id=tenant_id,
+                user_id=user_id,
+                mode=mode,
+                items=[m.model_dump(mode="json") for m in (team_members or [])],
+            )
+            db.commit()
+            logger.info(
+                "social_proof_sync_completed",
+                tenant_id=str(tenant_id),
+                testimonials_created=t_count,
+                authority_items_created=a_count,
+                team_members_created=m_count,
+                mode=mode,
+            )
+        except Exception:
+            logger.exception(
+                "social_proof_sync_failed",
+                tenant_id=str(tenant_id),
+                mode=mode,
+            )
+            import contextlib
+
+            with contextlib.suppress(Exception):
+                db.rollback()
+
     # ------------------------------------------------------------------
     # Wave execution strategies
     # ------------------------------------------------------------------
+
+    def _announce_sections(
+        self,
+        progress_callback: Callable[..., None] | None,
+        sections: list[str],
+        results: list,
+        *,
+        pct: int,
+    ) -> None:
+        """Emit per-section progress for callbacks that support the rich signature.
+
+        Legacy 2-arg callbacks (REST endpoints) never see these calls — the
+        underlying ``emit_progress`` helper short-circuits for them.
+
+        Each (section, result) pair is dumped to dict and its filled leaves are
+        published via ``section_completed`` + ``new_fields``. Empty sections
+        (failed extractions, nothing written) are silently skipped so the UI
+        doesn't flash false badges.
+        """
+        if not supports_rich_progress(progress_callback):
+            return
+        for section_slug, result in zip(sections, results, strict=False):
+            fields = fields_from_model(section_slug, result)
+            if not fields:
+                continue
+            emit_progress(
+                progress_callback,
+                pct,
+                f"Sección {section_slug} lista",
+                new_fields=fields,
+                section_completed=section_slug,
+            )
 
     async def _run_wave(
         self,
@@ -603,8 +731,17 @@ class ExtractionOrchestrator:
             wave1_results[2],
         )
         extracted_visuals = wave1_results[3] if len(wave1_results) > 3 else None
-        if progress_callback:
-            progress_callback(45, "Analizando identidad y narrativa...")
+        # Aggregate progress — consumed by all callers (legacy REST + worker)
+        emit_progress(progress_callback, 45, "Analizando identidad y narrativa...")
+        # Per-section live progress — only emitted when the callback declares
+        # ``new_fields``/``section_completed`` (or ``**kwargs``). Legacy 2-arg
+        # callbacks never see these calls, guaranteeing byte-for-byte compat.
+        self._announce_sections(
+            progress_callback,
+            wave1_sections,
+            wave1_results,
+            pct=45,
+        )
 
         # Wave 2: strategy, people_contact, authority
         await self._pause_between_waves(1, svc, trace)
@@ -624,8 +761,14 @@ class ExtractionOrchestrator:
             trace,
         )
         strategy, people_contact, authority_data = wave2_results
-        if progress_callback:
-            progress_callback(65, "Extrayendo estrategia...")
+        wave2_section_names = ["strategy", "people_contact", "authority"]
+        emit_progress(progress_callback, 65, "Extrayendo estrategia...")
+        self._announce_sections(
+            progress_callback,
+            wave2_section_names,
+            wave2_results,
+            pct=65,
+        )
 
         # Wave 3: positioning, narrative
         await self._pause_between_waves(2, svc, trace)
@@ -644,8 +787,14 @@ class ExtractionOrchestrator:
             trace,
         )
         positioning, narrative = wave3_results
-        if progress_callback:
-            progress_callback(85, "Extrayendo posicionamiento y narrativa...")
+        wave3_section_names = ["positioning", "narrative"]
+        emit_progress(progress_callback, 85, "Extrayendo posicionamiento y narrativa...")
+        self._announce_sections(
+            progress_callback,
+            wave3_section_names,
+            wave3_results,
+            pct=85,
+        )
 
         # Wave 4: communication_assets (depends on positioning + narrative)
         communication_assets = await self._extract_assets_if_requested(
@@ -659,8 +808,14 @@ class ExtractionOrchestrator:
             wave_num=3,
             trace=trace,
         )
-        if progress_callback:
-            progress_callback(95, "Finalizando extraccion...")
+        emit_progress(progress_callback, 95, "Finalizando extraccion...")
+        if include_assets and communication_assets is not None:
+            self._announce_sections(
+                progress_callback,
+                ["communication_assets"],
+                [communication_assets],
+                pct=95,
+            )
 
         self._store_section_results(
             identity,
@@ -719,8 +874,14 @@ class ExtractionOrchestrator:
         identity, story, strategy, people_contact, testimonials_data, authority_data = all_results[:6]
         positioning, narrative = all_results[6], all_results[7]
         extracted_visuals = all_results[8] if len(all_results) > 8 else None
-        if progress_callback:
-            progress_callback(80, "Extrayendo secciones...")
+        emit_progress(progress_callback, 80, "Extrayendo secciones...")
+        # Announce all sections that ran in this single wave
+        self._announce_sections(
+            progress_callback,
+            all_sections,
+            list(all_results),
+            pct=80,
+        )
 
         communication_assets = await self._extract_assets_if_requested(
             svc,
@@ -731,8 +892,14 @@ class ExtractionOrchestrator:
             positioning,
             narrative,
         )
-        if progress_callback:
-            progress_callback(95, "Finalizando extraccion...")
+        emit_progress(progress_callback, 95, "Finalizando extraccion...")
+        if include_assets and communication_assets is not None:
+            self._announce_sections(
+                progress_callback,
+                ["communication_assets"],
+                [communication_assets],
+                pct=95,
+            )
 
         self._store_section_results(
             identity,

@@ -183,6 +183,39 @@ class NavigationCardPayload(_PayloadBase):
     type: str = "navigation_card"
 
 
+# ── extraction_summary ──────────────────────────────────────────────────────
+
+
+class ExtractionSummarySectionCoverage(_PayloadBase):
+    """Coverage breakdown for one section inside an extraction summary card."""
+
+    slug: str
+    label: str
+    filled: int
+    total: int
+
+
+class ExtractionSummaryCardPayload(_PayloadBase):
+    """Payload for card_kind="extraction_summary" — end-of-extraction closure card.
+
+    Emitted by ``run_brand_extraction`` / ``run_offer_extraction`` workers at
+    job completion. Closes the loop on the "te aviso cuando termine" promise.
+
+    Frontend renderer: ``features/copilot/components/cards/ExtractionSummaryCard.tsx``.
+    Shape matches FLOW-SPEC §3.4 / UI-SPEC Proposal 3.
+    """
+
+    type: str = "extraction_summary"
+    source_ref: str  # URL or asset_id that was analyzed
+    duration_seconds: int | None = None  # wall-clock seconds for the job
+    total_fields: int = 0  # total fields populated
+    total_sections: int = 0  # number of sections touched
+    coverage_by_section: list[ExtractionSummarySectionCoverage] = []
+    strong_assumptions_count: int = 0  # fields filled with low confidence
+    open_questions_count: int = 0  # fields still empty / requiring user input
+    primary_cta_route: str | None = None  # deeplink e.g. "/brand-studio/identity"
+
+
 # ── Registry ────────────────────────────────────────────────────────────────
 
 
@@ -197,6 +230,7 @@ CARD_PAYLOAD_MODELS: dict[str, type[_PayloadBase]] = {
     "checklist": ChecklistCardPayload,
     "multi_option": MultiOptionCardPayload,
     "navigation": NavigationCardPayload,
+    "extraction_summary": ExtractionSummaryCardPayload,
 }
 """Map ``CardBlock.card_kind`` → payload Pydantic model.
 
@@ -238,6 +272,8 @@ __all__ = [
     "ClarifyCardPayload",
     "ClarifyItem",
     "ComparisonCardPayload",
+    "ExtractionSummaryCardPayload",
+    "ExtractionSummarySectionCoverage",
     "InterviewCompleteCardPayload",
     "MetricSummaryCardPayload",
     "MultiOptionCardPayload",

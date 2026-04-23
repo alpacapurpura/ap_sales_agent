@@ -25,6 +25,7 @@ from src.modules.brand.infrastructure.models.extraction_trace_model import (
 )
 from src.modules.iam.api.dependencies import get_current_user, get_db
 from src.modules.iam.domain.user import User
+from src.shared.domain.extraction_jobs import ExtractionJob
 from src.shared.infrastructure.files.file_parsing_service import FileParsingService
 
 logger = structlog.get_logger()
@@ -155,7 +156,7 @@ async def extract_full_brand(
     if not arq_pool:
         raise HTTPException(status_code=503, detail="Background job queue unavailable")
     await arq_pool.enqueue_job(
-        "run_brand_extraction",
+        ExtractionJob.BRAND.value,
         job_id=job_id,
         tenant_id=tenant_id,
         url=url,
@@ -165,6 +166,7 @@ async def extract_full_brand(
         include_visuals=include_visuals,
         include_assets=include_assets,
         dry_run=dry_run,
+        user_id=str(current_user.id),
     )
 
     logger.info("extract_full_brand_dispatched", tenant_id=tenant_id, job_id=job_id)

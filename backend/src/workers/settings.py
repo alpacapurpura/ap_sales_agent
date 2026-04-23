@@ -52,10 +52,14 @@ class WorkerSettings:
         """Initialize DB session factory, Redis, and Sentry for worker."""
         from src.core.database import SessionLocal, redis_client
         from src.core.sentry import init_sentry
+        from src.modules.copilot.application.extraction_card_flow import (
+            register_extraction_event_handlers,
+        )
 
         init_sentry("worker")
         ctx["db_factory"] = SessionLocal
         ctx["redis_cache"] = redis_client
+        register_extraction_event_handlers()
 
     @staticmethod
     async def on_shutdown(ctx: dict) -> None:
@@ -126,10 +130,14 @@ class SchedulerSettings:
         """Initialize DB session factory, Redis, and Sentry for scheduler."""
         from src.core.database import SessionLocal, redis_client
         from src.core.sentry import init_sentry
+        from src.modules.copilot.application.extraction_card_flow import (
+            register_extraction_event_handlers,
+        )
 
         init_sentry("scheduler")
         ctx["db_factory"] = SessionLocal
         ctx["redis_cache"] = redis_client
+        register_extraction_event_handlers()
 
     @staticmethod
     async def on_shutdown(ctx: dict) -> None:

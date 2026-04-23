@@ -4,6 +4,38 @@ import type { ModelTier } from "../types/conversations";
 import type { MessageBlock, MessageStatus } from "../types/message-blocks";
 import type { FormRuntimeBridge } from "@/lib/form-runtime/copilot";
 
+// ── Async Job Types ─────────────────────────────────────────────────
+
+/**
+ * State for one async copilot tool job (extraction, ingestion, etc.).
+ * Populated by useAsyncToolJob polling loop. See UI-SPEC Proposal 1.
+ */
+export interface AsyncJobState {
+  jobId: string;
+  module: "brand" | "offer" | "asset" | "persona";
+  scope: "full" | "section" | "field" | "visuals";
+  mode: "initial" | "update" | "suggest";
+  section: string | null;
+  targetLabel: string;
+  sourceKind: "url" | "doc" | "media";
+  sourceRef: string;
+  /** Endpoint to poll for status updates. */
+  pollEndpoint: string;
+  /** Conversation this job was dispatched from — used on terminal to
+   *  invalidate the detail query so summary card + pills render. */
+  conversationId?: string | null;
+  status: "queued" | "running" | "completed" | "failed";
+  progress: number; // 0..100
+  stage: string;
+  filledFields: string[];
+  filledFieldsBySection: Record<string, string[]>;
+  sectionsTouched: string[];
+  sectionsCompleted: string[];
+  error?: string;
+  startedAt: number;
+  finishedAt?: number;
+}
+
 // ── Types ───────────────────────────────────────────────────────────
 
 export type MessageRole = "user" | "assistant";
@@ -119,6 +151,9 @@ export interface CopilotMessage {
     tool: string;
     args?: Record<string, unknown>;
     result?: string;
+    status?: "running" | "done";
+    /** Job id from the tool result — present for async extraction tools. */
+    jobId?: string;
   }[];
   /** UI actions attached to this message (e.g. navigation cards) */
   uiActions?: UIAction[];
@@ -213,6 +248,8 @@ interface CopilotState {
   /** Replace the whole messages array (used when hydrating a historical conversation). */
   setMessages: (messages: CopilotMessage[]) => void;
   appendToLastAssistant: (chunk: string) => void;
+  addToolCallToLastAssistant: (tool: string, args?: Record<string, unknown>, jobId?: string) => void;
+  markLastToolCallComplete: (tool: string) => void;
   addUIActionToLastAssistant: (action: UIAction) => void;
   // [COPILOT-STREAMING-BLOCKS] — new block-streaming actions
   addBlockToLastAssistant: (block: MessageBlock) => void;
@@ -265,6 +302,18 @@ interface CopilotState {
   activeBridge: FormRuntimeBridge | null;
   connectBridge: (bridge: FormRuntimeBridge) => void;
   disconnectBridge: (bridge: FormRuntimeBridge) => void;
+
+  // ── Async job tracking (Proposal 1) ─────────────────────────────────
+  /** Map of jobId → live job state, updated by useAsyncToolJob polling loop. */
+  activeJobs: Record<string, AsyncJobState>;
+  /** Register a new job (starts polling in useAsyncToolJob). */
+  registerJob: (job: AsyncJobState) => void;
+  /** Merge partial state into an existing job entry. */
+  updateJob: (jobId: string, patch: Partial<AsyncJobState>) => void;
+  /** Mark job as terminal (completed or failed) and merge final state. */
+  completeJob: (jobId: string, finalState: Partial<AsyncJobState>) => void;
+  /** Remove a job from the map (called after TTL or explicit clear). */
+  clearJob: (jobId: string) => void;
 }
 
 // ── Constants ────────────────────────────────────────────────────────
@@ -405,6 +454,37 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
       return { messages: msgs };
     }),
 
+  addToolCallToLastAssistant: (tool, args, jobId) =>
+    set((s) => {
+      const msgs = [...s.messages];
+      const last = msgs[msgs.length - 1];
+      if (last?.role === "assistant") {
+        const existing = last.toolCalls ?? [];
+        msgs[msgs.length - 1] = {
+          ...last,
+          toolCalls: [...existing, { tool, args, status: "running", ...(jobId ? { jobId } : {}) }],
+        };
+      }
+      return { messages: msgs };
+    }),
+
+  markLastToolCallComplete: (tool) =>
+    set((s) => {
+      const msgs = [...s.messages];
+      const last = msgs[msgs.length - 1];
+      if (last?.role === "assistant" && last.toolCalls?.length) {
+        const tcs = [...last.toolCalls];
+        for (let i = tcs.length - 1; i >= 0; i--) {
+          if (tcs[i].tool === tool && tcs[i].status !== "done") {
+            tcs[i] = { ...tcs[i], status: "done" };
+            break;
+          }
+        }
+        msgs[msgs.length - 1] = { ...last, toolCalls: tcs };
+      }
+      return { messages: msgs };
+    }),
+
   updateUIActionStatus: (messageId, actionIndex, status) =>
     set((s) => {
       const msgs = [...s.messages];
@@ -527,6 +607,43 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
   connectBridge: (bridge) => set({ activeBridge: bridge }),
   disconnectBridge: (bridge) =>
     set((s) => (s.activeBridge === bridge ? { activeBridge: null } : s)),
+
+  // ── Async job tracking ───────────────────────────────────────────────
+  activeJobs: {},
+
+  registerJob: (job) =>
+    set((s) => ({
+      activeJobs: { ...s.activeJobs, [job.jobId]: job },
+    })),
+
+  updateJob: (jobId, patch) =>
+    set((s) => {
+      const existing = s.activeJobs[jobId];
+      if (!existing) return s;
+      return {
+        activeJobs: { ...s.activeJobs, [jobId]: { ...existing, ...patch } },
+      };
+    }),
+
+  completeJob: (jobId, finalState) =>
+    set((s) => {
+      const existing = s.activeJobs[jobId];
+      if (!existing) return s;
+      return {
+        activeJobs: {
+          ...s.activeJobs,
+          [jobId]: { ...existing, ...finalState },
+        },
+      };
+    }),
+
+  clearJob: (jobId) =>
+    set((s) => {
+      const next = { ...s.activeJobs };
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete next[jobId];
+      return { activeJobs: next };
+    }),
 }));
 
 // Export helper for mounting to restore persisted state

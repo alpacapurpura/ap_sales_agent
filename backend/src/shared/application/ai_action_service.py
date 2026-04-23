@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, TypeVar
 
 import structlog
+from openai import APIError, RateLimitError
 from pydantic import BaseModel, ValidationError
 
 from src.core.enums import ModelRole
@@ -98,6 +99,43 @@ class AIActionService:
                     ),
                     model_type=resolved_policy.model.model_type,
                 )
+            except RateLimitError as error:
+                # OpenAI TPM rate limit. The server hint "try again in Xs" lives
+                # inside the message; regex it out. Without this, concurrent
+                # extraction waves silently lose whatever section hit the TPM
+                # wall (observed: identity extraction returns empty model under
+                # wave-1 pressure when prompts are large).
+                last_error = error
+                wait_s = _parse_retry_after_seconds(str(error)) or (
+                    resolved_policy.retry_delay_seconds * max(attempt, 1) * 10
+                )
+                self.logger.warning(
+                    "ai_action_rate_limited",
+                    action_name=action_name,
+                    tenant_id=str(tenant_id) if tenant_id else None,
+                    attempt=attempt,
+                    retries=resolved_policy.retries,
+                    wait_seconds=wait_s,
+                    model_type=resolved_policy.model.model_type,
+                )
+                if attempt < resolved_policy.retries:
+                    time.sleep(wait_s)
+            except APIError as error:
+                # Retryable transient API failures (5xx, connection drops). Not
+                # retried here: InvalidRequestError (4xx other than 429) —
+                # subclass hierarchy keeps that path raising.
+                last_error = error
+                self.logger.warning(
+                    "ai_action_api_error",
+                    action_name=action_name,
+                    tenant_id=str(tenant_id) if tenant_id else None,
+                    attempt=attempt,
+                    retries=resolved_policy.retries,
+                    error=str(error)[:300],
+                    model_type=resolved_policy.model.model_type,
+                )
+                if attempt < resolved_policy.retries:
+                    time.sleep(resolved_policy.retry_delay_seconds * attempt)
             except (json.JSONDecodeError, ValidationError) as error:
                 last_error = error
                 raw_preview = llm_response[:300] if "llm_response" in locals() else "N/A"
@@ -173,3 +211,24 @@ class AIActionService:
         if policy.model.max_output_tokens < 64:
             msg = "max_output_tokens must be >= 64"
             raise ValueError(msg)
+
+
+_RETRY_AFTER_RE = re.compile(r"try again in ([\d.]+)s", re.IGNORECASE)
+
+
+def _parse_retry_after_seconds(error_message: str) -> float | None:
+    """Extract the server-suggested retry delay from an OpenAI 429 message.
+
+    OpenAI embeds the wait hint as ``"Please try again in 11.756s"`` inside
+    the rate-limit error string. Parsing it lets us respect the provider's
+    budget instead of guessing — avoids the same call failing on retry.
+    Returns ``None`` when the hint is missing or malformed.
+    """
+    match = _RETRY_AFTER_RE.search(error_message)
+    if not match:
+        return None
+    try:
+        # Pad by 250ms so we land just past the window, not right at its edge.
+        return float(match.group(1)) + 0.25
+    except (ValueError, IndexError):
+        return None

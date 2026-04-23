@@ -232,6 +232,7 @@ class CardBlock(_BlockBase):
         "checklist",
         "multi_option",
         "navigation",
+        "extraction_summary",
     ]
     payload: dict  # shape matches UIAction subset for card_kind
     status: Literal["pending", "resolved", "confirmed", "revising"] | None = None

@@ -22,10 +22,38 @@ export interface BrandExtractPayload {
 }
 
 export interface ExtractionStatus {
-  status: "queued" | "processing" | "completed" | "failed";
+  status: "queued" | "running" | "processing" | "completed" | "failed";
   progress: number;
   stage?: string;
-  error?: string;
+  started_at?: string;
+  finished_at?: string | null;
+  /** Cumulative list of field ids filled so far. */
+  filled_fields?: string[];
+  /** Field ids bucketed by section slug. */
+  filled_fields_by_section?: Record<string, string[]>;
+  /** Section slugs that have been touched (any field written). */
+  sections_touched?: string[];
+  /** Section slugs that have been fully completed. */
+  sections_completed?: string[];
+  /** One-shot flag set to the section slug when it just transitioned to complete. */
+  newly_completed_section?: string | null;
+  error?: string | null;
+}
+
+/**
+ * Generic job-status poller. Takes a full endpoint URL (returned by the tool
+ * in the `poll_endpoint` field) and an auth token.
+ *
+ * Generalisation of the old `pollExtractionStatus` which hardcoded the brand
+ * extraction endpoint. Use this for all async tool jobs going forward.
+ */
+export async function pollJobStatus(pollEndpoint: string, token: string): Promise<ExtractionStatus> {
+  const url = pollEndpoint.startsWith("http") ? pollEndpoint : `${API_URL}${pollEndpoint}`;
+  const response = await fetchClient(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error(`Status check failed: ${response.status}`);
+  return response.json() as Promise<ExtractionStatus>;
 }
 
 export type FullBrandExtractInput =
@@ -89,15 +117,15 @@ export const aiActionsApi = {
     return response.json() as Promise<{ job_id: string }>;
   },
 
+  /**
+   * @deprecated Use the module-level `pollJobStatus(pollEndpoint, token)` instead.
+   * Kept for backwards compatibility with brand-studio API layer.
+   */
   async pollExtractionStatus(jobId: string, token: string): Promise<ExtractionStatus> {
-    const response = await fetchClient(
-      `${API_URL}/api/v1/brand/tools/extract-full-brand/status/${jobId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
+    return pollJobStatus(
+      `/api/v1/brand/tools/extract-full-brand/status/${jobId}`,
+      token,
     );
-    if (!response.ok) throw new Error(`Status check failed: ${response.status}`);
-    return response.json() as Promise<ExtractionStatus>;
   },
 
   async extractFullOffer(data: FormData, token: string): Promise<{ job_id: string }> {

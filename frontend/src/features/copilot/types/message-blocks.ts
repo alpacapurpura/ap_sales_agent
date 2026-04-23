@@ -93,7 +93,32 @@ export type CardKind =
   | "comparison"
   | "checklist"
   | "multi_option"
-  | "navigation";
+  | "navigation"
+  | "extraction_summary";
+
+/** Per-section coverage entry for ExtractionSummaryCard. */
+export interface CoverageSection {
+  slug: string;
+  label: string;
+  filled: number;
+  total: number;
+}
+
+/** Data shape for card_kind="extraction_summary". Emitted by the backend worker on job completion. */
+export interface ExtractionSummaryData {
+  source_kind: "url" | "doc" | "media";
+  source_ref: string;
+  /** Module target of the extraction — used by the card to resolve section labels from the right catalog. */
+  module?: "brand" | "offer" | "asset" | "persona";
+  duration_seconds: number;
+  total_fields: number;
+  total_sections: number;
+  coverage_by_section: CoverageSection[];
+  strong_assumptions_count: number;
+  open_questions_count: number;
+  /** Primary CTA route — e.g. "/brand-studio/identity" */
+  primary_cta_route: string;
+}
 
 export interface CardBlock extends BlockBase {
   type: "card";

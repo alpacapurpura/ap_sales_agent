@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef } from "react";
 
 import { streamCopilotChat, reportCopilotEvent } from "../api/copilot-api";
-import { useCopilotStore, type UIAction } from "../store/copilot-store";
+import { useCopilotStore, type UIAction, type AsyncJobState } from "../store/copilot-store";
 
 import { handleUIAction } from "./use-copilot-ui-action";
 
@@ -170,10 +170,75 @@ export function useCopilotChat() {
             },
             onToolStart: (tool) => {
               if (!isActive()) return;
-              useCopilotStore.getState().appendToLastAssistant(`\n🔧 _${tool}..._\n`);
+              useCopilotStore.getState().addToolCallToLastAssistant(tool);
             },
-            onToolResult: () => {
-              // Tool result feeds back into the LLM via subsequent text_chunk
+            onToolResult: (tool, resultJson) => {
+              if (!isActive()) return;
+
+              // Parse job_id + poll_endpoint from tool result JSON
+              let jobId: string | undefined;
+              if (resultJson) {
+                try {
+                  const parsed = JSON.parse(resultJson) as Record<string, unknown>;
+                  const rawJobId = parsed.job_id;
+                  const rawPollEndpoint = parsed.poll_endpoint;
+                  const rawModule = parsed.module;
+
+                  if (
+                    typeof rawJobId === "string" &&
+                    typeof rawPollEndpoint === "string" &&
+                    typeof rawModule === "string"
+                  ) {
+                    jobId = rawJobId;
+                    const newJob: AsyncJobState = {
+                      jobId: rawJobId,
+                      module: rawModule as AsyncJobState["module"],
+                      scope: (parsed.scope as AsyncJobState["scope"]) ?? "full",
+                      mode: (parsed.mode as AsyncJobState["mode"]) ?? "initial",
+                      section: (parsed.section as string) ?? null,
+                      targetLabel: (parsed.target_label_es as string) ?? rawModule,
+                      sourceKind: (parsed.source_kind as AsyncJobState["sourceKind"]) ?? "url",
+                      sourceRef: (parsed.source_ref as string) ?? "",
+                      pollEndpoint: rawPollEndpoint,
+                      conversationId: useCopilotStore.getState().conversationId,
+                      status: "queued",
+                      progress: 0,
+                      stage: "",
+                      filledFields: [],
+                      filledFieldsBySection: {},
+                      sectionsTouched: [],
+                      sectionsCompleted: [],
+                      startedAt: Date.now(),
+                    };
+                    useCopilotStore.getState().registerJob(newJob);
+                  }
+                } catch {
+                  // Malformed JSON — ignore, preserve existing behavior
+                }
+              }
+
+              if (tool) {
+                useCopilotStore.getState().markLastToolCallComplete(tool);
+
+                if (jobId) {
+                  // Patch jobId onto the matching tool call entry
+                  const store = useCopilotStore.getState();
+                  const msgs = store.messages;
+                  const last = msgs[msgs.length - 1];
+                  if (last?.role === "assistant" && last.toolCalls?.length) {
+                    const tcs = [...last.toolCalls];
+                    for (let i = tcs.length - 1; i >= 0; i--) {
+                      if (tcs[i].tool === tool) {
+                        tcs[i] = { ...tcs[i], jobId };
+                        break;
+                      }
+                    }
+                    store.setMessages(
+                      msgs.map((m) => (m.id === last.id ? { ...last, toolCalls: tcs } : m)),
+                    );
+                  }
+                }
+              }
             },
             onUIAction: (action) => {
               if (!isActive()) return;

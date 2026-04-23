@@ -221,6 +221,17 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "PERF401", # loop-based appends clearer than list comprehensions for ordered conditionals
     "FBT003",  # keyword-only enforcement not applicable to LangChain @tool wrappers
 ]
+"src/modules/{brand,offer}/workers/tasks.py" = [
+    "C901",    # orchestrator async workers combine DB, tracing, Redis progress, service call, and EventBus publishing — inherent cross-cutting complexity (see FLOW-SPEC §3.3/3.4)
+    "PLR0912", # "
+    "PLR0915", # "
+]
+"src/modules/copilot/application/tools/extract_from_doc.py" = [
+    "C901",    # LangChain @tool adapters validate many Literal/scope combos before dispatching to an ARQ worker; branching reads as flat guard clauses — same rationale as Streamlit pages and orchestrator workers
+    "PLR0911", # "
+    "PLR0912", # "
+    "PLR0915", # "
+]
 "scripts/**/*.py" = [
     "INP001",  # scripts/ is a CLI folder, not a package
     "T201",    # CLI scripts legitimately use print() for output

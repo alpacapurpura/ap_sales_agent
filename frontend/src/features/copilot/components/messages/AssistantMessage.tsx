@@ -14,6 +14,7 @@ import { MultiOptionSelector } from "./MultiOptionSelector";
 import { NavigationCard } from "./NavigationCard";
 import { ProgressChecklist } from "./ProgressChecklist";
 import { ProposalCard } from "./ProposalCard";
+import { ToolCallChip } from "./ToolCallChip";
 
 import type { CopilotMessage, UIAction } from "../../store/copilot-store";
 
@@ -191,6 +192,13 @@ export const AssistantMessage = memo(function AssistantMessage({
         <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
       </div>
       <div className="max-w-[85%] space-y-2">
+        {message.toolCalls && message.toolCalls.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {message.toolCalls.map((tc, idx) => (
+              <ToolCallChip key={`${tc.tool}-${idx}`} tool={tc.tool} status={tc.status} />
+            ))}
+          </div>
+        )}
         <div className="rounded-2xl rounded-bl-sm bg-slate-100 px-4 py-2.5 text-sm text-slate-800 dark:bg-slate-800 dark:text-slate-200">
           <div className="whitespace-pre-wrap break-words">
             {message.content || (

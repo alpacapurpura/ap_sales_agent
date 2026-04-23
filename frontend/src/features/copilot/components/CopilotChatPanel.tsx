@@ -68,34 +68,97 @@ export const CopilotChatPanel = memo(function CopilotChatPanel() {
   const { sendMessage, sendCardAction, stopStreaming } = useCopilotChat();
 
   // ── Hydration of historical conversations ─────────────────────────────
-  // When the user selects a conversation (history panel, rail avatar, etc.)
-  // the store's conversationId changes. This effect fetches the detail and
-  // replaces the store's messages once — not on every refetch — so that
-  // locally-added messages in-flight between a send and server persistence
-  // survive if a refetch lands first.
+  //
+  // Two distinct cases, one hook:
+  //
+  // 1. **First load of a conversation** — replace the store with the server
+  //    transcript. This is the classic "user selected a conversation, show
+  //    it" path.
+  //
+  // 2. **Mid-session refetch** (after `useAsyncToolJob.handleTerminal`
+  //    invalidates the conversation query so the worker-emitted summary
+  //    card + navigation pills appear) — MERGE by id. Keep existing local
+  //    messages in-place (preserves ephemeral client-only fields like
+  //    ``toolCalls`` that would otherwise be wiped because the server
+  //    transcript doesn't carry them), append anything the server has that
+  //    the store doesn't.
+  //
+  // A blind ``setMessages(serverMessages)`` on refetch wipes toolCalls from
+  // the currently-streaming assistant message and the ToolCallChip vanishes.
+  // We hit exactly that regression after Fix B — this merge-path undoes it.
   const { data: detail } = useConversationDetail(conversationId);
-  const hydratedIdRef = useRef<string | null>(null);
+  const initialHydratedIdsRef = useRef<Set<string>>(new Set());
+  const lastHydratedCountByIdRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
-    if (!conversationId) {
-      hydratedIdRef.current = null;
-      return;
-    }
-    if (hydratedIdRef.current === conversationId) return;
+    if (!conversationId) return;
     if (detail?.id !== conversationId) return;
-    const currentCount = useCopilotStore.getState().messages.length;
-    // Guard against a race where the user sends a message before the detail
-    // request lands: if the store already holds more messages than the
-    // server-side transcript, trust the local state.
-    if (currentCount > detail.messages.length) {
-      hydratedIdRef.current = conversationId;
-      return;
-    }
+
+    const serverCount = detail.messages.length;
+    const lastHydratedCount = lastHydratedCountByIdRef.current[conversationId] ?? -1;
+    if (lastHydratedCount === serverCount) return;
+
     const mapped = detail.messages
       .map(toCopilotMessage)
       .filter((m): m is CopilotMessage => m !== null);
-    setMessages(mapped);
-    hydratedIdRef.current = conversationId;
+
+    const store = useCopilotStore.getState();
+    const currentMessages = store.messages;
+
+    if (!initialHydratedIdsRef.current.has(conversationId)) {
+      // First hydration for this conversation — replace is safe.
+      if (currentMessages.length > serverCount) {
+        // User started sending before detail landed. Preserve local state.
+        lastHydratedCountByIdRef.current[conversationId] = serverCount;
+        initialHydratedIdsRef.current.add(conversationId);
+        return;
+      }
+      setMessages(mapped);
+      initialHydratedIdsRef.current.add(conversationId);
+      lastHydratedCountByIdRef.current[conversationId] = serverCount;
+      return;
+    }
+
+    // Status-aware refetch strategy:
+    //
+    // - Mid-stream (``thinking``/``streaming``): merge by id so the currently
+    //   streaming assistant placeholder keeps its ephemeral state (toolCalls,
+    //   partial content). Server IDs differ from FE's ``crypto.randomUUID()``
+    //   optimistic ids, so merge dedupes by id only — when ids don't match,
+    //   merge keeps both and causes visible duplicates.
+    // - Idle: stream completed. Server is authoritative for the whole turn
+    //   (user msg + final assistant msg + any worker-emitted cards/pills).
+    //   Full-replace by server transcript, discarding optimistic placeholders.
+    //   This is the only moment where we can collapse the id mismatch without
+    //   losing streaming state.
+    const isMidStream = store.status === "thinking" || store.status === "streaming";
+    if (!isMidStream) {
+      setMessages(mapped);
+      lastHydratedCountByIdRef.current[conversationId] = serverCount;
+      return;
+    }
+
+    // Merge path — union by id. Keep local references where ids overlap so
+    // ephemeral fields (toolCalls, msgStatus) survive the refetch.
+    const localById = new Map(currentMessages.map((m) => [m.id, m]));
+    const merged: CopilotMessage[] = mapped.map((serverMsg) => {
+      const local = localById.get(serverMsg.id);
+      if (!local) return serverMsg;
+      return {
+        ...local,
+        content: serverMsg.content || local.content,
+        blocks: serverMsg.blocks ?? local.blocks,
+        msgStatus: serverMsg.msgStatus ?? local.msgStatus,
+      };
+    });
+
+    const serverIds = new Set(mapped.map((m) => m.id));
+    for (const local of currentMessages) {
+      if (!serverIds.has(local.id)) merged.push(local);
+    }
+
+    setMessages(merged);
+    lastHydratedCountByIdRef.current[conversationId] = serverCount;
   }, [conversationId, detail, setMessages]);
 
   const isLoading = status === "thinking" || status === "streaming";

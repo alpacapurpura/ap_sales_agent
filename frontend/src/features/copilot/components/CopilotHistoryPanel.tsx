@@ -1,10 +1,9 @@
 "use client";
 
-import { ChevronRight, ChevronsRight, MoreHorizontal, Plus, Target } from "lucide-react";
-import { forwardRef, useRef, useState } from "react";
+import { MoreHorizontal, PanelRightClose, Plus, Search, Target, Loader2 } from "lucide-react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,15 +23,9 @@ import { useDeleteConversation } from "../hooks/use-delete-conversation";
 import { usePatchConversation } from "../hooks/use-patch-conversation";
 import { useCopilotStore } from "../store/copilot-store";
 
-import { TierChip } from "./TierChip";
-
 import type { ConversationSummary } from "../types/conversations";
 
-// ── Types ────────────────────────────────────────────────────────────
-
 type CopilotHistoryPanelProps = React.HTMLAttributes<HTMLDivElement>;
-
-// ── Helpers ──────────────────────────────────────────────────────────
 
 function getRelativeTime(isoString: string): string {
   const diff = Date.now() - new Date(isoString).getTime();
@@ -45,7 +38,7 @@ function getRelativeTime(isoString: string): string {
   return `hace ${days} d`;
 }
 
-// ── Conversation item component ──────────────────────────────────────
+// ── Conversation item ────────────────────────────────────────────────
 
 interface ConversationItemProps {
   conversation: ConversationSummary;
@@ -90,13 +83,16 @@ function ConversationItem({ conversation, isActive, onSelect }: ConversationItem
     deleteConversation(conversation.id);
   };
 
+  const progressPct =
+    conversation.hasProcedure && conversation.procedureProgress !== null
+      ? Math.round((conversation.procedureProgress ?? 0) * 100)
+      : null;
+
   return (
     <div
       className={cn(
-        "group relative flex flex-col gap-0.5 rounded-md px-2 py-1.5 cursor-pointer transition-colors",
-        isActive
-          ? "bg-accent/10 border-l-2 border-accent rounded-r-md pl-[6px]"
-          : "hover:bg-muted/60",
+        "group relative cursor-pointer rounded-md px-2.5 py-2 transition-colors",
+        isActive ? "bg-brand/10 ring-1 ring-inset ring-brand/30" : "hover:bg-muted/50",
       )}
       onClick={() => !isEditing && onSelect(conversation.id)}
       role="button"
@@ -110,10 +106,12 @@ function ConversationItem({ conversation, isActive, onSelect }: ConversationItem
       onDoubleClick={handleStartRename}
       aria-current={isActive ? "true" : undefined}
     >
-      {/* Title row */}
-      <div className="flex items-center gap-1 min-w-0">
+      <div className="flex min-w-0 items-center gap-1.5">
         {conversation.hasProcedure && (
-          <Target className="h-3 w-3 shrink-0 text-muted-foreground/60" />
+          <Target
+            className={cn("h-3 w-3 shrink-0", isActive ? "text-brand" : "text-muted-foreground/60")}
+            aria-hidden="true"
+          />
         )}
 
         {isEditing ? (
@@ -125,26 +123,31 @@ function ConversationItem({ conversation, isActive, onSelect }: ConversationItem
             onKeyDown={handleRenameKeyDown}
             maxLength={120}
             autoFocus
-            className="h-6 text-xs px-1 py-0 flex-1"
+            className="h-6 flex-1 px-1 py-0 text-xs"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          <span className="truncate text-sm text-foreground">{title}</span>
+          <span
+            className={cn(
+              "truncate text-[13px] text-foreground",
+              isActive ? "font-semibold" : "text-foreground/90",
+            )}
+          >
+            {title}
+          </span>
         )}
 
-        {/* Kebab menu — visible on hover */}
         {!isEditing && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="ml-auto h-5 w-5 shrink-0 opacity-0 group-hover:opacity-100"
+              <button
+                type="button"
                 onClick={(e) => e.stopPropagation()}
                 aria-label="Opciones de conversación"
+                className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded text-muted-foreground opacity-0 transition hover:bg-muted group-hover:opacity-100"
               >
                 <MoreHorizontal className="h-3.5 w-3.5" />
-              </Button>
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" side="right">
               <DropdownMenuItem
@@ -169,24 +172,10 @@ function ConversationItem({ conversation, isActive, onSelect }: ConversationItem
         )}
       </div>
 
-      {/* Meta row */}
-      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+      <div className="mt-0.5 flex items-center gap-1.5 text-[10.5px] text-muted-foreground">
         <span>{getRelativeTime(conversation.updatedAt)}</span>
-        {conversation.lastTierUsed && (
-          <>
-            <span>·</span>
-            <TierChip tier={conversation.lastTierUsed} size="xs" />
-          </>
-        )}
-        <span>·</span>
-        <span>{conversation.messageCount}</span>
-        {conversation.hasProcedure && conversation.procedureProgress !== null && (
-          <>
-            <span>·</span>
-            <span className="font-medium text-accent">
-              {Math.round((conversation.procedureProgress ?? 0) * 100)}%
-            </span>
-          </>
+        {progressPct !== null && (
+          <span className="rounded bg-brand/20 px-1 font-medium text-brand">{progressPct}%</span>
         )}
       </div>
     </div>
@@ -196,8 +185,8 @@ function ConversationItem({ conversation, isActive, onSelect }: ConversationItem
 // ── Main component ───────────────────────────────────────────────────
 
 /**
- * History panel with date-grouped conversation list.
- * Visible only when sidebarState === "full".
+ * History panel rendered in "full" sidebar state.
+ * Lives at the right of the chat. Controls: hide-historial + new-conv + search + list.
  */
 export const CopilotHistoryPanel = forwardRef<HTMLDivElement, CopilotHistoryPanelProps>(
   ({ className, ...props }, ref) => {
@@ -207,95 +196,109 @@ export const CopilotHistoryPanel = forwardRef<HTMLDivElement, CopilotHistoryPane
     const setStatus = useCopilotStore((s) => s.setStatus);
     const setSidebarState = useCopilotStore((s) => s.setSidebarState);
 
+    const [searchQuery, setSearchQuery] = useState("");
+    const loadMoreRef = useRef<HTMLDivElement>(null);
+
     const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
       useConversationList({ limit: 6 });
 
     const { mutate: createConversation } = useCreateConversation();
 
-    // Flatten all pages
+    // Flatten + filter
     const allItems = data?.pages.flatMap((page) => page.items) ?? [];
-    const groups = useConversationGroups(allItems);
+    const filteredItems = searchQuery.trim()
+      ? allItems.filter((c) =>
+          (c.title ?? "").toLowerCase().includes(searchQuery.toLowerCase().trim()),
+        )
+      : allItems;
+    const groups = useConversationGroups(filteredItems);
+
+    // Infinite scroll — IntersectionObserver replaces "Cargar más" button
+    useEffect(() => {
+      const el = loadMoreRef.current;
+      if (!el || !hasNextPage || isFetchingNextPage || searchQuery.trim()) return;
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0]?.isIntersecting) void fetchNextPage();
+        },
+        { rootMargin: "200px" },
+      );
+      observer.observe(el);
+      return () => observer.disconnect();
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage, searchQuery]);
 
     const handleSelect = (id: string) => {
       if (id === conversationId) return;
       setConversationId(id);
       clearMessages();
       setStatus("idle");
-      // Actual message hydration happens in CopilotChatPanel via
-      // useConversationDetail, so the chat re-fills regardless of whether
-      // the user selects from the history panel, the rail avatars, etc.
       setTimeout(() => document.getElementById("copilot-input")?.focus(), 50);
     };
 
     return (
-      <div
-        ref={ref}
-        className={cn(
-          "flex h-full w-[280px] flex-col border-r border-border bg-background",
-          className,
-        )}
-        {...props}
-      >
-        {/* Panel header with navigation controls */}
-        <TooltipProvider delayDuration={200}>
-          <div className="flex items-center justify-between px-3 py-2 border-b border-border gap-1">
-            <h2 className="text-sm font-semibold flex-1">Conversaciones</h2>
-
-            {/* Nueva conversación */}
+      <TooltipProvider delayDuration={200}>
+        <div
+          ref={ref}
+          className={cn(
+            "flex h-full w-[280px] flex-col border-l border-border bg-background",
+            className,
+          )}
+          {...props}
+        >
+          {/* Header */}
+          <div className="flex h-12 items-center border-b border-border px-3">
+            <h2 className="flex-1 text-sm font-semibold">Historial</h2>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => createConversation()}
-                  aria-label="Nueva conversación"
-                  className="h-7 w-7"
-                >
-                  <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Nueva conversación</TooltipContent>
-            </Tooltip>
-
-            {/* Ocultar historial → rail */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
+                <button
+                  type="button"
                   onClick={() => setSidebarState("rail")}
                   aria-label="Ocultar historial"
-                  className="h-7 w-7"
+                  className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
                 >
-                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </Button>
+                  <PanelRightClose className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
               </TooltipTrigger>
               <TooltipContent side="bottom">Ocultar historial</TooltipContent>
             </Tooltip>
-
-            {/* Cerrar chat → collapsed */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSidebarState("collapsed")}
-                  aria-label="Cerrar chat"
-                  className="h-7 w-7"
-                >
-                  <ChevronsRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Cerrar chat</TooltipContent>
-            </Tooltip>
           </div>
-        </TooltipProvider>
 
-        {/* Conversation list */}
-        <ScrollArea className="flex-1 px-2">
-          <div className="py-2">
+          {/* Primary action */}
+          <div className="p-2">
+            <button
+              type="button"
+              onClick={() => createConversation()}
+              className="group flex w-full items-center justify-between rounded-lg border border-brand/30 bg-brand/10 px-3 py-2 text-sm font-medium text-brand transition hover:border-brand/50 hover:bg-brand/15"
+              aria-label="Nueva conversación"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                Nueva conversación
+              </span>
+              <span className="rounded border border-brand/30 bg-background/50 px-1.5 py-0.5 font-mono text-[10px]">
+                ⌘K
+              </span>
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="px-2 pb-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar en historial…"
+                className="h-8 border-border bg-background/50 pl-7 pr-2 text-xs"
+                aria-label="Buscar conversaciones"
+              />
+            </div>
+          </div>
+
+          {/* List */}
+          <ScrollArea className="flex-1">
             {isLoading && (
-              <div className="space-y-2 px-2">
+              <div className="space-y-2 px-2 py-2">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Skeleton key={i} className="h-10 w-full rounded-md" />
                 ))}
@@ -320,19 +323,26 @@ export const CopilotHistoryPanel = forwardRef<HTMLDivElement, CopilotHistoryPane
             )}
 
             {!isLoading && !isError && groups.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-8 text-center text-sm text-muted-foreground px-4">
-                <p>Aún no hay conversaciones. Empieza una nueva.</p>
+              <div className="flex flex-col items-center justify-center px-4 py-8 text-center text-sm text-muted-foreground">
+                <p>
+                  {searchQuery.trim()
+                    ? "Sin resultados para tu búsqueda."
+                    : "Aún no hay conversaciones. Empieza una nueva."}
+                </p>
               </div>
             )}
 
             {!isLoading &&
               !isError &&
               groups.map((group) => (
-                <div key={group.label} className="mb-3">
-                  <p className="mb-1 px-2 text-xs uppercase text-muted-foreground/60 tracking-wide font-medium">
-                    {group.label}
-                  </p>
-                  <div className="space-y-0.5">
+                <div key={group.label}>
+                  {/* Sticky group header — opaque bg, no border-b → keeps left panel border continuous */}
+                  <div className="sticky top-0 z-10 bg-background px-3 pb-1 pt-3">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {group.label}
+                    </span>
+                  </div>
+                  <div className="space-y-0.5 px-2 pb-1">
                     {group.items.map((conv) => (
                       <ConversationItem
                         key={conv.id}
@@ -344,24 +354,24 @@ export const CopilotHistoryPanel = forwardRef<HTMLDivElement, CopilotHistoryPane
                   </div>
                 </div>
               ))}
-          </div>
 
-          {/* Load more */}
-          {hasNextPage && (
-            <div className="pb-3 px-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full text-xs"
-                onClick={() => void fetchNextPage()}
-                disabled={isFetchingNextPage}
+            {/* Infinite-scroll sentinel (disabled during active search) */}
+            {hasNextPage && !searchQuery.trim() && (
+              <div
+                ref={loadMoreRef}
+                className="flex items-center justify-center py-3 text-[10px] text-muted-foreground"
               >
-                {isFetchingNextPage ? "Cargando..." : "Cargar 6 más"}
-              </Button>
-            </div>
-          )}
-        </ScrollArea>
-      </div>
+                {isFetchingNextPage && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+                    Cargando más…
+                  </span>
+                )}
+              </div>
+            )}
+          </ScrollArea>
+        </div>
+      </TooltipProvider>
     );
   },
 );
