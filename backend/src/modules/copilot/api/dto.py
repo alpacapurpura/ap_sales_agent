@@ -10,15 +10,16 @@ from pydantic import BaseModel, Field
 class ClientContextDTO(BaseModel):
     """Data transfer object for client context.
 
-    Focus mode was retired on 2026-04-21. Scoped edits are now conveyed via
-    ``selected_fields`` + the per-conversation mutation journal.
+    Focus mode was retired on 2026-04-21. Scoped edits are conveyed via
+    ``selected_fields`` + the per-conversation mutation journal. The guided
+    setup flag is derived server-side from the conversation's
+    ``procedure_state["guided"]`` — the frontend does not send it.
     """
 
     current_route: str | None = None
     selected_fields: list[dict[str, str]] = Field(default_factory=list)
     form_data: dict[str, Any] = Field(default_factory=dict)
     locale: str = "es"
-    interview_session_id: str | None = None
 
 
 class CopilotChatRequest(BaseModel):

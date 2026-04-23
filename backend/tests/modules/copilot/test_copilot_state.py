@@ -1,8 +1,8 @@
 """Tests for CopilotState and ClientContext type definitions.
 
-Focus mode was retired on 2026-04-21. This file used to validate the
-``FocusContext`` TypedDict and the ``focus_entity_data`` CopilotState field;
-both were removed. Remaining coverage: base ``ClientContext`` + interview.
+Focus mode was retired on 2026-04-21; the standalone interview engine was
+retired on 2026-04-22 (state now lives inside
+``CopilotConversationModel.procedure_state["guided"]``).
 """
 
 from __future__ import annotations
@@ -21,25 +21,24 @@ if TYPE_CHECKING:
 class TestClientContext:
     """Tests for the ClientContext TypedDict."""
 
-    def test_client_context_with_interview(self) -> None:
+    def test_client_context_with_guided_mode(self) -> None:
         ctx: ClientContext = {
-            "current_route": "/brand-studio/interview",
+            "current_route": "/brand-studio",
             "selected_fields": [],
             "form_data": {},
             "locale": "es",
-            "interview_session_id": "abc-def-123",
+            "guided_mode": True,
         }
-        assert ctx["interview_session_id"] == "abc-def-123"
+        assert ctx["guided_mode"] is True
 
-    def test_client_context_without_interview(self) -> None:
-        """Existing code that doesn't send interview still works."""
+    def test_client_context_without_guided_mode(self) -> None:
         ctx: ClientContext = {
             "current_route": "/brand-studio",
             "selected_fields": [],
             "form_data": {},
             "locale": "es",
         }
-        assert ctx.get("interview_session_id") is None
+        assert ctx.get("guided_mode") is None
 
 
 class TestCopilotStateDefaults:
@@ -54,7 +53,7 @@ class TestCopilotStateDefaults:
         )
         assert "focus_entity_data" not in state
 
-    def test_initial_state_has_empty_pending_actions(self) -> None:
+    def test_initial_state_defaults(self) -> None:
         state = create_initial_copilot_state(
             user_id=uuid.uuid4(),
             tenant_id=uuid.uuid4(),
@@ -63,4 +62,5 @@ class TestCopilotStateDefaults:
         assert state["pending_ui_actions"] == []
         assert state["active_tool_names"] == []
         assert state["active_procedure"] is None
+        assert state["guided_state"] is None
         assert state["error"] is None

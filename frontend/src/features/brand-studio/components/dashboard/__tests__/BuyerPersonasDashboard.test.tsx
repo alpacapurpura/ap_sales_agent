@@ -7,23 +7,11 @@ import { BuyerPersonasDashboard } from "../BuyerPersonasDashboard";
 
 import type { BuyerPersona } from "@/lib/api/buyer-persona";
 
-const {
-  mockList,
-  mockCreate,
-  mockStartInterview,
-  mockSetSession,
-  mockSetConversationId,
-  mockAddMessage,
-  mockSetSidebarState,
-  navigateMock,
-} = vi.hoisted(() => ({
+const { mockList, mockCreate, mockSendMessage, mockOpenPanel, navigateMock } = vi.hoisted(() => ({
   mockList: vi.fn(),
   mockCreate: vi.fn(),
-  mockStartInterview: vi.fn(),
-  mockSetSession: vi.fn(),
-  mockSetConversationId: vi.fn(),
-  mockAddMessage: vi.fn(),
-  mockSetSidebarState: vi.fn(),
+  mockSendMessage: vi.fn(),
+  mockOpenPanel: vi.fn(),
   navigateMock: vi.fn(),
 }));
 
@@ -39,17 +27,18 @@ vi.mock("@/lib/api/buyer-persona", () => ({
   },
 }));
 
-vi.mock("@/features/copilot/api/interview-api", () => ({
-  startInterview: (...args: unknown[]) => mockStartInterview(...args),
+vi.mock("@/features/copilot/hooks/use-copilot-chat", () => ({
+  useCopilotChat: () => ({
+    sendMessage: mockSendMessage,
+    sendCardAction: vi.fn(),
+    stopStreaming: vi.fn(),
+  }),
 }));
 
 vi.mock("@/features/copilot/store/copilot-store", () => {
   const state = {
     isOpen: false,
-    setSession: mockSetSession,
-    setConversationId: mockSetConversationId,
-    addMessage: mockAddMessage,
-    setSidebarState: mockSetSidebarState,
+    openPanel: mockOpenPanel,
   };
   const useCopilotStore = (selector?: (s: typeof state) => unknown) =>
     selector ? selector(state) : state;
@@ -93,7 +82,6 @@ function makePersona(overrides: Partial<BuyerPersona> = {}): BuyerPersona {
     purchase_triggers: [],
     anti_patterns: [],
     completeness_score: 65,
-    interview_session_id: null,
     created_at: null,
     updated_at: null,
     ...overrides,
@@ -173,7 +161,7 @@ describe("BuyerPersonasDashboard", () => {
     expect(screen.getByRole("button", { name: /reintentar/i })).toBeTruthy();
   });
 
-  it("Modo Manual creates a persona with default name and navigates without starting an interview", async () => {
+  it("Modo Manual creates a persona and navigates without triggering guided setup", async () => {
     const user = userEvent.setup();
     mockList.mockResolvedValue([]);
     mockCreate.mockResolvedValue(makePersona({ id: "new-id", name: "Nueva persona" }));
@@ -188,40 +176,35 @@ describe("BuyerPersonasDashboard", () => {
         expect.objectContaining({ name: "Nueva persona", scope: "GLOBAL" }),
       ),
     );
-    expect(mockStartInterview).not.toHaveBeenCalled();
+    expect(mockSendMessage).not.toHaveBeenCalled();
     expect(navigateMock).toHaveBeenCalledWith("/t-1/brand-studio/publico/persona/new-id");
   });
 
-  it("Modo Inteligente creates a persona, starts interview, and navigates", async () => {
+  it("Modo Inteligente creates a persona, triggers guided setup via chat, and navigates", async () => {
     const user = userEvent.setup();
     mockList.mockResolvedValue([]);
     mockCreate.mockResolvedValue(makePersona({ id: "smart-id", name: "Nueva persona" }));
-    mockStartInterview.mockResolvedValue({
-      session_id: "sess-1",
-      conversation_id: "conv-1",
-      config: {},
-      initial_message: "Hola",
-    });
+    mockSendMessage.mockResolvedValue(undefined);
     renderDashboard();
 
     await waitFor(() => expect(screen.getByText(EMPTY_STATE_TITLE)).toBeTruthy());
     await user.click(screen.getAllByRole("button", { name: MODO_INTELIGENTE })[0]);
 
     await waitFor(() => expect(mockCreate).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockOpenPanel).toHaveBeenCalled());
     await waitFor(() =>
-      expect(mockStartInterview).toHaveBeenCalledWith(TEST_TOKEN, "buyer_persona", "smart-id"),
+      expect(mockSendMessage).toHaveBeenCalledWith(
+        expect.stringContaining('start_guided_setup con domain="buyer_persona"'),
+      ),
     );
-    expect(mockSetSession).toHaveBeenCalled();
-    expect(mockSetConversationId).toHaveBeenCalledWith("conv-1");
-    expect(mockSetSidebarState).toHaveBeenCalledWith("rail");
     expect(navigateMock).toHaveBeenCalledWith("/t-1/brand-studio/publico/persona/smart-id");
   });
 
-  it("still navigates to detail if interview start fails (persona was created)", async () => {
+  it("still navigates to detail if guided trigger throws (persona was created)", async () => {
     const user = userEvent.setup();
     mockList.mockResolvedValue([]);
     mockCreate.mockResolvedValue(makePersona({ id: "smart-id" }));
-    mockStartInterview.mockRejectedValue(new Error("interview down"));
+    mockSendMessage.mockRejectedValue(new Error("chat down"));
     renderDashboard();
 
     await waitFor(() => expect(screen.getByText(EMPTY_STATE_TITLE)).toBeTruthy());
@@ -241,8 +224,6 @@ describe("BuyerPersonasDashboard", () => {
     mockCreate.mockResolvedValue(makePersona({ id: "c", name: "Nueva persona 3" }));
     renderDashboard();
 
-    // Wait for the loaded state (cards render) before clicking — the loading
-    // state shows a disabled Modo Manual button that wouldn't fire onClick.
     await screen.findByText("Persona A");
     await user.click(screen.getAllByRole("button", { name: MODO_MANUAL })[0]);
 

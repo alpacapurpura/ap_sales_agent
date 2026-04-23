@@ -89,7 +89,7 @@ class DocumentProcessor:
         self.ai_service = ai_service
         self.file_parser = file_parser or FileParserProtocol()
 
-    async def process_for_interview(
+    async def process_files(
         self,
         *,
         files: list[UploadFile],
@@ -97,9 +97,10 @@ class DocumentProcessor:
         existing_mapa: dict[str, str],
         tenant_id: UUID,
     ) -> DocumentProcessingResult:
-        """Parse files, extract structured data via LLM, merge into mapa_global.
+        """Parse uploaded files, extract structured data via LLM, merge into mapa.
 
-        Non-empty existing fields are NOT overwritten (skipped).
+        Non-empty existing fields are NOT overwritten (skipped). Thin wrapper
+        over ``extract_from_text``: parses the files first, then delegates.
         """
         combined_text = ""
         source_docs: list[str] = []
@@ -120,10 +121,43 @@ class DocumentProcessor:
                 fields_skipped=0,
             )
 
+        return self.extract_from_text(
+            text=combined_text,
+            source_documents=source_docs,
+            extraction_template=extraction_template,
+            existing_mapa=existing_mapa,
+            tenant_id=tenant_id,
+        )
+
+    def extract_from_text(
+        self,
+        *,
+        text: str,
+        source_documents: list[str],
+        extraction_template: str,
+        existing_mapa: dict[str, str],
+        tenant_id: UUID,
+    ) -> DocumentProcessingResult:
+        """Run the LLM extraction against already-parsed document text.
+
+        Used by the copilot ``extract_document_to_fields`` tool which reads
+        pre-extracted text from ``assets.extracted_text`` — no re-parsing on
+        every turn.
+        """
+        combined_text = text.strip()
+        if not combined_text:
+            return DocumentProcessingResult(
+                delta={},
+                summary="Documento sin texto extraíble.",
+                source_documents=list(source_documents),
+                fields_extracted=0,
+                fields_skipped=0,
+            )
+
         logger.info(
             "document_extraction_start",
             template=extraction_template,
-            doc_count=len(source_docs),
+            doc_count=len(source_documents),
             text_length=len(combined_text),
             tenant_id=str(tenant_id),
         )
@@ -153,7 +187,7 @@ class DocumentProcessor:
         filtered_delta = {k: v for k, v in raw_delta.items() if not existing_mapa.get(k)}
 
         summary_parts = [
-            f"Extraídos {fields_extracted} campos de {len(source_docs)} documento(s).",
+            f"Extraídos {fields_extracted} campos de {len(source_documents)} documento(s).",
         ]
         if fields_skipped:
             summary_parts.append(
@@ -164,14 +198,14 @@ class DocumentProcessor:
             "document_extraction_complete",
             fields_extracted=fields_extracted,
             fields_skipped=fields_skipped,
-            source_documents=source_docs,
+            source_documents=source_documents,
             tenant_id=str(tenant_id),
         )
 
         return DocumentProcessingResult(
             delta=filtered_delta,
             summary=" ".join(summary_parts),
-            source_documents=source_docs,
+            source_documents=list(source_documents),
             fields_extracted=fields_extracted,
             fields_skipped=fields_skipped,
         )

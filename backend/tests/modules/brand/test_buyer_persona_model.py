@@ -32,7 +32,6 @@ def test_buyer_persona_model_has_required_columns() -> None:
         "purchase_triggers",
         "anti_patterns",
         "completeness_score",
-        "interview_session_id",
         "is_active",
         "deleted_at",
         "created_at",

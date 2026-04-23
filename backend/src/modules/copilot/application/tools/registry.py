@@ -2,6 +2,11 @@
 
 Maps frontend routes to the subset of tools the LLM should have access to.
 This keeps the tool set focused and reduces noise for the LLM.
+
+Integrity invariant: a tool *name* may be exported from multiple groups only
+if the underlying tool object is the same. Two different objects sharing a
+name raise ``ToolNameCollisionError`` at registration time so divergent
+behavior can't be shadowed silently.
 """
 
 from src.modules.copilot.application.tools.analytics_tools import ANALYTICS_TOOLS
@@ -10,7 +15,8 @@ from src.modules.copilot.application.tools.awareness import AWARENESS_TOOLS
 from src.modules.copilot.application.tools.connections_tools import CONNECTIONS_TOOLS
 from src.modules.copilot.application.tools.crm_tools import CRM_TOOLS
 from src.modules.copilot.application.tools.document_tools import DOCUMENT_TOOLS  # [COPILOT-READ-DOCUMENT]
-from src.modules.copilot.application.tools.interview import INTERVIEW_TOOLS
+from src.modules.copilot.application.tools.extraction_tools import EXTRACTION_TOOLS
+from src.modules.copilot.application.tools.guided import GUIDED_TOOLS
 from src.modules.copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
 from src.modules.copilot.application.tools.landing_tools import LANDING_TOOLS
 from src.modules.copilot.application.tools.module_tools import MODULE_TOOLS
@@ -20,37 +26,80 @@ from src.modules.copilot.application.tools.offer_ladder_tools import OFFER_LADDE
 from src.modules.copilot.application.tools.offer_section_tools import OFFER_SECTION_TOOLS
 from src.modules.copilot.application.tools.procedure_tools import PROCEDURE_TOOLS
 from src.modules.copilot.application.tools.sales_agent_tools import SALES_AGENT_TOOLS
+from src.modules.copilot.application.tools.shared_tools import SHARED_TOOLS
+
+
+class ToolNameCollisionError(RuntimeError):
+    """Raised when two different tool objects share the same `name`.
+
+    Re-exporting the same tool object under multiple groups is allowed and
+    useful (e.g. ``clarify`` lives in ``shared_tools`` and is re-exported via
+    a shim inside ``interview``). Two *different* objects with the same name
+    are always a bug — the first would be bound, the second silently dropped.
+    """
+
+
+def _register_tool_groups(groups: dict[str, list]) -> dict[str, list]:
+    """Validate that tool names do not collide across groups.
+
+    Returns the same dict unchanged on success. Raises ``ToolNameCollisionError``
+    on first collision with a descriptive message. Exposed (underscore-prefixed)
+    for tests; production code reads ``TOOL_GROUPS`` directly.
+    """
+    seen: dict[str, tuple[str, int]] = {}
+    for group_name, tools in groups.items():
+        for t in tools:
+            prior = seen.get(t.name)
+            if prior is None:
+                seen[t.name] = (group_name, id(t))
+            elif prior[1] != id(t):
+                msg = (
+                    f"Tool name collision: {t.name!r} exported by "
+                    f"{prior[0]!r} (id={prior[1]}) and {group_name!r} "
+                    f"(id={id(t)}). Re-export the same object or rename one."
+                )
+                raise ToolNameCollisionError(msg)
+    return groups
+
 
 # Named tool groups for route mapping
-TOOL_GROUPS: dict[str, list] = {
-    "navigation": NAVIGATION_TOOLS,
-    "awareness": AWARENESS_TOOLS,
-    "mutation": MUTATION_TOOLS,
-    "module_data": MODULE_TOOLS,
-    "analytics": ANALYTICS_TOOLS,
-    "crm": CRM_TOOLS,
-    "sales_agent": SALES_AGENT_TOOLS,
-    "connections": CONNECTIONS_TOOLS,
-    "landing": LANDING_TOOLS,
-    "procedure": PROCEDURE_TOOLS,
-    "knowledge": KNOWLEDGE_TOOLS,
-    "offer_ladder": OFFER_LADDER_TOOLS,
-    "offer_section": OFFER_SECTION_TOOLS,
-    "interview": INTERVIEW_TOOLS,
-    # Outbound asset tools — allow assistant to reference existing tenant assets.
-    "assets": ASSETS_TOOLS,
-    # Document reading — lazy access to text extracted from uploaded docs/audios.
-    # Globally available: if the user attached a file in any route, the LLM can
-    # fetch its content on demand.
-    "document": DOCUMENT_TOOLS,
-}
+TOOL_GROUPS: dict[str, list] = _register_tool_groups(
+    {
+        "navigation": NAVIGATION_TOOLS,
+        "awareness": AWARENESS_TOOLS,
+        "mutation": MUTATION_TOOLS,
+        "module_data": MODULE_TOOLS,
+        "analytics": ANALYTICS_TOOLS,
+        "crm": CRM_TOOLS,
+        "sales_agent": SALES_AGENT_TOOLS,
+        "connections": CONNECTIONS_TOOLS,
+        "landing": LANDING_TOOLS,
+        "procedure": PROCEDURE_TOOLS,
+        "knowledge": KNOWLEDGE_TOOLS,
+        "offer_ladder": OFFER_LADDER_TOOLS,
+        "offer_section": OFFER_SECTION_TOOLS,
+        # Guided setup (replaces the retired interview engine, 2026-04-22).
+        # Tools: start/advance/end guided + extract_structured + extract_document_to_fields.
+        "guided": GUIDED_TOOLS,
+        # Outbound asset tools — allow assistant to reference existing tenant assets.
+        "assets": ASSETS_TOOLS,
+        # Document reading — lazy access to text extracted from uploaded docs/audios.
+        # Globally available: if the user attached a file in any route, the LLM can
+        # fetch its content on demand.
+        "document": DOCUMENT_TOOLS,
+        # Conversational primitives: clarify, (future) confirm, (future) progress.
+        # Globally available so the LLM can ask the user before picking any tool.
+        "shared_tools": SHARED_TOOLS,
+        # URL-to-studio extraction: replaces the wizard "extraer desde URL" step
+        # with a Copilot tool dispatched via the same ARQ workers.
+        "extraction": EXTRACTION_TOOLS,
+    }
+)
 
 # Route prefix -> which tool groups are available.
 # More specific routes should be listed before generic ones.
 # "*" is the fallback for any unmatched route.
 ROUTE_TOOL_MAP: dict[str, list[str]] = {
-    "brand-studio/interview/buyer-persona": ["interview", "knowledge"],
-    "brand-studio/interview": ["interview", "knowledge"],
     "brand-studio": [
         "navigation",
         "awareness",
@@ -59,8 +108,9 @@ ROUTE_TOOL_MAP: dict[str, list[str]] = {
         "procedure",
         "knowledge",
         "assets",  # brand studio can reference assets (logos, photos, etc.)
+        "extraction",  # "extrae de esta URL hacia brand studio"
+        "guided",  # "guíame para completar mi marca"
     ],
-    "offer-studio/interview": ["interview", "knowledge"],
     "offer-studio": [
         "navigation",
         "awareness",
@@ -71,6 +121,8 @@ ROUTE_TOOL_MAP: dict[str, list[str]] = {
         "offer_ladder",
         "offer_section",
         "assets",  # offer studio can reference flyers, images, etc.
+        "extraction",  # "extrae de esta URL hacia mi oferta"
+        "guided",  # "guíame para completar esta oferta"
     ],
     "growth-studio": [
         "navigation",
@@ -139,8 +191,9 @@ ROUTE_TOOL_MAP: dict[str, list[str]] = {
 
 # Tool groups that must be available in every route regardless of the
 # ROUTE_TOOL_MAP entry. Uploads (document/audio) can happen from any screen,
-# so read_document must always be bindable.
-ALWAYS_AVAILABLE_GROUPS: tuple[str, ...] = ("document",)
+# so read_document must always be bindable. shared_tools hosts
+# conversational primitives like `clarify` that any route may need.
+ALWAYS_AVAILABLE_GROUPS: tuple[str, ...] = ("document", "shared_tools", "guided")
 
 
 def get_tools_for_route(route: str | None) -> list:
@@ -198,24 +251,22 @@ def _collect_groups(group_names: tuple[str, ...]) -> list:
 
 
 def get_tools_for_context(context: dict | None) -> list:
-    """Return tools based on mode (interview > chat).
+    """Return tools based on context (guided flag > route-based).
 
-    Mode is determined by context fields:
-    - ``interview_session_id`` present → Interview mode (interview + knowledge).
-    - Otherwise → Chat mode (route-based selection).
+    * ``guided_mode=True`` in context → guided + knowledge + shared + document.
+      The narrow tool set keeps the LLM focused on the structured flow.
+    * Otherwise → route-based selection with the always-available groups
+      (document, shared_tools, guided) merged in.
 
-    Focus mode was retired on 2026-04-21: per-entity scoped edits now rely on
-    ``selected_fields`` + the per-conversation mutation journal. See
-    CONTRACT §5 and ``.claude/rules/copilot-resilience.md``.
+    Focus mode was retired on 2026-04-21; the standalone interview engine was
+    retired on 2026-04-22 (state now lives inside the conversation itself).
     """
     if not context:
         return get_tools_for_route(None)
 
-    # Interview mode: interview + knowledge tools only
-    if context.get("interview_session_id"):
-        return _collect_groups(("interview", "knowledge"))
+    if context.get("guided_mode"):
+        return _collect_groups(("guided", "knowledge", "shared_tools", "document"))
 
-    # Chat mode: route-based selection
     return get_tools_for_route(context.get("current_route"))
 
 

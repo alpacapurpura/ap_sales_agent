@@ -70,7 +70,6 @@ from src.modules.copilot.api import actions as copilot_actions
 from src.modules.copilot.api import chat as copilot_chat
 from src.modules.copilot.api import conversations as copilot_conversations
 from src.modules.copilot.api import events as copilot_events
-from src.modules.copilot.api import interview as copilot_interview
 from src.modules.copilot.api import knowledge as copilot_knowledge
 from src.modules.copilot.api import media as copilot_media
 from src.modules.copilot.api import nudge as copilot_nudge
@@ -258,10 +257,13 @@ def on_startup() -> None:
 @app.on_event("startup")
 async def startup_arq_pool() -> None:
     """Create shared ARQ connection pool for job dispatch."""
+    from src.core.arq_pool import set_arq_pool
+
     try:
         app.state.arq_pool = await create_pool(
             RedisSettings.from_dsn(settings.REDIS_URL),
         )
+        set_arq_pool(app.state.arq_pool)
         logger.info("arq_pool_connected", redis_url=settings.REDIS_URL)
     except Exception as exc:  # noqa: BLE001 — startup/health resilience
         logger.warning(
@@ -271,13 +273,17 @@ async def startup_arq_pool() -> None:
             hint="Background job dispatch will be unavailable",
         )
         app.state.arq_pool = None
+        set_arq_pool(None)
 
 
 @app.on_event("shutdown")
 async def shutdown_arq_pool() -> None:
     """Close ARQ connection pool."""
+    from src.core.arq_pool import set_arq_pool
+
     if hasattr(app.state, "arq_pool") and app.state.arq_pool:
         await app.state.arq_pool.close()
+    set_arq_pool(None)
 
 
 @app.get("/health")
@@ -644,12 +650,6 @@ app.include_router(
     copilot_events.router,
     prefix="/api/v1/copilot/events",
     tags=["Copilot - Events"],
-    dependencies=[Depends(get_tenant_context)],
-)
-app.include_router(
-    copilot_interview.router,
-    prefix="/api/v1/copilot/interview",
-    tags=["Copilot - Interview"],
     dependencies=[Depends(get_tenant_context)],
 )
 app.include_router(

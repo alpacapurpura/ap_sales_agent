@@ -73,7 +73,7 @@ class TestDocumentProcessor:
             ai_service=mock_ai,
             file_parser=mock_parser,
         )
-        result = await processor.process_for_interview(
+        result = await processor.process_files(
             files=[mock_file],
             extraction_template="brand_doc_extraction",
             existing_mapa={},
@@ -114,7 +114,7 @@ class TestDocumentProcessor:
             ai_service=mock_ai,
             file_parser=mock_parser,
         )
-        result = await processor.process_for_interview(
+        result = await processor.process_files(
             files=[mock_file],
             extraction_template="brand_doc_extraction",
             existing_mapa={
@@ -156,7 +156,7 @@ class TestDocumentProcessor:
             ai_service=mock_ai,
             file_parser=mock_parser,
         )
-        result = await processor.process_for_interview(
+        result = await processor.process_files(
             files=[mock_file],
             extraction_template="brand_doc_extraction",
             existing_mapa={"identity.brand_name": ""},
@@ -199,7 +199,7 @@ class TestDocumentProcessor:
             ai_service=mock_ai,
             file_parser=mock_parser,
         )
-        result = await processor.process_for_interview(
+        result = await processor.process_files(
             files=[file1, file2],
             extraction_template="brand_doc_extraction",
             existing_mapa={},
@@ -227,7 +227,7 @@ class TestDocumentProcessor:
             ai_service=mock_ai,
             file_parser=mock_parser,
         )
-        result = await processor.process_for_interview(
+        result = await processor.process_files(
             files=[mock_file],
             extraction_template="brand_doc_extraction",
             existing_mapa={},
@@ -263,7 +263,7 @@ class TestDocumentProcessor:
             ai_service=mock_ai,
             file_parser=mock_parser,
         )
-        result = await processor.process_for_interview(
+        result = await processor.process_files(
             files=[mock_file],
             extraction_template="brand_doc_extraction",
             existing_mapa={},
@@ -296,7 +296,7 @@ class TestDocumentProcessor:
             ai_service=mock_ai,
             file_parser=mock_parser,
         )
-        result = await processor.process_for_interview(
+        result = await processor.process_files(
             files=[mock_file],
             extraction_template="brand_doc_extraction",
             existing_mapa={},

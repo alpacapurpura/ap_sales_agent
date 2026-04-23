@@ -1,10 +1,9 @@
 """Tests for ``ClientContextDTO``.
 
-Focus mode was retired on 2026-04-21; only interview mode + base context
-fields remain. See CONTRACT §5 and ``.claude/rules/copilot-resilience.md``.
+Focus mode was retired on 2026-04-21; the standalone interview engine was
+retired on 2026-04-22. Only base context fields remain: the guided-setup
+flag is derived server-side and never sent by the frontend.
 """
-
-from uuid import uuid4
 
 from src.modules.copilot.api.dto import ClientContextDTO
 
@@ -13,18 +12,9 @@ class TestClientContextDTO:
     def test_client_context_defaults(self) -> None:
         dto = ClientContextDTO(current_route="/brand-studio")
         assert dto.current_route == "/brand-studio"
-        assert dto.interview_session_id is None
         assert dto.selected_fields == []
         assert dto.form_data == {}
         assert dto.locale == "es"
-
-    def test_client_context_with_interview_session_id(self) -> None:
-        sid = str(uuid4())
-        dto = ClientContextDTO(
-            current_route="/brand-studio/interview",
-            interview_session_id=sid,
-        )
-        assert dto.interview_session_id == sid
 
     def test_client_context_with_selected_fields(self) -> None:
         fields = [{"field_id": "uvp", "field_label": "Propuesta", "field_value": "hola"}]
@@ -42,3 +32,7 @@ class TestClientContextDTO:
     def test_client_context_with_custom_locale(self) -> None:
         dto = ClientContextDTO(current_route="/brand-studio", locale="pt")
         assert dto.locale == "pt"
+
+    def test_client_context_no_longer_accepts_interview_session_id(self) -> None:
+        """Arch guard: the legacy interview_session_id field must stay removed."""
+        assert "interview_session_id" not in ClientContextDTO.model_fields

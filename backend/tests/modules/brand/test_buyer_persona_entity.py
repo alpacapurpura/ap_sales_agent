@@ -73,7 +73,6 @@ def test_buyer_persona_defaults() -> None:
     assert persona.buyer_journey == {}
     assert persona.purchase_triggers == []
     assert persona.anti_patterns == []
-    assert persona.interview_session_id is None
     assert persona.is_active is True
     assert persona.deleted_at is None
 

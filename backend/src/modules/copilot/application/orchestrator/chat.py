@@ -28,6 +28,7 @@ from uuid import UUID, uuid4
 import structlog
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
+from src.core.context import set_conversation_id
 from src.core.database import redis_client
 from src.core.enums import ModelRole
 from src.modules.assets.application.asset_extraction_service import (
@@ -37,6 +38,7 @@ from src.modules.assets.infrastructure.repositories.asset_repository import (
     AssetRepository,
 )
 from src.modules.copilot.api.dto import ClientContextDTO, SSEEvent
+from src.modules.copilot.application.guided.persistence import read_state as read_guided_state
 from src.modules.copilot.application.orchestrator.graph import copilot_graph
 from src.modules.copilot.application.orchestrator.state import (
     create_initial_copilot_state,
@@ -44,9 +46,6 @@ from src.modules.copilot.application.orchestrator.state import (
 from src.modules.copilot.application.orchestrator.usage_tracking import UsageAccumulator
 from src.modules.copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
-)
-from src.modules.copilot.infrastructure.repositories.interview_session_repository import (
-    InterviewSessionRepository,
 )
 
 if TYPE_CHECKING:
@@ -344,12 +343,28 @@ def _ui_action_to_card_block(action: dict) -> dict | None:
     Only wraps action types that map to known card_kind values.
     Unknown types → None (emit only legacy ui_action, no block).
 
+    Payload shape is validated against
+    ``copilot.domain.card_payloads.CARD_PAYLOAD_MODELS`` in warn-only mode:
+    a mismatch logs a structured warning but the card is still emitted so
+    the frontend can degrade gracefully instead of blanking on LLM drift.
+
     CONTRACT reference: CONTRACT-MULTIMODAL §6 (ui_action → CardBlock).
     """
     action_type = str(action.get("type", ""))
     card_kind = _TYPE_TO_CARD_KIND.get(action_type)
     if not card_kind:
         return None
+
+    from src.modules.copilot.domain.card_payloads import validate_card_payload
+
+    ok, err = validate_card_payload(card_kind, action)
+    if not ok:
+        logger.warning(
+            "card_payload_schema_mismatch",
+            card_kind=card_kind,
+            action_type=action_type,
+            error=err,
+        )
 
     return {
         "id": str(uuid4()),
@@ -403,7 +418,13 @@ class CopilotOrchestrator:
         self.conv_repo = ConversationRepository(db)
 
     def _build_client_context(self, context: ClientContextDTO | None) -> dict:
-        """Build client context dict from DTO, including focus and interview fields."""
+        """Build the graph-facing ``ClientContext`` dict from the incoming DTO.
+
+        ``guided_mode`` is populated later, server-side, from
+        ``copilot_conversations.procedure_state["guided"]`` — the frontend
+        doesn't have to know whether guided mode is active for this
+        conversation.
+        """
         if not context:
             return {
                 "current_route": None,
@@ -411,18 +432,12 @@ class CopilotOrchestrator:
                 "form_data": {},
                 "locale": "es",
             }
-        ctx: dict = {
+        return {
             "current_route": context.current_route,
             "selected_fields": [f.model_dump() if hasattr(f, "model_dump") else f for f in context.selected_fields],
             "form_data": context.form_data,
             "locale": context.locale,
         }
-        # Focus mode retired on 2026-04-21: scoped edits are now handled by
-        # ``selected_fields`` chips + the per-conversation mutation journal.
-        # See CONTRACT §5 and .claude/rules/copilot-resilience.md.
-        if context.interview_session_id:
-            ctx["interview_session_id"] = context.interview_session_id
-        return ctx
 
     def _prepare_conversation(
         self,
@@ -448,27 +463,25 @@ class CopilotOrchestrator:
             self.db.commit()
 
         client_ctx = self._build_client_context(context)
+
+        # Hydrate the guided-setup state for this conversation (if any). The
+        # tools and prompt layer both read from ``state["guided_state"]`` so
+        # we only hit the DB once per turn.
+        guided = read_guided_state(conv_id)
+        client_ctx["guided_mode"] = guided is not None
+
         state = create_initial_copilot_state(
             user_id=user_id,
             tenant_id=tenant_id,
             conversation_id=conv_id,
             client_context=client_ctx,
         )
+        state["guided_state"] = guided.to_json() if guided is not None else None
 
-        if client_ctx.get("interview_session_id"):
-            try:
-                session_repo = InterviewSessionRepository(self.db)
-                interview_session = session_repo.get_by_id(
-                    UUID(client_ctx["interview_session_id"]),
-                    tenant_id,
-                )
-                if interview_session:
-                    state["interview_session"] = interview_session
-            except (ValueError, TypeError):
-                logger.warning(
-                    "invalid_interview_session_id",
-                    session_id=client_ctx["interview_session_id"],
-                )
+        # Publish the conversation id so tools invoked by the LLM can persist
+        # conversation-scoped state (e.g. guided progress) without receiving
+        # it as an argument.
+        set_conversation_id(conv_id)
 
         history_messages = self._load_history(conv_id, tenant_id, existing_conv)
         attachment_context = _render_attachment_context(blocks, tenant_id=tenant_id, db=self.db)

@@ -94,7 +94,6 @@ describe("CopilotSidebar", () => {
         label: "Oferta Premium",
         entityId: "123",
         procedure: "free",
-        sessionId: null,
         startedAt: new Date(),
         snapshot: {},
       },

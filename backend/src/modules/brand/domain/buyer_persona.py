@@ -11,9 +11,9 @@ from src.shared.domain.base_entity import BaseEntity
 
 
 class BuyerPersona(BaseEntity):
-    """Rich buyer persona entity built via the Interview Engine.
+    """Rich buyer persona entity built via the copilot's guided setup.
 
-    Replaces the lightweight Avatar with a structured, interview-driven
+    Replaces the lightweight Avatar with a structured, conversation-driven
     persona that captures demographics, psychographics, pain points,
     desires, objections, channel preferences, and the full buyer journey.
 
@@ -32,7 +32,7 @@ class BuyerPersona(BaseEntity):
     offer_id: UUID | None = None
     is_primary: bool = False
 
-    # Profile (JSONB — flexible, evolves with interview)
+    # Profile (JSONB — flexible, evolves with guided setup or chat edits)
     demographics: dict = Field(default_factory=dict)
     psychographics: dict = Field(default_factory=dict)
     pain_points: list[dict] = Field(default_factory=list)
@@ -45,7 +45,6 @@ class BuyerPersona(BaseEntity):
 
     # Metadata
     completeness_score: float = 0.0
-    interview_session_id: UUID | None = None
 
     # Soft delete
     is_active: bool = True

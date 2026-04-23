@@ -58,7 +58,6 @@ const FULL_PERSONA = {
   purchase_triggers: [],
   anti_patterns: [],
   completeness_score: 50,
-  interview_session_id: null,
   created_at: null,
   updated_at: null,
 };

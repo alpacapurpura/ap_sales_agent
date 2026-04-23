@@ -20,7 +20,6 @@ export interface BuyerPersona {
   purchase_triggers: string[];
   anti_patterns: string[];
   completeness_score: number;
-  interview_session_id: string | null;
   created_at: string | null;
   updated_at: string | null;
 }

@@ -4,25 +4,25 @@ import { useMemo } from "react";
 
 import { useDismissStore } from "../store/dismiss-store";
 
-import { useInterviewNotifications } from "./use-interview-notifications";
-
 import type { Notification } from "../types";
 
 /**
- *
+ * Aggregates user-facing notifications. The "paused interview" category was
+ * retired with the standalone interview engine on 2026-04-22; a
+ * guided-in-progress notification can be re-introduced later by querying
+ * conversations whose ``procedure_state["guided"]`` is non-null.
  */
 export function useNotifications(): {
   notifications: Notification[];
   dismiss: (id: string) => void;
 } {
-  const interview = useInterviewNotifications();
   const isDismissed = useDismissStore((s) => s.isDismissed);
   const dismiss = useDismissStore((s) => s.dismiss);
 
   const notifications = useMemo(() => {
-    const all: Notification[] = [...interview];
+    const all: Notification[] = [];
     return all.filter((n) => !isDismissed(n.id));
-  }, [interview, isDismissed]);
+  }, [isDismissed]);
 
   return { notifications, dismiss };
 }

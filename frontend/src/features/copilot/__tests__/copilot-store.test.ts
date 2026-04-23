@@ -296,7 +296,6 @@ describe("Session + focused field state", () => {
       label: "Mi Marca",
       entityId: null,
       procedure: "free",
-      sessionId: null,
       startedAt,
       snapshot: {},
     });
@@ -316,16 +315,15 @@ describe("Session + focused field state", () => {
       label: "Offer Premium",
       entityId: "offer-1",
       procedure: "free",
-      sessionId: null,
       startedAt: new Date(),
       snapshot: {},
     });
 
-    updateSession({ procedure: "interview", sessionId: "session-abc" });
+    updateSession({ procedure: "guided", domain: "offer" });
 
     const state = useCopilotStore.getState();
-    expect(state.session?.procedure).toBe("interview");
-    expect(state.session?.sessionId).toBe("session-abc");
+    expect(state.session?.procedure).toBe("guided");
+    expect(state.session?.domain).toBe("offer");
     expect(state.session?.sectionKey).toBe("offer.pricing");
   });
 
@@ -350,7 +348,6 @@ describe("Session + focused field state", () => {
       label: "Mi Marca",
       entityId: null,
       procedure: "free",
-      sessionId: null,
       startedAt: new Date(),
       snapshot: {},
     });
@@ -382,7 +379,7 @@ describe("sidebarState", () => {
   });
 });
 
-describe("Interview UIAction types", () => {
+describe("Card UIAction types", () => {
   beforeEach(() => {
     useCopilotStore.setState({
       messages: [],

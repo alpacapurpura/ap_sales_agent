@@ -12,14 +12,11 @@ import { handleUIAction } from "./use-copilot-ui-action";
 import type { MessageBlock } from "../types/message-blocks";
 
 /**
- * Unified chat hook for copilot free-chat and interview flows.
+ * Unified chat hook — one POST /copilot/chat flow for every mode.
  *
- * Mode is derived from the active session:
- * - session.procedure === "interview" → interview mode (sessionId in payload)
- * - session.procedure === "free"      → focus mode (section context only)
- * - no session                        → plain chat
- *
- * All messages go through POST /copilot/chat with mode context in the payload.
+ * Guided mode is driven entirely server-side: the backend reads the
+ * conversation's ``procedure_state["guided"]`` flag and narrows tools +
+ * system prompt accordingly. The frontend no longer sends mode hints.
  *
  * Single-flight guarantee: if a stream is already in progress when sendMessage
  * is called, the previous request is aborted BEFORE new messages are added to
@@ -44,7 +41,6 @@ export function useCopilotChat() {
   const activeAssistantIdRef = useRef<string | null>(null);
 
   const sendMessage = useCallback(
-    // eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: single-flight guard, auth, streaming callbacks, and attachment-blocks payload each contribute branches tightly coupled to ordering requirements.
     async (text: string, blocks?: MessageBlock[]) => {
       const trimmed = text.trim();
       const attachmentBlocks = blocks && blocks.length > 0 ? blocks : undefined;
@@ -105,12 +101,9 @@ export function useCopilotChat() {
         const freshFields = freshState.selectedFields;
         const currentMessages = freshState.messages;
 
-        // Derive mode from the active session
-        const mode = freshState.session
-          ? freshState.session.procedure === "interview"
-            ? "interview"
-            : "focus"
-          : "chat";
+        // Derive guided flag from the active session for client-side telemetry;
+        // the server authoritatively derives it from procedure_state.
+        const mode = freshState.session?.procedure === "guided" ? "guided" : "chat";
 
         // Track message_sent event
         reportCopilotEvent(
@@ -144,14 +137,6 @@ export function useCopilotChat() {
                 field_value: f.fieldValue,
               })),
               locale: "es",
-              focus: freshState.session
-                ? {
-                    domain: freshState.session.sectionKey.split(".")[0] ?? "",
-                    entity_id: freshState.session.entityId ?? null,
-                  }
-                : null,
-              interview_session_id:
-                freshState.session?.procedure === "interview" ? freshState.session.sessionId : null,
             },
           },
           {

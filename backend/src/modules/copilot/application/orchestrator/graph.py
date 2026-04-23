@@ -26,7 +26,6 @@ from src.modules.copilot.application.tools.registry import (
 from src.modules.copilot.domain.module_registry import get_module_registry
 from src.modules.copilot.infrastructure.prompts.base import prompt_loader
 from src.modules.copilot.infrastructure.prompts.sanitizer import (
-    sanitize_mapa_global,
     sanitize_selected_fields,
 )
 from src.shared.infrastructure.llm.factory import LLMFactory
@@ -195,32 +194,48 @@ def _get_behavior_summary(tenant_id: UUID, user_id: UUID) -> str:
         db.close()
 
 
-def _build_interview_layer(ctx: dict[str, object], state: dict[str, object]) -> str:
-    """Render the interview session layer if conditions are met, else return empty string."""
-    if not (ctx.get("interview_session_id") and state.get("interview_session")):
+def _build_guided_layer(state: dict[str, object]) -> str:
+    """Render the guided-setup prompt layer, or "" when guided mode is off.
+
+    Reads the ``guided_state`` dict already hydrated by the chat orchestrator
+    (read once per request from ``procedure_state["guided"]``). Blocks are
+    regenerated from the catalog so labels/descriptions stay in sync with
+    any schema change.
+    """
+    guided_raw = state.get("guided_state")
+    if not guided_raw or not isinstance(guided_raw, dict):
         return ""
-    session = state["interview_session"]
-    config = session.config_snapshot
-    bloques = config.get("bloques", [])
-    current_block = next((b for b in bloques if b["id"] == session.bloque_actual), None)
-    coverage = session.coverage_for_block(session.bloque_actual) if current_block else 0.0
-    block_coverage = {b["id"]: round(session.coverage_for_block(b["id"]) * 100) for b in bloques}
-    # Sanitize user interview data before template insertion to prevent prompt injection
-    raw_mapa = session.mapa_global
-    safe_mapa = sanitize_mapa_global(raw_mapa) if isinstance(raw_mapa, dict) else raw_mapa
+
+    from src.modules.copilot.application.guided.block_generator import (
+        block_by_id,
+        build_blocks,
+    )
+
+    domain = str(guided_raw.get("domain", ""))
+    current_id = str(guided_raw.get("current_block_id", ""))
+    completed = list(guided_raw.get("completed_blocks", []))
+    entity_id = guided_raw.get("entity_id")
+    if not domain or not current_id:
+        return ""
+
+    blocks = build_blocks(domain)  # type: ignore[arg-type]
+    current_block = block_by_id(domain, current_id)  # type: ignore[arg-type]
+    if current_block is None:
+        return ""
+
     try:
         return prompt_loader.render(
-            "copilot_interview",
-            current_block_id=session.bloque_actual,
-            current_block_label=current_block["label"] if current_block else session.bloque_actual,
-            blocks_completed_count=len(session.bloques_completados),
-            total_blocks=len(bloques),
-            coverage_pct=round(coverage * 100),
-            mapa_global=safe_mapa,
-            block_coverage_status=block_coverage,
+            "copilot_guided",
+            domain=domain,
+            entity_id=entity_id,
+            current_block_id=current_block.id,
+            current_block_label=current_block.label,
+            current_block_field_paths=list(current_block.field_paths),
+            blocks_completed_count=len(completed),
+            total_blocks=len(blocks),
         )
     except Exception:
-        logger.exception("Error rendering interview prompt layer")
+        logger.exception("Error rendering guided prompt layer")
         return ""
 
 
@@ -313,8 +328,8 @@ def build_system_prompt(state: CopilotState) -> str:
             "Habla siempre en español, de forma profesional pero cercana."
         )
 
-    # Compose all layers (focus mode retired 2026-04-21 — only interview layer remains)
-    return base_prompt + _build_interview_layer(ctx, state)
+    # Compose: base prompt + guided layer when guided mode is active.
+    return base_prompt + _build_guided_layer(state)
 
 
 def agent_node(state: CopilotState) -> dict:
@@ -344,10 +359,17 @@ def agent_node(state: CopilotState) -> dict:
     return {"messages": [response], "active_tool_names": tool_names}
 
 
-def tool_executor_node(state: CopilotState) -> dict:
+async def tool_executor_node(state: CopilotState) -> dict:
     """Execute tool calls from the last AIMessage and return ToolMessages.
 
     Uses route-based tool selection to build the tool map.
+
+    Async so ``StructuredTool``s backed by ``async def`` (e.g. the
+    ``extract_from_url`` tool that awaits an ARQ ``enqueue_job``) can run
+    without tripping ``NotImplementedError: StructuredTool does not support
+    sync invocation``. ``ainvoke`` works for both sync and async tools —
+    sync tools are wrapped in a threadpool under the hood — so this is
+    universal rather than special-casing.
     """
     from langchain_core.messages import ToolMessage
 
@@ -371,7 +393,7 @@ def tool_executor_node(state: CopilotState) -> dict:
 
         if tool_name in tool_map:
             try:
-                result = tool_map[tool_name].invoke(tool_args)
+                result = await tool_map[tool_name].ainvoke(tool_args)
                 tool_messages.append(
                     ToolMessage(
                         content=str(result),

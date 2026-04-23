@@ -11,7 +11,7 @@ import { useNavigation } from "@/components/shared/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { startInterview } from "@/features/copilot/api/interview-api";
+import { useCopilotChat } from "@/features/copilot/hooks/use-copilot-chat";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 import { buyerPersonaApi } from "@/lib/api/buyer-persona";
 
@@ -22,33 +22,7 @@ import type { BuyerPersona } from "@/lib/api/buyer-persona";
 const SKELETON_COUNT = 3;
 const DEFAULT_PERSONA_NAME = "Nueva persona";
 
-type CreationMode = "manual" | "interview";
-
-async function activateInterview(token: string, personaId: string, personaName: string) {
-  try {
-    const interview = await startInterview(token, "buyer_persona", personaId);
-    const store = useCopilotStore.getState();
-    store.setSession({
-      sectionKey: "brand.buyer-persona",
-      label: personaName,
-      entityId: personaId,
-      procedure: "interview",
-      sessionId: interview.session_id,
-      startedAt: new Date(),
-      snapshot: {},
-    });
-    store.setConversationId(interview.conversation_id);
-    store.addMessage({
-      id: crypto.randomUUID(),
-      role: "assistant",
-      content: interview.initial_message,
-      timestamp: Date.now(),
-    });
-    store.setSidebarState("rail");
-  } catch (err) {
-    console.error("Failed to start buyer persona interview", err);
-  }
-}
+type CreationMode = "manual" | "guided";
 
 function nextDefaultName(currentCount: number): string {
   return currentCount === 0 ? DEFAULT_PERSONA_NAME : `${DEFAULT_PERSONA_NAME} ${currentCount + 1}`;
@@ -60,6 +34,8 @@ export function BuyerPersonasDashboard() {
   const { navigate } = useNavigation();
   const params = useParams<{ tenantId: string }>();
   const tenantId = params?.tenantId ?? "";
+
+  const { sendMessage } = useCopilotChat();
 
   const [creating, setCreating] = useState<CreationMode | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -94,8 +70,17 @@ export function BuyerPersonasDashboard() {
           name: nextDefaultName(personas.length),
           scope: "GLOBAL",
         });
-        if (mode === "interview") {
-          await activateInterview(token, persona.id, persona.name);
+        if (mode === "guided") {
+          useCopilotStore.getState().openPanel();
+          // Best-effort guided trigger: if the chat stream fails we still
+          // navigate so the user can retry from the detail page.
+          try {
+            await sendMessage(
+              `Llama start_guided_setup con domain="buyer_persona" y entity_id="${persona.id}" para guiarme en esta buyer persona "${persona.name}".`,
+            );
+          } catch (sendErr) {
+            console.error("Failed to trigger guided setup", sendErr);
+          }
         }
         handleNavigate(persona.id);
       } catch (err) {
@@ -105,7 +90,7 @@ export function BuyerPersonasDashboard() {
         setCreating(null);
       }
     },
-    [creating, getToken, handleNavigate, personas.length],
+    [creating, getToken, handleNavigate, personas.length, sendMessage],
   );
 
   const handleRefetch = useCallback(() => {
@@ -162,7 +147,7 @@ function DashboardHeader({ onCreate, creating, disabled = false }: ActionsProps)
 
 function CreateActions({ onCreate, creating, disabled = false }: ActionsProps) {
   const handleManual = useCallback(() => onCreate("manual"), [onCreate]);
-  const handleInterview = useCallback(() => onCreate("interview"), [onCreate]);
+  const handleGuided = useCallback(() => onCreate("guided"), [onCreate]);
   const isDisabled = disabled || Boolean(creating);
   return (
     <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
@@ -174,8 +159,8 @@ function CreateActions({ onCreate, creating, disabled = false }: ActionsProps) {
         )}
         Modo Manual
       </Button>
-      <Button disabled={isDisabled} onClick={handleInterview} className="gap-2">
-        {creating === "interview" ? (
+      <Button disabled={isDisabled} onClick={handleGuided} className="gap-2">
+        {creating === "guided" ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
           <Sparkles className="h-4 w-4" />

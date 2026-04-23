@@ -50,7 +50,6 @@ class BuyerPersonaRepository:
             purchase_triggers=persona.purchase_triggers,
             anti_patterns=persona.anti_patterns,
             completeness_score=persona.completeness_score,
-            interview_session_id=persona.interview_session_id,
             is_active=persona.is_active,
         )
         self.db.add(db_model)

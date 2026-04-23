@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { startInterview } from "@/features/copilot/api/interview-api";
+import { useCopilotChat } from "@/features/copilot/hooks/use-copilot-chat";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 import { offerApi } from "@/features/offer-studio/api";
 import { useArchiveOffer } from "@/features/offer-studio/hooks/use-offer";
@@ -73,6 +73,8 @@ export function OfferStudioDashboard({
   });
 
   const error = queryError ? "No se pudieron cargar las ofertas." : null;
+
+  const { sendMessage: sendGuidedMessage } = useCopilotChat();
 
   // Wizard State
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -241,26 +243,15 @@ export function OfferStudioDashboard({
       if (newOffer.id) {
         setIsWizardOpen(false);
 
-        // Launch the copilot interview session for the new offer.
+        // Trigger guided setup through the main chat: the LLM answers with
+        // a ``start_guided_setup`` tool call, the SSE ``guided_started`` event
+        // installs the session server-side-driven.
         const store = useCopilotStore.getState();
-        const interview = await startInterview(token, "offer", newOffer.id);
-        store.setSession({
-          sectionKey: "offer.root",
-          label: wizardData.name,
-          entityId: newOffer.id,
-          procedure: "interview",
-          sessionId: interview.session_id,
-          startedAt: new Date(),
-          snapshot: {},
-        });
-        store.setConversationId(interview.conversation_id);
-        store.addMessage({
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: interview.initial_message,
-          timestamp: Date.now(),
-        });
+        store.openPanel();
         store.setSidebarState("rail");
+        await sendGuidedMessage(
+          `Llama start_guided_setup con domain="offer" y entity_id="${newOffer.id}" para guiarme en esta oferta "${wizardData.name}".`,
+        );
 
         navigate(`/${tenantId}/offer-studio/offer/${newOffer.id}`);
       }

@@ -53,6 +53,5 @@ class BuyerPersonaResponseDTO(BaseModel):
     purchase_triggers: list[str]
     anti_patterns: list[str]
     completeness_score: float
-    interview_session_id: UUID | None
     created_at: datetime | None
     updated_at: datetime | None

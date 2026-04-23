@@ -137,7 +137,7 @@ function renderUIAction(
           key={`checkpoint-${idx}`}
           blockId={action.block_id ?? ""}
           blockLabel={action.block_label ?? ""}
-          summary={action.summary ?? {}}
+          summary={typeof action.summary === "string" ? {} : (action.summary ?? {})}
           healthScore={action.health_score ?? 0}
           blocksProgress={action.blocks_progress ?? { completed: 0, total: 0 }}
           onConfirm={() => {

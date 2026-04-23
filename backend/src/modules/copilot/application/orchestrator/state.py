@@ -10,18 +10,18 @@ from langgraph.graph.message import add_messages
 class ClientContext(TypedDict, total=False):
     """Context sent from the frontend with each message.
 
-    Focus mode has been retired (CONTRACT §5 / user direction 2026-04-21):
-    per-entity scoped edits are now covered by ``selected_fields`` chips in
-    the conversation UI and the per-conversation mutation journal.
-    Interview mode stays alive via ``interview_session_id`` until its
-    migration to ``conversation.procedure_state`` lands (Phase B).
+    Focus mode was retired on 2026-04-21; the standalone interview engine was
+    consolidated into the main chat on 2026-04-22. Guided setup is now a flag
+    (``guided_mode``) — the actual state lives in
+    ``CopilotConversationModel.procedure_state["guided"]`` and is rehydrated
+    server-side.
     """
 
     current_route: str  # e.g. "/brand-studio/positioning"
     selected_fields: list[dict[str, str]]  # [{field_id, field_label, field_value}]
     form_data: dict[str, Any]  # Current form snapshot (partial)
     locale: str  # e.g. "es"
-    interview_session_id: str  # Active interview session UUID
+    guided_mode: bool  # True when a GuidedState is loaded for this conversation
 
 
 class CopilotState(TypedDict):
@@ -53,6 +53,10 @@ class CopilotState(TypedDict):
     # Active procedure (set by procedure tools)
     active_procedure: dict[str, Any] | None
 
+    # Active guided setup — rehydrated from procedure_state["guided"] per turn
+    # so tools can introspect it without an extra DB hit inside the graph.
+    guided_state: dict[str, Any] | None
+
     # Error tracking
     error: str | None
 
@@ -73,5 +77,6 @@ def create_initial_copilot_state(
         "pending_ui_actions": [],
         "active_tool_names": [],
         "active_procedure": None,
+        "guided_state": None,
         "error": None,
     }

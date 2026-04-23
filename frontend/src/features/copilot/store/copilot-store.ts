@@ -43,6 +43,10 @@ export interface UIAction {
     | "clarify_card"
     | "checkpoint_card"
     | "interview_complete"
+    | "guided_started"
+    | "guided_block_advanced"
+    | "guided_completed"
+    | "guided_ended"
     | "preview_update";
   route?: string;
   page_label?: string;
@@ -77,9 +81,23 @@ export interface UIAction {
   clarify_items?: { field_path: string; issue: string; options: string[] }[];
   block_id?: string;
   block_label?: string;
-  summary?: Record<string, string>;
+  summary?: Record<string, string> | string;
   health_score?: number;
   blocks_progress?: { completed: number; total: number };
+  // Guided setup fields
+  domain?: string;
+  entity_id?: string | null;
+  total_blocks?: number;
+  current_block?: {
+    id: string;
+    label: string;
+    description?: string;
+    field_paths?: string[];
+    coverage_threshold?: number;
+  };
+  completed_blocks?: string[];
+  persisted_fields?: string[];
+  reason?: string;
   card_status?: "pending" | "resolved" | "confirmed" | "revising";
   redirect?: string;
   delta?: Record<string, unknown>;
@@ -126,7 +144,8 @@ export type CopilotStatus = "idle" | "thinking" | "streaming" | "done";
 export type SidebarState = "collapsed" | "rail" | "full";
 
 /**
- * Active editing run. ``free`` = ambient copilot; ``interview`` = guided Q&A.
+ * Active editing run. ``free`` = ambient copilot; ``guided`` = structured
+ * step-by-step flow driven by the backend guided-setup tools.
  */
 export interface CopilotSession {
   /** Form-runtime section key, e.g. ``"brand.identity"`` or ``"offer.pricing"``. */
@@ -135,13 +154,16 @@ export interface CopilotSession {
   label: string;
   /** Entity being edited (brand/offer/persona). Null = implicit tenant-level. */
   entityId: string | null;
-  procedure: "free" | "interview";
-  /** Backend conversation id for interview procedures; null for ``free``. */
-  sessionId: string | null;
+  procedure: "free" | "guided";
+  /**
+   * Domain being guided: "brand" | "offer" | "buyer_persona". Only present when
+   * ``procedure === "guided"`` — free sessions leave it null.
+   */
+  domain?: string | null;
   progress?: {
     totalBlocks: number;
     blocksCompleted: string[];
-    currentBlock?: string;
+    currentBlock?: { id: string; label: string };
   };
   startedAt: Date;
   /** Field snapshot at session start — used for session-level undo. */

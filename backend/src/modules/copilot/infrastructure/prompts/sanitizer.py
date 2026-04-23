@@ -1,8 +1,9 @@
 """Prompt injection sanitization for Copilot system prompts.
 
-User-provided field values (brand name, description, interview answers, etc.)
-are inserted into Jinja2 system prompts. Without sanitization, a malicious
-value like "Ignore all previous instructions..." could manipulate the LLM.
+User-provided field values (brand name, description, chat-selected fields,
+etc.) are inserted into Jinja2 system prompts. Without sanitization, a
+malicious value like "Ignore all previous instructions..." could manipulate
+the LLM.
 
 Defence strategy:
   1. Wrap every user-controlled string in <user_data>…</user_data> XML tags.
@@ -15,7 +16,6 @@ Defence strategy:
 Usage (in graph.py before prompt_loader.render()):
     from src.modules.copilot.infrastructure.prompts.sanitizer import (
         sanitize_selected_fields,
-        sanitize_mapa_global,
     )
 """
 
@@ -79,24 +79,4 @@ def sanitize_selected_fields(
         if "field_label" in sanitized:
             sanitized["field_label"] = sanitize_user_value(sanitized["field_label"])
         result.append(sanitized)
-    return result
-
-
-def sanitize_mapa_global(
-    mapa: dict[str, Any],
-) -> dict[str, Any]:
-    """Return a sanitized copy of the interview mapa_global dict.
-
-    Interview values are typically strings (user answers). Lists/dicts
-    (e.g. structured sub-fields) are left unchanged.
-    None values are converted to ``""`` (no tag).
-    """
-    result: dict[str, Any] = {}
-    for key, value in mapa.items():
-        if value is None:
-            result[key] = ""
-        elif isinstance(value, str):
-            result[key] = sanitize_user_value(value)
-        else:
-            result[key] = value
     return result
