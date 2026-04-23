@@ -226,6 +226,47 @@ def resolve_landing_page_context(
 #  * ``suggest`` — never writes. Extraction is advisory.
 
 
+_TESTIMONIAL_AUTHOR_BLOCKLIST: frozenset[str] = frozenset(
+    {
+        "marca",
+        "brand",
+        "autor",
+        "cliente",
+        "testimonio",
+        "testimonial",
+    },
+)
+"""Author names the LLM occasionally invents when hallucinating a testimonial.
+
+These tend to appear when the page has team bios but no actual client voices —
+the model fills a ``{author: "Marca"}`` shell instead of leaving the testimonial
+list empty. Drop them rather than pollute the social_proof catalogue.
+"""
+
+
+def _is_junk_testimonial(
+    *,
+    author: str,
+    content: str | None,
+    team_names_lower: frozenset[str],
+) -> bool:
+    """Heuristic filter for extracted testimonials that are clearly not real.
+
+    Rules:
+      1. Empty or too-short content (< 30 chars) — real testimonials quote the
+         customer in at least a sentence.
+      2. Author name in the blocklist — LLM default placeholders.
+      3. Author name matches a known team member — the extractor conflated a
+         bio with a testimonial. Team members go through the team sync path.
+    """
+    if not content or len(content.strip()) < 30:
+        return True
+    author_lower = author.lower()
+    if author_lower in _TESTIMONIAL_AUTHOR_BLOCKLIST:
+        return True
+    return author_lower in team_names_lower
+
+
 def sync_testimonials_from_extraction(
     db: Session,
     *,
@@ -233,8 +274,14 @@ def sync_testimonials_from_extraction(
     user_id: UUID,
     mode: str,
     items: list[dict[str, Any]],
+    team_names: list[str] | None = None,
 ) -> int:
     """Write extracted testimonials into the social_proof bounded context.
+
+    ``team_names`` lets the caller pass the list of extracted team members so
+    testimonials that clearly match a team bio (same author name) are dropped
+    — a common LLM failure mode on pages with lots of founder bios and no
+    actual client quotes.
 
     Returns the number of newly created testimonials. Swallows and logs
     item-level validation errors — a single bad row never aborts the batch.
@@ -257,12 +304,32 @@ def sync_testimonials_from_extraction(
     elif mode == "update" and repo.list_by_tenant(tenant_id, active_only=True):
         return 0
 
+    team_names_lower = frozenset(n.lower() for n in (team_names or []) if n)
+    import structlog
+
+    log = structlog.get_logger(__name__)
+
     created = 0
     for raw in items:
         name = (raw.get("author_name") or raw.get("author") or "").strip()
         if not name:
             continue
         content = (raw.get("content") or raw.get("quote") or "").strip() or None
+        if _is_junk_testimonial(author=name, content=content, team_names_lower=team_names_lower):
+            if not content or len(content) < 30:
+                reason = "short_content"
+            elif name.lower() in _TESTIMONIAL_AUTHOR_BLOCKLIST:
+                reason = "blocklisted_author"
+            else:
+                reason = "team_bio_misclassified"
+            log.info(
+                "social_proof_sync_testimonial_skipped_junk",
+                tenant_id=str(tenant_id),
+                author=name,
+                reason=reason,
+            )
+            continue
+
         media_type = "video" if (raw.get("type") or raw.get("media_type")) == "video" else "text"
         try:
             service.create(
@@ -278,9 +345,7 @@ def sync_testimonials_from_extraction(
             )
             created += 1
         except Exception:  # noqa: BLE001 — extraction row quality is best-effort
-            import structlog
-
-            structlog.get_logger(__name__).warning(
+            log.warning(
                 "social_proof_sync_testimonial_failed",
                 tenant_id=str(tenant_id),
                 author=name,

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 import { useConversationDetail } from "../hooks/use-conversation-detail";
 import { useCopilotChat } from "../hooks/use-copilot-chat";
-import { useCopilotStore } from "../store/copilot-store";
+import { loadPersistedLastConversation, useCopilotStore } from "../store/copilot-store";
 
 import { ChatComposer } from "./composer/ChatComposer";
 import { ContextRotBanner } from "./ContextRotBanner";
@@ -60,12 +60,26 @@ export const CopilotChatPanel = memo(function CopilotChatPanel() {
   const status = useCopilotStore((s) => s.status);
   const conversationId = useCopilotStore((s) => s.conversationId);
   const setMessages = useCopilotStore((s) => s.setMessages);
+  const setConversationId = useCopilotStore((s) => s.setConversationId);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const [replyTo, setReplyTo] = useState<ReplyRef | null>(null);
 
   const { sendMessage, sendCardAction, stopStreaming } = useCopilotChat();
+
+  // Restore the last active conversation for this tenant after F5 / fresh tab.
+  // Persisted via ``setConversationId`` → ``persistLastConversation`` — keyed
+  // by the tenantId URL segment so switching tenants never resurrects the
+  // wrong transcript. Runs once on mount; the detail query then hydrates.
+  useEffect(() => {
+    if (conversationId) return;
+    const last = loadPersistedLastConversation();
+    if (last) setConversationId(last);
+    // Intentional one-shot: only on mount. Re-running would fight with
+    // setConversationId calls from SSE ``onDone`` / history panel clicks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Hydration of historical conversations ─────────────────────────────
   //

@@ -248,7 +248,11 @@ interface CopilotState {
   /** Replace the whole messages array (used when hydrating a historical conversation). */
   setMessages: (messages: CopilotMessage[]) => void;
   appendToLastAssistant: (chunk: string) => void;
-  addToolCallToLastAssistant: (tool: string, args?: Record<string, unknown>, jobId?: string) => void;
+  addToolCallToLastAssistant: (
+    tool: string,
+    args?: Record<string, unknown>,
+    jobId?: string,
+  ) => void;
   markLastToolCallComplete: (tool: string) => void;
   addUIActionToLastAssistant: (action: UIAction) => void;
   // [COPILOT-STREAMING-BLOCKS] — new block-streaming actions
@@ -323,6 +327,48 @@ export const MAX_MESSAGES = 100;
 
 /** localStorage key for persisting sidebar state */
 const SIDEBAR_STATE_KEY = "copilot.sidebarState";
+
+/** localStorage key prefix for persisting the active conversation per tenant.
+ *
+ * Keyed by tenantId so switching tenants doesn't resurrect the previous
+ * tenant's conversation. The tenant segment of the URL is the source of
+ * truth; the helper below extracts it without importing next/navigation
+ * (this store runs in both server and client contexts).
+ */
+const LAST_CONVERSATION_KEY_PREFIX = "copilot.lastConversation:";
+
+function currentTenantIdFromLocation(): string | null {
+  if (typeof window === "undefined") return null;
+  const segments = window.location.pathname.split("/").filter(Boolean);
+  // Tenant-scoped routes: /{tenantId}/... — the first segment is the uuid.
+  // Top-level pages (/sign-in, /onboarding, etc.) return null so we don't
+  // save a conversation against them.
+  const first = segments[0];
+  if (!first || first.length < 32) return null;
+  return first;
+}
+
+function persistLastConversation(convId: string | null): void {
+  if (typeof window === "undefined") return;
+  const tid = currentTenantIdFromLocation();
+  if (!tid) return;
+  const key = `${LAST_CONVERSATION_KEY_PREFIX}${tid}`;
+  if (convId) {
+    localStorage.setItem(key, convId);
+  } else {
+    localStorage.removeItem(key);
+  }
+}
+
+/**
+ *
+ */
+export function loadPersistedLastConversation(): string | null {
+  if (typeof window === "undefined") return null;
+  const tid = currentTenantIdFromLocation();
+  if (!tid) return null;
+  return localStorage.getItem(`${LAST_CONVERSATION_KEY_PREFIX}${tid}`);
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -423,7 +469,10 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
   messages: [],
   status: "idle",
 
-  setConversationId: (id) => set({ conversationId: id }),
+  setConversationId: (id) => {
+    persistLastConversation(id);
+    set({ conversationId: id });
+  },
 
   addMessage: (msg) => set((s) => ({ messages: appendWithLimit(s.messages, msg) })),
 
@@ -548,7 +597,10 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
 
   clearMessages: () => set({ messages: [] }),
 
-  resetConversation: () => set({ messages: [], conversationId: null, status: "idle" }),
+  resetConversation: () => {
+    persistLastConversation(null);
+    set({ messages: [], conversationId: null, status: "idle" });
+  },
 
   // Route
   currentRoute: null,
@@ -640,7 +692,7 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
   clearJob: (jobId) =>
     set((s) => {
       const next = { ...s.activeJobs };
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+
       delete next[jobId];
       return { activeJobs: next };
     }),

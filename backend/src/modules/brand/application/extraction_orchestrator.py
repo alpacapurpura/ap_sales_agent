@@ -533,6 +533,7 @@ class ExtractionOrchestrator:
 
         svc = self.service
         db = svc.db
+        team_names = [m.name for m in (team_members or []) if getattr(m, "name", None)]
         try:
             t_count = sync_testimonials_from_extraction(
                 db,
@@ -540,6 +541,7 @@ class ExtractionOrchestrator:
                 user_id=user_id,
                 mode=mode,
                 items=[t.model_dump(mode="json") for t in testimonials],
+                team_names=team_names,
             )
             a_count = sync_authority_items_from_extraction(
                 db,

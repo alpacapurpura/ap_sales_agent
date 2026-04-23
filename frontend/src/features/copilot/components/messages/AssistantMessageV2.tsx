@@ -51,7 +51,7 @@ export const AssistantMessageV2 = memo(function AssistantMessageV2({
       </div>
 
       {/* Content */}
-      <div className="max-w-[85%] space-y-2 flex-1">
+      <div className="relative max-w-[85%] space-y-2 flex-1">
         {message.toolCalls && message.toolCalls.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {message.toolCalls.map((tc, idx) => (
@@ -64,7 +64,11 @@ export const AssistantMessageV2 = memo(function AssistantMessageV2({
             ))}
           </div>
         )}
-        <div className="rounded-2xl rounded-bl-sm bg-slate-100 px-4 py-2.5 text-sm text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+        <div className="relative rounded-2xl rounded-bl-sm bg-slate-100 px-4 py-2.5 text-sm text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+          {/* Context menu — pinned to the bubble's top-right, only visible on hover */}
+          <div className="absolute right-1 top-1">
+            <MessageContextMenu message={message} onReply={onReply} />
+          </div>
           {isEmpty && isStreaming ? (
             <TypingIndicator />
           ) : message.blocks && message.blocks.length > 0 ? (
@@ -91,11 +95,6 @@ export const AssistantMessageV2 = memo(function AssistantMessageV2({
             </div>
           )}
         </div>
-      </div>
-
-      {/* Context menu — visible on group hover */}
-      <div className="absolute right-0 top-0 flex items-center">
-        <MessageContextMenu message={message} onReply={onReply} />
       </div>
     </div>
   );

@@ -97,8 +97,18 @@ function invalidateOnNewSections(
   const fresh = sectionsCompleted.filter((s) => !knownSections.has(s));
   if (fresh.length === 0 || !conversationId) return;
   for (const s of fresh) knownSections.add(s);
+  // ``invalidateQueries`` alone relies on an active observer refetching the
+  // stale key. In practice the conversation detail query can be idle for the
+  // poll window if the user scrolled away, so ``refetchQueries`` forces the
+  // hit regardless of subscriber state — pills need to land as soon as the
+  // worker writes them.
   void queryClient.invalidateQueries({
     queryKey: ["copilot", "conversation", conversationId],
+    refetchType: "all",
+  });
+  void queryClient.refetchQueries({
+    queryKey: ["copilot", "conversation", conversationId],
+    type: "active",
   });
 }
 

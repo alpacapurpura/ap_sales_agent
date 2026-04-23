@@ -68,7 +68,12 @@ def emit_section_complete_pill(
 
     page_label = f"✓ {section_label} lista · {fields_count} campos"
     module_slug = f"{module}-studio" if not module.endswith("-studio") else module
-    route = f"/{module_slug}/{section_slug}"
+    # Leave the ``{tenantId}`` placeholder literal — the FE navigator substitutes
+    # it at click-time from the current route. Hardcoding the tenant UUID here
+    # would bake stale state into persisted cards if the user ever switches
+    # tenants; shipping a path without the tenant segment sends the user to a
+    # not-found page because every studio route requires ``[tenantId]``.
+    route = f"/{{tenantId}}/{module_slug}/{section_slug}"
 
     # ``type`` must match the UIAction enum the frontend navigator switch-cases
     # on (see frontend/.../use-copilot-navigator.ts). Emitting "navigation_card"
@@ -140,11 +145,14 @@ def emit_extraction_summary_card(
 
     module_from_cta: str | None = None
     if primary_cta_route:
-        if primary_cta_route.startswith("/brand-studio"):
+        if "/brand-studio" in primary_cta_route:
             module_from_cta = "brand"
-        elif primary_cta_route.startswith("/offer-studio"):
+        elif "/offer-studio" in primary_cta_route:
             module_from_cta = "offer"
 
+    # ``{tenantId}`` placeholder (same convention as nav pills) — FE navigator
+    # replaces at click-time. Never bake a concrete tenant UUID here.
+    default_cta = f"/{{tenantId}}/brand-studio/{sections_completed[0]}" if sections_completed else None
     summary_payload = {
         "type": "extraction_summary",
         "source_ref": source_ref,
@@ -155,8 +163,7 @@ def emit_extraction_summary_card(
         "coverage_by_section": coverage_by_section,
         "strong_assumptions_count": 0,
         "open_questions_count": 0,
-        "primary_cta_route": primary_cta_route
-        or (f"/brand-studio/{sections_completed[0]}" if sections_completed else None),
+        "primary_cta_route": primary_cta_route or default_cta,
     }
 
     message = _build_card_message(
