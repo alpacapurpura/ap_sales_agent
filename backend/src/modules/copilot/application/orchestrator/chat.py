@@ -20,6 +20,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import time
 import uuid
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -39,6 +40,7 @@ from src.modules.assets.infrastructure.repositories.asset_repository import (
 )
 from src.modules.copilot.api.dto import ClientContextDTO, SSEEvent
 from src.modules.copilot.application.guided.persistence import read_state as read_guided_state
+from src.modules.copilot.application.observability import trace_recorder
 from src.modules.copilot.application.orchestrator.graph import copilot_graph
 from src.modules.copilot.application.orchestrator.state import (
     create_initial_copilot_state,
@@ -392,6 +394,34 @@ _EMIT_LEGACY_SSE: bool = os.environ.get("COPILOT_EMIT_LEGACY_SSE", "true").lower
 }
 
 
+_TRACE_PREVIEW_CHARS = 2_000
+
+
+def _truncate_for_trace(value: object) -> object:
+    """Shorten long strings + dicts for the trace ``data`` payload.
+
+    Keeps observability writes bounded without losing the head of a payload,
+    which is almost always enough for "why did this tool return X?" style
+    debugging.
+    """
+    if isinstance(value, str):
+        if len(value) > _TRACE_PREVIEW_CHARS:
+            return value[:_TRACE_PREVIEW_CHARS] + " [truncated]"
+        return value
+    if isinstance(value, dict):
+        try:
+            serialised = json.dumps(value, default=str)
+        except (TypeError, ValueError):
+            return {"__repr__": repr(value)[:_TRACE_PREVIEW_CHARS]}
+        if len(serialised) > _TRACE_PREVIEW_CHARS:
+            return {
+                "__truncated__": True,
+                "preview": serialised[:_TRACE_PREVIEW_CHARS],
+            }
+        return value
+    return value
+
+
 @dataclass
 class _StreamAccumulator:
     """Mutable accumulator shared between stream_chat and _run_graph_stream."""
@@ -404,6 +434,10 @@ class _StreamAccumulator:
     text_block_id: str | None = None
     text_block_markdown: str = ""
     block_index: int = 0
+    # Observability — populated by stream_chat, read by handlers for span
+    # parenting. Kept here (not in CopilotState) so the trace span tree can
+    # span the entire orchestrator call, including persistence.
+    recorder: object | None = None
 
 
 class CopilotOrchestrator:
@@ -523,8 +557,41 @@ class CopilotOrchestrator:
         usage = UsageAccumulator(model=_settings.get_model(ModelRole.AGENT))
         acc = _StreamAccumulator()
 
-        async for sse_str in self._run_graph_stream(state=state, usage=usage, acc=acc):
-            yield sse_str
+        # Open an observability turn envelope. Every LLM call / tool call /
+        # card emission records against this recorder so one SQL query per
+        # turn_id reconstructs the whole interaction timeline.
+        recorder = trace_recorder.start(
+            tenant_id=tenant_id,
+            user_id=user_id,
+            conversation_id=conv_uuid,
+        )
+        acc.recorder = recorder
+        turn_start_ts = time.monotonic()
+        recorder.record(
+            event_type="turn_start",
+            name="copilot_chat",
+            data={
+                "message_preview": message[:200],
+                "current_route": state.get("client_context", {}).get("current_route"),
+                "guided_mode": bool(state.get("client_context", {}).get("guided_mode")),
+                "attachment_count": len(blocks or []),
+            },
+        )
+
+        try:
+            async for sse_str in self._run_graph_stream(state=state, usage=usage, acc=acc):
+                yield sse_str
+        except Exception as exc:
+            recorder.record(
+                event_type="error",
+                name="stream_exception",
+                status="error",
+                data={
+                    "error_type": type(exc).__name__,
+                    "error_message": str(exc)[:500],
+                },
+            )
+            raise
 
         usage.log(conversation_id=conv_id, tenant_id=str(tenant_id))
 
@@ -536,6 +603,20 @@ class CopilotOrchestrator:
             acc.full_response,
             acc.messages,
             existing_conv,
+            emitted_blocks=list(acc.emitted_blocks),
+        )
+
+        recorder.record(
+            event_type="turn_end",
+            name="copilot_chat",
+            duration_ms=int((time.monotonic() - turn_start_ts) * 1000),
+            data={
+                "response_length": len(acc.full_response),
+                "message_count": len(acc.messages),
+                "block_count": len(acc.emitted_blocks),
+                "total_tokens": usage.total_tokens,
+                "model": usage.model,
+            },
         )
 
         yield SSEEvent(event="status", data={"state": "done"}).to_sse()
@@ -820,6 +901,7 @@ class CopilotOrchestrator:
         """
         tool_name = event.get("name", "unknown")
         tool_output = event.get("data", {}).get("output", "")
+        tool_input = event.get("data", {}).get("input", {})
 
         # Step 1 — emit legacy events via the existing handler
         result_sse = self._handle_tool_end(event, accumulated_messages, last_tool_call_ids)
@@ -854,6 +936,32 @@ class CopilotOrchestrator:
                     data={"message_id": msg_id, "block": card_block},
                 ).to_sse()
                 acc.emitted_blocks.append(card_block)
+                if acc.recorder is not None:
+                    acc.recorder.record(
+                        event_type="card_emitted",
+                        name=card_block.get("card_kind") or "card",
+                        data={
+                            "card_kind": card_block.get("card_kind"),
+                            "source_tool": tool_name,
+                            "payload_keys": list(action.keys()) if isinstance(action, dict) else [],
+                        },
+                    )
+
+        # Step 4 — persist a tool_call trace row so debugging is SQL-queryable.
+        if acc.recorder is not None:
+            tool_status = "ok"
+            if isinstance(parsed_output, dict) and parsed_output.get("status") == "error":
+                tool_status = "error"
+            output_preview = tool_output if isinstance(tool_output, str) else json.dumps(tool_output, default=str)
+            acc.recorder.record(
+                event_type="tool_call",
+                name=tool_name,
+                status=tool_status,
+                data={
+                    "args": _truncate_for_trace(tool_input),
+                    "output_preview": _truncate_for_trace(output_preview),
+                },
+            )
 
         return result_sse
 
@@ -866,8 +974,18 @@ class CopilotOrchestrator:
         full_response: str,
         accumulated_messages: list,
         existing_conv: CopilotConversationModel,
+        *,
+        emitted_blocks: list[dict] | None = None,
     ) -> None:
-        """Persist conversation messages to DB and Redis cache."""
+        """Persist conversation messages to DB and Redis cache.
+
+        ``emitted_blocks`` carries the canonical MessageBlock dicts produced
+        during streaming (text block finalization, card blocks, tool-result
+        blocks). They are attached to the LAST assistant message so that a
+        post-stream refetch of ``/copilot/conversations/{id}`` rebuilds the
+        same visual state — previously cards evaporated after the React
+        Query invalidation because the serializer only kept role+content.
+        """
         if not full_response and not accumulated_messages:
             return
 
@@ -880,6 +998,9 @@ class CopilotOrchestrator:
                 {"role": "user", "content": message},
                 {"role": "assistant", "content": full_response},
             ]
+
+        if emitted_blocks:
+            self._attach_blocks_to_last_assistant(new_messages, emitted_blocks)
 
         self.conv_repo.append_messages(conv_uuid, tenant_id, new_messages)
 
@@ -935,6 +1056,23 @@ class CopilotOrchestrator:
             )
         except Exception as e:  # noqa: BLE001 — Redis cache resilience
             logger.debug("redis_cache_error", error=str(e))
+
+    @staticmethod
+    def _attach_blocks_to_last_assistant(
+        serialized: list[dict],
+        emitted_blocks: list[dict],
+    ) -> None:
+        """Attach ``emitted_blocks`` to the last assistant message in-place.
+
+        The final AIMessage of a turn is what the UI renders as "the answer" —
+        cards + citations + tool results are all associated with it.
+        Intermediate AIMessages (inside a tool loop) keep their simple
+        role+content shape so they remain compatible with v1 consumers.
+        """
+        for msg in reversed(serialized):
+            if msg.get("role") == "assistant":
+                msg["blocks"] = emitted_blocks
+                return
 
     @staticmethod
     def _serialize_messages(messages: list) -> list[dict]:

@@ -1,20 +1,31 @@
-"""Streamlit admin panel entry point."""
+"""Streamlit admin panel entry point.
+
+Uses Streamlit's native multi-page routing via `st.navigation` so each option
+gets an explicit URL path (e.g. `/comando`, `/salud`). Browser refresh and
+deep links preserve the current page. To add a new option:
+
+1. Add the module under `src/admin/modules/` exposing a `render_*()` function.
+2. Create a matching file under `src/admin/pages/` that imports and calls it.
+3. Append a `PageSpec` to `PAGE_SPECS` below.
+
+Contract tests in `backend/tests/admin/test_admin_contract.py` enforce that
+every file in `pages/` is registered here and wired to a render function.
+"""
 
 import os
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 import streamlit as st
 
-# Add project root to path to import src modules
+# Add project root to path to import src modules (keeps CLI invocation simple).
 sys.path.append(str((Path(__file__).parent / "../..").resolve()))
 
-# --- Bootstrap all models so SQLAlchemy mapper resolves cross-module relationships ---
+# Bootstrap all SQLAlchemy mappers once so cross-module relationships resolve.
 import src.shared.infrastructure.model_registry  # noqa: F401
-from src.admin.modules.tenants import render_tenants_view
-from src.admin.modules.users import render_users_view
 
-# --- PAGE CONFIG ---
+# --- PAGE CONFIG (must run before any other st.* call) ---
 st.set_page_config(
     page_title=os.getenv("ADMIN_TITLE", "SaaS Admin Panel"),
     page_icon="🛠️",
@@ -35,72 +46,68 @@ st.markdown(
 )
 
 
+@dataclass(frozen=True)
+class PageSpec:
+    """Single entry in the admin navigation.
+
+    `slug` is both the URL path (`/<slug>`) and the filename
+    stem under `src/admin/pages/`. Keeping them identical lets the contract
+    test pair each file with its registration by filename alone.
+    """
+
+    slug: str
+    title: str
+    icon: str
+
+
+# Order here drives sidebar order. Default page = first entry.
+PAGE_SPECS: tuple[PageSpec, ...] = (
+    PageSpec(slug="comando", title="Comando Central", icon="🎯"),
+    PageSpec(slug="salud", title="Salud de Tenants", icon="🏥"),
+    PageSpec(slug="inteligencia", title="Inteligencia Copilot", icon="🧠"),
+    PageSpec(slug="conversaciones", title="Conversaciones", icon="💬"),
+    PageSpec(slug="trazas", title="Trazas Copilot", icon="🔬"),
+    PageSpec(slug="auditoria", title="Auditoría Sales Agent", icon="🔍"),
+    PageSpec(slug="knowledge", title="Knowledge Base", icon="📚"),
+    PageSpec(slug="capacidades", title="Capacidades Copilot", icon="🔧"),
+    PageSpec(slug="calendario", title="Calendario Comercial", icon="📅"),
+    PageSpec(slug="tenants", title="Tenants (Clientes)", icon="🏢"),
+    PageSpec(slug="usuarios", title="Usuarios", icon="👥"),
+)
+
+_PAGES_DIR = Path(__file__).parent / "pages"
+
+
+def _build_pages() -> list[st.Page]:
+    """Materialize `st.Page` objects from `PAGE_SPECS`."""
+    pages: list[st.Page] = []
+    for idx, spec in enumerate(PAGE_SPECS):
+        page_file = _PAGES_DIR / f"{spec.slug}.py"
+        pages.append(
+            st.Page(
+                str(page_file),
+                title=f"{spec.icon} {spec.title}",
+                url_path=spec.slug,
+                default=(idx == 0),
+            ),
+        )
+    return pages
+
+
 def main() -> None:
-    """Render the admin panel sidebar navigation and route to pages."""
+    """Render the admin panel shell and delegate to the active page."""
     st.sidebar.title("🛠️ Panel Admin")
     st.sidebar.caption(f"Env: {os.getenv('PROFILE', 'dev')}")
     st.sidebar.divider()
 
-    menu_options = {
-        "🎯 Comando Central": "home",
-        "🏥 Salud de Tenants": "health",
-        "🧠 Inteligencia Copilot": "events",
-        "💬 Conversaciones": "conversations",
-        "🔍 Auditoría Sales Agent": "sales_audit",
-        "📚 Knowledge Base": "knowledge",
-        "🔧 Capacidades Copilot": "capabilities",
-        "📅 Calendario Comercial": "commercial_calendar",
-        "🏢 Tenants (Clientes)": "tenants",
-        "👥 Usuarios": "users",
-    }
-
-    selection = st.sidebar.radio(
-        "Navegación",
-        list(menu_options.keys()),
-        index=0,
-    )
-
-    page = menu_options[selection]
-
-    if page == "home":
-        from src.admin.modules.home_dashboard import render_home_dashboard
-
-        render_home_dashboard()
-    elif page == "health":
-        from src.admin.modules.tenant_health import render_tenant_health
-
-        render_tenant_health()
-    elif page == "events":
-        from src.admin.modules.events import render_events_page
-
-        render_events_page()
-    elif page == "conversations":
-        from src.admin.modules.conversations import render_conversations_page
-
-        render_conversations_page()
-    elif page == "sales_audit":
-        from src.admin.modules.sales_audit import render_sales_audit_page
-
-        render_sales_audit_page()
-    elif page == "knowledge":
-        from src.admin.modules.knowledge import render_knowledge_page
-
-        render_knowledge_page()
-    elif page == "capabilities":
-        from src.admin.modules.capability_catalog import render_capability_catalog
-
-        render_capability_catalog()
-    elif page == "commercial_calendar":
-        from src.admin.modules.commercial_calendar import (
-            render_commercial_calendar_page,
-        )
-
-        render_commercial_calendar_page()
-    elif page == "tenants":
-        render_tenants_view()
-    elif page == "users":
-        render_users_view()
+    pages = _build_pages()
+    active = st.navigation(pages, position="sidebar", expanded=True)
+    active.run()
 
 
 if __name__ == "__main__":
+    main()
+else:
+    # Streamlit executes scripts top-to-bottom on every rerun, so call main()
+    # when imported as a Streamlit entrypoint too.
     main()
