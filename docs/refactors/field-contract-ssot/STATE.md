@@ -78,6 +78,7 @@ working_tree_clean: true
 | 2026-04-24 | 0104047c | Fase 03 C — BE brand section catalog + endpoint |
 | 2026-04-24 | c8dd78fd | Fase 03 D — FE brand consumes BE catalog (delete BRAND_SECTIONS) |
 | 2026-04-24 | bcf6bb49 | Fase 03 E — anti-drift arch test (no hardcoded section list) |
+| 2026-04-24 | 1187d447 | Fase 03 close — LEARNINGS + STATE/STATUS docs + Fase 04 ready |
 
 ## Convención de actualización
 
