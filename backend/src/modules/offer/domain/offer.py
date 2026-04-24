@@ -136,6 +136,16 @@ class Offer(BaseEntity):
 
     pricing_options: list[PricingStructure]
     price_pay_in_full: float | None = None
+
+    # --- Value-stack anchor (Fase 02 · Block B — FieldContract) ---
+    # USD anchor number surfaced on landing + sales-agent to frame the
+    # "valor vs precio" ratio. Separado del suma de perceived_value para
+    # permitir un round number defensivo (ej: 4344 → 4500).
+    total_perceived_value_anchor: float | None = None
+    # Frase de posicionamiento del stack: 2-3 líneas que resumen el
+    # trade-off valor↔precio. Reusada por landing generator + cierre
+    # del agente.
+    stack_positioning_statement: str | None = None
     # Optional: resolved to TenantLocale.currency at the application layer
     # when absent. Do not default to a hardcoded ISO code here.
     currency: str | None = None
@@ -389,6 +399,23 @@ class OfferValueStackUpdate(BaseEntity):
 
     deliverables: list[DeliverableItem] | None = None
     includes_offers: list[UUID] | None = None
+    total_perceived_value_anchor: float | None = Field(
+        None,
+        description=(
+            "Cifra de anclaje USD del stack. Landing la muestra como"
+            " 'Valor total USD 4.344 · Tu inversión USD 1.497'. Puede"
+            " ser la suma de deliverables.perceived_value o un round"
+            " number cercano."
+        ),
+    )
+    stack_positioning_statement: str | None = Field(
+        None,
+        description=(
+            "2-3 líneas resumiendo el trade-off valor↔precio. El agente"
+            " de ventas la cita en el cierre; landing la muestra debajo"
+            " del stack."
+        ),
+    )
 
 
 class OfferPricingUpdate(BaseEntity):

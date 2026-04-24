@@ -102,6 +102,11 @@ class OfferRepository:
             "installments_available": model.installments_available,
             "accepted_payment_providers": list(model.accepted_payment_providers or []),
             "deliverables": normalize_deliverables(model.deliverables or []),
+            # Value-stack anchor (Fase 02 · Block B)
+            "total_perceived_value_anchor": (
+                float(model.total_perceived_value_anchor) if model.total_perceived_value_anchor is not None else None
+            ),
+            "stack_positioning_statement": model.stack_positioning_statement,
             "archived_at": model.archived_at,
             "deleted_at": model.deleted_at,
         }
@@ -196,6 +201,9 @@ class OfferRepository:
             # Authority narrative (Fase 02 · Block A)
             authority_positioning_for_sales=offer.authority_positioning_for_sales,
             authority_notes=offer.authority_notes,
+            # Value-stack anchor (Fase 02 · Block B)
+            total_perceived_value_anchor=offer.total_perceived_value_anchor,
+            stack_positioning_statement=offer.stack_positioning_statement,
         )
 
     def get_by_id(

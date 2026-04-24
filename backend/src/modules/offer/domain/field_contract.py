@@ -154,11 +154,42 @@ INSTRUCTORS_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
 
 
 # ---------------------------------------------------------------------------
-# Registry (grows per phase — pricing in Fase 01, +instructors in Fase 02 A)
+# Value-stack section — anchor + positioning statement (Fase 02 · Block B)
+# ---------------------------------------------------------------------------
+
+VALUE_STACK_SECTION = "value_stack"
+
+VALUE_STACK_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
+    FieldContract(
+        path="total_perceived_value_anchor",
+        type="number",
+        owner=FieldOwner.OFFER,
+        section=VALUE_STACK_SECTION,
+        required=False,
+        notes=(
+            "USD anchor for the stack. Surfaced on landing and sales-agent"
+            " closing scripts as 'Valor total USD X · Tu inversión USD Y'."
+        ),
+    ),
+    FieldContract(
+        path="stack_positioning_statement",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=VALUE_STACK_SECTION,
+        required=False,
+        notes=(
+            "2-3 line statement framing the value/price trade-off. Reused by landing + sales-agent; additive render."
+        ),
+    ),
+)
+
+
+# ---------------------------------------------------------------------------
+# Registry (grows per phase — pricing F01, +instructors/value-stack F02)
 # ---------------------------------------------------------------------------
 
 _PHASE_01_CONTRACTS: tuple[FieldContract, ...] = PRICING_FIELD_CONTRACTS
-_PHASE_02_CONTRACTS: tuple[FieldContract, ...] = INSTRUCTORS_FIELD_CONTRACTS
+_PHASE_02_CONTRACTS: tuple[FieldContract, ...] = INSTRUCTORS_FIELD_CONTRACTS + VALUE_STACK_FIELD_CONTRACTS
 
 FIELD_CONTRACT_REGISTRY: tuple[FieldContract, ...] = _PHASE_01_CONTRACTS + _PHASE_02_CONTRACTS
 
@@ -181,7 +212,7 @@ class FieldContractRegistrySnapshot:
 
 
 # Bump when the registry changes materially.
-FIELD_CONTRACT_VERSION = "2026-04-24-fase-02-block-a-authority"
+FIELD_CONTRACT_VERSION = "2026-04-24-fase-02-block-b-value-stack-anchor"
 
 FIELD_CONTRACT_SNAPSHOT = FieldContractRegistrySnapshot(
     version=FIELD_CONTRACT_VERSION,

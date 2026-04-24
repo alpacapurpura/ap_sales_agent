@@ -2,7 +2,7 @@
 
 import uuid
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
 
@@ -120,6 +120,10 @@ class ProductModel(Base):
     # --- Authority narrative (Fase 02 · Block A) --------------------------
     authority_positioning_for_sales = Column(Text, nullable=True)
     authority_notes = Column(Text, nullable=True)
+
+    # --- Value-stack anchor (Fase 02 · Block B) ---------------------------
+    total_perceived_value_anchor = Column(Numeric(12, 2), nullable=True)
+    stack_positioning_statement = Column(Text, nullable=True)
 
     # --- Narrative: closing ----------------------------------------------
     refund_process_description = Column(Text, nullable=True)

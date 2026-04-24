@@ -51,9 +51,7 @@ const BACKEND_FIXTURE = path.resolve(
 const KNOWN_UNRESOLVED_PATHS = new Set<string>([
   // ── Fase 01 closed — pricing LATAM now lives on Offer (see commits B-F).
   // ── Fase 02 Block A closed — authority narrative lives on Offer.
-  // ── Fase 02 — Value-stack anchor (2) ────────────────────────────────
-  "total_perceived_value_anchor",
-  "stack_positioning_statement",
+  // ── Fase 02 Block B closed — value-stack anchor lives on Offer.
   // ── Fase 02 — Program narratives (2) ────────────────────────────────
   "specific_details.weekly_time_commitment_hours",
   "specific_details.prerequisites_text",
@@ -200,12 +198,13 @@ describe("Architecture: offer-studio schema paths resolve to BE Offer domain", (
     // equality catches accidental growth *and* stale caps when entries are
     // deleted without bumping the expectation.
     expect(KNOWN_UNRESOLVED_PATHS.size).toBe(ALLOWLIST_CAP);
-    // Fase 02 Block A closed (2026-04-24): authority narrative shipped →
-    // cap drops from 56 to 54 (2 paths closed). Previous caps:
+    // Fase 02 Block B closed (2026-04-24): value-stack anchor shipped →
+    // cap drops from 54 to 52 (2 paths closed). Previous caps:
     //   · ADR-007: 59 (Fase 00 baseline)
     //   · Fase 01 close: 56 (pricing LATAM, -3)
     //   · Fase 02 Block A close: 54 (-2)
+    //   · Fase 02 Block B close: 52 (-2)
     // Subsequent phases must only lower this, never raise without an ADR.
-    expect(ALLOWLIST_CAP).toBeLessThanOrEqual(54);
+    expect(ALLOWLIST_CAP).toBeLessThanOrEqual(52);
   });
 });

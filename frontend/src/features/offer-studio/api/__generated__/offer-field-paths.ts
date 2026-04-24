@@ -130,6 +130,7 @@ export type OfferFieldPath =
   | "specific_details.venue_address"
   | "specific_details.venue_name"
   | "specific_details.virtual_meeting_url"
+  | "stack_positioning_statement"
   | "status"
   | "status_drivers"
   | "support_duration_days"
@@ -137,6 +138,7 @@ export type OfferFieldPath =
   | "tax_included"
   | "tenant_id"
   | "time_to_value"
+  | "total_perceived_value_anchor"
   | "upsell_offer_id"
   | "urgency_drivers"
   | "value_level"
@@ -260,6 +262,7 @@ export const OFFER_FIELD_PATHS: readonly OfferFieldPath[] = [
   "specific_details.venue_address",
   "specific_details.venue_name",
   "specific_details.virtual_meeting_url",
+  "stack_positioning_statement",
   "status",
   "status_drivers",
   "support_duration_days",
@@ -267,6 +270,7 @@ export const OFFER_FIELD_PATHS: readonly OfferFieldPath[] = [
   "tax_included",
   "tenant_id",
   "time_to_value",
+  "total_perceived_value_anchor",
   "upsell_offer_id",
   "urgency_drivers",
   "value_level",
