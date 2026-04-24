@@ -91,6 +91,48 @@ Formato ADR minimalista. Append-only. No editar decisiones viejas — si invalid
 
 ---
 
+## ADR-007 — Allowlist cap de Fase 00 arranca en 59 (no 9)
+
+**Fecha**: 2026-04-24
+**Estado**: accepted
+**Contexto**: `PLAN.md` y `phases/00-guardrail/SPEC.md` predijeron que la
+allowlist `KNOWN_UNRESOLVED_PATHS` arrancaría con 9 paths (Capa A pricing +
+authority/value-stack/program narratives). El arch test corrido durante
+sub-step 3 encontró **59 paths** realmente huérfanos una vez se filtran
+sections `edition_level` y fields `owner: "edition"`.
+
+**Desglose**:
+| Origen | Paths | Fase que cierra |
+|---|---|---|
+| Pricing LATAM (SPEC original) | 3 | Fase 01 |
+| Authority / Value-stack / Program narratives (SPEC original) | 6 | Fase 02 |
+| SubscriptionDetails (renames `billing_cycle→frequency`, `content_update_freq` + 5 nuevos) | 7 | Fase 02 |
+| ServiceDetails (3 nuevos) | 3 | Fase 02 |
+| ProductDetails (5 nuevos) | 5 | Fase 02 |
+| PLATFORM archetype sin modelar en BE | 14 | Fase 02 |
+| Cross-module federados (assets, social-proof, scheduling, knowledge) | 21 | Fase 05 |
+
+**Decisión**: Ratchet arranca en 59 (valor actual). Test pasa hoy; cada
+fase subsiguiente baja el cap. Nunca subir sin ADR + PR que avance el plan.
+
+**Razón**:
+- El SPEC underestimó porque se basó en Capa A/B teórica sin auditar
+  `OFFER_SCHEMA_REGISTRY` entero.
+- Cerrar la brecha en Fase 00 inflaría la fase (implicaría migración de
+  SubscriptionDetails/ServiceDetails/ProductDetails + nuevo archetype
+  PLATFORM). Eso es Fase 02.
+- Preservar el espíritu del ratchet (shrink-only) es más importante que el
+  valor inicial.
+
+**Alternativas rechazadas**:
+- Limitar cap a 9 → test RED hoy, imposible mergear Fase 00.
+- Eliminar el test → elimina el mecanismo guardrail, contradice el objetivo
+  de la fase.
+- Excluir paths cross-module y platform-details de la auditoría → oculta
+  la deuda en vez de cuantificarla.
+
+---
+
 ## ADR-006 — Tech debt arreglada en la misma fase
 
 **Fecha**: 2026-04-24

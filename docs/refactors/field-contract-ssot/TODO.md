@@ -4,7 +4,7 @@ Próximas acciones + blockers + ideas fuera-de-scope capturadas.
 
 ## Próxima acción inmediata
 
-1. **Arrancar Fase 00** siguiendo [protocol/RESUME.md](protocol/RESUME.md) + [phases/00-guardrail/SPEC.md](phases/00-guardrail/SPEC.md).
+1. **Arrancar Fase 01** siguiendo [protocol/RESUME.md](protocol/RESUME.md) + [phases/01-field-contract-pilot-pricing/SPEC.md](phases/01-field-contract-pilot-pricing/SPEC.md).
 
 ## Blockers actuales
 
@@ -12,10 +12,15 @@ Ninguno.
 
 ## Pendientes por fase
 
-### Fase 00
-- Ver [phases/00-guardrail/ACCEPTANCE.md](phases/00-guardrail/ACCEPTANCE.md).
+### Fase 00 — DONE
+- Cerrada 2026-04-24. Commits `b7398ed0`, `2822b525`, `701f6f2d` + closing.
+- Allowlist ratchet fija en 59 (ADR-007). Fase 01 baja a 56.
 
-### Fase 01+
+### Fase 01 — Pricing LATAM
+- Reducir `KNOWN_UNRESOLVED_PATHS` en −3 (tax_included, installments_available, accepted_payment_providers).
+- Ver [phases/01-field-contract-pilot-pricing/SPEC.md](phases/01-field-contract-pilot-pricing/SPEC.md).
+
+### Fase 02+
 - Se actualizan al cerrar fase anterior.
 
 ## Fuera de scope — candidatos futuros

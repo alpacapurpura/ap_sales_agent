@@ -1,9 +1,9 @@
 ---
-last_updated: 2026-04-24 15:23
-last_green_commit: pending
-active_phase: 00-guardrail
-sub_step: 4/5 (done after commit)
-status: in-progress
+last_updated: 2026-04-24 15:30
+last_green_commit: 701f6f2d
+active_phase: 01-field-contract-pilot-pricing
+sub_step: 0/? (not started)
+status: ready-to-start
 blockers: none
 branch: development
 working_tree_clean: true
@@ -13,19 +13,20 @@ working_tree_clean: true
 
 ## Dónde estamos
 
-- **Fase activa**: 00-guardrail
-- **Sub-paso**: 0/5 — workspace creado, fase no arrancada
-- **Último commit verde**: `e8dd4bd5` (fix polling cap copilot)
+- **Fase activa**: 01-field-contract-pilot-pricing (ready)
+- **Sub-paso**: 0/? — fase abierta, sub-steps a definir al arrancar (SPEC refinement step)
+- **Último commit verde**: `701f6f2d` (arch test FE paths-resolve). El commit de cierre Fase 00 sucede al final de esta sesión, actualizar hash ahí.
 - **Rama**: `development`
-- **Working tree**: limpio (solo `.claude/scheduled_tasks.lock` per regla, ignorar)
+- **Working tree**: limpio (archivos de sesiones paralelas ignorados)
 
 ## Próxima acción
 
-**Arrancar Fase 0**. Seguir:
+**Arrancar Fase 01**. Seguir:
 1. Lee [protocol/RESUME.md](protocol/RESUME.md)
-2. Lee [phases/00-guardrail/SPEC.md](phases/00-guardrail/SPEC.md)
-3. Ejecutá [protocol/PRE_FLIGHT.md](protocol/PRE_FLIGHT.md)
-4. Comenzá sub-step 1/5: capturar golden baseline offer `a96403b5...`
+2. Lee [phases/01-field-contract-pilot-pricing/SPEC.md](phases/01-field-contract-pilot-pricing/SPEC.md)
+3. Refinar SPEC con sub-steps concretos (pricing migration + domain + DTO + prompt + codegen + schema unlock + sales-agent block + landing consume + golden roundtrip)
+4. Escribir ACCEPTANCE.md
+5. Ejecutá [protocol/PRE_FLIGHT.md](protocol/PRE_FLIGHT.md)
 
 ## Contexto mínimo
 
@@ -40,7 +41,11 @@ working_tree_clean: true
 | 2026-04-24 | e8dd4bd5 | Fix polling cap (fuera scope refactor, baseline — commit mío) |
 | 2026-04-24 | 595d5a84 | (paralelo) feat copilot+buyer-persona AI-led creation |
 | 2026-04-24 | 59c6c0bb | (paralelo) feat copilot registry-driven extraction |
-| 2026-04-24 | acbed37e | Workspace init `docs/refactors/field-contract-ssot/` (este turn) |
+| 2026-04-24 | acbed37e | Workspace init `docs/refactors/field-contract-ssot/` |
+| 2026-04-24 | e13f1d69 | Workspace sync con commits paralelos |
+| 2026-04-24 | b7398ed0 | Fase 00 sub-step 1/5 — golden baseline offer `a96403b5` |
+| 2026-04-24 | 2822b525 | Fase 00 sub-step 2/5 — generate_offer_field_paths.py + JSON (123 paths) |
+| 2026-04-24 | 701f6f2d | Fase 00 sub-step 3+4/5 — arch test FE paths-resolve + ratchet (59) |
 
 ## Convención de actualización
 
