@@ -1,6 +1,6 @@
 ---
 last_updated: 2026-04-24 15:30
-last_green_commit: 701f6f2d
+last_green_commit: ae0036cf
 active_phase: 01-field-contract-pilot-pricing
 sub_step: 0/? (not started)
 status: ready-to-start
@@ -15,7 +15,7 @@ working_tree_clean: true
 
 - **Fase activa**: 01-field-contract-pilot-pricing (ready)
 - **Sub-paso**: 0/? — fase abierta, sub-steps a definir al arrancar (SPEC refinement step)
-- **Último commit verde**: `701f6f2d` (arch test FE paths-resolve). El commit de cierre Fase 00 sucede al final de esta sesión, actualizar hash ahí.
+- **Último commit verde**: `ae0036cf` (closing commit Fase 00).
 - **Rama**: `development`
 - **Working tree**: limpio (archivos de sesiones paralelas ignorados)
 
@@ -46,6 +46,7 @@ working_tree_clean: true
 | 2026-04-24 | b7398ed0 | Fase 00 sub-step 1/5 — golden baseline offer `a96403b5` |
 | 2026-04-24 | 2822b525 | Fase 00 sub-step 2/5 — generate_offer_field_paths.py + JSON (123 paths) |
 | 2026-04-24 | 701f6f2d | Fase 00 sub-step 3+4/5 — arch test FE paths-resolve + ratchet (59) |
+| 2026-04-24 | ae0036cf | Fase 00 sub-step 5/5 — close phase: docs + ADR-007 + Fase 01 ready |
 
 ## Convención de actualización
 
