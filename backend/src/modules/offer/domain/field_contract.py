@@ -329,8 +329,63 @@ SERVICE_DETAILS_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
 
 
 # ---------------------------------------------------------------------------
+# Product details section — preview + physical logistics (Fase 02 · Block F)
+# ---------------------------------------------------------------------------
+
+PRODUCT_DETAILS_SECTION = "product_details"
+
+PRODUCT_DETAILS_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
+    FieldContract(
+        path="specific_details.sample_preview_url",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PRODUCT_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.PRODUCTO,),
+        notes="URL de sample gratuito — convierte 30-50% más.",
+    ),
+    FieldContract(
+        path="specific_details.packaging_description",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PRODUCT_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.PRODUCTO,),
+        notes="Experiencia unboxing (productos físicos). Compartible.",
+    ),
+    FieldContract(
+        path="specific_details.return_policy_days",
+        type="number",
+        owner=FieldOwner.OFFER,
+        section=PRODUCT_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.PRODUCTO,),
+        notes="Días de devolución. Mínimo legal AR/PE 7, CO 10, MX 30.",
+    ),
+    FieldContract(
+        path="specific_details.shipping_carriers_accepted",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PRODUCT_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.PRODUCTO,),
+        notes="Carriers Latam (Mercado Envíos, Andreani, OCA, Servientrega, etc).",
+    ),
+    FieldContract(
+        path="specific_details.shipping_estimate_by_region",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PRODUCT_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.PRODUCTO,),
+        notes="Tiempos por región (Capital/Interior/Internacional).",
+    ),
+)
+
+
+# ---------------------------------------------------------------------------
 # Registry (grows per phase — F01 pricing · F02 A authority B value-stack
-# C program D subscription E service)
+# C program D subscription E service F product)
 # ---------------------------------------------------------------------------
 
 _PHASE_01_CONTRACTS: tuple[FieldContract, ...] = PRICING_FIELD_CONTRACTS
@@ -340,6 +395,7 @@ _PHASE_02_CONTRACTS: tuple[FieldContract, ...] = (
     + PROGRAM_DETAILS_FIELD_CONTRACTS
     + SUBSCRIPTION_DETAILS_FIELD_CONTRACTS
     + SERVICE_DETAILS_FIELD_CONTRACTS
+    + PRODUCT_DETAILS_FIELD_CONTRACTS
 )
 
 FIELD_CONTRACT_REGISTRY: tuple[FieldContract, ...] = _PHASE_01_CONTRACTS + _PHASE_02_CONTRACTS
@@ -363,7 +419,7 @@ class FieldContractRegistrySnapshot:
 
 
 # Bump when the registry changes materially.
-FIELD_CONTRACT_VERSION = "2026-04-24-fase-02-block-e-service-details"
+FIELD_CONTRACT_VERSION = "2026-04-24-fase-02-block-f-product-details"
 
 FIELD_CONTRACT_SNAPSHOT = FieldContractRegistrySnapshot(
     version=FIELD_CONTRACT_VERSION,

@@ -32,7 +32,15 @@ class SessionDetails(BaseEntity):
 
 
 class ProductDetails(BaseEntity):
-    """Product Details."""
+    """Product Details.
+
+    Fase 02 · Block F adds:
+      - digital: ``sample_preview_url`` (30-50% conversion uplift when shared)
+      - physical: ``packaging_description`` (unboxing experience),
+        ``return_policy_days`` (Latam consumer-law floor),
+        ``shipping_carriers_accepted`` (carriers reales Latam, not UPS/FedEx),
+        ``shipping_estimate_by_region`` (reduce '¿cuándo llega?' tickets 60%).
+    """
 
     fulfillment_type: FulfillmentType | None = None
     access_url: HttpUrl | None = None
@@ -44,6 +52,12 @@ class ProductDetails(BaseEntity):
     sku_inventory_code: str | None = None
     stock_quantity: int | None = None
     shipping_weight_grams: int | None = None
+    # Fase 02 · Block F — digital preview + physical logistics ----------
+    sample_preview_url: HttpUrl | None = None
+    packaging_description: str | None = None
+    return_policy_days: int | None = None
+    shipping_carriers_accepted: str | None = None
+    shipping_estimate_by_region: str | None = None
 
     @model_validator(mode="after")
     def validate_fulfillment_logic(self) -> ProductDetails:

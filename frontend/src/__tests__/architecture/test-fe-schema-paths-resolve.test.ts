@@ -55,12 +55,7 @@ const KNOWN_UNRESOLVED_PATHS = new Set<string>([
   // ── Fase 02 Block C closed — program narratives live on ProgramDetails.
   // ── Fase 02 Block D closed — SubscriptionDetails renames + new fields.
   // ── Fase 02 Block E closed — ServiceDetails scope + expectation fields.
-  // ── Fase 02 — ProductDetails (5) ────────────────────────────────────
-  "specific_details.sample_preview_url",
-  "specific_details.packaging_description",
-  "specific_details.return_policy_days",
-  "specific_details.shipping_carriers_accepted",
-  "specific_details.shipping_estimate_by_region",
+  // ── Fase 02 Block F closed — ProductDetails preview + shipping fields.
   // ── Fase 02 — Platform archetype (14) ───────────────────────────────
   // PLATFORM / SAAS archetype is not yet modeled on BE. Either introduce
   // ``PlatformDetails`` or hoist these onto a new branch of Offer.
@@ -196,7 +191,8 @@ describe("Architecture: offer-studio schema paths resolve to BE Offer domain", (
     //   · Fase 02 Block C close: 50 (-2 program narratives)
     //   · Fase 02 Block D close: 43 (-7 subscription)
     //   · Fase 02 Block E close: 40 (-3 service scope)
+    //   · Fase 02 Block F close: 35 (-5 product preview + shipping)
     // Subsequent phases must only lower this, never raise without an ADR.
-    expect(ALLOWLIST_CAP).toBeLessThanOrEqual(40);
+    expect(ALLOWLIST_CAP).toBeLessThanOrEqual(35);
   });
 });

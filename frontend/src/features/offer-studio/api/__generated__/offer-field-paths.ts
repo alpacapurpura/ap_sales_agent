@@ -112,6 +112,7 @@ export type OfferFieldPath =
   | "specific_details.networking_events"
   | "specific_details.onboarding_brief_url"
   | "specific_details.onboarding_flow"
+  | "specific_details.packaging_description"
   | "specific_details.platform_name"
   | "specific_details.prerequisites_text"
   | "specific_details.primary_communication_channel"
@@ -120,10 +121,14 @@ export type OfferFieldPath =
   | "specific_details.requires_contract_signature"
   | "specific_details.requires_shipping"
   | "specific_details.response_time_hours"
+  | "specific_details.return_policy_days"
   | "specific_details.revision_rounds"
+  | "specific_details.sample_preview_url"
   | "specific_details.schedule"
   | "specific_details.scope_excluded"
   | "specific_details.session_duration_minutes"
+  | "specific_details.shipping_carriers_accepted"
+  | "specific_details.shipping_estimate_by_region"
   | "specific_details.shipping_weight_grams"
   | "specific_details.sku_inventory_code"
   | "specific_details.start_date"
@@ -254,6 +259,7 @@ export const OFFER_FIELD_PATHS: readonly OfferFieldPath[] = [
   "specific_details.networking_events",
   "specific_details.onboarding_brief_url",
   "specific_details.onboarding_flow",
+  "specific_details.packaging_description",
   "specific_details.platform_name",
   "specific_details.prerequisites_text",
   "specific_details.primary_communication_channel",
@@ -262,10 +268,14 @@ export const OFFER_FIELD_PATHS: readonly OfferFieldPath[] = [
   "specific_details.requires_contract_signature",
   "specific_details.requires_shipping",
   "specific_details.response_time_hours",
+  "specific_details.return_policy_days",
   "specific_details.revision_rounds",
+  "specific_details.sample_preview_url",
   "specific_details.schedule",
   "specific_details.scope_excluded",
   "specific_details.session_duration_minutes",
+  "specific_details.shipping_carriers_accepted",
+  "specific_details.shipping_estimate_by_region",
   "specific_details.shipping_weight_grams",
   "specific_details.sku_inventory_code",
   "specific_details.start_date",
