@@ -1,4 +1,5 @@
-import type { SectionSchema } from "@/lib/form-runtime/schema";
+import type { OfferFieldPath } from "../api/__generated__/offer-field-paths";
+import type { FieldSchema, SectionSchema } from "@/lib/form-runtime/schema";
 
 /**
  * Pricing — precio base offer-level + ventanas temporales edition-level
@@ -21,7 +22,17 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  * - IVA/IGV/ICMS incluido/no-incluido debe ser explícito — evita disputas.
  * - Para 🩺 salud: obras sociales/EPS aceptadas (OSDE, IMSS, Sura, etc.)
  *   se modelan como JSONB ``insurance_coverage`` cuando aplica.
+ *
+ * **Fase 01 FieldContract pilot:** ``path`` se tipa contra ``OfferFieldPath``
+ * (codegen desde ``Offer`` Pydantic). TSC error si se inventa un path. La
+ * excepción ``"pricing_tiers"`` vive aún en el owner ``edition`` y no
+ * aparece en ``OfferFieldPath`` — mantiene ``string`` por ahora hasta
+ * Fase 02 cuando ``LaunchEdition`` se agregue al codegen.
  */
+type OfferPricingField =
+  | (Omit<FieldSchema, "path"> & { path: OfferFieldPath; owner: "offer" })
+  | (Omit<FieldSchema, "path"> & { path: string; owner: "edition" });
+
 export const offerPricingSchema: SectionSchema = {
   key: "offer.pricing",
   scope: "mixed",
@@ -87,5 +98,5 @@ export const offerPricingSchema: SectionSchema = {
       action: "offer-pricing-tiers-builder",
       hint: "Early-bird → regular → last-call: cada tier es una ventana temporal con su precio. Al salir una ventana entra la siguiente automáticamente. Vacío = usa ``pricing_options`` base sin variación temporal.",
     },
-  ],
+  ] satisfies OfferPricingField[],
 };

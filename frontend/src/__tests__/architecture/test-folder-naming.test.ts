@@ -20,7 +20,7 @@ const KNOWN_BAD_FOLDERS = new Set<string>([]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const EXEMPT_PREFIXES = new Set(["__tests__", "__mocks__"]);
+const EXEMPT_PREFIXES = new Set(["__tests__", "__mocks__", "__generated__"]);
 
 describe("Architecture: Folder naming", () => {
   it("every directory under features/ must be kebab-case", () => {

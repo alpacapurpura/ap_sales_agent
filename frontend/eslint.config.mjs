@@ -470,6 +470,20 @@ export default [
     },
   },
 
+  // ─── Relax naming rules for codegen output ───
+  // ``__generated__/`` dirs mirror the ``__tests__/`` convention — they
+  // contain machine-written files (e.g. offer-field-paths.ts, regenerated
+  // by backend/scripts/generate_offer_field_paths.py). Typed path union
+  // codegen for the field-contract-ssot refactor (Fase 01).
+  {
+    files: ["**/__generated__/**"],
+    rules: {
+      "check-file/filename-naming-convention": "off",
+      "check-file/folder-naming-convention": "off",
+      "max-lines": "off",
+    },
+  },
+
   // ─── Ignore generated files ───
   {
     ignores: [
