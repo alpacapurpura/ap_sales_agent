@@ -31,6 +31,7 @@ type SharedSectionMetadata = {
   scope: SectionScope;
   completion_weight: number;
   required_to_publish: boolean;
+  kind: 'singleton' | 'collection';
 };
 
 /** Minimal archetype catalog — covers PROGRAMA, MEMBRESIA, PRODUCTO archetypes. */
@@ -45,6 +46,7 @@ function buildArchetypeCatalog(): ArchetypeCatalogResponse {
       scope: 'offer_level' satisfies SectionScope,
       completion_weight: 0.8,
       required_to_publish: true,
+      kind: 'singleton',
     },
     {
       key: 'promise' satisfies SectionKey,
@@ -55,6 +57,7 @@ function buildArchetypeCatalog(): ArchetypeCatalogResponse {
       scope: 'offer_level' satisfies SectionScope,
       completion_weight: 1.0,
       required_to_publish: true,
+      kind: 'singleton',
     },
     {
       key: 'pricing' satisfies SectionKey,
@@ -65,6 +68,7 @@ function buildArchetypeCatalog(): ArchetypeCatalogResponse {
       scope: 'mixed' satisfies SectionScope,
       completion_weight: 1.0,
       required_to_publish: true,
+      kind: 'singleton',
     },
     {
       key: 'closing' satisfies SectionKey,
@@ -75,6 +79,7 @@ function buildArchetypeCatalog(): ArchetypeCatalogResponse {
       scope: 'offer_level' satisfies SectionScope,
       completion_weight: 0.7,
       required_to_publish: false,
+      kind: 'singleton',
     },
   ];
 

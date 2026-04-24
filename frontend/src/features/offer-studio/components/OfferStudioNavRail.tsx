@@ -10,10 +10,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useSectionStatus } from "@/features/copilot/hooks/use-section-status";
 import { cn } from "@/lib/utils";
 
+import { useArchetypeCatalog } from "../hooks/use-archetype-catalog";
 import { useOffer } from "../hooks/use-offer";
 import { useSectionsForArchetype } from "../hooks/use-sections-for-archetype";
-import { OFFER_SECTIONS, type OfferSectionMeta } from "../lib/section-catalog";
+import { resolveIconByName } from "../lib/icon-name-resolver";
 
+import type { SectionMetadata } from "../api/archetype-catalog-api";
 import type { SectionStatusEntry } from "@/features/copilot/hooks/use-section-status";
 
 /**
@@ -31,11 +33,10 @@ import type { SectionStatusEntry } from "@/features/copilot/hooks/use-section-st
  * the offer via ``useOffer`` (React Query de-dupes with the parent shell
  * query). No prop drilling — callers just mount ``<OfferStudioNavRail />``.
  *
- * Sections shown per offer depend on the offer's archetype (via
- * ``useSectionsForArchetype``) intersected with ``OFFER_SECTIONS``. The
- * catalog order is preserved so UX stays stable across archetype switches.
- * While the offer is loading the full catalog renders so the rail is never
- * blank during the first paint.
+ * Sections shown per offer come from the per-archetype order declared in
+ * ``ArchetypeCapabilities.sections`` (BE canonical). While the offer is
+ * loading we fall back to the full ``section_catalog`` so the rail is
+ * never blank during the first paint.
  */
 export function OfferStudioNavRail() {
   const params = useParams<{ tenantId?: string; id?: string }>();
@@ -49,13 +50,10 @@ export function OfferStudioNavRail() {
     tenantId && offerId ? `/${tenantId}/offer-studio/offer/${offerId}/editor` : "";
 
   const sectionsMeta = useSectionsForArchetype(offer?.archetype);
-  const resolvedKeys = useMemo(
-    () => new Set(sectionsMeta?.map((s) => s.key) ?? []),
-    [sectionsMeta],
-  );
-  const visibleSections = useMemo(
-    () => OFFER_SECTIONS.filter((s) => resolvedKeys.size === 0 || resolvedKeys.has(s.slug)),
-    [resolvedKeys],
+  const { data: archetypeCatalog } = useArchetypeCatalog();
+  const visibleSections = useMemo<readonly SectionMetadata[]>(
+    () => sectionsMeta ?? archetypeCatalog?.section_catalog ?? [],
+    [sectionsMeta, archetypeCatalog],
   );
 
   const activeSlug = useMemo(
@@ -76,11 +74,11 @@ export function OfferStudioNavRail() {
         <ul className="flex flex-col">
           {visibleSections.map((section) => (
             <SectionRow
-              key={section.slug}
+              key={section.key}
               baseHref={resolvedBase}
               section={section}
-              isActive={section.slug === activeSlug}
-              statusEntry={sectionStatus[section.slug]}
+              isActive={section.key === activeSlug}
+              statusEntry={sectionStatus[section.key]}
             />
           ))}
         </ul>
@@ -91,18 +89,18 @@ export function OfferStudioNavRail() {
 
 interface SectionRowProps {
   baseHref: string;
-  section: OfferSectionMeta;
+  section: SectionMetadata;
   isActive: boolean;
   statusEntry?: SectionStatusEntry;
 }
 
 function SectionRow({ baseHref, section, isActive, statusEntry }: SectionRowProps) {
-  const Icon = section.icon;
+  const Icon = resolveIconByName(section.icon_name);
   const status = statusEntry?.status ?? "idle";
 
   const linkContent = (
     <Link
-      href={`${baseHref}/${section.slug}`}
+      href={`${baseHref}/${section.key}`}
       aria-current={isActive ? "page" : undefined}
       className={cn(
         "relative flex min-h-[36px] items-center gap-2 border-b border-border/50",
@@ -116,7 +114,7 @@ function SectionRow({ baseHref, section, isActive, statusEntry }: SectionRowProp
         aria-hidden="true"
       />
       <span className={cn("flex-1 truncate", isActive ? "text-foreground" : "text-foreground/90")}>
-        {section.label}
+        {section.label_es}
       </span>
       <SectionBadge statusEntry={statusEntry} />
       <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />

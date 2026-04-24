@@ -2,9 +2,12 @@
 
 import { useMemo } from "react";
 
+import { resolveIconByName } from "../lib/icon-name-resolver";
+
 import { useArchetypeCatalog } from "./use-archetype-catalog";
 
 import type { SectionKey, SectionMetadata } from "../api/archetype-catalog-api";
+import type { LucideIcon } from "lucide-react";
 
 /**
  * Returns the global section catalog keyed by ``SectionKey``.
@@ -38,4 +41,57 @@ export function useSectionMetadata(key: SectionKey | undefined): SectionMetadata
   const catalog = useSectionCatalog();
   if (!catalog || !key) return undefined;
   return catalog.get(key);
+}
+
+/**
+ * Pure helper — resolve a display label for an arbitrary slug against the
+ * loaded catalog map. Falls back to the slug itself when the catalog is
+ * loading or the slug is unknown (keeps the UI graceful during first paint
+ * + defensive for future slugs not yet in the enum).
+ *
+ * Exposed as a pure function (not a hook) so callers inside other pure
+ * functions — e.g. ``buildCrumbs`` in ``OfferStudioBreadcrumb`` — can use
+ * it without adding a Rules-of-Hooks violation.
+ */
+export function resolveSectionLabel(
+  catalog: ReadonlyMap<SectionKey, SectionMetadata> | undefined,
+  slug: string,
+): string {
+  return catalog?.get(slug as SectionKey)?.label_es ?? slug;
+}
+
+/**
+ * Pure helper — resolve a Lucide icon component for a slug. Falls back to
+ * ``Sparkles`` (via ``resolveIconByName``) when the catalog is loading or
+ * the slug is unknown. Keeps surfaces alive during first paint.
+ */
+export function resolveSectionIcon(
+  catalog: ReadonlyMap<SectionKey, SectionMetadata> | undefined,
+  slug: string,
+): LucideIcon {
+  const meta = catalog?.get(slug as SectionKey);
+  return resolveIconByName(meta?.icon_name);
+}
+
+/**
+ * Pure helper — true when the catalog declares a section as ``collection``
+ * (landing + detail routes, N-of-M items). False otherwise, including
+ * while loading (conservative default: singleton).
+ */
+export function resolveIsCollection(
+  catalog: ReadonlyMap<SectionKey, SectionMetadata> | undefined,
+  slug: string,
+): boolean {
+  return catalog?.get(slug as SectionKey)?.kind === "collection";
+}
+
+/**
+ * Convenience hook returning a stable label-resolver bound to the current
+ * catalog. Consumers that need to resolve many slugs in the same render
+ * (dropdowns, lists) prefer this over calling ``useSectionMetadata`` per
+ * slug.
+ */
+export function useSectionLabelResolver(): (slug: string) => string {
+  const catalog = useSectionCatalog();
+  return useMemo(() => (slug: string) => resolveSectionLabel(catalog, slug), [catalog]);
 }

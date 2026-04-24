@@ -22,6 +22,7 @@ const section = (
   scope: SectionMetadata["scope"],
   label_es: string,
   icon_name: string,
+  kind: SectionMetadata["kind"] = "singleton",
 ): SectionMetadata => ({
   key,
   label_es,
@@ -31,6 +32,7 @@ const section = (
   scope,
   completion_weight: 0.5,
   required_to_publish: false,
+  kind,
 });
 
 const IDENTITY = section("identity", "offer_level", "Identidad de oferta", "Fingerprint");
@@ -38,7 +40,7 @@ const STRATEGY = section("strategy", "offer_level", "Estrategia y avatar", "Targ
 const PSYCHOLOGY = section("psychology", "offer_level", "Psicología", "Brain");
 const PROMISE = section("promise", "offer_level", "Promesa", "Star");
 const VALUE_STACK = section("value_stack", "offer_level", "Stack de valor", "Layers");
-const INSTRUCTORS = section("instructors", "offer_level", "Instructores", "Users");
+const INSTRUCTORS = section("instructors", "offer_level", "Instructores", "Users", "collection");
 const KNOWLEDGE = section("knowledge", "offer_level", "Conocimiento", "Database");
 const CLOSING = section("closing", "offer_level", "Cierre", "CheckCircle");
 const PRODUCT_DETAILS = section("product_details", "offer_level", "Producto", "Package");
@@ -48,15 +50,15 @@ const SUBSCRIPTION_DETAILS = section(
   "Suscripción",
   "RefreshCw",
 );
-const GALLERY = section("gallery", "offer_level", "Galería", "Image");
+const GALLERY = section("gallery", "offer_level", "Galería", "Image", "collection");
 const EVENT_DETAILS = section("event_details", "edition_level", "Evento", "Calendar");
 const PRICING = section("pricing", "mixed", "Precios", "DollarSign");
 const PROGRAM_DETAILS = section("program_details", "mixed", "Programa", "BookOpen");
 const SERVICE_DETAILS = section("service_details", "mixed", "Servicio", "Briefcase");
 const RESOURCES = section("resources", "mixed", "Recursos", "Library");
-const FAQ = section("faq", "offer_level", "FAQ", "HelpCircle");
-const TESTIMONIALS = section("testimonials", "offer_level", "Testimonios", "Quote");
-const PORTFOLIO = section("portfolio", "offer_level", "Portfolio", "Trophy");
+const FAQ = section("faq", "offer_level", "FAQ", "HelpCircle", "collection");
+const TESTIMONIALS = section("testimonials", "offer_level", "Testimonios", "Quote", "collection");
+const PORTFOLIO = section("portfolio", "offer_level", "Portfolio", "Trophy", "collection");
 const LOCATION = section("location", "mixed", "Ubicación", "MapPin");
 const PLATFORM_DETAILS = section("platform_details", "offer_level", "Plataforma", "Cpu");
 

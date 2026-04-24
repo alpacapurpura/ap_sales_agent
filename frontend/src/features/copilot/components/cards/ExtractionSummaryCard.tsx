@@ -4,7 +4,7 @@ import { CheckCircle2 } from "lucide-react";
 import { memo } from "react";
 
 import { getBrandSectionLabel } from "@/features/brand-studio/lib/section-catalog";
-import { getOfferSectionLabel } from "@/features/offer-studio/lib/section-catalog";
+import { useSectionLabelResolver as useOfferSectionLabelResolver } from "@/features/offer-studio/hooks/use-section-catalog";
 import { cn } from "@/lib/utils";
 
 import { useCopilotNavigator } from "../../hooks/use-copilot-navigator";
@@ -18,18 +18,20 @@ interface ExtractionSummaryCardProps {
 
 /** Resolve a human-readable Spanish label for a section slug.
  *
- * The backend emits `label = slug` so that a single source of truth (the
- * frontend catalog) governs what the user sees. If `module` is absent or
- * the slug is unknown, we fall back to the label the payload already
- * carries, then to the slug itself.
+ * The backend emits ``label = slug`` so the single source of truth is the
+ * section catalog (offer-studio now served by the backend via
+ * ``useSectionCatalog``; brand-studio still FE-hardcoded until Block D).
+ * If ``module`` is absent or the slug is unknown, we fall back to the
+ * label the payload already carries, then to the slug itself.
  */
 function resolveSectionLabel(
   slug: string,
   payloadLabel: string,
   module: ExtractionSummaryData["module"],
+  resolveOfferLabel: (slug: string) => string,
 ): string {
   if (module === "brand") return getBrandSectionLabel(slug);
-  if (module === "offer") return getOfferSectionLabel(slug);
+  if (module === "offer") return resolveOfferLabel(slug);
   return payloadLabel || slug;
 }
 
@@ -70,11 +72,12 @@ export const ExtractionSummaryCard = memo(function ExtractionSummaryCard({
   } = data;
 
   const { executeAction } = useCopilotNavigator();
+  const resolveOfferLabel = useOfferSectionLabelResolver();
 
-  // Resolve display labels from the canonical FE catalog when possible.
+  // Resolve display labels from the canonical catalog when possible.
   const resolvedSections = coverage_by_section.map((s) => ({
     ...s,
-    label: resolveSectionLabel(s.slug, s.label, module),
+    label: resolveSectionLabel(s.slug, s.label, module, resolveOfferLabel),
   }));
 
   const primarySectionLabel = resolvedSections[0]?.label ?? "la sección principal";

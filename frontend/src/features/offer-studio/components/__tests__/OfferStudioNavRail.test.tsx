@@ -14,8 +14,28 @@ vi.mock("../../hooks/use-offer", () => ({
   useOffer: vi.fn().mockReturnValue({ offer: null }),
 }));
 
+// Fase 03 · Block B — NavRail now renders directly from SectionMetadata
+// emitted by the BE catalog, no FE ``OFFER_SECTIONS`` array. We stub the
+// archetype's section list with the minimal shape needed for the badge
+// assertions (``promise`` row is the one under test).
+const PROMISE_META = {
+  key: "promise",
+  label_es: "Promesa y resultado",
+  subtitle_es: "…",
+  help_text_es: "….…",
+  icon_name: "Star",
+  scope: "offer_level",
+  completion_weight: 1.0,
+  required_to_publish: true,
+  kind: "singleton",
+} as const;
+
 vi.mock("../../hooks/use-sections-for-archetype", () => ({
-  useSectionsForArchetype: vi.fn().mockReturnValue([]),
+  useSectionsForArchetype: vi.fn().mockReturnValue([PROMISE_META]),
+}));
+
+vi.mock("../../hooks/use-archetype-catalog", () => ({
+  useArchetypeCatalog: vi.fn().mockReturnValue({ data: undefined }),
 }));
 
 const mockSectionStatus = vi.fn(() => ({}) as Record<string, SectionStatusEntry>);

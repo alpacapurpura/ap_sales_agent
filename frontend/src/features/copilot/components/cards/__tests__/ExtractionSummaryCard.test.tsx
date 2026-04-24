@@ -11,6 +11,14 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
+// Fase 03 · Block B — ExtractionSummaryCard now consumes the BE section
+// catalog via ``useSectionLabelResolver`` (React Query). Tests stub it
+// with a plain identity resolver so they remain decoupled from the
+// catalog endpoint.
+vi.mock("@/features/offer-studio/hooks/use-section-catalog", () => ({
+  useSectionLabelResolver: () => (slug: string) => slug,
+}));
+
 import { ExtractionSummaryCard } from "../ExtractionSummaryCard";
 
 import type { ExtractionSummaryData } from "../../../types/message-blocks";

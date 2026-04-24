@@ -64,6 +64,15 @@ export type SectionKey =
  */
 export type SectionScope = "offer_level" | "edition_level" | "mixed";
 
+/**
+ * Editing UX mode for a section (Fase 03 · Block A).
+ *
+ * - ``singleton``: single-form section (identity, promise, pricing, etc.).
+ * - ``collection``: list-based section with landing + detail routes
+ *   (testimonials, portfolio, faq, gallery, instructors).
+ */
+export type SectionKind = "singleton" | "collection";
+
 export interface SectionMetadata {
   readonly key: SectionKey;
   readonly label_es: string;
@@ -78,6 +87,8 @@ export interface SectionMetadata {
   readonly completion_weight: number;
   /** Whether the section blocks offer publishing when empty. */
   readonly required_to_publish: boolean;
+  /** Fase 03 · Block A — drives FE rail/form-runtime rendering. */
+  readonly kind: SectionKind;
 }
 
 export interface ArchetypeCapabilities {
