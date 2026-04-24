@@ -13,7 +13,6 @@ from src.modules.offer.domain.extraction_section_map import (
     _DETAILS_BY_ARCHETYPE,
     BACKEND_WAVE_TO_FE_SLUGS,
     FE_SECTION_SLUGS,
-    OFFER_FIELDS_BY_FE_SECTION,
     fields_to_fe_sections,
     resolve_details_section,
 )

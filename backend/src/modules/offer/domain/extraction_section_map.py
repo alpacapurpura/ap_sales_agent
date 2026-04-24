@@ -5,12 +5,10 @@ Used by the extraction worker to group filled field paths by FE-aligned
 section slug — replacing the broken flat-key grouping in field_diff.
 
 Post field-contract-platform refactor (Fase 04), :func:`fields_to_fe_sections`
-derives the path→section mapping from the platform :data:`FIELD_CONTRACT_REGISTRY`
-in ``src.shared.domain.field_contract`` instead of a parallel manual dict.
-
-Legacy ``OFFER_FIELDS_BY_FE_SECTION`` survives during the deprecation window
-(Fase 04 sub-step G drops it). New consumers must use ``fields_by_section``
-from the platform module or ``fields_to_fe_sections`` here.
+derives the path→section mapping from the platform :data:`OFFER_FIELD_CONTRACTS`
+in ``src.shared.domain.field_contract``. The legacy manual dict
+``OFFER_FIELDS_BY_FE_SECTION`` was removed in sub-step 04.G — drift between
+parallel registries can no longer happen by construction.
 """
 
 from __future__ import annotations
@@ -49,70 +47,6 @@ FE_SECTION_SLUGS: frozenset[str] = frozenset(
         "knowledge",
     }
 )
-
-# Legacy manual mapping. Kept for back-compat (callers that import the
-# constant). Will be removed in Fase 04 sub-step G — consumers should
-# migrate to ``fields_by_section`` in the platform module.
-OFFER_FIELDS_BY_FE_SECTION: dict[str, tuple[str, ...]] = {
-    "identity": (
-        "public_name",
-        "internal_sku",
-        "headline_promise",
-        "primary_outcome",
-        "time_to_value",
-    ),
-    "promise": (
-        "requires_application",
-        "min_financial_capacity",
-        "prerequisites",
-        "before_state",
-        "after_state",
-        "why_now",
-        "measurable_outcomes",
-    ),
-    "strategy": (
-        "value_level",
-        "delivery_model",
-        "target_avatar_match",
-        "anti_avatar_keywords",
-    ),
-    "psychology": (
-        "marketing_pain_points",
-        "marketing_desires",
-        "objections",
-        "cultural_trust_barriers",
-        "emotional_triggers",
-        "status_drivers",
-        "regret_scenarios",
-    ),
-    "value_stack": (
-        "deliverables",
-        "includes_offers",
-    ),
-    "pricing": (
-        "pricing_options",
-        "price_pay_in_full",
-        "currency",
-    ),
-    "instructors": ("instructors",),
-    "closing": (
-        "guarantee_type",
-        "guarantee_terms",
-        "checkout_page_url",
-        "calendar_type_id",
-        "onboarding_action",
-        "onboarding_url",
-        "downsell_offer_id",
-        "upsell_offer_id",
-        "vsl_link",
-        "refund_process_description",
-        "urgency_drivers",
-        "scarcity_reason_honest",
-        "bonus_if_act_now",
-        "final_push_copy",
-        "support_duration_days",
-    ),
-}
 
 # Backend wave slug → FE slugs it contributes to.
 # A single backend wave can populate fields that land in multiple FE sections.
