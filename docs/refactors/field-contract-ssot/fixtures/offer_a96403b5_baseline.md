@@ -41,16 +41,24 @@ NO legítimo:
 
 ## Cómo regenerar
 
+El script corre dentro del container `visionarias_brain_dev` porque WSL2 no
+alcanza el bind de `visionarias_postgres` por `localhost`; solo la red
+interna de Docker lo resuelve.
+
 ```bash
-cd /home/chris/AISALESHT/backend && .venv/bin/python scripts/regenerate_offer_baseline.py \
-    --tenant-id 1fd1562b-2101-410a-870c-dc2f7e27b355 \
-    --offer-id a96403b5-c1db-4b31-97aa-cb18d08ad9f9 \
-    --output tests/modules/offer/fixtures/offer_a96403b5_baseline.json
+docker exec -w /app visionarias_brain_dev python \
+    scripts/capture_offer_a96403b5_baseline.py \
+    --output /tmp/offer_a96403b5_baseline.json
+
+docker cp visionarias_brain_dev:/tmp/offer_a96403b5_baseline.json \
+    backend/tests/modules/offer/fixtures/offer_a96403b5_baseline.json
+
+cd backend && .venv/bin/pytest tests/modules/offer/test_offer_a96403b5_baseline.py -v
 ```
 
-(Script a crearse en Fase 00 sub-step 1.)
-
-Revisar diff ANTES de commitear. Cualquier subtractive = STOP.
+Revisar diff ANTES de commitear. Cualquier subtractive = STOP. Entry en
+`LEARNINGS.md` (o `DECISIONS.md` ADR si el cambio es arquitectónico)
+documentando por qué se movió la baseline.
 
 ## Fields sensibles a regenerar con cuidado
 

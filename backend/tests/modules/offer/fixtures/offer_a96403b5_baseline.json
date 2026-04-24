@@ -1,0 +1,267 @@
+{
+  "_meta": {
+    "captured_by": "backend/scripts/capture_offer_a96403b5_baseline.py",
+    "excludes": [
+      "archived_at",
+      "deleted_at"
+    ],
+    "offer_id": "a96403b5-c1db-4b31-97aa-cb18d08ad9f9",
+    "tenant_id": "1fd1562b-2101-410a-870c-dc2f7e27b355"
+  },
+  "landing_config": {
+    "archetype": "THE_SQUEEZE",
+    "content": {
+      "bullets": [
+        "Sientes que trabajas incansablemente en tu negocio, pero los ingresos no reflejan tu esfuerzo — y el agotamiento se convierte en tu compañero constante.",
+        "Te frustra ver cómo otras emprendedoras logran posicionarse como referentes mientras tú luchas por encontrar tu voz y mensaje auténtico.",
+        "Publicas contenido constantemente, pero no logras conectar con tu audiencia — y empiezas a cuestionar si tu mensaje realmente resuena."
+      ],
+      "cta_text": "Quiero esto ahora",
+      "headline": "Transforma tu negocio en una marca auténtica, magnética y rentable en 8 semanas sin complicaciones técnicas",
+      "privacy_text": "Cuidamos tus datos.",
+      "subheadline": "Pasarás de sentirte estancada y sin un plan claro para avanzar a liderar con autenticidad, convirtiéndote en una referente en tu industria con un flujo constante de clientes que valoran lo que ofreces.",
+      "visual_url": null
+    },
+    "is_published": false,
+    "seo_description": "Transforma tu negocio en una marca auténtica, magnética y rentable en 8 semanas sin complicaciones técnicas",
+    "seo_title": "Programa de Proposito a Prosperidad",
+    "slug": "programa-de-proposito-a-prosperidad-a96403b5",
+    "theme": {
+      "dark_mode": false,
+      "font_pair": "SANS_SERIF",
+      "primary_color": "#000000",
+      "secondary_color": "#ffffff"
+    }
+  },
+  "offer_db_state": {
+    "access_duration": "limited_time",
+    "access_duration_text": "Acceso a las clases grabadas por 1 año",
+    "anti_avatar_keywords": [
+      "SKEPTIC",
+      "NEWBIE"
+    ],
+    "archetype": "programa",
+    "cultural_trust_barriers": [],
+    "currency": "PEN",
+    "deliverables": [
+      {
+        "format": "live_session",
+        "name": "Programa Intensivo de Emprendimiento Femenino: De Propósito a Prosperidad",
+        "quantity": "16 clases en vivo",
+        "value_stack_price": 997.0
+      },
+      {
+        "format": "live_session",
+        "name": "BONO: Masterclass de Diseño Humano para Emprendedoras",
+        "quantity": "1",
+        "value_stack_price": 197.0
+      },
+      {
+        "format": "live_session",
+        "name": "BONO: Masterclass de Storytelling Estratégico",
+        "quantity": "1",
+        "value_stack_price": 197.0
+      },
+      {
+        "format": "live_session",
+        "name": "BONO: Masterclass de E-commerce + Pauta Consciente",
+        "quantity": "1",
+        "value_stack_price": 197.0
+      },
+      {
+        "format": "service_hours",
+        "name": "BONO: Asesoría personalizada 1:1 de 30 minutos con Camila Clausen",
+        "quantity": "1 sesión de 30 minutos",
+        "value_stack_price": 150.0
+      },
+      {
+        "format": "video",
+        "name": "Acceso a las clases grabadas por 1 año",
+        "quantity": "Acceso por 1 año",
+        "value_stack_price": 297.0
+      },
+      {
+        "format": "template",
+        "name": "Plantillas y ejercicios prácticos para marca, ventas y comunicación",
+        "quantity": "Múltiples plantillas",
+        "value_stack_price": 197.0
+      }
+    ],
+    "delivery_model": "dwy",
+    "emotional_triggers": [],
+    "guarantee_terms": "",
+    "guarantee_type": "none",
+    "has_editions": true,
+    "headline_promise": "Transforma tu negocio en una marca auténtica, magnética y rentable en 8 semanas sin complicaciones técnicas",
+    "id": "a96403b5-c1db-4b31-97aa-cb18d08ad9f9",
+    "includes_offers": [],
+    "instructors": [],
+    "internal_sku": "",
+    "is_lead_magnet": false,
+    "marketing_desires": [
+      "Despertar cada mañana con claridad y propósito, sabiendo exactamente cómo comunicar tu mensaje y atraer a tu audiencia ideal.",
+      "Sentir la confianza de liderar con autenticidad, convirtiéndote en una referente en tu industria y atrayendo oportunidades de colaboración.",
+      "Ver cómo tu negocio se transforma en una marca magnética y deseable, con un flujo constante de clientes que valoran lo que ofreces.",
+      "Tener la seguridad de un embudo de ventas predecible que te permite planificar y crecer sin estrés ni improvisación.",
+      "Disfrutar de la libertad de trabajar en lo que amas, con un negocio que no solo es rentable, sino que también refleja tus valores y propósito."
+    ],
+    "marketing_pain_points": [
+      "Sientes que trabajas incansablemente en tu negocio, pero los ingresos no reflejan tu esfuerzo — y el agotamiento se convierte en tu compañero constante.",
+      "Te frustra ver cómo otras emprendedoras logran posicionarse como referentes mientras tú luchas por encontrar tu voz y mensaje auténtico.",
+      "Publicas contenido constantemente, pero no logras conectar con tu audiencia — y empiezas a cuestionar si tu mensaje realmente resuena.",
+      "Te sientes insegura al vender, temiendo que tu falta de confianza se refleje en tus resultados — y eso te impide cerrar ventas importantes.",
+      "Ves cómo otros negocios prosperan y crecen, mientras tú te sientes estancada y sin un plan claro para avanzar."
+    ],
+    "measurable_outcomes": [],
+    "metadata_info": {},
+    "min_financial_capacity": "LOW_INCOME",
+    "objections": [
+      {
+        "rebuttal": "Entiendo perfectamente — es una inversión importante y quieres asegurarte de que vale la pena. Déjame preguntarte algo: ¿cuánto te está costando AHORA no tener un sistema de ventas predecible? Si tu oferta actual te genera S/. 3,000 al mes y este programa te ayuda a llegar a S/. 10,000, el retorno se paga solo en el primer mes. ¿Te gustaría ver cómo otros en tu situación lo lograron?",
+        "strategy": "ROI Reframing",
+        "trigger_phrases": [
+          "es mucho dinero para mí",
+          "no sé si puedo pagarlo",
+          "no tengo el presupuesto ahorita"
+        ],
+        "type": "price"
+      },
+      {
+        "rebuttal": "Entiendo que tu tiempo es valioso y que estás ocupada. Sin embargo, este programa está diseñado precisamente para ayudarte a liberar tiempo al optimizar tus procesos y estrategias. ¿Qué pasaría si pudieras dedicar menos tiempo a tareas improductivas y más a lo que realmente importa? ¿Te gustaría explorar cómo podrías lograrlo?",
+        "strategy": "Time Paradox",
+        "trigger_phrases": [
+          "no tengo tiempo para esto",
+          "mi agenda está llena",
+          "no puedo comprometerme ahora"
+        ],
+        "type": "time"
+      },
+      {
+        "rebuttal": "Es completamente normal tener dudas, especialmente si has tenido experiencias pasadas que no cumplieron tus expectativas. Permíteme compartirte historias de otras emprendedoras como tú que han transformado sus negocios con este programa. ¿Te gustaría escuchar cómo lo hicieron y qué resultados obtuvieron?",
+        "strategy": "Social Proof",
+        "trigger_phrases": [
+          "no estoy segura si funcionará para mí",
+          "he probado otros programas sin éxito",
+          "no confío en los cursos online"
+        ],
+        "type": "trust"
+      }
+    ],
+    "prerequisites": [],
+    "preset_id": "coach_bootcamp",
+    "pricing_options": [],
+    "primary_outcome": "Pasarás de sentirte estancada y sin un plan claro para avanzar a liderar con autenticidad, convirtiéndote en una referente en tu industria con un flujo constante de clientes que valoran lo que ofreces.",
+    "public_name": "Programa de Proposito a Prosperidad",
+    "regret_scenarios": [],
+    "requires_application": false,
+    "shows_as_lead_magnet": false,
+    "specific_details": {
+      "community_platform": "none",
+      "current_enrollment_count": 0,
+      "curriculum": [
+        {
+          "description": "Reprograma tu cuerpo y mente para vender desde seguridad, confianza y suficiencia.",
+          "title": "Semana 1: La Neurociencia de la Abundancia",
+          "topics": [
+            "Neurohacking para ventas expansivas",
+            "Identifica y desactiva saboteadores internos",
+            "Regulación del sistema nervioso antes y después de vender",
+            "Relación con el dinero",
+            "Práctica diaria: autoanclaje de abundancia"
+          ]
+        },
+        {
+          "description": "Encarnar tu identidad como empresaria segura, elocuente y magnetizante.",
+          "title": "Semana 2: Identidad de una Empresaria Visionaria",
+          "topics": [
+            "Activar tu nueva identidad de liderazgo",
+            "Voz firme y emocionalmente inteligente",
+            "Prácticas corporales para sostenerte en visibilidad",
+            "Ritual: visualización + frase de poder + movimiento",
+            "Bonus: Masterclass de Diseño Humano para Emprendedoras"
+          ]
+        },
+        {
+          "description": "Conecta con tu propósito profundo y crea un relato magnético que inspire y venda.",
+          "title": "Semana 3: Propósito como Brújula",
+          "topics": [
+            "Tu propósito como faro estratégico",
+            "De tu historia a tu mensaje",
+            "Pitch de venta magnético",
+            "Arquetipos narrativos para tu marca",
+            "El magnetismo de la coherencia interna"
+          ]
+        },
+        {
+          "description": "Posiciónate como referente en tu campo. Construye una marca sólida, coherente y deseable.",
+          "title": "Semana 4: Raíces de una Marca de Alto Impacto + Storytelling",
+          "topics": [
+            "3P de las marcas poderosas",
+            "Universo de marca: simbología, tono y valores",
+            "La promesa de tu marca",
+            "Plantilla de posicionamiento emocional e intelectual",
+            "Bonus: Masterclass de Storytelling Estratégico"
+          ]
+        },
+        {
+          "description": "Diseña un flujo de ventas simple, poderoso y sostenible.",
+          "title": "Semana 5: Tu Embudo de Ventas + Cliente Ideal",
+          "topics": [
+            "Atracción, conexión, activación y conversión",
+            "Cliente ideal: lo que siente, teme y desea",
+            "Embudos con alma: procesos que cuidan a tu cliente",
+            "Herramientas digitales + automatizaciones",
+            "Plantilla: mapa de embudo + flujo emocional",
+            "Bonus: Masterclass de E-commerce + Pauta Consciente"
+          ]
+        },
+        {
+          "description": "Aprende a comunicar con claridad y emoción.",
+          "title": "Semana 6: Pilares de Contenido & Copy Persuasivo",
+          "topics": [
+            "4 pilares de contenido: educativo, emocional, autoridad, venta",
+            "Escritura emocionalmente inteligente",
+            "Storytelling + copy estratégico",
+            "Redacción de 3 posts activadores de ventas"
+          ]
+        },
+        {
+          "description": "Entiende tus números y KPIs a profundidad.",
+          "title": "Semana 7: Finanzas para emprendedoras",
+          "topics": [
+            "Flujo de Caja & PyL"
+          ]
+        },
+        {
+          "description": "Integra todo lo aprendido y activa una nueva forma de vender.",
+          "title": "Semana 8: Activando a mi Vendedora Magnética",
+          "topics": [
+            "Vender desde presencia, sin esfuerzo forzado",
+            "Conversaciones de venta que generan decisión",
+            "Cómo no perder oportunidades",
+            "Ritual de cierre: carta a mi versión pasada + declaración pública de poder"
+          ]
+        }
+      ],
+      "duration_weeks": 8,
+      "has_certification": false,
+      "homework_submission_required": false,
+      "interaction_type": "workshops",
+      "is_application_required": false,
+      "is_end_date_estimated": false,
+      "schedule": [],
+      "structure_type": "fixed_cohort"
+    },
+    "status": "draft",
+    "status_drivers": [],
+    "target_avatar_match": [
+      "ACHIEVER",
+      "RESEARCHER"
+    ],
+    "tenant_id": "1fd1562b-2101-410a-870c-dc2f7e27b355",
+    "time_to_value": "Primeros resultados en 8 semanas",
+    "urgency_drivers": [],
+    "value_level": "transformacion"
+  },
+  "rendered_identity_prompt": "# IDENTIDAD DEL AGENTE\n\n## Quién Eres\nEres el asistente de ventas de **Visionarias Latam**.\nTu lema: \"Tu negocio. Tu propósito. Tu libertad.\"\n**Propuesta de Valor:** Solo nosotros ofrecemos un enfoque integral que combina estrategia empresarial y bienestar personal porque entendemos que el éxito femenino va más allá de los números. (inferido)\n## Tu Voz y Tono\naspiracional, empoderador, inspirador\n\n## Historia de la Marca\nEn un mundo donde las mujeres enfrentan desafíos únicos en el ámbito empresarial, Ileana Tapia y Camila Clausen decidieron crear un espacio que no solo empodera, sino que transforma. Ileana, fundadora de Sicurezza, había experimentado de primera mano la presión y el agotamiento que conlleva liderar un negocio. Años de ansiedad y dolor físico la llevaron a un punto de inflexión donde priorizó su bienestar, multiplicando su compañía por diez. Por otro lado, Camila, tras el colapso de su primera ONG y enfrentarse a una gran deuda, encontró en el neurohacking y el coaching una nueva forma de vida. Juntas, estas mujeres visionarias decidieron que era hora de redefinir el éxito femenino, creando Visionarias Latam, un hub de emprendimiento femenino en Perú. Este espacio no solo busca crear negocios exitosos, sino también impulsar a mujeres imparables, liberando su mente, cuerpo, creatividad y abundancia.\n\n\n\n## Catálogo de Ofertas\n### Programa de Proposito a Prosperidad\n- **Tipo:** Bootcamp intensivo- **Qué es:** Cohorte intensiva de 1-4 semanas con entrada por lanzamiento. Compresión de tiempo genera urgencia y foco.- **Señales clave:** requires_start_date, supports_capacity- **Promesa:** Transforma tu negocio en una marca auténtica, magnética y rentable en 8 semanas sin complicaciones técnicas\n- **Resultado Principal:** Pasarás de sentirte estancada y sin un plan claro para avanzar a liderar con autenticidad, convirtiéndote en una referente en tu industria con un flujo constante de clientes que valoran lo que ofreces.\n- **Tiempo al Resultado:** Primeros resultados en 8 semanas\n- **Incluye:**\n  - Programa Intensivo de Emprendimiento Femenino: De Propósito a Prosperidad (live_session, 16 clases en vivo)\n  - BONO: Masterclass de Diseño Humano para Emprendedoras (live_session, 1)\n  - BONO: Masterclass de Storytelling Estratégico (live_session, 1)\n  - BONO: Masterclass de E-commerce + Pauta Consciente (live_session, 1)\n  - BONO: Asesoría personalizada 1:1 de 30 minutos con Camila Clausen (service_hours, 1 sesión de 30 minutos)\n  - Acceso a las clases grabadas por 1 año (video, Acceso por 1 año)\n  - Plantillas y ejercicios prácticos para marca, ventas y comunicación (template, Múltiples plantillas)\n- **Dolores que resuelve:** Sientes que trabajas incansablemente en tu negocio, pero los ingresos no reflejan tu esfuerzo — y el agotamiento se convierte en tu compañero constante., Te frustra ver cómo otras emprendedoras logran posicionarse como referentes mientras tú luchas por encontrar tu voz y mensaje auténtico., Publicas contenido constantemente, pero no logras conectar con tu audiencia — y empiezas a cuestionar si tu mensaje realmente resuena., Te sientes insegura al vender, temiendo que tu falta de confianza se refleje en tus resultados — y eso te impide cerrar ventas importantes., Ves cómo otros negocios prosperan y crecen, mientras tú te sientes estancada y sin un plan claro para avanzar.\n- **Deseos que satisface:** Despertar cada mañana con claridad y propósito, sabiendo exactamente cómo comunicar tu mensaje y atraer a tu audiencia ideal., Sentir la confianza de liderar con autenticidad, convirtiéndote en una referente en tu industria y atrayendo oportunidades de colaboración., Ver cómo tu negocio se transforma en una marca magnética y deseable, con un flujo constante de clientes que valoran lo que ofreces., Tener la seguridad de un embudo de ventas predecible que te permite planificar y crecer sin estrés ni improvisación., Disfrutar de la libertad de trabajar en lo que amas, con un negocio que no solo es rentable, sino que también refleja tus valores y propósito.\n- **Objeciones comunes y cómo manejarlas:**\n  - **PRICE** [ROI Reframing]: Entiendo perfectamente — es una inversión importante y quieres asegurarte de que vale la pena. Déjame preguntarte algo: ¿cuánto te está costando AHORA no tener un sistema de ventas predecible? Si tu oferta actual te genera S/. 3,000 al mes y este programa te ayuda a llegar a S/. 10,000, el retorno se paga solo en el primer mes. ¿Te gustaría ver cómo otros en tu situación lo lograron?\n    Frases del lead: es mucho dinero para mí / no sé si puedo pagarlo / no tengo el presupuesto ahorita  - **TIME** [Time Paradox]: Entiendo que tu tiempo es valioso y que estás ocupada. Sin embargo, este programa está diseñado precisamente para ayudarte a liberar tiempo al optimizar tus procesos y estrategias. ¿Qué pasaría si pudieras dedicar menos tiempo a tareas improductivas y más a lo que realmente importa? ¿Te gustaría explorar cómo podrías lograrlo?\n    Frases del lead: no tengo tiempo para esto / mi agenda está llena / no puedo comprometerme ahora  - **TRUST** [Social Proof]: Es completamente normal tener dudas, especialmente si has tenido experiencias pasadas que no cumplieron tus expectativas. Permíteme compartirte historias de otras emprendedoras como tú que han transformado sus negocios con este programa. ¿Te gustaría escuchar cómo lo hicieron y qué resultados obtuvieron?\n    Frases del lead: no estoy segura si funcionará para mí / he probado otros programas sin éxito / no confío en los cursos online\n## Conciencia de Ediciones (Cohortes)\nAlgunas ofertas se lanzan por ediciones (cohortes, salidas, convocatorias) en vez de estar siempre disponibles.\n\n**Reglas duras — NO negociables:**\n- Antes de proponer una edición, **siempre** llama la tool `list_public_editions` con el `offer_id`.\n- **Nunca** menciones ediciones en estado `DRAFT` o `CANCELLED`, ni ninguna con `visibility === PRIVATE`. Si la tool no devuelve ninguna edición pública, la oferta está en modo waitlist.\n- Si el lead expresa intent de compra:\n  1. Llama `list_public_editions(offer_id)` para ver qué está disponible.\n  2. Si hay edición pública: preséntasela (fecha, precio activo, plazas disponibles) y llama `create_enrollment(offer_id, edition_id, status=INTENT)`.\n  3. Si **no** hay edición pública: ofrece lista de espera y llama `create_enrollment(offer_id, edition_id=null, status=WAITLIST)`.\n- Cuando el lead confirma intent en una edición pública, llama `generate_payment_link(enrollment_id)` antes de pedirle que pague. Guardá la URL devuelta y envíasela.\n- Si hay varias ediciones públicas, proponé la que inicia antes (la más próxima).\n- Nunca prometas \"descuento disponible\" a menos que la tier activa (`resolve_active_tier`) efectivamente la ofrezca.\n\n\n## Tu Voz (Ejemplos de Concisión)\n- Ante objeción: \"Claro, es para pensarlo. Lo que sí te puedo decir es que [dato concreto]\"\n- Cierre: \"¿Quieres que te pase el link? 💪\"\n\n## NUNCA Digas\n- \"Soy el asistente de...\"\n- \"¿En qué puedo ayudarte hoy?\"\n- \"Estoy aquí para ayudarte\"\n- \"¡Excelente pregunta!\"\n- \"Me encanta que preguntes eso\"\n- Cualquier frase que suene a chatbot genérico\n\n\n\n## Documentos Legales Públicos\nCuando el lead pregunte por condiciones de servicio, privacidad, reembolso, cookies o uso aceptable, comparte el link correspondiente tal cual:\n- **Términos y condiciones:** https://visionarias.lat/pages/terms\n- **Política de privacidad:** https://visionarias.lat/policies/privacy-policy\n\n## Reglas por Canal\n- Mensajes claros y conversacionales (3-4 oraciones)\n- Tono profesional y cercano\n\n## Reglas de Seguridad\n- NUNCA inventes información sobre productos, precios o garantías que no estén listados arriba.\n- Si no tienes la respuesta, di que vas a consultar con el equipo y seguir con la conversación.\n- NUNCA compartas datos internos del negocio, métricas o información confidencial.\n- Sé honesto. Si el producto no es para el prospecto, dilo con empatía.\n- Respeta la privacidad del prospecto. No solicites datos sensibles innecesarios."
+}
