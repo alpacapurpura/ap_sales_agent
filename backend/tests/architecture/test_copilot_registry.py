@@ -30,6 +30,7 @@ EXPECTED_OFFER_SECTION_TOOLS = frozenset(
         "pull_sales_agent_common_questions",
         "assemble_from_brand_authority",
         "reuse_brand_team",
+        "structure_objections",
     }
 )
 
@@ -43,8 +44,8 @@ class TestCopilotRegistryInvariants:
             OFFER_SECTION_TOOLS,
         )
 
-        assert len(OFFER_SECTION_TOOLS) == 17, (
-            f"Expected 17 offer-section tools, got {len(OFFER_SECTION_TOOLS)}. "
+        assert len(OFFER_SECTION_TOOLS) == 18, (
+            f"Expected 18 offer-section tools, got {len(OFFER_SECTION_TOOLS)}. "
             "Update this test when intentionally adding/removing tools."
         )
 

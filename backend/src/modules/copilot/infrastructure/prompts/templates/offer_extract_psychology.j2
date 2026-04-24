@@ -86,7 +86,8 @@ CAMPOS A EXTRAER (OfferPsychologyUpdate):
 3. **objections** — Lista de 3-5 objeciones con rebuttals completos.
    Cada objecion es un JSON con estos campos:
 
-   - `type`: Categoria. Valores: "price", "time", "trust", "partner", "need", "custom"
+   - `type`: Categoria. Valores: "price", "time", "trust", "partner", "fit", "custom"
+     (Nota: "fit" reemplaza a "need" para objeciones "no es para mi / no soy el perfil")
 
    - `trigger_phrases`: Lista de 3-5 frases que el prospecto diria TEXTUALMENTE.
      Estas se usan como anclas semanticas para el agente de ventas.
@@ -102,10 +103,13 @@ CAMPOS A EXTRAER (OfferPsychologyUpdate):
      - "Social Proof" → Mostrar que otros en su situacion lo lograron
      - "Micro-Commitment" → Ofrecer paso intermedio mas pequeno
      - "Scarcity + Urgency" → Ventana limitada de oportunidad
+     - "Decision Facilitator" → Para objeciones de pareja/socio: facilitar la conversacion
+     - "Avatar Clarifier" → Para objeciones de fit: clarificar el perfil ideal
 
    - `rebuttal`: Script completo de respuesta (3-5 oraciones).
      Tono CONSULTIVO — ayudar a decidir, no presionar.
      Estructura: [Validar la preocupacion] → [Reencuadrar] → [Evidencia/ejemplo] → [Pregunta que avanza]
+     Usar tuteo latinoamericano neutro: "Entiendo tu preocupacion", no "Entendo tu preocupacion" (no voseo).
 
      Ejemplo de rebuttal para "price":
      "Entiendo perfectamente — es una inversion importante y quieres asegurarte de que vale la pena. Dejame preguntarte algo: ¿cuanto te esta costando AHORA no tener un sistema de ventas predecible? Si tu oferta actual te genera $3,000 al mes y este programa te ayuda a llegar a $10,000 (como le paso a Maria en 90 dias), el retorno se paga solo en el primer mes. ¿Te gustaria ver como otros en tu situacion lo lograron?"
@@ -117,13 +121,44 @@ CAMPOS A EXTRAER (OfferPsychologyUpdate):
    - Complejidad de la oferta
    - Nivel de compromiso requerido
 
+4. **cultural_trust_barriers** — Barreras culturales Latam que NO son objeciones clasicas de precio/tiempo.
+   Son fricciones especificas del mercado latinoamericano que bloquean la compra:
+   - Desconfianza a pagos online ("¿es seguro pagar con tarjeta?")
+   - Preferencia por comunicacion via WhatsApp antes de comprar
+   - Tarjetas internacionales rebotadas (MasterCard/Visa fuera de USA)
+   - Exigencia de factura o comprobante fiscal (B2B Latam)
+   - Expectativa de negociacion de precio ("¿me das descuento?")
+   - Desconfianza en garantias de devolucion ("¿de verdad me devuelven?")
+   Devolver como array de strings, uno por barrera. Devolver [] si no hay indicios.
+
+5. **emotional_triggers** — Miedos, deseos y aspiraciones que mueven la decision de compra.
+   Lenguaje emocional, NO racional. Captura lo que el avatar SIENTE, no lo que piensa.
+   - Miedos: "Miedo a haber tomado la decision equivocada otra vez"
+   - Aspiraciones: "Querer ser reconocido como experto en su industria"
+   - Valores: "Demostrarle a su familia que su negocio funciona"
+   Uno por item. Devolver [] si no hay indicios.
+
+6. **status_drivers** — Que cambia en la percepcion social del cliente cuando compra y tiene exito.
+   Son motivaciones de estatus y reconocimiento social:
+   - "Ser el profesional mas conocido en su ciudad"
+   - "Poder decir que trabaja con marcas internacionales"
+   - "Que sus colegas le pregunten como lo logro"
+   Uno por item. Devolver [] si no hay indicios.
+
+7. **regret_scenarios** — Situaciones futuras concretas donde el lead se va a arrepentir de no haber comprado hoy.
+   Son escenas vividas del futuro negativo, no amenazas abstractas:
+   - "En 6 meses vas a ver a tu competencia con el sistema que debiste implementar antes"
+   - "El proximo cliente que pierdas por no tener proceso de seguimiento sera el ultimo que te cueste no actuar"
+   Uno por item. Devolver [] si no hay indicios.
+
 REGLAS ADICIONALES:
-- TODO el texto DEBE estar en ESPANOL. Traducir si el sitio esta en otro idioma.
+- TODO el texto DEBE estar en ESPANOL latinoamericano neutro. Tuteo (tu/tienes/puedes), sin voseo (vos/tenes/podes). Traducir si el sitio esta en otro idioma.
 - Si hay DATOS ACTUALES, refinar y enriquecer, no reemplazar a ciegas.
 - Seguir INSTRUCCIONES DEL USUARIO estrictamente si se proporcionan.
 - Pain points y desires son COPY FINAL — se usan tal cual en landing pages, emails, anuncios.
 - Objeciones y rebuttals son SCRIPTS para el agente de ventas — deben sonar naturales y humanos.
 - Cada pain point debe tener su deseo opuesto (transformacion completa).
+- cultural_trust_barriers, emotional_triggers, status_drivers y regret_scenarios alimentan el sistema de confianza y cierre del agente de ventas.
 
 OUTPUT:
 Devolver un JSON valido que cumpla el schema OfferPsychologyUpdate.

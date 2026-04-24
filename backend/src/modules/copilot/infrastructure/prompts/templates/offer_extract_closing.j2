@@ -40,11 +40,49 @@ CAMPOS A EXTRAER (OfferClosingUpdate):
    Si la garantia es breve (ej: "Garantia de 30 dias"), expandir con el contexto disponible.
    Si guarantee_type es "none", devolver null.
 
+3. **refund_process_description** — Descripcion detallada de COMO se devuelve el dinero, no solo si se devuelve.
+   Desglosar por metodo de pago cuando sea posible: tarjeta credito/debito, Mercado Pago, transferencia bancaria, PayPal.
+   Esto combate la desconfianza Latam especifica — el comprador quiere saber el proceso real, no solo "te devolvemos".
+   Ejemplo: "Si solicitas el reembolso dentro de 30 dias, procesamos la devolucion en 5-7 dias habiles. Si pagaste con tarjeta de credito, el reembolso va directamente a tu tarjeta. Si pagaste por transferencia, necesitamos tus datos bancarios para depositar."
+   Buscar en: paginas de terminos y condiciones, FAQ sobre devoluciones, politica de reembolsos.
+   Devolver null si no hay informacion.
+
+4. **urgency_drivers** — Razones HONESTAS para comprar ahora (no falsas).
+   Evitar urgencia artificial ("solo quedan 2 lugares" sin fundamento real).
+   Preferir urgencia basada en costo de oportunidad real:
+   - "El precio sube el [fecha] porque agregamos X modulo"
+   - "La cohorte cierra el [fecha] para poder coordinar las sesiones en vivo"
+   - "Cada semana sin sistema predecible son N leads que se van a la competencia"
+   Buscar en: banners de countdown, copy de CTA, secciones "no esperes mas", emails de carrito abandonado.
+   Devolver como array de strings. Devolver [] si no hay datos honestos de urgencia.
+
+5. **scarcity_reason_honest** — Razon real de por que los cupos son limitados (si aplica).
+   La escasez debe tener fundamento logistico real: capacidad del experto, tamano del grupo para calidad, plataforma limitada.
+   Ejemplos honestos:
+   - "Limitamos a 20 personas porque cada participante tiene sesion 1:1 mensual con el mentor"
+   - "El espacio es fisico y tiene capacidad para 30 personas"
+   - "La atencion personalizada que ofrecemos no escala mas alla de X clientes activos"
+   Devolver null si no hay escasez real. NO inventar escasez falsa.
+
+6. **bonus_if_act_now** — Bonus condicional a decidir en una ventana de accion definida (distinto del valor-stack general).
+   Es el incentivo adicional por actuar rapido, con fecha limite clara.
+   Ejemplo: "Si te inscribes antes del viernes, recibes acceso a la masterclass de copywriting ($497 valor) sin costo adicional."
+   Buscar en: secciones de early-bird, bonos de urgencia, "si te inscribes hoy...".
+   Devolver null si no hay bonus de accion temprana.
+
+7. **final_push_copy** — Frase de cierre emocional para cuando el lead esta a un paso de decidir.
+   Directa, empatica, con recordatorio de garantia. NO presion, SI conviccion.
+   Ejemplo: "Si llegaste hasta aqui, algo en ti sabe que este es tu momento. Tienes 30 dias de garantia sin riesgo — la unica pregunta real es: ¿cuanto mas esperas para empezar?"
+   Buscar en: secciones finales de la landing, P.S. en emails de venta, ultimas lineas del copy antes del CTA.
+   Si no hay evidencia, INFERIR desde la promesa principal y la garantia. Agregar "(inferido)".
+
 REGLAS ADICIONALES:
-- TODO el texto extraido DEBE estar en ESPANOL. Traducir si el sitio esta en otro idioma.
+- TODO el texto extraido DEBE estar en ESPANOL latinoamericano neutro. Tuteo (tu/tienes), sin voseo (vos/tenes). Traducir si el sitio esta en otro idioma.
 - Si hay DATOS ACTUALES, solo actualizar si la nueva informacion es mas precisa o completa.
 - Seguir INSTRUCCIONES DEL USUARIO estrictamente si se proporcionan.
 - Si hay multiples garantias (ej: "30 dias sin preguntas + garantia de resultados a 90 dias"), elegir el tipo que mejor represente la garantia PRINCIPAL y detallar ambas en guarantee_terms.
+- urgency_drivers y scarcity_reason_honest: NUNCA inventar. Devolver [] / null si no hay evidencia real.
+- refund_process_description es crucial para el mercado Latam — extraer con maximo detalle posible.
 
 OUTPUT:
 Devolver un JSON valido que cumpla el schema OfferClosingUpdate.

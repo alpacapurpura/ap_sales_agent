@@ -199,6 +199,16 @@ async def run_offer_extraction(
         # subscriber inserts the nav pills into the conversation without waiting
         # for the job to finish. Subscriber is idempotent (Redis guard per
         # job+section) so a later terminal re-publish is a safe no-op.
+        #
+        # NOTE(CONTRACT §12 fields_count observability): fields_count here
+        # reflects the LLM-reported output (fields in _filled_by_section built
+        # from on_progress new_fields). It may overcount if the repo silently
+        # dropped a field during validation. The safety-net re-emit at job end
+        # uses post-diff data (more accurate) but idempotency Redis guard
+        # prevents it from updating the already-emitted pill.
+        # Fix tracked in docs/mejoras-proceso/to-do.md: remove idempotency
+        # guard from safety-net re-emit OR compute fields_count from a DB
+        # read-back before emitting the per-wave pill.
         if conversation_id:
             for fe_slug in newly_completed_fe_slugs:
                 _publish_section_completed_event(

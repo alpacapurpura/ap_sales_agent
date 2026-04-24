@@ -1305,6 +1305,148 @@ def reuse_brand_team() -> str:
 
 
 # ---------------------------------------------------------------------------
+# Tool 18 — Psychology: structure objections from raw text (paste-AI)
+# ---------------------------------------------------------------------------
+
+
+@tool
+def structure_objections(raw_text: str) -> str:
+    """Estructurar objeciones pegadas en texto libre a formato tipado.
+
+    Seccion: psychology.
+    El usuario pega texto (un email con dudas de prospectos, notas de
+    ventas, resumen de call) y devuelve objections[] estructuradas
+    con type/rebuttal/strategy/trigger_phrases listas para aplicar en el
+    aggregate Offer.
+
+    Args:
+        raw_text: Texto libre con las objeciones del prospecto. Obligatorio.
+
+    Returns:
+        JSON string con draft_fields.objections lista para aplicar.
+
+    """
+    import json
+
+    from pydantic import BaseModel, Field
+
+    from src.shared.application.ai_action_service import (
+        AIActionPolicy,
+        AIActionService,
+        AIModelPolicy,
+    )
+
+    tenant_id = get_tenant_id()
+    if not tenant_id:
+        return _no_data_response("psychology", "No se pudo determinar el tenant.")
+
+    if not raw_text or not raw_text.strip():
+        return _no_data_response(
+            "psychology",
+            "Necesito el texto con las objeciones pegadas. Pega el contenido y vuelve a intentarlo.",
+        )
+
+    # Local schema for LLM structured output (not exported — tool-private)
+    class _ObjectionItemOut(BaseModel):
+        type: str = Field(description="Categoria de la objecion. Valores: price, time, trust, partner, fit, custom.")
+        rebuttal: str = Field(
+            description=(
+                "Guion de respuesta del agente de ventas."
+                " Tuteo latinoamericano neutro (tu/tienes/puedes), sin voseo."
+                " Tono consultivo, 3-5 oraciones."
+            )
+        )
+        strategy: str = Field(
+            description=(
+                "Nombre corto de la estrategia de rebuttal."
+                " Ej: 'ROI Reframing', 'Risk Reversal', 'Decision Facilitator'."
+            )
+        )
+        trigger_phrases: list[str] = Field(
+            default_factory=list,
+            description=("Frases textuales que el prospecto diria. 2-4 frases como habla una persona real."),
+        )
+
+    class _StructureObjectionsOutput(BaseModel):
+        objections: list[_ObjectionItemOut] = Field(default_factory=list)
+
+    system_prompt = (
+        "Eres un experto en ventas consultivas para el mercado latinoamericano."
+        " Tu tarea: leer el texto con objeciones de prospectos y estructurarlas"
+        " en objections[] tipadas con type, rebuttal, strategy y trigger_phrases."
+        " Cada rebuttal debe estar en espanol latinoamericano neutro, tuteo (tu/tienes),"
+        " sin voseo (vos/tenes/podes). Tono consultivo, no manipulativo."
+        " Responde SOLO con JSON valido que cumpla el schema _StructureObjectionsOutput."
+        " Sin markdown, sin code blocks, sin texto adicional."
+        f"\n\nSCHEMA:\n{json.dumps(_StructureObjectionsOutput.model_json_schema(), indent=2)}"
+    )
+
+    try:
+        ai_svc = AIActionService()
+        policy = AIActionPolicy(
+            retries=2,
+            retry_delay_seconds=2.0,
+            model=AIModelPolicy(
+                model_type="reasoning",
+                temperature=0,
+                max_output_tokens=2000,
+            ),
+        )
+        result: _StructureObjectionsOutput = ai_svc.run_structured_action(
+            action_name="structure_objections",
+            tenant_id=tenant_id,
+            system_prompt=system_prompt,
+            user_prompt=f"Objeciones a estructurar:\n\n{raw_text[:4000]}",
+            response_model=_StructureObjectionsOutput,
+            policy=policy,
+            metadata={"section": "psychology", "tool": "structure_objections"},
+        )
+    except Exception:
+        logger.exception("structure_objections_llm_failed", tenant_id=str(tenant_id))
+        return _no_data_response(
+            "psychology",
+            "No se pudo estructurar las objeciones. Intenta de nuevo o hazlo manualmente.",
+        )
+
+    if not result.objections:
+        return _no_data_response(
+            "psychology",
+            "No encontre objeciones claras en el texto. Asegurate de pegar texto con dudas o frases de prospectos.",
+        )
+
+    # Map _ObjectionItemOut → dict compatible with ObjectionItem domain shape
+    objections_payload = [
+        {
+            "type": o.type,
+            "rebuttal": o.rebuttal,
+            "strategy": o.strategy,
+            "trigger_phrases": o.trigger_phrases,
+        }
+        for o in result.objections
+    ]
+
+    suggestions = [
+        f"Se estructuraron {len(result.objections)} objeciones desde el texto pegado.",
+        "Revisa los rebuttals — ajusta el tono si el agente necesita mas o menos formalidad.",
+        "Agrega trigger_phrases adicionales que escuches en tus llamadas reales.",
+    ]
+
+    logger.info(
+        "structure_objections_ok",
+        tenant_id=str(tenant_id),
+        objections_count=len(result.objections),
+        types=[o.type for o in result.objections],
+    )
+    return _ok_response(
+        "psychology",
+        {"objections": objections_payload},
+        suggestions,
+        0.8,
+        ["copilot:llm:structure_objections"],
+    )
+
+
+# ---------------------------------------------------------------------------
 # Exported group
 # ---------------------------------------------------------------------------
 
@@ -1326,4 +1468,5 @@ OFFER_SECTION_TOOLS = [
     pull_sales_agent_common_questions,
     assemble_from_brand_authority,
     reuse_brand_team,
+    structure_objections,
 ]

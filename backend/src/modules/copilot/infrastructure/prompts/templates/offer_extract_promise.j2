@@ -71,12 +71,38 @@ CAMPOS A EXTRAER (OfferPromiseUpdate):
    Si el contenido dice algo como "resultados inmediatos" o "desde la primera sesion", usar eso.
    Si no hay mencion de tiempo pero hay modulos/fases, inferir del cronograma.
 
+4. **before_state** — Como vive el cliente ANTES de la oferta. Descripcion concreta de su situacion dolorosa cotidiana.
+   NO abstracto ("tiene problemas") sino VIVIDO ("trabaja 12 horas y aun no llega a fin de mes").
+   Buscar en: secciones de dolor, copy de identificacion ("si te identificas con esto..."), testimonios de situacion previa.
+   Si no hay evidencia clara, INFERIR del arquetipo de avatar tipico. Agregar "(inferido)".
+
+5. **after_state** — Como vive el cliente DESPUES de completar la oferta. Evidencia concreta, no abstracta.
+   Modelo ESPECIFICO: "[accion concreta] + [resultado medible] + [cambio en identidad o estilo de vida]"
+   Ejemplo: "Genera 3-5 clientes nuevos por mes con un sistema automatizado, trabaja menos horas y por fin puede decir no a proyectos que no le gustan."
+   Buscar en: promesas de transformacion, "imagina que...", resultados de testimonios.
+
+6. **why_now** — Razon por la que postergar tiene costo concreto. Conecta con el costo real de inaccion.
+   Evitar escasez falsa ("solo quedan 5 lugares" sin justificacion).
+   Preferir costo de oportunidad REAL: "Cada mes sin sistema predecible son X leads perdidos."
+   Buscar en: secciones de urgencia, copy de CTA, FAQ sobre "por que ahora".
+   Si no hay evidencia, INFERIR desde el problema del avatar. Agregar "(inferido)".
+
+7. **measurable_outcomes** — Lista de resultados medibles concretos, uno por item. Idealmente con numeros.
+   Son la "prueba" de la promesa: transforman "mejora tu marketing" en "genera 20 leads/semana".
+   Cada item es una oracion corta con resultado cuantificado cuando sea posible.
+   Buscar en: secciones de beneficios con bullets, "al final de este programa...", testimonios con resultados especificos.
+   Ejemplos:
+   - "Genera $5,000 USD adicionales en los primeros 90 dias"
+   - "Lanza tu primera oferta digital en menos de 4 semanas"
+   - "Cierra 2-3 clientes nuevos por mes con tu nuevo script de ventas"
+   Devolver como array de strings. Devolver [] si no hay datos.
+
 REGLAS ADICIONALES:
-- TODO el texto DEBE estar en ESPANOL. Traducir si el sitio esta en otro idioma.
+- TODO el texto DEBE estar en ESPANOL latinoamericano neutro. Tuteo (tu/tienes), sin voseo (vos/tenes). Traducir si el sitio esta en otro idioma.
 - Si hay DATOS ACTUALES, solo actualizar si la nueva informacion es MEJOR.
 - La promesa debe ser tan especifica que el avatar pueda VISUALIZAR el resultado.
 - Evitar superlativos vacios ("el mejor", "increible", "revolucionario") — usar DATOS.
-- El primary_outcome sera usado literalmente en la landing page — redactarlo como copy final.
+- El primary_outcome y before/after_state seran usados literalmente en la landing page — redactarlos como copy final.
 
 OUTPUT:
 Devolver un JSON valido que cumpla el schema OfferPromiseUpdate.
