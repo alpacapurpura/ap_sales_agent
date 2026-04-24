@@ -38,10 +38,14 @@ class TestCatalogsRegistered:
     def test_offer_catalog_registered(self) -> None:
         assert len(get_catalog("offer")) > 0
 
+    def test_buyer_persona_catalog_registered(self) -> None:
+        assert len(get_catalog("buyer_persona")) > 0
+
     def test_known_domains_reported(self) -> None:
         domains = get_registered_domains()
         assert "brand" in domains
         assert "offer" in domains
+        assert "buyer_persona" in domains
 
 
 class TestCatalogIntegrity:

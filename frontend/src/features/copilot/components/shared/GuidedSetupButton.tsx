@@ -8,6 +8,7 @@ import { forwardRef, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { reportCopilotEvent } from "@/features/copilot/api/copilot-api";
 import { useCopilotChat } from "@/features/copilot/hooks/use-copilot-chat";
+import { canStartGuided, promptFor, routeFor } from "@/features/copilot/lib/guided-prompts";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 import { cn } from "@/lib/utils";
 
@@ -23,35 +24,6 @@ interface GuidedSetupButtonProps extends Omit<
   label?: string;
 }
 
-function routeFor(domain: string, tenantId: string, entityId?: string): string {
-  switch (domain) {
-    case "brand":
-      return `/${tenantId}/brand-studio`;
-    case "buyer_persona":
-      return entityId
-        ? `/${tenantId}/brand-studio/publico/persona/${entityId}`
-        : `/${tenantId}/brand-studio/publico`;
-    case "offer":
-      return entityId ? `/${tenantId}/offer-studio/offer/${entityId}` : `/${tenantId}/offer-studio`;
-    default:
-      return `/${tenantId}/${domain.replace("_", "-")}-studio`;
-  }
-}
-
-function promptFor(domain: string, entityId?: string): string {
-  const entity = entityId ? ` (id: ${entityId})` : "";
-  switch (domain) {
-    case "brand":
-      return `Llama start_guided_setup con domain="brand" para guiarme paso a paso en Brand Studio.`;
-    case "buyer_persona":
-      return `Llama start_guided_setup con domain="buyer_persona" y entity_id="${entityId ?? ""}"${entity} para guiarme en este buyer persona.`;
-    case "offer":
-      return `Llama start_guided_setup con domain="offer" y entity_id="${entityId ?? ""}"${entity} para guiarme en esta oferta.`;
-    default:
-      return `Llama start_guided_setup con domain="${domain}" para guiarme en este módulo.`;
-  }
-}
-
 /**
  * Triggers guided-setup mode by sending a message that the LLM answers with
  * the ``start_guided_setup`` tool call. The sidebar opens automatically and
@@ -60,6 +32,11 @@ function promptFor(domain: string, entityId?: string): string {
  * Replaces the old ``InterviewModeButton`` which hit a dedicated
  * ``/api/v1/copilot/interview/start`` endpoint. That endpoint has been
  * retired; guided flows now live entirely inside the main chat orchestrator.
+ *
+ * Para flujos donde el guided se dispara *después* de crear una entidad
+ * nueva (Crear oferta con IA, Crear buyer persona con IA), usar
+ * `useGuidedEntityCreation` — encapsula create + openPanel + sendMessage +
+ * navigate sobre el mismo contrato compartido.
  */
 export const GuidedSetupButton = forwardRef<HTMLButtonElement, GuidedSetupButtonProps>(
   function GuidedSetupButtonImpl(
@@ -79,11 +56,7 @@ export const GuidedSetupButton = forwardRef<HTMLButtonElement, GuidedSetupButton
 
       // buyer_persona + offer require an entity. If missing, just navigate
       // to the listing page (user will pick one there).
-      const canStart =
-        domain === "brand" ||
-        ((domain === "buyer_persona" || domain === "offer") && Boolean(entityId));
-
-      if (!canStart) {
+      if (!canStartGuided(domain, entityId)) {
         router.push(target);
         return;
       }

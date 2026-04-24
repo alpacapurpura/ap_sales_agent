@@ -23,6 +23,17 @@ vi.mock("@/features/brand-studio/hooks/use-buyer-personas", () => ({
   useBuyerPersonas: () => useBuyerPersonasMock(),
 }));
 
+// Mock the shared guided-entity-creation hook so the test does not need
+// ClerkProvider, the copilot store, the chat API or the SSE stream — those
+// belong to the hook's own unit test, not to PersonaDetailPage.
+vi.mock("@/features/copilot/hooks/use-guided-entity-creation", () => ({
+  useGuidedEntityCreation: () => ({
+    create: vi.fn().mockResolvedValue(undefined),
+    creating: false,
+    error: null,
+  }),
+}));
+
 const { useParams, useSearchParams } = await import("next/navigation");
 
 const useBuyerPersonaMock = vi.fn();

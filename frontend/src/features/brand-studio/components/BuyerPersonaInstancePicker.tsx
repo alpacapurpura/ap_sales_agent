@@ -1,28 +1,41 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
 import { InstancePicker, type InstancePickerInstance } from "@/components/form-runtime";
+import { useGuidedEntityCreation } from "@/features/copilot/hooks/use-guided-entity-creation";
 
 import { useBuyerPersonas } from "../hooks/use-buyer-personas";
+
+import type { BuyerPersona } from "@/lib/api/buyer-persona";
 
 export interface BuyerPersonaInstancePickerProps {
   tenantId: string;
   activePersonaId: string | null;
 }
 
+const DEFAULT_PERSONA_NAME = "Nueva persona";
+
+function nextDefaultName(currentCount: number): string {
+  return currentCount === 0 ? DEFAULT_PERSONA_NAME : `${DEFAULT_PERSONA_NAME} ${currentCount + 1}`;
+}
+
 /**
  * Column 2 of the Finder layout when the user is inside the Buyer Personas
- * section. Lists every persona for the current tenant, lets the user pick
- * one (navigates to /brand-studio/publico/persona/{id}) or create a new one.
+ * section. Lists every persona for the current tenant and triggers the
+ * AI-led create flow: the copilot opens in guided mode and the user can
+ * speak, paste a URL or upload a document to fill the persona end-to-end.
+ *
+ * "Manual" creation is intentionally not exposed — the copilot is the
+ * default entry point. If the chat is unavailable, the hook still navigates
+ * to the freshly-created persona so the user can edit it by hand from the
+ * detail page.
  */
 export function BuyerPersonaInstancePicker({
   tenantId,
   activePersonaId,
 }: BuyerPersonaInstancePickerProps) {
-  const router = useRouter();
-  const { personas, create, isCreating } = useBuyerPersonas();
+  const { personas, create } = useBuyerPersonas();
 
   const instances = useMemo<InstancePickerInstance[]>(
     () =>
@@ -35,18 +48,20 @@ export function BuyerPersonaInstancePicker({
     [personas],
   );
 
-  const handleCreate = useCallback(async () => {
-    if (isCreating) return;
-    const persona = await create({ name: "Nueva persona", scope: "GLOBAL" });
-    if (persona?.id) {
-      router.push(`/${tenantId}/brand-studio/publico/persona/${persona.id}`);
-    }
-  }, [create, isCreating, router, tenantId]);
+  const { create: handleCreate, creating } = useGuidedEntityCreation<BuyerPersona>({
+    domain: "buyer_persona",
+    tenantId,
+    createEntity: () =>
+      create({
+        name: nextDefaultName(personas.length),
+        scope: "GLOBAL",
+      }),
+  });
 
   return (
     <InstancePicker
       title="Personas"
-      createLabel={isCreating ? "Creando…" : "Crear nueva persona"}
+      createLabel={creating ? "Creando…" : "Crear nueva persona"}
       onCreate={handleCreate}
       activeInstanceId={activePersonaId}
       instances={instances}

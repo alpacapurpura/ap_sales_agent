@@ -7,17 +7,26 @@ import { BuyerPersonasDashboard } from "../BuyerPersonasDashboard";
 
 import type { BuyerPersona } from "@/lib/api/buyer-persona";
 
-const { mockList, mockCreate, mockSendMessage, mockOpenPanel, navigateMock } = vi.hoisted(() => ({
+const {
+  mockList,
+  mockCreate,
+  mockSendMessage,
+  mockOpenPanel,
+  mockRouterPush,
+  mockReportEvent,
+  navigateMock,
+} = vi.hoisted(() => ({
   mockList: vi.fn(),
   mockCreate: vi.fn(),
   mockSendMessage: vi.fn(),
   mockOpenPanel: vi.fn(),
+  mockRouterPush: vi.fn(),
+  mockReportEvent: vi.fn(),
   navigateMock: vi.fn(),
 }));
 
 const TEST_TOKEN = "test-token";
-const MODO_MANUAL = /modo manual/i;
-const MODO_INTELIGENTE = /modo inteligente/i;
+const CREATE_BUTTON = /crear nueva persona/i;
 const EMPTY_STATE_TITLE = "Sin Buyer Personas";
 
 vi.mock("@/lib/api/buyer-persona", () => ({
@@ -36,15 +45,16 @@ vi.mock("@/features/copilot/hooks/use-copilot-chat", () => ({
 }));
 
 vi.mock("@/features/copilot/store/copilot-store", () => {
-  const state = {
-    isOpen: false,
-    openPanel: mockOpenPanel,
-  };
+  const state = { isOpen: false, openPanel: mockOpenPanel };
   const useCopilotStore = (selector?: (s: typeof state) => unknown) =>
     selector ? selector(state) : state;
   useCopilotStore.getState = () => state;
   return { useCopilotStore };
 });
+
+vi.mock("@/features/copilot/api/copilot-api", () => ({
+  reportCopilotEvent: (...args: unknown[]) => mockReportEvent(...args),
+}));
 
 vi.mock("@clerk/nextjs", () => ({
   useAuth: () => ({ getToken: vi.fn().mockResolvedValue(TEST_TOKEN) }),
@@ -52,7 +62,7 @@ vi.mock("@clerk/nextjs", () => ({
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ tenantId: "t-1" }),
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: mockRouterPush }),
 }));
 
 vi.mock("@/components/shared/navigation", () => ({
@@ -108,12 +118,13 @@ describe("BuyerPersonasDashboard", () => {
     expect(screen.getAllByTestId("persona-skeleton").length).toBeGreaterThan(0);
   });
 
-  it("renders empty state with Modo Manual + Modo Inteligente buttons", async () => {
+  it("empty state shows a single AI-led create button", async () => {
     mockList.mockResolvedValue([]);
     renderDashboard();
     await waitFor(() => expect(screen.getByText(EMPTY_STATE_TITLE)).toBeTruthy());
-    expect(screen.getAllByRole("button", { name: MODO_MANUAL })[0]).toBeTruthy();
-    expect(screen.getAllByRole("button", { name: MODO_INTELIGENTE })[0]).toBeTruthy();
+    // Header + EmptyState render the action — both must use the same single button.
+    const buttons = screen.getAllByRole("button", { name: CREATE_BUTTON });
+    expect(buttons.length).toBeGreaterThan(0);
   });
 
   it("renders a card per persona with name, tagline, completeness and primary badge", async () => {
@@ -161,26 +172,7 @@ describe("BuyerPersonasDashboard", () => {
     expect(screen.getByRole("button", { name: /reintentar/i })).toBeTruthy();
   });
 
-  it("Modo Manual creates a persona and navigates without triggering guided setup", async () => {
-    const user = userEvent.setup();
-    mockList.mockResolvedValue([]);
-    mockCreate.mockResolvedValue(makePersona({ id: "new-id", name: "Nueva persona" }));
-    renderDashboard();
-
-    await waitFor(() => expect(screen.getByText(EMPTY_STATE_TITLE)).toBeTruthy());
-    await user.click(screen.getAllByRole("button", { name: MODO_MANUAL })[0]);
-
-    await waitFor(() =>
-      expect(mockCreate).toHaveBeenCalledWith(
-        TEST_TOKEN,
-        expect.objectContaining({ name: "Nueva persona", scope: "GLOBAL" }),
-      ),
-    );
-    expect(mockSendMessage).not.toHaveBeenCalled();
-    expect(navigateMock).toHaveBeenCalledWith("/t-1/brand-studio/publico/persona/new-id");
-  });
-
-  it("Modo Inteligente creates a persona, triggers guided setup via chat, and navigates", async () => {
+  it("Crear nueva persona creates the persona, opens copilot panel, sends guided prompt and navigates", async () => {
     const user = userEvent.setup();
     mockList.mockResolvedValue([]);
     mockCreate.mockResolvedValue(makePersona({ id: "smart-id", name: "Nueva persona" }));
@@ -188,16 +180,21 @@ describe("BuyerPersonasDashboard", () => {
     renderDashboard();
 
     await waitFor(() => expect(screen.getByText(EMPTY_STATE_TITLE)).toBeTruthy());
-    await user.click(screen.getAllByRole("button", { name: MODO_INTELIGENTE })[0]);
+    await user.click(screen.getAllByRole("button", { name: CREATE_BUTTON })[0]);
 
-    await waitFor(() => expect(mockCreate).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(mockCreate).toHaveBeenCalledWith(
+        TEST_TOKEN,
+        expect.objectContaining({ name: "Nueva persona", scope: "GLOBAL" }),
+      ),
+    );
     await waitFor(() => expect(mockOpenPanel).toHaveBeenCalled());
     await waitFor(() =>
       expect(mockSendMessage).toHaveBeenCalledWith(
         expect.stringContaining('start_guided_setup con domain="buyer_persona"'),
       ),
     );
-    expect(navigateMock).toHaveBeenCalledWith("/t-1/brand-studio/publico/persona/smart-id");
+    expect(mockRouterPush).toHaveBeenCalledWith("/t-1/brand-studio/publico/persona/smart-id");
   });
 
   it("still navigates to detail if guided trigger throws (persona was created)", async () => {
@@ -208,11 +205,26 @@ describe("BuyerPersonasDashboard", () => {
     renderDashboard();
 
     await waitFor(() => expect(screen.getByText(EMPTY_STATE_TITLE)).toBeTruthy());
-    await user.click(screen.getAllByRole("button", { name: MODO_INTELIGENTE })[0]);
+    await user.click(screen.getAllByRole("button", { name: CREATE_BUTTON })[0]);
 
     await waitFor(() =>
-      expect(navigateMock).toHaveBeenCalledWith("/t-1/brand-studio/publico/persona/smart-id"),
+      expect(mockRouterPush).toHaveBeenCalledWith("/t-1/brand-studio/publico/persona/smart-id"),
     );
+  });
+
+  it("surfaces error and does not navigate when create call fails", async () => {
+    const user = userEvent.setup();
+    mockList.mockResolvedValue([]);
+    mockCreate.mockRejectedValue(new Error("backend 500"));
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText(EMPTY_STATE_TITLE)).toBeTruthy());
+    await user.click(screen.getAllByRole("button", { name: CREATE_BUTTON })[0]);
+
+    await waitFor(() => expect(screen.getByText(/backend 500/i)).toBeTruthy());
+    expect(mockOpenPanel).not.toHaveBeenCalled();
+    expect(mockSendMessage).not.toHaveBeenCalled();
+    expect(mockRouterPush).not.toHaveBeenCalled();
   });
 
   it("increments default name suffix when personas already exist", async () => {
@@ -222,10 +234,11 @@ describe("BuyerPersonasDashboard", () => {
       makePersona({ id: "b", name: "Persona B" }),
     ]);
     mockCreate.mockResolvedValue(makePersona({ id: "c", name: "Nueva persona 3" }));
+    mockSendMessage.mockResolvedValue(undefined);
     renderDashboard();
 
     await screen.findByText("Persona A");
-    await user.click(screen.getAllByRole("button", { name: MODO_MANUAL })[0]);
+    await user.click(screen.getAllByRole("button", { name: CREATE_BUTTON })[0]);
 
     await waitFor(() =>
       expect(mockCreate).toHaveBeenCalledWith(

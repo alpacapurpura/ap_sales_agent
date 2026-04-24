@@ -34,6 +34,24 @@ class TestEditableFieldsPort:
         assert "headline_promise" in paths
         assert "pricing_options" in paths
 
+    def test_buyer_persona_catalog_non_empty(self) -> None:
+        from src.shared.links.ports.editable_fields import get_catalog
+
+        catalog = get_catalog("buyer_persona")
+        paths = {f.path for f in catalog}
+        assert "name" in paths
+        assert "tagline" in paths
+        assert "demographics.age_range" in paths
+        assert "psychographics.values" in paths
+        assert "buyer_journey.awareness" in paths
+        # Listas de items compuestos NO están en el catálogo (se editan vía
+        # form-runtime/guided, no vía propose_field_updates). objections
+        # además colisionaría con offer.
+        assert "objections" not in paths
+        assert "pain_points" not in paths
+        assert "desires" not in paths
+        assert "preferred_channels" not in paths
+
     def test_unknown_domain_returns_empty(self) -> None:
         from src.shared.links.ports.editable_fields import get_catalog
 

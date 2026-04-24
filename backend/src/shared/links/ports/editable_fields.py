@@ -106,6 +106,7 @@ def get_paths_for(domain: str) -> frozenset[str]:
 # ``copilot_editable_fields.py`` in its module is the only change needed.
 _KNOWN_DOMAINS: dict[str, str] = {
     "brand": "src.modules.brand.domain.copilot_editable_fields",
+    "buyer_persona": "src.modules.brand.domain.copilot_editable_fields_buyer_persona",
     "offer": "src.modules.offer.domain.copilot_editable_fields",
 }
 

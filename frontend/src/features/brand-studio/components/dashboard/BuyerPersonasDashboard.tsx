@@ -2,43 +2,33 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, Loader2, PenLine, Sparkles, Users } from "lucide-react";
+import { AlertCircle, Loader2, Sparkles, Users } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 
 import { PageContainer } from "@/components/shared/layout/PageContainer";
 import { useNavigation } from "@/components/shared/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCopilotChat } from "@/features/copilot/hooks/use-copilot-chat";
-import { useCopilotStore } from "@/features/copilot/store/copilot-store";
-import { buyerPersonaApi } from "@/lib/api/buyer-persona";
+import { useGuidedEntityCreation } from "@/features/copilot/hooks/use-guided-entity-creation";
+import { buyerPersonaApi, type BuyerPersona } from "@/lib/api/buyer-persona";
 
 import { BuyerPersonaCard } from "./BuyerPersonaCard";
 
-import type { BuyerPersona } from "@/lib/api/buyer-persona";
-
 const SKELETON_COUNT = 3;
 const DEFAULT_PERSONA_NAME = "Nueva persona";
-
-type CreationMode = "manual" | "guided";
 
 function nextDefaultName(currentCount: number): string {
   return currentCount === 0 ? DEFAULT_PERSONA_NAME : `${DEFAULT_PERSONA_NAME} ${currentCount + 1}`;
 }
 
-/** Buyer personas index — lists existing personas and exposes Modo Manual / Modo Inteligente create flows. */
+/** Buyer personas index — lists existing personas and exposes the AI-led create flow. */
 export function BuyerPersonasDashboard() {
   const { getToken } = useAuth();
   const { navigate } = useNavigation();
   const params = useParams<{ tenantId: string }>();
   const tenantId = params?.tenantId ?? "";
-
-  const { sendMessage } = useCopilotChat();
-
-  const [creating, setCreating] = useState<CreationMode | null>(null);
-  const [createError, setCreateError] = useState<string | null>(null);
 
   const { data, isLoading, error, refetch } = useQuery<BuyerPersona[]>({
     queryKey: ["buyer_personas", tenantId],
@@ -51,6 +41,23 @@ export function BuyerPersonasDashboard() {
 
   const personas = data ?? [];
 
+  const {
+    create,
+    creating,
+    error: createError,
+  } = useGuidedEntityCreation<BuyerPersona>({
+    domain: "buyer_persona",
+    tenantId,
+    createEntity: async () => {
+      const token = await getToken();
+      if (!token) throw new Error("No auth token");
+      return buyerPersonaApi.create(token, {
+        name: nextDefaultName(personas.length),
+        scope: "GLOBAL",
+      });
+    },
+  });
+
   const handleNavigate = useCallback(
     (personaId: string) => {
       navigate(`/${tenantId}/brand-studio/publico/persona/${personaId}`);
@@ -58,58 +65,21 @@ export function BuyerPersonasDashboard() {
     [navigate, tenantId],
   );
 
-  const handleCreate = useCallback(
-    async (mode: CreationMode) => {
-      if (creating) return;
-      setCreating(mode);
-      setCreateError(null);
-      try {
-        const token = await getToken();
-        if (!token) throw new Error("No auth token");
-        const persona = await buyerPersonaApi.create(token, {
-          name: nextDefaultName(personas.length),
-          scope: "GLOBAL",
-        });
-        if (mode === "guided") {
-          useCopilotStore.getState().openPanel();
-          // Best-effort guided trigger: if the chat stream fails we still
-          // navigate so the user can retry from the detail page.
-          try {
-            await sendMessage(
-              `Llama start_guided_setup con domain="buyer_persona" y entity_id="${persona.id}" para guiarme en esta buyer persona "${persona.name}".`,
-            );
-          } catch (sendErr) {
-            console.error("Failed to trigger guided setup", sendErr);
-          }
-        }
-        handleNavigate(persona.id);
-      } catch (err) {
-        console.error("Failed to create buyer persona", err);
-        setCreateError("No se pudo crear la buyer persona. Intenta de nuevo.");
-      } finally {
-        setCreating(null);
-      }
-    },
-    [creating, getToken, handleNavigate, personas.length, sendMessage],
-  );
-
   const handleRefetch = useCallback(() => {
     void refetch();
   }, [refetch]);
 
   if (isLoading) {
-    return <DashboardLoadingState onCreate={handleCreate} creating={creating} />;
+    return <DashboardLoadingState onCreate={create} creating={creating} />;
   }
 
   if (error) {
-    return (
-      <DashboardErrorState onCreate={handleCreate} creating={creating} onRetry={handleRefetch} />
-    );
+    return <DashboardErrorState onCreate={create} creating={creating} onRetry={handleRefetch} />;
   }
 
   return (
     <PageContainer className="space-y-6">
-      <DashboardHeader onCreate={handleCreate} creating={creating} />
+      <DashboardHeader onCreate={create} creating={creating} />
       {createError && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -117,7 +87,7 @@ export function BuyerPersonasDashboard() {
         </Alert>
       )}
       {personas.length === 0 ? (
-        <EmptyState onCreate={handleCreate} creating={creating} />
+        <EmptyState onCreate={create} creating={creating} />
       ) : (
         <PersonaGrid personas={personas} onNavigate={handleNavigate} />
       )}
@@ -126,8 +96,8 @@ export function BuyerPersonasDashboard() {
 }
 
 interface ActionsProps {
-  readonly onCreate: (mode: CreationMode) => void;
-  readonly creating: CreationMode | null;
+  readonly onCreate: () => void;
+  readonly creating: boolean;
   readonly disabled?: boolean;
 }
 
@@ -140,34 +110,18 @@ function DashboardHeader({ onCreate, creating, disabled = false }: ActionsProps)
           Perfiles arquetípicos que tu SDR usa para segmentar y personalizar mensajes.
         </p>
       </div>
-      <CreateActions onCreate={onCreate} creating={creating} disabled={disabled} />
+      <CreateAction onCreate={onCreate} creating={creating} disabled={disabled} />
     </div>
   );
 }
 
-function CreateActions({ onCreate, creating, disabled = false }: ActionsProps) {
-  const handleManual = useCallback(() => onCreate("manual"), [onCreate]);
-  const handleGuided = useCallback(() => onCreate("guided"), [onCreate]);
-  const isDisabled = disabled || Boolean(creating);
+function CreateAction({ onCreate, creating, disabled = false }: ActionsProps) {
+  const isDisabled = disabled || creating;
   return (
-    <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-      <Button variant="outline" disabled={isDisabled} onClick={handleManual} className="gap-2">
-        {creating === "manual" ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <PenLine className="h-4 w-4" />
-        )}
-        Modo Manual
-      </Button>
-      <Button disabled={isDisabled} onClick={handleGuided} className="gap-2">
-        {creating === "guided" ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Sparkles className="h-4 w-4" />
-        )}
-        Modo Inteligente
-      </Button>
-    </div>
+    <Button disabled={isDisabled} onClick={onCreate} className="gap-2 self-start sm:self-auto">
+      {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+      Crear nueva persona
+    </Button>
   );
 }
 
@@ -180,11 +134,11 @@ function EmptyState({ onCreate, creating }: Omit<ActionsProps, "disabled">) {
       <div className="space-y-1">
         <h3 className="text-lg font-semibold">Sin Buyer Personas</h3>
         <p className="max-w-md text-sm text-muted-foreground">
-          Construye un perfil arquetípico con la entrevista guiada o crea uno a mano y edítalo campo
-          por campo.
+          El copilot te entrevista, lee la URL o el documento que le pases y arma un perfil
+          completo. Tú revisas y ajustas.
         </p>
       </div>
-      <CreateActions onCreate={onCreate} creating={creating} />
+      <CreateAction onCreate={onCreate} creating={creating} />
     </div>
   );
 }

@@ -11,25 +11,68 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCopilotChat } from "@/features/copilot/hooks/use-copilot-chat";
-import { useCopilotStore } from "@/features/copilot/store/copilot-store";
+import { useGuidedEntityCreation } from "@/features/copilot/hooks/use-guided-entity-creation";
 import { offerApi } from "@/features/offer-studio/api";
 import { useArchiveOffer } from "@/features/offer-studio/hooks/use-offer";
 import { useValueLevelMetadata } from "@/features/offer-studio/hooks/use-value-level-catalog";
 import { resolveIconByName } from "@/features/offer-studio/lib/icon-name-resolver";
 import { OfferValueLevel } from "@/features/offer-studio/types";
 import { computeLadderCompleteness } from "@/features/offer-studio/utils/ladder-completeness";
-import { cn } from "@/lib/utils";
 
 import { CreateOfferWizard } from "../legacy-wizard/CreateOfferWizard";
 
 import { LeadMagnetStreamCard } from "./LeadMagnetStreamCard";
 import { OfferLadderLayout } from "./OfferLadderLayout";
-import { OfferLegend } from "./OfferLegend";
 
 import type { WizardResult } from "../legacy-wizard/CreateOfferWizard";
 import type { Offer } from "@/features/offer-studio/types";
 import type { OfferFormValues } from "@/features/offer-studio/types/schema";
+
+/**
+ * Map the wizard payload to the strict `ProductCreate` DTO shape.
+ *
+ * `value_level` (not `offer_value_level`) is the DTO key — sending the wrong
+ * key made FastAPI discard the field and `_normalize_ladder_position`
+ * defaulted to ACTIVACION, dumping every paid offer into "Primera Compra".
+ * See backend/src/modules/offer/api/dto/products.py:113.
+ *
+ * The `pricing_options` cast narrows the loose wizard interface to the
+ * Zod-resolved OfferFormValues shape — the runtime values are already
+ * fully-populated PricingStructure records.
+ */
+function toOfferCreatePayload(wizardData: WizardResult): {
+  public_name: string;
+  archetype: WizardResult["archetype"];
+  preset_id: WizardResult["preset_id"];
+  conditional_answers: WizardResult["conditional_answers"];
+  format_hint: WizardResult["format_hint"];
+  is_lead_magnet: WizardResult["is_lead_magnet"];
+  has_editions: WizardResult["has_editions"];
+  headline_promise: WizardResult["headline_promise"];
+  status: WizardResult["status"];
+  delivery_model: WizardResult["delivery_model"];
+  value_level: WizardResult["value_level"];
+  specific_details: WizardResult["specific_details"];
+  currency: WizardResult["currency"];
+  pricing_options: OfferFormValues["pricing_options"];
+} {
+  return {
+    public_name: wizardData.name,
+    archetype: wizardData.archetype,
+    preset_id: wizardData.preset_id,
+    conditional_answers: wizardData.conditional_answers,
+    format_hint: wizardData.format_hint,
+    is_lead_magnet: wizardData.is_lead_magnet,
+    has_editions: wizardData.has_editions,
+    headline_promise: wizardData.headline_promise,
+    status: wizardData.status,
+    delivery_model: wizardData.delivery_model,
+    value_level: wizardData.value_level,
+    specific_details: wizardData.specific_details,
+    currency: wizardData.currency,
+    pricing_options: wizardData.pricing_options as OfferFormValues["pricing_options"],
+  };
+}
 
 interface OfferStudioDashboardProps {
   searchQuery?: string;
@@ -74,11 +117,27 @@ export function OfferStudioDashboard({
 
   const error = queryError ? "No se pudieron cargar las ofertas." : null;
 
-  const { sendMessage: sendGuidedMessage } = useCopilotChat();
-
   // Wizard State
   const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [creatingManual, setCreatingManual] = useState(false);
+
+  const { create: createOfferWithGuided, creating: creatingGuided } = useGuidedEntityCreation<
+    { id: string },
+    WizardResult
+  >({
+    domain: "offer",
+    tenantId,
+    createEntity: async (wizardData) => {
+      const token = await getToken();
+      if (!token) throw new Error("No authenticated");
+      const newOffer = await offerApi.createOffer(toOfferCreatePayload(wizardData), token);
+      if (!newOffer.id) throw new Error("Backend devolvió oferta sin id");
+      return { id: newOffer.id };
+    },
+    onNavigate: navigate,
+  });
+
+  const creating = creatingManual || creatingGuided;
   // Rung preselected by the click context. Header "Nueva Oferta" passes
   // undefined (full 6-step flow); each column's "+" passes its level so
   // the wizard skips the pick-rung step.
@@ -160,39 +219,12 @@ export function OfferStudioDashboard({
   }, []);
 
   const handleCreateOffer = async (wizardData: WizardResult) => {
-    setCreating(true);
+    setCreatingManual(true);
     try {
       const token = await getToken();
       if (!token) throw new Error("No authenticated");
 
-      const newOffer = await offerApi.createOffer(
-        {
-          public_name: wizardData.name,
-          archetype: wizardData.archetype,
-          preset_id: wizardData.preset_id,
-          conditional_answers: wizardData.conditional_answers,
-          format_hint: wizardData.format_hint,
-          is_lead_magnet: wizardData.is_lead_magnet,
-          has_editions: wizardData.has_editions,
-          headline_promise: wizardData.headline_promise,
-          status: wizardData.status,
-          delivery_model: wizardData.delivery_model,
-          // ProductCreate DTO expects ``value_level``; ``offer_value_level``
-          // exists only on response/update DTOs. Sending the wrong key meant
-          // FastAPI discarded the field and ``_normalize_ladder_position``
-          // fell back to ACTIVACION → every paid offer landed in "Primera
-          // Compra". See backend/src/modules/offer/api/dto/products.py:113.
-          value_level: wizardData.value_level,
-          specific_details: wizardData.specific_details,
-          currency: wizardData.currency,
-          // Wizard sends fully-populated PricingStructure records; the
-          // strict OfferFormValues shape expects the same — the cast just
-          // narrows the optional fields the loose public interface
-          // exposes on `pricing_options` to their Zod-resolved defaults.
-          pricing_options: wizardData.pricing_options as OfferFormValues["pricing_options"],
-        },
-        token,
-      );
+      const newOffer = await offerApi.createOffer(toOfferCreatePayload(wizardData), token);
 
       if (newOffer.id) {
         setIsWizardOpen(false);
@@ -201,65 +233,15 @@ export function OfferStudioDashboard({
     } catch (err) {
       console.error("Error creating offer:", err);
     } finally {
-      setCreating(false);
+      setCreatingManual(false);
     }
   };
 
+  // IA path: delegates create + openPanel + guided prompt + navigate to the
+  // shared `useGuidedEntityCreation` hook. Same contract as buyer-persona.
   const handleCreateOfferWithIA = async (wizardData: WizardResult) => {
-    setCreating(true);
-    try {
-      const token = await getToken();
-      if (!token) throw new Error("No authenticated");
-
-      const newOffer = await offerApi.createOffer(
-        {
-          public_name: wizardData.name,
-          archetype: wizardData.archetype,
-          preset_id: wizardData.preset_id,
-          conditional_answers: wizardData.conditional_answers,
-          format_hint: wizardData.format_hint,
-          is_lead_magnet: wizardData.is_lead_magnet,
-          has_editions: wizardData.has_editions,
-          headline_promise: wizardData.headline_promise,
-          status: wizardData.status,
-          delivery_model: wizardData.delivery_model,
-          // ProductCreate DTO expects ``value_level``; ``offer_value_level``
-          // exists only on response/update DTOs. Sending the wrong key meant
-          // FastAPI discarded the field and ``_normalize_ladder_position``
-          // fell back to ACTIVACION → every paid offer landed in "Primera
-          // Compra". See backend/src/modules/offer/api/dto/products.py:113.
-          value_level: wizardData.value_level,
-          specific_details: wizardData.specific_details,
-          currency: wizardData.currency,
-          // Wizard sends fully-populated PricingStructure records; the
-          // strict OfferFormValues shape expects the same — the cast just
-          // narrows the optional fields the loose public interface
-          // exposes on `pricing_options` to their Zod-resolved defaults.
-          pricing_options: wizardData.pricing_options as OfferFormValues["pricing_options"],
-        },
-        token,
-      );
-
-      if (newOffer.id) {
-        setIsWizardOpen(false);
-
-        // Trigger guided setup through the main chat: the LLM answers with
-        // a ``start_guided_setup`` tool call, the SSE ``guided_started`` event
-        // installs the session server-side-driven.
-        const store = useCopilotStore.getState();
-        store.openPanel();
-        store.setSidebarState("rail");
-        await sendGuidedMessage(
-          `Llama start_guided_setup con domain="offer" y entity_id="${newOffer.id}" para guiarme en esta oferta "${wizardData.name}".`,
-        );
-
-        navigate(`/${tenantId}/offer-studio/offer/${newOffer.id}`);
-      }
-    } catch (err) {
-      console.error("Error creating offer with IA:", err);
-    } finally {
-      setCreating(false);
-    }
+    setIsWizardOpen(false);
+    await createOfferWithGuided(wizardData);
   };
 
   if (loading) {
