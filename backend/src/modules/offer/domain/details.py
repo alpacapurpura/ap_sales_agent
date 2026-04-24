@@ -55,7 +55,14 @@ class ProductDetails(BaseEntity):
 
 
 class ServiceDetails(BaseEntity):
-    """Service for details operations."""
+    """Service for details operations.
+
+    Fase 02 · Block E adds three scope/expectation fields:
+    ``response_time_hours`` (agent-facing SLA), ``onboarding_flow`` (what
+    the client receives in the first days), and ``scope_excluded`` (what
+    is deliberately NOT included — 80% of Latam post-venta disputes trace
+    back to undeclared scope-out).
+    """
 
     category: ServiceCategory | None = None
     interaction_mode: InteractionMode | None = None
@@ -72,6 +79,10 @@ class ServiceDetails(BaseEntity):
     technical_requirements: str | None = None
     usage_rights_description: str | None = None
     requires_contract_signature: bool = False
+    # Fase 02 · Block E — scope + expectation fields ------------------
+    response_time_hours: int | None = None
+    onboarding_flow: str | None = None
+    scope_excluded: str | None = None
 
 
 class ProgramModule(BaseEntity):

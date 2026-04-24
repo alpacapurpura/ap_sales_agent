@@ -292,8 +292,45 @@ SUBSCRIPTION_DETAILS_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
 
 
 # ---------------------------------------------------------------------------
+# Service details section — scope + expectation (Fase 02 · Block E)
+# ---------------------------------------------------------------------------
+
+SERVICE_DETAILS_SECTION = "service_details"
+
+SERVICE_DETAILS_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
+    FieldContract(
+        path="specific_details.response_time_hours",
+        type="number",
+        owner=FieldOwner.OFFER,
+        section=SERVICE_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.SERVICIO,),
+        notes="Agent-facing SLA: horas hábiles para responder al cliente.",
+    ),
+    FieldContract(
+        path="specific_details.onboarding_flow",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=SERVICE_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.SERVICIO,),
+        notes="Narrativa de qué recibe el cliente en las primeras 24-48h.",
+    ),
+    FieldContract(
+        path="specific_details.scope_excluded",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=SERVICE_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.SERVICIO,),
+        notes="Scope-out explícito — evita 80% disputas post-venta Latam.",
+    ),
+)
+
+
+# ---------------------------------------------------------------------------
 # Registry (grows per phase — F01 pricing · F02 A authority B value-stack
-# C program D subscription)
+# C program D subscription E service)
 # ---------------------------------------------------------------------------
 
 _PHASE_01_CONTRACTS: tuple[FieldContract, ...] = PRICING_FIELD_CONTRACTS
@@ -302,6 +339,7 @@ _PHASE_02_CONTRACTS: tuple[FieldContract, ...] = (
     + VALUE_STACK_FIELD_CONTRACTS
     + PROGRAM_DETAILS_FIELD_CONTRACTS
     + SUBSCRIPTION_DETAILS_FIELD_CONTRACTS
+    + SERVICE_DETAILS_FIELD_CONTRACTS
 )
 
 FIELD_CONTRACT_REGISTRY: tuple[FieldContract, ...] = _PHASE_01_CONTRACTS + _PHASE_02_CONTRACTS
@@ -325,7 +363,7 @@ class FieldContractRegistrySnapshot:
 
 
 # Bump when the registry changes materially.
-FIELD_CONTRACT_VERSION = "2026-04-24-fase-02-block-d-subscription-details"
+FIELD_CONTRACT_VERSION = "2026-04-24-fase-02-block-e-service-details"
 
 FIELD_CONTRACT_SNAPSHOT = FieldContractRegistrySnapshot(
     version=FIELD_CONTRACT_VERSION,

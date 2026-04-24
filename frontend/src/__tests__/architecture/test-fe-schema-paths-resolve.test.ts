@@ -54,10 +54,7 @@ const KNOWN_UNRESOLVED_PATHS = new Set<string>([
   // ── Fase 02 Block B closed — value-stack anchor lives on Offer.
   // ── Fase 02 Block C closed — program narratives live on ProgramDetails.
   // ── Fase 02 Block D closed — SubscriptionDetails renames + new fields.
-  // ── Fase 02 — ServiceDetails (3) ────────────────────────────────────
-  "specific_details.response_time_hours",
-  "specific_details.onboarding_flow",
-  "specific_details.scope_excluded",
+  // ── Fase 02 Block E closed — ServiceDetails scope + expectation fields.
   // ── Fase 02 — ProductDetails (5) ────────────────────────────────────
   "specific_details.sample_preview_url",
   "specific_details.packaging_description",
@@ -198,7 +195,8 @@ describe("Architecture: offer-studio schema paths resolve to BE Offer domain", (
     //   · Fase 02 Block B close: 52 (-2 value-stack anchor)
     //   · Fase 02 Block C close: 50 (-2 program narratives)
     //   · Fase 02 Block D close: 43 (-7 subscription)
+    //   · Fase 02 Block E close: 40 (-3 service scope)
     // Subsequent phases must only lower this, never raise without an ADR.
-    expect(ALLOWLIST_CAP).toBeLessThanOrEqual(43);
+    expect(ALLOWLIST_CAP).toBeLessThanOrEqual(40);
   });
 });
