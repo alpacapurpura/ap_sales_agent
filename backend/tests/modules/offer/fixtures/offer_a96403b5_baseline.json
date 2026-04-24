@@ -34,6 +34,7 @@
     }
   },
   "offer_db_state": {
+    "accepted_payment_providers": [],
     "access_duration": "limited_time",
     "access_duration_text": "Acceso a las clases grabadas por 1 año",
     "anti_avatar_keywords": [
