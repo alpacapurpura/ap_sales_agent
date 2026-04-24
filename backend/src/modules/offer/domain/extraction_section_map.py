@@ -4,24 +4,26 @@ Aligned with frontend/src/features/offer-studio/lib/section-catalog.ts (21 slugs
 Used by the extraction worker to group filled field paths by FE-aligned
 section slug — replacing the broken flat-key grouping in field_diff.
 
-Polymorphic details: the FE shows program_details / service_details /
-event_details / product_details / subscription_details depending on the
-offer's archetype. resolve_details_section() maps an OfferArchetype value
-to the correct FE slug.
+Post field-contract-platform refactor (Fase 04), :func:`fields_to_fe_sections`
+derives the path→section mapping from the platform :data:`FIELD_CONTRACT_REGISTRY`
+in ``src.shared.domain.field_contract`` instead of a parallel manual dict.
 
-FE section slugs reference (21 total):
-  identity, strategy, psychology, promise,
-  program_details, service_details, event_details, product_details,
-  subscription_details, platform_details, location, instructors,
-  value_stack, pricing, testimonials, portfolio, faq, gallery,
-  resources, closing, knowledge
+Legacy ``OFFER_FIELDS_BY_FE_SECTION`` survives during the deprecation window
+(Fase 04 sub-step G drops it). New consumers must use ``fields_by_section``
+from the platform module or ``fields_to_fe_sections`` here.
 """
 
 from __future__ import annotations
 
+# Triggers offer FieldContract registration on first import.
+import src.modules.offer.domain.field_contract  # noqa: F401
 from src.modules.offer.domain.enums import OfferArchetype
+from src.shared.domain.field_contract import (
+    FieldContract,
+    get_module_contracts,
+)
 
-# All 21 FE section slugs from section-catalog.ts — used in arch test.
+# All 21 FE section slugs from section-catalog.ts — used in arch tests.
 FE_SECTION_SLUGS: frozenset[str] = frozenset(
     {
         "identity",
@@ -48,29 +50,10 @@ FE_SECTION_SLUGS: frozenset[str] = frozenset(
     }
 )
 
-# Maps FE section slug → top-level Offer field names that belong to it.
-# Keys are FE slugs (NOT backend wave slugs).
-#
-# Notes:
-# - "identity" captures fields that the extraction wave named "promise" also
-#   populates (headline_promise, primary_outcome, time_to_value, public_name,
-#   internal_sku) because FE "identity" section covers the offer's public
-#   identity fields alongside the core promise. The worker must assign these
-#   to "identity" in the FE slug space.
-# - "promise" (FE) captures the *pitch* fields not in identity:
-#   access_duration + support_duration_days sit closest to the promise scope
-#   but are actually surfaced in the polymorphic details sections in FE.
-#   We leave them unmapped here to avoid double-grouping; they land in the
-#   post-diff residual bucket.
-# - "platform_details", "location", "gallery", "testimonials", "portfolio",
-#   "faq", "resources", "knowledge": these sections are managed by dedicated
-#   FE editors with their own data — they do NOT map to top-level Offer
-#   entity fields today. Leaving them empty (not in the map) prevents false
-#   "completed" badges on sections the extraction pipeline did not touch.
-# - "specific_details.*" paths (from the polymorphic JSON column) are
-#   handled by resolve_details_section() — NOT by this flat map.
+# Legacy manual mapping. Kept for back-compat (callers that import the
+# constant). Will be removed in Fase 04 sub-step G — consumers should
+# migrate to ``fields_by_section`` in the platform module.
 OFFER_FIELDS_BY_FE_SECTION: dict[str, tuple[str, ...]] = {
-    # Offer identity: who the offer is and what it's called
     "identity": (
         "public_name",
         "internal_sku",
@@ -78,51 +61,40 @@ OFFER_FIELDS_BY_FE_SECTION: dict[str, tuple[str, ...]] = {
         "primary_outcome",
         "time_to_value",
     ),
-    # Promise: the core pitch fields visible in the FE "Promesa" section
-    # (access_duration/access_duration_text/support_duration_days are closer
-    # to the polymorphic details and are intentionally excluded here)
     "promise": (
         "requires_application",
         "min_financial_capacity",
         "prerequisites",
-        # NEW narrative:
         "before_state",
         "after_state",
         "why_now",
         "measurable_outcomes",
     ),
-    # Strategy: audience targeting and delivery approach
     "strategy": (
         "value_level",
         "delivery_model",
         "target_avatar_match",
         "anti_avatar_keywords",
     ),
-    # Psychology of purchase
     "psychology": (
         "marketing_pain_points",
         "marketing_desires",
         "objections",
-        # NEW narrative:
         "cultural_trust_barriers",
         "emotional_triggers",
         "status_drivers",
         "regret_scenarios",
     ),
-    # Value stack: deliverables + bundled offers
     "value_stack": (
         "deliverables",
         "includes_offers",
     ),
-    # Pricing
     "pricing": (
         "pricing_options",
         "price_pay_in_full",
         "currency",
     ),
-    # Instructors list
     "instructors": ("instructors",),
-    # Closing: conversion mechanics
     "closing": (
         "guarantee_type",
         "guarantee_terms",
@@ -133,7 +105,6 @@ OFFER_FIELDS_BY_FE_SECTION: dict[str, tuple[str, ...]] = {
         "downsell_offer_id",
         "upsell_offer_id",
         "vsl_link",
-        # NEW narrative:
         "refund_process_description",
         "urgency_drivers",
         "scarcity_reason_honest",
@@ -141,13 +112,6 @@ OFFER_FIELDS_BY_FE_SECTION: dict[str, tuple[str, ...]] = {
         "final_push_copy",
         "support_duration_days",
     ),
-    # Polymorphic details: field paths under "specific_details.*" are mapped
-    # via resolve_details_section(archetype) at grouping time.
-    # DO NOT add specific_details.* keys here — handled separately.
-    #
-    # Sections below have no top-level Offer field mapping today:
-    # platform_details, location, gallery, testimonials, portfolio,
-    # faq, resources, knowledge
 }
 
 # Backend wave slug → FE slugs it contributes to.
@@ -155,13 +119,13 @@ OFFER_FIELDS_BY_FE_SECTION: dict[str, tuple[str, ...]] = {
 # Used by on_progress to decide which FE slugs to announce as "completed"
 # when the extraction service signals section_completed=<backend_slug>.
 BACKEND_WAVE_TO_FE_SLUGS: dict[str, tuple[str, ...]] = {
-    "promise": ("identity", "promise"),  # promise wave fills both identity + promise FE sections
+    "promise": ("identity", "promise"),
     "strategy": ("strategy",),
     "psychology": ("psychology",),
     "value_stack": ("value_stack", "pricing"),
     "closing": ("closing",),
     # "details" backend slug → resolved by resolve_details_section() at runtime
-    "details": (),  # caller must use resolve_details_section() for the archetype-specific slug
+    "details": (),
 }
 
 # Archetype → FE section slug for the polymorphic details editor.
@@ -184,6 +148,29 @@ def resolve_details_section(archetype: OfferArchetype | None) -> str | None:
     return _DETAILS_BY_ARCHETYPE.get(archetype)
 
 
+def _select_section_for_path(
+    contracts_for_path: list[FieldContract],
+    archetype_value: str | None,
+) -> str | None:
+    """Pick the section that applies to a contract candidate set.
+
+    A path can have multiple contracts when polymorphic variants share
+    field names (e.g. ``specific_details.start_date`` in Program + Event
+    with different sections). The archetype filter narrows down the
+    correct section.
+    """
+    # Universal contracts (no archetype_filter) win when present.
+    universal = [c for c in contracts_for_path if c.archetype_filter is None]
+    if universal:
+        return universal[0].section
+    # Archetype-filtered: find one matching the offer's archetype.
+    if archetype_value is not None:
+        for c in contracts_for_path:
+            if c.archetype_filter and archetype_value in c.archetype_filter:
+                return c.section
+    return None
+
+
 def fields_to_fe_sections(
     *,
     archetype: OfferArchetype | None,
@@ -199,45 +186,54 @@ def fields_to_fe_sections(
     Returns:
         A dict mapping FE slug → list of field paths that landed in it.
         Deterministic and idempotent: same inputs always produce the same output.
-        Fields not covered by the map are silently ignored (e.g. status, deleted_at).
+        Fields not covered by the registry are silently ignored.
 
     Example:
         >>> fields_to_fe_sections(
         ...     archetype=OfferArchetype.PROGRAMA,
-        ...     filled_paths=["headline_promise", "value_level", "specific_details.duration"],
+        ...     filled_paths=["headline_promise", "value_level", "specific_details.duration_weeks"],
         ... )
         {
-            "identity": ["headline_promise"],
+            "promise": ["headline_promise"],
             "strategy": ["value_level"],
-            "program_details": ["specific_details.duration"],
+            "program_details": ["specific_details.duration_weeks"],
         }
     """
-    # Build a reverse lookup: field_name → fe_slug
-    _field_to_slug: dict[str, str] = {}
-    for slug, fields in OFFER_FIELDS_BY_FE_SECTION.items():
-        for field_name in fields:
-            _field_to_slug[field_name] = slug
+    archetype_value = archetype.value if archetype else None
 
-    details_slug = resolve_details_section(archetype)
+    by_path: dict[str, list[FieldContract]] = {}
+    for c in get_module_contracts("offer"):
+        by_path.setdefault(c.path, []).append(c)
 
     result: dict[str, list[str]] = {}
+
     for path in filled_paths:
-        # Handle polymorphic details: any path starting with "specific_details"
+        # specific_details.* (and bare "specific_details") routes to
+        # the archetype details slug — even when the exact sub-field has
+        # no contract entry yet (forward-compat for fields not yet
+        # formalized). Mirrors legacy resolve_details_section() behavior.
         if path == "specific_details" or path.startswith("specific_details."):
+            details_slug = resolve_details_section(archetype)
             if details_slug:
                 result.setdefault(details_slug, [])
                 if path not in result[details_slug]:
                     result[details_slug].append(path)
             continue
 
-        # Top-level field lookup
-        top_level = path.split(".")[0]
-        slug = _field_to_slug.get(top_level)
-        if slug:
-            result.setdefault(slug, [])
-            if path not in result[slug]:
-                result[slug].append(path)
-        # Fields not in the map (e.g. status, archived_at, deleted_at, metadata_info)
-        # are intentionally ignored — they don't correspond to any FE editor section.
+        candidates = by_path.get(path)
+        if not candidates:
+            # Fallback: top-level lookup if path is a sub-path like
+            # "pricing_options.0.label".
+            top_level = path.split(".", 1)[0]
+            candidates = by_path.get(top_level)
+            if not candidates:
+                continue
+
+        section = _select_section_for_path(candidates, archetype_value)
+        if section is None:
+            continue
+        result.setdefault(section, [])
+        if path not in result[section]:
+            result[section].append(path)
 
     return result

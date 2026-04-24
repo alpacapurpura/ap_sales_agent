@@ -78,6 +78,9 @@ OFFER_IGNORE_PATHS: frozenset[str] = frozenset(
 
 OFFER_SECTION_MAP: dict[str, str] = {
     # ── identity ────────────────────────────────────────────────────
+    # Note: headline_promise / primary_outcome / time_to_value live here
+    # (NOT in 'promise') to match legacy OFFER_FIELDS_BY_FE_SECTION grouping.
+    # The FE 'identity' section covers offer's public identity + core promise.
     "internal_sku": "identity",
     "public_name": "identity",
     "archetype": "identity",
@@ -85,15 +88,15 @@ OFFER_SECTION_MAP: dict[str, str] = {
     "preset_id": "identity",
     "is_lead_magnet": "identity",
     "has_editions": "identity",
+    "headline_promise": "identity",
+    "primary_outcome": "identity",
+    "time_to_value": "identity",
     # ── strategy ────────────────────────────────────────────────────
     "value_level": "strategy",
     "delivery_model": "strategy",
     "target_avatar_match": "strategy",
     "anti_avatar_keywords": "strategy",
-    # ── promise ─────────────────────────────────────────────────────
-    "headline_promise": "promise",
-    "primary_outcome": "promise",
-    "time_to_value": "promise",
+    # ── promise (pitch fields, not identity) ────────────────────────
     "before_state": "promise",
     "after_state": "promise",
     "why_now": "promise",

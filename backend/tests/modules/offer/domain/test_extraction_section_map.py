@@ -147,11 +147,17 @@ class TestFieldsToFeSections:
         assert "value_stack" in result
         assert "closing" in result
 
-    def test_unknown_fields_not_in_output(self) -> None:
-        """Fields like 'status', 'deleted_at' produce no output — not section-relevant."""
+    def test_system_fields_not_in_output(self) -> None:
+        """System fields (status, timestamps, metadata) produce no output.
+
+        Post field-contract-platform refactor (Fase 04), these paths are in
+        ``OFFER_IGNORE_PATHS`` so they don't appear in any FieldContract.
+        ``format_hint`` IS in the registry (identity section) — distinct
+        from system fields. Behavior fix vs legacy drift.
+        """
         result = fields_to_fe_sections(
             archetype=None,
-            filled_paths=["status", "deleted_at", "archived_at", "metadata_info", "format_hint"],
+            filled_paths=["status", "deleted_at", "archived_at", "metadata_info"],
         )
         assert result == {}
 
