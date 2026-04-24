@@ -1,14 +1,15 @@
 ---
-status: ready-to-start
-opened_at: null
+status: in-progress
+opened_at: 2026-04-24
 closed_at: null
-baseline_green_commit: 08c96b4a
+baseline_green_commit: a495beb2
+current_sub_step: A (BE offer extend SectionMetadata + kind)
 ---
 
 # Fase 03 — Section catalog dedup · Status
 
-**Lista para arrancar**. Fase 02 cerrada (allowlist 56 → 21). Baseline
-green en `08c96b4a` (último commit Fase 02 Block G).
+**Abierta**. Baseline green `a495beb2` (Fase 02 close hash bump). SPEC +
+ACCEPTANCE escritos. Sub-steps A → F en ejecución.
 
 Los 21 paths restantes en `KNOWN_UNRESOLVED_PATHS` son cross-module
 federated (assets, testimonials, portfolio, knowledge, scheduling,

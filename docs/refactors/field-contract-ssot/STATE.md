@@ -1,9 +1,9 @@
 ---
-last_updated: 2026-04-24 (Fase 02 closing commit a12f2bf9)
-last_green_commit: a12f2bf9
+last_updated: 2026-04-24 (Fase 03 opened)
+last_green_commit: a495beb2
 active_phase: 03-section-catalog-dedup
-sub_step: 0/? (ready-to-start)
-status: ready-to-start
+sub_step: A/F (pre-block-A)
+status: in-progress
 blockers: none
 branch: development
 working_tree_clean: true
