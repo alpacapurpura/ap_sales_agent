@@ -222,8 +222,18 @@ class ExtractionSectionCompletedEvent(DomainEvent):
         section_slug: str,
         section_label: str,
         fields_count: int,
+        entity_id: str | None = None,
+        nav_route_template: str | None = None,
     ) -> "ExtractionSectionCompletedEvent":
-        """Create an extraction_section_completed event."""
+        """Create an extraction_section_completed event.
+
+        ``entity_id`` is None for brand (singleton-per-tenant) and the
+        offer_id for offer. ``nav_route_template`` carries literal
+        ``{tenantId}``/``{entityId}``/``{section_slug}`` placeholders;
+        the subscriber substitutes ``{section_slug}``+``{entityId}`` and
+        the FE substitutes ``{tenantId}`` at click time. None falls back
+        to legacy module-slug routing for backwards compat.
+        """
         return cls(
             event_name="extraction_section_completed",
             tenant_id=tenant_id,
@@ -234,6 +244,8 @@ class ExtractionSectionCompletedEvent(DomainEvent):
                 "section_slug": section_slug,
                 "section_label": section_label,
                 "fields_count": fields_count,
+                "entity_id": entity_id,
+                "nav_route_template": nav_route_template,
             },
         )
 
@@ -269,8 +281,16 @@ class ExtractionJobCompletedEvent(DomainEvent):
         filled_fields_by_section: dict[str, list[str]],
         sections_completed: list[str],
         primary_cta_route: str | None = None,
+        entity_id: str | None = None,
+        nav_route_template: str | None = None,
     ) -> "ExtractionJobCompletedEvent":
-        """Create an extraction_job_completed event."""
+        """Create an extraction_job_completed event.
+
+        ``primary_cta_route`` is pre-formatted by the owning module (only
+        ``{tenantId}`` literal remains). ``entity_id`` mirrors the
+        section-completed event semantics. ``nav_route_template`` is used
+        by the subscriber's safety-net per-section re-emits.
+        """
         return cls(
             event_name="extraction_job_completed",
             tenant_id=tenant_id,
@@ -284,6 +304,8 @@ class ExtractionJobCompletedEvent(DomainEvent):
                 "filled_fields_by_section": filled_fields_by_section,
                 "sections_completed": sections_completed,
                 "primary_cta_route": primary_cta_route,
+                "entity_id": entity_id,
+                "nav_route_template": nav_route_template,
             },
         )
 

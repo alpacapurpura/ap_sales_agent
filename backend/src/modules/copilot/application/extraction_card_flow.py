@@ -46,13 +46,22 @@ def emit_section_complete_pill(
     section_label: str,
     fields_count: int,
     module: str,
+    nav_route_template: str | None = None,
+    entity_id: str | None = None,
     trace_recorder: object | None = None,
 ) -> None:
     """Insert a navigation pill for a completed section.
 
     Idempotent: duplicate calls with same job_id + section_slug are no-ops.
     Pill label: ``✓ {section_label} lista · {fields_count} campos``.
-    Route: ``/{module}-studio/{section_slug}``.
+
+    Route resolution (in priority order):
+    1. ``nav_route_template`` from the event payload (preferred — module-owned).
+       Template placeholders: ``{section_slug}`` substituted here; ``{entityId}``
+       substituted with ``entity_id`` when present; ``{tenantId}`` left literal
+       for the FE navigator to substitute at click-time.
+    2. Legacy fallback: ``/{module}-studio/{section_slug}`` — kept for
+       backward-compat with events published before this refactor.
     """
     from src.core.database import redis_client
 
@@ -68,13 +77,22 @@ def emit_section_complete_pill(
         redis_client.setex(idempotency_key, 86400, "1")
 
     page_label = f"✓ {section_label} lista · {fields_count} campos"
-    module_slug = f"{module}-studio" if not module.endswith("-studio") else module
-    # Leave the ``{tenantId}`` placeholder literal — the FE navigator substitutes
-    # it at click-time from the current route. Hardcoding the tenant UUID here
-    # would bake stale state into persisted cards if the user ever switches
-    # tenants; shipping a path without the tenant segment sends the user to a
-    # not-found page because every studio route requires ``[tenantId]``.
-    route = f"/{{tenantId}}/{module_slug}/{section_slug}"
+
+    # Build the route from the module-owned template when available.
+    if nav_route_template:
+        route = nav_route_template.replace("{section_slug}", section_slug)
+        if entity_id:
+            route = route.replace("{entityId}", entity_id)
+        # Leave ``{tenantId}`` literal — FE substitutes at click-time.
+    else:
+        # Legacy fallback: module did not supply a template (old event format).
+        module_slug = f"{module}-studio" if not module.endswith("-studio") else module
+        # Leave the ``{tenantId}`` placeholder literal — the FE navigator substitutes
+        # it at click-time from the current route. Hardcoding the tenant UUID here
+        # would bake stale state into persisted cards if the user ever switches
+        # tenants; shipping a path without the tenant segment sends the user to a
+        # not-found page because every studio route requires ``[tenantId]``.
+        route = f"/{{tenantId}}/{module_slug}/{section_slug}"
 
     # ``type`` must match the UIAction enum the frontend navigator switch-cases
     # on (see frontend/.../use-copilot-navigator.ts). Emitting "navigation_card"
@@ -133,6 +151,7 @@ def emit_extraction_summary_card(
     filled_fields_by_section: dict[str, list[str]],
     sections_completed: list[str],
     primary_cta_route: str | None = None,
+    entity_id: str | None = None,
     trace_recorder: object | None = None,
 ) -> None:
     """Insert an extraction_summary card into the conversation.
@@ -140,6 +159,12 @@ def emit_extraction_summary_card(
     Idempotent: duplicate calls with same job_id are no-ops. The frontend
     resolves section labels from its canonical catalog, so ``coverage_by_section``
     emits slug names and the UI translates.
+
+    ``primary_cta_route`` is the module-owned pre-formatted route (only
+    ``{tenantId}`` literal remains — FE substitutes at click time). When
+    None and sections completed, the CTA is omitted; no hardcoded fallback
+    to brand-studio (would mis-route offer flows). ``entity_id`` is stored
+    in the card payload for future FE reference.
     """
     from src.core.database import redis_client
 
@@ -169,7 +194,16 @@ def emit_extraction_summary_card(
 
     # ``{tenantId}`` placeholder (same convention as nav pills) — FE navigator
     # replaces at click-time. Never bake a concrete tenant UUID here.
-    default_cta = f"/{{tenantId}}/brand-studio/{sections_completed[0]}" if sections_completed else None
+    # Note: no default fallback to brand-studio here — if the worker did not
+    # supply a primary_cta_route, we emit None rather than pointing an offer
+    # extraction summary to the brand studio (Bug 2 fix).
+    if primary_cta_route is None and sections_completed:
+        logger.warning(
+            "extraction_summary_missing_cta_route",
+            job_id=job_id,
+            sections_completed=sections_completed,
+        )
+
     summary_payload = {
         "type": "extraction_summary",
         "source_ref": source_ref,
@@ -180,7 +214,7 @@ def emit_extraction_summary_card(
         "coverage_by_section": coverage_by_section,
         "strong_assumptions_count": 0,
         "open_questions_count": 0,
-        "primary_cta_route": primary_cta_route or default_cta,
+        "primary_cta_route": primary_cta_route,
     }
 
     message = _build_card_message(
@@ -301,6 +335,8 @@ def handle_section_completed(event: DomainEvent) -> None:
                 section_label=str(event.payload.get("section_label", "")),
                 fields_count=int(event.payload.get("fields_count", 0)),
                 module=str(event.payload.get("module", "brand")),
+                nav_route_template=event.payload.get("nav_route_template"),
+                entity_id=event.payload.get("entity_id"),
                 trace_recorder=recorder,
             )
             db.commit()
@@ -356,6 +392,7 @@ def handle_job_completed(event: DomainEvent) -> None:
                 filled_fields_by_section=dict(event.payload.get("filled_fields_by_section", {})),
                 sections_completed=list(event.payload.get("sections_completed", [])),
                 primary_cta_route=event.payload.get("primary_cta_route"),
+                entity_id=event.payload.get("entity_id"),
                 trace_recorder=recorder,
             )
             db.commit()

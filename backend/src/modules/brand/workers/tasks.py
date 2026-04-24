@@ -16,6 +16,13 @@ import traceback
 from datetime import UTC, datetime
 from uuid import UUID
 
+from src.modules.brand.application.extraction_routes import (
+    NAV_ROUTE_TEMPLATE,
+)
+from src.modules.brand.application.extraction_routes import (
+    primary_cta_route as build_brand_primary_cta_route,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -324,6 +331,8 @@ def _publish_section_completed_event(
     Called from the ``on_progress`` callback the moment a section transitions
     to completed (subscriber then inserts the nav pill into the conversation).
     Swallows exceptions so an event-bus hiccup never aborts the extraction.
+    Carries entity_id=None and NAV_ROUTE_TEMPLATE so the copilot subscriber
+    can build the brand-studio URL without module-specific logic.
     """
     try:
         from src.shared.domain.events import (
@@ -340,6 +349,8 @@ def _publish_section_completed_event(
                 section_slug=section_slug,
                 section_label=_section_label(section_slug, module),
                 fields_count=fields_count,
+                entity_id=None,
+                nav_route_template=NAV_ROUTE_TEMPLATE,
             ),
             session=None,
         )
@@ -400,6 +411,8 @@ def _publish_completion_events(
                 fields_count=len(section_fields),
             )
 
+        cta = build_brand_primary_cta_route(sections_completed)
+
         EventBus.publish(
             ExtractionJobCompletedEvent.create(
                 tenant_id=UUID(tenant_id),
@@ -411,6 +424,9 @@ def _publish_completion_events(
                 filled_fields=list(filled_fields),
                 filled_fields_by_section=dict(filled_by_section),
                 sections_completed=list(sections_completed),
+                primary_cta_route=cta,
+                entity_id=None,
+                nav_route_template=NAV_ROUTE_TEMPLATE,
             ),
             session=None,
         )

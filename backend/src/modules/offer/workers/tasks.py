@@ -8,6 +8,14 @@ Phase 2 BE (FLOW-SPEC §3.4): on terminal 'completed', publishes
 ExtractionSectionCompletedEvent and ExtractionJobCompletedEvent via the
 shared EventBus. The copilot module's subscriber (registered at startup)
 handles card insertion — no direct offer → copilot import.
+
+Bug fixes (2026-04-24):
+- Bug 1: sections were grouped by flat top-level Offer field keys (wrong).
+  Now uses fields_to_fe_sections() from extraction_section_map.py to map
+  fields to the correct FE section slugs (21 slugs, polymorphic-aware).
+- Bug 2: nav pills and summary CTA hard-coded to brand-studio routes.
+  Now uses NAV_ROUTE_TEMPLATE + primary_cta_route() from extraction_routes,
+  carried through the event payload so the subscriber stays module-agnostic.
 """
 
 import json
@@ -15,6 +23,18 @@ import logging
 import traceback
 from datetime import UTC, datetime
 from uuid import UUID
+
+from src.modules.offer.application.extraction_routes import (
+    NAV_ROUTE_TEMPLATE,
+)
+from src.modules.offer.application.extraction_routes import (
+    primary_cta_route as build_primary_cta_route,
+)
+from src.modules.offer.domain.extraction_section_map import (
+    BACKEND_WAVE_TO_FE_SLUGS,
+    fields_to_fe_sections,
+    resolve_details_section,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -84,11 +104,26 @@ async def run_offer_extraction(
 
     started_at = datetime.now(UTC).isoformat()
 
-    # Accumulated field tracking for the enriched Redis payload
+    # Accumulated field tracking for the enriched Redis payload.
+    # _filled_by_section uses FE section slugs (not backend wave slugs).
     _filled_fields: list[str] = []
     _filled_by_section: dict[str, list[str]] = {}
     _sections_touched: list[str] = []
     _sections_completed: list[str] = []
+
+    # Offer archetype: loaded once after the offer is read, used throughout
+    # on_progress to route specific_details.* paths to the correct FE slug.
+    # Uses a 1-element list so closures can mutate it without nonlocal.
+    _offer_archetype_holder: list = [None]  # holder[0] = OfferArchetype | None
+
+    def _get_fe_slugs_for_backend_wave(backend_slug: str | None) -> list[str]:
+        """Return FE slugs to mark completed when a backend wave finishes."""
+        if backend_slug is None:
+            return []
+        if backend_slug == "details":
+            slug = resolve_details_section(_offer_archetype_holder[0])
+            return [slug] if slug else []
+        return list(BACKEND_WAVE_TO_FE_SLUGS.get(backend_slug, ()))
 
     def on_progress(
         progress_pct: int,
@@ -97,23 +132,48 @@ async def run_offer_extraction(
         new_fields: list[str] | None = None,
         section_completed: str | None = None,
     ) -> None:
-        """Write enriched progress payload to Redis."""
+        """Write enriched progress payload to Redis.
+
+        Groups new_fields by FE section slug (not flat field key) using
+        fields_to_fe_sections() so the FE completion badges align with the
+        actual section editors. The section_completed signal from the
+        extraction service carries a backend wave slug (promise/strategy/…);
+        we map it to one or more FE slugs via BACKEND_WAVE_TO_FE_SLUGS.
+        """
         if new_fields:
+            # Strip any backend wave prefix (e.g. "promise.headline_promise" →
+            # "headline_promise") if the service emits prefixed paths.
+            bare_paths = []
             for fp in new_fields:
                 if fp not in _filled_fields:
                     _filled_fields.append(fp)
-                parts = fp.split(".", 1)
-                sec = parts[0] if len(parts) > 1 else "__root__"
-                if sec not in _sections_touched:
-                    _sections_touched.append(sec)
-                _filled_by_section.setdefault(sec, [])
-                if fp not in _filled_by_section[sec]:
-                    _filled_by_section[sec].append(fp)
+                # Paths may arrive as "wave_slug.field_name" from _announce_sections.
+                # We only care about the top-level Offer field name for grouping.
+                bare = fp.split(".", 1)[-1] if "." in fp else fp
+                bare_paths.append(bare)
 
-        newly_completed: str | None = None
-        if section_completed and section_completed not in _sections_completed:
-            _sections_completed.append(section_completed)
-            newly_completed = section_completed
+            # Group the bare field paths by FE slug
+            new_by_slug = fields_to_fe_sections(
+                archetype=_offer_archetype_holder[0],
+                filled_paths=bare_paths,
+            )
+            for slug, paths in new_by_slug.items():
+                if slug not in _sections_touched:
+                    _sections_touched.append(slug)
+                _filled_by_section.setdefault(slug, [])
+                for p in paths:
+                    if p not in _filled_by_section[slug]:
+                        _filled_by_section[slug].append(p)
+
+        # Map the backend wave slug to FE slugs and announce each as completed.
+        # A backend wave (e.g. "promise") may populate multiple FE sections
+        # (e.g. "identity" + "promise"). We publish a pill for each.
+        newly_completed_fe_slugs: list[str] = []
+        if section_completed:
+            for fe_slug in _get_fe_slugs_for_backend_wave(section_completed):
+                if fe_slug not in _sections_completed:
+                    _sections_completed.append(fe_slug)
+                    newly_completed_fe_slugs.append(fe_slug)
 
         if redis:
             redis.setex(
@@ -130,23 +190,25 @@ async def run_offer_extraction(
                         "filled_fields_by_section": dict(_filled_by_section),
                         "sections_touched": list(_sections_touched),
                         "sections_completed": list(_sections_completed),
-                        "newly_completed_section": newly_completed,
+                        "newly_completed_section": newly_completed_fe_slugs[0] if newly_completed_fe_slugs else None,
                     },
                 ),
             )
 
-        # Per-wave pill: publish the section event immediately so the copilot
-        # subscriber inserts the nav pill into the conversation without waiting
+        # Per-wave pill: publish one event per FE slug so the copilot
+        # subscriber inserts the nav pills into the conversation without waiting
         # for the job to finish. Subscriber is idempotent (Redis guard per
         # job+section) so a later terminal re-publish is a safe no-op.
-        if newly_completed and conversation_id:
-            _publish_section_completed_event(
-                tenant_id=tenant_id,
-                job_id=job_id,
-                conversation_id=conversation_id,
-                section_slug=newly_completed,
-                fields_count=len(_filled_by_section.get(newly_completed, [])),
-            )
+        if conversation_id:
+            for fe_slug in newly_completed_fe_slugs:
+                _publish_section_completed_event(
+                    tenant_id=tenant_id,
+                    job_id=job_id,
+                    offer_id=offer_id,
+                    conversation_id=conversation_id,
+                    section_slug=fe_slug,
+                    fields_count=len(_filled_by_section.get(fe_slug, [])),
+                )
 
     try:
         from src.modules.offer.application.offer_extraction_service import (
@@ -158,7 +220,6 @@ async def run_offer_extraction(
         from src.modules.offer.infrastructure.repositories.offer_repository import (
             OfferRepository,
         )
-        from src.shared.application.field_diff import diff_filled_by_section
 
         on_progress(5, "Iniciando análisis de oferta...")
 
@@ -183,6 +244,12 @@ async def run_offer_extraction(
         before_offer = offer_repo.get_by_id(tenant_uuid, offer_uuid)
         before_dump = before_offer.model_dump(mode="json") if before_offer is not None else {}
 
+        # Capture archetype so on_progress can route specific_details.* paths
+        # to the correct FE slug (program_details / service_details / etc.).
+        # Mutates _offer_archetype_holder[0] so the closures pick it up.
+        if before_offer is not None:
+            _offer_archetype_holder[0] = before_offer.archetype
+
         await service.extract_all(
             url=url,
             text=text,
@@ -196,17 +263,35 @@ async def run_offer_extraction(
         finished_at = datetime.now(UTC).isoformat()
 
         # Re-read offer and compute what changed — best-effort, tolerate errors.
+        # Uses fields_to_fe_sections() to group delta paths by FE slug instead
+        # of the raw top-level key grouping that caused Bug 1 (flat field names
+        # appearing as section names in the completion badges).
         try:
             after_offer = offer_repo.get_by_id(UUID(tenant_id), UUID(offer_id))
             after_dump = after_offer.model_dump(mode="json") if after_offer is not None else {}
-            new_by_section = diff_filled_by_section(before_dump, after_dump)
-            for slug, paths in new_by_section.items():
-                if slug not in _sections_touched:
-                    _sections_touched.append(slug)
-                if slug not in _sections_completed:
-                    _sections_completed.append(slug)
-                _filled_by_section.setdefault(slug, []).extend(paths)
+
+            # Compute which top-level fields actually changed value.
+            delta_paths: list[str] = []
+            for key, after_val in after_dump.items():
+                before_val = before_dump.get(key)
+                if after_val != before_val and after_val not in (None, [], {}, ""):
+                    delta_paths.append(key)
+
+            # Group delta fields by FE section slug.
+            new_by_slug = fields_to_fe_sections(
+                archetype=_offer_archetype_holder[0],
+                filled_paths=delta_paths,
+            )
+            for fe_slug, paths in new_by_slug.items():
+                if fe_slug not in _sections_touched:
+                    _sections_touched.append(fe_slug)
+                if fe_slug not in _sections_completed:
+                    _sections_completed.append(fe_slug)
+                _filled_by_section.setdefault(fe_slug, [])
                 for path in paths:
+                    if path not in _filled_by_section[fe_slug]:
+                        _filled_by_section[fe_slug].append(path)
+                for path in delta_paths:
                     if path not in _filled_fields:
                         _filled_fields.append(path)
         except Exception:  # noqa: BLE001 — observability is best-effort
@@ -241,6 +326,7 @@ async def run_offer_extraction(
         _publish_completion_events(
             tenant_id=tenant_id,
             job_id=job_id,
+            offer_id=offer_id,
             conversation_id=conversation_id,
             url=url,
             started_at=started_at,
@@ -276,14 +362,17 @@ def _publish_section_completed_event(
     *,
     tenant_id: str,
     job_id: str,
+    offer_id: str,
     conversation_id: str,
     section_slug: str,
     fields_count: int,
 ) -> None:
     """Publish an ExtractionSectionCompletedEvent per-wave.
 
-    Called from the ``on_progress`` callback the moment a section transitions
-    to completed. Subscriber idempotency guards against duplicate emits.
+    Called from the ``on_progress`` callback the moment a FE section slug
+    transitions to completed. Subscriber idempotency guards against duplicate
+    emits. Carries entity_id (offer_id) and NAV_ROUTE_TEMPLATE so the
+    subscriber can build the correct offer-editor URL without hardcoding routes.
     """
     try:
         from src.shared.domain.events import (
@@ -300,6 +389,8 @@ def _publish_section_completed_event(
                 section_slug=section_slug,
                 section_label=_section_label(section_slug),
                 fields_count=fields_count,
+                entity_id=offer_id,
+                nav_route_template=NAV_ROUTE_TEMPLATE,
             ),
             session=None,
         )
@@ -317,6 +408,7 @@ def _publish_completion_events(
     *,
     tenant_id: str,
     job_id: str,
+    offer_id: str,
     conversation_id: str | None,
     url: str | None,
     started_at: str,
@@ -332,6 +424,9 @@ def _publish_completion_events(
     safety-net re-emission of section events for slugs the progress callback
     missed (post-diff picks them up). Subscriber idempotency makes re-emits
     no-ops for sections already pilled per-wave.
+
+    Carries entity_id (offer_id) and NAV_ROUTE_TEMPLATE + primary_cta_route
+    so the subscriber renders correct offer-editor URLs (Bug 2 fix).
     """
     if not conversation_id:
         return
@@ -346,11 +441,17 @@ def _publish_completion_events(
         finished_dt = datetime.fromisoformat(finished_at)
         duration_s = int((finished_dt - started_dt).total_seconds())
 
+        cta = build_primary_cta_route(offer_id, sections_completed)
+
+        # Safety-net re-emit for sections surfaced by the post-diff that the
+        # per-wave on_progress callback may have missed. Subscriber Redis guard
+        # makes duplicates no-ops.
         for section_slug in sections_completed:
             section_fields = filled_by_section.get(section_slug, [])
             _publish_section_completed_event(
                 tenant_id=tenant_id,
                 job_id=job_id,
+                offer_id=offer_id,
                 conversation_id=conversation_id,
                 section_slug=section_slug,
                 fields_count=len(section_fields),
@@ -367,6 +468,9 @@ def _publish_completion_events(
                 filled_fields=list(filled_fields),
                 filled_fields_by_section=dict(filled_by_section),
                 sections_completed=list(sections_completed),
+                primary_cta_route=cta,
+                entity_id=offer_id,
+                nav_route_template=NAV_ROUTE_TEMPLATE,
             ),
             session=None,
         )
@@ -380,13 +484,31 @@ def _publish_completion_events(
 
 
 _OFFER_SECTION_LABELS: dict[str, str] = {
+    # FE section slugs (21 from section-catalog.ts)
+    "identity": "Identidad",
     "promise": "Promesa",
-    "details": "Detalles",
-    "strategy": "Estrategia",
-    "psychology": "Psicología",
-    "value-stack": "Stack de Valor",
-    "value_stack": "Stack de Valor",
+    "strategy": "Para quién es",
+    "psychology": "Psicología de compra",
+    "program_details": "Detalles del programa",
+    "service_details": "Detalles del servicio",
+    "event_details": "Detalles del evento",
+    "product_details": "Detalles del producto",
+    "subscription_details": "Detalles de la suscripción",
+    "platform_details": "Plataforma",
+    "location": "Ubicación",
+    "instructors": "Instructores",
+    "value_stack": "Value stack",
+    "pricing": "Pricing",
+    "testimonials": "Testimonios",
+    "portfolio": "Portfolio",
+    "faq": "FAQ",
+    "gallery": "Galería",
+    "resources": "Recursos",
     "closing": "Cierre",
+    "knowledge": "Conocimiento",
+    # Legacy backend wave slugs (kept for backward-compat)
+    "details": "Detalles",
+    "value-stack": "Stack de Valor",
     "__root__": "Offer Studio",
 }
 
