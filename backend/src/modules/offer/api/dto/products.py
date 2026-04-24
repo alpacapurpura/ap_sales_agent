@@ -41,6 +41,24 @@ class ProductResponse(BaseModel):
     marketing_pain_points: list[str] | None = []
     marketing_desires: list[str] | None = []
 
+    before_state: str | None = None
+    after_state: str | None = None
+    why_now: str | None = None
+    measurable_outcomes: list[str] | None = []
+
+    cultural_trust_barriers: list[str] | None = []
+    emotional_triggers: list[str] | None = []
+    status_drivers: list[str] | None = []
+    regret_scenarios: list[str] | None = []
+
+    objections: list[dict[str, Any]] | None = []
+
+    refund_process_description: str | None = None
+    urgency_drivers: list[str] | None = []
+    scarcity_reason_honest: str | None = None
+    bonus_if_act_now: str | None = None
+    final_push_copy: str | None = None
+
     requires_application: bool | None = False
     min_financial_capacity: str | None = None
     prerequisites: list[str] | None = []
@@ -167,6 +185,23 @@ class ProductUpdate(BaseModel):
 
     marketing_pain_points: list[str] | None = None
     marketing_desires: list[str] | None = None
+
+    before_state: str | None = None
+    after_state: str | None = None
+    why_now: str | None = None
+    measurable_outcomes: list[str] | None = None
+
+    cultural_trust_barriers: list[str] | None = None
+    emotional_triggers: list[str] | None = None
+    status_drivers: list[str] | None = None
+    regret_scenarios: list[str] | None = None
+    objections: list[dict[str, Any]] | None = None
+
+    refund_process_description: str | None = None
+    urgency_drivers: list[str] | None = None
+    scarcity_reason_honest: str | None = None
+    bonus_if_act_now: str | None = None
+    final_push_copy: str | None = None
 
     requires_application: bool | None = None
     min_financial_capacity: str | None = None

@@ -148,6 +148,26 @@ class Offer(BaseEntity):
     marketing_pain_points: list[str] = []
     marketing_desires: list[str] = []
     objections: list[ObjectionItem] = []
+
+    # --- Promise narrative (post-identity) ---
+    before_state: str | None = None
+    after_state: str | None = None
+    why_now: str | None = None
+    measurable_outcomes: list[str] = []
+
+    # --- Psychology narrative (post-objections) ---
+    cultural_trust_barriers: list[str] = []
+    emotional_triggers: list[str] = []
+    status_drivers: list[str] = []
+    regret_scenarios: list[str] = []
+
+    # --- Closing narrative ---
+    refund_process_description: str | None = None
+    urgency_drivers: list[str] = []
+    scarcity_reason_honest: str | None = None
+    bonus_if_act_now: str | None = None
+    final_push_copy: str | None = None
+
     metadata_info: dict[str, Any] = {}
 
     status: OfferStatus
@@ -230,19 +250,113 @@ class OfferStrategyUpdate(BaseEntity):
 class OfferPromiseUpdate(BaseEntity):
     """Offer Promise Update."""
 
-    headline_promise: str | None = None
-    primary_outcome: str | None = None
-    time_to_value: str | None = None
+    headline_promise: str | None = Field(
+        None,
+        description=(
+            "Frase titular de una línea con el resultado prometido."
+            " Concreta, memorable, en primera persona del beneficio."
+        ),
+    )
+    primary_outcome: str | None = Field(
+        None,
+        description=(
+            "Resultado principal descriptivo que obtiene el cliente al completar la oferta."
+            " Más extenso que la frase titular."
+        ),
+    )
+    time_to_value: str | None = Field(
+        None,
+        description=(
+            "Cuánto tarda el cliente en sentir el primer resultado útil."
+            " Ejemplos: '30 días', '1 trimestre', 'primera semana'."
+        ),
+    )
+    before_state: str | None = Field(
+        None,
+        description=("Cómo vive el cliente ANTES de la oferta. Dolor concreto y situación cotidiana específica."),
+    )
+    after_state: str | None = Field(
+        None,
+        description=("Cómo vive el cliente DESPUÉS de completar la oferta. Evidencia concreta, no abstracta."),
+    )
+    why_now: str | None = Field(
+        None,
+        description=(
+            "Razón por la que postergar tiene costo concreto."
+            " Conecta con el costo real de inacción. Evita escasez falsa."
+        ),
+    )
+    measurable_outcomes: list[str] | None = Field(
+        None,
+        description=(
+            "Lista de resultados medibles concretos, uno por ítem. Idealmente con números."
+            " Diferencia la promesa de 'vas a sentirte mejor'."
+        ),
+    )
 
 
 class OfferPsychologyUpdate(BaseEntity):
     """Offer Psychology Update."""
 
-    target_avatar_match: list[AvatarPersona] | None = None
-    anti_avatar_keywords: list[str] | None = None
-    marketing_pain_points: list[str] | None = None
-    marketing_desires: list[str] | None = None
-    objections: list[ObjectionItem] | None = None
+    target_avatar_match: list[AvatarPersona] | None = Field(
+        None,
+        description=(
+            "Segmentos/arquetipos adicionales a los que también les sirve la oferta (no solo el avatar principal)."
+        ),
+    )
+    anti_avatar_keywords: list[str] | None = Field(
+        None,
+        description=(
+            "Palabras o frases que descalifican a un lead."
+            " El sales-agent las usa para descartar prospectos mal calificados."
+        ),
+    )
+    marketing_pain_points: list[str] | None = Field(
+        None,
+        description=(
+            "Dolores específicos y medibles del avatar, uno por ítem. Evita genéricos. El agente los cita textualmente."
+        ),
+    )
+    marketing_desires: list[str] | None = Field(
+        None,
+        description=("Deseos concretos del avatar (qué quiere LOGRAR), uno por ítem. Con números cuando aplique."),
+    )
+    objections: list[ObjectionItem] | None = Field(
+        None,
+        description=(
+            "Objeciones anticipadas estructuradas. Cada ítem tiene:"
+            " type (price/time/trust/partner/custom),"
+            " trigger_phrases (frases reales del prospecto),"
+            " strategy (nombre del argumento, ej. 'ROI Reframing'),"
+            " rebuttal (guion de respuesta textual)."
+        ),
+    )
+    cultural_trust_barriers: list[str] | None = Field(
+        None,
+        description=(
+            "Barreras culturales Latam que no son objeciones clásicas:"
+            " desconfianza a pagos online, preferencia WhatsApp,"
+            " tarjetas internacionales rebotadas, exigencia de factura B2B,"
+            " negociación esperada. Uno por ítem."
+        ),
+    )
+    emotional_triggers: list[str] | None = Field(
+        None,
+        description=(
+            "Miedos, deseos y aspiraciones que mueven la decisión de compra."
+            " Lenguaje emocional (no racional). Uno por ítem."
+        ),
+    )
+    status_drivers: list[str] | None = Field(
+        None,
+        description=("Qué cambia en la percepción social del cliente cuando compra y tiene éxito. Uno por ítem."),
+    )
+    regret_scenarios: list[str] | None = Field(
+        None,
+        description=(
+            "Situaciones futuras concretas donde el lead se va a arrepentir de no haber comprado hoy. Uno por ítem."
+        ),
+    )
 
 
 class OfferValueStackUpdate(BaseEntity):
@@ -281,14 +395,53 @@ class OfferVisualsUpdate(BaseEntity):
 class OfferClosingUpdate(BaseEntity):
     """Offer Closing Update."""
 
-    guarantee_type: GuaranteeType | None = None
-    guarantee_terms: str | None = None
+    guarantee_type: GuaranteeType | None = Field(None, description="Tipo de garantía ofrecida. Enum estándar.")
+    guarantee_terms: str | None = Field(
+        None,
+        description=(
+            "Términos exactos de la garantía, copia textual para landing + checkout + email."
+            " Tono confiado, sin letra chica."
+        ),
+    )
     checkout_page_url: str | None = None
     calendar_type_id: str | None = None
     onboarding_action: OnboardingMechanism | None = None
     onboarding_url: str | None = None
     downsell_offer_id: UUID | None = None
     upsell_offer_id: UUID | None = None
+    refund_process_description: str | None = Field(
+        None,
+        description=(
+            "Cómo se devuelve el dinero, desglosado por método de pago (tarjeta, Mercado Pago, transferencia). "
+            "Combate la desconfianza Latam. Más importante que el monto de la garantía."
+        ),
+    )
+    urgency_drivers: list[str] | None = Field(
+        None,
+        description="Razones HONESTAS para comprar ahora. Uno por ítem. Urgencia falsa pierde confianza.",
+    )
+    scarcity_reason_honest: str | None = Field(
+        None,
+        description="Razón honesta de los cupos limitados — logística real, tiempo del experto, calidad de atención.",
+    )
+    bonus_if_act_now: str | None = Field(
+        None,
+        description=(
+            "Bonus condicional a actuar en una ventana de acción definida (48h, 7 días)."
+            " Distinto del fast-action del value-stack."
+        ),
+    )
+    final_push_copy: str | None = Field(
+        None,
+        description=(
+            "Frase de cierre emocional para cuando el lead está a un paso de decidir."
+            " Directa, empática, con recordatorio de garantía."
+        ),
+    )
+    support_duration_days: int | None = Field(
+        None,
+        description="Cuántos días el cliente tiene acceso al soporte post-compra (chat, email, comunidad).",
+    )
 
 
 class OfferResourcesUpdate(BaseEntity):

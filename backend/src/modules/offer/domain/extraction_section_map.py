@@ -85,6 +85,11 @@ OFFER_FIELDS_BY_FE_SECTION: dict[str, tuple[str, ...]] = {
         "requires_application",
         "min_financial_capacity",
         "prerequisites",
+        # NEW narrative:
+        "before_state",
+        "after_state",
+        "why_now",
+        "measurable_outcomes",
     ),
     # Strategy: audience targeting and delivery approach
     "strategy": (
@@ -98,6 +103,11 @@ OFFER_FIELDS_BY_FE_SECTION: dict[str, tuple[str, ...]] = {
         "marketing_pain_points",
         "marketing_desires",
         "objections",
+        # NEW narrative:
+        "cultural_trust_barriers",
+        "emotional_triggers",
+        "status_drivers",
+        "regret_scenarios",
     ),
     # Value stack: deliverables + bundled offers
     "value_stack": (
@@ -123,6 +133,13 @@ OFFER_FIELDS_BY_FE_SECTION: dict[str, tuple[str, ...]] = {
         "downsell_offer_id",
         "upsell_offer_id",
         "vsl_link",
+        # NEW narrative:
+        "refund_process_description",
+        "urgency_drivers",
+        "scarcity_reason_honest",
+        "bonus_if_act_now",
+        "final_push_copy",
+        "support_duration_days",
     ),
     # Polymorphic details: field paths under "specific_details.*" are mapped
     # via resolve_details_section(archetype) at grouping time.

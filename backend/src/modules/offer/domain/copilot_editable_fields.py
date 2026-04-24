@@ -53,9 +53,64 @@ _STRATEGY = (
     FieldSpec("anti_avatar_keywords", "Anti-avatar (palabras clave)", "strategy"),
 )
 
+# ── promise narrative ─────────────────────────────────────────────────────
+# Form-runtime: offer.promise
+_PROMISE_NARRATIVE = (
+    FieldSpec(
+        "before_state",
+        "Situación previa del cliente",
+        "promise",
+        "Cómo vive el cliente ANTES de la oferta. Dolor concreto y situación cotidiana específica.",
+    ),
+    FieldSpec(
+        "after_state",
+        "Situación objetivo del cliente",
+        "promise",
+        "Cómo vive el cliente DESPUÉS de completar la oferta. Evidencia concreta, no abstracta.",
+    ),
+    FieldSpec(
+        "why_now",
+        "Por qué ahora",
+        "promise",
+        "Razón por la que postergar tiene costo concreto. Conecta con el costo real de inacción.",
+    ),
+    FieldSpec(
+        "measurable_outcomes",
+        "Resultados medibles",
+        "promise",
+        "Lista de resultados medibles concretos, uno por ítem. Idealmente con números.",
+    ),
+)
+
 # ── psychology ───────────────────────────────────────────────────────────
 # Form-runtime: offer.psychology
-_PSYCHOLOGY = (FieldSpec("objections", "Objeciones", "psychology"),)
+_PSYCHOLOGY = (
+    FieldSpec("objections", "Objeciones", "psychology"),
+    FieldSpec(
+        "cultural_trust_barriers",
+        "Barreras culturales de confianza",
+        "psychology",
+        "Barreras culturales Latam que no son objeciones clásicas. Uno por ítem.",
+    ),
+    FieldSpec(
+        "emotional_triggers",
+        "Disparadores emocionales",
+        "psychology",
+        "Miedos, deseos y aspiraciones que mueven la decisión de compra. Uno por ítem.",
+    ),
+    FieldSpec(
+        "status_drivers",
+        "Motores de estatus",
+        "psychology",
+        "Qué cambia en la percepción social del cliente cuando compra y tiene éxito. Uno por ítem.",
+    ),
+    FieldSpec(
+        "regret_scenarios",
+        "Escenarios de arrepentimiento",
+        "psychology",
+        "Situaciones futuras concretas donde el lead se va a arrepentir de no haber comprado hoy. Uno por ítem.",
+    ),
+)
 
 # ── value-stack ──────────────────────────────────────────────────────────
 # Form-runtime: offer.value_stack
@@ -78,6 +133,36 @@ _CLOSING = (
     FieldSpec("guarantee_type", "Tipo de garantía", "closing"),
     FieldSpec("guarantee_terms", "Términos de la garantía", "closing"),
     FieldSpec("support_duration_days", "Duración del soporte (días)", "closing"),
+    FieldSpec(
+        "refund_process_description",
+        "Proceso de devolución",
+        "closing",
+        "Cómo se devuelve el dinero, desglosado por método de pago. Combate la desconfianza Latam.",
+    ),
+    FieldSpec(
+        "urgency_drivers",
+        "Razones de urgencia honestas",
+        "closing",
+        "Razones HONESTAS para comprar ahora. Uno por ítem. Urgencia falsa pierde confianza.",
+    ),
+    FieldSpec(
+        "scarcity_reason_honest",
+        "Motivo de escasez real",
+        "closing",
+        "Razón honesta de los cupos limitados — logística real, tiempo del experto, calidad de atención.",
+    ),
+    FieldSpec(
+        "bonus_if_act_now",
+        "Bonus por decidir ahora",
+        "closing",
+        "Bonus condicional a actuar en una ventana de acción definida (48h, 7 días).",
+    ),
+    FieldSpec(
+        "final_push_copy",
+        "Frase de cierre",
+        "closing",
+        "Frase de cierre emocional para cuando el lead está a un paso de decidir.",
+    ),
 )
 
 # ── onboarding / prerequisites ───────────────────────────────────────────
@@ -100,6 +185,7 @@ _CLASSIFICATION = (
 
 OFFER_EDITABLE_FIELDS: tuple[FieldSpec, ...] = (
     *_IDENTITY,
+    *_PROMISE_NARRATIVE,
     *_STRATEGY,
     *_PSYCHOLOGY,
     *_VALUE_STACK,

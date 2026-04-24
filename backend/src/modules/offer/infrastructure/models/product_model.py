@@ -95,6 +95,25 @@ class ProductModel(Base):
     # For now, we'll assume it might be extracted from pricing list or added if critical.
     # currency -> stored in pricing objects usually, or add column.
 
+    # --- Narrative: promise ----------------------------------------------
+    before_state = Column(Text, nullable=True)
+    after_state = Column(Text, nullable=True)
+    why_now = Column(Text, nullable=True)
+    measurable_outcomes = Column(JSONB, nullable=False, default=list, server_default="[]")
+
+    # --- Narrative: psychology -------------------------------------------
+    cultural_trust_barriers = Column(JSONB, nullable=False, default=list, server_default="[]")
+    emotional_triggers = Column(JSONB, nullable=False, default=list, server_default="[]")
+    status_drivers = Column(JSONB, nullable=False, default=list, server_default="[]")
+    regret_scenarios = Column(JSONB, nullable=False, default=list, server_default="[]")
+
+    # --- Narrative: closing ----------------------------------------------
+    refund_process_description = Column(Text, nullable=True)
+    urgency_drivers = Column(JSONB, nullable=False, default=list, server_default="[]")
+    scarcity_reason_honest = Column(Text, nullable=True)
+    bonus_if_act_now = Column(Text, nullable=True)
+    final_push_copy = Column(Text, nullable=True)
+
     # Lifecycle (SaaS archive + soft-delete)
     # archived_at NULL, deleted_at NULL -> active (visible in normal list)
     # archived_at NOT NULL, deleted_at NULL -> archived (visible in /archived)

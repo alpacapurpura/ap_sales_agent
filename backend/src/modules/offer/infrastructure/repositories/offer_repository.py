@@ -73,6 +73,22 @@ class OfferRepository:
             "marketing_pain_points": model.marketing_pain_points or [],
             "marketing_desires": model.marketing_desires or [],
             "objections": model.objections or [],
+            # --- Narrative: promise ---
+            "before_state": model.before_state,
+            "after_state": model.after_state,
+            "why_now": model.why_now,
+            "measurable_outcomes": model.measurable_outcomes or [],
+            # --- Narrative: psychology ---
+            "cultural_trust_barriers": model.cultural_trust_barriers or [],
+            "emotional_triggers": model.emotional_triggers or [],
+            "status_drivers": model.status_drivers or [],
+            "regret_scenarios": model.regret_scenarios or [],
+            # --- Narrative: closing ---
+            "refund_process_description": model.refund_process_description,
+            "urgency_drivers": model.urgency_drivers or [],
+            "scarcity_reason_honest": model.scarcity_reason_honest,
+            "bonus_if_act_now": model.bonus_if_act_now,
+            "final_push_copy": model.final_push_copy,
             "metadata_info": model.metadata_info or {},
             "price_pay_in_full": None,
             # Pass-through: nulls stay null. Callers/UI resolve via TenantLocale.
@@ -153,6 +169,19 @@ class OfferRepository:
             marketing_pain_points=offer.marketing_pain_points,
             marketing_desires=offer.marketing_desires,
             objections=[o.model_dump(mode="json") for o in offer.objections],
+            before_state=offer.before_state,
+            after_state=offer.after_state,
+            why_now=offer.why_now,
+            measurable_outcomes=list(offer.measurable_outcomes or []),
+            cultural_trust_barriers=list(offer.cultural_trust_barriers or []),
+            emotional_triggers=list(offer.emotional_triggers or []),
+            status_drivers=list(offer.status_drivers or []),
+            regret_scenarios=list(offer.regret_scenarios or []),
+            refund_process_description=offer.refund_process_description,
+            urgency_drivers=list(offer.urgency_drivers or []),
+            scarcity_reason_honest=offer.scarcity_reason_honest,
+            bonus_if_act_now=offer.bonus_if_act_now,
+            final_push_copy=offer.final_push_copy,
             metadata_info=offer.metadata_info,
         )
 
