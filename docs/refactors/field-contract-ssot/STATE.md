@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-04-24 16:00
-last_green_commit: 92523a6e
+last_updated: 2026-04-24 16:05
+last_green_commit: 81d52236
 active_phase: 02-migrate-sections
 sub_step: 0/? (ready-to-start)
 status: ready-to-start
@@ -57,6 +57,7 @@ working_tree_clean: true
 | 2026-04-24 | 4abb34ba | Fase 01 G — codegen TS `OfferFieldPath` + typed pricing schema |
 | 2026-04-24 | 28efe0e9 | Fase 01 H — agent_identity.j2 additive pricing block |
 | 2026-04-24 | 92523a6e | Fase 01 I — golden fixture regen + pricing LATAM roundtrip test |
+| 2026-04-24 | 81d52236 | Fase 01 J — close phase: docs + STATE bump + Fase 02 ready |
 
 ## Convención de actualización
 

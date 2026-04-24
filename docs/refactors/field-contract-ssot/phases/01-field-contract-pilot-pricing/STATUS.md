@@ -30,7 +30,7 @@ Fase abierta. Baseline PRE_FLIGHT capturada:
 | G | `feat(offer-studio): type pricing schema paths against codegen` | done | `4abb34ba` |
 | H | `feat(sales-agent): additive pricing block in agent identity prompt` | done | `28efe0e9` |
 | I | `test(offer): golden fixture roundtrip pricing latam` | done | `92523a6e` |
-| J | `chore(refactor-field-contract): close fase 01` | this commit | tbd |
+| J | `chore(refactor-field-contract): close phase 01` | done | `81d52236` |
 
 Ver `SPEC.md` y `ACCEPTANCE.md` para detalle.
 
