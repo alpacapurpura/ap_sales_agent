@@ -160,8 +160,8 @@ def _make_team_member(name: str = "Ana López", role: str = "Coach") -> MagicMoc
 
 
 def test_offer_section_tools_registered() -> None:
-    """All 17 tools must be in OFFER_SECTION_TOOLS."""
-    assert len(OFFER_SECTION_TOOLS) == 17
+    """All 18 tools must be in OFFER_SECTION_TOOLS."""
+    assert len(OFFER_SECTION_TOOLS) == 18
     tool_names = {t.name for t in OFFER_SECTION_TOOLS}
     expected = {
         "adapt_from_brand_identity",
@@ -181,6 +181,7 @@ def test_offer_section_tools_registered() -> None:
         "pull_sales_agent_common_questions",
         "assemble_from_brand_authority",
         "reuse_brand_team",
+        "structure_objections",
     }
     assert tool_names == expected
 
@@ -190,7 +191,7 @@ def test_offer_section_tools_in_registry_tool_groups() -> None:
     from src.modules.copilot.application.tools.registry import TOOL_GROUPS
 
     assert "offer_section" in TOOL_GROUPS
-    assert len(TOOL_GROUPS["offer_section"]) == 17
+    assert len(TOOL_GROUPS["offer_section"]) == 18
 
 
 def test_offer_studio_route_includes_offer_section() -> None:
