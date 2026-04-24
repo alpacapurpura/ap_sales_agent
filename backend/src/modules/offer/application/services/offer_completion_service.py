@@ -164,6 +164,36 @@ _SECTION_VALIDATORS: dict[str, tuple[str, tuple[str, ...]]] = {
     "closing": ("all", ("guarantee_type",)),
 }
 
+# Narrative fields are additive signals of "how deep" a section is.
+# NOT required for baseline completion — they enrich UX without perturbing
+# percentage/completed_sections (CONTRACT §23: zero baseline drift).
+#
+# Alignment note: these field names mirror OFFER_FIELDS_BY_FE_SECTION in
+# extraction_section_map.py. Adding a narrative to one dict must be reflected
+# in the other.
+_SECTION_NARRATIVE_FIELDS: dict[str, tuple[str, ...]] = {
+    "promise": (
+        "before_state",
+        "after_state",
+        "why_now",
+        "measurable_outcomes",
+    ),
+    "psychology": (
+        "objections",
+        "cultural_trust_barriers",
+        "emotional_triggers",
+        "status_drivers",
+        "regret_scenarios",
+    ),
+    "closing": (
+        "refund_process_description",
+        "urgency_drivers",
+        "scarcity_reason_honest",
+        "bonus_if_act_now",
+        "final_push_copy",
+    ),
+}
+
 
 def _validate_details(offer: Offer) -> str:
     """Validate archetype-specific details section."""
@@ -178,6 +208,28 @@ def _validate_details(offer: Offer) -> str:
     except AttributeError:
         return "complete" if bool(details) else "incomplete"
     return "complete" if dumped else "incomplete"
+
+
+def _compute_section_depth(offer: Offer) -> dict[str, dict[str, float | int]]:
+    """Return per-section narrative depth.
+
+    Only sections listed in ``_SECTION_NARRATIVE_FIELDS`` appear in the result.
+    Fields counted as "filled" via ``_has()``.
+
+    This is a pure additive metric — it does not affect ``percentage``,
+    ``completed_sections``, or ``total_sections`` in any way.
+    """
+    result: dict[str, dict[str, float | int]] = {}
+    for section, fields in _SECTION_NARRATIVE_FIELDS.items():
+        filled = sum(1 for f in fields if _has(getattr(offer, f, None)))
+        total = len(fields)
+        depth_pct = round((filled / total) * 100.0, 1) if total > 0 else 0.0
+        result[section] = {
+            "filled": filled,
+            "total": total,
+            "depth_pct": depth_pct,
+        }
+    return result
 
 
 def _validate_section(section_id: str, offer: Offer) -> str:
@@ -239,6 +291,7 @@ class OfferCompletionService:
             "completed_sections": completed,
             "total_sections": total,
             "next_milestone": next_milestone,
+            "section_depth": _compute_section_depth(offer),  # additive — no baseline change
         }
 
 
