@@ -12,7 +12,7 @@ import json
 import structlog
 from langchain_core.tools import tool
 
-from src.core.context import get_conversation_id
+from src.core.context import get_conversation_id, get_tenant_id
 from src.modules.copilot.application.guided.block_generator import (
     build_blocks,
     next_block_after,
@@ -40,7 +40,8 @@ def advance_guided_block(block_id: str, persisted_fields: list[str] | None = Non
 
     """
     conversation_id = get_conversation_id()
-    state = read_state(conversation_id)
+    tenant_id = get_tenant_id()
+    state = read_state(conversation_id, tenant_id)
 
     if state is None:
         return json.dumps(
@@ -65,7 +66,7 @@ def advance_guided_block(block_id: str, persisted_fields: list[str] | None = Non
 
     if next_block is None:
         # Flow finished — clear guided state.
-        write_state(conversation_id, None)
+        write_state(conversation_id, None, tenant_id)
         return json.dumps(
             {
                 "text": "¡Tu configuración guiada quedó completa! Pasamos a chat libre.",
@@ -80,7 +81,7 @@ def advance_guided_block(block_id: str, persisted_fields: list[str] | None = Non
         )
 
     state.current_block_id = next_block.id
-    write_state(conversation_id, state)
+    write_state(conversation_id, state, tenant_id)
 
     return json.dumps(
         {

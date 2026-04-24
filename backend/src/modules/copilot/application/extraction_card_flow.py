@@ -245,11 +245,41 @@ def _build_card_message(*, card_kind: str, payload: dict) -> dict:
 # ── Event subscribers ─────────────────────────────────────────────────────────
 
 
+def _coerce_event_uuids(
+    event: DomainEvent,
+    conversation_id_raw: str,
+) -> tuple[UUID, UUID] | None:
+    """Parse ``event.tenant_id`` + ``conversation_id_raw`` into UUIDs.
+
+    Event payloads are domain-typed but the bus accepts stringy inputs too.
+    Return ``None`` when either slot is missing or malformed — lets the
+    subscriber log a specific warning instead of crashing via ``UUID(None)``.
+    """
+    if event.tenant_id is None:
+        return None
+    try:
+        tenant = event.tenant_id if isinstance(event.tenant_id, UUID) else UUID(str(event.tenant_id))
+        conv = UUID(conversation_id_raw)
+    except (TypeError, ValueError):
+        return None
+    return tenant, conv
+
+
 def handle_section_completed(event: DomainEvent) -> None:
     """Handle extraction_section_completed: insert navigation pill."""
     conversation_id_raw: str | None = event.payload.get("conversation_id")
     if not conversation_id_raw:
         return
+
+    ids = _coerce_event_uuids(event, conversation_id_raw)
+    if ids is None:
+        logger.warning(
+            "extraction_section_handler_missing_ids",
+            tenant_id=str(event.tenant_id),
+            conversation_id=conversation_id_raw,
+        )
+        return
+    tenant_uuid, conv_uuid = ids
 
     try:
         from src.core.database import SessionLocal
@@ -258,17 +288,14 @@ def handle_section_completed(event: DomainEvent) -> None:
         # Build a recorder scoped to this event (no active turn — uses None turn_id).
         # The subscriber runs outside any /copilot/chat turn so we create an
         # independent recorder to capture the card_emitted event.
-        recorder = tr_mod.start(
-            tenant_id=UUID(str(event.tenant_id)),
-            conversation_id=UUID(conversation_id_raw),
-        )
+        recorder = tr_mod.start(tenant_id=tenant_uuid, conversation_id=conv_uuid)
 
         db = SessionLocal()
         try:
             emit_section_complete_pill(
                 db=db,
-                tenant_id=UUID(str(event.tenant_id)),
-                conversation_id=UUID(conversation_id_raw),
+                tenant_id=tenant_uuid,
+                conversation_id=conv_uuid,
                 job_id=str(event.payload.get("job_id", "")),
                 section_slug=str(event.payload.get("section_slug", "")),
                 section_label=str(event.payload.get("section_label", "")),
@@ -297,6 +324,16 @@ def handle_job_completed(event: DomainEvent) -> None:
     if not conversation_id_raw:
         return
 
+    ids = _coerce_event_uuids(event, conversation_id_raw)
+    if ids is None:
+        logger.warning(
+            "extraction_job_handler_missing_ids",
+            tenant_id=str(event.tenant_id),
+            conversation_id=conversation_id_raw,
+        )
+        return
+    tenant_uuid, conv_uuid = ids
+
     try:
         from src.core.database import SessionLocal
         from src.modules.copilot.application.extraction.active_job_persistence import (
@@ -304,17 +341,14 @@ def handle_job_completed(event: DomainEvent) -> None:
         )
         from src.modules.copilot.application.observability import trace_recorder as tr_mod
 
-        recorder = tr_mod.start(
-            tenant_id=UUID(str(event.tenant_id)),
-            conversation_id=UUID(conversation_id_raw),
-        )
+        recorder = tr_mod.start(tenant_id=tenant_uuid, conversation_id=conv_uuid)
 
         db = SessionLocal()
         try:
             emit_extraction_summary_card(
                 db=db,
-                tenant_id=UUID(str(event.tenant_id)),
-                conversation_id=UUID(conversation_id_raw),
+                tenant_id=tenant_uuid,
+                conversation_id=conv_uuid,
                 job_id=str(event.payload.get("job_id", "")),
                 source_ref=str(event.payload.get("source_ref", "")),
                 duration_seconds=int(event.payload.get("duration_seconds", 0)),
@@ -335,7 +369,7 @@ def handle_job_completed(event: DomainEvent) -> None:
         # on the paused block. Done after card emission so a failure here does
         # not block the UX feedback.
         try:
-            write_active_job(conversation_id_raw, None)
+            write_active_job(conversation_id_raw, None, tenant_uuid)
         except Exception:  # noqa: BLE001 — best-effort cleanup
             logger.warning(
                 "active_extraction_job_clear_failed",

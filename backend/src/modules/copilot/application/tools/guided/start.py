@@ -12,7 +12,7 @@ import json
 import structlog
 from langchain_core.tools import tool
 
-from src.core.context import get_conversation_id
+from src.core.context import get_conversation_id, get_tenant_id
 from src.modules.copilot.application.guided.block_generator import build_blocks
 from src.modules.copilot.application.guided.persistence import write_state
 from src.modules.copilot.application.guided.state import GuidedState
@@ -60,6 +60,7 @@ def start_guided_setup(domain: str, entity_id: str | None = None) -> str:
 
     first = blocks[0]
     conversation_id = get_conversation_id()
+    tenant_id = get_tenant_id()
 
     state = GuidedState(
         domain=domain,
@@ -68,7 +69,7 @@ def start_guided_setup(domain: str, entity_id: str | None = None) -> str:
         completed_blocks=[],
         started_at=utc_now().isoformat(),
     )
-    write_state(conversation_id, state)
+    write_state(conversation_id, state, tenant_id)
 
     return json.dumps(
         {

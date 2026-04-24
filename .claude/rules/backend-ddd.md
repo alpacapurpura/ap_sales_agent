@@ -30,3 +30,9 @@ description: DDD architecture rules for backend Python code
 - **Default: forbidden.** Module A no importa de B's domain/infrastructure/application.
 - **Allowed exceptions:** `copilot` puede importar (infra-like orchestrator). Use `shared/links/` para otras inter-module.
 - Necesitas data de otro module → port/interface en `shared/` o domain event.
+
+## Extraction Orchestrators
+- Wave-based LLM extraction pipelines (brand, offer, buyer_persona, landing, …) MUST subclass `src.shared.application.extraction.base_orchestrator.BaseExtractionOrchestrator`.
+- Base provides: `_run_wave`, `_pause_between_waves`, `_announce_sections`, `_get_wave_delay` hook, `log_prefix` for module-specific structlog event names.
+- Subclass owns: wave composition, `_merge_and_save`, `run()` entry point.
+- Arch gate: `tests/architecture/test_extraction_orchestrator_inheritance.py` blocks new `*Extraction*Orchestrator*` classes that skip the base.

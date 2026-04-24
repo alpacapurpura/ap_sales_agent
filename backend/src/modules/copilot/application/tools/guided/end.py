@@ -6,7 +6,7 @@ import json
 
 from langchain_core.tools import tool
 
-from src.core.context import get_conversation_id
+from src.core.context import get_conversation_id, get_tenant_id
 from src.modules.copilot.application.guided.persistence import read_state, write_state
 
 
@@ -26,7 +26,8 @@ def end_guided_setup(reason: str = "user_request") -> str:
 
     """
     conversation_id = get_conversation_id()
-    state = read_state(conversation_id)
+    tenant_id = get_tenant_id()
+    state = read_state(conversation_id, tenant_id)
 
     if state is None:
         return json.dumps(
@@ -36,7 +37,7 @@ def end_guided_setup(reason: str = "user_request") -> str:
             },
         )
 
-    write_state(conversation_id, None)
+    write_state(conversation_id, None, tenant_id)
 
     return json.dumps(
         {

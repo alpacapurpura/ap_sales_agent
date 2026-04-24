@@ -8,10 +8,15 @@ Invariant: ``_merge_and_save`` persists BEFORE ``_announce_sections`` emits
 section-completed events. This guarantees that any copilot nav pill pointing
 at a section arrives after the data is already in the database.
 
-Wave assignments (based on copilot_editable_fields.py catalog):
-  - W1: identity, promise, strategy
-  - W2: psychology, value_stack, pricing
-  - W3: closing_system, onboarding, classification
+Wave assignments are 1:1 with the extractors in ``OfferExtractionService``.
+Each slug maps to a real extractor — no aliases, no double-calls. Previous
+layouts that reused extractors under virtual slugs (``identity``/``pricing``
+/``classification``) wasted LLM budget and emitted nav pills whose payload
+didn't match the slug.
+
+  - W1: promise, strategy
+  - W2: psychology, value_stack, closing
+  - W3: details
 """
 
 from __future__ import annotations
@@ -22,13 +27,13 @@ import time
 from typing import TYPE_CHECKING, Literal
 
 import structlog
+from pydantic import ValidationError
 
 from src.modules.offer.application.offer_service import OfferService
-from src.shared.application.progress_emitter import (
-    emit_progress,
-    fields_from_model,
-    supports_rich_progress,
+from src.shared.application.extraction.base_orchestrator import (
+    BaseExtractionOrchestrator,
 )
+from src.shared.application.progress_emitter import emit_progress
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -43,22 +48,23 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# Seconds to wait between waves to let TPM budget recover.
-_WAVE_DELAY_SECONDS: float = 1.0
-
-# Offer waves — section slugs used for announce and logging.
-_WAVE1_SECTIONS = ["identity", "promise", "strategy"]
-_WAVE2_SECTIONS = ["psychology", "value_stack", "pricing"]
-_WAVE3_SECTIONS = ["closing_system", "onboarding", "classification"]
+# Offer waves — each slug maps 1:1 to a real extractor on OfferExtractionService.
+_WAVE1_SECTIONS = ["promise", "strategy"]
+_WAVE2_SECTIONS = ["psychology", "value_stack", "closing"]
+_WAVE3_SECTIONS = ["details"]
+_TOTAL_SECTIONS = len(_WAVE1_SECTIONS) + len(_WAVE2_SECTIONS) + len(_WAVE3_SECTIONS)
 
 
-class OfferExtractionOrchestrator:
+class OfferExtractionOrchestrator(BaseExtractionOrchestrator):
     """Coordinates wave-based LLM extraction and persists results into Offer.
 
     Receives a reference to the OfferExtractionService for individual section
     extraction methods. This class owns the scheduling (waves, pauses, progress)
-    and the merge-and-save step.
+    and the merge-and-save step. Wave + progress mechanics come from
+    :class:`BaseExtractionOrchestrator`.
     """
+
+    log_prefix = "offer_extraction"
 
     def __init__(self, service: OfferExtractionService) -> None:
         """Initialize offer extraction orchestrator."""
@@ -138,10 +144,9 @@ class OfferExtractionOrchestrator:
 
         instructions = update_instructions if mode == "update" else None
 
-        total_sections = 9  # 3 per wave x 3 waves
         if trace:
             trace.set_content_length(len(content))
-            trace.set_sections_total(total_sections)
+            trace.set_sections_total(_TOTAL_SECTIONS)
 
         logger.info(
             "offer_extraction_starting",
@@ -155,7 +160,7 @@ class OfferExtractionOrchestrator:
             trace.merge_start()
         merge_t0 = time.time()
 
-        await self._run_multi_wave(
+        sections_succeeded = await self._run_multi_wave(
             svc=svc,
             content=content,
             current_data_str=current_data_str,
@@ -167,7 +172,7 @@ class OfferExtractionOrchestrator:
 
         if trace:
             trace.merge_end(time.time() - merge_t0)
-            trace.finish(status="completed", sections_succeeded=total_sections)
+            trace.finish(status="completed", sections_succeeded=sections_succeeded)
 
         emit_progress(progress_callback, 100, "¡Análisis de oferta completado!")
         logger.info(
@@ -180,58 +185,10 @@ class OfferExtractionOrchestrator:
     # Wave execution strategies
     # ------------------------------------------------------------------
 
-    def _announce_sections(
-        self,
-        progress_callback: Callable[..., None] | None,
-        sections: list[str],
-        results: list,
-        *,
-        pct: int,
-    ) -> None:
-        """Emit per-section progress for callbacks that support the rich signature.
-
-        Legacy 2-arg callbacks (REST endpoints) never see these calls.
-        Each (section, result) pair is published via ``section_completed`` +
-        ``new_fields``. Empty sections (failed extractions) are silently
-        skipped so the UI doesn't flash false badges.
-        """
-        if not supports_rich_progress(progress_callback):
-            return
-        for section_slug, result in zip(sections, results, strict=False):
-            fields = fields_from_model(section_slug, result)
-            if not fields:
-                continue
-            emit_progress(
-                progress_callback,
-                pct,
-                f"Sección {section_slug} lista",
-                new_fields=fields,
-                section_completed=section_slug,
-            )
-
-    async def _run_wave(
-        self,
-        wave_num: int,
-        sections: list[str],
-        coros: list,
-        trace: OfferExtractionTraceCollector | None,
-    ) -> list:
-        """Execute a single wave of concurrent extractions with logging."""
-        logger.info("offer_extraction_wave_starting", wave=wave_num, sections=sections)
-        if trace:
-            trace.wave_start(wave_num, sections)
-        return await asyncio.gather(*coros)
-
-    async def _pause_between_waves(
-        self,
-        wave_num: int,
-        trace: OfferExtractionTraceCollector | None,
-    ) -> None:
-        """Pause between waves to let TPM budget recover."""
-        logger.info("offer_extraction_wave_pause", delay=_WAVE_DELAY_SECONDS)
-        if trace:
-            trace.wave_pause(wave_num, _WAVE_DELAY_SECONDS)
-        await asyncio.sleep(_WAVE_DELAY_SECONDS)
+    @staticmethod
+    def _count_succeeded(results: list) -> int:
+        """Count wave results that aren't None or exceptions."""
+        return sum(1 for r in results if r is not None and not isinstance(r, BaseException))
 
     async def _run_multi_wave(
         self,
@@ -244,48 +201,43 @@ class OfferExtractionOrchestrator:
         trace: OfferExtractionTraceCollector | None = None,
         *,
         dry_run: bool = False,
-    ) -> None:
-        """Execute extraction in multiple waves.
+    ) -> int:
+        """Execute extraction in three waves, 1:1 with real extractors.
 
         Each wave persists its subset via ``_merge_and_save`` BEFORE
         ``_announce_sections`` publishes its section-completed events — so when
         a nav pill lands in the copilot conversation, the offer data it points
         at is already in the DB.
+
+        Returns the number of sections that completed successfully (non-None,
+        non-exception) across all waves, so the caller can record it on the
+        trace finish row.
         """
-        # Wave 1: identity (promise fields), promise, strategy
+        succeeded = 0
+
+        # Wave 1: promise + strategy (identity fields live inside promise).
         wave1_results = await self._run_wave(
             1,
             _WAVE1_SECTIONS,
             [
                 svc._extract_promise(content, current_data_str, update_instructions, archetype),
                 svc._extract_strategy(content, current_data_str, update_instructions, archetype),
-                # identity fields overlap with promise in offer (headline_promise,
-                # primary_outcome, time_to_value) — promise extractor covers them.
-                svc._extract_promise(content, current_data_str, update_instructions, archetype),
             ],
             trace,
         )
-        # Use unique results: promise (index 0) covers both "identity" and "promise" sections.
-        # strategy is index 1.
-        promise_result = wave1_results[0]
-        strategy_result = wave1_results[1]
+        succeeded += self._count_succeeded(wave1_results)
 
         self._merge_and_save(
             svc=svc,
-            results=[promise_result, strategy_result],
+            results=wave1_results,
             wave_num=1,
             dry_run=dry_run,
         )
 
-        emit_progress(progress_callback, 40, "Analizando identidad, promesa y estrategia...")
-        self._announce_sections(
-            progress_callback,
-            ["identity", "promise", "strategy"],
-            [promise_result, promise_result, strategy_result],
-            pct=40,
-        )
+        emit_progress(progress_callback, 40, "Analizando promesa y estrategia...")
+        self._announce_sections(progress_callback, _WAVE1_SECTIONS, wave1_results, pct=40)
 
-        # Wave 2: psychology, value_stack, pricing
+        # Wave 2: psychology, value_stack, closing.
         await self._pause_between_waves(1, trace)
         wave2_results = await self._run_wave(
             2,
@@ -297,55 +249,41 @@ class OfferExtractionOrchestrator:
             ],
             trace,
         )
-        psychology_result = wave2_results[0]
-        value_stack_result = wave2_results[1]
-        pricing_result = wave2_results[2]
+        succeeded += self._count_succeeded(wave2_results)
 
         self._merge_and_save(
             svc=svc,
-            results=[psychology_result, value_stack_result, pricing_result],
+            results=wave2_results,
             wave_num=2,
             dry_run=dry_run,
         )
 
-        emit_progress(progress_callback, 65, "Analizando psicología, stack de valor y precios...")
-        self._announce_sections(
-            progress_callback,
-            _WAVE2_SECTIONS,
-            [psychology_result, value_stack_result, pricing_result],
-            pct=65,
-        )
+        emit_progress(progress_callback, 65, "Analizando psicología, stack de valor y cierre...")
+        self._announce_sections(progress_callback, _WAVE2_SECTIONS, wave2_results, pct=65)
 
-        # Wave 3: closing_system, onboarding, classification
+        # Wave 3: details (fulfillment, access, onboarding).
         await self._pause_between_waves(2, trace)
         wave3_results = await self._run_wave(
             3,
             _WAVE3_SECTIONS,
             [
-                svc._extract_closing(content, current_data_str, update_instructions, archetype),
                 svc._extract_details(content, current_data_str, update_instructions, archetype),
-                svc._extract_strategy(content, current_data_str, update_instructions, archetype),
             ],
             trace,
         )
-        closing_result = wave3_results[0]
-        details_result = wave3_results[1]
-        classification_result = wave3_results[2]
+        succeeded += self._count_succeeded(wave3_results)
 
         self._merge_and_save(
             svc=svc,
-            results=[closing_result, details_result, classification_result],
+            results=wave3_results,
             wave_num=3,
             dry_run=dry_run,
         )
 
-        emit_progress(progress_callback, 85, "Analizando cierre, onboarding y clasificación...")
-        self._announce_sections(
-            progress_callback,
-            _WAVE3_SECTIONS,
-            [closing_result, details_result, classification_result],
-            pct=85,
-        )
+        emit_progress(progress_callback, 85, "Analizando detalles de entrega...")
+        self._announce_sections(progress_callback, _WAVE3_SECTIONS, wave3_results, pct=85)
+
+        return succeeded
 
     async def _run_single_wave(
         self,
@@ -358,33 +296,30 @@ class OfferExtractionOrchestrator:
         trace: OfferExtractionTraceCollector | None = None,
         *,
         dry_run: bool = False,
-    ) -> None:
+    ) -> int:
         """Execute all extractions concurrently (for high-TPM models).
 
         Save-before-announce invariant holds here too: persist once after all
-        sections complete, THEN announce.
+        sections complete, THEN announce. 1:1 slug-to-extractor alignment
+        mirrors ``_run_multi_wave``.
+
+        Returns the number of sections that completed successfully.
         """
         all_sections = [
-            "identity",
             "promise",
             "strategy",
             "psychology",
             "value_stack",
-            "pricing",
-            "closing_system",
-            "onboarding",
-            "classification",
+            "closing",
+            "details",
         ]
         all_coros = [
-            svc._extract_promise(content, current_data_str, update_instructions, archetype),
             svc._extract_promise(content, current_data_str, update_instructions, archetype),
             svc._extract_strategy(content, current_data_str, update_instructions, archetype),
             svc._extract_psychology(content, current_data_str, update_instructions, archetype),
             svc._extract_value_stack(content, current_data_str, update_instructions, archetype),
             svc._extract_closing(content, current_data_str, update_instructions, archetype),
-            svc._extract_closing(content, current_data_str, update_instructions, archetype),
             svc._extract_details(content, current_data_str, update_instructions, archetype),
-            svc._extract_strategy(content, current_data_str, update_instructions, archetype),
         ]
 
         if trace:
@@ -407,6 +342,7 @@ class OfferExtractionOrchestrator:
             all_results,
             pct=80,
         )
+        return self._count_succeeded(all_results)
 
     # ------------------------------------------------------------------
     # Merge & Save
@@ -453,7 +389,14 @@ class OfferExtractionOrchestrator:
                 continue
             try:
                 merged.update(result.model_dump(exclude_unset=True, exclude_none=True))
-            except Exception as e:
+            except (AttributeError, TypeError, ValidationError) as e:
+                # AttributeError  — result lacks model_dump (unexpected shape)
+                # TypeError       — unexpected arg pattern from a subclass
+                # ValidationError — pydantic reports malformed payload
+                # Broad Exception was hiding real bugs (e.g. AttributeError on
+                # a test double). Keep the net narrow so transient LLM/IO
+                # errors surface upstream where asyncio.gather already handles
+                # them as BaseException results.
                 logger.exception(
                     "offer_extraction_merge_section_failed",
                     wave=wave_num,

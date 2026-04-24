@@ -9,6 +9,7 @@ Tools are selected dynamically based on the user's current route.
 The system prompt is enriched with a completion snapshot and module list.
 """
 
+import re
 from typing import Literal
 from uuid import UUID
 
@@ -29,6 +30,7 @@ from src.modules.copilot.infrastructure.prompts.sanitizer import (
     sanitize_selected_fields,
 )
 from src.shared.infrastructure.llm.factory import LLMFactory
+from src.shared.links.ports.editable_fields import get_catalog
 
 logger = structlog.get_logger()
 
@@ -194,25 +196,28 @@ def _get_behavior_summary(tenant_id: UUID, user_id: UUID) -> str:
         db.close()
 
 
-def _compute_pending_field_paths(
+def _compute_field_completion(
     domain: str,
     entity_id: str | None,
     field_paths: tuple[str, ...] | list[str],
     tenant_id: UUID | None,
-) -> list[str]:
-    """Return the subset of ``field_paths`` whose value is empty for the entity.
+) -> tuple[list[str], list[str]]:
+    """Partition ``field_paths`` into (filled, empty) using live entity data.
 
-    Best-effort: if the repository lookup fails, returns the full list so the
-    LLM gets a conservative (over-ask) rather than incorrect (skip-filled)
-    signal. Uses the module registry to stay domain-agnostic.
+    Best-effort. On repository failure the entire input is reported as
+    ``empty`` so the LLM errs on the side of over-asking rather than
+    silently skipping filled fields. Used by both the guided-setup block
+    (narrow, per-block paths) and the studio snapshot layer (wide, whole
+    catalog).
     """
-    if not field_paths or not tenant_id:
-        return list(field_paths)
+    paths = list(field_paths)
+    if not paths or not tenant_id:
+        return [], paths
     try:
         registry = get_module_registry()
         desc = registry.get(domain)
         if desc is None or not desc.repo_factory or not desc.read_fn:
-            return list(field_paths)
+            return [], paths
 
         from src.core.database import SessionLocal
 
@@ -226,15 +231,16 @@ def _compute_pending_field_paths(
             except TypeError:
                 data = desc.read_fn(repo, tenant_id)
             if data is None:
-                return list(field_paths)
+                return [], paths
             payload = data.model_dump(mode="json") if hasattr(data, "model_dump") else dict(data)
         finally:
             db.close()
     except Exception:  # noqa: BLE001 — orchestrator resilience
-        return list(field_paths)
+        return [], paths
 
-    pending: list[str] = []
-    for path in field_paths:
+    filled: list[str] = []
+    empty: list[str] = []
+    for path in paths:
         value: object = payload
         for key in path.split("."):
             if isinstance(value, dict):
@@ -243,8 +249,132 @@ def _compute_pending_field_paths(
                 value = None
                 break
         if value is None or (isinstance(value, (str, list, dict)) and not value):
-            pending.append(path)
-    return pending
+            empty.append(path)
+        else:
+            filled.append(path)
+    return filled, empty
+
+
+def _compute_pending_field_paths(
+    domain: str,
+    entity_id: str | None,
+    field_paths: tuple[str, ...] | list[str],
+    tenant_id: UUID | None,
+) -> list[str]:
+    """Return the subset of ``field_paths`` whose value is empty for the entity.
+
+    Thin wrapper over :func:`_compute_field_completion` preserved for the
+    guided-setup layer, which only needs the ``empty`` half.
+    """
+    _, empty = _compute_field_completion(domain, entity_id, field_paths, tenant_id)
+    return empty
+
+
+# Route → domain resolvers for the studio snapshot layer. Brand Studio is
+# tenant-scoped so no entity id is needed. Offer Studio embeds ``offerId``
+# in the path; only the offer-detail route (``/offer-studio/offer/<uuid>``)
+# can be snapshotted — the offer-list route has no specific entity.
+_STUDIO_OFFER_ID_RE = re.compile(
+    r"/offer-studio/offer/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
+    re.IGNORECASE,
+)
+
+
+def _resolve_studio_context(current_route: str | None) -> tuple[str, str | None] | None:
+    """Map a route into ``(domain, entity_id)`` for the studio snapshot layer.
+
+    Returns ``None`` when the route does not point at a known studio
+    surface, or when the route is missing the required entity segment
+    (e.g. ``/offer-studio`` without a selected offer).
+    """
+    if not current_route:
+        return None
+    # Offer studio — detail route only; list route has no entity.
+    match = _STUDIO_OFFER_ID_RE.search(current_route)
+    if match:
+        return "offer", match.group(1)
+    if "/brand-studio" in current_route:
+        return "brand", None
+    return None
+
+
+def _render_studio_snapshot(
+    *,
+    domain: str,
+    entity_id: str | None,
+    tenant_id: UUID,
+    current_route: str,
+) -> str:
+    """Compute filled/empty partition for ``domain`` and render the layer."""
+    try:
+        catalog = get_catalog(domain)
+    except Exception:
+        logger.exception("studio_snapshot_catalog_error", domain=domain)
+        return ""
+    paths = [spec.path for spec in catalog]
+    if not paths:
+        return ""
+
+    filled, empty = _compute_field_completion(
+        domain=domain,
+        entity_id=entity_id,
+        field_paths=paths,
+        tenant_id=tenant_id,
+    )
+
+    registry = get_module_registry()
+    desc = registry.get(domain)
+    module_label = desc.label if desc else domain
+
+    try:
+        return prompt_loader.render(
+            "copilot_studio_snapshot",
+            module_label=module_label,
+            current_route=current_route,
+            domain=domain,
+            entity_id=entity_id,
+            filled_paths=filled,
+            empty_paths=empty,
+        )
+    except Exception:
+        logger.exception("studio_snapshot_render_error", domain=domain)
+        return ""
+
+
+def _build_studio_snapshot_layer(state: dict[str, object]) -> str:
+    """Render the free-form studio snapshot — filled vs empty fields of the current studio.
+
+    Skips itself when the guided layer is active: guided already reports
+    pending fields at a finer (per-block) granularity, so doubling up
+    would only bloat the prompt.
+
+    Emitted when:
+      * ``client_context.current_route`` matches a known studio surface
+        (``/brand-studio/*`` or ``/offer-studio/offer/<uuid>[...]``)
+      * No guided setup is active
+      * The editable-field catalog for the domain is non-empty
+    """
+    if state.get("guided_state"):
+        return ""
+    ctx = state.get("client_context")
+    if not isinstance(ctx, dict):
+        return ""
+    tenant_id = state.get("tenant_id")
+    if not isinstance(tenant_id, UUID):
+        return ""
+
+    current_route = ctx.get("current_route")
+    route_str = current_route if isinstance(current_route, str) else None
+    resolved = _resolve_studio_context(route_str)
+    if resolved is None or route_str is None:
+        return ""
+    domain, entity_id = resolved
+    return _render_studio_snapshot(
+        domain=domain,
+        entity_id=entity_id,
+        tenant_id=tenant_id,
+        current_route=route_str,
+    )
 
 
 def _build_guided_layer(state: dict[str, object]) -> str:
@@ -408,8 +538,13 @@ def build_system_prompt(state: CopilotState) -> str:
             "Habla siempre en español, de forma profesional pero cercana."
         )
 
-    # Compose: base prompt + guided layer when guided mode is active.
-    return base_prompt + _build_guided_layer(state)
+    # Compose: base prompt + guided layer when guided mode is active, or
+    # the free-form studio snapshot layer when the user is on a studio
+    # surface without guided mode. Guided wins — it already reports
+    # per-block pending fields, so layering both would just duplicate.
+    guided_layer = _build_guided_layer(state)
+    studio_layer = "" if guided_layer else _build_studio_snapshot_layer(state)
+    return base_prompt + guided_layer + studio_layer
 
 
 def agent_node(state: CopilotState) -> dict:

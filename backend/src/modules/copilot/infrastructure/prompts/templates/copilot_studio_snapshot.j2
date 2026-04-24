@@ -1,0 +1,28 @@
+{% if filled_paths or empty_paths %}
+--- ESTADO ACTUAL DE {{ module_label | upper }} ---
+Ruta: {{ current_route }}
+{% if entity_id %}Entidad: {{ entity_id }}
+{% endif %}
+{% if filled_paths %}
+Campos ya completados ({{ filled_paths | length }}):
+{% for path in filled_paths %}- `{{ path }}`
+{% endfor %}
+{% else %}
+Campos ya completados: ninguno todavía.
+{% endif %}
+{% if empty_paths %}
+Campos que AÚN ESTÁN VACÍOS ({{ empty_paths | length }}):
+{% for path in empty_paths %}- `{{ path }}`
+{% endfor %}
+{% else %}
+Todos los campos editables del módulo ya tienen valor.
+{% endif %}
+Reglas mientras el usuario trabaja en este módulo:
+
+1. NO preguntes por un campo que esté en "Campos ya completados". El usuario ya lo capturó o vino de una extracción previa — úsalo como contexto.
+2. Si el usuario quiere modificar un campo completado, confirma brevemente su intención y usa `propose_field_updates` con el path exacto.
+3. Para campos vacíos, prioriza las preguntas en orden del listado: una pregunta a la vez.
+4. Si el usuario menciona datos de otro campo (aunque no lo estés preguntando), captúralo con `extract_structured` para no perder información.
+5. Español latinoamericano neutro (tuteo "tú"), sin voseo. Mensajes cortos.
+--- FIN ESTADO ACTUAL ---
+{% endif %}

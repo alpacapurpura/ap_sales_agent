@@ -351,22 +351,28 @@ class CopilotOrchestrator:
             "locale": context.locale,
         }
 
-    def _read_procedure_state(self, conv_id: str | None) -> dict | None:
+    def _read_procedure_state(
+        self,
+        conv_id: str | None,
+        tenant_id: UUID | None,
+    ) -> dict | None:
         """Single DB read of ``copilot_conversations.procedure_state`` JSONB.
 
+        Tenant-scoped by rule ``tenant-isolation.md``: a missing ``tenant_id``
+        or a conversation that belongs to another tenant returns ``None``.
         Callers parse the result with ``load_guided_state`` / ``load_active_job``
         to avoid hitting the connection pool twice per request.
         """
-        if not conv_id:
+        if not conv_id or tenant_id is None:
             return None
         from sqlalchemy import text
 
         try:
             row = self.db.execute(
                 text(
-                    "SELECT procedure_state FROM copilot_conversations WHERE id = :id",
+                    "SELECT procedure_state FROM copilot_conversations WHERE id = :id AND tenant_id = :tenant_id",
                 ),
-                {"id": conv_id},
+                {"id": conv_id, "tenant_id": str(tenant_id)},
             ).scalar()
         except Exception as exc:  # noqa: BLE001 — orchestrator resilience
             logger.warning(
@@ -408,7 +414,7 @@ class CopilotOrchestrator:
         # (guided paused while a URL scrape runs), only guided, only active
         # job, or neither (pure free-form chat). Two reads hit the connection
         # pool twice and doubled request latency for no reason.
-        procedure_state = self._read_procedure_state(conv_id)
+        procedure_state = self._read_procedure_state(conv_id, tenant_id)
         guided = load_guided_state(procedure_state)
         active_job = load_active_job(procedure_state)
         client_ctx["guided_mode"] = guided is not None

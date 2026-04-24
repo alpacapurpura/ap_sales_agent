@@ -115,6 +115,7 @@ logger = structlog.get_logger()
 def _record_active_extraction_job(
     *,
     conversation_id: str | None,
+    tenant_id: UUID | None,
     job_id: str,
     module: str,
     entity_id: str | None,
@@ -134,10 +135,10 @@ def _record_active_extraction_job(
     Best-effort: write failures log and return without raising — a persistence
     glitch must never revert a successful dispatch.
     """
-    if not conversation_id:
+    if not conversation_id or tenant_id is None:
         return
     try:
-        guided = read_guided_state(conversation_id)
+        guided = read_guided_state(conversation_id, tenant_id)
     except Exception:  # noqa: BLE001 — best-effort persistence
         guided = None
     paused_at_block = guided.current_block_id if guided is not None else None
@@ -153,7 +154,7 @@ def _record_active_extraction_job(
         started_at=started_at,
     )
     try:
-        write_active_job(conversation_id, job_state)
+        write_active_job(conversation_id, job_state, tenant_id)
     except Exception:  # noqa: BLE001 — best-effort persistence
         logger.warning(
             "active_extraction_job_write_failed",
@@ -371,6 +372,7 @@ async def _extract_from_url_impl(
         )
         _record_active_extraction_job(
             conversation_id=conversation_id_val,
+            tenant_id=tenant_id,
             job_id=job_id,
             module="brand",
             entity_id=None,
@@ -427,6 +429,7 @@ async def _extract_from_url_impl(
         )
         _record_active_extraction_job(
             conversation_id=conversation_id_val,
+            tenant_id=tenant_id,
             job_id=job_id,
             module="offer",
             entity_id=entity_id,

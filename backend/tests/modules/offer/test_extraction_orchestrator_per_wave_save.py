@@ -84,7 +84,16 @@ def _make_svc_and_orchestrator(
             guarantee_terms="30 días sin preguntas",
         )
     )
-    svc._extract_details = AsyncMock(return_value=OfferDetailsUpdate(onboarding_action="Clase de bienvenida"))
+    # OfferDetailsUpdate has fulfillment fields (access_duration, support).
+    # Previous fixture passed `onboarding_action` here, which silently no-op'd
+    # because that field actually belongs to OfferClosingUpdate — so wave 3
+    # merges were hidden as empty.
+    svc._extract_details = AsyncMock(
+        return_value=OfferDetailsUpdate(
+            access_duration_text="12 meses",
+            support_duration_days=90,
+        )
+    )
 
     orchestrator = OfferExtractionOrchestrator(svc)
 

@@ -28,11 +28,10 @@ from src.modules.brand.domain import (
     CommunicationAssets,
     KeyFigure,
 )
-from src.shared.application.progress_emitter import (
-    emit_progress,
-    fields_from_model,
-    supports_rich_progress,
+from src.shared.application.extraction.base_orchestrator import (
+    BaseExtractionOrchestrator,
 )
+from src.shared.application.progress_emitter import emit_progress
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -272,17 +271,28 @@ def _merge_communication_assets(
 # ---------------------------------------------------------------------------
 
 
-class ExtractionOrchestrator:
+class ExtractionOrchestrator(BaseExtractionOrchestrator):
     """Coordinates wave-based LLM extraction and merges results into BrandSettings.
 
     Receives a reference to the BrandExtractionService for individual section
     extraction methods. This class owns the scheduling (waves, pauses, progress)
-    and the merge-and-save step.
+    and the merge-and-save step. Wave + progress mechanics come from
+    :class:`BaseExtractionOrchestrator`.
     """
+
+    log_prefix = "extraction"
 
     def __init__(self, service: BrandExtractionService) -> None:
         """Initialize extraction orchestrator."""
         self.service = service
+
+    def _get_wave_delay(self) -> float:
+        """Read wave delay from the service's profile.
+
+        Brand uses a profile-driven delay (fast vs slow models). The base
+        default is ignored here.
+        """
+        return self.service.profile.wave_delay_seconds
 
     async def _crawl_content(
         self,
@@ -572,64 +582,6 @@ class ExtractionOrchestrator:
     # Wave execution strategies
     # ------------------------------------------------------------------
 
-    def _announce_sections(
-        self,
-        progress_callback: Callable[..., None] | None,
-        sections: list[str],
-        results: list,
-        *,
-        pct: int,
-    ) -> None:
-        """Emit per-section progress for callbacks that support the rich signature.
-
-        Legacy 2-arg callbacks (REST endpoints) never see these calls — the
-        underlying ``emit_progress`` helper short-circuits for them.
-
-        Each (section, result) pair is dumped to dict and its filled leaves are
-        published via ``section_completed`` + ``new_fields``. Empty sections
-        (failed extractions, nothing written) are silently skipped so the UI
-        doesn't flash false badges.
-        """
-        if not supports_rich_progress(progress_callback):
-            return
-        for section_slug, result in zip(sections, results, strict=False):
-            fields = fields_from_model(section_slug, result)
-            if not fields:
-                continue
-            emit_progress(
-                progress_callback,
-                pct,
-                f"Sección {section_slug} lista",
-                new_fields=fields,
-                section_completed=section_slug,
-            )
-
-    async def _run_wave(
-        self,
-        wave_num: int,
-        sections: list[str],
-        coros: list,
-        svc: BrandExtractionService,
-        trace: ExtractionTraceCollector | None,
-    ) -> list:
-        """Execute a single wave of concurrent extractions with logging."""
-        logger.info("extraction_wave_starting", wave=wave_num, sections=sections)
-        if trace:
-            trace.wave_start(wave_num, sections)
-        return await asyncio.gather(*coros)
-
-    async def _pause_between_waves(
-        self,
-        wave_num: int,
-        svc: BrandExtractionService,
-        trace: ExtractionTraceCollector | None,
-    ) -> None:
-        """Pause between waves to let TPM budget recover."""
-        logger.info("extraction_wave_pause", delay=svc.profile.wave_delay_seconds)
-        if trace:
-            trace.wave_pause(wave_num, svc.profile.wave_delay_seconds)
-        await asyncio.sleep(svc.profile.wave_delay_seconds)
-
     async def _extract_assets_if_requested(
         self,
         svc: BrandExtractionService,
@@ -647,7 +599,7 @@ class ExtractionOrchestrator:
             return CommunicationAssets()
 
         if wave_num:
-            await self._pause_between_waves(wave_num, svc, trace)
+            await self._pause_between_waves(wave_num, trace)
 
         positioning_ctx = (
             json.dumps(positioning.model_dump(exclude_none=True), indent=2) if not is_empty(positioning) else ""
@@ -728,7 +680,7 @@ class ExtractionOrchestrator:
                 ),
             )
 
-        wave1_results = await self._run_wave(1, wave1_sections, wave1_coros, svc, trace)
+        wave1_results = await self._run_wave(1, wave1_sections, wave1_coros, trace)
         identity, story, testimonials_data = (
             wave1_results[0],
             wave1_results[1],
@@ -758,7 +710,7 @@ class ExtractionOrchestrator:
         )
 
         # Wave 2: strategy, people_contact, authority
-        await self._pause_between_waves(1, svc, trace)
+        await self._pause_between_waves(1, trace)
         wave2_results = await self._run_wave(
             2,
             ["strategy", "people_contact", "authority"],
@@ -771,7 +723,6 @@ class ExtractionOrchestrator:
                 ),
                 svc._extract_authority(content, current_data_str, update_instructions),
             ],
-            svc,
             trace,
         )
         strategy, people_contact, authority_data = wave2_results
@@ -794,7 +745,7 @@ class ExtractionOrchestrator:
         )
 
         # Wave 3: positioning, narrative
-        await self._pause_between_waves(2, svc, trace)
+        await self._pause_between_waves(2, trace)
         wave3_results = await self._run_wave(
             3,
             ["positioning", "narrative"],
@@ -806,7 +757,6 @@ class ExtractionOrchestrator:
                 ),
                 svc._extract_narrative(content, current_data_str, update_instructions),
             ],
-            svc,
             trace,
         )
         positioning, narrative = wave3_results
@@ -914,7 +864,7 @@ class ExtractionOrchestrator:
                 ),
             )
 
-        all_results = await self._run_wave(1, all_sections, coros, svc, trace)
+        all_results = await self._run_wave(1, all_sections, coros, trace)
         identity, story, strategy, people_contact, testimonials_data, authority_data = all_results[:6]
         positioning, narrative = all_results[6], all_results[7]
         extracted_visuals = all_results[8] if len(all_results) > 8 else None

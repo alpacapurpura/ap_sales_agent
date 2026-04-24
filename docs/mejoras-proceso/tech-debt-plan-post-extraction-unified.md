@@ -292,3 +292,21 @@ git show --stat 8d0a63d3 | head -30
 ## Criterio de done global del plan
 
 Los 4 items cerrados (o Item 3 diferido con señal disparadora documentada) + arch tests + test-backend native + /test-all green.
+
+---
+
+## Estado 2026-04-23 — cierre
+
+- **Item 1 ✅** — REVIEW en `docs/mejoras-proceso/reviews/8d0a63d3-extraction-unified.md` (CHANGES_REQUIRED, 1 CRITICAL + 7 HIGH). Findings resueltos:
+  - CRITICAL duplicación LLM calls offer orchestrator → waves realineadas 1:1 con extractores reales (W1 promise+strategy, W2 psychology+value_stack+closing, W3 details). `_run_single_wave` también realineado.
+  - HIGH #1+#2 tenant_id en queries JSONB — signatures de `read_active_job/write_active_job/read_state/write_state/_read_procedure_state` ahora exigen `tenant_id`. Todos los callers pasan `get_tenant_id()` / `event.tenant_id`.
+  - HIGH #3 guard UUID(None) — helper `_coerce_event_uuids` en `extraction_card_flow.py` con log específico.
+  - HIGH #5 except demasiado laxo en merge → `(AttributeError, TypeError, ValidationError)`.
+  - HIGH #4 merge overwrite → colateral del CRITICAL, resuelto.
+  - HIGH #6 coverage `_record_active_extraction_job` → 8 tests nuevos en `tests/modules/copilot/test_record_active_extraction_job.py`.
+  - HIGH #7 coverage `_compute_pending_field_paths` → 9 tests en `tests/modules/copilot/test_compute_field_completion.py` (cubre path-splitting + wrapper).
+- **Item 2 ✅** — verificado: el síntoma histórico ya no aplica, el test usa `MagicMock` por DB. 10/10 pasa native.
+- **Item 3 ✅** — `BaseExtractionOrchestrator` en `src/shared/application/extraction/`. Brand + offer como subclases thin. Arch test `tests/architecture/test_extraction_orchestrator_inheritance.py`. Regla nueva en `.claude/rules/backend-ddd.md`.
+- **Item 4 ✅** — `_compute_field_completion` helper compartido + `_build_studio_snapshot_layer` + template `copilot_studio_snapshot.j2` + 16 tests.
+- **MEDIUM del review**: no bloqueantes, quedan como tech-debt futuro (`trace.finish` huérfano en worker failure, SQLA 1.x Column style en trace model, pgcrypto dependency, `SessionLocal` doble en hot path).
+- Suite: 1993 passing en copilot/offer/brand/architecture/shared.

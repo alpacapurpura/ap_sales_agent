@@ -12,6 +12,8 @@ the next successful write re-sets the canonical state.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import structlog
 from sqlalchemy import text
 
@@ -22,20 +24,30 @@ from src.modules.copilot.application.guided.state import (
     merge_guided_state,
 )
 
+if TYPE_CHECKING:
+    from uuid import UUID
+
 logger = structlog.get_logger()
 
 
-def read_state(conversation_id: str | None) -> GuidedState | None:
-    """Return the guided state stored for ``conversation_id`` (if any)."""
-    if not conversation_id:
+def read_state(
+    conversation_id: str | None,
+    tenant_id: UUID | None,
+) -> GuidedState | None:
+    """Return the guided state stored for ``conversation_id`` (if any).
+
+    Tenant-scoped by rule ``tenant-isolation.md`` — a missing or
+    mismatched ``tenant_id`` short-circuits to ``None``.
+    """
+    if not conversation_id or tenant_id is None:
         return None
     db = SessionLocal()
     try:
         row = db.execute(
             text(
-                "SELECT procedure_state FROM copilot_conversations WHERE id = :id",
+                "SELECT procedure_state FROM copilot_conversations WHERE id = :id AND tenant_id = :tenant_id",
             ),
-            {"id": conversation_id},
+            {"id": conversation_id, "tenant_id": str(tenant_id)},
         ).scalar()
         return load_guided_state(row if isinstance(row, dict) else None)
     except Exception as exc:  # noqa: BLE001 — orchestrator resilience
@@ -45,29 +57,40 @@ def read_state(conversation_id: str | None) -> GuidedState | None:
         db.close()
 
 
-def write_state(conversation_id: str | None, state: GuidedState | None) -> None:
+def write_state(
+    conversation_id: str | None,
+    state: GuidedState | None,
+    tenant_id: UUID | None,
+) -> None:
     """Persist (or clear) the guided state on ``conversation_id``.
 
-    Reads the current ``procedure_state`` first so sibling keys (e.g. legacy
-    procedure progress) are preserved. No-op when ``conversation_id`` is empty.
+    Reads the current ``procedure_state`` first so sibling keys (e.g. the
+    ``active_extraction_job`` sibling) are preserved. No-op when either
+    ``conversation_id`` or ``tenant_id`` is empty.
     """
-    if not conversation_id:
+    if not conversation_id or tenant_id is None:
         return
     db = SessionLocal()
     try:
         current = db.execute(
             text(
-                "SELECT procedure_state FROM copilot_conversations WHERE id = :id",
+                "SELECT procedure_state FROM copilot_conversations WHERE id = :id AND tenant_id = :tenant_id",
             ),
-            {"id": conversation_id},
+            {"id": conversation_id, "tenant_id": str(tenant_id)},
         ).scalar()
         current_dict = current if isinstance(current, dict) else {}
         updated = merge_guided_state(current_dict, state)
         db.execute(
             text(
-                "UPDATE copilot_conversations SET procedure_state = CAST(:state AS JSONB) WHERE id = :id",
+                "UPDATE copilot_conversations "
+                "SET procedure_state = CAST(:state AS JSONB) "
+                "WHERE id = :id AND tenant_id = :tenant_id",
             ),
-            {"state": _json_dumps(updated), "id": conversation_id},
+            {
+                "state": _json_dumps(updated),
+                "id": conversation_id,
+                "tenant_id": str(tenant_id),
+            },
         )
         db.commit()
     except Exception as exc:  # noqa: BLE001 — orchestrator resilience
