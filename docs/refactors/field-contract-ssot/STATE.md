@@ -1,15 +1,33 @@
 ---
-last_updated: 2026-04-24 (Fase 03 closing commit 19a345e9)
-last_green_commit: 19a345e9
-active_phase: 04-drop-offer-fields-by-fe-section
-sub_step: 0/? (ready-to-start)
-status: ready-to-start
-blockers: none
+last_updated: 2026-04-24 (workspace REDIRECTED to field-contract-platform)
+last_green_commit: 17520c50
+active_phase: SUPERSEDED
+sub_step: N/A
+status: superseded
+blockers: replaced-by-platform-refactor
 branch: development
 working_tree_clean: true
 ---
 
-# Estado actual
+# ⚠️ Workspace superseded
+
+**Este refactor fue reformulado el 2026-04-24** debido a que el scope
+offer-aislado consolidaba un patrón inconsistente cross-module (5
+fuentes paralelas de "fields/sections" en offer + brand + buyer).
+ADR-011 documenta el pivote.
+
+**Workspace activo**: [`docs/refactors/field-contract-platform/`](../field-contract-platform/README.md)
+
+Lo que era Fase 04 acá → Fase 04 (re-formulada) en el workspace nuevo,
+con scope cross-module y derivación Pydantic.
+
+Las Fases 00-03 cerradas en este workspace permanecen como histórico.
+Sus commits, LEARNINGS y ADRs son válidos. Solo se reformula scope
+para Fases 04+.
+
+---
+
+# Estado actual (histórico)
 
 ## Dónde estamos
 
