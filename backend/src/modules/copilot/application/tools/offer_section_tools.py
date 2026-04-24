@@ -623,11 +623,11 @@ def recurring_billing_setup(offer_id: str = "") -> str:
             )
 
         draft_fields = {
-            "billing_cycle": "monthly",
+            "billing_frequency": "monthly",
             "trial_period_days": 7,
             "proration_enabled": True,
             "cancel_anytime": True,
-            "grace_period_days": 3,
+            "grace_period_days_on_failed_payment": 3,
         }
         suggestions = [
             "Ciclo recomendado: mensual (menor fricción para nuevos suscriptores).",

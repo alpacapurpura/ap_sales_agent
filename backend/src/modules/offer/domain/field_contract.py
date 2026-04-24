@@ -219,12 +219,89 @@ PROGRAM_DETAILS_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
 
 
 # ---------------------------------------------------------------------------
-# Registry (grows per phase — pricing F01, +instructors/value-stack/program F02)
+# Subscription details section — renames + Latam compliance (Fase 02 · Block D)
+# ---------------------------------------------------------------------------
+
+SUBSCRIPTION_DETAILS_SECTION = "subscription_details"
+
+SUBSCRIPTION_DETAILS_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
+    FieldContract(
+        path="specific_details.billing_frequency",
+        type="enum",
+        owner=FieldOwner.OFFER,
+        section=SUBSCRIPTION_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.MEMBRESIA,),
+        notes="Renamed from billing_cycle. Monthly/quarterly/annual/one_off.",
+    ),
+    FieldContract(
+        path="specific_details.content_update_frequency",
+        type="enum",
+        owner=FieldOwner.OFFER,
+        section=SUBSCRIPTION_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.MEMBRESIA,),
+        notes="Renamed from content_update_freq.",
+    ),
+    FieldContract(
+        path="specific_details.auto_renewal_with_notice_days",
+        type="number",
+        owner=FieldOwner.OFFER,
+        section=SUBSCRIPTION_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.MEMBRESIA,),
+        notes="Latam legal: notice days before debit on auto-renewal. 3-7 standard.",
+    ),
+    FieldContract(
+        path="specific_details.cancellation_anticipation_days",
+        type="number",
+        owner=FieldOwner.OFFER,
+        section=SUBSCRIPTION_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.MEMBRESIA,),
+        notes="Days of anticipation required to cancel before next cycle.",
+    ),
+    FieldContract(
+        path="specific_details.grace_period_days_on_failed_payment",
+        type="number",
+        owner=FieldOwner.OFFER,
+        section=SUBSCRIPTION_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.MEMBRESIA,),
+        notes="Grace window to retry failed payments. Recovers 30-50% involuntary churn.",
+    ),
+    FieldContract(
+        path="specific_details.member_benefits",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=SUBSCRIPTION_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.MEMBRESIA,),
+        notes="Narrative one-per-line benefits the member receives.",
+    ),
+    FieldContract(
+        path="specific_details.primary_communication_channel",
+        type="enum",
+        owner=FieldOwner.OFFER,
+        section=SUBSCRIPTION_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.MEMBRESIA,),
+        notes="Ongoing communication channel (whatsapp_business/email/slack_shared/telegram/platform_internal).",
+    ),
+)
+
+
+# ---------------------------------------------------------------------------
+# Registry (grows per phase — F01 pricing · F02 A authority B value-stack
+# C program D subscription)
 # ---------------------------------------------------------------------------
 
 _PHASE_01_CONTRACTS: tuple[FieldContract, ...] = PRICING_FIELD_CONTRACTS
 _PHASE_02_CONTRACTS: tuple[FieldContract, ...] = (
-    INSTRUCTORS_FIELD_CONTRACTS + VALUE_STACK_FIELD_CONTRACTS + PROGRAM_DETAILS_FIELD_CONTRACTS
+    INSTRUCTORS_FIELD_CONTRACTS
+    + VALUE_STACK_FIELD_CONTRACTS
+    + PROGRAM_DETAILS_FIELD_CONTRACTS
+    + SUBSCRIPTION_DETAILS_FIELD_CONTRACTS
 )
 
 FIELD_CONTRACT_REGISTRY: tuple[FieldContract, ...] = _PHASE_01_CONTRACTS + _PHASE_02_CONTRACTS
@@ -248,7 +325,7 @@ class FieldContractRegistrySnapshot:
 
 
 # Bump when the registry changes materially.
-FIELD_CONTRACT_VERSION = "2026-04-24-fase-02-block-c-program-narratives"
+FIELD_CONTRACT_VERSION = "2026-04-24-fase-02-block-d-subscription-details"
 
 FIELD_CONTRACT_SNAPSHOT = FieldContractRegistrySnapshot(
     version=FIELD_CONTRACT_VERSION,

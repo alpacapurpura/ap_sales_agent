@@ -72,14 +72,19 @@ Buscar en: alcance del servicio, propuesta de valor, proceso de trabajo, FAQ.
 {% elif archetype == "membresia" %}
 ## MEMBRESIA (SubscriptionDetails)
 Extraer un objeto con:
-- `billing_cycle`: Ciclo de facturacion. Valores: "monthly" (mensual), "quarterly" (trimestral), "annual" (anual), "one_off" (pago unico).
+- `billing_frequency`: Ciclo de facturacion. Valores: "monthly" (mensual), "quarterly" (trimestral), "annual" (anual), "one_off" (pago unico).
 - `trial_period_days`: Dias de prueba gratis. Default 0. Buscar: "prueba gratis de X dias", "free trial".
 - `tier_name`: Nombre del nivel/tier si aplica. Ejemplo: "Premium", "Pro", "VIP".
 - `platform_name`: Nombre de la plataforma donde vive la membresia. Ejemplo: "Skool", "Circle", "Kajabi".
 - `cancellation_policy`: Politica de cancelacion en texto libre.
-- `content_update_freq`: Frecuencia de actualizacion de contenido. Ejemplo: "Semanal", "2 masterclasses al mes".
+- `content_update_frequency`: Frecuencia de actualizacion de contenido. Ejemplo: "Semanal", "2 masterclasses al mes".
 - `expert_guests`: true si incluye sesiones con invitados expertos.
 - `networking_events`: true si incluye eventos de networking.
+- `auto_renewal_with_notice_days`: Dias de aviso previo antes de renovar (exigencia legal Latam). Tipico 3-7.
+- `cancellation_anticipation_days`: Dias de anticipacion para cancelar evitando renovacion. 0 = mismo dia. Tipico 7.
+- `grace_period_days_on_failed_payment`: Dias de gracia tras pago fallido antes de revocar acceso. Tipico 3-7.
+- `member_benefits`: Narrativa uno-por-linea de beneficios del plan.
+- `primary_communication_channel`: Canal principal con el miembro ("whatsapp_business", "email", "slack_shared", "telegram", "platform_internal").
 
 Buscar en: pagina de precios, beneficios del plan, FAQ, politica de cancelacion.
 

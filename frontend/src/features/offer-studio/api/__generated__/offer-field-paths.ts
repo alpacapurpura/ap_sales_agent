@@ -71,14 +71,16 @@ export type OfferFieldPath =
   | "specific_details.accommodation_type"
   | "specific_details.agenda_highlights"
   | "specific_details.audience_reach_metric"
-  | "specific_details.billing_cycle"
+  | "specific_details.auto_renewal_with_notice_days"
+  | "specific_details.billing_frequency"
   | "specific_details.booking_url"
+  | "specific_details.cancellation_anticipation_days"
   | "specific_details.cancellation_policy"
   | "specific_details.category"
   | "specific_details.cohort_limit"
   | "specific_details.community_invite_link"
   | "specific_details.community_platform"
-  | "specific_details.content_update_freq"
+  | "specific_details.content_update_frequency"
   | "specific_details.current_enrollment_count"
   | "specific_details.curriculum"
   | "specific_details.deliverables_list"
@@ -91,6 +93,7 @@ export type OfferFieldPath =
   | "specific_details.format"
   | "specific_details.frequency_type"
   | "specific_details.fulfillment_type"
+  | "specific_details.grace_period_days_on_failed_payment"
   | "specific_details.has_certification"
   | "specific_details.homework_submission_required"
   | "specific_details.interaction_mode"
@@ -104,11 +107,13 @@ export type OfferFieldPath =
   | "specific_details.lms_url"
   | "specific_details.location_type"
   | "specific_details.map_link"
+  | "specific_details.member_benefits"
   | "specific_details.min_contract_months"
   | "specific_details.networking_events"
   | "specific_details.onboarding_brief_url"
   | "specific_details.platform_name"
   | "specific_details.prerequisites_text"
+  | "specific_details.primary_communication_channel"
   | "specific_details.recommended_airport_code"
   | "specific_details.registration_end_date"
   | "specific_details.requires_contract_signature"
@@ -205,14 +210,16 @@ export const OFFER_FIELD_PATHS: readonly OfferFieldPath[] = [
   "specific_details.accommodation_type",
   "specific_details.agenda_highlights",
   "specific_details.audience_reach_metric",
-  "specific_details.billing_cycle",
+  "specific_details.auto_renewal_with_notice_days",
+  "specific_details.billing_frequency",
   "specific_details.booking_url",
+  "specific_details.cancellation_anticipation_days",
   "specific_details.cancellation_policy",
   "specific_details.category",
   "specific_details.cohort_limit",
   "specific_details.community_invite_link",
   "specific_details.community_platform",
-  "specific_details.content_update_freq",
+  "specific_details.content_update_frequency",
   "specific_details.current_enrollment_count",
   "specific_details.curriculum",
   "specific_details.deliverables_list",
@@ -225,6 +232,7 @@ export const OFFER_FIELD_PATHS: readonly OfferFieldPath[] = [
   "specific_details.format",
   "specific_details.frequency_type",
   "specific_details.fulfillment_type",
+  "specific_details.grace_period_days_on_failed_payment",
   "specific_details.has_certification",
   "specific_details.homework_submission_required",
   "specific_details.interaction_mode",
@@ -238,11 +246,13 @@ export const OFFER_FIELD_PATHS: readonly OfferFieldPath[] = [
   "specific_details.lms_url",
   "specific_details.location_type",
   "specific_details.map_link",
+  "specific_details.member_benefits",
   "specific_details.min_contract_months",
   "specific_details.networking_events",
   "specific_details.onboarding_brief_url",
   "specific_details.platform_name",
   "specific_details.prerequisites_text",
+  "specific_details.primary_communication_channel",
   "specific_details.recommended_airport_code",
   "specific_details.registration_end_date",
   "specific_details.requires_contract_signature",

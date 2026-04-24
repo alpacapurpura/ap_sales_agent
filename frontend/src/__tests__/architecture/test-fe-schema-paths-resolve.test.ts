@@ -53,14 +53,7 @@ const KNOWN_UNRESOLVED_PATHS = new Set<string>([
   // ── Fase 02 Block A closed — authority narrative lives on Offer.
   // ── Fase 02 Block B closed — value-stack anchor lives on Offer.
   // ── Fase 02 Block C closed — program narratives live on ProgramDetails.
-  // ── Fase 02 — SubscriptionDetails (7: 2 renames + 5 new) ────────────
-  "specific_details.billing_frequency", // rename BE: billing_cycle → billing_frequency
-  "specific_details.content_update_frequency", // rename BE: content_update_freq
-  "specific_details.auto_renewal_with_notice_days",
-  "specific_details.cancellation_anticipation_days",
-  "specific_details.grace_period_days_on_failed_payment",
-  "specific_details.member_benefits",
-  "specific_details.primary_communication_channel",
+  // ── Fase 02 Block D closed — SubscriptionDetails renames + new fields.
   // ── Fase 02 — ServiceDetails (3) ────────────────────────────────────
   "specific_details.response_time_hours",
   "specific_details.onboarding_flow",
@@ -196,14 +189,16 @@ describe("Architecture: offer-studio schema paths resolve to BE Offer domain", (
     // equality catches accidental growth *and* stale caps when entries are
     // deleted without bumping the expectation.
     expect(KNOWN_UNRESOLVED_PATHS.size).toBe(ALLOWLIST_CAP);
-    // Fase 02 Block C closed (2026-04-24): program narratives shipped →
-    // cap drops from 52 to 50 (2 paths closed). Previous caps:
+    // Fase 02 Block D closed (2026-04-24): SubscriptionDetails renames +
+    // new Latam fields shipped → cap drops from 50 to 43 (7 paths closed).
+    // Previous caps:
     //   · ADR-007: 59 (Fase 00 baseline)
     //   · Fase 01 close: 56 (pricing LATAM, -3)
     //   · Fase 02 Block A close: 54 (-2 authority)
     //   · Fase 02 Block B close: 52 (-2 value-stack anchor)
     //   · Fase 02 Block C close: 50 (-2 program narratives)
+    //   · Fase 02 Block D close: 43 (-7 subscription)
     // Subsequent phases must only lower this, never raise without an ADR.
-    expect(ALLOWLIST_CAP).toBeLessThanOrEqual(50);
+    expect(ALLOWLIST_CAP).toBeLessThanOrEqual(43);
   });
 });

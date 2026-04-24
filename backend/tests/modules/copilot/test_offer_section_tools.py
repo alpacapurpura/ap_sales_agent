@@ -553,7 +553,7 @@ class TestRecurringBillingSetup:
             result = json.loads(recurring_billing_setup.invoke({"offer_id": "some-id"}))
 
         assert result["section_slug"] == "pricing"
-        assert result["draft_fields"]["billing_cycle"] == "monthly"
+        assert result["draft_fields"]["billing_frequency"] == "monthly"
         assert "trial_period_days" in result["draft_fields"]
 
     def test_wrong_flag_returns_hint(self) -> None:

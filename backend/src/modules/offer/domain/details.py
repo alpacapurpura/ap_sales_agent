@@ -121,16 +121,45 @@ class ProgramDetails(BaseEntity):
 
 
 class SubscriptionDetails(BaseEntity):
-    """Subscription Details."""
+    """Subscription Details.
 
-    billing_cycle: BillingFrequency | None = None
+    Fase 02 · Block D renames (migration 065):
+      - ``billing_cycle`` → ``billing_frequency``
+      - ``content_update_freq`` → ``content_update_frequency``
+    Nuevos campos: auto-renewal notice, cancellation anticipation,
+    grace period on failed payment, member benefits narrative, primary
+    communication channel. Todos Latam-compliance o Latam-retention
+    críticos — ver ``subscription-details.schema.ts`` para razonamiento.
+    """
+
+    billing_frequency: BillingFrequency | None = None
     trial_period_days: int = 0
     tier_name: str | None = None
     platform_name: str | None = None
     cancellation_policy: str | None = None
-    content_update_freq: str | None = None
+    content_update_frequency: str | None = None
     expert_guests: bool = False
     networking_events: bool = False
+
+    # Fase 02 · Block D — Latam legal / retention fields -------------
+    # Most Latam consumer laws (AR, MX, PE, CO) require prior email/SMS
+    # notice before auto-renewal debits. 3-7 days is the standard window.
+    auto_renewal_with_notice_days: int | None = None
+    # Days of anticipation a member must cancel to avoid the next cycle.
+    # 0 = same-day cancellation. 7 is typical; >15 triggers friction.
+    cancellation_anticipation_days: int | None = None
+    # Grace window to retry failed payments before revoking access.
+    # 3-7 days recovers 30-50% of involuntary churn in Latam (expired
+    # cards, temp limits, international card blocks).
+    grace_period_days_on_failed_payment: int | None = None
+    # Narrative list of benefits per billing cycle. Text blob; the FE
+    # renders one-per-line. Replaces the missing explicit deliverables
+    # surface for memberships.
+    member_benefits: str | None = None
+    # Preferred ongoing communication channel for the member. Free-form
+    # string keyed to the FE enum options (whatsapp_business, email,
+    # slack_shared, telegram, platform_internal).
+    primary_communication_channel: str | None = None
 
 
 class EventDetails(BaseEntity):
