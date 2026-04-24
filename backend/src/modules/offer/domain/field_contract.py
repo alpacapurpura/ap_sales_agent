@@ -384,8 +384,130 @@ PRODUCT_DETAILS_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
 
 
 # ---------------------------------------------------------------------------
+# Platform details section — composable SaaS (Fase 02 · Block G, ADR-010)
+# ---------------------------------------------------------------------------
+
+PLATFORM_DETAILS_SECTION = "platform_details"
+
+PLATFORM_DETAILS_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
+    FieldContract(
+        path="platform_details.platform_features",
+        type="list",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="List[PlatformFeature]: core features con plan matrix.",
+    ),
+    FieldContract(
+        path="platform_details.platform_integrations",
+        type="list",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="List[PlatformIntegration]: integrations externas (Mercado Pago, WhatsApp, etc.).",
+    ),
+    FieldContract(
+        path="platform_details.security_compliance",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="Certificaciones SOC2/ISO + frameworks Latam (LGPD/Habeas Data/PDPL).",
+    ),
+    FieldContract(
+        path="platform_details.data_residency",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="Región en que se hostean los datos (AWS sa-east-1, etc.).",
+    ),
+    FieldContract(
+        path="platform_details.uptime_guarantee",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="SLA de uptime (99.9%, 99.95%, etc.).",
+    ),
+    FieldContract(
+        path="platform_details.status_page_url",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="URL pública del status page.",
+    ),
+    FieldContract(
+        path="platform_details.support_channels",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="Canales + horarios + SLA de respuesta.",
+    ),
+    FieldContract(
+        path="platform_details.api_available",
+        type="bool",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="True si hay API pública.",
+    ),
+    FieldContract(
+        path="platform_details.api_docs_url",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="URL de docs de API (ReadMe, Mintlify, GitBook).",
+    ),
+    FieldContract(
+        path="platform_details.migration_tools",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="Herramientas para migrar desde competidores.",
+    ),
+    FieldContract(
+        path="platform_details.public_roadmap_url",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="Roadmap público (Trello/Productboard/Canny).",
+    ),
+    FieldContract(
+        path="platform_details.changelog_url",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="Página pública de releases.",
+    ),
+    FieldContract(
+        path="platform_details.ai_features_disclosure",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="Transparencia de uso de IA (exigencia regulatoria Latam creciente).",
+    ),
+    FieldContract(
+        path="platform_details.data_export_capability",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PLATFORM_DETAILS_SECTION,
+        required=False,
+        notes="Derecho de portabilidad (GDPR/LGPD/Habeas Data/PDPL).",
+    ),
+)
+
+
+# ---------------------------------------------------------------------------
 # Registry (grows per phase — F01 pricing · F02 A authority B value-stack
-# C program D subscription E service F product)
+# C program D subscription E service F product G platform)
 # ---------------------------------------------------------------------------
 
 _PHASE_01_CONTRACTS: tuple[FieldContract, ...] = PRICING_FIELD_CONTRACTS
@@ -396,6 +518,7 @@ _PHASE_02_CONTRACTS: tuple[FieldContract, ...] = (
     + SUBSCRIPTION_DETAILS_FIELD_CONTRACTS
     + SERVICE_DETAILS_FIELD_CONTRACTS
     + PRODUCT_DETAILS_FIELD_CONTRACTS
+    + PLATFORM_DETAILS_FIELD_CONTRACTS
 )
 
 FIELD_CONTRACT_REGISTRY: tuple[FieldContract, ...] = _PHASE_01_CONTRACTS + _PHASE_02_CONTRACTS
@@ -419,7 +542,7 @@ class FieldContractRegistrySnapshot:
 
 
 # Bump when the registry changes materially.
-FIELD_CONTRACT_VERSION = "2026-04-24-fase-02-block-f-product-details"
+FIELD_CONTRACT_VERSION = "2026-04-24-fase-02-block-g-platform-composable"
 
 FIELD_CONTRACT_SNAPSHOT = FieldContractRegistrySnapshot(
     version=FIELD_CONTRACT_VERSION,

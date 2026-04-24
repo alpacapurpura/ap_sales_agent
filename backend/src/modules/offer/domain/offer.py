@@ -11,6 +11,7 @@ from pydantic import Field, computed_field, model_validator
 from src.modules.offer.domain.archetype_catalog import get_capabilities
 from src.modules.offer.domain.details import (
     EventDetails,
+    PlatformDetails,
     ProductDetails,
     ProgramDetails,
     ServiceDetails,
@@ -214,6 +215,13 @@ class Offer(BaseEntity):
     specific_details: ProductDetails | ServiceDetails | ProgramDetails | SubscriptionDetails | EventDetails | None = (
         None
     )
+
+    # Fase 02 · Block G — composable SaaS details (ADR-010).
+    # Orthogonal to archetype: any offer can declare SaaS-flavored
+    # metadata (features, integrations, compliance, uptime, API, etc.).
+    # Persisted as dedicated JSONB column, not part of specific_details
+    # polymorphic union.
+    platform_details: PlatformDetails | None = None
 
     landing_page_config: dict[str, Any] | None = None
 

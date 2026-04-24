@@ -37,6 +37,7 @@ BACKEND_ROOT = Path(__file__).resolve().parent.parent
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
+from src.modules.offer.domain.details import PlatformDetails
 from src.modules.offer.domain.offer import ARCHETYPE_TO_DETAILS_MAPPING, Offer
 
 REPO_ROOT = BACKEND_ROOT.parent
@@ -68,6 +69,11 @@ def _collect_paths() -> list[str]:
     for details_cls in ARCHETYPE_TO_DETAILS_MAPPING.values():
         for field_name in details_cls.model_fields:
             paths.add(f"specific_details.{field_name}")
+    # Composable top-level details (ADR-010, Fase 02 · Block G).
+    # Orthogonal to archetype — the walker hard-codes the prefix list
+    # of composable nested models so FE schemas can opt-in to any offer.
+    for field_name in PlatformDetails.model_fields:
+        paths.add(f"platform_details.{field_name}")
     return sorted(paths)
 
 

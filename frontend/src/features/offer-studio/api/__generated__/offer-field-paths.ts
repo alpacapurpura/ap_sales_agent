@@ -55,6 +55,21 @@ export type OfferFieldPath =
   | "objections"
   | "onboarding_action"
   | "onboarding_url"
+  | "platform_details"
+  | "platform_details.ai_features_disclosure"
+  | "platform_details.api_available"
+  | "platform_details.api_docs_url"
+  | "platform_details.changelog_url"
+  | "platform_details.data_export_capability"
+  | "platform_details.data_residency"
+  | "platform_details.migration_tools"
+  | "platform_details.platform_features"
+  | "platform_details.platform_integrations"
+  | "platform_details.public_roadmap_url"
+  | "platform_details.security_compliance"
+  | "platform_details.status_page_url"
+  | "platform_details.support_channels"
+  | "platform_details.uptime_guarantee"
   | "prerequisites"
   | "preset_id"
   | "price_pay_in_full"
@@ -202,6 +217,21 @@ export const OFFER_FIELD_PATHS: readonly OfferFieldPath[] = [
   "objections",
   "onboarding_action",
   "onboarding_url",
+  "platform_details",
+  "platform_details.ai_features_disclosure",
+  "platform_details.api_available",
+  "platform_details.api_docs_url",
+  "platform_details.changelog_url",
+  "platform_details.data_export_capability",
+  "platform_details.data_residency",
+  "platform_details.migration_tools",
+  "platform_details.platform_features",
+  "platform_details.platform_integrations",
+  "platform_details.public_roadmap_url",
+  "platform_details.security_compliance",
+  "platform_details.status_page_url",
+  "platform_details.support_channels",
+  "platform_details.uptime_guarantee",
   "prerequisites",
   "preset_id",
   "price_pay_in_full",

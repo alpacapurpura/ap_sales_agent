@@ -125,6 +125,9 @@ class ProductModel(Base):
     total_perceived_value_anchor = Column(Numeric(12, 2), nullable=True)
     stack_positioning_statement = Column(Text, nullable=True)
 
+    # --- Platform composable details (Fase 02 · Block G, ADR-010) ---------
+    platform_details = Column(JSONB, nullable=True)
+
     # --- Narrative: closing ----------------------------------------------
     refund_process_description = Column(Text, nullable=True)
     urgency_drivers = Column(JSONB, nullable=False, default=list, server_default="[]")

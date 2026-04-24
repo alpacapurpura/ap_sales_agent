@@ -56,23 +56,8 @@ const KNOWN_UNRESOLVED_PATHS = new Set<string>([
   // ── Fase 02 Block D closed — SubscriptionDetails renames + new fields.
   // ── Fase 02 Block E closed — ServiceDetails scope + expectation fields.
   // ── Fase 02 Block F closed — ProductDetails preview + shipping fields.
-  // ── Fase 02 — Platform archetype (14) ───────────────────────────────
-  // PLATFORM / SAAS archetype is not yet modeled on BE. Either introduce
-  // ``PlatformDetails`` or hoist these onto a new branch of Offer.
-  "platform_features",
-  "platform_integrations",
-  "security_compliance",
-  "data_residency",
-  "uptime_guarantee",
-  "status_page_url",
-  "support_channels",
-  "api_available",
-  "api_docs_url",
-  "migration_tools",
-  "public_roadmap_url",
-  "changelog_url",
-  "ai_features_disclosure",
-  "data_export_capability",
+  // ── Fase 02 Block G closed — PlatformDetails composable (ADR-010).
+  //    Paths migrated in FE schema from top-level → platform_details.X.
   // ── Fase 05 — Cross-module federated (9) ────────────────────────────
   // These paths belong to sibling bounded contexts (assets, buyer-persona,
   // social-proof, scheduling, knowledge). Fase 05 extends the resolver to
@@ -192,7 +177,9 @@ describe("Architecture: offer-studio schema paths resolve to BE Offer domain", (
     //   · Fase 02 Block D close: 43 (-7 subscription)
     //   · Fase 02 Block E close: 40 (-3 service scope)
     //   · Fase 02 Block F close: 35 (-5 product preview + shipping)
+    //   · Fase 02 Block G close: 21 (-14 platform composable, ADR-010)
     // Subsequent phases must only lower this, never raise without an ADR.
-    expect(ALLOWLIST_CAP).toBeLessThanOrEqual(35);
+    // Fase 05 target: 0 (all cross-module federated paths resolve).
+    expect(ALLOWLIST_CAP).toBeLessThanOrEqual(21);
   });
 });

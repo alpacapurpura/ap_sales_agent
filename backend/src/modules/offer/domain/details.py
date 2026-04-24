@@ -187,6 +187,50 @@ class SubscriptionDetails(BaseEntity):
     primary_communication_channel: str | None = None
 
 
+class PlatformFeature(BaseEntity):
+    """Software feature surfaced on a platform/SaaS offer."""
+
+    name: str
+    description: str | None = None
+    plans_available: str | None = None  # comma-separated plan names
+    is_highlighted: bool = False
+
+
+class PlatformIntegration(BaseEntity):
+    """External-system integration surfaced on a platform/SaaS offer."""
+
+    name: str
+    category: str | None = None
+    logo_url: HttpUrl | None = None
+    setup_guide_url: HttpUrl | None = None
+
+
+class PlatformDetails(BaseEntity):
+    """SaaS / platform-flavored offer details (Fase 02 · Block G, ADR-010).
+
+    Composable top-level field on :class:`Offer`. NOT part of the
+    polymorphic ``specific_details`` union — any offer can opt-in
+    regardless of archetype (SaaS memberships, SaaS services, etc.).
+    See ``platform-details.schema.ts`` for Latam-specific rationale on
+    each field.
+    """
+
+    platform_features: list[PlatformFeature] = []
+    platform_integrations: list[PlatformIntegration] = []
+    security_compliance: str | None = None
+    data_residency: str | None = None
+    uptime_guarantee: str | None = None
+    status_page_url: HttpUrl | None = None
+    support_channels: str | None = None
+    api_available: bool | None = None
+    api_docs_url: HttpUrl | None = None
+    migration_tools: str | None = None
+    public_roadmap_url: HttpUrl | None = None
+    changelog_url: HttpUrl | None = None
+    ai_features_disclosure: str | None = None
+    data_export_capability: str | None = None
+
+
 class EventDetails(BaseEntity):
     """Event Details."""
 

@@ -123,12 +123,24 @@ class OfferRepository:
                     msg = f"Error parsing specific_details for offer {model.id}: {e!s}"
                     raise ValueError(msg) from e
 
+        # Composable Platform Details (Fase 02 · Block G)
+        platform_json = model.platform_details
+        if platform_json:
+            from src.modules.offer.domain.details import PlatformDetails
+
+            try:
+                offer_data["platform_details"] = PlatformDetails(**platform_json)
+            except Exception as e:
+                msg = f"Error parsing platform_details for offer {model.id}: {e!s}"
+                raise ValueError(msg) from e
+
         return Offer(**offer_data)
 
     def _to_model(self, offer: Offer) -> ProductModel:
         pricing_data = [p.model_dump(mode="json") for p in offer.pricing_options]
         deliverables_data = [d.model_dump(mode="json") for d in offer.deliverables]
         details_data = offer.specific_details.model_dump(mode="json") if offer.specific_details else {}
+        platform_data = offer.platform_details.model_dump(mode="json") if offer.platform_details else None
         # landing_page_config is typed as dict in the domain. Legacy callers
         # may still hand a Pydantic model — handle both for safety.
         raw_landing = offer.landing_page_config
@@ -204,6 +216,8 @@ class OfferRepository:
             # Value-stack anchor (Fase 02 · Block B)
             total_perceived_value_anchor=offer.total_perceived_value_anchor,
             stack_positioning_statement=offer.stack_positioning_statement,
+            # Platform composable details (Fase 02 · Block G)
+            platform_details=platform_data,
         )
 
     def get_by_id(
