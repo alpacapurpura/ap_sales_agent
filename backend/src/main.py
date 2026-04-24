@@ -38,6 +38,7 @@ from src.modules.brand.api import buyer_personas as brand_buyer_personas
 from src.modules.brand.api import extraction as brand_tools
 from src.modules.brand.api import personality as brand_personality
 from src.modules.brand.api import router as brand_settings
+from src.modules.brand.api import sections as brand_sections
 
 # 2. Brand
 from src.modules.brand.api import style as brand_style
@@ -452,6 +453,14 @@ app.include_router(
     prefix="/api/v1/brand/buyer-personas",
     tags=["Brand - Buyer Personas"],
     dependencies=[Depends(get_tenant_context)],
+)
+# Brand Studio section catalog — public, not tenant-scoped (domain metadata).
+# Fase 03 · Block C — reemplaza FE ``lib/section-catalog.ts::BRAND_SECTIONS``
+# hardcoded array. Consumed via ``useBrandSectionCatalog()`` hook (Block D).
+app.include_router(
+    brand_sections.router,
+    prefix="/api/v1/brand/sections",
+    tags=["Brand - Sections"],
 )
 
 # 18. Social Proof — SSoT for testimonials / authority / team, reused by
