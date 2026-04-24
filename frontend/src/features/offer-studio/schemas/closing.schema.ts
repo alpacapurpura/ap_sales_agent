@@ -83,6 +83,8 @@ export const offerClosingSchema: SectionSchema = {
       label: "Razones reales para comprar ahora",
       type: "textarea",
       path: "urgency_drivers",
+      // DB column: products.urgency_drivers JSONB string[].
+      storeAs: "newline_array",
       rows: 4,
       placeholder:
         "• El precio sube USD 300 el próximo mes (proyección real de ajuste por inflación)\n• Los bonus fast-action vencen el domingo a las 23:59 (hora Perú)\n• La cohorte empieza el 15 de mayo — si no entras ahora, esperas 3 meses",

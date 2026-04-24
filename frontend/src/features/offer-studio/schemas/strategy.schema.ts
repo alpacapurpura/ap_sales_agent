@@ -16,6 +16,12 @@ import type { SectionSchema } from "@/lib/form-runtime/schema";
  *   agente acepta cualquiera y tu CAC se dispara.
  * - Los pain points deben ser específicos y medibles. El agent los usa
  *   para abrir conversación con empathy framing.
+ *
+ * CONTRACT §9.3: paths aligned to canonical DB columns.
+ * - target_avatar_match_raw → target_avatar_match (storeAs: "newline_array")
+ * - marketing_pain_points_raw → marketing_pain_points (storeAs: "newline_array")
+ * - marketing_desires_raw → marketing_desires (storeAs: "newline_array")
+ * - anti_avatar_keywords_raw → anti_avatar_keywords (storeAs: "newline_array")
  */
 export const offerStrategySchema: SectionSchema = {
   key: "offer.strategy",
@@ -34,7 +40,10 @@ export const offerStrategySchema: SectionSchema = {
       id: "target_avatar_match",
       label: "Segmentos o arquetipos adicionales",
       type: "textarea",
-      path: "target_avatar_match_raw",
+      // DB column: products.target_avatar_match JSONB string[].
+      // Previously: "target_avatar_match_raw" (did not exist in BE).
+      path: "target_avatar_match",
+      storeAs: "newline_array",
       rows: 3,
       placeholder:
         "• Profesionales de salud con consultorio propio\n• Nutricionistas con 1-5 años de experiencia\n• Kinesiólogas que empiezan a hacer atención online",
@@ -44,7 +53,10 @@ export const offerStrategySchema: SectionSchema = {
       id: "marketing_pain_points",
       label: "Dolores concretos del avatar",
       type: "textarea",
-      path: "marketing_pain_points_raw",
+      // DB column: products.marketing_pain_points JSONB string[].
+      // Previously: "marketing_pain_points_raw" (did not exist in BE).
+      path: "marketing_pain_points",
+      storeAs: "newline_array",
       rows: 5,
       placeholder:
         "• No puedo más con pacientes que faltan a la cita y no pagan\n• Facturo apenas USD 800/mes y trabajo 10 horas por día\n• Mis pacientes no vuelven después de la primera consulta\n• No sé cómo cobrar por WhatsApp sin parecer informal",
@@ -54,7 +66,10 @@ export const offerStrategySchema: SectionSchema = {
       id: "marketing_desires",
       label: "Deseos concretos del avatar",
       type: "textarea",
-      path: "marketing_desires_raw",
+      // DB column: products.marketing_desires JSONB string[].
+      // Previously: "marketing_desires_raw" (did not exist in BE).
+      path: "marketing_desires",
+      storeAs: "newline_array",
       rows: 5,
       placeholder:
         "• Quiero facturar USD 3.000/mes trabajando 4 horas por día\n• Quiero tener 20 pacientes fijos que paguen mensual\n• Quiero que me agenden solos por un link y paguen por adelantado\n• Quiero dejar de perder tiempo explicando lo mismo 10 veces",
@@ -64,7 +79,10 @@ export const offerStrategySchema: SectionSchema = {
       id: "anti_avatar_keywords",
       label: "Anti-avatar — palabras que descalifican",
       type: "textarea",
-      path: "anti_avatar_keywords_raw",
+      // DB column: products.anti_avatar_keywords JSONB string[].
+      // Previously: "anti_avatar_keywords_raw" (did not exist in BE).
+      path: "anti_avatar_keywords",
+      storeAs: "newline_array",
       rows: 4,
       placeholder:
         "• Estudiante sin consultorio propio\n• Busca contenido gratis\n• No quiere invertir más de USD 100\n• Audiencia B2C masiva sin perfil definido\n• Pide 'trabajo a cambio de exposure'",

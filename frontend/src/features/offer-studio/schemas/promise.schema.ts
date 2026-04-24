@@ -50,6 +50,9 @@ export const offerPromiseSchema: SectionSchema = {
       label: "Resultados medibles concretos",
       type: "textarea",
       path: "measurable_outcomes",
+      // DB column: products.measurable_outcomes JSONB string[].
+      // storeAs: "newline_array" converts between UI string and backend string[].
+      storeAs: "newline_array",
       rows: 3,
       placeholder:
         "• Reducir 20h semanales de operación\n• 3 personas del equipo tomando decisiones sin escalarte\n• Cierre de semana viernes 6pm sin mails",

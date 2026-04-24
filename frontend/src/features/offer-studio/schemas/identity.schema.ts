@@ -19,7 +19,9 @@ export const offerIdentitySchema: SectionSchema = {
       id: "public_name",
       label: "Nombre público",
       type: "text",
-      path: "public_name",
+      // Path canonical: products.name (not products.public_name).
+      // CONTRACT §9.1: public_name → name. Label stays "Nombre público".
+      path: "name",
       required: true,
       placeholder: "ej. Mentoría Liderazgo Q2",
       hint: "El nombre que ve tu audiencia en anuncios, landings y checkout. El agente lo usa al responder consultas.",

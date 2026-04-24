@@ -17,9 +17,11 @@ describe("offerIdentitySchema", () => {
     expect(offerIdentitySchema.key).toBe("offer.identity");
   });
 
-  it("exposes public_name as a required field", () => {
+  it("exposes public_name as a required field with canonical path 'name'", () => {
     const publicName = offerIdentitySchema.fields.find((f) => f.id === "public_name");
     expect(publicName?.required).toBe(true);
+    // CONTRACT §9.1: DB column is products.name — not public_name.
+    expect(publicName?.path).toBe("name");
   });
 
   it("has no duplicate field ids", () => {
