@@ -1,8 +1,12 @@
-Run FULL quality suite (backend + frontend + E2E + migrations) natively.
+Run FULL quality suite (backend + frontend + migrations) natively.
 This is the DEFINITIVE pre-commit/pre-deploy verification. Mirrors CI quality-gates.
 
 **CRITICAL:** All tools run natively in WSL. NEVER `docker exec` for lint/tests.
-Docker ONLY for: migrations test (Step 11) and E2E containers.
+Docker ONLY for: migrations test (Step 11).
+
+**E2E:** NOT part of `/test-all`. Run separately with `/test-frontend` or the
+native Playwright command when needed — E2E is too slow + flaky to gate every
+pre-commit / pre-deploy run and blocks the quick iteration loop.
 
 ## Execution: run ALL steps sequentially. Stop on first BLOCKER failure.
 
@@ -87,7 +91,7 @@ cd /home/chris/AISALESHT/frontend && npm audit --audit-level=high
 
 ---
 
-## E2E + MIGRATIONS (optional — run when deploying)
+## MIGRATIONS (optional — run when deploying)
 
 ### Step 11: Migration verification (fresh DB)
 ```bash
@@ -97,14 +101,6 @@ docker exec -t visionarias_brain_dev bash -c "cd /app && DATABASE_URL=postgresql
 docker exec -t visionarias_postgres psql -U postgres -c "DROP DATABASE migration_test;"
 ```
 If fails: broken or non-idempotent migration.
-
-### Step 12: E2E Smoke Tests (Playwright)
-**Requires Docker containers running** (`docker compose up -d`).
-```bash
-cd /home/chris/AISALESHT && bash scripts/e2e-preflight.sh
-cd /home/chris/AISALESHT/frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke
-```
-**NEVER use `make e2e-smoke`** (Docker-based, crashes laptop). Always native Playwright.
 
 ---
 
@@ -129,7 +125,6 @@ cd /home/chris/AISALESHT/frontend && E2E_BASE_URL=http://localhost:3000 npx play
 | HEALTH | Circulars (madge) | N cycles | baseline 2 |
 | HEALTH | Security (npm) | PASS/FAIL | N vulns |
 | **DEPLOY** | | | |
-| E2E | Smoke tests | PASS/FAIL/SKIP | if containers running |
 | MIGRATIONS | Fresh DB | PASS/FAIL/SKIP | if Docker available |
 
 **All QUALITY + FUNCTIONAL pass:** "Full suite PASS — safe to deploy."
