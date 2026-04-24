@@ -67,7 +67,7 @@ cd frontend && ./node_modules/.bin/eslint src/ --cache --cache-location .eslintc
 - knip false positives: barrel spreads, Next.js routes, devDeps en config files. Mitigated `knip.config.ts` entry points.
 - 323 check-file warnings + 616 jsdoc warnings (warn mode, fix progressive).
 
-## 8 Architecture Fitness Tests
+## 10 Architecture Fitness Tests
 
 Run: `cd frontend && npx vitest run src/__tests__/architecture/`
 
@@ -81,6 +81,8 @@ Run: `cd frontend && npx vitest run src/__tests__/architecture/`
 | `test-no-duplicate-names` | No same component basename cross features |
 | `test-feature-structure` | Top-level feature dirs = canonical names |
 | `test-api-location` | `fetchClient` only en api/ |
+| `test-studio-sections-lazy-loading` | brand/offer studios usan `next/dynamic` per section; Server routes solo importan section-slugs + dispatcher |
+| `test-studio-structure-parity` | brand + offer mantienen misma estructura `pages/{section-slugs, SectionDispatcher, sections/}` |
 
 **Ratchet:** `KNOWN_*` allowlists frozen 2026-04-15. Solo shrink. Fix: rename/move, update imports, `npx tsc --noEmit`, remove from allowlist.
 
