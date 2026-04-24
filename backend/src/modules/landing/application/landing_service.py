@@ -6,6 +6,7 @@ from uuid import UUID
 from sqlalchemy import text as sa_text
 from sqlalchemy.orm import Session
 
+from src.modules.landing.application.landing_content_builders import _resolve_content
 from src.modules.landing.domain.content import LandingPageConfig, SqueezeContent
 from src.modules.landing.domain.enums import LandingPageArchetype
 from src.modules.landing.domain.landing_page import LandingPage
@@ -150,8 +151,20 @@ class LandingService:
         row = (
             self.db.execute(
                 sa_text(
+                    # Core identity fields
                     "SELECT name, headline_promise, primary_outcome, marketing_pain_points,"
-                    " preset_id"
+                    " preset_id,"
+                    # Promise narrative fields
+                    " before_state, after_state, why_now, measurable_outcomes,"
+                    # Psychology narrative fields
+                    " objections, marketing_desires, cultural_trust_barriers,"
+                    " emotional_triggers, status_drivers, regret_scenarios,"
+                    # Closing narrative fields
+                    " refund_process_description, urgency_drivers, scarcity_reason_honest,"
+                    " bonus_if_act_now, final_push_copy,"
+                    # Supporting fields for content builders
+                    " guarantee_terms, guarantee_type, support_duration_days,"
+                    " deliverables, pricing"
                     " FROM products WHERE id = :oid AND tenant_id = :tid",
                 ),
                 {"oid": str(offer_id), "tid": str(tenant_id)},
@@ -163,13 +176,7 @@ class LandingService:
             msg = "Offer not found"
             raise ValueError(msg)
 
-        import json as _json
-
-        public_name = row["name"] or "Untitled"
-        headline = row["headline_promise"] or f"Discover {public_name}"
-        outcome = row["primary_outcome"] or "Transform your life today"
-        raw_pains = row["marketing_pain_points"] or []
-        pains = _json.loads(raw_pains) if isinstance(raw_pains, str) else (raw_pains or [])
+        public_name: str = row["name"] or "Mi oferta"
         preset_id = row["preset_id"]
 
         # Create a simple slug based on offer name
@@ -179,24 +186,18 @@ class LandingService:
         # THE_SQUEEZE regardless (explicit opt-in focus). Other archetypes
         # pick a more fitting template when possible, fallback to SQUEEZE.
         landing_archetype = self._select_landing_archetype_from_preset(preset_id)
-        # For non-SQUEEZE archetypes we'd build specialised content. To keep
-        # this refactor scoped, the MVP still renders SqueezeContent for
-        # every template (it's a structural superset of the others' fields).
-        # Proper per-archetype content builders land in Sprint 15.
-        content = SqueezeContent(
-            headline=headline,
-            subheadline=outcome,
-            bullets=pains[:3] if pains else ["Solve your problem", "Save time", "Get results"],
-            cta_text="Get Access Now",
-            privacy_text="100% Secure",
-        )
+
+        # Strategy pattern: delegate content building to per-archetype builder.
+        # _resolve_content() applies graceful degradation — if the specific
+        # builder returns None (missing required fields), falls back to SQUEEZE.
+        actual_archetype, content = _resolve_content(landing_archetype, row)
 
         config = LandingPageConfig(
-            archetype=landing_archetype,
+            archetype=actual_archetype,
             slug=slug,
             content=content,
             seo_title=public_name,
-            seo_description=headline,
+            seo_description=row.get("headline_promise") or public_name,
         )
 
         return self.create_landing(tenant_id, slug, offer_id, config)
