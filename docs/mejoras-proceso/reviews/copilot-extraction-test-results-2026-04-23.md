@@ -79,7 +79,7 @@ cd backend && .venv/bin/pytest tests/modules/copilot/ tests/modules/offer/ -q --
 | 10 | Extract completion → resume | ✅ PASS (LIVE) | LIVE BROWSER + DB + PYTEST | conv `af3f3ca2-...` post-completion: `active_extraction_job=NULL`, `guided.current_block_id=identity` preservado. Offer fields llenados: `headline_promise`, `primary_outcome`, `time_to_value`. Summary card emitido. | Cleanup + resume end-to-end live |
 | 11 | `extract_structured` paths inválidos **(skip feedback)** | ✅ PASS | PYTEST + CODE | `test_extract_validation` (21/21) + `extract.py:79-87` texto neutro "Ninguno de los field_paths..." | Loop cortado por text retornado |
 | 12 | Free-form URL sin guided | ✅ PASS | PYTEST | `test_extraction_tool::TestExtractFromUrlBrand/Offer` (6/6) | Tool funciona sin guided layer |
-| 13 | Brand URL (no regresión) | ✅ PASS | PYTEST + DB-EVIDENCE | `test_extraction_tool` + convs `acc02e53` (8 pills + extraction_summary) / `08f5be1b` | Flujo brand idéntico pre-commit |
+| 13 | Brand URL (no regresión) | ✅ PASS (LIVE) | LIVE BROWSER + DB + PYTEST | conv `1713f37e-...` turns: `clarify` → `extract_from_url` (module=brand, scope=full, mode=update, paused_at_block=null). 55 fields / 8 secciones extraídos en 207s. Zero loops. active_extraction_job cleared post-completion. | Flujo brand idéntico pre-commit — no regresión confirmada |
 
 **Leyenda**:
 - ✅ PASS = tests deterministicos pasan + evidencia empírica
@@ -342,3 +342,69 @@ visibles y offer data real poblada desde visionarias.lat.
 Los restantes 🟡 CODE-VERIFIED (E3, E4, E7, E8, E9) quedan con el mismo
 status previo — código verificado + tests pasando, pero no corridos en
 live. No bloquea el cierre del commit 8d0a63d3.
+
+### E13 — Brand URL regresión (live)
+
+Conversación: `1713f37e-36d3-4c3d-b731-e02b8695f678`
+Route: `/brand-studio/identity` (free-form, sin guided).
+
+**Turn 1 (user → URL)**:
+- Mensaje: `Extrae toda la información de marca desde https://visionarias.lat`
+- Trace: `tool_call: clarify status=ok` (3 opciones scope)
+- UI: clarify card con "Empezar desde cero / Completar faltantes / Solo
+  sección actual"
+- Zero `extract_structured`
+
+**Turn 2 (user → "Completar faltantes")**:
+- Trace: `tool_call: extract_from_url status=ok args={url:
+  https://visionarias.lat, module=brand, scope=full, mode=update}`
+- DB `active_extraction_job`:
+  ```json
+  {
+    "job_id": "8db20ec5-7ac1-4f72-985f-8294a77d0631",
+    "module": "brand",
+    "entity_id": null,
+    "source_kind": "url",
+    "source_ref": "https://visionarias.lat",
+    "scope": "full",
+    "mode": "update",
+    "paused_at_block": null,  ← correcto: no hay guided activo
+    "started_at": "2026-04-24T04:00:06.605242+00:00"
+  }
+  ```
+- LLM respuesta: "Inicié el análisis de la información desde el sitio web.
+  Tarda entre 1 y 2 minutos."
+
+**Worker execution (207.94s)**:
+- **55 fields / 8 secciones** (identity, story, testimonials, strategy,
+  people_contact, authority, positioning, narrative)
+- 8 navigation pills + 1 extraction_summary card
+- Sidebar actualizado con contadores: "Identidad 15 sugeridos", "Historia
+  4 sugeridos", "Testimonios 1 sugeridos"
+
+**Post-completion state**:
+- `active_extraction_job = NULL` (cleanup correcto)
+- Brand Studio sections marcadas con sugerencias pendientes
+
+**CC1 live validation**:
+```sql
+SELECT conversation_id, turn_id, name
+FROM copilot_trace_event
+WHERE event_type='tool_call'
+  AND created_at > now() - interval '30 minutes'
+  AND conversation_id IN ('af3f3ca2-...', '1713f37e-...')
+GROUP BY conversation_id, turn_id, name
+HAVING COUNT(*) > 1;
+
+-- 0 rows. Zero loops en offer guided E2 + brand free-form E13.
+```
+
+### Veredicto final gates críticos
+
+| Gate | Pre-fix | Post-fix live |
+|---|---|---|
+| E2 offer guided URL | 8× `extract_structured` loop (conv 376850f5) | 1× `clarify` + 1× `extract_from_url`, 24 fields extraídos, state cleanup OK |
+| E13 brand free-form URL | Funcionando OK (conv acc02e53/08f5be1b) | Sigue funcionando igual, 55 fields extraídos, paths distintos a offer respetados |
+| E11 skip feedback | String vacío (cause del loop) | Text informativo, LLM puede recuperar |
+
+**3/3 gates críticos PASS en live. Zero regresión brand.**
