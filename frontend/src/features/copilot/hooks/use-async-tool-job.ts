@@ -17,14 +17,31 @@ import type { AsyncJobState } from "../store/copilot-store";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-/** Initial polling interval in milliseconds. */
+/** Initial polling interval in milliseconds (0s–60s: tight loop). */
 const POLL_INTERVAL_FAST_MS = 2_000;
-/** Polling interval after BACKOFF_THRESHOLD_MS has elapsed. */
+/** Medium interval (60s–180s: user still watching, waves land). */
 const POLL_INTERVAL_SLOW_MS = 5_000;
-/** After this much elapsed time, switch to the slower poll interval. */
+/** Idle interval (180s+: long offer extractions, don't burn cycles). */
+const POLL_INTERVAL_IDLE_MS = 15_000;
+/** After this much elapsed time, switch from fast (2s) to slow (5s). */
 const BACKOFF_THRESHOLD_MS = 60_000;
-/** Stop polling entirely after this much time (safety cap). */
-const MAX_POLL_DURATION_MS = 120_000;
+/** After this much elapsed time, switch from slow (5s) to idle (15s). */
+const IDLE_THRESHOLD_MS = 180_000;
+/**
+ * Stop polling entirely after this much time (safety cap for orphan jobs).
+ *
+ * Raised from 120s → 600s: offer narrative extraction runs 3 waves with
+ * 6 LLM calls total and often exceeds 2 min. The loop exits early anyway
+ * on terminal status (``completed``/``failed``), so the cap only matters
+ * for runaway workers that never write a terminal status to Redis.
+ */
+const MAX_POLL_DURATION_MS = 600_000;
+
+function pickPollInterval(elapsedMs: number): number {
+  if (elapsedMs >= IDLE_THRESHOLD_MS) return POLL_INTERVAL_IDLE_MS;
+  if (elapsedMs >= BACKOFF_THRESHOLD_MS) return POLL_INTERVAL_SLOW_MS;
+  return POLL_INTERVAL_FAST_MS;
+}
 
 // ── Selectors ────────────────────────────────────────────────────────────────
 
@@ -137,7 +154,9 @@ function invalidateOnNewSections({
 
 /**
  * Starts a polling loop for the given job. The loop:
- * - Fires every 2s for the first 60s, then every 5s up to 120s max.
+ * - Fires every 2s for the first 60s, 5s for 60s–180s, then 15s up to a
+ *   600s (10min) safety cap — offer narrative extraction runs ~3–4 min
+ *   across 3 waves and needs coverage beyond the old 120s cap.
  * - On each response, diffs `filled_fields` and dispatches
  *   `copilot:field-update` for each newly arrived field.
  * - On terminal status, invalidates React Query keys per JOB_INVALIDATION_MAP.
@@ -192,8 +211,7 @@ function usePollingForJob(jobId: string): void {
         return;
       }
 
-      const interval =
-        elapsed >= BACKOFF_THRESHOLD_MS ? POLL_INTERVAL_SLOW_MS : POLL_INTERVAL_FAST_MS;
+      const interval = pickPollInterval(elapsed);
 
       timeoutId = setTimeout(() => {
         void runPoll();

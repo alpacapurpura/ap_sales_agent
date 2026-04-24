@@ -368,6 +368,115 @@ describe("useAsyncToolJob", () => {
     expect(mockPollJobStatus).not.toHaveBeenCalled();
   });
 
+  // ── Long-running job safety cap ──────────────────────────────────────────
+  // Regression: offer extraction with narrative waves exceeds 2 min. Frontend
+  // stopped polling at 120s and left progress pill stuck at 40% even though
+  // Redis kept updating 65→85→100. Poll must continue until terminal status
+  // (up to 10-min safety cap) and back off to 15s after 3 min to cap load.
+
+  it("keeps polling past 2 minutes until terminal status", async () => {
+    const job = makeJobState({ status: "running", progress: 40 });
+    storeState = { ...storeState, activeJobs: { "job-abc": job } };
+
+    mockPollJobStatus.mockResolvedValue({
+      status: "running",
+      progress: 40,
+      stage: "Analizando...",
+      filled_fields: [],
+      filled_fields_by_section: {},
+      sections_touched: [],
+      sections_completed: [],
+      newly_completed_section: null,
+      error: null,
+    });
+
+    const { useAsyncToolJob } = await import("../use-async-tool-job");
+    renderHook(() => useAsyncToolJob("job-abc"));
+
+    // Advance past the legacy 120s cap
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(125_000);
+    });
+    const callsAt125s = mockPollJobStatus.mock.calls.length;
+    expect(callsAt125s).toBeGreaterThan(0);
+
+    // Advance 20 more seconds at slow tier (5s) → expect ~4 more polls
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20_000);
+    });
+    expect(mockPollJobStatus.mock.calls.length).toBeGreaterThan(callsAt125s);
+  });
+
+  it("backs off to 15s tier after 180s elapsed", async () => {
+    const job = makeJobState({ status: "running", progress: 50 });
+    storeState = { ...storeState, activeJobs: { "job-abc": job } };
+
+    mockPollJobStatus.mockResolvedValue({
+      status: "running",
+      progress: 50,
+      stage: "Sigue...",
+      filled_fields: [],
+      filled_fields_by_section: {},
+      sections_touched: [],
+      sections_completed: [],
+      newly_completed_section: null,
+      error: null,
+    });
+
+    const { useAsyncToolJob } = await import("../use-async-tool-job");
+    renderHook(() => useAsyncToolJob("job-abc"));
+
+    // Burn 180s
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(180_000);
+    });
+    const countAt180 = mockPollJobStatus.mock.calls.length;
+
+    // 5 more seconds → still within 15s idle tier, should NOT fire yet
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5_000);
+    });
+    expect(mockPollJobStatus.mock.calls.length).toBe(countAt180);
+
+    // 11 more seconds → 16s since last scheduled poll → should fire
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(11_000);
+    });
+    expect(mockPollJobStatus.mock.calls.length).toBeGreaterThan(countAt180);
+  });
+
+  it("stops polling after 10 minutes safety cap", async () => {
+    const job = makeJobState({ status: "running", progress: 60 });
+    storeState = { ...storeState, activeJobs: { "job-abc": job } };
+
+    mockPollJobStatus.mockResolvedValue({
+      status: "running",
+      progress: 60,
+      stage: "Sigue...",
+      filled_fields: [],
+      filled_fields_by_section: {},
+      sections_touched: [],
+      sections_completed: [],
+      newly_completed_section: null,
+      error: null,
+    });
+
+    const { useAsyncToolJob } = await import("../use-async-tool-job");
+    renderHook(() => useAsyncToolJob("job-abc"));
+
+    // Burn 600s (10min) — cap hit
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(600_000);
+    });
+    const countAtCap = mockPollJobStatus.mock.calls.length;
+
+    // Further advance should NOT increase
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(120_000);
+    });
+    expect(mockPollJobStatus.mock.calls.length).toBe(countAtCap);
+  });
+
   // ── Per-wave module cache invalidation ───────────────────────────────────
 
   it("invalidates module queries per-wave when new section completes", async () => {
