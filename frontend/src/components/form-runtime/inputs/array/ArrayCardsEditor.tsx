@@ -16,7 +16,7 @@ import { singulariseES } from "./array-singularise";
 import { summariseItem } from "./array-summary";
 import { computeItemStatus } from "./array-validation";
 
-import type { NestedFieldRenderer } from "../ArrayInput";
+import type { NestedFieldRenderer } from "./types";
 import type { FieldSchema } from "@/lib/form-runtime/schema";
 
 type Row = Record<string, unknown>;

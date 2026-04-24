@@ -1,25 +1,15 @@
 "use client";
 
-import { type ReactNode } from "react";
-
 import { ArrayCardsEditor } from "./array/ArrayCardsEditor";
 import { ArraySplitEditor } from "./array/ArraySplitEditor";
 
+import type { NestedFieldRenderer } from "./array/types";
 import type { BaseInputProps } from "./types";
 import type { FieldSchema } from "@/lib/form-runtime/schema";
 
-type Row = Record<string, unknown>;
+export type { NestedFieldRenderer } from "./array/types";
 
-/**
- * Renderer injected by the parent FieldRenderer so ArrayInput can render
- * nested fields without a direct import dependency (breaks the import cycle).
- */
-export type NestedFieldRenderer = (props: {
-  field: FieldSchema;
-  value: unknown;
-  onChange: (next: unknown) => void;
-  disabled?: boolean;
-}) => ReactNode;
+type Row = Record<string, unknown>;
 
 export interface ArrayInputProps extends BaseInputProps<Row[] | null | undefined> {
   renderField: NestedFieldRenderer;

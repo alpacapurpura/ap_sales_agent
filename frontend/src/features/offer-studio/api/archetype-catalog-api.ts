@@ -1,7 +1,9 @@
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
 
-import type { OfferArchetype } from "../types";
+import type { OfferArchetype, VariantStructure } from "../types";
+
+export type { VariantStructure };
 
 const API_URL = config.api.baseUrl;
 
@@ -15,26 +17,6 @@ export interface EditionsWizardCopy {
   readonly yes_label: string;
   readonly no_label: string;
 }
-
-/**
- * Sprint 15.1 — canonical variant taxonomy. Mirrors the backend
- * ``VariantStructure`` enum verbatim. Covers every way an offer can
- * fragment into sellable instances, regardless of whether those instances
- * are temporal (cohortes, salidas) or non-temporal (planes, SKUs,
- * modalidades, idiomas, regiones).
- *
- * Changes here require a coordinated backend change —
- * ``variant_structure_catalog.py`` is the single source of truth.
- */
-export type VariantStructure =
-  | "temporal_cohort"
-  | "temporal_single_date"
-  | "recurring_intake"
-  | "tier"
-  | "sku_variant"
-  | "regional"
-  | "modality"
-  | "language";
 
 /**
  * Stable identifier for an Offer Studio editor section.

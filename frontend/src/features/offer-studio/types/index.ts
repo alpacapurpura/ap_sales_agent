@@ -1,4 +1,27 @@
 // --- ENUMS ---
+
+/**
+ * Sprint 15.1 — canonical variant taxonomy. Mirrors the backend
+ * ``VariantStructure`` enum verbatim. Covers every way an offer can
+ * fragment into sellable instances, regardless of whether those instances
+ * are temporal (cohortes, salidas) or non-temporal (planes, SKUs,
+ * modalidades, idiomas, regiones).
+ *
+ * Vive en types/ (no en api/) para evitar el ciclo types ↔ api.
+ *
+ * Cambios requieren coordinación con backend —
+ * ``variant_structure_catalog.py`` es el SSoT.
+ */
+export type VariantStructure =
+  | "temporal_cohort"
+  | "temporal_single_date"
+  | "recurring_intake"
+  | "tier"
+  | "sku_variant"
+  | "regional"
+  | "modality"
+  | "language";
+
 export enum OfferValueLevel {
   LEAD_MAGNET = "lead_magnet",
   ACTIVACION = "activacion",
@@ -352,7 +375,7 @@ export interface LaunchEdition {
    * Sprint 7 6th SSoT axis — what kind of variant this row represents.
    * Always present post Sprint 15.1 (every archetype supports variants).
    */
-  variant_structure: import("../api/archetype-catalog-api").VariantStructure;
+  variant_structure: VariantStructure;
   /**
    * Sprint 7 — structure-specific payload. Keys vary by ``variant_structure``:
    * TIER → ``features[]`` + ``price_amount`` + ``price_currency``.
