@@ -127,7 +127,7 @@ services:
       - SENTRY_PROJECT=nicolify-frontend
       - INTERNAL_API_URL=${INTERNAL_API_URL}
       - SHOPIFY_API_KEY=${SHOPIFY_API_KEY}
-      - NODE_OPTIONS=--max-old-space-size=3584
+      - NODE_OPTIONS=--max-old-space-size=5120
       - CHOKIDAR_USEPOLLING=true # Essential for Windows/WSL hot reload
       - WATCHPACK_POLLING=true
     extra_hosts:
@@ -155,7 +155,7 @@ services:
       resources:
         limits:
           cpus: '2.00'
-          memory: 5120M
+          memory: 7168M
         reservations:
           memory: 1024M
 

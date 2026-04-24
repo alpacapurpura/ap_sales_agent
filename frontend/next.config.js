@@ -48,6 +48,15 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: allowedOrigins,
     },
+    // Tree-shake barrel imports for icon + date libraries. Cuts per-request
+    // module graph size — 330+ lucide-react imports were a hot spot.
+    optimizePackageImports: [
+      "lucide-react",
+      "react-icons/si",
+      "react-icons/fa",
+      "date-fns",
+      "date-fns-tz",
+    ],
   },
   async rewrites() {
     if (!internalApiUrl) return [];
