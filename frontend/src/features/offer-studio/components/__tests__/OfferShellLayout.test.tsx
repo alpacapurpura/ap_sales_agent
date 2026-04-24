@@ -98,25 +98,25 @@ describe("isOfferStudioSection (section route guard)", () => {
   });
 
   it("returns true for known section keys", async () => {
-    const { isOfferStudioSection } = await import("../../pages/section-page-map");
+    const { isOfferStudioSection } = await import("../../pages/section-slugs");
     expect(isOfferStudioSection("promise")).toBe(true);
     expect(isOfferStudioSection("pricing")).toBe(true);
     expect(isOfferStudioSection("identity")).toBe(true);
   });
 
   it("returns false for unknown slugs", async () => {
-    const { isOfferStudioSection } = await import("../../pages/section-page-map");
+    const { isOfferStudioSection } = await import("../../pages/section-slugs");
     expect(isOfferStudioSection("unknown-section")).toBe(false);
     expect(isOfferStudioSection("")).toBe(false);
     expect(isOfferStudioSection("edition")).toBe(false);
   });
 
   it("covers all 21 section keys from the catalog", async () => {
-    const { OFFER_SECTION_PAGE_MAP, isOfferStudioSection } =
-      await import("../../pages/section-page-map");
-    const keys = Object.keys(OFFER_SECTION_PAGE_MAP);
-    expect(keys.length).toBe(21);
-    for (const key of keys) {
+    const { OFFER_STUDIO_SECTION_SLUGS, isOfferStudioSection } = await import(
+      "../../pages/section-slugs"
+    );
+    expect(OFFER_STUDIO_SECTION_SLUGS.length).toBe(21);
+    for (const key of OFFER_STUDIO_SECTION_SLUGS) {
       expect(isOfferStudioSection(key)).toBe(true);
     }
   });

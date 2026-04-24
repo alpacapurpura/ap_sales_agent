@@ -1,8 +1,9 @@
-// Side-effect import: bootstraps the action registry before any schema
-// with ``custom`` fields mounts. Matches brand-studio's pattern so pages
-// only import schemas and never the registry directly.
-import "@/features/offer-studio/actions/registry";
-
+// Action registry bootstrap vive en `pages/SectionDispatcher.tsx`
+// post-refactor Fase 2 — se ejecuta una vez cuando cualquier sección
+// monta. Mantenerlo aquí hacía que el Server Component del catch-all
+// tirara del registry durante la compilación del grafo.
+// Consumers del barrel (tests, stories) que necesiten el registry deben
+// importar `@/features/offer-studio/actions/registry` directamente.
 import { offerClosingSchema } from "./closing.schema";
 import { offerEventDetailsSchema } from "./event-details.schema";
 import { offerFaqSchema } from "./faq.schema";

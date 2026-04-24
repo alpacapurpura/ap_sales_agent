@@ -1,19 +1,17 @@
 import { notFound } from "next/navigation";
 
-import {
-  isOfferStudioSection,
-  OFFER_SECTION_PAGE_MAP,
-} from "@/features/offer-studio/pages/section-page-map";
+import { SectionDispatcher } from "@/features/offer-studio/pages/SectionDispatcher";
+import { isOfferStudioSection } from "@/features/offer-studio/pages/section-slugs";
 
 /**
- * Offer Studio editor — section dispatcher.
+ * Offer Studio editor — section dispatcher (Server Component).
  *
- * Route shape: `/{tenantId}/offer-studio/offer/{id}/editor/{section}`
+ * Route: `/{tenantId}/offer-studio/offer/{id}/editor/{section}`
  *
- * Field selection lives in the ``?field=`` query param and is handled
- * client-side via ``useActiveField`` — no server navigation on focus.
- *
- * Unknown section slugs return 404 via `notFound()`.
+ * Valida el slug contra `section-slugs.ts` (server-safe, sin imports
+ * client). Delega el render al `SectionDispatcher` client que hace
+ * lazy-load del chunk per-section via `next/dynamic`. Field selection
+ * vive en el query param `?field=` y se maneja client-side.
  */
 interface PageParams {
   tenantId: string;
@@ -21,16 +19,16 @@ interface PageParams {
   section: string;
 }
 
-/**
- *
- */
-export default async function OfferEditorSectionPage({ params }: { params: Promise<PageParams> }) {
+export default async function OfferEditorSectionPage({
+  params,
+}: {
+  params: Promise<PageParams>;
+}) {
   const { id: offerId, section } = await params;
 
   if (!isOfferStudioSection(section)) {
     notFound();
   }
 
-  const Component = OFFER_SECTION_PAGE_MAP[section];
-  return <Component offerId={offerId} editionCode="evergreen" />;
+  return <SectionDispatcher slug={section} offerId={offerId} editionCode="evergreen" />;
 }
