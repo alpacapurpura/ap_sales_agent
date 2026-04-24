@@ -1,9 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
-import {
-  SECTION_PAGE_MAP,
-  type BrandStudioSectionSlug,
-} from "@/features/brand-studio/pages/section-page-map";
+import { SectionDispatcher } from "@/features/brand-studio/pages/SectionDispatcher";
+import { isBrandStudioSection } from "@/features/brand-studio/pages/section-slugs";
 
 interface PageProps {
   params: Promise<{
@@ -13,22 +11,19 @@ interface PageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }
 
-function isKnownSection(slug: string): slug is BrandStudioSectionSlug {
-  return slug in SECTION_PAGE_MAP;
-}
-
 /**
- * Dispatcher for brand-studio sections.
+ * Dispatcher de brand-studio (Server Component).
  *
  *   /{tenantId}/brand-studio/{section}                   → list view
  *   /{tenantId}/brand-studio/{section}?field={fieldId}   → detail view
  *
- * Field selection lives in the ``?field=`` query param and is handled
- * client-side via ``useActiveField``. Unknown section slugs return 404.
+ * Valida el slug contra `section-slugs.ts` (server-safe, sin imports
+ * client) y delega el render al `SectionDispatcher` client, que hace
+ * lazy-load del chunk per-section via `next/dynamic`.
  *
- * Legacy redirect: ?field=voice_tone or ?field=voice_tone_clone on the
- * identity section redirects to /estilo so old emails and bookmarks don't
- * dead-end after removing those fields from identity.schema.ts.
+ * Legacy redirect: `?field=voice_tone` o `?field=voice_tone_clone` en
+ * /identity redirige a /estilo — preserva bookmarks y emails viejos
+ * post-migración de esos fields.
  */
 export default async function BrandStudioSectionPage({ params, searchParams }: PageProps) {
   const { tenantId, section } = await params;
@@ -39,7 +34,7 @@ export default async function BrandStudioSectionPage({ params, searchParams }: P
     redirect(`/${tenantId}/brand-studio/estilo`);
   }
 
-  if (!isKnownSection(section)) notFound();
-  const Page = SECTION_PAGE_MAP[section];
-  return <Page />;
+  if (!isBrandStudioSection(section)) notFound();
+
+  return <SectionDispatcher slug={section} />;
 }

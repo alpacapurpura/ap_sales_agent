@@ -1,9 +1,9 @@
-// Side-effect import: every schema in this barrel references action keys
-// registered by features/brand-studio/actions/registry. Importing here
-// guarantees the registry is bootstrapped before any consumer page renders
-// a custom field — pages only need to import schemas, never the registry.
-import "@/features/brand-studio/actions/registry";
-
+// Action registry bootstrap vive en `pages/SectionDispatcher.tsx`
+// post-refactor Fase 2 — se ejecuta una vez cuando cualquier sección
+// monta. Mantener el side-effect aquí causaba que el Server Component
+// del catch-all tirara del registry durante la compilación del grafo.
+// Consumers de barrel (tests, stories) que necesiten el registry deben
+// importar `@/features/brand-studio/actions/registry` directamente.
 import { authorityItemSchema } from "./authority-item.schema";
 import { avatarsSchema } from "./avatars.schema";
 import { buyerPersonaSchema } from "./buyer-persona.schema";
