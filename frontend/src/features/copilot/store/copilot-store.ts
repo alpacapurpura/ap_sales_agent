@@ -264,6 +264,11 @@ interface CopilotState {
     actionIndex: number,
     status: NonNullable<UIAction["card_status"]>,
   ) => void;
+  updateBlockCardStatus: (
+    messageId: string,
+    blockIndex: number,
+    status: NonNullable<UIAction["card_status"]>,
+  ) => void;
   setStatus: (status: CopilotStatus) => void;
   /** Drop the messages array only. Conversation id and status are preserved. */
   clearMessages: () => void;
@@ -544,6 +549,23 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
       const actions = [...msg.uiActions];
       actions[actionIndex] = { ...actions[actionIndex], card_status: status };
       msgs[msgIdx] = { ...msg, uiActions: actions };
+      return { messages: msgs };
+    }),
+
+  updateBlockCardStatus: (messageId, blockIndex, status) =>
+    set((s) => {
+      const msgs = [...s.messages];
+      const msgIdx = msgs.findIndex((m) => m.id === messageId);
+      if (msgIdx === -1) return s;
+      const msg = msgs[msgIdx];
+      const block = msg.blocks?.[blockIndex];
+      if (!block || block.type !== "card") return s;
+      const blocks = [...(msg.blocks ?? [])];
+      blocks[blockIndex] = {
+        ...block,
+        payload: { ...(block.payload as Record<string, unknown>), card_status: status },
+      };
+      msgs[msgIdx] = { ...msg, blocks };
       return { messages: msgs };
     }),
 

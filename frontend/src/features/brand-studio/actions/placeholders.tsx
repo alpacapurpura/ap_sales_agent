@@ -27,5 +27,3 @@ export const BrandVisualsWizardPlaceholder = makePlaceholder("Wizard de visuales
 export const LogoKitPlaceholder = makePlaceholder("Kit de logos");
 export const ImageGalleryPickerPlaceholder = makePlaceholder("Galería de imágenes");
 export const AvatarActionPlaceholder = makePlaceholder("Avatar");
-export const SmartFillDialogPlaceholder = makePlaceholder("Auto-completar");
-export const OnboardingWizardPlaceholder = makePlaceholder("Wizard de onboarding");

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -16,7 +16,17 @@ vi.mock("sonner", () => ({
 }));
 
 vi.mock("@/lib/api/ai-actions", () => ({
-  pollJobStatus: vi.fn().mockResolvedValue({ status: "running", progress: 50, stage: "", filled_fields: [], filled_fields_by_section: {}, sections_touched: [], sections_completed: [], newly_completed_section: null, error: null }),
+  pollJobStatus: vi.fn().mockResolvedValue({
+    status: "running",
+    progress: 50,
+    stage: "",
+    filled_fields: [],
+    filled_fields_by_section: {},
+    sections_touched: [],
+    sections_completed: [],
+    newly_completed_section: null,
+    error: null,
+  }),
   pollExtractionStatus: vi.fn(),
 }));
 
@@ -71,7 +81,6 @@ describe("ToolCallChip", () => {
   beforeEach(() => {
     // clear job state
     for (const key of Object.keys(mockStoreActiveJobs)) {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete mockStoreActiveJobs[key];
     }
   });
@@ -109,7 +118,20 @@ describe("ToolCallChip", () => {
         status: "running",
         progress: 42,
         stage: "Analizando sección 'Nosotros'",
-        filledFields: ["brand_name", "tagline", "mission", "vision", "values", "tone_of_voice", "tagline2", "positioning", "uvp", "target_audience", "pain_points", "desires"],
+        filledFields: [
+          "brand_name",
+          "tagline",
+          "mission",
+          "vision",
+          "values",
+          "tone_of_voice",
+          "tagline2",
+          "positioning",
+          "uvp",
+          "target_audience",
+          "pain_points",
+          "desires",
+        ],
         sectionsCompleted: ["identity", "strategy", "audience"],
         pollEndpoint: "/api/v1/brand/tools/extract-full-brand/status/job-xyz",
       };
@@ -147,7 +169,14 @@ describe("ToolCallChip", () => {
         progress: 100,
         stage: "Listo",
         filledFields: Array.from({ length: 27 }, (_, i) => `field_${i}`),
-        sectionsCompleted: ["identity", "strategy", "audience", "positioning", "audience2", "visuals"],
+        sectionsCompleted: [
+          "identity",
+          "strategy",
+          "audience",
+          "positioning",
+          "audience2",
+          "visuals",
+        ],
         pollEndpoint: "/api/v1/brand/tools/extract-full-brand/status/job-done",
       };
     });

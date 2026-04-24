@@ -18,8 +18,7 @@ function shimmerInput(formField: string): void {
   const selector = `[name="${CSS.escape(formField)}"], [data-field="${CSS.escape(formField)}"]`;
   const el = document.querySelector<HTMLElement>(selector);
   if (!el) return;
-  const target: HTMLElement =
-    el.closest<HTMLElement>("[data-field-pulse-target]") ?? el;
+  const target: HTMLElement = el.closest<HTMLElement>("[data-field-pulse-target]") ?? el;
   target.classList.remove("copilot-highlight");
   // Force a reflow so the animation restarts if applied back-to-back
   void target.offsetWidth;

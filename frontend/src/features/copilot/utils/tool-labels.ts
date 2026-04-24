@@ -10,6 +10,9 @@ const TOOL_LABELS_ES: Record<string, string> = {
   navigate: "Navegando",
 };
 
+/**
+ *
+ */
 export function humanizeToolName(tool: string): string {
   if (TOOL_LABELS_ES[tool]) return TOOL_LABELS_ES[tool];
   return tool

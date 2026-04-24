@@ -112,9 +112,7 @@ const ExtendedToolCallChip = memo(function ExtendedToolCallChip({
       </div>
 
       {/* Row 3: stage text */}
-      {stage && (
-        <div className="mt-1 truncate text-[10px] text-muted-foreground">{stage}</div>
-      )}
+      {stage && <div className="mt-1 truncate text-[10px] text-muted-foreground">{stage}</div>}
 
       {/* Row 4: optional counters */}
       {(fieldCount > 0 || sectionCount > 0) && (
@@ -139,12 +137,7 @@ export const ToolCallChip = memo(function ToolCallChip({
 }: ToolCallChipProps) {
   if (jobId) {
     return (
-      <ExtendedToolCallChip
-        tool={tool}
-        jobId={jobId}
-        legacyStatus={status}
-        className={className}
-      />
+      <ExtendedToolCallChip tool={tool} jobId={jobId} legacyStatus={status} className={className} />
     );
   }
 

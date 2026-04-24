@@ -131,9 +131,7 @@ function renderCard(
       );
 
     case "extraction_summary":
-      return (
-        <ExtractionSummaryCard data={block.payload as unknown as ExtractionSummaryData} />
-      );
+      return <ExtractionSummaryCard data={block.payload as unknown as ExtractionSummaryData} />;
 
     case "navigation":
     default:

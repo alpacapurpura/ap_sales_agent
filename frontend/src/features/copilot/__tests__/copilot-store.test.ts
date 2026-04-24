@@ -460,6 +460,49 @@ describe("Card UIAction types", () => {
     useCopilotStore.getState().updateUIActionStatus("non-existent", 0, "resolved");
     expect(useCopilotStore.getState().messages).toHaveLength(0);
   });
+
+  it("updateBlockCardStatus mutates block.payload.card_status for card blocks", () => {
+    const msg: CopilotMessage = {
+      id: "msg-4",
+      role: "assistant",
+      content: "",
+      timestamp: Date.now(),
+      blocks: [
+        {
+          id: "block-1",
+          type: "card",
+          card_kind: "clarify",
+          payload: { type: "clarify_card", clarify_items: [] },
+        },
+      ],
+    };
+    useCopilotStore.getState().addMessage(msg);
+    useCopilotStore.getState().updateBlockCardStatus("msg-4", 0, "resolved");
+    const block = useCopilotStore.getState().messages[0].blocks![0];
+    expect(block.type).toBe("card");
+    if (block.type === "card") {
+      expect(block.payload.card_status).toBe("resolved");
+    }
+  });
+
+  it("updateBlockCardStatus is no-op for non-card block", () => {
+    const msg: CopilotMessage = {
+      id: "msg-5",
+      role: "assistant",
+      content: "hello",
+      timestamp: Date.now(),
+      blocks: [{ id: "b-1", type: "text", markdown: "hello" }],
+    };
+    useCopilotStore.getState().addMessage(msg);
+    useCopilotStore.getState().updateBlockCardStatus("msg-5", 0, "resolved");
+    const block = useCopilotStore.getState().messages[0].blocks![0];
+    expect(block.type).toBe("text");
+  });
+
+  it("updateBlockCardStatus is no-op for non-existent message", () => {
+    useCopilotStore.getState().updateBlockCardStatus("non-existent", 0, "resolved");
+    expect(useCopilotStore.getState().messages).toHaveLength(0);
+  });
 });
 
 describe("sidebar isOpen + toggle helpers", () => {

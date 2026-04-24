@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
 
 // Mock useCopilotNavigator
 vi.mock("@/features/copilot/hooks/use-copilot-navigator", () => ({
@@ -12,6 +12,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { ExtractionSummaryCard } from "../ExtractionSummaryCard";
+
 import type { ExtractionSummaryData } from "../../../types/message-blocks";
 
 function makeData(overrides: Partial<ExtractionSummaryData> = {}): ExtractionSummaryData {
@@ -114,7 +115,9 @@ describe("ExtractionSummaryCard", () => {
   });
 
   it("renders with doc source_kind label", () => {
-    render(<ExtractionSummaryCard data={makeData({ source_kind: "doc", source_ref: "doc-123" })} />);
+    render(
+      <ExtractionSummaryCard data={makeData({ source_kind: "doc", source_ref: "doc-123" })} />,
+    );
     expect(screen.getByText(/doc-123/i)).toBeInTheDocument();
   });
 });

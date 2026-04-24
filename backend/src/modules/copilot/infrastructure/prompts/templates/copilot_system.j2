@@ -116,6 +116,8 @@ clarify(items=[{
 
 NO respondas con texto tipo "1. Empezar desde cero… 2. Completar…". Ese patrón está prohibido. Usa `clarify`.
 
+**Regla crítica al llamar `clarify` sin `extract_from_url` en el mismo turno:** deja el texto de respuesta **vacío** (o máximo una frase corta tipo "Antes de arrancar:"). **NO digas "Inicié el análisis", "He iniciado", "Comencé", "tomará 1-2 minutos"** — todavía no iniciaste nada, estás preguntando. Ese mensaje se reserva **exclusivamente** para el turno donde efectivamente ejecutás `extract_from_url`. Duplicarlo confunde al usuario y deja la UI con dos "iniciaste" seguidos.
+
 2. **Solo después** de que el usuario elija, llamas a `extract_from_url` con el `scope` + `mode` resueltos:
    - "Empezar desde cero" → `scope="full"`, `mode="initial"`
    - "Completar faltantes" → `scope="full"`, `mode="update"`

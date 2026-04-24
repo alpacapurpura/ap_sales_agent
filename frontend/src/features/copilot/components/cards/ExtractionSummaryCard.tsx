@@ -8,6 +8,7 @@ import { getOfferSectionLabel } from "@/features/offer-studio/lib/section-catalo
 import { cn } from "@/lib/utils";
 
 import { useCopilotNavigator } from "../../hooks/use-copilot-navigator";
+
 import type { ExtractionSummaryData } from "../../types/message-blocks";
 
 interface ExtractionSummaryCardProps {
@@ -76,8 +77,7 @@ export const ExtractionSummaryCard = memo(function ExtractionSummaryCard({
     label: resolveSectionLabel(s.slug, s.label, module),
   }));
 
-  const primarySectionLabel =
-    resolvedSections[0]?.label ?? "la sección principal";
+  const primarySectionLabel = resolvedSections[0]?.label ?? "la sección principal";
 
   const handleReview = (): void => {
     executeAction({ type: "navigate", route: primary_cta_route });

@@ -70,21 +70,5 @@ export const identitySchema: SectionSchema = {
       placeholder: "America/Lima",
       hint: "IANA timezone ID. El agente usa esto para proponer horarios de llamada y respetar tu disponibilidad.",
     },
-    {
-      id: "smart_fill",
-      label: "Auto-completar desde tu web",
-      type: "custom",
-      path: "brand_name",
-      action: "smart-fill",
-      hint: "La IA analiza tu sitio y propone valores para los campos vacíos.",
-    },
-    {
-      id: "onboarding_wizard",
-      label: "Asistente de configuración inicial",
-      type: "custom",
-      path: "brand_name",
-      action: "onboarding-wizard",
-      hint: "Flujo guiado para cargar tu marca desde cero.",
-    },
   ],
 };

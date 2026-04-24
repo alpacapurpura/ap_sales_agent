@@ -440,7 +440,14 @@ class ExtractionOrchestrator:
             trace.set_sections_total(total_sections)
 
         wave_fn = self._run_multi_wave if waves >= 2 else self._run_single_wave
-        extracted_visuals, positioning, narrative, communication_assets = await wave_fn(
+        merge_t0 = time.time()
+        if trace:
+            trace.merge_start()
+
+        # Waves persist their subset via ``_merge_and_save`` before announcing,
+        # so ``result`` is already the final saved BrandSettings — no separate
+        # post-wave save step is needed.
+        extracted_visuals, positioning, narrative, communication_assets, result = await wave_fn(
             svc,
             content,
             current_data_str,
@@ -450,7 +457,11 @@ class ExtractionOrchestrator:
             include_assets,
             progress_callback,
             trace,
+            dry_run=dry_run,
         )
+
+        if trace:
+            trace.merge_end(time.time() - merge_t0)
 
         # Log extraction results summary
         succeeded = self._log_extraction_summary(
@@ -462,30 +473,10 @@ class ExtractionOrchestrator:
             total_sections,
         )
 
-        # 4. Merge & Save
-        if trace:
-            trace.merge_start()
-        merge_t0 = time.time()
-        result = self._merge_and_save(
-            self._last_identity,
-            self._last_story,
-            self._last_strategy,
-            self._last_people_contact,
-            self._last_testimonials,
-            self._last_authority,
-            extracted_visuals,
-            new_positioning=positioning,
-            new_narrative=narrative,
-            new_communication_assets=communication_assets,
-            dry_run=dry_run,
-        )
-        if trace:
-            trace.merge_end(time.time() - merge_t0)
-
-        # 5. Social-proof sync — mirror testimonials / authority / team into
-        # the social_proof bounded context, which is what the Brand Studio UI
-        # reads from. Legacy BrandSettings.{testimonials,authority_vault,team}
-        # remain populated by step 4 for backwards compatibility.
+        # Social-proof sync — mirror testimonials / authority / team into the
+        # social_proof bounded context, which is what the Brand Studio UI reads
+        # from. Legacy BrandSettings.{testimonials,authority_vault,team} are
+        # already persisted by the wave saves above for backwards compatibility.
         if not dry_run and user_id is not None:
             self._sync_social_proof(
                 tenant_id=svc.tenant_id,
@@ -707,8 +698,19 @@ class ExtractionOrchestrator:
         include_assets: bool,
         progress_callback: Callable[[int, str], None] | None,
         trace: ExtractionTraceCollector | None,
+        *,
+        dry_run: bool = False,
     ) -> tuple:
-        """Execute extraction in multiple waves (for low-TPM models)."""
+        """Execute extraction in multiple waves (for low-TPM models).
+
+        Each wave persists its subset via ``_merge_and_save`` BEFORE
+        ``_announce_sections`` publishes its section-completed events — so when
+        a nav pill lands in the copilot conversation, the brand data it points
+        at is already in the DB.  The cached ``last_saved`` threads wave-over-
+        wave so only the first wave reads from the repository.
+        """
+        last_saved: BrandSettings | None = None
+
         # Wave 1: identity, story, testimonials + visuals (lighter extractions)
         wave1_sections = ["identity", "story", "testimonials"]
         wave1_coros = [
@@ -733,6 +735,16 @@ class ExtractionOrchestrator:
             wave1_results[2],
         )
         extracted_visuals = wave1_results[3] if len(wave1_results) > 3 else None
+
+        last_saved = self._merge_and_save(
+            identity=identity,
+            story=story,
+            testimonials=testimonials_data,
+            visuals=extracted_visuals,
+            dry_run=dry_run,
+            current=last_saved,
+        )
+
         # Aggregate progress — consumed by all callers (legacy REST + worker)
         emit_progress(progress_callback, 45, "Analizando identidad y narrativa...")
         # Per-section live progress — only emitted when the callback declares
@@ -764,6 +776,15 @@ class ExtractionOrchestrator:
         )
         strategy, people_contact, authority_data = wave2_results
         wave2_section_names = ["strategy", "people_contact", "authority"]
+
+        last_saved = self._merge_and_save(
+            strategy=strategy,
+            people_contact=people_contact,
+            authority=authority_data,
+            dry_run=dry_run,
+            current=last_saved,
+        )
+
         emit_progress(progress_callback, 65, "Extrayendo estrategia...")
         self._announce_sections(
             progress_callback,
@@ -790,6 +811,14 @@ class ExtractionOrchestrator:
         )
         positioning, narrative = wave3_results
         wave3_section_names = ["positioning", "narrative"]
+
+        last_saved = self._merge_and_save(
+            positioning=positioning,
+            narrative=narrative,
+            dry_run=dry_run,
+            current=last_saved,
+        )
+
         emit_progress(progress_callback, 85, "Extrayendo posicionamiento y narrativa...")
         self._announce_sections(
             progress_callback,
@@ -812,6 +841,11 @@ class ExtractionOrchestrator:
         )
         emit_progress(progress_callback, 95, "Finalizando extraccion...")
         if include_assets and communication_assets is not None:
+            last_saved = self._merge_and_save(
+                communication_assets=communication_assets,
+                dry_run=dry_run,
+                current=last_saved,
+            )
             self._announce_sections(
                 progress_callback,
                 ["communication_assets"],
@@ -827,7 +861,7 @@ class ExtractionOrchestrator:
             testimonials_data,
             authority_data,
         )
-        return extracted_visuals, positioning, narrative, communication_assets
+        return extracted_visuals, positioning, narrative, communication_assets, last_saved
 
     async def _run_single_wave(
         self,
@@ -840,8 +874,16 @@ class ExtractionOrchestrator:
         include_assets: bool,
         progress_callback: Callable[[int, str], None] | None,
         trace: ExtractionTraceCollector | None,
+        *,
+        dry_run: bool = False,
     ) -> tuple:
-        """Execute all extractions concurrently (for high-TPM models)."""
+        """Execute all extractions concurrently (for high-TPM models).
+
+        Mirrors ``_run_multi_wave``'s save-before-announce invariant in a
+        single merge: once every section has extracted, persist once, THEN
+        announce.  The window between save and announce is tiny but still
+        ordered correctly so nav pills never point at un-persisted data.
+        """
         all_sections = [
             "identity",
             "story",
@@ -876,6 +918,20 @@ class ExtractionOrchestrator:
         identity, story, strategy, people_contact, testimonials_data, authority_data = all_results[:6]
         positioning, narrative = all_results[6], all_results[7]
         extracted_visuals = all_results[8] if len(all_results) > 8 else None
+
+        last_saved = self._merge_and_save(
+            identity=identity,
+            story=story,
+            strategy=strategy,
+            people_contact=people_contact,
+            testimonials=testimonials_data,
+            authority=authority_data,
+            positioning=positioning,
+            narrative=narrative,
+            visuals=extracted_visuals,
+            dry_run=dry_run,
+        )
+
         emit_progress(progress_callback, 80, "Extrayendo secciones...")
         # Announce all sections that ran in this single wave
         self._announce_sections(
@@ -896,6 +952,11 @@ class ExtractionOrchestrator:
         )
         emit_progress(progress_callback, 95, "Finalizando extraccion...")
         if include_assets and communication_assets is not None:
+            last_saved = self._merge_and_save(
+                communication_assets=communication_assets,
+                dry_run=dry_run,
+                current=last_saved,
+            )
             self._announce_sections(
                 progress_callback,
                 ["communication_assets"],
@@ -911,7 +972,7 @@ class ExtractionOrchestrator:
             testimonials_data,
             authority_data,
         )
-        return extracted_visuals, positioning, narrative, communication_assets
+        return extracted_visuals, positioning, narrative, communication_assets, last_saved
 
     # ------------------------------------------------------------------
     # Merge & Save
@@ -919,75 +980,90 @@ class ExtractionOrchestrator:
 
     def _merge_and_save(
         self,
-        new_identity: BrandIdentity,
-        new_story: BrandStory,
-        new_strategy: BrandStrategy,
-        new_people_contact: BrandPeopleContactExtraction,
-        new_testimonials: BrandTestimonialsExtraction,
-        new_authority: BrandAuthorityExtraction,
-        new_visuals: BrandVisuals | None = None,
-        new_positioning: BrandPositioning | None = None,
-        new_narrative: BrandNarrative | None = None,
-        new_communication_assets: CommunicationAssets | None = None,
+        *,
+        identity: BrandIdentity | None = None,
+        story: BrandStory | None = None,
+        strategy: BrandStrategy | None = None,
+        people_contact: BrandPeopleContactExtraction | None = None,
+        testimonials: BrandTestimonialsExtraction | None = None,
+        authority: BrandAuthorityExtraction | None = None,
+        visuals: BrandVisuals | None = None,
+        positioning: BrandPositioning | None = None,
+        narrative: BrandNarrative | None = None,
+        communication_assets: CommunicationAssets | None = None,
         dry_run: bool = False,
+        current: BrandSettings | None = None,
     ) -> BrandSettings:
+        """Merge extracted sections into the current BrandSettings and persist.
 
+        Invariant: callers invoke this once per wave BEFORE ``_announce_sections``
+        emits a section-completed event, so any nav pill the subscriber inserts
+        into the copilot conversation points at data that is already persisted.
+
+        All section args are optional so the same function covers:
+          - per-wave saves (subset of sections produced by one wave)
+          - the single-wave path (every section in one call)
+
+        ``current`` is the starting BrandSettings — pass the previous wave's
+        return value to avoid a redundant ``get_settings`` round-trip between
+        waves. When omitted the current state is read from the repository.
+
+        ``dry_run`` computes the merge but skips persistence.
+        """
         svc = self.service
-        current_settings = svc.repository.get_settings(svc.tenant_id)
+        if current is None:
+            current = svc.repository.get_settings(svc.tenant_id)
 
-        updated_identity = _merge_simple_model(current_settings.identity, new_identity)
-        updated_story = _merge_story(current_settings.story, new_story)
-        updated_strategy = _merge_strategy(current_settings.strategy, new_strategy)
-        updated_team = _merge_people(
-            current_settings.team,
-            new_people_contact,
-        )
-        updated_contact = _merge_contact(
-            current_settings.contact,
-            new_people_contact.contact,
-        )
-        updated_testimonials = new_testimonials.testimonials or (current_settings.testimonials or [])
-        updated_authority = new_authority.authority_vault or (current_settings.authority_vault or [])
-        updated_visuals = _merge_simple_model(current_settings.visuals, new_visuals)
-        updated_positioning = _merge_positioning(
-            current_settings.positioning,
-            new_positioning,
-        )
-        updated_narrative = _merge_narrative(current_settings.narrative, new_narrative)
-        updated_comm_assets = _merge_communication_assets(
-            current_settings.communication_assets,
-            new_communication_assets,
-        )
-
-        final_settings = current_settings.model_copy(
+        merged = current.model_copy(
             update={
-                "identity": BrandIdentity(**updated_identity),
-                "story": BrandStory(**updated_story),
-                "strategy": BrandStrategy(**updated_strategy),
-                "team": updated_team,
-                "contact": updated_contact,
-                "testimonials": updated_testimonials,
-                "authority_vault": updated_authority,
-                "visuals": BrandVisuals(**updated_visuals),
-                "positioning": updated_positioning,
-                "narrative": updated_narrative,
-                "communication_assets": updated_comm_assets,
+                "identity": BrandIdentity(**_merge_simple_model(current.identity, identity)),
+                "story": BrandStory(
+                    **(
+                        _merge_story(current.story, story)
+                        if story is not None
+                        else (current.story.model_dump() if current.story else {})
+                    ),
+                ),
+                "strategy": BrandStrategy(
+                    **(
+                        _merge_strategy(current.strategy, strategy)
+                        if strategy is not None
+                        else (current.strategy.model_dump() if current.strategy else {})
+                    ),
+                ),
+                "team": (_merge_people(current.team, people_contact) if people_contact is not None else current.team),
+                "contact": (
+                    _merge_contact(current.contact, people_contact.contact)
+                    if people_contact is not None
+                    else current.contact
+                ),
+                "testimonials": (
+                    testimonials.testimonials or (current.testimonials or [])
+                    if testimonials is not None
+                    else (current.testimonials or [])
+                ),
+                "authority_vault": (
+                    authority.authority_vault or (current.authority_vault or [])
+                    if authority is not None
+                    else (current.authority_vault or [])
+                ),
+                "visuals": BrandVisuals(**_merge_simple_model(current.visuals, visuals)),
+                "positioning": _merge_positioning(current.positioning, positioning),
+                "narrative": _merge_narrative(current.narrative, narrative),
+                "communication_assets": _merge_communication_assets(
+                    current.communication_assets,
+                    communication_assets,
+                ),
             },
         )
 
-        logger.info(
-            "merge_completed",
-            tenant_id=str(svc.tenant_id),
-            summary=summarize_settings(final_settings),
-        )
-
         if dry_run:
-            logger.info("dry_run_extraction_completed", tenant_id=svc.tenant_id)
-            return final_settings
+            logger.info("dry_run_merge_completed", tenant_id=str(svc.tenant_id))
+            return merged
 
-        saved = svc.repository.save_settings(svc.tenant_id, final_settings)
+        saved = svc.repository.save_settings(svc.tenant_id, merged)
         logger.info(
-            "extraction_saved_to_db",
+            "brand_settings_saved",
             tenant_id=str(svc.tenant_id),
             summary=summarize_settings(saved),
         )

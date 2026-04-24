@@ -265,8 +265,12 @@ export function useCopilotChat() {
 
   const sendCardAction = useCallback(
     async (messageId: string, actionIndex: number, text: string) => {
-      // Update card status to resolved before sending
-      useCopilotStore.getState().updateUIActionStatus(messageId, actionIndex, "resolved");
+      // V2 path (msg.blocks) keys by blockIndex; legacy (msg.uiActions) keys
+      // by actionIndex. Both share the same numeric index from the renderer,
+      // so resolve on both paths — whichever matches the message shape wins.
+      const store = useCopilotStore.getState();
+      store.updateUIActionStatus(messageId, actionIndex, "resolved");
+      store.updateBlockCardStatus(messageId, actionIndex, "resolved");
       await sendMessage(text);
     },
     [sendMessage],

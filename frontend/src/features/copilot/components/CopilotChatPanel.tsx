@@ -11,6 +11,7 @@ import { useConversationDetail } from "../hooks/use-conversation-detail";
 import { useCopilotChat } from "../hooks/use-copilot-chat";
 import { loadPersistedLastConversation, useCopilotStore } from "../store/copilot-store";
 
+import { ActiveJobsPoller } from "./ActiveJobsPoller";
 import { ChatComposer } from "./composer/ChatComposer";
 import { ContextRotBanner } from "./ContextRotBanner";
 import { CopilotChatHeader } from "./CopilotChatHeader";
@@ -46,6 +47,47 @@ function toCopilotMessage(msg: ConversationMessage): CopilotMessage | null {
     blocks: (msg.blocks as MessageBlock[] | null) ?? undefined,
     msgStatus,
   };
+}
+
+/**
+ * Force clarify / alternatives / checkpoint cards to their resolved state when
+ * a later user message exists in the transcript — the backend persists the
+ * card payload without mutating ``card_status``, so without this step a card
+ * the user already answered would render its interactive buttons again after
+ * every refetch. Uses the position of the most recent user message as the
+ * cutoff: any interactive card before that index is considered answered.
+ */
+function resolveHistoricalCards(messages: CopilotMessage[]): CopilotMessage[] {
+  let lastUserIdx = -1;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === "user") {
+      lastUserIdx = i;
+      break;
+    }
+  }
+  if (lastUserIdx <= 0) return messages;
+
+  return messages.map((msg, idx) => {
+    if (idx >= lastUserIdx) return msg;
+    if (msg.role !== "assistant" || !msg.blocks?.length) return msg;
+    let dirty = false;
+    const nextBlocks = msg.blocks.map((block) => {
+      if (block.type !== "card") return block;
+      const kind = block.card_kind;
+      if (kind !== "clarify" && kind !== "alternatives" && kind !== "checkpoint") return block;
+      const payload = block.payload as Record<string, unknown>;
+      if (payload.card_status === "resolved" || payload.card_status === "confirmed") return block;
+      dirty = true;
+      return {
+        ...block,
+        payload: {
+          ...payload,
+          card_status: kind === "checkpoint" ? "confirmed" : "resolved",
+        },
+      };
+    });
+    return dirty ? { ...msg, blocks: nextBlocks } : msg;
+  });
 }
 
 // ── Component ────────────────────────────────────────────────────────
@@ -112,9 +154,9 @@ export const CopilotChatPanel = memo(function CopilotChatPanel() {
     const lastHydratedCount = lastHydratedCountByIdRef.current[conversationId] ?? -1;
     if (lastHydratedCount === serverCount) return;
 
-    const mapped = detail.messages
-      .map(toCopilotMessage)
-      .filter((m): m is CopilotMessage => m !== null);
+    const mapped = resolveHistoricalCards(
+      detail.messages.map(toCopilotMessage).filter((m): m is CopilotMessage => m !== null),
+    );
 
     const store = useCopilotStore.getState();
     const currentMessages = store.messages;
@@ -145,6 +187,12 @@ export const CopilotChatPanel = memo(function CopilotChatPanel() {
     //   Full-replace by server transcript, discarding optimistic placeholders.
     //   This is the only moment where we can collapse the id mismatch without
     //   losing streaming state.
+    //
+    // Polling note: jobId tracking now lives in the Zustand ``activeJobs`` map
+    // driven by ``ActiveJobsPoller`` (rendered at panel root). It no longer
+    // depends on ``toolCalls[*].jobId`` surviving full-replace — the store is
+    // the source of truth for in-flight jobs, independent of which messages
+    // are currently hydrated.
     const isMidStream = store.status === "thinking" || store.status === "streaming";
     if (!isMidStream) {
       setMessages(mapped);
@@ -171,7 +219,7 @@ export const CopilotChatPanel = memo(function CopilotChatPanel() {
       if (!serverIds.has(local.id)) merged.push(local);
     }
 
-    setMessages(merged);
+    setMessages(resolveHistoricalCards(merged));
     lastHydratedCountByIdRef.current[conversationId] = serverCount;
   }, [conversationId, detail, setMessages]);
 
@@ -259,6 +307,11 @@ export const CopilotChatPanel = memo(function CopilotChatPanel() {
 
   return (
     <div className="flex h-full flex-col border-l border-border bg-background">
+      {/* Headless poller — mounts usePollingForJob per active non-terminal job.
+          Decoupled from message rendering so full-replace refetch never
+          interrupts in-flight extractions. */}
+      <ActiveJobsPoller />
+
       {/* Header */}
       <CopilotChatHeader />
 

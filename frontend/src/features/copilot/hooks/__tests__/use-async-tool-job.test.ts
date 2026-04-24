@@ -1,11 +1,15 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
 
 // Mock @clerk/nextjs
 vi.mock("@clerk/nextjs", () => ({
-  useAuth: () => ({ getToken: vi.fn().mockResolvedValue("mock-token"), isLoaded: true, isSignedIn: true }),
+  useAuth: () => ({
+    getToken: vi.fn().mockResolvedValue("mock-token"),
+    isLoaded: true,
+    isSignedIn: true,
+  }),
 }));
 
 // Mock the invalidation map
@@ -43,8 +47,12 @@ vi.mock("@/lib/api/ai-actions", () => ({
 
 // Mock React Query
 const mockInvalidateQueries = vi.fn();
+const mockRefetchQueries = vi.fn();
 vi.mock("@tanstack/react-query", () => ({
-  useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
+  useQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+    refetchQueries: mockRefetchQueries,
+  }),
 }));
 
 // Mock the store — track calls to store actions
@@ -73,14 +81,17 @@ vi.mock("../../store/copilot-store", async (importOriginal) => {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function makeJobState(overrides: Partial<{
-  jobId: string;
-  module: string;
-  status: string;
-  progress: number;
-  filledFields: string[];
-  pollEndpoint: string;
-}> = {}) {
+function makeJobState(
+  overrides: Partial<{
+    jobId: string;
+    module: string;
+    status: string;
+    progress: number;
+    filledFields: string[];
+    pollEndpoint: string;
+    conversationId: string | null;
+  }> = {},
+) {
   return {
     jobId: "job-abc",
     module: "brand" as const,
@@ -99,6 +110,7 @@ function makeJobState(overrides: Partial<{
     sectionsCompleted: [],
     startedAt: Date.now(),
     pollEndpoint: "/api/v1/brand/tools/extract-full-brand/status/job-abc",
+    conversationId: "conv-1",
     ...overrides,
   };
 }
@@ -110,6 +122,7 @@ describe("useAsyncToolJob", () => {
     vi.useFakeTimers();
     mockPollJobStatus.mockReset();
     mockInvalidateQueries.mockReset();
+    mockRefetchQueries.mockReset();
     mockToastSuccess.mockReset();
     mockRegisterJob.mockReset();
     mockUpdateJob.mockReset();
@@ -248,7 +261,7 @@ describe("useAsyncToolJob", () => {
 
     const dispatchedEvents: string[] = [];
     window.addEventListener("copilot:field-update", (e) => {
-      const detail = (e as CustomEvent<{ fieldId: string }>).detail;
+      const { detail } = e as CustomEvent<{ fieldId: string }>;
       dispatchedEvents.push(detail.fieldId);
     });
 
@@ -353,5 +366,81 @@ describe("useAsyncToolJob", () => {
     });
 
     expect(mockPollJobStatus).not.toHaveBeenCalled();
+  });
+
+  // ── Per-wave module cache invalidation ───────────────────────────────────
+
+  it("invalidates module queries per-wave when new section completes", async () => {
+    const job = makeJobState({
+      status: "running",
+      progress: 30,
+      conversationId: "conv-1",
+    });
+    storeState = { ...storeState, activeJobs: { "job-abc": job } };
+
+    mockPollJobStatus.mockResolvedValueOnce({
+      status: "running",
+      progress: 60,
+      stage: "Analizando identidad...",
+      filled_fields: ["brand_name"],
+      filled_fields_by_section: { identity: ["brand_name"] },
+      sections_touched: ["identity"],
+      sections_completed: ["identity"], // ← new section completed mid-poll
+      newly_completed_section: "identity",
+      error: null,
+    });
+
+    const { useAsyncToolJob } = await import("../use-async-tool-job");
+    renderHook(() => useAsyncToolJob("job-abc"));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2000);
+    });
+
+    // Should invalidate the conversation detail (existing behavior)
+    expect(mockInvalidateQueries).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ["copilot", "conversation", "conv-1"],
+      }),
+    );
+
+    // ALSO invalidate module queries per-wave so the studio form refreshes
+    // (brand-settings, brand-sections) without waiting for job terminal.
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey: ["brand-settings"] });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey: ["brand-sections"] });
+  });
+
+  it("does NOT invalidate module queries when no new section completes", async () => {
+    const job = makeJobState({
+      status: "running",
+      progress: 30,
+      conversationId: "conv-1",
+    });
+    storeState = { ...storeState, activeJobs: { "job-abc": job } };
+
+    mockPollJobStatus.mockResolvedValueOnce({
+      status: "running",
+      progress: 40,
+      stage: "Analizando...",
+      filled_fields: ["brand_name"],
+      filled_fields_by_section: { identity: ["brand_name"] },
+      sections_touched: ["identity"],
+      sections_completed: [], // ← no section completed yet
+      newly_completed_section: null,
+      error: null,
+    });
+
+    const { useAsyncToolJob } = await import("../use-async-tool-job");
+    renderHook(() => useAsyncToolJob("job-abc"));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2000);
+    });
+
+    // No new section → should NOT have called invalidateQueries with brand-settings
+    const brandSettingsCalls = mockInvalidateQueries.mock.calls.filter(
+      (call) => JSON.stringify(call[0]?.queryKey) === JSON.stringify(["brand-settings"]),
+    );
+    expect(brandSettingsCalls).toHaveLength(0);
   });
 });

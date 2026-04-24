@@ -81,19 +81,34 @@ function dispatchNewFields(filledFields: string[], knownFields: Set<string>): vo
 }
 
 /**
- * Invalidate the conversation detail query when new sections have completed.
+ * Invalidate caches that must refresh every time a new section completes.
  *
- * Each wave the worker publishes an ExtractionSectionCompletedEvent; the
- * copilot subscriber writes a nav pill into the conversation. Without this
- * per-wave invalidation, pills would only show up after the terminal
- * invalidation — i.e. all bunched together at the end.
+ * Two caches are touched on every newly-completed section:
+ *
+ *  1. Conversation detail (``["copilot", "conversation", id]``) — the worker
+ *     subscriber inserts a nav pill into the conversation; without refetching
+ *     here the pill only appears after the terminal invalidation bunches
+ *     everything at the end.
+ *  2. Module queries (``JOB_INVALIDATION_MAP[module]``, e.g.
+ *     ``["brand-settings"]``) — the wave persists its subset to the DB before
+ *     announcing, so the studio form must refetch to show the freshly
+ *     extracted data when the user clicks the pill mid-extraction.
  */
-function invalidateOnNewSections(
-  sectionsCompleted: string[],
-  knownSections: Set<string>,
-  conversationId: string | null | undefined,
-  queryClient: ReturnType<typeof useQueryClient>,
-): void {
+interface InvalidateOnNewSectionsArgs {
+  sectionsCompleted: string[];
+  knownSections: Set<string>;
+  conversationId: string | null | undefined;
+  queryClient: ReturnType<typeof useQueryClient>;
+  module: string;
+}
+
+function invalidateOnNewSections({
+  sectionsCompleted,
+  knownSections,
+  conversationId,
+  queryClient,
+  module,
+}: InvalidateOnNewSectionsArgs): void {
   const fresh = sectionsCompleted.filter((s) => !knownSections.has(s));
   if (fresh.length === 0 || !conversationId) return;
   for (const s of fresh) knownSections.add(s);
@@ -110,6 +125,12 @@ function invalidateOnNewSections(
     queryKey: ["copilot", "conversation", conversationId],
     type: "active",
   });
+  // Refresh module queries (brand-settings, etc.) so the studio form picks up
+  // the section the worker just persisted — without waiting for job terminal.
+  const moduleKeys = JOB_INVALIDATION_MAP[module] ?? [];
+  for (const queryKey of moduleKeys) {
+    void queryClient.invalidateQueries({ queryKey: [...queryKey] });
+  }
 }
 
 // ── Internal polling hook ────────────────────────────────────────────────────
@@ -223,12 +244,13 @@ function usePollingForJob(jobId: string): void {
       } = statusData;
 
       dispatchNewFields(filledFields, knownFieldsRef.current);
-      invalidateOnNewSections(
+      invalidateOnNewSections({
         sectionsCompleted,
-        knownSectionsRef.current,
-        currentJob.conversationId,
+        knownSections: knownSectionsRef.current,
+        conversationId: currentJob.conversationId,
         queryClient,
-      );
+        module: currentJob.module,
+      });
 
       const patch: Partial<AsyncJobState> = {
         status: status as AsyncJobState["status"],
@@ -258,6 +280,11 @@ function usePollingForJob(jobId: string): void {
       currentJob: AsyncJobState,
     ): void => {
       useCopilotStore.getState().completeJob(jobId, patch);
+      // Safety-net refresh: mid-extraction section completions already invalidate
+      // module queries via ``invalidateOnNewSections``. This terminal call covers
+      // the tail case where the final poll returns terminal status with no prior
+      // section delta — without it, the last extracted section could miss a
+      // refresh.
       invalidateModuleQueries(currentJob.module);
       // The worker inserts summary + navigation cards into the conversation
       // as the last step of the job. Refetch the conversation detail so the

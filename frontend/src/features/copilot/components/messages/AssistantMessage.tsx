@@ -195,7 +195,12 @@ export const AssistantMessage = memo(function AssistantMessage({
         {message.toolCalls && message.toolCalls.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {message.toolCalls.map((tc, idx) => (
-              <ToolCallChip key={`${tc.tool}-${idx}`} tool={tc.tool} status={tc.status} />
+              <ToolCallChip
+                key={`${tc.tool}-${idx}`}
+                tool={tc.tool}
+                status={tc.status}
+                jobId={tc.jobId}
+              />
             ))}
           </div>
         )}
