@@ -1,8 +1,8 @@
 """Field contract API — versioned structural contract for offer-studio.
 
-Exposes ``FIELD_CONTRACT_SNAPSHOT`` from
-``src.modules.offer.domain.field_contract`` over HTTP so FE can consume
-the canonical paths + ownership. Fase 01 pilot — pricing section only.
+Exposes :data:`FIELD_CONTRACT_SNAPSHOT` over HTTP so FE can consume
+the canonical paths + ownership. Post-Fase 04 the underlying registry
+is derived from ``src.shared.domain.field_contract`` — same HTTP shape.
 
 Domain metadata; not tenant-scoped. Public + cacheable like the other
 catalog endpoints (archetypes/variant-structures/type-presets).
@@ -15,8 +15,8 @@ from pydantic import BaseModel, ConfigDict
 
 from src.modules.offer.domain.field_contract import (
     FIELD_CONTRACT_SNAPSHOT,
-    FieldContract,
 )
+from src.shared.domain.field_contract import FieldContract
 
 router = APIRouter()
 
@@ -24,8 +24,10 @@ router = APIRouter()
 class FieldContractDTO(BaseModel):
     """DTO mirror of :class:`FieldContract`.
 
-    Declared explicitly — the domain dataclass uses ``slots`` and is
-    pydantic-unaware. Preserves the DDD boundary.
+    Preserves the HTTP shape stable across platform refactor. The
+    shared ``FieldContract`` has more metadata (copilot, lifecycle) —
+    this DTO exposes the subset FE already relied on. Extra fields
+    can be added in future iterations without breaking consumers.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -43,11 +45,11 @@ class FieldContractDTO(BaseModel):
         """Build a DTO from the frozen domain record."""
         return cls(
             path=fc.path,
-            type=fc.type,
-            owner=fc.owner.value,
+            type=fc.type.value,
+            owner=fc.owner_module,
             section=fc.section,
-            required=fc.required,
-            archetype_filter=([a.value for a in fc.archetype_filter] if fc.archetype_filter else None),
+            required=fc.is_required_structural,
+            archetype_filter=list(fc.archetype_filter) if fc.archetype_filter else None,
             notes=fc.notes,
         )
 
@@ -69,8 +71,9 @@ class FieldContractResponse(BaseModel):
 async def get_offer_field_contract() -> FieldContractResponse:
     """Return the full FieldContract registry.
 
-    Fase 01 ships only pricing contracts. Phases 02→04 grow the registry
-    until it supersedes ``OFFER_FIELDS_BY_FE_SECTION`` entirely.
+    Post-Fase 04 includes every Offer user-facing path (derived from
+    Pydantic). Legacy pricing + value-stack + authority fields remain
+    available; new lifecycle / copilot metadata is additive.
     """
     snap = FIELD_CONTRACT_SNAPSHOT
     return FieldContractResponse(

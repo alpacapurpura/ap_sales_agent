@@ -16,6 +16,7 @@ from src.shared.domain.field_contract import (
     FieldContract,
     FieldStatus,
     FieldType,
+    PolymorphicVariantSpec,
     derive_contracts_from_pydantic,
     fields_by_path_prefix,
     fields_by_section,
@@ -168,27 +169,46 @@ def test_derive_composable_nested() -> None:
     assert paths == {"nested.foo", "nested.bar"}
 
 
-def test_derive_polymorphic_union_dedupes_shared_key_with_merged_filter() -> None:
-    """Shared key across variants → single contract with merged archetype_filter."""
+def test_derive_polymorphic_union_same_section_merges_filter() -> None:
+    """Shared key across variants WITH SAME section → 1 contract, merged filter."""
     contracts = derive_contracts_from_pydantic(
         model=_Root,
         owner_module="test",
-        section_map={
-            "polymorphic.alpha": "s",
-            "polymorphic.beta": "s",
-            "polymorphic.shared_key": "s",
-        },
+        section_map={},
         ignore_paths=frozenset({"id", "tenant_id"}),
         polymorphic_prefix_map={
-            _VariantA: ("ARCH_A",),
-            _VariantB: ("ARCH_B",),
+            _VariantA: PolymorphicVariantSpec(archetype_filter=("ARCH_A",), section="shared"),
+            _VariantB: PolymorphicVariantSpec(archetype_filter=("ARCH_B",), section="shared"),
         },
     )
-    by_path = {c.path: c for c in contracts}
-    assert by_path["polymorphic.alpha"].archetype_filter == ("ARCH_A",)
-    assert by_path["polymorphic.beta"].archetype_filter == ("ARCH_B",)
-    # Shared key → merged filter
-    assert by_path["polymorphic.shared_key"].archetype_filter == ("ARCH_A", "ARCH_B")
+    by_path: dict[str, list[FieldContract]] = {}
+    for c in contracts:
+        by_path.setdefault(c.path, []).append(c)
+    [alpha] = by_path["polymorphic.alpha"]
+    assert alpha.archetype_filter == ("ARCH_A",)
+    assert alpha.section == "shared"
+    [beta] = by_path["polymorphic.beta"]
+    assert beta.archetype_filter == ("ARCH_B",)
+    [shared] = by_path["polymorphic.shared_key"]
+    assert shared.archetype_filter == ("ARCH_A", "ARCH_B")
+
+
+def test_derive_polymorphic_union_different_sections_emits_two_contracts() -> None:
+    """Shared key across variants WITH DIFFERENT sections → 2 contracts."""
+    contracts = derive_contracts_from_pydantic(
+        model=_Root,
+        owner_module="test",
+        section_map={},
+        ignore_paths=frozenset({"id", "tenant_id"}),
+        polymorphic_prefix_map={
+            _VariantA: PolymorphicVariantSpec(archetype_filter=("ARCH_A",), section="sec_a"),
+            _VariantB: PolymorphicVariantSpec(archetype_filter=("ARCH_B",), section="sec_b"),
+        },
+    )
+    shared_contracts = [c for c in contracts if c.path == "polymorphic.shared_key"]
+    assert len(shared_contracts) == 2
+    assert {c.section for c in shared_contracts} == {"sec_a", "sec_b"}
+    assert {c.archetype_filter for c in shared_contracts} == {("ARCH_A",), ("ARCH_B",)}
 
 
 # ---------------------------------------------------------------------------

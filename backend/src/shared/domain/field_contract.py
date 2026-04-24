@@ -306,6 +306,27 @@ def _is_field_required(finfo: FieldInfo) -> bool:
 # ---------------------------------------------------------------------------
 
 
+@dataclass(frozen=True, slots=True)
+class PolymorphicVariantSpec:
+    """Spec for one polymorphic union variant.
+
+    A polymorphic Pydantic union (e.g.
+    ``specific_details: Product | Service | Program | ... | None``)
+    surfaces each variant in the registry with:
+      - prefix (``specific_details.X``)
+      - archetype_filter (maps archetype value(s) to this variant)
+      - section (FE section for fields of this variant)
+
+    When the same sub-path appears in multiple variants with DIFFERENT
+    sections (e.g. ``specific_details.start_date`` in Program vs Event),
+    two contracts are emitted — one per variant — so section resolution
+    stays archetype-aware without runtime lookups.
+    """
+
+    archetype_filter: tuple[str, ...]
+    section: str
+
+
 def derive_contracts_from_pydantic(
     *,
     model: type[BaseModel],
@@ -313,7 +334,7 @@ def derive_contracts_from_pydantic(
     section_map: dict[str, str],
     overrides: dict[str, FieldContractOverride] | None = None,
     ignore_paths: frozenset[str] = frozenset(),
-    polymorphic_prefix_map: dict[type[BaseModel], tuple[str, ...]] | None = None,
+    polymorphic_prefix_map: dict[type[BaseModel], PolymorphicVariantSpec] | None = None,
     composable_fields: tuple[str, ...] = (),
 ) -> tuple[FieldContract, ...]:
     """Derive a tuple of FieldContract from a Pydantic root model.
@@ -332,8 +353,8 @@ def derive_contracts_from_pydantic(
             path must have an entry (arch test enforces).
         overrides: Optional ``path -> FieldContractOverride``.
         ignore_paths: System fields to skip.
-        polymorphic_prefix_map: Maps variant class to archetype values
-            that select this variant.
+        polymorphic_prefix_map: Maps variant class to
+            :class:`PolymorphicVariantSpec` (archetype_filter + section).
         composable_fields: Top-level fields whose nested Pydantic
             models should be walked with prefix.
 
@@ -372,6 +393,7 @@ def derive_contracts_from_pydantic(
             section_map=section_map,
             overrides=overrides,
             archetype_filter=None,
+            default_section=None,
         )
         if contract is not None:
             contracts.append(contract)
@@ -389,7 +411,7 @@ def _walk_union_or_composable(
     section_map: dict[str, str],
     overrides: dict[str, FieldContractOverride],
     ignore_paths: frozenset[str],
-    polymorphic_prefix_map: dict[type[BaseModel], tuple[str, ...]],
+    polymorphic_prefix_map: dict[type[BaseModel], PolymorphicVariantSpec],
     contracts: list[FieldContract],
 ) -> None:
     """Dispatch composable vs polymorphic handling."""
@@ -406,6 +428,7 @@ def _walk_union_or_composable(
             overrides=overrides,
             ignore_paths=ignore_paths,
             archetype_filter=None,
+            variant_default_section=None,
             contracts=contracts,
             dedupe_existing=False,
         )
@@ -413,7 +436,7 @@ def _walk_union_or_composable(
 
     if pydantic_variants:
         for variant in pydantic_variants:
-            variant_filter = polymorphic_prefix_map.get(variant)
+            spec = polymorphic_prefix_map.get(variant)
             _walk_nested(
                 nested_model=variant,
                 path_prefix=fname,
@@ -421,7 +444,8 @@ def _walk_union_or_composable(
                 section_map=section_map,
                 overrides=overrides,
                 ignore_paths=ignore_paths,
-                archetype_filter=variant_filter,
+                archetype_filter=spec.archetype_filter if spec else None,
+                variant_default_section=spec.section if spec else None,
                 contracts=contracts,
                 dedupe_existing=True,
             )
@@ -445,15 +469,21 @@ def _walk_nested(
     overrides: dict[str, FieldContractOverride],
     ignore_paths: frozenset[str],
     archetype_filter: tuple[str, ...] | None,
+    variant_default_section: str | None,
     contracts: list[FieldContract],
     dedupe_existing: bool,
 ) -> None:
     """Walk a nested Pydantic model, emitting contracts with prefix.
 
-    When ``dedupe_existing`` is True and an identical path already
-    exists, merge the archetype_filter (union) instead of duplicating.
+    When ``dedupe_existing`` is True, merge archetype_filter for
+    paths that share the SAME section across variants; emit a second
+    contract if sections differ (archetype-specific placement).
     """
-    existing_paths = {c.path: c for c in contracts} if dedupe_existing else {}
+    # Key by (path, section) so same path with different section yields
+    # 2 contracts (e.g. specific_details.start_date: Program + Event).
+    existing_by_key: dict[tuple[str, str], FieldContract] = (
+        {(c.path, c.section): c for c in contracts} if dedupe_existing else {}
+    )
 
     for fname, finfo in nested_model.model_fields.items():
         nested_path = f"{path_prefix}.{fname}"
@@ -467,21 +497,23 @@ def _walk_nested(
             section_map=section_map,
             overrides=overrides,
             archetype_filter=archetype_filter,
+            default_section=variant_default_section,
         )
         if contract is None:
             continue
 
-        if dedupe_existing and nested_path in existing_paths:
-            existing = existing_paths[nested_path]
+        key = (contract.path, contract.section)
+        if dedupe_existing and key in existing_by_key:
+            existing = existing_by_key[key]
             merged_filter = _merge_archetype_filters(existing.archetype_filter, contract.archetype_filter)
             merged = replace(existing, archetype_filter=merged_filter)
             idx = contracts.index(existing)
             contracts[idx] = merged
-            existing_paths[nested_path] = merged
+            existing_by_key[key] = merged
         else:
             contracts.append(contract)
             if dedupe_existing:
-                existing_paths[nested_path] = contract
+                existing_by_key[key] = contract
 
 
 def _merge_archetype_filters(a: tuple[str, ...] | None, b: tuple[str, ...] | None) -> tuple[str, ...] | None:
@@ -499,13 +531,21 @@ def _build_contract(
     section_map: dict[str, str],
     overrides: dict[str, FieldContractOverride],
     archetype_filter: tuple[str, ...] | None,
+    default_section: str | None = None,
 ) -> FieldContract | None:
-    """Build a single FieldContract from a Pydantic field + override."""
+    """Build a single FieldContract from a Pydantic field + override.
+
+    Section resolution order:
+      1. ``override.section`` (explicit).
+      2. ``section_map[path]`` (explicit entry in mapping).
+      3. ``default_section`` (from polymorphic variant spec).
+      4. ``None`` → contract dropped.
+    """
     ftype, enum_values, list_item_type = _derive_type(finfo.annotation)
 
     override = overrides.get(path, FieldContractOverride())
 
-    section = override.section or section_map.get(path)
+    section = override.section or section_map.get(path) or default_section
     if section is None:
         return None
 
@@ -672,6 +712,7 @@ __all__ = [
     "FieldContractRegistrySnapshot",
     "FieldStatus",
     "FieldType",
+    "PolymorphicVariantSpec",
     "derive_contracts_from_pydantic",
     "fields_by_path_prefix",
     "fields_by_section",
