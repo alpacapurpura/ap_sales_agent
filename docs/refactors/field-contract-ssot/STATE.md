@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-04-24 (Fase 02 closed)
-last_green_commit: 08c96b4a
+last_updated: 2026-04-24 (Fase 02 closing commit a12f2bf9)
+last_green_commit: a12f2bf9
 active_phase: 03-section-catalog-dedup
 sub_step: 0/? (ready-to-start)
 status: ready-to-start
@@ -68,6 +68,7 @@ working_tree_clean: true
 | 2026-04-24 | 262b6593 | Fase 02 E — ServiceDetails scope + expectation |
 | 2026-04-24 | 119e0015 | Fase 02 F — ProductDetails preview + shipping |
 | 2026-04-24 | 08c96b4a | Fase 02 G — PlatformDetails composable (migration 066, ADR-010) |
+| 2026-04-24 | a12f2bf9 | Fase 02 close — ADR-010 + LEARNINGS + STATE/STATUS docs |
 
 ## Convención de actualización
 
