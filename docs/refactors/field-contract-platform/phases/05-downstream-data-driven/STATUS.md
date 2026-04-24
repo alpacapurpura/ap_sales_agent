@@ -1,8 +1,8 @@
 ---
-status: pending
+status: ready-to-start
 opened_at: null
 closed_at: null
-baseline_green_commit: null
+baseline_green_commit: fc22f528
 ---
 
 # Fase 05 — Downstream data-driven · Status

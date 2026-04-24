@@ -66,26 +66,132 @@ Append-only. Cada fase suma entries. Cross-cutting arriba. Per-fase abajo.
 
 ## Fase 04 — Platform foundation
 
-**Status**: in-progress (2026-04-24)
+**Status**: done (2026-04-24)
 
-### Pre-fase expectations
+### Pre-fase expectations vs realidad
 
-- Promover `FieldContract` a `shared/domain/`.
-- Offer migra completo end-to-end (closes drift entre 5 registries
-  paralelos).
-- Brand/buyer/copilot intactos.
-- UX byte-identical via golden snapshots.
-- Arch tests cross-cutting que fuerzan cobertura.
+- ✅ Promovido `FieldContract` a `shared/domain/`.
+- ✅ Offer migrado completo end-to-end. Cerró drift entre los 5
+  registries paralelos.
+- ✅ Brand/buyer/copilot intactos (no se tocaron en Fase 04).
+- ✅ UX preservado — 4217 tests pass (vs ~4200 baseline + nuevos arch).
+- ✅ Arch tests cross-cutting que fuerzan cobertura (16 nuevos tests).
 
-### Descubrimientos (en curso)
+### Resultados cuantitativos
+
+| Métrica | Pre-Fase 04 | Post-Fase 04 |
+|---|---|---|
+| Registries paralelos en offer | 5 (editable_fields, schema_introspection, PERSISTABLE_FIELDS, FIELD_CONTRACT_REGISTRY, OFFER_FIELDS_BY_FE_SECTION) | 1 (`OFFER_FIELD_CONTRACTS` derivado) |
+| FieldContract entries | ~40 manual | 153 derivados |
+| OFFER_EDITABLE_FIELDS entries | 36 manual | 149 derivados |
+| PERSISTABLE_FIELDS paths | 25 manual | 149 derivados |
+| Drift posible | sí (manual) | no (arch test enforces) |
+| Tests arch totales | 432 | 448 (+16 platform coverage) |
+| Tests totales backend | ~4200 | 4217 |
+
+### Descubrimientos
 
 - (Sub-paso A) Inventario confirma 5 fuentes paralelas + 1 dict legacy.
-  Drift entre `OFFER_EDITABLE_FIELDS` (~36 entries) y
-  `FIELD_CONTRACT_REGISTRY` (~40 entries con mucho overlap pero
-  distintos campos). Total Pydantic Offer top-level: ~50 fields +
-  PlatformDetails (14) + 5 polymorphic specific_details classes.
+  Drift entre `OFFER_EDITABLE_FIELDS` (36 entries) y
+  `FIELD_CONTRACT_REGISTRY` (40 entries con overlap parcial) — los
+  pricing LATAM nuevos, authority fields, value-stack anchor estaban
+  en uno pero no en el otro. Migrar a derivación cierra esto por
+  construcción.
 
-(continuará)
+- (Sub-paso B) Walker Pydantic recursivo necesita manejar:
+  `Optional[X]`, `X | None` (PEP 604), `list[X]`, `Enum`, `Annotated`,
+  `Union[A, B, ..., None]` (polymorphic), composable nested. Reuso de
+  patrones de `copilot/domain/schema_introspection.py` ahorró tiempo.
+
+- (Sub-paso C) Cuando dos polymorphic variants comparten un sub-path
+  con la **misma** section, el walker mergea (archetype_filter union).
+  Cuando comparten path con **distinta** section (e.g.
+  `specific_details.start_date` en ProgramDetails vs EventDetails),
+  emite **dos contracts** archetype-aware. Solución: `dedup key` =
+  `(path, section)` y `PolymorphicVariantSpec` declara la section
+  correspondiente a cada variant. Esto preserva el comportamiento
+  legacy de `resolve_details_section(archetype)` sin requerir runtime
+  lookup.
+
+- (Sub-paso D) `fields_to_fe_sections()` derivada del registry mantiene
+  forward-compat con sub-fields no formalizados via `specific_details.*`
+  catch-all per `resolve_details_section(archetype)`. Permite que LLM
+  emite paths nuevos antes de que se agreguen overrides.
+
+- (Sub-paso D) Cambio sutil: `headline_promise`, `primary_outcome`,
+  `time_to_value` se mantienen en section `identity` (matching legacy
+  `OFFER_FIELDS_BY_FE_SECTION` grouping), no `promise`. Preserva UX
+  byte-identical en extraction badges.
+
+- (Sub-paso E) Catalog `OFFER_EDITABLE_FIELDS` proyectado dedupea por
+  `path` (no `(path, section)`) — el copilot surface es archetype-
+  agnostic; cada path tiene 1 entry sin importar variant. Distinto de
+  extraction grouping que ES archetype-aware.
+
+- (Sub-paso F) `PERSISTABLE_FIELDS = set[str]` derivada — drop manual
+  + ahora cubre 149 paths (vs 25 hand-written). Fields que el copilot
+  podía proponer pero nunca persistir por falta del set ahora están
+  cubiertos.
+
+- (Sub-paso G) Anti-regression test del dict OFFER_FIELDS_BY_FE_SECTION
+  combina: `hasattr` check del módulo + grep recursivo en src/ por
+  asignaciones del nombre. Doble guard previene re-introducción.
+
+- (Sub-paso H) Arch test cross-cutting `Pydantic ⊆ FieldContract` falla
+  cuando alguien agrega un Offer Pydantic field sin entry en
+  `OFFER_SECTION_MAP`. Lección clave del refactor anterior: este test
+  es el que hubiera prendido la alarma temprano sobre el gap de 41
+  fields.
+
+- (Sub-paso I) Generic guards parametrizados sobre `_MIGRATED_SPECS`
+  permiten que Fases 06/07 hereden todos los checks gratis con 1 nuevo
+  spec entry.
+
+### Decisiones nuevas
+
+ADR-011..017 ya documentadas pre-implementación. Ninguna ADR nueva
+durante la ejecución — el diseño cubrió bien los edge cases.
+
+### Deuda técnica encontrada (en scope)
+
+- **`copilot/domain/schema_introspection.py` mantiene su propio
+  `unwrap_optional` + `is_pydantic_model` + `is_list_of_pydantic`**
+  paralelo al walker shared. Fase 08 puede consolidar — por ahora
+  cada uno funciona independiente (cero coupling). No es bloqueante,
+  solo over-DRY.
+
+- **`copilot/domain/offer_fields.py` sigue existiendo como archivo
+  separado** que solo proyecta `PERSISTABLE_FIELDS = set[str]`.
+  Consumers (offer_persister, schema_introspection) podrían leer
+  `get_module_contracts("offer")` directo. Fase 08 evalúa drop.
+
+- **`src/modules/offer/api/offer_field_contract.py` DTO mantiene
+  shape compat** (`owner` string, `required` bool) en lugar de exponer
+  el shape rico nuevo (`status`, `human_question_es`, etc.). Decisión
+  pragmática para no tocar FE schemas en Fase 04. Fase 09 puede
+  expandir el shape cuando consumers FE estén listos para multi-channel.
+
+### Deuda técnica (tangencial — entry en `docs/mejoras-proceso/to-do.md`)
+
+- Test `test_streaming_integration.py::test_tool_call_produces_tool_events`
+  es flaky (passes isolated, fails en suites largas con side-effects).
+  No relacionado al refactor (el copilot streaming no consume
+  FieldContract). Anteriormente reportado.
+
+- `src/modules/offer/api/offer_type_presets.py:28` — `# noqa` directive
+  con formato inválido. Pre-existing desde Fase 01 del refactor anterior.
+
+### Para Fase 05
+
+- Sales-agent `agent_identity.j2` + landing builders + completion service
+  consumen `get_module_contracts("offer")` directamente. Inventario
+  detallado en `phases/05-downstream-data-driven/PRE_INVESTIGATION.md`.
+- Golden snapshot offer `a96403b5-c1db-4b31-97aa-cb18d08ad9f9` baseline
+  capturado pre-Fase-05 para diff byte-identical post.
+
+### Closing commit hash
+
+Last green commit Fase 04: (TBD by 04.J).
 
 ---
 
