@@ -75,8 +75,8 @@ export function createOfferSectionPage(
           <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-muted-foreground" aria-hidden />
           <h3 className="text-lg font-medium">Esta sección necesita una edición concreta</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Los campos de {label} viven en la edición específica que estás configurando.
-            Selecciona o crea una edición desde el rail lateral.
+            Los campos de {label} viven en la edición específica que estás configurando. Selecciona
+            o crea una edición desde el rail lateral.
           </p>
         </div>
       );

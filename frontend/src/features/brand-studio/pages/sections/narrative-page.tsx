@@ -7,6 +7,7 @@ import { SectionPage } from "@/lib/studio-section-page";
 
 import type { BrandNarrative } from "@/features/brand-studio/types";
 
+/** Narrative page. Code-split via `next/dynamic`. */
 export function NarrativePage() {
   const hook = useBrandSettings();
   const { activeFieldId, getFieldHref } = useBrandStudioFieldRouting("narrative");

@@ -7,6 +7,7 @@ import { SectionPage } from "@/lib/studio-section-page";
 
 import type { BrandPositioning } from "@/features/brand-studio/types";
 
+/** Positioning page. Code-split via `next/dynamic`. */
 export function PositioningPage() {
   const hook = useBrandSettings();
   const { activeFieldId, getFieldHref } = useBrandStudioFieldRouting("positioning");

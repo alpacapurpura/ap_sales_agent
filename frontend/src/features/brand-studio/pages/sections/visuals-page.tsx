@@ -7,6 +7,7 @@ import { SectionPage } from "@/lib/studio-section-page";
 
 import type { BrandVisuals } from "@/features/brand-studio/types";
 
+/** Visuals (identidad visual + logos) page. Code-split via `next/dynamic`. */
 export function VisualsPage() {
   const hook = useBrandSettings();
   const { activeFieldId, getFieldHref } = useBrandStudioFieldRouting("visuals");

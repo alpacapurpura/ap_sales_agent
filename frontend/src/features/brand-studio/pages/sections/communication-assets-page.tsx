@@ -7,6 +7,7 @@ import { SectionPage } from "@/lib/studio-section-page";
 
 import type { CommunicationAssets } from "@/features/brand-studio/types";
 
+/** Communication assets page. Code-split via `next/dynamic`. */
 export function CommunicationAssetsPage() {
   const hook = useBrandSettings();
   const { activeFieldId, getFieldHref } = useBrandStudioFieldRouting("communication-assets");

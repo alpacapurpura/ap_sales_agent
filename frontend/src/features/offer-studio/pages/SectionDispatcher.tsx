@@ -107,10 +107,9 @@ const SECTION_COMPONENT_MAP: Record<OfferStudioSectionSlug, OfferSectionComponen
     () => import("./sections/resources-page").then((m) => ({ default: m.ResourcesPage })),
     { loading: () => <SectionPageLoading /> },
   ),
-  faq: dynamic(
-    () => import("./sections/faq-page").then((m) => ({ default: m.FaqPage })),
-    { loading: () => <SectionPageLoading /> },
-  ),
+  faq: dynamic(() => import("./sections/faq-page").then((m) => ({ default: m.FaqPage })), {
+    loading: () => <SectionPageLoading />,
+  }),
   testimonials: dynamic(
     () => import("./sections/testimonials-page").then((m) => ({ default: m.TestimonialsPage })),
     { loading: () => <SectionPageLoading /> },

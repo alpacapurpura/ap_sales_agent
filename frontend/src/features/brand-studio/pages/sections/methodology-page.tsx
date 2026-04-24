@@ -7,6 +7,7 @@ import { SectionPage } from "@/lib/studio-section-page";
 
 import type { BrandStrategy } from "@/features/brand-studio/types";
 
+/** Methodology (metodología/estrategia) page. Code-split via `next/dynamic`. */
 export function MethodologyPage() {
   const hook = useBrandSettings();
   const { activeFieldId, getFieldHref } = useBrandStudioFieldRouting("methodology");

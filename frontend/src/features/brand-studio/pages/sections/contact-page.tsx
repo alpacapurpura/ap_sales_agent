@@ -7,6 +7,7 @@ import { SectionPage } from "@/lib/studio-section-page";
 
 import type { ContactData } from "@/features/brand-studio/types";
 
+/** Contact page. Code-split via `next/dynamic`. */
 export function ContactPage() {
   const hook = useBrandSettings();
   const { activeFieldId, getFieldHref } = useBrandStudioFieldRouting("contact");

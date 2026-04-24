@@ -175,10 +175,12 @@ export default [
               from: { type: "shared" },
               allow: { to: { type: ["shared", "lib", "util", "ui", "feature", "feature:own"] } },
             },
-            // lib imports from util only (never from features)
+            // lib imports from util o otro lib submodule (intra-lib composition
+            // legítima, p.ej. studio-section-page consume form-runtime types).
+            // NUNCA features — eso seguiría creando dependencias inversas.
             {
               from: { type: "lib" },
-              allow: { to: { type: ["util"] } },
+              allow: { to: { type: ["util", "lib"] } },
             },
           ],
         },

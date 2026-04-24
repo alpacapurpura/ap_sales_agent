@@ -24,22 +24,17 @@ import type { BrandStudioSectionSlug } from "./section-slugs";
  *
  * El orden sigue `BRAND_STUDIO_SECTION_SLUGS` en `section-slugs.ts`.
  */
-const SECTION_COMPONENT_MAP: Record<
-  BrandStudioSectionSlug,
-  ReturnType<typeof dynamic>
-> = {
+const SECTION_COMPONENT_MAP: Record<BrandStudioSectionSlug, ReturnType<typeof dynamic>> = {
   identity: dynamic(
     () => import("./sections/identity-page").then((m) => ({ default: m.IdentityPage })),
     { loading: () => <SectionPageLoading /> },
   ),
-  estilo: dynamic(
-    () => import("./sections/estilo-page").then((m) => ({ default: m.EstiloPage })),
-    { loading: () => <SectionPageLoading /> },
-  ),
-  legal: dynamic(
-    () => import("./sections/legal-page").then((m) => ({ default: m.LegalPage })),
-    { loading: () => <SectionPageLoading /> },
-  ),
+  estilo: dynamic(() => import("./sections/estilo-page").then((m) => ({ default: m.EstiloPage })), {
+    loading: () => <SectionPageLoading />,
+  }),
+  legal: dynamic(() => import("./sections/legal-page").then((m) => ({ default: m.LegalPage })), {
+    loading: () => <SectionPageLoading />,
+  }),
   visuals: dynamic(
     () => import("./sections/visuals-page").then((m) => ({ default: m.VisualsPage })),
     { loading: () => <SectionPageLoading /> },
@@ -52,10 +47,9 @@ const SECTION_COMPONENT_MAP: Record<
     () => import("./sections/methodology-page").then((m) => ({ default: m.MethodologyPage })),
     { loading: () => <SectionPageLoading /> },
   ),
-  story: dynamic(
-    () => import("./sections/story-page").then((m) => ({ default: m.StoryPage })),
-    { loading: () => <SectionPageLoading /> },
-  ),
+  story: dynamic(() => import("./sections/story-page").then((m) => ({ default: m.StoryPage })), {
+    loading: () => <SectionPageLoading />,
+  }),
   positioning: dynamic(
     () => import("./sections/positioning-page").then((m) => ({ default: m.PositioningPage })),
     { loading: () => <SectionPageLoading /> },

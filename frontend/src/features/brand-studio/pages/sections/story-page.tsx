@@ -7,6 +7,7 @@ import { SectionPage } from "@/lib/studio-section-page";
 
 import type { BrandStory } from "@/features/brand-studio/types";
 
+/** Story (narrativa fundacional) page. Code-split via `next/dynamic`. */
 export function StoryPage() {
   const hook = useBrandSettings();
   const { activeFieldId, getFieldHref } = useBrandStudioFieldRouting("story");

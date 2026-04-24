@@ -10,14 +10,8 @@ import { Loader2 } from "lucide-react";
  */
 export function SectionPageLoading() {
   return (
-    <div
-      className="flex h-64 items-center justify-center"
-      aria-label="Cargando sección"
-    >
-      <Loader2
-        className="h-6 w-6 animate-spin text-muted-foreground"
-        aria-hidden
-      />
+    <div className="flex h-64 items-center justify-center" aria-label="Cargando sección">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden />
     </div>
   );
 }
