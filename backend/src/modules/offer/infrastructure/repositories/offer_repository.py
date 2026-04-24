@@ -94,6 +94,10 @@ class OfferRepository:
             # Pass-through: nulls stay null. Callers/UI resolve via TenantLocale.
             "currency": model.currency,
             "pricing_options": normalize_pricing_options(model.pricing or []),
+            # Pricing LATAM (Fase 01)
+            "tax_included": model.tax_included,
+            "installments_available": model.installments_available,
+            "accepted_payment_providers": list(model.accepted_payment_providers or []),
             "deliverables": normalize_deliverables(model.deliverables or []),
             "archived_at": model.archived_at,
             "deleted_at": model.deleted_at,
@@ -140,6 +144,9 @@ class OfferRepository:
             internal_sku=offer.internal_sku,
             pricing=pricing_data,
             currency=offer.currency,
+            tax_included=offer.tax_included,
+            installments_available=offer.installments_available,
+            accepted_payment_providers=list(offer.accepted_payment_providers or []),
             specific_details=details_data,
             deliverables=deliverables_data,
             headline_promise=offer.headline_promise,

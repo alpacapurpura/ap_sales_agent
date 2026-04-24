@@ -43,6 +43,16 @@ class ProductModel(Base):
     pricing = Column(JSONB, default=list)  # List of PricingStructure
     # Nullable: resolved to TenantLocale.currency by the application layer.
     currency = Column(String, nullable=True)
+
+    # --- Pricing LATAM (Fase 01 — migration 062) ---
+    tax_included = Column(Boolean, nullable=True)
+    installments_available = Column(Text, nullable=True)
+    accepted_payment_providers = Column(
+        JSONB,
+        nullable=False,
+        default=list,
+        server_default="[]",
+    )
     dates = Column(JSONB, default=dict)  # Legacy dates, kept for migration safety
     metadata_info = Column(JSONB, default=dict)  # Generic metadata
     specific_details = Column(

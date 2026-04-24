@@ -130,6 +130,21 @@ class Offer(BaseEntity):
     # when absent. Do not default to a hardcoded ISO code here.
     currency: str | None = None
 
+    # --- Pricing LATAM (Fase 01 — FieldContract pilot) ---
+    # Explicit tax inclusion flag. Null = unknown / not declared. Critical
+    # in Latam (IVA AR/CL/CO, IGV PE, ICMS BR, IVA MX) to avoid checkout
+    # disputes. Extracted via LLM from explicit price copy when available.
+    tax_included: bool | None = None
+    # Free-text list of installments without interest accepted by the
+    # offer's payment provider. Example: "3, 6, 12". Decisive for Latam
+    # tickets > USD 100. Consumed by sales-agent in closing argument.
+    installments_available: str | None = None
+    # Providers the tenant explicitly enabled for this offer. Persisted
+    # as ``list[str]`` (not the ``PaymentProvider`` enum) to avoid a
+    # cross-module import (offer → sales_agent violates DDD). See
+    # docs/refactors/field-contract-ssot/DECISIONS.md ADR-009.
+    accepted_payment_providers: list[str] = []
+
     guarantee_type: GuaranteeType
     guarantee_terms: str
 
@@ -372,6 +387,31 @@ class OfferPricingUpdate(BaseEntity):
     pricing_options: list[PricingStructure] | None = None
     price_pay_in_full: float | None = None
     currency: str | None = None
+    tax_included: bool | None = Field(
+        None,
+        description=(
+            "Si el precio incluye impuestos (IVA/IGV/ICMS). Crítico en Latam"
+            " para evitar disputas en checkout. True si el texto dice 'IVA"
+            " incluido', 'impuestos incluidos' o similar. False si indica"
+            " 'precio sin impuestos'. null si no se menciona."
+        ),
+    )
+    installments_available: str | None = Field(
+        None,
+        description=(
+            "Cuotas sin interés disponibles. Texto libre con números separados"
+            " por coma, por ejemplo '3, 6, 12'. Inferir del texto cuando se"
+            " mencionan planes de pago sin recargo. null si no hay mención."
+        ),
+    )
+    accepted_payment_providers: list[str] | None = Field(
+        None,
+        description=(
+            "Providers de pago aceptados. Normalmente UI-configurado por el"
+            " tenant vía Conexiones — no se extrae del contenido público."
+            " Mantener null salvo que la página lo liste explícitamente."
+        ),
+    )
 
 
 class OfferDetailsUpdate(BaseEntity):
