@@ -185,11 +185,47 @@ VALUE_STACK_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
 
 
 # ---------------------------------------------------------------------------
-# Registry (grows per phase — pricing F01, +instructors/value-stack F02)
+# Program details section — narrative commitments (Fase 02 · Block C)
+# ---------------------------------------------------------------------------
+
+PROGRAM_DETAILS_SECTION = "program_details"
+
+PROGRAM_DETAILS_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
+    FieldContract(
+        path="specific_details.weekly_time_commitment_hours",
+        type="number",
+        owner=FieldOwner.OFFER,
+        section=PROGRAM_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.PROGRAMA,),
+        notes=(
+            "Expected weekly hours the student must dedicate (videos +"
+            " practice + live + community). Most-asked question pre-buy."
+        ),
+    ),
+    FieldContract(
+        path="specific_details.prerequisites_text",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=PROGRAM_DETAILS_SECTION,
+        required=False,
+        archetype_filter=(OfferArchetype.PROGRAMA,),
+        notes=(
+            "Narrative prerequisites replacing the legacy categorical"
+            " enum. Empty → no gates. Filters expectation, not access."
+        ),
+    ),
+)
+
+
+# ---------------------------------------------------------------------------
+# Registry (grows per phase — pricing F01, +instructors/value-stack/program F02)
 # ---------------------------------------------------------------------------
 
 _PHASE_01_CONTRACTS: tuple[FieldContract, ...] = PRICING_FIELD_CONTRACTS
-_PHASE_02_CONTRACTS: tuple[FieldContract, ...] = INSTRUCTORS_FIELD_CONTRACTS + VALUE_STACK_FIELD_CONTRACTS
+_PHASE_02_CONTRACTS: tuple[FieldContract, ...] = (
+    INSTRUCTORS_FIELD_CONTRACTS + VALUE_STACK_FIELD_CONTRACTS + PROGRAM_DETAILS_FIELD_CONTRACTS
+)
 
 FIELD_CONTRACT_REGISTRY: tuple[FieldContract, ...] = _PHASE_01_CONTRACTS + _PHASE_02_CONTRACTS
 
@@ -212,7 +248,7 @@ class FieldContractRegistrySnapshot:
 
 
 # Bump when the registry changes materially.
-FIELD_CONTRACT_VERSION = "2026-04-24-fase-02-block-b-value-stack-anchor"
+FIELD_CONTRACT_VERSION = "2026-04-24-fase-02-block-c-program-narratives"
 
 FIELD_CONTRACT_SNAPSHOT = FieldContractRegistrySnapshot(
     version=FIELD_CONTRACT_VERSION,

@@ -92,6 +92,13 @@ class ProgramDetails(BaseEntity):
     end_date: datetime | None = None
     is_end_date_estimated: bool = False
     duration_weeks: int | None = None
+    # Fase 02 · Block C — expected weekly commitment in hours. Lead #1
+    # question before buying; sub-declaring causes churn at week 3.
+    weekly_time_commitment_hours: int | None = None
+    # Narrative prerequisites replacing the legacy categorical enum — Latam
+    # programs frame prerequisites as free-text ("nivel intermedio de X",
+    # "haber tomado módulo Y") rather than strict gates.
+    prerequisites_text: str | None = None
     cohort_limit: int | None = None
     current_enrollment_count: int = 0
     is_application_required: bool = False

@@ -108,6 +108,7 @@ export type OfferFieldPath =
   | "specific_details.networking_events"
   | "specific_details.onboarding_brief_url"
   | "specific_details.platform_name"
+  | "specific_details.prerequisites_text"
   | "specific_details.recommended_airport_code"
   | "specific_details.registration_end_date"
   | "specific_details.requires_contract_signature"
@@ -130,6 +131,7 @@ export type OfferFieldPath =
   | "specific_details.venue_address"
   | "specific_details.venue_name"
   | "specific_details.virtual_meeting_url"
+  | "specific_details.weekly_time_commitment_hours"
   | "stack_positioning_statement"
   | "status"
   | "status_drivers"
@@ -240,6 +242,7 @@ export const OFFER_FIELD_PATHS: readonly OfferFieldPath[] = [
   "specific_details.networking_events",
   "specific_details.onboarding_brief_url",
   "specific_details.platform_name",
+  "specific_details.prerequisites_text",
   "specific_details.recommended_airport_code",
   "specific_details.registration_end_date",
   "specific_details.requires_contract_signature",
@@ -262,6 +265,7 @@ export const OFFER_FIELD_PATHS: readonly OfferFieldPath[] = [
   "specific_details.venue_address",
   "specific_details.venue_name",
   "specific_details.virtual_meeting_url",
+  "specific_details.weekly_time_commitment_hours",
   "stack_positioning_statement",
   "status",
   "status_drivers",
