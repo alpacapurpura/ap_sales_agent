@@ -4,7 +4,7 @@ Próximas acciones + blockers + ideas fuera-de-scope capturadas.
 
 ## Próxima acción inmediata
 
-1. **Arrancar Fase 01** siguiendo [protocol/RESUME.md](protocol/RESUME.md) + [phases/01-field-contract-pilot-pricing/SPEC.md](phases/01-field-contract-pilot-pricing/SPEC.md).
+1. **Arrancar Fase 02** siguiendo [protocol/RESUME.md](protocol/RESUME.md) + crear `phases/02-migrate-sections/SPEC.md` (usar plantilla de Fase 01 como referencia).
 
 ## Blockers actuales
 
@@ -16,11 +16,15 @@ Ninguno.
 - Cerrada 2026-04-24. Commits `b7398ed0`, `2822b525`, `701f6f2d` + closing.
 - Allowlist ratchet fija en 59 (ADR-007). Fase 01 baja a 56.
 
-### Fase 01 — Pricing LATAM — IN PROGRESS
-- Reducir `KNOWN_UNRESOLVED_PATHS` en −3 (tax_included, installments_available, accepted_payment_providers).
-- Ver [phases/01-field-contract-pilot-pricing/SPEC.md](phases/01-field-contract-pilot-pricing/SPEC.md) y `ACCEPTANCE.md`.
-- ADR-008 (wave assignment) + ADR-009 (`PaymentProvider` enum cross-module) ratificados.
-- Sub-step A en curso.
+### Fase 01 — Pricing LATAM — DONE
+- Cerrada 2026-04-24. Commits `fbe4bb08`, `88383918`, `907e1dcc`, `1033d922`, `564b696c`, `a5b5f3e8`, `4abb34ba`, `28efe0e9`, `92523a6e` + closing.
+- `KNOWN_UNRESOLVED_PATHS` ahora 56 (baja de 59). Cap arch test ratchet ahora 56.
+- ADR-008 + ADR-009 ratificados.
+
+### Fase 02 — Migrar 8 secciones restantes
+- Crear `phases/02-migrate-sections/SPEC.md` + `ACCEPTANCE.md`.
+- Secciones previstas: authority, value-stack anchor, program narrativas, subscription renames + nuevos, service new, product new, platform archetype, resto offer sections.
+- 53 paths por remover de `KNOWN_UNRESOLVED_PATHS` (56 − 3 Fase 05 cross-module federados = 53 fase 02).
 
 ### Fase 02+
 - Se actualizan al cerrar fase anterior.

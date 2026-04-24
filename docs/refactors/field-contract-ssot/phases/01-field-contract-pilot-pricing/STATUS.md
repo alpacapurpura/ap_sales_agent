@@ -1,8 +1,9 @@
 ---
-status: in-progress
+status: done
 opened_at: 2026-04-24 15:30
-closed_at: null
+closed_at: 2026-04-24 16:00
 baseline_green_commit: 62cfabd1
+closing_green_commit: 92523a6e
 ---
 
 # Fase 01 — Status
@@ -18,18 +19,18 @@ Fase abierta. Baseline PRE_FLIGHT capturada:
 
 ## Sub-steps (10 commits atómicos)
 
-| # | Subject | Status |
-|---|---|---|
-| A | `docs(refactor-field-contract): open fase 01 — SPEC + ACCEPTANCE + ADRs` | in-progress |
-| B | `feat(offer): migration 062 pricing latam columns` | pending |
-| C | `feat(offer): domain + DTO + model pricing latam` | pending |
-| D | `feat(offer): FieldContract registry + /field-contract endpoint` | pending |
-| E | `feat(offer): extraction wave pricing + prompt + schema` | pending |
-| F | `chore(offer): regen field-paths JSON + shrink FE allowlist` | pending |
-| G | `feat(offer-studio): type pricing schema paths against codegen` | pending |
-| H | `feat(sales-agent): additive pricing block in agent identity prompt` | pending |
-| I | `test(offer): golden fixture roundtrip pricing latam` | pending |
-| J | `chore(refactor-field-contract): close fase 01` | pending |
+| # | Subject | Status | Hash |
+|---|---|---|---|
+| A | `docs(refactor-field-contract): open fase 01 — SPEC + ACCEPTANCE + ADRs` | done | `fbe4bb08` |
+| B | `feat(offer): migration 062 pricing latam columns` | done | `88383918` |
+| C | `feat(offer): domain + DTO + model pricing latam` | done | `907e1dcc` |
+| D | `feat(offer): FieldContract registry + /field-contract endpoint` | done | `1033d922` |
+| E | `feat(offer): extraction wave pricing + prompt + schema` | done | `564b696c` |
+| F | `chore(offer): regen field-paths JSON + shrink FE allowlist` | done | `a5b5f3e8` |
+| G | `feat(offer-studio): type pricing schema paths against codegen` | done | `4abb34ba` |
+| H | `feat(sales-agent): additive pricing block in agent identity prompt` | done | `28efe0e9` |
+| I | `test(offer): golden fixture roundtrip pricing latam` | done | `92523a6e` |
+| J | `chore(refactor-field-contract): close fase 01` | this commit | tbd |
 
 Ver `SPEC.md` y `ACCEPTANCE.md` para detalle.
 

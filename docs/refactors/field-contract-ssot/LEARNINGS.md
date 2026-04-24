@@ -77,10 +77,67 @@ Append-only. Cada fase suma entries. Cross-cutting arriba. Per-fase abajo.
 
 ## Fase 01 — FieldContract pilot (pricing)
 
-**Status**: pending
+**Status**: done (2026-04-24)
+
+### Pre-fase expectations
+- 3 fields LATAM quedan persistidos + extraídos por LLM.
+- Allowlist shrink 59 → 56.
+- Golden fixture round-trip con 3 fields nuevos.
+- Sales-agent prompt additive only.
 
 ### Descubrimientos
-- [ ] _pendiente_
+
+- **`PaymentProvider` enum vive en `sales_agent.domain.enrollment`**, no en
+  `offer.domain`. Importarlo cross-module viola DDD. Decisión (ADR-009):
+  persist `accepted_payment_providers: list[str]` en Fase 01. Mover el enum
+  a `shared/domain/payment.py` queda como tech debt Fase 02.
+- **Landing content builders consumen `pricing` JSONB legacy**
+  (`pricing.pay_in_full`) y NO los fields top-level del Offer. Alinear al
+  FieldContract queda para Fase 05 (downstream unify). En Fase 01 la
+  Invariante 8 (landing byte-identical con offer sin data nueva) se
+  preserva porque el nuevo dato es opt-in.
+- **Prompt extraction wave design:** wave dedicada para pricing (W2)
+  gana sobre extender closing. Razón en ADR-008 — closing ya tiene 7
+  campos y mezclar impuestos/cuotas aflojaba el framing "consultor de
+  cierre". Paralelismo W2 absorbe la llamada sin overhead secuencial.
+- **`accepted_payment_providers` no se extrae por LLM** (Fase 01).
+  UI-configurado via Conexiones. Prompt lo deja null por default y sólo
+  lo completa si la página lista providers explícitos (`stripe`,
+  `mercadopago`, `culqi`, `manual`). Cualquier otro nombre (PayPal,
+  PagSeguro) queda null.
+- **`exclude_none=True` en `capture_offer_a96403b5_baseline.py`** hace que
+  baseline golden no persista las 2 fields null (`tax_included`,
+  `installments_available`). Solo `accepted_payment_providers: []`
+  aparece (default factory produce lista vacía, no None). INVARIANT 6
+  preservada: additive only, nada se pierde.
+- **Codegen TS dual output** (JSON + TS) evita drift FE↔BE: el mismo
+  script de introspección Pydantic emite `offer_field_paths.json` (arch
+  test BE/FE) y `offer-field-paths.ts` con `OfferFieldPath` literal
+  union (typecheck FE). Patrón reutilizable para Fase 02+ secciones.
+- **`__generated__/` rompía arch test `test-folder-naming`** (kebab-case
+  expected) y `check-file/folder-naming-convention` ESLint. Fix: sumar
+  `__generated__` a `EXEMPT_PREFIXES` (consistente con `__tests__` /
+  `__mocks__`) + relax eslint block bajo `**/__generated__/**`.
+- **`test_extraction_orchestrator_per_wave_save.py` requiere AsyncMock
+  para cada extractor nuevo**. Agregar extractor sin actualizar fixture
+  rompe el test con `TypeError: asyncio.Future required`. Patrón de
+  regression: cada vez que se suma wave/section hay que tocar fixture.
+
+### Decisiones nuevas
+- ADR-008 — pricing extraction = wave W2 concurrente dedicada.
+- ADR-009 — `accepted_payment_providers` como `list[str]` (no enum) para
+  evitar import cross-module offer ↔ sales_agent.
+
+### Deuda técnica encontrada
+- Mover `PaymentProvider` enum a `shared/domain/payment.py` para que
+  offer y sales_agent lo consuman desde una SSoT. Evaluar en Fase 02.
+- Landing content builders consumen `pricing` JSONB legacy — alinear al
+  FieldContract queda para Fase 05.
+- `src/modules/offer/api/offer_type_presets.py:28` tiene `# noqa`
+  directive con formato inválido (detectado por ruff warning). No toca
+  scope Fase 01; backlog.
+- ESLint error prettier preexistente en `OfferShellLayout.test.tsx:115`
+  — fuera de scope Fase 01, no tocado por ninguno de los commits A-J.
 
 ---
 
