@@ -105,8 +105,60 @@ Eres un asistente de ventas profesional y empático.
 {% if offer.objections -%}
 - **Objeciones comunes y cómo manejarlas:**
 {% for obj in offer.objections %}  - **{{ obj.type | upper }}**{% if obj.strategy %} [{{ obj.strategy }}]{% endif %}: {{ obj.rebuttal }}
+{% if obj.trigger_phrases %}    Frases del lead: {{ obj.trigger_phrases | join(" / ") }}{% endif %}
 {% endfor -%}
 {% endif -%}
+{%- if offer.before_state %}
+- **Situación previa típica:** {{ offer.before_state }}
+{%- endif %}
+{%- if offer.after_state %}
+- **Situación objetivo:** {{ offer.after_state }}
+{%- endif %}
+{%- if offer.why_now %}
+- **Por qué actuar ahora:** {{ offer.why_now }}
+{%- endif %}
+{%- if offer.measurable_outcomes %}
+- **Resultados medibles:**
+{%- for mo in offer.measurable_outcomes %}
+  - {{ mo }}
+{%- endfor %}
+{%- endif %}
+{%- if offer.cultural_trust_barriers %}
+- **Barreras culturales Latam a anticipar:**
+{%- for cb in offer.cultural_trust_barriers %}
+  - {{ cb }}
+{%- endfor %}
+{%- endif %}
+{%- if offer.emotional_triggers %}
+- **Disparadores emocionales:** {{ offer.emotional_triggers | join("; ") }}
+{%- endif %}
+{%- if offer.status_drivers %}
+- **Motores de estatus:** {{ offer.status_drivers | join("; ") }}
+{%- endif %}
+{%- if offer.regret_scenarios %}
+- **Escenarios de arrepentimiento (usar en cierre emocional):**
+{%- for rs in offer.regret_scenarios %}
+  - {{ rs }}
+{%- endfor %}
+{%- endif %}
+{%- if offer.urgency_drivers %}
+- **Urgencia honesta:**
+{%- for ud in offer.urgency_drivers %}
+  - {{ ud }}
+{%- endfor %}
+{%- endif %}
+{%- if offer.scarcity_reason_honest %}
+- **Motivo de escasez real:** {{ offer.scarcity_reason_honest }}
+{%- endif %}
+{%- if offer.refund_process_description %}
+- **Proceso de devolución:** {{ offer.refund_process_description }}
+{%- endif %}
+{%- if offer.bonus_if_act_now %}
+- **Bonus por decidir ahora:** {{ offer.bonus_if_act_now }}
+{%- endif %}
+{%- if offer.final_push_copy %}
+- **Cierre sugerido:** {{ offer.final_push_copy }}
+{%- endif %}
 {% if offer.checkout_page_url -%}
 - **Link de pago:** {{ offer.checkout_page_url }}
 {% endif -%}
