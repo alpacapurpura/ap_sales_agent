@@ -29,6 +29,7 @@ from __future__ import annotations
 from src.modules.offer.domain.section_catalog import (
     SECTION_CATALOG,
     SectionKey,
+    SectionKind,
     SectionScope,
 )
 
@@ -100,6 +101,17 @@ def test_required_sections_have_high_weight() -> None:
                 f"{key}: required_to_publish=True but completion_weight="
                 f"{meta.completion_weight}. Required sections must weigh >= 0.8."
             )
+
+
+def test_every_entry_has_valid_kind() -> None:
+    """``kind`` (Fase 03 · Block A) drives FE rendering — collection
+    sections are list-based (landing + detail) vs singleton single-form.
+    Every entry must declare one of the ``SectionKind`` values; drift
+    between BE and FE (where this used to live hardcoded) regresses
+    offer-studio navigation."""
+    valid_kinds = set(SectionKind)
+    for key, meta in SECTION_CATALOG.items():
+        assert meta.kind in valid_kinds, f"{key} has invalid kind {meta.kind!r}"
 
 
 def test_icon_names_are_unique_across_sections() -> None:

@@ -46,6 +46,9 @@ class SectionMetadataDTO(BaseModel):
     Declared explicitly (not derived) because the domain dataclass uses
     ``slots`` and is pydantic-unaware. Preserves the DDD boundary between
     domain and API.
+
+    Fase 03 · Block A: adds ``kind`` (singleton|collection) — previously
+    hardcoded en FE ``lib/section-catalog.ts::OFFER_SECTIONS``.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -58,6 +61,7 @@ class SectionMetadataDTO(BaseModel):
     scope: str  # OFFER_LEVEL | EDITION_LEVEL | MIXED — lowercase values per StrEnum.
     completion_weight: float
     required_to_publish: bool
+    kind: str  # singleton | collection
 
     @classmethod
     def from_domain(cls, meta: SectionMetadata) -> SectionMetadataDTO:
@@ -71,6 +75,7 @@ class SectionMetadataDTO(BaseModel):
             scope=meta.scope.value,
             completion_weight=meta.completion_weight,
             required_to_publish=meta.required_to_publish,
+            kind=meta.kind.value,
         )
 
     @classmethod
@@ -167,7 +172,7 @@ class ArchetypeCatalogResponse(BaseModel):
 # Bump this when ``archetype_catalog.py`` OR ``section_catalog.py`` changes
 # materially. Clients use it as the cache key so old copies are evicted on
 # deploy.
-_CATALOG_VERSION = "2026-04-20-variant-structures-v4"
+_CATALOG_VERSION = "2026-04-24-fase-03-section-kind"
 
 
 @router.get(

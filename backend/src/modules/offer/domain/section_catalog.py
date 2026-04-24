@@ -92,6 +92,20 @@ class SectionScope(StrEnum):
     MIXED = "mixed"
 
 
+class SectionKind(StrEnum):
+    """Editing UX mode for a section (Fase 03 · Block A).
+
+    - ``SINGLETON``: section edits a single record (one form). Most
+      sections are singletons: identity, promise, pricing, closing, etc.
+    - ``COLLECTION``: section edits a list of records with its own
+      landing + detail views (testimonials, portfolio cases, faq, gallery,
+      instructors). Drives FE nav rail badge + form-runtime dispatch.
+    """
+
+    SINGLETON = "singleton"
+    COLLECTION = "collection"
+
+
 @dataclass(frozen=True, slots=True)
 class SectionMetadata:
     """Frozen record describing a single offer-studio editor section.
@@ -100,6 +114,12 @@ class SectionMetadata:
     the section matters, **how** it connects to other Nicolify surfaces
     (sales agent, landing, analytics), and **what good looks like** so the
     copilot can suggest or auto-fill intelligently.
+
+    ``kind`` (Fase 03 · Block A) drives FE rendering: collection sections
+    edit a list with landing + detail routes, singletons edit a single
+    form. Previously this metadata lived hardcoded in
+    ``frontend/src/features/offer-studio/lib/section-catalog.ts`` — ahora
+    canónica en BE.
     """
 
     key: SectionKey
@@ -110,6 +130,7 @@ class SectionMetadata:
     scope: SectionScope
     completion_weight: float
     required_to_publish: bool
+    kind: SectionKind
 
 
 SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
@@ -129,6 +150,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=1.0,
         required_to_publish=True,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.STRATEGY: SectionMetadata(
         key=SectionKey.STRATEGY,
@@ -145,6 +167,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.9,
         required_to_publish=True,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.PSYCHOLOGY: SectionMetadata(
         key=SectionKey.PSYCHOLOGY,
@@ -161,6 +184,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.7,
         required_to_publish=False,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.PROMISE: SectionMetadata(
         key=SectionKey.PROMISE,
@@ -177,6 +201,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=1.0,
         required_to_publish=True,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.VALUE_STACK: SectionMetadata(
         key=SectionKey.VALUE_STACK,
@@ -194,6 +219,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.8,
         required_to_publish=False,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.INSTRUCTORS: SectionMetadata(
         key=SectionKey.INSTRUCTORS,
@@ -211,6 +237,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.5,
         required_to_publish=False,
+        kind=SectionKind.COLLECTION,
     ),
     SectionKey.KNOWLEDGE: SectionMetadata(
         key=SectionKey.KNOWLEDGE,
@@ -227,6 +254,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.6,
         required_to_publish=False,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.CLOSING: SectionMetadata(
         key=SectionKey.CLOSING,
@@ -243,6 +271,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.7,
         required_to_publish=False,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.GALLERY: SectionMetadata(
         key=SectionKey.GALLERY,
@@ -258,6 +287,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.4,
         required_to_publish=False,
+        kind=SectionKind.COLLECTION,
     ),
     # ── Archetype-specific ────────────────────────────────────────────────
     SectionKey.PRODUCT_DETAILS: SectionMetadata(
@@ -275,6 +305,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.9,
         required_to_publish=True,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.SUBSCRIPTION_DETAILS: SectionMetadata(
         key=SectionKey.SUBSCRIPTION_DETAILS,
@@ -290,6 +321,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.9,
         required_to_publish=True,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.EVENT_DETAILS: SectionMetadata(
         key=SectionKey.EVENT_DETAILS,
@@ -305,6 +337,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.EDITION_LEVEL,
         completion_weight=1.0,
         required_to_publish=True,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.PRICING: SectionMetadata(
         key=SectionKey.PRICING,
@@ -321,6 +354,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.MIXED,
         completion_weight=1.0,
         required_to_publish=True,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.PROGRAM_DETAILS: SectionMetadata(
         key=SectionKey.PROGRAM_DETAILS,
@@ -337,6 +371,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.MIXED,
         completion_weight=0.9,
         required_to_publish=True,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.SERVICE_DETAILS: SectionMetadata(
         key=SectionKey.SERVICE_DETAILS,
@@ -353,6 +388,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.MIXED,
         completion_weight=0.9,
         required_to_publish=True,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.RESOURCES: SectionMetadata(
         key=SectionKey.RESOURCES,
@@ -368,6 +404,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.MIXED,
         completion_weight=0.6,
         required_to_publish=False,
+        kind=SectionKind.SINGLETON,
     ),
     # ── Nuevas (Latam mass-market rollout) ────────────────────────────────
     SectionKey.FAQ: SectionMetadata(
@@ -385,6 +422,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.6,
         required_to_publish=False,
+        kind=SectionKind.COLLECTION,
     ),
     SectionKey.TESTIMONIALS: SectionMetadata(
         key=SectionKey.TESTIMONIALS,
@@ -401,6 +439,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.7,
         required_to_publish=False,
+        kind=SectionKind.COLLECTION,
     ),
     SectionKey.PORTFOLIO: SectionMetadata(
         key=SectionKey.PORTFOLIO,
@@ -416,6 +455,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.7,
         required_to_publish=False,
+        kind=SectionKind.COLLECTION,
     ),
     SectionKey.LOCATION: SectionMetadata(
         key=SectionKey.LOCATION,
@@ -433,6 +473,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.MIXED,
         completion_weight=0.8,
         required_to_publish=True,
+        kind=SectionKind.SINGLETON,
     ),
     SectionKey.PLATFORM_DETAILS: SectionMetadata(
         key=SectionKey.PLATFORM_DETAILS,
@@ -450,6 +491,7 @@ SECTION_CATALOG: dict[SectionKey, SectionMetadata] = {
         scope=SectionScope.OFFER_LEVEL,
         completion_weight=0.9,
         required_to_publish=True,
+        kind=SectionKind.SINGLETON,
     ),
 }
 
