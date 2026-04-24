@@ -29,51 +29,80 @@ Check MCP reachable before assuming anything:
 curl -sf http://127.0.0.1:9222/json/version | head -3
 ```
 
-If it returns Chrome JSON → bridge alive, call `mcp__chrome-devtools__list_pages` and go.
+If it returns Chrome JSON (`"Browser": "Chrome/..."`) → bridge alive, call `mcp__chrome-devtools__list_pages` and go.
 
-If empty/timeout → bridge not up. Walk user through these exact steps (do NOT try to automate — user action required).
+If empty/timeout/reset → bridge not up. Use **STABLE PATH** below. **Do NOT use `@dbalabka/chrome-wsl` (v4tov4 portproxy points to wrong address, silently fails with "Empty reply" — confirmed broken on every Nicolify session).**
 
-### Full setup (once per machine, survives reboots for bridge; Chrome must be relaunched each time)
+### STABLE PATH: WSL2 Mirrored Networking + Start-Process launch
 
-**Step 1 — WSL, once:**
-```bash
-sudo apt-get install -y socat
-```
+Verified working 2026-04-24. Zero portproxy, zero socat, zero admin PowerShell after initial `.wslconfig` setup. Only prerequisite: Windows 11 22H2+.
 
-**Step 2 — user closes all Chrome processes on Windows** (Task Manager kill all `chrome.exe`).
+**One-time setup (survives reboot):**
 
-**Step 3 — WSL terminal (keeps running, separate tab):**
-```bash
-npx @dbalabka/chrome-wsl
-```
-Launches Windows Chrome with `--remote-debugging-port=9222` + `socat` bridge `WSL:9222 → Windows:9222`.
+1. Edit `%USERPROFILE%\.wslconfig` (Notepad, create if missing):
+   ```ini
+   [wsl2]
+   networkingMode=mirrored
+   dnsTunneling=true
+   autoProxy=true
+   firewall=true
+   ```
+2. PowerShell (normal):
+   ```powershell
+   wsl --shutdown
+   ```
+   Wait 10s, reopen WSL. Mirrored mode now active — Windows `localhost:PORT` = WSL `localhost:PORT`.
+3. Register MCP (WSL, once):
+   ```bash
+   claude mcp remove chrome-devtools -s local 2>/dev/null
+   claude mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest --browser-url=http://127.0.0.1:9222
+   ```
+4. `/exit` + reopen Claude Code (MCP subprocess captures args at startup).
 
-**Step 4 — Windows Chrome binds to IPv6 `::1` by default.** Portproxy needs `v4tov6`. Run in **PowerShell admin**:
+**Per-session (user runs this, PowerShell normal, NOT admin):**
+
 ```powershell
-netsh interface portproxy delete v4tov4 listenaddress=<WSL_GATEWAY_IP> listenport=9222
-netsh interface portproxy add v4tov6 listenport=9222 listenaddress=<WSL_GATEWAY_IP> connectport=9222 connectaddress=::1
-New-NetFirewallRule -DisplayName "Chrome Debug 9222" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 9222
+Start-Process "C:\Program Files\Google\Chrome\Application\chrome.exe" -ArgumentList '--remote-debugging-port=9222','--user-data-dir=C:\Temp\chrome-debug-profile','https://dev-app.nicolify.com'
 ```
-Get `<WSL_GATEWAY_IP>` via `ip route | grep default | awk '{print $3}'` in WSL.
 
-**Step 5 — MCP registration (once, WSL):**
+Profile at `C:\Temp\chrome-debug-profile` isolates session (Chrome 136+ refuses remote debugging on default profile). Clerk session persists across restarts in this profile — login once, reuse.
+
+**WSL verification:**
 ```bash
-claude mcp remove chrome-devtools -s local 2>/dev/null
-claude mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest --browser-url=http://127.0.0.1:9222
+curl -s http://127.0.0.1:9222/json/version | head -3
 ```
+Expected: JSON with `"Browser": "Chrome/..."`.
 
-**Step 6 — user restarts Claude Code** (`/exit` + reopen). MCP subprocess captures args at startup; config changes require restart.
+### Why this config (and why the alternatives fail)
 
-**Step 7 — user logs into `https://dev-app.nicolify.com` in the bridged Chrome.** Clerk session persists across tests.
+| Attempt | Outcome | Root cause |
+|---|---|---|
+| `npx @dbalabka/chrome-wsl` | "Empty reply from server" | Sets `portproxy v4tov4 → 127.0.0.1`. Chrome Windows bindes `::1` IPv6. Connect reaches nothing. |
+| Manual `portproxy v4tov6 → ::1` | Works temporarily | Requires PowerShell admin every reboot; brittle; breaks if Chrome relaunched on different address. |
+| `--remote-debugging-address=0.0.0.0` + firewall rule | Works but requires admin firewall setup | Extra attack surface, still needs portproxy if Windows < 22H2. |
+| `.wslconfig networkingMode=mirrored` (this path) | **Stable, zero-admin per session** | Mirrored mode makes Windows `localhost` directly reachable from WSL. Requires Win 11 22H2+ only. |
 
-## Common pitfalls (all hit in Nicolify session 2026-04-23)
+### PowerShell gotchas (PS 5.1 parser quirks)
+
+- `& "path with spaces" -flag=value` — WORKS when `&` is first token.
+- `"path with spaces" --flag=value` — FAILS: PS reads the string as literal, interprets `--flag` as operator. Use `Start-Process` or prefix `&`.
+- `$env:TEMP\chrome-debug-profile` inside a double-quoted PowerShell argument gets expanded differently than inside a single-quoted one. Prefer literal paths (`C:\Temp\chrome-debug-profile`) — immune to expansion surprises.
+- `Start-Process ... -ArgumentList '--flag=val','--flag2=val2','url'` — the cleanest cross-PS-version spawn. Use this over raw `& chrome.exe`.
+
+### Fallback: Windows < 22H2 (no mirrored mode)
+
+Only use if `wsl --version` shows Windows < 22H2. Launch Chrome with `--remote-debugging-address=0.0.0.0`, open firewall, hit `http://$WIN_GW_IP:9222` from WSL (where `WIN_GW_IP=$(ip route show default | awk '{print $3}')`). Not recommended for repeat use.
+
+## Common pitfalls (all hit and resolved in Nicolify sessions)
 
 1. **MCP subprocess cached.** Any `claude mcp add/remove` change needs `/exit` + reopen. Don't retry tool calls hoping the config reloaded.
-2. **Chrome binds IPv6 only.** `netsh portproxy v4tov4 … connectaddress=127.0.0.1` silently fails with "Empty reply from server". Must be `v4tov6 … connectaddress=::1`.
-3. **Headless mode breaks Clerk.** `--headless=true` works for static sites but Clerk sign-in has CF bot detection → painful. Use headful bridged Chrome, persist session.
-4. **Page UIDs change per snapshot.** Save the latest snapshot's uid before clicking. If `click` times out, fall back to `evaluate_script` with `document.querySelectorAll('button').find(b => b.textContent === '…').click()`.
-5. **`navigate_page` reload throws timeout ~10s** but page still reloads — follow with `wait_for` instead of trusting the error.
-6. **UIDs renumber per tab prefix.** After dialog/nav the uid scope (e.g., `7_*` → `11_*`) resets. Always re-snapshot.
+2. **PowerShell parser rejects bare chrome.exe + flags.** Must use `Start-Process -ArgumentList` or `& chrome.exe ...`.
+3. **Chrome 136+ refuses remote debugging on default user profile.** Always pass `--user-data-dir=C:\Temp\chrome-debug-profile` (or similar isolated path).
+4. **Headless mode breaks Clerk.** `--headless=new` works for static sites but Clerk sign-in has CF bot detection → painful. Use headful bridged Chrome, persist session via user-data-dir.
+5. **`npx @dbalabka/chrome-wsl` portproxy is wrong.** Sets v4tov4 → 127.0.0.1; Chrome Windows listens on `::1`. Result: "Empty reply from server". Do NOT use this helper — use STABLE PATH above.
+6. **Page UIDs change per snapshot.** Save the latest snapshot's uid before clicking. If `click` times out, fall back to `evaluate_script` with `document.querySelectorAll('button').find(b => b.textContent === '…').click()`.
+7. **`navigate_page` reload throws timeout ~10s** but page still reloads — follow with `wait_for` instead of trusting the error.
+8. **UIDs renumber per tab prefix.** After dialog/nav the uid scope (e.g., `7_*` → `11_*`) resets. Always re-snapshot.
 
 ## Workflow template — reproducing a FE bug
 
