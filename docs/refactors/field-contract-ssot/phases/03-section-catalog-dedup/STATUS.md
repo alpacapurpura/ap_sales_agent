@@ -1,15 +1,43 @@
 ---
-status: in-progress
+status: done
 opened_at: 2026-04-24
-closed_at: null
+closed_at: 2026-04-24
 baseline_green_commit: a495beb2
-current_sub_step: A (BE offer extend SectionMetadata + kind)
+last_green_commit: bcf6bb49
 ---
 
-# Fase 03 — Section catalog dedup · Status
+# Fase 03 — Section catalog dedup · Status (closed)
 
-**Abierta**. Baseline green `a495beb2` (Fase 02 close hash bump). SPEC +
-ACCEPTANCE escritos. Sub-steps A → F en ejecución.
+## Resumen
+
+Fase 03 cerrada. FE dejó de hardcodear secciones; ambos studios consumen
+BE catalog via React Query. Nuevo arch test FE previene regresión.
+
+## Bloques ejecutados
+
+| Bloque | Commit | Notas |
+|---|---|---|
+| Open (ACCEPTANCE) | `abeae501` | — |
+| A · BE offer +kind en SectionMetadata | `33a35592` | 21 entries populadas, `_CATALOG_VERSION` bump |
+| B · FE offer consume hook | `048ed41a` | Delete `lib/section-catalog.ts`. Migrate NavRail/Breadcrumb/ExtractionSummaryCard |
+| C · BE brand section catalog + endpoint | `0104047c` | Nuevo módulo `brand/domain/section_catalog.py` + `brand/api/sections.py` + `/api/v1/brand/sections/catalog` |
+| D · FE brand consume hook | `c8dd78fd` | Nuevo `features/brand-studio/{api,hooks,lib}/` + delete `lib/section-catalog.ts` |
+| E · Arch test anti-drift | `bcf6bb49` | `test-no-hardcoded-section-list.test.ts` |
+
+## Verificación
+
+- BE arch 425 → 432 passed (+6 brand + +1 offer kind).
+- FE arch 37 → 38 passed (+1 anti-drift).
+- FE TSC 0 errors.
+- FE vitest (offer+brand+copilot subset): 81 files · 573 passed.
+- Offer `a96403b5...` NavRail renders identical (labels del BE catalog
+  preservan neutro LatAm).
+
+## Out of scope (cerrado)
+
+- Cross-module federated paths (Fase 05).
+- `OFFER_FIELDS_BY_FE_SECTION` cleanup (Fase 04 — ready).
+- Downstream sales-agent/landing consuming contract (Fase 05).
 
 Los 21 paths restantes en `KNOWN_UNRESOLVED_PATHS` son cross-module
 federated (assets, testimonials, portfolio, knowledge, scheduling,

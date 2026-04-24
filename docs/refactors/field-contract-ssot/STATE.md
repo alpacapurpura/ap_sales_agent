@@ -13,18 +13,18 @@ working_tree_clean: true
 
 ## Dónde estamos
 
-- **Fase activa**: 03-section-catalog-dedup (ready)
+- **Fase activa**: 04-drop-offer-fields-by-fe-section (ready)
 - **Sub-paso**: 0/? — a definir al arrancar la fase
-- **Último commit verde**: `08c96b4a` (Fase 02 Block G close — PlatformDetails composable)
+- **Último commit verde**: `bcf6bb49` (Fase 03 Block E — anti-drift arch test)
 - **Rama**: `development`
 - **Working tree**: limpio (archivos de sesiones paralelas ignorados)
 
 ## Próxima acción
 
-**Arrancar Fase 03**. Seguir:
+**Arrancar Fase 04**. Seguir:
 1. Lee [protocol/RESUME.md](protocol/RESUME.md)
-2. Lee [phases/03-section-catalog-dedup/SPEC.md](phases/03-section-catalog-dedup/SPEC.md)
-3. Knowledge load 10-15 min (ver STATUS.md de Fase 03)
+2. Lee [phases/04-drop-offer-fields-by-fe-section/SPEC.md](phases/04-drop-offer-fields-by-fe-section/SPEC.md)
+3. Knowledge load 10-15 min (ver STATUS.md de Fase 04)
 4. Escribir ACCEPTANCE.md
 5. Ejecutá [protocol/PRE_FLIGHT.md](protocol/PRE_FLIGHT.md)
 
@@ -33,8 +33,10 @@ working_tree_clean: true
 - Offer de referencia: `a96403b5-c1db-4b31-97aa-cb18d08ad9f9` (tenant `1fd1562b-2101-410a-870c-dc2f7e27b355`)
 - Parallel session warning activa: NO `git add .`, stage por nombre, NO branch change
 - Regla tenant isolation + Spanish neutro LATAM aplican
-- Fase 02 closed — `KNOWN_UNRESOLVED_PATHS.size === 21` (cross-module federated, Fase 05)
-- ADR-010 agregado: `PlatformDetails` composable, no 6ta entry ARCHETYPE_TO_DETAILS_MAPPING
+- Fase 03 closed — ambos studios consumen BE section catalog via hooks
+- `KNOWN_UNRESOLVED_PATHS.size === 21` intacto (cross-module federated, Fase 05)
+- Nuevos endpoints vivos: `/archetypes/catalog` (con `kind`) + `/brand/sections/catalog`
+- FE arch test `test-no-hardcoded-section-list` previene regresión
 
 ## Historial de sesiones
 
@@ -69,6 +71,13 @@ working_tree_clean: true
 | 2026-04-24 | 119e0015 | Fase 02 F — ProductDetails preview + shipping |
 | 2026-04-24 | 08c96b4a | Fase 02 G — PlatformDetails composable (migration 066, ADR-010) |
 | 2026-04-24 | a12f2bf9 | Fase 02 close — ADR-010 + LEARNINGS + STATE/STATUS docs |
+| 2026-04-24 | a495beb2 | Fase 02 closing hash recorded in STATE |
+| 2026-04-24 | abeae501 | Fase 03 open — ACCEPTANCE + STATUS |
+| 2026-04-24 | 33a35592 | Fase 03 A — section_catalog +kind (BE offer) |
+| 2026-04-24 | 048ed41a | Fase 03 B — FE offer consumes BE catalog (delete OFFER_SECTIONS) |
+| 2026-04-24 | 0104047c | Fase 03 C — BE brand section catalog + endpoint |
+| 2026-04-24 | c8dd78fd | Fase 03 D — FE brand consumes BE catalog (delete BRAND_SECTIONS) |
+| 2026-04-24 | bcf6bb49 | Fase 03 E — anti-drift arch test (no hardcoded section list) |
 
 ## Convención de actualización
 

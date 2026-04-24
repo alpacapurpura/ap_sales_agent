@@ -235,7 +235,85 @@ Append-only. Cada fase suma entries. Cross-cutting arriba. Per-fase abajo.
 
 ## Fase 03 — Section catalog dedup
 
-**Status**: pending
+**Status**: done (2026-04-24)
+
+### Pre-fase expectations
+
+- Extender `SectionMetadata` con `kind` (singleton/collection).
+- FE hook `useSectionCatalog()` ya existía — sumar helpers + migrar
+  consumers.
+- Brand-studio mirror refactor: new BE catalog (no existía), new FE
+  hook.
+- Nuevo arch test anti-drift previene regresión del hardcoded array.
+
+### Descubrimientos
+
+- **Offer-studio catalog ya servía via `/archetypes/catalog`** (Sprint 6
+  Phase A.5). El hook `useArchetypeCatalog` + `useSectionCatalog` ya
+  existían — Fase 03 solo sumó `kind` al DTO y helpers de resolución.
+  Ahorro de scope significativo vs la expectativa inicial (crear todo
+  el hook).
+
+- **Brand-studio sí requirió BE catalog desde cero**. Nuevo módulo
+  `brand/domain/section_catalog.py` con 14 entries + nuevo endpoint
+  `/api/v1/brand/sections/catalog` + arch test `completeness`. Patrón
+  copiado de offer-studio con menos metadata (no scope/weight/help_text
+  porque brand no filtra por archetype).
+
+- **`buildCrumbs` migrado a "pure function + injected resolver"**. En
+  lugar de tragarse el hook dentro de la función pura, se acepta un
+  `resolveSectionLabel: (slug) => string` como parámetro. El hook vive
+  en el componente y se pasa por `useMemo`. Consecuencia: tests ya no
+  necesitan mockear React hooks — stub resolver directo. Aplicable a
+  cualquier pure function que necesite el catálogo.
+
+- **Icon resolver per-feature**. Brand-studio tiene su propio
+  `lib/icon-name-resolver.ts` con 14 íconos. No se promovió a shared lib
+  para respetar FE boundary rules (no cross-feature imports). Si un 3er
+  studio necesita el mismo resolver, ahí promover. DRY < boundary.
+
+- **Tests que mockean `useSectionsForArchetype` con `[]` rompieron al
+  quitar el OFFER_SECTIONS fallback**. NavRail previamente renderizaba
+  los 21 sections cuando el mock devolvía []. Post-refactor, [] →
+  renderiza []. Fix: mock `useSectionsForArchetype` con al menos el
+  `PROMISE_META` object que los tests específicamente asserten. Leve
+  churn vale la simplificación: ahora NavRail es más coherente (archetype
+  sections + catalog fallback únicamente).
+
+- **ExtractionSummaryCard tests ganaron 2 mocks** (offer + brand
+  resolvers) porque el card es cross-studio. Mock identity resolver
+  `(slug) => slug` es suficiente para asserts de estructura.
+
+- **Catalog endpoint versioning evita stale cache**. `_CATALOG_VERSION`
+  bump cada vez que cambia la metadata — React Query revalida por cache
+  key; clientes reciben copia fresca post-deploy.
+
+- **Arch test anti-drift es 1 regex + 1 walk**. ~50 líneas TS que
+  previenen que alguien re-hardcodee un array. Muy barato comparado con
+  el costo de descubrir el drift en prod.
+
+### Decisiones nuevas
+
+Ninguna ADR nueva. ADR-010 (Fase 02) sigue vigente sin contradicciones
+en Fase 03.
+
+### Deuda técnica encontrada
+
+- **Offer-studio y brand-studio tienen dos icon-name-resolvers con
+  overlap** (Users, Fingerprint, Target, Scale, ScrollText, Sparkles
+  compartidos). Mini-DRY violation. Promover a `src/lib/` cuando 3er
+  studio aparezca o el overlap crezca.
+
+- **Settings feature también tiene su propio section-catalog.ts**
+  hardcoded (`SettingsNavRail`, `SettingsBreadcrumb`, `section-page-map.test.ts`).
+  Fuera del scope del refactor field-contract-ssot (settings no pertenece
+  al contract), pero si el patrón "BE-owned section catalog" se vuelve
+  convención, migrar settings también. Backlog en
+  `docs/mejoras-proceso/to-do.md`.
+
+- **Pre-existing `# noqa` inválido** en
+  `src/modules/offer/api/offer_type_presets.py:28` sigue vigente —
+  detectado desde Fase 01. Warning ruff persiste.
 
 ---
 
