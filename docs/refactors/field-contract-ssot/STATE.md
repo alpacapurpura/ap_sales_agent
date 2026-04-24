@@ -1,9 +1,9 @@
 ---
-last_updated: 2026-04-24 14:30
-last_green_commit: acbed37e
+last_updated: 2026-04-24 15:23
+last_green_commit: pending
 active_phase: 00-guardrail
-sub_step: 0/5 (not started)
-status: ready-to-start
+sub_step: 4/5 (done after commit)
+status: in-progress
 blockers: none
 branch: development
 working_tree_clean: true
