@@ -1,9 +1,9 @@
 ---
-last_updated: 2026-04-24 15:30
-last_green_commit: ae0036cf
+last_updated: 2026-04-24 15:40
+last_green_commit: fbe4bb08
 active_phase: 01-field-contract-pilot-pricing
-sub_step: 0/? (not started)
-status: ready-to-start
+sub_step: A/J (docs done, migration next)
+status: in-progress
 blockers: none
 branch: development
 working_tree_clean: true
