@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-04-24 14:00
-last_green_commit: e8dd4bd5
+last_updated: 2026-04-24 14:30
+last_green_commit: acbed37e
 active_phase: 00-guardrail
 sub_step: 0/5 (not started)
 status: ready-to-start
@@ -37,8 +37,10 @@ working_tree_clean: true
 
 | Fecha | Commit | Acción |
 |---|---|---|
-| 2026-04-24 | e8dd4bd5 | Fix polling cap (fuera scope refactor, baseline) |
-| 2026-04-24 | workspace init | Creado `docs/refactors/field-contract-ssot/` |
+| 2026-04-24 | e8dd4bd5 | Fix polling cap (fuera scope refactor, baseline — commit mío) |
+| 2026-04-24 | 595d5a84 | (paralelo) feat copilot+buyer-persona AI-led creation |
+| 2026-04-24 | 59c6c0bb | (paralelo) feat copilot registry-driven extraction |
+| 2026-04-24 | acbed37e | Workspace init `docs/refactors/field-contract-ssot/` (este turn) |
 
 ## Convención de actualización
 
