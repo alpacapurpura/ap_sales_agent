@@ -1,9 +1,9 @@
 ---
-last_updated: 2026-04-24 (Fase 03 opened)
-last_green_commit: a495beb2
-active_phase: 03-section-catalog-dedup
-sub_step: A/F (pre-block-A)
-status: in-progress
+last_updated: 2026-04-24 (Fase 03 closing commit 19a345e9)
+last_green_commit: 19a345e9
+active_phase: 04-drop-offer-fields-by-fe-section
+sub_step: 0/? (ready-to-start)
+status: ready-to-start
 blockers: none
 branch: development
 working_tree_clean: true
