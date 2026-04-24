@@ -108,7 +108,7 @@ from src.modules.offer.api import knowledge as offer_knowledge
 from src.modules.offer.api import landing as offer_landing
 from src.modules.offer.api import launch_editions as offer_launch_editions
 from src.modules.offer.api import lifecycle as offer_lifecycle
-from src.modules.offer.api import offer_ai
+from src.modules.offer.api import offer_ai, offer_field_contract
 from src.modules.offer.api import offer_extraction as offer_tools
 from src.modules.offer.api import offer_ladder_hints as offer_ladder_hints_api
 from src.modules.offer.api import offer_type_presets as offer_type_presets_api
@@ -528,6 +528,11 @@ app.include_router(
     offer_type_presets_api.router,
     prefix="/api/v1/offer/type-presets",
     tags=["Offer - Type Presets"],
+)
+app.include_router(
+    offer_field_contract.router,
+    prefix="/api/v1/offer/field-contract",
+    tags=["Offer - Field Contract"],
 )
 app.include_router(
     shared_currencies.router,
