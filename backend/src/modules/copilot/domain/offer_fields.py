@@ -1,39 +1,38 @@
 """Domain-layer declaration of which Offer fields the copilot may write.
 
-Keeping this constant in the domain layer lets schema_introspection.py
-(also domain) reference it without crossing into infrastructure. The
-OfferPersister (infrastructure) imports from here too, so there is a
-single source of truth.
+Post field-contract-platform refactor (Fase 04), :data:`PERSISTABLE_FIELDS`
+is **derived** from the platform :data:`OFFER_FIELD_CONTRACTS` registry
+(filtered by ``can_propose=True`` + ``status=ACTIVE``). No more manual
+``set[str]`` to maintain in parallel — adding/removing a writable field
+happens in ``offer/domain/field_contract.py``.
+
+Kept here as ``set[str]`` for backward-compat with existing callers
+(``offer_persister.py`` validates path membership; ``schema_introspection.py``
+exposes it via ``validate_field_path``).
 """
 
 from __future__ import annotations
 
-# All Offer entity fields that the interview can write to.
-# Excludes system fields (id, tenant_id, status, deleted_at, etc.)
-PERSISTABLE_FIELDS: set[str] = {
-    "public_name",
-    "archetype",
-    "format_hint",
-    "value_level",
-    "delivery_model",
-    "headline_promise",
-    "primary_outcome",
-    "time_to_value",
-    "target_avatar_match",
-    "marketing_pain_points",
-    "marketing_desires",
-    "objections",
-    "pricing_options",
-    "price_pay_in_full",
-    "guarantee_type",
-    "guarantee_terms",
-    "deliverables",
-    "includes_offers",
-    "access_duration_text",
-    "support_duration_days",
-    "onboarding_action",
-    "prerequisites",
-    "requires_application",
-    "anti_avatar_keywords",
-    "currency",
-}
+from src.modules.offer.domain.field_contract import OFFER_FIELD_CONTRACTS
+from src.shared.domain.field_contract import FieldStatus
+
+
+def _build_persistable_fields() -> set[str]:
+    """Project the FieldContract registry to writable paths.
+
+    Filters:
+      - ``can_propose=True`` (copilot may write the field).
+      - ``status=ACTIVE`` (deprecated/removed paths excluded).
+
+    Returns a flat ``set[str]``; polymorphic paths shared across
+    archetypes (e.g. ``specific_details.start_date``) appear once.
+    """
+    return {c.path for c in OFFER_FIELD_CONTRACTS if c.can_propose and c.status == FieldStatus.ACTIVE}
+
+
+# All Offer fields the interview / copilot can write to.
+# Derived — NOT manually maintained.
+PERSISTABLE_FIELDS: set[str] = _build_persistable_fields()
+
+
+__all__ = ["PERSISTABLE_FIELDS"]
