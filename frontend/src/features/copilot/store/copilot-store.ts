@@ -24,6 +24,8 @@ export interface AsyncJobState {
   /** Conversation this job was dispatched from — used on terminal to
    *  invalidate the detail query so summary card + pills render. */
   conversationId?: string | null;
+  /** Entity being extracted (brand id, offer id, etc.). Populated on hydration. */
+  entityId?: string | null;
   status: "queued" | "running" | "completed" | "failed";
   progress: number; // 0..100
   stage: string;

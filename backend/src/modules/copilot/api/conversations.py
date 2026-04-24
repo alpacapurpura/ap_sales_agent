@@ -15,6 +15,8 @@ from sqlalchemy.orm import Session
 
 from src.core.database import get_db
 from src.modules.copilot.api.conversation_dto import (
+    ActiveJobProgressDTO,
+    ActiveJobsResponse,
     ConversationDetail,
     ConversationListResponse,
     ConversationMessageDTO,
@@ -23,6 +25,9 @@ from src.modules.copilot.api.conversation_dto import (
     RevertFailure,
     RevertRequest,
     RevertResponse,
+)
+from src.modules.copilot.application.extraction.active_job_persistence import (
+    read_active_job,
 )
 from src.modules.copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
@@ -337,3 +342,99 @@ async def revert_conversation(
         tenant_id=str(tenant_id),
     )
     return RevertResponse(reverted_count=len(reverted_ids), failed=failed)
+
+
+@router.get(
+    "/conversations/{conversation_id}/active-jobs",
+    response_model=ActiveJobsResponse,
+    summary="Rehidratar jobs de extracción activos",
+)
+async def get_active_jobs(
+    conversation_id: UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    db: Annotated[Session, Depends(get_db)],
+) -> ActiveJobsResponse:
+    """Return active extraction jobs for a conversation.
+
+    Used by the FE to rehidrate in-flight extraction state after a page
+    reload. Reads the persisted ``procedure_state.active_extraction_job``
+    from the DB and merges with live Redis progress (if available).
+
+    Returns ``jobs: []`` when no active job is stored — not an error.
+    Returns 404 when the conversation does not exist or belongs to another
+    tenant/user (same policy as GET /conversations/{id}).
+    """
+    if not tenant_id or not current_user.tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant ID requerido")
+
+    repo = ConversationRepository(db)
+    conv = repo.get_by_id(conversation_id, tenant_id, current_user.id)
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversación no encontrada")
+
+    job = read_active_job(str(conversation_id), tenant_id)
+    if job is None:
+        return ActiveJobsResponse(jobs=[])
+
+    # Read live progress from Redis — best-effort, tolerate absence.
+    redis_data: dict = {}
+    try:
+        from src.core.database import redis_client
+
+        if redis_client:
+            progress_key = f"{job.module}_extract:{tenant_id!s}:{job.job_id}"
+            raw = redis_client.get(progress_key)
+            if raw:
+                import json as _json
+
+                redis_data = _json.loads(raw)
+    except Exception:  # noqa: BLE001 — Redis unavailable is not fatal
+        logger.warning(
+            "active_jobs_redis_read_failed",
+            job_id=job.job_id,
+            conversation_id=str(conversation_id),
+        )
+
+    # Build the poll_endpoint that FE uses to continue polling.
+    # Mirrors the pattern in frontend/src/lib/api/ai-actions.ts:
+    #   brand: /api/v1/brand/tools/extract-full-brand/status/{job_id}
+    #   offer: /api/v1/offer/tools/extract-full-offer/status/{job_id}
+    _poll_templates: dict[str, str] = {
+        "brand": f"/api/v1/brand/tools/extract-full-brand/status/{job.job_id}",
+        "offer": f"/api/v1/offer/tools/extract-full-offer/status/{job.job_id}",
+    }
+    poll_endpoint = _poll_templates.get(
+        job.module,
+        f"/api/v1/{job.module}/tools/extract/status/{job.job_id}",
+    )
+
+    dto = ActiveJobProgressDTO(
+        job_id=job.job_id,
+        module=job.module,
+        entity_id=job.entity_id,
+        source_kind=job.source_kind,
+        source_ref=job.source_ref,
+        scope=job.scope,
+        mode=job.mode,
+        started_at=job.started_at,
+        status=redis_data.get("status"),
+        progress=redis_data.get("progress"),
+        stage=redis_data.get("stage"),
+        filled_fields=redis_data.get("filled_fields", []),
+        filled_fields_by_section=redis_data.get("filled_fields_by_section", {}),
+        sections_touched=redis_data.get("sections_touched", []),
+        sections_completed=redis_data.get("sections_completed", []),
+        finished_at=redis_data.get("finished_at"),
+        poll_endpoint=poll_endpoint,
+    )
+
+    logger.info(
+        "active_jobs_fetched",
+        conversation_id=str(conversation_id),
+        job_id=job.job_id,
+        module=job.module,
+        has_redis_data=bool(redis_data),
+        tenant_id=str(tenant_id),
+    )
+    return ActiveJobsResponse(jobs=[dto])

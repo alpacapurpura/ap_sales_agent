@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 import { useConversationDetail } from "../hooks/use-conversation-detail";
 import { useCopilotChat } from "../hooks/use-copilot-chat";
+import { useHydrateActiveJobs } from "../hooks/use-hydrate-active-jobs";
 import { loadPersistedLastConversation, useCopilotStore } from "../store/copilot-store";
 
 import { ActiveJobsPoller } from "./ActiveJobsPoller";
@@ -109,6 +110,10 @@ export const CopilotChatPanel = memo(function CopilotChatPanel() {
   const [replyTo, setReplyTo] = useState<ReplyRef | null>(null);
 
   const { sendMessage, sendCardAction, stopStreaming } = useCopilotChat();
+
+  // Re-hydrate in-flight jobs from the backend after a page reload so that
+  // ActiveJobsPoller resumes polling transparently without user intervention.
+  useHydrateActiveJobs(conversationId);
 
   // Restore the last active conversation for this tenant after F5 / fresh tab.
   // Persisted via ``setConversationId`` → ``persistLastConversation`` — keyed

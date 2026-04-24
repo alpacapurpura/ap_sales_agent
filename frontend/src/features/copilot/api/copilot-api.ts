@@ -269,6 +269,58 @@ export async function streamCopilotChat(
   }
 }
 
+/** Wire-level shape of ActiveJobProgressDTO from the backend. */
+export interface ActiveJobProgressDTO {
+  job_id: string;
+  module: string;
+  entity_id: string | null;
+  source_kind: string;
+  source_ref: string;
+  scope: string;
+  mode: string;
+  started_at: string;
+  status: string | null;
+  progress: number | null;
+  stage: string | null;
+  filled_fields: string[];
+  filled_fields_by_section: Record<string, string[]>;
+  sections_touched: string[];
+  sections_completed: string[];
+  finished_at: string | null;
+  poll_endpoint: string;
+}
+
+interface ActiveJobsResponse {
+  jobs: ActiveJobProgressDTO[];
+}
+
+/**
+ * Fetch the active extraction jobs for a conversation.
+ * Returns the jobs array, or null on any failure (network, non-ok, parse error).
+ */
+export async function fetchActiveJobs(
+  conversationId: string,
+  token: string,
+): Promise<ActiveJobProgressDTO[] | null> {
+  const headers = getCopilotHeaders(token);
+  let response: Response;
+  const activeJobsUrl = `${API_URL}/api/v1/copilot/conversations/${conversationId}/active-jobs`;
+  try {
+    response = await fetch(activeJobsUrl, {
+      headers,
+    });
+  } catch {
+    return null;
+  }
+  if (!response.ok) return null;
+  try {
+    const body = (await response.json()) as ActiveJobsResponse;
+    return body.jobs;
+  } catch {
+    return null;
+  }
+}
+
 function handleSSEEvent(
   event: SSEEventType,
   data: Record<string, unknown>,

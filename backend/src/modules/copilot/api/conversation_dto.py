@@ -101,3 +101,41 @@ class RevertResponse(BaseModel):
 
     reverted_count: int
     failed: list[RevertFailure] = Field(default_factory=list)
+
+
+class ActiveJobProgressDTO(BaseModel):
+    """Progress snapshot for a single in-flight extraction job.
+
+    Fields sourced from procedure_state (persisted) + Redis key (live progress).
+    When Redis has expired (job finished long ago or TTL hit), status/progress/
+    stage fields are None — FE treats that as "job likely done, reload sections".
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    job_id: str
+    module: str
+    entity_id: str | None
+    source_kind: str
+    source_ref: str
+    scope: str
+    mode: str
+    started_at: str
+    # Live progress from Redis (None if Redis key expired):
+    status: str | None  # "queued" | "processing" | "completed" | "failed" | None
+    progress: int | None
+    stage: str | None
+    filled_fields: list[str]
+    filled_fields_by_section: dict[str, list[str]]
+    sections_touched: list[str]
+    sections_completed: list[str]
+    finished_at: str | None
+    poll_endpoint: str  # relative URL for FE to continue polling
+
+
+class ActiveJobsResponse(BaseModel):
+    """Response for GET /conversations/{id}/active-jobs."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    jobs: list[ActiveJobProgressDTO]
