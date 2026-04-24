@@ -15,7 +15,7 @@ already — no duplication needed here.
 
 Wave assignment:
   - W1: promise, strategy
-  - W2: psychology, value_stack, closing
+  - W2: psychology, value_stack, closing, pricing
   - W3: details
 """
 
@@ -25,6 +25,7 @@ from src.modules.offer.domain.offer import (
     ObjectionItem,
     OfferClosingUpdate,
     OfferDetailsUpdate,
+    OfferPricingUpdate,
     OfferPromiseUpdate,
     OfferPsychologyUpdate,
     OfferStrategyUpdate,
@@ -64,6 +65,11 @@ ValueStackWaveOutput = OfferValueStackUpdate
 #:         bonus_if_act_now, final_push_copy, support_duration_days.
 ClosingWaveOutput = OfferClosingUpdate
 
+#: W2 — pricing wave output (Fase 01 — LATAM pilot).
+#: LLM-extracted fields: tax_included, installments_available.
+#: accepted_payment_providers is UI-configured (see ADR-009), LLM leaves null.
+PricingWaveOutput = OfferPricingUpdate
+
 #: W3 — details wave output (polymorphic: delegates to archetype-specific models).
 DetailsWaveOutput = OfferDetailsUpdate
 
@@ -72,6 +78,7 @@ __all__ = [
     "ClosingWaveOutput",
     "DetailsWaveOutput",
     "ObjectionItem",
+    "PricingWaveOutput",
     "PromiseWaveOutput",
     "PsychologyWaveOutput",
     "StrategyWaveOutput",

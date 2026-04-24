@@ -31,6 +31,7 @@ from src.modules.offer.application.offer_extraction_orchestrator import (
 from src.modules.offer.domain.offer import (
     OfferClosingUpdate,
     OfferDetailsUpdate,
+    OfferPricingUpdate,
     OfferPromiseUpdate,
     OfferPsychologyUpdate,
     OfferStrategyUpdate,
@@ -82,6 +83,12 @@ def _make_svc_and_orchestrator(
         return_value=OfferClosingUpdate(
             guarantee_type="unconditional_30_day",
             guarantee_terms="30 días sin preguntas",
+        )
+    )
+    svc._extract_pricing = AsyncMock(
+        return_value=OfferPricingUpdate(
+            tax_included=True,
+            installments_available="3, 6, 12",
         )
     )
     # OfferDetailsUpdate has fulfillment fields (access_duration, support).

@@ -15,7 +15,7 @@ layouts that reused extractors under virtual slugs (``identity``/``pricing``
 didn't match the slug.
 
   - W1: promise, strategy
-  - W2: psychology, value_stack, closing
+  - W2: psychology, value_stack, closing, pricing
   - W3: details
 """
 
@@ -50,7 +50,7 @@ logger = structlog.get_logger()
 
 # Offer waves — each slug maps 1:1 to a real extractor on OfferExtractionService.
 _WAVE1_SECTIONS = ["promise", "strategy"]
-_WAVE2_SECTIONS = ["psychology", "value_stack", "closing"]
+_WAVE2_SECTIONS = ["psychology", "value_stack", "closing", "pricing"]
 _WAVE3_SECTIONS = ["details"]
 _TOTAL_SECTIONS = len(_WAVE1_SECTIONS) + len(_WAVE2_SECTIONS) + len(_WAVE3_SECTIONS)
 
@@ -237,7 +237,7 @@ class OfferExtractionOrchestrator(BaseExtractionOrchestrator):
         emit_progress(progress_callback, 40, "Analizando promesa y estrategia...")
         self._announce_sections(progress_callback, _WAVE1_SECTIONS, wave1_results, pct=40)
 
-        # Wave 2: psychology, value_stack, closing.
+        # Wave 2: psychology, value_stack, closing, pricing (Fase 01 pilot).
         await self._pause_between_waves(1, trace)
         wave2_results = await self._run_wave(
             2,
@@ -246,6 +246,7 @@ class OfferExtractionOrchestrator(BaseExtractionOrchestrator):
                 svc._extract_psychology(content, current_data_str, update_instructions, archetype),
                 svc._extract_value_stack(content, current_data_str, update_instructions, archetype),
                 svc._extract_closing(content, current_data_str, update_instructions, archetype),
+                svc._extract_pricing(content, current_data_str, update_instructions, archetype),
             ],
             trace,
         )
@@ -311,6 +312,7 @@ class OfferExtractionOrchestrator(BaseExtractionOrchestrator):
             "psychology",
             "value_stack",
             "closing",
+            "pricing",
             "details",
         ]
         all_coros = [
@@ -319,6 +321,7 @@ class OfferExtractionOrchestrator(BaseExtractionOrchestrator):
             svc._extract_psychology(content, current_data_str, update_instructions, archetype),
             svc._extract_value_stack(content, current_data_str, update_instructions, archetype),
             svc._extract_closing(content, current_data_str, update_instructions, archetype),
+            svc._extract_pricing(content, current_data_str, update_instructions, archetype),
             svc._extract_details(content, current_data_str, update_instructions, archetype),
         ]
 

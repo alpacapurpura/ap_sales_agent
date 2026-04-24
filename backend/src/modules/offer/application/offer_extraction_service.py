@@ -26,6 +26,7 @@ from src.core.enums import ModelRole
 from src.modules.offer.domain.offer import (
     OfferClosingUpdate,
     OfferDetailsUpdate,
+    OfferPricingUpdate,
     OfferPromiseUpdate,
     OfferPsychologyUpdate,
     OfferStrategyUpdate,
@@ -287,6 +288,29 @@ class OfferExtractionService:
             OfferValueStackUpdate,
             OfferValueStackUpdate(),
             "Extract the Offer Value Stack (deliverables, included offers).",
+        )
+
+    async def _extract_pricing(
+        self,
+        content: str,
+        current_data: str,
+        instructions: str | None,
+        archetype: str | None,
+    ) -> OfferPricingUpdate:
+        prompt = self._render_prompt(
+            "offer_extract_pricing",
+            content,
+            current_data,
+            instructions,
+            archetype,
+        )
+        return await self._run_section(
+            "pricing",
+            "offer_extract_pricing",
+            prompt,
+            OfferPricingUpdate,
+            OfferPricingUpdate(),
+            "Extract the Offer Pricing LATAM (tax inclusion, installments).",
         )
 
     async def _extract_closing(
