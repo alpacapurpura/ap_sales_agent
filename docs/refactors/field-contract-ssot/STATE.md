@@ -1,9 +1,9 @@
 ---
-last_updated: 2026-04-24 16:05
-last_green_commit: 81d52236
+last_updated: 2026-04-24 (SPEC/ACCEPTANCE scripted)
+last_green_commit: b826928b
 active_phase: 02-migrate-sections
-sub_step: 0/? (ready-to-start)
-status: ready-to-start
+sub_step: A/I (pre-block-A)
+status: in-progress
 blockers: none
 branch: development
 working_tree_clean: true

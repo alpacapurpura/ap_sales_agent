@@ -1,13 +1,15 @@
 ---
-status: ready-to-start
-opened_at: null
+status: in-progress
+opened_at: 2026-04-24
 closed_at: null
-baseline_green_commit: 92523a6e
+baseline_green_commit: b826928b
+current_sub_step: A (Authority block)
 ---
 
 # Fase 02 — Status
 
-Lista para arrancar. Fase 01 cerrada (`92523a6e` + closing commit).
+**Abierta**. Baseline green `b826928b`. SPEC + ACCEPTANCE escritos.
+Bloques A→I en ejecución — ver `SPEC.md`.
 
 `KNOWN_UNRESOLVED_PATHS` guarda 56 entradas. Distribución esperada de
 shrink en Fase 02 (leer arch test FE para breakdown exacto):
