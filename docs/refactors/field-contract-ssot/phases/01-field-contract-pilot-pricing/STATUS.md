@@ -1,41 +1,49 @@
 ---
-status: ready-to-start
+status: in-progress
 opened_at: 2026-04-24 15:30
 closed_at: null
+baseline_green_commit: 62cfabd1
 ---
 
 # Fase 01 — Status
 
-Lista para arrancar. Fase 00 cerrada (`701f6f2d` + closing commit).
-`KNOWN_UNRESOLVED_PATHS` guarda 3 entradas pricing LATAM que esta fase
-debe eliminar:
+Fase abierta. Baseline PRE_FLIGHT capturada:
 
-- `tax_included`
-- `installments_available`
-- `accepted_payment_providers`
+- BE arch tests: **425 passed** (`cd backend && .venv/bin/pytest tests/architecture/ -x -q`)
+- FE arch tests: **37 passed** (`cd frontend && npx vitest run src/__tests__/architecture/`)
+- FE tsc: **0 errors**
+- Alembic head: `061_offer_narrative_fields`
+- `offer_field_paths.json`: **123 paths**
+- `KNOWN_UNRESOLVED_PATHS.size`: **59** (cap ADR-007)
 
-## Al abrir
+## Sub-steps (10 commits atómicos)
 
-1. Re-lectura `SPEC.md` + `../../PLAN.md` §Fase 01.
-2. Knowledge load 10-15 min:
-   - `backend/src/modules/offer/domain/offer.py` (Offer + OfferPricingUpdate)
-   - `backend/src/modules/offer/domain/enums.py` (PaymentProvider si existe)
-   - `backend/src/modules/offer/application/services/offer_extraction_service.py`
-     — dónde se invoca prompt closing
-   - `frontend/src/features/offer-studio/schemas/pricing.schema.ts`
-   - ETL Contract si el nuevo flujo toca analytics.
-3. Refinar `SPEC.md` con sub-steps concretos (migration + domain + DTO +
-   prompt + codegen + schema unlock + sales-agent block + landing
-   consume + golden roundtrip).
-4. Escribir `ACCEPTANCE.md`.
-5. Arrancar `protocol/PRE_FLIGHT.md`.
+| # | Subject | Status |
+|---|---|---|
+| A | `docs(refactor-field-contract): open fase 01 — SPEC + ACCEPTANCE + ADRs` | in-progress |
+| B | `feat(offer): migration 062 pricing latam columns` | pending |
+| C | `feat(offer): domain + DTO + model pricing latam` | pending |
+| D | `feat(offer): FieldContract registry + /field-contract endpoint` | pending |
+| E | `feat(offer): extraction wave pricing + prompt + schema` | pending |
+| F | `chore(offer): regen field-paths JSON + shrink FE allowlist` | pending |
+| G | `feat(offer-studio): type pricing schema paths against codegen` | pending |
+| H | `feat(sales-agent): additive pricing block in agent identity prompt` | pending |
+| I | `test(offer): golden fixture roundtrip pricing latam` | pending |
+| J | `chore(refactor-field-contract): close fase 01` | pending |
+
+Ver `SPEC.md` y `ACCEPTANCE.md` para detalle.
+
+## Decisiones abiertas
+
+Ninguna. ADR-008 (wave assignment) y ADR-009 (enum handling) cubiertos
+en `DECISIONS.md`.
 
 ## Resultado final esperado
 
-- 3 fields nuevos persistidos (tax_included bool, installments_available
-  text, accepted_payment_providers jsonb[]).
-- Extraction prompt closing extendido.
-- `offer_field_paths.json` regenerado con 126 paths (actualmente 123).
-- Allowlist shrink: `KNOWN_UNRESOLVED_PATHS.size === 56`. Cap del ratchet
-  baja a 56.
+- 3 fields nuevos persistidos (`tax_included bool`, `installments_available
+  text`, `accepted_payment_providers jsonb NOT NULL DEFAULT '[]'`).
+- Extraction wave pricing dedicada (W2 concurrent).
+- `offer_field_paths.json`: 123 → **126 paths**.
+- `KNOWN_UNRESOLVED_PATHS.size`: 59 → **56**. Cap baja a 56.
 - Golden fixture round-trip valida los 3 fields nuevos.
+- Sales-agent prompt additive only.

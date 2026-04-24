@@ -16,9 +16,11 @@ Ninguno.
 - Cerrada 2026-04-24. Commits `b7398ed0`, `2822b525`, `701f6f2d` + closing.
 - Allowlist ratchet fija en 59 (ADR-007). Fase 01 baja a 56.
 
-### Fase 01 — Pricing LATAM
+### Fase 01 — Pricing LATAM — IN PROGRESS
 - Reducir `KNOWN_UNRESOLVED_PATHS` en −3 (tax_included, installments_available, accepted_payment_providers).
-- Ver [phases/01-field-contract-pilot-pricing/SPEC.md](phases/01-field-contract-pilot-pricing/SPEC.md).
+- Ver [phases/01-field-contract-pilot-pricing/SPEC.md](phases/01-field-contract-pilot-pricing/SPEC.md) y `ACCEPTANCE.md`.
+- ADR-008 (wave assignment) + ADR-009 (`PaymentProvider` enum cross-module) ratificados.
+- Sub-step A en curso.
 
 ### Fase 02+
 - Se actualizan al cerrar fase anterior.
@@ -45,3 +47,8 @@ Espejo aquí para contexto rápido:
 ## Tech debt dentro del refactor
 
 Capturada en [LEARNINGS.md](LEARNINGS.md) per fase bajo "Deuda técnica encontrada". Si es arreglable en la fase, se arregla. Si tangencial, entry aquí + en `docs/mejoras-proceso/to-do.md`.
+
+### Fase 01 descubierto
+
+- [ ] `PaymentProvider` enum vive en `sales_agent.domain.enrollment`. Offer lo necesita sin violar DDD. Plan: en Fase 02 evaluar mover a `shared/domain/payment.py` + refactor import sites (offer + sales_agent). ADR-009 la documenta. Ya duplicado en `docs/mejoras-proceso/to-do.md` entry.
+- [ ] Landing builders consumen `pricing` JSONB legacy (`pricing.pay_in_full`) no top-level fields. Alineación a FieldContract queda para Fase 05 (downstream unify).
