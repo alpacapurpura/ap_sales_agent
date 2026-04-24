@@ -66,13 +66,6 @@ _BRAND_SECTION_LABELS: dict[str, str] = {
     "people_contact": "Equipo y Contacto",
 }
 
-_DOCUMENT_EXTRACTION_TEMPLATES: dict[str, str] = {
-    "brand": "brand_doc_extraction",
-    "offer": "offer_doc_extraction",
-    "buyer_persona": "buyer_persona_doc_extraction",
-}
-
-
 _OFFER_SECTION_LABELS: dict[str, str] = {
     "promise": "Promesa",
     "details": "Detalles",
@@ -245,10 +238,12 @@ async def extract_from_doc(
         from src.modules.copilot.application.services.document_processor import (
             DocumentProcessor,
         )
+        from src.modules.copilot.domain.extraction_domain_registry import (
+            get_extraction_config,
+        )
         from src.shared.application.ai_action_service import AIActionService
 
-        template = _DOCUMENT_EXTRACTION_TEMPLATES.get(domain)
-        if not template:
+        if get_extraction_config(domain) is None:
             return _err(f"El módulo '{module}' no tiene template de extracción de documentos.")
 
         db = SessionLocal()
@@ -299,7 +294,7 @@ async def extract_from_doc(
             result = processor.extract_from_text(
                 text=text,
                 source_documents=[asset.filename or "documento"],
-                extraction_template=template,
+                domain=domain,
                 existing_mapa={},
                 tenant_id=tenant_id,
             )

@@ -172,19 +172,81 @@ class AIActionService:
 
     @staticmethod
     def _extract_json(raw: str) -> str:
-        """Extract JSON from LLM response that may contain markdown code blocks or preamble text."""
-        # Try markdown code block first: ```json ... ``` or ``` ... ```
-        match = re.search(r"```(?:json)?\s*([\s\S]*?)```", raw)
-        if match:
-            return match.group(1).strip()
-        # Fallback: find outermost { ... } or [ ... ]
-        for open_char, close_char in [("{", "}"), ("[", "]")]:
-            start = raw.find(open_char)
-            if start != -1:
-                end = raw.rfind(close_char)
-                if end > start:
-                    return raw[start : end + 1]
+        """Extract the first balanced JSON object/array from a noisy LLM response.
+
+        Robust against the failure modes observed in production:
+
+        * Multiple ```json``` markdown blocks back-to-back. The previous
+          implementation used ``rfind`` which spanned across blocks and
+          produced garbage. We now scan for the first balanced container.
+        * Trailing text after a complete JSON object — the classic
+          ``Extra data: line N column M`` ``json.JSONDecodeError`` cause.
+          The scanner stops at the matching close brace.
+        * String literals containing ``{`` / ``}`` / backslash-escaped
+          quotes — the depth counter ignores anything inside an unescaped
+          string segment.
+
+        Falls back to ``raw`` only when no balanced container is found,
+        so ``json.loads`` reproduces a clear error for the retry loop.
+        """
+        # 1) Try markdown code blocks first; scan inside the first non-empty one.
+        for match in re.finditer(r"```(?:json)?\s*([\s\S]*?)```", raw):
+            block = match.group(1).strip()
+            if not block:
+                continue
+            extracted = AIActionService._first_balanced(block)
+            if extracted is not None:
+                return extracted
+            return block  # Let json.loads complain with the precise position.
+
+        # 2) No markdown — scan the raw text for the first balanced container.
+        extracted = AIActionService._first_balanced(raw)
+        if extracted is not None:
+            return extracted
+
         return raw
+
+    @staticmethod
+    def _first_balanced(s: str) -> str | None:
+        """Return the substring spanning the first balanced ``{...}`` or ``[...]``.
+
+        ``None`` when no balanced container exists. Quote-aware so braces
+        inside string literals don't break the depth counter.
+        """
+        depth = 0
+        start = -1
+        in_string = False
+        escape = False
+        opener: str | None = None
+        for index, char in enumerate(s):
+            if escape:
+                escape = False
+                continue
+            if char == "\\":
+                escape = True
+                continue
+            if char == '"':
+                in_string = not in_string
+                continue
+            if in_string:
+                continue
+
+            if depth == 0 and char in "{[":
+                opener = char
+                start = index
+                depth = 1
+                continue
+
+            if opener is None:
+                continue
+
+            if char == opener:
+                depth += 1
+            elif (opener == "{" and char == "}") or (opener == "[" and char == "]"):
+                depth -= 1
+                if depth == 0:
+                    return s[start : index + 1]
+        return None
 
     def _validate_inputs(
         self,

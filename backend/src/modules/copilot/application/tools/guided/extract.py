@@ -17,21 +17,50 @@ from langchain_core.tools import tool
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
+from src.modules.copilot.domain.extraction_domain_registry import (
+    get_extraction_config,
+    supported_domains,
+)
 from src.modules.copilot.domain.schema_introspection import validate_field_path
 from src.shared.application.ai_action_service import AIActionService
 
 logger = structlog.get_logger()
 
-_DOCUMENT_EXTRACTION_TEMPLATES: dict[str, str] = {
-    "brand": "brand_doc_extraction",
-    "offer": "offer_doc_extraction",
-    "buyer_persona": "buyer_persona_doc_extraction",
-}
-
 
 def _error(text: str, code: str) -> str:
     """Serialise a short error payload for a failed extraction attempt."""
     return json.dumps({"text": text, "error": code})
+
+
+def _recovery_card(text: str, code: str, domain: str) -> str:
+    """Surface a `clarify_card` so the LLM has a structured next step.
+
+    When document extraction fails (LLM hallucinated paths, asset not yet
+    extracted, transient API error) the chat would otherwise show either
+    the raw error or — much worse — the LLM's regurgitation of the
+    document text as fake JSON. The clarify card gives the model a clear
+    branch to pick from and keeps the user in flow.
+    """
+    return json.dumps(
+        {
+            "text": text,
+            "error": code,
+            "ui_action": {
+                "type": "clarify_card",
+                "clarify_items": [
+                    {
+                        "field_path": f"{domain}.__doc_recovery__",
+                        "issue": "No pude extraer datos útiles del documento. ¿Qué quieres hacer?",
+                        "options": [
+                            "Reintentar",
+                            "Subir otro documento",
+                            "Llenar manualmente",
+                        ],
+                    },
+                ],
+            },
+        },
+    )
 
 
 @tool
@@ -125,8 +154,12 @@ def extract_document_to_fields(  # noqa: PLR0911 — each return is a distinct t
         el delta combinado, o un error claro si no pudo procesar.
 
     """
-    if domain not in _DOCUMENT_EXTRACTION_TEMPLATES:
-        return _error(f"Dominio '{domain}' no soporta extracción de documentos.", "unsupported_domain")
+    if get_extraction_config(domain) is None:
+        supported = ", ".join(supported_domains())
+        return _error(
+            f"Dominio '{domain}' no soporta extracción de documentos. Soportados: {supported}.",
+            "unsupported_domain",
+        )
 
     tenant_id = get_tenant_id()
     if not tenant_id:
@@ -161,13 +194,12 @@ def extract_document_to_fields(  # noqa: PLR0911 — each return is a distinct t
                 "asset_not_extracted",
             )
 
-        template = _DOCUMENT_EXTRACTION_TEMPLATES[domain]
         processor = DocumentProcessor(ai_service=AIActionService())
 
         result = processor.extract_from_text(
             text=text,
             source_documents=[asset.filename or "documento"],
-            extraction_template=template,
+            domain=domain,
             existing_mapa={},
             tenant_id=tenant_id,
         )
@@ -176,13 +208,20 @@ def extract_document_to_fields(  # noqa: PLR0911 — each return is a distinct t
         fields_extracted = result.fields_extracted if result else 0
         fields_skipped = result.fields_skipped if result else 0
 
+        # No fields extracted is a soft failure: surface a clarify card so
+        # the LLM offers retry/manual instead of inventing JSON in chat.
+        if fields_extracted == 0:
+            return _recovery_card(
+                f"No logré extraer campos útiles del documento '{asset.filename}'.",
+                "no_fields_extracted",
+                domain,
+            )
+
         return json.dumps(
             {
                 "text": (
                     f"Extraje {fields_extracted} campo(s) del documento "
                     f"'{asset.filename}'. Revisa el preview para aprobarlos."
-                    if fields_extracted
-                    else f"No logré extraer campos útiles del documento '{asset.filename}'."
                 ),
                 "ui_action": {
                     "type": "preview_update",
@@ -200,6 +239,10 @@ def extract_document_to_fields(  # noqa: PLR0911 — each return is a distinct t
         )
     except Exception as exc:
         logger.exception("extract_document_to_fields_failed", asset_id=asset_id, domain=domain)
-        return _error(f"Error extrayendo del documento: {exc}", "extraction_failed")
+        return _recovery_card(
+            f"Hubo un problema procesando el documento: {exc}",
+            "extraction_failed",
+            domain,
+        )
     finally:
         db.close()

@@ -611,7 +611,7 @@ async def tool_executor_node(state: CopilotState) -> dict:
                 result = await tool_map[tool_name].ainvoke(tool_args)
                 tool_messages.append(
                     ToolMessage(
-                        content=str(result),
+                        content=_truncate_tool_content(str(result)),
                         tool_call_id=tool_call["id"],
                         name=tool_name,
                     ),
@@ -620,7 +620,9 @@ async def tool_executor_node(state: CopilotState) -> dict:
                 logger.exception("copilot_tool_error", tool=tool_name, error=str(e))
                 tool_messages.append(
                     ToolMessage(
-                        content=f"Error ejecutando {tool_name}: {e!s}",
+                        content=_truncate_tool_content(
+                            f"Error ejecutando {tool_name}: {e!s}",
+                        ),
                         tool_call_id=tool_call["id"],
                         name=tool_name,
                     ),
@@ -635,6 +637,23 @@ async def tool_executor_node(state: CopilotState) -> dict:
             )
 
     return {"messages": tool_messages}
+
+
+# Hard cap on the ToolMessage content fed back to the LLM. Mirrors the SSE
+# ``output_preview`` truncation in trace_recorder.py so a single oversized
+# tool output cannot bloat the context window or invite the model to
+# regurgitate the whole payload back to the user (observed: extract tool
+# emitting raw document JSON when the structured response failed to parse).
+_TOOL_MESSAGE_CONTENT_CAP = 4000
+_TRUNCATION_MARKER = "\n\n…(salida truncada)"
+
+
+def _truncate_tool_content(content: str) -> str:
+    """Cap a ToolMessage payload to ``_TOOL_MESSAGE_CONTENT_CAP`` chars."""
+    if len(content) <= _TOOL_MESSAGE_CONTENT_CAP:
+        return content
+    head = _TOOL_MESSAGE_CONTENT_CAP - len(_TRUNCATION_MARKER)
+    return content[:head] + _TRUNCATION_MARKER
 
 
 def should_continue(state: CopilotState) -> Literal["tools", "end"]:
