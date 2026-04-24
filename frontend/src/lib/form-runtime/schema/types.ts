@@ -113,6 +113,26 @@ export interface FieldLengthHint {
   ideal?: [number, number];
 }
 
+/**
+ * Configuration for the bulk-paste-AI action on array fields.
+ * When declared, ArrayCardsEditor renders a secondary CTA in its header
+ * that opens a Sheet, lets the user paste raw text, and invokes the
+ * specified copilot tool (POST /api/v1/copilot/tools/{toolName}).
+ *
+ * The Sheet is generic — it does not know which domain the tool belongs to.
+ * Reusable by any studio that declares this config on an array field.
+ */
+export interface BulkPasteActionConfig {
+  /** Name of the copilot tool to invoke (e.g. "structure_objections"). */
+  toolName: string;
+  /** CTA label shown in the array header. Latam neutro, sin voseo. */
+  label: string;
+  /** Placeholder text inside the bulk textarea. */
+  placeholder: string;
+  /** Optional hint shown above the textarea in the Sheet. */
+  hint?: string;
+}
+
 export interface FieldSchema {
   id: string;
   label: string;
@@ -140,6 +160,31 @@ export interface FieldSchema {
   action?: string;
   /** Props forwarded to the custom action component. Immutable. */
   actionProps?: Record<string, unknown>;
+  /**
+   * For type: "textarea" fields that persist to a string[] in the backend.
+   * When "newline_array", the renderer transforms between the UI string
+   * (newline-separated) and the backend array (string[]):
+   *
+   *   BE → UI: string[].join("\n")   (empty array → "" so placeholder shows)
+   *   UI → BE: raw.split("\n").map(trim).filter(Boolean)  + bullet cleanup
+   *
+   * Only valid on type === "textarea". Ignored on other types.
+   * Autosave on-change is preserved — no "Guardar" button needed.
+   *
+   * Used by: offer-studio (measurable_outcomes, urgency_drivers, cultural_trust_barriers,
+   * emotional_triggers, status_drivers, regret_scenarios, marketing_pain_points,
+   * marketing_desires, anti_avatar_keywords, target_avatar_match).
+   */
+  storeAs?: "newline_array";
+  /**
+   * For type: "array" fields. When declared, ArrayCardsEditor renders a
+   * secondary CTA in its header that opens a Sheet for bulk-paste → AI structuring.
+   * The result is delivered as a copilot proposal card (propose_field_updates flow).
+   *
+   * Reusable by any studio — the Sheet implementation is domain-agnostic.
+   * See docs/contracts/offer-narrative-fields-CONTRACT.md §10, Addendum §2.
+   */
+  bulkPasteAction?: BulkPasteActionConfig;
   /** Override runtime default. Use "explicit" for heavy fields (upload, long text). */
   saveMode?: SaveMode;
   /**

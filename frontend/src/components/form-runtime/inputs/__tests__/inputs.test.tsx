@@ -56,6 +56,83 @@ describe("TextareaInput", () => {
   });
 });
 
+describe("TextareaInput storeAs newline_array", () => {
+  function arrayField(overrides: Partial<FieldSchema> = {}): FieldSchema {
+    return {
+      id: "measurable_outcomes",
+      label: "Resultados medibles",
+      type: "textarea",
+      path: "measurable_outcomes",
+      storeAs: "newline_array",
+      ...overrides,
+    };
+  }
+
+  it("renders string[] as newline-joined string", () => {
+    const { container } = render(
+      <TextareaInput field={arrayField()} value={["a", "b"]} onChange={vi.fn()} />,
+    );
+    const ta = container.querySelector("textarea");
+    expect(ta?.value).toBe("a\nb");
+  });
+
+  it("renders null as empty string (so placeholder shows)", () => {
+    const { container } = render(
+      <TextareaInput
+        field={arrayField({ placeholder: "Escribe aquí" })}
+        value={null}
+        onChange={vi.fn()}
+      />,
+    );
+    const ta = container.querySelector("textarea");
+    expect(ta?.value).toBe("");
+  });
+
+  it("splits user input into string[] on onChange", () => {
+    const onChange = vi.fn();
+    render(
+      <TextareaInput field={arrayField()} value={[]} onChange={onChange} />,
+    );
+    const ta = screen.getByRole("textbox");
+    fireEvent.change(ta, { target: { value: "a\nb\nc" } });
+    expect(onChange).toHaveBeenCalledWith(["a", "b", "c"]);
+  });
+
+  it("strips bullet prefixes when splitting (• - *)", () => {
+    const onChange = vi.fn();
+    render(
+      <TextareaInput field={arrayField()} value={[]} onChange={onChange} />,
+    );
+    const ta = screen.getByRole("textbox");
+    fireEvent.change(ta, { target: { value: "• foo\n- bar\n* baz" } });
+    expect(onChange).toHaveBeenCalledWith(["foo", "bar", "baz"]);
+  });
+
+  it("filters empty lines when splitting", () => {
+    const onChange = vi.fn();
+    render(
+      <TextareaInput field={arrayField()} value={[]} onChange={onChange} />,
+    );
+    const ta = screen.getByRole("textbox");
+    fireEvent.change(ta, { target: { value: "foo\n\nbar\n" } });
+    expect(onChange).toHaveBeenCalledWith(["foo", "bar"]);
+  });
+
+  it("plain mode (no storeAs) still passes string through unchanged", () => {
+    const onChange = vi.fn();
+    render(
+      <TextareaInput
+        field={textField({ type: "textarea" })}
+        value="hello"
+        onChange={onChange}
+      />,
+    );
+    const ta = screen.getByDisplayValue("hello");
+    fireEvent.change(ta, { target: { value: "world" } });
+    expect(onChange).toHaveBeenCalledWith("world");
+  });
+});
+
 describe("NumberInput", () => {
   it("emits null when cleared", () => {
     const onChange = vi.fn();

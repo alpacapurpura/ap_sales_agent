@@ -1,12 +1,14 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Sparkles } from "lucide-react";
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 import { FieldLabelWithHelp } from "../../FieldLabelWithHelp";
+
 import { ArrayAddButton } from "./array-add-button";
 import { ArrayDragHandle } from "./array-drag-handle";
 import { ArrayFieldHeader } from "./array-field-header";
@@ -15,6 +17,7 @@ import { ArrayItemBadge } from "./array-item-badge";
 import { singulariseES } from "./array-singularise";
 import { summariseItem } from "./array-summary";
 import { computeItemStatus } from "./array-validation";
+import { BulkPasteSheet } from "./BulkPasteSheet";
 
 import type { NestedFieldRenderer } from "./types";
 import type { FieldSchema } from "@/lib/form-runtime/schema";
@@ -36,6 +39,11 @@ interface ArrayCardsEditorProps {
  * Ideal para arrays de 1–3 sub-campos.
  * Autosave: propaga onChange al padre en cada cambio de campo — el debounce vive
  * en use-auto-save.ts, no aquí.
+ *
+ * When field.bulkPasteAction is set, a secondary CTA appears in the header
+ * that opens a Sheet for bulk-paste → AI structuring. The Sheet is generic —
+ * it can be reused by any studio. See docs/contracts/offer-narrative-fields-CONTRACT.md
+ * §10 and Addendum §2.
  */
 export function ArrayCardsEditor({
   field,
@@ -49,6 +57,7 @@ export function ArrayCardsEditor({
   const fields = itemSchema?.fields ?? [];
 
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   function toggle(index: number) {
     setExpandedIndex((prev) => (prev === index ? null : index));
@@ -89,124 +98,156 @@ export function ArrayCardsEditor({
     if (items.length > 0) setExpandedIndex(0);
   }
 
+  function handleBulkResult(proposed: Row[]) {
+    // Merge: append proposed items to existing items (do not overwrite manual entries).
+    onChange([...items, ...proposed]);
+  }
+
   const singularLabel = itemSchema?.itemNoun ?? singulariseES(label);
+  const { bulkPasteAction } = field;
 
   return (
-    <Card className="overflow-hidden">
-      <ArrayFieldHeader
-        count={items.length}
-        onCollapseAll={items.length > 1 ? collapseAll : undefined}
-        onExpandAll={items.length > 1 ? expandAll : undefined}
-      />
+    <>
+      <Card className="overflow-hidden">
+        <ArrayFieldHeader
+          count={items.length}
+          onCollapseAll={items.length > 1 ? collapseAll : undefined}
+          onExpandAll={items.length > 1 ? expandAll : undefined}
+          extraActions={
+            bulkPasteAction && !disabled ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setSheetOpen(true)}
+                className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {bulkPasteAction.label}
+              </Button>
+            ) : undefined
+          }
+        />
 
-      <div className="p-4 space-y-2.5">
-        {items.map((item, index) => {
-          const isExpanded = expandedIndex === index;
-          const status = computeItemStatus(item, fields);
-          const summary = summariseItem(item, fields);
-          const itemNumber = String(index + 1).padStart(2, "0");
-          const firstRequiredField = fields.find((f) => f.required);
-          const fieldLabel = status.startsWith("required-")
-            ? (fields.find((f) => `required-${f.path}` === status)?.label ?? "campo")
-            : undefined;
+        <div className="p-4 space-y-2.5">
+          {items.map((item, index) => {
+            const isExpanded = expandedIndex === index;
+            const status = computeItemStatus(item, fields);
+            const summary = summariseItem(item, fields);
+            const itemNumber = String(index + 1).padStart(2, "0");
+            const firstRequiredField = fields.find((f) => f.required);
+            const fieldLabel = status.startsWith("required-")
+              ? (fields.find((f) => `required-${f.path}` === status)?.label ?? "campo")
+              : undefined;
 
-          return (
-            <div
-              key={index}
-              className={cn(
-                "rounded-lg border transition-colors",
-                isExpanded
-                  ? "border-primary/50 bg-card ring-1 ring-primary/20"
-                  : "border-border bg-muted/50 hover:border-border",
-              )}
-            >
-              {/* Item header row */}
+            return (
               <div
+                key={index}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2.5",
-                  isExpanded && "border-b border-border",
+                  "rounded-lg border transition-colors",
+                  isExpanded
+                    ? "border-primary/50 bg-card ring-1 ring-primary/20"
+                    : "border-border bg-muted/50 hover:border-border",
                 )}
               >
-                <ArrayDragHandle disabled={disabled} />
-
-                <button
-                  type="button"
-                  aria-label={
-                    isExpanded ? `Colapsar ítem ${index + 1}` : `Expandir ítem ${index + 1}`
-                  }
-                  onClick={() => toggle(index)}
-                  className="flex h-5 w-5 items-center justify-center text-muted-foreground hover:text-foreground"
-                >
-                  <ChevronRight
-                    className={cn(
-                      "h-4 w-4 transition-transform duration-200",
-                      isExpanded && "rotate-90",
-                      isExpanded && "text-primary",
-                    )}
-                  />
-                </button>
-
-                <span
+                {/* Item header row */}
+                <div
                   className={cn(
-                    "w-6 font-mono text-[11px]",
-                    isExpanded ? "text-primary" : "text-muted-foreground",
+                    "flex items-center gap-2 px-3 py-2.5",
+                    isExpanded && "border-b border-border",
                   )}
                 >
-                  {itemNumber}
-                </span>
+                  <ArrayDragHandle disabled={disabled} />
 
-                <button
-                  type="button"
-                  onClick={() => toggle(index)}
-                  className="min-w-0 flex-1 truncate text-left"
-                >
-                  {summary ? (
-                    <span className="truncate text-sm text-foreground">{summary}</span>
-                  ) : (
-                    <span className="truncate text-sm italic text-muted-foreground">
-                      Nuevo {singularLabel} — agrega{" "}
-                      {firstRequiredField?.label?.toLowerCase() ?? "título"}
-                    </span>
-                  )}
-                </button>
+                  <button
+                    type="button"
+                    aria-label={
+                      isExpanded ? `Colapsar ítem ${index + 1}` : `Expandir ítem ${index + 1}`
+                    }
+                    onClick={() => toggle(index)}
+                    className="flex h-5 w-5 items-center justify-center text-muted-foreground hover:text-foreground"
+                  >
+                    <ChevronRight
+                      className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        isExpanded && "rotate-90",
+                        isExpanded && "text-primary",
+                      )}
+                    />
+                  </button>
 
-                <ArrayItemBadge status={status} fieldLabel={fieldLabel} />
+                  <span
+                    className={cn(
+                      "w-6 font-mono text-[11px]",
+                      isExpanded ? "text-primary" : "text-muted-foreground",
+                    )}
+                  >
+                    {itemNumber}
+                  </span>
 
-                <ArrayItemActions
-                  onDuplicate={() => duplicateItem(index)}
-                  onRemove={() => removeItem(index)}
-                  disabled={disabled}
-                  className="ml-1"
-                />
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => toggle(index)}
+                    className="min-w-0 flex-1 truncate text-left"
+                  >
+                    {summary ? (
+                      <span className="truncate text-sm text-foreground">{summary}</span>
+                    ) : (
+                      <span className="truncate text-sm italic text-muted-foreground">
+                        Nuevo {singularLabel} — agrega{" "}
+                        {firstRequiredField?.label?.toLowerCase() ?? "título"}
+                      </span>
+                    )}
+                  </button>
 
-              {/* Expanded fields */}
-              {isExpanded && (
-                <div className="px-4 py-4 space-y-4">
-                  {fields.map((subField) => (
-                    <div key={subField.id}>
-                      <FieldLabelWithHelp
-                        field={subField}
-                        htmlFor={subField.id}
-                        className="mb-1.5 text-xs text-muted-foreground"
-                      />
-                      {renderField({
-                        field: subField,
-                        value: item[subField.path],
-                        onChange: (next) => updateItem(index, { [subField.path]: next }),
-                        disabled,
-                      })}
-                    </div>
-                  ))}
+                  <ArrayItemBadge status={status} fieldLabel={fieldLabel} />
+
+                  <ArrayItemActions
+                    onDuplicate={() => duplicateItem(index)}
+                    onRemove={() => removeItem(index)}
+                    disabled={disabled}
+                    className="ml-1"
+                  />
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
 
-      <ArrayAddButton label={singularLabel} onClick={addItem} disabled={disabled} />
-    </Card>
+                {/* Expanded fields */}
+                {isExpanded && (
+                  <div className="px-4 py-4 space-y-4">
+                    {fields.map((subField) => (
+                      <div key={subField.id}>
+                        <FieldLabelWithHelp
+                          field={subField}
+                          htmlFor={subField.id}
+                          className="mb-1.5 text-xs text-muted-foreground"
+                        />
+                        {renderField({
+                          field: subField,
+                          value: item[subField.path],
+                          onChange: (next) => updateItem(index, { [subField.path]: next }),
+                          disabled,
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <ArrayAddButton label={singularLabel} onClick={addItem} disabled={disabled} />
+      </Card>
+
+      {bulkPasteAction && (
+        <BulkPasteSheet
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
+          config={bulkPasteAction}
+          fieldPath={field.path}
+          onResult={handleBulkResult}
+        />
+      )}
+    </>
   );
 }
 

@@ -14,6 +14,7 @@ export type {
   SectionSchema,
   SectionKind,
   InstanceDisplay,
+  BulkPasteActionConfig,
 } from "./types";
 export { parseSectionSchema, SchemaParseError } from "./parser";
 export { inferFieldLayout, layoutToColSpanClass } from "./layout";

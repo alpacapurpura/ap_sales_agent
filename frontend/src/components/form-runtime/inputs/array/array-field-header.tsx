@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { cn } from "@/lib/utils";
 
 interface ArrayFieldHeaderProps {
@@ -14,6 +16,11 @@ interface ArrayFieldHeaderProps {
   onCollapseAll?: () => void;
   onExpandAll?: () => void;
   className?: string;
+  /**
+   * Optional slot for extra header actions (e.g. bulk-paste-AI CTA).
+   * Rendered to the left of the collapse/expand buttons.
+   */
+  extraActions?: React.ReactNode;
 }
 
 /**
@@ -28,6 +35,7 @@ export function ArrayFieldHeader({
   onCollapseAll,
   onExpandAll,
   className,
+  extraActions,
 }: ArrayFieldHeaderProps) {
   const counterLabel =
     recommended != null
@@ -48,29 +56,33 @@ export function ArrayFieldHeader({
         </span>
       </div>
 
-      {(onCollapseAll ?? onExpandAll) && (
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          {onCollapseAll && (
-            <button
-              type="button"
-              onClick={onCollapseAll}
-              className="px-2 py-1 hover:text-foreground transition-colors"
-            >
-              Colapsar todo
-            </button>
-          )}
-          {onCollapseAll && onExpandAll && <span className="text-muted-foreground/50">·</span>}
-          {onExpandAll && (
-            <button
-              type="button"
-              onClick={onExpandAll}
-              className="px-2 py-1 hover:text-foreground transition-colors"
-            >
-              Expandir todo
-            </button>
-          )}
-        </div>
-      )}
+      <div className="flex items-center gap-2">
+        {extraActions}
+
+        {(onCollapseAll ?? onExpandAll) && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            {onCollapseAll && (
+              <button
+                type="button"
+                onClick={onCollapseAll}
+                className="px-2 py-1 hover:text-foreground transition-colors"
+              >
+                Colapsar todo
+              </button>
+            )}
+            {onCollapseAll && onExpandAll && <span className="text-muted-foreground/50">·</span>}
+            {onExpandAll && (
+              <button
+                type="button"
+                onClick={onExpandAll}
+                className="px-2 py-1 hover:text-foreground transition-colors"
+              >
+                Expandir todo
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

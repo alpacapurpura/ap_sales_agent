@@ -41,8 +41,8 @@ function renderTextarea(p: FieldRendererProps) {
   return (
     <TextareaInput
       field={p.field}
-      value={p.value as string}
-      onChange={p.onChange as (v: string) => void}
+      value={p.value as string | string[] | null}
+      onChange={p.onChange as (v: string | string[] | null) => void}
       disabled={p.disabled}
       autoFocus={p.autoFocus}
       onBlur={p.onBlur}
