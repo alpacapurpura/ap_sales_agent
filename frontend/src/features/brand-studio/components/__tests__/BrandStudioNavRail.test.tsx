@@ -3,8 +3,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import type { SectionStatusEntry } from "@/features/copilot/hooks/use-section-status";
 
-import { BrandStudioNavRail } from "../BrandStudioNavRail";
-
 vi.mock("next/navigation", () => ({
   useParams: vi.fn(),
   usePathname: vi.fn(),
@@ -27,17 +25,46 @@ vi.mock("@/features/copilot/hooks/use-section-status", () => ({
   useSectionStatus: (_module: string) => mockSectionStatus(),
 }));
 
+// Fase 03 · Block D — BrandStudioNavRail now consumes the BE section
+// catalog via ``useBrandSectionCatalog``. Stub it with the 14-section
+// fixture so component tests stay decoupled from React Query.
+const MOCK_BRAND_SECTIONS = [
+  { key: "publico", label_es: "Buyer personas", icon_name: "Sparkles", kind: "collection" as const },
+  { key: "identity", label_es: "Identidad", icon_name: "Fingerprint", kind: "singleton" as const },
+  { key: "estilo", label_es: "Estilo Comunicacional", icon_name: "MessageCircle", kind: "singleton" as const },
+  { key: "positioning", label_es: "Posicionamiento", icon_name: "Target", kind: "singleton" as const },
+  { key: "narrative", label_es: "Narrativa", icon_name: "ScrollText", kind: "singleton" as const },
+  { key: "methodology", label_es: "Metodología", icon_name: "Flag", kind: "singleton" as const },
+  { key: "story", label_es: "Historia", icon_name: "FileText", kind: "singleton" as const },
+  { key: "team", label_es: "Equipo", icon_name: "Users", kind: "collection" as const },
+  { key: "authority", label_es: "Autoridad", icon_name: "Landmark", kind: "collection" as const },
+  { key: "testimonials", label_es: "Testimonios", icon_name: "Headphones", kind: "collection" as const },
+  { key: "visuals", label_es: "Visuales", icon_name: "Palette", kind: "singleton" as const },
+  { key: "communication-assets", label_es: "Assets", icon_name: "Layers", kind: "singleton" as const },
+  { key: "contact", label_es: "Contacto", icon_name: "Megaphone", kind: "singleton" as const },
+  { key: "legal", label_es: "Legal", icon_name: "Scale", kind: "singleton" as const },
+];
+
+vi.mock("../../hooks/use-brand-section-catalog", () => ({
+  useBrandSectionCatalog: () => ({
+    data: { version: "test", sections: MOCK_BRAND_SECTIONS },
+  }),
+}));
+
+// Import after mocks are registered.
+const { BrandStudioNavRail } = await import("../BrandStudioNavRail");
+
 describe("BrandStudioNavRail", () => {
   beforeEach(() => {
     mockSectionStatus.mockReturnValue({});
   });
 
-  it("renders every section + personas link", () => {
+  it("renders every section link from the catalog", () => {
     setRoute("/t-demo/brand-studio/identity");
     render(<BrandStudioNavRail />);
-    // 11 factory-generated sections + personas = 12 links
+    // 14 sections served by the backend catalog mock.
     const links = screen.getAllByRole("link");
-    expect(links.length).toBeGreaterThanOrEqual(12);
+    expect(links.length).toBe(MOCK_BRAND_SECTIONS.length);
   });
 
   it("marks the active section with aria-current=page", () => {

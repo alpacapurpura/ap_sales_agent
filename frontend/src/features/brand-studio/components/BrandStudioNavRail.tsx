@@ -9,8 +9,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useSectionStatus } from "@/features/copilot/hooks/use-section-status";
 import { cn } from "@/lib/utils";
 
-import { BRAND_SECTIONS, type BrandSectionMeta } from "../lib/section-catalog";
+import { useBrandSectionCatalog } from "../hooks/use-brand-section-catalog";
+import { resolveBrandIconByName } from "../lib/icon-name-resolver";
 
+import type { BrandSectionMetadata } from "../api/section-catalog-api";
 import type { SectionStatusEntry } from "@/features/copilot/hooks/use-section-status";
 
 /**
@@ -27,23 +29,25 @@ export function BrandStudioNavRail() {
   const pathname = usePathname();
   const activeSlug = pathname.split("/brand-studio/")[1]?.split("/")[0] ?? null;
   const sectionStatus = useSectionStatus("brand");
+  const { data: catalog } = useBrandSectionCatalog();
+  const sections: readonly BrandSectionMetadata[] = catalog?.sections ?? [];
 
   return (
     <TooltipProvider>
       <FinderColumn
         title="Secciones"
-        count={BRAND_SECTIONS.length}
+        count={sections.length}
         widthClass="w-[var(--brand-col-sections)]"
         ariaLabel="Secciones de Brand Studio"
       >
         <ul className="flex flex-col">
-          {BRAND_SECTIONS.map((section) => (
+          {sections.map((section) => (
             <SectionRow
-              key={section.slug}
+              key={section.key}
               tenantId={tenantId}
               section={section}
-              isActive={section.slug === activeSlug}
-              statusEntry={sectionStatus[section.slug]}
+              isActive={section.key === activeSlug}
+              statusEntry={sectionStatus[section.key]}
             />
           ))}
         </ul>
@@ -54,18 +58,18 @@ export function BrandStudioNavRail() {
 
 interface SectionRowProps {
   tenantId: string;
-  section: BrandSectionMeta;
+  section: BrandSectionMetadata;
   isActive: boolean;
   statusEntry?: SectionStatusEntry;
 }
 
 function SectionRow({ tenantId, section, isActive, statusEntry }: SectionRowProps) {
-  const Icon = section.icon;
+  const Icon = resolveBrandIconByName(section.icon_name);
   const status = statusEntry?.status ?? "idle";
 
   const linkContent = (
     <Link
-      href={`/${tenantId}/brand-studio/${section.slug}`}
+      href={`/${tenantId}/brand-studio/${section.key}`}
       aria-current={isActive ? "page" : undefined}
       className={cn(
         "relative flex min-h-[36px] items-center gap-2 border-b border-border/50",
@@ -79,7 +83,7 @@ function SectionRow({ tenantId, section, isActive, statusEntry }: SectionRowProp
         aria-hidden="true"
       />
       <span className={cn("flex-1 truncate", isActive ? "text-foreground" : "text-foreground/90")}>
-        {section.label}
+        {section.label_es}
       </span>
       <SectionBadge statusEntry={statusEntry} />
       <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />

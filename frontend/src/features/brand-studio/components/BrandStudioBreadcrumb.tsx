@@ -6,7 +6,7 @@ import { useMemo } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { getBrandSectionLabel } from "../lib/section-catalog";
+import { useBrandSectionLabelResolver } from "../hooks/use-brand-section-catalog";
 
 interface Crumb {
   label: string;
@@ -33,10 +33,11 @@ export function BrandStudioBreadcrumb() {
   const params = useParams<{ tenantId?: string }>();
   const tenantId = params?.tenantId ?? "";
   const pathname = usePathname();
+  const resolveLabel = useBrandSectionLabelResolver();
 
   const crumbs = useMemo<Crumb[]>(() => {
-    return buildCrumbs(pathname, tenantId);
-  }, [pathname, tenantId]);
+    return buildCrumbs(pathname, tenantId, resolveLabel);
+  }, [pathname, tenantId, resolveLabel]);
 
   return (
     <nav aria-label="Ruta" className="flex items-center gap-2 text-[13px]">
@@ -88,8 +89,16 @@ function appendInstanceCrumb(crumbs: Crumb[], args: InstanceCrumbArgs): void {
   if (fieldId) crumbs.push({ label: fieldId });
 }
 
-/** Build breadcrumb list from a pathname + tenant id. */
-export function buildCrumbs(pathname: string, tenantId: string): Crumb[] {
+/** Build breadcrumb list from a pathname + tenant id. Exported for tests.
+ *
+ * ``resolveSectionLabel`` is injected so the function stays pure and
+ * testable without mocking React hooks.
+ */
+export function buildCrumbs(
+  pathname: string,
+  tenantId: string,
+  resolveSectionLabel: (slug: string) => string,
+): Crumb[] {
   const root: Crumb = {
     label: "Brand Studio",
     href: tenantId ? `/${tenantId}/brand-studio` : undefined,
@@ -109,7 +118,7 @@ export function buildCrumbs(pathname: string, tenantId: string): Crumb[] {
   const crumbs: Crumb[] = [
     root,
     {
-      label: getBrandSectionLabel(section),
+      label: resolveSectionLabel(section),
       href: `/${tenantId}/brand-studio/${section}`,
     },
   ];

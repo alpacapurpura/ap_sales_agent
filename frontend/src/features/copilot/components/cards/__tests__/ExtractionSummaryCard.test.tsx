@@ -19,6 +19,11 @@ vi.mock("@/features/offer-studio/hooks/use-section-catalog", () => ({
   useSectionLabelResolver: () => (slug: string) => slug,
 }));
 
+// Fase 03 · Block D — same pattern for the brand catalog hook.
+vi.mock("@/features/brand-studio/hooks/use-brand-section-catalog", () => ({
+  useBrandSectionLabelResolver: () => (slug: string) => slug,
+}));
+
 import { ExtractionSummaryCard } from "../ExtractionSummaryCard";
 
 import type { ExtractionSummaryData } from "../../../types/message-blocks";
