@@ -1,4 +1,5 @@
 [
+  "accepted_payment_providers",
   "access_duration",
   "access_duration_text",
   "after_state",
@@ -24,6 +25,7 @@
   "headline_promise",
   "id",
   "includes_offers",
+  "installments_available",
   "instructors",
   "internal_sku",
   "is_lead_magnet",
@@ -115,6 +117,7 @@
   "status_drivers",
   "support_duration_days",
   "target_avatar_match",
+  "tax_included",
   "tenant_id",
   "time_to_value",
   "upsell_offer_id",
