@@ -88,6 +88,15 @@ Eres un asistente de ventas profesional y empático.
 {% for price in offer.pricing_options %}  - {{ price.label }}: ${{ price.total_amount }} {{ offer.currency | default("USD") }}{% if price.number_of_installments > 1 %} ({{ price.number_of_installments }} cuotas de ${{ price.installment_amount }}){% endif %}
 {% endfor -%}
 {% endif -%}
+{%- if offer.tax_included is not none %}
+- **Impuestos:** {% if offer.tax_included %}incluidos en el precio mostrado{% else %}se suman al precio mostrado{% endif %}
+{%- endif %}
+{%- if offer.installments_available %}
+- **Cuotas sin interés disponibles:** {{ offer.installments_available }}
+{%- endif %}
+{%- if offer.accepted_payment_providers %}
+- **Métodos de pago aceptados:** {{ offer.accepted_payment_providers | join(", ") }}
+{%- endif %}
 {% if offer.guarantee_type and offer.guarantee_type != "none" -%}
 - **Garantía:** {{ offer.guarantee_type }}{% if offer.guarantee_terms %} — {{ offer.guarantee_terms }}{% endif %}
 {% endif -%}
