@@ -1,9 +1,9 @@
 ---
-last_updated: 2026-04-24 (SPEC/ACCEPTANCE scripted)
-last_green_commit: b826928b
-active_phase: 02-migrate-sections
-sub_step: A/I (pre-block-A)
-status: in-progress
+last_updated: 2026-04-24 (Fase 02 closed)
+last_green_commit: 08c96b4a
+active_phase: 03-section-catalog-dedup
+sub_step: 0/? (ready-to-start)
+status: ready-to-start
 blockers: none
 branch: development
 working_tree_clean: true
@@ -13,18 +13,18 @@ working_tree_clean: true
 
 ## Dónde estamos
 
-- **Fase activa**: 02-migrate-sections (ready)
+- **Fase activa**: 03-section-catalog-dedup (ready)
 - **Sub-paso**: 0/? — a definir al arrancar la fase
-- **Último commit verde**: `92523a6e` (Fase 01 sub-step I, baseline roundtrip)
+- **Último commit verde**: `08c96b4a` (Fase 02 Block G close — PlatformDetails composable)
 - **Rama**: `development`
 - **Working tree**: limpio (archivos de sesiones paralelas ignorados)
 
 ## Próxima acción
 
-**Arrancar Fase 02**. Seguir:
+**Arrancar Fase 03**. Seguir:
 1. Lee [protocol/RESUME.md](protocol/RESUME.md)
-2. Lee [phases/02-migrate-sections/SPEC.md](phases/02-migrate-sections/SPEC.md) (a crear)
-3. Refinar SPEC con sub-steps concretos — las 8 secciones restantes bajo FieldContract
+2. Lee [phases/03-section-catalog-dedup/SPEC.md](phases/03-section-catalog-dedup/SPEC.md)
+3. Knowledge load 10-15 min (ver STATUS.md de Fase 03)
 4. Escribir ACCEPTANCE.md
 5. Ejecutá [protocol/PRE_FLIGHT.md](protocol/PRE_FLIGHT.md)
 
@@ -33,7 +33,8 @@ working_tree_clean: true
 - Offer de referencia: `a96403b5-c1db-4b31-97aa-cb18d08ad9f9` (tenant `1fd1562b-2101-410a-870c-dc2f7e27b355`)
 - Parallel session warning activa: NO `git add .`, stage por nombre, NO branch change
 - Regla tenant isolation + Spanish neutro LATAM aplican
-- Fase 01 closed — `KNOWN_UNRESOLVED_PATHS.size === 56`, cap Fase 02 baja
+- Fase 02 closed — `KNOWN_UNRESOLVED_PATHS.size === 21` (cross-module federated, Fase 05)
+- ADR-010 agregado: `PlatformDetails` composable, no 6ta entry ARCHETYPE_TO_DETAILS_MAPPING
 
 ## Historial de sesiones
 
@@ -58,6 +59,15 @@ working_tree_clean: true
 | 2026-04-24 | 28efe0e9 | Fase 01 H — agent_identity.j2 additive pricing block |
 | 2026-04-24 | 92523a6e | Fase 01 I — golden fixture regen + pricing LATAM roundtrip test |
 | 2026-04-24 | 81d52236 | Fase 01 J — close phase: docs + STATE bump + Fase 02 ready |
+| 2026-04-24 | b826928b | Fase 01 closing hash recorded in STATE + STATUS |
+| 2026-04-24 | 20f8e257 | Fase 02 open — SPEC + ACCEPTANCE + STATUS open |
+| 2026-04-24 | 13432b9b | Fase 02 A — Authority narrative on Offer (migration 063) |
+| 2026-04-24 | 0f36174e | Fase 02 B — Value-stack anchor (migration 064) |
+| 2026-04-24 | 4f1322fd | Fase 02 C — Program narratives on ProgramDetails |
+| 2026-04-24 | 3b4626ba | Fase 02 D — SubscriptionDetails renames + Latam (migration 065) |
+| 2026-04-24 | 262b6593 | Fase 02 E — ServiceDetails scope + expectation |
+| 2026-04-24 | 119e0015 | Fase 02 F — ProductDetails preview + shipping |
+| 2026-04-24 | 08c96b4a | Fase 02 G — PlatformDetails composable (migration 066, ADR-010) |
 
 ## Convención de actualización
 

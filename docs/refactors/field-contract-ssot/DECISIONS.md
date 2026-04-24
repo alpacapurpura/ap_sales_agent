@@ -228,3 +228,70 @@ En Fase 02+ se evalúa mover el enum a `shared/domain/payment.py`.
 **Tech debt entry**: TODO.md — "Mover `PaymentProvider` enum a
 `shared/domain/payment.py` y consumir desde offer + sales_agent". Programado
 evaluación al arrancar Fase 02.
+
+---
+
+## ADR-010 — `PlatformDetails` composable, no 6ta entry de ARCHETYPE_TO_DETAILS_MAPPING
+
+**Fecha**: 2026-04-24
+**Estado**: accepted
+**Contexto**: Fase 02 Block G cierra 14 paths `platform_*` del schema FE
+que estaban huérfanos. El SPEC de la fase planteaba originalmente introducir
+`OfferArchetype.PLATFORM` como 6ta entrada polimórfica en
+`ARCHETYPE_TO_DETAILS_MAPPING`. Una auditoría rápida demostró que ese camino
+cascadeaba en todo el sistema de archetypes:
+
+- `ARCHETYPE_CATALOG` (nueva entry completa: sections tuple, wizard copy,
+  `default_variant_structure`, `supported_variant_structures`,
+  examples, icon).
+- `format_catalog.py` (`suitable_for: dict[EBT, float]` per archetype).
+- `offer_type_preset_catalog.py` (nuevos presets PLATFORM o reubicación
+  de presets que hoy usan `_base_membresia()` con `SK.PLATFORM_DETAILS`).
+- `archetype_catalog.py::sections` para `MEMBRESIA` — perdería acceso a
+  `SK.PLATFORM_DETAILS` si queda exclusivo de PLATFORM, rompiendo los
+  ~8 presets SaaS-membership actuales.
+- Wizard UI (archetype picker) + edition / variant mechanics + dashboards
+  por tipo.
+
+Esa inflación de scope rompía la regla de "un concepto por commit"
+(INVARIANT 2) y obligaba a decisiones de producto (¿cómo se posiciona
+PLATFORM frente a MEMBRESIA SaaS?) ajenas al objetivo del refactor.
+
+**Decisión**: Introducir `PlatformDetails` como **campo composable** de
+primer nivel en `Offer` (`platform_details: PlatformDetails | None`),
+persistido en una columna JSONB dedicada (`products.platform_details`,
+migration 066). NO se agrega `OfferArchetype.PLATFORM` ni 6ta entry en
+`ARCHETYPE_TO_DETAILS_MAPPING`. El codegen se extiende explícitamente
+para walk `PlatformDetails.model_fields` y emitir `platform_details.X`
+paths.
+
+Los paths FE del schema `platform-details.schema.ts` se renombran de
+`X` (top-level huérfano) a `platform_details.X`. `SK.PLATFORM_DETAILS`
+sigue apareciendo en el rail de la sección para presets MEMBRESIA
+SaaS-flavored via `offer_type_preset_catalog.py` existente.
+
+**Razón**:
+- PlatformDetails es ortogonal al archetype — cualquier oferta puede
+  declarar metadata SaaS (features, integrations, compliance) sin
+  cambiar su archetype primario.
+- Evita cascade a catálogos, wizards, presets.
+- Mantiene SSoT estructural (los 14 paths ahora tienen origen canónico
+  en BE via `PlatformDetails`).
+- Reversible: si en una fase futura surge `OfferArchetype.PLATFORM` por
+  razones de producto, `PlatformDetails` se puede promover a 6ta entry
+  polimórfica sin repetir el refactor (los paths ya existen).
+
+**Alternativas rechazadas**:
+1. Promover a `OfferArchetype.PLATFORM` ahora — scope creep de producto,
+   rompe INVARIANT 2, toca presets y wizards.
+2. Extender `SubscriptionDetails` con 14 campos extra — bloat (8+14
+   fields), rompe responsabilidad (billing vs software), excluye a
+   archetypes no-MEMBRESIA de declarar platform metadata.
+3. Hoist los 14 campos flat en `Offer` — polución de la raíz (14
+   campos SaaS-only en todas las ofertas), FE mantenible porque
+   los paths quedan como estaban, pero BE sucio.
+
+**Contrato codegen**: `scripts/generate_offer_field_paths.py` ahora
+también walk `PlatformDetails.model_fields` → emite
+`platform_details.{field}`. Pattern reutilizable si futuras fases
+agregan otro composable (BrandGlossaryDetails, ComplianceDetails, etc.).

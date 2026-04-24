@@ -143,7 +143,93 @@ Append-only. Cada fase suma entries. Cross-cutting arriba. Per-fase abajo.
 
 ## Fase 02 — Migrate remaining sections
 
-**Status**: pending
+**Status**: done (2026-04-24)
+
+### Pre-fase expectations
+
+- Allowlist shrink 56 → 21 (35 paths cerrados distribuidos en 7 bloques
+  semánticos).
+- 21 restantes quedan para Fase 05 (cross-module federated).
+- PlatformDetails declarado con 6ta entry ARCHETYPE_TO_DETAILS_MAPPING.
+- Una migración idempotente por bloque con DB column; sin migración
+  para fields en JSONB `specific_details`.
+
+### Descubrimientos
+
+- **Pattern confirmado**: migration+domain+model+repo+DTO+FieldContract+
+  regen-codegen+allowlist-shrink en commit único por bloque semántico
+  escala bien hasta 7-bloque ambitious. Fase 01 lo probó con pricing;
+  Fase 02 lo replicó en 6 bloques adicionales sin abandonar la
+  invariante atómica.
+
+- **JSONB rename es casi gratuito**: migration 065 renombró
+  `billing_cycle→billing_frequency` y `content_update_freq→
+  content_update_frequency` con dos UPDATE filtrados por presencia de
+  la clave vieja + ausencia de la nueva. Idempotente en una query.
+  Downside: referencias a los nombres viejos viven fuera del dominio
+  (prompt j2, draft de herramienta copilot, assert de test). La
+  grep-check pre-commit los barrió todos sin falsos positivos.
+
+- **ADR-010 surgió al abrir Block G**: introducir
+  `OfferArchetype.PLATFORM` cascadeaba en `ARCHETYPE_CATALOG`,
+  `format_catalog`, `offer_type_preset_catalog`, wizard flows — todo
+  material de producto, no de refactor. La solución composable
+  (`Offer.platform_details: PlatformDetails | None`) con columna JSONB
+  dedicada preserva SSoT estructural sin tocar el sistema de archetypes.
+  Reversible: si en una fase futura PLATFORM sí merece archetype
+  propio, la promoción es mecánica porque los 14 paths ya viven en BE.
+
+- **Codegen extiende a composables**: `generate_offer_field_paths.py`
+  ahora walk explícitamente `PlatformDetails.model_fields` además de
+  `ARCHETYPE_TO_DETAILS_MAPPING.values()`. Patrón reutilizable — si
+  futuras fases introducen otro composable top-level, se agrega una
+  línea.
+
+- **FE schema migration a paths anidados es mecánica**: los 14 paths
+  `X` → `platform_details.X` son un find-and-replace sin semántica
+  nueva. El FE no conoce de "composable vs polymorphic" — solo sigue
+  la lista canónica emitida por el codegen.
+
+- **Block F (ProductDetails) y Block E (ServiceDetails) son baratos**:
+  al ser JSONB no hay migración, no hay repo mapping, no hay ProductModel
+  edit. La nueva persistencia sale sola via `specific_details.model_dump()`.
+  Por bloque: 5 líneas en `details.py` + N entries en `field_contract.py`
+  + regen codegen + shrink allowlist. <5 min cada uno.
+
+### Decisiones nuevas
+
+- ADR-010 — `PlatformDetails` composable, no 6ta entry en
+  `ARCHETYPE_TO_DETAILS_MAPPING`. Desvío documentado del SPEC original
+  de Fase 02 para mantener scope refactor sin invadir producto.
+
+### Deuda técnica encontrada
+
+- **Extraction prompts no actualizados para nuevos campos**: authority
+  block, value-stack anchor/positioning, program narratives, service
+  scope, product shipping no tienen entradas en los prompts j2
+  correspondientes. LLM no los extraerá (quedarán null por default).
+  No bloquea: campos están disponibles manualmente en UI + sales-agent
+  render additive. Programado Fase 05 cuando se unifique el sales-agent
+  + landing data-driven.
+
+- **Platform extraction opcional**: prompts j2 no contemplan
+  `platform_details.*`. SaaS-flavored offers requieren llenado manual
+  hasta que Fase 05 unifique el downstream. UI lo permite.
+
+- **Pre-existing lint noise en `scripts/`**: 418 errores ruff en
+  scripts/ no relacionados al refactor (mayormente `PTH100`/`I001`
+  en scripts antiguos). Ignorado; ruff check del módulo offer está
+  limpio. Entry en `docs/mejoras-proceso/to-do.md` sugerido.
+
+- **Fase 01 flagged**: `# noqa` inválido en
+  `src/modules/offer/api/offer_type_presets.py:28` — warning ruff
+  persiste en todas las corridas. Backlog.
+
+- **Golden fixture no regenerada**: baseline `a96403b5...` es
+  PROGRAMA → los nuevos fields del Block D (MEMBRESIA) no aplican; los
+  otros bloques son additive y el fixture usa `exclude_none=True`, por
+  lo que el hash queda idéntico sin data nueva. Si Fase 03 requiere
+  roundtrip fixture regeneración, documentar ahí.
 
 ---
 
