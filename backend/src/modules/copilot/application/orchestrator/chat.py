@@ -43,6 +43,9 @@ from src.modules.copilot.application.extraction.active_job_state import load_act
 from src.modules.copilot.application.guided.state import load_guided_state
 from src.modules.copilot.application.observability import trace_recorder
 from src.modules.copilot.application.orchestrator.graph import copilot_graph
+from src.modules.copilot.application.orchestrator.output_sanitizer import (
+    sanitize_assistant_text,
+)
 from src.modules.copilot.application.orchestrator.state import (
     create_initial_copilot_state,
 )
@@ -300,6 +303,33 @@ def _truncate_for_trace(value: object) -> object:
     return value
 
 
+def _sanitize_ai_messages(messages: list) -> list:
+    """Strip JSON blocks from every AIMessage.content in the list.
+
+    Invoked just before persistence so the chat history stays clean even
+    when the LLM ignores the "no JSON in chat" prompt rule. Non-AIMessage
+    entries pass through untouched.
+    """
+    cleaned: list = []
+    for msg in messages:
+        if isinstance(msg, AIMessage) and isinstance(msg.content, str) and msg.content:
+            new_content = sanitize_assistant_text(msg.content)
+            if new_content != msg.content:
+                # Preserve tool_calls and any additional_kwargs; only rewrite content.
+                cleaned.append(
+                    AIMessage(
+                        content=new_content,
+                        additional_kwargs=msg.additional_kwargs,
+                        response_metadata=msg.response_metadata,
+                        tool_calls=getattr(msg, "tool_calls", []),
+                        id=msg.id,
+                    ),
+                )
+                continue
+        cleaned.append(msg)
+    return cleaned
+
+
 @dataclass
 class _StreamAccumulator:
     """Mutable accumulator shared between stream_chat and _run_graph_stream."""
@@ -513,6 +543,13 @@ class CopilotOrchestrator:
 
         usage.log(conversation_id=conv_id, tenant_id=str(tenant_id))
 
+        # Sanitize AI messages before persistence: the sanitizer already ran
+        # on acc.full_response when the last text block was finalized, but
+        # _persist_messages serializes acc.messages (the raw LangGraph
+        # pipeline state) — so any JSON blobs the LLM emitted survive unless
+        # we strip them here too.
+        acc.messages = _sanitize_ai_messages(acc.messages)
+
         self._persist_messages(
             conv_uuid,
             tenant_id,
@@ -623,12 +660,19 @@ class CopilotOrchestrator:
             acc.messages = []
             return
 
-        # Finalize v2 text block
+        # Finalize v2 text block. The sanitizer is the last line of defense
+        # against the LLM ignoring the "no JSON in chat" prompt rule — it
+        # strips raw code-fenced payloads so the persisted message and the
+        # FE's final render stay clean, even if streamed deltas briefly
+        # flashed the JSON on the client.
         if acc.text_block_id is not None:
+            sanitized_markdown = sanitize_assistant_text(acc.text_block_markdown)
+            acc.text_block_markdown = sanitized_markdown
+            acc.full_response = sanitized_markdown
             final_text_block: dict = {
                 "id": acc.text_block_id,
                 "type": "text",
-                "markdown": acc.text_block_markdown,
+                "markdown": sanitized_markdown,
             }
             yield SSEEvent(
                 event="block_end",

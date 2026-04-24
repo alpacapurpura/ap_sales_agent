@@ -9,6 +9,7 @@ Tools are selected dynamically based on the user's current route.
 The system prompt is enriched with a completion snapshot and module list.
 """
 
+import json
 import re
 from typing import Literal
 from uuid import UUID
@@ -611,7 +612,7 @@ async def tool_executor_node(state: CopilotState) -> dict:
                 result = await tool_map[tool_name].ainvoke(tool_args)
                 tool_messages.append(
                     ToolMessage(
-                        content=_truncate_tool_content(str(result)),
+                        content=_tool_message_content(result),
                         tool_call_id=tool_call["id"],
                         name=tool_name,
                     ),
@@ -654,6 +655,39 @@ def _truncate_tool_content(content: str) -> str:
         return content
     head = _TOOL_MESSAGE_CONTENT_CAP - len(_TRUNCATION_MARKER)
     return content[:head] + _TRUNCATION_MARKER
+
+
+def _tool_message_content(result: object) -> str:
+    """Build the ToolMessage ``content`` the LLM will see on its next turn.
+
+    Tools that emit a ``ui_action`` payload (preview_update, clarify_card,
+    proposal, …) produce big JSON blobs meant for the frontend. Feeding the
+    raw blob back to the model invites regurgitation: the LLM sees the
+    delta it just extracted and repeats it verbatim as an assistant
+    message (observed: ``preview_update`` delta echoed into chat after a
+    successful ``extract_document_to_fields``).
+
+    The tool can opt-in to a condensed summary by including an
+    ``llm_content`` key in its JSON output. When present we forward that
+    string (truncated) as the ToolMessage; the SSE layer still emits the
+    full ``ui_action`` to the client separately, so the preview card is
+    unaffected.
+
+    Legacy tools without ``llm_content`` keep the old behaviour:
+    ``str(result)`` with the same truncation cap.
+    """
+    raw = str(result)
+    try:
+        parsed = json.loads(raw)
+    except (TypeError, ValueError):
+        return _truncate_tool_content(raw)
+
+    if isinstance(parsed, dict):
+        llm_content = parsed.get("llm_content")
+        if isinstance(llm_content, str) and llm_content.strip():
+            return _truncate_tool_content(llm_content)
+
+    return _truncate_tool_content(raw)
 
 
 def should_continue(state: CopilotState) -> Literal["tools", "end"]:

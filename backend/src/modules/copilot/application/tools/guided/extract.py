@@ -45,6 +45,13 @@ def _recovery_card(text: str, code: str, domain: str) -> str:
         {
             "text": text,
             "error": code,
+            "llm_content": (
+                f"La extracción del documento falló ({code}). El usuario "
+                "ya ve una tarjeta con las opciones Reintentar / Subir otro "
+                "documento / Llenar manualmente. NO describas el error con "
+                "detalle técnico. Escribe una sola línea breve invitando a "
+                "elegir una opción."
+            ),
             "ui_action": {
                 "type": "clarify_card",
                 "clarify_items": [
@@ -217,11 +224,24 @@ def extract_document_to_fields(  # noqa: PLR0911 — each return is a distinct t
                 domain,
             )
 
+        section_names = sorted({k.split(".", 1)[0] for k in delta})
+        sections_hint = ", ".join(section_names) if section_names else "varias secciones"
+
         return json.dumps(
             {
                 "text": (
                     f"Extraje {fields_extracted} campo(s) del documento "
                     f"'{asset.filename}'. Revisa el preview para aprobarlos."
+                ),
+                # ``llm_content`` is the condensed view the model sees in its
+                # next turn — keeps the raw delta out of the context window
+                # so the LLM cannot copy-paste field values into chat.
+                "llm_content": (
+                    f"Extracción exitosa: {fields_extracted} campo(s) del "
+                    f"documento '{asset.filename}' repartidos en {sections_hint}. "
+                    "El usuario ya ve la card de preview con los valores; "
+                    "NO los repitas en tu respuesta. Responde en UNA línea "
+                    "corta invitando a revisar y aprobar el preview."
                 ),
                 "ui_action": {
                     "type": "preview_update",
