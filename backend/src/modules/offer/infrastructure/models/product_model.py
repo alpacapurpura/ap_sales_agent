@@ -117,6 +117,10 @@ class ProductModel(Base):
     status_drivers = Column(JSONB, nullable=False, default=list, server_default="[]")
     regret_scenarios = Column(JSONB, nullable=False, default=list, server_default="[]")
 
+    # --- Authority narrative (Fase 02 · Block A) --------------------------
+    authority_positioning_for_sales = Column(Text, nullable=True)
+    authority_notes = Column(Text, nullable=True)
+
     # --- Narrative: closing ----------------------------------------------
     refund_process_description = Column(Text, nullable=True)
     urgency_drivers = Column(JSONB, nullable=False, default=list, server_default="[]")

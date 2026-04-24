@@ -53,6 +53,9 @@ class OfferRepository:
             "support_duration_days": model.support_duration_days,
             "delivery_model": normalize_delivery_model(model.delivery_model),
             "instructors": [],
+            # Authority narrative (Fase 02 · Block A)
+            "authority_positioning_for_sales": model.authority_positioning_for_sales,
+            "authority_notes": model.authority_notes,
             "requires_application": model.requires_application or False,
             "min_financial_capacity": normalize_financial_capacity(
                 model.min_financial_capacity,
@@ -190,6 +193,9 @@ class OfferRepository:
             bonus_if_act_now=offer.bonus_if_act_now,
             final_push_copy=offer.final_push_copy,
             metadata_info=offer.metadata_info,
+            # Authority narrative (Fase 02 · Block A)
+            authority_positioning_for_sales=offer.authority_positioning_for_sales,
+            authority_notes=offer.authority_notes,
         )
 
     def get_by_id(

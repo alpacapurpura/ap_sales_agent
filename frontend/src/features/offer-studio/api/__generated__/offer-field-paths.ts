@@ -21,6 +21,8 @@ export type OfferFieldPath =
   | "anti_avatar_keywords"
   | "archetype"
   | "archived_at"
+  | "authority_notes"
+  | "authority_positioning_for_sales"
   | "before_state"
   | "bonus_if_act_now"
   | "calendar_type_id"
@@ -149,6 +151,8 @@ export const OFFER_FIELD_PATHS: readonly OfferFieldPath[] = [
   "anti_avatar_keywords",
   "archetype",
   "archived_at",
+  "authority_notes",
+  "authority_positioning_for_sales",
   "before_state",
   "bonus_if_act_now",
   "calendar_type_id",

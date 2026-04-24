@@ -122,12 +122,45 @@ PRICING_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
 
 
 # ---------------------------------------------------------------------------
-# Registry (grows per phase — pricing only in Fase 01)
+# Instructors / authority section — 2 fields (Fase 02 · Block A)
+# ---------------------------------------------------------------------------
+
+INSTRUCTORS_SECTION = "instructors"
+
+INSTRUCTORS_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
+    FieldContract(
+        path="authority_positioning_for_sales",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=INSTRUCTORS_SECTION,
+        required=False,
+        notes=(
+            "Narrativa + credenciales para sales-agent cuando el lead"
+            " pregunta por el instructor. Reemplaza listados planos."
+        ),
+    ),
+    FieldContract(
+        path="authority_notes",
+        type="text",
+        owner=FieldOwner.OFFER,
+        section=INSTRUCTORS_SECTION,
+        required=False,
+        notes=(
+            "Credenciales puntuales de la oferta (speakers invitados,"
+            " coaches). No mutan el perfil maestro del instructor."
+        ),
+    ),
+)
+
+
+# ---------------------------------------------------------------------------
+# Registry (grows per phase — pricing in Fase 01, +instructors in Fase 02 A)
 # ---------------------------------------------------------------------------
 
 _PHASE_01_CONTRACTS: tuple[FieldContract, ...] = PRICING_FIELD_CONTRACTS
+_PHASE_02_CONTRACTS: tuple[FieldContract, ...] = INSTRUCTORS_FIELD_CONTRACTS
 
-FIELD_CONTRACT_REGISTRY: tuple[FieldContract, ...] = _PHASE_01_CONTRACTS
+FIELD_CONTRACT_REGISTRY: tuple[FieldContract, ...] = _PHASE_01_CONTRACTS + _PHASE_02_CONTRACTS
 
 
 def contracts_by_section(section: str) -> tuple[FieldContract, ...]:
@@ -148,7 +181,7 @@ class FieldContractRegistrySnapshot:
 
 
 # Bump when the registry changes materially.
-FIELD_CONTRACT_VERSION = "2026-04-24-fase-01-pricing-pilot"
+FIELD_CONTRACT_VERSION = "2026-04-24-fase-02-block-a-authority"
 
 FIELD_CONTRACT_SNAPSHOT = FieldContractRegistrySnapshot(
     version=FIELD_CONTRACT_VERSION,

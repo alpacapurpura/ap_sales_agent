@@ -119,6 +119,16 @@ class Offer(BaseEntity):
     support_duration_days: int | None = None
     instructors: list[str] = []
 
+    # --- Authority narrative (Fase 02 · Block A — FieldContract) ---
+    # Sales-agent-facing positioning of the instructor (narrative +
+    # credentials + proof). Consumed by ``agent_identity.j2`` when the lead
+    # asks "¿quién dicta?".
+    authority_positioning_for_sales: str | None = None
+    # Per-offer credential notes that apply only to this offer (invited
+    # speakers, extra coaches). Layer on top of brand-studio KeyFigure bios
+    # without mutating the master profile.
+    authority_notes: str | None = None
+
     requires_application: bool
     min_financial_capacity: FinancialCapacity
     prerequisites: list[PrerequisiteType | str] = []
@@ -494,3 +504,18 @@ class OfferInstructorsUpdate(BaseEntity):
     """Offer Instructors Update."""
 
     instructors: list[str] | None = None
+    authority_positioning_for_sales: str | None = Field(
+        None,
+        description=(
+            "Narrativa + credenciales + proof del instructor para el"
+            " sales-agent. Lo cita cuando el lead pregunta '¿quién dicta?'."
+        ),
+    )
+    authority_notes: str | None = Field(
+        None,
+        description=(
+            "Credenciales específicas de esta oferta (speakers invitados,"
+            " coaches extra, certificaciones puntuales). No mutan la ficha"
+            " del instructor en Brand Studio."
+        ),
+    )
