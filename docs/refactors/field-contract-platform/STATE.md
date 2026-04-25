@@ -1,9 +1,9 @@
 ---
-last_updated: 2026-04-24 (Fase 07 done)
-last_green_commit: e4714606
+last_updated: 2026-04-24 (Fase 08 in progress · sub-step A done)
+last_green_commit: 1f210a5d
 active_phase: 08-copilot-unification
-sub_step: 0/? (ready-to-start)
-status: ready-to-start
+sub_step: A/F
+status: in_progress
 blockers: none
 branch: development
 working_tree_clean: true

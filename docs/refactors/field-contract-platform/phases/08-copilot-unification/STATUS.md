@@ -1,15 +1,18 @@
 ---
-status: ready-to-start
-opened_at: null
+status: in_progress
+opened_at: 2026-04-24
 closed_at: null
-baseline_green_commit: (to be filled by 07.G commit)
+baseline_green_commit: 1f210a5d
+sub_step: A/F
+baseline_arch_tests: 490
+baseline_copilot_acceptance: 52
 ---
 
 # Fase 08 — Copilot unification · Status
 
-**Ready-to-start**. Fase 07 cerrada. 3 módulos migrados al
+**In progress** (sub-step 08.A). Fase 07 cerrada. 3 módulos migrados al
 FieldContract platform: offer + brand + buyer_persona.
-491 arch tests + 4286 BE tests verde como baseline.
+490 arch tests + 52 copilot acceptance tests verde como baseline.
 
 ## Scope (per PLAN.md §Fase 08)
 
