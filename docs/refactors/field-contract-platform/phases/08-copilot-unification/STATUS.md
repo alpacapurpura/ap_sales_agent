@@ -1,18 +1,41 @@
 ---
-status: in_progress
+status: done
 opened_at: 2026-04-24
-closed_at: null
+closed_at: 2026-04-24
 baseline_green_commit: 1f210a5d
-sub_step: A/F
+last_green_commit: e1f44284
+sub_step: F/F
 baseline_arch_tests: 490
+final_arch_tests: 507
 baseline_copilot_acceptance: 52
+final_copilot_acceptance: 52
 ---
 
 # Fase 08 — Copilot unification · Status
 
-**In progress** (sub-step 08.A). Fase 07 cerrada. 3 módulos migrados al
-FieldContract platform: offer + brand + buyer_persona.
-490 arch tests + 52 copilot acceptance tests verde como baseline.
+**Done**. 5 commits atómicos (0d9ccc40 → e1f44284). Copilot ahora
+consume `FieldContract` cross-module sin SSoT paralelos. Reduce 5
+fuentes (port + 3 catalog files + schema_introspection) a 1 (registry).
+
+## Resultados
+
+| Métrica | Pre-Fase 08 | Post-Fase 08 |
+|---|---|---|
+| Catalog projection files (offer/brand/buyer_persona) | 3 boilerplate idéntico | 0 (deriva en port) |
+| `_DOMAIN_BUILDERS` source | mixto (Pydantic walk + import + hand-authored) | 1 (FieldContract registry) |
+| `_DOMAIN_DICT_PARENTS` | hand-authored hardcoded | derivado de `BUYER_PERSONA_DICT_SUBKEYS.keys()` |
+| Tests arch | 490 | 507 (+25 derivation/anti-regression -8 dropped projection) |
+| Tests copilot acceptance | 52 | 52 (byte-identical) |
+
+## Sub-steps
+
+| # | Commit | Descripción |
+|---|---|---|
+| 08.A | `0d9ccc40` | docs PRE_INVESTIGATION + SPEC + ACCEPTANCE |
+| 08.B | `b4e7a43d` | port deriva + drop 3 catalog projection files |
+| 08.C | `074977b6` | schema_introspection._build_*_paths derivan |
+| 08.D | `e1f44284` | 3 arch tests anti-regression (derivation + no catalog files + no hand-authored paths) |
+| 08.F | (this commit) | close phase + LEARNINGS + STATE/STATUS bump + HANDOFF Fase 09 |
 
 ## Scope (per PLAN.md §Fase 08)
 

@@ -611,10 +611,152 @@ Last green commit Fase 07: `e4714606`. Close commit en 07.G.
 
 ## Fase 08 — Copilot unification
 
-**Status**: pending
+**Status**: done (2026-04-24)
+
+### Pre-fase expectations vs realidad
+
+- ✅ `editable_fields` port deriva de `get_module_contracts(domain)` con
+  filtros `can_propose=True` + `status=ACTIVE` + dedupe por path. Default
+  behavior; `register_catalog` retenido para test stubs.
+- ✅ Drop de 3 archivos `copilot_editable_fields*.py` (offer/brand/
+  buyer_persona) — boilerplate idéntico que ahora vive 1 vez en el port
+  como `_derive_from_contracts`.
+- ✅ `schema_introspection._build_*_paths` derivan: brand consume
+  contracts + sections (preserva validate_field_path("brand", "identity")
+  bare section), offer consume contracts directo (drop indirección
+  PERSISTABLE_FIELDS), buyer_persona consume contracts (drop hand-authored
+  set de 24 paths).
+- ✅ `_DOMAIN_DICT_PARENTS["buyer_persona"]` derivado de
+  `BUYER_PERSONA_DICT_SUBKEYS.keys()` via `_get_dict_parents()` lazy
+  getter. Mantiene API privada para field_paths_hint consumer.
+- ✅ UX byte-identical: 52/52 acceptance copilot tests pre/post idéntico.
+  propose_field_updates valida con la misma surface; extract_structured
+  también; field_paths_hint produce same markdown.
+- ✅ 3 arch tests anti-regression: derivation projection check +
+  no_catalog_projection_files + no hand-authored paths AST scan.
+- ✅ `offer_fields.py` mantenido como alias documentado (decisión
+  PRE_INVESTIGATION §5: 4 consumers + critical-path persister, drop
+  introduce riesgo > beneficio en Fase 08; schema_introspection ya no
+  consume PERSISTABLE_FIELDS, otra deuda menos).
+
+### Resultados cuantitativos
+
+| Métrica | Pre-Fase 08 | Post-Fase 08 |
+|---|---|---|
+| Catalog projection files (boilerplate) | 3 (offer + brand + buyer_persona) | 0 |
+| Líneas de código (catalog projections) | ~270 (90 LOC × 3 archivos) | 0 |
+| `_DOMAIN_BUILDERS` fuente | mixto (3 backends) | 1 (FieldContract registry) |
+| Tests arch totales | 491 (post 07.G) → 490 (medido baseline) | 507 |
+| Tests arch nuevos en 08 | n/a | +25 derivation/anti-regression |
+| Tests arch dropped en 08 | n/a | -8 (2 catalog_projection files × 4 tests) |
+| Tests copilot acceptance | 52 | 52 (byte-identical) |
+| Tests copilot total | 695 | 695 |
+| SSoT paths cross-module | 5+ (port catalog + 3 module files + offer_fields + schema_introspection sets) | 1 (FieldContract registry) |
+
+### Descubrimientos
+
+- (08.A) PRE_INVESTIGATION reveló que los 3 catalog files
+  `copilot_editable_fields*.py` eran **literalmente idénticos** modulo
+  el dedupe que offer agregaba (polymorphic). Refactor obvio: un solo
+  helper en el port.
+
+- (08.B) Drop de los 3 catalog files rompió 5 arch tests por imports
+  rotos. Refactor / drop:
+  - `test_brand_editable_fields_baseline.py`: import via `get_catalog("brand")`.
+  - `test_buyer_persona_editable_fields_baseline.py`: idem.
+  - `test_field_contract_platform_coverage.py`: usa `get_catalog("offer")`.
+  - `test_brand_catalog_projection.py`: DROP — funcionalidad folded
+    en 08.D test_editable_fields_derivation (proyección por construcción).
+  - `test_buyer_persona_catalog_projection.py`: DROP idem.
+
+- (08.C) `_build_brand_paths` derivado necesita union `paths | sections`.
+  Sin la union, `validate_field_path("brand", "identity")` retornaría
+  False — rompiendo 5 assertions en `test_extract_validation.py`.
+  Solución: `paths = {c.path for c in contracts} | {c.section for c in contracts}`.
+
+- (08.C) `_DOMAIN_DICT_PARENTS` consumer privado en
+  `field_paths_hint.py:24`. Cambiar la inicialización de eager a lazy
+  rompería el consumer (returns None en first call). Solución:
+  `_get_dict_parents(domain)` lazy getter + cache; field_paths_hint
+  migrado a usar el getter (drop import directo del private dict).
+
+- (08.C) Brand contract surface tiene tanto OBJECT contracts (sub-objects
+  con can_propose=False, paths como "identity", "story") como nested
+  paths ("identity.brand_name"). Para validate_field_path("brand", "identity")
+  bastaría incluir solo OBJECT paths del registry, pero el path
+  "identity" en el OBJECT contract tiene section=identity (proper),
+  por lo que la union `paths | sections` es equivalente y más robusta.
+
+- (08.C) `validate_field_path("buyer_persona", "demographics.income_range")`
+  (legacy, NO en contract) sigue True via prefix match: parent
+  "demographics" es dict_parent. Comportamiento legacy preservado por
+  diseño — la prefix match acepta sub-keys nuevos sin code change
+  (ver schema_introspection docstring).
+
+- (08.D) AST scan para detectar set literals con >5 strings es robusto:
+  el viejo `top_level = {"name", "tagline", "pain_points", ...}` (8
+  strings) quedaba con 8 entries; el nuevo derivation es 1 set comp.
+  Threshold 5 da margen sin falsos positivos.
+
+### Decisiones nuevas
+
+Ninguna ADR formal. Decisiones de scope reduction documentadas in-line:
+
+- Mantener `offer_fields.py` como alias (decisión PRE_INVESTIGATION §5).
+  4 consumers críticos (incluso offer_persister) — drop introduce
+  cambios en código de persistencia con riesgo > beneficio.
+- `register_catalog` API mantenida (test stubs, custom catalogs futuros).
+  Default es derivación pero override sigue posible.
+- `_get_dict_parents()` lazy getter en lugar de eager population de
+  `_DOMAIN_DICT_PARENTS`. Mantiene contrato lazy del módulo + private
+  consumer field_paths_hint.
+
+### Deuda técnica encontrada (en scope, resuelta)
+
+- ✅ Drift potencial entre 3 catalog projection files paralelos cerrado
+  por construcción (port deriva).
+- ✅ Drift potencial entre `validate_field_path` (schema_introspection
+  hand-authored) y FieldContract registry cerrado (builders derivan).
+- ✅ Anti-regression tests previenen re-introducción de catalog files
+  (test_no_catalog_projection_files) o hand-authored sets
+  (test_schema_introspection_derives_from_registry).
+
+### Deuda técnica (tangencial — entry en `docs/mejoras-proceso/to-do.md`)
+
+- `offer_fields.py` mantenido como alias de PERSISTABLE_FIELDS. 38 LOC
+  triviales. Drop futuro requiere migrar offer_persister a
+  `get_module_contracts("offer")` directo + golden snapshot tests más
+  amplios. Diferido — no bloqueante.
+- `get_model_sections(model_class)` opera 1:1 sobre Pydantic. 6+
+  consumers (admin tenant_health, awareness, module_tools, procedures,
+  graph snapshot, nudge api). Migración al FieldContract requiere que
+  el contract incluya rich Pydantic-equivalent metadata (sub_fields,
+  field_descriptions). Out of scope Fase 08 — Fase 09+ cuando Fase 9
+  necesite contract-driven section views.
+- Diferidos Fase 05 (LEARNINGS Fase 05): data-driven loop full,
+  completion alignment, landing aggregate migration. Siguen pendientes.
+  Fase 09 puede evaluarlos en sub-fase dedicada.
+
+### Para Fase 09
+
+- Multi-channel projection (whatsapp/telegram conversational copilot).
+  PRE_INVESTIGATION debe inventariar:
+  - Estado actual del copilot conversacional cross-channel.
+  - Channel adapters (si ya existen) y cómo bind tools.
+  - Trade-off determinístico vs LLM-driven question selection.
+  - Compat web ↔ chat: form-runtime web sigue idéntico.
+- Diferidos posibles a tomar en una sub-fase de Fase 09:
+  - Full data-driven `agent_identity.j2` loop (LEARNINGS Fase 05).
+  - Completion ↔ contract semantic alignment (LEARNINGS Fase 05).
+  - Landing aggregate migration (LEARNINGS Fase 05).
+  - Walker extension para list[dict] item sub-keys (LEARNINGS Fase 07).
+
+### Closing commit hash
+
+Last green commit Fase 08: `e1f44284`. Close commit en 08.F.
 
 ---
 
 ## Fase 09 — Multi-channel projection
 
-**Status**: pending
+**Status**: ready-to-start

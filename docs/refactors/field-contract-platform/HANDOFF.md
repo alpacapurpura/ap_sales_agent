@@ -1,19 +1,19 @@
 # Handoff — siguiente sesión Claude
 
 > Prompt listo para pegar y arrancar la próxima fase. Generado al cerrar
-> Fase 07 (`e4714606`). Sirve como anclaje para retomar el refactor sin
+> Fase 08 (`e1f44284`). Sirve como anclaje para retomar el refactor sin
 > reconstruir contexto desde cero.
 
 ## Cómo usar este doc
 
-1. Pegá el prompt de **Fase 08** (abajo) en una nueva sesión Claude
+1. Pegá el prompt de **Fase 09** (abajo) en una nueva sesión Claude
    con working dir `/home/chris/AISALESHT`.
 2. Claude lee `STATE.md` + protocolos + PRE_INVESTIGATION + SPEC de la
    fase activa antes de tocar código.
 3. Cada commit atómico revertible. Commit final actualiza este HANDOFF
    con el prompt de la fase siguiente.
 
-## Prompt — arrancar Fase 08 (Copilot unification)
+## Prompt — arrancar Fase 09 (Multi-channel projection)
 
 ```
 Retomamos refactor field-contract-platform.
@@ -21,129 +21,107 @@ Retomamos refactor field-contract-platform.
 Workspace: docs/refactors/field-contract-platform/
 
 Estado:
-- Fase cerrada: 07-buyer-migration (commits 8394ecee → e4714606)
-- Fase activa: 08-copilot-unification (ready-to-start)
-- Last green commit: e4714606
+- Fase cerrada: 08-copilot-unification (commits 0d9ccc40 → e1f44284)
+- Fase activa: 09-multi-channel-projection (ready-to-start)
+- Last green commit: e1f44284
 - Branch: development
 - Working tree: limpio (3 ajenos: buyer-persona-ai-flow-verified.png,
   qa-extract-clean.png, docs/refactors/copilot-architecture/)
-- Backend tests: 4286+ pass · arch tests: 491 · shared platform: 23
-- 3 módulos migrados al FieldContract platform: offer + brand + buyer_persona
+- Backend tests: 695 copilot pass · arch tests: 507 · acceptance copilot: 52
+- 3 módulos migrados al FieldContract platform: offer + brand +
+  buyer_persona. Copilot consume el registry unificado (Fase 08).
 
 Protocolo de arranque obligatorio:
 
 1. Leé en orden (5-10 min):
    - docs/refactors/field-contract-platform/STATE.md
    - docs/refactors/field-contract-platform/INVARIANTS.md
-   - docs/refactors/field-contract-platform/PLAN.md §Fase 08
+   - docs/refactors/field-contract-platform/PLAN.md §Fase 09
    - docs/refactors/field-contract-platform/DESIGN.md (escanear §2.5
-     proyecciones por consumer + §2.6 tests cross-cutting)
+     proyecciones por consumer + §2.8 multi-channel projection)
    - docs/refactors/field-contract-platform/LEARNINGS.md (cross-cutting
-     + Fases 04-07, especialmente §Fase 07 →Para Fase 08 + diferidos
-     scope Fase 08)
-   - docs/refactors/field-contract-platform/DECISIONS.md (ADR-011..017)
-   - docs/refactors/field-contract-platform/phases/08-copilot-unification/STATUS.md
+     + Fase 08 → Para Fase 09)
+   - docs/refactors/field-contract-platform/DECISIONS.md (ADR-014
+     copilot meta + ADR-015 multi-channel)
+   - docs/refactors/field-contract-platform/phases/09-multi-channel-projection/STATUS.md
    - docs/refactors/field-contract-platform/protocol/RESUME.md
 
 2. Pre-investigación obligatoria (sin saltar — ADR-017):
-   Crear phases/08-copilot-unification/PRE_INVESTIGATION.md
+   Crear phases/09-multi-channel-projection/PRE_INVESTIGATION.md
    inventariando:
-   - Call sites de `get_catalog`, `validate_field_path`,
-     `is_editable_path`, `get_model_sections`,
-     `format_editable_field_catalog_markdown` (grep en src/ +
-     tests/).
-   - Flujo de `propose_field_updates` (copilot → validator → persister).
-     Verificar paths: editable_fields port → schema_introspection →
-     persister.
-   - Tests acceptance copilot existentes que cubren el área (chat
-     tests, propose_field_updates tests, interview persister tests).
-   - Estado actual de `_DOMAIN_FIELD_CACHE`, `_DOMAIN_DICT_PARENTS`,
-     `_DOMAIN_BUILDERS` en schema_introspection.
-   - Estado de `copilot/domain/offer_fields.py::PERSISTABLE_FIELDS` —
-     ya derivada en Fase 04, evaluar drop del archivo.
-   - Coordinación: ningún consumer downstream depende del shape
-     interno del cache.
+   - Estado actual del copilot conversacional cross-channel:
+     · ¿Whatsapp adapter existe? ¿Cómo bind tools?
+     · ¿Telegram adapter existe?
+     · ¿Email/voice channels en roadmap?
+   - Flujo actual de question selection en el copilot (qué decide
+     qué preguntar, dónde vive el orden).
+   - Trade-off determinístico (algoritmo selecciona candidate fields
+     por priority/gate/missing) vs LLM creativo (LLM decide orden).
+     Recomendado del DESIGN: híbrido — algoritmo filtra candidates,
+     LLM formula la pregunta natural.
+   - Compat web ↔ chat: form-runtime web sigue usando schemas existentes;
+     el chat consume FieldContract metadata (human_question_es, expects,
+     gate, redo_if_changes).
+   - Tests acceptance existentes: chat E2E, sales-agent flow, copilot
+     orchestrator tests.
 
 3. Ejecutá protocol/PRE_FLIGHT.md (baseline tests + git status).
 
-4. Crear phases/08-copilot-unification/SPEC.md con plan de migración
-   editable_fields port + schema_introspection a derivación de
-   `get_module_contracts(domain)` + lista de archivos a tocar.
+4. Crear phases/09-multi-channel-projection/SPEC.md con plan:
+   - `copilot/application/orchestrator/conversational_questioning.py`:
+     algoritmo `next_question(module, state)` que selecciona siguiente
+     field por (priority, gate satisfied, missing). Probable sub-fases.
+   - Integración con channel adapters existentes.
+   - Tests E2E channel-agnostic: mismo flow funciona web + chat.
 
-5. Escribir phases/08-copilot-unification/ACCEPTANCE.md con sub-steps
-   atómicos y DoD per sub-step.
+5. Escribir phases/09-multi-channel-projection/ACCEPTANCE.md con
+   sub-steps atómicos y DoD per sub-step.
 
-6. Scope Fase 08 (per PLAN.md):
-   - `shared/links/ports/editable_fields.py`: `get_catalog(domain)`
-     proyecta de `get_module_contracts(domain)` con filtro
-     `can_propose=True` + `status=ACTIVE` (cuando módulo migrado);
-     fallback al hand-written catalog para módulos no migrados.
-   - `copilot/domain/schema_introspection.py`:
-     - `_build_offer_paths` consume `{c.path for c in
-       get_module_contracts("offer")}`.
-     - `_build_brand_paths` idem para brand.
-     - `_build_buyer_persona_paths` idem para buyer_persona.
-       Combinar con dict_subkeys parents derivados.
-     - `_DOMAIN_DICT_PARENTS["buyer_persona"]` deriva de
-       `BUYER_PERSONA_DICT_SUBKEYS.keys()` (o eliminar si validator
-       pasa a strict).
-     - `validate_field_path`: comportamiento idéntico via projection.
-   - Evaluar drop de `copilot/domain/offer_fields.py` (consumers
-     promueven a `get_module_contracts("offer")` directo).
-   - Tests acceptance copilot existentes pasan idéntico.
-   - Arch tests cross-cutting: cualquier shape derivado del
-     FieldContract registry queda explícito.
+6. Scope Fase 09 (per PLAN.md):
+   - Algoritmo question selection data-driven sobre FieldContract.
+   - Channel adapters consumen `human_question_es` + `expects` + `gate`.
+   - Tests channel-agnostic verifican mismo flow.
+   - Documentación copilot conversacional pattern.
 
 7. Out of scope:
-   - Fases 04-07 cerradas (no reabrir).
-   - Multi-channel projection (Fase 09).
-   - Reescritura masiva del prompt copilot (UX intacta).
-   - Cambios en FE schemas (INVARIANT 9).
-   - Diferidos de Fase 05 (full data-driven loop, completion alignment,
-     landing aggregate migration) — siguen para Fase 09+ dedicada.
+   - Fases 04-08 cerradas (no reabrir).
+   - Diferidos posibles (a tomar en sub-fases si scope lo permite):
+     · Full data-driven `agent_identity.j2` loop (Fase 05 deferral).
+     · Completion ↔ contract semantic alignment (Fase 05 deferral).
+     · Landing aggregate migration (Fase 05 deferral).
+     · Walker extension list[dict] item sub-keys (Fase 07 deferral).
+   - Cambios en FE schemas (INVARIANT 9) — solo si la fase explícitamente
+     necesita exposer nuevos campos al form-runtime.
 
 8. Commits atómicos sugeridos (definitivo en SPEC + ACCEPTANCE):
-   - a) PRE_INVESTIGATION + SPEC + ACCEPTANCE + baseline acceptance
-     copilot tests (golden snapshot si necesario).
-   - b) `editable_fields` port `get_catalog` deriva de
-     `get_module_contracts` cuando módulo migrado.
-   - c) `schema_introspection` `_build_*_paths` consumen el registry.
-   - d) (opcional) drop `copilot/domain/offer_fields.py` o
-     simplificar.
-   - e) Tests cross-cutting que enforzan derivation.
-   - f) close: LEARNINGS + STATE/STATUS bump + Fase 09 ready.
+   - a) PRE_INVESTIGATION + SPEC + ACCEPTANCE + baseline tests.
+   - b) Algoritmo `next_question(module, state)` core + unit tests.
+   - c) Integración con channel adapter (whatsapp first if exists).
+   - d) Tests E2E channel-agnostic.
+   - e) close: LEARNINGS + STATE/STATUS bump.
 
 9. Al cerrar fase:
    - POST_FLIGHT.md
-   - STATE.md → active_phase=09, last_green_commit
-   - STATUS.md Fase 08 done + Fase 09 ready
-   - LEARNINGS.md append Fase 08
-   - HANDOFF.md actualizado con prompt Fase 09
-   - Generáme el prompt para arrancar Fase 09.
+   - STATE.md → active_phase=10? (o cierre del refactor)
+   - STATUS.md Fase 09 done
+   - LEARNINGS.md append Fase 09
+   - HANDOFF.md actualizado
 
 Reglas inquebrantables:
 - Cada commit revertible atómico · rama development · stage por nombre · no tocar ajenos
 - Tech debt del scope = arreglar en la fase; tangencial a TODO.md
 - Spanish neutro LATAM · TDD · UX byte-identical
-- Copilot está en producción — tests acceptance exhaustivos antes
-  de tocar nada. Riesgo medio-alto.
+- Multi-channel: producto y arquitectura interactúan. Riesgo ALTO.
+  Probable spawn de sub-fases. Cada sub-fase con su PRE_INVESTIGATION.
 - Si descubrís gap arquitectónico, ADR + replanteo, no hack.
-- No reabrir Fases 04-07 (cerradas). Diferidos documented en LEARNINGS;
-  pueden tomarse en una fase 09+ dedicada.
+- No reabrir Fases 04-08 (cerradas). Diferidos en LEARNINGS pueden
+  tomarse en sub-fases dentro de Fase 09 si scope lo justifica.
 
 Parallel sessions pueden estar corriendo — antes de commitear,
 git status --short; si hay ajenos dejalos.
 
 Empezá.
 ```
-
-## Prompt — arrancar Fase 09 (Multi-channel projection)
-
-Pre-investigación: estado producto channels (whatsapp/telegram), trade-off
-algoritmo determinístico vs LLM creativo, compat web ↔ chat. Probable
-spawn de sub-fases. Aquí también podría caber el work diferido de
-Fase 05 (full data-driven loop en agent_identity, completion alignment,
-landing aggregate migration).
 
 ## Notas para futuras sesiones
 
@@ -159,11 +137,15 @@ landing aggregate migration).
 - **Lifecycle versionado** (status/deprecated_in/replaced_by) para
   evitar breaking changes durante deprecaciones. ADR-013.
 - **Diferidos de Fase 05** (loop data-driven full, completion alignment,
-  landing aggregate) viven en LEARNINGS Fase 05 — NO reabrir Fase 05;
-  cuando proceda, tomar en Fase 09 o phase dedicada.
+  landing aggregate) viven en LEARNINGS Fase 05 — pueden tomarse en
+  sub-fase dedicada de Fase 09.
 - **Walker `dict_subkeys` arg** (Fase 07) habilita cualquier módulo
   futuro con JSONB sub-keys sin tocar shared. Pattern Patrón B
   validado.
+- **Copilot read+write surface unificada** (Fase 08): port +
+  schema_introspection consumen el registry. Todos los catalog files
+  per-módulo dropeados. Cualquier nuevo dominio migrado entra
+  automático al port via `get_module_contracts(domain)`.
 
 ## Contacto
 
