@@ -116,6 +116,9 @@ skills-lock.json
 # --- Claude Code worktrees (auto-generated, never commit) ---
 .claude/worktrees/
 
+# --- Claude Code session lock (per-session, churns on every start) ---
+.claude/scheduled_tasks.lock
+
 # --- Local overrides (personal, not shared) ---
 CLAUDE.local.md
 
