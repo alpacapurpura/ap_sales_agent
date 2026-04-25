@@ -2,6 +2,14 @@
 
 Covers: derivation walker, type inference, override merge, polymorphic
 unions, composable nested, lifecycle, module registry.
+
+F11.3: ``teardown_module`` clears the synthetic test modules from the
+global ``_MODULE_CONTRACTS`` registry so they do not leak into the
+``test_editable_fields_ssot::test_no_cross_domain_duplicates`` arch test
+when it runs later under ``pytest-randomly``. Without this teardown the
+modules ``test_module_fixture`` and ``test_find`` both register a path
+``"x"`` → cross-domain duplicate → flaky failure documented in F0-F10
+learnings.
 """
 
 from __future__ import annotations
@@ -27,6 +35,31 @@ from src.shared.domain.field_contract import (
 from src.shared.domain.field_contract import (
     FieldContractOverride as Override,
 )
+
+_SYNTHETIC_MODULES: tuple[str, ...] = (
+    "test_module_fixture",
+    "test_find",
+    "t",
+    "t2",
+    "t3",
+)
+
+
+def teardown_module(module: object) -> None:
+    """Drop synthetic registries so editable_fields_ssot stays cross-test clean.
+
+    Both registries must be wiped: ``_MODULE_CONTRACTS`` is the source of
+    truth, but ``editable_fields._CATALOGS`` caches derived projections
+    once any test (in any order) calls ``get_catalog``. Clearing one
+    without the other re-introduces the duplicate.
+    """
+    from src.shared.domain.field_contract import _MODULE_CONTRACTS
+    from src.shared.links.ports import editable_fields as _ef
+
+    for name in _SYNTHETIC_MODULES:
+        _MODULE_CONTRACTS.pop(name, None)
+        _ef._CATALOGS.pop(name, None)
+
 
 # ---------------------------------------------------------------------------
 # Fixtures — toy Pydantic models

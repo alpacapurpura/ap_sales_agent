@@ -26,6 +26,7 @@ from src.modules.sales_agent.workers.frozen_detection import run_frozen_detectio
 from src.modules.tenant_domains.workers.tasks import poll_domain_verification
 from src.shared.workers.brand_summary_regen import regen_brand_summary
 from src.shared.workers.copilot_quality_eval import weekly_copilot_quality_eval
+from src.shared.workers.copilot_rag_eval import weekly_copilot_rag_eval
 
 
 class WorkerSettings:
@@ -45,6 +46,7 @@ class WorkerSettings:
         run_frozen_detection,
         regen_brand_summary,
         weekly_copilot_quality_eval,
+        weekly_copilot_rag_eval,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -98,6 +100,7 @@ class SchedulerSettings:
         run_frozen_detection,
         regen_brand_summary,
         weekly_copilot_quality_eval,
+        weekly_copilot_rag_eval,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -140,6 +143,15 @@ class SchedulerSettings:
             weekly_copilot_quality_eval,
             weekday="mon",
             hour=5,
+            minute=0,
+        ),
+        # F11.5 — weekly RAG retrieval eval over the curated marketing KB.
+        # Mondays 06:00 UTC (1h after the quality eval to avoid stacking
+        # NANO load). [COPILOT-RAG-EVAL-F11]
+        cron(
+            weekly_copilot_rag_eval,
+            weekday="mon",
+            hour=6,
             minute=0,
         ),
     ]

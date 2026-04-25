@@ -174,6 +174,112 @@ def _render_recent_table(rows: list[dict]) -> None:
     )
 
 
+def _fetch_latest_rag_eval(db: Session) -> dict | None:
+    """Return the most recent ``_rag_eval`` row (tenant-agnostic).
+
+    F11.5: weekly RAG eval persists one aggregate row per Monday under
+    sentinel tenant ``00000000-0000-0000-0000-000000000000`` + workflow
+    ``_rag_eval``. The admin tab reads the precomputed row — never invokes
+    the KB at render time.
+    """
+    row = (
+        db.execute(
+            text(
+                """
+                SELECT
+                    period_start,
+                    period_end,
+                    started_count,
+                    abandoned_count,
+                    judge_sample_size,
+                    judge_avg_score,
+                    extra_metadata
+                FROM copilot_workflow_metric
+                WHERE workflow_id = '_rag_eval'
+                ORDER BY period_start DESC
+                LIMIT 1
+                """,
+            ),
+        )
+        .mappings()
+        .first()
+    )
+    return dict(row) if row else None
+
+
+def _render_rag_eval_section(rag_row: dict | None) -> None:
+    """Render the F11.5 RAG retrieval block (latest weekly eval)."""
+    st.markdown("---")
+    st.markdown("### 🔎 RAG retrieval (curated marketing KB)")
+    st.caption(
+        "Resultado del último ``weekly_copilot_rag_eval`` — corre los lunes "
+        "06:00 UTC. Mide recall por golden, latencia y judge multi-dim sobre "
+        "los frameworks curados (StoryBrand, Hormozi, Cialdini, AIDA, ...)."
+    )
+    if rag_row is None:
+        st.info(
+            "Sin runs todavía. La tarea ``weekly_copilot_rag_eval`` corre los lunes 06:00 UTC y poblará esta sección."
+        )
+        return
+
+    meta = rag_row.get("extra_metadata") or {}
+    cols = st.columns(4)
+    recall = meta.get("retrieval_recall_avg")
+    cols[0].metric(
+        "Recall promedio",
+        f"{float(recall):.2f}" if recall is not None else "—",
+    )
+    cols[1].metric(
+        "Goldens evaluados",
+        int(rag_row.get("started_count") or 0),
+    )
+    judge_avg = rag_row.get("judge_avg_score")
+    cols[2].metric(
+        "Judge avg (1-5)",
+        f"{float(judge_avg):.2f}" if judge_avg is not None else "—",
+    )
+    latency = meta.get("retrieval_latency_ms_avg")
+    cols[3].metric(
+        "Latencia avg (ms)",
+        int(latency) if latency is not None else "—",
+    )
+
+    failed = meta.get("failed_golden_ids") or []
+    if failed:
+        st.warning(f"Goldens fallidos esta corrida: {', '.join(failed)}")
+
+    judge_dims = meta.get("judge_dimensions") or {}
+    if judge_dims:
+        st.markdown("#### Dimensiones del judge")
+        st.dataframe(
+            [
+                {
+                    "Dimensión": dim,
+                    "Score (1-5)": f"{float(score):.2f}" if score is not None else "—",
+                }
+                for dim, score in judge_dims.items()
+            ],
+            hide_index=True,
+            width="stretch",
+        )
+
+    per_golden = meta.get("per_golden_recall") or {}
+    if per_golden:
+        st.markdown("#### Recall por golden")
+        st.dataframe(
+            [{"Golden": gid, "Recall": float(recall)} for gid, recall in per_golden.items()],
+            hide_index=True,
+            width="stretch",
+        )
+
+    citations = meta.get("kb_citations") or []
+    if citations:
+        st.caption(
+            f"Fuentes citadas únicas en esta corrida: {len(citations)} — "
+            f"{', '.join(citations[:8])}" + (" …" if len(citations) > 8 else "")
+        )
+
+
 def _render_trace_breakdown(rows: list[dict]) -> None:
     if not rows:
         return
@@ -211,6 +317,7 @@ def render_copilot_quality() -> None:
         kpi_rows = _fetch_workflow_kpis(db, tenant_filter_sql, params)
         recent_rows = _fetch_recent_metric_rows(db, tenant_filter_sql, params)
         trace_rows = _fetch_trace_event_breakdown(db, tenant_filter_sql, params)
+        rag_row = _fetch_latest_rag_eval(db)
     finally:
         db.close()
 
@@ -218,3 +325,4 @@ def render_copilot_quality() -> None:
     _render_kpi_cards(kpi_rows)
     _render_recent_table(recent_rows)
     _render_trace_breakdown(trace_rows)
+    _render_rag_eval_section(rag_row)

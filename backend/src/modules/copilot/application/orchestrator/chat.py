@@ -55,8 +55,16 @@ from src.modules.copilot.application.orchestrator.state import (
     create_initial_copilot_state,
 )
 from src.modules.copilot.application.orchestrator.usage_tracking import UsageAccumulator
+from src.modules.copilot.application.router import (
+    RoutingRequest,
+    build_default_router,
+)
+from src.modules.copilot.application.tools.registry import get_tools_for_context
 from src.modules.copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
+)
+from src.modules.copilot.infrastructure.repositories.routing_log_repository import (
+    RoutingLogRepository,
 )
 
 if TYPE_CHECKING:
@@ -64,6 +72,7 @@ if TYPE_CHECKING:
 
     from sqlalchemy.orm import Session
 
+    from src.modules.copilot.application.router import ModelRouter
     from src.modules.copilot.infrastructure.models.conversation_model import (
         CopilotConversationModel,
     )
@@ -317,6 +326,23 @@ COPILOT_STREAM_TIMEOUT_SECONDS: int = int(
 _TRACE_PREVIEW_CHARS = 2_000
 
 
+# [COPILOT-ROUTING-WIRE-F11] -> docs/domains/copilot/redesign-2026-04/learnings/F11-housekeeping.md
+#
+# Single ``ModelRouter`` shared across requests. ``build_default_router`` is
+# pure construction (no I/O) but resolves NANO settings each call — keep one
+# instance per process. The LLMClassifier inside is stateless + lazy on its
+# LLM resolver, so concurrent requests are safe. List-as-cell avoids the
+# `global` statement (PLW0603) — mutating a module-level container is fine.
+_DEFAULT_ROUTER_CELL: list[ModelRouter] = []
+
+
+def _get_default_router() -> ModelRouter:
+    """Lazy module singleton. Avoids construction on import (test isolation)."""
+    if not _DEFAULT_ROUTER_CELL:
+        _DEFAULT_ROUTER_CELL.append(build_default_router())
+    return _DEFAULT_ROUTER_CELL[0]
+
+
 def _truncate_for_trace(value: object) -> object:
     """Shorten long strings + dicts for the trace ``data`` payload.
 
@@ -512,6 +538,82 @@ class CopilotOrchestrator:
         state["messages"] = [*history_messages, HumanMessage(content=user_content)]
         return conv_id, conv_uuid, existing_conv, state
 
+    def _record_routing_decision(
+        self,
+        *,
+        tenant_id: UUID,
+        conversation_id: UUID,
+        message_id: UUID,
+        user_msg: str,
+        state: dict,
+        recorder: object | None,
+        router: ModelRouter | None = None,
+    ) -> None:
+        """Persist a ``RoutingDecision`` for this turn (telemetry only).
+
+        Wires F8 ``build_default_router`` into the runtime so
+        ``copilot_routing_log`` populates and the admin Streamlit
+        ``/copilot-routing`` shows real data. Failures here MUST NOT block
+        the chat stream — log + skip + rollback so the conversation flow
+        proceeds.
+
+        ``router`` is injected for tests; production uses the module
+        singleton via ``_get_default_router()``.
+        """
+        try:
+            client_ctx = state.get("client_context", {}) or {}
+            active_job = state.get("active_extraction_job")
+            guided = bool(client_ctx.get("guided_mode"))
+            procedure_active = guided or bool(active_job)
+            mode = "procedure" if procedure_active else "chat"
+            tools = get_tools_for_context(client_ctx)
+            tools_count = len(tools)
+            request = RoutingRequest(
+                user_msg=user_msg,
+                route=client_ctx.get("current_route"),
+                mode=mode,
+                available_tool_count=tools_count,
+                procedure_active=procedure_active,
+            )
+            chosen_router = router if router is not None else _get_default_router()
+            decision = chosen_router.select(request)
+            confidence = float(decision.confidence) if decision.confidence is not None else None
+            RoutingLogRepository(self.db).insert(
+                tenant_id=tenant_id,
+                conversation_id=conversation_id,
+                message_id=message_id,
+                tier_selected=decision.tier.value,
+                classifier_used=decision.classifier_used.value,
+                reason=decision.reason,
+                confidence=confidence,
+                user_msg_length=len(user_msg),
+                tools_available=tools_count,
+            )
+            self.db.commit()
+            if recorder is not None:
+                recorder.record(
+                    event_type="routing_decision",
+                    name="model_router",
+                    data={
+                        "tier": decision.tier.value,
+                        "classifier": decision.classifier_used.value,
+                        "reason": decision.reason,
+                        "confidence": confidence,
+                        "available_tool_count": tools_count,
+                        "procedure_active": procedure_active,
+                    },
+                )
+        except Exception as exc:  # noqa: BLE001 — routing telemetry resilience
+            import contextlib as _contextlib
+
+            logger.warning(
+                "routing_decision_failed",
+                error=str(exc),
+                error_type=type(exc).__name__,
+            )
+            with _contextlib.suppress(Exception):
+                self.db.rollback()
+
     async def stream_chat(
         self,
         *,
@@ -567,8 +669,26 @@ class CopilotOrchestrator:
             },
         )
 
+        # F11.1: Pre-generate the assistant message id so the routing log row
+        # references the same id as the message_start SSE event. Telemetry
+        # only — failures must NOT block the stream.
+        msg_id = str(uuid4())
+        self._record_routing_decision(
+            tenant_id=tenant_id,
+            conversation_id=conv_uuid,
+            message_id=UUID(msg_id),
+            user_msg=message,
+            state=state,
+            recorder=recorder,
+        )
+
         try:
-            async for sse_str in self._run_graph_stream(state=state, usage=usage, acc=acc):
+            async for sse_str in self._run_graph_stream(
+                state=state,
+                usage=usage,
+                acc=acc,
+                msg_id=msg_id,
+            ):
                 yield sse_str
         except Exception as exc:
             recorder.record(
@@ -624,15 +744,22 @@ class CopilotOrchestrator:
         state: dict,
         usage: UsageAccumulator,
         acc: _StreamAccumulator,
+        msg_id: str | None = None,
     ) -> AsyncGenerator[str, None]:
         """Run the LangGraph stream and emit SSE events (v1 legacy + v2 blocks).
 
         Accumulates full_response, messages, and emitted_blocks into *acc*
         so that stream_chat can persist them after the generator exhausts.
+
+        ``msg_id`` is the assistant message id — pre-generated by
+        ``stream_chat`` so the routing log row (F11.1) and the
+        ``message_start`` SSE event share the same uuid. Defaults to a fresh
+        uuid for direct invocations / tests.
         """
         from src.shared.domain.datetime_utils import utc_now as _utc_now
 
-        msg_id = str(uuid4())
+        if msg_id is None:
+            msg_id = str(uuid4())
         streaming_started_at = _utc_now()
 
         try:

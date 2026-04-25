@@ -1,0 +1,197 @@
+"""F11.1 — `CopilotOrchestrator._record_routing_decision` writes to copilot_routing_log.
+
+Heredado F8/F9: ``build_default_router`` factory + admin page existían pero el
+chat orchestrator nunca llamaba ``router.select(...)``. F11 wirea la
+telemetría: cada turn debe insertar un row en ``copilot_routing_log`` para
+que el admin Streamlit ``/copilot-routing`` muestre datos reales.
+
+Estos tests cubren el helper aislado (insertion + resilience). El call site
+(`stream_chat`) está cubierto por la suite full + smoke; mockear todo el
+graph sería frágil y no aporta cobertura adicional sobre la lógica de F11.1.
+"""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+from unittest.mock import MagicMock
+from uuid import uuid4
+
+import pytest
+
+from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
+from src.modules.copilot.domain.model_tier import ModelTier
+from src.modules.copilot.domain.routing_policy import (
+    ClassifierType,
+    RoutingDecision,
+)
+from src.modules.copilot.infrastructure.models.routing_log_model import RoutingLogModel
+from src.modules.copilot.infrastructure.repositories.routing_log_repository import (
+    RoutingLogRepository,
+)
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+
+@pytest.fixture
+def orchestrator(db: Session) -> CopilotOrchestrator:
+    return CopilotOrchestrator(db)
+
+
+def _state(*, current_route: str | None = None, guided_mode: bool = False) -> dict:
+    return {
+        "client_context": {
+            "current_route": current_route,
+            "selected_fields": [],
+            "form_data": {},
+            "locale": "es",
+            "guided_mode": guided_mode,
+        },
+        "active_extraction_job": None,
+    }
+
+
+class _StubRouter:
+    """Returns a deterministic decision; never touches LLM."""
+
+    def __init__(self, decision: RoutingDecision) -> None:
+        self._decision = decision
+        self.calls: list = []
+
+    def select(self, request: object) -> RoutingDecision:
+        self.calls.append(request)
+        return self._decision
+
+
+class TestRecordRoutingDecision:
+    def test_persists_routing_log_row(
+        self,
+        orchestrator: CopilotOrchestrator,
+        db: Session,
+    ) -> None:
+        tenant_id = uuid4()
+        conv_id = uuid4()
+        msg_id = uuid4()
+        decision = RoutingDecision(
+            tier=ModelTier.MINI,
+            reason="rule:short_msg",
+            confidence=0.92,
+            classifier_used=ClassifierType.RULE,
+            fallback_tier=ModelTier.MINI,
+        )
+        recorder = MagicMock(name="recorder")
+        router = _StubRouter(decision)
+
+        orchestrator._record_routing_decision(
+            tenant_id=tenant_id,
+            conversation_id=conv_id,
+            message_id=msg_id,
+            user_msg="hola",
+            state=_state(current_route="/dashboard"),
+            recorder=recorder,
+            router=router,
+        )
+
+        rows = RoutingLogRepository(db).list_by_conversation(
+            tenant_id=tenant_id,
+            conversation_id=conv_id,
+        )
+        assert len(rows) == 1
+        row = rows[0]
+        assert row.message_id == msg_id
+        assert row.tier_selected == "mini"
+        assert row.classifier_used == "rule"
+        assert row.reason == "rule:short_msg"
+        assert float(row.confidence) == pytest.approx(0.92)
+        assert row.user_msg_length == len("hola")
+
+        # Trace event recorded with same shape.
+        recorder.record.assert_called_once()
+        trace_kwargs = recorder.record.call_args.kwargs
+        assert trace_kwargs["event_type"] == "routing_decision"
+        assert trace_kwargs["data"]["tier"] == "mini"
+        assert trace_kwargs["data"]["classifier"] == "rule"
+
+    def test_router_request_uses_current_route_and_mode(
+        self,
+        orchestrator: CopilotOrchestrator,
+        db: Session,
+    ) -> None:
+        decision = RoutingDecision(
+            tier=ModelTier.NANO,
+            reason="default_short",
+            confidence=None,
+            classifier_used=ClassifierType.DEFAULT,
+            fallback_tier=ModelTier.MINI,
+        )
+        router = _StubRouter(decision)
+
+        orchestrator._record_routing_decision(
+            tenant_id=uuid4(),
+            conversation_id=uuid4(),
+            message_id=uuid4(),
+            user_msg="que tal",
+            state=_state(current_route="/brand-studio", guided_mode=True),
+            recorder=None,
+            router=router,
+        )
+
+        assert len(router.calls) == 1
+        req = router.calls[0]
+        assert req.user_msg == "que tal"
+        assert req.route == "/brand-studio"
+        assert req.mode == "procedure"
+        assert req.procedure_active is True
+
+    def test_router_failure_does_not_raise(
+        self,
+        orchestrator: CopilotOrchestrator,
+        db: Session,
+    ) -> None:
+        class ExplodingRouter:
+            def select(self, _request: object) -> RoutingDecision:
+                msg = "router down"
+                raise RuntimeError(msg)
+
+        # Should swallow + log, NOT raise.
+        orchestrator._record_routing_decision(
+            tenant_id=uuid4(),
+            conversation_id=uuid4(),
+            message_id=uuid4(),
+            user_msg="hola",
+            state=_state(),
+            recorder=None,
+            router=ExplodingRouter(),
+        )
+        # No row persisted.
+        assert db.query(RoutingLogModel).count() == 0
+
+    def test_default_classifier_persists_null_confidence(
+        self,
+        orchestrator: CopilotOrchestrator,
+        db: Session,
+    ) -> None:
+        tenant_id = uuid4()
+        decision = RoutingDecision(
+            tier=ModelTier.MINI,
+            reason="no_rule_matched",
+            confidence=None,
+            classifier_used=ClassifierType.DEFAULT,
+            fallback_tier=ModelTier.MINI,
+        )
+        router = _StubRouter(decision)
+
+        orchestrator._record_routing_decision(
+            tenant_id=tenant_id,
+            conversation_id=uuid4(),
+            message_id=uuid4(),
+            user_msg="x" * 200,
+            state=_state(),
+            recorder=None,
+            router=router,
+        )
+
+        rows = RoutingLogRepository(db).list_by_tenant(tenant_id=tenant_id)
+        assert len(rows) == 1
+        assert rows[0].confidence is None
+        assert rows[0].classifier_used == "default"

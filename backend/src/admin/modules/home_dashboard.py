@@ -55,14 +55,13 @@ def render_home_dashboard() -> None:
             total_completed = sum(p.get("completed", 0) for p in proc_rates.values())
             proc_pct = f"{round(total_completed / total_started * 100)}%" if total_started else "N/A"
 
-            # Knowledge docs count
+            # Knowledge docs count (curated marketing KB — F10)
             try:
-                from src.modules.copilot.infrastructure.knowledge.vector_store import (
-                    CopilotKnowledgeStore,
+                from src.modules.copilot.infrastructure.qdrant.marketing_kb_store import (
+                    MarketingKbStore,
                 )
 
-                store = CopilotKnowledgeStore()
-                kb_stats = store.get_collection_stats()
+                kb_stats = MarketingKbStore().stats()
                 kb_docs = kb_stats.get("points_count", 0)
             except Exception:  # noqa: BLE001 — Streamlit UI error boundary
                 kb_docs = "?"

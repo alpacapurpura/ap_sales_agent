@@ -47,6 +47,8 @@ ANCHOR_REGISTRY: dict[str, str] = {
     "COPILOT-WORKFLOW-METRIC-F9": "docs/domains/copilot/redesign-2026-04/phases/F9-quality-observability.md",
     "COPILOT-NODE-TRACE-F9": "docs/domains/copilot/redesign-2026-04/phases/F9-quality-observability.md",
     "COPILOT-MARKETING-KB-F10": "docs/domains/copilot/redesign-2026-04/phases/F10-marketing-kb.md",
+    "COPILOT-ROUTING-WIRE-F11": "docs/domains/copilot/redesign-2026-04/learnings/F11-housekeeping.md",
+    "COPILOT-RAG-EVAL-F11": "docs/domains/copilot/redesign-2026-04/learnings/F11-housekeeping.md",
 }
 
 # Only scan backend Python sources (not tests — anchors in tests are for

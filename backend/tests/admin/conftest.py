@@ -73,10 +73,10 @@ def _stub_session() -> MagicMock:
     return sess
 
 
-def _stub_knowledge_store() -> MagicMock:
-    store = MagicMock(name="CopilotKnowledgeStore")
-    store.get_collection_stats.return_value = {"points_count": 0}
-    store.list_documents.return_value = []
+def _stub_marketing_kb_store() -> MagicMock:
+    store = MagicMock(name="MarketingKbStore")
+    store.stats.return_value = {"points_count": 0}
+    store.list_sources.return_value = []
     return store
 
 
@@ -111,10 +111,10 @@ def _mock_admin_dependencies(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
         lambda *_a, **_kw: _stub_conversation_repo(),
     )
 
-    # 4) Qdrant vector store — avoid network calls.
+    # 4) Qdrant marketing KB store — avoid network calls.
     monkeypatch.setattr(
-        "src.modules.copilot.infrastructure.knowledge.vector_store.CopilotKnowledgeStore",
-        lambda *_a, **_kw: _stub_knowledge_store(),
+        "src.modules.copilot.infrastructure.qdrant.marketing_kb_store.MarketingKbStore",
+        lambda *_a, **_kw: _stub_marketing_kb_store(),
     )
 
     # 5) Pre-cached tenant list + adoption funnel used by `_shared`.
