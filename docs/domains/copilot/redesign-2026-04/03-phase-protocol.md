@@ -113,16 +113,30 @@ Si **algo** falla, no se cierra la fase. Se arregla o se revierte el bloque prob
 
 ---
 
-## Paso 7 — Documento de aprendizajes
+## Paso 7 — Documento de aprendizajes (útiles, no plantilla rellenada)
 
-Crear `learnings/F#-{slug}.md` siguiendo `learnings/_template.md`. Mínimo:
+Crear `learnings/F#-{slug}.md` desde `learnings/_template.md`.
 
-- **Resumen 3 líneas**: qué se entregó.
-- **Decisiones clave**: lista breve, con razón.
-- **Fuentes research**: links que consultaste con bullet de qué te aportó.
-- **Sorpresas / gotchas**: lo que no esperabas. Si descubriste que la versión X de Y rompió algo, documenta.
-- **Recomendaciones para fase siguiente**: ajustes al plan F{#+1} basados en lo aprendido.
-- **Lo que NO funcionó / descarté**: dead branches que probaste y por qué se cayeron. Evita repetirlas.
+**Regla de oro:** este doc lo va a leer una fase futura. Solo escribir lo que esa fase NECESITA saber para no repetir errores ni redescubrir contexto. Si una sección del template no aplica acá, **eliminarla** — preferir doc corto y denso vs largo y vacío.
+
+Contenido mínimo (solo si aporta a F{#+1}):
+
+- **Resumen 3 líneas**: qué se entregó (verificable), qué decisión no obvia se tomó, qué queda listo para la fase siguiente.
+- **Decisiones clave**: solo donde el camino tomado **no era el único razonable**. Razón + alternativa descartada en una línea cada una.
+- **Sorpresas / gotchas (críticos, no triviales)**: bugs de versión específica, comportamiento no documentado, fragility pre-existente, discrepancia plan vs realidad. Nada de "todo salió bien".
+- **Recomendaciones accionables para F{#+1}**: cada bullet = una acción concreta, no observación genérica.
+- **Hooks listos para próximas fases**: paths exactos + cómo activarlos.
+- **Riesgos abiertos**: qué puede romper + dónde mirar primero.
+- **Fuentes research útiles**: solo las que cambiaron una decisión, no la lista exhaustiva de búsquedas.
+
+Anti-patrones (NO incluir):
+- Listas exhaustivas de archivos modificados (eso vive en `git diff`).
+- Métricas inventadas si no se midieron.
+- Repetir lo que ya está en `02-architecture-target.md` u otros docs base.
+- Secciones con "N/A" o bullets vacíos.
+- "Todo funcionó bien" sin contenido detrás.
+
+Criterio de cierre: si la fase F{#+1} sería igual de eficiente sin esta nota, sobra.
 
 ---
 

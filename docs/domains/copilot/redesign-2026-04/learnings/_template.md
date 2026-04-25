@@ -1,20 +1,24 @@
 # Learnings — F# {Slug}
 
-**Fecha cierre fase:** YYYY-MM-DD
-**Owner conversación:** Claude (modelo X.Y)
-**Branch state al cerrar:** `development @ <commit-hash>`
+**Fecha cierre:** YYYY-MM-DD · **Modelo:** Claude X.Y · **Branch:** `development @ <hash>`
+
+> **Regla de oro:** este doc lo va a leer una fase futura. Solo escribí lo que esa fase NECESITA saber para no repetir errores ni redescubrir contexto. Cualquier cosa derivable de `git log`, los docs base o el código actual NO va acá.
+>
+> Si una sección de abajo no tiene contenido relevante para esta fase, **eliminala** — mejor un doc corto y útil que uno largo con campos vacíos.
 
 ---
 
 ## Resumen 3 líneas
 
-- Línea 1: qué se entregó.
-- Línea 2: qué se midió / verificó.
-- Línea 3: estado del módulo afectado tras la fase.
+- Línea 1: qué se entregó (concreto, verificable).
+- Línea 2: qué decisión no obvia se tomó.
+- Línea 3: qué queda listo para la fase siguiente.
 
 ---
 
 ## Decisiones clave
+
+Solo decisiones donde el camino tomado **no era el único razonable**. Para cada una: razón + alternativa descartada en una línea.
 
 | Decisión | Razón | Alternativa descartada |
 |---|---|---|
@@ -22,72 +26,49 @@
 
 ---
 
-## Fuentes research consultadas
+## Sorpresas / gotchas (críticos, no triviales)
 
-- **Web search**:
-  - [Título](URL) — qué aportó
-- **Tessl tiles**:
-  - `tessl__X` — qué aportó
-- **WebFetch**:
-  - URL — qué aportó
-- **Docs internos releídos**:
-  - paths
+Cosas que no estaban en los docs y que la próxima fase descubriría a la fuerza:
 
----
+- Bug de versión específica de una lib (anotar versión exacta + síntoma).
+- Comportamiento no documentado de un componente del repo.
+- Test fragility pre-existente que tocó al pasar y va a tocar de nuevo.
+- Discrepancia entre el plan original y la realidad del código.
 
-## Sorpresas / gotchas
-
-- Cosa que no esperabas. Si descubriste que la versión X de Y rompió algo, documentar versión exacta.
-- Comportamientos no documentados de librerías.
-- Overrides necesarios en config / tests.
+Nada de "todo funcionó bien" — eso no aporta.
 
 ---
 
-## Lo que descarté
+## Recomendaciones accionables para F{#+1}
 
-- Branch que probaste y no funcionó. Por qué.
-- Pattern que parecía bueno y resultó no.
-- Evita que la próxima fase repita.
+Cada bullet = una acción concreta que F{#+1} debería ejecutar antes/durante su trabajo.
 
----
-
-## Recomendaciones para fase siguiente F{#+1}
-
-- Ajustes al plan original (`phases/F{#+1}-*.md`) que conviene aplicar.
-- Hooks que dejé listos para que F{#+1} consuma directo.
-- Tests baseline a correr antes de empezar F{#+1}.
+- Antes de empezar: correr `<comando>` para validar `<X>`.
+- Al codear: usar el hook `<archivo>` que dejé listo en `<path>`.
+- Si descubrís `<síntoma>`: ya lo investigué, está en `<sección>` arriba.
+- Considerar ajustar el plan F{#+1} en el punto `<X>` por aprendizaje `<Y>`.
 
 ---
 
 ## Riesgos abiertos
 
-- Cosa que quedó funcionando pero frágil — anota para F9 (quality).
-- Deuda técnica nueva introducida con justificación.
+Cosas que quedaron andando pero frágiles. Cada riesgo: qué puede romper + dónde mirar primero.
+
+- (...)
 
 ---
 
-## Métricas medidas (si aplica)
+## Hooks listos para próximas fases
 
-| Métrica | Antes | Después | Delta |
-|---|---|---|---|
-| | | | |
+Si dejaste código/test/config preparado para que una fase posterior lo consuma directo, listarlo acá con su path exacto y cómo activarlo.
 
----
-
-## Archivos modificados / creados
-
-```
-backend/src/modules/copilot/...
-backend/src/modules/{otro-módulo}/...
-frontend/src/features/copilot/...
-docs/domains/copilot/redesign-2026-04/...
-backend/alembic/versions/...
-```
+- Path: `...` — qué hace, cómo se activa.
 
 ---
 
-## Tests agregados
+## Fuentes research útiles
 
-| Test | Tipo (unit/arch/e2e) | Qué valida |
-|---|---|---|
-| | | |
+Solo las que aportaron decisiones. No la lista exhaustiva de búsquedas.
+
+- [Título](URL) — qué cambió en mi enfoque por leer esto.
+- Tessl tile `tessl__X` — qué confirmé/descarté.
