@@ -67,6 +67,12 @@ _PROVIDER_CONTRACT_IMPORTS: frozenset[str] = frozenset(
         # mirrors the ports.py inversion knot — copilot owns the abstraction,
         # modules supply the concretion.
         "src.modules.copilot.domain.workflow",
+        # F7 — channel formatter registry. Providers that ship custom output
+        # channels (e.g. a future WhatsApp business adapter that registers a
+        # ``whatsapp_template`` variant) import ``ChannelFormat`` and call
+        # ``register_channel`` from their package init. Same dependency-
+        # inversion pattern as ports.py / workflow.py.
+        "src.modules.copilot.domain.output_channels",
     }
 )
 

@@ -18,6 +18,7 @@ from src.modules.copilot.application.tools.crm_tools import CRM_TOOLS
 from src.modules.copilot.application.tools.document_tools import DOCUMENT_TOOLS  # [COPILOT-READ-DOCUMENT]
 from src.modules.copilot.application.tools.extraction_tools import EXTRACTION_TOOLS
 from src.modules.copilot.application.tools.fetch_url import fetch_url
+from src.modules.copilot.application.tools.format_for_channel import format_for_channel
 from src.modules.copilot.application.tools.guided import GUIDED_TOOLS
 from src.modules.copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
 from src.modules.copilot.application.tools.landing_tools import LANDING_TOOLS
@@ -100,6 +101,8 @@ _BASE_TOOL_GROUPS: dict[str, list] = {
     "url_context": [fetch_url, pin_to_memory],
     # Q&A about the tenant's own data — ask_tenant_data subgraph (F5).
     "data_query": [ask_tenant_data],
+    # Channel-aware output adaptation — format_for_channel (F7).
+    "channel_format": [format_for_channel],
 }
 
 
@@ -250,6 +253,9 @@ ALWAYS_AVAILABLE_GROUPS: tuple[str, ...] = (
     # they may ask "cuántas personas escribieron" or "dame resumen del
     # programa X" without having to navigate to a specific dashboard. F5.
     "data_query",
+    # Channel formatter is transversal: from any screen the user can ask
+    # "dame esto listo para whatsapp / email / sms". F7.
+    "channel_format",
 )
 
 

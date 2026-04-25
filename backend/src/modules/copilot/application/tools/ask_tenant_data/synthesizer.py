@@ -8,20 +8,24 @@ the answer is deterministic:
 * ``empty_window`` flag (lead_count / conversation_count returned 0) → static
   "No encontré nadie en esa ventana — querés ampliarla?"-style reply.
 
-Channel-awareness in F5 is light: a per-channel ``structure_hint`` is added to
-the system prompt. F7 introduces the full ``ChannelFormat`` registry; F5 only
-wires the seam (``chat`` + ``whatsapp`` minimum).
+Channel-awareness comes from the ``ChannelFormat`` registry (F7) — the
+``structure_hint`` + ``max_chars`` are pulled per turn. F5 wired the seam;
+F7 replaced the inline hints dict with the domain registry shared by the
+``format_for_channel`` tool and provider-registered channels.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 import structlog
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.core.enums import ModelRole
+from src.modules.copilot.domain.output_channels import (
+    SUPPORTED_CHANNELS,
+    get_channel_format,
+)
 
 if TYPE_CHECKING:
     from src.modules.copilot.domain.ports import DataQueryPlan, DataQueryResult
@@ -29,43 +33,10 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 
-@dataclass(frozen=True, slots=True)
-class _ChannelHint:
-    """Lightweight channel rules until F7 lands the full registry."""
-
-    label: str
-    structure_hint: str
-    max_chars: int
-
-
-_CHANNEL_HINTS: dict[str, _ChannelHint] = {
-    "chat": _ChannelHint(
-        label="chat",
-        structure_hint=(
-            "Respuesta directa de 1 a 3 oraciones. Markdown ligero permitido. "
-            "Si hay nombres de ofertas, usalos textuales."
-        ),
-        max_chars=600,
-    ),
-    "whatsapp": _ChannelHint(
-        label="whatsapp",
-        structure_hint=(
-            "Mensaje corto para WhatsApp: 1 frase con la cifra/respuesta + "
-            "1 frase opcional de detalle. Sin markdown. Emoji solo si suma."
-        ),
-        max_chars=320,
-    ),
-    "email": _ChannelHint(
-        label="email",
-        structure_hint=(
-            "Párrafo de 2-4 oraciones, tono profesional. Sin markdown. "
-            "Si hay cifras, formátalas con separador de miles."
-        ),
-        max_chars=800,
-    ),
-}
-
-SUPPORTED_OUTPUT_CHANNELS = frozenset(_CHANNEL_HINTS.keys())
+# Backwards-compat alias — F5 callers import this name. Kept as an alias to
+# the registry-derived ``SUPPORTED_CHANNELS`` so a single source-of-truth
+# governs every consumer.
+SUPPORTED_OUTPUT_CHANNELS = SUPPORTED_CHANNELS
 
 
 _BASE_SYSTEM = """Eres el copilot de Nicolify respondiendo una pregunta del usuario
@@ -120,7 +91,8 @@ async def synthesize_answer(
     llm: object | None = None,
 ) -> str:
     """Generate the channel-aware answer."""
-    channel = output_channel if output_channel in SUPPORTED_OUTPUT_CHANNELS else "chat"
+    fmt = get_channel_format(output_channel)
+    channel = fmt.id
 
     if plan.kind == "unknown":
         return _unknown_intent_reply(channel)
@@ -133,14 +105,15 @@ async def synthesize_answer(
         llm = LLMFactory.get_service().get_client(ModelRole.FAST)
         llm = llm.bind(temperature=0.2)
 
-    hint = _CHANNEL_HINTS[channel]
     system = (
         _BASE_SYSTEM
         + "\nFormato del canal "
-        + hint.label
-        + ":\n- "
-        + hint.structure_hint
-        + f"\n- Máximo {hint.max_chars} caracteres."
+        + fmt.label_es
+        + " (id="
+        + fmt.id
+        + "):\n- "
+        + fmt.structure_hint
+        + f"\n- Máximo {fmt.max_chars} caracteres."
     )
     user = f"Pregunta del usuario: {question}\n\nResultado de la búsqueda:\n{_format_payload(plan, result, flags)}"
 
@@ -159,8 +132,8 @@ async def synthesize_answer(
     if isinstance(text, list):
         text = "\n".join(str(part) for part in text)
     answer = str(text).strip()
-    if len(answer) > hint.max_chars:
-        answer = answer[: hint.max_chars].rstrip() + "…"
+    if len(answer) > fmt.max_chars:
+        answer = answer[: fmt.max_chars].rstrip() + "…"
     return answer
 
 
