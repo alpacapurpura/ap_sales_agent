@@ -1,0 +1,374 @@
+{
+  "experiencia": {
+    "empty": {
+      "completed_sections": 0,
+      "next_milestone": "identity",
+      "percentage": 0.0,
+      "section_depth": {
+        "closing": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 5
+        },
+        "promise": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 4
+        },
+        "psychology": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 5
+        }
+      },
+      "section_status": {
+        "closing": "incomplete",
+        "editions": "optional",
+        "event_details": "incomplete",
+        "gallery": "optional",
+        "identity": "incomplete",
+        "instructors": "optional",
+        "pricing": "incomplete",
+        "promise": "incomplete",
+        "psychology": "incomplete",
+        "resources": "optional",
+        "strategy": "incomplete",
+        "value_stack": "optional"
+      },
+      "total_sections": 7
+    },
+    "full": {
+      "completed_sections": 8,
+      "next_milestone": null,
+      "percentage": 100.0,
+      "section_depth": {
+        "closing": {
+          "depth_pct": 100.0,
+          "filled": 5,
+          "total": 5
+        },
+        "promise": {
+          "depth_pct": 100.0,
+          "filled": 4,
+          "total": 4
+        },
+        "psychology": {
+          "depth_pct": 100.0,
+          "filled": 5,
+          "total": 5
+        }
+      },
+      "section_status": {
+        "closing": "complete",
+        "editions": "optional",
+        "event_details": "complete",
+        "gallery": "optional",
+        "identity": "complete",
+        "instructors": "complete",
+        "pricing": "complete",
+        "promise": "complete",
+        "psychology": "complete",
+        "resources": "optional",
+        "strategy": "complete",
+        "value_stack": "optional"
+      },
+      "total_sections": 8
+    }
+  },
+  "membresia": {
+    "empty": {
+      "completed_sections": 0,
+      "next_milestone": "identity",
+      "percentage": 0.0,
+      "section_depth": {
+        "closing": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 5
+        },
+        "promise": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 4
+        },
+        "psychology": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 5
+        }
+      },
+      "section_status": {
+        "closing": "incomplete",
+        "gallery": "optional",
+        "identity": "incomplete",
+        "pricing": "incomplete",
+        "promise": "incomplete",
+        "psychology": "incomplete",
+        "resources": "optional",
+        "strategy": "incomplete",
+        "subscription_details": "incomplete",
+        "value_stack": "optional"
+      },
+      "total_sections": 7
+    },
+    "full": {
+      "completed_sections": 7,
+      "next_milestone": null,
+      "percentage": 100.0,
+      "section_depth": {
+        "closing": {
+          "depth_pct": 100.0,
+          "filled": 5,
+          "total": 5
+        },
+        "promise": {
+          "depth_pct": 100.0,
+          "filled": 4,
+          "total": 4
+        },
+        "psychology": {
+          "depth_pct": 100.0,
+          "filled": 5,
+          "total": 5
+        }
+      },
+      "section_status": {
+        "closing": "complete",
+        "gallery": "optional",
+        "identity": "complete",
+        "pricing": "complete",
+        "promise": "complete",
+        "psychology": "complete",
+        "resources": "optional",
+        "strategy": "complete",
+        "subscription_details": "complete",
+        "value_stack": "optional"
+      },
+      "total_sections": 7
+    }
+  },
+  "producto": {
+    "empty": {
+      "completed_sections": 0,
+      "next_milestone": "identity",
+      "percentage": 0.0,
+      "section_depth": {
+        "closing": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 5
+        },
+        "promise": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 4
+        },
+        "psychology": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 5
+        }
+      },
+      "section_status": {
+        "closing": "incomplete",
+        "gallery": "optional",
+        "identity": "incomplete",
+        "pricing": "incomplete",
+        "product_details": "incomplete",
+        "promise": "incomplete",
+        "psychology": "incomplete",
+        "resources": "optional",
+        "strategy": "incomplete",
+        "value_stack": "optional"
+      },
+      "total_sections": 7
+    },
+    "full": {
+      "completed_sections": 7,
+      "next_milestone": null,
+      "percentage": 100.0,
+      "section_depth": {
+        "closing": {
+          "depth_pct": 100.0,
+          "filled": 5,
+          "total": 5
+        },
+        "promise": {
+          "depth_pct": 100.0,
+          "filled": 4,
+          "total": 4
+        },
+        "psychology": {
+          "depth_pct": 100.0,
+          "filled": 5,
+          "total": 5
+        }
+      },
+      "section_status": {
+        "closing": "complete",
+        "gallery": "optional",
+        "identity": "complete",
+        "pricing": "complete",
+        "product_details": "complete",
+        "promise": "complete",
+        "psychology": "complete",
+        "resources": "optional",
+        "strategy": "complete",
+        "value_stack": "optional"
+      },
+      "total_sections": 7
+    }
+  },
+  "programa": {
+    "empty": {
+      "completed_sections": 0,
+      "next_milestone": "identity",
+      "percentage": 0.0,
+      "section_depth": {
+        "closing": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 5
+        },
+        "promise": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 4
+        },
+        "psychology": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 5
+        }
+      },
+      "section_status": {
+        "closing": "incomplete",
+        "editions": "optional",
+        "gallery": "optional",
+        "identity": "incomplete",
+        "instructors": "optional",
+        "pricing": "incomplete",
+        "program_details": "incomplete",
+        "promise": "incomplete",
+        "psychology": "incomplete",
+        "resources": "optional",
+        "strategy": "incomplete",
+        "value_stack": "optional"
+      },
+      "total_sections": 7
+    },
+    "full": {
+      "completed_sections": 8,
+      "next_milestone": null,
+      "percentage": 100.0,
+      "section_depth": {
+        "closing": {
+          "depth_pct": 100.0,
+          "filled": 5,
+          "total": 5
+        },
+        "promise": {
+          "depth_pct": 100.0,
+          "filled": 4,
+          "total": 4
+        },
+        "psychology": {
+          "depth_pct": 100.0,
+          "filled": 5,
+          "total": 5
+        }
+      },
+      "section_status": {
+        "closing": "complete",
+        "editions": "optional",
+        "gallery": "optional",
+        "identity": "complete",
+        "instructors": "complete",
+        "pricing": "complete",
+        "program_details": "complete",
+        "promise": "complete",
+        "psychology": "complete",
+        "resources": "optional",
+        "strategy": "complete",
+        "value_stack": "optional"
+      },
+      "total_sections": 8
+    }
+  },
+  "servicio": {
+    "empty": {
+      "completed_sections": 0,
+      "next_milestone": "identity",
+      "percentage": 0.0,
+      "section_depth": {
+        "closing": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 5
+        },
+        "promise": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 4
+        },
+        "psychology": {
+          "depth_pct": 0.0,
+          "filled": 0,
+          "total": 5
+        }
+      },
+      "section_status": {
+        "closing": "incomplete",
+        "editions": "optional",
+        "gallery": "optional",
+        "identity": "incomplete",
+        "instructors": "optional",
+        "pricing": "incomplete",
+        "promise": "incomplete",
+        "psychology": "incomplete",
+        "resources": "optional",
+        "service_details": "incomplete",
+        "strategy": "incomplete",
+        "value_stack": "optional"
+      },
+      "total_sections": 7
+    },
+    "full": {
+      "completed_sections": 8,
+      "next_milestone": null,
+      "percentage": 100.0,
+      "section_depth": {
+        "closing": {
+          "depth_pct": 100.0,
+          "filled": 5,
+          "total": 5
+        },
+        "promise": {
+          "depth_pct": 100.0,
+          "filled": 4,
+          "total": 4
+        },
+        "psychology": {
+          "depth_pct": 100.0,
+          "filled": 5,
+          "total": 5
+        }
+      },
+      "section_status": {
+        "closing": "complete",
+        "editions": "optional",
+        "gallery": "optional",
+        "identity": "complete",
+        "instructors": "complete",
+        "pricing": "complete",
+        "promise": "complete",
+        "psychology": "complete",
+        "resources": "optional",
+        "service_details": "complete",
+        "strategy": "complete",
+        "value_stack": "optional"
+      },
+      "total_sections": 8
+    }
+  }
+}

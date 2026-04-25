@@ -1,0 +1,166 @@
+{
+  "empty": {
+    "brochure": null,
+    "event": null,
+    "flash_offer": null,
+    "squeeze": {
+      "bullets": [
+        "Resuelve tu problema",
+        "Ahorra tiempo",
+        "Logra resultados"
+      ],
+      "cta_text": "Quiero esto ahora",
+      "headline": "Descubre Oferta mínima",
+      "privacy_text": "Cuidamos tus datos.",
+      "subheadline": "Transforma tu vida hoy",
+      "visual_url": null
+    },
+    "transformer": null,
+    "velvet_rope": null
+  },
+  "full": {
+    "brochure": {
+      "authority_logos": [],
+      "case_studies": [],
+      "cta_text": "Agendar llamada de descubrimiento",
+      "deliverables": [
+        "12 sesiones grupales en vivo",
+        "Plantillas y SOPs operativos",
+        "Mentoría 1:1 mensual",
+        "Acceso a comunidad",
+        "Auditoría privada",
+        "Biblioteca de templates",
+        "Sesión bonus de pricing"
+      ],
+      "headline": "Pasa de freelance reactivo a estudio rentable en 90 días",
+      "process_steps": [
+        {
+          "description": "Lunes 18hs",
+          "icon": null,
+          "title": "12 sesiones grupales en vivo"
+        },
+        {
+          "description": null,
+          "icon": null,
+          "title": "Plantillas y SOPs operativos"
+        },
+        {
+          "description": null,
+          "icon": null,
+          "title": "Mentoría 1:1 mensual"
+        },
+        {
+          "description": null,
+          "icon": null,
+          "title": "Acceso a comunidad"
+        },
+        {
+          "description": null,
+          "icon": null,
+          "title": "Auditoría privada"
+        },
+        {
+          "description": null,
+          "icon": null,
+          "title": "Biblioteca de templates"
+        }
+      ]
+    },
+    "event": null,
+    "flash_offer": {
+      "cta_text": "Añadir al carrito",
+      "discounted_price": 997.0,
+      "guarantee_text": "30 días o devolución",
+      "headline": "Pasa de freelance reactivo a estudio rentable en 90 días",
+      "offer_name": "Programa Alquimia LATAM",
+      "original_price": 1997.0,
+      "problem_agitation": "Trabajás 60 horas semanales atendiendo clientes que regatean precio.",
+      "product_image_url": null,
+      "solution_description": "Atendés solo clientes premium que valoran tu criterio."
+    },
+    "squeeze": {
+      "bullets": [
+        "Ticket promedio +250%",
+        "Margen operativo +40 pp",
+        "Tiempo facturable -50%"
+      ],
+      "cta_text": "Quiero esto ahora",
+      "headline": "Pasa de freelance reactivo a estudio rentable en 90 días",
+      "privacy_text": "Cuidamos tus datos.",
+      "subheadline": "Atendés solo clientes premium que valoran tu criterio.",
+      "visual_url": null
+    },
+    "transformer": {
+      "agitation_text": "Dentro de 12 meses seguir cobrando lo mismo.",
+      "authority_bio": "",
+      "authority_image_url": null,
+      "authority_name": "",
+      "bonuses": [],
+      "cta_text": "Inscribirme al programa",
+      "headline": "Pasa de freelance reactivo a estudio rentable en 90 días",
+      "method_description": "Listo. ¿Vas con pago único o cuotas?",
+      "method_name": "Programa Alquimia LATAM",
+      "modules": [
+        {
+          "description": "Lunes 18hs",
+          "icon": null,
+          "title": "12 sesiones grupales en vivo"
+        },
+        {
+          "description": null,
+          "icon": null,
+          "title": "Plantillas y SOPs operativos"
+        },
+        {
+          "description": null,
+          "icon": null,
+          "title": "Mentoría 1:1 mensual"
+        },
+        {
+          "description": null,
+          "icon": null,
+          "title": "Acceso a comunidad"
+        },
+        {
+          "description": null,
+          "icon": null,
+          "title": "Auditoría privada"
+        },
+        {
+          "description": null,
+          "icon": null,
+          "title": "Biblioteca de templates"
+        },
+        {
+          "description": null,
+          "icon": null,
+          "title": "Sesión bonus de pricing"
+        }
+      ],
+      "price_anchor": "$1,497",
+      "price_offer": "$1,497",
+      "problem_text": "Trabajás 60 horas semanales atendiendo clientes que regatean precio.",
+      "scarcity_text": "Solo 12 plazas para mantener calidad de mentoría 1:1.",
+      "solution_text": "Atendés solo clientes premium que valoran tu criterio.",
+      "story_hook": null,
+      "subheadline": "Atendés solo clientes premium que valoran tu criterio.",
+      "testimonials": []
+    },
+    "velvet_rope": {
+      "cta_text": "Aplicar para una entrevista",
+      "experience_image_urls": [],
+      "headline": "Pasa de freelance reactivo a estudio rentable en 90 días",
+      "manifesto_text": "Cada mes que postergás es un cliente premium que tu competencia capta.",
+      "scarcity_text": "Solo 12 plazas para mantener calidad de mentoría 1:1.",
+      "who_is_not_for": [
+        "estudiante",
+        "principiante"
+      ],
+      "who_is_this_for": [
+        "Ingreso recurrente >USD 8k/mes",
+        "Ser referente regional del nicho",
+        "Liberarse de la operación diaria"
+      ]
+    }
+  }
+}
