@@ -1,7 +1,7 @@
 ---
-last_updated: 2026-04-24 (Fase 05 done)
-last_green_commit: d0d121f1
-active_phase: 06-brand-migration
+last_updated: 2026-04-24 (Fase 06 done)
+last_green_commit: ed8a3a4f
+active_phase: 07-buyer-migration
 sub_step: 0/? (ready-to-start)
 status: ready-to-start
 blockers: none
@@ -18,22 +18,22 @@ parallel_session_files_ignored:
 ## Dónde estamos
 
 - **Refactor**: field-contract-platform
-- **Fase activa**: 06-brand-migration (ready-to-start)
-- **Última fase cerrada**: 05-downstream-data-driven (5 commits, 94036809 → d0d121f1)
+- **Fase activa**: 07-buyer-migration (ready-to-start)
+- **Última fase cerrada**: 06-brand-migration (6 commits, 61606fcf → ed8a3a4f)
 - **Rama**: `development`
 - **Working tree**: limpio
 
 ## Próxima acción
 
-Arrancar Fase 06. Seguir:
+Arrancar Fase 07. Seguir:
 
 1. Lee [protocol/RESUME.md](protocol/RESUME.md).
-2. Lee [phases/06-brand-migration/PRE_INVESTIGATION.md](phases/06-brand-migration/PRE_INVESTIGATION.md).
-3. Lee [phases/06-brand-migration/SPEC.md](phases/06-brand-migration/SPEC.md).
-4. Knowledge load 10-15 min: inventario `BRAND_EDITABLE_FIELDS` + drift
-   audit vs `BrandIdentity` Pydantic + coordinación con
-   `project_brand_studio_refactor` activo.
-5. Capturar baseline golden si aplica.
+2. Lee [phases/07-buyer-migration/PRE_INVESTIGATION.md](phases/07-buyer-migration/PRE_INVESTIGATION.md).
+3. Lee [phases/07-buyer-migration/SPEC.md](phases/07-buyer-migration/SPEC.md).
+4. Knowledge load: inventario `BUYER_PERSONA_EDITABLE_FIELDS` (independent
+   catalog) + `BuyerPersona` Pydantic (dict-typed JSONB columns) + drift
+   audit + decisión walker vs hand-authored para JSONB sub-keys.
+5. Capturar baseline golden buyer-persona.
 6. Escribir ACCEPTANCE.md.
 7. Ejecutar PRE_FLIGHT.md.
 
@@ -41,12 +41,22 @@ Prompt completo en [HANDOFF.md](HANDOFF.md).
 
 ## Contexto mínimo
 
-- Fase 05 cerró: 3 golden snapshots + 5 arch tests + lifecycle gate
-  via `filter_offer_for_prompt`. 453 arch tests, 4217+ backend tests.
+- Fase 06 cerró: brand FieldContract registry derivado (113 contracts,
+  86 proposable, 38/38 WORKING preserved, 0 BROKEN resurfaced, +48 nuevas
+  capabilities via Drift C closure). 471 arch tests, 4261+ backend tests.
+- Drift cerrado:
+  - A: 17 shorthand 2-level paths broken (`positioning.insight_tension`,
+    `narrative.problem_villain` etc) — el walker emite los sub-objects
+    como OBJECT can_propose=False.
+  - B: 23 paths bajo wrong section (`contact.legal_*` → `identity.legal_*`)
+    corregidos preservando labels.
+  - C: 48 Pydantic fields sin entry catalog ahora cubiertos por derivación.
+- Buyer-persona standalone (no es sub-model de BrandSettings) — registrado
+  como dominio separado `"buyer_persona"`. Fase 07 lo migra como módulo
+  virtual con su propio FieldContract.
 - Diferidos en LEARNINGS Fase 05: full data-driven loop en
   `agent_identity.j2`, alineación completion ↔ contract semantics,
   migración landing builders al Offer aggregate.
-- Brand/buyer/copilot intactos hasta su fase.
 
 ## Workspaces
 
@@ -78,7 +88,19 @@ Prompt completo en [HANDOFF.md](HANDOFF.md).
 | 05.C | `37154119` | arch test: agent_identity.j2 paths ⊆ contract |
 | 05.D | `0aa7e550` | arch test: completion validators ⊆ contract |
 | 05.E | `d0d121f1` | arch test: landing builders ⊆ contract |
-| 05.G | (this commit) | close phase + LEARNINGS + STATE/STATUS bump + HANDOFF Fase 06 |
+| 05.G | `fcef64a4` | close phase + LEARNINGS + STATE/STATUS bump + HANDOFF Fase 06 |
+
+## Historial Fase 06
+
+| Sub-step | Commit | Descripción |
+|---|---|---|
+| 06.A | `61606fcf` | brand catalog baseline + ACCEPTANCE + PRE_INVESTIGATION |
+| 06.B | (folded) | platform tests pre-brand — fold-into-06.C |
+| 06.C | `8d3dd998` | brand FieldContract registry derivado de BrandSettings |
+| 06.D | `3539e85f` | BRAND_EDITABLE_FIELDS proyectado del registry |
+| 06.E | `9c1ec582` | MIGRATED_MODULES bump brand + brand pydantic coverage |
+| 06.F | `ed8a3a4f` | brand catalog anti-regression (projection mandatoria) |
+| 06.G | (this commit) | close phase + LEARNINGS + STATE/STATUS bump + HANDOFF Fase 07 |
 
 ## Convención de actualización
 

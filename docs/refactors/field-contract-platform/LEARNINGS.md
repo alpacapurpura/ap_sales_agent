@@ -327,7 +327,140 @@ Last green commit Fase 05: `d0d121f1`.
 
 ## Fase 06 — Brand migration
 
-**Status**: pending
+**Status**: done (2026-04-24)
+
+### Pre-fase expectations vs realidad
+
+- ✅ Brand FieldContract registry derivado completo (113 contracts) —
+  drift A/B/C cerrado por construcción.
+- ✅ BRAND_EDITABLE_FIELDS proyectado del registry — sin tuples manuales.
+- ✅ UX byte-identical: 38/38 WORKING_PATHS_BASELINE preservados, 60
+  curated Spanish labels intactos en proyección.
+- ✅ Buyer-persona NO se tocó (Fase 07 lo migra independiente).
+- ✅ Coordinación con `project_brand_studio_refactor` activo confirmada
+  cero overlap (Sprint 6.E es FE offer-studio).
+- ✅ Generic platform fitness gates (template) corren para brand sin
+  cambios (1 entry: `_brand_spec()` builder).
+
+### Resultados cuantitativos
+
+| Métrica | Pre-Fase 06 | Post-Fase 06 |
+|---|---|---|
+| Brand catalog entries | 78 (mixto: 38 working + 40 broken) | 86 (todas válidas) |
+| BRAND_FIELD_CONTRACTS | n/a | 113 derivados |
+| Drift entre catalog y Pydantic | severa (40/78 broken) | cero (proyección) |
+| Manual hand-written tuples brand | 9 (`_IDENTITY/_STORY/.../_LEGAL`) | 0 |
+| Tests arch totales | 453 | 471 (+18 brand-specific + cross-cutting) |
+| Tests totales backend | 4217+ | 4261 |
+| MIGRATED_MODULES | `("offer",)` | `("offer", "brand")` |
+
+### Descubrimientos
+
+- (06.A) Drift audit reveló 3 categorías:
+  - **A**: 17 paths shorthand 2-level (`positioning.insight_tension`
+    intentando flatten `positioning.insight.tension`). Validador
+    `validate_field_path` los rechaza — dead silent.
+  - **B**: 23 paths con wrong section (`contact.legal_*` cuando
+    Pydantic tiene `identity.legal_*`). Validador rechaza también.
+  - **C**: ~75 Pydantic fields user-facing sin entry catalog
+    (visuals derivative tokens, regulated/professional fields,
+    communication_assets, team CRUD, etc.).
+
+  Confirmación empírica vía `validate_field_path("brand", ...)`:
+  Drift A/B paths return False → catalog drop = UX byte-identical
+  (INVARIANT 4).
+
+- (06.C) BrandSettings es estrictamente composable: 9 sub-models con
+  shape `SubModel | None`, sin polymorphic unions. Walker config:
+  `composable_fields=("identity","strategy","story","contact","visuals","positioning","narrative","communication_assets","brand_personality")`,
+  walker depth = 1 level. Match exacto con offer's `platform_details`
+  pattern.
+
+- (06.C) Sub-objects nested (BrandPositioning.insight, BrandNarrative.hero,
+  etc.) emitten como `FieldType.OBJECT` con `can_propose=False`.
+  Mantiene la profundidad de exposición consistente con offer y matchea
+  lo que el copilot puede realmente proponer (validador acepta solo
+  1-level paths).
+
+- (06.D) Preservación de labels curados es **clave para UX byte-identical**.
+  Walker default labels via `_humanize()` produce "Brand Name", "Tax Id".
+  Los 60 labels curados ("Razón social", "Email DPO", "Tagline") viven
+  en `BRAND_FIELD_OVERRIDES` con `label_es=...` para cubrir el surface
+  del system prompt. Los 26 paths nuevos (Drift C) usan humanize
+  fallback — newly-exposed, no UX prior preserva.
+
+- (06.D) `identity.voice_tone` está en `_DEPRECATED_PATHS` del
+  arch test `test_no_legacy_paths_in_any_catalog`. Se marca DEPRECATED
+  + can_propose=False en `BRAND_FIELD_OVERRIDES`. Walker derivation
+  lo emite igualmente como contract pero la projection lo filtra. UI
+  ya no lo renderiza — alineamiento completo.
+
+- (06.D) `BrandStrategy` removed `unique_value_proposition` /
+  `competitors` / `value_proposition` / `target_audience` /
+  `differentiation` / `offerings` (model_validator migra-on-load a
+  positioning). Esos campos NO están en model_fields actualmente —
+  walker no los emite, no aparecen en registry. UVP vive en
+  `positioning.unique_value_proposition`. Migración legacy intacta.
+
+- (06.E) Las 6 fitness gates parametrizadas heredadas de Fase 04.I
+  corrieron para brand sin cambios (`_brand_spec` registrado en
+  `_build_module_registry`). Pattern validado: agregar módulo nuevo
+  = 1 spec entry + 1 entry en MIGRATED_MODULES + sus arch tests
+  específicos opcionales.
+
+- (06.F) Anti-regression brand: ratchet test que prohíbe múltiples
+  `FieldSpec(` calls en `copilot_editable_fields.py` (solo 1 dentro
+  del projection helper) + assert que importa BRAND_FIELD_CONTRACTS.
+  Mirror del pattern offer.
+
+### Decisiones nuevas
+
+Ninguna ADR formal. Decisiones de scope reduction documentadas in-line:
+
+- 06.B fold-into-06.C: walker shared ya validado por offer Fase 04
+  con casos polymorphic + composable. Brand es estrictamente composable
+  (caso más simple).
+- Buyer-persona out of Fase 06: confirma plan original (Fase 07).
+- `brand_personality.*` mapea section `personality` (catalog actual),
+  no `estilo` (section_catalog editor key) — alineación diferida.
+
+### Deuda técnica encontrada (en scope, resuelta)
+
+- ✅ Drift A/B/C cerrado por construcción (catalog ahora projection).
+- ✅ Anti-regression test (06.F) previene re-introducción de manual tuples.
+- ✅ `identity.voice_tone` lifecycle DEPRECATED status documentado.
+- ✅ Legacy aliases `contact.email`, `contact.social`, `story.milestones_legacy`
+  marcadas DEPRECATED con `replaced_by`/`notes`.
+
+### Deuda técnica (tangencial — entry en `docs/mejoras-proceso/to-do.md`)
+
+- Section `personality` (catalog) vs `estilo` (section_catalog editor key)
+  drift cosmético. Unificación requiere coordinación con FE form-runtime.
+- Nested-of-nested propuesta (e.g. `positioning.insight.tension` como
+  proposable path) — hoy emitidos como OBJECT can_propose=False.
+  Habilitarlo requiere extender walker a depth 2 para módulos selectos
+  + actualizar `validate_field_path._build_brand_paths` a 2-level.
+  Probable fase futura.
+
+### Para Fase 07
+
+- Buyer-persona standalone — Pydantic con dict-typed JSONB
+  (demographics, psychographics, buyer_journey, pain_points, etc.).
+- Walker actual no maneja dict sub-keys. Fase 07 decide:
+  - Patrón A: hand-author paths para campos JSONB sub-keys
+    (mantener validate_field_path _build_buyer_persona_paths como
+    referencia).
+  - Patrón B: extender walker con `dict_subkeys: dict[str, tuple[str,...]]`
+    arg para declarar sub-keys conocidos (demographics.age_range, etc.).
+- Recomendación: B — más sostenible. Sub-keys conocidos viven en
+  `BUYER_SECTION_MAP` como entries explícitas; walker emite contracts
+  con el path completo.
+- Catalog `BUYER_PERSONA_EDITABLE_FIELDS` ya tiene 12 entries hand-authored
+  (4 demographics + 3 psychographics + 3 journey + 2 identity).
+
+### Closing commit hash
+
+Last green commit Fase 06: `ed8a3a4f`. Close commit en 06.G.
 
 ---
 
