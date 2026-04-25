@@ -1,14 +1,28 @@
 ---
-status: ready-to-start
-opened_at: null
+status: in_progress
+opened_at: 2026-04-24
 closed_at: null
 baseline_green_commit: ed8a3a4f
+sub_step: 07.A (in progress)
 ---
 
 # Fase 07 — Buyer-persona migration · Status
 
-**Ready-to-start**. Fase 06 cerrada (`ed8a3a4f`). 471 arch tests +
-4261 BE tests verde.
+**In progress**. Fase 06 cerrada (`ed8a3a4f`). 471 arch tests +
+4261 BE tests verde como baseline. Sub-step 07.A captura golden
+baseline + ACCEPTANCE.
+
+## Sub-step log
+
+| Sub-step | Commit | Status |
+|---|---|---|
+| 07.A · golden baseline + ACCEPTANCE | (this commit) | in progress |
+| 07.B · walker dict_subkeys arg | — | pending |
+| 07.C · buyer-persona FieldContract | — | pending |
+| 07.D · BUYER_PERSONA_EDITABLE_FIELDS proyectado | — | pending |
+| 07.E · MIGRATED_MODULES bump + Pydantic coverage | — | pending |
+| 07.F · anti-regression buyer ratchet | — | pending |
+| 07.G · close phase + handoff Fase 08 | — | pending |
 
 Al abrir:
 1. Re-leer SPEC.md + PRE_INVESTIGATION.md.
