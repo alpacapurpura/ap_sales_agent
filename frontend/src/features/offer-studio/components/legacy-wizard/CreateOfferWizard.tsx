@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Loader2, Plus, Rocket, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Plus, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { CurrencySelect } from "@/components/shared/CurrencySelect";
@@ -42,7 +42,6 @@ interface CreateOfferWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreateOffer: (data: WizardResult) => Promise<void>;
-  onCreateWithIA?: (data: WizardResult) => Promise<void>;
   creating?: boolean;
   /**
    * Pre-selected ladder rung — set when the wizard is opened from a
@@ -97,7 +96,6 @@ export function CreateOfferWizard({
   open,
   onOpenChange,
   onCreateOffer,
-  onCreateWithIA,
   creating = false,
   presetValueLevel,
 }: CreateOfferWizardProps) {
@@ -264,13 +262,6 @@ export function CreateOfferWizard({
     await onCreateOffer(result);
   };
 
-  const handleCreateWithIA = async () => {
-    if (!onCreateWithIA) return;
-    const result = buildResult();
-    if (!result) return;
-    await onCreateWithIA(result);
-  };
-
   const canSubmit = Boolean(archetype && offerName.trim() && !creating);
 
   // ── Render ───────────────────────────────────────────────────────────────
@@ -387,26 +378,14 @@ export function CreateOfferWizard({
           {stepIndex === plan.totalVisible - 1 &&
             currentStep !== "preset" &&
             currentStep !== "archetype" && (
-              <div className="flex gap-2 sm:ml-auto">
-                {onCreateWithIA && (
-                  <Button variant="outline" onClick={handleCreateWithIA} disabled={!canSubmit}>
-                    {creating ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="mr-2 h-4 w-4" />
-                    )}
-                    Crear con IA
-                  </Button>
+              <Button onClick={handleCreate} disabled={!canSubmit} className="sm:ml-auto">
+                {creating ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
                 )}
-                <Button onClick={handleCreate} disabled={!canSubmit}>
-                  {creating ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Rocket className="mr-2 h-4 w-4" />
-                  )}
-                  Crear oferta
-                </Button>
-              </div>
+                Crear oferta
+              </Button>
             )}
         </DialogFooter>
       </DialogContent>

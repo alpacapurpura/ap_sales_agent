@@ -1,17 +1,19 @@
 "use client";
 
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useMemo } from "react";
 
 import { FinderColumn } from "@/components/form-runtime";
+import { RailCollapsedSliver } from "@/components/shared/RailCollapsedSliver";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSectionStatus } from "@/features/copilot/hooks/use-section-status";
 import { cn } from "@/lib/utils";
 
 import { useArchetypeCatalog } from "../hooks/use-archetype-catalog";
 import { useOffer } from "../hooks/use-offer";
+import { useSectionsRailCollapsed } from "../hooks/use-rail-collapsed";
 import { useSectionsForArchetype } from "../hooks/use-sections-for-archetype";
 import { resolveIconByName } from "../lib/icon-name-resolver";
 
@@ -45,6 +47,7 @@ export function OfferStudioNavRail() {
   const pathname = usePathname();
 
   const { offer } = useOffer(offerId);
+  const [collapsed, toggleCollapsed] = useSectionsRailCollapsed();
 
   const resolvedBase =
     tenantId && offerId ? `/${tenantId}/offer-studio/offer/${offerId}/editor` : "";
@@ -63,13 +66,36 @@ export function OfferStudioNavRail() {
 
   const sectionStatus = useSectionStatus("offer");
 
+  if (collapsed) {
+    return (
+      <RailCollapsedSliver
+        label={`Secciones (${visibleSections.length})`}
+        ariaLabel="Expandir secciones"
+        onExpand={toggleCollapsed}
+      />
+    );
+  }
+
   return (
     <TooltipProvider>
       <FinderColumn
         title="Secciones"
-        count={visibleSections.length}
         widthClass="w-[var(--brand-col-sections)]"
         ariaLabel="Secciones de Offer Studio"
+        headerTrailing={
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-muted-foreground">{visibleSections.length}</span>
+            <button
+              type="button"
+              onClick={toggleCollapsed}
+              aria-label="Contraer secciones"
+              title="Contraer secciones"
+              className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
+            </button>
+          </div>
+        }
       >
         <ul className="flex flex-col">
           {visibleSections.map((section) => (
@@ -109,6 +135,7 @@ function SectionRow({ baseHref, section, isActive, statusEntry }: SectionRowProp
         isActive && "before:absolute before:inset-y-0 before:left-0 before:w-[2px] before:bg-brand",
       )}
     >
+      {/* eslint-disable-next-line react-hooks/static-components -- Icon is a stable reference resolved from the section catalog, not a component created during render. */}
       <Icon
         className={cn("h-4 w-4 shrink-0", isActive ? "text-foreground" : "text-muted-foreground")}
         aria-hidden="true"

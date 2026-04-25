@@ -26,6 +26,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { RailCollapsedSliver } from "@/components/shared/RailCollapsedSliver";
 import { Button } from "@/components/ui/button";
 
 import { useEditions } from "../hooks/use-editions";
@@ -33,6 +34,7 @@ import { useOffer } from "../hooks/use-offer";
 import { useOfferCounts } from "../hooks/use-offer-counts";
 import { useRailCollapsed } from "../hooks/use-rail-collapsed";
 import { useShouldShowVariantRail } from "../hooks/use-should-show-variant-rail";
+import { getVariantNounPlural } from "../lib/variant-structure-catalog";
 
 import { EditionFormDialog } from "./editions/EditionFormDialog";
 import { OfferShellHeader } from "./OfferShellHeader";
@@ -106,6 +108,13 @@ export function OfferShellLayout({ offerId, tenantId, children }: OfferShellLayo
     variants: editions,
   });
 
+  // Capitalised plural noun for the collapsed-sliver label. Falls back to a
+  // generic "Variantes" when no variant is loaded yet so the sliver can render
+  // before the first edition is fetched.
+  const variantStructure = editions[0]?.variant_structure ?? null;
+  const variantsPlural = variantStructure ? getVariantNounPlural(variantStructure) : "variantes";
+  const variantsLabel = variantsPlural.charAt(0).toUpperCase() + variantsPlural.slice(1);
+
   const safeCounts = counts ?? {
     assets: 0,
     campaigns: 0,
@@ -163,15 +172,23 @@ export function OfferShellLayout({ offerId, tenantId, children }: OfferShellLayo
       <OfferShellHeader offer={offer} tenantId={tenantId} />
 
       <div className="flex min-h-0 flex-1">
-        {showVariantRail && !railCollapsed ? (
-          <VariantRail
-            offerId={offerId}
-            tenantId={tenantId}
-            variants={editions}
-            currentVariantId={null}
-            onCollapse={toggleRailCollapsed}
-            onCreateNew={openNewEdition}
-          />
+        {showVariantRail ? (
+          railCollapsed ? (
+            <RailCollapsedSliver
+              label={`${variantsLabel} (${editions.length})`}
+              ariaLabel="Expandir variantes"
+              onExpand={toggleRailCollapsed}
+            />
+          ) : (
+            <VariantRail
+              offerId={offerId}
+              tenantId={tenantId}
+              variants={editions}
+              currentVariantId={null}
+              onCollapse={toggleRailCollapsed}
+              onCreateNew={openNewEdition}
+            />
+          )
         ) : null}
 
         <div className="flex min-w-0 min-h-0 flex-1 flex-col">

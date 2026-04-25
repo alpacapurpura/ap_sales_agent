@@ -7,13 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-import { FieldLabelWithHelp } from "../../FieldLabelWithHelp";
-
 import { ArrayAddButton } from "./array-add-button";
 import { ArrayDragHandle } from "./array-drag-handle";
 import { ArrayFieldHeader } from "./array-field-header";
 import { ArrayItemActions } from "./array-item-actions";
 import { ArrayItemBadge } from "./array-item-badge";
+import { ArrayItemFields } from "./array-item-fields";
 import { singulariseES } from "./array-singularise";
 import { summariseItem } from "./array-summary";
 import { computeItemStatus } from "./array-validation";
@@ -213,21 +212,13 @@ export function ArrayCardsEditor({
                 {/* Expanded fields */}
                 {isExpanded && (
                   <div className="px-4 py-4 space-y-4">
-                    {fields.map((subField) => (
-                      <div key={subField.id}>
-                        <FieldLabelWithHelp
-                          field={subField}
-                          htmlFor={subField.id}
-                          className="mb-1.5 text-xs text-muted-foreground"
-                        />
-                        {renderField({
-                          field: subField,
-                          value: item[subField.path],
-                          onChange: (next) => updateItem(index, { [subField.path]: next }),
-                          disabled,
-                        })}
-                      </div>
-                    ))}
+                    <ArrayItemFields
+                      fields={fields}
+                      item={item}
+                      onUpdate={(patch) => updateItem(index, patch)}
+                      renderField={renderField}
+                      disabled={disabled}
+                    />
                   </div>
                 )}
               </div>

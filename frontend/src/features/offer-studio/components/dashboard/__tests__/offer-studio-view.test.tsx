@@ -29,6 +29,7 @@ vi.mock("@/components/shared/navigation", () => ({
     isNavigating: false,
     navigateReplace: vi.fn(),
     pendingHref: null,
+    runWithOverlay: async <T,>(fn: () => Promise<T>) => fn(),
   }),
 }));
 

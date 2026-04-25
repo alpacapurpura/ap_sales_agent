@@ -4,6 +4,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { useNavigation } from "@/components/shared/navigation";
 import { reportCopilotEvent } from "@/features/copilot/api/copilot-api";
 import { useCopilotChat } from "@/features/copilot/hooks/use-copilot-chat";
 import { type GuidedDomain, promptFor, routeFor } from "@/features/copilot/lib/guided-prompts";
@@ -68,6 +69,7 @@ export function useGuidedEntityCreation<T extends { id: string }, TArgs = void>(
   const router = useRouter();
   const { getToken } = useAuth();
   const { sendMessage } = useCopilotChat();
+  const { runWithOverlay } = useNavigation();
 
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,40 +80,45 @@ export function useGuidedEntityCreation<T extends { id: string }, TArgs = void>(
       setCreating(true);
       setError(null);
 
-      let entity: T;
       try {
-        entity = await createEntity(args);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "No se pudo crear la entidad.";
-        console.error("useGuidedEntityCreation.createEntity failed", err);
-        setError(message);
+        await runWithOverlay(async () => {
+          let entity: T;
+          try {
+            entity = await createEntity(args);
+          } catch (err) {
+            const message = err instanceof Error ? err.message : "No se pudo crear la entidad.";
+            console.error("useGuidedEntityCreation.createEntity failed", err);
+            setError(message);
+            return;
+          }
+
+          useCopilotStore.getState().openPanel();
+
+          try {
+            await sendMessage(promptFor(domain, entity.id));
+          } catch (sendErr) {
+            // Best-effort: the entity exists, navigation must still happen so
+            // the user can retry guided from the detail page.
+            console.error("useGuidedEntityCreation.sendMessage failed", sendErr);
+          }
+
+          const token = await getToken();
+          if (token) {
+            reportCopilotEvent("guided_setup_requested", { domain, entity_id: entity.id }, token);
+          }
+
+          const url = getNavigateUrl
+            ? getNavigateUrl(entity)
+            : routeFor(domain, tenantId, entity.id);
+          if (onNavigate) {
+            onNavigate(url);
+          } else {
+            router.push(url);
+          }
+        });
+      } finally {
         setCreating(false);
-        return;
       }
-
-      useCopilotStore.getState().openPanel();
-
-      try {
-        await sendMessage(promptFor(domain, entity.id));
-      } catch (sendErr) {
-        // Best-effort: the entity exists, navigation must still happen so the
-        // user can retry guided from the detail page.
-        console.error("useGuidedEntityCreation.sendMessage failed", sendErr);
-      }
-
-      const token = await getToken();
-      if (token) {
-        reportCopilotEvent("guided_setup_requested", { domain, entity_id: entity.id }, token);
-      }
-
-      const url = getNavigateUrl ? getNavigateUrl(entity) : routeFor(domain, tenantId, entity.id);
-      if (onNavigate) {
-        onNavigate(url);
-      } else {
-        router.push(url);
-      }
-
-      setCreating(false);
     },
     [
       creating,
@@ -121,6 +128,7 @@ export function useGuidedEntityCreation<T extends { id: string }, TArgs = void>(
       getToken,
       onNavigate,
       router,
+      runWithOverlay,
       sendMessage,
       tenantId,
     ],

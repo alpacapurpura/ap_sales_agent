@@ -119,9 +119,8 @@ export function OfferStudioDashboard({
 
   // Wizard State
   const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [creatingManual, setCreatingManual] = useState(false);
 
-  const { create: createOfferWithGuided, creating: creatingGuided } = useGuidedEntityCreation<
+  const { create: createOfferWithGuided, creating } = useGuidedEntityCreation<
     { id: string },
     WizardResult
   >({
@@ -136,8 +135,6 @@ export function OfferStudioDashboard({
     },
     onNavigate: navigate,
   });
-
-  const creating = creatingManual || creatingGuided;
   // Rung preselected by the click context. Header "Nueva Oferta" passes
   // undefined (full 6-step flow); each column's "+" passes its level so
   // the wizard skips the pick-rung step.
@@ -218,28 +215,10 @@ export function OfferStudioDashboard({
     setIsWizardOpen(true);
   }, []);
 
+  // Single creation path: closes wizard, creates entity, opens copilot, sends
+  // guided prompt, navigates to detail. Spinner blocks the page during the
+  // full flow via NavigationContext's runWithOverlay (see useGuidedEntityCreation).
   const handleCreateOffer = async (wizardData: WizardResult) => {
-    setCreatingManual(true);
-    try {
-      const token = await getToken();
-      if (!token) throw new Error("No authenticated");
-
-      const newOffer = await offerApi.createOffer(toOfferCreatePayload(wizardData), token);
-
-      if (newOffer.id) {
-        setIsWizardOpen(false);
-        navigate(`/${tenantId}/offer-studio/offer/${newOffer.id}`);
-      }
-    } catch (err) {
-      console.error("Error creating offer:", err);
-    } finally {
-      setCreatingManual(false);
-    }
-  };
-
-  // IA path: delegates create + openPanel + guided prompt + navigate to the
-  // shared `useGuidedEntityCreation` hook. Same contract as buyer-persona.
-  const handleCreateOfferWithIA = async (wizardData: WizardResult) => {
     setIsWizardOpen(false);
     await createOfferWithGuided(wizardData);
   };
@@ -326,7 +305,6 @@ export function OfferStudioDashboard({
         open={isWizardOpen}
         onOpenChange={setIsWizardOpen}
         onCreateOffer={handleCreateOffer}
-        onCreateWithIA={handleCreateOfferWithIA}
         creating={creating}
         presetValueLevel={presetValueLevel}
       />

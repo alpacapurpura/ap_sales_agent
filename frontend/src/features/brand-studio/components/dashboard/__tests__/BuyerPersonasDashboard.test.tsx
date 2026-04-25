@@ -71,6 +71,7 @@ vi.mock("@/components/shared/navigation", () => ({
     isNavigating: false,
     navigateReplace: vi.fn(),
     pendingHref: null,
+    runWithOverlay: async <T,>(fn: () => Promise<T>) => fn(),
   }),
 }));
 
@@ -190,10 +191,9 @@ describe("BuyerPersonasDashboard", () => {
     );
     await waitFor(() => expect(mockOpenPanel).toHaveBeenCalled());
     await waitFor(() =>
-      expect(mockSendMessage).toHaveBeenCalledWith(
-        expect.stringContaining('start_guided_setup con domain="buyer_persona"'),
-      ),
+      expect(mockSendMessage).toHaveBeenCalledWith(expect.stringContaining("Guíame paso a paso")),
     );
+    expect(mockSendMessage).toHaveBeenCalledWith(expect.stringContaining("smart-id"));
     expect(mockRouterPush).toHaveBeenCalledWith("/t-1/brand-studio/publico/persona/smart-id");
   });
 

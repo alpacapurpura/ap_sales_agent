@@ -30,3 +30,5 @@ export { NextEmptyFieldCta, findNextEmpty } from "./NextEmptyFieldCta";
 export type { NextEmptyFieldCtaProps } from "./NextEmptyFieldCta";
 export { AutosaveBanner } from "./AutosaveBanner";
 export type { AutosaveStatus } from "./AutosaveBanner";
+export { CollapsibleFieldGroup, groupFieldsByGroup, hasFieldGroups } from "./CollapsibleFieldGroup";
+export type { CollapsibleFieldGroupProps, FieldGroupBucket } from "./CollapsibleFieldGroup";

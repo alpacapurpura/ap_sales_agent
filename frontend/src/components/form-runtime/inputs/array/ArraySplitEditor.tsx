@@ -7,12 +7,12 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-import { FieldLabelWithHelp } from "../../FieldLabelWithHelp";
 import { ArrayAddButton } from "./array-add-button";
 import { ArrayDragHandle } from "./array-drag-handle";
 import { ArrayFieldHeader } from "./array-field-header";
 import { ArrayItemActions } from "./array-item-actions";
 import { ArrayItemBadge } from "./array-item-badge";
+import { ArrayItemFields } from "./array-item-fields";
 import { singulariseES } from "./array-singularise";
 import { summariseItem } from "./array-summary";
 import { computeItemStatus } from "./array-validation";
@@ -187,30 +187,13 @@ export function ArraySplitEditor({
 
               {/* Fields grid */}
               <div className="p-5 space-y-4 overflow-y-auto flex-1">
-                {fields.map((subField) => (
-                  <div
-                    key={subField.id}
-                    className={cn(
-                      subField.type === "textarea" ||
-                        subField.type === "array" ||
-                        subField.type === "custom"
-                        ? "col-span-2"
-                        : "",
-                    )}
-                  >
-                    <FieldLabelWithHelp
-                      field={subField}
-                      htmlFor={subField.id}
-                      className="mb-1.5 text-xs text-muted-foreground"
-                    />
-                    {renderField({
-                      field: subField,
-                      value: selectedItem[subField.path],
-                      onChange: (next) => updateItem(selectedIndex, { [subField.path]: next }),
-                      disabled,
-                    })}
-                  </div>
-                ))}
+                <ArrayItemFields
+                  fields={fields}
+                  item={selectedItem}
+                  onUpdate={(patch) => updateItem(selectedIndex, patch)}
+                  renderField={renderField}
+                  disabled={disabled}
+                />
               </div>
             </>
           ) : (

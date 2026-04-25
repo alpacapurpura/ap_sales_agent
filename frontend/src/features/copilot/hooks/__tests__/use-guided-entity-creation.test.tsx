@@ -19,6 +19,12 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
+vi.mock("@/components/shared/navigation", () => ({
+  useNavigation: () => ({
+    runWithOverlay: async <T,>(fn: () => Promise<T>) => fn(),
+  }),
+}));
+
 vi.mock("@/features/copilot/hooks/use-copilot-chat", () => ({
   useCopilotChat: () => ({
     sendMessage: mockSendMessage,
@@ -78,9 +84,11 @@ describe("useGuidedEntityCreation", () => {
     expect(createEntity).toHaveBeenCalledTimes(1);
     expect(mockOpenPanel).toHaveBeenCalledTimes(1);
     expect(mockSendMessage).toHaveBeenCalledTimes(1);
-    expect(mockSendMessage).toHaveBeenCalledWith(
-      expect.stringContaining('start_guided_setup con domain="buyer_persona" y entity_id="p-9"'),
-    );
+    // Prompt is natural-language so it doesn't read as machine instruction
+    // to the user, but still embeds the entity_id so the LLM can extract it
+    // when it calls start_guided_setup.
+    expect(mockSendMessage).toHaveBeenCalledWith(expect.stringContaining("Guíame paso a paso"));
+    expect(mockSendMessage).toHaveBeenCalledWith(expect.stringContaining("p-9"));
     expect(mockPush).toHaveBeenCalledWith("/t-1/brand-studio/publico/persona/p-9");
   });
 
