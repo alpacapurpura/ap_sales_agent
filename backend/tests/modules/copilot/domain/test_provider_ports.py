@@ -95,6 +95,11 @@ class _StubProvider:
     def context_injector(self) -> ContextInjector | None:
         return _StubContextInjector()
 
+    def data_access(self) -> object | None:
+        # F5 — protocol acquired ``data_access()``; ``None`` keeps the stub
+        # opt-out of the ``ask_tenant_data`` dispatcher.
+        return None
+
 
 # ── Protocol compliance ────────────────────────────────────────────────────
 

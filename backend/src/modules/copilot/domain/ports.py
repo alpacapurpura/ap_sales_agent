@@ -343,6 +343,66 @@ class ContextInjector(Protocol):
         ...
 
 
+# ── DataAccessProvider (F5 — ask_tenant_data subgraph) ─────────────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class DataQueryPlan:
+    """Structured query the ask_tenant_data pipeline dispatches to providers.
+
+    ``kind`` matches the intent classifier output (``offer_lookup``,
+    ``lead_count``, ``conversation_count``…). ``filters`` is provider-specific
+    payload (e.g. ``{"name_query": "...", "status": "active", "since": ...}``).
+    """
+
+    kind: str
+    filters: Mapping[str, Any] = field(default_factory=dict)
+    limit: int = 20
+
+
+@dataclass(frozen=True, slots=True)
+class DataQueryResult:
+    """Result returned by a ``DataAccessProvider`` execution.
+
+    ``rows`` carry the records the synthesizer formats; ``metadata`` carries
+    aggregate counters / state flags consumed by the state_check stage.
+    """
+
+    rows: list[dict[str, Any]] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@runtime_checkable
+class DataAccessProvider(Protocol):
+    """Read-only data accessor a module exposes to the ask_tenant_data tool.
+
+    Each provider declares which ``kind`` values it handles via ``supports``;
+    the pipeline dispatches a ``DataQueryPlan`` to the first provider that
+    accepts it. This keeps cross-module reads going through the provider port
+    (no direct repo imports from ``copilot/`` — preserves the ratchet) and
+    enforces tenant isolation at one place per provider.
+
+    The optional ``context`` mapping carries request-scoped collaborators (e.g.
+    an open SQLAlchemy ``Session`` under the key ``"db"``). Providers fall back
+    to opening their own session when ``context`` is empty so unit tests can
+    inject a fixture session without coupling production code to a global.
+    """
+
+    def supports(self, kind: str) -> bool:
+        """Return ``True`` if this provider handles plans with the given kind."""
+        ...
+
+    async def execute(
+        self,
+        *,
+        tenant_id: UUID,
+        plan: DataQueryPlan,
+        context: Mapping[str, Any] | None = None,
+    ) -> DataQueryResult:
+        """Run the plan against the module's read side and return the result."""
+        ...
+
+
 @runtime_checkable
 class CopilotProvider(Protocol):
     """Root provider every module implements to plug into the copilot.
@@ -390,6 +450,10 @@ class CopilotProvider(Protocol):
         """Return the module's context injector or ``None`` (F3+)."""
         ...
 
+    def data_access(self) -> DataAccessProvider | None:
+        """Return the module's data access provider or ``None`` (F5+)."""
+        ...
+
 
 class BaseCopilotProvider:
     """Convenience base class implementing safe ``CopilotProvider`` defaults.
@@ -435,4 +499,8 @@ class BaseCopilotProvider:
 
     def context_injector(self) -> ContextInjector | None:
         """Return ``None`` by default — module injects no system-prompt fragment."""
+        return None
+
+    def data_access(self) -> DataAccessProvider | None:
+        """Return ``None`` by default — module exposes no data_access port (F5)."""
         return None

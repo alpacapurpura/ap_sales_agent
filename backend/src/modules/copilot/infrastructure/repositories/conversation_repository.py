@@ -8,7 +8,7 @@ from datetime import UTC
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 
 from src.modules.copilot.infrastructure.models.conversation_model import (
     CopilotConversationModel,
@@ -16,6 +16,7 @@ from src.modules.copilot.infrastructure.models.conversation_model import (
 from src.shared.domain.datetime_utils import utc_now
 
 if TYPE_CHECKING:
+    from datetime import datetime
     from uuid import UUID
 
     from sqlalchemy.orm import Session
@@ -29,6 +30,33 @@ class ConversationRepository:
     def __init__(self, db: Session) -> None:
         """Initialize conversation repository."""
         self.db = db
+
+    def count_window(
+        self,
+        *,
+        tenant_id: UUID,
+        since: datetime,
+        until: datetime,
+        include_archived: bool = False,
+    ) -> int:
+        """Count conversations whose ``updated_at`` falls inside the window.
+
+        Tenant-scoped. Excludes ``deleted_at`` rows always; excludes
+        ``archived_at`` unless ``include_archived=True``. Used by
+        ``ask_tenant_data`` for "cuántas conversaciones tuve esta semana"-class
+        questions where the answer is the tenant's own copilot activity.
+        """
+        conditions = [
+            CopilotConversationModel.tenant_id == tenant_id,
+            CopilotConversationModel.deleted_at.is_(None),
+            CopilotConversationModel.updated_at >= since,
+            CopilotConversationModel.updated_at <= until,
+        ]
+        if not include_archived:
+            conditions.append(CopilotConversationModel.archived_at.is_(None))
+
+        stmt = select(func.count(CopilotConversationModel.id)).where(*conditions)
+        return int(self.db.execute(stmt).scalar_one() or 0)
 
     def create(
         self,

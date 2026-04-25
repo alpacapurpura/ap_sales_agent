@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from src.modules.copilot.domain.ports import BaseCopilotProvider, ModuleData
+from src.modules.copilot.domain.ports import BaseCopilotProvider, DataAccessProvider, ModuleData
+from src.modules.offer.copilot_provider.data_access import OfferDataAccessProvider
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -27,6 +28,10 @@ def _offer_read_fn(repo: object, tenant_id: UUID) -> list:
 class OfferCopilotProvider(BaseCopilotProvider):
     """Offer Studio module surface for the copilot."""
 
+    def __init__(self) -> None:
+        """Eagerly construct the data accessor — its constructor is cheap."""
+        self._data_access = OfferDataAccessProvider()
+
     @property
     def module_id(self) -> str:
         return "offer"
@@ -34,6 +39,9 @@ class OfferCopilotProvider(BaseCopilotProvider):
     @property
     def label(self) -> str:
         return "Offer Studio"
+
+    def data_access(self) -> DataAccessProvider | None:
+        return self._data_access  # type: ignore[return-value]
 
     def module_data(self) -> ModuleData | None:
         return ModuleData(

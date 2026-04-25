@@ -1,9 +1,10 @@
 """Offer repository."""
 
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from src.modules.offer.domain.offer import ARCHETYPE_TO_DETAILS_MAPPING, Offer
@@ -248,6 +249,55 @@ class OfferRepository:
         if model:
             return self._to_domain(model)
         return None
+
+    def search(
+        self,
+        *,
+        tenant_id: UUID,
+        name_query: str | None = None,
+        status: str | None = "active",
+        since: datetime | None = None,
+        limit: int = 20,
+        similarity_threshold: float = 0.3,
+    ) -> list[Offer]:
+        """Fuzzy-search offers by name + filter by status/since within tenant scope.
+
+        Postgres path uses pg_trgm ``similarity()`` (GIN index in migration 070);
+        SQLite tests fall back to case-insensitive ``ILIKE`` substring matching.
+        Soft-deleted rows are always excluded. ``status`` accepts:
+
+        * ``"active"`` (default) — archived_at IS NULL
+        * ``"archived"`` — archived_at IS NOT NULL
+        * ``None`` — both active and archived
+        """
+        conditions: list[Any] = [
+            ProductModel.tenant_id == tenant_id,
+            ProductModel.deleted_at.is_(None),
+        ]
+        if status == "active":
+            conditions.append(ProductModel.archived_at.is_(None))
+        elif status == "archived":
+            conditions.append(ProductModel.archived_at.is_not(None))
+
+        if since is not None:
+            conditions.append(ProductModel.created_at >= since)
+
+        stmt = select(ProductModel).where(*conditions)
+
+        if name_query:
+            dialect_name = self.db.bind.dialect.name if self.db.bind else ""
+            if dialect_name == "postgresql":
+                similarity = func.similarity(ProductModel.name, name_query)
+                stmt = stmt.where(similarity > similarity_threshold).order_by(
+                    similarity.desc(),
+                )
+            else:
+                pattern = f"%{name_query}%"
+                stmt = stmt.where(ProductModel.name.ilike(pattern))
+
+        stmt = stmt.limit(limit)
+        models = self.db.execute(stmt).scalars().all()
+        return [self._to_domain(m) for m in models]
 
     def list_active(self, tenant_id: UUID) -> list[Offer]:
         """Return offers that are neither archived nor soft-deleted."""

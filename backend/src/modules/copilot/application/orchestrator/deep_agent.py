@@ -46,6 +46,7 @@ from src.core.enums import ModelRole
 from src.modules.copilot.application.orchestrator.graph import build_system_prompt
 from src.modules.copilot.application.orchestrator.subagents import (
     AUDIT_INSPECTOR_SUBAGENT,
+    DATA_QUERY_SUBAGENT,
     URL_ANALYZER_SUBAGENT,
 )
 from src.modules.copilot.application.tools.registry import get_tools_for_context
@@ -140,5 +141,9 @@ def build_deep_agent_graph(
         model=llm,
         tools=tools,
         system_prompt=system_prompt,
-        subagents=[AUDIT_INSPECTOR_SUBAGENT, URL_ANALYZER_SUBAGENT],
+        subagents=[
+            AUDIT_INSPECTOR_SUBAGENT,
+            URL_ANALYZER_SUBAGENT,
+            DATA_QUERY_SUBAGENT,
+        ],
     )

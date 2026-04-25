@@ -37,6 +37,7 @@ ANCHOR_REGISTRY: dict[str, str] = {
     "COPILOT-BRAND-SUMMARY-F3": "docs/domains/copilot/redesign-2026-04/phases/F3-brand-summary-lighthouse.md",
     "COPILOT-INSPIRATION-F4": "docs/domains/copilot/redesign-2026-04/phases/F4-url-contextual-scratchpad.md",
     "COPILOT-FETCH-URL-F4": "docs/domains/copilot/redesign-2026-04/phases/F4-url-contextual-scratchpad.md",
+    "COPILOT-ASK-TENANT-DATA-F5": "docs/domains/copilot/redesign-2026-04/phases/F5-ask-tenant-data.md",
 }
 
 # Only scan backend Python sources (not tests — anchors in tests are for

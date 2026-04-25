@@ -1,12 +1,25 @@
 """CRM lead repository."""
 
+from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import desc, select
+from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
 
 from src.modules.crm.domain.lead import Lead, UserProfile
 from src.modules.crm.infrastructure.models.lead_model import LeadModel
+
+# Maps the public channel name (used in ask_tenant_data filters) to the column
+# that carries the channel-specific identifier on ``LeadModel``. Limiting the
+# set keeps the search invariant: only channels actually persisted as columns
+# can be filtered without joining ``MessageModel``.
+_CHANNEL_ID_COLUMNS: dict[str, str] = {
+    "telegram": "telegram_id",
+    "whatsapp": "whatsapp_id",
+    "instagram": "instagram_id",
+    "tiktok": "tiktok_id",
+    "api": "api_id",
+}
 
 
 class LeadRepository:
@@ -121,6 +134,39 @@ class LeadRepository:
             .all()
         )
         return [self._to_domain(m) for m in models]
+
+    def count_inbound(
+        self,
+        *,
+        tenant_id: UUID,
+        since: datetime,
+        until: datetime,
+        channel: str | None = None,
+    ) -> int:
+        """Count leads with inbound interaction inside ``[since, until]`` window.
+
+        "Inbound" = at least one ``last_interaction_date`` recorded inside the
+        window. Optional ``channel`` filter restricts to leads whose channel-
+        specific id column (whatsapp_id, telegram_id, …) is non-null. Tenant
+        isolation enforced; rows with a NULL ``last_interaction_date`` are
+        excluded by the ``BETWEEN`` filter.
+        """
+        conditions = [
+            LeadModel.tenant_id == tenant_id,
+            LeadModel.last_interaction_date >= since,
+            LeadModel.last_interaction_date <= until,
+        ]
+
+        if channel:
+            column_name = _CHANNEL_ID_COLUMNS.get(channel.lower())
+            if column_name is None:
+                # Unknown channel — no leads can match.
+                return 0
+            column = getattr(LeadModel, column_name)
+            conditions.append(column.is_not(None))
+
+        stmt = select(func.count(LeadModel.id)).where(*conditions)
+        return int(self.db.execute(stmt).scalar_one() or 0)
 
     def create(self, lead: Lead) -> Lead:
         """Execute create operation."""

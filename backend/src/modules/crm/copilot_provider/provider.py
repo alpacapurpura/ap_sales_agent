@@ -1,12 +1,21 @@
-"""CRM ``CopilotProvider`` — F1 shim."""
+"""CRM ``CopilotProvider`` — F1 shim + F5 data_access surface."""
 
 from __future__ import annotations
 
-from src.modules.copilot.domain.ports import BaseCopilotProvider, ModuleData
+from src.modules.copilot.domain.ports import (
+    BaseCopilotProvider,
+    DataAccessProvider,
+    ModuleData,
+)
+from src.modules.crm.copilot_provider.data_access import CrmDataAccessProvider
 
 
 class CrmCopilotProvider(BaseCopilotProvider):
     """CRM module surface for the copilot."""
+
+    def __init__(self) -> None:
+        """Eagerly construct the data accessor — its constructor is cheap."""
+        self._data_access = CrmDataAccessProvider()
 
     @property
     def module_id(self) -> str:
@@ -15,6 +24,9 @@ class CrmCopilotProvider(BaseCopilotProvider):
     @property
     def label(self) -> str:
         return "CRM"
+
+    def data_access(self) -> DataAccessProvider | None:
+        return self._data_access  # type: ignore[return-value]
 
     def module_data(self) -> ModuleData | None:
         return ModuleData(

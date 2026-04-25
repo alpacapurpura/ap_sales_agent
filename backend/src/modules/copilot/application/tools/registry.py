@@ -10,6 +10,7 @@ behavior can't be shadowed silently.
 """
 
 from src.modules.copilot.application.tools.analytics_tools import ANALYTICS_TOOLS
+from src.modules.copilot.application.tools.ask_tenant_data import ask_tenant_data
 from src.modules.copilot.application.tools.assets_tools import ASSETS_TOOLS  # [COPILOT-OUTBOUND-ASSETS]
 from src.modules.copilot.application.tools.awareness import AWARENESS_TOOLS
 from src.modules.copilot.application.tools.connections_tools import CONNECTIONS_TOOLS
@@ -97,6 +98,8 @@ _BASE_TOOL_GROUPS: dict[str, list] = {
     "extraction": EXTRACTION_TOOLS,
     # URL contextual scratchpad — fetch_url + pin_to_memory (F4).
     "url_context": [fetch_url, pin_to_memory],
+    # Q&A about the tenant's own data — ask_tenant_data subgraph (F5).
+    "data_query": [ask_tenant_data],
 }
 
 
@@ -243,6 +246,10 @@ ALWAYS_AVAILABLE_GROUPS: tuple[str, ...] = (
     # link from any studio surface. F4 — keep available everywhere so
     # the LLM never has to "switch routes" to use it.
     "url_context",
+    # Q&A about tenant data is transversal too: any screen the user is on,
+    # they may ask "cuántas personas escribieron" or "dame resumen del
+    # programa X" without having to navigate to a specific dashboard. F5.
+    "data_query",
 )
 
 
