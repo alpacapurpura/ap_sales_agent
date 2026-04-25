@@ -628,12 +628,25 @@ def build_system_prompt(state: CopilotState) -> str:
     # (and any future per-route fragment) sits at the cacheable head of
     # the prompt. The deep-agent suffix added by the F2 harness still
     # tails the whole composition, preserving the cacheable order:
-    #   lighthouse  →  base+layers (changes)  →  deep-agent suffix
+    #   lighthouse  →  inspirations  →  base+layers (changes)  →  deep-agent suffix
     injector_prefix = _collect_context_injectors_prefix(
         target_route=ctx.get("current_route"),
         tenant_id=tenant_id,
     )
-    return injector_prefix + base_prompt + guided_layer + studio_layer
+
+    # F4 — inspirations layer sits BETWEEN the lighthouse and the
+    # volatile completion snapshot. Stable while the inspirations set
+    # is unchanged → preserves cache hit on the lighthouse above when
+    # only the snapshot below changes.
+    from src.modules.copilot.application.orchestrator.inspirations_layer import (
+        build_inspirations_layer,
+    )
+
+    inspirations_layer = build_inspirations_layer(state)
+    if inspirations_layer:
+        inspirations_layer = inspirations_layer + "\n"
+
+    return injector_prefix + inspirations_layer + base_prompt + guided_layer + studio_layer
 
 
 def agent_node(state: CopilotState) -> dict:

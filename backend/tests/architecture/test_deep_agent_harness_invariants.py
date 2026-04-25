@@ -105,3 +105,55 @@ def test_deep_agent_anchor_present_in_source() -> None:
         "Tag the harness module + the chat dispatcher so the anchor "
         "registry stays in sync."
     )
+
+
+def test_url_analyzer_subagent_registered() -> None:
+    """F4 — ``URL_ANALYZER_SUBAGENT`` must be wired into create_deep_agent.
+
+    Guards against a regression where a future refactor drops the
+    subagent from the harness while the tool registration still
+    advertises it as available.
+    """
+    src = DEEP_AGENT_PATH.read_text(encoding="utf-8")
+    assert "URL_ANALYZER_SUBAGENT" in src, (
+        "URL_ANALYZER_SUBAGENT not referenced in deep_agent.py. F4 ships it "
+        "alongside AUDIT_INSPECTOR_SUBAGENT in the subagents=[...] list."
+    )
+
+
+def test_url_analyzer_subagent_shape() -> None:
+    """F4 — subagent dict has the deepagents-required keys + restricts tools."""
+    from src.modules.copilot.application.orchestrator.subagents import (
+        URL_ANALYZER_SUBAGENT,
+    )
+
+    assert URL_ANALYZER_SUBAGENT["name"] == "url_analyzer"
+    assert URL_ANALYZER_SUBAGENT["description"]
+    assert URL_ANALYZER_SUBAGENT["system_prompt"]
+    # Tools restricted: the subagent gets ONLY fetch_url. No mutation
+    # tools, no extraction tools — context isolation guarantee.
+    tools = URL_ANALYZER_SUBAGENT.get("tools") or []
+    tool_names = {getattr(t, "name", None) for t in tools}
+    assert tool_names == {"fetch_url"}, f"url_analyzer subagent must bind ONLY 'fetch_url'; got {tool_names}"
+
+
+def test_fetch_url_and_pin_to_memory_in_url_context_group() -> None:
+    """F4 — transversal tools land in the dedicated url_context group."""
+    from src.modules.copilot.application.tools.registry import TOOL_GROUPS
+
+    group = TOOL_GROUPS.get("url_context", [])
+    names = {t.name for t in group}
+    assert "fetch_url" in names
+    assert "pin_to_memory" in names
+
+
+def test_url_context_group_is_always_available() -> None:
+    """F4 — url_context must be in ALWAYS_AVAILABLE_GROUPS so any route can use it."""
+    from src.modules.copilot.application.tools.registry import (
+        ALWAYS_AVAILABLE_GROUPS,
+    )
+
+    assert "url_context" in ALWAYS_AVAILABLE_GROUPS, (
+        "url_context must be in ALWAYS_AVAILABLE_GROUPS so fetch_url + "
+        "pin_to_memory bind on every route, not only studio surfaces."
+    )

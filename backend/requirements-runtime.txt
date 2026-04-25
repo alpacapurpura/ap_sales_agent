@@ -53,3 +53,4 @@ wheel>=0.46.2
 jaraco.context>=6.1.0
 tiktoken>=0.7.0
 python-frontmatter>=1.1.0
+trafilatura>=2.0.0,<3.0.0

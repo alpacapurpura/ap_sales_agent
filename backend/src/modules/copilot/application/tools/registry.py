@@ -16,6 +16,7 @@ from src.modules.copilot.application.tools.connections_tools import CONNECTIONS_
 from src.modules.copilot.application.tools.crm_tools import CRM_TOOLS
 from src.modules.copilot.application.tools.document_tools import DOCUMENT_TOOLS  # [COPILOT-READ-DOCUMENT]
 from src.modules.copilot.application.tools.extraction_tools import EXTRACTION_TOOLS
+from src.modules.copilot.application.tools.fetch_url import fetch_url
 from src.modules.copilot.application.tools.guided import GUIDED_TOOLS
 from src.modules.copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
 from src.modules.copilot.application.tools.landing_tools import LANDING_TOOLS
@@ -24,6 +25,7 @@ from src.modules.copilot.application.tools.mutations import MUTATION_TOOLS
 from src.modules.copilot.application.tools.navigation import NAVIGATION_TOOLS
 from src.modules.copilot.application.tools.offer_ladder_tools import OFFER_LADDER_TOOLS
 from src.modules.copilot.application.tools.offer_section_tools import OFFER_SECTION_TOOLS
+from src.modules.copilot.application.tools.pin_to_memory import pin_to_memory
 from src.modules.copilot.application.tools.procedure_tools import PROCEDURE_TOOLS
 from src.modules.copilot.application.tools.sales_agent_tools import SALES_AGENT_TOOLS
 from src.modules.copilot.application.tools.shared_tools import SHARED_TOOLS
@@ -93,6 +95,8 @@ _BASE_TOOL_GROUPS: dict[str, list] = {
     "shared_tools": SHARED_TOOLS,
     # URL-to-studio extraction.
     "extraction": EXTRACTION_TOOLS,
+    # URL contextual scratchpad — fetch_url + pin_to_memory (F4).
+    "url_context": [fetch_url, pin_to_memory],
 }
 
 
@@ -231,7 +235,15 @@ ROUTE_TOOL_MAP: dict[str, list[str]] = {
 # ROUTE_TOOL_MAP entry. Uploads (document/audio) can happen from any screen,
 # so read_document must always be bindable. shared_tools hosts
 # conversational primitives like `clarify` that any route may need.
-ALWAYS_AVAILABLE_GROUPS: tuple[str, ...] = ("document", "shared_tools", "guided")
+ALWAYS_AVAILABLE_GROUPS: tuple[str, ...] = (
+    "document",
+    "shared_tools",
+    "guided",
+    # URL-as-inspiration is transversal: a user can paste a competitor
+    # link from any studio surface. F4 — keep available everywhere so
+    # the LLM never has to "switch routes" to use it.
+    "url_context",
+)
 
 
 def get_tools_for_route(route: str | None) -> list:

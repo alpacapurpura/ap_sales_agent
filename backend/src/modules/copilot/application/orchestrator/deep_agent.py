@@ -46,6 +46,7 @@ from src.core.enums import ModelRole
 from src.modules.copilot.application.orchestrator.graph import build_system_prompt
 from src.modules.copilot.application.orchestrator.subagents import (
     AUDIT_INSPECTOR_SUBAGENT,
+    URL_ANALYZER_SUBAGENT,
 )
 from src.modules.copilot.application.tools.registry import get_tools_for_context
 from src.shared.infrastructure.llm.factory import LLMFactory
@@ -79,7 +80,10 @@ Tienes acceso a herramientas adicionales:
   scratchpad efímero por conversación. Útil para guardar fragmentos largos
   (transcript, notas, borrador) que no querés re-pegar en cada turno.
 - `task(name, prompt)`: delegá una tarea aislada a un sub-agente especializado.
-  Disponible: `audit_inspector` (revisión rápida de una sección).
+  Disponibles:
+    - `audit_inspector` (revisión rápida de una sección).
+    - `url_analyzer` (analiza una o más URLs como inspiración de la
+      conversación; persiste resumen y abre `inspiration_saved` cards).
 
 Reglas:
 - Tareas chicas (1-2 pasos, pregunta directa): respondé sin write_todos.
@@ -136,5 +140,5 @@ def build_deep_agent_graph(
         model=llm,
         tools=tools,
         system_prompt=system_prompt,
-        subagents=[AUDIT_INSPECTOR_SUBAGENT],
+        subagents=[AUDIT_INSPECTOR_SUBAGENT, URL_ANALYZER_SUBAGENT],
     )

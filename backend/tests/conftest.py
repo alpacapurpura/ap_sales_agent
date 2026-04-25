@@ -128,6 +128,9 @@ def db_engine():
         from src.modules.connections.infrastructure.models.channel_connection_model import (
             ChannelConnectionModel,
         )
+        from src.modules.copilot.infrastructure.models.inspiration_model import (
+            CopilotInspirationModel,
+        )
         from src.modules.copilot.infrastructure.models.mutation_journal_model import (
             MutationJournalModel,
         )
