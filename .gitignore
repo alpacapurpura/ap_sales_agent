@@ -62,7 +62,10 @@ backend/.pytest_cache/
 
 # AI Models & Cache (Large Files)
 backend/model_cache/
-backend/data/
+# Ignore everything under backend/data/ EXCEPT the curated marketing KB
+# corpus which is versioned in repo (F10 RAG seeder reads it).
+backend/data/*
+!backend/data/marketing_kb/
 model_cache/
 
 # --- Frontend (Next.js/React) ---
@@ -80,6 +83,11 @@ frontend/storybook-static/
 # --- Infrastructure & Data ---
 # Docker Volumes & Persistence
 data/
+# Curated marketing KB corpus is versioned (F10 RAG) — re-include after
+# the wildcard data/ rule that ignores Docker volume mounts.
+!backend/data/
+!backend/data/marketing_kb/
+!backend/data/marketing_kb/**
 postgres_data/
 tmp/
 temp/

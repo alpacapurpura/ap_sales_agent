@@ -49,7 +49,7 @@ def render_capability_catalog() -> None:
         st.error(f"Error cargando capacidades: {e}")
         return
 
-    # Group labels
+    # Group labels — F10 update reflects Redesign 2026-04 toolset.
     group_labels = {
         "navigation": (
             "🧭 Navegacion",
@@ -67,13 +67,49 @@ def render_capability_catalog() -> None:
         "connections": ("🔗 Conexiones", "Canales e integraciones externas"),
         "landing": ("📄 Landing Pages", "Páginas de aterrizaje"),
         "procedure": ("📋 Procedimientos", "Flujos guiados paso a paso"),
-        "knowledge": ("📚 Knowledge Base", "Búsqueda en base de conocimiento"),
+        "knowledge": (
+            "📚 Marketing KB (F10)",
+            "Búsqueda en `nicolify_marketing_kb` (curado por Nicolify, "
+            "tenant-agnóstico). Filtra por dominio (brand/offer/copy/...) "
+            "y metodología (StoryBrand/Hormozi/Cialdini/AIDA/PAS/JTBD/FAB/4U).",
+        ),
+        "offer_ladder": ("🪜 Offer Ladder", "Secuencias de ofertas en escalera"),
+        "offer_section": ("🧱 Offer Sections", "Editor por sección del studio de ofertas"),
+        "guided": ("🧑‍🏫 Guided Setup", "Onboarding paso a paso (post-interview)"),
+        "assets": ("🖼️ Assets", "Galería de imágenes/audios/docs subidos por el tenant"),
+        "document": ("📄 Document Read", "Lectura on-demand de docs adjuntos"),
+        "shared_tools": ("🧰 Shared", "Primitivas conversacionales (clarify, confirm, ...)"),
+        "extraction": ("🔌 Extraction", "URL/Doc → studio (rellenar campos automático)"),
+        "url_context": (
+            "🔗 URL Inspirations (F4)",
+            "`fetch_url` + `pin_to_memory` — pegás un link de competencia, "
+            "queda como inspiración persistente en `/inspirations/*`.",
+        ),
+        "data_query": (
+            "❓ Q&A datos tenant (F5)",
+            "`ask_tenant_data` — pipeline determinístico (intent → plan → "
+            "execute → synth) con 2 LLM calls FAST. Responde 'cuántas personas "
+            "escribieron', 'dame resumen del programa X', etc.",
+        ),
+        "channel_format": (
+            "📱 Channel Formatter (F7)",
+            "`format_for_channel` — adapta texto a chat/whatsapp/email/sms/voice/"
+            "instagram_dm/telegram. Determinístico (sin LLM call).",
+        ),
     }
 
     st.divider()
 
     # TABS
-    tab_tools, tab_routes, tab_procs, tab_nudges, tab_ui, tab_usage = st.tabs(
+    (
+        tab_tools,
+        tab_routes,
+        tab_procs,
+        tab_nudges,
+        tab_ui,
+        tab_usage,
+        tab_redesign,
+    ) = st.tabs(
         [
             "🛠️ Tools",
             "🗺️ Mapeo de Rutas",
@@ -81,6 +117,7 @@ def render_capability_catalog() -> None:
             "💡 Nudges",
             "🎨 Componentes UI",
             "📊 Uso de Tools",
+            "🚀 Redesign 2026-04",
         ],
     )
 
@@ -312,3 +349,126 @@ def render_capability_catalog() -> None:
                     db.close()
             except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
                 st.error(f"Error: {e}")
+
+    # ── Tab 7: Redesign 2026-04 — fase by fase ────────────────────────────
+    with tab_redesign:
+        st.header("Copilot Redesign 2026-04 — 'Claude Code de Marketing'")
+        st.caption(
+            "Plan de 11 fases (F0–F10) ejecutado entre marzo y abril 2026. "
+            "Cada fase entrega una rebanada de la topología destino sin "
+            "tocar el §3 (lo que NO se toca). Estado al cierre F10:",
+        )
+
+        phases = [
+            (
+                "F0 · Audit + freeze",
+                "Línea base: cross-module imports congelados, scope creep "
+                "evidenciado, decisión de descentralizar via providers.",
+            ),
+            (
+                "F1 · Provider pattern + discovery",
+                "Cada módulo trae su `copilot_provider/` (tools, workflows, "
+                "summary, context_inject). Discovery filesystem scan + entry "
+                "points. Ratchet `copilot → módulo` shrunk 28 → 22 frozen.",
+            ),
+            (
+                "F2 · Deep Agents harness",
+                "`build_deep_agent_graph(state)` compila per turn con "
+                "deepagents 0.5.3. `write_todos` emite `plan_card` desde args. "
+                "Migración 067 + `copilot_pinned_memory` listas para F4.",
+            ),
+            (
+                "F3 · Brand summary lighthouse",
+                "Tabla `brand_summary` + ARQ regen + judge sync (length + "
+                "voseo regex). Inyectado como prefix cacheable en system "
+                "prompt — el copilot 'respira' la marca.",
+            ),
+            (
+                "F4 · URL contextual + scratchpad",
+                "Tool `fetch_url(url)` (httpx + trafilatura 2.0 + LLM "
+                "FAST analyzer + brand-relevance score). Tabla "
+                "`copilot_inspiration` (FIFO 5 visibles, cap 10/conv). "
+                "Tool `pin_to_memory(slug)` promueve a memoria persistente.",
+            ),
+            (
+                "F5 · ask_tenant_data subgraph",
+                "Pipeline determinístico de 6 pasos con SOLO 2 LLM calls "
+                "FAST (intent + synth). 3 kinds soportados: `offer_lookup`, "
+                "`lead_count`, `conversation_count`. Cache TTL 60s.",
+            ),
+            (
+                "F6 · Workflow unification",
+                "`Workflow` dataclass declarativo + `WorkflowEngine` Python "
+                "+ migración 071 (`workflow_state` JSONB con dual-read "
+                "fallback a `procedure_state` legacy). 4 sistemas conviven "
+                "hasta el cutover.",
+            ),
+            (
+                "F7 · Channel formatter registry",
+                "`ChannelFormat` registry (chat/whatsapp/email/sms/voice/"
+                "instagram_dm/telegram). `format_for_channel(content, channel)` "
+                "tool determinístico — strip markdown + truncate + emoji "
+                "según política del canal.",
+            ),
+            (
+                "F8 · Routing + cost optim",
+                "`LLMClassifier` NANO fallback. Reorden cache-friendly del "
+                "system prompt (≥1024 tokens prefix → OpenAI prefix cache). "
+                "Borrado ReAct legacy + flag dispatch. Migración FE a SSE v2 "
+                "block_*. Admin `/copilot-routing` con tier distribution.",
+            ),
+            (
+                "F9 · Quality + observability",
+                "`CopilotJudge` (NANO + 4-dim CoT rubric). 20 goldens "
+                "across 8 categorías. ARQ weekly cron lunes 05:00 UTC. "
+                "Trazas `node_enter`/`node_exit` per turn. Admin "
+                "`/copilot-quality` con KPIs precomputados (no LLM en render).",
+            ),
+            (
+                "F10 · Marketing KB curado",
+                "Colección `nicolify_marketing_kb` tenant-agnóstica. "
+                "Tool `knowledge_search(query, domain?, methodology?)` "
+                "(refactor del legacy con scope per-tenant). Chunker "
+                "**breadcrumb-aware** (contextual retrieval state-of-art "
+                "abril 2026): cada chunk lleva `# H1 > ## H2 > ### H3` "
+                "como prefix de embed. 31 docs base curados (StoryBrand, "
+                "Hormozi, Cialdini, AIDA, PAS, JTBD, FAB, 4U, archetypes, "
+                "objections, funnel, pricing, email, WhatsApp). Endpoint "
+                "tenant `/api/v1/copilot/ingest` cerrado (HTTP 410 Gone).",
+            ),
+        ]
+
+        for title, body in phases:
+            with st.container(border=True):
+                st.markdown(f"### {title}")
+                st.write(body)
+
+        st.divider()
+        st.subheader("Tools transversales nuevos (F4–F10)")
+        st.markdown(
+            "- `fetch_url(url, why?)` — F4 — agrega inspiración persistente.\n"
+            "- `pin_to_memory(slug)` — F4 — promueve a memoria persistente.\n"
+            "- `ask_tenant_data(question, output_channel?)` — F5 — Q&A datos del tenant.\n"
+            "- `format_for_channel(content, channel_id)` — F7 — adapta texto al canal.\n"
+            "- `knowledge_search(query, domain?, methodology?, limit?)` — F10 — KB curado.\n",
+        )
+
+        st.subheader("Anchors del redesign")
+        st.code(
+            "COPILOT-PROVIDER-PATTERN  · F1\n"
+            "COPILOT-DEEP-AGENT-V2     · F2\n"
+            "COPILOT-BRAND-SUMMARY-F3  · F3\n"
+            "COPILOT-INSPIRATION-F4    · F4\n"
+            "COPILOT-FETCH-URL-F4      · F4\n"
+            "COPILOT-ASK-TENANT-DATA-F5 · F5\n"
+            "COPILOT-WORKFLOW-F6       · F6\n"
+            "COPILOT-CHANNEL-FORMATTER-F7 · F7\n"
+            "COPILOT-LLM-CLASSIFIER-F8 · F8\n"
+            "COPILOT-CACHE-PREFIX-F8   · F8\n"
+            "COPILOT-SSE-V2-ONLY-F8    · F8\n"
+            "COPILOT-LLM-JUDGE-F9      · F9\n"
+            "COPILOT-WORKFLOW-METRIC-F9 · F9\n"
+            "COPILOT-NODE-TRACE-F9     · F9\n"
+            "COPILOT-MARKETING-KB-F10  · F10",
+            language="text",
+        )

@@ -620,6 +620,32 @@ def _build_static_tools_hint_fragment(active_tools: list[str]) -> str:
     return _safe_render("copilot_system_tools_hint", available_tools=active_tools)
 
 
+_MARKETING_KB_HINT_ES = (
+    "## Conocimiento técnico de marketing\n"
+    "Si el usuario pregunta por un framework "
+    "(StoryBrand, Hormozi, Cialdini, AIDA, PAS, JTBD, FAB, 4U) o un concepto "
+    "avanzado (grand slam offer, value equation, principios de influencia, "
+    "narrativa, manejo de objeciones, pricing anchoring), llama a "
+    "`knowledge_search` ANTES de responder y cita el método aplicado en tu "
+    'respuesta (por ejemplo: "aplicando Hormozi value equation: ...", '
+    '"según el framework StoryBrand..."). Esto da autoridad técnica y '
+    "evita opiniones genéricas. Metodologías disponibles: "
+    "nicolify_owned, storybrand, hormozi, cialdini, aida, pas, jtbd, fab, 4u. "
+    "Dominios: brand, offer, copy, objections, pricing, funnel, audience.\n"
+    "[COPILOT-MARKETING-KB-F10]"
+)
+
+
+def _build_marketing_kb_hint_fragment() -> str:
+    """Compose the MARKETING_KB_HINT slot — universally cacheable across tenants.
+
+    F10 — instructs the LLM to consult the curated marketing KB and cite
+    the framework applied. Stable text (no per-tenant interpolation) so
+    OpenAI prefix cache picks it up across every tenant request.
+    """
+    return _MARKETING_KB_HINT_ES
+
+
 def _build_modules_list_fragment() -> str:
     """Compose the MODULES_LIST slot from the live module registry."""
     registry = get_module_registry()
@@ -693,6 +719,7 @@ def build_system_prompt(state: CopilotState) -> str:
         # ── Cacheable prefix (≥1024 tokens by design) ─────────────────
         PromptFragment.STATIC_IDENTITY: _build_static_identity_fragment(),
         PromptFragment.STATIC_TOOLS_HINT: _build_static_tools_hint_fragment(active_tools),
+        PromptFragment.MARKETING_KB_HINT: _build_marketing_kb_hint_fragment(),
         PromptFragment.LIGHTHOUSE: lighthouse,
         PromptFragment.EDITABLE_CATALOG: _build_editable_catalog_fragment(),
         PromptFragment.MODULES_LIST: _build_modules_list_fragment(),

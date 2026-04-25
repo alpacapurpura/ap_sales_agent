@@ -9,14 +9,17 @@ piece of the orchestrator declares which slot its content goes into and
 Order rationale:
 
     1-2. Static identity + tools hint — universally cacheable across tenants.
-    3.   Lighthouse (brand summary) — per-tenant cacheable, changes on save.
-    4.   Editable catalog — per-session stable.
-    5.   Modules list — per-session stable.
+    3.   Marketing KB hint — universally cacheable, instructs the LLM to
+         consult ``knowledge_search`` and cite the framework when responding
+         (F10).
+    4.   Lighthouse (brand summary) — per-tenant cacheable, changes on save.
+    5.   Editable catalog — per-session stable.
+    6.   Modules list — per-session stable.
     --- CACHE BOUNDARY (≥1024 tokens by design above this line) ---
-    6.   Studio snapshot (completion) — changes per turn.
-    7.   Workflow state (procedure / behavior / selected fields) — per turn.
-    8.   Inspirations — semi-volatile but state-aware.
-    9+.  Conversation messages — handled by LangChain outside this module.
+    7.   Studio snapshot (completion) — changes per turn.
+    8.   Workflow state (procedure / behavior / selected fields) — per turn.
+    9.   Inspirations — semi-volatile but state-aware.
+    10+. Conversation messages — handled by LangChain outside this module.
 
 Adding a new fragment? Append to ``PromptFragment``, slot it into either
 ``CACHEABLE_FRAGMENTS`` or ``VOLATILE_FRAGMENTS``, and update the matching
@@ -45,6 +48,7 @@ class PromptFragment(StrEnum):
     # ── Cacheable prefix (stable across turns) ────────────────────────
     STATIC_IDENTITY = "static_identity"
     STATIC_TOOLS_HINT = "static_tools_hint"
+    MARKETING_KB_HINT = "marketing_kb_hint"  # F10 — cite framework
     LIGHTHOUSE = "lighthouse"
     EDITABLE_CATALOG = "editable_catalog"
     MODULES_LIST = "modules_list"
@@ -57,6 +61,7 @@ class PromptFragment(StrEnum):
 CACHEABLE_FRAGMENTS: tuple[PromptFragment, ...] = (
     PromptFragment.STATIC_IDENTITY,
     PromptFragment.STATIC_TOOLS_HINT,
+    PromptFragment.MARKETING_KB_HINT,
     PromptFragment.LIGHTHOUSE,
     PromptFragment.EDITABLE_CATALOG,
     PromptFragment.MODULES_LIST,

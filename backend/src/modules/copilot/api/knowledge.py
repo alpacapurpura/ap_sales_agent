@@ -1,108 +1,63 @@
-"""REST endpoints for copilot knowledge base management."""
+"""Legacy tenant knowledge ingest endpoints — retired in F10.
 
-from typing import Annotated
-from uuid import UUID
+Pre-F10 the copilot exposed ``POST /api/v1/copilot/ingest`` so any tenant
+could push their own documents into ``copilot_knowledge`` (per-tenant
+filter). The corpus is now globally curated by Nicolify staff into
+``nicolify_marketing_kb`` (tenant-agnostic) and ingestion happens through
+the Streamlit admin only.
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+Every endpoint below returns **HTTP 410 Gone** with a clear migration
+message. We keep the routes (instead of deleting them outright) so any
+forgotten frontend caller surfaces a loud error instead of a silent 404.
+
+[COPILOT-MARKETING-KB-F10]
+"""
+
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-
-from src.modules.copilot.api.dto import IngestDocumentResponse, SearchKnowledgeResponse
-from src.modules.copilot.application.services.knowledge_ingestion import (
-    KnowledgeIngestionService,
-)
-from src.modules.copilot.infrastructure.knowledge.vector_store import (
-    CopilotKnowledgeStore,
-)
-from src.modules.iam.api.dependencies import get_tenant_context
-from src.shared.infrastructure.files.file_parsing_service import FileParsingService
 
 router = APIRouter()
 
 
-class SearchRequest(BaseModel):
-    """Request schema for search."""
+class GoneResponse(BaseModel):
+    """Standard response model for retired endpoints."""
 
-    query: str
-    scope: str = "all"
-    limit: int = 5
-
-
-class SearchResult(BaseModel):
-    """Represent search result data."""
-
-    content: str
-    score: float
-    metadata: dict
+    detail: str
+    migration_hint: str
 
 
-@router.post("/ingest", response_model=IngestDocumentResponse)
-async def ingest_document(
-    file: Annotated[UploadFile, File()],
-    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
-    scope: Annotated[str, Form()] = "business",
-    source_label: Annotated[str, Form()] = "upload",
-) -> dict:
-    """Ingest a document (PDF/DOCX/TXT/MD) into the knowledge base."""
-    if not tenant_id:
-        raise HTTPException(status_code=401, detail="Tenant ID required")
+_GONE_DETAIL = (
+    "El ingest de documentos por tenant fue retirado. "
+    "La base de conocimiento de marketing es ahora curada por Nicolify "
+    "(colección 'nicolify_marketing_kb') y se administra desde el panel interno."
+)
+_GONE_MIGRATION_HINT = (
+    "Si necesitas que tu equipo cargue material propio, escríbenos: "
+    "publicamos un proceso de revisión + ingesta supervisada en el roadmap."
+)
 
-    # Parse file content
-    text = await FileParsingService.parse_file(file)
-    if not text.strip():
-        raise HTTPException(status_code=400, detail="Could not extract text from file")
 
-    service = KnowledgeIngestionService()
-    result = service.ingest_document(
-        tenant_id=str(tenant_id),
-        content=text,
-        source=source_label,
-        scope=scope,
+def _gone() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail={"detail": _GONE_DETAIL, "migration_hint": _GONE_MIGRATION_HINT},
     )
-    return result
 
 
-@router.get("/search", response_model=SearchKnowledgeResponse)
-async def search_knowledge(
-    query: str,
-    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
-    scope: str = "all",
-    limit: int = 5,
-) -> dict:
-    """Search the knowledge base."""
-    if not tenant_id:
-        raise HTTPException(status_code=401, detail="Tenant ID required")
-
-    store = CopilotKnowledgeStore()
-    results = store.search(query, str(tenant_id), scope, limit)
-
-    return {
-        "results": [
-            {
-                "content": r.get("text", ""),
-                "score": r.get("score", 0),
-                "metadata": r.get("meta", {}),
-            }
-            for r in results
-        ],
-    }
+@router.post("/ingest", status_code=status.HTTP_410_GONE)
+async def ingest_document() -> GoneResponse:  # pragma: no cover - exception path
+    """Retired in F10. See ``GoneResponse.migration_hint``."""
+    raise _gone()
 
 
-@router.delete("/{document_id}")
-async def delete_document(
-    document_id: str,
-    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
-) -> dict[str, bool]:
-    """Delete a document from the knowledge base."""
-    if not tenant_id:
-        raise HTTPException(status_code=401, detail="Tenant ID required")
+@router.get("/search", status_code=status.HTTP_410_GONE)
+async def search_knowledge() -> GoneResponse:  # pragma: no cover - exception path
+    """Retired in F10. Use the ``knowledge_search`` tool from the copilot chat."""
+    raise _gone()
 
-    service = KnowledgeIngestionService()
-    deleted = service.delete_document(str(tenant_id), document_id)
 
-    if not deleted:
-        raise HTTPException(
-            status_code=404,
-            detail="Document not found or error deleting",
-        )
-
-    return {"deleted": True}
+@router.delete("/{document_id}", status_code=status.HTTP_410_GONE)
+async def delete_document(document_id: str) -> GoneResponse:
+    """Retired in F10. Curated corpus is managed via the Streamlit admin."""
+    _ = document_id  # parameter retained for URL parity, unused
+    raise _gone()

@@ -21,6 +21,7 @@ from src.modules.copilot.application.orchestrator.system_prompt_layout import (
 EXPECTED_CACHEABLE: tuple[PromptFragment, ...] = (
     PromptFragment.STATIC_IDENTITY,
     PromptFragment.STATIC_TOOLS_HINT,
+    PromptFragment.MARKETING_KB_HINT,  # F10 — cite framework hint
     PromptFragment.LIGHTHOUSE,
     PromptFragment.EDITABLE_CATALOG,
     PromptFragment.MODULES_LIST,
@@ -39,9 +40,10 @@ def test_cacheable_fragment_order_is_frozen() -> None:
     Reorder rationale:
         1. STATIC_IDENTITY — universally cacheable across tenants.
         2. STATIC_TOOLS_HINT — tools description, stable per-route.
-        3. LIGHTHOUSE — per-tenant brand summary.
-        4. EDITABLE_CATALOG — schema introspection result.
-        5. MODULES_LIST — module registry render.
+        3. MARKETING_KB_HINT — F10 cite-framework instruction, stable.
+        4. LIGHTHOUSE — per-tenant brand summary.
+        5. EDITABLE_CATALOG — schema introspection result.
+        6. MODULES_LIST — module registry render.
     """
     assert CACHEABLE_FRAGMENTS == EXPECTED_CACHEABLE
 
