@@ -759,4 +759,165 @@ Last green commit Fase 08: `e1f44284`. Close commit en 08.F.
 
 ## Fase 09 — Multi-channel projection
 
-**Status**: ready-to-start
+**Status**: done (2026-04-24)
+
+### Pre-fase expectations vs realidad
+
+- ✅ Algoritmo `next_question(module, state, section=None)` channel-agnostic
+  pure-function implementado en
+  `copilot/application/orchestrator/conversational_questioning.py`. 40
+  unit tests cubren todas las selection rules.
+- ✅ `build_question_hint` helper proyecta hint dict ui_action-ready
+  con precedence `human_question_es → label_es → humanize(path)` (9 unit
+  tests).
+- ✅ Web integration: `advance_guided_block` enriches payload con
+  optional `suggested_question` via `read_entity_state` (best-effort)
+  + `build_question_hint`. Backward compat preservada — flow legacy
+  sin cambios cuando hint no se puede computar (7 unit tests).
+- ✅ `ConversationalChannelPort` abstract en `shared/links/ports/`.
+  `InMemoryConversationalChannel` impl en
+  `copilot/infrastructure/channels/`. 6 unit tests cubren contract
+  abstract + ordering + context + clear.
+- ✅ E2E channel-agnostic: 6 tests verifican loop `next_question →
+  ask → state update → next_question` y assert misma secuencia
+  cross-adapters (channel-agnostic invariant).
+- ✅ `human_question_es` enrichment: brand 12 fields (was 0), buyer 12
+  fields (was 0), offer mantenido en 25 (no nuevos requeridos). Total
+  ≥30 enriched cross-module. Spanish neutro LATAM (sin voseo).
+- ✅ Wiring real copilot↔whatsapp/telegram OUT of scope per SPEC —
+  deferred a sprint product-level. Algoritmo + port + adapter pattern
+  listos para drop-in cuando exista.
+
+### Resultados cuantitativos
+
+| Métrica | Pre-Fase 09 | Post-Fase 09 |
+|---|---|---|
+| `next_question` channel-agnostic algorithm | inexistente | 1 (pure function) |
+| Channel adapter port | inexistente | 1 (`ConversationalChannelPort`) |
+| Channel adapter impls | 0 | 1 (`InMemoryConversationalChannel`) |
+| Unit tests Fase 09 | 0 | 61 (40 algorithm + 9 helper + 7 advance + 6 channel + 6 E2E + 4 isolation overhead) |
+| `human_question_es` populated brand | 0/113 | 12/113 |
+| `human_question_es` populated buyer | 0/18 | 12/18 |
+| `human_question_es` populated offer | 25/153 | 25/153 (sin nuevos en este sprint) |
+| Tests arch totales | 507 | 507 (sin nuevos arch tests Fase 09) |
+| Tests copilot | 695 | 760 (+65 net Fase 09) |
+
+### Descubrimientos
+
+- (09.A PRE_INVESTIGATION) Channel infra ya existe en `connections/` —
+  Whatsapp, Telegram, Instagram adapters + `MessageHandlerPort`. Pero
+  el `MessageHandlerPort` despacha SOLO al `sales_agent` (vende a
+  leads). El **copilot** (asiste al tenant owner) NO está conectado
+  a canales. Wire-up real copilot↔chat = sprint dedicado, fuera scope
+  de Fase 09.
+- (09.A) Block-level question selection ya existía (Fase pre-existing)
+  en `copilot/application/guided/block_generator.py`. Fase 09 agrega
+  granularidad **field-level** ortogonal — el bloque sigue
+  navegándose, dentro del bloque `next_question` selecciona el field
+  candidate.
+- (09.A) `FieldContract.human_question_es` populated solo en offer
+  (25/153). Brand 0/113, buyer 0/18. Sub-fase 09.F enriquece top
+  required cross-module.
+- (09.B) Diseño híbrido determinístico-asistido confirmed: algoritmo
+  selecciona candidate field, adapter (web/chat/voz) decide cómo
+  presentarlo (LLM puede reformular usando `human_question_es` como
+  seed). Algoritmo puro = trivialmente testeable + reproducible.
+- (09.B) `_is_missing` debate: false/0 NO son missing. Solo None /
+  blank-string / empty-container. Razón: una bool field con `False`
+  es respuesta válida; una numeric con `0` también. Tests cubren
+  ambos casos para evitar regresión.
+- (09.B) Required-first ordering: candidates con
+  `is_required_semantic=True` ganan sobre opcionales. Razón: copilot
+  prioriza completar el setup mínimo viable antes de pedir nice-to-haves.
+  Tie-break por `(section, -priority, path)` — alfabético sobre
+  section, priority alta gana, lex sobre path para reproducibilidad.
+- (09.C) State reading necesita per-domain: brand singleton via
+  `BrandRepository.get_settings`, offer/buyer entity via UUID.
+  Best-effort (catches all exceptions → None) — guided flow nunca
+  rompe por no poder computar hint.
+- (09.D) `ConversationalChannelPort` minimal: 1 método abstract `ask`.
+  Cualquier extra state (lead_id, conversation_id, locale) flows via
+  optional `context: dict` — keeps port stable cross adapters.
+- (09.E) Channel-agnostic invariant probado: 2 InMemory adapters
+  emiten misma secuencia para mismo state. Real assertions cubren
+  required-first + gate satisfaction + deprecated/readonly excluded
+  + termination.
+- (09.F) Updating `BUYER_PERSONA_CATALOG_BASELINE` descriptions tras
+  agregar `human_question_es` es **intencional**, no regression. Catalog
+  projection usa `description = human_question_es or notes` (Fase 08
+  helper). Fase 09 mejora copilot system prompt enumeration con
+  natural-Spanish prompts. Documentado en commit message + LEARNINGS.
+- (09.fix) Synthetic FieldContract registries en tests pollutaban
+  `_MODULE_CONTRACTS` global. `test_no_cross_domain_duplicates`
+  iteraba todos los modules registered y veía `name` colisión entre
+  `_synthetic_e2e` y `buyer_persona`. Fix: `teardown_module` clears
+  synthetic module post-test (`register_module_contracts(_MODULE, ())`).
+  Patrón ahora documentado en synthetic test files.
+
+### Decisiones nuevas
+
+Ninguna ADR formal. Decisiones de scope reduction documentadas
+in-line:
+
+- Wiring real copilot ↔ whatsapp/telegram **out of scope** — requiere
+  copilot orchestrator channel-aware + tenant-owner identity en
+  webhook. Sprint product-level dedicado. Fase 09 entrega algoritmo
+  + adapter pattern listos.
+- `redo_if_changes` invalidation **out of scope** — documentado en
+  contract pero state manager que lo honra es futura ADR.
+- LLM-driven question reformulation **out of scope** del algoritmo —
+  caller adapter puede agregar reformulación, pero no es parte de
+  `next_question`.
+- Diferidos Fase 05/07 NO tomados este sprint per SPEC: full
+  data-driven `agent_identity.j2`, completion alignment, landing
+  aggregate migration, walker list[dict] item sub-keys.
+
+### Deuda técnica encontrada (en scope, resuelta)
+
+- ✅ `human_question_es` populated en brand + buyer top required
+  fields (12 + 12).
+- ✅ Cross-domain test pollution prevenida via teardown_module patrón.
+
+### Deuda técnica (tangencial — entry en `docs/mejoras-proceso/to-do.md`)
+
+- `test_streaming_integration.py::test_tool_call_produces_tool_events`
+  sigue flaky (passes isolated, fails en suites largas con
+  side-effects). Pre-existing, documented Fase 04.
+- `human_question_es` enrichment puede continuar — solo cubrimos top
+  required this sprint. Optional fields cross-module (story.values,
+  visuals.secondary_color, etc.) sin populated. Future enrichment
+  sprints conforme demanda real.
+- `expects` field hint type/format populated parcialmente. Más
+  enrichment posible.
+
+### Para próxima fase / cierre del refactor
+
+**Refactor field-contract-platform CIERRA con Fase 09.** Plan original
+6 fases (04-09) completado:
+
+| Fase | Status | Closing commit |
+|---|---|---|
+| 04 — Platform foundation | done | `c8ddd79e` |
+| 05 — Downstream data-driven | done | `d0d121f1` |
+| 06 — Brand migration | done | `bd7bfd31` |
+| 07 — Buyer-persona migration | done | `1f210a5d` |
+| 08 — Copilot unification | done | `e1f44284` |
+| 09 — Multi-channel projection | done | `f866cd17` (close commit pendiente) |
+
+3 módulos migrados al FieldContract platform (offer + brand + buyer).
+Copilot read+write surfaces unificadas. Algoritmo conversational
+data-driven channel-agnostic. Channel adapter port para futuro
+wire-up real.
+
+Posible Fase 10 (futuro, fuera scope este refactor):
+- Wire copilot↔whatsapp/telegram real (separado del refactor —
+  product sprint).
+- Fase 05 deferrals: data-driven agent_identity.j2 loop completo,
+  completion alignment, landing aggregate migration.
+- Walker extension list[dict] item sub-keys.
+- More `human_question_es` enrichment cross-module conforme demand.
+
+### Closing commit hash
+
+Last green commit Fase 09: `f866cd17` (test isolation fix). Close
+commit en 09.G.

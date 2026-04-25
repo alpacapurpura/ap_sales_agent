@@ -1,9 +1,9 @@
 ---
-last_updated: 2026-04-24 (Fase 09 sub-paso A done)
-last_green_commit: a61aea16
-active_phase: 09-multi-channel-projection
-sub_step: A/G done (docs)
-status: in-progress
+last_updated: 2026-04-24 (Fase 09 done — refactor cerrado)
+last_green_commit: f866cd17
+active_phase: (refactor cerrado — 6 fases completadas)
+sub_step: G/G done
+status: done
 blockers: none
 branch: development
 working_tree_clean: true
@@ -17,31 +17,33 @@ parallel_session_files_ignored:
 
 ## Dónde estamos
 
-- **Refactor**: field-contract-platform
-- **Fase activa**: 09-multi-channel-projection (ready-to-start)
-- **Última fase cerrada**: 08-copilot-unification (5 commits, 0d9ccc40 → e1f44284)
+- **Refactor**: field-contract-platform — **CERRADO** ✅
+- **Fases completadas**: 04 → 05 → 06 → 07 → 08 → 09 (6/6 según plan).
+- **Última fase cerrada**: 09-multi-channel-projection
+  (7 commits, `a61aea16` → `f866cd17` + close).
 - **Rama**: `development`
-- **Working tree**: limpio
+- **Working tree**: limpio (excepto archivos ajenos listados arriba).
+
+## Resumen del refactor
+
+3 módulos migrados al `FieldContract` platform (offer / brand /
+buyer_persona). Copilot read+write surfaces unificadas. Algoritmo
+conversational data-driven channel-agnostic
+(`copilot/application/orchestrator/conversational_questioning.py`)
++ `ConversationalChannelPort` listo para wire-up real cross-canal.
+
+5 fuentes paralelas de "qué fields existen" → 1 SSoT.
 
 ## Próxima acción
 
-Arrancar Fase 09. Seguir:
+Refactor cerrado. Posibles trabajos futuros (fuera scope este
+refactor):
 
-1. Lee [protocol/RESUME.md](protocol/RESUME.md).
-2. Lee [phases/09-multi-channel-projection/STATUS.md](phases/09-multi-channel-projection/STATUS.md).
-3. Crear `phases/09-multi-channel-projection/PRE_INVESTIGATION.md` con
-   inventario del estado del copilot conversacional cross-channel
-   (whatsapp/telegram channel adapters, bound tools, current question
-   flow), trade-offs LLM vs algoritmo determinístico, compat web↔chat.
-4. Crear `phases/09-multi-channel-projection/SPEC.md` con plan algoritmo
-   `next_question(module, state)` data-driven + integración channel
-   adapters + tests E2E channel-agnostic.
-5. Capturar baseline acceptance tests (copilot + sales-agent + cualquier
-   E2E chat existente).
-6. Escribir ACCEPTANCE.md.
-7. Ejecutar PRE_FLIGHT.md.
-
-Prompt completo en [HANDOFF.md](HANDOFF.md).
+- Wire real copilot↔whatsapp/telegram (sprint product-level dedicado).
+- Fase 05 deferrals (data-driven agent_identity, completion alignment,
+  landing aggregate migration).
+- Walker extension para list[dict] item sub-keys.
+- More `human_question_es` enrichment conforme demand.
 
 ## Contexto mínimo
 
@@ -127,7 +129,21 @@ Prompt completo en [HANDOFF.md](HANDOFF.md).
 | 08.B | `b4e7a43d` | editable_fields port deriva + drop 3 catalog projection files |
 | 08.C | `074977b6` | schema_introspection._build_*_paths derivan del FieldContract registry |
 | 08.D | `e1f44284` | 3 arch tests anti-regression (derivation + no catalog files + no hand-authored paths) |
-| 08.F | (this commit) | close phase + LEARNINGS + STATE/STATUS bump + HANDOFF Fase 09 |
+| 08.F | `2e0f1cc7` | close phase + LEARNINGS + STATE/STATUS bump + HANDOFF Fase 09 |
+
+## Historial Fase 09
+
+| Sub-step | Commit | Descripción |
+|---|---|---|
+| 09.A | `a61aea16` | docs PRE_INVESTIGATION + SPEC + ACCEPTANCE Fase 09 |
+| (meta) | `73077552` | bump STATE.md last_green_commit |
+| 09.B | `3691fd62` | next_question algorithm channel-agnostic + 40 unit tests |
+| 09.C | `eaa73708` | guided advance suggested_question + 16 unit tests |
+| 09.D | `08ad7312` | ConversationalChannelPort + InMemoryConversationalChannel + 6 unit tests |
+| 09.E | `bbfb5974` | E2E channel-agnostic + 6 tests |
+| 09.F | `7e00b300` | human_question_es enrichment brand 12 + buyer 12 + baseline update |
+| 09.fix | `f866cd17` | synthetic registry isolation (teardown_module) |
+| 09.G | (this commit) | close phase + close refactor + LEARNINGS + STATE/STATUS bump |
 
 ## Convención de actualización
 

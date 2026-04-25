@@ -1,16 +1,30 @@
 ---
-status: in-progress
+status: done
 opened_at: 2026-04-24
-closed_at: null
+closed_at: 2026-04-24
 baseline_green_commit: 2e0f1cc7
+last_green_commit: f866cd17
 ---
 
 # Fase 09 — Multi-channel projection · Status
 
-**In-progress**. 09.A docs (PRE_INVESTIGATION + SPEC + ACCEPTANCE)
-escrito. Fase 08 cerrada (5 commits). Copilot consume `FieldContract`
-cross-module unificado. Baseline: 507 BE arch + 38 FE arch + 52 copilot
-acceptance verde.
+**Done**. 7 sub-pasos atómicos commiteados:
+
+| Sub-paso | Commit | Descripción |
+|---|---|---|
+| 09.A | `a61aea16` | docs PRE_INVESTIGATION + SPEC + ACCEPTANCE |
+| 09.B | `3691fd62` | next_question algorithm + 40 unit tests |
+| 09.C | `eaa73708` | guided advance suggested_question + 16 unit tests |
+| 09.D | `08ad7312` | ConversationalChannelPort + InMemoryConversationalChannel + 6 unit tests |
+| 09.E | `bbfb5974` | E2E channel-agnostic + 6 tests |
+| 09.F | `7e00b300` | human_question_es enrichment brand 12 + buyer 12 + baseline update |
+| 09.fix | `f866cd17` | synthetic registry isolation (teardown_module) |
+| 09.G | (this commit) | LEARNINGS + STATE/STATUS bump + close |
+
+**Refactor field-contract-platform CIERRA con Fase 09.** 6 fases (04-09)
+completadas según plan original. 3 módulos migrados (offer + brand +
+buyer_persona). Copilot read+write unificado. Algoritmo conversational
+data-driven channel-agnostic operativo.
 
 ## Scope (per PLAN.md §Fase 09)
 
