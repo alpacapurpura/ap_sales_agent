@@ -13,6 +13,14 @@ refs: docs/refactors/field-contract-platform/DESIGN.md
 
 from __future__ import annotations
 
+from src.modules.brand.domain.aggregates import BrandSettings
+from src.modules.brand.domain.copilot_editable_fields import BRAND_EDITABLE_FIELDS
+from src.modules.brand.domain.field_contract import (
+    BRAND_COMPOSABLE_FIELDS,
+    BRAND_FIELD_CONTRACTS,
+    BRAND_IGNORE_PATHS,
+    BRAND_SECTION_MAP,
+)
 from src.modules.copilot.domain.offer_fields import PERSISTABLE_FIELDS
 from src.modules.offer.domain.copilot_editable_fields import OFFER_EDITABLE_FIELDS
 from src.modules.offer.domain.details import (
@@ -31,10 +39,10 @@ from src.modules.offer.domain.field_contract import (
 from src.modules.offer.domain.offer import Offer
 from src.shared.domain.field_contract import FieldStatus
 
-# Modules that have migrated to the platform. Add brand / buyer_persona
-# in their respective phases (06 / 07). Tests here apply only to
-# migrated modules — non-migrated catalogs follow the legacy pattern.
-MIGRATED_MODULES: tuple[str, ...] = ("offer",)
+# Modules that have migrated to the platform. Add buyer_persona in Fase 07.
+# Tests here apply only to migrated modules — non-migrated catalogs follow
+# the legacy pattern.
+MIGRATED_MODULES: tuple[str, ...] = ("offer", "brand")
 
 
 # ---------------------------------------------------------------------------
@@ -57,6 +65,34 @@ def _all_offer_pydantic_paths() -> set[str]:
     return paths
 
 
+def _all_brand_pydantic_paths() -> set[str]:
+    """Build the set of BrandSettings Pydantic paths user-facing.
+
+    Top-level fields plus every nested Pydantic field walked one level
+    deep (composable handles). Top-level lists (team, testimonials,
+    authority_vault) appear as their bare names — emitted as LIST contracts.
+    """
+    paths: set[str] = set()
+    for fname, finfo in BrandSettings.model_fields.items():
+        if fname not in BRAND_COMPOSABLE_FIELDS:
+            paths.add(fname)
+            continue
+        annotation = finfo.annotation
+        # ``X | None`` -> X (composable nested model)
+        from types import UnionType  # local import to keep top imports clean
+        from typing import Union, get_args, get_origin
+
+        if get_origin(annotation) in (Union, UnionType):
+            args = [a for a in get_args(annotation) if a is not type(None)]
+            if len(args) == 1:
+                annotation = args[0]
+        nested_fields = getattr(annotation, "model_fields", None)
+        if nested_fields:
+            for sub_name in nested_fields:
+                paths.add(f"{fname}.{sub_name}")
+    return paths
+
+
 class TestPydanticSubsetOfFieldContract:
     """Every user-facing Pydantic field has a FieldContract entry."""
 
@@ -75,6 +111,32 @@ class TestPydanticSubsetOfFieldContract:
             f"Pydantic Offer / nested fields without a FieldContract entry: "
             f"{sorted(missing)}.\nAdd them to OFFER_SECTION_MAP (or "
             f"OFFER_IGNORE_PATHS if internal) in offer/domain/field_contract.py."
+        )
+
+    def test_brand_model_fields_subset_of_field_contract(self) -> None:
+        """Pydantic BrandSettings + nested ⊆ BRAND_FIELD_CONTRACTS."""
+        pydantic_paths = _all_brand_pydantic_paths()
+        contract_paths = {c.path for c in BRAND_FIELD_CONTRACTS}
+        # Composable handles: bare name not in registry, sub-paths are.
+        composable_handles = set(BRAND_COMPOSABLE_FIELDS)
+        expected = pydantic_paths - BRAND_IGNORE_PATHS - composable_handles
+        missing = expected - contract_paths
+        assert not missing, (
+            f"Pydantic BrandSettings / nested fields without a FieldContract entry: "
+            f"{sorted(missing)}.\nAdd them to BRAND_SECTION_MAP (or "
+            f"BRAND_IGNORE_PATHS if internal) in brand/domain/field_contract.py."
+        )
+
+    def test_brand_section_map_covers_every_pydantic_path(self) -> None:
+        """Every BRAND_FIELD_CONTRACTS path has a BRAND_SECTION_MAP entry."""
+        contract_paths = {c.path for c in BRAND_FIELD_CONTRACTS}
+        section_paths = set(BRAND_SECTION_MAP.keys())
+        # Section map is the source — every contract must have come from it.
+        orphans = contract_paths - section_paths
+        assert not orphans, (
+            f"Brand contracts without a BRAND_SECTION_MAP entry: {sorted(orphans)}. "
+            f"Walker derived them from Pydantic but the section was looked up "
+            f"from default_section / override.section instead."
         )
 
 

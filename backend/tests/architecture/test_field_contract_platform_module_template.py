@@ -67,9 +67,27 @@ def _offer_spec() -> _ModuleRegistrySpec:
     )
 
 
+def _brand_spec() -> _ModuleRegistrySpec:
+    """Brand module spec (Fase 06)."""
+    from src.modules.brand.domain.aggregates import BrandSettings
+    from src.modules.brand.domain.field_contract import (
+        BRAND_COMPOSABLE_FIELDS,
+        BRAND_IGNORE_PATHS,
+    )
+    from src.shared.links.ports.editable_fields import get_paths_for
+
+    return _ModuleRegistrySpec(
+        name="brand",
+        root_model=BrandSettings,
+        ignore_paths=BRAND_IGNORE_PATHS,
+        composable_handles=frozenset(BRAND_COMPOSABLE_FIELDS),
+        editable_paths_provider=lambda: frozenset(get_paths_for("brand")),
+    )
+
+
 # Register one entry per migrated module. Future phases append here.
 def _build_module_registry() -> tuple[_ModuleRegistrySpec, ...]:
-    return (_offer_spec(),)
+    return (_offer_spec(), _brand_spec())
 
 
 _MIGRATED_SPECS: tuple[_ModuleRegistrySpec, ...] = _build_module_registry()
