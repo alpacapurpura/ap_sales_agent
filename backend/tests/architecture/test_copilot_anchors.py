@@ -33,6 +33,7 @@ ANCHOR_REGISTRY: dict[str, str] = {
     "COPILOT-DOC-EXTRACTION-PIPELINE": "docs/domains/copilot/document-extraction.md",
     "COPILOT-REDESIGN-2026-04": "docs/domains/copilot/redesign-2026-04/README.md",
     "COPILOT-PROVIDER-PATTERN": "docs/domains/copilot/redesign-2026-04/02-architecture-target.md",
+    "COPILOT-DEEP-AGENT-V2": "docs/domains/copilot/redesign-2026-04/phases/F2-deep-agents-harness.md",
 }
 
 # Only scan backend Python sources (not tests — anchors in tests are for

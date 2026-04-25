@@ -154,6 +154,12 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: list[str] = []
 
+    # Copilot redesign 2026-04 — F2 deep agents harness toggle.
+    # Off (default) keeps legacy ReAct ``copilot_graph``. On routes the chat
+    # orchestrator through ``deep_agent_graph`` (planning + scratchpad +
+    # subagents). Flip per environment until F4 + F5 stabilize.
+    COPILOT_DEEP_AGENT_V2: bool = False
+
     @property
     def database_url(self) -> str:
         """Build the PostgreSQL connection URL from component settings."""

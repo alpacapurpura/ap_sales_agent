@@ -258,6 +258,50 @@ def _ui_action_to_card_block(action: dict) -> dict | None:
     }
 
 
+def _write_todos_to_plan_card(tool_input: object) -> dict | None:
+    """Synthesize a ``plan_card`` block from the deep-agent ``write_todos`` args.
+
+    The deepagents ``write_todos`` tool stores ``state.todos`` and returns a
+    ToolMessage with a stringified todo list — too lossy to round-trip.
+    Instead we read the *input args* of the tool call (``{"todos": [...]}``),
+    where each Todo carries ``{content, status, activeForm?}``.
+
+    Returns ``None`` for malformed inputs so the caller falls back to the
+    legacy ``tool_result`` path without breaking the stream.
+    """
+    if not isinstance(tool_input, dict):
+        return None
+    raw_todos = tool_input.get("todos")
+    if not isinstance(raw_todos, list) or not raw_todos:
+        return None
+    normalized: list[dict] = []
+    for item in raw_todos:
+        if not isinstance(item, dict):
+            continue
+        content = str(item.get("content", "")).strip()
+        if not content:
+            continue
+        status = str(item.get("status", "pending")).lower()
+        if status not in {"pending", "in_progress", "completed"}:
+            status = "pending"
+        normalized.append(
+            {
+                "content": content,
+                "status": status,
+                "active_form": str(item.get("activeForm") or item.get("active_form") or "").strip(),
+            },
+        )
+    if not normalized:
+        return None
+    return {
+        "id": str(uuid4()),
+        "type": "card",
+        "card_kind": "plan_card",
+        "payload": {"todos": normalized},
+        "status": "pending",
+    }
+
+
 # LLM streaming timeout (seconds). If the LLM hangs, the SSE stream will
 # emit an error event after this duration instead of blocking indefinitely.
 # Configurable via env var COPILOT_STREAM_TIMEOUT_SECONDS.
@@ -577,6 +621,26 @@ class CopilotOrchestrator:
         yield SSEEvent(event="status", data={"state": "done"}).to_sse()
         yield SSEEvent(event="done", data={"conversation_id": conv_id}).to_sse()
 
+    @staticmethod
+    def _select_graph(state: dict):  # noqa: ANN205 — return type is one of two LangGraph CompiledStateGraph subclasses
+        """Pick the legacy ReAct graph or the F2 deep-agent graph.
+
+        Default is the legacy ``copilot_graph`` so accidental misconfig
+        cannot break production. Flip ``COPILOT_DEEP_AGENT_V2=true`` per
+        environment to roll out the harness. The deep-agent graph is
+        rebuilt every turn — the dynamic system prompt + route-based
+        tool selection both depend on the current state.
+        """
+        from src.core.config import settings as _settings
+
+        if _settings.COPILOT_DEEP_AGENT_V2:
+            from src.modules.copilot.application.orchestrator.deep_agent import (
+                build_deep_agent_graph,
+            )
+
+            return build_deep_agent_graph(state)
+        return copilot_graph
+
     async def _run_graph_stream(
         self,
         *,
@@ -606,7 +670,8 @@ class CopilotOrchestrator:
             ).to_sse()
 
             async with asyncio.timeout(COPILOT_STREAM_TIMEOUT_SECONDS):
-                async for event in copilot_graph.astream_events(state, version="v2"):
+                graph = self._select_graph(state)
+                async for event in graph.astream_events(state, version="v2"):
                     usage.update_from_event(event)
 
                     # on_tool_end: route to v2-aware handler that also emits block_append
@@ -841,6 +906,45 @@ class CopilotOrchestrator:
 
         return result_sse
 
+    @staticmethod
+    def _maybe_emit_plan_card(
+        tool_name: str,
+        tool_input: object,
+        msg_id: str,
+        acc: _StreamAccumulator,
+    ) -> str:
+        """Synthesize + emit a ``plan_card`` block when ``write_todos`` ran.
+
+        Deep-agent ``write_todos`` mutates state.todos but emits no
+        ``ui_action`` payload, so the existing card pipeline never sees
+        it. We tap the tool *args* (always populated for that call) to
+        build a typed card block and reuse the existing ``block_append``
+        + trace ``card_emitted`` plumbing.
+
+        # [COPILOT-DEEP-AGENT-V2] -> docs/domains/copilot/redesign-2026-04/phases/F2-deep-agents-harness.md
+        """
+        if tool_name != "write_todos":
+            return ""
+        plan_card = _write_todos_to_plan_card(tool_input)
+        if plan_card is None:
+            return ""
+        sse = SSEEvent(
+            event="block_append",
+            data={"message_id": msg_id, "block": plan_card},
+        ).to_sse()
+        acc.emitted_blocks.append(plan_card)
+        if acc.recorder is not None:
+            acc.recorder.record(
+                event_type="card_emitted",
+                name="plan_card",
+                data={
+                    "card_kind": "plan_card",
+                    "source_tool": tool_name,
+                    "todo_count": len(plan_card["payload"]["todos"]),
+                },
+            )
+        return sse
+
     def _handle_tool_end_v2(
         self,
         event: dict,
@@ -913,6 +1017,9 @@ class CopilotOrchestrator:
                             "payload_keys": list(action.keys()) if isinstance(action, dict) else [],
                         },
                     )
+
+        # Step 3.5 — F2 plan_card from deep-agent ``write_todos`` (helper).
+        result_sse += self._maybe_emit_plan_card(tool_name, tool_input, msg_id, acc)
 
         # Step 4 — persist a tool_call trace row so debugging is SQL-queryable.
         if acc.recorder is not None:

@@ -128,6 +128,9 @@ def db_engine():
         from src.modules.copilot.infrastructure.models.mutation_journal_model import (
             MutationJournalModel,
         )
+        from src.modules.copilot.infrastructure.models.pinned_memory_model import (
+            CopilotPinnedMemoryModel,
+        )
         from src.modules.copilot.infrastructure.models.routing_log_model import (
             RoutingLogModel,
         )
