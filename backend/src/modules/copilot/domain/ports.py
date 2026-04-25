@@ -277,20 +277,10 @@ class ProviderHealth:
         return self.last_error is None
 
 
-@dataclass(frozen=True, slots=True)
-class Workflow:
-    """Declarative multi-step workflow (F6 expands this).
-
-    F1 only needs a stable type for ``WorkflowProvider.workflows()`` so the
-    Protocol contract is testable. Concrete fields (nodes, state schema, UI
-    progress kind, max clarify questions) land in F6.
-    """
-
-    workflow_id: str
-    domain: str
-    description_es: str
-    trigger: str = "user_intent"
-    metadata: Mapping[str, Any] = field(default_factory=dict)
+# F6 — full Workflow declarative model lives in ``domain/workflow.py``. Ports
+# re-exports it so existing imports (``from src.modules.copilot.domain.ports
+# import Workflow``) keep working without a churn touch in every provider.
+from src.modules.copilot.domain.workflow import Workflow as Workflow  # noqa: PLC0414, TC001
 
 
 @runtime_checkable

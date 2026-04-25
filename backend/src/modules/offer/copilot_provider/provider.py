@@ -4,8 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from src.modules.copilot.domain.ports import BaseCopilotProvider, DataAccessProvider, ModuleData
+from src.modules.copilot.domain.ports import (
+    BaseCopilotProvider,
+    DataAccessProvider,
+    ModuleData,
+    WorkflowProvider,
+)
 from src.modules.offer.copilot_provider.data_access import OfferDataAccessProvider
+from src.modules.offer.copilot_provider.workflows import OfferWorkflowProvider
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -42,6 +48,9 @@ class OfferCopilotProvider(BaseCopilotProvider):
 
     def data_access(self) -> DataAccessProvider | None:
         return self._data_access  # type: ignore[return-value]
+
+    def workflow_provider(self) -> WorkflowProvider | None:
+        return OfferWorkflowProvider()
 
     def module_data(self) -> ModuleData | None:
         return ModuleData(

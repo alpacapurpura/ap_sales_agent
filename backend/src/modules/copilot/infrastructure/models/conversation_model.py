@@ -55,6 +55,9 @@ class CopilotConversationModel(Base):
     procedure_id = Column(UUID(as_uuid=True), nullable=True)
     procedure_state = Column(JSONB, nullable=True)
     plan_state = Column(JSONB, nullable=True)
+    # F6 — unified workflow execution state (coexists with procedure_state
+    # during cutover; see migration 071_copilot_workflow_state).
+    workflow_state = Column(JSONB, nullable=True)
 
     def __repr__(self) -> str:
         """Return string representation."""

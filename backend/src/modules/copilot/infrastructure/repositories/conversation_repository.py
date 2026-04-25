@@ -433,6 +433,62 @@ class ConversationRepository:
         )
         self.db.execute(stmt)
 
+    def update_workflow_state(
+        self,
+        *,
+        conversation_id: UUID,
+        tenant_id: UUID,
+        workflow_state: dict | None,
+    ) -> None:
+        """Write workflow_state JSONB column (F6).
+
+        Coexists with ``procedure_state`` during the cutover. Production
+        readers use ``get_workflow_state`` with ``fallback_to_procedure=True``
+        for conversations that started before F6.
+        """
+        stmt = (
+            update(CopilotConversationModel)
+            .where(
+                CopilotConversationModel.id == conversation_id,
+                CopilotConversationModel.tenant_id == tenant_id,
+                CopilotConversationModel.deleted_at.is_(None),
+            )
+            .values(workflow_state=workflow_state)
+        )
+        self.db.execute(stmt)
+
+    def get_workflow_state(
+        self,
+        *,
+        conversation_id: UUID,
+        tenant_id: UUID,
+        fallback_to_procedure: bool = False,
+    ) -> dict | None:
+        """Return the workflow_state payload (or fallback to procedure_state).
+
+        ``fallback_to_procedure`` covers conversations that started before
+        F6: their workflow_state is NULL but the legacy procedure_state still
+        carries the pre-F6 guided/procedure overlay. F-pos cutover removes
+        the fallback once all live conversations are migrated.
+        """
+        stmt = select(
+            CopilotConversationModel.workflow_state,
+            CopilotConversationModel.procedure_state,
+        ).where(
+            CopilotConversationModel.id == conversation_id,
+            CopilotConversationModel.tenant_id == tenant_id,
+            CopilotConversationModel.deleted_at.is_(None),
+        )
+        row = self.db.execute(stmt).first()
+        if row is None:
+            return None
+        workflow_state, procedure_state = row
+        if workflow_state is not None:
+            return workflow_state
+        if fallback_to_procedure:
+            return procedure_state
+        return None
+
     def count_all(self, tenant_id: UUID | None = None) -> int:
         """Count conversations, optionally filtered by tenant."""
         from sqlalchemy import func

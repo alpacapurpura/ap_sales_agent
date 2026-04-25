@@ -60,6 +60,13 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
 _PROVIDER_CONTRACT_IMPORTS: frozenset[str] = frozenset(
     {
         "src.modules.copilot.domain.ports",
+        # F6 — workflow declarative types are part of the provider contract:
+        # ``WorkflowProvider.workflows() -> Sequence[Workflow]`` requires
+        # subclasses outside of copilot to import ``Workflow``,
+        # ``WorkflowNode``, ``WorkflowTrigger``, ``NodeOutput`` from here. This
+        # mirrors the ports.py inversion knot — copilot owns the abstraction,
+        # modules supply the concretion.
+        "src.modules.copilot.domain.workflow",
     }
 )
 
