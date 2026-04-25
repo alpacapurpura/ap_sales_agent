@@ -14,6 +14,9 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from src.modules.sales_agent.application.services.offer_prompt_renderer import (
+    filter_offer_for_prompt,
+)
 from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
 from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 from src.shared.links.ports.brand import BrandDataPort, create_brand_data_port
@@ -75,6 +78,13 @@ class TenantKnowledgeBuilder:
             # Filter active offers only for the agent's knowledge
             active_offers = [o for o in offers if o.status.value in ("active", "draft")]
             offers_data = [o.model_dump(mode="json") for o in active_offers] if active_offers else []
+            # Strip top-level paths whose FieldContract status is not ACTIVE
+            # (deprecated / removed). This is the lifecycle gate for the
+            # sales-agent prompt: a field marked DEPRECATED in
+            # ``offer/domain/field_contract.py`` disappears from every
+            # tenant's identity prompt on the next build without any
+            # template edit. ADR-013.
+            offers_data = [filter_offer_for_prompt(o) for o in offers_data]
             # Enrich each offer dict with OfferTypePreset metadata so the
             # agent grounding template can refer to the offer by the
             # tenant's vocabulary ("Consulta única") instead of the raw
