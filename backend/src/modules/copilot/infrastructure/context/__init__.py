@@ -1,1 +1,0 @@
-"""Copilot context package."""

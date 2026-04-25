@@ -31,6 +31,7 @@ ANCHOR_REGISTRY: dict[str, str] = {
     "COPILOT-MUTATION-VALIDATION": "docs/domains/copilot/editable-fields.md",
     "COPILOT-DOC-EXTRACTION-SSOT": "docs/domains/copilot/document-extraction.md",
     "COPILOT-DOC-EXTRACTION-PIPELINE": "docs/domains/copilot/document-extraction.md",
+    "COPILOT-REDESIGN-2026-04": "docs/domains/copilot/redesign-2026-04/README.md",
 }
 
 # Only scan backend Python sources (not tests — anchors in tests are for

@@ -1,0 +1,47 @@
+{
+  "analytics": {
+    "description": "Métricas de marketing y ventas: funnel bowtie, conversión, revenue, leads por etapa",
+    "label": "Growth Studio",
+    "route_prefix": "growth-studio"
+  },
+  "brand": {
+    "description": "Identidad de marca completa: nombre, historia, posicionamiento (Brand Love Key), narrativa (StoryBrand), identidad visual, voz, equipo, testimonios, autoridad, assets de comunicación",
+    "label": "Brand Studio",
+    "route_prefix": "brand-studio"
+  },
+  "commercial_calendar": {
+    "description": "Eventos del calendario comercial: feriados nacionales, campanas, temporadas de venta, dias especiales. Eventos del sistema + eventos custom por tenant.",
+    "label": "Calendario Comercial",
+    "route_prefix": "commercial-calendar"
+  },
+  "connections": {
+    "description": "Integraciones externas: Meta, Instagram, WhatsApp, Shopify, Google Calendar, Gmail, Mailerlite, YouTube, Google Analytics, Google Ads",
+    "label": "Conexiones",
+    "route_prefix": "connections"
+  },
+  "crm": {
+    "description": "Leads, clientes y ventas: pipeline, scoring, temperatura, historial de compras",
+    "label": "CRM",
+    "route_prefix": "sales"
+  },
+  "landing": {
+    "description": "Páginas de aterrizaje: generadas automáticamente o personalizadas, vinculadas a ofertas",
+    "label": "Landing Pages",
+    "route_prefix": "landing"
+  },
+  "offer": {
+    "description": "Escalera de ofertas: productos/servicios con precio, psicología de venta, avatar, objeciones, knowledge base",
+    "label": "Offer Studio",
+    "route_prefix": "offer-studio"
+  },
+  "sales_agent": {
+    "description": "Agente de ventas IA: conversaciones activas, mensajes, rendimiento",
+    "label": "Sales Agent",
+    "route_prefix": "sales"
+  },
+  "social_proof": {
+    "description": "Prueba social tenant-scoped: testimonios de clientes, autoridades / certificaciones / premios, equipo (voz de marca). Se reutiliza cross-surface (brand, offer, landing, email, sales agent) via placements M:N — editar un testimonio se propaga automáticamente.",
+    "label": "Social Proof Studio",
+    "route_prefix": "social-proof"
+  }
+}

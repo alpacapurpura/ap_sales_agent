@@ -29,6 +29,15 @@ links inside each doc.
 | [copilot-refactor-spec.md](./copilot-refactor-spec.md) | Product-level refactor spec (the "why" behind CONTRACT.md §1–§22). |
 | [REVIEW.md](./REVIEW.md) | Self-audit of the data-model v2 refactor. Baseline for external review. |
 
+## Active redesign (2026-04)
+
+| Doc | Purpose |
+|---|---|
+| [redesign-2026-04/README.md](./redesign-2026-04/README.md) | Plan completo refactor copilot → "Claude Code de Marketing": 11 fases (F0-F10), provider pattern, deep agents harness, workflow unification. |
+| [redesign-2026-04/00-vision-and-non-goals.md](./redesign-2026-04/00-vision-and-non-goals.md) | Visión target + lista exhaustiva §3 lo que NO se toca. |
+| [redesign-2026-04/02-architecture-target.md](./redesign-2026-04/02-architecture-target.md) | Topología destino post-F10. |
+| [redesign-2026-04/learnings/](./redesign-2026-04/learnings/) | Aprendizajes acumulados por fase. |
+
 ## Reading order by task
 
 - **Implementing a new block type:** `CONTRACT-MULTIMODAL.md §1` → `message-blocks.md` → (FE) `UI-SPEC.md`.
