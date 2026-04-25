@@ -591,6 +591,7 @@ _MODULE_CONTRACTS: dict[str, tuple[FieldContract, ...]] = {}
 
 _LAZY_REGISTRARS: dict[str, str] = {
     "offer": "src.modules.offer.domain.field_contract",
+    "brand": "src.modules.brand.domain.field_contract",
 }
 
 

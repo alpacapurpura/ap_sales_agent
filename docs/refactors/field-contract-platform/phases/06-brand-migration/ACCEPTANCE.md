@@ -24,22 +24,14 @@ shorthand broken (drift A/B). Tras 06.D la catalog cambiará. Snapshot
 se actualiza en 06.D con assert que los nuevos paths son superset de
 los working hoy + drop sólo de broken paths.
 
-## 06.B — generic platform tests pre-brand
+## 06.B — (skipped, folded into 06.C)
 
-**Subject**: extender platform tests genéricos para que `brand` se enchufe
-con 1 entry.
-
-**Touch**:
-- `backend/tests/architecture/test_field_contract_platform_module_template.py`:
-  agregar `_brand_spec()` builder, registrarlo en `_build_module_registry()`
-  cuando `MIGRATED_MODULES` lo incluya.
-
-**No-op hasta 06.E** (porque MIGRATED_MODULES sigue `("offer",)`). Test
-existe pero parametrize sólo corre para `offer`.
-
-**DoD**:
-- [ ] Spec function listo + import lazy de BrandSettings.
-- [ ] Tests verde sin cambios visible runtime (offer-only run).
+Decision 2026-04-24: el walker shared ya está probado por offer con casos
+polymorphic + composable (Fase 04). Brand es estrictamente composable
+(caso más simple), no requiere walker fixes pre-emptivos. Las extensiones
+genéricas (`_brand_spec`, MIGRATED_MODULES bump) viven en 06.E para mantener
+1 commit material por concept. 06.B reservado por si 06.C descubre un edge
+case del walker que requiere fix shared aislado.
 
 ## 06.C — brand FieldContract module
 
