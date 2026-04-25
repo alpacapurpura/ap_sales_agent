@@ -14,6 +14,13 @@ refs: docs/refactors/field-contract-platform/DESIGN.md
 from __future__ import annotations
 
 from src.modules.brand.domain.aggregates import BrandSettings
+from src.modules.brand.domain.buyer_persona import BuyerPersona
+from src.modules.brand.domain.buyer_persona_field_contract import (
+    BUYER_PERSONA_DICT_SUBKEYS,
+    BUYER_PERSONA_FIELD_CONTRACTS,
+    BUYER_PERSONA_IGNORE_PATHS,
+    BUYER_PERSONA_SECTION_MAP,
+)
 from src.modules.brand.domain.copilot_editable_fields import BRAND_EDITABLE_FIELDS
 from src.modules.brand.domain.field_contract import (
     BRAND_COMPOSABLE_FIELDS,
@@ -39,10 +46,9 @@ from src.modules.offer.domain.field_contract import (
 from src.modules.offer.domain.offer import Offer
 from src.shared.domain.field_contract import FieldStatus
 
-# Modules that have migrated to the platform. Add buyer_persona in Fase 07.
-# Tests here apply only to migrated modules — non-migrated catalogs follow
-# the legacy pattern.
-MIGRATED_MODULES: tuple[str, ...] = ("offer", "brand")
+# Modules that have migrated to the platform. Tests here apply only to
+# migrated modules — non-migrated catalogs follow the legacy pattern.
+MIGRATED_MODULES: tuple[str, ...] = ("offer", "brand", "buyer_persona")
 
 
 # ---------------------------------------------------------------------------
@@ -137,6 +143,52 @@ class TestPydanticSubsetOfFieldContract:
             f"Brand contracts without a BRAND_SECTION_MAP entry: {sorted(orphans)}. "
             f"Walker derived them from Pydantic but the section was looked up "
             f"from default_section / override.section instead."
+        )
+
+    def test_buyer_persona_model_fields_subset_of_field_contract(self) -> None:
+        """Pydantic BuyerPersona ⊆ BUYER_PERSONA_FIELD_CONTRACTS.
+
+        Top-level scalars + lists must appear; the 3 JSONB dict parents
+        (``demographics``, ``psychographics``, ``buyer_journey``) act
+        as composable handles — only their declared sub-keys live in
+        the registry.
+        """
+        pydantic_paths = set(BuyerPersona.model_fields.keys())
+        contract_paths = {c.path for c in BUYER_PERSONA_FIELD_CONTRACTS}
+        # Composable handles: bare name not in registry, sub-keys are.
+        composable_handles = set(BUYER_PERSONA_DICT_SUBKEYS.keys())
+        expected = pydantic_paths - BUYER_PERSONA_IGNORE_PATHS - composable_handles
+        missing = expected - contract_paths
+        assert not missing, (
+            f"Pydantic BuyerPersona fields without a FieldContract entry: "
+            f"{sorted(missing)}.\nAdd them to BUYER_PERSONA_SECTION_MAP "
+            f"(or BUYER_PERSONA_IGNORE_PATHS if internal) in "
+            f"brand/domain/buyer_persona_field_contract.py."
+        )
+
+    def test_buyer_persona_section_map_covers_every_pydantic_path(self) -> None:
+        """Every BUYER_PERSONA_FIELD_CONTRACTS path has a section map entry."""
+        contract_paths = {c.path for c in BUYER_PERSONA_FIELD_CONTRACTS}
+        section_paths = set(BUYER_PERSONA_SECTION_MAP.keys())
+        orphans = contract_paths - section_paths
+        assert not orphans, (
+            f"Buyer-persona contracts without a BUYER_PERSONA_SECTION_MAP entry: "
+            f"{sorted(orphans)}. Walker derived them from Pydantic / dict_subkeys "
+            f"but the section was looked up from override.section instead."
+        )
+
+    def test_buyer_persona_dict_subkeys_have_section_map_entry(self) -> None:
+        """Every declared dict sub-key has a section_map entry (else dropped silently)."""
+        section_paths = set(BUYER_PERSONA_SECTION_MAP.keys())
+        missing: list[str] = []
+        for parent, subkeys in BUYER_PERSONA_DICT_SUBKEYS.items():
+            for sk in subkeys:
+                path = f"{parent}.{sk}"
+                if path not in section_paths:
+                    missing.append(path)
+        assert not missing, (
+            f"Dict sub-keys declared without a BUYER_PERSONA_SECTION_MAP entry: "
+            f"{missing}. Walker drops them silently. Add the section."
         )
 
 

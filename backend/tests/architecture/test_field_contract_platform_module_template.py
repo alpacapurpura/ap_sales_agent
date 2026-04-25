@@ -85,9 +85,34 @@ def _brand_spec() -> _ModuleRegistrySpec:
     )
 
 
+def _buyer_persona_spec() -> _ModuleRegistrySpec:
+    """Buyer-persona module spec (Fase 07).
+
+    BuyerPersona surfaces 3 JSONB ``dict`` containers
+    (``demographics``, ``psychographics``, ``buyer_journey``) walked
+    via the platform ``dict_subkeys`` arg — their bare names act as
+    composable handles (sub-keys appear in the registry, not the
+    parents).
+    """
+    from src.modules.brand.domain.buyer_persona import BuyerPersona
+    from src.modules.brand.domain.buyer_persona_field_contract import (
+        BUYER_PERSONA_DICT_SUBKEYS,
+        BUYER_PERSONA_IGNORE_PATHS,
+    )
+    from src.shared.links.ports.editable_fields import get_paths_for
+
+    return _ModuleRegistrySpec(
+        name="buyer_persona",
+        root_model=BuyerPersona,
+        ignore_paths=BUYER_PERSONA_IGNORE_PATHS,
+        composable_handles=frozenset(BUYER_PERSONA_DICT_SUBKEYS.keys()),
+        editable_paths_provider=lambda: frozenset(get_paths_for("buyer_persona")),
+    )
+
+
 # Register one entry per migrated module. Future phases append here.
 def _build_module_registry() -> tuple[_ModuleRegistrySpec, ...]:
-    return (_offer_spec(), _brand_spec())
+    return (_offer_spec(), _brand_spec(), _buyer_persona_spec())
 
 
 _MIGRATED_SPECS: tuple[_ModuleRegistrySpec, ...] = _build_module_registry()
