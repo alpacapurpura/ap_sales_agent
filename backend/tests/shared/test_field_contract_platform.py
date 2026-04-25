@@ -396,3 +396,132 @@ def test_fields_by_path_prefix() -> None:
 
 def test_get_module_contracts_empty_for_unknown_module() -> None:
     assert get_module_contracts("nonexistent_module_xyz") == ()
+
+
+# ---------------------------------------------------------------------------
+# dict_subkeys arg — JSONB sub-keys (Fase 07 buyer-persona)
+# ---------------------------------------------------------------------------
+
+
+class _DictRoot(BaseModel):
+    """Toy model with a JSONB-like ``dict`` field whose sub-keys are declared."""
+
+    name: str | None = None
+    demographics: dict = Field(default_factory=dict)
+    psychographics: dict = Field(default_factory=dict)
+
+
+def test_dict_subkeys_emits_one_contract_per_subkey() -> None:
+    """``dict_subkeys`` declares the JSONB sub-keys to expose as contracts."""
+    contracts = derive_contracts_from_pydantic(
+        model=_DictRoot,
+        owner_module="test_dict",
+        section_map={
+            "name": "identity",
+            "demographics.age_range": "demographics",
+            "demographics.location": "demographics",
+            "psychographics.values": "psychographics",
+        },
+        ignore_paths=frozenset(),
+        dict_subkeys={
+            "demographics": ("age_range", "location"),
+            "psychographics": ("values",),
+        },
+    )
+    paths = {c.path for c in contracts}
+    assert paths == {
+        "name",
+        "demographics.age_range",
+        "demographics.location",
+        "psychographics.values",
+    }
+
+
+def test_dict_subkeys_skips_parent_field_emission() -> None:
+    """Parent ``dict`` field is treated as a composable handle — not emitted bare."""
+    contracts = derive_contracts_from_pydantic(
+        model=_DictRoot,
+        owner_module="test_dict",
+        section_map={
+            "demographics.age_range": "demographics",
+        },
+        ignore_paths=frozenset(),
+        dict_subkeys={"demographics": ("age_range",)},
+    )
+    paths = {c.path for c in contracts}
+    # bare 'demographics' MUST NOT appear — it's a JSONB container, sub-keys are the surface
+    assert "demographics" not in paths
+    assert "demographics.age_range" in paths
+
+
+def test_dict_subkeys_default_type_is_text() -> None:
+    """Sub-key contracts default to TEXT (JSONB has no Pydantic type info)."""
+    contracts = derive_contracts_from_pydantic(
+        model=_DictRoot,
+        owner_module="test_dict",
+        section_map={"demographics.age_range": "demographics"},
+        ignore_paths=frozenset(),
+        dict_subkeys={"demographics": ("age_range",)},
+    )
+    [c] = [c for c in contracts if c.path == "demographics.age_range"]
+    assert c.type == FieldType.TEXT
+    # JSONB sub-keys are never structurally required — the parent dict has a default factory
+    assert c.is_required_structural is False
+
+
+def test_dict_subkeys_respects_section_map_and_overrides() -> None:
+    """Sub-key contracts honour section_map + override metadata (label_es, can_propose)."""
+    contracts = derive_contracts_from_pydantic(
+        model=_DictRoot,
+        owner_module="test_dict",
+        section_map={
+            "demographics.age_range": "demographics",
+            "demographics.location": "demographics",
+        },
+        overrides={
+            "demographics.age_range": Override(
+                label_es="Rango etario",
+                notes="Edad del cliente.",
+                can_propose=True,
+            ),
+            "demographics.location": Override(
+                label_es="Ubicación",
+                can_propose=False,
+            ),
+        },
+        ignore_paths=frozenset(),
+        dict_subkeys={"demographics": ("age_range", "location")},
+    )
+    by_path = {c.path: c for c in contracts}
+    assert by_path["demographics.age_range"].label_es == "Rango etario"
+    assert by_path["demographics.age_range"].notes == "Edad del cliente."
+    assert by_path["demographics.age_range"].can_propose is True
+    assert by_path["demographics.location"].label_es == "Ubicación"
+    assert by_path["demographics.location"].can_propose is False
+
+
+def test_dict_subkeys_drops_subkey_without_section_map_entry() -> None:
+    """Sub-key without section_map entry is dropped (consistent with top-level)."""
+    contracts = derive_contracts_from_pydantic(
+        model=_DictRoot,
+        owner_module="test_dict",
+        section_map={"demographics.age_range": "demographics"},
+        ignore_paths=frozenset(),
+        dict_subkeys={"demographics": ("age_range", "location")},  # 'location' missing in map
+    )
+    paths = {c.path for c in contracts}
+    assert "demographics.age_range" in paths
+    assert "demographics.location" not in paths
+
+
+def test_dict_subkeys_default_none_preserves_dict_emission() -> None:
+    """Without ``dict_subkeys``, a ``dict`` field emits a bare DICT contract."""
+    contracts = derive_contracts_from_pydantic(
+        model=_DictRoot,
+        owner_module="test_dict",
+        section_map={"demographics": "demographics"},
+        ignore_paths=frozenset(),
+        # dict_subkeys not passed
+    )
+    [c] = [c for c in contracts if c.path == "demographics"]
+    assert c.type == FieldType.DICT

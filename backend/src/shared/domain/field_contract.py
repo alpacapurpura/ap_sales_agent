@@ -336,6 +336,7 @@ def derive_contracts_from_pydantic(
     ignore_paths: frozenset[str] = frozenset(),
     polymorphic_prefix_map: dict[type[BaseModel], PolymorphicVariantSpec] | None = None,
     composable_fields: tuple[str, ...] = (),
+    dict_subkeys: dict[str, tuple[str, ...]] | None = None,
 ) -> tuple[FieldContract, ...]:
     """Derive a tuple of FieldContract from a Pydantic root model.
 
@@ -344,7 +345,10 @@ def derive_contracts_from_pydantic(
     ``{composable_field_name}.``. For polymorphic unions (e.g.
     ``specific_details: Variant1 | Variant2 | ... | None``) recurses
     into each variant with prefix and attaches ``archetype_filter``
-    from ``polymorphic_prefix_map``.
+    from ``polymorphic_prefix_map``. For JSONB-style ``dict`` fields
+    declared in ``dict_subkeys``, emits one synthetic contract per
+    declared sub-key (path ``{fname}.{subkey}``, type TEXT default,
+    not structurally required) — the parent field is skipped.
 
     Args:
         model: Pydantic root (e.g. ``Offer``).
@@ -357,12 +361,17 @@ def derive_contracts_from_pydantic(
             :class:`PolymorphicVariantSpec` (archetype_filter + section).
         composable_fields: Top-level fields whose nested Pydantic
             models should be walked with prefix.
+        dict_subkeys: JSONB ``dict`` fields whose sub-keys should be
+            exposed as contracts. ``{"demographics": ("age_range", ...)}``
+            emits one TEXT contract per sub-key. Parent treated as a
+            composable handle (no bare contract emitted).
 
     Returns:
         Immutable tuple ordered by ``(section, -priority, path)``.
     """
     overrides = overrides or {}
     polymorphic_prefix_map = polymorphic_prefix_map or {}
+    dict_subkeys = dict_subkeys or {}
 
     contracts: list[FieldContract] = []
 
@@ -371,6 +380,18 @@ def derive_contracts_from_pydantic(
             continue
 
         annotation = finfo.annotation
+
+        if fname in dict_subkeys:
+            _walk_dict_subkeys(
+                fname=fname,
+                subkeys=dict_subkeys[fname],
+                owner_module=owner_module,
+                section_map=section_map,
+                overrides=overrides,
+                ignore_paths=ignore_paths,
+                contracts=contracts,
+            )
+            continue
 
         if fname in composable_fields or _is_polymorphic_pydantic_union(annotation):
             _walk_union_or_composable(
@@ -400,6 +421,63 @@ def derive_contracts_from_pydantic(
 
     contracts.sort(key=lambda c: (c.section, -c.priority, c.path))
     return tuple(contracts)
+
+
+def _walk_dict_subkeys(
+    *,
+    fname: str,
+    subkeys: tuple[str, ...],
+    owner_module: str,
+    section_map: dict[str, str],
+    overrides: dict[str, FieldContractOverride],
+    ignore_paths: frozenset[str],
+    contracts: list[FieldContract],
+) -> None:
+    """Emit one synthetic contract per declared JSONB sub-key.
+
+    JSONB sub-keys have no Pydantic introspection (the parent annotation
+    is plain ``dict``), so the type defaults to TEXT and the field is
+    never structurally required. Override metadata (``label_es``,
+    ``can_propose``, ``notes``, …) lifts each sub-key to its real shape.
+    """
+    for subkey in subkeys:
+        path = f"{fname}.{subkey}"
+        if path in ignore_paths:
+            continue
+
+        override = overrides.get(path, FieldContractOverride())
+        section = override.section or section_map.get(path)
+        if section is None:
+            continue
+
+        contract = FieldContract(
+            path=path,
+            owner_module=owner_module,
+            type=FieldType.TEXT,
+            is_required_structural=False,
+            section=section,
+            group=override.group,
+            priority=override.priority if override.priority is not None else 0,
+            archetype_filter=override.archetype_filter,
+            value_level_filter=override.value_level_filter,
+            business_type_filter=override.business_type_filter,
+            preset_filter=override.preset_filter,
+            is_required_semantic=(
+                override.is_required_semantic if override.is_required_semantic is not None else False
+            ),
+            status=override.status or FieldStatus.ACTIVE,
+            deprecated_in=override.deprecated_in,
+            replaced_by=override.replaced_by,
+            introduced_in=override.introduced_in,
+            can_propose=override.can_propose if override.can_propose is not None else True,
+            human_question_es=override.human_question_es,
+            expects=override.expects,
+            gate=override.gate,
+            redo_if_changes=override.redo_if_changes,
+            label_es=override.label_es,
+            notes=override.notes,
+        )
+        contracts.append(contract)
 
 
 def _walk_union_or_composable(
