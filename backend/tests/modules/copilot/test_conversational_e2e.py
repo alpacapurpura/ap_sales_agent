@@ -32,7 +32,12 @@ from src.shared.domain.field_contract import (
     register_module_contracts,
 )
 
-_MODULE = "test_module_e2e"
+_MODULE = "_synthetic_e2e"
+
+
+def teardown_module(module: object) -> None:
+    """Drop synthetic module from the global registry to keep cross-test isolation."""
+    register_module_contracts(_MODULE, ())
 
 
 def _c(

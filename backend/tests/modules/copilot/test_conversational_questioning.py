@@ -2,7 +2,9 @@
 
 The algorithm must be a pure function over a synthetic FieldContract
 registry — no DB, no LLM, no I/O. We build a tiny fake module
-``test_module_q`` and exercise every branch of the selection rule.
+``_synthetic_q`` and exercise every branch of the selection rule.
+``teardown_module`` clears the synthetic module so the global registry
+stays clean for the rest of the suite (no cross-domain duplicates).
 """
 
 from __future__ import annotations
@@ -22,7 +24,12 @@ from src.shared.domain.field_contract import (
     register_module_contracts,
 )
 
-_MODULE = "test_module_q"
+_MODULE = "_synthetic_q"
+
+
+def teardown_module(module: object) -> None:
+    """Drop synthetic module from the global registry to keep cross-test isolation."""
+    register_module_contracts(_MODULE, ())
 
 
 def _c(
