@@ -466,7 +466,146 @@ Last green commit Fase 06: `ed8a3a4f`. Close commit en 06.G.
 
 ## Fase 07 — Buyer-persona migration
 
-**Status**: pending
+**Status**: done (2026-04-24)
+
+### Pre-fase expectations vs realidad
+
+- ✅ Buyer-persona FieldContract registry derivado completo (18 contracts,
+  12 proposable) — mantiene byte-identical el catálogo pre-fase de 12
+  entries.
+- ✅ Walker shared extendido con `dict_subkeys` arg (Patrón B) — habilita
+  cualquier futuro módulo con JSONB sub-keys sin duplicar boilerplate.
+- ✅ BUYER_PERSONA_EDITABLE_FIELDS proyectado del registry — drop tuples
+  manuales _IDENTITY/_DEMOGRAPHICS/_PSYCHOGRAPHICS/_JOURNEY.
+- ✅ UX byte-identical: 12/12 paths preservados, 12/12 labels intactos,
+  12/12 descriptions intactos, 12/12 sections intactos. 6 tests
+  baseline GREEN pre y post.
+- ✅ MIGRATED_MODULES = ("offer", "brand", "buyer_persona"). Generic
+  fitness gates (template) corren para 3 módulos sin cambios — pattern
+  Fase 04.I confirmado por tercera vez.
+- ✅ Coordinación con `project_brand_studio_refactor` confirmada cero
+  overlap (Sprint 6.E es FE offer-studio).
+
+### Resultados cuantitativos
+
+| Métrica | Pre-Fase 07 | Post-Fase 07 |
+|---|---|---|
+| Buyer-persona catalog entries | 12 (manual) | 12 (proyectado) |
+| BUYER_PERSONA_FIELD_CONTRACTS | n/a | 18 derivados |
+| Drift Pydantic ↔ catalog | latente (catalog manual) | cero (proyección) |
+| Manual hand-written tuples buyer | 4 (_IDENTITY/_DEMOGRAPHICS/...) | 0 |
+| Tests arch totales | 471 | 491 (+20: 6 baseline + 6 dict_subkeys + 5 cross-cutting + 3 generic-template) |
+| Tests totales backend | 4261 | 4286 |
+| Tests shared platform unit | 17 | 23 (+6 dict_subkeys) |
+| MIGRATED_MODULES | `("offer", "brand")` | `("offer", "brand", "buyer_persona")` |
+
+### Descubrimientos
+
+- (07.A) `_build_buyer_persona_paths` (validator) declara 24 paths,
+  catalog declara 12, FE schema declara 16. La intersección de los 3
+  fue la fuente canónica para SECTION_MAP. Validator legacy se
+  reemplazará en Fase 08.
+- (07.A) Drifts catalogados:
+  - `demographics.income` (catalog/FE) vs `demographics.income_range`
+    (validator). Canónico = `income` (FE-driven).
+  - `psychographics.aspirations` (catalog/FE) ausente del validator
+    dotted set. Validator tiene beliefs/personality_traits/
+    media_consumption no en catalog.
+  - List fields (`pain_points`/`desires`/`objections`/
+    `preferred_channels`) en FE+Pydantic pero NO en catalog (decisión
+    UX preservada): `can_propose=False`.
+  - List[str] (`purchase_triggers`/`anti_patterns`) en Pydantic pero
+    sin UX surface hoy: `can_propose=False`.
+
+- (07.B) Patrón B walker dict_subkeys validó la decisión de Fase 06
+  LEARNINGS. Implementación: 15 LOC en shared (`_walk_dict_subkeys` +
+  arg + 1-line dispatch). Tests platform unit (+6) cubren: emisión por
+  sub-key, parent skip, default TEXT type, override merge, drop sin
+  section_map, default-None preserva DICT bare. Reutilizable: cualquier
+  módulo futuro con JSONB declara `dict_subkeys={"<field>": (sub_keys)}`
+  sin tocar shared.
+
+- (07.B) Sub-keys sin entry en `section_map` se dropean silencioso
+  (consistente con top-level fields). Coverage gate en 07.E
+  (`test_buyer_persona_dict_subkeys_have_section_map_entry`) hace
+  visible este caso para evitar drops invisibles.
+
+- (07.C) BuyerPersona vive bajo `brand/domain/` (aggregate co-resides
+  con brand) pero registra bajo module key `"buyer_persona"` —
+  consistente con port editable_fields, schema_introspection,
+  extraction_domain_registry. No requiere módulo BE separado. Path
+  archivo: `brand/domain/buyer_persona_field_contract.py`.
+
+- (07.C) Sections inline (no `buyer_persona_section_catalog.py`):
+  identity (2), demographics (4), psychographics (3), journey (3),
+  pain_points/desires/objections/channels/triggers/anti_patterns
+  (6 lists). 10 sections totales — cuando Fase 09+ unifique
+  section_catalog cross-module, alinear.
+
+- (07.D) Mismo pattern brand 06.D para projection: `_to_field_spec(c)`
+  con `label = c.label_es or _humanize(c.path)` + `description =
+  c.human_question_es or c.notes`. Para JSONB sub-keys (sin Pydantic
+  description) las notes vienen del override.
+
+- (07.E) `_buyer_persona_spec()` con `composable_handles =
+  frozenset(BUYER_PERSONA_DICT_SUBKEYS.keys())`. Las 3 dict parents
+  actúan exactamente igual que offer's `specific_details` /
+  `platform_details`: el bare name no aparece en el registry, las
+  sub-keys sí.
+
+- (07.F) Anti-regression test mirror de 06.F. Catch incluye chequeo
+  de que el archivo importa `BUYER_PERSONA_FIELD_CONTRACTS` (proof of
+  projection) + ratchet `FieldSpec(` calls ≤ 1.
+
+### Decisiones nuevas
+
+Ninguna ADR formal. La decisión `dict_subkeys` walker arg estaba
+pre-aprobada en LEARNINGS Fase 06 §Para Fase 07 (Patrón B) — solo
+implementación.
+
+### Deuda técnica encontrada (en scope, resuelta)
+
+- ✅ Drift `demographics.income` vs `income_range`: canónico `income`
+  per FE schema, contract no expone `income_range` (validator legacy
+  lo aceptaba via prefix match — irrelevante post-Fase 08).
+- ✅ Anti-regression test (07.F) previene re-introducción de manual
+  tuples.
+- ✅ List fields can_propose=False documentado en overrides (form-runtime
+  CRUD UX preservado).
+
+### Deuda técnica (tangencial — entry en `docs/mejoras-proceso/to-do.md`)
+
+- `_build_buyer_persona_paths` en `copilot/domain/schema_introspection.py`
+  sigue manteniendo set hand-authored de paths. Convertirlo a
+  derivación de `get_module_contracts("buyer_persona")` es scope
+  Fase 08 (copilot unification). Hoy convive con el contract sin
+  conflicto.
+- `pain_points.emotional_impact` y `desires.urgency` (sub-keys de
+  list[dict] items) viven en `_build_buyer_persona_paths` pero no en
+  el contract. No son JSONB-dict-parent → no aplica `dict_subkeys`
+  arg. Walker extension separado para list[dict] item sub-keys queda
+  diferida si aparece demanda real.
+- `BuyerPersonaPersister` accepted paths abierto via prefix matching
+  de dict parents. Después de Fase 08 (cuando validator consuma
+  contract) el persister puede strict-validate path ∈ contract.
+
+### Para Fase 08
+
+- Copilot unification scope: `editable_fields` port + `schema_introspection`
+  consumen `get_module_contracts(domain)` directo. 3 módulos migrados
+  (offer/brand/buyer_persona) listos.
+- Pre-investigación obligatoria: inventario call sites de `get_catalog`,
+  `validate_field_path`, `is_editable_path`, `get_model_sections`.
+  Tests acceptance copilot existentes deben pasar idéntico.
+- Riesgo medio-alto — copilot en producción. Tests acceptance
+  exhaustivos requeridos antes de tocar nada.
+- `PERSISTABLE_FIELDS` (offer) ya derivada — evaluar si
+  `copilot/domain/offer_fields.py` archivo sigue necesitándose o se
+  promociona consumer a leer `get_module_contracts("offer")` directo.
+
+### Closing commit hash
+
+Last green commit Fase 07: `e4714606`. Close commit en 07.G.
 
 ---
 

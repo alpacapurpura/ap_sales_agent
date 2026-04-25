@@ -1,7 +1,7 @@
 ---
-last_updated: 2026-04-24 (Fase 06 done)
-last_green_commit: ed8a3a4f
-active_phase: 07-buyer-migration
+last_updated: 2026-04-24 (Fase 07 done)
+last_green_commit: e4714606
+active_phase: 08-copilot-unification
 sub_step: 0/? (ready-to-start)
 status: ready-to-start
 blockers: none
@@ -18,22 +18,24 @@ parallel_session_files_ignored:
 ## Dónde estamos
 
 - **Refactor**: field-contract-platform
-- **Fase activa**: 07-buyer-migration (ready-to-start)
-- **Última fase cerrada**: 06-brand-migration (6 commits, 61606fcf → ed8a3a4f)
+- **Fase activa**: 08-copilot-unification (ready-to-start)
+- **Última fase cerrada**: 07-buyer-migration (6 commits, 8394ecee → e4714606)
 - **Rama**: `development`
 - **Working tree**: limpio
 
 ## Próxima acción
 
-Arrancar Fase 07. Seguir:
+Arrancar Fase 08. Seguir:
 
 1. Lee [protocol/RESUME.md](protocol/RESUME.md).
-2. Lee [phases/07-buyer-migration/PRE_INVESTIGATION.md](phases/07-buyer-migration/PRE_INVESTIGATION.md).
-3. Lee [phases/07-buyer-migration/SPEC.md](phases/07-buyer-migration/SPEC.md).
-4. Knowledge load: inventario `BUYER_PERSONA_EDITABLE_FIELDS` (independent
-   catalog) + `BuyerPersona` Pydantic (dict-typed JSONB columns) + drift
-   audit + decisión walker vs hand-authored para JSONB sub-keys.
-5. Capturar baseline golden buyer-persona.
+2. Lee [phases/08-copilot-unification/STATUS.md](phases/08-copilot-unification/STATUS.md).
+3. Crear `phases/08-copilot-unification/PRE_INVESTIGATION.md` (no existe
+   aún) inventariando call sites de `get_catalog`, `validate_field_path`,
+   `is_editable_path`, `get_model_sections`, `format_editable_field_catalog_markdown`.
+4. Crear `phases/08-copilot-unification/SPEC.md` con plan migración
+   editable_fields port + schema_introspection a derivación de
+   `get_module_contracts(domain)`.
+5. Capturar baseline acceptance copilot tests.
 6. Escribir ACCEPTANCE.md.
 7. Ejecutar PRE_FLIGHT.md.
 
@@ -41,22 +43,21 @@ Prompt completo en [HANDOFF.md](HANDOFF.md).
 
 ## Contexto mínimo
 
-- Fase 06 cerró: brand FieldContract registry derivado (113 contracts,
-  86 proposable, 38/38 WORKING preserved, 0 BROKEN resurfaced, +48 nuevas
-  capabilities via Drift C closure). 471 arch tests, 4261+ backend tests.
-- Drift cerrado:
-  - A: 17 shorthand 2-level paths broken (`positioning.insight_tension`,
-    `narrative.problem_villain` etc) — el walker emite los sub-objects
-    como OBJECT can_propose=False.
-  - B: 23 paths bajo wrong section (`contact.legal_*` → `identity.legal_*`)
-    corregidos preservando labels.
-  - C: 48 Pydantic fields sin entry catalog ahora cubiertos por derivación.
-- Buyer-persona standalone (no es sub-model de BrandSettings) — registrado
-  como dominio separado `"buyer_persona"`. Fase 07 lo migra como módulo
-  virtual con su propio FieldContract.
+- Fase 07 cerró: buyer-persona FieldContract registry derivado (18 contracts,
+  12 proposable byte-identical al catalog legacy). Walker shared
+  extendido con `dict_subkeys` arg (Patrón B) — habilita cualquier
+  módulo futuro con JSONB sub-keys. 491 arch tests (+20), 4286+ BE tests.
+- 3 módulos migrados al FieldContract platform: offer (Fase 04), brand
+  (Fase 06), buyer_persona (Fase 07). Generic fitness gates parametrizadas
+  cubren los 3 sin cambios — pattern Fase 04.I confirmado por tercera vez.
 - Diferidos en LEARNINGS Fase 05: full data-driven loop en
   `agent_identity.j2`, alineación completion ↔ contract semantics,
   migración landing builders al Offer aggregate.
+- Diferidos en LEARNINGS Fase 07 (scope Fase 08): convertir
+  `_build_*_paths` en `schema_introspection.py` a `get_module_contracts(domain)`
+  directo. Drop o simplificar `_DOMAIN_DICT_PARENTS` derivándolo de
+  `BUYER_PERSONA_DICT_SUBKEYS.keys()`. Evaluar drop de
+  `copilot/domain/offer_fields.py`.
 
 ## Workspaces
 
@@ -100,7 +101,19 @@ Prompt completo en [HANDOFF.md](HANDOFF.md).
 | 06.D | `3539e85f` | BRAND_EDITABLE_FIELDS proyectado del registry |
 | 06.E | `9c1ec582` | MIGRATED_MODULES bump brand + brand pydantic coverage |
 | 06.F | `ed8a3a4f` | brand catalog anti-regression (projection mandatoria) |
-| 06.G | (this commit) | close phase + LEARNINGS + STATE/STATUS bump + HANDOFF Fase 07 |
+| 06.G | `bd7bfd31` | close phase + LEARNINGS + STATE/STATUS bump + HANDOFF Fase 07 |
+
+## Historial Fase 07
+
+| Sub-step | Commit | Descripción |
+|---|---|---|
+| 07.A | `8394ecee` | buyer-persona catalog baseline + ACCEPTANCE + PRE_INVESTIGATION |
+| 07.B | `16648588` | walker dict_subkeys arg (Patrón B) + 6 unit tests |
+| 07.C | `468569c4` | buyer-persona FieldContract registry derivado de BuyerPersona |
+| 07.D | `61fae65b` | BUYER_PERSONA_EDITABLE_FIELDS proyectado del registry |
+| 07.E | `4ff56c23` | MIGRATED_MODULES bump buyer + pydantic coverage |
+| 07.F | `e4714606` | buyer-persona catalog anti-regression (projection mandatoria) |
+| 07.G | (this commit) | close phase + LEARNINGS + STATE/STATUS bump + HANDOFF Fase 08 |
 
 ## Convención de actualización
 

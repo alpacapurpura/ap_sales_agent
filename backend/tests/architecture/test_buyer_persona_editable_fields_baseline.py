@@ -29,8 +29,8 @@ from src.modules.copilot.domain.schema_introspection import validate_field_path
 # Every path that lives in the catalog right now, with its curated Spanish
 # label + description. Fase 07 must preserve this exact projection (the
 # copilot system prompt enumerates these — drift breaks UX).
+"""Tuple shape: ``(path, section, label, description)``."""
 BUYER_PERSONA_CATALOG_BASELINE: tuple[tuple[str, str, str, str], ...] = (
-    # (path, section, label, description)
     (
         "name",
         "identity",
