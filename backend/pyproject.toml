@@ -245,6 +245,12 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 "src/modules/brand/tests/**/*.py" = [
     "S101", "ARG", "PT", "PLR2004", "T201", "ANN", "D",
 ]
+"src/modules/*/copilot_provider/**/*.py" = [
+    # CopilotProvider implementations override property/method overrides from
+    # BaseCopilotProvider (which carries the docstrings). Re-stating the same
+    # docstring on every concrete override is busywork — D102 / D105 / D106.
+    "D102", "D105", "D106",
+]
 "src/admin/**/*.py" = [
     "C901",     # too complex — Streamlit pages are monolithic by design
     "PLR0911",  # too many return statements — Streamlit pages

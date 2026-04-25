@@ -50,6 +50,32 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
 }
 
 
+# ──────────────────────────────────────────────────────────────
+# Provider-pattern (F1, April 2026): modules implement
+# ``CopilotProvider`` Protocols defined in ``copilot.domain.ports``. Importing
+# the contract surface from inside ``{module}/copilot_provider/`` is the
+# dependency-inversion knot — copilot owns the abstraction, modules supply
+# concretions. These imports are NOT cross-module coupling.
+# ──────────────────────────────────────────────────────────────
+_PROVIDER_CONTRACT_IMPORTS: frozenset[str] = frozenset(
+    {
+        "src.modules.copilot.domain.ports",
+    }
+)
+
+
+def _is_provider_contract_import(py_file_parts: tuple[str, ...], imported_module: str) -> bool:
+    """Return ``True`` for imports of the copilot provider contract from
+    a module's ``copilot_provider/`` directory."""
+
+    if "copilot_provider" not in py_file_parts:
+        return False
+    return any(
+        imported_module == contract or imported_module.startswith(f"{contract}.")
+        for contract in _PROVIDER_CONTRACT_IMPORTS
+    )
+
+
 def test_no_new_cross_module_imports():
     """No module imports from another module (except copilot, shared, core, iam).
 
@@ -72,6 +98,9 @@ def test_no_new_cross_module_imports():
             if target_module == source_module:
                 continue
             if target_module in CROSS_IMPORT_ALLOWED_TARGETS:
+                continue
+            # Provider-pattern contract import — see comment above.
+            if _is_provider_contract_import(py_file.parts, imp):
                 continue
 
             rel_path = str(py_file.relative_to(MODULES_DIR))

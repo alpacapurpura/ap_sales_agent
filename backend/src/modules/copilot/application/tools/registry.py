@@ -62,39 +62,77 @@ def _register_tool_groups(groups: dict[str, list]) -> dict[str, list]:
     return groups
 
 
-# Named tool groups for route mapping
-TOOL_GROUPS: dict[str, list] = _register_tool_groups(
-    {
-        "navigation": NAVIGATION_TOOLS,
-        "awareness": AWARENESS_TOOLS,
-        "mutation": MUTATION_TOOLS,
-        "module_data": MODULE_TOOLS,
-        "analytics": ANALYTICS_TOOLS,
-        "crm": CRM_TOOLS,
-        "sales_agent": SALES_AGENT_TOOLS,
-        "connections": CONNECTIONS_TOOLS,
-        "landing": LANDING_TOOLS,
-        "procedure": PROCEDURE_TOOLS,
-        "knowledge": KNOWLEDGE_TOOLS,
-        "offer_ladder": OFFER_LADDER_TOOLS,
-        "offer_section": OFFER_SECTION_TOOLS,
-        # Guided setup (replaces the retired interview engine, 2026-04-22).
-        # Tools: start/advance/end guided + extract_structured + extract_document_to_fields.
-        "guided": GUIDED_TOOLS,
-        # Outbound asset tools — allow assistant to reference existing tenant assets.
-        "assets": ASSETS_TOOLS,
-        # Document reading — lazy access to text extracted from uploaded docs/audios.
-        # Globally available: if the user attached a file in any route, the LLM can
-        # fetch its content on demand.
-        "document": DOCUMENT_TOOLS,
-        # Conversational primitives: clarify, (future) confirm, (future) progress.
-        # Globally available so the LLM can ask the user before picking any tool.
-        "shared_tools": SHARED_TOOLS,
-        # URL-to-studio extraction: replaces the wizard "extraer desde URL" step
-        # with a Copilot tool dispatched via the same ARQ workers.
-        "extraction": EXTRACTION_TOOLS,
-    }
-)
+# Transversal tool groups owned by the copilot itself (navigation, awareness,
+# mutation, knowledge, document, shared_tools, guided, extraction, procedure).
+# Module-specific groups (offer_section, offer_ladder, analytics, crm, …) live
+# here today and migrate to their owning module's CopilotProvider in later
+# fases. The merge with provider-emitted groups happens in
+# ``_build_tool_groups`` below so adding a domain-specific group from a
+# provider is a no-op at the registry level.
+_BASE_TOOL_GROUPS: dict[str, list] = {
+    "navigation": NAVIGATION_TOOLS,
+    "awareness": AWARENESS_TOOLS,
+    "mutation": MUTATION_TOOLS,
+    "module_data": MODULE_TOOLS,
+    "analytics": ANALYTICS_TOOLS,
+    "crm": CRM_TOOLS,
+    "sales_agent": SALES_AGENT_TOOLS,
+    "connections": CONNECTIONS_TOOLS,
+    "landing": LANDING_TOOLS,
+    "procedure": PROCEDURE_TOOLS,
+    "knowledge": KNOWLEDGE_TOOLS,
+    "offer_ladder": OFFER_LADDER_TOOLS,
+    "offer_section": OFFER_SECTION_TOOLS,
+    # Guided setup (replaces the retired interview engine, 2026-04-22).
+    "guided": GUIDED_TOOLS,
+    # Outbound asset tools — allow assistant to reference existing tenant assets.
+    "assets": ASSETS_TOOLS,
+    # Document reading — lazy access to text extracted from uploaded docs/audios.
+    "document": DOCUMENT_TOOLS,
+    # Conversational primitives: clarify, (future) confirm, (future) progress.
+    "shared_tools": SHARED_TOOLS,
+    # URL-to-studio extraction.
+    "extraction": EXTRACTION_TOOLS,
+}
+
+
+def _build_tool_groups() -> dict[str, list]:
+    """Return the merged tool-group registry.
+
+    Starts from the transversal ``_BASE_TOOL_GROUPS`` and folds in any tool
+    groups exposed by discovered ``CopilotProvider`` plugins. Behaviour rules:
+
+    * If a provider declares an existing group name, its tools are appended
+      (deduplicated by ``tool.name``) — providers extend, never overwrite.
+    * If a provider declares a new group name, it is inserted as-is.
+    * The final dict is validated through ``_register_tool_groups`` so cross-
+      module name collisions still raise ``ToolNameCollisionError``.
+    """
+    # Local import keeps tools/registry import-time light — discovery only
+    # runs once per process and tolerates being called repeatedly (lru_cache).
+    from src.modules.copilot.application.discovery import discover_providers
+
+    merged: dict[str, list] = {name: list(tools) for name, tools in _BASE_TOOL_GROUPS.items()}
+
+    for provider in discover_providers().values():
+        tp = provider.tool_provider()
+        if tp is None:
+            continue
+        for group_name, group_tools in tp.tool_groups().items():
+            if not group_tools:
+                continue
+            bucket = merged.setdefault(group_name, [])
+            seen_names = {existing.name for existing in bucket}
+            for tool in group_tools:
+                if tool.name not in seen_names:
+                    bucket.append(tool)
+                    seen_names.add(tool.name)
+
+    return _register_tool_groups(merged)
+
+
+# Named tool groups for route mapping (transversal + provider-contributed).
+TOOL_GROUPS: dict[str, list] = _build_tool_groups()
 
 # Route prefix -> which tool groups are available.
 # More specific routes should be listed before generic ones.

@@ -27,7 +27,16 @@ SHARED_ROOT = Path(__file__).resolve().parents[2] / "src" / "shared"
 
 
 def _iter_py(path: Path) -> list[Path]:
-    return [p for p in sorted(path.rglob("*.py")) if p.name != "__init__.py"]
+    """Yield every ``.py`` under ``path`` except ``__init__.py`` and the
+    cross-module ``copilot_provider/`` façade.
+
+    The provider layer (F1, April 2026) is a thin adapter the copilot consumes
+    via ``CopilotProvider``. It exposes a typed dict to copilot tools whose
+    keys deliberately read like the legacy JSON paths (``"testimonials"`` etc.)
+    — that contract is owned by the copilot consumer, not by social_proof.
+    """
+
+    return [p for p in sorted(path.rglob("*.py")) if p.name != "__init__.py" and "copilot_provider" not in p.parts]
 
 
 def _parse_imports(py: Path) -> list[str]:

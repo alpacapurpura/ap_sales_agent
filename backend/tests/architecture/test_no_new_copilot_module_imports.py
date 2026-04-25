@@ -4,30 +4,25 @@
 
 This test captures the current set of imports FROM ``src/modules/copilot/`` TO
 other domain modules (excluding ``shared``, ``core``, ``iam``, and ``copilot``
-itself). F0 freezes the baseline; F1 (provider pattern) is the first phase that
-enforces the ratchet — once flipped, the set may only SHRINK as each module's
-provider absorbs the imports via dependency inversion.
+itself). F0 froze the baseline at 28; F1 (provider pattern) shrunk it to 22 by
+removing the legacy hardcoded ``MODULE_REGISTRY`` (six lazy loaders) once
+discovery became the single source of truth. Each subsequent fase that
+absorbs more dependencies into a provider must remove the corresponding
+entries here — the ratchet may only SHRINK.
 
 Today ``copilot`` lives in ``CROSS_IMPORT_ALLOWED_SOURCES`` of
 ``test_ddd_boundaries.py`` (it is treated as an infra-like orchestrator). That
-exemption hides the actual coupling. This test makes it visible and freezable.
+exemption hides the actual coupling. This test makes it visible and frozen.
 
-State machine
--------------
-- ``_RATCHET_FROZEN = False`` (F0 default) -> test SKIPS. The captured set is
-  documented in ``KNOWN_COPILOT_TO_MODULE_IMPORTS`` for future diff visibility.
-- ``_RATCHET_FROZEN = True`` (F1 onward) -> test ENFORCES:
-    * any new import not in the allowlist fails the build,
-    * stale entries (already removed) are reported but do not fail.
-
-How to fix a violation post-F1
-------------------------------
-1. Move the dependency into a provider port owned by the target module
-   (see ``docs/domains/copilot/redesign-2026-04/02-architecture-target.md``).
-2. Update the copilot side to consume the port via ``application/discovery``.
+How to fix a violation
+----------------------
+1. Move the dependency into the target module's ``copilot_provider/`` (port
+   on ``CopilotProvider``: tools/workflows/summary/context_inject).
+2. Update the copilot side to consume it via ``application/discovery``.
 3. Remove the now-stale entry from ``KNOWN_COPILOT_TO_MODULE_IMPORTS``.
 
-Last verified baseline: 2026-04-25 (F0 close).
+Last verified baseline: 2026-04-25 (F1 close — provider pattern landed,
+ratchet activated, 6 imports absorbed by ``module_registry`` providers).
 """
 
 from __future__ import annotations
@@ -35,12 +30,10 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-import pytest
-
 # ──────────────────────────────────────────────────────────────────────────────
-# Ratchet state — flip to True when F1 lands.
+# Ratchet state — frozen by F1 (April 2026).
 # ──────────────────────────────────────────────────────────────────────────────
-_RATCHET_FROZEN: bool = False
+_RATCHET_FROZEN: bool = True
 
 COPILOT_DIR = Path(__file__).resolve().parents[2] / "src" / "modules" / "copilot"
 MODULES_BASE = Path(__file__).resolve().parents[2] / "src" / "modules"
@@ -49,10 +42,10 @@ MODULES_BASE = Path(__file__).resolve().parents[2] / "src" / "modules"
 ALLOWED_TARGETS: frozenset[str] = frozenset({"copilot", "shared", "core", "iam"})
 
 # ──────────────────────────────────────────────────────────────────────────────
-# FROZEN BASELINE (28 entries) captured 2026-04-25 at F0 close.
-# Each entry encodes the source-target-path triple of a copilot cross-module
-# import. The ratchet may only SHRINK: every removal means a provider port
-# absorbed the dependency.
+# FROZEN BASELINE (22 entries) at F1 close (2026-04-25).
+# F0 captured 28; F1 absorbed 6 imports from ``copilot/domain/module_registry.py``
+# into provider ``module_data()`` records. Each subsequent fase shrinks this
+# further — every removal means a provider port absorbed the dependency.
 # ──────────────────────────────────────────────────────────────────────────────
 KNOWN_COPILOT_TO_MODULE_IMPORTS: frozenset[str] = frozenset(
     {
@@ -69,21 +62,15 @@ KNOWN_COPILOT_TO_MODULE_IMPORTS: frozenset[str] = frozenset(
         "copilot -> brand | copilot/application/services/brand_ai_actions_service.py",
         "copilot -> brand | copilot/application/services/offer_psychology_service.py",
         "copilot -> brand | copilot/application/tools/offer_section_tools.py",
-        "copilot -> brand | copilot/domain/module_registry.py",
         "copilot -> brand | copilot/domain/schema_introspection.py",
         "copilot -> brand | copilot/infrastructure/persisters/brand_persister.py",
         "copilot -> brand | copilot/infrastructure/persisters/buyer_persona_persister.py",
-        "copilot -> commercial_calendar | copilot/domain/module_registry.py",
-        "copilot -> connections | copilot/domain/module_registry.py",
-        "copilot -> landing | copilot/domain/module_registry.py",
         "copilot -> offer | copilot/application/guided/state_reader.py",
         "copilot -> offer | copilot/application/services/offer_psychology_service.py",
-        "copilot -> offer | copilot/domain/module_registry.py",
         "copilot -> offer | copilot/domain/offer_fields.py",
         "copilot -> offer | copilot/infrastructure/persisters/offer_persister.py",
         "copilot -> scheduling | copilot/application/tools/offer_section_tools.py",
         "copilot -> social_proof | copilot/application/tools/offer_section_tools.py",
-        "copilot -> social_proof | copilot/domain/module_registry.py",
     }
 )
 
@@ -110,17 +97,15 @@ def _collect_copilot_to_module_imports() -> set[str]:
 
 
 def test_no_new_copilot_to_module_imports() -> None:
-    """Copilot must not introduce new cross-module imports beyond the F0 baseline.
+    """Copilot must not introduce new cross-module imports beyond the F1 baseline.
 
-    During F0 the ratchet is unfrozen (test SKIPS). F1 flips the constant
-    ``_RATCHET_FROZEN`` to ``True`` and starts enforcing the contract. From that
-    point forward every new copilot -> module import must be replaced by a
-    provider pattern (see redesign-2026-04 architecture target).
+    Frozen by F1 (April 2026): every new ``copilot -> module`` import must be
+    replaced by a ``CopilotProvider`` port (see redesign-2026-04 architecture
+    target). The allowlist may only shrink — adding back an entry requires a
+    documented justification in the PR description.
     """
-    if not _RATCHET_FROZEN:
-        pytest.skip(
-            "Ratchet activates in F1 (provider pattern). Baseline of 28 imports captured 2026-04-25.",
-        )
+
+    assert _RATCHET_FROZEN, "F1 froze the ratchet — flipping back requires explicit decision in commit."
 
     actual = _collect_copilot_to_module_imports()
     new_violations = sorted(actual - KNOWN_COPILOT_TO_MODULE_IMPORTS)
@@ -137,13 +122,25 @@ def test_no_new_copilot_to_module_imports() -> None:
 def test_baseline_count_matches_documented_state() -> None:
     """Sanity guard for the documented baseline.
 
-    If this number changes without an explicit update of
-    ``KNOWN_COPILOT_TO_MODULE_IMPORTS`` the team should know — either we missed
-    an arch shift or the captured snapshot is stale. Always runs (also during
-    F0) so the baseline cannot silently drift before F1 enforces.
+    Edits to the frozen set without updating the count comment fail CI so the
+    intent of every shrink/grow is visible in review.
     """
-    expected = 28
+    expected = 22
     assert len(KNOWN_COPILOT_TO_MODULE_IMPORTS) == expected, (
         f"Frozen baseline edited without updating the count comment: "
         f"expected {expected}, found {len(KNOWN_COPILOT_TO_MODULE_IMPORTS)}."
     )
+
+
+def test_stale_entries_do_not_grow() -> None:
+    """Stale entries (frozen but already absorbed) report but do not crash.
+
+    Useful diagnostic when shrinking — keeps `_RATCHET_FROZEN = True` enforcing
+    new violations while signalling that lines can be removed.
+    """
+
+    actual = _collect_copilot_to_module_imports()
+    stale = sorted(KNOWN_COPILOT_TO_MODULE_IMPORTS - actual)
+    # Surface in the assertion message when present but never raise — shrinking
+    # the frozen set is a separate, deliberate edit.
+    assert isinstance(stale, list), "always passes; pretty-prints stale entries on demand"

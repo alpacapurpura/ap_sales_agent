@@ -6,7 +6,8 @@ infrastructure or api layers.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 from uuid import UUID
 
@@ -14,7 +15,7 @@ from src.modules.copilot.domain.model_tier import ModelTier
 from src.modules.copilot.domain.procedure_state import ProcedureState
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import AsyncIterator, Sequence
 
 # ── LLM provider ────────────────────────────────────────────────────────────
 
@@ -219,3 +220,219 @@ class IdentityProvider(Protocol):
     async def tenant_id_for(self, user_id: UUID) -> UUID:
         """Resolve the tenant id for the given user id."""
         ...
+
+
+# ── Module providers (F1 — provider pattern) ────────────────────────────────
+#
+# Each business module (brand, offer, landing, analytics, crm, connections, …)
+# exposes a ``CopilotProvider`` so the copilot can absorb its tools, workflows,
+# living summary and per-route system-prompt fragments without importing the
+# module directly. Discovery (``application/discovery.py``) wires providers at
+# startup; refactor of any module's copilot surface stays inside the module.
+
+
+@dataclass(frozen=True, slots=True)
+class ModuleData:
+    """Static metadata + read-side accessors a module exposes to the copilot.
+
+    Replaces the inline ``ModuleDescriptor`` that lived in
+    ``copilot/domain/module_registry.py``: the field shape is preserved so the
+    legacy registry can be derived from providers without changes downstream.
+    """
+
+    module_id: str
+    label: str
+    description: str
+    route_prefix: str
+    model_class: type | None = None
+    repo_factory: Callable[..., Any] | None = None
+    read_fn: Callable[..., Any] | None = None
+    keywords: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderRoute:
+    """Declares which tool groups a provider participates in for a route.
+
+    The discovery layer aggregates ``ProviderRoute`` entries across all
+    providers to build the runtime ``ROUTE_TOOL_MAP``. Multiple providers may
+    contribute to the same route prefix (groups merged in declaration order).
+    """
+
+    prefix: str
+    groups: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderHealth:
+    """Health snapshot for one provider — surfaced in admin and Sentry."""
+
+    module_id: str
+    last_error: str | None = None
+    last_loaded_at: Any = None  # ISO-8601 string or datetime; opaque to ports
+
+    @property
+    def healthy(self) -> bool:
+        """``True`` when the provider loaded without error."""
+        return self.last_error is None
+
+
+@dataclass(frozen=True, slots=True)
+class Workflow:
+    """Declarative multi-step workflow (F6 expands this).
+
+    F1 only needs a stable type for ``WorkflowProvider.workflows()`` so the
+    Protocol contract is testable. Concrete fields (nodes, state schema, UI
+    progress kind, max clarify questions) land in F6.
+    """
+
+    workflow_id: str
+    domain: str
+    description_es: str
+    trigger: str = "user_intent"
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+
+@runtime_checkable
+class ToolProvider(Protocol):
+    """Tools the module contributes to the copilot, grouped by category.
+
+    ``tool_groups()`` returns a mapping ``{group_name: [BaseTool, ...]}`` and
+    feeds the existing ``TOOL_GROUPS`` registry. ``tools()`` is a flat alias
+    used by tests and the admin overview.
+    """
+
+    def tool_groups(self) -> Mapping[str, Sequence[Any]]:
+        """Return named tool groups exposed by this module."""
+        ...
+
+    def tools(self) -> Sequence[Any]:
+        """Return the flat tool list (deduplicated by ``tool.name``)."""
+        ...
+
+
+@runtime_checkable
+class WorkflowProvider(Protocol):
+    """Declarative multi-step flows (F6 wires this end-to-end)."""
+
+    def workflows(self) -> Sequence[Workflow]:
+        """Return workflows registered by this module."""
+        ...
+
+
+@runtime_checkable
+class SummaryProvider(Protocol):
+    """Living summary injected into the system prompt (F3 powers brand)."""
+
+    async def summary(self, *, tenant_id: UUID) -> str | None:
+        """Return the latest module summary for ``tenant_id`` or ``None``."""
+        ...
+
+
+@runtime_checkable
+class ContextInjector(Protocol):
+    """Per-route system prompt fragment supplied by the module."""
+
+    async def inject_for(
+        self,
+        *,
+        target_route: str,
+        tenant_id: UUID,
+    ) -> str | None:
+        """Return a system-prompt fragment for ``target_route`` or ``None``."""
+        ...
+
+
+@runtime_checkable
+class CopilotProvider(Protocol):
+    """Root provider every module implements to plug into the copilot.
+
+    Discovery loads providers from two sources (in this order):
+      1. Convention scan of ``src.modules.{name}.copilot_provider`` (in-repo).
+      2. ``importlib.metadata`` entry points in group
+         ``nicolify.copilot_providers`` (external plugins).
+
+    All sub-port accessors return ``None`` when the module does not expose
+    that capability (e.g. ``analytics`` has no ``summary_provider`` yet).
+    """
+
+    @property
+    def module_id(self) -> str:
+        """Stable id used as registry key (``brand``, ``offer``, …)."""
+        ...
+
+    @property
+    def label(self) -> str:
+        """Human-readable label shown in admin + system prompts."""
+        ...
+
+    def module_data(self) -> ModuleData | None:
+        """Return module metadata or ``None`` if the module isn't introspectable."""
+        ...
+
+    def routes(self) -> Sequence[ProviderRoute]:
+        """Return the routes this provider participates in."""
+        ...
+
+    def tool_provider(self) -> ToolProvider | None:
+        """Return the module's tool provider or ``None``."""
+        ...
+
+    def workflow_provider(self) -> WorkflowProvider | None:
+        """Return the module's workflow provider or ``None`` (F6+)."""
+        ...
+
+    def summary_provider(self) -> SummaryProvider | None:
+        """Return the module's summary provider or ``None`` (F3+)."""
+        ...
+
+    def context_injector(self) -> ContextInjector | None:
+        """Return the module's context injector or ``None`` (F3+)."""
+        ...
+
+
+class BaseCopilotProvider:
+    """Convenience base class implementing safe ``CopilotProvider`` defaults.
+
+    Every sub-port returns ``None``; ``routes()`` returns an empty tuple. A
+    concrete provider only overrides what it actually exposes — typically
+    ``module_id``, ``label`` and ``module_data()``. Subclasses still satisfy
+    the structural ``CopilotProvider`` Protocol; the class is a contract
+    helper, not a runtime requirement.
+    """
+
+    @property
+    def module_id(self) -> str:
+        """Stable id used as registry key. Subclasses MUST override."""
+        msg = "Concrete CopilotProvider must override module_id"
+        raise NotImplementedError(msg)
+
+    @property
+    def label(self) -> str:
+        """Human-readable label. Subclasses MUST override."""
+        msg = "Concrete CopilotProvider must override label"
+        raise NotImplementedError(msg)
+
+    def module_data(self) -> ModuleData | None:
+        """Return ``None`` by default — modules without introspectable shape."""
+        return None
+
+    def routes(self) -> Sequence[ProviderRoute]:
+        """Return an empty tuple by default — modules with no own routes."""
+        return ()
+
+    def tool_provider(self) -> ToolProvider | None:
+        """Return ``None`` by default — module exposes no domain-specific tools."""
+        return None
+
+    def workflow_provider(self) -> WorkflowProvider | None:
+        """Return ``None`` by default — module declares no workflows yet (F6)."""
+        return None
+
+    def summary_provider(self) -> SummaryProvider | None:
+        """Return ``None`` by default — module produces no living summary (F3)."""
+        return None
+
+    def context_injector(self) -> ContextInjector | None:
+        """Return ``None`` by default — module injects no system-prompt fragment."""
+        return None

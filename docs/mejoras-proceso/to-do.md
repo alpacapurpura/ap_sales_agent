@@ -138,3 +138,5 @@ Hallazgos detectados por Claude Code durante ejecución. Revisar y resolver.
 [] Modelar `PlatformDetails` en `backend/src/modules/offer/domain/details.py` + 6ta entry en `ARCHETYPE_TO_DETAILS_MAPPING`. PLATFORM archetype declara 14 paths en `platform-details.schema.ts` sin contraparte BE. Programado Fase 02.
 [] Regla nueva candidata para `.claude/rules/backend-ddd.md`: scripts standalone que abran sesión SA DEBEN importar `src.shared.infrastructure.model_registry` antes de cualquier query, o fallan resolviendo `LeadModel`/otras relaciones string. Documentar si aparece tercer caso (hoy: `scripts/capture_offer_a96403b5_baseline.py`, precedente `main.py`, `admin/app.py`).
 
+
+- [ ] Tests copilot flaky con pytest-randomly: `test_tool_call_produces_tool_events` (streaming_integration) falla en orden aleatorio, pasa aislado en 12s. F0+F1 confirmaron pre-existente, no causado por langchain-core 1.2→1.3 bump. Aislar conftest fixtures order-dependent (probable model resolution side-effect en test_mutation_journal_repository). Seed `--randomly-seed=last` ayuda repro.
