@@ -1,136 +1,85 @@
-"""Buyer persona editable-field catalog — single source of truth for the copilot.
+"""Buyer-persona editable-field catalog — projection of the FieldContract platform.
 
-# [COPILOT-EDITABLE-FIELDS-SSOT] → docs/domains/copilot/editable-fields.md
-#
-# ╔══════════════════════════════════════════════════════════════════════╗
-# ║  IMPORTANTE PARA AGENTES / DEVS                                      ║
-# ║                                                                      ║
-# ║  Esta es la fuente de verdad de los campos de buyer_persona que el   ║
-# ║  copilot puede proponer editar vía ``propose_field_updates``.        ║
-# ║                                                                      ║
-# ║  Cuando AGREGUES, ELIMINES, RENOMBRES o MUEVAS un campo en:          ║
-# ║  - frontend/src/features/brand-studio/schemas/buyer-persona.schema.ts║
-# ║  - el modelo BuyerPersona en                                         ║
-# ║    backend/src/modules/brand/domain/buyer_persona.py                 ║
-# ║                                                                      ║
-# ║  TAMBIÉN ACTUALIZA ESTE ARCHIVO. Sin esta actualización el LLM       ║
-# ║  alucinará ``field_id``s obsoletos o ignorará campos nuevos.         ║
-# ║                                                                      ║
-# ║  Independiente de ``_build_buyer_persona_paths`` en                  ║
-# ║  schema_introspection.py: aquel valida cualquier path del schema     ║
-# ║  (incluye campos legacy todavía en el modelo). Este catálogo refleja ║
-# ║  SOLO lo que el FE renderiza hoy en buyer-persona.schema.ts —        ║
-# ║  propose_field_updates no debe sugerir cambios a campos no visibles. ║
-# ╚══════════════════════════════════════════════════════════════════════╝
+Post field-contract-platform refactor (Fase 07), this catalog is
+**derived** from :data:`BUYER_PERSONA_FIELD_CONTRACTS` in
+``src.modules.brand.domain.buyer_persona_field_contract``. NO MORE
+manual tuples — every field reachable here came from the BuyerPersona
+Pydantic + dict_subkeys + section map + override metadata. Adding a
+new editable field requires zero changes here: edit the contract
+overrides and the catalog updates automatically.
+
+[COPILOT-EDITABLE-FIELDS-SSOT] → docs/domains/copilot/editable-fields.md
+
+Backwards-compat:
+- ``register_catalog("buyer_persona", BUYER_PERSONA_EDITABLE_FIELDS)``
+  is invoked at import as before — copilot consumers see the same
+  shape via ``shared.links.ports.editable_fields``.
+- :data:`BUYER_PERSONA_EDITABLE_FIELDS` exposes the same ``FieldSpec``
+  tuple shape (path/label/section/description) as the legacy hand-
+  written catalog, so all existing tests + system prompt enumeration
+  stay byte-identical.
+- Filtered to ``can_propose=True`` + ``status=ACTIVE`` so list fields
+  managed via form-runtime CRUD (``pain_points``/``desires``/
+  ``objections``/``preferred_channels``) and contract-only paths
+  (``purchase_triggers``/``anti_patterns``) never reach the LLM.
 """
 
 from __future__ import annotations
 
+from src.modules.brand.domain.buyer_persona_field_contract import (
+    BUYER_PERSONA_FIELD_CONTRACTS,
+)
+from src.shared.domain.field_contract import FieldContract, FieldStatus
 from src.shared.links.ports.editable_fields import FieldSpec, register_catalog
 
-# ── identity ─────────────────────────────────────────────────────────────
-# Form-runtime: brand.buyer-persona — campos top-level que identifican al avatar.
-_IDENTITY = (
-    FieldSpec(
-        "name",
-        "Nombre",
-        "identity",
-        "Nombre interno del avatar. Identifica la persona, no aparece al cliente.",
-    ),
-    FieldSpec(
-        "tagline",
-        "Tagline",
-        "identity",
-        "Una línea que describe quién es esta persona.",
-    ),
-)
 
-# ── demographics ─────────────────────────────────────────────────────────
-# Sub-claves persistidas en BuyerPersona.demographics (JSONB).
-_DEMOGRAPHICS = (
-    FieldSpec(
-        "demographics.age_range",
-        "Rango etario",
-        "demographics",
-        "Rango de edades del cliente ideal.",
-    ),
-    FieldSpec(
-        "demographics.location",
-        "Ubicación",
-        "demographics",
-        "Ciudad o región principal del avatar.",
-    ),
-    FieldSpec(
-        "demographics.occupation",
-        "Ocupación",
-        "demographics",
-        "Profesión o rol del cliente ideal.",
-    ),
-    FieldSpec(
-        "demographics.income",
-        "Nivel de ingresos",
-        "demographics",
-        "Rango de ingresos aproximado del avatar.",
-    ),
-)
-
-# ── psychographics ───────────────────────────────────────────────────────
-_PSYCHOGRAPHICS = (
-    FieldSpec(
-        "psychographics.values",
-        "Valores centrales",
-        "psychographics",
-        "Principios que guían las decisiones del avatar.",
-    ),
-    FieldSpec(
-        "psychographics.aspirations",
-        "Aspiraciones",
-        "psychographics",
-        "A dónde quiere llegar este avatar.",
-    ),
-    FieldSpec(
-        "psychographics.lifestyle",
-        "Estilo de vida",
-        "psychographics",
-        "Cómo organiza su día y qué consume.",
-    ),
-)
-
-# ── journey ──────────────────────────────────────────────────────────────
-# Listas de items compuestos (pain_points, desires, objections,
-# preferred_channels) se editan vía form-runtime split-mode o vía guided
-# extract item-by-item (persistido por BuyerPersonaPersister wave-based).
-# No las exponemos en el catálogo editable porque ``propose_field_updates``
-# reemplazaría la lista entera, lo cual es UX pobre frente a la edición
-# granular del form-runtime. Además ``objections`` colisionaría con offer.
-_JOURNEY = (
-    FieldSpec(
-        "buyer_journey.awareness",
-        "Etapa de awareness",
-        "journey",
-        "Cómo descubre que tiene un problema o que existes.",
-    ),
-    FieldSpec(
-        "buyer_journey.consideration",
-        "Etapa de consideración",
-        "journey",
-        "Cómo evalúa opciones antes de decidir.",
-    ),
-    FieldSpec(
-        "buyer_journey.decision",
-        "Etapa de decisión",
-        "journey",
-        "Qué lo lleva al sí final.",
-    ),
-)
+def _humanize(name: str) -> str:
+    """Convert dotted snake_case to a Title-cased label fallback."""
+    last = name.rsplit(".", 1)[-1]
+    return last.replace("_", " ").title()
 
 
-BUYER_PERSONA_EDITABLE_FIELDS: tuple[FieldSpec, ...] = (
-    *_IDENTITY,
-    *_DEMOGRAPHICS,
-    *_PSYCHOGRAPHICS,
-    *_JOURNEY,
-)
+def _to_field_spec(c: FieldContract) -> FieldSpec:
+    """Project a ``FieldContract`` to a copilot ``FieldSpec``.
+
+    Label resolution: ``override.label_es`` first, else humanize the
+    last segment of ``path`` so labels remain non-empty.
+
+    Description: ``human_question_es`` (preferred for conversational
+    enumeration) falls back to ``notes`` (curated short prompt).
+    """
+    label = c.label_es or _humanize(c.path)
+    description = c.human_question_es or c.notes
+    return FieldSpec(
+        path=c.path,
+        label=label,
+        section=c.section,
+        description=description,
+    )
+
+
+def _build_editable_fields() -> tuple[FieldSpec, ...]:
+    """Project the FieldContract registry to the copilot editable surface.
+
+    Filters:
+      - ``can_propose=True`` (the field is writable from the copilot).
+      - ``status=ACTIVE`` (deprecated/removed fields never proposed).
+
+    Buyer-persona contracts are not archetype-filtered (no polymorphic
+    unions), so each path appears at most once in the registry — no
+    dedupe needed.
+    """
+    specs: list[FieldSpec] = []
+    for c in BUYER_PERSONA_FIELD_CONTRACTS:
+        if not c.can_propose:
+            continue
+        if c.status != FieldStatus.ACTIVE:
+            continue
+        specs.append(_to_field_spec(c))
+    return tuple(specs)
+
+
+BUYER_PERSONA_EDITABLE_FIELDS: tuple[FieldSpec, ...] = _build_editable_fields()
 
 
 # Register at import time so the copilot sees the catalog via the port
