@@ -4,15 +4,26 @@ Captured 2026-04-24 (sub-step 07.A) from
 ``_buyer_persona_catalog()`` (legacy hand-written tuples) so the
 Fase 07 migration can be validated as **byte-identical UX** (INVARIANT 4).
 
-Post-Fase-07 the catalog must:
+Updated 2026-04-24 (sub-step 09.F): description column now reflects
+``human_question_es`` overrides intentionally added so the conversational
+copilot (and any channel adapter consuming
+:func:`copilot.application.orchestrator.conversational_questioning.next_question`)
+gets natural-Spanish prompts. Catalog ``description`` is the
+``human_question_es or notes`` projection (per
+``shared.links.ports.editable_fields._derive_from_contracts``); enriching
+the copilot meta legitimately changes this column.
+
+Post-Fase-09 the catalog still must:
 
 1. Project the same 12 paths from ``BUYER_PERSONA_FIELD_CONTRACTS``.
 2. Preserve every Spanish label (system prompt enumeration intacto).
-3. Preserve every description text (LLM context unchanged).
+3. Use the up-to-date ``human_question_es`` (or notes fallback) as
+   description.
 4. Continue to validate via
    ``schema_introspection.validate_field_path("buyer_persona", path)``.
 
 refs: docs/refactors/field-contract-platform/phases/07-buyer-migration/PRE_INVESTIGATION.md
+      docs/refactors/field-contract-platform/phases/09-multi-channel-projection/SPEC.md
 """
 
 from __future__ import annotations
@@ -39,73 +50,73 @@ BUYER_PERSONA_CATALOG_BASELINE: tuple[tuple[str, str, str, str], ...] = (
         "name",
         "identity",
         "Nombre",
-        "Nombre interno del avatar. Identifica la persona, no aparece al cliente.",
+        "¿Qué nombre interno le pones a este buyer persona?",
     ),
     (
         "tagline",
         "identity",
         "Tagline",
-        "Una línea que describe quién es esta persona.",
+        "En una línea, ¿quién es esta persona?",
     ),
     (
         "demographics.age_range",
         "demographics",
         "Rango etario",
-        "Rango de edades del cliente ideal.",
+        "¿Cuál es el rango de edad de este buyer persona?",
     ),
     (
         "demographics.location",
         "demographics",
         "Ubicación",
-        "Ciudad o región principal del avatar.",
+        "¿En qué ciudad o región vive principalmente?",
     ),
     (
         "demographics.occupation",
         "demographics",
         "Ocupación",
-        "Profesión o rol del cliente ideal.",
+        "¿Cuál es la profesión u ocupación principal de este avatar?",
     ),
     (
         "demographics.income",
         "demographics",
         "Nivel de ingresos",
-        "Rango de ingresos aproximado del avatar.",
+        "¿Cuál es su rango de ingresos aproximado?",
     ),
     (
         "psychographics.values",
         "psychographics",
         "Valores centrales",
-        "Principios que guían las decisiones del avatar.",
+        "¿Cuáles son los valores que guían las decisiones de este avatar?",
     ),
     (
         "psychographics.aspirations",
         "psychographics",
         "Aspiraciones",
-        "A dónde quiere llegar este avatar.",
+        "¿A dónde quiere llegar este avatar? ¿Cuáles son sus aspiraciones?",
     ),
     (
         "psychographics.lifestyle",
         "psychographics",
         "Estilo de vida",
-        "Cómo organiza su día y qué consume.",
+        "¿Cómo organiza su día? ¿Qué consume y dónde pasa el tiempo?",
     ),
     (
         "buyer_journey.awareness",
         "journey",
         "Etapa de awareness",
-        "Cómo descubre que tiene un problema o que existes.",
+        "¿Cómo descubre este avatar que tiene un problema o que tu marca existe?",
     ),
     (
         "buyer_journey.consideration",
         "journey",
         "Etapa de consideración",
-        "Cómo evalúa opciones antes de decidir.",
+        "¿Cómo evalúa este avatar las opciones antes de decidir?",
     ),
     (
         "buyer_journey.decision",
         "journey",
         "Etapa de decisión",
-        "Qué lo lleva al sí final.",
+        "¿Qué lo lleva finalmente al sí?",
     ),
 )
 
