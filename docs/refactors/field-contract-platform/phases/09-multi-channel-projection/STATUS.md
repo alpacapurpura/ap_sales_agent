@@ -1,15 +1,16 @@
 ---
-status: ready-to-start
-opened_at: null
+status: in-progress
+opened_at: 2026-04-24
 closed_at: null
-baseline_green_commit: (TBD by 08.F close commit)
+baseline_green_commit: 2e0f1cc7
 ---
 
 # Fase 09 — Multi-channel projection · Status
 
-**Ready-to-start**. Fase 08 cerrada (5 commits). Copilot consume
-`FieldContract` cross-module unificado. 507 arch tests + 52 copilot
-acceptance verde como baseline.
+**In-progress**. 09.A docs (PRE_INVESTIGATION + SPEC + ACCEPTANCE)
+escrito. Fase 08 cerrada (5 commits). Copilot consume `FieldContract`
+cross-module unificado. Baseline: 507 BE arch + 38 FE arch + 52 copilot
+acceptance verde.
 
 ## Scope (per PLAN.md §Fase 09)
 

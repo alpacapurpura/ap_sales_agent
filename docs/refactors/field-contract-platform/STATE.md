@@ -1,9 +1,9 @@
 ---
-last_updated: 2026-04-24 (Fase 08 done)
-last_green_commit: e1f44284
+last_updated: 2026-04-24 (Fase 09 sub-paso A done)
+last_green_commit: 8a086bf7
 active_phase: 09-multi-channel-projection
-sub_step: 0/? (ready-to-start)
-status: ready-to-start
+sub_step: A/G done (docs)
+status: in-progress
 blockers: none
 branch: development
 working_tree_clean: true
