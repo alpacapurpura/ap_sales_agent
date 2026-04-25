@@ -42,6 +42,9 @@ from src.modules.copilot.api.dto import ClientContextDTO, SSEEvent
 from src.modules.copilot.application.extraction.active_job_state import load_active_job
 from src.modules.copilot.application.guided.state import load_guided_state
 from src.modules.copilot.application.observability import trace_recorder
+from src.modules.copilot.application.observability.node_trace import (
+    emit_node_trace_event,
+)
 from src.modules.copilot.application.orchestrator.deep_agent import (
     build_deep_agent_graph,
 )
@@ -647,6 +650,9 @@ class CopilotOrchestrator:
                 graph = build_deep_agent_graph(state)
                 async for event in graph.astream_events(state, version="v2"):
                     usage.update_from_event(event)
+                    # F9 [COPILOT-NODE-TRACE-F9] — emit node_enter/node_exit for
+                    # LangGraph transitions so admin trace reconstructs per-node timeline.
+                    emit_node_trace_event(acc.recorder, event)
 
                     # on_tool_end: route to v2-aware handler that also emits block_append
                     if event.get("event") == "on_tool_end":

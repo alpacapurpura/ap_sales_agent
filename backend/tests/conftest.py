@@ -146,6 +146,9 @@ def db_engine():
         from src.modules.copilot.infrastructure.models.trace_event_model import (
             CopilotTraceEventModel,
         )
+        from src.modules.copilot.infrastructure.models.workflow_metric_model import (
+            WorkflowMetricModel,
+        )
         from src.modules.crm.infrastructure.models.lead_model import (
             LeadModel,
         )

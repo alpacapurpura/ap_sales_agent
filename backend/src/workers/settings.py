@@ -25,6 +25,7 @@ from src.modules.offer.workers.tasks import run_offer_extraction
 from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
 from src.modules.tenant_domains.workers.tasks import poll_domain_verification
 from src.shared.workers.brand_summary_regen import regen_brand_summary
+from src.shared.workers.copilot_quality_eval import weekly_copilot_quality_eval
 
 
 class WorkerSettings:
@@ -43,6 +44,7 @@ class WorkerSettings:
         poll_domain_verification,
         run_frozen_detection,
         regen_brand_summary,
+        weekly_copilot_quality_eval,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -95,6 +97,7 @@ class SchedulerSettings:
         poll_domain_verification,
         run_frozen_detection,
         regen_brand_summary,
+        weekly_copilot_quality_eval,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -129,6 +132,15 @@ class SchedulerSettings:
             run_frozen_detection,
             hour={0, 4, 8, 12, 16, 20},
             minute=30,  # Every 4 hours at :30
+        ),
+        # F9 — weekly LLM-judge eval over recent conversations.
+        # Mondays 05:00 UTC keeps NANO calls bunched to a low-traffic
+        # window. [COPILOT-LLM-JUDGE-F9]
+        cron(
+            weekly_copilot_quality_eval,
+            weekday="mon",
+            hour=5,
+            minute=0,
         ),
     ]
 
