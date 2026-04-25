@@ -9,6 +9,7 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from src.modules.brand.domain import BrandSettings
 from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+from src.shared.domain.events import BrandSectionUpdatedEvent, EventBus
 
 logger = structlog.get_logger()
 
@@ -78,6 +79,13 @@ class BrandRepository:
         flag_modified(tenant, "config_json")
 
         self.db.add(tenant)
+        # Register the after-commit listener BEFORE the commit so the
+        # subscriber (F3 regen worker enqueue) only sees a successfully
+        # persisted document.
+        EventBus.publish(
+            BrandSectionUpdatedEvent.create(tenant_id=tenant_id),
+            session=self.db,
+        )
         self.db.commit()
         self.db.refresh(tenant)
 

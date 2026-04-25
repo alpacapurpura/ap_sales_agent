@@ -24,6 +24,7 @@ from src.modules.copilot.application.services.event_cleanup import cleanup_old_e
 from src.modules.offer.workers.tasks import run_offer_extraction
 from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
 from src.modules.tenant_domains.workers.tasks import poll_domain_verification
+from src.shared.workers.brand_summary_regen import regen_brand_summary
 
 
 class WorkerSettings:
@@ -41,6 +42,7 @@ class WorkerSettings:
         cleanup_old_events,
         poll_domain_verification,
         run_frozen_detection,
+        regen_brand_summary,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -55,11 +57,15 @@ class WorkerSettings:
         from src.modules.copilot.application.extraction_card_flow import (
             register_extraction_event_handlers,
         )
+        from src.shared.application.brand_summary_event_handlers import (
+            register_brand_summary_event_handlers,
+        )
 
         init_sentry("worker")
         ctx["db_factory"] = SessionLocal
         ctx["redis_cache"] = redis_client
         register_extraction_event_handlers()
+        register_brand_summary_event_handlers()
 
     @staticmethod
     async def on_shutdown(ctx: dict) -> None:
@@ -88,6 +94,7 @@ class SchedulerSettings:
         cleanup_old_events,
         poll_domain_verification,
         run_frozen_detection,
+        regen_brand_summary,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -133,11 +140,15 @@ class SchedulerSettings:
         from src.modules.copilot.application.extraction_card_flow import (
             register_extraction_event_handlers,
         )
+        from src.shared.application.brand_summary_event_handlers import (
+            register_brand_summary_event_handlers,
+        )
 
         init_sentry("scheduler")
         ctx["db_factory"] = SessionLocal
         ctx["redis_cache"] = redis_client
         register_extraction_event_handlers()
+        register_brand_summary_event_handlers()
 
     @staticmethod
     async def on_shutdown(ctx: dict) -> None:

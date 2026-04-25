@@ -110,6 +110,9 @@ def db_engine():
         from src.modules.brand.infrastructure.models.avatar_model import (
             AvatarModel,
         )
+        from src.modules.brand.infrastructure.models.brand_summary_model import (
+            BrandSummaryModel,
+        )
         from src.modules.brand.infrastructure.models.buyer_persona_model import (
             BuyerPersonaModel,
         )

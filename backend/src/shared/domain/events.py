@@ -311,6 +311,42 @@ class ExtractionJobCompletedEvent(DomainEvent):
 
 
 @dataclass
+class BrandSectionUpdatedEvent(DomainEvent):
+    """Emitted by ``BrandRepository`` when brand settings persist successfully.
+
+    Consumed by ``brand_summary`` lighthouse worker (F3) to enqueue a
+    debounced regeneration of the per-tenant summary that the copilot
+    auto-injects into its system prompt for offer/landing/campaign/sales
+    routes.
+
+    Payload keys:
+        section: section slug whose change drove the save (best-effort —
+            ``BrandRepository.save_settings`` writes the whole document so
+            ``"brand"`` is the safe default; callers that know the section
+            (admin Streamlit, future per-section endpoints) pass it through.
+        changed_fields: tuple of dotted field paths reported by the caller.
+            Currently informational; the regen task does not depend on it.
+    """
+
+    @classmethod
+    def create(
+        cls,
+        tenant_id: UUID,
+        section: str = "brand",
+        changed_fields: tuple[str, ...] = (),
+    ) -> "BrandSectionUpdatedEvent":
+        """Create a ``brand_section_updated`` event."""
+        return cls(
+            event_name="brand_section_updated",
+            tenant_id=tenant_id,
+            payload={
+                "section": section,
+                "changed_fields": list(changed_fields),
+            },
+        )
+
+
+@dataclass
 class AppointmentEvent(DomainEvent):
     """Emitted by scheduling module when appointment status changes.
 

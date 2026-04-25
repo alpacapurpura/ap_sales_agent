@@ -450,6 +450,84 @@ def _build_guided_layer(state: dict[str, object]) -> str:
         return ""
 
 
+def _collect_context_injectors_prefix(
+    *,
+    target_route: str | None,
+    tenant_id: UUID | None,
+) -> str:
+    """Aggregate per-route context injector fragments into a prompt prefix.
+
+    F3 lighthouse hook (``[COPILOT-BRAND-SUMMARY-F3]``). The aggregator
+    runs each provider's ``ContextInjector.inject_for(route, tenant_id)``
+    and concatenates the non-empty fragments. Fragments live BEFORE the
+    base prompt so the LLM sees the brand voice anchor first AND the
+    Anthropic prompt cache treats them as a stable prefix when only the
+    completion snapshot below changes turn-to-turn.
+    """
+    if not target_route or tenant_id is None:
+        return ""
+
+    try:
+        from src.modules.copilot.application.discovery import discover_providers
+    except Exception as exc:  # noqa: BLE001 — orchestrator resilience
+        logger.warning("context_injector_discovery_unavailable", error=str(exc))
+        return ""
+
+    fragments: list[str] = []
+    for module_id, provider in discover_providers().items():
+        try:
+            injector = provider.context_injector()
+        except Exception:
+            logger.exception("context_injector_lookup_failed", module=module_id)
+            continue
+        if injector is None:
+            continue
+        try:
+            fragment = _await_sync(
+                injector.inject_for(
+                    target_route=target_route,
+                    tenant_id=tenant_id,
+                )
+            )
+        except Exception:
+            logger.exception("context_injector_inject_for_failed", module=module_id)
+            continue
+        if fragment:
+            fragments.append(fragment.strip())
+
+    if not fragments:
+        return ""
+    return "\n\n".join(fragments) + "\n\n"
+
+
+def _await_sync(coro: object) -> object:
+    """Run an awaitable from a sync code path safely.
+
+    ``build_system_prompt`` is sync (called from agent_node + the deep
+    agent harness). ``ContextInjector.inject_for`` is async because F4+
+    fan-outs may hit the network. When we're already inside an event
+    loop (FastAPI request) we cannot ``asyncio.run`` so we delegate to
+    ``asyncio.run_coroutine_threadsafe`` via a fresh thread executor;
+    when sync (worker callsite, tests) we use ``asyncio.run`` directly.
+    """
+    import asyncio
+
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop is None:
+        return asyncio.run(coro)
+
+    # Loop is already running — cannot block. Run the coro on a fresh
+    # event loop in a worker thread.
+    import concurrent.futures
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(lambda: asyncio.run(coro)).result()
+
+
 def build_system_prompt(state: CopilotState) -> str:
     """Render the system prompt with current context, completion snapshot, and module list."""
     ctx = state.get("client_context", {})
@@ -545,7 +623,17 @@ def build_system_prompt(state: CopilotState) -> str:
     # per-block pending fields, so layering both would just duplicate.
     guided_layer = _build_guided_layer(state)
     studio_layer = "" if guided_layer else _build_studio_snapshot_layer(state)
-    return base_prompt + guided_layer + studio_layer
+
+    # F3 — context-injector prefix runs FIRST so the brand lighthouse
+    # (and any future per-route fragment) sits at the cacheable head of
+    # the prompt. The deep-agent suffix added by the F2 harness still
+    # tails the whole composition, preserving the cacheable order:
+    #   lighthouse  →  base+layers (changes)  →  deep-agent suffix
+    injector_prefix = _collect_context_injectors_prefix(
+        target_route=ctx.get("current_route"),
+        tenant_id=tenant_id,
+    )
+    return injector_prefix + base_prompt + guided_layer + studio_layer
 
 
 def agent_node(state: CopilotState) -> dict:

@@ -261,6 +261,13 @@ def on_startup() -> None:
 
     register_extraction_event_handlers()
 
+    # Register brand summary lighthouse handler — F3 (brand save → ARQ regen)
+    from src.shared.application.brand_summary_event_handlers import (
+        register_brand_summary_event_handlers,
+    )
+
+    register_brand_summary_event_handlers()
+
 
 @app.on_event("startup")
 async def startup_arq_pool() -> None:

@@ -258,6 +258,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "PLR0915",  # too many statements — Streamlit pages
     "SIM102",   # collapsible if — Streamlit nested conditionals clearer separate
     "SIM117",   # multiple with — Streamlit col/container nesting is idiomatic
+    "N999",     # filename = URL slug; kebab-case (e.g. brand-summaries.py) is required
 ]
 "alembic/versions/*.py" = [
     "INP001",  # alembic/versions/ is not a package — no __init__.py by convention
