@@ -1,0 +1,27 @@
+{% if current_route or selected_fields %}
+## Contexto de Sesión
+{% if current_route %}
+- Ruta actual: {{ current_route }}
+{% endif %}
+{% if selected_fields %}
+- Campos seleccionados como contexto:
+{% for field in selected_fields %}
+  - {{ field.field_label }}: "{{ field.field_value }}"
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if behavior_summary %}
+## Historial de Interaccion del Usuario
+{{ behavior_summary }}
+Usa esta informacion para personalizar tus respuestas: si acepta muchas propuestas, se mas proactivo. Si rechaza muchas, pregunta antes de proponer. Si usa mucho la navegacion, ofrece links directos. Si abre el copilot frecuentemente en una seccion, ofrece ayuda proactiva sobre esa seccion.
+{% endif %}
+
+{% if active_procedure %}
+## Procedimiento Activo: {{ active_procedure.name }}
+Paso actual ({{ active_procedure.current_step }}/{{ active_procedure.total_steps }}): {{ active_procedure.instruction }}
+{% if active_procedure.tips %}
+Tips: {{ active_procedure.tips | join(', ') }}
+{% endif %}
+Guía al usuario a completar este paso. Cuando termine, usa `advance_procedure` para avanzar.
+{% endif %}

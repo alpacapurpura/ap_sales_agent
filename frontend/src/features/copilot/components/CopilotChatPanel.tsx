@@ -76,7 +76,7 @@ function resolveHistoricalCards(messages: CopilotMessage[]): CopilotMessage[] {
       if (block.type !== "card") return block;
       const kind = block.card_kind;
       if (kind !== "clarify" && kind !== "alternatives" && kind !== "checkpoint") return block;
-      const payload = block.payload as Record<string, unknown>;
+      const { payload } = block;
       if (payload.card_status === "resolved" || payload.card_status === "confirmed") return block;
       dirty = true;
       return {

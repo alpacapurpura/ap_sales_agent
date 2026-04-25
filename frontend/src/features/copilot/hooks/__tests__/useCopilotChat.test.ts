@@ -102,9 +102,15 @@ describe("useCopilotChat — single-flight guarantee", () => {
     expect(messages1).toHaveLength(2);
     const assistantId1 = messages1[1].id;
 
-    // Simulate partial chunk arriving for stream 0 (msg1)
+    // Simulate partial chunk arriving for stream 0 (msg1) via the v2
+    // ``block_delta`` family — F8 §5.4 replaced the legacy text_chunk
+    // path with block_delta on the FE side.
     act(() => {
-      allStreamCallbacks[0].onTextChunk?.("chunk-from-msg1");
+      allStreamCallbacks[0].onBlockDelta?.({
+        message_id: "m1",
+        block_id: "b1",
+        delta: { markdown: "chunk-from-msg1" },
+      });
     });
     expect(useCopilotStore.getState().messages[1].content).toBe("chunk-from-msg1");
 
@@ -126,7 +132,11 @@ describe("useCopilotChat — single-flight guarantee", () => {
     // It must NOT write to assistant2 (which is now "last assistant")
     const contentBefore = useCopilotStore.getState().messages[3].content;
     act(() => {
-      allStreamCallbacks[0].onTextChunk?.("STALE-chunk");
+      allStreamCallbacks[0].onBlockDelta?.({
+        message_id: "m1",
+        block_id: "b1",
+        delta: { markdown: "STALE-chunk" },
+      });
     });
 
     // assistant2 content must not have changed

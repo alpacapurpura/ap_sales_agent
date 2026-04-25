@@ -561,11 +561,11 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
       if (msgIdx === -1) return s;
       const msg = msgs[msgIdx];
       const block = msg.blocks?.[blockIndex];
-      if (!block || block.type !== "card") return s;
+      if (block?.type !== "card") return s;
       const blocks = [...(msg.blocks ?? [])];
       blocks[blockIndex] = {
         ...block,
-        payload: { ...(block.payload as Record<string, unknown>), card_status: status },
+        payload: { ...block.payload, card_status: status },
       };
       msgs[msgIdx] = { ...msg, blocks };
       return { messages: msgs };

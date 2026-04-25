@@ -1,13 +1,17 @@
-"""F2 — Deep Agents harness wrapping ``copilot_graph``.
+"""Deep Agents harness — sole graph runtime for the Copilot orchestrator.
 
 Builds a ``CompiledStateGraph`` via :func:`deepagents.create_deep_agent`
-that exposes the same ``astream_events`` interface the legacy
-``copilot_graph`` does. The chat orchestrator picks one or the other
-based on ``settings.COPILOT_DEEP_AGENT_V2``.
+exposing the ``astream_events`` interface the chat orchestrator drives.
+
+After F8 §5.3 this is the **only** graph runtime — the legacy ReAct
+``copilot_graph`` and the ``COPILOT_DEEP_AGENT_V2`` flag have both been
+removed. The harness was introduced in F2 with a flag, validated in
+F3-F7, and promoted to default in F8 once observability + provider
+discovery + workflow runtime stabilised.
 
 # [COPILOT-DEEP-AGENT-V2] -> docs/domains/copilot/redesign-2026-04/phases/F2-deep-agents-harness.md
 
-What changes vs the legacy ReAct loop:
+Capabilities (all on by default now):
 
 - Planning visible: built-in ``write_todos`` tool emits a TODO list
   before the agent acts on multi-step tasks.
@@ -15,10 +19,10 @@ What changes vs the legacy ReAct loop:
   agent ``read_file`` / ``write_file`` / ``ls`` / ``edit_file`` /
   ``glob`` / ``grep``. Lives inside the deep-agent state for the
   current turn — nothing crosses conversations.
-- Subagents: built-in ``task`` tool spawns isolated workers. F2 ships
-  the dummy ``audit_inspector``; F4/F5 add real subagents.
+- Subagents: built-in ``task`` tool spawns isolated workers. F2 shipped
+  the dummy ``audit_inspector``; F4/F5 added real subagents.
 
-What stays:
+Invariants preserved across the migration:
 
 - Per-turn dynamic tool selection via :func:`get_tools_for_context`
   (route-based). The agent is rebuilt per request precisely so that

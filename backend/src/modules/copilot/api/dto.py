@@ -36,36 +36,33 @@ class CopilotChatRequest(BaseModel):
 
 # ── SSE Event Types ──────────────────────────────────────────────────
 # [COPILOT-SSE-V2] → docs/domains/copilot/sse-protocol.md
+# [COPILOT-SSE-V2-ONLY-F8] → docs/domains/copilot/redesign-2026-04/phases/F8-routing-cost-optim.md
 #
-# v1 legacy events (emitted during P4-P7 migration window,
-# controlled by COPILOT_EMIT_LEGACY_SSE env var):
-#   text_chunk, ui_action, proposal, confirmation_required
-#
-# v2 new events (emitted alongside v1 during migration, then exclusively):
-#   message_start, block_start, block_delta, block_end, message_end
-#
-# Both v1 and v2 FEs ignore unknown event types gracefully.
+# F8 §5.4 — only the v2 block-streaming family is emitted. The legacy
+# ``text_chunk`` channel was removed once the FE migrated to the
+# block_delta render path. Unknown event types are still ignored
+# gracefully by FEs that lag a deploy.
 
 SSEEventType = Literal[
-    # ── v1 (legacy — kept during migration window) ────────────────────
-    "text_chunk",
-    "tool_start",
-    "tool_result",
-    "ui_action",
-    "proposal",
-    "confirmation_required",
-    "status",
-    "tier_decision",  # CONTRACT §4.3 — emitted once, before first text_chunk
-    "mutation_applied",  # CONTRACT §4.3 — emitted when a mutation is journaled
-    "done",
-    "error",
-    # ── v2 (new block-streaming events) ───────────────────────────────
+    # ── v2 streaming primitives ───────────────────────────────────────
     "message_start",  # marks start of new assistant message
     "block_start",  # new block begins (partial payload for text, full for others)
     "block_delta",  # streaming update for text blocks only
     "block_end",  # block finalized (full validated MessageBlock)
     "block_append",  # non-streaming block appended (tool results, citations, cards)
     "message_end",  # assistant message complete (final blocks list + tokens_used)
+    # ── Tool + UI side channels ──────────────────────────────────────
+    "tool_start",
+    "tool_result",
+    "ui_action",
+    "proposal",
+    "confirmation_required",
+    # ── Lifecycle + observability ────────────────────────────────────
+    "status",
+    "tier_decision",  # CONTRACT §4.3 — emitted once, before first block_start
+    "mutation_applied",  # CONTRACT §4.3 — emitted when a mutation is journaled
+    "done",
+    "error",
 ]
 
 

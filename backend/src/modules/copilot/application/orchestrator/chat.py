@@ -1,19 +1,19 @@
-"""CopilotOrchestrator — Manages conversation state and streams responses via SSE."""
+"""CopilotOrchestrator — Manages conversation state and streams responses via SSE.
 
 # [COPILOT-SSE-V2] -> docs/domains/copilot/sse-protocol.md
 # [COPILOT-CITATION-BLOCK] -> docs/domains/copilot/message-blocks.md
-#
-# SSE v2 dual-emit strategy (CONTRACT-MULTIMODAL §6.3):
-#   - COPILOT_EMIT_LEGACY_SSE=true (default): emit both legacy (text_chunk,
-#     tool_result, ui_action) AND new v2 (block_start, block_delta, block_end,
-#     message_start, message_end) events side by side.
-#   - COPILOT_EMIT_LEGACY_SSE=false: emit ONLY v2 events. Set this once all
-#     FE clients have been migrated to the v2 block renderer (Phase P7).
-#
-# Migration phases (see CONTRACT §13):
-#   P4 (current): dual-emit active. Old FE ignores block_* events. New FE
-#                 prefers block_* and ignores text_chunk.
-#   P7 (future):  flip COPILOT_EMIT_LEGACY_SSE=false, remove text_chunk branch.
+# [COPILOT-SSE-V2-ONLY-F8] -> docs/domains/copilot/redesign-2026-04/phases/F8-routing-cost-optim.md
+
+After F8 §5.4 the orchestrator emits **only** v2 block events
+(block_start / block_delta / block_end / block_append +
+message_start / message_end + tool_start / tool_result + status / done /
+error). The legacy ``text_chunk`` event was removed once the FE migrated
+in F8 §5.5.
+
+After F8 §5.3 the deep-agent harness is the only graph the orchestrator
+runs — the legacy ReAct ``copilot_graph`` and its
+``COPILOT_DEEP_AGENT_V2`` flag have both been deleted.
+"""
 
 from __future__ import annotations
 
@@ -42,7 +42,9 @@ from src.modules.copilot.api.dto import ClientContextDTO, SSEEvent
 from src.modules.copilot.application.extraction.active_job_state import load_active_job
 from src.modules.copilot.application.guided.state import load_guided_state
 from src.modules.copilot.application.observability import trace_recorder
-from src.modules.copilot.application.orchestrator.graph import copilot_graph
+from src.modules.copilot.application.orchestrator.deep_agent import (
+    build_deep_agent_graph,
+)
 from src.modules.copilot.application.orchestrator.output_sanitizer import (
     sanitize_assistant_text,
 )
@@ -309,16 +311,6 @@ COPILOT_STREAM_TIMEOUT_SECONDS: int = int(
     os.environ.get("COPILOT_STREAM_TIMEOUT_SECONDS", "60"),
 )
 
-# SSE v2 migration flag (CONTRACT-MULTIMODAL §6.3).
-# true  -> dual-emit: legacy events + v2 block events (P4-P6).
-# false -> v2 only (P7 onwards).
-_EMIT_LEGACY_SSE: bool = os.environ.get("COPILOT_EMIT_LEGACY_SSE", "true").lower() not in {
-    "false",
-    "0",
-    "no",
-}
-
-
 _TRACE_PREVIEW_CHARS = 2_000
 
 
@@ -527,11 +519,13 @@ class CopilotOrchestrator:
         context: ClientContextDTO | None = None,
         blocks: list[dict] | None = None,
     ) -> AsyncGenerator[str, None]:
-        """Process a user message and yield SSE events.
+        """Process a user message and yield SSE v2 events.
 
-        Emits both legacy v1 events and v2 block events during the migration
-        window (COPILOT_EMIT_LEGACY_SSE=true). See module-level comment for
-        the dual-emit strategy.
+        Emits the canonical v2 stream
+        (status / message_start / block_start / block_delta / block_end /
+        block_append / tool_start / tool_result / ui_action / message_end /
+        done / error). The legacy ``text_chunk`` channel was removed in
+        F8 §5.4 once the FE migrated to the block_* render path.
         """
         conv_id, conv_uuid, existing_conv, state = self._prepare_conversation(
             user_id=user_id,
@@ -621,26 +615,6 @@ class CopilotOrchestrator:
         yield SSEEvent(event="status", data={"state": "done"}).to_sse()
         yield SSEEvent(event="done", data={"conversation_id": conv_id}).to_sse()
 
-    @staticmethod
-    def _select_graph(state: dict):  # noqa: ANN205 — return type is one of two LangGraph CompiledStateGraph subclasses
-        """Pick the legacy ReAct graph or the F2 deep-agent graph.
-
-        Default is the legacy ``copilot_graph`` so accidental misconfig
-        cannot break production. Flip ``COPILOT_DEEP_AGENT_V2=true`` per
-        environment to roll out the harness. The deep-agent graph is
-        rebuilt every turn — the dynamic system prompt + route-based
-        tool selection both depend on the current state.
-        """
-        from src.core.config import settings as _settings
-
-        if _settings.COPILOT_DEEP_AGENT_V2:
-            from src.modules.copilot.application.orchestrator.deep_agent import (
-                build_deep_agent_graph,
-            )
-
-            return build_deep_agent_graph(state)
-        return copilot_graph
-
     async def _run_graph_stream(
         self,
         *,
@@ -670,7 +644,7 @@ class CopilotOrchestrator:
             ).to_sse()
 
             async with asyncio.timeout(COPILOT_STREAM_TIMEOUT_SECONDS):
-                graph = self._select_graph(state)
+                graph = build_deep_agent_graph(state)
                 async for event in graph.astream_events(state, version="v2"):
                     usage.update_from_event(event)
 
@@ -687,7 +661,7 @@ class CopilotOrchestrator:
                             yield tool_sse
                         continue
 
-                    legacy_sse, text_chunk = self._process_stream_event(
+                    sse, text_chunk = self._process_stream_event(
                         event,
                         acc.messages,
                         acc.last_tool_call_ids,
@@ -696,8 +670,8 @@ class CopilotOrchestrator:
                         acc.full_response += text_chunk
                         async for block_sse in self._emit_text_chunk_v2(acc, msg_id, text_chunk):
                             yield block_sse
-                    if legacy_sse:
-                        yield legacy_sse
+                    if sse:
+                        yield sse
 
         except TimeoutError:
             logger.warning(
@@ -806,30 +780,24 @@ class CopilotOrchestrator:
         Returns (sse_string | None, text_chunk | None).
 
         sse_string: zero or more SSE event strings concatenated. The caller
-            yields this directly. For text chunks this is the legacy
-            ``text_chunk`` event (only emitted when _EMIT_LEGACY_SSE=True);
-            for tool events it is tool_start/tool_result/ui_action.
+            yields this directly. For tool events it is
+            tool_start/tool_result/ui_action. F8 §5.4 — the legacy
+            ``text_chunk`` SSE was removed; the v2 ``block_delta`` family
+            is now the only render path.
 
         text_chunk: raw text content when the LLM emitted a streaming token.
-            The caller uses this to build the v2 ``block_delta`` events
-            independently of the legacy flag.
+            The caller uses this to build the v2 ``block_delta`` events.
         """
         kind = event.get("event")
 
         if kind == "on_chat_model_stream":
             chunk = event.get("data", {}).get("chunk")
             if chunk and hasattr(chunk, "content") and chunk.content:
-                # Legacy text_chunk event -- only emit when flag is on (P4-P6).
-                # v2 block_delta is built by the caller from the returned text_chunk.
-                legacy_sse = (
-                    SSEEvent(
-                        event="text_chunk",
-                        data={"content": chunk.content},
-                    ).to_sse()
-                    if _EMIT_LEGACY_SSE
-                    else None
-                )
-                return legacy_sse, chunk.content
+                # v2 block_delta is built by the caller from the returned
+                # text chunk. No SSE frame is emitted at this stage — the
+                # block lifecycle (block_start / block_delta / block_end)
+                # is owned by ``_emit_text_chunk_v2`` and the finaliser.
+                return None, chunk.content
             return None, None
 
         if kind == "on_chat_model_end":
@@ -962,19 +930,23 @@ class CopilotOrchestrator:
         # [COPILOT-CITATION-BLOCK] → docs/domains/copilot/message-blocks.md §citation
         # [COPILOT-OUTBOUND-ASSETS] → docs/domains/copilot/outbound-assets.md
 
-        Dual-emit strategy (same as text streaming):
-        - Legacy: tool_result + ui_action events always emitted (when _EMIT_LEGACY_SSE).
-        - v2: block_append event emitted for mapped tools, containing the typed block.
-
-        Non-text blocks (image/audio/citation/card) are atomic — no streaming deltas.
-        They use block_append (not block_start/end) because they appear as tool results,
-        not as the primary streaming content. FE appends them to the message blocks list.
+        Two SSE channels per tool call:
+        - ``tool_result`` + ``ui_action`` (delegated to ``_handle_tool_end``)
+          — generic side-channel events the FE uses for plain-text tool
+          status + lightweight UI affordances. Always emitted.
+        - ``block_append`` — emits a typed v2 ``MessageBlock`` for tools
+          that map to canonical block types (citations, documents, cards).
+          Non-text blocks (image/audio/citation/card) are atomic — no
+          streaming deltas. They use ``block_append`` (not
+          block_start/end) because they appear as tool results, not as
+          the primary streaming content. FE appends them to the message
+          blocks list.
         """
         tool_name = event.get("name", "unknown")
         tool_output = event.get("data", {}).get("output", "")
         tool_input = event.get("data", {}).get("input", {})
 
-        # Step 1 — emit legacy events via the existing handler
+        # Step 1 — emit tool_result + ui_action via the legacy-format handler.
         result_sse = self._handle_tool_end(event, accumulated_messages, last_tool_call_ids)
 
         # Step 2 — attempt v2 block_append for mapped tools

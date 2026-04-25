@@ -25,6 +25,7 @@ class ModelRole(StrEnum):
     Consumers declare WHAT they need, not WHICH model.
     """
 
+    NANO = "nano"  # Ultra-low-latency classification, intent routing — F8
     REASONING = "reasoning"  # Complex analysis, structured JSON extraction
     FAST = "fast"  # Simple/cheap tasks, low latency
     VISION = "vision"  # Multimodal (image analysis)

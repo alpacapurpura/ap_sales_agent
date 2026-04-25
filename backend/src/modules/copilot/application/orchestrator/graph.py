@@ -1,36 +1,32 @@
-"""Copilot ReAct Agent — LangGraph StateGraph with tool-calling loop.
+"""Copilot system-prompt builder + shared orchestrator helpers.
 
-The agent follows a simple cycle:
-  1. LLM generates a response (possibly with tool calls)
-  2. If tool calls → execute them → feed results back to LLM → repeat
-  3. If no tool calls → respond to user → END
+After F8 §5.3 the legacy ReAct ``copilot_graph`` was removed — the
+deep-agent harness in ``deep_agent.py`` is the only graph runtime. This
+module now hosts:
 
-Tools are selected dynamically based on the user's current route.
-The system prompt is enriched with a completion snapshot and module list.
+* ``build_system_prompt`` — cache-friendly fragment composer (F8 §5.2).
+* The fragment helpers it composes (lighthouse injectors, studio /
+  guided / volatile / inspirations layers).
+* ``_tool_message_content`` + ``_truncate_tool_content`` — pure data
+  helpers reused by the SSE adapter and a regression test.
+
+Tools are selected per-route via ``get_tools_for_context`` from the tool
+registry; the deep-agent harness invokes that helper and binds the
+result to the ``create_deep_agent`` toolset.
 """
 
 import json
 import re
-from typing import Literal
 from uuid import UUID
 
 import structlog
-from langchain_core.messages import AIMessage, SystemMessage
-from langgraph.graph import END, START, StateGraph
 
-from src.core.enums import ModelRole
-from src.modules.copilot.application.orchestrator.context_budget import truncate_history
 from src.modules.copilot.application.orchestrator.state import CopilotState
-from src.modules.copilot.application.tools.registry import (
-    get_all_tools,
-    get_tools_for_context,
-)
 from src.modules.copilot.domain.module_registry import get_module_registry
 from src.modules.copilot.infrastructure.prompts.base import prompt_loader
 from src.modules.copilot.infrastructure.prompts.sanitizer import (
     sanitize_selected_fields,
 )
-from src.shared.infrastructure.llm.factory import LLMFactory
 from src.shared.links.ports.editable_fields import get_catalog
 
 logger = structlog.get_logger()
@@ -528,41 +524,113 @@ def _await_sync(coro: object) -> object:
         return pool.submit(lambda: asyncio.run(coro)).result()
 
 
-def build_system_prompt(state: CopilotState) -> str:
-    """Render the system prompt with current context, completion snapshot, and module list."""
-    ctx = state.get("client_context", {})
-    tenant_id = state.get("tenant_id")
+def _safe_render(template_name: str, **kwargs: object) -> str:
+    """Render a Jinja template, returning empty string on failure.
 
-    # Build completion snapshot
-    snapshot = ""
-    if tenant_id:
-        try:
-            snapshot = _get_completion_snapshot(tenant_id)
-        except Exception as e:  # noqa: BLE001 — orchestrator resilience
-            logger.warning("snapshot_build_error", error=str(e))
+    Wraps ``prompt_loader.render`` so that a single template failure cannot
+    break the orchestrator. Failures are logged but the prompt continues to
+    assemble with the remaining fragments.
+    """
+    try:
+        return prompt_loader.render(template_name, **kwargs)
+    except Exception as e:  # noqa: BLE001 — orchestrator resilience
+        logger.warning("system_prompt_template_failed", template=template_name, error=str(e))
+        return ""
 
-    # Build module list from registry
+
+def _resolve_active_procedure_ctx(state: CopilotState) -> dict[str, object] | None:
+    """Build the active-procedure context dict consumed by the volatile template."""
+    active_proc = state.get("active_procedure")
+    if not active_proc:
+        return None
+    from src.modules.copilot.application.tools.procedure_tools import (
+        PROCEDURE_REGISTRY,
+    )
+
+    proc = PROCEDURE_REGISTRY.get(active_proc.get("procedure_id", ""))
+    if proc is None:
+        return None
+    idx = active_proc.get("current_step_index", 0)
+    total = len(proc.steps)
+    if idx >= total:
+        return None
+    step = proc.steps[idx]
+    return {
+        "name": proc.name,
+        "current_step": idx + 1,
+        "total_steps": total,
+        "instruction": step.instruction,
+        "tips": step.tips,
+    }
+
+
+def _build_workflow_state_fragment(
+    *,
+    current_route: str | None,
+    selected_fields: list,
+    behavior_summary: str,
+    active_procedure_ctx: dict[str, object] | None,
+    guided_or_studio_layer: str,
+) -> str:
+    """Compose the WORKFLOW_STATE slot — per-turn user context.
+
+    Aggregates: current route + selected fields + behavior summary + active
+    procedure step + the state-aware guided/studio layer. Returned text is
+    placed AFTER the cache boundary because every input changes per turn.
+    """
+    rendered = _safe_render(
+        "copilot_system_volatile",
+        current_route=current_route,
+        selected_fields=selected_fields,
+        behavior_summary=behavior_summary,
+        active_procedure=active_procedure_ctx,
+    )
+    parts = [rendered.strip(), guided_or_studio_layer.strip()]
+    return "\n\n".join(p for p in parts if p)
+
+
+def _build_studio_snapshot_fragment(state: CopilotState, tenant_id: UUID | None) -> str:
+    """Compose the STUDIO_SNAPSHOT slot — per-turn business state."""
+    if tenant_id is None:
+        return ""
+    try:
+        snapshot = _get_completion_snapshot(tenant_id)
+    except Exception as e:  # noqa: BLE001 — orchestrator resilience
+        logger.warning("snapshot_build_error", error=str(e))
+        return ""
+    return _safe_render("copilot_system_snapshot", completion_snapshot=snapshot)
+
+
+def _build_inspirations_fragment(state: CopilotState) -> str:
+    """Compose the INSPIRATIONS slot (F4 hook)."""
+    from src.modules.copilot.application.orchestrator.inspirations_layer import (
+        build_inspirations_layer,
+    )
+
+    return build_inspirations_layer(state)
+
+
+def _build_static_identity_fragment() -> str:
+    """Compose the STATIC_IDENTITY slot — fully cacheable across tenants."""
+    return _safe_render("copilot_system_static")
+
+
+def _build_static_tools_hint_fragment(active_tools: list[str]) -> str:
+    """Compose the STATIC_TOOLS_HINT slot — stable per-route."""
+    return _safe_render("copilot_system_tools_hint", available_tools=active_tools)
+
+
+def _build_modules_list_fragment() -> str:
+    """Compose the MODULES_LIST slot from the live module registry."""
     registry = get_module_registry()
     modules = [
         {"label": d.label, "route_prefix": d.route_prefix, "description": d.description} for d in registry.values()
     ]
+    return _safe_render("copilot_system_modules", modules=modules)
 
-    # Build behavior summary
-    behavior_summary = ""
-    user_id = state.get("user_id")
-    if tenant_id and user_id:
-        try:
-            behavior_summary = _get_behavior_summary(tenant_id, user_id)
-        except Exception as e:  # noqa: BLE001 — orchestrator resilience
-            logger.warning("behavior_summary_build_error", error=str(e))
 
-    # Active tool names
-    active_tools = state.get("active_tool_names", [])
-
-    # Editable-fields catalog — the compact SSoT view the LLM uses to decide
-    # which field_ids are valid for propose_field_updates. Separated from
-    # the completion snapshot: snapshot = "is it configured?"; catalog =
-    # "what CAN I edit?". The LLM needs both.
+def _build_editable_catalog_fragment() -> str:
+    """Compose the EDITABLE_CATALOG slot from the schema-introspection SSoT."""
     try:
         from src.modules.copilot.domain.schema_introspection import (
             format_all_editable_catalogs_markdown,
@@ -572,174 +640,81 @@ def build_system_prompt(state: CopilotState) -> str:
     except Exception as e:  # noqa: BLE001 — orchestrator resilience
         logger.warning("editable_catalog_error", error=str(e))
         editable_catalog = ""
+    return _safe_render("copilot_system_editable", editable_catalog=editable_catalog)
 
-    # Build active procedure context for system prompt
-    active_procedure_ctx = None
-    active_proc = state.get("active_procedure")
-    if active_proc:
-        from src.modules.copilot.application.tools.procedure_tools import (
-            PROCEDURE_REGISTRY,
-        )
 
-        proc = PROCEDURE_REGISTRY.get(active_proc.get("procedure_id", ""))
-        if proc:
-            idx = active_proc.get("current_step_index", 0)
-            total = len(proc.steps)
-            if idx < total:
-                step = proc.steps[idx]
-                active_procedure_ctx = {
-                    "name": proc.name,
-                    "current_step": idx + 1,
-                    "total_steps": total,
-                    "instruction": step.instruction,
-                    "tips": step.tips,
-                }
+def build_system_prompt(state: CopilotState) -> str:
+    """Render the system prompt in F8 cache-friendly order.
 
-    # Sanitize user-provided values before template insertion to prevent prompt injection
+    Fragments are gathered independently and assembled by
+    ``compose_system_prompt`` into the canonical order defined in
+    ``system_prompt_layout``. The returned string has the cacheable prefix
+    above ``CACHE_BOUNDARY_MARKER`` and the volatile tail below it so the
+    OpenAI prefix cache can short-circuit the static head.
+
+    # [COPILOT-CACHE-PREFIX-F8] -> docs/domains/copilot/redesign-2026-04/phases/F8-routing-cost-optim.md
+    """
+    from src.modules.copilot.application.orchestrator.system_prompt_layout import (
+        PromptFragment,
+        compose_system_prompt,
+    )
+
+    ctx = state.get("client_context", {})
+    tenant_id = state.get("tenant_id")
+    user_id = state.get("user_id")
+    active_tools = state.get("active_tool_names", [])
+
     safe_selected_fields = sanitize_selected_fields(ctx.get("selected_fields", []))
+    current_route = ctx.get("current_route")
 
-    try:
-        base_prompt = prompt_loader.render(
-            "copilot_system",
-            current_route=ctx.get("current_route"),
-            selected_fields=safe_selected_fields,
-            completion_snapshot=snapshot,
-            behavior_summary=behavior_summary,
-            modules=modules,
-            available_tools=active_tools,
-            active_procedure=active_procedure_ctx,
-            editable_catalog=editable_catalog,
-        )
-    except Exception as e:  # noqa: BLE001 — orchestrator resilience
-        logger.warning("copilot_system_prompt_fallback", error=str(e))
-        base_prompt = (
-            "Eres el Copilot de Nicolify, un asistente experto en marketing y ventas. "
-            "Habla siempre en español, de forma profesional pero cercana."
-        )
+    # Per-turn behavior summary (DB read, isolated failure).
+    behavior_summary = ""
+    if tenant_id and user_id:
+        try:
+            behavior_summary = _get_behavior_summary(tenant_id, user_id)
+        except Exception as e:  # noqa: BLE001 — orchestrator resilience
+            logger.warning("behavior_summary_build_error", error=str(e))
 
-    # Compose: base prompt + guided layer when guided mode is active, or
-    # the free-form studio snapshot layer when the user is on a studio
-    # surface without guided mode. Guided wins — it already reports
-    # per-block pending fields, so layering both would just duplicate.
+    active_procedure_ctx = _resolve_active_procedure_ctx(state)
+
+    # Guided wins over studio snapshot — both report the same field-completion
+    # pressure differently; layering them duplicates signal.
     guided_layer = _build_guided_layer(state)
     studio_layer = "" if guided_layer else _build_studio_snapshot_layer(state)
+    state_aware_layer = guided_layer or studio_layer
 
-    # F3 — context-injector prefix runs FIRST so the brand lighthouse
-    # (and any future per-route fragment) sits at the cacheable head of
-    # the prompt. The deep-agent suffix added by the F2 harness still
-    # tails the whole composition, preserving the cacheable order:
-    #   lighthouse  →  inspirations  →  base+layers (changes)  →  deep-agent suffix
-    injector_prefix = _collect_context_injectors_prefix(
-        target_route=ctx.get("current_route"),
+    # F3 — provider context injectors (brand lighthouse + future per-route).
+    lighthouse = _collect_context_injectors_prefix(
+        target_route=current_route,
         tenant_id=tenant_id,
     )
 
-    # F4 — inspirations layer sits BETWEEN the lighthouse and the
-    # volatile completion snapshot. Stable while the inspirations set
-    # is unchanged → preserves cache hit on the lighthouse above when
-    # only the snapshot below changes.
-    from src.modules.copilot.application.orchestrator.inspirations_layer import (
-        build_inspirations_layer,
-    )
-
-    inspirations_layer = build_inspirations_layer(state)
-    if inspirations_layer:
-        inspirations_layer = inspirations_layer + "\n"
-
-    return injector_prefix + inspirations_layer + base_prompt + guided_layer + studio_layer
-
-
-def agent_node(state: CopilotState) -> dict:
-    """Call LLM with conversation history and system prompt.
-
-    The LLM may return text, tool calls, or both.
-    Tools are selected dynamically based on the user's current route.
-    """
-    llm = LLMFactory.get_service().get_client(ModelRole.AGENT)
-    llm = llm.bind(temperature=0.6)
-
-    # Dynamic tool selection based on mode (interview > focus > chat)
-    ctx = state.get("client_context", {})
-    tools = get_tools_for_context(ctx)
-
-    if tools:
-        llm = llm.bind_tools(tools)
-
-    system_prompt = build_system_prompt(state)
-    history = truncate_history(list(state["messages"]))
-    messages = [SystemMessage(content=system_prompt), *history]
-    response = llm.invoke(messages)
-
-    # Store active tool names for logging/state
-    tool_names = [t.name for t in tools]
-
-    return {"messages": [response], "active_tool_names": tool_names}
+    fragments = {
+        # ── Cacheable prefix (≥1024 tokens by design) ─────────────────
+        PromptFragment.STATIC_IDENTITY: _build_static_identity_fragment(),
+        PromptFragment.STATIC_TOOLS_HINT: _build_static_tools_hint_fragment(active_tools),
+        PromptFragment.LIGHTHOUSE: lighthouse,
+        PromptFragment.EDITABLE_CATALOG: _build_editable_catalog_fragment(),
+        PromptFragment.MODULES_LIST: _build_modules_list_fragment(),
+        # ── Volatile tail ─────────────────────────────────────────────
+        PromptFragment.STUDIO_SNAPSHOT: _build_studio_snapshot_fragment(state, tenant_id),
+        PromptFragment.WORKFLOW_STATE: _build_workflow_state_fragment(
+            current_route=current_route,
+            selected_fields=safe_selected_fields,
+            behavior_summary=behavior_summary,
+            active_procedure_ctx=active_procedure_ctx,
+            guided_or_studio_layer=state_aware_layer,
+        ),
+        PromptFragment.INSPIRATIONS: _build_inspirations_fragment(state),
+    }
+    return compose_system_prompt(fragments)
 
 
-async def tool_executor_node(state: CopilotState) -> dict:
-    """Execute tool calls from the last AIMessage and return ToolMessages.
-
-    Uses route-based tool selection to build the tool map.
-
-    Async so ``StructuredTool``s backed by ``async def`` (e.g. the
-    ``extract_from_url`` tool that awaits an ARQ ``enqueue_job``) can run
-    without tripping ``NotImplementedError: StructuredTool does not support
-    sync invocation``. ``ainvoke`` works for both sync and async tools —
-    sync tools are wrapped in a threadpool under the hood — so this is
-    universal rather than special-casing.
-    """
-    from langchain_core.messages import ToolMessage
-
-    last_message = state["messages"][-1]
-    if not isinstance(last_message, AIMessage) or not last_message.tool_calls:
-        return {"messages": []}
-
-    # Build tool map from mode-scoped tools + all tools as fallback
-    ctx = state.get("client_context", {})
-    route_tools = get_tools_for_context(ctx)
-    all_tools = get_all_tools()
-
-    # Route tools first, then fallback to all tools for robustness
-    tool_map = {t.name: t for t in all_tools}
-    tool_map.update({t.name: t for t in route_tools})
-
-    tool_messages = []
-    for tool_call in last_message.tool_calls:
-        tool_name = tool_call["name"]
-        tool_args = tool_call["args"]
-
-        if tool_name in tool_map:
-            try:
-                result = await tool_map[tool_name].ainvoke(tool_args)
-                tool_messages.append(
-                    ToolMessage(
-                        content=_tool_message_content(result),
-                        tool_call_id=tool_call["id"],
-                        name=tool_name,
-                    ),
-                )
-            except Exception as e:
-                logger.exception("copilot_tool_error", tool=tool_name, error=str(e))
-                tool_messages.append(
-                    ToolMessage(
-                        content=_truncate_tool_content(
-                            f"Error ejecutando {tool_name}: {e!s}",
-                        ),
-                        tool_call_id=tool_call["id"],
-                        name=tool_name,
-                    ),
-                )
-        else:
-            tool_messages.append(
-                ToolMessage(
-                    content=f"Tool '{tool_name}' no encontrada.",
-                    tool_call_id=tool_call["id"],
-                    name=tool_name,
-                ),
-            )
-
-    return {"messages": tool_messages}
-
+# ── Tool message helpers (kept post-ReAct delete) ────────────────────
+# These are pure data utilities that survived the F8 §5.3 cleanup. The
+# deep-agent harness uses LangChain's built-in ToolNode for execution but
+# tests + the ``_handle_tool_end_v2`` SSE adapter still rely on the same
+# truncation + ``llm_content`` envelope contract documented below.
 
 # Hard cap on the ToolMessage content fed back to the LLM. Mirrors the SSE
 # ``output_preview`` truncation in trace_recorder.py so a single oversized
@@ -789,25 +764,3 @@ def _tool_message_content(result: object) -> str:
             return _truncate_tool_content(llm_content)
 
     return _truncate_tool_content(raw)
-
-
-def should_continue(state: CopilotState) -> Literal["tools", "end"]:
-    """Route: if the LLM made tool calls, go to tool_executor; otherwise end."""
-    last_message = state["messages"][-1]
-    if isinstance(last_message, AIMessage) and last_message.tool_calls:
-        return "tools"
-    return "end"
-
-
-# ── Build Graph ──────────────────────────────────────────────────────
-
-workflow = StateGraph(CopilotState)
-
-workflow.add_node("agent", agent_node)
-workflow.add_node("tools", tool_executor_node)
-
-workflow.add_edge(START, "agent")
-workflow.add_conditional_edges("agent", should_continue, {"tools": "tools", "end": END})
-workflow.add_edge("tools", "agent")
-
-copilot_graph = workflow.compile()

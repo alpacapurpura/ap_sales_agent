@@ -1,12 +1,14 @@
 """F3 — golden tests for brand-lighthouse injection into the system prompt.
 
 Verifies that:
-- ``build_system_prompt`` pre-pends the brand lighthouse on target
-  routes (offer-studio, sales, …) and only when a summary exists.
+- ``build_system_prompt`` includes the brand lighthouse on target routes
+  (offer-studio, sales, …) and only when a summary exists.
 - It is absent on off-route surfaces (brand-studio itself, settings).
 - ``build_deep_agent_graph``'s combined prompt keeps the deep-agent
   suffix at the TAIL — F2 invariant preserved.
-- The cacheable prefix order is: lighthouse → base prompt → layers.
+- The F8 cacheable prefix order is: identity → tools hint → lighthouse
+  → editable catalog → modules. The cache boundary marker comes after
+  the lighthouse and before any per-turn fragment.
 """
 
 from __future__ import annotations
@@ -84,15 +86,24 @@ def test_lighthouse_present_on_offer_studio(stub_summary, base_state) -> None:
     from src.modules.copilot.application.orchestrator.graph import (
         build_system_prompt,
     )
+    from src.modules.copilot.application.orchestrator.system_prompt_layout import (
+        CACHE_BOUNDARY_MARKER,
+    )
 
     prompt = build_system_prompt(base_state)
     assert "## Brand Lighthouse" in prompt
     assert _LIGHTHOUSE_TEXT in prompt
-    # Cacheable order: lighthouse must precede the rest of the prompt.
+    # F8 §5.2 cache-friendly order: identity ("Eres ...") comes FIRST in
+    # the cacheable prefix, then tools hint, THEN lighthouse. The boundary
+    # marker sits after the lighthouse, before any per-turn fragment.
+    base_pos = prompt.index("Eres el Copilot de Nicolify")
     lighthouse_pos = prompt.index("## Brand Lighthouse")
-    base_marker = "Eres" if "Eres" in prompt else "Copilot"
-    base_pos = prompt.index(base_marker)
-    assert lighthouse_pos < base_pos
+    boundary_pos = prompt.find(CACHE_BOUNDARY_MARKER)
+    assert base_pos < lighthouse_pos
+    # Boundary may be absent when no volatile fragment is rendered (this
+    # test stubs them empty); when present, lighthouse precedes it.
+    if boundary_pos != -1:
+        assert lighthouse_pos < boundary_pos
 
 
 def test_lighthouse_absent_on_brand_studio(stub_summary, base_state) -> None:

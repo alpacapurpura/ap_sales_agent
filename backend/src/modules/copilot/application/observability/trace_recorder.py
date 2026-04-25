@@ -25,8 +25,9 @@ Event-type catalog (see migration 059 for storage, admin panel for UI):
 * ``node_enter`` / ``node_exit`` — LangGraph node transitions (optional).
 * ``error`` — explicit failure, with exception class + message.
 
-Consumers: the chat orchestrator, ``agent_node``, ``tool_executor_node`` and
-``_handle_tool_end_v2`` call the recorder. The ``with_span`` context manager
+Consumers: the chat orchestrator + ``_handle_tool_end_v2`` call the
+recorder; the deep-agent harness LangChain runtime emits `on_tool_*`
+events that the orchestrator forwards. The ``with_span`` context manager
 auto-handles success/error + duration.
 """
 

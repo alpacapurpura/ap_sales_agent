@@ -1,12 +1,16 @@
 """SSE streaming integration tests for CopilotOrchestrator.
 
-Verifies that the SSE wire-protocol is correctly formatted for every event type
-the orchestrator can emit: text_chunk, tool_start, tool_result, ui_action,
-status, done, error.
+Verifies that the SSE wire-protocol is correctly formatted for every event
+type the orchestrator can emit. F8 §5.4 collapsed the dual-emit window:
+the canonical events are now ``message_start`` / ``block_start`` /
+``block_delta`` / ``block_end`` / ``block_append`` / ``message_end`` plus
+``tool_start`` / ``tool_result`` / ``ui_action`` / ``status`` /
+``done`` / ``error``.
 
-These tests do NOT require a real LLM or a real database — they exercise the
-orchestrator's _process_stream_event / stream_chat logic with hand-crafted
-mock events, asserting the exact bytes that reach the client.
+These tests do NOT require a real LLM or a real database — they exercise
+the orchestrator's _process_stream_event / stream_chat logic with
+hand-crafted mock events, asserting the exact bytes that reach the
+client.
 """
 
 from __future__ import annotations
@@ -78,18 +82,24 @@ async def _collect(orch: CopilotOrchestrator, msg: str = "Hola") -> list[dict[st
 class TestSSEEventWireFormat:
     """Verify that SSEEvent.to_sse() produces exact wire-protocol bytes."""
 
-    def test_text_chunk_format(self) -> None:
-        """text_chunk events must carry a 'content' key."""
-        event = SSEEvent(event="text_chunk", data={"content": "Hola mundo"})
+    def test_block_delta_format(self) -> None:
+        """block_delta events must carry message_id, block_id and a delta payload."""
+        event = SSEEvent(
+            event="block_delta",
+            data={
+                "message_id": "m1",
+                "block_id": "b1",
+                "delta": {"markdown": "Hola mundo"},
+            },
+        )
         raw = event.to_sse()
 
-        assert raw.startswith("event: text_chunk\n")
-        assert "data: " in raw
+        assert raw.startswith("event: block_delta\n")
         assert raw.endswith("\n\n")
 
         parsed = _parse_sse(raw)
-        assert parsed["event"] == "text_chunk"
-        assert parsed["data"]["content"] == "Hola mundo"
+        assert parsed["event"] == "block_delta"
+        assert parsed["data"]["delta"]["markdown"] == "Hola mundo"
 
     def test_done_event_format(self) -> None:
         """done events must carry a 'conversation_id' key."""
@@ -141,7 +151,10 @@ class TestSSEEventWireFormat:
     def test_data_is_valid_json(self) -> None:
         """The data field in every SSE frame must be valid JSON."""
         events = [
-            SSEEvent(event="text_chunk", data={"content": "test"}),
+            SSEEvent(
+                event="block_delta",
+                data={"message_id": "m", "block_id": "b", "delta": {"markdown": "test"}},
+            ),
             SSEEvent(event="done", data={"conversation_id": "x"}),
             SSEEvent(event="error", data={"message": "err"}),
             SSEEvent(event="status", data={"state": "thinking"}),
@@ -154,7 +167,14 @@ class TestSSEEventWireFormat:
 
     def test_unicode_preserved_in_spanish(self) -> None:
         """Spanish accents and eñes must survive the wire encoding."""
-        event = SSEEvent(event="text_chunk", data={"content": "Próximamente días niño"})
+        event = SSEEvent(
+            event="block_delta",
+            data={
+                "message_id": "m",
+                "block_id": "b",
+                "delta": {"markdown": "Próximamente días niño"},
+            },
+        )
         raw = event.to_sse()
         assert "Próximamente" in raw
         assert "días" in raw
@@ -171,7 +191,10 @@ class TestProcessStreamEvent:
     def orch(self) -> CopilotOrchestrator:
         return _make_orchestrator()
 
-    def test_text_chunk_event_returns_sse_and_content(self, orch: CopilotOrchestrator) -> None:
+    def test_text_chunk_event_returns_content_only(self, orch: CopilotOrchestrator) -> None:
+        """F8 §5.4 — ``on_chat_model_stream`` no longer emits a top-level
+        SSE frame. The text content is returned for the caller to feed
+        the v2 ``block_delta`` lifecycle in ``_emit_text_chunk_v2``."""
         mock_chunk = MagicMock()
         mock_chunk.content = "Hola, "
         event = {"event": "on_chat_model_stream", "data": {"chunk": mock_chunk}}
@@ -179,10 +202,7 @@ class TestProcessStreamEvent:
         sse, text = orch._process_stream_event(event, [], {})
 
         assert text == "Hola, "
-        assert sse is not None
-        parsed = _parse_sse(sse)
-        assert parsed["event"] == "text_chunk"
-        assert parsed["data"]["content"] == "Hola, "
+        assert sse is None
 
     def test_empty_chunk_content_returns_none(self, orch: CopilotOrchestrator) -> None:
         mock_chunk = MagicMock()
@@ -298,8 +318,8 @@ class TestStreamChatEventSequence:
     ) -> list[dict[str, Any]]:
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.copilot_graph",
-            ) as mock_graph,
+                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+            ) as mock_build_graph,
             patch(
                 "src.modules.copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
                 timeout_seconds,
@@ -309,7 +329,7 @@ class TestStreamChatEventSequence:
                 None,
             ),
         ):
-            mock_graph.astream_events = fake_stream
+            mock_build_graph.return_value.astream_events = fake_stream
             return await _collect(orch)
 
     @pytest.fixture()
@@ -317,7 +337,7 @@ class TestStreamChatEventSequence:
         return _make_orchestrator()
 
     async def test_happy_path_event_sequence(self, orch: CopilotOrchestrator) -> None:
-        """Happy path: status→streaming→text_chunk→status→done→done."""
+        """Happy path: status→streaming→message_start→block_*→message_end→done."""
 
         async def fake_stream(state, *, version="v2"):
             yield {
@@ -338,15 +358,19 @@ class TestStreamChatEventSequence:
 
         # Must start with status:thinking
         assert events[0] == {"event": "status", "data": {"state": "thinking"}}
-        # Must contain text_chunk events
-        assert "text_chunk" in event_types
+        # F8 §5.4 — only block_delta is emitted now, never text_chunk.
+        assert "block_delta" in event_types
+        assert "text_chunk" not in event_types
         # Must end with done
         assert event_types[-1] == "done"
         # Must not contain error
         assert "error" not in event_types
 
-    async def test_text_chunks_content_is_correct(self, orch: CopilotOrchestrator) -> None:
-        """All text_chunk contents concatenated must equal the full response."""
+    async def test_block_delta_chunks_concatenate_to_full_response(
+        self,
+        orch: CopilotOrchestrator,
+    ) -> None:
+        """All block_delta markdown fragments concatenated must equal the full response."""
 
         async def fake_stream(state, *, version="v2"):
             for word in ["Hola", " mundo", " desde", " Nicolify"]:
@@ -360,7 +384,7 @@ class TestStreamChatEventSequence:
             }
 
         events = await self._run_with_mock_graph(orch, fake_stream)
-        chunks = [e["data"]["content"] for e in events if e["event"] == "text_chunk"]
+        chunks = [e["data"]["delta"]["markdown"] for e in events if e["event"] == "block_delta"]
         assert "".join(chunks) == "Hola mundo desde Nicolify"
 
     async def test_tool_call_produces_tool_events(self, orch: CopilotOrchestrator) -> None:
@@ -437,7 +461,7 @@ class TestStreamChatEventSequence:
         assert "error" not in event_types
 
     async def test_status_streaming_emitted_before_chunks(self, orch: CopilotOrchestrator) -> None:
-        """status:streaming must be emitted before any text_chunk events."""
+        """status:streaming must be emitted before any block_delta events."""
 
         async def fake_stream(state, *, version="v2"):
             yield {
@@ -448,7 +472,7 @@ class TestStreamChatEventSequence:
         events = await self._run_with_mock_graph(orch, fake_stream)
 
         status_events = [i for i, e in enumerate(events) if e["event"] == "status"]
-        chunk_events = [i for i, e in enumerate(events) if e["event"] == "text_chunk"]
+        chunk_events = [i for i, e in enumerate(events) if e["event"] == "block_delta"]
 
         if chunk_events:
             # At least one status event must precede the first chunk

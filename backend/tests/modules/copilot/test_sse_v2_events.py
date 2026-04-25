@@ -1,11 +1,12 @@
 """Tests for SSE v2 block events emitted by the CopilotOrchestrator.
 
-Validates dual-emit strategy (CONTRACT-MULTIMODAL §6.3):
-- Text streaming: text_chunk (legacy) + block_start/block_delta/block_end (v2).
-- Tool results: tool_result (legacy) + block_append with typed block (v2).
-- UI actions: ui_action (legacy) + block_append with CardBlock (v2).
-- message_start emitted before first block.
-- message_end emitted with finalized blocks list.
+F8 §5.4 — only v2 is emitted now. The legacy ``text_chunk`` channel
+was removed once the FE migrated to the block_delta render path.
+- Text streaming: block_start / block_delta / block_end (per text block).
+- Tool results: ``tool_result`` + ``block_append`` for typed blocks.
+- UI actions: ``ui_action`` + ``block_append`` for CardBlocks.
+- ``message_start`` precedes every block.
+- ``message_end`` carries the finalized blocks list + tokens_used.
 
 Tests use hand-crafted LangGraph events; no real LLM required.
 """
@@ -511,28 +512,26 @@ class TestUiActionToCardBlock:
 async def _run_stream_chat(
     orch: CopilotOrchestrator,
     graph_events: list[dict],
-    emit_legacy: bool = True,
 ) -> list[dict[str, Any]]:
-    """Drive stream_chat using a fake async generator for copilot_graph.astream_events."""
+    """Drive stream_chat using a fake async generator for the deep-agent graph."""
 
     async def fake_graph_stream(state: dict, *, version: str = "v2"):
         for ev in graph_events:
             yield ev
 
+    fake_graph = MagicMock()
+    fake_graph.astream_events = fake_graph_stream
+
     with (
         patch(
-            "src.modules.copilot.application.orchestrator.chat.copilot_graph",
-        ) as mock_graph,
-        patch(
-            "src.modules.copilot.application.orchestrator.chat._EMIT_LEGACY_SSE",
-            emit_legacy,
+            "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+            return_value=fake_graph,
         ),
         patch(
             "src.modules.copilot.application.orchestrator.chat.redis_client",
             None,
         ),
     ):
-        mock_graph.astream_events = fake_graph_stream
         raw_frames = [
             frame
             async for frame in orch.stream_chat(
@@ -575,24 +574,14 @@ class TestStreamChatV2EventOrdering:
         assert idx_message_start < idx_block_start
 
     @pytest.mark.asyncio
-    async def test_text_streaming_emits_both_legacy_and_v2(self) -> None:
-        """When COPILOT_EMIT_LEGACY_SSE=true, text streaming emits text_chunk AND block_delta."""
+    async def test_text_streaming_emits_only_v2(self) -> None:
+        """F8 §5.4 — text streaming emits ONLY block_delta. ``text_chunk`` is gone."""
         orch = _make_orchestrator()
-        events = await _run_stream_chat(orch, _make_text_stream_events(["Hola", " mundo"]), emit_legacy=True)
+        events = await _run_stream_chat(orch, _make_text_stream_events(["Hola", " mundo"]))
         event_types = [e["event"] for e in events]
 
-        assert "text_chunk" in event_types, "Legacy text_chunk must be emitted"
         assert "block_delta" in event_types, "v2 block_delta must always be emitted"
-
-    @pytest.mark.asyncio
-    async def test_legacy_suppressed_when_flag_false(self) -> None:
-        """When COPILOT_EMIT_LEGACY_SSE=false, text_chunk is NOT emitted."""
-        orch = _make_orchestrator()
-        events = await _run_stream_chat(orch, _make_text_stream_events(["Solo v2"]), emit_legacy=False)
-        event_types = [e["event"] for e in events]
-
-        assert "text_chunk" not in event_types
-        assert "block_delta" in event_types
+        assert "text_chunk" not in event_types, "Legacy text_chunk SSE was removed in F8 §5.4 — it must not be emitted"
 
     @pytest.mark.asyncio
     async def test_message_end_contains_final_blocks(self) -> None:

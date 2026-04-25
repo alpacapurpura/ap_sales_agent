@@ -140,9 +140,21 @@ export function useCopilotChat() {
             },
           },
           {
-            onTextChunk: (content) => {
+            // SSE v2 (F8 §5.4) — block_delta is the canonical render path.
+            // ``updateLastTextBlock`` appends to the last text block AND to
+            // the legacy ``content`` field so the renderer keeps working
+            // for both the new block-based renderer and any legacy reader.
+            onBlockDelta: (data) => {
               if (!isActive()) return;
-              useCopilotStore.getState().appendToLastAssistant(content);
+              const md = data.delta?.markdown;
+              if (typeof md !== "string" || md.length === 0) return;
+              useCopilotStore.getState().updateLastTextBlock(md);
+            },
+            onBlockAppend: (data) => {
+              if (!isActive()) return;
+              useCopilotStore
+                .getState()
+                .addBlockToLastAssistant(data.block as unknown as MessageBlock);
             },
             onStatus: (state) => {
               if (!isActive()) return;

@@ -1,0 +1,4 @@
+## Módulos del Sistema
+{% for mod in modules %}
+- **{{ mod.label }}** ({{ mod.route_prefix }}): {{ mod.description }}
+{% endfor %}

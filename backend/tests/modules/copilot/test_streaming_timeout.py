@@ -165,8 +165,8 @@ class TestStreamingTimeout:
         """When LLM streaming times out, an SSE error event must be emitted."""
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.copilot_graph",
-            ) as mock_graph,
+                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+            ) as mock_build_graph,
             patch(
                 "src.modules.copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
                 0.1,  # 100ms timeout for fast test
@@ -181,7 +181,7 @@ class TestStreamingTimeout:
         ):
             mock_repo_cls.return_value = _setup_orchestrator_mocks(orchestrator)
 
-            mock_graph.astream_events = _fake_stream_events_slow
+            mock_build_graph.return_value.astream_events = _fake_stream_events_slow
 
             events = await _collect_sse_events(orchestrator)
             parsed = _parse_sse_events(events)
@@ -203,8 +203,8 @@ class TestStreamingTimeout:
         """Partial text chunks emitted before timeout must still be received."""
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.copilot_graph",
-            ) as mock_graph,
+                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+            ) as mock_build_graph,
             patch(
                 "src.modules.copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
                 0.1,
@@ -219,15 +219,16 @@ class TestStreamingTimeout:
         ):
             mock_repo_cls.return_value = _setup_orchestrator_mocks(orchestrator)
 
-            mock_graph.astream_events = _fake_stream_events_slow
+            mock_build_graph.return_value.astream_events = _fake_stream_events_slow
 
             events = await _collect_sse_events(orchestrator)
             parsed = _parse_sse_events(events)
-            text_chunks = [e["data"]["content"] for e in parsed if e["event"] == "text_chunk"]
+            # F8 §5.4 — block_delta is the canonical render path now.
+            partial_chunks = [e["data"]["delta"]["markdown"] for e in parsed if e["event"] == "block_delta"]
 
             # Partial chunks should be preserved
-            assert len(text_chunks) >= 1
-            partial_text = "".join(text_chunks)
+            assert len(partial_chunks) >= 1
+            partial_text = "".join(partial_chunks)
             assert "Hola, " in partial_text
 
     async def test_no_timeout_on_fast_response(
@@ -237,8 +238,8 @@ class TestStreamingTimeout:
         """Fast responses should complete normally without timeout error."""
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.copilot_graph",
-            ) as mock_graph,
+                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+            ) as mock_build_graph,
             patch(
                 "src.modules.copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
                 5,
@@ -253,7 +254,7 @@ class TestStreamingTimeout:
         ):
             mock_repo_cls.return_value = _setup_orchestrator_mocks(orchestrator)
 
-            mock_graph.astream_events = _fake_stream_events_fast
+            mock_build_graph.return_value.astream_events = _fake_stream_events_fast
 
             events = await _collect_sse_events(orchestrator)
             parsed = _parse_sse_events(events)
@@ -261,8 +262,8 @@ class TestStreamingTimeout:
 
             # Should NOT contain an error event
             assert "error" not in event_types
-            # Should contain text and done
-            assert "text_chunk" in event_types
+            # Should contain v2 streaming + done
+            assert "block_delta" in event_types
             assert "done" in event_types
 
     async def test_timeout_still_emits_done_event(
@@ -272,8 +273,8 @@ class TestStreamingTimeout:
         """Even on timeout, the stream must end with status:done and done events."""
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.copilot_graph",
-            ) as mock_graph,
+                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+            ) as mock_build_graph,
             patch(
                 "src.modules.copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
                 0.1,
@@ -288,7 +289,7 @@ class TestStreamingTimeout:
         ):
             mock_repo_cls.return_value = _setup_orchestrator_mocks(orchestrator)
 
-            mock_graph.astream_events = _fake_stream_events_slow
+            mock_build_graph.return_value.astream_events = _fake_stream_events_slow
 
             events = await _collect_sse_events(orchestrator)
             parsed = _parse_sse_events(events)
@@ -308,8 +309,8 @@ class TestStreamingTimeout:
         """On timeout with partial response, the partial text should be persisted."""
         with (
             patch(
-                "src.modules.copilot.application.orchestrator.chat.copilot_graph",
-            ) as mock_graph,
+                "src.modules.copilot.application.orchestrator.chat.build_deep_agent_graph",
+            ) as mock_build_graph,
             patch(
                 "src.modules.copilot.application.orchestrator.chat.COPILOT_STREAM_TIMEOUT_SECONDS",
                 0.1,
@@ -325,7 +326,7 @@ class TestStreamingTimeout:
             mock_repo = _setup_orchestrator_mocks(orchestrator)
             mock_repo_cls.return_value = mock_repo
 
-            mock_graph.astream_events = _fake_stream_events_slow
+            mock_build_graph.return_value.astream_events = _fake_stream_events_slow
 
             await _collect_sse_events(orchestrator)
 

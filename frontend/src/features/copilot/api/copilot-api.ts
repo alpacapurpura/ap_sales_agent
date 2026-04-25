@@ -26,16 +26,37 @@ export interface CopilotChatPayload {
   };
 }
 
+/**
+ * SSE event types emitted by the BE.
+ *
+ * F8 §5.4 — the backend now emits the v2 ``block_*`` + ``message_*`` family
+ * as the canonical streaming protocol. ``text_chunk`` is kept here only for
+ * backwards compatibility while the dual-emit migration window closes; once
+ * the BE drops it (post-deploy of F8) the frontend handler short-circuits
+ * silently because the switch defaults to no-op for unknown events.
+ *
+ * @see backend/src/modules/copilot/application/orchestrator/chat.py
+ */
 export type SSEEventType =
-  | "text_chunk"
+  // ── Streaming primitives (v2 — preferred) ─────────────────────────
+  | "message_start"
+  | "message_end"
+  | "block_start"
+  | "block_delta"
+  | "block_end"
+  | "block_append"
+  // ── Tool + UI side channels ───────────────────────────────────────
   | "tool_start"
   | "tool_result"
   | "ui_action"
   | "proposal"
   | "confirmation_required"
+  // ── Lifecycle ─────────────────────────────────────────────────────
   | "status"
   | "done"
-  | "error";
+  | "error"
+  // ── Legacy (removed by F8 §5.4 — kept for transitional safety) ────
+  | "text_chunk";
 
 export interface SSEEventData {
   event: SSEEventType;
@@ -129,21 +150,57 @@ function isRetryableError(error: unknown): boolean {
 }
 
 /**
+ * Single canonical callback shape — both ``streamCopilotChat`` and the
+ * internal ``attemptSSEStream`` accept this. Splitting it kept producing
+ * drift between the two argument lists; one type, one source of truth.
+ *
+ * F8 §5.4 — ``onBlockDelta`` is the canonical render path. ``onTextChunk``
+ * is kept optional during the dual-emit migration window and silently
+ * ignored once the BE stops emitting it.
+ */
+export interface CopilotChatCallbacks {
+  // Streaming render (v2)
+  onMessageStart?: (data: { message_id: string; role: string; created_at: string }) => void;
+  onBlockStart?: (data: {
+    message_id: string;
+    block_id: string;
+    type: string;
+    index: number;
+  }) => void;
+  onBlockDelta?: (data: {
+    message_id: string;
+    block_id: string;
+    delta: { markdown?: string };
+  }) => void;
+  onBlockEnd?: (data: {
+    message_id: string;
+    block_id: string;
+    final: Record<string, unknown>;
+  }) => void;
+  onBlockAppend?: (data: { message_id: string; block: Record<string, unknown> }) => void;
+  onMessageEnd?: (data: { message_id: string; status: string; tokens_used?: number }) => void;
+  // Tool + UI side channels
+  onToolStart?: (tool: string, args: Record<string, unknown>) => void;
+  onToolResult?: (tool: string, result: string) => void;
+  onUIAction?: (action: Record<string, unknown>) => void;
+  // Lifecycle
+  onStatus: (state: string) => void;
+  onDone: (conversationId: string) => void;
+  onError: (message: string) => void;
+  // Legacy — removed once BE drops dual-emit (F8 §5.4 cutover).
+  onTextChunk?: (content: string) => void;
+  // Retry feedback for the network-error backoff loop
+  onRetry?: (attempt: number, maxAttempts: number) => void;
+}
+
+/**
  * Executes one SSE streaming attempt (single fetch + stream read-loop).
  * Returns true if the stream completed successfully (received "done" event).
  * Throws on network error. Calls onError + returns false on server errors.
  */
 async function attemptSSEStream(
   payload: CopilotChatPayload,
-  callbacks: {
-    onTextChunk: (content: string) => void;
-    onToolStart?: (tool: string, args: Record<string, unknown>) => void;
-    onToolResult?: (tool: string, result: string) => void;
-    onUIAction?: (action: Record<string, unknown>) => void;
-    onStatus: (state: string) => void;
-    onDone: (conversationId: string) => void;
-    onError: (message: string) => void;
-  },
+  callbacks: CopilotChatCallbacks,
   token: string,
   signal?: AbortSignal,
 ): Promise<boolean> {
@@ -220,16 +277,7 @@ async function attemptSSEStream(
 // eslint-disable-next-line sonarjs/cognitive-complexity -- Irreducible: retry loop (3 attempts), abort propagation, error classification, and exponential back-off are each a branch but tightly coupled — extracting further would not reduce the total branching, only relocate it.
 export async function streamCopilotChat(
   payload: CopilotChatPayload,
-  callbacks: {
-    onTextChunk: (content: string) => void;
-    onToolStart?: (tool: string, args: Record<string, unknown>) => void;
-    onToolResult?: (tool: string, result: string) => void;
-    onUIAction?: (action: Record<string, unknown>) => void;
-    onStatus: (state: string) => void;
-    onDone: (conversationId: string) => void;
-    onError: (message: string) => void;
-    onRetry?: (attempt: number, maxAttempts: number) => void;
-  },
+  callbacks: CopilotChatCallbacks,
   token: string,
   signal?: AbortSignal,
 ): Promise<void> {
@@ -321,15 +369,48 @@ export async function fetchActiveJobs(
   }
 }
 
+/**
+ * Dispatch a parsed SSE frame to the matching callback.
+ *
+ * F8 §5.4 — block_* / message_* are the canonical render path. Unknown or
+ * deprecated events fall through silently (no throw) so the BE can drop a
+ * frame mid-deploy without breaking older FE tabs that haven't refreshed.
+ */
+
 function handleSSEEvent(
   event: SSEEventType,
   data: Record<string, unknown>,
-  callbacks: Parameters<typeof streamCopilotChat>[1],
+  callbacks: CopilotChatCallbacks,
 ) {
   switch (event) {
-    case "text_chunk":
-      callbacks.onTextChunk(data.content as string);
+    // ── Streaming primitives (v2 — preferred) ─────────────────────
+    case "message_start":
+      callbacks.onMessageStart?.(data as { message_id: string; role: string; created_at: string });
       break;
+    case "message_end":
+      callbacks.onMessageEnd?.(
+        data as { message_id: string; status: string; tokens_used?: number },
+      );
+      break;
+    case "block_start":
+      callbacks.onBlockStart?.(
+        data as { message_id: string; block_id: string; type: string; index: number },
+      );
+      break;
+    case "block_delta":
+      callbacks.onBlockDelta?.(
+        data as { message_id: string; block_id: string; delta: { markdown?: string } },
+      );
+      break;
+    case "block_end":
+      callbacks.onBlockEnd?.(
+        data as { message_id: string; block_id: string; final: Record<string, unknown> },
+      );
+      break;
+    case "block_append":
+      callbacks.onBlockAppend?.(data as { message_id: string; block: Record<string, unknown> });
+      break;
+    // ── Tool + UI side channels ───────────────────────────────────
     case "tool_start":
       callbacks.onToolStart?.(data.tool as string, (data.args ?? {}) as Record<string, unknown>);
       break;
@@ -339,6 +420,7 @@ function handleSSEEvent(
     case "ui_action":
       callbacks.onUIAction?.(data);
       break;
+    // ── Lifecycle ─────────────────────────────────────────────────
     case "status":
       callbacks.onStatus(data.state as string);
       break;
@@ -347,6 +429,14 @@ function handleSSEEvent(
       break;
     case "error":
       callbacks.onError(data.message as string);
+      break;
+    // ── Legacy (removed by F8 §5.4 cutover) ───────────────────────
+    case "text_chunk":
+      callbacks.onTextChunk?.(data.content as string);
+      break;
+    // proposal / confirmation_required: reserved frames, no FE action yet.
+    case "proposal":
+    case "confirmation_required":
       break;
   }
 }

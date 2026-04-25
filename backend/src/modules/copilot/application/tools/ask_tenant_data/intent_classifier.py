@@ -1,14 +1,15 @@
 """Intent classifier for ``ask_tenant_data``.
 
-Single LLM FAST call that maps a natural-language tenant question to a
-structured ``IntentResult`` the rest of the pipeline can dispatch on. Keeps
-the LLM stage minimal: name extraction, period phrase capture, and channel
-hint. Date parsing and entity resolution stay in deterministic Python (the
-``date_parser`` and ``executor`` stages) so the pipeline only burns one LLM
-call here regardless of question complexity.
+Single LLM NANO call (F8 — was FAST until F5 hook activated) that maps a
+natural-language tenant question to a structured ``IntentResult`` the rest
+of the pipeline can dispatch on. Keeps the LLM stage minimal: name
+extraction, period phrase capture, and channel hint. Date parsing and
+entity resolution stay in deterministic Python (the ``date_parser`` and
+``executor`` stages) so the pipeline only burns one LLM call here
+regardless of question complexity.
 
 Tests inject ``llm=`` to bypass the real model; production resolves
-``ModelRole.FAST`` via ``LLMFactory``.
+``ModelRole.NANO`` via ``LLMFactory``.
 """
 
 from __future__ import annotations
@@ -117,13 +118,13 @@ async def classify_intent(
 ) -> IntentResult:
     """Classify the question and return an ``IntentResult``.
 
-    ``llm`` defaults to ``LLMFactory.get_service().get_client(ModelRole.FAST)``;
+    ``llm`` defaults to ``LLMFactory.get_service().get_client(ModelRole.NANO)``;
     tests pass a stub exposing ``invoke([messages])``.
     """
     if llm is None:
         from src.shared.infrastructure.llm.factory import LLMFactory
 
-        llm = LLMFactory.get_service().get_client(ModelRole.FAST)
+        llm = LLMFactory.get_service().get_client(ModelRole.NANO)
         llm = llm.bind(temperature=0.0)
 
     messages = [

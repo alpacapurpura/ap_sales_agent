@@ -229,12 +229,19 @@ class TestSystemPromptOrder:
         # All three sections present.
         assert "## Brand Lighthouse" in prompt
         assert "## Inspiraciones cargadas" in prompt
-        # Lighthouse < Inspirations < base prompt body.
+        # F8 §5.2 reorder: identity (base prompt body) is the FIRST fragment
+        # in the cacheable prefix, lighthouse comes 3rd, inspirations sit in
+        # the volatile tail AFTER the cache boundary marker. Final order is
+        #   identity ("Eres ...") < lighthouse < cache boundary < inspirations
+        from src.modules.copilot.application.orchestrator.system_prompt_layout import (
+            CACHE_BOUNDARY_MARKER,
+        )
+
+        base_pos = prompt.index("Eres el Copilot de Nicolify")
         lh_pos = prompt.index("## Brand Lighthouse")
         insp_pos = prompt.index("## Inspiraciones cargadas")
-        base_marker = "Eres" if "Eres" in prompt else "Copilot"
-        base_pos = prompt.index(base_marker)
-        assert lh_pos < insp_pos < base_pos
+        boundary_pos = prompt.index(CACHE_BOUNDARY_MARKER)
+        assert base_pos < lh_pos < boundary_pos < insp_pos
 
     def test_deep_agent_suffix_still_tail(
         self,

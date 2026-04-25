@@ -27,9 +27,12 @@ async def copilot_chat(
 ) -> StreamingResponse:
     """Stream a copilot response via Server-Sent Events.
 
-    The client should consume this as an SSE stream. Each event has:
-    - event: text_chunk | tool_start | tool_result | status | done | error
-    - data: JSON payload
+    The client should consume this as an SSE stream. Each frame has:
+    - event: ``message_start`` | ``message_end`` |
+             ``block_start`` | ``block_delta`` | ``block_end`` | ``block_append`` |
+             ``tool_start`` | ``tool_result`` | ``ui_action`` |
+             ``status`` | ``done`` | ``error``
+    - data: JSON payload (shape depends on event — see ``SSEEvent`` DTO).
     """
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")

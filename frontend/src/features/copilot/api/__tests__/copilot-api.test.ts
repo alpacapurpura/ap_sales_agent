@@ -66,6 +66,14 @@ function buildSSEResponse(chunks: { event: string; data: Record<string, unknown>
 
 function makeCallbacks() {
   return {
+    // v2 streaming primitives (F8 §5.4)
+    onMessageStart: vi.fn(),
+    onMessageEnd: vi.fn(),
+    onBlockStart: vi.fn(),
+    onBlockDelta: vi.fn(),
+    onBlockEnd: vi.fn(),
+    onBlockAppend: vi.fn(),
+    // Side channels + lifecycle
     onTextChunk: vi.fn(),
     onToolStart: vi.fn(),
     onToolResult: vi.fn(),
@@ -178,7 +186,7 @@ describe("streamCopilotChat — SSE event parsing", () => {
     fetchSpy.mockRestore();
   });
 
-  it("calls onTextChunk for each text_chunk event", async () => {
+  it("calls onTextChunk for each text_chunk event (legacy compat path)", async () => {
     fetchSpy.mockResolvedValue(
       buildSSEResponse([
         [{ event: "text_chunk", data: { content: "Hola " } }],
@@ -193,6 +201,110 @@ describe("streamCopilotChat — SSE event parsing", () => {
     expect(cbs.onTextChunk).toHaveBeenCalledTimes(2);
     expect(cbs.onTextChunk).toHaveBeenCalledWith("Hola ");
     expect(cbs.onTextChunk).toHaveBeenCalledWith("mundo");
+  });
+
+  it("dispatches the v2 streaming family (message_start → block_* → message_end)", async () => {
+    fetchSpy.mockResolvedValue(
+      buildSSEResponse([
+        [
+          {
+            event: "message_start",
+            data: { message_id: "m1", role: "assistant", created_at: "2026-04-25T00:00:00Z" },
+          },
+        ],
+        [
+          {
+            event: "block_start",
+            data: { message_id: "m1", block_id: "b1", type: "text", index: 0 },
+          },
+        ],
+        [
+          {
+            event: "block_delta",
+            data: { message_id: "m1", block_id: "b1", delta: { markdown: "Hola " } },
+          },
+        ],
+        [
+          {
+            event: "block_delta",
+            data: { message_id: "m1", block_id: "b1", delta: { markdown: "mundo" } },
+          },
+        ],
+        [
+          {
+            event: "block_end",
+            data: {
+              message_id: "m1",
+              block_id: "b1",
+              final: { id: "b1", type: "text", markdown: "Hola mundo" },
+            },
+          },
+        ],
+        [
+          {
+            event: "message_end",
+            data: { message_id: "m1", status: "sent", tokens_used: 12 },
+          },
+        ],
+        [{ event: "done", data: { conversation_id: "c-v2" } }],
+      ]),
+    );
+
+    const cbs = makeCallbacks();
+    await streamCopilotChat(DEFAULT_PAYLOAD, cbs, "tok");
+
+    expect(cbs.onMessageStart).toHaveBeenCalledTimes(1);
+    expect(cbs.onMessageStart).toHaveBeenCalledWith(
+      expect.objectContaining({ message_id: "m1", role: "assistant" }),
+    );
+    expect(cbs.onBlockStart).toHaveBeenCalledTimes(1);
+    expect(cbs.onBlockDelta).toHaveBeenCalledTimes(2);
+    expect(cbs.onBlockDelta).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ block_id: "b1", delta: { markdown: "Hola " } }),
+    );
+    expect(cbs.onBlockEnd).toHaveBeenCalledTimes(1);
+    expect(cbs.onMessageEnd).toHaveBeenCalledWith(
+      expect.objectContaining({ message_id: "m1", status: "sent" }),
+    );
+  });
+
+  it("calls onBlockAppend for fully-rendered cards (plan_card, clarify, …)", async () => {
+    const planCard = {
+      id: "plan-1",
+      type: "card",
+      card_kind: "plan_card",
+      payload: { todos: [{ content: "Probar reorder", status: "pending" }] },
+    };
+    fetchSpy.mockResolvedValue(
+      buildSSEResponse([
+        [{ event: "block_append", data: { message_id: "m1", block: planCard } }],
+        [{ event: "done", data: { conversation_id: "c-card" } }],
+      ]),
+    );
+
+    const cbs = makeCallbacks();
+    await streamCopilotChat(DEFAULT_PAYLOAD, cbs, "tok");
+
+    expect(cbs.onBlockAppend).toHaveBeenCalledTimes(1);
+    expect(cbs.onBlockAppend).toHaveBeenCalledWith(expect.objectContaining({ block: planCard }));
+  });
+
+  it("ignores unknown / reserved events without throwing", async () => {
+    fetchSpy.mockResolvedValue(
+      buildSSEResponse([
+        [{ event: "proposal", data: { id: "p1" } }],
+        [{ event: "confirmation_required", data: { kind: "destructive" } }],
+        [{ event: "done", data: { conversation_id: "c-noop" } }],
+      ]),
+    );
+
+    const cbs = makeCallbacks();
+    await streamCopilotChat(DEFAULT_PAYLOAD, cbs, "tok");
+
+    // Reserved frames are no-op — only the lifecycle frame fires.
+    expect(cbs.onDone).toHaveBeenCalledWith("c-noop");
+    expect(cbs.onError).not.toHaveBeenCalled();
   });
 
   it("calls onDone with conversation_id from done event", async () => {

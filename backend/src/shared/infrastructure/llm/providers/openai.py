@@ -21,6 +21,7 @@ logger = structlog.get_logger()
 _LEGACY_MODEL_TYPE_MAP: dict[str, ModelRole] = {
     "smart": ModelRole.REASONING,
     "fast": ModelRole.FAST,
+    "nano": ModelRole.NANO,
     "vision": ModelRole.VISION,
     "agent": ModelRole.AGENT,
 }

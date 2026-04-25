@@ -53,6 +53,9 @@ class Settings(BaseSettings):
 
     # --- AI Model Registry ---
     # Each role maps to a concrete model. Override per-role via env vars.
+    # NANO defaults to gpt-4o-mini until OpenAI catalog exposes a smaller tier
+    # in our deployed envs (override via AI_MODEL_NANO env var).
+    AI_MODEL_NANO: str = "gpt-4o-mini"
     AI_MODEL_REASONING: str = "gpt-4o"
     AI_MODEL_FAST: str = "gpt-4o-mini"
     AI_MODEL_VISION: str = "gpt-4o"
@@ -62,6 +65,7 @@ class Settings(BaseSettings):
     def get_model(self, role: ModelRole) -> str:
         """Resolve a semantic role to a concrete model name."""
         _map = {
+            ModelRole.NANO: self.AI_MODEL_NANO,
             ModelRole.REASONING: self.AI_MODEL_REASONING,
             ModelRole.FAST: self.AI_MODEL_FAST,
             ModelRole.VISION: self.AI_MODEL_VISION,
@@ -153,12 +157,6 @@ class Settings(BaseSettings):
 
     # CORS
     CORS_ORIGINS: list[str] = []
-
-    # Copilot redesign 2026-04 — F2 deep agents harness toggle.
-    # Off (default) keeps legacy ReAct ``copilot_graph``. On routes the chat
-    # orchestrator through ``deep_agent_graph`` (planning + scratchpad +
-    # subagents). Flip per environment until F4 + F5 stabilize.
-    COPILOT_DEEP_AGENT_V2: bool = False
 
     @property
     def database_url(self) -> str:
