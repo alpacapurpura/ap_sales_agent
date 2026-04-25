@@ -1,7 +1,7 @@
 """Golden baseline for buyer-persona catalog — locks in pre/post-Fase-07 invariants.
 
 Captured 2026-04-24 (sub-step 07.A) from
-``BUYER_PERSONA_EDITABLE_FIELDS`` (legacy hand-written tuples) so the
+``_buyer_persona_catalog()`` (legacy hand-written tuples) so the
 Fase 07 migration can be validated as **byte-identical UX** (INVARIANT 4).
 
 Post-Fase-07 the catalog must:
@@ -17,10 +17,14 @@ refs: docs/refactors/field-contract-platform/phases/07-buyer-migration/PRE_INVES
 
 from __future__ import annotations
 
-from src.modules.brand.domain.copilot_editable_fields_buyer_persona import (
-    BUYER_PERSONA_EDITABLE_FIELDS,
-)
 from src.modules.copilot.domain.schema_introspection import validate_field_path
+from src.shared.links.ports.editable_fields import get_catalog
+
+
+def _buyer_persona_catalog():
+    """Helper — post-Fase-08 the catalog derives from the FieldContract registry."""
+    return get_catalog("buyer_persona")
+
 
 # ---------------------------------------------------------------------------
 # Baseline — frozen pre-Fase-07
@@ -119,25 +123,25 @@ class TestBuyerPersonaCatalogBaseline:
 
     def test_catalog_entry_count(self) -> None:
         """Catalog has exactly 12 entries pre-Fase-07."""
-        assert len(BUYER_PERSONA_EDITABLE_FIELDS) == len(BUYER_PERSONA_CATALOG_BASELINE), (
+        assert len(_buyer_persona_catalog()) == len(BUYER_PERSONA_CATALOG_BASELINE), (
             f"Catalog size drifted: expected {len(BUYER_PERSONA_CATALOG_BASELINE)}, "
-            f"got {len(BUYER_PERSONA_EDITABLE_FIELDS)}."
+            f"got {len(_buyer_persona_catalog())}."
         )
 
     def test_catalog_paths_match_baseline(self) -> None:
         """Every baseline path is present in the catalog."""
-        catalog_paths = {f.path for f in BUYER_PERSONA_EDITABLE_FIELDS}
+        catalog_paths = {f.path for f in _buyer_persona_catalog()}
         baseline_paths = {p for p, *_ in BUYER_PERSONA_CATALOG_BASELINE}
         diff = catalog_paths.symmetric_difference(baseline_paths)
         assert not diff, (
-            f"BUYER_PERSONA_EDITABLE_FIELDS path drift.\n"
+            f"_buyer_persona_catalog() path drift.\n"
             f"In catalog only: {sorted(catalog_paths - baseline_paths)}\n"
             f"In baseline only: {sorted(baseline_paths - catalog_paths)}"
         )
 
     def test_catalog_labels_preserved(self) -> None:
         """Spanish labels survive any projection refactor."""
-        catalog_by_path = {f.path: f.label for f in BUYER_PERSONA_EDITABLE_FIELDS}
+        catalog_by_path = {f.path: f.label for f in _buyer_persona_catalog()}
         mismatches: list[str] = []
         for path, _section, expected_label, _desc in BUYER_PERSONA_CATALOG_BASELINE:
             actual = catalog_by_path.get(path)
@@ -147,7 +151,7 @@ class TestBuyerPersonaCatalogBaseline:
 
     def test_catalog_sections_preserved(self) -> None:
         """Section assignments survive any projection refactor."""
-        catalog_by_path = {f.path: f.section for f in BUYER_PERSONA_EDITABLE_FIELDS}
+        catalog_by_path = {f.path: f.section for f in _buyer_persona_catalog()}
         mismatches: list[str] = []
         for path, expected_section, _label, _desc in BUYER_PERSONA_CATALOG_BASELINE:
             actual = catalog_by_path.get(path)
@@ -157,7 +161,7 @@ class TestBuyerPersonaCatalogBaseline:
 
     def test_catalog_descriptions_preserved(self) -> None:
         """Descriptions survive — they ride into the LLM system prompt."""
-        catalog_by_path = {f.path: f.description for f in BUYER_PERSONA_EDITABLE_FIELDS}
+        catalog_by_path = {f.path: f.description for f in _buyer_persona_catalog()}
         mismatches: list[str] = []
         for path, _section, _label, expected_desc in BUYER_PERSONA_CATALOG_BASELINE:
             actual = catalog_by_path.get(path)

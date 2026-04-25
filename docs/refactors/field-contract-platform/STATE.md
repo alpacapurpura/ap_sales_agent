@@ -1,8 +1,8 @@
 ---
-last_updated: 2026-04-24 (Fase 08 in progress · sub-step A done)
-last_green_commit: 1f210a5d
+last_updated: 2026-04-24 (Fase 08 in progress · sub-step B done)
+last_green_commit: 0d9ccc40
 active_phase: 08-copilot-unification
-sub_step: A/F
+sub_step: B/F
 status: in_progress
 blockers: none
 branch: development

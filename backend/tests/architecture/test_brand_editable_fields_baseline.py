@@ -19,8 +19,14 @@ refs: docs/refactors/field-contract-platform/phases/06-brand-migration/PRE_INVES
 
 from __future__ import annotations
 
-from src.modules.brand.domain.copilot_editable_fields import BRAND_EDITABLE_FIELDS
 from src.modules.copilot.domain.schema_introspection import validate_field_path
+from src.shared.links.ports.editable_fields import get_catalog
+
+
+def _brand_catalog():
+    """Helper — post-Fase-08 the catalog derives from the FieldContract registry."""
+    return get_catalog("brand")
+
 
 # ---------------------------------------------------------------------------
 # Baseline sets — frozen pre-Fase-06
@@ -209,7 +215,7 @@ LABEL_PRESERVATION_BASELINE: dict[str, str] = {
 
 
 class TestBrandCatalogPostMigration:
-    """Post-Fase-06 invariants for ``BRAND_EDITABLE_FIELDS``.
+    """Post-Fase-06 invariants for ``_brand_catalog()``.
 
     Locks in: working paths preserved + broken paths excluded + catalog
     grew (drift C closed) + curated Spanish labels survived the projection.
@@ -217,7 +223,7 @@ class TestBrandCatalogPostMigration:
 
     def test_working_paths_remain_in_catalog(self) -> None:
         """Every legacy WORKING path remains proposable post-refactor."""
-        catalog_paths = {f.path for f in BRAND_EDITABLE_FIELDS}
+        catalog_paths = {f.path for f in _brand_catalog()}
         missing = sorted(WORKING_PATHS_BASELINE - catalog_paths)
         assert not missing, (
             f"Working paths dropped by Fase 06 projection: {missing}. "
@@ -226,7 +232,7 @@ class TestBrandCatalogPostMigration:
 
     def test_broken_paths_dropped_from_catalog(self) -> None:
         """No BROKEN shorthand or wrong-section path resurfaces."""
-        catalog_paths = {f.path for f in BRAND_EDITABLE_FIELDS}
+        catalog_paths = {f.path for f in _brand_catalog()}
         resurfaced = sorted(BROKEN_PATHS_BASELINE & catalog_paths)
         assert not resurfaced, (
             f"Broken paths resurfaced in projected catalog: {resurfaced}. "
@@ -235,7 +241,7 @@ class TestBrandCatalogPostMigration:
 
     def test_catalog_grew_via_drift_c_closure(self) -> None:
         """Catalog is at least as big as the legacy WORKING set + new Pydantic surface."""
-        catalog_paths = {f.path for f in BRAND_EDITABLE_FIELDS}
+        catalog_paths = {f.path for f in _brand_catalog()}
         # WORKING (38) plus at minimum the legal/regulated identity fields
         # (Drift B remap, 23 paths) that the legacy catalog labelled under
         # ``contact.legal_*`` but that now live under ``identity.*``.
@@ -246,7 +252,7 @@ class TestBrandCatalogPostMigration:
 
     def test_curated_labels_preserved(self) -> None:
         """Spanish labels from the legacy catalog survive the projection."""
-        catalog_by_path = {f.path: f.label for f in BRAND_EDITABLE_FIELDS}
+        catalog_by_path = {f.path: f.label for f in _brand_catalog()}
         mismatches: list[str] = []
         for path, expected_label in LABEL_PRESERVATION_BASELINE.items():
             actual = catalog_by_path.get(path)

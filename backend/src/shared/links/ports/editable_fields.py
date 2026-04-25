@@ -6,20 +6,31 @@ no hallucinated ``field_id``s, no legacy fields that the FE no longer
 renders, no cross-module surprises.
 
 This port is the **single source of truth** that copilot uses to validate
-and enumerate editable fields. Each business module (brand, offer, …)
-registers its catalog via ``register_catalog`` at import time.
+and enumerate editable fields.
+
+Post field-contract-platform refactor (Fase 08), the catalog for any module
+that has registered :class:`FieldContract` (offer / brand / buyer_persona)
+is **derived automatically** from
+:func:`src.shared.domain.field_contract.get_module_contracts` with filters
+``can_propose=True`` + ``status=ACTIVE`` and dedupe by ``path``. The 3
+``copilot_editable_fields*.py`` projection files (offer / brand /
+buyer_persona) were dropped — boilerplate idéntico al helper
+:func:`_derive_from_contracts` aquí.
+
+Test stubs and custom catalogs may still call :func:`register_catalog`
+explicitly; the explicit registration takes precedence over derivation.
 
 Bounded-context contract
 ------------------------
-* Owner modules declare their catalogs in their own ``domain/`` layer
-  (e.g. ``brand/domain/copilot_editable_fields.py``).
-* The copilot reads **only** through the ``get_catalog(domain)`` function
-  here — it never imports ``brand``/``offer``/etc. directly.
-* Lazy registration prevents circular imports and keeps ``shared/`` free
-  from module-level dependencies on ``modules/``.
+* Owner modules declare their FieldContract registries in their own
+  ``domain/field_contract.py`` (or ``buyer_persona_field_contract.py``).
+* The port reads the registry **only** through
+  :func:`get_module_contracts` — no direct module imports.
+* Lazy registration of the FieldContract registry triggers transitively
+  on the first ``get_catalog`` call per domain.
 
 See ``.claude/rules/copilot-resilience.md`` and the anchor
-``[COPILOT-EDITABLE-FIELDS-SSOT]`` in each module's catalog file.
+``[COPILOT-EDITABLE-FIELDS-SSOT]`` in ``docs/domains/copilot/editable-fields.md``.
 """
 
 from __future__ import annotations
@@ -36,7 +47,7 @@ class FieldSpec:
               For nested models it is ``section.subfield``
               (e.g. ``"identity.brand_name"``); for flat aggregates it is
               just the field name (e.g. ``"public_name"`` for offer).
-        label: Human-readable label (matches the FE form label in español).
+        label: Human-readable label (matches the FE form label en español).
         section: Logical UI section / form-runtime key fragment
               (e.g. ``"identity"``, ``"personality"``).  Used to group
               fields when the copilot renders its catalog hint.
@@ -51,19 +62,23 @@ class FieldSpec:
 
 
 # ── Internal registry ────────────────────────────────────────────────────
-# ``_CATALOGS`` is populated at import time by each module's
-# ``copilot_editable_fields.py``.  Readers must go through the public
-# ``get_catalog`` / ``get_registered_domains`` accessors; direct access is
-# discouraged so the contract stays enforceable.
+# ``_CATALOGS`` holds explicit registrations (test stubs, custom catalogs).
+# Modules with a FieldContract registry do NOT need to register — derivation
+# happens lazy on ``get_catalog`` call.
 _CATALOGS: dict[str, tuple[FieldSpec, ...]] = {}
 
 
 def register_catalog(domain: str, fields: tuple[FieldSpec, ...]) -> None:
     """Register (or replace) the editable-field catalog for ``domain``.
 
+    Most modules don't need this — :func:`get_catalog` derives from the
+    FieldContract platform automatically. Use this when:
+
+    1. Tests want to stub a domain's catalog deterministically.
+    2. A non-Pydantic module wants to expose an editable surface (rare).
+
     Idempotent: calling twice with the same payload is a no-op; calling
-    with a different payload replaces the previous registration (handy
-    for tests that stub a domain).
+    with a different payload replaces the previous registration.
     """
     _CATALOGS[domain] = tuple(fields)
 
@@ -71,25 +86,35 @@ def register_catalog(domain: str, fields: tuple[FieldSpec, ...]) -> None:
 def get_catalog(domain: str) -> tuple[FieldSpec, ...]:
     """Return the frozen tuple of editable fields for ``domain``.
 
-    Triggers lazy registration by importing the module's catalog file on
-    first access, so callers don't have to manage import ordering.
+    Resolution order:
+      1. Explicit registration via :func:`register_catalog` (test stubs).
+      2. Derived from :func:`get_module_contracts` lazily (default for
+         every module that registered a FieldContract registry).
+
+    Returns ``()`` when neither source has data for ``domain``.
     """
-    if domain not in _CATALOGS:
-        _lazy_register(domain)
-    return _CATALOGS.get(domain, ())
+    if domain in _CATALOGS:
+        return _CATALOGS[domain]
+    derived = _derive_from_contracts(domain)
+    if derived:
+        # Cache the projection so repeated calls don't re-walk the registry.
+        # The FieldContract registry is immutable post-bootstrap, so the
+        # cached projection is also immutable.
+        _CATALOGS[domain] = derived
+    return derived
 
 
 def get_registered_domains() -> tuple[str, ...]:
-    """Return all domains that have registered a catalog.
+    """Return all domains for which a non-empty catalog is available.
 
-    Useful for enumerating the full editable surface in the system prompt.
+    Includes domains explicitly registered via :func:`register_catalog`
+    and domains with a FieldContract registry. Empty catalogs (no
+    proposable fields) are excluded.
     """
-    # Force lazy registration for known-owner modules so the first call is
-    # authoritative even before any other consumer imports them.
-    for domain in _KNOWN_DOMAINS:
-        if domain not in _CATALOGS:
-            _lazy_register(domain)
-    return tuple(sorted(_CATALOGS.keys()))
+    from src.shared.domain.field_contract import get_all_modules
+
+    domains = set(_CATALOGS.keys()) | set(get_all_modules())
+    return tuple(sorted(d for d in domains if get_catalog(d)))
 
 
 def get_paths_for(domain: str) -> frozenset[str]:
@@ -101,25 +126,60 @@ def get_paths_for(domain: str) -> frozenset[str]:
     return frozenset(f.path for f in get_catalog(domain))
 
 
-# ── Lazy registration dispatch ───────────────────────────────────────────
-# Known owner modules per domain.  Adding a new domain here + the matching
-# ``copilot_editable_fields.py`` in its module is the only change needed.
-_KNOWN_DOMAINS: dict[str, str] = {
-    "brand": "src.modules.brand.domain.copilot_editable_fields",
-    "buyer_persona": "src.modules.brand.domain.copilot_editable_fields_buyer_persona",
-    "offer": "src.modules.offer.domain.copilot_editable_fields",
-}
+# ── Derivation helpers ───────────────────────────────────────────────────
 
 
-def _lazy_register(domain: str) -> None:
-    """Import the owner module's catalog file, which registers itself."""
-    module_path = _KNOWN_DOMAINS.get(domain)
-    if module_path is None:
-        return
-    try:
-        __import__(module_path)
-    except ImportError:
-        # An owner module without a catalog yet is a config gap, not a
-        # fatal error — the copilot will see an empty catalog and refuse
-        # to propose fields for that domain, which is the safe default.
-        return
+def _humanize(name: str) -> str:
+    """Convert dotted snake_case to a Title-cased label fallback."""
+    last = name.rsplit(".", 1)[-1]
+    return last.replace("_", " ").title()
+
+
+def _derive_from_contracts(domain: str) -> tuple[FieldSpec, ...]:
+    """Project the FieldContract registry for ``domain`` to FieldSpec tuple.
+
+    Filters:
+      - ``can_propose=True`` (the field is writable from the copilot).
+      - ``status=ACTIVE`` (deprecated/removed fields never proposed).
+
+    Dedupes by ``path``: when a path appears in multiple contracts (e.g.
+    polymorphic ``specific_details.start_date`` in PROGRAMA + EXPERIENCIA),
+    only one ``FieldSpec`` is emitted — the section of the first
+    encountered contract wins. The copilot surface is archetype-agnostic:
+    each path has exactly one entry.
+
+    Label resolution: ``override.label_es`` first, else humanize the
+    last segment of ``path`` (arch test enforces ``spec.label`` truthy).
+
+    Description: ``human_question_es`` (preferred for conversational
+    enumeration) falls back to ``notes`` (Pydantic ``Field(description=...)``
+    populated by the walker).
+    """
+    from src.shared.domain.field_contract import (
+        FieldStatus,
+        get_module_contracts,
+    )
+
+    contracts = get_module_contracts(domain)
+    if not contracts:
+        return ()
+
+    seen_paths: set[str] = set()
+    specs: list[FieldSpec] = []
+    for c in contracts:
+        if not c.can_propose:
+            continue
+        if c.status != FieldStatus.ACTIVE:
+            continue
+        if c.path in seen_paths:
+            continue
+        seen_paths.add(c.path)
+        specs.append(
+            FieldSpec(
+                path=c.path,
+                label=c.label_es or _humanize(c.path),
+                section=c.section,
+                description=c.human_question_es or c.notes,
+            ),
+        )
+    return tuple(specs)

@@ -21,7 +21,6 @@ from src.modules.brand.domain.buyer_persona_field_contract import (
     BUYER_PERSONA_IGNORE_PATHS,
     BUYER_PERSONA_SECTION_MAP,
 )
-from src.modules.brand.domain.copilot_editable_fields import BRAND_EDITABLE_FIELDS
 from src.modules.brand.domain.field_contract import (
     BRAND_COMPOSABLE_FIELDS,
     BRAND_FIELD_CONTRACTS,
@@ -29,7 +28,6 @@ from src.modules.brand.domain.field_contract import (
     BRAND_SECTION_MAP,
 )
 from src.modules.copilot.domain.offer_fields import PERSISTABLE_FIELDS
-from src.modules.offer.domain.copilot_editable_fields import OFFER_EDITABLE_FIELDS
 from src.modules.offer.domain.details import (
     EventDetails,
     PlatformDetails,
@@ -198,31 +196,38 @@ class TestPydanticSubsetOfFieldContract:
 
 
 class TestEditableFieldsSubsetOfFieldContract:
-    """copilot_editable_fields catalog ⊆ FieldContract paths.
+    """``get_catalog("offer")`` ⊆ FieldContract paths.
 
-    Detects manual additions to ``OFFER_EDITABLE_FIELDS`` that bypass
-    the registry (defeats the purpose of the platform).
+    Post-Fase-08 the offer catalog derives from ``OFFER_FIELD_CONTRACTS``
+    via the shared port (no per-module projection file). This test guards
+    that ``get_catalog("offer")`` never surfaces a path the contract
+    registry doesn't know about — defending against test stubs that drift
+    from the registry.
     """
 
     def test_offer_editable_fields_paths_in_field_contract(self) -> None:
+        from src.shared.links.ports.editable_fields import get_catalog
+
         contract_paths = {c.path for c in OFFER_FIELD_CONTRACTS}
-        editable_paths = {f.path for f in OFFER_EDITABLE_FIELDS}
+        editable_paths = {f.path for f in get_catalog("offer")}
         leaks = editable_paths - contract_paths
         assert not leaks, (
-            f"OFFER_EDITABLE_FIELDS contains paths not in FieldContract: "
+            f"get_catalog('offer') contains paths not in FieldContract: "
             f"{sorted(leaks)}. Catalog must derive from the registry — see "
-            f"offer/domain/copilot_editable_fields.py."
+            f"shared/links/ports/editable_fields.py::_derive_from_contracts."
         )
 
     def test_offer_editable_fields_only_active_can_propose(self) -> None:
         """Catalog only emits ACTIVE + can_propose=True contracts."""
+        from src.shared.links.ports.editable_fields import get_catalog
+
         active_proposable = {c.path for c in OFFER_FIELD_CONTRACTS if c.can_propose and c.status == FieldStatus.ACTIVE}
-        editable_paths = {f.path for f in OFFER_EDITABLE_FIELDS}
+        editable_paths = {f.path for f in get_catalog("offer")}
         # Catalog should match the proposable subset (modulo dedup of
         # polymorphic shared paths — both share-path contracts produce
         # one editable entry).
         assert editable_paths == active_proposable, (
-            f"OFFER_EDITABLE_FIELDS diverged from active-proposable subset.\n"
+            f"get_catalog('offer') diverged from active-proposable subset.\n"
             f"Missing in catalog: {sorted(active_proposable - editable_paths)}\n"
             f"Extra in catalog: {sorted(editable_paths - active_proposable)}"
         )
