@@ -21,7 +21,7 @@ hint is best-effort guidance, not a binding contract.
 
 from __future__ import annotations
 
-from src.modules.copilot.domain.schema_introspection import _DOMAIN_DICT_PARENTS
+from src.modules.copilot.domain.schema_introspection import _get_dict_parents
 from src.shared.links.ports.editable_fields import FieldSpec, get_catalog
 
 # Paths that store arrays of objects (form-runtime split-mode lists). The
@@ -102,7 +102,7 @@ def build_field_paths_hint(domain: str) -> str:
             lines.append(f"- `{spec.path}` ({kind}){description}")
         lines.append("")
 
-    dict_parents = _DOMAIN_DICT_PARENTS.get(domain)
+    dict_parents = _get_dict_parents(domain)
     if dict_parents:
         parents_md = ", ".join(f"`{p}.*`" for p in sorted(dict_parents))
         lines.extend(

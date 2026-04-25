@@ -237,105 +237,89 @@ def _humanize(name: str) -> str:
 
 
 # Module-level cache: domain -> set of valid field paths.
-# Populated lazily on first call per domain.
+# Populated lazily on first call per domain. The FieldContract registry
+# is immutable post-bootstrap, so the cached projection is also immutable.
 _DOMAIN_FIELD_CACHE: dict[str, set[str]] = {}
 
 
 def _build_brand_paths() -> set[str]:
-    """Discover all valid field paths for the 'brand' domain from BrandSettings.
+    """Discover all valid field paths for the 'brand' domain.
 
-    Imports lazily to avoid circular imports (copilot -> brand).
-    Returns a set of valid paths: section names and section.field dot-notation.
+    Post-Fase-08 deriva del FieldContract registry. La unión incluye
+    los paths de los contracts (``identity.brand_name``, etc.) **y**
+    los nombres de section bare (``identity``, ``story``, ``positioning``,
+    ``narrative``, ``visuals``…) — preservando la validación legacy
+    que ``get_model_sections(BrandSettings)`` permitía.
     """
-    from src.modules.brand.domain.aggregates import BrandSettings
+    from src.shared.domain.field_contract import get_module_contracts
 
-    paths: set[str] = set()
-    sections = get_model_sections(BrandSettings)
-    for section_name, section_info in sections.items():
-        paths.add(section_name)
-        for field_name in section_info.fields:
-            paths.add(f"{section_name}.{field_name}")
+    contracts = get_module_contracts("brand")
+    paths: set[str] = {c.path for c in contracts}
+    paths |= {c.section for c in contracts}
     return paths
 
 
 def _build_offer_paths() -> set[str]:
-    """Discover all valid field paths for the 'offer' domain from PERSISTABLE_FIELDS.
+    """Discover all valid field paths for the 'offer' domain.
 
-    Offer fields are flat (no dot-notation) — top-level entity attributes.
-    PERSISTABLE_FIELDS lives in the domain layer (offer_fields.py) so this
-    function stays within the domain boundary.
+    Post-Fase-08 deriva directo del FieldContract registry. Equivalente
+    matemáticamente a ``PERSISTABLE_FIELDS`` (que también deriva del
+    mismo registry) pero sin la indirección — un único origen de verdad.
     """
-    from src.modules.copilot.domain.offer_fields import PERSISTABLE_FIELDS
+    from src.shared.domain.field_contract import (
+        FieldStatus,
+        get_module_contracts,
+    )
 
-    return set(PERSISTABLE_FIELDS)
+    return {c.path for c in get_module_contracts("offer") if c.can_propose and c.status == FieldStatus.ACTIVE}
 
 
 def _build_buyer_persona_paths() -> set[str]:
     """Discover all valid field paths for the 'buyer_persona' domain.
 
-    BuyerPersona uses plain dicts (not Pydantic sub-models), so Pydantic
-    introspection does not discover sub-fields. Paths are derived from:
-    - buyer_persona_config.py campos_objetivo (all interview block fields)
-    - buyer_persona_persister.py field type constants
-    - BuyerPersona domain entity field definitions
-
-    Dict fields (demographics, psychographics, buyer_journey) accept any
-    sub-key via prefix matching in validate_field_path — the exact set here
-    covers the known interview fields, but the validator also allows new
-    sub-keys under these parents.
+    Post-Fase-08 deriva del FieldContract registry. Los 3 dict parents
+    (``demographics``, ``psychographics``, ``buyer_journey``) NO se incluyen
+    en el set — la validación del bare name acepta dot-notation con
+    prefix match (ver :data:`_DOMAIN_DICT_PARENTS`).
     """
-    # Top-level fields (list and scalar — accepted as-is)
-    # NOTE: dict parent names (demographics, psychographics, buyer_journey) are NOT here.
-    # The AI must use dot-notation for dict fields (e.g. "demographics.age_range").
-    # Accepting the parent name directly allows the AI to store the whole dict as a string,
-    # which breaks BuyerPersona Pydantic validation on reload.
-    top_level = {
-        # Scalar
-        "name",
-        "tagline",
-        # List fields (stored directly)
-        "pain_points",
-        "desires",
-        "objections",
-        "preferred_channels",
-        "purchase_triggers",
-        "anti_patterns",
-    }
+    from src.shared.domain.field_contract import get_module_contracts
 
-    # Known dot-notation sub-keys from interview config campos_objetivo
-    dot_notation = {
-        # demographics block
-        "demographics.age_range",
-        "demographics.location",
-        "demographics.occupation",
-        "demographics.income_range",
-        "demographics.education",
-        "demographics.family_status",
-        # psychographics block
-        "psychographics.values",
-        "psychographics.beliefs",
-        "psychographics.lifestyle",
-        "psychographics.personality_traits",
-        "psychographics.media_consumption",
-        # buyer_journey block
-        "buyer_journey.awareness",
-        "buyer_journey.consideration",
-        "buyer_journey.decision",
-        # pain/desire sub-fields used in campos_objetivo
-        "pain_points.emotional_impact",
-        "desires.urgency",
-    }
+    return {c.path for c in get_module_contracts("buyer_persona")}
 
-    return top_level | dot_notation
+
+def _build_buyer_persona_dict_parents() -> set[str]:
+    """Derive the set of dict_parent names from BUYER_PERSONA_DICT_SUBKEYS.
+
+    Lazy import (avoid circular: copilot -> brand) and runtime call so the
+    set stays in sync if a sub-key parent is added in the registry.
+    """
+    from src.modules.brand.domain.buyer_persona_field_contract import (
+        BUYER_PERSONA_DICT_SUBKEYS,
+    )
+
+    return set(BUYER_PERSONA_DICT_SUBKEYS.keys())
 
 
 # Dict-field parents per domain: any dot-notation path whose prefix is in this
 # set is accepted even if the exact path was not pre-registered.  This allows
 # the LLM to use new sub-keys (e.g. demographics.marital_status) without
 # requiring a code change.
-_DOMAIN_DICT_PARENTS: dict[str, set[str]] = {
-    "buyer_persona": {"demographics", "psychographics", "buyer_journey"},
-}
+#
+# Post-Fase-08 the value for ``buyer_persona`` is derived from
+# ``BUYER_PERSONA_DICT_SUBKEYS.keys()`` via :func:`_build_buyer_persona_dict_parents`.
+# A cached frozen set keeps the lookup constant-time.
+_DOMAIN_DICT_PARENTS: dict[str, set[str]] = {}
+
+
+def _get_dict_parents(domain: str) -> set[str]:
+    """Return the dict_parent set for ``domain`` (lazy + cached)."""
+    if domain in _DOMAIN_DICT_PARENTS:
+        return _DOMAIN_DICT_PARENTS[domain]
+    if domain == "buyer_persona":
+        _DOMAIN_DICT_PARENTS[domain] = _build_buyer_persona_dict_parents()
+        return _DOMAIN_DICT_PARENTS[domain]
+    return set()
+
 
 _DOMAIN_BUILDERS: dict[str, Callable[[], set[str]]] = {
     "brand": _build_brand_paths,
@@ -382,7 +366,7 @@ def validate_field_path(domain: str, field_path: str) -> bool:
 
     # Prefix fallback: for domains with dict fields, accept any dot-notation
     # path whose parent is a registered dict field (e.g. demographics.*)
-    dict_parents = _DOMAIN_DICT_PARENTS.get(domain)
+    dict_parents = _get_dict_parents(domain)
     if dict_parents and "." in field_path:
         parent = field_path.split(".", 1)[0]
         return parent in dict_parents
