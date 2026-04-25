@@ -197,7 +197,131 @@ Last green commit Fase 04: (TBD by 04.J).
 
 ## Fase 05 — Downstream data-driven
 
-**Status**: pending
+**Status**: done (2026-04-24)
+
+### Pre-fase expectations vs realidad
+
+- ✅ Golden snapshots establecidos para los 3 consumers downstream
+  (agent_identity render, landing builders, completion service).
+- ✅ Lifecycle gate operativo: `knowledge_builder` strippea offer-dict
+  keys cuyo `FieldContract.status != ACTIVE` antes de pasar al template.
+- ✅ Arch tests cross-cutting que aseguran cada path consumido por los
+  3 consumers existe + ACTIVE en el contract.
+- ⚠️ NO se reemplazó el chain de `{% if offer.X %}` en `agent_identity.j2`
+  por un loop sobre contracts. Razón: el handling de whitespace de
+  Jinja2 con `trim_blocks=True, lstrip_blocks=True` produce líneas
+  *intencionalmente squashed* (markers concatenados sin newline cuando
+  un bloque inline `{% endif %}` precede el `\n` implícito del cuerpo
+  del for-loop o de un `{%- if %}`). Reproducir byte-identical en
+  Python requiere un renderer custom por field + serializar todo el
+  body en un string, fuera del scope del lifecycle gate. Diferido a
+  una fase futura — likely Fase 09 (multi-channel projection) cuando
+  el agent prompt deje de ser j2-driven.
+- ⚠️ NO se alineó `_SECTION_VALIDATORS` del completion service con
+  `is_required_semantic`. Razón: el completion usa una taxonomía de
+  *completion-section* propia que no es 1:1 con la *contract-section*
+  taxonomy (e.g. completion's `promise` valida solo `headline_promise`
+  mientras la contract section `promise` cubre `before_state` /
+  `after_state` / `why_now` / etc.). Consolidar requiere o un mapping
+  layer (`completion_section: str | None` en override) o reformular
+  el completion validator. Diferido — el arch test ya garantiza el
+  subset de paths.
+
+### Resultados cuantitativos
+
+| Métrica | Pre-Fase 05 | Post-Fase 05 |
+|---|---|---|
+| Golden snapshots downstream | 0 | 3 (agent_identity, landing, completion) |
+| Arch tests cross-cutting downstream | 0 | 5 (paths ⊆ contract) |
+| Tests arch totales | 448 | 453 |
+| Lifecycle gate sales-agent | manual (sin gate) | automático via `filter_offer_for_prompt` |
+| Drift detector new fields | no | sí (template + completion + landing) |
+
+### Descubrimientos
+
+- (05.A) El test `test_offer_a96403b5_baseline.py` que ya existía solo
+  verifica `public_name in prompt` — no byte-identical. Para garantizar
+  byte-identical hubo que crear goldens nuevos con offer sintético
+  cubriendo los 30+ markers del template.
+
+- (05.A) La huella whitespace del template actual de `agent_identity.j2`
+  squashea Tipo + Qué es + Señales clave + Promesa en una sola línea
+  (sin `\n` entre markers) por el efecto combinado de `{%-` strip-before
+  y `trim_blocks=True` después de `{% endif %}` inline. Lo mismo pasa
+  con `pricing_options` for-loop: las dos pricing options + Impuestos +
+  Cuotas + Métodos + Garantía + Incluye terminan squashed en una sola
+  línea. Esto es un accidente histórico que el LLM probablemente parsea
+  igual, pero a nivel byte-identical es la huella a reproducir.
+
+- (05.B) Los 4 fields del template que no están en contract son enrichment-
+  only (`preset_label`, `preset_description`, `preset_flags` inyectados
+  por `_enrich_with_preset_metadata`) más `type` que es legacy fallback
+  cuando archetype/format_hint/preset_label no aplican. Whitelisted en
+  arch test.
+
+- (05.D) Drift entre legacy completion sections y contract sections:
+  `headline_promise` legacy=promise contract=identity, `value_level`
+  legacy=identity contract=strategy. La completion section es
+  user-experience-driven (qué progreso ve el usuario), la contract
+  section es estructural-FE. Necesitan layer de translation, no merge.
+
+- (05.E) Landing builders leen vía raw-SQL `data.get("name")` y
+  `data.get("pricing")` (legacy DB columns) en vez del Offer aggregate.
+  Migrarlos al aggregate Pydantic (drop el raw SQL en `landing_service.generate_landing_for_offer`)
+  fue OUT of scope — only documented en el legacy allowlist del arch
+  test.
+
+### Decisiones nuevas
+
+Ninguna ADR formal. Decisiones de scope reduction documentadas in-line
+en commits + arch tests. Próxima fase puede revisitar:
+
+- ADR-018 (futuro): renderer-spec metadata para sales-agent prompt
+  (`prompt_label_es`, `prompt_renderer_kind`, `prompt_priority`).
+- ADR-019 (futuro): completion-section translation layer.
+
+### Deuda técnica encontrada (en scope, no resuelta)
+
+1. **Reemplazar `{% if offer.X %}` por loop sobre contracts** en
+   `agent_identity.j2`. Diferido por whitespace handling complexity.
+   Plan tentativo: porting completo del offer body a Python con
+   renderer per-field + override metadata `prompt_label_es`. Refresh
+   del golden + audit del diff. Realmente deja de ser byte-identical
+   (los squashes desaparecen) pero el LLM debería tomarlo igual o
+   mejor (markers en líneas separadas).
+
+2. **Alineación `is_required_semantic` ↔ `_SECTION_VALIDATORS`**.
+   Hoy hay overlap parcial pero no isomorphism. Aligning requires
+   completion_section translation map o reformular completion-section
+   taxonomy. Plan tentativo: agregar `completion_section: str | None`
+   a `FieldContractOverride`; cuando set, override el contract section
+   for completion-service-only. Cuando null, usar contract section.
+
+3. **Migrar landing builders al Offer aggregate**. Drop el raw-SQL en
+   `landing_service.generate_landing_for_offer`. Drop legacy `pricing`
+   JSONB column read (mapping a `pricing_options` desde el aggregate).
+   Drop el alias `name` (usar `public_name`). Eliminar la
+   `LEGACY_SQL_ALIASES` allowlist del arch test.
+
+### Deuda técnica (tangencial — entry en `docs/mejoras-proceso/to-do.md`)
+
+- `agent_identity.j2` whitespace artifacts (markers squashed). Si el
+  refactor de tech debt (1) procede, el output mejora naturalmente.
+
+### Para Fase 06
+
+- Brand migration sigue patrón offer (Fase 04). Pre-investigación
+  obligatoria — inventario de `BRAND_EDITABLE_FIELDS` + drift audit
+  vs `BrandIdentity` Pydantic.
+- Coordinación con `project_brand_studio_refactor` activo.
+- Aplicar lessons de Fase 05: golden snapshots cross-consumer ANTES
+  de tocar overrides.
+
+### Closing commit hash
+
+Last green commit Fase 05: `d0d121f1`.
+
+
 
 ---
 

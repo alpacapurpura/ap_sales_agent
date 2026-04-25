@@ -1,7 +1,7 @@
 ---
-last_updated: 2026-04-24 (Fase 04 done)
-last_green_commit: fc22f528
-active_phase: 05-downstream-data-driven
+last_updated: 2026-04-24 (Fase 05 done)
+last_green_commit: d0d121f1
+active_phase: 06-brand-migration
 sub_step: 0/? (ready-to-start)
 status: ready-to-start
 blockers: none
@@ -18,21 +18,22 @@ parallel_session_files_ignored:
 ## Dónde estamos
 
 - **Refactor**: field-contract-platform
-- **Fase activa**: 05-downstream-data-driven (ready-to-start)
-- **Última fase cerrada**: 04-platform-foundation (10 commits, 5ba48682 → fc22f528)
+- **Fase activa**: 06-brand-migration (ready-to-start)
+- **Última fase cerrada**: 05-downstream-data-driven (5 commits, 94036809 → d0d121f1)
 - **Rama**: `development`
 - **Working tree**: limpio
 
 ## Próxima acción
 
-Arrancar Fase 05. Seguir:
+Arrancar Fase 06. Seguir:
 
 1. Lee [protocol/RESUME.md](protocol/RESUME.md).
-2. Lee [phases/05-downstream-data-driven/PRE_INVESTIGATION.md](phases/05-downstream-data-driven/PRE_INVESTIGATION.md).
-3. Lee [phases/05-downstream-data-driven/SPEC.md](phases/05-downstream-data-driven/SPEC.md).
-4. Knowledge load 10-15 min: inventario sales-agent prompts + landing
-   builders + completion service.
-5. Capturar baseline golden offer `a96403b5...` pre-fase-05.
+2. Lee [phases/06-brand-migration/PRE_INVESTIGATION.md](phases/06-brand-migration/PRE_INVESTIGATION.md).
+3. Lee [phases/06-brand-migration/SPEC.md](phases/06-brand-migration/SPEC.md).
+4. Knowledge load 10-15 min: inventario `BRAND_EDITABLE_FIELDS` + drift
+   audit vs `BrandIdentity` Pydantic + coordinación con
+   `project_brand_studio_refactor` activo.
+5. Capturar baseline golden si aplica.
 6. Escribir ACCEPTANCE.md.
 7. Ejecutar PRE_FLIGHT.md.
 
@@ -40,12 +41,12 @@ Prompt completo en [HANDOFF.md](HANDOFF.md).
 
 ## Contexto mínimo
 
-- Offer de referencia: `a96403b5-c1db-4b31-97aa-cb18d08ad9f9`
-  (tenant `1fd1562b-2101-410a-870c-dc2f7e27b355`).
-- Fase 04 cerró: shared `FieldContract` platform funciona, offer migrado
-  completo, 4217 tests pass, brand/buyer intactos.
-- Endpoint `/api/v1/offer/field-contract` consume el registry derivado
-  via DTO compat — FE no notó cambios.
+- Fase 05 cerró: 3 golden snapshots + 5 arch tests + lifecycle gate
+  via `filter_offer_for_prompt`. 453 arch tests, 4217+ backend tests.
+- Diferidos en LEARNINGS Fase 05: full data-driven loop en
+  `agent_identity.j2`, alineación completion ↔ contract semantics,
+  migración landing builders al Offer aggregate.
+- Brand/buyer/copilot intactos hasta su fase.
 
 ## Workspaces
 
@@ -66,7 +67,18 @@ Prompt completo en [HANDOFF.md](HANDOFF.md).
 | 04.G | `4bda9821` | drop OFFER_FIELDS_BY_FE_SECTION + anti-regression |
 | 04.H | `6c643378` | cross-cutting arch tests (Pydantic ⊆ contract) |
 | 04.I | `fc22f528` | generic future-module guards |
-| 04.J | (this commit) | close phase + LEARNINGS + handoff |
+| 04.J | `c8ddd79e` | close phase + LEARNINGS + handoff |
+
+## Historial Fase 05
+
+| Sub-step | Commit | Descripción |
+|---|---|---|
+| 05.A | `94036809` | golden snapshots: agent_identity + landing + completion |
+| 05.B | `7d0157a4` | sales_agent lifecycle gate via FieldContract |
+| 05.C | `37154119` | arch test: agent_identity.j2 paths ⊆ contract |
+| 05.D | `0aa7e550` | arch test: completion validators ⊆ contract |
+| 05.E | `d0d121f1` | arch test: landing builders ⊆ contract |
+| 05.G | (this commit) | close phase + LEARNINGS + STATE/STATUS bump + HANDOFF Fase 06 |
 
 ## Convención de actualización
 

@@ -1,19 +1,19 @@
 # Handoff — siguiente sesión Claude
 
 > Prompt listo para pegar y arrancar la próxima fase. Generado al cerrar
-> Fase 04 (`fc22f528`). Sirve como anclaje para retomar el refactor sin
+> Fase 05 (`d0d121f1`). Sirve como anclaje para retomar el refactor sin
 > reconstruir contexto desde cero.
 
 ## Cómo usar este doc
 
-1. Pegá el prompt de **Fase 05** (abajo) en una nueva sesión Claude
+1. Pegá el prompt de **Fase 06** (abajo) en una nueva sesión Claude
    con working dir `/home/chris/AISALESHT`.
 2. Claude lee `STATE.md` + protocolos + PRE_INVESTIGATION + SPEC de la
    fase activa antes de tocar código.
 3. Cada commit atómico revertible. Commit final actualiza este HANDOFF
    con el prompt de la fase siguiente.
 
-## Prompt — arrancar Fase 05 (Downstream data-driven)
+## Prompt — arrancar Fase 06 (Brand migration)
 
 ```
 Retomamos refactor field-contract-platform.
@@ -21,93 +21,93 @@ Retomamos refactor field-contract-platform.
 Workspace: docs/refactors/field-contract-platform/
 
 Estado:
-- Fase cerrada: 04-platform-foundation (commits 5ba48682 → fc22f528)
-- Fase activa: 05-downstream-data-driven (ready-to-start)
-- Last green commit: fc22f528
+- Fase cerrada: 05-downstream-data-driven (commits 94036809 → d0d121f1)
+- Fase activa: 06-brand-migration (ready-to-start)
+- Last green commit: d0d121f1
 - Branch: development
 - Working tree: limpio (3 ajenos: buyer-persona-ai-flow-verified.png,
   qa-extract-clean.png, docs/refactors/copilot-architecture/)
-- Backend tests: 4217 pass
+- Backend tests: 4217+ pass · arch tests: 453
 
 Protocolo de arranque obligatorio:
 
 1. Leé en orden (5-10 min):
    - docs/refactors/field-contract-platform/STATE.md
    - docs/refactors/field-contract-platform/INVARIANTS.md
-   - docs/refactors/field-contract-platform/PLAN.md §Fase 05
+   - docs/refactors/field-contract-platform/PLAN.md §Fase 06
    - docs/refactors/field-contract-platform/DESIGN.md (escanear §2 capas
      + §2.5 proyecciones por consumer + §2.6 tests cross-cutting)
    - docs/refactors/field-contract-platform/LEARNINGS.md (cross-cutting
-     + Fase 04)
+     + Fases 04-05)
    - docs/refactors/field-contract-platform/DECISIONS.md (ADR-011..017)
-   - docs/refactors/field-contract-platform/phases/05-downstream-data-driven/PRE_INVESTIGATION.md
-   - docs/refactors/field-contract-platform/phases/05-downstream-data-driven/SPEC.md
+   - docs/refactors/field-contract-platform/phases/06-brand-migration/PRE_INVESTIGATION.md
+   - docs/refactors/field-contract-platform/phases/06-brand-migration/SPEC.md
    - docs/refactors/field-contract-platform/protocol/RESUME.md
 
-2. Pre-investigación obligatoria (sin saltar — lección de Fase 02 del
-   workspace anterior + ADR-017):
-   - Inventario completo de `{% if offer.X %}` en
-     `backend/src/modules/sales_agent/.../prompts/agent_identity.j2`
-     y otros templates sales-agent. Documentar field + lógica.
-   - Inventario de `landing_content_builders.py` — qué fields lee,
-     qué transforma, layout de output.
-   - Mapping `offer_completion_service.py` legacy → `is_required_semantic`
-     en FieldContract. Identificar fields hoy required-for-completion
-     que no tienen el override seteado.
-   - Identificar fields renderizados pero sin entry en FieldContract.
-     Si encontrás → tech debt: extender FieldContract en commit dedicado
-     dentro de Fase 05 (NO postpone).
-   - Capturar baseline golden offer `a96403b5-c1db-4b31-97aa-cb18d08ad9f9`
-     pre-Fase 05: agent_identity.j2 rendered + landing output.
+2. Pre-investigación obligatoria (sin saltar — ADR-017):
+   - Inventario completo de `BrandSettings.model_fields` + nested sub-models
+     (identity, story, narrative, positioning, personality, strategy, team,
+     communication_assets, buyer_persona). Confirmar path real de cada master.
+   - Lista section catalog brand (`brand/domain/section_catalog.py`).
+   - Drift audit completo: diff entre `BRAND_EDITABLE_FIELDS` (~70 entries)
+     y `BrandSettings.model_fields` user-facing. Esperado: drift confirmable.
+   - Decisión buyer-persona scope: bloqueante para Fase 06+07. ¿Aggregate
+     dentro de brand registry o módulo separado en Fase 07?
+   - Coordinación con `project_brand_studio_refactor` activo: leer la
+     memoria, confirmar sprint en curso, no-conflict scope.
 
 3. Ejecutá protocol/PRE_FLIGHT.md (baseline tests + git status).
 
-4. Escribir phases/05-downstream-data-driven/ACCEPTANCE.md con sub-steps
+4. Escribir phases/06-brand-migration/ACCEPTANCE.md con sub-steps
    atómicos y DoD per sub-step.
 
-5. Scope Fase 05:
-   - sales_agent/application/knowledge_builder.py consume
-     get_module_contracts("offer") iterando por (section, priority).
-     Filtra status=ACTIVE, skip si valor vacío. Render data-driven.
-   - agent_identity.j2 template render data-driven (loop sobre contracts,
-     no `{% if offer.X %}` hardcoded).
-   - landing/application/services/landing_content_builders.py consume
-     contract para proyectar copy.
-   - offer/application/services/offer_completion_service.py calcula
-     % completed con `is_required_semantic`.
-   - Tests golden agent_identity rendered + landing output byte-identical
-     vs baseline pre-Fase 05.
+5. Scope Fase 06 (per PLAN.md):
+   - `brand/domain/field_contract.py` con `BRAND_SECTION_MAP` +
+     `BRAND_FIELD_OVERRIDES` siguiendo el patrón offer.
+   - `derive_contracts_from_pydantic(model=BrandSettings, ...)` +
+     `register_module_contracts("brand", ...)`.
+   - `BRAND_EDITABLE_FIELDS` proyectado del registry.
+   - Extender `MIGRATED_MODULES` en arch tests:
+     - `tests/architecture/test_field_contract_platform_coverage.py`
+     - `tests/architecture/test_field_contract_platform_module_template.py`
+   - Validar que las 5 fitness gates genéricas pasan automáticamente
+     gracias a 04.I.
 
 6. Out of scope:
-   - Brand/buyer migration (Fase 06/07).
+   - Buyer-persona migration (Fase 07).
    - Copilot unification (Fase 08).
    - Multi-channel projection (Fase 09).
    - Schemas FE no se tocan.
+   - Diferidos de Fase 05 (full data-driven loop, completion alignment,
+     landing aggregate migration). NO reabrir Fase 05.
 
 7. Commits atómicos sugeridos (definitivo en SPEC + ACCEPTANCE):
-   - a) baseline golden snapshot capturado.
-   - b) knowledge_builder consume contract + tests.
-   - c) agent_identity.j2 render data-driven + tests golden.
-   - d) landing_content_builders consume contract + tests golden.
-   - e) completion_service consume is_required_semantic + tests.
-   - f) tech debt: fields renderizados sin entry → extend contract.
-   - g) close: LEARNINGS + STATE/STATUS bump + Fase 06 ready.
+   - a) baseline golden brand snapshot.
+   - b) shared platform tests pre-brand (asserts MIGRATED_MODULES extension
+     trivial + walker maneja brand polymorphic-if-applies).
+   - c) brand FieldContract module (section_map + overrides + derive +
+     register).
+   - d) BRAND_EDITABLE_FIELDS proyectado del registry.
+   - e) MIGRATED_MODULES bumped + arch tests verde.
+   - f) tech debt en scope (drift fields, gaps).
+   - g) close: LEARNINGS + STATE/STATUS bump + Fase 07 ready.
 
 8. Al cerrar fase:
    - POST_FLIGHT.md
-   - STATE.md → active_phase=06, last_green_commit
-   - STATUS.md Fase 05 done + Fase 06 ready
-   - LEARNINGS.md append Fase 05
-   - HANDOFF.md actualizado con prompt Fase 06
-   - Generáme el prompt para arrancar Fase 06.
+   - STATE.md → active_phase=07, last_green_commit
+   - STATUS.md Fase 06 done + Fase 07 ready
+   - LEARNINGS.md append Fase 06
+   - HANDOFF.md actualizado con prompt Fase 07
+   - Generáme el prompt para arrancar Fase 07.
 
 Reglas inquebrantables:
 - Cada commit revertible atómico · rama development · stage por nombre · no tocar ajenos
 - Tech debt del scope = arreglar en la fase; tangencial a TODO.md
 - Spanish neutro LATAM · TDD · UX byte-identical
-- Fase 04 cerró 5 registries paralelos en offer; mantenerlo así (no introducir nuevos)
-- Brand y buyer NO se tocan en Fase 05
-- Si descubrís gap arquitectónico, ADR + replanteo, no hack
+- Brand → derivation pattern (ADR-012). Override pattern para metadata semántica.
+- Si descubrís gap arquitectónico, ADR + replanteo, no hack.
+- No reabrir Fase 05 (cerrada). Diferidos de 05 documented en LEARNINGS;
+  pueden tomarse en una fase 09+ dedicada.
 
 Parallel sessions pueden estar corriendo — antes de commitear,
 git status --short; si hay ajenos dejalos.
@@ -115,23 +115,11 @@ git status --short; si hay ajenos dejalos.
 Empezá.
 ```
 
-## Prompt — arrancar Fase 06 (Brand migration)
-
-Generar al cerrar Fase 05. Plantilla similar al de Fase 05, ajustada a:
-- Pre-investigación: inventario `BrandSettings` Pydantic + drift audit
-  vs `BRAND_EDITABLE_FIELDS` (~70 entries hand-written) +
-  coordinación con `project_brand_studio_refactor` activo.
-- Scope: `brand/domain/field_contract.py` + section_map + overrides +
-  derivación + `register_module_contracts("brand", ...)` +
-  `BRAND_EDITABLE_FIELDS` proyectado.
-- Tests: extender MIGRATED_MODULES + spec brand en
-  `test_field_contract_platform_module_template.py`.
-
 ## Prompt — arrancar Fase 07 (Buyer-persona migration)
 
-Análogo a Fase 06 sobre `BuyerPersona`. Decidir en pre-investigación
-si se separa a su propio módulo BE o queda como aggregate dentro de
-brand.
+Generar al cerrar Fase 06. Análogo a Fase 06 sobre `BuyerPersona`.
+La decisión clave de Fase 06 (aggregate vs módulo separado) define el
+scope de Fase 07.
 
 ## Prompt — arrancar Fase 08 (Copilot unification)
 
@@ -143,7 +131,9 @@ copilot. Riesgo medio-alto — copilot está en producción.
 
 Pre-investigación: estado producto channels (whatsapp/telegram), trade-off
 algoritmo determinístico vs LLM creativo, compat web ↔ chat. Probable
-spawn de sub-fases.
+spawn de sub-fases. Aquí también podría caber el work diferido de
+Fase 05 (full data-driven loop en agent_identity, completion alignment,
+landing aggregate migration).
 
 ## Notas para futuras sesiones
 
@@ -159,6 +149,9 @@ spawn de sub-fases.
 - **Tech debt en scope se arregla en la misma fase**. INVARIANT 16.
 - **Lifecycle versionado** (status/deprecated_in/replaced_by) para
   evitar breaking changes durante deprecaciones. ADR-013.
+- **Diferidos de Fase 05** (loop data-driven full, completion alignment,
+  landing aggregate) viven en LEARNINGS Fase 05 — NO reabrir Fase 05;
+  cuando proceda, tomar en Fase 09 o phase dedicada.
 
 ## Contacto
 
