@@ -81,11 +81,25 @@ def emit_node_trace_event(recorder: object, event: Mapping[str, Any]) -> None:
         if out is not None:
             data["output_preview"] = _truncate_preview(out)
 
+    # B15-TP8 — propagate ``run_id`` + ``parent_ids`` as span tree.
+    # ``astream_events(v2)`` yields the same ``run_id`` for paired
+    # ``on_chain_start``/``on_chain_end`` so node_enter and node_exit pair
+    # up. ``parent_ids[-1]`` is the immediate parent run (LangGraph
+    # convention) — without it the tree collapses to a flat list.
+    extra_kwargs: dict[str, Any] = {}
+    run_id = event.get("run_id")
+    if run_id is not None:
+        extra_kwargs["span_id"] = run_id
+    parent_ids = event.get("parent_ids") or ()
+    if parent_ids:
+        extra_kwargs["parent_span_id"] = parent_ids[-1]
+
     try:
         record(
             event_type=event_type,
             name=str(node_name),
             data=data,
+            **extra_kwargs,
         )
     except Exception as exc:  # noqa: BLE001 — observability is best-effort
         logger.warning(

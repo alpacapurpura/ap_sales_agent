@@ -47,11 +47,12 @@ def _render_overview(store: MarketingKbStore) -> None:
 
     try:
         stats: dict[str, Any] = store.stats()
-        col1, col2, col3, col4 = st.columns(4)
+        # B14-TP8 — qdrant-client 1.17 dropped ``vectors_count``. ``points_count``
+        # is the canonical count (1 vector per point en dense single-vector setup).
+        col1, col2, col3 = st.columns(3)
         col1.metric("Colección", stats.get("collection", "—"))
-        col2.metric("Vectores", stats.get("vectors_count") or 0)
-        col3.metric("Puntos", stats.get("points_count") or 0)
-        col4.metric("Status", stats.get("status", "unknown"))
+        col2.metric("Puntos", stats.get("points_count") or 0)
+        col3.metric("Status", stats.get("status", "unknown"))
         if stats.get("error"):
             st.error(f"Error consultando Qdrant: {stats['error']}")
     except Exception as exc:  # noqa: BLE001 — Streamlit UI error boundary

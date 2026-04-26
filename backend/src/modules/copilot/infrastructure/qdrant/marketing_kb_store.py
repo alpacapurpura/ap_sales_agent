@@ -401,9 +401,11 @@ class MarketingKbStore:
             logger.exception("marketing_kb_stats_error", error=str(exc))
             return {"collection": self.COLLECTION, "error": str(exc)}
         else:
+            # B14-TP8 — qdrant-client 1.17 dropped ``CollectionInfo.vectors_count``.
+            # ``points_count`` is the canonical row count for dense single-vector
+            # points (our payload). Admin renders it as "Vectores" semantically.
             return {
                 "collection": self.COLLECTION,
-                "vectors_count": info.vectors_count,
                 "points_count": info.points_count,
                 "status": info.status.value if info.status else "unknown",
             }

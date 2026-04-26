@@ -231,3 +231,21 @@ def test_lazy_client_construction_no_module_import_side_effect() -> None:
     store = MarketingKbStore()
     assert store._client is None
     assert store._embedder is None
+
+
+def test_stats_returns_points_count_status_no_attribute_error(
+    in_memory_store: MarketingKbStore,
+) -> None:
+    # B14-TP8 — qdrant-client 1.17 dropped ``CollectionInfo.vectors_count``.
+    # ``stats()`` must surface ``points_count`` + ``status`` without crashing.
+    in_memory_store.upsert_chunks(
+        [
+            _sample_chunk(chunk_index=0, source_doc="a.md"),
+            _sample_chunk(chunk_index=1, source_doc="a.md"),
+        ],
+    )
+    stats = in_memory_store.stats()
+    assert "error" not in stats
+    assert stats["collection"] == MARKETING_KB_COLLECTION
+    assert stats["points_count"] == 2
+    assert stats["status"] == "green"

@@ -305,11 +305,17 @@ GOLDEN_CONVERSATIONS: tuple[GoldenConversation, ...] = (
         id="error_recovery_003_off_topic",
         category="error_recovery",
         user_input="¿Cuál es la capital de Francia?",
+        # B17-TP8 — el redirect off-topic queda como score 2 utility cuando
+        # solo invita "¿hay algo en marketing?" sin opciones concretas. La
+        # versión accionable (3 anclas concretas + opción cerrada)
+        # convierte el rebote en avance de conversación.
         expected_output=(
-            "Esa pregunta queda fuera del scope que puedo ayudarte. "
-            "Estoy enfocada en marketing, ofertas, marca y datos de tu "
-            "negocio. ¿Hay algo en alguna de esas áreas que pueda "
-            "trabajar contigo?"
+            "Esa pregunta queda fuera de mi scope. Mi enfoque es marketing, "
+            "ofertas, marca y datos de tu negocio. Para Visionarias puedo "
+            "trabajar tres cosas concretas ahora mismo: 1) revisar tu "
+            "posicionamiento y narrativa StoryBrand, 2) diseñar un headline "
+            "para tu próxima campaña, o 3) analizar las métricas de "
+            "captación del último mes. ¿Por cuál empezamos?"
         ),
         brand_summary=_BRAND_VISIONARIAS,
     ),

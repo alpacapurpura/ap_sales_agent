@@ -80,8 +80,11 @@ _DIMENSION_RUBRICS: dict[str, str] = {
     # Canonical conversation rubric (F9 §4.3).
     "accuracy": (
         "**accuracy** — la respuesta refleja la verdad del tenant (datos,"
-        " decisiones, configuración). Score 5 = factual + verificable; score 1"
-        " = alucinación o contradice contexto."
+        " decisiones, configuración) o reconoce honestamente sus límites de"
+        " scope. Score 5 = factual + verificable, o redirect honesto cuando"
+        " la pregunta queda fuera del rol del asistente (marketing, ofertas,"
+        " marca, datos del negocio); score 1 = alucinación, dato falso o"
+        " contradice contexto."
     ),
     "brand_coherence": (
         "**brand_coherence** — la respuesta respeta voz, tono y posicionamiento"
