@@ -75,27 +75,37 @@ Sin alguno de los 7 puntos, el TP **no está cerrado**.
 
 ---
 
-## §5 Modelo de costo del propio plan
+## §5 Modelo de costo del propio plan (post Sprint 0)
 
-Testing también consume tokens. Budget aproximado:
+Testing consume tokens. Budget post Sprint 0 (REASONING en DeepSeek,
+AGENT en Kimi, NANO/FAST en OpenAI):
 
-| TP | Calls LLM stub | Calls LLM real (opt-in) | Cost estimado USD |
+| TP | Calls LLM real | Provider mix dominante | Cost estimado USD |
 |---|---|---|---|
-| TP0 | 0 (smoke infra) | 0 | $0 |
-| TP1 | 30 (routing scenarios) | 30 NANO | <$0.001 |
-| TP2 | 20 (brand variations) | 20 MINI | ~$0.02 |
-| TP3 | 25 (URL types) | 25 MINI | ~$0.025 |
-| TP4 | 30 (data queries) | 30 MINI | ~$0.03 |
-| TP5 | 20 (workflows) | 20 MINI | ~$0.02 |
-| TP6 | 16 (4 canales × 4 contenidos) | 16 MINI | ~$0.015 |
-| TP7 | 20 (RAG goldens) | 20 NANO judge | <$0.001 |
-| TP8 | 50 (quality samples) | 50 NANO judge | ~$0.002 |
-| TP9 | 15 (planning multi-step) | 15 HEAVY | ~$0.075 |
-| TP10 | 5 (provider extension) | 0 | $0 |
-| TP11 | 30 (e2e UX flows) | 30 mix | ~$0.10 |
-| **Total** | ~261 stub | ~256 real | **~$0.30/run** |
+| TP0 | 0 (smoke infra) | — | $0 |
+| TP1 | 30 (routing scenarios) | OpenAI NANO | <$0.001 |
+| TP2 | 20 (brand variations) | DeepSeek REASONING | ~$0.005 |
+| TP3 | 25 (URL types) | DeepSeek REASONING + Kimi AGENT | ~$0.012 |
+| TP4 | 30 (data queries) | DeepSeek REASONING (intent + synth) | ~$0.006 |
+| TP5 | 20 (workflows) | DeepSeek + Kimi AGENT | ~$0.012 |
+| TP6 | 16 (4 canales × 4 contenidos) | OpenAI FAST + Kimi AGENT | ~$0.008 |
+| TP7 | 20 (RAG goldens) | OpenAI NANO judge | <$0.001 |
+| TP8 | 50 (quality samples) | OpenAI NANO judge | ~$0.002 |
+| TP9 | 15 (planning multi-step) | Kimi AGENT (deepagents harness) | ~$0.020 |
+| TP10 | 5 (provider extension) | — | $0 |
+| TP11 | 30 (e2e UX flows) | mix Kimi+DeepSeek+OpenAI | ~$0.030 |
+| **Total** | ~256 real | — | **~$0.10/run** (3x cheaper que pre-Sprint 0) |
 
-Una corrida full ≈ 30 centavos. Re-run ilimitada. Si añadís stress (50x scenarios), ≈ $15.
+Una corrida full ≈ 10 centavos (vs 30 anterior). Re-run ilimitada.
+Si añadís stress (50x scenarios), ≈ $5 (vs $15 anterior).
+
+> Nota anomalías: TP3 A1 (OpenAI quota) ya NO bloquea TPs porque
+> REASONING + AGENT no dependen de OpenAI billing. Si OpenAI vuelve a
+> 429, sólo NANO/FAST/VISION/EMBEDDING se ven afectados — y con
+> `unset AI_PROVIDER_NANO` y similares fallback a global... actually no
+> ayuda si global sigue en openai. Preferible pasar AI_PROVIDER_NANO=deepseek
+> temporalmente con AI_MODEL_NANO=deepseek-chat para destrabar (más caro
+> pero llega a TTFB ~1.5s desde LATAM, aceptable contra ningún servicio).
 
 ---
 

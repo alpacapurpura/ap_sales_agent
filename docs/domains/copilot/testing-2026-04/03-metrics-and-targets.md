@@ -93,16 +93,32 @@ Si dentro de un TP un fail requiere fix arquitectónico que toca >3 archivos en 
 
 ---
 
-## Cost estimation rápida
+## Cost estimation rápida (post Sprint 0 multi-provider)
 
-OpenAI pricing snapshot (abril 2026 — verificar antes de cada corrida):
+Stack post Sprint 0 (commits `9d63c0da` + `ae30d4f9` + `98d6fe7a`): OpenAI
+en NANO/FAST/VISION/EMBEDDING (TTFB-crítico LATAM), DeepSeek en
+REASONING (cost king + cache 90%), Kimi en AGENT (best agentic, K2.6),
+Qwen integrado pero default OFF (esperando verificación cuenta).
 
-| Tier | Modelo asumido | Input USD/1M | Cached USD/1M | Output USD/1M |
-|---|---|---|---|---|
-| NANO | gpt-4o-mini (placeholder) | $0.15 | $0.075 | $0.60 |
-| MINI | gpt-4o (snapshot Apr 2026) | $2.50 | $1.25 | $10.00 |
-| REASONING | o4-mini (placeholder) | $3.00 | $1.50 | $12.00 |
-| HEAVY | opus-4.7 (1M ctx) | $15.00 | $7.50 | $75.00 |
+Pricing snapshot abril 2026 (verificar antes de cada corrida):
+
+| Tier role | Provider | Modelo | Input USD/1M | Cached USD/1M | Output USD/1M |
+|---|---|---|---|---|---|
+| NANO | OpenAI | gpt-4o-mini | $0.15 | $0.075 | $0.60 |
+| FAST | OpenAI | gpt-4o-mini | $0.15 | $0.075 | $0.60 |
+| **REASONING** | **DeepSeek** | **deepseek-reasoner (V3.2)** | **$0.55** | **$0.055 (90% disc)** | **$2.19** |
+| **AGENT** | **Kimi** | **kimi-k2.6** | **$0.60** | **$0.30 (50% disc)** | **$2.50** |
+| VISION | OpenAI | gpt-4o | $2.50 | $1.25 | $10.00 |
+| EMBEDDING | OpenAI | text-embedding-3-large | $0.13 | — | — |
+| (opt) HEAVY F-pos | DeepSeek | deepseek-v4-pro | $1.74 | $0.145 | $3.48 |
+| (legacy ref) HEAVY OpenAI | Anthropic | opus-4.7 (1M ctx) | $15.00 | $7.50 | $75.00 |
+| (opt) Qwen VISION | Alibaba | qwen-vl-max | $1.60 | $0.40 | $6.40 |
+| (opt) Qwen EMBED | Alibaba | text-embedding-v3 | $0.08 | — | — |
+
+Ahorro vs all-OpenAI baseline (10k turns/día prod):
+- Antes: ~$1500/mo (REASONING+AGENT en gpt-4o)
+- Después: ~$200/mo (REASONING+AGENT chinos + cache 90% DeepSeek)
+- Ahorro proyectado: **~$15.6k/año**.
 
 Fórmula:
 ```
@@ -111,4 +127,6 @@ cost_turn = (input_tokens - cached) * input_rate / 1e6
           + output_tokens * output_rate / 1e6
 ```
 
-Cada `results/TP{#}-{fecha}.md` debe reportar **cost real total** + cost por escenario.
+Cada `results/TP{#}-{fecha}.md` debe reportar **cost real total** + cost
+por escenario, **separado por provider** cuando un turn cruzó múltiples
+roles (e.g. REASONING DeepSeek + NANO OpenAI = 2 sub-cost lines).
