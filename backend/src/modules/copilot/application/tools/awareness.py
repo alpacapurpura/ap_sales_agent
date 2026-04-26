@@ -52,18 +52,30 @@ def _check_introspectable_module(db: Session, tenant_id: UUID, descriptor: Modul
 
 
 def _check_offer_completion(db: Session, tenant_id: UUID) -> dict:
-    """Check offer configuration status via SQL count."""
+    """Check offer configuration status via SQL count.
+
+    Filter aligns with the partial index ``ix_products_active_by_tenant``:
+    ``deleted_at IS NULL AND archived_at IS NULL`` — alive + not archived.
+    Catches every exception so chat turns never 500 on schema drift; logs
+    the failure for observability per ``copilot-resilience.md``.
+    """
     try:
         count = (
             db.execute(
                 text(
-                    "SELECT COUNT(*) FROM products WHERE tenant_id = :tid AND is_active = true",
+                    "SELECT COUNT(*) FROM products WHERE tenant_id = :tid "
+                    "AND deleted_at IS NULL AND archived_at IS NULL",
                 ),
                 {"tid": str(tenant_id)},
             ).scalar()
             or 0
         )
-    except (TypeError, ValueError):
+    except Exception as exc:
+        logger.exception(
+            "awareness_offer_completion_query_failed",
+            tenant_id=str(tenant_id),
+            error=str(exc),
+        )
         count = 0
 
     configured = count > 0
