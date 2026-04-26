@@ -117,11 +117,23 @@ MD_NOISE_RE = re.compile(r'\*\*|`{3,}|\[.+?\]\(.+?\)')
 
 | Síntoma | Investigar | Root cause | Fix |
 |---|---|---|---|
-| WA con `**bold**` | synthesizer hint débil | `application/tools/ask_tenant_data/synthesizer.py::_CHANNEL_HINTS['whatsapp']` | refinar prompt format hint |
-| SMS >160 | length cap no enforced | `format_for_channel` post-process | agregar truncate + warning |
-| Voseo en output | LLM ignoró regla 11 | system prompt o per-tenant brand voice | bumpear instruction strength |
+| WA con `**bold**` | synthesizer hint débil | system prompt + AGENT compliance | sanitizer.enforce_channel_format_if_needed (TP6 fix) |
+| SMS >160 | length cap no enforced | AGENT ignora result de `format_for_channel` aunque lo llame | sanitizer aplica `format_for_channel_impl` post-LLM (TP6 fix) |
+| Voseo en output | LLM ignoró regla 11 | system prompt débil + AGENT lapsos | sanitizer.correct_voseo_in_text + system prompt explícito (TP6 fix) |
 | Mojibake | encoding chain | check char encoding entre BE → SSE → FE | UTF-8 enforce |
 | Email HTML mal formado | sanitizer | `output_sanitizer.py` | tighten regex |
+
+## Arquitectura post-TP6
+
+3 safety nets en `output_sanitizer.py` aplicados antes de SSE `block_end`:
+
+1. **JSON strip** (heredado pre-TP6).
+2. **Voseo autocorrect** (TP6 nuevo) — `correct_voseo_in_text`. Map voseo→neutro con preservación de capitalización. Cubre 50+ formas del glosario regla 11.
+3. **Channel format enforcement** (TP6 nuevo) — `enforce_channel_format_if_needed(text, user_msg)`. Detecta canal en mensaje del usuario via `detect_channel_in_user_msg` (regex sobre keywords). Si canal ≠ chat, aplica `format_for_channel_impl(content, channel_id)` deterministicamente. Idempotent: si AGENT ya cumplió, no-op.
+
+`chat.py` propaga `user_msg=message` al sanitizer en 2 callsites (block_end finalize + persistence).
+
+Este patrón garantiza el target hard-fail "SMS ≤160 = 100%" + "WA sin md noise = 100%" sin depender de instruction-following del LLM (Kimi K2.6 thinking-disabled tiene compliance ~50%).
 
 ---
 
