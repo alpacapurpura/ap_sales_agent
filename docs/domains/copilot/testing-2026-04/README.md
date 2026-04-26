@@ -93,15 +93,15 @@ Ver detalle en `02-test-plan.md`.
 
 ## Cómo se usa esta carpeta
 
-Cada TP se ejecuta en **una conversación nueva** de Claude Code.
+Cada TP se ejecuta en **una conversación nueva** de Claude Code. **Handoff entre fases es self-contained**: cada TP{N} cierra dejando `prompts/TP{N+1}-start.md` listo → el operador abre el archivo, copia el fenced block y pega en conversación nueva.
 
-1. Abrís nueva conversación.
-2. Pegás el prompt de `prompts/TP-start.md`, indicando qué TP corresponde.
-3. La conversación lee `04-protocol.md` + la fase específica `phases/TP#-*.md`.
-4. **Pre-research mandatorio** — la conversación arranca buscando best practices actualizadas para esa fase específica antes de tocar código (regla anti-deriva).
-5. Ejecuta los escenarios en orden, midiendo los 5 ejes.
-6. Reporta findings en `results/TP{#}-{fecha}.md`.
-7. Cualquier failure → root cause + fix arquitectónico (NO parches). Si el fix excede scope, abre issue/follow-up con plan.
+1. Para arrancar TP{N}, abrís `prompts/TP{N}-start.md`, copiás el fenced block y lo pegás en una conversación nueva.
+2. La conversación lee `04-protocol.md` + la fase específica `phases/TP#-*.md` + el reporte previo `results/TP{N-1}-*.md` (si N≥2).
+3. **Pre-research mandatorio** — la conversación arranca buscando best practices actualizadas para esa fase específica antes de tocar código (regla anti-deriva).
+4. Ejecuta los escenarios en orden, midiendo los 5 ejes.
+5. Reporta findings en `results/TP{N}-{fecha}.md` con sección **§Aprendizajes para TP{N+1}** + **§Handoff TP{N+1}** que apunta al archivo de prompt.
+6. Genera `prompts/TP{N+1}-start.md` siguiendo el template canónico (`04-protocol.md §Anexo A`). **Convención: los prompts viven en `prompts/`, NO embebidos en `results/`**. El reporte sólo referencia el path.
+7. Cualquier failure → root cause + fix arquitectónico (NO parches). Bug detectado durante TP se arregla en TP (`04-protocol.md §4.4`).
 8. Antes de cerrar, actualiza `phases/TP#-*.md` con escenarios nuevos descubiertos durante la corrida (el plan vive).
 
 ---

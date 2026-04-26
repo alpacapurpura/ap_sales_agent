@@ -87,20 +87,38 @@ Tres modos según el TP:
 | **Latencia** | `data->>'duration_ms'` del turn_end + per-tool. Browser TTFB del Chrome DevTools network panel cuando aplique. |
 | **UX** | Sólo cuando aplique (TPs UX). Heurística docs `03-metrics-and-targets.md §UX`. Screenshot si nota algo raro. |
 
-### 4.4 Diagnose si fail
+### 4.4 Diagnose + Fix obligatorio
+
+> **Principio rector del plan:** un TP NO se cierra con failures abiertos. La meta no es informar bugs — es entregar la fase del redesign **funcionando** al final del último OK. Cada error detectado se diagnostica hasta root cause y se fixea inline durante la corrida del TP. Si el fix excede el scope arquitectónico del TP (toca otro módulo, otra fase del redesign, otra capa), se aplica igual cuando el bloqueo impide medir el resto del TP — y se documenta en el reporte por qué fue necesario.
 
 Si el escenario falla en cualquier eje:
 
 1. **NO comentar el test.** El fail es señal — perderla destruye el plan.
-2. Abrir `copilot_trace_event` filtrado a este `turn_id` — buscar `event_type='error'` o tools que devolvieron status='error'.
-3. Si no hay error explícito en trace → revisar `copilot_conversations.messages` (jsonb_pretty) para ver respuesta cruda del LLM.
-4. Si tampoco aclara → `docker logs visionarias_brain_dev --tail 200 | grep -i error` para stack traces.
-5. Identificar root cause:
-   - **Bug arquitectónico** → fix architectural en `src/`. Test debe seguir esperando lo correcto, no lo bugueado.
-   - **Test escenario mal diseñado** → corregir escenario en `phases/TP{N}-*.md`. Documentar por qué cambió.
-   - **Regression vs F#** → cross-check con `learnings/F{X}-*.md`: si la fase prometía X y ya no entrega X, abrir bug en `docs/mejoras-proceso/to-do.md`.
+2. **NO diferir el fix** ("lo abro como ticket, sigo con el resto"). Si el bug bloquea medir otros escenarios del mismo TP → fix YA. Si no bloquea pero está en código que el TP cubre → fix igual.
+3. Diagnose en orden:
+   - `copilot_trace_event` filtrado a este `turn_id` — buscar `event_type='error'` o tools `status='error'`.
+   - `copilot_conversations.messages` (jsonb_pretty) — respuesta cruda del LLM.
+   - `docker logs visionarias_brain_dev --tail 200 | grep -i error` — stack traces.
+   - Si el síntoma reportado por el user **no aparece en trace** → **bug doble**: el bug original + bug de observabilidad (recorder no capturó). Ambos se fixean (regla `copilot-resilience.md`: "fix el recorder ANTES de investigar el síntoma").
+4. Identificar root cause:
+   - **Bug arquitectónico** → fix en `src/` siguiendo arquitectura DDD/FSD del redesign. Test debe seguir esperando lo correcto, no lo bugueado.
+   - **Test escenario mal diseñado** → corregir escenario en `phases/TP{N}-*.md`. Documentar por qué cambió en el reporte.
+   - **Regression vs F#** → cross-check con `learnings/F{X}-*.md`. Si la fase prometía X y ya no entrega X → fix arquitectónico (no abrir ticket diferido).
+   - **Dep externa rota** (lib upgrade, API change) → adapter en `src/` o pin temporal con comentario explicando por qué + plan de unblock.
+5. **TDD del fix (regla 13 CLAUDE.md):**
+   - **a.** Escribir test de regresión que reproduce el bug → RED.
+   - **b.** Aplicar fix arquitectónico → GREEN.
+   - **c.** Re-correr el escenario TP que detectó el bug → debe pasar.
+   - **d.** Quality gates regresión (paso 5) — ningún test preexistente debe romper.
+6. Solo entonces se mide el escenario en sus 5 ejes y se cierra.
 
-**Prohibido absoluto:** parchar (`# noqa`, `pytest.skip`, `assert True`, mock que tape el error real).
+**Prohibido absoluto:**
+- Parchar: `# noqa`, `pytest.skip`, `assert True`, mock que tape el error real.
+- Diferir: "abro ticket en `to-do.md` y sigo". `to-do.md` es para mejoras de proceso descubiertas durante el TP, NO para bugs encontrados.
+- Cerrar TP con escenario en estado FAIL sin fix aplicado.
+- Reportar "bug encontrado, no fixeado por scope" sin haber intentado el fix arquitectónico primero.
+
+**Excepción única:** si el fix demanda cambios cross-stack que requieren coordinación con otra fase del redesign aún no implementada → documentar en `results/TP{N}-{fecha}.md §Fixes diferidos` con: root cause exacto, archivo+línea, plan arquitectónico del fix, qué fase del redesign lo destraba, y aplicar workaround temporal con comentario `# TODO(TP{N}-fix-pending): …` que el quality gate de la próxima corrida valida que se removió. Esta excepción se justifica al user antes de aplicarla, no después.
 
 ---
 
@@ -163,6 +181,14 @@ Crear `results/TP{N}-{fecha}.md` con la plantilla de `02-test-plan.md §Outputs`
 - Cost total run: $0.087 (15 escenarios).
 - Latencia p50: 720ms / p95: 1840ms.
 - Judge avg cross-scenarios: 3.9.
+
+## Aprendizajes para TP{N+1}
+- {1-3 bullets MAX, hecho concreto + cómo aplica al TP siguiente}
+- Si no hay aprendizajes accionables, omitir sección entera (no llenar por llenar).
+
+## Handoff TP{N+1}
+
+Prompt copy-paste para TP{N+1} vive en `docs/domains/copilot/testing-2026-04/prompts/TP{N+1}-start.md` (convención del plan: prompts en `prompts/`, no embedded en `results/`). Generado siguiendo el template canónico §Anexo A.
 ```
 
 ---
@@ -190,19 +216,162 @@ Si tocaste código o updateaste docs:
 
 ---
 
-## Paso 9 — Generar TP siguiente (opcional)
+## Paso 9 — Generar prompt TP{N+1} (OBLIGATORIO)
 
-Si TP{N} bloqueaba a TP{N+1}, dejar `results/TP{N}-{fecha}.md` con sección final **"Listo para TP{N+1}"** + cualquier hook que aprendiste útil para la siguiente fase.
+Antes de cerrar la conversación TP{N}, dos artefactos OBLIGATORIOS:
+
+1. `results/TP{N}-{fecha}.md` incluye sección **"Aprendizajes para TP{N+1}"** (1-3 bullets accionables o omitir si no hay) + sección **"Handoff TP{N+1}"** que apunta al archivo del prompt.
+2. `prompts/TP{N+1}-start.md` con el fenced block listo para copy-paste, generado siguiendo el template canónico §Anexo A.
+
+**Convención:** los prompts viven en `prompts/`, NO embebidos en `results/`. El reporte sólo referencia el path. Razón: el archivo dedicado es greppeable por TP, evita que el reporte crezca >300 líneas, y permite editar el prompt sin tocar el reporte (que es snapshot del run).
+
+El usuario abre `prompts/TP{N+1}-start.md`, copia el fenced block a una conversación nueva → TP{N+1} arranca self-contained.
+
+Si TP{N} es el último de la serie (e.g. TP11), reemplazar el handoff por sección **"Cierre del plan"** en el reporte con resumen agregado de los 12 TPs + decisión sobre TP repeat / nueva ronda / archivo del plan. NO se genera `prompts/TP12-start.md`.
 
 ---
 
 ## Reglas anti-deriva (críticas)
 
-1. **No agregar scope** del TP. Si descubrís oportunidad → al `results/` como recomendación, NO al código.
+1. **No agregar scope** del TP en términos de escenarios nuevos. Si descubrís oportunidad → al `results/` como recomendación, NO al código.
 2. **No tocar §3 (lo que NO testeamos).** Si parece necesario → parar, preguntar al usuario.
 3. **No alucinar.** Si no estás seguro de un path/símbolo → leer el archivo, no inventar.
 4. **No skip pre-research.** Aunque "creas saber" — abril 2026, siempre algo cambió.
 5. **No cerrar TP sin los 5 ejes** medidos por escenario.
 6. **No tocar otros módulos sin que sigan funcionando** (regla redesign).
-7. **No parchar.** Root cause o documentar plan separado.
-8. **Commit reportes en `results/`** — los reportes son parte del producto del plan.
+7. **No parchar.** Root cause obligatorio (paso 4.4).
+8. **No diferir fixes.** Bugs detectados durante el TP se arreglan en el TP. Solo se difieren con la excepción documentada en §4.4 y aprobación previa del user.
+9. **El TP termina con código verde.** Último OK = redesign funcionando, no informe de pendientes.
+10. **Commit reportes en `results/`** — los reportes son parte del producto del plan.
+11. **Cierre handoff obligatorio.** Cada TP termina entregando el prompt completo del siguiente (§Anexo A). El usuario no debe reconstruir contexto entre fases.
+
+---
+
+## Anexo A — Template canónico del prompt TP{N+1}
+
+Cada TP{N} cierra generando esta estructura en `prompts/TP{N+1}-start.md`. El prompt va dentro de un fenced code block para copy-paste limpio. El reporte `results/TP{N}-{fecha}.md` sólo agrega sección **"Handoff TP{N+1}"** que referencia el path del archivo.
+
+```markdown
+Iniciar TP{N+1} plan testing-2026-04 copilot. Caveman mode full activo (skill `caveman`).
+
+## Misión TP{N+1}
+
+{1-3 líneas: qué F# valida + qué confirma. Copiar de `phases/TP{N+1}-*.md §Misión`.}
+
+## Pre-lectura obligatoria (orden estricto)
+
+1. `docs/domains/copilot/testing-2026-04/README.md`
+2. `docs/domains/copilot/testing-2026-04/00-vision-and-coverage.md` (§3 lo que NO testeamos)
+3. `docs/domains/copilot/testing-2026-04/01-tooling.md`
+4. `docs/domains/copilot/testing-2026-04/02-test-plan.md`
+5. `docs/domains/copilot/testing-2026-04/03-metrics-and-targets.md`
+6. `docs/domains/copilot/testing-2026-04/04-protocol.md`
+7. `docs/domains/copilot/testing-2026-04/phases/TP{N+1}-*.md`
+8. `docs/domains/copilot/testing-2026-04/results/TP{N}-{fecha}.md` (aprendizajes + cualquier change a `phases/`)
+9. `docs/domains/copilot/redesign-2026-04/learnings/F{X}-*.md` (la fase del redesign que valida — listada en `02-test-plan.md`)
+10. `.claude/rules/copilot-resilience.md` + `.claude/rules/spanish-text.md`
+
+## Pre-research obligatorio (paso 2 protocolo)
+
+Mínimo 2 web searches del mandate listado en `phases/TP{N+1}-*.md §Research mandate`. Tessl tiles: skill `tessl-context` para librerías nuevas/relevantes.
+
+Si descubrís escenario crítico no listado en TP{N+1} doc, agregalo a `phases/TP{N+1}-*.md` ANTES ejecutar.
+
+## Setup heredado (NO rehacer — verificado en TP1 setup)
+
+- Migraciones aplicadas hasta head (`alembic current` en `visionarias_brain_dev`)
+- DeepEval 3.9.7 native venv + docker dev
+- `backend/tests/quality/deepeval/` skeleton + conftest opt-in (`RUN_DEEPEVAL=1`)
+- Conftest fixes: `model_registry` import + `_isolate_trace_recorder_db` autouse
+- Helper Clerk: `backend/scripts/get_clerk_test_token.py` (cache /tmp + auto-refresh)
+- `.env`: `CLERK_TEST_SESSION_ID` + `CLERK_SECRET_KEY` + `OPENAI_API_KEY`
+- Tenant test: `9ba0b29a-8507-424f-a48a-896f93218a25` (visionarias-v4)
+- Bugs arch fixeados en TP1: deep_agent factory + recorder pluggable
+
+## Pre-reqs infra (verificar al arrancar)
+
+```bash
+git status --short  # tree limpio en development
+docker compose ps   # api_dev/postgres/client_dev healthy
+.venv/bin/python -c "import deepeval; print(deepeval.__version__)"
+.venv/bin/python scripts/get_clerk_test_token.py | head -c 30
+```
+
+Si algo falla → resolver infra primero, NO arrancar TP.
+
+## Patrón llamada API + SQL probes
+
+Curl pattern:
+```bash
+TOKEN=$(.venv/bin/python scripts/get_clerk_test_token.py)
+curl -sS -X POST http://localhost:8000/api/v1/copilot/chat \
+  -H "Content-Type: application/json" \
+  -H "X-Tenant-ID: 9ba0b29a-8507-424f-a48a-896f93218a25" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"message":"<test>","conversation_id":null}'
+```
+
+DB: `docker exec visionarias_postgres psql -U postgres -d visionarias_logs -c "..."`
+
+SQL probes en `01-tooling.md §Infraestructura interna`.
+
+## Anomalías heredadas (de TP{N})
+
+{Listar las anomalías que TP{N} detectó pero NO fixeó (excepción §4.4 documentada). Si TP{N} cerró todo verde, omitir esta sección.}
+
+## Aprendizajes accionables de TP{N}
+
+{1-3 bullets del §Aprendizajes para TP{N+1} de arriba. Copiar literal — el usuario ya leyó el reporte completo, no repetir narrativa.}
+
+## Reglas non-negotiables
+
+1. 5 ejes por escenario (flujo/calidad/tokens/latencia/UX). Sin los 5, escenario NO se cierra.
+2. Root cause obligatorio — `# noqa` / `pytest.skip` / `assert True` / mock-tape-error PROHIBIDO.
+3. NO diferir fixes — bug detectado durante TP se arregla en TP. TDD: test regresión RED → fix → GREEN.
+4. TP termina verde — último OK = redesign funcionando.
+5. Spanish neutro LatAm (regla 11) en cualquier user-facing tocado.
+6. Native dev tools — lint/tests/eval WSL nativo, NUNCA `docker exec`.
+7. Stage por nombre en commits (parallel-safety).
+
+## Output esperado al cerrar
+
+1. `docs/domains/copilot/testing-2026-04/results/TP{N+1}-{YYYY-MM-DD}.md` (template `04-protocol.md §Paso 6`).
+   Incluir secciones **§Aprendizajes para TP{N+2}** + **§Prompt para TP{N+2}** (Anexo A).
+2. Si `phases/TP{N+1}-*.md` cambió → commit incluido.
+3. Commits conventional + push a `origin/development`.
+4. Reporte al user: 3 líneas resumen + path al `results/`.
+
+## Anti-patrones (no caer)
+
+- Reportar "todo pasa" sin números.
+- Saltar pre-research.
+- Mockear LLM cuando TP exige real-LLM.
+- Cerrar TP con fail abierto sin fix.
+- Spawnear sub-agentes para escenarios paralelos (cada TP necesita context completo + iteración fix).
+- Llenar reporte con info no accionable.
+- Generar prompt TP{N+2} genérico sin adaptarlo (misión + research mandate + anomalías heredadas son específicos del TP{N+1}).
+
+## Si te trabás
+
+- No reproducís → SQL `copilot_trace_event WHERE turn_id=...` (`01-tooling.md`).
+- Bug observability → fix recorder ANTES síntoma (`copilot-resilience.md`).
+- Clerk token 401 → `.venv/bin/python scripts/get_clerk_test_token.py --no-cache`.
+
+---
+
+**Primera tarea:** pre-lectura paso 1 + pre-research paso 2. Recién después tocás tools.
+```
+
+### Reglas de adaptación del template
+
+Cada TP{N} adapta el template para TP{N+1} sustituyendo:
+
+| Placeholder | Cómo se llena |
+|---|---|
+| Misión | Copia 1-3 líneas de `phases/TP{N+1}-*.md §Misión` |
+| Research mandate | Apunta a `phases/TP{N+1}-*.md §Research mandate` (no copiar — referencia) |
+| Anomalías heredadas | Solo las que TP{N} NO fixeó (excepción §4.4). Si TP{N} cerró verde, omitir sección |
+| Aprendizajes accionables | Copia literal de §Aprendizajes para TP{N+1} del propio reporte |
+| Setup heredado | Mantener lista canónica + agregar lo NUEVO que TP{N} introdujo (e.g. nueva fixture en conftest, nuevo script en `scripts/`) |
+
+**Prohibido:** generar el prompt sin abrir `phases/TP{N+1}-*.md`. La misión y research mandate son específicos del TP siguiente, no genéricos.
