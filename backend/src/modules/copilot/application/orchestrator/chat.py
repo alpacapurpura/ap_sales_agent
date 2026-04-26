@@ -472,6 +472,9 @@ class _StreamAccumulator:
     # parenting. Kept here (not in CopilotState) so the trace span tree can
     # span the entire orchestrator call, including persistence.
     recorder: object | None = None
+    # TP4-B3 — capture per-tool monotonic timestamps at on_tool_start so the
+    # tool_call trace row can carry duration_ms.
+    tool_started_at: dict[str, float] = field(default_factory=dict)
 
 
 class CopilotOrchestrator:
@@ -836,6 +839,14 @@ class CopilotOrchestrator:
                     # LangGraph transitions so admin trace reconstructs per-node timeline.
                     emit_node_trace_event(acc.recorder, event)
 
+                    # TP4-B3 — stamp the tool_call start instant so the
+                    # downstream ``_handle_tool_end_v2`` can attach
+                    # ``duration_ms`` to the tool_call trace row.
+                    if event.get("event") == "on_tool_start":
+                        rid = str(event.get("run_id") or "")
+                        if rid:
+                            acc.tool_started_at[rid] = time.monotonic()
+
                     # on_tool_end: route to v2-aware handler that also emits block_append
                     if event.get("event") == "on_tool_end":
                         tool_sse = self._handle_tool_end_v2(
@@ -1187,10 +1198,14 @@ class CopilotOrchestrator:
             if isinstance(parsed_output, dict) and parsed_output.get("status") == "error":
                 tool_status = "error"
             output_preview = tool_output if isinstance(tool_output, str) else json.dumps(tool_output, default=str)
+            run_id = str(event.get("run_id") or "")
+            started = acc.tool_started_at.pop(run_id, None) if run_id else None
+            duration_ms = int((time.monotonic() - started) * 1000) if started is not None else None
             acc.recorder.record(
                 event_type="tool_call",
                 name=tool_name,
                 status=tool_status,
+                duration_ms=duration_ms,
                 data={
                     "args": _truncate_for_trace(tool_input),
                     "output_preview": _truncate_for_trace(output_preview),
