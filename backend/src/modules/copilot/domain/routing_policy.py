@@ -99,14 +99,18 @@ DEFAULT_ROUTING_POLICY: RoutingPolicy = RoutingPolicy(
             tier=ModelTier.REASONING,
             reason="keyword_how_can_i",
         ),
-        # ── NANO (priority 30-39) short & toolless ─────────────────────
+        # ── NANO (priority 30-39) short turns ──────────────────────────
+        # Reason kept as historical telemetry id ``short_msg_no_tools`` but the
+        # ``max_tools`` guard was removed: chat overlay always exposes the full
+        # tool registry (~26 tools), so guarding by ``available_tool_count == 0``
+        # made the rule unreachable. NANO is still the right tier — heavier
+        # rules (priority 10-22) win first when intent demands more capability.
         RoutingRule(
             priority=30,
             pattern=r".*",
             tier=ModelTier.NANO,
             reason="short_msg_no_tools",
             max_msg_length=40,
-            max_tools=0,
         ),
         # default falls through to policy.default_tier (MINI)
     ),

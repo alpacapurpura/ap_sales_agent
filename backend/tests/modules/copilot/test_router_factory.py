@@ -87,3 +87,28 @@ class TestBuildDefaultRouter:
 
         assert decision.classifier_used == ClassifierType.DEFAULT
         assert decision.tier == DEFAULT_ROUTING_POLICY.default_tier
+
+    def test_short_msg_routes_nano_with_tools_available(self) -> None:
+        """Short greeting matches NANO rule even when chat overlay exposes registry tools.
+
+        Regression: F8 ``max_tools=0`` guard incorrectly excluded every chat turn
+        because chat overlay always wires the full tool registry
+        (``available_tool_count`` ~26). Result was the rule never fired and every
+        short turn cascaded to LLMClassifier — wasted NANO calls + classifier=llm
+        in ``copilot_routing_log`` for trivial greetings (TP1 anomaly A2).
+        """
+
+        class ExplodingLLM:
+            def invoke(self, _messages: list) -> AIMessage:
+                msg = "rule should match before LLM is consulted"
+                raise AssertionError(msg)
+
+        router = build_default_router(llm=ExplodingLLM())
+
+        decision = router.select(
+            RoutingRequest(user_msg="hola", available_tool_count=26),
+        )
+
+        assert decision.classifier_used == ClassifierType.RULE
+        assert decision.tier == ModelTier.NANO
+        assert decision.reason == "short_msg_no_tools"

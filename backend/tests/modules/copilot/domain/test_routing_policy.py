@@ -79,14 +79,20 @@ class TestDefaultRoutingPolicy:
         assert len(nano_rules) >= 1
 
     def test_short_msg_no_tools_nano_rule_exists(self) -> None:
-        """The short_msg_no_tools nano rule exists with max_msg_length and max_tools."""
+        """The short-turn NANO rule is bounded by length only.
+
+        The ``max_tools`` guard was removed (TP1 anomaly A2): chat overlay
+        always exposes registry tools (~26), so guarding by tool count made
+        the rule unreachable in production. Heavy/reasoning rules at lower
+        priorities still win when intent demands more capability.
+        """
         nano_short = [
             r for r in DEFAULT_ROUTING_POLICY.rules if r.tier == ModelTier.NANO and r.max_msg_length is not None
         ]
         assert len(nano_short) >= 1
         rule = nano_short[0]
-        assert rule.max_tools == 0
         assert rule.max_msg_length == 40
+        assert rule.max_tools is None
 
     def test_rules_are_tuple(self) -> None:
         """Rules is a tuple (frozen)."""
