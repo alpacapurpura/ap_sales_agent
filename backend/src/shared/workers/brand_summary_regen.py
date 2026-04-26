@@ -251,6 +251,11 @@ async def regen_brand_summary(
     Dedupe is enforced upstream by the enqueuer (``_job_id`` parameter
     on ``arq_redis.enqueue_job``). This task is intentionally idempotent:
     running twice for the same tenant is harmless beyond LLM cost.
+
+    The task owns the session lifecycle: ``regen_brand_summary_sync``
+    only flushes — without the explicit commit here the worker would
+    log ``brand_summary_persisted`` while the row never lands (TP2 S2.4
+    regression).
     """
     db_factory = ctx["db_factory"]
     db = db_factory()
@@ -260,6 +265,11 @@ async def regen_brand_summary(
             tenant_id=UUID(tenant_id),
             last_section_changed=last_section_changed,
         )
+        if summary is not None:
+            db.commit()
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
 

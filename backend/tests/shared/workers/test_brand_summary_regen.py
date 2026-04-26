@@ -249,3 +249,126 @@ def test_regen_aborts_when_retry_also_fails(db, monkeypatch) -> None:
     assert summary is None
     repo = BrandSummaryRepository(db)
     assert repo.get(tenant_id=tenant_id) is None
+
+
+# ── ARQ task wrapper (regen_brand_summary) ──────────────────────────────────
+# TP2 S2.4 found that the wrapper never commits, so the worker logs
+# "persisted" but the DB row never lands. Tests below pin the contract
+# that the task MUST commit (and rollback on failure) so the next caller
+# sees the new row.
+
+
+class _SessionCommitSpy:
+    """Wraps a SQLAlchemy session, records commit/rollback/close calls.
+
+    Used to verify the ARQ wrapper invokes ``commit()`` after a successful
+    sync regen. Delegates everything else through to the wrapped session.
+    """
+
+    def __init__(self, inner) -> None:
+        self._inner = inner
+        self.commits = 0
+        self.rollbacks = 0
+        self.closes = 0
+
+    def commit(self) -> None:
+        self.commits += 1
+        self._inner.commit()
+
+    def rollback(self) -> None:
+        self.rollbacks += 1
+        self._inner.rollback()
+
+    def close(self) -> None:
+        self.closes += 1
+        self._inner.close()
+
+    def __getattr__(self, name):
+        return getattr(self._inner, name)
+
+
+@pytest.mark.asyncio
+async def test_arq_wrapper_commits_after_successful_regen(db, monkeypatch) -> None:
+    """Regression for TP2 S2.4: ARQ task must commit so the row persists.
+
+    Worker logs reported ``brand_summary_persisted`` after a Brand Studio
+    PATCH but the DB never showed the row because ``regen_brand_summary``
+    closed the session without committing.
+    """
+    spy = _SessionCommitSpy(db)
+    persist_calls = {"n": 0}
+
+    def _stub_sync(*, db: object, tenant_id, last_section_changed=None):
+        persist_calls["n"] += 1
+        return "stub-summary"
+
+    monkeypatch.setattr(
+        brand_summary_regen,
+        "regen_brand_summary_sync",
+        _stub_sync,
+    )
+
+    ctx = {"db_factory": lambda: spy}
+    result = await brand_summary_regen.regen_brand_summary(
+        ctx,
+        tenant_id=str(uuid4()),
+        last_section_changed="identity",
+    )
+
+    assert persist_calls["n"] == 1
+    assert spy.commits == 1, "ARQ task must commit after successful regen"
+    assert spy.rollbacks == 0
+    assert spy.closes == 1
+    assert result["status"] == "persisted"
+
+
+@pytest.mark.asyncio
+async def test_arq_wrapper_does_not_commit_when_regen_skipped(db, monkeypatch) -> None:
+    """Empty-brand or judge-failure path returns ``None`` — no commit needed."""
+    spy = _SessionCommitSpy(db)
+
+    def _stub_sync(*, db: object, tenant_id, last_section_changed=None):
+        return None
+
+    monkeypatch.setattr(
+        brand_summary_regen,
+        "regen_brand_summary_sync",
+        _stub_sync,
+    )
+
+    ctx = {"db_factory": lambda: spy}
+    result = await brand_summary_regen.regen_brand_summary(
+        ctx,
+        tenant_id=str(uuid4()),
+    )
+
+    assert spy.commits == 0
+    assert spy.closes == 1
+    assert result["status"] == "skipped"
+
+
+@pytest.mark.asyncio
+async def test_arq_wrapper_rolls_back_when_sync_raises(db, monkeypatch) -> None:
+    """Unexpected error in regen_sync → wrapper rolls back + re-raises."""
+    spy = _SessionCommitSpy(db)
+
+    def _stub_sync(*, db: object, tenant_id, last_section_changed=None):
+        msg = "boom"
+        raise RuntimeError(msg)
+
+    monkeypatch.setattr(
+        brand_summary_regen,
+        "regen_brand_summary_sync",
+        _stub_sync,
+    )
+
+    ctx = {"db_factory": lambda: spy}
+    with pytest.raises(RuntimeError, match="boom"):
+        await brand_summary_regen.regen_brand_summary(
+            ctx,
+            tenant_id=str(uuid4()),
+        )
+
+    assert spy.commits == 0
+    assert spy.rollbacks == 1
+    assert spy.closes == 1
