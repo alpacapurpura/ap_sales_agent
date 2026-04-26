@@ -56,7 +56,9 @@ class _ScriptedLLM:
         self.scripts = list(scripts)
         self.calls: list[Any] = []
 
-    def invoke(self, messages: Any) -> _StubResp:
+    def invoke(self, messages: Any, **_kwargs: Any) -> _StubResp:
+        # ``**_kwargs`` absorbs LangChain's ``config={"tags": [...]}`` (TP3 B1
+        # internal-LLM stream filter) so the stub stays a drop-in replacement.
         self.calls.append(messages)
         return _StubResp(content=self.scripts.pop(0))
 
