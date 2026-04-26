@@ -11,9 +11,14 @@ import { MultiOptionSelector } from "../messages/MultiOptionSelector";
 import { NavigationCard } from "../messages/NavigationCard";
 import { ProgressChecklist } from "../messages/ProgressChecklist";
 import { ProposalCard } from "../messages/ProposalCard";
+import { PlanCard } from "../PlanCard";
 
 import type { UIAction } from "../../store/copilot-store";
-import type { CardBlock as CardBlockType, ExtractionSummaryData } from "../../types/message-blocks";
+import type {
+  CardBlock as CardBlockType,
+  ExtractionSummaryData,
+  PlanCardData,
+} from "../../types/message-blocks";
 
 interface CardBlockProps {
   block: CardBlockType;
@@ -132,6 +137,10 @@ function renderCard(
 
     case "extraction_summary":
       return <ExtractionSummaryCard data={block.payload as unknown as ExtractionSummaryData} />;
+
+    case "plan_card":
+      // B18-TP9 — deep-agent ``write_todos`` synthesizes a plan with status transitions.
+      return <PlanCard data={block.payload as unknown as PlanCardData} />;
 
     case "navigation":
     default:

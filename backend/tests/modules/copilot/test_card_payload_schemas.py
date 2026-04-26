@@ -61,6 +61,42 @@ class TestClarifyPayload:
             ClarifyCardPayload.model_validate({"type": "clarify_card"})
 
 
+class TestPlanCardPayload:
+    """B18-TP9 — plan_card schema introduced for deep-agent ``write_todos``."""
+
+    def test_valid_payload_passes(self) -> None:
+        from src.modules.copilot.domain.card_payloads import PlanCardPayload
+
+        payload = {
+            "type": "plan_card",
+            "todos": [
+                {"content": "Auditar identidad", "status": "in_progress", "active_form": ""},
+                {"content": "Revisar storytelling", "status": "pending", "active_form": ""},
+                {"content": "Sintetizar hallazgos", "status": "completed", "active_form": ""},
+            ],
+        }
+        model = PlanCardPayload.model_validate(payload)
+        assert len(model.todos) == 3
+        assert model.todos[0].status == "in_progress"
+        assert model.todos[2].status == "completed"
+
+    def test_missing_todos_rejected(self) -> None:
+        from pydantic import ValidationError
+
+        from src.modules.copilot.domain.card_payloads import PlanCardPayload
+
+        with pytest.raises(ValidationError):
+            PlanCardPayload.model_validate({"type": "plan_card"})
+
+    def test_registry_validates_via_validate_card_payload(self) -> None:
+        ok, err = validate_card_payload(
+            "plan_card",
+            {"type": "plan_card", "todos": [{"content": "x", "status": "pending"}]},
+        )
+        assert ok is True
+        assert err is None
+
+
 class TestValidateCardPayloadWarnOnly:
     def test_valid_payload_returns_true(self) -> None:
         ok, err = validate_card_payload(

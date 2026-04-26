@@ -242,6 +242,29 @@ class MemoryPinnedCardPayload(_PayloadBase):
     path: str
 
 
+class PlanCardTodo(BaseModel):
+    """Single todo entry inside a ``plan_card`` payload (B18-TP9)."""
+
+    model_config = ConfigDict(extra="allow")
+    content: str
+    status: str  # "pending" | "in_progress" | "completed"
+    active_form: str = ""
+
+
+class PlanCardPayload(_PayloadBase):
+    """Payload for card_kind="plan_card" — F2 deep-agent ``write_todos`` synthesis (B18-TP9).
+
+    The deep-agent harness emits a ``write_todos`` tool call to expose its
+    multi-step plan. ``_write_todos_to_plan_card`` transforms the tool args
+    into this shape so the FE renders a checklist with status transitions
+    (pending → in_progress → completed). No user approval — the card is
+    informational and progresses as the agent advances.
+    """
+
+    type: str = "plan_card"
+    todos: list[PlanCardTodo]
+
+
 # ── Registry ────────────────────────────────────────────────────────────────
 
 
@@ -259,6 +282,7 @@ CARD_PAYLOAD_MODELS: dict[str, type[_PayloadBase]] = {
     "extraction_summary": ExtractionSummaryCardPayload,
     "inspiration_saved": InspirationSavedCardPayload,
     "memory_pinned": MemoryPinnedCardPayload,
+    "plan_card": PlanCardPayload,
 }
 """Map ``CardBlock.card_kind`` → payload Pydantic model.
 
@@ -306,6 +330,8 @@ __all__ = [
     "MetricSummaryCardPayload",
     "MultiOptionCardPayload",
     "NavigationCardPayload",
+    "PlanCardPayload",
+    "PlanCardTodo",
     "ProposalCardPayload",
     "ProposalUpdate",
     "validate_card_payload",

@@ -94,7 +94,22 @@ export type CardKind =
   | "checklist"
   | "multi_option"
   | "navigation"
-  | "extraction_summary";
+  | "extraction_summary"
+  | "inspiration_saved"
+  | "memory_pinned"
+  | "plan_card";
+
+/** Single todo entry inside a plan_card payload (B18-TP9). */
+export interface PlanCardTodo {
+  content: string;
+  status: "pending" | "in_progress" | "completed";
+  active_form?: string;
+}
+
+/** Data shape for card_kind="plan_card". Emitted by deep-agent ``write_todos`` (B18-TP9). */
+export interface PlanCardData {
+  todos: PlanCardTodo[];
+}
 
 /** Per-section coverage entry for ExtractionSummaryCard. */
 export interface CoverageSection {

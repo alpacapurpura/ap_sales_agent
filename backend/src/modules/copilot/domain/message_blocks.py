@@ -235,6 +235,7 @@ class CardBlock(_BlockBase):
         "extraction_summary",
         "inspiration_saved",
         "memory_pinned",
+        "plan_card",
     ]
     payload: dict  # shape matches UIAction subset for card_kind
     status: Literal["pending", "resolved", "confirmed", "revising"] | None = None

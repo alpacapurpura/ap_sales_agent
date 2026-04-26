@@ -1,96 +1,83 @@
 "use client";
 
-import { CheckCircle, XCircle } from "lucide-react";
+import { Check, Circle, Loader2 } from "lucide-react";
 import { forwardRef } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-import { TierChip } from "./TierChip";
-
-// ── Types ────────────────────────────────────────────────────────────
-
-interface PlanStep {
-  order: number;
-  label: string;
-  toolName: string;
-  estimatedTokens: number;
-}
+import type { PlanCardData, PlanCardTodo } from "../types/message-blocks";
 
 interface PlanCardProps extends React.HTMLAttributes<HTMLDivElement> {
-  msgId: string;
-  steps: PlanStep[];
-  estimatedCostUsd: number;
-  status: "pending" | "approved" | "rejected";
-  onApprove: () => void;
-  onReject: () => void;
+  data: PlanCardData;
 }
 
-// ── Component ────────────────────────────────────────────────────────
+function StatusIcon({ status }: { status: PlanCardTodo["status"] }) {
+  if (status === "completed") {
+    return (
+      <Check className="h-3.5 w-3.5 text-green-600 mt-0.5 shrink-0" data-testid="todo-completed" />
+    );
+  }
+  if (status === "in_progress") {
+    return (
+      <Loader2
+        className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0 animate-spin"
+        data-testid="todo-in-progress"
+      />
+    );
+  }
+  return (
+    <Circle
+      className="h-3.5 w-3.5 text-muted-foreground/60 mt-0.5 shrink-0"
+      data-testid="todo-pending"
+    />
+  );
+}
 
 /**
- * Card rendered when the copilot proposes a multi-step plan.
- * Appears after SSE event `plan_proposed`.
+ * Card emitted by the deep-agent harness when ``write_todos`` runs.
+ * Shows a multi-step plan with live status transitions
+ * (pending → in_progress → completed). Informational — no user approval.
+ *
+ * # [COPILOT-PLAN-CARD-B18-TP9] → docs/domains/copilot/testing-2026-04/results/TP9-2026-04-26.md
  */
 export const PlanCard = forwardRef<HTMLDivElement, PlanCardProps>(
-  (
-    { msgId: _msgId, steps, estimatedCostUsd, status, onApprove, onReject, className, ...props },
-    ref,
-  ) => {
+  ({ data, className, ...props }, ref) => {
+    const todos = Array.isArray(data?.todos) ? data.todos : [];
+    const completed = todos.filter((t) => t.status === "completed").length;
+    const total = todos.length;
+
     return (
       <Card ref={ref} className={cn("w-full border-border", className)} {...props}>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-semibold">Plan propuesto</CardTitle>
-          <TierChip tier="heavy" size="xs" />
+          <CardTitle className="text-sm font-semibold">Plan</CardTitle>
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {completed}/{total}
+          </span>
         </CardHeader>
 
         <CardContent className="pb-3">
-          <ol className="space-y-1">
-            {steps.map((step) => (
-              <li key={step.order} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="font-mono text-[10px] mt-0.5 text-muted-foreground/60 w-4 shrink-0">
-                  {step.order}.
+          <ul className="space-y-1.5">
+            {todos.map((todo, idx) => (
+              <li
+                key={`${idx}-${todo.content}`}
+                className={cn(
+                  "flex items-start gap-2 text-sm",
+                  todo.status === "completed" && "text-muted-foreground line-through",
+                  todo.status === "in_progress" && "text-foreground font-medium",
+                  todo.status === "pending" && "text-muted-foreground",
+                )}
+              >
+                <StatusIcon status={todo.status} />
+                <span>
+                  {todo.status === "in_progress" && todo.active_form
+                    ? todo.active_form
+                    : todo.content}
                 </span>
-                <span>{step.label}</span>
               </li>
             ))}
-          </ol>
-
-          <p className="mt-3 text-xs text-muted-foreground">
-            Costo estimado:{" "}
-            <span className="font-medium text-foreground">~${estimatedCostUsd.toFixed(2)}</span>
-          </p>
+          </ul>
         </CardContent>
-
-        <CardFooter className="flex gap-2 pt-0">
-          {status === "pending" && (
-            <>
-              <Button variant="outline" size="sm" onClick={onReject} className="flex-1">
-                <XCircle className="mr-1.5 h-3.5 w-3.5" />
-                Rechazar
-              </Button>
-              <Button size="sm" onClick={onApprove} className="flex-1">
-                <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
-                Aplicar
-              </Button>
-            </>
-          )}
-
-          {status === "approved" && (
-            <div className="flex items-center gap-1.5 text-sm text-green-700">
-              <CheckCircle className="h-4 w-4" />
-              <span>Aplicado</span>
-            </div>
-          )}
-
-          {status === "rejected" && (
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <XCircle className="h-4 w-4" />
-              <span>Rechazado</span>
-            </div>
-          )}
-        </CardFooter>
       </Card>
     );
   },
