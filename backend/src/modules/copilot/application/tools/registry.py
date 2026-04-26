@@ -144,10 +144,14 @@ def _build_tool_groups() -> dict[str, list]:
 # Named tool groups for route mapping (transversal + provider-contributed).
 TOOL_GROUPS: dict[str, list] = _build_tool_groups()
 
-# Route prefix -> which tool groups are available.
+# Base route → group mapping owned by copilot itself. Provider-contributed
+# routes are merged on top via ``_build_route_tool_map`` so a new module can
+# expose its tool groups per-route without editing this file (F1 promise —
+# closed in TP10 after the pattern was verified end-to-end with a dummy
+# provider declaring ``ProviderRoute(prefix="*", groups=("tp10_dummy",))``).
 # More specific routes should be listed before generic ones.
 # "*" is the fallback for any unmatched route.
-ROUTE_TOOL_MAP: dict[str, list[str]] = {
+_BASE_ROUTE_TOOL_MAP: dict[str, list[str]] = {
     "brand-studio": [
         "navigation",
         "awareness",
@@ -235,6 +239,39 @@ ROUTE_TOOL_MAP: dict[str, list[str]] = {
         "assets",  # globally available — assistant can reference assets anywhere.
     ],
 }
+
+
+def _build_route_tool_map() -> dict[str, list[str]]:
+    """Return the merged route → group map (base + provider routes).
+
+    Iterates discovered providers and folds each ``ProviderRoute`` entry into
+    the base map. Group names already present at a given prefix are kept (no
+    duplicates). Unknown prefixes introduced by providers create a new entry
+    starting from an empty list — providers are responsible for declaring all
+    transversal groups they need (e.g. add ``"navigation"`` if they want it).
+
+    Closes the F1 plug-in promise: once a module exports a ``CopilotProvider``
+    declaring ``routes()``, its tool groups land in the runtime route map at
+    boot without any edit to this file (validated by TP10 with a dummy module
+    plugged in via ``src.modules.tp10_dummy``).
+    """
+    # Local import keeps the module-level import graph thin — discovery is
+    # cached and tolerates being called repeatedly.
+    from src.modules.copilot.application.discovery import discover_providers
+
+    merged: dict[str, list[str]] = {prefix: list(groups) for prefix, groups in _BASE_ROUTE_TOOL_MAP.items()}
+
+    for provider in discover_providers().values():
+        for route in provider.routes():
+            bucket = merged.setdefault(route.prefix, [])
+            for group_name in route.groups:
+                if group_name not in bucket:
+                    bucket.append(group_name)
+
+    return merged
+
+
+ROUTE_TOOL_MAP: dict[str, list[str]] = _build_route_tool_map()
 
 
 # Tool groups that must be available in every route regardless of the
