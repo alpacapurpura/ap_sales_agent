@@ -71,21 +71,42 @@ class TestKimiService:
         with pytest.raises(NotImplementedError):
             svc.get_embedding_model()
 
-    def test_k2_6_temperature_override_is_clamped_to_one(self) -> None:
-        """TP4-B4 regression — Kimi K2.6 (the agentic / reasoning variant) only
-        accepts ``temperature=1``. The deep-agent factory hardcodes
-        ``temperature=0.6`` for ``ModelRole.AGENT``; without coercion, every
-        copilot turn through the AGENT role explodes with
-        ``invalid_request_error: only 1 is allowed for this model``.
+    def test_k2_6_temperature_clamped_to_required_value(self) -> None:
+        """TP4-B4 + TP5-B8 regression — Kimi K2.6 has two server-enforced
+        temperature regimes:
 
-        ``KimiService`` must clamp the requested temperature to ``1.0`` for
-        the K2.6 model so callers can keep the explicit override intact at
-        every other site (DeepSeek, OpenAI, Qwen) without extra branching.
+        - thinking enabled → only ``temperature=1.0`` works.
+        - thinking disabled → only ``temperature=0.6`` works.
+
+        We disable thinking globally (TP5-B8 — LangChain doesn't preserve
+        ``reasoning_content`` across tool-call turns), so the live
+        constraint is ``0.6``. Any explicit override gets clamped to keep
+        callers (e.g. deep-agent harness) provider-agnostic.
         """
         svc = KimiService(api_key="sk-test-kimi")
-        client = svc.get_client(role=ModelRole.AGENT, temperature=0.6)
+        client = svc.get_client(role=ModelRole.AGENT, temperature=1.0)
         # langchain_openai stores temperature on the resolved client.
-        assert client.temperature == 1.0
+        assert client.temperature == 0.6
+
+    def test_k2_6_disables_thinking_mode(self) -> None:
+        """TP5-B8 regression — Kimi K2.6 thinking mode requires
+        ``reasoning_content`` on every prior assistant message that issued a
+        ``tool_call``. LangChain doesn't preserve that field across turns, so
+        post-tool re-invocations explode with
+        ``thinking is enabled but reasoning_content is missing in assistant
+        tool call message at index N``.
+
+        Until we rewire LangChain to round-trip ``reasoning_content``, the
+        AGENT role must call K2.6 with thinking disabled
+        (``extra_body={"thinking": {"type": "disabled"}}``). Tool calls + UX
+        quality are unaffected — K2.6 without thinking still tops agentic
+        benchmarks.
+        """
+        svc = KimiService(api_key="sk-test-kimi")
+        client = svc.get_client(role=ModelRole.AGENT)
+        # langchain_openai exposes the openai-SDK kwargs via ``model_kwargs``.
+        extra_body = client.model_kwargs.get("extra_body", {})
+        assert extra_body.get("thinking") == {"type": "disabled"}
 
 
 class TestQwenService:

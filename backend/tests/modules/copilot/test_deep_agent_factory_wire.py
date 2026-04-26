@@ -107,8 +107,8 @@ class TestFactoryTemperatureOverride:
 
         Usamos ``ModelRole.REASONING`` (DeepSeek deepseek-reasoner) porque
         ``ModelRole.AGENT`` resuelve a Kimi K2.6 y el adapter clampea
-        ``temperature`` a 1.0 (TP4-B4) — comportamiento correcto pero
-        oculta el wire que este test cuida.
+        ``temperature`` al valor exigido por el server (TP4-B4 + TP5-B8) —
+        comportamiento correcto pero oculta el wire que este test cuida.
         """
         client = LLMFactory.get_service().get_client(ModelRole.REASONING, temperature=0.6)
         # ChatOpenAI expone temperature como atributo serializable.
@@ -119,7 +119,7 @@ class TestFactoryTemperatureOverride:
         """Cache key incluye temperature — distintos overrides → distintas instancias.
 
         Como en ``test_temperature_override_is_applied`` usamos REASONING para
-        evitar el clamp Kimi K2.6 (TP4-B4) — el cache vive en
+        evitar el clamp Kimi K2.6 — el cache vive en
         ``OpenAICompatibleService._models`` para los tres providers chinos.
         """
         service = LLMFactory.get_service()
@@ -131,14 +131,16 @@ class TestFactoryTemperatureOverride:
 
     def test_kimi_k2_temperature_clamped_for_agent_role(self) -> None:
         """``ModelRole.AGENT`` resuelve Kimi K2.6 y debe clampear cualquier
-        temperature ≠ 1.0 a 1.0 (TP4-B4). Sin esto, el deep-agent factory
-        explota cada turn con HTTP 400 ``only 1 is allowed for this model``.
+        temperature ≠ 0.6 al valor exigido por el server (TP4-B4 + TP5-B8).
+        Con thinking deshabilitado (B8), K2.6 sólo acepta ``temperature=0.6``;
+        sin coerción, el deep-agent factory explota con HTTP 400 ``only 0.6
+        is allowed for this model``.
         """
         service = LLMFactory.get_service()
-        client = service.get_client(ModelRole.AGENT, temperature=0.6)
+        client = service.get_client(ModelRole.AGENT, temperature=1.0)
         config = client.model_dump()
-        assert config.get("temperature") == 1.0, (
-            f"Kimi K2.6 debe clampear temperature a 1.0; got {config.get('temperature')}"
+        assert config.get("temperature") == 0.6, (
+            f"Kimi K2.6 (thinking disabled) debe clampear temperature a 0.6; got {config.get('temperature')}"
         )
 
 
