@@ -214,6 +214,162 @@ class TestProcessStreamEvent:
         assert sse is None
         assert text is None
 
+    def test_on_chat_model_stream_with_internal_tag_is_dropped(self, orch: CopilotOrchestrator) -> None:
+        """TP3 B1 — analyzer/synthesizer/intent_classifier tools invoke
+        the LLM internally and tag those calls with ``copilot:internal``.
+        The orchestrator MUST drop ``on_chat_model_stream`` events that
+        carry the tag so their JSON payload never reaches the user's
+        ``block_delta`` channel.
+
+        Regression: pre-fix, fetch_url's analyzer streamed its full JSON
+        envelope ({"slug": "…", "summary": "…", …}) as user-visible
+        deltas during the tool execution.
+        """
+        mock_chunk = MagicMock()
+        mock_chunk.content = '{"slug": "leak"'
+        event = {
+            "event": "on_chat_model_stream",
+            "data": {"chunk": mock_chunk},
+            "tags": ["copilot:internal"],
+        }
+
+        sse, text = orch._process_stream_event(event, [], {})
+
+        assert sse is None
+        assert text is None
+
+    def test_serialize_messages_drops_zombie_assistant_artifact(self, orch: CopilotOrchestrator) -> None:
+        """TP3 B4 — sanitizer-leftover AIMessages (e.g. content='}') with
+        no tool_calls slot between an assistant tool_call and its tool
+        response. On the NEXT turn OpenAI rejects the conversation with
+        400 invalid_request_error because the tool_call_id has no paired
+        tool message (the zombie sits in between).
+
+        Drop empty/whitespace/single-char AIMessages without tool_calls
+        at serialization time so persistence stays valid."""
+        from src.modules.copilot.application.orchestrator.chat import (
+            CopilotOrchestrator,
+        )
+
+        ai_with_call = AIMessage(
+            content="",
+            tool_calls=[{"id": "call_1", "name": "fetch_url", "args": {"url": "https://x"}}],
+        )
+        zombie = AIMessage(content="}")
+        tool_msg = ToolMessage(
+            content='{"status":"saved"}',
+            name="fetch_url",
+            tool_call_id="call_1",
+        )
+        ai_final = AIMessage(content="He guardado la página.")
+
+        result = CopilotOrchestrator._serialize_messages(
+            [ai_with_call, zombie, tool_msg, ai_final],
+        )
+        roles = [m.get("role") for m in result]
+        # Zombie dropped → assistant tool_call directly followed by tool
+        # response (OpenAI invariant preserved).
+        assert roles == ["assistant", "tool", "assistant"]
+        assert "tool_calls" in result[0]
+        assert result[0]["tool_calls"][0]["id"] == "call_1"
+        assert result[1]["tool_call_id"] == "call_1"
+
+    def test_serialize_messages_keeps_meaningful_short_assistant(self, orch: CopilotOrchestrator) -> None:
+        """Short legitimate assistant replies (e.g. '¡OK!') must NOT be
+        dropped — only stray 1-char artifacts."""
+        from src.modules.copilot.application.orchestrator.chat import (
+            CopilotOrchestrator,
+        )
+
+        result = CopilotOrchestrator._serialize_messages(
+            [AIMessage(content="¡OK!")],
+        )
+        assert len(result) == 1
+        assert result[0]["content"] == "¡OK!"
+
+    def test_parse_tool_payload_unwraps_tool_message(self, orch: CopilotOrchestrator) -> None:
+        """TP3 B3 — graph tool outputs travel as ``ToolMessage``. The
+        payload parser MUST unwrap the JSON inside ``ToolMessage.content``
+        so cards reach the FE; pre-fix the parser only handled str/dict."""
+        from src.modules.copilot.application.orchestrator.chat import (
+            _parse_tool_payload,
+        )
+
+        msg = ToolMessage(
+            content='{"status": "saved", "ui_action": {"type": "inspiration_saved", "slug": "x"}}',
+            name="fetch_url",
+            tool_call_id="call_x",
+        )
+        parsed = _parse_tool_payload(msg)
+        assert parsed is not None
+        assert parsed["ui_action"]["type"] == "inspiration_saved"
+
+    def test_parse_tool_payload_returns_none_on_garbled_content(self, orch: CopilotOrchestrator) -> None:
+        from src.modules.copilot.application.orchestrator.chat import (
+            _parse_tool_payload,
+        )
+
+        msg = ToolMessage(content="not json", name="x", tool_call_id="y")
+        assert _parse_tool_payload(msg) is None
+
+    def test_inspiration_saved_action_wraps_to_card_block(self, orch: CopilotOrchestrator) -> None:
+        """TP3 B2 — fetch_url emits ui_action.type='inspiration_saved'; the
+        orchestrator MUST wrap it as a typed ``CardBlock`` so block_append
+        + ``card_emitted`` trace fire. Pre-fix the type was unmapped and
+        the card pipeline silently dropped it."""
+        from src.modules.copilot.application.orchestrator.chat import (
+            _ui_action_to_card_block,
+        )
+
+        action = {
+            "type": "inspiration_saved",
+            "slug": "mujeres-coraje",
+            "url": "https://www.mujerescoraje.com",
+            "domain": "www.mujerescoraje.com",
+            "summary": "Resumen breve.",
+            "brand_relevance_score": 0.6,
+            "og_image": None,
+            "scratchpad_path": "/inspirations/mujeres-coraje.md",
+        }
+        block = _ui_action_to_card_block(action)
+        assert block is not None
+        assert block["type"] == "card"
+        assert block["card_kind"] == "inspiration_saved"
+        assert block["payload"]["slug"] == "mujeres-coraje"
+
+    def test_memory_pinned_action_wraps_to_card_block(self, orch: CopilotOrchestrator) -> None:
+        """TP3 B2 — pin_to_memory emits ui_action.type='memory_pinned'."""
+        from src.modules.copilot.application.orchestrator.chat import (
+            _ui_action_to_card_block,
+        )
+
+        action = {
+            "type": "memory_pinned",
+            "slug": "mujeres-coraje",
+            "path": "/memories/inspirations/mujeres-coraje.md",
+        }
+        block = _ui_action_to_card_block(action)
+        assert block is not None
+        assert block["card_kind"] == "memory_pinned"
+        assert block["payload"]["slug"] == "mujeres-coraje"
+
+    def test_on_chat_model_stream_with_internal_tag_in_metadata_is_dropped(self, orch: CopilotOrchestrator) -> None:
+        """Metadata fallback — some tracers stamp the tag on
+        ``metadata.tags`` instead of the top-level ``tags`` field.
+        Either source is enough to drop the event."""
+        mock_chunk = MagicMock()
+        mock_chunk.content = '{"intent":'
+        event = {
+            "event": "on_chat_model_stream",
+            "data": {"chunk": mock_chunk},
+            "metadata": {"tags": ["copilot:internal"]},
+        }
+
+        sse, text = orch._process_stream_event(event, [], {})
+
+        assert sse is None
+        assert text is None
+
     def test_on_chat_model_end_accumulates_message(self, orch: CopilotOrchestrator) -> None:
         ai_msg = AIMessage(content="Respuesta completa")
         event = {"event": "on_chat_model_end", "data": {"output": ai_msg}}

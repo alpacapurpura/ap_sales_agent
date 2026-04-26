@@ -25,9 +25,11 @@ class _StubLLM:
     def __init__(self, payload: dict[str, Any]) -> None:
         self.payload = payload
         self.last_messages: list[Any] = []
+        self.last_config: dict | None = None
 
-    def invoke(self, messages: list[Any]) -> _StubResponse:
+    def invoke(self, messages: list[Any], *, config: dict | None = None) -> _StubResponse:
         self.last_messages = messages
+        self.last_config = config
         return _StubResponse(content=json.dumps(self.payload))
 
 
@@ -51,6 +53,10 @@ async def test_classify_offer_lookup_with_name_query() -> None:
     assert result.name_query == "propósito y prosperidad"
     assert result.period_phrase is None
     assert result.confidence == pytest.approx(0.92)
+    # TP3 B1 — internal tag carried so the chat orchestrator drops the
+    # classifier's tokens before they leak as block_delta.
+    assert llm.last_config is not None
+    assert "copilot:internal" in llm.last_config.get("tags", [])
 
 
 @pytest.mark.asyncio
@@ -113,7 +119,7 @@ async def test_classify_handles_garbled_llm_output() -> None:
     """Non-JSON / partial output → unknown intent, not exception."""
 
     class _GarbledLLM:
-        def invoke(self, messages: list[Any]) -> _StubResponse:
+        def invoke(self, messages: list[Any], *, config: dict | None = None) -> _StubResponse:
             return _StubResponse(content="Sure, here is some text without json.")
 
     result = await classify_intent("dummy", llm=_GarbledLLM())

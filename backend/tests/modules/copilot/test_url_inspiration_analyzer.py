@@ -88,14 +88,16 @@ class TestParseLlmOutput:
 
 
 class _StubLLM:
-    """Capture `messages` and return a canned response."""
+    """Capture `messages` (and optional `config`) and return a canned response."""
 
     def __init__(self, response_text: str) -> None:
         self.response_text = response_text
         self.calls: list[list] = []
+        self.configs: list[dict | None] = []
 
-    def invoke(self, messages: list) -> object:
+    def invoke(self, messages: list, *, config: dict | None = None) -> object:
         self.calls.append(messages)
+        self.configs.append(config)
 
         class _Resp:
             def __init__(self, text: str) -> None:
@@ -146,3 +148,22 @@ class TestAnalyze:
         assert result.brand_relevance_score == pytest.approx(0.5)
         # Lighthouse fallback message included in user prompt
         assert any("no hay brand lighthouse" in m.content for m in stub.calls[0])
+
+    def test_invoke_carries_internal_tag(self) -> None:
+        """TP3 B1 — analyzer MUST tag its LLM invocation so the chat
+        orchestrator drops the JSON tokens before they reach the user's
+        block_delta channel."""
+        stub = _StubLLM(
+            '{"slug":"x","summary":"x","brand_relevance_score":0.5,"sub_elements":{}}',
+        )
+        analyze(
+            url="https://x.com",
+            why="",
+            brand_lighthouse=None,
+            page_title=None,
+            content_md="contenido",
+            fallback_domain="x.com",
+            llm=stub,
+        )
+        assert stub.configs and stub.configs[0] is not None
+        assert "copilot:internal" in stub.configs[0].get("tags", [])

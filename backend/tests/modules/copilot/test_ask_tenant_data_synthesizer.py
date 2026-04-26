@@ -23,9 +23,11 @@ class _StubLLM:
     def __init__(self, text: str) -> None:
         self.text = text
         self.last_messages: list[Any] = []
+        self.last_config: dict | None = None
 
-    def invoke(self, messages: list[Any]) -> _StubResponse:
+    def invoke(self, messages: list[Any], *, config: dict | None = None) -> _StubResponse:
         self.last_messages = messages
+        self.last_config = config
         return _StubResponse(content=self.text)
 
 
@@ -44,6 +46,10 @@ async def test_synthesizer_uses_stub_llm_text() -> None:
     )
     assert "12" in answer
     assert llm.last_messages, "synthesizer should call the LLM"
+    # TP3 B1 — internal tag carried so chat orchestrator drops the
+    # synthesizer's intermediate tokens.
+    assert llm.last_config is not None
+    assert "copilot:internal" in llm.last_config.get("tags", [])
 
 
 @pytest.mark.asyncio

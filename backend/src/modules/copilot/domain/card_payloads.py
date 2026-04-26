@@ -216,6 +216,32 @@ class ExtractionSummaryCardPayload(_PayloadBase):
     primary_cta_route: str | None = None  # deeplink e.g. "/brand-studio/identity"
 
 
+class InspirationSavedCardPayload(_PayloadBase):
+    """Payload for card_kind="inspiration_saved" — F4 URL inspiration capture.
+
+    Emitted by ``fetch_url`` after persisting a row in
+    ``copilot_inspiration``. Frontend renderer is the swipe-card preview
+    (TBD per F4 §7) showing the OG image + summary + relevance badge.
+    """
+
+    type: str = "inspiration_saved"
+    slug: str
+    url: str
+    domain: str
+    summary: str
+    brand_relevance_score: float
+    og_image: str | None = None
+    scratchpad_path: str | None = None
+
+
+class MemoryPinnedCardPayload(_PayloadBase):
+    """Payload for card_kind="memory_pinned" — F4 ``pin_to_memory`` confirmation."""
+
+    type: str = "memory_pinned"
+    slug: str
+    path: str
+
+
 # ── Registry ────────────────────────────────────────────────────────────────
 
 
@@ -231,6 +257,8 @@ CARD_PAYLOAD_MODELS: dict[str, type[_PayloadBase]] = {
     "multi_option": MultiOptionCardPayload,
     "navigation": NavigationCardPayload,
     "extraction_summary": ExtractionSummaryCardPayload,
+    "inspiration_saved": InspirationSavedCardPayload,
+    "memory_pinned": MemoryPinnedCardPayload,
 }
 """Map ``CardBlock.card_kind`` → payload Pydantic model.
 

@@ -54,6 +54,9 @@ from src.modules.copilot.application.orchestrator.output_sanitizer import (
 from src.modules.copilot.application.orchestrator.state import (
     create_initial_copilot_state,
 )
+from src.modules.copilot.application.orchestrator.stream_filters import (
+    is_internal_llm_event,
+)
 from src.modules.copilot.application.orchestrator.usage_tracking import UsageAccumulator
 from src.modules.copilot.application.router import (
     RoutingRequest,
@@ -230,8 +233,47 @@ _TYPE_TO_CARD_KIND: dict[str, str] = {
     "checklist": "checklist",
     "multi_option": "multi_option",
     "navigation": "navigation",
+    # F4 — URL contextual scratchpad (TP3 B2).
+    "inspiration_saved": "inspiration_saved",
+    "memory_pinned": "memory_pinned",
 }
 """Map from UIAction.type → CardBlock.card_kind (CONTRACT-MULTIMODAL §6)."""
+
+
+def _parse_tool_payload(tool_output: object) -> dict | None:
+    """Best-effort decode of a graph tool output into a JSON dict.
+
+    LangGraph + deepagents emit ``on_tool_end`` events whose ``output``
+    can be a ``ToolMessage``, a raw ``str``, or a ``dict``. The card
+    pipeline (``ui_action`` legacy event + v2 ``block_append``) only
+    fires when the payload contains a ``ui_action`` key, so a tool that
+    travels through the graph as ``ToolMessage`` would silently lose the
+    card unless we unwrap the message first.
+
+    Detected during TP3 S3.1 — ``fetch_url`` emitted ``ui_action`` in its
+    JSON envelope but ``_handle_tool_end_v2`` saw a ``ToolMessage`` and
+    parsed nothing, so ``inspiration_saved`` cards never reached the FE.
+    """
+    if isinstance(tool_output, dict):
+        return tool_output
+    raw: str | None = None
+    if isinstance(tool_output, ToolMessage):
+        content = tool_output.content
+        if isinstance(content, str):
+            raw = content
+        elif isinstance(content, list):
+            raw = "\n".join(str(part) for part in content if part is not None)
+        elif isinstance(content, dict):
+            return content
+    elif isinstance(tool_output, str):
+        raw = tool_output
+    if not raw:
+        return None
+    try:
+        parsed = json.loads(raw)
+    except (json.JSONDecodeError, ValueError):
+        return None
+    return parsed if isinstance(parsed, dict) else None
 
 
 def _ui_action_to_card_block(action: dict) -> dict | None:
@@ -915,7 +957,7 @@ class CopilotOrchestrator:
             },
         ).to_sse()
 
-    def _process_stream_event(
+    def _process_stream_event(  # noqa: PLR0911 — flat dispatch on event.kind, splitting hides the routing
         self,
         event: dict,
         accumulated_messages: list,
@@ -937,6 +979,13 @@ class CopilotOrchestrator:
         kind = event.get("event")
 
         if kind == "on_chat_model_stream":
+            # TP3 B1 — drop tokens from LLM calls inside tool bodies
+            # (analyzer, synthesizer, intent classifier). They tag their
+            # invocations with `copilot:internal`; surfacing them as
+            # block_delta leaks raw JSON to the user before the
+            # block_end sanitizer can drop it.
+            if is_internal_llm_event(event):
+                return None, None
             chunk = event.get("data", {}).get("chunk")
             if chunk and hasattr(chunk, "content") and chunk.content:
                 # v2 block_delta is built by the caller from the returned
@@ -1007,13 +1056,11 @@ class CopilotOrchestrator:
             data={"tool": tool_name, "result": str(tool_output)[:4000]},
         ).to_sse()
 
-        # If tool result contains a ui_action, emit it
-        parsed = tool_output if isinstance(tool_output, dict) else None
-        if not parsed and isinstance(tool_output, str):
-            try:
-                parsed = json.loads(tool_output)
-            except (json.JSONDecodeError, ValueError):
-                parsed = None
+        # If tool result contains a ui_action, emit it. _parse_tool_payload
+        # also unwraps ToolMessage envelopes so cards from tools running
+        # inside the deep-agent graph (fetch_url, pin_to_memory, …) reach
+        # the FE — TP3 B3.
+        parsed = _parse_tool_payload(tool_output)
 
         if isinstance(parsed, dict) and "ui_action" in parsed:
             result_sse += SSEEvent(event="ui_action", data=parsed["ui_action"]).to_sse()
@@ -1106,15 +1153,10 @@ class CopilotOrchestrator:
                 acc.emitted_blocks.append(block)
 
         # Step 3 — ui_action → CardBlock (v2 wrap, in addition to legacy ui_action)
-        # Check if tool output has ui_action that wasn't already wrapped
-        parsed_output: dict | None = None
-        if isinstance(tool_output, dict):
-            parsed_output = tool_output
-        elif isinstance(tool_output, str):
-            try:
-                parsed_output = json.loads(tool_output)
-            except (json.JSONDecodeError, ValueError):
-                parsed_output = None
+        # _parse_tool_payload unwraps ToolMessage envelopes so cards from
+        # graph-resident tools (fetch_url, pin_to_memory, …) wrap as
+        # typed CardBlocks — TP3 B3.
+        parsed_output: dict | None = _parse_tool_payload(tool_output)
 
         if isinstance(parsed_output, dict) and "ui_action" in parsed_output:
             action = parsed_output["ui_action"]
@@ -1305,6 +1347,17 @@ class CopilotOrchestrator:
             if isinstance(msg, HumanMessage):
                 result.append({**base, "role": "user", "content": msg.content})
             elif isinstance(msg, AIMessage):
+                # TP3 B4 — drop zombie AIMessages whose content is just
+                # a single stray char (sanitizer leftover) and that carry
+                # no tool_calls. They have no semantic value but they slot
+                # between an assistant tool_call and its ToolMessage
+                # response, breaking the OpenAI invariant requiring every
+                # tool_call_id to be followed by a tool message on the
+                # next turn (HTTP 400 invalid_request_error).
+                content_str = msg.content if isinstance(msg.content, str) else ""
+                stripped = content_str.strip()
+                if not msg.tool_calls and len(stripped) <= 1:
+                    continue
                 d: dict = {**base, "role": "assistant", "content": msg.content}
                 if msg.tool_calls:
                     d["tool_calls"] = [

@@ -132,7 +132,12 @@ async def classify_intent(
         HumanMessage(content=question),
     ]
     try:
-        response = llm.invoke(messages)  # type: ignore[attr-defined]
+        from src.modules.copilot.application.orchestrator.stream_filters import (
+            INTERNAL_LLM_CONFIG,
+        )
+
+        # TP3 B1 — drop intent classifier tokens from the user stream.
+        response = llm.invoke(messages, config=INTERNAL_LLM_CONFIG)  # type: ignore[attr-defined]
     except Exception:
         logger.exception("intent_classifier_llm_failed", question=question[:120])
         return IntentResult(

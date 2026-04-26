@@ -119,7 +119,13 @@ async def synthesize_answer(
 
     messages = [SystemMessage(content=system), HumanMessage(content=user)]
     try:
-        response = llm.invoke(messages)  # type: ignore[attr-defined]
+        from src.modules.copilot.application.orchestrator.stream_filters import (
+            INTERNAL_LLM_CONFIG,
+        )
+
+        # TP3 B1 — tag synthesizer call so its tokens never reach
+        # the user-visible block_delta channel.
+        response = llm.invoke(messages, config=INTERNAL_LLM_CONFIG)  # type: ignore[attr-defined]
     except Exception:
         logger.exception("synthesizer_llm_failed", question=question[:120])
         # Deterministic fallback so the user is not left without an answer.

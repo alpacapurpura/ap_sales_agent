@@ -104,13 +104,27 @@ Turn: `"mirá https://www.nytimes.com/<algun-articulo-pagado>"`.
 
 ### S3.7 — `pin_to_memory` tool funciona
 
-Turn: `"recordá que mi marca usa el color #FF5733"`.
+> **TP3 update 2026-04-26:** la versión original asumía que `pin_to_memory`
+> aceptaba contenido arbitrario. La implementación F4 sólo promueve un
+> slug existente desde `copilot_inspiration` a `copilot_pinned_memory`.
+> Reescrito el escenario para reflejar la API real.
+
+Setup: ejecutar S3.1 primero para que exista una inspiración con
+`slug='mujeres-coraje'`.
+
+Turn (mismo conv): `"guardá esta referencia para futuras conversaciones, fija mujeres-coraje"`.
 
 ```sql
-SELECT * FROM copilot_pinned_memory WHERE conversation_id=:cid;
+SELECT * FROM copilot_pinned_memory
+WHERE tenant_id=:tid AND user_id=:uid AND path='/memories/inspirations/mujeres-coraje.md';
 ```
 
-**Pass:** 1 row con `content='#FF5733' o similar`. En turn siguiente, system prompt incluye memory.
+**Pass:** 1 row con `content` igual al `content_md` de la inspiración +
+`pinned_from_conversation_id` apunta al conv original.
+
+**Cobertura unit:** `tests/modules/copilot/test_pin_to_memory_tool.py`
+ejerce el contrato sin LLM (slug missing → error envelope; slug found →
+upsert + commit).
 
 ### S3.8 — `brand_relevance_score` populated (F4 hook futuro)
 

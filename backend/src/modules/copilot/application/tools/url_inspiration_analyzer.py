@@ -24,6 +24,9 @@ import structlog
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.core.enums import ModelRole
+from src.modules.copilot.application.orchestrator.stream_filters import (
+    INTERNAL_LLM_CONFIG,
+)
 
 logger = structlog.get_logger()
 
@@ -308,7 +311,9 @@ def analyze(
         SystemMessage(content=_SYSTEM_PROMPT_ES),
         HumanMessage(content=user_prompt),
     ]
-    response = llm.invoke(messages)  # type: ignore[attr-defined]
+    # TP3 B1 — tag the call so chat orchestrator drops the
+    # intermediate JSON tokens instead of streaming them as block_delta.
+    response = llm.invoke(messages, config=INTERNAL_LLM_CONFIG)  # type: ignore[attr-defined]
     text = getattr(response, "content", None) or str(response)
     if isinstance(text, list):
         text = "\n".join(str(part) for part in text)
