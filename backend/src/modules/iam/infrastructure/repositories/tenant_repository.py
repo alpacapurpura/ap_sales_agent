@@ -44,6 +44,9 @@ class TenantRepository:
             config_json=tenant.config_json,
             openai_api_key=tenant.openai_api_key,
             gemini_api_key=tenant.gemini_api_key,
+            deepseek_api_key=tenant.deepseek_api_key,
+            kimi_api_key=tenant.kimi_api_key,
+            dashscope_api_key=tenant.dashscope_api_key,
             webhook_secret=tenant.webhook_secret,
             can_use_platform_keys=tenant.can_use_platform_keys,
             is_active=tenant.is_active,
@@ -62,6 +65,9 @@ class TenantRepository:
             db_tenant.config_json = tenant.config_json
             db_tenant.openai_api_key = tenant.openai_api_key
             db_tenant.gemini_api_key = tenant.gemini_api_key
+            db_tenant.deepseek_api_key = tenant.deepseek_api_key
+            db_tenant.kimi_api_key = tenant.kimi_api_key
+            db_tenant.dashscope_api_key = tenant.dashscope_api_key
             db_tenant.webhook_secret = tenant.webhook_secret
             db_tenant.can_use_platform_keys = tenant.can_use_platform_keys
             db_tenant.is_active = tenant.is_active

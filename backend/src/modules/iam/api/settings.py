@@ -117,6 +117,9 @@ async def get_ai_settings(
     return AISettings(
         openai_api_key=tenant.openai_api_key,
         gemini_api_key=tenant.gemini_api_key,
+        deepseek_api_key=tenant.deepseek_api_key,
+        kimi_api_key=tenant.kimi_api_key,
+        dashscope_api_key=tenant.dashscope_api_key,
         can_use_platform_keys=tenant.can_use_platform_keys or False,
     )
 
@@ -263,12 +266,24 @@ async def update_ai_settings(
     if settings.gemini_api_key is not None:
         tenant.gemini_api_key = settings.gemini_api_key
 
+    if settings.deepseek_api_key is not None:
+        tenant.deepseek_api_key = settings.deepseek_api_key
+
+    if settings.kimi_api_key is not None:
+        tenant.kimi_api_key = settings.kimi_api_key
+
+    if settings.dashscope_api_key is not None:
+        tenant.dashscope_api_key = settings.dashscope_api_key
+
     db.commit()
     db.refresh(tenant)
 
     return AISettings(
         openai_api_key=tenant.openai_api_key,
         gemini_api_key=tenant.gemini_api_key,
+        deepseek_api_key=tenant.deepseek_api_key,
+        kimi_api_key=tenant.kimi_api_key,
+        dashscope_api_key=tenant.dashscope_api_key,
         can_use_platform_keys=tenant.can_use_platform_keys or False,
     )
 

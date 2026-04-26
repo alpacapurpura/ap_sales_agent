@@ -16,6 +16,9 @@ class Tenant(BaseEntity):
     config_json: dict[str, Any] = {}
     openai_api_key: str | None = None
     gemini_api_key: str | None = None
+    deepseek_api_key: str | None = None
+    kimi_api_key: str | None = None
+    dashscope_api_key: str | None = None
     webhook_secret: str | None = None
     can_use_platform_keys: bool = False
     is_active: bool = True
@@ -28,6 +31,9 @@ class AISettings(BaseEntity):
 
     openai_api_key: str | None = None
     gemini_api_key: str | None = None
+    deepseek_api_key: str | None = None
+    kimi_api_key: str | None = None
+    dashscope_api_key: str | None = None
     can_use_platform_keys: bool = False
 
 
@@ -36,6 +42,9 @@ class TenantSettingsUpdate(BaseEntity):
 
     openai_api_key: str | None = None
     gemini_api_key: str | None = None
+    deepseek_api_key: str | None = None
+    kimi_api_key: str | None = None
+    dashscope_api_key: str | None = None
 
 
 class GeneralSettings(BaseEntity):

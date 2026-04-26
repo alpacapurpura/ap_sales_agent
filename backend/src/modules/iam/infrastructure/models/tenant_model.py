@@ -32,6 +32,9 @@ class TenantModel(Base):
     # AI Provider Configuration (Multitenant)
     openai_api_key = Column(String, nullable=True)
     gemini_api_key = Column(String, nullable=True)
+    deepseek_api_key = Column(String, nullable=True)
+    kimi_api_key = Column(String, nullable=True)
+    dashscope_api_key = Column(String, nullable=True)
     webhook_secret = Column(String, nullable=True)
     can_use_platform_keys = Column(Boolean, default=False)
 
