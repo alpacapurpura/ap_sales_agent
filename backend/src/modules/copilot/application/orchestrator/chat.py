@@ -395,6 +395,25 @@ def _sanitize_ai_messages(messages: list) -> list:
     return cleaned
 
 
+def _build_turn_end_data(*, usage: UsageAccumulator, acc: _StreamAccumulator) -> dict:
+    """Build the JSONB ``data`` payload for the ``turn_end`` trace event.
+
+    Merges ``UsageAccumulator.as_log_dict()`` (model + prompt/completion/total
+    tokens, cached_input_tokens, cache_hit_rate, cost_usd) with stream-shape
+    fields the recorder needs (response length, message count, block count).
+
+    Anchor: ``[COPILOT-CACHE-PREFIX-F8]``. Without these fields persisted on
+    ``copilot_trace_event``, the F8 cache instrumentation never reaches the
+    admin ``/copilot-routing`` dashboard or downstream cost reports.
+    """
+    return {
+        **usage.as_log_dict(),
+        "response_length": len(acc.full_response),
+        "message_count": len(acc.messages),
+        "block_count": len(acc.emitted_blocks),
+    }
+
+
 @dataclass
 class _StreamAccumulator:
     """Mutable accumulator shared between stream_chat and _run_graph_stream."""
@@ -726,13 +745,7 @@ class CopilotOrchestrator:
             event_type="turn_end",
             name="copilot_chat",
             duration_ms=int((time.monotonic() - turn_start_ts) * 1000),
-            data={
-                "response_length": len(acc.full_response),
-                "message_count": len(acc.messages),
-                "block_count": len(acc.emitted_blocks),
-                "total_tokens": usage.total_tokens,
-                "model": usage.model,
-            },
+            data=_build_turn_end_data(usage=usage, acc=acc),
         )
 
         yield SSEEvent(event="status", data={"state": "done"}).to_sse()
