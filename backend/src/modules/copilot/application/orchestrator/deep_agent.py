@@ -78,24 +78,26 @@ _DEEP_AGENT_SUFFIX_ES = """
 
 Tienes acceso a herramientas adicionales:
 
-- `write_todos`: cuando la tarea tiene 3+ pasos visibles, anotá el plan ANTES
-  de ejecutar. El usuario ve el plan en una `plan_card`. Marcá pasos como
-  `completed` a medida que avanzás.
+- `write_todos`: cuando la tarea tiene 3+ pasos visibles, anota el plan ANTES
+  de ejecutar. El usuario ve el plan en una `plan_card`. Marca pasos como
+  `completed` a medida que avanzas.
 - `read_file` / `write_file` / `edit_file` / `ls` / `glob` / `grep`: tu
   scratchpad efímero por conversación. Útil para guardar fragmentos largos
-  (transcript, notas, borrador) que no querés re-pegar en cada turno.
-- `task(name, prompt)`: delegá una tarea aislada a un sub-agente especializado.
+  (transcript, notas, borrador) que no quieres re-pegar en cada turno.
+- `task(name, prompt)`: delega una tarea aislada a un sub-agente especializado.
   Disponibles:
     - `audit_inspector` (revisión rápida de una sección).
     - `url_analyzer` (analiza una o más URLs como inspiración de la
       conversación; persiste resumen y abre `inspiration_saved` cards).
 
 Reglas:
-- Tareas chicas (1-2 pasos, pregunta directa): respondé sin write_todos.
+- Tareas chicas (1-2 pasos, pregunta directa): responde sin write_todos.
 - Tareas largas (auditoría, diseño, multi-step): write_todos primero.
-- Spanish neutro LatAm en todo lo user-facing (sin voseo, sin "che", sin
-  "vos/tenés/podés"). Tu plan visible es user-facing.
-- No alucines paths del scratchpad. Usá `ls` antes de `read_file`.
+- Spanish neutro LatAm en todo lo user-facing. Usa tuteo (`tú`, `tienes`,
+  `puedes`, `quieres`, imperativos como `anota`/`marca`/`responde`). NO uses
+  formas verbales con acento final (`-ás`/`-és`/`-ís`) ni el pronombre
+  rioplatense. Tu plan visible es user-facing.
+- No alucines paths del scratchpad. Usa `ls` antes de `read_file`.
 """.strip()
 
 
@@ -130,10 +132,16 @@ def build_deep_agent_graph(
         legacy ``copilot_graph`` exposes — chat.py can swap them.
     """
     if llm is None:
-        llm = LLMFactory.get_service().get_client(ModelRole.AGENT)
-        # Match the legacy graph's temperature so output style is stable
-        # when the flag flips per-tenant.
-        llm = llm.bind(temperature=0.6)
+        # Temperature override va por el factory (NO ``.bind()``):
+        # ``deepagents 0.5+`` rechaza ``RunnableBinding`` en
+        # ``resolve_model`` — el harness profile cache hace ``dict.get``
+        # y RunnableBinding es unhashable. Ver
+        # ``LLMFactory.get_client(temperature=...)`` y
+        # ``tests/modules/copilot/test_deep_agent_factory_wire.py``.
+        llm = LLMFactory.get_service().get_client(
+            ModelRole.AGENT,
+            temperature=0.6,
+        )
 
     if tools is None:
         ctx = state.get("client_context", {})

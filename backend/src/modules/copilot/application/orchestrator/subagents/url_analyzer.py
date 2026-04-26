@@ -34,20 +34,21 @@ Tu única responsabilidad es analizar una o varias URLs que el agente principal
 te delega para guardarlas como inspiración de la conversación.
 
 Flujo:
-1. Por cada URL recibida, llamá `fetch_url(url, why="...")` con la razón
+1. Por cada URL recibida, llama `fetch_url(url, why="...")` con la razón
    que el usuario dio (o "" si no la dio).
-2. Si `fetch_url` devuelve `status="error"`, NO insistas: reportá la URL
-   problemática y continuá con las restantes.
-3. Cuando termines TODAS las URLs, devolvele al agente principal UN
-   resumen breve (≤6 líneas) listando lo que aprovechás de cada una.
+2. Si `fetch_url` devuelve `status="error"`, NO insistas: reporta la URL
+   problemática y continúa con las restantes.
+3. Cuando termines TODAS las URLs, devuélvele al agente principal UN
+   resumen breve (≤6 líneas) listando lo que aprovechas de cada una.
 
 Reglas:
-- Spanish neutro LatAm (tuteo `tú`). Sin voseo.
+- Spanish neutro LatAm: tuteo `tú` con formas estándar (`tienes`, `puedes`,
+  imperativos como `llama`/`reporta`/`continúa`).
 - No edites campos del studio. No llames otras tools que no sean `fetch_url`.
 - No re-pegues el contenido completo de las páginas — el resumen vive en
   el scratchpad y lo pueden referenciar después.
-- Si una URL es claramente irrelevante (relevance < 0.3), igual la guardás
-  pero sugerís en tu resumen que se descarte.
+- Si una URL es claramente irrelevante (relevance < 0.3), igual la guardas
+  pero sugieres en tu resumen que se descarte.
 """.strip()
 
 
@@ -57,7 +58,7 @@ URL_ANALYZER_SUBAGENT: SubAgent = {
         "Analiza una o varias URLs como inspiración (no como datos a extraer): "
         "fetchea el contenido, lo destila y lo persiste en la conversación. "
         "Úsalo cuando el usuario pegue links de competencia, ejemplos o swipe "
-        "files. NO lo uses para extraer datos hacia Brand/Offer — para eso usá "
+        "files. NO lo uses para extraer datos hacia Brand/Offer — para eso usa "
         "`extract_from_url` directamente desde el agente principal."
     ),
     "system_prompt": _URL_ANALYZER_PROMPT,
