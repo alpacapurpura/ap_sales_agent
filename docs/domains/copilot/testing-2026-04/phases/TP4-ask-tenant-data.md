@@ -1,8 +1,18 @@
 # TP4 — Ask Tenant Data Subgraph (F5)
 
-**F# que valida:** F5 (`ask_tenant_data` tool: intent → resolve → query → state-check → synthesize, 2 LLM calls FAST).
+**F# que valida:** F5 (`ask_tenant_data` tool: intent → query_builder → executor → state_check → synthesize, **1 NANO + 1 FAST LLM calls** post F8 hook activado).
 **Tiempo estimado:** 3-4 hs.
-**Pre-req hard:** TP0 + tenant test con data poblada en CRM (leads), Offer (productos), Connections (channels) + multi-provider router habilitado (Sprint 0 commits `9d63c0da` + `ae30d4f9`).
+**Pre-req hard:** TP0 + tenant test con data poblada en CRM (leads), Offer (productos `products` table) + multi-provider router habilitado (Sprint 0 commits `9d63c0da` + `ae30d4f9`).
+
+**Post sanity-check 2026-04-26:** intent_classifier ahora invoca `ModelRole.NANO` (no FAST) — F8 hook activado en `intent_classifier.py:127`. Provider routing TP4 esperado: ambos calls (intent NANO + synth FAST) → OpenAI gpt-4o-mini. Si el `ask_tenant_data` se ejecuta dentro del subagent `data_query`, el main loop AGENT corre Kimi K2.6 (el subagent hereda la tool con sus 2 internal LLM calls intactos).
+
+**Tenant test post seed 2026-04-26:** Visionarias `6347e21e-8112-4aa1-80d3-6adaa73bf6f9`. Counts:
+- leads totales: 15 / últimos 7d: 8 / últimos 30d: 15
+- products active: 7 (catálogo Visionarias coaching/mentoring) / total no-deleted: 12
+- enrollments: 4 (3 paid PEN 197 + 1 pending)
+- brand_summary: 0 rows (TP4 no requiere lighthouse — F5 no consume brand)
+
+`alpaca-2` (`c67c9845`) heredado TP3 sin productos/leads — usable como tenant "fresco sin data" para S4.4.
 
 ## Setup multi-provider (Sprint 0 obligatorio)
 
@@ -49,10 +59,11 @@ Output esperado: `NANO → openai`, `FAST → openai`, `REASONING → deepseek`,
 El "salto cualitativo grande" del redesign (F5 learnings). Confirmar que:
 
 1. Preguntas naturales sobre datos del tenant devuelven respuesta correcta (NO SQL crudo en prompt).
-2. El subgraph resuelve fuzzy matching ("la oferta de cocina" → product "Curso de Cocina Vegetariana") + fechas relativas ("esta semana").
-3. State-check intercepta cuando data falta + responde correctamente ("no encontré leads para este período").
-4. Latencia ≤1.5s p50 (subgraph deterministic + 2 LLM FAST calls).
-5. NO alucina números (groundedness ≥4.5).
+2. El subgraph resuelve fuzzy matching ("la oferta de propósito" → "Programa: De Propósito a Prosperidad" via pg_trgm) + fechas relativas ("esta semana").
+3. State-check intercepta cuando data falta + responde correctamente ("no encontré nadie en esa ventana") via short-circuit `empty_window` (sin LLM call).
+4. Latencia ≤2.5s p50 (subgraph deterministic + 1 NANO intent + 1 FAST synth, ambos OpenAI; bumped from 1.5s post Sprint 0 LATAM TTFB realistic).
+5. NO alucina números (DeepEval `FaithfulnessMetric` ≥0.85 avg).
+6. Provider routing per-role correcto vía `copilot_trace_event.data->>'model'` (Sprint 0 gate).
 
 ---
 
@@ -73,48 +84,67 @@ Queries:
 `"cuántas personas me escribieron esta semana"`.
 
 Trace expected:
-- 1 `tool_call` `name='ask_tenant_data'`.
-- Subgraph internal: intent_classifier → query_builder → executor → state_check → synthesizer.
-- `assistant_text` con número correcto + período correcto.
+- 1 `tool_call` `name='ask_tenant_data'` (visible via `copilot_trace_event`).
+- Internal: 1 `llm_call` NANO (intent_classifier) + 1 `llm_call` FAST (synthesizer). Ambos con tag `copilot:internal` (TP3 B1).
+- `assistant_text` con número correcto.
 
+Ground truth (Visionarias post seed):
 ```sql
-SELECT COUNT(*) FROM crm_leads
-WHERE tenant_id=:uuid AND created_at >= NOW() - INTERVAL '7 days';
+-- Note: F5 lead_count usa last_interaction_date, NOT created_at
+SELECT COUNT(*) FROM leads
+WHERE tenant_id='6347e21e-8112-4aa1-80d3-6adaa73bf6f9'
+  AND last_interaction_date >= NOW() - INTERVAL '7 days';
+-- Expected: 8 (post seed 2026-04-26)
 ```
 
-**Pass:** assistant_text matches el COUNT(*) ground truth ±0.
+**Pass:** assistant_text reporta "8" (o equivalente NL) ±0.
 
 ### S4.2 — Fuzzy matching producto
 
-Pre-condición: ofertas:
-- "Curso de Cocina Vegetariana"
-- "Mentoría 1-on-1 Premium"
-- "Programa Avanzado de Repostería"
+Catálogo real Visionarias (`products` table):
+- "Programa: De Propósito a Prosperidad" (active)
+- "Programa de Proposito a Prosperidad" (draft, sin tilde — duplicado real)
+- "Mentoría Privada: Visión Clara" (active)
+- "Círculo Visionarias Elite" (active)
+- "Pack Meditaciones: Abundancia" (active)
+- "Retiro Visionarias: Tulum 2026" (active)
+- "Agencia Visionarias DFY" (active)
+- "Visionarias Corporate Leadership" (draft)
+- "Diseña tu 2026" (draft, ×2 duplicado)
+- "Guía: Liberar la Mente" (active)
+- "Nuevo producto" (draft)
 
-`"dame resumen de la oferta de cocina"`.
+Pregunta TP4: `"dame un resumen del programa de propósito"`.
 
-**Pass:** subgraph matchea "Curso de Cocina Vegetariana" (NO "Repostería") + responde con datos correctos.
+**Pass:** subgraph matchea "Programa: De Propósito a Prosperidad" (active preferido) o ambos duplicados; NO matchea "Mentoría" ni "Tulum". Validar via `copilot_trace_event.data->'rows'` o `metadata.matched_name`.
 
 ### S4.3 — Fechas relativas
 
 Set de prompts:
-- `"qué pasó este mes"` → period: current month.
-- `"comparame esta semana vs la pasada"` → 2 periods.
-- `"y en los últimos 30 días?"` → period: -30d to now.
+- `"cuántas personas me escribieron en los últimos 30 días"` → period -30d→now. Ground truth: 15.
+- `"cuántas conversaciones tuve en los últimos 30 días"` (kind=conversation_count) → 30d window. Ground truth: 45 (copilot_conversations).
+- `"cuántas personas me hablaron por whatsapp esta semana"` → channel filter `whatsapp` + 7d. Ground truth: 7.
 
-**Pass:** subgraph parsea fechas correctamente. Verificar via `data->'period_start'` en trace.
+**Pass:** subgraph parsea fechas correctamente. Verificar via `data->'plan'->'filters'->'since'/'until'` en trace.
 
-### S4.4 — State-check: no data
+### S4.4 — State-check: no data (short-circuit empty_window)
 
-Tenant fresco sin leads. `"cuántas personas me escribieron"`.
+Tenant `alpaca-2` (`c67c9845-6cf7-4aee-beba-7e177e84d167`) — heredado TP3, 0 leads. Question: `"cuántas personas me escribieron esta semana"`.
 
-**Pass:** assistant_text similar a "no encontré leads en este período" (NO inventa número), trace muestra state_check returned empty.
+**Pass:**
+- intent → `lead_count` con period_phrase="esta semana".
+- query_builder pone `since/until` → has_window True.
+- executor returns count=0.
+- state_check sets `empty_window=True`.
+- synthesizer **short-circuit estático** (NO LLM call): respuesta estilo "No encontré ningún registro en esa ventana de tiempo. Si querés, probemos con un período más amplio." Validar que `copilot_trace_event` muestra **1 llm_call (intent NANO) + 0 llm_call (synth)** para este turn.
 
-### S4.5 — Pregunta cross-tabla
+### S4.5 — Kind unsupported (graceful degradation)
 
-`"cuáles son mis 3 ofertas top por inscripciones"`.
+`"cuáles son mis 3 ofertas top por inscripciones"` — F5 actual NO tiene kind cross-tabla ranking (`SUPPORTED_KINDS = {offer_lookup, lead_count, conversation_count}`).
 
-**Pass:** subgraph hace JOIN offer + enrollment. Top 3 correctos (ground truth via SQL directo). Latencia ≤2s.
+**Pass:** intent_classifier devuelve `kind="unknown"` con confidence baja → `build_plan` returns None → synthesizer short-circuit `_unknown_intent_reply` ("No entendí del todo la pregunta. ¿Podés reformularla con otras palabras?"). Trace muestra **0 LLM call al synthesizer** (short-circuit).
+
+> Nota arquitectónica: si TP4 evidencia que esta pregunta es común, agregar a `SUPPORTED_KINDS` un kind `offer_ranking_by_enrollments` + accessor en `OfferDataAccessProvider` es F-pos legítimo. NO hacerlo en TP4 (scope creep).
 
 ### S4.6 — Alucinación check
 
