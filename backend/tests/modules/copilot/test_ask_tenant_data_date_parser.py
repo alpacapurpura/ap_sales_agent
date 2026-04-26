@@ -97,6 +97,27 @@ def test_ultimos_n_dias_sin_tilde() -> None:
     assert _between(since, expected_since - timedelta(seconds=2), expected_since + timedelta(seconds=2))
 
 
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "los últimos 30 días",
+        "los ultimos 30 dias",
+        "las últimas 30 días",
+        "el último 30 días",
+    ],
+)
+def test_ultimos_n_dias_tolerates_leading_article(phrase: str) -> None:
+    """TP4-B1 regression — intent_classifier returns "los últimos 30 días" verbatim;
+    parser must strip Spanish leading articles instead of falling back to ISO week.
+
+    Without this guard the lead_count answer for "últimos 30 días" silently
+    collapses to a 7-day window (TP4 S4.3a evidenced 8 instead of 15).
+    """
+    since, _ = parse_period(phrase, now=NOW)
+    expected_since = (NOW - timedelta(days=30)).replace(hour=0, minute=0, second=0, microsecond=0)
+    assert _between(since, expected_since - timedelta(seconds=2), expected_since + timedelta(seconds=2))
+
+
 def test_q1_2026() -> None:
     since, until = parse_period("Q1 2026", now=NOW)
     assert since == datetime(2026, 1, 1, 0, 0, 0, tzinfo=timezone.utc)

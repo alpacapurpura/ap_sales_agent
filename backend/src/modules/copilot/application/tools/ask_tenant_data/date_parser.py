@@ -136,8 +136,10 @@ def parse_period(  # noqa: C901, PLR0911, PLR0912 — intentional flat case tabl
             return _calendar_month(anchor.year - 1, 12)
         return _calendar_month(anchor.year, anchor.month - 1)
 
-    # "últimos N días" / "ultimos N dias".
-    last_n_days = re.match(r"^ultimos?\s+(\d+)\s+d(ias?|ays?)$", norm)
+    # "últimos N días" / "ultimos N dias" — tolerate Spanish leading article
+    # ("los/las/el/la") because the LLM intent_classifier preserves them
+    # verbatim from the user's phrasing (TP4-B1).
+    last_n_days = re.match(r"^(?:l(?:os|as)\s+|el\s+|la\s+)?ultim[oa]s?\s+(\d+)\s+d(ias?|ays?)$", norm)
     if last_n_days:
         n = int(last_n_days.group(1))
         since = _start_of_day(anchor - timedelta(days=n))
