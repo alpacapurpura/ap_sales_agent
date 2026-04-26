@@ -2,7 +2,45 @@
 
 **F# que valida:** F5 (`ask_tenant_data` tool: intent → resolve → query → state-check → synthesize, 2 LLM calls FAST).
 **Tiempo estimado:** 3-4 hs.
-**Pre-req hard:** TP0 + tenant test con data poblada en CRM (leads), Offer (productos), Connections (channels).
+**Pre-req hard:** TP0 + tenant test con data poblada en CRM (leads), Offer (productos), Connections (channels) + multi-provider router habilitado (Sprint 0 commits `9d63c0da` + `ae30d4f9`).
+
+## Setup multi-provider (Sprint 0 obligatorio)
+
+`.env` mínimo para correr TP4 con la arquitectura post-Sprint 0:
+
+```bash
+# OpenAI (NANO/FAST/VISION/EMBEDDING — UX-crítico TTFB LATAM)
+OPENAI_API_KEY=sk-...
+
+# DeepSeek (REASONING — main deep_agent + ask_tenant_data synthesizer + intent_classifier)
+DEEPSEEK_API_KEY=sk-...
+AI_PROVIDER_REASONING=deepseek
+AI_MODEL_REASONING=deepseek-reasoner
+
+# Kimi / Moonshot (AGENT — deepagents harness + subagentes data_query)
+KIMI_API_KEY=sk-...
+AI_PROVIDER_AGENT=kimi
+AI_MODEL_AGENT=kimi-k2-6
+
+# Qwen / DashScope intl (integrado pero default OFF; flip on-demand)
+DASHSCOPE_API_KEY=sk-...
+# AI_PROVIDER_VISION=qwen        # opt-in
+# AI_MODEL_VISION=qwen-vl-max
+# AI_PROVIDER_EMBEDDING=qwen     # opt-in
+# AI_MODEL_EMBEDDING=text-embedding-v3
+```
+
+Verificar boot pre-TP4:
+```bash
+cd backend && .venv/bin/python -c "
+from src.shared.infrastructure.llm.factory import LLMFactory
+from src.core.enums import ModelRole
+r = LLMFactory.get_service()
+for role in ModelRole:
+    print(role.name, '→', r.get_provider_for_role(role).value)
+"
+```
+Output esperado: `NANO → openai`, `FAST → openai`, `REASONING → deepseek`, `AGENT → kimi`, `VISION → openai`, `EMBEDDING → openai`.
 
 ---
 
@@ -135,16 +173,20 @@ WHERE name='ask_tenant_data' AND turn_id IN (...);
 
 ---
 
-## Targets
+## Targets (post Sprint 0 multi-provider)
 
-| Métrica | Target | Hard fail |
-|---|---|---|
-| Respuesta correcta sin alucinar | ≥9/10 | <8/10 |
-| Fuzzy matching | matchea correcto | mismatch |
-| Subgraph latencia p50 | ≤1500ms | >5000ms |
-| FaithfulnessMetric | ≥0.85 avg | <0.70 |
-| Tool args sin SQL crudo | 100% | 1+ con SQL |
-| State-check intercepta empty | OK | inventa número |
+| Métrica | Target | Hard fail | Nota |
+|---|---|---|---|
+| Respuesta correcta sin alucinar | ≥9/10 | <8/10 | — |
+| Fuzzy matching | matchea correcto | mismatch | — |
+| Subgraph latencia p50 | ≤2500ms | >5000ms | bumped from 1500ms — DeepSeek REASONING from LATAM adds ~+300-700ms TTFB vs OpenAI baseline; aceptable para data Q&A no-UX-crítica. Si OpenAI baseline existía y mostraba <1500ms, comparar y reportar diff. |
+| Subgraph latencia p95 | ≤5000ms | >8000ms | — |
+| FaithfulnessMetric | ≥0.85 avg | <0.70 | DeepSeek-reasoner debería igualar o mejorar GPT-4o en groundedness por design (chain-of-thought explícito). |
+| Cost / turn ask_tenant_data | ≤$0.0008 p50 | >$0.005 | bajado ~85% vs all-OpenAI baseline. DeepSeek $0.55/$2.19 per M (cache 90%) → ~$0.0005-0.0010 per intent+synth combo. |
+| Tool args sin SQL crudo | 100% | 1+ con SQL | — |
+| State-check intercepta empty | OK | inventa número | — |
+| Provider routing per-role correcto | trace muestra calls a deepseek + kimi | OpenAI en REASONING/AGENT | nuevo gate post Sprint 0. Verificar via `copilot_trace_event.data->>'model'` ó `data->>'provider'`. |
+| Judge parity vs OpenAI baseline | ≤0.3 puntos diff | >0.5 abajo | si baseline F0 tiene scores OpenAI puro, comparar. Si DeepSeek/Kimi caen >0.5 → revertir el role afectado a OpenAI. |
 
 ---
 
@@ -166,3 +208,7 @@ WHERE name='ask_tenant_data' AND turn_id IN (...);
 - [ ] Tenant test con ≥3 ofertas distintas (para S4.2 fuzzy).
 - [ ] Tenant test con ≥5 enrollments cross-offers (para S4.5).
 - [ ] Confirmar `ChannelConnection` con webhooks activos si querés validar S4.1 vs Manychat real.
+- [ ] **DeepSeek API key** (https://platform.deepseek.com/api_keys) en `DEEPSEEK_API_KEY`.
+- [ ] **Kimi/Moonshot API key** (https://platform.moonshot.ai/console/api-keys) en `KIMI_API_KEY`.
+- [ ] **OpenAI recargado** (NANO/FAST/Whisper/embeddings siguen OpenAI).
+- [ ] (opt) **DashScope intl key** (https://bailian.console.alibabacloud.com/) en `DASHSCOPE_API_KEY` para flips Qwen on-demand.
