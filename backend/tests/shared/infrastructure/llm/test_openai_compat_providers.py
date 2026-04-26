@@ -71,6 +71,22 @@ class TestKimiService:
         with pytest.raises(NotImplementedError):
             svc.get_embedding_model()
 
+    def test_k2_6_temperature_override_is_clamped_to_one(self) -> None:
+        """TP4-B4 regression — Kimi K2.6 (the agentic / reasoning variant) only
+        accepts ``temperature=1``. The deep-agent factory hardcodes
+        ``temperature=0.6`` for ``ModelRole.AGENT``; without coercion, every
+        copilot turn through the AGENT role explodes with
+        ``invalid_request_error: only 1 is allowed for this model``.
+
+        ``KimiService`` must clamp the requested temperature to ``1.0`` for
+        the K2.6 model so callers can keep the explicit override intact at
+        every other site (DeepSeek, OpenAI, Qwen) without extra branching.
+        """
+        svc = KimiService(api_key="sk-test-kimi")
+        client = svc.get_client(role=ModelRole.AGENT, temperature=0.6)
+        # langchain_openai stores temperature on the resolved client.
+        assert client.temperature == 1.0
+
 
 class TestQwenService:
     def test_uses_dashscope_intl_base_url(self) -> None:
