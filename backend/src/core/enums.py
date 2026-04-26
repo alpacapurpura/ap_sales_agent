@@ -16,6 +16,9 @@ class AIProvider(StrEnum):
 
     OPENAI = "openai"
     GEMINI = "gemini"
+    DEEPSEEK = "deepseek"
+    KIMI = "kimi"
+    QWEN = "qwen"
 
 
 class ModelRole(StrEnum):

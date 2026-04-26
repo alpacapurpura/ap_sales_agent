@@ -51,6 +51,18 @@ class Settings(BaseSettings):
     # OpenAI
     OPENAI_API_KEY: str
 
+    # DeepSeek (OpenAI-compatible API)
+    DEEPSEEK_API_KEY: str = ""
+    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com/v1"
+
+    # Kimi / Moonshot (OpenAI-compatible API)
+    KIMI_API_KEY: str = ""
+    KIMI_BASE_URL: str = "https://api.moonshot.ai/v1"
+
+    # Qwen / Alibaba DashScope (OpenAI-compatible intl endpoint)
+    DASHSCOPE_API_KEY: str = ""
+    DASHSCOPE_BASE_URL: str = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+
     # --- AI Model Registry ---
     # Each role maps to a concrete model. Override per-role via env vars.
     # NANO defaults to gpt-4o-mini until OpenAI catalog exposes a smaller tier
@@ -74,6 +86,23 @@ class Settings(BaseSettings):
         }
         return _map[role]
 
+    def get_provider_for_role(self, role: ModelRole) -> AIProvider:
+        """Resolve which provider serves a given role.
+
+        Per-role override (``AI_PROVIDER_<ROLE>``) wins; falls back to global
+        ``AI_PROVIDER``. Lets us run e.g. NANO/FAST on OpenAI for low TTFB
+        while REASONING/AGENT/HEAVY route to DeepSeek/Kimi for cost.
+        """
+        _overrides = {
+            ModelRole.NANO: self.AI_PROVIDER_NANO,
+            ModelRole.REASONING: self.AI_PROVIDER_REASONING,
+            ModelRole.FAST: self.AI_PROVIDER_FAST,
+            ModelRole.VISION: self.AI_PROVIDER_VISION,
+            ModelRole.AGENT: self.AI_PROVIDER_AGENT,
+            ModelRole.EMBEDDING: self.AI_PROVIDER_EMBEDDING,
+        }
+        return _overrides.get(role) or self.AI_PROVIDER
+
     @property
     def openai_model(self) -> str:
         """Return the default reasoning model name."""
@@ -93,8 +122,16 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-pro"
 
-    # Provider Selection
-    AI_PROVIDER: AIProvider = AIProvider.OPENAI  # openai, gemini, etc.
+    # Provider Selection — global default, overridable per-role below.
+    AI_PROVIDER: AIProvider = AIProvider.OPENAI  # openai/gemini/deepseek/kimi/qwen
+
+    # Per-role provider override (optional). Empty/unset → fall back to AI_PROVIDER.
+    AI_PROVIDER_NANO: AIProvider | None = None
+    AI_PROVIDER_REASONING: AIProvider | None = None
+    AI_PROVIDER_FAST: AIProvider | None = None
+    AI_PROVIDER_VISION: AIProvider | None = None
+    AI_PROVIDER_AGENT: AIProvider | None = None
+    AI_PROVIDER_EMBEDDING: AIProvider | None = None
     PROMPT_SOURCE: PromptSource = PromptSource.HYBRID  # hybrid, file, db
 
     # Brand Extraction Profile: "safe" (2-wave, low rate-limit) or "fast" (all-concurrent, high rate-limit)
