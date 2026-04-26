@@ -149,20 +149,21 @@ def test_invalid_threshold_raises():
 def test_system_prompt_lists_4_dimensions_in_alphabetical_order():
     """System prompt must list dims alphabetised — position bias mitigation."""
     from src.modules.copilot.application.observability.judge import (
-        _SYSTEM_PROMPT_ES,
+        build_system_prompt,
     )
 
-    pos_accuracy = _SYSTEM_PROMPT_ES.index("accuracy")
-    pos_brand = _SYSTEM_PROMPT_ES.index("brand_coherence")
-    pos_tone = _SYSTEM_PROMPT_ES.index("tone")
-    pos_utility = _SYSTEM_PROMPT_ES.index("utility")
+    prompt = build_system_prompt(CANONICAL_DIMENSIONS)
+    pos_accuracy = prompt.index("accuracy")
+    pos_brand = prompt.index("brand_coherence")
+    pos_tone = prompt.index("tone")
+    pos_utility = prompt.index("utility")
     assert pos_accuracy < pos_brand < pos_tone < pos_utility
 
 
 def test_system_prompt_in_spanish_neutro():
     """Per .claude/rules/spanish-text.md — judge prompt must NOT use voseo."""
     from src.modules.copilot.application.observability.judge import (
-        _SYSTEM_PROMPT_ES,
+        build_system_prompt,
     )
 
     voseo_tokens = [
@@ -176,5 +177,71 @@ def test_system_prompt_in_spanish_neutro():
         " dejá",
         " seleccioná",
     ]
+    prompt = build_system_prompt(CANONICAL_DIMENSIONS)
     for token in voseo_tokens:
-        assert token not in _SYSTEM_PROMPT_ES, f"voseo found in judge prompt: {token!r}"
+        assert token not in prompt, f"voseo found in judge prompt: {token!r}"
+
+
+# B13-TP7 regression — RAG dimensions must be honoured by the prompt builder.
+def _rag_payload(score: float = 4.0) -> dict[str, dict[str, Any]]:
+    return {
+        "retrieval_relevance": {"score": score, "reason": "chunks on-topic"},
+        "citation_accuracy": {"score": score, "reason": "metodología citada"},
+        "answer_groundedness": {"score": score, "reason": "claims trazables"},
+        "completeness": {"score": score, "reason": "cubre la pregunta"},
+    }
+
+
+def test_rag_dimensions_prompt_lists_rag_rubric():
+    """Custom dimensions must drive the system prompt rubric (B13-TP7)."""
+    from src.modules.copilot.application.observability.judge import (
+        build_system_prompt,
+    )
+    from src.modules.copilot.application.observability.rag_goldens import (
+        RAG_DIMENSIONS,
+    )
+
+    prompt = build_system_prompt(RAG_DIMENSIONS)
+    for dim in RAG_DIMENSIONS:
+        assert dim in prompt, f"missing dimension in prompt: {dim}"
+    # Canonical dim names must NOT appear when RAG is asked — keeps the
+    # rubric focused so the judge does not return canonical scores by mistake.
+    assert "brand_coherence" not in prompt
+    assert "utility" not in prompt
+
+
+def test_judge_with_rag_dimensions_returns_scores_not_zeros():
+    """B13-TP7: RAG_DIMENSIONS judge must surface real per-dim scores."""
+    from src.modules.copilot.application.observability.rag_goldens import (
+        RAG_DIMENSIONS,
+    )
+
+    stub = _StubLLM(_rag_payload(score=4.5))
+    judge = CopilotJudge(llm=stub, dimensions=RAG_DIMENSIONS)
+    result = judge.evaluate(
+        user_input="¿Cómo construyo un grand slam offer?",
+        assistant_output="Aplicando Hormozi value equation: …",
+        context="### Resultado 1\n**Método:** Hormozi\n…",
+    )
+    assert result.passes_threshold
+    assert tuple(d.name for d in result.dimensions) == RAG_DIMENSIONS
+    assert all(d.score == 4.5 for d in result.dimensions)
+    assert all(d.reason != "judge_failed" for d in result.dimensions)
+
+
+def test_judge_with_rag_dimensions_alphabetical_order_in_prompt():
+    """Bias mitigation: RAG dims also must render alphabetically in the prompt."""
+    from src.modules.copilot.application.observability.judge import (
+        build_system_prompt,
+    )
+    from src.modules.copilot.application.observability.rag_goldens import (
+        RAG_DIMENSIONS,
+    )
+
+    prompt = build_system_prompt(RAG_DIMENSIONS)
+    rag_sorted = tuple(sorted(RAG_DIMENSIONS))
+    last_idx = -1
+    for dim in rag_sorted:
+        idx = prompt.index(dim)
+        assert idx > last_idx, f"dim {dim} not in alphabetical order"
+        last_idx = idx

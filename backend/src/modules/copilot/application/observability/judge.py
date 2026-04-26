@@ -73,40 +73,97 @@ MAX_BRAND_CHARS: int = 800
 _FENCED_JSON_RE = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL)
 _BARE_JSON_RE = re.compile(r"(\{.*\})", re.DOTALL)
 
-_SYSTEM_PROMPT_ES = """Eres juez de calidad del Nicolify Copilot. Evaluas
-respuestas del asistente contra una rúbrica multi-dimensión. Devuelves SOLO
-un JSON con scores 1-5 por dimensión + razón en una línea.
-
-Dimensiones (orden alfabético, siempre las 4):
-
-1. **accuracy** — la respuesta refleja la verdad del tenant (datos,
-   decisiones, configuración). Score 5 = factual + verificable; score 1 =
-   alucinación o contradice contexto.
-2. **brand_coherence** — la respuesta respeta voz, tono y posicionamiento
-   de marca del tenant cuando hay brand_summary disponible. Score 5 =
-   suena como el tenant; score 1 = genérica o inconsistente.
-3. **tone** — registro adecuado al canal y al rol del usuario. Score 5 =
-   profesional + claro + español neutro LatAm (sin voseo); score 1 =
-   robótico, tutorial seco, o usa voseo argentino.
-4. **utility** — la respuesta resuelve la intención del usuario o avanza
-   la conversación. Score 5 = acciona o entrega valor; score 1 = vacía,
-   evasiva o repite contexto.
-
-Devuelve EXACTAMENTE este shape, sin texto adicional:
-{
-  "accuracy": {"score": <1-5>, "reason": "evidencia ≤80 chars"},
-  "brand_coherence": {"score": <1-5>, "reason": "..."},
-  "tone": {"score": <1-5>, "reason": "..."},
-  "utility": {"score": <1-5>, "reason": "..."}
+# B13-TP7 — rubric registry. Each entry is the bullet body (without the
+# ordinal prefix) used by ``build_system_prompt``. Keep canonical (F9) +
+# RAG (F11.5) dims in the same registry so any caller can mix-and-match.
+_DIMENSION_RUBRICS: dict[str, str] = {
+    # Canonical conversation rubric (F9 §4.3).
+    "accuracy": (
+        "**accuracy** — la respuesta refleja la verdad del tenant (datos,"
+        " decisiones, configuración). Score 5 = factual + verificable; score 1"
+        " = alucinación o contradice contexto."
+    ),
+    "brand_coherence": (
+        "**brand_coherence** — la respuesta respeta voz, tono y posicionamiento"
+        " de marca del tenant cuando hay brand_summary disponible. Score 5 ="
+        " suena como el tenant; score 1 = genérica o inconsistente."
+    ),
+    "tone": (
+        "**tone** — registro adecuado al canal y al rol del usuario. Score 5 ="
+        " profesional + claro + español neutro LatAm (sin voseo); score 1 ="
+        " robótico, tutorial seco, o usa voseo argentino."
+    ),
+    "utility": (
+        "**utility** — la respuesta resuelve la intención del usuario o avanza"
+        " la conversación. Score 5 = acciona o entrega valor; score 1 = vacía,"
+        " evasiva o repite contexto."
+    ),
+    # RAG retrieval rubric (F11.5 weekly_rag_eval).
+    "retrieval_relevance": (
+        "**retrieval_relevance** — los chunks recuperados son relevantes a la"
+        " pregunta. Score 5 = top-3 chunks responden directamente; score 1 ="
+        " chunks irrelevantes o vacíos."
+    ),
+    "citation_accuracy": (
+        "**citation_accuracy** — la respuesta cita la metodología o fuente"
+        " correcta presente en los chunks. Score 5 = cita explícita ('según"
+        " Hormozi value equation', 'aplicando StoryBrand'); score 1 = sin cita"
+        " o cita mal la metodología."
+    ),
+    "answer_groundedness": (
+        "**answer_groundedness** — la respuesta está sostenida por los chunks"
+        " recuperados (no alucina). Score 5 = cada afirmación trazable al"
+        " contexto recuperado; score 1 = inventa o contradice los chunks."
+    ),
+    "completeness": (
+        "**completeness** — la respuesta cubre la pregunta sin gaps mayores."
+        " Score 5 = comprehensive + accionable; score 1 = parcial o evasiva."
+    ),
 }
 
-Reglas:
-- Si falta brand_summary, evalúa brand_coherence con score 3 (neutral) y
-  reason "sin brand_summary disponible".
-- Spanish neutro siempre — tu propia salida también. Sin "vos", "tenés",
-  "podés".
-- No agregues comentarios fuera del JSON.
-"""
+
+def build_system_prompt(dimensions: Sequence[str]) -> str:
+    """Render the judge system prompt for the requested rubric dimensions.
+
+    Dimensions are alphabetised inside the prompt (bias mitigation —
+    deterministic position, independent of caller order). Unknown dims raise
+    ``ValueError`` so a typo never silently degrades to a canonical-only run.
+    """
+    sorted_dims = sorted(dimensions)
+    if not sorted_dims:
+        msg = "build_system_prompt requires at least one dimension"
+        raise ValueError(msg)
+
+    unknown = [d for d in sorted_dims if d not in _DIMENSION_RUBRICS]
+    if unknown:
+        msg = f"Unknown judge dimensions: {unknown!r}"
+        raise ValueError(msg)
+
+    rubric_lines = "\n".join(f"{idx}. {_DIMENSION_RUBRICS[dim]}" for idx, dim in enumerate(sorted_dims, start=1))
+    json_lines = ",\n  ".join(f'"{dim}": {{"score": <1-5>, "reason": "evidencia ≤80 chars"}}' for dim in sorted_dims)
+    json_shape = "{\n  " + json_lines + "\n}"
+
+    brand_rule = (
+        "- Si falta brand_summary, evalúa brand_coherence con score 3"
+        ' (neutral) y reason "sin brand_summary disponible".\n'
+        if "brand_coherence" in sorted_dims
+        else ""
+    )
+
+    return (
+        "Eres juez de calidad del Nicolify Copilot. Evaluas respuestas del"
+        " asistente contra una rúbrica multi-dimensión. Devuelves SOLO un JSON"
+        " con scores 1-5 por dimensión + razón en una línea.\n\n"
+        f"Dimensiones (orden alfabético, siempre las {len(sorted_dims)}):\n\n"
+        f"{rubric_lines}\n\n"
+        "Devuelve EXACTAMENTE este shape, sin texto adicional:\n"
+        f"{json_shape}\n\n"
+        "Reglas:\n"
+        f"{brand_rule}"
+        '- Spanish neutro siempre — tu propia salida también. Sin "vos",'
+        ' "tenés", "podés".\n'
+        "- No agregues comentarios fuera del JSON.\n"
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -229,10 +286,10 @@ class CopilotJudge:
             f"{brand_block}{context_block}\n\n"
             f"USER_INPUT:\n{truncated_input}\n\n"
             f"ASSISTANT_OUTPUT:\n{truncated_output}\n\n"
-            f"Devolvé el JSON con las 4 dimensiones."
+            f"Devuelve el JSON con las {len(self.dimensions)} dimensiones."
         )
         messages = [
-            SystemMessage(content=_SYSTEM_PROMPT_ES),
+            SystemMessage(content=build_system_prompt(self.dimensions)),
             HumanMessage(content=user_payload),
         ]
 
@@ -350,4 +407,5 @@ __all__ = (
     "CopilotJudge",
     "DimensionScore",
     "JudgeResult",
+    "build_system_prompt",
 )

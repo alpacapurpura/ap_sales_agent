@@ -31,9 +31,11 @@ import uuid as uuid_mod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+import httpx
 import structlog
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
+from qdrant_client.http.exceptions import UnexpectedResponse
 
 from src.core.config import settings
 
@@ -131,6 +133,40 @@ class KbChunk:
             "language": self.language,
             "version": self.version,
         }
+
+
+def _hit_to_dict(hit: object) -> dict[str, Any]:
+    """Normalise a qdrant-client ``ScoredPoint`` into the public search dict."""
+    payload = hit.payload or {}
+    return {
+        "id": str(hit.id),
+        "score": float(hit.score),
+        "content": payload.get("content", ""),
+        "category": payload.get("category"),
+        "methodology": payload.get("methodology"),
+        "domain": payload.get("domain"),
+        "breadcrumb": payload.get("breadcrumb") or [],
+        "source_doc": payload.get("source_doc"),
+        "chunk_index": payload.get("chunk_index"),
+        "tags": payload.get("tags") or [],
+    }
+
+
+def _rest_point_to_dict(point: dict[str, Any]) -> dict[str, Any]:
+    """Normalise a raw REST ``/points/search`` hit into the public search dict."""
+    payload = point.get("payload") or {}
+    return {
+        "id": str(point["id"]),
+        "score": float(point["score"]),
+        "content": payload.get("content", ""),
+        "category": payload.get("category"),
+        "methodology": payload.get("methodology"),
+        "domain": payload.get("domain"),
+        "breadcrumb": payload.get("breadcrumb") or [],
+        "source_doc": payload.get("source_doc"),
+        "chunk_index": payload.get("chunk_index"),
+        "tags": payload.get("tags") or [],
+    }
 
 
 class MarketingKbStore:
@@ -243,28 +279,59 @@ class MarketingKbStore:
 
         search_filter = models.Filter(must=filter_conditions) if filter_conditions else None
 
-        response = client.query_points(
-            collection_name=self.COLLECTION,
-            query=dense_query,
-            query_filter=search_filter,
-            limit=limit,
-        )
+        try:
+            response = client.query_points(
+                collection_name=self.COLLECTION,
+                query=dense_query,
+                query_filter=search_filter,
+                limit=limit,
+            )
+            points = response.points
+        except UnexpectedResponse as exc:
+            # B12-TP7: dev Qdrant server pinned to v1.7.3 (docker-compose.yml)
+            # while qdrant-client>=1.13.3 emits the v1.10+ ``query_points``
+            # endpoint → 404. Fall back to the deprecated-but-stable REST
+            # ``/points/search`` endpoint that exists since Qdrant 1.0.
+            # F-pos: drop this branch when docker-compose bumps Qdrant to a
+            # server compatible with qdrant-client major (≥1.16).
+            if "404" not in str(exc):
+                raise
+            return self._search_via_rest(dense_query, filter_conditions, limit)
 
-        return [
-            {
-                "id": str(hit.id),
-                "score": float(hit.score),
-                "content": hit.payload.get("content", "") if hit.payload else "",
-                "category": hit.payload.get("category") if hit.payload else None,
-                "methodology": hit.payload.get("methodology") if hit.payload else None,
-                "domain": hit.payload.get("domain") if hit.payload else None,
-                "breadcrumb": (hit.payload.get("breadcrumb") or []) if hit.payload else [],
-                "source_doc": hit.payload.get("source_doc") if hit.payload else None,
-                "chunk_index": hit.payload.get("chunk_index") if hit.payload else None,
-                "tags": (hit.payload.get("tags") or []) if hit.payload else [],
+        return [_hit_to_dict(hit) for hit in points]
+
+    def _search_via_rest(
+        self,
+        dense_query: list[float],
+        filter_conditions: list[models.FieldCondition],
+        limit: int,
+    ) -> list[dict[str, Any]]:
+        """REST ``/points/search`` fallback for legacy Qdrant servers (<1.10).
+
+        Uses raw httpx so we do not depend on the qdrant-client API surface
+        which changed between 1.7 and 1.17. Same payload shape as the
+        ``query_points`` path so callers see identical dicts.
+        """
+        body: dict[str, Any] = {
+            "vector": dense_query,
+            "limit": limit,
+            "with_payload": True,
+        }
+        if filter_conditions:
+            body["filter"] = {
+                "must": [
+                    {
+                        "key": cond.key,
+                        "match": {"value": cond.match.value},
+                    }
+                    for cond in filter_conditions
+                ],
             }
-            for hit in response.points
-        ]
+        headers = {"api-key": settings.QDRANT_API_KEY} if settings.QDRANT_API_KEY else {}
+        url = f"{settings.QDRANT_URL.rstrip('/')}/collections/{self.COLLECTION}/points/search"
+        resp = httpx.post(url, json=body, headers=headers, timeout=30.0)
+        resp.raise_for_status()
+        return [_rest_point_to_dict(point) for point in resp.json().get("result", [])]
 
     def upsert_chunks(self, chunks: Iterable[KbChunk]) -> int:
         """Embed and upsert curated chunks. Returns number indexed.
