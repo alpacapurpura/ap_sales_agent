@@ -52,15 +52,16 @@ WHERE conversation_id = (SELECT id FROM copilot_conversations ORDER BY created_a
 
 ### S1.2 — Routing rules canónicas (5 escenarios)
 
-Tabla esperada (basada en `domain/routing_policy.py::DEFAULT_ROUTING_POLICY`):
+Tabla esperada (basada en `domain/routing_policy.py::DEFAULT_ROUTING_POLICY`, ajustada
+post-TP1 corrida 2026-04-25):
 
-| Input | Expected tier | Expected classifier |
+| Input | Expected tier | Expected classifier (reason) |
 |---|---|---|
-| `"hola"` (3 chars) | NANO o MINI | rule (short_msg_no_tools) |
-| `"audita mi marca completa"` | HEAVY | rule (keyword_audit) |
-| `"diseña una oferta para mi curso"` | REASONING | rule (keyword_design) |
-| `"compará la versión A vs B"` | REASONING | rule (keyword_compare) |
-| `"qué tal cómo va todo el día"` (sin keyword) | MINI | default o llm fallback |
+| `"hola"` (4 chars) | NANO | rule (`short_msg_no_tools`) |
+| `"audita mi marca completa"` | HEAVY | rule (`keyword_audit_diagnostic`) |
+| `"diseña una oferta para mi curso"` (31 chars) | NANO | rule (`short_msg_no_tools`) — **F8 no incluye keyword `diseña`**; al ser ≤40 chars cae en NANO. Si producto requiere REASONING para diseño, agregar rule en F-pos. |
+| `"compárame email vs whatsapp"` | REASONING | rule (`keyword_compare_reason`) |
+| `"qué tal cómo va todo el día"` (27 chars) | NANO | rule (`short_msg_no_tools`) — sin keyword + ≤40 chars → NANO. El plan original esperaba MINI pero la rule de length captura primero, lo cual es **mejor económicamente** (cheaper tier para small talk). |
 
 Run cada uno via API + assert con DeepEval `GEval`:
 
@@ -197,3 +198,22 @@ Calcular cost USD per tier con `03-metrics-and-targets.md §Cost estimation` for
 - [ ] Tenant test con Clerk session válida (token API exportable).
 - [ ] Confirmar `routing_policy.py` no fue tocado post-F8 (si sí, ajustar S1.2 expectations).
 - [ ] (Opcional) baseline de routing log de prod si querés comparar con desarrollo.
+
+---
+
+## Antipatrones descubiertos durante la corrida 2026-04-25
+
+- **Latencia degrada bajo OpenAI rate limit (TPM tier 1 = 30k/min).** El system
+  prompt copilot pesa ~17.5k tokens; bajo carga sequencial (>1.7 turns/min) el
+  cliente OpenAI re-trya con backoff y los turn_end reportan duración 28-45s.
+  Antes de medir latencia per tier, **verificar org tier OpenAI** o espaciar
+  turns ≥35s. Esto NO es bug Nicolify; es constraint billing.
+- **`copilot_routing_log.tier_selected` ≠ modelo realmente usado.** F11.1 wired
+  el router como **telemetry-only** (decisión documentada en `learnings/F11-housekeeping.md`).
+  El graph sigue bound al MINI por defecto. Cualquier cost/latency assertion
+  por tier debe agregar `JOIN ... ON data->>'model'` (real) o esperar al
+  cutover F-pos que swappee el LLMFactory por tier.
+- **Cost log overestimado por no aplicar discount cached.** `usage_tracking.calculate_cost`
+  multiplica el total `prompt_tokens` por `prices["input"]` sin separar
+  `cached_input_tokens`. Cache hit rate 99% = cost real ≈ 50% del logged.
+  Fix futuro: actualizar fórmula con `cached_rate = input_rate * 0.5`.
