@@ -20,7 +20,17 @@ from src.shared.infrastructure.llm.providers._openai_compat import (
 
 
 class KimiService(OpenAICompatibleService):
-    """Kimi adapter — Moonshot AI's OpenAI-compatible endpoint."""
+    """Kimi adapter — Moonshot AI's OpenAI-compatible endpoint.
+
+    ``_DEFAULT_TEMPERATURE = 1.0`` because Kimi K2.6 (the agentic / thinking
+    variant) only accepts ``temperature=1`` — sending any other value
+    yields ``invalid_request_error: only 1 is allowed for this model``,
+    same constraint pattern as OpenAI's o1/o3 reasoning models. Callers
+    that need a different temperature (rare for an agent harness) can
+    still pass it explicitly via ``get_client(temperature=...)``.
+    """
+
+    _DEFAULT_TEMPERATURE = 1.0
 
     def __init__(self, api_key: str | None = None) -> None:
         """Bind the OpenAI-compat base to Moonshot's endpoint + key."""
