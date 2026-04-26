@@ -241,6 +241,18 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "ANN",     # one-shot scripts don't need annotations
     "D",       # script-level docstrings only
     "S608",    # parameterised SQL is fine in admin scripts
+    "S603",    # one-shot scripts call known internal binaries
+    "S607",    # idem — relative path to internal binary OK
+    "ASYNC240", # one-shot async scripts use pathlib for results dump (not in hot path)
+    "PLW2901", # loop-var rebind for line.strip() is the canonical pattern
+    "F541",    # f-prefix on tagged debug lines is fine
+    "UP041",   # alias TimeoutError tuple readable enough in scripts
+    "TRY003",  # short scripts can raise inline messages
+    "B007",    # for-loop label kept as documentation
+    "C901",    # async runners can be slightly long
+    "EM102",   # raise f"…" readable in scripts
+    "PERF102", # iterating .items() to keep label intent explicit
+    "RUF002",  # multiplication sign × in docstring is intentional
 ]
 "src/modules/brand/tests/**/*.py" = [
     "S101", "ARG", "PT", "PLR2004", "T201", "ANN", "D",

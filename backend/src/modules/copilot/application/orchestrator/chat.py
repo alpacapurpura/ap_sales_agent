@@ -410,17 +410,18 @@ def _truncate_for_trace(value: object) -> object:
     return value
 
 
-def _sanitize_ai_messages(messages: list) -> list:
+def _sanitize_ai_messages(messages: list, *, user_msg: str | None = None) -> list:
     """Strip JSON blocks from every AIMessage.content in the list.
 
     Invoked just before persistence so the chat history stays clean even
     when the LLM ignores the "no JSON in chat" prompt rule. Non-AIMessage
-    entries pass through untouched.
+    entries pass through untouched. ``user_msg`` is forwarded to the
+    sanitizer so it can apply channel format enforcement (TP6).
     """
     cleaned: list = []
     for msg in messages:
         if isinstance(msg, AIMessage) and isinstance(msg.content, str) and msg.content:
-            new_content = sanitize_assistant_text(msg.content)
+            new_content = sanitize_assistant_text(msg.content, user_msg=user_msg)
             if new_content != msg.content:
                 # Preserve tool_calls and any additional_kwargs; only rewrite content.
                 cleaned.append(
@@ -752,6 +753,7 @@ class CopilotOrchestrator:
                 usage=usage,
                 acc=acc,
                 msg_id=msg_id,
+                user_msg=message,
             ):
                 yield sse_str
         except Exception as exc:
@@ -773,7 +775,7 @@ class CopilotOrchestrator:
         # _persist_messages serializes acc.messages (the raw LangGraph
         # pipeline state) — so any JSON blobs the LLM emitted survive unless
         # we strip them here too.
-        acc.messages = _sanitize_ai_messages(acc.messages)
+        acc.messages = _sanitize_ai_messages(acc.messages, user_msg=message)
 
         self._persist_messages(
             conv_uuid,
@@ -803,6 +805,7 @@ class CopilotOrchestrator:
         usage: UsageAccumulator,
         acc: _StreamAccumulator,
         msg_id: str | None = None,
+        user_msg: str | None = None,
     ) -> AsyncGenerator[str, None]:
         """Run the LangGraph stream and emit SSE events (v1 legacy + v2 blocks).
 
@@ -904,7 +907,7 @@ class CopilotOrchestrator:
         # FE's final render stay clean, even if streamed deltas briefly
         # flashed the JSON on the client.
         if acc.text_block_id is not None:
-            sanitized_markdown = sanitize_assistant_text(acc.text_block_markdown)
+            sanitized_markdown = sanitize_assistant_text(acc.text_block_markdown, user_msg=user_msg)
             acc.text_block_markdown = sanitized_markdown
             acc.full_response = sanitized_markdown
             final_text_block: dict = {

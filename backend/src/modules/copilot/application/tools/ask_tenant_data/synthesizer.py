@@ -70,15 +70,15 @@ def _format_payload(plan: DataQueryPlan, result: DataQueryResult, flags: dict[st
 def _empty_window_reply(plan: DataQueryPlan, channel: str) -> str:
     base = "No encontré ningún registro en esa ventana de tiempo."
     if channel == "whatsapp":
-        return base + " ¿Querés que pruebe con un período más amplio?"
-    return base + " Si querés, probemos con un período más amplio."
+        return base + " ¿Quieres que pruebe con un período más amplio?"
+    return base + " Si quieres, probemos con un período más amplio."
 
 
 def _unknown_intent_reply(channel: str) -> str:
     base = "No entendí del todo la pregunta."
     if channel == "whatsapp":
         return base + " ¿Podrías reformularla?"
-    return base + " ¿Podés reformularla con otras palabras?"
+    return base + " ¿Puedes reformularla con otras palabras?"
 
 
 async def synthesize_answer(
