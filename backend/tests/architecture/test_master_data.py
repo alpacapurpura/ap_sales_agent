@@ -22,6 +22,16 @@ ALLOWED_USD_DEFAULT_FILES: set[str] = {
     # ``billing_currency`` defaults to USD when no override exists — same role
     # as ``iam/domain/tenant.py``'s ``default_currency``.
     "src/modules/copilot/observability/persistence/models/tenant_billing_config_model.py",
+    # Phase 1 observability seams that thread the tenant currency through
+    # the recorder pipeline. The literal "USD" is the *fallback default*
+    # at module boundaries when the caller (chat.py, tests) doesn't yet
+    # know the tenant's locale; the canonical value lives on
+    # ``tenant_billing_config.billing_currency`` and overrides the default
+    # whenever the orchestrator wires the context (Phase 2). Same role as
+    # the tenant_billing_config_model entry above.
+    "src/modules/copilot/observability/cost/fx_resolver.py",
+    "src/modules/copilot/observability/recording/callback_handler.py",
+    "src/modules/copilot/observability/recording/turn_envelope.py",
 }
 
 KNOWN_USD_DEFAULT_VIOLATIONS: set[str] = set()
