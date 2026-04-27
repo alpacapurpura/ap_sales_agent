@@ -464,7 +464,22 @@ class ObservabilityCallbackHandler(BaseCallbackHandler):
 
     @staticmethod
     def _extract_usage(response: LLMResult | None) -> dict[str, int]:
-        """Pull ``usage_metadata`` from the AIMessage. Returns zeros when absent."""
+        """Pull token counts from every shape LangChain may surface.
+
+        OpenAI-compatible providers (Moonshot/Kimi, DeepSeek, Qwen)
+        reach LangChain through ``ChatOpenAI`` with a custom base_url,
+        and not all of them populate ``message.usage_metadata`` — some
+        leave the data only in ``message.response_metadata.token_usage``
+        (raw OpenAI ``usage`` block) or in ``LLMResult.llm_output.
+        token_usage`` (older adapters, gateway proxies).
+
+        Conv 0d64c4a9 (2026-04-27) showed Kimi K2.6 turns landing in
+        ``copilot_llm_call`` with zero tokens — that single source of
+        truth had silently broken ``/copilot-routing`` and the cost
+        cycle aggregator. The handler must drain all three sources
+        before it gives up and reports zeros, otherwise trazas keep
+        lying about cost.
+        """
         zeros = {
             "input_tokens": 0,
             "output_tokens": 0,
@@ -474,20 +489,58 @@ class ObservabilityCallbackHandler(BaseCallbackHandler):
         }
         if response is None:
             return zeros
+
         try:
             generation = response.generations[0][0]
             message: AIMessage = generation.message  # type: ignore[attr-defined]
-            usage = getattr(message, "usage_metadata", None) or {}
         except (AttributeError, IndexError):
             return zeros
-        details = usage.get("input_token_details") or {}
-        output_details = usage.get("output_token_details") or {}
+
+        # 1. LangChain native shape — populated by langchain-openai for
+        #    upstream OpenAI and by LangChain's auto-sync when a provider
+        #    surfaces ``token_usage`` in ``response_metadata``.
+        usage = getattr(message, "usage_metadata", None) or {}
+        if usage.get("input_tokens") or usage.get("output_tokens"):
+            details = usage.get("input_token_details") or {}
+            output_details = usage.get("output_token_details") or {}
+            return {
+                "input_tokens": int(usage.get("input_tokens", 0) or 0),
+                "output_tokens": int(usage.get("output_tokens", 0) or 0),
+                "cached_read_tokens": int(details.get("cache_read", 0) or 0),
+                "cached_write_tokens": int(details.get("cache_creation", 0) or 0),
+                "reasoning_tokens": int(output_details.get("reasoning", 0) or 0),
+            }
+
+        # 2. Raw OpenAI shape on the message itself. Moonshot and a few
+        #    self-hosted gateways land here — the auto-sync in (1) skips
+        #    when the response includes fields the parser does not
+        #    recognise (``thinking_tokens``, vendor extensions).
+        token_usage = (getattr(message, "response_metadata", None) or {}).get("token_usage") or {}
+        if token_usage:
+            return ObservabilityCallbackHandler._from_openai_token_usage(token_usage)
+
+        # 3. LLMResult-level aggregate. Older langchain-openai versions
+        #    only expose tokens here; some gateway proxies (LiteLLM, Helicone)
+        #    drop them on the message but keep them in ``llm_output``.
+        llm_output_usage = (response.llm_output or {}).get("token_usage") if response.llm_output else None
+        if llm_output_usage:
+            return ObservabilityCallbackHandler._from_openai_token_usage(llm_output_usage)
+
+        return zeros
+
+    @staticmethod
+    def _from_openai_token_usage(usage: dict[str, Any]) -> dict[str, int]:
+        """Convert the raw OpenAI ``usage`` shape into the canonical row dict."""
+        prompt_details = usage.get("prompt_tokens_details") or {}
+        completion_details = usage.get("completion_tokens_details") or {}
         return {
-            "input_tokens": int(usage.get("input_tokens", 0) or 0),
-            "output_tokens": int(usage.get("output_tokens", 0) or 0),
-            "cached_read_tokens": int(details.get("cache_read", 0) or 0),
-            "cached_write_tokens": int(details.get("cache_creation", 0) or 0),
-            "reasoning_tokens": int(output_details.get("reasoning", 0) or 0),
+            "input_tokens": int(usage.get("prompt_tokens", 0) or 0),
+            "output_tokens": int(usage.get("completion_tokens", 0) or 0),
+            "cached_read_tokens": int(prompt_details.get("cached_tokens", 0) or 0),
+            # OpenAI exposes cache *write* tokens only on the dedicated
+            # batch endpoints; treat absence as zero rather than guessing.
+            "cached_write_tokens": int(prompt_details.get("cache_creation_tokens", 0) or 0),
+            "reasoning_tokens": int(completion_details.get("reasoning_tokens", 0) or 0),
         }
 
     @staticmethod

@@ -33,6 +33,7 @@ import structlog
 from src.modules.copilot.observability.persistence.models.pricing_snapshot_model import (
     ModelPricingSnapshotModel,
 )
+from src.modules.copilot.observability.pricing.aliases import resolve_alias
 
 if TYPE_CHECKING:
     import datetime as dt
@@ -108,16 +109,22 @@ class PricingResolver:
 
         repo = self.repo_factory()
 
-        active = repo.find_active(provider=provider, model=model)
-        if active is not None and self._snapshot_matches(active, at_ts):
-            self._remember(key, active)
-            return PricingResult(snapshot=active, is_estimated=False)
+        # Try the internal identity first so manual snapshots (operator
+        # overrides) win against the upstream LiteLLM rate card.
+        snapshot = self._lookup(repo, provider=provider, model=model, at_ts=at_ts)
+        if snapshot is None:
+            alias = resolve_alias(provider, model)
+            if alias is not None:
+                snapshot = self._lookup(
+                    repo,
+                    provider=alias[0],
+                    model=alias[1],
+                    at_ts=at_ts,
+                )
 
-        # Either no active row, or active row's valid_from is later than
-        # the call we're resolving — fall back to point-in-time lookup.
-        historical = repo.find_at(provider=provider, model=model, at_ts=at_ts)
-        if historical is not None:
-            return PricingResult(snapshot=historical, is_estimated=False)
+        if snapshot is not None:
+            self._remember(key, snapshot)
+            return PricingResult(snapshot=snapshot, is_estimated=False)
 
         logger.warning(
             "pricing_resolver_fallback_estimated",
@@ -130,6 +137,25 @@ class PricingResolver:
             snapshot=_EstimatedSnapshot(provider=provider, model=model),
             is_estimated=True,
         )
+
+    def _lookup(
+        self,
+        repo: _RepoLike,
+        *,
+        provider: str,
+        model: str,
+        at_ts: dt.datetime,
+    ) -> ModelPricingSnapshotModel | None:
+        """Find a snapshot in effect for ``at_ts`` under one identity.
+
+        Tries ``find_active`` first (covers the common case where the
+        rate card has not changed) and falls back to point-in-time
+        ``find_at`` when the active row's window does not cover the call.
+        """
+        active = repo.find_active(provider=provider, model=model)
+        if active is not None and self._snapshot_matches(active, at_ts):
+            return active
+        return repo.find_at(provider=provider, model=model, at_ts=at_ts)
 
     def invalidate(self) -> None:
         """Drop every cached entry. Called after a successful pricing sync."""
