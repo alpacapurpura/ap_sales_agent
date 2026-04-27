@@ -21,6 +21,9 @@ from src.modules.analytics.workers.tasks import (
 )
 from src.modules.brand.workers.tasks import run_brand_extraction
 from src.modules.copilot.application.services.event_cleanup import cleanup_old_events
+from src.modules.copilot.observability.workers.aggregate_refresh_task import (
+    refresh_daily_cost_mv,
+)
 from src.modules.copilot.observability.workers.pricing_sync_task import sync_litellm_pricing
 from src.modules.offer.workers.tasks import run_offer_extraction
 from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
@@ -49,6 +52,7 @@ class WorkerSettings:
         weekly_copilot_quality_eval,
         weekly_copilot_rag_eval,
         sync_litellm_pricing,
+        refresh_daily_cost_mv,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -104,6 +108,7 @@ class SchedulerSettings:
         weekly_copilot_quality_eval,
         weekly_copilot_rag_eval,
         sync_litellm_pricing,
+        refresh_daily_cost_mv,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -164,6 +169,13 @@ class SchedulerSettings:
             sync_litellm_pricing,
             hour=3,
             minute=0,
+        ),
+        # Phase 3 copilot observability rebuild — hourly daily-cost MV
+        # refresh. CONCURRENT keeps the dashboard read path unblocked.
+        # Minute 5 avoids stacking with on-the-hour ETL workers.
+        cron(
+            refresh_daily_cost_mv,
+            minute=5,
         ),
     ]
 
