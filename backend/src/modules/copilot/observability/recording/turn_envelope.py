@@ -14,6 +14,7 @@ Everything else (LLM rows, tool rows, costs, FX, mirroring to
 
 from __future__ import annotations
 
+import contextlib
 import time
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
@@ -183,9 +184,16 @@ class ObservabilityContext:
             logger.warning("obs_turn_end_failed", error=str(exc))
 
     def _aggregate_totals(self) -> dict[str, Any]:
-        """Sum the copilot_llm_call rows for this turn."""
+        """Sum the copilot_llm_call rows for this turn.
+
+        Flushes the session first so any rows added by the callback
+        handler during the turn (which only ``session.add`` without
+        committing) are visible to the aggregate SELECT.
+        """
         try:
             session = self.llm_call_repo.db
+            with contextlib.suppress(Exception):
+                session.flush()
             stmt = select(
                 func.count().label("count"),
                 func.coalesce(func.sum(CopilotLlmCallModel.input_tokens), 0).label("input_tokens"),
