@@ -1,0 +1,156 @@
+{
+  "sms": [
+    {
+      "prompt": "Armame un SMS para promo flash de 24 horas en cursos online",
+      "output": "Necesito un par de datos para armarte el SMS:\n\n1. ¿Qué curso promocionas? (o si es un catálogo de cursos)\n2. ¿Cuál es el precio/descuento? (ej: 50% off, $99, 2…",
+      "len": 160,
+      "latency_ms": 5043,
+      "error": null
+    },
+    {
+      "prompt": "Armame un SMS confirmando reserva de webinar de marketing",
+      "output": "Para armarte el SMS necesito saber a qué oferta/webinar te te refieres. ¿Tienes una oferta creada en Offer Studio con los datos del webinar (nombre, fecha, lin…",
+      "len": 160,
+      "latency_ms": 4418,
+      "error": null
+    },
+    {
+      "prompt": "Armame un SMS de recordatorio de pago vencido",
+      "output": "Para armarte el SMS necesito un par de datos:\n\n1. ¿A qué oferta o servicio se refiere el pago vencido?\n2. ¿Cuántos días lleva vencido?\n3. ¿Hay un link de pago…",
+      "len": 159,
+      "latency_ms": 3798,
+      "error": null
+    },
+    {
+      "prompt": "Armame un SMS para invitar a sesion de mentoria gratuita",
+      "output": "Listo, aquí tienes el SMS adaptado para el canal:\n\n---\n\nHola, soy Christian de Alpaca Púrpura. Veo que tu negocio tiene potencial, pero quizás aún no brilla en…",
+      "len": 160,
+      "latency_ms": 15860,
+      "error": null
+    },
+    {
+      "prompt": "Armame un SMS de bienvenida a nuevo suscriptor del boletin",
+      "output": "Voy a revisar tu marca para armar un SMS de bienvenida con tu voz y datos.Perfecto, aquí tienes el SMS de bienvenida para Alpaca Púrpura:\n\n---\n\nSMS de bienveni…",
+      "len": 160,
+      "latency_ms": 8736,
+      "error": null
+    },
+    {
+      "prompt": "Armame un SMS para anunciar lanzamiento de nueva oferta de coaching",
+      "output": "Para armarte un SMS potente necesito ver tu oferta actual. Déjame consultar qué tienes en Offer Studio.No tienes ofertas creadas todavía. Necesito algunos dato…",
+      "len": 160,
+      "latency_ms": 8767,
+      "error": null
+    },
+    {
+      "prompt": "Armame un SMS para encuesta NPS de un cliente reciente",
+      "output": "Dame un segundo para ver qué datos tengo disponibles de tu marca y ofertas.Perfecto, ya tengo el contexto de Alpaca Púrpura. Aquí tienes el SMS para NPS:Listo,…",
+      "len": 160,
+      "latency_ms": 15880,
+      "error": null
+    },
+    {
+      "prompt": "Armame un SMS celebrando 1000 ventas en el ecommerce",
+      "output": "Necesito un poco más de contexto para armarte un SMS que suene auténtico y conecte:\n\n1. ¿Qué vendes? (producto, servicio, nicho)\n2. ¿A quién se lo envías? (cli…",
+      "len": 160,
+      "latency_ms": 5182,
+      "error": null
+    },
+    {
+      "prompt": "Armame un SMS de upsell post-compra ofreciendo curso premium",
+      "output": "Para armarte el SMS necesito algunos datos. Déjame revisar qué ofertas tienes configuradas.No tienes ofertas configuradas aún. Para el SMS de upsell necesito q…",
+      "len": 160,
+      "latency_ms": 6397,
+      "error": null
+    },
+    {
+      "prompt": "Armame un SMS reactivando carrito abandonado",
+      "output": "Veo que no tienes ofertas configuradas aún. Para armar un SMS de carrito abandonado efectivo, necesito saber:\n\n1. ¿Qué producto/servicio estaba en el carrito?…",
+      "len": 159,
+      "latency_ms": 13510,
+      "error": null
+    }
+  ],
+  "wa": [
+    {
+      "prompt": "Armame un mensaje para WhatsApp invitando a webinar gratuito de marketing",
+      "output": "No tengo ofertas configuradas en tu cuenta. Para armar un mensaje de invitación que convierta, necesito algunos datos del webinar:\n\n1. Título del webinar — ¿cómo se llama?\n2. Fecha y hora — ¿cuándo es?\n3. Link de registro — ¿a dónde se inscriben?\n4. ¿Qué van a aprender? — el tema principal o la promesa del webinar\n\n¿Tienes esos datos a mano?",
+      "len": 343,
+      "latency_ms": 6551,
+      "error": null,
+      "md_hits": []
+    },
+    {
+      "prompt": "Armame un mensaje para WhatsApp anunciando promo Black Friday 50% OFF",
+      "output": "Para armarte un mensaje potente necesito saber:\n\n1. ¿Qué producto o servicio estás promocionando?\n2. ¿Cuánto cuesta normalmente y cuánto queda con el 50% OFF?\n3. ¿Hasta cuándo dura la promo?\n4. ¿Tienes un link de pago o WhatsApp de ventas para cerrar?\n\nCon eso te armo el mensaje listo para copiar y pegar.",
+      "len": 306,
+      "latency_ms": 5374,
+      "error": null,
+      "md_hits": []
+    },
+    {
+      "prompt": "Armame un mensaje para WhatsApp dando seguimiento a un lead frio",
+      "output": "Necesito un poco más de contexto para armarte un buen mensaje de seguimiento. ¿Me puedes contar:\n\n1. ¿De qué trata tu oferta o producto? (o dime el nombre si ya lo tienes en tu Offer Studio)\n2. ¿Cómo contactaste a este lead la primera vez? (ej. descargó un lead magnet, respondió una historia, te escribió por un anuncio)\n3. ¿Cuánto tiempo pasó desde el primer contacto?\n4. ¿Qué tono prefieres? (más cercano / más profesional / directo al grano)\n\nCon eso te armo algo que no suene a copy-paste y que tenga mejor chance de respuesta.",
+      "len": 532,
+      "latency_ms": 7140,
+      "error": null,
+      "md_hits": []
+    },
+    {
+      "prompt": "Armame un mensaje para WhatsApp confirmando inscripcion a curso online",
+      "output": "Dame un segundo para ver qué datos tenemos disponibles del curso.No tengo ofertas configuradas en tu cuenta. Para armar el mensaje de confirmación necesito que me digas:\n\n1. Nombre del curso — ¿cómo se llama?\n2. Fecha de inicio — ¿cuándo empieza?\n3. Duración / formato — ¿es en vivo, grabado, cuántas semanas?\n4. Precio pagado — ¿cuánto pagó el alumno?\n5. Link de acceso — ¿dónde entra al curso (Zoom, plataforma, grupo de WhatsApp)?\n6. Próximos pasos — ¿qué debe hacer ahora (esperar email, unirse a un grupo, etc.)?\n\nCon eso te armo el mensaje listo para copiar y pegar.",
+      "len": 572,
+      "latency_ms": 7823,
+      "error": null,
+      "md_hits": []
+    },
+    {
+      "prompt": "Armame un mensaje para WhatsApp pidiendo testimonio post-compra",
+      "output": "Aquí tienes el mensaje listo para copiar y pegar en WhatsApp:\n\n---\n\n¡Hola [Nombre]! 👋\n\nSoy el equipo de Alpaca Púrpura. Espero que estés disfrutando los resultados de [producto/servicio].\n\nQuería pedirte un favor: ¿podrías contarnos en 2-3 líneas cómo fue tu experiencia? Nos ayuda un montón para seguir mejorando y para que otros emprendedores como tú se animen a dar el paso.\n\nSi prefieres, puedes responder por aquí mismo o grabar un audio corto. Lo que te resulte más fácil.\n\n¡Gracias de antemano! 🙌\n\n---\n\nNotas para personalizar:\n- Reemplaza [Nombre] por el nombre real del cliente.\n- Reemplaza [producto/servicio] por lo que compró (ej: \"tu programa de automatización\", \"la landing que te armamos\").\n- Si quieres algo más corto o con un tono diferente, dime y lo ajusto.",
+      "len": 776,
+      "latency_ms": 13911,
+      "error": null,
+      "md_hits": []
+    },
+    {
+      "prompt": "Armame un mensaje para WhatsApp ofreciendo descuento por referido",
+      "output": "Necesito un poco de contexto para armarte algo sólido. Déjame revisar tu marca y ofertas actuales.No tienes ofertas configuradas en Offer Studio, así que voy a armarte un mensaje genérico para tu agencia. Cuando tengas una oferta específica, puedo ajustarlo.\n\nAquí va:\n\n---\n\nMensaje para WhatsApp:\n🚀 ¿Conoces a alguien que necesita más clientes de calidad por internet?\nEn Alpaca Púrpura ayudamos a emprendedores y PYMEs a dejar de depender del boca a boca y a tener un sistema que les traiga clientes de forma predecible.\nSi nos refieres a alguien que contrate nuestros servicios, te llevas un descuento del 15% en tu próxima factura y tu referido también obtiene un 10% de descuento en su primera contratación.\nEs ganar-ganar: tú ahorras, tu contacto crece.\n¿Se te ocurre alguien que le vendría bien esto? Solo pásame su nombre por acá y nosotros nos encargamos del resto. 🦙💜\n\n---\n\n¿Quieres que lo ajuste? Por ejemplo:\n- Cambiar el % de descuento\n- Que sea solo para el referido, solo para quien refiere, o ambos\n- Hacerl…",
+      "len": 1024,
+      "latency_ms": 9225,
+      "error": null,
+      "md_hits": []
+    },
+    {
+      "prompt": "Armame un mensaje para WhatsApp anunciando nuevo episodio de podcast",
+      "output": "Perfecto, para armarte un mensaje efectivo necesito algunos datos. ¿Tienes la info a mano o prefieres que la busque en tu Brand Studio / Offer Studio?\n\nMientras tanto, dime:\n\n1. ¿Cuál es el título del episodio?\n2. ¿De qué trata en una oración? (el hook)\n3. ¿Dónde lo escuchan? (Spotify, YouTube, Apple Podcasts, etc.)\n4. ¿Tienes un link directo al episodio?\n5. ¿Quieres que invite a compartir o dejar review?\n\nSi ya tienes alguna oferta o lead magnet relacionado con el tema del episodio, también puedo incluirlo en el cierre para captar leads.",
+      "len": 544,
+      "latency_ms": 5182,
+      "error": null,
+      "md_hits": []
+    },
+    {
+      "prompt": "Armame un mensaje para WhatsApp invitando a sesion estrategica gratuita",
+      "output": "Listo, aquí tienes el mensaje adaptado para WhatsApp:\n\n---\n\n🚀 ¿Tu negocio es invisible en internet?\n\nSé lo frustrante que es tener un gran producto y que nadie te encuentre. Muchos emprendedores y PYMEs en Perú pasan por eso.\n\nEn Alpaca Púrpura ayudamos a negocios como el tuyo a pasar de la invisibilidad a convertirse en una máquina de generar clientes de calidad.\n\nY quiero empezar contigo de la mejor manera:\n\n🎁 Sesión Estratégica Gratuita — 30 minutos donde analizamos tu situación actual y te damos un plan claro para que te encuentren y te elijan.\n\nSin compromiso. Sin letra chica. Solo valor real.\n\n¿Te animas a descubrir el potencial que tu negocio tiene en internet?\n\n👉 Responde \"SÍ\" y te envío el link para agendar.\n\n— Christian Revilla\nAlpaca Púrpura | Hacemos que buenos clientes te encuentren en internet.\n📱 WhatsApp: +51982295587\n\n---\n\n784 caracteres, listo para copiar y pegar. ¿Quieres que ajuste el tono, agregue urgencia, o prepare una variante más corta?",
+      "len": 974,
+      "latency_ms": 22290,
+      "error": null,
+      "md_hits": []
+    },
+    {
+      "prompt": "Armame un mensaje para WhatsApp anunciando cierre de inscripciones",
+      "output": "Necesito un poco más de contexto para armarte un mensaje que convierta. Ayúdame con:\n\n1. ¿Qué oferta estás cerrando? (programa, curso, servicio, membresía...)\n2. ¿Cuándo cierra exactamente? (fecha y hora)\n3. ¿Cuál es el precio o la inversión?\n4. ¿Tienes link de pago o inscripción?\n\nCon eso te armo algo con urgencia real y sin sonar a spam.",
+      "len": 341,
+      "latency_ms": 5085,
+      "error": null,
+      "md_hits": []
+    },
+    {
+      "prompt": "Armame un mensaje para WhatsApp respondiendo a consulta de precios",
+      "output": "Para armarte un mensaje de respuesta a consulta de precios necesito saber a qué oferta se refiere. ¿Tienes alguna oferta configurada en Offer Studio?\n\nDame el nombre o cuéntame de qué producto/servicio se trata, así puedo usar los datos reales (precio, promesa, objeciones) y no inventar nada.",
+      "len": 293,
+      "latency_ms": 4382,
+      "error": null,
+      "md_hits": []
+    }
+  ]
+}

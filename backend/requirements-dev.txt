@@ -8,3 +8,7 @@ ruff>=0.3.0
 factory-boy>=3.3.0
 faker>=30.0.0
 pip-audit>=2.7.0
+# Eval-as-code framework for copilot quality testing (testing-2026-04 plan).
+# Dev-only: pyproject sin runtime usage. Stage `dev_builder` del Dockerfile
+# lo incluye, stage `final` (prod) NO. Ver docs/domains/copilot/testing-2026-04/01-tooling.md.
+deepeval==3.9.7

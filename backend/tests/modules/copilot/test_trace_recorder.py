@@ -25,12 +25,19 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def capturing_session(monkeypatch: pytest.MonkeyPatch) -> list[SimpleNamespace]:
-    """Capture every row the recorder adds through SessionLocal.
+    """Capture every row the recorder adds through its session factory.
 
     Both the session AND the ORM model are stubbed: the model is replaced
     with a lightweight ``SimpleNamespace`` factory so SQLAlchemy's global
     mapper configuration (which may fail in isolated unit tests when
     unrelated mappers reference each other) never runs during recording.
+
+    Usa ``set_session_factory`` (API pluggable expuesta por el módulo) en
+    lugar de monkeypatchear el viejo binding ``SessionLocal`` — el recorder
+    ahora resuelve la sesión via ``_session_factory()`` para soportar
+    inyección desde tests sin tocar el comportamiento de PROD. Esto
+    además override el autouse ``_isolate_trace_recorder_db`` del root
+    conftest que setea un no-op factory por default.
     """
     captured: list[SimpleNamespace] = []
 
@@ -54,9 +61,10 @@ def capturing_session(monkeypatch: pytest.MonkeyPatch) -> list[SimpleNamespace]:
     def _fake_model(**kwargs: object) -> SimpleNamespace:
         return SimpleNamespace(**kwargs)
 
-    monkeypatch.setattr(trace_recorder, "SessionLocal", _StubSession)
+    trace_recorder.set_session_factory(_StubSession)
     monkeypatch.setattr(trace_recorder, "CopilotTraceEventModel", _fake_model)
-    return captured
+    yield captured
+    trace_recorder.reset_session_factory()
 
 
 class TestTraceRecorder:
@@ -162,10 +170,7 @@ class TestTraceRecorder:
         assert len(capturing_session) == 0
         assert isinstance(result_id, UUID)
 
-    def test_write_failure_is_swallowed(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_write_failure_is_swallowed(self) -> None:
         """Any DB failure must NOT propagate out of ``record``."""
         failure_msg = "disk on fire"
 
@@ -182,10 +187,13 @@ class TestTraceRecorder:
             def close(self) -> None:
                 return None
 
-        monkeypatch.setattr(trace_recorder, "SessionLocal", _FailingSession)
-        rec = trace_recorder.start(tenant_id=uuid4())
-        # Must not raise — observability is best-effort.
-        rec.record(event_type="tool_call", name="x")
+        trace_recorder.set_session_factory(_FailingSession)
+        try:
+            rec = trace_recorder.start(tenant_id=uuid4())
+            # Must not raise — observability is best-effort.
+            rec.record(event_type="tool_call", name="x")
+        finally:
+            trace_recorder.reset_session_factory()
 
 
 class TestSanitizePayload:

@@ -30,26 +30,39 @@ _LEGACY_MODEL_TYPE_MAP: dict[str, ModelRole] = {
 class OpenAIService(BaseLLMService):
     """OpenAI adapter with role-based model selection via ModelRole enum."""
 
+    _DEFAULT_TEMPERATURE = 0.7
+
     def __init__(self, api_key: str | None = None) -> None:
         """Initialize OpenAI chat models and embeddings."""
         self.api_key = api_key or settings.OPENAI_API_KEY
-        self._models: dict[str, ChatOpenAI] = {}  # cache by model name
+        # Cache key: ``(model_name, temperature)`` — distintos overrides de
+        # temperature deben mapear a instancias distintas (cada
+        # ``ChatOpenAI`` lleva la temperature en su config). Antes la key era
+        # solo ``model_name`` y el caller hacía ``.bind(temperature=...)``,
+        # lo que rompió ``deepagents 0.5+`` (rechaza RunnableBinding).
+        self._models: dict[tuple[str, float], ChatOpenAI] = {}
 
         self.embeddings = OpenAIEmbeddings(
             model=settings.get_model(ModelRole.EMBEDDING),
             api_key=self.api_key,
         )
 
-    def _get_chat_model(self, role: ModelRole) -> ChatOpenAI:
-        """Get or create a ChatOpenAI instance for the given role."""
+    def _get_chat_model(
+        self,
+        role: ModelRole,
+        temperature: float | None = None,
+    ) -> ChatOpenAI:
+        """Get or create a ChatOpenAI instance for the role+temperature combo."""
         model_name = settings.get_model(role)
-        if model_name not in self._models:
-            self._models[model_name] = ChatOpenAI(
+        effective_temp = self._DEFAULT_TEMPERATURE if temperature is None else temperature
+        cache_key = (model_name, effective_temp)
+        if cache_key not in self._models:
+            self._models[cache_key] = ChatOpenAI(
                 model=model_name,
                 api_key=self.api_key,
-                temperature=0.7,
+                temperature=effective_temp,
             )
-        return self._models[model_name]
+        return self._models[cache_key]
 
     @staticmethod
     def _resolve_role(model_type: str | ModelRole) -> ModelRole:
@@ -183,6 +196,11 @@ class OpenAIService(BaseLLMService):
         """Return the OpenAI embedding model."""
         return self.embeddings
 
-    def get_client(self, role: ModelRole = ModelRole.REASONING) -> ChatOpenAI:
-        """Return the OpenAI chat model client for the given role."""
-        return self._get_chat_model(role)
+    def get_client(
+        self,
+        role: ModelRole = ModelRole.REASONING,
+        *,
+        temperature: float | None = None,
+    ) -> ChatOpenAI:
+        """Return the OpenAI chat model client for the given role+temperature."""
+        return self._get_chat_model(role, temperature=temperature)

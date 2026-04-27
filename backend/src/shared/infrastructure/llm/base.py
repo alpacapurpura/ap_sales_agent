@@ -35,5 +35,20 @@ class BaseLLMService(ABC):
         """Return a LangChain-compatible embedding model object."""
 
     @abstractmethod
-    def get_client(self, role: ModelRole = ModelRole.REASONING) -> Any:  # noqa: ANN401 — abstract LLM interface
-        """Return the underlying chat model client for the given role."""
+    def get_client(
+        self,
+        role: ModelRole = ModelRole.REASONING,
+        *,
+        temperature: float | None = None,
+    ) -> Any:  # noqa: ANN401 — abstract LLM interface
+        """Return the underlying chat model client for the given role.
+
+        Args:
+            role: Model role (NANO/MINI/REASONING/HEAVY/AGENT).
+            temperature: Optional override of the provider default temperature.
+                Implementations MUST return a fresh ``BaseChatModel`` instance
+                with the requested temperature baked in — they MUST NOT use
+                ``Runnable.bind()`` to apply the override. ``deepagents 0.5+``
+                rejects ``RunnableBinding`` in ``resolve_model`` (it is
+                unhashable, and the harness profile cache uses dict lookup).
+        """

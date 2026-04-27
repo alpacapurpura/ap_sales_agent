@@ -81,6 +81,21 @@ class MockUUID(TypeDecorator):
 postgresql.JSONB = MockJSONB
 postgresql.UUID = MockUUID
 
+# Importar el registry DESPUÉS del monkey-patch ``postgresql.JSONB/UUID``
+# garantiza que cuando los modelos se cargan, sus columnas ya ven los Mock
+# TypeDecorators (compatibles con SQLite). Si invertimos el orden, los
+# modelos quedan ligados al ``postgresql.JSONB`` real → ``CompileError``
+# al hacer ``Base.metadata.create_all`` sobre engine SQLite.
+#
+# Importar el registry acá también resuelve la flakiness de
+# ``pytest-randomly``: SA evalúa ``relationship("OtherModel")`` strings
+# durante ``configure_mappers()``; sin todos los modelos en el registro
+# antes de la primera sesión, el primer test que dispare resolution
+# crashea con ``InvalidRequestError`` (ej. ``LeadModel`` →
+# ``AppointmentModel``). Patrón canónico exigido en ``main.py`` y
+# ``admin/app.py``.
+import src.shared.infrastructure.model_registry
+
 # --- Fixtures ---
 
 
@@ -95,6 +110,32 @@ def _force_prompt_source_file(monkeypatch):
     from src.core.config import PromptSource, settings
 
     monkeypatch.setattr(settings, "PROMPT_SOURCE", PromptSource.FILE)
+
+
+@pytest.fixture(autouse=True)
+def _isolate_trace_recorder_db(monkeypatch):
+    """``TraceRecorder`` opens its own ``SessionLocal`` (not the injected db).
+
+    En PROD apunta a Postgres real (best-effort: errores swallowed). En tests
+    nativos (WSL), el hostname Docker ``postgres`` no resuelve → psycopg2 hace
+    DNS retries por ~10s x 3 writes = >30s y rompe ``pytest-timeout``.
+
+    Inyectamos un session factory no-op via ``set_session_factory`` (API
+    pluggable agregada en el módulo). Los tests no validan persistencia de
+    trace_event — esa responsabilidad es de tests dedicados con DB real
+    (integration suite). Si algún test futuro requiere recorder real,
+    puede llamar ``reset_session_factory()`` en su setup.
+    """
+    from unittest.mock import MagicMock
+
+    from src.modules.copilot.application.observability import trace_recorder
+
+    no_op_session = MagicMock()
+    no_op_session.add = MagicMock()
+    no_op_session.commit = MagicMock()
+    no_op_session.rollback = MagicMock()
+    no_op_session.close = MagicMock()
+    monkeypatch.setattr(trace_recorder, "_session_factory", lambda: no_op_session)
 
 
 @pytest.fixture(scope="session")

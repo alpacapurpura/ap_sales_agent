@@ -45,12 +45,38 @@ if TYPE_CHECKING:
 
 import structlog
 
-from src.core.database import SessionLocal
+from src.core.database import SessionLocal as _DefaultSessionLocal
 from src.modules.copilot.infrastructure.models.trace_event_model import (
     CopilotTraceEventModel,
 )
 
 logger = structlog.get_logger()
+
+
+# Pluggable session factory — defaults a la real ``SessionLocal`` (Postgres
+# en prod). Tests sustituyen via :func:`set_session_factory` para evitar
+# bloquear el event loop async con DNS retries cuando el container
+# postgres no está accesible (DNS "postgres" no resuelve fuera de la red
+# Docker). Tests reemplazan con un MagicMock no-op; el comportamiento de
+# producción no se altera.
+_session_factory = _DefaultSessionLocal
+
+
+def set_session_factory(factory: Any) -> None:  # noqa: ANN401 — pluggable session factory; multiple shapes (StubSession, SessionLocal, callables) acceptable.
+    """Override the SessionLocal factory used by ``TraceRecorder.record``.
+
+    Call this in test conftest to inject a no-op / SQLite session.
+    Pass ``None`` (or call :func:`reset_session_factory`) to restore the
+    real ``SessionLocal``.
+    """
+    global _session_factory  # noqa: PLW0603 — explicit module-level pluggability
+    _session_factory = factory if factory is not None else _DefaultSessionLocal
+
+
+def reset_session_factory() -> None:
+    """Restore the production SessionLocal factory."""
+    set_session_factory(None)
+
 
 # Max string length we keep for a single field inside the event's ``data``
 # JSONB. Prompts or tool outputs bigger than this are truncated with a
@@ -127,7 +153,7 @@ class TraceRecorder:
                 duration_ms=duration_ms,
                 status=status,
             )
-            db = SessionLocal()
+            db = _session_factory()
             db.add(row)
             db.commit()
         except Exception as exc:  # noqa: BLE001 — observability is best-effort

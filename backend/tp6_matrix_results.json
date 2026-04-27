@@ -1,0 +1,306 @@
+[
+  {
+    "id": "S6.1",
+    "channel": "chat",
+    "prompt": "Armame un headline impactante para promo de cursos online de marketing, formateado para enviar por chat. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "efa3ee76-34e9-408e-8208-2a4a8811f1df",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "🚀 ¿Todavía vendes con \"espero y veo\"?\n\nEn 2025 el marketing que funciona se aprende. No se improvisa.\n\n→ Curso de Marketing Digital — 70% OFF solo hoy\n→ Curso de Meta Ads — Bono: plantillas de campañas incluidas\n→ Curso de Ventas Online — Garantía de devolución 30 días\n\nCupos reales. Se cierra a medianoche.\n\n👇 Escribe \"CURSO\" y te paso los detalles.",
+    "len_chars": 351,
+    "latency_ms": 6906,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 351,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.2",
+    "channel": "chat",
+    "prompt": "Armame un email de bienvenida tras suscripción al boletín de marketing, formateado para enviar por chat. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "96137b57-c979-4aa1-804d-e2740668fca5",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "¡Bienvenido al boletín de marketing! 🎉\n\nGracias por suscribirte. A partir de ahora recibirás contenido práctico para hacer crecer tu negocio: estrategias probadas, casos de estudio y herramientas que puedes aplicar de inmediato.\n\nLo que puedes esperar:\n• Un email semanal con insights accionables\n• Plantillas y recursos descargables\n• Acceso prioritario a nuevos programas\n\nTu primer paso: revisa tu bandeja de entrada los martes por la mañana. Ahí estaremos.\n\n¿Tienes alguna duda o tema que te gustaría que cubramos? Solo responde a este mensaje.\n\nSaludos,\nEl equipo de Nicolify",
+    "len_chars": 580,
+    "latency_ms": 10038,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 580,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.3",
+    "channel": "chat",
+    "prompt": "Armame una historia corta (≤4 frases) sobre cómo nuestro cliente Juan triplicó ventas con automatización, formateado para enviar por chat. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "fbe6a86d-2ca5-425c-afbe-508a0006fa2d",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "Juan estaba agotado respondiendo mensajes hasta la madrugada y sus ventas se estancaron. Implementó automatización en su funnel y dejó que el sistema hiciera el seguimiento 24/7. En 90 días triplicó sus ventas sin aumentar su equipo. Ahora dedica ese tiempo a escalar en lugar de apagar incendios.",
+    "len_chars": 297,
+    "latency_ms": 4583,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 297,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.4",
+    "channel": "chat",
+    "prompt": "Armame un CTA para invitar al webinar gratuito de embudos de venta del jueves, formateado para enviar por chat. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "40aedb93-fc11-42ac-8e35-1a259ef7bda5",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "🚀 ¿Cansado de que tu negocio sea invisible en internet?\n\nEste jueves te invito a un webinar 100% gratuito donde te voy a mostrar, paso a paso, cómo construir un embudo de ventas que atraiga clientes de calidad sin depender de la suerte.\n\n📌 Lo que vas a aprender:\n• Por qué tener un buen producto ya no es suficiente\n• Los 3 pasos para que te encuentren y te elijan\n• Cómo automatizar tu marketing para dejar de perder oportunidades\n\n🎁 Es gratis, pero los cupos son limitados porque quiero responder tus preguntas en vivo.\n\n👉 Reserva tu lugar aquí: [LINK DE REGISTRO]\n\nNos vemos el jueves.\n\n— Christian Revilla\nAlpaca Púrpura",
+    "len_chars": 624,
+    "latency_ms": 14955,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 624,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.5",
+    "channel": "whatsapp",
+    "prompt": "Armame un headline impactante para promo de cursos online de marketing, formateado para enviar por whatsapp. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "5d4ea2b0-5d26-4ce6-9fbf-1d0fe5405f22",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "🚀 ¿Cansado de cursos de marketing que no te dejan resultados?\n\nTe presento la formación que está cambiando el juego para emprendedores y marketers en LatAm:\n\n✅ Estrategias probadas (no teoría vacía)\n✅ Mentorías en vivo con expertos\n✅ Comunidad de networking real\n✅ Garantía de satisfacción 100%\n\n🎯 Resultados en las primeras 2 semanas o te devolvemos tu dinero.\n\n📲 Escribe \"INFO\" y te paso los detalles con precio especial de lanzamiento.",
+    "len_chars": 438,
+    "latency_ms": 9060,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 438,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.6",
+    "channel": "whatsapp",
+    "prompt": "Armame un email de bienvenida tras suscripción al boletín de marketing, formateado para enviar por whatsapp. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "cbb3a09c-a229-4fba-9772-e105b7cdb03c",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "¡Bienvenido al boletín de marketing! 🎉\n\nGracias por suscribirte. A partir de ahora vas a recibir contenido práctico para hacer crecer tu negocio: estrategias de ventas, automatización, copywriting y lo que está funcionando ahora mismo.\n\n👉 Tu primer paso: responde a este mensaje y cuéntame cuál es tu mayor desafío de marketing hoy. Te leo personalmente.\n\nNos vemos en el próximo envío.\n\n— El equipo de Nicolify",
+    "len_chars": 411,
+    "latency_ms": 9634,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 411,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.7",
+    "channel": "whatsapp",
+    "prompt": "Armame una historia corta (≤4 frases) sobre cómo nuestro cliente Juan triplicó ventas con automatización, formateado para enviar por whatsapp. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "22aa7160-db47-4351-9ba3-7db9b14c9a3c",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "Juan pasaba 6 horas diarias respondiendo mensajes y perdiendo ventas. Implementó automatización con respuestas instantáneas y seguimiento automático. En 90 días triplicó sus ventas sin contratar a nadie más. ¿Quieres ver cómo funciona en tu negocio?",
+    "len_chars": 249,
+    "latency_ms": 4362,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 249,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.8",
+    "channel": "whatsapp",
+    "prompt": "Armame un CTA para invitar al webinar gratuito de embudos de venta del jueves, formateado para enviar por whatsapp. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "3706bace-7bfe-42d1-8444-ac59a2f08a39",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "No tengo información sobre el webinar en el sistema. Dame los datos clave para armarte el CTA:\n- Nombre del webinar\n- Fecha y hora exacta del jueves\n- Link de registro\n- ¿Qué aprenderán? (1-2 puntos clave)\n- ¿Quién lo dicta? (opcional)",
+    "len_chars": 235,
+    "latency_ms": 5616,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 235,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.9",
+    "channel": "email",
+    "prompt": "Armame un headline impactante para promo de cursos online de marketing, formateado para enviar por email. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "51cee707-4f4f-47e3-9a40-a8ba9271fc55",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "En 30 días pasarás de \"no sé por dónde empezar\" a tener tu primera estrategia de marketing que genera resultados reales — sin invertir en ads ni depender de algoritmos impredecibles.",
+    "len_chars": 182,
+    "latency_ms": 10470,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 182,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.10",
+    "channel": "email",
+    "prompt": "Armame un email de bienvenida tras suscripción al boletín de marketing, formateado para enviar por email. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "ebeab60b-09ca-456b-9b08-7648b39b3309",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "Bienvenido al boletín de Alpaca Púrpura\n\nHola,\n\nGracias por sumarte a nuestra comunidad. Desde hoy vas a recibir ideas prácticas para que buenos clientes te encuentren en internet.\n\nEn cada correo te compartimos lo que aprendemos trabajando con emprendedores y PYMEs: estrategias de marketing digital, automatización y casos reales que puedes aplicar en tu negocio.\n\nMientras tanto, aquí tienes tres formas de empezar:\n\n1. Agenda una reunión con nosotros si quieres ver cómo podemos ayudarte directamente.\n2. Descubre si tu negocio califica para nuestro proceso ganador.\n3. Responde a este correo y cuéntanos qué te gustaría aprender primero.\n\nNuestro equipo está aquí para apoyarte.\n\nUn abrazo,\nChristian Revilla y el equipo de Alpaca Púrpura\n\ncontacto@alpacapurpura.lat\n+51 982 295 587\nhttps://alpacapurpura.lat",
+    "len_chars": 813,
+    "latency_ms": 14261,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 813,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.11",
+    "channel": "email",
+    "prompt": "Armame una historia corta (≤4 frases) sobre cómo nuestro cliente Juan triplicó ventas con automatización, formateado para enviar por email. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "a33db01a-34bd-421b-94ac-a319d9dbaec0",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "Juan pasaba noches enteras respondiendo los mismos mensajes una y otra vez. Le montamos un flujo de automatización que atiende, califica y cierra ventas mientras duerme. En 90 días triplicó sus ingresos sin contratar a nadie. Hoy usa ese tiempo para crear contenido y escalar aún más.\n\n¿Quieres que lo adapte a un tono más formal, más urgente, o que agregue un CTA al final?",
+    "len_chars": 374,
+    "latency_ms": 4421,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 374,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.12",
+    "channel": "email",
+    "prompt": "Armame un CTA para invitar al webinar gratuito de embudos de venta del jueves, formateado para enviar por email. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "20091bf8-8837-4aa5-a729-f686fbcb3ec1",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "🚀 Webinar Gratuito: Cómo Construir Embudos de Venta que Sí Convierten\n\nEl jueves te espero en una sesión en vivo donde vas a ver paso a paso cómo armar un embudo que atrape leads, los nutra y los convierta en clientes — sin depender de \"suerte\".\n\n📅 Jueves próximo — hora por confirmar\n💻 En vivo + grabación para quienes se registren\n🎁 Bonus: checklist de embudo listo para usar\n\nLos cupos son limitados porque responderé preguntas en vivo.\n\n👉 [REGÍSTRATE GRATIS AQUÍ]\n\nNos vemos el jueves.\n\n—\nSi no puedes asistir en vivo, regístrate igual y te envío la grabación.",
+    "len_chars": 564,
+    "latency_ms": 13374,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 564,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.13",
+    "channel": "sms",
+    "prompt": "Armame un headline impactante para promo de cursos online de marketing, formateado para enviar por sms. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "d243872b-042d-4c18-9a13-6005c3798f14",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "Domina Marketing Digital en 30 días. Curso online con acceso inmediato. 70% OFF solo hoy → [LINK]",
+    "len_chars": 97,
+    "latency_ms": 4678,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 97,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.14",
+    "channel": "sms",
+    "prompt": "Armame un email de bienvenida tras suscripción al boletín de marketing, formateado para enviar por sms. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "5275794b-4926-43e7-8375-1ac5485ee646",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "¡Bienvenido a Alpaca Púrpura!\n\nGracias por sumarte al boletin. Te prometemos contenido practico: estrategias de marketing digital, automatizacion y trucos para…",
+    "len_chars": 160,
+    "latency_ms": 15572,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 160,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.15",
+    "channel": "sms",
+    "prompt": "Armame una historia corta (≤4 frases) sobre cómo nuestro cliente Juan triplicó ventas con automatización, formateado para enviar por sms. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "b4bbd1b4-4a2c-40fe-85ab-235de1886bc3",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "Juan pasaba 6 horas diarias respondiendo mensajes. Activó el agente de ventas y recuperó su tiempo. En 90 días triplicó sus ventas sin contratar a nadie. ¿Quie…",
+    "len_chars": 160,
+    "latency_ms": 3263,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 160,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  },
+  {
+    "id": "S6.16",
+    "channel": "sms",
+    "prompt": "Armame un CTA para invitar al webinar gratuito de embudos de venta del jueves, formateado para enviar por sms. Respondé directamente con el texto listo para copiar (sin explicaciones).",
+    "turn_id": "a4a54a3c-e2f3-4659-a40e-27f0b9e63e53",
+    "conversation_id": null,
+    "tool_calls": [],
+    "output": "Webinar Gratuito: Embudos de Venta que Sí Convierten\n\nAprende a crear embudos que atraigan clientes reales, sin complicaciones técnicas ni gastar en ads.\n\nJuev…",
+    "len_chars": 160,
+    "latency_ms": 8649,
+    "error": null,
+    "checks": {
+      "voseo_hits": [],
+      "md_noise_hits": [],
+      "len_chars": 160,
+      "exceeds_sms_160": false,
+      "wa_has_md_noise": false
+    }
+  }
+]

@@ -77,6 +77,23 @@ class GeminiService(BaseLLMService):
         """Return the Gemini embedding model."""
         return self.embeddings
 
-    def get_client(self, role: ModelRole = ModelRole.REASONING) -> Any:  # noqa: ANN401 — Gemini SDK types
-        """Return the Gemini chat model client."""
+    def get_client(
+        self,
+        role: ModelRole = ModelRole.REASONING,
+        *,
+        temperature: float | None = None,
+    ) -> Any:  # noqa: ANN401 — Gemini SDK types
+        """Return the Gemini chat model client.
+
+        ``temperature`` override no está soportado en este adapter aún —
+        cuando una fase agentic lo necesite, agregar handling acá (similar
+        al cache (model, temperature) de OpenAIService).
+        """
+        if temperature is not None:
+            msg = (
+                "GeminiService no expone temperature override aún. "
+                "Implementarlo en este adapter siguiendo el patrón de "
+                "OpenAIService._get_chat_model si una fase nueva lo demanda."
+            )
+            raise NotImplementedError(msg)
         return self.chat_model
