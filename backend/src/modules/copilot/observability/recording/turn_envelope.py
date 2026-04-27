@@ -202,13 +202,17 @@ class ObservabilityContext:
             return
 
         self._write_turn_start(message=message, route=route, attachments=attachments or [])
+        error_for_end: BaseException | None = None
         try:
             yield self
-        except Exception as exc:
-            self._write_turn_end(error=exc)
+        except BaseException as exc:  # we MUST land turn_end even on CancelledError when FE drops the SSE
+            error_for_end = exc
             raise
-        else:
-            self._write_turn_end(error=None)
+        finally:
+            # ``finally`` so a client disconnect (asyncio.CancelledError —
+            # BaseException, not Exception) still leaves a turn_end row.
+            # Without this, dropped SSEs leak open turns.
+            self._write_turn_end(error=error_for_end if isinstance(error_for_end, Exception) else None)
 
     # ── internals ───────────────────────────────────────────────────────
 
@@ -239,6 +243,7 @@ class ObservabilityContext:
                 ),
                 status="ok",
             )
+            self._commit_session()
         except Exception as exc:  # noqa: BLE001
             logger.warning("obs_turn_start_failed", error=str(exc))
 
@@ -268,8 +273,26 @@ class ObservabilityContext:
                 duration_ms=duration_ms,
                 status="error" if error is not None else "ok",
             )
+            self._commit_session()
         except Exception as exc:  # noqa: BLE001
             logger.warning("obs_turn_end_failed", error=str(exc))
+
+    def _commit_session(self) -> None:
+        """Commit the trace_repo session.
+
+        ``observe_turn`` writes turn_start at the very start of the turn
+        and turn_end at the very end — there's no other orchestrator
+        commit covering them, so the rows would be discarded when the
+        FastAPI request session closes. Best-effort: a failed commit is
+        logged but never propagated.
+        """
+        if self.trace_repo is None:
+            return
+        session = getattr(self.trace_repo, "db", None)
+        if session is None:
+            return
+        with contextlib.suppress(Exception):
+            session.commit()
 
     def _aggregate_totals(self) -> dict[str, Any]:
         """Sum the copilot_llm_call rows for this turn.

@@ -74,13 +74,13 @@ def register_subscribers(*, repo_factory: Callable[[], TraceEventRepository]) ->
                     session.commit()
             logger.debug(
                 "obs_domain_subscriber_persisted",
-                event=event.event_name,
+                event_name=event.event_name,
                 row_id=getattr(row, "id", None),
             )
         except Exception as exc:  # noqa: BLE001 — best-effort
             logger.warning(
                 "obs_domain_subscriber_failed",
-                event=event.event_name,
+                event_name=event.event_name,
                 error=str(exc),
             )
 
