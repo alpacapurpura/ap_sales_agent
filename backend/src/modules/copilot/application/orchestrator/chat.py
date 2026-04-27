@@ -531,63 +531,45 @@ class CopilotOrchestrator:
         repositories, the pricing + FX resolvers, and returns the bound
         ``ObservabilityContext`` whose callback handler the graph stream
         consumes via ``obs.langchain_config()``.
-
-        Best-effort: if any lookup blows up (no migration yet, missing
-        table) we still hand back a context that publishes events but
-        whose callback handler is a no-op. The orchestrator never crashes
-        because of observability.
         """
-        try:
-            import httpx
+        import httpx
 
-            from src.modules.copilot.observability.cost.fx_resolver import FXResolver
-            from src.modules.copilot.observability.persistence.llm_call_repository import (
-                LlmCallRepository,
-            )
-            from src.modules.copilot.observability.persistence.pricing_snapshot_repository import (
-                PricingSnapshotRepository,
-            )
-            from src.modules.copilot.observability.persistence.tenant_billing_config_repository import (
-                TenantBillingConfigRepository,
-            )
-            from src.modules.copilot.observability.persistence.trace_event_repository import (
-                TraceEventRepository,
-            )
-            from src.modules.copilot.observability.pricing.resolver import PricingResolver
+        from src.modules.copilot.observability.cost.fx_resolver import FXResolver
+        from src.modules.copilot.observability.persistence.llm_call_repository import (
+            LlmCallRepository,
+        )
+        from src.modules.copilot.observability.persistence.pricing_snapshot_repository import (
+            PricingSnapshotRepository,
+        )
+        from src.modules.copilot.observability.persistence.tenant_billing_config_repository import (
+            TenantBillingConfigRepository,
+        )
+        from src.modules.copilot.observability.persistence.trace_event_repository import (
+            TraceEventRepository,
+        )
+        from src.modules.copilot.observability.pricing.resolver import PricingResolver
 
-            billing_repo = TenantBillingConfigRepository(self.db)
-            currency = "USD"
-            with contextlib.suppress(Exception):
-                cfg = billing_repo.get(tenant_id=tenant_id)
-                if cfg is not None and getattr(cfg, "billing_currency", None):
-                    currency = str(cfg.billing_currency)
-            db = self.db
-            return ObservabilityContext.start(
-                tenant_id=tenant_id,
-                conversation_id=conversation_id,
-                user_id=user_id,
-                llm_call_repo=LlmCallRepository(db),
-                trace_repo=TraceEventRepository(db),
-                pricing_resolver=PricingResolver(
-                    repo_factory=lambda: PricingSnapshotRepository(db),
-                ),
-                fx_resolver=FXResolver(
-                    http_client_factory=lambda: httpx.Client(timeout=10),
-                ),
-                tenant_currency=currency,
-            )
-        except Exception as exc:  # noqa: BLE001 — observability is best-effort
-            logger.warning("obs_context_init_failed", error=str(exc))
-            os.environ.setdefault("COPILOT_OBS_REBUILD_DISABLED", "1")
-            return ObservabilityContext.start(
-                tenant_id=tenant_id,
-                conversation_id=conversation_id,
-                user_id=user_id,
-                llm_call_repo=None,  # type: ignore[arg-type]
-                trace_repo=None,  # type: ignore[arg-type]
-                pricing_resolver=None,  # type: ignore[arg-type]
-                fx_resolver=None,  # type: ignore[arg-type]
-            )
+        billing_repo = TenantBillingConfigRepository(self.db)
+        currency = "USD"
+        with contextlib.suppress(Exception):
+            cfg = billing_repo.get(tenant_id=tenant_id)
+            if cfg is not None and getattr(cfg, "billing_currency", None):
+                currency = str(cfg.billing_currency)
+        db = self.db
+        return ObservabilityContext.start(
+            tenant_id=tenant_id,
+            conversation_id=conversation_id,
+            user_id=user_id,
+            llm_call_repo=LlmCallRepository(db),
+            trace_repo=TraceEventRepository(db),
+            pricing_resolver=PricingResolver(
+                repo_factory=lambda: PricingSnapshotRepository(db),
+            ),
+            fx_resolver=FXResolver(
+                http_client_factory=lambda: httpx.Client(timeout=10),
+            ),
+            tenant_currency=currency,
+        )
 
     def _build_client_context(self, context: ClientContextDTO | None) -> dict:
         """Build the graph-facing ``ClientContext`` dict from the incoming DTO.

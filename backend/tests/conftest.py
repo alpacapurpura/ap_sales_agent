@@ -113,20 +113,45 @@ def _force_prompt_source_file(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def _disable_copilot_observability(monkeypatch):
-    """Phase 2 atomic switch: route the orchestrator's observability into
-    a no-op context for the test suite.
+def _stub_copilot_observability_context(monkeypatch, request):
+    """Stub ``ObservabilityContext`` so the orchestrator hot-path tests
+    don't burn 30s of Postgres DNS retries trying to construct the real
+    repos in a native WSL pytest run.
 
-    The new ``ObservabilityContext`` is constructed per-turn from the
-    orchestrator and binds a real LangChain callback handler when active.
-    In native WSL test runs the Docker ``postgres`` host doesn't resolve,
-    so any direct DB write would burn ~30s on DNS retries and trip
-    ``pytest-timeout``. Setting ``COPILOT_OBS_REBUILD_DISABLED`` flips the
-    factory to a no-op handler that keeps the API contract but skips all
-    persistence. Tests that exercise observability explicitly clear this
-    env var inside their fixtures before constructing the context.
+    Tests under ``tests/modules/copilot/observability/`` need the real
+    context to assert persistence, so this fixture skips itself for that
+    path — those tests use SQLite in-memory + explicit
+    ``ObservabilityContext.start(...)`` calls.
     """
-    monkeypatch.setenv("COPILOT_OBS_REBUILD_DISABLED", "1")
+    if "tests/modules/copilot/observability" in request.fspath.strpath:
+        return
+
+    from contextlib import asynccontextmanager
+    from unittest.mock import MagicMock
+
+    @classmethod
+    def _stub_start(cls, **kwargs):
+        from uuid import uuid4
+
+        @asynccontextmanager
+        async def _noop_observe(**_kw):
+            yield ctx
+
+        ctx = MagicMock()
+        ctx.tenant_id = kwargs.get("tenant_id") or uuid4()
+        ctx.conversation_id = kwargs.get("conversation_id")
+        ctx.user_id = kwargs.get("user_id")
+        ctx.turn_id = kwargs.get("turn_id") or uuid4()
+        ctx.langchain_config.return_value = {}
+        ctx.set_turn_summary.return_value = None
+        ctx.observe_turn = _noop_observe
+        return ctx
+
+    from src.modules.copilot.observability.recording.turn_envelope import (
+        ObservabilityContext,
+    )
+
+    monkeypatch.setattr(ObservabilityContext, "start", _stub_start)
 
 
 @pytest.fixture(scope="session")

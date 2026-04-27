@@ -13,16 +13,12 @@ Everything else (LLM rows, tool rows, costs, FX, mirroring to
 ``copilot_trace_event``) happens via the bound :class:`ObservabilityCallbackHandler`.
 
 Best-effort: every persistence path is wrapped in ``try/except`` so an
-observability failure never bubbles out of the orchestrator. When the
-``COPILOT_OBS_REBUILD_DISABLED`` env var is truthy, the factory returns a
-no-op context that keeps the API contract but writes nothing — used as
-the rollback escape hatch for the 24-48h soak window after the switch.
+observability failure never bubbles out of the orchestrator.
 """
 
 from __future__ import annotations
 
 import contextlib
-import os
 import time
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
@@ -55,15 +51,6 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 
-_DISABLED_ENV_VAR = "COPILOT_OBS_REBUILD_DISABLED"
-
-
-def _is_disabled() -> bool:
-    """Return True when the rollback flag is active (truthy env var)."""
-    raw = os.environ.get(_DISABLED_ENV_VAR, "").strip().lower()
-    return raw in {"1", "true", "yes", "on"}
-
-
 @dataclass
 class _TurnSummary:
     """Stream-shape totals supplied by the orchestrator before turn close."""
@@ -71,16 +58,6 @@ class _TurnSummary:
     response_length: int = 0
     message_count: int = 0
     block_count: int = 0
-
-
-class _NoopCallbackHandler:
-    """Drop-in replacement for the real handler when obs is disabled."""
-
-    def __getattr__(self, _name: str) -> Any:  # noqa: ANN401 — duck-typed fallback for any callback hook
-        def _noop(*_args: object, **_kwargs: object) -> None:
-            return None
-
-        return _noop
 
 
 @dataclass
@@ -91,10 +68,9 @@ class ObservabilityContext:
     conversation_id: UUID | None
     user_id: UUID | None
     turn_id: UUID
-    callback_handler: ObservabilityCallbackHandler | _NoopCallbackHandler
-    llm_call_repo: LlmCallRepository | None
-    trace_repo: TraceEventRepository | None
-    disabled: bool = False
+    callback_handler: ObservabilityCallbackHandler
+    llm_call_repo: LlmCallRepository
+    trace_repo: TraceEventRepository
     _summary: _TurnSummary = field(default_factory=_TurnSummary)
     _turn_start_monotonic: float = field(default_factory=time.monotonic)
 
@@ -113,23 +89,8 @@ class ObservabilityContext:
         role: str = "agent",
         turn_id: UUID | None = None,
     ) -> ObservabilityContext:
-        """Build a fresh context. Turn id is allocated if not provided.
-
-        When ``COPILOT_OBS_REBUILD_DISABLED`` is set, returns a no-op
-        context so the orchestrator can flip back without code change.
-        """
+        """Build a fresh context. Turn id is allocated if not provided."""
         tid = turn_id or uuid4()
-        if _is_disabled():
-            return cls(
-                tenant_id=tenant_id,
-                conversation_id=conversation_id,
-                user_id=user_id,
-                turn_id=tid,
-                callback_handler=_NoopCallbackHandler(),  # type: ignore[arg-type]
-                llm_call_repo=None,
-                trace_repo=None,
-                disabled=True,
-            )
         handler = ObservabilityCallbackHandler(
             tenant_id=tenant_id,
             conversation_id=conversation_id,
@@ -153,13 +114,7 @@ class ObservabilityContext:
         )
 
     def langchain_config(self) -> dict[str, Any]:
-        """Return a ``RunnableConfig``-shaped dict with the callback wired in.
-
-        When disabled, returns an empty config so the graph still runs but
-        without any callback wiring.
-        """
-        if self.disabled:
-            return {}
+        """Return a ``RunnableConfig``-shaped dict with the callback wired in."""
         return {"callbacks": [self.callback_handler]}
 
     def set_turn_summary(
@@ -197,10 +152,6 @@ class ObservabilityContext:
         legacy stream-shape keys (``model``/``prompt_tokens``/...) that
         the existing Streamlit pages still consume.
         """
-        if self.disabled:
-            yield self
-            return
-
         self._write_turn_start(message=message, route=route, attachments=attachments or [])
         error_for_end: BaseException | None = None
         try:
@@ -223,8 +174,6 @@ class ObservabilityContext:
         route: str,
         attachments: list[Any],
     ) -> None:
-        if self.trace_repo is None:
-            return
         try:
             self.trace_repo.add(
                 tenant_id=self.tenant_id,
@@ -248,8 +197,6 @@ class ObservabilityContext:
             logger.warning("obs_turn_start_failed", error=str(exc))
 
     def _write_turn_end(self, *, error: BaseException | None) -> None:
-        if self.trace_repo is None:
-            return
         duration_ms = max(int((time.monotonic() - self._turn_start_monotonic) * 1000), 0)
         try:
             totals = self._aggregate_totals()
@@ -286,8 +233,6 @@ class ObservabilityContext:
         FastAPI request session closes. Best-effort: a failed commit is
         logged but never propagated.
         """
-        if self.trace_repo is None:
-            return
         session = getattr(self.trace_repo, "db", None)
         if session is None:
             return
@@ -301,8 +246,6 @@ class ObservabilityContext:
         during the turn (which only ``session.add`` without committing)
         are visible to the aggregate SELECT.
         """
-        if self.llm_call_repo is None:
-            return _empty_totals()
         try:
             session = self.llm_call_repo.db
             with contextlib.suppress(Exception):
