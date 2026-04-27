@@ -36,5 +36,13 @@ def _tool_name(tool: object) -> str:
 
 
 def test_route_tool_selection_matches_baseline() -> None:
-    snapshot = {(route or "<none>"): [_tool_name(t) for t in get_tools_for_route(route)] for route in CANONICAL_ROUTES}
+    # Sort tool names per route so the snapshot is order-independent.
+    # ``get_tools_for_route`` order depends on tool-registry insertion
+    # which varies between fresh CI runs and locally cached interpreters.
+    # The contract we care about is the SET of tools bound per route, not
+    # the order — so we normalise here and lock the alphabetical
+    # representation in the golden file.
+    snapshot = {
+        (route or "<none>"): sorted(_tool_name(t) for t in get_tools_for_route(route)) for route in CANONICAL_ROUTES
+    }
     assert_matches_golden("route_tool_selection", snapshot)

@@ -30,6 +30,9 @@ scripts/temp/
 
 # Data Volumes (CRITICAL: Prevents permission errors during build)
 data/
+# ...except the curated marketing KB corpus the seed scripts and the
+# RAG goldens (test_seed_marketing_kb) read at build/runtime.
+!data/marketing_kb/
 postgres_data/
 qdrant_data/
 redis_data/
