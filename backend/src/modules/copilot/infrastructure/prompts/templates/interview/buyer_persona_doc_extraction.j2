@@ -1,6 +1,6 @@
 Eres un extractor de datos estructurados para un buyer persona (avatar de cliente ideal).
 
-El usuario ha adjuntado un documento (brief, encuesta, perfil, transcripción de entrevista) que describe a su cliente ideal. Tu tarea es identificar evidencia clara y mapearla SOLO a los campos válidos del catálogo de buyer_persona.
+El usuario adjuntó un documento (brief, encuesta, perfil, transcripción de entrevista) que describe a su cliente ideal. Tu tarea es **mapear toda la evidencia útil** del documento a los campos válidos del catálogo de buyer_persona.
 
 {{ field_paths_hint }}
 
@@ -13,16 +13,30 @@ DATOS YA REGISTRADOS (no sobrescribir si el documento no aporta nada mejor):
 {% endif %}
 
 REGLAS DE EXTRACCIÓN:
-1. Emite SOLO claves listadas como válidas arriba. Si el documento usa otras categorías (síntomas, circunstancias, observaciones, etc.), tradúcelas al campo más cercano del catálogo o **omítelas**. Nunca inventes paths.
-2. Para campos `(string)`: emite UN string conciso. No listas, no objetos.
-3. Para campos `(list)` (`pain_points`, `desires`, `objections`, `preferred_channels`, `purchase_triggers`, `anti_patterns`):
-   - `pain_points` y `desires`: lista de objetos `{description, severity}` (severity 1-5) o `{description, importance}`.
-   - `objections`: lista de objetos `{text, response}`.
-   - `preferred_channels`: lista de objetos `{channel, usage}`.
-   - `purchase_triggers` y `anti_patterns`: lista de strings cortos.
-4. Para sub-claves dinámicas bajo `demographics.*`, `psychographics.*`, `buyer_journey.*`: solo si el documento las menciona explícitamente.
-5. Si un campo ya tiene valor en `DATOS YA REGISTRADOS` y el documento no aporta algo claramente mejor, omítelo.
-6. Sin evidencia clara → omite el campo. Es preferible un objeto pequeño y correcto a uno grande y especulativo.
+
+1. Por defecto, **extraer**. Captura toda categoría que el documento toque, aunque la mención sea breve. Solo omite cuando el documento no diga absolutamente nada sobre el tema. Inferir es válido cuando hay datos adyacentes claros.
+
+2. Solo emite claves listadas como válidas en el catálogo. Si el documento usa otras categorías (síntomas, circunstancias, observaciones), tradúcelas al campo más cercano del catálogo. Nunca inventes paths fuera del catálogo.
+
+3. Para campos `(string)`: emite UN string conciso. No listas, no objetos.
+
+4. Para campos `(list)`, usa el cue semántico para ruteo correcto:
+   - `pain_points` → lista de objetos `{description, severity}` (severity 1-5). Cue: dolor concreto + consecuencia ("no aguanta", "le duele", "se siente fracasado", "no logra").
+   - `desires` → lista de objetos `{description, importance}` (importance 1-5). Cue: lo que el cliente **quiere lograr / aspira / sueña / persigue**. Diferenciar de pain_points: aquí va lo positivo a futuro, no el dolor presente.
+   - `objections` → lista de objetos `{text, response}`. Cue: **miedo, duda, excusa, objeción** que frena la compra ("no estoy seguro", "no tengo tiempo", "ya probé y no funcionó").
+   - `preferred_channels` → lista de objetos `{channel, usage}`. Cue: **dónde** el cliente consume contenido o info ("usa Instagram", "lee newsletters", "escucha podcasts", "está en redes X").
+   - `purchase_triggers` → lista de strings cortos. Cue: **gatillo / trigger / decisión** que precede la compra ("cuando le recomiendan", "antes de un viaje", "después de un fracaso", "fin de año").
+   - `anti_patterns` → lista de strings cortos. Cue: tipos de cliente que NO encajan o señales rojas a evitar.
+
+5. Para sub-claves dinámicas bajo `demographics.*`, `psychographics.*`, `buyer_journey.*`: emite cada sub-clave para la que el documento tenga al menos un dato concreto, aunque sea breve. Sub-claves esperadas:
+   - `demographics.{age_range, location, occupation, income, education, family_status}`
+   - `psychographics.{values, beliefs, lifestyle, personality_traits, media_consumption, aspirations}`
+   - `buyer_journey.{awareness, consideration, decision}`
+   No inventes sub-claves nuevas. Si el documento solo menciona una con un fragmento, igual emítela.
+
+6. Si un campo ya tiene valor en `DATOS YA REGISTRADOS` y el documento no aporta algo claramente mejor, omítelo.
+
+7. Calidad sobre exhaustividad inventada: prefiere omitir un sub-campo a fabricar uno sin evidencia. La regla 1 obliga a extraer cuando hay evidencia, no a especular cuando no la hay.
 
 FORMATO DE RESPUESTA (estricto):
 Devuelve un único objeto JSON válido con la forma:
@@ -33,6 +47,10 @@ Devuelve un único objeto JSON válido con la forma:
     "name": "...",
     "demographics.age_range": "...",
     "pain_points": [{"description": "...", "severity": 4}],
+    "desires": [{"description": "...", "importance": 5}],
+    "objections": [{"text": "...", "response": "..."}],
+    "preferred_channels": [{"channel": "...", "usage": "..."}],
+    "purchase_triggers": ["..."],
     "...": "..."
   }
 }
