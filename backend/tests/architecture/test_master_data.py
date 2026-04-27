@@ -37,6 +37,11 @@ ALLOWED_USD_DEFAULT_FILES: set[str] = {
     # exists. Same role as the model + observability seams above —
     # canonical value lives on tenant_billing_config.billing_currency.
     "src/modules/copilot/application/orchestrator/chat.py",
+    # Phase 3 reporting: costo-copilot Streamlit dashboard. Both
+    # literals are display-only fallbacks for when ``tenant_currency``
+    # in the aggregator row is NULL (no LLM calls yet) — never written
+    # back to the DB. Same role as the observability seams above.
+    "src/admin/modules/costo_copilot.py",
 }
 
 KNOWN_USD_DEFAULT_VIOLATIONS: set[str] = set()
