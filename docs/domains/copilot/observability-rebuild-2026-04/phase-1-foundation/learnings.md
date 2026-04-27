@@ -93,6 +93,26 @@ No fue necesario pausar/consultar al usuario.
 - **Opciones:** (A) Lista cruda con append, (B) Guard pattern (`if handler not in EventBus._handlers.get(event_name, []): subscribe(...)`).
 - **Elegida:** B. Razón: pattern ya usado en `brand_summary_event_handlers.py`. Robusto a reimports en tests + hot-reload uvicorn.
 
+### D1.5 — Modelos en `observability/persistence/models/`, no `infrastructure/models/`
+- **Contexto:** plan T1.3 dice "en `infrastructure/models/`" pero la estructura del módulo (T1.1) es flat (sin layer `infrastructure/`).
+- **Opciones:** (A) Crear `observability/infrastructure/models/`, (B) co-locar bajo `persistence/models/`, (C) poner en `copilot/infrastructure/models/` (junto a los modelos legacy del copilot).
+- **Elegida:** B. Razón: Principio 1 (cohesión) — todo lo de obs vive en `observability/`. La capa `persistence/` ya hospeda repositorios; los modelos son su artefacto natural. C contamina el módulo legacy.
+
+### D1.6 — Generated columns con expresiones IMMUTABLE explícitas
+- **Contexto:** Postgres rechaza `to_char(timestamp, ...)` y `started_at::date` en `GENERATED ALWAYS AS ... STORED` porque ambos dependen de TZ/locale (STABLE, no IMMUTABLE).
+- **Opciones:** (A) Quitar `occurred_on` / `occurred_year_month` y derivarlos en queries, (B) Anclar a UTC con `AT TIME ZONE 'UTC'` y sintetizar año-mes con `EXTRACT + LPAD`, (C) Bumpear a Postgres 17+ (no opción).
+- **Elegida:** B. Razón: el índice `(tenant_id, occurred_on)` es load-bearing para la MV de Fase 3 — no se puede diferir. La fórmula `EXTRACT + LPAD` es 100% IMMUTABLE y verificada en vivo.
+
+### D1.7 — ETag normalisation en `litellm_sync` (no migration)
+- **Contexto:** GitHub raw devuelve weak ETags `W/"<sha256-hex>"` ≈71 chars; columna es `varchar(64)`.
+- **Opciones:** (A) Otra migración bumpeando a `varchar(128)`, (B) Strip `W/` + comillas + truncate a 64 en código.
+- **Elegida:** B. Razón: el ETag es solo un fingerprint para `If-None-Match`; la pérdida de los últimos 7 chars no rompe la comparación de Phase 1. Migrar la columna agrega ruido al rollback de la atomic switch (Fase 2).
+
+### D1.8 — Aggregator de turn_end flushea antes del SELECT
+- **Contexto:** el callback handler hace `session.add(row)` por cada LLM call durante el turn; al cerrar `observe_turn`, el aggregator corre `SELECT SUM(...)` sobre `copilot_llm_call` y ve `0` rows porque `autoflush=False`.
+- **Opciones:** (A) Tener el handler flushear cada vez (overhead), (B) Que el aggregator flushee una sola vez antes del SELECT.
+- **Elegida:** B. Razón: una sola flush al final del turn vs N flushes (uno por LLM call). Mantiene la lógica del handler "best-effort, no toques transactions" y centraliza la garantía en un solo punto.
+
 ---
 
 ## Sorpresas / atajos descubiertos
@@ -100,37 +120,63 @@ No fue necesario pausar/consultar al usuario.
 - LangGraph `astream_events(version="v2")` y `BaseCallbackHandler` coexisten: el primero emite eventos en el stream, el segundo recibe callbacks via `RunnableConfig`. Ambos ven los mismos eventos LLM/tool/chain. Elegimos callback handler para Fase 1 porque tiene API estable y cero acoplamiento al loop de stream del orchestrator.
 - `usage_metadata.input_token_details.cache_read` es la clave normalizada por LangChain (mismo nombre para OpenAI prefix-cache + Anthropic prompt cache). Reproducimos esa lectura en `cost/calculator.py`.
 - `EventBus.publish(event, session=db)` defiere dispatch a `after_commit`. Para events de copilot domain (Fase 2) probablemente queramos session=None (dispatch inmediato) porque copilot no tiene transacción "principal" en el stream.
+- **GitHub raw devuelve weak ETags** (`W/"<sha>"`), no fuertes. El bandwidth ahorro vía `If-None-Match` requiere preservar el `W/` exactly… pero como `varchar(64)` lo trunca, perdemos la opción (sin bumpear schema). En la práctica GitHub raw es CDN-cached así que no es un problema real, solo un detalle.
+- **Frankfurter es ECB-backed pero no lista PEN/COP** — supuesto que tenía cobertura LATAM completa fue incorrecto. Bug encontrado durante research, no en producción. Mitigado con flag `fx_unsupported`.
+- **`to_char` en Postgres es STABLE, no IMMUTABLE.** Asumí que era IMMUTABLE porque "es una función pura sobre timestamps". Resulta que depende de `lc_messages` y `lc_time` configurables, así que Postgres no lo deja en una stored generated column. Solución vía `EXTRACT + LPAD` quedó en migración.
+- **El sync de LiteLLM produce ~22 false-positive updates por corrida** (~1% de 1972 rows) por rounding de `NUMERIC(14,12)` sobre tasas con 13+ decimales. Aceptado como deferred-debt (no afecta cálculo de costo per-call, solo el conteo de "row updated").
+- **Existing autouse fixture `_isolate_trace_recorder_db` en `tests/conftest.py:115` va a romper en Fase 2** cuando borremos `trace_recorder.py`. Plan listado en `deferred-debt.md`.
 
 ---
 
 ## Cambios al schema durante ejecución
 
-- (a llenar al cerrar fase si hubo ajustes durante implementación)
+- **`occurred_year_month` definición.** Plan + ARCHITECTURE.md §4.2 usaban `to_char(started_at, 'YYYY-MM')`. Postgres rechaza por no ser IMMUTABLE. Reemplazado por `EXTRACT(YEAR FROM ... AT TIME ZONE 'UTC')::INT::TEXT || '-' || LPAD(EXTRACT(MONTH FROM ... AT TIME ZONE 'UTC')::INT::TEXT, 2, '0')`. Ítem en `deferred-debt.md` para reflejar el cambio en el ARCHITECTURE.md.
+- **`occurred_on` definición.** Plan usaba `started_at::date`. Igual problema (depende de TZ). Reemplazado por `(started_at AT TIME ZONE 'UTC')::date`.
 
 ---
 
 ## Cambios al callback handler durante ejecución
 
-- (a llenar al cerrar fase)
+- **Hook name correction (no behaviour change).** Plan usaba `on_chat_model_end`; la API real de `BaseCallbackHandler` solo expone `on_llm_end` (que dispara para chat y no-chat). Refleja en `learnings.md` D1.2 + `deferred-debt.md` para actualizar ARCHITECTURE.md.
+- **Default `tenant_currency="USD"`** terminó en 3 archivos (`fx_resolver`, `callback_handler`, `turn_envelope`). Allowlist actualizado en `tests/architecture/test_master_data.py` con justificación documentada (mismo rol que `iam/domain/tenant.py`).
 
 ---
 
 ## Tests que costaron más de lo esperado
 
-- (a llenar al cerrar fase)
+- **`test_e2e_isolated.py`** — el aggregator de `turn_end` veía 0 rows porque las llamadas del callback handler usan `session.add` sin `flush`. Fix simple (flush antes del SELECT) pero sólo se descubrió en e2e — ningún test unitario lo cubría. Aprendizaje: las decisiones sobre flush/commit en repos best-effort necesitan al menos un test de integración que las ejercite con datos reales.
+- **`test_pricing_resolver.py::test_cache_skips_repo_on_second_call`** — `MagicMock` auto-crea atributos que rompen comparaciones `<` con `datetime`. Corregido inicializando `valid_from` explícitamente en el helper de mocks.
+- **`test_litellm_sync.py`** — el smoke contra GitHub real reveló dos issues: ETag truncation + 22 false-positive updates por NUMERIC precision. Ambos resueltos / documentados.
 
 ---
 
 ## Items para `.claude/rules/` (si aplica)
 
-- (a llenar al cerrar fase)
+Ninguno crítico. Posibles candidatos para evaluar al cerrar Fase 3:
+
+- Patrón "factory de session por handler" para subscribers del EventBus (`repo_factory: Callable[[], Repo]`) — útil para cualquier módulo nuevo que escuche eventos cross-module.
+- Patrón "best-effort observability" — ya existe en `.claude/rules/copilot-resilience.md` §"Debug copilot". Considerar agregar el contrato del callback handler (cero exceptions propagadas, structlog warning per hook).
 
 ---
 
 ## Métrica final fase
 
-- Commits creados (hashes + mensajes): a llenar
-- Líneas añadidas: a llenar
-- Tests añadidos: a llenar
-- Coverage backend antes/después: a llenar
-- Tiempo real ejecución: a llenar
+- **Commits creados:**
+  - `eab7b2cd` chore(copilot-obs): scaffold observability module structure (T1.1)
+  - `48e05755` feat(copilot-obs): add llm_call + pricing_snapshot + billing_config tables (T1.2)
+  - `08527be5` feat(copilot-obs): add SQLAlchemy models for new tables (T1.3)
+  - `01572adc` feat(copilot-obs): add repositories with tenant isolation (T1.4)
+  - `e8ca123a` feat(copilot-obs): add pricing resolver + LiteLLM sync worker (T1.5)
+  - `f36feea0` feat(copilot-obs): add cost calculator + FX resolver (T1.6)
+  - `637ef26e` feat(copilot-obs): add LangChain callback handler (not wired) (T1.7)
+  - `323bc740` feat(copilot-obs): add turn envelope context manager (T1.8)
+  - `ea89109e` feat(copilot-obs): add domain event subscribers (not registered) (T1.9)
+  - `28cfde11` test(copilot-obs): add isolated e2e test for new module (T1.10)
+  - + commit final docs (T1.13).
+- **Diff total:** 42 files changed, 4365 insertions(+), 45 deletions(-).
+- **Tests añadidos:** 64 tests nuevos en `tests/modules/copilot/observability/` (todos verdes), 0 tests existentes quebrados, 13 tests de schema sobre la migración.
+- **Coverage backend:** 67.48% (gate ≥43% holgado; antes ~67%, sin regresión).
+- **Quality gates:** ruff lint + format clean; 575 arch tests verdes; full pytest 5276 passed / 7 skipped / 11 deselected (2 deselected son pre-existing flakes documentados, 9 son los `verify`/`integration` markers).
+- **Hot-path intacto:** `git diff eab7b2cd^ HEAD -- backend/src/modules/copilot/application/orchestrator/{chat,deep_agent,graph}.py backend/src/modules/copilot/application/observability/trace_recorder.py backend/src/modules/copilot/application/orchestrator/usage_tracking.py` → vacío. Smoke `curl /health` 200 OK. `grep -r ObservabilityCallbackHandler|ObservabilityContext|register_subscribers backend/src/modules/copilot/application/` → 0 matches.
+- **Pricing populated:** 1972 active rows en `model_pricing_snapshot` (openai 96 / anthropic-via-bedrock / azure 124 / fireworks_ai 244 / xai 36 / gemini 41 / etc.). Worker registrado cron 03:00 UTC.
+- **Tiempo real ejecución:** ~3 horas wall-clock para las 13 tasks (research + scaffold + 3 tablas + ORMs + 4 repos + pricing + cost/FX + callback + envelope + subscribers + e2e + verificaciones + close).
