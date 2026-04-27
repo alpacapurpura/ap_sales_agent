@@ -21,8 +21,17 @@ from src.shared.infrastructure.llm.providers.qwen import QwenService
 
 
 def _client_base_url(client: object) -> str:
-    """Pull the base_url from a ChatOpenAI in a way that survives lib upgrades."""
-    raw = getattr(client, "openai_api_base", None) or getattr(client, "base_url", None)
+    """Pull the base_url from a chat client across LangChain variants.
+
+    ``ChatOpenAI`` stores it under ``openai_api_base`` / ``base_url``;
+    partner packages (``ChatDeepSeek``) store it under ``api_base``.
+    Survives package upgrades.
+    """
+    raw = (
+        getattr(client, "openai_api_base", None)
+        or getattr(client, "base_url", None)
+        or getattr(client, "api_base", None)
+    )
     return str(raw) if raw is not None else ""
 
 
@@ -107,6 +116,52 @@ class TestKimiService:
         # langchain_openai exposes the openai-SDK kwargs via ``model_kwargs``.
         extra_body = client.model_kwargs.get("extra_body", {})
         assert extra_body.get("thinking") == {"type": "disabled"}
+
+
+class TestDeepSeekNativePackage:
+    """DeepSeek migrated to the native ``langchain_deepseek`` package
+    (Fase 2, 2026-04-27). Validates the spec swap works end-to-end and
+    that the cache + temperature semantics still hold.
+    """
+
+    def test_get_chat_model_returns_chat_deepseek(self) -> None:
+        """The spec must dispatch to ChatDeepSeek, not raw ChatOpenAI.
+
+        This is the regression net: if someone reverts the spec or the
+        builder by accident, this test flips red immediately.
+        """
+        from langchain_deepseek import ChatDeepSeek
+
+        from src.core.enums import ModelRole
+
+        svc = DeepSeekService(api_key="sk-test-deepseek")
+        client = svc.get_client(role=ModelRole.REASONING)
+        assert isinstance(client, ChatDeepSeek)
+
+    def test_spec_library_name_is_langchain_deepseek(self) -> None:
+        """Telemetry tag exposed by the spec — admin dashboards consume it."""
+        svc = DeepSeekService(api_key="sk-test-deepseek")
+        assert svc.CHAT_MODEL_SPEC.library_name == "langchain_deepseek"
+
+    def test_temperature_override_returns_distinct_instance(self) -> None:
+        """Cache key (model_name, temperature) must keep working with the
+        partner package — same invariant as raw ChatOpenAI."""
+        from src.core.enums import ModelRole
+
+        svc = DeepSeekService(api_key="sk-test-deepseek")
+        a = svc.get_client(role=ModelRole.REASONING, temperature=0.0)
+        b = svc.get_client(role=ModelRole.REASONING, temperature=0.7)
+        assert a is not b
+
+    def test_kwargs_normalizer_runs_for_native_path(self) -> None:
+        """The spec normaliser must still strip ``max_output_tokens`` even
+        though ChatDeepSeek inherits from ``BaseChatOpenAI`` and would
+        accept it via the rewrite. Belt-and-suspenders: we own the
+        translation regardless of partner-package internals."""
+        kwargs = {"max_output_tokens": 256, "metadata": {"trace": "x"}}
+        svc = DeepSeekService(api_key="sk-test-deepseek")
+        svc.CHAT_MODEL_SPEC.kwargs_normalizer(kwargs)
+        assert kwargs == {"max_tokens": 256}
 
 
 class TestOpenAICompatKwargsTranslation:

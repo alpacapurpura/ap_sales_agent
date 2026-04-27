@@ -13,14 +13,17 @@ endpoint; DeepSeek and Kimi do not.
 from typing import Any
 
 import structlog
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 
 from src.core.config import settings
 from src.core.enums import ModelRole
 from src.shared.infrastructure.llm.base import BaseLLMService
-from src.shared.infrastructure.llm.providers._kwargs import (
-    normalize_openai_protocol_kwargs,
+from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+    DEFAULT_OPENAI_SPEC,
+    ChatBuildContext,
+    ChatModelSpec,
+    _build_chat_from_spec,
 )
 
 logger = structlog.get_logger()
@@ -39,6 +42,12 @@ class OpenAICompatibleService(BaseLLMService):
 
     _DEFAULT_TEMPERATURE = 0.7
 
+    # Subclasses override to swap LangChain client class without
+    # touching ``_get_chat_model``. See ``_chat_model_resolver.py`` for
+    # the pattern + how to migrate to native partner packages
+    # (``langchain_deepseek``, ``langchain_qwq``, …).
+    CHAT_MODEL_SPEC: ChatModelSpec = DEFAULT_OPENAI_SPEC
+
     def __init__(
         self,
         *,
@@ -54,24 +63,26 @@ class OpenAICompatibleService(BaseLLMService):
         self.provider_name = provider_name
         # Cache key: ``(model_name, temperature)`` — same rationale as
         # OpenAIService: deepagents 0.5+ rejects RunnableBinding, so each
-        # temperature override needs its own ``ChatOpenAI`` instance.
-        self._models: dict[tuple[str, float], ChatOpenAI] = {}
+        # temperature override needs its own client instance.
+        self._models: dict[tuple[str, float], BaseChatModel] = {}
 
     def _get_chat_model(
         self,
         role: ModelRole,
         temperature: float | None = None,
-    ) -> ChatOpenAI:
+    ) -> BaseChatModel:
+        spec = self.CHAT_MODEL_SPEC
         model_name = settings.get_model(role)
         effective_temp = self._DEFAULT_TEMPERATURE if temperature is None else temperature
         cache_key = (model_name, effective_temp)
         if cache_key not in self._models:
-            self._models[cache_key] = ChatOpenAI(
-                model=model_name,
+            ctx = ChatBuildContext(
                 api_key=self.api_key,
                 base_url=self.base_url,
+                model=model_name,
                 temperature=effective_temp,
             )
+            self._models[cache_key] = _build_chat_from_spec(spec, ctx)
         return self._models[cache_key]
 
     @staticmethod
@@ -112,11 +123,11 @@ class OpenAICompatibleService(BaseLLMService):
         lc_messages = self._convert_to_lc_messages(messages, system_prompt)
         resolved_role = self._resolve_role(model_type)
         selected_model = self._get_chat_model(resolved_role)
-        # Single source of truth for OpenAI-protocol kwarg translation.
-        # Pre-fix only ``OpenAIService`` had this hop — DeepSeek/Kimi/Qwen
-        # crashed with TypeError on ``max_output_tokens`` (incident
-        # 2026-04-27, buyer-persona doc extraction).
-        normalize_openai_protocol_kwargs(kwargs)
+        # Single source of truth, declared per provider via
+        # ``CHAT_MODEL_SPEC.kwargs_normalizer``. Subclasses migrating to
+        # a non-OpenAI protocol (Gemini, native Anthropic) override the
+        # normaliser in their spec.
+        self.CHAT_MODEL_SPEC.kwargs_normalizer(kwargs)
         try:
             response = selected_model.invoke(lc_messages, **kwargs)
             return response.content
@@ -141,6 +152,6 @@ class OpenAICompatibleService(BaseLLMService):
         role: ModelRole = ModelRole.REASONING,
         *,
         temperature: float | None = None,
-    ) -> ChatOpenAI:
-        """Return a ChatOpenAI instance pointed at this provider's base_url."""
+    ) -> BaseChatModel:
+        """Return the chat client (concrete class declared by the spec)."""
         return self._get_chat_model(role, temperature=temperature)

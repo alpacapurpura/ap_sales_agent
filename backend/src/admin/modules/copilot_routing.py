@@ -155,6 +155,93 @@ def _fetch_latency_per_tier(
     return [dict(r) for r in rows]
 
 
+def _fetch_provider_library_provenance() -> list[dict[str, Any]]:
+    """Return library + chat_class metadata for each configured provider.
+
+    Reads ``CHAT_MODEL_SPEC`` in process from each provider service — no
+    DB hit. Surfaces in admin so operators see which LangChain package
+    is live for each provider without grepping code. When a provider
+    migrates (e.g. DeepSeek → langchain-deepseek), this row updates
+    automatically.
+
+    Providers without a spec (Gemini, different protocol) are skipped;
+    they will get their own panel once a Gemini-protocol normaliser
+    lands (TODO #31).
+    """
+    import structlog
+
+    from src.core.enums import AIProvider
+    from src.shared.infrastructure.llm.router import build_provider_service
+
+    log = structlog.get_logger()
+    rows: list[dict[str, Any]] = []
+    for provider in AIProvider:
+        try:
+            svc = build_provider_service(provider)
+        except Exception as exc:  # noqa: BLE001 — admin resilience
+            # Missing API key in dev/partial configs is expected;
+            # log at debug so a real misconfig is still discoverable.
+            log.debug("admin_provider_skipped", provider=provider.value, error=str(exc))
+            continue
+        spec = getattr(svc, "CHAT_MODEL_SPEC", None)
+        if spec is None:
+            continue
+        rows.append(
+            {
+                "provider": provider.value,
+                "chat_class": spec.chat_class.__name__,
+                "library_name": spec.library_name,
+            },
+        )
+    return rows
+
+
+def _fetch_runaway_output_alerts(
+    db: Session,
+    tenant_filter_sql: str,
+    params: dict[str, Any],
+    *,
+    runaway_threshold: int = 4000,
+) -> list[dict[str, Any]]:
+    """Count LLM calls whose output exceeded the runaway threshold.
+
+    Groups by ``(provider, model_responded)``. Heuristic detection of
+    the silent ``max_tokens → max_completion_tokens``
+    rewrite documented in TODO #32 — when the rewrite leaks through to
+    a partner endpoint that does not honour the new key, the model
+    generates well past the intended cap. ``4000`` is a deliberately
+    generous default: most Nicolify caps land at ``2000`` or below, so
+    output above ``4000`` for a capped role is suspicious.
+    """
+    llm_filter_sql = tenant_filter_sql.replace(
+        "tenant_id = :tenant_id",
+        "tenant_id = :tenant_id",
+    )
+    rows = (
+        db.execute(
+            text(
+                f"""
+                SELECT
+                    provider,
+                    model_responded AS model,
+                    COUNT(*)        AS runaway_calls,
+                    MAX(output_tokens) AS max_output_tokens
+                FROM copilot_llm_call
+                WHERE started_at >= NOW() - INTERVAL '30 days'
+                  AND output_tokens >= :threshold
+                {llm_filter_sql}
+                GROUP BY provider, model_responded
+                ORDER BY runaway_calls DESC
+                """,
+            ),
+            {**params, "threshold": runaway_threshold},
+        )
+        .mappings()
+        .all()
+    )
+    return [dict(r) for r in rows]
+
+
 def _fetch_recent_decisions(
     db: Session,
     tenant_filter_sql: str,
@@ -257,6 +344,65 @@ def _render_latency_table(rows: list[dict]) -> None:
     )
 
 
+def _render_provider_library_provenance(rows: list[dict]) -> None:
+    """Show which LangChain package handles each provider.
+
+    Early-warning surface for the silent-rewrite issue tracked in TODO #32.
+    """
+    if not rows:
+        return
+    st.markdown("### Librerías LangChain por proveedor")
+    st.caption(
+        "Útil para detectar regresiones cuando se actualiza ``langchain-openai``,"
+        " ``langchain-deepseek`` u otro paquete partner. Cualquier cambio aquí"
+        " debe coincidir con un commit deliberado en ``providers/*.py``.",
+    )
+    st.dataframe(
+        [
+            {
+                "Proveedor": row["provider"],
+                "Chat class": row["chat_class"],
+                "Paquete LangChain": row["library_name"],
+            }
+            for row in rows
+        ],
+        hide_index=True,
+        width="stretch",
+    )
+
+
+def _render_runaway_output_alerts(rows: list[dict]) -> None:
+    """Surface output-tokens spikes per (provider, model).
+
+    Heuristic proxy for the silent ``max_tokens`` rewrite breaking
+    partner endpoints (TODO #32).
+    """
+    if not rows:
+        st.success(
+            "✅ Sin tokens de salida runaway en los últimos 30 días"
+            " (umbral 4000). Cap respetado por todos los proveedores.",
+        )
+        return
+    st.warning(
+        "⚠️ Detectados tokens de salida >= 4000 — posible silent rewrite"
+        " ``max_tokens → max_completion_tokens`` (TODO #32). Revisar antes"
+        " de que escale en costo.",
+    )
+    st.dataframe(
+        [
+            {
+                "Proveedor": row["provider"],
+                "Modelo": row["model"],
+                "Llamadas runaway": row["runaway_calls"],
+                "Máx tokens de salida": row["max_output_tokens"],
+            }
+            for row in rows
+        ],
+        hide_index=True,
+        width="stretch",
+    )
+
+
 def _render_recent_decisions(rows: list[dict]) -> None:
     if not rows:
         return
@@ -297,9 +443,12 @@ def render_copilot_routing() -> None:
         classifier_rows = _fetch_classifier_breakdown(db, tenant_filter_sql, params)
         cache_metrics = _fetch_cache_metrics(db, tenant_filter_sql, params)
         latency_rows = _fetch_latency_per_tier(db, tenant_filter_sql, params)
+        runaway_rows = _fetch_runaway_output_alerts(db, tenant_filter_sql, params)
         recent_rows = _fetch_recent_decisions(db, tenant_filter_sql, params)
     finally:
         db.close()
+
+    library_rows = _fetch_provider_library_provenance()
 
     st.markdown("### Distribución por tier")
     _render_tier_distribution(tier_rows)
@@ -307,4 +456,6 @@ def render_copilot_routing() -> None:
     _render_classifier_breakdown(classifier_rows)
     _render_cache_metrics(cache_metrics)
     _render_latency_table(latency_rows)
+    _render_provider_library_provenance(library_rows)
+    _render_runaway_output_alerts(runaway_rows)
     _render_recent_decisions(recent_rows)

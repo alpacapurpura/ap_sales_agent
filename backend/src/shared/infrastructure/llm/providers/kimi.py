@@ -14,7 +14,7 @@ Refs:
 """
 
 import structlog
-from langchain_openai import ChatOpenAI
+from langchain_core.language_models import BaseChatModel
 
 from src.core.config import settings
 from src.core.enums import ModelRole
@@ -71,7 +71,7 @@ class KimiService(OpenAICompatibleService):
         self,
         role: ModelRole,
         temperature: float | None = None,
-    ) -> ChatOpenAI:
+    ) -> BaseChatModel:
         model_name = settings.get_model(role)
         is_k2 = "k2" in model_name.lower()
         if is_k2 and temperature is not None and temperature != _K2_REQUIRED_TEMPERATURE:
@@ -85,6 +85,11 @@ class KimiService(OpenAICompatibleService):
             temperature = _K2_REQUIRED_TEMPERATURE
         client = super()._get_chat_model(role, temperature=temperature)
         if is_k2:
+            # ``model_kwargs`` is the LangChain hook to pass extra body
+            # fields to the OpenAI SDK. Native partner packages would
+            # need a different hook — when Moonshot ships a native
+            # langchain-moonshot, revisit this. Today the spec stays at
+            # ChatOpenAI so this works.
             existing_extra = client.model_kwargs.get("extra_body") or {}
             client.model_kwargs["extra_body"] = {
                 **existing_extra,

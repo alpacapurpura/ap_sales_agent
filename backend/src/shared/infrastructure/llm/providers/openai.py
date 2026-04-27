@@ -3,8 +3,9 @@
 from typing import Any
 
 import structlog
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 
 from src.core.config import settings
 from src.core.enums import ModelRole
@@ -14,8 +15,11 @@ from src.modules.sales_agent.infrastructure.memory.audit_repository import (
 )
 from src.modules.sales_agent.infrastructure.monitoring.tracing import current_trace_id
 from src.shared.infrastructure.llm.base import BaseLLMService
-from src.shared.infrastructure.llm.providers._kwargs import (
-    normalize_openai_protocol_kwargs,
+from src.shared.infrastructure.llm.providers._chat_model_resolver import (
+    DEFAULT_OPENAI_SPEC,
+    ChatBuildContext,
+    ChatModelSpec,
+    _build_chat_from_spec,
 )
 
 logger = structlog.get_logger()
@@ -35,15 +39,21 @@ class OpenAIService(BaseLLMService):
 
     _DEFAULT_TEMPERATURE = 0.7
 
+    # Declarative spec — same pattern as ``OpenAICompatibleService``.
+    # OpenAI uses the default ChatOpenAI builder with no base_url
+    # (the SDK defaults to api.openai.com). To swap libraries (e.g. an
+    # OpenAI Responses API client), only this attribute changes.
+    CHAT_MODEL_SPEC: ChatModelSpec = DEFAULT_OPENAI_SPEC
+
     def __init__(self, api_key: str | None = None) -> None:
         """Initialize OpenAI chat models and embeddings."""
         self.api_key = api_key or settings.OPENAI_API_KEY
         # Cache key: ``(model_name, temperature)`` — distintos overrides de
-        # temperature deben mapear a instancias distintas (cada
-        # ``ChatOpenAI`` lleva la temperature en su config). Antes la key era
-        # solo ``model_name`` y el caller hacía ``.bind(temperature=...)``,
-        # lo que rompió ``deepagents 0.5+`` (rechaza RunnableBinding).
-        self._models: dict[tuple[str, float], ChatOpenAI] = {}
+        # temperature deben mapear a instancias distintas (cada client
+        # lleva la temperature en su config). Antes la key era solo
+        # ``model_name`` y el caller hacía ``.bind(temperature=...)``, lo
+        # que rompió ``deepagents 0.5+`` (rechaza RunnableBinding).
+        self._models: dict[tuple[str, float], BaseChatModel] = {}
 
         self.embeddings = OpenAIEmbeddings(
             model=settings.get_model(ModelRole.EMBEDDING),
@@ -54,17 +64,20 @@ class OpenAIService(BaseLLMService):
         self,
         role: ModelRole,
         temperature: float | None = None,
-    ) -> ChatOpenAI:
-        """Get or create a ChatOpenAI instance for the role+temperature combo."""
+    ) -> BaseChatModel:
+        """Build (or reuse cached) chat client per the declared spec."""
+        spec = self.CHAT_MODEL_SPEC
         model_name = settings.get_model(role)
         effective_temp = self._DEFAULT_TEMPERATURE if temperature is None else temperature
         cache_key = (model_name, effective_temp)
         if cache_key not in self._models:
-            self._models[cache_key] = ChatOpenAI(
-                model=model_name,
+            ctx = ChatBuildContext(
                 api_key=self.api_key,
+                base_url=None,  # real OpenAI flow — SDK uses its own default
+                model=model_name,
                 temperature=effective_temp,
             )
+            self._models[cache_key] = _build_chat_from_spec(spec, ctx)
         return self._models[cache_key]
 
     @staticmethod
@@ -94,22 +107,18 @@ class OpenAIService(BaseLLMService):
                 lc_messages.append(msg_cls(content=msg.get("content")))
         return lc_messages
 
-    @staticmethod
-    def _extract_call_params(kwargs: dict) -> tuple[dict, dict]:
+    def _extract_call_params(self, kwargs: dict) -> tuple[dict, dict]:
         """Extract OpenAI call params and metadata from kwargs.
 
-        Delegates the alias translation (``max_output_tokens`` →
-        ``max_tokens``) to the shared OpenAI-protocol helper so the
-        rule lives in one place across all OpenAI-protocol providers
-        (OpenAI itself + DeepSeek/Kimi/Qwen via OpenAICompatibleService).
+        Delegates kwarg normalisation to the spec's ``kwargs_normalizer``
+        so the rule lives once per provider. Order matters: pop
+        ``metadata`` before normalising (the helper drops it without
+        returning it), then normalise the rest, then split call_params.
 
         Returns ``(call_params, meta_log)``.
         """
-        # ``metadata`` is consumed for tracing — pop BEFORE normalising
-        # so we keep the value (the shared helper drops it without
-        # returning it). Order matters: pop metadata, then normalise.
         meta_log = kwargs.pop("metadata", {})
-        normalize_openai_protocol_kwargs(kwargs)
+        self.CHAT_MODEL_SPEC.kwargs_normalizer(kwargs)
         param_keys = (
             "temperature",
             "max_tokens",
@@ -127,7 +136,7 @@ class OpenAIService(BaseLLMService):
         self,
         system_prompt: str | None,
         messages: list,
-        selected_model: ChatOpenAI | None,
+        selected_model: BaseChatModel | None,
         response_text: str,
         tokens_in: int,
         tokens_out: int,
@@ -141,7 +150,14 @@ class OpenAIService(BaseLLMService):
             db = SessionLocal()
             repo = AuditRepository(db)
             full_prompt_str = f"System: {system_prompt}\nMessages: {messages}"
-            model_name = selected_model.model_name if selected_model else "unknown"
+            # Different chat classes expose the model name differently
+            # (``model_name`` on ChatOpenAI, ``model`` on partner packages
+            # like ChatDeepSeek). Try both, fall back to ``unknown``.
+            model_name = (
+                (getattr(selected_model, "model_name", None) or getattr(selected_model, "model", None) or "unknown")
+                if selected_model
+                else "unknown"
+            )
             repo.create_llm_log(
                 trace_id=trace_id,
                 model=model_name,
@@ -213,6 +229,6 @@ class OpenAIService(BaseLLMService):
         role: ModelRole = ModelRole.REASONING,
         *,
         temperature: float | None = None,
-    ) -> ChatOpenAI:
-        """Return the OpenAI chat model client for the given role+temperature."""
+    ) -> BaseChatModel:
+        """Return the chat client (concrete class declared by the spec)."""
         return self._get_chat_model(role, temperature=temperature)
