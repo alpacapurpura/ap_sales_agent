@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 import { createFormRuntimeBridge, type FormRuntimeBridge } from "@/lib/form-runtime/copilot";
 import { useActiveField, useAutoSave } from "@/lib/form-runtime/hooks";
+import { setNestedPath } from "@/lib/form-runtime/utils";
 
 import { FormRuntimeContext, type FormRuntimeContextValue } from "./FormRuntimeContext";
 
@@ -54,7 +55,7 @@ export function FormRuntimeProvider<TValues extends object>({
   const setFieldValue = useCallback(
     (path: string, next: unknown) => {
       setValues((prev) => {
-        const updated = { ...prev, [path]: next } as TValues;
+        const updated = setNestedPath(prev, path, next);
         if (isAutosave) {
           autosave.trigger(updated);
         }

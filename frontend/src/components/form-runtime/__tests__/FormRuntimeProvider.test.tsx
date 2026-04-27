@@ -144,3 +144,113 @@ describe("useFormRuntime", () => {
     spy.mockRestore();
   });
 });
+
+// Nested path round-trip — locks the contract for schemas that mirror JSONB
+// sub-key shapes (buyer_persona demographics.* / psychographics.* /
+// buyer_journey.*). A regression here re-introduces the silent data loss
+// where the provider used to write a literal ``"a.b"`` flat key instead
+// of nesting into ``a.b`` (conv 0d64c4a9, 2026-04-27).
+const NESTED_SCHEMA: SectionSchema = {
+  key: "brand.buyer-persona",
+  title: "Buyer persona",
+  fields: [
+    { id: "name", label: "Nombre", type: "text", path: "name" },
+    { id: "age_range", label: "Rango etario", type: "text", path: "demographics.age_range" },
+    { id: "occupation", label: "Ocupación", type: "text", path: "demographics.occupation" },
+  ],
+};
+
+interface BuyerLike {
+  name?: string;
+  demographics?: { age_range?: string; occupation?: string; location?: string };
+  pain_points?: unknown[];
+}
+
+function ProbeValues() {
+  const { values } = useFormRuntime();
+  return <pre data-testid="values">{JSON.stringify(values)}</pre>;
+}
+
+describe("FormRuntimeProvider · nested paths", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("EditableField reads a dotted path through getNestedPath", () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(
+      <FormRuntimeProvider<BuyerLike>
+        schema={NESTED_SCHEMA}
+        initialValues={{
+          demographics: { age_range: "30-42", location: "Lima" },
+        }}
+        onSave={onSave}
+        saveMode="explicit"
+      >
+        <EditableField field={NESTED_SCHEMA.fields[1]} />
+      </FormRuntimeProvider>,
+    );
+    expect(screen.getByDisplayValue("30-42")).toBeTruthy();
+  });
+
+  it("typing into a dotted-path field nests into the parent object on autosave", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(
+      <FormRuntimeProvider<BuyerLike>
+        schema={NESTED_SCHEMA}
+        initialValues={{
+          name: "Valeria",
+          demographics: { location: "Lima" },
+          pain_points: [{ description: "x", severity: 4 }],
+        }}
+        onSave={onSave}
+      >
+        <EditableField field={NESTED_SCHEMA.fields[1]} />
+      </FormRuntimeProvider>,
+    );
+
+    const input = screen.getByLabelText("Rango etario");
+    act(() => {
+      fireEvent.change(input, { target: { value: "30-42" } });
+    });
+    await act(async () => {
+      vi.advanceTimersByTime(900);
+      await flushMicrotasks();
+    });
+
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith({
+      name: "Valeria",
+      demographics: { location: "Lima", age_range: "30-42" },
+      pain_points: [{ description: "x", severity: 4 }],
+    });
+  });
+
+  it("never produces a literal flat key for dotted paths", () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(
+      <FormRuntimeProvider<BuyerLike>
+        schema={NESTED_SCHEMA}
+        initialValues={{ demographics: {} }}
+        onSave={onSave}
+        saveMode="explicit"
+      >
+        <EditableField field={NESTED_SCHEMA.fields[2]} />
+        <ProbeValues />
+      </FormRuntimeProvider>,
+    );
+    const input = screen.getByLabelText("Ocupación");
+    act(() => {
+      fireEvent.change(input, { target: { value: "Fundadora" } });
+    });
+    const dump = JSON.parse(screen.getByTestId("values").textContent || "{}") as Record<
+      string,
+      unknown
+    >;
+    expect(dump).toMatchObject({ demographics: { occupation: "Fundadora" } });
+    expect(dump["demographics.occupation"]).toBeUndefined();
+  });
+});

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActiveField } from "@/lib/form-runtime/hooks";
+import { getNestedPath } from "@/lib/form-runtime/utils";
 import { cn } from "@/lib/utils";
 
 import { FieldLabelWithHelp } from "./FieldLabelWithHelp";
@@ -41,7 +42,7 @@ export interface EditableFieldProps {
 export function EditableField({ field, className, autoFocus }: EditableFieldProps) {
   const { values, setFieldValue } = useFormRuntime();
   const { activeFieldId, setActiveField } = useActiveField();
-  const value = values[field.path];
+  const value = getNestedPath(values, field.path);
   const isFocused = activeFieldId === field.id;
 
   return (
