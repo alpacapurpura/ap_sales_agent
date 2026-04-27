@@ -165,3 +165,22 @@ Hallazgos detectados por Claude Code durante ejecución. Revisar y resolver.
 - **Problema:** Cuando `LLM call` excepciona (rate limit 429, network blip, tool error que el deep_agent harness trapea via `langgraph.prebuilt.tool_node._handle_tool_error`), el `usage.update_from_event()` no captura el AIMessage y el `turn_end` se emite con `total_tokens=0, model="gpt-4o" (default)`. Comportamiento técnicamente correcto (emite turn_end → trace completo) pero data shape rota para análisis cost/latency. TP1 detectó 22% turns en este estado durante batch sequential.
 - [ ] Agregar tab "Rate-limit / stream-failure pressure" al admin `/copilot-routing` que cuente `turn_end con total_tokens=0 AND duration_ms>10000` por hora. Proxy temprano de degradación antes que el user reporte "no responde".
 - [ ] Considerar agregar field `data->>'stream_status'` en `turn_end` (`ok` / `rate_limited` / `tool_error` / `timeout`) detectando exception type en el except handler del stream. Permite filtrar analytics sin guess basado en `total_tokens=0`. Estimado: 2-3h con tests.
+
+
+### 27. [copilot-obs] PII redaction async con Presidio + spaCy es_core_news_md
+- **Contexto:** Phase 3 T3.8 implementó regex-only sync (email, phone LATAM con keyword anchor, API tokens). Cubre ~90% del PII. NER de Presidio cubre el 10% restante (nombres propios, direcciones libres, IDs nacionales formato sin separador).
+- **Por qué no se incluyó:** Presidio + spaCy `es_core_news_md` agrega ~600MB al image worker y la latencia 2026 no está medida. Callback handler corre en hot path SSE y necesita <10ms p99. Sin benchmark verificado, no se introduce.
+- [ ] Implementar como worker ARQ post-write que lee `copilot_trace_event` rows de la última hora con `data->>'input_messages'` no vacío, aplica Presidio analyzer, y reescribe `data` JSONB con anonymized output. Diferir hasta primer reporte real de PII no redactado. Estimado: 4-6h (instalar Presidio + spaCy en worker image + worker + tests).
+
+### 28. [copilot-obs] Email / Slack delivery para cost alerts
+- **Contexto:** Phase 3 T3.10 emite `cost_alert_threshold_exceeded` como structlog warning. Para llegar a humanos hace falta infra de email transaccional o webhook Slack que el repo aún no tiene.
+- [ ] Cuando el primer ticket de "no me enteré que un tenant superó su quota" llegue, agregar deliveries: webhook Slack via env `COPILOT_OBS_SLACK_WEBHOOK`, email opcional via SES/Postmark. Hook en `cost_alert_service.check_cost_alerts` post-warning. Estimado: 2h por canal.
+
+### 29. [copilot-obs] Bootstrap automático de tenant_billing_config para tenants nuevos
+- **Contexto:** Phase 3 dejó la tabla con 0 rows para los 11 tenants existentes (decisión D3.2: bootstrap perezoso, defaults del 25-25 / USD vienen de `compute_cycle_start` SQL function + `BillingCycleService.resolve_currency`).
+- [ ] Cuando se cree un tenant nuevo (`iam.tenant_service`), insertar una row default en `tenant_billing_config` para que el dashboard `/costo-copilot` lo muestre con su moneda y anchor explícitos desde el primer turno. Estimado: 1h con tests.
+
+### 30. [copilot-obs] Borrar `_legacy_compat_keys` del JSONB de `turn_end`
+- **Contexto:** Phase 2 dejó `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `cached_input_tokens`, `cache_hit_rate`, `cost_usd`, `response_length`, `message_count`, `block_count` por compat. Phase 3 ya migró `/trazas` y `/copilot-routing` a leer de `copilot_llm_call` directo.
+- [ ] Verificar via `git grep` que ningún consumer FE/streamlit/external lee esos keys. Si nadie → borrar de `turn_envelope._write_turn_end` y de cualquier test que los chequee. Estimado: 30min + grep audit.
+
