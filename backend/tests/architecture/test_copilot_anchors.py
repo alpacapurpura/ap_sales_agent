@@ -49,6 +49,7 @@ ANCHOR_REGISTRY: dict[str, str] = {
     "COPILOT-MARKETING-KB-F10": "docs/domains/copilot/redesign-2026-04/phases/F10-marketing-kb.md",
     "COPILOT-ROUTING-WIRE-F11": "docs/domains/copilot/redesign-2026-04/learnings/F11-housekeeping.md",
     "COPILOT-RAG-EVAL-F11": "docs/domains/copilot/redesign-2026-04/learnings/F11-housekeeping.md",
+    "COPILOT-ROUTING-PARALLEL-FP3": "docs/domains/copilot/fpos-2026-04/phases/FP3-routing-parallel-ttfb.md",
 }
 
 # Only scan backend Python sources (not tests — anchors in tests are for
@@ -95,6 +96,6 @@ def test_no_orphan_registry_entries() -> None:
     # We don't fail on orphan entries because some anchors (e.g. COPILOT-BLOCK-REGISTRY,
     # COPILOT-QUOTE-REPLY) are in frontend TS, not in backend Python.
     # This test just documents the registry is not growing unbounded.
-    assert len(ANCHOR_REGISTRY) <= 36, (
+    assert len(ANCHOR_REGISTRY) <= 37, (
         f"ANCHOR_REGISTRY has {len(ANCHOR_REGISTRY)} entries. If this is expected, update the limit here."
     )

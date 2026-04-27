@@ -18,6 +18,7 @@ runs — the legacy ReAct ``copilot_graph`` and its
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import os
 import time
@@ -689,14 +690,91 @@ class CopilotOrchestrator:
                     },
                 )
         except Exception as exc:  # noqa: BLE001 — routing telemetry resilience
-            import contextlib as _contextlib
-
             logger.warning(
                 "routing_decision_failed",
                 error=str(exc),
                 error_type=type(exc).__name__,
             )
-            with _contextlib.suppress(Exception):
+            with contextlib.suppress(Exception):
+                self.db.rollback()
+
+    async def _record_routing_decision_async(
+        self,
+        *,
+        tenant_id: UUID,
+        conversation_id: UUID,
+        message_id: UUID,
+        user_msg: str,
+        state: dict,
+        recorder: object | None,
+        router: ModelRouter | None = None,
+    ) -> None:
+        """Async variant: offloads the blocking ``router.select`` LLM call to a worker thread.
+
+        # [COPILOT-ROUTING-PARALLEL-FP3] -> docs/domains/copilot/fpos-2026-04/phases/FP3-routing-parallel-ttfb.md
+        # B25-TP11: the rule-classifier path is microseconds, but the LLM
+        # fallback (~1.7s p50 for ambiguous >40-char messages) used to block
+        # the event loop right before the graph stream started, pushing TTFB
+        # past the 1500 ms 2026 conversational breaking point.
+        #
+        # Tier is telemetry-only — :func:`build_deep_agent_graph` resolves
+        # the AGENT model unconditionally and tools come from
+        # :func:`get_tools_for_context` keyed on route, never tier. So this
+        # task can run as a background ``asyncio.create_task`` while the
+        # graph builds + streams without ANY race condition vs tool binding.
+        # The DB INSERT happens back on the calling task so the orchestrator
+        # ``Session`` is never touched from two threads simultaneously.
+        """
+        try:
+            client_ctx = state.get("client_context", {}) or {}
+            active_job = state.get("active_extraction_job")
+            guided = bool(client_ctx.get("guided_mode"))
+            procedure_active = guided or bool(active_job)
+            mode = "procedure" if procedure_active else "chat"
+            tools = get_tools_for_context(client_ctx)
+            tools_count = len(tools)
+            request = RoutingRequest(
+                user_msg=user_msg,
+                route=client_ctx.get("current_route"),
+                mode=mode,
+                available_tool_count=tools_count,
+                procedure_active=procedure_active,
+            )
+            chosen_router = router if router is not None else _get_default_router()
+            decision = await asyncio.to_thread(chosen_router.select, request)
+            confidence = float(decision.confidence) if decision.confidence is not None else None
+            RoutingLogRepository(self.db).insert(
+                tenant_id=tenant_id,
+                conversation_id=conversation_id,
+                message_id=message_id,
+                tier_selected=decision.tier.value,
+                classifier_used=decision.classifier_used.value,
+                reason=decision.reason,
+                confidence=confidence,
+                user_msg_length=len(user_msg),
+                tools_available=tools_count,
+            )
+            self.db.commit()
+            if recorder is not None:
+                recorder.record(
+                    event_type="routing_decision",
+                    name="model_router",
+                    data={
+                        "tier": decision.tier.value,
+                        "classifier": decision.classifier_used.value,
+                        "reason": decision.reason,
+                        "confidence": confidence,
+                        "available_tool_count": tools_count,
+                        "procedure_active": procedure_active,
+                    },
+                )
+        except Exception as exc:  # noqa: BLE001 — routing telemetry resilience
+            logger.warning(
+                "routing_decision_failed",
+                error=str(exc),
+                error_type=type(exc).__name__,
+            )
+            with contextlib.suppress(Exception):
                 self.db.rollback()
 
     async def stream_chat(
@@ -758,13 +836,25 @@ class CopilotOrchestrator:
         # references the same id as the message_start SSE event. Telemetry
         # only — failures must NOT block the stream.
         msg_id = str(uuid4())
-        self._record_routing_decision(
-            tenant_id=tenant_id,
-            conversation_id=conv_uuid,
-            message_id=UUID(msg_id),
-            user_msg=message,
-            state=state,
-            recorder=recorder,
+
+        # FP3 (B25-TP11) — kick off routing classification in parallel with
+        # the graph stream. Pre-fix: sync ``_record_routing_decision``
+        # blocked ~1.7s on the LLM classifier for >40-char ambiguous
+        # messages, pushing TTFB past the 1500 ms 2026 conversational
+        # breaking point. Post-fix: the classifier resolves on a worker
+        # thread while the graph builds + emits ``block_start``. Tier is
+        # telemetry-only (deep_agent uses ``ModelRole.AGENT`` hardcoded;
+        # tools come from ``get_tools_for_context`` keyed on route), so
+        # there is no race between routing and tool binding.
+        routing_task: asyncio.Task[None] = asyncio.create_task(
+            self._record_routing_decision_async(
+                tenant_id=tenant_id,
+                conversation_id=conv_uuid,
+                message_id=UUID(msg_id),
+                user_msg=message,
+                state=state,
+                recorder=recorder,
+            ),
         )
 
         try:
@@ -777,6 +867,7 @@ class CopilotOrchestrator:
             ):
                 yield sse_str
         except Exception as exc:
+            routing_task.cancel()
             recorder.record(
                 event_type="error",
                 name="stream_exception",
@@ -787,6 +878,19 @@ class CopilotOrchestrator:
                 },
             )
             raise
+
+        # Drain the background routing task before any further DB work so
+        # the orchestrator ``Session`` is quiet when ``_persist_messages``
+        # runs. Failures inside the task are already swallowed by the
+        # telemetry-resilience block; this only guards against a hung LLM
+        # classifier that never returns.
+        try:
+            await asyncio.wait_for(routing_task, timeout=15.0)
+        except TimeoutError:
+            logger.warning("routing_task_timeout", conversation_id=conv_id)
+            routing_task.cancel()
+            with contextlib.suppress(BaseException):
+                await routing_task
 
         usage.log(conversation_id=conv_id, tenant_id=str(tenant_id))
 
