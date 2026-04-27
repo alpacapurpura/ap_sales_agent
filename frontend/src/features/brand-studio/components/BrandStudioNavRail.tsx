@@ -3,6 +3,7 @@
 import { Check, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
+import { createElement } from "react";
 
 import { FinderColumn } from "@/components/form-runtime/FinderColumn";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -63,8 +64,22 @@ interface SectionRowProps {
   statusEntry?: SectionStatusEntry;
 }
 
+/**
+ * Render a Lucide icon resolved by name from the brand section catalog.
+ *
+ * Goes through ``React.createElement`` instead of JSX to keep the
+ * dynamic-component identity off the JSX tree. The ``react-hooks/
+ * static-components`` rule flags ``<Icon ... />`` where ``Icon`` is
+ * computed at render time as a remount risk; ``createElement`` is the
+ * documented escape hatch for the case where the component identity
+ * genuinely depends on runtime data.
+ */
+function BrandSectionIcon({ iconName, className }: { iconName: string; className?: string }) {
+  const icon = resolveBrandIconByName(iconName);
+  return createElement(icon, { className, "aria-hidden": "true" });
+}
+
 function SectionRow({ tenantId, section, isActive, statusEntry }: SectionRowProps) {
-  const Icon = resolveBrandIconByName(section.icon_name);
   const status = statusEntry?.status ?? "idle";
 
   const linkContent = (
@@ -78,9 +93,9 @@ function SectionRow({ tenantId, section, isActive, statusEntry }: SectionRowProp
         isActive && "before:absolute before:inset-y-0 before:left-0 before:w-[2px] before:bg-brand",
       )}
     >
-      <Icon
+      <BrandSectionIcon
+        iconName={section.icon_name}
         className={cn("h-4 w-4 shrink-0", isActive ? "text-foreground" : "text-muted-foreground")}
-        aria-hidden="true"
       />
       <span className={cn("flex-1 truncate", isActive ? "text-foreground" : "text-foreground/90")}>
         {section.label_es}

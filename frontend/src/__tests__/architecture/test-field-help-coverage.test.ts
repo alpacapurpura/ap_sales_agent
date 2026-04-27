@@ -39,11 +39,11 @@ import { offerPricingSchema } from "@/features/offer-studio/schemas/pricing.sche
 import { offerProgramDetailsSchema } from "@/features/offer-studio/schemas/program-details.schema";
 import { offerPromiseSchema } from "@/features/offer-studio/schemas/promise.schema";
 import { offerPsychologySchema } from "@/features/offer-studio/schemas/psychology.schema";
-import { offerStrategySchema } from "@/features/offer-studio/schemas/strategy.schema";
-import { offerValueStackSchema } from "@/features/offer-studio/schemas/value-stack.schema";
-import { offerServiceDetailsSchema } from "@/features/offer-studio/schemas/service-details.schema";
-import { offerTestimonialsSchema } from "@/features/offer-studio/schemas/testimonials.schema";
 import { offerResourcesSchema } from "@/features/offer-studio/schemas/resources.schema";
+import { offerServiceDetailsSchema } from "@/features/offer-studio/schemas/service-details.schema";
+import { offerStrategySchema } from "@/features/offer-studio/schemas/strategy.schema";
+import { offerTestimonialsSchema } from "@/features/offer-studio/schemas/testimonials.schema";
+import { offerValueStackSchema } from "@/features/offer-studio/schemas/value-stack.schema";
 
 import type { FieldSchema, SectionSchema } from "@/lib/form-runtime/schema";
 

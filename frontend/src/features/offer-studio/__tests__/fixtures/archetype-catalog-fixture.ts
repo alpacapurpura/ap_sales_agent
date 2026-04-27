@@ -17,22 +17,39 @@ import type {
   VariantStructure,
 } from "../../api/archetype-catalog-api";
 
+const sectionDefaults = (label_es: string) =>
+  ({
+    label_es,
+    subtitle_es: `${label_es} — descripción de prueba`,
+    help_text_es: `${label_es} — contexto ampliado de prueba para el copilot que describe qué, cómo y por qué.`,
+    completion_weight: 0.5,
+    required_to_publish: false,
+  }) as const;
+
 const section = (
   key: SectionMetadata["key"],
   scope: SectionMetadata["scope"],
   label_es: string,
   icon_name: string,
-  kind: SectionMetadata["kind"] = "singleton",
 ): SectionMetadata => ({
+  ...sectionDefaults(label_es),
   key,
-  label_es,
-  subtitle_es: `${label_es} — descripción de prueba`,
-  help_text_es: `${label_es} — contexto ampliado de prueba para el copilot que describe qué, cómo y por qué.`,
-  icon_name,
   scope,
-  completion_weight: 0.5,
-  required_to_publish: false,
-  kind,
+  icon_name,
+  kind: "singleton",
+});
+
+const collectionSection = (
+  key: SectionMetadata["key"],
+  scope: SectionMetadata["scope"],
+  label_es: string,
+  icon_name: string,
+): SectionMetadata => ({
+  ...sectionDefaults(label_es),
+  key,
+  scope,
+  icon_name,
+  kind: "collection",
 });
 
 const IDENTITY = section("identity", "offer_level", "Identidad de oferta", "Fingerprint");
@@ -40,7 +57,7 @@ const STRATEGY = section("strategy", "offer_level", "Estrategia y avatar", "Targ
 const PSYCHOLOGY = section("psychology", "offer_level", "Psicología", "Brain");
 const PROMISE = section("promise", "offer_level", "Promesa", "Star");
 const VALUE_STACK = section("value_stack", "offer_level", "Stack de valor", "Layers");
-const INSTRUCTORS = section("instructors", "offer_level", "Instructores", "Users", "collection");
+const INSTRUCTORS = collectionSection("instructors", "offer_level", "Instructores", "Users");
 const KNOWLEDGE = section("knowledge", "offer_level", "Conocimiento", "Database");
 const CLOSING = section("closing", "offer_level", "Cierre", "CheckCircle");
 const PRODUCT_DETAILS = section("product_details", "offer_level", "Producto", "Package");
@@ -50,15 +67,15 @@ const SUBSCRIPTION_DETAILS = section(
   "Suscripción",
   "RefreshCw",
 );
-const GALLERY = section("gallery", "offer_level", "Galería", "Image", "collection");
+const GALLERY = collectionSection("gallery", "offer_level", "Galería", "Image");
 const EVENT_DETAILS = section("event_details", "edition_level", "Evento", "Calendar");
 const PRICING = section("pricing", "mixed", "Precios", "DollarSign");
 const PROGRAM_DETAILS = section("program_details", "mixed", "Programa", "BookOpen");
 const SERVICE_DETAILS = section("service_details", "mixed", "Servicio", "Briefcase");
 const RESOURCES = section("resources", "mixed", "Recursos", "Library");
-const FAQ = section("faq", "offer_level", "FAQ", "HelpCircle", "collection");
-const TESTIMONIALS = section("testimonials", "offer_level", "Testimonios", "Quote", "collection");
-const PORTFOLIO = section("portfolio", "offer_level", "Portfolio", "Trophy", "collection");
+const FAQ = collectionSection("faq", "offer_level", "FAQ", "HelpCircle");
+const TESTIMONIALS = collectionSection("testimonials", "offer_level", "Testimonios", "Quote");
+const PORTFOLIO = collectionSection("portfolio", "offer_level", "Portfolio", "Trophy");
 const LOCATION = section("location", "mixed", "Ubicación", "MapPin");
 const PLATFORM_DETAILS = section("platform_details", "offer_level", "Plataforma", "Cpu");
 

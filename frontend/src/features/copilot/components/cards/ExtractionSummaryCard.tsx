@@ -25,13 +25,21 @@ interface ExtractionSummaryCardProps {
  * If ``module`` is absent or the slug is unknown, we fall back to the
  * label the payload already carries, then to the slug itself.
  */
-function resolveSectionLabel(
-  slug: string,
-  payloadLabel: string,
-  module: ExtractionSummaryData["module"],
-  resolveOfferLabel: (slug: string) => string,
-  resolveBrandLabel: (slug: string) => string,
-): string {
+interface ResolveSectionLabelParams {
+  slug: string;
+  payloadLabel: string;
+  module: ExtractionSummaryData["module"];
+  resolveOfferLabel: (slug: string) => string;
+  resolveBrandLabel: (slug: string) => string;
+}
+
+function resolveSectionLabel({
+  slug,
+  payloadLabel,
+  module,
+  resolveOfferLabel,
+  resolveBrandLabel,
+}: ResolveSectionLabelParams): string {
   if (module === "brand") return resolveBrandLabel(slug);
   if (module === "offer") return resolveOfferLabel(slug);
   return payloadLabel || slug;
@@ -80,7 +88,13 @@ export const ExtractionSummaryCard = memo(function ExtractionSummaryCard({
   // Resolve display labels from the canonical catalog when possible.
   const resolvedSections = coverage_by_section.map((s) => ({
     ...s,
-    label: resolveSectionLabel(s.slug, s.label, module, resolveOfferLabel, resolveBrandLabel),
+    label: resolveSectionLabel({
+      slug: s.slug,
+      payloadLabel: s.label,
+      module,
+      resolveOfferLabel,
+      resolveBrandLabel,
+    }),
   }));
 
   const primarySectionLabel = resolvedSections[0]?.label ?? "la sección principal";

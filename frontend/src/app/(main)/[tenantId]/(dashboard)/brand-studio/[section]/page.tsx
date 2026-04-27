@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
-import { SectionDispatcher } from "@/features/brand-studio/pages/SectionDispatcher";
 import { isBrandStudioSection } from "@/features/brand-studio/pages/section-slugs";
+import { SectionDispatcher } from "@/features/brand-studio/pages/SectionDispatcher";
 
 interface PageProps {
   params: Promise<{

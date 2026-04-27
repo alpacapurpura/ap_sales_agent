@@ -139,7 +139,7 @@ function FormulaTemplate({ template }: { template: string }) {
   return (
     <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-foreground leading-relaxed">
       {parts.map((part, i) => {
-        const match = part.match(/^<slot>(.*)<\/slot>$/);
+        const match = /^<slot>(.*)<\/slot>$/.exec(part);
         if (match) {
           return (
             <span key={i} className="text-primary font-medium">

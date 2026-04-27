@@ -29,18 +29,43 @@ vi.mock("@/features/copilot/hooks/use-section-status", () => ({
 // catalog via ``useBrandSectionCatalog``. Stub it with the 14-section
 // fixture so component tests stay decoupled from React Query.
 const MOCK_BRAND_SECTIONS = [
-  { key: "publico", label_es: "Buyer personas", icon_name: "Sparkles", kind: "collection" as const },
+  {
+    key: "publico",
+    label_es: "Buyer personas",
+    icon_name: "Sparkles",
+    kind: "collection" as const,
+  },
   { key: "identity", label_es: "Identidad", icon_name: "Fingerprint", kind: "singleton" as const },
-  { key: "estilo", label_es: "Estilo Comunicacional", icon_name: "MessageCircle", kind: "singleton" as const },
-  { key: "positioning", label_es: "Posicionamiento", icon_name: "Target", kind: "singleton" as const },
+  {
+    key: "estilo",
+    label_es: "Estilo Comunicacional",
+    icon_name: "MessageCircle",
+    kind: "singleton" as const,
+  },
+  {
+    key: "positioning",
+    label_es: "Posicionamiento",
+    icon_name: "Target",
+    kind: "singleton" as const,
+  },
   { key: "narrative", label_es: "Narrativa", icon_name: "ScrollText", kind: "singleton" as const },
   { key: "methodology", label_es: "Metodología", icon_name: "Flag", kind: "singleton" as const },
   { key: "story", label_es: "Historia", icon_name: "FileText", kind: "singleton" as const },
   { key: "team", label_es: "Equipo", icon_name: "Users", kind: "collection" as const },
   { key: "authority", label_es: "Autoridad", icon_name: "Landmark", kind: "collection" as const },
-  { key: "testimonials", label_es: "Testimonios", icon_name: "Headphones", kind: "collection" as const },
+  {
+    key: "testimonials",
+    label_es: "Testimonios",
+    icon_name: "Headphones",
+    kind: "collection" as const,
+  },
   { key: "visuals", label_es: "Visuales", icon_name: "Palette", kind: "singleton" as const },
-  { key: "communication-assets", label_es: "Assets", icon_name: "Layers", kind: "singleton" as const },
+  {
+    key: "communication-assets",
+    label_es: "Assets",
+    icon_name: "Layers",
+    kind: "singleton" as const,
+  },
   { key: "contact", label_es: "Contacto", icon_name: "Megaphone", kind: "singleton" as const },
   { key: "legal", label_es: "Legal", icon_name: "Scale", kind: "singleton" as const },
 ];

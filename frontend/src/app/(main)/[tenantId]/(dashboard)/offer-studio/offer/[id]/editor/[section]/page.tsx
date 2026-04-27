@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
-import { SectionDispatcher } from "@/features/offer-studio/pages/SectionDispatcher";
 import { isOfferStudioSection } from "@/features/offer-studio/pages/section-slugs";
+import { SectionDispatcher } from "@/features/offer-studio/pages/SectionDispatcher";
 
 /**
  * Offer Studio editor — section dispatcher (Server Component).
@@ -19,11 +19,10 @@ interface PageParams {
   section: string;
 }
 
-export default async function OfferEditorSectionPage({
-  params,
-}: {
-  params: Promise<PageParams>;
-}) {
+/**
+ *
+ */
+export default async function OfferEditorSectionPage({ params }: { params: Promise<PageParams> }) {
   const { id: offerId, section } = await params;
 
   if (!isOfferStudioSection(section)) {

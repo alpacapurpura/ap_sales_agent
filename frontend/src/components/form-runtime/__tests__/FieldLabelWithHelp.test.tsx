@@ -75,10 +75,7 @@ describe("FieldLabelWithHelp", () => {
   it("shows downstreamUses section when field has downstream uses", () => {
     const fieldWithUses: FieldSchema = {
       ...BASE_FIELD,
-      downstreamUses: [
-        { label: "Landing hero" },
-        { label: "Email de bienvenida" },
-      ],
+      downstreamUses: [{ label: "Landing hero" }, { label: "Email de bienvenida" }],
     };
     render(<FieldLabelWithHelp field={fieldWithUses} htmlFor="test_field" />);
     const trigger = screen.getByRole("button", { name: /ayuda sobre/i });

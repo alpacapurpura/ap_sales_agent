@@ -47,7 +47,10 @@ export interface ExtractionStatus {
  * Generalisation of the old `pollExtractionStatus` which hardcoded the brand
  * extraction endpoint. Use this for all async tool jobs going forward.
  */
-export async function pollJobStatus(pollEndpoint: string, token: string): Promise<ExtractionStatus> {
+export async function pollJobStatus(
+  pollEndpoint: string,
+  token: string,
+): Promise<ExtractionStatus> {
   const url = pollEndpoint.startsWith("http") ? pollEndpoint : `${API_URL}${pollEndpoint}`;
   const response = await fetchClient(url, {
     headers: { Authorization: `Bearer ${token}` },
@@ -122,10 +125,7 @@ export const aiActionsApi = {
    * Kept for backwards compatibility with brand-studio API layer.
    */
   async pollExtractionStatus(jobId: string, token: string): Promise<ExtractionStatus> {
-    return pollJobStatus(
-      `/api/v1/brand/tools/extract-full-brand/status/${jobId}`,
-      token,
-    );
+    return pollJobStatus(`/api/v1/brand/tools/extract-full-brand/status/${jobId}`, token);
   },
 
   async extractFullOffer(data: FormData, token: string): Promise<{ job_id: string }> {

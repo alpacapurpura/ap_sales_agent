@@ -71,6 +71,11 @@ def _seed_offer(db: Session, name: str = "Programa Propósito y Prosperidad") ->
 
 
 def _seed_leads(db: Session, count: int) -> None:
+    # Spread leads across the past few minutes (not days) so every row
+    # lands inside the current ISO week regardless of which weekday the
+    # suite happens to run on. Using ``days=i % 5`` previously broke the
+    # ``esta semana`` assertion every Monday because the ISO week resets
+    # at 00:00 Mon and the older rows landed in the prior week.
     now = datetime.now(timezone.utc)
     for i in range(count):
         db.add(
@@ -82,7 +87,7 @@ def _seed_leads(db: Session, count: int) -> None:
                 intent_score=0,
                 temperature="COLD",
                 is_blacklisted=False,
-                last_interaction_date=now - timedelta(days=i % 5),
+                last_interaction_date=now - timedelta(minutes=i),
                 profile_data={},
                 key_objections_history=[],
             ),
@@ -91,6 +96,8 @@ def _seed_leads(db: Session, count: int) -> None:
 
 
 def _seed_conversations(db: Session, count: int) -> None:
+    # Same weekday-independence rationale as ``_seed_leads`` — spread
+    # across minutes so every row stays inside the current ISO week.
     now = datetime.now(timezone.utc)
     for i in range(count):
         db.add(
@@ -100,8 +107,8 @@ def _seed_conversations(db: Session, count: int) -> None:
                 user_id=USER,
                 title=f"Conv {i}",
                 messages=[],
-                created_at=now - timedelta(days=i % 5),
-                updated_at=now - timedelta(days=i % 5),
+                created_at=now - timedelta(minutes=i),
+                updated_at=now - timedelta(minutes=i),
                 message_count=0,
                 total_tokens=0,
                 title_auto_generated=False,

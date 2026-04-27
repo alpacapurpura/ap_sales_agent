@@ -3,14 +3,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import { resolveBrandIconByName } from "../lib/icon-name-resolver";
-
 import {
   brandSectionCatalogApi,
   type BrandSectionCatalogResponse,
   type BrandSectionKey,
   type BrandSectionMetadata,
 } from "../api/section-catalog-api";
+import { resolveBrandIconByName } from "../lib/icon-name-resolver";
 
 import type { LucideIcon } from "lucide-react";
 
@@ -28,7 +27,7 @@ const QUERY_KEY = ["brand", "sections", "catalog"] as const;
 export function useBrandSectionCatalog() {
   return useQuery<BrandSectionCatalogResponse>({
     queryKey: QUERY_KEY,
-    queryFn: brandSectionCatalogApi.fetch,
+    queryFn: () => brandSectionCatalogApi.fetch(),
     staleTime: 60 * 60 * 1000,
     gcTime: 24 * 60 * 60 * 1000,
   });
@@ -81,8 +80,5 @@ export function resolveBrandSectionIcon(
  */
 export function useBrandSectionLabelResolver(): (slug: string) => string {
   const catalog = useBrandSectionMap();
-  return useMemo(
-    () => (slug: string) => resolveBrandSectionLabel(catalog, slug),
-    [catalog],
-  );
+  return useMemo(() => (slug: string) => resolveBrandSectionLabel(catalog, slug), [catalog]);
 }

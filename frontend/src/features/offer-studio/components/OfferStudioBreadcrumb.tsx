@@ -57,7 +57,14 @@ export function OfferStudioBreadcrumb({ offerName }: OfferStudioBreadcrumbProps 
   const resolveLabel = useSectionLabelResolver();
 
   const crumbs = useMemo<Crumb[]>(
-    () => buildCrumbs(pathname ?? "", tenantId, resolveLabel, offerName, activeFieldId ?? undefined),
+    () =>
+      buildCrumbs({
+        pathname: pathname ?? "",
+        tenantId,
+        resolveSectionLabel: resolveLabel,
+        offerName,
+        activeFieldId: activeFieldId ?? undefined,
+      }),
     [pathname, tenantId, resolveLabel, offerName, activeFieldId],
   );
 
@@ -110,13 +117,21 @@ function shortenId(id: string): string {
  * ``resolveSectionLabel`` is injected (see ``useSectionLabelResolver``) so
  * the function stays pure and testable without mocking React hooks.
  */
-export function buildCrumbs(
-  pathname: string,
-  tenantId: string,
-  resolveSectionLabel: (slug: string) => string,
-  offerName?: string,
-  activeFieldId?: string,
-): Crumb[] {
+export interface BuildCrumbsParams {
+  pathname: string;
+  tenantId: string;
+  resolveSectionLabel: (slug: string) => string;
+  offerName?: string;
+  activeFieldId?: string;
+}
+
+export function buildCrumbs({
+  pathname,
+  tenantId,
+  resolveSectionLabel,
+  offerName,
+  activeFieldId,
+}: BuildCrumbsParams): Crumb[] {
   const root: Crumb = {
     label: "Offer Studio",
     href: tenantId ? `/${tenantId}/offer-studio` : undefined,
@@ -138,12 +153,24 @@ export function buildCrumbs(
   if (!tabSegment) return crumbs;
 
   if (tabSegment === "edition") {
-    appendLegacyEditionCrumbs(crumbs, offerHref, rest, resolveSectionLabel, activeFieldId);
+    appendLegacyEditionCrumbs({
+      crumbs,
+      offerHref,
+      rest,
+      resolveSectionLabel,
+      activeFieldId,
+    });
     return crumbs;
   }
 
   appendTabCrumb(crumbs, tabSegment, offerHref);
-  appendTabBodyCrumbs(crumbs, tabSegment, rest.slice(3), resolveSectionLabel, activeFieldId);
+  appendTabBodyCrumbs({
+    crumbs,
+    tabSegment,
+    tail: rest.slice(3),
+    resolveSectionLabel,
+    activeFieldId,
+  });
   return crumbs;
 }
 
@@ -162,13 +189,21 @@ function extractOfferStudioRest(pathname: string): string[] | null {
  * their own tab breadcrumb under the old routing. The field crumb is
  * populated from the ``?field=`` query parameter when present.
  */
-function appendLegacyEditionCrumbs(
-  crumbs: Crumb[],
-  offerHref: string,
-  rest: string[],
-  resolveSectionLabel: (slug: string) => string,
-  activeFieldId?: string,
-): void {
+interface AppendLegacyEditionCrumbsParams {
+  crumbs: Crumb[];
+  offerHref: string;
+  rest: string[];
+  resolveSectionLabel: (slug: string) => string;
+  activeFieldId?: string;
+}
+
+function appendLegacyEditionCrumbs({
+  crumbs,
+  offerHref,
+  rest,
+  resolveSectionLabel,
+  activeFieldId,
+}: AppendLegacyEditionCrumbsParams): void {
   crumbs.push({ label: "Editor", href: `${offerHref}/editor` });
   const section = rest[4];
   if (!section) return;
@@ -183,13 +218,21 @@ function appendTabCrumb(crumbs: Crumb[], tabSegment: string, offerHref: string):
 }
 
 /** Append tab-specific sub-crumbs (section + field for editor, edition id for editions). */
-function appendTabBodyCrumbs(
-  crumbs: Crumb[],
-  tabSegment: string,
-  tail: string[],
-  resolveSectionLabel: (slug: string) => string,
-  activeFieldId?: string,
-): void {
+interface AppendTabBodyCrumbsParams {
+  crumbs: Crumb[];
+  tabSegment: string;
+  tail: string[];
+  resolveSectionLabel: (slug: string) => string;
+  activeFieldId?: string;
+}
+
+function appendTabBodyCrumbs({
+  crumbs,
+  tabSegment,
+  tail,
+  resolveSectionLabel,
+  activeFieldId,
+}: AppendTabBodyCrumbsParams): void {
   if (tabSegment === "editor") {
     const [section] = tail;
     if (section) crumbs.push({ label: resolveSectionLabel(section), href: undefined });

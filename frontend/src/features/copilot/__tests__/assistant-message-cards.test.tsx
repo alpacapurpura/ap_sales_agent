@@ -91,5 +91,4 @@ describe("AssistantMessage interview cards", () => {
     render(<AssistantMessage message={msg} />);
     expect(screen.getByTestId("interview-complete-card")).toBeDefined();
   });
-
 });

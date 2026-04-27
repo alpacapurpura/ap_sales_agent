@@ -90,9 +90,7 @@ describe("TextareaInput storeAs newline_array", () => {
 
   it("splits user input into string[] on onChange", () => {
     const onChange = vi.fn();
-    render(
-      <TextareaInput field={arrayField()} value={[]} onChange={onChange} />,
-    );
+    render(<TextareaInput field={arrayField()} value={[]} onChange={onChange} />);
     const ta = screen.getByRole("textbox");
     fireEvent.change(ta, { target: { value: "a\nb\nc" } });
     expect(onChange).toHaveBeenCalledWith(["a", "b", "c"]);
@@ -100,9 +98,7 @@ describe("TextareaInput storeAs newline_array", () => {
 
   it("strips bullet prefixes when splitting (• - *)", () => {
     const onChange = vi.fn();
-    render(
-      <TextareaInput field={arrayField()} value={[]} onChange={onChange} />,
-    );
+    render(<TextareaInput field={arrayField()} value={[]} onChange={onChange} />);
     const ta = screen.getByRole("textbox");
     fireEvent.change(ta, { target: { value: "• foo\n- bar\n* baz" } });
     expect(onChange).toHaveBeenCalledWith(["foo", "bar", "baz"]);
@@ -110,9 +106,7 @@ describe("TextareaInput storeAs newline_array", () => {
 
   it("filters empty lines when splitting", () => {
     const onChange = vi.fn();
-    render(
-      <TextareaInput field={arrayField()} value={[]} onChange={onChange} />,
-    );
+    render(<TextareaInput field={arrayField()} value={[]} onChange={onChange} />);
     const ta = screen.getByRole("textbox");
     fireEvent.change(ta, { target: { value: "foo\n\nbar\n" } });
     expect(onChange).toHaveBeenCalledWith(["foo", "bar"]);
@@ -121,11 +115,7 @@ describe("TextareaInput storeAs newline_array", () => {
   it("plain mode (no storeAs) still passes string through unchanged", () => {
     const onChange = vi.fn();
     render(
-      <TextareaInput
-        field={textField({ type: "textarea" })}
-        value="hello"
-        onChange={onChange}
-      />,
+      <TextareaInput field={textField({ type: "textarea" })} value="hello" onChange={onChange} />,
     );
     const ta = screen.getByDisplayValue("hello");
     fireEvent.change(ta, { target: { value: "world" } });

@@ -12,6 +12,75 @@ import { handleUIAction } from "./use-copilot-ui-action";
 import type { MessageBlock } from "../types/message-blocks";
 
 /**
+ * Parse the JSON payload of a tool result and, when it carries a fully
+ * specified extraction job, return the registered ``AsyncJobState`` along
+ * with its ``jobId``. Returns ``null`` when the payload is missing,
+ * malformed, or does not include the three required string fields.
+ */
+function parseAsyncJobFromToolResult(
+  resultJson: string,
+): { jobId: string; job: AsyncJobState } | null {
+  try {
+    const parsed = JSON.parse(resultJson) as Record<string, unknown>;
+    const rawJobId = parsed.job_id;
+    const rawPollEndpoint = parsed.poll_endpoint;
+    const rawModule = parsed.module;
+    if (
+      typeof rawJobId !== "string" ||
+      typeof rawPollEndpoint !== "string" ||
+      typeof rawModule !== "string"
+    ) {
+      return null;
+    }
+    const job: AsyncJobState = {
+      jobId: rawJobId,
+      module: rawModule as AsyncJobState["module"],
+      scope: (parsed.scope as AsyncJobState["scope"]) ?? "full",
+      mode: (parsed.mode as AsyncJobState["mode"]) ?? "initial",
+      section: (parsed.section as string) ?? null,
+      targetLabel: (parsed.target_label_es as string) ?? rawModule,
+      sourceKind: (parsed.source_kind as AsyncJobState["sourceKind"]) ?? "url",
+      sourceRef: (parsed.source_ref as string) ?? "",
+      pollEndpoint: rawPollEndpoint,
+      conversationId: useCopilotStore.getState().conversationId,
+      status: "queued",
+      progress: 0,
+      stage: "",
+      filledFields: [],
+      filledFieldsBySection: {},
+      sectionsTouched: [],
+      sectionsCompleted: [],
+      startedAt: Date.now(),
+    };
+    return { jobId: rawJobId, job };
+  } catch {
+    // Malformed JSON — ignore, preserve existing behavior.
+    return null;
+  }
+}
+
+/**
+ * Patch ``jobId`` onto the most recent matching tool-call entry on the
+ * last assistant message. Walks the tool-call list newest-first so the
+ * patch lands on the call that just fired even when the assistant reused
+ * the same tool name earlier in the turn.
+ */
+function attachJobIdToLastToolCall(tool: string, jobId: string): void {
+  const store = useCopilotStore.getState();
+  const msgs = store.messages;
+  const last = msgs[msgs.length - 1];
+  if (last?.role !== "assistant" || !last.toolCalls?.length) return;
+
+  const tcs = [...last.toolCalls];
+  for (let i = tcs.length - 1; i >= 0; i--) {
+    if (tcs[i].tool !== tool) continue;
+    tcs[i] = { ...tcs[i], jobId };
+    break;
+  }
+  store.setMessages(msgs.map((m) => (m.id === last.id ? { ...last, toolCalls: tcs } : m)));
+}
+
+/**
  * Unified chat hook — one POST /copilot/chat flow for every mode.
  *
  * Guided mode is driven entirely server-side: the backend reads the
@@ -194,70 +263,14 @@ export function useCopilotChat() {
             },
             onToolResult: (tool, resultJson) => {
               if (!isActive()) return;
-
-              // Parse job_id + poll_endpoint from tool result JSON
-              let jobId: string | undefined;
-              if (resultJson) {
-                try {
-                  const parsed = JSON.parse(resultJson) as Record<string, unknown>;
-                  const rawJobId = parsed.job_id;
-                  const rawPollEndpoint = parsed.poll_endpoint;
-                  const rawModule = parsed.module;
-
-                  if (
-                    typeof rawJobId === "string" &&
-                    typeof rawPollEndpoint === "string" &&
-                    typeof rawModule === "string"
-                  ) {
-                    jobId = rawJobId;
-                    const newJob: AsyncJobState = {
-                      jobId: rawJobId,
-                      module: rawModule as AsyncJobState["module"],
-                      scope: (parsed.scope as AsyncJobState["scope"]) ?? "full",
-                      mode: (parsed.mode as AsyncJobState["mode"]) ?? "initial",
-                      section: (parsed.section as string) ?? null,
-                      targetLabel: (parsed.target_label_es as string) ?? rawModule,
-                      sourceKind: (parsed.source_kind as AsyncJobState["sourceKind"]) ?? "url",
-                      sourceRef: (parsed.source_ref as string) ?? "",
-                      pollEndpoint: rawPollEndpoint,
-                      conversationId: useCopilotStore.getState().conversationId,
-                      status: "queued",
-                      progress: 0,
-                      stage: "",
-                      filledFields: [],
-                      filledFieldsBySection: {},
-                      sectionsTouched: [],
-                      sectionsCompleted: [],
-                      startedAt: Date.now(),
-                    };
-                    useCopilotStore.getState().registerJob(newJob);
-                  }
-                } catch {
-                  // Malformed JSON — ignore, preserve existing behavior
-                }
+              const parsedJob = resultJson ? parseAsyncJobFromToolResult(resultJson) : null;
+              if (parsedJob) {
+                useCopilotStore.getState().registerJob(parsedJob.job);
               }
-
-              if (tool) {
-                useCopilotStore.getState().markLastToolCallComplete(tool);
-
-                if (jobId) {
-                  // Patch jobId onto the matching tool call entry
-                  const store = useCopilotStore.getState();
-                  const msgs = store.messages;
-                  const last = msgs[msgs.length - 1];
-                  if (last?.role === "assistant" && last.toolCalls?.length) {
-                    const tcs = [...last.toolCalls];
-                    for (let i = tcs.length - 1; i >= 0; i--) {
-                      if (tcs[i].tool === tool) {
-                        tcs[i] = { ...tcs[i], jobId };
-                        break;
-                      }
-                    }
-                    store.setMessages(
-                      msgs.map((m) => (m.id === last.id ? { ...last, toolCalls: tcs } : m)),
-                    );
-                  }
-                }
+              if (!tool) return;
+              useCopilotStore.getState().markLastToolCallComplete(tool);
+              if (parsedJob) {
+                attachJobIdToLastToolCall(tool, parsedJob.jobId);
               }
             },
             onUIAction: (action) => {

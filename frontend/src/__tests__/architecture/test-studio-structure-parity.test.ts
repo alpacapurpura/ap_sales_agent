@@ -50,10 +50,9 @@ describe("Architecture: studio structure parity", () => {
       expect(fs.existsSync(sectionsDir), `${studio}-studio falta pages/sections/`).toBe(true);
 
       const files = fs.readdirSync(sectionsDir).filter((f) => f.endsWith("-page.tsx"));
-      expect(
-        files.length,
-        `${studio}-studio/pages/sections/ sin *-page.tsx files`,
-      ).toBeGreaterThan(0);
+      expect(files.length, `${studio}-studio/pages/sections/ sin *-page.tsx files`).toBeGreaterThan(
+        0,
+      );
     }
   });
 });

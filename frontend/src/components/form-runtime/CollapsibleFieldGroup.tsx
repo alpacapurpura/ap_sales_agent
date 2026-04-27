@@ -24,16 +24,23 @@ export interface FieldGroupBucket {
  * bucket. Schemas without any `group` declared therefore produce a single
  * `null` bucket — callers can detect this and skip the collapsible header.
  */
+interface MutableBucket {
+  group: string | null;
+  fields: FieldSchema[];
+}
+
+/**
+ *
+ */
 export function groupFieldsByGroup(fields: readonly FieldSchema[]): readonly FieldGroupBucket[] {
-  const buckets: FieldGroupBucket[] = [];
-  let current: { group: string | null; fields: FieldSchema[] } | null = null;
+  const buckets: MutableBucket[] = [];
   for (const field of fields) {
-    const groupLabel = field.group ?? null;
-    if (current?.group !== groupLabel) {
-      current = { group: groupLabel, fields: [field] };
-      buckets.push(current);
+    const groupLabel: string | null = field.group ?? null;
+    const last = buckets[buckets.length - 1];
+    if (last?.group !== groupLabel) {
+      buckets.push({ group: groupLabel, fields: [field] });
     } else {
-      current.fields.push(field);
+      last.fields.push(field);
     }
   }
   return buckets;

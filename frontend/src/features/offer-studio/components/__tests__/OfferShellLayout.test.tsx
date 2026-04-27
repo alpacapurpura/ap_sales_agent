@@ -112,9 +112,8 @@ describe("isOfferStudioSection (section route guard)", () => {
   });
 
   it("covers all 21 section keys from the catalog", async () => {
-    const { OFFER_STUDIO_SECTION_SLUGS, isOfferStudioSection } = await import(
-      "../../pages/section-slugs"
-    );
+    const { OFFER_STUDIO_SECTION_SLUGS, isOfferStudioSection } =
+      await import("../../pages/section-slugs");
     expect(OFFER_STUDIO_SECTION_SLUGS.length).toBe(21);
     for (const key of OFFER_STUDIO_SECTION_SLUGS) {
       expect(isOfferStudioSection(key)).toBe(true);
