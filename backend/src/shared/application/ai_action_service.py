@@ -6,7 +6,7 @@ import json
 import re
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, Literal, TypeVar
 
 import structlog
 from openai import APIError, RateLimitError
@@ -20,14 +20,32 @@ if TYPE_CHECKING:
 
 TModel = TypeVar("TModel", bound=BaseModel)
 
+ReasoningEffort = Literal["minimal", "low", "medium", "high"]
+
 
 @dataclass(frozen=True)
 class AIModelPolicy:
-    """Configuration for AI model selection and generation parameters."""
+    """Configuration for AI model selection and generation parameters.
+
+    ``max_output_tokens`` declares the *visible* output budget the
+    caller needs. The provider layer adds a per-spec reasoning reserve
+    transparently for reasoning-capable models — callers stay
+    provider-agnostic. See
+    :mod:`src.shared.infrastructure.llm.providers._kwargs` for the
+    translation rules.
+
+    ``reasoning_effort`` opts a caller into the provider's native
+    reasoning-effort knob (OpenAI o-series ``reasoning_effort``,
+    Anthropic adaptive thinking ``effort``). Specs that don't surface
+    the concept drop the value silently (see
+    :class:`ChatModelSpec.reasoning_effort_param`). ``None`` is the
+    intentional default — let the provider pick.
+    """
 
     model_type: str | ModelRole = ModelRole.REASONING
     temperature: float = 0.7
     max_output_tokens: int = 800
+    reasoning_effort: ReasoningEffort | None = None
 
 
 @dataclass(frozen=True)
@@ -67,14 +85,17 @@ class AIActionService:
         for attempt in range(1, resolved_policy.retries + 1):
             attempt_started_at = time.perf_counter()
             try:
-                llm_response = LLMFactory.get_service().generate_response(
-                    messages=[{"role": "user", "content": user_prompt}],
-                    system_prompt=system_prompt,
-                    model_type=resolved_policy.model.model_type,
-                    temperature=resolved_policy.model.temperature,
-                    max_output_tokens=resolved_policy.model.max_output_tokens,
-                    metadata=request_metadata,
-                )
+                generate_kwargs: dict[str, Any] = {
+                    "messages": [{"role": "user", "content": user_prompt}],
+                    "system_prompt": system_prompt,
+                    "model_type": resolved_policy.model.model_type,
+                    "temperature": resolved_policy.model.temperature,
+                    "max_output_tokens": resolved_policy.model.max_output_tokens,
+                    "metadata": request_metadata,
+                }
+                if resolved_policy.model.reasoning_effort is not None:
+                    generate_kwargs["reasoning_effort"] = resolved_policy.model.reasoning_effort
+                llm_response = LLMFactory.get_service().generate_response(**generate_kwargs)
                 self.logger.debug(
                     "ai_action_raw_response",
                     action_name=action_name,

@@ -25,6 +25,9 @@ from src.shared.infrastructure.llm.providers._chat_model_resolver import (
     ChatModelSpec,
     _build_chat_from_spec,
 )
+from src.shared.infrastructure.llm.providers._response_validation import (
+    detect_reasoning_budget_exhaustion,
+)
 
 logger = structlog.get_logger()
 
@@ -124,13 +127,14 @@ class OpenAICompatibleService(BaseLLMService):
         resolved_role = self._resolve_role(model_type)
         selected_model = self._get_chat_model(resolved_role)
         # Single source of truth, declared per provider via
-        # ``CHAT_MODEL_SPEC.kwargs_normalizer``. Subclasses migrating to
-        # a non-OpenAI protocol (Gemini, native Anthropic) override the
-        # normaliser in their spec.
-        self.CHAT_MODEL_SPEC.kwargs_normalizer(kwargs)
+        # ``CHAT_MODEL_SPEC.kwargs_normalizer``. Spec is passed so
+        # reasoning-budget reserve and ``reasoning_effort`` routing land
+        # at the wire layer without per-caller plumbing. Subclasses
+        # migrating to a non-OpenAI protocol (Gemini, native Anthropic)
+        # override the normaliser in their spec.
+        self.CHAT_MODEL_SPEC.kwargs_normalizer(kwargs, spec=self.CHAT_MODEL_SPEC)
         try:
             response = selected_model.invoke(lc_messages, **kwargs)
-            return response.content
         except Exception as e:
             logger.warning(
                 "openai_compat_generate_response_failed",
@@ -138,6 +142,11 @@ class OpenAICompatibleService(BaseLLMService):
                 error=str(e),
             )
             raise
+        detect_reasoning_budget_exhaustion(
+            response,
+            model_name=settings.get_model(resolved_role),
+        )
+        return response.content
 
     def get_embedding_model(self) -> Any:  # noqa: ANN401 — abstract LLM interface
         """Default: not provided. Subclasses override when the provider exposes embeddings."""

@@ -28,10 +28,15 @@ from typing import TYPE_CHECKING, Any
 import structlog
 from pydantic import BaseModel, ConfigDict
 
+from src.core.enums import ModelRole
 from src.modules.copilot.domain.extraction_domain_registry import (
     get_extraction_config,
 )
 from src.modules.copilot.domain.field_paths_hint import build_field_paths_hint
+from src.shared.application.ai_action_service import (
+    AIActionPolicy,
+    AIModelPolicy,
+)
 from src.shared.infrastructure.files.file_parsing_service import (
     FileParsingService,
 )
@@ -231,12 +236,28 @@ class DocumentProcessor:
             tenant_id=str(tenant_id),
         )
 
+        # Document extraction is structured-JSON parsing — the schema
+        # (``DocumentExtractionResponse``) does the heavy lifting, no
+        # chain-of-thought required. Routing to the FAST role avoids the
+        # reasoning-budget trap (conv ``1ec7e82d``, 2026-04-27, where
+        # the default REASONING role on DeepSeek-V4 burned the full
+        # ``max_tokens`` cap on internal CoT and emitted empty content)
+        # AND saves ~10x cost / ~5x latency. OpenAI Help Center
+        # explicitly recommends non-reasoning models for "extractive QA
+        # and simple RAG" — this is exactly that.
         extraction = self.ai_service.run_structured_action(
             action_name=action_name,
             tenant_id=tenant_id,
             system_prompt=_SYSTEM_PROMPT,
             user_prompt=user_prompt,
             response_model=DocumentExtractionResponse,
+            policy=AIActionPolicy(
+                model=AIModelPolicy(
+                    model_type=ModelRole.FAST,
+                    temperature=0,
+                    max_output_tokens=2000,
+                ),
+            ),
         )
 
         raw_delta = extraction.extracted_fields or {}

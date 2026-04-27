@@ -45,6 +45,17 @@ DEEPSEEK_NATIVE_SPEC: ChatModelSpec = ChatModelSpec(
     builder=build_with_chat_class(ChatDeepSeek),
     kwargs_normalizer=normalize_openai_protocol_kwargs,
     library_name="langchain_deepseek",
+    # DeepSeek-V4 (deepseek-reasoner alias) routes server-side to the
+    # reasoning model (deepseek-v4-flash). Reasoning + visible content
+    # share the same ``max_tokens`` budget, so the visible answer is
+    # silently empty when the cap is sized for content alone — the trap
+    # observed in conv ``1ec7e82d`` (2026-04-27, Visionarias). Reserve
+    # 4000 follows the industry-recommended floor (OpenAI Help Center,
+    # OpenRouter, tokenmix research). DeepSeek does not yet surface a
+    # ``reasoning_effort`` wire param so we leave it unset.
+    is_reasoning_model=True,
+    reasoning_token_reserve=4000,
+    reasoning_effort_param=None,
 )
 
 

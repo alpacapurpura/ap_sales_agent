@@ -21,6 +21,9 @@ from src.shared.infrastructure.llm.providers._chat_model_resolver import (
     ChatModelSpec,
     _build_chat_from_spec,
 )
+from src.shared.infrastructure.llm.providers._response_validation import (
+    detect_reasoning_budget_exhaustion,
+)
 
 logger = structlog.get_logger()
 
@@ -118,14 +121,18 @@ class OpenAIService(BaseLLMService):
         Returns ``(call_params, meta_log)``.
         """
         meta_log = kwargs.pop("metadata", {})
-        self.CHAT_MODEL_SPEC.kwargs_normalizer(kwargs)
+        # Spec passed so reasoning-budget reserve + ``reasoning_effort``
+        # routing land at the wire layer — single seam, every provider.
+        self.CHAT_MODEL_SPEC.kwargs_normalizer(kwargs, spec=self.CHAT_MODEL_SPEC)
         param_keys = (
             "temperature",
             "max_tokens",
             "top_p",
             "presence_penalty",
             "frequency_penalty",
+            self.CHAT_MODEL_SPEC.reasoning_effort_param,
         )
+        param_keys = tuple(k for k in param_keys if k)
         call_params = {}
         for key in param_keys:
             if key in kwargs:
@@ -198,6 +205,10 @@ class OpenAIService(BaseLLMService):
             kwargs.update(call_params)
 
             response = selected_model.invoke(lc_messages, **kwargs)
+            detect_reasoning_budget_exhaustion(
+                response,
+                model_name=settings.get_model(resolved_role),
+            )
             response_text = response.content
 
             usage = response.response_metadata.get("token_usage", {})

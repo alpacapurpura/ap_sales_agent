@@ -198,17 +198,26 @@ class TestOpenAICompatKwargsTranslation:
         return _StubModel()
 
     @pytest.mark.parametrize(
-        "service_factory",
+        ("service_factory", "expected_max_tokens"),
         [
-            lambda: DeepSeekService(api_key="sk-test-deepseek"),
-            lambda: KimiService(api_key="sk-test-kimi"),
-            lambda: QwenService(api_key="sk-test-qwen"),
+            # DeepSeek-V4 is reasoning-capable: spec adds the 4000-token
+            # reserve so internal CoT cannot starve the visible answer
+            # (trap reproduced in conv ``1ec7e82d``, 2026-04-27). Caller
+            # still asks for 512 visible tokens; framework handles the
+            # reserve invisibly.
+            (lambda: DeepSeekService(api_key="sk-test-deepseek"), 4512),
+            # Kimi K2.6 runs with thinking disabled (TP5-B8), so it is
+            # non-reasoning at the spec level — no reserve.
+            (lambda: KimiService(api_key="sk-test-kimi"), 512),
+            # Qwen non-reasoning by default — no reserve.
+            (lambda: QwenService(api_key="sk-test-qwen"), 512),
         ],
         ids=["deepseek", "kimi", "qwen"],
     )
     def test_max_output_tokens_translated_to_max_tokens(
         self,
         service_factory,  # type: ignore[no-untyped-def]
+        expected_max_tokens: int,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         captured: dict[str, object] = {}
@@ -221,9 +230,11 @@ class TestOpenAICompatKwargsTranslation:
         )
 
         # The kwarg must reach the underlying client renamed — never as
-        # ``max_output_tokens`` (which the OpenAI SDK rejects).
+        # ``max_output_tokens`` (which the OpenAI SDK rejects). The
+        # final wire value carries the reasoning reserve when the spec
+        # declares ``is_reasoning_model=True``.
         assert "max_output_tokens" not in captured
-        assert captured.get("max_tokens") == 512
+        assert captured.get("max_tokens") == expected_max_tokens
 
     def test_explicit_max_tokens_wins_when_both_present(
         self,

@@ -87,19 +87,45 @@ class ChatModelSpec:
             own closure.
         kwargs_normalizer: Translation function applied to ``**kwargs``
             before they reach the chat client at *call* time
-            (``invoke``/``stream``). Defaults to the OpenAI-protocol
-            normaliser; non-OpenAI protocols (Gemini) override.
+            (``invoke``/``stream``). Receives the kwargs dict and the
+            active spec so it can apply per-spec rules (e.g. reasoning
+            budget reserve). Defaults to the OpenAI-protocol normaliser;
+            non-OpenAI protocols (Gemini) override.
         library_name: Telemetry tag, e.g. ``"langchain_openai"`` /
             ``"langchain_deepseek"``. Surfaces in admin dashboards so
             operators see which LangChain package handled each call —
             critical for catching silent rewrites between major version
             bumps of LangChain or the partner packages.
+        is_reasoning_model: True for models that consume the same
+            ``max_tokens`` budget for *both* internal chain-of-thought
+            tokens (``reasoning_content`` / ``reasoning`` / ``thinking``)
+            and the visible answer (``content``). When True the
+            normalizer adds :attr:`reasoning_token_reserve` to the
+            caller's ``max_output_tokens`` before translating to the
+            wire param so reasoning never starves the response.
+            Documented trap reproduced across OpenAI o-series, DeepSeek
+            R1/V4, Anthropic extended thinking, Gemini 2.5/3.
+        reasoning_token_reserve: Tokens added on top of caller's visible
+            budget when :attr:`is_reasoning_model` is True. 4000 is the
+            industry-recommended floor (OpenAI Help Center, OpenRouter,
+            tokenmix research). Operators escape-hatch via explicit
+            ``max_tokens=`` which always wins.
+        reasoning_effort_param: Native wire-param name for reasoning
+            effort (``"reasoning_effort"`` for OpenAI o-series,
+            ``"thinking.budget_tokens"`` for Anthropic adaptive
+            thinking, ``"thinking_config.thinking_budget"`` for Gemini).
+            When ``None`` the spec does not surface effort to the wire
+            and the normalizer drops the canonical
+            ``reasoning_effort`` kwarg silently — the wire would 400.
     """
 
     chat_class: type[BaseChatModel]
     builder: Callable[[ChatBuildContext], BaseChatModel]
-    kwargs_normalizer: Callable[[dict], dict] = field(default=normalize_openai_protocol_kwargs)
+    kwargs_normalizer: Callable[..., dict] = field(default=normalize_openai_protocol_kwargs)
     library_name: str = "langchain_openai"
+    is_reasoning_model: bool = False
+    reasoning_token_reserve: int = 0
+    reasoning_effort_param: str | None = None
 
 
 # ── Stock builders ───────────────────────────────────────────────────
