@@ -439,6 +439,66 @@ class TestProcessStreamEvent:
         parsed_second = _parse_sse(frames[1])
         assert parsed_second["event"] == "ui_action"
 
+    def test_handle_tool_end_extracts_toolmessage_from_command(self, orch: CopilotOrchestrator) -> None:
+        """deepagents ``task`` tool envuelve el resultado del sub-agente en
+        ``Command(update={"messages": [ToolMessage(...)]})`` (ver
+        ``deepagents/middleware/subagents.py::_return_command_with_state_update``).
+
+        ``_handle_tool_end`` debe desempaquetar ese ToolMessage y appendearlo
+        a ``accumulated_messages`` — sin esto el ``tool_call(task)`` queda
+        sin matching ``tool_message`` y el state persistido se rompe en el
+        siguiente turn (LangGraph rechaza historial con tool_call sin response).
+        """
+        from langgraph.types import Command
+
+        cmd = Command(
+            update={
+                "messages": [
+                    ToolMessage(
+                        content="reporte del sub-agente",
+                        tool_call_id="task:0",
+                        name="task",
+                    ),
+                ],
+            },
+        )
+        event = {"event": "on_tool_end", "name": "task", "data": {"output": cmd}}
+        accumulated: list = []
+
+        sse = orch._handle_tool_end(event, accumulated, {})
+
+        assert sse is not None  # tool_result SSE igual se emite
+        assert len(accumulated) == 1
+        msg = accumulated[0]
+        assert isinstance(msg, ToolMessage)
+        assert msg.content == "reporte del sub-agente"
+        assert msg.tool_call_id == "task:0"
+
+    def test_handle_tool_end_command_without_messages_drops_silently(self, orch: CopilotOrchestrator) -> None:
+        """Si el ``Command`` actualiza otro slice del state (todos, files, …)
+        sin ``messages`` key, no hay nada que appendear — pero tampoco
+        debe crashear."""
+        from langgraph.types import Command
+
+        cmd = Command(update={"todos": [{"id": 1, "text": "foo"}]})
+        event = {"event": "on_tool_end", "name": "task", "data": {"output": cmd}}
+        accumulated: list = []
+
+        sse = orch._handle_tool_end(event, accumulated, {})
+
+        assert sse is not None
+        assert accumulated == []
+
+    def test_handle_tool_end_command_with_empty_messages_drops(self, orch: CopilotOrchestrator) -> None:
+        from langgraph.types import Command
+
+        cmd = Command(update={"messages": []})
+        event = {"event": "on_tool_end", "name": "task", "data": {"output": cmd}}
+        accumulated: list = []
+
+        orch._handle_tool_end(event, accumulated, {})
+        assert accumulated == []
+
     def test_tool_result_truncated_at_4000_chars(self, orch: CopilotOrchestrator) -> None:
         """Tool results longer than 4000 chars are truncated in the SSE event.
 

@@ -76,3 +76,37 @@ Si el user reporta un síntoma y **no hay trazas** del turn → bug de observabi
 - Push de fix sin trace row mostrando el síntoma reproducido.
 - Hardcodear prompts/args en el recorder (usa `_sanitize_payload`).
 - Loggear PII sin truncar (catálogo MAX_PAYLOAD_CHARS ayuda, pero el cap es por campo — revisar payloads con texto largo).
+
+## Subagentes (deepagents `task` tool) — contrato de aislamiento
+
+LangGraph `astream_events(version="v2")` bubble-uppea events de subgraphs anidados. Cuando el deep agent invoca un sub-agente vía `task` tool, ese sub-agente corre en un compiled graph nested y sus events (chat_model_stream + chat_model_end) llegan al loop principal junto con los del parent. Sin clasificación, el orquestador trata ambos por igual → tokens del sub-agente leak al user + AIMessage final del sub-agente se duplica en `copilot_conversations.messages`.
+
+### Contrato
+
+1. **Clasificación obligatoria.** Todo event consumido en el stream loop pasa por `stream_provenance.policy_for(event)`. NO branchear directo por `event["event"]` sin consultar la matriz. Detección via:
+   - `metadata.langgraph_checkpoint_ns` con `|` separador (señal primaria),
+   - `metadata.langgraph_path` con componente `task` o `task:<id>` (fallback).
+
+2. **Subagentes drop.** Events clasificados `EventOrigin.SUBAGENT`:
+   - `on_chat_model_stream` → DROP (no entran al `text_block` del user),
+   - `on_chat_model_end` → DROP (no se appendean a `acc.messages`).
+   El reporte final del sub-agente llega al parent como `ToolMessage` vía `Command(update={"messages": [...]})` que `deepagents` emite en `_return_command_with_state_update`.
+
+3. **`_handle_tool_end` desempaqueta `Command`.** Helper `_extract_tool_message` normaliza output a `ToolMessage` cubriendo 3 shapes: `ToolMessage`, `str`, `Command`. Sin esto el `tool_call(task)` queda sin matching `tool_message` y LangGraph rompe en el siguiente turn al recargar historial.
+
+4. **Parent NO re-resume el reporte.** Regla en `deep_agent.py::_DEEP_AGENT_SUFFIX_ES`: la próxima respuesta tiene 3 partes (intro 1 línea + reporte del sub-agente con cambios mínimos + pregunta accionable). Re-redactar gasta tokens, duplica contenido en pantalla, y rompe la traza del razonamiento.
+
+5. **Caps preventivos.** `subagent_budget.SubagentBudget` (defaults: 2 task/turn, depth 1, 6 iter internas). Excede → `SubagentBudgetError`.
+
+### Prohibido (subagentes)
+
+- Hardcodear nombres de subagentes en `chat.py` o el orquestador. Política agnóstica al nombre.
+- `astream_events(subgraphs=False)` para "fixear" el leak. Necesitamos los events para trace (`node_trace`) — sólo filtrar surfacing via `policy_for`.
+- Modificar la library `deepagents`. Workaround vía wrappers locales en `chat.py` y `subagent_budget.py`.
+- Capturar `AIMessage` de events nested sin pasar por la matriz. La línea `accumulated_messages.append(output)` debe venir DETRÁS de un `policy_for(event) is StreamPolicy.CAPTURE_HISTORY`.
+
+### Tests obligatorios
+
+- `tests/modules/copilot/test_stream_provenance.py` — clasificador con fixtures de los 3 orígenes + matriz exhaustiva.
+- `tests/modules/copilot/test_subagent_stream_isolation.py` — 1 test por subagente registrado + replay end-to-end de turn con `task`.
+- `tests/architecture/test_subagent_isolation_invariants.py` — ratchet: cada subagente nuevo debe estar en `REGISTERED_SUBAGENTS_RATCHET` y tener cobertura.

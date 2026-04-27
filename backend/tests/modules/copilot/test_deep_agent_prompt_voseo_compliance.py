@@ -173,8 +173,7 @@ def test_url_analyzer_prompt_has_no_voseo() -> None:
     prompt = url_analyzer_module._URL_ANALYZER_PROMPT
     found = _scan_voseo(prompt)
     assert not found, (
-        f"_URL_ANALYZER_PROMPT contains voseo tokens: {sorted(set(found))}. "
-        "Convert to tuteo neutro LatAm (regla 11)."
+        f"_URL_ANALYZER_PROMPT contains voseo tokens: {sorted(set(found))}. Convert to tuteo neutro LatAm (regla 11)."
     )
 
 
@@ -183,8 +182,30 @@ def test_url_analyzer_subagent_description_has_no_voseo() -> None:
     when the deepagents router decides to delegate. Must be neutro."""
     description = url_analyzer_module.URL_ANALYZER_SUBAGENT["description"]
     found = _scan_voseo(description)
-    assert not found, (
-        f"URL_ANALYZER_SUBAGENT description contains voseo: {sorted(set(found))}."
+    assert not found, f"URL_ANALYZER_SUBAGENT description contains voseo: {sorted(set(found))}."
+
+
+def test_deep_agent_suffix_has_subagent_delegation_rules() -> None:
+    """El suffix DEBE incluir reglas explícitas de delegación a sub-agentes.
+
+    Sin estas reglas el modelo:
+    - lee la misma data en paralelo via tools del parent (gasto x2);
+    - re-resume verbatim el ToolMessage del sub-agente (output x2 + duplicación
+      visible en pantalla, ver bug en conv ``795cdfbb...``).
+
+    Bloquea regresión si alguien borra la sección.
+    """
+    suffix = deep_agent._DEEP_AGENT_SUFFIX_ES.lower()
+    assert "delegación a sub-agente" in suffix or "task(subagent_type" in suffix, (
+        "El suffix debe documentar el contrato de delegación a sub-agente "
+        "(prohibición de doble lectura + obligación de no re-redactar el reporte)."
+    )
+    assert "no leas la misma data" in suffix or "lecturas paralelas" in suffix, (
+        "Falta la regla anti-doble-lectura — el modelo invoca task + tools del parent en paralelo y duplica costo."
+    )
+    assert "no re-escrib" in suffix or "no re-redact" in suffix or "sin re-redact" in suffix, (
+        "Falta la regla anti-re-resumen — el modelo re-frasea el ToolMessage "
+        "del sub-agente y duplica el contenido en pantalla."
     )
 
 

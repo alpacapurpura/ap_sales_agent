@@ -58,8 +58,9 @@ from src.modules.copilot.application.orchestrator.output_sanitizer import (
 from src.modules.copilot.application.orchestrator.state import (
     create_initial_copilot_state,
 )
-from src.modules.copilot.application.orchestrator.stream_filters import (
-    is_internal_llm_event,
+from src.modules.copilot.application.orchestrator.stream_provenance import (
+    StreamPolicy,
+    policy_for,
 )
 from src.modules.copilot.application.orchestrator.usage_tracking import UsageAccumulator
 from src.modules.copilot.application.router import (
@@ -278,6 +279,56 @@ def _parse_tool_payload(tool_output: object) -> dict | None:
     except (json.JSONDecodeError, ValueError):
         return None
     return parsed if isinstance(parsed, dict) else None
+
+
+def _extract_tool_message(
+    output: object,
+    tool_name: str,
+    last_tool_call_ids: dict[str, str],
+) -> ToolMessage | None:
+    """Normalise an ``on_tool_end`` output into a canonical ``ToolMessage``.
+
+    Three shapes the graph can emit:
+
+    1. ``ToolMessage`` — convencional tools.
+    2. ``str`` — tools que retornan texto plano. ``tool_call_id`` se resuelve
+       desde ``last_tool_call_ids`` (drenado por nombre, mismo patrón que el
+       handler legacy).
+    3. ``langgraph.types.Command(update={"messages": [ToolMessage(...)]})`` —
+       deepagents wrappea el resultado del sub-agente en un ``Command`` cuyo
+       update incluye el ``ToolMessage`` ya construido (con ``tool_call_id``
+       correcto). Sin desempacar, ``acc.messages`` queda con un ``tool_call``
+       (``task``) sin el matching ``tool_message`` → state inconsistente.
+
+    Devuelve ``None`` cuando el output no encaja en ninguna de las 3 formas
+    (incluye ``Command`` sin ``messages`` key, ``dict`` puros, ``None``).
+    El caller puede emitir el SSE ``tool_result`` igual — solo no se
+    persiste un ToolMessage que no existe.
+    """
+    from langgraph.types import Command  # local import — Command rarely used
+
+    if isinstance(output, ToolMessage):
+        return output
+
+    if isinstance(output, Command):
+        update = getattr(output, "update", None)
+        if isinstance(update, dict):
+            msgs = update.get("messages")
+            if isinstance(msgs, list):
+                for m in msgs:
+                    if isinstance(m, ToolMessage):
+                        return m
+        return None
+
+    if isinstance(output, str):
+        tool_call_id = last_tool_call_ids.pop(tool_name, "")
+        return ToolMessage(
+            content=output,
+            name=tool_name,
+            tool_call_id=tool_call_id,
+        )
+
+    return None
 
 
 def _ui_action_to_card_block(action: dict) -> dict | None:
@@ -1117,12 +1168,15 @@ class CopilotOrchestrator:
         kind = event.get("event")
 
         if kind == "on_chat_model_stream":
-            # TP3 B1 — drop tokens from LLM calls inside tool bodies
-            # (analyzer, synthesizer, intent classifier). They tag their
-            # invocations with `copilot:internal`; surfacing them as
-            # block_delta leaks raw JSON to the user before the
-            # block_end sanitizer can drop it.
-            if is_internal_llm_event(event):
+            # Política unificada: drop si el event no es root user-facing.
+            # Cubre los 3 orígenes (root / subagent / internal_tool) en una
+            # sola decisión — ver ``stream_provenance.policy_for``.
+            #
+            # - ROOT     → EMIT_TO_USER (token entra al text_block del user).
+            # - SUBAGENT → DROP (su razonamiento intermedio no leak-ea; el
+            #              resultado final llega vía ToolMessage del task tool).
+            # - INTERNAL → DROP (TP3 B1, fetch_url analyzer JSON leak prevention).
+            if policy_for(event) is not StreamPolicy.EMIT_TO_USER:
                 return None, None
             chunk = event.get("data", {}).get("chunk")
             if chunk and hasattr(chunk, "content") and chunk.content:
@@ -1134,6 +1188,13 @@ class CopilotOrchestrator:
             return None, None
 
         if kind == "on_chat_model_end":
+            # Política unificada: solo capturar AIMessages del root agent.
+            # AIMessages de sub-agentes NO se appendean — su contenido llega
+            # al parent como ToolMessage (deepagents Command). Capturarlos
+            # aquí duplicaba el reporte en ``copilot_conversations.messages``
+            # y rompía la traza tool_call ↔ tool_message del ``task`` tool.
+            if policy_for(event) is not StreamPolicy.CAPTURE_HISTORY:
+                return None, None
             output = event.get("data", {}).get("output")
             if isinstance(output, AIMessage):
                 accumulated_messages.append(output)
@@ -1172,17 +1233,12 @@ class CopilotOrchestrator:
         tool_name = event.get("name", "unknown")
         tool_output = event.get("data", {}).get("output", "")
 
-        if isinstance(tool_output, ToolMessage):
-            accumulated_messages.append(tool_output)
-        elif isinstance(tool_output, str):
-            tool_call_id = last_tool_call_ids.pop(tool_name, "")
-            accumulated_messages.append(
-                ToolMessage(
-                    content=tool_output,
-                    name=tool_name,
-                    tool_call_id=tool_call_id,
-                ),
-            )
+        # Normalise output → ToolMessage. Cubre ToolMessage directo, str
+        # legacy y deepagents ``Command(update={"messages": [...]})`` —
+        # este último es el path del ``task`` tool del sub-agente.
+        tool_msg = _extract_tool_message(tool_output, tool_name, last_tool_call_ids)
+        if tool_msg is not None:
+            accumulated_messages.append(tool_msg)
 
         # Cap at 4 KB (matches trace recorder MAX_PAYLOAD_CHARS). Enough to
         # carry the full AsyncToolJob dispatch JSON — job_id, poll_endpoint,

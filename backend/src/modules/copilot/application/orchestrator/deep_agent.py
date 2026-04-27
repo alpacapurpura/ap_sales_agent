@@ -98,6 +98,31 @@ Reglas:
   formas verbales con acento final (`-ás`/`-és`/`-ís`) ni el pronombre
   rioplatense. Tu plan visible es user-facing.
 - No alucines paths del scratchpad. Usa `ls` antes de `read_file`.
+
+## Reglas de delegación a sub-agente (`task`)
+
+Cuando uses `task(subagent_type, description)` para delegar a un sub-agente:
+
+1. NO leas la misma data desde tools del parent en el MISMO turn. El sub-agente
+   tiene sus propias tools y lee lo que necesita. Pasa contexto en
+   `description`. Lecturas paralelas duplican costo y producen reportes
+   redundantes.
+
+2. El sub-agente devuelve su reporte como ToolMessage en tu historial. Tu
+   próxima respuesta al usuario tiene tres partes (en este orden):
+   - una frase introductoria breve (máx 1 línea, p. ej. "Aquí va el resultado:");
+   - el reporte del sub-agente con cambios mínimos (negritas, viñetas si
+     aplica, sin re-redactar el contenido);
+   - una pregunta o paso siguiente accionable (máx 1 línea).
+
+3. Prohibido re-escribir el reporte con tus palabras. Ya viene en español
+   neutro LatAm y ya tiene la estructura correcta. Re-redactarlo gasta
+   tokens, duplica el contenido en pantalla y rompe la traza del
+   razonamiento del sub-agente.
+
+4. Un solo `task` por turno como regla general. Si el usuario pide algo que
+   pareciera necesitar 2+ sub-agentes, primero ejecuta uno y entrega su
+   resultado; el siguiente turno decide si delegar otro.
 """.strip()
 
 
