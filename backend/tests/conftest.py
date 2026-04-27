@@ -113,29 +113,20 @@ def _force_prompt_source_file(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def _isolate_trace_recorder_db(monkeypatch):
-    """``TraceRecorder`` opens its own ``SessionLocal`` (not the injected db).
+def _disable_copilot_observability(monkeypatch):
+    """Phase 2 atomic switch: route the orchestrator's observability into
+    a no-op context for the test suite.
 
-    En PROD apunta a Postgres real (best-effort: errores swallowed). En tests
-    nativos (WSL), el hostname Docker ``postgres`` no resuelve → psycopg2 hace
-    DNS retries por ~10s x 3 writes = >30s y rompe ``pytest-timeout``.
-
-    Inyectamos un session factory no-op via ``set_session_factory`` (API
-    pluggable agregada en el módulo). Los tests no validan persistencia de
-    trace_event — esa responsabilidad es de tests dedicados con DB real
-    (integration suite). Si algún test futuro requiere recorder real,
-    puede llamar ``reset_session_factory()`` en su setup.
+    The new ``ObservabilityContext`` is constructed per-turn from the
+    orchestrator and binds a real LangChain callback handler when active.
+    In native WSL test runs the Docker ``postgres`` host doesn't resolve,
+    so any direct DB write would burn ~30s on DNS retries and trip
+    ``pytest-timeout``. Setting ``COPILOT_OBS_REBUILD_DISABLED`` flips the
+    factory to a no-op handler that keeps the API contract but skips all
+    persistence. Tests that exercise observability explicitly clear this
+    env var inside their fixtures before constructing the context.
     """
-    from unittest.mock import MagicMock
-
-    from src.modules.copilot.application.observability import trace_recorder
-
-    no_op_session = MagicMock()
-    no_op_session.add = MagicMock()
-    no_op_session.commit = MagicMock()
-    no_op_session.rollback = MagicMock()
-    no_op_session.close = MagicMock()
-    monkeypatch.setattr(trace_recorder, "_session_factory", lambda: no_op_session)
+    monkeypatch.setenv("COPILOT_OBS_REBUILD_DISABLED", "1")
 
 
 @pytest.fixture(scope="session")

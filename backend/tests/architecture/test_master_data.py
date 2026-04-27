@@ -32,6 +32,11 @@ ALLOWED_USD_DEFAULT_FILES: set[str] = {
     "src/modules/copilot/observability/cost/fx_resolver.py",
     "src/modules/copilot/observability/recording/callback_handler.py",
     "src/modules/copilot/observability/recording/turn_envelope.py",
+    # Phase 2 atomic switch: chat.py reads tenant currency from
+    # ``tenant_billing_config`` and falls back to "USD" when no row
+    # exists. Same role as the model + observability seams above —
+    # canonical value lives on tenant_billing_config.billing_currency.
+    "src/modules/copilot/application/orchestrator/chat.py",
 }
 
 KNOWN_USD_DEFAULT_VIOLATIONS: set[str] = set()

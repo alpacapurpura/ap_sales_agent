@@ -1,10 +1,8 @@
-"""Copilot observability — per-turn trace recorder.
+"""Legacy observability namespace — kept only for ``judge`` + ``rag_goldens``.
 
-Writes structured events into ``copilot_trace_event`` so every /copilot/chat
-request leaves a replayable breadcrumb trail: LLM calls with token counts,
-tool invocations with args/output, card emissions, graph-node transitions,
-errors. The admin panel + SQL queries read from this table to answer
-"¿qué pasó en este turn?" without relying on ephemeral stdout logs.
-
-See ``trace_recorder.py`` for the main entry point.
+The Phase 2 atomic switch removed ``trace_recorder`` / ``node_trace`` /
+``usage_tracking``. Two unrelated quality-evaluation utilities still live
+here (``judge.py``, ``rag_goldens.py``) — they are imported by Phase 3
+quality workers and have no relationship to the rebuild. Move them to a
+quality-specific package the next time someone touches them.
 """

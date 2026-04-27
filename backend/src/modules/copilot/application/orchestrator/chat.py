@@ -21,10 +21,9 @@ import asyncio
 import contextlib
 import json
 import os
-import time
 import uuid
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 import structlog
@@ -32,7 +31,6 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
 from src.core.context import set_conversation_id
 from src.core.database import redis_client
-from src.core.enums import ModelRole
 from src.modules.assets.application.asset_extraction_service import (
     AssetExtractionService,
 )
@@ -42,10 +40,6 @@ from src.modules.assets.infrastructure.repositories.asset_repository import (
 from src.modules.copilot.api.dto import ClientContextDTO, SSEEvent
 from src.modules.copilot.application.extraction.active_job_state import load_active_job
 from src.modules.copilot.application.guided.state import load_guided_state
-from src.modules.copilot.application.observability import trace_recorder
-from src.modules.copilot.application.observability.node_trace import (
-    emit_node_trace_event,
-)
 from src.modules.copilot.application.orchestrator.channel_intent_detector import (
     detect_channel_intent,
 )
@@ -62,18 +56,20 @@ from src.modules.copilot.application.orchestrator.stream_provenance import (
     StreamPolicy,
     policy_for,
 )
-from src.modules.copilot.application.orchestrator.usage_tracking import UsageAccumulator
 from src.modules.copilot.application.router import (
     RoutingRequest,
     build_default_router,
 )
 from src.modules.copilot.application.tools.registry import get_tools_for_context
+from src.modules.copilot.domain.events import CardEmitted, RoutingDecided
 from src.modules.copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
 )
 from src.modules.copilot.infrastructure.repositories.routing_log_repository import (
     RoutingLogRepository,
 )
+from src.modules.copilot.observability import ObservabilityContext
+from src.shared.domain.events import EventBus
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -493,25 +489,6 @@ def _sanitize_ai_messages(messages: list, *, user_msg: str | None = None) -> lis
     return cleaned
 
 
-def _build_turn_end_data(*, usage: UsageAccumulator, acc: _StreamAccumulator) -> dict:
-    """Build the JSONB ``data`` payload for the ``turn_end`` trace event.
-
-    Merges ``UsageAccumulator.as_log_dict()`` (model + prompt/completion/total
-    tokens, cached_input_tokens, cache_hit_rate, cost_usd) with stream-shape
-    fields the recorder needs (response length, message count, block count).
-
-    Anchor: ``[COPILOT-CACHE-PREFIX-F8]``. Without these fields persisted on
-    ``copilot_trace_event``, the F8 cache instrumentation never reaches the
-    admin ``/copilot-routing`` dashboard or downstream cost reports.
-    """
-    return {
-        **usage.as_log_dict(),
-        "response_length": len(acc.full_response),
-        "message_count": len(acc.messages),
-        "block_count": len(acc.emitted_blocks),
-    }
-
-
 @dataclass
 class _StreamAccumulator:
     """Mutable accumulator shared between stream_chat and _run_graph_stream."""
@@ -524,13 +501,10 @@ class _StreamAccumulator:
     text_block_id: str | None = None
     text_block_markdown: str = ""
     block_index: int = 0
-    # Observability — populated by stream_chat, read by handlers for span
-    # parenting. Kept here (not in CopilotState) so the trace span tree can
-    # span the entire orchestrator call, including persistence.
-    recorder: object | None = None
-    # TP4-B3 — capture per-tool monotonic timestamps at on_tool_start so the
-    # tool_call trace row can carry duration_ms.
-    tool_started_at: dict[str, float] = field(default_factory=dict)
+    # Observability handle — set by stream_chat. Card emitters publish
+    # CardEmitted events tagged with this turn_id / tenant_id so the
+    # observability subscribers persist them into copilot_trace_event.
+    obs: ObservabilityContext | None = None
 
 
 class CopilotOrchestrator:
@@ -543,6 +517,77 @@ class CopilotOrchestrator:
         """Initialize copilot orchestrator."""
         self.db = db
         self.conv_repo = ConversationRepository(db)
+
+    def _build_observability_context(
+        self,
+        *,
+        tenant_id: UUID,
+        user_id: UUID | None,
+        conversation_id: UUID | None,
+    ) -> ObservabilityContext:
+        """Construct the per-turn observability context.
+
+        Resolves the tenant currency, builds the LLM-call + trace event
+        repositories, the pricing + FX resolvers, and returns the bound
+        ``ObservabilityContext`` whose callback handler the graph stream
+        consumes via ``obs.langchain_config()``.
+
+        Best-effort: if any lookup blows up (no migration yet, missing
+        table) we still hand back a context that publishes events but
+        whose callback handler is a no-op. The orchestrator never crashes
+        because of observability.
+        """
+        try:
+            import httpx
+
+            from src.modules.copilot.observability.cost.fx_resolver import FXResolver
+            from src.modules.copilot.observability.persistence.llm_call_repository import (
+                LlmCallRepository,
+            )
+            from src.modules.copilot.observability.persistence.pricing_snapshot_repository import (
+                PricingSnapshotRepository,
+            )
+            from src.modules.copilot.observability.persistence.tenant_billing_config_repository import (
+                TenantBillingConfigRepository,
+            )
+            from src.modules.copilot.observability.persistence.trace_event_repository import (
+                TraceEventRepository,
+            )
+            from src.modules.copilot.observability.pricing.resolver import PricingResolver
+
+            billing_repo = TenantBillingConfigRepository(self.db)
+            currency = "USD"
+            with contextlib.suppress(Exception):
+                cfg = billing_repo.get(tenant_id=tenant_id)
+                if cfg is not None and getattr(cfg, "billing_currency", None):
+                    currency = str(cfg.billing_currency)
+            db = self.db
+            return ObservabilityContext.start(
+                tenant_id=tenant_id,
+                conversation_id=conversation_id,
+                user_id=user_id,
+                llm_call_repo=LlmCallRepository(db),
+                trace_repo=TraceEventRepository(db),
+                pricing_resolver=PricingResolver(
+                    repo_factory=lambda: PricingSnapshotRepository(db),
+                ),
+                fx_resolver=FXResolver(
+                    http_client_factory=lambda: httpx.Client(timeout=10),
+                ),
+                tenant_currency=currency,
+            )
+        except Exception as exc:  # noqa: BLE001 — observability is best-effort
+            logger.warning("obs_context_init_failed", error=str(exc))
+            os.environ.setdefault("COPILOT_OBS_REBUILD_DISABLED", "1")
+            return ObservabilityContext.start(
+                tenant_id=tenant_id,
+                conversation_id=conversation_id,
+                user_id=user_id,
+                llm_call_repo=None,  # type: ignore[arg-type]
+                trace_repo=None,  # type: ignore[arg-type]
+                pricing_resolver=None,  # type: ignore[arg-type]
+                fx_resolver=None,  # type: ignore[arg-type]
+            )
 
     def _build_client_context(self, context: ClientContextDTO | None) -> dict:
         """Build the graph-facing ``ClientContext`` dict from the incoming DTO.
@@ -683,7 +728,6 @@ class CopilotOrchestrator:
         message_id: UUID,
         user_msg: str,
         state: dict,
-        recorder: object | None,
         router: ModelRouter | None = None,
     ) -> None:
         """Persist a ``RoutingDecision`` for this turn (telemetry only).
@@ -727,19 +771,20 @@ class CopilotOrchestrator:
                 tools_available=tools_count,
             )
             self.db.commit()
-            if recorder is not None:
-                recorder.record(
-                    event_type="routing_decision",
-                    name="model_router",
-                    data={
-                        "tier": decision.tier.value,
-                        "classifier": decision.classifier_used.value,
-                        "reason": decision.reason,
-                        "confidence": confidence,
-                        "available_tool_count": tools_count,
-                        "procedure_active": procedure_active,
-                    },
-                )
+            EventBus.publish(
+                RoutingDecided.create(
+                    tenant_id=tenant_id,
+                    conversation_id=conversation_id,
+                    message_id=message_id,
+                    tier_selected=decision.tier.value,
+                    classifier_used=decision.classifier_used.value,
+                    reason=decision.reason,
+                    confidence=confidence,
+                    user_msg_length=len(user_msg),
+                    tools_available=tools_count,
+                ),
+                session=None,
+            )
         except Exception as exc:  # noqa: BLE001 — routing telemetry resilience
             logger.warning(
                 "routing_decision_failed",
@@ -757,7 +802,6 @@ class CopilotOrchestrator:
         message_id: UUID,
         user_msg: str,
         state: dict,
-        recorder: object | None,
         router: ModelRouter | None = None,
     ) -> None:
         """Async variant: offloads the blocking ``router.select`` LLM call to a worker thread.
@@ -806,19 +850,20 @@ class CopilotOrchestrator:
                 tools_available=tools_count,
             )
             self.db.commit()
-            if recorder is not None:
-                recorder.record(
-                    event_type="routing_decision",
-                    name="model_router",
-                    data={
-                        "tier": decision.tier.value,
-                        "classifier": decision.classifier_used.value,
-                        "reason": decision.reason,
-                        "confidence": confidence,
-                        "available_tool_count": tools_count,
-                        "procedure_active": procedure_active,
-                    },
-                )
+            EventBus.publish(
+                RoutingDecided.create(
+                    tenant_id=tenant_id,
+                    conversation_id=conversation_id,
+                    message_id=message_id,
+                    tier_selected=decision.tier.value,
+                    classifier_used=decision.classifier_used.value,
+                    reason=decision.reason,
+                    confidence=confidence,
+                    user_msg_length=len(user_msg),
+                    tools_available=tools_count,
+                ),
+                session=None,
+            )
         except Exception as exc:  # noqa: BLE001 — routing telemetry resilience
             logger.warning(
                 "routing_decision_failed",
@@ -857,31 +902,18 @@ class CopilotOrchestrator:
 
         yield SSEEvent(event="status", data={"state": "thinking"}).to_sse()
 
-        from src.core.config import settings as _settings
-
-        usage = UsageAccumulator(model=_settings.get_model(ModelRole.AGENT))
         acc = _StreamAccumulator()
 
-        # Open an observability turn envelope. Every LLM call / tool call /
-        # card emission records against this recorder so one SQL query per
-        # turn_id reconstructs the whole interaction timeline.
-        recorder = trace_recorder.start(
+        # Open the observability context. The bound LangChain callback
+        # handler captures every LLM/tool/chain event under this turn_id;
+        # publishing CardEmitted / RoutingDecided onto the shared EventBus
+        # records the orchestrator-level cards and routing decisions.
+        obs = self._build_observability_context(
             tenant_id=tenant_id,
             user_id=user_id,
             conversation_id=conv_uuid,
         )
-        acc.recorder = recorder
-        turn_start_ts = time.monotonic()
-        recorder.record(
-            event_type="turn_start",
-            name="copilot_chat",
-            data={
-                "message_preview": message[:200],
-                "current_route": state.get("client_context", {}).get("current_route"),
-                "guided_mode": bool(state.get("client_context", {}).get("guided_mode")),
-                "attachment_count": len(blocks or []),
-            },
-        )
+        acc.obs = obs
 
         # F11.1: Pre-generate the assistant message id so the routing log row
         # references the same id as the message_start SSE event. Telemetry
@@ -904,71 +936,64 @@ class CopilotOrchestrator:
                 message_id=UUID(msg_id),
                 user_msg=message,
                 state=state,
-                recorder=recorder,
             ),
         )
 
-        try:
-            async for sse_str in self._run_graph_stream(
-                state=state,
-                usage=usage,
-                acc=acc,
-                msg_id=msg_id,
-                user_msg=message,
-            ):
-                yield sse_str
-        except Exception as exc:
-            routing_task.cancel()
-            recorder.record(
-                event_type="error",
-                name="stream_exception",
-                status="error",
-                data={
-                    "error_type": type(exc).__name__,
-                    "error_message": str(exc)[:500],
-                },
+        async with obs.observe_turn(
+            message=message,
+            route=state.get("client_context", {}).get("current_route") or "/copilot/chat",
+            attachments=blocks or [],
+        ):
+            try:
+                async for sse_str in self._run_graph_stream(
+                    state=state,
+                    acc=acc,
+                    msg_id=msg_id,
+                    user_msg=message,
+                ):
+                    yield sse_str
+            except Exception:
+                routing_task.cancel()
+                raise
+
+            # Drain the background routing task before any further DB work
+            # so the orchestrator ``Session`` is quiet when
+            # ``_persist_messages`` runs. Failures inside the task are
+            # already swallowed by the telemetry-resilience block; this
+            # only guards against a hung LLM classifier that never
+            # returns.
+            try:
+                await asyncio.wait_for(routing_task, timeout=15.0)
+            except TimeoutError:
+                logger.warning("routing_task_timeout", conversation_id=conv_id)
+                routing_task.cancel()
+                with contextlib.suppress(BaseException):
+                    await routing_task
+
+            # Sanitize AI messages before persistence: the sanitizer
+            # already ran on acc.full_response when the last text block
+            # was finalized, but _persist_messages serializes
+            # acc.messages (the raw LangGraph pipeline state) — so any
+            # JSON blobs the LLM emitted survive unless we strip them
+            # here too.
+            acc.messages = _sanitize_ai_messages(acc.messages, user_msg=message)
+
+            self._persist_messages(
+                conv_uuid,
+                tenant_id,
+                conv_id,
+                message,
+                acc.full_response,
+                acc.messages,
+                existing_conv,
+                emitted_blocks=list(acc.emitted_blocks),
             )
-            raise
 
-        # Drain the background routing task before any further DB work so
-        # the orchestrator ``Session`` is quiet when ``_persist_messages``
-        # runs. Failures inside the task are already swallowed by the
-        # telemetry-resilience block; this only guards against a hung LLM
-        # classifier that never returns.
-        try:
-            await asyncio.wait_for(routing_task, timeout=15.0)
-        except TimeoutError:
-            logger.warning("routing_task_timeout", conversation_id=conv_id)
-            routing_task.cancel()
-            with contextlib.suppress(BaseException):
-                await routing_task
-
-        usage.log(conversation_id=conv_id, tenant_id=str(tenant_id))
-
-        # Sanitize AI messages before persistence: the sanitizer already ran
-        # on acc.full_response when the last text block was finalized, but
-        # _persist_messages serializes acc.messages (the raw LangGraph
-        # pipeline state) — so any JSON blobs the LLM emitted survive unless
-        # we strip them here too.
-        acc.messages = _sanitize_ai_messages(acc.messages, user_msg=message)
-
-        self._persist_messages(
-            conv_uuid,
-            tenant_id,
-            conv_id,
-            message,
-            acc.full_response,
-            acc.messages,
-            existing_conv,
-            emitted_blocks=list(acc.emitted_blocks),
-        )
-
-        recorder.record(
-            event_type="turn_end",
-            name="copilot_chat",
-            duration_ms=int((time.monotonic() - turn_start_ts) * 1000),
-            data=_build_turn_end_data(usage=usage, acc=acc),
-        )
+            obs.set_turn_summary(
+                response_length=len(acc.full_response),
+                message_count=len(acc.messages),
+                block_count=len(acc.emitted_blocks),
+            )
 
         yield SSEEvent(event="status", data={"state": "done"}).to_sse()
         yield SSEEvent(event="done", data={"conversation_id": conv_id}).to_sse()
@@ -977,7 +1002,6 @@ class CopilotOrchestrator:
         self,
         *,
         state: dict,
-        usage: UsageAccumulator,
         acc: _StreamAccumulator,
         msg_id: str | None = None,
         user_msg: str | None = None,
@@ -991,12 +1015,18 @@ class CopilotOrchestrator:
         ``stream_chat`` so the routing log row (F11.1) and the
         ``message_start`` SSE event share the same uuid. Defaults to a fresh
         uuid for direct invocations / tests.
+
+        Token usage, model + cost, tool spans, and node transitions are
+        captured by the observability callback handler bound on
+        ``acc.obs.langchain_config()``. The stream loop only handles
+        SSE shaping.
         """
         from src.shared.domain.datetime_utils import utc_now as _utc_now
 
         if msg_id is None:
             msg_id = str(uuid4())
         streaming_started_at = _utc_now()
+        graph_config: dict[str, Any] = acc.obs.langchain_config() if acc.obs is not None else {}
 
         try:
             yield SSEEvent(event="status", data={"state": "streaming"}).to_sse()
@@ -1011,20 +1041,11 @@ class CopilotOrchestrator:
 
             async with asyncio.timeout(COPILOT_STREAM_TIMEOUT_SECONDS):
                 graph = build_deep_agent_graph(state)
-                async for event in graph.astream_events(state, version="v2"):
-                    usage.update_from_event(event)
-                    # F9 [COPILOT-NODE-TRACE-F9] — emit node_enter/node_exit for
-                    # LangGraph transitions so admin trace reconstructs per-node timeline.
-                    emit_node_trace_event(acc.recorder, event)
-
-                    # TP4-B3 — stamp the tool_call start instant so the
-                    # downstream ``_handle_tool_end_v2`` can attach
-                    # ``duration_ms`` to the tool_call trace row.
-                    if event.get("event") == "on_tool_start":
-                        rid = str(event.get("run_id") or "")
-                        if rid:
-                            acc.tool_started_at[rid] = time.monotonic()
-
+                async for event in graph.astream_events(
+                    state,
+                    version="v2",
+                    config=graph_config,
+                ):
                     # on_tool_end: route to v2-aware handler that also emits block_append
                     if event.get("event") == "on_tool_end":
                         tool_sse = self._handle_tool_end_v2(
@@ -1100,13 +1121,15 @@ class CopilotOrchestrator:
             ).to_sse()
             acc.emitted_blocks.append(final_text_block)
 
-        tokens_used = getattr(usage, "total_tokens", None)
+        # ``tokens_used`` left as ``None`` here: the canonical totals live
+        # on ``copilot_llm_call`` and the FE no longer reads this slot
+        # post-Phase 2 atomic switch.
         yield SSEEvent(
             event="message_end",
             data={
                 "message_id": msg_id,
                 "status": "sent",
-                "tokens_used": tokens_used,
+                "tokens_used": None,
                 "blocks": acc.emitted_blocks,
             },
         ).to_sse()
@@ -1288,15 +1311,17 @@ class CopilotOrchestrator:
             data={"message_id": msg_id, "block": plan_card},
         ).to_sse()
         acc.emitted_blocks.append(plan_card)
-        if acc.recorder is not None:
-            acc.recorder.record(
-                event_type="card_emitted",
-                name="plan_card",
-                data={
-                    "card_kind": "plan_card",
-                    "source_tool": tool_name,
-                    "todo_count": len(plan_card["payload"]["todos"]),
-                },
+        if acc.obs is not None:
+            EventBus.publish(
+                CardEmitted.create(
+                    tenant_id=acc.obs.tenant_id,
+                    turn_id=acc.obs.turn_id,
+                    conversation_id=acc.obs.conversation_id,
+                    card_kind="plan_card",
+                    source_tool=tool_name,
+                    payload_keys=["todos"],
+                ),
+                session=None,
             )
         return sse
 
@@ -1361,39 +1386,25 @@ class CopilotOrchestrator:
                     data={"message_id": msg_id, "block": card_block},
                 ).to_sse()
                 acc.emitted_blocks.append(card_block)
-                if acc.recorder is not None:
-                    acc.recorder.record(
-                        event_type="card_emitted",
-                        name=card_block.get("card_kind") or "card",
-                        data={
-                            "card_kind": card_block.get("card_kind"),
-                            "source_tool": tool_name,
-                            "payload_keys": list(action.keys()) if isinstance(action, dict) else [],
-                        },
+                if acc.obs is not None:
+                    EventBus.publish(
+                        CardEmitted.create(
+                            tenant_id=acc.obs.tenant_id,
+                            turn_id=acc.obs.turn_id,
+                            conversation_id=acc.obs.conversation_id,
+                            card_kind=card_block.get("card_kind") or "card",
+                            source_tool=tool_name,
+                            payload_keys=list(action.keys()) if isinstance(action, dict) else [],
+                        ),
+                        session=None,
                     )
 
         # Step 3.5 — F2 plan_card from deep-agent ``write_todos`` (helper).
         result_sse += self._maybe_emit_plan_card(tool_name, tool_input, msg_id, acc)
 
-        # Step 4 — persist a tool_call trace row so debugging is SQL-queryable.
-        if acc.recorder is not None:
-            tool_status = "ok"
-            if isinstance(parsed_output, dict) and parsed_output.get("status") == "error":
-                tool_status = "error"
-            output_preview = tool_output if isinstance(tool_output, str) else json.dumps(tool_output, default=str)
-            run_id = str(event.get("run_id") or "")
-            started = acc.tool_started_at.pop(run_id, None) if run_id else None
-            duration_ms = int((time.monotonic() - started) * 1000) if started is not None else None
-            acc.recorder.record(
-                event_type="tool_call",
-                name=tool_name,
-                status=tool_status,
-                duration_ms=duration_ms,
-                data={
-                    "args": _truncate_for_trace(tool_input),
-                    "output_preview": _truncate_for_trace(output_preview),
-                },
-            )
+        # Tool spans (start/end + duration + args/output preview) are
+        # captured by the LangChain callback handler bound on
+        # ``acc.obs.langchain_config()``. Nothing else to record here.
 
         return result_sse
 

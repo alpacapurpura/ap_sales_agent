@@ -25,6 +25,7 @@ from uuid import UUID, uuid4
 
 import structlog
 
+from src.modules.copilot.domain.events import CardEmitted
 from src.modules.copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
 )
@@ -48,7 +49,6 @@ def emit_section_complete_pill(
     module: str,
     nav_route_template: str | None = None,
     entity_id: str | None = None,
-    trace_recorder: object | None = None,
 ) -> None:
     """Insert a navigation pill for a completed section.
 
@@ -115,21 +115,20 @@ def emit_section_complete_pill(
             section_slug=section_slug,
             conversation_id=str(conversation_id),
         )
-        # Record observability trace so card_emitted rows appear in
-        # copilot_trace_event (previously 0 rows for navigation cards).
-        if trace_recorder is not None:
-            trace_recorder.record(
-                event_type="card_emitted",
-                name="navigation",
-                data={
-                    "card_kind": "navigation",
-                    "source_tool": "extract_from_url",
-                    "job_id": job_id,
-                    "conversation_id": str(conversation_id),
-                    "section_slug": section_slug,
-                    "fields_count": fields_count,
-                },
-            )
+        # Publish CardEmitted so the observability subscriber persists a
+        # ``card_emitted`` row in copilot_trace_event. The bus owns the
+        # indirection (no direct recorder dependency anymore).
+        EventBus.publish(
+            CardEmitted.create(
+                tenant_id=tenant_id,
+                turn_id=conversation_id,
+                conversation_id=conversation_id,
+                card_kind="navigation",
+                source_tool="extract_from_url",
+                payload_keys=["job_id", "section_slug", "fields_count"],
+            ),
+            session=None,
+        )
     except Exception:  # noqa: BLE001 — card emission must not fail the job
         logger.warning(
             "nav_pill_emit_failed",
@@ -152,7 +151,6 @@ def emit_extraction_summary_card(
     sections_completed: list[str],
     primary_cta_route: str | None = None,
     entity_id: str | None = None,
-    trace_recorder: object | None = None,
 ) -> None:
     """Insert an extraction_summary card into the conversation.
 
@@ -232,21 +230,19 @@ def emit_extraction_summary_card(
             total_sections=len(sections_completed),
             conversation_id=str(conversation_id),
         )
-        # Record observability trace so card_emitted rows appear in
-        # copilot_trace_event (previously 0 rows for extraction_summary cards).
-        if trace_recorder is not None:
-            trace_recorder.record(
-                event_type="card_emitted",
-                name="extraction_summary",
-                data={
-                    "card_kind": "extraction_summary",
-                    "source_tool": "extract_from_url",
-                    "job_id": job_id,
-                    "conversation_id": str(conversation_id),
-                    "total_fields": len(filled_fields),
-                    "total_sections": len(sections_completed),
-                },
-            )
+        # Publish CardEmitted so the observability subscriber records the
+        # ``card_emitted`` row in copilot_trace_event.
+        EventBus.publish(
+            CardEmitted.create(
+                tenant_id=tenant_id,
+                turn_id=conversation_id,
+                conversation_id=conversation_id,
+                card_kind="extraction_summary",
+                source_tool="extract_from_url",
+                payload_keys=["job_id", "total_fields", "total_sections"],
+            ),
+            session=None,
+        )
     except Exception:  # noqa: BLE001 — card emission must not fail the job
         logger.warning("summary_card_emit_failed", exc_info=True, job_id=job_id)
 
@@ -317,12 +313,6 @@ def handle_section_completed(event: DomainEvent) -> None:
 
     try:
         from src.core.database import SessionLocal
-        from src.modules.copilot.application.observability import trace_recorder as tr_mod
-
-        # Build a recorder scoped to this event (no active turn — uses None turn_id).
-        # The subscriber runs outside any /copilot/chat turn so we create an
-        # independent recorder to capture the card_emitted event.
-        recorder = tr_mod.start(tenant_id=tenant_uuid, conversation_id=conv_uuid)
 
         db = SessionLocal()
         try:
@@ -337,7 +327,6 @@ def handle_section_completed(event: DomainEvent) -> None:
                 module=str(event.payload.get("module", "brand")),
                 nav_route_template=event.payload.get("nav_route_template"),
                 entity_id=event.payload.get("entity_id"),
-                trace_recorder=recorder,
             )
             db.commit()
         except Exception:
@@ -375,9 +364,6 @@ def handle_job_completed(event: DomainEvent) -> None:
         from src.modules.copilot.application.extraction.active_job_persistence import (
             write_active_job,
         )
-        from src.modules.copilot.application.observability import trace_recorder as tr_mod
-
-        recorder = tr_mod.start(tenant_id=tenant_uuid, conversation_id=conv_uuid)
 
         db = SessionLocal()
         try:
@@ -393,7 +379,6 @@ def handle_job_completed(event: DomainEvent) -> None:
                 sections_completed=list(event.payload.get("sections_completed", [])),
                 primary_cta_route=event.payload.get("primary_cta_route"),
                 entity_id=event.payload.get("entity_id"),
-                trace_recorder=recorder,
             )
             db.commit()
         except Exception:

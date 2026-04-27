@@ -19,6 +19,7 @@ from uuid import uuid4
 import pytest
 
 from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
+from src.modules.copilot.domain.events import EVENT_ROUTING_DECIDED
 from src.modules.copilot.domain.model_tier import ModelTier
 from src.modules.copilot.domain.routing_policy import (
     ClassifierType,
@@ -28,6 +29,7 @@ from src.modules.copilot.infrastructure.models.routing_log_model import RoutingL
 from src.modules.copilot.infrastructure.repositories.routing_log_repository import (
     RoutingLogRepository,
 )
+from src.shared.domain.events import EventBus
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -36,6 +38,20 @@ if TYPE_CHECKING:
 @pytest.fixture
 def orchestrator(db: Session) -> CopilotOrchestrator:
     return CopilotOrchestrator(db)
+
+
+@pytest.fixture
+def routing_events() -> list:
+    """Capture every ``copilot_routing_decided`` event published during the test."""
+    captured: list = []
+    EventBus.clear()
+
+    def _capture(ev) -> None:
+        captured.append(ev)
+
+    EventBus.subscribe(EVENT_ROUTING_DECIDED, _capture)
+    yield captured
+    EventBus.clear()
 
 
 def _state(*, current_route: str | None = None, guided_mode: bool = False) -> dict:
@@ -68,6 +84,7 @@ class TestRecordRoutingDecision:
         self,
         orchestrator: CopilotOrchestrator,
         db: Session,
+        routing_events: list,
     ) -> None:
         tenant_id = uuid4()
         conv_id = uuid4()
@@ -79,7 +96,6 @@ class TestRecordRoutingDecision:
             classifier_used=ClassifierType.RULE,
             fallback_tier=ModelTier.MINI,
         )
-        recorder = MagicMock(name="recorder")
         router = _StubRouter(decision)
 
         orchestrator._record_routing_decision(
@@ -88,7 +104,6 @@ class TestRecordRoutingDecision:
             message_id=msg_id,
             user_msg="hola",
             state=_state(current_route="/dashboard"),
-            recorder=recorder,
             router=router,
         )
 
@@ -105,12 +120,14 @@ class TestRecordRoutingDecision:
         assert float(row.confidence) == pytest.approx(0.92)
         assert row.user_msg_length == len("hola")
 
-        # Trace event recorded with same shape.
-        recorder.record.assert_called_once()
-        trace_kwargs = recorder.record.call_args.kwargs
-        assert trace_kwargs["event_type"] == "routing_decision"
-        assert trace_kwargs["data"]["tier"] == "mini"
-        assert trace_kwargs["data"]["classifier"] == "rule"
+        # The orchestrator publishes a RoutingDecided event with the same
+        # shape so the observability subscriber can mirror it into
+        # copilot_trace_event.
+        assert len(routing_events) == 1
+        ev = routing_events[0]
+        assert ev.payload["tier"] == "mini"
+        assert ev.payload["classifier"] == "rule"
+        assert ev.payload["confidence"] == "0.92"
 
     def test_router_request_uses_current_route_and_mode(
         self,
@@ -132,7 +149,6 @@ class TestRecordRoutingDecision:
             message_id=uuid4(),
             user_msg="que tal",
             state=_state(current_route="/brand-studio", guided_mode=True),
-            recorder=None,
             router=router,
         )
 
@@ -160,7 +176,6 @@ class TestRecordRoutingDecision:
             message_id=uuid4(),
             user_msg="hola",
             state=_state(),
-            recorder=None,
             router=ExplodingRouter(),
         )
         # No row persisted.
@@ -187,7 +202,6 @@ class TestRecordRoutingDecision:
             message_id=uuid4(),
             user_msg="x" * 200,
             state=_state(),
-            recorder=None,
             router=router,
         )
 

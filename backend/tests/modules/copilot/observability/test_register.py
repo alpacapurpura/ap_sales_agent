@@ -44,16 +44,22 @@ def fake_repo_factory() -> MagicMock:
     return factory
 
 
-def test_register_subscribes_all_four_event_names(fake_repo_factory) -> None:
+def test_register_subscribes_card_and_routing_events(fake_repo_factory) -> None:
+    """Phase 2: turn_started / turn_ended are written by ObservabilityContext
+    directly (single writer, owns the LLM-call aggregation). Subscribers
+    cover card emissions + routing decisions only.
+    """
     from src.modules.copilot.observability import register
 
     register(repo_factory=fake_repo_factory)
 
     handlers = EventBus._handlers
-    assert handlers.get(EVENT_TURN_STARTED), "no subscriber for turn_started"
-    assert handlers.get(EVENT_TURN_ENDED), "no subscriber for turn_ended"
     assert handlers.get(EVENT_CARD_EMITTED), "no subscriber for card_emitted"
     assert handlers.get(EVENT_ROUTING_DECIDED), "no subscriber for routing_decided"
+    assert not handlers.get(EVENT_TURN_STARTED), (
+        "turn_started must NOT have a subscriber — observe_turn writes it directly"
+    )
+    assert not handlers.get(EVENT_TURN_ENDED), "turn_ended must NOT have a subscriber — observe_turn writes it directly"
 
 
 def test_register_is_idempotent(fake_repo_factory) -> None:
@@ -89,7 +95,8 @@ def test_register_persists_card_emitted_via_repo(fake_repo_factory) -> None:
     repo.add.assert_called_once()
 
 
-def test_register_persists_turn_started_and_ended(fake_repo_factory) -> None:
+def test_register_does_not_persist_turn_events(fake_repo_factory) -> None:
+    """Turn events bypass subscribers — observe_turn writes the rows."""
     from src.modules.copilot.observability import register
 
     register(repo_factory=fake_repo_factory)
@@ -118,7 +125,7 @@ def test_register_persists_turn_started_and_ended(fake_repo_factory) -> None:
     EventBus.publish(ended, session=None)
 
     repo = fake_repo_factory.return_value
-    assert repo.add.call_count == 2
+    assert repo.add.call_count == 0, "subscribers must not write turn_start/turn_end — observe_turn does it"
 
 
 def test_register_persists_routing_decided(fake_repo_factory) -> None:

@@ -1,14 +1,17 @@
 """Domain-event subscribers — copilot publishes, observability records.
 
-Phase 1 ships the wiring; the publishers (``copilot_card_emitted``,
-``copilot_routing_decided``, ``copilot_turn_started``,
-``copilot_turn_ended``) land in Phase 2 when chat.py and the tools
-adopt the event bus instead of calling the recorder directly.
+Phase 2 wires this for two of the four event names:
 
-``register_subscribers`` is opt-in: the module entry-point in Phase 2
-will call it from the FastAPI app startup hook (and, for workers, from
-``WorkerSettings.on_startup`` if any worker emits these events).
-Idempotent — re-registering doesn't duplicate handlers.
+* ``copilot_card_emitted`` — turns into a ``card_emitted`` row.
+* ``copilot_routing_decided`` — turns into a ``routing_decided`` row.
+
+``copilot_turn_started`` / ``copilot_turn_ended`` are written **directly**
+by :class:`turn_envelope.ObservabilityContext.observe_turn` because the
+turn lifecycle owns the aggregation query against ``copilot_llm_call``
+and we don't want a second writer racing for the same row.
+
+``register_subscribers`` is opt-in and idempotent — re-registering
+doesn't duplicate handlers.
 """
 
 from __future__ import annotations
@@ -19,6 +22,10 @@ from uuid import UUID
 
 import structlog
 
+from src.modules.copilot.domain.events import (
+    EVENT_CARD_EMITTED,
+    EVENT_ROUTING_DECIDED,
+)
 from src.modules.copilot.observability.recording.sanitization import sanitize_payload, truncate
 from src.shared.domain.events import DomainEvent, EventBus
 
@@ -32,22 +39,13 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 
-# Event-name catalogue. Publishers in Phase 2 use these literals so
-# subscribers and producers can't drift apart.
-EVENT_CARD_EMITTED = "copilot_card_emitted"
-EVENT_ROUTING_DECIDED = "copilot_routing_decided"
-EVENT_TURN_STARTED = "copilot_turn_started"
-EVENT_TURN_ENDED = "copilot_turn_ended"
-
-
 def register_subscribers(*, repo_factory: Callable[[], TraceEventRepository]) -> None:
     """Wire the observability handlers onto the shared ``EventBus``.
 
     ``repo_factory`` returns a fresh ``TraceEventRepository`` (i.e. opens
-    its own ``Session``) — handlers must not share a session with the
-    publisher's transaction since the bus dispatches after-commit.
-    Calling this function twice is a no-op for already-registered
-    handlers.
+    its own ``Session``). Handlers commit through that session so the
+    write is independent from any orchestrator transaction. Calling this
+    function twice is a no-op for already-registered handlers.
     """
 
     def _persist(event: DomainEvent, *, event_type: str, name_key: str) -> None:
@@ -92,16 +90,8 @@ def register_subscribers(*, repo_factory: Callable[[], TraceEventRepository]) ->
     def on_routing_decided(event: DomainEvent) -> None:
         _persist(event, event_type="routing_decided", name_key="tier")
 
-    def on_turn_started(event: DomainEvent) -> None:
-        _persist(event, event_type="turn_start", name_key="route")
-
-    def on_turn_ended(event: DomainEvent) -> None:
-        _persist(event, event_type="turn_end", name_key="route")
-
     _subscribe_once(EVENT_CARD_EMITTED, on_card_emitted)
     _subscribe_once(EVENT_ROUTING_DECIDED, on_routing_decided)
-    _subscribe_once(EVENT_TURN_STARTED, on_turn_started)
-    _subscribe_once(EVENT_TURN_ENDED, on_turn_ended)
 
 
 def _subscribe_once(event_name: str, handler: Callable[[DomainEvent], None]) -> None:
@@ -142,10 +132,4 @@ def _drop_uuid_keys(payload: dict[str, object]) -> dict[str, object]:
     return {k: v for k, v in payload.items() if k not in drop}
 
 
-__all__ = [
-    "EVENT_CARD_EMITTED",
-    "EVENT_ROUTING_DECIDED",
-    "EVENT_TURN_ENDED",
-    "EVENT_TURN_STARTED",
-    "register_subscribers",
-]
+__all__ = ["register_subscribers"]

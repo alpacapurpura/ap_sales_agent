@@ -27,6 +27,7 @@ async def _fake_stream_events_slow(
     state: dict,
     *,
     version: str = "v2",
+    config: dict | None = None,
 ) -> AsyncGenerator[dict, None]:
     """Simulate a stream that hangs after emitting a few chunks."""
     # Emit two chunks quickly
@@ -46,6 +47,7 @@ async def _fake_stream_events_fast(
     state: dict,
     *,
     version: str = "v2",
+    config: dict | None = None,
 ) -> AsyncGenerator[dict, None]:
     """Simulate a fast stream that completes before timeout."""
     from langchain_core.messages import AIMessage

@@ -30,6 +30,7 @@ from uuid import uuid4
 import pytest
 
 from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
+from src.modules.copilot.domain.events import EVENT_ROUTING_DECIDED
 from src.modules.copilot.domain.model_tier import ModelTier
 from src.modules.copilot.domain.routing_policy import (
     ClassifierType,
@@ -39,6 +40,7 @@ from src.modules.copilot.infrastructure.models.routing_log_model import RoutingL
 from src.modules.copilot.infrastructure.repositories.routing_log_repository import (
     RoutingLogRepository,
 )
+from src.shared.domain.events import EventBus
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -47,6 +49,19 @@ if TYPE_CHECKING:
 @pytest.fixture
 def orchestrator(db: Session) -> CopilotOrchestrator:
     return CopilotOrchestrator(db)
+
+
+@pytest.fixture
+def routing_events() -> list:
+    captured: list = []
+    EventBus.clear()
+
+    def _capture(ev) -> None:
+        captured.append(ev)
+
+    EventBus.subscribe(EVENT_ROUTING_DECIDED, _capture)
+    yield captured
+    EventBus.clear()
 
 
 def _state(*, current_route: str | None = "/dashboard", guided_mode: bool = False) -> dict:
@@ -107,12 +122,12 @@ class TestRecordRoutingDecisionAsync:
         self,
         orchestrator: CopilotOrchestrator,
         db: Session,
+        routing_events: list,
     ) -> None:
         tenant_id = uuid4()
         conv_id = uuid4()
         msg_id = uuid4()
         router = _SlowRouter(_decision(ModelTier.REASONING), delay_s=0.05)
-        recorder = MagicMock(name="recorder")
 
         await orchestrator._record_routing_decision_async(
             tenant_id=tenant_id,
@@ -120,7 +135,6 @@ class TestRecordRoutingDecisionAsync:
             message_id=msg_id,
             user_msg="explica por qué los KPIs bajaron",
             state=_state(current_route="/growth-studio"),
-            recorder=recorder,
             router=router,
         )
 
@@ -133,10 +147,11 @@ class TestRecordRoutingDecisionAsync:
         assert row.message_id == msg_id
         assert row.tier_selected == "reasoning"
         assert row.classifier_used == "llm"
-        recorder.record.assert_called_once()
-        kwargs = recorder.record.call_args.kwargs
-        assert kwargs["event_type"] == "routing_decision"
-        assert kwargs["data"]["tier"] == "reasoning"
+        # The orchestrator publishes a RoutingDecided event for the
+        # observability subscriber (no direct recorder call anymore).
+        assert len(routing_events) == 1
+        assert routing_events[0].payload["tier"] == "reasoning"
+        assert routing_events[0].payload["classifier"] == "llm"
 
     @pytest.mark.asyncio
     async def test_async_router_failure_does_not_raise(
@@ -151,7 +166,6 @@ class TestRecordRoutingDecisionAsync:
             message_id=uuid4(),
             user_msg="hola",
             state=_state(),
-            recorder=None,
             router=_ExplodingRouter(),
         )
         assert db.query(RoutingLogModel).count() == 0
@@ -174,7 +188,6 @@ class TestRecordRoutingDecisionAsync:
                 message_id=uuid4(),
                 user_msg="ambiguous mid-length message that won't match rule",
                 state=_state(),
-                recorder=None,
                 router=router,
             ),
         )
@@ -219,7 +232,6 @@ class TestRecordRoutingDecisionAsync:
                 message_id=msg_id,
                 user_msg="audita la marca completa con plan priorizado",
                 state=_state(current_route="/brand-studio"),
-                recorder=None,
                 router=router,
             ),
         )

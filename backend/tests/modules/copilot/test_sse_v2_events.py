@@ -413,44 +413,12 @@ class TestHandleToolEndV2BlockAppend:
         assert "block_append" not in event_types
         assert "tool_result" in event_types
 
-    def test_tool_call_trace_event_records_duration_ms(self, orch: CopilotOrchestrator) -> None:
-        """TP4-B3 regression — tool_call trace event must carry the
-        per-tool elapsed time so /trazas + DeepEval latency targets
-        are observable. The recorder API supports ``duration_ms``;
-        before this fix the chat orchestrator never populated it."""
-        from uuid import uuid4
-
-        msg_id = str(uuid4())
-        run_id = str(uuid4())
-        recorded: list[dict[str, Any]] = []
-
-        class _Recorder:
-            def record(self, **kwargs: Any) -> Any:
-                recorded.append(kwargs)
-                return uuid4()
-
-        acc = _StreamAccumulator()
-        acc.recorder = _Recorder()
-        # Simulate the on_tool_start branch having captured the start instant.
-        import time
-
-        acc.tool_started_at[run_id] = time.monotonic() - 0.250  # 250ms ago
-
-        event = {
-            "event": "on_tool_end",
-            "name": "ask_tenant_data",
-            "run_id": run_id,
-            "data": {"output": '{"status": "ok", "kind": "lead_count", "answer": "x"}'},
-        }
-        orch._handle_tool_end_v2(event, [], {}, acc, msg_id)
-
-        tool_call_rows = [r for r in recorded if r.get("event_type") == "tool_call"]
-        assert tool_call_rows, "expected exactly one tool_call recorder.record call"
-        row = tool_call_rows[0]
-        assert isinstance(row.get("duration_ms"), int), row
-        assert row["duration_ms"] >= 200, row  # ~250ms with allowance for clock jitter
-        # Bookkeeping — start entry consumed so it never leaks across turns.
-        assert run_id not in acc.tool_started_at
+    # NOTE: ``test_tool_call_trace_event_records_duration_ms`` removed in
+    # the Phase 2 atomic switch. Tool spans (start/end + duration_ms +
+    # args/output preview) are captured natively by the LangChain
+    # callback handler bound on ``ObservabilityContext.langchain_config()``;
+    # equivalent invariants live in
+    # ``tests/modules/copilot/observability/test_callback_handler.py``.
 
     def test_block_append_added_to_accumulator_emitted_blocks(self, orch: CopilotOrchestrator) -> None:
         """block_append blocks are added to acc.emitted_blocks for message_end."""
@@ -554,7 +522,7 @@ async def _run_stream_chat(
 ) -> list[dict[str, Any]]:
     """Drive stream_chat using a fake async generator for the deep-agent graph."""
 
-    async def fake_graph_stream(state: dict, *, version: str = "v2"):
+    async def fake_graph_stream(state: dict, *, version: str = "v2", config: dict | None = None):
         for ev in graph_events:
             yield ev
 

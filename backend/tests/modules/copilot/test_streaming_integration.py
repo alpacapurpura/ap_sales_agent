@@ -555,7 +555,7 @@ class TestStreamChatEventSequence:
     async def test_happy_path_event_sequence(self, orch: CopilotOrchestrator) -> None:
         """Happy path: status→streaming→message_start→block_*→message_end→done."""
 
-        async def fake_stream(state, *, version="v2"):
+        async def fake_stream(state, *, version="v2", config=None):
             yield {
                 "event": "on_chat_model_stream",
                 "data": {"chunk": MagicMock(content="Buenos ")},
@@ -588,7 +588,7 @@ class TestStreamChatEventSequence:
     ) -> None:
         """All block_delta markdown fragments concatenated must equal the full response."""
 
-        async def fake_stream(state, *, version="v2"):
+        async def fake_stream(state, *, version="v2", config=None):
             for word in ["Hola", " mundo", " desde", " Nicolify"]:
                 yield {
                     "event": "on_chat_model_stream",
@@ -606,7 +606,7 @@ class TestStreamChatEventSequence:
     async def test_tool_call_produces_tool_events(self, orch: CopilotOrchestrator) -> None:
         """Tool calls must produce tool_start and tool_result SSE events."""
 
-        async def fake_stream(state, *, version="v2"):
+        async def fake_stream(state, *, version="v2", config=None):
             yield {
                 "event": "on_tool_start",
                 "name": "analyze_offer_ladder",
@@ -630,7 +630,7 @@ class TestStreamChatEventSequence:
     async def test_error_on_graph_exception(self, orch: CopilotOrchestrator) -> None:
         """When the graph raises an unexpected exception, an error SSE is emitted."""
 
-        async def fake_stream_raises(state, *, version="v2"):
+        async def fake_stream_raises(state, *, version="v2", config=None):
             yield {
                 "event": "on_chat_model_stream",
                 "data": {"chunk": MagicMock(content="Starting...")},
@@ -650,7 +650,7 @@ class TestStreamChatEventSequence:
     async def test_done_event_carries_conversation_id(self, orch: CopilotOrchestrator) -> None:
         """The final done event must carry the conversation_id."""
 
-        async def fake_stream(state, *, version="v2"):
+        async def fake_stream(state, *, version="v2", config=None):
             yield {
                 "event": "on_chat_model_end",
                 "data": {"output": AIMessage(content="OK")},
@@ -665,7 +665,7 @@ class TestStreamChatEventSequence:
     async def test_empty_graph_still_emits_done(self, orch: CopilotOrchestrator) -> None:
         """An empty graph response (no events) still terminates properly."""
 
-        async def fake_empty_stream(state, *, version="v2"):
+        async def fake_empty_stream(state, *, version="v2", config=None):
             return
             yield  # Make it an async generator
 
@@ -679,7 +679,7 @@ class TestStreamChatEventSequence:
     async def test_status_streaming_emitted_before_chunks(self, orch: CopilotOrchestrator) -> None:
         """status:streaming must be emitted before any block_delta events."""
 
-        async def fake_stream(state, *, version="v2"):
+        async def fake_stream(state, *, version="v2", config=None):
             yield {
                 "event": "on_chat_model_stream",
                 "data": {"chunk": MagicMock(content="Texto")},
