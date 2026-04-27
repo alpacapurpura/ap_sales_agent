@@ -268,6 +268,14 @@ def on_startup() -> None:
 
     register_brand_summary_event_handlers()
 
+    # Register copilot observability subscribers (Phase 2 atomic switch).
+    # Wires TurnStarted/TurnEnded/CardEmitted/RoutingDecided onto the
+    # shared EventBus so the orchestrator only needs to publish — never
+    # imports persistence directly.
+    from src.modules.copilot.observability import register as register_copilot_obs
+
+    register_copilot_obs()
+
 
 @app.on_event("startup")
 async def startup_arq_pool() -> None:
