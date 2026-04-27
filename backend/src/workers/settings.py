@@ -24,7 +24,13 @@ from src.modules.copilot.application.services.event_cleanup import cleanup_old_e
 from src.modules.copilot.observability.workers.aggregate_refresh_task import (
     refresh_daily_cost_mv,
 )
+from src.modules.copilot.observability.workers.cost_alert_task import (
+    run_cost_alerts,
+)
 from src.modules.copilot.observability.workers.pricing_sync_task import sync_litellm_pricing
+from src.modules.copilot.observability.workers.retention_task import (
+    purge_expired_trace_rows,
+)
 from src.modules.offer.workers.tasks import run_offer_extraction
 from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
 from src.modules.tenant_domains.workers.tasks import poll_domain_verification
@@ -53,6 +59,8 @@ class WorkerSettings:
         weekly_copilot_rag_eval,
         sync_litellm_pricing,
         refresh_daily_cost_mv,
+        purge_expired_trace_rows,
+        run_cost_alerts,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -109,6 +117,8 @@ class SchedulerSettings:
         weekly_copilot_rag_eval,
         sync_litellm_pricing,
         refresh_daily_cost_mv,
+        purge_expired_trace_rows,
+        run_cost_alerts,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -176,6 +186,22 @@ class SchedulerSettings:
         cron(
             refresh_daily_cost_mv,
             minute=5,
+        ),
+        # Phase 3 copilot observability rebuild — daily retention purge.
+        # 04:00 UTC after pricing_sync (03:00) so the trace_event table
+        # is freshly aged before billing reports are pulled.
+        cron(
+            purge_expired_trace_rows,
+            hour=4,
+            minute=0,
+        ),
+        # Phase 3 copilot observability rebuild — daily cost-alert scan.
+        # 12:00 UTC (≈07:00 PE/CO, 09:00 BR) so warnings land during
+        # business hours.
+        cron(
+            run_cost_alerts,
+            hour=12,
+            minute=0,
         ),
     ]
 
