@@ -317,6 +317,70 @@ export async function streamCopilotChat(
   }
 }
 
+/** Wire-level update payload for POST /conversations/{id}/mutations/apply. */
+export interface ApplyMutationUpdate {
+  field_id: string;
+  new_value: unknown;
+  reason?: string;
+}
+
+/** Wire-level applied row returned by the apply endpoint. */
+export interface AppliedMutationRow {
+  id: string;
+  field_path: string;
+  domain: string;
+  status: "applied" | "existing";
+}
+
+/** Wire-level rejected row returned by the apply endpoint. */
+export interface RejectedMutationRow {
+  field_id: string;
+  reason: string;
+}
+
+/** Wire-level response from POST /conversations/{id}/mutations/apply. */
+export interface ApplyMutationsResult {
+  applied: AppliedMutationRow[];
+  rejected: RejectedMutationRow[];
+}
+
+/**
+ * Server-side fallback for ``ProposalCard.handleApply`` when no
+ * ``FormRuntimeBridge`` is connected (B22-FP1 AC2). Persists each update
+ * idempotently into ``copilot_mutation_journal`` and dispatches the
+ * per-domain side-effect handler so a page reload renders the new value.
+ *
+ * Throws on network or HTTP errors so the caller can transition the
+ * card UI to ``status="failed"``. Successful HTTP returns may still
+ * include rejected rows — the caller decides how to render mixed
+ * outcomes (currently: any rejected → ``status="failed"``).
+ */
+export async function applyCopilotMutations(
+  conversationId: string,
+  messageId: string,
+  updates: ApplyMutationUpdate[],
+  token: string,
+): Promise<ApplyMutationsResult> {
+  const headers = getCopilotHeaders(token);
+  headers["Content-Type"] = "application/json";
+
+  const response = await fetch(
+    `${API_URL}/api/v1/copilot/conversations/${conversationId}/mutations/apply`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ message_id: messageId, updates }),
+    },
+  );
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(`apply_mutations_${response.status}: ${text}`);
+  }
+
+  return (await response.json()) as ApplyMutationsResult;
+}
+
 /** Wire-level shape of ActiveJobProgressDTO from the backend. */
 export interface ActiveJobProgressDTO {
   job_id: string;

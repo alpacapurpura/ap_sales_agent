@@ -70,7 +70,11 @@ function renderUIAction(
   switch (action.type) {
     case "proposal":
       return action.updates ? (
-        <ProposalCard key={`proposal-${idx}`} updates={action.updates} />
+        <ProposalCard
+          key={`proposal-${idx}`}
+          updates={action.updates}
+          messageId={messageId}
+        />
       ) : null;
     case "metric_summary":
       return action.metrics ? (

@@ -40,7 +40,9 @@ function renderCard(
 
   switch (block.card_kind) {
     case "proposal":
-      return action.updates ? <ProposalCard updates={action.updates} /> : null;
+      return action.updates ? (
+        <ProposalCard updates={action.updates} messageId={messageId} />
+      ) : null;
 
     case "metric_summary":
       return action.metrics ? <MetricSummaryCard metrics={action.metrics} /> : null;
