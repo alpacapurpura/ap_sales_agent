@@ -42,9 +42,18 @@ export interface AsyncJobState {
 
 export type MessageRole = "user" | "assistant";
 
+/**
+ * One field-level update inside a proposal. ``new_value`` is the raw value
+ * matching the field's schema type — string for text/textarea, object for
+ * structured fields, list for arrays. The ProposalCard renders smart per
+ * type and ``bridge.patchField`` (typed ``unknown``) forwards it as-is to
+ * the form-runtime, which validates against ``itemSchema``. Backend keeps
+ * the same shape: ``ApplyMutationUpdate.new_value: object | None`` accepts
+ * any JSON. Single source of truth = raw values end-to-end.
+ */
 export interface ProposalUpdate {
   field_id: string;
-  new_value: string;
+  new_value: unknown;
   reason?: string;
 }
 
@@ -80,8 +89,7 @@ export interface UIAction {
     | "guided_started"
     | "guided_block_advanced"
     | "guided_completed"
-    | "guided_ended"
-    | "preview_update";
+    | "guided_ended";
   route?: string;
   page_label?: string;
   section_id?: string;
@@ -572,14 +580,38 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
     }),
 
   // [COPILOT-STREAMING-BLOCKS] — block-streaming actions
+  //
+  // plan_card dedupe (Sprint 1.5): write_todos can fire multiple times in
+  // a single turn (initial → in_progress → completed). Each call emits a
+  // fresh plan_card via block_append. Without dedupe the chat shows N
+  // stacked plan_cards. We replace the prior plan_card in place so the
+  // user sees a single live-updating plan.
   addBlockToLastAssistant: (block) =>
     set((s) => {
       const msgs = [...s.messages];
       const last = msgs[msgs.length - 1];
-      if (last?.role === "assistant") {
-        const existing = last.blocks ?? [];
-        msgs[msgs.length - 1] = { ...last, blocks: [...existing, block] };
+      if (last?.role !== "assistant") return { messages: msgs };
+
+      const existing = last.blocks ?? [];
+      const incomingKind =
+        block.type === "card" ? (block as { card_kind?: string }).card_kind : null;
+
+      let nextBlocks: MessageBlock[];
+      if (incomingKind === "plan_card") {
+        const priorIdx = existing.findIndex(
+          (b) => b.type === "card" && (b as { card_kind?: string }).card_kind === "plan_card",
+        );
+        if (priorIdx >= 0) {
+          nextBlocks = [...existing];
+          nextBlocks[priorIdx] = block;
+        } else {
+          nextBlocks = [...existing, block];
+        }
+      } else {
+        nextBlocks = [...existing, block];
       }
+
+      msgs[msgs.length - 1] = { ...last, blocks: nextBlocks };
       return { messages: msgs };
     }),
 

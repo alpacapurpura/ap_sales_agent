@@ -29,7 +29,7 @@ class TestExtractStructuredGlobal:
             },
         )
         parsed = json.loads(result)
-        delta = parsed["ui_action"]["delta"]
+        delta = parsed["delta"]
         assert "identity.brand_name" in delta
         assert "positioning.competitive_environment" in delta
         assert "story.origin_story" in delta
@@ -44,7 +44,7 @@ class TestExtractStructuredGlobal:
             },
         )
         parsed = json.loads(result)
-        confidence_map = parsed["ui_action"]["confidence_map"]
+        confidence_map = parsed["confidence_map"]
         assert "identity.brand_name" in confidence_map
         assert confidence_map["identity.brand_name"] == 0.6
 
@@ -56,7 +56,7 @@ class TestExtractStructuredGlobal:
             },
         )
         parsed = json.loads(result)
-        assert parsed["ui_action"]["delta"] == {}
+        assert parsed["delta"] == {}
 
     def test_invalid_field_paths_are_skipped(self) -> None:
         result = extract_structured.invoke(
@@ -69,5 +69,5 @@ class TestExtractStructuredGlobal:
             },
         )
         parsed = json.loads(result)
-        assert "identity.brand_name" in parsed["ui_action"]["delta"]
-        assert "completely.invalid.path" in parsed["ui_action"]["skipped"]
+        assert "identity.brand_name" in parsed["delta"]
+        assert "completely.invalid.path" in parsed["skipped"]

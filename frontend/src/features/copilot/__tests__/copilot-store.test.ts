@@ -540,3 +540,73 @@ describe("sidebar isOpen + toggle helpers", () => {
     expect(useCopilotStore.getState().sidebarState).toBe("collapsed");
   });
 });
+
+describe("addBlockToLastAssistant — plan_card dedupe (Sprint 1.5)", () => {
+  beforeEach(() => {
+    useCopilotStore.setState({
+      messages: [
+        {
+          id: "msg-asst",
+          role: "assistant",
+          content: "",
+          timestamp: Date.now(),
+          blocks: [],
+        } as CopilotMessage,
+      ],
+    });
+  });
+
+  it("appends first plan_card normally", () => {
+    const { addBlockToLastAssistant } = useCopilotStore.getState();
+    addBlockToLastAssistant({
+      id: "b1",
+      type: "card",
+      card_kind: "plan_card",
+      payload: { todos: [{ content: "step 1", status: "in_progress" }] },
+    } as never);
+    const blocks = useCopilotStore.getState().messages[0].blocks ?? [];
+    expect(blocks).toHaveLength(1);
+    expect((blocks[0] as { card_kind?: string }).card_kind).toBe("plan_card");
+  });
+
+  it("replaces existing plan_card when new plan_card arrives", () => {
+    const { addBlockToLastAssistant } = useCopilotStore.getState();
+    addBlockToLastAssistant({
+      id: "b1",
+      type: "card",
+      card_kind: "plan_card",
+      payload: { todos: [{ content: "step 1", status: "in_progress" }] },
+    } as never);
+    addBlockToLastAssistant({
+      id: "b2",
+      type: "card",
+      card_kind: "plan_card",
+      payload: { todos: [{ content: "step 1", status: "completed" }] },
+    } as never);
+    const blocks = useCopilotStore.getState().messages[0].blocks ?? [];
+    expect(blocks).toHaveLength(1);
+    expect((blocks[0] as { id: string }).id).toBe("b2");
+    expect(
+      (blocks[0] as unknown as { payload: { todos: { status: string }[] } }).payload.todos[0]
+        .status,
+    ).toBe("completed");
+  });
+
+  it("non-plan_card blocks always appended", () => {
+    const { addBlockToLastAssistant } = useCopilotStore.getState();
+    addBlockToLastAssistant({
+      id: "b1",
+      type: "card",
+      card_kind: "plan_card",
+      payload: { todos: [] },
+    } as never);
+    addBlockToLastAssistant({
+      id: "b2",
+      type: "card",
+      card_kind: "proposal",
+      payload: { type: "proposal", updates: [] },
+    } as never);
+    const blocks = useCopilotStore.getState().messages[0].blocks ?? [];
+    expect(blocks).toHaveLength(2);
+  });
+});

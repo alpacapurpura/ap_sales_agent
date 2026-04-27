@@ -60,3 +60,43 @@ class TestSanitizeAssistantText:
         assert "{" not in cleaned
         assert "Ahora otro" in cleaned
         assert "Fin" in cleaned
+
+    def test_strips_unbalanced_json_tail_fragment(self) -> None:
+        """Catch JSON tails leaked by streaming truncation (real prod case).
+
+        gpt-4o-mini agente emitió content + tool_calls en mismo step. El
+        stream pipeline persistió solo la cola del JSON. Sin balance — sin
+        ``{`` apertura, solo cierres + pares ``"k": "v"``. El sanitizer
+        previo no lo cubría porque ``_BARE_BALANCED_OBJECT`` requiere
+        balance. Conv real: 96cf33a1-eb2d-4956-a585-adaae9e99449.
+        """
+        text = (
+            ",\n       ,\n                                      \n     ],\n"
+            '     "psychographics.values": "Autenticidad y bienestar",\n'
+            '     "psychographics.aspirations": "Crear un negocio alineado",\n'
+            '     "buyer_journey.awareness": "Siente que tiene potencial",\n'
+            '     "buyer_journey.consideration": "Busca un espacio",\n'
+            '     "buyer_journey.decision": "Necesita acompañamiento"\n'
+            "   }\n }"
+        )
+        cleaned = sanitize_assistant_text(text)
+        assert "psychographics" not in cleaned
+        assert "buyer_journey" not in cleaned
+        assert cleaned.strip() == ""
+
+    def test_strips_unbalanced_array_tail(self) -> None:
+        """Tail starting with closing bracket + structured pairs."""
+        text = ']\n  "field_a": "value a",\n  "field_b": "value b"\n}'
+        cleaned = sanitize_assistant_text(text)
+        assert "field_a" not in cleaned
+        assert cleaned.strip() == ""
+
+    def test_keeps_prose_with_inline_quotes(self) -> None:
+        """Prose with quoted phrases stays intact (no false positive)."""
+        text = (
+            'El usuario dijo: "Hola, me llamo Valeria". Voy a registrar '
+            'su nombre como "Valeria" en el campo correspondiente.'
+        )
+        cleaned = sanitize_assistant_text(text)
+        assert "Valeria" in cleaned
+        assert "registrar" in cleaned

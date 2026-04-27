@@ -103,7 +103,6 @@ function mapUIActionToCardKind(actionType: UIAction["type"]): CardKind {
     case "scroll_to_field":
     case "open_form":
     case "procedure_progress":
-    case "preview_update":
     default:
       return "navigation";
   }

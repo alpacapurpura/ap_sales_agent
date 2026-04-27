@@ -786,17 +786,17 @@ def _truncate_tool_content(content: str) -> str:
 def _tool_message_content(result: object) -> str:
     """Build the ToolMessage ``content`` the LLM will see on its next turn.
 
-    Tools that emit a ``ui_action`` payload (preview_update, clarify_card,
-    proposal, …) produce big JSON blobs meant for the frontend. Feeding the
-    raw blob back to the model invites regurgitation: the LLM sees the
-    delta it just extracted and repeats it verbatim as an assistant
-    message (observed: ``preview_update`` delta echoed into chat after a
-    successful ``extract_document_to_fields``).
+    Tools that emit a ``ui_action`` payload (proposal, clarify_card, …)
+    produce big JSON blobs meant for the frontend. Feeding the raw blob
+    back to the model invites regurgitation: the LLM sees the delta it
+    just extracted and repeats it verbatim as an assistant message
+    (observed: ``proposal`` delta echoed into chat after a successful
+    ``extract_document_to_fields``).
 
     The tool can opt-in to a condensed summary by including an
     ``llm_content`` key in its JSON output. When present we forward that
     string (truncated) as the ToolMessage; the SSE layer still emits the
-    full ``ui_action`` to the client separately, so the preview card is
+    full ``ui_action`` to the client separately, so the proposal card is
     unaffected.
 
     Legacy tools without ``llm_content`` keep the old behaviour:

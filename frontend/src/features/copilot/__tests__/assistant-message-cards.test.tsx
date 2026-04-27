@@ -92,22 +92,4 @@ describe("AssistantMessage interview cards", () => {
     expect(screen.getByTestId("interview-complete-card")).toBeDefined();
   });
 
-  it("does not render preview_update (silent action)", () => {
-    const msg: CopilotMessage = {
-      id: "msg-4",
-      role: "assistant",
-      content: "Noted.",
-      timestamp: Date.now(),
-      uiActions: [
-        {
-          type: "preview_update",
-          delta: { name: "Test" },
-        },
-      ],
-    };
-    render(<AssistantMessage message={msg} />);
-    expect(screen.queryByTestId("alternatives-card")).toBeNull();
-    expect(screen.queryByTestId("checkpoint-card")).toBeNull();
-    expect(screen.queryByTestId("interview-complete-card")).toBeNull();
-  });
 });

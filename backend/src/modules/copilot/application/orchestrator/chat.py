@@ -283,6 +283,59 @@ def _parse_tool_payload(tool_output: object) -> dict | None:
     return parsed if isinstance(parsed, dict) else None
 
 
+_OVERLOAD_PATTERNS: tuple[str, ...] = (
+    "engine_overloaded",
+    "rate_limit",
+    "ratelimit",
+    "429",
+    "overloaded",
+    "too many requests",
+    "service unavailable",
+    "503",
+)
+
+_USER_FACING_ERROR_MESSAGES: dict[str, str] = {
+    "graph_recursion": (
+        "El asistente entró en un bucle al procesar tu pedido. Intenta replantear "
+        "la pregunta de forma más directa o adjunta el dato faltante."
+    ),
+    "provider_overloaded": (
+        "El modelo está sobrecargado en este momento. Espera unos segundos y "
+        "vuelve a enviar tu mensaje — los cambios que ya se hayan propuesto en "
+        "el chat siguen visibles."
+    ),
+    "stream_error": ("Hubo un problema procesando tu mensaje. Intenta de nuevo en unos segundos."),
+}
+
+
+def _classify_stream_error(exc: Exception) -> str:
+    """Map a stream-time exception to a stable error_kind tag.
+
+    Reads the exception class name + repr/str so it works across providers
+    (OpenAI ``RateLimitError``, Kimi 429 wrapped in generic OpenAIError,
+    DeepSeek 503, Anthropic ``OverloadedError``). Used by both the
+    observability recorder (kind tag persisted to ``copilot_trace_event``)
+    and the user-facing copy lookup (``_user_facing_error_message``).
+    """
+    type_name = type(exc).__name__
+    if type_name == "GraphRecursionError":
+        return "graph_recursion"
+    haystack = f"{type_name} {exc!r} {exc!s}".lower()
+    if any(pat in haystack for pat in _OVERLOAD_PATTERNS):
+        return "provider_overloaded"
+    return "stream_error"
+
+
+def _user_facing_error_message(error_kind: str) -> str:
+    """Return the Spanish-neutro user-facing copy for ``error_kind``.
+
+    Keys must stay aligned with ``_classify_stream_error`` outputs.
+    Unknown kinds fall back to the generic ``stream_error`` copy so the
+    user always gets something actionable.
+    """
+    return _USER_FACING_ERROR_MESSAGES.get(error_kind, _USER_FACING_ERROR_MESSAGES["stream_error"])
+
+
 def _extract_tool_message(
     output: object,
     tool_name: str,
@@ -990,6 +1043,7 @@ class CopilotOrchestrator:
                 acc.messages,
                 existing_conv,
                 emitted_blocks=list(acc.emitted_blocks),
+                user_blocks=blocks,
             )
 
             obs.set_turn_summary(
@@ -1001,7 +1055,7 @@ class CopilotOrchestrator:
         yield SSEEvent(event="status", data={"state": "done"}).to_sse()
         yield SSEEvent(event="done", data={"conversation_id": conv_id}).to_sse()
 
-    async def _run_graph_stream(  # noqa: PLR0912 — stream lifecycle + 3 distinct error paths (timeout, tool-loop, generic) each need their own SSE shape, log line, and set_turn_error kind. Splitting obscures more than it clarifies.
+    async def _run_graph_stream(  # noqa: PLR0912, PLR0915 — stream lifecycle + 3 distinct error paths (timeout, tool-loop, generic) each need their own SSE shape, log line, set_turn_error kind, and friendly-copy persistence. Splitting obscures more than it clarifies; the body is a flat narrative of the SSE protocol.
         self,
         *,
         state: dict,
@@ -1141,11 +1195,13 @@ class CopilotOrchestrator:
             # ``_persist_messages`` save what got accumulated. The
             # turn_end recorder marks the trace with ``status='error'``
             # via ``set_turn_error`` (Fix 5) so observability stays honest.
-            error_kind = "graph_recursion" if type(e).__name__ == "GraphRecursionError" else "stream_error"
+            error_kind = _classify_stream_error(e)
+            user_facing_error = _user_facing_error_message(error_kind)
             logger.exception(
                 "copilot_stream_error",
                 error=str(e),
                 error_type=type(e).__name__,
+                error_kind=error_kind,
                 partial_response_length=len(acc.full_response),
                 partial_message_count=len(acc.messages),
             )
@@ -1154,9 +1210,14 @@ class CopilotOrchestrator:
                     error_kind=error_kind,
                     error_message=f"{type(e).__name__}: {e}",
                 )
+            # Persist a friendly assistant message so the conversation
+            # transcript shows what happened on refresh — without this
+            # the user sees their question with NO answer at all.
+            acc.messages.append(AIMessage(content=user_facing_error))
+            acc.full_response = user_facing_error
             yield SSEEvent(
                 event="error",
-                data={"message": "Ocurrio un error procesando tu mensaje. Intenta de nuevo."},
+                data={"message": user_facing_error},
             ).to_sse()
 
         # Finalize v2 text block. The sanitizer is the last line of defense
@@ -1512,6 +1573,7 @@ class CopilotOrchestrator:
         existing_conv: CopilotConversationModel,
         *,
         emitted_blocks: list[dict] | None = None,
+        user_blocks: list[dict] | None = None,
     ) -> None:
         """Persist conversation messages to DB and Redis cache.
 
@@ -1521,6 +1583,11 @@ class CopilotOrchestrator:
         post-stream refetch of ``/copilot/conversations/{id}`` rebuilds the
         same visual state — previously cards evaporated after the React
         Query invalidation because the serializer only kept role+content.
+
+        ``user_blocks`` carries the attachments (DocumentBlock, ImageBlock)
+        the user uploaded with the prompt. ``HumanMessage.content`` only
+        keeps the textual message, so without this round-trip the
+        DocumentCard the user sees during streaming disappears on refresh.
         """
         if not full_response and not accumulated_messages:
             return
@@ -1549,6 +1616,9 @@ class CopilotOrchestrator:
                     "created_at": now_iso,
                 },
             ]
+
+        if user_blocks:
+            self._attach_user_attachments(new_messages, user_blocks)
 
         if emitted_blocks:
             self._attach_blocks_to_last_assistant(new_messages, emitted_blocks)
@@ -1609,7 +1679,44 @@ class CopilotOrchestrator:
             logger.debug("redis_cache_error", error=str(e))
 
     @staticmethod
+    def _dedupe_emitted_blocks(emitted_blocks: list[dict]) -> list[dict]:
+        """Collapse repeated card kinds that semantically replace each other.
+
+        ``write_todos`` fires multiple times per turn (initial → in_progress
+        → completed) and each call emits a fresh ``plan_card``. The card is
+        a live snapshot of the same plan, not three separate plans. The
+        store-side dedupe (``addBlockToLastAssistant``) keeps live streaming
+        coherent; this mirror dedupe keeps the persisted JSONB coherent so
+        a refresh shows the same single (final) plan_card.
+
+        Strategy: keep only the LAST occurrence of every "snapshot-like"
+        card kind. ``proposal`` / ``inspiration_saved`` / ``memory_pinned``
+        / non-card blocks are NOT snapshot cards — they are append-only and
+        survive verbatim.
+        """
+        snapshot_kinds = {"plan_card"}
+        last_index_by_kind: dict[str, int] = {}
+        for idx, block in enumerate(emitted_blocks):
+            if block.get("type") != "card":
+                continue
+            kind = block.get("card_kind")
+            if kind in snapshot_kinds:
+                last_index_by_kind[kind] = idx
+
+        if not last_index_by_kind:
+            return emitted_blocks
+
+        deduped: list[dict] = []
+        for idx, block in enumerate(emitted_blocks):
+            kind = block.get("card_kind")
+            if block.get("type") == "card" and kind in last_index_by_kind and last_index_by_kind[kind] != idx:
+                continue
+            deduped.append(block)
+        return deduped
+
+    @classmethod
     def _attach_blocks_to_last_assistant(
+        cls,
         serialized: list[dict],
         emitted_blocks: list[dict],
     ) -> None:
@@ -1620,9 +1727,32 @@ class CopilotOrchestrator:
         Intermediate AIMessages (inside a tool loop) keep their simple
         role+content shape so they remain compatible with v1 consumers.
         """
+        deduped = cls._dedupe_emitted_blocks(emitted_blocks)
         for msg in reversed(serialized):
             if msg.get("role") == "assistant":
-                msg["blocks"] = emitted_blocks
+                msg["blocks"] = deduped
+                return
+
+    @staticmethod
+    def _attach_user_attachments(
+        serialized: list[dict],
+        user_blocks: list[dict] | None,
+    ) -> None:
+        """Attach the user's uploaded attachments to the user message.
+
+        Without this, the document card the user sees during the live
+        stream evaporates on refresh: ``_serialize_messages`` only keeps
+        ``HumanMessage.content`` and the original ``blocks`` parameter is
+        dropped. We persist them on the FIRST user message in the new
+        batch so the FE renderer (UserMessageV2) can rebuild the
+        DocumentBlock / ImageBlock from the same payload it received via
+        SSE.
+        """
+        if not user_blocks:
+            return
+        for msg in serialized:
+            if msg.get("role") == "user":
+                msg["blocks"] = user_blocks
                 return
 
     @staticmethod

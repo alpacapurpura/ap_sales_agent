@@ -166,8 +166,6 @@ function renderUIAction(
           redirect={action.redirect ?? "/"}
         />
       );
-    case "preview_update":
-      return null;
     default:
       return <NavigationCard key={`${action.type}-${idx}`} action={action} />;
   }

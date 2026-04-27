@@ -210,3 +210,6 @@ Hallazgos detectados por Claude Code durante ejecución. Revisar y resolver.
 - [ ] **Cuando dolga**: Si vemos costo real burned por esto en `mv_daily_llm_cost_per_tenant`, migrar DeepSeek a `langchain_deepseek.ChatDeepSeek`. Ya está en `requirements.txt`? auditar. Estimado: 4-6h con regression test que confirma `max_tokens` honra el cap.
 - **Referencia:** [langchain-ai/langchain#29283](https://github.com/langchain-ai/langchain/issues/29283), [langchain-ai/langchain#30113](https://github.com/langchain-ai/langchain/issues/30113).
 
+
+- [ ] **Pre-existing flakiness**: `tests/modules/copilot/test_ask_tenant_data_integration.py::test_lead_count_question_returns_number` y `::test_conversation_count_question` fallan sostenido en `development` HEAD `7dcc5db4` (ambos esperan `result_count == 4/3` y reciben `1`). Reproducible aislado. No relacionado con Sprint 1 (purge `preview_update` + ProposalCard rediseño). Hipótesis: fixture seed parcial o filter `tenant_id` discrepancia. Investigar antes próximo `/test-all`.
+- [ ] **Pre-existing tsc error**: `frontend/src/components/form-runtime/CollapsibleFieldGroup.tsx:32 — Property 'group' does not exist on type 'never'`. Reproducible en `development` baseline pre-Sprint 1. No bloquea Sprint 1 (no tocamos form-runtime).

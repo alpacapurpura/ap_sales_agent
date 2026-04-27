@@ -88,8 +88,11 @@ def extract_structured(domain: str, extractions: list[dict]) -> str:
             - source: "user_explicit" | "inferred" | "recommended"
 
     Returns:
-        JSON con ui_action ``preview_update`` que incluye el delta y los
-        field_paths descartados por no pertenecer al esquema.
+        JSON con ``delta`` (silent capture, sin ui_action), ``skipped``
+        (field_paths inválidos descartados por no pertenecer al esquema)
+        y ``confidence_map`` (campos con baja confianza). Sin card visible
+        — la herramienta es silenciosa por diseño. El LLM puede reaccionar
+        leyendo el delta del ToolMessage para guiar el siguiente turno.
 
     """
     delta: dict[str, object] = {}
@@ -125,13 +128,10 @@ def extract_structured(domain: str, extractions: list[dict]) -> str:
     return json.dumps(
         {
             "text": text_msg,
-            "ui_action": {
-                "type": "preview_update",
-                "domain": domain,
-                "delta": delta,
-                "confidence_map": confidence_map,
-                "skipped": skipped,
-            },
+            "domain": domain,
+            "delta": delta,
+            "confidence_map": confidence_map,
+            "skipped": skipped,
         },
     )
 
@@ -147,8 +147,9 @@ def extract_document_to_fields(  # noqa: PLR0911 — each return is a distinct t
     Úsalo cuando el usuario sube un brief, propuesta, o cualquier doc que
     contenga información para varios campos a la vez. Lee el texto extraído
     del asset (asset_lifecycle) y llama al extractor AI con el template del
-    dominio. El resultado se refleja via ``preview_update`` y el copilot
-    puede proponer los cambios con ``propose_field_updates``.
+    dominio. El resultado se refleja via ``ProposalCard`` (ui_action
+    ``proposal``) y el usuario puede aceptar/rechazar individualmente o
+    en batch.
 
     Args:
         asset_id: UUID del asset subido (disponible en el contexto adjunto).
@@ -157,8 +158,10 @@ def extract_document_to_fields(  # noqa: PLR0911 — each return is a distinct t
             buyer_persona). Opcional para brand.
 
     Returns:
-        JSON con un resumen textual breve + ui_action ``preview_update`` con
-        el delta combinado, o un error claro si no pudo procesar.
+        JSON con un resumen textual breve + ui_action ``proposal`` con el
+        listado de ``updates`` (mismo shape que ``propose_field_updates``),
+        o un error claro si no pudo procesar. ``ProposalCard`` lo renderea
+        colapsable con per-field Aceptar/Rechazar + Aceptar todos.
 
     """
     if get_extraction_config(domain) is None:
@@ -227,11 +230,28 @@ def extract_document_to_fields(  # noqa: PLR0911 — each return is a distinct t
         section_names = sorted({k.split(".", 1)[0] for k in delta})
         sections_hint = ", ".join(section_names) if section_names else "varias secciones"
 
+        # ``new_value`` carries the raw Python value (str / list / dict /
+        # number). Pydantic ``ApplyMutationUpdate.new_value: object | None``
+        # accepts any JSON shape on the wire, the FE renders structurally
+        # per type, and ``bridge.patchField`` (typed ``unknown``) forwards
+        # it to the form-runtime which expects native shapes (e.g.
+        # ``pain_points`` is a list of objects, NOT a JSON-stringified
+        # blob). JSON-coercion broke schema validation for every multi-
+        # value field. Single source of truth = raw values end-to-end.
+        updates = [
+            {
+                "field_id": field_path,
+                "new_value": value,
+                "reason": "Extraído del documento adjunto",
+            }
+            for field_path, value in delta.items()
+        ]
+
         return json.dumps(
             {
                 "text": (
                     f"Extraje {fields_extracted} campo(s) del documento "
-                    f"'{asset.filename}'. Revisa el preview para aprobarlos."
+                    f"'{asset.filename}'. Revisa la propuesta y acéptala."
                 ),
                 # ``llm_content`` is the condensed view the model sees in its
                 # next turn — keeps the raw delta out of the context window
@@ -239,16 +259,15 @@ def extract_document_to_fields(  # noqa: PLR0911 — each return is a distinct t
                 "llm_content": (
                     f"Extracción exitosa: {fields_extracted} campo(s) del "
                     f"documento '{asset.filename}' repartidos en {sections_hint}. "
-                    "El usuario ya ve la card de preview con los valores; "
-                    "NO los repitas en tu respuesta. Responde en UNA línea "
-                    "corta invitando a revisar y aprobar el preview."
+                    "El usuario ya ve la propuesta con los valores y los "
+                    "botones Aceptar/Rechazar; NO los repitas en tu respuesta. "
+                    "Responde en UNA línea corta invitando a revisar y aplicar."
                 ),
                 "ui_action": {
-                    "type": "preview_update",
+                    "type": "proposal",
+                    "updates": updates,
                     "domain": domain,
                     "entity_id": entity_id,
-                    "delta": delta,
-                    "skipped": [],
                     "summary": result.summary if result else None,
                     "source_documents": (result.source_documents if result else []),
                     "fields_extracted": fields_extracted,

@@ -177,8 +177,16 @@ export function useCopilotChat() {
             },
             onError: (message) => {
               if (!isActive()) return;
-              useCopilotStore.getState().appendToLastAssistant(`\n\n_Error: ${message}_`);
-              useCopilotStore.getState().setStatus("idle");
+              // BE classifies the error and emits user-friendly Spanish-neutro
+              // copy (see ``_user_facing_error_message`` in chat.py). It also
+              // persists the same text as a tail AIMessage so the conversation
+              // transcript shows it after a refresh. Render the message as-is
+              // so live + refresh stay coherent — no ``_Error: ..._`` wrap.
+              const store = useCopilotStore.getState();
+              const last = store.messages[store.messages.length - 1];
+              const prefix = last?.role === "assistant" && last.content ? "\n\n" : "";
+              store.appendToLastAssistant(`${prefix}${message}`);
+              store.setStatus("idle");
             },
             onToolStart: (tool) => {
               if (!isActive()) return;

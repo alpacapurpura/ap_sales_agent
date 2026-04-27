@@ -2,8 +2,8 @@
 
 When a tool returns a JSON with ``llm_content`` key, the orchestrator must
 feed the condensed summary — not the full payload — back to the LLM.
-This prevents the model from regurgitating ``preview_update`` deltas (or
-any other large ui_action payload) into the assistant chat message.
+This prevents the model from regurgitating ``proposal`` deltas (or any
+other large ui_action payload) into the assistant chat message.
 """
 
 from __future__ import annotations
@@ -27,8 +27,10 @@ class TestToolMessageContent:
                 "text": "Extraje 12 campos",
                 "llm_content": "Extracción exitosa. El usuario ya ve la card, no repitas.",
                 "ui_action": {
-                    "type": "preview_update",
-                    "delta": {"field": "value" * 200},
+                    "type": "proposal",
+                    "updates": [
+                        {"field_id": "f", "new_value": "value" * 200, "reason": "x"},
+                    ],
                 },
             },
         )

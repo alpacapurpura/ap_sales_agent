@@ -22,17 +22,13 @@ const DOMAIN_LABEL: Record<string, string> = {
  * Session-aware actions (``guided_started`` / ``guided_block_advanced`` /
  * ``guided_completed`` / ``guided_ended``) set or clear the active
  * ``CopilotSession`` so the header + progress chip stay in sync with the
- * backend-driven flow. Legacy ``preview_update`` / ``interview_complete``
- * are ignored or mapped to their guided equivalents.
+ * backend-driven flow. ``interview_complete`` is mapped to its guided
+ * equivalent.
  */
 export function handleUIAction(action: UIAction): void {
   const store = useCopilotStore.getState();
 
   switch (action.type) {
-    // Legacy preview pane removed (Sprint 4a) — preview deltas ignored.
-    case "preview_update":
-      return;
-
     // Guided: started — set the session so the header + progress chip render.
     case "guided_started": {
       store.addUIActionToLastAssistant(action);

@@ -75,10 +75,10 @@ def _fetch_recent_turns(
     total duration; when there's no end row the turn is still in flight or
     crashed mid-stream.
     """
-    where_clauses = ["event_type = 'turn_start'"]
+    where_clauses = ["starts.event_type = 'turn_start'"]
     params: dict[str, object] = {"limit": limit}
     if tenant_id is not None:
-        where_clauses.append("tenant_id = :tenant_id")
+        where_clauses.append("starts.tenant_id = :tenant_id")
         params["tenant_id"] = str(tenant_id)
     if status_filter == "con_error":
         where_clauses.append(

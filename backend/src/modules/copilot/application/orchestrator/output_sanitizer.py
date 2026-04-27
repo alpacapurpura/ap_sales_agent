@@ -40,6 +40,17 @@ _BARE_BALANCED_OBJECT = re.compile(
     r"(?<![A-Za-z0-9_])\{[\s\S]{40,}?\}(?![A-Za-z0-9_])",
 )
 
+# Unbalanced JSON tail: streaming truncation can leak only the END of a
+# JSON object — starts with ``,``, ``]``, ``}`` (whitespace allowed) and
+# carries 2+ ``"key": value`` pairs. The balanced regex above won't match
+# because there's no opening ``{``. Real prod case: conv 96cf33a1 where
+# gpt-4o-mini emitted content + tool_calls, and the stream dropped the
+# head, persisting the tail as a separate AIMessage.
+_JSON_TAIL_FRAGMENT = re.compile(
+    r'^\s*[,\]\}][\s\S]*?(?:"[^"]+"\s*:\s*[\s\S]+?){2,}[\s\S]*$',
+    re.MULTILINE,
+)
+
 
 # ── 2. Voseo autocorrect ─────────────────────────────────────────────────────
 
@@ -214,6 +225,7 @@ def sanitize_assistant_text(text: str, *, user_msg: str | None = None) -> str:
 
     cleaned = _CODE_FENCE_JSON.sub("", text)
     cleaned = _BARE_BALANCED_OBJECT.sub("", cleaned)
+    cleaned = _JSON_TAIL_FRAGMENT.sub("", cleaned)
     # Collapse 3+ consecutive blank lines left by the substitutions.
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
     cleaned = cleaned.strip()
