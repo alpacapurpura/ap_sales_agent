@@ -109,6 +109,88 @@ class TestKimiService:
         assert extra_body.get("thinking") == {"type": "disabled"}
 
 
+class TestOpenAICompatKwargsTranslation:
+    """``max_output_tokens`` is the Nicolify-internal canonical name for
+    completion length (matches the ``ResolvedModelPolicy`` field). The
+    legacy OpenAI SDK Chat Completions endpoint exposes the same knob as
+    ``max_tokens``, and the OpenAI-compatible providers (DeepSeek, Kimi,
+    Qwen) all wrap that endpoint.
+
+    Pre-fix: only the OpenAI-specific provider translated the kwarg, so
+    a call routed to DeepSeek/Kimi/Qwen leaked ``max_output_tokens`` into
+    ``Completions.create()`` and crashed with::
+
+        TypeError: Completions.create() got an unexpected keyword argument
+        'max_output_tokens'
+
+    This bug surfaced 2026-04-27 in the buyer-persona document extraction
+    flow, where the orchestrator routed to DeepSeek for the structured
+    extraction and the document was rejected at the LLM call.
+
+    Fix: ``OpenAICompatibleService.generate_response`` strips the alias
+    before invoking the LangChain client, so all subclasses behave
+    consistently with the upstream OpenAI provider.
+    """
+
+    def _stub_chat_model(self, captured: dict[str, object]) -> object:
+        from langchain_core.messages import AIMessage
+
+        class _StubModel:
+            def invoke(self, _messages, **kwargs):  # type: ignore[no-untyped-def]
+                captured.update(kwargs)
+                return AIMessage(content="ok")
+
+        return _StubModel()
+
+    @pytest.mark.parametrize(
+        "service_factory",
+        [
+            lambda: DeepSeekService(api_key="sk-test-deepseek"),
+            lambda: KimiService(api_key="sk-test-kimi"),
+            lambda: QwenService(api_key="sk-test-qwen"),
+        ],
+        ids=["deepseek", "kimi", "qwen"],
+    )
+    def test_max_output_tokens_translated_to_max_tokens(
+        self,
+        service_factory,  # type: ignore[no-untyped-def]
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        captured: dict[str, object] = {}
+        svc = service_factory()
+        monkeypatch.setattr(svc, "_get_chat_model", lambda role: self._stub_chat_model(captured))
+
+        svc.generate_response(
+            messages=[{"role": "user", "content": "hola"}],
+            max_output_tokens=512,
+        )
+
+        # The kwarg must reach the underlying client renamed — never as
+        # ``max_output_tokens`` (which the OpenAI SDK rejects).
+        assert "max_output_tokens" not in captured
+        assert captured.get("max_tokens") == 512
+
+    def test_explicit_max_tokens_wins_when_both_present(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """If a caller passes both keys, the explicit ``max_tokens`` is
+        the authoritative one — translation must not silently overwrite
+        it. Belt-and-suspenders against future double-passing bugs."""
+        captured: dict[str, object] = {}
+        svc = DeepSeekService(api_key="sk-test-deepseek")
+        monkeypatch.setattr(svc, "_get_chat_model", lambda role: self._stub_chat_model(captured))
+
+        svc.generate_response(
+            messages=[{"role": "user", "content": "hola"}],
+            max_tokens=2048,
+            max_output_tokens=512,
+        )
+
+        assert "max_output_tokens" not in captured
+        assert captured.get("max_tokens") == 2048
+
+
 class TestQwenService:
     def test_uses_dashscope_intl_base_url(self) -> None:
         svc = QwenService(api_key="sk-test-qwen")
