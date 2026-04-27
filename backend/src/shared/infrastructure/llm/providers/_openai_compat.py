@@ -19,6 +19,9 @@ from langchain_openai import ChatOpenAI
 from src.core.config import settings
 from src.core.enums import ModelRole
 from src.shared.infrastructure.llm.base import BaseLLMService
+from src.shared.infrastructure.llm.providers._kwargs import (
+    normalize_openai_protocol_kwargs,
+)
 
 logger = structlog.get_logger()
 
@@ -109,18 +112,11 @@ class OpenAICompatibleService(BaseLLMService):
         lc_messages = self._convert_to_lc_messages(messages, system_prompt)
         resolved_role = self._resolve_role(model_type)
         selected_model = self._get_chat_model(resolved_role)
-        # ``metadata`` is a Nicolify-internal field, not an OpenAI param.
-        kwargs.pop("metadata", None)
-        # ``max_output_tokens`` is the canonical Nicolify name (matches
-        # ``ResolvedModelPolicy.model.max_output_tokens``); the OpenAI
-        # SDK Chat Completions endpoint and every compat clone (DeepSeek,
-        # Kimi, Qwen) speak ``max_tokens``. Translate once here so all
-        # subclasses behave consistently — pre-fix only ``OpenAIService``
-        # had this hop and DeepSeek/Kimi/Qwen crashed with a TypeError
-        # (incident 2026-04-27, buyer-persona doc extraction).
-        if "max_output_tokens" in kwargs:
-            translated = kwargs.pop("max_output_tokens")
-            kwargs.setdefault("max_tokens", translated)
+        # Single source of truth for OpenAI-protocol kwarg translation.
+        # Pre-fix only ``OpenAIService`` had this hop — DeepSeek/Kimi/Qwen
+        # crashed with TypeError on ``max_output_tokens`` (incident
+        # 2026-04-27, buyer-persona doc extraction).
+        normalize_openai_protocol_kwargs(kwargs)
         try:
             response = selected_model.invoke(lc_messages, **kwargs)
             return response.content

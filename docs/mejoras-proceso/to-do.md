@@ -184,3 +184,29 @@ Hallazgos detectados por Claude Code durante ejecución. Revisar y resolver.
 - **Contexto:** Phase 2 dejó `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `cached_input_tokens`, `cache_hit_rate`, `cost_usd`, `response_length`, `message_count`, `block_count` por compat. Phase 3 ya migró `/trazas` y `/copilot-routing` a leer de `copilot_llm_call` directo.
 - [ ] Verificar via `git grep` que ningún consumer FE/streamlit/external lee esos keys. Si nadie → borrar de `turn_envelope._write_turn_end` y de cualquier test que los chequee. Estimado: 30min + grep audit.
 
+## Lecciones del fix loop bug + max_output_tokens — 2026-04-27
+
+### 31. [llm-providers] Unificar Gemini bajo el mismo helper de kwargs
+- **Contexto:** El bug del 2026-04-27 (`Completions.create() got an unexpected keyword argument 'max_output_tokens'`) se resolvió con un helper compartido `providers/_kwargs.py::normalize_openai_protocol_kwargs` que ahora consume `OpenAIService` + `OpenAICompatibleService` (DeepSeek/Kimi/Qwen). Gemini quedó fuera porque NO habla protocolo OpenAI — usa `langchain_google_genai.ChatGoogleGenerativeAI` con shape distinto (Vertex AI / Gemini API). Hoy nadie ruteo critical depende de Gemini para `generate_response` con `max_output_tokens`, pero si en el futuro se enchufa Gemini como fallback en `LLMRouter`, repetiremos el bug con otro nombre (Gemini sí entiende `max_output_tokens` literal, así que el fallo será silente — la traducción rota lo enviaría como `max_tokens` y Gemini lo ignoraría).
+- **Por qué no ahora:** Gemini no es fallback activo en producción. Forzarlo dentro del helper hoy implicaría:
+  - Crear `_gemini_kwargs.py` con la traducción inversa (Nicolify usa `max_output_tokens` y Gemini también lo usa nativo, así que la traducción es no-op para max-tokens — pero `temperature` está OK, y otros params como `top_k` solo existen en Gemini).
+  - Auditar `GeminiService.generate_response` (no leí su impl actual).
+  - Decidir si el helper se vuelve `normalize_kwargs(kwargs, target_protocol="openai" | "gemini")` (cleaner) o si cada protocolo tiene su propio helper (más simple, evita un argumento).
+- [ ] Cuando Gemini se promueva a primary o fallback en `LLMRouter`, audit + agregar:
+  - `providers/_kwargs.py::normalize_gemini_protocol_kwargs(kwargs)` (o renombrar a `normalize_kwargs(kwargs, target=...)`).
+  - Test parametrizado en `test_kwargs_normalization.py` para los kwargs Gemini-only (`top_k`, `safety_settings`).
+  - Update `GeminiService.generate_response` para llamarlo (revisar signature actual).
+  - Considerar si `metadata` y otros Nicolify-internal keys también se popean en Gemini (sí — son universales).
+- **Decisión:** dejar el helper Gemini-agnóstico hasta que haya un caller real. Forzar la abstracción ahora generaría YAGNI y testería un path sin uso. Estimado cuando se active: 2-3h con tests.
+
+### 32. [llm-compat] LangChain `ChatOpenAI` reescribe `max_tokens` → `max_completion_tokens`, rompe DeepSeek silente
+- **Contexto:** `langchain_openai.ChatOpenAI` (todas las versiones desde Sept-2024) reescribe automáticamente `max_tokens` a `max_completion_tokens` en el HTTP payload para alinearse con la deprecation de OpenAI Chat Completions. DeepSeek, Kimi y Qwen siguen aceptando solo `max_tokens` literal — el rewrite los rompe **silente** (no TypeError, sino: el cap se ignora y el modelo genera tokens hasta el techo del contexto). Issue upstream `langchain-ai/langchain#29283` cerrado "not planned" — LangChain considera que es problema de los compat providers, no suyo.
+- **Por qué importa para Nicolify:** Si en algún momento se setea un cap real (`max_output_tokens=512` para limitar costo de extracciones largas), DeepSeek/Kimi/Qwen lo van a ignorar y vamos a generar respuestas de 4-8K tokens cuando esperábamos 512. Costo en tokens 8-16x el presupuestado. No genera errores, solo plata quemada.
+- **Por qué no se arregla hoy:** La traducción de `_kwargs.py` corre ANTES de que LangChain haga su rewrite, así que el TypeError inmediato (`max_output_tokens`) está cubierto. El rewrite secundario `max_tokens → max_completion_tokens` ocurre dentro de `ChatOpenAI._stream`, fuera de nuestro control. El fix correcto requiere o bien:
+  - (a) Migrar a `langchain_deepseek.ChatDeepSeek` (paquete oficial separado) para DeepSeek, y similares para Kimi/Qwen cuando existan. Refactor mediano: cambiar `_get_chat_model` per provider.
+  - (b) Subclassear `ChatOpenAI` con un override de `_get_request_payload` que invierta el rewrite cuando `base_url != openai.com`. Frágil — depende de internals de LangChain.
+  - (c) Esperar a que cada compat provider acepte `max_completion_tokens` como alias (DeepSeek API roadmap incluye esto en V4).
+- [ ] **Detección temprana**: agregar check al admin `/copilot-routing` o `/costo-copilot` que warneee cuando `output_tokens > 1.5 * max_output_tokens_intended` para tenants con presupuesto explícito. Tablero compara `model_responded` con la lib LangChain usada para detectar el caso. Estimado: 2h. (Activa la alarma sin requerir migración.)
+- [ ] **Cuando dolga**: Si vemos costo real burned por esto en `mv_daily_llm_cost_per_tenant`, migrar DeepSeek a `langchain_deepseek.ChatDeepSeek`. Ya está en `requirements.txt`? auditar. Estimado: 4-6h con regression test que confirma `max_tokens` honra el cap.
+- **Referencia:** [langchain-ai/langchain#29283](https://github.com/langchain-ai/langchain/issues/29283), [langchain-ai/langchain#30113](https://github.com/langchain-ai/langchain/issues/30113).
+

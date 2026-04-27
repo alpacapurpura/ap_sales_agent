@@ -14,6 +14,9 @@ from src.modules.sales_agent.infrastructure.memory.audit_repository import (
 )
 from src.modules.sales_agent.infrastructure.monitoring.tracing import current_trace_id
 from src.shared.infrastructure.llm.base import BaseLLMService
+from src.shared.infrastructure.llm.providers._kwargs import (
+    normalize_openai_protocol_kwargs,
+)
 
 logger = structlog.get_logger()
 
@@ -93,7 +96,20 @@ class OpenAIService(BaseLLMService):
 
     @staticmethod
     def _extract_call_params(kwargs: dict) -> tuple[dict, dict]:
-        """Extract OpenAI call params and metadata from kwargs. Returns (call_params, meta_log)."""
+        """Extract OpenAI call params and metadata from kwargs.
+
+        Delegates the alias translation (``max_output_tokens`` →
+        ``max_tokens``) to the shared OpenAI-protocol helper so the
+        rule lives in one place across all OpenAI-protocol providers
+        (OpenAI itself + DeepSeek/Kimi/Qwen via OpenAICompatibleService).
+
+        Returns ``(call_params, meta_log)``.
+        """
+        # ``metadata`` is consumed for tracing — pop BEFORE normalising
+        # so we keep the value (the shared helper drops it without
+        # returning it). Order matters: pop metadata, then normalise.
+        meta_log = kwargs.pop("metadata", {})
+        normalize_openai_protocol_kwargs(kwargs)
         param_keys = (
             "temperature",
             "max_tokens",
@@ -105,10 +121,6 @@ class OpenAIService(BaseLLMService):
         for key in param_keys:
             if key in kwargs:
                 call_params[key] = kwargs.pop(key)
-        # max_output_tokens is an alias for max_tokens
-        if "max_output_tokens" in kwargs:
-            call_params["max_tokens"] = kwargs.pop("max_output_tokens")
-        meta_log = kwargs.pop("metadata", {})
         return call_params, meta_log
 
     def _log_to_trace(
