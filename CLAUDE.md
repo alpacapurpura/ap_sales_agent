@@ -161,7 +161,7 @@ docker run --rm ... ruff|pytest|tsc|vitest
 7. **PII:** Every endpoint MUST `response_model=`. PII masked/justified. Via `@AGENTS.md` → Tessl.
 8. **Git:** Conventional Commits, no force push main. `.claude/rules/git-safety.md`.
 9. **Debugging:** Docker diag + patterns. `.claude/rules/debugging.md`.
-10. **Copilot:** Schema introspection, module registry, route-based tools. `.claude/rules/copilot-resilience.md`.
+10. **Copilot:** Schema introspection, module registry, route-based tools, debug via trazas. `.claude/rules/copilot-resilience.md`. Observabilidad (cost / pricing / trace / billing 25-25 / PII / retention) en `.claude/rules/copilot-observability.md` — cualquier cambio al módulo `observability/` o queries de costo va por ahí.
 11. **Spanish neutro LatAm (sin voseo):** Todo user-facing español latinoamericano neutro. Tuteo `tú`, nunca `vos/tenés/podés/mirá/dejá`. Nicolify vende Latam — dejo argentino excluye MX/CO/PE/CL. Tildes/eñes correctas (`días`, `Campaña`). Aplica componentes, schemas (labels/hints/placeholders), catálogos backend user-facing, prompts LLM output visible, emails, notificaciones. Verificar antes commit. `.claude/rules/spanish-text.md`.
 12. **Mejora continua:** Problema proceso/test frágil/patrón incorrecto/aprendizaje → `[] descripción` en `docs/mejoras-proceso/to-do.md`. Sin verbosidad.
 13. **TDD Obligatorio:** Tests PRIMERO, implementación DESPUÉS. Sin excepciones. Features: test por capa antes. Bugs: test regresión antes fix. Existente sin tests: cubrir primero. `.claude/rules/tdd-mandatory.md`.

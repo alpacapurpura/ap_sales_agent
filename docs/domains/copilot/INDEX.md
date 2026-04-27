@@ -38,6 +38,19 @@ links inside each doc.
 | [redesign-2026-04/02-architecture-target.md](./redesign-2026-04/02-architecture-target.md) | Topología destino post-F10. |
 | [redesign-2026-04/learnings/](./redesign-2026-04/learnings/) | Aprendizajes acumulados por fase. |
 
+## Observability rebuild (2026-04, cerrado)
+
+| Doc | Purpose |
+|---|---|
+| [observability-rebuild-2026-04/README.md](./observability-rebuild-2026-04/README.md) | Refactor 3-fase del módulo observability: switch atómico al callback handler de LangChain, schema OTel-compatible, costo LLM por tenant en ciclo billing 25-25. |
+| [observability-rebuild-2026-04/ARCHITECTURE.md](./observability-rebuild-2026-04/ARCHITECTURE.md) | Estado objetivo: estructura `backend/src/modules/copilot/observability/` (recording / pricing / cost / persistence / reporting / workers / api), schema DB final, MV diaria. |
+| [observability-rebuild-2026-04/PRINCIPLES.md](./observability-rebuild-2026-04/PRINCIPLES.md) | 15 principios no-negociables (cohesión, migración total, switch atómico, best-effort, TDD, OTel-compatible, PII redaction, tenant isolation). |
+| [observability-rebuild-2026-04/phase-{1,2,3}-*/](./observability-rebuild-2026-04/) | Plans + research-checklists + completion-checklists + learnings + deferred-debt por fase. |
+
+**Live dashboard:** `/costo-copilot` en el admin Streamlit. Tres vistas — Comando Central (KPIs + tabla de tenants + CSV export), Detalle por tenant (series temporales 60d + breakdown por modelo + delta vs ciclo anterior), Top conversaciones (drill-down a `/trazas`).
+
+**Reglas asociadas:** `.claude/rules/copilot-observability.md` (cómo agregar domain events / providers / pricing manual / retention / PII), `.claude/rules/copilot-resilience.md` §"Debug copilot" (queries a `copilot_llm_call` post-Phase-2).
+
 ## Reading order by task
 
 - **Implementing a new block type:** `CONTRACT-MULTIMODAL.md §1` → `message-blocks.md` → (FE) `UI-SPEC.md`.

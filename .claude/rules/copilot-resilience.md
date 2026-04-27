@@ -44,18 +44,45 @@ Cuando el user reporta respuesta rara del copilot (card parpadea, LLM pregunta l
    ```
    Event types: `turn_start` / `turn_end` / `llm_call` / `tool_call` / `card_emitted` / `error` / `node_enter` / `node_exit`. Cada row trae `turn_id` (raíz) + `span_id` (propio) + `parent_span_id` (árbol).
 
-2. **`copilot_conversations.messages`** (JSONB con user/AI/Tool messages + tool_calls):
+2. **`copilot_llm_call`** (typed event-sourced LLM-call log, post 2026-04 rebuild):
+   ```sql
+   -- Toda la actividad LLM de un turn (provider, model, tokens, costo, duration).
+   SELECT role, provider, model_responded, input_tokens, output_tokens,
+          cached_read_tokens, cost_usd, duration_ms, status
+   FROM copilot_llm_call
+   WHERE tenant_id = :tenant_id AND turn_id = :turn_id
+   ORDER BY started_at;
+
+   -- Costo agregado por ciclo billing (usa la SQL function de Phase 3).
+   SELECT compute_cycle_start(:tenant_id, CURRENT_DATE) AS cycle_start,
+          SUM(cost_usd) AS cycle_cost_usd,
+          COUNT(*) AS calls,
+          COUNT(DISTINCT turn_id) AS turns
+   FROM copilot_llm_call
+   WHERE tenant_id = :tenant_id
+     AND occurred_on >= compute_cycle_start(:tenant_id, CURRENT_DATE);
+
+   -- MV pre-agregada (refrescada hourly por aggregate_refresh_task).
+   SELECT * FROM mv_daily_llm_cost_per_tenant
+   WHERE tenant_id = :tenant_id ORDER BY day DESC LIMIT 30;
+   ```
+   Cost+model están en columnas tipadas, **no en el JSONB de `copilot_trace_event.turn_end.data`**. El JSONB legacy compat (`model`, `prompt_tokens`, `cost_usd`) sigue rellenado por `turn_envelope._legacy_compat_keys` para no romper consumers viejos, pero `copilot_llm_call` es la fuente de verdad.
+
+3. **`copilot_conversations.messages`** (JSONB con user/AI/Tool messages + tool_calls):
    ```sql
    SELECT jsonb_pretty(messages) FROM copilot_conversations WHERE id = :conv_id;
    ```
 
-3. **`copilot_events`** (comportamiento usuario: accepted/rejected/nudge_*).
-4. **`copilot_routing_log`** (tier + classifier + tools_available).
-5. **`copilot_mutation_journal`** (cambios via `propose_field_updates`).
+4. **`copilot_events`** (comportamiento usuario: accepted/rejected/nudge_*).
+5. **`copilot_routing_log`** (tier + classifier + tools_available).
+6. **`copilot_mutation_journal`** (cambios via `propose_field_updates`).
 
-6. **Streamlit admin `/trazas`** — UI lista para navegar lo anterior sin SQL. Filtra por tenant + "solo con error". Abre un turn → timeline + detalle JSON por evento.
+7. **Streamlit admin** — UI lista para navegar lo anterior sin SQL:
+   - **`/trazas`** — timeline turn-a-turn. Cada row de `event_type='llm_call'` trae `cost_usd` joineado de `copilot_llm_call` por `span_id`.
+   - **`/copilot-routing`** — tier distribution + latency p50/p95 + costo USD por modelo (lee `copilot_llm_call` directo, no JSONB).
+   - **`/costo-copilot`** — dashboard de costo por tenant en ciclo 25-25 (Phase 3).
 
-7. **docker logs** solo si trazas no alcanzan (stack trace crudo).
+8. **docker logs** solo si trazas no alcanzan (stack trace crudo).
 
 ### Lo que SIEMPRE debe aparecer en trazas
 
