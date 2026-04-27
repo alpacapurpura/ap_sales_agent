@@ -18,6 +18,10 @@ ALLOWED_USD_DEFAULT_FILES: set[str] = {
     "src/modules/iam/domain/tenant.py",
     "src/modules/iam/api/settings.py",
     "src/shared/domain/locale.py",
+    # Per-tenant billing-cycle config (Phase 1 copilot observability rebuild).
+    # ``billing_currency`` defaults to USD when no override exists — same role
+    # as ``iam/domain/tenant.py``'s ``default_currency``.
+    "src/modules/copilot/observability/persistence/models/tenant_billing_config_model.py",
 }
 
 KNOWN_USD_DEFAULT_VIOLATIONS: set[str] = set()

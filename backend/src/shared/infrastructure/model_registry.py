@@ -44,6 +44,17 @@ from src.modules.copilot.infrastructure.models.conversation_model import (
 from src.modules.copilot.infrastructure.models.event_model import (
     CopilotEventModel,  # noqa: F401
 )
+
+# --- Copilot Observability (Phase 1 rebuild — see docs/domains/copilot/observability-rebuild-2026-04) ---
+from src.modules.copilot.observability.persistence.models.llm_call_model import (
+    CopilotLlmCallModel,  # noqa: F401
+)
+from src.modules.copilot.observability.persistence.models.pricing_snapshot_model import (
+    ModelPricingSnapshotModel,  # noqa: F401
+)
+from src.modules.copilot.observability.persistence.models.tenant_billing_config_model import (
+    TenantBillingConfigModel,  # noqa: F401
+)
 from src.modules.crm.infrastructure.models.customer_model import (  # noqa: F401
     CustomerIdentityModel,
     CustomerProfileModel,
