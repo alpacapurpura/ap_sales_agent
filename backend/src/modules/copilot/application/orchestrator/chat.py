@@ -45,6 +45,9 @@ from src.modules.copilot.application.observability import trace_recorder
 from src.modules.copilot.application.observability.node_trace import (
     emit_node_trace_event,
 )
+from src.modules.copilot.application.orchestrator.channel_intent_detector import (
+    detect_channel_intent,
+)
 from src.modules.copilot.application.orchestrator.deep_agent import (
     build_deep_agent_graph,
 )
@@ -589,6 +592,23 @@ class CopilotOrchestrator:
         )
         state["guided_state"] = guided.to_json() if guided is not None else None
         state["active_extraction_job"] = active_job_json
+
+        # FP2 (B24) — detect channel intent from the user message BEFORE the
+        # graph builds. When present, ``deep_agent._build_combined_system_prompt``
+        # injects an instruction forcing ``format_for_channel`` invocation so
+        # Kimi K2.6 (phrasing-sensitive, B11-TP6) cannot drop the tool call.
+        # Tool itself is already in ``ALWAYS_AVAILABLE_GROUPS`` — the bug was
+        # never binding, it was the LLM ignoring the implicit signal.
+        intent = detect_channel_intent(message)
+        state["channel_intent"] = (
+            {
+                "channel": intent.channel,
+                "label": intent.label,
+                "matched_span": list(intent.matched_span),
+            }
+            if intent is not None
+            else None
+        )
 
         # Publish the conversation id so tools invoked by the LLM can persist
         # conversation-scoped state (e.g. guided progress) without receiving

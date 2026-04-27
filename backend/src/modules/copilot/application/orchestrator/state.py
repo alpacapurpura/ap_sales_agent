@@ -57,6 +57,13 @@ class CopilotState(TypedDict):
     # so tools can introspect it without an extra DB hit inside the graph.
     guided_state: dict[str, Any] | None
 
+    # FP2 (B24) — channel intent detected in the user message. When present,
+    # the deep-agent prompt builder injects an instruction forcing
+    # ``format_for_channel`` invocation before the AGENT finalises the turn.
+    # Shape: ``{"channel": "whatsapp", "label": "WhatsApp", "matched_span": [start, end]}``
+    # or ``None`` when no channel keyword was detected.
+    channel_intent: dict[str, Any] | None
+
     # Error tracking
     error: str | None
 
@@ -78,5 +85,6 @@ def create_initial_copilot_state(
         "active_tool_names": [],
         "active_procedure": None,
         "guided_state": None,
+        "channel_intent": None,
         "error": None,
     }

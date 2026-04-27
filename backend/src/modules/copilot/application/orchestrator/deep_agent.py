@@ -101,10 +101,58 @@ Reglas:
 """.strip()
 
 
+def _build_channel_intent_hint(state: CopilotState) -> str:
+    """Emit a system-prompt instruction when channel intent is detected.
+
+    FP2 (B24) — Kimi K2.6 (no-thinking, phrasing-sensitive per B11-TP6)
+    consistently dropped the ``format_for_channel`` tool call when the
+    user wrote "armame copy WhatsApp" / "para email" / "copy WA literal".
+    The tool was bound (``ALWAYS_AVAILABLE_GROUPS`` ships it on every
+    route) but the LLM never decided to invoke it.
+
+    The hint is **append-only** to the existing suffix so the deep-agent
+    behaviour rules (planning, scratchpad, voseo prohibition) remain
+    intact. Idempotent: a missing intent yields an empty string and the
+    suffix renders verbatim.
+    """
+    intent = state.get("channel_intent")
+    if not intent:
+        return ""
+    channel = str(intent.get("channel", "")).strip()
+    label = str(intent.get("label", "")).strip() or channel
+    if not channel:
+        return ""
+    return (
+        "\n\n"
+        f"## REGLA OBLIGATORIA — Canal de salida: {label}\n\n"
+        f"El usuario pidió expresamente la respuesta en formato `{label}`. "
+        "Esta es una **instrucción de canal vinculante**, no una sugerencia.\n\n"
+        "Tu próximo turno DEBE ejecutar exactamente este flujo:\n\n"
+        f"1. Genera el copy adaptado a {label} usando el contexto disponible "
+        "(nombre de marca, oferta, audiencia, contenido proporcionado por el usuario "
+        "o ya conocido en este chat). Si la información es mínima, genera un copy "
+        "genérico con placeholders explícitos — el usuario los completará después. "
+        "**NUNCA pidas más datos antes de generar al menos un primer borrador.**\n"
+        "2. **OBLIGATORIO** — invoca la herramienta "
+        f"`format_for_channel(content=<tu copy>, channel_id='{channel}')`. "
+        "Esto NO es opcional: cada respuesta de canal debe pasar por esta tool "
+        "para validar largo, limpiar markdown y reportar warnings.\n"
+        f"3. Entrega al usuario el `content` que devuelve la tool, listo para "
+        f"copiar y pegar en {label}. Nada más, nada menos. Sin markdown asterisks `**` "
+        "ni headers `#`. Sin explicaciones meta sobre el proceso.\n\n"
+        "Saltar la tool, pedir clarificación adicional antes de generar el primer "
+        "borrador, o entregar prosa larga estilo informe rompe la experiencia. "
+        "Si te falta un dato puntual (fecha, link), inclúyelo como placeholder "
+        f"(`[FECHA]`, `[LINK]`) en el copy — el usuario lo completa después de "
+        "validar el formato."
+    )
+
+
 def _build_combined_system_prompt(state: CopilotState) -> str:
-    """Compose the Nicolify dynamic prompt + deep-agent suffix."""
+    """Compose the Nicolify dynamic prompt + deep-agent suffix + channel hint."""
     base = build_system_prompt(state)
-    return f"{base}\n{_DEEP_AGENT_SUFFIX_ES}"
+    channel_hint = _build_channel_intent_hint(state)
+    return f"{base}\n{_DEEP_AGENT_SUFFIX_ES}{channel_hint}"
 
 
 def build_deep_agent_graph(

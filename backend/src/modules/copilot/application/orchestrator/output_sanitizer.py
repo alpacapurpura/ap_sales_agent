@@ -157,29 +157,15 @@ def correct_voseo_in_text(text: str) -> str:
 
 # ── 3. Channel format enforcement ────────────────────────────────────────────
 
-# Detects channel keywords in the *user* message so the sanitizer knows
-# whether to apply ``format_for_channel_impl``. Matches ``"SMS"``,
-# ``"para WhatsApp"``, ``"un email"``, ``"Telegram"``, ``"Instagram DM"``,
-# ``"audio"`` / ``"voz"``. Order matters in the alternation — the more
-# specific patterns (``instagram_dm``) come before the generic ones.
-_CHANNEL_KEYWORD_PATTERNS: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"\binstagram[ _-]?dm\b|\bIG[ _-]?DM\b", re.IGNORECASE), "instagram_dm"),
-    (re.compile(r"\bwhats[ _-]?app\b|\bWA\b", re.IGNORECASE), "whatsapp"),
-    (re.compile(r"\btelegram\b", re.IGNORECASE), "telegram"),
-    (re.compile(r"\bsms\b|\bmensaje de texto\b", re.IGNORECASE), "sms"),
-    (re.compile(r"\bemail\b|\bcorreo electr[oó]nico\b|\bcorreo\b", re.IGNORECASE), "email"),
-    (re.compile(r"\b(audio|voz|voice|tts)\b", re.IGNORECASE), "voice"),
-]
-
-
-def detect_channel_in_user_msg(user_msg: str | None) -> str | None:
-    """Return the canonical channel id mentioned in the user message, if any."""
-    if not user_msg:
-        return None
-    for pattern, channel_id in _CHANNEL_KEYWORD_PATTERNS:
-        if pattern.search(user_msg):
-            return channel_id
-    return None
+# FP2 (B24): the channel keyword regex moved to ``channel_intent_detector``
+# so the chat orchestrator can run the same detection BEFORE the LLM call
+# (to inject a system-prompt hint forcing ``format_for_channel``) AND the
+# sanitizer can re-use it AFTER the LLM call as a last-line-of-defense.
+# Single source of truth; AC7 false-positive guard against URL mentions
+# (``whatsapp.com``) propagates to both call sites for free.
+from src.modules.copilot.application.orchestrator.channel_intent_detector import (
+    detect_channel_in_user_msg,
+)
 
 
 def enforce_channel_format_if_needed(text: str, user_msg: str | None) -> str:
