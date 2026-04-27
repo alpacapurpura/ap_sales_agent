@@ -182,8 +182,9 @@ Cuando T2.8 cierre + Phase 3 promueva el reporte:
   - `a9edf2d2` test(copilot-obs): allowlist USD defaults in Phase 1 obs seams (T2.0 — Phase 1 leftover)
   - `a3455ebf` feat(copilot-obs): add domain events module + register hook (T2.2 + T2.3 + T2.4)
   - `3d5ff66f` feat(copilot-obs): atomic switch — wire callback handler, delete legacy paths (T2.5 + T2.6)
-  - **TBD** chore(copilot-obs): remove temporary rollback flag (T2.8 — post-soak)
-  - **TBD** docs(copilot-obs): close phase 2 — fill learnings + deferred-debt (T2.10)
+  - `a8deee60` docs(copilot-obs): close phase 2 — fill learnings + deferred-debt (initial close)
+  - `e19b325e` fix(copilot-obs): land turn_end + commit turn rows + structlog kwarg (T2.7 — 3 bugs descubiertos durante verificación post-switch)
+  - `408a75d7` chore(copilot-obs): remove temporary rollback flag (T2.8 — post-verificación)
 - **Diff total Fase 2:** 24 files changed (commit `3d5ff66f`) + 5 files (commit `a3455ebf` 650 ins) + 1 file (commit `a9edf2d2` 10 ins) ≈ ~660 ins / 2022 dels netas (-1372 LOC).
 - **Tests añadidos:** 11 (events) + 6 (register) + 11 (atomic_switch) = **28 tests nuevos** en `tests/modules/copilot/`.
 - **Tests borrados:** **36 tests** (6 archivos legacy completos + 1 test deletion en test_sse_v2_events.py).
