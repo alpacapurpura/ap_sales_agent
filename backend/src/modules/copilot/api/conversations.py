@@ -17,17 +17,24 @@ from src.core.database import get_db
 from src.modules.copilot.api.conversation_dto import (
     ActiveJobProgressDTO,
     ActiveJobsResponse,
+    AppliedMutationDTO,
+    ApplyMutationsRequest,
+    ApplyMutationsResponse,
     ConversationDetail,
     ConversationListResponse,
     ConversationMessageDTO,
     ConversationSummary,
     PatchConversationRequest,
+    RejectedMutationDTO,
     RevertFailure,
     RevertRequest,
     RevertResponse,
 )
 from src.modules.copilot.application.extraction.active_job_persistence import (
     read_active_job,
+)
+from src.modules.copilot.application.services.mutation_apply_service import (
+    MutationApplyService,
 )
 from src.modules.copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
@@ -272,6 +279,62 @@ async def delete_conversation(
         "conversation_deleted",
         conversation_id=str(conversation_id),
         tenant_id=str(tenant_id),
+    )
+
+
+@router.post(
+    "/conversations/{conversation_id}/mutations/apply",
+    response_model=ApplyMutationsResponse,
+    summary="Aplicar propuestas del copilot al backend (B22-FP1 fallback)",
+)
+async def apply_mutations(
+    conversation_id: UUID,
+    body: ApplyMutationsRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    db: Annotated[Session, Depends(get_db)],
+) -> ApplyMutationsResponse:
+    """Apply ProposalCard updates server-side when no FormRuntimeBridge is available.
+
+    Used by ``ProposalCard`` as the fallback when the chat panel is open
+    but no form-runtime section is mounted (e.g. user is on a non-form
+    route). Each update is journaled idempotently and dispatched to the
+    per-domain side-effect handler so a page reload renders the value.
+    """
+    if not tenant_id or not current_user.tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant ID requerido")
+
+    repo = ConversationRepository(db)
+    conv = repo.get_by_id(conversation_id, tenant_id, current_user.id)
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversación no encontrada")
+
+    service = MutationApplyService(db)
+    result = service.apply(
+        tenant_id=tenant_id,
+        conversation_id=conversation_id,
+        message_id=body.message_id,
+        updates=[u.model_dump() for u in body.updates],
+    )
+    db.commit()
+    logger.info(
+        "copilot_mutations_applied",
+        conversation_id=str(conversation_id),
+        tenant_id=str(tenant_id),
+        applied_count=len(result.applied),
+        rejected_count=len(result.rejected),
+    )
+    return ApplyMutationsResponse(
+        applied=[
+            AppliedMutationDTO(
+                id=a.id,
+                field_path=a.field_path,
+                domain=a.domain,
+                status=a.status,
+            )
+            for a in result.applied
+        ],
+        rejected=[RejectedMutationDTO(field_id=r.field_id, reason=r.reason) for r in result.rejected],
     )
 
 

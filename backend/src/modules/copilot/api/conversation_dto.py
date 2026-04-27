@@ -103,6 +103,59 @@ class RevertResponse(BaseModel):
     failed: list[RevertFailure] = Field(default_factory=list)
 
 
+class ApplyMutationUpdate(BaseModel):
+    """One proposed update inside an apply request (B22-FP1).
+
+    Mirrors ``ProposalUpdate`` shape emitted by ``propose_field_updates``
+    so the FE can forward it verbatim through the fallback path when no
+    ``FormRuntimeBridge`` is connected.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    field_id: str
+    new_value: object | None
+    reason: str | None = None
+
+
+class ApplyMutationsRequest(BaseModel):
+    """Request body for POST /conversations/{id}/mutations/apply."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    message_id: UUID
+    updates: list[ApplyMutationUpdate]
+
+
+class AppliedMutationDTO(BaseModel):
+    """A single applied (or already-existing idempotent) journal row."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    field_path: str
+    domain: str
+    status: Literal["applied", "existing"]
+
+
+class RejectedMutationDTO(BaseModel):
+    """A single update the apply pipeline refused to persist."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    field_id: str
+    reason: str
+
+
+class ApplyMutationsResponse(BaseModel):
+    """Response from POST /conversations/{id}/mutations/apply."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    applied: list[AppliedMutationDTO] = Field(default_factory=list)
+    rejected: list[RejectedMutationDTO] = Field(default_factory=list)
+
+
 class ActiveJobProgressDTO(BaseModel):
     """Progress snapshot for a single in-flight extraction job.
 

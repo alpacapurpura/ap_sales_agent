@@ -61,6 +61,76 @@ class MutationJournalRepository:
         )
         return row
 
+    def find_active_by_natural_key(
+        self,
+        *,
+        tenant_id: UUID,
+        conversation_id: UUID,
+        message_id: UUID,
+        field_path: str,
+    ) -> MutationJournalModel | None:
+        """Return the active (non-reverted) row matching the natural key, or None.
+
+        Natural key for AC5 idempotency = (tenant_id, conversation_id,
+        message_id, field_path) WHERE reverted_at IS NULL. Mirrors the
+        partial unique index ``ux_copilot_mutation_journal_active_natural_key``.
+        """
+        stmt = select(MutationJournalModel).where(
+            MutationJournalModel.tenant_id == tenant_id,
+            MutationJournalModel.conversation_id == conversation_id,
+            MutationJournalModel.message_id == message_id,
+            MutationJournalModel.field_path == field_path,
+            MutationJournalModel.reverted_at.is_(None),
+        )
+        return self.db.execute(stmt).scalars().first()
+
+    def upsert_idempotent(
+        self,
+        *,
+        tenant_id: UUID,
+        conversation_id: UUID,
+        message_id: UUID,
+        domain: str,
+        entity_id: UUID | None,
+        field_path: str,
+        old_value: Any | None,  # noqa: ANN401  # JSONB: genuine JSON value
+        new_value: Any | None,  # noqa: ANN401  # JSONB: genuine JSON value
+    ) -> tuple[MutationJournalModel, str]:
+        """Insert if no active row exists for the natural key, else return existing.
+
+        Returns ``(row, status)`` where status is ``"applied"`` for new
+        inserts and ``"existing"`` when an active row already exists. Used
+        by the ``/mutations/apply`` endpoint to absorb duplicate clicks
+        without writing a second journal row.
+        """
+        existing = self.find_active_by_natural_key(
+            tenant_id=tenant_id,
+            conversation_id=conversation_id,
+            message_id=message_id,
+            field_path=field_path,
+        )
+        if existing is not None:
+            logger.debug(
+                "mutation_journal_idempotent_hit",
+                domain=domain,
+                field_path=field_path,
+                tenant_id=str(tenant_id),
+                existing_id=str(existing.id),
+            )
+            return existing, "existing"
+
+        row = self.insert(
+            tenant_id=tenant_id,
+            conversation_id=conversation_id,
+            message_id=message_id,
+            domain=domain,
+            entity_id=entity_id,
+            field_path=field_path,
+            old_value=old_value,
+            new_value=new_value,
+        )
+        return row, "applied"
+
     def fetch_by_conversation(
         self,
         *,
