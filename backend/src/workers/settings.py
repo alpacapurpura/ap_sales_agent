@@ -21,6 +21,7 @@ from src.modules.analytics.workers.tasks import (
 )
 from src.modules.brand.workers.tasks import run_brand_extraction
 from src.modules.copilot.application.services.event_cleanup import cleanup_old_events
+from src.modules.copilot.observability.workers.pricing_sync_task import sync_litellm_pricing
 from src.modules.offer.workers.tasks import run_offer_extraction
 from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
 from src.modules.tenant_domains.workers.tasks import poll_domain_verification
@@ -47,6 +48,7 @@ class WorkerSettings:
         regen_brand_summary,
         weekly_copilot_quality_eval,
         weekly_copilot_rag_eval,
+        sync_litellm_pricing,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -101,6 +103,7 @@ class SchedulerSettings:
         regen_brand_summary,
         weekly_copilot_quality_eval,
         weekly_copilot_rag_eval,
+        sync_litellm_pricing,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -152,6 +155,14 @@ class SchedulerSettings:
             weekly_copilot_rag_eval,
             weekday="mon",
             hour=6,
+            minute=0,
+        ),
+        # Phase 1 copilot observability rebuild — daily LiteLLM pricing
+        # sync. 03:00 UTC keeps the run before the daily UTC report cuts
+        # at 04:00 (inactivity_detection) so pricing is fresh for the day.
+        cron(
+            sync_litellm_pricing,
+            hour=3,
             minute=0,
         ),
     ]
