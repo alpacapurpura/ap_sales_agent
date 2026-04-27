@@ -270,9 +270,15 @@ def _compute_pending_field_paths(
 # Route → domain resolvers for the studio snapshot layer. Brand Studio is
 # tenant-scoped so no entity id is needed. Offer Studio embeds ``offerId``
 # in the path; only the offer-detail route (``/offer-studio/offer/<uuid>``)
-# can be snapshotted — the offer-list route has no specific entity.
+# can be snapshotted — the offer-list route has no specific entity. Buyer
+# personas live under brand-studio but their detail route embeds the
+# persona UUID — same shape as offer.
 _STUDIO_OFFER_ID_RE = re.compile(
     r"/offer-studio/offer/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
+    re.IGNORECASE,
+)
+_STUDIO_PERSONA_ID_RE = re.compile(
+    r"/brand-studio/publico/persona/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
     re.IGNORECASE,
 )
 
@@ -290,9 +296,26 @@ def _resolve_studio_context(current_route: str | None) -> tuple[str, str | None]
     match = _STUDIO_OFFER_ID_RE.search(current_route)
     if match:
         return "offer", match.group(1)
+    # Buyer persona detail route — embedded UUID required. Must check
+    # before the generic /brand-studio fallback so the persona_id is not
+    # silently dropped (was the root cause of the read_document → loop bug
+    # observed 2026-04-27 with conversation fbc79125-…). The persona list
+    # route (no UUID) falls through to the brand bucket below.
+    persona_match = _STUDIO_PERSONA_ID_RE.search(current_route)
+    if persona_match:
+        return "buyer_persona", persona_match.group(1)
     if "/brand-studio" in current_route:
         return "brand", None
     return None
+
+
+# Display labels for domains that are not registered as full
+# ``ModuleDescriptor``s. Keeps the snapshot layer prompt human-readable
+# without forcing buyer_persona to register as a top-level module — which
+# would also imply nav/awareness/etc. surface area we don't need.
+_DOMAIN_DISPLAY_LABELS: dict[str, str] = {
+    "buyer_persona": "Buyer Persona",
+}
 
 
 def _render_studio_snapshot(
@@ -321,7 +344,7 @@ def _render_studio_snapshot(
 
     registry = get_module_registry()
     desc = registry.get(domain)
-    module_label = desc.label if desc else domain
+    module_label = desc.label if desc else _DOMAIN_DISPLAY_LABELS.get(domain, domain)
 
     try:
         return prompt_loader.render(

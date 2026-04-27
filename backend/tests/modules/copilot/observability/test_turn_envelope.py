@@ -159,3 +159,62 @@ class TestEnvelopeLifecycle:
         end_row = db.query(CopilotTraceEventModel).filter_by(turn_id=ctx.turn_id, event_type="turn_end").one()
         assert end_row.status == "error"
         assert "RuntimeError" in end_row.data.get("error_type", "")
+
+    @pytest.mark.asyncio
+    async def test_set_turn_error_marks_status_when_exception_swallowed(self, db) -> None:
+        """Fix 5 — the orchestrator catches stream exceptions internally
+        (TimeoutError, ToolCallLoopDetected, generic Exception) so the
+        envelope sees no exception and marks the turn ``status='ok'``.
+        That hid real failures (2026-04-27 incident: GraphRecursionError
+        landed but turn_end said ``ok``).
+
+        ``set_turn_error(error_kind, error_message)`` lets the orchestrator
+        flag the turn from inside the except block. The envelope's finally
+        path then writes ``status='error'`` plus the kind + message into
+        the turn_end ``data`` payload.
+        """
+        from src.modules.copilot.infrastructure.models.trace_event_model import (
+            CopilotTraceEventModel,
+        )
+
+        ctx = _build_context(db)
+        async with ctx.observe_turn(
+            message="hola",
+            route="/copilot/chat",
+            attachments=[],
+        ):
+            # Simulate the orchestrator catching a stream error and flagging
+            # the turn before the context manager exits cleanly.
+            ctx.set_turn_error(
+                error_kind="graph_recursion",
+                error_message="Recursion limit of 25 reached",
+            )
+        db.flush()
+
+        end_row = db.query(CopilotTraceEventModel).filter_by(turn_id=ctx.turn_id, event_type="turn_end").one()
+        assert end_row.status == "error"
+        assert end_row.data.get("error_kind") == "graph_recursion"
+        # Error message must reach the trace so debugging does not require
+        # cross-referencing docker logs.
+        assert "Recursion" in end_row.data.get("error_message", "")
+
+    @pytest.mark.asyncio
+    async def test_set_turn_error_takes_precedence_over_clean_exit(self, db) -> None:
+        """Even when the body returns normally, an explicit set_turn_error
+        flag must override the default ``ok`` status."""
+        from src.modules.copilot.infrastructure.models.trace_event_model import (
+            CopilotTraceEventModel,
+        )
+
+        ctx = _build_context(db)
+        async with ctx.observe_turn(
+            message="hola",
+            route="/copilot/chat",
+            attachments=[],
+        ):
+            ctx.set_turn_error(error_kind="tool_call_loop")
+        db.flush()
+
+        end_row = db.query(CopilotTraceEventModel).filter_by(turn_id=ctx.turn_id, event_type="turn_end").one()
+        assert end_row.status == "error"
+        assert end_row.data.get("error_kind") == "tool_call_loop"

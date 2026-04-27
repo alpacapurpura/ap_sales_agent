@@ -25,6 +25,7 @@ from src.modules.copilot.application.orchestrator.graph import (
 
 _TENANT_ID = uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 _OFFER_ID = uuid.UUID("11111111-2222-3333-4444-555555555555")
+_PERSONA_ID = uuid.UUID("ed91a7c8-29d9-4370-a595-cba3be148605")
 
 
 # ── Route resolver ───────────────────────────────────────────────────
@@ -51,6 +52,44 @@ def test_resolve_studio_context_offer_list_without_id() -> None:
     # Offer list page has no offer UUID — no snapshot possible.
     result = _resolve_studio_context(f"/{_TENANT_ID}/offer-studio")
     assert result is None
+
+
+def test_resolve_studio_context_buyer_persona_with_id() -> None:
+    """Persona detail route must yield (buyer_persona, persona_id) so the
+    agent receives the entity_id needed by extract_from_doc / start_guided.
+
+    Reproduces the bug where /brand-studio/publico/persona/{id} matched the
+    generic /brand-studio bucket and dropped the persona_id silently.
+    """
+    result = _resolve_studio_context(
+        f"/{_TENANT_ID}/brand-studio/publico/persona/{_PERSONA_ID}",
+    )
+    assert result == ("buyer_persona", str(_PERSONA_ID))
+
+
+def test_resolve_studio_context_buyer_persona_with_field_query() -> None:
+    """Persona route with ?field= query and trailing segments still matches."""
+    result = _resolve_studio_context(
+        f"/{_TENANT_ID}/brand-studio/publico/persona/{_PERSONA_ID}/identidad",
+    )
+    assert result == ("buyer_persona", str(_PERSONA_ID))
+
+
+def test_resolve_studio_context_buyer_persona_list_without_id() -> None:
+    """Persona list (no UUID after /persona) must NOT claim buyer_persona —
+    falls back to generic brand-studio bucket so the existing snapshot layer
+    still renders brand-level context."""
+    result = _resolve_studio_context(f"/{_TENANT_ID}/brand-studio/publico/persona")
+    assert result == ("brand", None)
+
+
+def test_resolve_studio_context_buyer_persona_invalid_uuid() -> None:
+    """Garbage in the persona slot must not crash the resolver."""
+    result = _resolve_studio_context(
+        f"/{_TENANT_ID}/brand-studio/publico/persona/not-a-uuid",
+    )
+    # Falls through to generic brand-studio match (safe fallback).
+    assert result == ("brand", None)
 
 
 def test_resolve_studio_context_dashboard_route() -> None:
@@ -160,6 +199,10 @@ def test_layer_empty_when_catalog_returns_no_paths() -> None:
             f"/aaa/offer-studio/offer/{_OFFER_ID}/psychology",
             "offer",
         ),
+        (
+            f"/aaa/brand-studio/publico/persona/{_PERSONA_ID}",
+            "buyer_persona",
+        ),
     ],
 )
 def test_resolve_studio_context_matches_expected_domain(
@@ -169,3 +212,33 @@ def test_resolve_studio_context_matches_expected_domain(
     result = _resolve_studio_context(route)
     assert result is not None
     assert result[0] == expected_domain
+
+
+def test_layer_buyer_persona_route_renders_persona_id_in_prompt() -> None:
+    """When user is on /brand-studio/publico/persona/{id}, the snapshot layer
+    must include the persona_id in the prompt so the agent can pass it to
+    extract_from_doc / start_guided / propose_field_updates.
+
+    Stub out the entity reader to keep the test hermetic."""
+    state = _state_on_route(
+        f"/{_TENANT_ID}/brand-studio/publico/persona/{_PERSONA_ID}",
+    )
+    with patch(
+        "src.modules.copilot.application.orchestrator.graph._compute_field_completion",
+        return_value=(
+            ["identity.name", "psychology.symptoms"],
+            ["psychology.desires", "psychology.fears"],
+        ),
+    ):
+        rendered = _build_studio_snapshot_layer(state)
+
+    assert rendered != ""
+    # The persona UUID must appear in the rendered prompt — without it the
+    # agent has no anchor to call extract_from_doc(entity_id=...) and falls
+    # back to scanning unrelated modules (root cause of the loop bug).
+    assert str(_PERSONA_ID) in rendered
+    # Module label must read "Buyer Persona" (Spanish neutro), not "Brand".
+    assert "buyer persona" in rendered.lower()
+    # Filled + empty paths must be partitioned correctly.
+    assert "identity.name" in rendered
+    assert "psychology.desires" in rendered

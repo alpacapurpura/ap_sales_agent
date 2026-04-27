@@ -61,6 +61,20 @@ class _TurnSummary:
 
 
 @dataclass
+class _TurnErrorFlag:
+    """Out-of-band error flag set by the orchestrator.
+
+    The orchestrator catches stream errors inside its own except blocks
+    so it can emit a user-friendly SSE message. That cleans the body
+    exit — without this flag, ``turn_end`` would record ``status='ok'``
+    even when the LLM run blew up (the 2026-04-27 incident).
+    """
+
+    error_kind: str
+    error_message: str | None = None
+
+
+@dataclass
 class ObservabilityContext:
     """One instance per turn. Owns the callback handler + turn lifecycle."""
 
@@ -73,6 +87,7 @@ class ObservabilityContext:
     trace_repo: TraceEventRepository
     _summary: _TurnSummary = field(default_factory=_TurnSummary)
     _turn_start_monotonic: float = field(default_factory=time.monotonic)
+    _error_flag: _TurnErrorFlag | None = None
 
     @classmethod
     def start(
@@ -133,6 +148,27 @@ class ObservabilityContext:
             response_length=int(response_length),
             message_count=int(message_count),
             block_count=int(block_count),
+        )
+
+    def set_turn_error(
+        self,
+        *,
+        error_kind: str,
+        error_message: str | None = None,
+    ) -> None:
+        """Flag the current turn as errored without raising.
+
+        The orchestrator catches stream errors (TimeoutError,
+        ToolCallLoopDetected, generic Exception) so it can emit a
+        user-facing SSE error and persist partial state. Those catches
+        used to leave the turn marked ``status='ok'`` — observability
+        lied. Calling this from the except block ensures ``turn_end``
+        records the truth (``status='error'`` + ``error_kind`` +
+        truncated message).
+        """
+        self._error_flag = _TurnErrorFlag(
+            error_kind=error_kind,
+            error_message=error_message,
         )
 
     @asynccontextmanager
@@ -208,6 +244,14 @@ class ObservabilityContext:
             if error is not None:
                 data["error_type"] = type(error).__name__
                 data["error_message"] = truncate(str(error))
+            # Out-of-band error flag wins over a clean exit: the
+            # orchestrator caught the exception itself so the body
+            # returned normally, but the turn was still a failure.
+            if self._error_flag is not None:
+                data["error_kind"] = self._error_flag.error_kind
+                if self._error_flag.error_message is not None:
+                    data["error_message"] = truncate(self._error_flag.error_message)
+            is_error = error is not None or self._error_flag is not None
             self.trace_repo.add(
                 tenant_id=self.tenant_id,
                 user_id=self.user_id,
@@ -218,7 +262,7 @@ class ObservabilityContext:
                 name="turn_end",
                 data=sanitize_payload(data),
                 duration_ms=duration_ms,
-                status="error" if error is not None else "ok",
+                status="error" if is_error else "ok",
             )
             self._commit_session()
         except Exception as exc:  # noqa: BLE001

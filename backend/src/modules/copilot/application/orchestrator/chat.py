@@ -56,6 +56,12 @@ from src.modules.copilot.application.orchestrator.stream_provenance import (
     StreamPolicy,
     policy_for,
 )
+from src.modules.copilot.application.orchestrator.tool_call_dedup import (
+    DedupVerdict,
+    ToolCallDedupTracker,
+    ToolCallLoopError,
+    augment_tool_message_for_warn,
+)
 from src.modules.copilot.application.router import (
     RoutingRequest,
     build_default_router,
@@ -416,6 +422,16 @@ COPILOT_STREAM_TIMEOUT_SECONDS: int = int(
     os.environ.get("COPILOT_STREAM_TIMEOUT_SECONDS", "60"),
 )
 
+# LangGraph hard cap on graph node iterations per turn. The default mirrors
+# LangGraph's own default (25) so this constant is behaviour-preserving on
+# day one. It exists so ops can tune the cap from env without code edits
+# and so the value is captured in trace metadata when a recursion error
+# fires. Lowering it (with the dedup guard active) helps surface tool-call
+# loops faster; raising it should be a deliberate, audited change.
+COPILOT_RECURSION_LIMIT: int = int(
+    os.environ.get("COPILOT_RECURSION_LIMIT", "25"),
+)
+
 _TRACE_PREVIEW_CHARS = 2_000
 
 
@@ -505,6 +521,11 @@ class _StreamAccumulator:
     # CardEmitted events tagged with this turn_id / tenant_id so the
     # observability subscribers persist them into copilot_trace_event.
     obs: ObservabilityContext | None = None
+    # Anti-loop guard — tracks identical tool calls per turn so the
+    # orchestrator can inject a course-correct directive (WARN) or
+    # abort the turn (raise ToolCallLoopError) before the deep-agent
+    # graph hits its recursion limit and we lose all state.
+    dedup_tracker: ToolCallDedupTracker = field(default_factory=ToolCallDedupTracker)
 
 
 class CopilotOrchestrator:
@@ -980,7 +1001,7 @@ class CopilotOrchestrator:
         yield SSEEvent(event="status", data={"state": "done"}).to_sse()
         yield SSEEvent(event="done", data={"conversation_id": conv_id}).to_sse()
 
-    async def _run_graph_stream(
+    async def _run_graph_stream(  # noqa: PLR0912 — stream lifecycle + 3 distinct error paths (timeout, tool-loop, generic) each need their own SSE shape, log line, and set_turn_error kind. Splitting obscures more than it clarifies.
         self,
         *,
         state: dict,
@@ -1023,6 +1044,14 @@ class CopilotOrchestrator:
 
             async with asyncio.timeout(COPILOT_STREAM_TIMEOUT_SECONDS):
                 graph = build_deep_agent_graph(state)
+                # Merge the configured recursion_limit into the LangGraph
+                # config so a runaway tool-call loop hits a controlled
+                # GraphRecursionError instead of running until the stream
+                # timeout (which costs LLM tokens and obscures the cause).
+                graph_config = {
+                    **graph_config,
+                    "recursion_limit": COPILOT_RECURSION_LIMIT,
+                }
                 async for event in graph.astream_events(
                     state,
                     version="v2",
@@ -1059,6 +1088,11 @@ class CopilotOrchestrator:
                 timeout_seconds=COPILOT_STREAM_TIMEOUT_SECONDS,
                 partial_response_length=len(acc.full_response),
             )
+            if acc.obs is not None:
+                acc.obs.set_turn_error(
+                    error_kind="stream_timeout",
+                    error_message=f"timed out after {COPILOT_STREAM_TIMEOUT_SECONDS}s",
+                )
             yield SSEEvent(
                 event="error",
                 data={
@@ -1069,15 +1103,61 @@ class CopilotOrchestrator:
                 },
             ).to_sse()
 
+        except ToolCallLoopError as loop_exc:
+            # The agent kept calling the same tool with the same args.
+            # Aborting the turn here costs us the LLM's final text but
+            # saves the (large) cost of running to recursion_limit, and
+            # keeps the partial state (plan, prior tool outputs) in the
+            # accumulator so Fix 4's persistence path can land them.
+            logger.warning(
+                "copilot_tool_call_loop_aborted",
+                tool_name=loop_exc.tool_name,
+                repeat_count=loop_exc.repeat_count,
+                args_hash=loop_exc.args_hash,
+                partial_response_length=len(acc.full_response),
+            )
+            if acc.obs is not None:
+                acc.obs.set_turn_error(
+                    error_kind="tool_call_loop",
+                    error_message=(f"{loop_exc.tool_name} called {loop_exc.repeat_count}x with identical args"),
+                )
+            yield SSEEvent(
+                event="error",
+                data={
+                    "message": (
+                        "El asistente entró en un bucle al consultar la misma "
+                        "información. Tu mensaje parcial se ha conservado. "
+                        "Intenta replantear la pregunta o adjuntar el dato faltante."
+                    ),
+                },
+            ).to_sse()
+
         except Exception as e:
-            logger.exception("copilot_stream_error", error=str(e))
+            # Partial state preservation (Fix 4 — 2026-04-27 incident
+            # follow-up). The previous behaviour wiped ``acc`` so the
+            # conversation persisted as empty, hiding both the user's
+            # message and any honest agent work done before the failure.
+            # Now we keep the accumulator intact and let
+            # ``_persist_messages`` save what got accumulated. The
+            # turn_end recorder marks the trace with ``status='error'``
+            # via ``set_turn_error`` (Fix 5) so observability stays honest.
+            error_kind = "graph_recursion" if type(e).__name__ == "GraphRecursionError" else "stream_error"
+            logger.exception(
+                "copilot_stream_error",
+                error=str(e),
+                error_type=type(e).__name__,
+                partial_response_length=len(acc.full_response),
+                partial_message_count=len(acc.messages),
+            )
+            if acc.obs is not None:
+                acc.obs.set_turn_error(
+                    error_kind=error_kind,
+                    error_message=f"{type(e).__name__}: {e}",
+                )
             yield SSEEvent(
                 event="error",
                 data={"message": "Ocurrio un error procesando tu mensaje. Intenta de nuevo."},
             ).to_sse()
-            acc.full_response = ""
-            acc.messages = []
-            return
 
         # Finalize v2 text block. The sanitizer is the last line of defense
         # against the LLM ignoring the "no JSON in chat" prompt rule — it
@@ -1340,8 +1420,39 @@ class CopilotOrchestrator:
         tool_output = event.get("data", {}).get("output", "")
         tool_input = event.get("data", {}).get("input", {})
 
+        # Anti-loop guard — observe BEFORE letting the result re-enter the
+        # LLM context. May raise ToolCallLoopError at the hard cap; the
+        # stream loop's exception block converts that into a clean SSE
+        # error + partial-state persist (see stream_chat error handling).
+        # Note: the SSE ``tool_result`` we emit downstream still carries
+        # the raw tool output — only the ``ToolMessage`` re-fed to the LLM
+        # is augmented, so the user-facing UI never sees the directive.
+        dedup_verdict = acc.dedup_tracker.observe(tool_name, tool_input)
+
         # Step 1 — emit tool_result + ui_action via the legacy-format handler.
         result_sse = self._handle_tool_end(event, accumulated_messages, last_tool_call_ids)
+
+        # Anti-loop directive injection (WARN tier). The handler above
+        # already appended a ToolMessage to ``accumulated_messages``;
+        # rewriting its ``content`` in-place ensures the directive lands
+        # in the LLM's context on its next turn while leaving the SSE
+        # tool_result the user already received untouched.
+        if dedup_verdict is DedupVerdict.WARN and accumulated_messages:
+            last = accumulated_messages[-1]
+            if isinstance(last, ToolMessage):
+                last.content = augment_tool_message_for_warn(
+                    tool_name=tool_name,
+                    tool_args=tool_input,
+                    original_content=last.content if isinstance(last.content, str) else None,
+                )
+                logger.warning(
+                    "copilot_tool_call_dedup_warn",
+                    tool_name=tool_name,
+                    repeat_count=acc.dedup_tracker.counts.get(
+                        (tool_name, ""),
+                        -1,
+                    ),
+                )
 
         # Step 2 — attempt v2 block_append for mapped tools
         blocks = _tool_result_to_block(tool_name, tool_output)
