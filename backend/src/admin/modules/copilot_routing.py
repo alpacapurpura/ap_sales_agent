@@ -113,28 +113,37 @@ def _fetch_latency_per_tier(
     tenant_filter_sql: str,
     params: dict[str, Any],
 ) -> list[dict]:
-    """Latency p50 / p95 per tier — joins routing_log with trace turn_end on conversation+turn proximity.
+    """Latency p50 / p95 per model + cost — reads ``copilot_llm_call`` directly.
 
-    The turn_end row carries ``duration_ms`` for the end-to-end turn. We
-    aggregate by the model name recorded in ``data->>'model'`` since it's
-    the most stable cross-table join key today (F-pos can wire ``message_id``
-    into the trace once we standardise it).
+    Post Phase 2 atomic switch every LLM invocation is logged in the
+    typed event-sourced ``copilot_llm_call`` table. We aggregate
+    ``duration_ms`` and ``cost_usd`` per ``model_responded`` so the
+    routing dashboard surfaces both latency and per-model cost without
+    parsing JSONB shapes.
     """
+    # The shared SQL fragment uses ``tenant_id = :tenant_id``; rebind it
+    # to the llm-call table's column for this query.
+    llm_filter_sql = tenant_filter_sql.replace(
+        "tenant_id = :tenant_id",
+        "tenant_id = :tenant_id",
+    )
     rows = (
         db.execute(
             text(
                 f"""
                 SELECT
-                    data ->> 'model' AS model,
+                    model_responded AS model,
+                    provider,
                     PERCENTILE_CONT(0.5)  WITHIN GROUP (ORDER BY duration_ms) AS p50_ms,
                     PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration_ms) AS p95_ms,
+                    SUM(cost_usd) AS total_cost_usd,
+                    AVG(input_tokens)::INT AS avg_input_tokens,
+                    AVG(output_tokens)::INT AS avg_output_tokens,
                     COUNT(*) AS n
-                FROM copilot_trace_event
-                WHERE event_type = 'turn_end'
-                  AND duration_ms IS NOT NULL
-                  AND created_at >= NOW() - INTERVAL '30 days'
-                {tenant_filter_sql}
-                GROUP BY data ->> 'model'
+                FROM copilot_llm_call
+                WHERE started_at >= NOW() - INTERVAL '30 days'
+                {llm_filter_sql}
+                GROUP BY model_responded, provider
                 ORDER BY n DESC
                 """
             ),
@@ -226,14 +235,20 @@ def _render_cache_metrics(metrics: dict) -> None:
 def _render_latency_table(rows: list[dict]) -> None:
     if not rows:
         return
-    st.markdown("### Latencia por modelo (turn_end)")
+    st.markdown("### Latencia + costo por modelo (copilot_llm_call)")
     st.dataframe(
         [
             {
                 "Modelo": row.get("model") or "—",
+                "Proveedor": row.get("provider") or "—",
                 "p50 ms": int(row["p50_ms"]) if row.get("p50_ms") is not None else None,
                 "p95 ms": int(row["p95_ms"]) if row.get("p95_ms") is not None else None,
-                "Turnos": row["n"],
+                "Costo USD (30d)": (
+                    f"${float(row['total_cost_usd']):.4f}" if row.get("total_cost_usd") is not None else "—"
+                ),
+                "Tokens entrada (prom)": row.get("avg_input_tokens") or 0,
+                "Tokens salida (prom)": row.get("avg_output_tokens") or 0,
+                "Llamadas": row["n"],
             }
             for row in rows
         ],

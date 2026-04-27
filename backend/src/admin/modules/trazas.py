@@ -120,15 +120,24 @@ def _fetch_recent_turns(
 
 
 def _fetch_turn_timeline(turn_id: UUID) -> list[dict]:
-    """Return every event for ``turn_id`` in creation order."""
+    """Return every event for ``turn_id`` in creation order.
+
+    Joins ``copilot_llm_call`` by ``span_id`` so rows of
+    ``event_type='llm_call'`` carry the typed cost columns from the
+    event-sourced LLM-call log (post Phase 2 atomic switch). Other
+    event rows simply have ``cost_usd = NULL``.
+    """
     sql = text(
         """
         SELECT
-            id, event_type, name, status, duration_ms,
-            data, span_id, parent_span_id, created_at
-        FROM copilot_trace_event
-        WHERE turn_id = :turn_id
-        ORDER BY created_at ASC
+            e.id, e.event_type, e.name, e.status, e.duration_ms,
+            e.data, e.span_id, e.parent_span_id, e.created_at,
+            c.cost_usd, c.input_tokens, c.output_tokens,
+            c.cached_read_tokens, c.model_responded, c.provider
+        FROM copilot_trace_event e
+        LEFT JOIN copilot_llm_call c ON c.span_id = e.span_id
+        WHERE e.turn_id = :turn_id
+        ORDER BY e.created_at ASC
         """
     )
     db = SessionLocal()
@@ -239,6 +248,7 @@ def _render_timeline_table(events: list[dict]) -> None:
             "nombre": e.get("name") or "—",
             "estado": f"{_STATUS_ICON.get(e['status'], '·')} {e['status']}",
             "duración": _format_duration(e.get("duration_ms")),
+            "costo USD": (f"${float(e['cost_usd']):.6f}" if e.get("cost_usd") is not None else "—"),
             "ts": e["created_at"].strftime("%H:%M:%S.%f")[:-3],
         }
         for idx, e in enumerate(events)
