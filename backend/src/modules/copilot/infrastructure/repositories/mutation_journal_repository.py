@@ -137,11 +137,15 @@ class MutationJournalRepository:
         tenant_id: UUID,
         conversation_id: UUID,
         include_reverted: bool = False,
+        message_id: UUID | None = None,
     ) -> list[MutationJournalModel]:
         """Return journal entries for a conversation.
 
         Always filters by tenant_id to prevent cross-tenant leaks.
         By default only returns active (non-reverted) entries.
+        ``message_id`` narrows to a single proposal — used by the
+        ``ProposalCard`` rehydrate path so a card can repaint its
+        per-field "applied" state after a refresh.
         """
         conditions = [
             MutationJournalModel.tenant_id == tenant_id,
@@ -149,6 +153,8 @@ class MutationJournalRepository:
         ]
         if not include_reverted:
             conditions.append(MutationJournalModel.reverted_at.is_(None))
+        if message_id is not None:
+            conditions.append(MutationJournalModel.message_id == message_id)
 
         stmt = select(MutationJournalModel).where(*conditions).order_by(MutationJournalModel.applied_at.asc())
         return list(self.db.execute(stmt).scalars().all())

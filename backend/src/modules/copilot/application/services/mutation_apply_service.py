@@ -73,6 +73,12 @@ class ApplyResult:
 # ── Per-domain side-effect dispatcher ────────────────────────────────────
 # Handler signature: (db, tenant_id, field_path, new_value) -> bool
 # Returns True when the aggregate was actually written, False otherwise.
+#
+# Note: ``entity_id`` is journaled at the row level (see ``self.journal.
+# upsert_idempotent`` below) but is NOT in the handler signature today.
+# When a per-aggregate handler lands (offer / buyer_persona fallback),
+# extend the signature with a typed ``entity_id`` kwarg in one PR — keep
+# the broadcast change atomic so the registry stays consistent.
 
 ApplyHandler = Callable[[Any, UUID, str, Any], bool]
 _HANDLERS: dict[str, ApplyHandler] = {}
@@ -132,6 +138,7 @@ class MutationApplyService:
         conversation_id: UUID,
         message_id: UUID,
         updates: list[dict[str, Any]],
+        entity_id: UUID | None = None,
     ) -> ApplyResult:
         """Apply each update and return a structured result.
 
@@ -169,7 +176,7 @@ class MutationApplyService:
                 conversation_id=conversation_id,
                 message_id=message_id,
                 domain=domain,
-                entity_id=None,
+                entity_id=entity_id,
                 field_path=str(field_id),
                 old_value=None,
                 new_value=new_value,

@@ -381,6 +381,57 @@ export async function applyCopilotMutations(
   return (await response.json()) as ApplyMutationsResult;
 }
 
+/** Wire-level row returned by GET /conversations/{id}/mutations. */
+export interface MutationJournalEntry {
+  id: string;
+  message_id: string;
+  domain: string;
+  entity_id: string | null;
+  field_path: string;
+  applied_at: string;
+}
+
+interface MutationJournalListResponse {
+  entries: MutationJournalEntry[];
+}
+
+/**
+ * Fetch active (non-reverted) mutation-journal entries for a conversation.
+ *
+ * Used by ``ProposalCard`` to repaint per-field "applied" status after a
+ * refresh — without this rehydrate the card always re-renders ``pending``
+ * regardless of the underlying journal state. ``messageId`` narrows the
+ * lookup to a single proposal so the BE only returns rows the card cares
+ * about.
+ *
+ * Returns ``null`` on any failure (network drop, non-2xx, parse error)
+ * so the caller falls back to the default ``pending`` initial state and
+ * the card stays usable even if observability is briefly unavailable.
+ */
+export async function fetchAppliedMutations(
+  conversationId: string,
+  messageId: string,
+  token: string,
+): Promise<MutationJournalEntry[] | null> {
+  const headers = getCopilotHeaders(token);
+  const url = `${API_URL}/api/v1/copilot/conversations/${conversationId}/mutations?message_id=${encodeURIComponent(
+    messageId,
+  )}`;
+  let response: Response;
+  try {
+    response = await fetch(url, { headers });
+  } catch {
+    return null;
+  }
+  if (!response.ok) return null;
+  try {
+    const body = (await response.json()) as MutationJournalListResponse;
+    return body.entries;
+  } catch {
+    return null;
+  }
+}
+
 /** Wire-level shape of ActiveJobProgressDTO from the backend. */
 export interface ActiveJobProgressDTO {
   job_id: string;

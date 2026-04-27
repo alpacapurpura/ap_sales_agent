@@ -119,12 +119,18 @@ class ApplyMutationUpdate(BaseModel):
 
 
 class ApplyMutationsRequest(BaseModel):
-    """Request body for POST /conversations/{id}/mutations/apply."""
+    """Request body for POST /conversations/{id}/mutations/apply.
+
+    ``entity_id`` is required for domains with multiple aggregates per
+    tenant (offer, buyer_persona). Brand has a single tenant-scoped
+    aggregate so ``entity_id`` is omitted there.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     message_id: UUID
     updates: list[ApplyMutationUpdate]
+    entity_id: UUID | None = None
 
 
 class AppliedMutationDTO(BaseModel):
@@ -154,6 +160,33 @@ class ApplyMutationsResponse(BaseModel):
 
     applied: list[AppliedMutationDTO] = Field(default_factory=list)
     rejected: list[RejectedMutationDTO] = Field(default_factory=list)
+
+
+class MutationJournalEntryDTO(BaseModel):
+    """A single ``copilot_mutation_journal`` row exposed to the FE.
+
+    Used by ``ProposalCard`` to repaint per-field "applied" status after
+    a refresh — without this the card always re-renders pending and the
+    user sees the same proposal twice. Reverted rows are omitted by the
+    list endpoint.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    message_id: UUID
+    domain: str
+    entity_id: UUID | None
+    field_path: str
+    applied_at: datetime
+
+
+class MutationJournalListResponse(BaseModel):
+    """Response for GET /conversations/{id}/mutations."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    entries: list[MutationJournalEntryDTO] = Field(default_factory=list)
 
 
 class ActiveJobProgressDTO(BaseModel):

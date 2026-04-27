@@ -24,6 +24,8 @@ from src.modules.copilot.api.conversation_dto import (
     ConversationListResponse,
     ConversationMessageDTO,
     ConversationSummary,
+    MutationJournalEntryDTO,
+    MutationJournalListResponse,
     PatchConversationRequest,
     RejectedMutationDTO,
     RevertFailure,
@@ -315,6 +317,7 @@ async def apply_mutations(
         conversation_id=conversation_id,
         message_id=body.message_id,
         updates=[u.model_dump() for u in body.updates],
+        entity_id=body.entity_id,
     )
     db.commit()
     logger.info(
@@ -335,6 +338,54 @@ async def apply_mutations(
             for a in result.applied
         ],
         rejected=[RejectedMutationDTO(field_id=r.field_id, reason=r.reason) for r in result.rejected],
+    )
+
+
+@router.get(
+    "/conversations/{conversation_id}/mutations",
+    response_model=MutationJournalListResponse,
+    summary="Listar mutaciones aplicadas (no revertidas) de la conversación",
+)
+async def list_conversation_mutations(
+    conversation_id: UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    tenant_id: Annotated[UUID | None, Depends(get_tenant_context)],
+    db: Annotated[Session, Depends(get_db)],
+    message_id: UUID | None = None,
+) -> MutationJournalListResponse:
+    """Return the active mutation-journal entries for a conversation.
+
+    Used by ``ProposalCard`` to rehydrate per-field "applied" status when
+    the user refreshes the chat panel. ``message_id`` narrows the result
+    to a single proposal so the card only repaints its own rows.
+    """
+    if not tenant_id or not current_user.tenant_id:
+        raise HTTPException(status_code=401, detail="Tenant ID requerido")
+
+    repo = ConversationRepository(db)
+    conv = repo.get_by_id(conversation_id, tenant_id, current_user.id)
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversación no encontrada")
+
+    journal_repo = MutationJournalRepository(db)
+    rows = journal_repo.fetch_by_conversation(
+        tenant_id=tenant_id,
+        conversation_id=conversation_id,
+        include_reverted=False,
+        message_id=message_id,
+    )
+    return MutationJournalListResponse(
+        entries=[
+            MutationJournalEntryDTO(
+                id=row.id,
+                message_id=row.message_id,
+                domain=row.domain,
+                entity_id=row.entity_id,
+                field_path=row.field_path,
+                applied_at=row.applied_at,
+            )
+            for row in rows
+        ],
     )
 
 
