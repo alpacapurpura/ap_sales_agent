@@ -146,10 +146,17 @@ class AuditRepository(EpisodicMemoryStore):
         return self.db.execute(stmt).all()
 
     def clear_user_history(self, lead_id: str, tenant_id: str) -> bool:
-        """Clear user history."""
+        """Clear user history.
+
+        S1: extended to also wipe ``sales_agent_trace_event`` +
+        ``sales_agent_llm_call`` rows for the same lead so the
+        admin "🗑️ Limpiar Conversación" stays consistent during the
+        dual-write window.
+        """
         from sqlalchemy import text
 
         lead_uuid = str(lead_id)
+        # Legacy tables.
         self.db.execute(
             text(
                 "DELETE FROM llm_logs WHERE trace_id IN (SELECT id FROM agent_traces WHERE user_id = :lid)",
@@ -165,6 +172,15 @@ class AuditRepository(EpisodicMemoryStore):
         self.db.execute(
             text("DELETE FROM agent_traces WHERE user_id = :lid"),
             {"lid": lead_uuid},
+        )
+        # Event-sourced tables (S1).
+        self.db.execute(
+            text("DELETE FROM sales_agent_trace_event WHERE lead_id = :lid AND tenant_id = :tid"),
+            {"lid": lead_uuid, "tid": str(tenant_id)},
+        )
+        self.db.execute(
+            text("DELETE FROM sales_agent_llm_call WHERE lead_id = :lid AND tenant_id = :tid"),
+            {"lid": lead_uuid, "tid": str(tenant_id)},
         )
         self.db.execute(
             text("DELETE FROM messages WHERE user_id = :lid"),
@@ -187,6 +203,120 @@ class AuditRepository(EpisodicMemoryStore):
         )
         self.db.commit()
         return True
+
+    # ── S1 dual-read support (sales_audit.py admin migration) ───────────
+
+    def get_event_sourced_rows(
+        self,
+        lead_id: str,
+        tenant_id: str,
+        limit: int = 200,
+    ) -> list[dict[str, Any]]:
+        """Return event-sourced rows for a lead in legacy-timeline shape.
+
+        Reads ``sales_agent_trace_event`` + ``sales_agent_llm_call`` and
+        adapts each row to the dict shape the admin timeline already
+        consumes. Each entry is::
+
+            {
+              "type": "trace" | "llm_call",
+              "id": str,
+              "node": str,            # event_type or model
+              "input": dict,          # data JSONB or {}
+              "output": dict,
+              "execution_time": float,
+              "llm_summary": dict | None,
+              "created_at": datetime,
+              "_source": "event_sourced",
+            }
+
+        Empty list when no rows — caller falls back to legacy.
+        """
+        from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
+            SalesAgentLlmCallModel,
+        )
+        from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+            SalesAgentTraceEventModel,
+        )
+
+        events_stmt = (
+            select(SalesAgentTraceEventModel)
+            .where(
+                SalesAgentTraceEventModel.tenant_id == tenant_id,
+                SalesAgentTraceEventModel.lead_id == lead_id,
+            )
+            .order_by(SalesAgentTraceEventModel.created_at.desc())
+            .limit(limit)
+        )
+        events = self.db.execute(events_stmt).scalars().all()
+
+        llm_stmt = (
+            select(SalesAgentLlmCallModel)
+            .where(
+                SalesAgentLlmCallModel.tenant_id == tenant_id,
+                SalesAgentLlmCallModel.lead_id == lead_id,
+            )
+            .order_by(SalesAgentLlmCallModel.started_at.desc())
+            .limit(limit)
+        )
+        llm_calls = self.db.execute(llm_stmt).scalars().all()
+        llm_by_turn: dict[Any, list] = {}
+        for c in llm_calls:
+            llm_by_turn.setdefault(c.turn_id, []).append(c)
+
+        out: list[dict[str, Any]] = []
+        for e in events:
+            llm_summary = None
+            calls = llm_by_turn.get(e.turn_id) or []
+            if calls and e.event_type == "llm_call":
+                first = calls[0]
+                llm_summary = {
+                    "model": first.model_responded,
+                    "total_tokens": int((first.input_tokens or 0) + (first.output_tokens or 0)),
+                    "prompt_template": e.name or "unknown",
+                }
+            out.append(
+                {
+                    "type": "trace",
+                    "id": str(e.id),
+                    "node": e.event_type if not e.name else f"{e.event_type}:{e.name}",
+                    "input": dict(e.data or {}),
+                    "output": {"status": e.status, "duration_ms": e.duration_ms},
+                    "execution_time": float(e.duration_ms or 0),
+                    "llm_summary": llm_summary,
+                    "created_at": e.created_at,
+                    "_source": "event_sourced",
+                    "turn_id": str(e.turn_id),
+                },
+            )
+        return out
+
+    def get_last_event_sourced_state(
+        self,
+        lead_id: str,
+        tenant_id: str,
+    ) -> dict[str, Any] | None:
+        """Return the most recent ``turn_end`` data for a lead, or None.
+
+        Replaces the legacy ``AgentTrace.output_state`` query in the
+        admin sidebar "Ver Último Estado" — preferred during dual-read.
+        """
+        from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+            SalesAgentTraceEventModel,
+        )
+
+        stmt = (
+            select(SalesAgentTraceEventModel)
+            .where(
+                SalesAgentTraceEventModel.tenant_id == tenant_id,
+                SalesAgentTraceEventModel.lead_id == lead_id,
+                SalesAgentTraceEventModel.event_type == "turn_end",
+            )
+            .order_by(SalesAgentTraceEventModel.created_at.desc())
+            .limit(1)
+        )
+        row = self.db.execute(stmt).scalars().first()
+        return dict(row.data) if row and row.data else None
 
     def get_full_timeline(self, lead_id: str, tenant_id: str, limit: int = 50) -> list[dict[str, Any]]:
         """Retrieve full timeline."""

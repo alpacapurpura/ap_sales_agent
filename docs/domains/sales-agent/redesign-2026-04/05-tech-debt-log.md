@@ -252,6 +252,64 @@ Statuses: `FIXED` · `DEFERRED-S{N}` · `FLAGGED` · `WONT-FIX`.
 
 ---
 
+## Detectados durante S1 (sales-agent observability parity) — 2026-04-28
+
+### Fixes ejecutados
+
+#### [HIGH] Sales_agent sin PII sanitization en trace recorder — 2026-04-27 — diagnóstico — FIXED en S1
+- Path: `src/shared/agent_observability/recording/sanitization.py` (extensión LATAM) + `src/modules/sales_agent/observability/recording/callback_handler.py` (uso).
+- Acción: PII regex LATAM (DNI / CURP / CUIT / RFC / CC / RUC / CPF / CVV / tarjeta) con keyword guards añadidos. Callback handler enruta toda payload a `sanitize_payload` antes de persistir. 9 tests RED→GREEN cubriendo redacción + false-positives.
+
+#### [HIGH] `sales_audit.py` lee tabla legacy — 2026-04-28 — diagnóstico — FIXED-DUAL en S1
+- Path: `src/admin/modules/sales_audit.py` + `src/modules/sales_agent/infrastructure/memory/audit_repository.py`.
+- Acción: dual-read pattern activo. AuditRepository.get_event_sourced_rows() + get_last_event_sourced_state(). Banner UI explicita la fuente. clear_user_history extendido a `sales_agent_trace_event` + `sales_agent_llm_call`. Cutover full a S6 — la entrada se cierra entonces.
+
+#### [HIGH] Sales_agent sin retention 90d trace — 2026-04-27 — diagnóstico — DEFERRED-S2 (re-confirmado post-S1)
+- Path: `src/modules/copilot/observability/workers/retention_task.py` (SQL hardcoded copilot_trace_event).
+- Descripción: la tabla `sales_agent_trace_event` ahora se escribe pero nadie la purga. El worker copilot conoce sólo su propia tabla.
+- Acción: DEFERRED-S2 — abstraer `purge_expired_trace_rows` para iterar `[copilot_trace_event, sales_agent_trace_event]`. Mismo para `copilot_llm_call`/`sales_agent_llm_call`.
+
+### Nuevos detectados en S1
+
+#### [MEDIUM] `SalesAgentCallbackHandler` duplica 6 LangChain callbacks de copilot — 2026-04-28 — S1 — DEFERRED-post-S6
+- Path: `src/modules/sales_agent/observability/recording/callback_handler.py` (575 LOC).
+- Descripción: copia literal del plumbing copilot (`on_chat_model_start/end/error`, `on_tool_start/end/error`, `on_chain_start/end` + helpers `_extract_usage`, `_from_openai_token_usage`, `_extract_provider_and_model`, etc). ~250 LOC.
+- Impacto: drift potencial si copilot evoluciona el callback. Mantenibilidad doble.
+- Acción: DEFERRED-post-S6 — lift al `BaseAgentCallbackHandler` (Template Method). Pattern: `on_*` callbacks concretos en abstract base + `_persist_llm_call_row` / `_persist_trace_event_row` overrides per-agent. Trade-off: requiere retrofit copilot al mismo tiempo (scope creep en S1).
+
+#### [LOW] `agent_log_model.py` mencionado en docs no existe — 2026-04-28 — S1 — FLAGGED-S6
+- Paths afectados: `02-architecture-target.md §2 (línea Legacy)` + `audit/sales-agent-current-state.md §2.B inbound + §3.b legacy` + entrada `[HIGH] Sales_agent sin retention policy` en este doc.
+- Descripción: la tabla legacy real es `llm_logs` con clase `LLMLog` en `src/modules/sales_agent/infrastructure/models/llm_log_model.py`. Las docs mencionan `agent_log_model` que nunca existió.
+- Impacto: nulo (cosmético — confunde a future reader, no afecta runtime).
+- Acción: FLAGGED-S6 — corregir nombres durante cleanup S6 cuando dropeo de legacy se haga.
+
+#### [LOW] Subscribers crean `SessionLocal()` per-event — 2026-04-28 — S1 — DEFERRED-S2
+- Path: `src/modules/sales_agent/observability/domain_events/subscribers.py`.
+- Descripción: 4 handlers, cada uno abre y cierra una nueva session por event. Best-effort y rápido (single insert + commit), pero contention en pool en alta carga.
+- Impacto: si turn rate > 10/s/tenant pool puede saturar.
+- Acción: DEFERRED-S2 — usar contextvar para pasar session orchestrator al subscriber, o batch sub-tx.
+- Razón: scope creep en S1 (event_bus diseño global no scoped).
+
+#### [LOW] `_tool_dedup_tracker` en state es magic string — 2026-04-28 — S1 — DEFERRED-post-S6
+- Path: `src/modules/sales_agent/application/orchestrator/state.py` + `chat.py` seed + `nodes.py` read.
+- Descripción: AgentState es TypedDict pero `_tool_dedup_tracker` es key arbitraria sin tipo. Funciona porque LangGraph propaga dict a todos los nodos.
+- Impacto: API no auto-discoverable; renaming silencioso rompe wiring.
+- Acción: DEFERRED-post-S6 — tipar AgentState para incluir `_tool_dedup_tracker: ToolCallDedupTracker | None`. Trade-off: AgentState compartido por nodos varios, evitar acoplar al tipo concrete del tracker.
+
+#### [LOW] `from __future__ import annotations` rompe LangGraph runtime introspection — 2026-04-28 — S1 — FLAGGED
+- Path: `src/modules/sales_agent/application/orchestrator/graph.py` (workaround aplicado: import directo + sin `__future__`).
+- Descripción: con `__future__ annotations`, type hints quedan strings al import time; LangGraph hace `inspect` runtime check del shape (`config: RunnableConfig | None`) y emite UserWarning sobre tipado raro.
+- Impacto: warning ruidoso en logs, no breaking.
+- Acción: FLAGGED — guardrail preventivo: no usar `from __future__ import annotations` en archivos que LangGraph introspecta. **Watchpoint S6**: agregar arch test que bloquee `__future__ annotations` en `*/orchestrator/graph.py` files si futuro nodo lo agrega.
+
+#### [LOW] Test fixtures de subscribers + node_tool_executor mockean SessionLocal + AuditRepository per-test — 2026-04-28 — S1 — DEFERRED-S6 ratchet pass
+- Paths: `tests/modules/sales_agent/orchestrator/test_node_tool_executor_dedup.py:_mute_trace_node_writes` + `tests/modules/sales_agent/observability/test_domain_event_subscribers.py:_stub_session_local`.
+- Descripción: 2 tests duplican fixture autouse mockeando `SessionLocal` + repos. Si más tests sales_agent necesitan ese mock se promueve a `tests/modules/sales_agent/conftest.py`.
+- Impacto: mínimo — ~20 LOC duplicadas hoy.
+- Acción: DEFERRED-S6 ratchet pass — promover a conftest cuando 3+ tests lo requieran.
+
+---
+
 ## Cómo agregar entrada (durante fase activa)
 
 1. Detectaste algo durante S{N}.

@@ -854,8 +854,16 @@ class ChatOrchestrator:
         channel_adapter: BaseChannel,
         incoming: IncomingMessage,
         initial_state: dict,
+        observability_handler: object | None = None,
     ) -> dict:
-        """Invoke the agent graph while sending periodic typing indicators."""
+        """Invoke the agent graph while sending periodic typing indicators.
+
+        ``observability_handler`` is forwarded as a LangChain callback so
+        every node + LLM + tool invocation is captured into
+        ``sales_agent_llm_call`` / ``sales_agent_trace_event``. Best-effort —
+        if ``None`` the graph still runs (legacy ``@trace_node`` keeps
+        writing during the dual-write window).
+        """
 
         async def _keep_typing() -> None:
             while True:
@@ -865,7 +873,8 @@ class ChatOrchestrator:
 
         typing_task = asyncio.create_task(_keep_typing())
         try:
-            return await agent_app.ainvoke(initial_state)
+            config = {"callbacks": [observability_handler]} if observability_handler is not None else {}
+            return await agent_app.ainvoke(initial_state, config=config)
         finally:
             typing_task.cancel()
 
@@ -1035,10 +1044,35 @@ class ChatOrchestrator:
                 tenant_uuid,
             )
 
+            # Build per-turn observability handler (S1). Best-effort —
+            # ``None`` when tenant/lead is missing; legacy ``@trace_node``
+            # still writes during the dual-write window.
+            from src.modules.sales_agent.application.orchestrator.tool_call_dedup import (
+                ToolCallDedupTracker,
+            )
+            from src.modules.sales_agent.observability.recording.factory import (
+                build_sales_agent_callback_handler,
+            )
+
+            observability_handler = build_sales_agent_callback_handler(
+                db=db,
+                tenant_id=tenant_uuid,
+                lead_id=user.id if user else None,
+                channel_type=channel_type,
+                turn_id=uuid.uuid4(),
+            )
+
+            # Seed the tool-call dedup tracker for this turn.
+            # ``node_tool_executor`` reads it from state via the standard
+            # AgentState dict — LangGraph propagates the seeded value
+            # alongside the normal state mutations.
+            initial_state["_tool_dedup_tracker"] = ToolCallDedupTracker()
+
             result = await self._invoke_agent_with_typing(
                 channel_adapter,
                 incoming,
                 initial_state,
+                observability_handler=observability_handler,
             )
 
             if tenant_uuid and user:

@@ -31,6 +31,9 @@ from src.modules.copilot.observability.workers.retention_task import (
     purge_expired_trace_rows,
 )
 from src.modules.offer.workers.tasks import run_offer_extraction
+from src.modules.sales_agent.observability.workers.dual_write_reconciliation_task import (
+    run_sales_agent_dual_write_reconcile,
+)
 from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
 from src.modules.tenant_domains.workers.tasks import poll_domain_verification
 from src.shared.agent_observability.workers.pricing_sync_task import sync_litellm_pricing
@@ -61,6 +64,7 @@ class WorkerSettings:
         refresh_daily_cost_mv,
         purge_expired_trace_rows,
         run_cost_alerts,
+        run_sales_agent_dual_write_reconcile,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -119,6 +123,7 @@ class SchedulerSettings:
         refresh_daily_cost_mv,
         purge_expired_trace_rows,
         run_cost_alerts,
+        run_sales_agent_dual_write_reconcile,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -202,6 +207,15 @@ class SchedulerSettings:
             run_cost_alerts,
             hour=12,
             minute=0,
+        ),
+        # Sales-agent S1 dual-write reconciliation — hourly when opt-in
+        # via ``SALES_AGENT_DUAL_WRITE_RECONCILE=1``. Minute 25 avoids
+        # stacking with the on-the-hour ETL + on-:05 cost MV refresh.
+        # Off by default; turn on for the ~4-week dual-write window
+        # then leave disabled (S6 cutover removes the legacy table read).
+        cron(
+            run_sales_agent_dual_write_reconcile,
+            minute=25,
         ),
     ]
 

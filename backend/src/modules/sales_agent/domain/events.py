@@ -64,3 +64,78 @@ class EnrollmentStatusTransitioned(DomainEvent):
     from_status: EnrollmentStatus
     to_status: EnrollmentStatus
     actor: str | None = None  # "agent" | "human:<user_id>" | "system:webhook"
+
+
+# ── S1 sales_agent observability domain events ────────────────────────
+#
+# Subscribed by ``observability/domain_events/subscribers.py`` and
+# persisted to ``sales_agent_trace_event`` (event_type='domain_event').
+# Each event carries ``tenant_id`` + ``lead_id`` so the subscriber can
+# satisfy the agent-specific row contract without re-resolving identity.
+
+
+class LeadQualifiedEvent(DomainEvent):
+    """Emitted when ``signal_accumulator`` finds the lead qualified.
+
+    Threshold = lead_score + qualification breadth + signals.
+    Consumer: observability subscriber persists a domain_event row.
+    Future: CRM scoring sync, advertising retargeting feedback loop.
+    """
+
+    tenant_id: UUID
+    lead_id: UUID
+    channel_type: str
+    turn_id: UUID
+    lead_score: int
+    qualification_field_count: int
+    buying_signal_count: int
+    stage: str
+
+
+class ObjectionHandledEvent(DomainEvent):
+    """Emitted when the closer/product_expert resolves an objection.
+
+    Consumer: observability subscriber. Used by S10 quality eval loop
+    to grade objection-resolution coverage per lead.
+    """
+
+    tenant_id: UUID
+    lead_id: UUID
+    channel_type: str
+    turn_id: UUID
+    objection_type: str
+    resolved: bool
+    specialist: str  # "qualifier" | "product_expert" | "closer"
+
+
+class StageTransitionedEvent(DomainEvent):
+    """Emitted on a stage transition (rapport / discovery / presentation / closing).
+
+    Consumer: observability subscriber. Powers the S2 stage-funnel
+    dashboard.
+    """
+
+    tenant_id: UUID
+    lead_id: UUID
+    channel_type: str
+    turn_id: UUID
+    from_stage: str
+    to_stage: str
+    lead_score: int
+
+
+class ToolLoopDetectedEvent(DomainEvent):
+    """Emitted when ``ToolCallDedupTracker`` raises ``ToolCallLoopError``.
+
+    Consumer: observability subscriber writes an ``error`` row to
+    sales_agent_trace_event so ops dashboards alert. Distinct from a
+    generic exception — captures repeat-call signature for triage.
+    """
+
+    tenant_id: UUID
+    lead_id: UUID
+    channel_type: str
+    turn_id: UUID
+    tool_name: str
+    repeat_count: int
+    args_hash: str

@@ -1,4 +1,10 @@
-"""Streamlit admin: Auditoría del Agente de Ventas — visualiza interacciones y nodos de LangGraph."""
+"""Streamlit admin: Auditoría del Agente de Ventas — visualiza interacciones y nodos de LangGraph.
+
+S1 (2026-04-28): dual-read window. Reads both legacy ``agent_traces``
+(``@trace_node`` decorator) and the new event-sourced
+``sales_agent_trace_event`` / ``sales_agent_llm_call``. Cutover in S6
+will drop the legacy branch.
+"""
 
 import streamlit as st
 
@@ -155,39 +161,74 @@ def render_sales_audit_page() -> None:
 
                 elif st.session_context_tab == "state":
                     st.markdown("**Último Agent State Registrado**")
-                    # Forma segura de importar el modelo
-                    from src.modules.sales_agent.infrastructure.models.agent_trace_model import (
-                        AgentTrace,
+                    # Dual-read S1: prefer event-sourced; fallback legacy.
+                    new_state = repo.get_last_event_sourced_state(
+                        lead_id=lead_id,
+                        tenant_id=str(tenant_id),
                     )
-
-                    last_trace = (
-                        repo.db.query(AgentTrace)
-                        .filter(AgentTrace.user_id == lead_id)
-                        .order_by(AgentTrace.created_at.desc())
-                        .first()
-                    )
-
-                    if last_trace and last_trace.output_state:
-                        st.json(last_trace.output_state, expanded=False)
+                    if new_state:
+                        st.caption("Fuente: `sales_agent_trace_event` (event-sourced)")
+                        st.json(new_state, expanded=False)
                     else:
-                        st.info(
-                            "No hay trazas o estados registrados aún para este lead.",
+                        # Fallback to legacy ``agent_traces``.
+                        from src.modules.sales_agent.infrastructure.models.agent_trace_model import (
+                            AgentTrace,
                         )
+
+                        last_trace = (
+                            repo.db.query(AgentTrace)
+                            .filter(AgentTrace.user_id == lead_id)
+                            .order_by(AgentTrace.created_at.desc())
+                            .first()
+                        )
+
+                        if last_trace and last_trace.output_state:
+                            st.caption("Fuente: `agent_traces` (legacy — pre S1)")
+                            st.json(last_trace.output_state, expanded=False)
+                        else:
+                            st.info(
+                                "No hay trazas o estados registrados aún para este lead.",
+                            )
 
                 if st.button("Cerrar Contexto", key="close_ctx"):
                     st.session_context_tab = None
                     st.rerun()
 
-        # Fetch timeline
-        timeline = repo.get_full_timeline(
+        # Dual-read S1: merge legacy + event-sourced timeline.
+        legacy_timeline = repo.get_full_timeline(
+            lead_id=lead_id,
+            tenant_id=str(tenant_id),
+            limit=200,
+        )
+        new_rows = repo.get_event_sourced_rows(
             lead_id=lead_id,
             tenant_id=str(tenant_id),
             limit=200,
         )
 
-        # reverse timeline to show oldest first, or keep newest first depending on preference.
-        # Frontend usually shows oldest top -> newest bottom. The repo returns newest first (desc).
-        # We will reverse it so it reads naturally top-to-bottom.
+        legacy_count = sum(1 for e in legacy_timeline if e.get("type") == "trace")
+        new_count = len(new_rows)
+
+        if new_count > 0 and legacy_count > 0:
+            st.info(
+                f"Dual-read window — leyendo nuevo ({new_count}) + legacy ({legacy_count}). "
+                "Cutover programado al cerrar la ventana de 4 semanas (S6).",
+            )
+        elif legacy_count > 0 and new_count == 0:
+            st.warning(
+                "Solo legacy disponible para este lead. Trazas anteriores a S1 cutover.",
+            )
+        elif new_count > 0 and legacy_count == 0:
+            st.success("Lead 100% event-sourced (S1).")
+
+        # Merge: keep both timelines, dedupe by event id (legacy IDs are
+        # ``AgentTrace.id``; new IDs are ``sales_agent_trace_event.id``;
+        # they never collide so simple union works).
+        merged = list(legacy_timeline) + list(new_rows)
+        merged.sort(key=lambda x: x["created_at"], reverse=True)
+        timeline = merged[:200]
+
+        # Frontend reads naturally top-to-bottom (oldest top → newest bottom).
         timeline_asc = list(reversed(timeline))
 
         if not timeline_asc:

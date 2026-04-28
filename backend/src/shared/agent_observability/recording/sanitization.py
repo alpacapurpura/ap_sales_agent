@@ -63,8 +63,55 @@ _PHONE_RES = (
     re.compile(r"\b\d{2,4}[-\s]\d{3,4}[-\s]\d{3,4}\b"),
 )
 
+# ── LATAM national IDs (S1 sales_agent) ─────────────────────────────────
+#
+# Two-pass strategy:
+#  A) Structurally distinctive IDs (CURP, RFC, CUIT/CUIL formatted, CPF
+#     formatted) — match without keyword guard. Their alphanumeric shape
+#     is unmistakable.
+#  B) Bare-digit IDs (DNI AR/PE, CC CO, RUC PE/EC, CUIT bare, CPF bare)
+#     — require a LATAM keyword nearby. Otherwise we'd redact every
+#     order_id / external_reference / lead score.
+#
+# Rationale documented in
+# ``docs/domains/sales-agent/redesign-2026-04/phases/S1-sales-agent-observability-parity.md``
+# section "Hallazgos research → LATAM PII regex 2026".
+
+# Distinctive structural shapes — uppercase only, real CURP/RFC are issued in caps.
+_NATIONAL_ID_STRUCTURAL_RES = (
+    # CURP MX: 4 letras + 6 dígitos (yymmdd) + H|M + 5 letras (estado2 + consonants3) + alfa1 + dígito1 = 18 chars.
+    re.compile(r"\b[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d\b"),
+    # RFC MX persona (13 chars) o empresa (12 chars). Iniciales + yymmdd + homoclave3.
+    re.compile(r"\b[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}\b"),
+    # CUIT/CUIL AR formato dash: 2-8-1.
+    re.compile(r"\b\d{2}-\d{8}-\d{1}\b"),
+    # CPF BR formato canónico: xxx.xxx.xxx-xx.
+    re.compile(r"\b\d{3}\.\d{3}\.\d{3}-\d{2}\b"),
+)
+
+# Keyword-guarded bare-digit IDs. Capture group 1 = keyword + spacing,
+# group 2 = digits. Replacement preserves the keyword.
+_NATIONAL_ID_KEYWORD_RE = re.compile(
+    r"(?i)((?:dni|documento|c[eé]dula|\bcc\b|cuit|cuil|ruc|\bcpf\b|nit)\s+)"
+    r"(\d{7,11})\b",
+)
+
+# Credit card numbers — 16 digits with optional spaces / dashes between
+# 4-digit groups. We don't validate Luhn — the shape itself is the
+# privacy concern.
+_CARD_RE = re.compile(r"\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b")
+
+# CVV / CVC — 3 or 4 digits, keyword-guarded only (3 bare digits = score,
+# port, etc — too ambiguous without keyword).
+_CVV_KEYWORD_RE = re.compile(
+    r"(?i)((?:cvv|cvc|c[oó]digo\s+(?:de\s+)?seguridad)\s+)(\d{3,4})\b",
+)
+
 _TOKEN_PLACEHOLDER = "[REDACTED_TOKEN]"
 _PHONE_PLACEHOLDER = "[REDACTED_PHONE]"
+_NATIONAL_ID_PLACEHOLDER = "[REDACTED_NATIONAL_ID]"
+_CARD_PLACEHOLDER = "[REDACTED_CARD]"
+_CVV_PLACEHOLDER = "[REDACTED_CVV]"
 
 
 def _mask_email(match: re.Match[str]) -> str:
@@ -94,19 +141,42 @@ def truncate(value: Any, limit: int = MAX_PAYLOAD_CHARS) -> Any:  # noqa: ANN401
 
 
 def redact_string(value: str) -> str:
-    """Apply every redaction regex in order. Returns a new string."""
+    """Apply every redaction regex in order. Returns a new string.
+
+    Order matters:
+
+    1. Provider tokens (may contain ``@`` look-alikes).
+    2. Emails.
+    3. Credit-card numbers (4x4 digit groups) — must run *before* phone
+       regexes, otherwise ``_PHONE_RES`` would eat the first half.
+    4. Keyword-anchored CVV (digits stay short — must run before phone).
+    5. Keyword-anchored phones.
+    6. Phones with country code / formatted runs.
+    7. Structural national IDs (CURP / RFC / CUIT-dash / CPF-formatted).
+    8. Keyword-anchored national IDs (DNI / CC / RUC / etc).
+    """
     if not value or len(value) < 5:
         return value
 
     out = value
-    # Tokens first — they may contain @-like characters.
+    # 1-2. Tokens + emails.
     for token_re in _TOKEN_RES:
         out = token_re.sub(_TOKEN_PLACEHOLDER, out)
     out = _EMAIL_RE.sub(_mask_email, out)
-    # Keyword-anchored phones: keep the keyword, replace the digits only.
+    # 3. Card numbers (4x4) before phones — phone regex (3-4 digit groups)
+    # would otherwise gobble part of the card.
+    out = _CARD_RE.sub(_CARD_PLACEHOLDER, out)
+    # 4. CVV keyword-anchored.
+    out = _CVV_KEYWORD_RE.sub(rf"\1{_CVV_PLACEHOLDER}", out)
+    # 5-6. Phones.
     out = _PHONE_KEYWORD_RE.sub(rf"\1{_PHONE_PLACEHOLDER}", out)
     for phone_re in _PHONE_RES:
         out = phone_re.sub(_is_phone_safe, out)
+    # 7. Structural national IDs.
+    for nid_re in _NATIONAL_ID_STRUCTURAL_RES:
+        out = nid_re.sub(_NATIONAL_ID_PLACEHOLDER, out)
+    # 8. Keyword-anchored national IDs.
+    out = _NATIONAL_ID_KEYWORD_RE.sub(rf"\1{_NATIONAL_ID_PLACEHOLDER}", out)
     return out
 
 

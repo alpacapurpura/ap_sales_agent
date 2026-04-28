@@ -12,12 +12,13 @@ Structural typing via ``Protocol`` so sync/async sessions both qualify.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from uuid import UUID
 
 
+@runtime_checkable
 class BaseTraceEventRepoProtocol(Protocol):
     """Minimum write interface for ``*_trace_event`` repos."""
 

@@ -350,14 +350,29 @@ def node_escalation(state: AgentState) -> dict[str, Any]:
 def node_tool_executor(state: AgentState) -> dict[str, Any]:
     """Execute tools requested by specialists via [TOOL_REQUEST: {...}] blocks.
 
-    After execution the graph edge routes back to supervisor, which will
-    see the tool result message and decide the next specialist.
+    Per-turn dedup guard (S1, mirror of copilot anti-loop): the
+    orchestrator seeds ``state['_tool_dedup_tracker']`` with a fresh
+    :class:`ToolCallDedupTracker` at the start of every turn. Before
+    dispatching the tool we ``observe`` the call. If the tracker
+    returns ``WARN`` we wrap the result with an anti-loop directive so
+    the LLM sees the rail next turn. If it raises ``ToolCallLoopError``
+    we end the loop with a tool-error message and the supervisor will
+    route to ``respond`` next.
+
+    After execution the graph edge routes back to supervisor.
     """
+    from src.modules.sales_agent.application.orchestrator.tool_call_dedup import (
+        DedupVerdict,
+        ToolCallLoopError,
+        augment_tool_message_for_warn,
+    )
+
     pending = state.get("_pending_tool")
     if not pending:
         return {"next_node": "respond"}
 
     tool_name = pending.get("tool", "")
+    tool_args = pending.get("args") or {}
 
     from src.modules.sales_agent.application.agents.sales.tools import TOOL_REGISTRY
 
@@ -379,6 +394,32 @@ def node_tool_executor(state: AgentState) -> dict[str, Any]:
             "_pending_tool": None,
         }
 
+    tracker = state.get("_tool_dedup_tracker")
+    verdict = DedupVerdict.OK
+    if tracker is not None:
+        try:
+            verdict = tracker.observe(tool_name, tool_args)
+        except ToolCallLoopError as exc:
+            return {
+                "messages": [
+                    {
+                        "role": "tool",
+                        "content": json.dumps(
+                            {
+                                "status": "error",
+                                "message": str(exc),
+                                "tool_name": exc.tool_name,
+                                "repeat_count": exc.repeat_count,
+                                "args_hash": exc.args_hash,
+                            },
+                            ensure_ascii=False,
+                        ),
+                    },
+                ],
+                "_pending_tool": None,
+                "next_node": "respond",
+            }
+
     try:
         result = tool_fn(state, db=state.get("_db"))
         result_text = json.dumps(result, ensure_ascii=False)
@@ -386,6 +427,13 @@ def node_tool_executor(state: AgentState) -> dict[str, Any]:
         result_text = json.dumps(
             {"status": "error", "message": str(e)},
             ensure_ascii=False,
+        )
+
+    if verdict == DedupVerdict.WARN:
+        result_text = augment_tool_message_for_warn(
+            tool_name=tool_name,
+            tool_args=tool_args,
+            original_content=result_text,
         )
 
     return {

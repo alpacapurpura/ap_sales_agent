@@ -65,9 +65,64 @@ Sales_agent adopta `shared/agent_observability/` (S0) con `SalesAgentCallbackHan
 - `.claude/rules/backend-migrations.md` — idempotencia.
 - `.claude/rules/admin-panel.md`.
 
-### Hallazgos research
+### Hallazgos research (2026-04-28)
 
-> COMPLETAR.
+#### LangGraph callback propagation + nested subgraph
+
+- `RunnableConfig.callbacks` se propaga **automáticamente** a todas las sub-runnables (nodos, LLMs, tools) cuando se pasa al invoke del parent. **PERO** un `CompiledStateGraph` invocado como `add_node(subgraph)` lo trata como opaque — `subgraph.invoke(state)` SIN reenviar config NO recibe los callbacks parent. Confirmado en sales_agent: `agent_app.sales_agent_node` llama `sales_app.invoke(state)` SYNC sin propagación.
+- Solución dual: (a) inyectar handler en `agent_app.ainvoke(state, config={"callbacks":[handler]})` desde `chat.py:868`; (b) reenviar config en `sales_agent_node` con `sales_app.invoke(state, config={"callbacks":[handler]})` recibiendo el `RunnableConfig` que LangGraph inyecta como segundo arg del nodo cuando la firma lo declara.
+- **`astream_events(version="v2")` NO lo usamos** — sales_agent es batch (un turn = un ainvoke). El callback handler captura on_chat_model_start/end + on_tool_start/end + on_chain_start/end sin necesidad de stream loop. Patrón mirror del copilot post-Phase 2 atomic switch.
+- Issue conocido langfuse #10721: callback handlers pueden quedar "huérfanos" cuando el span parent se cierra antes que el child por race async. Para sales_agent sync subgraph esto NO aplica (todo es lineal). Mitigación si en el futuro hay async tools: usar `parent_run_id` que LangChain ya inyecta.
+
+#### LATAM PII regex 2026
+
+| ID | Country | Pattern | Notas |
+|---|---|---|---|
+| **DNI AR** | Argentina | `\b\d{7,8}\b` con keyword guard `(dni|documento)` | 7-8 dígitos. Sin keyword genera false-positives masivos en orderIDs/UUIDs. |
+| **CUIT/CUIL AR** | Argentina | `\b\d{2}-\d{8}-\d{1}\b` o `\b\d{11}\b` con keyword `(cuit\|cuil)` | Format estándar 2-8-1. Bare 11 dígitos requiere keyword. |
+| **CURP MX** | México | `\b[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]\d\b` (18 chars) | Strict — letra1+letra2+letra3+letra4 / yymmdd / sexo H\|M / estado2 / consonants3 / homoclave1+verifier1. |
+| **RFC MX** | México | `\b[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3}\b` | 12 chars (empresa) o 13 (persona). |
+| **CC CO** | Colombia | `\b\d{8,10}\b` con keyword `(cc\|cédula\|cedula)` | Required keyword. |
+| **DNI PE** | Perú | `\b\d{8}\b` con keyword `(dni)` | 8 dígitos. |
+| **RUC PE/EC** | Perú/Ecuador | `\b\d{11}\b` con keyword `(ruc)` | Empresa 11 dígitos. |
+| **CPF BR** | Brasil | `\b\d{3}\.\d{3}\.\d{3}-\d{2}\b` o `\b\d{11}\b` keyword `(cpf)` | 11 dígitos formato xxx.xxx.xxx-xx. |
+| **CVV** | universal | `\b\d{3,4}\b` con keyword `(cvv\|cvc\|código de seguridad)` | Required keyword (3-4 dígitos solos = false-positive trivial). |
+| **Tarjeta** | universal | `\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b` | 16 dígitos formato Luhn-shape (no validamos check digit; redactamos shape). |
+
+**Decisión:** todas con keyword guard cuando son bare digits. CURP/RFC/CUIT son estructuralmente distintivas y van sin keyword. Esto evita redactar `lead_id`/UUIDs/timestamps que el shared sanitization ya excluye implícitamente por estar dentro de keys typed (no en strings libres).
+
+#### Dual-write observability migration
+
+- Pattern canónico (Sebastian Bensusan, "Treat Soft Migrations as Architecture"): la dual-write window es arquitectura permanente durante su vigencia, no scaffolding temporal. Drift es de esperar — la **reconciliation** mide y explica el diff, no asume zero.
+- Métricas propias del worker: `legacy_count`, `event_sourced_count`, `delta_pct`, `missing_in_new`, `missing_in_legacy`. Diff <1% como criterio cutover acordado en S1.
+- Cutover progresivo por tenant prematuro NO aplica acá (S6 dropea legacy de un saque) — pero el reconciliation worker debe poder reportar diff per-tenant para que ops detecte tenants con extracción rota.
+- "Comparative truth" como sigue: shadow-read query 2 fuentes con misma window → assert turn_id appears en ambas. Si new tiene row legacy no, log "legacy_extra"; reverso "new_extra".
+
+#### Mercado Pago payment link sensitivity
+
+- LGPD (BR) clase **dato sensible**: nombres, CPF/CNPJ, datos transacción, comportamiento financiero, IP, geolocation. Mercado Pago developer docs marcan PCI DSS scope para card data — sales_agent **NUNCA** debe loguear pan/cvv/expiry.
+- Payment link URL (`https://mpago.la/...`) per se NO es sensible — pero el lead_id/payer_email/external_reference embebido SÍ. Sales_agent debe redactar `email` en URL params + cualquier `nombre+CPF` en query string.
+- ANPD (regulator BR) 2025-2026 enforcement priorizó AI/biometrics y data scraping — sales_agent es agente AI procesando data financiera, doble exposición. Audit log retention 90d trace + 365d llm_call alineado con LGPD Art.16 retention principle.
+
+#### LangChain callback handler invariants confirmados
+
+- `BaseCallbackHandler` sync OR async válido — el callback handler pattern de copilot (post Phase 2) usa sync (`def on_chat_model_start...`). Sales_agent reusa ese shape — un solo handler instance per turn, in-memory open-span dict keyed by `run_id`.
+- LLMFactory NO tiene `with_callbacks()` — el `config={"callbacks": [...]}` se pasa **al invoke** del graph, NO al model factory. Pattern correcto: handler vive turn-scoped en `chat.py`, se inyecta via `agent_app.ainvoke(state, config=...)`. Eso evita acoplar LLMFactory cross-agent.
+- Para que el subgraph sync `sales_app.invoke(state)` reciba callbacks: el nodo `sales_agent_node(state)` debe declarar firma `(state, config: RunnableConfig)` y pasar `config` al subgraph invoke. LangGraph inyecta el `RunnableConfig` cuando la firma lo declara.
+
+---
+
+## Decisiones de diseño S1 (post-research)
+
+1. **Callback handler activado en orchestrator**, NO en factory. `chat.py:868` cambia a `agent_app.ainvoke(state, config={"callbacks": [handler]})`. Mismo patrón que copilot. **Sin tocar nodes.py** ni cada `LLMFactory.generate_response()`.
+2. **Subgraph forwarding**: `orchestrator/graph.py::sales_agent_node` cambia firma a `(state, config: RunnableConfig)` y reenvía `sales_app.invoke(state, config=config)`. Test arquitectónico bloquea regresión.
+3. **OpenAI provider legacy `repo.create_llm_log` queda durante dual-write**. Cutover en S6 — ese write es la fuente legacy del reconciliation.
+4. **Mantener `@trace_node`** durante 4 semanas. NO borrar en S1.
+5. **PII patterns LATAM en `shared/agent_observability/recording/sanitization.py`** — extiende tuple existente, no crea archivo nuevo. Keyword guard mismo patrón que phones.
+6. **Repos sales concrete = AsyncSession**. Heredan `BaseLLMCallRepoProtocol` + `BaseTraceEventRepoProtocol` (Protocol, structural typing — copilot sync, sales async, ambos válidos).
+7. **`tool_call_dedup.py` mirror exacto** desde copilot bajo `sales_agent/application/orchestrator/tool_call_dedup.py`. Wire en `tool_executor` node post-RED test. Threshold 3, hard 5, env vars `SALES_AGENT_TOOL_CALL_DEDUP_*`.
+8. **Reconciliation worker opt-in via env** `SALES_AGENT_DUAL_WRITE_RECONCILE=1` — corre cada hora durante ventana, off post-cutover. Reporta a structlog + Sentry breadcrumb.
+9. **`sales_audit.py` dual-read en este sprint**. AuditRepository agrega `get_event_sourced_rows()`, `clear_user_history` extendido para borrar tablas nuevas también. Sidebar "Ver Último Estado" prefiere new, fallback legacy.
 
 ---
 

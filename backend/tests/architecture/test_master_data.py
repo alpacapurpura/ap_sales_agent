@@ -32,6 +32,11 @@ ALLOWED_USD_DEFAULT_FILES: set[str] = {
     "src/shared/agent_observability/cost/fx_resolver.py",
     "src/modules/copilot/observability/recording/callback_handler.py",
     "src/modules/copilot/observability/recording/turn_envelope.py",
+    # S1 sales-agent observability — same fallback role as the copilot
+    # callback handler above. ``tenant_currency`` reads from
+    # ``tenant_billing_config.billing_currency`` and falls back to "USD"
+    # only when no row exists for the tenant.
+    "src/modules/sales_agent/observability/recording/callback_handler.py",
     # Phase 2 atomic switch: chat.py reads tenant currency from
     # ``tenant_billing_config`` and falls back to "USD" when no row
     # exists. Same role as the model + observability seams above —

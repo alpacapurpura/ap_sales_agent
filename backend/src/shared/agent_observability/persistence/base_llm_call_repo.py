@@ -18,9 +18,10 @@ copilot's repo uses sync ``Session``, sales_agent (S1) may use async
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Any, Protocol, runtime_checkable
 
 
+@runtime_checkable
 class BaseLLMCallRepoProtocol(Protocol):
     """Minimum write interface for ``*_llm_call`` repos."""
 
