@@ -39,6 +39,7 @@ from typing import TYPE_CHECKING
 import structlog
 
 from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
+from src.shared.agent_observability.channels.format import get_channel_format
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -289,6 +290,22 @@ def _session_continuity(state: AgentState) -> str:
     return "# Continuidad de sesión\n" + "\n".join(parts)
 
 
+def _channel_format_hint(state: AgentState) -> str:
+    """S5 — slot 6 cacheable per-tenant.
+
+    Resuelve ``state.channel_type`` via ``shared.agent_observability.channels``
+    registry y devuelve el ``structure_hint`` declarativo del canal. Cuando
+    ``channel_type`` viene None / '' / unknown, ``get_channel_format`` cae al
+    baseline ``chat`` — el slot queda con un hint válido en vez de vacío,
+    favoreciendo cache hit estable cross-turn.
+    """
+    channel_type = state.get("channel_type")
+    if not channel_type:
+        return ""
+    fmt = get_channel_format(channel_type)
+    return f"# Reglas del canal ({fmt.label_es})\n\n{fmt.structure_hint}"
+
+
 def _tool_request_format() -> str:
     return (
         "# Formato de cierre\n\n"
@@ -315,7 +332,7 @@ def build_specialist_system_prompt(state: AgentState, role: SpecialistRole) -> s
         PromptFragment.SALES_PLAYBOOK_HINT: _render_static_specialist_body(role),
         PromptFragment.AGENT_IDENTITY: state.get("agent_identity") or "",
         PromptFragment.OFFER_SUMMARY: "",  # S7 — split from agent_identity into brand_voice_summary table.
-        PromptFragment.CHANNEL_FORMAT_HINT: "",  # S5 — extract from agent_identity once channel registry exists.
+        PromptFragment.CHANNEL_FORMAT_HINT: _channel_format_hint(state),
         PromptFragment.STAGE_HINT: _stage_hint(state),
         PromptFragment.LEAD_SIGNALS: _lead_signals(state),
         PromptFragment.SESSION_CONTINUITY: _session_continuity(state),

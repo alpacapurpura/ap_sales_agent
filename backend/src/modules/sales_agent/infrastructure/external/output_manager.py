@@ -25,6 +25,7 @@ from src.modules.sales_agent.domain.tuning import (
 from src.modules.sales_agent.domain.tuning import (
     TYPING_JITTER,
 )
+from src.shared.agent_observability.channels.format import get_channel_format
 from src.shared.domain.messages import OutgoingMessage
 
 if TYPE_CHECKING:
@@ -104,7 +105,7 @@ class OutputManager:
     def _parse_response(
         cls,
         raw_response: str,
-        channel_type: str = "telegram",  # noqa: ARG003
+        channel_type: str = "telegram",
     ) -> list[str]:
         """Parse the raw LLM response into user-facing chunks.
 
@@ -114,6 +115,9 @@ class OutputManager:
         3. Try JSON array (backward compat with older prompt format)
         4. Split by paragraph breaks (double newline)
         5. Fallback to single chunk
+        6. Cap each chunk to ``ChannelFormat.chunk_size`` when the registry
+           declares one for this channel (S5). Channels without ``chunk_size``
+           keep the legacy paragraph-only behavior.
         """
         # 1. Strip internal blocks before user sees them
         cleaned = re.sub(
@@ -133,21 +137,83 @@ class OutputManager:
             ).strip()
 
         # 3. Try JSON array first (backward compat)
+        chunks: list[str] | None = None
         if cleaned.startswith("["):
             try:
                 parsed = json.loads(cleaned)
                 if isinstance(parsed, list):
-                    return [str(item).strip() for item in parsed if item and str(item).strip()]
+                    chunks = [str(item).strip() for item in parsed if item and str(item).strip()]
             except json.JSONDecodeError:
-                pass
+                chunks = None
 
         # 4. Split by double newline (paragraph breaks)
-        paragraphs = [p.strip() for p in cleaned.split("\n\n") if p.strip()]
-        if len(paragraphs) > 1:
-            return paragraphs
+        if chunks is None:
+            paragraphs = [p.strip() for p in cleaned.split("\n\n") if p.strip()]
+            if len(paragraphs) > 1:
+                chunks = paragraphs
+            elif cleaned:
+                # 5. Single chunk fallback
+                chunks = [cleaned]
+            else:
+                chunks = []
 
-        # 5. Single chunk fallback
-        return [cleaned] if cleaned else []
+        # 6. Cap chunk length when the channel registry declares chunk_size.
+        return cls._enforce_chunk_size(chunks, channel_type)
+
+    @classmethod
+    def _enforce_chunk_size(cls, chunks: list[str], channel_type: str) -> list[str]:
+        """Split chunks longer than ``ChannelFormat.chunk_size`` (S5).
+
+        Strategy: prefer whitespace boundaries (sentence end, then word) so
+        we don't chop mid-word. Fall back to hard cut for words longer than
+        the cap. ``chunk_size=None`` (chat / email / voice / sms) means no
+        enforcement — paragraph chunks pass through as-is.
+        """
+        fmt = get_channel_format(channel_type)
+        cap = fmt.chunk_size
+        if cap is None or cap <= 0:
+            return chunks
+
+        out: list[str] = []
+        for chunk in chunks:
+            out.extend(cls._split_by_cap(chunk, cap))
+        return out
+
+    @staticmethod
+    def _split_by_cap(text: str, cap: int) -> list[str]:
+        r"""Split ``text`` so each piece is ≤ ``cap`` chars.
+
+        Boundary preference: sentence end (``. `` / ``! `` / ``? `` / ``…`` /
+        ``\n``) → whitespace → hard cut. The boundary character is kept in
+        the LEFT piece so chunks read naturally (``"... módulos prácticos."``
+        not ``"... módulos prácticos"``).
+        """
+        if len(text) <= cap:
+            return [text]
+
+        pieces: list[str] = []
+        remaining = text
+        while len(remaining) > cap:
+            window = remaining[:cap]
+            # Sentence-end markers: index reported by rfind is the start of
+            # the substring; piece must end ONE char after the punctuation
+            # so the ``.`` / ``!`` / ``?`` stays attached.
+            sentence_marker = max((window.rfind(s), len(s)) for s in (". ", "! ", "? ", "…", "\n"))
+            sent_idx, sent_len = sentence_marker
+            if sent_idx > 0 and sent_idx >= cap // 2:
+                split_at = sent_idx + (sent_len - 1) if sent_len > 1 else sent_idx + 1
+            else:
+                ws = window.rfind(" ")
+                split_at = ws if ws > cap // 4 else cap
+
+            piece = remaining[:split_at].rstrip()
+            if piece:
+                pieces.append(piece)
+            remaining = remaining[split_at:].lstrip()
+
+        if remaining:
+            pieces.append(remaining)
+        return pieces
 
     @classmethod
     def _calculate_typing_time(cls, text: str) -> float:

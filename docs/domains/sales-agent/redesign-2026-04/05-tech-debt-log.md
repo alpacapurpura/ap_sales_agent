@@ -362,6 +362,68 @@ Statuses: `FIXED` · `DEFERRED-S{N}` · `FLAGGED` · `WONT-FIX`.
 
 ---
 
+## Detectados durante S5 (channel format registry shared) — 2026-04-28
+
+### FIXED
+
+#### [MEDIUM] OutputManager hardcodeado por canal — 2026-04-27 — diagnóstico — FIXED en S5
+- Path: `backend/src/modules/sales_agent/infrastructure/external/output_manager.py`.
+- Descripción original: "chunk size, CPM, emoji policy hardcodeados en if-else por canal".
+- Realidad post-audit: `_parse_response` recibía `channel_type` con `# noqa: ARG003` y splitting era paragraph-only. NO había if-else activos — era un wiring missing, no anti-pattern.
+- Acción: FIXED — `_parse_response` consume `ChannelFormat.chunk_size` via `get_channel_format(channel_type)`. `_enforce_chunk_size` + `_split_by_cap` aplican cap con boundary preference (sentence → whitespace → hard cut). §3 protected `process_response` typing simulation + `CPM_SPEED` global intactos. Arch ratchet `tests/architecture/test_no_hardcoded_channel_in_output_manager.py` bloquea regresiones (sin allowlist).
+
+#### [LOW] `agent_identity.j2` mezcla offer + channel rules — 2026-04-28 — S3 — FIXED-PARTIAL en S5
+- Path: `backend/src/modules/sales_agent/application/prompts/compose.py`.
+- Descripción: slot 6 `CHANNEL_FORMAT_HINT` quedaba vacío en S3. agent_identity.j2 incluía `## Reglas por Canal` inline.
+- Acción: FIXED-PARTIAL — slot 6 ahora se puebla via `_channel_format_hint(state)` que consume `get_channel_format(state.channel_type).structure_hint`. La extracción del bloque inline en `agent_identity.j2` queda DEFERRED-S7 (el render Jinja sigue emitiendo el bloque pero ahora el slot 6 lo respalda canonicalmente — duplicación benigna mientras lighthouse no esté activo).
+- Razón split: S5 = registry + slot wiring (infra cross-agent). S7 = brand voice lighthouse retire del bloque inline en agent_identity.j2 (toca templates Jinja del tenant).
+
+### Nuevos detectados en S5
+
+#### [MEDIUM] `agent_identity.j2` duplica `## Reglas por Canal` con slot 6 — 2026-04-28 — S5 — DEFERRED-S7
+- Path: `backend/src/modules/sales_agent/infrastructure/prompts/templates/agent_identity.j2`.
+- Descripción: slot 4 (AGENT_IDENTITY) renderiza `## Reglas por Canal` con texto generado del tenant config. Slot 6 (CHANNEL_FORMAT_HINT) ahora también emite `# Reglas del canal (Label)\n\n{structure_hint}` desde el registry. El LLM lee ambos — son consistentes pero redundantes.
+- Impacto: ~100-200 tokens duplicados por turn (slot 6 < slot 4 inline section). Cache hit no se afecta (ambos slots están en prefix cacheable).
+- Acción: DEFERRED-S7 — al integrar lighthouse de brand voice (`brand_voice_summary` mirror copilot F3), retirar `## Reglas por Canal` del template Jinja agent_identity.j2 y dejar solo slot 6 como SSoT del channel hint.
+- Razón: scope S5 estricto fue mover registry + wirear slot 6. S7 toca templates Jinja del tenant (brand voice integration) — momento natural para limpiar.
+
+#### [LOW] `format_for_channel` tool no wireado en sales tools registry — 2026-04-28 — S5 — DEFERRED-S8
+- Path: `backend/src/modules/sales_agent/application/tools/registry.py` (no toca acá).
+- Descripción: `format_for_channel` ahora vive en `shared/agent_observability/channels/format_for_channel.py` y está disponible como `@tool`. Sales no lo agrega al registry de tools en S5 — el wiring activo es OutputManager._parse_response consume chunk_size (suficiente para WhatsApp template-safe). Si en S8/S9 surge necesidad de adaptar texto post-generación a otro canal (lead pide "mándame por WhatsApp" pero `channel_type=telegram`), agregar al registry.
+- Impacto: nulo hoy.
+- Acción: DEFERRED-S8 — evaluar al agregar scheduler tool si format_for_channel es necesario.
+
+#### [LOW] `channel_intent_detector` no wireado en sales orchestrator — 2026-04-28 — S5 — DEFERRED-post-S6
+- Path: `backend/src/modules/sales_agent/application/orchestrator/chat.py` (no toca acá).
+- Descripción: el detector está disponible vía shared ahora. Sales no consume. BufferService.smart_debounce agrupa fragmentos antes del LLM call; agregar pre-detection de "mándame por X" requiere tocar el flow del buffer — §3 protected.
+- Impacto: nulo hoy. Si lead pide explícito otro canal, el agente lo entiende vía LLM (no determinístico).
+- Acción: DEFERRED-post-S6 — re-evaluar cuando `chat.py` Stranger Fig refactor abra ventana (post-ratchet S6).
+
+#### [LOW] `typing_simulation_cpm` declarado pero no consumido — 2026-04-28 — S5 — FLAGGED
+- Path: `backend/src/shared/agent_observability/channels/format.py` campo `typing_simulation_cpm: int | None = None`.
+- Descripción: el campo está disponible en el dataclass pero `OutputManager._calculate_typing_time` sigue usando `cls.CPM_SPEED` global hardcoded en `domain/tuning.py`. §3 protección dice "CPM_SPEED + caracter cap calibrados, no tocar".
+- Impacto: nulo (CPM_SPEED global trabaja). Pero hay un campo declarativo sin consumer.
+- Acción: FLAGGED — si en S6 ratchet pass se decide permitir override per-canal del typing speed (ej. SMS no necesita typing simulation, voice tampoco), wirear `OutputManager._calculate_typing_time` para preferir `fmt.typing_simulation_cpm` cuando declared.
+- Razón: §3 protected del CPM_SPEED bloqueó el wiring en S5.
+
+#### [LOW] Copilot shims `output_channels.py` + `format_for_channel.py` + `channel_intent_detector.py` re-export only — 2026-04-28 — S5 — DEFERRED-post-S6
+- Paths:
+  - `backend/src/modules/copilot/domain/output_channels.py`
+  - `backend/src/modules/copilot/application/tools/format_for_channel.py`
+  - `backend/src/modules/copilot/application/orchestrator/channel_intent_detector.py`
+- Descripción: cada archivo es ~30-50 LOC re-exportando símbolos del shared. Mantienen back-compat para 6+ consumers copilot (synthesizer, output_sanitizer, chat.py, registry, tests).
+- Impacto: bajo. Los tests viejos de copilot siguen verdes (113 passed). Los shims no tienen lógica.
+- Acción: DEFERRED-post-S6 — sweep de imports copilot directos a shared como cleanup. NO breaking change.
+- Razón: scope S5 fue extract + wire sales. Migrar consumers copilot es scope creep.
+
+#### [LOW] Test `tests/architecture/test_ddd_boundaries.py:75` allowlist apunta a path obsoleto — 2026-04-28 — S5 — DEFERRED-post-S6
+- Path: `backend/tests/architecture/test_ddd_boundaries.py:75`.
+- Descripción: allowlist `_PROVIDER_CONTRACT_IMPORTS` lista `"src.modules.copilot.domain.output_channels"` para futuros providers `copilot_provider/` que registren canales custom. Post-S5 el SSoT real es `src.shared.agent_observability.channels.format`. La allowlist sigue siendo correcta funcionalmente (el shim re-exporta) pero el path forward-looking debería apuntar al SSoT.
+- Impacto: nulo. Tests verdes (113 copilot + 3134 total). Forward-looking nada más.
+- Acción: DEFERRED-post-S6 — actualizar allowlist a `src.shared.agent_observability.channels.format` cuando se retiren los shims copilot.
+
+---
+
 ## Detectados durante S4 (ChatModelSpec adopt + per-role multi-provider) — 2026-04-28
 
 ### FIXED (entrada arriba ya marcada)
