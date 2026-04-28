@@ -9,8 +9,10 @@ from unittest.mock import MagicMock, patch
 
 from src.core.enums import ModelRole
 from src.modules.sales_agent.application.agents.sales.nodes import (
-    _build_system_prompt,
     _determine_stage,
+)
+from src.modules.sales_agent.application.prompts.compose import (
+    CACHE_BOUNDARY_MARKER,
 )
 
 # ---------------------------------------------------------------------------
@@ -60,31 +62,6 @@ def _base_state(**overrides) -> dict:
     }
     state.update(overrides)
     return state
-
-
-# ---------------------------------------------------------------------------
-# _build_system_prompt tests
-# ---------------------------------------------------------------------------
-
-
-class TestBuildSystemPrompt:
-    def test_prepends_agent_identity(self):
-        state = _base_state(agent_identity="Soy Nicolify, tu asistente de ventas.")
-        result = _build_system_prompt(state, "Skill prompt here")
-        assert result.startswith("Soy Nicolify")
-        assert "---" in result
-        assert "Skill prompt here" in result
-
-    def test_returns_skill_prompt_when_no_identity(self):
-        state = _base_state(agent_identity="")
-        result = _build_system_prompt(state, "Skill prompt here")
-        assert result == "Skill prompt here"
-
-    def test_returns_skill_prompt_when_identity_is_none(self):
-        state = _base_state()
-        state["agent_identity"] = None
-        result = _build_system_prompt(state, "Skill prompt here")
-        assert result == "Skill prompt here"
 
 
 # ---------------------------------------------------------------------------
@@ -160,29 +137,27 @@ class TestSupervisorNode:
 
 class TestQualifierNode:
     @patch(_TRACE_PATCH, _noop_trace)
-    def test_builds_system_prompt_with_identity(self):
-        """Verify qualifier prepends agent_identity to the skill prompt."""
+    def test_qualifier_uses_compose_with_cache_boundary(self):
+        """Qualifier renders via build_specialist_system_prompt — cache_boundary marker present."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
 
         importlib.reload(nodes_mod)
 
         state = _base_state(agent_identity="Brand Identity: Nicolify Premium")
 
-        with (
-            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
-            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
-        ):
+        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory:
             mock_service = MagicMock()
             mock_service.generate_response.return_value = "Hola! Cuéntame más."
             mock_llm_factory.get_service.return_value = mock_service
-            mock_prompt.render.return_value = "qualifier skill prompt"
 
             nodes_mod.node_qualifier(state)
 
             call_kwargs = mock_service.generate_response.call_args.kwargs
             system_prompt = call_kwargs["system_prompt"]
             assert "Brand Identity: Nicolify Premium" in system_prompt
-            assert "qualifier skill prompt" in system_prompt
+            assert CACHE_BOUNDARY_MARKER in system_prompt
+            # Identity lives in cacheable prefix.
+            assert system_prompt.index("Brand Identity") < system_prompt.index(CACHE_BOUNDARY_MARKER)
 
     @patch(_TRACE_PATCH, _noop_trace)
     def test_qualifier_uses_smart_model(self):
@@ -193,14 +168,10 @@ class TestQualifierNode:
 
         state = _base_state()
 
-        with (
-            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
-            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
-        ):
+        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory:
             mock_service = MagicMock()
             mock_service.generate_response.return_value = "Respuesta"
             mock_llm_factory.get_service.return_value = mock_service
-            mock_prompt.render.return_value = "prompt"
 
             nodes_mod.node_qualifier(state)
 
@@ -224,14 +195,10 @@ class TestCloserNode:
 
         state = _base_state()
 
-        with (
-            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
-            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
-        ):
+        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory:
             mock_service = MagicMock()
             mock_service.generate_response.return_value = "Perfecto, aquí va tu link."
             mock_llm_factory.get_service.return_value = mock_service
-            mock_prompt.render.return_value = "closer prompt"
 
             nodes_mod.node_closer(state)
 

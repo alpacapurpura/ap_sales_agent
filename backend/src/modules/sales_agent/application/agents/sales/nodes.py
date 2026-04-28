@@ -6,6 +6,10 @@ from typing import Any
 
 from src.core.enums import ModelRole
 from src.modules.sales_agent.application.orchestrator.state import AgentState
+from src.modules.sales_agent.application.prompts.compose import (
+    SpecialistRole,
+    build_specialist_system_prompt,
+)
 from src.modules.sales_agent.domain.tuning import (
     BUYING_SIGNAL_WEIGHT,
     FOLLOW_UP_CADENCES,
@@ -25,14 +29,6 @@ from src.shared.infrastructure.llm.factory import LLMFactory
 # ---------------------------------------------------------------------------
 # Helpers (shared across nodes)
 # ---------------------------------------------------------------------------
-
-
-def _build_system_prompt(state: AgentState, skill_prompt: str) -> str:
-    """Prepend agent_identity (the tenant's 'CLAUDE.md') to any skill prompt."""
-    identity = state.get("agent_identity", "")
-    if identity:
-        return f"{identity}\n\n---\n\n{skill_prompt}"
-    return skill_prompt
 
 
 def _extract_json_block(text: str, block_name: str) -> dict | None:
@@ -137,19 +133,13 @@ def node_sales_supervisor(state: AgentState) -> dict[str, Any]:
 @trace_node("qualifier")
 def node_qualifier(state: AgentState) -> dict[str, Any]:
     """Node qualifier."""
-    skill_prompt = prompt_loader.render(
-        "specialist_qualifier",
-        consecutive_questions=state.get("consecutive_questions", 0),
-        session_gap_hours=state.get("session_gap_hours"),
-        last_session_summary=state.get("last_session_summary"),
-    )
-    system_prompt = _build_system_prompt(state, skill_prompt)
+    system_prompt = build_specialist_system_prompt(state, SpecialistRole.QUALIFIER)
     response = LLMFactory.get_service().generate_response(
         messages=state["messages"],
         system_prompt=system_prompt,
         model_type=ModelRole.REASONING,
         temperature=0.2,
-        metadata={"prompt_template": "agent_identity + specialist_qualifier"},
+        metadata={"prompt_template": "compose:specialist_qualifier"},
     )
     return {"messages": [{"role": "assistant", "content": response}]}
 
@@ -157,19 +147,13 @@ def node_qualifier(state: AgentState) -> dict[str, Any]:
 @trace_node("product_expert")
 def node_product_expert(state: AgentState) -> dict[str, Any]:
     """Node product expert."""
-    skill_prompt = prompt_loader.render(
-        "specialist_product_expert",
-        context_rag=state.get("context_rag"),
-        session_gap_hours=state.get("session_gap_hours"),
-        last_session_summary=state.get("last_session_summary"),
-    )
-    system_prompt = _build_system_prompt(state, skill_prompt)
+    system_prompt = build_specialist_system_prompt(state, SpecialistRole.PRODUCT_EXPERT)
     response = LLMFactory.get_service().generate_response(
         messages=state["messages"],
         system_prompt=system_prompt,
         model_type=ModelRole.REASONING,
         temperature=0.2,
-        metadata={"prompt_template": "agent_identity + specialist_product_expert"},
+        metadata={"prompt_template": "compose:specialist_product_expert"},
     )
     return {"messages": [{"role": "assistant", "content": response}]}
 
@@ -177,18 +161,13 @@ def node_product_expert(state: AgentState) -> dict[str, Any]:
 @trace_node("closer")
 def node_closer(state: AgentState) -> dict[str, Any]:
     """Node closer."""
-    skill_prompt = prompt_loader.render(
-        "specialist_closer",
-        session_gap_hours=state.get("session_gap_hours"),
-        last_session_summary=state.get("last_session_summary"),
-    )
-    system_prompt = _build_system_prompt(state, skill_prompt)
+    system_prompt = build_specialist_system_prompt(state, SpecialistRole.CLOSER)
     response = LLMFactory.get_service().generate_response(
         messages=state["messages"],
         system_prompt=system_prompt,
         model_type=ModelRole.REASONING,
         temperature=0.4,
-        metadata={"prompt_template": "agent_identity + specialist_closer"},
+        metadata={"prompt_template": "compose:specialist_closer"},
     )
     return {"messages": [{"role": "assistant", "content": response}]}
 

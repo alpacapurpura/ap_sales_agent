@@ -212,27 +212,32 @@ class TestSupervisorContextEnrichment:
             assert render_kwargs["session_gap_hours"] == 48.0
 
     @patch(_TRACE_PATCH, _noop_trace)
-    def test_qualifier_passes_consecutive_questions(self):
+    def test_qualifier_session_continuity_lands_in_volatile_suffix(self):
+        """Post-S3: cooldown context lives in volatile session_continuity slot
+        (after CACHE_BOUNDARY_MARKER) — NOT in the cacheable prefix where it
+        would poison the cache."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+        from src.modules.sales_agent.application.prompts.compose import (
+            CACHE_BOUNDARY_MARKER,
+        )
 
         importlib.reload(nodes_mod)
 
         state = _base_state(consecutive_questions=3, session_gap_hours=12.0)
 
-        with (
-            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
-            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
-        ):
+        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory:
             mock_service = MagicMock()
             mock_service.generate_response.return_value = "Interesante, ¿y qué haces?"
             mock_llm_factory.get_service.return_value = mock_service
-            mock_prompt.render.return_value = "qualifier prompt"
 
             nodes_mod.node_qualifier(state)
 
-            render_kwargs = mock_prompt.render.call_args.kwargs
-            assert render_kwargs["consecutive_questions"] == 3
-            assert render_kwargs["session_gap_hours"] == 12.0
+            call_kwargs = mock_service.generate_response.call_args.kwargs
+            system_prompt = call_kwargs["system_prompt"]
+            assert CACHE_BOUNDARY_MARKER in system_prompt
+            suffix = system_prompt.split(CACHE_BOUNDARY_MARKER, maxsplit=1)[1]
+            assert "12.0 horas" in suffix
+            assert "3 preguntas consecutivas" in suffix
 
 
 # ---------------------------------------------------------------------------

@@ -65,11 +65,11 @@ Statuses: `FIXED` · `DEFERRED-S{N}` · `FLAGGED` · `WONT-FIX`.
 
 ### LLM cost / cache
 
-#### [MEDIUM] Sales_agent prompt sin cache_boundary — 2026-04-27 — diagnóstico — DEFERRED-S3
-- Path: `backend/src/modules/sales_agent/application/agents/sales/nodes.py`
+#### [MEDIUM] Sales_agent prompt sin cache_boundary — 2026-04-27 — diagnóstico — FIXED en S3
+- Path: `backend/src/modules/sales_agent/application/agents/sales/nodes.py` + `backend/src/modules/sales_agent/application/prompts/compose.py` (nuevo).
 - Descripción: Jinja render fresh per turn. Cache hit rate ~0%. Sales_agent es módulo más caro en LLM, sobre todo con Kimi/DeepSeek que ya soportan cache.
 - Impacto: LLM cost. Estimado 25-30% reducción con hit rate 60%.
-- Acción: DEFERRED-S3.
+- Acción: FIXED — `compose_system_prompt(fragments)` mirror F8 copilot pattern. Single string + `CACHE_BOUNDARY_MARKER` (HTML comment). Slot order: static_identity → tools_hint → playbook → agent_identity → offer (S7 placeholder) → channel (S5 placeholder) → [BOUNDARY] → stage → signals → session_continuity → tool_format. Prefix realista ≥2700 tokens (>2× threshold). Specialists qualifier/product_expert/closer migrados; supervisor fuera de scope (max_output_tokens=10).
 
 #### [MEDIUM] Sales_agent no usa multi-provider per-role — 2026-04-28 — diagnóstico — DEFERRED-S4
 - Path: `backend/src/modules/sales_agent/application/agents/sales/nodes.py`
@@ -361,6 +361,40 @@ Statuses: `FIXED` · `DEFERRED-S{N}` · `FLAGGED` · `WONT-FIX`.
 - Descripción: 2 tests duplican fixture autouse mockeando `SessionLocal` + repos. Si más tests sales_agent necesitan ese mock se promueve a `tests/modules/sales_agent/conftest.py`.
 - Impacto: mínimo — ~20 LOC duplicadas hoy.
 - Acción: DEFERRED-S6 ratchet pass — promover a conftest cuando 3+ tests lo requieran.
+
+---
+
+## Detectados durante S3 (prompt cache_boundary refactor) — 2026-04-28
+
+### FIXED (entrada arriba ya marcada)
+
+- `[MEDIUM] Sales_agent prompt sin cache_boundary` — FIXED en S3 (ver sección sembrado inicial).
+
+### Nuevos detectados en S3
+
+#### [LOW] `agent_identity` slot mezcla offer + channel rules — 2026-04-28 — S3 — DEFERRED-S5/S7
+- Path: `backend/src/modules/sales_agent/infrastructure/prompts/templates/agent_identity.j2`.
+- Descripción: el render de `agent_identity` (cacheable per-tenant slot 4) ya incluye `## Catálogo de Ofertas` (offer summary) y `## Reglas por Canal` (channel format). Los slots S3 5 (`OFFER_SUMMARY`) y 6 (`CHANNEL_FORMAT_HINT`) quedan vacíos para no duplicar contenido.
+- Impacto: si Brand Studio cambia tono pero offers no, el cache invalida (porque agent_identity es un solo blob). Ideal: split por scope (brand voice cambia raro, offers cambian más, channel cambia rarísimo) → cada slot invalida independiente.
+- Acción: DEFERRED — S5 extrae channel rules a `CHANNEL_FORMAT_HINT` (registry-based), S7 extrae offer summary a su propia tabla `brand_voice_summary` mirror copilot lighthouse. La estructura S3 (slots 5+6 placeholder) está lista para cuando esas fases lleguen.
+
+#### [LOW] `_realistic_state` test fixture inline ~30 líneas hard-coded — 2026-04-28 — S3 — DEFERRED-S6
+- Path: `backend/tests/modules/sales_agent/prompts/test_build_specialist_system_prompt.py`.
+- Descripción: el fixture `_realistic_state` inline ~30 líneas de agent_identity. Si más tests de prompt necesitan el mismo tenant base, promover a `tests/modules/sales_agent/conftest.py` o factory en `tests/modules/sales_agent/fixtures/`.
+- Impacto: mínimo hoy (1 test file lo usa). Si S7 brand_voice tests duplican el fixture → promover.
+- Acción: DEFERRED-S6 ratchet pass.
+
+#### [LOW] PromptVersionModel override + cache scope — 2026-04-28 — S3 — FLAGGED
+- Path: `backend/src/modules/sales_agent/application/prompts/compose.py::_render_static_specialist_body`.
+- Descripción: cuando un tenant define un override DB-backed para `specialist_qualifier`, el override entra al slot SALES_PLAYBOOK_HINT (cacheable cross-tenant en design intent, ahora cacheable per-tenant porque cada tenant ve su override). Resultado: cache hit cross-tenant pierde el slot 3, pero per-tenant cache sigue válida si el override no cambia turn-a-turn.
+- Impacto: ~5-10% pérdida en hit rate global cross-tenant para tenants con overrides activos. Aceptable — la mayoría de tenants no overridean specialists; quienes lo hacen ganan customización a costo marginal.
+- Acción: FLAGGED — monitorear post-deploy via `sales_agent_llm_call.cached_read_tokens` segmentado por tenants con/sin override.
+
+#### [LOW] `_BASE_IDENTITY` y `_TOOLS_HINT` constants en código — 2026-04-28 — S3 — FLAGGED
+- Path: `backend/src/modules/sales_agent/application/prompts/compose.py`.
+- Descripción: dos string constants (~150 + ~250 tokens) viven inline en compose.py. Cualquier edit obliga deploy. Alternativa: tenerlos en `templates/_base_identity.j2` + `templates/_tools_hint.j2` y renderizarlos via prompt_loader (consistencia con specialists + posibilidad de override via PromptVersionModel).
+- Impacto: bajo — son strings universales cross-tenant; no requieren tenant-specific override.
+- Acción: FLAGGED — promover a Jinja templates en S5 cuando tools registry sea fuente de verdad de la lista de tools (hoy lista hardcoded en `_TOOLS_HINT` puede driftear de TOOL_REGISTRY).
 
 ---
 

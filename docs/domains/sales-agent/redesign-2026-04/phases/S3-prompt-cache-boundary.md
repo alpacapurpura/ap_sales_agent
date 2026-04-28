@@ -43,9 +43,63 @@ Refactorizar el system prompt de los specialists de sales_agent (qualifier / pro
 - `.claude/rules/copilot-resilience.md` — sección "System prompt order".
 - `docs/domains/copilot/redesign-2026-04/learnings/F8-routing.md`.
 
-### Hallazgos research
+### Hallazgos research (2026-04-28)
 
-> COMPLETAR.
+#### OpenAI prompt cache (vigente abril 2026)
+- Threshold mínimo **1024 tokens contiguos sin cambios** confirmado vigente. Por debajo, no hay cache (no degradado gradual).
+- **Automático, sin annotations**. No `cache_control`, no `cache_breakpoint`. Solo dejar prefix estable.
+- Telemetría: `usage_metadata.input_token_details.cache_read` (LangChain normaliza). Latencia −80% / cost −90% al hit.
+- Optional: `prompt_cache_key` (routing hint para mejorar hit rate cuando hay múltiples replicas backend) y `prompt_cache_retention` (`in_memory` 5-10 min default vs `24h` extended).
+- Fuente: [OpenAI Prompt Caching](https://developers.openai.com/api/docs/guides/prompt-caching), [Cookbook 201](https://developers.openai.com/cookbook/examples/prompt_caching_201).
+
+#### Anthropic Claude (NO en scope S3 — sales_agent hoy no enruta a Claude)
+- Requiere `cache_control: {"type": "ephemeral"}` explícito en blocks.
+- Cache write 1.25× input price (5 min TTL) o 2.0× (1 h TTL). Cache read 0.1× input.
+- TTL default cambió a **5 minutos** (2026-03-06); 1 h es opt-in pago.
+- Multi-message cacheable: cachea hasta el último block con `cache_control`; siguientes requests reusan prefix.
+- **LangGraph v1.0** `create_agent` solo acepta `str` para `system_prompt` → incompatible con `cache_control` Anthropic. Workaround: pasar `SystemMessage(content=[blocks])` direct al LLM (no `create_agent`).
+- Fuente: [Claude Prompt Caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching), [LangChain Issue #33635](https://github.com/langchain-ai/langchain/issues/33635).
+
+#### Kimi K2.6 (modelo target S4 AGENT role)
+- API **OpenAI-compatible** confirmada (`/v1/chat/completions`). 256K context, 1T params (32B active).
+- **Automatic prefix caching** confirmado, savings 75-83%. Input ~$0.60/M base, drops a $0.10-0.15/M con cache hit.
+- Reusa el mismo pattern que OpenAI (string prefix estable). NO requiere annotations.
+- Fuente: [Kimi K2.6 API Guide](https://help.apiyi.com/en/kimi-k2-6-api-integration-guide-en.html), [Kimi Platform Docs](https://platform.kimi.ai/docs/guide/kimi-k2-6-quickstart).
+
+#### DeepSeek V3/V4 (modelo target S4 REASONING role para objeciones)
+- **Disk-based context cache automático**, default-on, sin code changes.
+- Telemetría tipada: `usage.prompt_cache_hit_tokens` / `usage.prompt_cache_miss_tokens` (no es el shape OpenAI `cached_tokens`; LangChain normaliza para que ambos lleguen a `input_token_details.cache_read`, pero verificar en producción).
+- Storage units 64 tokens, best-effort. V4 1M context / 384K output max.
+- Pricing 2026-04: input cache hits a 1/10 de original launch price; V4-Pro 25% off hasta 2026-05-05.
+- Fuente: [DeepSeek Context Caching](https://api-docs.deepseek.com/guides/kv_cache), [V4 Caching Blog](https://wavespeed.ai/blog/posts/blog-deepseek-v4-context-caching/).
+
+#### LangChain SystemMessage cache compatibility
+- Para OpenAI/Kimi/DeepSeek (auto-cache): pattern correcto = **single string** con prefix estable. No requiere `cache_control`.
+- Para Anthropic (manual): `SystemMessage(content=[{"type":"text","text":..., "cache_control":{"type":"ephemeral"}}, {"type":"text","text":...}])`. Multi-block dentro de **un solo SystemMessage**, no múltiples `SystemMessage`.
+- LangGraph v1.0 `create_agent` solo string → si sales adopta create_agent en futuro, perdería cache_control Anthropic. Hoy `LLMFactory.generate_response(system_prompt=str)` es nuestro pattern → fits OpenAI/Kimi/DeepSeek perfecto.
+
+---
+
+## Ajustes vs plan original
+
+**Original (S3 doc pre-research):** `compose_system_prompt(state) -> list[SystemMessage]` con 2 SystemMessages separados (cacheable + volatile).
+
+**Ajustado:** `compose_system_prompt(fragments) -> str` mirror exacto del pattern F8 copilot (`backend/src/modules/copilot/application/orchestrator/system_prompt_layout.py`):
+- Single string con `CACHE_BOUNDARY_MARKER = "\n\n<!-- ==== CACHE BOUNDARY (S3) ==== -->\n\n"` insertado entre prefix cacheable y suffix volatile.
+- Marker es greppable en trace (LLM lo ignora — HTML comment en markdown).
+- `PromptFragment(StrEnum)` + `CACHEABLE_FRAGMENTS` tuple + `VOLATILE_FRAGMENTS` tuple = SSoT del orden.
+- Compatible con `LLMFactory.generate_response(system_prompt: str, ...)` actual sin cambiar el contract.
+
+**Razones del ajuste:**
+1. **OpenAI/Kimi/DeepSeek son auto-cache** — no requieren múltiples SystemMessages. El cache se activa solo por prefix estable ≥1024 tokens.
+2. **Single string es el pattern probado en producción copilot F8** — hit rate ya verificable en `copilot_routing` admin.
+3. **List[SystemMessage] complica el contract** — hoy `LLMFactory.generate_response` acepta `system_prompt: str`. Cambiar a list rompería ~9 callsites en sales_agent + el contract con shared/infrastructure/llm.
+4. **Para Anthropic (futuro post-S4 si enrutamos)** — el adapter local del provider puede splittear el string por marker y emitir blocks con `cache_control`. La SSoT del orden queda en compose.py independiente del provider.
+
+**Consecuencias:**
+- Tests originalmente "Output = exactamente 2 SystemMessages" → cambian a "Output contiene exactamente 1 CACHE_BOUNDARY_MARKER, prefix antes ≥1024 tokens".
+- Slot 4 (`agent_identity_lighthouse`) hoy se rinde fresh per turn desde `tenant_config` (PromptLoader cachea 60s) — para S3 no migramos a `brand_voice_summary` table (eso es S7); en S3 garantizamos que el render NO incluya state-dependent vars (no `lead_score`, no `current_state`, no `recent_messages`). Si `tenant_config` cambia raro entre turns (lo esperado), prefix queda estable.
+- PromptVersionModel override slot placement: identity overrides → slot 4 (cacheable per-tenant); skill overrides (qualifier/closer/product_expert) → slot 4-6 cacheable per-tenant si todo el specialist body NO depende de state, o slot 7+ volatile si tiene `{{ buying_signals }}` etc. Tests cubren ambos casos.
 
 ---
 
@@ -75,32 +129,59 @@ Slots volatile:
 | 9 | `recent_messages_summary` | últimos N mensajes | 200-500 tokens |
 | 10 | `tool_request_format` | suffix con sintaxis `[TOOL_REQUEST: ...]` | 100 tokens |
 
-### Implementación
+### Implementación (mirror F8 copilot)
 
 ```python
 # src/modules/sales_agent/application/prompts/compose.py
-from langchain_core.messages import SystemMessage
+from collections.abc import Mapping
+from enum import StrEnum
 
-CACHE_BOUNDARY = "<<<CACHE_BOUNDARY_MARKER>>>"
+class PromptFragment(StrEnum):
+    # Cacheable prefix (≥1024 tokens contiguos)
+    STATIC_IDENTITY       = "static_identity"
+    STATIC_TOOLS_HINT     = "static_tools_hint"
+    SALES_PLAYBOOK_HINT   = "sales_playbook_hint"
+    AGENT_IDENTITY        = "agent_identity"          # per-tenant, S7 promovería a lighthouse cached
+    OFFER_SUMMARY         = "offer_summary"
+    CHANNEL_FORMAT_HINT   = "channel_format_hint"
+    # Volatile tail (cambia per-turn)
+    STAGE_HINT            = "stage_hint"
+    LEAD_SIGNALS          = "lead_signals"
+    RECENT_MESSAGES       = "recent_messages"
+    TOOL_REQUEST_FORMAT   = "tool_request_format"
 
-def compose_system_prompt(state: AgentState) -> list[SystemMessage]:
-    cacheable_fragments = _build_cacheable_fragments(state)
-    volatile_fragments = _build_volatile_fragments(state)
-    return [
-        SystemMessage(content="\n\n".join(cacheable_fragments)),  # 1 message = 1 cacheable block
-        SystemMessage(content="\n\n".join(volatile_fragments)),
-    ]
+CACHEABLE_FRAGMENTS: tuple[PromptFragment, ...] = (
+    PromptFragment.STATIC_IDENTITY,
+    PromptFragment.STATIC_TOOLS_HINT,
+    PromptFragment.SALES_PLAYBOOK_HINT,
+    PromptFragment.AGENT_IDENTITY,
+    PromptFragment.OFFER_SUMMARY,
+    PromptFragment.CHANNEL_FORMAT_HINT,
+)
 
-def _build_cacheable_fragments(state: AgentState) -> list[str]:
-    return [
-        _static_identity(),
-        _tools_hint(state.active_tools),
-        _sales_playbook_hint(),
-        _agent_identity_lighthouse(state),  # uses brand_voice_summary cache
-        _offer_summary(state),
-        _channel_format_hint(state),
-    ]
+VOLATILE_FRAGMENTS: tuple[PromptFragment, ...] = (
+    PromptFragment.STAGE_HINT,
+    PromptFragment.LEAD_SIGNALS,
+    PromptFragment.RECENT_MESSAGES,
+    PromptFragment.TOOL_REQUEST_FORMAT,
+)
+
+CACHE_BOUNDARY_MARKER = "\n\n<!-- ==== CACHE BOUNDARY (S3) ==== -->\n\n"
+
+def compose_system_prompt(fragments: Mapping[PromptFragment, str]) -> str:
+    """Pure data assembler. State + Jinja resolution viven afuera."""
+    cache_parts = _take(fragments, CACHEABLE_FRAGMENTS)
+    volatile_parts = _take(fragments, VOLATILE_FRAGMENTS)
+    if not cache_parts and not volatile_parts:
+        return ""
+    if not volatile_parts:
+        return "\n\n".join(cache_parts)
+    if not cache_parts:
+        return "\n\n".join(volatile_parts)
+    return "\n\n".join(cache_parts) + CACHE_BOUNDARY_MARKER + "\n\n".join(volatile_parts)
 ```
+
+Wrapper alto-nivel `build_specialist_system_prompt(state, role: SpecialistRole) -> str` resuelve cada fragment desde state + PromptLoader + tenant_config y llama a `compose_system_prompt`.
 
 ### PromptVersionModel override
 
