@@ -170,3 +170,29 @@ class TestTenantServiceUpdateTenant:
         slugs = {t.slug for t in all_tenants}
         assert "test-tenant" in slugs
         assert "other-tenant" in slugs
+
+
+class TestUserService:
+    def test_get_user_tenants_returns_linked_tenants(self, db, seed_user_tenant_link, user_id):
+        from src.modules.iam.application.services.user_service import UserService
+
+        service = UserService(db)
+        tenants = service.get_user_tenants(user_id)
+        assert len(tenants) >= 1
+        assert tenants[0].slug == "test-tenant"
+
+    def test_get_user_tenants_empty_for_unlinked_user(self, db, seed_user, user_id):
+        import uuid
+
+        from src.modules.iam.application.services.user_service import UserService
+
+        service = UserService(db)
+        tenants = service.get_user_tenants(uuid.uuid4())
+        assert tenants == []
+
+    def test_get_user_tenants_has_role(self, db, seed_user_tenant_link, user_id):
+        from src.modules.iam.application.services.user_service import UserService
+
+        service = UserService(db)
+        tenants = service.get_user_tenants(user_id)
+        assert tenants[0].role == "admin"

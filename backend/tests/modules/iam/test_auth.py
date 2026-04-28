@@ -149,3 +149,53 @@ class TestVerifyTokenPayload:
                 verify_token_payload("garbage.token")
 
         assert exc_info.value.status_code == 401
+
+
+# ---------------------------------------------------------------------------
+# HTTP-level tests for auth_router (/users/me and /users/me/tenants)
+# ---------------------------------------------------------------------------
+
+
+class TestAuthRouterEndpoints:
+    def _make_app(self, db_session, token_payload: dict):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from src.core.database import get_db
+        from src.modules.iam.api.routers.auth_router import router
+        from src.modules.iam.application.auth import verify_clerk_token
+
+        app = FastAPI()
+        app.include_router(router, prefix="/users")
+        app.dependency_overrides[verify_clerk_token] = lambda: token_payload
+        app.dependency_overrides[get_db] = lambda: db_session
+        return TestClient(app)
+
+    def test_get_me_returns_user(self, db, seed_user):
+        payload = {"sub": "clerk_alice_001", "email": "alice@example.com"}
+        client = self._make_app(db, payload)
+        resp = client.get("/users/me")
+        assert resp.status_code == 200
+        assert resp.json()["email"] == "alice@example.com"
+
+    def test_get_me_unknown_email_returns_403(self, db):
+        payload = {"sub": "clerk_xyz", "email": "nobody@x.com"}
+        client = self._make_app(db, payload)
+        resp = client.get("/users/me")
+        assert resp.status_code == 403
+
+    def test_get_me_tenants_returns_list(self, db, seed_user_tenant_link):
+        payload = {"sub": "clerk_alice_001", "email": "alice@example.com"}
+        client = self._make_app(db, payload)
+        resp = client.get("/users/me/tenants")
+        assert resp.status_code == 200
+        assert isinstance(resp.json(), list)
+        assert len(resp.json()) >= 1
+
+    def test_get_me_tenants_has_required_fields(self, db, seed_user_tenant_link):
+        payload = {"sub": "clerk_alice_001", "email": "alice@example.com"}
+        client = self._make_app(db, payload)
+        resp = client.get("/users/me/tenants")
+        item = resp.json()[0]
+        for field in ("id", "name", "slug", "role"):
+            assert field in item

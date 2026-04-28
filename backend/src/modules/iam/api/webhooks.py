@@ -11,7 +11,7 @@ from svix.webhooks import Webhook, WebhookVerificationError
 from src.core.config import settings
 from src.core.database import get_db
 from src.modules.iam.domain.user import User
-from src.modules.iam.infrastructure.user import UserRepository
+from src.modules.iam.infrastructure.repositories.user_repository import UserRepository
 
 router = APIRouter()
 logger = structlog.get_logger()
@@ -59,7 +59,7 @@ async def _handle_user_sync(repo: UserRepository, data: dict, event_type: str) -
             is_active=True,
             role="user",  # Default role
         )
-        repo.create_user(new_user)
+        repo.create(new_user)
         logger.info("clerk_user_synced_created", email=email, clerk_id=clerk_id)
 
     elif existing_user:
@@ -67,7 +67,7 @@ async def _handle_user_sync(repo: UserRepository, data: dict, event_type: str) -
         existing_user.full_name = full_name
         existing_user.email = email
         existing_user.clerk_id = clerk_id  # Ensure clerk_id is always set/updated
-        repo.update_user(existing_user)
+        repo.update(existing_user)
         logger.info("clerk_user_synced_updated", email=email, clerk_id=clerk_id)
 
 
@@ -78,7 +78,7 @@ async def _handle_user_deletion(repo: UserRepository, data: dict) -> None:
 
     if user:
         user.is_active = False
-        repo.update_user(user)
+        repo.update(user)
         logger.info("clerk_user_deactivated", clerk_id=clerk_id)
     else:
         logger.warning("clerk_user_delete_not_found", clerk_id=clerk_id)
