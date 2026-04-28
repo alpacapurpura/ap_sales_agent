@@ -39,16 +39,16 @@ from uuid import UUID, uuid4
 import structlog
 from langchain_core.callbacks import BaseCallbackHandler
 
-from src.modules.copilot.observability.cost.calculator import calculate_cost
-from src.modules.copilot.observability.cost.fx_resolver import FXResolver
 from src.modules.copilot.observability.persistence.llm_call_repository import (
     LlmCallRepository,
 )
 from src.modules.copilot.observability.persistence.trace_event_repository import (
     TraceEventRepository,
 )
-from src.modules.copilot.observability.pricing.resolver import PricingResolver
-from src.modules.copilot.observability.recording.sanitization import (
+from src.shared.agent_observability.cost.calculator import calculate_cost
+from src.shared.agent_observability.cost.fx_resolver import FXResolver
+from src.shared.agent_observability.pricing.resolver import PricingResolver
+from src.shared.agent_observability.recording.sanitization import (
     sanitize_payload,
     truncate,
 )

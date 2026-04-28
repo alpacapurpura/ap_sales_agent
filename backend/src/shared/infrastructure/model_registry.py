@@ -49,12 +49,6 @@ from src.modules.copilot.infrastructure.models.event_model import (
 from src.modules.copilot.observability.persistence.models.llm_call_model import (
     CopilotLlmCallModel,  # noqa: F401
 )
-from src.modules.copilot.observability.persistence.models.pricing_snapshot_model import (
-    ModelPricingSnapshotModel,  # noqa: F401
-)
-from src.modules.copilot.observability.persistence.models.tenant_billing_config_model import (
-    TenantBillingConfigModel,  # noqa: F401
-)
 from src.modules.crm.infrastructure.models.customer_model import (  # noqa: F401
     CustomerIdentityModel,
     CustomerProfileModel,
@@ -109,4 +103,10 @@ from src.modules.scheduling.infrastructure.models.booking_link import (
 # --- Domains ---
 from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import (
     TenantDomainModel,  # noqa: F401
+)
+from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
+    ModelPricingSnapshotModel,  # noqa: F401
+)
+from src.shared.agent_observability.persistence.models.tenant_billing_config_model import (
+    TenantBillingConfigModel,  # noqa: F401
 )

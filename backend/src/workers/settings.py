@@ -27,13 +27,13 @@ from src.modules.copilot.observability.workers.aggregate_refresh_task import (
 from src.modules.copilot.observability.workers.cost_alert_task import (
     run_cost_alerts,
 )
-from src.modules.copilot.observability.workers.pricing_sync_task import sync_litellm_pricing
 from src.modules.copilot.observability.workers.retention_task import (
     purge_expired_trace_rows,
 )
 from src.modules.offer.workers.tasks import run_offer_extraction
 from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
 from src.modules.tenant_domains.workers.tasks import poll_domain_verification
+from src.shared.agent_observability.workers.pricing_sync_task import sync_litellm_pricing
 from src.shared.workers.brand_summary_regen import regen_brand_summary
 from src.shared.workers.copilot_quality_eval import weekly_copilot_quality_eval
 from src.shared.workers.copilot_rag_eval import weekly_copilot_rag_eval

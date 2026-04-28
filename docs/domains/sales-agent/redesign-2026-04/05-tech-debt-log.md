@@ -205,13 +205,50 @@ Statuses: `FIXED` · `DEFERRED-S{N}` · `FLAGGED` · `WONT-FIX`.
 
 ### Cross-module
 
-#### [LOW] Lazy imports brand + offer en sales_agent services — 2026-04-28 — S00 — DEFERRED-S0
+#### [LOW] Lazy imports brand + offer en sales_agent services — 2026-04-28 — S00 — DEFERRED-post-S6
 - Paths:
   - `backend/src/modules/sales_agent/application/services/style_anchor_retriever.py` — lazy `brand.infrastructure.qdrant.StyleAnchorStore`
   - `backend/src/modules/sales_agent/application/services/business_repository.py` — lazy `offer.infrastructure.models.ProductModel`
 - Descripción: cross-module imports vía lazy/TYPE_CHECKING — pasan los arch tests pero al borde.
 - Impacto: si S7 (brand voice) o S8 (scheduler) necesitan más datos brand/offer, multiplican lazy imports.
-- Acción: DEFERRED-S0 — evaluar si ports en `shared/links/` son apropiados.
+- Acción: re-evaluado cierre S0 — los lazy imports siguen siendo locales a sales_agent, no afectan extract observability. **Re-clasificado DEFERRED-post-S6** porque port formal no entra en redesign infra (S0..S6).
+- Razón: scope S0 fue 100% backend cross-cutting, no tocó sales_agent services. Refactor a ports brand/offer es candidato post-redesign.
+
+---
+
+## Detectados durante S0 (shared agent_observability extract) — 2026-04-28
+
+### Shared module extract — FIXED
+
+#### [HIGH] copilot/observability/ contiene primitives reusables hardcoded en BC — 2026-04-28 — S0 — FIXED en S0
+- Paths movidos a `src/shared/agent_observability/`:
+  - `recording/sanitization.py`
+  - `cost/calculator.py`, `cost/fx_resolver.py`
+  - `pricing/aliases.py`, `pricing/resolver.py`, `pricing/litellm_sync.py`
+  - `persistence/pricing_snapshot_repository.py`, `persistence/tenant_billing_config_repository.py`
+  - `persistence/models/pricing_snapshot_model.py`, `persistence/models/tenant_billing_config_model.py`
+  - `reporting/cycle_window.py`, `reporting/billing_cycle_service.py`
+  - `workers/pricing_sync_task.py`
+- Descripción: 13 archivos puros / cross-tenant reference data movidos sin re-exports transitorios. Imports actualizados en consumers (BE + tests).
+- Acción: extract completo. 2522 tests passing.
+
+#### [LOW] tests/architecture/test_master_data.py allowlist post-move — 2026-04-28 — S0 — FIXED en S0
+- Path: `tests/architecture/test_master_data.py:24,32`
+- Descripción: `ALLOWED_USD_DEFAULT_FILES` apuntaba a paths viejos `src/modules/copilot/observability/{cost,persistence/models}`.
+- Acción: actualizado a `src/shared/agent_observability/{cost/fx_resolver.py, persistence/models/tenant_billing_config_model.py}`.
+
+### Sales agent observability — refinado scope
+
+#### [HIGH] Sales_agent sin PII sanitization — 2026-04-27 — diagnóstico — DEFERRED-S1 (re-confirmado post-S0)
+- Path: `backend/src/modules/sales_agent/infrastructure/monitoring/tracing.py`
+- Descripción: ya estaba en log. **Re-confirmado post-S0**: la base shared `sanitize_payload` está lista; S1 extiende con DNI/CURP/CUIT/RFC LATAM y declara `SalesAgentCallbackHandler` heredando `BaseAgentCallbackHandler`.
+- Acción: DEFERRED-S1 día 1.
+
+#### [LOW] copilot/observability/__init__.py docstring lista subpaquetes que ya no existen físicamente (cost, pricing) — 2026-04-28 — S0 — FLAGGED
+- Path: `backend/src/modules/copilot/observability/__init__.py:8-24`
+- Descripción: docstring sigue mencionando `pricing` y `cost` como subpaquetes copilot. Post-S0 viven en shared/.
+- Impacto: nulo (docstring solo).
+- Acción: FLAGGED — S1 limpia cuando retrofitee `ObservabilityCallbackHandler` para heredar `BaseAgentCallbackHandler`.
 
 ---
 

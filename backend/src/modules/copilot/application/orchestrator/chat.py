@@ -608,20 +608,20 @@ class CopilotOrchestrator:
         """
         import httpx
 
-        from src.modules.copilot.observability.cost.fx_resolver import FXResolver
         from src.modules.copilot.observability.persistence.llm_call_repository import (
             LlmCallRepository,
-        )
-        from src.modules.copilot.observability.persistence.pricing_snapshot_repository import (
-            PricingSnapshotRepository,
-        )
-        from src.modules.copilot.observability.persistence.tenant_billing_config_repository import (
-            TenantBillingConfigRepository,
         )
         from src.modules.copilot.observability.persistence.trace_event_repository import (
             TraceEventRepository,
         )
-        from src.modules.copilot.observability.pricing.resolver import PricingResolver
+        from src.shared.agent_observability.cost.fx_resolver import FXResolver
+        from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
+            PricingSnapshotRepository,
+        )
+        from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
+            TenantBillingConfigRepository,
+        )
+        from src.shared.agent_observability.pricing.resolver import PricingResolver
 
         billing_repo = TenantBillingConfigRepository(self.db)
         currency = "USD"

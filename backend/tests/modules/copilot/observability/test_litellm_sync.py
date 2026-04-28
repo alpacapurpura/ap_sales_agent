@@ -66,10 +66,10 @@ def _http_response(payload, etag="etag-001"):
 
 class TestLitellmSync:
     def test_initial_run_inserts_chat_models_only(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.pricing_snapshot_model import (
+        from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
             ModelPricingSnapshotModel,
         )
-        from src.modules.copilot.observability.pricing.litellm_sync import sync_pricing
+        from src.shared.agent_observability.pricing.litellm_sync import sync_pricing
 
         client = MagicMock()
         client.get.return_value = _http_response(SAMPLE_LITELLM_JSON)
@@ -89,10 +89,10 @@ class TestLitellmSync:
         assert result.rows_updated == 0
 
     def test_second_run_with_unchanged_payload_is_noop(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.pricing_snapshot_model import (
+        from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
             ModelPricingSnapshotModel,
         )
-        from src.modules.copilot.observability.pricing.litellm_sync import sync_pricing
+        from src.shared.agent_observability.pricing.litellm_sync import sync_pricing
 
         client = MagicMock()
         client.get.return_value = _http_response(SAMPLE_LITELLM_JSON, etag="etag-001")
@@ -110,10 +110,10 @@ class TestLitellmSync:
         assert result.rows_updated == 0
 
     def test_price_change_closes_old_inserts_new(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.pricing_snapshot_model import (
+        from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
             ModelPricingSnapshotModel,
         )
-        from src.modules.copilot.observability.pricing.litellm_sync import sync_pricing
+        from src.shared.agent_observability.pricing.litellm_sync import sync_pricing
 
         # Seed with one active snapshot for gpt-4o at older price.
         seeded = ModelPricingSnapshotModel(

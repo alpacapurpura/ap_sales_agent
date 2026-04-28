@@ -16,7 +16,7 @@ import httpx
 import structlog
 
 from src.core.database import SessionLocal
-from src.modules.copilot.observability.pricing.litellm_sync import sync_pricing
+from src.shared.agent_observability.pricing.litellm_sync import sync_pricing
 
 logger = structlog.get_logger()
 

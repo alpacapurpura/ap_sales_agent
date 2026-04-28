@@ -19,14 +19,14 @@ from typing import TYPE_CHECKING, Any
 import structlog
 from sqlalchemy import select
 
-from src.modules.copilot.observability.persistence.models.tenant_billing_config_model import (
-    TenantBillingConfigModel,
-)
-from src.modules.copilot.observability.reporting.billing_cycle_service import (
-    BillingCycleService,
-)
 from src.modules.copilot.observability.reporting.cost_aggregator import (
     CostAggregator,
+)
+from src.shared.agent_observability.persistence.models.tenant_billing_config_model import (
+    TenantBillingConfigModel,
+)
+from src.shared.agent_observability.reporting.billing_cycle_service import (
+    BillingCycleService,
 )
 
 if TYPE_CHECKING:

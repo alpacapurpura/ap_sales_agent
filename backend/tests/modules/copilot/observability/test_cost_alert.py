@@ -23,7 +23,7 @@ def db(db_engine):
 
 
 def _seed_billing_config(db, tenant_id: UUID, threshold_usd: Decimal) -> None:
-    from src.modules.copilot.observability.persistence.tenant_billing_config_repository import (
+    from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
         TenantBillingConfigRepository,
     )
 
@@ -142,7 +142,7 @@ class TestCostAlertCheck:
     def test_skips_tenants_without_threshold(self, db, monkeypatch) -> None:
         """Tenants whose billing config has no threshold are NOT alerted."""
         from src.modules.copilot.observability.application import cost_alert_service
-        from src.modules.copilot.observability.persistence.tenant_billing_config_repository import (
+        from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
             TenantBillingConfigRepository,
         )
 

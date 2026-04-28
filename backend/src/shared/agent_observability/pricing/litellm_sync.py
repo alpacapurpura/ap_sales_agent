@@ -28,7 +28,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 import structlog
 
-from src.modules.copilot.observability.persistence.pricing_snapshot_repository import (
+from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
     PricingSnapshotRepository,
 )
 

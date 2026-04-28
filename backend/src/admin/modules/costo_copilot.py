@@ -30,11 +30,11 @@ from src.admin.modules._shared import (
     get_tenant_options,
 )
 from src.core.database import SessionLocal
-from src.modules.copilot.observability.reporting.billing_cycle_service import (
-    BillingCycleService,
-)
 from src.modules.copilot.observability.reporting.cost_aggregator import (
     CostAggregator,
+)
+from src.shared.agent_observability.reporting.billing_cycle_service import (
+    BillingCycleService,
 )
 
 if TYPE_CHECKING:

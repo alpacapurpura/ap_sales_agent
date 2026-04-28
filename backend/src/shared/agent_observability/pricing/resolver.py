@@ -30,10 +30,10 @@ from uuid import UUID, uuid4
 
 import structlog
 
-from src.modules.copilot.observability.persistence.models.pricing_snapshot_model import (
+from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
     ModelPricingSnapshotModel,
 )
-from src.modules.copilot.observability.pricing.aliases import resolve_alias
+from src.shared.agent_observability.pricing.aliases import resolve_alias
 
 if TYPE_CHECKING:
     import datetime as dt

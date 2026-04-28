@@ -10,7 +10,7 @@ from __future__ import annotations
 
 class TestRedactString:
     def test_email_is_partially_masked(self) -> None:
-        from src.modules.copilot.observability.recording.sanitization import (
+        from src.shared.agent_observability.recording.sanitization import (
             redact_string,
         )
 
@@ -18,7 +18,7 @@ class TestRedactString:
         assert redact_string("contacto: juan@ejemplo.com") == "contacto: j***@ejemplo.com"
 
     def test_multiple_emails_in_same_string(self) -> None:
-        from src.modules.copilot.observability.recording.sanitization import (
+        from src.shared.agent_observability.recording.sanitization import (
             redact_string,
         )
 
@@ -27,7 +27,7 @@ class TestRedactString:
         assert "c***@d.org" in out
 
     def test_phone_latam_with_country_code_is_masked(self) -> None:
-        from src.modules.copilot.observability.recording.sanitization import (
+        from src.shared.agent_observability.recording.sanitization import (
             redact_string,
         )
 
@@ -38,7 +38,7 @@ class TestRedactString:
         assert "[REDACTED_PHONE]" in out
 
     def test_phone_latam_no_country_code(self) -> None:
-        from src.modules.copilot.observability.recording.sanitization import (
+        from src.shared.agent_observability.recording.sanitization import (
             redact_string,
         )
 
@@ -47,7 +47,7 @@ class TestRedactString:
         assert "[REDACTED_PHONE]" in out
 
     def test_mexican_phone_with_dash(self) -> None:
-        from src.modules.copilot.observability.recording.sanitization import (
+        from src.shared.agent_observability.recording.sanitization import (
             redact_string,
         )
 
@@ -56,7 +56,7 @@ class TestRedactString:
         assert "[REDACTED_PHONE]" in out
 
     def test_openai_api_token(self) -> None:
-        from src.modules.copilot.observability.recording.sanitization import (
+        from src.shared.agent_observability.recording.sanitization import (
             redact_string,
         )
 
@@ -65,7 +65,7 @@ class TestRedactString:
         assert "[REDACTED_TOKEN]" in out
 
     def test_anthropic_api_token(self) -> None:
-        from src.modules.copilot.observability.recording.sanitization import (
+        from src.shared.agent_observability.recording.sanitization import (
             redact_string,
         )
 
@@ -74,7 +74,7 @@ class TestRedactString:
         assert "[REDACTED_TOKEN]" in out
 
     def test_string_without_pii_is_unchanged(self) -> None:
-        from src.modules.copilot.observability.recording.sanitization import (
+        from src.shared.agent_observability.recording.sanitization import (
             redact_string,
         )
 
@@ -82,7 +82,7 @@ class TestRedactString:
         assert redact_string(original) == original
 
     def test_short_strings_are_unchanged(self) -> None:
-        from src.modules.copilot.observability.recording.sanitization import (
+        from src.shared.agent_observability.recording.sanitization import (
             redact_string,
         )
 
@@ -93,7 +93,7 @@ class TestRedactString:
 class TestSanitizePayloadIntegration:
     def test_sanitize_payload_runs_redaction_after_truncate(self) -> None:
         """``sanitize_payload`` should both truncate and redact PII."""
-        from src.modules.copilot.observability.recording.sanitization import (
+        from src.shared.agent_observability.recording.sanitization import (
             MAX_PAYLOAD_CHARS,
             sanitize_payload,
         )
@@ -113,7 +113,7 @@ class TestSanitizePayloadIntegration:
         assert "[REDACTED_PHONE]" in out["phone"]
 
     def test_sanitize_payload_handles_empty(self) -> None:
-        from src.modules.copilot.observability.recording.sanitization import (
+        from src.shared.agent_observability.recording.sanitization import (
             sanitize_payload,
         )
 
@@ -121,7 +121,7 @@ class TestSanitizePayloadIntegration:
 
     def test_redact_value_handles_nested_dicts_and_lists(self) -> None:
         """Top-level shallow walk plus a deep redact for tool args."""
-        from src.modules.copilot.observability.recording.sanitization import (
+        from src.shared.agent_observability.recording.sanitization import (
             redact_value,
         )
 

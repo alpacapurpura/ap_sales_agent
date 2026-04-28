@@ -45,9 +45,73 @@ Extraer la capa de observabilidad de `copilot/observability/` a `shared/agent_ob
 - `.claude/rules/copilot-observability.md`
 - `docs/domains/copilot/observability-rebuild-2026-04/ARCHITECTURE.md` (si existe)
 
-### Hallazgos research
+### Hallazgos research (2026-04-28)
 
-> COMPLETAR DURANTE FASE — fuentes consultadas + cómo cambiaron decisiones de diseño.
+**LangChain `BaseCallbackHandler`** (`reference.langchain.com/python/langchain_core/callbacks/`, `python.langchain.com/api_reference/core/callbacks.html`): API estable post-LangChain 0.3. Pattern subclass + `RunnableConfig(callbacks=[handler])` ratificado. Async-first recomendado pero el handler actual usa métodos sync (suficiente porque la persistencia es best-effort fuera del hot path). Sin breaking changes que afecten el extract.
+
+**Python DDD shared bounded context** (Cosmic Python ch.7, contextmapper.org, dev.to/aws-builders/modeling-shared-entities-across-bounded-contexts): cuando 2 BC consumen el mismo concepto cross-cutting (observability) la convención es `shared/` con primitives + cada BC implementa su concrete. **Confirmado el plan original**: pure helpers + reference data tables al shared, concretes específicos del agente quedan en su BC. NO Strategy parametrizado por `agent_kind` para SQL — cada BC tiene su tabla porque el shape diverge (sales agrega `lead_id`/`channel_type`).
+
+**LiteLLM `model_prices_and_context_window.json`** (`docs.litellm.ai/docs/provider_registration/add_model_pricing`, `github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json`): schema 2026 sin breaking changes — sigue exponiendo `input_cost_per_token`, `output_cost_per_token`, `cache_read_input_token_cost`, `cache_creation_input_token_cost`, `litellm_provider`, `mode`, plus nuevos `deprecation_date`, `supports_*` booleans, `input_cost_per_token_above_200k_tokens` (tier pricing). El parser `_parse_entry` actual (chat/completion only, requires `input_cost_per_token` + `output_cost_per_token` + `litellm_provider`) sigue siendo correcto. Tier pricing >200k tokens = follow-up debt (no en S0).
+
+---
+
+## Ajustes vs plan original
+
+Tras revisar `copilot/observability/` archivo-por-archivo + grep de callers, **el scope se RECORTA** vs el plan original de `02-architecture-target.md §1`. La extracción shared es válida pero solo aplica a un subset.
+
+### Lo que SÍ se mueve a `shared/agent_observability/`
+
+Símbolos puros / reference data cross-tenant / sin acoplamiento a tablas concretas:
+
+| Archivo | Por qué movible |
+|---|---|
+| `recording/sanitization.py` | Pure regex, zero state. |
+| `cost/calculator.py` | Pure function (tokens × pricing snapshot). |
+| `cost/fx_resolver.py` | Pure (USD → tenant currency via Frankfurter). |
+| `pricing/aliases.py` | Pure data dict. |
+| `pricing/resolver.py` | Protocol-based, agnóstico a tabla concreta. |
+| `pricing/litellm_sync.py` | Solo necesita `PricingSnapshotRepository` (también movido). |
+| `persistence/pricing_snapshot_repository.py` | Tabla **global cross-tenant** `model_pricing_snapshot` (reference data). |
+| `persistence/tenant_billing_config_repository.py` | Tabla **global** `tenant_billing_config`. |
+| `persistence/models/pricing_snapshot_model.py` | Idem. |
+| `persistence/models/tenant_billing_config_model.py` | Idem. |
+| `reporting/cycle_window.py` | Pure cycle math. |
+| `reporting/billing_cycle_service.py` | Solo lee `tenant_billing_config` (global). |
+| `workers/pricing_sync_task.py` | Solo orquesta `sync_pricing` con `SessionLocal`. |
+
+Nuevos en shared (foundations para S1):
+
+| Archivo | Razón |
+|---|---|
+| `recording/base_callback_handler.py` | Abstract Template Method. S1 sales_agent hereda. NO fuerza herencia copilot en S0 (zero behavior change). |
+| `persistence/base_llm_call_repo.py` | Abstract repo Protocol. S1 mirror. |
+| `persistence/base_trace_event_repo.py` | Abstract repo Protocol. |
+
+### Lo que NO se mueve (queda en `copilot/observability/`)
+
+Acoplamiento físico a tablas `copilot_*` o domain events específicos del copilot. **S2/S1 abstracta** (cross-agent MV + retention parametrizada).
+
+| Archivo | Por qué queda |
+|---|---|
+| `recording/callback_handler.py` | Concreto copilot. S1 abstrae cuando declare `SalesAgentCallbackHandler`. |
+| `recording/turn_envelope.py` | Hardcoded `CopilotLlmCallModel` aggregate query + `_legacy_compat_keys` específicos copilot. |
+| `recording/domain_subscribers.py` | Específico `EVENT_CARD_EMITTED` / `EVENT_ROUTING_DECIDED` copilot domain. |
+| `persistence/llm_call_repository.py` | Concreto `CopilotLlmCallModel`. |
+| `persistence/trace_event_repository.py` | Concreto `CopilotTraceEventModel`. |
+| `persistence/models/llm_call_model.py` | Tabla `copilot_llm_call`. |
+| `application/cost_alert_service.py` | Lee via `CostAggregator` (cosa copilot). S2 cross-agent. |
+| `reporting/cost_aggregator.py` | Hardcoded `CopilotLlmCallModel` queries. S2 abstrae con MV cross-agent. |
+| `workers/retention_task.py` | SQL hardcoded `DELETE FROM copilot_trace_event/copilot_llm_call`. S1 cross-agent. |
+| `workers/aggregate_refresh_task.py` | SQL hardcoded `REFRESH MATERIALIZED VIEW mv_daily_llm_cost_per_tenant`. S2 cross-agent MV v2. |
+| `workers/cost_alert_task.py` | Wrapper de `cost_alert_service`. |
+
+### Decisiones clave
+
+- **No re-exports transitorios.** Anti-parche `04-principles.md §1.4` + observability rebuild `PRINCIPLES.md §2`. Cada move actualiza todos los consumers en el mismo commit. Borrar el path viejo. Test fail si caller no actualizado.
+- **`agent_kind` como string libre** (no enum). Razón: S2 puede agregar agentes futuros sin migración; el discriminator vive en MV cross-agent (`copilot` / `sales_agent`).
+- **`BaseLLMCallRepo` Protocol-based**, no abstract con SQLAlchemy session. Razón: copilot tiene sync `Session`, sales_agent puede tener async `AsyncSession`. Protocol via `add(...)` agnostic.
+- **`pricing_sync_task` único worker movido**. Razón: el task no toca tablas copilot_*; los otros 3 workers sí.
+- **Imports tests**: actualizo todos los tests de `tests/modules/copilot/observability/` que apuntan a paths movidos. Tests de archivos que quedan en copilot conservan sus imports.
 
 ---
 
@@ -105,12 +169,12 @@ src/shared/agent_observability/
 - **Strategy** para PII regex pack: extensible per agent (sales_agent extiende con CURP/CUIT/DNI).
 - **Repository pattern**: `BaseLLMCallRepo[T]` abstract con `add(call: T)`. Subclase per agente con tabla concreta.
 
-### Decisiones clave (COMPLETAR DURANTE FASE)
+### Decisiones clave (resueltas)
 
-- [ ] ¿Mover físicamente o re-exportar transitorio?
-- [ ] ¿`agent_kind` enum o string libre?
-- [ ] ¿`BaseLLMCallRepo` recibe SQLAlchemy session o adapter?
-- [ ] ¿`pricing_sync_task` ARQ settings: registrar en shared o cada módulo?
+- [x] **Mover físicamente, sin re-exports.** Anti-parche.
+- [x] **`agent_kind` string libre.** Reference data (`model_pricing_snapshot`, `tenant_billing_config`) son cross-agent puros — no necesitan discriminator.
+- [x] **`BaseLLMCallRepo` Protocol** (PEP 544). Permite sync `Session` (copilot) + futuro async `AsyncSession` (sales_agent S1) sin acoplar a un dialecto SQL.
+- [x] **`pricing_sync_task` registrado en `workers/settings.py` desde su nuevo path shared.** Único worker shared en S0; S1/S2 mueven retention/aggregate_refresh/cost_alert cuando se desacoplen de tablas copilot_*.
 
 ---
 

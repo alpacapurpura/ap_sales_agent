@@ -57,10 +57,10 @@ def _make_handler(db):
     from src.modules.copilot.observability.persistence.trace_event_repository import (
         TraceEventRepository,
     )
-    from src.modules.copilot.observability.pricing.resolver import PricingResult
     from src.modules.copilot.observability.recording.callback_handler import (
         ObservabilityCallbackHandler,
     )
+    from src.shared.agent_observability.pricing.resolver import PricingResult
 
     pricing_resolver = MagicMock()
     pricing_resolver.resolve.return_value = PricingResult(

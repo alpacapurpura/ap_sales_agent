@@ -37,7 +37,7 @@ Estructura espejo del redesign de copilot. Cada fase = **review código existent
 | # | Fase | Estado | Entregable principal |
 |---|---|---|---|
 | **S00** | [Codebase audit + cleanup deprecated](phases/S00-codebase-audit-and-cleanup.md) | 📋 PLANNED | Borrar `/sales/resumen` deprecated, fix redirect+sidebar, plan migración admin `sales_audit.py`, snapshot estado limpio |
-| S0 | [shared/agent_observability extract](phases/S0-shared-observability-extract.md) | 📋 PLANNED | Módulo `src/shared/agent_observability/` (zero behavior change copilot) |
+| S0 | [shared/agent_observability extract](phases/S0-shared-observability-extract.md) | ✅ DONE | Módulo `src/shared/agent_observability/` (13 archivos movidos + 3 abstract bases). Zero behavior change copilot. |
 | S1 | [sales_agent observability parity](phases/S1-sales-agent-observability-parity.md) | 📋 PLANNED | Callback handler + tablas event-sourced + PII LATAM + tool_call_dedup |
 | S2 | [cost guardrails cross-agent](phases/S2-cost-guardrails.md) | 📋 PLANNED | BillingCycleService cross-agent + alerts breakdown + dashboard `/costo-agentes` |
 | S3 | [prompt cache_boundary refactor](phases/S3-prompt-cache-boundary.md) | 📋 PLANNED | `compose_system_prompt` con prefix ≥1024 tokens, hit rate ≥60% |

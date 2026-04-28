@@ -26,7 +26,7 @@ from src.modules.copilot.domain.events import (
     EVENT_CARD_EMITTED,
     EVENT_ROUTING_DECIDED,
 )
-from src.modules.copilot.observability.recording.sanitization import sanitize_payload, truncate
+from src.shared.agent_observability.recording.sanitization import sanitize_payload, truncate
 from src.shared.domain.events import DomainEvent, EventBus
 
 if TYPE_CHECKING:

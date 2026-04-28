@@ -15,10 +15,10 @@ from __future__ import annotations
 import datetime as dt
 from typing import TYPE_CHECKING
 
-from src.modules.copilot.observability.persistence.tenant_billing_config_repository import (
+from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
     TenantBillingConfigRepository,
 )
-from src.modules.copilot.observability.reporting.cycle_window import (
+from src.shared.agent_observability.reporting.cycle_window import (
     DEFAULT_ANCHOR_DAY,
     compute_cycle_end_py,
     compute_cycle_start_py,

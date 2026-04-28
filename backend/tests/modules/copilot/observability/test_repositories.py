@@ -162,7 +162,7 @@ def _make_pricing_kwargs(provider="openai", model="gpt-4o", *, valid_from=None, 
 
 class TestPricingSnapshotRepository:
     def test_add_and_find_active(self, db) -> None:
-        from src.modules.copilot.observability.persistence.pricing_snapshot_repository import (
+        from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
             PricingSnapshotRepository,
         )
 
@@ -175,7 +175,7 @@ class TestPricingSnapshotRepository:
         assert active.valid_to is None
 
     def test_find_active_returns_none_when_missing(self, db) -> None:
-        from src.modules.copilot.observability.persistence.pricing_snapshot_repository import (
+        from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
             PricingSnapshotRepository,
         )
 
@@ -184,7 +184,7 @@ class TestPricingSnapshotRepository:
         assert active is None
 
     def test_close_active_sets_valid_to(self, db) -> None:
-        from src.modules.copilot.observability.persistence.pricing_snapshot_repository import (
+        from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
             PricingSnapshotRepository,
         )
 
@@ -202,7 +202,7 @@ class TestPricingSnapshotRepository:
         assert active_after is None
 
     def test_find_at_returns_correct_snapshot_for_timestamp(self, db) -> None:
-        from src.modules.copilot.observability.persistence.pricing_snapshot_repository import (
+        from src.shared.agent_observability.persistence.pricing_snapshot_repository import (
             PricingSnapshotRepository,
         )
 
@@ -246,7 +246,7 @@ class TestPricingSnapshotRepository:
 
 class TestTenantBillingConfigRepository:
     def test_get_returns_none_for_unconfigured_tenant(self, db) -> None:
-        from src.modules.copilot.observability.persistence.tenant_billing_config_repository import (
+        from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
             TenantBillingConfigRepository,
         )
 
@@ -254,7 +254,7 @@ class TestTenantBillingConfigRepository:
         assert repo.get(tenant_id=uuid4()) is None
 
     def test_upsert_inserts_then_updates(self, db) -> None:
-        from src.modules.copilot.observability.persistence.tenant_billing_config_repository import (
+        from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
             TenantBillingConfigRepository,
         )
 

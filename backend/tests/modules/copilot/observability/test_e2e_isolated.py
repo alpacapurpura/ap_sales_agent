@@ -57,8 +57,8 @@ def _build_context(db):
     from src.modules.copilot.observability.persistence.trace_event_repository import (
         TraceEventRepository,
     )
-    from src.modules.copilot.observability.pricing.resolver import PricingResult
     from src.modules.copilot.observability.recording.turn_envelope import ObservabilityContext
+    from src.shared.agent_observability.pricing.resolver import PricingResult
 
     pricing_resolver = MagicMock()
     pricing_resolver.resolve.return_value = PricingResult(

@@ -43,7 +43,7 @@ def _snapshot(
 
 class TestPricingResolverCacheHit:
     def test_active_snapshot_returned(self, fake_repo) -> None:
-        from src.modules.copilot.observability.pricing.resolver import PricingResolver
+        from src.shared.agent_observability.pricing.resolver import PricingResolver
 
         snap = _snapshot()
         fake_repo.find_active.return_value = snap
@@ -58,7 +58,7 @@ class TestPricingResolverCacheHit:
         assert result.is_estimated is False
 
     def test_cache_skips_repo_on_second_call(self, fake_repo) -> None:
-        from src.modules.copilot.observability.pricing.resolver import PricingResolver
+        from src.shared.agent_observability.pricing.resolver import PricingResolver
 
         snap = _snapshot()
         fake_repo.find_active.return_value = snap
@@ -80,7 +80,7 @@ class TestPricingResolverCacheHit:
 
 class TestPricingResolverPointInTime:
     def test_old_call_uses_find_at_when_active_doesnt_match(self, fake_repo) -> None:
-        from src.modules.copilot.observability.pricing.resolver import PricingResolver
+        from src.shared.agent_observability.pricing.resolver import PricingResolver
 
         # Active row exists but the call we resolve is older than valid_from.
         active_snap = _snapshot()
@@ -104,7 +104,7 @@ class TestPricingResolverPointInTime:
 
 class TestPricingResolverFallback:
     def test_unknown_model_returns_zero_estimated(self, fake_repo) -> None:
-        from src.modules.copilot.observability.pricing.resolver import PricingResolver
+        from src.shared.agent_observability.pricing.resolver import PricingResolver
 
         fake_repo.find_active.return_value = None
         fake_repo.find_at.return_value = None

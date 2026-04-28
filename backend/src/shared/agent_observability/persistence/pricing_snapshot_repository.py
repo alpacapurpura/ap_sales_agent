@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 import structlog
 from sqlalchemy import or_, select, update
 
-from src.modules.copilot.observability.persistence.models.pricing_snapshot_model import (
+from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
     ModelPricingSnapshotModel,
 )
 

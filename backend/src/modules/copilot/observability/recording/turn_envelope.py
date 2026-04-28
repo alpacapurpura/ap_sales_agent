@@ -40,13 +40,13 @@ from src.modules.copilot.observability.persistence.trace_event_repository import
 from src.modules.copilot.observability.recording.callback_handler import (
     ObservabilityCallbackHandler,
 )
-from src.modules.copilot.observability.recording.sanitization import sanitize_payload, truncate
+from src.shared.agent_observability.recording.sanitization import sanitize_payload, truncate
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
-    from src.modules.copilot.observability.cost.fx_resolver import FXResolver
-    from src.modules.copilot.observability.pricing.resolver import PricingResolver
+    from src.shared.agent_observability.cost.fx_resolver import FXResolver
+    from src.shared.agent_observability.pricing.resolver import PricingResolver
 
 logger = structlog.get_logger()
 

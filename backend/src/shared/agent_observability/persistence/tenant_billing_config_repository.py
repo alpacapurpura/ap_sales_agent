@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import structlog
 from sqlalchemy import select
 
-from src.modules.copilot.observability.persistence.models.tenant_billing_config_model import (
+from src.shared.agent_observability.persistence.models.tenant_billing_config_model import (
     TenantBillingConfigModel,
 )
 

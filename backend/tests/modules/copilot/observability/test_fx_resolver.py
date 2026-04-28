@@ -23,7 +23,7 @@ def _frankfurter_response(rates: dict[str, float], date: str = "2026-04-26"):
 
 class TestFXResolver:
     def test_usd_returns_one_without_calling_api(self) -> None:
-        from src.modules.copilot.observability.cost.fx_resolver import FXResolver
+        from src.shared.agent_observability.cost.fx_resolver import FXResolver
 
         client = MagicMock()
         resolver = FXResolver(http_client_factory=lambda: client)
@@ -36,7 +36,7 @@ class TestFXResolver:
         client.get.assert_not_called()
 
     def test_supported_currency_calls_api_and_caches(self) -> None:
-        from src.modules.copilot.observability.cost.fx_resolver import FXResolver
+        from src.shared.agent_observability.cost.fx_resolver import FXResolver
 
         client = MagicMock()
         client.get.return_value = _frankfurter_response({"MXN": 17.45, "BRL": 5.10})
@@ -57,7 +57,7 @@ class TestFXResolver:
         assert client.get.call_count == 1
 
     def test_unsupported_currency_returns_one_with_unsupported_source(self) -> None:
-        from src.modules.copilot.observability.cost.fx_resolver import FXResolver
+        from src.shared.agent_observability.cost.fx_resolver import FXResolver
 
         client = MagicMock()
         # Frankfurter doesn't list PEN — Frankfurter's rate dict won't contain it.
@@ -74,7 +74,7 @@ class TestFXResolver:
         assert source == "fx_unsupported"
 
     def test_network_error_returns_one_with_unavailable_source(self) -> None:
-        from src.modules.copilot.observability.cost.fx_resolver import FXResolver
+        from src.shared.agent_observability.cost.fx_resolver import FXResolver
 
         client = MagicMock()
         client.get.side_effect = RuntimeError("network down")
@@ -89,7 +89,7 @@ class TestFXResolver:
 
     def test_cache_keyed_by_date_not_full_timestamp(self) -> None:
         """Two calls on the same day with different times share a cache entry."""
-        from src.modules.copilot.observability.cost.fx_resolver import FXResolver
+        from src.shared.agent_observability.cost.fx_resolver import FXResolver
 
         client = MagicMock()
         client.get.return_value = _frankfurter_response({"MXN": 17.45})

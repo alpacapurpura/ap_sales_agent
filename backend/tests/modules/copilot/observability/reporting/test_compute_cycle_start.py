@@ -3,7 +3,7 @@
 Two layers:
 
 1. Python equivalent (``compute_cycle_start_py``) lives in
-   :mod:`src.modules.copilot.observability.reporting.cycle_window` and is
+   :mod:`src.shared.agent_observability.reporting.cycle_window` and is
    the single source of truth for cycle math used by the reporting layer
    (``BillingCycleService``). Unit tests here exercise it.
 2. The Postgres SQL function ``compute_cycle_start(p_tenant UUID, p_date
@@ -43,7 +43,7 @@ class TestComputeCycleStartPy:
 
     @pytest.fixture
     def fn(self):
-        from src.modules.copilot.observability.reporting.cycle_window import (
+        from src.shared.agent_observability.reporting.cycle_window import (
             compute_cycle_start_py,
         )
 

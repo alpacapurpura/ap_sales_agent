@@ -116,7 +116,7 @@ class TestCopilotLlmCallModel:
 
 class TestModelPricingSnapshotModel:
     def test_active_snapshot_roundtrip(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.pricing_snapshot_model import (
+        from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
             ModelPricingSnapshotModel,
         )
 
@@ -142,7 +142,7 @@ class TestModelPricingSnapshotModel:
         assert fetched.valid_to is None  # active snapshot
 
     def test_close_snapshot_sets_valid_to(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.pricing_snapshot_model import (
+        from src.shared.agent_observability.persistence.models.pricing_snapshot_model import (
             ModelPricingSnapshotModel,
         )
 
@@ -165,7 +165,7 @@ class TestModelPricingSnapshotModel:
 
 class TestTenantBillingConfigModel:
     def test_default_anchor_currency_fxsource(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.tenant_billing_config_model import (
+        from src.shared.agent_observability.persistence.models.tenant_billing_config_model import (
             TenantBillingConfigModel,
         )
 
@@ -180,7 +180,7 @@ class TestTenantBillingConfigModel:
         assert fetched.fx_source == "frankfurter"
 
     def test_override_anchor_day(self, db) -> None:
-        from src.modules.copilot.observability.persistence.models.tenant_billing_config_model import (
+        from src.shared.agent_observability.persistence.models.tenant_billing_config_model import (
             TenantBillingConfigModel,
         )
 
