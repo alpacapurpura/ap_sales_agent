@@ -43,7 +43,8 @@ class AgentState(TypedDict):
     launch_stage: str | None
 
     # Agent Knowledge System (AKS)
-    agent_identity: str | None  # Rendered tenant-specific identity prompt
+    agent_identity: str | None  # Slot 4 — WHO+WHAT (brand+offers+team+legal). NO voice.
+    brand_voice: str | None  # Slot 5 (S7) — HOW (PersonalityProfile.system_instruction).
 
     # Accumulated Signals (persisted via checkpoint)
     buying_signals: list[dict[str, Any]] | None
@@ -85,6 +86,7 @@ def create_initial_state(
     last_intent: str | None = None,
     launch_stage: str | None = None,
     agent_identity: str | None = None,
+    brand_voice: str | None = None,
     # Checkpoint-persisted fields
     buying_signals: list[dict[str, Any]] | None = None,
     objection_history: list[dict[str, Any]] | None = None,
@@ -137,6 +139,7 @@ def create_initial_state(
         "last_intent": last_intent,
         "launch_stage": launch_stage,
         "agent_identity": agent_identity,
+        "brand_voice": brand_voice,
         # Checkpoint-persisted fields
         "buying_signals": buying_signals or [],
         "objection_history": objection_history or [],

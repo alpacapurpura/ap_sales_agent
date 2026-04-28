@@ -20,6 +20,7 @@ from src.modules.brand.domain.personality import (
 from src.modules.brand.infrastructure.repositories.personality_repository import (
     PersonalityProfileRepository,
 )
+from src.shared.domain.events import EventBus, PersonalityProfileUpdatedEvent
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -40,6 +41,89 @@ except Exception:  # noqa: BLE001
     personality_app = None  # type: ignore[assignment]
 
 logger = structlog.get_logger()
+
+
+# Lightweight Spanish keyword bucketing for clone dry-run context coverage.
+# NOT meant to replace the LLM psychologist node — just a fast UX hint that
+# tells the user which contexts their material covers BEFORE the 2-4 minute
+# pipeline runs. The pipeline does its own extraction and is unaffected.
+_CONTEXT_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "greeting": ("hola", "buenas", "buen día", "qué tal", "saludos", "hey"),
+    "price": ("cuánto", "precio", "costo", "vale", "cuesta", "tarifa", "$"),
+    "objection": (
+        "caro",
+        "no puedo",
+        "no tengo",
+        "lo pienso",
+        "lo voy a pensar",
+        "más adelante",
+        "no es para mí",
+        "no estoy seguro",
+        "no sé",
+        "duda",
+        "complicado",
+    ),
+    "closing": (
+        "quiero entrar",
+        "lo tomo",
+        "vamos",
+        "dale",
+        "perfecto",
+        "comprar",
+        "pagar",
+        "link",
+        "agendar",
+        "agenda",
+    ),
+    "follow_up": (
+        "sigues",
+        "cómo vas",
+        "te quedaste",
+        "retomamos",
+        "recordatorio",
+        "vuelvo a escribir",
+    ),
+}
+
+
+def _detect_contexts(messages: list[str]) -> dict[str, int]:
+    """Count how many messages match each context bucket (B6 dry-run helper).
+
+    Lower-case substring match. Each message contributes at most once per
+    bucket. Returns a dict with all 5 keys present (zero counts allowed) so
+    the FE can render coverage warnings.
+    """
+    counts: dict[str, int] = dict.fromkeys(_CONTEXT_KEYWORDS, 0)
+    for msg in messages:
+        text = msg.lower()
+        for ctx, keywords in _CONTEXT_KEYWORDS.items():
+            if any(kw in text for kw in keywords):
+                counts[ctx] += 1
+    return counts
+
+
+def _publish_personality_event(tenant_id: UUID, profile_id: UUID, action: str) -> None:
+    """Publish ``personality_profile_updated`` event (best-effort).
+
+    Subscribers (sales_agent ``PromptLoader.invalidate_tenant``) catch the
+    event and clear the per-tenant cache so the next turn picks up the
+    recompiled ``system_instruction``. NEVER crash the service if dispatch
+    fails — observability concern only.
+    """
+    try:
+        event = PersonalityProfileUpdatedEvent.create(
+            tenant_id=tenant_id,
+            profile_id=profile_id,
+            action=action,
+        )
+        EventBus.publish(event, session=None)
+    except Exception:
+        logger.exception(
+            "personality_service.event_publish_failed",
+            tenant_id=str(tenant_id),
+            profile_id=str(profile_id),
+            action=action,
+        )
 
 
 def _collect_negative_constraints(dimensions: PersonalityDimensions) -> list[str]:
@@ -158,6 +242,8 @@ class PersonalityService:
             profile_id=str(profile.id),
         )
 
+        _publish_personality_event(tenant_id, profile.id, "selected")
+
         # Reload to reflect is_active=True set by activate()
         refreshed = self.repo.get_by_id(profile.id, tenant_id=tenant_id)
         return refreshed or profile
@@ -222,6 +308,7 @@ class PersonalityService:
             tenant_id=str(tenant_id),
             profile_id=str(profile_id),
         )
+        _publish_personality_event(tenant_id, profile_id, "updated")
         return updated
 
     async def delete_with_anchors(
@@ -263,6 +350,8 @@ class PersonalityService:
             profile_id=str(profile_id),
             deleted=result,
         )
+        if result:
+            _publish_personality_event(tenant_id, profile_id, "deleted")
         return result
 
     def activate(
@@ -302,8 +391,111 @@ class PersonalityService:
             tenant_id=str(tenant_id),
             profile_id=str(profile_id),
         )
+        _publish_personality_event(tenant_id, profile_id, "activated")
         refreshed = self.repo.get_by_id(profile_id, tenant_id=tenant_id)
         return refreshed or profile
+
+    def dry_run_clone(
+        self,
+        *,
+        text_input: str | None,
+        file_bytes: bytes | None,
+    ) -> dict:
+        """Parse-only inspection of the material (B6 — fast <1s, no LLM).
+
+        Returns counts + context coverage so the FE can warn the user BEFORE
+        running the 2-4 minute LangGraph pipeline. Does NOT persist anything.
+
+        Quality tiers (research-backed: PersonaLLM NAACL 2024, Persona-L CHI 2025,
+        "Catch Me If You Can?" arXiv 2509.14543):
+
+        - ``insufficient`` (<10 msgs): block clone.
+        - ``basic`` (10-29 msgs): clone is permitted but warns about weak fidelity.
+        - ``decent`` (30-99 msgs): standard quality.
+        - ``strong`` (100+ msgs with ≥3 contexts): high fidelity.
+
+        Returns a dict with keys: message_count, detected_format, contexts_detected,
+        quality_tier, quality_score, recommendation.
+        """
+        if text_input is None and file_bytes is None:
+            msg = "Proporciona text_input o file_bytes."
+            raise ValueError(msg)
+
+        raw_text = (
+            text_input if text_input is not None else file_bytes.decode("utf-8", errors="replace")  # type: ignore[union-attr]
+        )
+
+        from src.modules.brand.infrastructure.parsers.base import detect_and_parse
+        from src.modules.brand.infrastructure.parsers.instagram_parser import InstagramParser
+        from src.modules.brand.infrastructure.parsers.telegram_parser import TelegramParser
+        from src.modules.brand.infrastructure.parsers.whatsapp_parser import WhatsAppParser
+
+        # Detect format
+        detected_format = "plain"
+        if WhatsAppParser().can_parse(raw_text):
+            detected_format = "whatsapp"
+        elif InstagramParser().can_parse(raw_text):
+            detected_format = "instagram"
+        elif TelegramParser().can_parse(raw_text):
+            detected_format = "telegram"
+
+        # Parse messages
+        try:
+            parsed_msgs = detect_and_parse(raw_text)
+            messages = [m.text for m in parsed_msgs if m.text and m.text.strip()]
+        except ValueError:
+            messages = [ln for ln in raw_text.splitlines() if ln.strip()]
+            detected_format = "plain"
+
+        message_count = len(messages)
+
+        # Context coverage via lightweight keyword heuristic.
+        # Not perfect — but anchors the FE quality gauge and warning UX.
+        # The pipeline LLM (psychologist node) does the deep extraction.
+        contexts_detected = _detect_contexts(messages)
+
+        # Quality scoring: composite of count tier + context diversity.
+        diverse_contexts = sum(1 for v in contexts_detected.values() if v >= 1)
+        if message_count < 10:
+            tier = "insufficient"
+            score = 0.0
+            rec = (
+                f"Detectamos {message_count} mensaje(s). Mínimo 10 para clonar. "
+                "Pega más conversaciones (idealmente 30+ para clon decente)."
+            )
+        elif message_count < 30:
+            tier = "basic"
+            score = 0.3 + 0.05 * diverse_contexts
+            rec = (
+                f"Clon BÁSICO ({message_count} mensajes). "
+                "Recomendamos 30+ mensajes con saludos, precios, objeciones y cierres "
+                "para subir a clon decente."
+            )
+        elif message_count < 100:
+            tier = "decent"
+            score = 0.55 + 0.07 * diverse_contexts
+            rec = (
+                f"Clon DECENTE ({message_count} mensajes, "
+                f"{diverse_contexts} contextos cubiertos). "
+                "Para clon de alta fidelidad, agrega más conversaciones."
+            )
+        else:
+            tier = "strong"
+            score = min(1.0, 0.75 + 0.05 * diverse_contexts)
+            rec = f"Clon FUERTE ({message_count} mensajes, {diverse_contexts} contextos cubiertos). Listo para activar."
+
+        # Penalize low diversity even when count is high
+        if diverse_contexts < 3 and tier in {"decent", "strong"}:
+            rec += " Aviso: cobertura limitada de contextos. Tu clon manejará bien lo que pegaste y peor lo que falta."
+
+        return {
+            "message_count": message_count,
+            "detected_format": detected_format,
+            "contexts_detected": contexts_detected,
+            "quality_tier": tier,
+            "quality_score": round(min(1.0, score), 2),
+            "recommendation": rec,
+        }
 
     async def clone_from_material(
         self,
@@ -354,10 +546,25 @@ class PersonalityService:
             text_input if text_input is not None else file_bytes.decode("utf-8", errors="replace")  # type: ignore[union-attr]
         )
 
-        # Validate minimum message count (non-empty lines)
-        lines = [ln for ln in raw_text.splitlines() if ln.strip()]
-        if len(lines) < 10:
-            msg = "Necesitas pegar al menos 10 mensajes para clonar tu estilo."
+        # B2: Validate minimum PARSED messages, not raw lines. WhatsApp exports
+        # have 1 timestamp prefix per line and our parsers strip them — counting
+        # raw lines over-estimates real conversational content. Run the same
+        # detect_and_parse the LangGraph parser uses; fallback to non-empty
+        # lines for plain pastes that don't match WhatsApp/IG/Telegram.
+        from src.modules.brand.infrastructure.parsers.base import detect_and_parse
+
+        try:
+            parsed_msgs = detect_and_parse(raw_text)
+            parsed_count = len([m for m in parsed_msgs if m.text and m.text.strip()])
+        except ValueError:
+            parsed_count = len([ln for ln in raw_text.splitlines() if ln.strip()])
+
+        if parsed_count < 10:
+            msg = (
+                f"Detectamos {parsed_count} mensaje(s). Necesitas al menos 10 "
+                "para clonar tu estilo. Recomendamos 30+ para clon decente y "
+                "100+ para clon de alta fidelidad."
+            )
             raise ValueError(msg)
 
         # --- Run pipeline ---
@@ -467,6 +674,7 @@ class PersonalityService:
             profile_id=str(profile.id),
             profile_type="cloned",
         )
+        _publish_personality_event(tenant_id, profile.id, "cloned")
         return profile
 
     async def migrate_from_voice_tone(
@@ -580,4 +788,5 @@ class PersonalityService:
             matched_key=matched_key,
             confidence=confidence,
         )
+        _publish_personality_event(tenant_id, profile.id, "selected")
         return refreshed or profile, matched_key, confidence

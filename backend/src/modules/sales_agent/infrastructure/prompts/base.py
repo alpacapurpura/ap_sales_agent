@@ -198,5 +198,17 @@ class PromptLoader:
         for k in keys_to_remove:
             del self._cache[k]
 
+    def invalidate_tenant(self, tenant_id: UUID) -> None:
+        """Invalidate per-tenant config cache + all template renders.
+
+        Used by the ``personality_profile_updated`` subscriber so the next
+        turn picks up the freshly recompiled ``system_instruction``.
+        Idempotent — silently no-ops when the tenant has no cached entries.
+        """
+        self._tenant_config_cache.pop(tenant_id, None)
+        # Render cache key shape is (template_key, args_hash) — drop them all
+        # since per-tenant rendered prompts may include the stale voice text.
+        self._cache.clear()
+
 
 prompt_loader = PromptLoader()

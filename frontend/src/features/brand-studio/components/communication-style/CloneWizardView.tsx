@@ -2,7 +2,7 @@
 
 import { Check, Loader2, RefreshCw, Upload, X } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
-import { useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useActivateProfile,
+  useCloneDryRun,
   useClonePersonality,
   useSimulatePersonality,
 } from "@/features/brand-studio/api/personality";
@@ -18,6 +19,7 @@ import { CommunicationStyleNav } from "./CommunicationStyleNav";
 import { DimensionsPanel } from "./DimensionsPanel";
 import { FingerprintPanel } from "./FingerprintPanel";
 
+import type { CloneDryRunResult } from "@/features/brand-studio/api/personality";
 import type { PersonalityProfile, SampleExchange } from "@/features/brand-studio/types/personality";
 
 // ── State machine ─────────────────────────────────────────────────────────────
@@ -169,6 +171,90 @@ function AnalyzingStep() {
   );
 }
 
+// ── Quality Gauge (B4+B5) ─────────────────────────────────────────────────────
+
+const TIER_STYLES: Record<
+  CloneDryRunResult["quality_tier"],
+  { label: string; barClass: string; textClass: string }
+> = {
+  insufficient: {
+    label: "Insuficiente",
+    barClass: "bg-destructive",
+    textClass: "text-destructive",
+  },
+  basic: {
+    label: "Básico",
+    barClass: "bg-amber-500",
+    textClass: "text-amber-700 dark:text-amber-400",
+  },
+  decent: {
+    label: "Decente",
+    barClass: "bg-emerald-500",
+    textClass: "text-emerald-700 dark:text-emerald-400",
+  },
+  strong: {
+    label: "Alta fidelidad",
+    barClass: "bg-primary",
+    textClass: "text-primary",
+  },
+};
+
+const CONTEXT_LABELS: Record<string, string> = {
+  greeting: "Saludo",
+  price: "Precio",
+  objection: "Objeción",
+  closing: "Cierre",
+  follow_up: "Follow-up",
+};
+
+function QualityGauge({ gauge }: { gauge: CloneDryRunResult }) {
+  const tier = TIER_STYLES[gauge.quality_tier];
+  const pct = Math.round(gauge.quality_score * 100);
+  return (
+    <div className="space-y-3 rounded-lg border border-border bg-card/50 p-4 text-sm">
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Calidad del clon
+          </p>
+          <p className={`text-base font-semibold ${tier.textClass}`}>
+            {tier.label} · {gauge.message_count} mensaje{gauge.message_count === 1 ? "" : "s"}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-muted-foreground">Formato</p>
+          <p className="font-medium">{gauge.detected_format}</p>
+        </div>
+      </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full transition-all ${tier.barClass}`}
+          style={{ width: `${pct}%` }}
+          aria-label={`Puntaje ${pct}%`}
+        />
+      </div>
+      <div className="flex flex-wrap gap-2 text-xs">
+        {Object.entries(gauge.contexts_detected).map(([ctx, count]) => {
+          const covered = count > 0;
+          return (
+            <span
+              key={ctx}
+              className={`rounded-full px-2 py-0.5 ${
+                covered
+                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {covered ? "✓" : "·"} {CONTEXT_LABELS[ctx] ?? ctx} ({count})
+            </span>
+          );
+        })}
+      </div>
+      <p className="text-xs text-muted-foreground">{gauge.recommendation}</p>
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 /**
@@ -188,6 +274,35 @@ export function CloneWizardView() {
   const clone = useClonePersonality();
   const activate = useActivateProfile();
   const simulate = useSimulatePersonality();
+  const dryRun = useCloneDryRun();
+  const [gauge, setGauge] = useState<CloneDryRunResult | null>(null);
+
+  // Quality gauge: debounced parser-only inspection (<1s, no LLM) so the user
+  // sees the tier (basic/decent/strong) BEFORE committing to the 2-4 minute
+  // LangGraph pipeline. Skips when material is empty.
+  useEffect(() => {
+    if (state.step !== "material") return;
+    const trimmed = state.text.trim();
+    if (state.inputMode === "text" && !trimmed) {
+      setGauge(null);
+      return;
+    }
+    if (state.inputMode === "file" && !state.file) {
+      setGauge(null);
+      return;
+    }
+    const handle = setTimeout(() => {
+      dryRun
+        .mutateAsync({
+          textInput: state.inputMode === "text" ? trimmed : undefined,
+          file: state.inputMode === "file" ? (state.file ?? undefined) : undefined,
+        })
+        .then((r) => setGauge(r))
+        .catch(() => setGauge(null));
+    }, 600);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.text, state.file, state.inputMode, state.step]);
 
   // ── Paso 1 handlers ─────────────────────────────────────────────────────────
 
@@ -252,9 +367,13 @@ export function CloneWizardView() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  const canSubmit =
+  const hasMaterial =
     (state.inputMode === "text" && state.text.trim().length > 0) ||
     (state.inputMode === "file" && state.file !== null);
+  // Block submit when the gauge says insufficient. Users with material that
+  // hasn't been gauged yet still can submit (BE rejects on its own) — we
+  // don't gate UX on the network round-trip.
+  const canSubmit = hasMaterial && gauge?.quality_tier !== "insufficient";
 
   return (
     <div className="flex flex-col gap-6">
@@ -303,9 +422,12 @@ export function CloneWizardView() {
                 value={state.text}
                 onChange={(e) => dispatch({ type: "SET_TEXT", payload: e.target.value })}
                 placeholder={
-                  "Pega 10 o más mensajes tuyos reales. Variedad importa: saludos, objeciones, cierres, follow-ups."
+                  "Pega TUS conversaciones con leads — incluye tus mensajes y los del prospecto. " +
+                  "Mejor: WhatsApp/IG/Telegram export sin editar.\n\n" +
+                  "Mínimo 10 (clon básico) · 30+ (decente) · 100+ (alta fidelidad)\n" +
+                  "Variedad importa: saludos, precios, objeciones, cierres, follow-ups."
                 }
-                rows={8}
+                rows={10}
                 className="resize-y text-sm"
                 aria-label="Material de texto para clonar estilo"
               />
@@ -339,7 +461,13 @@ export function CloneWizardView() {
                 {state.file ? (
                   <span className="font-medium text-foreground">{state.file.name}</span>
                 ) : (
-                  <span>Haz clic para seleccionar un archivo (.txt, .json, .csv)</span>
+                  <span>
+                    Haz clic para seleccionar un archivo
+                    <br />
+                    <span className="text-xs">
+                      WhatsApp .txt · Instagram DM .json · Telegram .json · .csv
+                    </span>
+                  </span>
                 )}
               </button>
               {state.file && (
@@ -357,9 +485,12 @@ export function CloneWizardView() {
           )}
 
           <p className="text-xs text-muted-foreground">
-            Consejo: cuantos más contextos (saludo, precio, objeción, cierre), más fiel el clon.
-            Mínimo 10, óptimo 50+.
+            Cantidad y diversidad importan. Pega <strong>tus mensajes Y los del lead</strong> —
+            necesitamos ver la conversación completa. Cobertura ideal: saludo, precio, objeción,
+            cierre y follow-up.
           </p>
+
+          {gauge && <QualityGauge gauge={gauge} />}
 
           {state.error && (
             <p

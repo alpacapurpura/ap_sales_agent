@@ -225,6 +225,56 @@ export function useClonePersonality() {
   });
 }
 
+// ── Clone Dry Run ──────────────────────────────────────────────────────────
+
+/**
+ * B6: Quick parser-only inspection of clone material BEFORE running the LLM
+ * pipeline. Returns counts + context coverage + quality tier (insufficient /
+ * basic / decent / strong). Used by the FE to surface a quality gauge so the
+ * user can decide whether to invest the 2-4 minute LLM analysis or paste
+ * more material first.
+ *
+ * Backend: ``POST /api/v1/brand/personality/clone/dry-run``. Multipart with
+ * ``text_input`` (Form) OR ``file``. Fast (<1s, no LLM).
+ */
+export interface CloneDryRunResult {
+  message_count: number;
+  detected_format: "whatsapp" | "instagram" | "telegram" | "plain" | "unsupported";
+  contexts_detected: Record<string, number>;
+  quality_tier: "insufficient" | "basic" | "decent" | "strong";
+  quality_score: number;
+  recommendation: string;
+}
+
+/**
+ *
+ */
+export function useCloneDryRun() {
+  const { getToken } = useAuth();
+  return useMutation({
+    mutationFn: async (variables: {
+      textInput?: string;
+      file?: File;
+    }): Promise<CloneDryRunResult> => {
+      const { textInput, file } = variables;
+      const token = await getToken();
+      const formData = new FormData();
+      if (file) formData.append("file", file);
+      if (textInput) formData.append("text_input", textInput);
+      const res = await fetchClient(`${API_URL}/api/v1/brand/personality/clone/dry-run`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { detail?: string };
+        throw new Error(err.detail ?? `Error ${res.status}`);
+      }
+      return res.json() as Promise<CloneDryRunResult>;
+    },
+  });
+}
+
 // ── Activate Profile ───────────────────────────────────────────────────────
 
 /**

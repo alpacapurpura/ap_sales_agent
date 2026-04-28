@@ -31,7 +31,7 @@ class TestFragmentOrderInvariants:
             PromptFragment.STATIC_TOOLS_HINT,
             PromptFragment.SALES_PLAYBOOK_HINT,
             PromptFragment.AGENT_IDENTITY,
-            PromptFragment.OFFER_SUMMARY,
+            PromptFragment.BRAND_VOICE,
             PromptFragment.CHANNEL_FORMAT_HINT,
         )
 
@@ -62,7 +62,7 @@ class TestComposeSystemPrompt:
                 PromptFragment.STATIC_TOOLS_HINT: "## Tools",
                 PromptFragment.SALES_PLAYBOOK_HINT: "## Playbook",
                 PromptFragment.AGENT_IDENTITY: "## Brand",
-                PromptFragment.OFFER_SUMMARY: "## Offer",
+                PromptFragment.BRAND_VOICE: "## Offer",
                 PromptFragment.CHANNEL_FORMAT_HINT: "## Channel",
                 PromptFragment.STAGE_HINT: "## Stage",
                 PromptFragment.LEAD_SIGNALS: "## Signals",
@@ -126,7 +126,7 @@ class TestComposeSystemPrompt:
             {
                 PromptFragment.STATIC_IDENTITY: "ID",
                 PromptFragment.AGENT_IDENTITY: "",
-                PromptFragment.OFFER_SUMMARY: "   ",
+                PromptFragment.BRAND_VOICE: "   ",
                 PromptFragment.STAGE_HINT: "STG",
             },
         )
@@ -173,7 +173,7 @@ class TestVolatileNeverLeaksIntoCacheable:
             PromptFragment.STATIC_TOOLS_HINT: "TOOLS",
             PromptFragment.SALES_PLAYBOOK_HINT: "PLAY",
             PromptFragment.AGENT_IDENTITY: "BRAND",
-            PromptFragment.OFFER_SUMMARY: "OFFER",
+            PromptFragment.BRAND_VOICE: "OFFER",
             PromptFragment.CHANNEL_FORMAT_HINT: "CHAN",
         }
         full_a = compose_system_prompt(

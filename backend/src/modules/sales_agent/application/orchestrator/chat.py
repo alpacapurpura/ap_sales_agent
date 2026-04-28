@@ -735,6 +735,26 @@ class ChatOrchestrator:
                 db.rollback()
             return None
 
+    @staticmethod
+    def _build_brand_voice(db: Session, tenant_uuid: UUID | None) -> str | None:
+        """Build slot 5 BRAND_VOICE block (S7) for this tenant.
+
+        Loads the active PersonalityProfile.system_instruction (compiled by
+        Brand Studio "Estilo Comunicacional") with legacy voice_tone fallback.
+        Returns None when neither configured. Best-effort: never crashes the
+        request. See ``.claude/rules/sales-agent-brand-voice.md``.
+        """
+        if not tenant_uuid:
+            return None
+        try:
+            knowledge_builder = TenantKnowledgeBuilder(db)
+            return knowledge_builder.build_brand_voice(tenant_uuid)
+        except Exception as e:  # noqa: BLE001 — orchestrator resilience
+            logger.warning("Could not build brand voice", error=str(e))
+            with contextlib.suppress(Exception):
+                db.rollback()
+            return None
+
     def _build_initial_state(
         self,
         *,
@@ -749,6 +769,7 @@ class ChatOrchestrator:
         incoming: IncomingMessage,
         session_state: dict,
         agent_identity: str | None,
+        brand_voice: str | None,
         checkpoint: AgentStateCheckpointModel | None,
         state_repo: StateRepository,
     ) -> tuple[dict, str | None]:
@@ -790,6 +811,7 @@ class ChatOrchestrator:
             active_product=active_product_dict,
             last_intent=session_state["last_intent"],
             agent_identity=agent_identity,
+            brand_voice=brand_voice,
             customer_profile_id=customer.id,
             channel_type=incoming.channel_type,
             session_gap_hours=session_state["session_gap_hours"],
@@ -1019,6 +1041,7 @@ class ChatOrchestrator:
 
             session_state = self._determine_session_state(audit_repo, user)
             agent_identity = self._build_agent_identity(db, tenant_uuid)
+            brand_voice = self._build_brand_voice(db, tenant_uuid)
 
             initial_state, last_session_summary = self._build_initial_state(
                 db=db,
@@ -1032,6 +1055,7 @@ class ChatOrchestrator:
                 incoming=incoming,
                 session_state=session_state,
                 agent_identity=agent_identity,
+                brand_voice=brand_voice,
                 checkpoint=checkpoint,
                 state_repo=state_repo,
             )

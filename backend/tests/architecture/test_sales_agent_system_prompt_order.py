@@ -25,7 +25,7 @@ EXPECTED_CACHEABLE: tuple[PromptFragment, ...] = (
     PromptFragment.STATIC_TOOLS_HINT,
     PromptFragment.SALES_PLAYBOOK_HINT,
     PromptFragment.AGENT_IDENTITY,
-    PromptFragment.OFFER_SUMMARY,
+    PromptFragment.BRAND_VOICE,
     PromptFragment.CHANNEL_FORMAT_HINT,
 )
 
@@ -45,7 +45,7 @@ def test_cacheable_fragment_order_is_frozen() -> None:
         2. STATIC_TOOLS_HINT — tools description, stable per-route.
         3. SALES_PLAYBOOK_HINT — humanization + signals + active specialist body.
         4. AGENT_IDENTITY — per-tenant brand+offer+channel render.
-        5. OFFER_SUMMARY — placeholder for S7 brand voice split.
+        5. BRAND_VOICE — placeholder for S7 brand voice split.
         6. CHANNEL_FORMAT_HINT — placeholder for S5 channel registry split.
     """
     assert CACHEABLE_FRAGMENTS == EXPECTED_CACHEABLE

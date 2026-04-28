@@ -269,6 +269,15 @@ def on_startup() -> None:
 
     register_brand_summary_event_handlers()
 
+    # Register sales_agent brand voice cache invalidator (S7) — invalidates
+    # PromptLoader per tenant when the tenant edits Brand Studio
+    # "Estilo Comunicacional". See .claude/rules/sales-agent-brand-voice.md.
+    from src.shared.application.personality_event_handlers import (
+        register_personality_event_handlers,
+    )
+
+    register_personality_event_handlers()
+
     # Register copilot observability subscribers (Phase 2 atomic switch).
     # Wires TurnStarted/TurnEnded/CardEmitted/RoutingDecided onto the
     # shared EventBus so the orchestrator only needs to publish — never

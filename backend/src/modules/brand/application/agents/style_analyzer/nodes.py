@@ -57,20 +57,108 @@ def clean_text_regex(text: str) -> str:
     return text.strip()
 
 
-def node_janitor(state: OnboardingState) -> dict[str, str]:
-    """Clean the raw input using Regex and Smart Sampling.
+_JANITOR_MAX_CHARS = 6000
 
-    Avoid sending huge context to LLM if not necessary (Step 1).
+# B3: Stratified sampling buckets — when raw material exceeds the LLM budget,
+# we sample EVENLY across these contexts so the psychologist node sees the
+# full conversational range (greetings + objections + closes), not just the
+# last-N chars (which biased the LLM toward whatever happened most recently).
+_JANITOR_CONTEXT_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "greeting": ("hola", "buenas", "buen día", "qué tal", "saludos", "hey"),
+    "price": ("cuánto", "precio", "costo", "vale", "cuesta", "tarifa", "$"),
+    "objection": (
+        "caro",
+        "no puedo",
+        "no tengo",
+        "lo pienso",
+        "lo voy a pensar",
+        "más adelante",
+        "no es para mí",
+        "no estoy seguro",
+        "no sé",
+        "duda",
+        "complicado",
+    ),
+    "closing": (
+        "quiero entrar",
+        "lo tomo",
+        "vamos",
+        "dale",
+        "perfecto",
+        "comprar",
+        "pagar",
+        "link",
+        "agendar",
+        "agenda",
+    ),
+    "follow_up": (
+        "sigues",
+        "cómo vas",
+        "te quedaste",
+        "retomamos",
+        "recordatorio",
+        "vuelvo a escribir",
+    ),
+    "neutral": (),  # catches everything that didn't match the above
+}
+
+
+def _stratified_sample(text: str, max_chars: int) -> str:
+    """Build a context-balanced sample fitting within ``max_chars``.
+
+    Splits ``text`` into lines, buckets each by keyword match, then takes a
+    proportional slice from each bucket so all contexts are represented even
+    when the raw input is much longer than the LLM budget. Falls back to
+    last-N chars if bucketing produces nothing useful.
+    """
+    if len(text) <= max_chars:
+        return text
+
+    lines = [ln for ln in text.splitlines() if ln.strip()]
+    if not lines:
+        return text[-max_chars:]
+
+    buckets: dict[str, list[str]] = {ctx: [] for ctx in _JANITOR_CONTEXT_KEYWORDS}
+    for ln in lines:
+        lower = ln.lower()
+        matched = False
+        for ctx, kws in _JANITOR_CONTEXT_KEYWORDS.items():
+            if ctx == "neutral":
+                continue
+            if any(kw in lower for kw in kws):
+                buckets[ctx].append(ln)
+                matched = True
+                break
+        if not matched:
+            buckets["neutral"].append(ln)
+
+    non_empty = [ctx for ctx, items in buckets.items() if items]
+    if not non_empty:
+        return text[-max_chars:]
+
+    per_bucket = max_chars // len(non_empty)
+    parts: list[str] = []
+    for ctx in non_empty:
+        joined = "\n".join(buckets[ctx])
+        parts.append(f"[{ctx}]\n{joined[:per_bucket]}")
+    sample = "\n\n".join(parts)
+    return sample[:max_chars]
+
+
+def node_janitor(state: OnboardingState) -> dict[str, str]:
+    """Clean the raw input using regex + stratified sampling.
+
+    B3: replaces "last 6000 chars" sampling with context-balanced sampling so
+    the psychologist node sees greetings + objections + closes proportionally,
+    even when the export is much larger than the LLM budget.
     """
     raw_input = state["raw_input"]
 
     # 1. Pre-cleaning (Regex)
     pre_cleaned = clean_text_regex(raw_input)
 
-    # 2. Smart Sampling for Token Savings
-    max_chars = 6000
-    # Take the last N chars as they represent the most current style
-    sampled_text = "... " + pre_cleaned[-max_chars:] if len(pre_cleaned) > max_chars else pre_cleaned
+    # 2. Stratified sampling for token savings + context coverage (B3)
+    sampled_text = _stratified_sample(pre_cleaned, _JANITOR_MAX_CHARS)
 
     # 3. LLM Cleaning (Semantic Filtering)
     try:

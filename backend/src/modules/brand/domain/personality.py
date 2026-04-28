@@ -32,6 +32,12 @@ class DimensionLevel:
     name: str  # e.g. "muy_baja", "baja", "media", "alta", "electrica"
     instruction: str  # Concrete text instruction for the LLM
     negative_constraints: list[str] = field(default_factory=list)  # "NUNCA..." rules
+    # Compiler v2: positive prescriptions paired with negative constraints.
+    # Research-backed: EMNLP 2024 "How You Prompt Matters!" — negative-only causes
+    # 14.4 F1 SD variance. Each negative constraint should pair with a positive.
+    # When equal length → compiler emits "✅ {positive} / ❌ {negative}" pairs.
+    # When empty → falls back to legacy negative-only output (backward-compat).
+    positive_prescriptions: list[str] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -61,6 +67,11 @@ class DimensionContract:
                     "NUNCA uses signos de exclamación.",
                     "NUNCA uses MAYÚSCULAS para énfasis.",
                     "NUNCA uses palabras como 'increíble', 'genial', 'wow'.",
+                ],
+                positive_prescriptions=[
+                    "Cierra con punto. Tono uniforme.",
+                    "Para énfasis usa palabras precisas, no formato.",
+                    "Reemplaza superlativos por adjetivos sobrios: 'útil', 'sólido', 'concreto'.",
                 ],
             ),
             DimensionLevel(
@@ -110,6 +121,12 @@ class DimensionContract:
                     "NUNCA digas 'te entiendo' ni valides emociones.",
                     "NUNCA uses emojis afectivos (💛🤗😊).",
                 ],
+                positive_prescriptions=[
+                    "Saluda con frase informativa: 'Buen día. ¿En qué puedo ayudarte?'",
+                    "Usa palabras completas — 'minuto', 'momento', 'caso'.",
+                    "Responde a emociones reformulando el problema, no validándolo.",
+                    "Si usas emojis, limítate a operativos: ✅ 📌 →.",
+                ],
             ),
             DimensionLevel(
                 name="cordial",
@@ -156,6 +173,12 @@ class DimensionContract:
                     "NUNCA uses sarcasmo.",
                     "NUNCA hagas referencias a memes o cultura pop.",
                 ],
+                positive_prescriptions=[
+                    "Mantén tono profesional y respuestas centradas en el dato.",
+                    "Si el prospecto bromea, responde acusando recibo y reconducís al tema.",
+                    "Comunica desacuerdo con argumentos, no con ironía.",
+                    "Cita ejemplos de tu industria, no referencias culturales.",
+                ],
             ),
             DimensionLevel(
                 name="sutil",
@@ -200,6 +223,11 @@ class DimensionContract:
                     "NUNCA uses adjetivos superlativos.",
                     "NUNCA uses puntos suspensivos dramáticos.",
                 ],
+                positive_prescriptions=[
+                    "Comunica solo con texto y puntuación estándar (. , ? !).",
+                    "Reemplaza superlativos por hechos: 'reduce el tiempo en 40%' en vez de 'increíblemente rápido'.",
+                    "Cierra con punto seguido. Si necesitas pausa, usa coma.",
+                ],
             ),
             DimensionLevel(
                 name="sobria",
@@ -238,6 +266,11 @@ class DimensionContract:
                     "NUNCA cuentes historias ni anécdotas.",
                     "NUNCA uses 'imagínate' ni 'te cuento lo que pasó'.",
                     "Ve directo a datos y hechos.",
+                ],
+                positive_prescriptions=[
+                    "Da el dato primero: cifras, plazos, condiciones.",
+                    "Si el prospecto pide ejemplos, responde con métrica: 'Cliente X: 8x ROI en 90 días'.",
+                    "Estructura: pregunta → dato → próximo paso.",
                 ],
             ),
             DimensionLevel(
@@ -282,6 +315,11 @@ class DimensionContract:
                     "NUNCA escribas más de 2 oraciones por mensaje.",
                     "NUNCA repitas información.",
                     "NUNCA agregues contexto innecesario.",
+                ],
+                positive_prescriptions=[
+                    "Una idea por mensaje. Máximo dos oraciones.",
+                    "Si ya lo dijiste, no lo digas de nuevo. Avanza al siguiente paso.",
+                    "Pregunta cerrada en vez de explicación: '¿Tienes el presupuesto?'",
                 ],
             ),
             DimensionLevel(
@@ -460,21 +498,38 @@ class PersonalityCompiler:
         blocks.append("\n".join(lines_b2))
 
         # ------------------------------------------------------------------
-        # Block 3: NUNCA HACES  (collect from dims < _NEGATIVE_THRESHOLD)
+        # Block 3: ASÍ HABLAS / ASÍ NO
+        #
+        # Compiler v2: contrastive pairs (positive + negative) when both exist.
+        # Research-backed: EMNLP 2024 "How You Prompt Matters!" + Boonstra
+        # Prompt Engineering Guide — negative-only constraints prime forbidden
+        # tokens (LLM is next-token predictor; "NUNCA uses 'che'" still activates
+        # 'che'). Positive prescriptions paired with negatives shift activation
+        # toward desired behavior. Fallback: when only negatives exist, emit
+        # legacy "❌" list to preserve coverage.
         # ------------------------------------------------------------------
-        all_negatives: list[str] = []
+        contrastive_pairs: list[tuple[str, str]] = []
+        unpaired_negatives: list[str] = []
         for dim_name, value in dim_items:
             if value < _NEGATIVE_THRESHOLD:
                 level = DimensionContract.resolve(dim_name, value)
-                all_negatives.extend(level.negative_constraints)
+                negs = list(level.negative_constraints)
+                pos = list(level.positive_prescriptions)
+                # Pair while both lists have entries; remainder becomes unpaired.
+                paired_count = min(len(pos), len(negs))
+                contrastive_pairs.extend(zip(pos[:paired_count], negs[:paired_count], strict=False))
+                unpaired_negatives.extend(negs[paired_count:])
 
-        if all_negatives:
-            lines_b3 = ["## BLOQUE 3 — NUNCA HACES\n"]
-            lines_b3.extend(f"- {c}" for c in all_negatives)
+        if contrastive_pairs or unpaired_negatives:
+            lines_b3 = ["## BLOQUE 3 — ASÍ HABLAS / ASÍ NO\n"]
+            for positive, negative in contrastive_pairs:
+                lines_b3.append(f"- ✅ {positive}")
+                lines_b3.append(f"  ❌ {negative}")
+            lines_b3.extend(f"- ❌ {neg}" for neg in unpaired_negatives)
             blocks.append("\n".join(lines_b3))
         else:
             blocks.append(
-                "## BLOQUE 3 — NUNCA HACES\n\n"
+                "## BLOQUE 3 — ASÍ HABLAS / ASÍ NO\n\n"
                 "(Sin restricciones absolutas — todas las dimensiones en rango medio-alto.)"
             )
 

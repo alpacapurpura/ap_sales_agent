@@ -13,8 +13,8 @@ Order rationale (cacheable prefix → volatile tail):
     1. STATIC_IDENTITY      — universally cacheable across tenants.
     2. STATIC_TOOLS_HINT    — tools description, stable per route.
     3. SALES_PLAYBOOK_HINT  — humanization + signals + active specialist body.
-    4. AGENT_IDENTITY       — per-tenant brand / offer / channel render.
-    5. OFFER_SUMMARY        — placeholder for S7 brand voice split.
+    4. AGENT_IDENTITY       — per-tenant WHO+WHAT (brand+offers+team+legal). NO voice.
+    5. BRAND_VOICE          — per-tenant HOW (PersonalityProfile.system_instruction).
     6. CHANNEL_FORMAT_HINT  — placeholder for S5 channel registry split.
     --- CACHE BOUNDARY (≥1024 tokens by design above this line) ---
     7. STAGE_HINT           — current_state + lead_score + turn_count.
@@ -62,7 +62,7 @@ class PromptFragment(StrEnum):
     STATIC_TOOLS_HINT = "static_tools_hint"
     SALES_PLAYBOOK_HINT = "sales_playbook_hint"
     AGENT_IDENTITY = "agent_identity"
-    OFFER_SUMMARY = "offer_summary"
+    BRAND_VOICE = "brand_voice"
     CHANNEL_FORMAT_HINT = "channel_format_hint"
     # ── Volatile tail (changes per turn) ──────────────────────────────
     STAGE_HINT = "stage_hint"
@@ -76,7 +76,7 @@ CACHEABLE_FRAGMENTS: tuple[PromptFragment, ...] = (
     PromptFragment.STATIC_TOOLS_HINT,
     PromptFragment.SALES_PLAYBOOK_HINT,
     PromptFragment.AGENT_IDENTITY,
-    PromptFragment.OFFER_SUMMARY,
+    PromptFragment.BRAND_VOICE,
     PromptFragment.CHANNEL_FORMAT_HINT,
 )
 
@@ -331,7 +331,7 @@ def build_specialist_system_prompt(state: AgentState, role: SpecialistRole) -> s
         PromptFragment.STATIC_TOOLS_HINT: _TOOLS_HINT,
         PromptFragment.SALES_PLAYBOOK_HINT: _render_static_specialist_body(role),
         PromptFragment.AGENT_IDENTITY: state.get("agent_identity") or "",
-        PromptFragment.OFFER_SUMMARY: "",  # S7 — split from agent_identity into brand_voice_summary table.
+        PromptFragment.BRAND_VOICE: state.get("brand_voice") or "",
         PromptFragment.CHANNEL_FORMAT_HINT: _channel_format_hint(state),
         PromptFragment.STAGE_HINT: _stage_hint(state),
         PromptFragment.LEAD_SIGNALS: _lead_signals(state),

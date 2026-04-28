@@ -96,6 +96,25 @@ class ActivateRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class CloneDryRunResponse(BaseModel):
+    """Quick parser-only inspection of the material BEFORE running the LLM pipeline.
+
+    Used by the FE to surface a quality gauge ("47 mensajes detectados, cobertura
+    en 4 contextos — clon decente") so the user can decide whether to invest the
+    2-4 minute LLM analysis or paste more material first. No LLM calls happen
+    here — just the format-detect parser + simple keyword bucketing for contexts.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    message_count: int  # parsed messages (post format-detect)
+    detected_format: str  # whatsapp | instagram | telegram | plain | unsupported
+    contexts_detected: dict[str, int]  # {greeting: 5, price: 2, objection: 0, closing: 3, follow_up: 1}
+    quality_tier: str  # insufficient | basic | decent | strong
+    quality_score: float  # 0.0..1.0 — composite of count + diversity
+    recommendation: str  # localized recommendation for the user
+
+
 class FromVoiceToneResponse(BaseModel):
     """Response for POST /personality/from-voice-tone.
 
@@ -239,14 +258,21 @@ async def clone_from_chat(
     file_name: str | None = None
 
     if file is not None:
-        # Validate file type
-        allowed_types = {"text/plain", "text/csv"}
+        # B1: BE accepts the same formats the parser supports —
+        # WhatsApp .txt, Instagram DM .json, Telegram .json, plus .csv.
+        # The auto-detect parser (infrastructure/parsers/base.py::detect_and_parse)
+        # routes by content shape, so we accept text/plain, text/csv,
+        # and application/json content-types here.
+        allowed_types = {"text/plain", "text/csv", "application/json"}
+        allowed_extensions = (".txt", ".csv", ".json")
         content_type = file.content_type or ""
         original_name = file.filename or ""
-        if content_type not in allowed_types and not any(original_name.endswith(ext) for ext in (".txt", ".csv")):
+        if content_type not in allowed_types and not any(
+            original_name.lower().endswith(ext) for ext in allowed_extensions
+        ):
             raise HTTPException(
                 status_code=400,
-                detail="El formato del archivo no es válido. Acepta .txt o export de chat.",
+                detail=("Formato no válido. Acepta WhatsApp .txt, Instagram DM .json, Telegram .json o .csv."),
             )
         file_bytes = await file.read()
         file_name = original_name
@@ -266,6 +292,45 @@ async def clone_from_chat(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     return _model_to_dto(model)
+
+
+@router.post("/clone/dry-run")
+async def clone_dry_run(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    text_input: Annotated[str | None, Form()] = None,
+    file: Annotated[UploadFile | None, File()] = None,
+) -> CloneDryRunResponse:
+    """Parse-only inspection of the material — no LLM, fast (<1s).
+
+    Returns the parsed message count, detected format, context coverage
+    (greeting / price / objection / closing / follow_up) and a quality tier
+    so the FE can warn the user BEFORE running the 2-4 minute LLM pipeline:
+
+    - ``insufficient`` (<10 messages): block clone.
+    - ``basic`` (10-29 messages): clone is permitted but warns about weak fidelity.
+    - ``decent`` (30-99 messages): standard quality.
+    - ``strong`` (100+ messages with diverse contexts): high fidelity.
+    """
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail="User has no tenant")
+
+    if text_input is not None and file is not None:
+        raise HTTPException(status_code=400, detail="Envía texto O archivo, no ambos.")
+    if text_input is None and file is None:
+        raise HTTPException(status_code=400, detail="Proporciona text_input o file.")
+
+    file_bytes: bytes | None = None
+    if file is not None:
+        file_bytes = await file.read()
+
+    service = _build_service(db)
+    try:
+        result = service.dry_run_clone(text_input=text_input, file_bytes=file_bytes)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return CloneDryRunResponse(**result)
 
 
 @router.post("/{profile_id}/activate")

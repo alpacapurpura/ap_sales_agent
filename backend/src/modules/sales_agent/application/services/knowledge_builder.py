@@ -120,11 +120,11 @@ class TenantKnowledgeBuilder:
             except Exception as e:  # noqa: BLE001 — agent resilience
                 logger.warning("Could not register tenant semantic routes: %s", e)
 
-            # 5. Resolve personality instruction (new system takes priority over voice_tone)
-            if personality_profile_data and personality_profile_data.get("system_instruction"):
-                personality_instruction = personality_profile_data["system_instruction"]
-            else:
-                personality_instruction = None
+            # 5. S7: voice lives in slot 5 (BRAND_VOICE) via build_brand_voice().
+            # personality_profile_data is read here only to keep the DTO load
+            # surface unchanged. The voice block itself is NOT injected into
+            # slot 4 (agent_identity) anymore — see compose.py + brand_voice.
+            _ = personality_profile_data  # kept for backwards compat with logging
 
             # 6. Derive legal / compliance flags from BrandIdentity.
             #    These surface three conditional blocks in ``agent_identity.j2``:
@@ -188,8 +188,6 @@ class TenantKnowledgeBuilder:
                 has_testimonials=len(testimonials) > 0,
                 has_authority=len(authority_items) > 0,
                 has_team=len(team) > 0,
-                # Personality voice configuration (new)
-                personality_instruction=personality_instruction,
                 # Legal / compliance (new — brand.legal section)
                 has_legal_guardrails=has_legal_guardrails,
                 has_regulated_profession=has_regulated_profession,
@@ -215,3 +213,36 @@ class TenantKnowledgeBuilder:
             "Sé amable, haz preguntas sobre las necesidades del cliente "
             "y ofrece ayudar en lo que puedas."
         )
+
+    def build_brand_voice(self, tenant_id: UUID) -> str | None:
+        """Build the BRAND_VOICE block (slot 5) for this tenant.
+
+        Returns the active PersonalityProfile.system_instruction (compiled
+        deterministically by PersonalityCompiler in Brand Studio) when a
+        profile exists, falling back to legacy ``BrandIdentity.voice_tone``
+        wrapped in a minimal "Tu Voz y Tono" header. Returns ``None`` when
+        the tenant has neither configured.
+
+        The returned string is cacheable per tenant — recompilation only
+        happens when the tenant edits the profile (Brand Studio "Estilo
+        Comunicacional"). See ``.claude/rules/sales-agent-brand-voice.md``.
+        """
+        try:
+            knowledge = self.brand_port.get_brand_knowledge(tenant_id)
+        except Exception:
+            logger.exception(
+                "Error loading brand knowledge for brand_voice (tenant=%s)",
+                tenant_id,
+            )
+            return None
+
+        profile = knowledge.personality_profile
+        if profile and profile.get("system_instruction"):
+            return str(profile["system_instruction"])
+
+        identity = (knowledge.brand_data or {}).get("identity", {}) or {}
+        legacy = identity.get("voice_tone")
+        if legacy:
+            return f"## Tu Voz y Tono\n{legacy}"
+
+        return None

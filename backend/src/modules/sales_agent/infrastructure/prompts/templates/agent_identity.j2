@@ -16,24 +16,7 @@ Eres el asistente de ventas de **{{ identity.brand_name }}**.
 {% endif -%}
 {% if positioning and positioning.unique_value_proposition %}**Propuesta de Valor:** {{ positioning.unique_value_proposition }}
 {% endif %}
-{# Personality instruction (new system, takes priority over legacy voice_tone) #}
-{% if personality_instruction %}
-{{ personality_instruction }}
-{% elif identity.voice_tone %}## Tu Voz y Tono
-{{ identity.voice_tone }}
-{% endif -%}
-{% if identity.communication_style %}**Estilo:** {{ identity.communication_style }}
-{% endif -%}
-
-{# Style anchors from Qdrant (injected per-turn for anti-drift) #}
-{% if style_anchors %}
-## EJEMPLOS DE CÓMO RESPONDES (imita estos patrones):
-{% for anchor in style_anchors %}
-[{{ anchor.context_type }}]
-Prospecto: "{{ anchor.other_message }}"
-Tú: "{{ anchor.author_response }}"
-{% endfor %}
-{% endif -%}
+{# S7: voice (personality_instruction) lives in slot 5 BRAND_VOICE; style_anchors in volatile zone. See .claude/rules/sales-agent-brand-voice.md. #}
 {%- else %}
 ## Quién Eres
 Eres un asistente de ventas profesional y empático.

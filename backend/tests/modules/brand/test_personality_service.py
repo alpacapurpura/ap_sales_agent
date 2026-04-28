@@ -299,7 +299,7 @@ class TestCloneFromMaterial:
     async def test_clone_raises_value_error_for_insufficient_messages(self, service: PersonalityService) -> None:
         """clone_from_material() raises ValueError when text has fewer than 10 messages."""
         few_messages = "\n".join([f"Mensaje {i}" for i in range(5)])
-        with pytest.raises(ValueError, match=r"10 mensajes|mensajes"):
+        with pytest.raises(ValueError, match=r"al menos 10|mensaje"):
             await service.clone_from_material(
                 tenant_id=TENANT_A,
                 text_input=few_messages,

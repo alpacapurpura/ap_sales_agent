@@ -347,6 +347,39 @@ class BrandSectionUpdatedEvent(DomainEvent):
 
 
 @dataclass
+class PersonalityProfileUpdatedEvent(DomainEvent):
+    """Emitted by ``PersonalityService`` when a tenant's voice profile changes.
+
+    Triggers cache invalidation in the sales_agent so the next turn picks up
+    the recompiled ``system_instruction`` (BRAND_VOICE slot 5). Best-effort —
+    a missing subscriber must NEVER crash the publishing service.
+
+    Payload keys:
+        profile_id: UUID of the affected ``PersonalityProfile``.
+        action: one of ``"selected"``, ``"updated"``, ``"cloned"``,
+            ``"activated"``, ``"deleted"``. Informational; subscribers
+            invalidate by ``tenant_id`` regardless of action.
+    """
+
+    @classmethod
+    def create(
+        cls,
+        tenant_id: UUID,
+        profile_id: UUID,
+        action: str,
+    ) -> "PersonalityProfileUpdatedEvent":
+        """Create a ``personality_profile_updated`` event."""
+        return cls(
+            event_name="personality_profile_updated",
+            tenant_id=tenant_id,
+            payload={
+                "profile_id": str(profile_id),
+                "action": action,
+            },
+        )
+
+
+@dataclass
 class AppointmentEvent(DomainEvent):
     """Emitted by scheduling module when appointment status changes.
 
