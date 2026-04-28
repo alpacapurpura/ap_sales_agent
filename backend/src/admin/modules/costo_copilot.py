@@ -30,15 +30,18 @@ from src.admin.modules._shared import (
     get_tenant_options,
 )
 from src.core.database import SessionLocal
-from src.modules.copilot.observability.reporting.cost_aggregator import (
-    CostAggregator,
+from src.modules.copilot.observability.persistence.models.llm_call_model import (
+    CopilotLlmCallModel,
 )
 from src.shared.agent_observability.reporting.billing_cycle_service import (
     BillingCycleService,
 )
+from src.shared.agent_observability.reporting.cost_aggregator import (
+    CostAggregator,
+)
 
 if TYPE_CHECKING:
-    from src.modules.copilot.observability.reporting.cost_aggregator import (
+    from src.shared.agent_observability.reporting.cost_aggregator import (
         ModelCostRow,
         TenantCostRow,
         TenantDetailRow,
@@ -378,7 +381,7 @@ def render_costo_copilot() -> None:
     db = SessionLocal()
     try:
         svc = BillingCycleService(db)
-        agg = CostAggregator(db)
+        agg = CostAggregator(db, CopilotLlmCallModel)
 
         anchor = _select_anchor_tenant()
         if anchor is None:

@@ -9,6 +9,7 @@ SchedulerSettings runs cron jobs:
 from arq import cron
 from arq.connections import RedisSettings
 
+import src.shared.infrastructure.agent_observability_bootstrap
 import src.shared.infrastructure.model_registry  # noqa: F401  — must be top-level for ARQ workers
 from src.core.config import settings
 from src.modules.analytics.workers.tasks import (
@@ -21,22 +22,18 @@ from src.modules.analytics.workers.tasks import (
 )
 from src.modules.brand.workers.tasks import run_brand_extraction
 from src.modules.copilot.application.services.event_cleanup import cleanup_old_events
-from src.modules.copilot.observability.workers.aggregate_refresh_task import (
-    refresh_daily_cost_mv,
-)
-from src.modules.copilot.observability.workers.cost_alert_task import (
-    run_cost_alerts,
-)
-from src.modules.copilot.observability.workers.retention_task import (
-    purge_expired_trace_rows,
-)
 from src.modules.offer.workers.tasks import run_offer_extraction
 from src.modules.sales_agent.observability.workers.dual_write_reconciliation_task import (
     run_sales_agent_dual_write_reconcile,
 )
 from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
 from src.modules.tenant_domains.workers.tasks import poll_domain_verification
+from src.shared.agent_observability.workers.aggregate_refresh_task import (
+    refresh_daily_cost_mv,
+)
+from src.shared.agent_observability.workers.cost_alert_task import run_cost_alerts
 from src.shared.agent_observability.workers.pricing_sync_task import sync_litellm_pricing
+from src.shared.agent_observability.workers.retention_task import purge_expired_trace_rows
 from src.shared.workers.brand_summary_regen import regen_brand_summary
 from src.shared.workers.copilot_quality_eval import weekly_copilot_quality_eval
 from src.shared.workers.copilot_rag_eval import weekly_copilot_rag_eval

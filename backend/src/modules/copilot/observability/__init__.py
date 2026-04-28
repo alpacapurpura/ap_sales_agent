@@ -34,10 +34,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from src.modules.copilot.observability.persistence.models.llm_call_model import (
+    CopilotLlmCallModel,
+)
 from src.modules.copilot.observability.recording.domain_subscribers import (
     register_subscribers,
 )
 from src.modules.copilot.observability.recording.turn_envelope import ObservabilityContext
+from src.shared.agent_observability.registry import (
+    AgentObservabilitySpec,
+    register_agent_observability,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -45,6 +52,22 @@ if TYPE_CHECKING:
     from src.modules.copilot.observability.persistence.trace_event_repository import (
         TraceEventRepository,
     )
+
+# Push the copilot observability spec into the cross-agent registry the
+# moment this module is imported. Idempotent on agent_kind — the
+# bootstrap module re-imports each agent and the registry overwrites
+# silently so test fixtures can rebuild the registry by re-import.
+register_agent_observability(
+    AgentObservabilitySpec(
+        agent_kind="copilot",
+        llm_call_model=CopilotLlmCallModel,
+        trace_event_table="copilot_trace_event",
+        llm_call_table="copilot_llm_call",
+        trace_retention_env_var="COPILOT_TRACE_RETENTION_DAYS",
+        llm_call_retention_env_var="COPILOT_LLM_CALL_RETENTION_DAYS",
+        has_lead_id=False,
+    ),
+)
 
 
 def register(*, repo_factory: Callable[[], TraceEventRepository] | None = None) -> None:

@@ -79,7 +79,7 @@ def _seed_call(db, tenant_id: UUID, cost_usd: Decimal, started_at: dt.datetime) 
 class TestCostAlertCheck:
     def test_emits_alert_when_cycle_cost_exceeds_threshold(self, db, monkeypatch) -> None:
         """Tenant with threshold $1.00 + $5.00 cycle cost → alert emitted."""
-        from src.modules.copilot.observability.application import cost_alert_service
+        from src.shared.agent_observability.application import cost_alert_service
 
         tenant_id = uuid4()
         _seed_billing_config(db, tenant_id, threshold_usd=Decimal("1.00"))
@@ -113,7 +113,7 @@ class TestCostAlertCheck:
         assert Decimal(str(alert["threshold_usd"])) == Decimal("1.00")
 
     def test_no_alert_when_under_threshold(self, db, monkeypatch) -> None:
-        from src.modules.copilot.observability.application import cost_alert_service
+        from src.shared.agent_observability.application import cost_alert_service
 
         tenant_id = uuid4()
         _seed_billing_config(db, tenant_id, threshold_usd=Decimal("100.00"))
@@ -141,7 +141,7 @@ class TestCostAlertCheck:
 
     def test_skips_tenants_without_threshold(self, db, monkeypatch) -> None:
         """Tenants whose billing config has no threshold are NOT alerted."""
-        from src.modules.copilot.observability.application import cost_alert_service
+        from src.shared.agent_observability.application import cost_alert_service
         from src.shared.agent_observability.persistence.tenant_billing_config_repository import (
             TenantBillingConfigRepository,
         )
@@ -164,7 +164,7 @@ class TestCostAlertCheck:
 
 class TestSchedulerRegistration:
     def test_task_listed_in_settings(self) -> None:
-        from src.modules.copilot.observability.workers.cost_alert_task import (
+        from src.shared.agent_observability.workers.cost_alert_task import (
             run_cost_alerts,
         )
         from src.workers.settings import SchedulerSettings, WorkerSettings
@@ -173,7 +173,7 @@ class TestSchedulerRegistration:
         assert run_cost_alerts in SchedulerSettings.functions
 
     def test_cron_job_present(self) -> None:
-        from src.modules.copilot.observability.workers.cost_alert_task import (
+        from src.shared.agent_observability.workers.cost_alert_task import (
             run_cost_alerts,
         )
         from src.workers.settings import SchedulerSettings

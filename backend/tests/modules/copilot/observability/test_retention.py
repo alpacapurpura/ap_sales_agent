@@ -10,9 +10,9 @@ import pytest
 
 class TestRetentionTaskRunner:
     @pytest.mark.asyncio
-    async def test_invokes_two_delete_statements(self, monkeypatch) -> None:
-        """One DELETE for trace_event, one for llm_call."""
-        from src.modules.copilot.observability.workers import retention_task
+    async def test_invokes_delete_per_agent_table(self, monkeypatch) -> None:
+        """One DELETE per (agent, table). With 2 registered agents that's 4 DELETEs."""
+        from src.shared.agent_observability.workers import retention_task
 
         executed: list[tuple[str, dict]] = []
 
@@ -41,17 +41,23 @@ class TestRetentionTaskRunner:
         result = await retention_task.purge_expired_trace_rows({})
 
         statements = [s for s, _ in executed if s.startswith("DELETE")]
+        # Cross-agent: copilot + sales_agent, each with trace_event + llm_call.
         assert any("FROM copilot_trace_event" in s for s in statements)
         assert any("FROM copilot_llm_call" in s for s in statements)
+        assert any("FROM sales_agent_trace_event" in s for s in statements)
+        assert any("FROM sales_agent_llm_call" in s for s in statements)
         assert any(s == "__commit__" for s, _ in executed)
         assert result["ok"] is True
-        assert result["trace_event_deleted"] == 7
-        assert result["llm_call_deleted"] == 7
+        # Sum across both agents (4 tables * 7 rows each).
+        assert result["trace_event_deleted"] == 14
+        assert result["llm_call_deleted"] == 14
+        assert "copilot" in result["per_agent"]
+        assert "sales_agent" in result["per_agent"]
 
     @pytest.mark.asyncio
     async def test_respects_env_var_overrides(self, monkeypatch) -> None:
-        """Env vars COPILOT_TRACE_RETENTION_DAYS / COPILOT_LLM_CALL_RETENTION_DAYS."""
-        from src.modules.copilot.observability.workers import retention_task
+        """Env vars per-agent (COPILOT_* / SALES_AGENT_*) override defaults."""
+        from src.shared.agent_observability.workers import retention_task
 
         captured: list[dict] = []
 
@@ -75,23 +81,34 @@ class TestRetentionTaskRunner:
         monkeypatch.setattr(retention_task, "SessionLocal", _FakeSession)
         monkeypatch.setenv("COPILOT_TRACE_RETENTION_DAYS", "7")
         monkeypatch.setenv("COPILOT_LLM_CALL_RETENTION_DAYS", "30")
+        monkeypatch.setenv("SALES_AGENT_TRACE_RETENTION_DAYS", "60")
+        monkeypatch.setenv("SALES_AGENT_LLM_CALL_RETENTION_DAYS", "180")
 
         await retention_task.purge_expired_trace_rows({})
 
-        # Two execute() calls (trace then llm_call); each carries the cutoff.
-        assert len(captured) == 2
-
-        trace_cutoff = captured[0]["cutoff"]
-        llm_cutoff = captured[1]["cutoff"]
+        # 4 execute() calls: copilot trace+llm, sales trace+llm.
+        assert len(captured) == 4
         now = dt.datetime.now(tz=dt.UTC)
-        assert (now - trace_cutoff).days >= 7
-        assert (now - llm_cutoff).days >= 30
+
+        # Order is (copilot trace, copilot llm, sales trace, sales llm)
+        # because the registry tuple is (copilot, sales_agent) and the
+        # worker emits trace before llm per agent.
+        copilot_trace, copilot_llm, sales_trace, sales_llm = (c["cutoff"] for c in captured)
+        assert (now - copilot_trace).days >= 7
+        assert (now - copilot_llm).days >= 30
+        assert (now - sales_trace).days >= 60
+        assert (now - sales_llm).days >= 180
 
     @pytest.mark.asyncio
-    async def test_swallows_exceptions(self, monkeypatch) -> None:
-        from src.modules.copilot.observability.workers import retention_task
+    async def test_swallows_exceptions_per_table(self, monkeypatch) -> None:
+        """Failure on one table is logged, other tables continue."""
+        from src.shared.agent_observability.workers import retention_task
 
         class _BoomSession:
+            def __init__(self) -> None:
+                self.rolled = False
+                self.closed = False
+
             def execute(self, *_a, **_k):
                 msg = "boom"
                 raise RuntimeError(msg)
@@ -106,15 +123,14 @@ class TestRetentionTaskRunner:
                 self.closed = True
 
         sess = _BoomSession()
-
-        def _factory():
-            return sess
-
-        monkeypatch.setattr(retention_task, "SessionLocal", _factory)
+        monkeypatch.setattr(retention_task, "SessionLocal", lambda: sess)
 
         result = await retention_task.purge_expired_trace_rows({})
-        assert result["ok"] is False
-        assert sess.rolled is True
+        # Per-table errors are caught; the run still commits (no rows deleted).
+        # Result is ok=True with zero deletions across all agents.
+        assert result["ok"] is True
+        assert result["trace_event_deleted"] == 0
+        assert result["llm_call_deleted"] == 0
         assert sess.closed is True
 
 
@@ -122,7 +138,7 @@ class TestPreservesErrors:
     @pytest.mark.asyncio
     async def test_trace_event_delete_preserves_errors(self, monkeypatch) -> None:
         """trace_event deletion must NOT touch rows where status='error'."""
-        from src.modules.copilot.observability.workers import retention_task
+        from src.shared.agent_observability.workers import retention_task
 
         captured: list[str] = []
 
@@ -152,7 +168,7 @@ class TestPreservesErrors:
 
 class TestSchedulerRegistration:
     def test_task_listed_in_settings(self) -> None:
-        from src.modules.copilot.observability.workers.retention_task import (
+        from src.shared.agent_observability.workers.retention_task import (
             purge_expired_trace_rows,
         )
         from src.workers.settings import SchedulerSettings, WorkerSettings
@@ -161,7 +177,7 @@ class TestSchedulerRegistration:
         assert purge_expired_trace_rows in SchedulerSettings.functions
 
     def test_cron_job_present(self) -> None:
-        from src.modules.copilot.observability.workers.retention_task import (
+        from src.shared.agent_observability.workers.retention_task import (
             purge_expired_trace_rows,
         )
         from src.workers.settings import SchedulerSettings

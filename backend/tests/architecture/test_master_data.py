@@ -47,6 +47,10 @@ ALLOWED_USD_DEFAULT_FILES: set[str] = {
     # in the aggregator row is NULL (no LLM calls yet) — never written
     # back to the DB. Same role as the observability seams above.
     "src/admin/modules/costo_copilot.py",
+    # S2 cross-agent dashboard. Same display-only USD fallback as
+    # costo_copilot.py — chart axes / column labels / `_format_money`
+    # signature default. Never written back to DB.
+    "src/admin/modules/costo_agentes.py",
 }
 
 KNOWN_USD_DEFAULT_VIOLATIONS: set[str] = set()

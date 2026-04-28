@@ -1,8 +1,8 @@
-"""ARQ task — daily cost-alert scan.
+"""ARQ task — daily cross-agent cost-alert scan.
 
-Phase 3, T3.10. Wraps :func:`check_cost_alerts` with session lifecycle +
-best-effort error handling. Cron 12:00 UTC (daytime in LATAM working
-hours so the alert lands in front of someone who can act on it).
+Wraps :func:`check_cost_alerts` with session lifecycle + best-effort
+error handling. Cron 12:00 UTC (daytime in LATAM working hours so the
+alert lands in front of someone who can act on it).
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from typing import Any
 import structlog
 
 from src.core.database import SessionLocal
-from src.modules.copilot.observability.application.cost_alert_service import (
+from src.shared.agent_observability.application.cost_alert_service import (
     check_cost_alerts,
 )
 

@@ -23,6 +23,7 @@ import streamlit as st
 sys.path.append(str((Path(__file__).parent / "../..").resolve()))
 
 # Bootstrap all SQLAlchemy mappers once so cross-module relationships resolve.
+import src.shared.infrastructure.agent_observability_bootstrap
 import src.shared.infrastructure.model_registry  # noqa: F401
 
 # --- PAGE CONFIG (must run before any other st.* call) ---
@@ -74,6 +75,7 @@ PAGE_SPECS: tuple[PageSpec, ...] = (
     PageSpec(slug="copilot-routing", title="Routing del Copilot", icon="🧭"),
     PageSpec(slug="copilot-quality", title="Calidad del Copilot", icon="🎓"),
     PageSpec(slug="costo-copilot", title="Costo Copilot", icon="💰"),
+    PageSpec(slug="costo-agentes", title="Costo Agentes", icon="📊"),
     PageSpec(slug="brand-summaries", title="Brand Summary Lighthouse", icon="🪧"),
     PageSpec(slug="calendario", title="Calendario Comercial", icon="📅"),
     PageSpec(slug="tenants", title="Tenants (Clientes)", icon="🏢"),

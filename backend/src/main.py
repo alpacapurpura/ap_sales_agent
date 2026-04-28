@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 # --- Bootstrap all models so SQLAlchemy mapper resolves cross-module relationships ---
+import src.shared.infrastructure.agent_observability_bootstrap
 import src.shared.infrastructure.model_registry  # noqa: F401
 from src.core.config import settings
 from src.core.database import SessionLocal, init_db, redis_client

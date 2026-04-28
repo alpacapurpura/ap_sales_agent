@@ -77,11 +77,9 @@ Statuses: `FIXED` · `DEFERRED-S{N}` · `FLAGGED` · `WONT-FIX`.
 - Impacto: cost. Cierra con OpenAI gpt-4o cuando Kimi-K2.6 sería ~5-10x más barato a paridad calidad.
 - Acción: DEFERRED-S4.
 
-#### [LOW] Cost_usd inline sin pricing snapshot — 2026-04-27 — diagnóstico — DEFERRED-S2
-- Path: `backend/src/modules/sales_agent/infrastructure/models/llm_log_model.py`
-- Descripción: `cost_usd` calculado al vuelo en `LLMFactory` con dict hardcoded. Sin historical replay.
-- Impacto: billing audit imposible si cambia precio del provider.
-- Acción: DEFERRED-S2 (cubierto por S1 callback handler que graba via `pricing/aliases.py` + `resolver.py`).
+#### [LOW] Cost_usd inline sin pricing snapshot — 2026-04-27 — diagnóstico — FIXED en S2
+- Path: `backend/src/modules/sales_agent/infrastructure/models/llm_log_model.py` (legacy table, S6 drop) + `sales_agent_llm_call.cost_usd` (event-sourced, S1 callback).
+- Acción: el callback handler S1 ya graba `cost_usd` via `shared/agent_observability/cost/calculator.py` + `pricing_snapshot`. S2 lo expone vía `CostAggregator(SalesAgentLlmCallModel)` y suma cross-agent vía MV `mv_daily_llm_cost_per_tenant_v2`. Billing audit reproducible point-in-time. Legacy `LLMLogModel` se drop en S6 cuando dual-write window cierre.
 
 ### Channels / OutputManager
 
@@ -252,6 +250,63 @@ Statuses: `FIXED` · `DEFERRED-S{N}` · `FLAGGED` · `WONT-FIX`.
 
 ---
 
+## Detectados durante S2 (cost guardrails cross-agent + costo-agentes admin) — 2026-04-28
+
+### Cross-agent cost cleanup — FIXED
+
+#### [HIGH] cost_aggregator copilot-only SQL hardcoded — 2026-04-28 — S2 — FIXED en S2
+- Path antes: `src/modules/copilot/observability/reporting/cost_aggregator.py` (acoplado a `CopilotLlmCallModel`).
+- Path post: `src/shared/agent_observability/reporting/cost_aggregator.py` parametrizado por `(db, llm_call_model)` + `CrossAgentCostAggregator` que itera registry.
+- Acción: refactor a model-class injection. `top_conversations_by_cost` ahora es opt-in via `_has_conversation_id`; nuevo `top_leads_by_cost` para sales_agent. 10 tests cross-agent verdes.
+
+#### [HIGH] cost_alert_service copilot-only — 2026-04-28 — S2 — FIXED en S2
+- Path antes: `src/modules/copilot/observability/application/cost_alert_service.py`.
+- Path post: `src/shared/agent_observability/application/cost_alert_service.py`.
+- Acción: usa `CrossAgentCostAggregator`. Threshold cross-agent. Alert structlog `cost_alert_threshold_exceeded` con `breakdown_usd_by_agent={copilot, sales_agent}`. 3 RED tests breakdown verdes.
+
+#### [HIGH] aggregate_refresh_task copilot-only — 2026-04-28 — S2 — FIXED en S2
+- Path antes: `src/modules/copilot/observability/workers/aggregate_refresh_task.py` (refresh único MV).
+- Path post: `src/shared/agent_observability/workers/aggregate_refresh_task.py` refresca **ambos** MVs (`mv_daily_llm_cost_per_tenant` legacy + `mv_daily_llm_cost_per_tenant_v2` cross-agent). Best-effort por MV (failure de uno no aborta el otro).
+- Acción: 5 tests verdes — concurrent refresh + partial failure + rollback per-MV.
+
+#### [HIGH] retention_task copilot-only — 2026-04-28 — S2 — FIXED en S2
+- Path post: `src/shared/agent_observability/workers/retention_task.py`. Itera `agent_observability_registry()` con SQL parametrizado por `spec.trace_event_table`/`spec.llm_call_table`. Env vars per-agent (`COPILOT_*` y `SALES_AGENT_*`). Best-effort per-table.
+- Acción: 6 tests verdes — incluye env-var override per-agent + per-table failure isolation.
+
+### Migration
+
+#### [HIGH] No MV cross-agent — 2026-04-28 — S2 — FIXED en S2
+- Path: `backend/alembic/versions/079_cross_agent_daily_cost_mv.py`.
+- Descripción: nueva MV `mv_daily_llm_cost_per_tenant_v2` UNION ALL de `copilot_llm_call` + `sales_agent_llm_call` con discriminator `agent_kind`. Unique index `(agent_kind, tenant_id, occurred_on)` — todos NOT NULL para que CONCURRENT refresh no rompa por NULL=NULL.
+- Acción: idempotente (`CREATE MATERIALIZED VIEW IF NOT EXISTS` + `CREATE UNIQUE INDEX IF NOT EXISTS`). Verificada en clone DB + concurrent refresh manual.
+
+### Admin
+
+#### [HIGH] Streamlit `costo-agentes` faltante — 2026-04-28 — S2 — FIXED en S2
+- Paths: `src/admin/modules/costo_agentes.py` + `src/admin/pages/costo-agentes.py` + `PageSpec` en `app.py`.
+- Acción: tabs **Total** (cross-agent KPIs + stacked bar tenant×agente) y **Por agente** (selector via `_shared.render_agent_kind_selector`, drill-down por modelo + serie 60d + top leads cuando `spec.has_lead_id`). Smoke test admin verde + 10 tests page-specific.
+
+### Architecture / cohesión
+
+#### [HIGH] registry shared no podía importar agent models — 2026-04-28 — S2 — FIXED en S2
+- Path: `src/shared/agent_observability/registry.py` + `src/shared/infrastructure/agent_observability_bootstrap.py`.
+- Descripción: `test_shared_agent_observability_purity` bloquea cualquier import `src.modules.*` desde shared/agent_observability/. La primera versión de registry hardcodeaba ambos imports → arch test rojo.
+- Acción: registry pasivo con `register_agent_observability(spec)`. Cada agente registra su spec desde su propio `observability/__init__.py`. Bootstrap module `shared/infrastructure/agent_observability_bootstrap.py` (donde sí se permite importar modules) es importado por main.py / admin/app.py / workers/settings.py / tests/conftest.py. Dependencia invertida cleanly.
+
+### Watchpoints (DEFERRED)
+
+#### [MEDIUM] LiteLLM tier pricing > 200k tokens — 2026-04-28 — S2 — DEFERRED-post-S6
+- Path: `src/shared/agent_observability/cost/calculator.py`.
+- Descripción: research S2 confirmó que LiteLLM JSON tiene `input_cost_per_token_above_200k_tokens` + variants para output/cache. Sales_agent puede entrar en tier alto con Kimi K2.6 / DeepSeek-V4 + long conversations. Calculator actual ignora tiers.
+- Impacto: drift entre `cost_usd` grabado y reconciliation real con LiteLLM si emergen tier hits. Estimado <5% de calls del tenant promedio hoy (LATAM con conversaciones <50 turnos).
+- Acción: DEFERRED-post-S6 — agregar tier resolution al calculator + nuevo column opcional `tier_applied` en `*_llm_call` cuando se detecte. Flag para escalar si reconciliation muestra >5% drift.
+
+#### [MEDIUM] PII async post-write worker (Presidio + spaCy NER) — 2026-04-28 — S2 — DEFERRED-post-S6
+- Descripción: research S2 confirmó que regex sync (lo que hace `sanitization.py` hoy) cubre 80% del PII pero pierde nombres/organizaciones/locations sin keyword. Presidio + spaCy NER agrega 50-200ms; demasiado para hot path (<10ms p99 target).
+- Acción: DEFERRED-post-S6 — `pii_async_audit_task.py` que lee batches de `*_trace_event`/`*_llm_call`, corre Presidio offline, UPDATE row si encuentra PII no enmascarada. Compliance opcional para tenants enterprise; compliance LATAM (LGPD/LFPDPPP/PDPA) ya cubierto por keyword anchoring S1.
+
+---
+
 ## Detectados durante S1 (sales-agent observability parity) — 2026-04-28
 
 ### Fixes ejecutados
@@ -264,10 +319,9 @@ Statuses: `FIXED` · `DEFERRED-S{N}` · `FLAGGED` · `WONT-FIX`.
 - Path: `src/admin/modules/sales_audit.py` + `src/modules/sales_agent/infrastructure/memory/audit_repository.py`.
 - Acción: dual-read pattern activo. AuditRepository.get_event_sourced_rows() + get_last_event_sourced_state(). Banner UI explicita la fuente. clear_user_history extendido a `sales_agent_trace_event` + `sales_agent_llm_call`. Cutover full a S6 — la entrada se cierra entonces.
 
-#### [HIGH] Sales_agent sin retention 90d trace — 2026-04-27 — diagnóstico — DEFERRED-S2 (re-confirmado post-S1)
-- Path: `src/modules/copilot/observability/workers/retention_task.py` (SQL hardcoded copilot_trace_event).
-- Descripción: la tabla `sales_agent_trace_event` ahora se escribe pero nadie la purga. El worker copilot conoce sólo su propia tabla.
-- Acción: DEFERRED-S2 — abstraer `purge_expired_trace_rows` para iterar `[copilot_trace_event, sales_agent_trace_event]`. Mismo para `copilot_llm_call`/`sales_agent_llm_call`.
+#### [HIGH] Sales_agent sin retention 90d trace — 2026-04-27 — diagnóstico — FIXED en S2
+- Path: `src/shared/agent_observability/workers/retention_task.py` (movido de copilot/ a shared/, parametrizado por registry).
+- Acción: worker itera `agent_observability_registry()` y purga ambas tablas (`{agent}_trace_event` 90d default, `{agent}_llm_call` 365d default). Env vars per-agent: `COPILOT_*_RETENTION_DAYS` + `SALES_AGENT_*_RETENTION_DAYS`. Best-effort por tabla (fallo en una no aborta el resto).
 
 ### Nuevos detectados en S1
 
@@ -283,12 +337,12 @@ Statuses: `FIXED` · `DEFERRED-S{N}` · `FLAGGED` · `WONT-FIX`.
 - Impacto: nulo (cosmético — confunde a future reader, no afecta runtime).
 - Acción: FLAGGED-S6 — corregir nombres durante cleanup S6 cuando dropeo de legacy se haga.
 
-#### [LOW] Subscribers crean `SessionLocal()` per-event — 2026-04-28 — S1 — DEFERRED-S2
+#### [LOW] Subscribers crean `SessionLocal()` per-event — 2026-04-28 — S1 — DEFERRED-post-S6 (re-clasificada en S2)
 - Path: `src/modules/sales_agent/observability/domain_events/subscribers.py`.
 - Descripción: 4 handlers, cada uno abre y cierra una nueva session por event. Best-effort y rápido (single insert + commit), pero contention en pool en alta carga.
 - Impacto: si turn rate > 10/s/tenant pool puede saturar.
-- Acción: DEFERRED-S2 — usar contextvar para pasar session orchestrator al subscriber, o batch sub-tx.
-- Razón: scope creep en S1 (event_bus diseño global no scoped).
+- Acción: DEFERRED-post-S6 — re-evaluación durante S2 mostró que el costo en producción (sin tráfico real >2/s) no justifica el contextvar refactor todavía. Si reconciliation worker dispara latency spike → priorizar.
+- Razón: scope S2 fue cost guardrails cross-agent, no event_bus reshape.
 
 #### [LOW] `_tool_dedup_tracker` en state es magic string — 2026-04-28 — S1 — DEFERRED-post-S6
 - Path: `src/modules/sales_agent/application/orchestrator/state.py` + `chat.py` seed + `nodes.py` read.

@@ -94,6 +94,7 @@ postgresql.UUID = MockUUID
 # crashea con ``InvalidRequestError`` (ej. ``LeadModel`` →
 # ``AppointmentModel``). Patrón canónico exigido en ``main.py`` y
 # ``admin/app.py``.
+import src.shared.infrastructure.agent_observability_bootstrap
 import src.shared.infrastructure.model_registry
 
 # --- Fixtures ---
@@ -241,6 +242,15 @@ def db_engine():
         )
         from src.modules.sales_agent.infrastructure.models.message_model import (
             MessageModel,
+        )
+        from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
+            SalesAgentLlmCallModel,
+        )
+        from src.modules.sales_agent.observability.persistence.models.routing_log_model import (
+            SalesAgentRoutingLogModel,
+        )
+        from src.modules.sales_agent.observability.persistence.models.trace_event_model import (
+            SalesAgentTraceEventModel,
         )
         from src.modules.scheduling.infrastructure.models.appointment_model import (
             AppointmentModel,

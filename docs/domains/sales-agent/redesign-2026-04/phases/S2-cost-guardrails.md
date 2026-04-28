@@ -44,7 +44,45 @@ Extender `BillingCycleService`, `CostAggregator`, MV diaria, retention worker y 
 
 ### Hallazgos research
 
-> COMPLETAR.
+#### Q1 — Postgres MV UNION ALL + REFRESH CONCURRENTLY (2026)
+
+- `REFRESH MATERIALIZED VIEW CONCURRENTLY` exige **UNIQUE index** sobre el MV. Columnas únicamente (no expresiones, no WHERE, includes all rows). Sin él Postgres no puede diff row-by-row.
+- Mecánica: ejecuta SELECT del MV en staging, hace `FULL OUTER JOIN` contra tabla actual, aplica INSERT/DELETE/UPDATE incremental. Reads no se bloquean.
+- **Trampa nullable**: si una columna del unique index es nullable, `NULL = NULL` evalúa a NULL → toda fila parece distinta y el refresh se vuelve full rewrite. **Mitigación**: declarar `agent_kind`/`tenant_id`/`occurred_on` como NOT NULL en MV (UNION ALL los garantiza si los inputs lo son).
+- UNION ALL combinando 2 tablas con índices distintos funciona; refresh recalcula ambas branches. Sin issue con esta arquitectura siempre que ambas tablas tengan índice por `(tenant_id, occurred_on)` (S1 ya creó esos).
+- Fuentes: PostgreSQL 18 docs `sql-refreshmaterializedview`, Crunchy Data Indexing MVs.
+
+#### Q2 — Cost alert UX multi-product SaaS (2026)
+
+- Best practice = **breakdown por producto/agente** en notificación + threshold cross-producto. Pattern Finout (multi-cloud aggregation) y Zluri (budget thresholds): un threshold único + email/slack que muestra qué línea consumió cuánto.
+- "Bill shock" prevention: alert con drilldown explícito reduce time-to-action vs alert agregado opaco.
+- Decisión: cross-agent threshold único por tenant (`tenant_billing_config.cost_alert_threshold_usd`). Si total cross-agent > threshold → structlog warning con breakdown `{copilot: $X, sales_agent: $Y}`. NO doble threshold per agent (overhead config + risk drift).
+- Fuentes: Schematic (Usage-Based Billing 2026), Zluri (SaaS spend management).
+
+#### Q3 — LiteLLM tier pricing (2026)
+
+- Schema soporta `input_cost_per_token_above_200k_tokens` + `output_cost_per_token_above_200k_tokens` + `cache_creation_input_token_cost_above_200k_tokens` + `cache_read_input_token_cost_above_200k_token`. Aplica cuando contexto > 200k.
+- Modelos sales_agent (Kimi K2.6, DeepSeek-V4, Claude Opus 200k) pueden caer en tier alto durante long conversations.
+- **Decisión S2**: NO implementar tier pricing en `calculate_cost` shared. Postpone a fase futura cuando emerja real cost inflation (>5% drift entre cost_usd grabado y reconciliation con LiteLLM). DEFERRED-post-S6 con flag para escalar a calculator.
+- Fuentes: BerriAI/litellm `model_prices_and_context_window.json`, LiteLLM Cost Calculation docs.
+
+#### Q4 — PII async post-write workers (extra)
+
+- Presidio + spaCy NER agrega ~50-200ms latency. Demasiado para hot path callback handler (target <10ms p99).
+- Pattern correcto: regex-only síncrono (lo que ya tenemos en `sanitization.py` post-S1) + worker async post-write con Presidio que re-redacta payloads con PII no detectada por regex (nombres, organizaciones).
+- DEFERRED-post-S6: `pii_async_audit_task.py` que lee batches de `*_trace_event`/`*_llm_call`, corre Presidio, UPDATE row si encuentra PII no enmascarada. Compliance opcional para tenants enterprise.
+- Fuentes: oneuptime LLMOps PII Detection 2026, IJC Safe Observability paper, microsoft/presidio.
+
+### Decisiones de diseño S2 (post-research)
+
+- **CostAggregator parametrizado por model class** (no SQL hardcoded). Constructor toma `(db, llm_call_model)`. Factory `for_copilot(db)` / `for_sales_agent(db)`.
+- **`CrossAgentCostAggregator`** compone N CostAggregator instances (uno por agent_kind del registry). Suma rows en Python (datasets pequeños — ~100s de tenants). Evita SQL UNION cross-table en service layer; el MV `mv_daily_v2` cubre el caso "performance dashboard".
+- **`AgentObservabilityRegistry`** en `shared/agent_observability/` lista `[(agent_kind, llm_call_model, trace_event_table_name, llm_call_table_name)]`. Single source para workers + aggregator + cost_alert.
+- **`aggregate_refresh_task`**: refresh ambas MVs (`mv_daily_llm_cost_per_tenant` legacy + `mv_daily_llm_cost_per_tenant_v2` nueva). Best-effort independiente por MV. Vieja se mantiene por 1 release para no romper consumers externos.
+- **`retention_task`**: itera registry list `[(table, env_var, default_days, preserve_errors)]`. Cada DELETE bounded por índice de cada tabla. Best-effort — fallo en una no aborta las otras.
+- **`cost_alert_service`**: usa `CrossAgentCostAggregator`. Iter `tenant_billing_config WHERE threshold IS NOT NULL`. Suma cross-agent → si > threshold emit structlog `cost_alert_threshold_exceeded` con `breakdown={agent_kind: cost_usd}`.
+- **Streamlit**: page nuevo `costo-agentes`. Tabs: **Total** (cross-agent) / **Copilot** (link al viejo `costo-copilot` o ataja a aggregator copilot) / **Sales Agent** (drilldown por lead vía `top_leads_by_cost`).
+- **`top_leads_by_cost`** análogo a `top_conversations_by_cost` pero filtrando `lead_id IS NOT NULL` (sales_agent específico). Vive como method del aggregator parametrizado solo cuando el model expone `lead_id`.
 
 ---
 

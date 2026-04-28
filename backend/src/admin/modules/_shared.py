@@ -74,6 +74,37 @@ def get_tenant_name(tenant_id: object) -> str:
     return tenant_id_str[:8]
 
 
+# ── Cross-agent helpers (S2 — costo-agentes) ─────────────────────────
+
+
+def render_agent_kind_selector(
+    key: str = "agent_kind",
+    *,
+    default: str = "sales_agent",
+) -> str:
+    """Render an agent_kind selectbox for cross-agent admin pages."""
+    options = ["sales_agent", "copilot"]
+    return st.selectbox(
+        "Agente",
+        options=options,
+        index=options.index(default),
+        key=key,
+    )
+
+
+def render_dual_read_banner(legacy_count: int, new_count: int) -> None:
+    """UI banner shown during the dual-read window of S1 → S6 cutover."""
+    if new_count > 0 and legacy_count > 0:
+        st.info(
+            f"Dual-read window — leyendo nuevo ({new_count}) + legacy ({legacy_count}). "
+            "Cutover programado al cerrar la ventana de 4 semanas.",
+        )
+    elif legacy_count > 0 and new_count == 0:
+        st.warning(
+            "Solo legacy disponible para este lead. Trazas anteriores al cutover S1.",
+        )
+
+
 # ── Color/Flag helpers ────────────────────────────────────────────────
 
 

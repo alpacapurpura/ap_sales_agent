@@ -17,6 +17,10 @@ from uuid import UUID, uuid4
 import pytest
 from sqlalchemy.orm import sessionmaker
 
+from src.modules.copilot.observability.persistence.models.llm_call_model import (
+    CopilotLlmCallModel,
+)
+
 
 @pytest.fixture
 def db(db_engine):
@@ -150,12 +154,12 @@ def seed(db):
 
 class TestTenantsSummary:
     def test_returns_one_row_per_tenant_in_window(self, db, seed) -> None:
-        from src.modules.copilot.observability.reporting.cost_aggregator import (
+        from src.shared.agent_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
         tenant_a, tenant_b, base = seed
-        agg = CostAggregator(db)
+        agg = CostAggregator(db, CopilotLlmCallModel)
 
         rows = agg.tenants_summary(
             start=base.date(),
@@ -173,12 +177,12 @@ class TestTenantsSummary:
         assert rows_by_tenant[tenant_b].cost_usd == Decimal("0.0100")
 
     def test_excludes_calls_outside_window(self, db, seed) -> None:
-        from src.modules.copilot.observability.reporting.cost_aggregator import (
+        from src.shared.agent_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
         _, _, base = seed
-        agg = CostAggregator(db)
+        agg = CostAggregator(db, CopilotLlmCallModel)
 
         rows = agg.tenants_summary(
             start=(base + dt.timedelta(days=10)).date(),
@@ -189,12 +193,12 @@ class TestTenantsSummary:
 
 class TestTenantDetail:
     def test_breakdown_by_model_inside_window(self, db, seed) -> None:
-        from src.modules.copilot.observability.reporting.cost_aggregator import (
+        from src.shared.agent_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
         tenant_a, _, base = seed
-        agg = CostAggregator(db)
+        agg = CostAggregator(db, CopilotLlmCallModel)
 
         detail = agg.tenant_detail(
             tenant_id=tenant_a,
@@ -216,12 +220,12 @@ class TestTenantDetail:
 
 class TestTopConversations:
     def test_returns_top_conversations_ordered_by_cost(self, db, seed) -> None:
-        from src.modules.copilot.observability.reporting.cost_aggregator import (
+        from src.shared.agent_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
         tenant_a, _, base = seed
-        agg = CostAggregator(db)
+        agg = CostAggregator(db, CopilotLlmCallModel)
 
         rows = agg.top_conversations_by_cost(
             tenant_id=tenant_a,
@@ -238,12 +242,12 @@ class TestTopConversations:
 
 class TestDailySeries:
     def test_returns_daily_points_for_window(self, db, seed) -> None:
-        from src.modules.copilot.observability.reporting.cost_aggregator import (
+        from src.shared.agent_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
         tenant_a, _, base = seed
-        agg = CostAggregator(db)
+        agg = CostAggregator(db, CopilotLlmCallModel)
 
         series = agg.daily_series(
             tenant_id=tenant_a,
@@ -259,11 +263,11 @@ class TestDailySeries:
 class TestEmptyState:
     def test_empty_when_no_data(self, db) -> None:
         """Aggregator returns sane empty defaults for a tenant with no calls."""
-        from src.modules.copilot.observability.reporting.cost_aggregator import (
+        from src.shared.agent_observability.reporting.cost_aggregator import (
             CostAggregator,
         )
 
-        agg = CostAggregator(db)
+        agg = CostAggregator(db, CopilotLlmCallModel)
         rows = agg.tenants_summary(
             start=dt.date(2026, 4, 1),
             end=dt.date(2026, 4, 30),
