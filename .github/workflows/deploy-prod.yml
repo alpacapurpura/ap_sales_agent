@@ -65,11 +65,19 @@ jobs:
         run: docker run --rm visionarias/frontend-test:ci npm run lint
 
       - name: Frontend type check (TypeScript)
-        run: docker run --rm visionarias/frontend-test:ci npx tsc --noEmit
+        # ``tsc --noEmit`` hits Node's default ~1GB heap on this codebase and
+        # crashes with ``FATAL ERROR: ... heap out of memory`` (run 25025593709).
+        # Bumping ``--max-old-space-size`` to 4096 MB matches the 7GB available
+        # on GH-hosted ubuntu-latest runners with comfortable headroom.
+        run: docker run --rm -e NODE_OPTIONS="--max-old-space-size=4096" visionarias/frontend-test:ci npx tsc --noEmit
 
       - name: Frontend tests with coverage
+        # Vitest forks a worker per CPU; coverage instrumentation pushes
+        # peak heap close to the same 1GB ceiling that crashes tsc on
+        # this codebase. Match the bump from the tsc step so the worker
+        # pool has the same 4GB headroom.
         run: |
-          docker run --name frontend-test-ci visionarias/frontend-test:ci \
+          docker run --name frontend-test-ci -e NODE_OPTIONS="--max-old-space-size=4096" visionarias/frontend-test:ci \
             npx vitest run --coverage --reporter=json --outputFile=coverage-frontend.json
           docker cp frontend-test-ci:/app/coverage-frontend.json coverage-frontend.json
           docker rm frontend-test-ci
