@@ -28,7 +28,7 @@ CONTEXTO post-S0 (cerrado 2026-04-28):
   * workers/{retention_task, aggregate_refresh_task, cost_alert_task}
 - Arch test ratchet activo: tests/architecture/test_shared_agent_observability_purity.py (KNOWN_VIOLATIONS vacío) — bloquea import de src.modules.* desde shared/agent_observability/.
 - Tests verdes: 2522 (copilot/ + arch + admin + shared). Ruff 0 errors. Format check ok.
-- Branch: development limpio. Último commit S0: {pendiente — generado por commit final}.
+- Branch: development limpio. Último commit S0: 607efd76 — feat(sales-agent-redesign-s0): extract shared/agent_observability/.
 - Workers/settings.py registra sync_litellm_pricing desde shared/.
 - Streamlit /costo-copilot lee de shared/agent_observability/reporting/.
 
