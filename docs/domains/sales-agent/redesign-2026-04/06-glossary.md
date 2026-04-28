@@ -102,5 +102,20 @@ Términos clave del redesign sales_agent. Si un término aparece en docs o conve
 ## Workflow
 
 - **Phase / Sprint** (`S{N}`): bloque de trabajo cohesivo del redesign. Una conversación = una fase idealmente.
+- **S00**: pre-fase de codebase audit + cleanup deprecated.
 - **Handoff prompt**: contenido en `prompts/S{N}-start.md` que el usuario pega al iniciar conversación nueva.
 - **Learning doc**: `learnings/S{N}-*.md` escrito al cerrar fase. Lo lee S{N+1}.
+- **Audit map**: `audit/sales-agent-current-state.md` generado en S00. Mapea callers, imports cross-module, tablas, endpoints, admin pages.
+
+## Términos copilot post-abril 2026 (referencia cross-fase)
+
+- **`ChatModelSpec`**: dataclass frozen en `shared/infrastructure/llm/providers/_chat_model_resolver.py`. Per-provider: chat_class, builder, kwargs_normalizer, library_name, is_reasoning_model, reasoning_token_reserve, reasoning_effort_param.
+- **Multi-provider per-role**: env vars `AI_PROVIDER_{NANO,FAST,REASONING,AGENT,VISION,EMBEDDING}` con fallback global `AI_PROVIDER`. Method `settings.get_provider_for_role(role)`.
+- **Pricing aliases**: `copilot/observability/pricing/aliases.py` (post-S0: shared). Mapping interno `(provider, model)` → LiteLLM upstream `(provider, model)`. Resuelve drift entre nuestros nombres y LiteLLM rate cards.
+- **`tool_call_dedup`**: `copilot/application/orchestrator/tool_call_dedup.py` (commit 3aab4002 post-incidente fbc79125). Per-turn tracker. Threshold 3 / hard limit 5.
+- **`_legacy_compat_keys`**: projection en `turn_envelope.py` que folda nuevos `copilot_llm_call` aggregates en JSONB shape antiguo de `copilot_trace_event` para backward-compat consumers.
+- **F8 cache_boundary**: separator entre fragments cacheable (slots 1-6) y volatile (7+). Target prefix ≥1024 tokens contiguos para activar prompt cache OpenAI/Anthropic.
+- **`ObservabilityCallbackHandler`** (copilot): subclase `BaseCallbackHandler` LangChain wired vía `RunnableConfig(callbacks=[handler])`. Captura `on_chat_model_start/end`, `on_tool_start/end/error`, `on_chain_start/end`. Best-effort writes.
+- **Reasoning-budget trap**: bug histórico donde reasoning models (DeepSeek-V4, OpenAI o-series) starvear visible answer si `max_output_tokens` no contempla token reserve. Fix en `_kwargs.py::normalize_openai_protocol_kwargs`.
+- **Dual-read window**: pattern para Streamlit admin durante migration. Page lee tabla nueva + tabla legacy, dedupe + render. Drop legacy reads post-cutover.
+- **Dual-write reconciliation**: ARQ task que compara escrituras `@trace_node` legacy vs callback handler nuevo durante 4 semanas. Diff <1% requerido para cutover.

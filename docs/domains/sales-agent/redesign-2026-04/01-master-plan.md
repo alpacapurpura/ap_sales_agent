@@ -1,8 +1,18 @@
 # 01 · Master Plan — DAG de fases
 
+> **Actualizado 2026-04-28**: agregada S00 pre-fase (codebase audit + cleanup deprecated). S4 scope recortado (ChatModelSpec + multi-provider per-role ya existen post-commits abril, sales_agent solo adopta).
+
 ## Lectura del DAG
 
 ```
+                                    ┌─────────────────────┐
+                                    │ S00: codebase audit │
+                                    │ + cleanup deprecated│
+                                    │ + admin migration   │
+                                    │ prep                │
+                                    └──────────┬──────────┘
+                                               │
+                                               ▼
                                     ┌─────────────────────┐
                                     │ S0: shared/agent_   │
                                     │ observability/      │
@@ -13,13 +23,14 @@
                                     ┌─────────────────────┐
                                     │ S1: sales_agent     │
                                     │ observability       │
-                                    │ parity + PII        │
+                                    │ parity + PII +      │
+                                    │ tool_call_dedup     │
                                     └──────────┬──────────┘
                                                │
                                 ┌──────────────┼──────────────┐
                                 ▼              ▼              ▼
                   ┌──────────────────┐ ┌─────────────┐ ┌────────────┐
-                  │ S2: cost         │ │ S4:         │ │ S5: channel│
+                  │ S2: cost         │ │ S4: ADOPT   │ │ S5: channel│
                   │ guardrails +     │ │ ChatModel   │ │ registry   │
                   │ cycle 25-25      │ │ Spec + tier │ │ shared     │
                   └──────────────────┘ └──────┬──────┘ └─────┬──────┘
@@ -34,7 +45,8 @@
                                                     ▼
                                        ┌─────────────────────────┐
                                        │ S6: fitness tests       │
-                                       │ ratchet (frozen state)  │
+                                       │ ratchet + drop legacy   │
+                                       │ agent_trace_model       │
                                        └────────────┬────────────┘
                                                     │
                                                     ▼
@@ -65,29 +77,31 @@
 
 | Fase | Depende de | Razón |
 |---|---|---|
-| S0 | — | Foundation. |
-| S1 | S0 | Necesita módulo shared. |
+| **S00** | — | Pre-fase. Snapshot estado limpio antes de tocar arq. |
+| S0 | S00 | Audit map identifica callers que extract no debe romper. |
+| S1 | S0 | Necesita módulo shared. Adopta `tool_call_dedup` + pricing/aliases. |
 | S2 | S1 | Necesita `sales_agent_llm_call` poblado. |
-| S3 | S4 | El cache_boundary necesita modelos NANO/MINI/REASONING/HEAVY definidos. |
-| S4 | S1 | El callback handler ya graba `provider`/`model_responded` — verificar consistencia. |
-| S5 | S1 | Channel registry es consumer de observability (registra `channel_intent` en trace). |
-| S6 | S0, S1, S2, S4, S5 | Ratchet congela estado tras infra estable. |
-| S7 | S3, S6 | Lighthouse de brand cae en slot cacheable; ratchet evita drift. |
+| S3 | S4 | Cache_boundary necesita modelos NANO/MINI/REASONING/AGENT/HEAVY. |
+| S4 | S1 | Callback handler graba `provider`/`model_responded` para validar resolver. |
+| S5 | S1 | Channel registry consumer de observability. |
+| S6 | S0, S1, S2, S4, S5 | Ratchet congela infra estable. Drop `agent_trace_model` legacy. |
+| S7 | S3, S6 | Lighthouse cae slot cacheable. Ratchet evita drift. |
 | S8 | S7 | Scheduler tools deben hablar voz de marca. |
-| S9 | S7, S8 | Payment hereda voz; algunos flows mezclan booking + payment. |
+| S9 | S7, S8 | Payment hereda voz; flows mezclan booking + payment. |
 | S10 | S7, S8, S9 | Goldens cubren features completas. |
 
 ---
 
-## Cronograma estimado (orientativo)
+## Cronograma estimado
 
 | Fase | Esfuerzo | Sprint sugerido |
 |---|---|---|
+| **S00** | 2-3 días | 0 |
 | S0 | 3-5 días | 1 |
 | S1 | 8-10 días | 2 (incluye dual-write 4 semanas observación) |
 | S2 | 3-4 días | 3 |
 | S3 | 5-7 días | 4 |
-| S4 | 2-3 días | 4 (paralelo con S3 si recursos) |
+| **S4** | **1-2 días** (recortado) | 4 (paralelo S3) |
 | S5 | 3-4 días | 5 |
 | S6 | 2-3 días | 5 |
 | S7 | 5-7 días | 6 |
@@ -95,17 +109,18 @@
 | S9 | 7-10 días | 8 |
 | S10 | 5-7 días | 9 |
 
-**Total ~50-70 días desarrollador** (puede paralelizarse S2/S3/S4/S5).
+**Total ~50-65 días desarrollador** (paralelizable S2/S3/S4/S5).
 
 ---
 
 ## Branch strategy
 
-Trabajo en `development` siempre. Cada fase = N commits conventional con scope `sales-agent-redesign-s{N}`. Ejemplo:
+`development` siempre. Cada fase = N commits conventional con scope `sales-agent-redesign-s{N}`. Ejemplo:
 
 ```
+chore(sales-agent-redesign-s00): cleanup deprecated /sales/resumen + audit map
 feat(sales-agent-redesign-s1): callback handler + dual-write
-feat(sales-agent-redesign-s1): pii sanitization in trace recorder
+feat(sales-agent-redesign-s1): tool_call_dedup mirror + PII LATAM
 test(sales-agent-redesign-s1): callback handler invariants
 docs(sales-agent-redesign-s1): learnings + s2 handoff prompt
 ```
@@ -116,12 +131,12 @@ NO feature branches. NO worktrees. Ver `.claude/rules/parallel-safety.md`.
 
 ## Cuándo NO seguir el plan al pie de la letra
 
-Si durante research fresco de una fase descubres que:
+Si durante research fresco descubres:
+- Librería pivot tuvo breaking change
+- Stack añadió capa nativa que reemplaza decisión del plan
+- Análisis revela sub-decisión subóptima
+- **Realidad post-abril 2026 ya implementó** parte del plan (caso S4)
 
-- Una librería pivot tuvo breaking change (ej. `langgraph` 0.3 cambió `astream_events`)
-- El stack añadió una capa nativa que reemplaza una decisión del plan
-- Un análisis revela que una sub-decisión es subóptima
+**ENTONCES:** Pausa, documenta en `phases/S{N}-*.md` sección "Ajustes vs plan original", pregunta al usuario si confirma antes de codear.
 
-**ENTONCES:** Pausa, documenta el hallazgo en el `phases/S{N}-*.md` (sección "Ajustes vs plan original"), pregunta al usuario si confirma el ajuste antes de codear.
-
-NO seguir ciego un plan de 6 meses atrás. NO desviarse sin documentar.
+NO seguir ciego. NO desviar sin documentar.

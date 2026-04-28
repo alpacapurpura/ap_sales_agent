@@ -65,8 +65,26 @@ Mismo stack (FastAPI + LangGraph + LangChain), distinto flujo. **NO migrar sales
 | `agent_state_checkpoint` schema | Persist multi-turn lead state. Migración riesgosa. |
 | Webhook adapters (Telegram/WhatsApp/IG) | Auth + signature verification frágiles. |
 | `follow_up_engine` cadence math | Lógica de timing horaria + zona horaria del tenant. |
+| `copilot/observability/` rebuild Phase 1+2+3 cerrado | Funciona en producción. Sales_agent **adopta** (S0 extract a shared), NO rediseña. |
+| `shared/infrastructure/llm/providers/` (DeepSeek/Kimi/Qwen) | Ya implementado abril 2026. Sales_agent adopta `ChatModelSpec` + `_kwargs.py` SSoT, NO re-escribe. |
+| `tool_call_dedup.py` (copilot anti-loop) | Funciona post-incidente fbc79125. Sales_agent **mirroreará** pattern, NO modifica copilot. |
+| `model_pricing_snapshot` schema + LiteLLM sync diario | Ya en producción. Sales_agent consume mismo `resolver.py`. |
+| `pricing/aliases.py` Kimi K2.6/K2.5 | Ya correcto (commit a3f65d04). Sales_agent reusa. |
+| `frontend/src/features/growth-studio/.../meta-ads/Resumen{Tab,Card,Hook,HealthOverview}` | **Feature distinta de sales/resumen deprecated.** Meta Ads dashboard activo. NO confundir, NO borrar. |
+| `frontend/src/features/closer-studio/` (NO `sales-studio`) | Sales studio FE vive aquí. Routes activos `/sales/studio/{inbox,pipeline,frozen}`. |
 
 Si una fase necesita tocar algo de §3 → **PARAR y preguntar al usuario** antes de proceder.
+
+### §3.1 — Lo que SÍ se borra (deprecated)
+
+| Path | Reemplazo | Fase |
+|---|---|---|
+| `frontend/src/app/(main)/[tenantId]/(dashboard)/sales/resumen/page.tsx` | `/sales/studio/inbox` | S00 |
+| Sidebar entry "Resumen" en `AppSidebar.tsx:118` | Consolidado en "Studio" | S00 |
+| `sales/page.tsx` redirect a deprecated | Redirect a `/sales/studio/inbox` | S00 |
+| `agent_trace_model` + `agent_log_model` (sales legacy) | `sales_agent_trace_event` + `sales_agent_llm_call` | S1 cutover, drop S6 |
+| `@trace_node` decorator (sales) | `SalesAgentCallbackHandler` | S1 dual-write + cutover |
+| `admin/modules/sales_audit.py` queries a `agent_trace_model` | Queries a `sales_agent_trace_event` | S1 dual-read window, cutover S6 |
 
 ---
 
@@ -77,12 +95,13 @@ Una fase está cerrada cuando:
 1. ✅ Research mandate ejecutado (web + context7/Tessl + lectura code) — fuentes en learnings.
 2. ✅ Decisiones de diseño documentadas en `phases/S{N}-*.md` con razones.
 3. ✅ TDD: tests RED→GREEN cubriendo TODO el comportamiento target.
-4. ✅ Quality gates verdes nativos (ruff, pytest, arch tests).
+4. ✅ Quality gates verdes nativos (ruff, pytest, arch tests, admin smoke).
 5. ✅ Verificación funcional manual (curl, browser, trace inspection si aplica).
 6. ✅ §3 sigue funcionando (smoke check).
-7. ✅ `learnings/S{N}-*.md` escrito (denso, accionable, sin filler).
-8. ✅ `prompts/S{N+1}-start.md` actualizado con contexto fresco.
-9. ✅ `05-tech-debt-log.md` actualizado si hubo hallazgos.
-10. ✅ Commit conventional + push a `development` (solo archivos de la sesión, ver `.claude/rules/parallel-safety.md`).
+7. ✅ **Paso 11 code review final** (03-phase-protocol.md): callers no rotos, cohesión, acoplamiento, simplify pass, cleanup oportunista.
+8. ✅ `learnings/S{N}-*.md` escrito (denso, accionable, sin filler).
+9. ✅ `prompts/S{N+1}-start.md` actualizado con contexto fresco.
+10. ✅ `05-tech-debt-log.md` actualizado si hubo hallazgos.
+11. ✅ Commit conventional + push a `development` (solo archivos de la sesión, ver `.claude/rules/parallel-safety.md`).
 
-Si **uno** de los 10 falla → fase NO cerrada.
+Si **uno** de los 11 falla → fase NO cerrada.

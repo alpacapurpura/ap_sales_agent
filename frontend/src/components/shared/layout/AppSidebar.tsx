@@ -11,7 +11,6 @@ import {
   CalendarCheck,
   Megaphone,
   ChevronDown,
-  LayoutDashboard,
   Headset,
   Users,
   ClipboardList,
@@ -115,7 +114,6 @@ const getNavItems = (tenantId: string): NavItem[] => [
     href: `/${tenantId}/sales`,
     icon: CalendarCheck,
     children: [
-      { title: "Resumen", href: `/${tenantId}/sales/resumen`, icon: LayoutDashboard },
       { title: "Studio", href: `/${tenantId}/sales/studio/inbox`, icon: Headset },
       { title: "Contactos", href: `/${tenantId}/sales/contactos`, icon: Users },
       {

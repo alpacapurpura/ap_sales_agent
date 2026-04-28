@@ -1,46 +1,58 @@
-# S4 · ChatModelSpec + tier adoption
+# S4 · Adopt ChatModelSpec + per-role routing
+
+> **Actualizado 2026-04-28**: scope recortado. `ChatModelSpec`, multi-provider per-role, DeepSeek native, reasoning-budget trap, kwarg normalizer SSoT YA EXISTEN (commits c60197fa, 9d63c0da, 7dcc5db4, dfc57716). Esta fase = **adopción** en sales_agent, no diseño. Sí incluye mapping ROLE→TIER semantic per-specialist.
 
 ## Objetivo
 
-Sales_agent adopta `CHAT_MODEL_SPEC` per provider + tier system (NANO / MINI / REASONING / HEAVY). Hereda anti-incidente del 2026-04-27 (kwarg translation + reasoning-budget trap fix). Garantiza consistencia kwargs cross-provider y permite cache compatible.
+Sales_agent adopta el routing multi-provider per-role + ChatModelSpec ya implementado. Specialists usan tier semántico (NANO/FAST/REASONING/AGENT). Aprovecha Kimi-K2.6 (AGENT) en specialists con loops largos y DeepSeek-Reasoner (REASONING) en manejo de objeciones complejas — costo ~5-10x menor con paridad de calidad para sales conversion.
 
 ## Dependencias
 
 - S1 cerrado: callback handler graba `provider`/`model_responded` para validar resolver.
-- (Independiente de S2 y S3 — puede ir en paralelo.)
+- (Independiente de S2/S3/S5 — paralelo OK.)
 
 ## Criterios de éxito
 
-1. `model_tier.py` declarado en `sales_agent/domain/` (mirror de copilot `domain/model_tier.py`).
-2. `CHAT_MODEL_SPEC` tipado declarado para cada provider que sales_agent usa: OpenAI, Anthropic, DeepSeek, Gemini.
-3. `LLMFactory.get_service(role=ModelRole.X)` resuelve spec via SSoT (no hardcoded en consumer).
-4. Kwarg translation (`max_tokens` → `max_completion_tokens`, `max_output_tokens`, etc.) pasa por `providers/_kwargs.py::normalize_openai_protocol_kwargs` único.
-5. Reasoning-budget trap fix verified: providers reasoning (o1, o3, etc.) no reciben kwargs incompatibles.
-6. Tier mapping `ModelRole.FAST` → tier NANO/MINI; `ModelRole.REASONING` → REASONING. Documentado.
-7. Tests existentes verdes. Nuevos tests cubren spec resolution + kwarg translation.
-8. Sin hardcoded model names en `nodes.py` o specialist code.
+1. Sales_agent specialists consumen `LLMFactory.get_service(role=ModelRole.X)` que internamente resuelve `settings.get_provider_for_role(role)`.
+2. Mapping per-specialist documentado:
+   - `supervisor` → `ModelRole.NANO` (decisión rápida)
+   - `buffer_completeness_check` → `ModelRole.NANO`
+   - `qualifier` → `ModelRole.FAST`
+   - `product_expert` → `ModelRole.AGENT` (Kimi K2.6 — explicaciones largas)
+   - `closer` → `ModelRole.AGENT` (Kimi K2.6 — manejo objeciones, idempotente con cache)
+   - `objection_handler` (si emerge) → `ModelRole.REASONING` (DeepSeek-Reasoner)
+3. `domain/model_tier.py` declara mapping `SPECIALIST_TO_ROLE` semantic, no hardcoded models.
+4. Reasoning-budget trap respetado: si DeepSeek-V4 o equivalente, `max_output_tokens` cuenta el reserve de 4000 tokens (provider-side) — verificar via integration test.
+5. Tenant API keys (deepseek/kimi/dashscope) ya soportadas por `Tenant` domain (migration 073) — sales_agent puede consumir vía `get_service_for_tenant(tenant_id, role)`.
+6. Test arch `test_no_hardcoded_models_sales_agent` pasa.
+7. Test integration: same input invocado con env `AI_PROVIDER_AGENT=kimi` vs `=openai` → kwargs normalizados correcto en cada caller; outputs no-equivalentes pero válidos.
+8. Quality gates verdes.
 
 ## Research mandate
 
+> **Recortado.** Mucho del research se hizo en abril (commits c60197fa, 7dcc5db4, dfc57716, a3f65d04). Verificar drift desde abril.
+
 ### Queries WebSearch obligatorias
 
-1. `OpenAI o3 o4 reasoning model API kwargs 2026 incompatibilities` — verificar lista vigente.
-2. `Anthropic Claude 4.7 message API max_tokens prompt cache integration` — confirmar shape.
-3. `DeepSeek API protocol OpenAI compat 2026 differences` — DeepSeek diverge en algunas keys.
-4. `Gemini chat API max_output_tokens convention 2026` — Gemini usa `maxOutputTokens` (camelCase).
+1. `Kimi K2.6 thinking-disabled mode temperature recommended 2026` — verificar si los defaults clamp temp 0.6 siguen vigentes.
+2. `DeepSeek V4 reasoning_token_reserve change 2026` — si valor por defecto de 4000 cambió.
+3. `LangChain langchain-deepseek package latest 2026` — version + breaking changes.
 
 ### Tessl tiles
 
-- `tessl__langchain` — convenciones de model abstractions en LangChain 0.3+.
+- `tessl__langgraph` — verify SystemMessage cache compatibility cross-provider.
 
 ### Lectura obligatoria
 
 - `learnings/S1-*.md`.
 - `backend/src/shared/infrastructure/llm/factory.py`.
-- `backend/src/shared/infrastructure/llm/providers/_kwargs.py` (post-incidente 2026-04-27).
-- `backend/src/shared/infrastructure/llm/providers/openai_compat.py`.
-- `backend/src/modules/copilot/domain/model_tier.py`.
-- Commits recientes que tocaron `llm-providers` (`7dcc5db4`, `c60197fa`, `dfc57716`, `222bd54a`).
+- `backend/src/shared/infrastructure/llm/providers/_kwargs.py` — `normalize_openai_protocol_kwargs`.
+- `backend/src/shared/infrastructure/llm/providers/_chat_model_resolver.py` — `ChatModelSpec`.
+- `backend/src/shared/infrastructure/llm/providers/deepseek.py`.
+- `backend/src/shared/infrastructure/llm/providers/kimi.py`.
+- `backend/src/modules/copilot/domain/model_tier.py` — pattern reference.
+- `backend/src/core/config.py` — `AI_PROVIDER_*` env + `get_provider_for_role`.
+- Commits 9d63c0da, c60197fa, 7dcc5db4, dfc57716, a3f65d04, 222bd54a (rationale).
 
 ### Hallazgos research
 
@@ -53,80 +65,58 @@ Sales_agent adopta `CHAT_MODEL_SPEC` per provider + tier system (NANO / MINI / R
 ### `sales_agent/domain/model_tier.py`
 
 ```python
-class SalesAgentModelTier(Enum):
-    NANO = "nano"           # Routing decisions, intent classification, single-token outputs
-    MINI = "mini"            # Buffer completeness check, channel intent detection
-    REASONING = "reasoning"  # Specialists (qualifier, product_expert, closer)
-    HEAVY = "heavy"          # Edge cases, high-stakes closer override
+# Reuse ModelRole from shared (NO duplicate enum).
+from src.shared.domain.model_role import ModelRole
 
-@dataclass(frozen=True)
-class TierMetadata:
-    tier: SalesAgentModelTier
-    default_provider: str
-    default_model: str
-    max_input_tokens: int
-    max_output_tokens: int
-    supports_caching: bool
-    cost_per_1m_input_usd: Decimal
-    cost_per_1m_output_usd: Decimal
-
-TIER_METADATA: dict[SalesAgentModelTier, TierMetadata] = {
-    SalesAgentModelTier.NANO: TierMetadata(...),  # gpt-4o-mini default
-    SalesAgentModelTier.MINI: TierMetadata(...),
-    SalesAgentModelTier.REASONING: TierMetadata(...),  # gpt-4o or claude-sonnet-4-6
-    SalesAgentModelTier.HEAVY: TierMetadata(...),  # claude-opus-4-7
+# Specialist → Role mapping (SSoT).
+SPECIALIST_TO_ROLE: dict[str, ModelRole] = {
+    "supervisor": ModelRole.NANO,
+    "buffer_completeness_check": ModelRole.NANO,
+    "qualifier": ModelRole.FAST,
+    "product_expert": ModelRole.AGENT,
+    "closer": ModelRole.AGENT,
+    "objection_handler": ModelRole.REASONING,  # if specialist exists
+    "summary_generator": ModelRole.NANO,
+    "tool_executor": ModelRole.FAST,
+    "signal_accumulator": ModelRole.NANO,
 }
 ```
 
-### Mapping `ModelRole` → tier
+NO duplicar `ChatModelSpec` ni `TIER_METADATA` — viven en `shared/`. Sales_agent solo declara mapping semantic.
 
+### Refactor specialists
+
+ANTES:
 ```python
-ROLE_TO_TIER = {
-    ModelRole.FAST: SalesAgentModelTier.MINI,
-    ModelRole.REASONING: SalesAgentModelTier.REASONING,
-    ModelRole.HEAVY: SalesAgentModelTier.HEAVY,
-}
-```
-
-`ModelRole` legacy se preserva — sólo agrega capa tier interna.
-
-### `CHAT_MODEL_SPEC` per provider
-
-```python
-# src/shared/infrastructure/llm/providers/openai.py
-CHAT_MODEL_SPEC = ChatModelSpec(
-    provider="openai",
-    supported_models=["gpt-4o", "gpt-4o-mini", "o3-mini", "o4-mini"],
-    kwargs_normalizer="openai_protocol",
-    supports_caching=True,
-    cache_block_threshold=1024,
-    reasoning_models={"o3-mini", "o4-mini"},
-    incompatible_kwargs_for_reasoning={"max_completion_tokens", "temperature"},
+service = LLMFactory.get_service()
+response = await service.generate_response(
+    model_type=ModelRole.FAST,
+    temperature=0.2, max_output_tokens=700, ...
 )
 ```
 
-### Kwarg translation SSoT
-
-`providers/_kwargs.py::normalize_openai_protocol_kwargs` ya existe (post-incidente). Verificar:
-- `max_tokens` → `max_completion_tokens` (chat completions)
-- `max_output_tokens` → strip si reasoning model
-- `temperature` → strip si reasoning model
-- Sales_agent consume vía LLMFactory; no llama directo.
-
-### Provider-agnostic configuration
-
+DESPUÉS:
 ```python
-# Tenant config DB
-class SalesAgentLlmConfig:
-    tenant_id: UUID
-    fast_provider: str  # default "openai"
-    fast_model: str  # default tier metadata
-    reasoning_provider: str
-    reasoning_model: str
-    api_keys: dict  # encrypted
+role = SPECIALIST_TO_ROLE["qualifier"]
+service = LLMFactory.get_service(role=role)
+# settings.get_provider_for_role(role) → resolves provider
+response = await service.generate_response(
+    temperature=0.2, max_output_tokens=700, ...
+)
 ```
 
-`get_service_for_tenant(tenant_id, role)` resuelve spec.
+### Test integration cross-provider
+
+```python
+@pytest.mark.parametrize("provider_env", ["openai", "kimi", "deepseek"])
+async def test_specialist_qualifier_provider_agnostic(provider_env, monkeypatch):
+    monkeypatch.setenv("AI_PROVIDER_FAST", provider_env)
+    state = build_state(...)
+    output = await run_specialist(state, "qualifier")
+    assert output.role == "assistant"
+    assert len(output.content) > 0
+    # NO comparar exact tokens — providers difieren.
+```
 
 ---
 
@@ -134,34 +124,31 @@ class SalesAgentLlmConfig:
 
 ### RED tests
 
-1. `tests/modules/sales_agent/test_model_tier_resolution.py`:
-   - `ROLE_TO_TIER[FAST]` = MINI.
-   - Tier metadata completa per tier.
-   - No tier sin pricing.
+1. `tests/modules/sales_agent/test_specialist_role_mapping.py`:
+   - `SPECIALIST_TO_ROLE` cubre todos los specialists.
+   - No hardcoded model names en specialist files.
 
-2. `tests/shared/llm/test_kwargs_normalizer_sales.py`:
-   - `max_tokens=N` con OpenAI normal → `max_completion_tokens=N`.
-   - `max_tokens=N` con o3-mini → strip + log warning.
-   - DeepSeek → no traducción incorrecta.
-   - Gemini → `maxOutputTokens` (camelCase).
+2. `tests/modules/sales_agent/test_specialist_provider_agnostic.py`:
+   - Each specialist runs OK con provider override.
+   - Kimi K2.6 specialista AGENT → `model_responded='kimi-k2.6'` en `sales_agent_llm_call`.
 
-3. `tests/architecture/test_no_hardcoded_models_in_sales_agent.py`:
-   - AST scan: no `"gpt-4o"`, `"claude-*"`, `"deepseek-chat"` strings literal en `application/agents/sales/`.
-   - Excepción: `domain/model_tier.py` (SSoT).
+3. `tests/architecture/test_no_hardcoded_models_sales_agent.py`:
+   - AST scan: no `"gpt-*"`, `"claude-*"`, `"deepseek-*"`, `"kimi-*"` strings literales en `application/agents/sales/`.
+   - Excepción: `domain/model_tier.py` (SSoT mapping).
 
-4. `tests/modules/sales_agent/test_provider_agnostic_kwargs.py`:
-   - Mismo `state` invocado con OpenAI vs Anthropic vs DeepSeek → kwargs traducidos correctamente.
+4. `tests/modules/sales_agent/test_reasoning_budget_respected.py`:
+   - Specialist con `ModelRole.REASONING` y `max_output_tokens=2000` → kwargs normalizados con reserve aplicado al wire param correcto del provider.
 
 ---
 
 ## Implementación step-by-step
 
-1. `domain/model_tier.py` con enum + metadata.
-2. `ROLE_TO_TIER` mapping.
-3. Verificar `LLMFactory` consume spec; refactor si es directo.
-4. Specialists nodes: reemplazar hardcoded `model_type=ModelRole.X` con `tier=SalesAgentModelTier.X` (semantic).
-5. Wire tenant config (si existe) → spec resolution.
-6. Tests + verificación.
+1. Verificar `ModelRole` enum existe en `shared/` (post-commits abril). Si en `copilot/domain/model_tier.py` solamente → mover a `shared/domain/model_role.py`.
+2. `domain/model_tier.py` con `SPECIALIST_TO_ROLE` mapping.
+3. Refactor specialists nodes.py para usar `SPECIALIST_TO_ROLE[name]` resolución.
+4. Tenant config wire (si aplica): `get_service_for_tenant(tenant_id, role)` ya disponible vía Tenant domain (migration 073).
+5. Tests integration cross-provider.
+6. Verificación: `sales_agent_llm_call.provider` distribución debe reflejar mapping post-deploy.
 
 ---
 
@@ -169,22 +156,22 @@ class SalesAgentLlmConfig:
 
 | Riesgo | Mitigación |
 |---|---|
-| Provider X spec falla en reasoning model | Test exhaustivo. Add to spec `incompatible_kwargs_for_reasoning`. |
-| Tenant override breaks tier | Validar tenant config schema. Fallback a default si invalid. |
-| Mapping ROLE→TIER pierde flexibility | Mantener ambos. Tier es interno; Role es contract público. |
-| Spec drift entre copilot y sales_agent | Validar que `CHAT_MODEL_SPEC` vive en provider (compartido), no per-agent. |
+| Specialist closer con Kimi K2.6 difiere notable de gpt-4o → conversiones bajan | A/B canary 10% antes 100%. Goldens (S10) detectan drift. |
+| Reasoning budget trap silencioso (DeepSeek output truncated) | Test integration verifica output coherente con `max_output_tokens` declarado. |
+| Tenant config no propaga API key per-role | Verificar `get_service_for_tenant(tenant_id, role)` resuelve correctamente. Test con tenant fixture. |
+| Provider X spec falla | `_kwargs.py::normalize_openai_protocol_kwargs` SSoT ya cubre — verificar test cubre cross-provider. |
 
 ---
 
 ## Tech debt watchpoints
 
-- Hardcoded model strings detectados durante AST scan → fixed o documented.
-- `LLMFactory.get_service` con kwargs sucios pasados al provider → refactor.
-- Métricas de cost en `model_tier.py` deben venir de `model_pricing_snapshot` (no hardcoded). Si están hardcoded → flag.
-- Tenant config sin encryption para api_keys → CRITICAL — escalar.
+- Hardcoded model strings detectados → fix en archivo tocado (Paso 11.5 cleanup oportunista).
+- Si tenant config no encryption-at-rest para api_keys → CRITICAL — escalar.
+- Si `LLMFactory.get_service` con kwargs sucios pasados al provider → refactor en archivo tocado.
+- Si `ModelRole` enum duplicado entre copilot y sales → mover a shared (DRY).
 
 ---
 
 ## Ajustes vs plan original
 
-> COMPLETAR.
+> **Ajuste 2026-04-28**: scope recortado significativamente. Diseño de ChatModelSpec, multi-provider routing, reasoning-budget trap, pricing aliases YA están en codebase post-abril 2026. Esta fase es **adopción** + mapping ROLE→specialist semantic. Tiempo estimado bajó de 2-3 días a 1-2 días.

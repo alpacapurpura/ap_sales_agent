@@ -1,14 +1,17 @@
 # Sales Agent Redesign 2026-04
 
+> **Actualizado 2026-04-28** post-revisión de cambios copilot abril 2026 (multi-provider per-role, ChatModelSpec native, observability rebuild cerrado, pricing aliases Kimi K2.6/K2.5, tool_call_dedup, F8 cache_boundary). Plan recortado donde hay code existente que adoptar; ampliado donde se detectó deprecated cleanup + admin migration.
+
 Plan de evolución arquitectónica de `sales_agent` para alcanzar madurez de copilot a nivel de **infraestructura cross-cutting** (observabilidad event-sourced, PII sanitization, cost guardrails, cache-friendly prompts, fitness tests, registries) **sin perder identidad de dominio** (StateGraph lineal qualifier→closer, Closer Studio, smart debounce, multi-channel webhooks).
 
-Adicionalmente expande capacidades de negocio:
-- Voz de marca real (lee `Estilo Comunicacional` de Brand Studio → no más identidad genérica).
-- Scheduler tool (lead-specific booking link, verificación de reserva, follow-up automático).
+Adicionalmente:
+- **S00 (NUEVO)**: codebase audit + cleanup deprecated `resumen` + Streamlit admin migration prep + sidebar fix.
+- Voz de marca real (lee `Estilo Comunicacional` de Brand Studio).
+- Scheduler tool (lead-specific booking link, verificación, follow-up).
 - Payment lifecycle tool (create link → verify paid → grant access).
-- Eval loop (judge + goldens) para no regresar.
+- Eval loop (judge + goldens).
 
-Estructura espejo del redesign de copilot. Cada fase = research fresco + diseño + TDD + ejecución + learnings + prompt para la siguiente.
+Estructura espejo del redesign de copilot. Cada fase = **review código existente + research fresco + diseño + TDD + ejecución + code review final + learnings + prompt para la siguiente**.
 
 ---
 
@@ -16,16 +19,16 @@ Estructura espejo del redesign de copilot. Cada fase = research fresco + diseño
 
 | Doc | Para qué |
 |---|---|
-| [00-vision-and-objectives.md](00-vision-and-objectives.md) | Visión de negocio, objetivos, lo que NO se toca |
-| [01-master-plan.md](01-master-plan.md) | DAG completo de 11 fases + dependencias |
-| [02-architecture-target.md](02-architecture-target.md) | Topología destino: capas, módulos, contratos |
-| [03-phase-protocol.md](03-phase-protocol.md) | Protocolo obligatorio por fase (9 pasos) |
-| [04-principles.md](04-principles.md) | Principios senior: GoF, DRY, cohesión, acoplamiento, TDD, anti-parche |
-| [05-tech-debt-log.md](05-tech-debt-log.md) | Registro vivo de deuda técnica detectada cross-fase |
-| [06-glossary.md](06-glossary.md) | Términos clave |
+| [00-vision-and-objectives.md](00-vision-and-objectives.md) | Visión negocio, objetivos, lo que NO se toca |
+| [01-master-plan.md](01-master-plan.md) | DAG completo + dependencias |
+| [02-architecture-target.md](02-architecture-target.md) | Topología destino (alineada con realidad post-abril 2026) |
+| [03-phase-protocol.md](03-phase-protocol.md) | Protocolo obligatorio por fase (10 pasos, incluye code review final) |
+| [04-principles.md](04-principles.md) | Principios senior: GoF, DRY, cohesión, acoplamiento, TDD, anti-parche, no-broken-callers |
+| [05-tech-debt-log.md](05-tech-debt-log.md) | Registro vivo de deuda técnica cross-fase |
+| [06-glossary.md](06-glossary.md) | Términos clave (incluye ChatModelSpec, pricing_aliases, tool_call_dedup) |
 | `phases/S{N}-*.md` | Una por fase: research mandate + diseño + plan TDD |
-| `learnings/S{N}-*.md` | Aprendizajes generados al cerrar cada fase (fill in al final) |
-| `prompts/S{N}-start.md` | Prompt exacto para iniciar conversación nueva en esa fase |
+| `learnings/S{N}-*.md` | Aprendizajes generados al cerrar cada fase |
+| `prompts/S{N}-start.md` | Prompt exacto para iniciar conversación nueva |
 
 ---
 
@@ -33,14 +36,15 @@ Estructura espejo del redesign de copilot. Cada fase = research fresco + diseño
 
 | # | Fase | Estado | Entregable principal |
 |---|---|---|---|
-| S0 | [shared/agent_observability extract](phases/S0-shared-observability-extract.md) | 📋 PLANNED | Módulo `src/shared/agent_observability/` (zero behavior change) |
-| S1 | [sales_agent observability parity](phases/S1-sales-agent-observability-parity.md) | 📋 PLANNED | Callback handler + tablas event-sourced + PII sanitization |
-| S2 | [cost guardrails cross-agent](phases/S2-cost-guardrails.md) | 📋 PLANNED | BillingCycleService + alerts + dashboard `/costo-agentes` |
+| **S00** | [Codebase audit + cleanup deprecated](phases/S00-codebase-audit-and-cleanup.md) | 📋 PLANNED | Borrar `/sales/resumen` deprecated, fix redirect+sidebar, plan migración admin `sales_audit.py`, snapshot estado limpio |
+| S0 | [shared/agent_observability extract](phases/S0-shared-observability-extract.md) | 📋 PLANNED | Módulo `src/shared/agent_observability/` (zero behavior change copilot) |
+| S1 | [sales_agent observability parity](phases/S1-sales-agent-observability-parity.md) | 📋 PLANNED | Callback handler + tablas event-sourced + PII LATAM + tool_call_dedup |
+| S2 | [cost guardrails cross-agent](phases/S2-cost-guardrails.md) | 📋 PLANNED | BillingCycleService cross-agent + alerts breakdown + dashboard `/costo-agentes` |
 | S3 | [prompt cache_boundary refactor](phases/S3-prompt-cache-boundary.md) | 📋 PLANNED | `compose_system_prompt` con prefix ≥1024 tokens, hit rate ≥60% |
-| S4 | [ChatModelSpec + tier adoption](phases/S4-chatmodelspec-tier.md) | 📋 PLANNED | `CHAT_MODEL_SPEC` + tier system para sales_agent |
-| S5 | [channel format registry](phases/S5-channel-registry.md) | 📋 PLANNED | `register_channel` cross-agent + format_for_channel determinístico |
-| S6 | [fitness tests ratchet](phases/S6-fitness-tests-ratchet.md) | 📋 PLANNED | Anchors + ratchet imports + invariants |
-| S7 | [brand voice integration](phases/S7-brand-voice-integration.md) | 📋 PLANNED | Lighthouse de Brand Studio → identity rendering |
+| S4 | [adopt ChatModelSpec + per-role routing](phases/S4-chatmodelspec-tier.md) | 📋 PLANNED | Sales_agent consume `settings.get_provider_for_role(role)` + DeepSeek/Kimi tier |
+| S5 | [channel format registry](phases/S5-channel-registry.md) | 📋 PLANNED | `register_channel` cross-agent (extracción si solo en copilot/) |
+| S6 | [fitness tests ratchet](phases/S6-fitness-tests-ratchet.md) | 📋 PLANNED | Anchors + ratchet imports + invariants + bloqueo agent_trace_model legacy |
+| S7 | [brand voice integration](phases/S7-brand-voice-integration.md) | 📋 PLANNED | Lighthouse Brand Studio "Estilo Comunicacional" → identity rendering |
 | S8 | [tools: scheduler integration](phases/S8-tools-scheduler.md) | 📋 PLANNED | Booking link + verify + follow-up cadence |
 | S9 | [tools: payment lifecycle](phases/S9-tools-payment-access.md) | 📋 PLANNED | Payment link + verify + grant access |
 | S10 | [quality eval loop](phases/S10-quality-eval-loop.md) | 📋 PLANNED | Judge multi-rubric + goldens + weekly cron |
@@ -51,19 +55,21 @@ Estados: 📋 PLANNED / 🚧 IN_PROGRESS / ✅ DONE / ⛔ BLOCKED
 
 ## Cómo arrancar
 
-1. Lee [03-phase-protocol.md](03-phase-protocol.md) — protocolo 9 pasos obligatorio.
+1. Lee [03-phase-protocol.md](03-phase-protocol.md) — protocolo 10 pasos obligatorio.
 2. Lee [04-principles.md](04-principles.md) — principios senior no negociables.
-3. Abre `prompts/S0-start.md` — copia el contenido y pégalo en una conversación nueva.
-4. Esa conversación ejecuta S0 completo, deja `learnings/S0-*.md` y `prompts/S1-start.md` listos.
-5. Siguiente conversación: pega `prompts/S1-start.md`. Y así.
+3. Abre `prompts/S00-start.md` — copia el contenido y pégalo en una conversación nueva.
+4. Esa conversación ejecuta S00 completo (audit + cleanup deprecated), deja `learnings/S00-*.md` y `prompts/S0-start.md` listos.
+5. Siguiente conversación: pega `prompts/S0-start.md`. Y así.
 
 ---
 
 ## Reglas anti-deriva
 
-- **No saltarse research fresco.** Cada fase tiene "Research mandate" — ejecutar SIEMPRE (web + context7/Tessl + lectura code).
-- **No ampliar scope.** Si se descubre oportunidad → `learnings/` como recomendación o `05-tech-debt-log.md` como ítem. No al código en curso.
-- **No agregar parches.** Bug ajeno detectado → validar (¿es bug? ¿impacto?) → fix limpio + log en `05-tech-debt-log.md`. Sin band-aids.
+- **No saltarse research fresco.** Cada fase: research mandate (web + context7/Tessl + lectura code).
+- **Code review final pre-cierre** (Paso 11 de 03-phase-protocol.md): verificar callers no rotos, alta cohesión, bajo acoplamiento, no introducir tech debt.
+- **No ampliar scope.** Oportunidad descubierta → `learnings/` o `05-tech-debt-log.md`. No al código en curso.
+- **No agregar parches.** Bug ajeno → validar (¿real? ¿impacto?) → fix limpio + log. Sin band-aids.
 - **No romper §3 de [00-vision-and-objectives.md](00-vision-and-objectives.md).**
-- **TDD obligatorio.** Test reproductor antes de cualquier fix. RED → GREEN → REFACTOR.
-- **Spanish neutro LATAM** en todo user-facing (sin voseo).
+- **TDD obligatorio.** Test reproductor antes de cualquier fix.
+- **Spanish neutro LATAM** en user-facing (sin voseo). Excepción: voz de marca tenant si así lo configuró en Brand Studio.
+- **No confundir** `sales/resumen` deprecated con growth-studio Meta Ads `ResumenTab/Card/Hook` (activos).

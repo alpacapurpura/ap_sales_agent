@@ -20,7 +20,10 @@ Espejar los fitness tests de copilot para sales_agent. Congelar el estado limpio
 7. `tests/architecture/test_no_hardcoded_channels_sales_agent.py` (de S5).
 8. `tests/architecture/test_sales_agent_tenant_isolation.py` — toda query a `sales_agent_*` filtra `tenant_id`.
 9. `tests/architecture/test_sales_agent_provider_compliance.py` — `BaseAgentProvider` interface (si existe).
-10. Todos verdes en `make arch-test`.
+10. **`tests/architecture/test_no_legacy_agent_trace_reads.py` — bloquea reads/writes a `agent_trace_model` y `agent_log_model` post-cutover. Allowlist sólo: migración drop + tests legacy regression.**
+11. **`tests/architecture/test_no_resumen_deprecated_references.py` (de S00) — re-verificar verde, whitelist `growth-studio/**/Resumen*`.**
+12. **`tests/architecture/test_admin_no_legacy_table_reads.py` — `sales_audit.py` post-cutover no lee `agent_trace_model`.**
+13. Todos verdes en `make arch-test`.
 
 ## Research mandate
 
@@ -139,8 +142,13 @@ Tests de arquitectura SON los tests. RED test = test escrito antes de pasar.
 5. `test_no_hardcoded_models_sales_agent.py` (verify exists from S4).
 6. `test_no_hardcoded_channels_sales_agent.py` (verify exists from S5).
 7. `test_sales_agent_tenant_isolation.py`.
-8. Verificar `make arch-test` todos verdes.
-9. Documentar cómo agregar exception (si genuina) en `.claude/rules/architectural-fitness.md`.
+8. **`test_no_legacy_agent_trace_reads.py`** — AST scan tras cutover.
+9. **Migration drop** `agent_trace_model` + `agent_log_model` legacy (idempotente DROP IF EXISTS).
+10. **`sales_audit.py` cutover** — borrar query legacy, dejar solo `sales_agent_trace_event`.
+11. **`test_admin_no_legacy_table_reads.py`** — verifica admin Streamlit no lee tablas legacy.
+12. Verificar `make arch-test` todos verdes.
+13. Verificar admin smoke (`tests/admin/test_admin_smoke.py`) verde post-cutover.
+14. Documentar cómo agregar exception en `.claude/rules/architectural-fitness.md`.
 
 ---
 

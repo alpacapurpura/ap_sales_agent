@@ -1,4 +1,6 @@
-# 03 · Phase Protocol — 9 pasos obligatorios
+# 03 · Phase Protocol — 10 pasos obligatorios
+
+> **Actualizado 2026-04-28**: agregado **Paso 11 — Code review final** (cohesión + acoplamiento + no-broken-callers + cleanup oportunista).
 
 Este protocolo es **obligatorio** en TODA fase. La fase debe citarlo en su Paso 1.
 
@@ -9,15 +11,16 @@ Este protocolo es **obligatorio** en TODA fase. La fase debe citarlo en su Paso 
 Releer en este orden:
 
 1. `docs/domains/sales-agent/redesign-2026-04/README.md`
-2. `docs/domains/sales-agent/redesign-2026-04/00-vision-and-objectives.md` — **§3 (lo que NO se toca)**
-3. `docs/domains/sales-agent/redesign-2026-04/01-master-plan.md` — DAG y dónde encaja
-4. `docs/domains/sales-agent/redesign-2026-04/02-architecture-target.md` — topología destino
-5. `docs/domains/sales-agent/redesign-2026-04/04-principles.md` — principios senior
-6. `docs/domains/sales-agent/redesign-2026-04/05-tech-debt-log.md` — deuda detectada que pueda afectar esta fase
-7. `docs/domains/sales-agent/redesign-2026-04/phases/S{N}-*.md` — fase actual
-8. `docs/domains/sales-agent/redesign-2026-04/learnings/S{N-1}-*.md` — aprendizajes previos (si existe)
-9. `CLAUDE.md` raíz + reglas que la fase mencione (`.claude/rules/*.md`)
-10. Skim del código relevante (sin clavarse).
+2. `00-vision-and-objectives.md` — **§3 (lo que NO se toca)**
+3. `01-master-plan.md` — DAG y dónde encaja
+4. `02-architecture-target.md` — topología destino
+5. `04-principles.md` — principios senior
+6. `05-tech-debt-log.md` — deuda detectada que pueda afectar esta fase
+7. `phases/S{N}-*.md` — fase actual
+8. `learnings/S{N-1}-*.md` — aprendizajes previos (si existe)
+9. `audit/sales-agent-current-state.md` — mapa de cohesión/acoplamiento (post-S00)
+10. `CLAUDE.md` raíz + reglas que la fase mencione (`.claude/rules/*.md`)
+11. Skim del código relevante (sin clavarse).
 
 Si algo del plan ya no aplica por aprendizajes → flag, NO seguir ciego.
 
@@ -31,10 +34,10 @@ Cada fase tiene sección **"Research mandate"** con queries específicas.
 
 Ejecutar:
 - **WebSearch**: mínimo 3 queries del mandate. Anotar fuentes (URL + autor + fecha).
-- **Tessl tiles** (`tessl-context` skill): buscar tiles relevantes (`tessl__langgraph`, `tessl__fastapi`, `tessl__zod`, `tessl__tailwind`, etc.). Si no hay y el tema es central, instalar.
-- **WebFetch** docs oficiales si la query identificó URLs nuevas.
-- Si la fase usa librería pivot: **verificar última versión + changelog**. NO asumir.
-- Para integraciones externas (Mercado Pago, Stripe, Google Calendar, Cal.com): verificar API docs vigentes — endpoints, auth, webhooks.
+- **Tessl tiles** (`tessl-context` skill): tiles relevantes (`tessl__langgraph`, `tessl__fastapi`, etc.). Si no hay y central → instalar.
+- **WebFetch** docs oficiales si query identificó URLs nuevas.
+- Si la fase usa librería pivot: **verificar última versión + changelog**.
+- Para integraciones externas (Mercado Pago, Stripe, Google Calendar, Cal.com): verificar API docs vigentes.
 
 Productos:
 - Lista de fuentes consultadas (al `learnings/`).
@@ -44,14 +47,12 @@ Productos:
 
 ## Paso 3 — Plan ejecutable (TaskCreate)
 
-Crear tasks granulares con TaskCreate. Cada task ≤4 horas. Marcar dependencias.
+Tasks granulares con TaskCreate. Cada task ≤4 horas. Marcar dependencias.
 
 Plantilla:
 - **Subject**: imperativo, concreto.
 - **Description**: archivos a tocar, criterio de hecho.
 - Status `in_progress` al arrancar, `completed` al cerrar quality gate del task.
-
-Mantener foco. No lista de 30 tasks. Nuevos tasks aparecen al avanzar.
 
 ---
 
@@ -59,13 +60,11 @@ Mantener foco. No lista de 30 tasks. Nuevos tasks aparecen al avanzar.
 
 > Regla 13 CLAUDE.md: **tests primero**.
 
-Por bloque de código nuevo:
 1. Test que reproduce comportamiento target → RED.
 2. Implementación mínima → GREEN.
 3. Refactor con tests verdes.
 
 Para regresiones: test reproduce bug **antes** de fix.
-
 Para arch invariants nuevos: agregar fitness test en `tests/architecture/`.
 
 ---
@@ -80,6 +79,7 @@ cd backend && .venv/bin/ruff check src/ tests/ --no-cache
 cd backend && .venv/bin/ruff format --check src/ tests/
 cd backend && .venv/bin/pytest tests/modules/sales_agent/ -x -q --tb=short
 cd backend && .venv/bin/pytest tests/architecture/ -x -q
+cd backend && .venv/bin/pytest tests/admin/ -x -q
 
 # Frontend (si aplica)
 cd frontend && npx tsc --noEmit
@@ -94,7 +94,7 @@ docker exec -t visionarias_brain_dev bash -c "cd /app && alembic upgrade head"
 # Test en clone DB ver .claude/rules/backend-migrations.md
 ```
 
-Si **algo** falla → no se cierra. Se arregla o se revierte.
+Si **algo** falla → no se cierra.
 
 ---
 
@@ -104,12 +104,13 @@ Si **algo** falla → no se cierra. Se arregla o se revierte.
 - Smoke browser (skill `chrome-devtools-verify`) si toca FE.
 - Trace inspection: query `sales_agent_trace_event` post-S1 / `copilot_trace_event` si aplica.
 - §3 sigue funcionando:
-  - Closer Studio muestra conversaciones live.
+  - Closer Studio muestra conversaciones live (`/sales/studio/inbox`).
   - WS `/closer-studio` emite eventos.
-  - Webhooks Telegram/WhatsApp/IG procesan correctamente.
+  - Webhooks Telegram/WhatsApp/IG procesan.
   - Smart debounce buffer agrega mensajes fragmentados.
   - Follow-up engine corre y NO repite.
   - Frozen detection cierra sesiones inactivas.
+  - **Post-S00**: `/sales/resumen` 404 (deprecated borrado), redirect `/sales` → `/sales/studio/inbox` funciona.
 
 ---
 
@@ -122,53 +123,28 @@ Si durante la fase detectaste:
 - Hardcoded value que debería ser registry
 - Cualquier cosa que mereciera issue
 
-→ Agregar entrada en `05-tech-debt-log.md` con:
-- Fecha
-- Fase que lo detectó
-- Descripción + path exacto
-- Impacto (CRITICAL / HIGH / MEDIUM / LOW)
-- Acción tomada (FIXED / DEFERRED / FLAGGED) + razón
-- Si DEFERRED: qué fase futura debería tomarlo
+→ Agregar entrada en `05-tech-debt-log.md`:
+- Fecha + fase detectora + descripción + path exacto + impacto + acción + razón
 
-**Regla:** si fixeaste el tech debt, validalo con test reproductor. NO patches sin entender root cause.
+**Regla:** si fixeaste, validá con test reproductor. NO patches sin entender root cause.
 
 ---
 
 ## Paso 8 — Documento de aprendizajes
 
-Crear `learnings/S{N}-{slug}.md` desde `learnings/_template.md`.
-
-**Regla de oro:** lo va a leer la fase siguiente. Solo escribir lo que NECESITA saber. Si una sección no aplica → eliminarla. Doc corto y denso > largo y vacío.
-
-Contenido mínimo:
-- **Resumen 3 líneas**: qué se entregó, qué decisión no obvia se tomó, qué queda listo para la siguiente.
-- **Decisiones clave**: solo donde el camino tomado no era el único razonable. Razón + alternativa descartada.
-- **Sorpresas / gotchas críticos**: bugs de versión, comportamiento no documentado, fragility, discrepancia plan vs realidad.
-- **Recomendaciones accionables para S{N+1}**: cada bullet = acción concreta.
-- **Hooks listos**: paths exactos + cómo activarlos.
-- **Riesgos abiertos**: qué puede romper + dónde mirar primero.
-- **Fuentes research útiles**: solo las que cambiaron una decisión.
-
-Anti-patrones:
-- Listas exhaustivas de archivos modificados (ya está en `git diff`).
-- Métricas inventadas si no se midieron.
-- Repetir lo de `02-architecture-target.md`.
-- Secciones con "N/A" o bullets vacíos.
-- "Todo funcionó bien" sin contenido detrás.
-
-Criterio de cierre: si S{N+1} sería igual de eficiente sin esta nota → sobra.
+Crear `learnings/S{N}-{slug}.md` desde `learnings/_template.md`. Denso, accionable, sin filler.
 
 ---
 
 ## Paso 9 — Generar prompt para fase siguiente
 
-Editar `prompts/S{N+1}-start.md` (existe template precargado, refinar con contexto fresco):
+Editar `prompts/S{N+1}-start.md` (existe template precargado, refinar):
 
 - Referencia a `phases/S{N+1}-*.md`.
-- Lista de docs que la próxima fase debe releer (incluyendo `learnings/S{N}-*.md`).
+- Lista de docs que la próxima fase debe releer.
 - Branch state esperado (`development` limpio, último commit hash).
-- Hooks nuevos que S{N+1} necesita saber por aprendizajes de S{N}.
-- Tech debt detectado en S{N} que S{N+1} debería tener en radar.
+- Hooks nuevos que S{N+1} necesita saber.
+- Tech debt detectado que S{N+1} debería tener en radar.
 
 ---
 
@@ -184,12 +160,71 @@ Editar `prompts/S{N+1}-start.md` (existe template precargado, refinar con contex
 
 ---
 
+## Paso 11 — Code review final (NUEVO 2026-04-28)
+
+> **Pre-cierre obligatorio.** Senior dev pass para asegurar alta cohesión + bajo acoplamiento + no-broken-callers.
+
+Antes del commit final:
+
+### 11.1 Callers no rotos
+
+- Para cada símbolo (función/clase/endpoint) que **modificaste** o **eliminaste**:
+  - `grep -r "<symbol>"` para encontrar callers.
+  - Verificar callers actualizados o no afectados.
+  - Si hay caller obsoleto → fix o flag DEFERRED.
+- Para cada **schema DB** modificado:
+  - Verificar repos que leen esa tabla.
+  - Verificar admin Streamlit pages que la consultan.
+  - Verificar workers que la tocan.
+
+### 11.2 Cohesión
+
+- ¿Cada archivo tocado tiene UNA responsabilidad?
+- ¿Lógica nueva está donde corresponde semánticamente o donde fue cómodo?
+- ¿Hay funciones muertas tras el refactor?
+
+### 11.3 Acoplamiento
+
+- ¿Algún import nuevo cruza módulos sin pasar por `shared/links/` o port declarado?
+- ¿La fase introdujo dependency entre dos módulos antes desacoplados?
+- ¿Hay circular import latente?
+
+### 11.4 Skill `simplify` (si toca código)
+
+Invocar `simplify` skill sobre los archivos modificados:
+- Detecta duplicación.
+- Sugiere reuso.
+- Flag if-elsif chains que deberían ser strategy/registry.
+
+Aplicar fixes obvios. DEFERRED el resto.
+
+### 11.5 Cleanup oportunista
+
+Mientras tocás un archivo:
+- Imports no usados → borrar.
+- Type `any`/sin tipos → tipar (sólo en código tocado).
+- Comentarios stale (`# TODO: remove after X`) que ya cumplieron → borrar.
+- Strings spanish neutro: si toca el archivo y veo voseo → fixear ese archivo (no ampliar scope).
+
+### 11.6 Tests del módulo afectado verdes
+
+Re-correr `pytest tests/modules/{módulo_tocado}/ -x -q` antes de commit. Si rompió algo lateral → fix.
+
+### 11.7 Admin Streamlit smoke
+
+Si la fase toca tablas que admin lee:
+- `cd backend && .venv/bin/pytest tests/admin/test_admin_smoke.py -x -q`
+- Streamlit UI manual smoke: render del page afectado sin exception.
+
+---
+
 ## Reglas anti-deriva (críticas)
 
-1. **No agregar features no listadas en la fase.** Oportunidad descubierta → `learnings/` como recomendación o `05-tech-debt-log.md`. NO al código.
+1. **No agregar features no listadas en la fase.** Oportunidad descubierta → `learnings/` o `05-tech-debt-log.md`. NO al código.
 2. **No tocar §3.** Si parece necesario → parar, preguntar.
 3. **No alucinar.** Path/símbolo no seguro → leer archivo, no inventar.
 4. **No skip research.** Aunque "creas saber" — abril 2026, siempre algo cambió.
-5. **No cerrar sin los 10 puntos** del Definition of Done de §4 de `00-vision-and-objectives.md`.
+5. **No cerrar sin los 11 puntos.**
 6. **Tests del módulo afectado verdes** antes de cerrar.
-7. **Spanish neutro LATAM** en user-facing (sin voseo).
+7. **Spanish neutro LATAM** en user-facing (sin voseo, excepto voz de marca tenant configurada).
+8. **No-broken-callers** (Paso 11.1) es bloqueante. Si rompiste caller → fix antes de commit, no después.
