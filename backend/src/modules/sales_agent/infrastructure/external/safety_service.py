@@ -6,7 +6,7 @@ import structlog
 from sqlalchemy.orm import Session
 
 from src.core.database import SessionLocal
-from src.core.enums import ModelRole
+from src.modules.sales_agent.domain.model_tier import LLM_ROLE_BY_SITE
 from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 from src.shared.infrastructure.llm.factory import LLMFactory
 
@@ -117,7 +117,7 @@ class SafetyLayerService:
 
             response = self.llm_service.generate_response(
                 messages=[{"role": "user", "content": prompt}],
-                model_type=ModelRole.FAST,
+                model_type=LLM_ROLE_BY_SITE["safety"],
                 temperature=0,
             )
 

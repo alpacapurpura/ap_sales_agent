@@ -174,7 +174,7 @@ def correct_voseo_in_text(text: str) -> str:
 # sanitizer can re-use it AFTER the LLM call as a last-line-of-defense.
 # Single source of truth; AC7 false-positive guard against URL mentions
 # (``whatsapp.com``) propagates to both call sites for free.
-from src.modules.copilot.application.orchestrator.channel_intent_detector import (
+from src.shared.agent_observability.channels.intent_detector import (
     detect_channel_in_user_msg,
 )
 
@@ -199,7 +199,7 @@ def enforce_channel_format_if_needed(text: str, user_msg: str | None) -> str:
     # Lazy import — keeps module load cheap and avoids any import cycle
     # with the tools layer (output_sanitizer is imported by chat.py at
     # module load).
-    from src.modules.copilot.application.tools.format_for_channel import (
+    from src.shared.agent_observability.channels.format_for_channel import (
         format_for_channel_impl,
     )
 

@@ -25,14 +25,14 @@ from uuid import uuid4
 import pytest
 from langchain_core.messages import HumanMessage
 
-from src.modules.copilot.application.orchestrator.channel_intent_detector import (
-    detect_channel_intent,
-)
 from src.modules.copilot.application.orchestrator.deep_agent import (
     _build_combined_system_prompt,
 )
 from src.modules.copilot.application.orchestrator.state import (
     create_initial_copilot_state,
+)
+from src.shared.agent_observability.channels.intent_detector import (
+    detect_channel_intent,
 )
 
 

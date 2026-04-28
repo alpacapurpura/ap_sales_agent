@@ -28,7 +28,6 @@ if TYPE_CHECKING:
 
 from src.core.context import set_tenant_id
 from src.core.database import SessionLocal
-from src.core.enums import ModelRole
 from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 from src.modules.sales_agent.application.orchestrator.graph import agent_app
 from src.modules.sales_agent.application.orchestrator.state import create_initial_state
@@ -36,6 +35,7 @@ from src.modules.sales_agent.application.services.knowledge_builder import (
     TenantKnowledgeBuilder,
 )
 from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
+from src.modules.sales_agent.domain.model_tier import LLM_ROLE_BY_SITE
 from src.modules.sales_agent.domain.tuning import (
     MESSAGE_HISTORY_LIMIT,
     SESSION_TIMEOUT_HOURS,
@@ -547,7 +547,7 @@ class ChatOrchestrator:
                         summary = LLMFactory.get_service().generate_response(
                             messages=[],
                             system_prompt=summary_prompt,
-                            model_type=ModelRole.FAST,
+                            model_type=LLM_ROLE_BY_SITE["summary"],
                             temperature=0.0,
                             max_output_tokens=100,
                             metadata={"prompt_template": "summary_generator"},

@@ -40,9 +40,6 @@ from src.modules.assets.infrastructure.repositories.asset_repository import (
 from src.modules.copilot.api.dto import ClientContextDTO, SSEEvent
 from src.modules.copilot.application.extraction.active_job_state import load_active_job
 from src.modules.copilot.application.guided.state import load_guided_state
-from src.modules.copilot.application.orchestrator.channel_intent_detector import (
-    detect_channel_intent,
-)
 from src.modules.copilot.application.orchestrator.deep_agent import (
     build_deep_agent_graph,
 )
@@ -75,6 +72,9 @@ from src.modules.copilot.infrastructure.repositories.routing_log_repository impo
     RoutingLogRepository,
 )
 from src.modules.copilot.observability import ObservabilityContext
+from src.shared.agent_observability.channels.intent_detector import (
+    detect_channel_intent,
+)
 from src.shared.domain.events import EventBus
 
 if TYPE_CHECKING:

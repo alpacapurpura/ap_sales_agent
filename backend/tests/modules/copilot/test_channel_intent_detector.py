@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.copilot.application.orchestrator.channel_intent_detector import (
+from src.shared.agent_observability.channels.intent_detector import (
     ChannelIntent,
     detect_channel_intent,
 )

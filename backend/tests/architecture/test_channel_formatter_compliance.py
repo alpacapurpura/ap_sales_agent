@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.copilot.domain.output_channels import (
+from src.shared.agent_observability.channels.format import (
     CHANNEL_FORMATS,
     SUPPORTED_CHANNELS,
     ChannelFormat,

@@ -362,6 +362,84 @@ Statuses: `FIXED` · `DEFERRED-S{N}` · `FLAGGED` · `WONT-FIX`.
 
 ---
 
+## Detectados durante S6 (architectural fitness tests ratchet + sweeps) — 2026-04-28
+
+### FIXED (sweeps oportunista)
+
+#### [LOW] Copilot shims `output_channels.py` + `format_for_channel.py` + `channel_intent_detector.py` re-export only — 2026-04-28 — S5 — FIXED en S6
+- Paths borrados:
+  - `backend/src/modules/copilot/domain/output_channels.py`
+  - `backend/src/modules/copilot/application/tools/format_for_channel.py`
+  - `backend/src/modules/copilot/application/orchestrator/channel_intent_detector.py`
+- Acción: 11 call sites migrados a imports directos del SSoT shared (`src.shared.agent_observability.channels.{format,format_for_channel,intent_detector}`). Shims borrados. 113 tests copilot pasan via los nuevos imports + 3064 tests verde post-sweep.
+
+#### [LOW] Test `test_ddd_boundaries.py:75` allowlist apunta a path obsoleto — 2026-04-28 — S5 — FIXED en S6
+- Path: `backend/tests/architecture/test_ddd_boundaries.py:75`.
+- Acción: allowlist `_PROVIDER_CONTRACT_IMPORTS` actualizado de `src.modules.copilot.domain.output_channels` → `src.shared.agent_observability.channels.format` (SSoT real post-S5).
+
+#### [LOW] safety_service.py + chat.py:550 + follow_up_engine.py NO consumen SPECIALIST_TO_ROLE — 2026-04-28 — S4 — FIXED en S6
+- Paths:
+  - `backend/src/modules/sales_agent/infrastructure/external/safety_service.py:120` (FAST)
+  - `backend/src/modules/sales_agent/application/orchestrator/chat.py:550` (NANO post-promote, was FAST/summary)
+  - `backend/src/modules/sales_agent/workers/follow_up_engine.py:83` (NANO post-promote, was FAST/nudge)
+- Acción: extendido `domain/model_tier.py` con `LLM_ROLE_BY_SITE` SSoT cubriendo specialists + summary (NANO) + follow_up_nudge (NANO) + safety (FAST). `SPECIALIST_TO_ROLE` queda como sub-view back-compat consumida por `nodes.py` y los tests S4. Los 3 sites consumen `LLM_ROLE_BY_SITE["site"]`. Cost expected: drop ~10-20% en summary/nudge calls (NANO < FAST en provider gpt-4o-mini estable, pero NANO targets baratos cuando AI_PROVIDER_NANO mapea a tier inferior).
+
+### Nuevos arch tests S6 (ratchet — sin allowlist o frozen baseline)
+
+#### `test_no_new_sales_agent_module_imports.py`
+- KNOWN_SALES_AGENT_TO_MODULE_IMPORTS frozen con 4 entradas TYPE_CHECKING / lazy.
+- Shrinks-only.
+
+#### `test_sales_agent_anchors.py`
+- ANCHOR_REGISTRY con 5 entradas hoy (S1/S3/S4/S5).
+- Cap 25.
+
+#### `test_sales_agent_callback_handler_invariants.py`
+- 8 on_* methods cubiertos (try/except + logger.warning + safe_rollback).
+- 0 allowlist.
+
+#### `test_pii_sanitization_coverage_sales_agent.py`
+- AST scan: cada `data=<expr>` en repos observability sales pasa por sanitize_payload o es empty dict / passthrough.
+- 0 allowlist.
+
+#### `test_sales_agent_tenant_isolation.py`
+- AST scan: cada `select(SalesAgentXModel)` filtra `tenant_id`.
+- 1 allowlist (reconciliation worker cross-tenant aggregate, lineno specific).
+
+#### `test_subagent_isolation_invariants_sales_agent.py`
+- Preventive: REGISTERED_SUBAGENTS_RATCHET = (). Bloquea `astream_events` sin `policy_for`.
+
+### Sweeps NO ejecutados en S6 + razón
+
+#### [LOW] Test fixtures de subscribers + node_tool_executor mockean SessionLocal + AuditRepository per-test — 2026-04-28 — S1 — FLAGGED-S7
+- Paths: `tests/modules/sales_agent/orchestrator/test_node_tool_executor_dedup.py:_mute_trace_node_writes` + `tests/modules/sales_agent/observability/test_domain_event_subscribers.py:_stub_session_local`.
+- Re-evaluación S6: las 2 fixtures patchean rutas distintas (`tracing.SessionLocal` vs `subscribers.SessionLocal`) — no son literal-duplicate. Promoverlas a conftest requiere parametrización (helper `mute_session_local_at(module_path)`); ratio savings/complexity bajo (2 fixtures × ~10 LOC). Los 6 arch tests nuevos S6 son AST-only y NO suman demanda de SessionLocal mock.
+- Acción: FLAGGED-S7 — re-evaluar cuando 3+ tests requieran el mismo mock. Hoy el threshold no se alcanza.
+
+### Deferred posteriores S6
+
+#### [HIGH] Drop tablas legacy `agent_trace_model` + `LLMLogModel` — 2026-04-28 — S6 — DEFERRED-post-cutover-window
+- Path: `backend/src/modules/sales_agent/infrastructure/models/agent_trace_model.py` + `llm_log_model.py`.
+- Descripción: el plan S6 original incluía drop legacy + cutover `sales_audit.py`. La ventana dual-write son 4 semanas desde S1 close (2026-04-28). Hoy día 0 — la ventana NO cumplió.
+- Acción: DEFERRED-post-cutover-window — drop tablas + cutover admin admin se ejecutan post 2026-05-26 (4 semanas dual-write completed). `tests/architecture/test_no_legacy_agent_trace_reads.py` + `test_admin_no_legacy_table_reads.py` se crean ahí.
+- Razón: cutover prematuro rompe `sales_audit.py` dual-read; reconciliation worker aún midiendo diff entre tablas.
+
+#### [LOW] `agent_log_model` mencionado en docs no existe — 2026-04-28 — S1 — FLAGGED-cutover-window
+- Path: docs `02-architecture-target.md §2.Legacy` + `audit/sales-agent-current-state.md §2.B inbound + §3.b legacy`.
+- Descripción: ya FLAGGED en S1 — la tabla legacy real es `llm_logs` con clase `LLMLog`. Cleanup pendiente al ejecutar el drop legacy.
+- Acción: FLAGGED-cutover-window — corregir nombre cuando se haga el drop S6.5 (ventana cumplida).
+
+#### [LOW] `from __future__ import annotations` en archivos que LangGraph introspecta — 2026-04-28 — S1 — FLAGGED
+- Path: ratchet preventivo NO agregado en S6.
+- Razón: el watchpoint S1 quedó documentado. Agregar arch test que bloquee `__future__ annotations` en `*/orchestrator/graph.py` files es scope creep. El runtime warning de LangGraph hoy es ruidoso pero no breaking. Si futuro nodo lo agrega, el warning aparece en logs y lo cazamos antes de prod.
+- Acción: FLAGGED — sigue como watchpoint manual.
+
+#### [LOW] `typing_simulation_cpm` declarado pero no consumido (S5 carry-over) — 2026-04-28 — S5 — FLAGGED
+- Sin cambio en S6. §3 protección de CPM_SPEED bloquea el wiring.
+- Acción: FLAGGED — esperar a fase post-redesign infra que abra ventana §3.
+
+---
+
 ## Detectados durante S5 (channel format registry shared) — 2026-04-28
 
 ### FIXED

@@ -22,7 +22,7 @@ import structlog
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.core.enums import ModelRole
-from src.modules.copilot.domain.output_channels import (
+from src.shared.agent_observability.channels.format import (
     SUPPORTED_CHANNELS,
     get_channel_format,
 )

@@ -67,12 +67,12 @@ _PROVIDER_CONTRACT_IMPORTS: frozenset[str] = frozenset(
         # mirrors the ports.py inversion knot — copilot owns the abstraction,
         # modules supply the concretion.
         "src.modules.copilot.domain.workflow",
-        # F7 — channel formatter registry. Providers that ship custom output
-        # channels (e.g. a future WhatsApp business adapter that registers a
-        # ``whatsapp_template`` variant) import ``ChannelFormat`` and call
-        # ``register_channel`` from their package init. Same dependency-
-        # inversion pattern as ports.py / workflow.py.
-        "src.modules.copilot.domain.output_channels",
+        # F7 + S5 — channel formatter registry. Post-S5 (2026-04-28) el SSoT
+        # vive en ``src.shared.agent_observability.channels.format``. Providers
+        # que registran canales custom importan ``ChannelFormat`` +
+        # ``register_channel`` directo desde shared. Sales sweep S6 borró los
+        # shims copilot — la entrada actual apunta al SSoT real.
+        "src.shared.agent_observability.channels.format",
     }
 )
 

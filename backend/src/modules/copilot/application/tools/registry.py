@@ -18,7 +18,6 @@ from src.modules.copilot.application.tools.crm_tools import CRM_TOOLS
 from src.modules.copilot.application.tools.document_tools import DOCUMENT_TOOLS  # [COPILOT-READ-DOCUMENT]
 from src.modules.copilot.application.tools.extraction_tools import EXTRACTION_TOOLS
 from src.modules.copilot.application.tools.fetch_url import fetch_url
-from src.modules.copilot.application.tools.format_for_channel import format_for_channel
 from src.modules.copilot.application.tools.guided import GUIDED_TOOLS
 from src.modules.copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
 from src.modules.copilot.application.tools.landing_tools import LANDING_TOOLS
@@ -31,6 +30,7 @@ from src.modules.copilot.application.tools.pin_to_memory import pin_to_memory
 from src.modules.copilot.application.tools.procedure_tools import PROCEDURE_TOOLS
 from src.modules.copilot.application.tools.sales_agent_tools import SALES_AGENT_TOOLS
 from src.modules.copilot.application.tools.shared_tools import SHARED_TOOLS
+from src.shared.agent_observability.channels.format_for_channel import format_for_channel
 
 
 class ToolNameCollisionError(RuntimeError):

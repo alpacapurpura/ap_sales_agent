@@ -13,10 +13,10 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.core.enums import ModelRole
 from src.modules.sales_agent.application.services.channel_resolver import (
     ChannelResolver,
 )
+from src.modules.sales_agent.domain.model_tier import LLM_ROLE_BY_SITE
 from src.modules.sales_agent.domain.tuning import FOLLOW_UP_MAX_TOTAL
 from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
     AgentStateCheckpointModel,
@@ -80,7 +80,7 @@ def _generate_nudge_text(cp: AgentStateCheckpointModel, follow_ups_sent: int) ->
         .generate_response(
             messages=[],
             system_prompt=nudge_prompt,
-            model_type=ModelRole.FAST,
+            model_type=LLM_ROLE_BY_SITE["follow_up_nudge"],
             temperature=0.4,
             max_output_tokens=150,
             metadata={"prompt_template": "follow_up_nudge"},

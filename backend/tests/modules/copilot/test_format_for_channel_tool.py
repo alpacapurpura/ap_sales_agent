@@ -15,14 +15,14 @@ import json
 
 import pytest
 
-from src.modules.copilot.application.tools.format_for_channel import (
-    format_for_channel,
-    format_for_channel_impl,
-)
-from src.modules.copilot.domain.output_channels import (
+from src.shared.agent_observability.channels.format import (
     ChannelFormat,
     register_channel,
     reset_registry_for_tests,
+)
+from src.shared.agent_observability.channels.format_for_channel import (
+    format_for_channel,
+    format_for_channel_impl,
 )
 
 
