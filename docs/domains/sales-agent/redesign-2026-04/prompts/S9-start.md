@@ -17,7 +17,7 @@ CONTEXTO:
 - enrollment_tools.py ya tiene `generate_payment_link` + `mark_enrollment_paid_manual` básicos (fallback a checkout_page_url estático). NO duplicar — extender via Strategy o refactor cohesivo.
 - connections module ya autentica con email/manychat/gmail/calendar. AccessProvider interface NO existe — crear en S9.
 - Branch: `development` limpio. Multi-instancia paralela activa (analytics commits coexisten — staging por nombre obligatorio).
-- Último commit S8: {HASH-S8}.
+- Último commit S8: `ee73d42d feat(sales-agent-redesign-s8): scheduler tools + Strategy + reminders + webhook entry`.
 - Hooks listos S8 reutilizables:
   * `SchedulerProvider` Strategy + Protocol pattern (mirror para `PaymentProvider`).
   * `WebhookProvider` Protocol + endpoint genérico registry-driven (mirror para payment webhooks).
