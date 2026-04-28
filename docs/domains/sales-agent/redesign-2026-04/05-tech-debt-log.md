@@ -2,19 +2,64 @@
 
 Registro vivo de deuda técnica detectada durante el redesign. Fases agregan; nadie borra (solo marca FIXED con commit hash).
 
+> **Decisión CTO 2026-04-28**: el plan es **autocontenido**. Al cerrar
+> S12, este log debe tener **cero entries `DEFERRED-*` flotantes**. Cada
+> entry termina FIXED (con commit hash) o WONT-FIX (con razón explícita
+> + condición de reapertura). Toda DEFERRED apunta a fase concreta del
+> plan (S6.5/S7..S12) — nunca a "post-redesign" abierto. La auditoría
+> final está en `phases/S12-final-hardening-zero-debt.md` Definition of
+> Done.
+
 Formato:
 ```
 ## [SEVERITY] Título corto — YYYY-MM-DD — fase detectora — STATUS
 - Path: `archivo:linea`
 - Descripción: ...
 - Impacto: ...
-- Acción: FIXED en {commit} / DEFERRED a S{N} / FLAGGED
+- Acción: FIXED en {commit} / DEFERRED a S{N} / FLAGGED / WONT-FIX
 - Razón: ...
 ```
 
 Severities: `CRITICAL` (security/data loss) · `HIGH` (functional bug visible) · `MEDIUM` (frágil, falla rara) · `LOW` (style, cosmético).
 
-Statuses: `FIXED` · `DEFERRED-S{N}` · `FLAGGED` · `WONT-FIX`.
+Statuses: `FIXED` · `DEFERRED-S{N}` (target phase concreta) · `FLAGGED` (watchpoint con phase target para resolver) · `WONT-FIX` (con razón + condición reapertura).
+
+---
+
+## Reclasificación CTO 2026-04-28 (post-S6, pre-S6.5/S11/S12)
+
+Cada entrada `DEFERRED-post-S6` o `DEFERRED-pre-Jul-2026` o `FLAGGED` sin
+target concreto fue re-clasificada a fase específica:
+
+| Entry original | Re-clasificación | Cierra en |
+|---|---|---|
+| `DEFERRED-post-S6` callback handler lift (S1) | `DEFERRED-S11` | S11 sub-sprint A |
+| `DEFERRED-post-S6` chat.py overgrown (S00) | `DEFERRED-S11` | S11 sub-sprint B |
+| `DEFERRED-post-S6` closer_studio_service split (S00) | `DEFERRED-S11` | S11 sub-sprint B |
+| `DEFERRED-post-S6` semantic_router registry (S00) | `DEFERRED-S11` | S11 sub-sprint B |
+| `DEFERRED-post-S6` lazy imports brand+offer (S00) | `DEFERRED-S11` | S11 (formaliza ports si decomposition los requiere) |
+| `DEFERRED-post-S6` Subscribers SessionLocal per-event (S1) | `DEFERRED-S11` | S11 (event_bus reshape post-decomposition) |
+| `DEFERRED-post-S6` _tool_dedup_tracker magic string (S1) | `DEFERRED-S11` | S11 (TypedDict update post-decomposition) |
+| `DEFERRED-post-S6` LiteLLM tier pricing >200k (S2) | `DEFERRED-S12` | S12 arch ratchet |
+| `DEFERRED-post-S6` PII async Presidio (S2) | `WONT-FIX` (S12 documenta) | S12 |
+| `DEFERRED-pre-Jul-2026` DeepSeek alias retire (S4) | `DEFERRED-S10` | S10 judge validator + S12 cierre |
+| `DEFERRED-post-cutover-window` Drop legacy tables (S6) | `DEFERRED-S6.5` | S6.5 trigger 2026-05-26 |
+| `FLAGGED-S7` test fixtures duplicados SessionLocal (S1) | `DEFERRED-S11` | S11 (post event_bus reshape) |
+| `FLAGGED` __future__ annotations (S1) | `DEFERRED-S6.5` | S6.5 arch test |
+| `FLAGGED` agent_log_model name typo (S1) | `DEFERRED-S6.5` | S6.5 cleanup docs |
+| `FLAGGED` typing_simulation_cpm (S5) | `DEFERRED-S12` | S12 wiring post-§3 validation |
+| `FLAGGED` Closer temp 0.4/Kimi 0.6 (S4) | `DEFERRED-S10` | S10 conversion monitor + S12 cierre |
+| `FLAGGED-S7` voseo en templates Jinja sales_agent (S00) | `DEFERRED-S7` | S7 brand voice integration |
+| `DEFERRED-S0` orphan FE components ActivityFeedWidget/CalendarWidget/AppointmentSheet/AvailabilityModal (S00) | `DEFERRED-S6.5` | S6.5 cleanup pass (FE orphans no críticos, sólo touch al hacer cleanup admin migration) |
+| `DEFERRED-S0` knowledge_builder.py factory amplio (S00) | `DEFERRED-S11` | S11 (simplifica naturalmente con ports brand/offer) |
+
+**Las entradas FIXED previas (S00/S0/S1/S2/S3/S4/S5/S6) quedan intactas
+con su commit hash original — son log auditable, append-only.**
+
+**Cualquier nueva entrada DEFERRED detectada en S7..S12 debe:**
+1. Apuntar a fase específica del plan (S{N}).
+2. NO usar "post-S{N}" o "post-redesign".
+3. Si no hay fase target apropiada → reabrir discusión CTO antes de aceptar la deuda.
 
 ---
 

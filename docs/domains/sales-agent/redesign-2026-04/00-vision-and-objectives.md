@@ -31,6 +31,8 @@ Mismo stack (FastAPI + LangGraph + LangChain), distinto flujo. **NO migrar sales
 | O5 | Retention auditable | Worker diario; trace 90d, llm_call 365d |
 | O6 | Architectural fitness tests | Ratchet `test_no_new_sales_agent_*` + anchors + invariants |
 | O7 | Channel format determinístico | `register_channel` + `format_for_channel` sin LLM |
+| O8 | Cohesión orchestrator post-redesign (S11) | `chat.py` < 400 LOC; `closer_studio_service.py` split en Query/Command/Kpi services; `semantic_router.py` registry-based |
+| O9 | Plan autocontenido — cero deuda flotante (S12) | `05-tech-debt-log.md` con 0 entries DEFERRED al cerrar S12. Cada entry FIXED o WONT-FIX con razón. |
 
 ### §2.2 — Negocio (capacidades nuevas)
 
