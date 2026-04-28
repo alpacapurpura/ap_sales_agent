@@ -68,6 +68,8 @@
     },
     {
       "conversation_id": "66666666-6666-6666-6666-666666666666",
+      "data": {},
+      "duration_ms": null,
       "event_type": "node_enter",
       "name": "qualifier",
       "span_id": "33333333-3333-3333-3333-333333333333",
@@ -78,6 +80,7 @@
     },
     {
       "conversation_id": "66666666-6666-6666-6666-666666666666",
+      "data": {},
       "duration_ms": 24,
       "event_type": "node_exit",
       "name": "qualifier",

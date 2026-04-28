@@ -66,7 +66,6 @@ from src.shared.agent_observability.recording.sanitization import (
 )
 
 if TYPE_CHECKING:
-    from langchain_core.messages import AIMessage
     from langchain_core.outputs import LLMResult
 
 logger = structlog.get_logger()
@@ -556,102 +555,6 @@ class SalesAgentCallbackHandler(BaseAgentCallbackHandler):
             rollback()
         except Exception as exc:  # noqa: BLE001
             logger.warning("sales_agent_obs_rollback_failed", error=str(exc))
-
-    @staticmethod
-    def _extract_provider_and_model(
-        serialized: dict[str, Any],
-        metadata: dict[str, Any] | None,
-    ) -> tuple[str, str]:
-        """Return ``(provider, model_requested)`` from the start payload."""
-        meta = metadata or {}
-        provider = meta.get("ls_provider") or meta.get("provider") or "unknown"
-        model = meta.get("ls_model_name") or meta.get("model_name") or meta.get("model")
-        if not model and isinstance(serialized, dict):
-            kwargs = serialized.get("kwargs") or {}
-            if isinstance(kwargs, dict):
-                model = kwargs.get("model_name") or kwargs.get("model")
-        if not model:
-            model = "unknown"
-        return str(provider), str(model)
-
-    @staticmethod
-    def _extract_usage(response: LLMResult | None) -> dict[str, int]:
-        """Pull token counts from every shape LangChain may surface."""
-        zeros = {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "cached_read_tokens": 0,
-            "cached_write_tokens": 0,
-            "reasoning_tokens": 0,
-        }
-        if response is None:
-            return zeros
-        try:
-            generation = response.generations[0][0]
-            message: AIMessage = generation.message  # type: ignore[attr-defined]
-        except (AttributeError, IndexError):
-            return zeros
-
-        # 1. LangChain native shape.
-        usage = getattr(message, "usage_metadata", None) or {}
-        if usage.get("input_tokens") or usage.get("output_tokens"):
-            details = usage.get("input_token_details") or {}
-            output_details = usage.get("output_token_details") or {}
-            return {
-                "input_tokens": int(usage.get("input_tokens", 0) or 0),
-                "output_tokens": int(usage.get("output_tokens", 0) or 0),
-                "cached_read_tokens": int(details.get("cache_read", 0) or 0),
-                "cached_write_tokens": int(details.get("cache_creation", 0) or 0),
-                "reasoning_tokens": int(output_details.get("reasoning", 0) or 0),
-            }
-
-        # 2. Raw OpenAI shape on the message itself.
-        token_usage = (getattr(message, "response_metadata", None) or {}).get("token_usage") or {}
-        if token_usage:
-            return SalesAgentCallbackHandler._from_openai_token_usage(token_usage)
-
-        # 3. LLMResult-level aggregate.
-        llm_output_usage = (response.llm_output or {}).get("token_usage") if response.llm_output else None
-        if llm_output_usage:
-            return SalesAgentCallbackHandler._from_openai_token_usage(llm_output_usage)
-
-        return zeros
-
-    @staticmethod
-    def _from_openai_token_usage(usage: dict[str, Any]) -> dict[str, int]:
-        """Convert raw OpenAI ``usage`` into the canonical row dict."""
-        prompt_details = usage.get("prompt_tokens_details") or {}
-        completion_details = usage.get("completion_tokens_details") or {}
-        return {
-            "input_tokens": int(usage.get("prompt_tokens", 0) or 0),
-            "output_tokens": int(usage.get("completion_tokens", 0) or 0),
-            "cached_read_tokens": int(prompt_details.get("cached_tokens", 0) or 0),
-            "cached_write_tokens": int(prompt_details.get("cache_creation_tokens", 0) or 0),
-            "reasoning_tokens": int(completion_details.get("reasoning_tokens", 0) or 0),
-        }
-
-    @staticmethod
-    def _extract_model_responded(response: LLMResult | None, *, fallback: str) -> str:
-        """Pick the actual model that responded; fall back to the requested one."""
-        if response is None:
-            return fallback
-        try:
-            generation = response.generations[0][0]
-            message = generation.message  # type: ignore[attr-defined]
-        except (AttributeError, IndexError):
-            return fallback
-        meta = getattr(message, "response_metadata", None) or {}
-        return str(meta.get("model_name") or meta.get("model") or fallback)
-
-    @staticmethod
-    def _chain_name(serialized: dict[str, Any]) -> str | None:
-        """Return a node name if ``serialized`` looks like a LangGraph node."""
-        if not isinstance(serialized, dict):
-            return None
-        name = serialized.get("name")
-        if not isinstance(name, str) or not name:
-            return None
-        return name
 
     @staticmethod
     def _elapsed_ms(monotonic_start: float) -> int:

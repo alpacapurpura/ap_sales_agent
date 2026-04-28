@@ -37,7 +37,6 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 import structlog
-from langchain_core.callbacks import BaseCallbackHandler
 
 from src.modules.copilot.observability.persistence.llm_call_repository import (
     LlmCallRepository,
@@ -48,13 +47,15 @@ from src.modules.copilot.observability.persistence.trace_event_repository import
 from src.shared.agent_observability.cost.calculator import calculate_cost
 from src.shared.agent_observability.cost.fx_resolver import FXResolver
 from src.shared.agent_observability.pricing.resolver import PricingResolver
+from src.shared.agent_observability.recording.base_callback_handler import (
+    BaseAgentCallbackHandler,
+)
 from src.shared.agent_observability.recording.sanitization import (
     sanitize_payload,
     truncate,
 )
 
 if TYPE_CHECKING:
-    from langchain_core.messages import AIMessage
     from langchain_core.outputs import LLMResult
 
 logger = structlog.get_logger()
@@ -90,8 +91,15 @@ class _ChainSpan:
 
 
 @dataclass
-class ObservabilityCallbackHandler(BaseCallbackHandler):
-    """Self-contained recorder. One instance per turn."""
+class ObservabilityCallbackHandler(BaseAgentCallbackHandler):
+    """Self-contained recorder. One instance per turn.
+
+    Subclass of :class:`BaseAgentCallbackHandler` (S11A retrofit). Helpers
+    (``_extract_usage``, ``_extract_provider_and_model``, etc.) live on
+    the base; this class overrides only the abstract persisters and
+    keeps the LangChain plumbing for now (commit 4 lifts the 6 ``on_*``
+    callbacks too).
+    """
 
     tenant_id: UUID
     conversation_id: UUID | None
@@ -221,10 +229,8 @@ class ObservabilityCallbackHandler(BaseCallbackHandler):
             return
         try:
             duration_ms = self._elapsed_ms(span.monotonic_start)
-            self.trace_repo.add(
+            self._persist_trace_event_row(
                 tenant_id=self.tenant_id,
-                user_id=self.user_id,
-                conversation_id=self.conversation_id,
                 turn_id=self.turn_id,
                 span_id=run_id,
                 event_type="tool_call",
@@ -256,10 +262,8 @@ class ObservabilityCallbackHandler(BaseCallbackHandler):
         if span is None:
             return
         try:
-            self.trace_repo.add(
+            self._persist_trace_event_row(
                 tenant_id=self.tenant_id,
-                user_id=self.user_id,
-                conversation_id=self.conversation_id,
                 turn_id=self.turn_id,
                 span_id=run_id,
                 event_type="tool_call",
@@ -301,14 +305,14 @@ class ObservabilityCallbackHandler(BaseCallbackHandler):
                 started_at=datetime.now(tz=UTC),
                 monotonic_start=time.monotonic(),
             )
-            self.trace_repo.add(
+            self._persist_trace_event_row(
                 tenant_id=self.tenant_id,
-                user_id=self.user_id,
-                conversation_id=self.conversation_id,
                 turn_id=self.turn_id,
                 span_id=run_id,
                 event_type="node_enter",
                 name=name,
+                data={},
+                duration_ms=None,
                 status="ok",
             )
         except Exception as exc:  # noqa: BLE001
@@ -329,21 +333,20 @@ class ObservabilityCallbackHandler(BaseCallbackHandler):
         if span is None:
             return
         try:
-            self.trace_repo.add(
+            self._persist_trace_event_row(
                 tenant_id=self.tenant_id,
-                user_id=self.user_id,
-                conversation_id=self.conversation_id,
                 turn_id=self.turn_id,
                 span_id=run_id,
                 event_type="node_exit",
                 name=span.name,
+                data={},
                 duration_ms=self._elapsed_ms(span.monotonic_start),
                 status="ok",
             )
         except Exception as exc:  # noqa: BLE001
             logger.warning("obs_on_chain_end_failed", error=str(exc))
 
-    # ── helpers ─────────────────────────────────────────────────────────
+    # ── private helpers ─────────────────────────────────────────────────
 
     def _persist_llm_call(
         self,
@@ -382,14 +385,10 @@ class ObservabilityCallbackHandler(BaseCallbackHandler):
         duration_ms = self._elapsed_ms(span.monotonic_start)
         span_id = uuid4()
 
-        self.llm_call_repo.add(
+        self._persist_llm_call_row(
             tenant_id=self.tenant_id,
-            user_id=self.user_id,
-            conversation_id=self.conversation_id,
             turn_id=self.turn_id,
             span_id=span_id,
-            parent_span_id=None,
-            role=self.role,
             provider=span.provider,
             model_requested=span.model_requested,
             model_responded=model_responded,
@@ -411,6 +410,7 @@ class ObservabilityCallbackHandler(BaseCallbackHandler):
             duration_ms=duration_ms,
             status=status,
             error_type=error_type,
+            role=self.role,
         )
 
         # Mirror in trace_event so the existing /trazas admin still shows
@@ -418,10 +418,8 @@ class ObservabilityCallbackHandler(BaseCallbackHandler):
         # copilot_llm_call; the trace event carries just the breadcrumb
         # under the canonical event_type='llm_call' string the docs
         # already advertise.
-        self.trace_repo.add(
+        self._persist_trace_event_row(
             tenant_id=self.tenant_id,
-            user_id=self.user_id,
-            conversation_id=self.conversation_id,
             turn_id=self.turn_id,
             span_id=span_id,
             event_type="llm_call",
@@ -440,133 +438,30 @@ class ObservabilityCallbackHandler(BaseCallbackHandler):
             status=status,
         )
 
-    @staticmethod
-    def _extract_provider_and_model(
-        serialized: dict[str, Any],
-        metadata: dict[str, Any] | None,
-    ) -> tuple[str, str]:
-        """Return ``(provider, model_requested)`` from the start payload.
+    # ── abstract method overrides (Template Method) ──────────────────────
 
-        Order of preference: ``metadata.ls_provider`` / ``ls_model_name``
-        (LangChain's normalised tags), then ``serialized.kwargs.model_name``
-        / ``model``, then sensible fallbacks.
+    def _persist_llm_call_row(self, **kwargs: Any) -> None:  # noqa: ANN401 — Template Method passthrough
+        """Persist one row to ``copilot_llm_call``.
+
+        Injects ``conversation_id`` / ``user_id`` / ``parent_span_id`` so
+        the shared Template Method skeleton stays agent-agnostic.
         """
-        meta = metadata or {}
-        provider = meta.get("ls_provider") or meta.get("provider") or "unknown"
-        model = meta.get("ls_model_name") or meta.get("model_name") or meta.get("model")
-        if not model and isinstance(serialized, dict):
-            kwargs = serialized.get("kwargs") or {}
-            if isinstance(kwargs, dict):
-                model = kwargs.get("model_name") or kwargs.get("model")
-        if not model:
-            model = "unknown"
-        return str(provider), str(model)
+        self.llm_call_repo.add(
+            conversation_id=self.conversation_id,
+            user_id=self.user_id,
+            parent_span_id=None,
+            **kwargs,
+        )
 
-    @staticmethod
-    def _extract_usage(response: LLMResult | None) -> dict[str, int]:
-        """Pull token counts from every shape LangChain may surface.
+    def _persist_trace_event_row(self, **kwargs: Any) -> None:  # noqa: ANN401 — Template Method passthrough
+        """Persist one row to ``copilot_trace_event``."""
+        self.trace_repo.add(
+            conversation_id=self.conversation_id,
+            user_id=self.user_id,
+            **kwargs,
+        )
 
-        OpenAI-compatible providers (Moonshot/Kimi, DeepSeek, Qwen)
-        reach LangChain through ``ChatOpenAI`` with a custom base_url,
-        and not all of them populate ``message.usage_metadata`` — some
-        leave the data only in ``message.response_metadata.token_usage``
-        (raw OpenAI ``usage`` block) or in ``LLMResult.llm_output.
-        token_usage`` (older adapters, gateway proxies).
-
-        Conv 0d64c4a9 (2026-04-27) showed Kimi K2.6 turns landing in
-        ``copilot_llm_call`` with zero tokens — that single source of
-        truth had silently broken ``/copilot-routing`` and the cost
-        cycle aggregator. The handler must drain all three sources
-        before it gives up and reports zeros, otherwise trazas keep
-        lying about cost.
-        """
-        zeros = {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "cached_read_tokens": 0,
-            "cached_write_tokens": 0,
-            "reasoning_tokens": 0,
-        }
-        if response is None:
-            return zeros
-
-        try:
-            generation = response.generations[0][0]
-            message: AIMessage = generation.message  # type: ignore[attr-defined]
-        except (AttributeError, IndexError):
-            return zeros
-
-        # 1. LangChain native shape — populated by langchain-openai for
-        #    upstream OpenAI and by LangChain's auto-sync when a provider
-        #    surfaces ``token_usage`` in ``response_metadata``.
-        usage = getattr(message, "usage_metadata", None) or {}
-        if usage.get("input_tokens") or usage.get("output_tokens"):
-            details = usage.get("input_token_details") or {}
-            output_details = usage.get("output_token_details") or {}
-            return {
-                "input_tokens": int(usage.get("input_tokens", 0) or 0),
-                "output_tokens": int(usage.get("output_tokens", 0) or 0),
-                "cached_read_tokens": int(details.get("cache_read", 0) or 0),
-                "cached_write_tokens": int(details.get("cache_creation", 0) or 0),
-                "reasoning_tokens": int(output_details.get("reasoning", 0) or 0),
-            }
-
-        # 2. Raw OpenAI shape on the message itself. Moonshot and a few
-        #    self-hosted gateways land here — the auto-sync in (1) skips
-        #    when the response includes fields the parser does not
-        #    recognise (``thinking_tokens``, vendor extensions).
-        token_usage = (getattr(message, "response_metadata", None) or {}).get("token_usage") or {}
-        if token_usage:
-            return ObservabilityCallbackHandler._from_openai_token_usage(token_usage)
-
-        # 3. LLMResult-level aggregate. Older langchain-openai versions
-        #    only expose tokens here; some gateway proxies (LiteLLM, Helicone)
-        #    drop them on the message but keep them in ``llm_output``.
-        llm_output_usage = (response.llm_output or {}).get("token_usage") if response.llm_output else None
-        if llm_output_usage:
-            return ObservabilityCallbackHandler._from_openai_token_usage(llm_output_usage)
-
-        return zeros
-
-    @staticmethod
-    def _from_openai_token_usage(usage: dict[str, Any]) -> dict[str, int]:
-        """Convert the raw OpenAI ``usage`` shape into the canonical row dict."""
-        prompt_details = usage.get("prompt_tokens_details") or {}
-        completion_details = usage.get("completion_tokens_details") or {}
-        return {
-            "input_tokens": int(usage.get("prompt_tokens", 0) or 0),
-            "output_tokens": int(usage.get("completion_tokens", 0) or 0),
-            "cached_read_tokens": int(prompt_details.get("cached_tokens", 0) or 0),
-            # OpenAI exposes cache *write* tokens only on the dedicated
-            # batch endpoints; treat absence as zero rather than guessing.
-            "cached_write_tokens": int(prompt_details.get("cache_creation_tokens", 0) or 0),
-            "reasoning_tokens": int(completion_details.get("reasoning_tokens", 0) or 0),
-        }
-
-    @staticmethod
-    def _extract_model_responded(response: LLMResult | None, *, fallback: str) -> str:
-        """Pick the actual model that responded; fall back to the requested one."""
-        if response is None:
-            return fallback
-        try:
-            generation = response.generations[0][0]
-            message = generation.message  # type: ignore[attr-defined]
-        except (AttributeError, IndexError):
-            return fallback
-        meta = getattr(message, "response_metadata", None) or {}
-        return str(meta.get("model_name") or meta.get("model") or fallback)
-
-    @staticmethod
-    def _chain_name(serialized: dict[str, Any]) -> str | None:
-        """Return a node name if ``serialized`` looks like a LangGraph node."""
-        if not isinstance(serialized, dict):
-            return None
-        # LangGraph emits nodes with ``name`` set; vanilla LangChain chains
-        # may not — we ignore those.
-        name = serialized.get("name")
-        if not isinstance(name, str) or not name:
-            return None
-        return name
+    # ── helpers ─────────────────────────────────────────────────────────
 
     @staticmethod
     def _elapsed_ms(monotonic_start: float) -> int:
