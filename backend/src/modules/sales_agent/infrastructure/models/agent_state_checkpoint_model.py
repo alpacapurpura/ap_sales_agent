@@ -74,6 +74,15 @@ class AgentStateCheckpointModel(Base):
         server_default="[]",
     )
 
+    # S9 — Payment state (append-only list of payment links issued per conversation)
+    # Shape: list[dict] — keys managed by PaymentStateService. See migration 081.
+    payment_state = Column(
+        JSONB,
+        nullable=False,
+        default=list,
+        server_default="[]",
+    )
+
     # Lifecycle
     is_active = Column(Boolean, nullable=False, default=True)
     deleted_at = Column(DateTime(timezone=True), nullable=True)

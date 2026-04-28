@@ -47,6 +47,8 @@ ALWAYS_AVAILABLE: frozenset[str] = frozenset(
         "verify_booking_status",
         "check_schedule",
         "check_payment_status",
+        # S9 — payment status check is cross-stage (lead may ask mid-rapport).
+        "verify_payment_status",
     },
 )
 
@@ -78,6 +80,9 @@ STAGE_TOOL_SCOPE: dict[str, frozenset[str]] = {
             "promote_waitlist_to_edition",
             "list_public_editions",
             "list_waitlist",
+            # S9 — payment lifecycle tools
+            "create_payment_link",
+            "grant_access",
         },
     ),
 }

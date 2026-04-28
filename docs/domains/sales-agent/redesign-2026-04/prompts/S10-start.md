@@ -16,7 +16,7 @@ CONTEXTO:
 - Todas las features anteriores cerradas. Sales_agent: voz de marca + scheduler + payment + access automático.
 - Copilot tiene F9 quality eval implementado — espejar pattern.
 - Branch: development limpio.
-- Último commit: {HASH}
+- Último commit: {S9_COMMIT_HASH} (ver git log)
 - Hooks: callback handler con costo, brand_voice_summary, scheduler tools, payment tools.
 - Tech debt en radar: {LIST}
 

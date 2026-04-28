@@ -125,6 +125,7 @@ from src.modules.offer.api import variant_structures as offer_variant_structures
 from src.modules.sales_agent.api import audit as sales_audit
 from src.modules.sales_agent.api import closer_studio as sales_closer
 from src.modules.sales_agent.api import enrollments as sales_enrollments
+from src.modules.sales_agent.api import payment_webhooks as sales_payment_webhooks
 from src.modules.sales_agent.api import scheduler_webhooks as sales_scheduler_webhooks
 from src.modules.sales_agent.api import ws as sales_ws
 from src.modules.scheduling.api import agenda as sched_agenda
@@ -287,6 +288,13 @@ def on_startup() -> None:
     )
 
     register_scheduling_event_handlers()
+
+    # S9 — payment event subscribers (auto_grant_on_paid).
+    from src.modules.sales_agent.application.payment_event_handlers import (
+        register_payment_subscribers,
+    )
+
+    register_payment_subscribers()
 
     # Register copilot observability subscribers (Phase 2 atomic switch).
     # Wires TurnStarted/TurnEnded/CardEmitted/RoutingDecided onto the
@@ -684,6 +692,13 @@ app.include_router(
     sales_scheduler_webhooks.router,
     prefix="/api/v1/sales-agent",
     tags=["Sales Agent - Scheduler Webhooks"],
+)
+
+# S9 payment lifecycle webhooks — registry-driven via PAYMENT_WEBHOOK_PROVIDERS.
+app.include_router(
+    sales_payment_webhooks.router,
+    prefix="/api/v1/sales-agent",
+    tags=["Sales Agent - Payment Webhooks"],
 )
 
 # 6. Copilot

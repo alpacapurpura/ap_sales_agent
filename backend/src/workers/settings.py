@@ -30,8 +30,14 @@ from src.modules.sales_agent.workers.appointment_reminder_engine import (
     run_appointment_reminders,
 )
 from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
+from src.modules.sales_agent.workers.payment_reminder_engine import (
+    run_payment_reminder_engine,
+)
 from src.modules.sales_agent.workers.verify_pending_bookings import (
     run_verify_pending_bookings,
+)
+from src.modules.sales_agent.workers.verify_pending_payments import (
+    run_verify_pending_payments,
 )
 from src.modules.tenant_domains.workers.tasks import poll_domain_verification
 from src.shared.agent_observability.workers.aggregate_refresh_task import (
@@ -139,6 +145,8 @@ class SchedulerSettings:
         run_sales_agent_dual_write_reconcile,
         run_verify_pending_bookings,
         run_appointment_reminders,
+        run_verify_pending_payments,
+        run_payment_reminder_engine,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -245,6 +253,18 @@ class SchedulerSettings:
         cron(
             run_appointment_reminders,
             minute={12, 27, 42, 57},
+        ),
+        # S9 — verify pending payments (pull reconciler for payment links).
+        # Every 15 min on :09 / :24 / :39 / :54 to offset from bookings verify.
+        cron(
+            run_verify_pending_payments,
+            minute={9, 24, 39, 54},
+        ),
+        # S9 — payment reminder engine (T+2h nudge for unpaid links).
+        # Every 30 min on :15 / :45.
+        cron(
+            run_payment_reminder_engine,
+            minute={15, 45},
         ),
     ]
 

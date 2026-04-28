@@ -243,6 +243,15 @@ def db_engine():
         from src.modules.sales_agent.infrastructure.models.message_model import (
             MessageModel,
         )
+        from src.modules.sales_agent.infrastructure.models.payment_grant_audit_model import (
+            PaymentGrantAuditModel,
+        )
+        from src.modules.sales_agent.infrastructure.models.payment_link_model import (
+            PaymentLinkModel,
+        )
+        from src.modules.sales_agent.infrastructure.models.payment_webhook_event_model import (
+            PaymentWebhookEventModel,
+        )
         from src.modules.sales_agent.infrastructure.models.scheduler_webhook_event_model import (
             SchedulerWebhookEventModel,
         )

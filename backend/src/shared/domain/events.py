@@ -507,3 +507,172 @@ class BookingMissedEvent(DomainEvent):
                 "grace_minutes": grace_minutes,
             },
         )
+
+
+# ──────────────────────────────────────────────────────────────
+# S9 — Payment lifecycle events
+# ──────────────────────────────────────────────────────────────
+
+
+@dataclass
+class PaymentLinkCreatedEvent(DomainEvent):
+    """Emitted when sales_agent creates a payment link for a lead.
+
+    Payload keys:
+        lead_id: UUID.
+        external_id: provider-issued payment preference / session id.
+        provider_id: ``"mercadopago"`` / ``"stripe"`` / etc.
+        url: payment URL shared with lead.
+        amount: float.
+        currency: ISO 4217 (from offer SSoT).
+    """
+
+    @property
+    def lead_id(self) -> UUID:
+        """Lead UUID."""
+        return UUID(self.payload["lead_id"])
+
+    @property
+    def external_id(self) -> str:
+        """Provider-issued payment preference / session id."""
+        return self.payload["external_id"]  # type: ignore[return-value]
+
+    @property
+    def provider_id(self) -> str:
+        """Payment provider identifier."""
+        return self.payload["provider_id"]  # type: ignore[return-value]
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        tenant_id: UUID,
+        lead_id: UUID,
+        external_id: str,
+        provider_id: str,
+        url: str,
+        amount: float,
+        currency: str,
+    ) -> "PaymentLinkCreatedEvent":
+        """Create a ``payment_link_created`` event."""
+        return cls(
+            event_name="payment_link_created",
+            tenant_id=tenant_id,
+            payload={
+                "lead_id": str(lead_id),
+                "external_id": external_id,
+                "provider_id": provider_id,
+                "url": url,
+                "amount": amount,
+                "currency": currency,
+            },
+        )
+
+
+@dataclass
+class PaymentReceivedEvent(DomainEvent):
+    """Emitted when a payment transitions to PAID.
+
+    Sources: webhook handler OR verify_pending_payments cron.
+
+    Payload keys:
+        lead_id, offer_id, payment_id: UUIDs.
+        auto_grant: bool — if True, auto_grant_on_paid subscriber fires grant_access.
+    """
+
+    @property
+    def lead_id(self) -> UUID:
+        """Lead UUID."""
+        return UUID(self.payload["lead_id"])
+
+    @property
+    def offer_id(self) -> UUID:
+        """Offer UUID."""
+        return UUID(self.payload["offer_id"])
+
+    @property
+    def payment_id(self) -> UUID:
+        """Payment UUID (PaymentLinkModel PK)."""
+        return UUID(self.payload["payment_id"])
+
+    @property
+    def auto_grant(self) -> bool:
+        """If True, auto_grant_on_paid fires grant_access."""
+        return bool(self.payload["auto_grant"])
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        tenant_id: UUID,
+        lead_id: UUID,
+        offer_id: UUID,
+        payment_id: UUID,
+        auto_grant: bool = True,
+    ) -> "PaymentReceivedEvent":
+        """Create a ``payment_received`` event."""
+        return cls(
+            event_name="payment_received",
+            tenant_id=tenant_id,
+            payload={
+                "lead_id": str(lead_id),
+                "offer_id": str(offer_id),
+                "payment_id": str(payment_id),
+                "auto_grant": auto_grant,
+            },
+        )
+
+
+@dataclass
+class AccessGrantedEvent(DomainEvent):
+    """Emitted when digital access is delivered to a lead after payment.
+
+    Payload keys:
+        lead_id, offer_id, payment_id: UUIDs.
+        channels: list[str] — channels through which access was delivered.
+        audit_id: UUID of the payment_grant_audit row.
+    """
+
+    @property
+    def lead_id(self) -> UUID:
+        """Lead UUID."""
+        return UUID(self.payload["lead_id"])
+
+    @property
+    def offer_id(self) -> UUID:
+        """Offer UUID."""
+        return UUID(self.payload["offer_id"])
+
+    @property
+    def payment_id(self) -> UUID:
+        """Payment UUID."""
+        return UUID(self.payload["payment_id"])
+
+    @property
+    def channels(self) -> list[str]:
+        """Delivery channels."""
+        return self.payload["channels"]  # type: ignore[return-value]
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        tenant_id: UUID,
+        lead_id: UUID,
+        offer_id: UUID,
+        payment_id: UUID,
+        channels: list[str],
+        audit_id: UUID | None = None,
+    ) -> "AccessGrantedEvent":
+        """Create an ``access_granted`` event."""
+        return cls(
+            event_name="access_granted",
+            tenant_id=tenant_id,
+            payload={
+                "lead_id": str(lead_id),
+                "offer_id": str(offer_id),
+                "payment_id": str(payment_id),
+                "channels": channels,
+                "audit_id": str(audit_id) if audit_id else None,
+            },
+        )
