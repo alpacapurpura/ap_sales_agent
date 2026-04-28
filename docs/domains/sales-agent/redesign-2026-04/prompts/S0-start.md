@@ -19,7 +19,7 @@ CONTEXTO post-S00 (cerrado 2026-04-28):
 - Admin migration plan listo: docs/domains/sales-agent/redesign-2026-04/audit/admin-migration-plan.md (sales_audit.py shape + dual-read S1 + nuevas pages S2/S4/S10 + _shared.py extensions).
 - Spanish neutro voseo scan: 0 hits sales_agent + closer-studio (baseline limpia).
 - Branch: development limpio. 3 commits ahead de origin/development (sync con main).
-- Último commit S00: chore(sales-agent-redesign-s00): cleanup deprecated /sales/resumen + audit map (hash al hacer push).
+- Último commit S00: 066ea218 — chore(sales-agent-redesign-s00): cleanup deprecated /sales/resumen + audit map.
 - Tests S00 activos: tests/architecture/test_no_resumen_deprecated_references.py (BE arch ratchet) + frontend/e2e/specs/smoke/sales-routes.smoke.spec.ts.
 
 DEUDA DETECTADA POR S00 (revisar 05-tech-debt-log.md):
