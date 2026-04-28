@@ -108,6 +108,53 @@ def make_extraction_result():
     return _factory
 
 
+def seed_official_metrics(
+    db,
+    tenant_id,
+    *,
+    channel_slug: str = "meta-ads",
+    provider: str = "meta",
+    metric_name: str = "impressions",
+    unit: str = "count",
+    cost_type: str | None = "investment",
+    rows: list[dict] | None = None,
+) -> list:
+    """Insert OfficialMetricModel rows into SQLite db. Returns inserted instances."""
+    import uuid
+    from datetime import date
+
+    from src.modules.analytics.infrastructure.models.official_metrics_model import (
+        OfficialMetricModel,
+    )
+
+    if rows is None:
+        rows = [
+            {"metric_date": date(2026, 3, 1), "value": 1000.0},
+            {"metric_date": date(2026, 3, 2), "value": 1500.0},
+            {"metric_date": date(2026, 3, 3), "value": 800.0},
+        ]
+    instances = []
+    for r in rows:
+        obj = OfficialMetricModel(
+            id=uuid.uuid4(),
+            tenant_id=tenant_id,
+            provider=provider,
+            channel_slug=channel_slug,
+            metric_name=metric_name,
+            value=r["value"],
+            unit=unit,
+            cost_type=cost_type,
+            metric_date=r["metric_date"],
+            campaign_id=r.get("campaign_id"),
+            ad_set_id=r.get("ad_set_id"),
+            ad_id=r.get("ad_id"),
+        )
+        db.add(obj)
+        instances.append(obj)
+    db.commit()
+    return instances
+
+
 @pytest.fixture
 def sample_official_metrics(test_tenant_id) -> list[dict]:
     """Sample official_metrics row dicts for aggregation tests."""
