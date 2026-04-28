@@ -727,6 +727,23 @@ con su commit hash original — son log auditable, append-only.**
 
 ---
 
+## Detectados durante S11A (shared base lift) — 2026-04-28
+
+### Callback handler lift — FIXED
+
+#### [MEDIUM] `SalesAgentCallbackHandler` duplica 6 LangChain callbacks de copilot — 2026-04-28 — S1 — FIXED en S11A
+- Path original: `src/modules/sales_agent/observability/recording/callback_handler.py` (575 LOC pre-lift, 668 LOC peak).
+- Acción: FIXED en commit `8cc9ea2c` — lift completo del plumbing LangChain (8 ``on_*`` callbacks + ``_persist_llm_call`` Template Method skeleton + ``_safe_rollback`` + helpers `_extract_usage` / `_from_openai_token_usage` / `_extract_provider_and_model` / `_extract_model_responded` / `_chain_name` + dataclasses ``_LLMSpan`` / ``_ToolSpan`` / ``_ChainSpan``) al `src/shared/agent_observability/recording/base_callback_handler.py`. Sales subclass quedó en 85 LOC (solo overrides + fields agent-specific). Copilot subclass retrofitted en mismo sprint, quedó en 83 LOC.
+- Razón cierre S11A: al cerrar S10, el plan ratificó coordinación copilot retrofit en mismo sprint. Pre-flight 2026-04-28 confirmó "no hay equipo separado", lift y retrofit son un mismo entregable.
+
+### Compliance LATAM PII — sin cambio
+La lift NO afectó PII coverage. ``sanitize_payload`` ahora vive en el base e invoca desde el skeleton (commit 4 + arch test update lo refleja). 0 nuevas violaciones.
+
+### S11A no detectó nuevas deudas
+El sub-sprint A se ejecutó sin scope creep. Snapshot framework determinístico (`tests/shared/agent_observability/test_callback_handler_snapshot.py`) protege Sub-sprint B contra cambios de shape no intencionales — diff = 0 byte-equal pre/post-lift validado. Goldens LLM S10 intactos.
+
+---
+
 ## Cómo agregar entrada (durante fase activa)
 
 1. Detectaste algo durante S{N}.
