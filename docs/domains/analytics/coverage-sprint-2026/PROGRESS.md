@@ -2,7 +2,7 @@
 
 **Target:** 85% (≥6771/7931 stmts covered)
 **Baseline:** 59.7% (7966 stmts pre-Fase 0)
-**Last measured:** 60.89% (7931 stmts, 3102 missing) — post Fase 0-2
+**Last measured:** 64% (7931 stmts, 2870 missing) — post Fase 0-3
 
 ---
 
@@ -13,7 +13,7 @@
 | 0 | Dead code + tests triviales | ✅ DONE | 61% |
 | 1 | Foundation (conftest, factories) | ✅ DONE | 61% (habilitador) |
 | 2 | Stage repositories 0% → 94% | ✅ DONE | 60.89% (3102 missing) |
-| 3 | ETL pipelines críticos | ⏳ PENDING | — |
+| 3 | ETL pipelines críticos | ✅ DONE | 64% (2870 missing) |
 | 4 | Stage services cache-miss paths | ⏳ PENDING | — |
 | 5 | Servicios secundarios | ⏳ PENDING | — |
 | 6 | API HTTP-level | ⏳ PENDING | — |
@@ -25,6 +25,7 @@
 | Hash | Contenido |
 |------|-----------|
 | `0c6c9b2e` | Fases 0-2: dead code delete + repos stage 0%→94% |
+| `4972afcd` | Fase 3: period_pipeline 0%→100% + etl_service 22%→67% |
 
 ---
 
@@ -100,25 +101,25 @@ repo, _session = _make_repo()  # underscore prefix = intencional
 
 ---
 
-## Próximo paso: Fase 3 — ETL pipelines críticos
+## Próximo paso: Fase 4 — Stage services cache-miss paths
 
-### Archivos target
-| Archivo | Stmts | Cov actual | Target | Gain est. |
-|---------|-------|------------|--------|-----------|
-| `period_pipeline.py` | 65 | 0% | 85% | +55 |
-| `etl_service.py` | ~300 | 22% | 80% | +175 |
+Ver `FASE-4-HANDOFF.md`.
 
-### Estrategia Fase 3
-Ver `FASE-3-HANDOFF.md` para el prompt completo.
+### Fase 3 — completada
 
-Patrón recomendado para `period_pipeline.py`:
-- `_run(coro)` helper para sync→async (ver `test_etl_pipeline.py:62-120` como referencia)
-- `MagicMock` providers/repos/cache
-- Cubrir: success, partial failure sub-extractor, `ConnectionRevokedException`, period overlap
+| Archivo | Stmts | Cov antes | Cov después | Ganancia |
+|---------|-------|-----------|-------------|----------|
+| `period_pipeline.py` | 65 | 0% | 100% | +65 stmts |
+| `etl_service.py` | 328 | 22% | 67% | +145 stmts |
 
-Patrón para `etl_service.py`:
-- Expandir los tests existentes en `test_etl_pipeline.py`
-- Agregar branches: `run_period_extraction`, `_sync_ig_dm`, Shopify line items, error paths
+Patrones aprendidos Fase 3:
+- `provider_name()` es sync → `mock_provider.provider_name = MagicMock(return_value="meta")` (no `AsyncMock`)
+- Lazy imports dentro de métodos: parchear en módulo fuente, NO en `etl_service.*`
+  - `PeriodMetricsRepository` → `src.modules.analytics.infrastructure.repositories.period_metrics_repository.PeriodMetricsRepository`
+  - `PeriodExtractionPipeline` → `src.modules.analytics.infrastructure.etl.period_pipeline.PeriodExtractionPipeline`
+  - `InstagramDMSyncService` → `src.modules.analytics.application.services.ig_dm_sync_service.InstagramDMSyncService`
+- `_stage_transform_upsert_aggregate` es sync → testeable directo con mocks de repos y patch de transform/compute
+- `run_sync_all` testeable parcheando `_run_provider_isolated` + `CHANNEL_TYPE_TO_PROVIDERS` + `PROVIDER_REGISTRY`
 
 ---
 
