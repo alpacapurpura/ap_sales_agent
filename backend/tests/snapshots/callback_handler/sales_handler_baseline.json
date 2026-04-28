@@ -1,0 +1,94 @@
+{
+  "llm_call_repo.add": [
+    {
+      "cached_read_tokens": 80,
+      "cached_read_unit_cost_usd": "5E-7",
+      "cached_write_tokens": 0,
+      "channel_type": "whatsapp",
+      "cost_tenant_currency": "0.00031000",
+      "cost_usd": "0.0003100",
+      "duration_ms": 24,
+      "error_type": null,
+      "fx_rate_source": "stub",
+      "fx_rate_to_tenant": "1.0",
+      "input_tokens": 100,
+      "input_unit_cost_usd": "0.000001",
+      "lead_id": "55555555-5555-5555-5555-555555555555",
+      "model_requested": "kimi-k2.6",
+      "model_responded": "kimi-k2.6",
+      "output_tokens": 50,
+      "output_unit_cost_usd": "0.000005",
+      "parent_span_id": null,
+      "pricing_version_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "provider": "kimi",
+      "reasoning_tokens": 0,
+      "role": "closer",
+      "span_id": "99999999-9999-9999-9999-000000000001",
+      "started_at": "2026-04-28T12:00:00+00:00",
+      "status": "ok",
+      "tenant_currency": "USD",
+      "tenant_id": "44444444-4444-4444-4444-444444444444",
+      "turn_id": "88888888-8888-8888-8888-888888888888"
+    }
+  ],
+  "trace_event_repo.add": [
+    {
+      "channel_type": "whatsapp",
+      "data": {
+        "cached_read_tokens": 80,
+        "cost_usd": "0.0003100",
+        "fx_rate_source": "stub",
+        "input_tokens": 100,
+        "is_estimated_pricing": false,
+        "output_tokens": 50
+      },
+      "duration_ms": 24,
+      "event_type": "llm_call",
+      "lead_id": "55555555-5555-5555-5555-555555555555",
+      "name": "kimi.kimi-k2.6",
+      "span_id": "99999999-9999-9999-9999-000000000001",
+      "status": "ok",
+      "tenant_id": "44444444-4444-4444-4444-444444444444",
+      "turn_id": "88888888-8888-8888-8888-888888888888"
+    },
+    {
+      "channel_type": "whatsapp",
+      "data": {
+        "args": "{\"lead_id\": \"abc\"}",
+        "output_preview": "{'context': 'fixture'}"
+      },
+      "duration_ms": 25,
+      "event_type": "tool_call",
+      "lead_id": "55555555-5555-5555-5555-555555555555",
+      "name": "get_lead_context",
+      "span_id": "22222222-2222-2222-2222-222222222222",
+      "status": "ok",
+      "tenant_id": "44444444-4444-4444-4444-444444444444",
+      "turn_id": "88888888-8888-8888-8888-888888888888"
+    },
+    {
+      "channel_type": "whatsapp",
+      "data": {},
+      "duration_ms": null,
+      "event_type": "node_enter",
+      "lead_id": "55555555-5555-5555-5555-555555555555",
+      "name": "qualifier",
+      "span_id": "33333333-3333-3333-3333-333333333333",
+      "status": "ok",
+      "tenant_id": "44444444-4444-4444-4444-444444444444",
+      "turn_id": "88888888-8888-8888-8888-888888888888"
+    },
+    {
+      "channel_type": "whatsapp",
+      "data": {},
+      "duration_ms": 24,
+      "event_type": "node_exit",
+      "lead_id": "55555555-5555-5555-5555-555555555555",
+      "name": "qualifier",
+      "span_id": "33333333-3333-3333-3333-333333333333",
+      "status": "ok",
+      "tenant_id": "44444444-4444-4444-4444-444444444444",
+      "turn_id": "88888888-8888-8888-8888-888888888888"
+    }
+  ]
+}

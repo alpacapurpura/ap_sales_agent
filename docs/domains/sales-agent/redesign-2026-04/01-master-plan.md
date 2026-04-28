@@ -81,9 +81,17 @@
                                                     │
                                                     ▼
                                        ┌─────────────────────────┐
-                                       │ S11: shared base lift + │
-                                       │ orchestrator decomp     │
-                                       │ (Stranger Fig chat.py + │
+                                       │ S11A: shared base lift  │
+                                       │ (sales + copilot        │
+                                       │  retrofit) + snapshot   │
+                                       │  pipeline framework     │
+                                       └────────────┬────────────┘
+                                                    │
+                                                    ▼
+                                       ┌─────────────────────────┐
+                                       │ S11B: orchestrator      │
+                                       │ decomp Strangler Fig    │
+                                       │ (chat.py +              │
                                        │  closer_studio_service +│
                                        │  semantic_router)       │
                                        └────────────┬────────────┘
@@ -118,7 +126,8 @@
 | S8 | S7 | Scheduler tools deben hablar voz de marca. |
 | S9 | S7, S8 | Payment hereda voz; flows mezclan booking + payment. |
 | S10 | S7, S8, S9 | Goldens cubren features completas. **Incluye DeepSeek alias retire validator + Kimi temp 0.6 conversion monitor** (cierran 2 watchpoints S4). |
-| **S11** | S10 | Shared `BaseAgentCallbackHandler` lift coordinado con copilot retrofit (cierra deuda S1). Stranger Fig refactor `chat.py` (1082 LOC) + `closer_studio_service.py` (623 LOC) + `semantic_router.py` (328 LOC). NO toca §3. |
+| **S11A** | S10 | Sub-fase: shared `BaseAgentCallbackHandler` lift coordinado con copilot retrofit (cierra deuda S1). Snapshot pipeline framework determinístico (LLM mockeado). Pre-flight 2026-04-28: ajustes documentados en `phases/S11-shared-lift-orchestrator-decomp.md` "Ajustes vs plan original". |
+| **S11B** | S11A | Sub-fase: Strangler Fig refactor `chat.py` (1140 LOC) + `closer_studio_service.py` (623 LOC) + `semantic_router.py` (328 LOC). NO toca §3. Snapshot pipeline diff = 0 tras cada commit. |
 | **S12** | S11 | Final hardening: tier pricing >200k arch ratchet + Presidio WONT-FIX classification + `typing_simulation_cpm` wiring (libera §3 fragment validado por eval loop) + scan voseo final + cierre `05-tech-debt-log.md` con cero DEFERRED. |
 
 ---
@@ -140,7 +149,8 @@
 | S8 | 7-10 días | 7 |
 | S9 | 7-10 días | 8 |
 | S10 | 5-7 días | 9 |
-| **S11** | **8-12 días** (refactor riesgoso, 5 days callback handler lift + 7 days orchestrator decomp con tests) | 10 |
+| **S11A** | **5 días** (callback handler lift + snapshot pipeline framework, sesión 1) | 10 |
+| **S11B** | **7 días** (orchestrator decomp Strangler Fig, sesión 2 con goldens diff = 0 ratchet) | 10 |
 | **S12** | **2-3 días** (final hardening + audit cero deuda) | 11 |
 
 **Total ~62-82 días desarrollador** (paralelizable S2/S3/S4/S5).

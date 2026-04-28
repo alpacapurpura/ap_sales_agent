@@ -89,7 +89,116 @@ ese safety net, refactor de `chat.py` es ciego).
 
 ### Hallazgos research
 
-> COMPLETAR.
+- **Strangler Fig (microservices.io / AWS prescriptive guidance / 2026
+  Medium articles)**: pattern key — dual-write/shadow comparing legacy vs
+  new para preservar behavior. Decommission inmediato post-extract.
+  Boundaries reflejan behavior real, no conceptual. Aplica a la
+  orchestrator decomposition: cada extracción es un commit con dual-call
+  pattern (legacy chat.py llama nueva clase, ambos producen mismos
+  outputs) hasta que el legacy queda vacío y se borra.
+- **LangChain BaseCallbackHandler Template Method**
+  (python.langchain.com): pattern oficial. Hook methods optional override
+  en derived classes. Subclassing es la forma idiomática para
+  multi-agent. Sin breaking en 2026. Confirma que lift Template Method
+  es API-idiomatic.
+- **pytest snapshot testing (Syrupy / inline-snapshot March 2026 /
+  pytest-golden)**: libs maduras. Best practice deterministic seeds +
+  commit snapshots con tests. Confirma que el approach fixture-based con
+  diff byte-equal es viable.
+
+---
+
+## Ajustes vs plan original (2026-04-28 — pre-flight S11A)
+
+Decisiones tomadas en sesión pre-flight tras research + verificación
+estado real del repo:
+
+### Ajuste 1 — Snapshot determinístico de pipeline en lugar de goldens LLM
+
+**Plan original**: "Goldens del eval loop S10 pasan idénticos
+pre/post-refactor (golden diff = 0 turn outputs)" + "eval loop S10
+corriendo + goldens estables (últimas 2 sem semanal sin diffs)".
+
+**Realidad**: S10 cerró 2026-04-28 (commit `4b7258d1`). Cero corridas
+semanales aún. La regla "2 semanas sin diffs" es físicamente
+incumplible.
+
+**Decisión**: en vez de goldens LLM (que tienen variance natural y
+requieren histórico inalcanzable), capturamos **snapshot determinístico
+de pipeline outputs** con LLM mockeado. Capture:
+- `_resolve_customer` output dict.
+- `_track_message_event` calls (props passed).
+- `LeadCapturedEvent` published count.
+- `_load_checkpoint` result.
+- `_handle_human_mode` returns.
+- `_determine_session_state` output dict.
+- `_build_initial_state` output (initial_state dict completo).
+- `semantic_router.detect_and_accumulate` returns.
+- `agent_app.ainvoke` config (callbacks list).
+- `_save_checkpoint` arguments.
+- `audit_repo.log_message` calls.
+- `OutputManager.process_response` call.
+- `ws_manager.emit` events.
+- `event_bus.publish` events.
+
+Estas son funciones puras del input + state cuando el LLM se mockea.
+Refactor preserva pipeline → diff = 0 byte-equal. Validation correcto
+para refactor (cambios estructurales), NO para regresiones de modelo
+(eso lo cubre el judge S10 cuando arranque corrida normal).
+
+Tests viven en `tests/snapshots/sales_agent_pipeline/` con archivos
+JSON commiteados. Refactor arch test:
+`tests/architecture/test_pipeline_snapshot_diff.py` corre los snapshots
+y falla si byte-diff > 0.
+
+Goldens LLM S10 se mantienen intactos para su rol original (judge
+weekly drift detection). NO se tocan.
+
+### Ajuste 2 — Retrofit copilot mismo Sub-sprint A
+
+**Plan original**: "Coordinar timing — copilot retrofit + sales lift en
+mismo sprint. Si copilot no listo → diferir lift a S12 o crear S11.5."
+
+**Realidad**: no hay equipo separado de copilot. El developer que toca
+sales toca copilot. La condición "copilot no listo" = "developer no
+disponible" = nunca aplica.
+
+**Decisión**: retrofit copilot dentro de Sub-sprint A. Lift levanta
+ambos handlers al base en el mismo set de commits. 113 tests copilot +
+sales callback verde post-lift. Cierre simultáneo de la deuda en ambos
+módulos. El base nace validado por 2 consumers reales (threshold DRY de
+[04-principles.md §1.2](§1.2): "esperar al 3er consumer antes de extraer"
+queda exactamente cumplido — 2 consumers reales → extract justificado).
+
+### Ajuste 3 — S11 ejecutado en 2 sesiones (S11A + S11B)
+
+**Plan original**: S11 = 8-12 días en una fase única.
+
+**Realidad**: una sesión Claude no sostiene 12 días sin context
+degradation. El refactor Strangler Fig requiere precisión quirúrgica
+incompatible con context window saturado.
+
+**Decisión**: dividir ejecución en 2 sesiones consecutivas, cada una
+con su propio learnings + handoff prompt:
+
+| Sub-fase | Sesión | Scope | Esfuerzo |
+|---|---|---|---|
+| **S11A** | Esta | Shared base lift (sales + copilot retrofit) + snapshot pipeline framework | 5 días |
+| **S11B** | Próxima | Orchestrator decomposition (chat.py + closer_studio_service.py + semantic_router.py) | 7 días |
+
+S11A produce:
+- `learnings/S11A-shared-base-lift.md`
+- `prompts/S11B-start.md` (handoff con commit hash final S11A)
+
+S11B produce:
+- `learnings/S11B-orchestrator-decomp.md`
+- `prompts/S12-start.md` actualizado (override del existente)
+
+S11 entera está cerrada cuando S11B cierre — README muestra estado
+✅ S11 al cierre conjunto. El **plan no fragmenta** — es la **ejecución**
+la que se distribuye en sesiones para preservar calidad. La fase
+sigue siendo una sola en términos de DoD del plan ([01-master-plan.md
+Definition of Done](01-master-plan.md)).
 
 ---
 

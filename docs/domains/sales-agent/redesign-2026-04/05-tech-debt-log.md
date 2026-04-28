@@ -33,13 +33,16 @@ target concreto fue re-clasificada a fase específica:
 
 | Entry original | Re-clasificación | Cierra en |
 |---|---|---|
-| `DEFERRED-post-S6` callback handler lift (S1) | `DEFERRED-S11` | S11 sub-sprint A |
-| `DEFERRED-post-S6` chat.py overgrown (S00) | `DEFERRED-S11` | S11 sub-sprint B |
-| `DEFERRED-post-S6` closer_studio_service split (S00) | `DEFERRED-S11` | S11 sub-sprint B |
-| `DEFERRED-post-S6` semantic_router registry (S00) | `DEFERRED-S11` | S11 sub-sprint B |
-| `DEFERRED-post-S6` lazy imports brand+offer (S00) | `DEFERRED-S11` | S11 (formaliza ports si decomposition los requiere) |
-| `DEFERRED-post-S6` Subscribers SessionLocal per-event (S1) | `DEFERRED-S11` | S11 (event_bus reshape post-decomposition) |
-| `DEFERRED-post-S6` _tool_dedup_tracker magic string (S1) | `DEFERRED-S11` | S11 (TypedDict update post-decomposition) |
+| `DEFERRED-post-S6` callback handler lift (S1) | `DEFERRED-S11A` | S11A (lift + copilot retrofit, mismo sprint) |
+| `DEFERRED-post-S6` chat.py overgrown (S00) | `DEFERRED-S11B` | S11B Strangler Fig orchestrator |
+| `DEFERRED-post-S6` closer_studio_service split (S00) | `DEFERRED-S11B` | S11B split Query/Command/Kpi |
+| `DEFERRED-post-S6` semantic_router registry (S00) | `DEFERRED-S11B` | S11B registry-based + tenant overrides |
+| `DEFERRED-post-S6` lazy imports brand+offer (S00) | `DEFERRED-S11B` | S11B (formaliza ports si decomposition los requiere) |
+| `DEFERRED-post-S6` Subscribers SessionLocal per-event (S1) | `DEFERRED-S11B` | S11B (event_bus reshape post-decomposition) |
+| `DEFERRED-post-S6` _tool_dedup_tracker magic string (S1) | `DEFERRED-S11B` | S11B (TypedDict update post-decomposition) |
+| `FLAGGED-S11` Goldens en `tests/` consumidas por cron prod (S10) | `DEFERRED-S11A` | S11A (snapshot framework agnóstico path) — re-evalua si cron rompe |
+| `FLAGGED-S11` Drift threshold 5% global, no per-bucket (S10) | `DEFERRED-S+1` | post-redesign cuando emerja volumen real |
+| `FLAGGED-S11` Judge LLM sin `prompt_cache_key` (S10) | `DEFERRED-S+1` | post-redesign cuando RUN_LLM_JUDGE=1 esté activo en prod |
 | `DEFERRED-post-S6` LiteLLM tier pricing >200k (S2) | `DEFERRED-S12` | S12 arch ratchet |
 | `DEFERRED-post-S6` PII async Presidio (S2) | `WONT-FIX` (S12 documenta) | S12 |
 | `DEFERRED-pre-Jul-2026` DeepSeek alias retire (S4) | `DEFERRED-S10` | S10 judge validator + S12 cierre |

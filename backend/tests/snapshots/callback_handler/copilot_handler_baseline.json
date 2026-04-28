@@ -1,0 +1,91 @@
+{
+  "llm_call_repo.add": [
+    {
+      "cached_read_tokens": 80,
+      "cached_read_unit_cost_usd": "5E-7",
+      "cached_write_tokens": 0,
+      "conversation_id": "66666666-6666-6666-6666-666666666666",
+      "cost_tenant_currency": "0.00031000",
+      "cost_usd": "0.0003100",
+      "duration_ms": 24,
+      "error_type": null,
+      "fx_rate_source": "stub",
+      "fx_rate_to_tenant": "1.0",
+      "input_tokens": 100,
+      "input_unit_cost_usd": "0.000001",
+      "model_requested": "kimi-k2.6",
+      "model_responded": "kimi-k2.6",
+      "output_tokens": 50,
+      "output_unit_cost_usd": "0.000005",
+      "parent_span_id": null,
+      "pricing_version_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "provider": "kimi",
+      "reasoning_tokens": 0,
+      "role": "agent",
+      "span_id": "99999999-9999-9999-9999-000000000001",
+      "started_at": "2026-04-28T12:00:00+00:00",
+      "status": "ok",
+      "tenant_currency": "USD",
+      "tenant_id": "44444444-4444-4444-4444-444444444444",
+      "turn_id": "88888888-8888-8888-8888-888888888888",
+      "user_id": "77777777-7777-7777-7777-777777777777"
+    }
+  ],
+  "trace_event_repo.add": [
+    {
+      "conversation_id": "66666666-6666-6666-6666-666666666666",
+      "data": {
+        "cached_read_tokens": 80,
+        "cost_usd": "0.0003100",
+        "fx_rate_source": "stub",
+        "input_tokens": 100,
+        "is_estimated_pricing": false,
+        "output_tokens": 50
+      },
+      "duration_ms": 24,
+      "event_type": "llm_call",
+      "name": "kimi.kimi-k2.6",
+      "span_id": "99999999-9999-9999-9999-000000000001",
+      "status": "ok",
+      "tenant_id": "44444444-4444-4444-4444-444444444444",
+      "turn_id": "88888888-8888-8888-8888-888888888888",
+      "user_id": "77777777-7777-7777-7777-777777777777"
+    },
+    {
+      "conversation_id": "66666666-6666-6666-6666-666666666666",
+      "data": {
+        "args": "{\"lead_id\": \"abc\"}",
+        "output_preview": "{'context': 'fixture'}"
+      },
+      "duration_ms": 25,
+      "event_type": "tool_call",
+      "name": "get_lead_context",
+      "span_id": "22222222-2222-2222-2222-222222222222",
+      "status": "ok",
+      "tenant_id": "44444444-4444-4444-4444-444444444444",
+      "turn_id": "88888888-8888-8888-8888-888888888888",
+      "user_id": "77777777-7777-7777-7777-777777777777"
+    },
+    {
+      "conversation_id": "66666666-6666-6666-6666-666666666666",
+      "event_type": "node_enter",
+      "name": "qualifier",
+      "span_id": "33333333-3333-3333-3333-333333333333",
+      "status": "ok",
+      "tenant_id": "44444444-4444-4444-4444-444444444444",
+      "turn_id": "88888888-8888-8888-8888-888888888888",
+      "user_id": "77777777-7777-7777-7777-777777777777"
+    },
+    {
+      "conversation_id": "66666666-6666-6666-6666-666666666666",
+      "duration_ms": 24,
+      "event_type": "node_exit",
+      "name": "qualifier",
+      "span_id": "33333333-3333-3333-3333-333333333333",
+      "status": "ok",
+      "tenant_id": "44444444-4444-4444-4444-444444444444",
+      "turn_id": "88888888-8888-8888-8888-888888888888",
+      "user_id": "77777777-7777-7777-7777-777777777777"
+    }
+  ]
+}
