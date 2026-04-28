@@ -1,4 +1,4 @@
-.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report perf-baseline shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode audit audit-backend audit-frontend arch-test ci-parity ci-parity-be ci-parity-fe verify-etl verify-probe-meta verify-pipeline verify-ui verify-meta verify-all
+.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report perf-baseline shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode audit audit-backend audit-frontend arch-test ci-parity ci-parity-be ci-parity-fe install-hooks verify-etl verify-probe-meta verify-pipeline verify-ui verify-meta verify-all
 
 # Variables
 DOCKER_COMPOSE = docker compose
@@ -152,6 +152,16 @@ ci-parity-be:
 
 ci-parity-fe:
 	bash scripts/ci-parity.sh --skip-be
+
+# Install the pre-push hook that blocks ``git push origin main`` unless
+# ``make ci-parity`` has just succeeded. Run this once per clone — the
+# hook lives in scripts/git-hooks/pre-push (committed) and is symlinked
+# into .git/hooks (per-clone, gitignored).
+install-hooks:
+	@mkdir -p .git/hooks
+	@ln -sf ../../scripts/git-hooks/pre-push .git/hooks/pre-push
+	@chmod +x scripts/git-hooks/pre-push
+	@echo "✓ pre-push hook installed (.git/hooks/pre-push → scripts/git-hooks/pre-push)"
 
 # Regenerate the user-facing ETL extraction contract markdown from
 # backend/src/modules/analytics/domain/extraction_contract.py.

@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Pre-push hook — block ``git push origin main`` unless ``make ci-parity``
+# has succeeded against HEAD.
+#
+# Why
+# ===
+# /pase-produccion enforces ci-parity in Phase 3b but is run by Claude
+# Code, not by humans pushing directly. Without this hook, a manual
+# ``git push origin main`` skips the gate and reproduces the 5-deploy
+# failure cycle of 2026-04-27.
+#
+# Behavior
+# ========
+# - Push to any branch other than ``main``: pass through, no checks.
+# - Push to ``main``: require a marker file
+#   ``.ci-parity-passed-<sha>`` matching HEAD. The marker is dropped
+#   by ``scripts/ci-parity.sh`` on success and is gitignored.
+# - To bypass for emergencies, set ``CI_PARITY_OVERRIDE=1``. The hook
+#   will print a loud warning and continue. Document why in the push
+#   commit message — the override is auditable in shell history.
+#
+# Install
+# =======
+#   make install-hooks    # once per clone
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+HEAD_SHA="$(git rev-parse HEAD)"
+MARKER="${REPO_ROOT}/.git/ci-parity-passed-${HEAD_SHA}"
+
+# Read remote + ref pairs from stdin (git pre-push protocol).
+while read -r local_ref _local_sha remote_ref _remote_sha; do
+  if [ -z "${local_ref}" ]; then
+    continue
+  fi
+  if [ "${remote_ref}" = "refs/heads/main" ]; then
+    PUSHING_TO_MAIN=1
+  fi
+done
+
+if [ "${PUSHING_TO_MAIN:-0}" -ne 1 ]; then
+  exit 0
+fi
+
+if [ -n "${CI_PARITY_OVERRIDE:-}" ]; then
+  printf "\033[33m"
+  echo "─────────────────────────────────────────────────────────────"
+  echo "WARNING: CI_PARITY_OVERRIDE=1 — bypassing make ci-parity gate."
+  echo "  HEAD: ${HEAD_SHA}"
+  echo "  Reproducing the gap that broke deploys 25025200358..25027765663."
+  echo "─────────────────────────────────────────────────────────────"
+  printf "\033[0m"
+  exit 0
+fi
+
+if [ ! -f "${MARKER}" ]; then
+  printf "\033[31m"
+  cat <<EOF
+─────────────────────────────────────────────────────────────
+PRE-PUSH BLOCKED: pushing to main without ci-parity green.
+
+  HEAD: ${HEAD_SHA}
+  Expected marker: ${MARKER}
+
+Run:
+  make ci-parity
+
+If it passes, the script writes the marker and this hook lets
+you push. If it fails, fix the failure — do NOT push to main
+and let GitHub Actions tell you what broke.
+
+Emergency bypass (audited):
+  CI_PARITY_OVERRIDE=1 git push origin main
+─────────────────────────────────────────────────────────────
+EOF
+  printf "\033[0m"
+  exit 1
+fi
+
+exit 0

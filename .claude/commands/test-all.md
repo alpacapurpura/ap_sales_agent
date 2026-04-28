@@ -60,9 +60,19 @@ cd /home/chris/AISALESHT/frontend && ./node_modules/.bin/eslint src/ --cache --c
 
 ### Step 7: Frontend tests with coverage
 ```bash
-cd /home/chris/AISALESHT/frontend && npx vitest run --coverage
+cd /home/chris/AISALESHT/frontend && npx vitest run --coverage --reporter=default --reporter=json --outputFile=/tmp/vitest-coverage.json
 ```
 Thresholds: **all 20%** (statements, branches, functions, lines).
+
+**Why ``--reporter=json --outputFile=...``** (mandatory, not optional):
+deploy-prod.yml runs vitest with this flag pair. Native runs **without**
+it silently swallow v8 coverage post-processing failures — e.g. a
+PARSE_ERROR when the coverage ``include`` glob captures a non-JS file
+(``*.md``, ``*.json``). Run 25027765663 (2026-04-28) failed in CI on
+``PENDING-REFACTOR.md`` while every native ``/test-all`` reported PASS,
+because the JSON reporter forces full coverage map serialization and
+the default reporter does not. **If you skip the reporter flags, you
+have not run /test-all.**
 
 ---
 

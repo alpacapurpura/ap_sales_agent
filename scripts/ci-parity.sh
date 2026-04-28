@@ -68,6 +68,14 @@ DOCKER_RUN_ENV=(
   -e NODE_OPTIONS=--max-old-space-size=4096
 )
 
+# Mirror validator — fail fast if the script has drifted from
+# deploy-prod.yml. Skip silently if the BE venv is unavailable
+# (fresh clone), since the validator imports yaml from there.
+if [ -x backend/.venv/bin/python ]; then
+  step "Validating ci-parity.sh mirrors deploy-prod.yml"
+  backend/.venv/bin/python scripts/validate_ci_parity_mirror.py
+fi
+
 if [ "$SKIP_BE" -eq 0 ]; then
   step "Building backend test image (Dockerfile target=test)"
   docker build \
@@ -116,6 +124,16 @@ if [ "$SKIP_FE" -eq 0 ]; then
   step "FE: npm audit (security, advisory — matches deploy-prod.yml continue-on-error)"
   docker run --rm "${DOCKER_RUN_ENV[@]}" local-fe-ci npm audit --audit-level=high || \
     printf "\033[33m  (advisory: npm audit reported issues; CI has continue-on-error: true on this step)\033[0m\n"
+fi
+
+# Drop a marker the pre-push hook reads. Marker is keyed by HEAD sha so
+# any new commit invalidates it and forces a re-run before pushing.
+if [ -d .git ]; then
+  HEAD_SHA="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+  # Clear stale markers from prior commits so we never trust a green
+  # gate against the wrong HEAD.
+  rm -f .git/ci-parity-passed-* 2>/dev/null || true
+  touch ".git/ci-parity-passed-${HEAD_SHA}"
 fi
 
 green "✓ CI Parity passed locally — safe to push to main."
