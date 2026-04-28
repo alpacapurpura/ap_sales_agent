@@ -63,6 +63,17 @@ class AgentStateCheckpointModel(Base):
     last_human_message_at = Column(DateTime(timezone=True), nullable=True)
     unread_count = Column(Integer, nullable=False, default=0)
 
+    # S8 — Scheduler meetings (append-only list of booking links + appointments)
+    # Shape: list[dict] with keys tracking_id, event_slug, expires_at, status,
+    # appointment_id, scheduled_at, reminder_24h_sent_at, reminder_1h_sent_at,
+    # postcheck_sent_at, created_at. See migration 080.
+    scheduled_meetings = Column(
+        JSONB,
+        nullable=False,
+        default=list,
+        server_default="[]",
+    )
+
     # Lifecycle
     is_active = Column(Boolean, nullable=False, default=True)
     deleted_at = Column(DateTime(timezone=True), nullable=True)

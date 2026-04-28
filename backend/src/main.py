@@ -125,6 +125,7 @@ from src.modules.offer.api import variant_structures as offer_variant_structures
 from src.modules.sales_agent.api import audit as sales_audit
 from src.modules.sales_agent.api import closer_studio as sales_closer
 from src.modules.sales_agent.api import enrollments as sales_enrollments
+from src.modules.sales_agent.api import scheduler_webhooks as sales_scheduler_webhooks
 from src.modules.sales_agent.api import ws as sales_ws
 from src.modules.scheduling.api import agenda as sched_agenda
 
@@ -277,6 +278,15 @@ def on_startup() -> None:
     )
 
     register_personality_event_handlers()
+
+    # Register sales_agent scheduling event subscribers (S8) — bridges
+    # AppointmentEvent + BookingMissedEvent into scheduled_meetings JSONB
+    # so the reminder engine + Closer Studio see live status.
+    from src.modules.sales_agent.application.scheduling_event_handlers import (
+        register_scheduling_event_handlers,
+    )
+
+    register_scheduling_event_handlers()
 
     # Register copilot observability subscribers (Phase 2 atomic switch).
     # Wires TurnStarted/TurnEnded/CardEmitted/RoutingDecided onto the
@@ -666,6 +676,15 @@ app.include_router(
     dependencies=[Depends(get_tenant_context)],
 )
 app.include_router(sales_ws.router, tags=["Closer Studio - WebSocket"])
+# S8 — Scheduler webhook endpoint (external providers only; internal scheduler
+# uses Nicolify's own POST /event-types/.../book flow). Registry-based
+# dispatch via SCHEDULER_WEBHOOK_PROVIDERS — no edits here when a new
+# provider is added.
+app.include_router(
+    sales_scheduler_webhooks.router,
+    prefix="/api/v1/sales-agent",
+    tags=["Sales Agent - Scheduler Webhooks"],
+)
 
 # 6. Copilot
 app.include_router(

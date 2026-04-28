@@ -243,6 +243,9 @@ def db_engine():
         from src.modules.sales_agent.infrastructure.models.message_model import (
             MessageModel,
         )
+        from src.modules.sales_agent.infrastructure.models.scheduler_webhook_event_model import (
+            SchedulerWebhookEventModel,
+        )
         from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
             SalesAgentLlmCallModel,
         )
@@ -254,6 +257,9 @@ def db_engine():
         )
         from src.modules.scheduling.infrastructure.models.appointment_model import (
             AppointmentModel,
+        )
+        from src.modules.scheduling.infrastructure.models.booking_link import (
+            BookingLink,
         )
         from src.modules.social_proof.infrastructure.models import (
             AuthorityItemModel,

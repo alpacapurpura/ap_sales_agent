@@ -407,6 +407,69 @@ con su commit hash original — son log auditable, append-only.**
 
 ---
 
+## Detectados durante S8 (tools: scheduler integration) — 2026-04-28
+
+### FIXED
+
+#### [HIGH] Sales_agent sin booking-link tool nativo — 2026-04-28 — S8 — FIXED en S8
+- Path: `src/modules/sales_agent/application/tools/scheduling/`.
+- Descripción: previo a S8 sólo existía `tool_check_schedule` (verifica conexión Google Calendar). Lead con intención de agendar requería intervención humana o flujo enrollment manual.
+- Acción: FIXED — 3 tools (`create_booking_link`, `verify_booking_status`, `get_available_slots`) + `SchedulerProvider` Strategy + `InternalSchedulerProvider` impl + `MeetingStateService` JSONB owner + `scheduled_meetings` JSONB en checkpoint + 2 ARQ crons (verify_pending_bookings + appointment_reminder_engine T-24h/T-1h/T+1h) + 5 tests RED→GREEN + 5 arch tests Strategy/anchors. 30/30 S8 tests + 1121 sales_agent + arch verde.
+
+#### [HIGH] Sales_agent sin webhook IN para scheduler externos — 2026-04-28 — S8 — FIXED en S8
+- Path: `src/modules/sales_agent/api/scheduler_webhooks.py` + `src/modules/sales_agent/application/tools/scheduling/webhook_providers.py`.
+- Descripción: tenants con Cal.com / Calendly / GCal push notifications no tenían entry-point para emitir AppointmentEvent automáticos. Internal scheduler usa book endpoint propio, externo no.
+- Acción: FIXED — endpoint genérico registry-driven `POST /api/v1/sales-agent/webhooks/scheduler/{provider}` + `WebhookProvider` Protocol + `SCHEDULER_WEBHOOK_PROVIDERS` registry + dedup table `scheduler_webhook_event` con UNIQUE natural key (provider, tracking_id, event_type, occurred_at) + signature verification per-provider via Strategy + arch test `test_scheduler_provider_strategy.py` bloquea hardcoded provider branches. Concrete impls deferred (no Cal.com/Calendly tenant hoy) — entry-point listo cuando llegue.
+
+#### [HIGH] `scheduling_event_handlers` faltante en sales_agent — 2026-04-28 — S8 — FIXED en S8
+- Path: `src/modules/sales_agent/application/scheduling_event_handlers.py`.
+- Descripción: AppointmentEvent (admin agenda + futuros webhooks) no se reflejaba en scheduled_meetings JSONB. Closer Studio + reminder engine quedaban ciegos a transiciones manuales.
+- Acción: FIXED — 5 subscribers (appointment_booked/completed/no_show/cancelled + booking_missed) registrados en main.py startup + worker startup. Best-effort: short-lived sessions + try/except + logger.warning. `_pick_entry_to_update` heuristic (most recent non-terminal) hasta que el AppointmentModel grow tracking_id FK.
+
+#### [HIGH] Reminder cadence T-24h / T-1h / T+1h ausente — 2026-04-28 — S8 — FIXED en S8
+- Path: `src/modules/sales_agent/workers/appointment_reminder_engine.py` + 3 templates Jinja `appointment_reminder_{t24h,t1h,postcheck}.j2`.
+- Descripción: leads con booking confirmado no recibían recordatorio pre-meeting ni postcheck. Voz de marca no se reusaba.
+- Acción: FIXED — cron 15min con ventanas ±15min sobre scheduled_at - 24h / -1h / +30min..+3h. Stamps idempotency (reminder_24h_sent_at, reminder_1h_sent_at, postcheck_sent_at). LLM call con `prompt_cache_key=tenant_id` (S7 rule) + `LLM_ROLE_BY_SITE['appointment_reminder_*']=NANO` (cheap, ~50 tokens output). System prompt slot 5 SSoT brand voice se hereda gratis sin per-tenant template forks.
+
+#### [MEDIUM] TOOL_REGISTRY sin stage scoping — 2026-04-28 — S8 — FIXED en S8
+- Path: `src/modules/sales_agent/application/tools/registry.py`.
+- Descripción: 14 tools visibles en cualquier stage incluyendo `rapport`. LLM podía generar booking link a leads no calificados.
+- Acción: FIXED — `STAGE_TOOL_SCOPE` + `ALWAYS_AVAILABLE` + `get_tools_for_stage(stage, registry) -> dict`. Rapport: solo safety net (escalate, recommend, verify). Discovery+Presentation: agregan `get_available_slots`, `create_booking_link`, `list_public_editions`. Closing: full toolkit. Arch test parity contra TOOL_REGISTRY existente.
+
+### Nuevos detectados durante S8
+
+#### [MEDIUM] `BookingLink` model sin tenant_id column — 2026-04-28 — S8 — FLAGGED-S11
+- Path: `src/modules/scheduling/infrastructure/models/booking_link.py` + `src/shared/links/ports/scheduling.py::create_personalized_booking_link`.
+- Descripción: prod tiene índice `ix_booking_links_tenant_id` (migration `8bd6b013a46e`) pero el modelo SA no declara la columna. Helper `create_personalized_booking_link` aceptaba `tenant_id` kwarg y se lo pasaba a `BookingLink(...)` → `TypeError` en runtime contra schema actual del modelo. Pre-S8 nunca surfaceó porque el helper se llama solo desde `connections/api/calendar.py:168` con DB Postgres tolerante (silentemente desconoce el kwarg cuando la columna existe en la tabla pero no en el ORM).
+- Acción: FIXED-PARCIAL — el helper ahora descarta el `tenant_id` kwarg (`_ = tenant_id  # reserved for parity`) y NO lo pasa a `BookingLink(...)`. El BookingLink se persiste sin tenant_id en el ORM aunque la columna prod exista. **Falta DDD fix**: añadir `tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)` al modelo + migration que normalice. Re-clasificada DEFERRED-S11 (acoplamiento orchestrator decomposition incluye scheduling refactor).
+- Razón: S8 scope es nuevo flujo end-to-end de scheduling tools — no DDD-cleanup del modelo `BookingLink` pre-existente.
+
+#### [LOW] AppointmentModel.summary como FK suave a event_slug — 2026-04-28 — S8 — FLAGGED-S11
+- Path: `src/modules/scheduling/infrastructure/models/appointment_model.py`.
+- Descripción: el modelo no tiene FK explícita a `event_types.slug`; `summary` carga el título legible. `InternalSchedulerProvider._lookup_appointment` acepta `event_slug` como hint pero no filtra por él — usa most-recent-by-lead. Si un lead tiene múltiples appointments con event_slugs distintos, la heurística puede mismatch.
+- Impacto: bajo hoy (la mayoría de leads tienen 1 appointment activo). Si crece el use case multi-event (discovery + closing call), surfaceá.
+- Acción: FLAGGED-S11 — agregar `event_slug` o FK a EventType al AppointmentModel + actualizar `_lookup_appointment` para filter exacto.
+
+#### [LOW] Webhook signing secret stub via env var — 2026-04-28 — S8 — DEFERRED-S9
+- Path: `src/modules/sales_agent/api/scheduler_webhooks.py::_resolve_signing_secret`.
+- Descripción: `os.environ.get("SCHEDULER_WEBHOOK_SECRET_<PROVIDER>", "")` — global cross-tenant. Cuando llegue Cal.com / Calendly real, cada tenant configura su propio signing secret en `connections.ChannelConnectionModel.config`. Lookup debe ser por tenant.
+- Impacto: nulo hoy (no hay webhook provider concreto wireado). Cuando S+1 aterrice tenant real, surfaceá inmediato.
+- Acción: DEFERRED-S9 — reuse pattern `get_channel_credentials` cuando se agregue primer external provider concreto. S9 (payment lifecycle) toca el mismo patrón con MercadoPago/Stripe — coordinar.
+
+#### [LOW] Closer Studio FE sin meetings tab — 2026-04-28 — S8 — DEFERRED-S+1
+- Path: `frontend/src/features/closer-studio/components/conversation-detail/`.
+- Descripción: scheduled_meetings JSONB poblado pero la UI Closer Studio no lo expone. Operador humano no ve estado de booking links / appointments del lead inline.
+- Impacto: humano debe abrir admin agenda para ver meetings. Tolerable inicial — la voz del agente comunica el booking automático.
+- Acción: DEFERRED-S+1 — agregar `MeetingsTab.tsx` que lee scheduled_meetings via API endpoint nuevo `GET /api/v1/closer-studio/conversations/{id}/meetings`. FE work standalone — no acopla con S9/S10.
+
+#### [LOW] LLM call temperatura hardcodeada 0.5 en reminder engine — 2026-04-28 — S8 — FLAGGED
+- Path: `src/modules/sales_agent/workers/appointment_reminder_engine.py::_render_reminder` línea 235.
+- Descripción: temperatura fija 0.5 + max_output_tokens 160. Si Kimi K2.6 en futuro routes a NANO con temperatura clamp diferente, drift posible.
+- Impacto: nulo hoy (NANO defaultea gpt-4o-mini que respeta 0.5).
+- Acción: FLAGGED — monitorear post-deploy. Si goldens de reminders muestran drift en tone, considerar ROLE_CONFIG mapping.
+
+---
+
 ## Detectados durante S6 (architectural fitness tests ratchet + sweeps) — 2026-04-28
 
 ### FIXED (sweeps oportunista)

@@ -1,0 +1,29 @@
+{# Postcheck T+1h — verifies attendance + opens follow-up #}
+{# Variables: lead_name, offer_name, channel_type, was_attended #}
+
+{% if was_attended %}
+Genera un mensaje breve a {{ lead_name or "el prospecto" }} preguntándole cómo estuvo la reunión.
+
+REGLAS ABSOLUTAS:
+- Máximo 2 líneas
+- Tono curioso, genuino, no encuesta
+- Pregunta abierta que invite a responder
+- Habla en la voz de la marca
+- Spanish neutro LATAM por defecto
+- Un solo emoji máximo
+{% else %}
+Genera un mensaje breve a {{ lead_name or "el prospecto" }}: no apareció en la reunión, sin reproche, ofreciendo reagendar.
+
+Datos:
+{% if offer_name %}- Tema: {{ offer_name }}{% endif %}
+{% if channel_type %}- Canal: {{ channel_type }}{% endif %}
+
+REGLAS ABSOLUTAS:
+- Máximo 2-3 líneas
+- Cero culpa, cero pasivo-agresivo
+- Asume que algo pasó (no que no quiso ir)
+- Ofrece reagendar con una pregunta directa
+- Habla en la voz de la marca
+- Spanish neutro LATAM por defecto
+- Un solo emoji máximo
+{% endif %}

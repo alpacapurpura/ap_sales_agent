@@ -419,3 +419,91 @@ class AppointmentEvent(DomainEvent):
                 "email": email,
             },
         )
+
+
+# ──────────────────────────────────────────────────────────────
+# S8 — sales_agent scheduler events
+# ──────────────────────────────────────────────────────────────
+
+
+@dataclass
+class BookingLinkCreatedEvent(DomainEvent):
+    """Emitted when sales_agent issues a single-use booking link to a lead.
+
+    Subscriber ``schedule_booking_link_followup`` (sales_agent) appends an
+    entry to ``agent_state_checkpoints.scheduled_meetings`` so the verify
+    cron and reminder engine pick it up. Best-effort.
+
+    Payload keys:
+        lead_id: UUID of the lead.
+        tracking_id: provider-issued tracking id (Internal = BookingLink.token).
+        event_slug: scheduling event_type slug used by the link.
+        expires_at: ISO 8601 — link expiration.
+        provider_id: ``"internal"`` / ``"calcom"`` / ``"calendly"`` / etc.
+    """
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        tenant_id: UUID,
+        lead_id: UUID,
+        tracking_id: str,
+        event_slug: str,
+        expires_at: datetime,
+        provider_id: str = "internal",
+    ) -> "BookingLinkCreatedEvent":
+        """Create a ``booking_link_created`` event."""
+        return cls(
+            event_name="booking_link_created",
+            tenant_id=tenant_id,
+            payload={
+                "lead_id": str(lead_id),
+                "tracking_id": tracking_id,
+                "event_slug": event_slug,
+                "expires_at": expires_at.isoformat(),
+                "provider_id": provider_id,
+            },
+        )
+
+
+@dataclass
+class BookingMissedEvent(DomainEvent):
+    """Emit when an appointment past ``start_time + grace`` is still SCHEDULED.
+
+    Inferred no-show by the ``verify_pending_bookings`` cron when no
+    external transition arrives. Distinct from ``appointment_no_show``
+    (explicit user-set status from admin agenda UI).
+
+    Subscriber drives recovery cadence: postcheck nudge or escalation.
+    Distinct from ``appointment_no_show`` (explicit user-set status from
+    admin agenda UI) — this one is *inferred* by the cron.
+
+    Payload keys:
+        lead_id: UUID.
+        appointment_id: UUID — local AppointmentModel.
+        scheduled_at: ISO 8601 — original scheduled start_time.
+        grace_minutes: int — grace window applied before flagging missed.
+    """
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        tenant_id: UUID,
+        lead_id: UUID,
+        appointment_id: UUID,
+        scheduled_at: datetime,
+        grace_minutes: int = 30,
+    ) -> "BookingMissedEvent":
+        """Create a ``booking_missed`` event."""
+        return cls(
+            event_name="booking_missed",
+            tenant_id=tenant_id,
+            payload={
+                "lead_id": str(lead_id),
+                "appointment_id": str(appointment_id),
+                "scheduled_at": scheduled_at.isoformat(),
+                "grace_minutes": grace_minutes,
+            },
+        )

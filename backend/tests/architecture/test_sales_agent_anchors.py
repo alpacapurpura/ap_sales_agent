@@ -27,6 +27,11 @@ ANCHOR_REGISTRY: dict[str, str] = {
     "SALES-AGENT-PII-SANITIZE-S1": "docs/domains/sales-agent/redesign-2026-04/phases/S1-sales-agent-observability-parity.md",
     # S4 — model role mapping SSoT
     "SALES-AGENT-MODEL-TIER-S4": "docs/domains/sales-agent/redesign-2026-04/phases/S4-chatmodelspec-tier.md",
+    # S8 — scheduler tools + workers + webhook entry-points
+    "SALES-AGENT-S8-PROVIDER": "docs/domains/sales-agent/redesign-2026-04/phases/S8-tools-scheduler.md",
+    "SALES-AGENT-S8-TOOLS": "docs/domains/sales-agent/redesign-2026-04/phases/S8-tools-scheduler.md",
+    "SALES-AGENT-S8-CRON": "docs/domains/sales-agent/redesign-2026-04/phases/S8-tools-scheduler.md",
+    "SALES-AGENT-S8-WEBHOOK": "docs/domains/sales-agent/redesign-2026-04/phases/S8-tools-scheduler.md",
 }
 
 ANCHOR_CAP: int = 25

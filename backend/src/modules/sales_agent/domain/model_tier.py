@@ -65,6 +65,12 @@ LLM_ROLE_BY_SITE: dict[str, ModelRole] = {
     "summary": ModelRole.NANO,
     "follow_up_nudge": ModelRole.NANO,
     "safety": ModelRole.FAST,
+    # Scheduler reminder workers (S8) ──────────────────────────────────
+    # Short messages (~50 tokens) reusing the cached brand-voice prefix
+    # that S7 already populates in slot 5 — NANO is plenty.
+    "appointment_reminder_t24h": ModelRole.NANO,
+    "appointment_reminder_t1h": ModelRole.NANO,
+    "appointment_postcheck": ModelRole.NANO,
 }
 
 

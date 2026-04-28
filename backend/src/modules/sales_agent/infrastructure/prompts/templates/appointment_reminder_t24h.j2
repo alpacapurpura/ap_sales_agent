@@ -1,0 +1,19 @@
+{# Reminder T-24h — confirms attendance for tomorrow's meeting #}
+{# Variables: lead_name, scheduled_at_local, offer_name, event_title, channel_type #}
+
+Genera un mensaje cálido recordando a {{ lead_name or "el prospecto" }} que tiene una reunión mañana.
+
+Datos:
+- Fecha y hora: {{ scheduled_at_local }}
+{% if event_title %}- Tipo de reunión: {{ event_title }}{% endif %}
+{% if offer_name %}- Tema: {{ offer_name }}{% endif %}
+{% if channel_type %}- Canal: {{ channel_type }}{% endif %}
+
+REGLAS ABSOLUTAS:
+- Máximo 2-3 líneas
+- Tono cálido, no robótico
+- Pídele que confirme con un emoji o un OK breve
+- NO repitas el link; ya lo tiene
+- Habla en la voz de la marca (ya está en tu system prompt)
+- Spanish neutro LATAM por defecto, salvo que tu voz de marca indique lo contrario
+- Un solo emoji máximo

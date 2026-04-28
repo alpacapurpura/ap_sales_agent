@@ -26,7 +26,13 @@ from src.modules.offer.workers.tasks import run_offer_extraction
 from src.modules.sales_agent.observability.workers.dual_write_reconciliation_task import (
     run_sales_agent_dual_write_reconcile,
 )
+from src.modules.sales_agent.workers.appointment_reminder_engine import (
+    run_appointment_reminders,
+)
 from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
+from src.modules.sales_agent.workers.verify_pending_bookings import (
+    run_verify_pending_bookings,
+)
 from src.modules.tenant_domains.workers.tasks import poll_domain_verification
 from src.shared.agent_observability.workers.aggregate_refresh_task import (
     refresh_daily_cost_mv,
@@ -62,6 +68,8 @@ class WorkerSettings:
         purge_expired_trace_rows,
         run_cost_alerts,
         run_sales_agent_dual_write_reconcile,
+        run_verify_pending_bookings,
+        run_appointment_reminders,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -85,6 +93,14 @@ class WorkerSettings:
         ctx["redis_cache"] = redis_client
         register_extraction_event_handlers()
         register_brand_summary_event_handlers()
+
+        # S8 — bridge AppointmentEvent / BookingMissedEvent into
+        # scheduled_meetings JSONB. Idempotent registration.
+        from src.modules.sales_agent.application.scheduling_event_handlers import (
+            register_scheduling_event_handlers,
+        )
+
+        register_scheduling_event_handlers()
 
     @staticmethod
     async def on_shutdown(ctx: dict) -> None:
@@ -121,6 +137,8 @@ class SchedulerSettings:
         purge_expired_trace_rows,
         run_cost_alerts,
         run_sales_agent_dual_write_reconcile,
+        run_verify_pending_bookings,
+        run_appointment_reminders,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -214,6 +232,20 @@ class SchedulerSettings:
             run_sales_agent_dual_write_reconcile,
             minute=25,
         ),
+        # S8 — verify pending bookings (link expiry + missed inference).
+        # Every 15 min on :07 / :22 / :37 / :52 to avoid colliding with
+        # ETL on-the-hour and cost MV on-:05.
+        cron(
+            run_verify_pending_bookings,
+            minute={7, 22, 37, 52},
+        ),
+        # S8 — appointment reminder engine (T-24h / T-1h / T+1h postcheck).
+        # Same cadence as verify_pending_bookings but offset by 5 minutes
+        # so the verify cron lands first and entries are fresh.
+        cron(
+            run_appointment_reminders,
+            minute={12, 27, 42, 57},
+        ),
     ]
 
     @staticmethod
@@ -233,6 +265,14 @@ class SchedulerSettings:
         ctx["redis_cache"] = redis_client
         register_extraction_event_handlers()
         register_brand_summary_event_handlers()
+
+        # S8 — bridge AppointmentEvent / BookingMissedEvent into
+        # scheduled_meetings JSONB. Idempotent registration.
+        from src.modules.sales_agent.application.scheduling_event_handlers import (
+            register_scheduling_event_handlers,
+        )
+
+        register_scheduling_event_handlers()
 
     @staticmethod
     async def on_shutdown(ctx: dict) -> None:

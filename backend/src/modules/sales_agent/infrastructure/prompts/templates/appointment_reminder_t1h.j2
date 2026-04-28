@@ -1,0 +1,17 @@
+{# Reminder T-1h — last-mile heads-up #}
+{# Variables: lead_name, scheduled_at_local, meeting_link, channel_type #}
+
+Genera un recordatorio breve a {{ lead_name or "el prospecto" }}: la reunión empieza en menos de una hora.
+
+Datos:
+- Hora: {{ scheduled_at_local }}
+{% if meeting_link %}- Link: {{ meeting_link }}{% endif %}
+{% if channel_type %}- Canal: {{ channel_type }}{% endif %}
+
+REGLAS ABSOLUTAS:
+- Máximo 2 líneas
+- Si hay meeting_link, inclúyelo. Si no, no inventes
+- Tono entusiasta pero no invasivo
+- Habla en la voz de la marca
+- Spanish neutro LATAM por defecto
+- Un solo emoji máximo

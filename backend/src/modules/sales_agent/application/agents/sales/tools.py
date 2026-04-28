@@ -97,6 +97,9 @@ def tool_escalate_to_human(state: dict[str, Any], db: Any = None) -> dict[str, s
 from src.modules.sales_agent.application.agents.sales.enrollment_tools import (
     ENROLLMENT_TOOL_REGISTRY,
 )
+from src.modules.sales_agent.application.tools.scheduling import (
+    SCHEDULING_TOOL_REGISTRY,
+)
 
 TOOL_REGISTRY: dict[str, Any] = {
     "send_payment_link": tool_send_payment_link,
@@ -104,4 +107,5 @@ TOOL_REGISTRY: dict[str, Any] = {
     "recommend_product": tool_recommend_product,
     "escalate_to_human": tool_escalate_to_human,
     **ENROLLMENT_TOOL_REGISTRY,
+    **SCHEDULING_TOOL_REGISTRY,
 }
