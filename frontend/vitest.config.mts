@@ -15,7 +15,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/features/**', 'src/lib/**', 'src/components/shared/**'],
-      exclude: ['src/components/ui/**', '**/*.d.ts', '**/*.test.*'],
+      exclude: ['src/components/ui/**', '**/*.d.ts', '**/*.test.*', '**/*.md'],
       reporter: ['text', 'text-summary'],
       thresholds: {
         // Phase 4 Milestone 1: 20% (achieved 2026-04-15: actual ~25%/21%/22%/25%)

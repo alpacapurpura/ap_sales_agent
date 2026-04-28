@@ -89,8 +89,9 @@ if [ "$SKIP_BE" -eq 0 ]; then
     pytest --cov=src/modules --cov=src/shared --cov-report=term -q \
     --ignore=tests/modules/analytics/test_meta_provider.py
 
-  step "BE: pip-audit (security)"
-  docker run --rm "${DOCKER_RUN_ENV[@]}" local-be-ci pip-audit --strict --desc
+  step "BE: pip-audit (security, advisory — matches deploy-prod.yml continue-on-error)"
+  docker run --rm "${DOCKER_RUN_ENV[@]}" local-be-ci pip-audit --strict --desc || \
+    printf "\033[33m  (advisory: pip-audit reported issues; CI has continue-on-error: true on this step)\033[0m\n"
 fi
 
 if [ "$SKIP_FE" -eq 0 ]; then
@@ -112,8 +113,9 @@ if [ "$SKIP_FE" -eq 0 ]; then
   docker run --rm "${DOCKER_RUN_ENV[@]}" local-fe-ci \
     npx vitest run --coverage
 
-  step "FE: npm audit (security)"
-  docker run --rm "${DOCKER_RUN_ENV[@]}" local-fe-ci npm audit --audit-level=high
+  step "FE: npm audit (security, advisory — matches deploy-prod.yml continue-on-error)"
+  docker run --rm "${DOCKER_RUN_ENV[@]}" local-fe-ci npm audit --audit-level=high || \
+    printf "\033[33m  (advisory: npm audit reported issues; CI has continue-on-error: true on this step)\033[0m\n"
 fi
 
 green "✓ CI Parity passed locally — safe to push to main."
