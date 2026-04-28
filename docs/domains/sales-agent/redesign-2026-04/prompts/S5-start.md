@@ -15,7 +15,7 @@ Continuamos redesign sales_agent.
 CONTEXTO post-S4 (cerrado 2026-04-28):
 - S4 cerrada: `domain/model_tier.py::SPECIALIST_TO_ROLE` (SSoT mapping). Closer→AGENT (Kimi K2.6 cache 75-83%), supervisor→NANO, qualifier/product_expert REASONING (DeepSeek V4 auto-cache disk-based). Arch test ratchet `tests/architecture/test_no_hardcoded_models_sales_agent.py` bloquea wire-name strings (`gpt-*`, `o3`, `o4-mini`, `claude-*`, `deepseek-*`, `kimi-*`, `moonshot-*`, `qwen*`, `gemini-*`) en `application/agents/sales/`. Sin allowlist.
 - Hot wins activos via env vars: `AI_PROVIDER_AGENT=kimi` rutea closer; `AI_PROVIDER_REASONING=deepseek` rutea qualifier+product_expert.
-- Branch: development limpio. Último commit S4: {HASH}
+- Branch: development limpio. Último commit S4: `b050d532`
 - Tests: 1639 verde (sales_agent + arch + admin + shared + copilot/observability).
 - `MultiRoleLLMRouter` (singleton) + `ChatModelSpec` + `_kwargs.py::normalize_openai_protocol_kwargs` con `reasoning_token_reserve` ya activo cross-provider — S5 NO toca.
 
