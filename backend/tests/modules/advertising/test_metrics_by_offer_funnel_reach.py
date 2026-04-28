@@ -17,7 +17,7 @@ Exercises the rules defined in
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from uuid import UUID, uuid4
 
 import pytest
@@ -831,13 +831,20 @@ class TestTenantLocaleTimezoneThroughService:
             external_id="c-lima",
             name="Lima Campaign",
         )
-        today = date.today()
+        # Seed at "today in Lima" because the service resolves the period
+        # window in the tenant's timezone. ``date.today()`` returns the
+        # date in the *runner's* local TZ — fine on dev WSL (UTC-5..-3)
+        # but in CI on UTC it can land a day ahead, putting the metric
+        # outside the 7-day Lima window. Using ``America/Lima`` keeps
+        # the seed inside the window the service is about to query
+        # regardless of when the suite runs.
+        lima_today = datetime.now(timezone(timedelta(hours=-5))).date()
         make_metric(
             db,
             tenant_id=tenant_id,
             metric_name="spend",
             value=123.0,
-            metric_date=today,
+            metric_date=lima_today,
             campaign_id=campaign.external_id,
         )
 
@@ -847,9 +854,8 @@ class TestTenantLocaleTimezoneThroughService:
         result = await svc.run(tenant_id, period="7d", tenant_locale=locale)
 
         # The window must be a valid 7-day window (end - start == 6 days).
-        from datetime import timedelta
-
         assert (result.end_date - result.start_date) == timedelta(days=6)
-        # And at least the today's metric should be visible in the aggregate.
-        # Unassigned holds it because the campaign has no association.
+        # And at least today's metric (seeded in Lima time) should be
+        # visible in the aggregate. Unassigned holds it because the
+        # campaign has no offer association.
         assert result.unassigned.total_spend == 123.0
