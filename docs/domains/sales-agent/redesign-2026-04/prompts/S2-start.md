@@ -22,7 +22,7 @@ CONTEXTO post-S1 (cerrado 2026-04-28):
 - Reconciliation worker `run_sales_agent_dual_write_reconcile` registrado en WorkerSettings.functions + SchedulerSettings.cron_jobs (minute=25). Off por env-flag `SALES_AGENT_DUAL_WRITE_RECONCILE=1`.
 - Dual-write con @trace_node: ACTIVO. 4-week observation window arrancando 2026-04-28. Cutover criterion: diff <1% per-tenant.
 - sales_audit.py dual-read: timeline merge + sidebar prefer event-sourced + clear_user_history extends sales_agent_* tables.
-- Branch: development limpio. Último commit S1: {HASH — pin al cerrar}.
+- Branch: development limpio. Último commit S1: 3f7d28bf — feat(sales-agent-redesign-s1): callback handler + dual-write + PII LATAM + tool_call_dedup.
 
 HOOKS LISTOS PARA S2:
 - model_pricing_snapshot + tenant_billing_config son cross-agent (post-S0). NO duplicar.
