@@ -105,8 +105,8 @@ class TestSupervisorNode:
             assert render_kwargs["last_specialist"] == "product_expert"
 
     @patch(_TRACE_PATCH, _noop_trace)
-    def test_supervisor_uses_fast_model_low_temperature(self):
-        """Verify supervisor calls LLM with model_type='fast' and temperature=0.0."""
+    def test_supervisor_uses_nano_model_low_temperature(self):
+        """Verify supervisor calls LLM with model_type=NANO (S4) and temperature=0.0."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
 
         importlib.reload(nodes_mod)
@@ -125,7 +125,7 @@ class TestSupervisorNode:
             nodes_mod.node_sales_supervisor(state)
 
             call_kwargs = mock_service.generate_response.call_args.kwargs
-            assert call_kwargs["model_type"] == ModelRole.FAST
+            assert call_kwargs["model_type"] == ModelRole.NANO
             assert call_kwargs["temperature"] == 0.0
             assert call_kwargs["max_output_tokens"] == 10
 
@@ -187,8 +187,8 @@ class TestQualifierNode:
 
 class TestCloserNode:
     @patch(_TRACE_PATCH, _noop_trace)
-    def test_closer_uses_higher_temperature(self):
-        """Verify closer uses temperature=0.4 for more creative closing responses."""
+    def test_closer_uses_agent_role_higher_temperature(self):
+        """Verify closer uses ModelRole.AGENT (S4 — Kimi) and temperature=0.4."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
 
         importlib.reload(nodes_mod)
@@ -204,7 +204,7 @@ class TestCloserNode:
 
             call_kwargs = mock_service.generate_response.call_args.kwargs
             assert call_kwargs["temperature"] == 0.4
-            assert call_kwargs["model_type"] == ModelRole.REASONING
+            assert call_kwargs["model_type"] == ModelRole.AGENT
 
 
 # ---------------------------------------------------------------------------

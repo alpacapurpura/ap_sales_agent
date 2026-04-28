@@ -4,12 +4,12 @@ import json
 import re
 from typing import Any
 
-from src.core.enums import ModelRole
 from src.modules.sales_agent.application.orchestrator.state import AgentState
 from src.modules.sales_agent.application.prompts.compose import (
     SpecialistRole,
     build_specialist_system_prompt,
 )
+from src.modules.sales_agent.domain.model_tier import SPECIALIST_TO_ROLE
 from src.modules.sales_agent.domain.tuning import (
     BUYING_SIGNAL_WEIGHT,
     FOLLOW_UP_CADENCES,
@@ -105,7 +105,7 @@ def node_sales_supervisor(state: AgentState) -> dict[str, Any]:
         decision = LLMFactory.get_service().generate_response(
             messages=state["messages"][-SUPERVISOR_MESSAGE_WINDOW:],
             system_prompt=system_prompt,
-            model_type=ModelRole.FAST,
+            model_type=SPECIALIST_TO_ROLE["supervisor"],
             temperature=0.0,
             max_output_tokens=10,
             metadata={"prompt_template": "supervisor_routing"},
@@ -137,7 +137,7 @@ def node_qualifier(state: AgentState) -> dict[str, Any]:
     response = LLMFactory.get_service().generate_response(
         messages=state["messages"],
         system_prompt=system_prompt,
-        model_type=ModelRole.REASONING,
+        model_type=SPECIALIST_TO_ROLE["qualifier"],
         temperature=0.2,
         metadata={"prompt_template": "compose:specialist_qualifier"},
     )
@@ -151,7 +151,7 @@ def node_product_expert(state: AgentState) -> dict[str, Any]:
     response = LLMFactory.get_service().generate_response(
         messages=state["messages"],
         system_prompt=system_prompt,
-        model_type=ModelRole.REASONING,
+        model_type=SPECIALIST_TO_ROLE["product_expert"],
         temperature=0.2,
         metadata={"prompt_template": "compose:specialist_product_expert"},
     )
@@ -160,12 +160,19 @@ def node_product_expert(state: AgentState) -> dict[str, Any]:
 
 @trace_node("closer")
 def node_closer(state: AgentState) -> dict[str, Any]:
-    """Node closer."""
+    """Node closer.
+
+    Routes to ``ModelRole.AGENT`` (Kimi K2.6 by default via
+    ``AI_PROVIDER_AGENT=kimi``) for long-form objection handling. The
+    higher temperature (0.4) is requested by the closer for creativity;
+    Kimi clamps it to its server-required 0.6 in
+    ``KimiService._get_chat_model`` when ``AI_MODEL_AGENT`` is a K2 SKU.
+    """
     system_prompt = build_specialist_system_prompt(state, SpecialistRole.CLOSER)
     response = LLMFactory.get_service().generate_response(
         messages=state["messages"],
         system_prompt=system_prompt,
-        model_type=ModelRole.REASONING,
+        model_type=SPECIALIST_TO_ROLE["closer"],
         temperature=0.4,
         metadata={"prompt_template": "compose:specialist_closer"},
     )

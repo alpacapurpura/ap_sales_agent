@@ -54,9 +54,46 @@ Sales_agent adopta el routing multi-provider per-role + ChatModelSpec ya impleme
 - `backend/src/core/config.py` — `AI_PROVIDER_*` env + `get_provider_for_role`.
 - Commits 9d63c0da, c60197fa, 7dcc5db4, dfc57716, a3f65d04, 222bd54a (rationale).
 
-### Hallazgos research
+### Hallazgos research (2026-04-28)
 
-> COMPLETAR.
+**Kimi K2.6 (Moonshot, released 2026-04-20)**
+- 1T params, 32B activated, 256K context. Open-weight + native multimodal. Beats GPT-5.4 + Claude Opus 4.6 + Gemini 3.1 Pro en SWE-Bench Pro.
+- OpenAI compat full (chat.completions, streaming, tools, tool_choice, temperature, top_p, max_tokens).
+- Thinking-disabled (`thinking={"type": "disabled"}`) requiere `temperature=0.6` (server-enforced). Thinking-enabled requiere `temperature=1.0`.
+- Sales_agent ya tiene esta lógica correcta en `KimiService._get_chat_model` (auto-clamp temp + force `extra_body.thinking={"type":"disabled"}`).
+- **Conclusión S4**: switch closer→AGENT (Kimi) es seguro. Auto-cache 75-83% savings ya documented. NO hay cambio de kwargs adicional necesario.
+
+**DeepSeek V4 (released April 2026)**
+- V4-Pro: 1.6T params (49B activated). V4-Flash: 284B (13B activated). 1M context window.
+- Reasoning + visible content comparten `max_tokens` budget (mismo trap original V3-V4). Reserve 4000 sigue válido.
+- **Migration deadline Jul 24 2026**: `deepseek-chat` y `deepseek-reasoner` aliases retiran → migrar explícito a `deepseek-v4-pro`/`deepseek-v4-flash`. **NO bloquea S4** (env-var `AI_MODEL_REASONING` resuelve dinámico). Tech-debt entry para refresh pre-Jul 2026.
+- `langchain-deepseek` package native expone `prompt_cache_hit_tokens` raw + LangChain normaliza a `usage_metadata.input_token_details.cache_read` standard.
+- **Conclusión S4**: qualifier/product_expert quedan REASONING. DeepSeek V4 disk-based auto-cache ya activo via `AI_PROVIDER_REASONING=deepseek` env var. No code change adicional.
+
+**OpenAI o3 / o4-mini (2026)**
+- o3 tiene `reasoning_effort` (low/medium/high) — funciona via `_kwargs.py::normalize_openai_protocol_kwargs`.
+- **o4-mini NO expone `reasoning_effort`** (solo o3). NANO/FAST que ruteamos a OpenAI no necesitan reasoning_effort.
+- **Conclusión S4**: supervisor→NANO (gpt-5.4-nano si OpenAI catalog actualiza, hoy gpt-4o-mini fallback) seguro. Sin cambios al normalizer.
+
+**LangChain `usage_metadata.input_token_details.cache_read` (2026)**
+- Standard cross-provider: OpenAI / DeepSeek / Kimi / Gemini normalizan correcto.
+- **Anthropic conocido bug**: 2× counts en `message_delta` streaming (issue #32818). NO afecta sales_agent (no rutea a Claude).
+- DeepSeek raw key `prompt_cache_hit_tokens` se mapea a `cache_read` por el partner package nativo.
+- **Conclusión S4**: el callback handler S1 (`SalesAgentCallbackHandler._extract_usage`) lee `usage_metadata.input_token_details.cache_read` → trabaja correcto post-S4 sin ajuste para Kimi/DeepSeek. Watchpoint S3 ya cubierto.
+
+### Inventory de specialists con LLM (sales_agent)
+
+| Site | Path | Hoy | Post-S4 | Razón |
+|---|---|---|---|---|
+| supervisor | `nodes.py:108` | `FAST` | **`NANO`** | classifier 10-token output; paridad copilot F8. |
+| qualifier | `nodes.py:140` | `REASONING` | `REASONING` | DeepSeek V4 auto-cache + razonamiento sobre lead context. Sin cambio. |
+| product_expert | `nodes.py:154` | `REASONING` | `REASONING` | DeepSeek V4 auto-cache + razonamiento sobre offer context. Sin cambio. |
+| closer | `nodes.py:168` | `REASONING` | **`AGENT`** | Kimi K2.6 cierres largos + cache 75-83% + manejo objeciones. Cambio principal S4. |
+
+Fuera de SPECIALIST_TO_ROLE scope (mantenidos):
+- `safety_service.py:120` (FAST): PII/jailbreak detection — apropiado FAST.
+- `chat.py:550` (FAST): summary generator — candidato NANO post-S4 (DEFERRED).
+- `follow_up_engine.py:83` (FAST): nudge message gen — candidato NANO post-S4 (DEFERRED).
 
 ---
 

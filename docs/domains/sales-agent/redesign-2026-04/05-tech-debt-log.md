@@ -71,11 +71,9 @@ Statuses: `FIXED` · `DEFERRED-S{N}` · `FLAGGED` · `WONT-FIX`.
 - Impacto: LLM cost. Estimado 25-30% reducción con hit rate 60%.
 - Acción: FIXED — `compose_system_prompt(fragments)` mirror F8 copilot pattern. Single string + `CACHE_BOUNDARY_MARKER` (HTML comment). Slot order: static_identity → tools_hint → playbook → agent_identity → offer (S7 placeholder) → channel (S5 placeholder) → [BOUNDARY] → stage → signals → session_continuity → tool_format. Prefix realista ≥2700 tokens (>2× threshold). Specialists qualifier/product_expert/closer migrados; supervisor fuera de scope (max_output_tokens=10).
 
-#### [MEDIUM] Sales_agent no usa multi-provider per-role — 2026-04-28 — diagnóstico — DEFERRED-S4
-- Path: `backend/src/modules/sales_agent/application/agents/sales/nodes.py`
-- Descripción: invoca `LLMFactory.get_service(ModelRole.X)` directo, no aprovecha `settings.get_provider_for_role(role)` (env vars `AI_PROVIDER_*`). Pierde optimización Kimi=AGENT (cierre) y DeepSeek=REASONING (objeciones complejas).
-- Impacto: cost. Cierra con OpenAI gpt-4o cuando Kimi-K2.6 sería ~5-10x más barato a paridad calidad.
-- Acción: DEFERRED-S4.
+#### [MEDIUM] Sales_agent no usa multi-provider per-role — 2026-04-28 — diagnóstico — FIXED en S4
+- Path: `backend/src/modules/sales_agent/application/agents/sales/nodes.py` + `backend/src/modules/sales_agent/domain/model_tier.py` (nuevo SSoT).
+- Acción: FIXED — `MultiRoleLLMRouter` ya enrutaba per-role transparente; el missing piece era el mapping `SPECIALIST_TO_ROLE` semántico (SSoT). Closer pasa de `REASONING` → `AGENT` (Kimi K2.6, cache 75-83%); supervisor `FAST` → `NANO` (paridad copilot F8). Qualifier/product_expert mantienen `REASONING` (DeepSeek V4 auto-cache disk-based via `AI_PROVIDER_REASONING=deepseek`). Arch test `tests/architecture/test_no_hardcoded_models_sales_agent.py` bloquea regresiones de hardcoded model strings en `application/agents/sales/`.
 
 #### [LOW] Cost_usd inline sin pricing snapshot — 2026-04-27 — diagnóstico — FIXED en S2
 - Path: `backend/src/modules/sales_agent/infrastructure/models/llm_log_model.py` (legacy table, S6 drop) + `sales_agent_llm_call.cost_usd` (event-sourced, S1 callback).
@@ -361,6 +359,42 @@ Statuses: `FIXED` · `DEFERRED-S{N}` · `FLAGGED` · `WONT-FIX`.
 - Descripción: 2 tests duplican fixture autouse mockeando `SessionLocal` + repos. Si más tests sales_agent necesitan ese mock se promueve a `tests/modules/sales_agent/conftest.py`.
 - Impacto: mínimo — ~20 LOC duplicadas hoy.
 - Acción: DEFERRED-S6 ratchet pass — promover a conftest cuando 3+ tests lo requieran.
+
+---
+
+## Detectados durante S4 (ChatModelSpec adopt + per-role multi-provider) — 2026-04-28
+
+### FIXED (entrada arriba ya marcada)
+
+- `[MEDIUM] Sales_agent no usa multi-provider per-role` — FIXED en S4 (ver sección sembrado inicial).
+
+### Nuevos detectados en S4
+
+#### [MEDIUM] DeepSeek alias retire deadline 2026-07-24 — 2026-04-28 — S4 — DEFERRED-pre-Jul-2026
+- Path: `backend/src/core/config.py` (env vars `AI_MODEL_REASONING` / `AI_MODEL_AGENT` defaults) + tenant configs en producción.
+- Descripción: research S4 confirmó que `deepseek-chat` y `deepseek-reasoner` aliases retiran completamente Jul 24 2026 15:59 UTC. DeepSeek pide migrar explícito a `deepseek-v4-pro` (1.6T params) o `deepseek-v4-flash` (284B).
+- Impacto: post-deadline calls a alias rompen con 404. Sales_agent usa env var (`AI_MODEL_REASONING` default `gpt-4o`), pero tenants que sobreescriban a `deepseek-reasoner` rompen.
+- Acción: DEFERRED-pre-Jul-2026 — al migrar `AI_PROVIDER_REASONING=deepseek` en producción, default explícito a `deepseek-v4-flash` (más barato, suficiente para qualifier/product_expert) o `deepseek-v4-pro` (cierres complejos si se promueve closer→REASONING en lugar de AGENT). Watchpoint S5/S6.
+- Razón: scope S4 fue adopción + mapping; cambio de defaults env-var es deploy concern.
+
+#### [LOW] safety_service.py + chat.py:550 + follow_up_engine.py NO consumen SPECIALIST_TO_ROLE — 2026-04-28 — S4 — DEFERRED-post-S6
+- Paths:
+  - `backend/src/modules/sales_agent/infrastructure/external/safety_service.py:120` (FAST)
+  - `backend/src/modules/sales_agent/application/orchestrator/chat.py:550` (FAST, summary)
+  - `backend/src/modules/sales_agent/workers/follow_up_engine.py:83` (FAST, nudge gen)
+- Descripción: estas 3 LLM calls también podrían beneficiarse de SSoT (especialmente summary/follow_up: candidatos NANO post-S4). Hoy quedan FAST hardcoded — no son specialists del StateGraph, viven en infra/orchestrator/workers.
+- Impacto: cost menor (FAST sigue mappeando a OpenAI gpt-4o-mini típico, ya barato). Drift potencial si se quiere modificar el role centralizado.
+- Acción: DEFERRED-post-S6 — extender `SPECIALIST_TO_ROLE` a un mapping más amplio `LLM_ROLE_BY_SITE` cuando S6 ratchet pass formalice los anchors. Promote `summary` + `follow_up_nudge` a NANO.
+
+#### [LOW] Closer temperature 0.4 clamped a 0.6 por Kimi K2.6 — 2026-04-28 — S4 — FLAGGED
+- Path: `backend/src/modules/sales_agent/application/agents/sales/nodes.py:174` + `backend/src/shared/infrastructure/llm/providers/kimi.py:78-85`.
+- Descripción: closer pide `temperature=0.4`, Kimi K2.6 con thinking-disabled requiere temp 0.6 server-side (clamp + structlog warning).
+- Impacto: nulo funcional (clamp + log claro). Pero el specialist code dice 0.4 mientras el wire sale 0.6 — posible confusión para futuro reader.
+- Acción: FLAGGED — monitorear post-deploy. Si los closes empíricamente suenan menos creativos que pre-S4 con OpenAI temp 0.4, opciones: (a) override por canal (Telegram más creativo, web más conservador), (b) accept Kimi 0.6 como nuevo baseline, (c) routing condicional pre-S6 según tier de oferta.
+- Razón: kimi.py ya hace lo correcto; el log warning lo documenta runtime.
+
+#### [LOW] supervisor + summary/follow_up FAST → NANO no migrado — 2026-04-28 — S4 — DEFERRED-post-S6
+- Idem [LOW] anterior. Documentado para que S6 ratchet pass los lift al SPECIALIST_TO_ROLE expandido.
 
 ---
 
