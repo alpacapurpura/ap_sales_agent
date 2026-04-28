@@ -26,6 +26,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 HANDLER = REPO / "src" / "modules" / "sales_agent" / "observability" / "recording" / "callback_handler.py"
+BASE_HANDLER = REPO / "src" / "shared" / "agent_observability" / "recording" / "base_callback_handler.py"
 SUBSCRIBERS = REPO / "src" / "modules" / "sales_agent" / "observability" / "domain_events" / "subscribers.py"
 
 
@@ -125,7 +126,10 @@ class TestSanitizationCoverage:
         assert SUBSCRIBERS.is_file(), f"missing {SUBSCRIBERS}"
 
     def test_callback_handler_data_kwargs_pass_through_sanitize_payload(self) -> None:
-        offenders = _violations_in_file(HANDLER)
+        # Post-S11A lift los call sites con ``data=<expr>`` viven en el base
+        # (Template Method skeleton). El sales subclass solo redirecciona
+        # via ``_persist_trace_event_row(**kwargs)`` — passthrough.
+        offenders = _violations_in_file(HANDLER) + _violations_in_file(BASE_HANDLER)
         assert not offenders, (
             "Cada ``data=<expr>`` que persiste a sales_agent_trace_event debe pasar "
             "por sanitize_payload(...). Violations encontradas:\n  - "
@@ -140,8 +144,10 @@ class TestSanitizationCoverage:
         )
 
     def test_sanitize_payload_imported_in_handler(self) -> None:
-        src = HANDLER.read_text(encoding="utf-8")
-        assert "sanitize_payload" in src, "Handler debe importar sanitize_payload."
+        # Post-S11A lift, el import de ``sanitize_payload`` vive en el base
+        # (Template Method) — el sales subclass lo hereda sin re-importarlo.
+        src = BASE_HANDLER.read_text(encoding="utf-8")
+        assert "sanitize_payload" in src, "Base handler debe importar sanitize_payload."
         assert "from src.shared.agent_observability.recording.sanitization import" in src, (
             "sanitize_payload debe venir del shared SSoT (no copia local)."
         )

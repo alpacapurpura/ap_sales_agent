@@ -110,10 +110,19 @@ class _FrozenDatetime:
         return FROZEN_NOW
 
 
-def freeze_handler_clock(monkeypatch: Any, module_path: str) -> None:
-    """Patch ``datetime`` and ``time`` inside the handler module."""
-    monkeypatch.setattr(f"{module_path}.datetime", _FrozenDatetime)
-    monkeypatch.setattr(f"{module_path}.time.monotonic", _FrozenMonotonic())
+_BASE_HANDLER_MODULE = "src.shared.agent_observability.recording.base_callback_handler"
+
+
+def freeze_handler_clock(monkeypatch: Any, module_path: str | None = None) -> None:
+    """Patch ``datetime`` and ``time`` inside the base handler module.
+
+    Post-S11A lift the LangChain plumbing lives on the base, so the
+    clock is frozen there. ``module_path`` kept for caller back-compat
+    (ignored).
+    """
+    del module_path
+    monkeypatch.setattr(f"{_BASE_HANDLER_MODULE}.datetime", _FrozenDatetime)
+    monkeypatch.setattr(f"{_BASE_HANDLER_MODULE}.time.monotonic", _FrozenMonotonic())
 
 
 # ── Canonical event sequence ───────────────────────────────────────────

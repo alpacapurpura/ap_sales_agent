@@ -22,10 +22,11 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 HANDLER = REPO / "src" / "modules" / "sales_agent" / "observability" / "recording" / "callback_handler.py"
+BASE_HANDLER = REPO / "src" / "shared" / "agent_observability" / "recording" / "base_callback_handler.py"
 
 
 # Nombres de los métodos ``on_*`` que deben cumplir el contrato.
-# Mantenido alineado con :class:`BaseAgentCallbackHandler` shared.
+# Post-S11A lift los 8 callbacks viven en :class:`BaseAgentCallbackHandler` shared.
 EXPECTED_ON_METHODS: frozenset[str] = frozenset(
     {
         "on_chat_model_start",
@@ -46,7 +47,8 @@ ROLLBACK_OPTIONAL: frozenset[str] = frozenset({"on_chat_model_start", "on_tool_s
 
 
 def _parse() -> ast.Module:
-    return ast.parse(HANDLER.read_text(encoding="utf-8"))
+    """Parse base handler — post-S11A the 8 callbacks live here."""
+    return ast.parse(BASE_HANDLER.read_text(encoding="utf-8"))
 
 
 def _on_methods(tree: ast.Module) -> dict[str, ast.FunctionDef | ast.AsyncFunctionDef]:
@@ -75,6 +77,7 @@ class TestEveryOnMethodIsBestEffort:
 
     def test_handler_module_exists(self) -> None:
         assert HANDLER.is_file(), f"missing {HANDLER}"
+        assert BASE_HANDLER.is_file(), f"missing {BASE_HANDLER}"
 
     def test_expected_on_methods_are_declared(self) -> None:
         methods = _on_methods(_parse())
@@ -146,9 +149,11 @@ class TestNoRaiseInOnMethods:
             "re-raise:\n  - " + "\n  - ".join(offenders)
         )
 
-    def test_no_raise_not_implemented_error(self) -> None:
-        """Concrete handler NUNCA debe ``raise NotImplementedError`` — los stubs
-        del Template Method viven en :class:`BaseAgentCallbackHandler`."""
+    def test_no_raise_not_implemented_error_in_subclass(self) -> None:
+        """Concrete sales handler NUNCA debe ``raise NotImplementedError`` —
+        los stubs del Template Method viven en :class:`BaseAgentCallbackHandler`.
+        El base SI puede ``raise NotImplementedError`` (es la convención
+        Python para abstract methods)."""
         src = HANDLER.read_text(encoding="utf-8")
         offenders = [
             (idx + 1, line.strip()) for idx, line in enumerate(src.splitlines()) if "raise NotImplementedError" in line
@@ -157,3 +162,12 @@ class TestNoRaiseInOnMethods:
             "El handler concreto sales_agent NO debe ``raise NotImplementedError``:\n  - "
             + "\n  - ".join(f"{ln}: {txt}" for ln, txt in offenders)
         )
+
+    def test_subclass_below_loc_target(self) -> None:
+        """Sub-sprint A target: SalesAgentCallbackHandler < 200 LOC.
+
+        Post-lift the LangChain plumbing lives on the base; this subclass
+        keeps only fields + abstract overrides.
+        """
+        loc = sum(1 for _ in HANDLER.read_text(encoding="utf-8").splitlines())
+        assert loc < 200, f"SalesAgentCallbackHandler creció a {loc} LOC (target post-S11A < 200)."

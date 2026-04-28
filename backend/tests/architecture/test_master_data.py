@@ -32,6 +32,11 @@ ALLOWED_USD_DEFAULT_FILES: set[str] = {
     "src/shared/agent_observability/cost/fx_resolver.py",
     "src/modules/copilot/observability/recording/callback_handler.py",
     "src/modules/copilot/observability/recording/turn_envelope.py",
+    # S11A lift: ``tenant_currency`` field default lives on the shared
+    # base post-Template-Method extraction. Same fallback role as the
+    # subclass entries above — overridden by tenant_billing_config when
+    # the orchestrator wires it.
+    "src/shared/agent_observability/recording/base_callback_handler.py",
     # S1 sales-agent observability — same fallback role as the copilot
     # callback handler above. ``tenant_currency`` reads from
     # ``tenant_billing_config.billing_currency`` and falls back to "USD"

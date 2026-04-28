@@ -72,7 +72,7 @@ def test_sales_agent_callback_handler_snapshot(monkeypatch: pytest.MonkeyPatch) 
     # span_id is a fresh uuid4 — replace with deterministic placeholder when
     # capturing so byte-equal comparison works.
     monkeypatch.setattr(
-        "src.modules.sales_agent.observability.recording.callback_handler.uuid4",
+        "src.shared.agent_observability.recording.base_callback_handler.uuid4",
         _deterministic_span_id_factory(),
     )
 
@@ -112,7 +112,7 @@ def test_copilot_callback_handler_snapshot(monkeypatch: pytest.MonkeyPatch) -> N
     )
 
     monkeypatch.setattr(
-        "src.modules.copilot.observability.recording.callback_handler.uuid4",
+        "src.shared.agent_observability.recording.base_callback_handler.uuid4",
         _deterministic_span_id_factory(),
     )
 
