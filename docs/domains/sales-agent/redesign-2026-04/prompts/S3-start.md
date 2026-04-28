@@ -21,7 +21,7 @@ CONTEXTO post-S2 (cerrado 2026-04-28):
 - Migración 079 aplicada: `mv_daily_llm_cost_per_tenant_v2 (agent_kind, tenant_id, occurred_on)` UNION ALL idempotente con UNIQUE INDEX. CONCURRENT refresh verificado.
 - Streamlit `costo-agentes`: tabs Total (cross-agent + stacked bar) y Por agente (selector `_shared.render_agent_kind_selector` + drill-down por modelo + serie 60d + top leads cuando `spec.has_lead_id`).
 - 2970 tests passed; ruff/format clean.
-- Branch: development limpio. Último commit S2: {HASH}
+- Branch: development limpio. Último commit S2: `a5dbf3ab`
 
 HOOKS LISTOS PARA S3:
 - `sales_agent_llm_call.cached_read_tokens` y `cached_write_tokens` columnas ya existen (migración 078). Callback handler S1 los popula desde `usage_metadata.input_token_details.cache_read`.
