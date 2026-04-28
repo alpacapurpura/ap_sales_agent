@@ -40,7 +40,7 @@ Estructura espejo del redesign de copilot. Cada fase = **review código existent
 | S0 | [shared/agent_observability extract](phases/S0-shared-observability-extract.md) | ✅ DONE | Módulo `src/shared/agent_observability/` (13 archivos movidos + 3 abstract bases). Zero behavior change copilot. |
 | S1 | [sales_agent observability parity](phases/S1-sales-agent-observability-parity.md) | 📋 PLANNED | Callback handler + tablas event-sourced + PII LATAM + tool_call_dedup |
 | S2 | [cost guardrails cross-agent](phases/S2-cost-guardrails.md) | ✅ DONE | Registry pasivo + CrossAgentCostAggregator + cost_alert breakdown + workers shared (retention/aggregate_refresh/cost_alert) + MV v2 cross-agent + Streamlit `/costo-agentes`. |
-| S3 | [prompt cache_boundary refactor](phases/S3-prompt-cache-boundary.md) | 📋 PLANNED | `compose_system_prompt` con prefix ≥1024 tokens, hit rate ≥60% |
+| S3 | [prompt cache_boundary refactor](phases/S3-prompt-cache-boundary.md) | ✅ DONE | `compose_system_prompt(fragments)` mirror F8 copilot. Single string + CACHE_BOUNDARY_MARKER. Prefix ~2700 tokens >2× threshold. Specialists qualifier/product_expert/closer migrados; supervisor fuera de scope. |
 | S4 | [adopt ChatModelSpec + per-role routing](phases/S4-chatmodelspec-tier.md) | 📋 PLANNED | Sales_agent consume `settings.get_provider_for_role(role)` + DeepSeek/Kimi tier |
 | S5 | [channel format registry](phases/S5-channel-registry.md) | 📋 PLANNED | `register_channel` cross-agent (extracción si solo en copilot/) |
 | S6 | [fitness tests ratchet](phases/S6-fitness-tests-ratchet.md) | 📋 PLANNED | Anchors + ratchet imports + invariants + bloqueo agent_trace_model legacy |

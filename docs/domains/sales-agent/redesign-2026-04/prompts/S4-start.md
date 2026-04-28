@@ -17,7 +17,7 @@ CONTEXTO post-S3 (cerrado 2026-04-28):
 - Prefix realista ~2700 tokens (>2× threshold OpenAI 1024).
 - Arch test `tests/architecture/test_sales_agent_system_prompt_order.py` congela slot order (5 invariants).
 - Hot path: `nodes.py::node_qualifier/product_expert/closer` ya llaman `build_specialist_system_prompt` y pasan single string a `LLMFactory.get_service().generate_response(system_prompt=...)`. **NO requieren cambio de signature en S4** — el contract sigue `system_prompt: str`.
-- Branch: development limpio. Último commit S3: {HASH}
+- Branch: development limpio. Último commit S3: `7e3040aa`
 - Tests: 1613 passed quality gates (sales_agent + arch + admin + shared + copilot/observability).
 
 HOOKS LISTOS PARA S4:
