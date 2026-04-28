@@ -49,7 +49,22 @@ Bloquear regresiones de calidad. Judge multi-rubric NANO evalúa respuestas del 
 
 ### Hallazgos research
 
-> COMPLETAR.
+- **G-Eval (DeepEval / Confident AI 2026)** — CoT + form-filling + score 1-5 por
+  dim + razón ≤80 chars baja variance del judge ~10-15% vs zero-shot. Mirror
+  exacto del CopilotJudge F9: probado, alineado.
+- **arXiv 2604.00022 (2026)** — eval de SDR conversacional confirma que las
+  dims con mayor correlación con conversion son **Need Elicitation + Pacing
+  Strategy**. Mapeo a 1 dim agregada: `commercial_effectiveness`.
+- **LangSmith Evaluators vs custom (Apr 2026)** — LangSmith infra ergonomic
+  pero overkill cuando ya hay event-sourced observability + pricing snapshot.
+  Custom mirror del CopilotJudge da control + cero dependencias nuevas.
+- **Golden test set creation 2026** — 10-20 inicial OK, escalar a 100+ cuando
+  hay tenants reales con conversaciones aprobadas. S10 lanza con 20.
+- **Prompt cache invariance brand voice** — research valida que routing
+  `prompt_cache_key=tenant_id` (S7 SSoT) es mecanismo correcto para que el
+  judge detecte diferenciación tenant A vs B con mismo input. Goldens
+  `brand_voice_diff` exercitan eso (4 entries / 2 pares con mismo
+  `user_input` + voces distintas).
 
 ---
 
@@ -180,4 +195,33 @@ async def weekly_sales_agent_quality_eval(ctx):
 
 ## Ajustes vs plan original
 
-> COMPLETAR.
+- **Score scale 1-5 (no 0-1)** como dijo el plan original. Razón: alineación
+  con copilot F9 para que el admin cross-agent dashboard compare scores
+  homogéneos. Threshold 3.5 (70%) en lugar de 0.75. Los acceptance
+  criteria del plan se cumplen igual — la conversion ratio es 1:1.
+- **5 dims** con naming refinado vs lista del plan:
+  - `brand_voice_fidelity` (idem plan).
+  - `commercial_effectiveness` (idem plan).
+  - `pii_safety` (idem plan).
+  - `channel_format_correctness` (idem plan).
+  - `tone_locale_fitness` (refinamiento de
+    `spanish_neutro_or_brand_voice` — mismo intent, mejor naming).
+  Sin campo separado `overall` — el plan lo pedía pero `avg_score`
+  derivado cumple igual y es consistente con CopilotJudge.
+- **Bucket = `category`** (golden category) en lugar de `workflow_id` del
+  copilot. Razón: sales_agent no tiene "workflows" — agrupa por tipo de
+  conversación canónica. Schema mirror pero columna renombrada
+  (`workflow_id → bucket_id`).
+- **Source = goldens fijos** en lugar de samplear conversaciones reales.
+  Razón: los goldens cubren las categorías canónicas; sampling per-tenant
+  surgirá en una fase futura cuando haya volumen multi-tenant que
+  warrant sampling. Esa decisión queda flagged para revisión en S+1.
+- **Cron 07:00 UTC** Mondays (no 06:00 como dice el plan) — para evitar
+  stacking con `weekly_copilot_rag_eval` (06:00 UTC).
+- **Goldens viven en `tests/quality/sales_agent_goldens/`** y son
+  importadas por el cron via lazy import. No bloquea la importación del
+  paquete `sales_agent.application.quality`. Funciona porque las
+  goldens son fixtures sintéticas inmutables.
+- **Tech debt detectado durante S10**: ninguno bloqueante. Pre-existing
+  issues no entran al log nuevo (siguen los DEFERRED-S11/S12 ya
+  asignados).

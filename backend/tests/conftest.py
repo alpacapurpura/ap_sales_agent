@@ -255,6 +255,9 @@ def db_engine():
         from src.modules.sales_agent.infrastructure.models.scheduler_webhook_event_model import (
             SchedulerWebhookEventModel,
         )
+        from src.modules.sales_agent.infrastructure.models.workflow_metric_model import (
+            SalesAgentWorkflowMetricModel,
+        )
         from src.modules.sales_agent.observability.persistence.models.llm_call_model import (
             SalesAgentLlmCallModel,
         )

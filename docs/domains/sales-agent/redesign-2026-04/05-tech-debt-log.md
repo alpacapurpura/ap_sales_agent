@@ -680,6 +680,50 @@ con su commit hash original — son log auditable, append-only.**
 
 ---
 
+## Detectados durante S10 (quality eval loop) — 2026-04-28
+
+### FIXED
+
+#### [HIGH] Sales_agent sin LLM-judge eval loop — 2026-04-27 — diagnóstico — FIXED en S10
+- Path: `src/modules/sales_agent/application/quality/judge.py` + `tests/quality/sales_agent_goldens/`.
+- Descripción: previo a S10 no existía mecanismo automatizado para detectar regresiones de calidad. Voice fidelity grader (S7) era manual / Streamlit-only.
+- Acción: FIXED — `SalesAgentJudge` con 5-dim rubric (brand_voice_fidelity / commercial_effectiveness / pii_safety / channel_format_correctness / tone_locale_fitness) + 20 goldens cubriendo 6 categorías + cron weekly + drift detection (>5% week-over-week → structlog warning) + Streamlit `/sales-agent-quality` dashboard. Stub default; opt-in real LLM via `RUN_LLM_JUDGE=1`.
+
+#### [LOW] Voice fidelity grader sin CI gate — 2026-04-28 — S7 — FIXED-PARTIAL en S10
+- Path: `backend/src/modules/brand/application/voice_fidelity/grader.py` (S7 grader) + `backend/src/modules/sales_agent/application/quality/judge.py` (S10 judge).
+- Descripción: S7 dejó el grader como Streamlit `/voice-fidelity` + script manual; sin wiring a CI.
+- Acción: FIXED-PARTIAL — `SalesAgentJudge` cubre el caso de regresión via cron weekly + goldens. El voice fidelity grader S7 (G-Eval per-preset) sigue separado para evaluation cualitativa profunda; los dos coexisten y se invocan en flujos distintos. CI gate completo para grader S7 sigue siendo opcional (no bloquea S10).
+- Razón: el judge S10 detecta regresiones agregadas a nivel pipeline; el grader S7 detecta drift fino per-preset. Diferentes herramientas, diferentes momentos.
+
+### Watchpoints — DEFERRED a S11/S12
+
+#### [LOW] Goldens viven en `tests/` pero el cron las consume — 2026-04-28 — S10 — FLAGGED-S11
+- Path: `src/shared/workers/sales_agent_quality_eval.py::_load_goldens` (lazy import a `tests.quality.sales_agent_goldens.conversations`).
+- Descripción: convención que el cron de prod importe fixtures de tests es atípica. Funciona porque los goldens son fixtures sintéticas inmutables (sin PII, no requiere mocks). Si crece el catálogo, considerar moverlos a `src/modules/sales_agent/application/quality/goldens/` y hacer el cron path-agnostic.
+- Impacto: bajo. Hoy 20 goldens, dataclass simple. Si crece a 100+ con metadata adicional → re-evaluar.
+- Acción: FLAGGED-S11 — incluir en el sub-sprint de cohesión orchestrator si los goldens crecen.
+- Razón: scope S10 fue establecer el plumbing + threshold + drift detection. Re-ubicación del dataset es scope creep.
+
+#### [LOW] Sample real conversations cuando haya volumen multi-tenant — 2026-04-28 — S10 — DEFERRED-S+1
+- Path: `src/shared/workers/sales_agent_quality_eval.py::run_weekly_quality_eval`.
+- Descripción: hoy el cron sólo evalúa los 20 goldens fijos. Cuando exista volumen real ≥10 tenants × ≥50 conversations completadas/semana, agregar segundo path que samplee conversaciones reales (con anonimización via `sanitize_payload`) y persista bucket discriminator distinto en `extra_metadata` para que el dashboard distinga golden-vs-real.
+- Impacto: nulo hoy (no hay volumen). Cuando emerja, reabrir.
+- Acción: DEFERRED-S+1 — futuro post-redesign cuando producción tenga datos.
+
+#### [LOW] Drift threshold 5% es global, no per-bucket — 2026-04-28 — S10 — FLAGGED
+- Path: `src/shared/workers/sales_agent_quality_eval.py::DRIFT_THRESHOLD = 0.05`.
+- Descripción: cada bucket (qualification, objections, etc) usa el mismo umbral. En la práctica, `closing_payment` puede tener noise mayor que `qualification` (samples más variables) → false-positive risk si la variance natural ya está cerca del 5%.
+- Impacto: bajo hoy (stub mode emite 4.0 fijo, no varía). Cuando RUN_LLM_JUDGE=1 corra en producción, monitorear ratio de drift_alerts per bucket; si uno dispara false-positives, configurar threshold per-bucket via `extra_metadata`.
+- Acción: FLAGGED — esperar 4 corridas reales antes de tunear.
+
+#### [LOW] Judge LLM no setea `prompt_cache_key=tenant_id` — 2026-04-28 — S10 — FLAGGED
+- Path: `src/modules/sales_agent/application/quality/judge.py::_resolve_llm`.
+- Descripción: el judge se invoca con NANO sin `prompt_cache_key`. Razón: el prompt prefix del judge es **judge-specific** (rúbrica + dims), no per-tenant; no se beneficia de cache routing per-tenant. Pero múltiples corridas weekly idénticas SÍ se beneficiarían de cache hit en el system prompt. Si el cost del judge crece, considerar `prompt_cache_key="sales_agent_judge_v1"` (constante) para forzar prefix cacheable cross-corrida.
+- Impacto: nulo hoy (stub mode). Cuando RUN_LLM_JUDGE=1 corra ~52 weeks/año × 20 goldens × 5 dims = 1040 calls/año. Cost negligible (NANO). No bloqueante.
+- Acción: FLAGGED — si el cost del judge aparece en `/costo-agentes`, optimizar.
+
+---
+
 ## Cómo agregar entrada (durante fase activa)
 
 1. Detectaste algo durante S{N}.

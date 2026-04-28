@@ -74,6 +74,7 @@ PAGE_SPECS: tuple[PageSpec, ...] = (
     PageSpec(slug="proveedores", title="Proveedores Copilot", icon="🔌"),
     PageSpec(slug="copilot-routing", title="Routing del Copilot", icon="🧭"),
     PageSpec(slug="copilot-quality", title="Calidad del Copilot", icon="🎓"),
+    PageSpec(slug="sales-agent-quality", title="Calidad del Sales Agent", icon="🎯"),
     PageSpec(slug="costo-copilot", title="Costo Copilot", icon="💰"),
     PageSpec(slug="costo-agentes", title="Costo Agentes", icon="📊"),
     PageSpec(slug="brand-summaries", title="Brand Summary Lighthouse", icon="🪧"),

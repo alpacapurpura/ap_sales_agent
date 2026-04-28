@@ -49,6 +49,7 @@ from src.shared.agent_observability.workers.retention_task import purge_expired_
 from src.shared.workers.brand_summary_regen import regen_brand_summary
 from src.shared.workers.copilot_quality_eval import weekly_copilot_quality_eval
 from src.shared.workers.copilot_rag_eval import weekly_copilot_rag_eval
+from src.shared.workers.sales_agent_quality_eval import weekly_sales_agent_quality_eval
 
 
 class WorkerSettings:
@@ -69,6 +70,7 @@ class WorkerSettings:
         regen_brand_summary,
         weekly_copilot_quality_eval,
         weekly_copilot_rag_eval,
+        weekly_sales_agent_quality_eval,
         sync_litellm_pricing,
         refresh_daily_cost_mv,
         purge_expired_trace_rows,
@@ -138,6 +140,7 @@ class SchedulerSettings:
         regen_brand_summary,
         weekly_copilot_quality_eval,
         weekly_copilot_rag_eval,
+        weekly_sales_agent_quality_eval,
         sync_litellm_pricing,
         refresh_daily_cost_mv,
         purge_expired_trace_rows,
@@ -198,6 +201,15 @@ class SchedulerSettings:
             weekly_copilot_rag_eval,
             weekday="mon",
             hour=6,
+            minute=0,
+        ),
+        # S10 — weekly sales_agent quality eval over canonical goldens.
+        # Mondays 07:00 UTC (1h after RAG to avoid stacking NANO load).
+        # Stub default; opt-in real LLM via ``RUN_LLM_JUDGE=1``.
+        cron(
+            weekly_sales_agent_quality_eval,
+            weekday="mon",
+            hour=7,
             minute=0,
         ),
         # Phase 1 copilot observability rebuild — daily LiteLLM pricing
