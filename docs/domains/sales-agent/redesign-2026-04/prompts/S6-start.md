@@ -1,6 +1,6 @@
 # Handoff prompt · S6 start
 
-> **Refinado al cierre de S5 (2026-04-28). Pin `{HASH}` post-commit S5.**
+> **Refinado al cierre de S5 (2026-04-28). Pin commit S5: `199bc7e9`.**
 
 ---
 
@@ -14,7 +14,7 @@ Continuamos redesign sales_agent.
 
 CONTEXTO post-S5 (cerrado 2026-04-28):
 - S5 cerrada: `shared/agent_observability/channels/{format,format_for_channel,intent_detector}.py` SSoT cross-agent. ChannelFormat extendido con chunk_size + typing_simulation_cpm + parse_mode (defaults None preservan back-compat copilot). Telegram MarkdownV2 escape utility (no auto-aplicado). Aliases (`instagram` → `instagram_dm`). 7 canales canónicos cross-agent (chat, whatsapp, telegram, instagram_dm, sms, voice, email). Copilot 3 archivos shim re-export para back-compat. Sales OutputManager._parse_response consume registry chunk_size via `_enforce_chunk_size` + `_split_by_cap` con boundary preference (sentence/whitespace/hard cut). Sales compose_system_prompt slot 6 (CHANNEL_FORMAT_HINT) populated via `_channel_format_hint(state)`. Arch ratchet `tests/architecture/test_no_hardcoded_channel_in_output_manager.py` sin allowlist (AST scan Compare + Dict). 3134 tests verde (incluye 113 copilot via shim).
-- Branch: development limpio. Último commit S5: {HASH}
+- Branch: development limpio. Último commit S5: `199bc7e9`
 - Tests: 3134 verde. ruff 0 errores (1 warning pre-existing offer_type_presets.py).
 - Hooks listos S0..S5: callback handler shared, PII regex LATAM, MultiRoleLLMRouter ChatModelSpec, SPECIALIST_TO_ROLE SSoT, cache_boundary compose, channel registry shared, dual-write tablas event-sourced.
 
