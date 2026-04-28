@@ -213,3 +213,20 @@ Hallazgos detectados por Claude Code durante ejecución. Revisar y resolver.
 
 - [x] **Pre-existing flakiness**: `tests/modules/copilot/test_ask_tenant_data_integration.py::test_lead_count_question_returns_number` y `::test_conversation_count_question`. Resuelto 2026-04-27 commit `b91201ab` — el seed usaba `days=i % 5` que rompía el assert de "esta semana" cada lunes (ISO week reset). Migrado a `minutes=i`.
 - [x] **Pre-existing tsc error**: `frontend/src/components/form-runtime/CollapsibleFieldGroup.tsx:32 — Property 'group' does not exist on type 'never'`. Resuelto 2026-04-27 commit `b91201ab` — refactor del bucketing loop con `MutableBucket` interno y look-back via `buckets[buckets.length - 1]`.
+
+## Lecciones del homologado AI providers + admin healthcheck — 2026-04-27
+
+### 33. [pricing-aliases] LiteLLM bumpea catálogo y los aliases drifteán silente
+- **Contexto:** El alias `("kimi", "kimi-k2.6") → ("moonshot", "moonshot/kimi-k2-0905-preview")` quedó stale cuando LiteLLM agregó el row directo `moonshot/kimi-k2.6` con pricing real ($0.95/$4.00 vs $0.60/$2.50 del K2-0905). Resolver fallaba a estimated zero o cargaba pricing wrong-by-39%. Fix `a3f65d04`. Mismo patrón aplica a cualquier provider que renombre un model en LiteLLM.
+- [ ] Arch fitness test: por cada `(internal_provider, internal_model) → (upstream_provider, upstream_model)` en `aliases.py`, verificar (a) el upstream_model existe en una pricing row con `source='litellm'`, (b) el pricing del upstream coincide con el pricing real del provider docs (esto último no se puede automatizar sin leer las páginas de Moonshot/DeepSeek — tabla de baselines hardcoded en el test, refresh manual al ver drift).
+- [ ] Worker mensual: comparar pricing alias-resuelto contra pricing del internal id si existe row manual; warnear si difieren >10%. Detecta cuando un manual override quedó stale post-LiteLLM bump.
+
+### 34. [docker-compose] Compose file vive en filesystem del server, no auto-sync con repo
+- **Contexto:** `/opt/ap_sales_agent/docker-compose.prod.yml` es git-tracked pero el server hace pull manual. Cualquier edit en server se pierde en próximo `git pull`, cualquier commit en repo no llega hasta que alguien pullea. El admin healthcheck fix pasó por: (a) edit local server → (b) commit local repo (`c1e25fd3`) → (c) scp para sincronizar — porque sin sync el server tendría merge conflict en próximo pull.
+- [ ] Decidir mecanismo de deploy compose: opciones (a) GHA workflow que `ssh+git pull` post-build (acoplado a CI), (b) systemd timer en server que pullea diario y avisa, (c) seguir manual con checklist en `/pase-produccion` que incluya "ssh prod && git pull && docker compose up -d".
+- [ ] Documentar en `pase-produccion.md` que .env.prod es seguro (gitignored) pero docker-compose.prod.yml NO — cualquier cambio requiere commit + push + pull en server.
+
+### 35. [manual-db-overrides] Inserts manuales de pricing no son source-controlled
+- **Contexto:** Para que prod midiera kimi-k2.6 mientras CI builda imagen con alias-fix, hubo que insertar `model_pricing_snapshot (provider='kimi', model='kimi-k2.6', source='manual', ...)` directo en DB prod. No replicable a dev sin runbook. Mismo pattern aplicaría a cualquier override operacional (custom contracts, exception pricing).
+- [ ] Crear `backend/scripts/seed_manual_pricing_overrides.py` con lista de overrides en código (`(provider, model, input, output, reason)`) que el script aplique idempotente vía `INSERT ... ON CONFLICT DO NOTHING WHERE source='manual'`. Registrar en `make seed-manual-pricing` para correr post-deploy + post-DB-restore.
+- [ ] Cuando un override pierde sentido (LiteLLM ya tiene pricing correcto), borrar del script — no solo del DB. El script es la SSoT.
