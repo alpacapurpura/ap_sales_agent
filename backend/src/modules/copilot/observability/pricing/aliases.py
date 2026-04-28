@@ -32,13 +32,15 @@ from __future__ import annotations
 # / ``AI_MODEL_REASONING``. Upstream naming follows the LiteLLM JSON
 # (``raw.githubusercontent.com/BerriAI/litellm/main/...``).
 PROVIDER_MODEL_ALIASES: dict[tuple[str, str], tuple[str, str]] = {
-    # Kimi K2.6 — Moonshot's intl endpoint reports the model id Kimi uses
-    # in its docs (``kimi-k2.6``); LiteLLM lists the previous-rev name
-    # ``kimi-k2-0905-preview`` because the JSON has not been bumped yet
-    # for K2.6. Pricing is identical between the two model ids — same
-    # Moonshot rate card.
-    ("kimi", "kimi-k2.6"): ("moonshot", "moonshot/kimi-k2-0905-preview"),
-    ("kimi", "kimi-k2.5"): ("moonshot", "moonshot/kimi-k2-0905-preview"),
+    # Kimi K2.6/K2.5 — Moonshot's intl endpoint reports the bare model id
+    # (``kimi-k2.6``); LiteLLM stores the same id with its provider prefix
+    # (``moonshot/kimi-k2.6``) and now ships rate cards for K2.6 and K2.5
+    # at their real Moonshot pricing — distinct from the older
+    # ``kimi-k2-0905-preview`` snapshot. Map each internal id to its
+    # direct LiteLLM counterpart so the resolver picks up the correct
+    # rate card without a manual DB override.
+    ("kimi", "kimi-k2.6"): ("moonshot", "moonshot/kimi-k2.6"),
+    ("kimi", "kimi-k2.5"): ("moonshot", "moonshot/kimi-k2.5"),
     ("kimi", "kimi-k2"): ("moonshot", "moonshot/kimi-k2-0711-preview"),
 }
 

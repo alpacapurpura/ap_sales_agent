@@ -2,10 +2,9 @@
 
 Conv 0d64c4a9 (2026-04-27) recorded every Kimi K2.6 turn under
 ``provider="kimi", model="kimi-k2.6"`` while the LiteLLM-synced rate
-card lives under ``provider="moonshot", model="moonshot/kimi-k2-0905-
-preview"``. The resolver missed both lookups, fell back to the
-estimated zero-cost snapshot, and the cycle aggregator silently
-under-counted spend.
+card lives under ``provider="moonshot", model="moonshot/kimi-k2.6"``.
+The resolver missed both lookups, fell back to the estimated zero-cost
+snapshot, and the cycle aggregator silently under-counted spend.
 
 The fix lives in ``observability/pricing/aliases.py``: a SSoT mapping
 from the in-process identity to the upstream LiteLLM identity. The
@@ -23,7 +22,7 @@ from unittest.mock import MagicMock
 def _kimi_snapshot() -> MagicMock:
     snap = MagicMock()
     snap.provider = "moonshot"
-    snap.model = "moonshot/kimi-k2-0905-preview"
+    snap.model = "moonshot/kimi-k2.6"
     snap.input_cost_per_token = Decimal("0.0000006")
     snap.output_cost_per_token = Decimal("0.0000025")
     snap.cache_read_cost_per_token = Decimal(0)
@@ -43,7 +42,7 @@ class TestAliasResolutionFallsThroughOnInternalMiss:
         def find_active(*, provider: str, model: str):
             if (provider, model) == ("kimi", "kimi-k2.6"):
                 return None
-            if (provider, model) == ("moonshot", "moonshot/kimi-k2-0905-preview"):
+            if (provider, model) == ("moonshot", "moonshot/kimi-k2.6"):
                 return upstream
             return None
 
@@ -68,7 +67,7 @@ class TestAliasResolutionFallsThroughOnInternalMiss:
 
         repo = MagicMock()
         repo.find_active.side_effect = lambda *, provider, model: (
-            upstream if (provider, model) == ("moonshot", "moonshot/kimi-k2-0905-preview") else None
+            upstream if (provider, model) == ("moonshot", "moonshot/kimi-k2.6") else None
         )
         repo.find_at.return_value = None
 
