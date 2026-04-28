@@ -52,12 +52,11 @@
                                                     │
                                                     ▼
                                        ┌─────────────────────────┐
-                                       │ S6.5: legacy drop +     │
-                                       │ admin cutover           │
-                                       │ (post 2026-05-26 win.)  │
-                                       └────────────┬────────────┘
-                                                    │
-                                                    ▼
+                                       │ S6.5: legacy drop +     │ ← reloj-gated 2026-05-26
+                                       │ admin cutover           │   corre paralelo o post-S10
+                                       │ (independiente)         │   NO bloquea S7..S10
+                                       └─────────────────────────┘
+                                                    ║ (paralelo)
                                        ┌─────────────────────────┐
                                        │ S7: brand voice         │
                                        │ (Estilo Comunicacional) │
@@ -114,8 +113,8 @@
 | S4 | S1 | Callback handler graba `provider`/`model_responded` para validar resolver. |
 | S5 | S1 | Channel registry consumer de observability. |
 | S6 | S0, S1, S2, S4, S5 | Ratchet congela infra estable. Sweeps S4/S5 cierran shims + LLM_ROLE_BY_SITE expansion. |
-| **S6.5** | S6 + 4-week dual-write window | Drop legacy `agent_trace_model` + `LLMLogModel` post 2026-05-26. Cutover `sales_audit.py`. Arch test `__future__ annotations` ratchet. |
-| S7 | S3, S6.5 | Lighthouse cae slot cacheable. Sin tablas legacy bloqueando. |
+| **S6.5** | S6 + 4-week dual-write window (reloj-gated) | Drop legacy `agent_trace_model` + `LLMLogModel` post 2026-05-26. Cutover `sales_audit.py`. Arch test `__future__ annotations` ratchet. **Independiente — corre en paralelo o post-S10 cuando la fecha cumpla. NO bloquea S7..S10.** |
+| S7 | S3, S6 | Lighthouse cae slot cacheable. Tablas legacy pueden coexistir (sales_audit dual-read). |
 | S8 | S7 | Scheduler tools deben hablar voz de marca. |
 | S9 | S7, S8 | Payment hereda voz; flows mezclan booking + payment. |
 | S10 | S7, S8, S9 | Goldens cubren features completas. **Incluye DeepSeek alias retire validator + Kimi temp 0.6 conversion monitor** (cierran 2 watchpoints S4). |
