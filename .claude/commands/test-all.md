@@ -104,6 +104,41 @@ If fails: broken or non-idempotent migration.
 
 ---
 
+## CI PARITY (mandatory pre-push gate — catches CI-only failures)
+
+### Step 12: Run the GitHub Actions ``quality-gates`` job locally
+```bash
+bash scripts/ci-parity.sh
+# or:
+make ci-parity
+```
+
+Native steps 1-7 are fast (~30s) but diverge from CI in four ways that
+have caused 5+ failed deploys in a single afternoon:
+
+| Eje | Native | CI | Past failure |
+|---|---|---|---|
+| Env vars | reads ``backend/.env`` (~84 keys) | reads ``backend/.env.test`` baked-in | Kimi K2 clamp tests when ``AI_MODEL_AGENT`` defaulted to gpt-4o |
+| Timezone | host (``America/...``, UTC-3..-5) | UTC | ``test_lima_locale_changes_period_window`` — seed at host TZ fell outside Lima window in UTC midnight |
+| Node heap | host RAM 16GB+ | container ~1GB default | ``tsc --noEmit`` SIGABRT (run 25025593709) |
+| Build context | filesystem complete | ``.dockerignore`` excludes ``data/``, ``frontend/node_modules/`` | ``test_seed_marketing_kb`` FileNotFoundError |
+
+``ci-parity.sh`` builds the SAME Docker test images CI builds (``test``
+stage of each Dockerfile), runs the SAME steps with ``TZ=UTC`` and
+``NODE_OPTIONS=--max-old-space-size=4096``. Cold runs ~5-8 min, warm
+~2 min (Docker layer cache).
+
+This is the deterministic gate before every ``git push origin main``.
+Failing this step locally is cheaper than failing it remotely on CI.
+
+Variants for faster iteration when only one stack changed:
+```bash
+make ci-parity-be   # skip FE (BE-only changes)
+make ci-parity-fe   # skip BE (FE-only changes)
+```
+
+---
+
 ## FINAL REPORT
 
 | Gate | Step | Result | Details |
@@ -126,7 +161,13 @@ If fails: broken or non-idempotent migration.
 | HEALTH | Security (npm) | PASS/FAIL | N vulns |
 | **DEPLOY** | | | |
 | MIGRATIONS | Fresh DB | PASS/FAIL/SKIP | if Docker available |
+| CI PARITY | Docker quality-gates replay | PASS/FAIL/SKIP | mandatory pre-push, mirrors deploy-prod.yml |
 
-**All QUALITY + FUNCTIONAL pass:** "Full suite PASS — safe to deploy."
+**All QUALITY + FUNCTIONAL + CI PARITY pass:** "Full suite PASS — safe to deploy."
 **Any fail:** list failures. Fix before deploying.
 **HEALTH degraded:** warn user, track trend, suggest fixes.
+
+> **Pre-push contract**: skipping Step 12 is allowed for fast iteration
+> commits inside a feature branch but is **forbidden** before
+> ``git push origin main``. ``/pase-produccion`` enforces this gate as
+> the last blocker in Fase 3 (see ``.claude/skills/pase-produccion/SKILL.md``).

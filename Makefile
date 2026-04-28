@@ -1,4 +1,4 @@
-.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report perf-baseline shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode audit audit-backend audit-frontend arch-test verify-etl verify-probe-meta verify-pipeline verify-ui verify-meta verify-all
+.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report perf-baseline shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode audit audit-backend audit-frontend arch-test ci-parity ci-parity-be ci-parity-fe verify-etl verify-probe-meta verify-pipeline verify-ui verify-meta verify-all
 
 # Variables
 DOCKER_COMPOSE = docker compose
@@ -136,6 +136,22 @@ pytest-cov:
 
 arch-test:
 	cd backend && .venv/bin/pytest tests/architecture/ -v
+
+# Reproduce the GitHub Actions ``quality-gates`` job locally inside Docker.
+# Native ``/test-all`` runs are fast but diverge from CI (env vars, TZ=UTC,
+# Node heap, .dockerignore) — this gate catches all four classes of CI-only
+# failure BEFORE pushing to main. See scripts/ci-parity.sh for the rationale
+# and step-by-step mapping to deploy-prod.yml.
+#
+# Run BEFORE every ``git push origin main``. Cold ~5-8 min, warm ~2 min.
+ci-parity:
+	bash scripts/ci-parity.sh
+
+ci-parity-be:
+	bash scripts/ci-parity.sh --skip-fe
+
+ci-parity-fe:
+	bash scripts/ci-parity.sh --skip-be
 
 # Regenerate the user-facing ETL extraction contract markdown from
 # backend/src/modules/analytics/domain/extraction_contract.py.

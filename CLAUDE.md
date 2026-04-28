@@ -153,7 +153,7 @@ docker run --rm ... ruff|pytest|tsc|vitest
 ## Critical Rules
 
 1. **Anti-Hallucination:** Read `docs/domains/INDEX.md` before coding. Never guess.
-2. **Native-First:** Lint/tests/type-check NATIVE. Never Docker.
+2. **Native-First, CI-Parity Before Push:** Lint/tests/type-check NATIVE durante iteración (rápido, ~30s). **ANTES** de `git push origin main`, correr `make ci-parity` (Docker, mismas imágenes que CI, `TZ=UTC`, `NODE_OPTIONS=--max-old-space-size=4096`). El gate Docker captura los 4 ejes que el nativo no simula (`backend/.env` vs `.env.test`, host TZ vs UTC, host RAM vs container heap, fs completo vs `.dockerignore`). Saltarse este gate antes de push a main reproduce el ciclo de 5 deploys fallidos del 2026-04-27. `/pase-produccion` lo enforza en Fase 3b. Ver `scripts/ci-parity.sh`.
 3. **Tenant Isolation:** ALL queries filter `X-Tenant-ID`. `.claude/rules/tenant-isolation.md`.
 4. **BE DDD:** Inside-Out, no cross-module imports (except copilot). `.claude/rules/backend-ddd.md`.
 5. **FE FSD:** Server Components default, no deep feature imports (except copilot). `.claude/rules/frontend-fsd.md`.

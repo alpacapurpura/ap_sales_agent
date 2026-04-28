@@ -103,24 +103,60 @@ E2E NO es parte del pase a producción real (push a main) — es validación ext
 
 ---
 
-## Fase 3: Verificación Completa (/test-all)
+## Fase 3: Verificación Completa
+
+Esta fase se divide en dos sub-fases. **Las dos son blocker antes del
+push**. Saltarse 3b porque "el nativo pasó" reproduce el ciclo de 5
+deploys fallidos del 2026-04-27 (env vars, TZ=UTC, Node heap, dockerignore).
+
+### Fase 3a: `/test-all` nativo (rápido, ~30-60s)
 
 Invocar el skill `/test-all` completo. Esto ejecuta:
 1. Backend lint (ruff)
-2. Backend tests + coverage (pytest)
-3. Frontend types (tsc)
-4. Frontend lint (ESLint)
-5. Frontend tests + coverage (vitest)
-6. E2E Smoke (already handled natively in Fase 2.5)
-7. Migration verification (fresh DB)
+2. Backend format check
+3. Architecture fitness tests
+4. Backend tests + coverage (pytest)
+5. Frontend types (tsc)
+6. Frontend lint (ESLint)
+7. Frontend tests + coverage (vitest)
+8. Health checks (jscpd, knip, madge, audits)
+9. Migration verification (fresh DB)
+
+### Fase 3b: CI Parity Docker (BLOCKER, ~2-8 min)
+
+Invocar el script que replica el job ``quality-gates`` del workflow CI:
+```bash
+bash scripts/ci-parity.sh
+# or:
+make ci-parity
+```
+
+Construye las MISMAS imágenes Docker que CI (``target=test`` de
+``backend/Dockerfile`` y ``frontend/Dockerfile``) y corre las mismas
+verificaciones con ``TZ=UTC`` y ``NODE_OPTIONS=--max-old-space-size=4096``.
+
+**Por qué este gate es no-negociable** (resumido — full table en
+``/test-all.md`` Step 12):
+
+| Diferencia | Falla histórica |
+|---|---|
+| ``backend/.env.test`` ≠ ``backend/.env`` | Kimi K2 temperature clamp tests |
+| TZ=UTC vs host UTC-3..-5 | Lima locale period window |
+| Node heap ~1GB en container | ``tsc --noEmit`` OOM SIGABRT |
+| ``.dockerignore`` excluye ``data/`` | ``test_seed_marketing_kb`` FileNotFoundError |
+
+Si `ci-parity` falla pero `/test-all` nativo pasó: el problema es el
+ambiente CI, NO el código. Investigar y arreglar antes del push (no
+empujar y arreglar en CI loop).
 
 ### Protocolo de corrección de errores:
 
-**Para cada error encontrado:**
+**Para cada error encontrado en 3a o 3b:**
 1. Leer el error completo y entender la causa raíz
 2. Corregir el código (NUNCA skipear tests ni desactivar lint rules)
 3. Re-ejecutar SOLO el step que falló para verificar
-4. Continuar con el siguiente step
+4. Si falló en 3b pero no en 3a: el fix probablemente es env/TZ/heap/
+   dockerignore — no toques tests-que-pasaron-localmente.
 
 **Orden de prioridad de fixes:**
 1. Errores de compilación/tipos (bloquean todo)
@@ -133,8 +169,9 @@ Invocar el skill `/test-all` completo. Esto ejecuta:
 - Preguntar al usuario si es un cambio de scope esperado.
 
 ### Iteración:
-Repetir `/test-all` hasta que TODOS los steps pasen. Máximo 3 iteraciones completas.
-Si después de 3 iteraciones aún falla, reportar los errores restantes y pedir dirección.
+Repetir 3a + 3b hasta que TODOS los steps pasen. Máximo 3 iteraciones
+completas. Si después de 3 iteraciones aún falla, reportar los errores
+restantes y pedir dirección.
 
 ---
 
