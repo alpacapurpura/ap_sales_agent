@@ -1,0 +1,44 @@
+# social_media — Estado funcional
+
+## Meta
+| Campo | Valor |
+|---|---|
+| Studio padre | Growth |
+| Estado | placeholder |
+| Última actualización | 2026-04-29 (bootstrap) |
+| Doc técnico | `docs/domains/module_social_media.md` |
+
+## Qué hace por el user
+**Placeholder.** No implementado como módulo. Lectura social orgánico vive en `connections` (channels via Manychat / IG / FB / TikTok). Generación contenido vive en `assets` + skill `content-hunter`.
+
+## Capacidades actuales
+- (Vía assets) Generar copies / ideas videos / flyers
+- (Vía analytics) Métricas orgánico (reach, engagement)
+- (Vía connections) Programación posteo (limitada — depende canal)
+
+## Capacidades operables desde copilot
+- Generar copy para post (parcial — vía assets/content-hunter)
+- **Gap:** programar posteo conversacionalmente
+- **Gap:** moderar comentarios automáticamente
+
+## Estado calidad funcional
+| Capacidad | Estado | Notas |
+|---|---|---|
+| Content gen | activo (vía assets) | |
+| Programación posts | placeholder | |
+| Moderación auto | placeholder | |
+
+## Conexiones cross-módulo
+- **Lee de:** (vía analytics, connections)
+- **Lo lee:** —
+
+## Dolor user / oportunidades detectadas
+_Probable: módulo dedicado social media (programación + moderación + content calendar) es PI futuro grande._
+
+## PIs históricos
+_Ninguno._
+
+## Decisiones producto vinculadas
+| Fecha | Decisión | Razón |
+|---|---|---|
+| _inicial_ | Diferir módulo | Skill `content-hunter` + assets cubre generación. Programación nativa requiere expansión Meta API |
