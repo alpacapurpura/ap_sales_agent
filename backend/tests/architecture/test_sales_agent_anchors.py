@@ -38,6 +38,7 @@ ANCHOR_REGISTRY: dict[str, str] = {
     "SALES-AGENT-AUDIT-EMITTER-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
     "SALES-AGENT-IDENTITY-RESOLVER-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
     "SALES-AGENT-CONVERSATION-PIPELINE-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
+    "SALES-AGENT-SMART-DEBOUNCE-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
 }
 
 ANCHOR_CAP: int = 25

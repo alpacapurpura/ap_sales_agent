@@ -15,8 +15,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.modules.sales_agent.application.orchestrator.chat import (
-    ChatOrchestrator,
     merge_history_with_current,
+)
+from src.modules.sales_agent.application.orchestrator.conversation_pipeline import (
+    ConversationPipeline,
 )
 
 # ---------------------------------------------------------------------------
@@ -109,7 +111,7 @@ class TestSessionGapCalculation:
         mock_msg.metadata_log = None
         mock_audit.get_last_message.return_value = mock_msg
 
-        result = ChatOrchestrator._determine_session_state(mock_audit, mock_user)
+        result = ConversationPipeline.determine_session_state(mock_audit, mock_user)
 
         assert result["is_returning_user"] is True
         assert result["session_active"] is True  # < 6 hours
@@ -127,7 +129,7 @@ class TestSessionGapCalculation:
         mock_msg.metadata_log = None
         mock_audit.get_last_message.return_value = mock_msg
 
-        result = ChatOrchestrator._determine_session_state(mock_audit, mock_user)
+        result = ConversationPipeline.determine_session_state(mock_audit, mock_user)
 
         assert result["is_returning_user"] is True
         assert result["session_active"] is False
@@ -140,7 +142,7 @@ class TestSessionGapCalculation:
         mock_user.id = "test-lead-id"
         mock_audit.get_last_message.return_value = None
 
-        result = ChatOrchestrator._determine_session_state(mock_audit, mock_user)
+        result = ConversationPipeline.determine_session_state(mock_audit, mock_user)
 
         assert result["is_returning_user"] is False
         assert result["session_gap_hours"] is None
