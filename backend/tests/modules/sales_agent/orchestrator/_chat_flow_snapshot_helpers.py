@@ -145,8 +145,12 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
     """
     chat_mod = "src.modules.sales_agent.application.orchestrator.chat"
 
-    # 1. Frozen datetime (only used inside chat for human_mode timestamps)
-    monkeypatch.setattr(f"{chat_mod}.datetime", _FrozenDatetime)
+    # 1. Frozen datetime (used by ConversationPipeline.handle_human_mode +
+    # determine_session_state for ts comparisons).
+    monkeypatch.setattr(
+        "src.modules.sales_agent.application.orchestrator.conversation_pipeline.datetime",
+        _FrozenDatetime,
+    )
 
     # 2. Deterministic uuid4 (session_id + observability turn_id)
     monkeypatch.setattr(f"{chat_mod}.uuid.uuid4", _DeterministicUuid())
@@ -247,15 +251,27 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
         capture.state_checkpoint_saves.append(_serialize(kwargs))
 
     state_repo.save_checkpoint.side_effect = _capture_save_checkpoint
+    # Patch the constructor where chat.py already imported it. When
+    # ConversationPipeline (S11B step 3) takes over the call, this stub
+    # is replaced by an instance-method patch — see _patch_conversation_pipeline_deps.
     monkeypatch.setattr(f"{chat_mod}.StateRepository", lambda _db: state_repo)
 
-    # 10. TenantKnowledgeBuilder — fixed identity + voice strings.
-    knowledge_builder = MagicMock(name="knowledge_builder")
-    knowledge_builder.build_identity.return_value = "ID:test-brand"
-    knowledge_builder.build_brand_voice.return_value = "VOICE:test-voice"
+    # 10. TenantKnowledgeBuilder — patch the methods on the class so any caller
+    # (chat.py legacy or ConversationPipeline post-extract) sees the fixed
+    # identity + voice strings.
     monkeypatch.setattr(
-        f"{chat_mod}.TenantKnowledgeBuilder",
-        lambda _db: knowledge_builder,
+        "src.modules.sales_agent.application.services.knowledge_builder.TenantKnowledgeBuilder.build_identity",
+        lambda _self, _tenant_id: "ID:test-brand",
+    )
+    monkeypatch.setattr(
+        "src.modules.sales_agent.application.services.knowledge_builder.TenantKnowledgeBuilder.build_brand_voice",
+        lambda _self, _tenant_id: "VOICE:test-voice",
+    )
+    # Guard the constructor so initializing the real builder doesn't query brand
+    # / offer repos (they hit the mocked db.execute and explode on .first()).
+    monkeypatch.setattr(
+        "src.modules.sales_agent.application.services.knowledge_builder.TenantKnowledgeBuilder.__init__",
+        lambda self, _db: None,
     )
 
     # 11. Safety layer — pass-through (no modification).
@@ -268,9 +284,10 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
         lambda: safety_stub,
     )
 
-    # 12. SemanticRouter — deterministic intent.
+    # 12. SemanticRouter — deterministic intent (patch the class so any module
+    # that imports SemanticRouter sees the stub).
     monkeypatch.setattr(
-        f"{chat_mod}.SemanticRouter.detect_and_accumulate",
+        "src.modules.sales_agent.application.services.semantic_router.SemanticRouter.detect_and_accumulate",
         staticmethod(lambda _text, existing_signals, tenant_id: (None, 0.0, list(existing_signals))),
     )
 
@@ -303,7 +320,10 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
         )
         return _agent_result_stub()
 
-    monkeypatch.setattr(f"{chat_mod}.agent_app.ainvoke", _capture_ainvoke)
+    monkeypatch.setattr(
+        "src.modules.sales_agent.application.orchestrator.graph.agent_app.ainvoke",
+        _capture_ainvoke,
+    )
 
     # 16. WS manager — capture emit calls (assistant + human_mode).
     async def _capture_ws_emit(tenant_uuid: str, payload: dict) -> None:
@@ -332,7 +352,10 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
             },
         )
 
-    monkeypatch.setattr(f"{chat_mod}.OutputManager.process_response", _capture_output)
+    monkeypatch.setattr(
+        "src.modules.sales_agent.infrastructure.external.output_manager.OutputManager.process_response",
+        _capture_output,
+    )
 
 
 def build_capturing_channel_adapter(capture: FlowCapture) -> Any:
