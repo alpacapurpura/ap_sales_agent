@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 from src.core.context import set_tenant_id
 from src.core.database import SessionLocal
 from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+from src.modules.sales_agent.application.orchestrator.audit_emitter import AuditEmitter
 from src.modules.sales_agent.application.orchestrator.graph import agent_app
 from src.modules.sales_agent.application.orchestrator.state import create_initial_state
 from src.modules.sales_agent.application.services.knowledge_builder import (
@@ -55,11 +56,7 @@ from src.modules.sales_agent.infrastructure.repositories.state_repository import
     StateRepository,
 )
 from src.shared.domain.enums import ChannelType, IdentityType
-from src.shared.domain.events import (
-    CHANNEL_TYPE_TO_CAPTURE_SLUG,
-    EventBus,
-    LeadCapturedEvent,
-)
+from src.shared.domain.events import CHANNEL_TYPE_TO_CAPTURE_SLUG
 from src.shared.domain.messages import IncomingMessage, OutgoingMessage
 from src.shared.infrastructure.llm.factory import LLMFactory
 from src.shared.links.ports.crm_repos import get_identity_service, get_lead_metrics_repository
@@ -370,28 +367,15 @@ class ChatOrchestrator:
         channel_type: str,
         incoming: IncomingMessage,
     ) -> None:
-        """Track message_received journey event for capture conversation metrics."""
-        try:
-            from src.shared.links.ports.crm_repos import get_journey_event_repository
-
-            journey_repo = get_journey_event_repository(db)
-            event_props = {
-                "channel_slug": capture_slug,
-                "channel_type": channel_type,
-                "message_direction": "inbound",
-            }
-            mid = incoming.metadata.get("message_id")
-            if mid:
-                event_props["message_id"] = mid
-            journey_repo.track_event(
-                profile_id=customer.id,
-                tenant_id=tenant_uuid,
-                event_name="message_received",
-                event_type="track",
-                properties=event_props,
-            )
-        except Exception:  # noqa: BLE001 — orchestrator resilience
-            logger.warning("failed_to_track_message_received", exc_info=True)
+        """Track ``message_received`` journey event. Delegates to AuditEmitter (S11B)."""
+        AuditEmitter.track_message_received(
+            db,
+            tenant_uuid,
+            customer,
+            capture_slug,
+            channel_type,
+            incoming,
+        )
 
     @staticmethod
     def _update_customer_traits(
@@ -453,23 +437,7 @@ class ChatOrchestrator:
         checkpoint.last_human_message_at = datetime.now(timezone.utc)
         db.commit()
 
-        try:
-            from src.modules.sales_agent.infrastructure.ws_manager import (
-                ws_manager,
-            )
-
-            await ws_manager.emit(
-                str(tenant_uuid),
-                {
-                    "type": "new_message",
-                    "lead_id": str(user.id),
-                    "role": "user",
-                    "content": incoming.text[:200],
-                    "handler_mode": "human",
-                },
-            )
-        except Exception:  # noqa: BLE001 — orchestrator resilience
-            pass
+        await AuditEmitter.emit_human_mode_message(tenant_uuid, user, incoming)
         return True
 
     @staticmethod
@@ -647,26 +615,8 @@ class ChatOrchestrator:
         bot_text: str,
         result: dict,
     ) -> None:
-        """Emit WS event for Closer Studio real-time updates (best-effort)."""
-        try:
-            from src.modules.sales_agent.infrastructure.ws_manager import (
-                ws_manager,
-            )
-
-            await ws_manager.emit(
-                str(tenant_uuid),
-                {
-                    "type": "new_message",
-                    "lead_id": str(user.id),
-                    "role": "assistant",
-                    "content": bot_text[:200],
-                    "handler_mode": "ai",
-                    "lead_score": result.get("lead_score", 0),
-                    "funnel_stage": result.get("current_state", "rapport"),
-                },
-            )
-        except Exception:  # noqa: BLE001 — orchestrator resilience
-            pass
+        """Emit WS event for Closer Studio. Delegates to AuditEmitter (S11B)."""
+        await AuditEmitter.emit_assistant_message(tenant_uuid, user, bot_text, result)
 
     # ── Additional helpers for process_chat_flow ─────────────────────────
 
@@ -707,15 +657,12 @@ class ChatOrchestrator:
                 incoming,
             )
         if was_created and tenant_uuid:
-            EventBus.publish(
-                LeadCapturedEvent.create(
-                    tenant_id=tenant_uuid,
-                    profile_id=customer.id,
-                    channel_slug=capture_slug,
-                    extracted_field="external_id",
-                    source_channel_type=channel_type,
-                ),
-                session=db,
+            AuditEmitter.publish_lead_captured(
+                db,
+                tenant_uuid,
+                customer,
+                capture_slug,
+                channel_type,
             )
 
         self._update_customer_traits(db, customer, incoming)

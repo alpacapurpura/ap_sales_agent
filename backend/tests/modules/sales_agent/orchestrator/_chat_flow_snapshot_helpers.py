@@ -218,7 +218,9 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
             },
         )
 
-    monkeypatch.setattr(f"{chat_mod}.EventBus.publish", staticmethod(_capture_publish))
+    # Patch at definition site so the capture works wherever the call
+    # originates (chat.py pre-S11B, audit_emitter.py post-extraction).
+    monkeypatch.setattr("src.shared.domain.events.EventBus.publish", staticmethod(_capture_publish))
 
     # 8. Customer traits update path — patch the inner ORM lookup so
     #    ``_update_customer_traits`` does not blow up trying to compare.

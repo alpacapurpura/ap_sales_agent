@@ -34,6 +34,8 @@ ANCHOR_REGISTRY: dict[str, str] = {
     "SALES-AGENT-S8-WEBHOOK": "docs/domains/sales-agent/redesign-2026-04/phases/S8-tools-scheduler.md",
     # S10 — quality eval loop (LLM judge + goldens + weekly cron + dashboard)
     "SALES-AGENT-QUALITY-S10": "docs/domains/sales-agent/redesign-2026-04/phases/S10-quality-eval-loop.md",
+    # S11B — orchestrator decomposition (Strangler Fig)
+    "SALES-AGENT-AUDIT-EMITTER-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
 }
 
 ANCHOR_CAP: int = 25
