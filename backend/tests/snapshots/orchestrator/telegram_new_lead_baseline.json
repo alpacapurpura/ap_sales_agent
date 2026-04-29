@@ -1,0 +1,158 @@
+{
+  "agent_invocations": [
+    {
+      "callbacks_kind": [
+        "OBS_HANDLER"
+      ],
+      "initial_state": {
+        "_pending_tool": null,
+        "_tool_dedup_tracker": "ToolCallDedupTracker(stub)",
+        "active_enrollment": null,
+        "active_product": null,
+        "agent_identity": "ID:test-brand",
+        "brand_voice": "VOICE:test-voice",
+        "buying_signals": [],
+        "channel_type": "telegram",
+        "close_strategy": null,
+        "consecutive_questions": 0,
+        "current_state": "rapport",
+        "customer_profile_id": "aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa",
+        "detected_intent": null,
+        "error": null,
+        "follow_up_cadence": null,
+        "history": [],
+        "internal_turn": 0,
+        "is_returning_user": false,
+        "last_intent": null,
+        "last_session_summary": null,
+        "launch_stage": null,
+        "lead_data": {},
+        "lead_score": 0,
+        "messages": [
+          {
+            "content": "Hola, quiero info",
+            "role": "user"
+          }
+        ],
+        "next_node": null,
+        "objection_history": [],
+        "qualification_answers": {},
+        "session_active": true,
+        "session_gap_hours": null,
+        "session_id": "99999999-0000-0000-0000-000000000001",
+        "tenant_config": {
+          "locale": "es-LA"
+        },
+        "tenant_id": "44444444-4444-4444-4444-444444444444",
+        "turn_count": 0,
+        "user_id": "55555555-5555-5555-5555-555555555555",
+        "user_profile": {
+          "first_name": "Lead",
+          "last_name": "Test",
+          "message_id": "tg_msg_1"
+        }
+      }
+    }
+  ],
+  "audit_log_messages": [
+    {
+      "channel": "telegram",
+      "content": "Hola, quiero info",
+      "role": "user",
+      "tenant_id": "44444444-4444-4444-4444-444444444444",
+      "user_id": "55555555-5555-5555-5555-555555555555"
+    },
+    {
+      "channel": "telegram",
+      "content": "¡Hola! Cuéntame más.",
+      "role": "assistant",
+      "tenant_id": "44444444-4444-4444-4444-444444444444",
+      "user_id": "55555555-5555-5555-5555-555555555555"
+    }
+  ],
+  "channel_adapter_calls": [
+    {
+      "method": "set_typing_status",
+      "user_id": "tg_user_123"
+    }
+  ],
+  "customer_traits_updates": [
+    {
+      "customer_id": "aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa",
+      "metadata_keys": [
+        "first_name",
+        "last_name",
+        "message_id"
+      ]
+    }
+  ],
+  "domain_events": [
+    {
+      "event_name": "lead_captured",
+      "payload": {
+        "channel_slug": "telegram-dm",
+        "extracted_field": "external_id",
+        "profile_id": "aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa",
+        "source_channel_type": "telegram"
+      },
+      "tenant_id": "44444444-4444-4444-4444-444444444444"
+    }
+  ],
+  "journey_events": [
+    {
+      "event_name": "message_received",
+      "event_type": "track",
+      "profile_id": "aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa",
+      "properties": {
+        "channel_slug": "telegram-dm",
+        "channel_type": "telegram",
+        "message_direction": "inbound",
+        "message_id": "tg_msg_1"
+      },
+      "tenant_id": "44444444-4444-4444-4444-444444444444"
+    }
+  ],
+  "output_manager_calls": [
+    {
+      "channel_type": "telegram",
+      "text": "¡Hola! Cuéntame más.",
+      "user_id": "tg_user_123"
+    }
+  ],
+  "state_checkpoint_saves": [
+    {
+      "buying_signals": [],
+      "channel_type": "telegram",
+      "close_strategy": null,
+      "consecutive_questions": 0,
+      "current_stage": "rapport",
+      "customer_profile_id": "aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa",
+      "follow_up_cadence": null,
+      "last_specialist": "qualifier",
+      "lead_data": {
+        "name": "Lead"
+      },
+      "lead_id": "55555555-5555-5555-5555-555555555555",
+      "lead_score": 5,
+      "objection_history": [],
+      "qualification_answers": {},
+      "session_id": "99999999-0000-0000-0000-000000000001",
+      "tenant_id": "44444444-4444-4444-4444-444444444444",
+      "turn_count": 1
+    }
+  ],
+  "ws_emissions": [
+    {
+      "payload": {
+        "content": "¡Hola! Cuéntame más.",
+        "funnel_stage": "rapport",
+        "handler_mode": "ai",
+        "lead_id": "55555555-5555-5555-5555-555555555555",
+        "lead_score": 5,
+        "role": "assistant",
+        "type": "new_message"
+      },
+      "tenant_id": "44444444-4444-4444-4444-444444444444"
+    }
+  ]
+}
