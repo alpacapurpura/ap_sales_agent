@@ -121,13 +121,13 @@ async def format_for_channel(content: str, channel_id: str) -> str:
 
     Cuándo usarla:
     - El usuario dice "dame esto listo para WhatsApp / email / SMS".
-    - Después de generar prosa larga, querés validar que cumpla con el cap
+    - Después de generar prosa larga, quieres validar que cumpla con el cap
       de chars y limpiar markdown que el canal destino no renderiza.
     - Antes de copiar al portapapeles algo que el usuario va a enviar
       manualmente desde otro canal.
 
     Args:
-        content: Texto crudo que querés adaptar.
+        content: Texto crudo que quieres adaptar.
         channel_id: Id del canal destino (``chat``, ``whatsapp``, ``email``,
             ``sms``, ``voice``, ``instagram_dm``, ``telegram``). Si no se
             reconoce, se usa ``chat``.

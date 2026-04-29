@@ -68,8 +68,8 @@ class OutputManager:
             if not chunk.strip():
                 continue
 
-            # 1. Calculate Typing Time
-            typing_time = cls._calculate_typing_time(chunk)
+            # 1. Calculate Typing Time (channel-aware via registry — S12)
+            typing_time = cls._calculate_typing_time(chunk, channel_type=channel_type)
 
             # 2. Show Typing Indicator
             # Only if the channel adapter supports it
@@ -216,13 +216,26 @@ class OutputManager:
         return pieces
 
     @classmethod
-    def _calculate_typing_time(cls, text: str) -> float:
+    def _calculate_typing_time(cls, text: str, channel_type: str | None = None) -> float:
         """Calculate typing delay based on CPM and Jitter.
 
         Formula: (Chars / CPM) * 60 * Jitter
+
+        ``channel_type`` opt-in (S12): when the registry declares
+        ``ChannelFormat.typing_simulation_cpm`` for the channel, the per-
+        channel CPM overrides the global ``CPM_SPEED``. Falsy values
+        (None / 0 / negative) fall back to ``CPM_SPEED`` so the §3
+        protected calibration applies for all seven S5 baseline channels
+        (all of which leave ``typing_simulation_cpm=None``).
         """
+        cpm = cls.CPM_SPEED
+        if channel_type:
+            override = get_channel_format(channel_type).typing_simulation_cpm
+            if override is not None and override > 0:
+                cpm = override
+
         length = len(text)
-        base_seconds = (length / cls.CPM_SPEED) * 60
+        base_seconds = (length / cpm) * 60
 
         # Apply jitter
         jitter = random.uniform(*cls.JITTER_RANGE)

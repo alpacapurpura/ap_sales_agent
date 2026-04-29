@@ -43,6 +43,9 @@ ANCHOR_REGISTRY: dict[str, str] = {
     "SALES-AGENT-SEMANTIC-ROUTES-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
     "SALES-AGENT-TENANT-ROUTE-OVERLAY-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
     "SALES-AGENT-SEMANTIC-ROUTER-REGISTRY-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
+    # S12 — final hardening (tier pricing + sales-routing dashboard)
+    "SALES-AGENT-COST-TIER-S12": "docs/domains/sales-agent/redesign-2026-04/phases/S12-final-hardening-zero-debt.md",
+    "SALES-AGENT-ROUTING-S12": "docs/domains/sales-agent/redesign-2026-04/phases/S12-final-hardening-zero-debt.md",
 }
 
 ANCHOR_CAP: int = 25

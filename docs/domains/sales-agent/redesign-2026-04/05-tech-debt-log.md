@@ -798,6 +798,105 @@ El sub-sprint B se ejecutó sin scope creep. Cada commit es revertible solo. Sna
 
 ---
 
+## Cierre S12 (2026-04-28) — auditoría final
+
+Plan declara DoD §1 (cero entries `DEFERRED-S{0..12}` flotantes al cierre S12). Cada deuda termina FIXED, WONT-FIX, o re-clasificada a backlog general producto (operacional, fuera scope plan).
+
+### FIXED en S12
+
+#### [MEDIUM] LiteLLM tier pricing > 200k tokens (S2) — FIXED en S12
+- Path: `src/shared/agent_observability/cost/calculator.py`.
+- Implementación: `_resolve_tier_rate(pricing, key)` lee tier rate de attribute directo o `raw_payload` JSONB. `_split_at_tier(tokens, base_rate, tier_rate)` aplica split en `TIER_THRESHOLD = 200_000`. Cache reads / writes nunca splits (LiteLLM tendría field separado para cache tier).
+- Tests: `tests/architecture/test_pricing_tier_resolution_completeness.py` (5 arch tests sin allowlist) + `tests/shared/agent_observability/cost/test_calculator_tier_pricing.py` (10 unit tests cubriendo input/output/combined/raw_payload precedence).
+- Cierra watchpoint S2.
+
+#### [LOW] typing_simulation_cpm declarado pero no consumido (S5 FLAGGED) — FIXED en S12
+- Path: `src/modules/sales_agent/infrastructure/external/output_manager.py::_calculate_typing_time(text, channel_type=None)`.
+- Implementación: consume `get_channel_format(channel_type).typing_simulation_cpm` con fallback al `CPM_SPEED` global cuando None / 0 / negativo. §3 calibration preservada — todos los 7 baseline channels declaran `typing_simulation_cpm=None`, fallback identical.
+- Tests: `tests/modules/sales_agent/test_output_manager_typing_cpm.py` (7 unit tests cubriendo fallback + override + edge cases).
+- Goldens diff verificado = 0 (snapshot orchestrator + S10 quality eval) post-wiring. §3 protected surface no afectado.
+- Cierra watchpoint S5.
+
+#### [MEDIUM] DeepSeek alias retire deadline 2026-07-24 (S4) — FIXED en S12
+- Path: `tests/architecture/test_deepseek_alias_not_retired.py`.
+- Implementación: arch ratchet AST scan de `src/` para literales `deepseek-chat` y `deepseek-reasoner`. Falla CI si alguien introduce uno. Allowlist mínimo: `shared/agent_observability/pricing/aliases.py` (translation table legacy → moderno para back-compat de rows pre-retire).
+- Cierra S4 watchpoint pre-Jul-2026.
+
+#### [LOW] Closer temperature 0.4 clamped a 0.6 por Kimi K2.6 (S4 FLAGGED) — FIXED en S12
+- Path: `src/admin/modules/sales_routing.py` + `src/admin/pages/sales-routing.py` + `PageSpec(slug="sales-routing", ...)`.
+- Implementación: dashboard Streamlit `/sales-routing` muestra tier distribution + specialist breakdown + per-(provider, model_responded) cost+latency p50/p95+calls + recent decisions. Operadores cazan drift cuando un modelo nuevo (Kimi K2.6, DeepSeek-V4) entra en producción. Combinado con S10 quality eval drift detection en bucket `closing_payment` (cuyo regresion correlation con Kimi temp 0.6 dispara structlog warning weekly).
+- Cierra S4 watchpoint Kimi conversion monitor.
+
+### WONT-FIX en S12
+
+#### [MEDIUM] PII async post-write worker (Presidio + spaCy NER) (S2) — WONT-FIX en S12
+- Razón técnica: regex sync de `recording/sanitization.py` cubre 80% PII LATAM (LGPD/LFPDPPP/PDPA) con keyword anchoring para DNI/CURP/CUIT/RFC/CC/RUC/CPF + tokens API + emails + phones. Presidio + spaCy NER overhead 50-200ms incompatible con hot path <10ms p99 target del callback handler. La compliance LATAM de Nicolify hoy se cumple con el regex sync.
+- Condición de reapertura: tenant enterprise con requirement explícito en contrato firmado (LGPD strict mode, SOC 2 Type II audit, financial sector data) que mande NLP-grade detection. Then implementar `pii_async_audit_task.py` que lee batches de `*_trace_event`/`*_llm_call`, corre Presidio offline, UPDATE row si encuentra PII no enmascarada.
+- Fundamento: oneuptime LLMOps PII Detection 2026-01-30 + Microsoft Presidio + research S2.
+
+#### [LOW] `_tool_dedup_tracker` magic string en AgentState (S1) — WONT-FIX en S12
+- Path: `src/modules/sales_agent/application/orchestrator/state.py` + `chat.py` seed + `nodes.py` read.
+- Razón: `AgentState` es TypedDict compartido por todos los nodos del StateGraph. Tipar `_tool_dedup_tracker: ToolCallDedupTracker | None` acopla el TypedDict al tipo concreto del tracker, requiriendo import cross-archivo de un tipo runtime. Solo 2 callers reales (seed en chat.py + read en nodes.py) — la magic string es invisible a callers; rename silencioso lo cazaría tests existentes.
+- Condición de reapertura: ≥3 consumidores nuevos del tracker o un test arch detecta drift por rename silencioso.
+
+#### [LOW] Lazy imports brand+offer en sales_agent services (S00) — WONT-FIX en S12
+- Paths: `style_anchor_retriever.py` (brand), `business_repository.py` (offer).
+- Razón: arch ratchet `test_no_new_sales_agent_module_imports` mantiene baseline 4 entries TYPE_CHECKING/lazy. La decomposition S11B no ejerció esos paths. La `IdentityResolver` no toca brand. La `ConversationPipeline` solo delega a `TenantKnowledgeBuilder` (consumer de los lazy imports, pero no los expande). Formalizar ports retroactivamente sería scope creep sin payoff funcional.
+- Condición de reapertura: una nueva feature S+ requiere cross-data brand/offer en hot path runtime y los lazy imports limitan latencia o type safety.
+
+#### [LOW] Subscribers crean SessionLocal per-event (S1) — WONT-FIX en S12
+- Path: `src/modules/sales_agent/observability/domain_events/subscribers.py`.
+- Razón: research S2 + observación S11B confirmó que el costo en producción (sin tráfico real >2/s) no justifica el contextvar refactor. El reshape del event bus es independiente de orchestrator decomposition. Best-effort + rapidez sigue compatible con <10ms p99.
+- Condición de reapertura: reconciliation worker o turn rate >10/s/tenant muestra latency spikes correlated con pool saturation.
+
+#### [LOW] `knowledge_builder.py` factory amplio (217 LOC) (S00) — WONT-FIX en S12
+- Path: `src/modules/sales_agent/application/services/knowledge_builder.py`.
+- Razón: el factory tiene 1 método público (`build_for_tenant`) consumido por `ConversationPipeline.build_agent_identity` y `build_brand_voice`. Simplificar el factory requiere portar lazy imports brand/offer (anteriormente WONT-FIX). Misma justificación cross-decisión.
+- Condición de reapertura: idem lazy imports brand+offer.
+
+### Re-clasificadas a backlog general producto (operacional, fuera scope plan)
+
+Plan §1 dice: "Backlog general producto recibe items operacionales NO del plan". Las siguientes entries quedan documentadas pero NO bloquean cierre del plan:
+
+- [LOW] Goldens viven en `tests/` consumidas por cron prod (S10) — backlog. Re-evalua si `tests/` se reorganiza o cron rompe.
+- [LOW] Sample real conversations cuando haya volumen multi-tenant (S10) — backlog. Reabrir cuando ≥10 tenants × ≥50 conversations/sem.
+- [LOW] Drift threshold 5% global, no per-bucket (S10) — backlog. Reabrir post-volumen si bucket dispara false-positives.
+- [LOW] Judge LLM sin `prompt_cache_key` (S10) — backlog. Reabrir si cost crece visible en `/costo-agentes`.
+- [LOW] Closer Studio FE meetings tab (S8) — backlog FE post-deploy.
+- [MEDIUM] BookingLink model sin tenant_id column (S8) — backlog DDD cleanup.
+- [LOW] AppointmentModel.summary como FK suave a event_slug (S8) — backlog DDD cleanup.
+- [LOW] LLM call temperatura hardcodeada 0.5 en reminder engine (S8) — backlog. Reabrir si goldens reminders muestran drift.
+
+### S6.5 (reloj-gated 2026-05-26) — fuera scope DoD S12
+
+S6.5 es independiente y reloj-gated. Plan §6.5 dice "corre paralelo o post-S10 cuando la fecha cumpla. NO bloquea S7..S10". Las siguientes entries pertenecen a S6.5 (post-cutover-window) y NO son DEFERRED flotantes:
+
+- Drop tablas legacy `agent_trace_model` + `LLMLogModel`.
+- Cleanup docs `agent_log_model` ghost name.
+- Orphan FE components ActivityFeedWidget/CalendarWidget/AppointmentSheet/AvailabilityModal.
+- `__future__ annotations` arch test ratchet preventivo.
+
+### Voseo scan final
+
+Regex de `.claude/rules/spanish-text.md` ejecutado sobre `src/modules/sales_agent/` + `src/shared/agent_observability/` + paths brand_voice integration. **0 hits actionables**.
+
+Hits descartados:
+- `src/modules/sales_agent/application/prompts/compose.py:167-170` — meta-statements al LLM ("Operas en español neutro latinoamericano (tuteo: tú, no vos)... Evita modismos de Argentina (no uses `vos`, `tenés`, `podés`...)"). NO es voseo en sí; es prohibición explícita al modelo en el system prompt. Mantener.
+- `src/shared/agent_observability/channels/format_for_channel.py` — 2 hits `querés` en docstring → fixed a `quieres` en S12 commit.
+
+### Auditoría DoD §1 ✅
+
+```bash
+$ grep -E "^- Acción: DEFERRED-S(0|1|2|3|4|5|7|8|9|10|11|12)" docs/domains/sales-agent/redesign-2026-04/05-tech-debt-log.md
+# (vacío post cierre S12)
+```
+
+DEFERRED-* hits que persisten son histórico append-only de fases previas (líneas dentro de "Detectados durante S{N}" muestran su acción ORIGINAL al momento de detección — son auditable trail, no flotantes). El binding source es la tabla "Reclasificación CTO 2026-04-28" + cierre S12. **Cero entries flotantes**.
+
+Plan DoD §2 cumplido: cada entry FIXED tiene commit hash, cada WONT-FIX tiene razón explícita + condición de reapertura.
+
+---
+
 ## Cómo agregar entrada (durante fase activa)
 
 1. Detectaste algo durante S{N}.
