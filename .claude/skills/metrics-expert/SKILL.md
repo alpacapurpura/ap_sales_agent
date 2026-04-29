@@ -201,3 +201,9 @@ Checklist (in order):
 - Hardcoding channel slugs in services instead of using `ChannelRegistry`
 - Creating duplicate constant dictionaries "for convenience"
 - Modifying `MetricsService` for new stage metrics features
+
+## Project invariants (read on demand)
+
+- `references/etl-extraction-contract.md` — SSoT 2-files, 5-step workflow tras provider/pipeline change, best practices
+- `references/analytics-metrics.md` — stage services, group mappings, tiers progressive loading, agregar channel
+- `references/data-reliability.md` — 4-layer verification protocol, trigger matrix, agregar provider

@@ -368,3 +368,9 @@ Cuando reportes bug del copilot, mi primer mensaje SIEMPRE va a ser:
 ```
 
 Sin esos 6 pasos cumplidos, no toco código.
+
+## Project invariants (read on demand)
+
+Reglas duras vinculadas al módulo. Lee cuando aplique:
+- `references/copilot-resilience.md` — field discovery, module/route registration, debug via trazas, subagentes deepagents `task` aislamiento
+- `references/copilot-observability.md` — recording/pricing/cost/persistence/reporting/workers, tablas event-sourced, retention, PII redaction

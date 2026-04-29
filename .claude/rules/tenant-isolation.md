@@ -1,19 +1,11 @@
 ---
 globs: "**/*"
-description: Multitenant data isolation requirements
+description: Multitenant data isolation
 ---
 
 # Tenant Isolation
 
-Every data op MUST be tenant-scoped. No exceptions.
+Every data op tenant-scoped. Sin excepciones.
 
-## Backend
-- All queries: `.where(Model.tenant_id == tenant_id)`
-- `tenant_id` from `X-Tenant-ID` header (middleware injects)
-- Repository methods receive `tenant_id` as required param
-- Never return data sin tenant filtering
-
-## Frontend
-- `fetchClient` auto-injects `X-Tenant-ID` from Clerk session
-- Route params include `[tenantId]` en todas auth pages
-- Never hardcode tenant IDs
+- BE: `.where(Model.tenant_id == tenant_id)` en TODA query (incluye `get_by_id`). `tenant_id` from `X-Tenant-ID` header (middleware). Repos reciben `tenant_id` required param.
+- FE: `fetchClient` auto-inyecta `X-Tenant-ID` from Clerk. Routes incluyen `[tenantId]`. NUNCA hardcode.

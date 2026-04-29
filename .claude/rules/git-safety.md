@@ -1,24 +1,11 @@
 ---
 globs: "**/*"
-description: Git workflow and safety rules
+description: Git workflow + safety
 ---
 
 # Git Safety
 
-## Branch Model
-- **`development`** = única rama trabajo. Todo aquí.
-- **`main`** = prod. Solo merges desde development en pase.
-- **NUNCA feature branches/worktrees/ramas extra** salvo instrucción explícita.
-
-## Commit Format
-Conventional: `<type>(<scope>): <description>`
-
-Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`
-
-## Safety
-- Always review `git status` before staging
-- **Stage por nombre siempre** (`git add path/to/file`). Nunca `git add .`/`-A`/`-u` — otras sesiones paralelas pueden tener WIP. Ver `parallel-safety.md` → "Scope commits".
-- Never commit `.env`, `.env.prod`, credentials, secrets
-- Never force push `main`
-- Never amend published commits sin aprobación
-- Never create branches/worktrees sin instrucción explícita
+- Branches: `development` única rama trabajo. `main` = prod (push = deploy auto). NUNCA feature branches/worktrees salvo instrucción.
+- Commits: Conventional `<type>(<scope>): <desc>` (feat/fix/refactor/docs/test/chore/perf/ci).
+- Stage por nombre: `git add path/file`. PROHIBIDO `git add .|-A|-u` (parallel sessions tienen WIP — `parallel-safety.md`).
+- `git status` antes stage. NUNCA commit `.env*`/credentials/secrets. NUNCA force push `main`. NUNCA amend published sin aprobación.

@@ -88,3 +88,9 @@ Estructura plana agrupada por dominio. Detalles completos en [fsd-cheatsheet.md]
 - **Server-First:** Todos los componentes son Server Components por defecto. Solo agregar `"use client"` en nodos hoja que usen `useState`, `useEffect`, o event handlers.
 - **No inventar utilidades:** Usar `cn()` de `shared/lib/utils.ts` para clases Tailwind. No crear helpers duplicados.
 - **Imports:** Relativos dentro del mismo slice (`./ui/MiComponente`). Alias global entre slices (`@/features/other`).
+
+## Project invariants (read on demand)
+
+- `references/frontend-quality.md` — ESLint 60+ rules, TS strict, Vitest, 10 arch tests
+- `references/studio-section-pages.md` — lazy-loading per-section pattern (brand/offer/futuros)
+- `references/e2e-testing.md` — Playwright preflight, native execution, Clerk setup, mocks Growth Studio

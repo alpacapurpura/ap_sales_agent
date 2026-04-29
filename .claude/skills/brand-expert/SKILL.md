@@ -393,3 +393,7 @@ Antes codear, si:
 - `sales-agent-expert` — si cambio toca sales-agent graph / prompts / tools.
 - `content-hunter` — si quiere ideas de contenido (consumes brand voice + offer promise).
 - `brand-offer-auditor` — audita cobertura framework marketing (10 frameworks).
+
+## Project invariants (read on demand)
+
+- `references/form-runtime-array.md` — array field cards/split mode, autosave preserved

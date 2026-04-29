@@ -1,181 +1,76 @@
 # CLAUDE.md
 
-Guidance for Claude Code in this repo.
+**Nicolify** — Multitenant SaaS (AaaS) marketing/sales automation. FastAPI async + Next.js 16 FSD + Clerk + Postgres/Qdrant. Modular Monolith DDD + Docker-First.
 
-## Project
+## Modules
 
-**Nicolify** — Multitenant SaaS (AaaS). Automate marketing/sales for creators, pros, small biz.
-**Stack:** FastAPI (Async/SQLA 2.0), Next.js 16 (App Router/FSD), Clerk, Qdrant.
-**Pattern:** Modular Monolith (DDD) + Docker-First.
-
-## Core Domains
-
-| Studio | Modules |
-|---|---|
-| Brand/Offer | `brand`, `offer` |
-| Assets | `landing`, `assets` |
-| Growth | `analytics`, `advertising`, `social_media` |
-| Sales | `sales_agent`, `scheduling` |
-| Config | `connections` |
-| Supporting | `iam`, `crm`, `core`, `shared` |
-
-Unsure? Read `docs/domains/INDEX.md` (15 docs).
+Brand/Offer: `brand`, `offer` · Assets: `landing`, `assets` · Growth: `analytics`, `advertising`, `social_media` · Sales: `sales_agent`, `scheduling` · Config: `connections` · Support: `iam`, `crm`, `core`, `shared`, `copilot` · Detalle → `docs/domains/INDEX.md`.
 
 ## Commands
 
-**Lint/tests/type-check NATIVE WSL. NEVER Docker.**
-**Docker: runtime + migrations only.**
-
-| Action | Command |
+| | |
 |---|---|
-| BE full | `/test-backend` — lint+format+arch+unit+jscpd+interrogate+pip-audit |
-| FE full | `/test-frontend` — TSC+ESLint+Vitest+jscpd+knip+madge+npm audit |
-| Full CI | `/test-all` — BE+FE+E2E smoke+migration |
-| Dev up | `/dev-up` → `docker compose up -d` |
+| BE full | `/test-backend` |
+| FE full | `/test-frontend` |
+| Full CI | `/test-all` |
+| Dev up | `/dev-up` |
 | Migration | `/migrate <msg>` |
-| Explore mod | `/explore-module <name>` |
-| Review PR | `/review-pr` |
 | Single BE | `cd backend && .venv/bin/pytest tests/modules/{m}/ -v` |
 | Single FE | `cd frontend && npx vitest run src/features/{d}/` |
-| FE arch | `cd frontend && npx vitest run src/__tests__/architecture/` |
 | E2E smoke | `cd frontend && E2E_BASE_URL=http://localhost:3000 npx playwright test --project=smoke` |
 
-### Docker Containers
+Docker containers: `visionarias_brain_dev:8000` · `visionarias_client_dev:3000` · `visionarias_admin_dev:8502` · `visionarias_postgres:5432`.
 
-| Container | Service | Port |
-|---|---|---|
-| `visionarias_brain_dev` | FastAPI uvicorn --reload | 8000 |
-| `visionarias_client_dev` | Next.js dev | 3000 |
-| `visionarias_admin_dev` | Streamlit admin | 8502 |
-| `visionarias_postgres` | Postgres 15 | 5432 |
+## Native-First (mandatory)
+
+Lint/tests/type-check **NATIVE WSL siempre**. Docker = runtime + migrations + ci-parity gate. `docker exec ... ruff|pytest|tsc|vitest|eslint` PROHIBIDO.
+
+- BE: `cd backend && .venv/bin/{ruff|pytest|pip-audit}` (venv 3.12)
+- FE: `cd frontend && npx {tsc|eslint|vitest|playwright}`
+- CI-parity gate antes `git push origin main`: `make ci-parity` (5 deploys fallidos 2026-04-27 sin esto). `/pase-produccion` lo enforza.
 
 ## Architecture
 
-### Backend (`backend/src/`)
+**BE** `backend/src/modules/{name}/{domain,infrastructure,application,api}/` (Inside-Out). `main.py` mounts `/api/v1/{module}/`. `shared/` events+entities, `core/` config+DB.
 
-16 contexts in `modules/`. DDD Inside-Out:
+**FE** `frontend/src/{app,components/{ui,shared},features/{domain},lib,hooks}/`. FSD-Lite. `fetchClient` auto-injects `X-Tenant-ID`.
 
-```
-modules/{name}/
-  domain/         # Models, VOs, repo interfaces. No framework imports.
-  infrastructure/ # SQLA repos, external clients.
-  application/    # Services, use cases.
-  api/            # FastAPI routes + Pydantic DTOs. Thin.
-```
-
-`main.py` mounts modules at `/api/v1/{module}/`.
-`shared/` (base entities, event bus, registry), `core/` (config, DB, security).
-
-### Frontend (`frontend/src/`)
-
-FSD-Lite (domain-grouped):
-
-```
-app/                # Next.js App Router (thin)
-  (main)/           # Auth routes
-  (landing)/        # Public
-components/
-  ui/               # Shadcn primitives (auto-gen, don't edit)
-  shared/           # Cross-feature layout
-features/{domain}/  # components/, hooks/, api/, types/, utils/
-lib/                # API client, design tokens, utils
-```
-
-`fetchClient` (in `lib/`) auto-injects `X-Tenant-ID` from Clerk. Always use.
-
-### Testing
-
-- BE: pytest (asyncio_mode=auto). `backend/tests/modules/{m}/`. Per-module `conftest.py`.
-- FE: Vitest (happy-dom). `*.test.ts` colocated or `__tests__/`.
-- E2E: Playwright.
-
-### CI/CD (`.github/workflows/deploy-prod.yml`)
-
-Push `main` → quality-gates → Trivy → GHCR push (`ghcr.io/alpacapurpura/visionarias-{backend,frontend}:latest`).
-
-### ETL Extraction Contract
-
-SSoT for ETL. Before ETL questions, read:
-
-| File | Contains |
-|---|---|
-| `backend/src/modules/analytics/domain/extraction_contract.py` | Python dataclasses: provider, code, auth, endpoints, channels, metrics, schedule, tables, issues. Editable. |
-| `docs/etl/extraction-contract.md` | Auto-gen MD. NEVER edit. Regen: `cd backend && .venv/bin/python scripts/generate_extraction_contract_doc.py`. |
-| `backend/tests/architecture/test_extraction_contract.py` | 48 arch tests. Fail on drift. In `make arch-test`, `/test-all`. |
-
-Change provider → update contract, regen doc, run test.
-
-## Native Dev Tools (WSL) — MANDATORY
-
-Docker mounts `/app` = main clone. Worktrees see stale. Native reads real FS.
-
-**NEVER `docker exec` lint/tests/type-check. Always native.**
-
-### Backend
-
-venv: `backend/.venv` (3.12, ruff, pytest, pytest-cov, factory-boy, faker)
-
-| Task | Command |
-|---|---|
-| Lint | `cd backend && .venv/bin/ruff check src/ tests/ --no-cache` |
-| Format | `cd backend && .venv/bin/ruff format --check src/ tests/` |
-| Tests | `cd backend && .venv/bin/pytest -x -q --tb=short` |
-| Arch | `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` |
-| Coverage | `cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short` |
-| Single mod | `cd backend && .venv/bin/pytest tests/modules/{m}/ -v` |
-| Security | `cd backend && .venv/bin/pip-audit --strict --desc` |
-
-### Frontend
-
-node_modules: `frontend/node_modules` (vitest, tsc, next, eslint)
-
-| Task | Command |
-|---|---|
-| TSC | `cd frontend && npx tsc --noEmit` |
-| Lint | `cd frontend && npx eslint src/` |
-| Tests | `cd frontend && npx vitest run` |
-| Coverage | `cd frontend && npx vitest run --coverage` |
-| Single | `cd frontend && npx vitest run src/features/{d}/` |
-| Security | `cd frontend && npm audit --audit-level=high` |
-
-### Docker ONLY:
-- Runtime: `docker compose up -d`
-- Migrations: `docker exec -t visionarias_brain_dev bash -c "cd /app && alembic upgrade head"`
-- Logs: `docker logs visionarias_brain_dev --tail 100`
-- Fresh DB migration verify
-
-### PROHIBITED:
-```
-docker exec ... ruff|pytest|tsc|vitest|eslint
-docker run --rm ... ruff|pytest|tsc|vitest
-```
+**CI/CD** `.github/workflows/deploy-prod.yml`. Push `main` → quality-gates → Trivy → GHCR `ghcr.io/alpacapurpura/visionarias-{backend,frontend}:latest`.
 
 ## Critical Rules
 
-1. **Anti-Hallucination:** Read `docs/domains/INDEX.md` before coding. Never guess.
-2. **Native-First, CI-Parity Before Push:** Lint/tests/type-check NATIVE durante iteración (rápido, ~30s). **ANTES** de `git push origin main`, correr `make ci-parity` (Docker, mismas imágenes que CI, `TZ=UTC`, `NODE_OPTIONS=--max-old-space-size=4096`). El gate Docker captura los 4 ejes que el nativo no simula (`backend/.env` vs `.env.test`, host TZ vs UTC, host RAM vs container heap, fs completo vs `.dockerignore`). Saltarse este gate antes de push a main reproduce el ciclo de 5 deploys fallidos del 2026-04-27. `/pase-produccion` lo enforza en Fase 3b. Ver `scripts/ci-parity.sh`.
-3. **Tenant Isolation:** ALL queries filter `X-Tenant-ID`. `.claude/rules/tenant-isolation.md`.
-4. **BE DDD:** Inside-Out, no cross-module imports (except copilot). `.claude/rules/backend-ddd.md`.
-5. **FE FSD:** Server Components default, no deep feature imports (except copilot). `.claude/rules/frontend-fsd.md`.
-6. **Migrations:** Idempotent (raw SQL `IF NOT EXISTS`). `.claude/rules/backend-migrations.md`.
-7. **PII:** Every endpoint MUST `response_model=`. PII masked/justified. Via `@AGENTS.md` → Tessl.
-8. **Git:** Conventional Commits, no force push main. `.claude/rules/git-safety.md`.
-9. **Debugging:** Docker diag + patterns. `.claude/rules/debugging.md`.
-10. **Copilot:** Schema introspection, module registry, route-based tools, debug via trazas. `.claude/rules/copilot-resilience.md`. Observabilidad (cost / pricing / trace / billing 25-25 / PII / retention) en `.claude/rules/copilot-observability.md` — cualquier cambio al módulo `observability/` o queries de costo va por ahí.
-11. **Spanish neutro LatAm (sin voseo):** Todo user-facing español latinoamericano neutro. Tuteo `tú`, nunca `vos/tenés/podés/mirá/dejá`. Nicolify vende Latam — dejo argentino excluye MX/CO/PE/CL. Tildes/eñes correctas (`días`, `Campaña`). Aplica componentes, schemas (labels/hints/placeholders), catálogos backend user-facing, prompts LLM output visible, emails, notificaciones. Verificar antes commit. `.claude/rules/spanish-text.md`.
-12. **Mejora continua:** Problema proceso/test frágil/patrón incorrecto/aprendizaje → `[] descripción` en `docs/mejoras-proceso/to-do.md`. Sin verbosidad.
-13. **TDD Obligatorio:** Tests PRIMERO, implementación DESPUÉS. Sin excepciones. Features: test por capa antes. Bugs: test regresión antes fix. Existente sin tests: cubrir primero. `.claude/rules/tdd-mandatory.md`.
-14. **ETL Contract:** Antes ETL/analytics: leer `docs/etl/extraction-contract.md`. Antes modificar `backend/src/modules/analytics/`: leer regla. Después cambio providers/pipeline/scheduler/workers/catálogo: update `extraction_contract.py`, regen MD `make extraction-contract`, correr arch test. Sin excepciones. `.claude/rules/etl-extraction-contract.md`.
-15. **Data Reliability:** Cambio Growth Studio → verification layer. `.claude/rules/data-reliability.md`.
-16. **FE Quality:** 0 ESLint errors, 1063 tests, 20% coverage. No nuevos errores. `.claude/rules/frontend-quality.md`.
-17. **FE Arch Tests:** 10 fitness tests `src/__tests__/architecture/` — PascalCase components, kebab-case files/folders, hooks in hooks/, no default exports, no cross-feature dupes, canonical structure, fetchClient in api/, studio sections lazy-loading + structure parity. Ratchet (allowlists shrink only).
-18. **BE Quality:** Ruff 70+ rules, 0 errors, 7 arch gates, 43% coverage. No nuevos. `.claude/rules/backend-quality.md`.
-19. **Form-runtime Array:** Campos array ≤3 sub-fields → modo `cards`, ≥4 → modo `split`. Default automático por `itemSchema.fields.length`. Autosave on-change preservado. `.claude/rules/form-runtime-array.md`.
-20. **Admin Panel:** Registry-based `st.navigation` (`PAGE_SPECS` en `src/admin/app.py`). Nueva opción = 1 PageSpec + 1 `pages/{slug}.py` wrapper + 1 `modules/{name}.py::render_*`. Lógica SOLO en modules/. Smoke tests corren headless en `/test-backend`. `.claude/rules/admin-panel.md`.
-21. **PM SSoT funcional:** `docs/pm-nico/` es SSoT funcional Nicolify presente + futuro. Owner = `/pm` skill. Cambio user-facing en módulo → update `docs/pm-nico/current-state/{module}.md`. Para features significativos invocar `/pm`. `.claude/rules/pm-nico-ssot.md`.
+Rules siempre cargadas (universales):
+
+| # | Trigger | File |
+|---|---|---|
+| 1 | Anti-hallucination | leer `docs/domains/INDEX.md` antes coding |
+| 2 | Tenant isolation | `.claude/rules/tenant-isolation.md` |
+| 3 | BE DDD | `.claude/rules/backend-ddd.md` |
+| 4 | FE FSD | `.claude/rules/frontend-fsd.md` |
+| 5 | Migrations idempotentes | `.claude/rules/backend-migrations.md` |
+| 6 | Git/Conventional Commits | `.claude/rules/git-safety.md` |
+| 7 | Parallel safety (multi-instancia) | `.claude/rules/parallel-safety.md` |
+| 8 | TDD obligatorio | `.claude/rules/tdd-mandatory.md` |
+| 9 | Debugging | `.claude/rules/debugging.md` |
+| 10 | Spanish neutro LatAm | `.claude/rules/spanish-text.md` |
+| 11 | PII (`response_model=`) | `@AGENTS.md` → Tessl pii-sanitisation |
+
+Rules condicionales (stub apunta a skill — invocar el skill carga detalle):
+
+| Tocas | Skill | Stub |
+|---|---|---|
+| `modules/copilot/` | `copilot-expert` | `rules/copilot-resilience.md`, `rules/copilot-observability.md` |
+| `modules/sales_agent/` | `sales-agent-expert` | `rules/sales-agent-brand-voice.md` |
+| `modules/offer/` catalogs | `offer-expert` / `offer-type-preset-expert` | `rules/offer-catalogs.md` |
+| `modules/analytics/` ETL | `metrics-expert` | `rules/etl-extraction-contract.md`, `rules/analytics-metrics.md`, `rules/data-reliability.md` |
+| Backend quality/master-data/currency/arch-fitness | `backend-expert` | `rules/{backend-quality,master-data,currency-handling,architectural-fitness}.md` |
+| Frontend quality/form-runtime | `frontend-expert` / `brand-expert` | `rules/{frontend-quality,form-runtime-array}.md` |
+| Streamlit admin | `backend-expert` | `rules/admin-panel.md` |
+| E2E Playwright | (none — usa `/test-all`) | `rules/e2e-testing.md` |
+| PM/SSoT funcional | `pm` skill | `rules/pm-nico-ssot.md` |
 
 ## Vision
 
-Decisiones funcionales: `docs/domains/vision/product-vision.md`.
+`docs/domains/vision/product-vision.md`.
 
 @AGENTS.md

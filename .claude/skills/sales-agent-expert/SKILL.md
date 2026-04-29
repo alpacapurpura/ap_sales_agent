@@ -106,3 +106,7 @@ Tocar §3 → **PARAR, preguntar al usuario**.
 - `docs/domains/sales-agent/redesign-2026-04/{README,00-vision-and-objectives,02-architecture-target,04-principles,05-tech-debt-log}.md`.
 - `.claude/rules/{copilot-resilience,copilot-observability,sales-agent-brand-voice,parallel-safety,spanish-text}.md`.
 - `references/` (pre-redesign conversation craft — útil para evolución de copy, no arquitectura post-S12).
+
+## Project invariants (read on demand)
+
+- `references/sales-agent-brand-voice.md` — SSoT voz, compiler v2, slot architecture, micro-anchor per-turn, cache invalidation, tests obligatorios

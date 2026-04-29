@@ -350,3 +350,8 @@ Antes de codear, si:
 ## Peer skill
 
 - `offer-type-preset-expert` — narrow scope sobre L7 preset catalog. Si user solo agrega/modifica preset → invocá ese. Si user mezcla layers (preset + field + section) → este skill maneja toda la cascada.
+
+## Project invariants (read on demand)
+
+- `references/offer-catalogs.md` — 7 catalogs DAG, BE→FE flow, hooks, agregar workflow, anti-patterns
+- `references/form-runtime-array.md` — array field cards/split mode, autosave preserved
