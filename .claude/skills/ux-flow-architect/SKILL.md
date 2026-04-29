@@ -76,8 +76,39 @@ Before starting any phase, detect the user's intent — or ASK directly if uncle
 | "Journey de onboarding" / "flujo de nuevo usuario" | **Journey-focused** | Phase 1 (light) + Phase 2 (deep for that journey) + 3-6 |
 | "Conecta [feature A] con [feature B]" | **Micro-connection** | Skip to Phase 4, generate targeted proposal |
 | "Solo muéstrame el mapa" / "mapa de navegación" | **Audit-only** | Phase 1 only, present map, stop |
+| **"Diseñar UX para `docs/pm-nico/pis/PI-N-x/prs/PR-n-{slug}.md`"** | **PR-driven** | **PM handoff mode** — see below |
 
 Announce the detected mode to the user before proceeding.
+
+***
+
+## PM Handoff Mode — Input from `/pm`
+
+When invoked with input pointing at a `docs/pm-nico/pis/PI-{N}-{theme}/prs/PR-{n}-{slug}.md` file, you are receiving a Product Requirement from the `/pm` skill (Senior PM Nicolify). The PR is the **functional contract** — already validated. Your job: design UX for it.
+
+**Steps:**
+
+1. **Read the PR.md file completely.** Extract:
+   - Job-to-be-done
+   - Outcome esperado
+   - Walking skeleton (capacidades MVP)
+   - User stories + criterios aceptación
+   - Operable desde copilot (sí/no + flujo conversacional descrito)
+   - Restricciones negocio (multitenant, LATAM, copilot-first)
+   - Out of scope explícito
+
+2. **Honor copilot-first.** PR ya respondió "operable desde copilot" — vos diseñás cómo se ve:
+   - Si "Sí" → diseñá el flujo conversacional (cómo aparecen cards copilot, qué tools se invocan) **además** de la UI tradicional. Ambas vías deben coexistir.
+   - Si "No" → respetar justificación, pero asegurar que copilot puede al menos **iniciar** el flujo y **resumir** al cierre.
+
+3. **No re-litigues funcionalidad.** Si encontrás gap funcional (ej: "falta capacidad X que no está en PR"), **NO la inventes**. Volvé al user:
+   > "Detecté gap funcional al diseñar UX: el PR no cubre {X}. Necesitamos volver a `/pm` para registrar la decisión. ¿Lo flagueamos?"
+
+4. **Out path session folder:** `docs/ux-sessions/{YYYY-MM-DD}-{slug-derivado-del-PR}/`. Linkeá de vuelta al PR.md en FLOW-SPEC.md y UI-SPECs.
+
+5. **Cuando termines:** notificá al user que UX está listo + sugerí siguiente paso (handoff a `nicolify-feature` o backend/frontend agents para implementación).
+
+**Recordá:** el PR.md NO se modifica desde acá. Si decisión cambia, vuelve a `/pm`.
 
 ***
 
