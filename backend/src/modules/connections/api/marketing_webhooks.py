@@ -712,7 +712,7 @@ async def handle_mailerlite_webhook(
     logger.info(
         "mailerlite_webhook_processed",
         tenant_id=str(tenant_id),
-        event=event_name,
+        event_name=event_name,
         profile_id=str(profile.id),
     )
     return {"status": "processed", "event": event_name, "profile_id": str(profile.id)}

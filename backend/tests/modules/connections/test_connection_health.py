@@ -3,7 +3,11 @@
 TDD: Written BEFORE implementation. These must fail until health.py exists.
 """
 
+import uuid
 from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock
+
+import pytest
 
 
 class TestEvaluateConnectionHealth:
@@ -160,3 +164,106 @@ class TestConnectionHealthResponse:
         assert "channel_slug" in data
         assert "expires_at" in data
         assert "message" in data
+
+
+class TestParseExpiresAtNaiveDatetime:
+    def test_naive_iso_datetime_gets_utc_tzinfo(self):
+        from src.modules.connections.api.health import _parse_expires_at
+
+        result = _parse_expires_at("2025-06-01T12:00:00")
+        assert result is not None
+        assert result.tzinfo is not None
+
+
+class TestGetConnectionHealthRoute:
+    def _user(self):
+        u = MagicMock()
+        u.tenant_id = uuid.uuid4()
+        return u
+
+    def _make_db(self, connection=None):
+        db = MagicMock()
+        repo = MagicMock()
+        repo.get_by_tenant_and_type.return_value = connection
+        return db, repo
+
+    async def _call(self, slug, user, db, repo):
+        from unittest.mock import patch
+
+        from src.modules.connections.api.health import get_connection_health
+        from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
+
+        with (
+            patch.object(ChannelConnectionRepository, "__init__", return_value=None),
+            patch.object(
+                ChannelConnectionRepository,
+                "get_by_tenant_and_type",
+                return_value=repo.get_by_tenant_and_type.return_value,
+            ),
+        ):
+            return await get_connection_health(slug, user, db)
+
+    @pytest.mark.asyncio
+    async def test_raises_404_for_unknown_slug(self):
+        from fastapi import HTTPException
+
+        from src.modules.connections.api.health import get_connection_health
+
+        user = self._user()
+        db = MagicMock()
+        with pytest.raises(HTTPException) as exc_info:
+            await get_connection_health("unknown-channel", user, db)
+        assert exc_info.value.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_not_connected_when_no_connection(self):
+        from unittest.mock import patch
+
+        from src.modules.connections.api.health import get_connection_health
+        from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
+
+        user = self._user()
+        db = MagicMock()
+        with (
+            patch.object(ChannelConnectionRepository, "__init__", return_value=None),
+            patch.object(ChannelConnectionRepository, "get_by_tenant_and_type", return_value=None),
+        ):
+            result = await get_connection_health("meta", user, db)
+        assert result.status == "not_connected"
+
+    @pytest.mark.asyncio
+    async def test_not_connected_when_inactive(self):
+        from unittest.mock import patch
+
+        from src.modules.connections.api.health import get_connection_health
+        from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
+
+        user = self._user()
+        db = MagicMock()
+        conn = MagicMock()
+        conn.is_active = False
+        with (
+            patch.object(ChannelConnectionRepository, "__init__", return_value=None),
+            patch.object(ChannelConnectionRepository, "get_by_tenant_and_type", return_value=conn),
+        ):
+            result = await get_connection_health("meta", user, db)
+        assert result.status == "not_connected"
+
+    @pytest.mark.asyncio
+    async def test_returns_health_when_active(self):
+        from unittest.mock import patch
+
+        from src.modules.connections.api.health import get_connection_health
+        from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
+
+        user = self._user()
+        db = MagicMock()
+        conn = MagicMock()
+        conn.is_active = True
+        conn.credentials = {"access_token": "tok"}
+        with (
+            patch.object(ChannelConnectionRepository, "__init__", return_value=None),
+            patch.object(ChannelConnectionRepository, "get_by_tenant_and_type", return_value=conn),
+        ):
+            result = await get_connection_health("meta", user, db)
+        assert result.status == "healthy"
