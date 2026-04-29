@@ -1,6 +1,6 @@
 # Handoff Sprint S{N} → S{N+1}
 
-> Template. Copy a `sprints/S{N}-*/handoff.md`. Llenar al cierre del sprint.
+> Template. Copy a `pis/active/PI-X-*/sprints/S{N}-*/handoff.md`. Llenar al cierre del sprint.
 
 ## Decisiones tomadas durante S{N}
 

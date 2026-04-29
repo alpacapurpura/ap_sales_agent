@@ -7,9 +7,9 @@
 
 | Item | Tipo | Estado | Link |
 |---|---|---|---|
-| Campaigns module — Foundation + Telegram MVP | PI-1 | planning, S0 in-progress | [pis/PI-1-campaigns-module/PI.md](pis/PI-1-campaigns-module/PI.md) |
-| Copilot improvement | PI-2-copilot | discovery | [pis/PI-2-copilot-improvement/PI.md](pis/PI-2-copilot-improvement/PI.md) |
-| Sales agent improvement | PI-3-sales | discovery | [pis/PI-3-sales-agent-improvement/PI.md](pis/PI-3-sales-agent-improvement/PI.md) |
+| Campaigns module — Foundation + Telegram MVP | PI-1 | planning, S0 in-progress | [pis/active/PI-1-campaigns-module/PI.md](pis/active/PI-1-campaigns-module/PI.md) |
+| Copilot improvement | PI-2-copilot | discovery | [pis/active/PI-2-copilot-improvement/PI.md](pis/active/PI-2-copilot-improvement/PI.md) |
+| Sales agent improvement | PI-3-sales | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
 
 ## Next (priorizado, no iniciado)
 
@@ -28,7 +28,7 @@
 
 ## Done (PIs cerrados)
 
-_Vacío. Aquí migran PIs cuando completan retro._
+_Vacío. PIs cerrados se migran a `pis/archive/PI-{N}-{theme}/` con `retro.md` y se linkean acá._
 
 ## Reglas roadmap
 

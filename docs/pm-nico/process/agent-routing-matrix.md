@@ -9,9 +9,9 @@
 | Pure backend infra (outbox, idempotency, rate limiter) | `nicolify-architect` | `nicolify-backend` | — | `nicolify-backend-auditor` | Architect escribe CONTRACT.md (schema + interface + retry). Backend implementa TDD. |
 | Backend + DB schema (planes, tablas nuevas) | `nicolify-architect` | `nicolify-backend` | — | `nicolify-backend-auditor` | Migration idempotente obligatoria (regla `backend-migrations.md`). |
 | Backend + LangGraph/AI (subagent, RAG, Qdrant) | `nicolify-architect` | `nicolify-agentic` | — | `nicolify-backend-auditor` | LangGraph workflows van a `nicolify-agentic` específicamente. |
-| Frontend con UI nueva | — | `nicolify-frontend` | `ux-flow-architect` | — | UX **antes** de implementación. FLOW-SPEC.md → UI-SPEC.md → frontend. |
+| Frontend con UI nueva | — | `nicolify-frontend` | `ux-flow-architect` | — | UX **antes** de implementación. UI-SPEC.md → frontend. |
 | Frontend con UX exploratorio (concepto visual nuevo) | — | `nicolify-frontend` | `ux-disruptivo` → `ux-flow-architect` | — | Disruptivo genera concepto, flow-architect lo aterriza con flujo+spec. |
-| Cross-stack feature (BE+FE+DB) | `nicolify-architect` | `nicolify-backend` + `nicolify-frontend` | `ux-flow-architect` | both auditors | Architect produce CONTRACT.md ÚNICO consumido por ambos. Paralelo BE/FE. |
+| Cross-stack feature (BE+FE+DB) | `nicolify-architect` | `nicolify-backend` + `nicolify-frontend` | `ux-flow-architect` | both auditors | Architect produce CONTRACT.md ÚNICO consumido por ambos. Paralelo BE/FE solo si CONTRACT ready. |
 | Investigación cross-codebase | `Explore` o `general-purpose` | — | — | — | Read-only. PM transcribe brief a `research/{date}-{slug}.md`. |
 | Migración research/docs (PR-0 saneamiento) | — | — | — | — | PM solo. No requiere agentes. |
 | Bug fix backend | — | `nicolify-backend` | — | `nicolify-backend-auditor` | TDD: regression test ANTES fix. |
@@ -51,8 +51,26 @@ Skills específicos por dominio (cargar JUNTO al builder genérico):
 3. **UX antes de FE.** Toda UI nueva pasa por `ux-flow-architect` mínimo. `ux-disruptivo` solo si concepto visual desde cero.
 4. **Auditor después de implementación.** Solo si hay riesgo DDD/security/tenant isolation. Skip para refactors triviales.
 5. **Skills experto + builder.** Skills módulo-específicos (brand-expert, offer-expert) NO reemplazan builder. Se cargan JUNTOS para que builder tenga contexto.
-6. **Paralelo cuando posible.** BE + FE en paralelo si CONTRACT.md ready. Independent reads en paralelo.
+6. **Paralelo cuando posible.** BE + FE en paralelo si CONTRACT.md ready (regla `parallel-sessions-protocol.md`).
 7. **Nunca usar agente para "ver qué hay".** Eso es `Read` o `Explore` directo.
+8. **PRs amplios cohesivos** — Opus 4.7[1M] permite scope grande. Sprint sizing 1-3 PRs.
+
+## Protocolo `@pm` comment (OBLIGATORIO)
+
+Cada agente builder/UX/auditor termina su última respuesta con comment HTML específico:
+
+```html
+<!-- @pm: [phase] done. Próximo paso: ejecutar prompts/{NN}-{next}-start.md o ejecutar /pm "PR-{n} {phase} done" -->
+```
+
+Esto:
+1. Indica a Chris siguiente prompt a ejecutar
+2. Indica al próximo agente qué prompt usar
+3. Permite a `/pm` próxima sesión reconstruir estado leyendo última línea de IMPL-LOG/REVIEW/CONTRACT
+
+Los `prompts/{NN}-*.md` que PM produce ya incluyen esta instrucción explícita al builder al final.
+
+**Sin `@pm` comment al final = handoff broken.**
 
 ## Anti-patterns
 
@@ -61,8 +79,11 @@ Skills específicos por dominio (cargar JUNTO al builder genérico):
 - ❌ Skip `ux-flow-architect` en UI nueva ("yo sé lo que va") — produce drift con design system
 - ❌ Cargar 3+ agentes en serie sin razón (perder contexto entre handoffs)
 - ❌ `nicolify-feature` (orquestador) Y agentes individuales en mismo PR — escoger uno
+- ❌ Agente builder/UX/auditor SIN `<!-- @pm: ... -->` comment al final (handoff broken)
+- ❌ Builder modifica `roadmap.md`/`process-learnings.md`/`current-state/{m}.md` directo (eso es PM)
 
 ## Anchor
 
-- Antes de declarar agentes en `PR-N-{slug}.md` → consultar esta tabla.
+- Antes de declarar agentes en `PR.md` → consultar esta tabla.
+- Antes de spawn agente → verificar prompt-pre-coce en `PR-folder/prompts/{NN}-*.md` listo.
 - Si caso no encaja → registrar en `process-learnings.md` y proponer extensión.
