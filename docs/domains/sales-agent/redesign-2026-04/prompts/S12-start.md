@@ -13,11 +13,28 @@ Cierre del redesign sales_agent.
 📝 Aprendizajes previos: learnings/S0..S11.
 
 CONTEXTO:
-- S0..S11 cerrados.
+- S0..S11 cerrados. S11 = S11A (`8cc9ea2c`) + S11B (commit final
+  `7367b5f8`).
 - Eval loop S10 activo (semanal cron + goldens).
-- Orchestrator decomposed (chat.py < 400 LOC, closer_studio_service split,
-  semantic_router registry).
+- Orchestrator decomposed (chat.py 337 LOC bajo ceiling 400 arch ratchet
+  `test_chat_orchestrator_loc_ratchet.py`); 4 collaborators extraídos
+  (`AuditEmitter`, `IdentityResolver`, `ConversationPipeline`,
+  `smart_debounce_runner`); closer_studio split en
+  Query/Command/Kpi + facade back-compat; semantic_router con domain
+  SYSTEM_ROUTES + application overlay + thin singleton.
 - Callback handler shared base lift completo (Sales + Copilot < 200 LOC cada uno).
+- Snapshot byte-equal framework activo en
+  `tests/modules/sales_agent/orchestrator/test_chat_orchestrator_snapshot.py`
+  (1 escenario telegram new lead) + S11A
+  `tests/shared/agent_observability/test_callback_handler_snapshot.py`.
+  S12 NO debe extender estos snapshots salvo regresión específica.
+
+TECH DEBT EN RADAR S12 (4 nuevas DEFERRED-S12 desde S11B):
+- `_tool_dedup_tracker` magic string (S1) — TypedDict update.
+- Lazy imports brand+offer (S00) — probable WONT-FIX (ratchet ok).
+- Subscribers SessionLocal-per-event (S1) — probable WONT-FIX.
+- `knowledge_builder.py` factory amplio (S00) — probable WONT-FIX.
+Todas reabren a S12 según `05-tech-debt-log.md` "Detectados durante S11B".
 
 ENTREGABLES S12 (cierre del plan):
 

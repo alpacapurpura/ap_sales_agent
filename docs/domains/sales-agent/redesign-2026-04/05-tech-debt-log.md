@@ -744,6 +744,60 @@ El sub-sprint A se ejecutó sin scope creep. Snapshot framework determinístico 
 
 ---
 
+## Detectados durante S11B (orchestrator decomposition Strangler Fig) — 2026-04-28
+
+### Orchestrator decomposition — FIXED
+
+#### [MEDIUM] `chat.py` orchestrator overgrown (1140 LOC) — 2026-04-28 — S00 — FIXED en S11B
+- Path: `backend/src/modules/sales_agent/application/orchestrator/chat.py` (1140 → 337 LOC, -70%).
+- Acción: FIXED en commits `f5bc583c` (snapshot framework) → `077ed6df` (AuditEmitter) → `48f3f2ef` (IdentityResolver) → `b14175cf` (ConversationPipeline) → `231d85a5` (thin facade). 4 collaborators extraídos (`AuditEmitter` 160 LOC, `IdentityResolver` 224 LOC, `ConversationPipeline` 518 LOC, `smart_debounce_runner` 154 LOC). chat.py ahora composición pura: `__new__/__init__` + 3 webhook handlers + `smart_debounce_task` (delegate) + `_init_repos` + `process_chat_flow` (50 LOC composing the 3 services). Snapshot byte-equal preserved post-cada commit (diff = 0). Arch ratchet `test_chat_orchestrator_loc_ratchet.py` con ceiling 400 (shrink-only).
+
+#### [MEDIUM] `closer_studio_service.py` 8+ responsabilidades (623 LOC) — 2026-04-28 — S00 — FIXED en S11B
+- Path: `backend/src/modules/sales_agent/application/services/closer_studio_service.py` (624 → 124 LOC facade) + nuevo paquete `closer_studio/` (5 archivos, 757 LOC).
+- Acción: FIXED en commit `ef972405`. CQRS-lite split (research: lightweight CQRS for FastAPI 2026 — same DB, separate read/write services, flat DTOs):
+  - `query_service.py` (286 LOC): list/detail/frozen.
+  - `command_service.py` (272 LOC): stop/resume/send/reactivate/diagnose + log_system_event + generate_recommendation.
+  - `kpi_service.py` (79 LOC): get_kpis.
+  - `lead_helpers.py` (96 LOC): get_checkpoint, get_last_message_preview, resolve_display_name/avatar/lifecycle_stage. Single repo entry — NO duplicación cross-service.
+  - `closer_studio_service.py` (124 LOC): thin facade composing los 3 — preserva back-compat con FastAPI router (11 callsites) y 19 tests existentes.
+
+#### [MEDIUM] `semantic_router.py` routes hardcoded (329 LOC) — 2026-04-28 — S00 — FIXED en S11B
+- Path: `backend/src/modules/sales_agent/application/services/semantic_router.py` (329 → 220 LOC) + 2 nuevos archivos (170 LOC).
+- Acción: FIXED en commit `7367b5f8`. Split domain/application:
+  - `domain/semantic_routes.py` (128 LOC): `SYSTEM_ROUTES` dict (15 routes × 5-6 anchors). Pure data, no imports.
+  - `application/services/tenant_route_overlay.py` (42 LOC): `collect_tenant_anchors(offers_data)` flatten Offer.objections.trigger_phrases → `(route_names, anchors)`. Pure function, fully testable.
+  - `application/services/semantic_router.py` (220 LOC): clase singleton retiene embedding cache + model lifecycle + public API (detect_intent / detect_and_accumulate / register_tenant_routes / invalidate_tenant) — pero delega anchor collection al overlay. Public API surface unchanged → callers `chat.py` / `nodes.py` / `knowledge_builder.py` no se mueven.
+
+### Tech debt residual (DEFERRED-S12)
+
+Las siguientes entradas DEFERRED-S11 / DEFERRED-S11B NO fueron arregladas en S11B y se reabren a S12 (no flotan):
+
+#### [LOW] `_tool_dedup_tracker` magic string en AgentState — 2026-04-28 — S1 — DEFERRED-S12
+- Path: `backend/src/modules/sales_agent/application/orchestrator/state.py` + `chat.py` seed + `nodes.py` read.
+- Razón S11B no fix: `ConversationPipeline` no tocó la shape del state — sólo lo lee/escribe en los mismos sitios. Re-tipar `AgentState["_tool_dedup_tracker"]` requiere import del tipo concreto en `state.py`, lo que acopla `state` con `tool_call_dedup` (cross-archivo TypedDict). Out of scope: requiere refactor del estado, no de orchestrator.
+- Acción: DEFERRED-S12 — TypedDict update + arch test que enforza la presencia.
+
+#### [LOW] Lazy imports brand+offer en sales_agent services — 2026-04-28 — S00 — DEFERRED-S12
+- Paths: `style_anchor_retriever.py` (brand), `business_repository.py` (offer).
+- Razón S11B no fix: `IdentityResolver` y `ConversationPipeline` NO ejercitaron esos lazy imports. La decomposition no requiere portar a `shared/links/ports/`. Cualquier port nuevo es scope de S7 (brand voice consume brand) o S8 (scheduler tools consume offer) — ya cerrados. Hoy ratchet `test_no_new_sales_agent_module_imports` mantiene el count en 4 (FROZEN baseline S6), permite los lazy imports existentes.
+- Acción: DEFERRED-S12 — re-evaluar si vale formalizar ports retroactivamente (probable WONT-FIX si arch ratchet sigue intacto).
+
+#### [LOW] Subscribers crean SessionLocal per-event — 2026-04-28 — S1 — DEFERRED-S12
+- Path: `src/modules/sales_agent/observability/domain_events/subscribers.py`.
+- Razón S11B no fix: la decomposition de `chat.py` no tocó `event_bus.publish` ni los subscribers — solo movió las llamadas a `AuditEmitter.publish_lead_captured`. El reshape del event bus (contextvar session vs SessionLocal-per-handler) es independiente del Strangler Fig orchestrator.
+- Acción: DEFERRED-S12 — evaluar al cierre. Probable WONT-FIX si reconciliation worker no muestra latency spikes.
+
+#### [LOW] `knowledge_builder.py` factory amplio (217 LOC) — 2026-04-28 — S00 — DEFERRED-S12
+- Path: `src/modules/sales_agent/application/services/knowledge_builder.py`.
+- Razón S11B no fix: `ConversationPipeline.build_agent_identity` y `build_brand_voice` solo consumen la API pública de `TenantKnowledgeBuilder` (2 métodos). Simplificar el factory requiere tocar brand/offer ports — out of scope para orchestrator decomposition.
+- Acción: DEFERRED-S12 — re-evaluar al cierre. Probable WONT-FIX.
+
+### S11B no introdujo nuevas deudas
+
+El sub-sprint B se ejecutó sin scope creep. Cada commit es revertible solo. Snapshot byte-equal mantuvo en cada paso (incluido tras `chat.py` quedando en 337 LOC y los wrappers static methods eliminados). 7 commits Strangler Fig, todos verde en CI nativo (3313 tests + 638 arch). §3 protected surface (BufferService.smart_debounce, OutputManager.process_response, enrollment_*, agent_state_checkpoint schema, webhooks, follow_up_engine cadence) intacto — git diff S11A→S11B = 0 cambios en esos archivos.
+
+---
+
 ## Cómo agregar entrada (durante fase activa)
 
 1. Detectaste algo durante S{N}.
