@@ -40,6 +40,9 @@ ANCHOR_REGISTRY: dict[str, str] = {
     "SALES-AGENT-CONVERSATION-PIPELINE-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
     "SALES-AGENT-SMART-DEBOUNCE-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
     "SALES-AGENT-CLOSER-STUDIO-SPLIT-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
+    "SALES-AGENT-SEMANTIC-ROUTES-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
+    "SALES-AGENT-TENANT-ROUTE-OVERLAY-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
+    "SALES-AGENT-SEMANTIC-ROUTER-REGISTRY-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
 }
 
 ANCHOR_CAP: int = 25
