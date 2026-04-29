@@ -204,6 +204,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "E501",    # long string fixtures / mock patch targets are acceptable in tests
     "PERF401", # loop-based appends clearer than comprehensions in test setup
     "FBT003",  # boolean positional args in mocks/decorators are idiomatic
+    "C901",    # arch tests parse AST — natural complexity. Refactor candidates tracked separately.
 ]
 "src/tests/**/*.py" = [
     "S101", "ARG", "PT", "PLR2004", "T201", "N806", "DTZ011", "PLR0912",
@@ -232,6 +233,12 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "PLR0912", # "
     "PLR0915", # "
 ]
+# --- C901 ratchet at max-complexity=12. Refactor candidates — shrink only. ---
+"src/modules/connections/infrastructure/marketing_connectors/mailerlite.py" = ["C901"]  # get_recent_campaign_activity (13)
+"src/modules/copilot/application/discovery.py" = ["C901"]  # _scan_convention (13)
+"src/modules/copilot/application/orchestrator/chat.py" = ["C901"]  # _run_graph_stream (15)
+"src/modules/offer/api/product_mappings.py" = ["C901"]  # create_product_mapping (13)
+"src/modules/scheduling/application/services/availability_service.py" = ["C901"]  # get_available_slots (13)
 "scripts/**/*.py" = [
     "INP001",  # scripts/ is a CLI folder, not a package
     "T201",    # CLI scripts legitimately use print() for output
@@ -287,7 +294,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 convention = "google"
 
 [tool.ruff.lint.mccabe]
-max-complexity = 15  # Wave 4: lowered from 20 (industry standard: 10)
+max-complexity = 12  # Wave 5: lowered 15→12 (industry standard: 10). tests/architecture/ exempt via per-file-ignore.
 
 [tool.ruff.lint.flake8-type-checking]
 # Classes whose annotations are evaluated at runtime (Pydantic, SA 2.0).
@@ -321,6 +328,104 @@ ignore-init-method = true
 ignore-init-module = true
 ignore-magic = true
 ignore-private = true
-fail-under = 0
+fail-under = 85  # Wave 5: 0→85. Current actual ~92.6%. Block regression.
 exclude = ["tests", "alembic", "scripts", "admin"]
 color = true
+
+# ============================================================
+# mypy — static type checking. Wave 5 (2026-04-28).
+# Scope: domain layers (modules + shared). Strict mode + ratchet allowlist.
+# Goal: every domain/ file passes strict. Allowlist below shrinks only.
+# ============================================================
+[tool.mypy]
+explicit_package_bases = true
+namespace_packages = true
+follow_imports = "silent"
+ignore_missing_imports = true
+strict = true
+python_version = "3.11"
+exclude = [
+    "alembic/",
+    "scripts/",
+    "src/scripts/",
+    "tests/",
+    "src/tests/",
+]
+
+# --- Ratchet allowlist: domain files that don't yet pass `strict`. ---
+# Each block disables the specific error codes currently failing in that file.
+# When you fix a file: remove its override block. Skill /test-backend enforces.
+# Promote module to fully strict by removing all its file overrides.
+
+[[tool.mypy.overrides]]
+module = "src.shared.domain.events"
+disable_error_code = ["type-arg", "no-any-return", "comparison-overlap", "unused-ignore"]
+
+[[tool.mypy.overrides]]
+module = "src.shared.domain.field_contract"
+disable_error_code = ["type-arg", "no-any-return", "comparison-overlap"]
+
+[[tool.mypy.overrides]]
+module = "src.shared.domain.messages"
+disable_error_code = ["type-arg", "comparison-overlap"]
+
+[[tool.mypy.overrides]]
+module = "src.shared.domain.ports"
+disable_error_code = ["type-arg"]
+
+[[tool.mypy.overrides]]
+module = "src.modules.sales_agent.domain.memory.repository"
+disable_error_code = ["type-arg"]
+
+[[tool.mypy.overrides]]
+module = "src.modules.brand.domain.buyer_persona"
+disable_error_code = ["type-arg", "comparison-overlap"]
+
+[[tool.mypy.overrides]]
+module = "src.modules.brand.domain.personality"
+disable_error_code = ["type-arg", "attr-defined"]
+
+[[tool.mypy.overrides]]
+module = "src.modules.copilot.domain.message"
+disable_error_code = ["type-arg"]
+
+[[tool.mypy.overrides]]
+module = "src.modules.copilot.domain.message_blocks"
+disable_error_code = ["type-arg"]
+
+[[tool.mypy.overrides]]
+module = "src.modules.copilot.domain.module_registry"
+disable_error_code = ["type-arg", "attr-defined"]
+
+[[tool.mypy.overrides]]
+module = "src.modules.copilot.domain.schema_introspection"
+disable_error_code = ["no-any-return", "attr-defined", "arg-type", "type-arg"]
+
+[[tool.mypy.overrides]]
+module = "src.modules.offer.domain.offer"
+disable_error_code = ["type-arg", "prop-decorator"]
+
+[[tool.mypy.overrides]]
+module = "src.modules.analytics.domain.extraction_contract"
+disable_error_code = ["type-arg", "arg-type"]
+
+[[tool.mypy.overrides]]
+module = "src.modules.analytics.domain.period_config"
+disable_error_code = ["comparison-overlap", "type-arg"]
+
+[[tool.mypy.overrides]]
+module = "src.modules.crm.domain.customer"
+disable_error_code = ["type-arg", "comparison-overlap", "attr-defined"]
+
+[[tool.mypy.overrides]]
+module = "src.modules.crm.domain.lead"
+disable_error_code = ["type-arg", "attr-defined", "arg-type"]
+
+[[tool.mypy.overrides]]
+module = "src.modules.crm.domain.sale"
+disable_error_code = ["type-arg", "prop-decorator", "attr-defined"]
+
+# --- Third-party libs without stubs ---
+[[tool.mypy.overrides]]
+module = ["sqlalchemy.*", "langchain.*", "langchain_core.*", "langchain_openai.*", "langgraph.*", "deepagents.*", "deepeval.*", "qdrant_client.*", "structlog.*", "arq.*", "redis.*"]
+ignore_missing_imports = true
