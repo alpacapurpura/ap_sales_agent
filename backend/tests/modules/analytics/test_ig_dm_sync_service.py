@@ -10,7 +10,7 @@ TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 
 
 def _run(coro):
-    return asyncio.get_event_loop().run_until_complete(coro)
+    return asyncio.run(coro)
 
 
 def _make_svc():

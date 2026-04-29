@@ -9,7 +9,7 @@ TENANT_ID = uuid.uuid4()
 
 
 def _run(coro):
-    return asyncio.get_event_loop().run_until_complete(coro)
+    return asyncio.run(coro)
 
 
 # ─── attraction_stage _enrich_with_derived_metrics (lines 61-76, 99) ─────────

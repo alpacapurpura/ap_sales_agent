@@ -14,7 +14,7 @@ DATE_RANGE = DateRange(date(2026, 3, 1), date(2026, 3, 31), "last_30_days")
 
 
 def _run(coro):
-    return asyncio.get_event_loop().run_until_complete(coro)
+    return asyncio.run(coro)
 
 
 def _make_sales_svc(cache=None):

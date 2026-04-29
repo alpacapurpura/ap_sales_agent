@@ -11,7 +11,7 @@ TENANT_ID = uuid.uuid4()
 
 
 def _run(coro):
-    return asyncio.get_event_loop().run_until_complete(coro)
+    return asyncio.run(coro)
 
 
 def _make_svc(cache=None, connection_port=None):

@@ -23,6 +23,16 @@ BACKEND_URL = os.environ.get("VERIFY_BACKEND_URL", "http://localhost:8000")
 @pytest.fixture(scope="session")
 def db_engine():
     engine = create_engine(DATABASE_URL)
+    try:
+        with engine.connect():
+            pass
+    except Exception as exc:  # noqa: BLE001 — surface any DB connectivity failure as skip
+        engine.dispose()
+        pytest.skip(
+            f"DATABASE_URL not reachable for verify suite ({exc.__class__.__name__}); "
+            "set DATABASE_URL env var to a tenant DB to run Layer 2 verification.",
+            allow_module_level=False,
+        )
     yield engine
     engine.dispose()
 
