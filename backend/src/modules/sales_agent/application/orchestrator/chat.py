@@ -31,6 +31,9 @@ from src.core.database import SessionLocal
 from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 from src.modules.sales_agent.application.orchestrator.audit_emitter import AuditEmitter
 from src.modules.sales_agent.application.orchestrator.graph import agent_app
+from src.modules.sales_agent.application.orchestrator.identity_resolver import (
+    IdentityResolver,
+)
 from src.modules.sales_agent.application.orchestrator.state import create_initial_state
 from src.modules.sales_agent.application.services.knowledge_builder import (
     TenantKnowledgeBuilder,
@@ -55,8 +58,7 @@ from src.modules.sales_agent.infrastructure.prompts.semantic import check_is_com
 from src.modules.sales_agent.infrastructure.repositories.state_repository import (
     StateRepository,
 )
-from src.shared.domain.enums import ChannelType, IdentityType
-from src.shared.domain.events import CHANNEL_TYPE_TO_CAPTURE_SLUG
+from src.shared.domain.enums import ChannelType
 from src.shared.domain.messages import IncomingMessage, OutgoingMessage
 from src.shared.infrastructure.llm.factory import LLMFactory
 from src.shared.links.ports.crm_repos import get_identity_service, get_lead_metrics_repository
@@ -304,32 +306,8 @@ class ChatOrchestrator:
         incoming: IncomingMessage,
         tenant_uuid: UUID | None,
     ) -> tuple:
-        """Resolve or create customer profile from incoming message.
-
-        Returns (customer, was_created, capture_slug, channel_type, identity_type).
-        """
-        channel_type = incoming.channel_type
-        try:
-            identity_type = IdentityType(channel_type)
-        except ValueError:
-            identity_type = IdentityType.EXTERNAL_ID
-
-        profile_data = {
-            "first_name": incoming.metadata.get("first_name"),
-            "last_name": incoming.metadata.get("last_name"),
-            "traits": incoming.metadata,
-        }
-
-        capture_slug = CHANNEL_TYPE_TO_CAPTURE_SLUG.get(channel_type, channel_type)
-        customer, was_created = identity_service.get_or_create_customer(
-            tenant_id=tenant_uuid,
-            identity_type=identity_type,
-            identity_value=incoming.user_id,
-            profile_data=profile_data,
-            lead_source=capture_slug,
-            lead_source_detail=channel_type,
-        )
-        return customer, was_created, capture_slug, channel_type, identity_type
+        """Delegate to IdentityResolver (S11B)."""
+        return IdentityResolver.resolve_customer(identity_service, incoming, tenant_uuid)
 
     @staticmethod
     async def _enrich_instagram_profile(
@@ -339,24 +317,14 @@ class ChatOrchestrator:
         customer: CustomerProfileModel,
         was_created: bool,
     ) -> None:
-        """Enrich Instagram profile with name/username/pic from User Profile API."""
-        if not (was_created or not (customer.traits or {}).get("instagram_username")):
-            return
-        try:
-            from src.shared.links.ports.channel_adapter import create_connection_port
-            from src.shared.links.ports.crm_repos import get_ig_profile_enricher
-
-            connection_port = create_connection_port(db)
-            creds = await connection_port.get_credentials(tenant_uuid, "meta")
-            enricher = get_ig_profile_enricher(db)
-            await enricher.enrich(
-                tenant_id=tenant_uuid,
-                igsid=user_id_str,
-                customer_profile_id=customer.id,
-                access_token=creds.credentials.get("access_token", ""),
-            )
-        except Exception:  # noqa: BLE001 — orchestrator resilience
-            logger.warning("ig_profile_enrichment_failed", exc_info=True)
+        """Delegate to IdentityResolver (S11B)."""
+        await IdentityResolver.enrich_instagram_profile(
+            db,
+            tenant_uuid,
+            user_id_str,
+            customer,
+            was_created,
+        )
 
     @staticmethod
     def _track_message_event(
@@ -383,37 +351,8 @@ class ChatOrchestrator:
         customer: CustomerProfileModel,
         incoming: IncomingMessage,
     ) -> None:
-        """Update customer profile traits from incoming message metadata."""
-        if not incoming.metadata:
-            return
-        current_traits = dict(customer.traits) if customer.traits else {}
-        needs_update = False
-        for k, v in incoming.metadata.items():
-            if k not in current_traits or current_traits[k] != v:
-                current_traits[k] = v
-                needs_update = True
-
-        if not needs_update:
-            return
-
-        from src.shared.infrastructure.models.crm import CustomerProfileModel
-
-        profile_model = (
-            db.execute(
-                select(CustomerProfileModel).where(
-                    CustomerProfileModel.id == customer.id,
-                ),
-            )
-            .scalars()
-            .first()
-        )
-        if profile_model:
-            profile_model.traits = current_traits
-            if "first_name" in incoming.metadata:
-                profile_model.full_name = (
-                    f"{incoming.metadata.get('first_name', '')} {incoming.metadata.get('last_name', '')}".strip()
-                )
-            db.commit()
+        """Delegate to IdentityResolver (S11B)."""
+        IdentityResolver.update_customer_traits(db, customer, incoming)
 
     @staticmethod
     async def _handle_human_mode(
@@ -627,46 +566,13 @@ class ChatOrchestrator:
         incoming: IncomingMessage,
         tenant_uuid: UUID | None,
     ) -> tuple:
-        """Handle customer resolution, enrichment, events, and trait updates.
-
-        Returns (customer, was_created, capture_slug, channel_type, user_id_str).
-        """
-        customer, was_created, capture_slug, channel_type, _ = self._resolve_customer(
+        """Delegate to IdentityResolver (S11B)."""
+        return await IdentityResolver.process_customer_lifecycle(
             db,
             identity_service,
             incoming,
             tenant_uuid,
         )
-
-        if channel_type == "instagram" and tenant_uuid:
-            await self._enrich_instagram_profile(
-                db,
-                tenant_uuid,
-                incoming.user_id,
-                customer,
-                was_created,
-            )
-
-        if tenant_uuid:
-            self._track_message_event(
-                db,
-                tenant_uuid,
-                customer,
-                capture_slug,
-                channel_type,
-                incoming,
-            )
-        if was_created and tenant_uuid:
-            AuditEmitter.publish_lead_captured(
-                db,
-                tenant_uuid,
-                customer,
-                capture_slug,
-                channel_type,
-            )
-
-        self._update_customer_traits(db, customer, incoming)
-        return customer, was_created, capture_slug, channel_type
 
     @staticmethod
     def _build_agent_identity(db: Session, tenant_uuid: UUID | None) -> str | None:
@@ -914,15 +820,8 @@ class ChatOrchestrator:
 
     @staticmethod
     def _resolve_lead(lead_repo: LeadRepository, customer_id: UUID, channel_type: str, user_id_str: str) -> LeadModel:
-        """Get or create active lead for customer."""
-        user = lead_repo.get_active_lead(customer_id)
-        if not user:
-            user = lead_repo.create_lead(
-                customer_id=customer_id,
-                channel=channel_type,
-                channel_user_id=user_id_str,
-            )
-        return user
+        """Delegate to IdentityResolver (S11B)."""
+        return IdentityResolver.resolve_lead(lead_repo, customer_id, channel_type, user_id_str)
 
     async def process_chat_flow(
         self,

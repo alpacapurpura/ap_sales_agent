@@ -36,6 +36,7 @@ ANCHOR_REGISTRY: dict[str, str] = {
     "SALES-AGENT-QUALITY-S10": "docs/domains/sales-agent/redesign-2026-04/phases/S10-quality-eval-loop.md",
     # S11B — orchestrator decomposition (Strangler Fig)
     "SALES-AGENT-AUDIT-EMITTER-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
+    "SALES-AGENT-IDENTITY-RESOLVER-S11B": "docs/domains/sales-agent/redesign-2026-04/phases/S11-shared-lift-orchestrator-decomp.md",
 }
 
 ANCHOR_CAP: int = 25

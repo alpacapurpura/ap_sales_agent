@@ -222,13 +222,9 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
     # originates (chat.py pre-S11B, audit_emitter.py post-extraction).
     monkeypatch.setattr("src.shared.domain.events.EventBus.publish", staticmethod(_capture_publish))
 
-    # 8. Customer traits update path — patch the inner ORM lookup so
-    #    ``_update_customer_traits`` does not blow up trying to compare.
-    #    The stub customer's traits already match incoming.metadata, so the
-    #    branch returns early without ORM writes. We still capture the call
-    #    for snapshot completeness.
-    original_update = "src.modules.sales_agent.application.orchestrator.chat.ChatOrchestrator._update_customer_traits"
-
+    # 8. Customer traits update — patch at IdentityResolver (post-S11B) so the
+    #    capture works regardless of who's calling (chat.py legacy delegate or
+    #    IdentityResolver.process_customer_lifecycle directly).
     def _capture_traits(_db: Any, customer: Any, incoming: Any) -> None:
         capture.customer_traits_updates.append(
             {
@@ -237,7 +233,10 @@ def install_chat_module_patches(  # noqa: PLR0915 — orchestrator has many touc
             },
         )
 
-    monkeypatch.setattr(original_update, staticmethod(_capture_traits))
+    monkeypatch.setattr(
+        "src.modules.sales_agent.application.orchestrator.identity_resolver.IdentityResolver.update_customer_traits",
+        staticmethod(_capture_traits),
+    )
 
     # 9. StateRepository — instantiated inside ``process_chat_flow``.
     state_repo = MagicMock(name="state_repo")
