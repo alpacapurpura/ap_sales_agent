@@ -11,7 +11,8 @@
 | Inicio | 2026-04-29 |
 | Cierre estimado | TBD según S2 (cross-stack FE swap) o decisión cierre PI |
 | Cierre real | — |
-| Sprints completados | S1-copilot-maintenance-batch (3/3 PRs shipped 2026-04-29) · S2-copilot-cero-deuda-stack (3/3 PRs shipped 2026-04-30, PR-3 PARTIAL wiring DEFERRED PR-4) |
+| Sprints completados | S1-copilot-maintenance-batch (3/3 PRs shipped 2026-04-29) · S2-copilot-cero-deuda-stack (3/3 PRs shipped 2026-04-30, PR-3 PARTIAL DEUDA detectada → S3 cleanup) |
+| Sprints planificados | S3-copilot-llm-stack-convergence (cleanup + LiteLLM, 2 PRs ready) · S4-copilot-model-registry-runtime (DB registry + GrowthBook, 2 PRs ready) · S5-copilot-eval-gate-pre-promote (eval gate UI + final cleanup, 2 PRs ready) |
 
 ## Outcome esperado
 
@@ -76,15 +77,23 @@ Pendientes discovery. Posibles:
 | PR-2 | `pure-expansion-providers` | 3 providers nuevos + sales_agent port + pure expansion offer_section_tools | M | shipped PASS |
 | PR-3 | `llm-cost-optimization` | LLM infra DeepSeek V4-Flash + eval gate framework + migration | L | shipped PASS PARTIAL (wiring DEFERRED PR-4) |
 
-### S3 sugerido (post handoff S2)
+### S3-S4-S5 plan ready (bootstrap 2026-04-30 post audit failure PR-3)
 
-**S3-copilot-llm-wiring-runtime** (PM recommended):
-- PR-1 wiring upstream LLMClassifier+RollingSummarizer factory (cierra deuda PR-3 PARTIAL) — esfuerzo S/M, ~50 LOC + 24 tests + .env
-- PR-2 (opcional) Telegram bridge MVP Bloque A multicanal — esfuerzo M
+**Discovery audit failure PR-3** (Chris detectó capa LLM duplicada al preguntar "para qué se usan AI_MODEL/AI_PROVIDER actuales") cambió plan original "S3-copilot-llm-wiring-runtime" → 3 sprints encadenados con SSoT correcto.
 
-Alternativas:
-- B: Cerrar PI-2, abrir PI-3 dedicado multicanal (Bloque A) + sub-task wiring
-- C: S3-copilot-discovery-formal Bloque C (entrevistas users + research patrones agentic 2026)
+**S3-copilot-llm-stack-convergence** (next):
+- PR-1 cleanup PR-3 + convergencia ModelTier→ModelRole + activar DeepSeek V4-Flash NANO+FAST — esfuerzo M-L
+- PR-2 LiteLLM Proxy intro como motor multi-provider centralizado — esfuerzo M
+
+**S4-copilot-model-registry-runtime** (after S3):
+- PR-1 DB registry `llm_role_binding` + admin Streamlit `/admin/llm-models` hot-swap <60s — esfuerzo L
+- PR-2 GrowthBook OSS per-tenant override + A/B + kill-switch — esfuerzo M
+
+**S5-copilot-eval-gate-pre-promote** (after S4):
+- PR-1 eval gate framework wiring admin UI + CI integration `@pytest.mark.eval_gate` — esfuerzo M-L
+- PR-2 cleanup definitivo allowlist 0 entries + PI-2 retro + archive — esfuerzo S
+
+**Multicanal Bloque A (Telegram bridge)** = movido a PI-3 dedicado post PI-2 cierre. Razón: scope cohesivo separado, no compite con LLM stack convergencia.
 
 ### S1 plan resumen (sprint copilot-maintenance-batch)
 

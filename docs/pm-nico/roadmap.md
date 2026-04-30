@@ -8,7 +8,7 @@
 | Item | Tipo | Estado | Link |
 |---|---|---|---|
 | Campaigns module — Foundation + Telegram MVP | PI-1 | planning, S0 in-progress | [pis/active/PI-1-campaigns-module/PI.md](pis/active/PI-1-campaigns-module/PI.md) |
-| Copilot improvement | PI-2-copilot | active — S1+S2 shipped 2026-04-30 (6/6 PRs accumulated, PR-3 PARTIAL wiring DEFERRED); S3 candidato wiring runtime + Telegram bridge MVP | [pis/active/PI-2-copilot-improvement/PI.md](pis/active/PI-2-copilot-improvement/PI.md) |
+| Copilot improvement | PI-2-copilot | active — S1+S2 shipped 2026-04-30 (6/6 PRs); S3+S4+S5 plan ready 2026-04-30 (LLM stack convergencia + DB registry runtime + eval gate, 6 PRs ready post audit failure PR-3) | [pis/active/PI-2-copilot-improvement/PI.md](pis/active/PI-2-copilot-improvement/PI.md) |
 | Sales agent improvement | PI-3-sales | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
 
 ## Maintenance (rolling, paralelo a Now — no compite cap)

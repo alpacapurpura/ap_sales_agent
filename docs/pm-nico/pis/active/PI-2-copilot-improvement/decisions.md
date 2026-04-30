@@ -114,6 +114,35 @@
 
 **Decisión PI-2 next:** abrir S3-copilot-llm-wiring-runtime con PR-1 wiring (cierra deuda PR-3 PARTIAL). Si Chris autoriza, considerar también PR-2 multicanal (Bloque A Telegram bridge) o cerrar PI-2 y abrir PI-3 dedicado multicanal. Evaluación post handoff S2.
 
+## 2026-04-30 — Audit failure PR-3 detectado + plan completo PI-2 S3+S4+S5
+
+**Decisión:** post Chris detectó capa LLM duplicada (PR-3 introdujo `copilot/infrastructure/llm/` paralelo a `core/+shared/` ya existente), abrir 3 sprints encadenados S3+S4+S5 con plan completo cero deuda + arquitectura escalable 1000+ tenants.
+
+**Razón override "deferred PR-4 simple":** discovery profundo reveló sistema global `AI_PROVIDER_<ROLE>` + `Settings.get_model/get_provider_for_role` + `shared/infrastructure/llm/router.py + providers/` ya tenía DeepSeek funcional. PR-3 capa duplicada = bug arquitectural, no "wiring deferred". Solución correcta = convergencia + LiteLLM Proxy + DB registry + GrowthBook + eval gate.
+
+**Proceso prevention shipped HOY (Bloque A):**
+- CONTRACT.md template + PR.md template: nueva sección "Existing systems audit" obligatoria
+- `nicolify-architect` skill: nuevo step `cross_module_systems_audit_NO_NEW_LAYER` con grep matrix
+- `docs/domains/llm-routing.md` SSoT explícito creado
+- `process-learnings.md` append L-PROC-CROSS-MODULE-AUDIT + 4 lessons derived
+- `tests/architecture/test_llm_routing_ssot.py` 3 arch fitness guards verde
+
+**Sprint plan PI-2 S3+S4+S5 (bootstrap 2026-04-30):**
+
+| Sprint | PRs | Outcome |
+|---|---|---|
+| S3-copilot-llm-stack-convergence | PR-1 cleanup PR-3 + convergencia ModelTier→ModelRole + activar DeepSeek V4-Flash · PR-2 LiteLLM Proxy intro | ModelRole único SSoT + cost reduction 4-15x activado + motor multi-provider centralizado |
+| S4-copilot-model-registry-runtime | PR-1 DB registry + admin Streamlit hot-swap <60s · PR-2 GrowthBook per-tenant override + A/B | Cambio modelo runtime sin deploy + per-tenant + A/B + kill-switch |
+| S5-copilot-eval-gate-pre-promote | PR-1 eval gate admin UI + CI · PR-2 cleanup definitivo allowlist + PI-2 archive | Cero promote sin score ≥0.95 + PI-2 closed cero deuda |
+
+**Decisión técnica clave:** patrón ganador 2026 (research base `2026-04-30-llm-config-storage-best-practices.md`) = híbrido 3-capa:
+- `.env` solo secrets (provider keys)
+- DB registry (`llm_role_binding`) SSoT runtime + LiteLLM Proxy motor
+- GrowthBook flags per-tenant + A/B
+- 60% adopción tier-1 LLMOps. Adoptar `.env`-only o config-file-only es anti-pattern documentado.
+
+**Aprendizaje proceso:** L-PROC-CROSS-MODULE-AUDIT — architect debe auditar `core/` + `shared/` + `modules/<target>/` ANTES de proponer nueva capa. EXTEND > REPLACE > NEW priority.
+
 ## Pendientes registrar
 
 _Aquí se irán registrando decisiones tomadas durante discovery + ejecución._
