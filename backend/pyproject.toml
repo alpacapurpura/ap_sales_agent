@@ -473,6 +473,11 @@ disable_error_code = ["type-arg", "prop-decorator", "attr-defined"]
 module = "src.shared.domain_events.outbox.infrastructure.models"
 disable_error_code = ["misc"]
 
+# --- PR-3: campaigns module (Base subclass + generic dicts JSONB — domain layer) ---
+[[tool.mypy.overrides]]
+module = "src.modules.campaigns.*"
+disable_error_code = ["misc", "type-arg"]
+
 # --- Third-party libs without stubs ---
 [[tool.mypy.overrides]]
 module = ["sqlalchemy.*", "langchain.*", "langchain_core.*", "langchain_openai.*", "langgraph.*", "deepagents.*", "deepeval.*", "qdrant_client.*", "structlog.*", "arq.*", "redis.*"]
