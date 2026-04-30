@@ -7,12 +7,14 @@
 | PR ID | PR-3-backfill-content-blocks |
 | Sprint padre | S1-copilot-maintenance-batch |
 | PI padre | PI-2-copilot-improvement |
-| Estado | in-progress |
+| Estado | shipped |
 | Tipo | infra + migration |
 | Esfuerzo | S |
 | Owner PM | /pm |
 | Claimed by session | sesión 2026-04-29 main thread (Opus 4.7) |
 | Inicio | 2026-04-29 (architect spawn) |
+| Fecha cierre | 2026-04-29 |
+| Verdict auditor | PASS (0 WARN, 0 FAIL) |
 
 ## Problema (user-facing)
 
