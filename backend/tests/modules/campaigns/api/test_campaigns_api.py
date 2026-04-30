@@ -367,32 +367,12 @@ class TestCampaignGet:
 
 
 class TestCampaignFSM:
-    """FSM transition endpoints."""
+    """FSM transition endpoints.
 
-    @pytest.mark.asyncio
-    async def test_launch_returns_stub_notice(self, client: AsyncClient) -> None:
-        """Launch endpoint returns CampaignLaunchResponse with notice field."""
-        from src.modules.campaigns.api._service_factories import get_campaign_service
-        from src.modules.campaigns.api._dependencies import get_campaigns_async_session
-        from src.main import app
-
-        camp = _campaign_response(status=CampaignStatus.RUNNING)
-        mock_svc = AsyncMock()
-        mock_svc.launch.return_value = camp
-        app.dependency_overrides[get_campaign_service] = lambda: mock_svc
-        app.dependency_overrides[get_campaigns_async_session] = _patch_session
-
-        r = await client.post(
-            f"/api/v1/campaigns/{CAMPAIGN_ID}/launch",
-            headers={"X-Tenant-ID": str(TENANT_ID)},
-        )
-        app.dependency_overrides.pop(get_campaign_service, None)
-        app.dependency_overrides.pop(get_campaigns_async_session, None)
-
-        assert r.status_code == 200
-        body = r.json()
-        assert "notice" in body
-        assert "STUB" in body["notice"]
+    Note: launch endpoint tests live in test_campaigns_launch_real.py (PR-5 Sub-C).
+    The stub-based test was removed in PR-5 Sub-G when the endpoint was rewired to
+    the real CampaignOrchestrator.
+    """
 
     @pytest.mark.asyncio
     async def test_cancel_returns_200(self, client: AsyncClient) -> None:

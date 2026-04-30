@@ -39,20 +39,20 @@ from src.modules.campaigns.infrastructure.resilience.errors import CircuitBreake
 
 @runtime_checkable
 class _RedisClientProtocol(Protocol):
-    """Minimal Redis client protocol for circuit breaker operations.
+    """Minimal async Redis client protocol for circuit breaker operations.
 
-    Supports both redis.Redis (sync) and compatible test fakes.
-    Attribute accesses are all checked at mypy time via this protocol.
+    Compatible with redis.asyncio.Redis (production) and AsyncMock in tests.
+    All methods are async — the CB is async and runs on the asyncio event loop.
     """
 
-    def get(self, key: str) -> bytes | str | None: ...
-    def set(self, key: str, value: str | int, nx: bool = ..., ex: int | None = ...) -> object: ...
-    def delete(self, *keys: str) -> int: ...
-    def zadd(self, key: str, mapping: dict[str, float]) -> int: ...
-    def zremrangebyscore(self, key: str, min_score: str | float, max_score: str | float) -> int: ...
-    def zcard(self, key: str) -> int: ...
-    def incr(self, key: str) -> int: ...
-    def expire(self, key: str, seconds: int) -> int: ...
+    async def get(self, key: str) -> bytes | str | None: ...
+    async def set(self, key: str, value: str | int, nx: bool = ..., ex: int | None = ...) -> object: ...
+    async def delete(self, *keys: str) -> int: ...
+    async def zadd(self, key: str, mapping: dict[str, float]) -> int: ...
+    async def zremrangebyscore(self, key: str, min_score: str | float, max_score: str | float) -> int: ...
+    async def zcard(self, key: str) -> int: ...
+    async def incr(self, key: str) -> int: ...
+    async def expire(self, key: str, seconds: int) -> int: ...
 
 
 logger = structlog.get_logger(__name__)
@@ -147,13 +147,18 @@ class CircuitBreaker:
         try:
             if self._redis is None:
                 return CircuitState.CLOSED
-            raw = self._redis.get(self._state_key)
+            raw = await self._redis.get(self._state_key)
             if raw is None:
                 return CircuitState.CLOSED
             raw_str = raw.decode() if isinstance(raw, bytes) else raw
             return CircuitState(raw_str)
         except Exception:  # noqa: BLE001
-            logger.warning("circuit_breaker_state_read_error", channel=self._channel, tenant_id=str(self._tenant_id))
+            logger.warning(
+                "circuit_breaker_state_read_error",
+                channel=self._channel,
+                tenant_id=str(self._tenant_id),
+                exc_info=True,
+            )
             return CircuitState.CLOSED
 
     async def _get_opened_at(self) -> float | None:
@@ -161,7 +166,7 @@ class CircuitBreaker:
         try:
             if self._redis is None:
                 return None
-            raw = self._redis.get(self._opened_at_key)
+            raw = await self._redis.get(self._opened_at_key)
             if raw is None:
                 return None
             raw_str = raw.decode() if isinstance(raw, bytes) else raw
@@ -177,8 +182,8 @@ class CircuitBreaker:
             now = time.time()
             cutoff = now - self._config.rolling_window_seconds
             # Remove stale entries first
-            self._redis.zremrangebyscore(self._failures_key, "-inf", cutoff)
-            count = self._redis.zcard(self._failures_key)
+            await self._redis.zremrangebyscore(self._failures_key, "-inf", cutoff)
+            count = await self._redis.zcard(self._failures_key)
             return int(count) if count else 0
         except Exception:  # noqa: BLE001
             return 0
@@ -192,13 +197,13 @@ class CircuitBreaker:
                 return 0
             now = time.time()
             member = f"{now}:{id(object())}"
-            self._redis.zadd(self._failures_key, {member: now})
+            await self._redis.zadd(self._failures_key, {member: now})
             # Set TTL on the ZSET = rolling_window + buffer
-            self._redis.expire(self._failures_key, self._config.rolling_window_seconds + 10)
+            await self._redis.expire(self._failures_key, self._config.rolling_window_seconds + 10)
             count = await self._count_recent_failures()
             return count
         except Exception:  # noqa: BLE001
-            logger.warning("circuit_breaker_record_failure_error", channel=self._channel)
+            logger.warning("circuit_breaker_record_failure_error", channel=self._channel, exc_info=True)
             return 0
 
     async def _transition_open(self) -> None:
@@ -207,11 +212,11 @@ class CircuitBreaker:
             if self._redis is None:
                 return
             now = time.time()
-            self._redis.set(self._state_key, CircuitState.OPEN.value)
-            self._redis.set(self._opened_at_key, str(now))
-            self._redis.delete(self._probes_key)
+            await self._redis.set(self._state_key, CircuitState.OPEN.value)
+            await self._redis.set(self._opened_at_key, str(now))
+            await self._redis.delete(self._probes_key)
         except Exception:  # noqa: BLE001
-            logger.warning("circuit_breaker_transition_open_error", channel=self._channel)
+            logger.warning("circuit_breaker_transition_open_error", channel=self._channel, exc_info=True)
         logger.warning(
             "circuit_breaker_opened",
             channel=self._channel,
@@ -225,12 +230,12 @@ class CircuitBreaker:
         try:
             if self._redis is None:
                 return
-            self._redis.set(self._state_key, CircuitState.CLOSED.value)
-            self._redis.delete(self._opened_at_key)
-            self._redis.delete(self._failures_key)
-            self._redis.delete(self._probes_key)
+            await self._redis.set(self._state_key, CircuitState.CLOSED.value)
+            await self._redis.delete(self._opened_at_key)
+            await self._redis.delete(self._failures_key)
+            await self._redis.delete(self._probes_key)
         except Exception:  # noqa: BLE001
-            logger.warning("circuit_breaker_transition_closed_error", channel=self._channel)
+            logger.warning("circuit_breaker_transition_closed_error", channel=self._channel, exc_info=True)
         logger.info(
             "circuit_breaker_closed",
             channel=self._channel,
@@ -292,8 +297,8 @@ class CircuitBreaker:
         try:
             if self._redis is None:
                 return
-            self._redis.set(self._state_key, CircuitState.HALF_OPEN.value)
-            self._redis.delete(self._probes_key)
+            await self._redis.set(self._state_key, CircuitState.HALF_OPEN.value)
+            await self._redis.delete(self._probes_key)
         except Exception:  # noqa: BLE001
             pass
 
@@ -302,8 +307,8 @@ class CircuitBreaker:
         try:
             if self._redis is None:
                 return 1
-            count = self._redis.incr(self._probes_key)
-            self._redis.expire(self._probes_key, self._config.open_duration_seconds * 2)
+            count = await self._redis.incr(self._probes_key)
+            await self._redis.expire(self._probes_key, self._config.open_duration_seconds * 2)
             return int(count)
         except Exception:  # noqa: BLE001
             return 1
@@ -322,7 +327,7 @@ class CircuitBreaker:
         try:
             if self._redis is None:
                 return
-            self._redis.delete(
+            await self._redis.delete(
                 self._state_key,
                 self._failures_key,
                 self._opened_at_key,

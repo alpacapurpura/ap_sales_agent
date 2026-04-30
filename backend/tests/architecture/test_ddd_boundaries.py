@@ -48,11 +48,16 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     # no abstraction can remove this genuine data dependency.
     "analytics -> connections | analytics/application/services/etl_service.py",
     # campaigns api/ composition root: _service_factories.py wires SegmentService
-    # and CampaignOrchestrator with LeadQueryPortImpl from crm. The crm module owns
+    # and CampaignOrchestrator with LeadQueryServiceImpl from crm. The crm module owns
     # the lead query port implementation — campaigns domain defines the interface
-    # (LeadQueryPort ABC in campaigns/domain/). The import is DI wiring at the
-    # API composition layer boundary, which is the correct place per DDD (PI-1 S2).
+    # (LeadQueryPort Protocol in campaigns/application/ports/). The import is DI wiring
+    # at the API composition layer boundary, which is the correct place per DDD (PI-1 S2).
     "campaigns -> crm | campaigns/api/_service_factories.py",
+    # PR-5 Sub-G: workers need standalone composition root (no FastAPI DI) — same
+    # LeadQueryServiceImpl wiring as api/_service_factories.py. Workers are the
+    # composition root for ARQ context; import is DI wiring, not domain logic coupling.
+    "campaigns -> crm | campaigns/workers/scheduler_tick.py",
+    "campaigns -> crm | campaigns/workers/segment_refresh_tick.py",
 }
 
 

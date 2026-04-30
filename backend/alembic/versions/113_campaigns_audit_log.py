@@ -6,14 +6,16 @@ Idempotent raw SQL (IF NOT EXISTS) per backend-migrations.md.
 NO ALTER existing tables. ZERO conflict potential.
 
 Revision ID: 113_campaigns_audit_log
-Revises: 112_campaigns_domain
+Revises: 2b2756aca7f6 (seed_campaign_templates_global — PR-4)
 Create Date: 2026-04-30
+
+Chain: 112_campaigns_domain → 2b2756aca7f6 → 113_campaigns_audit_log (linear, single head).
 """
 
 from alembic import op
 
 revision = "113_campaigns_audit_log"
-down_revision = "112_campaigns_domain"
+down_revision = "2b2756aca7f6"
 branch_labels = None
 depends_on = None
 

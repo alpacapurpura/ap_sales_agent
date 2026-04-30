@@ -6,11 +6,12 @@ TDD RED → GREEN:
 - Soft-fail on Redis unavailable
 
 PR-5 PI-1 S2.
+PR-5 Sub-G: FakeRedis updated to async methods to match redis.asyncio.Redis
+(fixes F-6 — CB uses await on Redis calls, tests must use async fakes).
 """
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
@@ -27,22 +28,27 @@ from src.modules.campaigns.infrastructure.resilience.errors import CircuitBreake
 
 
 class FakeRedis:
-    """In-process fake Redis supporting get/set/delete/zadd/zremrangebyscore/zcard/incr/expire."""
+    """Async in-process fake Redis for circuit breaker tests.
+
+    All methods are async to match redis.asyncio.Redis (production client).
+    Circuit breaker awaits all Redis calls — sync fakes would silently return
+    coroutines instead of values.
+    """
 
     def __init__(self) -> None:
         self._store: dict = {}
         self._zsets: dict = {}
 
-    def get(self, key: str):
+    async def get(self, key: str):
         return self._store.get(key)
 
-    def set(self, key: str, value, nx: bool = False, ex: int | None = None):
+    async def set(self, key: str, value, nx: bool = False, ex: int | None = None):
         if nx and key in self._store:
             return None
         self._store[key] = value if isinstance(value, bytes) else str(value).encode()
         return True
 
-    def delete(self, *keys: str) -> int:
+    async def delete(self, *keys: str) -> int:
         count = 0
         for k in keys:
             if k in self._store:
@@ -53,13 +59,13 @@ class FakeRedis:
                 count += 1
         return count
 
-    def zadd(self, key: str, mapping: dict) -> int:
+    async def zadd(self, key: str, mapping: dict) -> int:
         if key not in self._zsets:
             self._zsets[key] = {}
         self._zsets[key].update(mapping)
         return len(mapping)
 
-    def zremrangebyscore(self, key: str, min_score, max_score) -> int:
+    async def zremrangebyscore(self, key: str, min_score, max_score) -> int:
         if key not in self._zsets:
             return 0
         before = len(self._zsets[key])
@@ -68,17 +74,17 @@ class FakeRedis:
             del self._zsets[key][m]
         return before - len(self._zsets[key])
 
-    def zcard(self, key: str) -> int:
+    async def zcard(self, key: str) -> int:
         return len(self._zsets.get(key, {}))
 
-    def incr(self, key: str) -> int:
+    async def incr(self, key: str) -> int:
         raw = self._store.get(key)
         current = int(raw) if raw else 0
         new_val = current + 1
         self._store[key] = str(new_val).encode()
         return new_val
 
-    def expire(self, key: str, seconds: int) -> int:
+    async def expire(self, key: str, seconds: int) -> int:
         return 1  # no-op for test
 
 

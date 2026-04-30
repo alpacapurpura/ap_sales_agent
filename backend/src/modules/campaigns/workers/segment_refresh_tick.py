@@ -183,9 +183,12 @@ async def _refresh_segment(
 
 
 def _build_segment_service_standalone() -> SegmentService:
-    """Build a SegmentService suitable for worker context (no FastAPI DI)."""
-    from src.modules.crm.infrastructure.repositories.lead_query_port_impl import LeadQueryPortImpl
+    """Build a SegmentService suitable for worker context (no FastAPI DI).
 
+    PR-5 Sub-G: uses LeadQueryServiceImpl from crm.application.services
+    (correct path). Workers need standalone composition root — same cross-module
+    import as api/_service_factories.py, justified in KNOWN_CROSS_MODULE_IMPORTS.
+    """
     from src.modules.campaigns.application.segment_filter_evaluator import SegmentFilterEvaluator
     from src.modules.campaigns.application.services.cache import SimpleTTLCache
     from src.modules.campaigns.application.services.segment_service import SegmentService
@@ -195,13 +198,14 @@ def _build_segment_service_standalone() -> SegmentService:
     from src.modules.campaigns.infrastructure.repositories.segment_snapshot_repository_impl import (
         SegmentSnapshotRepositoryImpl,
     )
+    from src.modules.crm.application.services.lead_query_service import LeadQueryServiceImpl
     from src.shared.domain_events.outbox.application.outbox_service import OutboxService
     from src.shared.domain_events.outbox.infrastructure.repository import OutboxRepositoryImpl
 
     return SegmentService(
         repo=SegmentRepositoryImpl(),
         snapshot_repo=SegmentSnapshotRepositoryImpl(),
-        lead_query_port=LeadQueryPortImpl(),
+        lead_query_port=LeadQueryServiceImpl(),  # type: ignore[arg-type]
         filter_evaluator=SegmentFilterEvaluator(),
         outbox_service=OutboxService(repo=OutboxRepositoryImpl()),
         cache=SimpleTTLCache(max_entries=256),

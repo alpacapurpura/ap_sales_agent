@@ -94,18 +94,17 @@ async def get_segment_service(
     session: Annotated[AsyncSession, Depends(get_campaigns_async_session)],
 ) -> SegmentService:
     """FastAPI dependency that builds a SegmentService for a request."""
-    from src.modules.crm.infrastructure.repositories.lead_query_port_impl import (
-        LeadQueryPortImpl,
-    )
-
     from src.modules.campaigns.application.segment_filter_evaluator import (
         SegmentFilterEvaluator,
+    )
+    from src.modules.crm.application.services.lead_query_service import (
+        LeadQueryServiceImpl,
     )
 
     return SegmentService(
         repo=SegmentRepositoryImpl(),
         snapshot_repo=SegmentSnapshotRepositoryImpl(),
-        lead_query_port=LeadQueryPortImpl(),
+        lead_query_port=LeadQueryServiceImpl(),  # type: ignore[arg-type]
         filter_evaluator=SegmentFilterEvaluator(),
         outbox_service=_get_outbox_service(),  # type: ignore[arg-type]
         cache=_campaign_cache,
@@ -135,38 +134,37 @@ def _get_audit_log_service() -> object:
 
 
 async def _arq_pool_provider() -> object:
-    """Lazy async factory for ARQ Redis pool."""
-    from arq import create_pool
-    from arq.connections import RedisSettings
+    """Lazy async factory for ARQ Redis pool.
 
-    from src.core.database import redis_client
-
-    # redis_client is already a connected redis; wrap for arq if needed.
-    # Fallback: return redis_client directly if arq pool already handled.
+    Uses app-level REDIS_URL (same pattern as scheduler_tick._arq_pool_provider_fn)
+    to create an ARQ-compatible pool. Fallback: None → scheduler_tick picks up tasks.
+    """
     try:
-        if redis_client is None:
-            return None
-        settings = RedisSettings.from_dsn(str(redis_client.connection_pool.connection_kwargs.get("db", 0)))
-        return await create_pool(settings)
+        from arq import create_pool
+        from arq.connections import RedisSettings
+
+        from src.core.config import settings as app_settings
+
+        return await create_pool(RedisSettings.from_dsn(app_settings.REDIS_URL))
     except Exception:  # noqa: BLE001
-        # Best-effort: if arq pool unavailable, scheduler_tick picks up tasks.
-        return redis_client
+        # Best-effort: if arq pool unavailable, scheduler_tick picks up pending tasks.
+        logger.warning("arq_pool_provider_unavailable_in_api_factory")
+        return None
 
 
 async def get_campaign_orchestrator(
     session: Annotated[AsyncSession, Depends(get_campaigns_async_session)],
 ) -> object:
     """FastAPI dependency that builds a CampaignOrchestrator for a request."""
-    from src.modules.crm.infrastructure.repositories.lead_query_port_impl import (
-        LeadQueryPortImpl,
-    )
-
     from src.modules.campaigns.application.segment_filter_evaluator import (
         SegmentFilterEvaluator,
     )
     from src.modules.campaigns.application.services.orchestrator import CampaignOrchestrator
     from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
         CampaignTaskRepositoryImpl,
+    )
+    from src.modules.crm.application.services.lead_query_service import (
+        LeadQueryServiceImpl,
     )
 
     return CampaignOrchestrator(
@@ -176,7 +174,7 @@ async def get_campaign_orchestrator(
         segment_service=SegmentService(
             repo=SegmentRepositoryImpl(),
             snapshot_repo=SegmentSnapshotRepositoryImpl(),
-            lead_query_port=LeadQueryPortImpl(),
+            lead_query_port=LeadQueryServiceImpl(),  # type: ignore[arg-type]
             filter_evaluator=SegmentFilterEvaluator(),
             outbox_service=_get_outbox_service(),  # type: ignore[arg-type]
             cache=_campaign_cache,
