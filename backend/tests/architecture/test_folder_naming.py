@@ -19,6 +19,9 @@ KNOWN_STRUCTURE_EXCEPTIONS: dict[str, set[str]] = {
     "core": {"domain", "infrastructure", "application", "api"},  # core is framework, not DDD module
     "shared": {"domain", "infrastructure", "application", "api"},  # shared is cross-cutting
     "iam": set(),  # may be thin
+    # campaigns: PI-1 S0 foundation — observability spec only (Sub-C PR-1).
+    # Full DDD layers (domain/infra/app/api) added in PI-1 S1 (PR-2 campaigns core).
+    "campaigns": set(),
 }
 
 # Files at module root that are allowed (e.g., __init__.py)
