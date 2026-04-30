@@ -5,9 +5,27 @@
 | Campo | Valor |
 |---|---|
 | Studio padre | Sales / Growth (TBD via PI-1 — probablemente Sales con hooks Growth) |
-| Estado | nuevo (PI-1 en discovery → planning, S0 in-progress) |
-| Última actualización | 2026-04-29 (PR-0 saneamiento research) |
-| Doc técnico | _no existe aún — módulo nuevo en construcción_ |
+| Estado | PI-1 S1 in-progress (PR-3 domain SHIPPED, PR-4 services/endpoints next) |
+| Última actualización | 2026-04-29 (PR-3 domain layer + arch tests) |
+| Doc técnico | `docs/domains/campaigns/` (en construcción) |
+
+## Domain layer shipped (PR-3 — 2026-04-29)
+
+Domain layer completo commited. Services/endpoints pendientes (PR-4). Orchestrator/workers en S2.
+
+| Superficie | Commits | Estado |
+|---|---|---|
+| Campaign + FSM 6 estados + DAG steps | `f951c282` | ✅ SHIPPED |
+| CampaignTask + ChannelRouter port + DomainEvents | `f951c282` | ✅ SHIPPED |
+| Segment + SegmentFilter v1 strict (extra=forbid) + SegmentSnapshot opt-in | `f951c282` | ✅ SHIPPED |
+| CampaignTemplate + 6 repository interfaces tenant-scoped | `f951c282` | ✅ SHIPPED |
+| SQLA models + 6 repo impls (soft-delete, tenant-isolated) | `4cab1c1c` | ✅ SHIPPED |
+| Migration 6 tablas + worker partial idx + template dual UNIQUE | `7b39b66b` | ✅ SHIPPED |
+| 4 arch tests (FSM Hypothesis + tenant ISO AST + filter strict + worker idx DDL) | `4de090a9` | ✅ SHIPPED |
+
+**Próximos pasos:** PR-4 services + endpoints (S1) → CampaignExecutionWorker ARQ + ChannelRouter Telegram (S2) → wiring sales_agent + copilot tools (S3).
+
+---
 
 ## Qué hace por el user
 
