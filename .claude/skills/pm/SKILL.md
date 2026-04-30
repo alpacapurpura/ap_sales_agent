@@ -263,23 +263,39 @@ Solo en Track B (orchestration). Track A (refinement) cierra con preguntas o "de
 
 PM decide. Default: ningún agente; PM hace solo. Cargar agente solo si PR requiere builder/auditor/UX. **Tabla canónica en `docs/pm-nico/process/agent-routing-matrix.md`**.
 
-Resumen rápido:
+**REGLA OPERATIVA CARDINAL — división negocio vs agentic vs frontend (2026-04-30):**
 
-| Trabajo | Pre-design | Implementation | UX | Audit |
-|---|---|---|---|---|
-| Pure backend infra (outbox, idempotency, rate limiter) | `nicolify-architect` | `nicolify-backend` | — | `nicolify-backend-auditor` |
-| Backend + DB schema | `nicolify-architect` | `nicolify-backend` | — | `nicolify-backend-auditor` |
-| Backend + LangGraph/AI | `nicolify-architect` | `nicolify-agentic` | — | `nicolify-backend-auditor` |
-| Frontend con UI nueva | — | `nicolify-frontend` | `ux-flow-architect` | `nicolify-frontend-auditor` |
-| Frontend con UX exploratorio | — | `nicolify-frontend` | `ux-disruptivo` → `ux-flow-architect` | `nicolify-frontend-auditor` |
-| Cross-stack feature | `nicolify-architect` | `nicolify-backend` + `nicolify-frontend` | `ux-flow-architect` | `nicolify-backend-auditor` + `nicolify-frontend-auditor` |
-| Bug fix backend | — | `nicolify-backend` | — | `nicolify-backend-auditor` |
-| Bug fix frontend | — | `nicolify-frontend` | — | `nicolify-frontend-auditor` |
-| Investigación cross-codebase | `Explore` o `general-purpose` | — | — | — |
-| Migración research/docs | PM solo | — | — | — |
+| Surface | Builder owner | Auditor owner | Skills domain |
+|---|---|---|---|
+| `modules/copilot/` | **`nicolify-agentic`** (Opus) | **`nicolify-agentic-auditor`** (Opus) | `copilot-expert` + `tessl__langgraph` |
+| `modules/sales_agent/` | **`nicolify-agentic`** (Opus) | **`nicolify-agentic-auditor`** (Opus) | `sales-agent-expert` + `tessl__langgraph` |
+| `modules/{brand,offer,landing,assets,analytics,advertising,social_media,scheduling,connections,iam,crm,core,shared}/` | **`nicolify-backend`** (Sonnet) | **`nicolify-backend-auditor`** (Opus) | `brand-expert` / `offer-expert` / `metrics-expert` / `offer-type-preset-expert` |
+| `frontend/src/**` | **`nicolify-frontend`** (Sonnet) | **`nicolify-frontend-auditor`** (Opus) | `frontend-expert` + brand/offer-expert si surface |
 
-Skills módulo-específicos (cargar JUNTO al builder genérico):
-`brand-expert`, `offer-expert`, `offer-type-preset-expert`, `sales-agent-expert`, `copilot-expert`, `metrics-expert`, `manychat-expert`, `brand-offer-auditor`.
+PR cross-scope (varias surfaces) → spawn builders en paralelo (regla M1). Cada surface = REVIEW propio: `REVIEW.md` (business), `REVIEW-frontend.md`, `REVIEW-agentic.md`. Todos PASS antes cerrar PR.
+
+Resumen rápido (con modelo obligatorio — ver sección "Model assignment"):
+
+| Trabajo | Pre-flight (Haiku) | Pre-design (Opus) | Implementation | UX | Audit (Opus) |
+|---|---|---|---|---|---|
+| Backend negocio (brand/offer/analytics/etc.) | `nicolify-context-builder` | `nicolify-architect` | `nicolify-backend` (Sonnet) | — | `nicolify-backend-auditor` |
+| Backend + DB schema | `nicolify-context-builder` | `nicolify-architect` | `nicolify-backend` | — | `nicolify-backend-auditor` |
+| **Agentic — copilot / sales_agent** | `nicolify-context-builder` | `nicolify-architect` | **`nicolify-agentic` (Opus)** | — | **`nicolify-agentic-auditor`** |
+| Frontend con UI nueva | `nicolify-context-builder` | — | `nicolify-frontend` (Sonnet) | `ux-flow-architect` skill (Sonnet) | `nicolify-frontend-auditor` |
+| Frontend con UX exploratorio | `nicolify-context-builder` | — | `nicolify-frontend` | `ux-disruptivo` skill (Opus) → `ux-flow-architect` skill | `nicolify-frontend-auditor` |
+| Cross-stack BE negocio + FE | `nicolify-context-builder` | `nicolify-architect` | `nicolify-backend` + `nicolify-frontend` (paralelo) | `ux-flow-architect` skill | BE-auditor + FE-auditor |
+| Cross-stack agentic + FE (chat UI) | `nicolify-context-builder` | `nicolify-architect` | `nicolify-agentic` + `nicolify-frontend` (paralelo) | `ux-flow-architect` skill | agentic-auditor + FE-auditor |
+| Bug fix backend negocio | — (skip si S) | — | `nicolify-backend` | — | `nicolify-backend-auditor` |
+| Bug fix agentic (copilot loop, voz drift) | `nicolify-context-builder` | — | `nicolify-agentic` | — | `nicolify-agentic-auditor` |
+| Bug fix frontend | — | — | `nicolify-frontend` | — | `nicolify-frontend-auditor` |
+| Investigación cross-codebase (light) | — | — | `nicolify-grep-bot` (Haiku, one-shot) | — | — |
+| Investigación cross-codebase (deep) | — | `Explore`/`general-purpose` (Sonnet) | — | — | — |
+| Migración research/docs | — | PM solo (Opus) | — | — | — |
+
+Skills módulo-específicos (cargar JUNTO al builder dueño):
+- **Carga `nicolify-agentic`** (cuando spawneás agentic builder/auditor): `copilot-expert`, `sales-agent-expert`, `tessl__langgraph`
+- **Carga `nicolify-backend`**: `brand-expert`, `offer-expert`, `offer-type-preset-expert`, `metrics-expert`, `manychat-expert`
+- Cross/audit-only PM directo: `brand-offer-auditor`
 
 **Protocolo `@pm` comment** (obligatorio):
 - Cada agente builder/UX/auditor termina su última respuesta con:
@@ -294,24 +310,87 @@ Skills módulo-específicos (cargar JUNTO al builder genérico):
 
 Para mantener convo principal limpia, delegás a subagente y traés brief comprimido:
 
-| Necesidad | Subagent | Patrón |
-|---|---|---|
-| Research web/Reddit denso | `general-purpose` | Ver `09-research-protocol.md` |
-| Inspección código existente | `Explore` | "¿módulo X tiene capacidad Y hoy?" — investigá ANTES de recomendar arquitectura |
-| Audit Brand/Offer schema | `brand-offer-auditor` | Si discovery toca brand/offer schema |
-| UX flow diseño | `ux-flow-architect` | Handoff oficial post-PR ready |
+| Necesidad | Subagent | Modelo | Patrón |
+|---|---|---|---|
+| **Pre-flight contexto PR** (M+) | `nicolify-context-builder` | Haiku | Spawn ANTES de architect/builder/auditor → produce `CONTEXT-BRIEF.md` que ahorra 30-50k input al Opus |
+| **Quality gates run** | `nicolify-gate-runner` | Haiku | Auditor lo invoca para correr `/test-backend` o `/test-frontend`. Output `gate-output.json` consumible |
+| **Lookup trivial** (count, exists, list) | `nicolify-grep-bot` | Haiku | Reemplaza Explore para queries puntuales. Auto-escalate a Sonnet si query requiere reasoning |
+| Research web/Reddit denso | `general-purpose` | Sonnet | Ver `09-research-protocol.md` |
+| Inspección código existente compleja | `Explore` | Sonnet | "¿módulo X tiene capacidad Y hoy?" — investigá ANTES de recomendar arquitectura |
+| Audit Brand/Offer schema | `brand-offer-auditor` skill | (PM directo) | Si discovery toca brand/offer schema |
+| UX flow diseño | `ux-flow-architect` skill | (PM directo) | Handoff oficial post-PR ready |
 
 Patrón delegación research:
 ```
 Agent({
   description: "Research X",
   subagent_type: "general-purpose",
+  model: "sonnet",
   prompt: "{prompt detallado con preguntas claras + formato output}"
 })
 ```
 Brief vuelve → transcribilo a `research/{date}-{slug}.md` → linkeá desde PR.
 
 **Antes de recomendar arquitectura cross-module → spawn `Explore` para validar estado actual.** Toma 60 seg, salva refactor.
+
+***
+
+## Pre-flight con context-builder (Haiku — ahorro 30-50k Opus por PR M+)
+
+**Cuándo invocar:** PR ≥ M (medium). Para PR S (bug-fix simple, refactor de un archivo) → skip, overhead spawn > ahorro.
+
+**Cómo orquestar:** PM invoca PRIMERO a `nicolify-context-builder` (o lo declara en `prompts/00-context-prep.md` para que builder/auditor lo invoquen automáticamente):
+
+```
+Agent({
+  description: "Pre-flight PR-{n}",
+  subagent_type: "nicolify-context-builder",
+  model: "haiku",
+  prompt: "<pr_folder>: /home/chris/AISALESHT/docs/pm-nico/pis/active/PI-{X}-{theme}/sprints/S{N}-*/prs/PR-{n}-{slug}; <modules>: copilot, brand; <phase>: builder"
+})
+```
+
+Output: `<pr_folder>/CONTEXT-BRIEF.md` con 10 secciones (PR summary, contract decisions, UI spec, current-state, rules, diff, gates, IMPL highlights, faithfulness gaps, raw paths consultados).
+
+Architect/builder/auditor downstream lee CONTEXT-BRIEF.md FIRST en vez de cargar 30-50k de docs. Solo re-leen raw paths si "Faithfulness gaps" flag algo.
+
+**Disciplina cache prefix:** los `prompts/0X-*.md` que PM produce DEBEN estructurarse así:
+
+```
+[BLOQUE FIJO — paths, rules, restricciones, workflow]   ← cacheable, byte-idéntico entre iters
+---
+[BLOQUE VARIABLE — contexto específico esta invocación]  ← no cacheable
+```
+
+Esto permite hit del prompt cache de Anthropic en el auto-fix loop (iter 2-3 del builder/auditor) → 80%+ del input de la porción fija sirve cacheado (~10% del costo).
+
+**Anti-pattern crítico:** poner timestamps, hashes, conversation_id, tenant_name interpolado mid-block en el BLOQUE FIJO → invalida cache silenciosamente.
+
+***
+
+## Gate-runner (Haiku — ahorro 20-50k log parsing)
+
+Auditores **NO corren `/test-backend` y parsean stdout**. Spawnean `nicolify-gate-runner`:
+
+```
+Agent({
+  description: "Run /test-backend gates iter-{N}",
+  subagent_type: "nicolify-gate-runner",
+  model: "haiku",
+  prompt: "<pr_folder>: {abs path}; <command>: test-backend; <iter>: {N}"
+})
+```
+
+Output: `<pr_folder>/gate-output.json` con schema v1.0 estable:
+- `overall.any_fail` (bool)
+- `gates[]` con `name`, `status` (PASS/FAIL/UNKNOWN), `errors_count`, `first_5_errors`
+- `raw_log_path` preservado en `<pr_folder>/gate-logs/iter-{N}-*.log`
+
+Auditor consume el JSON → razona sobre findings, no parsea logs. Si verdict ≠ PASS y necesita más detalle → lee `raw_log_path` (raro).
+
+Multi-iter: cada nuevo run preserva el anterior como `gate-output.iter-{N}.json` → auditor diff entre iters disponible.
+
+**PM no spawna gate-runner directamente.** Lo dispara el auditor (o el builder en sus quality gates locales). PM solo lee `gate-output.json` cuando cierra PR si quiere verificar.
 
 ***
 
@@ -356,13 +435,20 @@ PROHIBIDO: worktrees git, feature branches/release/hotfix, `git pull` (cualquier
 - Allowlist arch-fitness shrink negociable.
 - Findings de baselines pre-existentes (no introducidos por este PR).
 
-**Cross-stack:** BE-builder spawnea BE-auditor; FE-builder spawnea FE-auditor. Independientes. Ambos PASS antes /pm cerrar.
+**Cross-stack y cross-scope:**
+- BE negocio + FE → BE-builder spawnea BE-auditor; FE-builder spawnea FE-auditor. Independientes. Ambos PASS antes /pm cerrar.
+- Agentic + FE → agentic-builder spawnea agentic-auditor; FE-builder spawnea FE-auditor. Ambos PASS antes /pm cerrar.
+- Triple (BE negocio + agentic + FE) → 3 builders en paralelo, 3 auditores. Los 3 PASS antes /pm cerrar. REVIEW.md (business) + REVIEW-agentic.md + REVIEW-frontend.md separados.
+
+**Gate-runner integrado:** cada builder, antes de spawnear su auditor, invoca `nicolify-gate-runner` (Haiku) para correr `/test-backend` o `/test-frontend` y producir `gate-output.json`. El auditor consume ese JSON, no parsea stdout.
 
 **PM rol post auto-loop:**
 - Si builder retornó PASS → /pm cerrar PR (RESULT.md + current-state lineage).
 - Si builder retornó WARN/FAIL escalado → /pm decide: A) update CONTRACT (drift legítimo), B) defer al siguiente PR, C) intervenir manual con builder específico.
 
 **Anti-pattern:** PM no spawna auditor manual. Auditor lo dispara EL BUILDER post-implement. PM solo interviene si builder escalate.
+
+**Anti-pattern crítico routing:** PM NUNCA spawna `nicolify-backend` para tocar `modules/copilot/` o `modules/sales_agent/`. Esos van a `nicolify-agentic`. Si Chris pide "modifica un tool del copilot" → PM dispara `nicolify-agentic`, NO `nicolify-backend`. El backend builder rechazaría con escalate-PM en su Step 2 scope check de cualquier modo, pero PM debe hacerlo bien desde el inicio.
 
 ***
 
@@ -438,6 +524,17 @@ Cada respuesta tuya en convo debe:
 - ❌ Cerrar PR sin escribir RESULT.md + actualizar current-state/{m}.md
 - ❌ Worktrees git (pierde trabajo, regla parallel-sessions-protocol)
 - ❌ Edit `docs/pm/campaigns/` (carpeta legacy, no SSoT)
+- ❌ Spawn `nicolify-backend` para tocar `modules/copilot/` o `modules/sales_agent/` (router incorrecto — agentic builder es dueño)
+- ❌ Spawn `nicolify-agentic` para módulos negocio (sobre-coste Opus innecesario; backend Sonnet basta)
+- ❌ Spawn `nicolify-backend-auditor` para auditar copilot/sales_agent (cat 11 agentic hygiene movido a `nicolify-agentic-auditor`)
+- ❌ Spawn agent sin `model` param explícito (impredecible — hereda parent)
+- ❌ Skip `nicolify-context-builder` Haiku en PR M+ (desperdicia 30-50k input al Opus downstream)
+- ❌ Spawn `nicolify-context-builder` para PR S (overhead spawn > ahorro — read directo basta)
+- ❌ Auditor parsea raw `/test-backend` stdout (debe consumir `gate-output.json` del runner)
+- ❌ Builder pushea sin invocar `nicolify-gate-runner` antes del auditor
+- ❌ Inyectar timestamps/conversation_id/hash dentro del BLOQUE FIJO de `prompts/0X-*.md` (rompe cache prefix silenciosamente)
+- ❌ PM spawnea auditor manual sin builder (auditor lo dispara EL builder; PM solo si fix-loop falló iter 3)
+- ❌ Cargar `nicolify-ux-designer` (eliminado 2026-04-30 — usar skill `ux-flow-architect` o `ux-disruptivo` directo)
 
 ***
 
