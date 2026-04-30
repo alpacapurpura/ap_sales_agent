@@ -21,6 +21,12 @@ from src.modules.analytics.workers.tasks import (
     run_tenant_extraction,
 )
 from src.modules.brand.workers.tasks import run_brand_extraction
+
+# PI-1 S2 PR-5 — campaigns ARQ workers
+from src.modules.campaigns.workers.audit_retention_task import purge_old_campaigns_audit
+from src.modules.campaigns.workers.execution_task import run_campaign_execution_task
+from src.modules.campaigns.workers.scheduler_tick import run_campaign_scheduler_tick
+from src.modules.campaigns.workers.segment_refresh_tick import run_segment_refresh_tick
 from src.modules.copilot.application.services.event_cleanup import cleanup_old_events
 from src.modules.offer.workers.tasks import run_offer_extraction
 from src.modules.sales_agent.observability.workers.dual_write_reconciliation_task import (
@@ -78,6 +84,11 @@ class WorkerSettings:
         run_sales_agent_dual_write_reconcile,
         run_verify_pending_bookings,
         run_appointment_reminders,
+        # PI-1 S2 PR-5 campaigns workers
+        run_campaign_execution_task,
+        run_campaign_scheduler_tick,
+        run_segment_refresh_tick,
+        purge_old_campaigns_audit,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -109,6 +120,20 @@ class WorkerSettings:
         )
 
         register_scheduling_event_handlers()
+
+        # PI-1 S2 PR-5 — campaigns channel registry bootstrap.
+        # token_provider: env TELEGRAM_BOT_TOKEN global fallback (dev-app smoke).
+        # Tenant-specific tokens wired in S3+ via connections module.
+        from src.modules.campaigns.infrastructure.channels.registry import (
+            register_default_channels,
+        )
+
+        async def _env_telegram_token_provider(_tenant_id: object) -> str:
+            import os
+
+            return os.environ.get("TELEGRAM_BOT_TOKEN", "")
+
+        register_default_channels(telegram_token_provider=_env_telegram_token_provider)
 
     @staticmethod
     async def on_shutdown(ctx: dict) -> None:
@@ -150,6 +175,11 @@ class SchedulerSettings:
         run_appointment_reminders,
         run_verify_pending_payments,
         run_payment_reminder_engine,
+        # PI-1 S2 PR-5 campaigns workers
+        run_campaign_execution_task,
+        run_campaign_scheduler_tick,
+        run_segment_refresh_tick,
+        purge_old_campaigns_audit,
     ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
@@ -278,6 +308,27 @@ class SchedulerSettings:
             run_payment_reminder_engine,
             minute={15, 45},
         ),
+        # PI-1 S2 PR-5 — campaign scheduler tick: promote scheduled campaigns
+        # + claim pending tasks. Minute={5,15,25,35,45,55} (disjoint from
+        # analytics run_tick_scheduler minute=range(60)).
+        cron(
+            run_campaign_scheduler_tick,
+            minute={5, 15, 25, 35, 45, 55},
+        ),
+        # PI-1 S2 PR-5 — segment refresh tick: refresh stale STATIC segments
+        # linked to RUNNING campaigns. Hourly at :20.
+        cron(
+            run_segment_refresh_tick,
+            hour=set(range(24)),
+            minute=20,
+        ),
+        # PI-1 S2 PR-5 — audit retention purge: hard-delete old campaign_audit
+        # rows. 04:30 UTC (offset from copilot purge_expired_trace_rows 04:00).
+        cron(
+            purge_old_campaigns_audit,
+            hour=4,
+            minute=30,
+        ),
     ]
 
     @staticmethod
@@ -305,6 +356,18 @@ class SchedulerSettings:
         )
 
         register_scheduling_event_handlers()
+
+        # PI-1 S2 PR-5 — campaigns channel registry bootstrap (mirror WorkerSettings).
+        from src.modules.campaigns.infrastructure.channels.registry import (
+            register_default_channels,
+        )
+
+        async def _env_telegram_token_provider(_tenant_id: object) -> str:
+            import os
+
+            return os.environ.get("TELEGRAM_BOT_TOKEN", "")
+
+        register_default_channels(telegram_token_provider=_env_telegram_token_provider)
 
     @staticmethod
     async def on_shutdown(ctx: dict) -> None:

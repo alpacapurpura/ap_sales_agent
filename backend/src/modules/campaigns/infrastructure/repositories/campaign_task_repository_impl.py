@@ -14,6 +14,8 @@ import structlog
 from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
+from src.shared.domain.datetime_utils import utc_now
+
 if TYPE_CHECKING:
     import datetime as dt
     from collections.abc import Sequence
@@ -136,13 +138,14 @@ class CampaignTaskRepositoryImpl(CampaignTaskRepository):
 
         if rows:
             row_ids = [row.id for row in rows]
+            now = utc_now()
             update_stmt = (
                 update(CampaignTaskModel)
                 .where(CampaignTaskModel.id.in_(row_ids))
                 .values(
                     status=TaskStatus.DISPATCHED.value,
-                    dispatched_at=func.now(),
-                    updated_at=func.now(),
+                    dispatched_at=now,
+                    updated_at=now,
                 )
             )
             await session.execute(update_stmt)
@@ -151,6 +154,11 @@ class CampaignTaskRepositoryImpl(CampaignTaskRepository):
                 claimed_count=len(rows),
                 tenant_id=str(tenant_id) if tenant_id else "all",
             )
+            # Reflect server-side values on in-memory ORM rows before validate
+            for row in rows:
+                row.status = TaskStatus.DISPATCHED.value
+                row.dispatched_at = now
+                row.updated_at = now
 
         return [CampaignTask.model_validate(row) for row in rows]
 
