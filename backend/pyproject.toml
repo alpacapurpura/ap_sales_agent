@@ -313,6 +313,25 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "TC002",   # same — third-party types used at runtime by FastAPI
     "TC003",   # same — stdlib types (UUID, datetime) used at runtime by FastAPI
 ]
+# shared/billing and shared/compliance — new PR-2 modules.
+# TC001/TC002/TC003: ABC domain repos and infra implementations need runtime imports
+# for type-checked method signatures even with `from __future__ import annotations`.
+# ANN401: duck-typed readers (messages_reader, lead_country_reader, cost_reader, redis_client)
+# are intentional Protocol boundaries — Any is the documented approach until consumers exist.
+"src/shared/billing/**/*.py" = [
+    "TC001", "TC002", "TC003",  # ABC/infra runtime imports
+    "ANN401",   # duck-typed readers — intentional (S2 wires concrete types)
+    "TRY400",   # logger.error acceptable for fail-open path (budget guard)
+    "TRY003",   # inline exception messages in domain layer are fine
+    "EM102",    # f-string in exception messages — domain layer
+    "SIM105",   # contextlib.suppress not appropriate in async Redis loop
+    "PLR1714",  # multiple comparisons OK in domain service merge loop
+    "C901",     # plan_service.subscribe_cache_invalidations — async pub/sub is inherently complex
+]
+"src/shared/compliance/**/*.py" = [
+    "TC001", "TC002", "TC003",  # ABC/infra runtime imports
+    "ANN401",   # duck-typed readers — intentional (S2 wires concrete types)
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
