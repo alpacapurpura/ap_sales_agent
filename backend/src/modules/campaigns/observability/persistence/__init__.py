@@ -1,0 +1,1 @@
+"""Campaigns observability persistence layer."""
