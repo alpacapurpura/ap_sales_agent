@@ -25,6 +25,7 @@ from uuid import UUID, uuid4
 
 import structlog
 
+from src.core.database import redis_client
 from src.modules.copilot.domain.events import CardEmitted
 from src.modules.copilot.infrastructure.repositories.conversation_repository import (
     ConversationRepository,
@@ -63,18 +64,17 @@ def emit_section_complete_pill(
     2. Legacy fallback: ``/{module}-studio/{section_slug}`` — kept for
        backward-compat with events published before this refactor.
     """
-    from src.core.database import redis_client
-
     idempotency_key = f"extract_card:{job_id}:nav:{section_slug}"
     if redis_client:
-        if redis_client.get(idempotency_key):
+        # Atomic NX claim: returns True on first set, None if key already exists.
+        claimed = redis_client.set(idempotency_key, "1", ex=86400, nx=True)
+        if not claimed:
             logger.debug(
                 "nav_pill_duplicate_skipped",
                 job_id=job_id,
                 section_slug=section_slug,
             )
             return
-        redis_client.setex(idempotency_key, 86400, "1")
 
     page_label = f"✓ {section_label} lista · {fields_count} campos"
 
@@ -164,14 +164,13 @@ def emit_extraction_summary_card(
     to brand-studio (would mis-route offer flows). ``entity_id`` is stored
     in the card payload for future FE reference.
     """
-    from src.core.database import redis_client
-
     idempotency_key = f"extract_card:{job_id}:summary"
     if redis_client:
-        if redis_client.get(idempotency_key):
+        # Atomic NX claim: returns True on first set, None if key already exists.
+        claimed = redis_client.set(idempotency_key, "1", ex=86400, nx=True)
+        if not claimed:
             logger.debug("summary_card_duplicate_skipped", job_id=job_id)
             return
-        redis_client.setex(idempotency_key, 86400, "1")
 
     coverage_by_section = [
         {

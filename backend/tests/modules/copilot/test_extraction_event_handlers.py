@@ -369,13 +369,14 @@ class TestEmitterFunctions:
         assert msg["blocks"][0]["card_kind"] == "extraction_summary"
 
     def test_emit_section_pill_idempotent_with_redis(self) -> None:
-        """Second call with same job_id+slug is a no-op when Redis returns a hit."""
+        """Second call with same job_id+slug is a no-op when Redis NX claim fails."""
         from src.modules.copilot.application.extraction_card_flow import (
             emit_section_complete_pill,
         )
 
         redis_mock = MagicMock()
-        redis_mock.get = MagicMock(return_value=b"1")  # already emitted
+        # set(key, "1", ex=86400, nx=True) returns None when key already exists
+        redis_mock.set = MagicMock(return_value=None)
 
         appended_messages: list[dict] = []
         conv_repo_mock = MagicMock()
@@ -384,7 +385,10 @@ class TestEmitterFunctions:
         )
 
         with (
-            patch("src.core.database.redis_client", redis_mock),
+            patch(
+                "src.modules.copilot.application.extraction_card_flow.redis_client",
+                redis_mock,
+            ),
             patch(
                 "src.modules.copilot.application.extraction_card_flow.ConversationRepository",
                 return_value=conv_repo_mock,
