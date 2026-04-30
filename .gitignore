@@ -1,6 +1,7 @@
 # --- Global / Root ---
 # Quality reports
 .jscpd-report/
+report/
 
 # Environments (Secrets)
 .env
