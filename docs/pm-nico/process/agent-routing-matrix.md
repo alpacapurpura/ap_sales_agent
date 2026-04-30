@@ -1,22 +1,29 @@
 # Agent Routing Matrix
 
-> PM usa esta tabla para decidir qué agente/skill cargar por PR. Default: ningún agente; PM hace solo. Cargar agente solo si PR requiere builder/auditor/UX.
+> PM usa esta tabla para decidir qué agente/skill cargar por PR. Default: ningún agente; PM hace solo. **Auditor lo auto-spawnea el builder (regla auto-loop 2026-04-29)** — Chris/PM solo invoca columna Implementation; el builder dispara su auditor al terminar y entra fix-loop max 3 iter hasta verdict PASS o escalate PM.
 
 ## Por tipo de trabajo
 
-| Trabajo | Pre-design | Implementation | UX | Audit | Notas |
-|---|---|---|---|---|---|
-| Pure backend infra (outbox, idempotency, rate limiter) | `nicolify-architect` | `nicolify-backend` | — | `nicolify-backend-auditor` | Architect escribe CONTRACT.md (schema + interface + retry). Backend implementa TDD. |
-| Backend + DB schema (planes, tablas nuevas) | `nicolify-architect` | `nicolify-backend` | — | `nicolify-backend-auditor` | Migration idempotente obligatoria (regla `backend-migrations.md`). |
-| Backend + LangGraph/AI (subagent, RAG, Qdrant) | `nicolify-architect` | `nicolify-agentic` | — | `nicolify-backend-auditor` | LangGraph workflows van a `nicolify-agentic` específicamente. |
-| Frontend con UI nueva | — | `nicolify-frontend` | `ux-flow-architect` | `nicolify-frontend-auditor` | UX **antes** de implementación. UI-SPEC.md → frontend. Auditor verifica `/test-frontend` 8 gates + 20 arch fitness tests + warning baselines shrink-only. |
-| Frontend con UX exploratorio (concepto visual nuevo) | — | `nicolify-frontend` | `ux-disruptivo` → `ux-flow-architect` | `nicolify-frontend-auditor` | Disruptivo genera concepto, flow-architect lo aterriza con flujo+spec. |
-| Cross-stack feature (BE+FE+DB) | `nicolify-architect` | `nicolify-backend` + `nicolify-frontend` | `ux-flow-architect` | `nicolify-backend-auditor` + `nicolify-frontend-auditor` | Architect produce CONTRACT.md ÚNICO consumido por ambos. Paralelo BE/FE solo si CONTRACT ready. Auditores producen archivos separados: `REVIEW-backend.md` + `REVIEW-frontend.md`. |
-| Investigación cross-codebase | `Explore` o `general-purpose` | — | — | — | Read-only. PM transcribe brief a `research/{date}-{slug}.md`. |
-| Migración research/docs (PR-0 saneamiento) | — | — | — | — | PM solo. No requiere agentes. |
-| Bug fix backend | — | `nicolify-backend` | — | `nicolify-backend-auditor` | TDD: regression test ANTES fix. |
-| Bug fix frontend | — | `nicolify-frontend` | — | `nicolify-frontend-auditor` | E2E si aplica. Auditor flagea ausencia de evidencia `chrome-devtools-verify` en handoff. |
-| Documentación / current-state update | — | — | — | — | PM solo. |
+| Trabajo | Pre-design | Implementation (auto-spawnea auditor) | UX | Notas |
+|---|---|---|---|---|
+| Pure backend infra (outbox, idempotency, rate limiter) | `nicolify-architect` | `nicolify-backend` → auto `nicolify-backend-auditor` | — | Architect escribe CONTRACT.md. Backend TDD + auto-fix loop. |
+| Backend + DB schema | `nicolify-architect` | `nicolify-backend` → auto `nicolify-backend-auditor` | — | Migration idempotente obligatoria. |
+| Backend + LangGraph/AI | `nicolify-architect` | `nicolify-agentic` → auto `nicolify-backend-auditor` | — | LangGraph workflows en `nicolify-agentic`. |
+| Frontend con UI nueva | — | `nicolify-frontend` → auto `nicolify-frontend-auditor` | `ux-flow-architect` | UX **antes** implementación. UI-SPEC.md → frontend. Auditor verifica `/test-frontend` 8 gates + 20 arch fitness + warning baselines shrink-only. |
+| Frontend con UX exploratorio | — | `nicolify-frontend` → auto `nicolify-frontend-auditor` | `ux-disruptivo` → `ux-flow-architect` | Disruptivo genera concepto, flow-architect aterriza spec. |
+| Cross-stack feature (BE+FE+DB) | `nicolify-architect` | `nicolify-backend` (→ auto BE-auditor) + `nicolify-frontend` (→ auto FE-auditor) | `ux-flow-architect` | Architect produce CONTRACT.md ÚNICO. Auditores producen archivos separados: `REVIEW-backend.md` + `REVIEW-frontend.md`. |
+| Investigación cross-codebase | `Explore` o `general-purpose` | — | — | Read-only. PM transcribe brief a `research/{date}-{slug}.md`. |
+| Migración research/docs | — | — | — | PM solo. |
+| Bug fix backend | — | `nicolify-backend` → auto `nicolify-backend-auditor` | — | TDD: regression test ANTES fix. |
+| Bug fix frontend | — | `nicolify-frontend` → auto `nicolify-frontend-auditor` | — | E2E si aplica. |
+| Documentación / current-state update | — | — | — | PM solo. |
+
+## Auto-audit loop fail-safe
+
+- Builder fix solo: typos, tests faltantes, hardcoded values, refactor menor, gates nuevos del PR.
+- Builder escala PM (NO fix solo): drift CONTRACT vs código, cambio arquitectónico, findings cross-PR (regla M7), allowlist arch-fitness shrink negociable, baselines pre-existentes.
+- Max 3 iter — si verdict ≠ PASS al iter 3 → escalate PM con findings pendientes.
+- Detalle: `prompts/02-builder-start.md` template + SKILL `pm` "Auto-orchestration build → audit → fix loop".
 
 ## Por tipo de módulo Nicolify
 

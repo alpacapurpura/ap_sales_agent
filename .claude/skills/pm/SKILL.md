@@ -182,7 +182,7 @@ Convo `/pm` no termina sin entregable concreto. Mínimo:
 9. **PR es CARPETA, no archivo.** Cada PR = `prs/PR-{n}-{slug}/` con sub-archivos por rol (PR/CONTRACT/UI-SPEC/IMPL-LOG/REVIEW/RESULT + prompts/).
 10. **PM es OWNER único de `docs/pm-nico/`.** Builders/UX/auditor escriben en archivos específicos del PR-folder, NUNCA tocan `roadmap.md`/`process-learnings.md`/`current-state/{m}.md` directo (eso lo consolida PM).
 11. **PRs amplios cohesivos.** Opus 4.7[1M] permite scope grande en una ejecución. NO splittear por miedo al contexto. Splittear solo cuando scope deja de ser cohesivo (multi-dominio, multi-blast-radius).
-12. **Sprint sizing:** target 1-3 PRs por sprint, no 5+. Cada PR ≈ 3 ejecuciones (architect + builder + auditor) para single-stack, hasta 5 (architect + BE-builder + BE-auditor + FE-builder + FE-auditor) para cross-stack — UX puede paralelizar a architect.
+12. **Sprint sizing:** target 1-3 PRs por sprint, no 5+. Cada PR ≈ 2 ejecuciones Chris (architect + builder-con-auto-audit) para single-stack, hasta 3 (architect + BE-builder-auto-audit + FE-builder-auto-audit) para cross-stack — UX puede paralelizar a architect. Builder spawnea auditor solo, no es ejecución Chris.
 13. **Lineage en `current-state/`.** Cada capacidad linkea al PR que la introdujo/modificó. Capacidades deprecadas a sección dedicada.
 
 ***
@@ -317,16 +317,52 @@ Brief vuelve → transcribilo a `research/{date}-{slug}.md` → linkeá desde PR
 
 ## Sesiones paralelas
 
-Chris puede correr 2 sesiones Claude Code simultáneas en este workdir. Reglas obligatorias en `process/parallel-sessions-protocol.md` (M1-M6):
+Chris puede correr 2+ sesiones Claude Code simultáneas en este workdir. Reglas obligatorias en `.claude/rules/parallel-safety.md` (M1-M7):
 
 - M1: Sesiones paralelas TOCAN PRs DE MÓDULOS DISTINTOS — obligatorio
 - M2: `process-learnings.md`/`roadmap.md`/`MEMORY.md` solo edita `/pm`
 - M3: Tests/CI/Docker SECUENCIAL siempre
 - M4: Claim by commit — PM marca `Estado: in-progress` y commitea/pushea inmediato
-- M5: `git pull` al inicio sesión y antes de cada commit nuevo
+- M5: NO `git pull`. NO force push. NO revert sin aprobación Chris. Push falla → STOP, escalate
 - M6: Bootstrap PM pregunta ¿en qué PI vas a trabajar?
+- M7: Subagentes (architect/builder/auditor) reciben restricción path-explicit. Doble PR-{n} en PIs distintos confunde paths — PM siempre prefija PI completo en prompts
 
-PROHIBIDO: worktrees git, feature branches, `git add .|-A|-u`.
+PROHIBIDO: worktrees git, feature branches/release/hotfix, `git pull` (cualquier forma), `git push --force`, `git revert` sin aprobación, `git reset --hard` sin aprobación, `git add .|-A|-u`, `git commit --no-verify`.
+
+***
+
+## Auto-orchestration build → audit → fix loop
+
+**Filosofía:** Chris invoca builder UNA vez. Builder hace código + tests + commit + **auto-spawnea auditor** + lee REVIEW + fixea findings WARN/FAIL dentro scope + re-spawnea auditor. Loop hasta PASS o max 3 iter. Chris recibe código YA AUDITADO Y CORREGIDO en una sola interacción.
+
+**Phases (definidas en `prompts/02-builder-start.md`):**
+
+| Phase | Quién | Qué |
+|---|---|---|
+| 1 — Implement | Builder | Tests RED → impl → quality gates → IMPL-LOG → commit + push |
+| 2 — Auto-audit | Builder spawnea auditor | Auditor produce REVIEW.md (PASS/WARN/FAIL) |
+| 3 — Auto-fix loop | Builder | Lee findings scope → fix → re-stage + commit `fix(scope): address auditor findings iter-{N}` → push → re-spawn auditor. Max 3 iter |
+| EXIT | Builder | Verdict PASS → return Chris. Verdict ≠ PASS tras 3 iter → escalate PM con findings |
+
+**Findings que builder fixea solo:**
+- Missing tests, typos, hardcoded values fáciles, refactor menor, naming, dup code <10 líneas.
+- ESLint/ruff/mypy issues nuevos del PR (no baseline pre-existente).
+- Coverage <threshold por archivo PR.
+
+**Findings que builder escalate PM (NO fix solo):**
+- Drift CONTRACT.md vs código (decisión contractual — PM decide actualizar spec o forzar fix).
+- Cambio arquitectónico (cambia interfaces/schemas CONTRACT).
+- Findings que tocan archivos de OTROS PRs (regla M7).
+- Allowlist arch-fitness shrink negociable.
+- Findings de baselines pre-existentes (no introducidos por este PR).
+
+**Cross-stack:** BE-builder spawnea BE-auditor; FE-builder spawnea FE-auditor. Independientes. Ambos PASS antes /pm cerrar.
+
+**PM rol post auto-loop:**
+- Si builder retornó PASS → /pm cerrar PR (RESULT.md + current-state lineage).
+- Si builder retornó WARN/FAIL escalado → /pm decide: A) update CONTRACT (drift legítimo), B) defer al siguiente PR, C) intervenir manual con builder específico.
+
+**Anti-pattern:** PM no spawna auditor manual. Auditor lo dispara EL BUILDER post-implement. PM solo interviene si builder escalate.
 
 ***
 

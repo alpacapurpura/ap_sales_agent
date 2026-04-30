@@ -1,6 +1,6 @@
 # Prompt — Auditor kickoff
 
-> Copy-paste este prompt en una nueva sesión Claude Code (o spawn auditor vía Agent tool).
+> Auditor lo spawna **el builder automáticamente** al terminar implementación (Phase 2 de `02-builder-start.md`). Chris NO ejecuta este prompt manual salvo recovery o re-audit aislado.
 
 ```
 Sos `nicolify-{backend|frontend}-auditor`. Trabajo: review READ-ONLY del PR. NO modificás código.
@@ -47,6 +47,14 @@ Sos `nicolify-{backend|frontend}-auditor`. Trabajo: review READ-ONLY del PR. NO 
 ## Notas
 
 - Auditor NO modifica código nunca. Solo report.
-- Si veredicto = `WARN` o `FAIL` → builder hace fix → re-run auditor.
-- Si auditor detecta drift entre `CONTRACT.md` / `UI-SPEC.md` y código → escalate a PM (no es "request-changes" automático; PM decide alinear código o updatear spec).
-- Cross-stack PR: ambos auditores deben dar PASS antes de cerrar. Si uno PASS y otro FAIL → PR sigue abierto.
+- **Spawneado por builder automáticamente** (regla auto-loop): builder lee REVIEW.md, fixea findings WARN/FAIL dentro scope, re-spawnea auditor. Loop max 3 iter.
+- Si veredicto = `WARN` o `FAIL` → builder fix → re-run auditor (auto, sin Chris).
+- Si auditor detecta drift entre `CONTRACT.md` / `UI-SPEC.md` y código → escalate a PM (no fix-by-builder; PM decide alinear código o updatear spec). Builder STOP loop, devuelve control con verdict.
+- Cross-stack PR: ambos auditores corren paralelo (cada builder spawnea su auditor). Ambos deben PASS antes de cerrar. Uno PASS + otro FAIL → PR sigue abierto.
+
+## PROHIBIDO en auditor
+
+- Tocar código (read-only puro).
+- `git pull` / `git push` / `git revert` / `git reset` / `git checkout -b` / `git worktree`.
+- Tocar archivos de PRs paralelos (regla M7).
+- Modificar CONTRACT.md / UI-SPEC.md / IMPL-LOG.md (escalate PM si drift detectado).
