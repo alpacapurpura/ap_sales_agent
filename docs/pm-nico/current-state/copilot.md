@@ -176,3 +176,15 @@ _Pendiente captura entrevistas users actuales._
 - Drift resolved: CONTRACT mencionaba `provider_factory.build_chat_model` que no existe; wiring real en `build_deep_agent_graph` (LLMFactory.get_service().get_client retorna BaseChatModel LangChain)
 - Tests F-7 sin mocks: 12 verde (outbox cutover + budget_guard_wiring + Others pool isolation + soft-warn + proxy attrs + build_deep_agent_graph wraps llm)
 - Operable copilot: no PR-6 (infra cutover)
+
+### Cap: LLM stack ModelRole único SSoT + DeepSeek V4-Flash NANO+FAST activo (S3 PR-1 PI-2)
+- Introducida: S3 PR-1 (PI-2, S3-copilot-llm-stack-convergence, commits `d079f13b`+`773604ab`, 2026-04-30)
+- Estado: shipped — cero deuda LLM routing residual
+- Allowlist `KNOWN_LEGACY_LLM_FILES` shrunk **19 → 0 entries** (target ratchet alcanzado)
+- ModelTier domain enum eliminado. ModelRole único SSoT (`src.core.enums.ModelRole`) con mapping cementado: NANO→NANO, MINI→FAST, REASONING→REASONING, HEAVY→AGENT.
+- Capa duplicada PR-3 (`copilot/infrastructure/llm/`) DELETED total.
+- RollingSummarizer + TitleGenerator refactor a `BaseChatModel` directo via `LLMFactory.get_service().get_client(ModelRole.NANO, temperature=0.0)` — pattern judge/intent_classifier/synthesizer dominante.
+- Migration alembic 115 idempotente: column rename `tier_selected` → `role_selected` + UPDATE values mini→fast, heavy→agent en `copilot_routing_log` + `copilot_conversation`.
+- `.env.example`: AI_MODEL_NANO + AI_MODEL_FAST = deepseek-v4-flash + AI_PROVIDER_*=deepseek (cost reduction esperado 4-15x). Eval gate S5 = guardrail forward.
+- SSoT doc: `docs/domains/llm-routing.md`. Arch fitness: `tests/architecture/test_llm_routing_ssot.py` 3/3 verde + allowlist 0.
+

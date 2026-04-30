@@ -143,6 +143,29 @@
 
 **Aprendizaje proceso:** L-PROC-CROSS-MODULE-AUDIT — architect debe auditar `core/` + `shared/` + `modules/<target>/` ANTES de proponer nueva capa. EXTEND > REPLACE > NEW priority.
 
+## 2026-04-30 — S3 PR-1 cleanup-modeltier-convergence shipped
+
+**Decisión:** S3 PR-1 ship cero deuda — cleanup capa duplicada PR-3 + convergencia ModelTier→ModelRole completa + DeepSeek V4-Flash NANO+FAST activado en `.env.example`. Allowlist `KNOWN_LEGACY_LLM_FILES` shrunk 19 → **0 entries** (target ratchet alcanzado).
+
+**Decisiones técnicas relevantes (top 5 de CONTRACT 12 D-decisiones):**
+- D-1 + D-2: DELETE total `copilot/infrastructure/llm/` (5 files) + `copilot/domain/model_tier.py`. Cero `@deprecated` shims.
+- D-3: REFACTOR consumers ModelTier→ModelRole (mapping cementado: NANO→NANO, MINI→FAST, REASONING→REASONING, HEAVY→AGENT).
+- D-4: RollingSummarizer + TitleGenerator refactor a `BaseChatModel` directo via `LLMFactory.get_service().get_client(ModelRole.NANO, temperature=0.0)`. LLMProvider Protocol + LLMEvent eliminated (orphan); LLMMessage VO mantenido (3 consumers prod, D-MAIN-1 divergence justified).
+- D-5: Migration alembic 115 idempotente — column rename `tier_selected` → `role_selected` + UPDATE values 'mini'→'fast', 'heavy'→'agent' en 2 tablas.
+- D-10: ACTIVAR DeepSeek V4-Flash NANO+FAST en `.env.example` (cost reduction 4-15x). Eval gate S5 = guardrail forward.
+
+**Surface entregada:** 38 archivos (refactor 14 + DELETE 10 + migration 1 + tests refactor 8 + arch fitness 1 + .env.example 1). 4 commits PR-1 lifecycle (claim → CONTRACT → builder partial+main thread takeover → cleanup deletes + migration).
+
+**Aprendizaje proceso:** L-PROC-MAIN-THREAD-TAKEOVER 2ª confirmación PI-2 (1ª en S2). Builder agent truncó ~9min sin commits propios. PM main thread completó refactor + tests + cleanup. Pattern cementado: PRs L scope 25+ archivos default plan = main thread takeover post-truncate.
+
+**Métricas:**
+- Allowlist `KNOWN_LEGACY_LLM_FILES`: 19 → **0** ✅
+- SSoT LLM routing: 2 sistemas (ModelTier + ModelRole) + capa duplicada PR-3 → **1 sistema (ModelRole único)** ✅
+- Cost NANO+FAST esperado: 4-15x reduction (gpt-4o-mini → deepseek-v4-flash)
+- Arch fitness: 766/766 verde
+
+**Próximo paso:** S3 PR-2 LiteLLM Proxy integration.
+
 ## Pendientes registrar
 
 _Aquí se irán registrando decisiones tomadas durante discovery + ejecución._
