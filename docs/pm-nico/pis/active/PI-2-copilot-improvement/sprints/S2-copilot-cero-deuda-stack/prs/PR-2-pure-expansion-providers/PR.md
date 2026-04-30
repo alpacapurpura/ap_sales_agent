@@ -7,11 +7,11 @@
 | PR ID | PR-2-pure-expansion-providers |
 | Sprint padre | S2-copilot-cero-deuda-stack |
 | PI padre | PI-2-copilot-improvement |
-| Estado | ready |
+| Estado | in-progress |
 | Tipo | refactor + feature (BE pure expansion + 3 providers nuevos) |
 | Esfuerzo | M |
 | Owner PM | /pm |
-| Claimed by session | — |
+| Claimed by session | 2026-04-30 sesión PI-2 S2 (módulo copilot) |
 
 ## Problema (user-facing)
 
