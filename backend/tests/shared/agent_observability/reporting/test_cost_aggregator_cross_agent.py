@@ -297,7 +297,9 @@ class TestCrossAgentCostAggregator:
             start=base.date(),
             end=(base + dt.timedelta(days=2)).date(),
         )
-        assert set(summary.keys()) == {"copilot", "sales_agent"}
+        # Registry may include extra agents (e.g. "campaign") registered by
+        # Sub-C; we only assert the two seeded agents are present and correct.
+        assert {"copilot", "sales_agent"} <= set(summary.keys())
         # tenant_a appears in both, tenant_b only in copilot.
         copilot_tenants = {row.tenant_id for row in summary["copilot"]}
         sales_tenants = {row.tenant_id for row in summary["sales_agent"]}

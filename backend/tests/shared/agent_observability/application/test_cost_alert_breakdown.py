@@ -164,7 +164,9 @@ class TestCrossAgentBreakdown:
 
         alert = next(w for w in warnings if w["event"] == "cost_alert_threshold_exceeded")
         breakdown = alert["breakdown_usd_by_agent"]
-        assert set(breakdown.keys()) == {"copilot", "sales_agent"}
+        # Registry may include extra agents (e.g. "campaign") registered by
+        # Sub-C; we only assert the two seeded agents are present and correct.
+        assert {"copilot", "sales_agent"} <= set(breakdown.keys())
         assert Decimal(breakdown["copilot"]) == Decimal("0.5000000000")
         assert Decimal(breakdown["sales_agent"]) == Decimal("1.5000000000")
         assert Decimal(str(alert["cost_usd"])) == Decimal("2.0000000000")
