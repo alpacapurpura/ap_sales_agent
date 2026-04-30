@@ -55,11 +55,12 @@
 
 ## PIs activos (`pis/active/`)
 
-| PI | Tema | Estado | Archivo |
-|---|---|---|---|
-| PI-1 | campaigns-module | S0 in-progress (PR-0 shipped, PR-1+PR-2 ready); S1/S2/S3/S4 sprint.md macros refined | [pis/active/PI-1-campaigns-module/PI.md](pis/active/PI-1-campaigns-module/PI.md) |
-| PI-2 | copilot-improvement | discovery | [pis/active/PI-2-copilot-improvement/PI.md](pis/active/PI-2-copilot-improvement/PI.md) |
-| PI-3 | sales-agent-improvement | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
+| PI | Tipo | Tema | Estado | Archivo |
+|---|---|---|---|---|
+| PI-1 | feature | campaigns-module | S0 in-progress (PR-0 shipped, PR-1+PR-2 ready); S1/S2/S3/S4 sprint.md macros refined | [pis/active/PI-1-campaigns-module/PI.md](pis/active/PI-1-campaigns-module/PI.md) |
+| PI-2 | feature | copilot-improvement | discovery (8 recs + telegram bridge capturados Bloque A+B) | [pis/active/PI-2-copilot-improvement/PI.md](pis/active/PI-2-copilot-improvement/PI.md) |
+| PI-3 | feature | sales-agent-improvement | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
+| PI-4 | **maintenance** (rolling) | brand-evolutive-maintenance | S1 in-progress (PR-1-drop-buyer-persona-fields ready) | [pis/active/PI-4-brand-evolutive-maintenance/PI.md](pis/active/PI-4-brand-evolutive-maintenance/PI.md) |
 
 ## PIs archivados (`pis/archive/`)
 
@@ -110,6 +111,7 @@ Reference files: `.claude/skills/pm/references/`.
 8. **PIs cerrados → `archive/`.** Mantenés histórico read-only.
 9. **PRs amplios cohesivos.** Opus 4.7[1M] permite scope grande. Sprint = 1-3 PRs.
 10. **Sesiones paralelas → `parallel-sessions-protocol.md`** (M1-M6).
+11. **Maintenance tracks (rolling) NO cuentan cap Now.** Sprint batch items micro. Upgrade a feature PI si scope crece.
 
 ## Punteros externos
 

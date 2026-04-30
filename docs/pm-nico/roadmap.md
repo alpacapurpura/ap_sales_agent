@@ -11,6 +11,14 @@
 | Copilot improvement | PI-2-copilot | discovery | [pis/active/PI-2-copilot-improvement/PI.md](pis/active/PI-2-copilot-improvement/PI.md) |
 | Sales agent improvement | PI-3-sales | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
 
+## Maintenance (rolling, paralelo a Now — no compite cap)
+
+> Tracks evolutivos para responder feedback usuarios en días sin encolarlos en feature PIs. Cada track corre con sprints batch cortos. Closes when Chris declares.
+
+| Item | Tipo | Estado | Link |
+|---|---|---|---|
+| Brand Studio evolutive maintenance | PI-4-maintenance | active, S1 in-progress (PR-1 ready) | [pis/active/PI-4-brand-evolutive-maintenance/PI.md](pis/active/PI-4-brand-evolutive-maintenance/PI.md) |
+
 ## Next (priorizado, no iniciado)
 
 | Item | Tipo | Bloqueado por | Link |
@@ -32,12 +40,15 @@ _Vacío. PIs cerrados se migran a `pis/archive/PI-{N}-{theme}/` con `retro.md` y
 
 ## Reglas roadmap
 
-1. **Now ≤ 3 PIs simultáneos.** Más = pierdes foco. Si entra cuarto, otro pasa a pause o Later.
-2. **Cada item tiene puntero.** Sin items huérfanos.
-3. **Movimiento explícito.** PM mueve items vía conversación con Chris. No autoriza solo.
-4. **Sin fechas duras.** Solo orden + dirección. Excepción: deadline externo regulatorio (raro).
-5. **PI cerrado → Done + retro.md obligatorio.** Captura aprendizaje.
+1. **Now ≤ 3 PIs feature simultáneos.** Más = pierdes foco. Si entra cuarto feature, otro pasa a pause o Later.
+2. **Maintenance tracks NO cuentan cap Now.** Corren paralelo. Sin cap formal, pero si crecen (≥2 sprints batch grandes simultáneos) → upgrade a feature PI.
+3. **Cada item tiene puntero.** Sin items huérfanos.
+4. **Movimiento explícito.** PM mueve items vía conversación con Chris. No autoriza solo.
+5. **Sin fechas duras.** Solo orden + dirección. Excepción: deadline externo regulatorio (raro).
+6. **PI cerrado → Done + retro.md obligatorio.** Captura aprendizaje.
 
 ## Histórico decisiones roadmap
 
-_Vacío. Append-only. Cada cambio Now/Next/Later registra fecha + razón._
+| Fecha | Cambio | Razón |
+|---|---|---|
+| 2026-04-29 | Creado track **Maintenance** paralelo a Now. Primer track: PI-4-brand-evolutive-maintenance | Chris pidió responder feedback usuarios brand en días sin encolar en feature PIs ni pelear cap Now. Patrón rolling = sprint = batch items micro |

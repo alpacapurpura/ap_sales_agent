@@ -37,13 +37,39 @@ Pendientes discovery. Posibles:
 
 - TBD
 
-## PRs candidatos
+## PRs candidatos (capturados, pendientes refinamiento)
 
-_Vacío. Se llenarán post-discovery._
+> Items capturados 2026-04-29. NO desarrollados aún. Discovery formal pendiente.
+
+### Bloque A — Wire copilot multi-canal (transport)
+
+| PR-candidato | Descripción | Notas |
+|---|---|---|
+| Copilot ↔ Telegram bridge (MVP) | Conectar copilot al canal Telegram. Pattern multi-canal extensible (próximo: WhatsApp, otros). Inspirarse en `sales_agent` connection layer ya existente | Chris: "empezaremos con telegram pero usa el patrón de diseño adecuado para cuando hayan más" |
+| Copilot ↔ WhatsApp bridge | Reusar pattern del PR Telegram | Bloqueado por PR Telegram |
+
+### Bloque B — Mantenimiento copilot (8 recomendaciones a investigar)
+
+> Chris pidió investigar cada una: explicar qué es + si ya tenemos / mejor / recomendar. Discovery pendiente.
+
+| # | Item | Estado discovery |
+|---|---|---|
+| 1 | Motor real suggestions (swap stub) | pendiente investigar — ¿hay stub actual? ¿qué reemplazaría? |
+| 2 | Rate limit `/voice/upload-and-transcribe` (abuso Whisper) — default editable por tenant desde admin panel Streamlit (KISS, en opciones del tenant existente, NO crear módulo nuevo) | pendiente — confirmar endpoint existe + admin panel layout actual |
+| 3 | Refactor `_tool_result_to_block` → `application/adapters/` | pendiente — verificar ubicación actual + razón refactor |
+| 4 | `filename` en `MediaUploadResponse` | pendiente — verificar DTO actual + caso uso |
+| 5 | `COPILOT_MEDIA_MAX_BYTES` configurable via env | pendiente — verificar default actual hardcoded o no |
+| 6 | Integración DB test roundtrip | pendiente — qué test se cubre, qué falta |
+| 7 | Backfill script content → blocks | pendiente — modelo migration data legacy |
+| 8 | Doc `code-highlighting.md` (Shiki upgrade) | pendiente — verificar si Shiki está integrado o pendiente |
+
+### Bloque C — Discovery original (preliminar, ver Hipótesis arriba)
+
+- TBD via discovery formal cuando arranquemos PI-2 kickoff
 
 ## Opportunities atendidas
 
-_Pendiente captura._
+_Pendiente captura post-discovery._
 
 ## Restricciones / Riesgos
 
@@ -66,6 +92,12 @@ _Pendientes._
 3. Research patrones agentic copilot 2026 (Replit Agent, Cursor, Claude Projects, custom GPTs en SaaS)
 4. Captura señales analytics copilot (cost per conversation, success rate, drop-off)
 5. Decidir scope (¿bug general o feature gigante? Probablemente un mix)
+6. **Investigar 8 recomendaciones Bloque B** (ver "PRs candidatos"). Para cada una:
+   - ¿Existe el stub/file/endpoint mencionado? Path exacto.
+   - ¿Qué problema resuelve? ¿Lo tenemos resuelto distinto?
+   - ¿Recomendamos hacerlo, postponerlo, descartarlo? Con razón.
+   - Output: research file `docs/pm-nico/research/{date}-copilot-8-recommendations.md` con tabla.
+7. **Discovery wire telegram (Bloque A)**: leer `backend/src/modules/sales_agent/` connection layer para identificar pattern reutilizable para copilot. Captura en `research/{date}-copilot-channel-bridge-pattern.md`.
 
 ## Cierre / Retro
 
