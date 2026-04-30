@@ -195,6 +195,25 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: list[str] = []
 
+    # ── Outbox pattern feature flags (PI-1 S0 PR-1) ───────────────────────
+    # Default OFF. Flip per-module after cutover testing.
+    # When ON, EventBusAdapter routes publish() to outbox INSERT instead of
+    # legacy in-memory dispatch.
+    USE_OUTBOX_PATTERN_SALES_AGENT: bool = False
+    USE_OUTBOX_PATTERN_COPILOT: bool = False
+    USE_OUTBOX_PATTERN_BRAND: bool = False
+    USE_OUTBOX_PATTERN_DEFAULT: bool = False
+
+    # Outbox dispatcher
+    OUTBOX_MAX_RETRIES: int = 5
+
+    # Idempotency
+    IDEMPOTENCY_DEFAULT_TTL_SECONDS: int = 86400
+
+    # Campaign observability retention (PI-1 S0 PR-1)
+    CAMPAIGN_TRACE_RETENTION_DAYS: int = 30
+    CAMPAIGN_LLM_CALL_RETENTION_DAYS: int = 90
+
     @property
     def database_url(self) -> str:
         """Build the PostgreSQL connection URL from component settings."""
