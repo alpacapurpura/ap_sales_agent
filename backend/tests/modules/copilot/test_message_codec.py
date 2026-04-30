@@ -239,3 +239,40 @@ def test_flatten_blocks_multiple_blocks_joined() -> None:
     result = _flatten_blocks(blocks)
     assert "Parte uno" in result
     assert "Parte dos" in result
+
+
+# ── legacy v1 sampled warning ─────────────────────────────────────────
+
+
+def test_legacy_read_emits_sampled_warning() -> None:
+    """Decoding 200 v1 messages should emit exactly 2 structlog warnings (sample rate 1/100).
+
+    The counter is per-process (module-level) so we reset it before the test
+    to guarantee deterministic sampling independent of test ordering.
+    """
+    import src.modules.copilot.infrastructure.repositories.message_codec as _codec_mod
+
+    # Reset the per-process counter so sampling is deterministic
+    _codec_mod._LEGACY_READ_COUNTER["count"] = 0
+
+    conv_id = uuid4()
+
+    from structlog.testing import capture_logs
+
+    with capture_logs() as cap:
+        for _ in range(200):
+            decode_message({"role": "user", "content": "legacy message"}, conversation_id=conv_id)
+
+    # Filter to only our specific warning event
+    warnings = [
+        entry
+        for entry in cap
+        if entry.get("event") == "copilot_message_legacy_v1_read" and entry.get("log_level") == "warning"
+    ]
+    # Sample rate 1/100 → 200 legacy reads → exactly 2 warnings (count=1 and count=101)
+    assert len(warnings) == 2, f"Expected 2 sampled warnings for 200 v1 reads (rate 1/100), got {len(warnings)}"
+    # Verify no PII in log: content should NOT appear in any warning
+    for w in warnings:
+        assert "legacy message" not in str(w), "PII (content) must not appear in warning log"
+        assert "conversation_id" in w
+        assert "sampled_count" in w

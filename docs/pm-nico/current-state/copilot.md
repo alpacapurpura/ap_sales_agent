@@ -91,6 +91,16 @@ _Pendiente captura entrevistas users actuales._
   - Providers pendientes: brand, sales_agent, copilot (PRs siguientes)
   - Heuristic rules: 6 reglas (no offers -> create chip; high_ticket -> pricing; recurring_billing -> billing; is_lead_magnet -> link core; incomplete promise.headline -> variants; lead_magnet sin core -> link)
 
+### Cap: Backfill content→blocks (data migration v1→v2)
+- Introducida: PR-3 (PI-2, S1, 2026-04-29)
+- Estado: script + audit table live, migration marker shipped. Backfill ejecuta manual per-tenant via `python scripts/backfill_copilot_content_to_blocks.py`
+- Operable copilot: no (mantenimiento interno transparente al user)
+- CLI flags: `--dry-run` (default), `--apply`, `--batch-size N` (default 100), `--tenant-id X`, `--confirm-prod` (regex `prod\.` interceptor), `--max-failure-rate 0.05`
+- Audit: tabla `copilot_backfill_runs` (run_id, tenant_id, stats, status, mode)
+- Codec v1 warning: sampled 1/100 reads logean `copilot_message_legacy_v1_read` (threshold ops día 30+ con 0 warnings → safe drop codec v1 path)
+- Idempotente: re-run = 0 rows updated. Optimistic lock `WHERE messages = :original` evita conflict mid-flight
+- Out of scope: DROP `content` column (safety wait, PR futuro tras N días sin warnings v1)
+
 ### Cap: BudgetGuard.check — gating cross-cutting LLM budget (Others bucket)
 - Introducida: PR-2 (PI-1, S0, commit `dbc367f2`, 2026-04-29) — **primitiva expuesta; wiring al orchestrator diferido S2**
 - Estado: primitiva disponible en `shared/billing/application/budget_guard.py`

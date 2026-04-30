@@ -19,9 +19,18 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
+import structlog
+
 from src.modules.copilot.domain.message import Message
 from src.modules.copilot.domain.message_blocks import TextBlock
 from src.shared.domain.datetime_utils import utc_now
+
+logger = structlog.get_logger(__name__)
+
+# Per-process counter for sampling legacy v1 reads.
+# Volatile — not shared across workers. Ops: grep count * sample_rate for approx total.
+_LEGACY_READ_COUNTER: dict[str, int] = {"count": 0}
+_LEGACY_LOG_SAMPLE_RATE = 100  # log 1 of every 100 to avoid log flood
 
 
 def decode_message(raw: dict, *, conversation_id: UUID) -> Message:
@@ -55,6 +64,16 @@ def decode_message(raw: dict, *, conversation_id: UUID) -> Message:
         # v1 shape: synthesize a TextBlock from legacy content
         content = raw_content
         blocks = [TextBlock(id=uuid4(), markdown=raw_content)]
+        _LEGACY_READ_COUNTER["count"] += 1
+        if _LEGACY_READ_COUNTER["count"] % _LEGACY_LOG_SAMPLE_RATE == 1:
+            logger.warning(
+                "copilot_message_legacy_v1_read",
+                conversation_id=str(conversation_id),
+                message_id=str(mid),
+                sampled_count=_LEGACY_READ_COUNTER["count"],
+                sample_rate=_LEGACY_LOG_SAMPLE_RATE,
+                hint="post-backfill should trend to zero; investigate if persistent",
+            )
     else:
         content = ""
         blocks = None
