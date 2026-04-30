@@ -176,6 +176,11 @@ class LeadModel(Base):
     last_interaction_date = Column(DateTime(timezone=True), nullable=True)
     next_scheduled_action = Column(DateTime(timezone=True), nullable=True)
 
+    # Geographic segmentation (ISO 3166-1 alpha-2 lowercase, e.g. "pe", "mx").
+    # Column added via migration 110 ALTER TABLE leads ADD COLUMN country VARCHAR(2).
+    # Mapping added here in PR-4 S1 (closes PR-2 deuda — column existed in migration only).
+    country = Column(String(2), nullable=True, index=True)
+
     # Deep Memory
     conversation_summary = Column(Text, nullable=True)
     key_objections_history = Column(JSONB, default=[])
