@@ -48,24 +48,32 @@ Pendientes discovery. Posibles:
 | Copilot ↔ Telegram bridge (MVP) | Conectar copilot al canal Telegram. Pattern multi-canal extensible (próximo: WhatsApp, otros). Inspirarse en `sales_agent` connection layer ya existente | Chris: "empezaremos con telegram pero usa el patrón de diseño adecuado para cuando hayan más" |
 | Copilot ↔ WhatsApp bridge | Reusar pattern del PR Telegram | Bloqueado por PR Telegram |
 
-### Bloque B — Mantenimiento copilot (8 recomendaciones a investigar)
+### Bloque B — Mantenimiento copilot (8 recomendaciones — cerrado discovery 2026-04-29)
 
-> Chris pidió investigar cada una: explicar qué es + si ya tenemos / mejor / recomendar. Discovery pendiente.
+> Research: `research/2026-04-29-copilot-8-recommendations.md`. Decisión Chris 2026-04-29: hacerlas todas en S1, cerrar definitivo las descartadas.
 
-| # | Item | Estado discovery |
-|---|---|---|
-| 1 | Motor real suggestions (swap stub) | pendiente investigar — ¿hay stub actual? ¿qué reemplazaría? |
-| 2 | Rate limit `/voice/upload-and-transcribe` (abuso Whisper) — default editable por tenant desde admin panel Streamlit (KISS, en opciones del tenant existente, NO crear módulo nuevo) | pendiente — confirmar endpoint existe + admin panel layout actual |
-| 3 | Refactor `_tool_result_to_block` → `application/adapters/` | pendiente — verificar ubicación actual + razón refactor |
-| 4 | `filename` en `MediaUploadResponse` | pendiente — verificar DTO actual + caso uso |
-| 5 | `COPILOT_MEDIA_MAX_BYTES` configurable via env | pendiente — verificar default actual hardcoded o no |
-| 6 | Integración DB test roundtrip | pendiente — qué test se cubre, qué falta |
-| 7 | Backfill script content → blocks | pendiente — modelo migration data legacy |
-| 8 | Doc `code-highlighting.md` (Shiki upgrade) | pendiente — verificar si Shiki está integrado o pendiente |
+| # | Item | Veredicto | Destino |
+|---|---|---|---|
+| 1 | Motor real suggestions (swap stub) | DO | **S1 PR-2** `suggestions-engine` |
+| 2 | Rate limit `/voice/upload-and-transcribe` per-tenant editable Streamlit | DO | **S1 PR-1** `voice-media-hardening` |
+| 3 | Refactor `_tool_result_to_block` → `application/adapters/` | **CLOSED** | Ya resuelto 2026-04-22 (`block_adapters.py` 176 LOC, registry pattern DDD-correct) |
+| 4 | `filename` en `MediaUploadResponse` | **CLOSED** | Exclusión consciente previa (`asset_id` canónico). Reabrir solo si user pide |
+| 5 | `COPILOT_MEDIA_MAX_BYTES` configurable via env | DO | **S1 PR-1** `voice-media-hardening` (junto con #2) |
+| 6 | Integración DB test roundtrip | DO | **S1 PR-1** `voice-media-hardening` (lite, fixture compartido) |
+| 7 | Backfill script content → blocks | DO | **S1 PR-3** `backfill-content-blocks` |
+| 8 | Doc `code-highlighting.md` (Shiki upgrade) | **CLOSED** | Sin Shiki integrado, sin caso uso. Stack actual cubre. Reabrir solo si user pide multi-lang highlighting |
 
 ### Bloque C — Discovery original (preliminar, ver Hipótesis arriba)
 
-- TBD via discovery formal cuando arranquemos PI-2 kickoff
+- TBD via discovery formal cuando arranquemos PI-2 kickoff post-S1
+
+### S1 plan resumen (sprint copilot-maintenance-batch)
+
+| PR | Folder | Scope | Esfuerzo |
+|---|---|---|---|
+| PR-1 | `voice-media-hardening` | #2 + #5 + #6 (rate-limit voice + env max-bytes + DB roundtrip tests) | M |
+| PR-2 | `suggestions-engine` | #1 (motor suggestions real, swap stub) | L |
+| PR-3 | `backfill-content-blocks` | #7 (script + alembic migration content→blocks) | S |
 
 ## Opportunities atendidas
 
