@@ -57,11 +57,14 @@ from src.modules.copilot.application.tools.registry import get_tools_for_context
 from src.shared.infrastructure.llm.factory import LLMFactory
 
 if TYPE_CHECKING:
+    from uuid import UUID
+
     from langchain_core.language_models import BaseChatModel
     from langchain_core.tools import BaseTool
     from langgraph.graph.state import CompiledStateGraph
 
     from src.modules.copilot.application.orchestrator.state import CopilotState
+    from src.shared.billing.application.budget_guard import BudgetGuard
 
 logger = structlog.get_logger()
 
@@ -214,6 +217,8 @@ def build_deep_agent_graph(
     *,
     llm: BaseChatModel | None = None,
     tools: list[BaseTool] | None = None,
+    budget_guard: BudgetGuard | None = None,
+    tenant_id: UUID | None = None,
 ) -> CompiledStateGraph:
     """Compile a deep-agent graph for the current turn.
 
@@ -225,6 +230,12 @@ def build_deep_agent_graph(
         tools: Override the tool list (test only). Production code
             passes ``None`` and ``get_tools_for_context`` resolves
             tools by route.
+        budget_guard: PR-6 Sub-C — when provided, ``llm`` is wrapped in
+            ``BudgetGuardingChatModel`` enforcing pre-call budget check.
+            Single enforcement point: every callsite consuming this
+            graph (deep_agent.ainvoke / astream_events) is gated.
+        tenant_id: Required when ``budget_guard`` is provided. Used as
+            the budget bucket key for the wrapper.
 
     Returns:
         Compiled LangGraph graph with the deepagents middleware stack
@@ -243,6 +254,16 @@ def build_deep_agent_graph(
         llm = LLMFactory.get_service().get_client(
             ModelRole.AGENT,
             temperature=0.6,
+        )
+
+    if budget_guard is not None and tenant_id is not None:
+        from src.shared.billing.application.llm_guards import BudgetGuardingChatModel
+
+        llm = BudgetGuardingChatModel(  # type: ignore[assignment]
+            inner=llm,
+            budget_guard=budget_guard,
+            tenant_id=tenant_id,
+            agent_kind="copilot",
         )
 
     if tools is None:
