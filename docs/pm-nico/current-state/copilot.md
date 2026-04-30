@@ -101,6 +101,22 @@ _Pendiente captura entrevistas users actuales._
 - Idempotente: re-run = 0 rows updated. Optimistic lock `WHERE messages = :original` evita conflict mid-flight
 - Out of scope: DROP `content` column (safety wait, PR futuro tras N días sin warnings v1)
 
+### Cap: Smart-chips dinámicas FE consume engine + producer event
+- Introducida: PR-1 (PI-2, S2, commits `e53b7ef6` + `824c946a`, 2026-04-30)
+- Estado: live
+- Operable copilot: indirecto (chips habilitan exploración rápida bajo input chat)
+- Consumer FE: `useSuggestions()` React Query hook (queryKey [route, conversationId], staleTime 5min)
+- Producer: `useSuggestionAccept()` mutation fire-and-forget → endpoint `POST /copilot/suggestions/accept` → event `SuggestionAccepted` → subscriber S1 escribe `copilot_trace_event`
+- Endpoint motor: `POST /copilot/suggestions` retorna `{suggestions, breakdown, latency_ms}` best-effort 200
+- Métricas adopción habilitadas: `SELECT COUNT(*) FILTER (WHERE event_type='suggestion_accepted') / COUNT(*) FILTER (WHERE event_type='suggestion_shown') ratio`
+
+### Cap: Voice transcription endpoint estable (legacy retired live)
+- Introducida: PR-1 (PI-2, S2, commit `e53b7ef6`, 2026-04-30)
+- Estado: live
+- Operable copilot: sí (voice button composer)
+- FE migration: `voice-api.ts` llama `/voice/upload-and-transcribe` con D-9 shape adapter (firma pública `TranscriptionResponse` intacta — consumers sin cambios)
+- Cierre deuda S1 PR-1 D-5: legacy `/voice/transcribe` 410 Gone ya NO recibe llamadas FE (verificable `grep -rn "voice/transcribe" frontend/src/` = 0 hits activos)
+
 ### Cap: BudgetGuard.check — gating cross-cutting LLM budget (Others bucket)
 - Introducida: PR-2 (PI-1, S0, commit `dbc367f2`, 2026-04-29) — **primitiva expuesta; wiring al orchestrator diferido S2**
 - Estado: primitiva disponible en `shared/billing/application/budget_guard.py`

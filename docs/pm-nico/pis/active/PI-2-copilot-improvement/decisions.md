@@ -52,6 +52,34 @@
 
 **Próximo paso:** ejecutar `prompts/01-architect-start.md` de PR-1 (sugerido por boundary técnica + esfuerzo M).
 
+## 2026-04-30 — S2-copilot-cero-deuda-stack iniciado
+
+**Decisión:** abrir S2 con foco "cero deuda técnica" + LLM cost optimization. 3 PRs cohesivos.
+
+**Razón:** Chris explicit "cero deuda" + criterio escalabilidad 1000+ tenants > pragmatic shortcuts. Research LLM landscape 2026-04-30 valida migración parcial agresiva chinos.
+
+**PRs:**
+- PR-1 fe-swap-suggestions-api (cross-stack L) — cierra deudas S1 #1 (FE voice migration) + #2 (FE swap suggestions)
+- PR-2 pure-expansion-providers (BE M) — 3 providers nuevos + drop static suggestions[] residual (cierra deuda S1 #3)
+- PR-3 llm-cost-optimization (BE L) — DeepSeek V4-Flash classifier+summarizer + eval gate framework
+
+**Research input:** `docs/pm-nico/research/2026-04-30-llm-landscape-chinese-models.md` veredicto migración parcial agresiva.
+
+## 2026-04-30 — PR-1 shipped
+
+**Decisión:** cierra deuda S1 PR-1 D-5 (FE legacy voice/transcribe call) + deuda S1 PR-2 FE swap stub suggestions. Verdicts BE PASS · FE PASS (post fix iter-1 prettier + display-name).
+
+**Decisiones técnicas relevantes (vienen de CONTRACT 16 D-numbered, top 5):**
+- D-3: asyncio.to_thread wraps sync engine — no bloquea event loop
+- D-9: voice migration NO solo URL swap — D-9 adapter shape mandatorio (shapes incompatibles verificados código real)
+- D-10/D-11: best-effort doble try/except (engine + EventBus), SuggestionShown emitido siempre (denominator métrica)
+- D-13: mutation accept NO invalida queries (engine no re-rankea por accept individual)
+- D-14: drop ROUTE_SUGGESTIONS map duplicado en SuggestedActions.tsx (cero deuda)
+
+**Surface entregada:** 17 archivos, 37 tests nuevos, 0 migrations DB, 0 schema changes. 2 endpoints nuevos `POST /copilot/suggestions` + `POST /copilot/suggestions/accept`.
+
+**Aprendizaje proceso:** S1 learning #8 confirmado en S2 — FE auditor stalled 600s. PM main thread completó manualmente quality gates + REVIEW-frontend.md. Patrón consistente — para FE PRs L+ planear main thread takeover audit por default.
+
 ## Pendientes registrar
 
 _Aquí se irán registrando decisiones tomadas durante discovery + ejecución._
