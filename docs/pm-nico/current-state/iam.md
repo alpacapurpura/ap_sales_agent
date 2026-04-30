@@ -37,10 +37,22 @@ Identidad + acceso. User entra a Nicolify, se autentica, opera dentro de su tena
 ## Dolor user / oportunidades detectadas
 _Pendiente captura primera entrevista user._
 
+## Capacidades admin (PI-1 S0 PR-2)
+
+### plan_config + tenant_subscription + Streamlit /planes-billing
+- Introducida: PR-2 (PI-1, S0, commit `14b8b38a`, 2026-04-29)
+- Estado: live (admin-only — no user-facing API pública todavía)
+- Operable copilot: no (infra admin)
+- Surface admin: Streamlit `/planes-billing` — CRUD plans + suscripciones tenant + toggle `is_default` atómico
+- Tablas: `plan_config` (5 planes: free/basic/intermediate/advanced/ultra) + `tenant_subscriptions` (1 row per tenant)
+- Invariante: exactamente 1 plan con `is_default=TRUE` (partial unique index `uq_plan_config_one_default`; Streamlit toggle atómico; `BillingDefaultPlanMissingError` fail-fast)
+- Overrides per-tenant: `tenant_subscriptions.custom_overrides JSONB` — soporta `{"llm_budget_total_usd": X, "max_outbound_msg_per_day": Y}` para enterprise; `PlanService.get_effective()` mergea sobre plan base con cache 5min + Redis pub/sub invalidación cross-instance
+- Planes default: free ($5 LLM budget) / basic ($15) / intermediate ($30) / advanced ($45) / ultra ($95). Editables via admin sin migration.
+
 ## PIs históricos
 | PI | Cambio | Fecha cierre |
 |---|---|---|
-| _ninguno aún_ | | |
+| PI-1 S0 PR-2 | plan_config + tenant_subscription + /planes-billing admin | 2026-04-29 |
 
 ## Decisiones producto vinculadas
 | Fecha | Decisión | Razón | PI/PR |

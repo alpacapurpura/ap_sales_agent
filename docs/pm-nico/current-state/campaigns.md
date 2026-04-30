@@ -28,6 +28,7 @@ PI-1 unifica esto en módulo `campaigns/` que orquesta multi-canal con primitiva
 | Outbox event store | ✅ en `shared/domain_events/outbox/` (flag `USE_OUTBOX_PATTERN` OFF default) | Shared infra cross-cutting, no exclusiva campaigns. Persistencia async events con at-least-once + dedup via idempotency key. |
 | Idempotency primitives | ✅ en `shared/idempotency/` | `@idempotent(key_fn=...)` decorator + `IdempotencyStore` Redis+Postgres backend. Base para webhook handlers + worker tasks. |
 | `mv_daily_llm_cost_per_tenant_v2` | ✅ incluye campaign UNION-ALL | MV cross-agent ya incluye `campaign_llm_call` vía registry. Zero SQL hardcodeado. |
+| BudgetGuard + OutboundRateLimiter + ComplianceService primitives | ✅ en `shared/billing/` + `shared/compliance/` (PI-1 S0 PR-2) | Primitivas consumibles cuando campaigns module crezca. BudgetGuard: `agent_kind="campaign"` consume Others pool. OutboundRateLimiter: cap `max_outbound_msg_per_day` per plan. ComplianceService: policy chain 4 políticas. Wiring cuando ChannelRouter exista en S2/S3. |
 
 **Capacidades fragmentadas pre-existentes (sin cambio en S0):**
 

@@ -90,3 +90,13 @@ _Pendiente captura entrevistas users actuales._
   - Providers registrados: `offer` (route `offer-studio`, priority 0)
   - Providers pendientes: brand, sales_agent, copilot (PRs siguientes)
   - Heuristic rules: 6 reglas (no offers -> create chip; high_ticket -> pricing; recurring_billing -> billing; is_lead_magnet -> link core; incomplete promise.headline -> variants; lead_magnet sin core -> link)
+
+### Cap: BudgetGuard.check — gating cross-cutting LLM budget (Others bucket)
+- Introducida: PR-2 (PI-1, S0, commit `dbc367f2`, 2026-04-29) — **primitiva expuesta; wiring al orchestrator diferido S2**
+- Estado: primitiva disponible en `shared/billing/application/budget_guard.py`
+- Operable copilot: no directamente (infra pre-LLM-call)
+- Bucket: copilot consume del pool **Others** (`plan_config.llm_budget_total_usd * (1 - sales_agent_reserved_pct)`)
+- Invariante: Others exhausto NO bloquea `sales_agent` (pools independientes, arch test property-based enforce)
+- Stale MV soft cap: si `mv_refresh_log` > 1h, admite 5% overrun (cap 105%) para no bloquear en datos stale
+- Firma: `await budget_guard.check(tenant_id, agent_kind="copilot", estimated_cost_usd=Decimal("..."))`
+- Wiring S2: `copilot/application/orchestrator/chat.py` — antes del `llm.ainvoke()`. No modifica §3-protected surfaces.

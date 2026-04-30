@@ -26,6 +26,15 @@ AI SDR autónomo. Conversa con leads en canales conectados, pre-califica, maneja
 - Per-tenant prompt caching (cache hit rate optimizado)
 - Outbox migration ready behind `USE_OUTBOX_PATTERN_SALES_AGENT` flag (OFF default; PI-1 S0 PR-1) — emisores (`event_bus`, `scheduling/payment_event_handlers`, tools, orchestrator, workers, webhooks) routean vía `EventBusAdapter` que detecta flag y enquea a `domain_event_outbox` cuando ON
 
+### Cap: BudgetGuard SA pool reservado + OutboundRateLimiter + ComplianceService — gating primitivas
+- Introducida: PR-2 (PI-1, S0, commits `dbc367f2` + `e21dc2a0`, 2026-04-29) — **primitivas expuestas; wiring a specialists diferido S2**
+- Estado: primitivas disponibles en `shared/billing/` + `shared/compliance/`
+- Operable copilot: no directamente (infra pre-LLM-call + pre-send)
+- **BudgetGuard** (SA bucket): `agent_kind="sales_agent"` consume del pool reservado (`plan_config.llm_budget_total_usd * sales_agent_reserved_pct`, default 50%). SA exhausto NO bloquea copilot (pools independientes). Firma: `await budget_guard.check(tenant_id, agent_kind="sales_agent", estimated_cost_usd=Decimal("..."))`
+- **OutboundRateLimiter**: Redis sliding window 24h, cap `plan_config.max_outbound_msg_per_day`. `None` cap = unlimited. Fail-open si Redis unavailable. Firma: `allowed = await outbound_rate_limiter.check(tenant_id)`
+- **ComplianceService**: policy chain (WABA24h → OptIn DB-backed → Blacklist → CountryBlock). Fast-fail primer bloqueo. Firma: `result = await compliance_service.check(tenant_id, recipient_phone, channel_type)`
+- Wiring S2: BudgetGuard → cada specialist node LLM; OutboundRateLimiter + ComplianceService → `output_manager.py` pre-`process_response()`. No modifica §3-protected surfaces (Closer Studio, BufferService, OutputManager.process_response chunking intocados).
+
 ## Capacidades operables desde copilot
 - Activar / pausar agente (sólido)
 - Ver últimas conversaciones (parcial)
