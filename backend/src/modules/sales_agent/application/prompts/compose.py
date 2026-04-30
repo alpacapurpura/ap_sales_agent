@@ -16,11 +16,12 @@ Order rationale (cacheable prefix → volatile tail):
     4. AGENT_IDENTITY       — per-tenant WHO+WHAT (brand+offers+team+legal). NO voice.
     5. BRAND_VOICE          — per-tenant HOW (PersonalityProfile.system_instruction).
     6. CHANNEL_FORMAT_HINT  — placeholder for S5 channel registry split.
+    7. CAMPAIGN_CONTEXT     — PR-7 outbound campaign instructions (emitted only when outbound_mode=True).
     --- CACHE BOUNDARY (≥1024 tokens by design above this line) ---
-    7. STAGE_HINT           — current_state + lead_score + turn_count.
-    8. LEAD_SIGNALS         — qualification_answers + buying_signals + objections.
-    9. SESSION_CONTINUITY   — session_gap_hours + last_session_summary + RAG.
-    10. TOOL_REQUEST_FORMAT — closing instruction for [TOOL_REQUEST: {...}] blocks.
+    8. STAGE_HINT           — current_state + lead_score + turn_count.
+    9. LEAD_SIGNALS         — qualification_answers + buying_signals + objections.
+    10. SESSION_CONTINUITY  — session_gap_hours + last_session_summary + RAG.
+    11. TOOL_REQUEST_FORMAT — closing instruction for [TOOL_REQUEST: {...}] blocks.
 
 Adding a new fragment? Append to ``PromptFragment``, slot it into either
 ``CACHEABLE_FRAGMENTS`` or ``VOLATILE_FRAGMENTS``, and update the matching
@@ -64,6 +65,7 @@ class PromptFragment(StrEnum):
     AGENT_IDENTITY = "agent_identity"
     BRAND_VOICE = "brand_voice"
     CHANNEL_FORMAT_HINT = "channel_format_hint"
+    CAMPAIGN_CONTEXT = "campaign_context"  # PR-7: per-campaign invariant within turn
     # ── Volatile tail (changes per turn) ──────────────────────────────
     STAGE_HINT = "stage_hint"
     LEAD_SIGNALS = "lead_signals"
@@ -78,6 +80,7 @@ CACHEABLE_FRAGMENTS: tuple[PromptFragment, ...] = (
     PromptFragment.AGENT_IDENTITY,
     PromptFragment.BRAND_VOICE,
     PromptFragment.CHANNEL_FORMAT_HINT,
+    PromptFragment.CAMPAIGN_CONTEXT,  # PR-7: emitted only when outbound_mode=True
 )
 
 VOLATILE_FRAGMENTS: tuple[PromptFragment, ...] = (
@@ -290,6 +293,39 @@ def _session_continuity(state: AgentState) -> str:
     return "# Continuidad de sesión\n" + "\n".join(parts)
 
 
+def _campaign_context(state: AgentState) -> str:
+    """PR-7 — slot 7 per-campaign invariant within outbound turn.
+
+    Emitted ONLY when ``outbound_mode=True`` AND ``campaign_instructions``
+    non-empty. Preserves cache prefix per-tenant: slots 1-6
+    (STATIC_IDENTITY → CHANNEL_FORMAT_HINT) remain byte-equal across inbound
+    and outbound for the same tenant. Campaign-specific instructions land
+    AFTER channel format so the per-tenant cache prefix stays invariante.
+    Cache hit rate ≥60% per-tenant preserved (sales-agent-brand-voice.md
+    SACRA invariant).
+
+    Builder NEVER injects ``{tenant_name}`` or ``{campaign_name}`` mid-block
+    — instructions are emitted verbatim from ``campaign_instructions``.
+    Only slot 4 ``AGENT_IDENTITY`` carries tenant identifiers.
+
+    # [SALES-AGENT-OUTBOUND-PR7]
+    """
+    if not state.get("outbound_mode"):
+        return ""
+
+    instructions = (state.get("campaign_instructions") or "").strip()
+    if not instructions:
+        return ""
+
+    return (
+        "# Contexto de campaña\n\n"
+        "Estás iniciando una conversación outbound. El usuario aún no respondió. "
+        "Tu primer turno debe abrir la conversación según las siguientes "
+        "instrucciones de campaña, manteniendo la voz de marca declarada arriba.\n\n"
+        f"## Instrucciones de campaña\n\n{instructions}"
+    )
+
+
 def _channel_format_hint(state: AgentState) -> str:
     """S5 — slot 6 cacheable per-tenant.
 
@@ -333,6 +369,7 @@ def build_specialist_system_prompt(state: AgentState, role: SpecialistRole) -> s
         PromptFragment.AGENT_IDENTITY: state.get("agent_identity") or "",
         PromptFragment.BRAND_VOICE: state.get("brand_voice") or "",
         PromptFragment.CHANNEL_FORMAT_HINT: _channel_format_hint(state),
+        PromptFragment.CAMPAIGN_CONTEXT: _campaign_context(state),  # PR-7
         PromptFragment.STAGE_HINT: _stage_hint(state),
         PromptFragment.LEAD_SIGNALS: _lead_signals(state),
         PromptFragment.SESSION_CONTINUITY: _session_continuity(state),
