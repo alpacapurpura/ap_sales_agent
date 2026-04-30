@@ -87,6 +87,7 @@ from src.modules.copilot.api import knowledge as copilot_knowledge
 from src.modules.copilot.api import media as copilot_media
 from src.modules.copilot.api import nudge as copilot_nudge
 from src.modules.copilot.api import plan as copilot_plan
+from src.modules.copilot.api import suggestions as copilot_suggestions
 from src.modules.copilot.api import voice as copilot_voice
 from src.modules.crm.api import cdp as crm_cdp
 
@@ -765,6 +766,12 @@ app.include_router(
     copilot_plan.router,
     prefix="/api/v1/copilot",
     tags=["Copilot - Plan"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    copilot_suggestions.router,
+    prefix="/api/v1/copilot",
+    tags=["Copilot - Suggestions"],
     dependencies=[Depends(get_tenant_context)],
 )
 
