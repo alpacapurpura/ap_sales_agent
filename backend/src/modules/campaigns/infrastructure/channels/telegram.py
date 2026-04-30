@@ -43,10 +43,13 @@ from src.modules.campaigns.infrastructure.resilience.circuit_breaker import (
     CircuitBreaker,
     CircuitBreakerConfig,
 )
+from src.shared.links.ports.crm_repos import get_lead_telegram_id_async
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
     from uuid import UUID
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
     from src.shared.billing.application.rate_limiter import OutboundRateLimiter
     from src.shared.compliance.application.compliance_service import ComplianceService
@@ -99,6 +102,7 @@ class TelegramChannelRouter(ChannelRouter):
         circuit_breaker_factory: Callable[[str, UUID], CircuitBreaker] | None = None,
         httpx_client: httpx.AsyncClient | None = None,
         api_base: str = _TELEGRAM_API_BASE,
+        session: AsyncSession | None = None,
     ) -> None:
         """Initialize TelegramChannelRouter.
 
@@ -110,6 +114,9 @@ class TelegramChannelRouter(ChannelRouter):
             circuit_breaker_factory: ``(channel, tenant_id) -> CircuitBreaker``.
             httpx_client: Explicit client for tests.
             api_base: Telegram Bot API base URL. Override for tests.
+            session: Optional AsyncSession for CRM lead lookup (Sub-E wire).
+                When provided, ``_resolve_telegram_id`` performs a real DB lookup.
+                When None (default), falls back to graceful None (channel skipped).
         """
         self._token_provider = token_provider
         self._compliance_service = compliance_service
@@ -118,6 +125,7 @@ class TelegramChannelRouter(ChannelRouter):
         self._cb_factory = circuit_breaker_factory
         self._explicit_client = httpx_client
         self._api_base = api_base
+        self._session = session
 
     # ── ChannelRouter Protocol impl ──────────────────────────────────────────
 
@@ -420,10 +428,46 @@ class TelegramChannelRouter(ChannelRouter):
         )
 
     async def _resolve_telegram_id(self, lead_id: UUID, tenant_id: UUID) -> str | None:
-        """Resolve telegram_id for a lead via CRM port. Stub for PR-5.
+        """Resolve telegram_id for a lead via CRM port.
 
-        S3 wires real CRM lookup here. For PR-5: returns None always.
-        Callers that have chat_id in content["chat_id"] bypass this and send directly.
+        Sub-E wire (PR-7): performs real DB lookup when ``self._session`` is set.
+        Callers that already have ``chat_id`` in ``content["chat_id"]`` bypass this
+        and send directly without calling ``_resolve_telegram_id``.
+
+        Returns:
+            Telegram chat ID string on hit, None on miss or when session is absent.
         """
-        _ = lead_id, tenant_id
-        return None
+        if self._session is None:
+            logger.debug(
+                "telegram_resolve_no_session",
+                lead_id=str(lead_id),
+                tenant_id=str(tenant_id),
+            )
+            return None
+
+        try:
+            telegram_id = await get_lead_telegram_id_async(
+                self._session,
+                tenant_id,
+                lead_id,
+            )
+            if telegram_id:
+                logger.debug(
+                    "telegram_resolve_hit",
+                    lead_id=str(lead_id),
+                    tenant_id=str(tenant_id),
+                )
+            else:
+                logger.info(
+                    "telegram_resolve_miss",
+                    lead_id=str(lead_id),
+                    tenant_id=str(tenant_id),
+                )
+            return telegram_id
+        except Exception:  # noqa: BLE001 — graceful degradation: never abort channel
+            logger.warning(
+                "telegram_resolve_error",
+                lead_id=str(lead_id),
+                tenant_id=str(tenant_id),
+            )
+            return None

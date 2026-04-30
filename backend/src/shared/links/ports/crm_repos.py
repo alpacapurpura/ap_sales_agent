@@ -12,6 +12,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from uuid import UUID
+
+    from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy.orm import Session
 
 
@@ -73,3 +76,50 @@ def get_lifecycle_service(db: Session) -> object:
     from src.modules.crm.application.services.lifecycle_service import LifecycleService
 
     return LifecycleService(db)
+
+
+def get_lead_telegram_id(db: Session, tenant_id: UUID, lead_id: UUID) -> str | None:
+    """Return the Telegram chat ID for a lead, or None if not found.
+
+    Sync variant — uses Session (for workers + sync contexts).
+    Enforces tenant isolation: queries WHERE id = lead_id AND tenant_id = tenant_id.
+    Returns None if the lead doesn't exist, belongs to a different tenant, or has
+    no telegram_id set.
+    """
+    from sqlalchemy import select
+
+    from src.shared.infrastructure.models.crm import LeadModel
+
+    row = db.execute(
+        select(LeadModel.telegram_id).where(
+            LeadModel.id == lead_id,
+            LeadModel.tenant_id == tenant_id,
+        )
+    ).scalar_one_or_none()
+    return row or None
+
+
+async def get_lead_telegram_id_async(
+    session: AsyncSession,
+    tenant_id: UUID,
+    lead_id: UUID,
+) -> str | None:
+    """Return the Telegram chat ID for a lead, or None if not found.
+
+    Async variant — uses AsyncSession (for TelegramChannelRouter and other async paths).
+    Enforces tenant isolation: queries WHERE id = lead_id AND tenant_id = tenant_id.
+    Returns None if the lead doesn't exist, belongs to a different tenant, or has
+    no telegram_id set.
+    """
+    from sqlalchemy import select
+
+    from src.shared.infrastructure.models.crm import LeadModel
+
+    result = await session.execute(
+        select(LeadModel.telegram_id).where(
+            LeadModel.id == lead_id,
+            LeadModel.tenant_id == tenant_id,
+        )
+    )
+    row = result.scalar_one_or_none()
+    return row or None
