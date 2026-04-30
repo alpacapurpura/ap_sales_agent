@@ -69,6 +69,15 @@ class AgentState(TypedDict):
     _pending_tool: dict[str, Any] | None
     _llm_service: object | None  # PR-6: BudgetGuardingLLMService injected at turn start
 
+    # PR-7: Outbound campaign context (additive, opt-in via outbound_mode).
+    # Preserves backward-compatible inbound shape: outbound_mode defaults to
+    # False, campaign_id / campaign_instructions default to None. Slot 7
+    # CAMPAIGN_CONTEXT in compose.py emits ONLY when outbound_mode=True so the
+    # cache prefix per-tenant remains byte-equal across inbound/outbound.
+    campaign_id: UUID | None
+    campaign_instructions: str | None
+    outbound_mode: bool
+
     # Errors
     error: str | None
 
@@ -107,6 +116,10 @@ def create_initial_state(
     follow_up_cadence: dict | None = None,
     # PR-6: BudgetGuardingLLMService injected by ConversationPipeline
     _llm_service: object | None = None,
+    # PR-7: outbound additive (defaults preserve inbound behavior)
+    campaign_id: UUID | None = None,
+    campaign_instructions: str | None = None,
+    outbound_mode: bool = False,
 ) -> AgentState:
     """Create a clean AgentState.
 
@@ -162,5 +175,9 @@ def create_initial_state(
         "internal_turn": 0,
         "_pending_tool": None,
         "_llm_service": _llm_service,  # PR-6: BudgetGuardingLLMService or None
+        # PR-7: outbound additive (always set, defaults preserve inbound behavior)
+        "campaign_id": campaign_id,
+        "campaign_instructions": campaign_instructions,
+        "outbound_mode": outbound_mode,
         "error": None,
     }
