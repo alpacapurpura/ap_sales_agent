@@ -23,8 +23,6 @@ REGLAS DE EXTRACCIÓN:
 4. Para campos `(list)`, usa el cue semántico para ruteo correcto:
    - `pain_points` → lista de objetos `{description, severity}` (severity 1-5). Cue: dolor concreto + consecuencia ("no aguanta", "le duele", "se siente fracasado", "no logra").
    - `desires` → lista de objetos `{description, importance}` (importance 1-5). Cue: lo que el cliente **quiere lograr / aspira / sueña / persigue**. Diferenciar de pain_points: aquí va lo positivo a futuro, no el dolor presente.
-   - `objections` → lista de objetos `{text, response}`. Cue: **miedo, duda, excusa, objeción** que frena la compra ("no estoy seguro", "no tengo tiempo", "ya probé y no funcionó").
-   - `preferred_channels` → lista de objetos `{channel, usage}`. Cue: **dónde** el cliente consume contenido o info ("usa Instagram", "lee newsletters", "escucha podcasts", "está en redes X").
    - `purchase_triggers` → lista de strings cortos. Cue: **gatillo / trigger / decisión** que precede la compra ("cuando le recomiendan", "antes de un viaje", "después de un fracaso", "fin de año").
    - `anti_patterns` → lista de strings cortos. Cue: tipos de cliente que NO encajan o señales rojas a evitar.
 
@@ -48,8 +46,6 @@ Devuelve un único objeto JSON válido con la forma:
     "demographics.age_range": "...",
     "pain_points": [{"description": "...", "severity": 4}],
     "desires": [{"description": "...", "importance": 5}],
-    "objections": [{"text": "...", "response": "..."}],
-    "preferred_channels": [{"channel": "...", "usage": "..."}],
     "purchase_triggers": ["..."],
     "...": "..."
   }

@@ -56,10 +56,10 @@ _REGISTRY: dict[str, ExtractionDomainConfig] = {
         domain="buyer_persona",
         template_name="interview/buyer_persona_doc_extraction",
         persister_key="buyer_persona",
-        # BuyerPersona stores pain_points/desires/objections/preferred_channels
-        # as arrays of objects, so the LLM may return list[dict] or list[str]
-        # values alongside scalars. The DocumentExtractionResponse model is
-        # widened in document_processor to accept those shapes.
+        # BuyerPersona stores pain_points/desires/purchase_triggers/anti_patterns
+        # as arrays (objects or strings), so the LLM may return list[dict] or
+        # list[str] values alongside scalars. The DocumentExtractionResponse
+        # model is widened in document_processor to accept those shapes.
         response_value_kind="mixed",
     ),
 }

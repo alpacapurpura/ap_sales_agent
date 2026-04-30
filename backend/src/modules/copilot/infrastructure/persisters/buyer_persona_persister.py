@@ -26,8 +26,6 @@ _DICT_FIELDS = {"demographics", "psychographics", "buyer_journey"}
 _LIST_FIELDS = {
     "pain_points",
     "desires",
-    "objections",
-    "preferred_channels",
     "purchase_triggers",
     "anti_patterns",
 }

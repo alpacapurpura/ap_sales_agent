@@ -32,8 +32,6 @@ _LIST_PATHS: dict[str, set[str]] = {
     "buyer_persona": {
         "pain_points",
         "desires",
-        "objections",
-        "preferred_channels",
         "purchase_triggers",
         "anti_patterns",
     },

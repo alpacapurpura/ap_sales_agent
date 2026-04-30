@@ -45,8 +45,9 @@ class TestEditableFieldsPort:
         assert "psychographics.values" in paths
         assert "buyer_journey.awareness" in paths
         # Listas de items compuestos NO están en el catálogo (se editan vía
-        # form-runtime/guided, no vía propose_field_updates). objections
-        # además colisionaría con offer.
+        # form-runtime/guided, no vía propose_field_updates).
+        # objections + preferred_channels fueron eliminados del modelo
+        # buyer_persona en PR-1 PI-4 S1 (2026-04-29).
         assert "objections" not in paths
         assert "pain_points" not in paths
         assert "desires" not in paths

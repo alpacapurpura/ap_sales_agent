@@ -3,21 +3,25 @@
 The prompt drives the gpt-4o-mini extractor that turns an uploaded ICP
 document into ``proposal`` updates. Conv 0d64c4a9 (2026-04-27) showed the
 extractor returning only 10 fields from a clearly-complete profile —
-``desires``, ``objections``, ``preferred_channels``, ``purchase_triggers``
-and ``anti_patterns`` were all dropped because the prompt told the model
-to default to "omit" with no explicit category cues.
+``desires``, ``purchase_triggers`` and ``anti_patterns`` were all dropped
+because the prompt told the model to default to "omit" with no explicit
+category cues.
 
 These tests pin the template at three behaviours we will not regress on:
 
 1. Default is to extract — the over-conservative "Sin evidencia clara →
    omite" line is replaced with an inverted rule that asks the model to
    capture every category the document touches, however briefly.
-2. Each list-shaped field has an explicit semantic cue so the model can
-   route inferred evidence to the right path (objections vs. desires
-   vs. preferred channels are easy to confuse).
+2. Each remaining list-shaped field has an explicit semantic cue so the
+   model can route inferred evidence to the right path (desires vs.
+   pain_points are easy to confuse).
 3. Sub-keys under ``demographics``/``psychographics``/``buyer_journey``
    are encouraged when the document has a single concrete data point —
    the previous wording told the model to skip them silently.
+
+NOTE: ``objections`` and ``preferred_channels`` were removed from the
+buyer_persona surface in PR-1 PI-4 S1 (2026-04-29). Tests for those
+cues are intentionally absent.
 """
 
 from __future__ import annotations
@@ -62,16 +66,6 @@ class TestExtractionTemplateCategoryCues:
         # "lograr / aspira / quiere" → the verbs the model needs to see
         # to decide an evidence belongs to desires rather than pain_points.
         assert any(cue in rendered for cue in ("lograr", "aspira", "quiere conseguir"))
-
-    def test_objections_have_explicit_cue(self) -> None:
-        rendered = _render().lower()
-        assert "objections" in rendered
-        assert any(cue in rendered for cue in ("miedo", "duda", "excusa", "objeción"))
-
-    def test_preferred_channels_have_explicit_cue(self) -> None:
-        rendered = _render().lower()
-        assert "preferred_channels" in rendered
-        assert any(cue in rendered for cue in ("dónde", "donde", "consume", "redes", "plataforma"))
 
     def test_purchase_triggers_have_explicit_cue(self) -> None:
         rendered = _render().lower()

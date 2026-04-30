@@ -99,10 +99,11 @@ class TestValidateFieldPath:
     def test_buyer_persona_list_fields(self) -> None:
         assert validate_field_path("buyer_persona", "pain_points") is True
         assert validate_field_path("buyer_persona", "desires") is True
-        assert validate_field_path("buyer_persona", "objections") is True
-        assert validate_field_path("buyer_persona", "preferred_channels") is True
         assert validate_field_path("buyer_persona", "purchase_triggers") is True
         assert validate_field_path("buyer_persona", "anti_patterns") is True
+        # objections + preferred_channels were removed in PR-1 PI-4 S1 (2026-04-29)
+        assert validate_field_path("buyer_persona", "objections") is False
+        assert validate_field_path("buyer_persona", "preferred_channels") is False
 
     def test_buyer_persona_scalar_fields(self) -> None:
         assert validate_field_path("buyer_persona", "name") is True
