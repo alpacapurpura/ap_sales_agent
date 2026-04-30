@@ -42,12 +42,28 @@ def register_provider(provider: SuggestionProvider) -> None:
 
 
 def _bootstrap_builtin(engine: SuggestionEngine) -> None:
-    """Register the providers shipped in this PR. Future PRs append here."""
+    """Register built-in providers in stable priority order.
+
+    Order: offer → brand → sales_agent → copilot.
+    Copilot is the lowest-priority transversal fallback.
+    """
+    from src.modules.copilot.application.suggestions.providers.brand import (
+        BrandSuggestionProvider,
+    )
+    from src.modules.copilot.application.suggestions.providers.copilot import (
+        CopilotSuggestionProvider,
+    )
     from src.modules.copilot.application.suggestions.providers.offer import (
         OfferSuggestionProvider,
     )
+    from src.modules.copilot.application.suggestions.providers.sales_agent import (
+        SalesAgentSuggestionProvider,
+    )
 
     engine.register(OfferSuggestionProvider())
+    engine.register(BrandSuggestionProvider())
+    engine.register(SalesAgentSuggestionProvider())
+    engine.register(CopilotSuggestionProvider())
 
 
 def _reset_for_tests() -> None:

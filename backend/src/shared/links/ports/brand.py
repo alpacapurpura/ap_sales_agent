@@ -39,6 +39,22 @@ class BrandDataPort(ABC):
         """Return all brand data needed for the agent identity builder."""
         ...
 
+    # ── NEW (PR-2-pure-expansion-providers) ───────────────────────────────────
+
+    @abstractmethod
+    def get_buyer_persona_count(self, tenant_id: UUID) -> int:
+        """Active buyer personas count (soft-delete excluded)."""
+        ...
+
+    @abstractmethod
+    def get_active_personality_profile_present(self, tenant_id: UUID) -> bool:
+        """True iff there is an active global PersonalityProfile for the tenant.
+
+        Uses the existing PersonalityProfileRepository.get_active filter
+        (is_active + offer_id IS NULL + avatar_id IS NULL + deleted_at IS NULL).
+        """
+        ...
+
 
 class BrandFieldApplyPort(ABC):
     """Port for writing a single brand field across module boundaries.

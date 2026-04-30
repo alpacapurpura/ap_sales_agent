@@ -153,14 +153,19 @@ def _event_types(db: object, tenant_id: object) -> list:
 
 
 def _no_data_response(section_slug: str, hint: str) -> str:
-    """Return a standard JSON-serialisable string for missing-data cases."""
+    """Return a standard JSON-serialisable string for missing-data cases.
+
+    D-7: ``suggestions`` is always [] (action chips from engine).
+    ``next_step_hint`` carries the human-readable guidance string.
+    """
     import json
 
     return json.dumps(
         {
             "section_slug": section_slug,
             "draft_fields": {},
-            "suggestions": [hint],
+            "suggestions": [],
+            "next_step_hint": hint,
             "confidence": 0.0,
             "citations": [],
         }
@@ -173,19 +178,26 @@ def _ok_response(
     suggestions: list[str],
     confidence: float,
     citations: list[str] | None = None,
+    *,
+    next_step_hint: str | None = None,
 ) -> str:
-    """Return a standard successful response as JSON string."""
+    """Return a standard successful response as JSON string.
+
+    D-7: ``next_step_hint`` is a separate key from ``suggestions``
+    (which holds engine-derived action chips).
+    """
     import json
 
-    return json.dumps(
-        {
-            "section_slug": section_slug,
-            "draft_fields": draft_fields,
-            "suggestions": suggestions,
-            "confidence": confidence,
-            "citations": citations or [],
-        }
-    )
+    payload: dict = {
+        "section_slug": section_slug,
+        "draft_fields": draft_fields,
+        "suggestions": suggestions,
+        "confidence": confidence,
+        "citations": citations or [],
+    }
+    if next_step_hint is not None:
+        payload["next_step_hint"] = next_step_hint
+    return json.dumps(payload)
 
 
 # ---------------------------------------------------------------------------

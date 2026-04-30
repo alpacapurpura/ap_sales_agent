@@ -15,6 +15,9 @@ from src.modules.brand.infrastructure.repositories.avatar_repository import (
 from src.modules.brand.infrastructure.repositories.brand_repository import (
     BrandRepository,
 )
+from src.modules.brand.infrastructure.repositories.buyer_persona_repository import (
+    BuyerPersonaRepository,
+)
 from src.modules.brand.infrastructure.repositories.personality_repository import (
     PersonalityProfileRepository,
 )
@@ -26,6 +29,7 @@ class BrandDataAdapter(BrandDataPort):
 
     def __init__(self, db: Session) -> None:
         """Initialize with DB session."""
+        self._db = db
         self.brand_repo = BrandRepository(db)
         self.avatar_repo = AvatarRepository(db)
         self.personality_repo = PersonalityProfileRepository(db)
@@ -41,3 +45,15 @@ class BrandDataAdapter(BrandDataPort):
             avatars=[a.model_dump(mode="json") for a in avatars] if avatars else [],
             personality_profile=personality_profile.model_dump(mode="json") if personality_profile else None,
         )
+
+    # ── NEW (PR-2-pure-expansion-providers) ───────────────────────────────────
+
+    def get_buyer_persona_count(self, tenant_id: UUID) -> int:
+        """Active buyer personas count (soft-delete excluded)."""
+        repo = BuyerPersonaRepository(self._db)
+        return len(repo.list_by_tenant(tenant_id))
+
+    def get_active_personality_profile_present(self, tenant_id: UUID) -> bool:
+        """True iff there is an active global PersonalityProfile for the tenant."""
+        profile = self.personality_repo.get_active(tenant_id=tenant_id)
+        return profile is not None
