@@ -34,7 +34,10 @@ from src.modules.sales_agent.infrastructure.models.payment_grant_audit_model imp
 from src.modules.sales_agent.infrastructure.models.payment_link_model import (
     PaymentLinkModel,
 )
-from src.shared.domain.events import AccessGrantedEvent, EventBus, PaymentLinkCreatedEvent
+from src.shared.domain.events import AccessGrantedEvent, PaymentLinkCreatedEvent
+from src.shared.domain_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
 
 logger = structlog.get_logger()
 

@@ -55,7 +55,10 @@ from src.modules.sales_agent.application.tools.scheduling.webhook_providers impo
 from src.modules.sales_agent.infrastructure.models.scheduler_webhook_event_model import (
     SchedulerWebhookEventModel,
 )
-from src.shared.domain.events import AppointmentEvent, EventBus
+from src.shared.domain.events import AppointmentEvent
+from src.shared.domain_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
 
 logger = structlog.get_logger()
 

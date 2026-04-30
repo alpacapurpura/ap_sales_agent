@@ -37,9 +37,9 @@ from src.modules.sales_agent.application.tools.scheduling.providers import (
     BookingStatusValue,
     scheduler_provider_for_tenant,
 )
-from src.shared.domain.events import (
-    BookingLinkCreatedEvent,
-    EventBus,
+from src.shared.domain.events import BookingLinkCreatedEvent
+from src.shared.domain_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
 )
 
 if TYPE_CHECKING:

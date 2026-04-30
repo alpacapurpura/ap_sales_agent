@@ -32,7 +32,9 @@ from src.shared.domain.events import (
     AppointmentEvent,
     BookingMissedEvent,
     DomainEvent,
-    EventBus,
+)
+from src.shared.domain_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
 )
 
 if TYPE_CHECKING:

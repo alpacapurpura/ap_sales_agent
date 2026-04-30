@@ -25,7 +25,10 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 
-from src.shared.domain.events import EventBus, LeadCapturedEvent
+from src.shared.domain.events import LeadCapturedEvent
+from src.shared.domain_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
 
 if TYPE_CHECKING:
     from uuid import UUID
