@@ -135,6 +135,17 @@ class CampaignTaskFailed(_CampaignEventBase):
     error_message: str
 
 
+class CampaignTasksGenerated(_CampaignEventBase):
+    """Emitted after orchestrator inserts root CampaignTask batch.
+
+    S2 PR-5: new event. audit gate: campaigns.campaign.tasks_generated.
+    """
+
+    EVENT_NAME: Literal["campaigns.campaign.tasks_generated"] = "campaigns.campaign.tasks_generated"
+    tasks_generated: int
+    snapshot_id: UUID | None = None
+
+
 class SegmentCreated(BaseModel):
     """Emitted when a new segment is created.
 
