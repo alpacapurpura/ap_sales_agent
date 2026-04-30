@@ -27,6 +27,16 @@ Asistente in-app conversacional. Interfaz primaria de Nicolify. User configura, 
 - Outbox migration ready behind `USE_OUTBOX_PATTERN_COPILOT` flag (OFF default; PI-1 S0 PR-1) — emisores (`extraction_card_flow`, `domain_subscribers`, `chat orchestrator`, `extract_from_doc tool`) routean vía `EventBusAdapter` y enquean a `domain_event_outbox` cuando ON
 - `extraction_card_flow` usa `@idempotent` decorator (PI-1 S0 PR-1 Sub-D) reemplazando ad-hoc Redis SETEX → at-least-once dedup centralizado, soft-fail Redis, mismo TTL 86400s
 
+### Cap: Rate limit voice + per-tenant media/voice limits
+- Introducida: PR-1 (PI-2, S1, commits `2d0b9e0e` + `caacdffa`, 2026-04-29)
+- Estado: live
+- Operable copilot: no (infra BE — protege Whisper budget + cuota tenant)
+- Surface admin: Streamlit `/admin/copilot-limits` (CRUD overrides per-tenant)
+- Defaults: voice 6 RPM, media 25 MiB, /media/upload 30 RPM
+- Cap upper override media: 100 MiB (CHECK editable post planes per-tenant)
+- Tablas: `copilot_tenant_limits` (overrides) + `copilot_tenant_limits_audit` (append-only)
+- Legacy `/voice/transcribe`: 410 Gone con `X-Deprecation-Notice` header (FE migration → PR follow-up cross-stack)
+
 ## Capacidades operables desde copilot (meta — qué hace user CON copilot)
 - Auto-fill formularios (sólido — el #1 caso uso)
 - Subir doc/PDF → extracción a campos (sólido)

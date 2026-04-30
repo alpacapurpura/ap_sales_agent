@@ -7,11 +7,13 @@
 | PR ID | PR-1-voice-media-hardening |
 | Sprint padre | S1-copilot-maintenance-batch |
 | PI padre | PI-2-copilot-improvement |
-| Estado | ready |
+| Estado | shipped |
 | Tipo | infra + bug + test |
 | Esfuerzo | M |
 | Owner PM | /pm |
-| Claimed by session | — |
+| Claimed by session | sesión 2026-04-29 main thread (Opus 4.7) |
+| Fecha cierre | 2026-04-29 |
+| Verdict auditor | PASS (1 iter auto-fix) |
 
 ## Problema (user-facing)
 
