@@ -31,27 +31,31 @@ Lint/tests/type-check **NATIVE WSL siempre**. Docker = runtime + migrations + ci
 
 ## Git Workflow — INVIOLABLE
 
-Multi-instancia Claude Code = mismo workdir, mismo branch, mismo filesystem. Cada sesión commitea SU propio trabajo.
+Multi-instancia Claude Code = mismo workdir, mismo branch, mismo filesystem. Cada sesión commitea SU propio trabajo. Mismo código compartido es OK — la probabilidad de colisión real (misma función, misma línea) es mínima cuando sesiones tocan módulos distintos.
 
 **PROHIBIDO sin excepción:**
 - `git pull` / `git fetch && merge` (sesiones se desincronizan; conflictos al push se resuelven manualmente)
 - `git checkout -b <branch>` (feature branches)
 - `git worktree add` (Chris perdió 1 semana con worktrees previos)
 - `git push --force` / `git push -f` / `git push --force-with-lease`
-- `git revert <commit>` sin aprobación explícita Chris (sobreescribe trabajo paralelo)
+- `git revert <commit>` sin aprobación explícita Chris
 - `git reset --hard` sin aprobación
-- `git add .` / `git add -A` / `git add -u` (puede agregar archivos de otra sesión)
+- `git add .` / `git add -A` / `git add -u` (puede agregar archivos de otra sesión sin querer)
 - `git commit --no-verify` (skip hooks)
 - Branches feature/release/hotfix (default = `development`; `main` solo prod)
 
 **Obligatorio:**
-- Trabajar en `development`. Si en `main` → `git checkout development`. Si otro branch → `git checkout development` (commitear o stashar primero).
-- `git add <path>` por nombre — solo archivos QUE ESTA SESIÓN MODIFICÓ.
-- Status muestra archivos M ajenos (otra sesión activa) → DEJAR INTACTOS, reportar.
-- Conflicto al `git push origin development` (non-fast-forward) → STOP, reportar a Chris. NO `git pull`. Chris coordina sesiones manualmente.
-- Subagentes (architect/builder/auditor) reciben restricción explícita: lista paths permitidos + prohibición tocar archivos ajenos.
+- Trabajar en `development`. Si en `main` → `git checkout development`. Si otro branch → `git checkout development`.
+- `git add <path>` por nombre — solo archivos relevantes a tu PR.
+- Conflicto al `git push origin development` (non-fast-forward) → STOP, reportar Chris. NO `git pull`.
 
-**Filosofía:** confianza en filesystem compartido + commit por nombre. Conflictos son raros porque sesiones paralelas tocan módulos distintos (regla M1 parallel-safety).
+**Tocar archivos de otra sesión paralela — REGLA CHRIS (2026-04-29):**
+- **Permitido** si entendés lo que el otro creó + extend/append (no replace, no borrar).
+- Si necesitás modificar misma función que otra sesión también editó: ambos cambios deben coexistir lógicamente. Si tu cambio es para acción distinta (común), añade tu lógica sin remover la del otro.
+- Si tu cambio rompe el del otro → STOP, reportar Chris (coordina manual).
+- Subagentes builders/auditores reciben paths permitidos PRIMARIOS (su PR) + PERMISO LECTURA cualquier archivo + REGLA "extend, no destroy" sobre ajenos.
+
+**Filosofía:** filesystem compartido + commit por nombre + entender antes tocar. Probabilidad real colisión = baja porque módulos distintos. Conflictos resolvibles con cabeza fría leyendo lo que otro hizo.
 
 ## Architecture
 

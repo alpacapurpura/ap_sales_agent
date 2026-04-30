@@ -34,17 +34,18 @@ Commit **solo archivos esta sesión modificó**. Stage por nombre. PROHIBIDO `gi
 
 Pre-commit hooks (ruff/format) corren native — ningún `--no-verify`.
 
-## Sesiones paralelas — reglas M1-M7
+## Sesiones paralelas — reglas M1-M8
 
 | # | Regla |
 |---|---|
-| **M1** | Sesiones paralelas TOCAN PRs DE MÓDULOS DISTINTOS — obligatorio. Evita race en `current-state/{m}.md` y `docs/{m}/` |
+| **M1** | Sesiones paralelas TOCAN PRs DE MÓDULOS DISTINTOS por default. Reduce probabilidad colisión real (misma función misma línea). NO bloqueante — colisiones cross-módulo OK con regla M8 |
 | **M2** | `docs/pm-nico/process/process-learnings.md` + `docs/pm-nico/roadmap.md` + `MEMORY.md` SOLO los edita `/pm`. Builders nunca |
 | **M3** | Tests/CI/Docker SECUENCIAL siempre. Solo una sesión corre `/test-all`/`/dev-up`/`make ci-parity` a la vez. Container/port collision invisible hasta crash |
 | **M4** | Claim by commit: `/pm` cambia `Estado: in-progress` en `PR.md` y commitea/pushea **inmediato** antes de cualquier otro trabajo |
 | **M5** | NO pull. NO force push. NO revert sin aprobación. Push falla → STOP, reportar Chris |
 | **M6** | Bootstrap PM pregunta `¿en qué PI vas a trabajar?` antes de proceder. Chris elige consciente, no la sesión |
-| **M7** | Subagentes (architect/builder/auditor) reciben restricción path-explicit: lista paths permitidos + prohibición tocar archivos ajenos. Doble PR-1 (PI distinto) confunde paths — siempre prefijar PI en prompts |
+| **M7** | Subagentes reciben paths PRIMARIOS de su PR + permiso lectura todo el repo + regla "extend, no destroy" sobre ajenos. PM prefija PI completo en prompts (doble PR-{n} en PIs distintos confunde paths) |
+| **M8** | Tocar archivos de otra sesión paralela PERMITIDO si: (a) entendés lo que el otro hizo leyendo el archivo, (b) tu cambio extend/append (no replace ni borra), (c) si rompe trabajo del otro → STOP escalate Chris. Filosofía Chris (2026-04-29): probabilidad colisión real = baja, mismo código compartido OK |
 
 Detalle completo + casos conflicto + workflow paso-a-paso → `docs/pm-nico/process/parallel-sessions-protocol.md`.
 
