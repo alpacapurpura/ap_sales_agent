@@ -339,6 +339,48 @@ async def startup_arq_pool() -> None:
         set_arq_pool(None)
 
 
+@app.on_event("startup")
+async def _verify_litellm_proxy_reachable() -> None:
+    """Best-effort check: log warning if LiteLLM Proxy unreachable at boot.
+
+    NOT bloqueante — API starts even if proxy is down.  The lazy init in
+    ``LiteLLMService._get_chat_model`` will surface an error on the first
+    actual call.  This startup event only provides early-warning visibility
+    in structured logs.
+
+    D-2: if LITELLM_MASTER_KEY == default dev value and ENVIRONMENT != dev,
+    emit an additional warning.
+    """
+    import httpx
+
+    if not settings.LITELLM_PROXY_ENABLED:
+        logger.warning("litellm_proxy_disabled_via_toggle")
+        return
+
+    if settings.LITELLM_MASTER_KEY == "sk-litellm-master-dev" and settings.ENVIRONMENT != "dev":
+        logger.warning(
+            "litellm_proxy_default_master_key_in_non_dev",
+            environment=settings.ENVIRONMENT,
+            hint="Set LITELLM_MASTER_KEY to a secure value for non-dev environments",
+        )
+
+    # Strip trailing /v1 to get the proxy base URL for the health endpoint.
+    proxy_root = settings.LITELLM_BASE_URL.rstrip("/")
+    proxy_root = proxy_root.removesuffix("/v1")
+
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            resp = await client.get(f"{proxy_root}/health/readiness")
+            resp.raise_for_status()
+        logger.info("litellm_proxy_ready", url=settings.LITELLM_BASE_URL)
+    except Exception as e:  # noqa: BLE001 — best-effort, never block startup
+        logger.warning(
+            "litellm_proxy_unreachable_at_boot",
+            error=str(e),
+            url=settings.LITELLM_BASE_URL,
+        )
+
+
 @app.on_event("shutdown")
 async def shutdown_arq_pool() -> None:
     """Close ARQ connection pool."""

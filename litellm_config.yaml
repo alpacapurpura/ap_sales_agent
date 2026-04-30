@@ -1,0 +1,72 @@
+# litellm_config.yaml
+# SSoT model routing config. Versioned in git until S4 admin UI hot-swap.
+# 2026-04-30 — S3 PR-2 PI-2.
+#
+# D-12: store_model_in_db=True activado para forward-compat S4 admin UI.
+# D-13: drop_params=True auto-filters unsupported kwargs per provider.
+# D-15: request_timeout=30 — matches Nicolify general LLM timeout.
+# D-5:  fallbacks chain: deepseek → openai transparent retry on provider outage.
+# §13:  disable_spend_logs=True (PII guard — Nicolify uses model_pricing_snapshot SSoT).
+
+model_list:
+  # NANO + FAST — DeepSeek V4-Flash (cost reduction 4-15x)
+  - model_name: deepseek/deepseek-v4-flash
+    litellm_params:
+      model: deepseek/deepseek-v4-flash
+      api_key: "os.environ/DEEPSEEK_API_KEY"
+    model_info:
+      supported_environments: ["dev", "staging", "production"]
+
+  # REASONING — DeepSeek-Reasoner
+  - model_name: deepseek/deepseek-reasoner
+    litellm_params:
+      model: deepseek/deepseek-reasoner
+      api_key: "os.environ/DEEPSEEK_API_KEY"
+
+  # AGENT — Kimi K2.6
+  - model_name: kimi/kimi-k2.6
+    litellm_params:
+      model: moonshot/kimi-k2.6
+      api_key: "os.environ/KIMI_API_KEY"
+
+  # FALLBACK + VISION + EMBEDDING — OpenAI
+  - model_name: openai/gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: "os.environ/OPENAI_API_KEY"
+
+  - model_name: openai/gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: "os.environ/OPENAI_API_KEY"
+
+  - model_name: openai/text-embedding-3-large
+    litellm_params:
+      model: openai/text-embedding-3-large
+      api_key: "os.environ/OPENAI_API_KEY"
+
+router_settings:
+  routing_strategy: "least-busy"
+  num_retries: 2
+  timeout: 30
+  fallbacks:
+    - "deepseek/deepseek-v4-flash": ["openai/gpt-4o-mini"]
+    - "deepseek/deepseek-reasoner": ["openai/gpt-4o"]
+    - "kimi/kimi-k2.6": ["openai/gpt-4o"]
+  allowed_fails: 3
+  cooldown_time: 30
+
+litellm_settings:
+  drop_params: True
+  set_verbose: False
+  request_timeout: 30
+  cache: false
+
+general_settings:
+  master_key: "os.environ/LITELLM_MASTER_KEY"
+  salt_key: "os.environ/LITELLM_SALT_KEY"
+  database_url: "os.environ/DATABASE_URL"
+  database_connection_pool_limit: 10
+  database_connection_timeout: 60
+  store_model_in_db: True
+  disable_spend_logs: True

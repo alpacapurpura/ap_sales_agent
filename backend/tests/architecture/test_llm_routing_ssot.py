@@ -104,3 +104,35 @@ def test_no_new_llm_factory_layers() -> None:
         "See: docs/domains/llm-routing.md\n"
         "Violations:\n  - " + "\n  - ".join(violations)
     )
+
+
+def test_router_dispatches_via_litellm_only() -> None:
+    """D-18 (S3 PR-2): MultiRoleLLMRouter must NOT import per-provider Services
+    at module level — only inside ``build_provider_service`` rollback function.
+
+    Module-level imports of OpenAIService/KimiService/DeepSeekService/QwenService
+    en router.py = regression silent a per-provider dispatch (defeats LiteLLM
+    Proxy convergence). Lazy imports inside ``build_provider_service`` are OK
+    (emergency rollback path when ``LITELLM_PROXY_ENABLED=False``).
+    """
+    import ast
+
+    router_path = REPO_ROOT / "src" / "shared" / "infrastructure" / "llm" / "router.py"
+    tree = ast.parse(router_path.read_text(encoding="utf-8"))
+
+    forbidden = {"OpenAIService", "KimiService", "DeepSeekService", "QwenService"}
+    module_level_violations: list[str] = []
+
+    for node in tree.body:  # only module-level statements
+        if isinstance(node, ast.ImportFrom):
+            for alias in node.names:
+                if alias.name in forbidden:
+                    module_level_violations.append(f"router.py:{node.lineno}: module-level import of {alias.name}")
+
+    assert not module_level_violations, (
+        "MultiRoleLLMRouter must dispatch via LiteLLMService only when "
+        "LITELLM_PROXY_ENABLED=True. Per-provider Service imports allowed "
+        "only inside build_provider_service() rollback function.\n"
+        "See: docs/domains/llm-routing.md (Capa 5 — LiteLLM Proxy)\n"
+        "Violations:\n  - " + "\n  - ".join(module_level_violations)
+    )

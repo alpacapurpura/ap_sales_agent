@@ -195,6 +195,20 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: list[str] = []
 
+    # ── LiteLLM Proxy (PI-2 S3 PR-2) ────────────────────────────────────
+    # Endpoint del proxy. En dev/prod compose: http://visionarias_litellm:4000/v1
+    # Local dev sin compose: override a http://localhost:4000/v1
+    LITELLM_BASE_URL: str = "http://visionarias_litellm:4000/v1"
+    # Master key del proxy. En dev: sk-litellm-master-dev (warning si default).
+    # En prod: rotation policy per-environment via secrets manager (Q4 — open).
+    LITELLM_MASTER_KEY: str = "sk-litellm-master-dev"
+    # Salt key (LiteLLM encrypts stored credentials con este key — cannot
+    # change post-deployment without re-keying).
+    LITELLM_SALT_KEY: str = "sk-litellm-salt-dev"
+    # Toggle global. False = bypass LiteLLM, fallback al router legacy
+    # (SOLO para emergency rollback. Default ON post-merge).
+    LITELLM_PROXY_ENABLED: bool = True
+
     # ── Copilot media + voice limits (PI-2 S1 PR-1) ──────────────────────
     # Applies to /media/upload and /voice/upload-and-transcribe.
     # Per-tenant overrides stored in copilot_tenant_limits table.

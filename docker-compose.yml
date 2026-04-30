@@ -23,6 +23,8 @@ services:
         condition: service_started
       postgres:
         condition: service_started
+      litellm:
+        condition: service_healthy
     networks:
       - internal_net
       - gateway
@@ -427,6 +429,7 @@ services:
     depends_on:
       - redis
       - postgres
+      - litellm
     networks:
       - internal_net
     healthcheck:
@@ -462,6 +465,51 @@ services:
           memory: 128M
         reservations:
           memory: 64M
+
+  # --- LiteLLM Proxy (PI-2 S3 PR-2) ---
+  litellm:
+    image: ghcr.io/berriai/litellm-database:v1.83.10-stable
+    container_name: visionarias_litellm
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_started
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/visionarias_litellm_db"
+      LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY}"
+      LITELLM_SALT_KEY: "${LITELLM_SALT_KEY}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY}"
+      DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY}"
+      KIMI_API_KEY: "${KIMI_API_KEY}"
+      DASHSCOPE_API_KEY: "${DASHSCOPE_API_KEY}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY}"
+      DISABLE_SPEND_LOGS: "true"
+    volumes:
+      - ./litellm_config.yaml:/app/config.yaml:ro
+    command:
+      - "--config"
+      - "/app/config.yaml"
+      - "--port"
+      - "4000"
+      - "--num_workers"
+      - "2"
+    expose:
+      - "4000"
+    networks:
+      - internal_net
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:4000/health/readiness"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 768M
+        reservations:
+          memory: 256M
 
 volumes:
   frontend_next:

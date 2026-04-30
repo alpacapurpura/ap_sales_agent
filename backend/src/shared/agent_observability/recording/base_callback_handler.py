@@ -521,6 +521,13 @@ class BaseAgentCallbackHandler(BaseCallbackHandler, ABC):
         Order of preference: ``metadata.ls_provider`` / ``ls_model_name``
         (LangChain's normalised tags), then ``serialized.kwargs.model_name``
         / ``model``, then sensible fallbacks.
+
+        D-7 (S3 PR-2): when LiteLLM Proxy is active the model name arrives
+        as ``<provider>/<model>`` (e.g. ``deepseek/deepseek-v4-flash``).
+        Strip the prefix so existing Streamlit queries (``/costo-copilot``,
+        ``/marketing-kb``) keep filtering by bare model name
+        (``deepseek-v4-flash``).  Provider is already stored in the
+        ``provider`` column so no information is lost.
         """
         meta = metadata or {}
         provider = meta.get("ls_provider") or meta.get("provider") or "unknown"
@@ -531,7 +538,11 @@ class BaseAgentCallbackHandler(BaseCallbackHandler, ABC):
                 model = kwargs.get("model_name") or kwargs.get("model")
         if not model:
             model = "unknown"
-        return str(provider), str(model)
+        model_str = str(model)
+        # D-7: strip LiteLLM provider prefix  "deepseek/deepseek-v4-flash" → "deepseek-v4-flash"
+        if "/" in model_str:
+            _prefix, _, model_str = model_str.partition("/")
+        return str(provider), model_str
 
     @staticmethod
     def _extract_usage(response: LLMResult | None) -> dict[str, int]:
