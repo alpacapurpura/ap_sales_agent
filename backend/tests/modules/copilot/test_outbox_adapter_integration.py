@@ -50,7 +50,10 @@ class TestCopilotOutboxAdapterFlagOff:
     """Flag OFF (default, USE_OUTBOX_PATTERN_COPILOT=False) — legacy in-memory bus."""
 
     def test_card_emitted_flag_off_routes_to_legacy(self) -> None:
-        """Card emitted event goes to legacy bus when copilot outbox flag is OFF."""
+        """Card emitted event goes to legacy bus when copilot outbox flag is OFF.
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         legacy_called: list[str] = []
 
         with (
@@ -62,13 +65,17 @@ class TestCopilotOutboxAdapterFlagOff:
         ):
             adapter = EventBusAdapter()
             event = _make_card_emitted_event()
-            adapter.publish(event, session=None, module="copilot")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=None)
 
         assert len(legacy_called) == 1
         assert legacy_called[0] == "copilot_card_emitted"
 
     def test_routing_decided_flag_off_routes_to_legacy(self) -> None:
-        """Routing decided event goes to legacy bus when copilot outbox flag is OFF."""
+        """Routing decided event goes to legacy bus when copilot outbox flag is OFF.
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         legacy_called: list[str] = []
 
         with (
@@ -80,7 +87,8 @@ class TestCopilotOutboxAdapterFlagOff:
         ):
             adapter = EventBusAdapter()
             event = _make_routing_decided_event()
-            adapter.publish(event, session=None, module="copilot")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=None)
 
         assert len(legacy_called) == 1
         assert legacy_called[0] == "copilot_routing_decided"
@@ -103,7 +111,10 @@ class TestCopilotOutboxAdapterFlagOn:
     """Flag ON (USE_OUTBOX_PATTERN_COPILOT=True) via monkeypatch."""
 
     def test_flag_on_via_monkeypatch_enqueues_outbox(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Flag ON + sync session → outbox.enqueue_sync called for copilot event."""
+        """Flag ON + sync session → outbox.enqueue_sync called for copilot event.
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         monkeypatch.setenv("USE_OUTBOX_PATTERN_COPILOT", "true")
 
         mock_outbox = MagicMock()
@@ -118,7 +129,8 @@ class TestCopilotOutboxAdapterFlagOn:
                 return_value=False,
             ),
         ):
-            adapter.publish(event, session=mock_session, module="copilot")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=mock_session)
 
         mock_outbox.enqueue_sync.assert_called_once_with(
             event,
@@ -127,7 +139,10 @@ class TestCopilotOutboxAdapterFlagOn:
         )
 
     def test_flag_on_no_session_falls_back_to_legacy(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Flag ON + session=None → warn + legacy fallback for copilot event."""
+        """Flag ON + session=None → warn + legacy fallback for copilot event.
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         monkeypatch.setenv("USE_OUTBOX_PATTERN_COPILOT", "true")
         legacy_called: list[str] = []
 
@@ -140,14 +155,18 @@ class TestCopilotOutboxAdapterFlagOn:
         ):
             adapter = EventBusAdapter()
             event = _make_routing_decided_event()
-            adapter.publish(event, session=None, module="copilot")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=None)
 
         # Falls back to legacy — best-effort, no crash
         assert len(legacy_called) == 1
         assert legacy_called[0] == "copilot_routing_decided"
 
     def test_flag_on_outbox_failure_swallowed(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Outbox enqueue failure must not propagate — best-effort contract."""
+        """Outbox enqueue failure must not propagate — best-effort contract.
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         monkeypatch.setenv("USE_OUTBOX_PATTERN_COPILOT", "true")
 
         mock_outbox = MagicMock()
@@ -165,7 +184,8 @@ class TestCopilotOutboxAdapterFlagOn:
             ),
         ):
             # Must NOT raise — best-effort contract
-            adapter.publish(event, session=mock_session, module="copilot")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=mock_session)
 
         mock_outbox.enqueue_sync.assert_called_once()
 

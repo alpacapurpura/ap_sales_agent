@@ -45,7 +45,10 @@ class TestEventBusAdapterFlagOff:
     """Flag OFF → legacy in-memory bus, no outbox involvement."""
 
     def test_publish_flag_off_routes_to_legacy(self) -> None:
-        """When outbox is disabled, publish goes to LegacyEventBus."""
+        """When outbox is disabled, publish goes to LegacyEventBus.
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         legacy_called: list[str] = []
 
         with (
@@ -57,7 +60,8 @@ class TestEventBusAdapterFlagOff:
         ):
             adapter = EventBusAdapter()
             event = _make_lead_captured()
-            adapter.publish(event, session=None, module="sales_agent")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=None)
 
         assert len(legacy_called) == 1
         assert legacy_called[0] == event.event_name
@@ -88,7 +92,10 @@ class TestEventBusAdapterFlagOn:
     """Flag ON → outbox path."""
 
     def test_publish_flag_on_no_session_falls_back_to_legacy(self) -> None:
-        """Flag ON + session=None → warn + legacy fallback (no crash)."""
+        """Flag ON + session=None → warn + legacy fallback (no crash).
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         legacy_called: list[str] = []
 
         with (
@@ -100,13 +107,17 @@ class TestEventBusAdapterFlagOn:
         ):
             adapter = EventBusAdapter()
             event = _make_lead_captured()
-            adapter.publish(event, session=None, module="sales_agent")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=None)
 
         # Falls back to legacy — best-effort, no crash
         assert len(legacy_called) == 1
 
     def test_publish_flag_on_with_sync_session_calls_outbox_enqueue(self) -> None:
-        """Flag ON + sync session → outbox_service.enqueue_sync called."""
+        """Flag ON + sync session → outbox_service.enqueue_sync called.
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         mock_outbox = MagicMock()
         adapter = EventBusAdapter(outbox_service=mock_outbox)
 
@@ -120,7 +131,8 @@ class TestEventBusAdapterFlagOn:
                 return_value=False,
             ),
         ):
-            adapter.publish(event, session=mock_session, module="sales_agent")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=mock_session)
 
         mock_outbox.enqueue_sync.assert_called_once_with(
             event,
@@ -129,7 +141,10 @@ class TestEventBusAdapterFlagOn:
         )
 
     def test_publish_flag_on_outbox_failure_is_swallowed(self) -> None:
-        """Outbox enqueue failure must not propagate (best-effort contract)."""
+        """Outbox enqueue failure must not propagate (best-effort contract).
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         mock_outbox = MagicMock()
         mock_outbox.enqueue_sync.side_effect = RuntimeError("DB down")
 
@@ -145,7 +160,8 @@ class TestEventBusAdapterFlagOn:
             ),
         ):
             # Must NOT raise — best-effort contract
-            adapter.publish(event, session=mock_session, module="sales_agent")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=mock_session)
 
         # enqueue_sync was attempted (and swallowed)
         mock_outbox.enqueue_sync.assert_called_once()

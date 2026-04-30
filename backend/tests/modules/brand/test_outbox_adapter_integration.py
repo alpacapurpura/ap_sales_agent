@@ -54,7 +54,10 @@ class TestBrandOutboxAdapterFlagOff:
     """Flag OFF (default, USE_OUTBOX_PATTERN_BRAND=False) → legacy in-memory bus."""
 
     def test_brand_section_updated_flag_off_routes_to_legacy(self) -> None:
-        """BrandSectionUpdatedEvent goes to legacy bus when brand outbox flag is OFF."""
+        """BrandSectionUpdatedEvent goes to legacy bus when brand outbox flag is OFF.
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         legacy_called: list[str] = []
 
         with (
@@ -66,13 +69,17 @@ class TestBrandOutboxAdapterFlagOff:
         ):
             adapter = EventBusAdapter()
             event = _make_brand_section_updated_event()
-            adapter.publish(event, session=None, module="brand")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=None)
 
         assert len(legacy_called) == 1
         assert legacy_called[0] == "brand_section_updated"
 
     def test_personality_profile_updated_flag_off_routes_to_legacy(self) -> None:
-        """PersonalityProfileUpdatedEvent goes to legacy bus when brand flag is OFF."""
+        """PersonalityProfileUpdatedEvent goes to legacy bus when brand flag is OFF.
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         legacy_called: list[str] = []
 
         with (
@@ -84,7 +91,8 @@ class TestBrandOutboxAdapterFlagOff:
         ):
             adapter = EventBusAdapter()
             event = _make_personality_profile_updated_event()
-            adapter.publish(event, session=None, module="brand")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=None)
 
         assert len(legacy_called) == 1
         assert legacy_called[0] == "personality_profile_updated"
@@ -107,7 +115,10 @@ class TestBrandOutboxAdapterFlagOn:
     """Flag ON (USE_OUTBOX_PATTERN_BRAND=True) via monkeypatch."""
 
     def test_flag_on_via_monkeypatch_enqueues_outbox(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Flag ON + sync session → outbox.enqueue_sync called for brand event."""
+        """Flag ON + sync session → outbox.enqueue_sync called for brand event.
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         monkeypatch.setenv("USE_OUTBOX_PATTERN_BRAND", "true")
 
         mock_outbox = MagicMock()
@@ -122,7 +133,8 @@ class TestBrandOutboxAdapterFlagOn:
                 return_value=False,
             ),
         ):
-            adapter.publish(event, session=mock_session, module="brand")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=mock_session)
 
         mock_outbox.enqueue_sync.assert_called_once_with(
             event,
@@ -131,7 +143,10 @@ class TestBrandOutboxAdapterFlagOn:
         )
 
     def test_flag_on_no_session_falls_back_to_legacy(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Flag ON + session=None → warn + legacy fallback for brand event."""
+        """Flag ON + session=None → warn + legacy fallback for brand event.
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         monkeypatch.setenv("USE_OUTBOX_PATTERN_BRAND", "true")
         legacy_called: list[str] = []
 
@@ -144,14 +159,18 @@ class TestBrandOutboxAdapterFlagOn:
         ):
             adapter = EventBusAdapter()
             event = _make_extraction_section_completed_event()
-            adapter.publish(event, session=None, module="brand")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=None)
 
         # Falls back to legacy — best-effort, no crash
         assert len(legacy_called) == 1
         assert legacy_called[0] == "extraction_section_completed"
 
     def test_flag_on_outbox_failure_swallowed(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Outbox enqueue failure must not propagate — best-effort contract."""
+        """Outbox enqueue failure must not propagate — best-effort contract.
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         monkeypatch.setenv("USE_OUTBOX_PATTERN_BRAND", "true")
 
         mock_outbox = MagicMock()
@@ -169,12 +188,16 @@ class TestBrandOutboxAdapterFlagOn:
             ),
         ):
             # Must NOT raise — best-effort contract
-            adapter.publish(event, session=mock_session, module="brand")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=mock_session)
 
         mock_outbox.enqueue_sync.assert_called_once()
 
     def test_extraction_completed_flag_on_enqueues_outbox(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """ExtractionSectionCompletedEvent uses outbox when flag ON + session provided."""
+        """ExtractionSectionCompletedEvent uses outbox when flag ON + session provided.
+
+        Post-F1-fix: no module= kwarg — adapter infers from call stack.
+        """
         monkeypatch.setenv("USE_OUTBOX_PATTERN_BRAND", "true")
 
         mock_outbox = MagicMock()
@@ -189,7 +212,8 @@ class TestBrandOutboxAdapterFlagOn:
                 return_value=False,
             ),
         ):
-            adapter.publish(event, session=mock_session, module="brand")
+            # No module= kwarg — mirrors production call sites (F-1 fix)
+            adapter.publish(event, session=mock_session)
 
         mock_outbox.enqueue_sync.assert_called_once()
         call_event = mock_outbox.enqueue_sync.call_args[0][0]
