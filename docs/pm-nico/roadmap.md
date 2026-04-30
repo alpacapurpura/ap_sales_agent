@@ -8,7 +8,7 @@
 | Item | Tipo | Estado | Link |
 |---|---|---|---|
 | Campaigns module — Foundation + Telegram MVP | PI-1 | planning, S0 in-progress | [pis/active/PI-1-campaigns-module/PI.md](pis/active/PI-1-campaigns-module/PI.md) |
-| Copilot improvement | PI-2-copilot | discovery | [pis/active/PI-2-copilot-improvement/PI.md](pis/active/PI-2-copilot-improvement/PI.md) |
+| Copilot improvement | PI-2-copilot | active — S1 shipped 2026-04-29 (3/3 PRs Bloque B), S2 candidato FE-swap cross-stack | [pis/active/PI-2-copilot-improvement/PI.md](pis/active/PI-2-copilot-improvement/PI.md) |
 | Sales agent improvement | PI-3-sales | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
 
 ## Maintenance (rolling, paralelo a Now — no compite cap)

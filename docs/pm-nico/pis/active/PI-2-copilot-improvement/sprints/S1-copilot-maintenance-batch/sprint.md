@@ -6,11 +6,12 @@
 |---|---|
 | Sprint ID | S1-copilot-maintenance-batch |
 | PI padre | PI-2-copilot-improvement |
-| Estado | in-progress |
+| Estado | shipped |
 | Inicio | 2026-04-29 |
-| Cierre estimado | TBD (3 PRs cohesivos) |
-| Cierre real | — |
+| Cierre estimado | 2026-04-29 (3 PRs cohesivos misma fecha) |
+| Cierre real | 2026-04-29 |
 | Owner PM | /pm |
+| Output | 3/3 PRs shipped (PR-1 PASS · PR-2 PASS · PR-3 PASS) · 117 tests nuevos · 2 migraciones · 5 endpoints API · 1 admin Streamlit page |
 
 ## Objetivo (1 línea)
 
@@ -27,9 +28,9 @@ Cerrar las 5 recomendaciones DO del Bloque B en PRs cohesivos por boundary técn
 
 | PR | Folder | Descripción | Agentes/skills | Esfuerzo | Estado |
 |---|---|---|---|---|---|
-| PR-1 | `prs/PR-1-voice-media-hardening/` | Rate limit voice/upload + `COPILOT_MEDIA_MAX_BYTES` env-driven + DB roundtrip tests + Streamlit admin per-tenant defaults | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` + `copilot-expert` | M | not-started |
-| PR-2 | `prs/PR-2-suggestions-engine/` | Motor real suggestions reemplazando hint hardcoded en `offer_section_tools.py`. Adapter pattern + registry + tools transversales | `nicolify-architect` → `nicolify-backend` (+ `nicolify-agentic` si LangGraph) → `nicolify-backend-auditor` + `copilot-expert` | L | not-started |
-| PR-3 | `prs/PR-3-backfill-content-blocks/` | Script Python idempotente + alembic data migration: legacy `content` field → `blocks` structured. Cleanup forward-compat dead code | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` + `copilot-expert` | S | not-started |
+| PR-1 | `prs/PR-1-voice-media-hardening/` | Rate limit voice/upload + `COPILOT_MEDIA_MAX_BYTES` env-driven + DB roundtrip tests + Streamlit admin per-tenant defaults | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` + `copilot-expert` | M | **shipped** PASS (1 iter auto-fix) |
+| PR-2 | `prs/PR-2-suggestions-engine/` | Motor real suggestions reemplazando hint hardcoded en `offer_section_tools.py`. Adapter pattern + registry + tools transversales | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` + `copilot-expert` | L | **shipped** PASS (1 WARN cat 12 partial Q1) |
+| PR-3 | `prs/PR-3-backfill-content-blocks/` | Script Python idempotente + alembic data migration: legacy `content` field → `blocks` structured. Cleanup forward-compat dead code | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` + `copilot-expert` | S | **shipped** PASS (0 WARN) |
 
 Detalle de cada PR vive en `prs/PR-N-{slug}/PR.md`. Prompts pre-cocidos para handoffs en `prompts/`.
 

@@ -5,12 +5,13 @@
 | Campo | Valor |
 |---|---|
 | PI ID | PI-2-copilot-improvement |
-| Estado | discovery (placeholder — pendiente kickoff) |
+| Estado | active — S1 shipped, S2 candidato cross-stack FE swap |
 | Tema | Mejoras al copilot — interfaz primaria Nicolify |
 | Owner PM | /pm |
-| Inicio | 2026-04-29 (placeholder) |
-| Cierre estimado | TBD según scope refinado |
+| Inicio | 2026-04-29 |
+| Cierre estimado | TBD según S2 (cross-stack FE swap) o decisión cierre PI |
 | Cierre real | — |
+| Sprints completados | S1-copilot-maintenance-batch (3/3 PRs shipped 2026-04-29 — Bloque B 5 recs DO entregadas) |
 
 ## Outcome esperado
 
