@@ -95,9 +95,10 @@ Todos los endpoints no-DELETE tienen `response_model=` (PII allowlist). Header `
 
 ---
 
-## S2 SHIPPED partial — Orchestrator + Workers + ChannelRouter Telegram (PR-5 done, PR-6 pending)
+## S2 SHIPPED FULL — Orchestrator + Workers + ChannelRouter Telegram + Cutover Consumers
 
-> PR-5 commits: Sub-A `4d8953ab` + Sub-B `b830bbad` + Sub-C `227ba63a` + Sub-D `78fdd6ce` + Sub-E `961a2c3c`
+> PR-5 commits: Sub-A `4d8953ab` + Sub-B `b830bbad` + Sub-C `227ba63a` + Sub-D `78fdd6ce` + Sub-E `961a2c3c` + Sub-F `5febfe39` + Sub-G `5ad63dc8` + REVIEW iter-2 PASS `e4408b2f`
+> PR-6 commits: Sub-A `f8a4b3e5` + Sub-B `7b2de359` + Sub-C `8d2aed36` + Sub-D `97780627` + Sub-E `fb2683d0` + Sub-F `6b8fcb11` + Sub-G `d3fbe665` + REVIEW iter-2 PASS `03d423c7`
 
 | Superficie | Estado | PR |
 |---|---|---|
@@ -114,8 +115,13 @@ Todos los endpoints no-DELETE tienen `response_model=` (PII allowlist). Header `
 | ComplianceService + OutboundRateLimiter wired pre-send (TelegramChannelRouter) | SHIPPED | PR-5 Sub-B |
 | ChannelRouter WhatsApp (via ManyChat bridge) | PENDIENTE | PI-2 |
 | ChannelRouter Email (via MailerLite) | PENDIENTE | PI-2 |
-| BudgetGuard wiring en LLM call sites copilot/sales_agent | PENDIENTE | PR-6 |
-| Observabilidad emision real (campaign_llm_call + campaign_trace_event) | PENDIENTE | S2/S3 |
+| **PR-6: Wrappers BudgetGuardingChatModel/Service + cost_estimator + PricingSnapshotRepoAsync** | SHIPPED | PR-6 Sub-A |
+| **PR-6: Outbox cutover ON sales_agent (USE_OUTBOX_PATTERN_SALES_AGENT=True) + BudgetGuard wiring single point ConversationPipeline** | SHIPPED | PR-6 Sub-B |
+| **PR-6: Outbox cutover ON copilot (USE_OUTBOX_PATTERN_COPILOT=True) + BudgetGuard wiring single point build_deep_agent_graph** | SHIPPED | PR-6 Sub-C |
+| **PR-6: Outbox cutover ON brand (USE_OUTBOX_PATTERN_BRAND=True)** | SHIPPED | PR-6 Sub-D |
+| **PR-6: 2 arch fitness gates (budget_guard_pre_llm_call + no_legacy_event_bus_publish ratchet)** | SHIPPED | PR-6 Sub-E |
+| Brand BudgetGuard wiring 7 LLM callsites (DR-7) | DIFERIDO | Sub-D-2 / S3 |
+| Observabilidad emision real (campaign_llm_call + campaign_trace_event) | PENDIENTE | S3 |
 
 ---
 

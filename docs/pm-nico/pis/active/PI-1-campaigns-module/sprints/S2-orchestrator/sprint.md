@@ -6,10 +6,10 @@
 |---|---|
 | Sprint ID | S2-orchestrator |
 | PI padre | PI-1-campaigns-module |
-| Estado | not-started (bloqueado por S1) |
-| Inicio | TBD post-S1 cierre |
+| Estado | done |
+| Inicio | 2026-04-30 |
 | Cierre estimado | +1 semana después de S1 cierre |
-| Cierre real | — |
+| Cierre real | 2026-04-30 (mismo día — Opus 4.7[1M] sprint compresion) |
 | Owner PM | /pm |
 
 ## Objetivo (1 línea)
@@ -38,8 +38,8 @@ Construir CampaignOrchestrator + 3 workers ARQ + ChannelRouter v1 (Telegram-only
 
 | PR (tentativo) | Scope | Esfuerzo | Estado |
 |---|---|---|---|
-| PR-5-orchestrator-and-workers | CampaignOrchestrator.launch() + 3 ARQ workers (Execution / Scheduler / SegmentRefresh) + ChannelRouter v1 (Telegram select_channel) + circuit breaker + audit log dedicado tabla `campaigns_audit` | L | not-started |
-| PR-6-consumers-cutover | Wire copilot orchestrator + sales_agent supervisor a BudgetGuard.check (flag flip USE_OUTBOX_PATTERN_* → ON) + wire ChannelRouter → ComplianceService.check + retire 20 emisores legacy | M | not-started |
+| PR-5-orchestrator-and-workers | CampaignOrchestrator.launch() + 4 ARQ workers (Execution / Scheduler / SegmentRefresh / AuditRetention) + ChannelRouter v1 (Telegram) + circuit breaker custom asyncio Redis-backed + audit log `campaign_audit` retention 90d | L | shipped (8 commits + Sub-G fix iter-2 PASS) |
+| PR-6-consumers-cutover | Wrappers BudgetGuardingChatModel/Service + 3 flags USE_OUTBOX_PATTERN_* default ON + wiring single point sales_agent + copilot (brand BudgetGuard wiring DR-7 deferred) + 2 arch tests ratchet | M | shipped (6 commits + Sub-G fix iter-2 PASS) |
 
 **Cohesión PR-5:** workers + orchestrator + router comparten dominio "execution pipeline".
 **Cohesión PR-6:** wiring real cross-module — separado para blast radius bajo (rollback simple si bug en cutover).
