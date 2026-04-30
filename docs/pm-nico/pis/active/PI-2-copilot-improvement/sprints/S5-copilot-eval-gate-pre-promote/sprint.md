@@ -6,7 +6,7 @@
 |---|---|
 | Sprint ID | S5-copilot-eval-gate-pre-promote |
 | PI padre | PI-2-copilot-improvement |
-| Estado | not-started — depends S4 shipped |
+| Estado | in-progress — S4 shipped 2026-04-30, PR-1 claimed |
 | Inicio estimado | post S4 |
 | Cierre estimado | S4+1 semana |
 | Owner PM | /pm |

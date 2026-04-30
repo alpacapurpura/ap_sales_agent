@@ -7,7 +7,7 @@
 | PR ID | PR-1-eval-gate-admin-wiring |
 | Sprint padre | S5-copilot-eval-gate-pre-promote |
 | PI padre | PI-2-copilot-improvement |
-| Estado | ready (depends S4 shipped) |
+| Estado | in-progress — claimed 2026-04-30 main thread (post S4 done) |
 | Tipo | infra (eval gate integration admin UI + CI) |
 | Esfuerzo | M-L (~12 archivos) |
 | Owner PM | /pm |
