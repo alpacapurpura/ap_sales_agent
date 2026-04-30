@@ -25,6 +25,8 @@ import structlog
 from src.modules.copilot.domain.events import (
     EVENT_CARD_EMITTED,
     EVENT_ROUTING_DECIDED,
+    EVENT_SUGGESTION_ACCEPTED,
+    EVENT_SUGGESTION_SHOWN,
 )
 from src.shared.agent_observability.recording.sanitization import sanitize_payload, truncate
 from src.shared.domain.events import DomainEvent  # noqa: TC001 — used in runtime handler signatures
@@ -93,8 +95,16 @@ def register_subscribers(*, repo_factory: Callable[[], TraceEventRepository]) ->
     def on_routing_decided(event: DomainEvent) -> None:
         _persist(event, event_type="routing_decided", name_key="tier")
 
+    def on_suggestion_shown(event: DomainEvent) -> None:
+        _persist(event, event_type="suggestion_shown", name_key="current_route")
+
+    def on_suggestion_accepted(event: DomainEvent) -> None:
+        _persist(event, event_type="suggestion_accepted", name_key="source_module")
+
     _subscribe_once(EVENT_CARD_EMITTED, on_card_emitted)
     _subscribe_once(EVENT_ROUTING_DECIDED, on_routing_decided)
+    _subscribe_once(EVENT_SUGGESTION_SHOWN, on_suggestion_shown)
+    _subscribe_once(EVENT_SUGGESTION_ACCEPTED, on_suggestion_accepted)
 
 
 def _subscribe_once(event_name: str, handler: Callable[[DomainEvent], None]) -> None:

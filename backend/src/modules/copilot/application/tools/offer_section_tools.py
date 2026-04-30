@@ -26,6 +26,43 @@ from src.core.database import SessionLocal
 
 logger = structlog.get_logger()
 
+
+def _engine_suggestions_for_context(
+    tenant_id: object,
+    current_route: str | None = None,
+    incomplete_fields: tuple[str, ...] = (),
+    *,
+    max_hints: int = 3,
+) -> list[str]:
+    """Call the SuggestionEngine and convert results to hint strings.
+
+    Best-effort: returns [] on any failure so callers remain unchanged.
+    Used by tools to replace static ``suggestions`` string lists.
+
+    [COPILOT-SUGGESTIONS-ENGINE] → docs/domains/copilot/suggestions-engine.md
+    """
+    try:
+        from uuid import UUID
+
+        from src.modules.copilot.application.suggestions.registry import get_default_engine
+        from src.modules.copilot.domain.suggestion import SuggestionContext
+
+        tid = UUID(str(tenant_id)) if not isinstance(tenant_id, UUID) else tenant_id
+        ctx = SuggestionContext(
+            tenant_id=tid,
+            user_id=None,
+            conversation_id=None,
+            current_route=current_route,
+            incomplete_fields=incomplete_fields,
+        )
+        engine = get_default_engine()
+        chips, _, _ = engine.get_suggestions(ctx)
+        return [s.label for s in chips[:max_hints]]
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("offer_tool_engine_suggestions_failed", error=str(exc))
+        return []
+
+
 # ---------------------------------------------------------------------------
 # Private helpers
 # ---------------------------------------------------------------------------
@@ -197,22 +234,27 @@ def adapt_from_brand_identity() -> str:
             sku_prefix = brand_name.lower().replace(" ", "_")[:12]
             draft_fields["internal_sku"] = f"{sku_prefix}_001"
 
-        suggestions = []
+        # Build contextual hints from brand metadata + engine suggestions (Q1 expansion)
+        brand_hints: list[str] = []
         if tagline:
-            suggestions.append(f"Tagline de marca disponible para usar en el titulo: '{tagline}'")
+            brand_hints.append(f"Tagline de marca disponible para usar en el titulo: '{tagline}'")
 
         # Prefer active personality profile's system_instruction over legacy voice_tone (soft migration)
         active_personality = _active_personality(db, tenant_id)
         if active_personality and active_personality.system_instruction:
-            suggestions.append(
+            brand_hints.append(
                 "Perfil de personalidad activo: úsalo como referencia del estilo comunicacional "
                 "para nombrar y posicionar tu oferta."
             )
         elif voice_tone:
-            suggestions.append(f"Tono de voz de marca: {voice_tone}. Úsalo para nombrar tu oferta.")
+            brand_hints.append(f"Tono de voz de marca: {voice_tone}. Úsalo para nombrar tu oferta.")
 
-        if not suggestions:
-            suggestions.append("Adapta el nombre de marca como base para tu oferta.")
+        if not brand_hints:
+            brand_hints.append("Adapta el nombre de marca como base para tu oferta.")
+
+        # Supplement with engine suggestions (route-aware, tenant-scoped)
+        engine_hints = _engine_suggestions_for_context(tenant_id, current_route="offer-studio", max_hints=2)
+        suggestions = brand_hints + [h for h in engine_hints if h not in brand_hints]
 
         logger.info("adapt_from_brand_identity_ok", tenant_id=str(tenant_id))
         return _ok_response("identity", draft_fields, suggestions, 0.8, [f"brand:{brand_name}"])
@@ -282,7 +324,16 @@ def adapt_from_brand_narrative() -> str:
                 "Enriquece el Brand Studio.",
             )
 
-        # Pad to 3 variants if fewer
+        # Pad to 3 variants if fewer — supplement with engine suggestions (Q1 expansion)
+        engine_hints = _engine_suggestions_for_context(
+            tenant_id,
+            current_route="offer-studio",
+            incomplete_fields=("promise.headline",) if len(variants) < 3 else (),
+            max_hints=3 - len(variants),
+        )
+        for hint in engine_hints:
+            if hint not in variants:
+                variants.append(hint)
         while len(variants) < 3:
             variants.append("Edita esta variante basándote en la transformación que ofrece tu programa.")
 

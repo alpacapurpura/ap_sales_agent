@@ -32,6 +32,8 @@ EVENT_TURN_STARTED: str = "copilot_turn_started"
 EVENT_TURN_ENDED: str = "copilot_turn_ended"
 EVENT_CARD_EMITTED: str = "copilot_card_emitted"
 EVENT_ROUTING_DECIDED: str = "copilot_routing_decided"
+EVENT_SUGGESTION_SHOWN: str = "copilot_suggestion_shown"
+EVENT_SUGGESTION_ACCEPTED: str = "copilot_suggestion_accepted"
 
 
 def _str_or_none(value: object) -> str | None:
@@ -188,13 +190,83 @@ class RoutingDecided(DomainEvent):
         )
 
 
+@dataclass
+class SuggestionShown(DomainEvent):
+    """Emitted when ``SuggestionEngine.get_suggestions(...)`` returns ≥1 chip.
+
+    [COPILOT-SUGGESTIONS-ENGINE] → docs/domains/copilot/suggestions-engine.md
+    """
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        tenant_id: UUID,
+        user_id: UUID | None,
+        conversation_id: UUID | None,
+        current_route: str | None,
+        suggestion_ids: list[UUID],
+        provider_breakdown: dict[str, int],
+        latency_ms: int,
+    ) -> SuggestionShown:
+        """Build a ``copilot_suggestion_shown`` event."""
+        return cls(
+            event_name=EVENT_SUGGESTION_SHOWN,
+            tenant_id=tenant_id,
+            payload={
+                "user_id": _str_or_none(user_id),
+                "conversation_id": _str_or_none(conversation_id),
+                "current_route": current_route,
+                "suggestion_ids": [_str_or_none(sid) for sid in suggestion_ids],
+                "provider_breakdown": dict(provider_breakdown),
+                "latency_ms": int(latency_ms),
+            },
+        )
+
+
+@dataclass
+class SuggestionAccepted(DomainEvent):
+    """Emitted when API receives ``POST /suggestions/{id}/accept`` (FE click chip).
+
+    [COPILOT-SUGGESTIONS-ENGINE] → docs/domains/copilot/suggestions-engine.md
+    """
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        tenant_id: UUID,
+        user_id: UUID | None,
+        conversation_id: UUID | None,
+        suggestion_id: UUID,
+        source_module: str,
+        category: str,
+    ) -> SuggestionAccepted:
+        """Build a ``copilot_suggestion_accepted`` event."""
+        return cls(
+            event_name=EVENT_SUGGESTION_ACCEPTED,
+            tenant_id=tenant_id,
+            payload={
+                "user_id": _str_or_none(user_id),
+                "conversation_id": _str_or_none(conversation_id),
+                "suggestion_id": _str_or_none(suggestion_id),
+                "source_module": source_module,
+                "category": category,
+            },
+        )
+
+
 __all__ = [
     "EVENT_CARD_EMITTED",
     "EVENT_ROUTING_DECIDED",
+    "EVENT_SUGGESTION_ACCEPTED",
+    "EVENT_SUGGESTION_SHOWN",
     "EVENT_TURN_ENDED",
     "EVENT_TURN_STARTED",
     "CardEmitted",
     "RoutingDecided",
+    "SuggestionAccepted",
+    "SuggestionShown",
     "TurnEnded",
     "TurnStarted",
 ]

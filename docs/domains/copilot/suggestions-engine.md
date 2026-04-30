@@ -1,19 +1,34 @@
-# Suggestions Engine — Stub and Future
+# Suggestions Engine
 
-Smart chips under the chat input. This iteration ships a **stub** only; the
-hook surface is frozen so the real engine can land later with zero FE change.
+Smart chips under the chat input. **Option A (heuristic backend) is IMPLEMENTED** as of PR-2 (PI-2 S1).
 
-Authoritative spec: [CONTRACT-MULTIMODAL.md §11](./CONTRACT-MULTIMODAL.md#11-smart-chips-contract-stub).
 Anchor: `[COPILOT-SUGGESTIONS-ENGINE]`.
 
 ---
 
-## Current state (this iteration)
+## Status: Option A IMPLEMENTED (PR-2, PI-2 S1)
 
-- `Suggestion` TS interface locked.
-- `useSuggestions(conversationId)` hook locked.
-- Stub implementation returns 3 hardcoded chips based on `currentRoute`.
-- No backend endpoint exists.
+The BE motor is live. FE still consumes the stub `useSuggestions` hook.
+FE swap = next PR (PR siguiente, swaps stub to real GET endpoint).
+
+### What shipped (PR-2)
+
+- `SuggestionEngine` — process-singleton that composes registered providers, ranks
+  by confidence DESC → provider_priority DESC → registration order, caps at 5 total.
+- `SuggestionProvider` Protocol — port for module-scoped sources.
+- `OfferSuggestionProvider` — heuristic, route-scoped (`offer-studio`), reads via
+  `OfferSuggestionReader` (shared with `offer_section_tools`).
+- `registry.py` — `get_default_engine()` lazy-init + `_reset_for_tests()`.
+- Domain events `SuggestionShown` / `SuggestionAccepted` + subscribers in
+  `domain_subscribers.py` → persisted to `copilot_trace_event`.
+- `OfferSuggestionReader` — read-only offer state reader (tenant-scoped).
+- 50 tests, 0 new mypy errors, 649 arch tests pass.
+
+### What is NOT shipped yet (FE next PR)
+
+- GET `/api/v1/copilot/suggestions` endpoint.
+- POST `/api/v1/copilot/suggestions/{id}/accept` endpoint.
+- FE `useSuggestions` swap from stub to real engine.
 
 ---
 
@@ -21,10 +36,10 @@ Anchor: `[COPILOT-SUGGESTIONS-ENGINE]`.
 
 ```typescript
 export interface Suggestion {
-  id: string;                           // stable; stubs use "stub-<hash>"
-  label: string;                        // user-visible, Spanish neutro LatAm
+  id: string;                           // stable UUID
+  label: string;                        // user-visible, Spanish neutro LatAm, <=60 chars
   prompt: string;                       // filled into input on click
-  confidence?: number;                  // 0..1; undefined in stub
+  confidence?: number;                  // 0..1
   category?: "followup" | "action" | "clarify" | "nav";
 }
 
@@ -36,146 +51,114 @@ export function useSuggestions(conversationId: string | null): {
 ```
 
 The hook MUST:
-- Return ≤5 suggestions (FE renders max 5 chips).
+- Return <=5 suggestions (FE renders max 5 chips).
 - Be idempotent on repeated calls with the same `conversationId`.
 - Expose `refresh()` to force re-compute (e.g., after a message send).
 
 ---
 
-## Real-engine options (not built)
-
-When the first real use case arrives, implementer picks one. Each fits the
-locked hook surface.
-
-### Option A — heuristic backend (rule-based)
+## Architecture
 
 ```
-GET /api/v1/copilot/conversations/{conversation_id}/suggestions
-Response: SuggestionsPayload
+SuggestionEngine (process-singleton, application/suggestions/engine.py)
+  |
+  +-- register(SuggestionProvider) — idempotent, ValueError on id conflict
+  |
+  +-- get_suggestions(SuggestionContext)
+        -> (list[Suggestion], breakdown: dict[str, int], latency_ms: int)
+           |
+           Ranking: confidence DESC -> provider_priority DESC -> registration order
+           Cap: max_total=5, max_per_provider=5
+
+Providers (application/suggestions/providers/):
+  base.py      — SuggestionProvider Protocol (runtime_checkable)
+  offer.py     — OfferSuggestionProvider (route: offer-studio, priority=0)
+
+Registry (application/suggestions/registry.py):
+  get_default_engine() -> SuggestionEngine (lazy singleton)
+  register_provider(p)  -> delegates to default engine
+  _reset_for_tests()    -> resets singleton (test isolation)
+
+Reader (application/services/offer_suggestion_reader.py):
+  OfferSuggestionReader(db, tenant_id=...)
+    .list_offers() -> list[OfferRowVO]
+    .get_preset_flags(offer_id) -> list[str]
+    .detect_lead_magnet_without_core() -> bool
+
+Domain events (domain/events.py):
+  SuggestionShown.create(...) -> EVENT_SUGGESTION_SHOWN
+  SuggestionAccepted.create(...) -> EVENT_SUGGESTION_ACCEPTED
+
+Subscribers (observability/recording/domain_subscribers.py):
+  on_suggestion_shown  -> copilot_trace_event(event_type="suggestion_shown")
+  on_suggestion_accepted -> copilot_trace_event(event_type="suggestion_accepted")
 ```
 
-Backend logic:
-- Read last N messages.
-- Apply a small rule set: if last assistant message ended with a question → surface "Sí / No / Explícame más". If `procedure_state.current_block` is set → surface "Continuar", "Saltar", "Revisar". If route is `brand-studio` → surface 2–3 brand-specific prompts.
-- No LLM call. Cheap, fast.
+---
 
-**Pros:** deterministic, free, testable.
-**Cons:** limited sophistication.
+## OfferSuggestionProvider heuristic rules
+
+| Rule | Trigger | Suggestion |
+|---|---|---|
+| 1 | Route `offer-studio`, no offers | "Crea tu primera oferta" (confidence 0.85) |
+| 2a | Route `offer-studio/{id}`, flag `high_ticket` | "Sugiere estructura de 3 niveles de pricing" (0.82) |
+| 2b | Route `offer-studio/{id}`, flag `recurring_billing` | "Configura la facturacion recurrente" (0.80) |
+| 2c | Route `offer-studio/{id}`, flag `is_lead_magnet` | "Vincula con oferta core" (0.78) |
+| 3 | `incomplete_fields` includes `promise.headline` | "Genera variantes de promesa principal" (0.75) |
+| 4 | Lead magnet offer exists, no core offer | "Vincula tu lead magnet con una oferta core" (0.76) |
+
+---
+
+## Extending: adding a new provider
+
+1. Create `application/suggestions/providers/{module}.py` implementing `SuggestionProvider`.
+2. In `registry.py::_bootstrap_builtin(engine)`, add `engine.register(NewProvider())`.
+3. Set `provider_priority: int` for deterministic tie-breaking.
+4. Tests in `tests/modules/copilot/suggestions/test_{module}_suggestion_provider.py`.
+5. No changes to `engine.py` or `registry.py` interface (closed for modification, open for extension).
+
+---
+
+## Future options (PI-2 S2+)
 
 ### Option B — tool-driven (LLM emits suggestions)
 
-The LLM is instructed (via skill) to emit up to 5 `Suggestion` objects as part
-of its response metadata. Surfaced in `message_end.metadata.suggestions`.
+The LLM emits up to 5 `Suggestion` objects as response metadata in `message_end.metadata.suggestions`.
+Higher context-awareness at token cost per message.
 
-FE reads from the last message's metadata:
-
-```ts
-function useSuggestions(conversationId) {
-  const lastMessage = useLastMessage(conversationId);
-  return lastMessage?.metadata?.suggestions ?? [];
-}
-```
-
-**Pros:** context-aware, zero extra call.
-**Cons:** tokens cost per message; LLM might forget; less predictable latency
-(FE must wait for `message_end`).
+**Status:** not built. Backlog PI-2 S2+ if heuristic insufficient.
 
 ### Option C — new SSE event
 
-After `done`, orchestrator emits `suggestions_ready` with a `SuggestionsPayload`.
-Computed by a fast heuristic post-hoc.
+After `done`, orchestrator emits `suggestions_ready` SSE event (post-hoc, no latency impact).
 
-**Pros:** doesn't block `done`; can be computed async.
-**Cons:** new event to maintain; adds SSE surface.
+**Status:** not built. Backlog if Option B latency unacceptable.
 
-### Hybrid (most likely final state)
+### Hybrid (most likely long-term)
 
-- Heuristic (A) as default and fallback.
-- LLM-driven (B) for routes where conversation quality matters (brand audit,
-  offer design).
-- SSE event (C) if latency of B becomes a user-visible issue.
+- Option A (heuristic) as default/fallback.
+- Option B (LLM-driven) for brand audit / offer design routes.
+- Option C (SSE async) if Option B latency causes UX issues.
 
 ---
 
-## Stub implementation spec
+## Observability
 
-```ts
-// frontend/src/features/copilot/hooks/use-suggestions.ts
-// [COPILOT-SUGGESTIONS-ENGINE] → docs/domains/copilot/suggestions-engine.md
+Trace events written to `copilot_trace_event` via existing subscriber pattern:
 
-import { useMemo, useState } from "react";
-import type { Suggestion } from "../types/suggestions";
-import { usePathname } from "next/navigation";
+| event_type | name column | data JSONB |
+|---|---|---|
+| `suggestion_shown` | `current_route` | `{suggestion_ids, provider_breakdown, latency_ms}` |
+| `suggestion_accepted` | `source_module` | `{suggestion_id, category}` |
 
-const STUBS_BY_ROUTE: Record<string, Suggestion[]> = {
-  "brand-studio": [
-    { id: "stub-brand-audit", label: "Audita mi identidad", prompt: "Audita mi identidad actual y dime qué mejorar." },
-    { id: "stub-brand-tagline", label: "Mejora mi tagline", prompt: "Propón 3 alternativas para mi tagline actual." },
-    { id: "stub-brand-voice", label: "Revisa mi tono de voz", prompt: "Revisa mi tono de voz y sugiéreme ajustes." },
-  ],
-  "offer-studio": [
-    { id: "stub-offer-ladder", label: "Arma mi escalera de oferta", prompt: "Ayúdame a armar mi escalera de oferta completa." },
-    { id: "stub-offer-price", label: "Revisa mis precios", prompt: "Revisa mis precios y dime si tiene sentido el salto entre tiers." },
-    { id: "stub-offer-copy", label: "Propón copy para mi oferta flagship", prompt: "Propón copy para la oferta principal del catálogo." },
-  ],
-  // ... other routes
-  default: [
-    { id: "stub-default-help", label: "¿Qué puedes hacer?", prompt: "¿Qué tareas puedes ayudarme a resolver?" },
-    { id: "stub-default-start", label: "¿Por dónde empiezo?", prompt: "Soy nuevo. Sugiéreme por dónde empezar." },
-  ],
-};
-
-export function useSuggestions(conversationId: string | null) {
-  const pathname = usePathname();
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const suggestions = useMemo(() => {
-    const routeKey = pathname?.split("/")[2] ?? "default";
-    return STUBS_BY_ROUTE[routeKey] ?? STUBS_BY_ROUTE.default;
-  }, [pathname, refreshKey, conversationId]);
-
-  return {
-    suggestions,
-    isLoading: false,
-    refresh: () => setRefreshKey((k) => k + 1),
-  };
-}
-```
-
----
-
-## Migration from stub → real
-
-When real engine lands:
-
-1. Replace `useSuggestions` implementation to fetch from BE (option A) or read
-   message metadata (option B) or subscribe to SSE (option C).
-2. Keep the hook signature unchanged.
-3. Keep `Suggestion` interface unchanged.
-4. Components using `useSuggestions` (SlashCommandAutocomplete,
-   SuggestedActions) require zero edits.
-
----
-
-## Testing
-
-### Stub testing
-
-- Snapshot test: given route X, returns the expected chips.
-- `refresh()` triggers a re-compute (useState invalidation).
-
-### Real engine testing
-
-- Contract test: response shape conforms to `SuggestionsPayload`.
-- Integration: after N messages, the hook returns 3–5 chips.
-- E2E smoke: clicking a chip fills the input with its `prompt`.
+Both are best-effort (DB failure -> structlog warning, no exception propagation).
+PII: sanitized via `sanitize_payload()` before persist.
 
 ---
 
 ## See also
 
-- [CONTRACT-MULTIMODAL.md §11](./CONTRACT-MULTIMODAL.md#11-smart-chips-contract-stub).
-- `frontend/src/features/copilot/components/SlashCommandAutocomplete.tsx` —
-  consumer today (slash commands).
-- `frontend/src/features/copilot/components/SuggestedActions.tsx` — future
-  consumer.
+- `frontend/src/features/copilot/types/suggestions.ts` — FE locked TS interface (SSoT FE shape).
+- `frontend/src/features/copilot/hooks/use-suggestions.ts` — stub hook (swap target for FE next PR).
+- `CONTRACT.md` §18 — resolved design decisions (D1-D4).
+- `IMPL-LOG.md` — implementation diary.

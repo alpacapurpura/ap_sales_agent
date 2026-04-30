@@ -77,3 +77,16 @@ _Pendiente captura entrevistas users actuales._
 |---|---|---|
 | 2026-04 | Schema introspection, no hardcode fields | Resiliencia a cambios brand/offer schemas |
 | 2026-04 | Route-based tool selection | Reducir surface attack + foco contextual |
+| 2026-04-29 | Suggestion engine heuristico (no LLM ranking) | Latencia <10ms, costo cero. LLM ranking = backlog SI motor heuristico no alcanza (PI-2 S2+) |
+| 2026-04-29 | Persistencia suggestions via copilot_trace_event (no tabla nueva) | Zero migracion. ML feedback loop = backlog PI-2 S2+, migrar si volumen lo justifica |
+| 2026-04-29 | provider_priority: int per provider (tiebreak explicito) | Orden opaco fragil cuando lleguen brand/copilot/SA providers; peso explicito = A/B-testable |
+
+## Capacidades actuales
+
+- **Suggestion engine + provider registry** (BE motor): ranking heuristico, route-scoped providers, observability via `copilot_trace_event(event_type=suggestion_shown|suggestion_accepted)`. Inicial: `OfferSuggestionProvider` (preset-flag-driven). Surface FE smart-chips = PR siguiente (FE swap del stub `useSuggestions`).
+  - Introducida: PR-2 (PI-2, S1, 2026-04-29)
+  - Estado: BE motor live, FE consumiendo stub aun
+  - Operable copilot: indirecto (alimenta smart chips bajo input chat)
+  - Providers registrados: `offer` (route `offer-studio`, priority 0)
+  - Providers pendientes: brand, sales_agent, copilot (PRs siguientes)
+  - Heuristic rules: 6 reglas (no offers -> create chip; high_ticket -> pricing; recurring_billing -> billing; is_lead_magnet -> link core; incomplete promise.headline -> variants; lead_magnet sin core -> link)

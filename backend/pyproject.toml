@@ -205,6 +205,12 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "PERF401", # loop-based appends clearer than comprehensions in test setup
     "FBT003",  # boolean positional args in mocks/decorators are idiomatic
     "C901",    # arch tests parse AST — natural complexity. Refactor candidates tracked separately.
+    "TC001",   # inline imports inside test functions are valid isolation pattern
+    "TC002",   # same — third-party inline test imports
+    "TC003",   # same — stdlib inline test imports
+    "RUF059",  # unpacked variable in test assertions is fine
+    "E741",    # ambiguous variable names acceptable in test assertions
+    "I001",    # import sort inside function bodies is acceptable in tests
 ]
 "src/tests/**/*.py" = [
     "S101", "ARG", "PT", "PLR2004", "T201", "N806", "DTZ011", "PLR0912",
