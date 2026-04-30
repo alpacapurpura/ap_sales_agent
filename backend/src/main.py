@@ -44,6 +44,17 @@ from src.modules.brand.api import sections as brand_sections
 # 2. Brand
 from src.modules.brand.api import style as brand_style
 
+# 19. Campaigns (PI-1 S1 PR-4)
+from src.modules.campaigns.api.routers import (
+    campaigns_router as campaigns_campaigns_router,
+)
+from src.modules.campaigns.api.routers import (
+    segments_router as campaigns_segments_router,
+)
+from src.modules.campaigns.api.routers import (
+    templates_router as campaigns_templates_router,
+)
+
 # 14. Commercial Calendar
 from src.modules.commercial_calendar.api import events as calendar_events
 from src.modules.connections.api import calendar as conn_calendar
@@ -996,6 +1007,28 @@ app.include_router(
     business_types_catalog_router.router,
     prefix="/api/v1/catalogs/business-types",
     tags=["Catalogs - Business Types"],
+)
+
+# 19. Campaigns (PI-1 S1 PR-4) — campaigns + segments + templates
+# Routers declare their own prefix (/campaigns, /segments, /templates).
+# Mounted at /api/v1 so routes resolve to /api/v1/campaigns/, etc.
+app.include_router(
+    campaigns_campaigns_router,
+    prefix="/api/v1",
+    tags=["Campaigns"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    campaigns_segments_router,
+    prefix="/api/v1",
+    tags=["Segments"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    campaigns_templates_router,
+    prefix="/api/v1",
+    tags=["Campaign Templates"],
+    dependencies=[Depends(get_tenant_context)],
 )
 
 
