@@ -161,5 +161,7 @@ def _is_async_session(session: Any) -> bool:  # noqa: ANN401
         return False
 
 
-# Module-level singleton used by the legacy shim
+# Module-level singleton used by the legacy shim and by emitter imports.
+# Exposed as public alias so callers can: ``from ... import adapter_bus as EventBus``
 _adapter_instance = EventBusAdapter()
+adapter_bus: EventBusAdapter = _adapter_instance
