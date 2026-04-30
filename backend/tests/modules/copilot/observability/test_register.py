@@ -137,7 +137,7 @@ def test_register_persists_routing_decided(fake_repo_factory) -> None:
         tenant_id=uuid4(),
         conversation_id=uuid4(),
         message_id=uuid4(),
-        tier_selected="HIGH",
+        role_selected="agent",
         classifier_used="rule",
         reason="x",
         confidence=None,

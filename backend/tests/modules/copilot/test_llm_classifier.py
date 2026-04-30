@@ -3,7 +3,7 @@
 The LLM classifier is consulted *only* when the rule classifier returns
 ``None`` (no regex match). It calls ``ModelRole.NANO`` with a structured-output
 prompt and returns a ``RoutingDecision`` only when confidence ≥ threshold —
-otherwise returns ``None`` so the chain falls through to ``policy.default_tier``.
+otherwise returns ``None`` so the chain falls through to ``policy.default_role``.
 
 # [COPILOT-LLM-CLASSIFIER-F8] -> docs/domains/copilot/redesign-2026-04/phases/F8-routing-cost-optim.md
 """
@@ -19,7 +19,7 @@ from src.modules.copilot.application.router.classifiers.llm_classifier import (
     LLMClassifier,
 )
 from src.modules.copilot.application.router.model_router import RoutingRequest
-from src.modules.copilot.domain.model_tier import ModelTier
+from src.core.enums import ModelRole
 from src.modules.copilot.domain.routing_policy import (
     DEFAULT_ROUTING_POLICY,
     ClassifierType,
@@ -43,58 +43,58 @@ def _request(msg: str = "diseñame una landing para ofertón abril") -> RoutingR
 class TestLLMClassifierReturnsDecision:
     def test_returns_reasoning_decision_when_high_confidence(self) -> None:
         llm = _StubLLM(
-            response_content='{"tier": "reasoning", "confidence": 0.92, "reason": "needs_step_by_step_reasoning"}',
+            response_content='{"role": "reasoning", "confidence": 0.92, "reason": "needs_step_by_step_reasoning"}',
         )
         classifier = LLMClassifier(DEFAULT_ROUTING_POLICY, llm=llm)
 
         decision = classifier.classify(_request())
 
         assert decision is not None
-        assert decision.tier == ModelTier.REASONING
+        assert decision.role == ModelRole.REASONING
         assert decision.classifier_used == ClassifierType.LLM
         assert decision.confidence == 0.92
         assert decision.reason == "needs_step_by_step_reasoning"
-        assert decision.fallback_tier == ModelTier.MINI
+        assert decision.fallback_role == ModelRole.FAST
 
     def test_returns_heavy_decision(self) -> None:
         llm = _StubLLM(
-            response_content='{"tier": "heavy", "confidence": 0.81, "reason": "complex_audit"}',
+            response_content='{"role": "agent", "confidence": 0.81, "reason": "complex_audit"}',
         )
         classifier = LLMClassifier(DEFAULT_ROUTING_POLICY, llm=llm)
 
         decision = classifier.classify(_request())
 
         assert decision is not None
-        assert decision.tier == ModelTier.HEAVY
+        assert decision.role == ModelRole.AGENT
 
     def test_returns_nano_decision(self) -> None:
         llm = _StubLLM(
-            response_content='{"tier": "nano", "confidence": 0.78, "reason": "trivial_ack"}',
+            response_content='{"role": "nano", "confidence": 0.78, "reason": "trivial_ack"}',
         )
         classifier = LLMClassifier(DEFAULT_ROUTING_POLICY, llm=llm)
 
         decision = classifier.classify(_request("ok gracias"))
 
         assert decision is not None
-        assert decision.tier == ModelTier.NANO
+        assert decision.role == ModelRole.NANO
 
     def test_accepts_fenced_json_response(self) -> None:
         """LLM may wrap output in ```json fences — parser must tolerate."""
         llm = _StubLLM(
-            response_content='```json\n{"tier": "mini", "confidence": 0.85, "reason": "default_chat"}\n```',
+            response_content='```json\n{"role": "fast", "confidence": 0.85, "reason": "default_chat"}\n```',
         )
         classifier = LLMClassifier(DEFAULT_ROUTING_POLICY, llm=llm)
 
         decision = classifier.classify(_request())
 
         assert decision is not None
-        assert decision.tier == ModelTier.MINI
+        assert decision.role == ModelRole.FAST
 
 
 class TestLLMClassifierReturnsNone:
     def test_returns_none_when_confidence_below_threshold(self) -> None:
         llm = _StubLLM(
-            response_content='{"tier": "reasoning", "confidence": 0.40, "reason": "low_signal"}',
+            response_content='{"role": "reasoning", "confidence": 0.40, "reason": "low_signal"}',
         )
         classifier = LLMClassifier(DEFAULT_ROUTING_POLICY, llm=llm, threshold=0.7)
 
@@ -102,7 +102,7 @@ class TestLLMClassifierReturnsNone:
 
     def test_returns_none_when_threshold_higher(self) -> None:
         llm = _StubLLM(
-            response_content='{"tier": "reasoning", "confidence": 0.65, "reason": "ok"}',
+            response_content='{"role": "reasoning", "confidence": 0.65, "reason": "ok"}',
         )
         classifier = LLMClassifier(DEFAULT_ROUTING_POLICY, llm=llm, threshold=0.7)
 
@@ -133,7 +133,7 @@ class TestLLMClassifierReturnsNone:
         assert classifier.classify(_request()) is None
 
     def test_returns_none_on_missing_confidence_field(self) -> None:
-        llm = _StubLLM(response_content='{"tier": "reasoning", "reason": "no_conf"}')
+        llm = _StubLLM(response_content='{"role": "reasoning", "reason": "no_conf"}')
         classifier = LLMClassifier(DEFAULT_ROUTING_POLICY, llm=llm)
 
         assert classifier.classify(_request()) is None
@@ -141,7 +141,7 @@ class TestLLMClassifierReturnsNone:
 
 class TestLLMClassifierDefaultsAndContract:
     def test_default_threshold_is_seven_tenths(self) -> None:
-        classifier = LLMClassifier(DEFAULT_ROUTING_POLICY, llm=_StubLLM('{"tier":"mini","confidence":0.7,"reason":""}'))
+        classifier = LLMClassifier(DEFAULT_ROUTING_POLICY, llm=_StubLLM('{"role":"fast","confidence":0.7,"reason":""}'))
 
         assert classifier.threshold == pytest.approx(0.7)
 
@@ -158,7 +158,7 @@ class TestLLMClassifierDefaultsAndContract:
         class CapturingLLM:
             def invoke(self, messages: list) -> AIMessage:
                 captured.append(messages)
-                return AIMessage(content='{"tier":"mini","confidence":0.9,"reason":"ok"}')
+                return AIMessage(content='{"role":"fast","confidence":0.9,"reason":"ok"}')
 
         classifier = LLMClassifier(DEFAULT_ROUTING_POLICY, llm=CapturingLLM())
         classifier.classify(_request("revisá mi landing"))

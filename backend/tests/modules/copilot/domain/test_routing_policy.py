@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.modules.copilot.domain.model_tier import ModelTier
+from src.core.enums import ModelRole
 from src.modules.copilot.domain.routing_policy import (
     DEFAULT_ROUTING_POLICY,
     ClassifierType,
@@ -29,7 +29,7 @@ class TestRoutingRule:
         """RoutingRule cannot be mutated after creation."""
         rule = RoutingRule(
             pattern=r".*",
-            tier=ModelTier.NANO,
+            role=ModelRole.NANO,
             reason="test",
             priority=99,
         )
@@ -38,7 +38,7 @@ class TestRoutingRule:
 
     def test_defaults_are_none_or_empty(self) -> None:
         """Optional fields default to None/empty."""
-        rule = RoutingRule(pattern=r".*", tier=ModelTier.MINI, reason="x", priority=50)
+        rule = RoutingRule(pattern=r".*", role=ModelRole.FAST, reason="x", priority=50)
         assert rule.min_msg_length is None
         assert rule.max_msg_length is None
         assert rule.max_tools is None
@@ -50,13 +50,13 @@ class TestDefaultRoutingPolicy:
 
     def test_default_tier_is_mini(self) -> None:
         """Default tier (no rule matches) is MINI per CONTRACT §2.2."""
-        assert DEFAULT_ROUTING_POLICY.default_tier == ModelTier.MINI
+        assert DEFAULT_ROUTING_POLICY.default_role == ModelRole.FAST
 
     def test_all_rule_tiers_are_valid(self) -> None:
-        """Every rule references a real ModelTier."""
-        valid_tiers = set(ModelTier)
+        """Every rule references a real ModelRole."""
+        valid_tiers = set(ModelRole)
         for rule in DEFAULT_ROUTING_POLICY.rules:
-            assert rule.tier in valid_tiers, f"Rule tier {rule.tier!r} not in ModelTier"
+            assert rule.role in valid_tiers, f"Rule tier {rule.role!r} not in ModelRole"
 
     def test_rules_sorted_by_priority(self) -> None:
         """Rules are sorted ascending by priority."""
@@ -65,17 +65,17 @@ class TestDefaultRoutingPolicy:
 
     def test_has_heavy_rules(self) -> None:
         """At least one rule targets HEAVY tier."""
-        heavy_rules = [r for r in DEFAULT_ROUTING_POLICY.rules if r.tier == ModelTier.HEAVY]
+        heavy_rules = [r for r in DEFAULT_ROUTING_POLICY.rules if r.role == ModelRole.AGENT]
         assert len(heavy_rules) >= 1
 
     def test_has_reasoning_rules(self) -> None:
         """At least one rule targets REASONING tier."""
-        reasoning_rules = [r for r in DEFAULT_ROUTING_POLICY.rules if r.tier == ModelTier.REASONING]
+        reasoning_rules = [r for r in DEFAULT_ROUTING_POLICY.rules if r.role == ModelRole.REASONING]
         assert len(reasoning_rules) >= 1
 
     def test_has_nano_rule(self) -> None:
         """At least one rule targets NANO tier."""
-        nano_rules = [r for r in DEFAULT_ROUTING_POLICY.rules if r.tier == ModelTier.NANO]
+        nano_rules = [r for r in DEFAULT_ROUTING_POLICY.rules if r.role == ModelRole.NANO]
         assert len(nano_rules) >= 1
 
     def test_short_msg_no_tools_nano_rule_exists(self) -> None:
@@ -87,7 +87,7 @@ class TestDefaultRoutingPolicy:
         priorities still win when intent demands more capability.
         """
         nano_short = [
-            r for r in DEFAULT_ROUTING_POLICY.rules if r.tier == ModelTier.NANO and r.max_msg_length is not None
+            r for r in DEFAULT_ROUTING_POLICY.rules if r.role == ModelRole.NANO and r.max_msg_length is not None
         ]
         assert len(nano_short) >= 1
         rule = nano_short[0]

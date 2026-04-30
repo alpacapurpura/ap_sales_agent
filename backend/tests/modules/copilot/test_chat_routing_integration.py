@@ -20,7 +20,7 @@ import pytest
 
 from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
 from src.modules.copilot.domain.events import EVENT_ROUTING_DECIDED
-from src.modules.copilot.domain.model_tier import ModelTier
+from src.core.enums import ModelRole
 from src.modules.copilot.domain.routing_policy import (
     ClassifierType,
     RoutingDecision,
@@ -90,11 +90,11 @@ class TestRecordRoutingDecision:
         conv_id = uuid4()
         msg_id = uuid4()
         decision = RoutingDecision(
-            tier=ModelTier.MINI,
+            role=ModelRole.FAST,
             reason="rule:short_msg",
             confidence=0.92,
             classifier_used=ClassifierType.RULE,
-            fallback_tier=ModelTier.MINI,
+            fallback_role=ModelRole.FAST,
         )
         router = _StubRouter(decision)
 
@@ -114,7 +114,7 @@ class TestRecordRoutingDecision:
         assert len(rows) == 1
         row = rows[0]
         assert row.message_id == msg_id
-        assert row.tier_selected == "mini"
+        assert row.role_selected == "fast"
         assert row.classifier_used == "rule"
         assert row.reason == "rule:short_msg"
         assert float(row.confidence) == pytest.approx(0.92)
@@ -125,7 +125,7 @@ class TestRecordRoutingDecision:
         # copilot_trace_event.
         assert len(routing_events) == 1
         ev = routing_events[0]
-        assert ev.payload["tier"] == "mini"
+        assert ev.payload["role"] == "fast"
         assert ev.payload["classifier"] == "rule"
         assert ev.payload["confidence"] == "0.92"
 
@@ -135,11 +135,11 @@ class TestRecordRoutingDecision:
         db: Session,
     ) -> None:
         decision = RoutingDecision(
-            tier=ModelTier.NANO,
+            role=ModelRole.NANO,
             reason="default_short",
             confidence=None,
             classifier_used=ClassifierType.DEFAULT,
-            fallback_tier=ModelTier.MINI,
+            fallback_role=ModelRole.FAST,
         )
         router = _StubRouter(decision)
 
@@ -188,11 +188,11 @@ class TestRecordRoutingDecision:
     ) -> None:
         tenant_id = uuid4()
         decision = RoutingDecision(
-            tier=ModelTier.MINI,
+            role=ModelRole.FAST,
             reason="no_rule_matched",
             confidence=None,
             classifier_used=ClassifierType.DEFAULT,
-            fallback_tier=ModelTier.MINI,
+            fallback_role=ModelRole.FAST,
         )
         router = _StubRouter(decision)
 

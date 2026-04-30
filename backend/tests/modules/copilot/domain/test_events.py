@@ -150,7 +150,7 @@ class TestRoutingDecided:
             tenant_id=tenant,
             conversation_id=conv,
             message_id=msg,
-            tier_selected="HIGH",
+            role_selected="agent",
             classifier_used="rule",
             reason="long_message",
             confidence=Decimal("0.85"),
@@ -161,7 +161,7 @@ class TestRoutingDecided:
         assert event.event_name == EVENT_ROUTING_DECIDED
         assert event.payload["conversation_id"] == str(conv)
         assert event.payload["message_id"] == str(msg)
-        assert event.payload["tier"] == "HIGH"
+        assert event.payload["role"] == "agent"
         assert event.payload["classifier"] == "rule"
         assert event.payload["reason"] == "long_message"
         assert event.payload["confidence"] == "0.85"
@@ -173,7 +173,7 @@ class TestRoutingDecided:
             tenant_id=uuid4(),
             conversation_id=uuid4(),
             message_id=uuid4(),
-            tier_selected="LOW",
+            role_selected="nano",
             classifier_used="llm",
             reason="ambiguous",
             confidence=None,

@@ -31,7 +31,7 @@ import pytest
 
 from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
 from src.modules.copilot.domain.events import EVENT_ROUTING_DECIDED
-from src.modules.copilot.domain.model_tier import ModelTier
+from src.core.enums import ModelRole
 from src.modules.copilot.domain.routing_policy import (
     ClassifierType,
     RoutingDecision,
@@ -77,13 +77,13 @@ def _state(*, current_route: str | None = "/dashboard", guided_mode: bool = Fals
     }
 
 
-def _decision(tier: ModelTier = ModelTier.MINI) -> RoutingDecision:
+def _decision(role: ModelRole = ModelRole.FAST) -> RoutingDecision:
     return RoutingDecision(
-        tier=tier,
+        role=role,
         reason="test_decision",
         confidence=0.85,
         classifier_used=ClassifierType.LLM,
-        fallback_tier=ModelTier.MINI,
+        fallback_role=ModelRole.FAST,
     )
 
 
@@ -127,7 +127,7 @@ class TestRecordRoutingDecisionAsync:
         tenant_id = uuid4()
         conv_id = uuid4()
         msg_id = uuid4()
-        router = _SlowRouter(_decision(ModelTier.REASONING), delay_s=0.05)
+        router = _SlowRouter(_decision(role=ModelRole.REASONING), delay_s=0.05)
 
         await orchestrator._record_routing_decision_async(
             tenant_id=tenant_id,
@@ -145,12 +145,12 @@ class TestRecordRoutingDecisionAsync:
         assert len(rows) == 1
         row = rows[0]
         assert row.message_id == msg_id
-        assert row.tier_selected == "reasoning"
+        assert row.role_selected == "reasoning"
         assert row.classifier_used == "llm"
         # The orchestrator publishes a RoutingDecided event for the
         # observability subscriber (no direct recorder call anymore).
         assert len(routing_events) == 1
-        assert routing_events[0].payload["tier"] == "reasoning"
+        assert routing_events[0].payload["role"] == "reasoning"
         assert routing_events[0].payload["classifier"] == "llm"
 
     @pytest.mark.asyncio
@@ -223,7 +223,7 @@ class TestRecordRoutingDecisionAsync:
         tenant_id = uuid4()
         conv_id = uuid4()
         msg_id = uuid4()
-        router = _SlowRouter(_decision(ModelTier.HEAVY), delay_s=0.3)
+        router = _SlowRouter(_decision(role=ModelRole.AGENT), delay_s=0.3)
 
         routing = asyncio.create_task(
             orchestrator._record_routing_decision_async(
@@ -246,7 +246,7 @@ class TestRecordRoutingDecisionAsync:
         assert len(rows) == 1
         row = rows[0]
         assert row.message_id == msg_id, "message_id wired incorrectly"
-        assert row.tier_selected == "heavy", "tier wiring drifted"
+        assert row.role_selected == "agent", "tier wiring drifted"
         assert row.classifier_used == "llm"
         assert row.tools_available is not None and row.tools_available >= 0
         assert row.user_msg_length > 0

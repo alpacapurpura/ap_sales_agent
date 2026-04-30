@@ -71,7 +71,7 @@ class TestListConversations:
             mock_conv.updated_at = "2026-04-21T00:00:00Z"
             mock_conv.message_count = 4
             mock_conv.total_tokens = 1200
-            mock_conv.last_tier_used = "mini"
+            mock_conv.last_tier_used = "fast"
             mock_conv.procedure_state = None
             mock_conv.archived_at = None
 

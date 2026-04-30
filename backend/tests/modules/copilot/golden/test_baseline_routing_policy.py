@@ -16,15 +16,15 @@ from tests.modules.copilot.golden.conftest import assert_matches_golden
 
 def test_routing_policy_shape_matches_baseline() -> None:
     snapshot = {
-        "default_tier": DEFAULT_ROUTING_POLICY.default_tier.value,
+        "default_role": DEFAULT_ROUTING_POLICY.default_role.value,
         "rule_count": len(DEFAULT_ROUTING_POLICY.rules),
         "rules": [
             {
                 # Use only stable, public attributes — internal fields stay free
                 # to evolve without forcing the snapshot to churn.
                 "name": getattr(rule, "name", None),
-                "target_tier": getattr(rule, "target_tier", None).value
-                if getattr(rule, "target_tier", None) is not None
+                "target_role": getattr(rule, "target_role", None).value
+                if getattr(rule, "target_role", None) is not None
                 else None,
                 "intent_kinds": sorted(getattr(rule, "intent_kinds", ()) or ()),
                 "route_prefixes": sorted(getattr(rule, "route_prefixes", ()) or ()),

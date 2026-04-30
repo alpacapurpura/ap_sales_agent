@@ -1,48 +1,48 @@
 {
-  "default_tier": "mini",
+  "default_role": "fast",
   "rule_count": 7,
   "rules": [
     {
       "intent_kinds": [],
       "name": null,
       "route_prefixes": [],
-      "target_tier": null
+      "target_role": null
     },
     {
       "intent_kinds": [],
       "name": null,
       "route_prefixes": [],
-      "target_tier": null
+      "target_role": null
     },
     {
       "intent_kinds": [],
       "name": null,
       "route_prefixes": [],
-      "target_tier": null
+      "target_role": null
     },
     {
       "intent_kinds": [],
       "name": null,
       "route_prefixes": [],
-      "target_tier": null
+      "target_role": null
     },
     {
       "intent_kinds": [],
       "name": null,
       "route_prefixes": [],
-      "target_tier": null
+      "target_role": null
     },
     {
       "intent_kinds": [],
       "name": null,
       "route_prefixes": [],
-      "target_tier": null
+      "target_role": null
     },
     {
       "intent_kinds": [],
       "name": null,
       "route_prefixes": [],
-      "target_tier": null
+      "target_role": null
     }
   ]
 }

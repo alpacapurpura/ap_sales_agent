@@ -26,27 +26,13 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
-KNOWN_LEGACY_LLM_FILES: set[str] = {
-    "src/modules/copilot/domain/model_tier.py",
-    "src/modules/copilot/domain/routing_policy.py",
-    "src/modules/copilot/domain/skills/skill_metadata.py",
-    "src/modules/copilot/domain/hooks/copilot_events.py",
-    "src/modules/copilot/domain/ports.py",
-    "src/modules/copilot/application/router/model_router.py",
-    "src/modules/copilot/application/router/classifiers/llm_classifier.py",
-    "src/modules/copilot/application/router/classifiers/rule_classifier.py",
-    "src/modules/copilot/application/router/__init__.py",
-    "src/modules/copilot/application/memory/rolling_summarizer.py",
-    "src/modules/copilot/application/memory/title_generator.py",
-    "src/modules/copilot/api/conversation_dto.py",
-    "src/modules/copilot/infrastructure/repositories/routing_log_repository.py",
-    "src/modules/copilot/infrastructure/models/routing_log_model.py",
-    "src/modules/copilot/infrastructure/llm/__init__.py",
-    "src/modules/copilot/infrastructure/llm/model_config.py",
-    "src/modules/copilot/infrastructure/llm/provider_factory.py",
-    "src/modules/copilot/infrastructure/llm/providers/__init__.py",
-    "src/modules/copilot/infrastructure/llm/providers/deepseek.py",
-}
+KNOWN_LEGACY_LLM_FILES: set[str] = set()
+"""Allowlist post S3 PR-1 cleanup-modeltier-convergence — target 0 entries reached.
+
+ModelTier eliminado, capa duplicada `copilot/infrastructure/llm/` eliminada,
+todos los consumers convergidos a `ModelRole` SSoT. Allowlist ratchet shrink-only:
+si test detecta nuevo legacy → fix antes de allowlist.
+"""
 
 
 def _scan_for_pattern(pattern: re.Pattern[str], scope: Path) -> list[str]:

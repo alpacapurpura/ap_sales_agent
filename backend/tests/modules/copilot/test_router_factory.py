@@ -11,7 +11,7 @@ from src.modules.copilot.application.router import (
     RuleClassifier,
     build_default_router,
 )
-from src.modules.copilot.domain.model_tier import ModelTier
+from src.core.enums import ModelRole
 from src.modules.copilot.domain.routing_policy import (
     DEFAULT_ROUTING_POLICY,
     ClassifierType,
@@ -28,7 +28,7 @@ class _StubLLM:
 
 class TestBuildDefaultRouter:
     def test_chain_has_rule_then_llm_in_order(self) -> None:
-        router = build_default_router(llm=_StubLLM('{"tier":"mini","confidence":0.9,"reason":""}'))
+        router = build_default_router(llm=_StubLLM('{"role":"fast","confidence":0.9,"reason":""}'))
 
         assert isinstance(router, ModelRouter)
         # Access the private tuple — invariant test, intentional
@@ -59,12 +59,12 @@ class TestBuildDefaultRouter:
             RoutingRequest(user_msg="audita mi marca completa"),
         )
 
-        assert decision.tier == ModelTier.HEAVY
+        assert decision.role == ModelRole.AGENT
         assert decision.classifier_used == ClassifierType.RULE
 
     def test_llm_consulted_when_rule_defers(self) -> None:
         router = build_default_router(
-            llm=_StubLLM('{"tier":"reasoning","confidence":0.85,"reason":"compare_clean"}'),
+            llm=_StubLLM('{"role":"reasoning","confidence":0.85,"reason":"compare_clean"}'),
         )
 
         # Message that does NOT match any DEFAULT_ROUTING_POLICY rule.
@@ -73,12 +73,12 @@ class TestBuildDefaultRouter:
         )
 
         assert decision.classifier_used == ClassifierType.LLM
-        assert decision.tier == ModelTier.REASONING
+        assert decision.role == ModelRole.REASONING
 
     def test_default_fallback_when_both_defer(self) -> None:
         # LLM returns confidence below threshold → defers → ModelRouter default.
         router = build_default_router(
-            llm=_StubLLM('{"tier":"reasoning","confidence":0.20,"reason":"low"}'),
+            llm=_StubLLM('{"role":"reasoning","confidence":0.20,"reason":"low"}'),
         )
 
         decision = router.select(
@@ -86,7 +86,7 @@ class TestBuildDefaultRouter:
         )
 
         assert decision.classifier_used == ClassifierType.DEFAULT
-        assert decision.tier == DEFAULT_ROUTING_POLICY.default_tier
+        assert decision.role == DEFAULT_ROUTING_POLICY.default_role
 
     def test_short_msg_routes_nano_with_tools_available(self) -> None:
         """Short greeting matches NANO rule even when chat overlay exposes registry tools.
@@ -110,5 +110,5 @@ class TestBuildDefaultRouter:
         )
 
         assert decision.classifier_used == ClassifierType.RULE
-        assert decision.tier == ModelTier.NANO
+        assert decision.role == ModelRole.NANO
         assert decision.reason == "short_msg_no_tools"

@@ -34,7 +34,7 @@ class TestRoutingLogInsert:
             tenant_id=tenant_id,
             conversation_id=conv_id,
             message_id=msg_id,
-            tier_selected="mini",
+            role_selected="fast",
             classifier_used="rule",
             reason="keyword_compare_reason",
             confidence=0.92,
@@ -45,7 +45,7 @@ class TestRoutingLogInsert:
 
         assert row.id is not None
         assert row.tenant_id == tenant_id
-        assert row.tier_selected == "mini"
+        assert row.role_selected == "fast"
         assert row.classifier_used == "rule"
 
     def test_insert_confidence_none_allowed(self, repo, db, tenant_id) -> None:
@@ -54,7 +54,7 @@ class TestRoutingLogInsert:
             tenant_id=tenant_id,
             conversation_id=uuid4(),
             message_id=uuid4(),
-            tier_selected="nano",
+            role_selected="nano",
             classifier_used="default",
             reason="short_msg_no_tools",
             confidence=None,
@@ -74,7 +74,7 @@ class TestRoutingLogQuery:
             tenant_id=tenant_id,
             conversation_id=uuid4(),
             message_id=uuid4(),
-            tier_selected="mini",
+            role_selected="fast",
             classifier_used="rule",
             reason="test",
             confidence=0.8,
@@ -94,7 +94,7 @@ class TestRoutingLogQuery:
             tenant_id=other,
             conversation_id=uuid4(),
             message_id=uuid4(),
-            tier_selected="heavy",
+            role_selected="agent",
             classifier_used="llm",
             reason="test",
             confidence=0.5,
@@ -115,7 +115,7 @@ class TestRoutingLogQuery:
             tenant_id=tenant_id,
             conversation_id=conv_id,
             message_id=uuid4(),
-            tier_selected="mini",
+            role_selected="fast",
             classifier_used="rule",
             reason="test",
             confidence=0.7,
@@ -126,7 +126,7 @@ class TestRoutingLogQuery:
             tenant_id=tenant_id,
             conversation_id=other_conv,
             message_id=uuid4(),
-            tier_selected="nano",
+            role_selected="nano",
             classifier_used="default",
             reason="test2",
             confidence=None,
