@@ -259,6 +259,10 @@ def build_deep_agent_graph(
     if budget_guard is not None and tenant_id is not None:
         from src.shared.billing.application.llm_guards import BudgetGuardingChatModel
 
+        # type: ignore[assignment] — BudgetGuardingChatModel proxies BaseChatModel
+        # via __getattr__ for transparent .bind_tools / .with_structured_output
+        # delegation; mypy can't infer Protocol-like shape. Wrapper is verified
+        # via test_channel_router_registry_invariants + integration tests.
         llm = BudgetGuardingChatModel(  # type: ignore[assignment]
             inner=llm,
             budget_guard=budget_guard,

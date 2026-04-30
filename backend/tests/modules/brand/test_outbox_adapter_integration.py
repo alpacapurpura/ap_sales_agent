@@ -14,7 +14,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-import pytest  # noqa: TC002 — MonkeyPatch used in runtime function signatures
+import pytest
 
 from src.shared.domain_events.outbox.application.event_bus_adapter import (
     EventBusAdapter,
