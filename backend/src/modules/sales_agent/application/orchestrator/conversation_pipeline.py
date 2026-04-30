@@ -319,6 +319,10 @@ class ConversationPipeline:
         checkpoint: _Checkpoint | None,
         state_repo: StateRepository,
         budget_guard: BudgetGuard | None = None,  # PR-6: BudgetGuard injected here
+        # PR-7: outbound additive (defaults preserve inbound behavior)
+        campaign_id: UUID | None = None,
+        campaign_instructions: str | None = None,
+        outbound_mode: bool = False,
     ) -> tuple[dict, str | None]:
         """Build the AgentState dict consumed by ``agent_app.ainvoke``."""
         active_product, launch_stage = biz_repo.get_current_launch_product()
@@ -378,6 +382,10 @@ class ConversationPipeline:
             last_session_summary=last_session_summary,
             is_returning_user=session_state["is_returning_user"],
             _llm_service=guarded_llm_service,
+            # PR-7: outbound additive pass-through
+            campaign_id=campaign_id,
+            campaign_instructions=campaign_instructions,
+            outbound_mode=outbound_mode,
             **checkpoint_data,
         )
 
