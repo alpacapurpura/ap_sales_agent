@@ -39,7 +39,7 @@ Drift documented + decisión paralela a architect comunicada via REVIEW iteraci�
 
 1. **architect cite `BudgetRepositoryImpl` → no existe.** Resolución: helper redesigned caller-provided DI pattern (commit `d7fc7288`). Architectural seam ready, runtime wiring S4.
 2. **`@trace_node` DB writes en supervisor test** — requeriría `monkeypatch SessionLocal + AuditRepository` (matches existing pattern `tests/modules/sales_agent/orchestrator/test_node_tool_executor_dedup.py`). Sub-C unit test del supervisor evitó el pattern porque arch test (Sub-J) verifica branch presence via AST grep — más sustancialmente menos costoso que test runtime con DB mocks. Sub-J `test_supervisor_outbound_skip_branch_present` cubre invariant.
-3. **Sub-D corre paralelo en otra sesión** — `campaigns/infrastructure/external/sales_agent_adapter.py` + `campaigns/workers/execution_task.py` modificación NO está committed at Sub-K close. Hash TBD pendiente paralelo session.
+3. **Sub-D corre paralelo en otra sesión** — `campaigns/infrastructure/external/sales_agent_adapter.py` + `campaigns/workers/execution_task.py` modificación NO está committed at Sub-K close. Hash `ec446540`.
 
 ### Sub-deliverables completados
 
@@ -52,13 +52,13 @@ Drift documented + decisión paralela a architect comunicada via REVIEW iteraci�
 | Sub-E | `4a3b7383` | backend | `get_lead_telegram_id` + `_async` variant en `shared/links/ports/crm_repos.py` (lazy port pattern); Telegram channel router wirea CRM port (cierra DR-7 stub) |
 | Sub-F | `b308cbff` | backend | `_resolve_tenant_locale` real lookup `TenantModel.config_json["tenant_locale"]` con LRU cache 5min en `campaigns/infrastructure/channels/shared.py` (cierra placeholder DR-7) |
 | Sub-G | `d7fc7288` | backend | `get_guarded_llm_service(tenant_id, agent_kind, budget_guard, model_hint)` helper architectural seam — caller-provided DI pattern (NO `BudgetRepositoryImpl` runtime — esa clase no existe; redesign comunicado a architect) |
-| Sub-D | TBD pendiente paralelo session | backend | `campaigns/infrastructure/external/sales_agent_adapter.py` + `campaigns/workers/execution_task.py` step_type branch dispatch |
+| Sub-D | `ec446540` | backend | `campaigns/infrastructure/external/sales_agent_adapter.py` + `campaigns/workers/execution_task.py` step_type branch dispatch |
 | Sub-H | DEFERRED to S4 | — | quality_eval workers BudgetGuard wiring requiere proper async DI provider (no existe pre-S4) |
 | Sub-I | `db16ecc9` | agentic | `tests/quality/golden/test_voice_fidelity_outbound.py` ENV `SALES_AGENT_VOICE_FIDELITY_THRESHOLD` (default 0.7) + xfail S4 follow-up para outbound runner |
 | Sub-J | `f58016d7` | agentic | `tests/architecture/test_outbound_orchestrator_non_breaking.py` + `tests/architecture/test_campaign_state_additive.py` — 11 tests verde (no field removed, defaults present, supervisor branch AST verified) |
 | Sub-K | este commit | agentic | IMPL-LOG.md + current-state updates (sales-agent.md + campaigns.md + brand.md) |
 
-### Files affected (real count post-build, EXCLUYE Sub-D paralelo)
+### Files affected (real count post-build, EXCLUYE Sub-D `ec446540`)
 
 #### NEW source (3 archivos agentic + 0 Sub-D pendiente)
 
@@ -66,7 +66,7 @@ Drift documented + decisión paralela a architect comunicada via REVIEW iteraci�
 |---|---|---|
 | `backend/src/modules/sales_agent/application/orchestrator/outbound_orchestrator.py` | ~250 | Sub-B |
 | `backend/src/shared/billing/application/llm_guards.py` (helper added) | +50 (mod) | Sub-G |
-| `backend/src/modules/campaigns/infrastructure/external/sales_agent_adapter.py` | TBD | Sub-D paralelo |
+| `backend/src/modules/campaigns/infrastructure/external/sales_agent_adapter.py` | TBD | Sub-D `ec446540` |
 
 #### MODIFY source (committed agentic / backend)
 
@@ -79,7 +79,7 @@ Drift documented + decisión paralela a architect comunicada via REVIEW iteraci�
 | `backend/src/shared/links/ports/crm_repos.py` | Sub-E | +`get_lead_telegram_id` + async variant |
 | `backend/src/modules/campaigns/infrastructure/channels/telegram.py` | Sub-E | `_resolve_telegram_id` real CRM port wire |
 | `backend/src/modules/campaigns/infrastructure/channels/shared.py` | Sub-F | `_resolve_tenant_locale` real lookup + LRU cache 5min |
-| `backend/src/modules/campaigns/workers/execution_task.py` | Sub-D paralelo | TBD step_type branch dispatch |
+| `backend/src/modules/campaigns/workers/execution_task.py` | Sub-D `ec446540` | TBD step_type branch dispatch |
 
 #### NEW tests (committed)
 
@@ -143,11 +143,11 @@ Plus integration tests Sub-B (`test_outbound_orchestrator.py`) + Sub-C (`test_su
 - `4a3b7383` — feat(crm): PR-7 Sub-E lead_telegram_id port + Telegram channel wire
 - `b308cbff` — feat(campaigns): PR-7 Sub-F tenant locale real lookup + LRU cache
 - `d7fc7288` — feat(billing): PR-7 Sub-G get_guarded_llm_service helper (caller-provided DI)
-- TBD — feat(campaigns): PR-7 Sub-D SalesAgentAdapter + worker dispatch (paralelo session)
+- `ec446540` — feat(campaigns): PR-7 Sub-D SalesAgentAdapter + worker dispatch branch
 - `db16ecc9` — test(sales-agent): PR-7 Sub-I voice fidelity outbound golden
 - `f58016d7` — test(architecture): PR-7 Sub-J non-breaking + state additive arch gates
 - `<this commit>` — docs(pm): PR-7 IMPL-LOG.md + current-state updates (Sub-K)
 
 ---
 
-<!-- @pm: implementación PR-7 done (agentic + backend Sub-A→Sub-K). Sub-D paralelo session pending hash. Sub-G architectural seam shipped; brand wiring + quality_eval (Sub-H) DEFERRED to S4. Próximo paso: ejecutar prompts/03-auditor-start.md o ejecutar /pm "PR-7 builder done" para review. -->
+<!-- @pm: implementación PR-7 done (agentic + backend Sub-A→Sub-K). Sub-D `ec446540` session pending hash. Sub-G architectural seam shipped; brand wiring + quality_eval (Sub-H) DEFERRED to S4. Próximo paso: ejecutar prompts/03-auditor-start.md o ejecutar /pm "PR-7 builder done" para review. -->
