@@ -19,6 +19,9 @@ export interface ConversationListItem {
   unread_count: number;
   avatar_url: string | null;
   is_frozen: boolean;
+  // PR-8: optional campaign enrichment — populated when lead responded to a campaign
+  campaign_id?: string | null;
+  campaign_name?: string | null;
 }
 
 export interface ConversationListResponse {
@@ -54,6 +57,9 @@ export interface ConversationDetail {
   avatar_url: string | null;
   messages: MessageItem[];
   total_messages: number;
+  // PR-8: optional campaign enrichment — populated when lead responded to a campaign
+  campaign_id?: string | null;
+  campaign_name?: string | null;
 }
 
 // ── Action Types ────────────────────────────────────────────────────────

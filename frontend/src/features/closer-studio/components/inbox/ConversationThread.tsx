@@ -12,6 +12,7 @@ import { useConversationActions } from "../../hooks/use-conversation-actions";
 import { useConversationDetail } from "../../hooks/use-conversation-detail";
 import { useCloserStore } from "../../store/closer-store";
 
+import { CampaignTag } from "./CampaignTag";
 import { MessageBubble } from "./MessageBubble";
 import { MessageInput } from "./MessageInput";
 
@@ -90,6 +91,14 @@ export function ConversationThread({ leadId }: ConversationThreadProps) {
                 <span className="bg-muted px-1.5 py-0.5 rounded text-[10px]">
                   {detail.funnel_stage}
                 </span>
+              )}
+              {/* Campaign tag — PR-8 enrichment */}
+              {detail.campaign_id && detail.campaign_name && (
+                <CampaignTag
+                  campaignId={detail.campaign_id}
+                  campaignName={detail.campaign_name}
+                  variant="detail"
+                />
               )}
             </div>
           </div>
