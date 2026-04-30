@@ -68,8 +68,6 @@ def test_buyer_persona_defaults() -> None:
     )
     assert persona.tagline is None
     assert persona.psychographics == {}
-    assert persona.objections == []
-    assert persona.preferred_channels == []
     assert persona.buyer_journey == {}
     assert persona.purchase_triggers == []
     assert persona.anti_patterns == []

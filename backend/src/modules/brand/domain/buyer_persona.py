@@ -15,7 +15,7 @@ class BuyerPersona(BaseEntity):
 
     Replaces the lightweight Avatar with a structured, conversation-driven
     persona that captures demographics, psychographics, pain points,
-    desires, objections, channel preferences, and the full buyer journey.
+    desires, and the full buyer journey.
 
     Scope:
         GLOBAL  — applies to the entire brand
@@ -37,8 +37,6 @@ class BuyerPersona(BaseEntity):
     psychographics: dict = Field(default_factory=dict)
     pain_points: list[dict] = Field(default_factory=list)
     desires: list[dict] = Field(default_factory=list)
-    objections: list[dict] = Field(default_factory=list)
-    preferred_channels: list[dict] = Field(default_factory=list)
     buyer_journey: dict = Field(default_factory=dict)
     purchase_triggers: list[str] = Field(default_factory=list)
     anti_patterns: list[str] = Field(default_factory=list)

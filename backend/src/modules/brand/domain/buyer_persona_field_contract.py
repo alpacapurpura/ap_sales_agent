@@ -111,8 +111,6 @@ BUYER_PERSONA_SECTION_MAP: dict[str, str] = {
     # ── list[dict] surfaces (form-runtime CRUD; copilot can't propose) ─
     "pain_points": "pain_points",
     "desires": "desires",
-    "objections": "objections",
-    "preferred_channels": "channels",
     # ── list[str] surfaces (no UX hoy, contract-only) ────────────────
     "purchase_triggers": "triggers",
     "anti_patterns": "anti_patterns",
@@ -134,8 +132,6 @@ BUYER_PERSONA_FIELD_OVERRIDES: dict[str, Override] = {
     # ── list[dict] fields the copilot must not replace wholesale ─────
     "pain_points": Override(can_propose=False),
     "desires": Override(can_propose=False),
-    "objections": Override(can_propose=False),
-    "preferred_channels": Override(can_propose=False),
     # ── list[str] fields without UX surface today ────────────────────
     "purchase_triggers": Override(can_propose=False),
     "anti_patterns": Override(can_propose=False),

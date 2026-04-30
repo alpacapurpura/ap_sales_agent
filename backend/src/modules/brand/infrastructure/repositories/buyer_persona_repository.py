@@ -44,8 +44,6 @@ class BuyerPersonaRepository:
             psychographics=persona.psychographics,
             pain_points=persona.pain_points,
             desires=persona.desires,
-            objections=persona.objections,
-            preferred_channels=persona.preferred_channels,
             buyer_journey=persona.buyer_journey,
             purchase_triggers=persona.purchase_triggers,
             anti_patterns=persona.anti_patterns,

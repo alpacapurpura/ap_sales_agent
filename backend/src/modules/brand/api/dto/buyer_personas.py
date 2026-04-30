@@ -25,8 +25,6 @@ class BuyerPersonaSectionUpdateDTO(BaseModel):
     psychographics: dict[str, Any] | None = None
     pain_points: list[dict[str, Any]] | None = None
     desires: list[dict[str, Any]] | None = None
-    objections: list[dict[str, Any]] | None = None
-    preferred_channels: list[dict[str, Any]] | None = None
     buyer_journey: dict[str, Any] | None = None
     purchase_triggers: list[str] | None = None
     anti_patterns: list[str] | None = None
@@ -47,8 +45,6 @@ class BuyerPersonaResponseDTO(BaseModel):
     psychographics: dict[str, Any]
     pain_points: list[dict[str, Any]]
     desires: list[dict[str, Any]]
-    objections: list[dict[str, Any]]
-    preferred_channels: list[dict[str, Any]]
     buyer_journey: dict[str, Any]
     purchase_triggers: list[str]
     anti_patterns: list[str]

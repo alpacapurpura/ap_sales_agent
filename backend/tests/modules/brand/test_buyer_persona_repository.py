@@ -255,18 +255,6 @@ class TestBuyerPersonaRepository:
                     "priority": "high",
                 },
             ],
-            objections=[
-                {
-                    "objection": "Es caro",
-                    "root_cause": "No ve el ROI",
-                },
-            ],
-            preferred_channels=[
-                {
-                    "channel": "Instagram",
-                    "usage_pattern": "daily",
-                },
-            ],
             buyer_journey={
                 "awareness": "social media",
                 "decision": "webinar",

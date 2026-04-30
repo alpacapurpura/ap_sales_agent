@@ -30,8 +30,6 @@ class BuyerPersonaModel(Base):
     psychographics = Column(JSONB, nullable=False, default=dict)
     pain_points = Column(JSONB, nullable=False, default=list)
     desires = Column(JSONB, nullable=False, default=list)
-    objections = Column(JSONB, nullable=False, default=list)
-    preferred_channels = Column(JSONB, nullable=False, default=list)
     buyer_journey = Column(JSONB, nullable=False, default=dict)
     purchase_triggers = Column(JSONB, nullable=False, default=list)
     anti_patterns = Column(JSONB, nullable=False, default=list)
