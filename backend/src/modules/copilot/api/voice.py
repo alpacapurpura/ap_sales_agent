@@ -1,13 +1,20 @@
-"""Voice API — speech-to-text transcription and combined upload+transcribe endpoints.
+"""Voice API — combined upload+transcribe endpoint with rate limiting.
 
 # [COPILOT-VOICE-DUAL-MODE] → docs/domains/copilot/CONTRACT-MULTIMODAL.md §9
 
-Two endpoints:
-- POST /transcribe — legacy endpoint (STT only). Kept for backward-compat.
-- POST /upload-and-transcribe — new combined endpoint (D0.4 of the contract).
+Endpoints:
+- POST /transcribe — DEPRECATED legacy endpoint (STT only, backward-compat).
+  NOTE: frontend/src/features/copilot/api/voice-api.ts still calls this endpoint.
+  Removal blocked until FE migrates to /upload-and-transcribe (PI-2 S1 PR-1 blocker).
+  See IMPL-LOG.md for details.
+- POST /upload-and-transcribe — canonical combined endpoint (D0.4).
   Atomically stores the audio AND transcribes it. Returns a complete AudioBlock.
-  Both operations run concurrently (asyncio.gather) to minimize latency.
+  Rate-limited per tenant (copilot-voice scope, PI-2 S1 PR-1).
+
+PI-2 S1 PR-1: rate limit + dynamic media cap applied to /upload-and-transcribe.
 """
+
+from __future__ import annotations
 
 import asyncio
 import io
@@ -20,12 +27,20 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Up
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.core.rate_limit import check_rate_limit
 from src.modules.assets.application.assets_service import AssetsService
 from src.modules.copilot.api.voice_dto import (
     TranscriptionResponse,
     VoiceUploadAndTranscribeResponse,
 )
+from src.modules.copilot.application.services.limits_resolver import (
+    CopilotLimitsResolver,
+    EffectiveLimits,
+)
 from src.modules.copilot.domain.message_blocks import AudioBlock
+from src.modules.copilot.infrastructure.repositories.tenant_limits_repository import (
+    SyncCopilotTenantLimitsRepository,
+)
 from src.modules.copilot.infrastructure.voice.whisper_transcriber import (
     WhisperTranscriber,
 )
@@ -35,11 +50,29 @@ logger = structlog.get_logger()
 
 router = APIRouter(tags=["Copilot - Voice"])
 
-# Max audio file size for combined endpoint: 25 MB
-_MAX_AUDIO_BYTES = 25 * 1024 * 1024
+# Fallback constant (used when DB is unavailable and no env override)
+_DEFAULT_MAX_AUDIO_BYTES = 25 * 1024 * 1024
 
 
-# ── Legacy endpoint (backward-compat) ─────────────────────────────────────────
+# ── Dependency: resolve effective limits ───────────────────────────────────────
+
+
+async def _get_voice_limits(
+    current_user: Annotated[object, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> EffectiveLimits:
+    """DI: resolve effective voice+media limits for tenant (override > env default).
+
+    Uses sync repo + asyncio.to_thread to avoid blocking the event loop.
+    Graceful degradation: DB error → env defaults (CopilotLimitsResolver catches).
+    """
+    tenant_id: UUID = current_user.tenant_id  # type: ignore[attr-defined]
+    repo = SyncCopilotTenantLimitsRepository(db)
+    resolver = CopilotLimitsResolver(repo)
+    return await asyncio.to_thread(resolver.get_effective_sync, tenant_id)
+
+
+# ── Legacy endpoint (backward-compat — DEPRECATED) ───────────────────────────
 
 
 @router.post("/transcribe")
@@ -49,14 +82,15 @@ async def transcribe_audio(
 ) -> TranscriptionResponse:
     """Receive an audio blob and return transcribed text via Whisper.
 
-    Legacy endpoint kept for backward-compat. New code should use
-    /upload-and-transcribe for the full AudioBlock (url + transcript).
+    DEPRECATED: Kept for backward-compat while FE migrates to /upload-and-transcribe.
+    See IMPL-LOG.md §bloqueo-1 for removal plan (FE migration required first).
+    New code must use /upload-and-transcribe (full AudioBlock + rate limit enforced).
     """
     audio_bytes = await file.read()
     mime_type = file.content_type or "audio/webm"
 
     logger.info(
-        "voice_transcribe_request",
+        "voice_transcribe_legacy_request",
         tenant_id=str(tenant_id),
         file_name=file.filename,
         mime_type=mime_type,
@@ -73,7 +107,7 @@ async def transcribe_audio(
     )
 
 
-# ── Combined endpoint (D0.4 — atomic upload + transcribe) ─────────────────────
+# ── Combined endpoint (D0.4 — atomic upload + transcribe, rate-limited) ──────
 
 
 @router.post(
@@ -85,6 +119,7 @@ async def voice_upload_and_transcribe(
     background_tasks: BackgroundTasks,
     current_user: Annotated[object, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
+    limits: Annotated[EffectiveLimits, Depends(_get_voice_limits)],
 ) -> VoiceUploadAndTranscribeResponse:
     """Subir audio y transcribir en una sola llamada atómica.
 
@@ -92,22 +127,45 @@ async def voice_upload_and_transcribe(
     la latencia. Retorna un AudioBlock completo con url (reproducción) + transcript
     (accesibilidad).
 
+    Rate limit: por user_id en scope "copilot-voice". Configurable por env o per-tenant.
     Si el STT falla, ``block.transcript`` será una cadena vacía (no null).
     Si el upload falla, retorna 502 y ningún estado parcial es persistido.
 
     Raises:
-        413: Archivo excede 25 MB.
+        429: Rate limit excedido para este tenant/user.
+        413: Archivo excede el tamaño máximo configurado.
         502: Error de storage al subir el archivo.
     """
     tenant_id: UUID = current_user.tenant_id  # type: ignore[attr-defined]
+    user_id: str = str(current_user.id)  # type: ignore[attr-defined]
+
+    # ── Rate limit (before reading body to minimize waste) ─────────────────
+    try:
+        check_rate_limit(
+            user_id=user_id,
+            scope="copilot-voice",
+            max_requests=limits.voice_rpm,
+            window_seconds=limits.voice_window_seconds,
+        )
+    except Exception:
+        # Log rate limit hit (Q3: structlog only, no Prometheus in PR-1)
+        logger.warning(
+            "copilot_voice_rate_limit_hit",
+            tenant_id=str(tenant_id),
+            user_id=user_id,
+            effective_rpm=limits.voice_rpm,
+            is_override=limits.voice_rpm_is_override,
+        )
+        raise
 
     audio_bytes = await file.read()
     size_bytes = len(audio_bytes)
 
-    if size_bytes > _MAX_AUDIO_BYTES:
+    max_bytes = limits.media_max_bytes
+    if size_bytes > max_bytes:
         raise HTTPException(
             status_code=413,
-            detail=f"El audio excede el tamaño máximo de {_MAX_AUDIO_BYTES // (1024 * 1024)} MB.",
+            detail=f"El audio excede el tamaño máximo de {max_bytes // (1024 * 1024)} MB.",
         )
 
     mime = file.content_type or "audio/webm"
@@ -119,13 +177,14 @@ async def voice_upload_and_transcribe(
         mime=mime,
         size_bytes=size_bytes,
         filename=filename,
+        effective_rpm=limits.voice_rpm,
+        effective_max_bytes=max_bytes,
     )
 
     # Run STT and storage concurrently (§9.2 — one call, two parallel ops)
     transcriber = WhisperTranscriber()
     assets_service = AssetsService(db)
 
-    # We need bytes for STT and a file-like object for storage
     transcribe_task = asyncio.create_task(transcriber.transcribe(audio_bytes, mime))
 
     # Upload to storage

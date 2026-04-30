@@ -5,7 +5,9 @@
 Thin proxy that delegates to AssetsService.upload_asset. Zero storage duplication.
 Reuses R2 strategy, AI metadata pipeline, MIME detection, and asset repository.
 
-Auth: Clerk Bearer + X-Tenant-ID header. Rate-limited via copilot-media scope.
+Auth: Clerk Bearer + X-Tenant-ID header. Rate-limited via copilot-media-upload scope.
+
+PI-2 S1 PR-1: rate limit (Q5) + dynamic media cap from env / per-tenant override.
 
 Allowed MIME types (per §7.4 of the contract):
 - image: png, jpeg, webp, gif, svg+xml
@@ -14,6 +16,9 @@ Allowed MIME types (per §7.4 of the contract):
 - document: pdf, txt, csv, md, docx, xlsx, pptx, doc, xls
 """
 
+from __future__ import annotations
+
+import asyncio
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -21,9 +26,18 @@ import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
+from src.core.config import settings
 from src.core.database import get_db
+from src.core.rate_limit import check_rate_limit
 from src.modules.assets.application.assets_service import AssetsService
 from src.modules.copilot.api.media_dto import MediaUploadResponse
+from src.modules.copilot.application.services.limits_resolver import (
+    CopilotLimitsResolver,
+    EffectiveLimits,
+)
+from src.modules.copilot.infrastructure.repositories.tenant_limits_repository import (
+    SyncCopilotTenantLimitsRepository,
+)
 from src.modules.iam.api.dependencies import get_current_user
 
 logger = structlog.get_logger()
@@ -80,8 +94,22 @@ for _kind, _mimes in _MIME_WHITELIST.items():
 
 _KIND_LITERALS = Literal["image", "audio", "video", "document"]
 
-# Default max file size: 25 MB (configurable via env in future)
-_MAX_FILE_BYTES = 25 * 1024 * 1024
+
+# ── Dependency: resolve effective limits ──────────────────────────────────────
+
+
+async def _get_media_limits(
+    current_user: Annotated[object, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> EffectiveLimits:
+    """DI: resolve effective media limits for tenant (override > env default).
+
+    Uses sync repo + asyncio.to_thread to avoid blocking the event loop.
+    """
+    tenant_id: UUID = current_user.tenant_id  # type: ignore[attr-defined]
+    repo = SyncCopilotTenantLimitsRepository(db)
+    resolver = CopilotLimitsResolver(repo)
+    return await asyncio.to_thread(resolver.get_effective_sync, tenant_id)
 
 
 def _infer_kind(mime: str, declared_kind: str | None) -> str:
@@ -113,6 +141,7 @@ async def upload_media(
     background_tasks: BackgroundTasks,
     current_user: Annotated[object, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
+    limits: Annotated[EffectiveLimits, Depends(_get_media_limits)],
     kind: Annotated[
         str | None,
         Form(description="Tipo de archivo: image, audio, video, document. Opcional — se infiere del MIME."),
@@ -127,15 +156,37 @@ async def upload_media(
     El archivo se almacena en el módulo de assets (R2 o local según configuración).
     El AI metadata pipeline continúa en background.
 
+    Rate limit: por user_id en scope "copilot-media-upload" (Q5, default 30 RPM).
+    El cap de tamaño se configura por env (COPILOT_MEDIA_MAX_BYTES) con override per-tenant.
+
     Returns:
         MediaUploadResponse con asset_id, public_url, mime, size_bytes, kind.
 
     Raises:
         400: Archivo vacío.
-        413: Archivo excede el tamaño máximo (25 MB por defecto).
+        413: Archivo excede el tamaño máximo configurado.
         415: Tipo de MIME no admitido para el kind declarado/inferido.
+        429: Rate limit excedido para este tenant/user.
     """
     tenant_id: UUID = current_user.tenant_id  # type: ignore[attr-defined]
+    user_id: str = str(current_user.id)  # type: ignore[attr-defined]
+
+    # ── Rate limit (Q5: bucket "copilot-media-upload", default 30 RPM) ────
+    try:
+        check_rate_limit(
+            user_id=user_id,
+            scope="copilot-media-upload",
+            max_requests=settings.COPILOT_MEDIA_UPLOAD_RATE_LIMIT_PER_MIN,
+            window_seconds=60,
+        )
+    except Exception:
+        logger.warning(
+            "copilot_media_upload_rate_limit_hit",
+            tenant_id=str(tenant_id),
+            user_id=user_id,
+            effective_rpm=settings.COPILOT_MEDIA_UPLOAD_RATE_LIMIT_PER_MIN,
+        )
+        raise
 
     # Read file content for size validation
     content = await file.read()
@@ -144,10 +195,11 @@ async def upload_media(
     if size_bytes == 0:
         raise HTTPException(status_code=400, detail="El archivo está vacío.")
 
-    if size_bytes > _MAX_FILE_BYTES:
+    max_bytes = limits.media_max_bytes
+    if size_bytes > max_bytes:
         raise HTTPException(
             status_code=413,
-            detail=f"El archivo excede el tamaño máximo de {_MAX_FILE_BYTES // (1024 * 1024)} MB.",
+            detail=f"El archivo excede el tamaño máximo de {max_bytes // (1024 * 1024)} MB.",
         )
 
     mime = (file.content_type or "").strip()
@@ -173,12 +225,13 @@ async def upload_media(
         kind=inferred_kind,
         size_bytes=size_bytes,
         filename=file.filename,
+        effective_max_bytes=max_bytes,
+        max_bytes_is_override=limits.media_max_bytes_is_override,
     )
 
-    # Seek to start for the service (content already read, pass as BytesIO)
-    import io
+    import io as _io
 
-    file_obj = io.BytesIO(content)
+    file_obj = _io.BytesIO(content)
 
     # Delegate to AssetsService — single SSoT for storage (D0.2 of the contract)
     service = AssetsService(db)

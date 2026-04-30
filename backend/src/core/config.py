@@ -195,6 +195,13 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: list[str] = []
 
+    # ── Copilot media + voice limits (PI-2 S1 PR-1) ──────────────────────
+    # Applies to /media/upload and /voice/upload-and-transcribe.
+    # Per-tenant overrides stored in copilot_tenant_limits table.
+    COPILOT_MEDIA_MAX_BYTES: int = 25 * 1024 * 1024  # 25 MiB default
+    COPILOT_VOICE_RATE_LIMIT_PER_MIN: int = 6  # requests/min (Q3: cost $0.006/min Whisper x 6 RPM)
+    COPILOT_MEDIA_UPLOAD_RATE_LIMIT_PER_MIN: int = 30  # requests/min (Q5: compute BE protection)
+
     # ── Outbox pattern feature flags (PI-1 S0 PR-1) ───────────────────────
     # Default OFF. Flip per-module after cutover testing.
     # When ON, EventBusAdapter routes publish() to outbox INSERT instead of

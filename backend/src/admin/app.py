@@ -80,6 +80,7 @@ PAGE_SPECS: tuple[PageSpec, ...] = (
     PageSpec(slug="costo-agentes", title="Costo Agentes", icon="📊"),
     PageSpec(slug="brand-summaries", title="Brand Summary Lighthouse", icon="🪧"),
     PageSpec(slug="calendario", title="Calendario Comercial", icon="📅"),
+    PageSpec(slug="copilot-limits", title="Límites de Copilot", icon="🔒"),
     PageSpec(slug="tenants", title="Tenants (Clientes)", icon="🏢"),
     PageSpec(slug="usuarios", title="Usuarios", icon="👥"),
 )
