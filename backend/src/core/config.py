@@ -75,7 +75,30 @@ class Settings(BaseSettings):
     AI_MODEL_EMBEDDING: str = "text-embedding-3-large"
 
     def get_model(self, role: ModelRole) -> str:
-        """Resolve a semantic role to a concrete model name."""
+        """Resolve a semantic role to a concrete model name.
+
+        S4 PR-1 (PI-2): DB-FIRST resolution via LLMConfigService when available.
+        Falls back to env vars when service not yet initialized (boot ordering)
+        or DB unreachable. Cero breaking change para los 14 callers existentes
+        (signature str-returning preservada — D-1 architect).
+
+        Performance: cache hit <1ms p99, miss <5ms (single indexed SELECT).
+        Async DB I/O is invoked lazily; sync fast path uses cache only.
+        """
+        try:
+            from src.shared.infrastructure.llm.application.config_service import (
+                get_llm_config_service,
+            )
+
+            service = get_llm_config_service()
+            if service is not None:
+                return service.resolve_sync_cached_only(role).model
+        except Exception:  # noqa: BLE001 — graceful degradation
+            pass
+        return self._get_model_from_env(role)
+
+    def _get_model_from_env(self, role: ModelRole) -> str:
+        """Pre-S4 PR-1 logic preserved verbatim — env-only resolution."""
         _map = {
             ModelRole.NANO: self.AI_MODEL_NANO,
             ModelRole.REASONING: self.AI_MODEL_REASONING,

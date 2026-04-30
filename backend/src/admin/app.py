@@ -85,6 +85,7 @@ PAGE_SPECS: tuple[PageSpec, ...] = (
     PageSpec(slug="tenants", title="Tenants (Clientes)", icon="🏢"),
     PageSpec(slug="usuarios", title="Usuarios", icon="👥"),
     PageSpec(slug="llm-virtual-keys", title="LLM Virtual Keys", icon="🔑"),
+    PageSpec(slug="llm-models", title="LLM Model Registry", icon="🤖"),
 )
 
 _PAGES_DIR = Path(__file__).parent / "pages"

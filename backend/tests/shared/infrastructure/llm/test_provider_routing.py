@@ -62,6 +62,13 @@ class TestBuildProviderService:
 
 
 class TestRouterPerRoleDispatch:
+    """Tests legacy per-provider dispatch (LITELLM_PROXY_ENABLED=False rollback path).
+
+    Default S3 PR-2 onwards: LITELLM_PROXY_ENABLED=True → all roles dispatch via
+    single LiteLLMService. These tests verify the emergency-rollback legacy path
+    still works correctly when toggle is False.
+    """
+
     def test_global_provider_used_when_no_override(
         self,
         fresh_router: MultiRoleLLMRouter,
@@ -69,6 +76,7 @@ class TestRouterPerRoleDispatch:
     ) -> None:
         from src.core.config import settings
 
+        monkeypatch.setattr(settings, "LITELLM_PROXY_ENABLED", False)
         monkeypatch.setattr(settings, "AI_PROVIDER", AIProvider.OPENAI)
         for role in (
             "AI_PROVIDER_NANO",
@@ -90,6 +98,7 @@ class TestRouterPerRoleDispatch:
     ) -> None:
         from src.core.config import settings
 
+        monkeypatch.setattr(settings, "LITELLM_PROXY_ENABLED", False)
         monkeypatch.setattr(settings, "AI_PROVIDER", AIProvider.OPENAI)
         monkeypatch.setattr(settings, "AI_PROVIDER_REASONING", AIProvider.DEEPSEEK)
         monkeypatch.setattr(settings, "AI_PROVIDER_AGENT", AIProvider.KIMI)
@@ -106,6 +115,7 @@ class TestRouterPerRoleDispatch:
     ) -> None:
         from src.core.config import settings
 
+        monkeypatch.setattr(settings, "LITELLM_PROXY_ENABLED", False)
         monkeypatch.setattr(settings, "AI_PROVIDER_REASONING", AIProvider.DEEPSEEK)
         a = fresh_router._resolve(ModelRole.REASONING)
         b = fresh_router._resolve(ModelRole.REASONING)

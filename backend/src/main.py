@@ -381,6 +381,50 @@ async def _verify_litellm_proxy_reachable() -> None:
         )
 
 
+@app.on_event("startup")
+async def _start_llm_config_service() -> None:
+    """Initialize LLMConfigService singleton + start pub/sub subscriber task.
+
+    S4 PR-1 (PI-2): runtime LLM model selection via DB registry with cache
+    60s + Redis pub/sub invalidation. Mirror PlanService pattern.
+    """
+    import asyncio
+
+    try:
+        import redis.asyncio as redis_async
+
+        from src.core.database import async_session_maker
+        from src.shared.infrastructure.llm.application.config_service import (
+            init_llm_config_service,
+        )
+
+        try:
+            redis_client = redis_async.from_url(settings.REDIS_URL, decode_responses=True)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("llm_config_redis_unavailable_using_no_pubsub", error=str(exc))
+            redis_client = None
+
+        service = init_llm_config_service(
+            session_factory=async_session_maker,
+            redis_client=redis_client,
+        )
+        app.state.llm_config_subscriber = asyncio.create_task(service.subscribe_cache_invalidations())
+        logger.info("llm_config_service_initialized")
+    except Exception as exc:  # noqa: BLE001 — startup graceful degradation
+        logger.warning(
+            "llm_config_service_init_failed_falling_back_env",
+            error=str(exc),
+        )
+
+
+@app.on_event("shutdown")
+async def _stop_llm_config_service() -> None:
+    """Cancel pub/sub subscriber task on shutdown."""
+    task = getattr(app.state, "llm_config_subscriber", None)
+    if task is not None:
+        task.cancel()
+
+
 @app.on_event("shutdown")
 async def shutdown_arq_pool() -> None:
     """Close ARQ connection pool."""
