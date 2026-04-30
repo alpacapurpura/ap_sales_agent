@@ -7,7 +7,7 @@
 | PR ID | PR-1-db-registry-admin-ui |
 | Sprint padre | S4-copilot-model-registry-runtime |
 | PI padre | PI-2-copilot-improvement |
-| Estado | in-progress — claimed 2026-04-30 main thread (PI-2 autonomous mission, post S3 done) |
+| Estado | shipped 2026-04-30 — commit c5afdaf5 (20 archivos + 24 tests verde) |
 | Tipo | infra (DB registry runtime + admin UI) |
 | Esfuerzo | L (~12-15 archivos cohesivos) |
 | Owner PM | /pm |

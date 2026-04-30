@@ -7,7 +7,7 @@
 | PR ID | PR-2-growthbook-per-tenant-override |
 | Sprint padre | S4-copilot-model-registry-runtime |
 | PI padre | PI-2-copilot-improvement |
-| Estado | ready (depends PR-1) |
+| Estado | in-progress — claimed 2026-04-30 main thread (post PR-1 shipped) |
 | Tipo | infra (feature flag service para per-tenant + A/B) |
 | Esfuerzo | M (~10 archivos) |
 | Owner PM | /pm |
