@@ -38,9 +38,30 @@ vi.mock("../../../store/copilot-store", () => ({
 import { SuggestedChips } from "../SuggestedChips";
 
 const chips = [
-  { id: "chip-1", label: "Crea una oferta", prompt: "Ayúdame a crear", confidence: 0.9, category: "action" as const, source_module: "offer" },
-  { id: "chip-2", label: "Revisa escalera", prompt: "Analiza mi escalera", confidence: 0.8, category: "action" as const, source_module: "offer" },
-  { id: "chip-3", label: "Mejora objeciones", prompt: "Revisa objeciones", confidence: 0.7, category: "action" as const, source_module: "offer" },
+  {
+    id: "chip-1",
+    label: "Crea una oferta",
+    prompt: "Ayúdame a crear",
+    confidence: 0.9,
+    category: "action" as const,
+    source_module: "offer",
+  },
+  {
+    id: "chip-2",
+    label: "Revisa escalera",
+    prompt: "Analiza mi escalera",
+    confidence: 0.8,
+    category: "action" as const,
+    source_module: "offer",
+  },
+  {
+    id: "chip-3",
+    label: "Mejora objeciones",
+    prompt: "Revisa objeciones",
+    confidence: 0.7,
+    category: "action" as const,
+    source_module: "offer",
+  },
 ];
 
 describe("SuggestedChips", () => {
@@ -100,8 +121,12 @@ describe("SuggestedChips", () => {
   it("clicking chip fires both mutation and onChipClick in correct order", () => {
     mockUseSuggestions.mockReturnValue({ chips, isLoading: false });
     const callOrder: string[] = [];
-    mockMutate.mockImplementation(() => { callOrder.push("accept"); });
-    const onChipClick = vi.fn(() => { callOrder.push("onChipClick"); });
+    mockMutate.mockImplementation(() => {
+      callOrder.push("accept");
+    });
+    const onChipClick = vi.fn(() => {
+      callOrder.push("onChipClick");
+    });
 
     render(<SuggestedChips onChipClick={onChipClick} />);
 

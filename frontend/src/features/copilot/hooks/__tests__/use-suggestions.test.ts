@@ -35,8 +35,10 @@ function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return ({ children }: { children: React.ReactNode }) =>
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
     createElement(QueryClientProvider, { client: queryClient }, children);
+  Wrapper.displayName = "TestQueryWrapper";
+  return Wrapper;
 }
 
 describe("useSuggestions (real engine)", () => {
@@ -52,10 +54,28 @@ describe("useSuggestions (real engine)", () => {
 
   it("returns chips from API on success", async () => {
     const chips = [
-      { id: "1", label: "Crea una oferta", prompt: "Ayúdame", confidence: 0.9, category: "action", source_module: "offer" },
-      { id: "2", label: "Revisa escalera", prompt: "Analiza", confidence: 0.8, category: "action", source_module: "offer" },
+      {
+        id: "1",
+        label: "Crea una oferta",
+        prompt: "Ayúdame",
+        confidence: 0.9,
+        category: "action",
+        source_module: "offer",
+      },
+      {
+        id: "2",
+        label: "Revisa escalera",
+        prompt: "Analiza",
+        confidence: 0.8,
+        category: "action",
+        source_module: "offer",
+      },
     ];
-    mockFetchSuggestions.mockResolvedValue({ suggestions: chips, breakdown: { offer: 2 }, latency_ms: 10 });
+    mockFetchSuggestions.mockResolvedValue({
+      suggestions: chips,
+      breakdown: { offer: 2 },
+      latency_ms: 10,
+    });
 
     const { result } = renderHook(() => useSuggestions(), {
       wrapper: createWrapper(),

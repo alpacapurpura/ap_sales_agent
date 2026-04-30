@@ -28,8 +28,9 @@ vi.mock("../../api/suggestions-api", () => ({
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createElement } from "react";
 
-import type { Suggestion } from "../../types/suggestions";
 import { useSuggestionAccept } from "../use-suggestion-accept";
+
+import type { Suggestion } from "../../types/suggestions";
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -132,8 +133,8 @@ describe("useSuggestionAccept", () => {
     await waitFor(() => expect(result.current.isIdle).toBe(false));
 
     // No query invalidation should have occurred for suggestions
-    const suggestionInvalidations = invalidateSpy.mock.calls.filter(
-      (call) => JSON.stringify(call[0]).includes("suggestions"),
+    const suggestionInvalidations = invalidateSpy.mock.calls.filter((call) =>
+      JSON.stringify(call[0]).includes("suggestions"),
     );
     expect(suggestionInvalidations).toHaveLength(0);
   });
