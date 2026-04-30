@@ -6,11 +6,11 @@
 |---|---|
 | Sprint ID | S3-mvp-telegram |
 | PI padre | PI-1-campaigns-module |
-| Estado | not-started (bloqueado por S2) |
-| Inicio | TBD post-S2 cierre |
-| Cierre estimado | +1-2 semanas después S2 cierre |
-| Cierre real | — |
+| Estado | done |
+| Inicio | 2026-04-30 |
+| Cierre real | 2026-04-30 (single Opus 4.7[1M] sesión) |
 | Owner PM | /pm |
+| PRs shipped | PR-7 (L outbound) + PR-8 (M recognition+stats+UI) + PR-9 (S e2e+checklist) |
 
 ## Objetivo (1 línea)
 
