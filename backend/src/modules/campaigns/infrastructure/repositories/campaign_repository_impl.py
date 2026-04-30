@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from src.modules.campaigns.domain.enums import CampaignStatus
+    from src.modules.campaigns.domain.enums import CampaignStatus, CampaignType
 
 from src.modules.campaigns.domain.campaign import Campaign
 from src.modules.campaigns.domain.repositories import CampaignRepository
@@ -114,6 +114,8 @@ class CampaignRepositoryImpl(CampaignRepository):
         limit: int = 50,
         offset: int = 0,
         status_filter: Sequence[CampaignStatus] | None = None,
+        type_filter: Sequence[CampaignType] | None = None,
+        sort_by: str = "created_at_desc",
     ) -> Sequence[Campaign]:
         """List campaigns for a tenant. Excludes soft-deleted."""
         stmt = select(CampaignModel).where(
@@ -122,10 +124,60 @@ class CampaignRepositoryImpl(CampaignRepository):
         )
         if status_filter:
             stmt = stmt.where(CampaignModel.status.in_([s.value for s in status_filter]))
-        stmt = stmt.order_by(CampaignModel.created_at.desc()).limit(limit).offset(offset)
+        if type_filter:
+            stmt = stmt.where(CampaignModel.campaign_type.in_([t.value for t in type_filter]))
+        # Sorting
+        if sort_by == "created_at_asc":
+            stmt = stmt.order_by(CampaignModel.created_at.asc())
+        elif sort_by == "scheduled_at_desc":
+            stmt = stmt.order_by(CampaignModel.scheduled_at.desc().nulls_last())
+        elif sort_by == "scheduled_at_asc":
+            stmt = stmt.order_by(CampaignModel.scheduled_at.asc().nulls_last())
+        elif sort_by == "name_asc":
+            stmt = stmt.order_by(CampaignModel.name.asc())
+        else:  # created_at_desc (default)
+            stmt = stmt.order_by(CampaignModel.created_at.desc())
+        stmt = stmt.limit(limit).offset(offset)
         result = await session.execute(stmt)
         rows = result.scalars().all()
         return [Campaign.model_validate(row) for row in rows]
+
+    async def count_active(self, tenant_id: UUID, *, session: AsyncSession) -> int:
+        """Count campaigns in active statuses for plan limit check."""
+        from src.modules.campaigns.domain.enums import CampaignStatus
+
+        active_statuses = [
+            CampaignStatus.DRAFT.value,
+            CampaignStatus.SCHEDULED.value,
+            CampaignStatus.RUNNING.value,
+            CampaignStatus.PAUSED.value,
+        ]
+        stmt = select(func.count(CampaignModel.id)).where(
+            CampaignModel.tenant_id == tenant_id,
+            CampaignModel.status.in_(active_statuses),
+            CampaignModel.deleted_at.is_(None),
+        )
+        result = await session.execute(stmt)
+        count: int = result.scalar_one()
+        return count
+
+    async def count_by_tenant(
+        self,
+        tenant_id: UUID,
+        *,
+        session: AsyncSession,
+        status_filter: Sequence[CampaignStatus] | None = None,
+    ) -> int:
+        """COUNT(*) for paginated list endpoint."""
+        stmt = select(func.count(CampaignModel.id)).where(
+            CampaignModel.tenant_id == tenant_id,
+            CampaignModel.deleted_at.is_(None),
+        )
+        if status_filter:
+            stmt = stmt.where(CampaignModel.status.in_([s.value for s in status_filter]))
+        result = await session.execute(stmt)
+        count: int = result.scalar_one()
+        return count
 
     async def soft_delete(self, campaign_id: UUID, tenant_id: UUID, *, session: AsyncSession) -> None:
         """Set deleted_at = now(). No hard deletes."""

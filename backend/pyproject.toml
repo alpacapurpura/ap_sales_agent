@@ -247,6 +247,8 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 "src/modules/scheduling/application/services/availability_service.py" = ["C901"]  # get_available_slots (13)
 "src/modules/campaigns/application/**/*.py" = [
     "TC001", "TC002", "TC003",  # runtime imports for SQLA expressions + Pydantic models
+    "ANN401",   # cache.py + _event_bridge.py use Any for duck-typed Protocol boundaries — intentional until S2 wires concrete Redis client
+    "RUF002",   # × symbol in docstring is intentional math notation (scalability comment)
 ]
 "src/modules/campaigns/application/segment_filter_evaluator.py" = [
     "TC001", "TC002", "TC003",  # runtime SQLA expression imports

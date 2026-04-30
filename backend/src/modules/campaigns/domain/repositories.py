@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from src.modules.campaigns.domain.campaign_step import CampaignStep
     from src.modules.campaigns.domain.campaign_task import CampaignTask
     from src.modules.campaigns.domain.campaign_template import CampaignTemplate
-    from src.modules.campaigns.domain.enums import CampaignStatus, TaskStatus
+    from src.modules.campaigns.domain.enums import CampaignStatus, CampaignType, TaskStatus
     from src.modules.campaigns.domain.segment import Segment, SegmentSnapshot
 
 
@@ -52,8 +52,30 @@ class CampaignRepository(ABC):
         limit: int = 50,
         offset: int = 0,
         status_filter: Sequence[CampaignStatus] | None = None,
+        type_filter: Sequence[CampaignType] | None = None,
+        sort_by: str = "created_at_desc",
     ) -> Sequence[Campaign]:
-        """List campaigns for a tenant with optional status filter. Excludes soft-deleted."""
+        """List campaigns for a tenant with optional status/type filter. Excludes soft-deleted."""
+        ...
+
+    @abstractmethod
+    async def count_active(self, tenant_id: UUID, *, session: AsyncSession) -> int:
+        """Count campaigns in active statuses (draft/scheduled/running/paused).
+
+        Used by plan limit check (max_campaigns_active cap).
+        SQL: SELECT COUNT(*) WHERE tenant_id=:t AND status IN (...) AND deleted_at IS NULL
+        """
+        ...
+
+    @abstractmethod
+    async def count_by_tenant(
+        self,
+        tenant_id: UUID,
+        *,
+        session: AsyncSession,
+        status_filter: Sequence[CampaignStatus] | None = None,
+    ) -> int:
+        """COUNT(*) for paginated list endpoint. Tenant-scoped + soft-delete-aware."""
         ...
 
     @abstractmethod
