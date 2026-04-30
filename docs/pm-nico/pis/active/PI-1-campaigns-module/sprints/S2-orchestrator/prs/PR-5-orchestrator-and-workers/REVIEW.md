@@ -242,3 +242,68 @@ Razón: 3 fallos críticos bloquean merge — (1) `LeadQueryPortImpl` se importa
 ---
 
 <!-- @pm: REVIEW.md ready. Verdict: FAIL. Próximo paso: /pm "PR-5 review done" -->
+
+---
+
+## Iter-2 verdict (post Sub-G fix `5ad63dc8`)
+
+**PASS**
+
+Razón: 6 findings críticos/highs/mediums (F-1, F-2, F-3, F-4, F-5, F-6) resueltos en commit `5ad63dc8`. Los 13 gates verde post-fix. Sólo deferred quedan F-7/F-8/F-9 (LOW cosmetic / DR documented).
+
+### Findings iter-1 status post Sub-G
+
+| ID | Severity | Status iter-2 | Notes |
+|---|---|---|---|
+| F-1 | CRITICAL | RESOLVED ✅ | 4 sitios usan `from src.modules.crm.application.services.lead_query_service import LeadQueryServiceImpl`; verified via `python -c` import. Endpoint `POST /campaigns/{id}/launch` ya no rompe en runtime. |
+| F-2 | CRITICAL | RESOLVED ✅ | `KNOWN_CROSS_MODULE_IMPORTS` extendido líneas 56-60 con justificación explícita: workers son composition root standalone para ARQ context (mirror `api/_service_factories.py`). Comment cita PR-5 Sub-G. Arch test `test_no_new_cross_module_imports` PASS. |
+| F-3 | CRITICAL | RESOLVED ✅ | Migration 113 `down_revision = "2b2756aca7f6"` (verified line 18). `alembic heads` → single `114_pricing_deepseek_v4_flash`. Chain linear: `112_campaigns_domain → 2b2756aca7f6 → 113_campaigns_audit_log → 114_pricing_deepseek_v4_flash`. |
+| F-4 | HIGH | RESOLVED ✅ | `test_launch_returns_stub_notice` removido del módulo `test_campaigns_api.py:373-394`; `TestCampaignFSM` docstring redirige a `test_campaigns_launch_real.py` (Sub-C cobertura). 394 tests passed (was 394 passed / 1 failed iter-1). |
+| F-5 | MEDIUM | RESOLVED ✅ | `RedisSettings.from_dsn(app_settings.REDIS_URL)` (línea 148 `_service_factories.py`) — usa DSN real en vez de "0" str. Mirror del worker `_arq_pool_provider_fn`. |
+| F-6 | MEDIUM | RESOLVED ✅ | Circuit breaker refactorizado a `await self._redis.{get,set,zadd,zcard,zremrangebyscore,delete,incr,expire}` consistentemente (12+ awaits verificados). 9 CB tests passed con redis.asyncio mock async. |
+| F-7 | LOW | DEFERRED → S3 | `_resolve_telegram_id` stub returns None — DR-1 documented. S3 wirea CRM lookup. Acceptable PR-5. |
+| F-8 | LOW | DEFERRED → cosmetic | 4 tests sync con `@pytest.mark.asyncio` warnings. No falla, sólo PytestWarning. Cleanup PR-6 o ignorable. |
+| F-9 | LOW | DEFERRED | `noqa: BLE001` extensivo en CB — best-effort pattern justificado mirror copilot/observability. Audit cosmético. |
+
+### 13 gates re-validation
+
+| # | Gate | Status iter-2 | Detalle |
+|---|---|---|---|
+| 1 | Tools | ✅ | venv 3.12 + ruff + mypy + pytest disponibles |
+| 2 | Postgres pre-flight | ✅ UP | `visionarias_postgres` healthy |
+| 3 | Ruff lint (scope PR-5) | ✅ | `All checks passed!` (campaigns + tests/modules/campaigns + tests/architecture) |
+| 4 | Ruff format (scope PR-5) | ✅ | `109 files already formatted` |
+| 5 | Mypy strict (scope campaigns) | ✅ | `Success: no issues found in 75 source files` (regression mypy en `workers/settings.py` confirmada PRE-EXISTENTE iter-1, fuera scope PR-5). |
+| 6 | Arch fitness (78 gates) | ✅ | **756 passed** (was 1 fail iter-1). DDD ratchet PASS — workers en allowlist con justificación commit. |
+| 7 | Tests + coverage (campaigns) | ✅ | **394 passed / 0 failed** (was 1 failed iter-1). Coverage `src/modules/campaigns` = **78.21%** (≥43%). |
+| 8 | Verify-marker | N/A | No analytics scope |
+| 9 | Integration-marker | ✅ | `test_e2e_telegram_campaign_smoke.py` 3/3 passed (política F-7 servicios reales). |
+| 10 | Migration idempotency clone | ✅ | Single head `114_pricing_deepseek_v4_flash`. Chain linear. Clone DB upgrade no-op verified. |
+| 11 | jscpd | N/A | Sin diff cross-archivo significativo |
+| 12 | interrogate (docstrings) | ✅ | Google-style preserved en surface nueva |
+| 13 | pip-audit | ✅ | 14 CVEs known + ignored vía allowlist (sin growth) |
+
+### Allowlist movement iter-2
+
+- ✅ `KNOWN_CROSS_MODULE_IMPORTS` creció +2 entries (workers/scheduler_tick + workers/segment_refresh_tick) **CON justificación commit explícita** (PR-5 Sub-G commit msg + comment líneas 56-58 en allowlist). Cumple `architectural-fitness.md` ratchet rule.
+- ✅ `EXEMPT_METHODS` arch tests Sub-E ratchet `frozenset()` correcto.
+- ✅ pip-audit allowlist sin growth.
+
+### Native-First audit iter-2
+- ✅ Cero `docker exec ... ruff|pytest|mypy` en commit Sub-G.
+- ✅ Cero `git add .|-A|-u` en commit Sub-G.
+- ✅ Push a `development` (no main); `make ci-parity` no requerido.
+
+### Verdict math iter-2
+- 0 findings CRITICAL/HIGH unresolved.
+- Gate 6 arch fitness ✅.
+- Gate 7 tests ✅.
+- Gate 10 migration idempotency ✅.
+- Allowlist creció con justificación commit (no FAIL).
+- 3 LOW deferred (F-7 DR-1 documented, F-8 cosmetic asyncio warnings, F-9 best-effort pattern info).
+
+→ **Verdict global iter-2: PASS.**
+
+---
+
+<!-- @pm: REVIEW.md iter-2 ready. Verdict: PASS. Próximo paso: /pm "PR-5 review iter-2 done" -->
