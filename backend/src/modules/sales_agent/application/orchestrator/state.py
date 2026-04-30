@@ -67,6 +67,7 @@ class AgentState(TypedDict):
     # Internal (graph loop control)
     internal_turn: int | None
     _pending_tool: dict[str, Any] | None
+    _llm_service: object | None  # PR-6: BudgetGuardingLLMService injected at turn start
 
     # Errors
     error: str | None
@@ -104,6 +105,8 @@ def create_initial_state(
     # Question fatigue (Fase 3)
     consecutive_questions: int | None = None,
     follow_up_cadence: dict | None = None,
+    # PR-6: BudgetGuardingLLMService injected by ConversationPipeline
+    _llm_service: object | None = None,
 ) -> AgentState:
     """Create a clean AgentState.
 
@@ -158,5 +161,6 @@ def create_initial_state(
         # Internal
         "internal_turn": 0,
         "_pending_tool": None,
+        "_llm_service": _llm_service,  # PR-6: BudgetGuardingLLMService or None
         "error": None,
     }

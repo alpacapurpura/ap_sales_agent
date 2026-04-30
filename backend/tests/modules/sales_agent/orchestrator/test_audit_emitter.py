@@ -17,6 +17,7 @@ import pytest
 
 from src.modules.sales_agent.application.orchestrator.audit_emitter import AuditEmitter
 from src.shared.domain.messages import IncomingMessage
+from src.shared.domain_events.outbox.application.event_bus_adapter import EventBusAdapter
 
 TENANT_ID = UUID("44444444-4444-4444-4444-444444444444")
 CUSTOMER_ID = UUID("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa")
@@ -113,6 +114,13 @@ def test_track_message_received_swallows_exception(monkeypatch: pytest.MonkeyPat
 
 
 def test_publish_lead_captured_publishes_event(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify lead_captured event payload — disables outbox routing for isolation.
+
+    PR-6 Sub-B: USE_OUTBOX_PATTERN_SALES_AGENT is now True by default.
+    This test verifies event content (not routing) so we patch
+    _is_outbox_enabled to False to keep the assertion against legacy
+    EventBus.publish. Outbox routing is verified in test_outbox_cutover.py.
+    """
     captured: list[tuple] = []
 
     def _capture_publish(event: object, session: object = None) -> None:
@@ -122,6 +130,7 @@ def test_publish_lead_captured_publishes_event(monkeypatch: pytest.MonkeyPatch) 
         "src.shared.domain.events.EventBus.publish",
         staticmethod(_capture_publish),
     )
+    monkeypatch.setattr(EventBusAdapter, "_is_outbox_enabled", staticmethod(lambda *_: False))
 
     customer = SimpleNamespace(id=CUSTOMER_ID)
     db = MagicMock()

@@ -5,6 +5,7 @@
         "OBS_HANDLER"
       ],
       "initial_state": {
+        "_llm_service": null,
         "_pending_tool": null,
         "_tool_dedup_tracker": "ToolCallDedupTracker(stub)",
         "active_enrollment": null,
@@ -86,18 +87,7 @@
       ]
     }
   ],
-  "domain_events": [
-    {
-      "event_name": "lead_captured",
-      "payload": {
-        "channel_slug": "telegram-dm",
-        "extracted_field": "external_id",
-        "profile_id": "aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa",
-        "source_channel_type": "telegram"
-      },
-      "tenant_id": "44444444-4444-4444-4444-444444444444"
-    }
-  ],
+  "domain_events": [],
   "journey_events": [
     {
       "event_name": "message_received",

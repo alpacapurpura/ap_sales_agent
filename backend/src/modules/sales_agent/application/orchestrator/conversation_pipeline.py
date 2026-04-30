@@ -46,6 +46,7 @@ from src.modules.sales_agent.domain.tuning import (
     SESSION_TIMEOUT_HOURS,
 )
 from src.modules.sales_agent.infrastructure.external.output_manager import OutputManager
+from src.shared.billing.application.llm_guards import BudgetGuardingLLMService
 from src.shared.infrastructure.llm.factory import LLMFactory
 
 if TYPE_CHECKING:
@@ -59,6 +60,7 @@ if TYPE_CHECKING:
     from src.modules.sales_agent.infrastructure.repositories.state_repository import (
         StateRepository,
     )
+    from src.shared.billing.application.budget_guard import BudgetGuard
     from src.shared.domain.messages import IncomingMessage
     from src.shared.infrastructure.channels.base import BaseChannel
 
@@ -316,6 +318,7 @@ class ConversationPipeline:
         brand_voice: str | None,
         checkpoint: _Checkpoint | None,
         state_repo: StateRepository,
+        budget_guard: BudgetGuard | None = None,  # PR-6: BudgetGuard injected here
     ) -> tuple[dict, str | None]:
         """Build the AgentState dict consumed by ``agent_app.ainvoke``."""
         active_product, launch_stage = biz_repo.get_current_launch_product()
@@ -344,6 +347,19 @@ class ConversationPipeline:
             user,
         )
 
+        # PR-6: build guarded LLM service when budget_guard is wired.
+        # BudgetGuardingLLMService wraps LLMFactory.get_service() so every
+        # specialist node (supervisor / qualifier / product_expert / closer)
+        # gates via BudgetGuard.check() without per-callsite changes.
+        guarded_llm_service = None
+        if budget_guard is not None and tenant_uuid is not None:
+            guarded_llm_service = BudgetGuardingLLMService(
+                inner=LLMFactory.get_service(),
+                budget_guard=budget_guard,
+                tenant_id=tenant_uuid,
+                agent_kind="sales_agent",
+            )
+
         initial_state = create_initial_state(
             user_id=str(user.id),
             tenant_id=str(tenant_id) if tenant_id else str(uuid.uuid4()),
@@ -361,6 +377,7 @@ class ConversationPipeline:
             session_gap_hours=session_state["session_gap_hours"],
             last_session_summary=last_session_summary,
             is_returning_user=session_state["is_returning_user"],
+            _llm_service=guarded_llm_service,
             **checkpoint_data,
         )
 

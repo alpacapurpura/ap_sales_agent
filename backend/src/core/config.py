@@ -206,7 +206,7 @@ class Settings(BaseSettings):
     # Default OFF. Flip per-module after cutover testing.
     # When ON, EventBusAdapter routes publish() to outbox INSERT instead of
     # legacy in-memory dispatch.
-    USE_OUTBOX_PATTERN_SALES_AGENT: bool = False
+    USE_OUTBOX_PATTERN_SALES_AGENT: bool = True
     USE_OUTBOX_PATTERN_COPILOT: bool = False
     USE_OUTBOX_PATTERN_BRAND: bool = False
     USE_OUTBOX_PATTERN_DEFAULT: bool = False

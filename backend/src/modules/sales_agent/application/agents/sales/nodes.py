@@ -26,6 +26,20 @@ from src.modules.sales_agent.infrastructure.monitoring.tracing import trace_node
 from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 from src.shared.infrastructure.llm.factory import LLMFactory
 
+
+def _get_llm_service(state: AgentState) -> object:
+    """Return BudgetGuardingLLMService from state if injected, else factory default.
+
+    PR-6: ConversationPipeline injects ``_llm_service`` (a
+    ``BudgetGuardingLLMService``) into the initial state so every specialist
+    node and the supervisor are gated by BudgetGuard.check() without
+    patching each callsite individually.  Falls back to ``LLMFactory.get_service()``
+    when running outside of a gated context (e.g., unit tests that don't
+    wire the guard).
+    """
+    return state.get("_llm_service") or LLMFactory.get_service()
+
+
 # ---------------------------------------------------------------------------
 # Helpers (shared across nodes)
 # ---------------------------------------------------------------------------
@@ -102,7 +116,7 @@ def node_sales_supervisor(state: AgentState) -> dict[str, Any]:
             consecutive_questions=state.get("consecutive_questions", 0),
             session_gap_hours=state.get("session_gap_hours"),
         )
-        decision = LLMFactory.get_service().generate_response(
+        decision = _get_llm_service(state).generate_response(
             messages=state["messages"][-SUPERVISOR_MESSAGE_WINDOW:],
             system_prompt=system_prompt,
             model_type=SPECIALIST_TO_ROLE["supervisor"],
@@ -134,7 +148,7 @@ def node_sales_supervisor(state: AgentState) -> dict[str, Any]:
 def node_qualifier(state: AgentState) -> dict[str, Any]:
     """Node qualifier."""
     system_prompt = build_specialist_system_prompt(state, SpecialistRole.QUALIFIER)
-    response = LLMFactory.get_service().generate_response(
+    response = _get_llm_service(state).generate_response(
         messages=state["messages"],
         system_prompt=system_prompt,
         model_type=SPECIALIST_TO_ROLE["qualifier"],
@@ -148,7 +162,7 @@ def node_qualifier(state: AgentState) -> dict[str, Any]:
 def node_product_expert(state: AgentState) -> dict[str, Any]:
     """Node product expert."""
     system_prompt = build_specialist_system_prompt(state, SpecialistRole.PRODUCT_EXPERT)
-    response = LLMFactory.get_service().generate_response(
+    response = _get_llm_service(state).generate_response(
         messages=state["messages"],
         system_prompt=system_prompt,
         model_type=SPECIALIST_TO_ROLE["product_expert"],
@@ -169,7 +183,7 @@ def node_closer(state: AgentState) -> dict[str, Any]:
     ``KimiService._get_chat_model`` when ``AI_MODEL_AGENT`` is a K2 SKU.
     """
     system_prompt = build_specialist_system_prompt(state, SpecialistRole.CLOSER)
-    response = LLMFactory.get_service().generate_response(
+    response = _get_llm_service(state).generate_response(
         messages=state["messages"],
         system_prompt=system_prompt,
         model_type=SPECIALIST_TO_ROLE["closer"],
