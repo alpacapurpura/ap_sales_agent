@@ -11,7 +11,7 @@
 | Inicio | 2026-04-29 |
 | Cierre estimado | TBD según S2 (cross-stack FE swap) o decisión cierre PI |
 | Cierre real | — |
-| Sprints completados | S1-copilot-maintenance-batch (3/3 PRs shipped 2026-04-29 — Bloque B 5 recs DO entregadas) |
+| Sprints completados | S1-copilot-maintenance-batch (3/3 PRs shipped 2026-04-29) · S2-copilot-cero-deuda-stack (3/3 PRs shipped 2026-04-30, PR-3 PARTIAL wiring DEFERRED PR-4) |
 
 ## Outcome esperado
 
@@ -67,6 +67,24 @@ Pendientes discovery. Posibles:
 ### Bloque C — Discovery original (preliminar, ver Hipótesis arriba)
 
 - TBD via discovery formal cuando arranquemos PI-2 kickoff post-S1
+
+### S2 plan resumen (sprint copilot-cero-deuda-stack — shipped 2026-04-30)
+
+| PR | Folder | Scope | Esfuerzo | Verdict |
+|---|---|---|---|---|
+| PR-1 | `fe-swap-suggestions-api` | Cross-stack BE endpoints + FE swap stub + voice migration | L | shipped PASS BE+FE |
+| PR-2 | `pure-expansion-providers` | 3 providers nuevos + sales_agent port + pure expansion offer_section_tools | M | shipped PASS |
+| PR-3 | `llm-cost-optimization` | LLM infra DeepSeek V4-Flash + eval gate framework + migration | L | shipped PASS PARTIAL (wiring DEFERRED PR-4) |
+
+### S3 sugerido (post handoff S2)
+
+**S3-copilot-llm-wiring-runtime** (PM recommended):
+- PR-1 wiring upstream LLMClassifier+RollingSummarizer factory (cierra deuda PR-3 PARTIAL) — esfuerzo S/M, ~50 LOC + 24 tests + .env
+- PR-2 (opcional) Telegram bridge MVP Bloque A multicanal — esfuerzo M
+
+Alternativas:
+- B: Cerrar PI-2, abrir PI-3 dedicado multicanal (Bloque A) + sub-task wiring
+- C: S3-copilot-discovery-formal Bloque C (entrevistas users + research patrones agentic 2026)
 
 ### S1 plan resumen (sprint copilot-maintenance-batch)
 
