@@ -7,7 +7,7 @@
 | PR ID | PR-2-litellm-proxy-integration |
 | Sprint padre | S3-copilot-llm-stack-convergence |
 | PI padre | PI-2-copilot-improvement |
-| Estado | ready (depends on PR-1) |
+| Estado | in-progress — claimed 2026-04-30 main thread (PI-2 autonomous mission) |
 | Tipo | infra (introducir motor multi-provider centralizado) |
 | Esfuerzo | M (~10 archivos, Docker svc + router refactor) |
 | Owner PM | /pm |
