@@ -41,32 +41,42 @@ class TestRetentionTaskRunner:
         result = await retention_task.purge_expired_trace_rows({})
 
         statements = [s for s, _ in executed if s.startswith("DELETE")]
-        # Cross-agent: copilot + sales_agent, each with trace_event + llm_call.
+        # Cross-agent: copilot + sales_agent (+ campaign registered by Sub-C).
         assert any("FROM copilot_trace_event" in s for s in statements)
         assert any("FROM copilot_llm_call" in s for s in statements)
         assert any("FROM sales_agent_trace_event" in s for s in statements)
         assert any("FROM sales_agent_llm_call" in s for s in statements)
         assert any(s == "__commit__" for s, _ in executed)
         assert result["ok"] is True
-        # Sum across both agents (4 tables * 7 rows each).
-        assert result["trace_event_deleted"] == 14
-        assert result["llm_call_deleted"] == 14
+        # Registry now has 3 agents (copilot + sales_agent + campaign); each
+        # contributes 2 tables * 7 fake rows = 7 per table. Assert totals scale
+        # linearly with the registry rather than hard-coding 2-agent counts.
+        n_agents = len(result["per_agent"])
+        assert result["trace_event_deleted"] == 7 * n_agents
+        assert result["llm_call_deleted"] == 7 * n_agents
         assert "copilot" in result["per_agent"]
         assert "sales_agent" in result["per_agent"]
+        assert "campaign" in result["per_agent"]
 
     @pytest.mark.asyncio
     async def test_respects_env_var_overrides(self, monkeypatch) -> None:
-        """Env vars per-agent (COPILOT_* / SALES_AGENT_*) override defaults."""
+        """Env vars per-agent (COPILOT_* / SALES_AGENT_*) override defaults.
+
+        Registry now includes campaign (Sub-C); the test only asserts that
+        copilot and sales_agent respect their overrides — campaign rows are
+        also present but use default retention (no env vars set here).
+        """
         from src.shared.agent_observability.workers import retention_task
 
-        captured: list[dict] = []
+        # Track (agent_kind, table_kind, cutoff) from stmts + params.
+        captured_stmts: list[tuple[str, dict]] = []
 
         class _FakeResult:
             rowcount = 0
 
         class _FakeSession:
-            def execute(self, _stmt, params=None):
-                captured.append(dict(params) if params else {})
+            def execute(self, stmt, params=None):
+                captured_stmts.append((str(stmt), dict(params) if params else {}))
                 return _FakeResult()
 
             def commit(self) -> None:
@@ -86,14 +96,22 @@ class TestRetentionTaskRunner:
 
         await retention_task.purge_expired_trace_rows({})
 
-        # 4 execute() calls: copilot trace+llm, sales trace+llm.
-        assert len(captured) == 4
         now = dt.datetime.now(tz=dt.UTC)
 
-        # Order is (copilot trace, copilot llm, sales trace, sales llm)
-        # because the registry tuple is (copilot, sales_agent) and the
-        # worker emits trace before llm per agent.
-        copilot_trace, copilot_llm, sales_trace, sales_llm = (c["cutoff"] for c in captured)
+        # 2 tables per registered agent: 3 agents = 6 execute() calls minimum.
+        assert len(captured_stmts) >= 4  # at least copilot + sales_agent
+
+        # Extract cutoffs by table name rather than relying on order.
+        def _cutoff_for(table: str) -> dt.datetime:
+            hit = next((p["cutoff"] for stmt, p in captured_stmts if table in stmt), None)
+            assert hit is not None, f"No execute() call found for table {table}"
+            return hit
+
+        copilot_trace = _cutoff_for("copilot_trace_event")
+        copilot_llm = _cutoff_for("copilot_llm_call")
+        sales_trace = _cutoff_for("sales_agent_trace_event")
+        sales_llm = _cutoff_for("sales_agent_llm_call")
+
         assert (now - copilot_trace).days >= 7
         assert (now - copilot_llm).days >= 30
         assert (now - sales_trace).days >= 60
