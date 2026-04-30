@@ -268,3 +268,61 @@ class BudgetGuardingChatModel:
     def __getattr__(self, name: str) -> Any:
         """Proxy unknown attributes to inner so bind_tools / bind etc. work."""
         return getattr(self._inner, name)
+
+
+# ---------------------------------------------------------------------------
+# get_guarded_llm_service — centralised helper (PR-7 Sub-G)
+# ---------------------------------------------------------------------------
+
+
+def get_guarded_llm_service(
+    *,
+    tenant_id: UUID | None,
+    agent_kind: str,
+    budget_guard: BudgetGuard | None = None,
+    model_hint: str | None = None,
+) -> Any:
+    """Return a BudgetGuard-wrapped LLM service when DI guard provided.
+
+    Stable seam (PR-7 Sub-G — closes DR-7 brand callsites architecturally):
+    callsites uniformly invoke this helper instead of ``LLMFactory.get_service()``.
+    When a real ``BudgetGuard`` is threaded through DI (FastAPI provider or
+    ARQ worker startup — S4 wiring), the helper transparently wraps. Until
+    then, callers pass ``budget_guard=None`` and the plain service is
+    returned (current behavior preserved).
+
+    Construction contract:
+    - ``tenant_id is None`` OR ``budget_guard is None`` → plain ``LLMFactory.get_service()``.
+    - Both provided → ``BudgetGuardingLLMService(inner, budget_guard, tenant_id, agent_kind, model_hint)``.
+
+    The helper deliberately does NOT construct ``BudgetGuard`` itself —
+    construction requires async ``MVRefreshLogRepository`` + ``cost_reader``
+    + ``PlanService`` and belongs at the DI boundary (request scope). That
+    keeps callsites synchronous and decoupled from infra.
+
+    Args:
+        tenant_id: Tenant UUID; ``None`` disables guarding.
+        agent_kind: Bucket key for BudgetGuard (e.g. ``"brand"``,
+            ``"copilot"``, ``"sales_agent"``).
+        budget_guard: Optional pre-constructed ``BudgetGuard`` (DI). When
+            ``None`` the helper returns plain LLM service (S4 will wire DI).
+        model_hint: Optional model SKU hint for cost estimation.
+
+    Returns:
+        ``BudgetGuardingLLMService`` when both ``tenant_id`` and
+        ``budget_guard`` provided; else plain LLM service.
+    """
+    from src.shared.infrastructure.llm.factory import LLMFactory
+
+    inner = LLMFactory.get_service()
+
+    if tenant_id is None or budget_guard is None:
+        return inner
+
+    return BudgetGuardingLLMService(
+        inner=inner,
+        budget_guard=budget_guard,
+        tenant_id=tenant_id,
+        agent_kind=agent_kind,
+        model_hint=model_hint,
+    )
