@@ -5,8 +5,8 @@
 | Campo | Valor |
 |---|---|
 | Studio padre | Sales / Growth (PI-1 — Sales con hooks Growth) |
-| Estado | PI-1 S1 SHIPPED (PR-3 domain + PR-4 services/API) — S2 orchestrator/workers next |
-| Ultima actualizacion | 2026-04-29 (PR-4 application services + API endpoints + templates seed + arch tests) |
+| Estado | PI-1 S1 SHIPPED (PR-3 domain + PR-4 services/API) — S2 PR-5 SHIPPED partial (PR-6 pending) |
+| Ultima actualizacion | 2026-04-30 (PR-5 S2: orchestrator real + 4 ARQ workers + ChannelRouter Telegram + circuit breaker + audit log retention 90d) |
 | Doc tecnico | `docs/domains/campaigns/` (en construccion) |
 
 ---
@@ -95,16 +95,27 @@ Todos los endpoints no-DELETE tienen `response_model=` (PII allowlist). Header `
 
 ---
 
-## S2 PENDIENTE — Orchestrator + Workers + ChannelRouter
+## S2 SHIPPED partial — Orchestrator + Workers + ChannelRouter Telegram (PR-5 done, PR-6 pending)
 
-| Superficie | Estado | Sprint |
+> PR-5 commits: Sub-A `4d8953ab` + Sub-B `b830bbad` + Sub-C `227ba63a` + Sub-D `78fdd6ce` + Sub-E `961a2c3c`
+
+| Superficie | Estado | PR |
 |---|---|---|
-| CampaignExecutionWorker ARQ (consume outbox tasks, retry backoff) | PENDIENTE | S2 |
-| ChannelRouter Telegram (via ManyChat bridge) | PENDIENTE | S2 |
-| ChannelRouter WhatsApp (via ManyChat bridge) | PENDIENTE | S2 |
-| ChannelRouter Email (via MailerLite) | PENDIENTE | S2 |
-| ComplianceService wiring (OutboundRateLimiter pre-send) | PENDIENTE | S2 |
-| Observabilidad emision real (campaign_llm_call + campaign_trace_event) | PENDIENTE | S2 |
+| `CampaignOrchestrator.launch()` real (reemplaza PR-4 STUB) — @idempotent, single-TX, root tasks | SHIPPED | PR-5 Sub-C |
+| `run_campaign_execution_task` ARQ worker (dispatch Telegram via CB + idempotency) | SHIPPED | PR-5 Sub-D |
+| `run_campaign_scheduler_tick` ARQ cron (promote SCHEDULED + claim pending tasks) | SHIPPED | PR-5 Sub-D |
+| `run_segment_refresh_tick` ARQ cron (refresh STATIC segments linked RUNNING campaigns) | SHIPPED | PR-5 Sub-D |
+| `purge_old_campaigns_audit` ARQ cron (retention 90d, cron 04:30 UTC) | SHIPPED | PR-5 Sub-D |
+| `TelegramChannelRouter` (pipeline pre-send: compliance → rate-limiter → idempotency → CB → POST) | SHIPPED | PR-5 Sub-B |
+| `ChannelRouterRegistry` singleton (thread-safe, startup bootstrap) | SHIPPED | PR-5 Sub-B |
+| Circuit breaker per (channel, tenant_id) Redis-backed (Lua atomico, CLOSED/OPEN/HALF_OPEN) | SHIPPED | PR-5 Sub-A |
+| `AuditLogService` best-effort (sanitize PII + persist) + `campaign_audit` table (migration 113) | SHIPPED | PR-5 Sub-A |
+| 4 arch fitness gates (orchestrator + workers + registry + retention) | SHIPPED | PR-5 Sub-E |
+| ComplianceService + OutboundRateLimiter wired pre-send (TelegramChannelRouter) | SHIPPED | PR-5 Sub-B |
+| ChannelRouter WhatsApp (via ManyChat bridge) | PENDIENTE | PI-2 |
+| ChannelRouter Email (via MailerLite) | PENDIENTE | PI-2 |
+| BudgetGuard wiring en LLM call sites copilot/sales_agent | PENDIENTE | PR-6 |
+| Observabilidad emision real (campaign_llm_call + campaign_trace_event) | PENDIENTE | S2/S3 |
 
 ---
 
@@ -122,7 +133,7 @@ Todos los endpoints no-DELETE tienen `response_model=` (PII allowlist). Header `
 
 | Capacidad | Hoy | PI-1 S3 | PI-2 |
 |---|---|---|---|
-| Lanzar campana outbound | No (API lista, tool pendiente) | `campaign_launch` tool | Marketing Campaign Subagent |
+| Lanzar campana outbound | No (orchestrator real PR-5, tool pendiente) | `campaign_launch` tool | Marketing Campaign Subagent |
 | Consultar status campana | No | `campaign_get_status` | — |
 | Pausar/activar | No | `campaign_pause` / `campaign_launch` | — |
 | Crear segmento NL | No | — | `segment_create` NL |
@@ -151,17 +162,22 @@ Todos los endpoints no-DELETE tienen `response_model=` (PII allowlist). Header `
 
 ## Decisiones producto vinculadas
 
-Ver `pis/PI-1-campaigns-module/decisions.md`. Resumen D1-D17 (heredados + PI-1 especificos). Clave:
+Ver `pis/PI-1-campaigns-module/decisions.md`. Resumen D1-D22 (heredados + PI-1 especificos). Clave:
 - D11: PI-1 cierra con MVP 1 Telegram. Multi-canal/email a PI-2/3.
 - D14: Reservacion 50% sales_agent pool (BudgetGuard invariante, arch test property-based).
 - D17: Sprint 0 cortado a 5 sub-sprints.
+- D15: Custom asyncio CB Redis-backed por (channel, tenant_id) — pybreaker sync-only, aiobreaker abandoned.
+- D16: Queue named `arq:campaigns_execution`; deploy split CampaignsWorkerSettings diferido PI-3.
+- D18: Application-side idempotency Telegram via IdempotencyStore, key=`telegram-send:{task_id}`, TTL=24h.
+- D19: Retention 90d audit log + cron 04:30 UTC (offset copilot purge 04:00).
+- D22: Single-TX launch genera SOLO root tasks (step_index==0); descendientes S3+.
 
 ## PIs historicos / activos
 
 | PI | Estado | Tema |
 |---|---|---|
 | PI-1 S1 | SHIPPED | campaigns domain + services + API + templates seed |
-| PI-1 S2 | next | CampaignExecutionWorker ARQ + ChannelRouter impls |
+| PI-1 S2 | SHIPPED partial (PR-5) / PR-6 pending | orchestrator + 4 ARQ workers + Telegram + CB + audit log |
 | PI-1 S3 | planned | sales_agent + copilot wiring |
 | PI-2 | Next (placeholder) | Multi-canal (ManyChat) + Copilot subagent + EMAIL_DRIP |
 | PI-3 | Later | Event campaigns + CRM Hub Frontend + Retargeting |
