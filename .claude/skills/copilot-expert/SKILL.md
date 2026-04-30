@@ -369,6 +369,46 @@ Cuando reportes bug del copilot, mi primer mensaje SIEMPRE va a ser:
 
 Sin esos 6 pasos cumplidos, no toco código.
 
+---
+
+## Budget Gating (PI-1 S0 PR-2)
+
+Copilot LLM calls están **subject a `BudgetGuard.check`** del módulo `shared/billing/` (PI-1 S0 PR-2 — wiring orchestrator pre-LLM-call diferido a S2; primitivas expuestas hoy).
+
+**Gate signature:**
+```python
+decision = await budget_guard.check(
+    tenant_id=tenant_id,
+    agent_kind="copilot",          # ← bucket Others (NO sales_agent reserved)
+    estimated_cost_usd=Decimal("..."),  # caller computes (tier-aware si aplica)
+)
+if not decision.allowed:
+    # short-circuit pre-LLM-call: emite plan_card "presupuesto agotado", no consume tokens
+    ...
+```
+
+**Bucket reservation invariant (CRÍTICO — arch test property-based enforce):**
+- `agent_kind="copilot"` → consume del **Others pool** (`plan_config.llm_budget_total_usd * (1 - sales_agent_reserved_pct)`).
+- Copilot exhausto **NO** consume `sales_agent` reserved pool. Hard separation por bucket.
+- SA pool reservado default 50% (editable per plan via `plan_config.sales_agent_reserved_pct`).
+
+**Plan defaults (editable Streamlit `/planes-billing`):**
+
+| plan_id | llm_budget_total_usd | Others pool (50%) | max_outbound_msg_per_day |
+|---|---|---|---|
+| free | $5.00 | $2.50 | 100 |
+| basic | $15.00 | $7.50 | 500 |
+| intermediate | $30.00 | $15.00 | 2000 |
+| advanced | $45.00 | $22.50 | 5000 |
+| ultra | $95.00 | $47.50 | 20000 |
+
+**Outbound NO aplica al copilot.** Copilot no envía mensajes outbound (pure interactive). `OutboundRateLimiter` solo gateá sales_agent + future campaign senders.
+
+**MV stale soft cap:** si `mv_refresh_log.get_last_refresh('mv_daily_llm_cost_per_tenant_v2')` > 1h → `BudgetGuard` aplica soft cap 105% (admite 5% overrun para no bloquear). Documented in PR-2 CONTRACT.md §7.2.
+
+**Detalle vivo en PR-2 CONTRACT.md.** Skill solo agrega anchor — ver:
+`docs/pm-nico/pis/active/PI-1-campaigns-module/sprints/S0-foundation/prs/PR-2-billing-and-compliance/CONTRACT.md`
+
 ## Project invariants (read on demand)
 
 Reglas duras vinculadas al módulo. Lee cuando aplique:

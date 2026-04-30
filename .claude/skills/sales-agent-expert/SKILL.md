@@ -107,6 +107,66 @@ Tocar §3 → **PARAR, preguntar al usuario**.
 - `.claude/rules/{copilot-resilience,copilot-observability,sales-agent-brand-voice,parallel-safety,spanish-text}.md`.
 - `references/` (pre-redesign conversation craft — útil para evolución de copy, no arquitectura post-S12).
 
+## Budget + Outbound Gating (PI-1 S0 PR-2)
+
+sales_agent está **subject a 2 gates** del módulo `shared/billing/` + `shared/compliance/` (PI-1 S0 PR-2 — wiring specialists diferido a S2; primitivas expuestas hoy).
+
+### Gate 1 — `BudgetGuard.check` (LLM cost, SA pool reservado)
+
+```python
+decision = await budget_guard.check(
+    tenant_id=tenant_id,
+    agent_kind="sales_agent",       # ← bucket SA (reserved pool)
+    estimated_cost_usd=Decimal("..."),  # tier-aware si LiteLLM declara input_cost_per_token_above_200k_tokens (Kimi K2.6, S12)
+)
+```
+
+- `agent_kind="sales_agent"` → consume del **SA pool reservado** (`plan_config.llm_budget_total_usd * sales_agent_reserved_pct`, default 50%).
+- SA exhausto **NO** consume Others pool (copilot reserve). Hard separation por bucket. Arch test property-based enforce.
+- Tier pricing >200k (Kimi K2.6, S12 cementado): caller (specialist) pre-computes `estimated_cost_usd` con `TIER_THRESHOLD = 200_000` split. BudgetGuard NO recomputa tiers (no invade calculator §3-protected).
+
+### Gate 2 — `OutboundRateLimiter.check` (volumen mensajes outbound)
+
+```python
+allowed = await outbound_rate_limiter.check(tenant_id=tenant_id)
+if not allowed:
+    # short-circuit pre-send: log + skip OutputManager.process_response chunking
+    ...
+```
+
+- Sliding window Redis (24h) con cap `plan_config.max_outbound_msg_per_day`.
+- `None` cap → unlimited (subject a budget).
+- Soft-fail: Redis unavailable → fail-open (per `tessl__graceful-degradation`).
+
+### Plan defaults (editable Streamlit `/planes-billing` — 1 UPDATE row, 0 migration)
+
+| plan_id | llm_budget_total_usd | SA pool (50%) | max_outbound_msg_per_day |
+|---|---|---|---|
+| free | $5.00 | $2.50 | 100 |
+| basic | $15.00 | $7.50 | 500 |
+| intermediate | $30.00 | $15.00 | 2000 |
+| advanced | $45.00 | $22.50 | 5000 |
+| ultra | $95.00 | $47.50 | 20000 |
+
+### Custom override per-tenant
+
+`tenant_subscription.custom_overrides JSONB` permite per-tenant override (ej. tenant enterprise con `{"max_outbound_msg_per_day": 50000, "llm_budget_total_usd": 200}`). `PlanService.get_effective(tenant_id)` mergea overrides sobre plan base. Cache 5min con cross-instance pub/sub invalidation (PR-2 Q5).
+
+### MV stale soft cap
+
+Si `mv_refresh_log.get_last_refresh('mv_daily_llm_cost_per_tenant_v2')` > 1h → `BudgetGuard` aplica soft cap 105% (admite 5% overrun para no bloquear ventas). Cementado PR-2 Q4.
+
+### Cuándo wirear (S2)
+
+PR-2 expone primitivas, **NO modifica specialists**. S2 wirea:
+- `qualifier` / `product_expert` / `closer` / `supervisor` antes de cada LLM call → `BudgetGuard.check`.
+- `OutputManager.send_outbound_message` → `OutboundRateLimiter.check` antes de `process_response`.
+
+§3 protected surfaces (Closer Studio, BufferService, OutputManager.process_response chunking) NO se tocan — el gate vive antes del entry point.
+
+**Detalle vivo en PR-2 CONTRACT.md.** Skill solo agrega anchor — ver:
+`docs/pm-nico/pis/active/PI-1-campaigns-module/sprints/S0-foundation/prs/PR-2-billing-and-compliance/CONTRACT.md`
+
 ## Project invariants (read on demand)
 
 - `references/sales-agent-brand-voice.md` — SSoT voz, compiler v2, slot architecture, micro-anchor per-turn, cache invalidation, tests obligatorios
