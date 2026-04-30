@@ -38,6 +38,24 @@
 19. **Smart-chips dinámicas live en 4 routes** (offer-studio + brand-studio + sales + transversal copilot) post PR-2. Métricas adopción ya capturables día 1 vía `copilot_trace_event`.
 20. **Cero deuda S1 PR-2 D-9** cerrada con pure expansion. `offer_section_tools.py` 100% engine-driven, 0 static literales `"suggestions": [hint]`.
 
+## PR-3 llm-cost-optimization shipped PARTIAL 2026-04-30
+
+### Técnicas
+21. **env override layer pattern** (`model_config.py`) preserva enum SSoT (`TIER_METADATA`) sin mutación. Cache `_tier_cache` con `invalidate_tier_cache()` exposed para tests.
+22. **OpenAI-compatible API direct adapter** = simpler que vendor-agnostic abstraction. `DeepSeekLLMProvider` + `_OpenAILLMProvider` ambos via `openai.AsyncOpenAI(base_url=...)`. Single SDK, two providers.
+23. **Fallback chain pattern** = `_FallbackLLMProvider(primary, fallback)` collect events from primary, if error → delegate to fallback (NO recursive). Single retry semantic.
+24. **Eval gate goldens versionados in repo** (small JSONL, ~100KB total) > external storage. Reproducible CI gate sin dependencias externas.
+25. **Migration idempotency natural-key pattern** (`ON CONFLICT WHERE NOT EXISTS` con `valid_to IS NULL`) = pricing snapshot table-friendly. Re-run no-op verified by structure.
+
+### De proceso
+26. **L-PROC-1 confirmado TERCERA vez en S2** (PR-3 builder truncó ~170s, mínimo de los tres). Patrón CEMENTADO — main thread takeover ya NO es sorpresa, planear default. Para PRs L (scope ≥20 archivos), considerar splittear retrospectivamente en sub-PRs.
+27. **PARTIAL ship aceptable cuando**: (a) deferred es CONOCIDO + documentado IMPL-LOG, (b) shipped scope es auto-contenido funcional, (c) PR-4 candidate cohesive scope <½ del original. PR-3 ship cumple los 3 criterios.
+28. **Path forward post-PARTIAL**: open S3-copilot-llm-wiring-runtime PR-1 (~50 LOC + 24 tests + .env). Cohesive con CONTRACT D-7/D-8/D-12/D-14 que quedaron pendientes.
+
+### De producto
+29. **3 capas LLM stack copilot ahora opcional DeepSeek**: classifier (NANO), summarizer (NANO), title generator (NANO). Wiring PR-4 activa cost reduction proyectada 30-94% per layer.
+30. **Eval gate framework habilitará migration future a GLM-5/Qwen** sin re-arquitectura — solo nuevo provider adapter + goldens.
+
 ## Para process/process-learnings.md (escalable a global)
 
 - **L-PROC-FE-AUDIT-1**: para FE PRs L+, planear main thread takeover audit por default (auto-loop FE auditor stalla token cap consistentemente).

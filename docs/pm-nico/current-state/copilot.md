@@ -101,6 +101,17 @@ _Pendiente captura entrevistas users actuales._
 - Idempotente: re-run = 0 rows updated. Optimistic lock `WHERE messages = :original` evita conflict mid-flight
 - Out of scope: DROP `content` column (safety wait, PR futuro tras N días sin warnings v1)
 
+### Cap: LLM stack DeepSeek V4-Flash infra ready (wiring PR-4 pendiente)
+- Introducida: PR-3 (PI-2, S2, commit `8b8f538d`, 2026-04-30)
+- Estado: PARTIAL — infra live, wiring upstream LLMClassifier+RollingSummarizer factory PENDIENTE PR-4
+- Operable copilot: no directamente (infra LLM layer, transparente al user)
+- Components live: model_config env override layer, DeepSeekLLMProvider adapter (OpenAI-compatible API + retry/timeout), provider_factory get_llm_provider_for_tier + _FallbackLLMProvider chain DeepSeek→OpenAI single retry, eval gate framework (golden_dataset + runner CLI + scorers classifier/summarizer ROUGE+cosine)
+- Goldens dataset: 100 ejemplos versionados (50 classifier + 50 summarizer, 5 cat × 8 + 10 adversarial each)
+- Migration: alembic 114 idempotente — pricing snapshot deepseek-v4-flash ($0.14 in / $0.28 out per 1M)
+- Env flags ready: `COPILOT_TIER_<NANO|MINI>_{MODEL_NAME, PROVIDER, PRICE_INPUT_PER_1M, PRICE_OUTPUT_PER_1M}` + `DEEPSEEK_API_KEY`
+- Cost reduction projection post wiring: NANO -30% in/-78% out, MINI -81% in/-94% out vs gpt-5.4 actual
+- Wiring upstream PENDIENTE PR-4: LLMClassifier factory + RollingSummarizer + TitleGenerator (~50 LOC + 24 tests + .env update)
+
 ### Cap: 4 suggestion providers — multi-route smart-chips
 - Introducida: PR-2 (PI-2, S2, commit `64374b55`, 2026-04-30)
 - Estado: live

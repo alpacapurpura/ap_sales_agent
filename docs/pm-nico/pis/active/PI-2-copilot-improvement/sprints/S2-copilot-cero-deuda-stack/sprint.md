@@ -6,10 +6,10 @@
 |---|---|
 | Sprint ID | S2-copilot-cero-deuda-stack |
 | PI padre | PI-2-copilot-improvement |
-| Estado | in-progress |
+| Estado | done |
 | Inicio | 2026-04-30 |
 | Cierre estimado | 2026-04-30 |
-| Cierre real | — |
+| Cierre real | 2026-04-30 |
 | Owner PM | /pm |
 
 ## Objetivo (1 línea)
@@ -34,9 +34,9 @@ Cerrar todas las deudas técnicas del S1 (FE voice migration + FE suggestions li
 
 | PR | Folder | Descripción | Agentes/skills | Esfuerzo | Estado |
 |---|---|---|---|---|---|
-| PR-1 | `prs/PR-1-fe-swap-suggestions-api/` | Cross-stack: BE expone `POST /copilot/suggestions` (engine) + `POST /copilot/suggestions/accept` (producer). FE swap stub `useSuggestions` → React Query real. FE migra `voice-api.ts` legacy → `/voice/upload-and-transcribe`. Cierra deudas S1 #1+#2. | `nicolify-architect` → `nicolify-backend` + `nicolify-frontend` (paralelo) → `nicolify-backend-auditor` + `nicolify-frontend-auditor` | L | not-started |
-| PR-2 | `prs/PR-2-pure-expansion-providers/` | BE: agregar `BrandSuggestionProvider` + `SalesAgentSuggestionProvider` + `CopilotSuggestionProvider` (3 nuevos). Pure expansion `offer_section_tools.py` (eliminar último static `"suggestions": [hint]`, helper return path engine-only). Cierra deuda S1 #3. | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` + `copilot-expert` + `brand-expert` + `sales-agent-expert` | M | not-started |
-| PR-3 | `prs/PR-3-llm-cost-optimization/` | BE: migrar classifier/router + summarizer → DeepSeek V4-Flash. Eval gate framework (≥50 goldens per uso, threshold ≥95% calidad vs incumbente). Rollback env-flag. Mantener Claude en sales_agent voice. Escala: cost down 4-18x. | `nicolify-architect` → `nicolify-backend` → `nicolify-backend-auditor` + `copilot-expert` + `sales-agent-expert` | L | not-started |
+| PR-1 | `prs/PR-1-fe-swap-suggestions-api/` | Cross-stack: BE expone `POST /copilot/suggestions` + `POST /copilot/suggestions/accept`. FE swap stub `useSuggestions` → React Query real. FE migra voice-api.ts. | `nicolify-architect` → `nicolify-backend` + `nicolify-frontend` paralelo → auditors | L | **shipped PASS** (1 iter c/u) |
+| PR-2 | `prs/PR-2-pure-expansion-providers/` | BE: 3 providers nuevos + pure expansion offer_section_tools. Cierra deuda S1 #3. | `nicolify-architect` → `nicolify-backend` → auditor + skills | M | **shipped PASS** (1 iter PM main thread) |
+| PR-3 | `prs/PR-3-llm-cost-optimization/` | BE: LLM stack swap classifier+summarizer + eval gate framework + rollback env-flag. | `nicolify-architect` → `nicolify-backend` → auditor + skills | L | **shipped PASS PARTIAL** (wiring DEFERRED PR-4) |
 
 Detalle de cada PR vive en `prs/PR-N-{slug}/PR.md`. Prompts pre-cocidos en `prompts/`.
 

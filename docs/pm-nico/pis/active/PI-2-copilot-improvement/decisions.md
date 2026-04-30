@@ -95,6 +95,25 @@
 
 **Aprendizaje proceso:** S1 learning #8 confirmado segunda vez (PR-2 builder truncó mid-fix iter 1). PM main thread completó: lazy imports → module level (test mocking), 6 type ignores defensivos documentados, test design alignment para resilience pattern. Patrón cementado — para PRs M+ planear PM main thread takeover post primer trunc.
 
+## 2026-04-30 — PR-3 shipped PARTIAL
+
+**Decisión:** ship PARTIAL — infra LLM ready (model_config + DeepSeek provider + factory + eval gate framework + migration) sin wiring upstream. Wiring + tests T-2..T-8 + `.env.example` + Settings DEFERRED PR-4 cohesivo.
+
+**Razón override "cero deuda":** builder truncó early (~170s, 81 tool uses). PM main thread takeover encontró bloque arquitectónico LLMProvider factory upstream NO ubicable sin discovery profundo. Trade-off: ship infra ready (auto-contenida funcional via CLI runner) + DEFERRED documentado vs forzar wiring sin verificación profunda + arriesgar regresión runtime classifier/summarizer en prod.
+
+**Decisiones técnicas relevantes (CONTRACT 15 D-numbered, top 5):**
+- D-1: env override layer model_config — cero modificación enum SSoT TIER_METADATA
+- D-2: DeepSeekLLMProvider OpenAI-compatible directo (NO Together/Fireworks) — lower latency + adapter pattern preserva swap futuro
+- D-9: migration alembic 114 idempotente ON CONFLICT WHERE NOT EXISTS pattern (natural-key valid_to=NULL)
+- D-10: arch test sales_agent isolation guard — 0 imports sales_agent en copilot/llm + copilot/evals
+- D-MAIN-1: PARTIAL ship justificado — cohesive auto-contained infra + explicit DEFERRED PR-4
+
+**Surface entregada:** 21 archivos, 6 smoke tests verde, 1 migration idempotente, 100 goldens versionados.
+
+**Aprendizaje proceso:** S1 learning #8 confirmado **TERCERA vez en S2** (todos los builders L+ truncan). Patrón CEMENTADO — para PRs L con scope ~25+ archivos, default plan = main thread takeover post-truncate (ya NO sorpresa). Considerar splittear PR-3 retrospectivamente en PR-3a (infra) + PR-3b (wiring) hubiera evitado PARTIAL ship.
+
+**Decisión PI-2 next:** abrir S3-copilot-llm-wiring-runtime con PR-1 wiring (cierra deuda PR-3 PARTIAL). Si Chris autoriza, considerar también PR-2 multicanal (Bloque A Telegram bridge) o cerrar PI-2 y abrir PI-3 dedicado multicanal. Evaluación post handoff S2.
+
 ## Pendientes registrar
 
 _Aquí se irán registrando decisiones tomadas durante discovery + ejecución._
