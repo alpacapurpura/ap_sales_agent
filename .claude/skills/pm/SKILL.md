@@ -182,7 +182,7 @@ Convo `/pm` no termina sin entregable concreto. Mínimo:
 9. **PR es CARPETA, no archivo.** Cada PR = `prs/PR-{n}-{slug}/` con sub-archivos por rol (PR/CONTRACT/UI-SPEC/IMPL-LOG/REVIEW/RESULT + prompts/).
 10. **PM es OWNER único de `docs/pm-nico/`.** Builders/UX/auditor escriben en archivos específicos del PR-folder, NUNCA tocan `roadmap.md`/`process-learnings.md`/`current-state/{m}.md` directo (eso lo consolida PM).
 11. **PRs amplios cohesivos.** Opus 4.7[1M] permite scope grande en una ejecución. NO splittear por miedo al contexto. Splittear solo cuando scope deja de ser cohesivo (multi-dominio, multi-blast-radius).
-12. **Sprint sizing:** target 1-3 PRs por sprint, no 5+. Cada PR = 3 ejecuciones (architect + builder + auditor).
+12. **Sprint sizing:** target 1-3 PRs por sprint, no 5+. Cada PR ≈ 3 ejecuciones (architect + builder + auditor) para single-stack, hasta 5 (architect + BE-builder + BE-auditor + FE-builder + FE-auditor) para cross-stack — UX puede paralelizar a architect.
 13. **Lineage en `current-state/`.** Cada capacidad linkea al PR que la introdujo/modificó. Capacidades deprecadas a sección dedicada.
 
 ***
@@ -234,8 +234,9 @@ sprints/S{N}-{slug}/
 
 Cuando builder + auditor terminaron:
 
-1. PM lee `IMPL-LOG.md` + `REVIEW.md` + `git log` últimos commits del PR.
-2. PM escribe `RESULT.md` siguiendo template (outcome real vs esperado, surface, lineage capacidades, decisiones, deuda).
+1. PM lee `IMPL-LOG.md` + `REVIEW.md` (single-stack) o `REVIEW-backend.md` + `REVIEW-frontend.md` (cross-stack) + `git log` últimos commits del PR.
+2. **Convención REVIEW**: PR backend-only o frontend-only → archivo único `REVIEW.md`. PR cross-stack → un archivo por auditor: `REVIEW-backend.md` (de `nicolify-backend-auditor`) + `REVIEW-frontend.md` (de `nicolify-frontend-auditor`). Ambos deben dar verdict PASS antes de cerrar.
+3. PM escribe `RESULT.md` siguiendo template (outcome real vs esperado, surface, lineage capacidades, decisiones, deuda).
 3. PM update `current-state/{m}.md` con bloque "Cap: {x}" copiado de RESULT.md.
 4. PM append decisiones relevantes a `pis/active/PI-{X}-{theme}/decisions.md`.
 5. PM append learnings al `sprints/S{N}-*/learnings.md`.
@@ -269,9 +270,11 @@ Resumen rápido:
 | Pure backend infra (outbox, idempotency, rate limiter) | `nicolify-architect` | `nicolify-backend` | — | `nicolify-backend-auditor` |
 | Backend + DB schema | `nicolify-architect` | `nicolify-backend` | — | `nicolify-backend-auditor` |
 | Backend + LangGraph/AI | `nicolify-architect` | `nicolify-agentic` | — | `nicolify-backend-auditor` |
-| Frontend con UI nueva | — | `nicolify-frontend` | `ux-flow-architect` | — |
-| Frontend con UX exploratorio | — | `nicolify-frontend` | `ux-disruptivo` → `ux-flow-architect` | — |
-| Cross-stack feature | `nicolify-architect` | `nicolify-backend` + `nicolify-frontend` | `ux-flow-architect` | both auditors |
+| Frontend con UI nueva | — | `nicolify-frontend` | `ux-flow-architect` | `nicolify-frontend-auditor` |
+| Frontend con UX exploratorio | — | `nicolify-frontend` | `ux-disruptivo` → `ux-flow-architect` | `nicolify-frontend-auditor` |
+| Cross-stack feature | `nicolify-architect` | `nicolify-backend` + `nicolify-frontend` | `ux-flow-architect` | `nicolify-backend-auditor` + `nicolify-frontend-auditor` |
+| Bug fix backend | — | `nicolify-backend` | — | `nicolify-backend-auditor` |
+| Bug fix frontend | — | `nicolify-frontend` | — | `nicolify-frontend-auditor` |
 | Investigación cross-codebase | `Explore` o `general-purpose` | — | — | — |
 | Migración research/docs | PM solo | — | — | — |
 
