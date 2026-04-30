@@ -7,11 +7,11 @@
 | PR ID | PR-1-fe-swap-suggestions-api |
 | Sprint padre | S2-copilot-cero-deuda-stack |
 | PI padre | PI-2-copilot-improvement |
-| Estado | ready |
+| Estado | in-progress |
 | Tipo | feature (cross-stack: BE endpoints + FE swap) |
 | Esfuerzo | L |
 | Owner PM | /pm |
-| Claimed by session | — |
+| Claimed by session | 2026-04-30 sesión PI-2 S2 (módulo copilot) |
 
 ## Problema (user-facing)
 
