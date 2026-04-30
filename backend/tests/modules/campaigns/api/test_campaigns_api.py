@@ -439,7 +439,7 @@ class TestSegmentCRUD:
             has_more=False,
         )
         mock_svc = AsyncMock()
-        mock_svc.list.return_value = resp
+        mock_svc.list_segments.return_value = resp
         app.dependency_overrides[get_segment_service] = lambda: mock_svc
         app.dependency_overrides[get_campaigns_async_session] = _patch_session
 
@@ -509,15 +509,9 @@ class TestSegmentCRUD:
         from src.main import app
 
         lead_ids = [uuid4(), uuid4()]
-        resp = SegmentResolveResponse(
-            segment_id=SEGMENT_ID,
-            at=NOW,
-            lead_count=2,
-            lead_ids=lead_ids,
-            truncated=False,
-        )
+        # Service returns tuple (lead_ids, lead_count, truncated) — router builds DTO.
         mock_svc = AsyncMock()
-        mock_svc.resolve.return_value = resp
+        mock_svc.resolve.return_value = (lead_ids, 2, False)
         app.dependency_overrides[get_segment_service] = lambda: mock_svc
         app.dependency_overrides[get_campaigns_async_session] = _patch_session
 
@@ -541,14 +535,9 @@ class TestSegmentCRUD:
         from src.modules.campaigns.api._dependencies import get_campaigns_async_session
         from src.main import app
 
-        resp = SegmentEstimateSizeResponse(
-            segment_id=SEGMENT_ID,
-            estimated_size=150,
-            cached_at=NOW,
-            cache_hit=True,
-        )
+        # Service returns tuple (estimated_size, cached_at, cache_hit) — router builds DTO.
         mock_svc = AsyncMock()
-        mock_svc.estimate_size.return_value = resp
+        mock_svc.estimate_size.return_value = (150, NOW, True)
         app.dependency_overrides[get_segment_service] = lambda: mock_svc
         app.dependency_overrides[get_campaigns_async_session] = _patch_session
 

@@ -96,7 +96,7 @@ class CampaignTemplateService:
                 "campaign_template_service_list_cache_hit",
                 tenant_id=str(tenant_id),
             )
-            return cached  # type: ignore[return-value]
+            return cached  # type: ignore[no-any-return]  # cache stores list[CampaignTemplate]; Any from cache.get()
         templates = list(await self._repo.list_for_tenant(tenant_id, session=session))
         await self._cache.set(cache_key, templates, ttl=self.LIST_CACHE_TTL)
         return templates

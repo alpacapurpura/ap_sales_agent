@@ -136,7 +136,7 @@ class SegmentService:
             raise SegmentNotFoundError(str(segment_id))
         return seg
 
-    async def list(
+    async def list_segments(
         self,
         tenant_id: UUID,
         *,

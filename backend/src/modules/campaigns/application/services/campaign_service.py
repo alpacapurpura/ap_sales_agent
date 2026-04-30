@@ -245,7 +245,7 @@ class CampaignService:
                 tenant_id=str(tenant_id),
                 cache_key=cache_key,
             )
-            return cached  # type: ignore[return-value]
+            return cached  # type: ignore[no-any-return]  # cache stores PaginatedResponse; Any from cache.get()
         items = await self._repo.list_by_tenant(
             tenant_id,
             session=session,

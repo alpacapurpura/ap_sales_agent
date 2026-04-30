@@ -32,6 +32,7 @@ from src.modules.campaigns.application.services.segment_service import (
 )
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
+from src.shared.domain.datetime_utils import utc_now
 
 logger = structlog.get_logger(__name__)
 
@@ -74,7 +75,7 @@ async def list_segments(
 ) -> PaginatedResponse[SegmentResponse]:
     """List segments paginated for the authenticated tenant."""
     tenant_id = _tenant_id(user)
-    return await svc.list(tenant_id=tenant_id, session=session, limit=limit, offset=offset)
+    return await svc.list_segments(tenant_id=tenant_id, session=session, limit=limit, offset=offset)
 
 
 @router.post(
@@ -176,7 +177,20 @@ async def resolve_segment(
     """Resolve segment to a list of lead UUIDs (SQL-side filtering, no PII)."""
     tenant_id = _tenant_id(user)
     try:
-        return await svc.resolve(tenant_id=tenant_id, segment_id=segment_id, request=body, session=session)
+        lead_ids, lead_count, truncated = await svc.resolve(
+            tenant_id=tenant_id,
+            segment_id=segment_id,
+            at=body.at,
+            limit=body.limit,
+            session=session,
+        )
+        return SegmentResolveResponse(
+            segment_id=segment_id,
+            at=body.at or utc_now(),
+            lead_count=lead_count,
+            lead_ids=lead_ids,
+            truncated=truncated,
+        )
     except SegmentNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc) or "Segmento no encontrado.") from exc
 
@@ -195,7 +209,17 @@ async def estimate_segment_size(
     """Get cached estimate of segment size (5-min cache)."""
     tenant_id = _tenant_id(user)
     try:
-        return await svc.estimate_size(tenant_id=tenant_id, segment_id=segment_id, session=session)
+        estimated_size, cached_at, cache_hit = await svc.estimate_size(
+            tenant_id=tenant_id,
+            segment_id=segment_id,
+            session=session,
+        )
+        return SegmentEstimateSizeResponse(
+            segment_id=segment_id,
+            estimated_size=estimated_size,
+            cached_at=cached_at,
+            cache_hit=cache_hit,
+        )
     except SegmentNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc) or "Segmento no encontrado.") from exc
 

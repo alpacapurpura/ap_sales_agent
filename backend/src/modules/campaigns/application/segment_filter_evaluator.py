@@ -15,11 +15,13 @@ Architecture note:
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import structlog
-from sqlalchemy import Boolean, ColumnElement, and_, exists, false, or_, select
+from sqlalchemy import ColumnElement, and_, exists, false, or_, select
+from sqlalchemy.sql.elements import ClauseElement  # noqa: F401 — used via ColumnElement
 
 from src.modules.campaigns.domain.enums import SegmentFilterCombinator
 from src.modules.campaigns.domain.segment_filter import PredefinedSegmentFilter
@@ -30,12 +32,16 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger(__name__)
 
+# SQLA 2.0 typing: comparison ops produce ColumnElement[bool] (Python bool),
+# not ColumnElement[Boolean] (TypeEngine). Use ColumnElement[bool] throughout.
+_BoolClause = ColumnElement[bool]
+
 
 class _ChannelColumnMissingError(ValueError):
     """Raised when a ChannelIdentifier has no direct column on LeadModel."""
 
 
-def _build_lifecycle_clause(lifecycle_stage: list[str]) -> ColumnElement[Boolean]:
+def _build_lifecycle_clause(lifecycle_stage: Sequence[str]) -> _BoolClause:
     """EXISTS subquery for lifecycle_stage (lives on CustomerProfileModel)."""
     subq = (
         select(CustomerProfileModel.id)
@@ -48,7 +54,7 @@ def _build_lifecycle_clause(lifecycle_stage: list[str]) -> ColumnElement[Boolean
     return exists(subq)
 
 
-def _build_source_clause(source: list[str]) -> ColumnElement[Boolean]:
+def _build_source_clause(source: Sequence[str]) -> _BoolClause:
     """EXISTS subquery for lead_source (lives on CustomerProfileModel)."""
     subq = (
         select(CustomerProfileModel.id)
@@ -61,9 +67,9 @@ def _build_source_clause(source: list[str]) -> ColumnElement[Boolean]:
     return exists(subq)
 
 
-def _build_channel_clause(has_channel_id: list[str]) -> ColumnElement[Boolean]:
+def _build_channel_clause(has_channel_id: Sequence[str]) -> _BoolClause:
     """Builds IS NOT NULL clauses for channel id columns."""
-    channel_clauses: list[ColumnElement[Boolean]] = []
+    channel_clauses: list[_BoolClause] = []
     for ch in has_channel_id:
         col = getattr(LeadModel, ch, None)
         if col is None:
@@ -85,9 +91,9 @@ class SegmentFilterEvaluator:
     def _collect_sql_clauses(
         self,
         filter_dsl: PredefinedSegmentFilter,
-    ) -> list[ColumnElement[Boolean]]:
+    ) -> list[_BoolClause]:
         """Collect all non-None filter clauses as SQLA expressions."""
-        clauses: list[ColumnElement[Boolean]] = []
+        clauses: list[_BoolClause] = []
 
         if filter_dsl.lifecycle_stage:
             clauses.append(_build_lifecycle_clause(filter_dsl.lifecycle_stage))
@@ -148,7 +154,7 @@ class SegmentFilterEvaluator:
         *,
         tenant_id: UUID,
         at: dt.datetime | None = None,
-    ) -> ColumnElement[Boolean]:
+    ) -> _BoolClause:
         """Compose SQL WHERE predicate for LeadModel queries.
 
         Combinator semantics:

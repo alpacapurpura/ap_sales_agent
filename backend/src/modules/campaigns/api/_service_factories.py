@@ -105,7 +105,7 @@ async def get_segment_service(
     return SegmentService(
         repo=SegmentRepositoryImpl(),
         snapshot_repo=SegmentSnapshotRepositoryImpl(),
-        lead_query_port=LeadQueryPortImpl(),  # type: ignore[arg-type]
+        lead_query_port=LeadQueryPortImpl(),
         filter_evaluator=SegmentFilterEvaluator(),
         outbox_service=_get_outbox_service(),  # type: ignore[arg-type]
         cache=_campaign_cache,

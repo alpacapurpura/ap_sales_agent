@@ -61,7 +61,7 @@ class SimpleTTLCache:
         self._store: dict[str, tuple[Any, float]] = {}  # key -> (value, expires_at)
         self._max_entries = max_entries
         self._redis = redis_client
-        self._subscriber_task: asyncio.Task | None = None  # type: ignore[type-arg]
+        self._subscriber_task: asyncio.Task[None] | None = None
 
     async def get(self, key: str) -> Any | None:
         """Return cached value or None if missing/expired."""

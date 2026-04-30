@@ -5,28 +5,30 @@ OutboxService.enqueue_async_from_sync_caller expects DomainEvent (dataclass with
 event_name + tenant_id + occurred_at + payload).
 
 This module provides a thin adapter that wraps campaign Pydantic events.
+_PydanticEventAdapter inherits from DomainEvent so OutboxService type-checks pass
+without any type: ignore (S1 cross-PR contract — PR-3 events are Pydantic, PR-1
+OutboxService expects DomainEvent dataclass; adapter bridges both without modifying
+shared/ OutboxService or the campaign domain events).
 """
 
 from __future__ import annotations
 
 import datetime as dt
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
+from src.shared.domain.events import DomainEvent
+
 
 @dataclass
-class _PydanticEventAdapter:
+class _PydanticEventAdapter(DomainEvent):
     """Adapter making a campaign Pydantic event compatible with OutboxEntry.from_event.
 
+    Inherits DomainEvent so OutboxService.enqueue_async_from_sync_caller type-checks.
     OutboxEntry.from_event accesses: event.tenant_id, event.event_name, event.payload.
     Campaign events have: event.tenant_id, event.EVENT_NAME (class attr), event.model_dump().
     """
-
-    tenant_id: UUID
-    event_name: str
-    occurred_at: dt.datetime
-    payload: dict[str, Any] = field(default_factory=dict)
 
 
 def to_domain_event(pydantic_event: Any) -> _PydanticEventAdapter:

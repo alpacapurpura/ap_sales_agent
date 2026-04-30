@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Protocol
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from sqlalchemy import Boolean, ColumnElement
+    from sqlalchemy import ColumnElement
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -20,13 +20,18 @@ class LeadQueryPort(Protocol):
 
     Protocol keeps DDD boundaries — campaigns module never imports
     LeadModel or CRM services directly.
+
+    Note: predicate uses ColumnElement[bool] (Python bool), which is what SQLA 2.0
+    comparison/boolean operators produce. ColumnElement[Boolean] (TypeEngine Boolean)
+    is equivalent at runtime but differs in SQLA stubs generics — using bool avoids
+    the covariance issue with list[Literal] parameters in SegmentFilterEvaluator.
     """
 
     async def list_lead_ids_matching(
         self,
         *,
         tenant_id: UUID,
-        predicate: ColumnElement[Boolean],
+        predicate: ColumnElement[bool],
         limit: int,
         session: AsyncSession,
     ) -> tuple[list[UUID], int]:
@@ -41,7 +46,7 @@ class LeadQueryPort(Protocol):
         self,
         *,
         tenant_id: UUID,
-        predicate: ColumnElement[Boolean],
+        predicate: ColumnElement[bool],
         session: AsyncSession,
     ) -> int:
         """Return count of leads matching the predicate for the tenant."""
