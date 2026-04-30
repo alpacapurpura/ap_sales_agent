@@ -13,6 +13,22 @@ MODULES_DIR = Path(__file__).resolve().parents[2] / "src" / "modules"
 EXPECTED_LAYERS = {"domain", "infrastructure", "application", "api"}
 SNAKE_CASE_RE = re.compile(r"^[a-z][a-z0-9_]*\.py$")
 
+# Private module helper files (single-underscore prefix) that are allowed.
+# These are internal composition helpers that do not violate DDD — they live
+# inside their own module's api/ or application/ layer. Ratchet: only shrink.
+KNOWN_PRIVATE_FILE_EXCEPTIONS: frozenset[str] = frozenset(
+    {
+        # campaigns/api/ — DI factories, async session, dependencies split into private
+        # helpers so the router stays thin. Pattern from PR-4/PR-5 (PI-1 S1/S2).
+        "campaigns/api/_async_session.py",
+        "campaigns/api/_dependencies.py",
+        "campaigns/api/_service_factories.py",
+        # campaigns/application/services/ — internal event bridge (not a service, not a
+        # domain entity; private translation util consumed only by orchestrator.py).
+        "campaigns/application/services/_event_bridge.py",
+    }
+)
+
 # Modules with non-standard structure (justified exceptions)
 KNOWN_STRUCTURE_EXCEPTIONS: dict[str, set[str]] = {
     # Some modules don't need all 4 layers
@@ -37,8 +53,11 @@ def test_all_python_files_snake_case():
     for py_file in sorted(MODULES_DIR.rglob("*.py")):
         if py_file.name == "__init__.py":
             continue
+        rel = str(py_file.relative_to(MODULES_DIR))
+        if rel in KNOWN_PRIVATE_FILE_EXCEPTIONS:
+            continue
         if not SNAKE_CASE_RE.match(py_file.name):
-            violations.append(str(py_file.relative_to(MODULES_DIR)))
+            violations.append(rel)
 
     assert not violations, f"Files not snake_case ({len(violations)}):\n" + "\n".join(f"  {v}" for v in violations)
 

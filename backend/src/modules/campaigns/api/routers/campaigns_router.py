@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.modules.campaigns.api._dependencies import get_campaigns_async_session
-from src.modules.campaigns.api._service_factories import get_campaign_service
+from src.modules.campaigns.api._service_factories import get_campaign_orchestrator, get_campaign_service
 from src.modules.campaigns.application.dtos.campaign_dtos import (
     CampaignCancelRequest,
     CampaignCreate,
@@ -39,6 +39,13 @@ from src.modules.campaigns.application.services.campaign_service import (
     CampaignNotFoundError,
     CampaignPlanLimitExceededError,
     CampaignService,
+)
+from src.modules.campaigns.application.services.orchestrator import (
+    CampaignOrchestrator,
+    OrchestratorCampaignNotFoundError,
+    OrchestratorCampaignNotLaunchableError,
+    OrchestratorMissingStepsError,
+    OrchestratorSegmentEmptyError,
 )
 from src.modules.campaigns.domain.enums import CampaignStatus, CampaignType
 from src.modules.iam.api.dependencies import get_current_user
@@ -228,19 +235,48 @@ async def schedule_campaign(
 @router.post(
     "/{campaign_id}/launch",
     response_model=CampaignLaunchResponse,
-    summary="Lanzar campaña (SCHEDULED → RUNNING) — STUB S2",
+    summary="Lanzar campaña (SCHEDULED → RUNNING)",
 )
 async def launch_campaign(
     campaign_id: UUID,
     user: Annotated[User, Depends(get_current_user)],
     svc: Annotated[CampaignService, Depends(get_campaign_service)],
+    orchestrator: Annotated[CampaignOrchestrator, Depends(get_campaign_orchestrator)],
     session: Annotated[AsyncSession, Depends(get_campaigns_async_session)],
 ) -> CampaignLaunchResponse:
-    """STUB: Transition SCHEDULED → RUNNING. Real execution wired in S2 worker."""
+    """Launch campaign: resolve segment, create root tasks, enqueue via ARQ.
+
+    Returns 200 with tasks_generated count. Idempotent within 10min TTL.
+    - 404: campaign not found or not owned by tenant.
+    - 409: campaign not in a launchable state (e.g. already COMPLETED or CANCELED).
+    - 422: segment empty or no root steps.
+    """
     tenant_id = _tenant_id(user)
     try:
-        campaign = await svc.launch(tenant_id=tenant_id, campaign_id=campaign_id, session=session)
-        return CampaignLaunchResponse(campaign=CampaignResponse.model_validate(campaign))
+        async with session.begin():
+            result = await orchestrator.launch(
+                tenant_id=tenant_id,
+                campaign_id=campaign_id,
+                session=session,
+            )
+        # Post-commit: best-effort ARQ enqueue (scheduler_tick backstop on failure)
+        await orchestrator.enqueue_pending_tasks()
+        # Fetch updated campaign for response
+        campaign_obj = await svc.get(tenant_id=tenant_id, campaign_id=campaign_id, session=session)
+        return CampaignLaunchResponse(
+            campaign=CampaignResponse.model_validate(campaign_obj),
+            tasks_generated=result.tasks_generated,
+            notice=(
+                "Lanzamiento ejecutado. Tasks raíz creadas y dispatch en cola via "
+                "ChannelRouterRegistry. Audit log: GET /campaigns/{id}/audit (futuro post-PI-1)."
+            ),
+        )
+    except OrchestratorCampaignNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc) or "Campaña no encontrada.") from exc
+    except OrchestratorCampaignNotLaunchableError as exc:
+        raise HTTPException(status_code=409, detail=str(exc) or "Transición de estado no permitida.") from exc
+    except (OrchestratorSegmentEmptyError, OrchestratorMissingStepsError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:
         raise _map_campaign_error(exc) from exc
 

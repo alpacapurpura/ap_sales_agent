@@ -102,8 +102,21 @@ def idempotent(
 
             # Store minimal projection: {id, status, external_id}
             # Only subset that callers need for duplicate detection (D10/D11).
+            # Supports both plain dicts and Pydantic BaseModel instances.
+            result_as_dict: dict[str, object] | None = None
             if isinstance(result, dict):
-                projected = {k: result[k] for k in ("id", "status", "external_id") if k in result}
+                result_as_dict = result
+            else:
+                try:
+                    from pydantic import BaseModel as _BaseModel
+
+                    if isinstance(result, _BaseModel):
+                        result_as_dict = result.model_dump(mode="json")
+                except ImportError:
+                    pass
+
+            if result_as_dict is not None:
+                projected = {k: result_as_dict[k] for k in ("id", "status", "external_id") if k in result_as_dict}
                 if projected:
                     await store.store_result(ikey, projected)
 

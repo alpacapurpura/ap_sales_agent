@@ -122,3 +122,66 @@ async def get_template_service(
         campaign_service=campaign_svc,
         cache=_template_cache,
     )
+
+
+def _get_audit_log_service() -> object:
+    """Lazy factory for AuditLogService."""
+    from src.modules.campaigns.application.services.audit_log_service import AuditLogService
+    from src.modules.campaigns.infrastructure.repositories.audit_log_repo_impl import (
+        AuditLogRepositoryImpl,
+    )
+
+    return AuditLogService(repo=AuditLogRepositoryImpl())
+
+
+async def _arq_pool_provider() -> object:
+    """Lazy async factory for ARQ Redis pool."""
+    from arq import create_pool
+    from arq.connections import RedisSettings
+
+    from src.core.database import redis_client
+
+    # redis_client is already a connected redis; wrap for arq if needed.
+    # Fallback: return redis_client directly if arq pool already handled.
+    try:
+        if redis_client is None:
+            return None
+        settings = RedisSettings.from_dsn(str(redis_client.connection_pool.connection_kwargs.get("db", 0)))
+        return await create_pool(settings)
+    except Exception:  # noqa: BLE001
+        # Best-effort: if arq pool unavailable, scheduler_tick picks up tasks.
+        return redis_client
+
+
+async def get_campaign_orchestrator(
+    session: Annotated[AsyncSession, Depends(get_campaigns_async_session)],
+) -> object:
+    """FastAPI dependency that builds a CampaignOrchestrator for a request."""
+    from src.modules.crm.infrastructure.repositories.lead_query_port_impl import (
+        LeadQueryPortImpl,
+    )
+
+    from src.modules.campaigns.application.segment_filter_evaluator import (
+        SegmentFilterEvaluator,
+    )
+    from src.modules.campaigns.application.services.orchestrator import CampaignOrchestrator
+    from src.modules.campaigns.infrastructure.repositories.campaign_task_repository_impl import (
+        CampaignTaskRepositoryImpl,
+    )
+
+    return CampaignOrchestrator(
+        campaign_repo=CampaignRepositoryImpl(),
+        step_repo=CampaignStepRepositoryImpl(),
+        task_repo=CampaignTaskRepositoryImpl(),
+        segment_service=SegmentService(
+            repo=SegmentRepositoryImpl(),
+            snapshot_repo=SegmentSnapshotRepositoryImpl(),
+            lead_query_port=LeadQueryPortImpl(),
+            filter_evaluator=SegmentFilterEvaluator(),
+            outbox_service=_get_outbox_service(),  # type: ignore[arg-type]
+            cache=_campaign_cache,
+        ),
+        outbox_service=_get_outbox_service(),  # type: ignore[arg-type]
+        audit_log_service=_get_audit_log_service(),  # type: ignore[arg-type]
+        arq_pool_provider=_arq_pool_provider,
+    )

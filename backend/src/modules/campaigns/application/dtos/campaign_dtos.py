@@ -87,19 +87,18 @@ class CampaignResponse(BaseModel):
 
 
 class CampaignLaunchResponse(BaseModel):
-    """STUB notice — S2 wires real execution."""
+    """Launch response — PR-5 real orchestrator."""
 
     model_config = ConfigDict(from_attributes=True, extra="forbid")
 
     campaign: CampaignResponse
+    tasks_generated: int = Field(default=0, ge=0, description="Cantidad de CampaignTask creadas para roots del DAG.")
     notice: str = Field(
         default=(
-            "STUB launch: campaña marcada como running y evento "
-            "campaigns.campaign.launched emitido vía outbox. La ejecución real "
-            "(resolve segment + envío via ChannelRouter) la implementa el "
-            "CampaignExecutionWorker en S2."
+            "Lanzamiento ejecutado. Tasks raíz creadas y dispatch en cola via "
+            "ChannelRouterRegistry. Audit log: GET /campaigns/{id}/audit (futuro post-PI-1)."
         ),
-        description=("Aviso explícito al integrador. NO toca este texto sin actualizar arch test."),
+        description="Aviso al integrador sobre el resultado del lanzamiento.",
     )
 
 

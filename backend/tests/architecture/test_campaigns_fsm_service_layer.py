@@ -62,9 +62,20 @@ class TestCampaignsFSMServiceLayer:
             )
 
     def test_router_delegates_to_service(self) -> None:
-        """Cada handler de FSM en el router llama svc.{method}(...)."""
+        """Cada handler de FSM en el router llama svc.{method}(...) o orchestrator.{method}(...).
+
+        launch() es manejado por CampaignOrchestrator (PI-1 S2 PR-5) que es el service
+        layer real para lanzamiento. Los demás FSM transitions siguen en CampaignService.
+        """
         source = _ROUTER_PATH.read_text()
-        required_service_calls = ["svc.launch(", "svc.cancel(", "svc.pause(", "svc.resume(", "svc.complete("]
+        # launch: delegated to orchestrator (CampaignOrchestrator.launch()) — PR-5 PI-1 S2
+        launch_delegated = "orchestrator.launch(" in source or "svc.launch(" in source
+        assert launch_delegated, (
+            "El router debe delegar launch() a orchestrator.launch() o svc.launch(). "
+            "La lógica de lanzamiento vive en CampaignOrchestrator (PR-5 PI-1 S2)."
+        )
+        # Remaining FSM transitions: must go through CampaignService
+        required_service_calls = ["svc.cancel(", "svc.pause(", "svc.resume(", "svc.complete("]
         missing = [call for call in required_service_calls if call not in source]
         assert not missing, (
             f"El router no delega al service para: {missing}. Cada transición FSM debe pasar por el service."

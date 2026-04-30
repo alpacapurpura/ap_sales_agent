@@ -47,6 +47,12 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     # Connection credentials and config live only in the connections module —
     # no abstraction can remove this genuine data dependency.
     "analytics -> connections | analytics/application/services/etl_service.py",
+    # campaigns api/ composition root: _service_factories.py wires SegmentService
+    # and CampaignOrchestrator with LeadQueryPortImpl from crm. The crm module owns
+    # the lead query port implementation — campaigns domain defines the interface
+    # (LeadQueryPort ABC in campaigns/domain/). The import is DI wiring at the
+    # API composition layer boundary, which is the correct place per DDD (PI-1 S2).
+    "campaigns -> crm | campaigns/api/_service_factories.py",
 }
 
 

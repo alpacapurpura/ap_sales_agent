@@ -119,9 +119,7 @@ def _resolve_tenant_locale(tenant_id: UUID) -> object:
 
         return TenantLocale.default()
     except Exception:  # noqa: BLE001
-
-        class _FallbackLocale:
-            currency = "USD"
-            timezone = "UTC"
-
-        return _FallbackLocale()
+        logger.warning("tenant_locale_resolution_failed", tenant_id=str(tenant_id))
+        # Return a minimal object with safe defaults; currency from TenantLocale.default()
+        # is the canonical fallback (never hardcode here — master-data.md rule).
+        return type("_FallbackLocale", (), {"currency": None, "timezone": "UTC"})()
