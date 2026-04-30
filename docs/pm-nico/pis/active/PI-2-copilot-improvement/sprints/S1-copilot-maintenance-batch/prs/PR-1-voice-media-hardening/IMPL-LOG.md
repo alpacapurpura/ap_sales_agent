@@ -98,4 +98,51 @@ Agent builder commiteó 5 cambios sobre archivos PI-1 sub-G activo. Listado para
 
 ---
 
+## Auto-fix iter 1 — 2026-04-29 (`nicolify-backend`)
+
+### Contexto
+Auditor `nicolify-backend-auditor` produjo REVIEW.md con verdict **WARN** (1 FAIL cat 12 + 2 WARN cat 8/9).
+PM decidió aplicar fix BE-side para Q1 (CONTRACT drift). Cat 8 y cat 9 no se fixean (ver abajo).
+
+### Q1 fix — BE-side deprecation 410 Gone
+
+**Decisión PM:** No remover el endpoint (FE migration es cross-stack, otro alcance). En cambio,
+deprecar BE-side con 410 Gone + header `X-Deprecation-Notice`.
+
+**Cambios aplicados:**
+- `backend/src/modules/copilot/api/voice.py`:
+  - Módulo docstring actualizado: `/transcribe` descrito como GONE (410).
+  - Handler `transcribe_audio` convertido a stub que retorna `Response(status_code=410)`.
+  - `_DEPRECATION_NOTICE` header value en ASCII puro (sin em-dash — HTTP headers latin-1 only).
+  - Import `TranscriptionResponse` removido (ya no usado por el stub).
+  - Import `Response` from `fastapi.responses` agregado.
+  - Tipo de retorno cambiado de `-> TranscriptionResponse` a `-> Response`.
+  - Handler emite `logger.warning("voice_transcribe_legacy_called", ...)` para observabilidad.
+- `backend/tests/modules/copilot/test_voice_rate_limit.py`:
+  - Rename: `test_legacy_transcribe_endpoint_still_responds` → `test_legacy_transcribe_endpoint_returns_410_gone`.
+  - Assertion cambiada: `status_code == 410` + header `x-deprecation-notice` presente con "upload-and-transcribe".
+  - Payload incluye un file (antes era sin file para triggerar 422 — ahora irrelevante).
+- `docs/pm-nico/.../CONTRACT.md` §16 Q1: actualizado a reflect estado real (BE 410 Gone + FE migration pendiente).
+- `docs/pm-nico/.../IMPL-LOG.md`: esta sección.
+
+**Nota técnica:** Header value en ASCII puro porque HTTP spec (RFC 7230) limita headers a latin-1 octets.
+El em-dash (`—`) causa `UnicodeEncodeError`. Solución: usar guion simple ` - ` en el valor del header.
+El mensaje de structlog sí puede contener UTF-8 (logs internos, no HTTP).
+
+**Quality gates:**
+- [x] Ruff lint — 0 errors (`All checks passed!`)
+- [x] Ruff format — 2 files already formatted
+- [x] Mypy strict — `Success: no issues found in 1 source file`
+- [x] Pytest — 5/5 passed (incluyendo `test_legacy_transcribe_endpoint_returns_410_gone`)
+
+### WARN cat 8 — Migration prod-clone test
+No fix en esta iteración. Diferido a `/test-backend` o pase prod (Chris responsable de docker exec).
+Diseño 085 idempotente verificado en review (all `IF NOT EXISTS`). No hubo regresión detectada.
+
+### WARN cat 9 — RateLimitExceeded message hardcoded "30 mensajes"
+No fix en esta iteración. Es pre-existente en `core/rate_limit.py` — no introducido por PR-1.
+Refactor parametrizado (`scope_label_es` + `effective_max`) → follow-up PR en sprint siguiente.
+
+---
+
 <!-- @pm: implementación done. Próximo paso: ejecutar prompts/03-auditor-start.md o ejecutar /pm "PR-1 builder done" para review. -->

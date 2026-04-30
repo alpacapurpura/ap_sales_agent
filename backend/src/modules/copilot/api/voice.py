@@ -3,10 +3,9 @@
 # [COPILOT-VOICE-DUAL-MODE] → docs/domains/copilot/CONTRACT-MULTIMODAL.md §9
 
 Endpoints:
-- POST /transcribe — DEPRECATED legacy endpoint (STT only, backward-compat).
-  NOTE: frontend/src/features/copilot/api/voice-api.ts still calls this endpoint.
-  Removal blocked until FE migrates to /upload-and-transcribe (PI-2 S1 PR-1 blocker).
-  See IMPL-LOG.md for details.
+- POST /transcribe — GONE (410). Legacy endpoint deprecated in PI-2 S1 PR-1 (BE side).
+  Returns 410 with X-Deprecation-Notice header. FE migration to /upload-and-transcribe
+  tracked as follow-up PR (cross-stack, separate scope).
 - POST /upload-and-transcribe — canonical combined endpoint (D0.4).
   Atomically stores the audio AND transcribes it. Returns a complete AudioBlock.
   Rate-limited per tenant (copilot-voice scope, PI-2 S1 PR-1).
@@ -24,15 +23,13 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
 from src.core.rate_limit import check_rate_limit
 from src.modules.assets.application.assets_service import AssetsService
-from src.modules.copilot.api.voice_dto import (
-    TranscriptionResponse,
-    VoiceUploadAndTranscribeResponse,
-)
+from src.modules.copilot.api.voice_dto import VoiceUploadAndTranscribeResponse
 from src.modules.copilot.application.services.limits_resolver import (
     CopilotLimitsResolver,
     EffectiveLimits,
@@ -72,38 +69,30 @@ async def _get_voice_limits(
     return await asyncio.to_thread(resolver.get_effective_sync, tenant_id)
 
 
-# ── Legacy endpoint (backward-compat — DEPRECATED) ───────────────────────────
+# ── Legacy endpoint (410 Gone — deprecated in PI-2 S1 PR-1 BE side) ─────────
+
+_DEPRECATION_NOTICE = "Migrar a /voice/upload-and-transcribe - endpoint legacy sera eliminado en S2"
 
 
 @router.post("/transcribe")
 async def transcribe_audio(
     file: Annotated[UploadFile, File(...)],
     tenant_id: Annotated[UUID, Depends(get_tenant_context)],
-) -> TranscriptionResponse:
-    """Receive an audio blob and return transcribed text via Whisper.
+) -> Response:
+    """Legacy STT-only endpoint — GONE (410).
 
-    DEPRECATED: Kept for backward-compat while FE migrates to /upload-and-transcribe.
-    See IMPL-LOG.md §bloqueo-1 for removal plan (FE migration required first).
-    New code must use /upload-and-transcribe (full AudioBlock + rate limit enforced).
+    Deprecated in PI-2 S1 PR-1 (BE side). FE migration to /upload-and-transcribe
+    tracked as follow-up PR (cross-stack, separate scope).
+    Returns 410 Gone with X-Deprecation-Notice header.
     """
-    audio_bytes = await file.read()
-    mime_type = file.content_type or "audio/webm"
-
-    logger.info(
-        "voice_transcribe_legacy_request",
+    logger.warning(
+        "voice_transcribe_legacy_called",
         tenant_id=str(tenant_id),
-        file_name=file.filename,
-        mime_type=mime_type,
-        size_bytes=len(audio_bytes),
+        deprecation_notice=_DEPRECATION_NOTICE,
     )
-
-    transcriber = WhisperTranscriber()
-    result = await transcriber.transcribe(audio_bytes, mime_type)
-
-    return TranscriptionResponse(
-        text=result.text,
-        language=result.language,
-        duration_seconds=result.duration_seconds,
+    return Response(
+        status_code=410,
+        headers={"X-Deprecation-Notice": _DEPRECATION_NOTICE},
     )
 
 

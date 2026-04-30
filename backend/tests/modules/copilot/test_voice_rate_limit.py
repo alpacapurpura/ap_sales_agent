@@ -163,12 +163,12 @@ def test_file_exceeding_max_bytes_returns_413(
     assert response.status_code == 413
 
 
-def test_legacy_transcribe_endpoint_still_responds() -> None:
-    """Legacy /transcribe endpoint responds (not yet removed — FE migration pending).
+def test_legacy_transcribe_endpoint_returns_410_gone() -> None:
+    """Legacy /transcribe endpoint returns 410 Gone with X-Deprecation-Notice header.
 
-    IMPL-LOG blocker: FE still calls this endpoint. Removal blocked until PR migrates FE.
-    This test documents the current state. When FE is migrated, this test should
-    be changed to assert 404.
+    PI-2 S1 PR-1 auto-fix iter 1: BE-side deprecation (410 Gone).
+    FE migration to /upload-and-transcribe tracked as follow-up PR (cross-stack).
+    CONTRACT §16 Q1 updated: BE deprecated 410 Gone (this PR). FE migration pending.
     """
     from src.modules.copilot.api.voice import router as voice_router
     from src.modules.iam.api.dependencies import get_tenant_context
@@ -179,6 +179,11 @@ def test_legacy_transcribe_endpoint_still_responds() -> None:
     app.dependency_overrides[get_tenant_context] = lambda: tenant_id
 
     client = TestClient(app, raise_server_exceptions=False)
-    # Without a file it should return 422 (validation error), not 404
-    response = client.post("/api/v1/copilot/voice/transcribe")
-    assert response.status_code == 422  # route exists (422 = missing file param)
+    # Send with a file — endpoint now returns 410 regardless of payload
+    response = client.post(
+        "/api/v1/copilot/voice/transcribe",
+        files={"file": ("audio.webm", b"audio", "audio/webm")},
+    )
+    assert response.status_code == 410
+    assert "x-deprecation-notice" in response.headers
+    assert "upload-and-transcribe" in response.headers["x-deprecation-notice"]
