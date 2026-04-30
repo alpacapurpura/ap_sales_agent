@@ -14,6 +14,56 @@ from pydantic import BaseModel, ConfigDict, Field
 from src.modules.campaigns.domain.enums import CampaignStatus, CampaignType
 
 
+class CampaignStatsResponse(BaseModel):
+    """Aggregate stats para una campaña individual.
+
+    Live DB query (sin MV) — soportado por idx_campaign_tasks_stats_aggregate.
+    Currency derivado de tenant_locale (master-data invariante).
+    converted_count_attribution_method=='deferred_pr_followup' es el contrato
+    explícito MVP S3: PR follow-up conecta payments + scheduling para atribución exacta.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    campaign_id: UUID
+    total_tasks: int = Field(ge=0)
+    sent_count: int = Field(ge=0)
+    responded_count: int = Field(
+        ge=0,
+        description="Distinct leads que enviaron mensaje user-role DESPUÉS de campaign_task.sent_at",
+    )
+    converted_count: int = Field(
+        ge=0,
+        description="Deferred PR-followup. Siempre 0 en MVP S3.",
+    )
+    converted_count_attribution_method: Literal["deferred_pr_followup", "exact_payment_or_meeting"] = Field(
+        default="deferred_pr_followup",
+        description=(
+            "MVP S3 retorna 'deferred_pr_followup'. "
+            "Cuando PR-followup conecta payments/scheduling → 'exact_payment_or_meeting'."
+        ),
+    )
+    response_rate: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="responded_count/sent_count. NULL si sent_count==0.",
+    )
+    conversion_rate: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="converted_count/sent_count. NULL si sent_count==0 o attribution deferred.",
+    )
+    currency: str | None = Field(
+        default=None,
+        description=(
+            "ISO 4217 de tenant_locale. NULL aceptable: stats no involucra montos hoy; "
+            "campo presente para que PR-followup que agregue revenue_total sea non-breaking."
+        ),
+    )
+
+
 class CampaignCreate(BaseModel):
     """POST /api/v1/campaigns/ request body."""
 

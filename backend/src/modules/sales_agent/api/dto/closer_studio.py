@@ -27,6 +27,9 @@ class ConversationListItem(BaseModel):
     unread_count: int = 0
     avatar_url: str | None = None
     is_frozen: bool = False
+    # PR-8: enriquecimiento inbox con tag de campaña (additive optional)
+    campaign_id: UUID | None = None
+    campaign_name: str | None = None
 
 
 class ConversationListResponse(BaseModel):
@@ -71,6 +74,9 @@ class ConversationDetail(BaseModel):
     avatar_url: str | None = None
     messages: list[MessageItem] = Field(default_factory=list)
     total_messages: int = 0
+    # PR-8: enriquecimiento inbox con tag de campaña (additive optional)
+    campaign_id: UUID | None = None
+    campaign_name: str | None = None
 
 
 # ── Actions ─────────────────────────────────────────────────────────────────

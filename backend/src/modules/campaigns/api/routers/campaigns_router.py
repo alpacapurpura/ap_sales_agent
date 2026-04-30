@@ -15,7 +15,11 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.modules.campaigns.api._dependencies import get_campaigns_async_session
-from src.modules.campaigns.api._service_factories import get_campaign_orchestrator, get_campaign_service
+from src.modules.campaigns.api._service_factories import (
+    get_campaign_orchestrator,
+    get_campaign_service,
+    get_campaign_stats_service,
+)
 from src.modules.campaigns.application.dtos.campaign_dtos import (
     CampaignCancelRequest,
     CampaignCreate,
@@ -23,6 +27,7 @@ from src.modules.campaigns.application.dtos.campaign_dtos import (
     CampaignResponse,
     CampaignScheduleRequest,
     CampaignSortBy,
+    CampaignStatsResponse,
     CampaignUpdate,
 )
 from src.modules.campaigns.application.dtos.campaign_step_dtos import (
@@ -40,6 +45,7 @@ from src.modules.campaigns.application.services.campaign_service import (
     CampaignPlanLimitExceededError,
     CampaignService,
 )
+from src.modules.campaigns.application.services.campaign_stats_service import CampaignStatsService
 from src.modules.campaigns.application.services.orchestrator import (
     CampaignOrchestrator,
     OrchestratorCampaignNotFoundError,
@@ -365,6 +371,32 @@ async def cancel_campaign(
         return CampaignResponse.model_validate(result)
     except Exception as exc:
         raise _map_campaign_error(exc) from exc
+
+
+# ── Stats ─────────────────────────────────────────────────────────────────────
+
+
+@router.get(
+    "/{campaign_id}/stats",
+    response_model=CampaignStatsResponse,
+    summary="Estadísticas agregadas de campaña",
+)
+async def get_campaign_stats(
+    campaign_id: UUID,
+    user: Annotated[User, Depends(get_current_user)],
+    svc: Annotated[CampaignStatsService, Depends(get_campaign_stats_service)],
+    session: Annotated[AsyncSession, Depends(get_campaigns_async_session)],
+) -> CampaignStatsResponse:
+    """Estadísticas live de las campaign tasks. Tenant-scoped. Lectura idempotente."""
+    tenant_id = _tenant_id(user)
+    try:
+        return await svc.get_stats(
+            tenant_id=tenant_id,
+            campaign_id=campaign_id,
+            session=session,
+        )
+    except CampaignNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc) or "Campaña no encontrada.") from exc
 
 
 # ── Steps ─────────────────────────────────────────────────────────────────────

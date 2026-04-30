@@ -1,5 +1,6 @@
 """Application configuration via pydantic-settings."""
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 from src.core.enums import AIProvider, ModelRole, PromptSource
@@ -265,6 +266,20 @@ class Settings(BaseSettings):
     # Campaign observability retention (PI-1 S0 PR-1)
     CAMPAIGN_TRACE_RETENTION_DAYS: int = 30
     CAMPAIGN_LLM_CALL_RETENTION_DAYS: int = 90
+
+    # PR-8: ventana de reconocimiento inbound de campaña (en horas)
+    # Tiempo máximo después de SENT en que un lead que responde se atribuye a la campaña.
+    # Default 24h. Hard cap 72h (configuración por tenant en PI-2 si escala).
+    CAMPAIGNS_INBOUND_RECOGNITION_WINDOW_HOURS: int = 24
+
+    @field_validator("CAMPAIGNS_INBOUND_RECOGNITION_WINDOW_HOURS")
+    @classmethod
+    def _validate_inbound_window(cls, v: int) -> int:
+        """Valida que la ventana de reconocimiento inbound esté en [1, 72]."""
+        if v < 1 or v > 72:
+            msg = "CAMPAIGNS_INBOUND_RECOGNITION_WINDOW_HOURS debe estar en [1, 72]"
+            raise ValueError(msg)
+        return v
 
     @property
     def database_url(self) -> str:

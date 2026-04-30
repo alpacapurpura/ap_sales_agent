@@ -225,6 +225,75 @@ class CampaignTaskRepository(ABC):
         """Count tasks per status for a campaign. For GET /campaigns/{id}/stats (S3)."""
         ...
 
+    @abstractmethod
+    async def find_recent_for_lead(
+        self,
+        *,
+        tenant_id: UUID,
+        lead_id: UUID,
+        status: TaskStatus,
+        since: dt.datetime,
+        session: AsyncSession,
+    ) -> CampaignTask | None:
+        """Retorna la task más reciente que coincide con (tenant, lead, status, sent_at >= since).
+
+        Devuelve la task con max sent_at dentro de la ventana, o None.
+        Usado por reconocimiento inbound: status=SENT, since=now-window_hours.
+        Tenant-scoped. Excluye soft-deleted.
+        Soportado por idx_campaign_tasks_lookup_lead (WHERE deleted_at IS NULL).
+        """
+        ...
+
+    @abstractmethod
+    async def find_recent_for_leads(
+        self,
+        *,
+        tenant_id: UUID,
+        lead_ids: Sequence[UUID],
+        status: TaskStatus,
+        since: dt.datetime,
+        session: AsyncSession,
+    ) -> dict[UUID, CampaignTask]:
+        """Variante batch — retorna mapa lead_id → task más reciente con hit.
+
+        Usado por inbox enrichment para evitar N+1.
+        Los lead_ids sin hit están ausentes del dict retornado.
+        """
+        ...
+
+    @abstractmethod
+    async def count_responded_leads(
+        self,
+        *,
+        tenant_id: UUID,
+        campaign_id: UUID,
+        session: AsyncSession,
+    ) -> int:
+        """Conteo distinto de leads que enviaron mensaje user-role DESPUÉS de campaign_task.sent_at.
+
+        Scoped a una sola campaña + tenant.
+
+        SQL (ilustrativo — implementación es dueña de los detalles):
+            SELECT COUNT(DISTINCT m.user_id)
+            FROM messages m
+            JOIN campaign_task ct
+              ON ct.lead_id = m.user_id
+             AND ct.tenant_id = m.tenant_id
+            WHERE ct.tenant_id = :t
+              AND ct.campaign_id = :c
+              AND ct.status = 'sent'
+              AND ct.deleted_at IS NULL
+              AND m.role = 'user'
+              AND m.created_at > ct.sent_at
+
+        NOTA: Lee messages de sales_agent desde el repositorio de campaigns.
+        Esta es la ÚNICA lectura cross-module documentada en este PR — ver
+        allowlist KNOWN_CROSS_MODULE_TABLE_READS en arch test PR-8.
+        Justificación: lectura read-only tenant-scoped; overhead de port
+        no amortizado para un solo query (decisión arquitecto §1).
+        """
+        ...
+
 
 class SegmentRepository(ABC):
     """Abstract repository for Segment entities."""

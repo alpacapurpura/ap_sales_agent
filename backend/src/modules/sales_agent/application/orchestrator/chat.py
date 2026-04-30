@@ -184,7 +184,7 @@ class ChatOrchestrator:
         biz_repo = BusinessRepository(db)
         return lead_repo, identity_service, audit_repo, biz_repo
 
-    async def process_chat_flow(
+    async def process_chat_flow(  # noqa: PLR0915 — orchestrator composition (S11B carve-out + PR-8 inbound recognition)
         self,
         channel_adapter: BaseChannel,
         incoming: IncomingMessage,
@@ -234,6 +234,40 @@ class ChatOrchestrator:
                 tenant_id=tenant_uuid,
             )
 
+            # PR-8: reconocimiento inbound de campaña (best-effort, fail-open).
+            # Busca la campaign_task SENT más reciente para este lead dentro de la ventana.
+            # En hit: inyecta campaign_id en initial_state (outbound_mode=False — slot 7 ausente).
+            inbound_campaign_id: UUID | None = None
+            try:
+                from src.core.config import settings as _cfg
+                from src.core.database import get_async_session_factory
+                from src.shared.links.ports.campaigns import create_campaigns_lookup_port
+
+                _port = create_campaigns_lookup_port()
+                async with get_async_session_factory()() as _a_session:
+                    _hit = await _port.find_recent_campaign_task_for_lead(
+                        tenant_id=tenant_uuid,
+                        lead_id=user.id,
+                        window_hours=_cfg.CAMPAIGNS_INBOUND_RECOGNITION_WINDOW_HOURS,
+                        session=_a_session,
+                    )
+                if _hit is not None:
+                    inbound_campaign_id = _hit.campaign_id
+                    logger.info(
+                        "inbound_campaign_recognized",
+                        tenant_id=str(tenant_uuid),
+                        lead_id=str(user.id),
+                        campaign_id=str(_hit.campaign_id),
+                        sent_at=_hit.sent_at.isoformat(),
+                    )
+            except Exception as _exc:  # noqa: BLE001 — agent resilience pattern (chat.py:208)
+                logger.warning(
+                    "inbound_campaign_lookup_failed",
+                    tenant_id=str(tenant_uuid) if tenant_uuid else None,
+                    lead_id=str(user.id) if user else None,
+                    error=str(_exc),
+                )
+
             state_repo = StateRepository(db)
             checkpoint = ConversationPipeline.load_checkpoint(db, state_repo, tenant_uuid, user.id)
 
@@ -266,6 +300,10 @@ class ChatOrchestrator:
                 brand_voice=brand_voice,
                 checkpoint=checkpoint,
                 state_repo=state_repo,
+                # PR-8: inbound recognition — campaign_id inyectado, outbound_mode=False
+                # (slot 7 CAMPAIGN_CONTEXT permanece ausente — compose.py guarda outbound_mode).
+                campaign_id=inbound_campaign_id,
+                outbound_mode=False,
             )
 
             await ConversationPipeline.prepare_messages_and_intent(

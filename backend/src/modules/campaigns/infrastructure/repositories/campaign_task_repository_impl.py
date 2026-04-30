@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select, text, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from src.shared.domain.datetime_utils import utc_now
@@ -308,6 +308,128 @@ class CampaignTaskRepositoryImpl(CampaignTaskRepository):
         result = await session.execute(stmt)
         rows = result.all()
         return {TaskStatus(status_val): count for status_val, count in rows}
+
+    async def find_recent_for_lead(
+        self,
+        *,
+        tenant_id: UUID,
+        lead_id: UUID,
+        status: TaskStatus,
+        since: dt.datetime,
+        session: AsyncSession,
+    ) -> CampaignTask | None:
+        """Retorna la task más reciente con (tenant, lead, status, sent_at >= since).
+
+        ORDER BY sent_at DESC LIMIT 1. Soportado por idx_campaign_tasks_lookup_lead.
+        """
+        stmt = (
+            select(CampaignTaskModel)
+            .where(
+                CampaignTaskModel.tenant_id == tenant_id,
+                CampaignTaskModel.lead_id == lead_id,
+                CampaignTaskModel.status == status.value,
+                CampaignTaskModel.sent_at >= since,
+                CampaignTaskModel.deleted_at.is_(None),
+            )
+            .order_by(CampaignTaskModel.sent_at.desc())
+            .limit(1)
+        )
+        result = await session.execute(stmt)
+        row = result.scalar_one_or_none()
+        if row is None:
+            return None
+        return CampaignTask.model_validate(row)
+
+    async def find_recent_for_leads(
+        self,
+        *,
+        tenant_id: UUID,
+        lead_ids: Sequence[UUID],
+        status: TaskStatus,
+        since: dt.datetime,
+        session: AsyncSession,
+    ) -> dict[UUID, CampaignTask]:
+        """Variante batch — retorna mapa lead_id → task más reciente con hit.
+
+        Devuelve solo los leads con hit (sin hit = ausente del dict).
+        Usado por inbox enrichment para evitar N+1.
+        """
+        if not lead_ids:
+            return {}
+
+        # Subconsulta: para cada lead_id el max sent_at dentro de la ventana
+        subq = (
+            select(
+                CampaignTaskModel.lead_id,
+                func.max(CampaignTaskModel.sent_at).label("max_sent_at"),
+            )
+            .where(
+                CampaignTaskModel.tenant_id == tenant_id,
+                CampaignTaskModel.lead_id.in_(list(lead_ids)),
+                CampaignTaskModel.status == status.value,
+                CampaignTaskModel.sent_at >= since,
+                CampaignTaskModel.deleted_at.is_(None),
+            )
+            .group_by(CampaignTaskModel.lead_id)
+            .subquery()
+        )
+
+        stmt = (
+            select(CampaignTaskModel)
+            .join(
+                subq,
+                (CampaignTaskModel.lead_id == subq.c.lead_id) & (CampaignTaskModel.sent_at == subq.c.max_sent_at),
+            )
+            .where(
+                CampaignTaskModel.tenant_id == tenant_id,
+                CampaignTaskModel.deleted_at.is_(None),
+            )
+        )
+
+        result = await session.execute(stmt)
+        rows = result.scalars().all()
+
+        hit_map: dict[UUID, CampaignTask] = {}
+        for row in rows:
+            task = CampaignTask.model_validate(row)
+            hit_map[task.lead_id] = task
+        return hit_map
+
+    async def count_responded_leads(
+        self,
+        *,
+        tenant_id: UUID,
+        campaign_id: UUID,
+        session: AsyncSession,
+    ) -> int:
+        """Conteo distinto de leads respondidos para una campaña.
+
+        Lee messages de sales_agent — ÚNICA lectura cross-module documentada PR-8.
+        Justificación en docstring ABC + arch test KNOWN_CROSS_MODULE_TABLE_READS.
+        """
+        # Raw SQL para JOIN cross-table (messages vive en sales_agent domain).
+        # tenant_id aplicado en ambas tablas para aislamiento de tenant.
+        stmt = text(
+            """
+            SELECT COUNT(DISTINCT m.user_id)
+            FROM messages m
+            JOIN campaign_task ct
+              ON ct.lead_id = m.user_id
+             AND ct.tenant_id = m.tenant_id
+            WHERE ct.tenant_id = :tenant_id
+              AND ct.campaign_id = :campaign_id
+              AND ct.status = 'sent'
+              AND ct.deleted_at IS NULL
+              AND m.role = 'user'
+              AND m.created_at > ct.sent_at
+            """
+        )
+        result = await session.execute(
+            stmt,
+            {"tenant_id": str(tenant_id), "campaign_id": str(campaign_id)},
+        )
+        count = result.scalar()
+        return int(count) if count else 0
 
     @staticmethod
     def _to_model(task: CampaignTask) -> CampaignTaskModel:
