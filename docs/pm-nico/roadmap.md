@@ -8,7 +8,7 @@
 | Item | Tipo | Estado | Link |
 |---|---|---|---|
 | Campaigns module — Foundation + Telegram MVP | PI-1 | planning, S0 in-progress | [pis/active/PI-1-campaigns-module/PI.md](pis/active/PI-1-campaigns-module/PI.md) |
-| Copilot improvement | PI-2-copilot | active — S1+S2 shipped 2026-04-30 (6/6 PRs); S3+S4+S5 plan ready 2026-04-30 (LLM stack convergencia + DB registry runtime + eval gate, 6 PRs ready post audit failure PR-3) | [pis/active/PI-2-copilot-improvement/PI.md](pis/active/PI-2-copilot-improvement/PI.md) |
+| ~~Copilot improvement~~ | PI-2-copilot | **DONE 2026-04-30** — 5 sprints / 12 PRs shipped (S1+S2+S3+S4+S5). LLM stack convergencia completa: ModelRole único + LiteLLM Proxy + DB registry hot-swap + GrowthBook scaffold + eval gate. Allowlist arch fitness 0. → archived | [pis/archive/PI-2-copilot-improvement/retro.md](pis/archive/PI-2-copilot-improvement/retro.md) |
 | Sales agent improvement | PI-3-sales | discovery | [pis/active/PI-3-sales-agent-improvement/PI.md](pis/active/PI-3-sales-agent-improvement/PI.md) |
 
 ## Maintenance (rolling, paralelo a Now — no compite cap)
@@ -36,7 +36,9 @@
 
 ## Done (PIs cerrados)
 
-_Vacío. PIs cerrados se migran a `pis/archive/PI-{N}-{theme}/` con `retro.md` y se linkean acá._
+| PI | Cierre | Outcome | Retro |
+|---|---|---|---|
+| PI-2-copilot-improvement | 2026-04-30 | LLM stack convergencia: ModelRole único SSoT + LiteLLM Proxy motor + DB registry runtime + admin UI hot-swap <60s + GrowthBook per-tenant scaffold + eval gate pre-promote + CI workflow. Cost reduction 4-15x NANO+FAST (DeepSeek V4-Flash). Allowlist arch fitness 19→0 entries. ~140 archivos surface, ~80 tests nuevos. | [pis/archive/PI-2-copilot-improvement/retro.md](pis/archive/PI-2-copilot-improvement/retro.md) |
 
 ## Reglas roadmap
 

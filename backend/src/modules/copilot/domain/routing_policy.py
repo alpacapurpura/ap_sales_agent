@@ -3,9 +3,10 @@
 This module is pure data — no SQLAlchemy, no FastAPI, no HTTP.
 The RuleClassifier evaluator lives in application/router/.
 
-Post S3 PR-1 convergence: ``ModelRole`` is the single SSoT
-(see ``docs/domains/llm-routing.md``). Mapping legacy ModelTier→ModelRole:
-NANO→NANO, MINI→FAST, REASONING→REASONING, HEAVY→AGENT.
+Post PI-2 S3+S4+S5 convergence: ``ModelRole`` is the single SSoT
+(see ``docs/domains/llm-routing.md``). LLM stack converged on:
+ModelRole + LiteLLM Proxy + DB registry runtime + GrowthBook
+per-tenant + eval gate pre-promote.
 """
 
 from __future__ import annotations

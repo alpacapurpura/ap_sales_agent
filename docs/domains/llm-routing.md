@@ -166,9 +166,9 @@ NO hay otra API. Si encontrás `TIER_METADATA`, `ModelTier`, `COPILOT_TIER_*_PRO
 | Sprint | PRs | Resultado |
 |---|---|---|
 | S2-copilot-cero-deuda-stack (shipped 2026-04-30) | PR-3 PARTIAL | Infra duplicada introducida — DEUDA |
-| S3-copilot-llm-stack-convergence (in-progress) | PR-1 shipped 2026-04-30, PR-2 shipped 2026-04-30 | ModelRole único SSoT + DeepSeek V4-Flash NANO+FAST + **LiteLLM Proxy motor multi-provider live** (visionarias_litellm Docker svc) |
-| S4-copilot-model-registry-runtime (planning) | PR-1 DB registry + admin UI, PR-2 GrowthBook per-tenant | Hot-swap modelo <60s sin deploy + per-tenant override |
-| S5-copilot-eval-gate-pre-promote (planning) | PR-1 eval gate wiring admin UI | NO promote sin score ≥0.95 |
+| S3-copilot-llm-stack-convergence (DONE 2026-04-30) | PR-1 cleanup ModelTier + PR-2 LiteLLM Proxy | ModelRole único SSoT + DeepSeek V4-Flash NANO+FAST + LiteLLM Proxy motor multi-provider live (visionarias_litellm Docker svc) |
+| S4-copilot-model-registry-runtime (DONE 2026-04-30) | PR-1 DB registry + admin UI, PR-2 GrowthBook per-tenant scaffold | Hot-swap modelo <60s sin deploy + per-tenant override scaffold + cache 60s + Redis pub/sub invalidation |
+| S5-copilot-eval-gate-pre-promote (DONE 2026-04-30) | PR-1 eval gate framework + CI workflow + PR-2 retro | NO promote sin score >= per-role threshold (NANO/FAST/AGENT/EMBEDDING=0.95, REASONING=0.93, VISION=0.90). PI-2 cerrado. |
 
 Post S5 shipped: timeline cambio modelo = `~5 segundos sin deploy + eval gate automatic`. Esto es el norte escalable a 1000+ tenants.
 

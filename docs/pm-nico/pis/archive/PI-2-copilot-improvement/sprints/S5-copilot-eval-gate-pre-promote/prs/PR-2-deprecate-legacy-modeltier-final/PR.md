@@ -7,7 +7,7 @@
 | PR ID | PR-2-deprecate-legacy-modeltier-final |
 | Sprint padre | S5-copilot-eval-gate-pre-promote |
 | PI padre | PI-2-copilot-improvement |
-| Estado | ready (depends PR-1) |
+| Estado | shipped 2026-04-30 — audit residual (1 docstring routing_policy modernizado + arch test patterns docs OK) + roadmap updated + retro + archive |
 | Tipo | refactor (cleanup definitivo allowlist) |
 | Esfuerzo | S (~5 archivos, audit final) |
 | Owner PM | /pm |
