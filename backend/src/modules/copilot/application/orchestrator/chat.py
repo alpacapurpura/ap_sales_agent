@@ -75,7 +75,9 @@ from src.modules.copilot.observability import ObservabilityContext
 from src.shared.agent_observability.channels.intent_detector import (
     detect_channel_intent,
 )
-from src.shared.domain.events import EventBus
+from src.shared.domain_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator

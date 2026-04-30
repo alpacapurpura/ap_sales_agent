@@ -27,7 +27,10 @@ from src.modules.copilot.domain.events import (
     EVENT_ROUTING_DECIDED,
 )
 from src.shared.agent_observability.recording.sanitization import sanitize_payload, truncate
-from src.shared.domain.events import DomainEvent, EventBus
+from src.shared.domain.events import DomainEvent  # noqa: TC001 — used in runtime handler signatures
+from src.shared.domain_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -99,8 +102,14 @@ def _subscribe_once(event_name: str, handler: Callable[[DomainEvent], None]) -> 
 
     Mirrors the pattern in ``shared/application/brand_summary_event_handlers.py``
     so re-imports / hot-reloads don't stack duplicate handlers.
+
+    ``EventBus`` here is the adapter_bus whose ``subscribe`` delegates to the
+    legacy in-memory bus.  The dedup check must therefore query
+    ``LegacyEventBus._handlers`` (class attribute on the legacy bus class).
     """
-    existing = EventBus._handlers.get(event_name, [])
+    from src.shared.domain.events import EventBus as _LegacyEventBus
+
+    existing = _LegacyEventBus._handlers.get(event_name, [])
     target_name = getattr(handler, "__name__", str(handler))
     for h in existing:
         if getattr(h, "__name__", str(h)) == target_name:
