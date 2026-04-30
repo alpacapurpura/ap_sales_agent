@@ -26,6 +26,7 @@ Captura identidad de marca del user. Vía 2 caminos: scraping web (si tiene webs
 - Team (instructors, miembros)
 - Testimonials
 - Authority vault (credenciales, methodology)
+- Outbox migration ready behind `USE_OUTBOX_PATTERN_BRAND` flag (OFF default; PI-1 S0 PR-1) — emisores (`brand_repository`, `personality_service`, `workers/tasks brand_summary_regen`) routean vía `EventBusAdapter` y enquean a `domain_event_outbox` cuando ON. After-commit dispatch preserva debounce semántica.
 
 ## Capacidades operables desde copilot
 - Auto-fill formularios desde docs/scraping (sólido)

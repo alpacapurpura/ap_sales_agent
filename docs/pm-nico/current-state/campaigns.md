@@ -18,9 +18,18 @@
 
 PI-1 unifica esto en módulo `campaigns/` que orquesta multi-canal con primitivas robustas (outbox, idempotency, plan tiers + budget guard, compliance, observability ext).
 
-## Capacidades actuales
+## Capacidades actuales (post PR-1 S0)
 
-**Cero como módulo.** Capacidades fragmentadas hoy:
+**Módulo scaffolded. Infra foundation completa. Sin UX ni API pública todavía.**
+
+| Capacidad | Estado | Notas |
+|---|---|---|
+| Observability spec registrada | ✅ `campaign` en `shared/agent_observability/registry` | Tablas `campaign_llm_call` + `campaign_trace_event` creadas (migration 083). Retention configurable vía env vars: `CAMPAIGN_LLM_CALL_RETENTION_DAYS=90` / `CAMPAIGN_TRACE_RETENTION_DAYS=30` (defaults). Sin datos hasta que CampaignExecutionWorker emita en S2. |
+| Outbox event store | ✅ en `shared/domain_events/outbox/` (flag `USE_OUTBOX_PATTERN` OFF default) | Shared infra cross-cutting, no exclusiva campaigns. Persistencia async events con at-least-once + dedup via idempotency key. |
+| Idempotency primitives | ✅ en `shared/idempotency/` | `@idempotent(key_fn=...)` decorator + `IdempotencyStore` Redis+Postgres backend. Base para webhook handlers + worker tasks. |
+| `mv_daily_llm_cost_per_tenant_v2` | ✅ incluye campaign UNION-ALL | MV cross-agent ya incluye `campaign_llm_call` vía registry. Zero SQL hardcodeado. |
+
+**Capacidades fragmentadas pre-existentes (sin cambio en S0):**
 
 | Capacidad fragmentada | Dónde vive | Limitación |
 |---|---|---|

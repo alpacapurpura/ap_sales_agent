@@ -24,6 +24,7 @@ AI SDR autónomo. Conversa con leads en canales conectados, pre-califica, maneja
 - Trazabilidad turn-a-turn
 - Eval loop con goldens
 - Per-tenant prompt caching (cache hit rate optimizado)
+- Outbox migration ready behind `USE_OUTBOX_PATTERN_SALES_AGENT` flag (OFF default; PI-1 S0 PR-1) — emisores (`event_bus`, `scheduling/payment_event_handlers`, tools, orchestrator, workers, webhooks) routean vía `EventBusAdapter` que detecta flag y enquea a `domain_event_outbox` cuando ON
 
 ## Capacidades operables desde copilot
 - Activar / pausar agente (sólido)

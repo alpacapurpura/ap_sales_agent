@@ -24,6 +24,8 @@ Asistente in-app conversacional. Interfaz primaria de Nicolify. User configura, 
 - Cost tracking (cycle billing 25-25, MV daily aggregation)
 - Domain event bus para subscribers cross-cutting
 - Subagent isolation (stream provenance classifier)
+- Outbox migration ready behind `USE_OUTBOX_PATTERN_COPILOT` flag (OFF default; PI-1 S0 PR-1) — emisores (`extraction_card_flow`, `domain_subscribers`, `chat orchestrator`, `extract_from_doc tool`) routean vía `EventBusAdapter` y enquean a `domain_event_outbox` cuando ON
+- `extraction_card_flow` usa `@idempotent` decorator (PI-1 S0 PR-1 Sub-D) reemplazando ad-hoc Redis SETEX → at-least-once dedup centralizado, soft-fail Redis, mismo TTL 86400s
 
 ## Capacidades operables desde copilot (meta — qué hace user CON copilot)
 - Auto-fill formularios (sólido — el #1 caso uso)
