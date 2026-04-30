@@ -1,29 +1,40 @@
 # Parallel Safety (OBLIGATORIO)
 
-Chris multi-instancia Claude Code WSL. BLOQUEANTE.
+Chris multi-instancia Claude Code WSL. BLOQUEANTE. Mismo workdir, mismo branch (`development`), mismo filesystem. Cada sesión commitea SU trabajo.
 
 ## Branches
-`development` única trabajo. `main` solo prod. NUNCA feature branches/worktrees salvo instrucción.
+`development` única rama trabajo. `main` solo prod. NUNCA feature branches/worktrees/release/hotfix.
 
 ## Worktrees PROHIBIDOS
 Worktrees git = pierde trabajo (Chris perdió 1 semana previa). Sesiones paralelas SIEMPRE mismo workdir mismo branch.
 
-## Inicio conversación
-Antes de actuar: `git status --short && git branch --show-current && git stash list && git log --oneline -3`.
-- development limpio → proceder.
-- main limpio → `git checkout development`.
-- Otra rama → switch a development.
-- Tree sucio → PARAR: reportar archivos, ofrecer A) commit B) stash C) descartar (solo si Chris pide). No empezar hasta limpio.
-- **Sesión paralela detectada (otra instancia Claude Code activa):** `git pull origin development` PRIMERO antes de cualquier write.
+## NO PULL
+**`git pull` PROHIBIDO sin excepción.** No pull al inicio, no pull antes commit, no pull al cierre.
 
-## Sync
-`main` adelantado → `git checkout development && git merge main`. Reverse solo en pase prod.
-**Ante cada commit nuevo:** `git pull origin development` antes para evitar merge sorpresa.
+Razón: dos sesiones paralelas que pull se desincronizan vs su contexto in-memory; conflictos al pull sobreescriben WIP de la otra. Filesystem compartido ya da el "sync" — cada sesión ve cambios de la otra al hacer `git status` o leer archivos.
+
+Si push falla por non-fast-forward → STOP, reportar a Chris. Chris coordina manualmente.
+
+## NO FORCE PUSH
+`git push --force` / `--force-with-lease` PROHIBIDO. Reescribe historia commiteada por otras sesiones.
+
+## NO REVERT sin aprobación
+`git revert <commit>` puede sobreescribir trabajo paralelo (filesystem compartido). Solo con aprobación explícita Chris.
+
+## Inicio conversación
+Antes de actuar: `git status --short && git branch --show-current && git log --oneline -3`.
+- `development` limpio → proceder.
+- `main` limpio → `git checkout development`.
+- Otra rama → switch a `development`.
+- Tree sucio con archivos propios pendientes → PARAR: reportar, ofrecer A) commit B) stash C) descartar (solo si Chris pide). No empezar hasta limpio.
+- Tree sucio con archivos AJENOS (otra sesión activa) → proceder pero NO TOCAR esos archivos. Reportar lista.
 
 ## Scope commits (paralelo)
 Commit **solo archivos esta sesión modificó**. Stage por nombre. PROHIBIDO `git add .|-A|-u`. Status muestra ajenos → dejar intactos + reportar. Excepción: Chris "commitea todo".
 
-## Sesiones paralelas — reglas M1-M6 (KISS sin worktrees)
+Pre-commit hooks (ruff/format) corren native — ningún `--no-verify`.
+
+## Sesiones paralelas — reglas M1-M7
 
 | # | Regla |
 |---|---|
@@ -31,8 +42,9 @@ Commit **solo archivos esta sesión modificó**. Stage por nombre. PROHIBIDO `gi
 | **M2** | `docs/pm-nico/process/process-learnings.md` + `docs/pm-nico/roadmap.md` + `MEMORY.md` SOLO los edita `/pm`. Builders nunca |
 | **M3** | Tests/CI/Docker SECUENCIAL siempre. Solo una sesión corre `/test-all`/`/dev-up`/`make ci-parity` a la vez. Container/port collision invisible hasta crash |
 | **M4** | Claim by commit: `/pm` cambia `Estado: in-progress` en `PR.md` y commitea/pushea **inmediato** antes de cualquier otro trabajo |
-| **M5** | `git pull origin development` al inicio Y antes de cada commit. NUNCA pull con diff sin commit |
+| **M5** | NO pull. NO force push. NO revert sin aprobación. Push falla → STOP, reportar Chris |
 | **M6** | Bootstrap PM pregunta `¿en qué PI vas a trabajar?` antes de proceder. Chris elige consciente, no la sesión |
+| **M7** | Subagentes (architect/builder/auditor) reciben restricción path-explicit: lista paths permitidos + prohibición tocar archivos ajenos. Doble PR-1 (PI distinto) confunde paths — siempre prefijar PI en prompts |
 
 Detalle completo + casos conflicto + workflow paso-a-paso → `docs/pm-nico/process/parallel-sessions-protocol.md`.
 
@@ -40,16 +52,22 @@ Detalle completo + casos conflicto + workflow paso-a-paso → `docs/pm-nico/proc
 "eso es todo"/"gracias"/"cierra":
 1. `git status --short`
 2. Cambios propios → stage nombre + conventional commit + reportar hash
-3. Archivos ajenos → reportar intactos
+3. Archivos ajenos → reportar intactos (no commit, no descartar)
 4. Stashes creados → reportar
 5. WIP roto → `git stash push -m "WIP: ..."`
 
 ## Prohibido
-- Feature branches/worktrees sin instrucción
-- Worktrees git (sin excepción salvo decisión consciente con Chris)
-- Checkout fuera development/main
-- Tree sucio ajeno
+- `git pull` (cualquier forma)
+- `git fetch && merge`
+- `git push --force` / `--force-with-lease`
+- `git revert` sin aprobación Chris
+- `git reset --hard` sin aprobación Chris
+- `git add .` / `-A` / `-u`
+- `git commit --no-verify`
+- Feature branches / worktrees / release branches
+- Checkout fuera `development`/`main`
+- Tree sucio ajeno tocado
 - Cerrar sin commit/reporte
-- Push origin main sin aprobación (= deploy prod)
+- Push `origin main` sin aprobación (= deploy prod)
 - Builders editando `docs/pm-nico/process/process-learnings.md` / `roadmap.md` / `MEMORY.md` (solo PM)
 - Tests/Docker dos sesiones a la vez

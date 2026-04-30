@@ -29,6 +29,30 @@ Lint/tests/type-check **NATIVE WSL siempre**. Docker = runtime + migrations + ci
 - FE: `cd frontend && npx {tsc|eslint|vitest|playwright}`
 - CI-parity gate antes `git push origin main`: `make ci-parity` (5 deploys fallidos 2026-04-27 sin esto). `/pase-produccion` lo enforza.
 
+## Git Workflow — INVIOLABLE
+
+Multi-instancia Claude Code = mismo workdir, mismo branch, mismo filesystem. Cada sesión commitea SU propio trabajo.
+
+**PROHIBIDO sin excepción:**
+- `git pull` / `git fetch && merge` (sesiones se desincronizan; conflictos al push se resuelven manualmente)
+- `git checkout -b <branch>` (feature branches)
+- `git worktree add` (Chris perdió 1 semana con worktrees previos)
+- `git push --force` / `git push -f` / `git push --force-with-lease`
+- `git revert <commit>` sin aprobación explícita Chris (sobreescribe trabajo paralelo)
+- `git reset --hard` sin aprobación
+- `git add .` / `git add -A` / `git add -u` (puede agregar archivos de otra sesión)
+- `git commit --no-verify` (skip hooks)
+- Branches feature/release/hotfix (default = `development`; `main` solo prod)
+
+**Obligatorio:**
+- Trabajar en `development`. Si en `main` → `git checkout development`. Si otro branch → `git checkout development` (commitear o stashar primero).
+- `git add <path>` por nombre — solo archivos QUE ESTA SESIÓN MODIFICÓ.
+- Status muestra archivos M ajenos (otra sesión activa) → DEJAR INTACTOS, reportar.
+- Conflicto al `git push origin development` (non-fast-forward) → STOP, reportar a Chris. NO `git pull`. Chris coordina sesiones manualmente.
+- Subagentes (architect/builder/auditor) reciben restricción explícita: lista paths permitidos + prohibición tocar archivos ajenos.
+
+**Filosofía:** confianza en filesystem compartido + commit por nombre. Conflictos son raros porque sesiones paralelas tocan módulos distintos (regla M1 parallel-safety).
+
 ## Architecture
 
 **BE** `backend/src/modules/{name}/{domain,infrastructure,application,api}/` (Inside-Out). `main.py` mounts `/api/v1/{module}/`. `shared/` events+entities, `core/` config+DB.
