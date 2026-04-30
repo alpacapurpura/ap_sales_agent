@@ -158,7 +158,7 @@ class RoutingDecided(DomainEvent):
         tenant_id: UUID,
         conversation_id: UUID,
         message_id: UUID,
-        tier_selected: str,
+        role_selected: str,
         classifier_used: str,
         reason: str,
         confidence: Decimal | float | None,
@@ -180,7 +180,7 @@ class RoutingDecided(DomainEvent):
             payload={
                 "conversation_id": _str_or_none(conversation_id),
                 "message_id": _str_or_none(message_id),
-                "tier": tier_selected,
+                "role": role_selected,
                 "classifier": classifier_used,
                 "reason": reason,
                 "confidence": confidence_str,

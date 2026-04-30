@@ -31,7 +31,7 @@ class RoutingLogRepository:
         tenant_id: UUID,
         conversation_id: UUID,
         message_id: UUID,
-        tier_selected: str,
+        role_selected: str,
         classifier_used: str,
         reason: str,
         confidence: float | Decimal | None,
@@ -46,7 +46,7 @@ class RoutingLogRepository:
             tenant_id=tenant_id,
             conversation_id=conversation_id,
             message_id=message_id,
-            tier_selected=tier_selected,
+            role_selected=role_selected,
             classifier_used=classifier_used,
             reason=reason,
             confidence=confidence,
@@ -57,7 +57,7 @@ class RoutingLogRepository:
         self.db.flush()
         logger.debug(
             "routing_log_inserted",
-            tier=tier_selected,
+            role=role_selected,
             classifier=classifier_used,
             tenant_id=str(tenant_id),
         )

@@ -1,17 +1,26 @@
-"""RollingSummarizer — NANO-tier async summary updater.
+"""RollingSummarizer — NANO async summary updater.
 
 See CONTRACT §2.3, §7.2, §8.3.
+
+Post S3 PR-1 convergence: consume ``BaseChatModel`` directly via
+``LLMFactory.get_service().get_client(ModelRole.NANO, temperature=0.0)``
+(same pattern judge / intent_classifier / synthesizer / url_inspiration
+already follow). The legacy ``LLMProvider`` Protocol + streaming
+``complete()`` adapter were removed (orphan layer never wired in prod).
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.modules.copilot.domain.model_tier import ModelTier
-from src.modules.copilot.domain.ports import LLMMessage
+from langchain_core.messages import HumanMessage, SystemMessage
+
+from src.core.enums import ModelRole
 
 if TYPE_CHECKING:
-    from src.modules.copilot.domain.ports import LLMProvider
+    from langchain_core.language_models.chat_models import BaseChatModel
+
+    from src.modules.copilot.domain.ports import LLMMessage
 
 
 _SUMMARY_SYSTEM_PROMPT = (
@@ -34,10 +43,24 @@ _SUMMARY_USER_TEMPLATE = (
 class RollingSummarizer:
     """Async summary updater invoked when messages fall out of the window."""
 
-    def __init__(self, llm: LLMProvider, max_chars: int = 400) -> None:
-        """Wire the LLMProvider and enforce a hard ``max_chars`` cap."""
+    def __init__(self, llm: BaseChatModel | None = None, max_chars: int = 400) -> None:
+        """Wire the LLM client and enforce a hard ``max_chars`` cap.
+
+        ``llm`` is injectable for tests; production resolves
+        ``LLMFactory.get_service().get_client(ModelRole.NANO, temperature=0.0)``
+        lazily on first ``update`` call.
+        """
         self._llm = llm
         self._max_chars = max_chars
+
+    def _resolve_llm(self) -> BaseChatModel:
+        if self._llm is not None:
+            return self._llm
+        from src.shared.infrastructure.llm.factory import LLMFactory
+
+        client = LLMFactory.get_service().get_client(ModelRole.NANO, temperature=0.0)
+        self._llm = client
+        return client
 
     async def update(
         self,
@@ -55,22 +78,16 @@ class RollingSummarizer:
             displaced=displaced_text,
         )
 
-        messages: list[LLMMessage] = [
-            LLMMessage(role="system", content=system),
-            LLMMessage(role="user", content=user),
-        ]
+        llm = self._resolve_llm()
+        response = await llm.ainvoke(
+            [
+                SystemMessage(content=system),
+                HumanMessage(content=user),
+            ]
+        )
+        text = getattr(response, "content", None) or str(response)
+        if isinstance(text, list):
+            text = "\n".join(str(part) for part in text)
 
-        collected: list[str] = []
-        async for event in await self._llm.complete(
-            tier=ModelTier.NANO,
-            messages=messages,
-            stream=False,
-        ):
-            if event.kind == "text":
-                chunk = event.data.get("text") or event.data.get("content") or ""
-                if isinstance(chunk, str):
-                    collected.append(chunk)
-
-        summary = "".join(collected).strip()
         # Hard-cap: LLM may overshoot; truncate defensively.
-        return summary[: self._max_chars]
+        return str(text).strip()[: self._max_chars]

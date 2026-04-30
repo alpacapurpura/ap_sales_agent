@@ -11,51 +11,28 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 from uuid import UUID
 
-from src.modules.copilot.domain.model_tier import ModelTier
+from src.core.enums import ModelRole
 from src.modules.copilot.domain.procedure_state import ProcedureState
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Sequence
+    from collections.abc import Sequence
 
-# ── LLM provider ────────────────────────────────────────────────────────────
+# ── Message value object ─────────────────────────────────────────────────────
 
 
 @dataclass(frozen=True, slots=True)
 class LLMMessage:
-    """A single message in an LLM conversation."""
+    """A single message in a conversation context window.
+
+    Pure data type used by ``context_window_builder`` + memory utilities
+    (rolling_summarizer / title_generator). Provider transport is handled by
+    ``shared/infrastructure/llm/`` via LangChain ``BaseChatModel``.
+    """
 
     role: str
     content: str
     name: str | None = None
     tool_call_id: str | None = None
-
-
-@dataclass(frozen=True, slots=True)
-class LLMEvent:
-    """One chunk of a streamed LLM response.
-
-    ``kind`` is one of: "text" | "tool_start" | "tool_result" | "usage" |
-    "done" | "error". ``data`` is kind-specific and JSON-serializable.
-    """
-
-    kind: str
-    data: dict[str, Any]
-
-
-@runtime_checkable
-class LLMProvider(Protocol):
-    """Abstraction over LLM API (OpenAI, Anthropic, etc.)."""
-
-    async def complete(
-        self,
-        *,
-        tier: ModelTier,
-        messages: list[LLMMessage],
-        tools: list[dict[str, Any]] | None = None,
-        stream: bool = True,
-    ) -> AsyncIterator[LLMEvent]:
-        """Stream LLM completion events for the given tier and messages."""
-        ...
 
 
 # ── Conversation store ───────────────────────────────────────────────────────
@@ -78,7 +55,7 @@ class ConversationSummaryVO:
     updated_at: Any
     message_count: int
     total_tokens: int
-    last_tier_used: ModelTier | None
+    last_tier_used: ModelRole | None
     has_procedure: bool
     procedure_progress: float | None
     title_auto_generated: bool
@@ -127,7 +104,7 @@ class ConversationStore(Protocol):
         tenant_id: UUID,
         conversation_id: UUID,
         message: LLMMessage,
-        tier_used: ModelTier,
+        role_used: ModelRole,
         tokens_added: int,
     ) -> None:
         """Append a message to the conversation and update aggregate counters."""

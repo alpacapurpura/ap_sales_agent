@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from src.modules.copilot.domain.model_tier import ModelTier
+from src.core.enums import ModelRole
 from src.modules.copilot.domain.routing_policy import ClassifierType
 
 
@@ -55,7 +55,7 @@ class MessageReceived:
     occurred_at: datetime
     conversation_id: UUID
     message_id: UUID
-    tier: ModelTier
+    role: ModelRole
     tokens_in: int
     tokens_out: int
 
@@ -112,7 +112,7 @@ class TierDecided:
     occurred_at: datetime
     conversation_id: UUID
     message_id: UUID
-    tier: ModelTier
+    role: ModelRole
     reason: str
     classifier: ClassifierType
     confidence: float

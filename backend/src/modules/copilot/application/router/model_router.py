@@ -1,4 +1,4 @@
-"""ModelRouter — chains IntentClassifiers to pick a tier per turn.
+"""ModelRouter — chains IntentClassifiers to pick a role per turn.
 
 See CONTRACT §7.
 """
@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.modules.copilot.domain.model_tier import ModelTier
+from src.core.enums import ModelRole
 from src.modules.copilot.domain.routing_policy import (
     ClassifierType,
     RoutingDecision,
@@ -45,7 +45,7 @@ class ModelRouter:
     """Chain-of-responsibility router over ordered IntentClassifiers.
 
     First classifier returning a non-None ``RoutingDecision`` wins. If none
-    match, falls back to ``policy.default_tier`` with
+    match, falls back to ``policy.default_role`` with
     ``classifier_used=DEFAULT``.
     """
 
@@ -59,15 +59,15 @@ class ModelRouter:
         self._classifiers = tuple(classifiers)
 
     def select(self, request: RoutingRequest) -> RoutingDecision:
-        """Select a tier by walking classifiers in order."""
+        """Select a role by walking classifiers in order."""
         for classifier in self._classifiers:
             decision = classifier.classify(request)
             if decision is not None:
                 return decision
         return RoutingDecision(
-            tier=self._policy.default_tier,
+            role=self._policy.default_role,
             reason="no_rule_matched",
             confidence=0.5,
             classifier_used=ClassifierType.DEFAULT,
-            fallback_tier=ModelTier.MINI,
+            fallback_role=ModelRole.FAST,
         )

@@ -8,7 +8,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from src.modules.copilot.domain.model_tier import ModelTier
+from src.core.enums import ModelRole
 from src.modules.copilot.domain.routing_policy import (
     ClassifierType,
     RoutingDecision,
@@ -47,10 +47,10 @@ class RuleClassifier:
             if rule.required_keywords and not all(kw.lower() in msg.lower() for kw in rule.required_keywords):
                 continue
             return RoutingDecision(
-                tier=rule.tier,
+                role=rule.role,
                 reason=rule.reason,
                 confidence=1.0,
                 classifier_used=ClassifierType.RULE,
-                fallback_tier=ModelTier.MINI,
+                fallback_role=ModelRole.FAST,
             )
         return None

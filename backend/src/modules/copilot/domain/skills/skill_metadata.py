@@ -9,7 +9,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from src.modules.copilot.domain.model_tier import ModelTier
+from src.core.enums import ModelRole
 
 SkillOutputFormat = Literal["free", "structured", "procedure"]
 
@@ -33,7 +33,7 @@ class SkillMetadata(BaseModel):
         max_length=48,
     )
     allowed_tools: tuple[str, ...] = Field(default_factory=tuple)
-    preferred_tier: ModelTier = ModelTier.MINI
+    preferred_role: ModelRole = ModelRole.FAST
     required_context: tuple[str, ...] = Field(default_factory=tuple)
     output_format: SkillOutputFormat = "free"
     procedure_id: str | None = None

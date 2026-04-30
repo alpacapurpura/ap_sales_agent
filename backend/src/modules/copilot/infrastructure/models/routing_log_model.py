@@ -12,7 +12,7 @@ from src.shared.domain.base_entity import Base
 
 
 class RoutingLogModel(Base):
-    """One row per user-initiated chat request — records which tier was selected."""
+    """One row per user-initiated chat request — records which role was selected."""
 
     __tablename__ = "copilot_routing_log"
 
@@ -20,7 +20,7 @@ class RoutingLogModel(Base):
     tenant_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     conversation_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     message_id = Column(UUID(as_uuid=True), nullable=False)
-    tier_selected = Column(String, nullable=False)
+    role_selected = Column(String, nullable=False)
     classifier_used = Column(String, nullable=False)
     reason = Column(String, nullable=False)
     confidence = Column(Numeric(4, 3), nullable=True)
@@ -34,4 +34,4 @@ class RoutingLogModel(Base):
 
     def __repr__(self) -> str:
         """Return string representation."""
-        return f"<RoutingLog id={self.id} tier={self.tier_selected} tenant={self.tenant_id}>"
+        return f"<RoutingLog id={self.id} role={self.role_selected} tenant={self.tenant_id}>"

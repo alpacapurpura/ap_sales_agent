@@ -8,7 +8,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-ModelTierLiteral = Literal["nano", "mini", "reasoning", "heavy"]
+ModelRoleLiteral = Literal["nano", "fast", "reasoning", "agent", "vision", "embedding"]
 
 
 class ConversationSummary(BaseModel):
@@ -22,7 +22,7 @@ class ConversationSummary(BaseModel):
     updated_at: datetime
     message_count: int
     total_tokens: int
-    last_tier_used: ModelTierLiteral | None
+    last_tier_used: ModelRoleLiteral | None
     has_procedure: bool
     procedure_progress: Annotated[float | None, Field(default=None, ge=0.0, le=1.0)]
     archived_at: datetime | None = None
