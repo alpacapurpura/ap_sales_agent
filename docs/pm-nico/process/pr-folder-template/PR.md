@@ -43,6 +43,25 @@
 
 (skip si scope XS/S sin riesgo arquitectónico)
 
+## Existing systems audit (architect-mandatory ANTES de proponer nueva capa)
+
+> **NO NEW LAYER rule**: si ya existe en el codebase un factory + protocol + providers que hace lo que este PR propone, EXTENDÉ no DUPLIQUES. Origen rule: PR-3 PI-2 S2 audit failure 2026-04-30 (introdujo `model_config.py + DeepSeekLLMProvider + provider_factory.py` paralelos a `core/config.py::Settings.get_model/get_provider_for_role` + `shared/infrastructure/llm/router.py + providers/` ya existentes). Capa duplicada = código orphan + drift + deuda escala.
+
+Para cada subsystem que el PR toca (LLM routing, cache, queue, auth, observability, billing, rate-limit, etc.):
+
+- [ ] **Grep cross-module obligatorio**:
+  - `grep -rn "settings\.get_\|<subsystem keyword>" src/core/ src/shared/` (sistema global existente)
+  - `grep -rn "from src.core.config\|from src.core.enums" src/modules/<target>/` (ya consumido)
+  - `find src/ -name "*.py" -path "*<subsystem>*"` (todos los archivos relacionados)
+- [ ] **Listar enums + config classes + factories + protocols + providers** encontrados (con paths exactos).
+- [ ] **Decisión explícita por sistema encontrado**:
+  - **EXTEND** (preferred): cómo ampliar el existente sin breaking changes
+  - **REPLACE** (riesgo alto): justificación cuantitativa por qué el existente debe morir + plan migración
+  - **NEW** (último recurso): evidencia que ninguno de los encontrados sirve + por qué
+- [ ] Si NEW → bloque "Por qué los existentes no sirven" con código real referenciado (path:line) + criterio Chris (escala 1000+ tenants, costo, calidad invariantes).
+
+(skip solo si grep cross-module devuelve cero resultados — no es scope ni atajo)
+
 ## Decisiones diferidas (explícitas)
 
 - {Qué NO se resuelve hoy y cuándo se aborda.}

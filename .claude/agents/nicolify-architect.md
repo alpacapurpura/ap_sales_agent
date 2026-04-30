@@ -127,6 +127,61 @@ find backend/alembic/versions -name "*.py" | tail -5
 Read key files to understand current patterns, naming conventions, and relationships.
 </step>
 
+<step name="cross_module_systems_audit_NO_NEW_LAYER">
+
+**MANDATORY — origin: PR-3 PI-2 S2 audit failure 2026-04-30.** Before proposing any new infrastructure layer (factory, registry, config layer, provider, router, abstraction, port), audit cross-module to verify nothing already does what you propose.
+
+Why: PR-3 introduced `copilot/infrastructure/llm/{model_config.py, provider_factory.py, providers/deepseek.py}` paralleling `core/config.py::Settings.get_model/get_provider_for_role` + `shared/infrastructure/llm/router.py + providers/` ALREADY EXISTING. Architect (and main thread takeover) only grep'd `copilot/`, missed `core/` + `shared/`. Result: duplicate layer, code orphan when consumers don't invoke it, drift between two SSoTs, future maintenance cost when 1000+ tenants amplifies.
+
+**Cross-module audit grep matrix (execute BEFORE writing CONTRACT.md):**
+
+```bash
+# 1. Search global config layer (src/core/) for existing factories/getters touching subsystem
+grep -rn "settings\.get_\|<keyword subsystem>" src/core/
+
+# 2. Search shared infrastructure (src/shared/) — multi-module abstractions live here
+grep -rn "<keyword subsystem>" src/shared/infrastructure/ src/shared/links/
+
+# 3. Search what target module already imports from core + shared
+grep -rn "from src.core.config\|from src.core.enums\|from src.shared" src/modules/<target>/
+
+# 4. Find all enums + protocols + factories cross-codebase related to subsystem
+grep -rn "class.*\(Protocol\|StrEnum\|Settings\).*<keyword>" src/
+
+# 5. Locate all providers/adapters implementing related interfaces
+find src/ -name "*.py" -path "*<subsystem>*" -o -path "*adapter*" -o -path "*provider*"
+```
+
+Replace `<keyword subsystem>` with the surface this PR touches: `LLM`, `model`, `cache`, `queue`, `auth`, `observability`, `billing`, `rate_limit`, `event`, `outbox`, etc.
+
+**CONTRACT.md MUST include section "Existing systems audit"** with:
+
+```markdown
+## Existing systems audit (NO NEW LAYER rule)
+
+### Audit cross-module ejecutado
+[paste exact grep commands run + summary results]
+
+### Sistemas existentes encontrados
+| Sistema | Path | Enum/Config | Factory/Router | Providers/Adapters | Estado |
+|---|---|---|---|---|---|
+| ... | ... | ... | ... | ... | active/deprecated/partial |
+
+### Decisión por sistema
+- **Sistema A (path)**: EXTEND/REPLACE/NEW + justificación
+- ...
+
+(Si NEW: bloque obligatorio "Por qué los existentes no sirven" con código real referenciado path:line + criterio Chris escala 1000+ tenants + cero deuda.)
+```
+
+**EXTEND > REPLACE > NEW priority order**:
+- **EXTEND** (default): ampliar el sistema existente sin breaking changes (e.g., agregar nuevo provider a `shared/infrastructure/llm/providers/` que ya tiene openai.py, kimi.py).
+- **REPLACE** (rare, justified): el existente tiene defecto fundamental que no se puede arreglar in-place. Plan migración explícito + deprecation timeline.
+- **NEW** (last resort): ningún existente sirve. Documentar por qué con código real referenciado.
+
+If your audit finds existing layer that does 80% of what you propose → EXTEND. Building parallel layer is bug, not feature.
+</step>
+
 <step name="research_if_novel">
 If the feature introduces a pattern not present in the codebase, run the research stack from Step 4 of project_context. Capture findings (URLs + dates + version notes) in `CONTRACT.md` § Research Notes.
 </step>

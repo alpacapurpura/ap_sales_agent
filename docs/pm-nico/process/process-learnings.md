@@ -111,3 +111,46 @@
 - ¿Sesiones paralelas con M1-M6 evitan colisiones? Tracking: cuántas veces hay merge conflicts en docs/pm-nico/.
 - ¿Agent routing matrix cubre casos reales o queda demasiado abstracto?
 - ¿Process-learnings escala con append? Si crece >50 entries → consolidar las viejas en SKILL.md y resetear este archivo a las últimas 10.
+
+## 2026-04-30 — Sesión PI-2 S2: PR-3 audit failure (capa LLM duplicada)
+
+**Contexto:** Sesión `/pm` autónoma ejecutando S2-copilot-cero-deuda-stack PI-2. PR-3 introdujo capa LLM routing duplicada (`copilot/infrastructure/llm/{model_config.py, provider_factory.py, providers/deepseek.py}`) paralela a `core/config.py::Settings.get_model/get_provider_for_role` + `shared/infrastructure/llm/router.py + providers/` ya existentes. Detectado por Chris al preguntar "para qué se usan los AI_MODEL/AI_PROVIDER actuales".
+
+### L-PROC-CROSS-MODULE-AUDIT — Architect debe auditar cross-module ANTES de proponer nueva capa
+- Architect agent main thread takeover solo grep'eó `copilot/`. Missed `core/` + `shared/`. Builder + commit + push. Capa orphan.
+- **Regla derivada (HOY shipped):**
+  - CONTRACT.md template tiene sección OBLIGATORIA "Existing systems audit" (`docs/pm-nico/process/pr-folder-template/CONTRACT.md`).
+  - PR.md template tiene checklist "Existing systems audit" pre-handoff (`docs/pm-nico/process/pr-folder-template/PR.md`).
+  - `nicolify-architect` skill agrega step `cross_module_systems_audit_NO_NEW_LAYER` con grep matrix obligatorio (`.claude/agents/nicolify-architect.md`).
+  - Doc nueva `docs/domains/llm-routing.md` SSoT para LLM routing (similares para próximos subsystems).
+- Si encuentras factory + protocol + providers ya implementados → **EXTEND, no NEW**. Capa duplicada = bug, no feature.
+
+### L-PROC-DOC-DRIFT-DETECTION — TIER_METADATA hardcoded vs `.env` real
+- `copilot/domain/model_tier.py::TIER_METADATA` decía `gpt-5.4-nano` (defaults ficticios). `.env` real decía `AI_MODEL_NANO=gpt-4o-mini`. Drift no detectado por nadie hasta Chris preguntó.
+- **Causa:** sin SSoT explícito ni arch fitness test guard, dos fuentes de verdad coexisten silenciosamente.
+- **Regla derivada:** subsystem con multi-source-of-truth riesgo = arch fitness test guard obligatorio + doc SSoT explícita en `docs/domains/`.
+
+### L-PROC-PARTIAL-SHIP-DETECTION — PASS PARTIAL es señal, no resultado aceptable
+- PR-3 shipped PARTIAL — infra ready sin wiring. Tests verde pero outcome user-facing (cost reduction) NO entregado.
+- Para PRs cero-deuda Chris-mandated: PARTIAL = deuda futura amplificada por 1000+ tenants.
+- **Regla derivada:** "PASS PARTIAL" en RESULT.md requiere PR-N+1 explícito en handoff con scope cohesivo. Si splitting tarde rompe cohesion → mejor splittear PR original ANTES (PR-3a infra + PR-3b wiring) que ship PARTIAL.
+
+### L-PROC-RESEARCH-VALIDATION — Research file debe validarse contra `.env` real, no Settings defaults
+- Research `2026-04-30-llm-landscape-chinese-models.md` documentó stack actual como `Kimi K2.5 / Claude Haiku` cuando `.env` real ya tenía Kimi K2.6 + DeepSeek + gpt-4o-mini.
+- Architect main thread asumió `Settings` class defaults sin leer `.env`.
+- **Regla derivada:** research files que documentan "stack actual" deben grep `.env` real + tabla `model_pricing_snapshot` activos, no `Settings` code defaults.
+
+### L-PROC-MAIN-THREAD-TAKEOVER — Pattern cementado para PRs L+
+- Tercera vez consecutiva en S2 que builder L+ truncó (PR-1 FE auditor, PR-2 builder, PR-3 builder).
+- Patrón: para PRs scope ≥20 archivos → planear default main thread takeover post-truncate. Considerar splittear retrospectivamente.
+- **Regla derivada (cementada):** PR sizing target = ≤15 archivos cohesivos. Si scope crece → split en sub-PRs antes de spawn builder.
+
+### Acciones tomadas en esta sesión (post-detección)
+1. ✅ Update CONTRACT template + PR template (sección "Existing systems audit")
+2. ✅ Update `nicolify-architect` skill (step `cross_module_systems_audit_NO_NEW_LAYER`)
+3. ✅ Crear `docs/domains/llm-routing.md` SSoT
+4. ✅ Append este learning
+5. ✅ Crear arch fitness test guard `tests/architecture/test_llm_routing_ssot.py`
+6. 🔜 Crear sprints S3+S4+S5 con PR plan (cleanup PR-3 + convergencia ModelTier→ModelRole + DB registry runtime + eval gate pre-promote)
+7. 🔜 Update PI-2 PI.md + roadmap + decisions
+8. 🔜 NEW-SESSION-BOOTSTRAP.md handoff completo nueva conversación
