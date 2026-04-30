@@ -167,3 +167,12 @@ _Pendiente captura entrevistas users actuales._
 - Stale MV soft cap: si `mv_refresh_log` > 1h, admite 5% overrun (cap 105%) para no bloquear en datos stale
 - Firma: `await budget_guard.check(tenant_id, agent_kind="copilot", estimated_cost_usd=Decimal("..."))`
 - Wiring S2: `copilot/application/orchestrator/chat.py` — antes del `llm.ainvoke()`. No modifica §3-protected surfaces.
+
+### Cap: Outbox cutover ON + BudgetGuard wiring single point deep_agent (PR-6 PI-1 S2)
+- Introducida: PR-6 Sub-C (PI-1, S2, commit `8d2aed36`, 2026-04-30)
+- Estado: live
+- `USE_OUTBOX_PATTERN_COPILOT=True` default — emisores routean a `domain_event_outbox` table via `EventBusAdapter`
+- `BudgetGuardingChatModel` wired single point en `build_deep_agent_graph(budget_guard, tenant_id)` DI optional. Cuando provided wraps LLM antes de `create_deep_agent`, gating todo el graph (subagentes incluido) transparentemente
+- Drift resolved: CONTRACT mencionaba `provider_factory.build_chat_model` que no existe; wiring real en `build_deep_agent_graph` (LLMFactory.get_service().get_client retorna BaseChatModel LangChain)
+- Tests F-7 sin mocks: 12 verde (outbox cutover + budget_guard_wiring + Others pool isolation + soft-warn + proxy attrs + build_deep_agent_graph wraps llm)
+- Operable copilot: no PR-6 (infra cutover)

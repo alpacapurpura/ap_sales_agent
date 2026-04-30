@@ -35,6 +35,14 @@ AI SDR autónomo. Conversa con leads en canales conectados, pre-califica, maneja
 - **ComplianceService**: policy chain (WABA24h → OptIn DB-backed → Blacklist → CountryBlock). Fast-fail primer bloqueo. Firma: `result = await compliance_service.check(tenant_id, recipient_phone, channel_type)`
 - Wiring S2: BudgetGuard → cada specialist node LLM; OutboundRateLimiter + ComplianceService → `output_manager.py` pre-`process_response()`. No modifica §3-protected surfaces (Closer Studio, BufferService, OutputManager.process_response chunking intocados).
 
+### Cap: Outbox cutover ON + BudgetGuard wiring single point ConversationPipeline (PR-6 PI-1 S2)
+- Introducida: PR-6 Sub-B (PI-1, S2, commit `7b2de359`, 2026-04-30)
+- Estado: live
+- `USE_OUTBOX_PATTERN_SALES_AGENT=True` default — emisores routean a `domain_event_outbox` table via `EventBusAdapter`
+- `BudgetGuardingChatModel` wired single point en `ConversationPipeline.__init__(budget_guard, tenant_id)` DI optional. Cuando provided wraps LLM service, gating todos LLM callsites en sales nodes transparentemente (1000 clientes — single enforcement point, callsite nuevo gates auto)
+- Tests F-7 sin mocks: 13 verde (outbox cutover + budget_guard_wiring + SA pool isolation + soft-warn + proxy attrs)
+- Operable copilot: no PR-6 (infra cutover)
+
 ## Capacidades operables desde copilot
 - Activar / pausar agente (sólido)
 - Ver últimas conversaciones (parcial)

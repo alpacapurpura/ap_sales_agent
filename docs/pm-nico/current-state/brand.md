@@ -26,7 +26,9 @@ Captura identidad de marca del user. Vía 2 caminos: scraping web (si tiene webs
 - Team (instructors, miembros)
 - Testimonials
 - Authority vault (credenciales, methodology)
-- Outbox migration ready behind `USE_OUTBOX_PATTERN_BRAND` flag (OFF default; PI-1 S0 PR-1) — emisores (`brand_repository`, `personality_service`, `workers/tasks brand_summary_regen`) routean vía `EventBusAdapter` y enquean a `domain_event_outbox` cuando ON. After-commit dispatch preserva debounce semántica.
+- Outbox cutover ON (PR-6 Sub-D commit `97780627`, 2026-04-30) — `USE_OUTBOX_PATTERN_BRAND=True` default. Emisores (`brand_repository`, `personality_service`, `workers/tasks brand_summary_regen`) routean vía `EventBusAdapter` y enquean a `domain_event_outbox`. After-commit dispatch preserva debounce semántica. Tests F-7 sin mocks: 4 verde.
+
+**DEUDA RESIDUAL DR-7 (Sub-D-2 / S3 follow-up):** BudgetGuard wiring brand 7 LLM callsites diferido — `style_analyzer/nodes.py` (5) + `voice_fidelity/grader.py` (1) + `services/personality_service.py` (1) usan sync `LLMFactory.get_service().generate_response(...)`. Wrap requiere per-callsite refactor con `BudgetGuardingLLMService`. Allowlist `tests/architecture/test_budget_guard_pre_llm_call.py KNOWN_UNGUARDED` documenta exception con TODO Sub-D-2.
 
 ## Capacidades operables desde copilot
 - Auto-fill formularios desde docs/scraping (sólido)
