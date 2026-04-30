@@ -96,7 +96,16 @@ def node_sales_supervisor(state: AgentState) -> dict[str, Any]:
     """Orchestrator: Decides which specialist should handle the next turn.
 
     Uses accumulated signals and context for smarter routing.
+
+    PR-7 Sub-C: outbound campaigns with warm lead score skip the qualifier
+    LLM call and route directly to closer. Threshold ``lead_score >= 40``
+    is a global invariant (NOT per-tenant tunable — 1000 clientes lens).
+    Inbound (``outbound_mode=False`` default) preserves baseline routing
+    via the existing LLM call below.
     """
+    if state.get("outbound_mode") and state.get("lead_score", 0) >= 40:
+        return {"next_node": "closer"}
+
     intent = state.get("detected_intent", "unknown")
     stage = state.get("current_state", "rapport")
 
