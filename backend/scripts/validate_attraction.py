@@ -19,7 +19,6 @@ import logging
 import os
 import sys
 from datetime import date, timedelta
-from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
 # Ensure project root is importable (Docker workdir is /app)
@@ -33,12 +32,11 @@ if "/app" not in sys.path:
 
 from src.core.database import SessionLocal
 from src.modules.analytics.application.services.channel_registry import (
-    ChannelRegistry,
-    STAGE_CHANNEL_MAP,
     PROVIDER_TO_CHANNEL_TYPES,
+    STAGE_CHANNEL_MAP,
+    ChannelRegistry,
 )
 from src.modules.analytics.infrastructure.providers.registry import (
-    PROVIDER_REGISTRY,
     get_provider,
 )
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
@@ -66,10 +64,10 @@ class ValidationResult:
         channel_slug: str,
         metric_name: str,
         status: str,  # "PASS", "FAIL", "SKIP"
-        etl_value: Optional[float] = None,
-        live_value: Optional[float] = None,
-        diff_pct: Optional[float] = None,
-        reason: Optional[str] = None,
+        etl_value: float | None = None,
+        live_value: float | None = None,
+        diff_pct: float | None = None,
+        reason: str | None = None,
     ):
         self.channel_slug = channel_slug
         self.metric_name = metric_name
@@ -84,23 +82,23 @@ class ValidationResult:
         slug_metric = f"{self.channel_slug} / {self.metric_name}"
         if self.status == "SKIP":
             return f"    {slug_metric:<45} SKIP  ({self.reason})"
-        elif self.status == "PASS":
+        if self.status == "PASS":
             return (
                 f"    {slug_metric:<45} PASS  "
                 f"(ETL: {self._fmt(self.etl_value)} | "
                 f"Live: {self._fmt(self.live_value)} | "
                 f"Diff: {self.diff_pct:.1f}%)"
             )
-        else:  # FAIL
-            return (
-                f"    {slug_metric:<45} FAIL  "
-                f"(ETL: {self._fmt(self.etl_value)} | "
-                f"Live: {self._fmt(self.live_value)} | "
-                f"Diff: {self.diff_pct:.1f}%)"
-            )
+        # FAIL
+        return (
+            f"    {slug_metric:<45} FAIL  "
+            f"(ETL: {self._fmt(self.etl_value)} | "
+            f"Live: {self._fmt(self.live_value)} | "
+            f"Diff: {self.diff_pct:.1f}%)"
+        )
 
     @staticmethod
-    def _fmt(val: Optional[float]) -> str:
+    def _fmt(val: float | None) -> str:
         """Format numeric value with comma separators."""
         if val is None:
             return "N/A"
@@ -120,7 +118,7 @@ def _get_etl_values(
     tenant_id: UUID,
     start_date: date,
     end_date: date,
-) -> Dict[Tuple[str, str], float]:
+) -> dict[tuple[str, str], float]:
     """Read ETL-stored official metrics and aggregate by (channel_slug, metric_name).
 
     Returns a dict mapping (channel_slug, metric_name) -> summed value for the period.
@@ -131,7 +129,7 @@ def _get_etl_values(
         end_date=end_date,
     )
 
-    aggregated: Dict[Tuple[str, str], float] = {}
+    aggregated: dict[tuple[str, str], float] = {}
     for m in metrics:
         key = (m.channel_slug, m.metric_name)
         aggregated[key] = aggregated.get(key, 0.0) + (m.value or 0.0)
@@ -145,7 +143,7 @@ async def _get_live_values(
     connection_port: ConnectionPortImpl,
     start_date: date,
     end_date: date,
-) -> Optional[Dict[Tuple[str, str], float]]:
+) -> dict[tuple[str, str], float] | None:
     """Extract live metrics from a provider API.
 
     Returns dict mapping (channel_slug, metric_name) -> value,
@@ -196,13 +194,11 @@ async def _get_live_values(
             end_date=end_date,
         )
     except Exception as exc:
-        logger.warning(
-            "Provider %s API call failed: %s", provider_name, exc
-        )
+        logger.warning("Provider %s API call failed: %s", provider_name, exc)
         return None
 
     # Aggregate extracted metrics by (channel_slug, metric_name)
-    aggregated: Dict[Tuple[str, str], float] = {}
+    aggregated: dict[tuple[str, str], float] = {}
     for m in extracted:
         key = (m.channel_slug, m.metric_name)
         aggregated[key] = aggregated.get(key, 0.0) + m.value
@@ -213,7 +209,7 @@ async def _get_live_values(
 async def validate(
     tenant_id: UUID,
     tolerance: float = DEFAULT_TOLERANCE,
-) -> Tuple[List[Dict[str, List[ValidationResult]]], int, int, int]:
+) -> tuple[list[dict[str, list[ValidationResult]]], int, int, int]:
     """Run the full validation comparison.
 
     Returns:
@@ -233,7 +229,7 @@ async def validate(
 
         # Determine which providers are relevant for attraction stage
         attraction_channels = STAGE_CHANNEL_MAP.get("attraction", [])
-        provider_channels: Dict[str, List[dict]] = {}
+        provider_channels: dict[str, list[dict]] = {}
         for ch in attraction_channels:
             pname = ch.get("provider_name", "")
             provider_channels.setdefault(pname, []).append(ch)
@@ -251,7 +247,7 @@ async def validate(
         # Process each provider
         for provider_name in sorted(provider_channels.keys()):
             channels = provider_channels[provider_name]
-            results: List[ValidationResult] = []
+            results: list[ValidationResult] = []
 
             # Check if any channel of this provider is connected
             provider_slugs = {ch["slug"] for ch in channels}
@@ -267,15 +263,11 @@ async def validate(
                         )
                         results.append(r)
                         total_skip += 1
-                all_provider_results.append(
-                    {"provider": provider_name, "results": results}
-                )
+                all_provider_results.append({"provider": provider_name, "results": results})
                 continue
 
             # Get live values from this provider
-            live_values = await _get_live_values(
-                provider_name, tenant_id, connection_port, start_date, end_date
-            )
+            live_values = await _get_live_values(provider_name, tenant_id, connection_port, start_date, end_date)
 
             if live_values is None:
                 # API call failed — skip all metrics for this provider
@@ -289,9 +281,7 @@ async def validate(
                         )
                         results.append(r)
                         total_skip += 1
-                all_provider_results.append(
-                    {"provider": provider_name, "results": results}
-                )
+                all_provider_results.append({"provider": provider_name, "results": results})
                 continue
 
             # Compare per (channel_slug, metric_name)
@@ -356,9 +346,7 @@ async def validate(
                         )
                     )
 
-            all_provider_results.append(
-                {"provider": provider_name, "results": results}
-            )
+            all_provider_results.append({"provider": provider_name, "results": results})
 
         return all_provider_results, total_pass, total_fail, total_skip
     finally:
@@ -368,7 +356,7 @@ async def validate(
 def print_report(
     tenant_id: UUID,
     tolerance: float,
-    provider_results: List[Dict],
+    provider_results: list[dict],
     total_pass: int,
     total_fail: int,
     total_skip: int,
@@ -392,10 +380,7 @@ def print_report(
         results = entry["results"]
 
         # Check if all results are SKIP with "not connected"
-        all_disconnected = all(
-            r.status == "SKIP" and r.reason == "not connected"
-            for r in results
-        )
+        all_disconnected = all(r.status == "SKIP" and r.reason == "not connected" for r in results)
 
         if all_disconnected:
             print(f"  Provider: {provider_name}")
@@ -419,9 +404,7 @@ def print_report(
 
 async def main() -> int:
     """Main async entrypoint. Returns exit code."""
-    parser = argparse.ArgumentParser(
-        description="Validate Attraction ETL metrics against live provider APIs"
-    )
+    parser = argparse.ArgumentParser(description="Validate Attraction ETL metrics against live provider APIs")
     parser.add_argument(
         "--tenant-id",
         type=str,

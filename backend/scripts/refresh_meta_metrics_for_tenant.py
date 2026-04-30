@@ -84,9 +84,7 @@ class DailyTotals:
 # ---------------------------------------------------------------------------
 
 
-async def fetch_meta_daily_totals(
-    credentials: dict, start: date, end: date
-) -> dict[date, DailyTotals]:
+async def fetch_meta_daily_totals(credentials: dict, start: date, end: date) -> dict[date, DailyTotals]:
     """Pull per-day account-level totals straight from Meta Insights API.
 
     Uses time_increment=1 → one row per day, indexed by date_start.
@@ -101,9 +99,7 @@ async def fetch_meta_daily_totals(
     url: str | None = f"{GRAPH_API_BASE}/act_{ad_account_id}/insights"
     params: dict | None = {
         "fields": "spend,impressions,clicks,reach,date_start,date_stop",
-        "time_range": json.dumps(
-            {"since": start.isoformat(), "until": end.isoformat()}
-        ),
+        "time_range": json.dumps({"since": start.isoformat(), "until": end.isoformat()}),
         "time_increment": "1",
         "level": "account",
         "limit": "500",
@@ -148,9 +144,7 @@ async def fetch_meta_daily_totals(
 # ---------------------------------------------------------------------------
 
 
-def fetch_db_daily_totals(
-    db: Session, tenant_id: UUID, start: date, end: date
-) -> dict[date, DailyTotals]:
+def fetch_db_daily_totals(db: Session, tenant_id: UUID, start: date, end: date) -> dict[date, DailyTotals]:
     """Read account-level rows (campaign_id IS NULL AND ad_id IS NULL AND ad_set_id IS NULL).
 
     Falls back to summing campaign-level rows when account-level is missing for a day.
@@ -186,11 +180,7 @@ def fetch_db_daily_totals(
         d = row.metric_date
         name = row.metric_name
         # Prefer account-level, fallback to sum of campaigns
-        value = (
-            row.account_only
-            if row.account_only is not None
-            else (row.campaigns_sum or 0)
-        )
+        value = row.account_only if row.account_only is not None else (row.campaigns_sum or 0)
         by_day.setdefault(d, {})[name] = float(value or 0)
 
     return {
@@ -249,9 +239,7 @@ def delete_meta_rows(db: Session, tenant_id: UUID, start: date, end: date) -> in
 # ---------------------------------------------------------------------------
 
 
-def print_reconciliation_table(
-    meta: dict[date, DailyTotals], db: dict[date, DailyTotals]
-) -> int:
+def print_reconciliation_table(meta: dict[date, DailyTotals], db: dict[date, DailyTotals]) -> int:
     """Print a side-by-side comparison. Returns the number of discrepancies."""
     all_dates = sorted(set(meta.keys()) | set(db.keys()))
     discrepancies = 0
@@ -270,10 +258,7 @@ def print_reconciliation_table(
         if m and b:
             spend_diff = m.diff_pct(b, "spend")
             impr_diff = m.diff_pct(b, "impressions")
-            ok = (
-                spend_diff <= RECONCILE_THRESHOLD_PCT
-                and impr_diff <= RECONCILE_THRESHOLD_PCT
-            )
+            ok = spend_diff <= RECONCILE_THRESHOLD_PCT and impr_diff <= RECONCILE_THRESHOLD_PCT
             marker = "✓" if ok else "⚠"
             print(
                 f"{d.isoformat():<12} | "
@@ -350,9 +335,7 @@ async def main() -> int:
     # 3. Snapshot current DB state
     print("\n[2/5] Reading current DB state...")
     with Session(engine) as db:
-        before_db_totals = fetch_db_daily_totals(
-            db, args.tenant_id, args.start, args.end
-        )
+        before_db_totals = fetch_db_daily_totals(db, args.tenant_id, args.start, args.end)
         before_row_count = count_meta_rows(db, args.tenant_id, args.start, args.end)
     print(f"      DB has {before_row_count} rows for tenant+meta-ads in range")
 
@@ -365,9 +348,7 @@ async def main() -> int:
         return 0 if discrepancies_before == 0 else 1
 
     # 4. Wipe + re-extract
-    print(
-        f"\n[4/5] Deleting {before_row_count} rows and re-running daily extraction..."
-    )
+    print(f"\n[4/5] Deleting {before_row_count} rows and re-running daily extraction...")
     with Session(engine) as db:
         deleted = delete_meta_rows(db, args.tenant_id, args.start, args.end)
         db.commit()
@@ -392,9 +373,7 @@ async def main() -> int:
     # 5. Verify post-load
     print("\n[5/5] Re-reading DB state and reconciling vs Meta...")
     with Session(engine) as db:
-        after_db_totals = fetch_db_daily_totals(
-            db, args.tenant_id, args.start, args.end
-        )
+        after_db_totals = fetch_db_daily_totals(db, args.tenant_id, args.start, args.end)
         after_row_count = count_meta_rows(db, args.tenant_id, args.start, args.end)
     print(f"      DB has {after_row_count} rows after re-extraction")
 

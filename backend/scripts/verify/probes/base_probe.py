@@ -114,9 +114,7 @@ class ProbeReport:
             self.results,
             key=lambda x: (x.channel_slug, x.metric_name, x.metric_date),
         ):
-            db_str = (
-                f"{r.db_value:>12.2f}" if r.db_value is not None else "     MISSING"
-            )
+            db_str = f"{r.db_value:>12.2f}" if r.db_value is not None else "     MISSING"
             status = "OK" if r.match else "FAIL"
             lines.append(
                 f"{r.channel_slug:<15} {r.metric_name:<30} {r.metric_date!s:<12} "

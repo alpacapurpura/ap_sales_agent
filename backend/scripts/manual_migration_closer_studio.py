@@ -1,18 +1,22 @@
-import sys
+import logging
 import os
+import sys
+
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
-import logging
 
 # Add backend to path to import shared modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.core.database import engine
-from src.modules.marketing.infrastructure.models.customer_model import CustomerProfileModel as CustomerProfile, CustomerIdentityModel as CustomerIdentity
 from src.modules.marketing.domain.enums import IdentityType
+from src.modules.marketing.infrastructure.models.customer_model import CustomerIdentityModel as CustomerIdentity
+from src.modules.marketing.infrastructure.models.customer_model import CustomerProfileModel as CustomerProfile
+
+from src.core.database import engine
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 def migrate():
     Session = sessionmaker(bind=engine)
@@ -22,15 +26,19 @@ def migrate():
         # 1. Add customer_id column if not exists
         logger.info("Checking/Adding customer_id column...")
         with engine.connect() as conn:
-            conn.execute(text("ALTER TABLE leads ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES customer_profiles(id)"))
+            conn.execute(
+                text("ALTER TABLE leads ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES customer_profiles(id)")
+            )
             conn.commit()
 
         # 2. Migrate Data
         logger.info("Migrating data...")
-        
+
         # Fetch all leads using raw SQL to access deleted columns
         # Note: We select columns that might have been removed from the ORM model but still exist in DB
-        result = session.execute(text("SELECT id, full_name, email, phone, social_handle_main, timezone, tenant_id FROM leads"))
+        result = session.execute(
+            text("SELECT id, full_name, email, phone, social_handle_main, timezone, tenant_id FROM leads")
+        )
         leads_data = result.fetchall()
 
         for row in leads_data:
@@ -61,27 +69,26 @@ def migrate():
                     primary_email=email,
                     primary_phone=phone,
                     tenant_id=tenant_id,
-                    traits={
-                        "social_handle_main": social_handle,
-                        "timezone": timezone,
-                        "source": "lead_migration"
-                    }
+                    traits={"social_handle_main": social_handle, "timezone": timezone, "source": "lead_migration"},
                 )
                 session.add(profile)
-                session.flush() # Get ID
-                
+                session.flush()  # Get ID
+
                 # Add Identity
                 if email:
-                    session.add(CustomerIdentity(profile_id=profile.id, type=IdentityType.EMAIL, value=email, is_primary=True))
+                    session.add(
+                        CustomerIdentity(profile_id=profile.id, type=IdentityType.EMAIL, value=email, is_primary=True)
+                    )
                 if phone:
-                    session.add(CustomerIdentity(profile_id=profile.id, type=IdentityType.PHONE, value=phone, is_primary=False))
+                    session.add(
+                        CustomerIdentity(profile_id=profile.id, type=IdentityType.PHONE, value=phone, is_primary=False)
+                    )
 
             # Update Lead
             session.execute(
-                text("UPDATE leads SET customer_id = :cid WHERE id = :lid"),
-                {"cid": profile.id, "lid": lead_id}
+                text("UPDATE leads SET customer_id = :cid WHERE id = :lid"), {"cid": profile.id, "lid": lead_id}
             )
-        
+
         session.commit()
         logger.info("Data migration completed.")
 
@@ -92,7 +99,7 @@ def migrate():
                 conn.execute(text("ALTER TABLE leads DROP COLUMN IF EXISTS full_name"))
             except Exception as e:
                 logger.warning(f"Error dropping full_name: {e}")
-            
+
             try:
                 conn.execute(text("ALTER TABLE leads DROP COLUMN IF EXISTS email"))
             except Exception as e:
@@ -112,9 +119,9 @@ def migrate():
                 conn.execute(text("ALTER TABLE leads DROP COLUMN IF EXISTS timezone"))
             except Exception as e:
                 logger.warning(f"Error dropping timezone: {e}")
-            
+
             conn.commit()
-        
+
         logger.info("Migration finished successfully.")
 
     except Exception as e:
@@ -122,6 +129,7 @@ def migrate():
         session.rollback()
     finally:
         session.close()
+
 
 if __name__ == "__main__":
     migrate()

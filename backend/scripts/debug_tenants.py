@@ -1,21 +1,22 @@
-
-import sys
 import os
+import sys
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 # Add project root to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
 # Use database URL from environment or default
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/visionarias_logs")
+
 
 def check_data():
     try:
         engine = create_engine(DATABASE_URL)
         Session = sessionmaker(bind=engine)
         session = Session()
-        
+
         print("\n--- Checking Users ---")
         users = session.execute(text("SELECT id, email, clerk_id FROM users")).fetchall()
         if not users:
@@ -39,10 +40,11 @@ def check_data():
         else:
             for l in links:
                 print(f"Link: User {l.user_id} -> Tenant {l.tenant_id} (Role: {l.role})")
-                
+
     except Exception as e:
         print(f"Error connecting to database: {e}")
         print("Make sure the database container is running and exposed.")
+
 
 if __name__ == "__main__":
     check_data()

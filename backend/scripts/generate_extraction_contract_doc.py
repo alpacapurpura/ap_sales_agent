@@ -17,7 +17,7 @@ _BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(_BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(_BACKEND_ROOT))
 
-from src.modules.analytics.domain.extraction_contract import (  # noqa: E402 — sys.path bootstrap above
+from src.modules.analytics.domain.extraction_contract import (
     CHANNEL_TYPE_TO_PROVIDERS,
     EXTRACTION_CONTRACTS,
     STORAGE_TABLES_DOC,
@@ -60,9 +60,7 @@ def _render_channel(channel: ChannelOutput) -> str:
     if channel.description:
         out.extend([channel.description, ""])
     if not channel.metrics:
-        out.append(
-            "_No metrics emitted directly — populated via webhooks or downstream._"
-        )
+        out.append("_No metrics emitted directly — populated via webhooks or downstream._")
     else:
         out.extend(
             [
@@ -79,11 +77,7 @@ def _render_provider(contract: ProviderContract) -> str:
     badge = _STATUS_BADGE[contract.status]
     multi_stage = "yes" if contract.is_multi_stage else "no"
     period_extraction = "yes" if contract.has_period_extraction else "no"
-    issues = (
-        "\n".join(f"- {issue}" for issue in contract.known_issues)
-        if contract.known_issues
-        else "_None._"
-    )
+    issues = "\n".join(f"- {issue}" for issue in contract.known_issues) if contract.known_issues else "_None._"
     notes = f"\n\n> {contract.notes}" if contract.notes else ""
 
     sections: list[str] = []
@@ -91,28 +85,19 @@ def _render_provider(contract: ProviderContract) -> str:
     sections.append("")
     sections.append(f"**Status:** {badge}  ")
     sections.append(f"**Code:** `{contract.module_path}.{contract.class_name}`  ")
-    sections.append(
-        f"**Auth:** {contract.auth_type.value} via {contract.auth_provider}  "
-    )
+    sections.append(f"**Auth:** {contract.auth_type.value} via {contract.auth_provider}  ")
     sections.append(
         f"**Required credentials:** {', '.join(f'`{c}`' for c in contract.required_credentials) or '_none_'}  "
     )
     sections.append(
-        f"**Serves channel_types:** "
-        f"{', '.join(f'`{c}`' for c in contract.serves_channel_types) or '_none_'}  "
+        f"**Serves channel_types:** {', '.join(f'`{c}`' for c in contract.serves_channel_types) or '_none_'}  "
     )
     sections.append(f"**Multi-stage:** {multi_stage}  ")
-    sections.append(
-        f"**Stages supported:** {', '.join(f'`{s}`' for s in contract.stages_supported)}  "
-    )
+    sections.append(f"**Stages supported:** {', '.join(f'`{s}`' for s in contract.stages_supported)}  ")
     sections.append(f"**Has period extraction:** {period_extraction}  ")
-    sections.append(
-        f"**Extraction modes:** {', '.join(m.value for m in contract.extraction_modes)}  "
-    )
+    sections.append(f"**Extraction modes:** {', '.join(m.value for m in contract.extraction_modes)}  ")
     sections.append(f"**Cron:** {contract.cron_schedule}  ")
-    sections.append(
-        f"**Storage tables:** {', '.join(f'`{t}`' for t in contract.storage_tables)}  "
-    )
+    sections.append(f"**Storage tables:** {', '.join(f'`{t}`' for t in contract.storage_tables)}  ")
     sections.append(f"**Last verified:** {contract.last_verified}{notes}")
     sections.append("")
     sections.append("### API endpoints")
@@ -209,9 +194,7 @@ def render() -> str:
         "Do not edit by hand. Regenerate with:"
     )
     parts.append("")
-    parts.append(
-        "```bash\ncd backend && .venv/bin/python scripts/generate_extraction_contract_doc.py\n```"
-    )
+    parts.append("```bash\ncd backend && .venv/bin/python scripts/generate_extraction_contract_doc.py\n```")
     parts.append("")
     parts.append(
         "The contract is the single source of truth for what the analytics ETL extracts, from where, when, and where it lands. It is enforced by `backend/tests/architecture/test_extraction_contract.py` — that test fails if the providers in `PROVIDER_REGISTRY` drift from the entries here."

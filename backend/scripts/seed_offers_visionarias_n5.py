@@ -1,6 +1,6 @@
-import sys
-import os
 import logging
+import os
+import sys
 
 # Add backend to path so imports work
 sys.path.append("/app")
@@ -9,14 +9,13 @@ sys.path.append(os.path.join(os.getcwd(), "backend"))
 from src.services.database import SessionLocal
 from src.services.db.models.business import Product
 from src.services.db.models.tenant import Tenant
-from src.modules.offer.domain.enums import (
-    OfferValueLevel, OfferDeliveryModel,
-    GuaranteeType
-)
+
+from src.modules.offer.domain.enums import GuaranteeType, OfferDeliveryModel, OfferValueLevel
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 def get_db():
     db = SessionLocal()
@@ -24,6 +23,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 def seed_n5_offers():
     db = next(get_db())
@@ -52,20 +52,15 @@ def seed_n5_offers():
             "primary_outcome": "Networking de alto nivel y alianzas estratégicas.",
             "time_to_value": "Inmediato al ingresar",
             "pricing": [
-                {
-                    "label": "Membresía Anual",
-                    "plan_type": "one_time",
-                    "total_amount": 12000.0,
-                    "is_default": True
-                },
+                {"label": "Membresía Anual", "plan_type": "one_time", "total_amount": 12000.0, "is_default": True},
                 {
                     "label": "Pago Trimestral",
                     "plan_type": "subscription",
                     "total_amount": 14000.0,
                     "number_of_installments": 4,
                     "installment_amount": 3500.0,
-                    "is_default": False
-                }
+                    "is_default": False,
+                },
             ],
             "specific_details": {
                 "max_attendees": 20,
@@ -74,11 +69,10 @@ def seed_n5_offers():
                 "location_type": "virtual",
                 "itinerary_summary": "Reuniones mensuales de consejo, acceso a directorio y eventos privados.",
                 "networking_events": True,
-                "expert_guests": True
+                "expert_guests": True,
             },
-            "guarantee_type": GuaranteeType.NONE.value
+            "guarantee_type": GuaranteeType.NONE.value,
         },
-
         # --- N5: LUXURY RETREAT (Experiencia archetype) ---
         {
             "internal_sku": "VIS-N5-RETREAT-TULUM",
@@ -90,12 +84,7 @@ def seed_n5_offers():
             "primary_outcome": "Renovación energética y claridad de visión.",
             "time_to_value": "4 días",
             "pricing": [
-                {
-                    "label": "All Inclusive",
-                    "plan_type": "one_time",
-                    "total_amount": 5500.0,
-                    "is_default": True
-                }
+                {"label": "All Inclusive", "plan_type": "one_time", "total_amount": 5500.0, "is_default": True}
             ],
             "specific_details": {
                 "location_type": "destination_retreat",
@@ -105,19 +94,20 @@ def seed_n5_offers():
                 "max_attendees": 12,
                 "accommodation_included": True,
                 "meals_included": True,
-                "itinerary_summary": "Yoga al amanecer, talleres de estrategia, cenas gourmet y tiempo libre."
+                "itinerary_summary": "Yoga al amanecer, talleres de estrategia, cenas gourmet y tiempo libre.",
             },
-            "guarantee_type": GuaranteeType.NONE.value
-        }
+            "guarantee_type": GuaranteeType.NONE.value,
+        },
     ]
 
     # 3. Upsert Offers
     for offer_data in offers_data:
         # Check if exists by SKU
-        existing_offer = db.query(Product).filter(
-            Product.internal_sku == offer_data["internal_sku"],
-            Product.tenant_id == tenant_id
-        ).first()
+        existing_offer = (
+            db.query(Product)
+            .filter(Product.internal_sku == offer_data["internal_sku"], Product.tenant_id == tenant_id)
+            .first()
+        )
 
         if existing_offer:
             logger.info(f"Updating Offer: {offer_data['name']}")
@@ -127,12 +117,13 @@ def seed_n5_offers():
             logger.info(f"Creating Offer: {offer_data['name']}")
             new_offer = Product(**offer_data)
             new_offer.tenant_id = tenant_id
-            new_offer.status = "active" # Set default status
+            new_offer.status = "active"  # Set default status
             new_offer.currency = "USD"
             db.add(new_offer)
 
     db.commit()
     logger.info("N5 Seeding Completed Successfully!")
+
 
 if __name__ == "__main__":
     seed_n5_offers()

@@ -16,9 +16,10 @@ Tables seeded:
 
 Usage: docker exec -it visionarias_brain_dev python scripts/seed_growth_studio.py
 """
-import uuid
+
 import random
-from datetime import datetime, timedelta, timezone, date
+import uuid
+from datetime import date, datetime, timedelta, timezone
 
 # -- Config --
 TENANT_ID = "6347e21e-8112-4aa1-80d3-6adaa73bf6f9"
@@ -29,13 +30,48 @@ START_DATE = TODAY - timedelta(days=30)
 
 # Products (from DB)
 PRODUCTS = {
-    "N0_FREE": {"id": "217ff363-8e96-4132-9542-935499bc7efc", "name": "Guía: Liberar la Mente", "price": 0, "currency": "USD"},
-    "N1_TRIPWIRE": {"id": "5cbae26f-0e52-4795-8edd-b8e4518e27de", "name": "Pack Meditaciones: Abundancia", "price": 27, "currency": "USD"},
-    "N2_GROUP": {"id": "46ad9d44-1ff0-47d0-a623-30e196b89013", "name": "Programa: De Propósito a Prosperidad", "price": 497, "currency": "PEN"},
-    "N3_MENTOR": {"id": "42704d9b-6e35-47b8-b09f-bb9ec1942542", "name": "Mentoría Privada: Visión Clara", "price": 2500, "currency": "USD"},
-    "N4_SERVICE": {"id": "0ae6fca2-126b-4ae2-9231-1a14bf76cacd", "name": "Agencia Visionarias DFY", "price": 5000, "currency": "USD"},
-    "N5_MASTERMIND": {"id": "929828ac-6e48-4416-9849-196d306250d4", "name": "Círculo Visionarias Elite", "price": 10000, "currency": "USD"},
-    "N5_RETREAT": {"id": "5bf98020-e366-4ce5-86e2-80cb34b5eef4", "name": "Retiro Visionarias: Tulum 2026", "price": 8000, "currency": "USD"},
+    "N0_FREE": {
+        "id": "217ff363-8e96-4132-9542-935499bc7efc",
+        "name": "Guía: Liberar la Mente",
+        "price": 0,
+        "currency": "USD",
+    },
+    "N1_TRIPWIRE": {
+        "id": "5cbae26f-0e52-4795-8edd-b8e4518e27de",
+        "name": "Pack Meditaciones: Abundancia",
+        "price": 27,
+        "currency": "USD",
+    },
+    "N2_GROUP": {
+        "id": "46ad9d44-1ff0-47d0-a623-30e196b89013",
+        "name": "Programa: De Propósito a Prosperidad",
+        "price": 497,
+        "currency": "PEN",
+    },
+    "N3_MENTOR": {
+        "id": "42704d9b-6e35-47b8-b09f-bb9ec1942542",
+        "name": "Mentoría Privada: Visión Clara",
+        "price": 2500,
+        "currency": "USD",
+    },
+    "N4_SERVICE": {
+        "id": "0ae6fca2-126b-4ae2-9231-1a14bf76cacd",
+        "name": "Agencia Visionarias DFY",
+        "price": 5000,
+        "currency": "USD",
+    },
+    "N5_MASTERMIND": {
+        "id": "929828ac-6e48-4416-9849-196d306250d4",
+        "name": "Círculo Visionarias Elite",
+        "price": 10000,
+        "currency": "USD",
+    },
+    "N5_RETREAT": {
+        "id": "5bf98020-e366-4ce5-86e2-80cb34b5eef4",
+        "name": "Retiro Visionarias: Tulum 2026",
+        "price": 8000,
+        "currency": "USD",
+    },
 }
 
 # Connected providers
@@ -87,10 +123,17 @@ def build_sql():
     # =============================================
     stmts.append("-- Cleanup previous seed data")
     for table in [
-        "nps_responses", "nps_surveys", "referral_codes",
-        "sales", "lifecycle_transitions", "journey_events",
-        "metric_aggregations", "official_metrics", "staging_metrics",
-        "extraction_runs", "channel_cost_settings",
+        "nps_responses",
+        "nps_surveys",
+        "referral_codes",
+        "sales",
+        "lifecycle_transitions",
+        "journey_events",
+        "metric_aggregations",
+        "official_metrics",
+        "staging_metrics",
+        "extraction_runs",
+        "channel_cost_settings",
     ]:
         stmts.append(f"DELETE FROM {table} WHERE tenant_id = '{TENANT_ID}';")
 
@@ -126,18 +169,50 @@ def build_sql():
 
     # Attraction channels with realistic daily values
     attraction_channels = {
-        "ig-organic": {"provider": "meta", "metrics": {"reach": (800, 2200), "engagement": (40, 180)}, "cost_type": "neutral"},
-        "yt-organic": {"provider": "youtube", "metrics": {"reach": (400, 1200), "engagement": (20, 80)}, "cost_type": "neutral"},
-        "fb-organic": {"provider": "meta", "metrics": {"reach": (300, 900), "engagement": (15, 60)}, "cost_type": "neutral"},
-        "google-organic": {"provider": "google_analytics", "metrics": {"sessions": (80, 250), "users": (60, 200)}, "cost_type": "neutral"},
-        "direct": {"provider": "google_analytics", "metrics": {"sessions": (30, 100), "users": (25, 80)}, "cost_type": "neutral"},
-        "meta-ads": {"provider": "meta", "metrics": {"reach": (2000, 6000), "clicks": (120, 380), "conversions": (8, 25), "spend": (30, 85)}, "cost_type": "investment"},
-        "google-ads": {"provider": "google_analytics", "metrics": {"reach": (1200, 3500), "clicks": (60, 200), "conversions": (4, 15), "spend": (20, 60)}, "cost_type": "investment"},
+        "ig-organic": {
+            "provider": "meta",
+            "metrics": {"reach": (800, 2200), "engagement": (40, 180)},
+            "cost_type": "neutral",
+        },
+        "yt-organic": {
+            "provider": "youtube",
+            "metrics": {"reach": (400, 1200), "engagement": (20, 80)},
+            "cost_type": "neutral",
+        },
+        "fb-organic": {
+            "provider": "meta",
+            "metrics": {"reach": (300, 900), "engagement": (15, 60)},
+            "cost_type": "neutral",
+        },
+        "google-organic": {
+            "provider": "google_analytics",
+            "metrics": {"sessions": (80, 250), "users": (60, 200)},
+            "cost_type": "neutral",
+        },
+        "direct": {
+            "provider": "google_analytics",
+            "metrics": {"sessions": (30, 100), "users": (25, 80)},
+            "cost_type": "neutral",
+        },
+        "meta-ads": {
+            "provider": "meta",
+            "metrics": {"reach": (2000, 6000), "clicks": (120, 380), "conversions": (8, 25), "spend": (30, 85)},
+            "cost_type": "investment",
+        },
+        "google-ads": {
+            "provider": "google_analytics",
+            "metrics": {"reach": (1200, 3500), "clicks": (60, 200), "conversions": (4, 15), "spend": (20, 60)},
+            "cost_type": "investment",
+        },
     }
 
     # Nurture retargeting channels
     nurture_channels = {
-        "meta-retargeting": {"provider": "meta", "metrics": {"reach": (500, 1500), "clicks": (30, 90), "spend": (10, 30)}, "cost_type": "investment"},
+        "meta-retargeting": {
+            "provider": "meta",
+            "metrics": {"reach": (500, 1500), "clicks": (30, 90), "spend": (10, 30)},
+            "cost_type": "investment",
+        },
     }
 
     all_metric_channels = {**attraction_channels, **nurture_channels}
@@ -180,7 +255,13 @@ def build_sql():
 
         for metric_name, (low, high) in config["metrics"].items():
             # Sum 30 days with ~0.85 avg factor for weekends
-            total = round(sum(random.uniform(low, high) * (1.0 if (START_DATE + timedelta(days=d)).weekday() < 5 else 0.65) for d in range(30)), 2)
+            total = round(
+                sum(
+                    random.uniform(low, high) * (1.0 if (START_DATE + timedelta(days=d)).weekday() < 5 else 0.65)
+                    for d in range(30)
+                ),
+                2,
+            )
             unit = "currency" if metric_name == "spend" else "count"
             currency = "'USD'" if metric_name == "spend" else "NULL"
 
@@ -210,25 +291,78 @@ def build_sql():
 
     # Build realistic funnel: 620 leads, 185 MQL, 72 SQL, 38 customers, 12 evangelists
     stage_counts = {
-        "LEAD": LEADS - MQLS,         # 435 stay as LEAD
-        "MQL": MQLS - SQLS,           # 113 stay as MQL
-        "SQL": SQLS - CUSTOMERS,      # 34 stay as SQL
+        "LEAD": LEADS - MQLS,  # 435 stay as LEAD
+        "MQL": MQLS - SQLS,  # 113 stay as MQL
+        "SQL": SQLS - CUSTOMERS,  # 34 stay as SQL
         "CUSTOMER": CUSTOMERS - EVANGELISTS,  # 26 become CUSTOMER
-        "EVANGELIST": EVANGELISTS,     # 12 become EVANGELIST
+        "EVANGELIST": EVANGELISTS,  # 12 become EVANGELIST
     }
 
     first_names = [
-        "María", "Ana", "Carla", "Sofía", "Valentina", "Lucía", "Isabella", "Daniela",
-        "Camila", "Paula", "Andrea", "Gabriela", "Fernanda", "Natalia", "Diana",
-        "Laura", "Claudia", "Rosa", "Carmen", "Elena", "Mariana", "Adriana",
-        "Patricia", "Catalina", "Jimena", "Alejandra", "Mónica", "Verónica",
-        "Jessica", "Lorena", "Paola", "Silvia", "Beatriz", "Teresa", "Gloria",
+        "María",
+        "Ana",
+        "Carla",
+        "Sofía",
+        "Valentina",
+        "Lucía",
+        "Isabella",
+        "Daniela",
+        "Camila",
+        "Paula",
+        "Andrea",
+        "Gabriela",
+        "Fernanda",
+        "Natalia",
+        "Diana",
+        "Laura",
+        "Claudia",
+        "Rosa",
+        "Carmen",
+        "Elena",
+        "Mariana",
+        "Adriana",
+        "Patricia",
+        "Catalina",
+        "Jimena",
+        "Alejandra",
+        "Mónica",
+        "Verónica",
+        "Jessica",
+        "Lorena",
+        "Paola",
+        "Silvia",
+        "Beatriz",
+        "Teresa",
+        "Gloria",
     ]
     last_names = [
-        "García", "López", "Martínez", "González", "Rodríguez", "Hernández",
-        "Pérez", "Sánchez", "Ramírez", "Torres", "Flores", "Rivera", "Gómez",
-        "Díaz", "Cruz", "Morales", "Reyes", "Gutiérrez", "Ortiz", "Castillo",
-        "Vargas", "Romero", "Mendoza", "Ruiz", "Álvarez", "Jiménez", "Medina",
+        "García",
+        "López",
+        "Martínez",
+        "González",
+        "Rodríguez",
+        "Hernández",
+        "Pérez",
+        "Sánchez",
+        "Ramírez",
+        "Torres",
+        "Flores",
+        "Rivera",
+        "Gómez",
+        "Díaz",
+        "Cruz",
+        "Morales",
+        "Reyes",
+        "Gutiérrez",
+        "Ortiz",
+        "Castillo",
+        "Vargas",
+        "Romero",
+        "Mendoza",
+        "Ruiz",
+        "Álvarez",
+        "Jiménez",
+        "Medina",
     ]
 
     lead_source_list = []
@@ -251,7 +385,7 @@ def build_sql():
             last_activity = random_date(first_seen, NOW)
             fname = random.choice(first_names)
             lname = random.choice(last_names)
-            email = f"{fname.lower().replace('í','i').replace('é','e').replace('ó','o').replace('á','a').replace('ú','u')}.{lname.lower().replace('á','a').replace('é','e').replace('í','i').replace('ó','o').replace('ú','u')}{random.randint(1,999)}@gmail.com"
+            email = f"{fname.lower().replace('í', 'i').replace('é', 'e').replace('ó', 'o').replace('á', 'a').replace('ú', 'u')}.{lname.lower().replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')}{random.randint(1, 999)}@gmail.com"
 
             is_inactive = "false"
             lifetime_value = 0
@@ -296,7 +430,13 @@ def build_sql():
         "MQL": [("SUBSCRIBER", "LEAD"), ("LEAD", "MQL")],
         "SQL": [("SUBSCRIBER", "LEAD"), ("LEAD", "MQL"), ("MQL", "SQL")],
         "CUSTOMER": [("SUBSCRIBER", "LEAD"), ("LEAD", "MQL"), ("MQL", "SQL"), ("SQL", "CUSTOMER")],
-        "EVANGELIST": [("SUBSCRIBER", "LEAD"), ("LEAD", "MQL"), ("MQL", "SQL"), ("SQL", "CUSTOMER"), ("CUSTOMER", "EVANGELIST")],
+        "EVANGELIST": [
+            ("SUBSCRIBER", "LEAD"),
+            ("LEAD", "MQL"),
+            ("MQL", "SQL"),
+            ("SQL", "CUSTOMER"),
+            ("CUSTOMER", "EVANGELIST"),
+        ],
     }
 
     for pid, final_stage in profile_stages.items():
@@ -447,7 +587,9 @@ def build_sql():
             f"'scheduling', '{{}}', '{t.isoformat()}', '{t.isoformat()}');"
         )
     # 15% no-show
-    no_show_profiles = [p for p in meeting_profiles if p not in random.sample(meeting_profiles, int(len(meeting_profiles) * 0.70))]
+    no_show_profiles = [
+        p for p in meeting_profiles if p not in random.sample(meeting_profiles, int(len(meeting_profiles) * 0.70))
+    ]
     for pid in random.sample(meeting_profiles, max(1, int(len(meeting_profiles) * 0.15))):
         t = random_date(START, NOW)
         stmts.append(
@@ -581,25 +723,31 @@ def build_sql():
             r = random.random()
             if r < 0.60:
                 score = random.choice([9, 10])
-                feedback = random.choice([
-                    "Excelente programa, me cambió la vida!",
-                    "Increíble mentoría, super recomendado",
-                    "Las mejores herramientas para crecer mi negocio",
-                    "Transformador. Resultados reales.",
-                ])
+                feedback = random.choice(
+                    [
+                        "Excelente programa, me cambió la vida!",
+                        "Increíble mentoría, super recomendado",
+                        "Las mejores herramientas para crecer mi negocio",
+                        "Transformador. Resultados reales.",
+                    ]
+                )
             elif r < 0.85:
                 score = random.choice([7, 8])
-                feedback = random.choice([
-                    "Buen contenido, me gustaría más seguimiento",
-                    "Útil pero podría mejorar los materiales",
-                    "Buena experiencia en general",
-                ])
+                feedback = random.choice(
+                    [
+                        "Buen contenido, me gustaría más seguimiento",
+                        "Útil pero podría mejorar los materiales",
+                        "Buena experiencia en general",
+                    ]
+                )
             else:
                 score = random.randint(3, 6)
-                feedback = random.choice([
-                    "No cumplió del todo mis expectativas",
-                    "Necesita mejorar la comunicación",
-                ])
+                feedback = random.choice(
+                    [
+                        "No cumplió del todo mis expectativas",
+                        "Necesita mejorar la comunicación",
+                    ]
+                )
 
             responded = random_date(sent_at + timedelta(hours=2), min(sent_at + timedelta(days=7), NOW))
             consent = "true" if score >= 9 else "false"

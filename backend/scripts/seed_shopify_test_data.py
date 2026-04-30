@@ -43,98 +43,115 @@ def gql_url(shop: str) -> str:
 # (title, price, requires_shipping, weight_for_random_selection)
 NEW_PRODUCTS = [
     # LOW TICKET — weight 3 (bought most often)
-    ("Ebook: Guia de Ventas Online",        "19.00",  False, 3),
-    ("Pack Plantillas para Redes Sociales", "29.00",  False, 3),
-    ("Webinar Grabado: Funnels de Venta",   "37.00",  False, 3),
-    ("Mini Curso: Crea Tu Marca Personal",  "47.00",  False, 3),
+    ("Ebook: Guia de Ventas Online", "19.00", False, 3),
+    ("Pack Plantillas para Redes Sociales", "29.00", False, 3),
+    ("Webinar Grabado: Funnels de Venta", "37.00", False, 3),
+    ("Mini Curso: Crea Tu Marca Personal", "47.00", False, 3),
     # MID TICKET — weight 2
-    ("Curso: Emprende desde Cero",          "97.00",  False, 2),
-    ("Workshop: Storytelling para Ventas",  "149.00", False, 2),
-    ("Curso Avanzado: Email Marketing",     "197.00", False, 2),
+    ("Curso: Emprende desde Cero", "97.00", False, 2),
+    ("Workshop: Storytelling para Ventas", "149.00", False, 2),
+    ("Curso Avanzado: Email Marketing", "197.00", False, 2),
     # HIGH TICKET — weight 1
     ("Programa: De Proposito a Prosperidad", "497.00", False, 1),
-    ("Coaching Grupal 12 Semanas",          "347.00", False, 1),
+    ("Coaching Grupal 12 Semanas", "347.00", False, 1),
     # PREMIUM — weight 0.5
-    ("Mentoria 1:1 Premium (3 meses)",      "897.00", False, 0.5),
-    ("Aceleradora VIP: Escala Tu Negocio",  "697.00", False, 0.5),
+    ("Mentoria 1:1 Premium (3 meses)", "897.00", False, 0.5),
+    ("Aceleradora VIP: Escala Tu Negocio", "697.00", False, 0.5),
     # PHYSICAL (for shipping_revenue metric)
-    ("Kit Branding Fisico + Workbook",      "67.00",  True,  1),
+    ("Kit Branding Fisico + Workbook", "67.00", True, 1),
 ]
 
 # ── Customers — 28 Latin American names, ~80% female ────────────────────
 CUSTOMERS = [
     # Female (~22)
-    ("María",     "García Flores",    "maria.garcia@example.com",      "+5215551000001"),
-    ("Ana Lucía", "Martínez Ríos",    "ana.martinez@example.com",      None),
-    ("Sofía",     "Hernández Luna",   "sofia.hernandez@example.com",   None),
-    ("Valentina", "Torres Vega",      "valentina.torres@example.com",  None),
-    ("Camila",    "Rivera Castillo",  "camila.rivera@example.com",     None),
-    ("Isabella",  "Díaz Paredes",     "isabella.diaz@example.com",     "+5215551000011"),
-    ("Lucía",     "Jiménez Salazar",  "lucia.jimenez@example.com",     "+5215551000013"),
-    ("Fernanda",  "Álvarez Rojas",    "fernanda.alvarez@example.com",  "+5215551000015"),
-    ("Gabriela",  "Castro Medina",    "gabriela.castro@example.com",   "+5215551000017"),
-    ("Mariana",   "Vargas Peña",      "mariana.vargas@example.com",    None),
-    ("Catalina",  "Moreno Quispe",    "catalina.moreno@example.com",   "+5115551000021"),
-    ("Daniela",   "Huamán Solís",     "daniela.huaman@example.com",    "+5115551000022"),
-    ("Ximena",    "Gutiérrez Paz",    "ximena.gutierrez@example.com",  None),
-    ("Renata",    "Mendoza Cruz",     "renata.mendoza@example.com",    "+5725551000024"),
-    ("Paula",     "Ospina Restrepo",  "paula.ospina@example.com",      "+5725551000025"),
-    ("Alejandra", "Sánchez Duarte",   "alejandra.sanchez@example.com", None),
-    ("Natalia",   "Figueroa Lagos",   "natalia.figueroa@example.com",  "+5415551000027"),
-    ("Florencia", "Bianchi Romero",   "florencia.bianchi@example.com", "+5415551000028"),
-    ("Lorena",    "Palacios Aguilar", "lorena.palacios@example.com",   None),
-    ("Andrea",    "Córdoba Navarro",  "andrea.cordoba@example.com",    "+5215551000030"),
-    ("Mónica",    "Ramírez Herrera",  "monica.ramirez@example.com",    None),
-    ("Paola",     "Vásquez Delgado",  "paola.vasquez@example.com",     "+5725551000032"),
+    ("María", "García Flores", "maria.garcia@example.com", "+5215551000001"),
+    ("Ana Lucía", "Martínez Ríos", "ana.martinez@example.com", None),
+    ("Sofía", "Hernández Luna", "sofia.hernandez@example.com", None),
+    ("Valentina", "Torres Vega", "valentina.torres@example.com", None),
+    ("Camila", "Rivera Castillo", "camila.rivera@example.com", None),
+    ("Isabella", "Díaz Paredes", "isabella.diaz@example.com", "+5215551000011"),
+    ("Lucía", "Jiménez Salazar", "lucia.jimenez@example.com", "+5215551000013"),
+    ("Fernanda", "Álvarez Rojas", "fernanda.alvarez@example.com", "+5215551000015"),
+    ("Gabriela", "Castro Medina", "gabriela.castro@example.com", "+5215551000017"),
+    ("Mariana", "Vargas Peña", "mariana.vargas@example.com", None),
+    ("Catalina", "Moreno Quispe", "catalina.moreno@example.com", "+5115551000021"),
+    ("Daniela", "Huamán Solís", "daniela.huaman@example.com", "+5115551000022"),
+    ("Ximena", "Gutiérrez Paz", "ximena.gutierrez@example.com", None),
+    ("Renata", "Mendoza Cruz", "renata.mendoza@example.com", "+5725551000024"),
+    ("Paula", "Ospina Restrepo", "paula.ospina@example.com", "+5725551000025"),
+    ("Alejandra", "Sánchez Duarte", "alejandra.sanchez@example.com", None),
+    ("Natalia", "Figueroa Lagos", "natalia.figueroa@example.com", "+5415551000027"),
+    ("Florencia", "Bianchi Romero", "florencia.bianchi@example.com", "+5415551000028"),
+    ("Lorena", "Palacios Aguilar", "lorena.palacios@example.com", None),
+    ("Andrea", "Córdoba Navarro", "andrea.cordoba@example.com", "+5215551000030"),
+    ("Mónica", "Ramírez Herrera", "monica.ramirez@example.com", None),
+    ("Paola", "Vásquez Delgado", "paola.vasquez@example.com", "+5725551000032"),
     # Male (~6)
-    ("Carlos",    "López Fuentes",    "carlos.lopez@example.com",      "+5215551000002"),
-    ("Luis",      "Rodríguez Pinto",  "luis.rodriguez@example.com",    "+5215551000004"),
-    ("Diego",     "Ramírez Ochoa",    "diego.ramirez@example.com",     "+5215551000006"),
-    ("Andrés",    "Flores Cárdenas",  "andres.flores@example.com",     "+5215551000008"),
-    ("Javier",    "Gómez Paredes",    "javier.gomez@example.com",      "+5215551000010"),
-    ("Emilio",    "Ortiz Bravo",      "emilio.ortiz@example.com",      "+5215551000018"),
+    ("Carlos", "López Fuentes", "carlos.lopez@example.com", "+5215551000002"),
+    ("Luis", "Rodríguez Pinto", "luis.rodriguez@example.com", "+5215551000004"),
+    ("Diego", "Ramírez Ochoa", "diego.ramirez@example.com", "+5215551000006"),
+    ("Andrés", "Flores Cárdenas", "andres.flores@example.com", "+5215551000008"),
+    ("Javier", "Gómez Paredes", "javier.gomez@example.com", "+5215551000010"),
+    ("Emilio", "Ortiz Bravo", "emilio.ortiz@example.com", "+5215551000018"),
 ]
 
 # ── Discount codes ──────────────────────────────────────────────────────
 DISCOUNT_CODES = [
     # (code, type, value, description)
-    ("BIENVENIDA10",  "percentage", 10, "Welcome discount"),
+    ("BIENVENIDA10", "percentage", 10, "Welcome discount"),
     ("LANZAMIENTO20", "percentage", 20, "Launch promo"),
-    ("VIP30",         "percentage", 30, "VIP customer"),
+    ("VIP30", "percentage", 30, "VIP customer"),
     ("BLACKFRIDAY40", "percentage", 40, "Seasonal sale"),
-    ("CUPONREGALO",   "fixed",     20, "Gift voucher — $20 off"),
+    ("CUPONREGALO", "fixed", 20, "Gift voucher — $20 off"),
 ]
 
 # ── Shipping addresses (Latin America) ──────────────────────────────────
 SHIPPING_ADDRESSES = [
     {
-        "firstName": "María", "lastName": "García",
-        "address1": "Av. Javier Prado Este 4200", "city": "Lima",
-        "province": "Lima", "zip": "15023", "countryCode": "PE",
+        "firstName": "María",
+        "lastName": "García",
+        "address1": "Av. Javier Prado Este 4200",
+        "city": "Lima",
+        "province": "Lima",
+        "zip": "15023",
+        "countryCode": "PE",
         "phone": "+51999000001",
     },
     {
-        "firstName": "Camila", "lastName": "Rivera",
-        "address1": "Av. Insurgentes Sur 1602", "city": "Ciudad de México",
-        "province": "CDMX", "zip": "03940", "countryCode": "MX",
+        "firstName": "Camila",
+        "lastName": "Rivera",
+        "address1": "Av. Insurgentes Sur 1602",
+        "city": "Ciudad de México",
+        "province": "CDMX",
+        "zip": "03940",
+        "countryCode": "MX",
         "phone": "+52555000002",
     },
     {
-        "firstName": "Paula", "lastName": "Ospina",
-        "address1": "Carrera 7 #71-21", "city": "Bogotá",
-        "province": "Cundinamarca", "zip": "110231", "countryCode": "CO",
+        "firstName": "Paula",
+        "lastName": "Ospina",
+        "address1": "Carrera 7 #71-21",
+        "city": "Bogotá",
+        "province": "Cundinamarca",
+        "zip": "110231",
+        "countryCode": "CO",
         "phone": "+57310000003",
     },
     {
-        "firstName": "Florencia", "lastName": "Bianchi",
-        "address1": "Av. Santa Fe 1860", "city": "Buenos Aires",
-        "province": "Buenos Aires", "zip": "C1123AAQ", "countryCode": "AR",
+        "firstName": "Florencia",
+        "lastName": "Bianchi",
+        "address1": "Av. Santa Fe 1860",
+        "city": "Buenos Aires",
+        "province": "Buenos Aires",
+        "zip": "C1123AAQ",
+        "countryCode": "AR",
         "phone": "+54911000004",
     },
 ]
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────
+
 
 def _call_graphql(
     client: httpx.Client,
@@ -186,7 +203,7 @@ def _random_date(days_back: int = 45) -> str:
             continue
 
         # Random hour 8-23 (business hours bias)
-        hour = random.choices(range(8, 24), weights=[1]*4 + [3]*8 + [2]*4, k=1)[0]
+        hour = random.choices(range(8, 24), weights=[1] * 4 + [3] * 8 + [2] * 4, k=1)[0]
         dt = dt.replace(hour=hour, minute=random.randint(0, 59), second=random.randint(0, 59))
         return dt.isoformat()
     return (now - timedelta(days=2)).isoformat()
@@ -197,6 +214,7 @@ def _money(amount: str, currency: str = "USD") -> dict:
 
 
 # ── --from-db credential retrieval ──────────────────────────────────────
+
 
 def _get_encryption_key_standalone() -> str:
     """Derive Fernet key from API_SECRET_KEY (same as src/core/security.py)."""
@@ -212,6 +230,7 @@ def _decrypt_credentials(raw_jsonb: dict) -> dict:
     """Decrypt an EncryptedJSON value (dict with '_encrypted' key)."""
     if isinstance(raw_jsonb, dict) and "_encrypted" in raw_jsonb:
         from cryptography.fernet import Fernet
+
         key = _get_encryption_key_standalone()
         f = Fernet(key.encode())
         decrypted = f.decrypt(raw_jsonb["_encrypted"].encode()).decode()
@@ -234,13 +253,16 @@ def fetch_credentials_from_db(tenant_slug: str) -> tuple[str, str]:
     db_port = os.environ.get("POSTGRES_PORT", "5432")
 
     conn = psycopg2.connect(
-        host=db_host, port=db_port,
-        user=db_user, password=db_pass,
+        host=db_host,
+        port=db_port,
+        user=db_user,
+        password=db_pass,
         dbname=db_name,
     )
     try:
         cur = conn.cursor()
-        cur.execute("""
+        cur.execute(
+            """
             SELECT cc.credentials, cc.config
             FROM channel_connections cc
             JOIN tenants t ON cc.tenant_id = t.id
@@ -248,7 +270,9 @@ def fetch_credentials_from_db(tenant_slug: str) -> tuple[str, str]:
               AND cc.channel_type = 'shopify'
               AND cc.is_active = true
             LIMIT 1
-        """, (tenant_slug,))
+        """,
+            (tenant_slug,),
+        )
         row = cur.fetchone()
         if not row:
             print(f"ERROR: No active Shopify connection for tenant '{tenant_slug}'.")
@@ -261,9 +285,7 @@ def fetch_credentials_from_db(tenant_slug: str) -> tuple[str, str]:
         access_token = credentials.get("access_token", "")
         # shop_domain can be in credentials or config
         shop_domain = (
-            credentials.get("shop_domain")
-            or credentials.get("shop_url")
-            or (config or {}).get("shop_url", "")
+            credentials.get("shop_domain") or credentials.get("shop_url") or (config or {}).get("shop_url", "")
         )
 
         if not access_token:
@@ -312,13 +334,15 @@ def fetch_existing_products(client: httpx.Client, shop: str, token: str) -> list
         node = edge["node"]
         for v_edge in node.get("variants", {}).get("edges", []):
             v = v_edge["node"]
-            products.append({
-                "product_id": node["id"],
-                "title": node["title"],
-                "variant_id": v["id"],
-                "price": v["price"],
-                "weight": weight_map.get(node["title"], 1),
-            })
+            products.append(
+                {
+                    "product_id": node["id"],
+                    "title": node["title"],
+                    "variant_id": v["id"],
+                    "price": v["price"],
+                    "weight": weight_map.get(node["title"], 1),
+                }
+            )
     return products
 
 
@@ -447,10 +471,16 @@ def create_products(
         print(f"  ✓ Created: {title} (${price}) → {product_id}")
 
         if pub_id and product_id:
-            _call_graphql(client, shop, token, PUBLISH_MUTATION, {
-                "id": product_id,
-                "input": [{"publicationId": pub_id}],
-            })
+            _call_graphql(
+                client,
+                shop,
+                token,
+                PUBLISH_MUTATION,
+                {
+                    "id": product_id,
+                    "input": [{"publicationId": pub_id}],
+                },
+            )
 
         time.sleep(0.5)
 
@@ -476,13 +506,19 @@ def _set_variant_price(
     requires_shipping: bool,
 ) -> None:
     """Set price and shipping requirement on a product variant."""
-    _call_graphql(client, shop, token, VARIANT_UPDATE_MUTATION, {
-        "input": {
-            "id": variant_id,
-            "price": price,
-            "requiresShipping": requires_shipping,
-        }
-    })
+    _call_graphql(
+        client,
+        shop,
+        token,
+        VARIANT_UPDATE_MUTATION,
+        {
+            "input": {
+                "id": variant_id,
+                "price": price,
+                "requiresShipping": requires_shipping,
+            }
+        },
+    )
 
 
 # ── Phase 3: Create customers ──────────────────────────────────────────
@@ -666,10 +702,12 @@ def _build_order(
     shipping_address = None
     if add_shipping:
         shipping_total = round(random.choice([5.99, 7.99, 9.99]), 2)
-        shipping_lines = [{
-            "title": "Envio Estandar",
-            "priceSet": _money(f"{shipping_total:.2f}"),
-        }]
+        shipping_lines = [
+            {
+                "title": "Envio Estandar",
+                "priceSet": _money(f"{shipping_total:.2f}"),
+            }
+        ]
         shipping_address = random.choice(SHIPPING_ADDRESSES)
 
     # Total after discount
@@ -701,16 +739,20 @@ def _build_order(
         "currency": "USD",
         "test": True,
         "tags": ["seed-data", "test"],
-        "taxLines": [{
-            "title": "Sales Tax",
-            "priceSet": _money(f"{tax_amount:.2f}"),
-            "rate": 0.08,
-        }],
-        "transactions": [{
-            "kind": "SALE",
-            "status": "SUCCESS",
-            "amountSet": _money(f"{order_total:.2f}"),
-        }],
+        "taxLines": [
+            {
+                "title": "Sales Tax",
+                "priceSet": _money(f"{tax_amount:.2f}"),
+                "rate": 0.08,
+            }
+        ],
+        "transactions": [
+            {
+                "kind": "SALE",
+                "status": "SUCCESS",
+                "amountSet": _money(f"{order_total:.2f}"),
+            }
+        ],
     }
 
     if discount_code_input:
@@ -757,7 +799,8 @@ def create_orders(
     for i in range(15):
         code = DISCOUNT_CODES[i % len(DISCOUNT_CODES)]
         spec = _build_order(
-            products, customers,
+            products,
+            customers,
             apply_discount=True,
             discount_code_override=code,
             add_shipping=random.random() < 0.4,
@@ -767,7 +810,8 @@ def create_orders(
     # ~5 bundle orders (2-3 items from different tiers)
     for _ in range(5):
         spec = _build_order(
-            products, customers,
+            products,
+            customers,
             add_shipping=random.random() < 0.5,
             line_item_count=random.choice([2, 3]),
         )
@@ -833,8 +877,7 @@ def create_orders(
                 label = fin_status
                 if is_partial_target:
                     label += " (→partial refund)"
-                print(f"    [DRY RUN] Order #{order_num}: {label}"
-                      + (" +discount" if has_discount else ""))
+                print(f"    [DRY RUN] Order #{order_num}: {label}" + (" +discount" if has_discount else ""))
                 stats[fin_status.lower()] = stats.get(fin_status.lower(), 0) + 1
                 if has_discount:
                     stats["discounted"] += 1
@@ -953,9 +996,7 @@ def create_partial_refunds(
                 continue
 
             # Calculate partial refund: 20-60% of order total
-            order_amount = float(
-                sale_tx.get("amountSet", {}).get("shopMoney", {}).get("amount", "0")
-            )
+            order_amount = float(sale_tx.get("amountSet", {}).get("shopMoney", {}).get("amount", "0"))
             refund_pct = random.uniform(0.20, 0.60)
             refund_amount = round(order_amount * refund_pct, 2)
 
@@ -965,29 +1006,32 @@ def create_partial_refunds(
             for li_edge in line_items:
                 li = li_edge["node"]
                 # Refund 1 quantity of each item (partial)
-                refund_line_items.append({
-                    "lineItemId": li["id"],
-                    "quantity": max(1, li["quantity"] // 2),  # refund half qty, at least 1
-                })
+                refund_line_items.append(
+                    {
+                        "lineItemId": li["id"],
+                        "quantity": max(1, li["quantity"] // 2),  # refund half qty, at least 1
+                    }
+                )
 
             refund_input: dict[str, Any] = {
                 "orderId": order_id,
                 "note": f"Partial refund ({refund_pct:.0%}) — seed data",
                 "shipping": {"fullRefund": False},
-                "transactions": [{
-                    "parentId": sale_tx["id"],
-                    "amount": refund_amount,
-                    "kind": "REFUND",
-                    "gateway": "manual",
-                }],
+                "transactions": [
+                    {
+                        "parentId": sale_tx["id"],
+                        "amount": refund_amount,
+                        "kind": "REFUND",
+                        "gateway": "manual",
+                    }
+                ],
             }
 
             if refund_line_items:
                 refund_input["refundLineItems"] = refund_line_items
 
             if dry_run:
-                print(f"    [DRY RUN] Would partially refund {order_name}: "
-                      f"${refund_amount:.2f} ({refund_pct:.0%})")
+                print(f"    [DRY RUN] Would partially refund {order_name}: ${refund_amount:.2f} ({refund_pct:.0%})")
                 stats["refunded"] += 1
                 continue
 
@@ -1001,14 +1045,11 @@ def create_partial_refunds(
             else:
                 updated_order = refund_data.get("order", {})
                 new_status = updated_order.get("displayFinancialStatus", "?")
-                new_total = (
-                    updated_order
-                    .get("currentTotalPriceSet", {})
-                    .get("shopMoney", {})
-                    .get("amount", "?")
+                new_total = updated_order.get("currentTotalPriceSet", {}).get("shopMoney", {}).get("amount", "?")
+                print(
+                    f"    ✓ Refund {order_name}: -${refund_amount:.2f} "
+                    f"({refund_pct:.0%}) → {new_status} (current=${new_total})"
                 )
-                print(f"    ✓ Refund {order_name}: -${refund_amount:.2f} "
-                      f"({refund_pct:.0%}) → {new_status} (current=${new_total})")
                 stats["refunded"] += 1
 
             time.sleep(0.5)
@@ -1024,6 +1065,7 @@ def create_partial_refunds(
 
 
 # ── Summary ─────────────────────────────────────────────────────────────
+
 
 def print_summary(
     products: list[dict],
@@ -1057,10 +1099,9 @@ def print_summary(
 
 # ── CLI ─────────────────────────────────────────────────────────────────
 
+
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Seed a Shopify dev store with realistic Visionarias-style test data."
-    )
+    parser = argparse.ArgumentParser(description="Seed a Shopify dev store with realistic Visionarias-style test data.")
     # Credential source: either --from-db or manual
     parser.add_argument(
         "--from-db",
@@ -1165,15 +1206,11 @@ def main() -> None:
 
     # Phase 4: Create orders
     print("Phase 4: Creating orders (~90 mixed types)...")
-    order_stats, partial_refund_orders = create_orders(
-        client, shop, token, products, customers, dry_run=args.dry_run
-    )
+    order_stats, partial_refund_orders = create_orders(client, shop, token, products, customers, dry_run=args.dry_run)
 
     # Phase 5: Create partial refunds
     print("\nPhase 5: Creating partial refunds (refundCreate mutations)...")
-    refund_stats = create_partial_refunds(
-        client, shop, token, partial_refund_orders, dry_run=args.dry_run
-    )
+    refund_stats = create_partial_refunds(client, shop, token, partial_refund_orders, dry_run=args.dry_run)
 
     # Summary
     print_summary(products, customers, order_stats, refund_stats)

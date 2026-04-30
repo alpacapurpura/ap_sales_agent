@@ -1,15 +1,17 @@
-import sys
 import os
+import sys
+
 from sqlalchemy.orm import sessionmaker
 
 # Add backend directory to path so we can import modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.services.database import engine
 from src.services.db.models.business import Product
 from src.services.db.models.tenant import Tenant
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def seed():
     db = SessionLocal()
@@ -22,7 +24,7 @@ def seed():
             db.add(tenant)
             db.commit()
             db.refresh(tenant)
-        
+
         print(f"Using Tenant: {tenant.name} ({tenant.id})")
 
         # 2. Define Offer Data
@@ -46,7 +48,7 @@ def seed():
                     "number_of_installments": 1,
                     "installment_amount": 0,
                     "is_default": True,
-                    "savings_claim": "Ahorra $500 vs Plan de Pagos"
+                    "savings_claim": "Ahorra $500 vs Plan de Pagos",
                 },
                 {
                     "label": "Plan de Pagos",
@@ -54,8 +56,8 @@ def seed():
                     "deposit_required": 500,
                     "number_of_installments": 3,
                     "installment_amount": 1000,
-                    "is_default": False
-                }
+                    "is_default": False,
+                },
             ],
             "currency": "USD",
             "guarantee_type": "CONDITIONAL_ACTION_BASED",
@@ -66,32 +68,36 @@ def seed():
                     "name": "Sesiones Grupales Semanales",
                     "format": "LIVE_CALL",
                     "quantity": "12",
-                    "value_stack_price": 1997
+                    "value_stack_price": 1997,
                 },
                 {
                     "name": "Portal de Contenidos",
                     "format": "RECORDED_CONTENT",
                     "quantity": "Acceso de por vida",
-                    "value_stack_price": 997
-                }
+                    "value_stack_price": 997,
+                },
             ],
             "status": "DRAFT",
             "specific_details": {
                 "program_type": "COHORT_BASED",
                 "duration_weeks": 12,
-                "syllabus_modules": { "1": "Fundamentos", "2": "Estrategia", "3": "Implementación" },
+                "syllabus_modules": {"1": "Fundamentos", "2": "Estrategia", "3": "Implementación"},
                 "calls_per_week": 2,
                 "call_schedule_details": "Martes y Jueves 10 AM EST",
                 "are_calls_recorded": True,
                 "one_on_one_sessions": 3,
-                "includes_certification": True
+                "includes_certification": True,
             },
-            "tenant_id": tenant.id
+            "tenant_id": tenant.id,
         }
 
         # 3. Insert Offer
         # Check if exists by SKU to avoid duplicates
-        existing = db.query(Product).filter(Product.internal_sku == offer_data["internal_sku"], Product.tenant_id == tenant.id).first()
+        existing = (
+            db.query(Product)
+            .filter(Product.internal_sku == offer_data["internal_sku"], Product.tenant_id == tenant.id)
+            .first()
+        )
         if existing:
             print(f"Offer with SKU {offer_data['internal_sku']} already exists. ID: {existing.id}")
         else:
@@ -106,6 +112,7 @@ def seed():
         db.rollback()
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     seed()

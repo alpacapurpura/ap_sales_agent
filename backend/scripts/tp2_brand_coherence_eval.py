@@ -53,7 +53,7 @@ def _clerk_token() -> str:
 
     venv_python = REPO_ROOT / "backend" / ".venv" / "bin" / "python"
     helper = REPO_ROOT / "backend" / "scripts" / "get_clerk_test_token.py"
-    out = subprocess.run(  # noqa: S603 — paths constructed from REPO_ROOT, no untrusted input
+    out = subprocess.run(
         [str(venv_python), str(helper)],
         check=True,
         capture_output=True,
@@ -132,8 +132,8 @@ def _resolve_conv_id_from_db(tenant_id: str, after_iso: str) -> str | None:
         f"AND created_at >= '{after_iso}' "
         "ORDER BY created_at DESC LIMIT 1;"
     )
-    out = subprocess.run(  # noqa: S603 — fixed args, internal script
-        [  # noqa: S607 — `docker` resolves via PATH on dev box
+    out = subprocess.run(
+        [
             "docker",
             "exec",
             "visionarias_postgres",

@@ -46,11 +46,7 @@ from src.shared.infrastructure import model_registry  # noqa: F401
 
 
 def _resolve_tenant_id(args_tid: str | None) -> str | None:
-    return (
-        args_tid
-        or os.environ.get("VERIFY_TENANT_ID")
-        or os.environ.get("E2E_TENANT_ID")
-    )
+    return args_tid or os.environ.get("VERIFY_TENANT_ID") or os.environ.get("E2E_TENANT_ID")
 
 
 async def run_extraction(tenant_id: str, provider_name: str, days: int) -> dict:
@@ -88,9 +84,7 @@ async def run_extraction(tenant_id: str, provider_name: str, days: int) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Layer 0: Trigger ETL extraction")
     parser.add_argument("--provider", required=True, help="Provider name (e.g. meta)")
-    parser.add_argument(
-        "--days", type=int, default=7, help="Days to extract (default 7)"
-    )
+    parser.add_argument("--days", type=int, default=7, help="Days to extract (default 7)")
     parser.add_argument(
         "--env",
         choices=["local", "prod"],
@@ -103,16 +97,12 @@ def main() -> int:
     tenant_id = _resolve_tenant_id(args.tenant_id)
     if not tenant_id:
         print(
-            "ERROR: No tenant ID. Set VERIFY_TENANT_ID or E2E_TENANT_ID env var, "
-            "or pass --tenant-id.",
+            "ERROR: No tenant ID. Set VERIFY_TENANT_ID or E2E_TENANT_ID env var, or pass --tenant-id.",
             file=sys.stderr,
         )
         return 1
 
-    print(
-        f"[Layer 0] Triggering ETL for provider={args.provider} "
-        f"days={args.days} tenant={tenant_id}"
-    )
+    print(f"[Layer 0] Triggering ETL for provider={args.provider} days={args.days} tenant={tenant_id}")
 
     result = asyncio.run(run_extraction(tenant_id, args.provider, args.days))
 
@@ -125,9 +115,7 @@ def main() -> int:
         print(f"[Layer 0] FAILED: {args.provider} — {error}", file=sys.stderr)
         return 1
 
-    print(
-        f"[Layer 0] SUCCESS: {args.provider} status={status} loaded={loaded} skipped={skipped}"
-    )
+    print(f"[Layer 0] SUCCESS: {args.provider} status={status} loaded={loaded} skipped={skipped}")
     return 0
 
 

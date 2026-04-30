@@ -1,17 +1,20 @@
-import sys
 import os
+import sys
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 # Add backend to path to allow imports
 sys.path.append(os.path.join(os.getcwd(), "backend"))
 
-from src.core.config import settings
 from src.services.db.models.tenant import Tenant
+
+from src.core.config import settings
+
 
 def init_tenant_data():
     print("Starting Tenant Data Backfill...")
-    
+
     try:
         engine = create_engine(settings.DATABASE_URL)
         Session = sessionmaker(bind=engine)
@@ -22,7 +25,7 @@ def init_tenant_data():
 
     # 1. Check/Create "Visionarias" Tenant
     visionarias = session.query(Tenant).filter(Tenant.slug == "visionarias").first()
-    
+
     if not visionarias:
         print("Creating default tenant 'Visionarias'...")
         config = {
@@ -30,14 +33,9 @@ def init_tenant_data():
             "bot_name": "Visionaria",
             "price_regular": "S/. 740",
             "price_offer": "S/. 444",
-            "authorities": "Camila e Ileana"
+            "authorities": "Camila e Ileana",
         }
-        visionarias = Tenant(
-            name="Visionarias",
-            slug="visionarias",
-            config_json=config,
-            is_active=True
-        )
+        visionarias = Tenant(name="Visionarias", slug="visionarias", config_json=config, is_active=True)
         session.add(visionarias)
         session.commit()
         session.refresh(visionarias)
@@ -46,15 +44,24 @@ def init_tenant_data():
         print(f"ℹ️ Tenant 'Visionarias' already exists ({visionarias.id})")
 
     tenant_id = visionarias.id
-    
+
     # 2. Assign Tenant ID to all existing tables (Backfill)
     tables_to_update = [
-        "users", "products", "enrollments", "messages", 
-        "agent_traces", "llm_call_logs", "marketing_assets",
-        "documents", "objections", "offer_logs", 
-        "prompt_versions", "sensitive_data", "avatar_definitions"
+        "users",
+        "products",
+        "enrollments",
+        "messages",
+        "agent_traces",
+        "llm_call_logs",
+        "marketing_assets",
+        "documents",
+        "objections",
+        "offer_logs",
+        "prompt_versions",
+        "sensitive_data",
+        "avatar_definitions",
     ]
-    
+
     for table in tables_to_update:
         print(f"Updating {table}...")
         try:
@@ -64,7 +71,7 @@ def init_tenant_data():
             print(f"  -> Updated {result.rowcount} rows in {table}")
         except Exception as e:
             print(f"  ❌ Error updating {table}: {e}")
-            
+
     try:
         session.commit()
         print("✅ Data Backfill Completed Successfully.")
@@ -73,6 +80,7 @@ def init_tenant_data():
         print(f"Error committing backfill: {e}")
     finally:
         session.close()
+
 
 if __name__ == "__main__":
     init_tenant_data()

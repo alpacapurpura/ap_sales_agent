@@ -91,8 +91,7 @@ _ADS_FIELDS = (
 
 # IG breakdownable metrics (can use media_product_type breakdown)
 _IG_BREAKDOWNABLE = (
-    "reach,views,total_interactions,likes,comments,shares,"
-    "saves,accounts_engaged,profile_links_taps,replies,reposts"
+    "reach,views,total_interactions,likes,comments,shares,saves,accounts_engaged,profile_links_taps,replies,reposts"
 )
 
 # IG non-breakdownable (no breakdown allowed)
@@ -165,10 +164,7 @@ def _extract_organic_from_breakdown(item: dict) -> float:
     total = 0.0
     for bd in breakdowns:
         for result in bd.get("results", []):
-            dims = {
-                d.get("dimension_key"): d.get("dimension_value")
-                for d in result.get("dimension_values", [])
-            }
+            dims = {d.get("dimension_key"): d.get("dimension_value") for d in result.get("dimension_values", [])}
             if dims.get("media_product_type") == "AD":
                 continue
             total += float(result.get("value", 0))
@@ -182,10 +178,7 @@ def _parse_follow_type(item: dict) -> tuple[float, float]:
     total_value = item.get("total_value", {})
     for bd in total_value.get("breakdowns", []):
         for result in bd.get("results", []):
-            dims = {
-                d.get("dimension_key"): d.get("dimension_value")
-                for d in result.get("dimension_values", [])
-            }
+            dims = {d.get("dimension_key"): d.get("dimension_value") for d in result.get("dimension_values", [])}
             val = float(result.get("value", 0))
             ft = dims.get("follow_type", "")
             if ft in ("gained", "follow"):
@@ -328,14 +321,8 @@ def probe_ig_organic(
         while chunk_start <= end_date:
             chunk_end = min(chunk_start + timedelta(days=_IG_MAX_DAYS - 1), end_date)
 
-            since_ts = int(
-                datetime.combine(chunk_start, datetime.min.time()).timestamp()
-            )
-            until_ts = int(
-                datetime.combine(
-                    chunk_end + timedelta(days=1), datetime.min.time()
-                ).timestamp()
-            )
+            since_ts = int(datetime.combine(chunk_start, datetime.min.time()).timestamp())
+            until_ts = int(datetime.combine(chunk_end + timedelta(days=1), datetime.min.time()).timestamp())
 
             # 1) Breakdownable metrics with media_product_type breakdown
             url = f"{GRAPH_API_BASE}/{ig_user_id}/insights"
@@ -381,9 +368,7 @@ def probe_ig_organic(
                             results.get((chunk_end, "ig_follows_lost"), 0.0) + lost
                         )
                         results[(chunk_end, "ig_net_followers")] = (
-                            results.get((chunk_end, "ig_net_followers"), 0.0)
-                            + gained
-                            - lost
+                            results.get((chunk_end, "ig_net_followers"), 0.0) + gained - lost
                         )
 
             chunk_start = chunk_end + timedelta(days=1)
@@ -398,9 +383,7 @@ def probe_ig_organic(
         if resp.status_code == 200:
             data = resp.json()
             if "followers_count" in data:
-                results[(end_date, "ig_followers_count")] = float(
-                    data["followers_count"]
-                )
+                results[(end_date, "ig_followers_count")] = float(data["followers_count"])
             if "media_count" in data:
                 results[(end_date, "ig_media_count")] = float(data["media_count"])
 
@@ -495,9 +478,7 @@ def fetch_db_metrics(
 
     db_data: dict[tuple[date, str], float] = {}
     for row in rows:
-        metric_date = (
-            row[0] if isinstance(row[0], date) else date.fromisoformat(str(row[0]))
-        )
+        metric_date = row[0] if isinstance(row[0], date) else date.fromisoformat(str(row[0]))
         db_data[(metric_date, row[1])] = float(row[2])
     return db_data
 
@@ -555,15 +536,11 @@ def run_meta_probe(
         print("[META PROBE] No ad_account_id — skipping meta-ads.")
 
     # --- IG Organic ---
-    ig_user_id = creds.get("ig_user_id", "") or creds.get(
-        "instagram_business_account_id", ""
-    )
+    ig_user_id = creds.get("ig_user_id", "") or creds.get("instagram_business_account_id", "")
     if ig_user_id:
         print(f"[META PROBE] Probing ig-organic for user {ig_user_id} ...")
         api_data = probe_ig_organic(access_token, ig_user_id, start_date, end_date)
-        db_data = fetch_db_metrics(
-            tenant_id, "meta", "ig-organic", start_date, end_date
-        )
+        db_data = fetch_db_metrics(tenant_id, "meta", "ig-organic", start_date, end_date)
 
         all_keys = set(api_data.keys()) | set(db_data.keys())
         for key in sorted(all_keys):
@@ -587,9 +564,7 @@ def run_meta_probe(
     if page_id:
         print(f"[META PROBE] Probing fb-organic for page {page_id} ...")
         api_data = probe_fb_organic(access_token, page_id, start_date, end_date)
-        db_data = fetch_db_metrics(
-            tenant_id, "meta", "fb-organic", start_date, end_date
-        )
+        db_data = fetch_db_metrics(tenant_id, "meta", "fb-organic", start_date, end_date)
 
         all_keys = set(api_data.keys()) | set(db_data.keys())
         for key in sorted(all_keys):
@@ -617,9 +592,7 @@ def run_meta_probe(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Layer 1 — Meta Source Probe: compare Graph API with official_metrics"
-    )
+    parser = argparse.ArgumentParser(description="Layer 1 — Meta Source Probe: compare Graph API with official_metrics")
     parser.add_argument(
         "--days",
         type=int,
@@ -654,15 +627,9 @@ def main() -> None:
     args = parser.parse_args()
 
     # Resolve tenant ID
-    tid_str = (
-        args.tenant_id
-        or os.environ.get("VERIFY_TENANT_ID")
-        or os.environ.get("E2E_TENANT_ID")
-    )
+    tid_str = args.tenant_id or os.environ.get("VERIFY_TENANT_ID") or os.environ.get("E2E_TENANT_ID")
     if not tid_str:
-        print(
-            "ERROR: --tenant-id or VERIFY_TENANT_ID / E2E_TENANT_ID env var required."
-        )
+        print("ERROR: --tenant-id or VERIFY_TENANT_ID / E2E_TENANT_ID env var required.")
         sys.exit(1)
 
     tenant_id = UUID(tid_str)

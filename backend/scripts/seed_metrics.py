@@ -12,7 +12,7 @@ Usage:
 
 import random
 import uuid
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta
 
 from sqlalchemy import delete
 
@@ -58,32 +58,20 @@ def seed_data(db) -> dict:
     Returns:
         dict with counts of seeded rows.
     """
-    from src.modules.analytics.infrastructure.models.staging_metrics_model import (
-        StagingMetricModel,
+    from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+        MetricAggregationModel,
     )
     from src.modules.analytics.infrastructure.models.official_metrics_model import (
         OfficialMetricModel,
     )
-    from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
-        MetricAggregationModel,
+    from src.modules.analytics.infrastructure.models.staging_metrics_model import (
+        StagingMetricModel,
     )
 
     # --- Idempotent: clear existing seed data ---
-    db.execute(
-        delete(StagingMetricModel).where(
-            StagingMetricModel.tenant_id == SEED_TENANT_ID
-        )
-    )
-    db.execute(
-        delete(OfficialMetricModel).where(
-            OfficialMetricModel.tenant_id == SEED_TENANT_ID
-        )
-    )
-    db.execute(
-        delete(MetricAggregationModel).where(
-            MetricAggregationModel.tenant_id == SEED_TENANT_ID
-        )
-    )
+    db.execute(delete(StagingMetricModel).where(StagingMetricModel.tenant_id == SEED_TENANT_ID))
+    db.execute(delete(OfficialMetricModel).where(OfficialMetricModel.tenant_id == SEED_TENANT_ID))
+    db.execute(delete(MetricAggregationModel).where(MetricAggregationModel.tenant_id == SEED_TENANT_ID))
 
     today = date.today()
     staging_rows = []
@@ -100,18 +88,12 @@ def seed_data(db) -> dict:
             channel_slug = provider_config["channel_slug"]
 
             for metric_name, metric_def in provider_config["metrics"].items():
-                value = round(
-                    random.uniform(metric_def["min"], metric_def["max"]), 2
-                )
+                value = round(random.uniform(metric_def["min"], metric_def["max"]), 2)
                 unit = metric_def["unit"]
                 currency = metric_def.get("currency")
 
                 # Spend value for monetary metrics
-                spend_value = (
-                    {"amount": value, "currency": currency}
-                    if unit == "currency"
-                    else None
-                )
+                spend_value = {"amount": value, "currency": currency} if unit == "currency" else None
 
                 staging_row = StagingMetricModel(
                     id=uuid.uuid4(),
@@ -154,9 +136,7 @@ def seed_data(db) -> dict:
             # Daily aggregations (one per day for 7 days)
             for day_offset in range(1, 8):
                 metric_date = today - timedelta(days=day_offset)
-                value = round(
-                    random.uniform(metric_def["min"], metric_def["max"]), 2
-                )
+                value = round(random.uniform(metric_def["min"], metric_def["max"]), 2)
 
                 agg_row = MetricAggregationModel(
                     id=uuid.uuid4(),
@@ -175,9 +155,7 @@ def seed_data(db) -> dict:
 
             # Monthly rollup
             month_start = today.replace(day=1)
-            monthly_value = round(
-                random.uniform(metric_def["min"] * 20, metric_def["max"] * 30), 2
-            )
+            monthly_value = round(random.uniform(metric_def["min"] * 20, metric_def["max"] * 30), 2)
             monthly_agg = MetricAggregationModel(
                 id=uuid.uuid4(),
                 tenant_id=SEED_TENANT_ID,
@@ -206,6 +184,7 @@ def seed_data(db) -> dict:
 
 if __name__ == "__main__":
     import sys
+
     sys.path.insert(0, ".")
 
     from src.core.database import SessionLocal
