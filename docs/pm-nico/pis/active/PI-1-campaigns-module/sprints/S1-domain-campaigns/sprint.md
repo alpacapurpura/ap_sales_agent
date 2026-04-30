@@ -6,10 +6,10 @@
 |---|---|
 | Sprint ID | S1-domain-campaigns |
 | PI padre | PI-1-campaigns-module |
-| Estado | not-started (bloqueado por S0) |
-| Inicio | TBD post-S0 cierre |
+| Estado | done |
+| Inicio | 2026-04-29 |
 | Cierre estimado | +1 semana después de S0 cierre |
-| Cierre real | — |
+| Cierre real | 2026-04-29 (mismo día — Opus 1M autonomous) |
 | Owner PM | /pm |
 
 ## Objetivo (1 línea)
