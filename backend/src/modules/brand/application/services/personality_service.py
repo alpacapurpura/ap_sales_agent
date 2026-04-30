@@ -20,7 +20,10 @@ from src.modules.brand.domain.personality import (
 from src.modules.brand.infrastructure.repositories.personality_repository import (
     PersonalityProfileRepository,
 )
-from src.shared.domain.events import EventBus, PersonalityProfileUpdatedEvent
+from src.shared.domain.events import PersonalityProfileUpdatedEvent
+from src.shared.domain_events.outbox.application.event_bus_adapter import (
+    adapter_bus as EventBus,  # noqa: N812
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

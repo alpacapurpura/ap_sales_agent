@@ -335,9 +335,9 @@ def _publish_section_completed_event(
     can build the brand-studio URL without module-specific logic.
     """
     try:
-        from src.shared.domain.events import (
-            EventBus,
-            ExtractionSectionCompletedEvent,
+        from src.shared.domain.events import ExtractionSectionCompletedEvent
+        from src.shared.domain_events.outbox.application.event_bus_adapter import (
+            adapter_bus as EventBus,  # noqa: N812
         )
 
         EventBus.publish(
@@ -386,9 +386,9 @@ def _publish_completion_events(
     if not conversation_id:
         return
     try:
-        from src.shared.domain.events import (
-            EventBus,
-            ExtractionJobCompletedEvent,
+        from src.shared.domain.events import ExtractionJobCompletedEvent
+        from src.shared.domain_events.outbox.application.event_bus_adapter import (
+            adapter_bus as EventBus,  # noqa: N812
         )
 
         source_ref = url or "documento"
